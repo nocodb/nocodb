@@ -28,8 +28,7 @@ interface ProjectCreateForm {
 interface DefaultConnection {
   host: string
   database: string
-  // Credentials may be a literal or a `{{ secrets.alias.name }}` reference into a
-  // connected Enterprise Vault — the backend resolves it at connect time.
+  // May be a vault reference, resolved by the backend.
   user: string
   password: string
   port: number | string

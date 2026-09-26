@@ -1,29 +1,12 @@
 <script lang="ts">
-/**
- * `$attrs` are forwarded to the inner `<input>` (below), so Vue must not ALSO
- * apply them to the root — a `data-testid` handed to this component would
- * otherwise land on both and make a bare `getByTestId` ambiguous.
- */
+/** `$attrs` go to the inner `<input>`, not the root. */
 export default { inheritAttrs: false }
 </script>
 
 <script setup lang="ts">
 /**
- * A single-line input with a grouped, keyboard-navigable suggestion list that
- * never takes the field away from the user: whatever is typed is the value,
- * and the suggestions are an aid.
- *
- * Interaction is modelled on the workflow variable picker
- * (`WorkflowVariablePicker.vue`) — grouped items, arrow keys to move, Enter to
- * take, Escape to dismiss. What it deliberately does NOT inherit is that
- * picker's TipTap host: `WorkflowInput` exists to compose one string out of
- * several inline mentions plus surrounding text, so its value is a rich
- * document. This is for a single scalar that is picked or typed, where a
- * rich-text editor would both be far heavier and permit `prefix{{x}}suffix`
- * that the caller would then have to validate back out.
- *
- * Generic on purpose — it knows nothing about what it is completing. Feed it
- * `options` (or `groups`) and it will complete anything.
+ * A single-line input with grouped, keyboard-navigable suggestions. What is
+ * typed is the value; suggestions are an aid.
  */
 interface SuggestOption {
   value: string
@@ -31,10 +14,8 @@ interface SuggestOption {
   /** Secondary line, e.g. what a value means. */
   description?: string
   /**
-   * Splice over `[from, to)` instead of replacing the whole field — for callers
-   * completing one segment of a larger value. Inserts `text` (default `value`);
-   * the caret lands at `caret`, or after the inserted text. `done` closes the
-   * menu instead of reopening it for a next segment.
+   * Splice over `[from, to)` instead of replacing the field, for completing one
+   * segment. `done` closes the menu instead of reopening it.
    */
   replace?: { from: number; to: number; text?: string; caret?: number; done?: boolean }
 }
@@ -53,13 +34,13 @@ interface Props {
   loading?: boolean
   disabled?: boolean
   readOnly?: boolean
-  /** A value outside the list is valid. Off makes this a filterable select. */
+  /** A value outside the list is valid. */
   allowFreeText?: boolean
   emptyText?: string
   inputClass?: string
-  /** Off when the caller already narrowed `options` to what is being typed. */
+  /** Off when the caller already narrowed `options`. */
   filter?: boolean
-  /** Off when an empty list is a normal state, e.g. a valid value typed by hand. */
+  /** Off when an empty list is a normal state. */
   showEmpty?: boolean
 }
 
@@ -80,10 +61,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emits = defineEmits<{
   (event: 'update:modelValue', value: string): void
-  /**
-   * Every keystroke and caret move, so a caller can refill `options` for the
-   * segment under the caret.
-   */
+  /** Every keystroke and caret move. */
   (event: 'search', value: string, caret: number): void
   (event: 'select', option: SuggestOption): void
 }>()
@@ -96,16 +74,9 @@ const isOpen = ref(false)
 
 const activeIndex = ref(0)
 
-// The typed text, which is the value. Kept separate from `modelValue` so a
-// parent echoing the same value back does not fight the caret.
+// Separate from `modelValue` so an echoed value does not fight the caret.
 const query = ref(props.modelValue ?? '')
 
-/**
- * One flat list, with the group each option came from. Flattening up front
- * keeps arrow-key movement a single index rather than a (group, option) pair —
- * the picker this borrows from needs the pair because it drills INTO a group;
- * here every option is reachable at one level.
- */
 const flatOptions = computed<(SuggestOption & { group?: string })[]>(() => {
   const fromGroups = props.groups.flatMap((group) => group.options.map((option) => ({ ...option, group: group.label })))
 
@@ -122,7 +93,6 @@ const filtered = computed(() => {
   return flatOptions.value.filter((option) => `${option.label ?? option.value}`.toLowerCase().includes(needle))
 })
 
-/** Rendered as headed sections only when the caller supplied groups. */
 const sections = computed(() => {
   const out: { label?: string; options: (SuggestOption & { index: number })[] }[] = []
 
@@ -181,8 +151,7 @@ function choose(option: SuggestOption) {
     return
   }
 
-  // Segment mode: splice, park the caret, and stay open so the next segment's
-  // suggestions follow without another keystroke.
+  // Segment mode: splice, place the caret, stay open for the next segment.
   const { from, to, caret } = option.replace
   const inserted = option.replace.text ?? option.value
   const next = query.value.slice(0, from) + inserted + query.value.slice(to)
@@ -231,8 +200,7 @@ function onKeyDown(event: KeyboardEvent) {
   if (event.key === 'Enter') {
     if (!isOpen.value || !hasSuggestions.value) return
 
-    // Only swallow Enter when it is actually taking a suggestion, so the key
-    // still submits the surrounding form in every other case.
+    // Only when taking a suggestion, so Enter still submits the form otherwise.
     event.preventDefault()
     event.stopPropagation()
 
@@ -262,8 +230,6 @@ function onCaretMove(event: Event) {
 }
 
 function onBlur() {
-  // Without free text the field is a filterable select, so anything that is not
-  // an option is discarded rather than silently kept.
   if (!props.allowFreeText && !flatOptions.value.some((option) => option.value === query.value)) {
     commit('')
   }
@@ -280,7 +246,6 @@ watch(
   },
 )
 
-// A refilled list invalidates wherever the highlight was pointing.
 watch(filtered, () => {
   activeIndex.value = 0
 })
@@ -336,9 +301,7 @@ watch(filtered, () => {
       </template>
     </div>
 
-    <!-- Only shown once something has been typed: an empty list on an untouched
-         field is the normal state for a source that has nothing to offer, and
-         saying so would read as an error. -->
+    <!-- Only once something is typed: an untouched empty list is normal. -->
     <div
       v-else-if="showEmpty && isOpen && query && !hasSuggestions"
       class="nc-suggest-input-menu absolute z-50 mt-1 w-full rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default px-3 py-2 text-bodySm text-nc-content-gray-muted shadow-lg"

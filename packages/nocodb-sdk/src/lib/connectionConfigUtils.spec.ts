@@ -1,4 +1,7 @@
-import { DB_CREDENTIAL_FIELDS, isVaultReferenceablePath } from './connectionConfigUtils';
+import {
+  DB_CREDENTIAL_FIELDS,
+  isVaultReferenceablePath,
+} from './connectionConfigUtils';
 
 describe('DB_CREDENTIAL_FIELDS', () => {
   it.each([
@@ -11,8 +14,7 @@ describe('DB_CREDENTIAL_FIELDS', () => {
     expect(isVaultReferenceablePath(path)).toBe(true);
   });
 
-  // `client` decides which paid-client gate and SQLite guard apply before
-  // resolution; a reference there would slip past both.
+  // `client` is read before resolution.
   it.each([
     [['client']],
     [['connection', 'host']],
@@ -28,7 +30,9 @@ describe('DB_CREDENTIAL_FIELDS', () => {
   });
 
   it('matches whole paths only', () => {
-    expect(isVaultReferenceablePath(['connection', 'password', 'x'])).toBe(false);
+    expect(isVaultReferenceablePath(['connection', 'password', 'x'])).toBe(
+      false
+    );
     expect(isVaultReferenceablePath(['password'])).toBe(false);
   });
 

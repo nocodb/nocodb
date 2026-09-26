@@ -1,35 +1,10 @@
 /**
- * Enterprise Vaults — integration credentials sourced from a workspace's OWN
- * secrets manager.
+ * Enterprise Vaults. A credential field holds a reference, fetched from the
+ * provider at connection time:
  *
- * A credential field holds a REFERENCE, never the secret:
+ *     { "$vault": { "alias": "awsProd", "secret": "prod/db/creds", "path": ["password"] } }
  *
- *     { "$vault": { "alias": "awsProd",
- *                   "secret": "prod/db/creds",
- *                   "path": ["password"] } }
- *
- * An object rather than a string so intent is structural: `$vault` present
- * means a reference was intended, and a malformed one is a validation error
- * rather than a password stored in the clear. `formatSecretRef` renders the
- * readable `secrets.awsProd["prod/db/creds"].password` form for display only.
- *
- * The value is fetched from the provider at connection time, server-side, and
- * lives only in the transient connection config.
- *
- * The syntax is Retool's, deliberately — it is the shipped convention for this
- * exact feature in a SaaS admin UI. Three places where we diverge, each for a
- * documented reason:
- *
- *  1. The vault alias is MANDATORY. Retool made it optional with a mutable
- *     default and now publishes a caution that changing the default silently
- *     re-points every unqualified reference. n8n migrated to a required alias
- *     for the same reason.
- *  2. Sub-keys into a JSON secret ARE supported. n8n's providers return raw
- *     strings, which makes an AWS RDS-managed secret (`{"username":..,
- *     "password":..}`) unusable without hand-splitting it into two secrets.
- *  3. A reference must be the WHOLE field value. Every product that documents
- *     the question — Kong, Databricks, dbt — forbids mid-string interpolation,
- *     because it makes redaction and "is this field vault-backed?" unanswerable.
+ * `formatSecretRef` renders it as `secrets.awsProd["prod/db/creds"].password`.
  */
 
 /** Secrets providers a workspace can connect. */
@@ -44,21 +19,10 @@ export enum VaultProviderType {
 /** The fixed root of every reference. */
 export const SECRETS_NAMESPACE = 'secrets';
 
-/**
- * A vault's alias — the first segment of every reference, chosen by the admin
- * who connects it and immutable afterwards (references embed it).
- *
- * Constrained to a bare JS identifier so `secrets.myVault` always parses in dot
- * form; the bracket escape hatch then only ever has to cover SECRET names,
- * which routinely contain `/` and `-`.
- */
+/** A vault's alias: a bare identifier, so `secrets.alias` always parses in dot form. */
 export const VAULT_ALIAS_PATTERN = /^[a-zA-Z][a-zA-Z0-9]*$/;
 
-/**
- * Aliases a workspace may not take. Kong reserves its built-in backend names
- * the same way (`not_one_of = VAULTS`) so a customer-named vault can never
- * shadow one and make a reference mean two things.
- */
+/** Aliases a vault may not take. */
 export const RESERVED_VAULT_ALIASES = [
   'secrets',
   'secret',
@@ -92,37 +56,15 @@ export interface ParsedSecretRef {
   alias: string;
   /** Provider-native secret identifier (ARN or name, KV path, secret name). */
   secret: string;
-  /**
-   * Key path into a JSON secret. Empty means "the whole secret", which must
-   * then resolve to a string — Azure Key Vault, Google Secret Manager and
-   * Conjur store opaque strings with no sub-key.
-   */
+  /** Key path into a JSON secret. Empty means the whole secret, a string. */
   path: string[];
 }
 
-/**
- * Permissive detector: does this value MENTION the secrets namespace inside
- * `{{ }}`, whether or not it parses.
- *
- * A reference is an object, so a typo can no longer BECOME one by accident.
- * What this still catches is a human pasting the brace syntax into a plain
- * field — from older docs, another instance, or a colleague — which would
- * otherwise be stored verbatim as the credential. Databricks documents exactly
- * that failure: "Otherwise, the environment variable is considered a plain text
- * environment variable." Save paths reject it and point at the vault toggle.
- */
+/** Whether a plain value contains the `{{ secrets… }}` brace syntax, parsed or not. */
 export const mentionsSecretsNamespace = (value: unknown): boolean => {
   if (typeof value !== 'string') return false;
 
-  // Deliberately NOT "a closed {{ … }} containing the word `secrets`". That is
-  // blind to the two failures most worth catching — `{{ secret.v.k }}`
-  // (singular, so no `secrets`) and `{{ secrets.v.k` (never closed) — which are
-  // exactly the typos this guard exists for.
-  //
-  // The signal is instead: a brace, plus member access on `secret`/`secrets`.
-  // A literal password would have to contain both to trip it, and being told to
-  // fix a strange-looking password beats silently storing a broken reference as
-  // the credential.
+  // Also catches `{{ secret.v.k }}` and an unclosed `{{ secrets.v.k`.
   return value.includes('{') && /\bsecrets?\s*[.[]/.test(value);
 };
 
@@ -136,21 +78,7 @@ export interface VaultSecretRef {
   };
 }
 
-/**
- * Parse a stored field value into a reference, or null when it is not one.
- *
- * A reference is an OBJECT, not a string. The string form this replaced could
- * not distinguish "meant as a reference but mistyped" from "a password that
- * happens to contain braces" — so a typo was stored as the credential, and a
- * heuristic (`mentionsSecretsNamespace`) had to guess. An object carries intent
- * structurally: `$vault` present means a reference was intended, and a
- * malformed one is a validation error rather than a password.
- *
- * n8n avoids the same problem differently, by marking expressions with a
- * leading `=` on the string. That works there because `$secrets` rides on a
- * general expression evaluator; an integration config has no expression layer,
- * and a sentinel prefix would misread a literal password beginning with `=`.
- */
+/** The reference in a stored field value, or null. */
 export const parseSecretRef = (value: unknown): ParsedSecretRef | null => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
 
@@ -190,10 +118,7 @@ export const buildSecretRef = ({
 const accessor = (segment: string): string =>
   isJsIdentifier(segment) ? `.${segment}` : `[${JSON.stringify(segment)}]`;
 
-/**
- * Human-readable rendering, for the picker's preview and for error messages.
- * Display only — never stored, never parsed back.
- */
+/** Readable form, for display and input. */
 export const formatSecretRef = ({
   alias,
   secret,
@@ -207,13 +132,7 @@ export const formatSecretRef = ({
     .map(accessor)
     .join('')}`;
 
-/**
- * What a partially-typed reference says so far.
- *
- * The picker completes one segment at a time, so it needs to know which segment
- * the caret is in and what has been settled before it — not just whether the
- * whole string parses.
- */
+/** A partly typed reference, for segment-by-segment completion. */
 export interface SecretRefDraft {
   /** Settled segments: alias, then secret, then key path. */
   segments: string[];
@@ -231,13 +150,7 @@ export interface SecretRefDraft {
 
 const QUOTES = ['"', "'"];
 
-/**
- * Tokenize `secrets.alias["secret"].key` — the form `formatSecretRef` emits.
- *
- * Deliberately tolerant of an unfinished tail, because it runs on every
- * keystroke. `valid` is false only when the text contains something the grammar
- * cannot read at all, which is what the strict parser below keys on.
- */
+/** Tokenize the readable form, tolerating an unfinished tail. */
 export const parseSecretRefDraft = (text: string): SecretRefDraft => {
   const draft: SecretRefDraft = {
     segments: [],
@@ -257,8 +170,6 @@ export const parseSecretRefDraft = (text: string): SecretRefDraft => {
 
   ws();
 
-  // The namespace may itself be half-typed (`secr`), which is rooted enough to
-  // offer aliases once it completes but not before.
   if (!raw.startsWith(SECRETS_NAMESPACE, i)) {
     draft.valid = false;
     draft.fragmentStart = i;
@@ -282,8 +193,7 @@ export const parseSecretRefDraft = (text: string): SecretRefDraft => {
       let ident = '';
       while (i < raw.length && /[A-Za-z0-9_$]/.test(raw[i])) ident += raw[i++];
 
-      // A settled segment only when something else follows it; otherwise the
-      // user is still typing this one.
+      // Settled only once something follows it.
       if (i < raw.length) {
         draft.segments.push(ident);
       } else {
@@ -306,8 +216,7 @@ export const parseSecretRefDraft = (text: string): SecretRefDraft => {
       draft.fragmentStart = i;
       draft.bracketed = true;
 
-      // Escape-aware, because `formatSecretRef` renders with JSON.stringify:
-      // a secret named `a"b` comes out as `["a\\"b"]`.
+      // `formatSecretRef` escapes with JSON.stringify.
       let value = '';
       while (i < raw.length && raw[i] !== quote) {
         if (raw[i] === '\\' && i + 1 < raw.length) {
@@ -347,20 +256,11 @@ export const parseSecretRefDraft = (text: string): SecretRefDraft => {
   return draft;
 };
 
-/**
- * Parse the readable form back into a reference.
- *
- * The inverse of `formatSecretRef`, and the ONLY place a string becomes a
- * reference. It lives at the picker boundary — where the user has already said
- * "this field is vault-backed" — so intent is explicit. Nothing downstream
- * infers a reference from text, which is what keeps a mistyped password from
- * being stored as a credential.
- */
+/** Parse the readable form. The only place text becomes a reference. */
 export const parseSecretRefText = (text: string): ParsedSecretRef | null => {
   const draft = parseSecretRefDraft(text);
 
-  // `bracketed` survives to the end only when a `["` was never closed — that is
-  // a segment still being typed, not a secret named by its prefix.
+  // A `["` left open is still being typed.
   if (!draft.rooted || !draft.valid || draft.bracketed) return null;
 
   const segments = [...draft.segments];
@@ -375,14 +275,11 @@ export const parseSecretRefText = (text: string): ParsedSecretRef | null => {
   return { alias, secret, path };
 };
 
-/**
- * Splice a chosen completion over the segment being typed, in the accessor
- * form `formatSecretRef` would have produced for it.
- */
+/** Splice a completion over the segment being typed. */
 export const applySecretRefCompletion = (
   text: string,
   draft: SecretRefDraft,
-  value: string,
+  value: string
 ): string => {
   const head = (text ?? '').slice(0, draft.fragmentStart);
 
@@ -396,15 +293,8 @@ export const applySecretRefCompletion = (
 };
 
 /**
- * The recorded outcome of the last `vaultTestConnection` run against a STORED
- * vault. Absent means the vault has never been probed — which is a third state,
- * not a failure: nothing may render a vault as reachable on the strength of the
- * row existing.
- *
- * Carries no message. `meta` is returned by every list/read response, so a
- * provider error recorded here would be readable by anyone who may list vaults;
- * the message only ever travels in the `VaultTestResultType` handed back to the
- * caller who ran the probe.
+ * Outcome of the last probe of a stored vault; absent means never probed. No
+ * message: `meta` is public.
  */
 export interface VaultLastTestType {
   ok: boolean;
@@ -418,38 +308,18 @@ export interface VaultMetaType {
   [key: string]: any;
 }
 
-/**
- * A connected vault. Mirrors `nc_vaults`, minus `config` — the provider auth
- * parameters NEVER leave the backend, not even to a workspace owner. Clients
- * only ever see which provider is connected and whether it is reachable.
- *
- * `title` doubles as the reference alias, so it is unique per workspace and
- * immutable once set.
- */
+/** A connected vault, without `config`: auth parameters never leave the backend. */
 export interface VaultType {
   id?: string;
-  /** Set when the vault belongs to ONE workspace. Mutually exclusive with `fk_org_id`. */
+  /** Set for a workspace vault. Exclusive with `fk_org_id`. */
   fk_workspace_id?: string;
-  /** Set when the vault is shared by every workspace in the org. */
+  /** Set for an org vault. */
   fk_org_id?: string;
-  /**
-   * The alias used in references. Matches VAULT_ALIAS_PATTERN.
-   *
-   * Unique across BOTH scopes, not per scope: two vaults named `awsProd` — one
-   * on the org, one on a workspace — would make `{{ secrets.awsProd.password }}`
-   * resolve against a different AWS account depending on who read it, with
-   * nothing in the reference to show it. n8n makes its provider key globally
-   * unique for the same reason; Retool allows the collision and publishes a
-   * caution about it.
-   */
+  /** The reference alias. Unique across org and workspace scope. */
   title?: string;
   provider?: VaultProviderType;
   meta?: VaultMetaType;
-  /**
-   * Display-only name of the owning workspace, joined in by the org-management
-   * listing so its Scope column can name the workspace rather than print an id.
-   * Never persisted, and absent everywhere else — including on org-owned rows.
-   */
+  /** Owning workspace's name, on the org listing only. */
   workspace_title?: string;
   created_by?: string;
   created_at?: string;
@@ -474,13 +344,7 @@ export interface VaultProviderField {
   helpText?: string;
 }
 
-/**
- * Per-provider presentation + form definition, so the connect wizard is
- * data-driven rather than five hand-written branches.
- *
- * `available` gates the picker: every provider in the design is listed, but only
- * those with a working driver can be selected.
- */
+/** Per-provider picker and form definition. `available` = has a working driver. */
 export interface VaultProviderMeta {
   type: VaultProviderType;
   title: string;
@@ -547,8 +411,6 @@ export const VAULT_PROVIDER_META: Record<VaultProviderType, VaultProviderMeta> =
       authLabel: 'Entra ID · client cert',
       icon: 'ncLogoAzureColored',
       available: false,
-      // A Key Vault secret is one opaque string — a reference names the whole
-      // secret.
       supportsProperty: false,
       fields: [],
     },
@@ -576,7 +438,7 @@ export const VAULT_PROVIDER_META: Record<VaultProviderType, VaultProviderMeta> =
     },
   };
 
-/** Picker order — matches the design. */
+/** Picker order. */
 export const VAULT_PROVIDER_ORDER: VaultProviderType[] = [
   VaultProviderType.HASHICORP_VAULT,
   VaultProviderType.AWS_SECRETS_MANAGER,

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-// CE stub — Enterprise Vaults are an EE feature. The EE overlay
-// (ee/components/admin/Vaults.vue) manages the organization's secrets providers.
+// CE stub — see the EE overlay.
 withDefaults(
   defineProps<{
     orgId?: string

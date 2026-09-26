@@ -1,14 +1,4 @@
-/**
- * The reference parser is the single seam every consumer goes through — the
- * frontend picker, the backend resolver and the masking layer all decide "is
- * this field vault-backed?" by calling `parseSecretRef`. It is pure, so it is
- * covered here directly rather than only through the surfaces that use it.
- *
- * The case that matters most is the negative one: a reference is an OBJECT now,
- * and the `{{ secrets… }}` string form was removed. If a string ever parses
- * again, a password containing braces becomes a reference and the field stops
- * being a password.
- */
+/** A reference is an object; no string form may parse as one. */
 import {
   RESERVED_VAULT_ALIASES,
   SECRETS_NAMESPACE,
@@ -141,8 +131,7 @@ describe('parseSecretRef', () => {
   });
 
   describe('every string is a plain value, never a reference', () => {
-    // The brace form was the stored syntax once. It must not resolve any more,
-    // or a value written against the old docs silently becomes vault-backed.
+    // The old brace form must not resolve.
     it.each([
       '',
       'hunter2',
@@ -263,8 +252,6 @@ describe('formatSecretRef', () => {
     ).toBe(true);
   });
 
-  // Display only: the readable form is NOT the stored form, so feeding it back
-  // in must not resolve.
   it('output is not parseable back into a reference', () => {
     const rendered = formatSecretRef({ alias: 'awsProd', secret: 'creds' });
 
@@ -377,7 +364,9 @@ describe('parseSecretRefText — the readable form back to a reference', () => {
   });
 
   it('accepts single quotes and surrounding whitespace', () => {
-    expect(parseSecretRefText("  secrets.awsProd['prod/db'].password ")).toEqual({
+    expect(
+      parseSecretRefText("  secrets.awsProd['prod/db'].password ")
+    ).toEqual({
       alias: 'awsProd',
       secret: 'prod/db',
       path: ['password'],

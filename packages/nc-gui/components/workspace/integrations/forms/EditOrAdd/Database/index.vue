@@ -115,9 +115,7 @@ const isDisabledSubmitBtn = computed(() => {
   return !testSuccess.value
 })
 
-// A credential that already points into a vault replaces its plain input —
-// otherwise the ref would read back as an empty password box. The picker also
-// reports its own mode, because a half-made pick is not yet a valid reference.
+// A vault-backed credential replaces its plain input.
 const isVaultModeUser = ref(false)
 
 const isVaultModePassword = ref(false)

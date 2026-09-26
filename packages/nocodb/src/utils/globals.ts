@@ -784,8 +784,7 @@ export const RootScopeTables = {
     MetaTable.OAUTH_TOKENS,
     MetaTable.TEAMS,
     MetaTable.ENVIRONMENTS,
-    // Dual-scoped (org OR workspace), so every read/write runs under ROOT with
-    // the scope expressed by the fk columns — see Vault.
+    // Dual-scoped: runs under ROOT, scoped by the fk columns.
     MetaTable.VAULTS,
     MetaTable.BOOKMARK_GROUPS,
     MetaTable.BOOKMARKS,

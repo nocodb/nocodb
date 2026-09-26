@@ -417,8 +417,7 @@ watch(activeViewTab, (value) => {
 
                 <!-- Real content (shown after load or in modal mode) -->
                 <template v-else>
-                  <!-- Enterprise Vaults CTA — a manager surface, so never in the
-                       modal reuse of this tab. -->
+                  <!-- Enterprise Vaults CTA; not in the modal reuse of this tab. -->
                   <WorkspaceIntegrationsVaultBanner
                     v-if="isEeUI && showActiveConnections && !isModal && isUIAllowed('integrationManage')"
                   />

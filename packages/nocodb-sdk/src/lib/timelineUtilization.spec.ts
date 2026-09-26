@@ -5,8 +5,11 @@ import {
   dayNumberWeekday,
   formatUtilizationPercent,
   instantToDayNumber,
+  MONDAY_TO_FRIDAY,
+  remapDateAxisSummaryIds,
   utilizationColor,
   utilizationPercent,
+  workingDayMask,
 } from './timelineUtilization';
 
 const day = dateStringToDayNumber;
@@ -29,11 +32,14 @@ describe('timelineUtilization', () => {
   });
 
   it('counts workdays across partial weeks', () => {
-    expect(countCountedDays(week1.startDay, week1.endDay - 1, true)).toBe(5);
-    expect(countCountedDays(day('2026-09-11'), day('2026-09-15'), true)).toBe(
-      3,
+    const monFri = workingDayMask(MONDAY_TO_FRIDAY);
+    expect(countCountedDays(week1.startDay, week1.endDay - 1, monFri)).toBe(5);
+    expect(countCountedDays(day('2026-09-11'), day('2026-09-15'), monFri)).toBe(
+      3
     );
-    expect(countCountedDays(day('2026-09-11'), day('2026-09-15'))).toBe(5);
+    expect(
+      countCountedDays(day('2026-09-11'), day('2026-09-15'), workingDayMask())
+    ).toBe(5);
   });
 
   it('pro-rates a weekly allocation over the days it covers', () => {
@@ -77,7 +83,7 @@ describe('timelineUtilization', () => {
       allocatedRate: 'total',
       availableRate: 'week',
       availableValue: 40,
-      workdaysOnly: true,
+      workingDays: MONDAY_TO_FRIDAY,
     });
     const a = res.groups[0];
     expect(a.buckets[0].allocated).toBeCloseTo(38);
@@ -98,7 +104,7 @@ describe('timelineUtilization', () => {
       ],
       allocatedRate: 'day',
       availableRate: 'day',
-      workdaysOnly: true,
+      workingDays: MONDAY_TO_FRIDAY,
     });
     expect(res.groups[0].buckets[0]).toMatchObject({
       allocated: 0,
@@ -124,7 +130,7 @@ describe('timelineUtilization', () => {
       ],
       allocatedRate: 'day',
       availableRate: 'day',
-      workdaysOnly: true,
+      workingDays: MONDAY_TO_FRIDAY,
     });
     const cell = res.groups[0].buckets[0];
     expect(cell.allocated).toBe(24);
@@ -152,6 +158,91 @@ describe('timelineUtilization', () => {
     const full = computeUtilization({ ...base, multipleResources: 'full' });
     expect(full.groups.map((g) => g.buckets[0].allocated)).toEqual([10, 10]);
     expect(full.buckets[0]).toMatchObject({ allocated: 20, available: 80 });
+  });
+
+  it('honours a Sunday–Thursday working week', () => {
+    const res = computeUtilization({
+      buckets: [week1],
+      tasks: [
+        {
+          fromDay: day('2026-09-07'),
+          toDay: day('2026-09-13'),
+          allocated: 20,
+          resources: ['a'],
+          available: 40,
+        },
+      ],
+      allocatedRate: 'total',
+      availableRate: 'week',
+      workingDays: [0, 1, 2, 3, 4],
+    });
+    // Mon–Thu + Sun count; Fri 11th and Sat 12th don't.
+    expect(res.groups[0].buckets[0]).toMatchObject({
+      allocated: 20,
+      available: 40,
+    });
+  });
+
+  it('stays linear on dense, long windows', () => {
+    const buckets = Array.from({ length: 150 }, (_, i) => ({
+      startDay: 20000 + i * 24,
+      endDay: 20000 + (i + 1) * 24,
+    }));
+    const tasks = Array.from({ length: 50_000 }, (_, i) => ({
+      fromDay: 20000 + (i % 3000),
+      toDay: 20000 + (i % 3000) + 400,
+      allocated: 8,
+      resources: [`r${i % 200}`],
+    }));
+    const started = Date.now();
+    const res = computeUtilization({
+      buckets,
+      tasks,
+      allocatedRate: 'day',
+      availableRate: 'week',
+      availableValue: 40,
+    });
+    expect(res.groups).toHaveLength(200);
+    expect(Date.now() - started).toBeLessThan(2000);
+  });
+
+  it('remaps a summary onto a copied base', () => {
+    const ids: Record<string, string> = {
+      hours: 'h2',
+      person: 'p2',
+      cap: 'c2',
+      off: 'o2',
+      offLink: 'ol2',
+      offStart: 'os2',
+    };
+    const summary = {
+      fk_column_id: 'hours',
+      aggregation: 'utilization',
+      utilization: {
+        allocated_rate: 'week' as const,
+        available_rate: 'week' as const,
+        fk_resource_column_id: 'person',
+        fk_available_column_id: 'cap',
+        time_off: {
+          fk_model_id: 'off',
+          fk_link_column_id: 'offLink',
+          fk_start_column_id: 'offStart',
+          fk_end_column_id: 'offEnd',
+        },
+      },
+    };
+    const remapped = remapDateAxisSummaryIds(summary, (id) => ids[id]);
+    expect(remapped?.fk_column_id).toBe('h2');
+    expect(remapped?.utilization).toMatchObject({
+      fk_resource_column_id: 'p2',
+      fk_available_column_id: 'c2',
+      time_off: null, // its end-date field has no counterpart
+    });
+    expect(
+      remapDateAxisSummaryIds(summary, (id) =>
+        id === 'person' ? null : ids[id]
+      )
+    ).toBeUndefined();
   });
 
   it('reports unavailable resources as infinite', () => {

@@ -706,7 +706,7 @@ export const useNocoAi = createSharedComposable(() => {
         { operation: 'fieldAgentGenerate' },
         { tableId: modelId, ...params },
       )) as { id: string }
-      $e('a:field-agent:bulk:dispatch', { mode: params.mode })
+      $e('a:custom-agent:bulk:start', { mode: params.mode })
       return res
     } catch (e: any) {
       const error = await extractSdkResponseErrorMsg(e)

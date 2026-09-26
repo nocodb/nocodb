@@ -2,19 +2,29 @@
  * Enterprise Vaults — integration credentials sourced from a workspace's OWN
  * secrets manager.
  *
- * NocoDB stores a REFERENCE, never the secret. A credential field in an
- * integration config carries a `$secretRef` leaf naming (store, key, property);
- * the value is fetched from the provider at connection time and lives only in
- * the transient connection config.
+ * A credential field holds a REFERENCE, never the secret:
  *
- * The reference shape follows the External Secrets Operator's `remoteRef`
- * ({key, property, version}) rather than inventing one. ESO is the only
- * widely-adopted convention built for this exact problem — one secret in an
- * external store that may itself be a JSON document — and it already backs 20+
- * providers, so it reads as familiar to the platform engineers who administer
- * this. AWS ships the same concept twice as a string (ECS `valueFrom` ARN
- * suffixes, CloudFormation `{{resolve:secretsmanager:…}}`) with the same
- * segment order, which is a useful corroboration of the field set.
+ *     {{ secrets.awsProd.dbCreds.password }}
+ *     {{ secrets.awsProd['prod/db/creds'].password }}
+ *     {{ secrets['awsProd']['prod/db/creds']['password'] }}
+ *
+ * The value is fetched from the provider at connection time, server-side, and
+ * lives only in the transient connection config.
+ *
+ * The syntax is Retool's, deliberately — it is the shipped convention for this
+ * exact feature in a SaaS admin UI. Three places where we diverge, each for a
+ * documented reason:
+ *
+ *  1. The vault alias is MANDATORY. Retool made it optional with a mutable
+ *     default and now publishes a caution that changing the default silently
+ *     re-points every unqualified reference. n8n migrated to a required alias
+ *     for the same reason.
+ *  2. Sub-keys into a JSON secret ARE supported. n8n's providers return raw
+ *     strings, which makes an AWS RDS-managed secret (`{"username":..,
+ *     "password":..}`) unusable without hand-splitting it into two secrets.
+ *  3. A reference must be the WHOLE field value. Every product that documents
+ *     the question — Kong, Databricks, dbt — forbids mid-string interpolation,
+ *     because it makes redaction and "is this field vault-backed?" unanswerable.
  */
 
 /** Secrets providers a workspace can connect. */
@@ -26,54 +36,162 @@ export enum VaultProviderType {
   CYBERARK_CONJUR = 'cyberark_conjur',
 }
 
+/** The fixed root of every reference. */
+export const SECRETS_NAMESPACE = 'secrets';
+
 /**
- * A pointer to one value inside a connected vault. Embedded as a leaf in an
- * integration config in place of the credential itself.
+ * A vault's alias — the first segment of every reference, chosen by the admin
+ * who connects it and immutable afterwards (references embed it).
  *
- * `property` is OPTIONAL by design: AWS Secrets Manager and HashiCorp KV hold
- * JSON documents you address into, while Azure Key Vault, Google Secret Manager
- * and Conjur hold one opaque string per secret — for those, the reference names
- * the whole secret and `property` is omitted.
+ * Constrained to a bare JS identifier so `secrets.myVault` always parses in dot
+ * form; the bracket escape hatch then only ever has to cover SECRET names,
+ * which routinely contain `/` and `-`.
  */
-export interface VaultSecretRef {
-  $secretRef: {
-    /** `nc_vaults.id` of the connected provider. */
-    store: string;
-    /** Provider-native secret identifier (ARN or name, KV path, secret name). */
-    key: string;
-    /** Field within a JSON secret. Omitted when the secret is a plain string. */
-    property?: string;
-    /** Provider-native version/stage (e.g. `AWSCURRENT`). Defaults to latest. */
-    version?: string;
-  };
+export const VAULT_ALIAS_PATTERN = /^[a-zA-Z][a-zA-Z0-9]*$/;
+
+/**
+ * Aliases a workspace may not take. Kong reserves its built-in backend names
+ * the same way (`not_one_of = VAULTS`) so a customer-named vault can never
+ * shadow one and make a reference mean two things.
+ */
+export const RESERVED_VAULT_ALIASES = [
+  'secrets',
+  'secret',
+  'vault',
+  'vaults',
+  'aws',
+  'azure',
+  'gcp',
+  'google',
+  'hcv',
+  'hashicorp',
+  'conjur',
+  'cyberark',
+  'env',
+];
+
+export const isValidVaultAlias = (alias: string): boolean =>
+  typeof alias === 'string' &&
+  VAULT_ALIAS_PATTERN.test(alias) &&
+  !RESERVED_VAULT_ALIASES.includes(alias.toLowerCase());
+
+/** Whether a segment can be written in dot form rather than brackets. */
+const JS_IDENTIFIER = /^[A-Za-z_$][A-Za-z0-9_$]*$/;
+
+export const isJsIdentifier = (segment: string): boolean =>
+  typeof segment === 'string' && JS_IDENTIFIER.test(segment);
+
+/** A parsed reference. */
+export interface ParsedSecretRef {
+  /** Vault alias — `nc_vaults.title`. */
+  alias: string;
+  /** Provider-native secret identifier (ARN or name, KV path, secret name). */
+  secret: string;
+  /**
+   * Key path into a JSON secret. Empty means "the whole secret", which must
+   * then resolve to a string — Azure Key Vault, Google Secret Manager and
+   * Conjur store opaque strings with no sub-key.
+   */
+  path: string[];
 }
 
 /**
- * Whether a config value is a vault reference rather than a literal. The single
- * definition — backend resolver, response masking and the frontend form all use
- * this, so the shape can never drift between them.
+ * Permissive detector: does this value MENTION the secrets namespace inside
+ * `{{ }}`, whether or not it parses.
+ *
+ * Save paths use this to reject a malformed reference instead of storing it.
+ * Without that check a typo (`{{ secret.v.k }}`, a missing brace) is persisted
+ * verbatim as the credential — Databricks documents exactly this failure:
+ * "Otherwise, the environment variable is considered a plain text environment
+ * variable." A password-shaped typo would land in the meta DB in the clear.
  */
-export const isVaultSecretRef = (value: unknown): value is VaultSecretRef => {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-  const ref = (value as VaultSecretRef).$secretRef;
-  return (
-    !!ref &&
-    typeof ref === 'object' &&
-    typeof ref.store === 'string' &&
-    !!ref.store &&
-    typeof ref.key === 'string' &&
-    !!ref.key
-  );
+export const mentionsSecretsNamespace = (value: unknown): boolean => {
+  if (typeof value !== 'string') return false;
+  for (const [, inner] of value.matchAll(/\{\{([\s\S]*?)\}\}/g)) {
+    if (/\bsecrets\b/.test(inner)) return true;
+  }
+  return false;
+};
+
+// `.ident` or `['quoted']` / `["quoted"]`, whitespace tolerated around each part.
+const ACCESSOR =
+  /^\s*(?:\.\s*([A-Za-z_$][A-Za-z0-9_$]*)|\[\s*(['"])((?:(?!\2)[\s\S])*)\2\s*\])/;
+
+/**
+ * Parse a field value into a reference, or null when it is not one.
+ *
+ * Whole-field only: the trimmed value must be exactly one `{{ … }}` block whose
+ * contents are `secrets` followed by at least two accessors (alias, secret).
+ * Anything further is the JSON key path.
+ */
+export const parseSecretRef = (value: unknown): ParsedSecretRef | null => {
+  if (typeof value !== 'string') return null;
+
+  const trimmed = value.trim();
+  if (!trimmed.startsWith('{{') || !trimmed.endsWith('}}')) return null;
+
+  let rest = trimmed.slice(2, -2).trim();
+
+  if (!rest.startsWith(SECRETS_NAMESPACE)) return null;
+  rest = rest.slice(SECRETS_NAMESPACE.length);
+  // Guard against `secretsFoo.x.y` — the namespace must end at a boundary.
+  if (/^[A-Za-z0-9_$]/.test(rest)) return null;
+
+  const segments: string[] = [];
+  while (rest.trim().length) {
+    const match = ACCESSOR.exec(rest);
+    if (!match) return null;
+    segments.push(match[1] !== undefined ? match[1] : match[3]);
+    rest = rest.slice(match[0].length);
+  }
+
+  if (segments.length < 2) return null;
+
+  const [alias, secret, ...path] = segments;
+  if (!isValidVaultAlias(alias) || !secret) return null;
+
+  return { alias, secret, path };
+};
+
+/** Whether a field value is a well-formed reference. */
+export const isSecretRef = (value: unknown): boolean =>
+  parseSecretRef(value) !== null;
+
+/**
+ * Render a reference, using dot form only where the segment is a bare
+ * identifier. Real AWS secret names contain `/` and `!`, so the bracket form is
+ * the common case rather than the exception — Retool's own "Reference" column
+ * emits brackets for the same reason.
+ */
+export const buildSecretRef = ({
+  alias,
+  secret,
+  path = [],
+}: {
+  alias: string;
+  secret: string;
+  path?: string[];
+}): string => {
+  const accessor = (segment: string) =>
+    isJsIdentifier(segment) ? `.${segment}` : `[${JSON.stringify(segment)}]`;
+
+  return `{{ ${SECRETS_NAMESPACE}${accessor(alias)}${accessor(secret)}${path
+    .map(accessor)
+    .join('')} }}`;
 };
 
 /**
  * A connected vault. Mirrors `nc_vaults`, minus `config` — the provider auth
  * parameters NEVER leave the backend, not even to a workspace owner. Clients
  * only ever see which provider is connected and whether it is reachable.
+ *
+ * `title` doubles as the reference alias, so it is unique per workspace and
+ * immutable once set.
  */
 export interface VaultType {
   id?: string;
   fk_workspace_id?: string;
+  /** The alias used in references. Matches VAULT_ALIAS_PATTERN. */
   title?: string;
   provider?: VaultProviderType;
   meta?: Record<string, any>;
@@ -127,7 +245,8 @@ export const VAULT_PROVIDER_META: Record<VaultProviderType, VaultProviderMeta> =
     [VaultProviderType.HASHICORP_VAULT]: {
       type: VaultProviderType.HASHICORP_VAULT,
       title: 'HashiCorp Vault',
-      description: 'HCP Vault or self-hosted. KV v2, database and AWS secrets engines.',
+      description:
+        'HCP Vault or self-hosted. KV v2, database and AWS secrets engines.',
       authLabel: 'AppRole · JWT',
       icon: 'ncLogoHashicorpVault',
       available: false,
@@ -174,7 +293,8 @@ export const VAULT_PROVIDER_META: Record<VaultProviderType, VaultProviderMeta> =
     [VaultProviderType.GOOGLE_SECRET_MANAGER]: {
       type: VaultProviderType.GOOGLE_SECRET_MANAGER,
       title: 'Google Secret Manager',
-      description: 'Workload identity federation. No service-account keys to rotate.',
+      description:
+        'Workload identity federation. No service-account keys to rotate.',
       authLabel: 'Workload identity',
       icon: 'ncLogoGoogleColored',
       available: false,

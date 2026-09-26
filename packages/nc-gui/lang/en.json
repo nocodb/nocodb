@@ -3506,6 +3506,7 @@
     "hasRoleInBase": "Has {role} role in base",
     "systemUser": "System user",
     "noLongerWorkspaceMember": "No longer a member of this workspace",
+    "notBaseMember": "Not a member of this base",
     "staticCondition": "Static condition",
     "filterBasedOnStaticValue": "Filter based on static value",
     "dynamicCondition": "Dynamic condition",

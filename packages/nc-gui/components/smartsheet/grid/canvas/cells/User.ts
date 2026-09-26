@@ -339,7 +339,8 @@ export const UserFieldCellRenderer: CellRenderer = {
     const hoveredBox = boxes.find((box) => isBoxHovered(box, mousePosition))
     if (!hoveredBox) return
 
-    const isNotMember = hoveredBox.deleted || isNotBaseMember(baseUsers, hoveredBox, isPublic)
+    const isDeletedMember = !!hoveredBox.deleted
+    const isNonBaseMember = !isDeletedMember && isNotBaseMember(baseUsers, hoveredBox, isPublic)
 
     tryShowTooltip({
       rect: hoveredBox,
@@ -350,8 +351,10 @@ export const UserFieldCellRenderer: CellRenderer = {
         ]),
         isServiceUser(hoveredBox)
           ? h('div', { class: 'text-tiny text-gray-200' }, t('labels.systemUser'))
-          : isNotMember
+          : isDeletedMember
           ? h('div', { class: 'text-tiny text-gray-200' }, t('labels.noLongerWorkspaceMember'))
+          : isNonBaseMember
+          ? h('div', { class: 'text-tiny text-gray-200' }, t('labels.notBaseMember'))
           : h('div', { class: 'text-tiny text-gray-200' }, t('labels.hasRoleInBase', { role: getUserRole(hoveredBox.email) })),
       ]),
       mousePosition,

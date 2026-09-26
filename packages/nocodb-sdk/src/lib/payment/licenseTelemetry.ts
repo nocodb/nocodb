@@ -8,6 +8,8 @@ export enum LicenseTelemetryEvent {
   LIMIT_HIT = 'limit_hit',
   FEATURE_BLOCKED = 'feature_blocked',
   LICENSE_STATE_CHANGED = 'license_state_changed',
+  SEAT_ADDED = 'seat_added',
+  SEAT_REMOVED = 'seat_removed',
 }
 
 /** Events the browser may report; the rest are emitted server-side only. */
@@ -25,6 +27,8 @@ const ALLOWED_PROPS: Record<LicenseTelemetryEvent, readonly string[]> = {
   [LicenseTelemetryEvent.LIMIT_HIT]: ['limit', 'limit_value', 'current'],
   [LicenseTelemetryEvent.FEATURE_BLOCKED]: ['feature'],
   [LicenseTelemetryEvent.LICENSE_STATE_CHANGED]: ['from', 'to'],
+  [LicenseTelemetryEvent.SEAT_ADDED]: ['delta', 'current', 'limit_value'],
+  [LicenseTelemetryEvent.SEAT_REMOVED]: ['delta', 'current', 'limit_value'],
 };
 
 const USER_HASH = /^[a-f0-9]{32}$/;
@@ -78,6 +82,7 @@ const PROP_VALIDATORS: Record<string, (value: unknown) => boolean> = {
   to: isLicenseState,
   limit_value: isFiniteNumber,
   current: isFiniteNumber,
+  delta: isFiniteNumber,
   source: isSource,
 };
 

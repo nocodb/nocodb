@@ -1,4 +1,5 @@
 import {
+  LICENSE_TELEMETRY_CLIENT_EVENTS,
   LicenseTelemetryEvent,
   sanitizeLicenseTelemetryEvent,
   sanitizeLicenseTelemetryProps,
@@ -107,5 +108,32 @@ describe('licenseTelemetry', () => {
         to: 'expired',
       }),
     ).toEqual({ from: 'active', to: 'expired' });
+  });
+
+  it('seat_added keeps delta/current/limit_value numbers and drops strings', () => {
+    expect(
+      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.SEAT_ADDED, {
+        delta: 2,
+        current: 3,
+        limit_value: 10,
+      }),
+    ).toEqual({ delta: 2, current: 3, limit_value: 10 });
+    expect(
+      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.SEAT_ADDED, {
+        delta: '2',
+        current: '3',
+        limit_value: 'ten',
+        email: 'a@b.c',
+      }),
+    ).toEqual({});
+  });
+
+  it('seat events are server-only', () => {
+    expect(LICENSE_TELEMETRY_CLIENT_EVENTS).not.toContain(
+      LicenseTelemetryEvent.SEAT_ADDED,
+    );
+    expect(LICENSE_TELEMETRY_CLIENT_EVENTS).not.toContain(
+      LicenseTelemetryEvent.SEAT_REMOVED,
+    );
   });
 });

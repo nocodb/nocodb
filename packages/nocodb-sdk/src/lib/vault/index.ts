@@ -197,8 +197,20 @@ export const buildSecretRef = ({
  */
 export interface VaultType {
   id?: string;
+  /** Set when the vault belongs to ONE workspace. Mutually exclusive with `fk_org_id`. */
   fk_workspace_id?: string;
-  /** The alias used in references. Matches VAULT_ALIAS_PATTERN. */
+  /** Set when the vault is shared by every workspace in the org. */
+  fk_org_id?: string;
+  /**
+   * The alias used in references. Matches VAULT_ALIAS_PATTERN.
+   *
+   * Unique across BOTH scopes, not per scope: two vaults named `awsProd` — one
+   * on the org, one on a workspace — would make `{{ secrets.awsProd.password }}`
+   * resolve against a different AWS account depending on who read it, with
+   * nothing in the reference to show it. n8n makes its provider key globally
+   * unique for the same reason; Retool allows the collision and publishes a
+   * caution about it.
+   */
   title?: string;
   provider?: VaultProviderType;
   meta?: Record<string, any>;

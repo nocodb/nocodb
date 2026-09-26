@@ -2,8 +2,9 @@ import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
 
 //
-// Enterprise Vaults — a workspace's own secrets manager (AWS Secrets Manager,
-// HashiCorp Vault, Azure Key Vault, Google Secret Manager, CyberArk Conjur).
+// Enterprise Vaults — an org's or a workspace's own secrets manager (AWS
+// Secrets Manager, HashiCorp Vault, Azure Key Vault, Google Secret Manager,
+// CyberArk Conjur).
 //
 // One row per connected provider. `config` holds only the AUTH parameters we
 // need to talk to it (role ARN + region, vault address + AppRole id, …) — never
@@ -15,10 +16,24 @@ import { MetaTable } from '~/utils/globals';
 // reference string — `{{ secrets.<title>.<secretId>.<key> }}` — and the value is
 // fetched from the provider at connection time.
 //
-// `title` doubles as that reference alias, which is why it is unique per
-// workspace: two vaults sharing one alias would make every reference ambiguous.
-// It is also immutable once set — the service rejects a rename, because a stored
-// reference embeds the alias and nothing rewrites those rows.
+// SCOPE: a vault belongs to EITHER one org (`fk_org_id`) or one workspace
+// (`fk_workspace_id`), never both and never neither — the same dual scoping
+// nc_environments uses. Two nullable columns cannot express "exactly one of
+// these is set" portably (a CHECK constraint is not written by knex across all
+// four supported dialects), so the invariant is enforced in `Vault.insert` and
+// `VaultsService`, not by the DB.
+//
+// `title` doubles as the reference alias. Unlike an environment key it is
+// unique across BOTH scopes together, not per scope: an org vault and a
+// workspace vault both named `awsProd` would make
+// `{{ secrets.awsProd.password }}` resolve against a different account
+// depending on which workspace read it, with nothing in the reference to show
+// it. The per-scope uniques below are the DB half of that; the cross-scope half
+// is `VaultsService.requireAliasFree`, which is why resolution needs no
+// precedence rule — at most one row can answer an alias.
+//
+// The alias is also immutable once set — the service rejects a rename, because
+// a stored reference embeds the alias and nothing rewrites those rows.
 //
 // No `deleted` column: a vault is hard-deleted, and the service refuses the
 // delete while any integration still references it. A soft-deleted vault would
@@ -28,6 +43,7 @@ const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.VAULTS, (table) => {
     table.string('id', 20).notNullable();
     table.string('fk_workspace_id', 20);
+    table.string('fk_org_id', 20);
     table.string('title', 255);
     table.string('provider', 40).notNullable();
     table.text('config');
@@ -37,11 +53,15 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
     table.primary(['id']);
     table.index(['fk_workspace_id'], 'nc_vaults_ws_index');
+    table.index(['fk_org_id'], 'nc_vaults_org_index');
     // Named explicitly — Postgres truncates a generated identifier at 63 chars,
     // and a silently shortened name is one nothing can drop by the name it
     // expects.
     table.unique(['fk_workspace_id', 'title'], {
       indexName: 'nc_vaults_ws_title_unique',
+    });
+    table.unique(['fk_org_id', 'title'], {
+      indexName: 'nc_vaults_org_title_unique',
     });
   });
 };

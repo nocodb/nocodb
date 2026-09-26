@@ -73,6 +73,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockPrivateBases = computed(() => true)
 
+  const blockEnterpriseVaults = computed(() => true)
+
   const blockAddNewDashboard = computed(() => true)
 
   // Interfaces are EE-only — every gate stays blocked in CE.
@@ -558,6 +560,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockDocumentPermissions,
     showUpgradeToUseDocumentPermissions,
     blockPrivateBases,
+    blockEnterpriseVaults,
     showUpgradeToUsePrivateBases,
     showUserMayChargeAlert,
     maxAttachmentsAllowedInCell,

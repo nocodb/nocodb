@@ -20,7 +20,22 @@ export const LICENSE_TELEMETRY_CLIENT_EVENTS: LicenseTelemetryEvent[] = [
 
 export const LICENSE_TELEMETRY_MAX_BATCH = 200;
 
-const ALLOWED_PROPS: Record<LicenseTelemetryEvent, readonly string[]> = {
+type LicenseTelemetryPropKey =
+  | 'feature'
+  | 'limit'
+  | 'cta'
+  | 'viewer_role'
+  | 'from'
+  | 'to'
+  | 'limit_value'
+  | 'current'
+  | 'delta'
+  | 'source';
+
+const ALLOWED_PROPS: Record<
+  LicenseTelemetryEvent,
+  readonly LicenseTelemetryPropKey[]
+> = {
   [LicenseTelemetryEvent.UPGRADE_PROMPT_SHOWN]: ['feature', 'limit', 'source', 'viewer_role'],
   [LicenseTelemetryEvent.UPGRADE_CTA_CLICKED]: ['cta', 'feature', 'limit', 'source', 'viewer_role'],
   [LicenseTelemetryEvent.ADMIN_NOTIFIED]: ['feature', 'limit'],
@@ -72,8 +87,10 @@ const isSource = (v: unknown): v is string =>
   SOURCE_SLUG.test(v) &&
   !UUID_SHAPE.test(v);
 
-// Every key referenced in ALLOWED_PROPS must have a validator here.
-const PROP_VALIDATORS: Record<string, (value: unknown) => boolean> = {
+const PROP_VALIDATORS: Record<
+  LicenseTelemetryPropKey,
+  (value: unknown) => boolean
+> = {
   feature: isFeatureOrAddon,
   limit: isLimitType,
   cta: isEnumValue(CTA_VALUES),

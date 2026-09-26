@@ -7,6 +7,7 @@ import type {
   InterfaceButtonConfig,
   InterfaceFilterGroup,
   InterfaceFormConfig,
+  InterfacePageImage,
   InterfaceRecordColorConfig,
   InterfaceRecordDetailConfig,
   InterfaceSortConfig,
@@ -403,8 +404,8 @@ export interface InterfaceOverviewBlock {
 
 export interface InterfaceOverviewPageConfig {
   description?: string;
-  cover_image?: string | null;
-  logo?: string | null;
+  cover_image?: InterfacePageImage | null;
+  logo?: InterfacePageImage | null;
   show_sidebar?: boolean;
   blocks: InterfaceOverviewBlock[];
   sidebar_blocks: InterfaceOverviewBlock[];

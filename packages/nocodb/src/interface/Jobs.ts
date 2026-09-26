@@ -532,7 +532,11 @@ export interface DataImportJobData extends JobData {
 export interface FieldAgentGenerateJobData extends JobData {
   modelId: string;
   columnId: string;
-  mode: 'all' | 'unmodified' | 'modified';
+  /** 'rows' = automatic generation for the given rowIds. */
+  mode: 'all' | 'unmodified' | 'modified' | 'rows';
   viewId?: string;
+  rowIds?: string[];
+  /** Agent runs that led to this one; see NcContext.field_agent_depth. */
+  depth?: number;
   req: NcRequest;
 }

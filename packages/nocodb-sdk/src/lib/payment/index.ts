@@ -656,7 +656,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to manage skills across every workspace in your organization.',
   [PlanFeatureTypes.FEATURE_ENTERPRISE_VAULTS]:
     'to keep integration credentials in your own secrets manager.',
-  [PlanFeatureTypes.FEATURE_FIELD_AGENT]: 'to use AI field agents.',
+  [PlanFeatureTypes.FEATURE_FIELD_AGENT]: 'to use custom agents.',
 };
 
 // Add-on-only features — no plan tier grants these, so "upgrade your plan"

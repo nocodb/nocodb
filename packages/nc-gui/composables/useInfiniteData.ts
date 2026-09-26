@@ -186,21 +186,16 @@ export function useInfiniteData(args: {
 
   const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal, blockButtonVisibility } = useEeConfig()
 
-  // Field agent dirty tracking: rebuild dependency map when columns change, clear stale dirty state on table switch
-  const { onFieldAgentCellUpdate, buildFieldAgentDependencyMap, clearAllFieldAgentDirty } = useNocoAi()
+  // Field agent dirty tracking: keep this table's prompt dependency map current.
+  // The map is scoped by table id, so several tables can be mounted at once
+  // without clobbering each other.
+  const { onFieldAgentCellUpdate, buildFieldAgentDependencyMap } = useNocoAi()
 
   watch(
-    () => meta.value?.id,
-    () => {
-      clearAllFieldAgentDirty()
-    },
-  )
-
-  watch(
-    () => meta.value?.columns,
-    (columns) => {
-      if (columns?.length) {
-        buildFieldAgentDependencyMap(columns as ColumnType[])
+    () => [meta.value?.id, meta.value?.columns] as const,
+    ([modelId, columns]) => {
+      if (modelId && columns?.length) {
+        buildFieldAgentDependencyMap(columns as ColumnType[], modelId)
       }
     },
     { immediate: true },

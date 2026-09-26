@@ -64,7 +64,7 @@ const { getMeta } = useMetas()
 
 const { open: openExpandedFormDetached } = useExpandedFormDetached()
 
-const { generateRows, isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi()
+const { generateRows, isFieldAgentFeatureEnabled, aiIntegrationAvailable } = useNocoAi()
 
 const { showUpgradeToUseFieldAgent } = useEeConfig()
 
@@ -180,7 +180,7 @@ function onCellValueChange(colTitle: string | undefined) {
 // Field Agent: determine if a column should show the "Run Agent" button.
 // Excludes SingleSelect/MultiSelect since they render their own button inside the cell editor.
 const isFieldAgentVisible = (col: ColumnType) => {
-  if (!isAiFeaturesEnabled.value || !aiIntegrationAvailable.value) return false
+  if (!isFieldAgentFeatureEnabled.value || !aiIntegrationAvailable.value) return false
   if (!isFieldAgentCol(col)) return false
   if (isNew.value) return false
   if (readOnly.value) return false

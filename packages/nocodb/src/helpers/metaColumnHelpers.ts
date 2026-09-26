@@ -21,15 +21,6 @@ export function prepareAgentRunAtStampQuery(_: {
   return;
 }
 
-export function prepareAgentStatusStampQuery(_: {
-  knex: Knex | XKnex;
-  colId: string;
-  status: 'generating' | 'idle';
-  metaColumn: Column;
-}): Knex.Raw | void {
-  return;
-}
-
 export async function ensureMetaColumn(
   _context: NcContext,
   _model: Model,

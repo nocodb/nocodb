@@ -19,6 +19,9 @@ const props = withDefaults(
     readOnly?: boolean
     markdown?: boolean
     showPlusIconTooltip?: boolean
+    /** Character that opens the field list; mentions are always stored as `{Field}`. */
+    mentionChar?: string
+    showSuggestionButton?: boolean
   }>(),
   {
     options: () => [],
@@ -33,6 +36,8 @@ const props = withDefaults(
     readOnly: false,
     markdown: true,
     showPlusIconTooltip: true,
+    mentionChar: '{',
+    showSuggestionButton: true,
   },
 )
 
@@ -81,7 +86,7 @@ const editor = useEditor({
             ) ?? []
           )
         },
-        char: '{',
+        char: props.mentionChar,
         allowSpaces: true,
       },
       renderHTML: ({ node }) => {
@@ -173,19 +178,21 @@ const newFieldSuggestionNode = () => {
   // Check if the text before cursor contains a newline
   const hasNewlineBefore = textBefore.includes('\n')
 
-  if (lastCharacter === '{') {
+  if (lastCharacter === props.mentionChar) {
     editor.value
       .chain()
       .deleteRange({ from: $from.pos - 1, to: $from.pos })
       .run()
   } else if (lastCharacter !== ' ' && $from.pos !== 1 && !hasNewlineBefore) {
-    editor.value?.commands.insertContent(' {')
+    editor.value?.commands.insertContent(` ${props.mentionChar}`)
     editor.value?.chain().focus().run()
   } else {
-    editor.value?.commands.insertContent('{')
+    editor.value?.commands.insertContent(props.mentionChar)
     editor.value?.chain().focus().run()
   }
 }
+
+defineExpose({ insertFieldMention: newFieldSuggestionNode })
 
 onMounted(async () => {
   await until(() => vModel.value !== null && vModel.value !== undefined).toBeTruthy()
@@ -271,6 +278,7 @@ useEventListener(el, 'focusPromptWithFields', () => {
     />
 
     <NcTooltip
+      v-if="showSuggestionButton"
       hide-on-click
       :disabled="!showPlusIconTooltip || readOnly"
       title="Mention fields"

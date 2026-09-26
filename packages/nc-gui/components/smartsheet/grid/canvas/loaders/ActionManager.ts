@@ -41,6 +41,8 @@ export class ActionManager {
 
   private checkFieldAgentBlocked?: () => boolean
 
+  private promptFieldAgentUpgrade?: () => void
+
   // Consolidated state maps
   private loadingColumns = new Map<string, number>()
   private afterActionStatus = new Map<string, Omit<ActionState, 'startTime'>>()
@@ -50,8 +52,6 @@ export class ActionManager {
   private bulkRowStates = new Map<string, BulkRowState>()
   private remoteGenerating = new Map<string, number>()
   private rafId: number | null = null
-  private lastFrameTime = 0
-  private static readonly MIN_FRAME_INTERVAL = 66 // ~15fps
 
   constructor(
     api: Api<any>,
@@ -93,8 +93,21 @@ export class ActionManager {
     this.checkFieldAgentBlocked = check
   }
 
+  /** Shows the upgrade dialog when a gated user tries to run an agent. */
+  setFieldAgentUpgradePrompt(prompt: () => void) {
+    this.promptFieldAgentUpgrade = prompt
+  }
+
   isFieldAgentBlocked(): boolean {
     return this.checkFieldAgentBlocked?.() ?? false
+  }
+
+  /** True when blocked — the caller should stop, the upgrade dialog is already up. */
+  showFieldAgentUpgradeIfBlocked(): boolean {
+    if (!this.isFieldAgentBlocked()) return false
+
+    this.promptFieldAgentUpgrade?.()
+    return true
   }
 
   private eventMap = {
@@ -233,7 +246,11 @@ export class ActionManager {
 
   private cooldownTimeout: number | null = null
 
+  private static readonly REMOTE_GENERATING_TIMEOUT = 5 * 60 * 1000
+
   private hasActivity(): boolean {
+    this.sweepStaleRemoteGenerating()
+
     return (
       this.loadingColumns.size > 0 ||
       this.afterActionStatus.size > 0 ||
@@ -261,11 +278,7 @@ export class ActionManager {
           clearTimeout(this.cooldownTimeout)
           this.cooldownTimeout = null
         }
-        const now = performance.now()
-        if (now - this.lastFrameTime >= ActionManager.MIN_FRAME_INTERVAL) {
-          this.triggerRefreshCanvas()
-          this.lastFrameTime = now
-        }
+        this.triggerRefreshCanvas()
         this.rafId = requestAnimationFrame(animate)
       } else {
         // No activity — render one last frame, then schedule stop
@@ -452,8 +465,8 @@ export class ActionManager {
           break
         }
       }
-    } catch (_e) {
-      // Error is already surfaced via after-action status on the cell
+    } catch (e: any) {
+      console.error('Error executing button action', e)
     }
   }
 
@@ -468,12 +481,7 @@ export class ActionManager {
    * @param rows - Row objects with rowMeta.rowIndex so cached rows can be updated in real-time
    * @param path - Group-by path for accessing the correct data cache
    */
-  async executeBulkAiGeneration(
-    columnId: string,
-    rowIds: string[],
-    rows?: Row[],
-    path?: Array<number>,
-  ): Promise<any> {
+  async executeBulkAiGeneration(columnId: string, rowIds: string[], rows?: Row[], path?: Array<number>): Promise<any> {
     if (this.isFieldAgentBlocked()) return
 
     const column = this.meta.value?.columnsById?.[columnId]
@@ -481,20 +489,35 @@ export class ActionManager {
     return this.executeAction(rowIds, columnId, [columnId], async () => {
       const res = await this.generateRows(columnId, rowIds)
 
-      // Update cached rows with the generated data so cells refresh in real-time
+      // Update cached rows with the generated data so cells refresh in real-time.
+      // The response may be shorter than the request and in a different order —
+      // malformed rows are dropped server-side — so match on primary key rather
+      // than array position, which would write values into the wrong rows.
       if (res?.length && column?.title && rows?.length) {
         const { cachedRows } = this.getDataCache(path)
+        const pkColumns = this.meta.value?.columns?.filter((c) => c.pk) ?? []
 
-        res.forEach((data, i) => {
-          const rowIndex = rows[i]?.rowMeta?.rowIndex
-          if (rowIndex == null) return
+        const rowIndexByPk = new Map<string, number>()
+        for (const row of rows) {
+          const pk = extractPkFromRow(row.row, pkColumns)
+          if (pk != null && row.rowMeta?.rowIndex != null) {
+            rowIndexByPk.set(String(pk), row.rowMeta.rowIndex)
+          }
+        }
+
+        for (const data of res) {
+          const pk = extractPkFromRow(data, pkColumns)
+          if (pk == null) continue
+
+          const rowIndex = rowIndexByPk.get(String(pk))
+          if (rowIndex == null) continue
 
           const row = cachedRows.value.get(rowIndex)
           if (row) {
             row.row[column.title!] = data[column.title!]
             cachedRows.value.set(rowIndex, row)
           }
-        })
+        }
       }
 
       return res
@@ -504,12 +527,18 @@ export class ActionManager {
   // Public state query methods
   isLoading(rowId: string, columnId: string): boolean {
     const key = this.getKey(rowId, columnId)
-    return this.loadingColumns.has(key) || this.getBulkRowState(rowId, columnId)?.status === 'loading' || this.remoteGenerating.has(key)
+    return (
+      this.loadingColumns.has(key) ||
+      this.getBulkRowState(rowId, columnId)?.status === 'loading' ||
+      this.remoteGenerating.has(key)
+    )
   }
 
   getLoadingStartTime(rowId: string, columnId: string): number | null {
     const key = this.getKey(rowId, columnId)
-    return this.loadingColumns.get(key) ?? this.getBulkRowState(rowId, columnId)?.startTime ?? this.remoteGenerating.get(key) ?? null
+    return (
+      this.loadingColumns.get(key) ?? this.getBulkRowState(rowId, columnId)?.startTime ?? this.remoteGenerating.get(key) ?? null
+    )
   }
 
   getAfterActionStatus(rowId: string, columnId: string) {
@@ -538,6 +567,21 @@ export class ActionManager {
 
   clearRemoteGenerating(rowId: string, colId: string) {
     this.remoteGenerating.delete(this.getKey(rowId, colId))
+  }
+
+  /**
+   * Drop 'generating' stamps older than the timeout. The backend clears them
+   * over the socket when a run ends, but a crashed worker or a dropped
+   * connection means that event may never arrive — without this the cell
+   * spins forever.
+   */
+  private sweepStaleRemoteGenerating() {
+    if (!this.remoteGenerating.size) return
+
+    const cutoff = Date.now() - ActionManager.REMOTE_GENERATING_TIMEOUT
+    for (const [key, startedAt] of this.remoteGenerating) {
+      if (startedAt < cutoff) this.remoteGenerating.delete(key)
+    }
   }
 
   getCurrentStepTitle(rowId: string, columnId: string): string | undefined {

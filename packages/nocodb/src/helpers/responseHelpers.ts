@@ -1,6 +1,6 @@
 import { DB_CREDENTIAL_FIELDS, isSecretRef } from 'nocodb-sdk';
 
-// Credential fields are declared in the SDK.
+// Credential fields are declared in the SDK. Masked values reach a base viewer.
 const MASKED_CONNECTION_KEYS = DB_CREDENTIAL_FIELDS.filter(
   (field) => field.mask && field.path.length === 2,
 ).map((field) => field.path[1]);
@@ -14,7 +14,8 @@ export function maskKnexConfig(payload: Partial<{ config: any }>) {
 
   if (!connection) return payload;
 
-  // A vault reference is a pointer, not a credential, so it is kept.
+  // A vault reference is a pointer, not a credential, so it is kept — nulling
+  // it would let the edit form's read-then-save write null over it.
   for (const key of MASKED_CONNECTION_KEYS) {
     if (connection[key] && !isSecretRef(connection[key])) {
       connection[key] = null;

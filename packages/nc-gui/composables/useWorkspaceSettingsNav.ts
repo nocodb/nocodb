@@ -113,8 +113,8 @@ export function useWorkspaceSettingsNav() {
             slug: 'security',
             icon: 'ncShield',
             testId: 'ws-security',
-            title: t('labels.security'),
-            keywords: 'two factor 2fa mfa force authentication',
+            title: t('labels.enableTwoFactor'),
+            keywords: 'security two factor 2fa mfa force authentication',
           },
           v.audits && {
             slug: 'audits',
@@ -173,7 +173,7 @@ export function useWorkspaceSettingsNav() {
       description: t('labels.wsNav.desc.skills'),
     },
     'security': {
-      title: t('labels.security'),
+      title: t('labels.enableTwoFactor'),
       description: t('labels.wsNav.desc.security'),
     },
     'danger-zone': {

@@ -72,12 +72,7 @@ import type {
 import type { NcContext } from '~/interface/config';
 import type LookupColumn from '~/models/LookupColumn';
 import type { ResolverObj } from '~/utils';
-import type {
-  FormulaColumn,
-  LinkToAnotherRecordColumn,
-  SelectOption,
-  User,
-} from '~/models';
+import type { FormulaColumn, LinkToAnotherRecordColumn } from '~/models';
 import { LTARColsUpdater } from '~/db/BaseModelSqlv2/ltar-cols-updater';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
@@ -150,6 +145,7 @@ import {
   PresignedUrl,
   Sort,
   Source,
+  User,
   View,
 } from '~/models';
 import Noco from '~/Noco';
@@ -9478,6 +9474,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         } else if (!ncIsNullOrUndefined(data[column.column_name])) {
           const userIds = [];
 
+          // Trusted internal copy paths (base duplication / snapshot / import)
+          // carry existing User-field values across verbatim rather than
+          // assigning them interactively, so a value referencing someone who is
+          // not a member of the destination workspace is valid history — not a
+          // new assignment to reject. Skip the membership check and instead
+          // resolve the referenced user globally so the reference is preserved.
+          const skipMembershipValidation = !!extra?.skipPermissionCheck;
+
           if (
             typeof data[column.column_name] === 'string' &&
             /^\s*[{[]/.test(data[column.column_name])
@@ -9509,6 +9513,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 if ('id' in user) {
                   const u = baseUsers.find((u) => u.id === user.id);
                   if (!u) {
+                    if (skipMembershipValidation) {
+                      // carry the id across verbatim
+                      userIds.push(user.id);
+                      continue;
+                    }
                     NcError.get(this.context).unprocessableEntity(
                       `User with id '${user.id}' is not part of this workspace`,
                     );
@@ -9523,6 +9532,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   if (user.email.length === 0) continue;
                   const u = baseUsers.find((u) => u.email === user.email);
                   if (!u) {
+                    if (skipMembershipValidation) {
+                      // resolve the user globally so the reference survives the
+                      // copy; drop it only if no such user exists at all
+                      const globalUser = await User.getByEmail(user.email);
+                      if (globalUser?.id) userIds.push(globalUser.id);
+                      continue;
+                    }
                     NcError.get(this.context).unprocessableEntity(
                       `User with email '${user.email}' is not part of this workspace`,
                     );
@@ -9547,6 +9563,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 if (user.includes('@')) {
                   const u = baseUsers.find((u) => u.email === user);
                   if (!u) {
+                    if (skipMembershipValidation) {
+                      // resolve the user globally so the reference survives the
+                      // copy; drop it only if no such user exists at all
+                      const globalUser = await User.getByEmail(user);
+                      if (globalUser?.id) userIds.push(globalUser.id);
+                      continue;
+                    }
                     NcError.get(this.context).unprocessableEntity(
                       `User with email '${user}' is not part of this workspace`,
                     );
@@ -9555,6 +9578,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 } else {
                   const u = baseUsers.find((u) => u.id === user);
                   if (!u) {
+                    if (skipMembershipValidation) {
+                      // carry the id across verbatim
+                      userIds.push(user);
+                      continue;
+                    }
                     NcError.get(this.context).unprocessableEntity(
                       `User with id '${user}' is not part of this workspace`,
                     );

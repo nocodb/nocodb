@@ -3504,6 +3504,7 @@
       }
     },
     "hasRoleInBase": "Has {role} role in base",
+    "noLongerWorkspaceMember": "No longer a member of this workspace",
     "staticCondition": "Static condition",
     "filterBasedOnStaticValue": "Filter based on static value",
     "dynamicCondition": "Dynamic condition",

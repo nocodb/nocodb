@@ -226,7 +226,7 @@ export const UserFieldCellRenderer: CellRenderer = {
     }
   },
 
-  async handleHover({ column, getCellPosition, row, mousePosition, value, selected, baseUsers, isInterface }) {
+  async handleHover({ column, getCellPosition, row, mousePosition, value, selected, baseUsers, isInterface, t }) {
     const { hideTooltip, tryShowTooltip } = useTooltipStore()
     hideTooltip()
 
@@ -304,6 +304,12 @@ export const UserFieldCellRenderer: CellRenderer = {
 
     const hoveredBox = boxes.find((box) => isBoxHovered(box, mousePosition))
     if (!hoveredBox) return
+
+    // A user removed from the workspace (soft-deleted membership) or one no
+    // longer resolvable in the base-users list is not a current member — say so
+    // explicitly instead of framing it as a grantable "no-access" base role.
+    const isNoLongerMember = hoveredBox.deleted || !(baseUsers || []).some((user) => user.email === hoveredBox.email)
+
     tryShowTooltip({
       rect: hoveredBox,
       text: h('div', { class: 'flex flex-col gap-2' }, [
@@ -311,9 +317,9 @@ export const UserFieldCellRenderer: CellRenderer = {
           h('div', { class: !hoveredBox.display_name ? 'hidden' : 'text-small' }, hoveredBox.display_name),
           h('div', { class: ` ${!hoveredBox.display_name ? 'text-small' : 'text-tiny text-gray-200'}` }, hoveredBox.email),
         ]),
-        hoveredBox.deleted
-          ? h('div', { class: 'text-tiny text-gray-200' }, `Removed`)
-          : h('div', { class: 'text-tiny text-gray-200' }, `Has ${getUserRole(hoveredBox.email)} role in base`),
+        isNoLongerMember
+          ? h('div', { class: 'text-tiny text-gray-200' }, t('labels.noLongerWorkspaceMember'))
+          : h('div', { class: 'text-tiny text-gray-200' }, t('labels.hasRoleInBase', { role: getUserRole(hoveredBox.email) })),
       ]),
       mousePosition,
     })

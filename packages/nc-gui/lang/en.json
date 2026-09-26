@@ -6436,7 +6436,8 @@
       "agentNameExceedsCharacters": "Agent name exceeds {value} characters",
       "screenshotType": "Screenshots must be PNG, JPG, WEBP or AVIF.",
       "screenshotSize": "Screenshots must be under 5 MB.",
-      "screenshotUploadFailed": "Could not upload that screenshot. Try again."
+      "screenshotUploadFailed": "Could not upload that screenshot. Try again.",
+      "vaultSecretNeedsProperty": "This secret holds several fields. Pick the one to use, or the connection will fail when it runs."
     },
     "toast": {
       "changesSaved": "Changes saved",

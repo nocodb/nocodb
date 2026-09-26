@@ -733,6 +733,9 @@ import NcLogoClaude from '~icons/nc-icons-v2/claude-logo.svg'
 import NcLogoClaudeAiColored from '~icons/nc-icons-v2/claude-ai-colored.svg'
 import NcLogoClaudeAi from '~icons/nc-icons-v2/claude-ai.svg'
 import NcLogoAzureColored from '~icons/nc-icons-v2/azure.svg'
+import NcLogoHashicorpVault from '~icons/nc-icons-v2/hashicorp-vault.svg'
+import NcLogoGoogleColored from '~icons/nc-icons-v2/google-colored.svg'
+import NcLogoCyberarkConjur from '~icons/nc-icons-v2/cyberark-conjur.svg'
 import NcLogoDeepseekColored from '~icons/nc-icons-v2/deepseek.svg'
 import NcLogoRedis from '~icons/nc-icons-v2/redis.svg'
 import NcLogoDiscordColored from '~icons/nc-icons-v2/discord-colored.svg'
@@ -1845,6 +1848,9 @@ export const iconMap = {
   'ncLogoClaudeAiColored': h(NcLogoClaudeAiColored, { stroke: 'transparent' }),
   'ncLogoClaudeAi': h(NcLogoClaudeAi, { stroke: 'transparent' }),
   'ncLogoAzureColored': h(NcLogoAzureColored, { stroke: 'transparent' }),
+  'ncLogoHashicorpVault': h(NcLogoHashicorpVault, { stroke: 'transparent' }),
+  'ncLogoGoogleColored': h(NcLogoGoogleColored, { stroke: 'transparent' }),
+  'ncLogoCyberarkConjur': h(NcLogoCyberarkConjur, { stroke: 'transparent' }),
   'ncLogoDeepseekColored': h(NcLogoDeepseekColored, { stroke: 'transparent' }),
   'ncLogoRedis': h(NcLogoRedis, { stroke: 'transparent' }),
   'ncLogoDiscord': h(NcLogoDiscord, { stroke: 'transparent' }),

@@ -255,6 +255,9 @@ export enum AppEvents {
   INTEGRATION_DELETE = 'integration.delete',
   INTEGRATION_CREATE = 'integration.create',
   INTEGRATION_UPDATE = 'integration.update',
+  VAULT_CREATE = 'vault.create',
+  VAULT_UPDATE = 'vault.update',
+  VAULT_DELETE = 'vault.delete',
 
   ROW_USER_MENTION = 'row.user.mention',
   ROW_LMT_TOUCHED = 'row.lmt.touched',

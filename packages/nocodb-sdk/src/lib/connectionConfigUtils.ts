@@ -31,3 +31,35 @@ export const validateAndExtractSSLProp = (
     return connectionConfig.ssl;
   }
 };
+
+/** Credential fields of a DB connection config. Read by masking, the vault write guard and the form. */
+export interface DbCredentialField {
+  path: readonly string[];
+  /** May hold a `$vault` reference instead of the value. */
+  vault: boolean;
+  /** Blanked before a config is returned to a client. */
+  mask: boolean;
+}
+
+export const DB_CREDENTIAL_FIELDS: readonly DbCredentialField[] = [
+  { path: ['connection', 'user'], vault: true, mask: false },
+  { path: ['connection', 'password'], vault: true, mask: true },
+  // A reference would stand in for the whole DSN, host included.
+  { path: ['connection', 'connectionString'], vault: false, mask: true },
+  { path: ['connection', 'connectionUri'], vault: false, mask: true },
+  { path: ['connection', 'uri'], vault: false, mask: true },
+  { path: ['connection', 'url'], vault: false, mask: true },
+  { path: ['connection', 'ssl', 'key'], vault: true, mask: true },
+  { path: ['connection', 'ssl', 'cert'], vault: true, mask: true },
+  { path: ['connection', 'ssl', 'ca'], vault: true, mask: true },
+  { path: ['connection', 'ssl', 'pfx'], vault: false, mask: true },
+  { path: ['connection', 'ssl', 'passphrase'], vault: false, mask: true },
+];
+
+const samePath = (a: readonly string[], b: readonly string[]) =>
+  a.length === b.length && a.every((segment, i) => segment === b[i]);
+
+export const isVaultReferenceablePath = (path: readonly string[]): boolean =>
+  DB_CREDENTIAL_FIELDS.some(
+    (field) => field.vault && samePath(field.path, path)
+  );

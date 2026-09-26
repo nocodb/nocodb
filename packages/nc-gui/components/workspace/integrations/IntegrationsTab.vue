@@ -41,6 +41,8 @@ const { activeWorkspace } = storeToRefs(useWorkspace())
 
 const { isEEFeatureBlocked, blockAiIntegrations, showUpgradeToUseAiIntegrations, showEEFeatures } = useEeConfig()
 
+const { isUIAllowed } = useRoles()
+
 const easterEggToggle = computed(() => isFeatureEnabled(FEATURE_FLAG.INTEGRATIONS))
 
 const router = useRouter()
@@ -415,6 +417,17 @@ watch(activeViewTab, (value) => {
 
                 <!-- Real content (shown after load or in modal mode) -->
                 <template v-else>
+                  <!-- Enterprise Vaults CTA; not in the modal reuse of this tab. -->
+                  <WorkspaceIntegrationsVaultBanner
+                    v-if="
+                      isEeUI &&
+                      showActiveConnections &&
+                      !isModal &&
+                      isUIAllowed('vaultList') &&
+                      isFeatureEnabled(FEATURE_FLAG.ENTERPRISE_VAULTS)
+                    "
+                  />
+
                   <!-- Active connections section (shown as first section when not modal) -->
                   <WorkspaceIntegrationsActiveConnectionsSection
                     v-if="showActiveConnections && !isModal && isLoadedIntegrations && integrations.length"

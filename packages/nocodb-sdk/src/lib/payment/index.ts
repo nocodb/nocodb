@@ -151,6 +151,9 @@ export enum PlanFeatureTypes {
   FEATURE_BOOKMARKS = 'feature_bookmarks',
   FEATURE_MSSQL = 'feature_mssql',
   FEATURE_ORACLE = 'feature_oracle',
+  /** Enterprise Vaults: source integration credentials from a customer-owned
+   * secrets manager (AWS Secrets Manager, HashiCorp Vault, …) */
+  FEATURE_ENTERPRISE_VAULTS = 'feature_enterprise_vaults',
   /** Interfaces (Interface Designer): page-based shareable apps on base data */
   FEATURE_INTERFACES = 'feature_interfaces',
   FEATURE_INTERFACE_TABLE_MULTI_VIZ = 'feature_interface_table_multi_viz',
@@ -648,6 +651,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to control which skills your workspace can install.',
   [PlanFeatureTypes.FEATURE_SKILLS_ORG]:
     'to manage skills across every workspace in your organization.',
+  [PlanFeatureTypes.FEATURE_ENTERPRISE_VAULTS]:
+    'to keep integration credentials in your own secrets manager.',
 };
 
 // Add-on-only features — no plan tier grants these, so "upgrade your plan"

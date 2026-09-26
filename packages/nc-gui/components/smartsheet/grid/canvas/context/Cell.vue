@@ -3,12 +3,12 @@ import {
   type ColumnType,
   PermissionEntity,
   PermissionKey,
-  SelectFieldAgentMetaProp,
   type TableType,
   type ViewType,
   isAIPromptCol,
   isFieldAgentCol,
   isLinksOrLTAR,
+  orderFieldAgentsByDependency,
 } from 'nocodb-sdk'
 import type { CellRange } from '../../../../../composables/useMultiSelect/cellRange'
 import type { ActionManager } from '../loaders/ActionManager'
@@ -372,47 +372,11 @@ const showRunFieldAgent = computed(() => {
   )
 })
 
-/**
- * Order agents so one whose prompt references another selected agent runs after it —
- * each run reads its rows fresh, so it then sees the value just generated. Anything
- * left in a cycle falls back to column order.
- */
-function orderByPromptDependency(agentCols: ColumnType[]) {
-  const byTitle = new Map(agentCols.map((c) => [c.title, c]))
-
-  const deps = new Map<string, Set<string>>()
-  for (const col of agentCols) {
-    const promptRaw: string = parseProp(col.meta)?.[SelectFieldAgentMetaProp]?.prompt_raw ?? ''
-    const refs = new Set<string>()
-    for (const [, title] of promptRaw.matchAll(/\{([^}]+)\}/g)) {
-      const dep = byTitle.get(title)
-      if (dep?.id && dep.id !== col.id) refs.add(dep.id)
-    }
-    deps.set(col.id!, refs)
-  }
-
-  const ordered: ColumnType[] = []
-  const done = new Set<string>()
-  let pending = [...agentCols]
-
-  while (pending.length) {
-    const ready = pending.filter((c) => [...deps.get(c.id!)!].every((d) => done.has(d)))
-    const next = ready.length ? ready : pending // cycle — keep column order
-
-    for (const col of next) {
-      ordered.push(col)
-      done.add(col.id!)
-    }
-    pending = pending.filter((c) => !done.has(c.id!))
-  }
-
-  return ordered
-}
-
 const execFieldAgent = async (path: Array<number>) => {
   if (showUpgradeToUseFieldAgent()) return
 
-  const agentCols = orderByPromptDependency(selectedFieldAgentColumns.value)
+  // Dependent agents run after the agents they read, so they see fresh values
+  const agentCols = orderFieldAgentsByDependency(selectedFieldAgentColumns.value)
   if (!agentCols.length) return
 
   const rows = await getRows(
@@ -432,7 +396,7 @@ const execFieldAgent = async (path: Array<number>) => {
 
   if (!pks.length) return
 
-  // Sequential on purpose: see orderByPromptDependency.
+  // Sequential on purpose: a later agent may read what an earlier one wrote.
   for (const col of agentCols) {
     await actionManager.value.executeBulkAiGeneration(
       col.id!,
@@ -930,7 +894,7 @@ const execFieldAgent = async (path: Array<number>) => {
       >
         <div v-e="['a:field-agent:cell:generate', { source: 'context-menu' }]" class="flex gap-2 items-center">
           <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
-          {{ selectedFieldAgentColumns.length > 1 ? $t('labels.fieldAgent.runAiAgents') : $t('labels.fieldAgent.runAiAgent') }}
+          {{ selectedFieldAgentColumns.length > 1 ? $t('labels.fieldAgent.runAiAgents') : $t('labels.fieldAgent.runAgent') }}
         </div>
       </NcMenuItem>
 

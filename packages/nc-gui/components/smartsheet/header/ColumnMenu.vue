@@ -976,7 +976,7 @@ const onDeleteColumn = () => {
             <div class="nc-header-menu-item">
               <GeneralLoader v-if="isFieldAgentColumnRunning(column.id)" size="regular" />
               <GeneralIcon v-else icon="ncAutoAwesome" class="opacity-80 !w-4 !h-4" />
-              {{ t('labels.fieldAgent.runAiAgent') }}
+              {{ t('labels.fieldAgent.runAgent') }}
             </div>
           </template>
 

@@ -268,7 +268,6 @@ export function useCanvasTable({
     aiIntegrations,
     isNocoAiAvailable,
     generateRows: _generateRows,
-    canvasBulkAiGeneration,
   } = useNocoAi()
   const { isFeatureEnabled } = useBetaFeatureToggle()
   const scriptStore = useScriptStore()
@@ -396,10 +395,7 @@ export function useCanvasTable({
   )
 
   // Wire up realtime agent status callback from useInfiniteData → ActionManager
-  const onAgentStatus = inject<Ref<((columnId: string, status: 'generating' | 'idle', rowIds: string[]) => void) | undefined>>(
-    'onAgentStatus',
-    ref(),
-  )
+  const onAgentStatus = inject(FieldAgentStatusHandlerInj, ref())
 
   onAgentStatus.value = (columnId: string, status: 'generating' | 'idle', rowIds: string[]) => {
     for (const rowId of rowIds) {
@@ -410,10 +406,6 @@ export function useCanvasTable({
       }
     }
   }
-
-  // Expose bulk AI generation to toolbar via shared composable
-  canvasBulkAiGeneration.value = (columnId: string, rowIds: string[], rows?: Row[], path?: Array<number>) =>
-    actionManager.executeBulkAiGeneration(columnId, rowIds, rows, path)
 
   const isGroupBy = computed(() => !!groupByColumns.value?.length)
 
@@ -2163,7 +2155,6 @@ export function useCanvasTable({
   onBeforeUnmount(() => {
     actionManager.releaseEventListeners()
     eventBus.off(smartsheetEventHandler)
-    canvasBulkAiGeneration.value = null
   })
 
   // load metas and refresh canvas

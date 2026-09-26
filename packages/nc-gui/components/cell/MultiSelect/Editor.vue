@@ -343,6 +343,8 @@ const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEv
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+
+const isRunHosted = inject(FieldAgentRunHostedInj, ref(false))
 const isGrid = inject(IsGridInj, ref(false))
 onMounted(() => {
   if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value && !isEditColumn.value) {
@@ -472,26 +474,12 @@ onMounted(() => {
       </template>
     </a-select>
 
-    <!-- Field Agent Run Button -->
-    <NcTooltip
-      v-if="isFieldAgent && rowPk && !isEditColumn && !isForm && editAllowed && !readOnly"
-      :title="$t('labels.fieldAgent.runAiAgent')"
-    >
-      <NcButton
-        v-e="['a:field-agent:cell:generate', { source: 'cell' }]"
-        size="xs"
-        type="text"
-        theme="ai"
-        class="nc-field-agent-run-btn !px-1 flex-none"
-        :loading="isAiGenerating"
-        :disabled="isAiGenerating"
-        @click.stop="runFieldAgent"
-      >
-        <template #icon>
-          <GeneralIcon icon="ncAutoAwesome" class="h-3.5 w-3.5" />
-        </template>
-      </NcButton>
-    </NcTooltip>
+    <CellFieldAgentRunButton
+      v-if="isFieldAgent && rowPk && !isRunHosted && !isEditColumn && !isForm && editAllowed && !readOnly"
+      source="cell"
+      :loading="isAiGenerating"
+      @click="runFieldAgent"
+    />
   </div>
 </template>
 

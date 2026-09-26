@@ -5,8 +5,10 @@ import {
   SelectFieldAgentMetaProp,
   type SerializedAiViewType,
   type TableType,
+  extractFieldAgentReferences,
   isFieldAgentCol,
 } from 'nocodb-sdk'
+import { getI18n } from '~/plugins/a.i18n'
 
 const aiIntegrationNotFound = 'AI integration not found'
 
@@ -555,12 +557,6 @@ export const useNocoAi = createSharedComposable(() => {
     }
   }
 
-  // Canvas grid action manager hook: set by canvas grid, used by toolbar for
-  // cell-level loading spinners during bulk AI generation.
-  const canvasBulkAiGeneration = ref<
-    ((columnId: string, rowIds: string[], rows?: Row[], path?: Array<number>) => Promise<any>) | null
-  >(null)
-
   // ── Field Agent Dirty Row Tracking ──────────────────────────────────
   // Tracks which rows need re-generation because a dependent field changed.
   // Session-scoped: resets on page reload.
@@ -600,16 +596,9 @@ export const useNocoAi = createSharedComposable(() => {
     for (const col of columns) {
       if (!isFieldAgentCol(col) || !col.id) continue
 
-      const colMeta = parseProp(col.meta)
-      const promptRaw = colMeta?.[SelectFieldAgentMetaProp]?.prompt_raw
-      if (!promptRaw) continue
+      const promptRaw = parseProp(col.meta)?.[SelectFieldAgentMetaProp]?.prompt_raw
 
-      // Extract all {FieldName} tokens
-      const matches = promptRaw.match(/\{([^}]+)\}/g)
-      if (!matches) continue
-
-      for (const match of matches) {
-        const fieldName = match.slice(1, -1) // Remove { }
+      for (const fieldName of extractFieldAgentReferences(promptRaw)) {
         const existing = tableMap.get(fieldName) ?? []
         if (!existing.includes(col.id)) {
           existing.push(col.id)
@@ -687,13 +676,6 @@ export const useNocoAi = createSharedComposable(() => {
     return dirtyFieldAgentRows.value.get(colId)?.size ?? 0
   }
 
-  /** Row PKs that need re-generation for a given field agent column. Prefers server-side data. */
-  const getFieldAgentDirtyRowIds = (colId: string): string[] => {
-    const serverData = serverDirtyCounts.value.get(colId)
-    if (serverData !== undefined) return serverData.rowIds
-    return [...(dirtyFieldAgentRows.value.get(colId) ?? [])]
-  }
-
   /** Whether a dirty count fetch is in progress for a column. */
   const isDirtyCountLoading = (colId: string): boolean => {
     return dirtyCountLoading.value.get(colId) ?? false
@@ -703,21 +685,6 @@ export const useNocoAi = createSharedComposable(() => {
   const clearFieldAgentDirty = (colId: string) => {
     reactiveMapDelete(dirtyFieldAgentRows, colId)
     reactiveMapDelete(serverDirtyCounts, colId)
-  }
-
-  /** Drop every dirty entry belonging to one table (e.g. when its schema changes). */
-  const clearFieldAgentDirtyForTable = (modelId?: string) => {
-    if (!modelId) return
-
-    for (const colIds of fieldAgentDependencyMap.value.get(modelId)?.values() ?? []) {
-      for (const colId of colIds) {
-        dirtyFieldAgentRows.value.delete(colId)
-        serverDirtyCounts.value.delete(colId)
-      }
-    }
-
-    triggerRef(dirtyFieldAgentRows)
-    triggerRef(serverDirtyCounts)
   }
 
   /**
@@ -733,13 +700,38 @@ export const useNocoAi = createSharedComposable(() => {
     },
   ): Promise<{ id: string } | undefined> => {
     try {
-      const res = await $api.instance.post<{ id: string }>(`/api/v2/ai/tables/${modelId}/field-agent/generate`, params)
+      const res = (await $api.internal.postOperation(
+        workspaceStore.activeWorkspaceId,
+        activeProjectId?.value || workspaceStore.activeProjectId?.value || '',
+        { operation: 'fieldAgentGenerate' },
+        { tableId: modelId, ...params },
+      )) as { id: string }
       $e('a:field-agent:bulk:dispatch', { mode: params.mode })
-      return res.data
+      return res
     } catch (e: any) {
       const error = await extractSdkResponseErrorMsg(e)
-      message.error(error || 'Failed to start field agent job')
+      message.error(error || getI18n().global.t('msg.error.fieldAgentJobFailed'))
     }
+  }
+
+  // Models per AI integration, fetched once per session. Clearing the cache on an
+  // integration's edit isn't worth the wiring: a changed model list shows up on reload.
+  const availableModelsCache = new Map<string, Promise<{ value: string; label: string }[]>>()
+
+  const getAvailableModels = (integrationId: string) => {
+    if (!availableModelsCache.has(integrationId)) {
+      const request = $api.integrations
+        .endpoint(integrationId, 'availableModels', {})
+        .then((models) => (models ?? []) as { value: string; label: string }[])
+        .catch(() => {
+          // Don't cache a failure — let the next open retry
+          availableModelsCache.delete(integrationId)
+          return []
+        })
+      availableModelsCache.set(integrationId, request)
+    }
+
+    return availableModelsCache.get(integrationId)!
   }
 
   return {
@@ -772,19 +764,16 @@ export const useNocoAi = createSharedComposable(() => {
     isAiFeaturesEnabled,
     isAiBetaFeaturesEnabled,
     isFieldAgentFeatureEnabled,
-    canvasBulkAiGeneration,
     // Field agent dirty tracking
     buildFieldAgentDependencyMap,
     onFieldAgentCellUpdate,
     getFieldAgentDirtyCount,
-    getFieldAgentDirtyRowIds,
     clearFieldAgentDirty,
-    clearFieldAgentDirtyForTable,
     // Server-side dirty tracking (persistent)
     fetchFieldAgentDirtyCount,
     isDirtyCountLoading,
-    serverDirtyCounts,
     // Bulk job dispatch
     dispatchFieldAgentJob,
+    getAvailableModels,
   }
 })

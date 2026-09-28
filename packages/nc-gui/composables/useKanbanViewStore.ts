@@ -527,7 +527,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       })
     }
 
-    async function loadMoreKanbanData(stackTitle: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
+    async function loadMoreKanbanData(stackTitle: string | null, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
       if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value && !interfaceDataApi) return
       let where = `(${groupingField.value},eq,${stackTitle})`
       if (stackTitle === null) {
@@ -1118,6 +1118,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
         try {
           const pkOf = (row: Row) => `${extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])}`
+          const reload = (stackKey: string | null) =>
+            reloadStack(stackKey).catch((e) => console.error('Failed to reload kanban stack on reorder', e))
 
           for (const [stackKey, rows] of formattedData.value.entries()) {
             const index = rows.findIndex((row) => pkOf(row) === `${id}`)
@@ -1135,10 +1137,17 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
               formattedData.value.set(stackKey, stackRows)
             } else {
               // `before` is in another stack or not loaded, so the slot within this stack is unknown.
-              reloadStack(stackKey).catch((e) => console.error('Failed to reload kanban stack on reorder', e))
+              reload(stackKey)
             }
-            break
+            return
           }
+
+          // The card isn't loaded, but it now sits before a loaded card of its stack, so it's inside the window.
+          const stackKey =
+            typeof payload?.[groupingField.value] === 'string' && payload[groupingField.value].length
+              ? payload[groupingField.value]
+              : null
+          if (before && formattedData.value.get(stackKey)?.some((row) => pkOf(row) === `${before}`)) reload(stackKey)
         } catch (e) {
           console.error('Failed to reorder row in kanban on socket event', e)
         }
@@ -1148,8 +1157,15 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     async function reloadStack(stackKey: string | null) {
       if (!useWindowedKanbanLoad.value) return loadKanbanData()
 
+      // Refetching resets the stack to its first page; top it back up so scrolled-in cards stay.
+      const loadedCount = formattedData.value.get(stackKey)?.length ?? 0
       loadedStacks.value.delete(stackKey)
       await loadKanbanDataForStacks([stackKey])
+
+      const reloadedCount = formattedData.value.get(stackKey)?.length ?? 0
+      if (loadedCount > reloadedCount) {
+        await loadMoreKanbanData(stackKey, { offset: reloadedCount, limit: loadedCount - reloadedCount })
+      }
     }
 
     watch(

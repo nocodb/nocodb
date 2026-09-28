@@ -188,9 +188,24 @@ export default class PresignedUrl {
       pathParameters.ResponseContentEncoding = encoding;
     }
 
+    // The cache key must stay stable across expiry buckets: the rounded
+    // expireAt is intentionally excluded from it. Freshness is already
+    // validated independently on read (url.expires_at > now), so putting
+    // the expiry in the key only ever rotated the key every 10 minutes
+    // and the cached URL was never reused. The requested lifetime stays
+    // in the key so different lifetimes do not share a cached URL.
+    const cacheKeyParameters: { [key: string]: string } = {
+      expireSeconds: String(expireSeconds),
+    };
+    for (const [key, value] of Object.entries(pathParameters)) {
+      if (key !== 'expireAt') {
+        cacheKeyParameters[key] = value;
+      }
+    }
+
     // append query params to the cache path
     const cachePath = `${path}?${new URLSearchParams(
-      pathParameters,
+      cacheKeyParameters,
     ).toString()}`;
 
     const url = await NocoCache.get(

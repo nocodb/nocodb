@@ -188,9 +188,14 @@ export default class PresignedUrl {
       pathParameters.ResponseContentEncoding = encoding;
     }
 
-    // append query params to the cache path
+    // External signed URLs can be reused across expiry buckets. Keep the
+    // requested lifetime in the key, but validate the cached URL's actual
+    // expires_at below. Local dltemp paths still need expireAt in their key.
+    const { expireAt: _expireAt, ...cacheParameters } = pathParameters;
     const cachePath = `${path}?${new URLSearchParams(
-      pathParameters,
+      param.isLocalPath
+        ? pathParameters
+        : { ...cacheParameters, expireSeconds: String(expireSeconds) },
     ).toString()}`;
 
     const url = await NocoCache.get(

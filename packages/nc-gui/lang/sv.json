@@ -5190,7 +5190,6 @@
     "appAssistantStarter": "t.ex. Vad är bokat den här veckan?",
     "describeEmail": "Beskriv det här e-postmeddelandet, t.ex. \"Tacka kunden och lista varorna i beställningen\"",
     "searchAgents": "Sök efter agenter",
-    "searchBasesInWorkspace": "Sök efter projekt i {workspace}...",
     "searchAllIcons": "Sök bland alla ikoner…",
     "interfaceNameExample": "t.ex. Försäljningsöversikt",
     "interfaceOverviewDescription": "Lägg till en beskrivning för den här sidan…",

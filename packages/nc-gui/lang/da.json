@@ -5184,7 +5184,6 @@
     "appAssistantStarter": "f.eks. Hvad er booket i denne uge?",
     "describeEmail": "Beskriv denne e-mail, f.eks. \"Tak kunden, og list varerne i deres ordre\"",
     "searchAgents": "Søg efter agenter",
-    "searchBasesInWorkspace": "Søg efter projekter i {workspace}...",
     "searchAllIcons": "Søg i alle ikoner…",
     "interfaceNameExample": "f.eks. Salgsoverblik",
     "interfaceOverviewDescription": "Tilføj en beskrivelse til denne side…",

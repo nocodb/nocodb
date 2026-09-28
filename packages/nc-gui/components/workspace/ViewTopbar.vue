@@ -99,7 +99,7 @@ onMounted(() => {
         v-model:value="searchQuery"
         type="text"
         class="nc-ws-home-search nc-input-shadow !h-9 !pl-2 !pr-1.5 !py-1 !rounded-lg"
-        :placeholder="$t('placeholder.searchBasesInWorkspace', { workspace: workspaceTitle })"
+        :placeholder="$t('placeholder.searchBases')"
         data-testid="nc-ws-home-topbar-search"
         allow-clear
         @keydown.stop

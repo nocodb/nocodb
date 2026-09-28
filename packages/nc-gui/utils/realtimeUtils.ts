@@ -1,5 +1,5 @@
 import { EventType } from 'nocodb-sdk'
-import type { FilterType } from 'nocodb-sdk'
+import type { FilterType, InterfaceFilterNode } from 'nocodb-sdk'
 import { interfaceDataEventSuffix } from '~/lib/interfaceData'
 
 /**
@@ -23,7 +23,7 @@ export function dataEventSubscriptionKey(
  * be flattened with synthetic ids before evaluation or their group nodes
  * evaluate empty and pushed rows get silently dropped.
  */
-export function flattenFiltersForEval(roots: FilterType[]): FilterType[] {
+export function flattenFiltersForEval(roots: Array<FilterType | InterfaceFilterNode>): FilterType[] {
   const out: FilterType[] = []
   let seq = 0
   const walk = (node: any, parentId: string | null) => {

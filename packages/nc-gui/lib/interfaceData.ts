@@ -2,6 +2,7 @@ import type { Ref } from 'vue'
 import type {
   CommentNotificationPreference,
   FilterType,
+  InterfaceFilterGroup,
   InterfacePageType,
   InterfaceVizFieldConfig,
   PaginatedType,
@@ -254,6 +255,8 @@ export interface InterfacePageDataApi {
    * outside the viz's allow-list survive the copy. Optional on older adapters.
    */
   duplicateRow?(rowId: string, opts?: { before?: string }): Promise<Record<string, any>>
+  /** Expanding paste — multi-row twin of `insertRow`. Resolves to the inserted pks, in insert order. */
+  bulkInsertRows?(rows: Array<Record<string, any>>): Promise<Record<string, any>[]>
   updateRow(rowId: string, data: Record<string, any>): Promise<Record<string, any>>
   /** Bulk inline cell edits (range paste) — multi-row twin of `updateRow`. */
   bulkUpdateRows?(rows: Array<{ rowId: string; data: Record<string, any> }>): Promise<boolean>
@@ -425,6 +428,12 @@ export interface InterfacePageDataApi {
    * Mirroring them would make the client STRICTER than the server.
    */
   userFilterSelectionFilters(): FilterType[]
+  /**
+   * The builder's page ∧ viz filters as filter roots — the server rejects
+   * writes to rows outside them, so a write that moves a row out marks it
+   * filtered client-side like a classic-grid view filter.
+   */
+  builderScopeFilters?(): InterfaceFilterGroup[]
   /** viz-config editability gates the UI */
   canEditInline: Ref<boolean>
   canAddDeleteInline: Ref<boolean>

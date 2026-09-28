@@ -3734,6 +3734,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             toInsert.push(data);
           }
         }
+
+        // Pre-update snapshot for the after-update hooks, as in EE bulkUpsert
+        if (toUpdate.length > 0) {
+          existingRecords = dbRecords;
+        }
       }
 
       // V3 accepts inline link fields on upsert. Inserted rows reuse the same
@@ -4000,11 +4005,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       });
       updatedDatas.push(...updatedRecords);
 
+      const insertedPks = insertedDatas.map((d) =>
+        this.extractPksValues(d, true),
+      );
+      // Insert order — callers map inserted rows back to their input by index
       const insertedDataList =
         insertedDatas.length > 0
-          ? await this.chunkList({
-              pks: insertedDatas.map((d) => this.extractPksValues(d, true)),
-            })
+          ? this.orderRowsByPks(
+              await this.chunkList({ pks: insertedPks }),
+              insertedPks,
+            )
           : [];
 
       const updatedDataList =
@@ -4136,6 +4146,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     return data;
+  }
+
+  /** `chunkList` re-reads rows in list order — put them back in `pks` order. */
+  protected orderRowsByPks(rows: Record<string, any>[], pks: string[]) {
+    const byPk = new Map(
+      rows.map((r) => [String(this.extractPksValues(r, true)), r]),
+    );
+    return pks.map((pk) => byPk.get(String(pk))).filter(Boolean);
   }
 
   async handleValidateBulkInsert(

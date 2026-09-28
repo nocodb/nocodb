@@ -56,7 +56,7 @@ const props = defineProps<{
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
-  ) => Promise<void>
+  ) => Promise<Record<string, any>[] | void>
   expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
   removeRowIfNew?: (row: Row) => void
   rowSortRequiredRows: Row[]

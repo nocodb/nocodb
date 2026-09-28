@@ -6,6 +6,9 @@ import type { CanvasGroup } from '../lib/types'
 import { useInfiniteGroups } from './useInfiniteGroups'
 import { type CellRange, type Row } from '#imports'
 
+// The server's cap on the interface bulk ops
+const INTERFACE_BULK_CHUNK_SIZE = 500
+
 export function useGridViewData(
   _meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
   viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
@@ -484,13 +487,52 @@ export function useGridViewData(
         return row
       })
 
-      const bulkUpsertedRows = await $api.dbTableRow.bulkUpsert(
-        NOCO,
-        metaValue?.base_id ?? (base.value?.id as string),
-        metaValue?.id as string,
-        [...insertRows.map((row) => cleanRow(row.row)), ...updateRows.map((row) => cleanRow(row.row))],
-        { typecast: 'true' },
-      )
+      let bulkUpsertedRows: Record<string, any>[]
+      // Set when an interface insert chunk fails after earlier chunks committed
+      let partialInsertError: any
+
+      if (interfaceDataApi?.bulkInsertRows && interfaceDataApi.bulkUpdateRows) {
+        // Interface pages — page-scoped ops, so the rows get edit grace and the
+        // field allow-list applies (the raw upsert 403s for interface collaborators).
+        // Not atomic: updates run first so their failure strands no new rows, and
+        // rows inserted before a failed chunk are still cached and returned.
+        const pkTitles = ((metaValue?.columns ?? []) as ColumnType[]).filter((c) => c.pk).map((c) => c.title!)
+        const updateData = updateRows.map((row) => ({
+          rowId: getPk(row) as string,
+          data: props.reduce(
+            (acc, prop) => (pkTitles.includes(prop) ? acc : { ...acc, [prop]: row.row[prop] }),
+            {} as Record<string, any>,
+          ),
+        }))
+        for (let i = 0; i < updateData.length; i += INTERFACE_BULK_CHUNK_SIZE) {
+          await interfaceDataApi.bulkUpdateRows(updateData.slice(i, i + INTERFACE_BULK_CHUNK_SIZE))
+        }
+
+        const insertData = insertRows.map((row) => cleanRow(row.row))
+        const insertedPks: Record<string, any>[] = []
+        for (let i = 0; i < insertData.length; i += INTERFACE_BULK_CHUNK_SIZE) {
+          try {
+            insertedPks.push(...(await interfaceDataApi.bulkInsertRows(insertData.slice(i, i + INTERFACE_BULK_CHUNK_SIZE))))
+          } catch (e) {
+            if (!insertedPks.length) throw e
+            partialInsertError = e
+            break
+          }
+        }
+
+        bulkUpsertedRows = [
+          ...insertedPks.map((pk, i) => ({ ...insertData[i], ...pk })),
+          ...updateRows.map((row) => cleanRow(row.row)),
+        ]
+      } else {
+        bulkUpsertedRows = await $api.dbTableRow.bulkUpsert(
+          NOCO,
+          metaValue?.base_id ?? (base.value?.id as string),
+          metaValue?.id as string,
+          [...insertRows.map((row) => cleanRow(row.row)), ...updateRows.map((row) => cleanRow(row.row))],
+          { typecast: 'true' },
+        )
+      }
 
       const existingPks = new Set(Array.from(dataCache.cachedRows.value.values()).map((row) => getPk(row)))
       const [insertedRows, updatedRows] = bulkUpsertedRows.reduce(
@@ -523,8 +565,14 @@ export function useGridViewData(
       reloadViewDataHook?.trigger()
       syncVisibleData()
       await syncCount(path, true, false)
+
+      if (partialInsertError) message.error(await extractSdkResponseErrorMsg(partialInsertError))
+
+      return bulkUpsertedRows
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
+      // Interface writes aren't atomic — earlier requests may have committed
+      if (interfaceDataApi) reloadViewDataHook?.trigger()
     } finally {
       isBulkOperationInProgress.value = false
     }

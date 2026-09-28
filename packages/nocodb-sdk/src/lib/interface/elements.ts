@@ -7,6 +7,7 @@
  */
 
 import type { Validation } from '../form';
+import type { AttachmentResType } from '~/lib/Api';
 import type { InterfaceVisualizationConfig } from './pageConfigs';
 
 /**
@@ -508,12 +509,15 @@ export interface InterfaceFormSubmissionConfig {
   notify_user_ids?: string[];
 }
 
+/** Stored as an attachment ref and signed on read; a bare string is a legacy or external URL. */
+export type InterfacePageImage = NonNullable<AttachmentResType> | string;
+
 export interface InterfaceFormConfig {
   action?: InterfaceFormActions;
   description?: string;
   /** Attachment refs — nav-page render mode only. */
-  cover_image?: string | null;
-  logo?: string | null;
+  cover_image?: InterfacePageImage | null;
+  logo?: InterfacePageImage | null;
   groups: InterfaceFieldGroupConfig[];
   submission?: InterfaceFormSubmissionConfig;
   /** Visitor-facing actions — default hidden/opt-in. */

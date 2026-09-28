@@ -67,10 +67,6 @@ useSidebar('nc-left-sidebar')
 
       & > .ant-tabs-tab:not(.ant-tabs-tab-active) {
         @apply bg-nc-bg-gray-extralight text-nc-content-gray-muted;
-
-        .ant-tabs-tab-remove {
-          @apply !text-default;
-        }
       }
     }
   }

@@ -139,7 +139,7 @@ async function handleSave() {
     }
 
     await updateOAuthClient(props.clientId!, payload)
-    message.success('OAuth client updated successfully!')
+    message.success(t('msg.success.oauthClientUpdated'))
     modalVisible.value = false
   } catch (error: any) {
     if (error.errorFields) {
@@ -172,7 +172,7 @@ function copyToClipboard(text: string, label: string) {
       <div class="flex w-full items-center p-2 justify-between">
         <div class="flex items-center gap-3 pl-1 flex-1">
           <GeneralIcon class="text-nc-content-gray-emphasis h-5 w-5" icon="ncLock" />
-          <span class="text-nc-content-gray-emphasis truncate font-semibold text-xl"> Edit OAuth Client </span>
+          <span class="text-nc-content-gray-emphasis truncate font-semibold text-xl"> {{ $t('labels.editOauthClient') }} </span>
         </div>
 
         <div class="flex justify-end items-center gap-3 pr-0.5 flex-1">
@@ -201,31 +201,35 @@ function copyToClipboard(text: string, label: string) {
                 >
               </template>
               <template #extra>
-                <span class="text-xs text-nc-content-gray-muted">Shown to users during authorization</span>
+                <span class="text-xs text-nc-content-gray-muted">{{ $t('labels.oauthClientNameHint') }}</span>
               </template>
-              <a-input v-model:value="clientRef.client_name" placeholder="My Application" class="nc-input-shadow !rounded-lg" />
+              <a-input
+                v-model:value="clientRef.client_name"
+                :placeholder="$t('placeholder.oauthClientName')"
+                class="nc-input-shadow !rounded-lg"
+              />
             </a-form-item>
 
             <!-- Application Description -->
             <a-form-item v-bind="validateInfos.client_description" class="!mb-0 flex-1">
               <template #label>
-                <span class="text-nc-content-gray-subtle font-medium">Application Description</span>
+                <span class="text-nc-content-gray-subtle font-medium">{{ $t('labels.applicationDescription') }}</span>
               </template>
               <template #extra>
-                <span class="text-xs text-nc-content-gray-muted">Brief description shown when users grant access</span>
+                <span class="text-xs text-nc-content-gray-muted">{{ $t('labels.oauthClientDescriptionHint') }}</span>
               </template>
               <a-textarea
                 v-model:value="clientRef.client_description"
-                placeholder="This application helps you manage your data..."
+                :placeholder="$t('placeholder.oauthClientDescription')"
                 :rows="3"
                 class="nc-input-shadow !rounded-lg"
               />
             </a-form-item>
 
             <!-- Homepage URL -->
-            <a-form-item label="Homepage URL" v-bind="validateInfos.client_uri" class="!mb-0 flex-1">
+            <a-form-item :label="$t('labels.homepageUrl')" v-bind="validateInfos.client_uri" class="!mb-0 flex-1">
               <template #label>
-                <span class="text-nc-content-gray-subtle font-medium">Homepage URL</span>
+                <span class="text-nc-content-gray-subtle font-medium">{{ $t('labels.homepageUrl') }}</span>
               </template>
               <a-input
                 v-model:value="clientRef.client_uri"
@@ -240,7 +244,7 @@ function copyToClipboard(text: string, label: string) {
                 <span class="text-nc-content-gray-subtle font-medium">{{ $t('general.logo') }}</span>
               </template>
               <template #extra>
-                <span class="text-xs text-nc-content-gray-muted">Image shown during authorization (square recommended)</span>
+                <span class="text-xs text-nc-content-gray-muted">{{ $t('labels.oauthClientLogoHint') }}</span>
               </template>
               <NcFileUpload
                 v-model:attachment="clientRef.logo_uri"
@@ -263,21 +267,21 @@ function copyToClipboard(text: string, label: string) {
             <!-- Client Type (Read-only) -->
             <a-form-item class="!mb-0 flex-1">
               <template #label>
-                <span class="text-nc-content-gray-subtle font-medium">Client Type</span>
+                <span class="text-nc-content-gray-subtle font-medium">{{ $t('labels.clientType') }}</span>
               </template>
               <template #extra>
                 <span class="text-xs text-nc-content-gray-muted">
-                  Public: mobile/web apps (PKCE required). Confidential: secure servers (can store secrets)
+                  {{ $t('labels.oauthClientTypeHint') }}
                 </span>
               </template>
               <a-radio-group v-model:value="clientRef.client_type" disabled class="nc-input-shadow">
-                <a-radio value="public">Public</a-radio>
-                <a-radio value="confidential">Confidential</a-radio>
+                <a-radio value="public">{{ $t('general.public') }}</a-radio>
+                <a-radio value="confidential">{{ $t('labels.confidential') }}</a-radio>
               </a-radio-group>
             </a-form-item>
 
             <!-- Authorization Callback URLs -->
-            <a-form-item label="Authorization Callback URLs" v-bind="validateInfos.redirect_uris" class="mb-0">
+            <a-form-item :label="$t('labels.authorizationCallbackUrls')" v-bind="validateInfos.redirect_uris" class="mb-0">
               <template #label>
                 <span class="text-nc-content-gray-subtle font-medium"
                   >Authorization Callback URLs <span class="text-nc-content-red-medium">*</span></span
@@ -285,7 +289,7 @@ function copyToClipboard(text: string, label: string) {
               </template>
               <template #extra>
                 <span class="text-xs text-nc-content-gray-muted">
-                  HTTPS URLs for redirecting after authorization (localhost/127.0.0.1 allowed). One per line
+                  {{ $t('labels.oauthCallbackUrlsHint') }}
                 </span>
               </template>
               <a-textarea
@@ -301,7 +305,7 @@ function copyToClipboard(text: string, label: string) {
 
           <!-- Client ID (Read-only) -->
           <div class="flex flex-col gap-2">
-            <label class="text-nc-content-gray-subtle font-medium text-sm">Client ID</label>
+            <label class="text-nc-content-gray-subtle font-medium text-sm">{{ $t('labels.clientId') }}</label>
             <div class="flex items-center gap-2">
               <a-input :value="clientRef.client_id" readonly class="nc-input-shadow !rounded-lg flex-1" />
               <NcButton type="secondary" size="small" @click="copyToClipboard(clientRef.client_id, 'Client ID')">
@@ -312,7 +316,7 @@ function copyToClipboard(text: string, label: string) {
 
           <!-- Client Secret (Read-only, with show/hide) -->
           <div v-if="clientRef.client_type === 'confidential'" class="flex flex-col gap-2">
-            <label class="text-nc-content-gray-subtle font-medium text-sm">Client Secret</label>
+            <label class="text-nc-content-gray-subtle font-medium text-sm">{{ $t('labels.clientSecret') }}</label>
             <div v-if="clientRef.client_secret" class="flex items-center gap-2">
               <a-input
                 :value="showSecret ? clientRef.client_secret : '••••••••••••••••••••••••••••••••'"
@@ -332,15 +336,15 @@ function copyToClipboard(text: string, label: string) {
               </NcButton>
             </div>
             <div v-if="secretJustRegenerated" class="text-xs text-orange-600">
-              ⚠️ Make sure to copy your client secret now. You won't be able to see it again!
+              {{ $t('msg.warning.copyClientSecretNow') }}
             </div>
             <div v-else class="text-xs text-nc-content-gray-muted">
-              The secret is hidden for security and is not visible again. You can regenerate it if needed.
+              {{ $t('msg.info.clientSecretHidden') }}
             </div>
             <NcButton type="secondary" size="small" class="mt-2 w-fit" @click="handleRegenerateSecret">
               <div class="flex gap-2">
                 <GeneralIcon icon="refresh" />
-                Regenerate Secret
+                {{ $t('labels.regenerateSecret') }}
               </div>
             </NcButton>
           </div>
@@ -360,7 +364,7 @@ function copyToClipboard(text: string, label: string) {
                 rel="noopener noreferrer"
                 class="!text-nc-content-gray-muted text-sm !no-underline !hover:underline"
               >
-                Create OAuth Clients
+                {{ $t('labels.createOauthClients') }}
               </NuxtLink>
             </div>
             <div class="flex items-center gap-1">
@@ -373,19 +377,23 @@ function copyToClipboard(text: string, label: string) {
                 rel="noopener noreferrer"
                 class="!text-nc-content-gray-muted text-sm !no-underline !hover:underline"
               >
-                Managing OAuth Clients
+                {{ $t('labels.managingOauthClients') }}
               </NuxtLink>
             </div>
           </div>
           <NcDivider />
 
           <div v-if="clientRef.client_id" class="flex flex-col gap-2">
-            <h3 class="text-sm text-nc-content-gray-subtle font-semibold !my-0">Client Information</h3>
+            <h3 class="text-sm text-nc-content-gray-subtle font-semibold !my-0">{{ $t('labels.clientInformation') }}</h3>
             <div class="text-xs text-nc-content-gray-muted space-y-1">
               <div>
-                <span class="font-medium">Type:</span> {{ clientRef.client_type === 'public' ? 'Public' : 'Confidential' }}
+                <span class="font-medium">{{ $t('general.type') }}:</span>
+                {{ clientRef.client_type === 'public' ? 'Public' : 'Confidential' }}
               </div>
-              <div><span class="font-medium">Created:</span> {{ new Date(clientRef.created_at).toLocaleDateString() }}</div>
+              <div>
+                <span class="font-medium">{{ $t('labels.created') }}:</span>
+                {{ new Date(clientRef.created_at).toLocaleDateString() }}
+              </div>
             </div>
           </div>
         </div>

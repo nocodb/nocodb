@@ -10,6 +10,7 @@ export * from '~/lib/globals';
 export * from '~/lib/userHelper';
 export * from '~/lib/timezoneUtils';
 export * from '~/lib/helperFunctions';
+export { numberize } from '~/lib/numberUtils';
 export * from '~/lib/enums';
 export * from '~/lib/apiToken';
 export * from '~/lib/formulaHelpers';
@@ -22,12 +23,16 @@ export * from '~/lib/scripts';
 export * from '~/lib/oauth';
 export * from '~/lib/unifiedMeta';
 export * from '~/lib/base-variable';
+export * from '~/lib/environment';
+export * from '~/lib/integration-credential';
+export * from '~/lib/vault';
 export * from '~/lib/managed-app';
 export * from '~/lib/operationLog';
 export * from '~/lib/types';
 export * from '~/lib/bookmark';
 export * from '~/lib/helpers/metaHelpers';
 export * from '~/lib/circularReplacer';
+export * from '~/lib/payment/credits';
 export {
   default as UITypes,
   UITypesName,
@@ -45,6 +50,10 @@ export {
   isSelfLinkCol,
   isCreatedOrLastModifiedTimeCol,
   isCreatedOrLastModifiedByCol,
+  isFieldTrackingLmtCol,
+  isFieldTrackingLmbCol,
+  isAllowedLmtTrackedField,
+  type LastModifiedTimeColMeta,
   isHiddenCol,
   getEquivalentUIType,
   isActionButtonCol,
@@ -80,6 +89,7 @@ export * from '~/lib/dateTimeHelper';
 export * from '~/lib/jalali';
 export * from '~/lib/form';
 export * from '~/lib/aggregationHelper';
+export * from '~/lib/parser/queryFilter/query-filter-encoder';
 export * from '~/lib/aggregationCompute';
 export * from '~/lib/connectionConfigUtils';
 export * from '~/lib/currencyHelpers';
@@ -113,13 +123,27 @@ export * from '~/lib/workflow';
 export * from '~/lib/uniqueConstraintHelpers';
 export * from '~/lib/recordTemplate';
 export * from '~/lib/viewSection';
+export * from '~/lib/baseSection';
+export * from '~/lib/automationSection';
+export * from '~/lib/agentSection';
 export * from '~/lib/chat';
 export * from '~/lib/v3';
 export * from '~/lib/Document';
 export * from '~/lib/DocumentComment';
+export * from '~/lib/comment';
 export * from '~/lib/commentAnnotation';
+export * from '~/lib/notification';
 export * from '~/lib/DocumentRevision';
 export * from '~/lib/docs';
 export * from '~/lib/entityNameValidation';
 export * from '~/lib/smartText';
 export * from '~/lib/snapshotSchedule';
+export * from '~/lib/app';
+export * from '~/lib/interface';
+export * from '~/lib/previewAs';
+export * from '~/lib/rls/rls-placeholders';
+export * from '~/lib/interface';
+export * from '~/lib/previewAs';
+export * from '~/lib/agent';
+export * from '~/lib/skill';
+export * from '~/lib/inviteLink';

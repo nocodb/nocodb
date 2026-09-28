@@ -7,7 +7,12 @@ import type {
 } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
-import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
+import {
+  ncIsKnexRawOrRef,
+  ncIsStringHasValue,
+  ncLikePatternForRef,
+  ncSplitFilterValue,
+} from '~/db/field-handler/utils/handlerUtils';
 
 export class GenericPgFieldHandler
   extends GenericFieldHandler
@@ -32,7 +37,16 @@ export class GenericPgFieldHandler
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
-        if (!ncIsStringHasValue(val)) {
+        if (ncIsKnexRawOrRef(val)) {
+          // Dynamic field-to-field: val is a column reference. Concatenate the
+          // wildcards in SQL so the reference isn't stringified into a literal.
+          qb.where(
+            knex.raw('??::text ilike ?', [
+              sourceField,
+              ncLikePatternForRef(knex, val),
+            ]),
+          );
+        } else if (!ncIsStringHasValue(val)) {
           qb.where((subQb) => {
             subQb.where(knex.raw(`??::text = ''`, [sourceField]));
             subQb.orWhereNull(sourceField as any);
@@ -63,7 +77,19 @@ export class GenericPgFieldHandler
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
-        if (!ncIsStringHasValue(val)) {
+        if (ncIsKnexRawOrRef(val)) {
+          // Dynamic field-to-field: val is a column reference. Concatenate the
+          // wildcards in SQL so the reference isn't stringified into a literal.
+          qb.whereNot(
+            knex.raw(`??::text ilike ?`, [
+              sourceField,
+              ncLikePatternForRef(knex, val),
+            ]),
+          );
+          // a non-matching (non-empty) filter should still surface empty/null
+          qb.orWhere(knex.raw(`??::text = ''`, [sourceField]));
+          qb.orWhereNull(sourceField as any);
+        } else if (!ncIsStringHasValue(val)) {
           // val is empty -> all values including NULL but empty strings
           qb.whereNot(knex.raw(`??::text = ''`, [sourceField]));
           qb.orWhereNull(sourceField as any);
@@ -105,7 +131,7 @@ export class GenericPgFieldHandler
 
     // Condition for filter, without negation
     const condition = (builder: Knex.QueryBuilder) => {
-      let items = val?.split(',') ?? [];
+      let items = ncSplitFilterValue(val, filter.comparison_op);
       if (['enum', 'set'].includes(column.dt?.toLowerCase())) {
         items = items.map((item) => item.trimEnd());
       }

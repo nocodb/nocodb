@@ -31,9 +31,16 @@ const showLabels = computed(() => visibleFields.value.length > 1)
      styles can't reach it. Any NcTooltip using this content sets
      overlay-class-name="nc-record-fields-tooltip". -->
 <style lang="scss">
-.nc-record-fields-tooltip .ant-tooltip-inner {
-  max-height: 220px;
-  overflow-y: auto;
+.nc-record-fields-tooltip {
+  // Roughly a month-cell/record-chip width — the labeled fields read as short
+  // rows instead of a tall wrapped column (antd's default caps at 250px).
+  max-width: 280px;
+
+  .ant-tooltip-inner {
+    min-width: 240px;
+    max-height: 220px;
+    overflow-y: auto;
+  }
 }
 
 .nc-record-fields-tooltip-content {

@@ -1,8 +1,9 @@
-import { Readable } from 'stream';
+import { Readable, Writable } from 'stream';
 import { Injectable } from '@nestjs/common';
 import debug from 'debug';
 import {
   getFirstNonPersonalView,
+  isAllowedLmtTrackedField,
   isCrossBaseLink,
   isLinksOrLTAR,
   isMMOrMMLike,
@@ -17,7 +18,7 @@ import {
   type WidgetType,
 } from 'nocodb-sdk';
 import { unparse } from 'papaparse';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { elapsedTime, initTime } from '../../helpers';
 import type { LookupType, NcRequest, RollupType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
@@ -25,6 +26,7 @@ import type { NcContext } from '~/interface/config';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type RowColorCondition from '~/models/RowColorCondition';
 import type { GetRowColorConditionsResult } from '~/helpers/rowColorViewHelpers';
+import type { ExcelNumberFormat } from '~/modules/jobs/jobs/export-import/excel-number-format';
 import { NcError } from '~/helpers/catchError';
 import {
   escapeFormulaeInRows,
@@ -49,6 +51,7 @@ import {
   Dashboard,
   Filter,
   Hook,
+  LmtTrackedField,
   Model,
   Permission,
   Script,
@@ -67,6 +70,10 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { getWidgetHandler } from '~/db/widgets';
 import { getQueriedColumns } from '~/helpers/dbHelpers';
+import {
+  excelColumnFormat,
+  excelNumberValue,
+} from '~/modules/jobs/jobs/export-import/excel-number-format';
 
 @Injectable()
 export class ExportService {
@@ -100,6 +107,13 @@ export class ExportService {
   }
 
   async serializeWorkflows(_context: NcContext, _param: any, _req: NcRequest) {
+    return [];
+  }
+
+  async serializeInterfaces(
+    _context: NcContext,
+    _param: { idMap: Map<string, string>; req: NcRequest },
+  ) {
     return [];
   }
 
@@ -185,6 +199,14 @@ export class ExportService {
       excludeData?: boolean;
       excludeComments?: boolean;
       excludePermissions?: boolean;
+      /**
+       * Carry the email of every user a permission is granted to. Only the
+       * cross-instance migration needs it — everything else lands back on the
+       * instance the ids came from — and `exportBase` writes this payload to a
+       * file, so it stays off by default rather than putting emails in an
+       * artifact that never carried them.
+       */
+      includeSubjectEmails?: boolean;
       compatibilityMode?: boolean;
     },
   ) {
@@ -194,9 +216,9 @@ export class ExportService {
     const excludeViews = param?.excludeViews || false;
     const excludeHooks = param?.excludeHooks || false;
     const excludeRowColorConditions = param?.excludeRowColorConditions || false;
-    const excludeComments =
-      param?.excludeComments || param?.excludeData || false;
+    const excludeComments = param?.excludeComments || excludeData;
     const excludePermissions = param?.excludePermissions || false;
+    const includeSubjectEmails = param?.includeSubjectEmails || false;
 
     const compatibilityMode = param?.compatibilityMode || false;
 
@@ -209,10 +231,27 @@ export class ExportService {
     const sources: Source[] = [];
     const modelsMap = new Map<string, Model[]>();
 
+    // Permission subjects address users by id, which means nothing on another
+    // instance. Email is the only handle that survives the hop, so carry it
+    // alongside the id — the importer prefers the id and falls back to email.
+    // Opt-in; see `includeSubjectEmails`.
+    const baseUserEmails = new Map<string, Map<string, string>>();
+
+    const getUserEmails = async (baseId: string) => {
+      if (!baseUserEmails.has(baseId)) {
+        const users = await BaseUser.getUsersList(context, { base_id: baseId });
+
+        baseUserEmails.set(
+          baseId,
+          new Map(users.map((user) => [user.id, user.email])),
+        );
+      }
+
+      return baseUserEmails.get(baseId);
+    };
+
     for (const modelId of modelIds) {
       const model = await Model.get(context, modelId);
-
-      let pgSerialLastVal;
 
       if (!model) return NcError.tableNotFound(modelId);
 
@@ -232,11 +271,11 @@ export class ExportService {
         );
       }
 
-      await model.getColumns(context);
+      await model.getColumns();
 
       model.columns = this.filterOutCrossBaseColumns(model);
 
-      await model.getViews(context);
+      await model.getViews();
 
       // if views are excluded, filter all views except default
       const firstView = getFirstNonPersonalView(model.views, {
@@ -259,40 +298,7 @@ export class ExportService {
       }
 
       for (const column of model.columns) {
-        await column.getColOptions(context);
-
-        // if data is not excluded, get currval for ai column (pg)
-        if (!excludeData) {
-          if (source.type === 'pg') {
-            if (column.ai) {
-              try {
-                const baseModel = await Model.getBaseModelSQL(context, {
-                  id: model.id,
-                  viewId: null,
-                  dbDriver: await NcConnectionMgrv2.get(source),
-                });
-                const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
-                const seq = await sqlClient.raw(
-                  `SELECT pg_get_serial_sequence('??', ?) as seq;`,
-                  [baseModel.getTnPath(model.table_name), column.column_name],
-                );
-                if (seq.rows.length > 0 && seq.rows[0].seq) {
-                  const seqName = seq.rows[0].seq;
-
-                  const res = await sqlClient.raw(
-                    `SELECT last_value as last FROM ${seqName};`,
-                  );
-
-                  if (res.rows.length > 0) {
-                    pgSerialLastVal = res.rows[0].last;
-                  }
-                }
-              } catch (e) {
-                this.debugLog(e);
-              }
-            }
-          }
-        }
+        await column.getColOptions();
 
         if (column.colOptions) {
           for (const [k, v] of Object.entries(column.colOptions)) {
@@ -444,9 +450,9 @@ export class ExportService {
 
       for (const view of model.views) {
         idMap.set(view.id, `${idMap.get(model.id)}::${view.id}`);
-        await view.getColumns(context);
-        await view.getFilters(context);
-        await view.getSorts(context);
+        await view.getColumns();
+        await view.getFilters();
+        await view.getSorts();
         if (view.filter) {
           const export_filters = [];
           for (const fl of view.filter.children) {
@@ -727,6 +733,10 @@ export class ExportService {
       if (!excludePermissions) {
         const basePermissions = await Permission.list(context, model.base_id);
 
+        const userEmails = includeSubjectEmails
+          ? await getUserEmails(model.base_id)
+          : null;
+
         const fieldIds = model.columns.map((c) => c.id);
 
         const modelPermissions = basePermissions.filter(
@@ -751,10 +761,18 @@ export class ExportService {
             enforce_for_automation: permission.enforce_for_automation,
             granted_type: permission.granted_type,
             granted_role: permission.granted_role,
-            subjects: permission.subjects,
+            subjects: permission.subjects?.map((subject) =>
+              subject.type === 'user' && userEmails?.has(subject.id)
+                ? { ...subject, email: userEmails.get(subject.id) }
+                : subject,
+            ),
           });
         }
       }
+
+      // tracked-field sets of field-tracking LMT/LMB columns live in
+      // junction rows — hydrate so they serialize with the column
+      await LmtTrackedField.hydrateColumns(context, model.columns);
 
       serializedModels.push({
         model: {
@@ -763,7 +781,6 @@ export class ExportService {
           title: model.title,
           table_name: clearPrefix(model.table_name, base.prefix),
           description: model.description,
-          pgSerialLastVal,
           meta: model.meta,
           columns: model.columns.map((column) => {
             // Exclude constraints field from export (internal field)
@@ -774,6 +791,23 @@ export class ExportService {
               ai: columnData.ai,
               column_name: columnData.column_name,
               meta: columnData.meta,
+              ...(columnData.tracked_field_ids?.length && {
+                // export-format ids, like every other cross-column
+                // reference — the import remaps them via getIdOrExternalId.
+                // Ids whose column is no longer trackable (converted to a
+                // derived type) are dropped rather than carried over: the
+                // source already ignores them on read, and columnAdd would
+                // reject them, failing the whole duplicate job.
+                tracked_field_ids: columnData.tracked_field_ids
+                  .filter((trackedId: string) => {
+                    const tracked = model.columns.find(
+                      (c) => c.id === trackedId,
+                    );
+                    return tracked && isAllowedLmtTrackedField(tracked);
+                  })
+                  .map((trackedId: string) => idMap.get(trackedId))
+                  .filter(Boolean),
+              }),
               pk: columnData.pk,
               pv: columnData.pv,
               order: columnData.order,
@@ -875,14 +909,34 @@ export class ExportService {
       modelId: string;
       viewId?: string;
       handledMmList?: string[];
+      /**
+       * Column projection for the export, in the caller's own order. This is
+       * a SERVER-COMPOSED list — it must never be forwarded straight from a
+       * request payload, since it bypasses the ref view's column visibility.
+       * Current callers both derive it internally:
+       *  - `DuplicateProcessor` — columns of the model being duplicated.
+       *  - `InterfaceDataExportProcessor` — `scope.exportColumnIds`, resolved
+       *    by `InterfaceDatasService.tableDataExport` from the stored viz
+       *    config (`viz.visible_field_ids`) after grant/env resolution; the
+       *    client only supplies `pageId`/`vizId`/`env`.
+       * Ids are additionally intersected with `model.columns` below, so an
+       * id from another model resolves to nothing rather than leaking.
+       */
       _fieldIds?: string[];
       ncSiteUrl?: string;
       delimiter?: string;
       excludeUsers?: boolean;
       includeCrossBaseColumns?: boolean;
+      /**
+       * Junctions to stream even though the link is cross-base. Empty by
+       * default — such rows reference a table outside the export. Consolidation
+       * passes the junctions whose endpoints both landed in its target.
+       */
+      crossBaseLinkMmModelIds?: string[];
       filterArrJson?: any;
       sortArrJson?: any;
       locale?: string;
+      customConditions?: Filter[];
     },
   ) {
     context = { ...context, cache: true };
@@ -899,7 +953,7 @@ export class ExportService {
 
     const source = await Source.get(context, model.source_id);
 
-    await model.getColumns(context);
+    await model.getColumns();
 
     if (!param.includeCrossBaseColumns) {
       model.columns = this.filterOutCrossBaseColumns(model);
@@ -917,7 +971,7 @@ export class ExportService {
             (col.colOptions?.type === RelationTypes.ONE_TO_ONE &&
               col.meta?.bt)),
       )) {
-        await column.getColOptions(context);
+        await column.getColOptions();
         const fkCol = model.columns.find(
           (c) => c.id === column.colOptions?.fk_child_column_id,
         );
@@ -957,35 +1011,49 @@ export class ExportService {
       return;
     }
 
-    const viewCols = await refView.getColumns(context);
+    const viewCols = await refView.getColumns();
     if (dataExportMode) {
-      const hideSystemFields = refView.show_system_fields
-        ? // at minimum filter mm fields used in Links field
-          model.columns
-            .filter(
-              (c) =>
-                isSystemColumn(c) &&
-                c.uidt === UITypes.LinkToAnotherRecord &&
-                c.colOptions?.fk_related_model_id !== model.id,
-            )
-            .map((c) => c.id)
-        : model.columns.filter((c) => isSystemColumn(c)).map((c) => c.id);
+      if (param._fieldIds?.length) {
+        // Caller-curated export columns (interface-page exports) — keep the
+        // caller's order instead of the ref view's column visibility/order.
+        fields = param._fieldIds
+          .map((id) => model.columns.find((c) => c.id === id)?.title)
+          .filter(Boolean);
+      } else {
+        const hideSystemFields = refView.show_system_fields
+          ? // at minimum filter mm fields used in Links field
+            model.columns
+              .filter(
+                (c) =>
+                  isSystemColumn(c) &&
+                  c.uidt === UITypes.LinkToAnotherRecord &&
+                  c.colOptions?.fk_related_model_id !== model.id,
+              )
+              .map((c) => c.id)
+          : model.columns.filter((c) => isSystemColumn(c)).map((c) => c.id);
 
-      fields = viewCols
-        .sort((a, b) => a.order - b.order)
-        .filter((c) => c.show && !hideSystemFields.includes(c.fk_column_id))
-        .map((vc) => model.columns.find((c) => c.id === vc.fk_column_id)?.title)
-        // to filter out undefined values(cross base link)
-        .filter(Boolean);
+        fields = viewCols
+          .sort((a, b) => a.order - b.order)
+          .filter((c) => c.show && !hideSystemFields.includes(c.fk_column_id))
+          .map(
+            (vc) => model.columns.find((c) => c.id === vc.fk_column_id)?.title,
+          )
+          // to filter out undefined values(cross base link)
+          .filter(Boolean);
+      }
     }
+
+    const crossBaseMmAllowList = new Set(param.crossBaseLinkMmModelIds ?? []);
+    const isExportableMm = (col: Column) =>
+      isMMOrMMLike(col) &&
+      (!isCrossBaseLink(col) ||
+        crossBaseMmAllowList.has(col.colOptions?.fk_mm_model_id));
 
     const mmColumns = param._fieldIds
       ? model.columns
           .filter((c) => param._fieldIds?.includes(c.id))
-          .filter((col) => isMMOrMMLike(col) && !isCrossBaseLink(col))
-      : model.columns.filter(
-          (col) => isMMOrMMLike(col) && !isCrossBaseLink(col),
-        );
+          .filter(isExportableMm)
+      : model.columns.filter(isExportableMm);
 
     const hasLink = !dataExportMode && mmColumns.length > 0;
 
@@ -1048,7 +1116,8 @@ export class ExportService {
                   const userEmails = [];
                   const userRecord = Array.isArray(v) ? v : [v];
                   for (const user of userRecord) {
-                    userEmails.push(user.email);
+                    // non-members come back without an email; keep the id
+                    userEmails.push(user?.email ?? user?.id);
                   }
                   row[colId] = userEmails.join(',');
                 } else {
@@ -1090,6 +1159,10 @@ export class ExportService {
       return { data };
     };
 
+    const fieldIdOrder = param._fieldIds?.length
+      ? new Map(param._fieldIds.map((id, index) => [id, index]))
+      : null;
+
     const formatAndSerialize = async (data: any) => {
       const includedColumns: {
         col: Column;
@@ -1107,9 +1180,10 @@ export class ExportService {
             });
             includedColumns.push({
               col,
-              viewOrder:
-                viewCols.find((vCol) => vCol.fk_column_id === col.id)?.order ??
-                includedColumns.length + 1,
+              viewOrder: fieldIdOrder
+                ? fieldIdOrder.get(col.id) ?? includedColumns.length + 1
+                : viewCols.find((vCol) => vCol.fk_column_id === col.id)
+                    ?.order ?? includedColumns.length + 1,
             });
           }
         }
@@ -1153,6 +1227,7 @@ export class ExportService {
         {
           filterArrJson: param.filterArrJson,
           sortArrJson: param.sortArrJson,
+          customConditions: param.customConditions,
         },
       );
     } catch (e) {
@@ -1168,9 +1243,21 @@ export class ExportService {
       for (const mm of mmColumns) {
         if (handledMmList.includes(mm.colOptions?.fk_mm_model_id)) continue;
 
-        const mmModel = await Model.get(context, mm.colOptions?.fk_mm_model_id);
+        // A cross-base junction lives in whichever base owns it, not
+        // necessarily the one holding the link column being read.
+        const mmColOptions = mm.colOptions as LinkToAnotherRecordColumn;
+        const mmContext =
+          mmColOptions.fk_mm_base_id &&
+          mmColOptions.fk_mm_base_id !== context.base_id
+            ? mmColOptions.getRelContext().mmContext
+            : context;
 
-        await mmModel.getColumns(context);
+        const mmModel = await Model.get(
+          mmContext,
+          mm.colOptions?.fk_mm_model_id,
+        );
+
+        await mmModel.getColumns();
 
         mmModel.columns = this.filterOutCrossBaseColumns(mmModel);
 
@@ -1207,16 +1294,16 @@ export class ExportService {
         const mmBase =
           mmModel.source_id === source.id
             ? source
-            : await Source.get(context, mmModel.source_id);
+            : await Source.get(mmContext, mmModel.source_id);
 
-        const mmBaseModel = await Model.getBaseModelSQL(context, {
+        const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
           id: mmModel.id,
           dbDriver: await NcConnectionMgrv2.get(mmBase),
         });
 
         try {
-          await this.recursiveLinkRead(
-            context,
+          const wrote = await this.recursiveLinkRead(
+            mmContext,
             mmFormatData,
             mmBaseModel,
             linkStream,
@@ -1229,7 +1316,7 @@ export class ExportService {
           );
 
           // avoid writing headers for same model multiple times
-          streamedHeaders = true;
+          if (wrote) streamedHeaders = true;
         } catch (e) {
           this.debugLog(e);
           throw e;
@@ -1273,7 +1360,7 @@ export class ExportService {
 
     const source = await Source.get(context, model.source_id);
 
-    await model.getColumns(context);
+    await model.getColumns();
 
     if (!param.includeCrossBaseColumns) {
       model.columns = this.filterOutCrossBaseColumns(model);
@@ -1292,7 +1379,7 @@ export class ExportService {
     const refView =
       view ?? (await View.getFirstCollaborativeView(context, model.id));
 
-    const viewCols = await refView.getColumns(context);
+    const viewCols = await refView.getColumns();
 
     const hideSystemFields = view.show_system_fields
       ? // at minimum filter mm fields used in Links field
@@ -1395,6 +1482,7 @@ export class ExportService {
       filterArrJson?: any;
       sortArrJson?: any;
       locale?: string;
+      restrictToViewVisibleColumns?: boolean;
     },
   ) {
     context = { ...context, cache: true };
@@ -1425,7 +1513,7 @@ export class ExportService {
 
     const source = await Source.get(context, model.source_id);
 
-    await model.getColumns(context);
+    await model.getColumns();
 
     model.columns = this.filterOutCrossBaseColumns(model);
 
@@ -1452,12 +1540,24 @@ export class ExportService {
 
     const pkColumn = model.columns.find((c) => c.pk);
 
+    // Anonymous (public) export path only: narrow the description to the columns
+    // the shared view actually shows, so a view-hidden column's values can't be
+    // read out of the ICS feed. Stays null for authenticated exports.
+    let visibleColumnIds: Set<string> | null = null;
+    if (param.restrictToViewVisibleColumns) {
+      const viewColumns = await View.getColumns(context, view.id);
+      visibleColumnIds = new Set(
+        viewColumns.filter((vc) => vc.show).map((vc) => vc.fk_column_id),
+      );
+    }
+
     // Non-system, non-virtual data columns (in field order) used to build the
     // event description so the exported event keeps the row's context. The
     // range fields and the display value are excluded — they map to dedicated
-    // ICS properties. Calendar views usually hide every non-date field, so the
-    // description is built from the model columns (fetched via getHiddenColumns)
-    // rather than the view's visible columns.
+    // ICS properties. Calendar views usually hide every non-date field, so for
+    // authenticated exports the description is built from the model columns
+    // (fetched via getHiddenColumns) rather than the view's visible ones; the
+    // public path above narrows it back down.
     const descriptionColumns = model.columns.filter(
       (c) =>
         !isSystemColumn(c) &&
@@ -1465,7 +1565,8 @@ export class ExportService {
         !isVirtualCol(c) &&
         c.id !== fromColumn.id &&
         (!toColumn || c.id !== toColumn.id) &&
-        (!displayColumn || c.id !== displayColumn.id),
+        (!displayColumn || c.id !== displayColumn.id) &&
+        (!visibleColumnIds || visibleColumnIds.has(c.id)),
     );
 
     dataStream.setEncoding('utf8');
@@ -1625,7 +1726,7 @@ export class ExportService {
 
     const source = await Source.get(context, model.source_id);
 
-    await model.getColumns(context);
+    await model.getColumns();
 
     if (!param.includeCrossBaseColumns) {
       model.columns = this.filterOutCrossBaseColumns(model);
@@ -1636,7 +1737,7 @@ export class ExportService {
     const refView =
       view ?? (await View.getFirstCollaborativeView(context, model.id));
 
-    const viewCols = await refView.getColumns(context);
+    const viewCols = await refView.getColumns();
 
     const hideSystemFields = view.show_system_fields
       ? model.columns
@@ -1655,6 +1756,17 @@ export class ExportService {
       .map((vc) => model.columns.find((c) => c.id === vc.fk_column_id)?.title)
       .filter(Boolean);
 
+    // Resolved once, before any row is serialized. Only these columns get the
+    // stored value (rawNumeric) and a numeric cell; everything else, a
+    // multi-record lookup included, keeps its formatted text.
+    const numericFormats = new Map<string, ExcelNumberFormat>();
+    for (const col of model.columns) {
+      if (!fields.includes(col.title)) continue;
+
+      const format = await excelColumnFormat(col);
+      if (format) numericFormats.set(col.title, format);
+    }
+
     const formatAndSerialize = async (data: any) => {
       const includedColumns: {
         col: Column;
@@ -1669,6 +1781,7 @@ export class ExportService {
               column: col,
               siteUrl: param.ncSiteUrl,
               locale: param.locale,
+              rawNumeric: numericFormats.has(col.title),
             });
             includedColumns.push({
               col,
@@ -1699,117 +1812,115 @@ export class ExportService {
     });
 
     const limit = 200;
-    const offset = 0;
+
+    // Streamed, not accumulated. The previous implementation collected every
+    // row into one `allRows` array, then built a worksheet and serialised a
+    // Buffer from it — three copies of the dataset alive at once and all
+    // reachable, which is what exhausted the JS heap (~2.5 KB per row at 20
+    // columns, so a few hundred thousand rows is enough). Peak memory here is
+    // one page.
+    //
+    // SheetJS cannot do this: 0.20.3 streams only to_json/to_html/to_csv/
+    // to_xlml, never xlsx. ExcelJS (already a dependency, already used for
+    // streaming Excel *import*) writes rows out as they are committed.
+    //
+    // Formula-injection note: the CSV path escapes leading =/+/-/@, this one
+    // deliberately does not — verified that ExcelJS types these text values as
+    // strings, exactly like the `json_to_sheet` behaviour that made
+    // GHSA-4hcr-28g4-m9pm N/A here. Escaping would only corrupt values like
+    // "-", "+1-555-…" and "@handle".
+    const sink = new Writable({
+      // `dataStream` is a Readable the caller is already draining
+      // (`fileCreateByStream` is attached before this runs, and the export
+      // processor skips `setEncoding` for excel so the binary survives).
+      // Backpressure is not plumbed back through it: if the uploader lags, the
+      // Readable buffers. That bound is the *compressed workbook*, not the
+      // dataset, so it is orders of magnitude below what this replaces.
+      write(chunk, _enc, cb) {
+        dataStream.push(chunk);
+        cb();
+      },
+      final(cb) {
+        dataStream.push(null);
+        cb();
+      },
+    });
+
+    const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({
+      stream: sink,
+      // A shared-string table retains every distinct cell value for the whole
+      // write — the same unbounded growth this change removes.
+      useSharedStrings: false,
+      // Needed to carry per-column number formats. Bounded, unlike the string
+      // table: the styles index dedupes by format code, so it grows with the
+      // number of distinct formats (i.e. columns), not with row count.
+      useStyles: true,
+    });
+    const worksheet = workbook.addWorksheet('Data');
 
     try {
-      await this.recursiveReadForExcel(
-        context,
-        formatAndSerialize,
-        baseModel,
-        dataStream,
-        model,
-        view,
-        offset,
-        limit,
-        fields,
-        {
-          filterArrJson: param.filterArrJson,
-          sortArrJson: param.sortArrJson,
-        },
-      );
+      let headers: string[] | null = null;
+      let offset = 0;
+
+      for (;;) {
+        const result = await this.datasService.dataList(context, {
+          model,
+          view,
+          query: {
+            limit,
+            offset,
+            fields,
+            nested: this.buildNestedLinkLimitQuery(model),
+            filterArrJson: param.filterArrJson,
+            sortArrJson: param.sortArrJson,
+          },
+          baseModel,
+          ignoreViewFilterAndSort: false,
+          limitOverride: limit,
+          skipSortBasedOnOrderCol: true,
+        });
+
+        const { data } = await formatAndSerialize(result.list);
+
+        if (!headers) {
+          // First batch fixes the column order, as `json_to_sheet({ header })`
+          // did; an empty export still gets the view's fields as a header row.
+          headers = data.length ? Object.keys(data[0]) : fields;
+
+          // Must happen before the first row exists: a column style only reaches
+          // cells built after it is set, and committed rows are already gone.
+          headers.forEach((title, index) => {
+            const format = numericFormats.get(title);
+
+            if (!format) return;
+
+            const column = worksheet.getColumn(index + 1);
+            column.numFmt = format.numFmt;
+            column.width = format.width;
+          });
+
+          worksheet.addRow(headers).commit();
+        }
+
+        for (const row of data) {
+          worksheet
+            .addRow(
+              headers.map((h) =>
+                numericFormats.has(h) ? excelNumberValue(row[h]) : row[h],
+              ),
+            )
+            .commit();
+        }
+
+        if (result.pageInfo.isLastPage) break;
+        offset += limit;
+      }
+
+      await worksheet.commit();
+      await workbook.commit();
     } catch (e) {
       this.debugLog(e);
       throw e;
-    }
-  }
-
-  async recursiveReadForExcel(
-    context: NcContext,
-    formatter: (data: any) => Promise<{ data: any }>,
-    baseModel: BaseModelSqlv2,
-    stream: Readable,
-    model: Model,
-    view: View,
-    offset: number,
-    limit: number,
-    fields: string[],
-    param?: {
-      filterArrJson: any;
-      sortArrJson: any;
-    },
-    allRows: Record<string, any>[] = [],
-    headers: string[] = [],
-  ): Promise<void> {
-    const result = await this.datasService.dataList(context, {
-      model,
-      view,
-      query: {
-        limit,
-        offset,
-        fields,
-        nested: this.buildNestedLinkLimitQuery(model),
-        filterArrJson: param?.filterArrJson,
-        sortArrJson: param?.sortArrJson,
-      },
-      baseModel,
-      ignoreViewFilterAndSort: false,
-      limitOverride: limit,
-      skipSortBasedOnOrderCol: true,
-    });
-
-    if (result.list.length === 0 && offset === 0) {
-      // Empty result - generate Excel with just headers
-      const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.aoa_to_sheet([fields]);
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
-      const excelBuffer = XLSX.write(workbook, {
-        type: 'buffer',
-        bookType: 'xlsx',
-      });
-      stream.push(excelBuffer);
-      stream.push(null);
-      return;
-    }
-
-    const { data } = await formatter(result.list);
-
-    // Capture headers from the first batch (preserves view column order)
-    if (offset === 0 && data.length > 0) {
-      headers.push(...Object.keys(data[0]));
-    }
-
-    allRows.push(...data);
-
-    if (result.pageInfo.isLastPage) {
-      // All data collected — generate Excel workbook
-      const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.json_to_sheet(allRows, {
-        header: headers,
-      });
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
-
-      const excelBuffer = XLSX.write(workbook, {
-        type: 'buffer',
-        bookType: 'xlsx',
-      });
-
-      stream.push(excelBuffer);
-      stream.push(null);
-    } else {
-      await this.recursiveReadForExcel(
-        context,
-        formatter,
-        baseModel,
-        stream,
-        model,
-        view,
-        offset + limit,
-        limit,
-        fields,
-        param,
-        allRows,
-        headers,
-      );
     }
   }
 
@@ -1964,8 +2075,14 @@ export class ExportService {
     param?: {
       filterArrJson: any;
       sortArrJson: any;
+      customConditions?: Filter[];
     },
   ): Promise<void> {
+    // A consumer that stops early (a capped export) destroys the stream, but
+    // `push()` after destroy just returns false — so without this the recursion
+    // keeps paging the whole table and discarding every result.
+    if (stream.destroyed) return;
+
     return new Promise<void>((resolve, reject) => {
       this.datasService
         .dataList(context, {
@@ -1983,6 +2100,7 @@ export class ExportService {
           ignoreViewFilterAndSort: !dataExportMode,
           limitOverride: limit,
           skipSortBasedOnOrderCol: true,
+          customConditions: param?.customConditions,
         })
         .then((result) => {
           if (result.list.length === 0 && offset === 0) {
@@ -2096,7 +2214,7 @@ export class ExportService {
     limit: number,
     fields: string[],
     header = false,
-  ): Promise<void> {
+  ): Promise<boolean> {
     return new Promise((resolve, reject) => {
       this.datasService
         .getDataList(context, {
@@ -2111,13 +2229,21 @@ export class ExportService {
         })
         .then((result) => {
           try {
-            if (!header) {
-              linkStream.push('\r\n');
-            }
             const { data } = formatter(result.list);
-            if (data) linkStream.push(unparse(data, { header }));
+            // `unparse([])` yields '' — no header row. Claiming a header the
+            // stream never wrote would leave the next junction appending
+            // headerless rows, whose first row papaparse then eats as a header.
+            const wrote = !!data?.length;
+
+            if (wrote) {
+              if (!header) {
+                linkStream.push('\r\n');
+              }
+              linkStream.push(unparse(data, { header }));
+            }
+
             if (result.pageInfo.isLastPage) {
-              resolve();
+              resolve(wrote);
             } else {
               this.recursiveLinkRead(
                 context,
@@ -2129,8 +2255,10 @@ export class ExportService {
                 offset + limit,
                 limit,
                 fields,
+                // An empty page has not spent the header yet.
+                header && !wrote,
               )
-                .then(resolve)
+                .then((laterWrote) => resolve(wrote || laterWrote))
                 .catch(reject);
             }
           } catch (e) {
@@ -2153,7 +2281,7 @@ export class ExportService {
 
     const base = await Base.get(context, source.base_id);
 
-    const models = (await source.getModels(context)).filter(
+    const models = (await source.getModels()).filter(
       // TODO revert this when issue with cache is fixed
       (m) => m.source_id === source.id && !m.mm && m.type === 'table',
     );

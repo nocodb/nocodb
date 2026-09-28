@@ -108,19 +108,7 @@ const activeSource = computed(() => {
   return meta.value?.source_id && base.value && base.value.sources?.find((source) => source.id === meta.value?.source_id)
 })
 
-const { useWindowedKanbanLoad } = useProvideKanbanViewStore(meta, activeView)
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-// Enable the optimised Kanban's windowed (per-visible-stack) data loading as early as the store is
-// created. The optimised board (SmartsheetKanbanWrapper → lazy KanbanOptimized) sets this too, but
-// only after its async chunk resolves — by then the store's `watch(groupingFieldColumn)` has already
-// fired a full loadKanbanData() that fetches every stack upfront (the freeze the windowed path
-// exists to avoid). Setting it here, before that watcher can run, lets the bulk load be skipped.
-// This tab is never a public/shared view, so windowed mode is safe whenever the beta flag is on.
-watchEffect(() => {
-  useWindowedKanbanLoad.value = isFeatureEnabled('kanban_opt')
-})
+useProvideKanbanViewStore(meta, activeView)
 
 useProvideMapViewStore(meta, activeView)
 useProvideCalendarViewStore(meta, activeView, false, xWhere)
@@ -355,7 +343,7 @@ watch(isViewsLoading, async () => {
   >
     <SmartsheetTopbar v-if="!isFullScreen" />
     <div style="height: calc(100% - var(--topbar-height))">
-      <NcFullScreen v-if="openedViewsTab === 'view'" v-model="isFullScreen" class="h-full" :page-only="true">
+      <NcFullScreen v-model="isFullScreen" class="h-full" :page-only="true">
         <!-- Splitpanes is conditionally rendered only after mount to avoid race conditions with its internal async resize logic. -->
         <Splitpanes
           v-if="isMounted"
@@ -377,7 +365,7 @@ watch(isViewsLoading, async () => {
                 class="flex flex-row w-full"
               >
                 <Transition name="layout" mode="out-in">
-                  <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
+                  <div class="flex flex-1 min-h-0 w-3/4">
                     <div class="h-full flex-1 min-w-0 min-h-0 bg-nc-bg-default">
                       <SmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
 
@@ -386,7 +374,7 @@ watch(isViewsLoading, async () => {
 
                         <SmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
-                        <SmartsheetKanbanWrapper v-else-if="isKanban" />
+                        <LazySmartsheetKanbanOptimized v-else-if="isKanban" />
 
                         <SmartsheetCalendar v-else-if="isCalendar" />
 
@@ -420,7 +408,8 @@ watch(isViewsLoading, async () => {
         </div>
       </NcFullScreen>
 
-      <LazySmartsheetDetails v-else />
+      <!-- Table Tools shell — a route-driven modal over the view (open while the slug names a tool). -->
+      <LazySmartsheetDetails />
     </div>
     <LazySmartsheetExpandedFormDetached />
     <DetachedExpandedText />

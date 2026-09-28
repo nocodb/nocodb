@@ -1,13 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, ClientType } from 'nocodb-sdk';
-import { IntegrationsType } from 'nocodb-sdk';
+import { AppEvents, ClientType, IntegrationsType } from 'nocodb-sdk';
 import type { IntegrationReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
-import { Base, Integration, IntegrationLink } from '~/models';
+import { Base, Integration, IntegrationLink, Source } from '~/models';
 import { NcBaseError, NcError } from '~/helpers/catchError';
-import { Source } from '~/models';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -15,6 +13,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { SourcesService } from '~/services/sources.service';
 import { generateUniqueName } from '~/helpers/exportImportHelpers';
 import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
+import { isPrivateIntegrationForbidden } from '~/helpers/integrationAccess';
 
 @Injectable()
 export class IntegrationsService {
@@ -37,7 +36,10 @@ export class IntegrationsService {
     integration.config = await integration.getConnectionConfig();
 
     if (param.includeSources) {
-      await integration.getSources();
+      integration.sources = await Source.listByIntegration(
+        context,
+        param.integrationId,
+      );
     }
 
     return integration;
@@ -101,15 +103,13 @@ export class IntegrationsService {
     offset?: number;
     query?: string;
   }) {
-    const integrations = await Integration.list({
+    return await Integration.list({
       userId: param.req.user?.id,
       includeDatabaseInfo: param.includeDatabaseInfo,
       type: param.type,
       includeSourceCount: true,
       query: param.query,
     });
-
-    return integrations;
   }
 
   async integrationDelete(
@@ -149,7 +149,7 @@ export class IntegrationsService {
       if (sources.length > 0 && !param.force) {
         const bases = await Promise.all(
           sources.map(async (source) => {
-            return await Base.get(
+            return Base.get(
               {
                 workspace_id: integration.fk_workspace_id,
                 base_id: source.base_id,
@@ -290,6 +290,20 @@ export class IntegrationsService {
       );
 
       if (!integrationBody?.id) {
+        NcError.get(context).integrationNotFound(
+          param.integration.copy_from_id,
+        );
+      }
+
+      // A private integration's decrypted config may only be cloned by its
+      // owner.
+      if (
+        isPrivateIntegrationForbidden(
+          integrationBody.is_private,
+          integrationBody.created_by,
+          param.req.user?.id,
+        )
+      ) {
         NcError.get(context).integrationNotFound(
           param.integration.copy_from_id,
         );
@@ -474,7 +488,7 @@ export class IntegrationsService {
       );
 
       // Destroy local connection + bump Redis version for cross-server invalidation
-      await NcConnectionMgrv2.resetSource(source.id);
+      await NcConnectionMgrv2.resetSource(source);
     }
   }
 
@@ -484,9 +498,12 @@ export class IntegrationsService {
       integrationId: string;
       endpoint: string;
       payload?: any;
+      userId?: string;
     },
   ) {
     const integration = await Integration.get(context, params.integrationId);
+
+    await this.bindIntegrationEndpointUser(context, integration, params.userId);
 
     const integrationMeta = integration.getIntegrationMeta();
 
@@ -505,5 +522,13 @@ export class IntegrationsService {
     }
 
     return wrapper[params.endpoint](params.payload);
+  }
+
+  protected async bindIntegrationEndpointUser(
+    _context: NcContext,
+    _integration: Integration,
+    _userId?: string,
+  ): Promise<void> {
+    // no-op in CE
   }
 }

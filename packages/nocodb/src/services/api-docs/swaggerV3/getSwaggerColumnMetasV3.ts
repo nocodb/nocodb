@@ -4,7 +4,7 @@ import type { SourcesMap } from '~/services/api-docs/types';
 import type { Column, LinkToAnotherRecordColumn, RollupColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type LookupColumn from '~/models/LookupColumn';
-import type { DriverClient } from '~/utils/nc-config';
+import { DriverClient } from '~/utils/nc-config';
 import { Base } from '~/models';
 import SwaggerTypes from '~/db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
 import Noco from '~/Noco';
@@ -52,7 +52,6 @@ async function processColumnToSwaggerField(
     case UITypes.LinkToAnotherRecord:
       {
         const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>(
-          context,
           ncMeta,
         );
         if (colOpt) {
@@ -91,7 +90,20 @@ async function processColumnToSwaggerField(
         const formulaDataType = column.colOptions.parsed_tree.dataType;
         switch (formulaDataType) {
           case FormulaDataTypes.NUMERIC:
-            field.type = ['number', 'null'];
+            // pg carries the IEEE error values as strings; no other dialect can
+            // produce one. anyOf rather than a type array — generators handle a
+            // branch list far better than a multi-type, and it matches how the
+            // rest of this file expresses a union. No null branch — it survives
+            // the 3.1 -> 3.0 downgrade verbatim and progenitor rejects it; and
+            // `nullable` is no substitute, ajv won't compile it without `type`.
+            if (dbType === DriverClient.PG) {
+              field.type = undefined;
+              field.anyOf = [{ type: 'number' }, { type: 'string' }];
+              field.description =
+                'Numeric formula result. Division by zero returns the string "Infinity", "-Infinity" or "NaN".';
+            } else {
+              field.type = ['number', 'null'];
+            }
             break;
           case FormulaDataTypes.STRING:
             field.type = ['string', 'null'];
@@ -120,12 +132,9 @@ async function processColumnToSwaggerField(
     case UITypes.Lookup:
       if (isLookupHelper) {
         // For recursive lookup resolution, get the underlying column type
-        const colOpt = await column.getColOptions<LookupColumn>(
-          context,
-          ncMeta,
-        );
+        const colOpt = await column.getColOptions<LookupColumn>(ncMeta);
         if (colOpt && !colOpt.error) {
-          const lookupCol = await colOpt.getLookupColumn(context);
+          const lookupCol = await colOpt.getLookupColumn();
           if (lookupCol) {
             return await processColumnToSwaggerField(
               context,
@@ -143,24 +152,18 @@ async function processColumnToSwaggerField(
         setAsAnyType(field);
       } else {
         // For main lookup processing, determine relation type and structure
-        const colOpt = await column.getColOptions<LookupColumn>(
-          context,
-          ncMeta,
-        );
+        const colOpt = await column.getColOptions<LookupColumn>(ncMeta);
         if (colOpt && !colOpt.error) {
-          const relationCol = await colOpt.getRelationColumn(context);
+          const relationCol = await colOpt.getRelationColumn();
           if (!relationCol) {
             setAsAnyType(field);
             break;
           }
           const relationColOpt =
-            await relationCol.getColOptions<LinkToAnotherRecordColumn>(
-              context,
-              ncMeta,
-            );
-          const { refContext } = await relationColOpt.getRelContext(context);
+            await relationCol.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+          const { refContext } = await relationColOpt.getRelContext();
 
-          const lookupCol = await colOpt.getLookupColumn(refContext);
+          const lookupCol = await colOpt.getLookupColumn();
 
           const refBase =
             !relationColOpt.fk_related_base_id ||
@@ -215,10 +218,7 @@ async function processColumnToSwaggerField(
       }
       break;
     case UITypes.Rollup: {
-      const colOptions = await column.getColOptions<RollupColumn>(
-        context,
-        ncMeta,
-      );
+      const colOptions = await column.getColOptions<RollupColumn>(ncMeta);
       if (!['max', 'min'].includes(colOptions.rollup_function.toLowerCase())) {
         field.type = 'number';
       } else {

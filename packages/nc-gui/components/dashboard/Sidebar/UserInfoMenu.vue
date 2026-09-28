@@ -11,13 +11,18 @@ const emits = defineEmits<{
   (e: 'closeMenu'): void
 }>()
 
-const isMiniSidebar = inject(IsMiniSidebarInj, undefined)
-
 const { user, signOut, isMobileMode } = useGlobal()
 
-const { toggleMode } = useMiniSidebarMode()
+const { toggleTheme, isThemeEnabled, selectedTheme, isThemeConfigOpen } = useTheme()
 
-const { toggleTheme, isThemeEnabled, selectedTheme } = useTheme()
+const openThemeConfig = () => {
+  isThemeConfigOpen.value = true
+  emits('closeMenu')
+}
+
+const { availableTours } = useTours()
+
+const { isExperimentalFeatureModalOpen, isFeatureEnabled } = useBetaFeatureToggle()
 
 const themeLabel = computed(
   () =>
@@ -37,7 +42,9 @@ const themeIcon = computed(
     }[selectedTheme.value] as IconMapKey),
 )
 
-const { isExperimentalFeatureModalOpen } = useBetaFeatureToggle()
+const isThemeConfigEnabled = computed(() => isThemeEnabled.value && isFeatureEnabled(FEATURE_FLAG.THEME_SETTINGS))
+
+const showTourMenu = computed(() => isFeatureEnabled(FEATURE_FLAG.PRODUCT_TOURS_MENU) && availableTours.value.length > 0)
 
 const auditsStore = useAuditsStore()
 
@@ -113,13 +120,6 @@ const openKeyboardShortcutDialog = () => {
 
       <NcDivider />
 
-      <!-- Dock Mode -->
-      <NcMenuItem v-if="isMiniSidebar" @click="toggleMode">
-        <GeneralIcon icon="ncPlaceholderIcon" class="menu-icon" />
-        <span class="menu-btn">Dock Mode</span>
-        <NcBadgeBeta />
-      </NcMenuItem>
-
       <!-- Experimental Features -->
       <NcMenuItem @click="openExperimentationMenu">
         <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
@@ -141,6 +141,16 @@ const openKeyboardShortcutDialog = () => {
           </span>
         </div>
       </NcMenuItem>
+      <NcSubMenu v-if="showTourMenu" title-class="flex-1" data-testid="nc-sidebar-product-tours">
+        <template #title>
+          <!-- v-e must sit on an element — on NcSubMenu it silently never fires -->
+          <span v-e="['c:tour:menu-open']" class="flex items-center gap-2">
+            <GeneralIcon icon="ncCompass" class="menu-icon" />
+            {{ $t('title.productTours') }}
+          </span>
+        </template>
+        <TourLauncherMenu @close-menu="emits('closeMenu')" />
+      </NcSubMenu>
 
       <!-- Admin Panel (EE) -->
       <DashboardSidebarEEMenuOption v-if="isEeUI" />
@@ -165,10 +175,7 @@ const openKeyboardShortcutDialog = () => {
         <NcMenuItem inner-class="w-full">
           <div v-e="['c:translate:open']" class="flex gap-2 items-center w-full">
             <GeneralIcon icon="translate" class="nc-language ml-0.25 menu-icon" />
-            {{ $t('labels.language') }}
-            <div class="flex items-center text-nc-content-gray-disabled text-xs">
-              {{ $t('labels.community.communityTranslated') }}
-            </div>
+            {{ $t('labels.changeLanguage') }}
             <div class="flex-1" />
             <GeneralIcon icon="ncChevronRight" class="flex-none !text-nc-content-gray-muted" />
           </div>
@@ -185,6 +192,18 @@ const openKeyboardShortcutDialog = () => {
         <GeneralIcon :icon="themeIcon" class="menu-icon" />
         <span class="menu-btn">{{ themeLabel }}</span>
         <span class="text-nc-content-gray-muted text-xs ml-auto">{{ $t('general.appearance') }}</span>
+      </NcMenuItem>
+
+      <!-- Theme settings -->
+      <NcMenuItem
+        v-if="isThemeConfigEnabled"
+        v-e="['c:theme:config-open']"
+        data-testid="nc-sidebar-user-theme-config"
+        @click="openThemeConfig"
+      >
+        <GeneralIcon icon="palette" class="menu-icon" />
+        <span class="menu-btn">{{ $t('title.themeSettings') }}</span>
+        <NcBadgeBeta />
       </NcMenuItem>
 
       <!-- Account Settings -->
@@ -235,6 +254,15 @@ const openKeyboardShortcutDialog = () => {
           <GeneralIcon :icon="themeIcon" class="menu-icon" />
           <span class="menu-btn">{{ themeLabel }}</span>
           <span class="text-nc-content-gray-muted text-xs ml-auto">{{ $t('general.appearance') }}</span>
+        </NcMenuItem>
+        <NcMenuItem
+          v-if="isThemeConfigEnabled"
+          v-e="['c:theme:config-open']"
+          data-testid="nc-sidebar-user-theme-config"
+          @click="openThemeConfig"
+        >
+          <GeneralIcon icon="palette" class="menu-icon" />
+          <span class="menu-btn">{{ $t('title.themeSettings') }}</span>
         </NcMenuItem>
       </template>
 

@@ -12,23 +12,17 @@ const brandIcon = computed(() => {
   return faviconUrl.value || (isDark.value ? logoDarkUrl.value || logoUrl.value : logoUrl.value)
 })
 
-const isHttpUrl = (url: string) => {
-  if (!url) return false
-  const trimmed = url.trim()
-  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) {
-    return /^https?:\/\//i.test(trimmed)
-  }
-  return true
-}
-
+// Both sinks (the <a :href> and window.location.href) must use the shared
+// guard — the previous bespoke isHttpUrl() was bypassed by scheme smuggling
+// (e.g. `j\tavascript:`, which browsers strip back to javascript:).
 const redirectUrl = computed(() => {
   const url = (route.query.ncRedirectUrl as string) ?? ''
-  return isHttpUrl(url) ? url : ''
+  return isSafeRedirectUrl(url) ? url : ''
 })
 
 const backUrl = computed(() => {
   const url = (route.query.ncBackUrl as string) ?? ''
-  return isHttpUrl(url) && isSameOriginUrl(url, true) ? url : ''
+  return isSafeRedirectUrl(url) && isSameOriginUrl(url, true) ? url : ''
 })
 
 if (!redirectUrl.value || !backUrl.value) {

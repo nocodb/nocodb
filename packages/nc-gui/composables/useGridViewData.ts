@@ -6,6 +6,9 @@ import type { CanvasGroup } from '../lib/types'
 import { useInfiniteGroups } from './useInfiniteGroups'
 import { type CellRange, type Row } from '#imports'
 
+// The server's cap on the interface bulk ops
+const INTERFACE_BULK_CHUNK_SIZE = 500
+
 export function useGridViewData(
   _meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
   viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
@@ -24,11 +27,19 @@ export function useGridViewData(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
+  // Interface pages route bulk row ops through the page-scoped adapter — the
+  // synthetic view id is unknown to the plain data ops.
+  const interfaceDataApi = inject(InterfacePageDataInj, undefined)
+
+  // Ad-hoc toolbar filters (not folded into `where`/xWhere) — the interface
+  // delete-all forwards them so its scope matches the select-all count.
+  const smartsheetStore = useSmartsheetStore()
+
   const reloadAggregate = inject(ReloadAggregateHookInj)
 
   const { base } = storeToRefs(useBase())
 
-  const { $api } = useNuxtApp()
+  const { $api, $ncSocket } = useNuxtApp()
 
   const isBulkOperationInProgress = ref(false)
 
@@ -43,6 +54,7 @@ export function useGridViewData(
     syncCount: groupSyncCount,
     fetchMissingGroupChunks,
     updateGroupAggregations,
+    fetchMissingGroupAggregations,
     toggleExpandAll,
   } = useInfiniteGroups(viewMeta, meta, where, {
     syncVisibleData,
@@ -166,8 +178,23 @@ export function useGridViewData(
 
   reloadAggregate?.on(reloadAggregateListener)
 
+  // While the socket is disconnected (e.g. tab left idle for hours) every realtime
+  // data event is missed — peers moving records between groups, deletes, updates —
+  // so group counts and cached rows go stale and moved-out records linger as loading
+  // placeholders. A page reload fixes it; so does resyncing the view on reconnect.
+  // Only on an actual reconnect, not the first handshake (data is already fresh then).
+  const offSocketReady = $ncSocket.onReady(({ reconnected }) => {
+    if (!reconnected) return
+    reloadViewDataHook?.trigger()
+    // Footer/column aggregations aren't re-fetched by the data reload above (group
+    // aggregations reload with their chunks, but the view-level footer only reloads
+    // on view switch), so refresh them too or they'd stay stale after reconnect.
+    reloadAggregate?.trigger(undefined)
+  })
+
   onBeforeUnmount(() => {
     reloadAggregate?.off(reloadAggregateListener)
+    offSocketReady?.()
   })
 
   function getCount(path?: Array<number>) {
@@ -278,28 +305,32 @@ export function useGridViewData(
     if (!removedRowsData.length) return
 
     try {
-      const { list } = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
-        operation: 'dataList',
-        tableId: meta.value?.id as string,
-        pks: removedRowsData.map((row) => row[compositePrimaryKey]).join(','),
-        getHiddenColumns: true,
-        limit: removedRowsData.length,
-      })
-
-      removedRowsData = removedRowsData.map((row) => {
-        const rowObj = row.row
-        const rowPk = rowPkData(rowObj, meta.value?.columns as ColumnType[])
-
-        const fullRecord = list.find((r: Record<string, any>) => {
-          return Object.keys(rowPk).every((key) => r[key] === rowPk[key])
+      // Full-record enrichment uses the PLAIN data ops — interface pages skip
+      // it (cached rows already hold every field the page may serve).
+      if (!interfaceDataApi) {
+        const { list = [] } = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+          operation: 'dataList',
+          tableId: meta.value?.id as string,
+          pks: removedRowsData.map((row) => row[compositePrimaryKey]).join(','),
+          getHiddenColumns: true,
+          limit: removedRowsData.length,
         })
 
-        if (!fullRecord) return { ...row }
-        return {
-          ...row,
-          row: { ...fullRecord },
-        }
-      })
+        removedRowsData = removedRowsData.map((row) => {
+          const rowObj = row.row
+          const rowPk = rowPkData(rowObj, meta.value?.columns as ColumnType[])
+
+          const fullRecord = list.find((r: Record<string, any>) => {
+            return Object.keys(rowPk).every((key) => r[key] === rowPk[key])
+          })
+
+          if (!fullRecord) return { ...row }
+          return {
+            ...row,
+            row: { ...fullRecord },
+          }
+        })
+      }
 
       await bulkDeleteRows(removedRowsData.map((row) => row.pkData))
     } catch (e: any) {
@@ -347,13 +378,29 @@ export function useGridViewData(
     })
 
     try {
-      const newRows = (await $api.dbTableRow.bulkUpdate(
-        NOCO,
-        metaValue?.base_id as string,
-        metaValue?.id as string,
-        updateArray,
-        { typecast: 'true' },
-      )) as Record<string, any>
+      let newRows: Record<string, any>
+
+      if (interfaceDataApi?.bulkUpdateRows) {
+        // Interface pages — the page-scoped bulk update (grant-authorized;
+        // the raw bulk endpoint 403s for interface collaborators). It
+        // returns no rows; local optimistic values stand and the page-scoped
+        // realtime updates reconcile.
+        const pkTitles = ((metaValue?.columns ?? []) as ColumnType[]).filter((c) => c.pk).map((c) => c.title!)
+        await interfaceDataApi.bulkUpdateRows(
+          rows.map((row) => ({
+            rowId: extractPkFromRow(row.row, metaValue?.columns as ColumnType[]) as string,
+            data: props.reduce(
+              (acc, prop) => (pkTitles.includes(prop) ? acc : { ...acc, [prop]: row.row[prop] }),
+              {} as Record<string, any>,
+            ),
+          })),
+        )
+        newRows = []
+      } else {
+        newRows = (await $api.dbTableRow.bulkUpdate(NOCO, metaValue?.base_id as string, metaValue?.id as string, updateArray, {
+          typecast: 'true',
+        })) as Record<string, any>
+      }
 
       triggerAggregateReload({ fields: props.map((p) => ({ title: p })), path })
 
@@ -420,7 +467,10 @@ export function useGridViewData(
       const cleanRow = (row: any) => {
         const cleanedRow = { ...row }
         metaValue?.columns?.forEach((col) => {
-          if (col.system || isVirtualCol(col)) delete cleanedRow[col.title!]
+          // Strip system, virtual and readonly (e.g. AutoNumber) columns — the backend
+          // rejects readonly columns in insert/update payloads. Keep pk so upsert can
+          // still match existing rows for updates.
+          if (col.system || isVirtualCol(col) || (col.readonly && !col.pk)) delete cleanedRow[col.title!]
         })
         return cleanedRow
       }
@@ -437,13 +487,52 @@ export function useGridViewData(
         return row
       })
 
-      const bulkUpsertedRows = await $api.dbTableRow.bulkUpsert(
-        NOCO,
-        metaValue?.base_id ?? (base.value?.id as string),
-        metaValue?.id as string,
-        [...insertRows.map((row) => cleanRow(row.row)), ...updateRows.map((row) => cleanRow(row.row))],
-        { typecast: 'true' },
-      )
+      let bulkUpsertedRows: Record<string, any>[]
+      // Set when an interface insert chunk fails after earlier chunks committed
+      let partialInsertError: any
+
+      if (interfaceDataApi?.bulkInsertRows && interfaceDataApi.bulkUpdateRows) {
+        // Interface pages — page-scoped ops, so the rows get edit grace and the
+        // field allow-list applies (the raw upsert 403s for interface collaborators).
+        // Not atomic: updates run first so their failure strands no new rows, and
+        // rows inserted before a failed chunk are still cached and returned.
+        const pkTitles = ((metaValue?.columns ?? []) as ColumnType[]).filter((c) => c.pk).map((c) => c.title!)
+        const updateData = updateRows.map((row) => ({
+          rowId: getPk(row) as string,
+          data: props.reduce(
+            (acc, prop) => (pkTitles.includes(prop) ? acc : { ...acc, [prop]: row.row[prop] }),
+            {} as Record<string, any>,
+          ),
+        }))
+        for (let i = 0; i < updateData.length; i += INTERFACE_BULK_CHUNK_SIZE) {
+          await interfaceDataApi.bulkUpdateRows(updateData.slice(i, i + INTERFACE_BULK_CHUNK_SIZE))
+        }
+
+        const insertData = insertRows.map((row) => cleanRow(row.row))
+        const insertedPks: Record<string, any>[] = []
+        for (let i = 0; i < insertData.length; i += INTERFACE_BULK_CHUNK_SIZE) {
+          try {
+            insertedPks.push(...(await interfaceDataApi.bulkInsertRows(insertData.slice(i, i + INTERFACE_BULK_CHUNK_SIZE))))
+          } catch (e) {
+            if (!insertedPks.length) throw e
+            partialInsertError = e
+            break
+          }
+        }
+
+        bulkUpsertedRows = [
+          ...insertedPks.map((pk, i) => ({ ...insertData[i], ...pk })),
+          ...updateRows.map((row) => cleanRow(row.row)),
+        ]
+      } else {
+        bulkUpsertedRows = await $api.dbTableRow.bulkUpsert(
+          NOCO,
+          metaValue?.base_id ?? (base.value?.id as string),
+          metaValue?.id as string,
+          [...insertRows.map((row) => cleanRow(row.row)), ...updateRows.map((row) => cleanRow(row.row))],
+          { typecast: 'true' },
+        )
+      }
 
       const existingPks = new Set(Array.from(dataCache.cachedRows.value.values()).map((row) => getPk(row)))
       const [insertedRows, updatedRows] = bulkUpsertedRows.reduce(
@@ -476,8 +565,14 @@ export function useGridViewData(
       reloadViewDataHook?.trigger()
       syncVisibleData()
       await syncCount(path, true, false)
+
+      if (partialInsertError) message.error(await extractSdkResponseErrorMsg(partialInsertError))
+
+      return bulkUpsertedRows
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
+      // Interface writes aren't atomic — earlier requests may have committed
+      if (interfaceDataApi) reloadViewDataHook?.trigger()
     } finally {
       isBulkOperationInProgress.value = false
     }
@@ -586,30 +681,33 @@ export function useGridViewData(
 
     if (!rowsToDelete.length) return
 
-    const { list } = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
-      operation: 'dataList',
-      tableId: meta.value?.id as string,
-      pks: rowsToDelete.map((row) => row[compositePrimaryKey]).join(','),
-      getHiddenColumns: 'true',
-      limit: rowsToDelete.length,
-    })
-
     try {
-      rowsToDelete = rowsToDelete.map((row) => {
-        const rowObj = row.row
-        const rowPk = rowPkData(rowObj, meta.value?.columns as ColumnType[])
-
-        const fullRecord = list.find((r: Record<string, any>) => {
-          return Object.keys(rowPk).every((key) => r[key] === rowPk[key])
+      // Same interface skip as `deleteSelectedRows` — plain-op enrichment only.
+      if (!interfaceDataApi) {
+        const { list = [] } = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+          operation: 'dataList',
+          tableId: meta.value?.id as string,
+          pks: rowsToDelete.map((row) => row[compositePrimaryKey]).join(','),
+          getHiddenColumns: 'true',
+          limit: rowsToDelete.length,
         })
 
-        if (!fullRecord) {
-          console.warn(`Full record not found for row with index ${row.rowMeta.rowIndex}`)
+        rowsToDelete = rowsToDelete.map((row) => {
+          const rowObj = row.row
+          const rowPk = rowPkData(rowObj, meta.value?.columns as ColumnType[])
+
+          const fullRecord = list.find((r: Record<string, any>) => {
+            return Object.keys(rowPk).every((key) => r[key] === rowPk[key])
+          })
+
+          if (!fullRecord) {
+            console.warn(`Full record not found for row with index ${row.rowMeta.rowIndex}`)
+            return row
+          }
+          row.row = fullRecord
           return row
-        }
-        row.row = fullRecord
-        return row
-      })
+        })
+      }
 
       await bulkDeleteRows(rowsToDelete.map((row) => row.pkData))
     } catch (e: any) {
@@ -633,6 +731,17 @@ export function useGridViewData(
       viewMetaValue?: ViewType
     } = {},
   ): Promise<any> {
+    // Let adapter failures propagate — the callers toast and leave the row
+    // cache intact (the shared catch below swallows, which would evict rows
+    // that were never deleted).
+    if (interfaceDataApi) {
+      await interfaceDataApi.bulkDeleteRows(rows.map((pkData) => Object.values(pkData).join('___')))
+
+      triggerAggregateReload({ path: [] })
+
+      return rows
+    }
+
     try {
       const bulkDeletedRowsData = await $api.internal.postOperation(
         (metaValue as any).fk_workspace_id!,
@@ -654,29 +763,55 @@ export function useGridViewData(
     }
   }
 
+  /** Resolves false when the delete failed, so the caller can keep the selection. */
   async function bulkDeleteAll(path: Array<number> = []) {
+    let succeeded = false
+
     try {
       isBulkOperationInProgress.value = true
 
-      await $api.internal.postOperation(
-        (meta.value as any).fk_workspace_id!,
-        meta.value!.base_id!,
-        {
-          operation: 'bulkDataDeleteAll',
-          tableId: meta.value.id!,
+      const skipPks = Object.values(selectedAllRecordsSkipPks.value).join(',')
+
+      if (interfaceDataApi) {
+        // The interface has no persisted view for the server to re-apply filters
+        // from, so forward the live search (`where`) + ad-hoc toolbar filters —
+        // the same narrowing select-all counted; the viz scope bounds it server-side.
+        if (!interfaceDataApi.bulkDeleteAll) {
+          throw new Error('Delete all records is not available on this surface')
+        }
+
+        await interfaceDataApi.bulkDeleteAll({
           where: where?.value,
-          viewId: viewMeta.value?.id,
-          skipPks: Object.values(selectedAllRecordsSkipPks.value).join(','),
-        },
-        {},
-      )
-    } catch (error) {
+          filtersArr: smartsheetStore?.nestedFilters?.value ?? [],
+          skipPks,
+        })
+      } else {
+        await $api.internal.postOperation(
+          (meta.value as any).fk_workspace_id!,
+          meta.value!.base_id!,
+          {
+            operation: 'bulkDataDeleteAll',
+            tableId: meta.value.id!,
+            where: where?.value,
+            viewId: viewMeta.value?.id,
+            skipPks,
+          },
+          {},
+        )
+      }
+
+      succeeded = true
+    } catch (error: any) {
+      message.error(`Bulk delete failed: ${await extractSdkResponseErrorMsg(error)}`)
     } finally {
       clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, path)
       await syncCount(path)
       syncVisibleData?.()
+      triggerAggregateReload({ path })
       isBulkOperationInProgress.value = false
     }
+
+    return succeeded
   }
 
   return {
@@ -726,6 +861,7 @@ export function useGridViewData(
     isGroupBy,
     groupSyncCount,
     fetchMissingGroupChunks,
+    fetchMissingGroupAggregations,
     clearGroupCache,
     toggleExpandAll,
   }

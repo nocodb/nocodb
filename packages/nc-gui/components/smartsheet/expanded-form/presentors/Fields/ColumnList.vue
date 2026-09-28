@@ -186,14 +186,14 @@ function onCellValueChange(colTitle: string | undefined) {
     <div
       class="flex items-start nc-expanded-cell min-h-[32px]"
       :class="{
-        'flex-row <lg:(flex-col w-full)': !props.forceVerticalMode,
+        'flex-row lt-lg:(flex-col w-full)': !props.forceVerticalMode,
         'flex-col w-full': props.forceVerticalMode,
       }"
     >
       <div
         class="flex-none flex items-center rounded-lg overflow-hidden"
         :class="{
-          'w-45 <lg:(w-full px-0 mb-2) h-[32px] xs:(h-auto) sm:(mx-2)': !props.forceVerticalMode,
+          'w-45 lt-lg:(w-full px-0 mb-2) h-[32px] xs:(h-auto) sm:(mx-2)': !props.forceVerticalMode,
           'w-full px-0 mb-2 h-auto': props.forceVerticalMode,
         }"
       >
@@ -213,12 +213,13 @@ function onCellValueChange(colTitle: string | undefined) {
           show-lock-icon
           show-menu-mobile
         />
+        <SmartsheetExpandedFormFieldPresence v-if="isEeUI" :column-id="col.id" />
       </div>
 
       <a-skeleton-input
         v-if="isLoading"
         active
-        class="flex-none h-8 <lg:!w-full lg:flex-1 !rounded-lg !overflow-hidden"
+        class="flex-none h-8 lt-lg:!w-full lg:flex-1 !rounded-lg !overflow-hidden"
         :class="{
           '!h-[151px]': isTextArea(col),
           '!h-[118px]': isAttachment(col),
@@ -231,7 +232,7 @@ function onCellValueChange(colTitle: string | undefined) {
       <NcTooltip
         v-else
         :tooltip-style="{ zIndex: '1049' }"
-        class="<lg:(!w-full !flex-none) lg:flex-1 flex"
+        class="lt-lg:(!w-full !flex-none) lg:flex-1 flex"
         :class="{
           'w-full !flex-none': props.forceVerticalMode,
           'lg:max-w-[calc(100%_-_188px)]': !props.forceVerticalMode,
@@ -261,7 +262,7 @@ function onCellValueChange(colTitle: string | undefined) {
               :class="[
                 compactMode
                   ? 'min-h-4 items-start !bg-transparent pl-1 pr-1 -mt-0.5'
-                  : 'min-h-8 items-center bg-nc-bg-default px-1',
+                  : 'min-h-8 items-center bg-nc-bg-elevated px-1',
                 {
                   'w-full': props.forceVerticalMode,
                   '!select-text nc-system-field !bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled':
@@ -321,11 +322,11 @@ function onCellValueChange(colTitle: string | undefined) {
       v-if="isTemplateMode && isLinksOrLTAR(col) && !readOnly && !isParentLtarColumn(col)"
       class="flex items-center"
       :class="{
-        'flex-row <lg:pl-0': !props.forceVerticalMode,
+        'flex-row lt-lg:pl-0': !props.forceVerticalMode,
         'pl-0': props.forceVerticalMode,
       }"
     >
-      <div v-if="!props.forceVerticalMode" class="flex-none w-45 <lg:hidden sm:mx-2" />
+      <div v-if="!props.forceVerticalMode" class="flex-none w-45 lt-lg:hidden sm:mx-2" />
       <div class="flex flex-col gap-1.5 mt-3">
         <span class="text-[11px] text-nc-content-gray-muted">{{ $t('labels.orCreateAndLinkNewRecord') }}</span>
         <div class="flex items-center gap-2">
@@ -355,6 +356,18 @@ function onCellValueChange(colTitle: string | undefined) {
 .nc-data-cell {
   @apply !rounded-lg;
   transition: all 0.3s;
+
+  // dark: filled inputs — tinted overlay from the palette's input token.
+  // Cells that paint their own container stay unfilled: barcode/QR render a
+  // scannable block, buttons are self-contained, attachments are a dashed
+  // drop zone. A fill behind those reads as a stray slab.
+  [theme='dark']
+    &:not(.nc-data-cell-compact):not(.nc-system-field):not(:has(.nc-virtual-cell-qrcode)):not(:has(.nc-virtual-cell-barcode)):not(
+      :has(.nc-virtual-cell-button)
+    ):not(:has(.nc-cell-attachment)) {
+    background-color: var(--nc-bg-input);
+    border-color: var(--nc-border-input);
+  }
 
   &:not(:focus-within):not(.nc-data-cell-compact):hover:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(
       .nc-virtual-cell-button
@@ -483,6 +496,22 @@ function onCellValueChange(colTitle: string | undefined) {
 :deep(.nc-data-cell-compact textarea),
 :deep(.nc-data-cell-compact input) {
   background: transparent !important;
+}
+
+/* dark: the field label is white text at reduced alpha, not a dimmer grey — the reference
+   does this with a `.quiet { opacity: .75 }` wrapper (its #c6c7c8 on #1d1f25 is exactly
+   #fff at .75). We run a touch brighter at .85, with the icon a further step down at .62.
+   Alpha on the colour rather than the `opacity` property, so the row's menu chevron, lock
+   and required-asterisk aren't dimmed with it. Both track the palette's `text` knob, so
+   every preset follows. Lives here rather than in expanded-form/index.vue because this
+   component renders the header for BOTH the modal and the docked side panel. Light mode
+   keeps the muted grey. */
+[theme='dark'] .nc-expanded-cell-header {
+  @apply !text-nc-content-gray/85;
+}
+[theme='dark'] .nc-expanded-cell-header :deep(svg.nc-cell-icon),
+[theme='dark'] .nc-expanded-cell-header :deep(svg.nc-virtual-cell-icon) {
+  @apply !text-nc-content-gray/62;
 }
 
 /* Compact view — flatten the field label too: remove its own pt-0.5 (added by

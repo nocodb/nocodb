@@ -1,4 +1,5 @@
 import { NcErrorType } from 'nocodb-sdk';
+import { DBErrorKind } from './utils';
 import type { Logger } from '@nestjs/common';
 import type { DBErrorExtractResult, IClientDbErrorExtractor } from './utils';
 
@@ -24,8 +25,13 @@ export class DefaultDBErrorExtractor implements IClientDbErrorExtractor {
     let message: string | undefined;
     const httpStatus = 422;
 
-    // log error for unknown error code
-    this.option?.dbErrorLogger?.error(error);
+    // log error for unknown error code. Pass the stack separately — Nest
+    // renders a bare Error argument as its message alone, dropping the
+    // stack and every driver field.
+    this.option?.dbErrorLogger?.error(
+      `Unhandled db error code ${error.code}: ${error.message}`,
+      error.stack,
+    );
 
     // if error message contains -- then extract message after --
     if (error.message?.includes('--')) {
@@ -37,6 +43,7 @@ export class DefaultDBErrorExtractor implements IClientDbErrorExtractor {
       message,
       code: error.code,
       httpStatus,
+      kind: DBErrorKind.UNKNOWN,
     };
   }
 }

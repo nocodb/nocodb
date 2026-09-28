@@ -5,6 +5,8 @@ const aiIntegrationNotFound = 'AI integration not found'
 export const useNocoAi = createSharedComposable(() => {
   const { $api, $poller } = useNuxtApp()
 
+  const { handleAiCreditError, handleAiCreditErrorRaw } = useCredits()
+
   const workspaceStore = useWorkspace()
 
   const basesStore = useBases()
@@ -50,6 +52,8 @@ export const useNocoAi = createSharedComposable(() => {
 
       return res
     } catch (e) {
+      if (await handleAiCreditError(e)) return
+
       console.error(e)
       const error = await extractSdkResponseErrorMsg(e)
 
@@ -84,6 +88,8 @@ export const useNocoAi = createSharedComposable(() => {
 
       return res
     } catch (e) {
+      if (await handleAiCreditError(e)) return
+
       console.error(e)
       const error = await extractSdkResponseErrorMsg(e)
 
@@ -120,6 +126,8 @@ export const useNocoAi = createSharedComposable(() => {
 
       return res
     } catch (e) {
+      if (await handleAiCreditError(e)) return
+
       console.error(e)
       const error = await extractSdkResponseErrorMsg(e)
 
@@ -184,8 +192,12 @@ export const useNocoAi = createSharedComposable(() => {
   }
 
   const completeScript = async (body: any) => {
-    const res = await $api.ai.completion(activeProjectId.value, body)
-    return res
+    try {
+      return await $api.ai.completion(activeProjectId.value, body)
+    } catch (e) {
+      await handleAiCreditError(e)
+      throw e
+    }
   }
 
   const predictNextFormulas = async (
@@ -388,6 +400,8 @@ export const useNocoAi = createSharedComposable(() => {
 
       return res
     } catch (e) {
+      if (await handleAiCreditError(e)) return
+
       console.error(e)
       const error = await extractSdkResponseErrorMsg(e)
 
@@ -421,9 +435,18 @@ export const useNocoAi = createSharedComposable(() => {
 
     if (!workspaceId || !baseId) return
 
-    const res = await $api.internal.postOperation(workspaceId, baseId, { operation: 'aiDataFillRows' }, { modelId, ...body })
+    try {
+      const res = await $api.internal.postOperation(workspaceId, baseId, { operation: 'aiDataFillRows' }, { modelId, ...body })
 
-    return res as Record<string, any>[]
+      return res as Record<string, any>[]
+    } catch (e) {
+      if (!(await handleAiCreditError(e))) {
+        message.warning(
+          (await extractSdkResponseErrorMsg(e)) || 'NocoAI: Underlying GPT API are busy. Please try after sometime.',
+        )
+      }
+      throw e
+    }
   }
 
   const predictSchema = async (input: any, skipMsgToast = true) => {
@@ -461,7 +484,7 @@ export const useNocoAi = createSharedComposable(() => {
             id: string
             status?: string
             data?: {
-              error?: { message: string }
+              error?: { message: string; code?: string }
               message?: string
               result?: any
             }
@@ -478,8 +501,9 @@ export const useNocoAi = createSharedComposable(() => {
                 settled = true
                 clearTimeout(timeoutId)
                 aiLoading.value = false
-                const errorMsg = data.data?.error?.message || 'AI schema prediction failed'
-                if (!skipMsgToast) {
+                const jobError = data.data?.error
+                const errorMsg = jobError?.message || 'AI schema prediction failed'
+                if (!handleAiCreditErrorRaw({ code: jobError?.code, message: jobError?.message }) && !skipMsgToast) {
                   message.error(errorMsg)
                 }
                 aiError.value = errorMsg

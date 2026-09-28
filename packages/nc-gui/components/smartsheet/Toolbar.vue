@@ -289,6 +289,10 @@ function triggerToolbarControl(selector: string) {
         v-if="isEeUI && isGrid && isUIAllowed('viewOperations') && !isPublic && !isSharedBase && !isMobileMode"
         class="hidden sr-only"
       />
+
+      <!-- Table-scoped Tools menu sits with the right-side utilities, after search. -->
+      <SmartsheetToolbarTableTools />
+
       <NcFullScreenToggleButton v-if="showFullScreenToggle && !isMobileMode" />
     </template>
   </div>

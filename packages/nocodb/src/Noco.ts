@@ -5,7 +5,6 @@ import clear from 'clear';
 import * as express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
-import requestIp from 'request-ip';
 import cookieParser from 'cookie-parser';
 import { NcDebug } from 'nc-gui/utils/debug';
 import type { INestApplication } from '@nestjs/common';
@@ -20,12 +19,14 @@ import type { ChatMessagesService } from '~/meta/chat-messages.service';
 import type { DocsContentService } from '~/meta/docs-content.service';
 import type { OperationLogsService } from '~/meta/operation-logs.service';
 import type { AppSettings } from '~/interface/AppSettings';
+import { getTrustProxyConfig } from '~/utils/trustProxy';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { AppModule } from '~/app.module';
 import { isEE, T } from '~/utils';
 import { getAppUrl } from '~/utils/appUrl';
 import { DataReflection, Integration, Store } from '~/models';
 import { getRedisURL } from '~/helpers/redisHelpers';
+import { ncStaticOptions } from '~/helpers/staticAssets';
 import { RedisIoAdapter } from '~/gateways/RedisIoAdapter';
 import { DEFAULT_APP_SETTINGS } from '~/interface/AppSettings';
 import { NC_APP_SETTINGS } from '~/constants';
@@ -60,6 +61,8 @@ export default class Noco {
   public static _ncDocsContent: any;
   public static _ncOperationLogs: any;
   public static appHooksService: AppHooksService;
+  public static _computeService: any;
+  public static _webService: any;
   public readonly metaMgr: any;
   public readonly metaMgrv2: any;
   public env: string;
@@ -197,13 +200,48 @@ export default class Noco {
     this._httpServer = nestApp.getHttpAdapter().getInstance();
     this._server = server;
 
-    nestApp.use(requestIp.mw());
+    // Node closes an idle keep-alive connection after 5s while a reverse proxy
+    // pools it far longer (Caddy 2m, ALB 60s), so the proxy keeps handing
+    // requests to sockets Node is closing underneath it — an ECONNRESET the
+    // proxy reports as a 502. It surfaces as published apps intermittently
+    // failing to load a lazy route chunk. Must stay ABOVE the fronting proxy's
+    // idle timeout so the proxy is always the side that closes first.
+    httpServer.keepAliveTimeout = Number(
+      process.env.NC_KEEP_ALIVE_TIMEOUT ?? 130_000,
+    );
+    // Node requires this to exceed keepAliveTimeout, or a request arriving on a
+    // connection about to expire is cut off mid-headers.
+    httpServer.headersTimeout = httpServer.keepAliveTimeout + 10_000;
+
+    // Constrain proxy trust to an explicitly-configured topology (default off).
+    // The bootstrap entry files historically call `server.enable('trust proxy')`
+    // unconditionally; override that here so `req.ip` cannot be spoofed via
+    // client-supplied X-Forwarded-* headers unless an operator opts in with
+    // NC_TRUST_PROXY (CWE-346).
+    const trustProxy = getTrustProxyConfig();
+    const expressInstance: Express = nestApp.getHttpAdapter().getInstance();
+    expressInstance.set('trust proxy', trustProxy);
+    server.set('trust proxy', trustProxy);
+
+    // Derive the audited client IP from Express's trust-proxy-aware `req.ip`
+    // instead of re-parsing forwarding headers (which ignores the trust
+    // boundary and let any client control the logged source IP).
+    nestApp.use((req: any, _res: any, next: any) => {
+      req.clientIp = req.ip;
+      next();
+    });
     nestApp.use(cookieParser());
 
     const redisIoAdapter = new RedisIoAdapter(httpServer);
     await redisIoAdapter.connectToRedis();
     nestApp.useWebSocketAdapter(redisIoAdapter);
     NcDebug.log('Websocket adapter initialized');
+
+    // Ahead of nestApp.init(): that starts the queue consumers, and a job
+    // picked up before the global integrations are registered fails with
+    // "No AI integration configured".
+    await Integration.init();
+    NcDebug.log('Integration initialized');
 
     await nestApp.init();
     NcDebug.log('Nest app initialized');
@@ -212,7 +250,7 @@ export default class Noco {
     NcDebug.log('Shutdown hooks enabled');
 
     const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/';
-    server.use(express.static(path.join(__dirname, 'public')));
+    server.use(express.static(path.join(__dirname, 'public'), ncStaticOptions));
 
     if (dashboardPath.startsWith('http')) {
       // Test/split mode: frontend runs separately, redirect browser to it.
@@ -240,9 +278,6 @@ export default class Noco {
         res.sendStatus(200);
       });
     }
-
-    await Integration.init();
-    NcDebug.log('Integration initialized');
 
     if (process.env.NC_WORKER_CONTAINER !== 'true') {
       await DataReflection.init();

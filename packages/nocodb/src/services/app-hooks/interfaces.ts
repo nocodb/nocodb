@@ -6,6 +6,7 @@ import type {
   FilterType,
   HookType,
   IntegrationType,
+  InviteLinkType,
   PluginTestReqType,
   PluginType,
   ProjectRoles,
@@ -33,6 +34,27 @@ export interface ProjectInviteEvent extends NcBaseEvent {
   user: UserType;
   invitedBy: UserType;
   role: ProjectRoles | string;
+  /** Set when the membership came from redeeming an invite link. */
+  via?: 'invite_link';
+}
+
+/**
+ * Invite links. `link` never carries the token: an event fans out to audit and
+ * telemetry sinks, none of which may hold a redeemable secret.
+ */
+export interface InviteLinkEvent extends NcBaseEvent {
+  link: InviteLinkType;
+  base?: BaseType;
+  workspace?: { id: string; title: string };
+}
+
+export interface InviteLinkUpdateEvent extends InviteLinkEvent {
+  oldLink: InviteLinkType;
+}
+
+export interface InviteLinkAcceptEvent extends InviteLinkEvent {
+  user: UserType;
+  already_member: boolean;
 }
 
 export interface RowCommentEvent extends NcBaseEvent {
@@ -42,6 +64,12 @@ export interface RowCommentEvent extends NcBaseEvent {
   rowId: string;
   comment: CommentType;
   ip?: string;
+  /**
+   * Source surface when the comment rode an interface-scoped op — mention
+   * notifications stamp it so clicks route back to the interface. Absent =
+   * posted in the data app.
+   */
+  source?: { interfaceId: string; pageId: string };
 }
 
 export interface RowMentionEvent extends NcBaseEvent {
@@ -57,6 +85,8 @@ export interface ProjectUserUpdateEvent extends NcBaseEvent {
   user: UserType;
   baseUser: Partial<ProjectUserReqType>;
   oldBaseUser: Partial<ProjectUserReqType>;
+  /** Set when the role change came from redeeming an invite link. */
+  via?: 'invite_link';
 }
 export interface UserProfileUpdateEvent
   extends Optional<NcBaseEvent, 'context'> {

@@ -1,7 +1,7 @@
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 import { NO_EDITABLE_CELL } from '../utils/cell'
 import { EDIT_INTERACTABLE } from '../utils/constants'
-import { findFirstExpandedGroupWithPath, findGroupByPath, getDefaultGroupData } from '../utils/groupby'
+import { findFirstExpandedGroupWithPath, findGroupByPath, getDefaultGroupData, getGroupSampleRow } from '../utils/groupby'
 
 // column types which support delete even when it's in edit state
 const EDIT_MODE_CLEARABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.GeoData]
@@ -30,6 +30,8 @@ export function useKeyboardNavigation({
   getDataCache,
   removeInlineAddRecord,
   maxSelectionLimit,
+  anchorActiveCell,
+  hostEl,
 }: {
   isGroupBy: ComputedRef<boolean>
   activeCell: Ref<{ row: number; column: number; path?: Array<number> }>
@@ -80,6 +82,10 @@ export function useKeyboardNavigation({
   }
   removeInlineAddRecord: Ref<boolean>
   maxSelectionLimit: ComputedRef<number>
+  /** Interface pages: select the record-sheet's row when nothing is selected. */
+  anchorActiveCell?: () => void
+  /** This grid's element — lets the record-sheet guard tell an embedded grid from the one behind the sheet. */
+  hostEl?: Ref<HTMLElement | null>
 }) {
   const { isDataReadOnly } = useRoles()
   const { $e } = useNuxtApp()
@@ -92,6 +98,9 @@ export function useKeyboardNavigation({
     if ((e.target as HTMLElement)?.closest?.('.nc-smart-text-panel')) return
     if (isViewSearchActive() || isCreateViewActive() || isActiveElementInsideScriptPane() || isActiveElementInsideExtension())
       return
+    // Interface editor: keystrokes belong to the properties panel's inputs,
+    // not the grid canvas mounted in the page preview.
+    if (isActiveElementInsideInterfacePanel() || isInterfaceRecordSheetOpen(hostEl?.value)) return
     const activeDropdownEl = document.querySelector(
       '.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active',
     )
@@ -120,6 +129,9 @@ export function useKeyboardNavigation({
 
     let defaultData = {}
 
+    // No selection yet (sheet opened by deep link / expand icon) — arrows step from the sheet's record.
+    if (activeCell.value.row === -1 && e.key.startsWith('Arrow')) anchorActiveCell?.()
+
     if (isGroupBy.value) {
       if (activeCell.value.path?.length) {
         groupPath = activeCell.value.path
@@ -129,7 +141,7 @@ export function useKeyboardNavigation({
         else return
       }
       group = findGroupByPath(cachedGroups.value, groupPath)
-      defaultData = getDefaultGroupData(group)
+      defaultData = getDefaultGroupData(group, meta.value?.columns, getGroupSampleRow(getDataCache(groupPath)?.cachedRows.value))
     }
 
     if (cmdOrCtrl && e.key === 'f' && editEnabled.value) {
@@ -371,6 +383,13 @@ export function useKeyboardNavigation({
       }
 
       case 'Tab': {
+        // No active cell — nothing to walk from, so let the browser move focus
+        // instead of stepping onto a phantom cell and scrolling to it. This is
+        // what makes Tab behave after an interface-config click deselects: the
+        // grid stands down and native focus traversal takes over. Mirrors the
+        // `case 'c'` precondition above.
+        if (activeCell.value.row === -1 || activeCell.value.column === -1) return
+
         let isAdded = false
         e.preventDefault()
         if (!e.shiftKey && activeCell.value.row === lastRow && activeCell.value.column === lastCol) {

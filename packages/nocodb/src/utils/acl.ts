@@ -5,7 +5,7 @@ import {
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 
-const roleScopes = {
+export const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
   workspace: [
     WorkspaceUserRoles.NO_ACCESS,
@@ -16,6 +16,7 @@ const roleScopes = {
     WorkspaceUserRoles.OWNER,
   ],
   base: [
+    ProjectRoles.APP_USER,
     ProjectRoles.VIEWER,
     ProjectRoles.COMMENTER,
     ProjectRoles.EDITOR,
@@ -25,7 +26,7 @@ const roleScopes = {
 };
 
 // todo: convert to enum
-const permissionScopes = {
+export const permissionScopes = {
   org: [
     // API Tokens
     'apiTokenList',
@@ -54,12 +55,16 @@ const permissionScopes = {
     // Plugin
     'isPluginActive',
     'pluginList',
+    'aggregatedMetaInfo',
+    'webhookPluginList',
     'pluginTest',
     'pluginRead',
     'pluginUpdate',
 
     // Misc
     'commandPalette',
+    // Redeeming a link you already hold; the service does the real gating
+    'inviteLinkAccept',
     'baseListAll',
     'instanceAdminStats',
     'instanceAdminWorkspaces',
@@ -120,7 +125,6 @@ const permissionScopes = {
 
     // Misc
     'duplicateSharedBase',
-    'webhookPluginList',
 
     // AI
     'aiSchema',
@@ -130,6 +134,10 @@ const permissionScopes = {
     'workspaceInvite',
     'workspaceUserUpdate',
     'workspaceUserDelete',
+    'workspaceInviteLinkList',
+    'workspaceInviteLinkCreate',
+    'workspaceInviteLinkUpdate',
+    'workspaceInviteLinkDelete',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -138,6 +146,7 @@ const permissionScopes = {
     'formViewGet',
     'baseGet',
     'tableGet',
+    'refTableGet',
     'attachmentDownload',
     'dataList',
     'linkDataList',
@@ -250,6 +259,15 @@ const permissionScopes = {
     'sourceCreate',
     'columnAdd',
 
+    // Invite links -- editor+, the same floor as inviting by email (product
+    // decision 2026-09-19; it was viewer while the two were weighed separately).
+    // The service caps every link at the caller's own role (assertRolePower),
+    // and below creator a caller only ever sees or edits links they made.
+    'baseInviteLinkList',
+    'baseInviteLinkCreate',
+    'baseInviteLinkUpdate',
+    'baseInviteLinkDelete',
+
     // Base API Tokens
     'baseApiTokenList',
     'baseApiTokenCreate',
@@ -352,6 +370,7 @@ const rolePermissions:
       mfaStatus: true,
       mfaRegenerateBackupCodes: true,
       commandPalette: true,
+      inviteLinkAccept: true,
       baseListAll: true,
       testConnection: true,
       notification: true,
@@ -407,13 +426,18 @@ const rolePermissions:
     include: {},
   },
   [WorkspaceUserRoles.EDITOR]: {
-    include: {},
+    include: {
+      // Same floor as the base-scope links above, for the same reason.
+      workspaceInviteLinkList: true,
+      workspaceInviteLinkCreate: true,
+      workspaceInviteLinkUpdate: true,
+      workspaceInviteLinkDelete: true,
+    },
   },
   [WorkspaceUserRoles.CREATOR]: {
     include: {
       baseCreate: true,
       duplicateSharedBase: true,
-      webhookPluginList: true,
       integrationGet: true,
       integrationCreate: true,
       integrationDelete: true,
@@ -433,8 +457,17 @@ const rolePermissions:
   },
 
   // ── Base roles (unchanged) ──
+  // App User: app-only collaborator, no ambient product-channel access.
+  // Empty include inherits NO_ACCESS parity via scope ordering.
+  [ProjectRoles.APP_USER]: {
+    include: {},
+  },
   [ProjectRoles.VIEWER]: {
     include: {
+      // Inviting by email is open to every member from Viewer up (product
+      // decision 2026-09-19). The invite form caps the offered role at the
+      // inviter's own, so a viewer can only ever bring in another viewer.
+      userInvite: true,
       // batch envelope — per-sub-op ACL is enforced inside the handler,
       // so the envelope itself is granted to everyone with base access.
       batch: true,
@@ -444,6 +477,7 @@ const rolePermissions:
       baseGet: true,
       //table
       tableGet: true,
+      refTableGet: true,
       // attachment
       attachmentDownload: true,
       // data
@@ -506,8 +540,6 @@ const rolePermissions:
       commentCount: true,
       recordAuditList: true,
 
-      userInvite: true,
-
       // MCP CRUD
       mcpList: true,
       mcpCreate: true,
@@ -524,6 +556,15 @@ const rolePermissions:
   },
   [ProjectRoles.EDITOR]: {
     include: {
+      // A link is a standing grant, so the floor is the same as expanding
+      // membership by email: Editor and above (product decision 2026-09-19;
+      // it was Viewer while the two were treated separately). assertRolePower
+      // still caps each link at the creator's own role, and below Creator a
+      // caller only ever sees or edits links they made.
+      baseInviteLinkList: true,
+      baseInviteLinkCreate: true,
+      baseInviteLinkUpdate: true,
+      baseInviteLinkDelete: true,
       dataUpdate: true,
       dataDelete: true,
       dataInsert: true,
@@ -843,6 +884,7 @@ const permissionDescriptions: Record<string, string> = {
   orgWorkspaceAdd: 'add a new workspace',
   orgGet: 'view organization details',
   orgWorkspaceList: 'view list of workspaces in the organization',
+  orgUsageList: 'view per-workspace usage across the organization',
   orgUserList: 'view list of users in the organization',
   orgBaseList: 'view list of bases in the organization',
   orgSsoClientList: 'view list of SSO clients in the organization',
@@ -875,6 +917,7 @@ const permissionDescriptions: Record<string, string> = {
 
   isPluginActive: 'check if a plugin is active',
   pluginList: 'view list of plugins',
+  aggregatedMetaInfo: 'view instance-wide aggregated metadata',
   pluginTest: 'test a plugin',
   pluginRead: 'read plugin configuration',
   pluginUpdate: 'update plugin configuration',
@@ -923,6 +966,7 @@ const permissionDescriptions: Record<string, string> = {
   formViewGet: 'view forms',
   baseGet: 'view base details',
   tableGet: 'view table details',
+  refTableGet: 'view minimal details of a linked table',
   attachmentDownload: 'download attachments',
   dataList: 'view data',
   linkDataList: 'view data',
@@ -1027,6 +1071,15 @@ const permissionDescriptions: Record<string, string> = {
   nestedDataBulkLinkByDisplayValue: 'bulk link records by display value',
   baseUserList: 'view list of users in the base',
 
+  baseInviteLinkList: 'view invite links for a base',
+  baseInviteLinkCreate: 'create an invite link for a base',
+  baseInviteLinkUpdate: 'update an invite link',
+  baseInviteLinkDelete: 'revoke an invite link',
+  workspaceInviteLinkList: 'view invite links for a workspace',
+  workspaceInviteLinkCreate: 'create an invite link for a workspace',
+  workspaceInviteLinkUpdate: 'update a workspace invite link',
+  workspaceInviteLinkDelete: 'revoke a workspace invite link',
+  inviteLinkAccept: 'redeem an invite link',
   baseApiTokenList: 'view list of base API tokens',
   baseApiTokenCreate: 'create a new base API token',
   baseApiTokenDelete: 'delete a base API token',
@@ -1043,6 +1096,11 @@ const permissionDescriptions: Record<string, string> = {
 
   migrateBase: 'migrate a base to another instance',
 
+  mcpRootList: 'view your MCP connections across every workspace',
+  mcpToolCatalog: 'see which tools an MCP connection can be granted',
+  mcpRootCreate: 'create an MCP connection with explicit scopes',
+  mcpRootUpdate: 'edit or regenerate one of your MCP connections',
+  mcpRootDelete: 'delete one of your MCP connections',
   mcpList: 'view list of MCP tokens',
   mcpCreate: 'create a new MCP token',
   mcpUpdate: 'update an MCP token',
@@ -1086,6 +1144,7 @@ const roleDescriptions: Record<string, string> = {
   [WorkspaceUserRoles.CREATOR]: 'Creator',
   [WorkspaceUserRoles.OWNER]: 'Owner',
   // Base roles
+  [ProjectRoles.APP_USER]: 'App User',
   [ProjectRoles.VIEWER]: 'Viewer',
   [ProjectRoles.COMMENTER]: 'Commenter',
   [ProjectRoles.EDITOR]: 'Editor',

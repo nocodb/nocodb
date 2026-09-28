@@ -43,6 +43,16 @@ const emits = defineEmits<Emits>()
 const base = inject(ProjectInj)!
 const table = inject(SidebarTableInj)!
 
+/** Extra indent when the owning table sits inside a base-level folder — view
+ *  rows step in by the same amount (Views/Node.vue). */
+const sectionIndentPx = inject(SidebarSectionIndentInj, ref(0))
+
+const { isRtl } = useRtl()
+
+const emptyPlaceholderIndentStyle = computed(() =>
+  isRtl.value ? { marginRight: `${sectionIndentPx.value}px` } : { marginLeft: `${sectionIndentPx.value}px` },
+)
+
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { $api } = useNuxtApp()
@@ -79,6 +89,15 @@ const menuRef = useTemplateRef('menuRef')
 
 const isMarked = ref<string | false>(false)
 
+/** Keys the list so a drop can re-mount it: Sortable moves the row's DOM node
+ *  into the target section's container, which desyncs Vue's vdom and can leave
+ *  the same view rendered under two sections until reload. */
+const renderKey = ref(0)
+
+function forceRerender() {
+  renderKey.value++
+}
+
 /** Watch currently active view, so we can mark it in the menu */
 watch(activeView, (nextActiveView) => {
   if (nextActiveView && nextActiveView.id) {
@@ -96,11 +115,10 @@ function markItem(id: string) {
 
 const source = computed(() => base.value?.sources?.find((b) => b.id === table.value.source_id))
 
-const isDefaultSource = computed(() => {
-  if (base.value?.sources?.length === 1) return true
-  if (!source.value) return false
-  return isDefaultBase(source.value)
-})
+// Shallow indent iff the table renders at the sidebar root, i.e. it belongs to
+// the base's own source. A single external source is NOT that: its tables sit
+// under the source node, so its views step in with them.
+const isDefaultSource = computed(() => !!source.value && source.value.id === baseOwnSourceId(base.value?.sources))
 
 /** validate view title */
 function validate(view: ViewType) {
@@ -186,7 +204,10 @@ const initSortable = (el: Element) => {
       const itemEl = evt.item as HTMLElement
       const currentItem = views.value.find((v) => v.id === itemEl.dataset.id)
 
-      if (!currentItem || !currentItem.id) return
+      if (!currentItem || !currentItem.id) {
+        forceRerender()
+        return
+      }
 
       const firstCollaborativeView = getFirstNonPersonalView(views.value, {
         includeViewType: ViewTypes.GRID,
@@ -195,7 +216,10 @@ const initSortable = (el: Element) => {
       const isFirstCollaborativeView = firstCollaborativeView?.id === currentItem.id
 
       const newOrder = computeNewOrder(evt, newIndex)
-      if (newOrder == null) return
+      if (newOrder == null) {
+        forceRerender()
+        return
+      }
 
       currentItem.order = newOrder
 
@@ -254,6 +278,10 @@ const initSortable = (el: Element) => {
           }
         }
       }
+
+      // onEnd fires on the source list, whose vdom still owns the node Sortable
+      // moved into the target container — re-mounting here drops that orphan.
+      forceRerender()
     },
     animation: 150,
     revertOnSpill: true,
@@ -458,6 +486,7 @@ const filteredViews = computed(() => {
     <div
       v-if="filteredViews.length || !!sectionId"
       ref="menuRef"
+      :key="`views-${renderKey}`"
       :data-section-id="sectionId"
       :data-table-id="table?.id"
       :class="{ dragging, 'min-h-6': !!sectionId && !filteredViews.length }"
@@ -470,6 +499,7 @@ const filteredViews = computed(() => {
           'pl-14.5 xs:(pl-16) rtl:(pr-14.5 pl-0) rtl:xs:(pr-16 pl-0)': isDefaultSource,
           'pl-21.5 xs:(pl-23) rtl:(pr-21.5 pl-0) rtl:xs:(pr-23 pl-0)': !isDefaultSource,
         }"
+        :style="emptyPlaceholderIndentStyle"
       >
         {{ $t('general.empty') }}
       </div>

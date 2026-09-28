@@ -46,10 +46,7 @@ export class LinkPlaceholderService {
     const source = base?.sources?.find((s) => s.id === table.source_id);
     if (!source) return null;
 
-    await table.getColumns(
-      { ...ctx, workspace_id: table.fk_workspace_id, base_id: table.base_id },
-      ncMeta,
-    );
+    await table.getColumns(ncMeta);
 
     // Capture per-view visibility of the column being replaced (the LTAR
     // that's about to be soft-deleted on THIS table — i.e. the reverse-side
@@ -304,17 +301,7 @@ export class LinkPlaceholderService {
       return;
     }
 
-    await relatedTable.getColumns(
-      {
-        ...ctx,
-        workspace_id: relatedTable.fk_workspace_id,
-        base_id: relatedTable.base_id,
-      },
-      ncMeta,
-      undefined,
-      true,
-      true,
-    );
+    await relatedTable.getColumns(ncMeta, undefined, true, true);
 
     // Honor the link's custom display value override — the chips showed that
     // column, and this materialized text is permanent. PV/PK fallback when
@@ -714,11 +701,6 @@ export class LinkPlaceholderService {
     if (!relatedTable) return null;
 
     const relatedCols = await relatedTable.getColumns(
-      {
-        ...ctx,
-        workspace_id: relatedTable.fk_workspace_id,
-        base_id: relatedTable.base_id,
-      },
       ncMeta,
       undefined,
       true,
@@ -729,14 +711,7 @@ export class LinkPlaceholderService {
       if (!isLinksOrLTAR(c)) continue;
       if (c.id === columnId) continue;
 
-      const revOpt = await c.getColOptions<any>(
-        {
-          ...ctx,
-          workspace_id: relatedTable.fk_workspace_id,
-          base_id: relatedTable.base_id,
-        },
-        ncMeta,
-      );
+      const revOpt = await c.getColOptions<any>(ncMeta);
       if (!revOpt) continue;
 
       if (this.matchReverseColumn(col, colOpt, revOpt)) {

@@ -175,6 +175,9 @@ export class DataExportProcessor {
             filterArrJson: options.filterArrJson,
             sortArrJson: options.sortArrJson,
             locale,
+            // Public export path: restrict the ICS description to view-visible
+            // columns.
+            restrictToViewVisibleColumns: !!options?.isPublicExport,
           })
           .catch((e) => {
             this.logger.debug(e);

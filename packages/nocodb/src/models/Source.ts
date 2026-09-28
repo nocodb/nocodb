@@ -10,6 +10,7 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -27,9 +28,37 @@ import {
   deepMerge,
   encryptPropIfRequired,
   isEncryptionRequired,
-  partialExtract,
 } from '~/utils';
 import { NcCache } from '~/decorators/nc-cache.decorator';
+import {
+  getModelContext,
+  setModelContext,
+  throwMissingContext,
+} from '~/helpers/modelContext';
+
+/**
+ * Columns an update may set. `is_meta` / `is_local` are deliberately absent:
+ * they decide whether a source resolves its connection from NocoDB's internal
+ * config, and therefore whether the delete guard applies. Both are settled by
+ * `Base.insert` at base creation and must never change afterwards — GHSA-982h
+ * closed the request path, this closes the model for every other caller.
+ */
+export const SOURCE_UPDATE_PROPS = [
+  'alias',
+  'config',
+  'type',
+  'inflection_column',
+  'inflection_table',
+  'order',
+  'enabled',
+  'meta',
+  'deleted',
+  'fk_sql_executor_id',
+  'is_schema_readonly',
+  'is_data_readonly',
+  'fk_integration_id',
+  'is_encrypted',
+];
 
 export default class Source implements SourceType {
   id?: string;
@@ -58,12 +87,26 @@ export default class Source implements SourceType {
   upgraderMode?: boolean;
   upgraderQueries?: string[] = [];
 
+  get context(): NcContext {
+    const ctx = getModelContext(this);
+    if (ctx) return ctx;
+    if (this.fk_workspace_id && this.base_id) {
+      return {
+        workspace_id: this.fk_workspace_id,
+        base_id: this.base_id,
+      } as NcContext;
+    }
+    throwMissingContext('Source');
+  }
+
   constructor(source: Partial<SourceType>) {
     Object.assign(this, source);
   }
 
-  protected static castType(source: Source): Source {
-    return source && new Source(source);
+  protected static castType(source: Source, context?: NcContext): Source {
+    const instance = source && new Source(source);
+    if (instance && context) setModelContext(instance, context);
+    return instance;
   }
 
   protected static encryptConfigIfRequired(obj: Record<string, unknown>) {
@@ -82,8 +125,10 @@ export default class Source implements SourceType {
     },
     ncMeta = Noco.ncMeta,
   ) {
+    // `id` is deliberately absent — metaInsert2 generates it. A caller-chosen
+    // id can collide with a source in another base, and the connection cache
+    // then hands over that base's live DB connection.
     const insertObj = extractProps(source, [
-      'id',
       'alias',
       'config',
       'type',
@@ -144,24 +189,7 @@ export default class Source implements SourceType {
 
     if (!oldSource) NcError.sourceNotFound(sourceId);
 
-    const updateObj = extractProps(source, [
-      'alias',
-      'config',
-      'type',
-      'is_meta',
-      'is_local',
-      'inflection_column',
-      'inflection_table',
-      'order',
-      'enabled',
-      'meta',
-      'deleted',
-      'fk_sql_executor_id',
-      'is_schema_readonly',
-      'is_data_readonly',
-      'fk_integration_id',
-      'is_encrypted',
-    ]);
+    const updateObj = extractProps(source, SOURCE_UPDATE_PROPS);
 
     if (updateObj.config) {
       this.encryptConfigIfRequired(updateObj);
@@ -230,7 +258,7 @@ export default class Source implements SourceType {
     // for metadata-only changes (readonly flags, alias, order) where the
     // connection config hasn't changed. Callers that change connection config
     // (integrations service, sourceCleanup) call resetSource() directly.
-    await NcConnectionMgrv2.bumpSourceVersion(sourceId);
+    await NcConnectionMgrv2.bumpSourceVersion(oldSource);
 
     return await this.get(context, oldSource.id, false, ncMeta);
   }
@@ -283,7 +311,7 @@ export default class Source implements SourceType {
     );
 
     return sourceDataList?.map((sourceData) => {
-      return this.castType(sourceData);
+      return this.castType(sourceData, context);
     });
   }
 
@@ -328,7 +356,7 @@ export default class Source implements SourceType {
 
       await NocoCache.set(context, `${CacheScope.SOURCE}:${id}`, sourceData);
     }
-    return this.castType(sourceData);
+    return this.castType(sourceData, context);
   }
 
   public async getConnectionConfig(): Promise<any> {
@@ -444,13 +472,22 @@ export default class Source implements SourceType {
     // merge integration config with source config
     // override integration config with source config if exists
     // only override database and searchPath
-    let mergedConfig = deepMerge(
-      integrationConfig,
-      partialExtract(config || {}, [
-        ['connection', 'database'],
-        ['searchPath'],
-      ]),
-    );
+    //
+    // IMPORTANT: apply ONLY keys the source config actually defines. The old
+    // `partialExtract(config, [['connection','database'],['searchPath']])`
+    // emitted the requested keys even when absent (as `undefined`), and
+    // `deepMerge` then overwrote the integration's real `searchPath` /
+    // `connection.database` with `undefined` — erasing the integration's
+    // configured schema so the source silently bound to `public`. Only a
+    // source-level value that is actually set should override the integration.
+    const sourceOverride: Record<string, any> = {};
+    if (config?.searchPath !== undefined) {
+      sourceOverride.searchPath = config.searchPath;
+    }
+    if (config?.connection?.database !== undefined) {
+      sourceOverride.connection = { database: config.connection.database };
+    }
+    let mergedConfig = deepMerge(integrationConfig, sourceOverride);
 
     // if searchPath is not array/string or if an empty array, remove it
     if (
@@ -468,31 +505,59 @@ export default class Source implements SourceType {
     return this.getConfig(true);
   }
 
-  getProject(context: NcContext, ncMeta = Noco.ncMeta): Promise<Base> {
-    return Base.get(context, this.base_id, ncMeta);
+  getProject(ncMeta = Noco.ncMeta): Promise<Base> {
+    return Base.get(this.context, this.base_id, ncMeta);
   }
 
   async sourceCleanup(_ncMeta = Noco.ncMeta) {
     await NcConnectionMgrv2.deleteAwait(this);
 
     // Bump Redis version so all servers invalidate on next read
-    await NcConnectionMgrv2.bumpSourceVersion(this.id);
+    await NcConnectionMgrv2.bumpSourceVersion(this);
   }
 
-  async delete(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-    { force }: { force?: boolean } = {},
-  ) {
+  /**
+   * A base must keep its own source, and must never be left with none. The
+   * rationale for each arm is inline below.
+   */
+  protected assertDeletable(sources: Source[], force?: boolean) {
+    if (force) return;
+
+    // Deliberately NOT skipped for an already soft-deleted source: `deleted` is
+    // settable, so an early return here would let a caller soft-delete a base's
+    // own source and then hard-delete it past this guard. A cascade that has to
+    // remove it passes `force`.
+
+    // Checked first: on a single-source base the positional arm below would also
+    // match, and "only source" is the accurate reason. Only live siblings count —
+    // a soft-deleted row left in a cached list must not make this look like it is
+    // not the last source.
+    if (!sources.some((source) => source.id !== this.id && !source.deleted)) {
+      NcError.get(this.context).badRequest(
+        'Cannot delete the only source of a base',
+      );
+    }
+
+    // Flags AND position: neither is reliable alone. A base's own source can
+    // carry neither flag, and `order` does not always put it first — so keep both
+    // arms rather than trade one failure mode for the other.
+    if (this.isMeta() || sources[0]?.id === this.id) {
+      NcError.get(this.context).badRequest(
+        "Cannot delete a base's default source",
+      );
+    }
+  }
+
+  async delete(ncMeta = Noco.ncMeta, { force }: { force?: boolean } = {}) {
+    const context = this.context;
+
     const sources = await Source.list(
       context,
       { baseId: this.base_id },
       ncMeta,
     );
 
-    if ((sources[0].id === this.id || this.isMeta()) && !force) {
-      NcError.badRequest('Cannot delete first source');
-    }
+    this.assertDeletable(sources, force);
 
     const models = await Model.list(
       context,
@@ -513,13 +578,7 @@ export default class Source implements SourceType {
     };
 
     for (const model of models) {
-      for (const col of await model.getColumns(
-        context,
-        ncMeta,
-        undefined,
-        true,
-        true,
-      )) {
+      for (const col of await model.getColumns(ncMeta, undefined, true, true)) {
         let colOptionTableName = null;
         let cacheScopeName = null;
         switch (col.uidt) {
@@ -564,7 +623,7 @@ export default class Source implements SourceType {
     }
 
     for (const model of models) {
-      await model.delete(context, ncMeta, true);
+      await model.delete(ncMeta, true);
     }
 
     const syncSources = await SyncSource.list(
@@ -595,20 +654,16 @@ export default class Source implements SourceType {
     return res;
   }
 
-  async softDelete(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-    { force }: { force?: boolean } = {},
-  ) {
+  async softDelete(ncMeta = Noco.ncMeta, { force }: { force?: boolean } = {}) {
+    const context = this.context;
+
     const sources = await Source.list(
       context,
       { baseId: this.base_id },
       ncMeta,
     );
 
-    if ((sources[0].id === this.id || this.isMeta()) && !force) {
-      NcError.badRequest('Cannot delete first base');
-    }
+    this.assertDeletable(sources, force);
 
     await Source.update(context, this.id, { deleted: true }, ncMeta);
 
@@ -622,15 +677,17 @@ export default class Source implements SourceType {
     );
   }
 
-  async getModels(context: NcContext, ncMeta = Noco.ncMeta) {
+  async getModels(ncMeta = Noco.ncMeta) {
     return await Model.list(
-      context,
+      this.context,
       { base_id: this.base_id, source_id: this.id },
       ncMeta,
     );
   }
 
-  async shareErd(context: NcContext, ncMeta = Noco.ncMeta) {
+  async shareErd(ncMeta = Noco.ncMeta) {
+    const context = this.context;
+
     if (!this.erd_uuid) {
       const uuid = uuidv4();
       this.erd_uuid = uuid;
@@ -653,7 +710,9 @@ export default class Source implements SourceType {
     return this;
   }
 
-  async disableShareErd(context: NcContext, ncMeta = Noco.ncMeta) {
+  async disableShareErd(ncMeta = Noco.ncMeta) {
+    const context = this.context;
+
     if (this.erd_uuid) {
       this.erd_uuid = null;
 
@@ -684,6 +743,66 @@ export default class Source implements SourceType {
     } else {
       return this.is_meta || this.is_local;
     }
+  }
+
+  /**
+   * Reverse lookup: the sources referencing an integration — a THIN,
+   * response-safe projection (id, alias, base_id, project title only), used by
+   * the integration read (`includeSources`, feeds the delete-confirmation
+   * dialog), the integration delete/soft-delete cascades, and user-deletion
+   * collection. Lives here because "which sources point at X" is a Source
+   * concern; only Database integrations are ever referenced, so other types
+   * yield []. Workspace scoping applies whenever the context carries a real
+   * workspace id (EE) and is skipped for CE/BYPASS contexts.
+   */
+  static async listByIntegration(
+    context: Omit<NcContext, 'base_id'>,
+    integrationId: string,
+    { force = false }: { force?: boolean } = {},
+    ncMeta = Noco.ncMeta,
+  ): Promise<Source[]> {
+    const qb = ncMeta.knex(MetaTable.SOURCES);
+
+    qb.select(`${MetaTable.SOURCES}.id`)
+      .select(`${MetaTable.SOURCES}.alias`)
+      .select(`${MetaTable.PROJECT}.title as project_title`)
+      .select(`${MetaTable.SOURCES}.base_id`)
+      .select(`${MetaTable.SOURCES}.fk_workspace_id`)
+      .innerJoin(
+        MetaTable.PROJECT,
+        `${MetaTable.SOURCES}.base_id`,
+        `${MetaTable.PROJECT}.id`,
+      )
+      .where(`${MetaTable.SOURCES}.fk_integration_id`, integrationId);
+
+    if (
+      context.workspace_id &&
+      context.workspace_id !== RootScopes.BYPASS &&
+      context.workspace_id !== RootScopes.FULL_BYPASS
+    ) {
+      qb.where(`${MetaTable.SOURCES}.fk_workspace_id`, context.workspace_id);
+    }
+
+    if (!force) {
+      qb.where((whereQb) => {
+        whereQb
+          .where(`${MetaTable.SOURCES}.deleted`, false)
+          .orWhereNull(`${MetaTable.SOURCES}.deleted`);
+      }).where((whereQb) => {
+        whereQb
+          .where(`${MetaTable.PROJECT}.deleted`, false)
+          .orWhereNull(`${MetaTable.PROJECT}.deleted`);
+      });
+    }
+
+    const sources = await qb;
+
+    return sources.map((src) =>
+      this.castType(src, {
+        workspace_id: src.fk_workspace_id,
+        base_id: src.base_id,
+      } as NcContext),
+    );
   }
 
   protected static extendQb(qb: any, _context: NcContext) {

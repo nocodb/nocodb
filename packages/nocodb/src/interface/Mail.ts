@@ -16,6 +16,7 @@ enum MailEvent {
   COMMENT_UPDATE = 'COMMENT_UPDATE',
   BASE_ROLE_UPDATE = 'BASE_ROLE_UPDATE',
   BASE_INVITE = 'BASE_INVITE',
+  APP_INVITE = 'APP_INVITE',
   WELCOME = 'WELCOME',
   FORM_SUBMISSION = 'FORM_SUBMISSION',
   RESET_PASSWORD = 'RESET_PASSWORD', //OSS
@@ -24,6 +25,7 @@ enum MailEvent {
   ORGANIZATION_ROLE_UPDATE = 'ORGANIZATION_ROLE_UPDATE', // OSS
   ROW_USER_MENTION = 'ROW_USER_MENTION',
   WORKSPACE_INVITE = 'WORKSPACE_INVITE',
+  INTERFACE_INVITE = 'INTERFACE_INVITE',
   WORKSPACE_ROLE_UPDATE = 'WORKSPACE_ROLE_UPDATE',
   WORKSPACE_REQUEST_UPGRADE = 'WORKSPACE_REQUEST_UPGRADE',
   TEAM_MEMBER_INVITE = 'TEAM_MEMBER_INVITE',
@@ -60,6 +62,7 @@ enum MailEvent {
   ON_PREM_LICENSE_ISSUED = 'ON_PREM_LICENSE_ISSUED',
   ON_PREM_PAYMENT_FAILED = 'ON_PREM_PAYMENT_FAILED',
   ON_PREM_PLAN_CHANGED = 'ON_PREM_PLAN_CHANGED',
+  ON_PREM_PLAN_CHANGE_SCHEDULED = 'ON_PREM_PLAN_CHANGE_SCHEDULED',
   ON_PREM_SUBSCRIPTION_CANCELED = 'ON_PREM_SUBSCRIPTION_CANCELED',
 }
 
@@ -85,6 +88,14 @@ interface BaseInvitePayload {
   user: UserType;
   req: NcRequest;
   role: ProjectRoles;
+  token?: string;
+}
+
+// Structural app shape — the App model is EE-only, so CE stays decoupled.
+interface AppInvitePayload {
+  app: { id?: string; title?: string; slug?: string | null };
+  user: UserType;
+  req: NcRequest;
   token?: string;
 }
 
@@ -157,6 +168,10 @@ type MailParams =
   | {
       mailEvent: MailEvent.BASE_INVITE;
       payload: BaseInvitePayload;
+    }
+  | {
+      mailEvent: MailEvent.APP_INVITE;
+      payload: AppInvitePayload;
     }
   | {
       mailEvent: MailEvent.WELCOME;

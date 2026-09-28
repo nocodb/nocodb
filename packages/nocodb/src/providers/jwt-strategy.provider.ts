@@ -22,6 +22,11 @@ export const JwtStrategyProvider: Provider = {
       passReqToCallback: true,
       secretOrKey: config.auth.jwt.secret,
       ...config.auth.jwt.options,
+      // Pin the accepted signature algorithm. All first-party tokens are signed
+      // with the symmetric HS256 secret; explicitly restricting the verifier
+      // prevents algorithm-substitution attacks and is set last so it cannot be
+      // weakened via config.auth.jwt.options.
+      algorithms: ['HS256'],
     };
 
     return new JwtStrategy(options, usersService);

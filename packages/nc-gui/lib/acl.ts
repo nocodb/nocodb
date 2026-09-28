@@ -12,6 +12,7 @@ const roleScopes = {
   ],
   base: [
     ProjectRoles.NO_ACCESS,
+    ProjectRoles.APP_USER,
     ProjectRoles.VIEWER,
     ProjectRoles.COMMENTER,
     ProjectRoles.EDITOR,
@@ -51,6 +52,7 @@ const rolePermissions = {
       workspaceSettings: true,
       workspaceAuditList: true,
       workspaceIntegrations: true,
+      integrationManage: true,
       workspaceManage: true,
       baseDelete: true,
     },
@@ -71,6 +73,7 @@ const rolePermissions = {
   },
   [WorkspaceUserRoles.VIEWER]: {
     include: {
+      workspaceInviteLinkCreate: true,
       workspaceCollaborators: true,
     },
   },
@@ -136,6 +139,10 @@ const rolePermissions = {
   },
   [ProjectRoles.EDITOR]: {
     include: {
+      // Mirrors the backend: a link is a standing grant, so Editor and above,
+      // the same floor as inviting by email. Capped to the caller's own role
+      // server-side; see assertRolePower.
+      baseInviteLinkCreate: true,
       dataInsert: true,
       dataEdit: true,
       viewFieldDataEdit:
@@ -202,7 +209,11 @@ const rolePermissions = {
   },
   [ProjectRoles.VIEWER]: {
     include: {
+      // Mirrors the backend: inviting by email is open from Viewer up.
+      userInvite: true,
       baseSettings: true,
+      // Base integrations inventory (mirrors the backend viewer+ floor).
+      baseIntegrationList: true,
       expandedForm: true,
       apiDocs: true,
 
@@ -211,6 +222,9 @@ const rolePermissions = {
       recordAuditList: true,
       newUser: true,
       manageMCP: true,
+      // Base-scoped API tokens. Same floor as `manageMCP` — both mint a
+      // credential for this base — but its own key so the two can't drift.
+      manageBaseApiTokens: true,
 
       // Extensions
       extensionList: true,
@@ -228,6 +242,11 @@ const rolePermissions = {
     },
   },
   [ProjectRoles.NO_ACCESS]: {
+    include: {},
+  },
+  // App User: no base product permissions — capability is entirely per-app via
+  // the app's APP_USE assignment role, not this ACL matrix.
+  [ProjectRoles.APP_USER]: {
     include: {},
   },
 } as Record<OrgUserRoles | WorkspaceUserRoles | ProjectRoles, Perm | '*'>

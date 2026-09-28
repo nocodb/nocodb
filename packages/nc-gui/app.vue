@@ -7,6 +7,13 @@ useUpdateChecker()
 
 const route = router.currentRoute
 
+// Shared/public pages route external link clicks through the /leaving interstitial.
+watch(
+  () => isSharedBaseOrErdOrViewRoute(route.value) || isSharedDashboardRoute(route.value) || isSharedInterfaceRoute(route.value),
+  (isShared) => addConfirmPageLeavingRedirectToWindow(!isShared),
+  { immediate: true },
+)
+
 const { showOnboardingFlow } = useOnboardingFlow()
 
 const { hideSharedBaseBtn } = storeToRefs(useConfigStore())
@@ -20,8 +27,6 @@ const { isExperimentalFeatureModalOpen, initializeFeatures } = useBetaFeatureTog
 initializeFeatures()
 
 useAntDvTheme()
-
-useTheme()
 
 useBrandingApply()
 
@@ -165,8 +170,8 @@ const _ = (window as any).ResizeObserver
     </div>
   </ErrorBoundary>
 
+  <LazyDashboardThemeConfig />
   <LazyChatPanel />
   <LazyChatFab />
-  <LazySandboxChangelogDrawer />
-  <LazySandboxTopRail />
+  <LazyTourHost />
 </template>

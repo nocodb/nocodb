@@ -19,7 +19,7 @@ export const viewColumnBuilder = builderGenerator<
   ViewColumn[],
   Partial<ViewColumn>[]
 >({
-  allowed: ['fk_column_id', 'width', 'show', 'formatting'],
+  allowed: ['fk_column_id', 'width', 'show', 'formatting', 'aggregation'],
   mappings: {
     fk_column_id: 'field_id',
   },

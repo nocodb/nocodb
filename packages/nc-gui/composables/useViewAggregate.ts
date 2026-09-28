@@ -26,6 +26,8 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
 
     const isPublic = inject(IsPublicInj, ref(false))
 
+    const interfaceDataApi = inject(InterfacePageDataInj, undefined)
+
     const { gridViewCols, updateGridViewColumn } = useViewColumnsOrThrow()
 
     const { nestedFilters } = useSmartsheetStoreOrThrow()
@@ -86,6 +88,39 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
         type: string
       }>,
     ) => {
+      // Interface pages: aggregations flow through the adapter — always with
+      // explicit (field, type) pairs since the synthetic view stores none
+      // SERVER-side. A no-args call (canvas mount / generic reload) derives
+      // the pairs from the hydrated columns — the same derivation the
+      // group-header path uses — else the footer summary never loads while
+      // per-group summaries do.
+      if (interfaceDataApi) {
+        if (!interfaceDataApi.fetchAggregate) return
+
+        const requested =
+          fields ??
+          Object.values(gridViewCols.value)
+            .map((f) => ({ field: f.fk_column_id!, type: f.aggregation ?? CommonAggregations.None }))
+            .filter((f) => f.type !== CommonAggregations.None)
+
+        if (!requested.length) return
+
+        try {
+          const data = await interfaceDataApi.fetchAggregate({
+            aggregation: requested,
+            where: where?.value,
+            filtersArr: nestedFilters.value,
+          })
+
+          Object.assign(aggregations.value, data)
+          reloadVisibleDataHook?.trigger()
+        } catch (error) {
+          console.error(error)
+          message.error(await extractSdkResponseErrorMsgv2(error as any))
+        }
+        return
+      }
+
       // Wait for meta to be defined https://vueuse.org/shared/until/
       await until(() => !!meta.value)
         .toBeTruthy({
@@ -129,7 +164,17 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
           },
         ],
       })
-      await updateGridViewColumn(fieldId, { aggregation: agg })
+      if (interfaceDataApi) {
+        // Synthetic interface view — the local assign keeps the footer
+        // instant; builders additionally persist the pick into the viz config
+        // (`field_configs[id].aggregation`) so it survives reloads and rides
+        // the published snapshot. Consumers have no callback: picks stay
+        // session-local.
+        if (gridViewCols.value?.[fieldId]) Object.assign(gridViewCols.value[fieldId], { aggregation: agg })
+        interfaceDataApi.setFieldAggregation?.(fieldId, agg)
+      } else {
+        await updateGridViewColumn(fieldId, { aggregation: agg })
+      }
       reloadVisibleDataHook?.trigger()
     }
 

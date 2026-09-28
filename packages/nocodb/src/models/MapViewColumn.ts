@@ -5,6 +5,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
+import { replayedViewColumnId } from '~/helpers/viewColumnReplay';
 
 export default class MapViewColumn {
   id: string;
@@ -55,7 +56,7 @@ export default class MapViewColumn {
     column: Partial<MapViewColumn>,
     ncMeta = Noco.ncMeta,
   ) {
-    const insertObj = {
+    const insertObj: Record<string, any> = {
       fk_view_id: column.fk_view_id,
       fk_column_id: column.fk_column_id,
       order: await ncMeta.metaGetNextOrder(MetaTable.MAP_VIEW_COLUMNS, {
@@ -65,6 +66,12 @@ export default class MapViewColumn {
       base_id: column.base_id,
       source_id: column.source_id,
     };
+
+    const replayId = replayedViewColumnId(
+      insertObj.fk_view_id,
+      insertObj.fk_column_id,
+    );
+    if (replayId) insertObj.id = replayId;
 
     if (!insertObj.source_id) {
       const viewRef = await View.get(

@@ -101,7 +101,7 @@ export class FiltersService {
       NcError.get(context).filterNotFound(param.filterId);
     }
 
-    const parentData = await filter.extractRelatedParentMetas(context);
+    const parentData = await filter.extractRelatedParentMetas();
 
     let viewWebhookManager: ViewWebhookManager;
     if (filter.fk_view_id) {
@@ -308,7 +308,7 @@ export class FiltersService {
       ncMeta,
     );
 
-    const parentData = await filter.extractRelatedParentMetas(context, ncMeta);
+    const parentData = await filter.extractRelatedParentMetas(ncMeta);
 
     this.appHooksService.emit(AppEvents.FILTER_UPDATE, {
       filter: { ...filter, ...param.filter },
@@ -417,10 +417,7 @@ export class FiltersService {
       );
       const after = await Filter.get(context, before.id, ncMeta);
 
-      const parentData = await before.extractRelatedParentMetas(
-        context,
-        ncMeta,
-      );
+      const parentData = await before.extractRelatedParentMetas(ncMeta);
 
       this.appHooksService.emit(AppEvents.FILTER_UPDATE, {
         filter: { ...before, logical_op },
@@ -464,13 +461,19 @@ export class FiltersService {
     return updated;
   }
 
-  async filterChildrenList(context: NcContext, param: { filterId: string }) {
+  async filterChildrenList(
+    context: NcContext,
+    param: { filterId: string; req?: NcRequest },
+  ) {
     return Filter.parentFilterList(context, {
       parentId: param.filterId,
     });
   }
 
-  async filterGet(context: NcContext, param: { filterId: string }) {
+  async filterGet(
+    context: NcContext,
+    param: { filterId: string; req?: NcRequest },
+  ) {
     const filter = await Filter.get(context, param.filterId);
     return filter;
   }

@@ -110,8 +110,6 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
   const isLoadedIntegrations = ref(false)
 
-  const availableSyncAuthIntegrationSubtypes = ref<string[]>([])
-
   const eventBus = useEventBus<IntegrationStoreEventsTypes>(Symbol('integrationStore'))
 
   const { $api, $e } = useNuxtApp()
@@ -231,7 +229,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
       await loadIntegrations()
 
-      // await message.success(`Connection ${integration.title} deleted successfully`)
+      // await message.toast(`Connection ${integration.title} deleted successfully`)
 
       return true
     } catch (e) {
@@ -276,7 +274,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       pageMode.value = null
       activeIntegration.value = null
 
-      await message.success(`Connection "${integration.title}" updated successfully`)
+      await message.toast(`Connection "${integration.title}" updated successfully`)
     } catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -307,7 +305,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       pageMode.value = null
       activeIntegration.value = null
 
-      await message.success(`Connection "${integration.title}" set as default successfully`)
+      await message.toast(`Connection "${integration.title}" set as default successfully`)
     } catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -367,7 +365,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
             successConfirmModal.value.isOpen = true
           }
         } else {
-          await message.success(`Connection "${response.title}" created successfully`)
+          await message.toast(`Connection "${response.title}" created successfully`)
         }
       }
     } catch (e) {
@@ -467,7 +465,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       requestIntegration.value.isOpen = false
       requestIntegration.value.msg = ''
 
-      await message.success('Your request has been successfully submitted')
+      await message.toast('Your request has been successfully submitted')
     } catch (e) {
       requestIntegration.value.isLoading = false
       await message.error(await extractSdkResponseErrorMsg(e))
@@ -523,6 +521,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
       const integration: IntegrationItemType = {
         title: di.manifest.title || di.sub_type,
+        subtitle: di.manifest.description,
         sub_type: di.sub_type,
         icon,
         type: di.type,
@@ -569,7 +568,6 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     successConfirmModal,
     searchQuery,
     integrationsCategoryFilter,
-    availableSyncAuthIntegrationSubtypes,
     addIntegration,
     loadIntegrations,
     deleteIntegration,

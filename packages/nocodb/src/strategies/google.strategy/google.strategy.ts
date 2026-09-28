@@ -13,6 +13,7 @@ import { UsersService } from '~/services/users/users.service';
 import { BaseUser, Plugin, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { isGoogleEmailUnverified } from '~/strategies/google.strategy/googleEmailVerification';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -34,6 +35,18 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     // mostly copied from older code
     const email = profile.emails[0].value;
     try {
+      // Reject sign-in when Google reports the email as unverified, so an
+      // attacker-controlled address can't match an existing local account.
+      if (isGoogleEmailUnverified(profile, email)) {
+        this.appHooksService.emit(AppEvents.USER_SIGNIN_FAILED, {
+          email,
+          provider: 'google',
+          reason: 'Email not verified by Google',
+          req,
+        });
+        return done(new Error('Email not verified'));
+      }
+
       const user = await User.getByEmail(email);
       if (user) {
         // if base id defined extract base level roles

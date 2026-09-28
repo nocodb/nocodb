@@ -70,15 +70,21 @@ export const useExtensions = createSharedComposable(() => {
 
   const { base } = storeToRefs(useBase())
 
+  const { bases } = storeToRefs(useBases())
+
+  const { isCodeProject } = useCodeProjects()
+
   const { updateStatLimit, blockExtensions, showUpgradeToUseExtensions } = useEeConfig()
 
   const { isSharedBase } = storeToRefs(useWorkspace())
+
+  const { isInterfaceOnlyUser } = useInterfacePermissions()
 
   const eventBus = useEventBus<ExtensionsEvents>(Symbol('useExtensions'))
 
   const extensionAccess = computed(() => {
     return {
-      list: isUIAllowed('extensionList') && !isSharedBase.value,
+      list: isUIAllowed('extensionList') && !isSharedBase.value && !isInterfaceOnlyUser.value,
       create: isUIAllowed('extensionCreate'),
       delete: isUIAllowed('extensionDelete'),
       update: isUIAllowed('extensionUpdate'),
@@ -338,7 +344,8 @@ export const useExtensions = createSharedComposable(() => {
   }
 
   const loadExtensionsForBase = async (baseId: string) => {
-    if (!baseId || !extensionAccess.value.list) {
+    // A code project has no extensions.
+    if (!baseId || !extensionAccess.value.list || isCodeProject(bases.value.get(baseId))) {
       return
     }
 

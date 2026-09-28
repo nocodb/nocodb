@@ -10,17 +10,22 @@ import {
 import { validatePayload } from 'src/helpers';
 import type { NcApiVersion } from 'nocodb-sdk';
 import type { NcRequest } from 'nocodb-sdk';
-import type { LinkToAnotherRecordColumn } from '~/models';
 import type { LtarDisplayValueContext } from '~/helpers/ltarDisplayValueResolver';
 import { DBQueryClient } from '~/dbQueryClient';
 import { NcContext } from '~/interface/config';
-import { validateV1V2DataPayloadLimit } from '~/helpers/dataHelpers';
+import {
+  assertLinkColOptions,
+  validateV1V2DataPayloadLimit,
+} from '~/helpers/dataHelpers';
 import { restrictNestedLinkQuery } from '~/helpers/nestedLinkQueryHelpers';
 import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import { Column, Model, Source, View } from '~/models';
 import { nocoExecute, processConcurrently } from '~/utils';
 import { DatasService } from '~/services/datas.service';
-import { TraceCommand } from '~/decorators/trace-command.decorator';
+import {
+  captureForTrace,
+  TraceCommand,
+} from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
@@ -170,6 +175,13 @@ export class DataTableService {
     const { model, view } = await this.getModelAndView(context, param);
     const source = await Source.get(context, model.source_id);
 
+    // Defense in depth: the source-level read-only restriction is enforced by
+    // the ACL middleware, but re-assert it against the actually-resolved target
+    // source so a caller that reaches this service with a mismatched
+    // authorization context (e.g. via the internal batch envelope) still cannot
+    // write to a data-read-only source.
+    if (source.is_data_readonly) NcError.sourceDataReadOnly(source.alias);
+
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
@@ -240,6 +252,9 @@ export class DataTableService {
       body: any;
       cookie: any;
       apiVersion?: NcApiVersion;
+      /** Apply inline link fields without switching the call to V3 — see
+       *  `bulkUpdate`. Used by the app-action `nc.data.update` op. */
+      inlineLinkWrites?: boolean;
       internalFlags?: {
         allowSystemColumn?: boolean;
         skipHooks?: boolean;
@@ -257,6 +272,10 @@ export class DataTableService {
 
     const source = await Source.get(context, model.source_id);
 
+    // Defense in depth — see dataInsert. Re-assert data-read-only against the
+    // resolved target source regardless of how authorization was reached.
+    if (source.is_data_readonly) NcError.sourceDataReadOnly(source.alias);
+
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
@@ -271,6 +290,7 @@ export class DataTableService {
         typecast: (param.cookie?.query?.typecast ?? '') === 'true',
         isSingleRecordUpdation: !Array.isArray(param.body),
         apiVersion: param.apiVersion,
+        inlineLinkWrites: param.inlineLinkWrites,
         allowSystemColumn: param.internalFlags?.allowSystemColumn,
         skip_hooks: param.internalFlags?.skipHooks,
       },
@@ -308,6 +328,11 @@ export class DataTableService {
     await this.checkForDuplicateRow(context, { rows: param.body, model });
 
     const source = await Source.get(context, model.source_id);
+
+    // Defense in depth — see dataInsert. Re-assert data-read-only against the
+    // resolved target source regardless of how authorization was reached.
+    if (source.is_data_readonly) NcError.sourceDataReadOnly(source.alias);
+
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
@@ -400,7 +425,7 @@ export class DataTableService {
     },
   ) {
     const pkColumns = await model
-      .getColumns(context)
+      .getColumns()
       .then((cols) => cols.filter((col) => col.pk));
 
     const result = (Array.isArray(body) ? body : [body]).map((row) => {
@@ -427,7 +452,7 @@ export class DataTableService {
       return;
     }
 
-    await model.getColumns(context);
+    await model.getColumns();
 
     const keys = new Set();
 
@@ -491,17 +516,15 @@ export class DataTableService {
 
     const column = await this.getColumn(context, param);
 
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-      context,
-    );
+    const colOptions = await assertLinkColOptions(context, column);
 
     // The related table may live in another base (cross-base link). Build the
     // projection in the related table's own context — otherwise `getAst` loads its
     // columns under the parent base, resolves none, and `nocoExecute` below strips
     // every field (returning empty `{}` records). Mirrors `getLinkedDataList`.
-    const { refContext } = colOptions.getRelContext(context);
+    const { refContext } = colOptions.getRelContext();
 
-    const relatedModel = await colOptions.getRelatedTable(refContext);
+    const relatedModel = await colOptions.getRelatedTable();
 
     // Strip caller-supplied where/sort references to columns the link doesn't expose
     // (cross-base / visibility-limited related tables). This is NOT the view-`show`
@@ -781,6 +804,14 @@ export class DataTableService {
     const { swapEntry, feResponse } =
       await this.computeListCopyPasteOrDeleteAllDiff(context, param);
 
+    // Deposit the computed diff for an OUTER trace scope (the interface
+    // page-scoped swap contract builds its inverse from it — its own params
+    // never carry the diff). No-op when no outer scope is active.
+    captureForTrace(
+      'linkSwapEntry',
+      swapEntry ? { ...swapEntry, rowId: String(swapEntry.rowId) } : null,
+    );
+
     if (swapEntry) {
       await this._traceApplyLinkSwap(context, {
         modelId: param.modelId,
@@ -885,14 +916,13 @@ export class DataTableService {
     }
 
     const column = await this.getColumn(context, param);
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-      context,
-    );
 
-    const { refContext } = await colOptions.getParentChildContext(context);
+    const colOptions = await assertLinkColOptions(context, column);
 
-    const relatedModel = await colOptions.getRelatedTable(refContext);
-    await relatedModel.getColumns(refContext);
+    const { refContext } = await colOptions.getParentChildContext();
+
+    const relatedModel = await colOptions.getRelatedTable();
+    await relatedModel.getColumns();
 
     if (!colOptions.fk_mm_model_id) {
       return { swapEntry: null, feResponse: undefined };
@@ -1189,6 +1219,13 @@ export class DataTableService {
       results.push(feResponse ?? { link: [], unlink: [] });
     }
 
+    // Same deposit as the single-cell path — the interface bulk swap
+    // contract reads it for its page-scoped inverse.
+    captureForTrace(
+      'linkSwapBulkEntries',
+      swapEntries.map((e) => ({ ...e, rowId: String(e.rowId) })),
+    );
+
     if (swapEntries.length) {
       await this._traceApplyLinkSwapBulk(context, {
         modelId: param.modelId,
@@ -1288,6 +1325,14 @@ export class DataTableService {
         linkSwapEntries,
       );
     }
+
+    // Deposit the resolved diffs for an OUTER trace scope (the interface
+    // by-display contract builds its page-scoped inverse from them — its own
+    // params only carry display strings). No-op without an outer scope.
+    captureForTrace(
+      'linkSwapBulkEntries',
+      linkSwapEntries.map((e) => ({ ...e, rowId: String(e.rowId) })),
+    );
 
     if (linkSwapEntries.length) {
       await this._traceApplyLinkByDisplay(context, {
@@ -1613,9 +1658,9 @@ export class DataTableService {
       NcError.get(context).fieldNotFound(linkColumnId);
     }
 
-    const { refContext } = (
-      relationColumn.colOptions as LinkToAnotherRecordColumn
-    ).getRelContext(context);
+    const colOptions = await assertLinkColOptions(context, relationColumn);
+
+    const { refContext } = colOptions.getRelContext();
 
     return this.dataList(refContext, {
       query: {
@@ -1624,10 +1669,8 @@ export class DataTableService {
         linkColumnId,
         linkBaseId: context.base_id,
       },
-      modelId: (relationColumn.colOptions as LinkToAnotherRecordColumn)
-        .fk_related_model_id,
-      viewId: (relationColumn.colOptions as LinkToAnotherRecordColumn)
-        .fk_target_view_id,
+      modelId: colOptions.fk_related_model_id,
+      viewId: colOptions.fk_target_view_id,
       includeSortAndFilterColumns:
         req.query.includeSortAndFilterColumns === 'true',
       user: req.user,

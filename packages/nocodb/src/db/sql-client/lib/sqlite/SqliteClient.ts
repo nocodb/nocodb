@@ -1558,6 +1558,12 @@ class SqliteClient extends KnexClient {
       let upQuery = '';
       let downQuery = '';
 
+      // Columns that will be dropped via `ALTER TABLE ... DROP COLUMN` below —
+      // both the remove path and the change-column path emit a DROP COLUMN.
+      // SQLite refuses to drop a column while a user-created index references it,
+      // so we collect these and drop the dependent indexes first (see below).
+      const droppedColumnNames = new Set<string>();
+
       for (let i = 0; i < args.columns.length; ++i) {
         const oldColumn = find(originalColumns, {
           cn: args.columns[i].cno,
@@ -1577,8 +1583,10 @@ class SqliteClient extends KnexClient {
             args.columns[i],
             downQuery,
           );
+          droppedColumnNames.add(oldColumn?.cn ?? args.columns[i].cn);
         } else if (args.columns[i].altered & 2 || args.columns[i].altered & 8) {
-          // col edit
+          // col edit — alterTableChangeColumn renames the old column and drops it
+          if (oldColumn?.cn) droppedColumnNames.add(oldColumn.cn);
           upQuery += this.alterTableChangeColumn(
             args.table,
             args.columns[i],
@@ -1617,6 +1625,31 @@ class SqliteClient extends KnexClient {
         args.originalColumns,
         upQuery,
       );
+
+      // SQLite refuses `ALTER TABLE ... DROP COLUMN` (SQLITE_ERROR) while a
+      // user-created index references the column, so drop those indexes first
+      // (mirrors what the Postgres/MySQL clients already do). `origin = 'c'`
+      // keeps implicit UNIQUE/PK autoindexes untouched.
+      if (droppedColumnNames.size) {
+        const dropped = [...droppedColumnNames];
+        const dependentIndexes = await this.sqlClient.raw(
+          `SELECT DISTINCT il.name AS name
+             FROM pragma_index_list(?) il
+             JOIN pragma_index_info(il.name) ii
+            WHERE il.origin = 'c'
+              AND ii.name IN (${dropped.map(() => '?').join(', ')})`,
+          [args.table, ...dropped],
+        );
+        let dropIndexQuery = '';
+        for (const index of dependentIndexes) {
+          dropIndexQuery += this.genQuery(
+            `DROP INDEX IF EXISTS ??;`,
+            [index.name],
+            true,
+          );
+        }
+        upQuery = dropIndexQuery + upQuery;
+      }
 
       const fkCheckEnabled = (
         await this.sqlClient.raw('PRAGMA foreign_keys;')

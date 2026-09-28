@@ -20,15 +20,15 @@ export async function populateSamplePayload(
   let columns: Column[] = [];
   let model: Model;
   if (viewOrModel instanceof View) {
-    const viewColumns = await viewOrModel.getColumns(context);
+    const viewColumns = await viewOrModel.getColumns();
     for (const col of viewColumns) {
       if (col.show)
         columns.push(await Column.get(context, { colId: col.fk_column_id }));
     }
-    model = await viewOrModel.getModel(context);
-    await model.getColumns(context);
+    model = await viewOrModel.getModel();
+    await model.getColumns();
   } else if (viewOrModel instanceof Model) {
-    columns = await viewOrModel.getColumns(context);
+    columns = await viewOrModel.getColumns();
     model = viewOrModel;
   }
 
@@ -73,19 +73,19 @@ export async function populateSamplePayloadView(
   let columns: Column[] = [];
   let model: Model;
   if (viewOrModel instanceof View) {
-    const viewColumns = await viewOrModel.getColumns(context);
+    const viewColumns = await viewOrModel.getColumns();
     for (const col of viewColumns) {
       if (col.show)
         columns.push(await Column.get(context, { colId: col.fk_column_id }));
     }
-    model = await viewOrModel.getModel(context);
-    await model.getColumns(context);
+    model = await viewOrModel.getModel();
+    await model.getColumns();
   } else if (viewOrModel instanceof Model) {
-    columns = await viewOrModel.getColumns(context);
+    columns = await viewOrModel.getColumns();
     model = viewOrModel;
   }
 
-  await model.getViews(context);
+  await model.getViews();
 
   const sampleUser = includeUser
     ? user || {
@@ -133,19 +133,19 @@ export async function populateSamplePayloadV2(
   let columns: Column[] = [];
   let model: Model;
   if (viewOrModel instanceof View) {
-    const viewColumns = await viewOrModel.getColumns(context);
+    const viewColumns = await viewOrModel.getColumns();
     for (const col of viewColumns) {
       if (col.show)
         columns.push(await Column.get(context, { colId: col.fk_column_id }));
     }
-    model = await viewOrModel.getModel(context);
-    await model.getColumns(context);
+    model = await viewOrModel.getModel();
+    await model.getColumns();
   } else if (viewOrModel instanceof Model) {
-    columns = await viewOrModel.getColumns(context);
+    columns = await viewOrModel.getColumns();
     model = viewOrModel;
   }
 
-  await model.getViews(context);
+  await model.getViews();
 
   if (ncIsString(operation) && version === 'v3') {
     operation = operation.replace('bulk', '').toLowerCase();
@@ -216,12 +216,10 @@ async function getSampleColumnValue(
       break;
     case UITypes.LinkToAnotherRecord:
       {
-        const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>(
-          context,
-        );
+        const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>();
         const sampleVal = await populateSamplePayload(
           context,
-          await colOpt.getRelatedTable(context),
+          await colOpt.getRelatedTable(),
         );
         if (colOpt.type !== RelationTypes.BELONGS_TO) {
           return undefined;
@@ -238,14 +236,13 @@ async function getSampleColumnValue(
       break;
     case UITypes.Lookup:
       {
-        const colOpt = await column.getColOptions<LookupColumn>(context);
+        const colOpt = await column.getColOptions<LookupColumn>();
         const relColOpt = await colOpt
-          .getRelationColumn(context)
-          .then((r) => r.getColOptions<LinkToAnotherRecordColumn>(context));
-        const { refContext } = relColOpt.getRelContext(context);
+          .getRelationColumn()
+          .then((r) => r.getColOptions<LinkToAnotherRecordColumn>());
         const sampleVal = await getSampleColumnValue(
           context,
-          await colOpt.getLookupColumn(refContext),
+          await colOpt.getLookupColumn(),
         );
         return relColOpt.type === RelationTypes.BELONGS_TO
           ? sampleVal
@@ -281,7 +278,7 @@ async function getSampleColumnValue(
       break;
     case UITypes.MultiSelect:
       {
-        const colOpt = await column.getColOptions<SelectOption[]>(context);
+        const colOpt = await column.getColOptions<SelectOption[]>();
         return (
           colOpt?.[0]?.title ||
           column?.dtxp?.split(',')?.[0]?.replace(/^['"]|['"]$/g, '')
@@ -290,7 +287,7 @@ async function getSampleColumnValue(
       break;
     case UITypes.SingleSelect:
       {
-        const colOpt = await column.getColOptions<SelectOption[]>(context);
+        const colOpt = await column.getColOptions<SelectOption[]>();
         return (
           colOpt?.[0]?.title ||
           column?.dtxp?.split(',')?.[0]?.replace(/^['"]|['"]$/g, '')
@@ -452,7 +449,7 @@ export async function populateSampleCommentPayload(
   includeUser = false,
   user?: SampleUser,
 ) {
-  await model.getColumns(context);
+  await model.getColumns();
 
   const pvColumn =
     model.columns?.find((c) => c.pv) ?? model.columns?.[0] ?? null;

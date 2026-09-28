@@ -6,17 +6,14 @@ import type { LtarSideEffectIds } from '~/services/columns.service.type';
 import type { OperationName } from './op-names';
 
 /**
- * Versioned, typed declaration of one state-mutating operation. Three
- * orthogonal concerns:
- *
- *  - `entry` (always relevant) — what gets recorded on the changelog row.
- *  - `undo`  (opt-in)          — only set if the op is undoable.
- *  - `sandbox` (opt-in)        — only set if the op flows through sandbox replay.
+ * Versioned, typed declaration of one state-mutating operation. `entry` is always
+ * relevant (what gets recorded on the changelog row); `undo` and `sandbox` are
+ * opt-in, set only for an op that is undoable or flows through sandbox replay.
  *
  * `name@version` is the registry lookup key and the `event` column in
- * `nc_sandbox_changelog`. Bump `version` when the schema or replay semantics
- * change in a way old changelog rows can't replay against the new contract;
- * v1 and v2 coexist until v1 rows drain.
+ * `nc_environment_changelog`. Bump `version` when the schema or replay semantics
+ * change in a way old changelog rows cannot replay against; v1 and v2 coexist until
+ * v1 rows drain.
  */
 export interface OperationContract<
   S extends ZodTypeAny = ZodTypeAny,
@@ -212,7 +209,7 @@ export interface TraceCommandDep {
  * appends one of these for every nested @TraceCommand call. On replay
  * the macro's registered handler iterates the transcript and re-invokes
  * each child via the OperationRegistry — same dispatch loop as
- * `SandboxCommandReplayService`.
+ * `EnvironmentCommandReplayService`.
  */
 export interface MacroTranscriptEntry {
   /** Child op's contract name (an OperationName value). */
@@ -265,13 +262,73 @@ export interface CaptureBag {
   }>;
   /** Default-view id captured at table-create. */
   sandboxDefaultViewId: string;
+  /** View-column join-row ids fanned out by a view/column create, keyed
+   *  `<fk_view_id>::<fk_column_id>`. No command owns these rows, so without
+   *  this capture later `*ColumnUpdate` ops address a lane-only id. */
+  viewColumnIds: Record<string, string>;
+  /** Draft `nc_app_versions` row id captured at app-create. */
+  draftVersionId: string;
+  /** `nc_app_action_versions` row id captured at action-create/update. */
+  appActionVersionId: string;
+  /** Handle allocated at app-team create. The id replays verbatim (the table is
+   *  keyed `['base_id','id']`), but the handle does not: it is allocated against
+   *  the handles already taken in THIS base, so production could mint
+   *  `clinicians-2` where the lane minted `clinicians` — and grants are frozen
+   *  by handle (`nc_app_version_grants`). Captured forward, forced on replay. */
+  appTeamHandle: string;
+  /** Ids of the Admin/Members teams seeded inside app-create. No command of
+   *  their own creates them, and RLS policies and permissions bind to them as
+   *  `appTeam` subjects, so a fresh id on replay would dangle every such rule. */
+  seededTeamIds: { admin?: string; members?: string };
   /** View ids that lived in a section at delete time — needed to re-link
    *  child views when the section is recreated on undo. */
   viewSectionViewIds: ReadonlyArray<string>;
+  /** Entities that lived in a base-level section at delete time. Unlike view
+   *  sections this must carry `order` too: deleting a base section rewrites its
+   *  children's orders to fill the gap it leaves, so re-linking alone would
+   *  restore the grouping but not the positions. */
+  baseSectionChildren: ReadonlyArray<{
+    id: string;
+    entity: 'table' | 'document' | 'dashboard';
+    order?: number;
+  }>;
+  /** Automations that lived in an automation section at delete time —
+   *  carries `order` for the same gap-fill reason as baseSectionChildren. */
+  automationSectionChildren: ReadonlyArray<{
+    id: string;
+    entity: 'workflow' | 'script';
+    order?: number;
+  }>;
+  /** Agents that lived in an agent section at delete time — carries `order`
+   *  for the same gap-fill reason as automationSectionChildren. */
+  agentSectionChildren: ReadonlyArray<{
+    id: string;
+    order?: number;
+  }>;
   /** Filter ids created as side-effects of `rowColorConditionAdd` (the
    *  inner filter tree).
    */
   rowColorFilterIds: ReadonlyArray<string>;
+  /** Link diff computed by a single-cell LTAR copy/paste/deleteAll — the
+   *  page-scoped interface swap contract builds its inverse from it. */
+  linkSwapEntry: {
+    columnId: string;
+    rowId: string;
+    link: ReadonlyArray<string | number>;
+    unlink: ReadonlyArray<string | number>;
+  } | null;
+  /** Bulk twin of `linkSwapEntry` — one diff per (column, row). */
+  linkSwapBulkEntries: ReadonlyArray<{
+    columnId: string;
+    rowId: string;
+    link: ReadonlyArray<string | number>;
+    unlink: ReadonlyArray<string | number>;
+  }>;
+  /** New page ids minted by `interfaceDuplicate`, in source-page order —
+   *  replayed positionally so a duplicated interface keeps its page ids
+   *  across sandbox merge and undo→redo (the interface id rides
+   *  `replayDuplicateId`). */
+  interfaceDuplicatePageIds: ReadonlyArray<string>;
   /** Recorded child operations of a macro op — populated by the
    *  decorator's auto-instrument branch when the parent contract has
    *  `macro: true`. The macro's registered handler iterates this on
@@ -320,6 +377,12 @@ export interface CaptureBag {
    *  covered uniformly). Undo iterates and inverts: 'add' → removeLinks,
    *  'remove' → addLinks. */
   linkChanges: ReadonlyArray<LinkChange>;
+  /** Set when the LTAR diff could not be computed even though the update
+   *  went on to change links. Inverse builders that consume `linkChanges`
+   *  must return null on this — an entry carrying only the row diff would
+   *  half-revert on undo, restoring field values while leaving links moved,
+   *  with nothing telling the user part of the op was skipped. */
+  linkChangesUnavailable: boolean;
   /** Pre-move neighbor for `recordMove`. `beforeRowId` = pk of the row
    *  that was immediately after the moved row in the pre-move ordering
    *  (or `null` if it was at the end). The inverse `moveRecord` call
@@ -420,7 +483,9 @@ export type ScopeType =
   | 'view'
   | 'dashboard'
   | 'workflow'
-  | 'script';
+  | 'script'
+  | 'interface'
+  | 'interfacePage';
 
 export interface ScopeRef {
   type: ScopeType;

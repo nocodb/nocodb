@@ -4,6 +4,7 @@ import cors from 'cors';
 import express from 'express';
 import Noco from '~/Noco';
 import { handleUncaughtErrors } from '~/utils';
+import { ncStaticCompression, ncStaticOptions } from '~/helpers/staticAssets';
 handleUncaughtErrors(process);
 
 // ref: https://github.com/nodejs/node/issues/40702#issuecomment-1103623246
@@ -14,7 +15,11 @@ server.enable('trust proxy');
 server.use(cors());
 const ncGuiPath = path.join(__dirname, 'nc-gui');
 process.env.NC_GUI_DIST_PATH = process.env.NC_GUI_DIST_PATH ?? ncGuiPath;
-server.use('/', express.static(ncGuiPath));
+server.use(
+  '/',
+  ncStaticCompression(),
+  express.static(ncGuiPath, ncStaticOptions),
+);
 server.set('view engine', 'ejs');
 
 (async () => {

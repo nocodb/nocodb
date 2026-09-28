@@ -1,7 +1,8 @@
 import type { Knex } from 'knex';
+import { MetaTableOldV2 } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
-  await knex.schema.createTable('nc_addons', (table) => {
+  await knex.schema.createTable(MetaTableOldV2.ADDONS, (table) => {
     table.string('id', 20).primary();
     table.string('addon_key', 255).notNullable();
     table.string('title', 255);
@@ -15,7 +16,7 @@ const up = async (knex: Knex) => {
     table.index('stripe_product_id', 'nc_addons_stripe_product_idx');
   });
 
-  await knex.schema.createTable('nc_subscription_addons', (table) => {
+  await knex.schema.createTable(MetaTableOldV2.SUBSCRIPTION_ADDONS, (table) => {
     table.string('id', 20).primary();
     table.string('fk_subscription_id', 20).notNullable();
     table.string('fk_addon_id', 20).notNullable();
@@ -32,8 +33,8 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex: Knex) => {
-  await knex.schema.dropTableIfExists('nc_subscription_addons');
-  await knex.schema.dropTableIfExists('nc_addons');
+  await knex.schema.dropTableIfExists(MetaTableOldV2.SUBSCRIPTION_ADDONS);
+  await knex.schema.dropTableIfExists(MetaTableOldV2.ADDONS);
 };
 
 export { up, down };

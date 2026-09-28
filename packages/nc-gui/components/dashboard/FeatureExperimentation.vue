@@ -29,7 +29,7 @@ const isEnabledForPlatform = (feature: BetaFeatureType) => {
 
 const isFeatureVisible = (feature: BetaFeatureType) => {
   return (
-    (!feature?.isEE || (isEeUI && showEEFeatures.value)) &&
+    (!feature?.isEE || showEEFeatures.value) &&
     // Licensed-only features are hidden on self-hosted free (CE / unlicensed
     // on-prem); shown on licensed on-prem and cloud.
     (!feature?.isLicensed || !isEEFeatureBlocked.value) &&

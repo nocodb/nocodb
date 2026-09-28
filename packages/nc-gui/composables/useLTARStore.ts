@@ -15,7 +15,14 @@ import {
   timeFormats,
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { reconcilePendingLtarOp, resolveDeferredLtarCount, resolveDeferredSingleTargetValue } from '~/utils/ltarDeferredOps'
+import type { LtarCellShape } from '~/utils/ltarDeferredOps'
+import {
+  applyLtarCellOp,
+  ltarCellCount,
+  reconcilePendingLtarOp,
+  resolveDeferredLtarCount,
+  resolveDeferredSingleTargetValue,
+} from '~/utils/ltarDeferredOps'
 
 interface DataApiResponse {
   list: Record<string, any>[]
@@ -184,6 +191,18 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const isPublic: Ref<boolean> = inject(IsPublicInj, ref(false))
 
+    // Interface page adapter — when present, every base-scoped LTAR call in
+    // this store re-routes through the page-scoped internal ops: interface
+    // collaborators may hold no base role, so the raw endpoints 403 with
+    // empty roles. Builders in the same tree take the identical route (the
+    // ops clear the plain ACL for base roles too).
+    const interfaceDataApi = inject(InterfacePageDataInj, undefined)
+
+    // Record-form field element hosting this cell — picker calls carry its
+    // addressing so the server applies the ELEMENT's link-record selection,
+    // not the adapter page viz's per-column one. Absent on viz inline cells.
+    const interfaceFieldElement = inject(InterfaceFieldElementInj, undefined)
+
     const colOptions = computed(() => column.value?.colOptions as LinkToAnotherRecordType)
 
     const type = computed(() => colOptions.value?.type as RelationTypes)
@@ -197,9 +216,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       )
     })
 
+    const ltarCellShape = computed<LtarCellShape>(() =>
+      isSingleTargetRelation.value ? 'single' : column.value?.uidt === UITypes.Links ? 'count' : 'records',
+    )
+
     const { sharedView } = useSharedView()
 
-    const { getViewColumns } = useSmartsheetStoreOrThrow()
+    const { getViewColumns, eventBus } = useSmartsheetStoreOrThrow()
 
     const { getValidSearchQueryForColumn } = useFieldQuery()
 
@@ -214,6 +237,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     // Check if linked table is accessible based on is_private flag from API response only
     const isLinkedTableAccessible = computed(() => {
+      // Interface pages never surface the data-app expanded form for a linked
+      // record (nor create-related-record): the related table sits outside
+      // the page surface, and its raw reads/comments 403 for interface
+      // collaborators. This also drops the picker's extra-field columns,
+      // which only serve "-" there (responses are pk + display value).
+      if (interfaceDataApi) return false
       if (!colOptions.value?.fk_related_model_id) return true
       // Check if table is marked as private from API response
       return !(relatedTableMeta.value as any)?.is_private
@@ -260,11 +289,20 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           await getMeta(relatedBaseId, tableId, false, false, true)
         } catch {}
       }
-      if (!metas.value[metaKey]) {
-        await getPartialMeta(relatedBaseId, colId, tableId)
+      if (!metas.value[metaKey] && !interfaceDataApi) {
+        await getPartialMeta(relatedBaseId, colId, tableId, {
+          workspaceId: (column.value as any)?.fk_workspace_id,
+          baseId: column.value?.base_id,
+        })
       }
 
       if (isPublic.value) return
+
+      // Interface pages: the projected page meta pre-seeds one level of
+      // related metas, and the target view's column list rides a base-scoped
+      // op (`viewColumnList`) — skip it and render from the related meta's
+      // display value instead.
+      if (interfaceDataApi) return
 
       await nextTick()
 
@@ -563,6 +601,15 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return clauses.join('~or')
     }
 
+    /** New-row picker: hide what the draft already links (nothing is persisted to exclude server-side). */
+    const dropStagedLinks = <T extends { list?: Record<string, any>[] }>(result: T): T => {
+      const ids = new Set(childrenList.value?.list?.map((item) => item.Id) ?? [])
+      if (result?.list && ids.size) {
+        result.list = result.list.filter((item) => !ids.has(item.Id))
+      }
+      return result
+    }
+
     const loadChildrenExcludedList = async (activeState?: any, resetOffset = false) => {
       if (activeState) newRowState.state = activeState
       // Snapshot the current query session; if the query changes while this load
@@ -615,6 +662,26 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             },
           )
 
+          // Interface pages — the page-scoped picker op (pk + display value,
+          // server-composed display-value search, grant-authorized). Must win
+          // over the new-row branch below: `linkDataList` is base-scoped and
+          // cannot see the element's "Limit record selection", so a create
+          // form would offer every related record (#10483).
+        } else if (interfaceDataApi?.nestedExcludedList) {
+          result = await interfaceDataApi.nestedExcludedList({
+            // Absent on a new record — nothing is linked to exclude yet.
+            rowId: rowId.value || undefined,
+            columnId: column.value.id,
+            limit: childrenExcludedListPagination.size,
+            offset,
+            search: childrenExcludedListPagination.query || undefined,
+            ...(interfaceFieldElement?.value ?? {}),
+          })
+
+          // A new record's links live in the draft, so the server can't exclude
+          // them — drop them here, as the new-row branch below does.
+          if (isNewRow?.value) result = dropStagedLinks(result)
+
           /** if new row load all records */
         } else if (isNewRow?.value) {
           const linkRowData = await sanitizeRowData(row.value.row)
@@ -627,10 +694,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             columnId: column.value.fk_column_id || column.value.id,
             linkRowData: JSON.stringify(linkRowData),
           })
-          const ids = new Set(childrenList.value?.list?.map((item) => item.Id) ?? [])
-          if (result.list && ids.size) {
-            result.list = result.list.filter((item: Record<string, any>) => !ids.has(item.Id))
-          }
+          result = dropStagedLinks(result)
         } else {
           // extract changed data and include with the api call if any
           let changedRowData
@@ -793,6 +857,16 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                 },
               },
             )
+          } else if (interfaceDataApi?.nestedList) {
+            // Interface pages — page-scoped linked-record list (pk + display
+            // value, server-composed display-value search, grant-authorized).
+            result = await interfaceDataApi.nestedList({
+              rowId: rowId.value,
+              columnId: column.value.id,
+              limit: limit ?? childrenListPagination.size,
+              offset,
+              search: childrenListPagination.query || undefined,
+            })
           } else {
             result = await $api.dbTableRow.nestedList(
               NOCO,
@@ -815,6 +889,24 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           // Return the current list (not undefined) to keep a stable return contract.
           if (req.isStale()) return childrenList.value
 
+          // Single-target relations (BT / OO / v2 MO-OO) serve the related ROW
+          // itself — or nothing when the cell is empty — instead of a paged
+          // list. Normalize to the paged shape so the pageInfo/list reads
+          // below hold for every relation type.
+          if (!result || !ncIsArray(result.list)) {
+            const single = result && !ncIsEmptyObject(result) ? [result] : []
+            result = {
+              list: single,
+              pageInfo: {
+                isFirstPage: true,
+                isLastPage: true,
+                page: 1,
+                pageSize: single.length,
+                totalRows: single.length,
+              },
+            }
+          }
+
           childrenList.value = result
         }
         if (ncIsArray(childrenList.value?.list)) {
@@ -825,7 +917,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
 
         if (!childrenListPagination.query) {
-          let total = childrenList.value?.pageInfo.totalRows ?? 0
+          let total = childrenList.value?.pageInfo?.totalRows ?? 0
           // Account for queued (deferred, unsaved) link/unlink so the count doesn't revert
           // to the persisted total when the modal is reopened (#14058).
           if (shouldDefer.value && !isNewRow?.value && rowId.value && pendingLtarOps) {
@@ -941,18 +1033,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         return
       }
 
-      // Multi-target: keep the child-list count badge in sync, and preserve the cell
-      // value's SHAPE — which is decided by the CELL RENDERER (uidt), not the link version.
-      // A `Links` cell renders a numeric rollup count; a `LinkToAnotherRecord` hm/mm cell
-      // renders an array of chips (ManyToMany/HasMany.vue call .reduce on it) even when the
-      // relation is version V2. Keying off `isLinkV2` (version) here wrote a bare count into a
-      // LinkToAnotherRecord cell, so `localCellValue` fell back to [] and the cell appeared to
-      // clear on every deferred edit until save (#14013).
-      const persistedCount = Array.isArray(base) ? base.length : +(base ?? 0) || 0
-      const count = resolveDeferredLtarCount(queue, colId, persistedCount)
+      // Multi-target: keep the child-list count badge in sync, and preserve the cell value's
+      // shape (see `LtarCellShape`). Keying off `isLinkV2` (version) here wrote a bare count
+      // into a LinkToAnotherRecord cell, so `localCellValue` fell back to [] and the cell
+      // appeared to clear on every deferred edit until save (#14013).
+      const count = resolveDeferredLtarCount(queue, colId, ltarCellCount(base))
       childrenListCount.value = count
 
-      if (column.value.uidt === UITypes.Links) {
+      if (ltarCellShape.value === 'count') {
         cur.row[colTitle] = count
       } else {
         const unlinkIds = new Set(queue.filter((o) => o.columnId === colId && o.op === 'unlink').map((o) => o.relatedRowId))
@@ -1004,20 +1092,20 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         // New row: links live in ltarState — drop the buffered link and update display.
         if (!removeLTARRef) return
         await removeLTARRef(relatedRow, column.value as ColumnType, { skipRowDisplay: true })
-        if (isSingleTargetRelation.value) {
-          rowStoreCurrentRow.value.row[column.value.title!] = null
-        } else {
+        if (!isSingleTargetRelation.value) {
           childrenListCount.value = Math.max(0, childrenListCount.value - 1)
-          const colVal = rowStoreCurrentRow.value.row[column.value.title!]
-          if (Array.isArray(colVal)) {
-            const idx = colVal.findIndex((r: Record<string, any>) => getRelatedTableRowId(r) === getRelatedTableRowId(relatedRow))
-            const next = [...colVal]
-            if (idx !== -1) next.splice(idx, 1)
-            rowStoreCurrentRow.value.row[column.value.title!] = next
-          } else {
-            rowStoreCurrentRow.value.row[column.value.title!] = Math.max(0, (+colVal || 0) - 1)
-          }
         }
+
+        const colTitle = column.value.title!
+        const colVal = rowStoreCurrentRow.value.row[colTitle]
+        rowStoreCurrentRow.value.row[colTitle] = applyLtarCellOp({
+          op: 'unlink',
+          shape: ltarCellShape.value,
+          current: colVal,
+          snapshot: colVal,
+          relatedRow,
+          getRelatedRowId: getRelatedTableRowId,
+        })
       } else {
         // Existing row: enqueue an unlink — reconcile cancels the matching queued link, and
         // refreshDeferredDisplay re-derives the count from persisted + queue (#14058).
@@ -1072,6 +1160,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         $e('a:links:unlink')
         return
       }
+
+      // Read before the await — applyLtarCellOp needs it to spot an authoritative realtime
+      // write that landed while the request was in flight.
+      const preWriteCellValue = rowStoreCurrentRow?.value.row[column.value.title!]
+
       try {
         // todo: audit
 
@@ -1086,15 +1179,25 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenListLoading.value[index] = true
         excludedLoadingState.value.set(index, true)
         childrenCachedLoadingState.value.set(index, true)
-        await $api.dbTableRow.nestedRemove(
-          NOCO,
-          metaValue?.base_id ?? (base.value.id as string),
-          metaValue.id!,
-          encodeURIComponent(rowId.value),
-          type.value as RelationTypes,
-          column?.value?.id,
-          encodeURIComponent(getRelatedTableRowId(row) as string),
-        )
+        // Interface pages route through the page-scoped op — grant-authorized
+        // where the raw endpoint 403s for interface collaborators.
+        if (interfaceDataApi?.nestedUnlink) {
+          await interfaceDataApi.nestedUnlink({
+            rowId: rowId.value,
+            columnId: column.value.id,
+            refRowIds: [getRelatedTableRowId(row) as string],
+          })
+        } else {
+          await $api.dbTableRow.nestedRemove(
+            NOCO,
+            metaValue?.base_id ?? (base.value.id as string),
+            metaValue.id!,
+            encodeURIComponent(rowId.value),
+            type.value as RelationTypes,
+            column?.value?.id,
+            encodeURIComponent(getRelatedTableRowId(row) as string),
+          )
+        }
 
         isChildrenExcludedListLinked.value[index] = false
         isChildrenListLinked.value[index] = false
@@ -1104,11 +1207,23 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           childrenListCount.value = childrenListCount.value - 1
         }
 
-        // Mirror the new-row branch: clear the linked record from the row store so
-        // BT/MO cells (which display the linked record directly off the row) refresh
-        // immediately. Reload paths are no-ops in EE, so this is the only signal.
-        if (isSingleTargetRelation.value && rowStoreCurrentRow) {
-          rowStoreCurrentRow.value.row[column.value.title!] = null
+        // Mirror the new-row branch: reflect the unlink in the row store so the cell refreshes
+        // immediately — the reload paths are no-ops in EE, so this is the only signal on a grid
+        // with no realtime listener. See `applyLtarCellOp` for the shape and idempotency rules.
+        if (rowStoreCurrentRow) {
+          const colTitle = column.value.title!
+          rowStoreCurrentRow.value.row[colTitle] = applyLtarCellOp({
+            op: 'unlink',
+            shape: ltarCellShape.value,
+            current: rowStoreCurrentRow.value.row[colTitle],
+            snapshot: preWriteCellValue,
+            relatedRow: row,
+            getRelatedRowId: getRelatedTableRowId,
+          })
+        }
+
+        if (interfaceDataApi) {
+          eventBus.emit(SmartsheetStoreEvents.INTERFACE_ROW_REFRESH, { rowId: rowId.value })
         }
       } catch (e: any) {
         message.error(`${t('msg.error.unlinkFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
@@ -1138,17 +1253,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
 
         if (isNewRow?.value || !rowId.value) {
-          // New row: buffered links drive the cell display via row.row.
+          // New row: addLTARRef buffers the link AND mirrors the buffer into
+          // row.row (the cell display + submit source) — a second manual push
+          // here rendered every staged link twice.
           await addLTARRef(row, column.value as ColumnType)
-          const targetRow = rowStoreCurrentRow.value
-          if (isSingleTargetRelation.value) {
-            targetRow.row[column.value.title!] = row
-          } else {
-            if (!Array.isArray(targetRow.row[column.value.title!])) {
-              targetRow.row[column.value.title!] = []
-            }
-            targetRow.row[column.value.title!].push(row)
-          }
         } else {
           // Existing row in the expanded form: queue the link (reconcile auto-cancels a
           // matching pending unlink), then re-derive the cell value/count from persisted +
@@ -1179,6 +1287,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         $e('a:links:link')
         return
       }
+
+      // Read before the await — see unlink().
+      const preWriteCellValue = rowStoreCurrentRow?.value.row[column.value.title!]
+
       try {
         isChildrenExcludedListLoading.value[index] = true
         isChildrenListLoading.value[index] = true
@@ -1188,15 +1300,25 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         childrenListOffsetCount.value = childrenListOffsetCount.value + 1
         childrenExcludedOffsetCount.value = childrenExcludedOffsetCount.value + 1
 
-        await $api.dbTableRow.nestedAdd(
-          NOCO,
-          metaValue?.base_id ?? (base.value.id as string),
-          metaValue.id as string,
-          encodeURIComponent(rowId.value),
-          type.value as RelationTypes,
-          column?.value?.id,
-          encodeURIComponent(getRelatedTableRowId(row) as string) as string,
-        )
+        // Interface pages route through the page-scoped op — grant-authorized
+        // where the raw endpoint 403s for interface collaborators.
+        if (interfaceDataApi?.nestedLink) {
+          await interfaceDataApi.nestedLink({
+            rowId: rowId.value,
+            columnId: column.value.id,
+            refRowIds: [getRelatedTableRowId(row) as string],
+          })
+        } else {
+          await $api.dbTableRow.nestedAdd(
+            NOCO,
+            metaValue?.base_id ?? (base.value.id as string),
+            metaValue.id as string,
+            encodeURIComponent(rowId.value),
+            type.value as RelationTypes,
+            column?.value?.id,
+            encodeURIComponent(getRelatedTableRowId(row) as string) as string,
+          )
+        }
         // await loadChildrenList()
 
         isChildrenExcludedListLinked.value[index] = true
@@ -1216,11 +1338,21 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           excludedLinkedState.value.set(index, true)
         }
 
-        // Mirror the new-row branch: write the picked record back to the row store so
-        // BT/MO cells (which display the linked record directly off the row) refresh
-        // immediately. Reload paths are no-ops in EE, so this is the only signal.
-        if (isSingleTargetRelation.value && rowStoreCurrentRow) {
-          rowStoreCurrentRow.value.row[column.value.title!] = row
+        // See unlink() — same optimistic write, opposite direction.
+        if (rowStoreCurrentRow) {
+          const colTitle = column.value.title!
+          rowStoreCurrentRow.value.row[colTitle] = applyLtarCellOp({
+            op: 'link',
+            shape: ltarCellShape.value,
+            current: rowStoreCurrentRow.value.row[colTitle],
+            snapshot: preWriteCellValue,
+            relatedRow: row,
+            getRelatedRowId: getRelatedTableRowId,
+          })
+        }
+
+        if (interfaceDataApi) {
+          eventBus.emit(SmartsheetStoreEvents.INTERFACE_ROW_REFRESH, { rowId: rowId.value })
         }
       } catch (e: any) {
         message.error(`Linking failed: ${await extractSdkResponseErrorMsg(e)}`)
@@ -1264,6 +1396,18 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             } as RequestParams,
           },
         )
+      } else if (interfaceDataApi?.nestedExcludedList) {
+        // Interface pages — page-scoped picker chunks (see loadChildrenExcludedList).
+        const result = await interfaceDataApi.nestedExcludedList({
+          rowId: rowId.value || undefined,
+          columnId: column.value.id,
+          limit,
+          offset,
+          search: childrenExcludedListPagination.query || undefined,
+          ...(interfaceFieldElement?.value ?? {}),
+        })
+
+        return isNewRow?.value ? dropStagedLinks(result) : result
       } else if (isNewRow?.value) {
         const linkRowData = await sanitizeRowData(row.value.row)
         return await $api.internal.getOperation((column.value as any).fk_workspace_id!, column.value!.base_id!, {
@@ -1403,6 +1547,15 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           { limit: String(limit), offset: String(offset), where } as any,
           { headers: { 'xc-password': sharedViewPassword.value } },
         )
+      } else if (interfaceDataApi?.nestedList) {
+        // Interface pages — page-scoped linked-record chunks (see loadChildrenList).
+        return await interfaceDataApi.nestedList({
+          rowId: rowId.value,
+          columnId: column.value.id,
+          limit,
+          offset,
+          search: childrenListPagination.query || undefined,
+        })
       } else {
         return await $api.dbTableRow.nestedList(
           NOCO,
@@ -1499,6 +1652,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       async () => {
         childrenExcludedListPagination.page = 1
         resetExcludedCache()
+        // The reset empties the list before the debounced load starts — flag the
+        // wait so the pickers show a skeleton instead of "No records match".
+        isChildrenExcludedLoading.value = true
         await debounceLoadChildrenExcludedList(newRowState.state)
       },
     )
@@ -1508,6 +1664,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       async () => {
         childrenListPagination.page = 1
         resetChildrenCache()
+        isChildrenLoading.value = true
         await debounceLoadChildrenList(false, newRowState.state)
       },
     )

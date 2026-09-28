@@ -1,5 +1,6 @@
 import { SilentTypeConversionError } from '~/lib/error';
 import {
+  NumberAbbreviationType,
   parseCurrencyValue,
   precisionFormats,
   serializeCurrencyValue,
@@ -16,6 +17,7 @@ export class CurrencyHelper extends AbstractColumnHelper {
     currency_locale: 'en-US',
     currency_code: 'USD',
     precision: precisionFormats[2],
+    abbreviate: NumberAbbreviationType.None,
   };
 
   serializeValue(
@@ -43,7 +45,9 @@ export class CurrencyHelper extends AbstractColumnHelper {
     if (value === null || value === undefined) {
       return '';
     }
-    return parseCurrencyValue(value, params.col);
+    return parseCurrencyValue(value, params.col, {
+      skipAbbreviation: params.skipAbbreviation,
+    });
   }
 
   parsePlainCellValue(

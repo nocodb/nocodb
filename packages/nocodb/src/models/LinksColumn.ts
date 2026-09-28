@@ -3,6 +3,7 @@ import type { NcContext } from '~/interface/config';
 import { Column } from '~/models/';
 import LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import Noco from '~/Noco';
+import { setModelContext } from '~/helpers/modelContext';
 
 export default class LinksColumn
   extends LinkToAnotherRecordColumn
@@ -28,19 +29,15 @@ export default class LinksColumn
     return this.fk_parent_column_id;
   }
 
-  async getRelationColumn(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Column> {
-    return await Column.get(context, { colId: this.fk_column_id }, ncMeta);
+  async getRelationColumn(ncMeta = Noco.ncMeta): Promise<Column> {
+    return await Column.get(this.context, { colId: this.fk_column_id }, ncMeta);
   }
 
-  async getRollupColumn(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Column> {
+  async getRollupColumn(ncMeta = Noco.ncMeta): Promise<Column> {
+    // The rollup column lives in the related table — use refContext for cross-base
+    const { refContext } = this.getRelContext();
     return await Column.get(
-      context,
+      refContext,
       { colId: this.fk_rollup_column_id },
       ncMeta,
     );
@@ -52,7 +49,10 @@ export default class LinksColumn
     ncMeta = Noco.ncMeta,
   ) {
     const colData = await super.read(context, columnId, ncMeta);
-    return colData && new LinksColumn(colData);
+    if (!colData) return null;
+    const instance = new LinksColumn(colData);
+    setModelContext(instance, context);
+    return instance;
   }
 
   public static async insert(
@@ -61,6 +61,9 @@ export default class LinksColumn
     ncMeta = Noco.ncMeta,
   ) {
     const colData = await super.insert(context, data, ncMeta);
-    return colData && new LinksColumn(colData);
+    if (!colData) return null;
+    const instance = new LinksColumn(colData);
+    setModelContext(instance, context);
+    return instance;
   }
 }

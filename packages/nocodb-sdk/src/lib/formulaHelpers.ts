@@ -10,6 +10,7 @@ export * from './formula/operators';
 export * from './formula/types';
 export * from './formula/validate-extract-tree';
 export * from './formula/jsepInstances';
+export * from './formula/non-finite';
 
 export async function substituteColumnAliasWithIdInFormula(
   formula,
@@ -30,7 +31,10 @@ export async function substituteColumnAliasWithIdInFormula(
           c.column_name === colNameOrId ||
           c.title === colNameOrId
       );
-      pt.name = '{' + column.id + '}';
+      // Leave an unresolvable reference as-is instead of crashing on
+      // `column.id` — the downstream formula validation then surfaces a clean
+      // "column not found" error rather than a raw TypeError 500.
+      pt.name = column ? '{' + column.id + '}' : pt.name;
     } else if (pt.type === 'BinaryExpression') {
       await substituteId(pt.left);
       await substituteId(pt.right);

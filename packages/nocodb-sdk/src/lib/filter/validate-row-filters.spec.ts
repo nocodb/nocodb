@@ -913,6 +913,109 @@ describe('validateRowFilters', () => {
       ).toBe(false);
     });
 
+    it('should evaluate "gb_eq" (group-by key) against the linked record primary value', () => {
+      const filters: FilterType[] = [
+        { fk_column_id: '6', comparison_op: 'gb_eq' as any, value: 'RecordA' },
+      ];
+      // belongs-to links are a single object, not an array
+      expect(
+        validateRowFilters({
+          filters,
+          data: { RelatedRecords: { Primary: 'RecordA' } },
+          columns: mockColumns,
+          client: mockClient,
+          metas: mockMetas,
+        })
+      ).toBe(true);
+      expect(
+        validateRowFilters({
+          filters,
+          data: { RelatedRecords: { Primary: 'RecordB' } },
+          columns: mockColumns,
+          client: mockClient,
+          metas: mockMetas,
+        })
+      ).toBe(false);
+    });
+
+    it('should treat an unlinked belongs-to as blank, not as one record', () => {
+      // An unlinked bt/oo arrives as null — the group-by "empty" bucket sends
+      // `gb_null`, and every emptiness op has to agree with it.
+      for (const op of ['gb_null', 'empty', 'blank']) {
+        expect(
+          validateRowFilters({
+            filters: [{ fk_column_id: '6', comparison_op: op as any }],
+            data: { RelatedRecords: null },
+            columns: mockColumns,
+            client: mockClient,
+            metas: mockMetas,
+          })
+        ).toBe(true);
+      }
+
+      for (const op of ['notempty', 'notblank']) {
+        expect(
+          validateRowFilters({
+            filters: [{ fk_column_id: '6', comparison_op: op as any }],
+            data: { RelatedRecords: null },
+            columns: mockColumns,
+            client: mockClient,
+            metas: mockMetas,
+          })
+        ).toBe(false);
+      }
+
+      // …and a linked one still reads as present.
+      expect(
+        validateRowFilters({
+          filters: [{ fk_column_id: '6', comparison_op: 'gb_null' as any }],
+          data: { RelatedRecords: { Primary: 'RecordA' } },
+          columns: mockColumns,
+          client: mockClient,
+          metas: mockMetas,
+        })
+      ).toBe(false);
+    });
+
+    it('should route a bt-like V2 Links column through the linked-record path', () => {
+      // V2 MO/OO/BT are `Links` columns that still hold the record itself.
+      const columns: ColumnType[] = [
+        ...mockColumns,
+        {
+          id: '10',
+          title: 'RelatedRecords',
+          uidt: UITypes.Links,
+          colOptions: {
+            fk_related_model_id: 'relatedModel',
+            version: 2,
+            type: 'bt',
+          } as LinkToAnotherRecordType,
+        },
+      ];
+
+      expect(
+        validateRowFilters({
+          filters: [
+            { fk_column_id: '10', comparison_op: 'gb_eq' as any, value: 'RecordA' },
+          ],
+          data: { RelatedRecords: { Primary: 'RecordA' } },
+          columns,
+          client: mockClient,
+          metas: mockMetas,
+        })
+      ).toBe(true);
+
+      expect(
+        validateRowFilters({
+          filters: [{ fk_column_id: '10', comparison_op: 'gb_null' as any }],
+          data: { RelatedRecords: null },
+          columns,
+          client: mockClient,
+          metas: mockMetas,
+        })
+      ).toBe(true);
+    });
+
     it('should correctly evaluate "like" for linked record primary value', () => {
       const filters: FilterType[] = [
         { fk_column_id: '6', comparison_op: 'like', value: 'record' },
@@ -1933,6 +2036,90 @@ describe('validateRowFilters — User / LTAR / nested resolution', () => {
           }
         )
       ).toBe(false);
+    });
+  });
+
+  describe('nested filter groups', () => {
+    const run = (filters: FilterType[], data: any) =>
+      validateRowFilters({
+        filters,
+        data,
+        columns: mockColumns,
+        client: mockClient,
+        metas: mockMetas,
+      });
+
+    // Flat list with id/fk_parent_id — the shape Filter.allViewFilterList
+    // returns and what buildFilterTree is designed to consume.
+    const nest = (depth: number): FilterType[] => {
+      const filters: FilterType[] = [];
+      for (let i = 1; i <= depth; i++) {
+        filters.push({
+          id: `g${i}`,
+          is_group: true,
+          logical_op: 'and',
+          fk_parent_id: i === 1 ? null : `g${i - 1}`,
+        } as FilterType);
+      }
+      filters.push({
+        id: 'leaf',
+        fk_parent_id: `g${depth}`,
+        fk_column_id: '1',
+        comparison_op: 'eq',
+        value: 'Alice',
+        logical_op: 'and',
+      } as FilterType);
+      return filters;
+    };
+
+    it('evaluates a leaf one group deep', () => {
+      expect(run(nest(1), { Name: 'Alice' })).toBe(true);
+      expect(run(nest(1), { Name: 'Bob' })).toBe(false);
+    });
+
+    // Regression: the recursive call used to re-run buildFilterTree on an
+    // already-built subtree, which resets `children` to [] on every node. The
+    // inner group lost its conditions, was skipped as condition-less, and the
+    // whole expression collapsed to null instead of a verdict.
+    it('evaluates a leaf two groups deep', () => {
+      expect(run(nest(2), { Name: 'Alice' })).toBe(true);
+      expect(run(nest(2), { Name: 'Bob' })).toBe(false);
+    });
+
+    it('evaluates a leaf four groups deep', () => {
+      expect(run(nest(4), { Name: 'Alice' })).toBe(true);
+      expect(run(nest(4), { Name: 'Bob' })).toBe(false);
+    });
+
+    it('carries options into nested groups so @me still resolves', () => {
+      const filters: FilterType[] = [
+        { id: 'g1', is_group: true, logical_op: 'and', fk_parent_id: null },
+        {
+          id: 'g2',
+          is_group: true,
+          logical_op: 'and',
+          fk_parent_id: 'g1',
+        },
+        {
+          id: 'leaf',
+          fk_parent_id: 'g2',
+          fk_column_id: '5',
+          comparison_op: 'anyof',
+          value: CURRENT_USER_TOKEN,
+          logical_op: 'and',
+        },
+      ] as FilterType[];
+
+      const result = validateRowFilters({
+        filters,
+        data: { CreatedBy: { id: 'usr_me' } },
+        columns: mockColumns,
+        client: mockClient,
+        metas: mockMetas,
+        options: { currentUser: { id: 'usr_me', email: 'me@acme.com' } },
+      });
+
+      expect(result).toBe(true);
     });
   });
 });

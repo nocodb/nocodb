@@ -234,10 +234,10 @@ const showOrHideAll = (showAll: boolean) => {
           :key="element.id"
           class="w-full h-10 px-2 py-1.5 flex flex-row items-center gap-3 border-b-1 last:border-none border-nc-border-gray-medium"
           :class="[
-            `nc-form-field-${column.title?.replaceAll(' ', '')}-limit-option-${element.title?.replaceAll(' ', '')}`,
+            `nc-form-field-${toSafeClassName(column.title)}-limit-option-${toSafeClassName(element.title)}`,
             `${element.show ? 'hover:bg-nc-bg-gray-extralight' : 'bg-nc-bg-gray-light'}`,
           ]"
-          :data-testid="`nc-form-field-${column.title?.replaceAll(' ', '')}-limit-option-${element.title?.replaceAll(' ', '')}`"
+          :data-testid="`nc-form-field-${toSafeClassName(column.title)}-limit-option-${toSafeClassName(element.title)}`"
         >
           <component
             :is="iconMap.drag"

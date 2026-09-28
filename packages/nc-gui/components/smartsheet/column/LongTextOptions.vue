@@ -203,7 +203,10 @@ const smartMode = computed({
 const isSmartTextEligible = computed(() => isXcdbBase.value && isPg.value && appInfo.value.ee)
 
 const smartTextDisableReason = computed(() => {
-  if (!isSmartTextEligible.value) return t('labels.smartText.disableReason.notInternalPg')
+  // Gate only *enabling* SmartText on eligibility. An already-enabled column must
+  // stay toggleable so it can be turned off where SmartText isn't available (e.g.
+  // unlicensed on-prem) — otherwise the column is locked to SmartText with no way back.
+  if (!isSmartTextEligible.value && !smartMode.value) return t('labels.smartText.disableReason.notInternalPg')
   if (richMode.value) return t('labels.smartText.disableReason.mutuallyExclusiveRichText')
   if (isEnabledGenerateText.value) return t('labels.smartText.disableReason.mutuallyExclusiveAi')
   if (isPvColumn.value && !smartMode.value)

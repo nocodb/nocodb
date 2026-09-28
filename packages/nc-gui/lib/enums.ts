@@ -84,6 +84,7 @@ export enum SmartsheetStoreEvents {
   ON_ROW_COLOUR_INFO_UPDATE = 'on-row-colour-info-update',
   COPIED_VIEW_CONFIG = 'copied-view-config',
   AGGREGATION_RELOAD = 'aggregation-reload',
+  INTERFACE_ROW_REFRESH = 'interface-row-refresh',
 }
 
 export enum SmartsheetScriptActions {
@@ -212,6 +213,9 @@ export enum ExtensionsEvents {
 
 export enum IntegrationStoreEvents {
   INTEGRATION_ADD = 'integration-add',
+  /** The caller connected/disconnected their own account on a per-user
+   * integration — payload: `{ id, connected_environment_ids }`. */
+  USER_CONNECTION_UPDATE = 'user-connection-update',
 }
 
 export enum WorkspaceIconType {
@@ -225,6 +229,7 @@ export const EventBusEnum = {
   RealtimeBaseUser: Symbol('RealtimeBaseUser'),
   RealtimeViewMeta: Symbol('RealtimeViewMeta'),
   SmartsheetActions: Symbol('SmartSheetActions'),
+  Tour: Symbol('Tour'),
 }
 
 export enum NcBaseCreateMode {
@@ -233,4 +238,5 @@ export enum NcBaseCreateMode {
   BUILD_WITH_AI = 'buildWithAi',
   FROM_APP_STORE = 'fromAppStore',
   MANAGED_APP = 'managedApp',
+  CODE_PROJECT = 'codeProject',
 }

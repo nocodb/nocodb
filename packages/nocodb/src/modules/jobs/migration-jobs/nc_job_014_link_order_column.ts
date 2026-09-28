@@ -210,7 +210,7 @@ export class LinkOrderColumnMigration {
     if (!originalSource || !originalSource.isMeta()) return;
 
     const model = await Model.get(context, modelId);
-    await model.getColumns(context);
+    await model.getColumns();
 
     // Already migrated (two Order columns present) → mark done, skip.
     const existingOrderCols = model.columns.filter(

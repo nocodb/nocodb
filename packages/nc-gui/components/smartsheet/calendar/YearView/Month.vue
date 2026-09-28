@@ -21,6 +21,11 @@ const emit = defineEmits(['dblClick', 'update:selectedDate', 'update:pageDate'])
 
 const { timezoneDayjs, viewMetaProperties } = useCalendarViewStoreOrThrow()
 
+// Interface editor: a date click / dblclick selects the calendar element (opens
+// `Page › Calendar`) instead of picking the date. Null in the published view and
+// outside interface pages.
+const interfaceEditSelect = inject(InterfaceVizEditSelectInj, ref<(() => void) | null>(null))
+
 const maxVisibleDays = computed(() => {
   return viewMetaProperties.value?.hide_weekend ? 5 : 7
 })
@@ -200,6 +205,7 @@ const dates = computed(() => {
 
 // Since we are using the same component for week picker and date picker we need to handle the date selection differently
 const handleSelectDate = (date: dayjs.Dayjs) => {
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
   if (!isDayInPagedMonth(date)) {
     pageDate.value = date
     emit('update:pageDate', date)
@@ -209,6 +215,7 @@ const handleSelectDate = (date: dayjs.Dayjs) => {
 }
 
 const emitDblClick = (date: dayjs.Dayjs) => {
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
   emit('dblClick', date)
 }
 

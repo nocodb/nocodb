@@ -24,6 +24,7 @@ import {
 } from '~/constants';
 import {
   constructFilePath,
+  normalizeFilename,
   validateNumberOfFilesInCell,
 } from '~/helpers/attachmentHelpers';
 import { _wherePk, getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
@@ -38,11 +39,6 @@ import { extractColsMetaForAudit, generateAuditV1Payload } from '~/utils';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { RootScopes } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
-
-// ref: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html - extended with some more characters
-const normalizeFilename = (filename: string) => {
-  return filename.replace(/[\\/:*?"<>'`#|%~{}[\]^]/g, '_');
-};
 
 const mb = 1024 * 1024;
 
@@ -63,7 +59,7 @@ export class DataAttachmentV3Service {
       context: context,
       modelId: modelId,
     });
-    await baseModel.model.getColumns(context);
+    await baseModel.model.getColumns();
     const processedAttachments = [];
     const generateThumbnailAttachments = [];
 
@@ -139,16 +135,46 @@ export class DataAttachmentV3Service {
           }
         }
       } catch (error) {
-        console.error(`Failed to process attachment:`, error);
+        // The attachment is dropped from the cell rather than left half-written.
+        // Log enough to trace it back — a silent drop here is indistinguishable
+        // from the user never sending the file.
+        this.logger.error(
+          `Failed to fetch attachment from url for ${modelId}.${column.id} record ${recordId}: ${error?.message}`,
+          error?.stack,
+        );
       }
     }
+    const pkWhere = _wherePk(baseModel.model.primaryKeys, recordId, true);
+
+    // No matching row means the write-back would be lost and the cell stays on
+    // `status: 'uploading'` — the record was deleted, or the job outran the
+    // insert's commit. Nothing downstream would surface that, so say so here.
+    const existingRow = await baseModel.execAndParse(
+      baseModel
+        .dbDriver(baseModel.getTnPath(baseModel.model))
+        .select(baseModel.model.primaryKeys.map((pk) => pk.column_name))
+        .where(pkWhere),
+      null,
+      { raw: true, first: true },
+    );
+    if (!existingRow) {
+      this.logger.error(
+        `Attachment url upload write-back matched no row for ${modelId} record ${recordId}; cell left in 'uploading' state`,
+      );
+      return;
+    }
+
     // direct update to prevent prepare noco data again
-    await baseModel
-      .dbDriver(baseModel.getTnPath(baseModel.model))
-      .update({
-        [column.column_name]: JSON.stringify(processedAttachments),
-      })
-      .where(await _wherePk(baseModel.model.primaryKeys, recordId, true));
+    await baseModel.execAndParse(
+      baseModel
+        .dbDriver(baseModel.getTnPath(baseModel.model))
+        .update({
+          [column.column_name]: JSON.stringify(processedAttachments),
+        })
+        .where(pkWhere),
+      null,
+      { raw: true },
+    );
 
     if (generateThumbnailAttachments.length > 0) {
       await this.jobsService.add(JobTypes.ThumbnailGenerator, {
@@ -243,7 +269,7 @@ export class DataAttachmentV3Service {
       context: context,
       modelId: modelId,
     });
-    await baseModel.model.getColumns(context);
+    await baseModel.model.getColumns();
     const column = baseModel.model.columns.find((col) => col.id === columnId);
 
     // Check if column exists in model
@@ -251,11 +277,13 @@ export class DataAttachmentV3Service {
       NcError.get(context).fieldNotFound(columnId);
     }
 
-    // Get the row data
-    const rowData = await baseModel
-      .dbDriver(baseModel.getTnPath(baseModel.model))
-      .where(await _wherePk(baseModel.model.primaryKeys, recordId, true))
-      .first();
+    const pkWhere = _wherePk(baseModel.model.primaryKeys, recordId, true);
+
+    const rowData = await baseModel.execAndParse(
+      baseModel.dbDriver(baseModel.getTnPath(baseModel.model)).where(pkWhere),
+      null,
+      { raw: true, first: true },
+    );
 
     if (!rowData) {
       NcError.get(context).recordNotFound(recordId);
@@ -361,12 +389,16 @@ export class DataAttachmentV3Service {
 
     const updatedAttachments = [...currentAttachments, ...processedAttachments];
 
-    await baseModel
-      .dbDriver(baseModel.getTnPath(baseModel.model))
-      .update({
-        [column.column_name]: JSON.stringify(updatedAttachments),
-      })
-      .where(_wherePk(baseModel.model.primaryKeys, recordId, true));
+    await baseModel.execAndParse(
+      baseModel
+        .dbDriver(baseModel.getTnPath(baseModel.model))
+        .update({
+          [column.column_name]: JSON.stringify(updatedAttachments),
+        })
+        .where(pkWhere),
+      null,
+      { raw: true },
+    );
 
     if (generateThumbnailAttachments.length > 0) {
       await this.jobsService.add(JobTypes.ThumbnailGenerator, {

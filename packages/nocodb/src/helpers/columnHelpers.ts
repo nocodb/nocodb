@@ -2,8 +2,14 @@ import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
   getAvailableRollupForUiType,
+  isAllowedLmtTrackedField,
+  isFieldTrackingLmbCol,
+  isFieldTrackingLmtCol,
+  isLinksOrLTAR,
   isMMOrMMLike,
+  isRollupAggregatableColumn,
   OperationSource,
+  parseProp,
   RelationTypes,
   UITypes,
   WebhookActions,
@@ -71,7 +77,7 @@ export async function createHmAndBtColumn(
   // save bt column
   {
     const title = getUniqueColumnAliasName(
-      await child.getColumns({ ...context, base_id: child.base_id }),
+      await child.getColumns(),
       (type === 'bt' && alias) || `${parent.title}`,
     );
 
@@ -138,13 +144,13 @@ export async function createHmAndBtColumn(
         columnId: childRelCol.id,
         req,
         context,
-        columns: await child.getCachedColumns(context),
+        columns: await child.getCachedColumns(),
       });
   }
   // save hm column
   {
     const title = getUniqueColumnAliasName(
-      await parent.getColumns({ ...context, base_id: parent.base_id }),
+      await parent.getColumns(),
       (type === 'hm' && alias) || pluralize(child.title),
     );
     const meta = {
@@ -204,7 +210,7 @@ export async function createHmAndBtColumn(
         columnId: savedColumn.id,
         req: req,
         context,
-        columns: await parent.getCachedColumns(context),
+        columns: await parent.getCachedColumns(),
       });
   }
   return savedColumn;
@@ -258,7 +264,7 @@ export async function createOOColumn(
   // save bt column
   {
     const title = getUniqueColumnAliasName(
-      await child.getColumns(childContext),
+      await child.getColumns(),
       `${parent.title}`,
     );
 
@@ -321,13 +327,13 @@ export async function createOOColumn(
       columnId: childRelCol.id,
       req,
       context: childContext,
-      columns: await child.getCachedColumns(childContext),
+      columns: await child.getCachedColumns(),
     });
   }
   // save hm column
   {
     const title = getUniqueColumnAliasName(
-      await parent.getColumns(parentContext),
+      await parent.getColumns(),
       alias || child.title,
     );
 
@@ -390,7 +396,7 @@ export async function createOOColumn(
       columnId: savedColumn.id,
       req,
       context: parentContext,
-      columns: await parent.getCachedColumns(parentContext),
+      columns: await parent.getCachedColumns(),
     });
   }
   return savedColumn;
@@ -415,16 +421,27 @@ export async function validateRollupPayload(
     colId: (payload as RollupColumnReqType).fk_relation_column_id,
   });
 
-  const relation = await column.getColOptions<LinkToAnotherRecordColumn>(
-    context,
-  );
-  const { refContext } = relation.getRelContext(context);
+  if (!column) {
+    NcError.get(context).relationFieldNotFound(
+      (payload as RollupColumnReqType).fk_relation_column_id,
+    );
+  }
+
+  if (!isLinksOrLTAR(column)) {
+    NcError.get(context).badRequest(
+      `A rollup must aggregate through a link field, but "${column.title}" is ${column.uidt}.`,
+    );
+  }
+
+  const relation = await column.getColOptions<LinkToAnotherRecordColumn>();
 
   if (!relation) {
     NcError.get(context).relationFieldNotFound(
       (payload as RollupColumnReqType).fk_relation_column_id,
     );
   }
+
+  const { refContext } = relation.getRelContext();
 
   let relatedColumn: Column;
   const relationType = isMMOrMMLike(column) ? 'mm' : relation.type;
@@ -442,14 +459,35 @@ export async function validateRollupPayload(
       break;
   }
 
-  const relatedTable = await relatedColumn.getModel(refContext);
+  const relatedTable = await relatedColumn.getModel();
+  const relatedTableColumns = await relatedTable.getColumns();
 
-  const rollupColumn = (await relatedTable.getColumns(refContext)).find(
+  const rollupColumn = relatedTableColumns.find(
     (c) => c.id === (payload as RollupColumnReqType).fk_rollup_column_id,
   );
 
   if (!rollupColumn)
     NcError.get(context).badRequest('Rollup column not found in related table');
+
+  // Rolling up a link/lookup/barcode-style column would build SQL against a
+  // column that doesn't physically exist, breaking every read of the table.
+  if (!isRollupAggregatableColumn(rollupColumn)) {
+    const aggregatable = relatedTableColumns
+      .filter(
+        (c) =>
+          !c.system &&
+          isRollupAggregatableColumn(c) &&
+          getAvailableRollupForUiType(c.uidt).length,
+      )
+      .map((c) => c.title);
+
+    NcError.get(context).badRequest(
+      `Field "${rollupColumn.title}" (${rollupColumn.uidt}) in "${relatedTable.title}" cannot be aggregated by a rollup.` +
+        (aggregatable.length
+          ? ` Aggregatable fields are: ${aggregatable.join(', ')}.`
+          : ''),
+    );
+  }
 
   if (
     !getAvailableRollupForUiType(rollupColumn.uidt).includes(
@@ -459,7 +497,7 @@ export async function validateRollupPayload(
     NcError.get(context).badRequest(
       `Rollup function (${
         (payload as RollupColumnReqType).rollup_function
-      }) not available for type (${relatedColumn.uidt})`,
+      }) not available for type (${rollupColumn.uidt})`,
     );
   }
 }
@@ -485,10 +523,8 @@ export async function validateLookupPayload(
     );
   }
 
-  const relation = await column.getColOptions<LinkToAnotherRecordColumn>(
-    context,
-  );
-  const { refContext } = relation.getRelContext(context);
+  const relation = await column.getColOptions<LinkToAnotherRecordColumn>();
+  const { refContext } = relation.getRelContext();
 
   // check for circular reference (must be done after getting refContext for cross-base)
   if (columnId) {
@@ -504,7 +540,7 @@ export async function validateLookupPayload(
         colId: lkCol.fk_lookup_column_id,
       }).then((c: Column) => {
         if (c && c.uidt === 'Lookup') {
-          return c.getColOptions<LookupColumn>(refContext);
+          return c.getColOptions<LookupColumn>();
         }
         return null;
       });
@@ -540,9 +576,9 @@ export async function validateLookupPayload(
       break;
   }
 
-  const relatedTable = await relatedColumn.getModel(refContext);
+  const relatedTable = await relatedColumn.getModel();
   if (
-    !(await relatedTable.getColumns(refContext)).find(
+    !(await relatedTable.getColumns()).find(
       (c) => c.id === (payload as LookupColumnReqType).fk_lookup_column_id,
     )
   )
@@ -598,17 +634,16 @@ export async function populateRollupForLTAR({
   columnMeta?: any;
   alias?: string;
 }) {
-  const model = await column.getModel(context);
+  const model = await column.getModel();
 
-  const views = await model.getViews(context);
+  const views = await model.getViews();
 
   const relatedModel = await column
-    .getColOptions<LinkToAnotherRecordColumn>(context)
-    .then((colOpt) => colOpt.getRelatedTable(context));
-  await relatedModel.getColumns(context);
+    .getColOptions<LinkToAnotherRecordColumn>()
+    .then((colOpt) => colOpt.getRelatedTable());
+  await relatedModel.getColumns();
   const pkId =
-    relatedModel.primaryKey?.id ||
-    (await relatedModel.getColumns(context))[0]?.id;
+    relatedModel.primaryKey?.id || (await relatedModel.getColumns())[0]?.id;
 
   const meta = {
     plural: columnMeta?.plural || pluralize(relatedModel.title),
@@ -618,7 +653,7 @@ export async function populateRollupForLTAR({
   await Column.insert<RollupColumn>(context, {
     uidt: UITypes.Links,
     title: getUniqueColumnAliasName(
-      await model.getColumns(context),
+      await model.getColumns(),
       alias || `${relatedModel.title} Count`,
     ),
     fk_rollup_column_id: pkId,
@@ -658,6 +693,78 @@ export const sanitizeColumnName = (name: string, sourceType?: DriverClient) => {
   return columnName;
 };
 
+/**
+ * Validates the `meta.fields_mode === 'specific'` configuration of a
+ * LastModifiedTime/LastModifiedBy column: the table must have a row-meta
+ * column (EE + PG internal tables only) and every tracked id must resolve
+ * to a trackable (user-editable, incl. links) column. No-op for any other
+ * column/meta.
+ */
+export const validateLmtTrackedFields = (
+  context: NcContext,
+  {
+    columnBody,
+    columns,
+    allowEmptyTrackedSet = false,
+    existingTrackedIds = [],
+  }: {
+    columnBody: { uidt?: string; meta?: any; tracked_field_ids?: string[] };
+    columns: Column[];
+    /**
+     * Ids already tracked by this column. They are accepted without resolving:
+     * a tracked field that has been trashed stays in the set so restoring it
+     * resumes tracking, and the field editor round-trips the set verbatim —
+     * rejecting it would make the column unsaveable until the field comes back.
+     * Ids being added still have to resolve.
+     */
+    existingTrackedIds?: string[];
+    /**
+     * Import only: a tracked set whose columns all failed to resolve stays
+     * `specific` with zero entries, so the column keeps reading NULL instead
+     * of degrading to `all` and surfacing the row's `updated_at`.
+     */
+    allowEmptyTrackedSet?: boolean;
+  },
+) => {
+  if (
+    columnBody.uidt !== UITypes.LastModifiedTime &&
+    columnBody.uidt !== UITypes.LastModifiedBy
+  )
+    return;
+  const meta = parseProp(columnBody.meta);
+  if (meta?.fields_mode !== 'specific') return;
+
+  const ncError = NcError.get(context);
+
+  if (!columns.find((c) => c.uidt === UITypes.Meta)) {
+    ncError.badRequest(
+      'Tracking specific fields is not supported for this table',
+    );
+  }
+
+  const trackedIds = columnBody.tracked_field_ids;
+  if (
+    !Array.isArray(trackedIds) ||
+    (!trackedIds.length && !allowEmptyTrackedSet)
+  ) {
+    ncError.badRequest('At least one field to track is required');
+  }
+
+  const alreadyTracked = new Set(existingTrackedIds);
+  for (const id of trackedIds) {
+    const tracked = columns.find((c) => c.id === id);
+    if (!tracked) {
+      if (alreadyTracked.has(id)) continue;
+      ncError.fieldNotFound(id);
+    }
+    if (!isAllowedLmtTrackedField(tracked)) {
+      ncError.badRequest(
+        `Field '${tracked.title}' cannot be tracked by a last modified time field`,
+      );
+    }
+  }
+};
+
 // if column is an alias column then return the original column
 // for example CreatedTime is an alias column for CreatedTime system column
 export const getRefColumnIfAlias = async (
@@ -678,6 +785,13 @@ export const getRefColumnIfAlias = async (
   )
     return column;
 
+  // a LastModifiedTime/LastModifiedBy column tracking specific fields is
+  // not an alias of the system updated_at/updated_by column — its value is
+  // computed from the row-meta column, so callers must keep the original
+  // column (and its meta) intact
+  if (isFieldTrackingLmtCol(column) || isFieldTrackingLmbCol(column))
+    return column;
+
   return (
     (
       columns ||
@@ -687,21 +801,20 @@ export const getRefColumnIfAlias = async (
 };
 
 export const travelLookupColumn = async ({
-  context,
   column,
 }: {
   context: NcContext;
   column: Column;
 }): Promise<Column | null> => {
-  const lookupColOptions = await column.getColOptions<LookupColumn>(context);
+  const lookupColOptions = await column.getColOptions<LookupColumn>();
   if (lookupColOptions?.error) return null;
 
-  const relationColumn = await lookupColOptions.getRelationColumn(context);
+  const relationColumn = await lookupColOptions.getRelationColumn();
   if (!relationColumn) return null;
 
   const relationColOptions =
-    await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
-  const { refContext } = relationColOptions.getRelContext(context);
+    await relationColumn.getColOptions<LinkToAnotherRecordColumn>();
+  const { refContext } = relationColOptions.getRelContext();
 
   const targetColumn = await Column.get(refContext, {
     colId: lookupColOptions.fk_lookup_column_id,
@@ -808,7 +921,6 @@ export const deleteColumnSystemPropsFromRequest = (
   opts?: { operationSource?: OperationSource },
 ) => {
   // remove all properties not in documentations
-  delete col.dt;
   delete col.np;
   delete col.ns;
   delete col.clen;
@@ -819,11 +931,13 @@ export const deleteColumnSystemPropsFromRequest = (
   delete col.ai;
   delete col.cc;
   delete col.csn;
-  delete col.dtx;
   // dtxs is scale, used in decimal uidt
   // delete col.dtxs;
   delete col.au;
   delete col.validate;
+
+  delete col.dt;
+  delete col.dtx;
   switch (opts?.operationSource) {
     case OperationSource.AT_IMPORT: {
       const isNcRecordColumn =

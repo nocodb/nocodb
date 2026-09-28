@@ -123,6 +123,8 @@ export class BaseUsersService {
       NcError.forbidden(`Insufficient privilege to assign this role`);
     }
 
+    await this.assertNoExistingMembers(context, param.baseId, emails, ncMeta);
+
     for (const email of emails) {
       const invite_token = uuidv4();
       // add user to base if user already exist (canonical lookup handles alias variants)
@@ -359,6 +361,47 @@ export class BaseUsersService {
     } else {
       return { msg: 'success', emails, error };
     }
+  }
+
+  /**
+   * Refuse addresses that already hold a role, as one message, before anything
+   * is written.
+   *
+   * Checking inside the invite loop instead means the first duplicate aborts a
+   * run that has already invited the addresses ahead of it, and on the EE path
+   * that throw unwinds a transaction mid-flight. A lone address keeps the
+   * in-loop wording, which already names the role; with several, all the caller
+   * needs is which ones to take out.
+   */
+  protected async assertNoExistingMembers(
+    context: NcContext,
+    baseId: string,
+    emails: string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (emails.length < 2) return;
+
+    const alreadyMembers: string[] = [];
+
+    for (const email of emails) {
+      const user = await User.getByCanonicalEmail(email, ncMeta);
+
+      if (!user) continue;
+
+      const baseUser = await BaseUser.get(context, baseId, user.id, ncMeta);
+
+      if (baseUser?.is_mapped && baseUser?.roles) {
+        alreadyMembers.push(user.email);
+      }
+    }
+
+    if (!alreadyMembers.length) return;
+
+    NcError.get(context).baseUserError(
+      `${alreadyMembers.join(', ')} ${
+        alreadyMembers.length === 1 ? 'is' : 'are'
+      } already part of this base`,
+    );
   }
 
   protected getInheritedBaseRole({

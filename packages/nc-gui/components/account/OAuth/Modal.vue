@@ -134,7 +134,7 @@ async function handleSubmit() {
     showSuccessView.value = true
 
     // Show success message
-    message.success('OAuth client created successfully!')
+    message.success(t('msg.success.oauthClientCreated'))
   } catch (error: any) {
     if (error.errorFields) {
       // Form validation errors - these will be displayed automatically
@@ -164,7 +164,7 @@ function copyToClipboard(text: string, label: string) {
       <div class="flex w-full items-center p-2 justify-between">
         <div class="flex items-center gap-3 pl-1 flex-1">
           <GeneralIcon class="text-nc-content-gray-emphasis h-5 w-5" icon="ncLock" />
-          <span class="text-nc-content-gray-emphasis truncate font-semibold text-xl"> Create OAuth Client </span>
+          <span class="text-nc-content-gray-emphasis truncate font-semibold text-xl"> {{ $t('labels.createOauthClient') }} </span>
         </div>
 
         <div class="flex justify-end items-center gap-3 pr-0.5 flex-1">
@@ -194,15 +194,15 @@ function copyToClipboard(text: string, label: string) {
         <!-- Success View -->
         <div v-if="showSuccessView" class="flex flex-col max-w-[640px] w-full mx-auto gap-6">
           <NcAlert type="info">
-            <template #message> OAuth Client Created Successfully! </template>
+            <template #message> {{ $t('msg.success.oauthClientCreatedTitle') }} </template>
             <template #description>
-              Make sure to copy your client credentials now. You won't be able to see the secret again.
+              {{ $t('msg.info.oauthClientSecretCopyWarning') }}
             </template>
           </NcAlert>
 
           <div class="flex flex-col gap-4">
             <div class="flex flex-col gap-2">
-              <label class="text-nc-content-gray-subtle font-medium text-sm">Client ID</label>
+              <label class="text-nc-content-gray-subtle font-medium text-sm">{{ $t('labels.clientId') }}</label>
               <div class="flex items-center gap-2">
                 <a-input :value="createdClient?.client_id" readonly class="nc-input-shadow !rounded-lg flex-1" />
                 <NcButton type="secondary" size="small" @click="copyToClipboard(createdClient?.client_id, 'Client ID')">
@@ -212,7 +212,7 @@ function copyToClipboard(text: string, label: string) {
             </div>
 
             <div v-if="createdClient?.client_secret" class="flex flex-col gap-2">
-              <label class="text-nc-content-gray-subtle font-medium text-sm">Client Secret</label>
+              <label class="text-nc-content-gray-subtle font-medium text-sm">{{ $t('labels.clientSecret') }}</label>
               <div class="flex items-center gap-2">
                 <a-input :value="createdClient?.client_secret" readonly class="nc-input-shadow !rounded-lg flex-1" />
                 <NcButton type="secondary" size="small" @click="copyToClipboard(createdClient?.client_secret, 'Client Secret')">
@@ -233,34 +233,34 @@ function copyToClipboard(text: string, label: string) {
                 >
               </template>
               <template #extra>
-                <span class="text-xs text-nc-content-gray-muted">Shown to users during authorization</span>
+                <span class="text-xs text-nc-content-gray-muted">{{ $t('labels.oauthClientNameHint') }}</span>
               </template>
               <a-input
                 ref="titleDomRef"
                 v-model:value="clientRef.client_name"
-                placeholder="My Application"
+                :placeholder="$t('placeholder.oauthClientName')"
                 class="nc-input-shadow !rounded-lg"
               />
             </a-form-item>
 
             <a-form-item v-bind="validateInfos.client_description" class="!mb-0 flex-1">
               <template #label>
-                <span class="text-nc-content-gray-subtle font-medium">Application Description</span>
+                <span class="text-nc-content-gray-subtle font-medium">{{ $t('labels.applicationDescription') }}</span>
               </template>
               <template #extra>
-                <span class="text-xs text-nc-content-gray-muted">Brief description shown when users grant access</span>
+                <span class="text-xs text-nc-content-gray-muted">{{ $t('labels.oauthClientDescriptionHint') }}</span>
               </template>
               <a-textarea
                 v-model:value="clientRef.client_description"
-                placeholder="This application helps you manage your data..."
+                :placeholder="$t('placeholder.oauthClientDescription')"
                 :rows="3"
                 class="nc-input-shadow !rounded-lg"
               />
             </a-form-item>
 
-            <a-form-item label="Homepage URL" v-bind="validateInfos.client_uri" class="!mb-0 flex-1">
+            <a-form-item :label="$t('labels.homepageUrl')" v-bind="validateInfos.client_uri" class="!mb-0 flex-1">
               <template #label>
-                <span class="text-nc-content-gray-subtle font-medium">Homepage URL</span>
+                <span class="text-nc-content-gray-subtle font-medium">{{ $t('labels.homepageUrl') }}</span>
               </template>
               <a-input
                 v-model:value="clientRef.client_uri"
@@ -274,7 +274,7 @@ function copyToClipboard(text: string, label: string) {
                 <span class="text-nc-content-gray-subtle font-medium">{{ $t('general.logo') }}</span>
               </template>
               <template #extra>
-                <span class="text-xs text-nc-content-gray-muted">Image shown during authorization (square recommended)</span>
+                <span class="text-xs text-nc-content-gray-muted">{{ $t('labels.oauthClientLogoHint') }}</span>
               </template>
               <NcFileUpload
                 v-model:attachment="clientRef.logo_uri"
@@ -297,16 +297,16 @@ function copyToClipboard(text: string, label: string) {
             <!-- Client Type -->
             <a-form-item class="!mb-0 flex-1">
               <template #label>
-                <span class="text-nc-content-gray-subtle font-medium">Client Type</span>
+                <span class="text-nc-content-gray-subtle font-medium">{{ $t('labels.clientType') }}</span>
               </template>
               <template #extra>
                 <span class="text-xs text-nc-content-gray-muted">
-                  Public: mobile/web apps (PKCE required). Confidential: secure servers (can store secrets)
+                  {{ $t('labels.oauthClientTypeHint') }}
                 </span>
               </template>
               <a-radio-group v-model:value="clientRef.client_type" class="nc-input-shadow">
-                <a-radio value="public">Public</a-radio>
-                <a-radio value="confidential">Confidential</a-radio>
+                <a-radio value="public">{{ $t('general.public') }}</a-radio>
+                <a-radio value="confidential">{{ $t('labels.confidential') }}</a-radio>
               </a-radio-group>
             </a-form-item>
 
@@ -319,7 +319,7 @@ function copyToClipboard(text: string, label: string) {
               </template>
               <template #extra>
                 <span class="text-xs text-nc-content-gray-muted">
-                  HTTPS URLs for redirecting after authorization (localhost/127.0.0.1 allowed). One per line
+                  {{ $t('labels.oauthCallbackUrlsHint') }}
                 </span>
               </template>
               <a-textarea

@@ -10,6 +10,7 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
+import { NcError } from '~/helpers/catchError';
 import { buildRevokeIfActiveUpdate } from '~/models/oauth-token.queries';
 
 export default class OAuthToken {
@@ -241,16 +242,25 @@ export default class OAuthToken {
         );
       }
 
-      // Delete the batch
+      // Delete the batch. NOTE: passing `{ id: { in: [...] } }` to metaDelete's
+      // simple-condition argument makes Knex treat it as an equality object, so
+      // NO rows are deleted — the client would be removed while its tokens stay
+      // valid (CWE-613). Use an explicit `whereIn` and verify the affected-row
+      // count matches the batch so a partial/failed delete cannot be reported as
+      // success.
       const tokenIdsToDelete = tokens.map((t) => t.id);
-      await ncMeta.metaDelete(
-        RootScopes.ROOT,
-        RootScopes.ROOT,
-        MetaTable.OAUTH_TOKENS,
-        { id: { in: tokenIdsToDelete } },
-      );
+      const affected = await ncMeta
+        .knexConnection(MetaTable.OAUTH_TOKENS)
+        .whereIn('id', tokenIdsToDelete)
+        .del();
 
-      deletedCount += tokens.length;
+      if (affected !== tokenIdsToDelete.length) {
+        NcError.internalServerError(
+          'Failed to revoke all OAuth tokens for the client',
+        );
+      }
+
+      deletedCount += affected;
 
       // If we got fewer than BATCH_SIZE, we're done
       if (tokens.length < BATCH_SIZE) {

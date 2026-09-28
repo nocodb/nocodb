@@ -36,7 +36,7 @@ defineProps<Props>()
 </script>
 
 <template>
-  <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md">
+  <div class="nc-share-option">
     <div class="flex flex-row items-center justify-between">
       <div class="flex text-nc-content-gray-extreme items-center gap-1">
         {{ $t('title.customUrl') }}

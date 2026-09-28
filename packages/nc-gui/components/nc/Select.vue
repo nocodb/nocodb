@@ -16,6 +16,12 @@ const props = withDefaults(
     loading?: boolean
     suffixIcon?: keyof typeof iconMap
     maxTagCount?: number
+    /**
+     * Which option prop to render for the *selected* value. Without it antd
+     * reuses the option's full slot content, so rich options (label + a
+     * description line) render inside the closed input too.
+     */
+    optionLabelProp?: string
   }>(),
   {
     suffixIcon: 'arrowDown',
@@ -45,6 +51,11 @@ const onChange = (value: string) => {
 const onSearch = (value: string) => {
   emits('search', value)
 }
+
+// antd warns whenever `onSearch` is bound without a mode that can actually
+// search, so the listener is attached only when one is — otherwise every plain
+// NcSelect in the app logs "`onSearch` should work with `showSearch`".
+const searchable = computed(() => !!showSearch.value || mode.value === 'combobox' || mode.value === 'tags')
 </script>
 
 <template>
@@ -58,12 +69,13 @@ const onSearch = (value: string) => {
     :filter-option="filterOption"
     :loading="loading"
     :mode="mode"
+    :option-label-prop="optionLabelProp"
     :placeholder="placeholder"
     :show-search="showSearch"
     :max-tag-count="maxTagCount"
     class="nc-select nc-select-shadow"
+    v-bind="searchable ? { onSearch } : {}"
     @change="onChange as any"
-    @search="onSearch"
   >
     <template #suffixIcon>
       <GeneralLoader v-if="loading" />
@@ -72,6 +84,9 @@ const onSearch = (value: string) => {
 
     <template v-if="$slots.dropdownRender" #dropdownRender="{ menuNode }">
       <slot name="dropdownRender" :menu-node="menuNode" />
+    </template>
+    <template v-if="$slots.notFoundContent" #notFoundContent>
+      <slot name="notFoundContent" />
     </template>
     <slot />
   </a-select>
@@ -148,9 +163,6 @@ const onSearch = (value: string) => {
     &::-webkit-scrollbar-thumb {
       width: 4px;
       @apply bg-nc-bg-gray-dark rounded-md;
-    }
-    &::-webkit-scrollbar-thumb:hover {
-      @apply bg-nc-bg-gray-extra-dark;
     }
   }
 }

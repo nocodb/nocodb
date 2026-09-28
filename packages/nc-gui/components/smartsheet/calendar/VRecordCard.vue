@@ -35,6 +35,9 @@ const emit = defineEmits(['resizeStart'])
 
 const { eventDisplayTheme } = useCalendarViewStoreOrThrow()
 
+// Interface calendars don't show a hover tooltip on records (chip-only surface).
+const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
+
 // Wrap (multi-line) only when the card is tall enough for 2+ lines.
 const isMultiline = computed(() => (props.clampLines ?? 1) >= 2)
 
@@ -73,9 +76,10 @@ const isDot = computed(() => eventDisplayTheme.value === CalendarEventTheme.DOT)
 const isMinimal = computed(() => eventDisplayTheme.value === CalendarEventTheme.MINIMAL)
 
 // Match the month-view (RecordCard) look in every timeline view: the left accent
-// bar belongs to the bordered + minimal themes; dot shows a colour dot, pill is
-// flat text with a colour time pill, and solid fills edge-to-edge.
-const showLeftBar = computed(() => isBordered.value || isMinimal.value)
+// bar belongs to the minimal theme only (bordered shows just its border + tint);
+// dot shows a colour dot, pill is flat text with a colour time pill, and solid
+// fills edge-to-edge.
+const showLeftBar = computed(() => isMinimal.value)
 
 // Only the bordered theme carries the drop shadow (mirrors RecordCard); the flat
 // themes (dot / minimal / pill) and solid stay flush.
@@ -125,7 +129,7 @@ const cardShadow = computed(() => {
         wrap-child="div"
         hide-on-click
         disable-in-mobile
-        :disabled="selected || dragging"
+        :disabled="selected || dragging || !!interfacePageDataApi"
         overlay-class-name="nc-record-fields-tooltip"
         show-on-truncate-only
         :line-clamp="isMultiline ? clampLines : undefined"
@@ -185,7 +189,8 @@ const cardShadow = computed(() => {
 // Bordered — accent-derived tint + border (stays visible in dark mode, where the
 // row-colouring tint resolves to near-black; see RecordCard for rationale).
 .nc-vcard--bordered {
-  @apply border-1;
+  // No left colour bar on this theme — a small inset keeps the text off the border.
+  @apply border-1 pl-1;
   background: color-mix(in srgb, var(--cal-accent) 14%, transparent);
   border-color: color-mix(in srgb, var(--cal-accent) 42%, transparent);
 

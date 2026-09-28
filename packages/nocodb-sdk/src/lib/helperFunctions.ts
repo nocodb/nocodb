@@ -1,6 +1,6 @@
-import UITypes, { isLinksOrLTAR, isNumericCol } from './UITypes';
+import UITypes, { isLinksOrLTAR, isNumericCol, isVirtualCol } from './UITypes';
 import { RelationTypes, RolesObj, RolesType } from './globals';
-import { ClientType } from './enums';
+import { ClientType, IntegrationCategoryType } from './enums';
 import {
   ColumnType,
   FormulaType,
@@ -66,7 +66,7 @@ const stringifyRolesObj = (roles?: RolesObj | null): string => {
 const getAvailableRollupForColumn = (column: ColumnType) => {
   if ([UITypes.Formula].includes(column.uidt as UITypes)) {
     return getAvailableRollupForFormulaType(
-      (column.colOptions as FormulaType as any).parsed_tree?.dataType ??
+      (column.colOptions as FormulaType as any)?.parsed_tree?.dataType ??
         FormulaDataTypes.UNKNOWN
     );
   } else {
@@ -163,6 +163,29 @@ const getAvailableRollupForFormulaType = (type: FormulaDataTypes) => {
       return ['count'];
     }
   }
+};
+
+/**
+ * Whether a column in the linked table can be the target of a Rollup.
+ * The listed virtual types are the ones `genRollupSelectv2` lowers to a
+ * correlated subquery; every other virtual type has no column to aggregate,
+ * so rolling it up emits broken SQL.
+ */
+const isRollupAggregatableColumn = (
+  col: UITypes | { uidt: UITypes | string }
+) => {
+  const uidt = (typeof col === 'object' ? col?.uidt : col) as UITypes;
+  return (
+    !isVirtualCol(uidt) ||
+    [
+      UITypes.Formula,
+      UITypes.Rollup,
+      UITypes.CreatedTime,
+      UITypes.CreatedBy,
+      UITypes.LastModifiedTime,
+      UITypes.LastModifiedBy,
+    ].includes(uidt)
+  );
 };
 
 /** Rollup functions that always return integer values — no decimal precision needed */
@@ -296,6 +319,7 @@ export {
   getAvailableRollupForUiType,
   getAvailableRollupForFormulaType,
   getRenderAsTextFunForUiType,
+  isRollupAggregatableColumn,
   integerRollupFunctions,
   integerPreservingRollupFunctions,
   isIntegerUiType,
@@ -316,9 +340,7 @@ export const getTestDatabaseName = (db: {
   connection?: { database?: string };
 }) => {
   if (
-    [ClientType.PG, ClientType.SNOWFLAKE, ClientType.ORACLE].includes(
-      db.client,
-    )
+    [ClientType.PG, ClientType.SNOWFLAKE, ClientType.ORACLE].includes(db.client)
   )
     return db.connection?.database;
   return testDataBaseNames[db.client as keyof typeof testDataBaseNames];
@@ -326,6 +348,39 @@ export const getTestDatabaseName = (db: {
 
 export const integrationCategoryNeedDefault = (category: IntegrationsType) => {
   return [IntegrationsType.Ai].includes(category);
+};
+
+/**
+ * Per-environment config overrides are only meaningful for integrations whose
+ * config is a set of credentials that legitimately differs between production and
+ * staging/custom environments — i.e. Auth and AI integrations. Database sources,
+ * Sync connectors and workflow nodes do NOT support environments.
+ *
+ * Accepts either enum since the two share identical string values ('auth', 'ai');
+ * the runtime comparison is on those values.
+ */
+export const integrationSupportsEnvironments = (
+  category?: IntegrationsType | IntegrationCategoryType
+): boolean => {
+  return category === IntegrationsType.Auth || category === IntegrationsType.Ai;
+};
+
+/**
+ * Whether an integration can be switched to per-user credentials
+ * (`credential_mode: 'per_user'`). Two-level opt-in: only AUTH integrations
+ * qualify (the credential must BE a user identity at the provider), and the
+ * integration package must declare `allowsPerUserCredentials` on its manifest
+ * (effectively OAuth2 authorization-code providers only — API-key auth has no
+ * user identity). The instance-level oauth check (`config.type === 'oauth'`)
+ * is enforced server-side at mode-set time, not here.
+ */
+export const integrationSupportsPerUserCredentials = (
+  category?: IntegrationsType | IntegrationCategoryType,
+  manifest?: { allowsPerUserCredentials?: boolean }
+): boolean => {
+  return (
+    category === IntegrationsType.Auth && !!manifest?.allowsPerUserCredentials
+  );
 };
 
 export function parseProp(v: any, fallbackVal = {}): any {

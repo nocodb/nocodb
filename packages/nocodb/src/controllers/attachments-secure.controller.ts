@@ -166,6 +166,10 @@ export class AttachmentsSecureController {
         res.setHeader('Content-Encoding', queryResponseContentEncoding);
       }
 
+      // Defense-in-depth: never let the browser MIME-sniff an attachment into an
+      // active document type regardless of the served Content-Type.
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+
       res.sendFile(file.path);
     } catch (e) {
       res.status(404).send('Not found');

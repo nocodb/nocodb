@@ -25,7 +25,11 @@ const { tooltipText } = storeToRefs(store)
 }
 
 .tooltip-dark {
-  @apply bg-gray-800 text-white dark:!bg-[#3a3f4b];
+  @apply bg-gray-800 text-white;
+}
+
+[theme='dark'] .tooltip-dark {
+  background-color: var(--nc-bg-tooltip);
 }
 
 .tooltip-light {

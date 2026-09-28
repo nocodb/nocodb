@@ -35,29 +35,60 @@ const BLOCKED_RANGES = new Set<string>([
   'rfc6145', // ::ffff:0:0:0/96 (stateless IP/ICMP translation)
 ]);
 
+// RFC 8215 local-use NAT64. ipaddr.js reports it as plain `unicast`, and RFC 6052
+// puts the embedded IPv4 at a different offset for every prefix length ≥ /48, so
+// block the /48 outright rather than guessing which one is in use.
+const NAT64_LOCAL_USE = ipaddr.parseCIDR('64:ff9b:1::/48') as [
+  ipaddr.IPv6,
+  number,
+];
+
+/**
+ * Normalise IPv6 forms that embed an IPv4 so the IPv4 blocklist catches an
+ * internal target wrapped in an IPv6 transition encoding (CWE-918).
+ */
+function normaliseEmbeddedIpv4(parsed: ipaddr.IPv4 | ipaddr.IPv6) {
+  if (parsed.kind() !== 'ipv6') return parsed;
+
+  const v6 = parsed as ipaddr.IPv6;
+  if (v6.isIPv4MappedAddress()) {
+    return v6.toIPv4Address(); // ::ffff:a.b.c.d
+  }
+  const b = v6.toByteArray();
+  if (v6.range() === '6to4') {
+    // 2002:WWXX:YYZZ::/16 — embedded IPv4 in bytes 2..5 (RFC 3056).
+    return new ipaddr.IPv4([b[2], b[3], b[4], b[5]]);
+  }
+  if (v6.range() === 'rfc6052') {
+    // NAT64 well-known prefix 64:ff9b::/96 — embedded IPv4 in bytes 12..15.
+    return new ipaddr.IPv4([b[12], b[13], b[14], b[15]]);
+  }
+  // RFC 4291 IPv4-compatible ::a.b.c.d. ipaddr.js only reports `ipv4Mapped` for
+  // the spellings it rewrites to ::ffff:; `0::127.0.0.1` stays `unicast`.
+  if (b.slice(0, 12).every((byte) => byte === 0)) {
+    return new ipaddr.IPv4([b[12], b[13], b[14], b[15]]);
+  }
+  return v6;
+}
+
 /** True if a string IP resolves into a blocked (internal / non-routable) range. */
 export function isBlockedIp(addr: string): boolean {
-  if (!ipaddr.isValid(addr)) return false; // unparseable → let the driver surface it
-  let parsed = ipaddr.parse(addr);
-
-  // Normalise IPv6 forms that embed an IPv4 so the IPv4 blocklist below catches
-  // an internal target wrapped in an IPv6 transition encoding (CWE-918).
-  if (parsed.kind() === 'ipv6') {
-    const v6 = parsed as ipaddr.IPv6;
-    if (v6.isIPv4MappedAddress()) {
-      parsed = v6.toIPv4Address(); // ::ffff:a.b.c.d
-    } else if (v6.range() === '6to4') {
-      // 2002:WWXX:YYZZ::/16 — embedded IPv4 in bytes 2..5 (RFC 3056).
-      const b = v6.toByteArray();
-      parsed = new ipaddr.IPv4([b[2], b[3], b[4], b[5]]);
-    } else if (v6.range() === 'rfc6052') {
-      // NAT64 well-known prefix 64:ff9b::/96 — embedded IPv4 in bytes 12..15.
-      const b = v6.toByteArray();
-      parsed = new ipaddr.IPv4([b[12], b[13], b[14], b[15]]);
-    }
+  if (!ipaddr.isValid(addr)) {
+    // Node accepts IPv6 spellings ipaddr.js rejects (dotted-quad tails behind a
+    // multi-group prefix, on ipaddr.js < 2.2). Returning false would mean
+    // allowing, and a routable host always parses — so fail closed.
+    return net.isIP(addr) !== 0;
   }
+  const parsed = ipaddr.parse(addr);
 
-  return BLOCKED_RANGES.has(parsed.range());
+  if (BLOCKED_RANGES.has(parsed.range())) return true;
+  if (
+    parsed.kind() === 'ipv6' &&
+    (parsed as ipaddr.IPv6).match(NAT64_LOCAL_USE)
+  )
+    return true;
+
+  return BLOCKED_RANGES.has(normaliseEmbeddedIpv4(parsed).range());
 }
 
 function blockedError(): NodeJS.ErrnoException {

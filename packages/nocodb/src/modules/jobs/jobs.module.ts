@@ -44,6 +44,9 @@ import { NormalizeSoftDeleteSqliteMigration } from '~/modules/jobs/migration-job
 import { RecordTrashBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_012_record_trash_backfill';
 import { CleanupOrphanCrossBaseLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_013_cleanup_orphan_cross_base_links';
 import { CleanupOrphanViewColumnsMigration } from '~/modules/jobs/migration-jobs/nc_job_014_cleanup_orphan_view_columns';
+import { PgSourceSearchPathBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_015_pg_source_searchpath_backfill';
+import { CreditPlanBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_016_credit_plan_backfill';
+import { StoreLaneBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_017_store_lane_backfill';
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -111,8 +114,18 @@ export const JobsModuleMetadata = {
     RecordTrashBackfillMigration,
     CleanupOrphanCrossBaseLinksMigration,
     CleanupOrphanViewColumnsMigration,
+    PgSourceSearchPathBackfillMigration,
+    CreditPlanBackfillMigration,
+    StoreLaneBackfillMigration,
   ],
-  exports: ['JobsService', JobsLogService, DuplicateProcessor],
+  exports: [
+    'JobsService',
+    JobsLogService,
+    DuplicateProcessor,
+    // The MCP server lives in NocoModule, which imports JobsModule — it can
+    // only resolve what JobsModule exports.
+    DuplicateService,
+  ],
 };
 
 @Module(JobsModuleMetadata)

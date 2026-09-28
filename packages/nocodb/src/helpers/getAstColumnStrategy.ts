@@ -65,6 +65,13 @@ export interface ColumnAstContext {
   rowColoringColumnIds: Set<string>;
   buttonFilterColumnIds: Set<string>;
   dependencyFieldsForRangeView?: string[];
+  /**
+   * When true, an explicitly-requested (`fields`) column bypasses the view-
+   * `show` gate and is returned even if hidden. Opt-in; authenticated
+   * link-picker paths only — never public (would leak hidden values; see the
+   * DESIGN NOTE in public-datas.service.ts).
+   */
+  allowRequestedHiddenFields?: boolean;
 }
 
 /** Per-column inputs computed inside the loop before dispatch. */
@@ -145,11 +152,16 @@ const createdModifiedByFieldStrategy: ColumnAstStrategy = {
   resolve: () => false,
 };
 
-// 7. Order system column — only when explicitly asked (order/hidden extraction).
+// 7. Order system column — only when explicitly asked: order/hidden
+//    extraction, or named in a `fields` projection (a curated field
+//    allow-list that wants row order — e.g. interface page lists whose
+//    client caches place realtime inserts by it — must be able to opt in;
+//    v3 exclusion still wins via the earlier v3SystemField strategy).
 const orderFieldStrategy: ColumnAstStrategy = {
   name: 'orderField',
   match: (_ctx, { col }) => isOrderCol(col) && col.system,
-  resolve: (ctx) => ctx.extractOrderColumn || ctx.getHiddenColumn,
+  resolve: (ctx, { isInFields }) =>
+    ctx.extractOrderColumn || ctx.getHiddenColumn || isInFields,
 };
 
 // 8. Soft-delete system column — excluded.
@@ -195,12 +207,12 @@ const hiddenColumnFieldStrategy: ColumnAstStrategy = {
   },
 };
 
-// 10. View present — the `allowedCols` gate (keyed on view-column `show`) omits
-//     view-hidden columns from the default RESPONSE PAYLOAD only. That is
-//     intended and is a separate concern from query-level filtering: hidden
-//     columns stay fully queryable via where/sort/filter (field visibility is
-//     the real ACL, not view `show`). Do not extend this into query-param
-//     sanitization — see the DESIGN NOTE in services/public-datas.service.ts.
+// 10. View present — the `allowedCols` gate, keyed on view-column `show`, which
+//     omits view-hidden columns from the response payload for EVERY caller. On a
+//     shared view `restrictSharedViewQuery` confines the query surface to the
+//     same set, so payload and query agree. `allowRequestedHiddenFields` is an
+//     opt-in used only by the nested-link fetchers.
+//     See the DESIGN NOTE in services/public-datas.service.ts.
 //     PK is skipped here (handled by the fields/default strategies) when
 //     `includePkByDefault` so it stays in the response by default.
 const viewVisibilityFieldStrategy: ColumnAstStrategy = {
@@ -208,10 +220,20 @@ const viewVisibilityFieldStrategy: ColumnAstStrategy = {
   match: (ctx, { col }) =>
     !!ctx.allowedCols && (!ctx.includePkByDefault || !col.pk),
   resolve: (ctx, { col, value, isInFields }) => {
-    const { allowedCols, view, fields, dependencyFieldsForRangeView } = ctx;
+    const {
+      allowedCols,
+      view,
+      fields,
+      dependencyFieldsForRangeView,
+      allowRequestedHiddenFields,
+    } = ctx;
+
+    // An explicitly-requested field passes even when view-hidden.
+    const passesViewVisibility =
+      allowedCols[col.id] || (allowRequestedHiddenFields && isInFields);
 
     return (
-      allowedCols[col.id] &&
+      passesViewVisibility &&
       (!isSystemColumn(col) ||
         (!view && isCreatedOrLastModifiedTimeCol(col)) ||
         view?.show_system_fields ||

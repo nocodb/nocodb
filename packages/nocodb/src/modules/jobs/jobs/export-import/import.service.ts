@@ -45,6 +45,7 @@ import {
   Comment,
   Hook,
   LinkToAnotherRecordColumn,
+  LmtTrackedField,
   Model,
   Source,
   View,
@@ -140,6 +141,19 @@ export class ImportService {
   ) {
     return _param.idMap;
     //  create dashboards
+  }
+
+  async importInterfaces(
+    _context: NcContext,
+    _param: {
+      user: User;
+      data: Array<any>;
+      req: NcRequest;
+      idMap: Map<string, string>;
+    },
+  ) {
+    return _param.idMap;
+    //  create interfaces
   }
 
   async importWorkflows(
@@ -249,8 +263,8 @@ export class ImportService {
           model.id,
         );
 
-        await model.getColumns(context);
-        await model.getViews(context);
+        await model.getColumns();
+        await model.getViews();
 
         const primaryKey = model.primaryKey;
         if (primaryKey) {
@@ -370,27 +384,11 @@ export class ImportService {
             idMap.set(colRef.id, col.id);
           }
 
-          // setval for auto increment column in pg
-          if (source.type === 'pg') {
-            if (modelData.pgSerialLastVal) {
-              if (col.ai) {
-                const baseModel = await Model.getBaseModelSQL(targetContext, {
-                  id: table.id,
-                  viewId: null,
-                  dbDriver: await NcConnectionMgrv2.get(source),
-                });
-                const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
-                await sqlClient.raw(
-                  `SELECT setval(pg_get_serial_sequence('??', ?), ?);`,
-                  [
-                    baseModel.getTnPath(table.table_name),
-                    col.column_name,
-                    modelData.pgSerialLastVal,
-                  ],
-                );
-              }
-            }
-          }
+          // Auto-increment (serial) sequences are realigned after the data is
+          // imported — see resetPgAutoIncrementSequences() — so the reset works
+          // for every source type, not only pg -> pg. (The old pgSerialLastVal
+          // path only fired when the origin was pg, leaving SQLite/MySQL -> pg
+          // migrations with stale sequences and duplicate-id inserts.)
         }
       }
 
@@ -558,7 +556,7 @@ export class ImportService {
                   getParentIdentifier(colOptions.fk_parent_column_id) !==
                   modelData.id
                 )
-                  await childModel.getColumns(context);
+                  await childModel.getColumns();
 
                 const childColumn = param.data
                   .find(
@@ -671,7 +669,7 @@ export class ImportService {
                     );
 
               if (colOptions.fk_related_model_id !== modelData.id)
-                await childModel.getColumns(context);
+                await childModel.getColumns();
 
               const childColumn = param.data
                 .find((a) => a.model.id === colOptions.fk_related_model_id)
@@ -845,7 +843,7 @@ export class ImportService {
                   getParentIdentifier(colOptions.fk_parent_column_id) !==
                   modelData.id
                 )
-                  await childModel.getColumns(context);
+                  await childModel.getColumns();
 
                 const childColumn = (
                   param.data.find(
@@ -1001,7 +999,7 @@ export class ImportService {
                       );
 
                 if (colOptions.fk_related_model_id !== modelData.id)
-                  await childModel.getColumns(context);
+                  await childModel.getColumns();
 
                 const childColumn = (
                   param.data.find(
@@ -1205,7 +1203,7 @@ export class ImportService {
                       );
 
                 if (colOptions.fk_related_model_id !== modelData.id)
-                  await childModel.getColumns(context);
+                  await childModel.getColumns();
 
                 const childColumn = (
                   param.data.find(
@@ -1673,13 +1671,66 @@ export class ImportService {
         col.uidt === UITypes.CreatedBy ||
         col.uidt === UITypes.LastModifiedBy
       ) {
-        if (col.system) continue;
+        if (col.system) {
+          // A *system* LMT/LMB column can also track specific fields, and the
+          // duplicate carries its `meta` across — but the target column already
+          // exists, so none of the columnAdd path below runs and the junction
+          // rows never get written. Without this the copy sits in 'specific'
+          // mode with an empty set and reads NULL on every row while the source
+          // shows timestamps. Persist the remapped set onto the mapped column.
+          const targetColId = getIdOrExternalId(col.id);
+          if (
+            targetColId &&
+            parseProp(flatCol.meta)?.fields_mode === 'specific'
+          ) {
+            const trackedIds = ((col as any).tracked_field_ids || [])
+              .map((a: string) => getIdOrExternalId(a))
+              .filter(Boolean);
+            if (trackedIds.length) {
+              await LmtTrackedField.set(targetContext, targetColId, trackedIds);
+            } else {
+              this.logger.warn(
+                `system LMT/LMB column "${flatCol.title}" imported with an empty tracked set: none of its tracked fields were included in the import`,
+              );
+            }
+          }
+          continue;
+        }
+
+        // remap the tracked field ids of a field-tracking LMT/LMB column
+        // (exported top-level, persisted as junction rows by columnAdd);
+        // ids that don't resolve in the target (e.g. partial column import)
+        // are dropped
+        const importMeta = flatCol.meta;
+        let importTrackedFieldIds: string[] | undefined;
+        if (parseProp(importMeta)?.fields_mode === 'specific') {
+          importTrackedFieldIds = ((col as any).tracked_field_ids || [])
+            .map((a: string) => getIdOrExternalId(a))
+            .filter(Boolean);
+          if (!importTrackedFieldIds.length) {
+            // None of the tracked columns made it into this import. Stay in
+            // 'specific' mode with an empty set so the column keeps reading
+            // NULL, matching the source: degrading to 'all' would make the
+            // copy surface the row's updated_at, i.e. edits to fields it was
+            // never meant to track.
+            this.logger.warn(
+              `LMT/LMB column "${flatCol.title}" imported with an empty tracked set: none of its tracked fields were included in the import`,
+            );
+          }
+        }
+
         const freshModelData = (await this.columnsService.columnAdd(
           targetContext,
           {
+            // a fully-unresolved tracked set must not become an all-fields column
+            allowEmptyLmtTrackedSet: true,
             tableId: getIdOrExternalId(getParentIdentifier(col.id)),
             column: withoutId({
               ...flatCol,
+              meta: importMeta,
+              ...(importTrackedFieldIds && {
+                tracked_field_ids: importTrackedFieldIds,
+              }),
               // provide column_name to avoid ajv error
               // it will be ignored by the service
               column_name: 'system',
@@ -1766,7 +1817,7 @@ export class ImportService {
       const table = tableReferences.get(modelData.id);
 
       // get default view
-      await table.getViews(context);
+      await table.getViews();
       for (const view of viewsData) {
         vieProcessQueue.add(async () => {
           const viewData = withoutId({
@@ -2324,6 +2375,63 @@ export class ImportService {
     }
   }
 
+  /**
+   * Realign a Postgres target's auto-increment (serial) sequences with the
+   * imported data.
+   *
+   * The importer inserts rows with their original ids (to keep relationships
+   * intact). Postgres only advances a serial's sequence when *it* generates the
+   * value — an explicit id does not bump it — so after an import the sequence
+   * is left at its old position and the next user insert reuses a low id and
+   * fails with a duplicate-key error (the "id increment" issue reported on
+   * SQLite/MySQL -> Postgres migrations). Set each auto-increment column's
+   * sequence to `MAX(id)` so the next generated id is `MAX(id) + 1`.
+   *
+   * Works for any source. No-op for non-pg targets, non-ai columns, and empty
+   * tables. Best-effort: a failure on one column is logged, not fatal.
+   */
+  private async resetPgAutoIncrementSequences(
+    context: NcContext,
+    model: Model,
+    source: Source,
+  ) {
+    if (source.type !== 'pg') return;
+
+    await model.getColumns();
+    const aiColumns = model.columns.filter((c) => c.ai);
+    if (!aiColumns.length) return;
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: null,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
+    const tnPath = baseModel.getTnPath(model.table_name);
+
+    for (const col of aiColumns) {
+      try {
+        const maxRes = await sqlClient.raw(`SELECT MAX(??) AS max FROM ??;`, [
+          col.column_name,
+          tnPath,
+        ]);
+        const maxId = maxRes?.rows?.[0]?.max;
+
+        // empty table -> leave the sequence at its default (next id = 1)
+        if (maxId === null || maxId === undefined) continue;
+
+        await sqlClient.raw(
+          `SELECT setval(pg_get_serial_sequence('??', ?), ?);`,
+          [tnPath, col.column_name, maxId],
+        );
+      } catch (e) {
+        this.logger.warn(
+          `Failed to reset pg sequence for ${model.table_name}.${col.column_name}: ${e.message}`,
+        );
+      }
+    }
+  }
+
   importDataFromCsvStream(
     context: NcContext,
     param: {
@@ -2431,11 +2539,24 @@ export class ImportService {
                     chunkSize: chunk.length + 1,
                     foreign_key_checks: !!destBase.isMeta(),
                     raw: true,
+                    // Row copy, not a user write — no webhooks, workflows or audit.
+                    skip_hooks: true,
                     // this is to avoid skipping autoincrement column
                     undo: true,
                     // import/duplication copies rows verbatim — not user field
                     // edits — so bypass per-field edit-permission enforcement
                     skipPermissionCheck: true,
+                    // attachments are carried over from the source base, so
+                    // they belong to neither the destination base nor (in
+                    // general) the acting user — the ownership check can never
+                    // pass here
+                    // TODO: this also relaxes the guard for cross-instance
+                    // remote import, whose refs arrive in the request body
+                    // rather than from an ACL-checked base. Thread the flag
+                    // per-caller once remote import transfers attachment files
+                    // instead of passing refs through verbatim.
+                    // github.com/nocodb/nocohub/pull/10063#discussion_r3773398681
+                    skipAttachmentOwnershipCheck: true,
                   });
                 } catch (e) {
                   // stop the stream
@@ -2460,11 +2581,15 @@ export class ImportService {
                 chunkSize: chunk.length + 1,
                 foreign_key_checks: !!destBase.isMeta(),
                 raw: true,
+                // Row copy, not a user write — no webhooks, workflows or audit.
+                skip_hooks: true,
                 // this is to avoid skipping autoincrement column
                 undo: true,
                 // import/duplication copies rows verbatim — not user field
                 // edits — so bypass per-field edit-permission enforcement
                 skipPermissionCheck: true,
+                // see the chunked insert above
+                skipAttachmentOwnershipCheck: true,
               });
             } catch (e) {
               // stop the stream
@@ -2473,6 +2598,21 @@ export class ImportService {
             }
             chunk = [];
           }
+
+          // Rows were imported with their original ids, which does NOT advance
+          // a pg serial sequence — realign it with the data just written so the
+          // next user insert gets MAX(id)+1 instead of colliding on a low id.
+          // Best-effort; never fail the import over a sequence reset.
+          try {
+            await this.resetPgAutoIncrementSequences(
+              context,
+              destModel,
+              destBase,
+            );
+          } catch (e) {
+            this.debugLog(e);
+          }
+
           resolve(null);
         },
       });
@@ -2506,6 +2646,8 @@ export class ImportService {
             chunkSize: 1000,
             foreign_key_checks: !!destBase.isMeta(),
             raw: true,
+            // Junction row copy, not a user write — no webhooks or audit.
+            skip_hooks: true,
             // this is to avoid skipping autoincrement column
             undo: true,
             // Junction rows are an internal link copy, not user edits. The null
@@ -2580,16 +2722,10 @@ export class ImportService {
 
                   if (col) {
                     const colOptions =
-                      await col.getColOptions<LinkToAnotherRecordColumn>(
-                        context,
-                      );
+                      await col.getColOptions<LinkToAnotherRecordColumn>();
 
-                    const vChildCol = await colOptions.getMMChildColumn(
-                      context,
-                    );
-                    const vParentCol = await colOptions.getMMParentColumn(
-                      context,
-                    );
+                    const vChildCol = await colOptions.getMMChildColumn();
+                    const vParentCol = await colOptions.getMMParentColumn();
 
                     mmParentChild[col.colOptions.fk_mm_model_id] = {
                       parent: vParentCol.column_name,

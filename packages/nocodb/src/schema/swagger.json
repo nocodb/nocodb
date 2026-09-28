@@ -3957,156 +3957,6 @@
         "description": "List all tables in a given base"
       }
     },
-    "/api/v1/db/internal/links/{linkColumnId}/tables/{tableId}": {
-      "parameters": [
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "cl_w9gpnaousnfss1",
-            "type": "string"
-          },
-          "name": "linkColumnId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Link Columns ID"
-        },
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "md_w9gpnaousnfss1",
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Table ID"
-        }
-      ],
-      "get": {
-        "summary": "Read Partial Linked Table",
-        "operationId": "db-links-table-read",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Table"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "id": "md_rsu68aqjsbyqtl",
-                      "source_id": "ds_g4ccx6e77h1dmi",
-                      "base_id": "p_xm3thidrblw4n7",
-                      "table_name": "nc_vm5q___Table1",
-                      "title": "Table1",
-                      "type": "table",
-                      "meta": null,
-                      "schema": null,
-                      "enabled": 1,
-                      "mm": 0,
-                      "tags": null,
-                      "pinned": null,
-                      "deleted": null,
-                      "order": 1,
-                      "created_at": "2023-03-02 17:04:06",
-                      "updated_at": "2023-03-02 17:04:08",
-                      "columns": [
-                        {
-                          "id": "cl_phvuuwjrzcdo0g",
-                          "source_id": "ds_g4ccx6e77h1dmi",
-                          "base_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "Id",
-                          "column_name": "id",
-                          "uidt": "ID",
-                          "dt": "int",
-                          "np": "10",
-                          "ns": "0",
-                          "clen": null,
-                          "cop": "1",
-                          "pk": 1,
-                          "pv": null,
-                          "rqd": 1,
-                          "un": 1,
-                          "ct": "int unsigned",
-                          "ai": 1,
-                          "unique": 0,
-                          "cdf": null,
-                          "cc": "",
-                          "csn": null,
-                          "dtx": "specificType",
-                          "dtxp": "",
-                          "dtxs": "0",
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 1,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        },
-                        {
-                          "id": "cl_c5knoi4xs4sfpt",
-                          "source_id": "ds_g4ccx6e77h1dmi",
-                          "base_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "Title",
-                          "column_name": "title",
-                          "uidt": "SingleLineText",
-                          "dt": "varchar",
-                          "np": null,
-                          "ns": null,
-                          "clen": "45",
-                          "cop": "2",
-                          "pk": 0,
-                          "pv": 1,
-                          "rqd": 0,
-                          "un": 0,
-                          "ct": "varchar(45)",
-                          "ai": 0,
-                          "unique": 0,
-                          "cdf": null,
-                          "cc": "",
-                          "csn": "utf8mb4",
-                          "dtx": "specificType",
-                          "dtxp": "45",
-                          "dtxs": null,
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 2,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB Links"
-        ],
-        "description": "Read the table metadata by linked column ID and  table ID",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
     "/api/v1/db/meta/tables/{tableId}": {
       "parameters": [
         {
@@ -20726,6 +20576,15 @@
           "schema": {
             "type": "string"
           },
+          "name": "scopeBaseId",
+          "in": "query",
+          "description": "Base Id to narrow an account-scoped listing to",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
           "name": "viewId",
           "in": "query",
           "description": "View Id",
@@ -20933,6 +20792,15 @@
           "schema": {
             "type": "string"
           },
+          "name": "userId",
+          "in": "query",
+          "description": "User ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
           "name": "clientId",
           "in": "query",
           "description": "Client ID",
@@ -21026,6 +20894,60 @@
           "name": "revisionId",
           "in": "query",
           "description": "Document Revision ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "appId",
+          "in": "query",
+          "description": "App ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "appTeamId",
+          "in": "query",
+          "description": "App Team ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "pageId",
+          "in": "query",
+          "description": "App Page ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "routineId",
+          "in": "query",
+          "description": "App Routine ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "threadId",
+          "in": "query",
+          "description": "App Chat Thread ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "persona",
+          "in": "query",
+          "description": "App Team handle to preview the app as",
           "required": false
         }
       ]
@@ -21932,6 +21854,21 @@
           "is_private": {
             "$ref": "#/components/schemas/Bool"
           },
+          "credential_mode": {
+            "description": "Credential sharing mode for AUTH integrations",
+            "enum": [
+              "shared",
+              "per_user"
+            ],
+            "type": "string"
+          },
+          "connected_environment_ids": {
+            "description": "EE only. On per-user integrations: environment ids the REQUESTING user has connected (attached to list/read responses; empty when unconnected).",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "is_default": {
             "$ref": "#/components/schemas/Bool"
           },
@@ -21947,6 +21884,22 @@
             "description": "DB Type",
             "example": "mysql2",
             "type": "string"
+          },
+          "environments": {
+            "description": "EE only. Per-environment config overrides for this integration. Each entry's `config` is decrypted only when the caller may also see the integration's own config (same gate); otherwise it is omitted. Absent/empty in CE.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fk_environment_id": {
+                  "description": "The environment this override belongs to",
+                  "type": "string"
+                },
+                "config": {
+                  "description": "The per-environment config (decrypted for authorized callers, omitted otherwise)"
+                }
+              }
+            }
           }
         },
         "x-stoplight": {
@@ -22139,6 +22092,7 @@
           "auth",
           "sync",
           "communication",
+          "channel",
           "spread-sheet",
           "project-management",
           "crm",
@@ -22149,7 +22103,8 @@
           "ticketing",
           "storage",
           "others",
-          "workflow-node"
+          "workflow-node",
+          "actions"
         ]
       },
       "IntegrationReq": {
@@ -22188,6 +22143,34 @@
           "is_restricted": {
             "$ref": "#/components/schemas/Bool",
             "description": "Whether the integration is restricted to specific bases"
+          },
+          "is_private": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether the integration is visible only to its creator. Not combinable with credential_mode 'per_user'."
+          },
+          "credential_mode": {
+            "description": "EE only. Credential sharing mode for AUTH integrations: 'shared' (default \u2014 one credential everyone uses) or 'per_user' (each user connects their own account). Ignored in CE.",
+            "enum": [
+              "shared",
+              "per_user"
+            ],
+            "type": "string"
+          },
+          "environments": {
+            "description": "EE only. Per-environment config overrides to apply when creating the integration. Each entry's `config` is persisted as that environment's override (production is skipped — it uses the integration's own config). Ignored in CE.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fk_environment_id": {
+                  "description": "The environment this override belongs to",
+                  "type": "string"
+                },
+                "config": {
+                  "description": "The per-environment config override"
+                }
+              }
+            }
           }
         },
         "title": "Source Request",
@@ -23707,7 +23690,9 @@
                 "pattern": "^fr_[a-z0-9]+$",
                 "maxLength": 32
               },
-              { "type": "null" }
+              {
+                "type": "null"
+              }
             ]
           },
           "required": {
@@ -23794,7 +23779,9 @@
                 "pattern": "^fr_[a-z0-9]+$",
                 "maxLength": 32
               },
-              { "type": "null" }
+              {
+                "type": "null"
+              }
             ]
           },
           "required": {
@@ -24717,7 +24704,10 @@
               },
               "scope": {
                 "type": "string",
-                "enum": ["anyone", "specific"],
+                "enum": [
+                  "anyone",
+                  "specific"
+                ],
                 "description": "anyone = any mention; specific = only mentions of user_ids"
               },
               "user_ids": {
@@ -24737,7 +24727,10 @@
               },
               "mode": {
                 "type": "string",
-                "enum": ["include", "exclude"]
+                "enum": [
+                  "include",
+                  "exclude"
+                ]
               },
               "user_ids": {
                 "type": "array",
@@ -25877,17 +25870,29 @@
           },
           "dependency_linkrow_role": {
             "type": "string",
-            "enum": ["predecessors", "successors"],
+            "enum": [
+              "predecessors",
+              "successors"
+            ],
             "description": "Whether the linkrow field links to predecessors or successors"
           },
           "dependency_connection_type": {
             "type": "string",
-            "enum": ["end-to-start", "end-to-end", "start-to-end", "start-to-start"],
+            "enum": [
+              "end-to-start",
+              "end-to-end",
+              "start-to-end",
+              "start-to-start"
+            ],
             "description": "Which date from predecessor drives which date in successor"
           },
           "dependency_buffer_type": {
             "type": "string",
-            "enum": ["flexible", "fixed", "none"],
+            "enum": [
+              "flexible",
+              "fixed",
+              "none"
+            ],
             "description": "Type of buffer between predecessor end and successor start"
           },
           "dependency_buffer_days": {
@@ -25927,15 +25932,27 @@
           },
           "dependency_linkrow_role": {
             "type": "string",
-            "enum": ["predecessors", "successors"]
+            "enum": [
+              "predecessors",
+              "successors"
+            ]
           },
           "dependency_connection_type": {
             "type": "string",
-            "enum": ["end-to-start", "end-to-end", "start-to-end", "start-to-start"]
+            "enum": [
+              "end-to-start",
+              "end-to-end",
+              "start-to-end",
+              "start-to-start"
+            ]
           },
           "dependency_buffer_type": {
             "type": "string",
-            "enum": ["flexible", "fixed", "none"]
+            "enum": [
+              "flexible",
+              "fixed",
+              "none"
+            ]
           },
           "dependency_buffer_days": {
             "type": "integer",
@@ -27208,7 +27225,8 @@
             "enum": [
               "database",
               "documentation",
-              "dashboard"
+              "dashboard",
+              "code"
             ]
           },
           "linked_db_projects": {
@@ -27271,7 +27289,9 @@
                         "type": "string",
                         "enum": [
                           "user",
-                          "team"
+                          "team",
+                          "appTeam",
+                          "agent"
                         ],
                         "description": "Type of the subject"
                       },
@@ -27295,13 +27315,13 @@
               ]
             }
           },
-          "is_sandbox": {
+          "is_lane_instance": {
             "$ref": "#/components/schemas/Bool",
-            "description": "Indicates if the base is a sandbox"
+            "description": "Indicates if the base is an environment instance"
           },
-          "is_sandbox_production": {
+          "has_lane_instances": {
             "$ref": "#/components/schemas/Bool",
-            "description": "Indicates if the base is a sandbox production base (has at least one sandbox derived from it)"
+            "description": "Indicates if the base is a production base (has at least one environment instance derived from it)"
           }
         },
         "x-stoplight": {
@@ -28747,6 +28767,11 @@
             "description": "Unique Source ID",
             "type": "string"
           },
+          "fk_base_section_id": {
+            "description": "ID of the base-level section this table is grouped under, if any",
+            "type": "string",
+            "nullable": true
+          },
           "date_dependency": {
             "description": "Date dependency rule for this table",
             "nullable": true,
@@ -29198,6 +29223,14 @@
           "token_version": {
             "description": "Access token version",
             "type": "string"
+          },
+          "blocked": {
+            "type": "boolean",
+            "description": "Set to true when the user has been blocked by an administrator."
+          },
+          "blocked_reason": {
+            "type": "string",
+            "description": "Operator-facing reason a user was blocked. Never echoed to the blocked user."
           },
           "meta": {
             "$ref": "#/components/schemas/Meta",
@@ -30469,13 +30502,13 @@
             "example": "mod0Adp9PMG9o7uJy",
             "description": "Model ID"
           },
-          "preference": {
+          "preferences": {
             "type": "string",
             "enum": [
-              "ALL_COMMENTS",
-              "ONLY_MENTIONS"
+              "all",
+              "mentions"
             ],
-            "description": "Is Read"
+            "description": "Comment notification preference for the record"
           },
           "created_at": {
             "type": "string",
@@ -30638,17 +30671,18 @@
           },
           "frequency": {
             "type": "string",
-            "enum": ["hourly", "daily", "weekly", "monthly", "cron"],
+            "enum": [
+              "daily",
+              "weekly",
+              "monthly",
+              "cron"
+            ],
             "description": "Schedule frequency preset or custom cron"
           },
           "config": {
             "type": "object",
             "description": "Frequency-specific configuration",
             "properties": {
-              "minute": {
-                "type": "integer",
-                "description": "Minute of the hour (hourly)"
-              },
               "time": {
                 "type": "string",
                 "description": "Time of day HH:mm (daily/weekly/monthly)"
@@ -30735,6 +30769,11 @@
           "order": {
             "type": "number",
             "description": "Order of the Script"
+          },
+          "fk_automation_section_id": {
+            "description": "ID of the automation folder this script is grouped under, if any",
+            "type": "string",
+            "nullable": true
           },
           "base_id": {
             "$ref": "#/components/schemas/Id",
@@ -30829,6 +30868,11 @@
           "order": {
             "description": "The order of the workflow in the list",
             "type": "number"
+          },
+          "fk_automation_section_id": {
+            "description": "ID of the automation folder this workflow is grouped under, if any",
+            "type": "string",
+            "nullable": true
           },
           "updated_at": {
             "type": "string",
@@ -31254,7 +31298,7 @@
           "resource_type": {
             "type": "string",
             "description": "Type of the trashed resource",
-            "enum": ["table", "view", "field", "dashboard", "widget", "script", "workflow", "extension", "record", "hook"]
+            "enum": ["table", "view", "field", "dashboard", "widget", "script", "workflow", "extension", "record", "hook", "app"]
           },
           "resource_id": {
             "$ref": "#/components/schemas/Id",

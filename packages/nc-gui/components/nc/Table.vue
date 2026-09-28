@@ -25,6 +25,8 @@ interface Props {
   pagination?: boolean
   paginationOffset?: number
   tableToolbarClassName?: string
+  /** With no rows and nothing loading, render only the empty state — no header, no border. */
+  hideOnEmpty?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -48,9 +50,12 @@ const props = withDefaults(defineProps<Props>(), {
   pagination: false,
   paginationOffset: 10,
   tableToolbarClassName: '',
+  hideOnEmpty: false,
 })
 
 const emit = defineEmits(['update:orderBy', 'rowClick'])
+
+const isEmptyOnly = computed(() => props.hideOnEmpty && !props.isDataLoading && !props.data?.length)
 
 const defaultPaginationData = { page: 1, pageSize: 25, totalRows: 0, isLoading: true }
 
@@ -215,7 +220,9 @@ watch(
   <div
     class="nc-table-container relative"
     :class="{
-      bordered,
+      'bordered': bordered && !isEmptyOnly,
+      // A content-height table still centres its empty state in the host.
+      'h-full': isEmptyOnly,
       'nc-disable-table-scroll': disableTableScroll,
       'min-h-120': isDataLoading,
     }"
@@ -236,6 +243,7 @@ watch(
     </template>
 
     <div
+      v-if="!isEmptyOnly"
       ref="tableWrapper"
       class="nc-table-wrapper relative"
       :class="{
@@ -250,7 +258,7 @@ watch(
     >
       <table
         ref="tableHeader"
-        class="w-full max-w-full"
+        class="nc-table-header-table w-full max-w-full"
         :class="{
           '!sticky top-0 z-5': stickyHeader && !disableTableScroll,
           '!sticky z-5': forceStickyHeader,
@@ -395,9 +403,9 @@ watch(
     <div
       v-if="!isDataLoading && !data?.length"
       class="flex-none nc-table-empty flex items-center justify-center py-8 px-6 h-full"
-      :style="{
-        maxHeight: `calc(100% - ${headerRowHeight} - ${tableToolbarHeight + tableFooterHeight}px)`,
-      }"
+      :style="
+        isEmptyOnly ? undefined : { maxHeight: `calc(100% - ${headerRowHeight} - ${tableToolbarHeight + tableFooterHeight}px)` }
+      "
     >
       <div class="flex-none text-center flex flex-col items-center gap-3">
         <slot name="emptyText">
@@ -433,7 +441,11 @@ watch(
 <style lang="scss" scoped>
 .nc-table-container {
   &.bordered {
-    @apply border-1 border-nc-border-gray-medium rounded-lg overflow-hidden w-full;
+    @apply border-1 border-nc-border-gray-medium rounded-lg w-full;
+    // `clip` rather than `hidden`: it still trims rows to the rounded corners but
+    // does not become a scroll container, so a sticky header can pin against the
+    // page that actually scrolls.
+    overflow: clip;
   }
 
   &:not(.bordered):not(.nc-disable-table-scroll) {
@@ -491,6 +503,19 @@ watch(
 
         td {
           @apply text-sm text-nc-content-gray-subtle2;
+        }
+
+        // Row actions rest hidden and bloom on hover. They keep their place, so
+        // revealing one never reflows the row, and focus keeps them up for anyone
+        // arriving by keyboard.
+        :deep(.nc-row-action) {
+          @apply opacity-0 transition-opacity duration-150;
+        }
+
+        &:hover :deep(.nc-row-action),
+        :deep(.nc-row-action:focus),
+        :deep(.nc-row-action:focus-within) {
+          @apply opacity-100;
         }
       }
     }

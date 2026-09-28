@@ -9,7 +9,7 @@ import {
 } from '../calendarRecordCardHeight'
 import type { Row } from '~/lib/types'
 
-const emits = defineEmits(['expandRecord', 'newRecord'])
+const emits = defineEmits(['expandRecord', 'newRecord', 'recordContextMenu'])
 
 const {
   selectedDateRange,
@@ -22,12 +22,21 @@ const {
   viewMetaProperties,
   updateFormat,
   isSyncedFromColumn,
+  isAddDeleteInlineEnabled,
   recordHeightMode,
   isDayAnchoredMode,
   dayAnchoredSpan,
+  jumpToRecordEdge,
 } = useCalendarViewStoreOrThrow()
 
 const { isSyncedTable } = useSmartsheetStoreOrThrow()
+
+// Interface editor: a date/dblclick selects the calendar element (opens
+// `Page › Calendar`) instead of highlighting the date or adding a record. Null
+// in the published view and outside interface pages.
+const interfaceEditSelect = inject(InterfaceVizEditSelectInj, ref<(() => void) | null>(null))
+
+const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
 
 const maxVisibleDays = computed(() => {
   // Day-anchored modes ('3day', custom + day-unit) render exactly N day columns
@@ -48,6 +57,13 @@ const { $e } = useNuxtApp()
 const { width: containerWidth } = useElementSize(container)
 
 const { isUIAllowed } = useRoles()
+
+// Interface pages provide ReadonlyInj when the viz's edit_inline opt-in is
+// OFF — event drag/resize must honor it like grid cells do. Plain data-app
+// trees never provide it (fallback false → behavior unchanged).
+const isCalendarCellReadonly = inject(ReadonlyInj, ref(false))
+
+const canEditCalendarData = computed(() => isUIAllowed('dataEdit') && !isCalendarCellReadonly.value)
 
 const meta = inject(MetaInj, ref())
 
@@ -78,13 +94,17 @@ const nonEmptyCardFields = (record: Row) => (fields.value ?? []).filter((f) => f
 
 // Fields actually rendered on the card. When there are more than the cap, the
 // last line is reserved for a "+N more" hint, so we render one fewer field.
+// Interfaces drop the hint — it reads like the month grid's "+N more" record
+// count — and spend that line on one more field.
 const cardFields = (record: Row) => {
   const all = nonEmptyCardFields(record)
+  if (interfacePageDataApi) return all.slice(0, CALENDAR_CARD_MAX_FIELDS)
   return all.length > CALENDAR_CARD_MAX_FIELDS ? all.slice(0, CALENDAR_CARD_MAX_FIELDS - 1) : all
 }
 
 // Count of non-empty fields not shown on the card (0 when everything fits).
 const hiddenFieldCount = (record: Row) => {
+  if (interfacePageDataApi) return 0
   const total = nonEmptyCardFields(record).length
   return total > CALENDAR_CARD_MAX_FIELDS ? total - (CALENDAR_CARD_MAX_FIELDS - 1) : 0
 }
@@ -376,7 +396,7 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 
 // This function is used to calculate the new start and end date of a record when resizing
 const onResize = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit') || !container.value || !resizeRecord.value) return
+  if (!canEditCalendarData.value || !container.value || !resizeRecord.value) return
 
   const { width, left } = container.value.getBoundingClientRect()
 
@@ -453,7 +473,8 @@ const onResizeEnd = () => {
 }
 
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
-  if (!isUIAllowed('dataEdit')) return
+  if (event.button !== 0) return
+  if (!canEditCalendarData.value) return
   resizeInProgress.value = true
   resizeDirection.value = direction
   resizeRecord.value = record
@@ -549,7 +570,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
 }
 
 const onDrag = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit')) return
+  if (!canEditCalendarData.value) return
   if (!container.value || !dragRecord.value) return
   event.preventDefault()
 
@@ -560,7 +581,7 @@ const stopDrag = (event: MouseEvent) => {
   event.preventDefault()
   clearTimeout(dragTimeout.value!)
 
-  if (!isUIAllowed('dataEdit')) return
+  if (!canEditCalendarData.value) return
   if (!isDragging.value || !container.value || !dragRecord.value) return
 
   const { updateProperty, newRow } = calculateNewRow(event)
@@ -593,6 +614,8 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
+  // Right/middle-click never drags — it opens the record context menu (or the browser's).
+  if (event.button !== 0) return
   if (resizeInProgress.value) return
   let target = event.target as HTMLElement
 
@@ -605,7 +628,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
   // Drag-to-reschedule is gated to editable, non-synced ranges; click-to-expand
   // (onMouseUp below) must work regardless so synced records can be opened.
-  const canDrag = isUIAllowed('dataEdit') && !isSyncedFromColumn.value && !record.rowMeta.range?.is_readonly
+  const canDrag = canEditCalendarData.value && !isSyncedFromColumn.value && !record.rowMeta.range?.is_readonly
 
   if (canDrag) {
     dragTimeout.value = setTimeout(() => {
@@ -648,7 +671,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
 }
 
 const dropEvent = (event: DragEvent) => {
-  if (!isUIAllowed('dataEdit')) return
+  if (!canEditCalendarData.value) return
   event.preventDefault()
 
   const data = event.dataTransfer?.getData('text/plain')
@@ -677,15 +700,17 @@ const dropEvent = (event: DragEvent) => {
 }
 
 const selectDate = (day: dayjs.Dayjs) => {
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
   selectedDate.value = day
   dragRecord.value = undefined
 }
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
 const addRecord = (date: dayjs.Dayjs) => {
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
   // Records can't be added to synced (read-only) tables — return if synced.
   // (This guard was inverted; the sibling MonthView/DateTimeView use the same check.)
-  if (!isUIAllowed('dataEdit') || !calendarRange.value || isSyncedTable.value) return
+  if (!isUIAllowed('dataEdit') || !isAddDeleteInlineEnabled.value || !calendarRange.value || isSyncedTable.value) return
   const fromCol = calendarRange.value[0]?.fk_from_col
   if (!fromCol) return
   const newRecord = {
@@ -756,6 +781,7 @@ const addRecord = (date: dayjs.Dayjs) => {
           @mouseleave="hoverRecord = null"
           @mouseover="hoverRecord = record.rowMeta.id"
           @mousedown.stop="dragStart($event, record)"
+          @contextmenu="emits('recordContextMenu', $event, record)"
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarRecordCard
@@ -763,12 +789,14 @@ const addRecord = (date: dayjs.Dayjs) => {
               :dragging="record.rowMeta.id === dragRecord?.rowMeta?.id || record.rowMeta.id === resizeRecord?.rowMeta?.id"
               :position="record.rowMeta.position"
               :record="record"
-              :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
+              :resize="!!record.rowMeta.range?.fk_to_col && canEditCalendarData"
               size="auto"
               multiline
               :has-hidden-fields="hiddenFieldCount(record) > 0"
               @dblclick.stop="emits('expandRecord', record)"
               @resize-start="onResizeStart"
+              @jump-start="jumpToRecordEdge(record, 'start')"
+              @jump-end="jumpToRecordEdge(record, 'end')"
             >
               <template v-for="(field, index) in cardFields(record)" :key="index">
                 <LazySmartsheetPlainCell

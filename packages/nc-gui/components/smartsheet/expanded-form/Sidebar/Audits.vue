@@ -96,6 +96,12 @@ watch(
 
 const meta = inject(MetaInj, ref())
 
+// Interface panels hide field-type icons (interfaces abstract the schema
+// away) — same treatment as AuditMiniItem's per-field headers. Presentation
+// flag, not the ops adapter: public interface pages have no adapter but must
+// still look like an interface.
+const ifaceSidebar = inject(IsInterfaceRecordSurfaceInj, false)
+
 const isSyncedTable = computed(() => !!(meta.value as TableType | undefined)?.synced)
 
 function safeJsonParse(json: string) {
@@ -195,7 +201,8 @@ function isV0Audit(audit: AuditType) {
           <NcButton size="small" type="secondary" @click="initLoadMoreAudits()"> {{ $t('general.loadEarlier') }} </NcButton>
         </div>
         <div v-for="audit of visibleAudits" :key="audit.id" :class="`${audit.id}`" class="nc-audit-item">
-          <div class="group gap-3 overflow-hidden px-3 py-2 transition hover:bg-nc-bg-gray-light">
+          <!-- Interface panels: no hover fill — the entries aren't interactive there -->
+          <div class="group gap-3 overflow-hidden px-3 py-2 transition" :class="{ 'hover:bg-nc-bg-gray-light': !ifaceSidebar }">
             <div class="flex items-start justify-between">
               <div class="flex items-start gap-3 flex-1 w-full">
                 <GeneralUserIcon
@@ -235,15 +242,23 @@ function isV0Audit(audit: AuditType) {
               <div class="pl-9">{{ $t('activity.createdRecord') }}</div>
               <div
                 v-if="safeJsonParse(audit.details)?.data && Object.keys(safeJsonParse(audit.details)?.column_meta || {}).length"
-                class="ml-9 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y"
+                class="ml-9 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight"
+                :class="{ 'divide-y': !ifaceSidebar }"
               >
                 <SmartsheetExpandedFormSidebarAuditMiniItem :audit="audit" />
               </div>
             </template>
             <div v-else-if="['DATA_LINK', 'DATA_UNLINK'].includes(audit?.op_type)" class="pl-9">
-              <div class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y py-2 px-3">
-                <div class="flex items-center gap-2 !text-nc-content-gray-subtle2 text-xs nc-audit-mini-item-header mb-3">
+              <div
+                class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight py-2 px-3"
+                :class="{ 'divide-y': !ifaceSidebar }"
+              >
+                <div
+                  class="flex items-center gap-2 !text-nc-content-gray-subtle2 text-xs nc-audit-mini-item-header mb-3"
+                  :class="{ 'uppercase !text-[10px] tracking-wide': ifaceSidebar }"
+                >
                   <SmartsheetHeaderVirtualCellIcon
+                    v-if="!ifaceSidebar"
                     :column-meta="{ uidt: 'Links', colOptions: { type: getLinkColumnType(audit) } }"
                     class="!m-0"
                   />
@@ -285,7 +300,11 @@ function isV0Audit(audit: AuditType) {
               <div v-if="audit?.op_type === 'DATA_CASCADE_UPDATE'" class="pl-9 text-xs text-nc-content-gray-muted mb-1">
                 {{ $t('labels.dateDependency.cascadeUpdateDescription') }}
               </div>
-              <div class="ml-9 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y">
+              <!-- Interface panels drop the between-field dividers (reference design) -->
+              <div
+                class="ml-9 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight"
+                :class="{ 'divide-y': !ifaceSidebar }"
+              >
                 <SmartsheetExpandedFormSidebarAuditMiniItem :audit="audit" />
               </div>
             </template>

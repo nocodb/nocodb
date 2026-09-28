@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import dayjs from 'dayjs'
 import type { IntegrationType, UserType, WorkspaceUserType } from 'nocodb-sdk'
-import { IntegrationsType } from 'nocodb-sdk'
+import { IntegrationsType, SyncDataType } from 'nocodb-sdk'
 
 interface Props {
   connections: IntegrationType[]
@@ -21,6 +22,8 @@ const emits = defineEmits<{
 }>()
 
 const { t } = useI18n()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { editIntegration, deleteIntegration, getIntegration, loadIntegrations, deleteConfirmText, successConfirmModal } =
   useIntegrationStore()
@@ -75,6 +78,26 @@ const toBeDeletedIntegration = ref<
     })
   | null
 >(null)
+
+// NocoDB's own connection is only editable while data reflection is on.
+const canOpenEdit = (integration: IntegrationType) =>
+  isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) || integration.sub_type !== SyncDataType.NOCODB
+
+/** "Added <date> by <name>", skipping whichever half is unknown. */
+function connectionMeta(connection: IntegrationType) {
+  const parts: string[] = []
+
+  if (connection.created_at) {
+    parts.push(t('labels.addedOnDate', { date: dayjs(connection.created_at).local().format('DD MMM YYYY') }))
+  }
+
+  const by: { display_name?: string; email?: string } | undefined = collaboratorsMap.value?.get(connection.created_by as string)
+  const name = by?.display_name || by?.email
+
+  if (name) parts.push(t('labels.byUser', { user: name }))
+
+  return parts.join(' · ')
+}
 
 const openDeleteIntegration = async (integration: IntegrationType) => {
   isLoadingGetLinkedSources.value = true
@@ -134,11 +157,11 @@ const handleEdit = (integration: IntegrationType) => {
 
 <template>
   <div v-show="filteredConnections.length" class="nc-active-connections-section" style="container-type: inline-size">
-    <!-- Section header -->
-    <div class="flex items-center justify-between mb-4">
+    <!-- Header: same shape as the base pane's "Your connections". -->
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
       <div class="flex items-center gap-2">
-        <h3 class="text-sm font-weight-700 text-nc-content-gray-subtle mb-0">
-          {{ t('general.activeConnections') }}
+        <h3 class="text-bodyDefault font-semibold text-nc-content-gray-emphasis mb-0">
+          {{ t('labels.yourConnections') }}
         </h3>
         <NcBadge
           v-if="filteredTotalCount"
@@ -152,41 +175,60 @@ const handleEdit = (integration: IntegrationType) => {
       <NcButton
         v-if="filteredTotalCount > 0"
         v-e="['c:integration:view-all-connections']"
-        type="link"
+        type="text"
         size="small"
-        class="!text-nc-content-brand !p-0 !h-auto !min-h-0"
-        inner-class="hover:underline"
+        class="nc-manage-link !text-nc-content-brand"
         @click="emits('view-all')"
       >
-        {{ t('general.viewAllConnections') }}
+        {{ t('general.manage') }}
         <GeneralIcon icon="arrowRight" class="ml-1" />
       </NcButton>
     </div>
 
-    <!-- Connection cards grid -->
-    <div class="nc-connection-cards-grid grid grid-cols-1 gap-3">
-      <WorkspaceIntegrationsConnectionCard
+    <!-- A list, not cards: these are records to scan and act on. -->
+    <div class="nc-connection-list">
+      <div
         v-for="connection in visibleConnections"
         :key="connection.id"
-        :integration="connection"
-        :collaborators-map="collaboratorsMap"
-        @edit="handleEdit"
-        @delete="openDeleteIntegration"
-        @base-assignment="openBaseAssignment"
-      />
-
-      <!-- Overflow card -->
-      <div
-        v-if="overflowCount > 0"
-        v-e="['c:integration:view-all-connections']"
-        class="nc-connection-overflow-card"
-        @click="emits('view-all')"
+        class="nc-connection-row"
+        :data-testid="`nc-connection-row-${connection.id}`"
+        @click="canOpenEdit(connection) && handleEdit(connection)"
       >
-        <div class="text-sm font-semibold text-nc-content-gray">+{{ overflowCount }} {{ t('general.more') }}</div>
-        <div class="text-xs text-nc-content-gray-subtle2">
-          {{ t('general.viewAllConnections') }}
+        <span class="nc-connection-row-icon">
+          <GeneralIntegrationIcon :type="connection.sub_type" />
+        </span>
+
+        <div class="flex-1 min-w-0 flex flex-col">
+          <NcTooltip class="text-bodyDefaultSm font-semibold text-nc-content-gray truncate" show-on-truncate-only>
+            {{ connection.title }}
+          </NcTooltip>
+          <span class="text-bodySm text-nc-content-gray-muted truncate">{{ connectionMeta(connection) }}</span>
+        </div>
+
+        <div class="flex-none" @click.stop>
+          <WorkspaceIntegrationsConnectionActionMenu
+            :integration="connection"
+            @delete="openDeleteIntegration"
+            @base-assignment="openBaseAssignment"
+          >
+            <NcButton size="xs" type="text" class="!px-1" @click.stop>
+              <GeneralIcon icon="threeDotVertical" />
+            </NcButton>
+          </WorkspaceIntegrationsConnectionActionMenu>
         </div>
       </div>
+
+      <button
+        v-if="overflowCount > 0"
+        v-e="['c:integration:view-all-connections']"
+        type="button"
+        class="nc-connection-expander"
+        data-testid="nc-connections-expander"
+        @click="emits('view-all')"
+      >
+        <GeneralIcon icon="chevronDown" class="w-4 h-4" />
+        {{ t('labels.showMoreConnections', { count: overflowCount }) }}
+      </button>
     </div>
 
     <NcDivider v-if="showDivider" class="!mt-6 !mb-0" />
@@ -289,34 +331,6 @@ const handleEdit = (integration: IntegrationType) => {
 
 <style lang="scss" scoped>
 .nc-active-connections-section {
-  .nc-connection-cards-grid {
-    @supports not (container-type: inline-size) {
-      @media (min-width: 540px) {
-        @apply grid-cols-2;
-      }
-
-      @media (min-width: 1024px) {
-        @apply grid-cols-3;
-      }
-
-      @media (min-width: 1440px) {
-        @apply grid-cols-4;
-      }
-    }
-
-    @container (min-width: 540px) {
-      @apply grid-cols-2;
-    }
-
-    @container (min-width: 820px) {
-      @apply grid-cols-3;
-    }
-
-    @container (min-width: 1140px) {
-      @apply grid-cols-4;
-    }
-  }
-
   .nc-connection-overflow-card {
     @apply flex flex-col items-center justify-center gap-1 border-1 border-dashed border-nc-border-gray-medium rounded-xl p-3 cursor-pointer transition-all duration-200;
 
@@ -324,5 +338,48 @@ const handleEdit = (integration: IntegrationType) => {
       @apply bg-nc-bg-gray-extralight border-nc-border-gray-dark;
     }
   }
+}
+
+/* Mirrors the base settings pane's "Your connections" list. */
+.nc-connection-list {
+  @apply flex flex-col rounded-xl border-1 border-nc-border-gray-medium overflow-hidden;
+}
+
+.nc-connection-row {
+  @apply flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors duration-150
+    border-b-1 border-nc-border-gray-light;
+
+  &:last-child {
+    @apply border-b-0;
+  }
+
+  &:hover {
+    @apply bg-nc-bg-gray-extralight;
+  }
+}
+
+.nc-connection-row-icon {
+  @apply flex-none flex items-center justify-center h-8 w-8 rounded-lg overflow-hidden bg-nc-bg-gray-extralight;
+
+  :deep(svg),
+  :deep(img) {
+    width: 18px !important;
+    height: 18px !important;
+    object-fit: contain;
+  }
+}
+
+.nc-connection-expander {
+  @apply flex items-center justify-center gap-1.5 w-full py-2.5 cursor-pointer bg-transparent
+    border-0 border-t-1 border-nc-border-gray-light text-bodySm text-nc-content-gray-subtle2;
+
+  &:hover {
+    @apply bg-nc-bg-gray-extralight text-nc-content-gray;
+  }
+}
+
+// `font-normal` resolves to 500 in this theme, so a real 400 is written out.
+.nc-manage-link {
+  font-weight: 400 !important;
 }
 </style>

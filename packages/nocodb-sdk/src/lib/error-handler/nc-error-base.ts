@@ -10,9 +10,15 @@ import {
   TestConnectionError,
   UnprocessableEntity,
 } from '../error/nc-base.error';
-import { NcErrorType, PlanLimitExceededDetailsType } from '../globals';
+import {
+  CreditsExhaustedDetailsType,
+  LicenseInactiveReason,
+  NcErrorType,
+  PlanLimitExceededDetailsType,
+} from '../globals';
 import {
   HigherPlan,
+  PlanFeatureAddonMessages,
   PlanFeatureTypes,
   PlanFeatureUpgradeMessages,
 } from '../payment';
@@ -44,6 +50,27 @@ export class NcErrorBase {
 
   workspaceNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_WORKSPACE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  workspaceSuspended(reason?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_WORKSPACE_SUSPENDED, {
+      params: reason,
+      ...args,
+    });
+  }
+
+  baseSuspended(reason?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_BASE_SUSPENDED, {
+      params: reason,
+      ...args,
+    });
+  }
+
+  orgNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_ORG_NOT_FOUND, {
       params: id,
       ...args,
     });
@@ -98,6 +125,37 @@ export class NcErrorBase {
     });
   }
 
+  interfaceNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_INTERFACE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  interfacePageNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTERFACE_PAGE_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
+  }
+
+  /**
+   * Write op attempted while previewing an interface as another USER — the
+   * dedicated type lets the UI tell "you are previewing" apart from a real
+   * permission denial.
+   */
+  interfacePreviewWriteBlocked(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTERFACE_PREVIEW_WRITE_BLOCKED,
+      {
+        ...args,
+      }
+    );
+  }
+
   chatSessionNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.ERR_CHAT_SESSION_NOT_FOUND,
@@ -118,11 +176,149 @@ export class NcErrorBase {
     );
   }
 
+  chatArtifactNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_CHAT_ARTIFACT_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
+  }
+
+  appNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_APP_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  appVersionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_APP_VERSION_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  appTokenNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_APP_TOKEN_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  appTeamNotFound(idOrHandle: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_APP_TEAM_NOT_FOUND, {
+      params: idOrHandle,
+      ...args,
+    });
+  }
+
+  appIntegrationGrantNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_APP_INTEGRATION_GRANT_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      },
+    );
+  }
+
+  routineNotFound(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_ROUTINE_NOT_FOUND, {
+      ...args,
+    });
+  }
+
+  managedAppNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_MANAGED_APP_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  managedAppVersionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_MANAGED_APP_VERSION_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      },
+    );
+  }
+
+  /** No published release exists for the managed app — keyed by app, not version. */
+  publishedManagedAppVersionNotFound(
+    managedAppId: string,
+    args?: NcErrorArgs,
+  ): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_PUBLISHED_MANAGED_APP_VERSION_NOT_FOUND,
+      {
+        params: managedAppId,
+        ...args,
+      },
+    );
+  }
+
+  marketplacePublisherNotFound(handle: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_MARKETPLACE_PUBLISHER_NOT_FOUND,
+      {
+        params: handle,
+        ...args,
+      },
+    );
+  }
+
   workflowNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_WORKFLOW_NOT_FOUND, {
       params: id,
       ...args,
     });
+  }
+
+  agentNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_AGENT_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  skillNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SKILL_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  /** A malformed `owner/repo` or `owner/repo/skillName`. */
+  skillSourceInvalid(ref: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SKILL_SOURCE_INVALID, {
+      params: ref,
+      ...args,
+    });
+  }
+
+  /** The upstream catalog could not be read — missing repo, or GitHub is down. */
+  skillCatalogUnavailable(repo: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_SKILL_CATALOG_UNAVAILABLE,
+      {
+        params: repo,
+        ...args,
+      },
+    );
+  }
+
+  agentSessionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_AGENT_SESSION_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
   }
 
   widgetNotFound(id: string, args?: NcErrorArgs): never {
@@ -140,6 +336,33 @@ export class NcErrorBase {
         ...args,
       }
     );
+  }
+
+  baseSectionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_BASE_SECTION_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
+  }
+
+  automationSectionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_AUTOMATION_SECTION_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
+  }
+
+  agentSectionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_AGENT_SECTION_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
   }
 
   apiClientNotFound(id: string, args?: NcErrorArgs): never {
@@ -362,6 +585,15 @@ export class NcErrorBase {
     );
   }
 
+  invalidSharedInterfacePagePassword(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_SHARED_INTERFACE_PAGE_PASSWORD_INVALID,
+      {
+        ...args,
+      }
+    );
+  }
+
   invalidAttachmentJson(payload: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.ERR_INVALID_ATTACHMENT_JSON,
@@ -384,6 +616,12 @@ export class NcErrorBase {
       params: message,
       ...args,
     });
+  }
+
+  contextAlreadySet(modelName: string): never {
+    return this.internalServerError(
+      `${modelName} instance already has context — setModelContext called twice`,
+    );
   }
 
   systemMisconfigured(message: string, args?: NcErrorArgs): never {
@@ -457,6 +695,95 @@ export class NcErrorBase {
       params: id,
       ...(args || {}),
     });
+  }
+
+  environmentNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_ENVIRONMENT_NOT_FOUND, {
+      params: id,
+      ...(args || {}),
+    });
+  }
+
+  /**
+   * A per-user integration was used by a user who hasn't connected their own
+   * account (for the effective environment). Deliberately NOT a fallback to
+   * the shared credential — that would silently escalate to the admin's
+   * account. `details` carries what the client needs to render the
+   * "Connect your account" prompt.
+   */
+  integrationUserCredentialRequired(
+    param: {
+      integrationId: string;
+      title: string;
+      sub_type?: string;
+      environmentId?: string;
+    },
+    args?: NcErrorArgs,
+  ): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTEGRATION_USER_CREDENTIAL_REQUIRED,
+      {
+        params: param.title,
+        details: {
+          integrationId: param.integrationId,
+          sub_type: param.sub_type,
+          environmentId: param.environmentId,
+        },
+        ...(args || {}),
+      }
+    );
+  }
+
+  /**
+   * A per-user integration was referenced by a consumer that executes as a
+   * configured identity rather than a real user (sync, workflows) — such
+   * consumers must use shared-credential integrations. `details` carries what
+   * the client needs to render a targeted fix-it (open the integration editor
+   * / switch to shared).
+   */
+  integrationPerUserNotAllowed(
+    param: {
+      integrationId: string;
+      title: string;
+      sub_type?: string;
+      consumer: 'sync' | 'workflows';
+    },
+    args?: NcErrorArgs,
+  ): never {
+    const consumerPhrase =
+      param.consumer === 'sync' ? 'for sync' : 'in workflows';
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTEGRATION_PER_USER_NOT_ALLOWED,
+      {
+        params: [param.title, consumerPhrase],
+        details: {
+          integrationId: param.integrationId,
+          sub_type: param.sub_type,
+          consumer: param.consumer,
+        },
+        ...(args || {}),
+      }
+    );
+  }
+
+  integrationAuthFailed(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTEGRATION_AUTH_FAILED,
+      {
+        params: message,
+        ...(args || {}),
+      }
+    );
+  }
+
+  integrationRequestFailed(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTEGRATION_REQUEST_FAILED,
+      {
+        params: message,
+        ...(args || {}),
+      }
+    );
   }
 
   syncConfigNotFound(id: string, args?: NcErrorArgs): never {
@@ -539,6 +866,23 @@ export class NcErrorBase {
         ...details,
         ...(details?.plan ? { higherPlan: HigherPlan[details.plan] } : {}),
       },
+    });
+  }
+
+  creditPackNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_CREDIT_PACK_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  creditsExhausted(
+    details?: CreditsExhaustedDetailsType,
+    args?: NcErrorArgs
+  ): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_CREDITS_EXHAUSTED, {
+      ...args,
+      details,
     });
   }
 
@@ -732,6 +1076,21 @@ export class NcErrorBase {
     },
     args?: NcErrorArgs
   ) {
+    // Add-on-only: no plan tier grants it, so skip the upgrade prefix entirely.
+    // On-prem entitlement is signed into the license key, hence sales-assisted.
+    const addonMessage = PlanFeatureAddonMessages[props.feature];
+    if (addonMessage) {
+      throw this.errorCodex.generateError(
+        NcErrorType.ERR_FEATURE_NOT_SUPPORTED,
+        {
+          params: props.isOnPrem
+            ? `${addonMessage} Contact sales to add it to your license.`
+            : `${addonMessage} Add it from your workspace billing settings.`,
+          ...args,
+        }
+      );
+    }
+
     if (props.isOnPrem) {
       throw this.errorCodex.generateError(
         NcErrorType.ERR_FEATURE_NOT_SUPPORTED,
@@ -1085,9 +1444,14 @@ export class NcErrorBase {
     });
   }
 
-  licenseRequired(feature?: string, args?: NcErrorArgs): never {
+  licenseRequired(
+    operation?: string,
+    reason?: LicenseInactiveReason,
+    args?: NcErrorArgs,
+  ): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_LICENSE_REQUIRED, {
-      params: feature || '',
+      params: [operation || '', reason || ''],
+      details: reason ? { licenseInactiveReason: reason } : undefined,
       ...args,
     });
   }
@@ -1098,16 +1462,19 @@ export class NcErrorBase {
     });
   }
 
-  sandboxBlocked(message?: string, args?: NcErrorArgs): never {
-    throw this.errorCodex.generateError(NcErrorType.ERR_SANDBOX_BLOCKED, {
-      params: message || '',
-      ...args,
-    });
+  environmentLaneBlocked(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_ENVIRONMENT_LANE_BLOCKED,
+      {
+        params: message || '',
+        ...args,
+      }
+    );
   }
 
-  sandboxProductionBlocked(message?: string, args?: NcErrorArgs): never {
+  environmentProductionLocked(message?: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
-      NcErrorType.ERR_SANDBOX_PRODUCTION_BLOCKED,
+      NcErrorType.ERR_ENVIRONMENT_PRODUCTION_LOCKED,
       {
         params: message || '',
         ...args,

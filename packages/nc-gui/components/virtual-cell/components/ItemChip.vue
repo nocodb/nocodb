@@ -49,10 +49,31 @@ const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
 const parentBreadcrumbs = inject(TemplateBreadcrumbsInj, ref([]))
 
+// Interface pages never open the data-app expanded form for a LINKED record —
+// the related table sits outside the page surface and its raw reads/comments
+// 403 for interface collaborators (same uniform rule as the canvas chip and
+// dropdown-arrow gates). Blueprint chips stay editable: their editor is the
+// staged-sub-record surface of the add flow, not a saved-record view.
+const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
+
+// …unless the column's "Click into record details" is configured — then the
+// chip opens the LINKED record's interface record-detail sheet instead.
+const linkRecordExpand = inject(LinkRecordExpandInj, ref(null))
+
 /** Whether this chip represents a blueprint (unsaved sub-record template) vs. an existing record */
 const isBlueprint = computed(() => !!item.value?._isBlueprint)
 
+const interfaceExpandEnabled = computed(
+  () =>
+    !!interfacePageDataApi &&
+    !isBlueprint.value &&
+    !!injectedColumn.value &&
+    !!linkRecordExpand.value?.isEnabled(injectedColumn.value),
+)
+
 const isClickDisabled = computed(() => {
+  if (interfacePageDataApi && !isBlueprint.value) return !interfaceExpandEnabled.value
+
   return (!active.value && !isExpandedForm.value) || isPublic.value || isForm.value || readonlyProp.value
 })
 
@@ -111,6 +132,16 @@ function openExpandedForm() {
   // Blueprint records open in blueprint editor instead
   if (isBlueprint.value) {
     openBlueprintEditor()
+    return
+  }
+
+  // Interface pages — the configured record-detail sheet, never the data-app form.
+  if (interfaceExpandEnabled.value) {
+    linkRecordExpand.value?.expand({
+      column: injectedColumn.value!,
+      row: item.value,
+      relatedTableMeta: relatedTableMeta.value,
+    })
     return
   }
 

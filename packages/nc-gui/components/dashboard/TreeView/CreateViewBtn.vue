@@ -9,6 +9,10 @@ const props = defineProps<{
   placement?: NcDropdownPlacement
 }>()
 
+const emit = defineEmits<{
+  visibleChange: [boolean]
+}>()
+
 const { $e } = useNuxtApp()
 
 const alignLeftLevel = toRef(props, 'alignLeftLevel')
@@ -117,6 +121,11 @@ async function onOpenModal({
     sourceId: table.value?.source_id,
   })
 }
+
+// Let the parent table node keep its action buttons visible while this menu is open
+watch(isOpen, (val) => {
+  emit('visibleChange', val)
+})
 </script>
 
 <template>
@@ -129,7 +138,7 @@ async function onOpenModal({
   >
     <slot />
     <template #overlay>
-      <NcMenu class="max-w-fit" variant="small">
+      <NcMenu variant="small">
         <NcMenuItem inner-class="w-full" @click.stop="onOpenModal({ type: ViewTypes.GRID })">
           <div class="item" data-testid="sidebar-view-create-grid">
             <div class="item-inner">
@@ -205,7 +214,7 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
         <NcMenuItem
-          v-if="isEeUI && showEEFeatures"
+          v-if="isEeUI"
           inner-class="w-full"
           data-testid="sidebar-view-create-map"
           @click="
@@ -266,7 +275,7 @@ async function onOpenModal({
           </NcMenuItem>
         </NcTooltip>
         <NcMenuItem
-          v-if="isEeUI && showEEFeatures"
+          v-if="showEEFeatures"
           inner-class="w-full"
           data-testid="sidebar-view-create-timeline"
           @click="
@@ -301,7 +310,7 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
         <NcMenuItem
-          v-if="isEeUI && showEEFeatures"
+          v-if="showEEFeatures"
           inner-class="w-full"
           data-testid="sidebar-view-create-gantt"
           @click="
@@ -336,7 +345,7 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
 
-        <template v-if="isEeUI && showEEFeatures">
+        <template v-if="showEEFeatures">
           <!-- Section -->
           <NcDivider />
 
@@ -364,6 +373,7 @@ async function onOpenModal({
 <style lang="scss">
 .nc-view-create-dropdown {
   @apply !min-w-43;
+
   .item {
     @apply flex flex-row items-center w-full justify-between gap-x-1.75;
   }

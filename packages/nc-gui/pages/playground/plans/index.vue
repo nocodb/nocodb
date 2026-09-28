@@ -200,7 +200,9 @@ const enterpriseOrangeBadge = { bg: '#FEE6D6', text: '#C86827' }
 
       <section class="flex flex-col gap-3">
         <div class="flex items-center gap-3">
-          <h2 class="text-lg font-semibold leading-none !m-0" :style="{ color: enterpriseOrangeMeta.primary }">Enterprise</h2>
+          <h2 class="text-lg font-semibold leading-none !m-0" :style="{ color: enterpriseOrangeMeta.primary }">
+            {{ $t('objects.paymentPlan.Enterprise') }}
+          </h2>
           <span
             class="nc-play-badge"
             :style="{
@@ -211,7 +213,7 @@ const enterpriseOrangeBadge = { bg: '#FEE6D6', text: '#C86827' }
             <svg class="nc-play-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
               <path d="M8 0 C8.6 5 11 7.4 16 8 C11 8.6 8.6 11 8 16 C7.4 11 5 8.6 0 8 C5 7.4 7.4 5 8 0 Z" />
             </svg>
-            Enterprise
+            {{ $t('objects.paymentPlan.Enterprise') }}
           </span>
           <GeneralIcon icon="ncLock" class="h-3.5 w-3.5 cursor-pointer" :style="{ color: enterpriseOrangeBadge.text }" />
           <span class="text-[11px] tracking-widest text-nc-content-gray-muted uppercase">Old · Orange</span>
@@ -288,11 +290,11 @@ const enterpriseOrangeBadge = { bg: '#FEE6D6', text: '#C86827' }
         <div class="p-5 bg-nc-bg-default rounded-xl border border-nc-border-gray-medium">
           <div class="flex flex-col gap-3">
             <div class="flex items-center justify-between">
-              <span class="text-sm text-nc-content-gray">Data Permissions</span>
+              <span class="text-sm text-nc-content-gray">{{ $t('labels.baseNav.dataPermissionsNav') }}</span>
               <GeneralIcon icon="ncLock" class="h-3.5 w-3.5 cursor-pointer" style="color: #0d5a5a" />
             </div>
             <div class="flex items-center justify-between">
-              <span class="text-sm text-nc-content-gray">Audit Logs</span>
+              <span class="text-sm text-nc-content-gray">{{ $t('title.auditLogs') }}</span>
               <GeneralIcon icon="ncLock" class="h-3.5 w-3.5 cursor-pointer" style="color: #0d5a5a" />
             </div>
             <div class="flex items-center justify-between">

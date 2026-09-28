@@ -127,7 +127,12 @@ onMounted(() => {
         >
           <template #bodyCell="{ column, record: base }">
             <div v-if="column.key === 'title'" class="w-full flex gap-3 items-center">
-              <GeneralBaseIconColorPicker :readonly="true" size="xsmall" :model-value="parseProp(base.meta).iconColor" />
+              <GeneralBaseIconColorPicker
+                :readonly="true"
+                size="xsmall"
+                :model-value="parseProp(base.meta).iconColor"
+                :icon="parseProp(base.meta).icon"
+              />
 
               <NcTooltip class="truncate max-w-[calc(100%_-_32px)]" show-on-truncate-only>
                 <template #title>

@@ -4,6 +4,7 @@ import {
   isLinksOrLTAR,
   NcBaseErrorv2,
   NcErrorType,
+  serializeExcelDateValue,
   serializeImportValue,
   UITypes,
 } from 'nocodb-sdk';
@@ -14,6 +15,7 @@ import type {
   FileImportOptions,
   FileImportSheet,
   FileImportType,
+  HookType,
   NcRequest,
   UserType,
 } from 'nocodb-sdk';
@@ -29,7 +31,7 @@ import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import { TablesService } from '~/services/tables.service';
 import { ColumnsService } from '~/services/columns.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
-import { Audit, Model, Source } from '~/models';
+import { Agent, Audit, Hook, Model, Source, Workflow } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import Noco from '~/Noco';
@@ -107,8 +109,26 @@ function splitDisplayValues(raw: any, delimiter: string): string[] {
  * Delegates to the SDK's `serializeImportValue` — the single source of truth
  * shared with the client-side CSV-upload extension so both import paths produce
  * identical rows.
+ *
+ * Excel-only pre-step: Excel stores dates as numeric serials. When a date cell
+ * isn't date-*formatted* (General / numeric format), the xlsx parser yields the
+ * raw serial integer rather than a Date; a date-typed destination then receives
+ * a bare number and the DB rejects it (`… is of type date but expression is of
+ * type integer`). Convert the serial here — gated on Excel + a date column, so
+ * CSV/JSON date strings are untouched and flow straight through.
  */
-function coerceValue(raw: any, mapping: ColumnMapEntry): any {
+function coerceValue(
+  raw: any,
+  mapping: ColumnMapEntry,
+  importType: FileImportType,
+): any {
+  if (
+    importType === 'excel' &&
+    typeof raw === 'number' &&
+    (mapping.uidt === UITypes.Date || mapping.uidt === UITypes.DateTime)
+  ) {
+    return serializeExcelDateValue(raw, mapping.col);
+  }
   return serializeImportValue(raw, mapping.col);
 }
 
@@ -301,7 +321,10 @@ export class DataImportProcessor {
     } finally {
       if (opts.cleanupAttachment !== false) {
         try {
-          await deleteImportAttachment(attachment);
+          await deleteImportAttachment(attachment, {
+            context: data.context,
+            userId: user?.id,
+          });
         } catch (e) {
           this.logger.warn(`Failed to cleanup temp file: ${e.message}`);
         }
@@ -376,7 +399,7 @@ export class DataImportProcessor {
     const model = await Model.get(context, tableId);
     if (!model) NcError.tableNotFound(tableId);
     if (!tableName) tableName = model.title;
-    await model.getColumns(context);
+    await model.getColumns();
 
     // ── Create any user-requested new columns on the existing table before
     // resolving the map, then refresh so they're picked up below.
@@ -393,7 +416,7 @@ export class DataImportProcessor {
         req,
         log,
       });
-      await model.getColumns(context);
+      await model.getColumns();
     }
 
     // ── Build source-col → dest-col map
@@ -552,7 +575,7 @@ export class DataImportProcessor {
 
     const model = await Model.get(context, tableId);
     if (!model) NcError.tableNotFound(tableId);
-    await model.getColumns(context);
+    await model.getColumns();
 
     // Existing titles — a create request matching one of these maps to the
     // existing field instead of creating a duplicate.
@@ -606,7 +629,7 @@ export class DataImportProcessor {
 
     const created = new Map<string, ColumnType>();
     if (createdTitleBySource.size) {
-      await model.getColumns(context);
+      await model.getColumns();
       const byTitle = new Map<string, any>();
       for (const c of model.columns as any[]) {
         if (c.title) byTitle.set(c.title, c);
@@ -660,9 +683,52 @@ export class DataImportProcessor {
     const readStream = await openImportAttachmentStream(
       importType,
       attachment,
+      { context, userId: req?.user?.id },
       parserConfig.encoding,
     );
     const handler = getImportHandler(importType);
+
+    // Imports skip hooks for speed, so nothing listening for inserts ever fired
+    // on CSV upload — not "record matches condition", not after-insert webhooks.
+    // Keep the fast path unless the table actually has a listener; the readback
+    // and per-row audit that hooks cost are then paid only where they're wanted.
+    // Resolved once per sheet. Best-effort: a metadata hiccup here must not
+    // abort the sheet — fall back to the pre-existing skip-hooks behavior.
+    const [hasRecordWorkflows, hasRecordAgents, insertHooks] =
+      await Promise.all([
+        Workflow.hasRecordInsertTriggers(context, tableId).catch((e) => {
+          this.logger.warn(
+            `Failed to resolve record-insert workflow triggers for model ${tableId}: ${e?.message}`,
+          );
+          return false;
+        }),
+        // Agents subscribe to the same record events workflows do, through
+        // their own dependency rows — asking only about workflows meant an
+        // agent watching for new records never woke up on a file import.
+        Agent.hasRecordInsertTriggers(context, tableId).catch((e) => {
+          this.logger.warn(
+            `Failed to resolve record-insert agent triggers for model ${tableId}: ${e?.message}`,
+          );
+          return false;
+        }),
+        // Same lookup handleHooks itself performs for 'after.bulkInsert', so
+        // the gate can't drift from what would actually be dispatched.
+        Hook.list(context, {
+          fk_model_id: tableId,
+          event: 'after',
+          operation: 'bulkInsert' as HookType['operation'][0],
+        }).catch((e) => {
+          this.logger.warn(
+            `Failed to resolve after-insert hooks for model ${tableId}: ${e?.message}`,
+          );
+          return [];
+        }),
+      ]);
+    const skipHooks = !(
+      hasRecordWorkflows ||
+      hasRecordAgents ||
+      insertHooks.some((hook) => hook.active)
+    );
 
     const stats = {
       rowsInserted: 0,
@@ -708,7 +774,7 @@ export class DataImportProcessor {
           (c) => c.id === ltarColMap[srcCol].colId,
         );
         if (!col) continue;
-        const colOpt = (await col.getColOptions(context)) as {
+        const colOpt = (await col.getColOptions()) as {
           fk_related_model_id?: string;
         } | null;
         if (colOpt?.fk_related_model_id === model.id) {
@@ -743,7 +809,7 @@ export class DataImportProcessor {
         tableName: tableId,
         body: rows,
         cookie: req,
-        skip_hooks: true,
+        skip_hooks: skipHooks,
         raw: true,
         ...(options.typecast ? { typecast: 'true' } : {}),
         ...(onInsertedPks ? { onInsertedPks } : {}),
@@ -865,7 +931,11 @@ export class DataImportProcessor {
       // Map source columns to dest columns + type coercion
       const dbRow: Record<string, any> = {};
       for (const [srcCol, mapping] of Object.entries(colMap)) {
-        dbRow[mapping.destCn] = coerceValue(sourceRow[srcCol], mapping);
+        dbRow[mapping.destCn] = coerceValue(
+          sourceRow[srcCol],
+          mapping,
+          importType,
+        );
       }
 
       // Extract link display values for the post-insert link phase.

@@ -110,7 +110,7 @@ hooks.hook('page:finish', () => {
                     :to="appInfo.isCloud ? '/account/users' : '/admin?tab=users-list'"
                   >
                     <component :is="iconMap.accountCircle" class="mt-1 group-hover:text-accent" />&nbsp;
-                    <div class="prose group-hover:text-primary">
+                    <div class="prose dark:prose-invert group-hover:text-primary">
                       <div>{{ $t('labels.account') }}</div>
                       <div class="text-xs text-gray-500">{{ email }}</div>
                     </div>
@@ -125,7 +125,7 @@ hooks.hook('page:finish', () => {
                     to="/admin/users"
                   >
                     <MdiShieldAccountOutline class="mt-1 group-hover:text-accent" />&nbsp;
-                    <span class="prose group-hover:text-primary">{{ $t('title.accountManagement') }}</span>
+                    <span class="prose dark:prose-invert group-hover:text-primary">{{ $t('title.accountManagement') }}</span>
                   </nuxt-link>
                 </a-menu-item>
 
@@ -135,7 +135,7 @@ hooks.hook('page:finish', () => {
                   <div v-e="['a:navbar:user:sign-out']" class="nc-base-menu-item group" @click="logout">
                     <component :is="iconMap.signout" class="group-hover:text-accent" />&nbsp;
 
-                    <span class="prose group-hover:text-primary">
+                    <span class="prose dark:prose-invert group-hover:text-primary">
                       {{ $t('general.signOut') }}
                     </span>
                   </div>

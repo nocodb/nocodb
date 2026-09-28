@@ -4,6 +4,8 @@ import type { LtarSideEffectIds } from '~/services/columns.service.type';
 export interface ReplayBag {
   sandboxColumnIds: Record<string, string>;
   sandboxDefaultViewId: string;
+  draftVersionId: string;
+  appActionVersionId: string;
   ltarReplayIds: LtarSideEffectIds;
   convertedLinkId: string;
   convertedTextId: string;
@@ -11,7 +13,23 @@ export interface ReplayBag {
   replayDuplicateId: string;
   columnBackupOut: ColumnBackupRef;
   viewSectionRestoreViewIds: ReadonlyArray<string>;
+  baseSectionRestoreChildren: ReadonlyArray<{
+    id: string;
+    entity: 'table' | 'document' | 'dashboard';
+    order?: number;
+  }>;
+  automationSectionRestoreChildren: ReadonlyArray<{
+    id: string;
+    entity: 'workflow' | 'script';
+    order?: number;
+  }>;
+  agentSectionRestoreChildren: ReadonlyArray<{
+    id: string;
+    order?: number;
+  }>;
   rowColorFilterIds: ReadonlyArray<string>;
+  interfaceDuplicatePageIds: ReadonlyArray<string>;
+  viewColumnIds: Record<string, string>;
 }
 
 export function runInReplay<T>(fn: () => Promise<T>): Promise<T> {

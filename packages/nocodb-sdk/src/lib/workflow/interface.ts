@@ -47,6 +47,11 @@ interface VariableDefinition {
     // UIType for fields
     uiType?: string;
 
+    // Available options for SingleSelect / MultiSelect fields, so condition
+    // builders can offer the actual options as coloured chips instead of free
+    // text. `color` is omitted when the column has colour coding turned off.
+    selectOptions?: { title: string; color?: string }[];
+
     // Table/View names for display
     tableName?: string;
     viewName?: string;
@@ -73,6 +78,10 @@ interface VariableDefinition {
     // Port identifier for multi-port nodes (e.g., 'body', 'output' for iterate node)
     // Used to filter variables based on which port is being accessed
     port?: string;
+
+    // Upstream node the variable comes from (stamped by the config panel when grouping)
+    sourceNodeId?: string;
+    sourceNodeTitle?: string;
   };
 
   // Nested variables for objects/arrays
@@ -98,6 +107,15 @@ interface NodeExecutionResult {
   }>;
   metrics?: Record<string, number>;
   isStale?: boolean;
+
+  // The node was checked, not run. A probe or its declared output produced this.
+  simulated?: boolean;
+
+  // Validate refused: this node can only be checked by doing it. A structured
+  // flag because callers BRANCH on it — publish_workflow has to tell "a person
+  // must run this" apart from "this is broken", and matching on the error text
+  // would break the first time the copy is edited or localised.
+  needsRun?: boolean;
   inputVariables?: VariableDefinition[];
   outputVariables?: VariableDefinition[];
 
@@ -229,6 +247,11 @@ interface WorkflowGeneralEdge {
   label?: string; // Optional label for display (e.g., "True", "For Each Item")
   sourcePortId?: string; // Source node's output port ID for routing
   targetPortId?: string; // Target node's input port ID
+  // Vue Flow's own name for the source port, persisted alongside
+  // `sourcePortId` and kept equal to it (see nc-gui useWorkflow). Routing reads
+  // sourcePortId; the editor renders from sourceHandle, so an edge carrying
+  // only one of the two is either unroutable or invisible.
+  sourceHandle?: string;
 }
 
 /**

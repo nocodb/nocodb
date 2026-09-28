@@ -3,6 +3,27 @@ import tippy from 'tippy.js'
 import { ProjectRoles, UITypes, WorkspaceRolesToProjectRoles, getAttachmentAnnotationKey } from 'nocodb-sdk'
 import type { ColumnType, CommentImageAnnotation, CommentType, WorkspaceUserRoles } from 'nocodb-sdk'
 
+/**
+ * Copy URL builds a base-data deep link — hosts whose consumers have no data
+ * route (interface record sheets) hide it.
+ */
+const props = defineProps<{
+  hideCopyUrl?: boolean
+  hideRoleInfo?: boolean
+  /**
+   * Narrow the feed to a comment kind (the interface discussion panel's
+   * comment filters). When SET, resolved comments are hidden unless
+   * `showResolved` — classic mounts pass nothing and see everything.
+   */
+  commentFilter?: 'all' | 'record' | 'onAttachments' | 'withAttachments'
+  /**
+   * Include resolved comments (the "Show resolved comments" toggle —
+   * offered for the all/record filters only; attachment filters stay
+   * open-comments-only).
+   */
+  showResolved?: boolean
+}>()
+
 const { user, appInfo } = useGlobal()
 
 const { t } = useI18n()
@@ -26,6 +47,10 @@ const { basesUser } = storeToRefs(basesStore)
 const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
+
+// Hosted inside the attachment viewer — new comments tag the open image
+// (pin-less annotation) so they count toward its badge.
+const viewerCommentAnchor = inject(AttachmentViewerCommentAnchorInj, ref(null))
 
 const {
   deleteComment,
@@ -135,6 +160,27 @@ const annotationRefByCommentId = computed(() => {
   return map
 })
 
+// The rendered list — the caller's filter applied over the loaded comments.
+// Annotation anchoring is inherited by replies (annotationRefByCommentId), so
+// a thread filters as a unit; 'record' is its complement. Resolved comments
+// are hidden unless the toggle is on — the toggle is only offered for the
+// all/record filters, so the attachment filters stay open-comments-only.
+const visibleComments = computed(() => {
+  const filter = props.commentFilter
+  if (!filter) return comments.value
+
+  let list = comments.value
+
+  if (filter === 'record') list = list.filter((c) => !c.id || !annotationRefByCommentId.value[c.id])
+  else if (filter === 'onAttachments') list = list.filter((c) => !!c.id && !!annotationRefByCommentId.value[c.id])
+  else if (filter === 'withAttachments') list = list.filter((c) => !!c.attachments?.length)
+
+  const includeResolved = props.showResolved && (filter === 'all' || filter === 'record')
+  if (!includeResolved) list = list.filter((c) => !c.resolved_by)
+
+  return list
+})
+
 const editCommentValue = ref<CommentType>()
 
 const commentsWrapperEl = ref<HTMLDivElement>()
@@ -222,7 +268,11 @@ const saveComment = async () => {
   })
 
   try {
-    await _saveComment(tempCom, tempAttachments)
+    await _saveComment(
+      tempCom,
+      tempAttachments,
+      viewerCommentAnchor.value ? { annotation: { attachment: viewerCommentAnchor.value } } : undefined,
+    )
     await nextTick(() => {
       isExpandedFormCommentMode.value = true
     })
@@ -384,6 +434,15 @@ async function onEditComment() {
   loadComments()
 }
 
+/**
+ * Interfaces route comments through the injected adapter — its presence marks
+ * an interface surface, where the author hover card keeps its avatar +
+ * name + email but drops the base-role footer (backed by the base user
+ * list, which interface-only collaborators can't read — and base
+ * membership is base-scoped info regardless).
+ */
+const isInterfaceSurface = inject(IsInterfaceRecordSurfaceInj, false)
+
 const createdBy = (
   comment: CommentType & {
     created_display_name_short?: string
@@ -394,7 +453,12 @@ const createdBy = (
   } else if (comment.created_display_name_short?.trim()) {
     return comment.created_display_name_short || t('labels.sharedSource')
   } else if (comment.created_by_email) {
-    return comment.created_by_email
+    // Canonical helper — alias when configured, else a name derived from the
+    // email's local part (never the raw address).
+    return extractUserDisplayNameOrEmail({
+      display_name: comment.created_display_name as string,
+      email: comment.created_by_email,
+    })
   } else {
     return t('labels.sharedSource')
   }
@@ -525,9 +589,22 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
+      <!-- Comments exist but the active filter matches none -->
+      <div
+        v-else-if="visibleComments.length === 0"
+        class="flex flex-col my-1 text-center justify-center h-full nc-scrollbar-thin"
+        data-testid="nc-comments-no-filter-match"
+      >
+        <div class="text-center text-3xl text-nc-content-gray-subtle opacity-40">
+          <GeneralIcon icon="commentHere" />
+        </div>
+        <div class="text-center my-4 px-6 font-medium text-nc-content-gray-muted">
+          {{ $t('labels.noCommentsMatchFilter') }}
+        </div>
+      </div>
       <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
         <div
-          v-for="(commentItem, index) of comments"
+          v-for="(commentItem, index) of visibleComments"
           :key="commentItem.id"
           :class="[
             {
@@ -579,7 +656,7 @@ onBeforeUnmount(() => {
                     </div>
 
                     <template #overlay>
-                      <div class="bg-nc-bg-default rounded-lg">
+                      <div class="bg-nc-bg-elevated rounded-lg">
                         <div class="flex items-center gap-4 py-3 px-2">
                           <GeneralUserIcon
                             class="border-1 border-nc-border-gray-medium rounded-full"
@@ -599,8 +676,11 @@ onBeforeUnmount(() => {
                             </div>
                           </div>
                         </div>
+                        <!-- Base-role footer stays off interface surfaces: interface-only
+                             collaborators have no base user list to resolve the role from
+                             (and the base membership itself is base-scoped info). -->
                         <i18n-t
-                          v-if="isUIAllowed('dataEdit')"
+                          v-if="!props.hideRoleInfo && !isInterfaceSurface && isUIAllowed('dataEdit')"
                           keypath="labels.hasRoleInBase"
                           tag="div"
                           class="px-3 rounded-b-lg !text-[13px] items-center text-nc-content-gray-subtle2 flex gap-1 bg-nc-bg-gray-light py-1.5"
@@ -619,7 +699,10 @@ onBeforeUnmount(() => {
               </div>
               <div class="flex items-center">
                 <NcDropdown
-                  v-if="!editCommentValue"
+                  v-if="
+                    !editCommentValue &&
+                    (!props.hideCopyUrl || (user && commentItem.created_by_email === user.email && hasEditPermission))
+                  "
                   class="nc-comment-more-actions !hidden !group-hover:block"
                   overlay-class-name="!min-w-[160px]"
                   placement="bottomRight"
@@ -643,7 +726,11 @@ onBeforeUnmount(() => {
                           {{ $t('general.edit') }}
                         </div>
                       </NcMenuItem>
-                      <NcMenuItem v-e="['c:comment-expand:comment:copy']" @click="copyComment(commentItem)">
+                      <NcMenuItem
+                        v-if="!props.hideCopyUrl"
+                        v-e="['c:comment-expand:comment:copy']"
+                        @click="copyComment(commentItem)"
+                      >
                         <div class="flex gap-2 items-center">
                           <component :is="iconMap.copy" class="cursor-pointer" />
                           {{ $t('activity.copyUrl') }}
@@ -707,7 +794,7 @@ onBeforeUnmount(() => {
                   autofocus-to-end
                   :hide-options="false"
                   :extra-save-enabled="editAttachments.length > 0"
-                  class="expanded-form-comment-edit-input cursor-text expanded-form-comment-input !py-2 !px-2 !m-0 w-full !border-1 !border-nc-border-gray-medium !rounded-lg !bg-nc-bg-default !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
+                  class="expanded-form-comment-edit-input cursor-text expanded-form-comment-input !py-2 !px-2 !m-0 w-full !border-1 !border-nc-border-gray-medium !rounded-lg !bg-nc-bg-elevated !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
                   data-testid="expanded-form-comment-input"
                   @save="onEditComment"
                   @keydown.esc="onCancel"
@@ -752,7 +839,7 @@ onBeforeUnmount(() => {
               <div v-else class="space-y-1 pl-9">
                 <div
                   v-if="annotationRefByCommentId[commentItem.id!]"
-                  class="nc-annotation-attachment inline-flex max-w-full items-center gap-2 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default px-1.5 py-1"
+                  class="nc-annotation-attachment inline-flex max-w-full items-center gap-2 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-elevated px-1.5 py-1"
                   :class="{
                     'cursor-pointer hover:bg-nc-bg-gray-light':
                       !!imageAnnotations || annotationRefByCommentId[commentItem.id!].matched,
@@ -785,7 +872,7 @@ onBeforeUnmount(() => {
 
                 <div
                   v-if="annotationLabels[commentItem.id] || annotationRefByCommentId[commentItem.id!]?.matched"
-                  class="nc-annotation-ref mt-1 inline-flex items-center gap-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default px-1.5 py-0.5 cursor-pointer hover:bg-nc-bg-gray-light"
+                  class="nc-annotation-ref mt-1 inline-flex items-center gap-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-elevated px-1.5 py-0.5 cursor-pointer hover:bg-nc-bg-gray-light"
                   :data-testid="`nc-annotation-ref-${annotationLabels[commentItem.id] ?? commentItem.id}`"
                   @click="viewAnnotationComment(commentItem)"
                 >
@@ -804,9 +891,10 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
+      <SmartsheetExpandedFormCommentTypingIndicator v-if="isEeUI && hasEditPermission" :draft="comment" />
       <div
         v-if="hasEditPermission"
-        class="px-3 pt-1 pb-3 nc-comment-input !rounded-br-2xl gap-2 flex relative z-10 bg-nc-bg-default"
+        class="px-3 pt-1 pb-3 nc-comment-input !rounded-br-2xl gap-2 flex relative z-10 bg-nc-bg-elevated"
         @paste="isCommentAttachmentsEnabled ? handleAttachmentPaste($event) : undefined"
         @dragover.prevent
         @drop="isCommentAttachmentsEnabled ? handleAttachmentDrop($event) : undefined"
@@ -861,7 +949,7 @@ onBeforeUnmount(() => {
   box-shadow: none;
   &:focus,
   &:focus-within {
-    @apply min-h-16 !bg-nc-bg-default border-nc-border-brand;
+    @apply min-h-16 !bg-nc-bg-elevated border-nc-border-brand;
     box-shadow: 0px 0px 0px 2px rgba(var(--nc-brand-accent-rgb), 0.24);
   }
   &::placeholder {
@@ -870,7 +958,7 @@ onBeforeUnmount(() => {
 }
 
 :deep(.expanded-form-comment-edit-input .nc-comment-rich-editor) {
-  @apply bg-nc-bg-default;
+  @apply bg-nc-bg-elevated;
 }
 
 .nc-hovered-comment {
@@ -888,6 +976,10 @@ onBeforeUnmount(() => {
   p {
     @apply !m-0 !leading-5;
   }
+}
+
+[theme='dark'] .expanded-form-comment-input {
+  background-color: var(--nc-bg-input) !important;
 }
 </style>
 

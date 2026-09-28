@@ -38,6 +38,9 @@ export enum ProjectRoles {
   COMMENTER = 'commenter',
   VIEWER = 'viewer',
   NO_ACCESS = 'no-access',
+  // External app-only collaborator: no ambient base access; capability is
+  // per-app via nc_principal_assignments(resource_type='app').
+  APP_USER = 'app-user',
 }
 
 export enum WorkspaceUserRoles {
@@ -53,6 +56,13 @@ export enum WorkspaceUserRoles {
 export enum TeamUserRoles {
   MEMBER = 'member',
   OWNER = 'owner',
+}
+
+export enum InterfaceRoles {
+  EDITOR = 'interface-editor',
+  COMMENTER = 'interface-commenter',
+  VIEWER = 'interface-viewer',
+  NO_ACCESS = 'interface-no-access',
 }
 
 export enum AppEvents {
@@ -226,6 +236,11 @@ export enum AppEvents {
   SHARED_BASE_GENERATE_LINK = 'shared.base.generate.link',
   SHARED_BASE_DELETE_LINK = 'shared.base.delete.link',
 
+  INVITE_LINK_CREATE = 'invite.link.create',
+  INVITE_LINK_UPDATE = 'invite.link.update',
+  INVITE_LINK_REVOKE = 'invite.link.revoke',
+  INVITE_LINK_ACCEPT = 'invite.link.accept',
+
   ATTACHMENT_UPLOAD = 'attachment.upload',
 
   APIS_CREATED = 'apis.created',
@@ -240,6 +255,9 @@ export enum AppEvents {
   INTEGRATION_DELETE = 'integration.delete',
   INTEGRATION_CREATE = 'integration.create',
   INTEGRATION_UPDATE = 'integration.update',
+  VAULT_CREATE = 'vault.create',
+  VAULT_UPDATE = 'vault.update',
+  VAULT_DELETE = 'vault.delete',
 
   ROW_USER_MENTION = 'row.user.mention',
   ROW_LMT_TOUCHED = 'row.lmt.touched',
@@ -327,6 +345,37 @@ export enum AppEvents {
   WIDGET_DELETE = 'widget.delete',
   WIDGET_DUPLICATE = 'widget.duplicate',
 
+  ACTION_CREATE = 'action.create',
+  ACTION_UPDATE = 'action.update',
+  ACTION_DELETE = 'action.delete',
+  ACTION_INVOKE = 'action.invoke',
+  // App -> workspace-integration access. Named for routines historically; it is
+  // the integration grant channel and has nothing to do with the retired
+  // routine registry. Left alone because AuditV1OperationTypes.ROUTINE_GRANT
+  // has persisted rows.
+  ROUTINE_GRANT = 'routine.grant',
+
+  INTERFACE_CREATE = 'interface.create',
+  INTERFACE_UPDATE = 'interface.update',
+  INTERFACE_DELETE = 'interface.delete',
+  INTERFACE_DUPLICATE = 'interface.duplicate',
+  INTERFACE_PUBLISH = 'interface.publish',
+
+  INTERFACE_PAGE_CREATE = 'interface.page.create',
+  INTERFACE_PAGE_UPDATE = 'interface.page.update',
+  INTERFACE_PAGE_DELETE = 'interface.page.delete',
+  INTERFACE_PAGE_DUPLICATE = 'interface.page.duplicate',
+
+  SHARED_INTERFACE_PAGE_CREATE = 'shared.interface.page.create',
+  SHARED_INTERFACE_PAGE_UPDATE = 'shared.interface.page.update',
+  SHARED_INTERFACE_PAGE_DELETE = 'shared.interface.page.delete',
+
+  INTERFACE_DATA_EXPORT = 'interface.data.export',
+
+  INTERFACE_USER_INVITE = 'interface.user.invite',
+  INTERFACE_USER_UPDATE = 'interface.user.update',
+  INTERFACE_USER_DELETE = 'interface.user.delete',
+
   PERMISSION_CREATE = 'permission.create',
   PERMISSION_UPDATE = 'permission.update',
   PERMISSION_DELETE = 'permission.delete',
@@ -343,11 +392,12 @@ export enum AppEvents {
   BOOKMARK_GROUP_CREATE = 'bookmark.group.create',
   BOOKMARK_GROUP_DELETE = 'bookmark.group.delete',
 
-  SANDBOX_CREATE = 'sandbox.create',
-  SANDBOX_DELETE = 'sandbox.delete',
-  SANDBOX_DISCARD = 'sandbox.discard',
-  SANDBOX_MERGE = 'sandbox.merge',
-  SANDBOX_MERGE_FAILED = 'sandbox.merge_failed',
+  ENVIRONMENT_OPEN = 'environment.open',
+  ENVIRONMENT_CLOSE = 'environment.close',
+  ENVIRONMENT_DISCARD = 'environment.discard',
+  ENVIRONMENT_PROMOTE = 'environment.promote',
+  ENVIRONMENT_PROMOTE_FAILED = 'environment.promote_failed',
+  ENVIRONMENT_REFRESH = 'environment.refresh',
 
   RECORD_TEMPLATE_CREATE = 'record.template.create',
   RECORD_TEMPLATE_UPDATE = 'record.template.update',
@@ -361,6 +411,17 @@ export enum AppEvents {
   VIEW_SECTION_CREATE = 'viewSection.create',
   VIEW_SECTION_UPDATE = 'viewSection.update',
   VIEW_SECTION_DELETE = 'viewSection.delete',
+
+  BASE_SECTION_CREATE = 'baseSection.create',
+  BASE_SECTION_UPDATE = 'baseSection.update',
+  BASE_SECTION_DELETE = 'baseSection.delete',
+
+  AUTOMATION_SECTION_CREATE = 'automationSection.create',
+  AUTOMATION_SECTION_UPDATE = 'automationSection.update',
+  AUTOMATION_SECTION_DELETE = 'automationSection.delete',
+  AGENT_SECTION_CREATE = 'agentSection.create',
+  AGENT_SECTION_UPDATE = 'agentSection.update',
+  AGENT_SECTION_DELETE = 'agentSection.delete',
 
   CHAT_SESSION_CREATE = 'chat.session.create',
   CHAT_SESSION_UPDATE = 'chat.session.update',
@@ -398,14 +459,65 @@ export enum AppEvents {
   BASE_VARIABLE_UPDATE = 'baseVariable.update',
   BASE_VARIABLE_DELETE = 'baseVariable.delete',
 
+  ENVIRONMENT_CREATE = 'environment.create',
+  ENVIRONMENT_UPDATE = 'environment.update',
+  ENVIRONMENT_DELETE = 'environment.delete',
+
   MANAGED_APP_CREATE = 'managedApp.create',
   MANAGED_APP_UPDATE = 'managedApp.update',
   MANAGED_APP_DELETE = 'managedApp.delete',
   MANAGED_APP_PUBLISH = 'managedApp.publish',
   MANAGED_APP_INSTALL = 'managedApp.install',
+  MANAGED_APP_UNINSTALL = 'managedApp.uninstall',
   MANAGED_APP_UPDATE_START = 'managedApp.update.start',
   MANAGED_APP_UPDATE_COMPLETE = 'managedApp.update.complete',
   MANAGED_APP_UPDATE_FAIL = 'managedApp.update.fail',
+  MANAGED_APP_ROLLOUT_HALT = 'managedApp.rollout.halt',
+  MANAGED_APP_ROLLOUT_RESUME = 'managedApp.rollout.resume',
+
+  MARKETPLACE_LISTING_DELIST = 'marketplace.listing.delist',
+  /** The kill switch, not the takedown: stops execution, not distribution. */
+  MARKETPLACE_LISTING_SUSPEND = 'marketplace.listing.suspend',
+  MARKETPLACE_PUBLISHER_VERIFY = 'marketplace.publisher.verify',
+  MARKETPLACE_PUBLISHER_DELIST = 'marketplace.publisher.delist',
+  MARKETPLACE_CURATION_UPDATE = 'marketplace.curation.update',
+  MARKETPLACE_LISTING_REPORT = 'marketplace.listing.report',
+
+  APP_CREATE = 'app.create',
+  APP_UPDATE = 'app.update',
+  APP_DELETE = 'app.delete',
+  APP_PUBLISH = 'app.publish',
+  APP_ROLLBACK = 'app.rollback',
+  APP_TOKEN_CREATE = 'app.token.create',
+  APP_TOKEN_UPDATE = 'app.token.update',
+  APP_TOKEN_DELETE = 'app.token.delete',
+
+  CREDIT_GRANT = 'credit.grant',
+  CREDIT_TOPUP = 'credit.topup',
+  CREDITS_EXHAUSTED = 'credit.exhausted',
+
+  AGENT_CREATE = 'agent.create',
+  AGENT_UPDATE = 'agent.update',
+  AGENT_DELETE = 'agent.delete',
+  AGENT_PUBLISH = 'agent.publish',
+  AGENT_ROLE_UPDATE = 'agent.role.update',
+  AGENT_SESSION_CREATE = 'agent.session.create',
+  AGENT_SESSION_DELETE = 'agent.session.delete',
+
+  SKILL_CREATE = 'skill.create',
+  SKILL_UPDATE = 'skill.update',
+  SKILL_DELETE = 'skill.delete',
+  SKILL_IMPORT = 'skill.import',
+
+  FACTORY_SESSION_CREATE = 'factory.session.create',
+  FACTORY_SESSION_STOP = 'factory.session.stop',
+  FACTORY_SESSION_ARCHIVE = 'factory.session.archive',
+  FACTORY_SESSION_RESUME = 'factory.session.resume',
+  FACTORY_SESSION_RENAME = 'factory.session.rename',
+  FACTORY_SESSION_DELETE = 'factory.session.delete',
+  FACTORY_REPO_ENABLE = 'factory.repo.enable',
+  FACTORY_REPO_DISABLE = 'factory.repo.disable',
+  SKILL_POLICY_UPDATE = 'skill.policy.update',
 }
 
 export enum ClickhouseTables {
@@ -446,6 +558,7 @@ export const RoleLabels = {
   [ProjectRoles.VIEWER]: 'viewer',
   [ProjectRoles.INHERIT]: 'inherit',
   [ProjectRoles.NO_ACCESS]: 'noaccess',
+  [ProjectRoles.APP_USER]: 'appUser',
   [OrgUserRoles.SUPER_ADMIN]: 'superAdmin',
   [OrgUserRoles.CREATOR]: 'creator',
   [OrgUserRoles.VIEWER]: 'viewer',
@@ -470,6 +583,7 @@ export const RoleColors = {
   [ProjectRoles.INHERIT]: 'gray',
   [OrgUserRoles.SUPER_ADMIN]: 'maroon',
   [ProjectRoles.NO_ACCESS]: 'red',
+  [ProjectRoles.APP_USER]: 'maroon',
   [OrgUserRoles.CREATOR]: 'blue',
   [OrgUserRoles.VIEWER]: 'yellow',
   [CloudOrgUserRoles.OWNER]: 'purple',
@@ -501,6 +615,8 @@ export const RoleDescriptions = {
   [ProjectRoles.INHERIT]:
     'Inherits role from base-level team, or workspace level if no base-level team',
   [ProjectRoles.NO_ACCESS]: 'No access to this base',
+  [ProjectRoles.APP_USER]:
+    'Can use published apps only; capability is assigned per app',
 
   [OrgUserRoles.SUPER_ADMIN]: 'Full access to all',
   [OrgUserRoles.CREATOR]: 'Can fully configure and edit bases',
@@ -527,6 +643,7 @@ export const RoleIcons = {
   [ProjectRoles.VIEWER]: 'role_viewer',
   [ProjectRoles.INHERIT]: 'role_inherit',
   [ProjectRoles.NO_ACCESS]: 'role_no_access',
+  [ProjectRoles.APP_USER]: 'role_no_access',
   [OrgUserRoles.SUPER_ADMIN]: 'role_super',
   [OrgUserRoles.CREATOR]: 'role_creator',
   [OrgUserRoles.VIEWER]: 'role_viewer',
@@ -569,7 +686,31 @@ export const OrderedProjectRoles = [
   ProjectRoles.EDITOR,
   ProjectRoles.COMMENTER,
   ProjectRoles.VIEWER,
+  ProjectRoles.APP_USER,
   ProjectRoles.NO_ACCESS,
+];
+
+export const InterfaceRolesToProjectRoles = {
+  [InterfaceRoles.EDITOR]: ProjectRoles.EDITOR,
+  [InterfaceRoles.COMMENTER]: ProjectRoles.COMMENTER,
+  [InterfaceRoles.VIEWER]: ProjectRoles.VIEWER,
+  [InterfaceRoles.NO_ACCESS]: ProjectRoles.NO_ACCESS,
+};
+
+// Base roles below creator map onto interface roles for base-role-derived
+// interface access; owner/creator are builders and are handled separately.
+export const ProjectRolesToInterfaceRoles = {
+  [ProjectRoles.EDITOR]: InterfaceRoles.EDITOR,
+  [ProjectRoles.COMMENTER]: InterfaceRoles.COMMENTER,
+  [ProjectRoles.VIEWER]: InterfaceRoles.VIEWER,
+  [ProjectRoles.NO_ACCESS]: InterfaceRoles.NO_ACCESS,
+};
+
+export const OrderedInterfaceRoles = [
+  InterfaceRoles.EDITOR,
+  InterfaceRoles.COMMENTER,
+  InterfaceRoles.VIEWER,
+  InterfaceRoles.NO_ACCESS,
 ];
 
 export enum APIContext {
@@ -689,6 +830,47 @@ export enum ViewLockType {
   Collaborative = 'collaborative',
 }
 
+/**
+ * How the current request reached the server — the access source recorded on
+ * `NcContext.access_source`.
+ *
+ * `NcContext.is_public` collapses every share surface into one boolean, which
+ * cannot express "shared view but not shared base": a shared base is an
+ * authenticated pseudo-user that must keep full access, while a shared view is
+ * an anonymous surface that must be restricted. This enum keeps the branch the
+ * middleware already took, so gates can name the exact surface they restrict.
+ *
+ * Gates must read POSITIVELY (`access_source === SHARED_VIEW` restricts), since
+ * contexts built outside the request middleware (job processors, SCIM strategy,
+ * internal model helpers) legitimately leave this unset.
+ */
+export enum NcAccessSource {
+  /** Authenticated user session (incl. API token). The default. */
+  USER = 'user',
+  SHARED_BASE = 'shared-base',
+  SHARED_VIEW = 'shared-view',
+  SHARED_FORM = 'shared-form',
+  SHARED_DOC = 'shared-doc',
+  SHARED_INTERFACE = 'shared-interface',
+}
+
+/** Every source that is a share surface — i.e. everything `is_public` covers. */
+export const SHARED_ACCESS_SOURCES = Object.values(NcAccessSource).filter(
+  (s) => s !== NcAccessSource.USER
+);
+
+/**
+ * Share surfaces that publish a single VIEW anonymously. A form is a view, so
+ * both get shared-view field semantics: the view's own hidden-field gate plus
+ * the LTAR related-table restriction (pk + pv + link display value only).
+ * Shared BASE is deliberately absent — it is an authenticated pseudo-user and
+ * keeps normal access.
+ */
+export const SHARED_VIEW_ACCESS_SOURCES = [
+  NcAccessSource.SHARED_VIEW,
+  NcAccessSource.SHARED_FORM,
+];
+
 // Calendar event-display themes — how each event/record is drawn in the grid.
 // Persisted per calendar view in `meta.event_display_theme`. `BORDERED` is the
 // default (and the only look prior to this feature).
@@ -715,6 +897,7 @@ export enum PublicAttachmentScope {
   ORGANIZATIONPICS = 'organizationPics',
   OAUTHCLIENTS = 'oauthClients',
   WHITELABEL = 'whiteLabel',
+  MARKETPLACE = 'marketplacePics',
 }
 
 export enum IconType {

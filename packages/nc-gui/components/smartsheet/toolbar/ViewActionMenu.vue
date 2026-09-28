@@ -227,7 +227,6 @@ const isFieldHeaderVisibilityOptionVisible = computed(() => {
     !props.inSidebar &&
     isUIAllowed('viewCreateOrEdit') &&
     [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.value?.type) &&
-    isEeUI &&
     showEEFeatures.value
   )
 })
@@ -281,16 +280,16 @@ const modifyViewDisabledReason = computed(() => {
   return ''
 })
 
-// Collaborative views cannot be deleted on a sandbox master base — backend guard mirrors this.
+// Collaborative views cannot be deleted on a locked production base — backend guard mirrors this.
 // Personal views (owned_by set) can still be deleted by their owner.
-const isSandboxProductionCollaborativeDelete = computed(() => {
-  return !!base.value?.is_sandbox_production && !view.value?.owned_by
+const isProductionLockedCollaborativeDelete = computed(() => {
+  return !!base.value?.has_lane_instances && !view.value?.owned_by
 })
 
 // Tooltip shown when Delete is disabled.
 const deleteDisabledReason = computed(() => {
   if (isLockedView.value) return t('msg.info.disabledAsViewLocked')
-  if (isSandboxProductionCollaborativeDelete.value) return t('msg.info.disabledAsSandboxMasterCollabDelete')
+  if (isProductionLockedCollaborativeDelete.value) return t('msg.info.disabledAsProductionCollabDelete')
   if (blockViewOperations.value && !isPersonalView.value) return t('msg.info.cantDeleteLastGridView')
   if (isPersonalView.value && !isPersonalViewOwner.value) return t('tooltip.onlyViewOwnerCanDeletePersonalView')
   return ''
@@ -300,7 +299,7 @@ const deleteDisabledReason = computed(() => {
 // (which is enforced for everyone, including creators+).
 const isDeleteDisabled = computed(() => {
   if (!canDeleteView.value) return true
-  if (isSandboxProductionCollaborativeDelete.value) return true
+  if (isProductionLockedCollaborativeDelete.value) return true
   if (blockViewOperations.value && !isPersonalView.value) return true
   return false
 })
@@ -473,7 +472,7 @@ defineOptions({
         </NcMenuItem>
 
         <SmartsheetToolbarViewActionMenuMoveToSection
-          v-if="isEeUI && showEEFeatures"
+          v-if="showEEFeatures"
           :view="view"
           :table="table"
           :in-sidebar="inSidebar"
@@ -666,7 +665,7 @@ defineOptions({
               <SmartsheetToolbarLockType :type="LockType.Collaborative" :disabled="disableCollaborativeOption" />
             </NcMenuItem>
           </SmartsheetToolbarNotAllowedTooltip>
-          <SmartsheetToolbarNotAllowedTooltip v-if="isEeUI && showEEFeatures" :enabled="disablePersonalView">
+          <SmartsheetToolbarNotAllowedTooltip v-if="showEEFeatures" :enabled="disablePersonalView">
             <template #title>
               <div class="max-w-80">{{ personalOptionDisabledReason }}</div>
             </template>
@@ -701,7 +700,7 @@ defineOptions({
             </NcMenuItem>
           </SmartsheetToolbarNotAllowedTooltip>
         </NcSubMenu>
-        <template v-if="isEeUI && showEEFeatures">
+        <template v-if="showEEFeatures">
           <SmartsheetToolbarNotAllowedTooltip
             v-if="isPersonalView"
             :enabled="!isUIAllowed('reAssignViewOwner')"
@@ -822,7 +821,7 @@ defineOptions({
       </template>
 
       <BookmarksMenuAction
-        v-if="isEeUI && !isPublicView && view && table && base"
+        v-if="!isPublicView && view && table && base && showEEFeatures"
         target-type="view"
         :target-id="view.id!"
         :meta="{

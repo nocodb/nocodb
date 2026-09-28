@@ -330,7 +330,7 @@ onClickOutside(editorDom, (e) => {
         :class="{
           'flex rounded-tr-2xl overflow-hidden w-full': fullMode || isForm,
           'max-w-[calc(100%_-_198px)]': fullMode,
-          'justify-start left-0.5 max-w-[calc(100%_-_8px)]': isForm,
+          'justify-start !left-0 !right-0 !max-w-full !rounded-none': isForm,
           'justify-end xs:hidden max-w-[calc(100%_-_2px)]': !isForm,
         }"
       >
@@ -436,13 +436,13 @@ onClickOutside(editorDom, (e) => {
     }
     &.readonly {
       ul[data-type='taskList'] li input[type='checkbox'] {
-        background-color: #d5d5d9 !important;
+        background-color: var(--nc-bg-gray-dark) !important;
         &:not(:checked) {
           @apply !border-nc-border-gray-extradark;
         }
         &:focus {
           box-shadow: none !important;
-          background-color: #d5d5d9 !important;
+          background-color: var(--nc-bg-gray-dark) !important;
         }
       }
     }

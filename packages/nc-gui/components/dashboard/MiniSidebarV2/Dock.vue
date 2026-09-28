@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
+import { PlanFeatureTypes, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
 
 interface NavItem {
   key: string
@@ -41,15 +41,31 @@ const { unreadCount } = toRefs(notificationStore)
 
 const isNotificationOpen = ref(false)
 
-const {
-  isPanelExpanded: isChatPanelExpanded,
-  isFullScreen: isChatFullScreen,
-  hasWorkspaceContext: hasChatWorkspaceContext,
-  hasBaseContext: hasChatBaseContext,
-  toggleChatPanel,
-} = useChatPanel()
+const { isFullScreen: isChatFullScreen, hasBaseContext: hasChatBaseContext, cycleChatPanel } = useChatPanel()
 
-const { blockAiChat, showEEFeatures, isEEFeatureBlocked, showUpgradeToUseBookmarks } = useEeConfig()
+const { isAgentsEnabled } = storeToRefs(useAgentStore())
+
+const { isAppsEnabled } = storeToRefs(useAppStore())
+
+const {
+  blockAiChat,
+  showEEFeatures,
+  isEEFeatureBlocked,
+  showUpgradeToUseBookmarks,
+  hideInterfaces,
+  showUpgradeForInterfaceFeature,
+  showUpgradeSurface,
+  blockAgents,
+  showUpgradeToUseAgents,
+  blockWorkflows,
+  showUpgradeToUseWorkflows,
+} = useEeConfig()
+
+// Both ship on the unlicensed on-prem Free tier, so community mode may only drop
+// them where they'd be a pure upsell (blocked tier) — not via `showEEFeatures`.
+const showWorkflowsNav = computed(() => isEeUI && showUpgradeSurface(blockWorkflows.value))
+
+const showInterfacesNav = computed(() => isEeUI && showUpgradeSurface(hideInterfaces.value))
 
 const isBookmarksFlyoutOpen = ref(false)
 
@@ -74,7 +90,7 @@ onClickOutside(
 )
 
 const handleChatToggle = () => {
-  toggleChatPanel()
+  cycleChatPanel()
 }
 
 const isBaseOpen = computed(() => {
@@ -93,6 +109,10 @@ const isBaseListModalOpen = ref(false)
 
 const hasAvailableBases = computed(() => !!basesList.value?.length)
 
+const showAppTile = computed(() => isAppsEnabled.value && hasAvailableBases.value)
+
+const isAppFirst = computed(() => isAppFirstBase(resolvedProject.value))
+
 const getBasePath = () => {
   const wsId = route.value.params.typeOrId || activeWorkspaceId.value
   const baseId = route.value.params.baseId
@@ -107,10 +127,13 @@ const onTabClick = async (tabKey: string) => {
   if (isChatFullScreen.value) isChatFullScreen.value = false
 
   if (tabKey === 'settings') {
-    activeSidebarTab.value = 'settings'
+    // Base settings opens as a modal over wherever you are — same route, plus
+    // `?settings=` — so the table underneath stays put. Workspace settings is
+    // still a page, and still owns the sidebar.
     if (isBaseOpen.value) {
-      navigateTo(`${getBasePath()}/settings`)
+      navigateTo({ query: { ...route.value.query, settings: 'members' } })
     } else {
+      activeSidebarTab.value = 'settings'
       const wsId = route.value.params.typeOrId || activeWorkspaceId.value
       navigateTo(`/${wsId}/members`)
     }
@@ -121,7 +144,23 @@ const onTabClick = async (tabKey: string) => {
   if (!basePath) return
 
   if (tabKey === 'workflows') {
+    if (blockWorkflows.value) {
+      showUpgradeToUseWorkflows({ triggerSource: 'minisidebar-workflows' })
+      return
+    }
     await navigateTo(`${basePath}/workflows`)
+  } else if (tabKey === 'agents') {
+    if (blockAgents.value) {
+      showUpgradeToUseAgents({ triggerSource: 'minisidebar-agents' })
+      return
+    }
+    await navigateTo(`${basePath}/agents`)
+  } else if (tabKey === 'interfaces') {
+    if (hideInterfaces.value) {
+      showUpgradeForInterfaceFeature(PlanFeatureTypes.FEATURE_INTERFACES, 'minisidebar-interfaces')
+      return
+    }
+    await navigateTo(`${basePath}/interfaces`)
   } else {
     await navigateTo(basePath)
   }
@@ -152,7 +191,7 @@ const mainItems = computed<NavItem[]>(() => [
     disabled: !hasAvailableBases.value,
     onClick: () => onTabClick('data'),
   },
-  ...(isEeUI && !isMobileMode.value && showEEFeatures.value
+  ...(!isMobileMode.value && showWorkflowsNav.value
     ? [
         {
           key: 'workflows',
@@ -164,6 +203,38 @@ const mainItems = computed<NavItem[]>(() => [
               roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
             }),
           onClick: () => onTabClick('workflows'),
+        },
+      ]
+    : []),
+  // Paid-only, but the entry stays visible below the tier — clicking upsells
+  // (onTabClick) instead of navigating, mirroring Rail.
+  ...(showInterfacesNav.value
+    ? [
+        {
+          key: 'interfaces',
+          icon: 'ncLayout',
+          label: t('general.interfaces'),
+          disabled:
+            !hasAvailableBases.value ||
+            !isUIAllowed('interfaceList', {
+              roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
+            }),
+          onClick: () => onTabClick('interfaces'),
+        },
+      ]
+    : []),
+  ...(!isMobileMode.value && isAgentsEnabled.value
+    ? [
+        {
+          key: 'agents',
+          icon: 'ncAgent',
+          label: t('general.agents'),
+          disabled:
+            !hasAvailableBases.value ||
+            !isUIAllowed('agentList', {
+              roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
+            }),
+          onClick: () => onTabClick('agents'),
         },
       ]
     : []),
@@ -303,6 +374,13 @@ const handleOpenBookmarkPanel = () => {
     isBookmarksFlyoutOpen.value = !isBookmarksFlyoutOpen.value
   }
 }
+
+// Base settings is an overlay on the current route rather than a route of its
+// own, so the tile reads the query alongside the workspace-settings page. Only a
+// slug the nav knows counts — `?settings=true` belongs to the agent panel.
+const isSettingsActive = computed(
+  () => activeSidebarTab.value === 'settings' || !!resolveBaseSettingsTab(route.value.query.settings),
+)
 </script>
 
 <template>
@@ -332,6 +410,14 @@ const handleOpenBookmarkPanel = () => {
 
     <NcDivider class="!w-8 !min-w-8 !mb-0 !border-nc-border-gray-medium !-mt-1.5" />
 
+    <!-- Apps — leads the group for a base built through the App flow -->
+    <DashboardMiniSidebarV2AppTiles
+      v-if="showAppTile && isAppFirst"
+      :ref="(el: any) => setItemRef('app', el)"
+      variant="dock"
+      :scale="getScale('app')"
+    />
+
     <!-- Main nav items -->
     <DashboardMiniSidebarV2DockItem
       v-for="(item, idx) of mainItems"
@@ -346,21 +432,12 @@ const handleOpenBookmarkPanel = () => {
       @click="item.onClick?.()"
     />
 
-    <!-- AI Chat -->
-    <DashboardMiniSidebarV2DockItem
-      v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && hasChatBaseContext && !isMobileMode"
-      :ref="(el: any) => setItemRef('chat', el)"
-      v-e="['c:chat:toggle']"
-      :label="$t('labels.chat')"
-      panel-key="chat"
-      data-testid="nc-sidebar-chat-btn"
-      :active="isChatPanelExpanded"
-      :scale="getScale('chat')"
-      class="nc-dock-chat-item"
-      @click="handleChatToggle"
-    >
-      <GeneralIcon icon="ncAutoAwesome" class="nc-dock-item-icon !text-nc-content-brand" />
-    </DashboardMiniSidebarV2DockItem>
+    <DashboardMiniSidebarV2AppTiles
+      v-if="showAppTile && !isAppFirst"
+      :ref="(el: any) => setItemRef('app', el)"
+      variant="dock"
+      :scale="getScale('app')"
+    />
 
     <!-- Settings -->
     <DashboardMiniSidebarV2DockItem
@@ -368,7 +445,7 @@ const handleOpenBookmarkPanel = () => {
       icon="ncSettings"
       :label="$t('labels.settings')"
       panel-key="settings"
-      :active="activeSidebarTab === 'settings' && !isChatFullScreen"
+      :active="isSettingsActive && !isChatFullScreen"
       :scale="getScale('settings')"
       @click="onTabClick('settings')"
     />
@@ -395,7 +472,7 @@ const handleOpenBookmarkPanel = () => {
     </div>
 
     <!-- Bookmarks -->
-    <div v-if="isEeUI" ref="bookmarksContainerRef" class="relative">
+    <div v-if="showEEFeatures" ref="bookmarksContainerRef" class="relative">
       <div :ref="(el: any) => setItemRef('bookmarks', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('bookmarks')">
         <DashboardMiniSidebarV2DockItem
           icon="ncBookmark"

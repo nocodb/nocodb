@@ -47,7 +47,7 @@ const meta = inject(MetaInj)!
 
 const column = toRef(props, 'column')
 
-const { isUIAllowed, isMetaReadOnly, sandboxRestrictionReason } = useRoles()
+const { isUIAllowed, isMetaReadOnly, environmentRestrictionReason } = useRoles()
 
 const { isAllowed } = usePermissions()
 
@@ -109,7 +109,7 @@ const isColumnEditAllowed = computed(() => {
   return true
 })
 
-const fieldEditReason = computed(() => (!isForm.value ? sandboxRestrictionReason('fieldEdit') : null))
+const fieldEditReason = computed(() => (!isForm.value ? environmentRestrictionReason('fieldEdit') : null))
 
 const openHeaderMenu = (e?: MouseEvent, description = false) => {
   if (
@@ -333,7 +333,7 @@ const onClick = (e: Event) => {
       :overlay-class-name="`nc-dropdown-edit-column ${editColumnDropdown ? 'active rounded-2xl' : ''}`"
       @visible-change="onVisibleChange"
     >
-      <div v-if="isExpandedForm && !isExpandedBulkUpdateForm" class="h-[1px]" @dblclick.stop>&nbsp;</div>
+      <div v-if="isExpandedForm && !isExpandedBulkUpdateForm" class="!h-[1px]" @dblclick.stop>&nbsp;</div>
       <div v-else />
 
       <template #overlay>

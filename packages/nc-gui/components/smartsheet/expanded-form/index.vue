@@ -442,6 +442,9 @@ const clearLtarBuffers = () => {
   // pendingLtarOps queue (#14058). Drop both so a discarded edit can't leak.
   if (_row.value?.rowMeta) {
     _row.value.rowMeta.ltarState = {}
+    // SmartText edits are buffered on the row until the form's Save (#10261) —
+    // drop them here too so a discarded edit isn't flushed on a later save.
+    _row.value.rowMeta.smartTextDrafts = {}
   }
   pendingLtarOps.value = []
 }
@@ -986,7 +989,9 @@ export default {
             </div>
           </div>
         </div>
-        <div v-if="!templateMode && !blueprintMode" class="ml-auto">
+        <div v-if="!templateMode && !blueprintMode" class="ml-auto flex items-center gap-3">
+          <!-- Unsaved (isNew) rows have no pk, so there is nothing for peers to be present on. -->
+          <SmartsheetExpandedFormPresence v-if="isEeUI && !isNew" />
           <SmartsheetExpandedFormViewModeSelector v-model="activeViewMode" :view="view" class="nc-expanded-form-mode-switch" />
         </div>
         <div v-else class="ml-auto" />

@@ -1,9 +1,13 @@
+import { OrgUserRoles } from 'nocodb-sdk'
+
 export const useProvideChatwoot = () => {
   const { setUser, setConversationCustomAttributes, setCustomAttributes } = useChatWoot()
 
   const { $api } = useNuxtApp()
 
-  const { user, appInfo } = useGlobal()
+  const { user, appInfo, signedIn } = useGlobal()
+
+  const { orgRoles } = useRoles()
   const router = useRouter()
   const route = router.currentRoute
 
@@ -67,11 +71,25 @@ export const useProvideChatwoot = () => {
     initUserCustomerAttributes()
   })
 
-  onMounted(() => {
-    if (appInfo.value.disableSupportChat) return
+  // `/api/v1/aggregated-meta-info` enumerates every base on the instance with a
+  // per-source row COUNT, and since it was put behind GlobalGuard + an ACL that
+  // only the SUPER_ADMIN wildcard grants, it answers 401 when signed out and 403
+  // for everyone else. It was still being fired on mount for every visitor, and
+  // the signed-out 401 fed the axios interceptor, whose token refresh then
+  // force-signed-out the session.
+  //
+  // Fetch it only when the call can actually succeed. This has to be reactive,
+  // not `onMounted`: the composable is instantiated from app.vue at app start,
+  // which always precedes sign-in, so a mount-time guard would never fire.
+  watch(
+    [signedIn, () => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN], () => appInfo.value.disableSupportChat],
+    ([isSignedIn, isSuperAdmin, disableSupportChat]) => {
+      if (disableSupportChat || !isSignedIn || !isSuperAdmin || metaInfo.value) return
 
-    loadAggMetaInfo()
-  })
+      loadAggMetaInfo()
+    },
+    { immediate: true },
+  )
 
   return {
     chatwootInit,

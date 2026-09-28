@@ -14,7 +14,7 @@ export interface AggregationGeneratorParams {
   column: Column;
   baseModelSqlv2: IBaseModelSqlV2;
   aggregation: string;
-  column_query: string | Knex.QueryBuilder;
+  column_query: string | Knex.QueryBuilder | Knex.Raw;
   parsedFormulaType?: FormulaDataTypes;
   aggType: AggregationCategory;
   alias?: string;
@@ -26,7 +26,12 @@ export interface AggregateCtx {
   model: Model;
   view?: View;
   source: Source;
-  args: { filterArr?: Filter[]; where?: string };
+  args: {
+    filterArr?: Filter[];
+    where?: string;
+    /** Explicit `(column, type)` pairs — REQUIRED when no view is passed. */
+    aggregation?: Array<{ field: string; type: string }>;
+  };
 }
 
 /** Caller payload for `client.bulkAggregate()` — N filter sets. */
@@ -95,6 +100,17 @@ export interface DBQueryClient {
   generateAggregateQuery(
     params: AggregationGeneratorParams,
   ): string | undefined;
+
+  /**
+   * Like `generateAggregateQuery`, but returns the bare aggregate expression
+   * (BEFORE the COALESCE/alias wrap) plus its category, so grouped callers —
+   * the Timeline/Gantt date-axis summary — can embed it under their own
+   * GROUP BY and choose empty-cell handling per aggregation (COUNT/SUM → 0,
+   * AVG/MIN/MAX → null).
+   */
+  generateAggregateExpression(params: AggregationGeneratorParams):
+    | { sql: Knex.Raw; aggType: AggregationCategory; aggregation: string }
+    | undefined;
 
   /** Single-filter-set view-footer aggregation. */
   aggregate(

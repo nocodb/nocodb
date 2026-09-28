@@ -2,6 +2,7 @@ import {
   FormulaDataTypes,
   isBtLikeV2Junction,
   isMMOrMMLike,
+  isRollupAggregatableColumn,
   NC_ERROR_SENTINEL,
   NcDataErrorCodes,
   RelationTypes,
@@ -23,10 +24,31 @@ import { NcError } from '~/helpers/ncError';
 import { RelationManager } from '~/db/relation-manager';
 import { Column, Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import { excludeNonFiniteSql, isPgIeeeEnabled } from '~/db/formulav2/pg-ieee';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { Profiler } from '~/helpers/profiler';
 import { DBQueryClient } from '~/dbQueryClient';
+
+// Numeric rollups a non-finite value would poison. `count`/`countDistinct` are
+// deliberately absent — they must keep seeing every row.
+const NON_FINITE_EXCLUDING_ROLLUPS = [
+  'sum',
+  'sumDistinct',
+  'avg',
+  'avgDistinct',
+  'min',
+  'max',
+];
+
+// Ceiling on rollup-of-rollup expansion — a chain of *distinct* rollups repeats
+// no column id, so CircularRefContext never fires and the correlated subqueries
+// nest without limit. Real chains are 1–3 deep; 16 is generous.
+//
+// Partial: `nestedLevel` lives only in this file, so a Rollup → Formula → Rollup
+// hop re-enters at 0 and evades the cap. Closing that means threading the depth
+// through formulaQueryBuilderv2.
+const MAX_ROLLUP_NESTED_LEVEL = 16;
 
 export default async function genRollupSelectv2(param: {
   baseModelSqlv2: IBaseModelSqlV2;
@@ -39,11 +61,28 @@ export default async function genRollupSelectv2(param: {
   const { baseModelSqlv2, knex, alias, columnOptions, nestedLevel = 0 } = param;
   let { parentColumns } = param;
 
+  // Callers treat the result as a query builder — `select-object` and `group-by`
+  // call `.as()` on it, which knex 3's `Raw` doesn't implement. Oracle is the
+  // one dialect that rejects a SELECT without a FROM.
+  const errorSentinel = () => {
+    const qb = knex.select(knex.raw(`?`, [NC_ERROR_SENTINEL]));
+    return {
+      builder: baseModelSqlv2.isOracle ? qb.from(knex.raw('dual')) : qb,
+    };
+  };
+
   if ((columnOptions as RollupColumn).error) {
-    return { builder: knex.raw(`?`, [NC_ERROR_SENTINEL]) };
+    return errorSentinel();
   }
 
   const context = baseModelSqlv2.context;
+
+  if (nestedLevel > MAX_ROLLUP_NESTED_LEVEL) {
+    NcError.get(context).badRequest(
+      `Rollup nesting is too deep (> ${MAX_ROLLUP_NESTED_LEVEL}). Simplify the dependent rollup chain.`,
+    );
+  }
+
   parentColumns = parentColumns ?? CircularRefContext.make();
   const profiler = Profiler.start(
     'DEBUG:/genRollupSelectv2/' + columnOptions.fk_column_id,
@@ -69,23 +108,23 @@ export default async function genRollupSelectv2(param: {
       colId: columnOptions.fk_relation_column_id,
     });
   } else {
-    relationColumn = await columnOptions.getRelationColumn(context);
+    relationColumn = await columnOptions.getRelationColumn();
   }
   profiler.log('getRelationColumn done');
 
   if (!relationColumn) {
-    return { builder: knex.raw(`?`, [NC_ERROR_SENTINEL]) };
+    return errorSentinel();
   }
 
   const relationColumnOption: LinkToAnotherRecordColumn =
-    (await relationColumn.getColOptions(context)) as LinkToAnotherRecordColumn;
+    (await relationColumn.getColOptions()) as LinkToAnotherRecordColumn;
   const { parentContext, childContext, mmContext, refContext } =
-    await relationColumnOption.getParentChildContext(context);
+    await relationColumnOption.getParentChildContext();
 
   const isMMLike = isMMOrMMLike(relationColumn);
 
   const rollupColumn = columnOptions.getRollupColumn
-    ? await columnOptions.getRollupColumn(refContext)
+    ? await columnOptions.getRollupColumn()
     : await Column.get(refContext, {
         colId: columnOptions.fk_rollup_column_id,
       });
@@ -95,10 +134,18 @@ export default async function genRollupSelectv2(param: {
     NcError.get(context).fieldNotFound(columnOptions.fk_rollup_column_id);
   }
 
-  const childCol = await relationColumnOption.getChildColumn(childContext);
-  const childModel = await childCol?.getModel(childContext);
-  const parentCol = await relationColumnOption.getParentColumn(parentContext);
-  const parentModel = await parentCol?.getModel(parentContext);
+  // No column to aggregate: the fallthrough in `applyFunction` would bind a null
+  // `column_name` and fail the whole read, not just this cell. Signal only —
+  // `colOptions.error` means "dependency deleted" (cleared on restore), so this
+  // partial check must never write to it.
+  if (!isRollupAggregatableColumn(rollupColumn)) {
+    return errorSentinel();
+  }
+
+  const childCol = await relationColumnOption.getChildColumn();
+  const childModel = await childCol?.getModel();
+  const parentCol = await relationColumnOption.getParentColumn();
+  const parentModel = await parentCol?.getModel();
   const refTableAlias =
     `__nc_rollup_` + Math.random().toString(36).substring(2, 8);
 
@@ -153,7 +200,7 @@ export default async function genRollupSelectv2(param: {
       // already resolves its colOptions via `refContext`.
       const formulOption = await rollupColumn.getColOptions<
         FormulaColumn | ButtonColumn
-      >(refContext);
+      >();
 
       if (!formulOption) {
         NcError.get(context).fieldNotFound(columnOptions.fk_rollup_column_id);
@@ -191,8 +238,27 @@ export default async function genRollupSelectv2(param: {
       // See: parsed-tree-builder.ts:307 (where the original `\\?` escape
       // is applied to formula output).
       selectColumnIsSubquery = true;
+      const resolvedFormulaSql = `(${formulaQb.builder
+        .toQuery()
+        .replaceAll('?', '\\?')})`;
+      // A rollup is the second numeric-aggregate consumer of a pg formula, and
+      // the only one that doesn't route through applyAggregation — so it needs
+      // the same exclusion at its own site. Otherwise a single non-finite row
+      // takes the whole aggregate (NaN poisons sum/avg/max; -Infinity wins min),
+      // and since the value lands on a Rollup column rather than a Formula one,
+      // convertFormulaNonFinite skips it and JSON.stringify blanks it to null —
+      // a wrong value that reads as no value. The count family is deliberately
+      // excluded: an Infinity cell is not an empty cell.
+      // Composed as SQL text, not a nested knex.raw bind — see the `\\?` note
+      // above; re-binding this Raw would strip the escape.
       selectColumnName = knex.raw(
-        `(${formulaQb.builder.toQuery().replaceAll('?', '\\?')})`,
+        isPgIeeeEnabled(knex) &&
+          formulOption.getParsedTree()?.dataType === FormulaDataTypes.NUMERIC &&
+          NON_FINITE_EXCLUDING_ROLLUPS.includes(
+            columnOptions.rollup_function as string,
+          )
+          ? excludeNonFiniteSql(resolvedFormulaSql)
+          : resolvedFormulaSql,
       );
       // A boolean-returning formula (e.g. a Checkbox passthrough) lowers to a
       // `bit`-typed expression on MSSQL — flag it so the bit→FLOAT cast fires.
@@ -208,9 +274,7 @@ export default async function genRollupSelectv2(param: {
         baseModelSqlv2: refBaseModel,
         knex,
         alias: refTableAlias,
-        columnOptions: await rollupColumn.getColOptions<RollupColumn>(
-          refContext,
-        ),
+        columnOptions: await rollupColumn.getColOptions<RollupColumn>(),
         nestedLevel: nestedLevel + 1,
         parentColumns,
       });
@@ -464,11 +528,9 @@ export default async function genRollupSelectv2(param: {
 
     case RelationTypes.MANY_TO_MANY: {
       profiler.log('Relation: ' + relationColumnOption.type);
-      const mmModel = await relationColumnOption.getMMModel(mmContext);
-      const mmChildCol = await relationColumnOption.getMMChildColumn(mmContext);
-      const mmParentCol = await relationColumnOption.getMMParentColumn(
-        mmContext,
-      );
+      const mmModel = await relationColumnOption.getMMModel();
+      const mmChildCol = await relationColumnOption.getMMChildColumn();
+      const mmParentCol = await relationColumnOption.getMMParentColumn();
       const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
         id: mmModel.id,
         dbDriver: knex,

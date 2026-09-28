@@ -36,8 +36,8 @@ function isAttachmentCellWithFiles(col: Record<string, any>) {
             v-model="formState[field.title]"
             :row="row"
             class="nc-input"
-            :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
-            :data-testid="`nc-form-input-${field.title.replaceAll(' ', '')}`"
+            :class="`nc-form-input-${toSafeClassName(field.title)}`"
+            :data-testid="`nc-form-input-${toSafeClassName(field.title)}`"
             :column="field"
           />
           <LazySmartsheetCell
@@ -45,13 +45,13 @@ function isAttachmentCellWithFiles(col: Record<string, any>) {
             v-model="formState[field.title]"
             class="nc-input truncate"
             :class="[
-              `nc-form-input-${field.title.replaceAll(' ', '')}`,
+              `nc-form-input-${toSafeClassName(field.title)}`,
               {
                 'layout-list': field.meta.isList,
                 'nc-input-has-attachments': isAttachmentCellWithFiles(field),
               },
             ]"
-            :data-testid="`nc-form-input-${field.title.replaceAll(' ', '')}`"
+            :data-testid="`nc-form-input-${toSafeClassName(field.title)}`"
             :column="field"
             :edit-enabled="true"
           />
@@ -103,11 +103,11 @@ function isAttachmentCellWithFiles(col: Record<string, any>) {
     @apply p-2;
   }
 
-  :deep(&.nc-cell:not(.nc-cell-longtext)) {
+  &.nc-cell:not(.nc-cell-longtext) {
     &.nc-cell-phonenumber,
     &.nc-cell-email,
     &.nc-cell-url {
-      .nc-cell-field.nc-cell-link-preview {
+      :deep(.nc-cell-field.nc-cell-link-preview) {
         @apply px-3;
       }
     }
@@ -160,7 +160,7 @@ function isAttachmentCellWithFiles(col: Record<string, any>) {
     @apply px-4 min-h-[75px] w-full h-full;
 
     .nc-attachment {
-      @apply md: (w-[50px] h-[50px]) lg:(w-[75px] h-[75px]) min-h-[50px] min-w-[50px];
+      @apply md:(w-[50px] h-[50px]) lg:(w-[75px] h-[75px]) min-h-[50px] min-w-[50px];
     }
 
     .nc-attachment-cell-dropzone {
@@ -175,6 +175,24 @@ function isAttachmentCellWithFiles(col: Record<string, any>) {
   &:focus-within {
     @apply !border-none;
   }
+}
+
+/* dark: fill the input rather than painting it the page colour, so a field reads as an
+   input — same treatment as the expanded record. Reuses the static-class exclusions
+   above deliberately; `:has()` is avoided here for the invalidation cost noted there.
+   Attachment cells own their chrome, so a fill reads as a stray slab beside it. */
+[theme='dark'] .nc-input:not(.layout-list):not(.nc-input-has-attachments):not(.nc-cell-attachment) {
+  background-color: var(--nc-bg-input) !important;
+  border-color: var(--nc-border-input);
+}
+
+/* Docked toolbar rides the cell's own tint — the same token would composite its alpha twice. */
+[theme='dark'] .nc-input :deep(.bubble-menu) {
+  background: transparent;
+}
+
+.nc-input :deep(.bubble-menu) {
+  border-radius: 0;
 }
 
 .nc-form-field-body {

@@ -11,8 +11,10 @@ export class HasManyHelper extends AbstractColumnHelper {
     throw new SilentTypeConversionError();
   }
 
-  parseValue(value: any, _params: SerializerOrParserFnProps['params']) {
-    return value ?? '';
+  parseValue(value: any, params: SerializerOrParserFnProps['params']) {
+    // Clipboard text is the display values the cell renders — the raw value
+    // is an array of related records and would stringify as noise.
+    return this.parsePlainCellValue(value, params);
   }
 
   parsePlainCellValue(

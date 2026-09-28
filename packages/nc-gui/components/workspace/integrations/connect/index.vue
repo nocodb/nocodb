@@ -45,7 +45,7 @@ onMounted(async () => {
       <NcButton type="secondary" size="small" :disabled="isRefreshing" @click="onRefreshConnection"
         ><GeneralIcon icon="refresh"
       /></NcButton>
-      <NcButton type="danger" size="small" @click="deleteConnectionDetails">Disable connection</NcButton>
+      <NcButton type="danger" size="small" @click="deleteConnectionDetails">{{ $t('labels.disableConnection') }}</NcButton>
     </template>
     <template #leftPanel="{ class: leftPanelClass }">
       <div :class="leftPanelClass">
@@ -58,9 +58,11 @@ onMounted(async () => {
             class="!w-full !max-w-[864px] flex-none"
             alt="NocoDb X Pg integration"
           />
-          <span class="text-base font-bold">Connect with your favorite tools</span>
-          <span class="text-sm text-nc-content-gray-subtle2">Integrate with your favourite tools by bypassing our APIs</span>
-          <NcButton size="small" type="primary" @click="createConnectionDetails"> Get connection details </NcButton>
+          <span class="text-base font-bold">{{ $t('labels.connectWithFavoriteTools') }}</span>
+          <span class="text-sm text-nc-content-gray-subtle2">{{ $t('msg.info.integrateWithFavoriteTools') }}</span>
+          <NcButton size="small" type="primary" @click="createConnectionDetails">
+            {{ $t('labels.getConnectionDetails') }}
+          </NcButton>
           <div>
             <!-- For spacing  -->
           </div>
@@ -83,7 +85,7 @@ onMounted(async () => {
                     <div class="nc-form-section-body">
                       <a-row :gutter="24">
                         <a-col :span="12">
-                          <a-form-item label="Connection name">
+                          <a-form-item :label="$t('labels.connectionName')">
                             <a-input value="NocoDB" disabled />
                           </a-form-item>
                         </a-col>
@@ -92,13 +94,13 @@ onMounted(async () => {
                   </div>
                   <div class="nc-form-section">
                     <div class="flex items-center justify-between">
-                      <div class="nc-form-section-title">Connection details</div>
+                      <div class="nc-form-section-title">{{ $t('labels.connectionDetailsSection') }}</div>
                     </div>
 
                     <div class="nc-form-section-body">
                       <a-row :gutter="24">
                         <a-col :span="24">
-                          <a-form-item label="Connection URL">
+                          <a-form-item :label="$t('labels.connectionUrl')">
                             <LazyGeneralCopyInput v-model="connectionUrl" class="nc-connection-url" />
                           </a-form-item>
                         </a-col>
@@ -106,12 +108,12 @@ onMounted(async () => {
 
                       <a-row :gutter="24">
                         <a-col :span="12">
-                          <a-form-item label="Host">
+                          <a-form-item :label="$t('labels.host')">
                             <LazyGeneralCopyInput v-model="connectionHost" class="nc-connection-host" />
                           </a-form-item>
                         </a-col>
                         <a-col :span="12">
-                          <a-form-item label="Port">
+                          <a-form-item :label="$t('labels.pgPort')">
                             <LazyGeneralCopyInput v-model="connectionDetails.port" class="nc-connection-port" />
                           </a-form-item>
                         </a-col>

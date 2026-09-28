@@ -22,6 +22,7 @@ export const BarcodeCellRenderer: CellRenderer = {
       spriteLoader,
       isDark,
       getColor,
+      textAlign: props.textAlign,
     })
 
     if (returnValue?.startX) {

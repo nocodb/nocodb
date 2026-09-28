@@ -69,7 +69,7 @@ async function xcVisibilityMetaGet(
   const result = await models.reduce(async (_obj, model) => {
     const obj = await _obj;
 
-    const views = await model.getViews(context);
+    const views = await model.getViews();
     for (const view of views) {
       // Mask the bcrypt password hash — the owner UI never needs the stored
       // value; it sees a sentinel and renders a masked state.
@@ -483,7 +483,7 @@ export class ViewsService {
       ncMeta,
     );
 
-    await result.getView(context, ncMeta);
+    await result.getView(ncMeta);
 
     // Strip the stored bcrypt password hash from every outbound payload.
     const safeResult = View.maskPasswordForResponse(result);
@@ -693,7 +693,9 @@ export class ViewsService {
     param: {
       viewId: string;
       sharedView: SharedViewReqType & {
-        custom_url_path?: string;
+        // `null` deletes the vanity path; `undefined` leaves it untouched — the
+        // branches below distinguish the two.
+        custom_url_path?: string | null;
       };
       user: UserType;
       req: NcRequest;

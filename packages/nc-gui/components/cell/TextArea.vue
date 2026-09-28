@@ -29,6 +29,8 @@ const rowHeight = inject(RowHeightInj, ref(1 as const))
 
 const isForm = inject(IsFormInj, ref(false))
 
+const isInterfaceUi = useIsInterfaceUi()
+
 const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
 
 const isGrid = inject(IsGridInj, ref(false))
@@ -144,6 +146,27 @@ const rowId = computed(() => {
   return extractPkFromRow(currentRow.value?.row, meta.value!.columns!)
 })
 
+// A not-yet-created record has no primary key, so the SmartText editor's
+// rowId-keyed backend load/save can't run. In that case the editor works against
+// a locally-buffered ProseMirror draft (see below) which is flushed to the backend
+// once the record is created (useExpandedFormStore.save).
+const isNewRecord = computed(() => !!currentRow.value?.rowMeta?.new)
+
+// The SmartText ProseMirror draft buffered on the row for this column while the
+// record is new. Two-way bound into the SmartText modal.
+const smartTextDraft = computed(() => {
+  if (!column?.value?.id) return null
+  return currentRow.value?.rowMeta?.smartTextDrafts?.[column.value.id] ?? null
+})
+
+// Markdown already present on a new record's cell (duplicated record or column
+// default value) — seeds the draft editor so the copied content is visible and
+// not clobbered by the first edit.
+const smartTextInitialMarkdown = computed(() => {
+  if (!isNewRecord.value || !ncIsString(vModel.value) || !vModel.value) return null
+  return vModel.value
+})
+
 const isAiGenerating = computed(() => {
   return !!(
     rowId.value &&
@@ -250,11 +273,131 @@ const onSmartTextSaved = (markdown: string | null) => {
   if (currentRow.value?.row && column?.value?.title) {
     currentRow.value.row[column.value.title] = markdown
   }
+  // A successful backend save supersedes any buffered draft (e.g. one kept
+  // around after a failed post-create flush and re-saved via the modal).
+  if (column?.value?.id && currentRow.value?.rowMeta?.smartTextDrafts) {
+    delete currentRow.value.rowMeta.smartTextDrafts[column.value.id]
+  }
   // Propagate to the parent grid — the expanded form's reloadHook reloads
   // the row from the server, which refreshes the canvas's cached row and
   // forces a redraw. Required because the expanded form's row is a fresh
   // server-fetched object, not the same reference as the canvas cache.
   reloadRowHook?.trigger(null)
+}
+
+// Serialize inline PM content (text + marks) to markdown.
+const pmInline = (content?: Record<string, any>[]): string => {
+  return (content ?? [])
+    .map((node) => {
+      if (node.type === 'text') {
+        let text = node.text ?? ''
+        for (const mark of node.marks ?? []) {
+          if (mark.type === 'bold' || mark.type === 'strong') text = `**${text}**`
+          else if (mark.type === 'italic' || mark.type === 'em') text = `*${text}*`
+          else if (mark.type === 'strike') text = `~~${text}~~`
+          else if (mark.type === 'code') text = `\`${text}\``
+          else if (mark.type === 'link') text = `[${text}](${mark.attrs?.href ?? ''})`
+        }
+        return text
+      }
+      if (node.type === 'hardBreak') return '\n'
+      return pmInline(node.content)
+    })
+    .join('')
+}
+
+// Serialize a buffered ProseMirror draft to markdown for the interim cell preview —
+// mirrors the backend derivation (prosemirrorUtils) for common nodes; exotic doc
+// nodes degrade to their text. The backend-derived markdown replaces it on flush.
+const pmToMarkdown = (pm: Record<string, any> | null): string => {
+  const walk = (nodes?: Record<string, any>[], indent = ''): string => {
+    return (nodes ?? [])
+      .map((node) => {
+        switch (node.type) {
+          case 'heading':
+            return `${'#'.repeat(node.attrs?.level || 1)} ${pmInline(node.content)}\n\n`
+          case 'paragraph':
+            return `${indent}${pmInline(node.content)}\n\n`
+          case 'bulletList':
+          case 'orderedList':
+          case 'taskList': {
+            let out = ''
+            const items = node.content ?? []
+            for (let i = 0; i < items.length; i++) {
+              const item = items[i]
+              const prefix =
+                node.type === 'orderedList'
+                  ? `${i + 1}. `
+                  : node.type === 'taskList'
+                  ? `- [${item.attrs?.checked ? 'x' : ' '}] `
+                  : '- '
+              const children = item.content ?? []
+              if (children[0]?.type === 'paragraph') {
+                out += `${indent}${prefix}${pmInline(children[0].content)}\n`
+                out += walk(children.slice(1), `${indent}  `)
+              } else {
+                out += `${indent}${prefix}${walk(children, `${indent}  `).trim()}\n`
+              }
+            }
+            return `${out}\n`
+          }
+          case 'blockquote':
+            return `${walk(node.content)
+              .trimEnd()
+              .split('\n')
+              .map((l) => `> ${l}`)
+              .join('\n')}\n\n`
+          case 'codeBlock':
+            return `\`\`\`${node.attrs?.language ?? ''}\n${pmInline(node.content)}\n\`\`\`\n\n`
+          case 'horizontalRule':
+            return '---\n\n'
+          case 'image':
+            return `![${node.attrs?.alt ?? ''}](${node.attrs?.path || node.attrs?.src || ''})\n\n`
+          case 'hardBreak':
+            return '\n'
+          default:
+            return walk(node.content, indent)
+        }
+      })
+      .join('')
+  }
+
+  return walk(pm?.content).trimEnd()
+}
+
+// Non-recursive plain-text fallback — cannot throw on malformed/deep docs.
+const pmToText = (pm: Record<string, any> | null): string => {
+  const out: string[] = []
+  const stack: any[] = [pm]
+  while (stack.length) {
+    const node = stack.pop()
+    if (!node || typeof node !== 'object') continue
+    if (typeof node.text === 'string') out.push(node.text)
+    if (Array.isArray(node.content)) stack.push(...node.content)
+  }
+  return out.join(' ')
+}
+
+// Deferred SmartText edit — buffer the ProseMirror draft on the row so it
+// survives modal close and can be flushed to the backend on record create /
+// form save, and mirror a markdown preview into the cell value meanwhile.
+const onSmartTextDraftUpdate = (pm: Record<string, any> | null) => {
+  if (!currentRow.value || !column?.value?.id) return
+
+  if (!currentRow.value.rowMeta) currentRow.value.rowMeta = {}
+  if (!currentRow.value.rowMeta.smartTextDrafts) currentRow.value.rowMeta.smartTextDrafts = {}
+  currentRow.value.rowMeta.smartTextDrafts[column.value.id] = pm
+
+  // Route the preview through the cell vModel (not a direct row write) so the
+  // expanded form registers the change (`changedColumns`) — otherwise Save stays
+  // disabled and close skips the unsaved-changes prompt when the SmartText field
+  // is the only edit on the record. The preview must never break editing — the
+  // draft above is already buffered, so fall back to plain text on any error.
+  try {
+    vModel.value = pmToMarkdown(pm)
+  } catch {
+    vModel.value = pmToText(pm)
+  }
 }
 
 const onMouseMove = (e: MouseEvent) => {
@@ -324,8 +467,14 @@ if (props.isAi) {
   })
 }
 
+// Click-to-edit (grid / expanded record / interface list viz) jumps rich & AI
+// cells straight to the expanded modal. The interface record form is excluded:
+// there `editEnabled` is a capability binding — a config flip (e.g. record
+// review `edit_fields` off → inline) transitions it without user intent — and
+// rich text edits inline. Scoped to interface form surfaces only so classic
+// product behavior is untouched.
 watch(editEnabled, () => {
-  if (editEnabled.value && (isRichMode.value || props.isAi)) {
+  if (editEnabled.value && (isRichMode.value || props.isAi) && !(isForm.value && isInterfaceUi.value)) {
     isVisible.value = true
   }
 })
@@ -647,7 +796,7 @@ useResizeObserver(inputWrapperRef, () => {
               <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-purple-medium h-4 w-4 flex-none" />
               <div class="flex flex-col">
                 <div class="text-small leading-[18px] text-nc-content-gray-muted">
-                  AI generated content may be outdated. The source data for this record has changed.
+                  {{ $t('msg.info.aiContentStale') }}
                 </div>
               </div>
             </div>
@@ -655,8 +804,8 @@ useResizeObserver(inputWrapperRef, () => {
 
           <div v-if="!isEditColumn" class="flex items-center gap-2 px-3 pt-0.5 pb-[3.5px] !text-small leading-[18px]">
             <NcTooltip v-if="isAiEdited" class="text-nc-content-green-dark flex-1 truncate" show-on-truncate-only>
-              <template #title> Edited by you </template>
-              Edited by you
+              <template #title> {{ $t('labels.editedByYou') }} </template>
+              {{ $t('labels.editedByYou') }}
             </NcTooltip>
             <NcTooltip
               v-else-if="props.aiMeta?.lastModifiedBy && idUserMap[props.aiMeta?.lastModifiedBy]"
@@ -678,7 +827,7 @@ useResizeObserver(inputWrapperRef, () => {
                   : extractUserDisplayNameOrEmail(idUserMap[props.aiMeta?.lastModifiedBy])
               }}
             </NcTooltip>
-            <span v-else class="text-nc-content-purple-light truncate flex-1">Generated by AI</span>
+            <span v-else class="text-nc-content-purple-light truncate flex-1">{{ $t('labels.generatedByAi') }}</span>
             <NcTooltip :disabled="isFieldAiIntegrationAvailable" class="flex">
               <template #title>
                 {{
@@ -696,8 +845,8 @@ useResizeObserver(inputWrapperRef, () => {
                 <template #icon>
                   <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
                 </template>
-                <template #loading> Re-generating... </template>
-                Re-generate
+                <template #loading> {{ $t('labels.regenerating') }} </template>
+                {{ $t('general.regenerate') }}
               </NcButton>
             </NcTooltip>
           </div>
@@ -843,7 +992,7 @@ useResizeObserver(inputWrapperRef, () => {
           <template v-if="props.isAi && !isEditColumn">
             <div class="flex items-center text-small leading-[18px] gap-3 ml-2">
               <template v-if="!readOnly">
-                <span v-if="isAiEdited" class="text-nc-content-green-dark truncate"> Edited by you </span>
+                <span v-if="isAiEdited" class="text-nc-content-green-dark truncate"> {{ $t('labels.editedByYou') }} </span>
                 <span v-else-if="props.aiMeta?.lastModifiedBy && idUserMap[props.aiMeta?.lastModifiedBy]" class="text-green-600">
                   Edited by
                   {{
@@ -852,7 +1001,7 @@ useResizeObserver(inputWrapperRef, () => {
                       : extractUserDisplayNameOrEmail(idUserMap[props.aiMeta?.lastModifiedBy])
                   }}
                 </span>
-                <span v-else class="text-nc-content-purple-dark truncate">Generated by AI</span>
+                <span v-else class="text-nc-content-purple-dark truncate">{{ $t('labels.generatedByAi') }}</span>
               </template>
             </div>
             <div class="flex-1"></div>
@@ -905,7 +1054,7 @@ useResizeObserver(inputWrapperRef, () => {
             <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-purple-medium h-6 w-6 flex-none" />
             <div class="flex flex-col">
               <div class="text-nc-content-gray-muted text-sm">
-                AI generated content may be outdated. The source data for this record has changed.
+                {{ $t('msg.info.aiContentStale') }}
               </div>
             </div>
           </div>
@@ -953,7 +1102,12 @@ useResizeObserver(inputWrapperRef, () => {
       :column-title="column?.title"
       :column="column"
       :read-only="readOnly"
+      :is-new-record="isNewRecord"
+      :draft-content="smartTextDraft"
+      :initial-markdown="smartTextInitialMarkdown"
+      :defer-save="!isNewRecord"
       @saved="onSmartTextSaved"
+      @update:draft-content="onSmartTextDraftUpdate"
     />
   </div>
 </template>

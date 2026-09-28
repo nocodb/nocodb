@@ -24,7 +24,7 @@ export function useMultiSelect(
   _meta: MaybeRef<TableType | undefined>,
   fields: MaybeRef<ColumnType[]>,
   data: MaybeRef<Row[]> | MaybeRef<Map<number, Row>>,
-  _totalRows?: MaybeRef<number>,
+  _totalRows: MaybeRef<number> | undefined,
   _editEnabled: MaybeRef<boolean>,
   isPkAvail: MaybeRef<boolean | undefined>,
   contextMenu: Ref<boolean>,
@@ -55,7 +55,7 @@ export function useMultiSelect(
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
-  ) => Promise<void>,
+  ) => Promise<Record<string, any>[] | void>,
   fillHandle?: MaybeRef<HTMLElement | undefined>,
   view?: MaybeRef<ViewType | undefined>,
   paginationData?: MaybeRef<PaginatedType | undefined>,
@@ -250,7 +250,9 @@ export function useMultiSelect(
             { enrichClipboard: true, includeHtml: true },
           )
 
-          const plainTextValue = isValidValue(textToCopy) ? textToCopy : ''
+          // Must be a string: `copiedPlainText` is strict-compared against the OS
+          // clipboard text on paste, so a number here silently drops the item.
+          const plainTextValue = isValidValue(textToCopy) ? String(textToCopy) : ''
 
           await copyMimes({ 'text/plain': plainTextValue, ...clipboardContent })
 
@@ -488,22 +490,37 @@ export function useMultiSelect(
       const rowObj = data[rowIndex]
       if (rowObj) {
         for (const [colIndex, cpCol] of cpCols.entries()) {
-          const pasteValue = convertCellData(
-            {
-              value: fillValuesByCols[colIndex!]![incrementIndex],
-              to: cpCol.uidt as UITypes,
-              column: cpCol,
-              appInfo: unref(appInfo),
-              maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
-              showUpgradeToAddMoreAttachmentsInCell,
-              isInfoShown: isColInfoShown[cpCol.title!],
-              markInfoShown: () => {
-                isColInfoShown[cpCol.title!] = true
+          let pasteValue: any
+
+          try {
+            pasteValue = convertCellData(
+              {
+                value: fillValuesByCols[colIndex!]![incrementIndex],
+                to: cpCol.uidt as UITypes,
+                column: cpCol,
+                appInfo: unref(appInfo),
+                maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                showUpgradeToAddMoreAttachmentsInCell,
+                isInfoShown: isColInfoShown[cpCol.title!],
+                markInfoShown: () => {
+                  isColInfoShown[cpCol.title!] = true
+                },
               },
-            },
-            isMysql(meta.value?.source_id),
-            true,
-          )
+              isMysql(meta.value?.source_id),
+              true,
+            )
+          } catch (ex) {
+            // Only conversion failures are per-column recoverable; anything else
+            // still aborts so it stays visible.
+            if (!(ex instanceof TypeConversionError) || ex instanceof ComputedTypePasteError) throw ex
+
+            // A column the serializer rejects (link cells, whose clipboard text
+            // is the display value) must not take the whole fill down with it.
+            // Leave the cell untouched rather than writing null — the title is
+            // still sent to bulkUpdateRows below.
+            continue
+          }
+
           rowObj.row[cpCol.title] = pasteValue
         }
         rowsToPaste.push(rowObj)
@@ -980,7 +997,7 @@ export function useMultiSelect(
       return true
     }
 
-    if (isExpandedCellInputExist() || isLinkDropdownExist()) {
+    if (isExpandedCellInputExist() || isLinkDropdownExist() || isInterfaceRecordSheetOpen()) {
       return
     }
 
@@ -1065,7 +1082,7 @@ export function useMultiSelect(
       return
     }
 
-    if (isDrawerOrModalExist() || isExpandedCellInputExist() || isLinkDropdownExist()) {
+    if (isDrawerOrModalExist() || isExpandedCellInputExist() || isLinkDropdownExist() || isInterfaceRecordSheetOpen()) {
       return
     }
 

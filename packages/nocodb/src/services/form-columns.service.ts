@@ -15,7 +15,7 @@ import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
-import { assertNotLockedViewOnSandboxProduction } from '~/helpers/sandboxGuards';
+import { assertNotLockedViewOnLaneProduction } from '~/helpers/environmentGuards';
 import { Column, FormViewColumn, View } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/ncError';
@@ -59,7 +59,7 @@ export class FormColumnsService {
     );
 
     if (oldFormViewColumn?.fk_view_id) {
-      await assertNotLockedViewOnSandboxProduction(
+      await assertNotLockedViewOnLaneProduction(
         context,
         oldFormViewColumn.fk_view_id,
       );

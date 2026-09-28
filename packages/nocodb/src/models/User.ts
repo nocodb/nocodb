@@ -50,6 +50,8 @@ export default class User implements UserType {
   blocked?: boolean;
   blocked_reason?: string;
 
+  created_at?: string;
+
   is_new_user?: boolean;
   canonical_email?: string;
 
@@ -144,6 +146,8 @@ export default class User implements UserType {
       'totp_secret',
       'totp_enabled',
       'totp_backup_codes',
+      'blocked',
+      'blocked_reason',
     ]);
 
     if (updateObj.email) {
@@ -187,6 +191,55 @@ export default class User implements UserType {
     await this.clearCache(id, ncMeta);
 
     return this.get(id, ncMeta);
+  }
+
+  /**
+   * Consume a password-reset token as an atomic compare-and-swap: the UPDATE is
+   * keyed on the token, so of two concurrent resets sharing one link exactly one
+   * observes a non-zero result. Returns rows affected — callers MUST treat 0 as
+   * "already used" and reject, rather than proceeding on the stale read.
+   *
+   * Mirrors {@link UserRefreshToken.updateOldToken}.
+   */
+  public static async consumeResetPasswordToken(
+    token: string,
+    user: Pick<User, 'id' | 'email'>,
+    update: Pick<User, 'salt' | 'password' | 'token_version'>,
+    ncMeta = Noco.ncMeta,
+  ): Promise<number> {
+    // A blank token would match every already-reset user, and metaUpdate writes
+    // EVERY matching row — unlike the metaGet this replaces.
+    if (typeof token !== 'string' || !token.length) {
+      return 0;
+    }
+
+    const affected = await ncMeta.metaUpdate(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.USERS,
+      prepareForDb({
+        salt: update.salt,
+        password: update.password,
+        token_version: update.token_version,
+        reset_password_expires: null,
+        reset_password_token: '',
+      }),
+      {
+        // The token stays in the predicate so the database still picks the CAS
+        // winner; the id bounds the write to one row.
+        id: user.id,
+        reset_password_token: token,
+      },
+    );
+
+    const rowsAffected = Number(affected) || 0;
+
+    if (rowsAffected) {
+      await NocoCache.del('root', `${CacheScope.USER}:${user.email}`);
+      await this.clearCache(user.id, ncMeta);
+    }
+
+    return rowsAffected;
   }
 
   public static async getByEmail(_email: string, ncMeta = Noco.ncMeta) {
@@ -537,6 +590,13 @@ export default class User implements UserType {
     );
 
     await this.clearCache(userId, ncMeta);
+  }
+
+  // Called from auth-resolution paths only (not getWithRoles, whose callers
+  // resolve target users). Never echoes blocked_reason to the subject.
+  static assertNotBlocked(user: { blocked?: boolean }): void {
+    if (!user?.blocked) return;
+    NcError.unauthorized('User is blocked. Please contact administrator.');
   }
 
   static async getWithRoles(

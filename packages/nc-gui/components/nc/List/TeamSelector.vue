@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type TeamV3V3Type } from 'nocodb-sdk'
+import type { SubjectHierarchyScope, TeamV3V3Type } from 'nocodb-sdk'
 import type { SelectValue } from 'ant-design-vue/es/select'
 
 const props = withDefaults(
@@ -12,6 +12,11 @@ const props = withDefaults(
     placement?: 'bottomRight' | 'bottomLeft'
     isMultiSelect?: boolean
     defaultSlotWrapperClass?: string
+    /** Show the per-team "This team | + Sub-teams" scope segments on selected rows (permissions UserSelectorList idiom). */
+    showHierarchyScope?: boolean
+    /** Per-team scope — absent means 'self_and_descendants' (the default). */
+    teamHierarchyScopes?: Record<string, SubjectHierarchyScope>
+    onToggleTeamScope?: (teamId: string) => void
   }>(),
   {
     description: true,
@@ -20,6 +25,7 @@ const props = withDefaults(
     onChange: () => Promise.resolve(),
     isMultiSelect: false,
     defaultSlotWrapperClass: '',
+    showHierarchyScope: false,
   },
 )
 
@@ -41,6 +47,11 @@ function compareValue(_value: string | number, oldValue = value.value): boolean 
   }
 
   return oldValue === _value
+}
+
+/** The "This team | + Sub-teams" scope toggle is meaningless for a team without sub-teams. */
+function teamHasSubTeams(teamId: string | number) {
+  return teamList.value.some((team: TeamV3V3Type & { fk_parent_team_id?: string | null }) => team.fk_parent_team_id === teamId)
 }
 
 async function onChangeTeam(val: SelectValue) {
@@ -142,6 +153,11 @@ const selectedTeams = computed(() => {
               >
                 {{ $t('general.orgBadge') }}
               </NcBadge>
+              <NcTeamScopeToggle
+                v-if="showHierarchyScope && compareValue(option.value) && teamHasSubTeams(option.value)"
+                :scope="teamHierarchyScopes?.[option.value]"
+                @toggle="onToggleTeamScope?.(String(option.value))"
+              />
               <GeneralLoader v-if="compareValue(option.value, newTeam)" size="medium" />
               <GeneralIcon v-else-if="!newTeam && compareValue(option.value)" icon="check" class="text-primary h-4 w-4" />
             </div>

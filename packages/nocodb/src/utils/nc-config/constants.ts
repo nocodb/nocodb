@@ -103,6 +103,11 @@ export const NC_DISABLE_GROUP_BY_LIMIT =
 export const NC_DISABLE_GROUP_BY_AGG =
   process.env.NC_DISABLE_GROUP_BY_AGG === 'true' || false;
 
+// Kill-switch for the single-scan bulkAggregate consolidation (PG) — when set,
+// every bucket runs as its own derived subquery (legacy behavior).
+export const NC_DISABLE_BULK_AGG_CONSOLIDATION =
+  process.env.NC_DISABLE_BULK_AGG_CONSOLIDATION === 'true' || false;
+
 export const NC_DISABLE_UNDO_REDO =
   process.env.NC_DISABLE_UNDO_REDO === 'true' || false;
 

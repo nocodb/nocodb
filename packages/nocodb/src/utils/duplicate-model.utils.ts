@@ -99,7 +99,7 @@ export class DuplicateModelUtils {
       NcError.get(context).sourceDataReadOnly(targetSource.alias);
     }
 
-    const models = await targetSource.getModels(targetContext);
+    const models = await targetSource.getModels();
     const tableNameLengthLimit = SqlUiFactory.create({
       client: targetSource.type,
     }).tableNameLengthLimit;

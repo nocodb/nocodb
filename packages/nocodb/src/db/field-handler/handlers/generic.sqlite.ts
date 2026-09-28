@@ -7,6 +7,7 @@ import type {
 } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
+import { ncSplitFilterValue } from '~/db/field-handler/utils/handlerUtils';
 
 export class GenericSqliteFieldHandler
   extends GenericFieldHandler
@@ -30,7 +31,7 @@ export class GenericSqliteFieldHandler
 
     // Condition for filter, without negation
     const condition = (builder: Knex.QueryBuilder) => {
-      let items = val?.split(',') ?? [];
+      let items = ncSplitFilterValue(val, filter.comparison_op);
       if (['enum', 'set'].includes(column.dt?.toLowerCase())) {
         items = items.map((item) => item.trimEnd());
       }

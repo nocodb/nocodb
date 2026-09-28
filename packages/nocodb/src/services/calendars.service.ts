@@ -15,8 +15,9 @@ import {
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
-import { assertNotSandbox } from '~/helpers/sandboxGuards';
+import { assertNotLaneInstance } from '~/helpers/environmentGuards';
 import { NcError } from '~/helpers/catchError';
+import { claimObjectTitle } from '~/helpers/customObjects';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
 import { CalendarView, Model, User, View } from '~/models';
@@ -46,9 +47,9 @@ export class CalendarsService {
     ncMeta?: MetaService,
   ) {
     if (param?.ownedBy) {
-      await assertNotSandbox(
+      await assertNotLaneInstance(
         context,
-        'Personal views cannot be created in a sandbox. Create them on the production base.',
+        'Personal views cannot be created in an environment instance. Create them on the production base.',
       );
     }
 
@@ -66,6 +67,17 @@ export class CalendarsService {
     const model = await Model.get(context, param.tableId, false, ncMeta);
 
     param.calendar.title = param.calendar.title?.trim();
+
+    param.calendar.title = await claimObjectTitle(
+      context,
+      'view',
+      param.calendar.title,
+      {
+        baseId: model.base_id,
+        insideTable: model.table_name,
+        ncMeta,
+      },
+    );
     const existingView = await View.getByTitleOrId(
       context,
       {
@@ -137,7 +149,7 @@ export class CalendarsService {
       owner,
     });
 
-    await view.getView(context);
+    await view.getView();
 
     NocoSocket.broadcastEvent(
       context,
@@ -221,7 +233,7 @@ export class CalendarsService {
       owner,
     });
 
-    await view.getView(context);
+    await view.getView();
 
     // Strip the stored bcrypt password hash from every outbound payload.
     const safeView = View.maskPasswordForResponse(view);

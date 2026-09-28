@@ -263,7 +263,7 @@ const onValueChange = async () => {
               </div>
             </a-select-option>
           </a-select>
-          <div v-if="isEeUI && showEEFeatures" class="w-full space-y-2">
+          <div v-if="showEEFeatures" class="w-full space-y-2">
             <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
               <template #default="{ click }">
                 <NcButton

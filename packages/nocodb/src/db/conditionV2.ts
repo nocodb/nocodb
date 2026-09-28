@@ -22,8 +22,14 @@ import {
 } from '~/helpers/dbHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
 import Filter from '~/models/Filter';
+import { getModelContext, setModelContext } from '~/helpers/modelContext';
 import { getAliasGenerator } from '~/utils';
 import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
+import {
+  ncIsKnexRawOrRef,
+  ncLikePatternForRef,
+  ncSplitFilterValue,
+} from '~/db/field-handler/utils/handlerUtils';
 
 export default async function conditionV2(
   baseModelSqlv2: IBaseModelSqlV2,
@@ -42,7 +48,13 @@ export default async function conditionV2(
   );
   const filterOperationResult = await parseConditionV2(
     baseModelSqlv2,
-    conditionObj,
+    // A group no longer applies its own logical op (see the group branch in
+    // parseConditionV2) — the caller that joins it in does. A lone group has
+    // no such caller, so wrap it in an array to keep the array branch as its
+    // joiner; without this a root-level `not` group would lose its negation.
+    !Array.isArray(conditionObj) && (conditionObj as Filter)?.is_group
+      ? [conditionObj as Filter]
+      : conditionObj,
     { count: 0 },
     alias,
     undefined,
@@ -152,8 +164,12 @@ const parseConditionV2 = async (
 
   let filter: Filter & { groupby?: boolean };
   if (!Array.isArray(_filter)) {
-    if (!(_filter instanceof Filter)) filter = new Filter(_filter as Filter);
-    else filter = _filter;
+    if (!(_filter instanceof Filter)) {
+      filter = new Filter(_filter as Filter);
+    } else {
+      filter = _filter;
+    }
+    if (!getModelContext(filter)) setModelContext(filter, context);
   }
   const supportToggle = await Filter.supportToggle(baseModelSqlv2.context);
   if (Array.isArray(_filter)) {
@@ -199,7 +215,7 @@ const parseConditionV2 = async (
       return { clause: () => {}, rootApply: () => {} };
     }
 
-    const children = await filter.getChildren(context);
+    const children = await filter.getChildren();
 
     const qbs = await Promise.all(
       (children || []).map((child) =>
@@ -220,8 +236,13 @@ const parseConditionV2 = async (
           qb1?.rootApply?.(qbP);
         }
       },
+      // A group's own logical op is applied by whoever joins it in (the array
+      // branch above, or the sibling loop here) — never here as well. Applying
+      // it at both ends is harmless for `and`/`or`, which are idempotent, but
+      // it makes `not` cancel itself: `~not((A)~or(B))` compiled to
+      // `not (not (A or B))` and silently returned the un-negated rows.
       clause: (qbP) => {
-        qbP[getLogicalOpMethod(filter)]((qb) => {
+        qbP.where((qb) => {
           for (const [i, qb1] of Object.entries(qbs)) {
             if (qb1) {
               qb[getLogicalOpMethod(children[i])](qb1.clause);
@@ -250,7 +271,7 @@ const parseConditionV2 = async (
 
       const column = await getRefColumnIfAlias(
         context,
-        await filter.getColumn(context),
+        await filter.getColumn(),
       );
 
       if (!column) {
@@ -264,7 +285,7 @@ const parseConditionV2 = async (
         column.uidt === UITypes.Lookup ||
         column.uidt === UITypes.LinkToAnotherRecord
       ) {
-        const model = await column.getModel(context);
+        const model = await column.getModel();
         const lkQb = await generateLookupSelectQuery({
           baseModelSqlv2,
           alias: alias,
@@ -286,7 +307,7 @@ const parseConditionV2 = async (
         // if qrCode or Barcode replace it with value column
         if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
           filter.fk_column_id = await column
-            .getColOptions<BarcodeColumn | QrCodeColumn>(context)
+            .getColOptions<BarcodeColumn | QrCodeColumn>()
             .then((col) => col.fk_column_id);
       }
     }
@@ -295,7 +316,7 @@ const parseConditionV2 = async (
       return;
     }
 
-    const filterColumn = await filter.getColumn(context);
+    const filterColumn = await filter.getColumn();
     if (!filterColumn) {
       if (throwErrorIfInvalid) {
         NcError.get(context).fieldNotFound(filter.fk_column_id);
@@ -385,10 +406,13 @@ const parseConditionV2 = async (
     ) {
       return FieldHandler.fromBaseModel(baseModelSqlv2).applyFilter(
         filter,
-        new Column({
-          ...column,
-          uidt: getEquivalentUIType({ formulaColumn: column }) as UITypes,
-        }),
+        setModelContext(
+          new Column({
+            ...column,
+            uidt: getEquivalentUIType({ formulaColumn: column }) as UITypes,
+          }),
+          context,
+        ),
         {
           alias,
           conditionParser: parseConditionV2,
@@ -520,7 +544,26 @@ const parseConditionV2 = async (
               break;
             case 'like':
               // JSON / Attachment route to FieldHandler above.
-              if (!val) {
+              // `!customWhereClause` — on the computed-column (Formula/Rollup)
+              // pass `val` holds the compiled expression, not a dynamic
+              // field-to-field reference. Without this guard the dynamic branch
+              // shadows the Formula operand swap below and inverts the
+              // comparison into `'<term>' like '%<formula>%'`.
+              if (!customWhereClause && ncIsKnexRawOrRef(val)) {
+                // Dynamic field-to-field: val is a column reference. Concatenate
+                // the wildcards in SQL so the reference isn't stringified into a
+                // literal (which would never match).
+                const pattern = ncLikePatternForRef(knex, val);
+                if (knex.clientType() === 'pg') {
+                  qb = qb.where(knex.raw('??::text ilike ?', [field, pattern]));
+                } else if (knex.clientType() === 'oracledb') {
+                  qb = qb.where(
+                    knex.raw('UPPER(??) like UPPER(?)', [field, pattern]),
+                  );
+                } else {
+                  qb = qb.where(knex.raw('?? like ?', [field, pattern]));
+                }
+              } else if (!val) {
                 // val is empty -> all values including empty strings but NULL
                 qb.where(field, '');
                 qb.orWhereNotNull(field);
@@ -547,7 +590,30 @@ const parseConditionV2 = async (
               break;
             case 'nlike':
               // JSON / Attachment route to FieldHandler above.
-              if (!val) {
+              // See the `like` branch for why customWhereClause is excluded.
+              if (!customWhereClause && ncIsKnexRawOrRef(val)) {
+                // Dynamic field-to-field: val is a column reference. Concatenate
+                // the wildcards in SQL so the reference isn't stringified into a
+                // literal (which would never match).
+                const pattern = ncLikePatternForRef(knex, val);
+                qb.where((nestedQb) => {
+                  if (knex.clientType() === 'pg') {
+                    nestedQb.where(
+                      knex.raw('??::text not ilike ?', [field, pattern]),
+                    );
+                  } else if (knex.clientType() === 'oracledb') {
+                    nestedQb.whereNot(
+                      knex.raw('UPPER(??) like UPPER(?)', [field, pattern]),
+                    );
+                  } else {
+                    nestedQb.whereNot(knex.raw('?? like ?', [field, pattern]));
+                  }
+                  // a non-matching (non-empty) filter should still surface
+                  // empty/null values
+                  nestedQb.orWhere(field, '');
+                  nestedQb.orWhereNull(field);
+                });
+              } else if (!val) {
                 // val is empty -> all values including NULL but empty strings
                 qb.whereNot(field, '');
                 qb.orWhereNull(field);
@@ -597,7 +663,7 @@ const parseConditionV2 = async (
             case 'nallof':
             case 'nanyof': {
               const condition = (builder: Knex.QueryBuilder) => {
-                let items = (Array.isArray(val) ? val : val?.split(',')) ?? [];
+                let items = ncSplitFilterValue(val, filter.comparison_op);
                 if (
                   ['mysql2', 'mysql'].includes(knex.clientType()) &&
                   ['enum', 'set'].includes(column.dt?.toLowerCase())
@@ -926,11 +992,11 @@ async function resolveCrossTableDynamicFilter(
   baseModelSqlv2: IBaseModelSqlV2,
   aliasCount: { count: number },
 ): Promise<false | FilterOperationResult> {
-  const relatedModel = await valueColumn.getModel(context);
+  const relatedModel = await valueColumn.getModel();
   if (!relatedModel) {
     return false;
   }
-  await relatedModel.getColumns(context);
+  await relatedModel.getColumns();
 
   const relatedBaseModel = await Model.getBaseModelSQL(context, {
     model: relatedModel,

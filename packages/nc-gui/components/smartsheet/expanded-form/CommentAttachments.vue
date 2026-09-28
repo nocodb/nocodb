@@ -118,7 +118,7 @@ onBeforeUnmount(() => {
     <div
       v-for="(item, index) in attachments"
       :key="`${item.id || item.title}-${index}`"
-      class="nc-comment-attachment group relative flex items-center gap-2 min-w-0 border-1 border-nc-border-gray-medium rounded-lg bg-nc-bg-default px-2 py-1.5 cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
+      class="nc-comment-attachment group relative flex items-center gap-2 min-w-0 border-1 border-nc-border-gray-medium rounded-lg bg-nc-bg-elevated px-2 py-1.5 cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
       @click="onOpen(item)"
     >
       <img
@@ -143,7 +143,7 @@ onBeforeUnmount(() => {
         v-if="editable"
         type="text"
         size="xxsmall"
-        class="nc-comment-attachment-remove !absolute -top-2 -right-2 !flex !bg-nc-bg-default !border-1 !border-nc-border-gray-medium !rounded-full !h-5 !w-5 !shadow-sm"
+        class="nc-comment-attachment-remove !absolute -top-2 -right-2 !flex !bg-nc-bg-elevated !border-1 !border-nc-border-gray-medium !rounded-full !h-5 !w-5 !shadow-sm"
         data-testid="nc-comment-attachment-remove"
         @click.stop="emits('remove', index)"
       >

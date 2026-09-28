@@ -3,7 +3,7 @@ import { PlanFeatureTypes, PlanTitles, type TableType, ViewTypes, viewTypeAlias 
 
 const { $e } = useNuxtApp()
 
-const { isUIAllowed, orgRoles, workspaceRoles, sandboxRestrictionReason } = useRoles()
+const { isUIAllowed, orgRoles, workspaceRoles, environmentRestrictionReason, managedAppRestrictionReason } = useRoles()
 
 const { openedProject } = storeToRefs(useBases())
 
@@ -16,6 +16,8 @@ const { activeTable } = storeToRefs(tablesStore)
 const { openNewScriptModal } = useScriptStore()
 
 const { openNewWorkflowModal } = useWorkflowStore()
+
+const { openNewAgentModal } = useAgentStore()
 
 const { openNewDashboardModal } = useDashboardStore()
 
@@ -37,13 +39,22 @@ const {
   blockTimelineView,
   blockGanttView,
   blockDocs,
+  blockWorkflows,
+  showUpgradeSurface,
+  blockAgents,
 } = useEeConfig()
+
+// Workflows ship on the unlicensed on-prem Free tier — community mode only hides the
+// entry where it'd be a pure upsell (blocked tier). Scripts stay on `showEEFeatures`.
+const showWorkflowCreate = computed(() => isEeUI && showUpgradeSurface(blockWorkflows.value))
 
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
 const isDataTab = computed(() => activeSidebarTab.value === 'data')
 
 const isWorkflowsTab = computed(() => activeSidebarTab.value === 'workflows')
+
+const isAgentsTab = computed(() => activeSidebarTab.value === 'agents')
 
 const isVisibleCreateNew = ref(false)
 
@@ -134,80 +145,76 @@ const hasTableCreateAccess = computed(() => {
   return isUIAllowed('tableCreate', {
     roles: base.value?.project_role || base.value.workspace_role,
     source: base.value?.sources?.[0],
-  })
-})
-
-const tableCreateReason = computed(() => {
-  if (!base.value || !isBaseHomePage.value) return null
-
-  return sandboxRestrictionReason('tableCreate', {
-    roles: base.value?.project_role || base.value.workspace_role,
-    source: base.value?.sources?.[0],
-    // ProjectInj is not provided in the MiniSidebar tree, so the useRoles
-    // wrapper's injected-base fallback is empty here — pass base explicitly or
-    // the reason is always null (the gate would be inert on a sandbox-master).
     base: base.value,
   })
 })
 
+// ProjectInj is not provided in the MiniSidebar tree, so the useRoles wrapper's
+// injected-base fallback is empty here — pass base explicitly or the reason is
+// always null (the gate would be inert on a locked base).
+const restrictionArgs = computed(() => ({
+  roles: base.value?.project_role || base.value?.workspace_role,
+  source: base.value?.sources?.[0],
+  base: base.value,
+}))
+
+// This menu lists every kind of object whichever base you are in, so both locks have
+// to speak here. Each answers only when the user would otherwise have been allowed,
+// so a viewer is still told about their role rather than about a publisher.
+function restrictionReason(permission: string) {
+  if (!base.value || !isBaseHomePage.value) return null
+
+  const args = restrictionArgs.value
+
+  return environmentRestrictionReason(permission, args) ?? managedAppRestrictionReason(permission, args)
+}
+
+const tableCreateReason = computed(() => restrictionReason('tableCreate'))
+
 const hasViewCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
-  return isUIAllowed('viewCreateOrEdit')
+  return isUIAllowed('viewCreateOrEdit', { base: base.value })
 })
 
 const hasScriptCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
-  return isUIAllowed('scriptCreateOrEdit')
+  return isUIAllowed('scriptCreateOrEdit', { base: base.value })
 })
 
 const hasWorkflowCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
-  return isUIAllowed('workflowCreateOrEdit')
+  return isUIAllowed('workflowCreateOrEdit', { base: base.value })
+})
+
+const hasAgentCreateAccess = computed(() => {
+  if (!base.value || !isBaseHomePage.value) return true
+
+  return isUIAllowed('agentCreate', { base: base.value })
 })
 
 const hasDashboardCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
-  return isUIAllowed('dashboardCreate')
+  return isUIAllowed('dashboardCreate', { base: base.value })
 })
 
-const dashboardCreateReason = computed(() => {
-  if (!base.value || !isBaseHomePage.value) return null
+const dashboardCreateReason = computed(() => restrictionReason('dashboardCreate'))
 
-  return sandboxRestrictionReason('dashboardCreate', {
-    roles: base.value?.project_role || base.value.workspace_role,
-    source: base.value?.sources?.[0],
-    base: base.value,
-  })
-})
+const workflowCreateReason = computed(() => restrictionReason('workflowCreateOrEdit'))
 
-const workflowCreateReason = computed(() => {
-  if (!base.value || !isBaseHomePage.value) return null
+const agentCreateReason = computed(() => restrictionReason('agentCreate'))
 
-  return sandboxRestrictionReason('workflowCreateOrEdit', {
-    roles: base.value?.project_role || base.value.workspace_role,
-    source: base.value?.sources?.[0],
-    base: base.value,
-  })
-})
+const scriptCreateReason = computed(() => restrictionReason('scriptCreateOrEdit'))
 
-const scriptCreateReason = computed(() => {
-  if (!base.value || !isBaseHomePage.value) return null
-
-  return sandboxRestrictionReason('scriptCreateOrEdit', {
-    roles: base.value?.project_role || base.value.workspace_role,
-    source: base.value?.sources?.[0],
-    base: base.value,
-  })
-})
+const viewCreateReason = computed(() => restrictionReason('viewCreateOrEdit'))
 
 const hasDocumentCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
-  return isUIAllowed('documentCreate')
+  return isUIAllowed('documentCreate', { base: base.value })
 })
 </script>
 
@@ -220,15 +227,17 @@ const hasDocumentCreateAccess = computed(() => {
       :align="{ offset: [12, 3] }"
     >
       <div class="w-full py-1 flex items-center justify-center">
-        <div
-          class="nc-mini-sidebar-plus-btn border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300 flex items-center justify-center bg-nc-bg-gray-medium cursor-pointer"
-          :class="{
-            'border-nc-border-gray-dark': !isVisibleCreateNew,
-            'active border-primary shadow-selected': isVisibleCreateNew,
-          }"
-        >
-          <GeneralIcon icon="ncPlus" />
-        </div>
+        <NcTooltip :title="$t('labels.createNew')" placement="right" :arrow="false" :disabled="isVisibleCreateNew">
+          <div
+            class="nc-mini-sidebar-plus-btn border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300 flex items-center justify-center bg-nc-bg-gray-medium cursor-pointer"
+            :class="{
+              'border-nc-border-gray-dark': !isVisibleCreateNew,
+              'active border-primary shadow-selected': isVisibleCreateNew,
+            }"
+          >
+            <GeneralIcon icon="ncPlus" />
+          </div>
+        </NcTooltip>
       </div>
 
       <template #overlay>
@@ -238,7 +247,7 @@ const hasDocumentCreateAccess = computed(() => {
               {{ $t('labels.createNew') }}
             </span>
           </NcMenuItemLabel>
-          <template v-if="isEeUI && showEEFeatures">
+          <template v-if="showWorkflowCreate">
             <NcTooltip
               :title="
                 !isWorkflowsTab
@@ -264,10 +273,11 @@ const hasDocumentCreateAccess = computed(() => {
                 <div class="flex-1">
                   {{ $t('general.workflow') }}
                 </div>
-                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
+                <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_WORKFLOWS" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
             <NcTooltip
+              v-if="showEEFeatures"
               :title="
                 !isWorkflowsTab
                   ? $t('tooltip.switchToWorkflowsTab', { type: $t('general.script').toLowerCase() })
@@ -296,8 +306,39 @@ const hasDocumentCreateAccess = computed(() => {
                 <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
+            <NcTooltip
+              :title="
+                !isAgentsTab
+                  ? $t('tooltip.switchToAgentsTab', { type: $t('general.agent').toLowerCase() })
+                  : !isBaseHomePage
+                  ? $t('tooltip.navigateToBaseToCreateAgent')
+                  : agentCreateReason
+                  ? $t(agentCreateReason)
+                  : !hasAgentCreateAccess
+                  ? $t('tooltip.youDontHaveAccessToCreateNewAgent')
+                  : ''
+              "
+              :disabled="isAgentsTab && isBaseHomePage && hasAgentCreateAccess"
+              placement="right"
+            >
+              <NcMenuItem
+                data-testid="mini-sidebar--agent-create"
+                :disabled="!isAgentsTab || !isBaseHomePage || !hasAgentCreateAccess"
+                inner-class="w-full"
+                @click="openNewAgentModal({ baseId: openedProject?.id, e: 'c:agent:create:mini-sidebar' })"
+              >
+                <GeneralIcon icon="ncAgent" />
+                <div class="flex-1">
+                  {{ $t('general.agent') }}
+                </div>
+
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !blockAgents" show-as-lock remove-click />
+              </NcMenuItem>
+            </NcTooltip>
             <NcDivider />
           </template>
+
+          <DashboardMiniSidebarInterfaceCreateMenuItem v-if="isEeUI" />
 
           <!-- Data tab items (reads bottom-up: Table → Document → Dashboard → View) -->
           <NcTooltip
@@ -306,6 +347,8 @@ const hasDocumentCreateAccess = computed(() => {
                 ? $t('tooltip.switchToDataTab', { type: $t('objects.view').toLowerCase() })
                 : !base || !activeTable
                 ? $t('tooltip.navigateToTableToCreateView')
+                : viewCreateReason
+                ? $t(viewCreateReason)
                 : !hasViewCreateAccess
                 ? $t('tooltip.youDontHaveAccessToCreateNewView')
                 : ''
@@ -354,11 +397,7 @@ const hasDocumentCreateAccess = computed(() => {
                 <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.calendar') }}</div>
               </NcMenuItem>
-              <NcMenuItem
-                v-if="isEeUI && showEEFeatures"
-                data-testid="mini-sidebar-view-create-map"
-                @click="onOpenModal({ type: ViewTypes.MAP })"
-              >
+              <NcMenuItem v-if="isEeUI" data-testid="mini-sidebar-view-create-map" @click="onOpenModal({ type: ViewTypes.MAP })">
                 <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.map') }}</div>
               </NcMenuItem>
@@ -385,7 +424,7 @@ const hasDocumentCreateAccess = computed(() => {
                 />
               </NcMenuItem>
               <NcMenuItem
-                v-if="isEeUI && showEEFeatures"
+                v-if="showEEFeatures"
                 data-testid="mini-sidebar-view-create-timeline"
                 inner-class="w-full"
                 @click="
@@ -407,7 +446,7 @@ const hasDocumentCreateAccess = computed(() => {
                 />
               </NcMenuItem>
               <NcMenuItem
-                v-if="isEeUI && showEEFeatures"
+                v-if="showEEFeatures"
                 data-testid="mini-sidebar-view-create-gantt"
                 inner-class="w-full"
                 @click="
@@ -438,7 +477,7 @@ const hasDocumentCreateAccess = computed(() => {
             </NcSubMenu>
           </NcTooltip>
 
-          <template v-if="isEeUI && showEEFeatures">
+          <template v-if="showEEFeatures">
             <NcTooltip
               :title="
                 !isDataTab
@@ -469,7 +508,9 @@ const hasDocumentCreateAccess = computed(() => {
                 <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
+          </template>
 
+          <template v-if="isEeUI">
             <NcTooltip
               :title="
                 !isDataTab
@@ -523,6 +564,16 @@ const hasDocumentCreateAccess = computed(() => {
               {{ $t('objects.table') }}
             </NcMenuItem>
           </NcTooltip>
+
+          <!-- Base-level section (EE) — CE stub renders nothing -->
+          <DashboardMiniSidebarSectionCreateMenuItem
+            v-if="isEeUI"
+            :is-data-tab="isDataTab"
+            :is-workflows-tab="isWorkflowsTab"
+            :is-agents-tab="isAgentsTab"
+            :is-base-home-page="isBaseHomePage"
+            :base-id="openedProject?.id"
+          />
 
           <NcMenuItem v-if="hasBaseCreateAccess" data-testid="mini-sidebar-base-create" @click="baseCreateDlg = true">
             <GeneralIcon icon="ncBaseOutline" class="h-4 w-4" />

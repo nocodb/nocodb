@@ -19,7 +19,7 @@ import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
-import { assertNotSandbox } from '~/helpers/sandboxGuards';
+import { assertNotLaneInstance } from '~/helpers/environmentGuards';
 
 @Injectable()
 export class DocumentsV3Service {
@@ -167,7 +167,7 @@ export class DocumentsV3Service {
   }
 
   // --- Public share ---
-  // Docs aren't available in sandboxes; assertNotSandbox enforces it on
+  // Docs aren't available in sandboxes; assertNotLaneInstance enforces it on
   // the share toggles too.
 
   /** Broadcast a sidebar 'update' so peers reflect share-state (uuid / meta) changes. */
@@ -187,9 +187,9 @@ export class DocumentsV3Service {
     context: NcContext,
     param: { docId: string; req: NcRequest },
   ): Promise<{ uuid: string; include_subtree: boolean }> {
-    await assertNotSandbox(
+    await assertNotLaneInstance(
       context,
-      'Documents are not available in a sandbox.',
+      'Documents are not available in an environment instance.',
     );
     const doc = await Document.share(context, param.docId);
     const includeSubtree = !!getDocShareMeta(doc.meta).include_subtree;
@@ -212,9 +212,9 @@ export class DocumentsV3Service {
     context: NcContext,
     param: { docId: string; req: NcRequest },
   ): Promise<boolean> {
-    await assertNotSandbox(
+    await assertNotLaneInstance(
       context,
-      'Documents are not available in a sandbox.',
+      'Documents are not available in an environment instance.',
     );
     // Snapshot uuid pre-clear for the audit event payload.
     const pre = await Document.getMeta(context, param.docId);
@@ -243,9 +243,9 @@ export class DocumentsV3Service {
     uuid: string | null;
     include_subtree: boolean;
   }> {
-    await assertNotSandbox(
+    await assertNotLaneInstance(
       context,
-      'Documents are not available in a sandbox.',
+      'Documents are not available in an environment instance.',
     );
     const doc = await Document.updateShareSettings(context, param.docId, body);
     const includeSubtree = !!getDocShareMeta(doc.meta).include_subtree;

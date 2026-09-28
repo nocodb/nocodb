@@ -40,6 +40,8 @@ export interface AppInfo {
   isCloud: boolean
   automationLogLevel: 'OFF' | 'ERROR' | 'ALL'
   baseHostName?: string
+  /** Public base domain published apps are served under (`<slug>.<domain>`); null when app serving isn't configured. */
+  appsBaseDomain?: string | null
   disableEmailAuth: boolean
   mainSubDomain?: string
   dashboardPath: string
@@ -55,6 +57,7 @@ export interface AppInfo {
   licenseServerUrl?: string
   isPostgres: boolean
   isAirgapped: boolean
+  managedGatewayEnabled: boolean
   onPremPlan: Record<string, any> | null
   onPremPlanTitle?: string | null
   seatLimit: number | null
@@ -68,6 +71,7 @@ export interface AppInfo {
   openReplayKey?: string | null
   disableSupportChat: boolean
   disableOnboardingFlow: boolean
+  disableTours: boolean
   iframeWhitelistDomains?: Array<string>
   disableGroupByAggregation?: boolean
   sendRecordMaxRecipients?: number
@@ -107,6 +111,14 @@ export type State = ToRefs<Omit<StoredState, 'token'>> & {
   user: Ref<User | null>
   token: WritableComputedRef<StoredState['token']>
   jwtPayload: ComputedRef<(JwtPayload & User) | null>
+  /**
+   * Route-independent view of the persisted login token/payload. Unlike `token`
+   * (masked to '' on shared base/erd/view routes so those stay guest), these
+   * reflect the real login session even on a shared route — needed by the
+   * "require sign-in" shared form to recognise a genuinely logged-in user.
+   */
+  realToken: ComputedRef<string>
+  jwtPayloadReal: ComputedRef<(JwtPayload & User) | null>
   timestamp: Ref<number>
   runningRequests: ReturnType<typeof useCounter>
   error: Ref<any>
@@ -116,6 +128,14 @@ export type State = ToRefs<Omit<StoredState, 'token'>> & {
 
 export interface Getters {
   signedIn: ComputedRef<boolean>
+  /**
+   * Like `signedIn` but derived from the unmasked `realToken`, so it stays true
+   * on shared-view routes when the user has a real login session. Use this
+   * (not `signedIn`) for the "require sign-in" shared form gate/banner.
+   */
+  signedInReal: ComputedRef<boolean>
+  /** The real logged-in user derived from `realToken`, or null. */
+  signedInUserReal: ComputedRef<User | null>
   isSsoUser: ComputedRef<boolean>
   isLoading: WritableComputedRef<boolean>
   getResponsiveValue: <T>(mobile: T, desktop: T) => T
@@ -133,7 +153,10 @@ export interface Actions {
   signIn: (token: string, keepProps?: boolean) => void
   refreshToken: (params: {
     axiosInstance?: AxiosInstance
-    skipLogout?: boolean
+    // Named to match both implementations. The interface previously said
+    // `skipLogout`, which neither reads, so callers passing it were silently
+    // ignored and refreshToken signed out on its own.
+    skipSignOut?: boolean
     cognitoOnly?: boolean
   }) => Promise<string | null | void>
   loadAppInfo: () => void
@@ -157,6 +180,14 @@ export interface Actions {
     dashboardTitle?: string
     workflowId?: string
     workflowTitle?: string
+    interfaceId?: string
+    interfacePageId?: string
+    /** Append `/edit` — the interface builder. Omit for the viewer. */
+    interfaceEdit?: boolean
+    /** Append `/preview` — the builder's in-place consumer rendering (EE; ignored when interfaceEdit is set). */
+    interfacePreview?: boolean
+    /** Navigate to the interfaces list (no specific interface). */
+    interfaces?: boolean
     replace?: boolean
     newTab?: boolean
   }) => void

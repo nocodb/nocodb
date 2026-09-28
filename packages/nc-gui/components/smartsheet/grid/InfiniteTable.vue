@@ -56,7 +56,7 @@ const props = defineProps<{
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
-  ) => Promise<void>
+  ) => Promise<Record<string, any>[] | void>
   expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
   removeRowIfNew?: (row: Row) => void
   rowSortRequiredRows: Row[]
@@ -107,6 +107,12 @@ const readOnly = inject(ReadonlyInj, ref(false))
 const isLocked = inject(IsLockedInj, ref(false))
 
 const isPublicView = inject(IsPublicInj, ref(false))
+
+const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
+
+// Interface pages hide the row-expand (maximize) icon on the launched page when
+// "Click into record details" is off. Defaults to true for ordinary grids.
+const showInterfaceRowExpand = inject(InterfaceShowRowExpandInj, ref(true))
 
 const route = useRoute()
 
@@ -262,12 +268,15 @@ const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
 
   try {
     const newItems = await loadData({ offset, limit })
-    newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex, item))
+    const removed = upsertCachedRows(cachedRows.value, newItems, (row) =>
+      extractPkFromRow(row, meta.value?.columns as ColumnType[]),
+    )
 
     chunkStates.value[chunkId] = 'loaded'
     if (isInitialLoad) {
       chunkStates.value[chunkId + 1] = 'loaded'
     }
+    invalidateChunksAt(chunkStates.value, removed, CHUNK_SIZE, isInitialLoad ? [chunkId, chunkId + 1] : [chunkId])
   } catch (error) {
     console.error(`Error fetching chunk ${chunkId}:`, error)
     chunkStates.value[chunkId] = undefined
@@ -394,10 +403,10 @@ const updateVisibleRows = async (fromCalculateSlice = false) => {
   )
 }
 
-const { isUIAllowed, isDataReadOnly, sandboxRestrictionReason } = useRoles()
+const { isUIAllowed, isDataReadOnly, environmentRestrictionReason } = useRoles()
 const hasEditPermission = computed(() => isUIAllowed('dataEdit') && !isSqlView.value)
 const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
-const addColumnReason = computed(() => (!readOnly.value && !isSqlView.value ? sandboxRestrictionReason('fieldAdd') : null))
+const addColumnReason = computed(() => (!readOnly.value && !isSqlView.value ? environmentRestrictionReason('fieldAdd') : null))
 
 const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({
   fields,
@@ -587,7 +596,22 @@ function makeEditable(row: Row, col: ColumnType) {
 }
 
 const isAddingEmptyRowAllowed = computed(
-  () => hasEditPermission.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced && !meta.value?.mm,
+  () =>
+    hasEditPermission.value &&
+    !isSqlView.value &&
+    !isPublicView.value &&
+    !meta.value?.synced &&
+    !meta.value?.mm &&
+    // interface pages gate inline record creation behind the viz's
+    // add_delete_inline option — mirrors the canvas renderer (useCanvasTable)
+    (!interfacePageDataApi || interfacePageDataApi.canAddDeleteInline.value),
+)
+
+// Row-level delete gates on the interface add_delete_inline opt-in (like the
+// canvas renderer's `canAddDeleteRows` — the two flags are orthogonal to
+// isDataReadOnly). No-op for base grids (interfacePageDataApi undefined).
+const canAddDeleteRows = computed(
+  () => hasEditPermission.value && (!interfacePageDataApi || interfacePageDataApi.canAddDeleteInline.value),
 )
 
 const visibleColLength = computed(() => fields.value?.length)
@@ -742,8 +766,12 @@ async function deleteAllRecords() {
     'rows': totalRows.value,
     'onUpdate:modelValue': closeDlg,
     'onDeleteAll': async () => {
-      await bulkDeleteAll?.()
+      const succeeded = await bulkDeleteAll?.()
       closeDlg()
+
+      // Keep the selection on failure — see the canvas renderer's twin.
+      if (!succeeded) return
+
       vSelectedAllRecords.value = false
     },
   })
@@ -1125,6 +1153,8 @@ const isSelectedOnlyAI = computed(() => {
 })
 
 const isSelectedOnlyScript = computed(() => {
+  if (interfacePageDataApi) return { enabled: false, disabled: false }
+
   // selectedRange
   if (selectedRange.start.col === selectedRange.end.col) {
     const field = fields.value[selectedRange.start.col]
@@ -1932,7 +1962,11 @@ watch(
   view,
   async (next, old) => {
     try {
-      if (next && next.id !== old?.id && (next.fk_model_id === route.params.viewId || isPublicView.value)) {
+      if (
+        next &&
+        next.id !== old?.id &&
+        (next.fk_model_id === route.params.viewId || isPublicView.value || !!interfacePageDataApi)
+      ) {
         await until(isViewColumnsLoading).toMatch((c) => !c)
 
         switchingTab.value = true
@@ -2059,9 +2093,11 @@ const duplicateRow = async (context: { row: number; col: number }) => {
   const sourceRow = cachedRows.value.get(context.row)
   if (!sourceRow) return
 
-  // Clone the record's values (identity markers + system columns stripped, link
-  // values kept) so the insert creates a brand-new record (see getDuplicateRowData).
-  const clonedRow = getDuplicateRowData(sourceRow.row, meta.value?.columns as ColumnType[])
+  // Clone the record's values (identity markers + system columns stripped) so the
+  // insert creates a brand-new record. Prompts when the record holds links the copy
+  // can't share, and returns null if that prompt was dismissed.
+  const clonedRow = await prepareDuplicateRowData(sourceRow.row, meta.value?.columns as ColumnType[])
+  if (!clonedRow) return
 
   // Insert immediately below the source row. `before` is the pk of the row
   // currently one position down, so the copy lands right after the original
@@ -2640,7 +2676,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                                 {{ row.rowMeta.commentCount > 99 ? '99+' : row.rowMeta.commentCount }}
                               </span>
                               <div
-                                v-else
+                                v-else-if="showInterfaceRowExpand"
                                 class="cursor-pointer nc-expand flex items-center border-1 border-nc-border-gray-light active:ring rounded-md p-0.75 hover:(bg-nc-bg-default border-nc-border-gray-medium)"
                               >
                                 <component
@@ -2943,18 +2979,30 @@ const headerFilteredOrSortedClass = (colId: string) => {
                 </div>
               </NcMenuItem>
             </template>
-            <NcMenuItem
-              v-if="vSelectedAllRecords"
-              class="nc-base-menu-item"
-              danger
-              data-testid="nc-delete-all-row"
-              @click="deleteAllRecords([])"
+            <!-- Same gates as the canvas renderer: interface pages ride the
+                 add_delete_inline opt-in via `canAddDeleteRows`. -->
+            <PermissionsTooltip
+              v-if="vSelectedAllRecords && canAddDeleteRows && !isDataReadOnly && !meta?.synced"
+              :entity="PermissionEntity.TABLE"
+              :entity-id="meta?.id"
+              :permission="PermissionKey.TABLE_RECORD_DELETE"
+              placement="right"
             >
-              <div v-e="['a:row:delete-all']" class="flex gap-2 items-center">
-                <GeneralIcon icon="delete" />
-                {{ $t('activity.deleteAllRecords') }}
-              </div>
-            </NcMenuItem>
+              <template #default="{ isAllowed }">
+                <NcMenuItem
+                  class="nc-base-menu-item"
+                  danger
+                  data-testid="nc-delete-all-row"
+                  :disabled="!isAllowed"
+                  @click="deleteAllRecords([])"
+                >
+                  <div v-e="['a:row:delete-all']" class="flex gap-2 items-center">
+                    <GeneralIcon icon="delete" />
+                    {{ $t('activity.deleteAllRecords') }}
+                  </div>
+                </NcMenuItem>
+              </template>
+            </PermissionsTooltip>
             <template v-if="isOrderColumnExists && hasEditPermission && !isDataReadOnly && isPkAvail">
               <NcMenuItem
                 v-if="contextMenuTarget"
@@ -3137,11 +3185,12 @@ const headerFilteredOrSortedClass = (colId: string) => {
               </NcMenuItem>
             </template>
 
-            <template v-if="hasEditPermission && !isDataReadOnly">
+            <template v-if="canAddDeleteRows && !isDataReadOnly">
               <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && (selectedRows.length || vSelectedAllRecords))" />
               <NcMenuItem
                 v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
                 class="nc-base-menu-item"
+                data-testid="nc-grid-context-menu-delete"
                 damger
                 @click="confirmDeleteRow(contextMenuTarget.row)"
               >

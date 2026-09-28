@@ -400,7 +400,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         base_id: source.base_id,
       };
 
-      const base = await source.getProject(context, ncMeta);
+      const base = await source.getProject(ncMeta);
 
       // skip deleted base bases
       if (!base || base.deleted) {
@@ -424,7 +424,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         );
 
         for (const model of models) {
-          await model.getColumns(context, ncMeta);
+          await model.getColumns(ncMeta);
         }
 
         logger.log(

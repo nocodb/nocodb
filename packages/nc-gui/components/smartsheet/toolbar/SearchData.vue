@@ -24,7 +24,7 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { search, loadFieldQuery } = useFieldQuery()
+const { search, loadFieldQuery, isScoped: isScopedSearch } = useFieldQuery()
 
 const { isMobileMode } = useGlobal()
 
@@ -39,6 +39,9 @@ function getTableTitle(tableId?: string) {
 }
 
 const isDropdownOpen = ref(false)
+
+// Compact hosts (interface toolbar): the selected-field chip shows the label only.
+const isFieldListCompact = inject(FieldListCompactInj, ref(false))
 
 const showSearchBox = ref(false)
 
@@ -114,7 +117,11 @@ watch(
     if (n !== o) {
       let reset = false
 
-      if (n !== lastOpenedViewId.value) {
+      // A tree-scoped search (the LTAR embedded viz) owns its own state, so it
+      // must keep its hands off the app-global "last opened view": stamping a
+      // synthetic viz id there left the PAGE's box resetting itself on its next
+      // view switch — the very cross-talk the scope exists to stop.
+      if (!isScopedSearch && n !== lastOpenedViewId.value) {
         lastOpenedViewId.value = n
         reset = true
       }
@@ -331,7 +338,7 @@ watch(
             <div class="flex items-center gap-2 group px-2 cursor-pointer" @click="isDropdownOpen = !isDropdownOpen">
               <GeneralIcon icon="search" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
               <div class="h-5 flex items-center gap-1 px-1 rounded-md text-nc-content-brand bg-nc-bg-brand-inverted select-none">
-                <SmartsheetHeaderIcon :column="displayColumn" class="!w-3.5 !h-3.5 !mx-0" />
+                <SmartsheetHeaderIcon v-if="!isFieldListCompact" :column="displayColumn" class="!w-3.5 !h-3.5 !mx-0" />
                 <div v-if="!isMobileMode" class="w-16 text-bodyDefaultSm font-medium truncate">
                   {{ displayColumnLabel ?? '' }}
                 </div>

@@ -85,6 +85,112 @@ export default class NocoCache {
     );
   }
 
+  /**
+   * Atomic take-one-from-a-set. Returns null when nothing is available.
+   *
+   * Deliberately unlike {@link setIfNotExist}, which resolves `true` with the
+   * cache off: a claim that succeeds for everyone would hand every caller the
+   * same member. There is no safe stand-in for an atomic pop, so with no cache
+   * the honest answer is "nothing available" and the caller falls back.
+   */
+  public static async spop(
+    context: CacheContext,
+    key: string,
+  ): Promise<string | null> {
+    if (this.cacheDisabled) return null;
+    return this.client.spop(`${this.prefix}:${cacheContext(context)}:${key}`);
+  }
+
+  public static async sadd(
+    context: CacheContext,
+    key: string,
+    members: string[],
+  ): Promise<number> {
+    if (this.cacheDisabled) return 0;
+    return this.client.sadd(
+      `${this.prefix}:${cacheContext(context)}:${key}`,
+      members,
+    );
+  }
+
+  public static async srem(
+    context: CacheContext,
+    key: string,
+    members: string[],
+  ): Promise<number> {
+    if (this.cacheDisabled) return 0;
+    return this.client.srem(
+      `${this.prefix}:${cacheContext(context)}:${key}`,
+      members,
+    );
+  }
+
+  public static async scard(
+    context: CacheContext,
+    key: string,
+  ): Promise<number> {
+    if (this.cacheDisabled) return 0;
+    return this.client.scard(`${this.prefix}:${cacheContext(context)}:${key}`);
+  }
+
+  public static async smembers(
+    context: CacheContext,
+    key: string,
+  ): Promise<string[]> {
+    if (this.cacheDisabled) return [];
+    return this.client.smembers(
+      `${this.prefix}:${cacheContext(context)}:${key}`,
+    );
+  }
+
+  public static async zadd(
+    context: CacheContext,
+    key: string,
+    score: number,
+    member: string,
+  ): Promise<number> {
+    if (this.cacheDisabled) return 0;
+    return this.client.zadd(
+      `${this.prefix}:${cacheContext(context)}:${key}`,
+      score,
+      member,
+    );
+  }
+
+  public static async zrem(
+    context: CacheContext,
+    key: string,
+    member: string,
+  ): Promise<number> {
+    if (this.cacheDisabled) return 0;
+    return this.client.zrem(
+      `${this.prefix}:${cacheContext(context)}:${key}`,
+      member,
+    );
+  }
+
+  public static async zcard(
+    context: CacheContext,
+    key: string,
+  ): Promise<number> {
+    if (this.cacheDisabled) return 0;
+    return this.client.zcard(`${this.prefix}:${cacheContext(context)}:${key}`);
+  }
+
+  public static async zremrangebyscore(
+    context: CacheContext,
+    key: string,
+    min: number | string,
+    max: number | string,
+  ): Promise<number> {
+    if (this.cacheDisabled) return 0;
+    return this.client.zremrangebyscore(
+      `${this.prefix}:${cacheContext(context)}:${key}`,
+      min,
+      max,
+    );
+  }
+
   public static async incrby(
     context: CacheContext,
     key,

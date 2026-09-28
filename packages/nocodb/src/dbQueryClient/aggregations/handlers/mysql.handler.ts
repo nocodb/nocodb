@@ -39,7 +39,7 @@ export class MysqlAggregationHandler extends GenericAggregationHandler {
     const subAggFrom: string | Knex.Raw = derivedInner
       ? knex.raw(`(??) as nc_agg_sub`, [derivedInner])
       : baseModelSqlv2.tnPath;
-    const subAggCol: string | Knex.QueryBuilder = derivedInner
+    const subAggCol: string | Knex.QueryBuilder | Knex.Raw = derivedInner
       ? 'nc_val'
       : column_query;
 

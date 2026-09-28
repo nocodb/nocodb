@@ -1,5 +1,15 @@
-import { NcErrorType } from '~/lib/globals';
+import { LicenseInactiveReason, NcErrorType } from '~/lib/globals';
 import { ncIsNumber } from '~/lib/is';
+
+/** Why the instance has no active license, in words a customer can act on. */
+const licenseInactiveCause: Record<LicenseInactiveReason, string> = {
+  [LicenseInactiveReason.NONE]:
+    'No license key is configured on this instance.',
+  [LicenseInactiveReason.EXPIRED]: 'The license has expired.',
+  [LicenseInactiveReason.SUSPENDED]: 'The license has been suspended.',
+  [LicenseInactiveReason.UNREACHABLE]:
+    'The license server could not be reached, so the instance fell back to CE mode.',
+};
 
 export const presetErrorCodexMap: Partial<
   Record<
@@ -49,6 +59,24 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Workspace '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_WORKSPACE_SUSPENDED]: {
+    message: (reason?: string) =>
+      reason
+        ? `This workspace has been suspended: ${reason}`
+        : 'This workspace has been suspended',
+    code: 403,
+  },
+  [NcErrorType.ERR_BASE_SUSPENDED]: {
+    message: (reason?: string) =>
+      reason
+        ? `This base has been suspended: ${reason}`
+        : 'This base has been suspended',
+    code: 403,
+  },
+  [NcErrorType.ERR_ORG_NOT_FOUND]: {
+    message: (id: string) => `Org '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_BASE_NOT_FOUND]: {
     message: (id: string) => `Base '${id}' not found`,
     code: 404,
@@ -72,6 +100,34 @@ export const presetErrorCodexMap: Partial<
   [NcErrorType.ERR_INTEGRATION_LINKED_WITH_BASES]: {
     message: (bases) => `Connection linked with following bases '${bases}'`,
     code: 404,
+  },
+  [NcErrorType.ERR_ENVIRONMENT_NOT_FOUND]: {
+    message: (id: string) => `Environment '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_INTEGRATION_USER_CREDENTIAL_REQUIRED]: {
+    message: (title: string) =>
+      `'${title}' requires you to connect your own account`,
+    code: 400,
+  },
+  [NcErrorType.ERR_INTEGRATION_PER_USER_NOT_ALLOWED]: {
+    message: (title: string, consumerPhrase: string) =>
+      `'${title}' uses per-user credentials and cannot be used ${consumerPhrase} — switch it to shared credentials`,
+    code: 400,
+  },
+  [NcErrorType.ERR_INTEGRATION_AUTH_FAILED]: {
+    message: (message: string) =>
+      message ||
+      'This connection is no longer valid. Reconnect it and try again.',
+    // Deliberately not 401 — the frontend interceptor treats 401 as an expired
+    // NocoDB session and would kick off a token refresh.
+    code: 400,
+  },
+  [NcErrorType.ERR_INTEGRATION_REQUEST_FAILED]: {
+    message: (message: string) =>
+      message ||
+      "Couldn't reach the connected service. Try again, and if it keeps happening contact support.",
+    code: 400,
   },
   [NcErrorType.ERR_TABLE_NOT_FOUND]: {
     message: (id: string) => `Table '${id}' not found`,
@@ -129,7 +185,19 @@ export const presetErrorCodexMap: Partial<
     code: 404,
   },
   [NcErrorType.ERR_VIEW_SECTION_NOT_FOUND]: {
-    message: (id: string) => `View section '${id}' not found`,
+    message: (id: string) => `View folder '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_BASE_SECTION_NOT_FOUND]: {
+    message: (id: string) => `Folder '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_AUTOMATION_SECTION_NOT_FOUND]: {
+    message: (id: string) => `Folder '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_AGENT_SECTION_NOT_FOUND]: {
+    message: (id: string) => `Folder '${id}' not found`,
     code: 404,
   },
   [NcErrorType.ERR_TRASH_NOT_FOUND]: {
@@ -145,6 +213,18 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Dashboard '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_INTERFACE_NOT_FOUND]: {
+    message: (id: string) => `Interface '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_INTERFACE_PAGE_NOT_FOUND]: {
+    message: (id: string) => `Interface page '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_INTERFACE_PREVIEW_WRITE_BLOCKED]: {
+    message: () => 'Writes are disabled while previewing as another user',
+    code: 403,
+  },
   [NcErrorType.ERR_CHAT_SESSION_NOT_FOUND]: {
     message: (id: string) => `Chat session '${id}' not found`,
     code: 404,
@@ -153,9 +233,77 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Chat message '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_CHAT_ARTIFACT_NOT_FOUND]: {
+    message: (id: string) => `Web artifact '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_APP_NOT_FOUND]: {
+    message: (id: string) => `App '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_APP_VERSION_NOT_FOUND]: {
+    message: (id: string) => `AppVersion '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_APP_TOKEN_NOT_FOUND]: {
+    message: (id: string) => `AppToken '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_APP_TEAM_NOT_FOUND]: {
+    message: (id: string) => `App team '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_APP_INTEGRATION_GRANT_NOT_FOUND]: {
+    message: (id: string) => `Grant '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_ROUTINE_NOT_FOUND]: {
+    message: 'Routine not found',
+    code: 404,
+  },
+  [NcErrorType.ERR_MANAGED_APP_NOT_FOUND]: {
+    message: (id: string) => `ManagedApp '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_MANAGED_APP_VERSION_NOT_FOUND]: {
+    message: (id: string) => `Managed app version '${id}' not found`,
+    code: 404,
+  },
+  /** No published release exists for the managed app — keyed by app, not version. */
+  [NcErrorType.ERR_PUBLISHED_MANAGED_APP_VERSION_NOT_FOUND]: {
+    message: (managedAppId: string) =>
+      `Published managed app version '${managedAppId}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_MARKETPLACE_PUBLISHER_NOT_FOUND]: {
+    message: (handle: string) => `Publisher '${handle}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_WORKFLOW_NOT_FOUND]: {
     message: (id: string) => `Workflow '${id}' not found`,
     code: 404,
+  },
+  [NcErrorType.ERR_AGENT_NOT_FOUND]: {
+    message: (id: string) => `Agent '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_AGENT_SESSION_NOT_FOUND]: {
+    message: (id: string) => `Agent session '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_SKILL_NOT_FOUND]: {
+    message: (id: string) => `Skill '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_SKILL_SOURCE_INVALID]: {
+    message: (ref: string) =>
+      `'${ref}' is not a valid skill source — expected 'owner/repo' or 'owner/repo/skillName'`,
+    code: 400,
+  },
+  [NcErrorType.ERR_SKILL_CATALOG_UNAVAILABLE]: {
+    message: (repo: string) =>
+      `Could not read skills from '${repo}' — check the repository exists and is public`,
+    code: 502,
   },
   [NcErrorType.ERR_SCRIPT_NOT_FOUND]: {
     message: (id: string) => `Script '${id}' not found`,
@@ -230,6 +378,10 @@ export const presetErrorCodexMap: Partial<
   },
   [NcErrorType.ERR_SHARED_DASHBOARD_PASSWORD_INVALID]: {
     message: 'Invalid shared dashboard password',
+    code: 403,
+  },
+  [NcErrorType.ERR_SHARED_INTERFACE_PAGE_PASSWORD_INVALID]: {
+    message: 'Invalid shared interface page password',
     code: 403,
   },
   [NcErrorType.ERR_INVALID_ATTACHMENT_JSON]: {
@@ -471,10 +623,17 @@ export const presetErrorCodexMap: Partial<
     code: 405,
   },
   [NcErrorType.ERR_LICENSE_REQUIRED]: {
-    message: (feature: string) =>
-      feature
-        ? `The "${feature}" feature requires an Enterprise license.`
-        : 'This feature requires an Enterprise license.',
+    // Not a plan-tier refusal — the instance has no active license at all.
+    // Tier checks throw ERR_PLAN_LIMIT_EXCEEDED / featureNotSupported instead.
+    message: (operation: string, reason: string) => {
+      const subject = operation
+        ? `"${operation}" is unavailable`
+        : 'this operation is unavailable';
+      const cause = licenseInactiveCause[reason as LicenseInactiveReason];
+      return `This instance does not have an active NocoDB license, so ${subject}.${
+        cause ? ` ${cause}` : ''
+      }`;
+    },
     code: 402,
   },
   [NcErrorType.ERR_LICENSE_SUSPENDED]: {
@@ -495,15 +654,16 @@ export const presetErrorCodexMap: Partial<
       message || 'Too many requests. Please try again later.',
     code: 429,
   },
-  [NcErrorType.ERR_SANDBOX_BLOCKED]: {
-    message: (message: string) =>
-      message || 'This operation is not allowed in a sandbox base.',
-    code: 403,
-  },
-  [NcErrorType.ERR_SANDBOX_PRODUCTION_BLOCKED]: {
+  [NcErrorType.ERR_ENVIRONMENT_LANE_BLOCKED]: {
     message: (message: string) =>
       message ||
-      'This operation is not allowed while a sandbox is active. Make the change in the sandbox instead.',
+      'This operation is not allowed in an environment instance. Perform it on the production base instead.',
+    code: 403,
+  },
+  [NcErrorType.ERR_ENVIRONMENT_PRODUCTION_LOCKED]: {
+    message: (message: string) =>
+      message ||
+      'This operation is locked while the base is open in an environment. Make the change there instead.',
     code: 403,
   },
   [NcErrorType.ERR_SNAPSHOT_BLOCKED]: {
@@ -511,5 +671,14 @@ export const presetErrorCodexMap: Partial<
       message ||
       'This base is a snapshot and cannot be accessed directly. Restore the snapshot to a new base to view or edit its contents.',
     code: 403,
+  },
+  [NcErrorType.ERR_CREDIT_PACK_NOT_FOUND]: {
+    message: (id: string) => `Credit pack '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_CREDITS_EXHAUSTED]: {
+    message: (message: string) =>
+      message || 'You have run out of credits. Top up to continue.',
+    code: 402,
   },
 };

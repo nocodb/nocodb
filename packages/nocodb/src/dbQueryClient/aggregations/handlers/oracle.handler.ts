@@ -11,4 +11,8 @@ export class OracleAggregationHandler implements AggregationHandlerInterface {
   generate(_params: AggregationGeneratorParams): string | undefined {
     throw new Error('Oracle is only available in the enterprise (EE) build');
   }
+
+  buildExpression(_params: AggregationGeneratorParams): never {
+    throw new Error('Oracle is only available in the enterprise (EE) build');
+  }
 }

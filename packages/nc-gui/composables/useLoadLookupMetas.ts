@@ -1,4 +1,4 @@
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
 
 /**
@@ -43,11 +43,24 @@ export function useLoadLookupMetas(metaRef: MaybeRef<TableType | undefined>, opt
     }
   }
 
+  // Plain link columns (LTAR / Links) need the RELATED table's meta too —
+  // `getLookupValue`/`getLinksValue` resolve the linked row's display value
+  // through the metas cache, and render "[object Object]" without it.
+  const loadLinkMeta = async (rootMeta: TableType, linkCol: ColumnType) => {
+    const relOpt = linkCol.colOptions as LinkToAnotherRecordType | undefined
+    const relModelId = relOpt?.fk_related_model_id
+    const relBaseId = relOpt?.fk_related_base_id || rootMeta.base_id
+    if (!relModelId || !relBaseId) return
+
+    await getMeta(relBaseId, relModelId, false, false, true)
+  }
+
   const loadChainMetas = async (rootMeta?: TableType) => {
     if (!rootMeta?.columns?.length) return
 
     const lookupCols = rootMeta.columns.filter((c) => c.uidt === UITypes.Lookup)
-    await Promise.all(lookupCols.map((c) => loadColumnChain(rootMeta, c)))
+    const linkCols = rootMeta.columns.filter((c) => isLinksOrLTAR(c))
+    await Promise.all([...lookupCols.map((c) => loadColumnChain(rootMeta, c)), ...linkCols.map((c) => loadLinkMeta(rootMeta, c))])
   }
 
   watch(

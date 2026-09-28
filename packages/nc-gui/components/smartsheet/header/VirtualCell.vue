@@ -360,7 +360,7 @@ const onClick = (e: Event) => {
       :overlay-class-name="`nc-dropdown-edit-column ${editColumnDropdown ? 'active rounded-2xl' : ''}`"
       @visible-change="onVisibleChange"
     >
-      <div v-if="isExpandedForm && !isExpandedBulkUpdateForm" class="h-[1px]" @dblclick.stop>&nbsp;</div>
+      <div v-if="isExpandedForm && !isExpandedBulkUpdateForm" class="!h-[1px]" @dblclick.stop>&nbsp;</div>
       <div v-else />
       <template #overlay>
         <div class="nc-edit-or-add-provider-wrapper">

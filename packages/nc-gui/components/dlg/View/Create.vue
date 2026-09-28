@@ -119,9 +119,9 @@ const { baseId: activeBaseId } = storeToRefs(baseStore)
 
 const basesStore = useBases()
 
-const isSandboxProduction = computed(() => !!basesStore.bases.get(props.baseId)?.is_sandbox_production)
+const hasLaneInstances = computed(() => !!basesStore.bases.get(props.baseId)?.has_lane_instances)
 
-const isSandbox = computed(() => !!basesStore.bases.get(props.baseId)?.is_sandbox)
+const isLaneInstance = computed(() => !!basesStore.bases.get(props.baseId)?.is_lane_instance)
 
 const { blockCalendarRange, getPlanTitle, showEEFeatures, getFeature } = useEeConfig()
 
@@ -254,12 +254,12 @@ const canLockView = computed(() => isUIAllowed('fieldAdd'))
 
 // Personal views are an EE-only concept — CE has only Collaborative
 // and the legacy Locked lock_types.
-// Locked views cannot be created on a sandbox master — make the change in the sandbox instead.
-// Personal views cannot be created on a sandbox — they belong to the master base.
+// Locked views cannot be created on a locked production base — make the change in the environment copy.
+// Personal views cannot be created in an environment copy — they belong to the production base.
 const lockTypeOptions = computed(() => {
   const options: Array<{ value: ViewLockType; disabled?: boolean }> = [{ value: ViewLockType.Collaborative }]
-  if (isEeUI) options.push({ value: ViewLockType.Personal, disabled: isSandbox.value })
-  if (canLockView.value) options.push({ value: ViewLockType.Locked, disabled: isSandboxProduction.value })
+  if (showEEFeatures.value) options.push({ value: ViewLockType.Personal, disabled: isLaneInstance.value })
+  if (canLockView.value) options.push({ value: ViewLockType.Locked, disabled: hasLaneInstances.value })
   return options
 })
 
@@ -778,7 +778,7 @@ const predictFromPrompt = async () => {
     predictHistory.value.push(...predictions)
     oldPrompt.value = prompt.value
   } else if (!aiError.value) {
-    message.info('No suggestions were found with the given prompt. Try again after modifying the prompt.')
+    message.info(t('msg.info.noViewSuggestionsFound'))
   }
 
   aiModeStep.value = AiStep.pick
@@ -1105,12 +1105,12 @@ watch(activeBaseId, () => {
               <template v-for="option in lockTypeOptions" :key="option.value">
                 <!-- Personal is payment-gated: on unlicensed on-prem / non-Plus cloud,
                      the radio shows an upgrade badge and clicks open the upgrade
-                     modal instead of setting lock_type. On a sandbox base, personal
+                     modal instead of setting lock_type. On a lane base, personal
                      views are disabled — they must be created on the master base. -->
                 <NcTooltip
-                  v-if="option.value === ViewLockType.Personal && isEeUI && showEEFeatures"
+                  v-if="option.value === ViewLockType.Personal && showEEFeatures"
                   :disabled="!option.disabled"
-                  :title="$t('tooltip.personalViewDisabledOnSandbox')"
+                  :title="$t('tooltip.personalViewDisabledOnEnvironment')"
                 >
                   <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS">
                     <template #default="{ click }">
@@ -1150,7 +1150,7 @@ watch(activeBaseId, () => {
                 <NcTooltip
                   v-else
                   :disabled="!option.disabled || option.value !== ViewLockType.Locked"
-                  :title="$t('tooltip.lockedViewDisabledOnSandboxMaster')"
+                  :title="$t('tooltip.lockedViewDisabledOnProduction')"
                 >
                   <a-radio
                     :value="option.value"
@@ -1318,7 +1318,7 @@ watch(activeBaseId, () => {
                   </a-select-option>
                 </a-select>
               </div>
-              <PaymentUpgradeBadgeProvider v-if="isEeUI && showEEFeatures" :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
+              <PaymentUpgradeBadgeProvider v-if="showEEFeatures" :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
                 <template #default="{ click }">
                   <div class="w-full space-y-2">
                     <NcButton
@@ -1446,7 +1446,7 @@ watch(activeBaseId, () => {
               <div class="text-nc-content-gray-muted flex gap-4">
                 <GeneralIcon class="min-w-6 h-6 !text-nc-content-orange-medium" icon="info" />
                 <div class="flex flex-col gap-1">
-                  <h2 class="font-semibold text-sm mb-0 text-nc-content-gray">Calendar is readonly</h2>
+                  <h2 class="font-semibold text-sm mb-0 text-nc-content-gray">{{ $t('labels.calendarIsReadonly') }}</h2>
                   <span class="text-nc-content-gray-muted font-default text-sm"> {{ $t('msg.info.calendarReadOnly') }}</span>
                 </div>
               </div>
@@ -1686,7 +1686,7 @@ watch(activeBaseId, () => {
                           ? activeTabPredictHistory.length + activeTabSelectedViews.length < 10
                           : activeTabPredictHistory.length < 10
                       "
-                      title="Suggest more"
+                      :title="$t('tooltip.suggestMore')"
                       placement="top"
                     >
                       <NcButton
@@ -1706,7 +1706,7 @@ watch(activeBaseId, () => {
                         </template>
                       </NcButton>
                     </NcTooltip>
-                    <NcTooltip title="Clear all and Re-suggest" placement="top">
+                    <NcTooltip :title="$t('tooltip.clearAllAndResuggest')" placement="top">
                       <NcButton
                         v-e="['a:view:ai:predict-refresh']"
                         size="xs"
@@ -1742,7 +1742,7 @@ watch(activeBaseId, () => {
                     ref="aiPromptInputRef"
                     v-model:value="prompt"
                     :disabled="isAiSaving"
-                    placeholder="Enter your prompt to get view suggestions.."
+                    :placeholder="$t('placeholder.viewSuggestionPrompt')"
                     class="nc-ai-input nc-input-shadow !px-3 !pt-2 !pb-3 !text-sm !min-h-[120px] !rounded-lg"
                     @keydown.enter.stop
                   >
@@ -1793,7 +1793,7 @@ watch(activeBaseId, () => {
                 </div>
 
                 <div v-else-if="isPromtAlreadyGenerated" class="flex flex-col gap-3">
-                  <div class="text-nc-content-purple-dark font-semibold text-xs">Generated Views(s)</div>
+                  <div class="text-nc-content-purple-dark font-semibold text-xs">{{ $t('labels.generatedViews') }}</div>
                   <div class="flex gap-2 flex-wrap">
                     <template v-if="activeTabPredictedViews.length">
                       <template v-for="v of activeTabPredictedViews" :key="v.title">
@@ -1848,7 +1848,7 @@ watch(activeBaseId, () => {
           <div class="text-nc-content-gray-subtle flex gap-4">
             <GeneralIcon class="min-w-6 h-6 text-nc-content-orange-medium" icon="alertTriangle" />
             <div class="flex flex-col gap-1">
-              <h2 class="font-semibold text-sm mb-0 text-nc-content-gray">Suitable fields not present</h2>
+              <h2 class="font-semibold text-sm mb-0 text-nc-content-gray">{{ $t('labels.suitableFieldsNotPresent') }}</h2>
               <span class="text-nc-content-gray-muted font-default text-sm"> {{ errorMessages[form.type] }}</span>
             </div>
           </div>
@@ -1942,9 +1942,9 @@ watch(activeBaseId, () => {
             <template #loading> {{ $t('labels.creatingView') }} </template>
           </NcButton>
           <NcTooltip v-else :disabled="!isMobileMode">
-            <template #title> AI integration is not available in mobile mode. </template>
+            <template #title> {{ $t('tooltip.aiIntegrationNotAvailableOnMobile') }} </template>
             <NcButton type="primary" size="small" :disabled="!!isMobileMode" @click="handleNavigateToIntegrations">
-              Add AI integration
+              {{ $t('labels.addAiIntegration') }}
             </NcButton>
           </NcTooltip>
         </div>

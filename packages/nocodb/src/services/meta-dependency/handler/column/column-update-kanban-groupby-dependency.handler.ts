@@ -89,7 +89,7 @@ export class ColumnUpdateKanbanGroupByDependencyHandler
         { colId: newCol.id },
         ncMeta,
       );
-      const opts = await newColFull.getColOptions<any>(context, ncMeta);
+      const opts = await newColFull.getColOptions<any>(ncMeta);
       newOptions = opts?.options ?? [];
     }
 
@@ -199,7 +199,7 @@ export class ColumnUpdateKanbanGroupByDependencyHandler
     for (const viewId of viewIds) {
       const view = await View.get(context, viewId, false, Noco.ncMeta);
       if (!view) continue;
-      await view.getView(context, Noco.ncMeta);
+      await view.getView(Noco.ncMeta);
       NocoSocket.broadcastEvent(context, {
         event: EventType.META_EVENT,
         payload: { action: 'view_update', payload: view },

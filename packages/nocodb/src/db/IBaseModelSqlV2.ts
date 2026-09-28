@@ -71,6 +71,8 @@ export interface IBaseModelSqlV2 {
       // Consumed by the EE override to skip per-field edit-permission checks
       // on trusted internal data-load paths (duplication / snapshot / import).
       skipPermissionCheck?: boolean;
+      // Skip the attachment ownership check on those same trusted paths.
+      skipAttachmentOwnershipCheck?: boolean;
     },
   ): Promise<void>;
 

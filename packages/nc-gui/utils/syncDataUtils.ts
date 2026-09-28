@@ -1,6 +1,7 @@
-import type { FormDefinition, IntegrationsType, SyncCategory } from 'nocodb-sdk'
+import type { FormDefinition, IntegrationCredentialMode, IntegrationsType, SyncCategory } from 'nocodb-sdk'
 import type { VNode } from '@vue/runtime-dom'
 import type { CSSProperties, FunctionalComponent, SVGAttributes } from 'nuxt/dist/app/compat/capi'
+import { getI18n } from '~/plugins/a.i18n'
 import { ClientType, IntegrationCategoryType, SyncDataType } from '#imports'
 
 export const integrationsInitialized = ref(false)
@@ -19,6 +20,11 @@ export interface IntegrationItemType {
   hidden?: boolean
   form?: FormDefinition
   sync_category?: SyncCategory
+  /** AUTH packages that support per-user credentials (each user connects their own account). */
+  allowsPerUserCredentials?: boolean
+  /** Set only by a caller with no choice to offer — an app-store install whose
+   *  release refuses a bind across the axis. Absent everywhere else. */
+  requiredCredentialMode?: IntegrationCredentialMode
 }
 
 export interface IntegrationCategoryItemType {
@@ -43,8 +49,8 @@ export const integrationCategories: IntegrationCategoryItemType[] = [
     isAvailable: true,
   },
   {
-    title: 'Auth Provider',
-    subtitle: 'Auth',
+    title: 'objects.integrationCategories.authProvider',
+    subtitle: 'objects.integrationCategories.authProviderSubtitle',
     value: IntegrationCategoryType.AUTH,
     isAvailable: true,
   },
@@ -463,8 +469,40 @@ export const allIntegrations: IntegrationItemType[] = [
   // },
 ]
 
+// The AUTH category lists every provider that can authenticate; these datastores and raw protocols are not apps.
+const NON_APP_SUB_TYPES = new Set([
+  'postgres',
+  'pg',
+  'mysql',
+  'mysql2',
+  'mssql',
+  'oracledb',
+  'sqlite3',
+  'clickhouse',
+  'snowflake',
+  'databricks',
+  'redis',
+  'http-api',
+  'smtp',
+  'caldav',
+])
+
+export const isAppIntegration = (integration: IntegrationItemType) => !NON_APP_SUB_TYPES.has(String(integration.sub_type))
+
 export const allIntegrationsMapBySubType = allIntegrations.reduce((acc, integration) => {
   acc[integration.sub_type] = integration
 
   return acc
 }, {} as Record<(typeof allIntegrations)[number]['sub_type'], IntegrationItemType>)
+
+/**
+ * Static integrations carry an i18n key as their title/subtitle; dynamically registered ones
+ * (from an integration manifest) carry the display string itself. Translate only the former.
+ */
+export const integrationLabel = (value?: string) => {
+  if (!value) return ''
+
+  const { t, te } = getI18n().global
+
+  return te(value) ? t(value) : value
+}

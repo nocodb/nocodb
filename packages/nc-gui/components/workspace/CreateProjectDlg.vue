@@ -108,10 +108,10 @@ watch(dialogShow, (n) => {
     <template #header>
       <!-- Create A New Base -->
       <div class="flex flex-row items-center text-base text-nc-content-gray">
-        <GeneralProjectIcon :color="formState.meta.iconColor" class="mr-2.5" />
+        <GeneralProjectIcon :color="formState.meta.iconColor" :icon="formState.meta.icon" class="mr-2.5" />
         {{
           $t('general.createEntity', {
-            entity: 'Base',
+            entity: $t('objects.project'),
           })
         }}
       </div>
@@ -150,19 +150,19 @@ watch(dialogShow, (n) => {
           type="primary"
           size="small"
           :disabled="creating"
-          :label="`${$t('general.create')} Base`"
-          :loading-label="`${$t('general.creating')} Base`"
+          :label="`${$t('general.create')} ${$t('objects.project')}`"
+          :loading-label="`${$t('general.creating')} ${$t('objects.project')}`"
           @click="createProject"
         >
           {{
             $t('general.createEntity', {
-              entity: 'Base',
+              entity: $t('objects.project'),
             })
           }}
           <template #loading>
             {{
               $t('general.creatingEntity', {
-                entity: 'Base',
+                entity: $t('objects.project'),
               })
             }}
           </template>

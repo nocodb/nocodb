@@ -18,6 +18,12 @@ interface Props {
   // are hidden fields, show the tooltip on hover (column layout never trips the
   // truncate detector, so there's nothing else to gate on).
   hasHiddenFields?: boolean
+  // Optional label image (an attachment object) — renders as a small square
+  // thumbnail flush to the card's right edge (interface "Label image").
+  labelAttachment?: Record<string, any> | null
+  // Interfaces split chip labels from the tooltip fields — the tooltip is a
+  // deliberate hover surface there, not a truncation fallback.
+  forceTooltip?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -31,9 +37,13 @@ const props = withDefaults(defineProps<Props>(), {
   hasHiddenFields: false,
 })
 
-const emit = defineEmits(['resizeStart'])
+const emit = defineEmits(['resizeStart', 'jumpStart', 'jumpEnd'])
 
 const { eventDisplayTheme } = useCalendarViewStoreOrThrow()
+
+// Interface calendars don't show a hover tooltip on records — the chip is the
+// whole surface there (record details live behind the click-into action).
+const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
 
 const slots = useSlots()
 
@@ -68,11 +78,10 @@ const isFlat = computed(() =>
   [CalendarEventTheme.DOT, CalendarEventTheme.MINIMAL, CalendarEventTheme.PILL].includes(effectiveTheme.value),
 )
 
-// The left colour bar belongs to the bordered + minimal themes, and only on the
-// card's leading edge (rounded / leftRounded positions of a spanning event).
-const showLeftBar = computed(
-  () => (isBordered.value || isMinimal.value) && (props.position === 'leftRounded' || props.position === 'rounded'),
-)
+// The left colour bar belongs to the minimal theme only (bordered shows just its
+// border + tint), and only on the card's leading edge (rounded / leftRounded
+// positions of a spanning event).
+const showLeftBar = computed(() => isMinimal.value && (props.position === 'leftRounded' || props.position === 'rounded'))
 
 // Only the bordered theme carries the drop shadow; the flat themes stay flush.
 const cardShadow = computed(() => {
@@ -109,13 +118,10 @@ const cardShadow = computed(() => {
       boxShadow: cardShadow,
     }"
   >
-    <!-- Minimal makes the bar its defining mark, so it runs the full card height
-         (flush); bordered keeps the original short, centred tick. -->
-    <div
-      v-if="showLeftBar"
-      class="nc-cal-leftbar"
-      :class="{ 'self-stretch -my-px -ml-px': multiline || isMinimal, 'min-h-6.5': !multiline && !isMinimal }"
-    ></div>
+    <!-- Minimal makes the bar its defining mark, so it runs the full card height (flush). -->
+    <div v-if="showLeftBar" class="nc-cal-leftbar self-stretch -my-px -ml-px"></div>
+
+    <SmartsheetRecordPresenceBadge v-if="isEeUI && record" :row="record" class="absolute top-1 right-1 z-10" />
 
     <div
       v-if="(position === 'leftRounded' || position === 'rounded') && resize"
@@ -123,7 +129,10 @@ const cardShadow = computed(() => {
       @mousedown.stop="emit('resizeStart', 'left', $event, record)"
     ></div>
 
-    <div class="overflow-hidden gap-2 flex w-full" :class="multiline ? 'items-start py-1' : 'items-center justify-center'">
+    <div
+      class="overflow-hidden gap-2 flex w-full"
+      :class="[multiline ? 'items-start py-1' : 'items-center justify-center', { 'pr-6': labelAttachment }]"
+    >
       <!-- Centre the dot on the first line, not the whole card: wrap it in a box
            that matches the first line's line-height (leading-5 → h-5) and centre
            the dot inside. Single-line relies on the row's own items-center, so the
@@ -135,7 +144,24 @@ const cardShadow = computed(() => {
       >
         <span class="nc-cal-dot"></span>
       </span>
-      <span v-if="position === 'rightRounded' || position === 'none'" class="ml-2 mb-0.6"> .... </span>
+      <!-- Spilled-over edges: chevrons page the calendar to the record's start / end
+           (every host wires jumpStart / jumpEnd to the store's jumpToRecordEdge). -->
+      <NcTooltip
+        v-if="position === 'rightRounded' || position === 'none'"
+        :title="$t('labels.jumpToRecordStart')"
+        hide-on-click
+        class="flex-none self-stretch flex items-center ml-1"
+      >
+        <button
+          type="button"
+          class="nc-cal-jump flex items-center rounded text-nc-content-gray-muted hover:text-nc-content-gray"
+          data-testid="nc-calendar-record-jump-start"
+          @mousedown.stop
+          @click.stop="emit('jumpStart')"
+        >
+          <GeneralIcon icon="ncChevronLeft" class="w-3.5 h-3.5" />
+        </button>
+      </NcTooltip>
       <span v-if="isPill && $slots.time" class="nc-cal-time-pill">
         <slot name="time" />
       </span>
@@ -153,7 +179,7 @@ const cardShadow = computed(() => {
           wrap-child="div"
           hide-on-click
           disable-in-mobile
-          :disabled="selected || dragging || !hasHiddenFields"
+          :disabled="selected || dragging || !!interfacePageDataApi || (!hasHiddenFields && !forceTooltip)"
           overlay-class-name="nc-record-fields-tooltip"
           class="w-full overflow-hidden"
         >
@@ -171,9 +197,9 @@ const cardShadow = computed(() => {
           v-else
           hide-on-click
           disable-in-mobile
-          :disabled="selected || dragging"
+          :disabled="selected || dragging || !!interfacePageDataApi"
           overlay-class-name="nc-record-fields-tooltip"
-          show-on-truncate-only
+          :show-on-truncate-only="!forceTooltip"
           wrap-child="span"
           class="break-word whitespace-nowrap overflow-hidden pr-1"
           :class="{ 'text-ellipsis': ['leftRounded', 'rightRounded', 'rounded'].includes(position) }"
@@ -186,7 +212,38 @@ const cardShadow = computed(() => {
           </template>
         </NcTooltip>
       </div>
-      <span v-if="position === 'leftRounded' || position === 'none'" class="absolute mb-0.6 z-10 right-5"> ... </span>
+      <!-- Sits left of the label-image tile (right-0.5, w-5) when one is shown. -->
+      <NcTooltip
+        v-if="position === 'leftRounded' || position === 'none'"
+        :title="$t('labels.jumpToRecordEnd')"
+        hide-on-click
+        class="absolute z-10 top-0 bottom-0 flex items-center"
+        :class="labelAttachment ? 'right-6' : 'right-1.5'"
+      >
+        <button
+          type="button"
+          class="nc-cal-jump flex items-center rounded text-nc-content-gray-muted hover:text-nc-content-gray"
+          data-testid="nc-calendar-record-jump-end"
+          @mousedown.stop
+          @click.stop="emit('jumpEnd')"
+        >
+          <GeneralIcon icon="ncChevronRight" class="w-3.5 h-3.5" />
+        </button>
+      </NcTooltip>
+    </div>
+
+    <!-- Rounded inset tile — anchored 2px off the card's right edge so the
+         inset matches the vertical one regardless of the theme's own padding
+         (the thumbnail's root is h-full/w-full, so the size lives on this box). -->
+    <div
+      v-if="labelAttachment"
+      class="nc-cal-card-image absolute right-0.5 top-0 bottom-0 my-auto w-5 h-5 rounded overflow-hidden"
+    >
+      <LazyCellAttachmentPreviewThumbnail
+        :attachment="labelAttachment"
+        thumbnail="tiny"
+        image-class="!h-full !w-full object-cover"
+      />
     </div>
 
     <div
@@ -206,7 +263,7 @@ const cardShadow = computed(() => {
   @apply relative transition-all flex-none flex gap-2 group overflow-hidden;
 }
 
-// Left colour bar (bordered + minimal themes).
+// Left colour bar (minimal theme).
 .nc-cal-leftbar {
   @apply w-1 flex-none;
   background: var(--cal-accent);
@@ -231,7 +288,8 @@ const cardShadow = computed(() => {
 // --- Themes -----------------------------------------------------------------
 
 .nc-cal-card--bordered {
-  @apply border-1;
+  // No left colour bar on this theme — a small inset keeps the text off the border.
+  @apply border-1 pl-1;
   // Derive the fill + border from the accent so the chip stays visibly distinct
   // from the bar-only Minimal theme in BOTH light and dark (the row-colouring
   // tint resolves to near-black in dark mode and would read as transparent).

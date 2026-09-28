@@ -682,11 +682,11 @@ async function saveHooks() {
   try {
     await validate()
     if (hookRef.operation?.length === 0 && sendMeEverythingChecked.value === false) {
-      message.error('At least one operation need to be selected')
+      message.error(t('msg.error.atLeastOneOperationRequired'))
       throw new Error('At least one operation need to be selected')
     }
     if (hookRef.notification.trigger_form && !hookRef.notification.trigger_form_id) {
-      message.error('You must select a trigger form')
+      message.error(t('msg.error.triggerFormRequired'))
       throw new Error('You must select a trigger form')
     }
   } catch (error: any) {
@@ -858,7 +858,7 @@ async function saveHooks() {
     emits('close', hookRef)
 
     if (showUpgradeModal.value) {
-      message.success('Webhook upgraded to v3 successfully!')
+      message.success(t('msg.success.webhookUpgradedToV3'))
     }
   } catch (e: any) {
     console.error('[saveHooks] failed', {
@@ -931,25 +931,6 @@ async function testWebhook() {
     isTestLoading.value = false
   }
 }
-
-const supportedDocs: SupportedDocsType[] = [
-  {
-    title: 'Getting started',
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook',
-  },
-  {
-    title: t('activity.createWebhook'),
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook',
-  },
-  {
-    title: 'Custom payload',
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook#webhook-with-custom-payload-',
-  },
-  {
-    title: 'Trigger on condition',
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook#webhook-with-conditions',
-  },
-]
 
 watch(
   () => hookRef?.event,
@@ -1084,6 +1065,19 @@ onBeforeUnmount(() => {
   $eventBus.realtimeViewMetaEventBus.off(realtimeListener)
 })
 
+// antd's dialog wrapper swallows Esc (stopPropagation) before NcDropdown's window listener sees it.
+useEventListener(
+  document,
+  'keydown',
+  (e: KeyboardEvent) => {
+    if (e.key !== 'Escape' || !isDropdownOpen.value) return
+
+    e.stopPropagation()
+    isDropdownOpen.value = false
+  },
+  { capture: true },
+)
+
 // Refetch the hook fields from the server, replacing local edits with the
 // authoritative state. Used by the "modified by another user" banner so the
 // user can pull the remote change without losing the editor.
@@ -1155,7 +1149,13 @@ const webhookV2AndV3Diff = computed(() => {
 </script>
 
 <template>
-  <NcModal v-model:visible="modalVisible" :show-separator="true" size="large" wrap-class-name="nc-modal-webhook-create-edit">
+  <NcModal
+    v-model:visible="modalVisible"
+    :show-separator="true"
+    size="large"
+    :width="activeTab === HookTab.Log ? 'min(90vw, 1280px)' : 'min(90vw, 960px)'"
+    wrap-class-name="nc-modal-webhook-create-edit"
+  >
     <template #header>
       <div class="flex w-full items-center pl-4 pr-3 py-3 justify-between">
         <div class="flex items-center gap-3 flex-1">
@@ -1167,7 +1167,7 @@ const webhookV2AndV3Diff = computed(() => {
             <template v-else-if="activeTab === HookTab.Log">
               {{ $t('activity.webhookLogs') }}
             </template>
-            <template v-else-if="activeTab === HookTab.Settings"> Webhook Settings </template>
+            <template v-else-if="activeTab === HookTab.Settings"> {{ $t('labels.webhookSettings') }} </template>
           </span>
         </div>
 
@@ -1209,8 +1209,20 @@ const webhookV2AndV3Diff = computed(() => {
 
         <div class="flex justify-end items-center gap-3 flex-1">
           <template v-if="activeTab === HookTab.Configuration">
+            <a
+              href="https://nocodb.com/docs/product-docs/automation/webhook"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1.5 text-bodyDefaultSm font-medium text-nc-content-gray-subtle hover:text-nc-content-brand !no-underline"
+              data-testid="nc-webhook-docs-link"
+            >
+              {{ $t('title.docs') }}
+              <GeneralIcon icon="ncExternalLink" class="!h-3.5 !w-3.5" />
+            </a>
             <NcTooltip v-if="!showUpgradeModal" :disabled="!testConnectionError && hookRef.notification.type !== 'Script'">
-              <template v-if="hookRef.notification.type === 'Script'" #title> Test webhook is disabled for scripts </template>
+              <template v-if="hookRef.notification.type === 'Script'" #title>
+                {{ $t('tooltip.testWebhookDisabledForScripts') }}
+              </template>
               <template v-else #title>
                 {{ testConnectionError }}
               </template>
@@ -1231,7 +1243,7 @@ const webhookV2AndV3Diff = computed(() => {
                   />
                 </template>
                 <span>
-                  {{ testSuccess ? 'Test Successful' : $t('activity.testWebhook') }}
+                  {{ testSuccess ? $t('general.success') : $t('general.test') }}
                 </span>
               </NcButton>
             </NcTooltip>
@@ -1247,13 +1259,7 @@ const webhookV2AndV3Diff = computed(() => {
               data-testid="nc-save-webhook"
               @click.stop="saveHooks"
             >
-              {{
-                showUpgradeModal
-                  ? $t('general.upgrade')
-                  : hook
-                  ? $t('labels.multiField.saveChanges')
-                  : $t('activity.createWebhook')
-              }}
+              {{ showUpgradeModal ? $t('general.upgrade') : hook ? $t('general.save') : $t('general.create') }}
             </NcButton>
           </template>
           <NcButton type="text" size="small" data-testid="nc-close-webhook-modal" @click.stop="closeModal">
@@ -1266,7 +1272,7 @@ const webhookV2AndV3Diff = computed(() => {
       <div v-if="showUpgradeModal" class="h-full w-full overflow-auto nc-scrollbar-thin">
         <div class="h-full w-full max-w-[1040] min-w-[640px] px-6 md:px-12 py-6 flex flex-col">
           <div class="flex flex-col gap-2 mb-8">
-            <div class="text-base font-bold text-nc-content-gray-emphasis">Change in webhook response</div>
+            <div class="text-base font-bold text-nc-content-gray-emphasis">{{ $t('labels.webhookResponseChange') }}</div>
             <div class="text-sm font-normal text-nc-content-gray-subtle2">
               For more information on webhooks v3 visit
               <a
@@ -1331,7 +1337,7 @@ const webhookV2AndV3Diff = computed(() => {
       <template v-else>
         <div
           ref="containerElem"
-          class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-6 md:px-12 py-6 mx-auto"
+          class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-6 md:px-8 py-6 mx-auto"
         >
           <div class="max-w-[640px] min-w-[564px] w-full mx-auto gap-8 flex flex-col">
             <NcAlert
@@ -1467,7 +1473,9 @@ const webhookV2AndV3Diff = computed(() => {
                   <div class="w-full flex items-center justify-between h-[28px]">
                     <label class="cursor-pointer flex items-center" @click.prevent="hookRef.condition = !hookRef.condition">
                       <NcSwitch :checked="Boolean(hookRef.condition)" class="nc-check-box-hook-condition">
-                        <span class="!text-nc-content-gray-subtle font-semibold"> Trigger only when conditions match </span>
+                        <span class="!text-nc-content-gray-subtle font-semibold">
+                          {{ $t('labels.triggerOnlyWhenConditionsMatch') }}
+                        </span>
                       </NcSwitch>
                     </label>
 
@@ -1649,7 +1657,7 @@ const webhookV2AndV3Diff = computed(() => {
                       <LazyApiClientHeaders v-model="hookRef.notification.payload.headers" />
                     </a-tab-pane>
 
-                    <a-tab-pane key="body" tab="Body">
+                    <a-tab-pane key="body" :tab="$t('labels.body')">
                       <div
                         style="
                           box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08), 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
@@ -1803,7 +1811,7 @@ const webhookV2AndV3Diff = computed(() => {
                 <div class="flex items-center justify-between -ml-1.5 !mt-[32px]">
                   <NcButton type="text" class="mb-3" size="small" @click="toggleSamplePayload()">
                     <div class="flex items-center gap-3">
-                      Sample Payload
+                      {{ $t('labels.samplePayload') }}
 
                       <GeneralIcon
                         class="transition-transform"
@@ -1866,10 +1874,6 @@ const webhookV2AndV3Diff = computed(() => {
             </a-form>
           </div>
         </div>
-
-        <NcModalSupportedDocsSidebar>
-          <NcModalSupportedDocs :docs="supportedDocs"> </NcModalSupportedDocs>
-        </NcModalSupportedDocsSidebar>
       </template>
     </div>
     <div v-else-if="activeTab === HookTab.Log" class="h-[calc(100%_-_57px)]">

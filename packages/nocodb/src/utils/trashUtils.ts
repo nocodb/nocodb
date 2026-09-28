@@ -23,6 +23,18 @@ export const modelOrViewNotDeletedXcCondition = {
   _and: [modelOrViewXcCondition, notDeletedXcCondition],
 };
 
+/** xcCondition: every type backed by a physical table. Use for lookups by id. */
+export const tableBackedModelXcCondition = {
+  _or: [{ type: { eq: ModelTypes.TABLE } }, { type: { eq: ModelTypes.VIEW } }],
+};
+
+/**
+ * xcCondition: table-backed types AND not deleted
+ */
+export const tableBackedModelNotDeletedXcCondition = {
+  _and: [tableBackedModelXcCondition, notDeletedXcCondition],
+};
+
 /**
  * Knex where clause builder for excluding soft-deleted records.
  * Use with raw knex queries: `.where(notDeletedKnexCondition)`

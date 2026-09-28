@@ -43,7 +43,7 @@ const handleNavigateToProject = async (base: NcProject) => {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isOpen" overlay-class-name="max-w-64">
+  <NcDropdown v-model:visible="isOpen" overlay-class-name="max-w-80">
     <slot name="default" :is-open="isOpen"></slot>
     <template #overlay>
       <LazyNcList
@@ -62,6 +62,7 @@ const handleNavigateToProject = async (base: NcProject) => {
           <GeneralBaseIconColorPicker
             :type="option?.type"
             :model-value="parseProp(option.meta).iconColor"
+            :icon="parseProp(option.meta).icon"
             :managed-app="{
               managed_app_master: option?.managed_app_master,
               managed_app_id: option?.managed_app_id,

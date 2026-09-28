@@ -181,7 +181,12 @@ watch(allBases, () => {
               @click="toggleBase(base.id!)"
             >
               <NcCheckbox :checked="selectedBaseIds.has(base.id!)" />
-              <GeneralProjectIcon :color="parseProp(base.meta).iconColor" :type="base.type" class="h-4.5 w-4.5 flex-none" />
+              <GeneralProjectIcon
+                :color="parseProp(base.meta).iconColor"
+                :icon="parseProp(base.meta).icon"
+                :type="base.type"
+                class="h-4.5 w-4.5 flex-none"
+              />
               <NcTooltip show-on-truncate-only class="truncate text-sm font-medium text-nc-content-gray">
                 {{ base.title }}
               </NcTooltip>

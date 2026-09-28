@@ -5,6 +5,8 @@ import express from 'express';
 import type { NestMiddleware } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { injectBrandingMeta } from '~/helpers/brandingHtml';
+import { setFrameGuardHeaders } from '~/helpers/frameGuard';
+import { ncStaticCompression, ncStaticOptions } from '~/helpers/staticAssets';
 
 @Injectable()
 export class GuiMiddleware implements NestMiddleware {
@@ -32,7 +34,8 @@ export class GuiMiddleware implements NestMiddleware {
       );
 
       const router = express.Router();
-      router.use('/', express.static(distPath));
+      router.use(ncStaticCompression());
+      router.use('/', express.static(distPath, ncStaticOptions));
       this.staticRouter = router;
     } catch {
       // dist path not available
@@ -41,6 +44,12 @@ export class GuiMiddleware implements NestMiddleware {
 
   async use(req: Request, res: Response, next: () => void) {
     if (!this.staticRouter || !this.indexHtml) return next();
+
+    // Set before branching: this middleware terminates the request, so
+    // GlobalMiddleware never runs for anything served here — including the shell
+    // the static branch returns for `/`, which `<object>`/`<embed>` fetch with
+    // `Accept: */*`.
+    setFrameGuardHeaders(req, res);
 
     // Non-HTML requests (JS, CSS, images, fonts) are real static files — let
     // express.static serve them, falling through to `next()` when nothing
@@ -62,6 +71,9 @@ export class GuiMiddleware implements NestMiddleware {
       html = this.indexHtml;
     }
     res.setHeader('Content-Type', 'text/html');
+    // The shell maps to the hashed chunk names, so it must never go stale —
+    // it is what makes freezing those chunks safe across an upgrade.
+    res.setHeader('Cache-Control', 'no-cache, must-revalidate');
     res.send(html);
   }
 

@@ -26,6 +26,26 @@ export abstract class GenericAggregationHandler
   implements AggregationHandlerInterface
 {
   generate(params: AggregationGeneratorParams): string | undefined {
+    const built = this.buildExpression(params);
+
+    if (!built) {
+      return undefined;
+    }
+
+    return this.wrap(built.ctx, built.sql);
+  }
+
+  /**
+   * Build the bare aggregate SQL — resolved context + the post-dialect-processed
+   * expression, BEFORE the shared COALESCE/alias `wrap()`. `generate()` calls
+   * this then wraps; grouped callers (the Timeline/Gantt date-axis summary) call
+   * it directly so they can embed the aggregate inside their own
+   * `GROUP BY`/alias instead of the flat scalar select `generate()` yields.
+   * Returns `undefined` when the aggregation produced no expression (e.g. `none`).
+   */
+  buildExpression(
+    params: AggregationGeneratorParams,
+  ): { ctx: AggregationSqlContext; sql: Knex.Raw } | undefined {
     const ctx = this.buildContext(params);
 
     let aggregationSql: Knex.Raw | undefined;
@@ -55,7 +75,7 @@ export abstract class GenericAggregationHandler
 
     aggregationSql = this.postProcess(ctx, aggregationSql);
 
-    return this.wrap(ctx, aggregationSql);
+    return { ctx, sql: aggregationSql };
   }
 
   /** Derive the dialect-specific context fields from the raw params. */

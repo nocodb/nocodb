@@ -1,0 +1,453 @@
+<script setup lang="ts">
+import type { Editor } from '@tiptap/vue-3'
+import type { VariableDefinition } from 'nocodb-sdk'
+import WorkflowInputAi from './WorkflowInputAi.vue'
+import { useWorkflowEmailAi } from '#imports'
+import { EMAIL_FONTS } from '~/helpers/tiptap-markdown/extensions/marks/fontFamily'
+import { EMAIL_FONT_SIZES } from '~/helpers/tiptap-markdown/extensions/marks/fontSize'
+import { HIGHLIGHT_COLORS } from '~/helpers/tiptap-markdown/extensions/marks/highlight'
+import { TEXT_COLORS } from '~/helpers/tiptap-markdown/extensions/marks/textColor'
+import type { EmailTextAlign } from '~/helpers/tiptap-markdown/extensions/textAlign'
+export interface WorkflowInputTool {
+  key: string
+  type?: 'color' | 'typography' | 'align' | 'ai'
+  icon?: IconMapKey
+  label?: string
+  isActive?: () => boolean
+  action?: (event?: MouseEvent) => void
+}
+
+interface Props {
+  editor: Editor
+  groups: WorkflowInputTool[][]
+  variables?: VariableDefinition[]
+  /** An empty body shows its own AI prompt; the button focuses that one instead of opening a second. */
+  aiPromptInBody?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), { variables: () => [], aiPromptInBody: false })
+
+const emits = defineEmits<{
+  (e: 'aiResult', payload: { html: string; mode: 'write' | 'rewrite' }): void
+  (e: 'aiPrompt'): void
+}>()
+
+const { available: aiAvailable } = useWorkflowEmailAi()
+
+// A group whose only tool is unavailable must not leave a stray divider behind.
+const visibleGroups = computed(() =>
+  props.groups.map((group) => group.filter((tool) => tool.type !== 'ai' || aiAvailable.value)).filter((group) => group.length),
+)
+
+// The email body's ink. Highlight pastels are picked against it, so the preview must not
+// fall back to theme text, which goes light in dark mode and vanishes on the swatch.
+const EMAIL_INK = '#1f293a'
+
+const colorOpen = ref(false)
+
+const typographyOpen = ref(false)
+
+const alignOpen = ref(false)
+
+// Escape dismisses our own overlay. Capture phase on purpose: the editor stops this key
+// propagating (so it never closes the compose modal), which would keep a bubbling listener
+// from ever running.
+useEventListener(
+  document,
+  'keydown',
+  (e: KeyboardEvent) => {
+    if (e.key !== 'Escape') return
+    if (!colorOpen.value && !typographyOpen.value && !alignOpen.value) return
+    colorOpen.value = false
+    typographyOpen.value = false
+    alignOpen.value = false
+    // Swallow it here too. Leaving that to the editor only works while the editor holds focus,
+    // and the compose modal closes on any Escape that reaches it.
+    e.preventDefault()
+    e.stopPropagation()
+    e.stopImmediatePropagation()
+  },
+  { capture: true },
+)
+
+const ALIGNMENTS: { value: EmailTextAlign; icon: IconMapKey; label: string }[] = [
+  { value: 'left', icon: 'lucideAlignLeft', label: 'labels.alignLeft' },
+  { value: 'center', icon: 'lucideAlignCenter', label: 'labels.alignCenter' },
+  { value: 'right', icon: 'lucideAlignRight', label: 'labels.alignRight' },
+  { value: 'justify', icon: 'lucideAlignJustify', label: 'labels.justify' },
+]
+
+const activeTextColor = computed(
+  () => TEXT_COLORS.find((c) => props.editor.isActive('textColor', { color: c.color }))?.color ?? null,
+)
+
+const activeHighlight = computed(
+  () => HIGHLIGHT_COLORS.find((c) => c.color && props.editor.isActive('highlight', { color: c.color }))?.color ?? null,
+)
+
+const activeFont = computed(() => props.editor.getAttributes('textStyle').fontFamily ?? '')
+
+const activeSize = computed(() => props.editor.getAttributes('textStyle').fontSize ?? '')
+
+// Fonts pasted in from elsewhere won't be in the list; show them as the default rather than nothing.
+const activeFontName = computed(() => EMAIL_FONTS.find((f) => f.value === activeFont.value)?.name ?? EMAIL_FONTS[0].name)
+
+const activeAlign = computed<EmailTextAlign>(
+  () => ALIGNMENTS.find((a) => a.value !== 'left' && props.editor.isActive({ textAlign: a.value }))?.value ?? 'left',
+)
+
+const activeAlignIcon = computed(() => ALIGNMENTS.find((a) => a.value === activeAlign.value)!.icon)
+
+function applyFont(value: string) {
+  const chain = props.editor.chain().focus()
+  if (value) chain.setFontFamily(value).run()
+  else chain.unsetFontFamily().run()
+}
+
+function applySize(value: string) {
+  const chain = props.editor.chain().focus()
+  if (value) chain.setFontSize(value).run()
+  else chain.unsetFontSize().run()
+}
+
+function applyAlign(value: EmailTextAlign) {
+  const chain = props.editor.chain().focus()
+  if (value === 'left') chain.unsetTextAlign().run()
+  else chain.setTextAlign(value).run()
+  alignOpen.value = false
+}
+
+function applyTextColor(color: string) {
+  const chain = props.editor.chain().focus()
+  // "Default" means no mark at all — the email then inherits the client's text colour.
+  if (color === TEXT_COLORS[0].color) chain.unsetTextColor().run()
+  else chain.setTextColor({ color }).run()
+}
+
+function applyHighlight(color: string) {
+  const chain = props.editor.chain().focus()
+  if (!color) chain.unsetHighlight().run()
+  else chain.setHighlight({ color }).run()
+}
+</script>
+
+<template>
+  <template v-for="(group, gi) in visibleGroups" :key="gi">
+    <div v-if="gi > 0" class="nc-email-format-divider" />
+
+    <template v-for="tool in group" :key="tool.key">
+      <NcDropdown v-if="tool.type === 'color'" v-model:visible="colorOpen" placement="bottomLeft">
+        <NcTooltip :title="$t('labels.textAndBackgroundColor')">
+          <NcButton
+            size="xs"
+            type="text"
+            class="nc-workflow-format-btn"
+            :class="{ 'is-active': colorOpen || activeTextColor || activeHighlight }"
+            data-testid="nc-workflow-richtext-color-btn"
+            @mousedown.prevent
+            @click.stop="colorOpen = !colorOpen"
+          >
+            <span class="nc-email-color-preview">
+              <span
+                class="nc-email-color-preview-letter"
+                :style="{
+                  color: activeTextColor || (activeHighlight ? EMAIL_INK : 'currentColor'),
+                  backgroundColor: activeHighlight || 'transparent',
+                }"
+                >A</span
+              >
+              <span class="nc-email-color-preview-bar" :style="{ backgroundColor: activeTextColor || 'currentColor' }" />
+            </span>
+          </NcButton>
+        </NcTooltip>
+
+        <template #overlay>
+          <div class="nc-email-color-picker" @mousedown.prevent @click.stop>
+            <div class="nc-email-color-label">{{ $t('labels.textColor') }}</div>
+            <div class="nc-email-color-grid">
+              <button
+                v-for="c in TEXT_COLORS"
+                :key="c.color"
+                class="nc-email-color-swatch"
+                :class="{ 'is-active': c.color !== TEXT_COLORS[0].color && activeTextColor === c.color }"
+                :style="{ '--nc-swatch-tint': `color-mix(in srgb, ${c.color} 30%, transparent)` }"
+                :title="c.name"
+                @click="applyTextColor(c.color)"
+              >
+                <span class="nc-email-color-swatch-letter" :style="{ color: c.color }">A</span>
+              </button>
+            </div>
+            <div class="nc-email-color-label">{{ $t('labels.backgroundColor') }}</div>
+            <div class="nc-email-color-grid">
+              <button
+                v-for="c in HIGHLIGHT_COLORS"
+                :key="c.color || 'none'"
+                class="nc-email-color-swatch"
+                :class="{ 'is-active': c.color && activeHighlight === c.color, 'is-none': !c.color }"
+                :style="c.color ? { 'backgroundColor': c.color, '--nc-swatch-tint': c.color } : {}"
+                :title="c.name"
+                @click="applyHighlight(c.color)"
+              />
+            </div>
+          </div>
+        </template>
+      </NcDropdown>
+
+      <NcDropdown v-else-if="tool.type === 'typography'" v-model:visible="typographyOpen" placement="bottomLeft">
+        <NcTooltip :title="$t('labels.font')">
+          <NcButton
+            size="xs"
+            type="text"
+            class="nc-workflow-format-btn nc-email-typo-btn"
+            :class="{ 'is-active': typographyOpen || activeFont || activeSize }"
+            data-testid="nc-workflow-richtext-typography-btn"
+            @mousedown.prevent
+            @click.stop="typographyOpen = !typographyOpen"
+          >
+            <!-- The current font, set in itself — the clearest label a font control can have -->
+            <span class="nc-email-typo-name" :style="{ fontFamily: activeFont || undefined }">{{ activeFontName }}</span>
+            <GeneralIcon icon="ncChevronDown" class="w-3.5 h-3.5 flex-none text-nc-content-gray-muted" />
+          </NcButton>
+        </NcTooltip>
+
+        <template #overlay>
+          <div class="nc-email-typo-picker" @mousedown.prevent @click.stop>
+            <div class="nc-email-typo-col">
+              <button
+                v-for="f in EMAIL_FONTS"
+                :key="f.name"
+                class="nc-email-typo-item"
+                :class="{ 'is-active': activeFont === f.value }"
+                :style="f.value ? { fontFamily: f.value } : {}"
+                @click="applyFont(f.value)"
+              >
+                {{ f.name }}
+              </button>
+            </div>
+            <div class="nc-email-typo-col is-sizes">
+              <button
+                v-for="sz in EMAIL_FONT_SIZES"
+                :key="sz.name"
+                class="nc-email-typo-item"
+                :class="{ 'is-active': activeSize === sz.value }"
+                :style="{ fontSize: sz.value || undefined, fontFamily: activeFont || undefined }"
+                @click="applySize(sz.value)"
+              >
+                {{ $t(sz.name) }}
+              </button>
+            </div>
+          </div>
+        </template>
+      </NcDropdown>
+
+      <NcDropdown v-else-if="tool.type === 'align'" v-model:visible="alignOpen" placement="bottomLeft">
+        <NcTooltip :title="$t('labels.textAlign')">
+          <NcButton
+            size="xs"
+            type="text"
+            class="nc-workflow-format-btn"
+            :class="{ 'is-active': alignOpen || activeAlign !== 'left' }"
+            data-testid="nc-workflow-richtext-align-btn"
+            @mousedown.prevent
+            @click.stop="alignOpen = !alignOpen"
+          >
+            <GeneralIcon :icon="activeAlignIcon" class="w-4 h-4" />
+          </NcButton>
+        </NcTooltip>
+
+        <template #overlay>
+          <div class="nc-email-align-picker" @mousedown.prevent @click.stop>
+            <NcTooltip v-for="a in ALIGNMENTS" :key="a.value" :title="$t(a.label)">
+              <NcButton
+                size="xs"
+                type="text"
+                class="nc-workflow-format-btn"
+                :class="{ 'is-active': activeAlign === a.value }"
+                @click="applyAlign(a.value)"
+              >
+                <GeneralIcon :icon="a.icon" class="w-4 h-4" />
+              </NcButton>
+            </NcTooltip>
+          </div>
+        </template>
+      </NcDropdown>
+
+      <WorkflowInputAi
+        v-else-if="tool.type === 'ai'"
+        :editor="editor"
+        :variables="variables"
+        :disabled="aiPromptInBody"
+        @result="emits('aiResult', $event)"
+      >
+        <template #default="{ open, loading, toggle }">
+          <NcTooltip :title="$t('labels.writeWithAi')">
+            <NcButton
+              size="xs"
+              type="text"
+              class="nc-workflow-format-btn nc-email-ai-btn"
+              :class="{ 'is-active': open || loading }"
+              :loading="loading"
+              data-testid="nc-workflow-richtext-ai-btn"
+              @mousedown.prevent
+              @click.stop="aiPromptInBody ? emits('aiPrompt') : toggle()"
+            >
+              <GeneralIcon v-if="!loading" icon="ncAutoAwesome" class="w-4 h-4" />
+            </NcButton>
+          </NcTooltip>
+        </template>
+      </WorkflowInputAi>
+
+      <NcTooltip v-else :title="$t(tool.label!)">
+        <NcButton
+          size="xs"
+          type="text"
+          class="nc-workflow-format-btn"
+          :class="{ 'is-active': tool.isActive?.() }"
+          :data-testid="`nc-workflow-richtext-${tool.key}-btn`"
+          @click.stop="tool.action"
+        >
+          <GeneralIcon :icon="tool.icon!" class="w-4 h-4" />
+        </NcButton>
+      </NcTooltip>
+    </template>
+  </template>
+</template>
+
+<style lang="scss">
+// Same tile as the body's AI empty state, so the two AI entry points read as one thing.
+.nc-workflow-format-btn.nc-email-ai-btn {
+  background: var(--nc-bg-coloured-purple) !important;
+  color: var(--nc-content-purple-dark) !important;
+
+  &:hover,
+  &.is-active {
+    background: var(--nc-bg-coloured-purple-dark) !important;
+  }
+}
+
+.nc-email-typo-btn {
+  @apply !w-auto !px-2 gap-1;
+
+  .nc-email-typo-name {
+    // No `truncate`: `activeFontName` is always one of the EMAIL_FONTS names, and the longest
+    // ("Comic Sans MS") clears max-w-28, so its overflow:hidden never truncated anything — it only
+    // clipped descenders, since NcButton sets line-height 0.95 on button children and faces vary
+    // a lot in content area (Georgia and Comic Sans MS are the deepest here).
+    @apply whitespace-nowrap max-w-28;
+    font-size: 13px;
+    // The label previews the font in itself, so it must render at 400. NcButton applies
+    // `font-medium`, which uno.config maps to 600 (the scale is shifted +100 for Inter's axis),
+    // and a target above 500 matches heavier faces first — so the web-safe stacks here, which
+    // ship only 400/700, snap to real bold.
+    font-weight: 400;
+    line-height: 1.35;
+  }
+}
+
+// "A" over a colour bar — the mail-client convention for a text/background colour control.
+.nc-email-color-preview {
+  @apply flex flex-col items-center justify-center w-5 h-5 gap-0.5;
+
+  .nc-email-color-preview-letter {
+    @apply flex items-center justify-center px-0.5 rounded-sm text-[13px] font-bold leading-none;
+  }
+
+  .nc-email-color-preview-bar {
+    @apply block w-3.5;
+    height: 1px;
+  }
+}
+
+// Overlays render in body, so these stay unscoped.
+.nc-email-typo-picker {
+  // NcDropdown's overlay already draws the border, radius and shadow; repeating them here is
+  // what doubled the outline.
+  @apply flex gap-3 p-3 rounded-lg bg-nc-bg-default;
+
+  .nc-email-typo-col {
+    @apply flex flex-col gap-0.5 w-40;
+
+    &.is-sizes {
+      @apply w-24 border-l-1 border-nc-border-gray-light pl-3;
+    }
+  }
+
+  .nc-email-typo-item {
+    // min-height, not height: the size column previews at its real size, and 24px "Huge"
+    // overflows a fixed 30px row.
+    @apply flex items-center min-h-7.5 py-1 px-2 rounded-md cursor-pointer text-left whitespace-nowrap;
+    @apply bg-transparent border-0 text-nc-content-gray;
+    font-size: 13px;
+    // Same reason as the trigger: previews must render at the face's own weight.
+    font-weight: 400;
+    line-height: 1.35;
+
+    &:hover {
+      @apply bg-nc-bg-gray-light;
+    }
+
+    &.is-active {
+      @apply bg-nc-bg-brand text-nc-content-brand;
+    }
+  }
+}
+
+.nc-email-align-picker {
+  @apply flex items-center gap-0.5 p-1 rounded-lg bg-nc-bg-default;
+
+  .nc-workflow-format-btn.is-active {
+    @apply bg-nc-bg-gray-light text-nc-content-brand;
+  }
+}
+
+.nc-email-color-picker {
+  @apply p-3 rounded-lg bg-nc-bg-default;
+  width: 196px;
+
+  .nc-email-color-label {
+    @apply text-[11px] font-semibold text-nc-content-gray-subtle mb-1.5 mt-2.5;
+
+    &:first-child {
+      @apply mt-0;
+    }
+  }
+
+  .nc-email-color-grid {
+    @apply grid gap-2;
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .nc-email-color-swatch {
+    @apply flex items-center justify-center w-7 h-7 p-0 rounded-md cursor-pointer;
+    // The palette is absolute email hex on the mail's white body. Following the theme surface
+    // here would hide the dark inks in dark mode, so the swatch face stays white in both.
+    background-color: #fff;
+    border: 1.5px solid var(--nc-swatch-tint, var(--nc-border-gray-medium));
+    transition: border-color 0.1s, transform 0.1s;
+
+    &:hover {
+      transform: scale(1.08);
+      border-color: var(--nc-content-gray-subtle);
+    }
+
+    &.is-active {
+      border-color: var(--nc-content-gray);
+      border-width: 2px;
+    }
+
+    &.is-none {
+      background-image: linear-gradient(
+        to top left,
+        transparent calc(50% - 1px),
+        var(--nc-border-gray-medium) calc(50% - 1px),
+        var(--nc-border-gray-medium) calc(50% + 1px),
+        transparent calc(50% + 1px)
+      );
+    }
+  }
+
+  .nc-email-color-swatch-letter {
+    @apply text-sm font-bold leading-none;
+  }
+}
+</style>

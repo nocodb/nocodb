@@ -348,7 +348,7 @@ export class SortsService {
 
       let relatedModelId: string | undefined;
       try {
-        const colOpt: any = await lookupCol.getColOptions(context, ncMeta);
+        const colOpt: any = await lookupCol.getColOptions(ncMeta);
         const targetColId = colOpt?.fk_lookup_column_id;
         if (targetColId) {
           const targetCol = await Column.get(

@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { defineAsyncComponent } from 'vue'
 
-const props = defineProps<Props>()
+interface Props {
+  code: string
+  lang?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  lang: 'json',
+})
 
 // Define Monaco Editor as an async component
 const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
-
-interface Props {
-  code: string
-}
 
 const code = toRef(props, 'code')
 
@@ -37,7 +40,7 @@ const onCopyToClipboard = async () => {
 
 <template>
   <div class="nc-mcp-code-tab-wrapper h-80 flex flex-col mt-2">
-    <div class="flex h-9 bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-medium rounded-t-lg items-center px-3">
+    <div class="flex h-9 bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-medium rounded-t-lg items-center px-3 py-0.5">
       <div class="flex-1 text-nc-content-gray leading-5">MCP Configuration</div>
       <NcButton type="text" size="small" class="!hover:bg-nc-bg-gray-medium" @click="onCopyToClipboard">
         <div class="flex items-center gap-2 text-small leading-[18px] min-w-80px justify-center">
@@ -59,7 +62,7 @@ const onCopyToClipboard = async () => {
           class="h-72 !rounded-b-lg overflow-hidden !bg-nc-bg-gray-extralight"
           :model-value="code"
           :read-only="true"
-          lang="json"
+          :lang="lang"
           :validate="false"
           :disable-deep-compare="true"
           :monaco-config="{
@@ -109,7 +112,7 @@ const onCopyToClipboard = async () => {
 
 <style lang="scss">
 .nc-mcp-code-tab-wrapper {
-  @apply !bg-nc-bg-gray-extralight border-1 border-nc-border-gray-medium rounded-lg flex-1;
+  @apply !bg-nc-bg-gray-extralight border-1 border-nc-border-gray-medium rounded-lg;
 
   .monaco-editor {
     @apply !border-0 !rounded-b-lg pr-3 outline-none;

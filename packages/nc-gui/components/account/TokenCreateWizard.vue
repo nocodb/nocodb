@@ -1,10 +1,13 @@
 <script lang="ts" setup>
 interface Props {
   editToken?: null
+  /** Pin the token to one base. CE has no scopes, so it is accepted and ignored. */
+  lockedBaseId?: string
 }
 
 withDefaults(defineProps<Props>(), {
   editToken: null,
+  lockedBaseId: undefined,
 })
 
 const emit = defineEmits(['created', 'saved', 'cancel'])
@@ -19,6 +22,12 @@ const createdTokenValue = ref('')
 
 const tokenName = ref('')
 const tokenCopied = ref(false)
+
+const nameInputRef = ref<{ focus?: () => void } | null>(null)
+
+onMounted(() => {
+  nextTick(() => nameInputRef.value?.focus?.())
+})
 
 const isFormValid = computed(() => {
   return tokenName.value.length > 0 && tokenName.value.length <= 255
@@ -68,7 +77,13 @@ const onResultDone = () => {
       <!-- Name -->
       <div class="flex flex-col gap-1.5">
         <label class="text-sm font-bold text-nc-content-gray">{{ $t('general.name') }}</label>
-        <a-input v-model:value="tokenName" class="!rounded-lg max-w-150" :maxlength="255" data-testid="nc-token-name-input" />
+        <a-input
+          ref="nameInputRef"
+          v-model:value="tokenName"
+          class="!rounded-lg max-w-150"
+          :maxlength="255"
+          data-testid="nc-token-name-input"
+        />
       </div>
 
       <!-- Actions -->

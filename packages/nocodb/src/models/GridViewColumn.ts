@@ -8,6 +8,7 @@ import type Upgrader from '~/Upgrader';
 import View from '~/models/View';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
+import { replayedViewColumnId } from '~/helpers/viewColumnReplay';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 
@@ -123,6 +124,11 @@ export default class GridViewColumn implements GridColumnType {
       'group_by_sort',
       'group_by_enabled',
     ]);
+    const replayId = replayedViewColumnId(
+      insertObj.fk_view_id,
+      insertObj.fk_column_id,
+    );
+    if (replayId) insertObj.id = replayId;
 
     insertObj.order =
       column?.order ??

@@ -69,6 +69,7 @@ onMounted(() => {
                 <GeneralBaseIconColorPicker
                   :type="option?.type"
                   :model-value="parseProp(option.meta).iconColor"
+                  :icon="parseProp(option.meta).icon"
                   :managed-app="{
                     managed_app_master: option?.managed_app_master,
                     managed_app_id: option?.managed_app_id,

@@ -6,6 +6,10 @@
     background-image: none;
   }
 
+  .ant-input-number-affix-wrapper > div.ant-input-number {
+    background-color: transparent;
+  }
+
   .ant-input-number-affix-wrapper::placeholder {
     color: var(--nc-content-gray-muted);
   }

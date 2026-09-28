@@ -4,12 +4,15 @@ export * from './registry';
 export * from './utils/manifest';
 export * from './utils/axios';
 export * from './utils/externalDbSsrf';
+export * from './utils/dbSsl';
+export * from './utils/emailBody';
 export * from './nocodb';
 export * from './sync';
 export * from './auth';
 export * from './ai';
 export * from './sdk';
 export * from './workflow-node';
+export * from './actions';
 export { SCHEMA_TICKETING } from './sync/schema-ticketing';
 export { SCHEMA_HRIS } from './sync/schema-hris';
 export { SCHEMA_CRM } from './sync/schema-crm';
@@ -21,3 +24,4 @@ export type {
   TicketingCommentRecord,
   TicketingTeamRecord,
 } from './sync/schema-ticketing';
+export * from './channel';

@@ -5,6 +5,7 @@ export type NcShowConfirmModalProps = Pick<
   | 'type'
   | 'title'
   | 'content'
+  | 'contentClass'
   | 'okText'
   | 'okClass'
   | 'showCancelBtn'
@@ -53,6 +54,7 @@ const useNcConfirmModal = () => {
     type,
     title,
     content,
+    contentClass = '',
     okText,
     okClass = '!px-4',
     cancelText,
@@ -87,6 +89,7 @@ const useNcConfirmModal = () => {
         'type': type,
         'title': title,
         'content': content,
+        'contentClass': contentClass,
         'okText': okText,
         'cancelText': cancelText,
         'onCancel': () => closeDialog(key),

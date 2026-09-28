@@ -42,6 +42,37 @@ export function extractCommentAnnotation(comment?: CommentType | null): CommentI
 }
 
 /**
+ * Attachment key (path/url) → total comments in the threads anchored to it —
+ * annotation roots plus their replies. Drives the persistent per-image comment
+ * badges on attachment cards/carousels.
+ */
+export function buildAttachmentCommentCounts(comments: CommentType[]): Map<string, number> {
+  const keyByRootId = new Map<string, string>()
+
+  for (const comment of comments) {
+    if (!comment.id || `${comment.id}`.startsWith('temp-')) continue
+
+    const annotation = extractCommentAnnotation(comment)
+    const key = annotation ? getAttachmentAnnotationKey(annotation.attachment) : undefined
+    if (key) keyByRootId.set(comment.id, key)
+  }
+
+  const counts = new Map<string, number>()
+
+  for (const comment of comments) {
+    if (!comment.id) continue
+
+    const key =
+      keyByRootId.get(comment.id) ?? (comment.parent_comment_id ? keyByRootId.get(comment.parent_comment_id) : undefined)
+    if (!key) continue
+
+    counts.set(key, (counts.get(key) ?? 0) + 1)
+  }
+
+  return counts
+}
+
+/**
  * One-shot request to open an attachment carousel focused on an annotation
  * comment. Set by comment lists rendered outside the carousel (expanded record
  * sidebar); the owning attachment cell watches it to open its carousel, and
@@ -86,10 +117,14 @@ const [useProvideImageAnnotations, useImageAnnotations] = useInjectionState(
     // ─── derived ─────────────────────────────────────────────────────────
     const selectedFileKey = computed(() => (selectedFile.value ? getAttachmentAnnotationKey(selectedFile.value) : undefined))
 
-    /** Root annotation comments (carry meta.annotation), in creation order. */
+    /**
+     * Root annotation comments with an on-image PIN, in creation order.
+     * Pin-less annotations (side-panel comments tagged to the open image)
+     * count toward badges but render no marker/label here.
+     */
     const annotatedComments = computed(() =>
       comments.value
-        .filter((c) => c.id && !`${c.id}`.startsWith('temp-') && extractCommentAnnotation(c))
+        .filter((c) => c.id && !`${c.id}`.startsWith('temp-') && extractCommentAnnotation(c)?.region)
         .map((c) => ({ comment: c, annotation: extractCommentAnnotation(c)! })),
     )
 
@@ -143,7 +178,8 @@ const [useProvideImageAnnotations, useImageAnnotations] = useInjectionState(
         .map(({ comment, annotation }) => ({
           commentId: comment.id!,
           label: labelByRootId.value[comment.id!] ?? '',
-          region: annotation.region,
+          // Present by construction — annotatedComments filters on `region`.
+          region: annotation.region!,
         }))
     })
 

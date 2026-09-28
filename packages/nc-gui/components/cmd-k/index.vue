@@ -638,7 +638,7 @@ defineExpose({
   --cmdk-icon-color: var(--cmdk-secondary-text-color);
   --cmdk-icon-size: 1.2em;
 
-  --cmdk-modal-background: var(--nc-bg-default);
+  --cmdk-modal-background: var(--nc-bg-elevated);
 }
 
 .dark .cmdk-modal {
@@ -702,7 +702,7 @@ defineExpose({
     appearance: none;
     background: transparent;
     outline: none;
-    box-shadow: var(--tw-ring-inset) 0 0 0 calc(0px + var(--tw-ring-offset-width)) var(--tw-ring-color) !important;
+    box-shadow: var(--un-ring-inset) 0 0 0 calc(0px + var(--un-ring-offset-width)) var(--un-ring-color) !important;
 
     caret-color: var(--nc-brand-accent);
     color: rgb(60, 65, 73);

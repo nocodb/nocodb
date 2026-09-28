@@ -9,25 +9,30 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import type { ClientType, NcRequest } from 'nocodb-sdk';
-import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { DependantFields } from '~/helpers/getAst';
 import { DBQueryClient } from '~/dbQueryClient';
 import { nocoExecute } from '~/utils';
-import {
-  Base,
-  Column,
-  FormView,
-  Model,
-  Source,
-  View,
-} from '~/models';
+import { Base, Column, FormView, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
+import { sanitizePublicQuery } from '~/helpers/publicQuerySanitizer';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { getColumnByIdOrName } from '~/helpers/dataHelpers';
+import {
+  assertLinkColOptions,
+  getColumnByIdOrName,
+} from '~/helpers/dataHelpers';
 import { restrictNestedLinkQueryForColumn } from '~/helpers/nestedLinkQueryHelpers';
+import { collectRelatedNeededColumnIds } from '~/helpers/relatedMetaProjection';
+import {
+  resolveSharedViewQueryScope,
+  restrictSharedViewColumnReferences,
+  restrictSharedViewQuery,
+} from '~/helpers/sharedViewQueryHelpers';
+import { getViewExposedColumnIds } from '~/helpers/viewVisibleColumns';
+import { isSharedViewAccess } from '~/helpers/accessSource';
 import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
+import { defaultGroupByLimitConfig } from '~/helpers/extractLimitAndOffset';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { replaceDynamicFieldWithValue } from '~/helpers/dbHelpers';
 import { Filter } from '~/models';
@@ -41,58 +46,73 @@ export function sanitizeUrlPath(paths) {
   return paths.map((url) => url.replace(/[/.?#]+/g, '_'));
 }
 
-// Response-shape keys that must never be controllable by public/shared-view
-// callers. `getHiddenColumn` bypasses the getAst `allowedCols` gate and would
-// emit every non-system column's VALUES; `nested` drives caller-controlled
-// nested-LTAR expansion. Stripping these keeps hidden columns out of the
-// default response payload — see the DESIGN NOTE below, boundary (1).
-const PUBLIC_QUERY_BLOCKED_KEYS = ['getHiddenColumn', 'nested'];
+// Each bulk entry costs a full query, and these routes are anonymous — without a
+// cap one 50MB body (the json-body middleware limit) buys tens of thousands of
+// them. 200 leaves 2x headroom over the largest batch the UI sends
+// (GROUP_CHUNK_SIZE = 100 in useInfiniteGroups).
+//
+// useViewGroupBy sizes its batch by `limitGroup` instead, which has a lower clamp
+// only — so raising NC_DB_QUERY_LIMIT_GROUP_BY_GROUP past the cap would 400 every
+// shared-view request and blame this file. Track it rather than couple to it.
+const MAX_PUBLIC_BULK_ENTRIES = Math.max(
+  200,
+  defaultGroupByLimitConfig.limitGroup,
+);
 
-function sanitizePublicQuery<T extends Record<string, any>>(query: T): T {
-  if (!query) return query;
-  const sanitized = { ...query };
-  for (const key of PUBLIC_QUERY_BLOCKED_KEYS) {
-    delete sanitized[key];
+function assertBulkFilterListWithinLimit(bulkFilterList: unknown): void {
+  if (!Array.isArray(bulkFilterList) || !bulkFilterList.length) {
+    NcError.badRequest('Invalid bulkFilterList');
   }
-  return sanitized;
+
+  if ((bulkFilterList as unknown[]).length > MAX_PUBLIC_BULK_ENTRIES) {
+    NcError.badRequest(
+      `bulkFilterList exceeds the maximum of ${MAX_PUBLIC_BULK_ENTRIES} entries`,
+    );
+  }
 }
 
+// Response-shape keys a public/shared-view caller must not control:
+// `getHiddenColumn` bypasses getAst's `allowedCols` and would emit every
+// non-system column's VALUES; `nested` drives caller-controlled LTAR expansion.
+// Re-exported from a dependency-light helper so other public services can strip
+// the same keys without importing this service graph.
+export {
+  PUBLIC_QUERY_BLOCKED_KEYS,
+  sanitizePublicQuery,
+} from '~/helpers/publicQuerySanitizer';
+
 /**
- * DESIGN NOTE — view-hidden columns are intentionally queryable.
+ * DESIGN NOTE — on a shared view the view's visible column set is a real
+ * boundary, in the payload AND the query: a hidden field was never published,
+ * so an anonymous caller may not read it by any route. It gates:
  *
- * A column being hidden in a view (its view-column `show = false`) is a
- * display/layout preference, NOT a column-level access-control boundary.
- * Column-level access is governed separately by FIELD VISIBILITY — that is
- * the real ACL. So the public/shared-view and nested-link data endpoints
- * DELIBERATELY do not strip or reject caller-supplied
- * `where` / `sort` / `filter` / `groupBy` / `fields` / `aggregation`
- * references just because they point at a column that is hidden in the view.
+ *  - the response payload — `getAst`'s `allowedCols`;
+ *  - `where` / `sort` / `filterArrJson` / `sortArrJson` — stripped per
+ *    leaf/term by `restrictSharedViewQuery`, so multi-field search still
+ *    works;
+ *  - group-by `column_name` and `aggregation` targets — via
+ *    `restrictSharedViewColumnReferences`; the sharpest of the set, since
+ *    both return raw values rather than a one-bit oracle;
+ *  - `getHiddenColumn` / `nested` — `sanitizePublicQuery`, above;
+ *  - an LTAR related table — pk + primary value + the link's custom display
+ *    column only, via `hasLimitedRelatedTableAccess`.
  *
- * Do NOT re-introduce "hidden-in-view query sanitization" — the gate keyed on
- * view-column `show` (previously tracked as CVE-2026-47378 / CVE-2026-47279 /
- * GHSA-qqxm-7cj9-5fr2). It was removed on purpose: the team's position is that
- * "hidden in view" does not mean "confidential". A view-hidden column turning
- * up as filterable/sortable is expected behaviour, not a CWE-200 oracle.
- * Enforce confidentiality with field visibility, not view `show`.
+ * Keyed on ACCESS SOURCE (`SHARED_VIEW` / `SHARED_FORM`), NOT on
+ * `context.is_public`: a shared BASE sets `is_public` too but is an
+ * authenticated pseudo-user carrying the share's roles, so its QUERY surface
+ * stays unrestricted — as does a logged-in viewer's. Field visibility remains a
+ * separate ACL.
  *
- * TWO separate boundaries this reversal does NOT touch — keep them enforced:
+ * Scope note: this changes the QUERY surface on a shared view only. The response
+ * PAYLOAD gate (`getAst`'s `allowedCols`) is untouched and still omits
+ * view-hidden columns for every caller, `?fields=` included. Letting an
+ * authenticated caller pull a view-hidden column via `?fields=` would be a
+ * public-API widening and is deliberately NOT part of this change.
  *
- *  1. Response-shape gate. The caller-supplied `getHiddenColumn` / `nested`
- *     keys are still stripped from public/shared-view queries before they
- *     reach getAst (`sanitizePublicQuery`). `getHiddenColumn` bypasses the
- *     getAst `allowedCols` gate and would emit every non-system column's
- *     VALUES to an anonymous caller — that is payload exfiltration, not
- *     "queryable". Hidden columns remain omitted from the default response
- *     payload; they are simply queryable via where/sort/filter/groupBy.
- *
- *  2. Cross-base / no-visibility-access related tables. Nested-link where/sort
- *     is still restricted to the link's exposed (pk/pv/display) columns via
- *     `restrictNestedLinkQuery*` when the related table lives in another base
- *     or the caller has no visibility access to it at all. That is a genuine
- *     access boundary (cross-base isolation + table-visibility ACL), distinct
- *     from "hidden in this view", so it stays enforced across
- *     datas.service / data-alias-nested / data-table / the public nested-link
- *     endpoints.
+ * This reverses the pre-2026-07 position that view-`show` is purely cosmetic,
+ * under which this gate was removed on purpose (CVE-2026-47378 /
+ * CVE-2026-47279 / GHSA-qqxm-7cj9-5fr2). Run `tests/unit/hiddenFieldMatrix/`
+ * before relaxing anything here — its row-2 guards pin the unrestricted cases.
  */
 @Injectable()
 export class PublicDatasService {
@@ -151,6 +171,9 @@ export class PublicDatasService {
       dbDriver: await NcConnectionMgrv2.get(source),
       source,
     });
+
+    // No-op off the shared-view access source — see the DESIGN NOTE.
+    await restrictSharedViewQuery(context, { model, view, query });
 
     // For Gantt shared views the dep-link Links column must expand into
     // nested LTAR rows in BOTH the AST (which drives nocoExecute's
@@ -250,6 +273,9 @@ export class PublicDatasService {
       source,
     });
 
+    // No-op off the shared-view access source — see the DESIGN NOTE.
+    await restrictSharedViewQuery(context, { model, view, query: param.query });
+
     const countArgs: any = { ...param.query, throwErrorIfInvalidParams: true };
     countArgs.filterArr = parseFilterArrJson(context, countArgs.filterArrJson);
 
@@ -289,6 +315,14 @@ export class PublicDatasService {
     if (!model) NcError.get(context).tableNotFound(view.fk_model_id);
 
     const source = await Source.get(context, model.source_id);
+
+    // No-op off the shared-view access source — see the DESIGN NOTE.
+    await restrictSharedViewQuery(context, { model, view, query: param.query });
+    await restrictSharedViewColumnReferences(context, {
+      model,
+      view,
+      query: param.query,
+    });
 
     const listArgs: any = { ...param.query };
 
@@ -360,12 +394,23 @@ export class PublicDatasService {
   ) {
     const { model, view, query = {}, groupColumnId } = param;
 
-    // ACK (public group-by surface, intentional): `groupColumnId` is no longer
-    // validated against the view's visible columns — grouping by a view-hidden
-    // column is allowed, consistent with the DESIGN NOTE (view `show` is a
-    // display preference, not a column ACL). Confidentiality is enforced by
-    // field visibility; hidden column VALUES are still never emitted because
-    // `getHiddenColumn`/`nested` are stripped before the AST is built (below).
+    // Group keys ARE the column's distinct values — reject rather than strip
+    // (see `assertSharedViewGroupByColumn`).
+    if (isSharedViewAccess(context)) {
+      const exposedColumnIds = await getViewExposedColumnIds(context, {
+        model,
+        view,
+      });
+      if (groupColumnId && !exposedColumnIds.has(groupColumnId)) {
+        NcError.get(context).badRequest(
+          'Column not accessible in this shared view',
+        );
+      }
+    }
+
+    // No-op off the shared-view access source — see the DESIGN NOTE.
+    await restrictSharedViewQuery(context, { model, view, query });
+
     const source = await Source.get(context, param.model.source_id);
 
     const base = await Base.get(context, view.base_id);
@@ -379,11 +424,8 @@ export class PublicDatasService {
       source,
     });
 
-    // Strip getHiddenColumn/nested before building the AST — this is the
-    // response-shape boundary (see DESIGN NOTE #1). `getHiddenColumn=true`
-    // would otherwise bypass the `allowedCols` gate and emit every non-system
-    // column's VALUES to an anonymous caller on this grouped endpoint. The
-    // where/sort/filter relaxation for view-hidden columns is unaffected.
+    // `getHiddenColumn=true` would otherwise bypass `allowedCols` and emit every
+    // non-system column's VALUES on this grouped endpoint.
     const { ast } = await getAst(context, {
       model,
       query: sanitizePublicQuery(param.query),
@@ -516,20 +558,44 @@ export class PublicDatasService {
     });
   }
 
+  /**
+   * The `/groupby` routes name their target as a `column_name` in the query, and
+   * group keys ARE that column's distinct values — direct value disclosure. A
+   * group-by with its column removed has no meaningful degraded form, so this one
+   * is rejected with a reason rather than stripped.
+   */
+  protected async assertSharedViewGroupByColumn(
+    context: NcContext,
+    param: { model: Model; view: View; query?: any },
+  ) {
+    if (!isSharedViewAccess(context)) return;
+
+    const { rejected } = await restrictSharedViewColumnReferences(context, {
+      model: param.model,
+      view: param.view,
+      query: param.query ?? {},
+    });
+
+    if (rejected.length) {
+      NcError.get(context).badRequest(
+        'Column not accessible in this shared view',
+      );
+    }
+  }
+
   async getDataGroupByCount(
     context: NcContext,
     param: { model: Model; view: View; query?: any },
   ) {
     const { model, view, query = {} } = param;
 
-    // ACK (public group-by surface, intentional): the group-by `column_name` is
-    // no longer validated against the view's visible columns — grouping by a
-    // view-hidden column is allowed, consistent with the DESIGN NOTE (view
-    // `show` is not a column ACL). Field visibility remains the confidentiality
-    // boundary.
     const base = await Base.get(context, view.base_id);
 
     this.publicMetasService.checkViewBaseType(view, base);
+
+    // No-op off the shared-view access source — see the DESIGN NOTE.
+    await restrictSharedViewQuery(context, { model, view, query });
+    await this.assertSharedViewGroupByColumn(context, { model, view, query });
 
     const source = await Source.get(context, model.source_id);
 
@@ -560,14 +626,13 @@ export class PublicDatasService {
     try {
       const { model, view, query = {} } = param;
 
-      // ACK (public group-by surface, intentional): the group-by `column_name`
-      // is no longer validated against the view's visible columns — grouping by
-      // a view-hidden column is allowed, consistent with the DESIGN NOTE (view
-      // `show` is not a column ACL). Field visibility remains the
-      // confidentiality boundary.
       const base = await Base.get(context, view.base_id);
 
       this.publicMetasService.checkViewBaseType(view, base);
+
+      // No-op off the shared-view access source — see the DESIGN NOTE.
+      await restrictSharedViewQuery(context, { model, view, query });
+      await this.assertSharedViewGroupByColumn(context, { model, view, query });
 
       const source = await Source.get(context, model.source_id);
 
@@ -603,6 +668,9 @@ export class PublicDatasService {
         count,
       });
     } catch (e) {
+      // The shared-view column guard below throws a deliberate 4xx; the
+      // catch-all would otherwise report it as a server error.
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       console.log(e);
       NcError.internalServerError('Please check server log for more details');
     }
@@ -666,10 +734,10 @@ export class PublicDatasService {
       source,
     });
 
-    await view.getViewWithInfo(context);
-    await view.getColumns(context);
-    await view.getModelWithInfo(context);
-    await view.model.getColumns(context);
+    await view.getViewWithInfo();
+    await view.getColumns();
+    await view.getModelWithInfo();
+    await view.model.getColumns();
 
     const fields = (view.model.columns = view.columns
       .filter((c) => c.show && view.model.columnsById[c.fk_column_id])
@@ -684,6 +752,14 @@ export class PublicDatasService {
     let body = param?.body;
 
     if (typeof body === 'string') body = JSON.parse(body);
+
+    // A public form submission may arrive without a `data` field (e.g. an
+    // attachment-only submission where the fields are sent as files, or an
+    // empty body). In that case `body` is null/undefined and Object.entries
+    // would throw "Cannot convert undefined or null to object". Default to an
+    // empty object so the submission still proceeds via the attachment/nested
+    // link handling below.
+    if (!body || typeof body !== 'object') body = {};
 
     const insertObject = Object.entries(body).reduce((obj, [key, val]) => {
       if (key in fields) {
@@ -778,7 +854,7 @@ export class PublicDatasService {
 
     if (!column) NcError.get(context).fieldNotFound(param.columnId);
 
-    const currentModel = await view.getModel(context);
+    const currentModel = await view.getModel();
 
     // A shared view can outlive its table: trashing a table soft-deletes only
     // the model row (Model.softDelete), leaving the view + its share UUID intact.
@@ -799,19 +875,14 @@ export class PublicDatasService {
       NcError.badRequest('Column not accessible in this shared view');
     }
 
-    await currentModel.getColumns(context);
+    await currentModel.getColumns();
 
     if (!isLinksOrLTAR(column))
       NcError.get(context).badRequest('Column is not a relation column');
 
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-      context,
-    );
+    const colOptions = await assertLinkColOptions(context, column);
 
-    if (!colOptions)
-      NcError.get(context).badRequest('Relation column metadata is missing');
-
-    const model = await colOptions.getRelatedTable(context);
+    const model = await colOptions.getRelatedTable();
 
     // Related table may have been trashed (soft-deleted) while the link column
     // still references it — fail cleanly instead of dereferencing null below.
@@ -821,7 +892,7 @@ export class PublicDatasService {
     // Use refContext for cross-base links — the related table may belong
     // to a different base, so Source.get scoped to the original context
     // would return undefined.
-    const { refContext } = colOptions.getRelContext(context);
+    const { refContext } = colOptions.getRelContext();
 
     const source = await Source.get(refContext, model.source_id);
 
@@ -832,9 +903,14 @@ export class PublicDatasService {
       source,
     });
 
+    // `extractOnlyPrimaries` below limits the SELECT to pk/pv/display, but the
+    // predicate is still compiled against the related table's FULL column set —
+    // a one-bit oracle per non-exposed column, plus `sort` as a reordering
+    // channel. `/mm/` and `/hm/` already strip; this picker route didn't.
+    await restrictNestedLinkQueryForColumn(context, column, param.query);
+
     // `extractOnlyPrimaries` already restricts this AST to pk/pv/display, but
-    // strip getHiddenColumn/nested too so the response-shape boundary (DESIGN
-    // NOTE #1) holds uniformly across every public getAst call site.
+    // strip getHiddenColumn/nested here too — every public getAst call site does.
     const { ast, dependencyFields } = await getAst(refContext, {
       query: sanitizePublicQuery(param.query),
       model,
@@ -854,18 +930,38 @@ export class PublicDatasService {
     } catch (e) {}
 
     if (view.type === ViewTypes.FORM && ncIsArray(param.query?.fields)) {
-      param.query.fields.forEach(listArgs.fieldsSet.add, listArgs.fieldsSet);
+      // A shared form's picker legitimately asks for extra related-table fields
+      // (dropdown labels, lookup targets behind "show on conditions"), so honour
+      // only what the share exposes: pk, pv, the link's custom display column,
+      // and the far-side targets of lookups/rollups VISIBLE on this form.
+      // Anything wider makes `?fields=` an arbitrary read of the unpublished
+      // related table, defeating `extractOnlyPrimaries` on the same response.
+      const exposedRelatedColumnIds = new Set<string>(
+        model.columns.filter((c) => c.pk || c.pv).map((c) => c.id),
+      );
+      if (colOptions.fk_display_value_column_id) {
+        exposedRelatedColumnIds.add(colOptions.fk_display_value_column_id);
+      }
+      for (const id of collectRelatedNeededColumnIds(
+        currentModel.columns.filter((c) =>
+          viewColumns.some((vc) => vc.fk_column_id === c.id && vc.show),
+        ),
+      )) {
+        exposedRelatedColumnIds.add(id);
+      }
 
-      param.query.fields.forEach((f) => {
+      for (const f of param.query.fields) {
         // fields can be column IDs or titles, but AST uses titles as keys
         // (getAst with extractOnlyPrimaries returns early with title-keyed AST).
         // Resolve to title so nocoExecute can match against data objects.
         const col = model.columns.find((c) => c.id === f || c.title === f);
-        const key = col?.title ?? f;
-        if (ast[key] === undefined) {
-          ast[key] = 1;
+        if (!col || !exposedRelatedColumnIds.has(col.id)) continue;
+
+        listArgs.fieldsSet.add(f);
+        if (ast[col.title] === undefined) {
+          ast[col.title] = 1;
         }
-      });
+      }
     }
 
     let data = [];
@@ -930,7 +1026,7 @@ export class PublicDatasService {
       NcError.invalidSharedViewPassword();
     }
 
-    const currentModel = await view.getModel(context);
+    const currentModel = await view.getModel();
 
     // Shared view can outlive its table (see relDataList) — a trashed table
     // soft-deletes only the model row, so getModel returns null here.
@@ -965,7 +1061,15 @@ export class PublicDatasService {
     });
 
     // Verify parent row is visible in the shared view before fetching relations
-    const parentRow = await baseModel.readByPk(param.rowId);
+    // — a filtered-out row must not be visible for its relations either.
+    const parentRow = await baseModel.readByPk(
+      param.rowId,
+      false,
+      {},
+      {
+        applyViewFilters: true,
+      },
+    );
     if (!parentRow) {
       NcError.recordNotFound(param.rowId);
     }
@@ -1037,7 +1141,7 @@ export class PublicDatasService {
       NcError.invalidSharedViewPassword();
     }
 
-    const currentModel = await view.getModel(context);
+    const currentModel = await view.getModel();
 
     // Shared view can outlive its table (see relDataList) — a trashed table
     // soft-deletes only the model row, so getModel returns null here.
@@ -1072,7 +1176,15 @@ export class PublicDatasService {
     });
 
     // Verify parent row is visible in the shared view before fetching relations
-    const parentRow = await baseModel.readByPk(param.rowId);
+    // — a filtered-out row must not be visible for its relations either.
+    const parentRow = await baseModel.readByPk(
+      param.rowId,
+      false,
+      {},
+      {
+        applyViewFilters: true,
+      },
+    );
     if (!parentRow) {
       NcError.recordNotFound(param.rowId);
     }
@@ -1129,7 +1241,10 @@ export class PublicDatasService {
       query: any;
     },
   ) {
-    const { sharedViewUuid, rowId, password, query = {} } = param;
+    const { sharedViewUuid, rowId, password } = param;
+    // Strip response-shape keys so an anonymous caller cannot force hidden
+    // values into the single-record payload.
+    const query = sanitizePublicQuery(param.query ?? {});
     const view = await View.getByUUID(context, sharedViewUuid);
 
     if (!view) NcError.viewNotFound(sharedViewUuid);
@@ -1158,7 +1273,11 @@ export class PublicDatasService {
       source,
     });
 
-    const row = await baseModel.readByPk(rowId, false, query);
+    // Powers both the public single-record read and the public
+    // attachment-download route, which use this as their visibility check.
+    const row = await baseModel.readByPk(rowId, false, query, {
+      applyViewFilters: true,
+    });
 
     if (!row) {
       NcError.recordNotFound(param.rowId);
@@ -1197,6 +1316,19 @@ export class PublicDatasService {
 
     if (!model) NcError.get(context).tableNotFound(view.fk_model_id);
 
+    // One view, N query objects — resolve the exposed-column set once.
+    const scope = isSharedViewAccess(context)
+      ? await resolveSharedViewQueryScope(context, { model, view })
+      : undefined;
+
+    // No-op off the shared-view access source — see the DESIGN NOTE.
+    await restrictSharedViewQuery(context, {
+      model,
+      view,
+      query: param.query,
+      scope,
+    });
+
     const listArgs: any = { ...param.query };
 
     let bulkFilterList = param.body;
@@ -1204,6 +1336,20 @@ export class PublicDatasService {
     try {
       bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
+
+    // Before the per-entry loop below — that loop is itself per-entry work.
+    assertBulkFilterListWithinLimit(bulkFilterList);
+
+    // Each bulk entry is its own query object against the same model, so each
+    // needs the same confinement as a single `dataList` call.
+    for (const entry of ncIsArray(bulkFilterList) ? bulkFilterList : []) {
+      await restrictSharedViewQuery(context, {
+        model,
+        view,
+        query: entry,
+        scope,
+      });
+    }
 
     try {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
@@ -1213,16 +1359,13 @@ export class PublicDatasService {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}
 
-    if (!bulkFilterList?.length) {
-      NcError.badRequest('Invalid bulkFilterList');
-    }
-
     const dataListResults = await bulkFilterList.reduce(
       async (accPromise, dF: any) => {
         const acc = await accPromise;
 
         const result = await this.datasService.dataList(context, {
-          query: dF,
+          // each caller-supplied filter object is a query — sanitize per element
+          query: sanitizePublicQuery(dF),
           model,
           view,
         });
@@ -1268,7 +1411,27 @@ export class PublicDatasService {
 
     let bulkFilterList = param.body;
 
-    const listArgs: any = { ...param.query };
+    // One view, N query objects — resolve the exposed-column set once.
+    const scope = isSharedViewAccess(context)
+      ? await resolveSharedViewQueryScope(context, { model, view })
+      : undefined;
+
+    // No-op off the shared-view access source — see the DESIGN NOTE.
+    await restrictSharedViewQuery(context, {
+      model,
+      view,
+      query: param.query,
+      scope,
+    });
+    await restrictSharedViewColumnReferences(context, {
+      model,
+      view,
+      query: param.query,
+      scope,
+    });
+
+    // Strip response-shape keys from the public query.
+    const listArgs: any = sanitizePublicQuery({ ...param.query });
 
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
@@ -1281,6 +1444,33 @@ export class PublicDatasService {
     try {
       bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
+
+    // Before the per-entry work below (sanitize + confinement + one aggregate each).
+    assertBulkFilterListWithinLimit(bulkFilterList);
+
+    // each caller-supplied filter object is a query — sanitize per element too.
+    // Must run before the confinement below: sanitizing replaces each entry with
+    // a copy, and `restrictSharedView*` mutates the object it is handed.
+    if (Array.isArray(bulkFilterList)) {
+      bulkFilterList = bulkFilterList.map((dF: any) => sanitizePublicQuery(dF));
+    }
+
+    // Every bulk entry is its own query object compiled against the same model,
+    // so each needs the same confinement as a single `dataAggregate` call.
+    for (const entry of ncIsArray(bulkFilterList) ? bulkFilterList : []) {
+      await restrictSharedViewQuery(context, {
+        model,
+        view,
+        query: entry,
+        scope,
+      });
+      await restrictSharedViewColumnReferences(context, {
+        model,
+        view,
+        query: entry,
+        scope,
+      });
+    }
 
     const source = await Source.get(context, model.source_id);
 

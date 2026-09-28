@@ -171,6 +171,14 @@ const onPrecisionChange = (value: number) => {
       </a-form-item>
     </a-col>
 
+    <a-col :span="24" class="mt-4">
+      <SmartsheetColumnAbbreviationSelect
+        v-model:value="vModel.meta.abbreviate"
+        :disabled="isMoney && isPg"
+        dropdown-class-name="nc-dropdown-currency-abbreviation-format"
+      />
+    </a-col>
+
     <a-col v-if="isMoney && isPg">
       <span class="text-[#FB8C00]">{{ message }}</span>
     </a-col>

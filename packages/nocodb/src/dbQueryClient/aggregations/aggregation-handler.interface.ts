@@ -21,6 +21,17 @@ export interface AggregationHandlerInterface {
    * no expression (e.g. `none`).
    */
   generate(params: AggregationGeneratorParams): string | undefined;
+
+  /**
+   * Build the bare aggregate expression (post dialect-processing, BEFORE the
+   * COALESCE/alias wrap) plus its resolved context. Used by grouped callers —
+   * e.g. the Timeline/Gantt date-axis summary — that embed the aggregate inside
+   * their own `GROUP BY`/alias. Returns `undefined` when no expression is
+   * produced (e.g. `none`).
+   */
+  buildExpression(
+    params: AggregationGeneratorParams,
+  ): { ctx: AggregationSqlContext; sql: Knex.Raw } | undefined;
 }
 
 /**
@@ -38,7 +49,7 @@ export interface AggregationSqlContext {
   alias?: string;
   parsedFormulaType?: FormulaDataTypes;
   /** SELECT expression for the column (raw col or compiled virtual-column SQL). */
-  column_query: string | Knex.QueryBuilder;
+  column_query: string | Knex.QueryBuilder | Knex.Raw;
 
   /** Dialect "empty" sentinel used by count-empty / count-filled predicates. */
   condnValue?: any;
@@ -47,12 +58,12 @@ export interface AggregationSqlContext {
    * Inline column expression. Plain dialects use `column_query`; mssql/oracle
    * point this at the materialized `nc_val` when a virtual column is involved.
    */
-  cq?: string | Knex.QueryBuilder;
+  cq?: string | Knex.QueryBuilder | Knex.Raw;
 
   /** FROM source for self-contained-subquery aggregates (median/attachment/std_dev). */
   subAggFrom?: string | Knex.Raw;
   /** Column reference within `subAggFrom`. */
-  subAggCol?: string | Knex.QueryBuilder;
+  subAggCol?: string | Knex.QueryBuilder | Knex.Raw;
 
   /** mssql/oracle: whether the column was materialized into a derived table. */
   materialize?: boolean;

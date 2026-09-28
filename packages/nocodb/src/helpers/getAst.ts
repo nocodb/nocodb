@@ -1,11 +1,10 @@
 import {
-  isOrderCol,
+  isBtLikeV2Junction,
   NcApiVersion,
   parseProp,
   RelationTypes,
   ROW_COLORING_MODE,
   UITypes,
-  ViewTypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
@@ -17,17 +16,7 @@ import type {
   Model,
 } from '~/models';
 import type { ViewMetaRowColoring } from '~/models/View';
-import {
-  CalendarRange,
-  DateDependency,
-  Filter,
-  GalleryView,
-  GridViewColumn,
-  KanbanView,
-  KanbanViewColumn,
-  TimelineRange,
-  View,
-} from '~/models';
+import { View } from '~/models';
 import { MetaTable } from '~/cli';
 import { NcError } from '~/helpers/catchError';
 import RowColorCondition from '~/models/RowColorCondition';
@@ -38,6 +27,8 @@ import {
   type ColumnAstContext,
   resolveColumnAst,
 } from '~/helpers/getAstColumnStrategy';
+import { resolveViewVisibleColumns } from '~/helpers/viewVisibleColumns';
+import { isSharedViewAccess } from '~/helpers/accessSource';
 
 const logger = new Logger('getAst');
 
@@ -67,10 +58,29 @@ const getAst = async (
     includeButtonFilterColumns = false,
     skipSubstitutingColumnIds = false,
     fk_display_value_column_id,
+    allowRequestedHiddenFields = false,
+    skipRelationExpansion = false,
+    requiredColumnIds,
     _depth = 0,
   }: {
     query?: RequestQuery;
     extractOnlyPrimaries?: boolean;
+    // Bound relation re-resolution to a single query: build the AST normally
+    // but drop the recursion drivers — LinkToAnotherRecord, Lookup, and V2
+    // junction Links (mo/bt/oo) — which resolve by reading related rows
+    // (re-entering postProcessData). Everything else (scalars, Rollup, a Links
+    // count, Formula, Barcode/…) resolves inside this one SELECT and is kept,
+    // so an outer lookup can read a target of any of those types on the nested
+    // read without unbounded fan-out (#14229).
+    skipRelationExpansion?: boolean;
+    // #14229 targeted expansion: on a bounded nested read, LTAR/Lookup columns
+    // whose id is in this set are KEPT (expanded) even past the depth bound —
+    // these are the lookup targets an outer lookup chain actually needs, so a
+    // deep lookup→lookup→lookup chain resolves without expanding every unrelated
+    // relation column on the table (which caused the metaLTAR fan-out). Computed
+    // per relation read in relation-data-fetcher (union of the fk_lookup_column_id
+    // of all lookups traversing that relation) and threaded down here.
+    requiredColumnIds?: Set<string>;
     includePkByDefault?: boolean;
     model: Model;
     view?: View;
@@ -86,6 +96,10 @@ const getAst = async (
     includeButtonFilterColumns?: boolean;
     skipSubstitutingColumnIds?: boolean;
     fk_display_value_column_id?: string | null;
+    // Opt-in: return an explicitly requested field even if view-hidden. Off by
+    // default for every caller — the nested-link fetchers set it, since there the
+    // exposure is bounded by the link's own pk/pv/display projection instead.
+    allowRequestedHiddenFields?: boolean;
     // Internal: recursion depth for nested LTAR expansion. Bounded to
     // GET_AST_MAX_DEPTH (8) to prevent client-controlled `?nested[a][nested]
     // [b][nested]…` payloads or cyclic LTAR/Lookup metadata from blowing
@@ -113,86 +127,38 @@ const getAst = async (
     return skipSubstitutingColumnIds ? col.id : col.title;
   };
 
-  let coverImageId;
-  let dependencyFieldsForRangeView;
-  let kanbanGroupColumnId;
-  let sortColumnIds: string[] = [];
-  let filterColumnIds: string[] = [];
-  if (view && view.type === ViewTypes.GALLERY) {
-    const gallery = await GalleryView.get(context, view.id);
-    coverImageId = gallery.fk_cover_image_col_id;
-  } else if (view && view.type === ViewTypes.KANBAN) {
-    const kanban = await KanbanView.get(context, view.id);
-    coverImageId = kanban.fk_cover_image_col_id;
-    kanbanGroupColumnId = kanban.fk_grp_col_id;
-  } else if (view && view.type === ViewTypes.CALENDAR) {
-    // const calendar = await CalendarView.get(view.id);
-    // coverImageId = calendar.fk_cover_image_col_id;
-    const calenderRanges = await CalendarRange.read(context, view.id);
-    if (calenderRanges) {
-      dependencyFieldsForRangeView = calenderRanges.ranges
-        .flatMap((obj) =>
-          [obj.fk_from_column_id, (obj as any).fk_to_column_id].filter(Boolean),
-        )
-        .map(String);
-    }
-  } else if (view && view.type === ViewTypes.TIMELINE) {
-    // Timeline date columns (start/end) drive the bar position. They are
-    // typically hidden in the Fields menu, so without explicitly forcing
-    // them through `allowedCols`, the data response would strip the values
-    // and the frontend would treat every record as "without dates".
-    const timelineRanges = await TimelineRange.read(context, view.id);
-    if (timelineRanges) {
-      dependencyFieldsForRangeView = timelineRanges.ranges
-        .flatMap((obj) =>
-          [obj.fk_from_column_id, (obj as any).fk_to_column_id].filter(Boolean),
-        )
-        .map(String);
-    }
-  } else if (view && view.type === ViewTypes.GANTT) {
-    // Gantt consumes a DateDependency rule (EE-only). View-owned rule
-    // (fk_gantt_view_id = view.id) takes precedence, with fallback to the
-    // table-level default (fk_gantt_view_id IS NULL). Start/end date and
-    // dep-link columns often aren't "shown" on the view, so we augment
-    // the range-field list the same way Calendar does. CE's DateDependency
-    // stub returns null from both methods, so this block is an effective
-    // no-op in CE.
-    const dep =
-      (await DateDependency.getByGanttViewId(context, view.id)) ||
-      (await DateDependency.getByModelId(context, model.id));
-    if (dep && dep.is_active !== false) {
-      dependencyFieldsForRangeView = [
-        dep.fk_start_date_field_id,
-        dep.fk_end_date_field_id,
-        dep.fk_dependency_linkrow_field_id,
-      ]
-        .filter(Boolean)
-        .map(String);
-    }
-  }
+  // Per-view-type visible-column resolution lives in `viewVisibleColumns` so the
+  // response-payload gate below (`allowedCols`) and the shared-view QUERY gate
+  // (`restrictSharedViewQuery`) are computed from one source and cannot drift.
+  //
+  // Stays ABOVE the `extractOnlyPrimaries` return: it lazily loads
+  // `model.columns`, which that block reads via `model.primaryKeys`.
+  const {
+    allowedCols,
+    dependencyFieldsForRangeView,
+    sortColumnIds,
+    filterColumnIds,
+  } = await resolveViewVisibleColumns(context, {
+    model,
+    view,
+    includeSortAndFilterColumns,
+  });
 
-  if (view && includeSortAndFilterColumns) {
-    const sorts = await view.getSorts(context);
-    const filters = await Filter.allViewFilterList(context, {
-      viewId: view.id,
-    });
-    sortColumnIds = sorts.map((s) => s.fk_column_id);
-    filterColumnIds = filters.map((f) => f.fk_column_id);
-  }
-
-  if (!model.columns?.length) await model.getColumns(context);
-
-  if (includeSortAndFilterColumns) {
-    const orderCol = model.columns.find((c) => isOrderCol(c));
-    if (orderCol) {
-      sortColumnIds.push(orderCol.id);
-    }
-  }
+  // A row-colour or button-visibility condition forces its column into the
+  // payload so the client can compute the colour / evaluate the button — which
+  // on a shared view hands an anonymous caller the values of a column the owner
+  // hid. Authenticated callers can unhide the field anyway, so only the public
+  // surface is narrowed: the colour / button state is lost rather than the
+  // hidden values disclosed. Both loops read the same query bag
+  // (`include_row_color`, `include_button_filter_columns`) and feed the same
+  // `rowColorButtonFieldStrategy` bypass, so both must gate.
+  const publicSurface = isSharedViewAccess(context);
 
   const rowColoringColumnIds = new Set<string>();
   if (view && includeRowColorColumns) {
     const addingColumns = await getViewRowColorFields({ context, view });
     for (const addColumn of addingColumns) {
+      if (publicSurface && allowedCols && !allowedCols[addColumn]) continue;
       rowColoringColumnIds.add(addColumn);
     }
   }
@@ -201,6 +167,7 @@ const getAst = async (
   if (view && includeButtonFilterColumns) {
     const addingColumns = await getButtonFilterFields({ context, model, view });
     for (const addColumn of addingColumns) {
+      if (publicSurface && allowedCols && !allowedCols[addColumn]) continue;
       buttonFilterColumnIds.add(addColumn);
     }
   }
@@ -263,8 +230,8 @@ const getAst = async (
   if (fields && fields !== '*') {
     fields = Array.isArray(fields) ? fields : fields.split(',');
     if (throwErrorIfInvalidParams) {
-      const colAliasMap = await model.getColAliasMapping(context);
-      const aliasColMap = await model.getAliasColObjMap(context);
+      const colAliasMap = await model.getColAliasMapping();
+      const aliasColMap = await model.getAliasColObjMap();
       const invalidFields = fields.filter(
         (f) => !colAliasMap[f] && !aliasColMap[f],
       );
@@ -274,39 +241,6 @@ const getAst = async (
     }
   } else {
     fields = null;
-  }
-
-  // This `allowedCols` gate (keyed on view-column `show`) omits view-hidden
-  // columns from the default RESPONSE PAYLOAD only. That is intended and is a
-  // separate concern from query-level filtering: hidden columns stay fully
-  // queryable via where/sort/filter (field visibility is the real ACL, not
-  // view `show`). Do not extend this into query-param sanitization — see the
-  // DESIGN NOTE in services/public-datas.service.ts.
-  let allowedCols = null;
-  if (view) {
-    allowedCols = (await View.getColumns(context, view.id)).reduce(
-      (o, c) => ({
-        ...o,
-        [c.fk_column_id]:
-          c.show ||
-          (c instanceof GridViewColumn && c.group_by) ||
-          (c instanceof KanbanViewColumn &&
-            c.fk_column_id === kanbanGroupColumnId),
-      }),
-      {},
-    );
-    if (coverImageId) {
-      allowedCols[coverImageId] = 1;
-    }
-    if (dependencyFieldsForRangeView) {
-      dependencyFieldsForRangeView.forEach((id) => {
-        allowedCols[id] = 1;
-      });
-    }
-    if (includeSortAndFilterColumns) {
-      sortColumnIds.forEach((id) => (allowedCols[id] = 1));
-      filterColumnIds.forEach((id) => (allowedCols[id] = 1));
-    }
   }
 
   const columns = model.columns;
@@ -327,23 +261,46 @@ const getAst = async (
     rowColoringColumnIds,
     buttonFilterColumnIds,
     dependencyFieldsForRangeView,
+    allowRequestedHiddenFields,
   };
 
   for (const col of columns) {
+    // #14229: on a bounded (single-query) nested relation read, drop every
+    // column that resolves by reading related rows, since each one re-enters
+    // postProcessData. Everything else resolves within this one SELECT and is
+    // kept (scalars/Rollup/Links-count/Formula/…). Root reads
+    // (skipRelationExpansion=false) still expand relations fully.
+    // Exception (targeted expansion): keep a column an outer lookup chain needs
+    // (requiredColumnIds) so a deep lookup→lookup chain resolves without
+    // expanding every unrelated relation column here.
+    if (
+      skipRelationExpansion &&
+      (col.uidt === UITypes.LinkToAnotherRecord ||
+        col.uidt === UITypes.Lookup ||
+        // A V2 junction mo/bt/oo link is a `Links` column, but getProto serves
+        // it under the bare title as a record read rather than a `_nc_lk_`
+        // count (select-object skips its rollup), so it recurses like an LTAR.
+        (col.uidt === UITypes.Links && isBtLikeV2Junction(col))) &&
+      !requiredColumnIds?.has(col.id)
+    ) {
+      ast[getFieldKey(col)] = null;
+      continue;
+    }
+
     let value: number | boolean | { [key: string]: any } = 1;
     // TODO: also get from col.id
     const nestedFields =
       query?.nested?.[col.title]?.fields || query?.nested?.[col.title]?.f;
-    const linksAsLtar = query?.linksAsLtar === 'true';
+    // Outside the junction case above, a Links column expands into related rows
+    // only via linksAsLtar; on a bounded read force it back to a plain count.
+    const linksAsLtar = !skipRelationExpansion && query?.linksAsLtar === 'true';
 
     if (nestedFields && nestedFields !== '*') {
       if (
         col.uidt === UITypes.LinkToAnotherRecord ||
         (col.uidt === UITypes.Links && linksAsLtar)
       ) {
-        const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
-          context,
-        );
+        const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>();
 
         if (!colOpt) {
           logger.warn(
@@ -353,7 +310,7 @@ const getAst = async (
           continue;
         }
 
-        const model = await colOpt.getRelatedTable(context);
+        const model = await colOpt.getRelatedTable();
 
         if (!model) {
           // Skip this column - related table not found
@@ -365,7 +322,7 @@ const getAst = async (
           continue;
         }
 
-        const { refContext: refTableContext } = colOpt.getRelContext(context);
+        const { refContext: refTableContext } = colOpt.getRelContext();
 
         const { ast: childAst } = await getAst(refTableContext, {
           model,
@@ -394,9 +351,7 @@ const getAst = async (
       col.uidt === UITypes.LinkToAnotherRecord ||
       (col.uidt === UITypes.Links && linksAsLtar)
     ) {
-      const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
-        context,
-      );
+      const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>();
 
       if (!colOpt) {
         logger.warn(
@@ -406,9 +361,9 @@ const getAst = async (
         continue;
       }
 
-      const { refContext: refTableContext } = colOpt.getRelContext(context);
+      const { refContext: refTableContext } = colOpt.getRelContext();
 
-      const model = await colOpt.getRelatedTable(context);
+      const model = await colOpt.getRelatedTable();
 
       if (!model) {
         // Skip this column - related table not found
@@ -512,8 +467,7 @@ const getButtonFilterFields = async (params: {
   const ncMeta = params.ncMeta ?? Noco.ncMeta;
 
   // Find all button columns in this table
-  if (!params.model.columns?.length)
-    await params.model.getColumns(params.context);
+  if (!params.model.columns?.length) await params.model.getColumns();
 
   let buttonColIds = params.model.columns
     .filter((col) => col.uidt === UITypes.Button)
@@ -597,14 +551,14 @@ const extractLookupDependencies = async (
   },
   _visited: Set<string> = new Set(),
 ) => {
-  const lookupColumnOpts = await lookUpColumn.getColOptions(context);
+  const lookupColumnOpts = await lookUpColumn.getColOptions();
   if (lookupColumnOpts?.error) return;
-  const relationColumn = await lookupColumnOpts.getRelationColumn(context);
+  const relationColumn = await lookupColumnOpts.getRelationColumn();
   if (!relationColumn) return;
   const relationColumnOpts =
-    await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
+    await relationColumn.getColOptions<LinkToAnotherRecordColumn>();
   if (!relationColumnOpts) return;
-  const { refContext } = relationColumnOpts.getRelContext(context);
+  const { refContext } = relationColumnOpts.getRelContext();
   await extractRelationDependencies(context, relationColumn, dependencyFields);
 
   // Reuse the nested bucket for the relation column if one already exists. It
@@ -622,7 +576,7 @@ const extractLookupDependencies = async (
 
   await extractDependencies(
     refContext,
-    await lookupColumnOpts.getLookupColumn(refContext),
+    await lookupColumnOpts.getLookupColumn(),
     nestedDependencyFields,
     _visited,
   );
@@ -636,37 +590,29 @@ const extractRelationDependencies = async (
     fieldsSet: new Set(),
   },
 ) => {
-  const relationColumnOpts = await relationColumn.getColOptions(context);
+  const relationColumnOpts = await relationColumn.getColOptions();
   if (!relationColumnOpts) return;
 
   switch (relationColumnOpts.type) {
     case RelationTypes.HAS_MANY:
       dependencyFields.fieldsSet.add(
-        await relationColumnOpts
-          .getParentColumn(context)
-          .then((col) => col.title),
+        await relationColumnOpts.getParentColumn().then((col) => col.title),
       );
       break;
     case RelationTypes.BELONGS_TO:
     case RelationTypes.MANY_TO_MANY:
       dependencyFields.fieldsSet.add(
-        await relationColumnOpts
-          .getChildColumn(context)
-          .then((col) => col.title),
+        await relationColumnOpts.getChildColumn().then((col) => col.title),
       );
       break;
     case RelationTypes.ONE_TO_ONE:
       if (relationColumn.meta?.bt) {
         dependencyFields.fieldsSet.add(
-          await relationColumnOpts
-            .getChildColumn(context)
-            .then((col) => col.title),
+          await relationColumnOpts.getChildColumn().then((col) => col.title),
         );
       } else {
         dependencyFields.fieldsSet.add(
-          await relationColumnOpts
-            .getParentColumn(context)
-            .then((col) => col.title),
+          await relationColumnOpts.getParentColumn().then((col) => col.title),
         );
       }
       break;

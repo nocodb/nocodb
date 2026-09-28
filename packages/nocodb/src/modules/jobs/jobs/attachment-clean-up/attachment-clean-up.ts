@@ -72,7 +72,12 @@ export class AttachmentCleanUpProcessor {
           path.join('nc', 'uploads', relativePath),
         );
 
-        const thumbnails = ['tiny.jpg', 'small.jpg', 'card_cover.jpg'];
+        const thumbnails = [
+          'tiny.jpg',
+          'small.jpg',
+          'card_cover.jpg',
+          'vision.jpg',
+        ];
 
         for (const thumb of thumbnails) {
           await storageAdapter.fileDelete(

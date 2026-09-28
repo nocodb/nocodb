@@ -32,11 +32,11 @@ const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { gridViewCols, fieldsMap, hidingViewColumnsMap } = useViewColumnsOrThrow()
+const { gridViewCols, fieldsMap, hidingViewColumnsMap, adjustFrozenFieldsOnBulkHide } = useViewColumnsOrThrow()
 
 const { fieldsToGroupBy, groupByLimit, groupBy } = useViewGroupByOrThrow()
 
-const { isUIAllowed, sandboxRestrictionReason } = useRoles()
+const { isUIAllowed, environmentRestrictionReason } = useRoles()
 
 const { appInfo } = useGlobal()
 
@@ -53,7 +53,7 @@ const columnCount = computed(() => props.columns.length)
 // pv (display value) column cannot be hidden or deleted.
 const nonPvColumns = computed(() => props.columns.filter((col) => !col.pv))
 
-const fieldDeleteReason = computed(() => sandboxRestrictionReason('fieldDelete'))
+const fieldDeleteReason = computed(() => environmentRestrictionReason('fieldDelete'))
 
 const closeAndClear = () => {
   isOpen.value = false
@@ -109,6 +109,9 @@ const hideAllSelected = async () => {
     for (const id of hiddenColIds) {
       delete hidingViewColumnsMap.value[id]
     }
+
+    // Shrink the frozen region once for all frozen fields that were just hidden
+    await adjustFrozenFieldsOnBulkHide(hiddenColIds)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     reloadDataHook?.trigger()

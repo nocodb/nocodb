@@ -24,9 +24,9 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
     direction: 'asc' | 'desc',
     options: SortOptions,
   ): Promise<void> {
-    const { alias, nulls, baseModel: baseModelSqlv2, context } = options;
+    const { alias, nulls, baseModel: baseModelSqlv2 } = options;
     const knex = options.knex as CustomKnex;
-    const model = await column.getModel(context);
+    const model = await column.getModel();
 
     if (column.uidt === UITypes.Links && isBtLikeV2Junction(column)) {
       const selectQb = await generateLookupSelectQuery({
@@ -43,7 +43,7 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
       await genRollupSelectv2({
         baseModelSqlv2,
         knex,
-        columnOptions: (await column.getColOptions(context)) as RollupColumn,
+        columnOptions: (await column.getColOptions()) as RollupColumn,
         alias,
       })
     ).builder;
@@ -63,14 +63,12 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
       alias,
     } = options;
 
-    const context = baseModelSqlv2.context;
-
     const builder = (
       await genRollupSelectv2({
         baseModelSqlv2,
         knex,
         alias,
-        columnOptions: (await column.getColOptions(context)) as RollupColumn,
+        columnOptions: (await column.getColOptions()) as RollupColumn,
       })
     ).builder;
     return parseConditionV2(

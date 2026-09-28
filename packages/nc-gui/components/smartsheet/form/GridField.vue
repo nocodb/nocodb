@@ -29,7 +29,7 @@ const hasVisibilityCondition = computed(() => !!allViewFilters.value?.[props.fie
   <div
     class="nc-editable nc-form-focus-element item relative bg-nc-bg-default p-2 flex-1 basis-0 min-w-0"
     :class="[
-      `nc-form-drag-${field.title.replaceAll(' ', '')}`,
+      `nc-form-drag-${toSafeClassName(field.title)}`,
       {
         'nc-form-field-drag-handler rounded-xl border-2 border-transparent my-1 cursor-move': isEditable,
       },
@@ -59,7 +59,7 @@ const hasVisibilityCondition = computed(() => !!allViewFilters.value?.[props.fie
           <NcButton
             type="link"
             size="xsmall"
-            class="nc-form-field-hide !bg-white !h-5 !w-5 !min-w-5 !rounded-full"
+            class="nc-form-field-hide !bg-nc-bg-default !h-5 !w-5 !min-w-5 !rounded-full"
             :class="{
               '!text-nc-content-gray-muted !hover:text-nc-content-brand': !isRequired(field, field.required),
             }"

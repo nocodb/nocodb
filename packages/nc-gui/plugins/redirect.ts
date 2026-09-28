@@ -2,6 +2,32 @@ const isFullUrl = (url: string) => {
   return /^(https?:)?\/\//.test(url)
 }
 
+// `localStorage` is null in some embedded webviews / privacy modes — a direct
+// access there crashes this top-level watch. Mirrors the auth middleware helpers.
+const safeStorage = {
+  get(key: string) {
+    try {
+      return localStorage?.getItem(key) ?? null
+    } catch {
+      return null
+    }
+  },
+  set(key: string, value: string) {
+    try {
+      localStorage?.setItem(key, value)
+    } catch {
+      // storage unavailable — non-critical
+    }
+  },
+  remove(key: string) {
+    try {
+      localStorage?.removeItem(key)
+    } catch {
+      // storage unavailable — non-critical
+    }
+  },
+}
+
 // this plugin is used to redirect user to the page they were trying to access before they were redirected to the login page
 export default defineNuxtPlugin(function (nuxtApp) {
   const isTokenUpdatedTab = useState('isTokenUpdatedTab', () => false)
@@ -14,7 +40,7 @@ export default defineNuxtPlugin(function (nuxtApp) {
     () => route.value.query?.continueAfterSignIn,
     (continueAfterSignIn) => {
       if (continueAfterSignIn) {
-        localStorage.setItem('continueAfterSignIn', continueAfterSignIn as string)
+        safeStorage.set('continueAfterSignIn', continueAfterSignIn as string)
       }
     },
     {
@@ -45,7 +71,7 @@ export default defineNuxtPlugin(function (nuxtApp) {
                   replace: true,
                 })
               } else {
-                const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
+                const continueAfterSignIn = safeStorage.get('continueAfterSignIn')
                 if (continueAfterSignIn) {
                   await navigateTo(getNavigateTo(continueAfterSignIn), {
                     external: false,
@@ -54,7 +80,7 @@ export default defineNuxtPlugin(function (nuxtApp) {
                 }
               }
             } finally {
-              localStorage.removeItem('continueAfterSignIn')
+              safeStorage.remove('continueAfterSignIn')
               isTokenUpdatedTab.value = false
             }
           }

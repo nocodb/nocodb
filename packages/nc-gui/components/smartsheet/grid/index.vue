@@ -91,6 +91,7 @@ const {
   groupByColumns,
   groupSyncCount,
   fetchMissingGroupChunks,
+  fetchMissingGroupAggregations,
   toggleExpand,
   totalGroups,
   clearGroupCache,
@@ -194,6 +195,9 @@ provide(RowHeightInj, rowHeight)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+// Interface pages open their record-detail sheet instead of the expanded form.
+const interfaceExpandRecord = inject(InterfaceExpandRecordInj, undefined)
+
 provide(ReloadRowDataHookInj, reloadViewDataHook)
 
 const skipRowRemovalOnCancel = ref(false)
@@ -271,6 +275,8 @@ function updateRowIdRoute(rowId: string, path: Array<number> = []) {
 }
 
 function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, path: Array<number> = []) {
+  if (interfaceExpandRecord?.(row)) return
+
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
   if (!isMobileMode.value && !isPublic.value && expandedFormMode.value === 'panel' && rowId && isCanvasRendering.value) {
@@ -631,6 +637,20 @@ expandedFormPanelRowNavigator.value = {
   },
 }
 
+// Interface pages: hand the record sheet our live row objects (see InterfaceRowResolverInj).
+const interfaceRowResolver = inject(InterfaceRowResolverInj, undefined)
+if (interfaceRowResolver) {
+  const resolveLiveRow = (rowId: string) => {
+    const navigator = expandedFormPanelRowNavigator.value
+    const location = navigator?.findRowLocation?.(rowId)
+    return location ? navigator?.getRow(location.index, location.path)?.row.row ?? null : null
+  }
+  interfaceRowResolver.value = resolveLiveRow
+  onBeforeUnmount(() => {
+    if (interfaceRowResolver.value === resolveLiveRow) interfaceRowResolver.value = null
+  })
+}
+
 watch([windowSize, leftSidebarWidth], updateViewWidth)
 
 onMounted(() => {
@@ -931,9 +951,9 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
         :toggle-expand="toggleExpand"
         :group-sync-count="groupSyncCount"
         :fetch-missing-group-chunks="fetchMissingGroupChunks"
+        :fetch-missing-group-aggregations="fetchMissingGroupAggregations"
         :is-bulk-operation-in-progress="isBulkOperationInProgress"
         :toggle-expand-all="toggleExpandAll"
-        @toggle-optimised-query="toggleOptimisedQuery"
         @bulk-update-dlg="bulkUpdateTrigger"
       />
 
@@ -967,7 +987,6 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
         :selected-rows="selectedRows"
         :row-sort-required-rows="isRowSortRequiredRows"
         :is-bulk-operation-in-progress="isBulkOperationInProgress"
-        @toggle-optimised-query="toggleOptimisedQuery"
         @bulk-update-dlg="bulkUpdateDlg = true"
       />
 

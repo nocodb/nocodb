@@ -30,4 +30,10 @@ if (!vModel.value.meta.separator) {
     integer
     dropdown-class-name="nc-dropdown-number-separator-format"
   />
+
+  <SmartsheetColumnAbbreviationSelect
+    v-model:value="vModel.meta.abbreviate"
+    :disabled="isSystem"
+    dropdown-class-name="nc-dropdown-number-abbreviation-format"
+  />
 </template>

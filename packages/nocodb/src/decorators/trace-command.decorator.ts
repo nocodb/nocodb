@@ -1,4 +1,5 @@
 import type { OperationName } from '~/command-registry/op-names';
+import type { CaptureBag, CaptureKey } from '~/command-registry/types';
 
 export type OperationNameResolver = (
   ctx: any,
@@ -32,7 +33,9 @@ export function captureForTrace(_key: string, _value: unknown): void {
  * Read a previously-captured trace value. Returns `undefined` outside a
  * trace scope (e.g. during CE builds, untraced calls, or jobs).
  */
-export function getTraceCapture<T = unknown>(_key: string): T | undefined {
+export function getTraceCapture<K extends CaptureKey>(
+  _key: K,
+): CaptureBag[K] | undefined {
   return undefined;
 }
 

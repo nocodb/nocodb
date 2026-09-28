@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-
 definePageMeta({
   public: true,
   requiresAuth: false,

@@ -306,6 +306,33 @@ const getDefaultChartConfig = (
         },
       };
 
+    case ChartTypes.TREEMAP:
+      return {
+        ...baseConfig,
+        chartType: ChartTypes.TREEMAP,
+        data: {
+          category: {
+            column_id: getDefaultCategoryColumn(columns),
+            orderBy: 'default' as const,
+            includeEmptyRecords: false,
+            includeOthers: false,
+            categoryLimit: 12,
+          },
+          value: {
+            type: 'count' as const,
+          },
+        },
+        appearance: {
+          size: 'medium' as const,
+          showValueInChart: true,
+          colorSchema: 'default' as const,
+        },
+        permissions: {
+          allowUserToPrint: true,
+          allowUsersToViewRecords: false,
+        },
+      };
+
     default:
       return {
         ...baseConfig,

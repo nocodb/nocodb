@@ -1,6 +1,8 @@
 import {
   ButtonActionsType,
   isBtLikeV2Junction,
+  isFieldTrackingLmbCol,
+  isFieldTrackingLmtCol,
   NC_ERROR_SENTINEL,
   UITypes,
 } from 'nocodb-sdk';
@@ -17,6 +19,11 @@ import type {
 } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Logger } from '@nestjs/common';
+import {
+  lmbFieldQueryBuilder,
+  lmtFieldQueryBuilder,
+  lmtUtcText,
+} from '~/db/formulav2/lmtFieldQueryBuilder';
 import { Column, View } from '~/models';
 import {
   checkColumnRequired,
@@ -26,7 +33,10 @@ import {
 } from '~/helpers/dbHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { NC_MAX_TEXT_LENGTH } from '~/constants';
-import { FORMULA_DRY_RUN_SKIPPED_MESSAGE } from '~/db/formulav2/formulaQueryBuilderv2';
+import {
+  FORMULA_DRY_RUN_SKIPPED_MESSAGE,
+  logFormulaBuildError,
+} from '~/db/formulav2/formulaQueryBuilderv2';
 
 export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
   return async ({
@@ -63,20 +73,17 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     let fields: string[];
 
     if (fieldsSet?.size) {
-      viewOrTableColumns =
-        _columns || (await baseModel.model.getColumns(baseModel.context));
+      viewOrTableColumns = _columns || (await baseModel.model.getColumns());
     } else {
       view = await View.get(baseModel.context, viewId);
       const viewColumns =
         viewId && (await View.getColumns(baseModel.context, viewId));
       fields = Array.isArray(_fields) ? _fields : _fields?.split(',');
 
-      // const columns = _columns ?? (await baseModel.model.getColumns(baseModel.context));
+      // const columns = _columns ?? (await baseModel.model.getColumns());
       // for (const column of columns) {
       viewOrTableColumns =
-        viewColumns ||
-        _columns ||
-        (await baseModel.model.getColumns(baseModel.context));
+        viewColumns || _columns || (await baseModel.model.getColumns());
     }
     for (const viewOrTableColumn of viewOrTableColumns) {
       const column =
@@ -128,10 +135,57 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         case UITypes.LastModifiedTime:
         case UITypes.DateTime:
           {
+            // a LastModifiedTime column tracking specific fields is computed
+            // from the row-meta column — select its synthetic formula
+            // expression instead of the physical updated_at column
+            if (isFieldTrackingLmtCol(column)) {
+              try {
+                const selectQb = await lmtFieldQueryBuilder({
+                  baseModel,
+                  column,
+                  // the column may belong to a related model when reached
+                  // through a lookup traversal
+                  model: await column.getModel(),
+                  tableAlias: alias,
+                  validateFormula,
+                  aliasToColumn: aliasToColumnBuilder,
+                });
+                if ('toQuery' in selectQb.builder) {
+                  const selectQbQuery = selectQb.builder.toQuery();
+                  qb.select(
+                    baseModel.dbDriver.raw(
+                      `${lmtUtcText(
+                        baseModel,
+                        selectQbQuery.replaceAll('?', '\\?'),
+                      )} as ??`,
+                      [getAs(column)],
+                    ),
+                  );
+                } else {
+                  qb.select(
+                    baseModel.dbDriver.raw(
+                      `${lmtUtcText(baseModel, '??')} as ??`,
+                      [selectQb.builder, getAs(column)],
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (e?.message !== FORMULA_DRY_RUN_SKIPPED_MESSAGE)
+                  logger.log(e);
+                // return dummy select
+                qb.select(
+                  baseModel.dbDriver.raw(`? as ??`, [
+                    NC_ERROR_SENTINEL,
+                    getAs(column),
+                  ]),
+                );
+              }
+              break;
+            }
             const columnName = await getColumnName(
               baseModel.context,
               column,
-              _columns || (await baseModel.model.getColumns(baseModel.context)),
+              _columns || (await baseModel.model.getColumns()),
             );
             // Emit DateTime as text with a +00:00 suffix at the SQL layer so the value
             // round-trips through JSON aggregation (json_agg / JSON_ARRAYAGG / jsonb_build_object)
@@ -212,7 +266,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             const columnName = await getColumnName(
               baseModel.context,
               column,
-              _columns || (await baseModel.model.getColumns(baseModel.context)),
+              _columns || (await baseModel.model.getColumns()),
             );
             res[sanitize(getAs(column) || columnName)] = baseModel.dbDriver.raw(
               `TO_CHAR(??, 'HH24:MI:SS')`,
@@ -228,9 +282,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         case UITypes.LinkToAnotherRecord:
           break;
         case UITypes.Lookup: {
-          const lookupOpt = await column.getColOptions<LookupColumn>(
-            baseModel.context,
-          );
+          const lookupOpt = await column.getColOptions<LookupColumn>();
           if (lookupOpt?.error) {
             qb.select(
               baseModel.dbDriver.raw(`? as ??`, [
@@ -242,9 +294,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           break;
         }
         case UITypes.QrCode: {
-          const qrCodeColumn = await column.getColOptions<QrCodeColumn>(
-            baseModel.context,
-          );
+          const qrCodeColumn = await column.getColOptions<QrCodeColumn>();
 
           if (qrCodeColumn.error) {
             qb.select(
@@ -301,9 +351,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           break;
         }
         case UITypes.Barcode: {
-          const barcodeColumn = await column.getColOptions<BarcodeColumn>(
-            baseModel.context,
-          );
+          const barcodeColumn = await column.getColOptions<BarcodeColumn>();
 
           if (barcodeColumn.error) {
             qb.select(
@@ -388,10 +436,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 );
               }
             } catch (e) {
-              // The dry-run short-circuit sentinel is internal control flow,
-              // not a real formula error. Logging it per record/column is the
-              // exact noise that floods logs when an external source is down.
-              if (e?.message !== FORMULA_DRY_RUN_SKIPPED_MESSAGE) logger.log(e);
+              logFormulaBuildError(logger, e, column);
               // return dummy select
               qb.select(baseModel.dbDriver.raw(`'ERR' as ??`, [getAs(column)]));
             }
@@ -564,9 +609,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               }
             }
           } catch (e) {
-            // See the Formula case above — don't log the internal short-circuit
-            // sentinel.
-            if (e?.message !== FORMULA_DRY_RUN_SKIPPED_MESSAGE) logger.log(e);
+            logFormulaBuildError(logger, e, column);
             // return dummy select
             qb.select(baseModel.dbDriver.raw(`'ERR' as ??`, [getAs(column)]));
           }
@@ -582,9 +625,8 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             // skip the rollup count select so getProto resolves nested data under column.title
             break;
           }
-          const rollupColOptions = (await column.getColOptions(
-            baseModel.context,
-          )) as RollupColumn;
+          const rollupColOptions =
+            (await column.getColOptions()) as RollupColumn;
 
           // Errored rollup/link (e.g. its relation was cascade-deleted):
           // emit a NULL dummy select instead of attempting the rollup.
@@ -607,10 +649,25 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         }
         case UITypes.CreatedBy:
         case UITypes.LastModifiedBy: {
+          // a LastModifiedBy column tracking specific fields is computed
+          // from the row-meta column — select its latest-tracked-editor
+          // expression; the value stays a user id, so the regular
+          // LastModifiedBy read expansion applies
+          if (isFieldTrackingLmbCol(column)) {
+            res[sanitize(getAs(column))] = (
+              await lmbFieldQueryBuilder({
+                baseModel,
+                column,
+                model: await column.getModel(),
+                tableAlias: alias,
+              })
+            ).builder;
+            break;
+          }
           const columnName = await getColumnName(
             baseModel.context,
             column,
-            _columns || (await baseModel.model.getColumns(baseModel.context)),
+            _columns || (await baseModel.model.getColumns()),
           );
 
           res[sanitize(getAs(column) || columnName)] = sanitize(

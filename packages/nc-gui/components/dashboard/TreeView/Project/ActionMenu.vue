@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type SourceType, stringifyRolesObj } from 'nocodb-sdk'
+import { BaseVersion, type SourceType, stringifyRolesObj } from 'nocodb-sdk'
 
 interface Props {
   showBaseOption: (source: SourceType) => boolean
@@ -14,8 +14,8 @@ const emits = defineEmits<Emits>()
 interface Emits {
   (e: 'clickMenu'): void
   (e: 'rename'): void
-  (e: 'openErdView', value: SourceType): void
   (e: 'duplicateProject', base: NcProject): void
+  (e: 'shareBase'): void
   (e: 'openBaseSettings', id: string): void
   (e: 'openMcpServer', id: string): void
   (e: 'copyProjectInfo'): void
@@ -26,12 +26,12 @@ const base = inject(ProjectInj)!
 
 const { appInfo } = useGlobal()
 
-const { orgRoles, isUIAllowed, sandboxRestrictionReason } = useRoles()
+const { orgRoles, isUIAllowed, environmentRestrictionReason } = useRoles()
 
 const baseRole = computed(() => base.value.project_role || base.value.workspace_role)
 
 const baseDuplicateReason = computed(() =>
-  sandboxRestrictionReason('baseDuplicate', {
+  environmentRestrictionReason('baseDuplicate', {
     roles: [stringifyRolesObj(orgRoles.value), baseRole.value].join(),
     base,
   }),
@@ -40,6 +40,9 @@ const baseDuplicateReason = computed(() =>
 const isOptionVisible = computed(() => {
   return {
     rename: isUIAllowed('baseRename'),
+    // Public read-only link to the whole base: a base-level admin act, so it lives
+    // beside Duplicate rather than in the invite-first Share modal.
+    baseShare: isUIAllowed('baseShare', { roles: baseRole.value }),
     baseDuplicate:
       isUIAllowed('baseDuplicate', { roles: [stringifyRolesObj(orgRoles.value), baseRole.value].join() }) ||
       !!baseDuplicateReason.value,
@@ -99,6 +102,13 @@ const isOptionVisible = computed(() => {
       </NcMenuItem>
     </NcTooltip>
 
+    <NcMenuItem v-if="isOptionVisible.baseShare" data-testid="nc-sidebar-base-share" @click="emits('shareBase')">
+      <div v-e="['c:base:share-base']" class="flex gap-2 items-center">
+        <GeneralIcon icon="ncGlobe" />
+        {{ $t('activity.shareBase.label') }}
+      </div>
+    </NcMenuItem>
+
     <NcDivider v-if="['baseDuplicate', 'baseRename'].some((permission) => isUIAllowed(permission)) || !!baseDuplicateReason" />
 
     <!-- Copy Project Info -->
@@ -106,19 +116,6 @@ const isOptionVisible = computed(() => {
       <div v-e="['c:base:copy-proj-info']" class="flex gap-2 items-center">
         <GeneralIcon icon="copy" />
         {{ $t('activity.account.projInfo') }}
-      </div>
-    </NcMenuItem>
-
-    <!-- ERD View -->
-    <NcMenuItem
-      v-if="base?.sources?.[0]?.enabled"
-      key="erd"
-      data-testid="nc-sidebar-base-relations"
-      @click="emits('openErdView', base?.sources?.[0])"
-    >
-      <div v-e="['c:base:erd']" class="flex gap-2 items-center">
-        <GeneralIcon icon="ncErd" />
-        {{ $t('title.relations') }}
       </div>
     </NcMenuItem>
 
@@ -131,17 +128,19 @@ const isOptionVisible = computed(() => {
 
     <!-- Swagger: Rest APIs -->
     <NcSubMenu
-      v-if="isOptionVisible.apiDocs"
+      v-if="isOptionVisible.apiDocs && base.version === BaseVersion.V2"
       key="api"
-      v-e="['e:api-docs']"
       data-testid="nc-sidebar-base-rest-apis"
       class="py-0"
       variant="small"
       @click.stop
     >
       <template #title>
-        <GeneralIcon icon="ncCode" class="opacity-80 !max-w-3.9" />
-        {{ $t('activity.account.swagger') }}
+        <!-- v-e sits on the title element: NcSubMenu resolves to a fragment root, so a directive on it never runs -->
+        <div v-e="['e:api-docs']" class="flex flex-row items-center gap-x-2">
+          <GeneralIcon icon="ncCode" class="opacity-80 !max-w-3.9" />
+          {{ $t('activity.account.swagger') }}
+        </div>
       </template>
 
       <NcMenuItem
@@ -160,6 +159,17 @@ const isOptionVisible = computed(() => {
         API v3
       </NcMenuItem>
     </NcSubMenu>
+    <NcMenuItem
+      v-else-if="isOptionVisible.apiDocs"
+      key="api-v3"
+      data-testid="nc-sidebar-base-rest-apis"
+      @click="openLink(`/api/v3/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)"
+    >
+      <div v-e="['e:api-docs']" class="flex gap-2 items-center">
+        <GeneralIcon icon="ncCode" class="opacity-80 !max-w-3.9" />
+        {{ $t('activity.account.swagger') }}
+      </div>
+    </NcMenuItem>
 
     <template v-if="isOptionVisible.baseOptions">
       <NcDivider />

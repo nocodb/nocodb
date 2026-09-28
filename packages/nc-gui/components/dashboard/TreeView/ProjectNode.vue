@@ -58,7 +58,7 @@ const { loadProjectTables, openTableCreateDialog: _openTableCreateDialog } = use
 
 const { activeTable } = storeToRefs(useTablesStore())
 
-const { isUIAllowed, sandboxRestrictionReason } = useRoles()
+const { isUIAllowed, environmentRestrictionReason } = useRoles()
 
 const { meta: metaKey, control } = useMagicKeys()
 
@@ -81,6 +81,8 @@ const baseRole = computed(() => base.value.project_role || base.value.workspace_
 const { activeProjectId } = storeToRefs(useBases())
 
 const { baseUrl } = useBase()
+
+const openBaseSettingsLink = useBaseSettingsLink()
 
 const { $e } = useNuxtApp()
 
@@ -295,25 +297,6 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
   }
 }
 
-function openErdView(source: SourceType) {
-  $e('c:project:relation')
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgBaseErd'), {
-    'modelValue': isOpen,
-    'sourceId': source!.id,
-    'onUpdate:modelValue': () => closeDialog(),
-    'baseId': base.value.id,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
 const contextMenuBase = computed(() => {
   if (contextMenuTarget.type === 'source') {
     return contextMenuTarget.value
@@ -356,6 +339,8 @@ onKeyStroke('Escape', () => {
 })
 
 const isDuplicateDlgOpen = ref(false)
+
+const isShareBaseDlgOpen = ref(false)
 const selectedProjectToDuplicate = ref()
 
 const duplicateProject = (base: BaseType) => {
@@ -378,7 +363,7 @@ const getSource = (sourceId: string) => {
 }
 
 function tableActionReason(perm: string) {
-  return sandboxRestrictionReason(perm, { source: getSource(contextMenuTarget.value?.source_id) })
+  return environmentRestrictionReason(perm, { source: getSource(contextMenuTarget.value?.source_id) })
 }
 
 const labelEl = ref()
@@ -395,11 +380,11 @@ watch(
 )
 
 const openBaseSettings = async (baseId: string) => {
-  await navigateTo(`/nc/${baseId}/settings/settings`)
+  await openBaseSettingsLink('base-settings', { baseId })
 }
 
 const openMcpSettings = async (baseId: string) => {
-  await navigateTo(`/nc/${baseId}/settings/mcp`)
+  await openBaseSettingsLink('mcp', { baseId })
 }
 
 const showNodeTooltip = ref(true)
@@ -552,6 +537,7 @@ defineExpose({
                     :key="`${base.id}_${parseProp(base.meta).iconColor}`"
                     :type="base?.type"
                     :model-value="parseProp(base.meta).iconColor"
+                    :icon="parseProp(base.meta).icon"
                     size="small"
                     :readonly="
                       (base?.type && base?.type !== 'database') || !isUIAllowed('baseRename') || isProjectNodeContextMenuOpen
@@ -569,6 +555,7 @@ defineExpose({
               :key="`${base.id}_${parseProp(base.meta).iconColor}`"
               class="flex-none !w-4.5 !h-4.5"
               :color="parseProp(base.meta).iconColor"
+              :icon="parseProp(base.meta).icon"
               :managed-app="{
                 managed_app_master: base.managed_app_master,
                 managed_app_id: base.managed_app_id,
@@ -644,11 +631,11 @@ defineExpose({
                   <template #overlay>
                     <DashboardTreeViewProjectActionMenu
                       :show-base-option="(source) => showBaseOption(source)"
+                      @share-base="isShareBaseDlgOpen = true"
                       @click-menu="onClickMenu"
                       @rename="enableEditMode()"
                       @duplicate-project="duplicateProject($event)"
                       @copy-project-info="copyProjectInfo()"
-                      @open-erd-view="openErdView($event)"
                       @open-base-settings="openBaseSettings($event)"
                       @open-mcp-server="openMcpSettings($event)"
                       @delete="projectDelete"
@@ -687,11 +674,11 @@ defineExpose({
       <DashboardTreeViewProjectActionMenu
         v-if="isProjectHeader"
         :show-base-option="(source) => showBaseOption(source)"
+        @share-base="isShareBaseDlgOpen = true"
         @click-menu="onClickMenu"
         @rename="enableEditMode(true)"
         @duplicate-project="duplicateProject($event)"
         @copy-project-info="copyProjectInfo()"
-        @open-erd-view="openErdView($event)"
         @open-base-settings="openBaseSettings($event)"
         @open-mcp-server="openMcpSettings($event)"
         @delete="projectDelete"
@@ -794,6 +781,7 @@ defineExpose({
   />
   <DlgBaseDelete v-model:visible="isBaseDeleteDialogVisible" :base-id="base?.id" />
   <DlgBaseDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
+  <DlgShareBase v-model="isShareBaseDlgOpen" />
   <GeneralModal v-model:visible="isErdModalOpen" size="large">
     <div class="h-[80vh]">
       <LazyDashboardSettingsErd :base-id="base?.id" :source-id="activeBaseId" />

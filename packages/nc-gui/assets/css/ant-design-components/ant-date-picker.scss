@@ -50,7 +50,7 @@
 
   .ant-picker-clear {
     color: rgba(var(--rgb-base), 0.25);
-    background: var(--nc-bg-default);
+    background: var(--nc-bg-elevated);
   }
 
   .ant-picker-clear:hover {
@@ -77,12 +77,12 @@
   }
 
   .ant-picker-range-arrow::after {
-    border-color: var(--nc-bg-default) var(--nc-bg-default) transparent transparent;
+    border-color: var(--nc-bg-elevated) var(--nc-bg-elevated) transparent transparent;
   }
 
   // Panel container
   .ant-picker-panel-container {
-    background: var(--nc-bg-default);
+    background: var(--nc-bg-elevated);
     box-shadow: 0 3px 6px -4px rgba(0, 0, 0, 0.48), 0 6px 16px 0 rgba(0, 0, 0, 0.32),
       0 9px 28px 8px rgba(0, 0, 0, 0.2);
   }
@@ -97,7 +97,7 @@
 
   // Panel
   .ant-picker-panel {
-    background: var(--nc-bg-default);
+    background: var(--nc-bg-elevated);
     border-color: var(--nc-border-gray-medium);
   }
 

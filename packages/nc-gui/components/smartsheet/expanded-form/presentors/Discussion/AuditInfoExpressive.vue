@@ -134,7 +134,7 @@ const isAiGeneratedText = (key: string) => {
   <div v-for="columnKey in columnKeys" :key="columnKey" class="relative not-last:mb-4">
     <GeneralIcon
       icon="ncNode"
-      class="w-[16px] h-[16px] text-nc-content-gray-muted bg-nc-bg-default absolute left-0 transform -translate-x-1/2"
+      class="w-[16px] h-[16px] text-nc-content-gray-muted bg-nc-bg-elevated absolute left-0 transform -translate-x-1/2"
       :class="[
         ['JSON', 'Attachment', 'SingleLineText', 'LongText'].includes(meta[columnKey]?.type)
           ? 'top-1'
@@ -177,7 +177,7 @@ const isAiGeneratedText = (key: string) => {
               <div
                 v-for="(item, i) of processOldDataFor(columnKey)"
                 :key="item.url || item.title"
-                class="border-1 border-nc-border-gray-medium rounded-md bg-nc-bg-default w-full"
+                class="border-1 border-nc-border-gray-medium rounded-md bg-nc-bg-elevated w-full"
               >
                 <div class="flex items-center gap-2 w-full">
                   <div class="flex items-center justify-center w-8 aspect-square">
@@ -208,7 +208,7 @@ const isAiGeneratedText = (key: string) => {
               <div
                 v-for="(item, i) of processNewDataFor(columnKey)"
                 :key="item.url || item.title"
-                class="border-1 border-nc-border-gray-medium rounded-md bg-nc-bg-default w-full"
+                class="border-1 border-nc-border-gray-medium rounded-md bg-nc-bg-elevated w-full"
               >
                 <div class="flex items-center gap-2 w-full">
                   <div class="flex items-center justify-center w-8 aspect-square">

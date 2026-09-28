@@ -1,5 +1,5 @@
 import { NcErrorType } from 'nocodb-sdk';
-import { DBError } from './utils';
+import { DBError, DBErrorKind } from './utils';
 import type { Logger } from '@nestjs/common';
 import type { DBErrorExtractResult, IClientDbErrorExtractor } from './utils';
 
@@ -47,6 +47,7 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
     let message: string;
     let _extra: Record<string, any>;
     let _type: DBError;
+    let _kind: DBErrorKind;
     let httpStatus = 422;
 
     // todo: handle not null constraint error for all databases
@@ -123,7 +124,11 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
         break;
       }
       case '42601':
-        message = 'There was a syntax error in your SQL query.';
+        message =
+          "This request couldn't be processed by the database. Please review your input and try again.";
+        // we generate the SQL, so a syntax error is our defect — must reach
+        // the log. knex has already prefixed the query onto `error.message`.
+        _kind = DBErrorKind.UNKNOWN;
         break;
       case '23502': {
         // not_null_violation. Surface the generic message and expose the
@@ -211,6 +216,36 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
         message = 'You do not have permission to perform this action.';
         httpStatus = 401;
         break;
+      case '42501': {
+        // insufficient_privilege — the connected DB role lacks the required
+        // permission. The most common case from the UI is ALTER TABLE failing
+        // because the role does not own the table; PG raises `must be owner of
+        // table X`. Other grants (SELECT/INSERT/...) raise `permission denied
+        // for <object> X`. Surface a clear, actionable message so users stop
+        // blindly retrying the same operation.
+        const raw = pgRawMessage(error) || '';
+        // Quoted and bare identifiers need separate alternatives: PG quotes
+        // anything that isn't lowercase-simple, and a single `[^"\s]+` capture
+        // stops at the space inside `"Order Items"` — naming a table that does
+        // not exist is worse than naming none.
+        const objectMatch = raw.match(
+          /(?:permission denied for|must be owner of)\s+(?:table|relation|view|schema|sequence|database)\s+(?:"([^"]+)"|(\S+))/i,
+        );
+        const objectName = objectMatch
+          ? objectMatch[1] ?? objectMatch[2]
+          : undefined;
+        if (/must be owner/i.test(raw)) {
+          message = objectName
+            ? `The database user is not the owner of '${objectName}' and cannot alter it.`
+            : 'The database user is not the owner of this table and cannot alter it.';
+        } else {
+          message = objectName
+            ? `The database user does not have permission to access '${objectName}'.`
+            : 'The database user does not have permission to perform this operation.';
+        }
+        httpStatus = 403;
+        break;
+      }
       case '40P01':
         message = 'A timeout occurred while waiting for a table lock.';
         httpStatus = 500;
@@ -388,6 +423,7 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
       code: error.code,
       httpStatus,
       ...(_extra && { details: _extra }),
+      ...(_kind && { kind: _kind }),
     };
   }
 }

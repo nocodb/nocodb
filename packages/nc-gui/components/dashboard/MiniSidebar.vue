@@ -41,13 +41,13 @@ const {
   isPanelExpanded: isChatPanelExpanded,
   hasWorkspaceContext: hasChatWorkspaceContext,
   hasBaseContext: hasChatBaseContext,
-  toggleChatPanel,
+  cycleChatPanel,
 } = useChatPanel()
 
 const { blockAiChat } = useEeConfig()
 
 const handleChatToggle = () => {
-  toggleChatPanel()
+  cycleChatPanel()
 }
 
 const navigateToProjectPage = () => {

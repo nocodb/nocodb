@@ -1,18 +1,22 @@
 <script lang="ts" setup>
-import { type BaseType, PlanFeatureTypes, PlanTitles, type TableType } from 'nocodb-sdk'
-
-import type { SidebarTableNode } from '~/lib/types'
+import { type BaseType, PlanFeatureTypes, PlanTitles, PresencePageType, type TableType } from 'nocodb-sdk'
+import type { SidebarTableNode, ViewPageType } from '~/lib/types'
 
 const props = withDefaults(
   defineProps<{
     base: BaseType
     table: SidebarTableNode
     sourceIndex: number
+    /** Rendered under a source node rather than at the base root. */
+    nested?: boolean
+    /** Extra indent when this row sits inside a base-level section, so the
+     *  table's view rows step in with it (EE; 0 everywhere else). */
+    sectionIndentPx?: number
   }>(),
-  { sourceIndex: 0 },
+  { sourceIndex: 0, nested: false, sectionIndentPx: 0 },
 )
 
-const { base, table, sourceIndex } = toRefs(props)
+const { base, table, sourceIndex, nested } = toRefs(props)
 
 const { openTable: _openTable } = useTableNew({
   baseId: base.value.id!,
@@ -20,7 +24,7 @@ const { openTable: _openTable } = useTableNew({
 
 const route = useRoute()
 
-const { isUIAllowed, sandboxRestrictionReason } = useRoles()
+const { isUIAllowed, environmentRestrictionReason } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
@@ -37,6 +41,13 @@ const { meta: metaKey, control } = useMagicKeys()
 const baseRole = inject(ProjectRoleInj)
 provide(SidebarTableInj, table)
 
+// Reaches this table's view rows (Views/Node) so they keep their one-step
+// offset from the table when the whole row is nested inside a section.
+provide(
+  SidebarSectionIndentInj,
+  computed(() => props.sectionIndentPx),
+)
+
 const { isBookmarkAllowed } = useBookmarks()
 
 const {
@@ -47,7 +58,7 @@ const {
   tableRenameId,
 } = inject(TreeViewInj)!
 
-const { loadViews: _loadViews } = useViewsStore()
+const { loadViews: _loadViews, onViewsTabChange } = useViewsStore()
 const { activeView } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
@@ -59,16 +70,23 @@ const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
 
 const openedTableId = computed(() => route.params.viewId)
 
+// Resolve from the table itself: inside a section the node renders outside its
+// source group, so `sourceIndex` is not the table's source — fall back to it only
+// when the table carries no `source_id`.
 const source = computed(() => {
-  return base.value?.sources?.[sourceIndex.value]
+  return base.value?.sources?.find((s) => s.id === table.value?.source_id) ?? base.value?.sources?.[sourceIndex.value]
 })
+
+/** Root-DB sections are stored with a null source — normalise so the menu asks
+ *  for the right group. Keyed on the root source, not index 0 (`baseRootSourceId`). */
+const isDefaultSourceTable = computed(() => table.value?.source_id === baseRootSourceId(base.value?.sources))
 
 const isTableDeleteDialogVisible = ref(false)
 const isTablePermissionsDialogVisible = ref(false)
-const isTableRlsDialogVisible = ref(false)
-const isTableDateDependencyDialogVisible = ref(false)
 
 const isOptionsOpen = ref(false)
+
+const isCreateViewMenuOpen = ref(false)
 
 const showTableNodeTooltip = ref(true)
 
@@ -297,14 +315,41 @@ async function onPermissions(_table: SidebarTableNode) {
   isTablePermissionsDialogVisible.value = true
 }
 
-function onRowLevelSecurity() {
+// RLS / Date Dependencies open in the table Tools shell. The shell is
+// route-driven, so land on this table's default view first when it isn't the
+// active one, then switch the slug.
+async function openTableTool(slug: ViewPageType) {
   isOptionsOpen.value = false
-  isTableRlsDialogVisible.value = true
+
+  if (activeView.value?.fk_model_id !== table.value.id) {
+    // openTable(table, cmdOrCtrl, navigate) — the second arg is the new-tab flag, keep it false.
+    await _openTable(table.value)
+    // The slug is pushed off activeView; wait until it is this table's view, not the previous one.
+    await until(() => activeView.value?.fk_model_id === table.value.id).toBeTruthy({ timeout: 10000 })
+
+    // `toBeTruthy` resolves rather than throws on timeout, so re-check instead
+    // of opening the shell for whichever table is still active.
+    if (activeView.value?.fk_model_id !== table.value.id) return
+  }
+
+  await onViewsTabChange(slug)
 }
 
-function onDateDependency() {
-  isOptionsOpen.value = false
-  isTableDateDependencyDialogVisible.value = true
+// Fire-and-forget from the menu; surface failures instead of an unhandled rejection.
+async function onRowLevelSecurity() {
+  try {
+    await openTableTool('rls')
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+async function onDateDependency() {
+  try {
+    await openTableTool('dates')
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 
 /** Cancel renaming view */
@@ -404,26 +449,26 @@ async function onRename() {
 
 const restrictionReasons = computed(() => {
   return {
-    tableRename: sandboxRestrictionReason('tableRename', { roles: baseRole?.value, source: source.value }),
-    tableDescriptionEdit: sandboxRestrictionReason('tableDescriptionEdit', { roles: baseRole?.value, source: source.value }),
+    tableRename: environmentRestrictionReason('tableRename', { roles: baseRole?.value, source: source.value }),
+    tableDescriptionEdit: environmentRestrictionReason('tableDescriptionEdit', { roles: baseRole?.value, source: source.value }),
     tableDuplicate:
       source.value?.is_meta || source.value?.is_local
-        ? sandboxRestrictionReason('tableDuplicate', { source: source.value })
+        ? environmentRestrictionReason('tableDuplicate', { source: source.value })
         : null,
     tablePermission:
       isEeUI && table.value?.type === 'table' && showEEFeatures.value
-        ? sandboxRestrictionReason('tablePermission', { roles: baseRole?.value, source: source.value })
+        ? environmentRestrictionReason('tablePermission', { roles: baseRole?.value, source: source.value })
         : null,
     tableRowLevelSecurity:
       isEeUI && table.value?.type === 'table' && showEEFeatures.value
-        ? sandboxRestrictionReason('rlsManage', { roles: baseRole?.value, source: source.value })
+        ? environmentRestrictionReason('rlsManage', { roles: baseRole?.value, source: source.value })
         : null,
-    tableDelete: sandboxRestrictionReason('tableDelete', { roles: baseRole?.value, source: source.value }),
+    tableDelete: environmentRestrictionReason('tableDelete', { roles: baseRole?.value, source: source.value }),
   }
 })
 
 const tableIconEditReason = computed(() =>
-  sandboxRestrictionReason('tableIconEdit', { roles: baseRole?.value, source: source.value }),
+  environmentRestrictionReason('tableIconEdit', { roles: baseRole?.value, source: source.value }),
 )
 
 const enabledOptions = computed(() => {
@@ -470,7 +515,7 @@ const isMmTable = computed(() => !!table.value?.mm)
     :data-order="table.order"
     :data-id="table.id"
     :data-table-id="table.id"
-    :class="[`nc-base-tree-tbl nc-base-tree-tbl-${table.title?.replaceAll(' ', '')}`]"
+    :class="[`nc-base-tree-tbl nc-base-tree-tbl-${toSafeClassName(table.title)}`]"
     :data-active="openedTableId === table.id"
   >
     <div class="flex items-center py-0.5">
@@ -481,7 +526,7 @@ const isMmTable = computed(() => !!table.value?.mm)
         class="w-full"
         trigger="hover"
         placement="right"
-        :disabled="!table?.synced || isEditing || isOptionsOpen || !showTableNodeTooltip || isMobileMode"
+        :disabled="!table?.synced || isEditing || isOptionsOpen || isCreateViewMenuOpen || !showTableNodeTooltip || isMobileMode"
       >
         <template #title>
           <DashboardTreeViewTableSyncStatusBadge :table="table" />
@@ -491,8 +536,8 @@ const isMmTable = computed(() => !!table.value?.mm)
           class="flex-none flex-1 table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7 w-full group cursor-pointer hover:bg-nc-bg-gray-medium text-bodyDefaultSm font-medium"
           :class="{
             'hover:bg-nc-bg-gray-medium': openedTableId !== table.id,
-            'pl-8 rtl:(pr-8 pl-0.75)': sourceIndex !== 0,
-            'pl-2 xs:(pl-2) rtl:(pr-2 pl-0.75) rtl:xs:(pr-2 pl-0.75)': sourceIndex === 0,
+            'pl-8 rtl:(pr-8 pl-0.75)': nested,
+            'pl-2 xs:(pl-2) rtl:(pr-2 pl-0.75) rtl:xs:(pr-2 pl-0.75)': !nested,
           }"
           :data-testid="`nc-tbl-side-node-${table.title}`"
           @contextmenu="setMenuContext('table', table)"
@@ -513,7 +558,7 @@ const isMmTable = computed(() => !!table.value?.mm)
                   :class="{ '!rotate-90': isExpanded }"
                 />
               </div>
-              <div v-if="!table.isViewsLoading" class="flex items-center nc-table-icon-wrapper min-w-6 relative" @click.stop>
+              <div v-if="!table.isViewsLoading" class="flex items-center nc-table-icon-wrapper min-w-6 h-6 relative" @click.stop>
                 <!-- Desktop: combo chevron overlay -->
                 <NcButton
                   v-e="['c:table:toggle-expand']"
@@ -591,6 +636,11 @@ const isMmTable = computed(() => !!table.value?.mm)
               {{ table.title }}
             </span>
           </NcTooltip>
+          <DashboardTreeViewPresenceAvatars
+            v-if="isEeUI && !isEditing"
+            :resource-id="table.id"
+            :page-type="PresencePageType.TABLE"
+          />
           <div
             v-if="!isEditing"
             class="flex items-center"
@@ -615,7 +665,7 @@ const isMmTable = computed(() => !!table.value?.mm)
                 v-e="['c:table:option']"
                 class="nc-sidebar-node-btn nc-tbl-context-menu text-nc-content-gray-subtle hover:text-nc-content-gray"
                 :class="{
-                  '!opacity-100 !inline-block': isOptionsOpen,
+                  '!opacity-100 !inline-block': isOptionsOpen || isCreateViewMenuOpen,
                 }"
                 data-testid="nc-sidebar-table-context-menu"
                 type="text"
@@ -692,6 +742,18 @@ const isMmTable = computed(() => !!table.value?.mm)
                         </div>
                       </NcMenuItem>
                     </NcTooltip>
+
+                    <!-- Move to a section of this table's own source (EE) -->
+                    <DashboardTreeViewDataMoveToSectionMenu
+                      v-if="isEeUI && table.id && base.id"
+                      :entity-id="table.id"
+                      entity-type="table"
+                      :base-id="base.id"
+                      :source-id="isDefaultSourceTable ? null : table.source_id"
+                      :current-section-id="table.fk_base_section_id ?? null"
+                      :order="table.order"
+                      @close-modal="isOptionsOpen = false"
+                    />
                     <NcDivider />
 
                     <NcTooltip
@@ -859,6 +921,7 @@ const isMmTable = computed(() => !!table.value?.mm)
               :align-left-level="undefined"
               :source="source"
               placement="bottomRight"
+              @visible-change="isCreateViewMenuOpen = $event"
             >
               <NcButton
                 v-e="['c:table:create-view']"
@@ -866,7 +929,7 @@ const isMmTable = computed(() => !!table.value?.mm)
                 size="xxsmall"
                 class="nc-sidebar-node-btn nc-sidebar-expand text-nc-content-gray-subtle2 hover:text-nc-content-gray"
                 :class="{
-                  '!opacity-100 !visible': isOptionsOpen,
+                  '!opacity-100 !visible': isOptionsOpen || isCreateViewMenuOpen,
                 }"
                 data-testid="nc-sidebar-table-create-view-btn"
                 @click.stop
@@ -889,18 +952,6 @@ const isMmTable = computed(() => !!table.value?.mm)
     <DlgTablePermissions
       v-if="table.id && isEeUI"
       v-model:visible="isTablePermissionsDialogVisible"
-      :table-id="table.id"
-      :title="table.title"
-    />
-    <DlgTableRowLevelSecurity
-      v-if="table.id && isEeUI"
-      v-model:visible="isTableRlsDialogVisible"
-      :table-id="table.id"
-      :title="table.title"
-    />
-    <DlgTableDateDependency
-      v-if="table.id && isEeUI"
-      v-model:visible="isTableDateDependencyDialogVisible"
       :table-id="table.id"
       :title="table.title"
     />

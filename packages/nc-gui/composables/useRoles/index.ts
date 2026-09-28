@@ -59,6 +59,12 @@ export const useRolesShared = createSharedComposable(() => {
     return orgRoles
   })
 
+  // CE has no org-role concept (org/workspace roles are an EE feature), so this
+  // is a stub. The real implementation lives in `ee/composables/useRoles` and
+  // gates org-admin surfaces such as the instance-wide audit log at
+  // /account/audit. Mirrors the CE-stub / EE-impl split of `useOrgUserInvitePicker`.
+  const isOrgAdmin = computed<boolean>(() => false)
+
   const baseRoles = computed<RolesObj | null>(() => {
     let baseRoles = user.value?.base_roles ?? {}
 
@@ -203,10 +209,24 @@ export const useRolesShared = createSharedComposable(() => {
 
   const isBaseRolesLoaded = computed(() => !!user.value?.base_roles || !!user.value?.workspace_roles)
 
-  // CE has no sandbox concept — always returns null so CE behavior is identical to before.
-  const sandboxRestrictionReason = (..._args: any[]): string | null => null
+  // CE has no environments concept — always returns null so CE behavior is identical to before.
+  const environmentRestrictionReason = (..._args: any[]): string | null => null
 
-  return { allRoles, orgRoles, workspaceRoles, baseRoles, loadRoles, isUIAllowed, isBaseRolesLoaded, sandboxRestrictionReason }
+  // CE has no App User role.
+  const isAppUserOnly = computed(() => false)
+
+  return {
+    allRoles,
+    orgRoles,
+    isOrgAdmin,
+    workspaceRoles,
+    baseRoles,
+    isAppUserOnly,
+    loadRoles,
+    isUIAllowed,
+    isBaseRolesLoaded,
+    environmentRestrictionReason,
+  }
 })
 
 type IsUIAllowedParams = Parameters<ReturnType<typeof useRolesShared>['isUIAllowed']>
@@ -216,7 +236,11 @@ type IsUIAllowedParams = Parameters<ReturnType<typeof useRolesShared>['isUIAllow
  * which will be used to determine if a user has permission to perform an action based on the source's restrictions
  */
 export const useRoles = () => {
-  const currentSource = inject(ActiveSourceInj, ref())
+  // `inject()` returns `undefined` (not the supplied fallback) when called outside a
+  // component setup context — e.g. from a raw canvas cell click handler. Coalescing to a
+  // fresh ref keeps `.value` accesses in the computeds below from throwing
+  // "Cannot read properties of undefined (reading 'value')" in that case.
+  const currentSource = inject(ActiveSourceInj, ref()) ?? ref()
   const useRolesRes = useRolesShared()
 
   const isMetaReadOnly = computed(() => {
@@ -232,7 +256,10 @@ export const useRoles = () => {
     isUIAllowed: (...args: IsUIAllowedParams) => {
       return useRolesRes.isUIAllowed(args[0], { source: currentSource, ...(args[1] || {}) })
     },
-    sandboxRestrictionReason: (..._args: any[]): string | null => null,
+    environmentRestrictionReason: (..._args: any[]): string | null => null,
+    // CE has no managed apps, so no base is ever locked by a publisher.
+    managedAppRestrictionReason: (..._args: any[]): string | null => null,
+    isManagedAppLocked: (..._args: any[]): boolean => false,
     isDataReadOnly,
     isMetaReadOnly,
   }

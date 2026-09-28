@@ -461,11 +461,13 @@ const onChange = () => {
   isError.value = false
 }
 
-onMounted(() => {
+onMounted(async () => {
   // When importing into an existing table we want exact column names from the
   // source so the user-supplied mapping wins — skip type auto-detection.
   importState.parserConfig.autoSelectFieldTypes = !importDataOnly
   importState.options.importDataOnly = importDataOnly
+
+  await focusModalWrap('nc-modal-quick-import')
 })
 
 const onCancelImport = () => {
@@ -1011,7 +1013,7 @@ watch(
 span:has(> .nc-modern-drag-import) {
   display: flex;
   flex-direction: column-reverse;
-  :deep(& > .ant-upload-list:has(.ant-upload-list-picture-container)) {
+  :deep(> .ant-upload-list:has(.ant-upload-list-picture-container)) {
     @apply mb-4 space-y-2 transition-all nc-scrollbar-thin overflow-hidden;
   }
 }

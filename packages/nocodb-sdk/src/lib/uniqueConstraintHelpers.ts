@@ -1,4 +1,4 @@
-import { UITypes } from './';
+import UITypes from './UITypes';
 
 /**
  * Field types that support unique constraints

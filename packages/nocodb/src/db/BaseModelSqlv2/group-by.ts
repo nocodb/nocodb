@@ -1,4 +1,11 @@
-import { extractFilterFromXwhere, FormulaDataTypes, UITypes } from 'nocodb-sdk';
+import {
+  extractFilterFromXwhere,
+  FormulaDataTypes,
+  isBtLikeV2Junction,
+  isFieldTrackingLmbCol,
+  isFieldTrackingLmtCol,
+  UITypes,
+} from 'nocodb-sdk';
 import type { ClientType } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
@@ -12,6 +19,10 @@ import type {
 import { DBQueryClient } from '~/dbQueryClient';
 import { sanitize } from '~/helpers/sqlSanitize';
 import conditionV2 from '~/db/conditionV2';
+import {
+  lmbFieldQueryBuilder,
+  lmtFieldQueryBuilder,
+} from '~/db/formulav2/lmtFieldQueryBuilder';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { NcError } from '~/helpers/catchError';
@@ -21,7 +32,10 @@ import {
   getAs,
   getColumnName,
 } from '~/helpers/dbHelpers';
-import { BaseUser, Column, Filter, Sort } from '~/models';
+import { BaseUser, Column, Filter, Sort, View } from '~/models';
+import { isSharedViewAccess } from '~/helpers/accessSource';
+import { getViewExposedColumnIds } from '~/helpers/viewVisibleColumns';
+import { setModelContext } from '~/helpers/modelContext';
 import { getAliasGenerator } from '~/utils';
 import { NC_DISABLE_GROUP_BY_LIMIT } from '~/utils/nc-config';
 
@@ -92,7 +106,59 @@ const sqlNullIfBlank = ({
   return baseModel.dbDriver.raw(`NULLIF(??, '')`, [columnName]);
 };
 
+// NULL and false both render and filter (`notchecked`) as unchecked, so they must share a
+// group — otherwise two "Unchecked" groups each fetch the same rows. Returns null when the
+// column type can't take either literal (e.g. pg `bit`), leaving the default grouping.
+const checkboxGroupKey = ({
+  baseModel,
+  column,
+  columnName,
+}: {
+  baseModel: IBaseModelSqlV2;
+  column: Column;
+  columnName: string;
+}) => {
+  if (column.uidt !== UITypes.Checkbox) return null;
+  const dt = (column.dt ?? '').toLowerCase();
+  // pg, Snowflake and Databricks booleans reject a numeric literal in COALESCE
+  if (
+    (baseModel.isPg || baseModel.isSnowflake || baseModel.isDatabricks) &&
+    ['bool', 'boolean'].includes(dt)
+  ) {
+    return baseModel.dbDriver.raw('COALESCE(??, false)', [columnName]);
+  }
+  if (baseModel.isPg && !/^(int|smallint|bigint)/.test(dt)) return null;
+  return baseModel.dbDriver.raw('COALESCE(??, 0)', [columnName]);
+};
+
 export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
+  // pg ranks NaN above every number, so ordering group keys by the raw value
+  // puts the NaN group last while the rows inside it sort NaN first (see
+  // FormulaGeneralHandler.applySort). Rank NaN below -Infinity here too, or the
+  // group list and its contents disagree about the same column.
+  const applyIeeeNanRank = (
+    qb: Knex.QueryBuilder,
+    column: Column,
+    direction: string,
+    nulls: 'FIRST' | 'LAST',
+  ) => {
+    if (!baseModel.isPg || column.uidt !== UITypes.Formula) return;
+    if (
+      (column.colOptions as FormulaColumn)?.getParsedTree?.()?.dataType !==
+      FormulaDataTypes.NUMERIC
+    ) {
+      return;
+    }
+    qb.orderBy(
+      baseModel.dbDriver.raw(`??.?? <> 'NaN'::double precision`, [
+        'g',
+        getAs(column),
+      ]) as any,
+      direction,
+      nulls,
+    );
+  };
+
   // Wrap a subquery as a derived table with an alias, deferring the dialect's
   // table-alias syntax to the query client (Oracle forbids `AS` on a table
   // alias; the rest use `(..) as ..`).
@@ -130,7 +196,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     }
     const subGroupColumnName = args.subGroupColumnName;
 
-    const columns = await baseModel.model.getColumns(baseModel.context);
+    const columns = await baseModel.model.getColumns();
     const groupByColumns: Record<string, Column> = {};
 
     const selectors = [];
@@ -141,11 +207,34 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         c.title === subGroupColumnName || c.column_name === subGroupColumnName,
     );
 
+    // A shared-view caller must not group by a column the view hides — grouping
+    // emits the column's distinct values, and sub-grouping emits them via
+    // COUNT(DISTINCT ...). `restrictSharedViewColumnReferences` resolves refs
+    // through `aliasColObjMap` (title/id only), so a `column_name` reference
+    // falls through it as "unknown"; enforce here, where resolution matches the
+    // title-OR-column_name lookup the builder actually uses.
+    let exposedColumnIds: Set<string> | null = null;
+    if (isSharedViewAccess(baseModel.context) && baseModel.viewId) {
+      const view = await View.get(baseModel.context, baseModel.viewId);
+      if (view) {
+        exposedColumnIds = await getViewExposedColumnIds(baseModel.context, {
+          model: baseModel.model,
+          view,
+        });
+      }
+    }
+
     const processColumn = async (col: string, isSubGroup: boolean = false) => {
       let column = columns.find(
         (c) => c.column_name === col || c.title === col,
       );
       if (!column) {
+        NcError.get(baseModel.context).fieldNotFound(col);
+      }
+
+      // Same response as an unknown field, so a hidden column stays
+      // indistinguishable from one that does not exist.
+      if (exposedColumnIds && !exposedColumnIds.has(column.id)) {
         NcError.get(baseModel.context).fieldNotFound(col);
       }
 
@@ -157,12 +246,15 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
       // if qrCode or Barcode replace it with value column nd keep the alias
       if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt)) {
-        column = new Column({
-          ...(await column
-            .getColOptions<BarcodeColumn | QrCodeColumn>(baseModel.context)
-            .then((col) => col.getValueColumn(baseModel.context))),
-          asId: column.id,
-        });
+        column = setModelContext(
+          new Column({
+            ...(await column
+              .getColOptions<BarcodeColumn | QrCodeColumn>()
+              .then((col) => col.getValueColumn())),
+            asId: column.id,
+          }),
+          baseModel.context,
+        );
       }
 
       const alias = getAs(column);
@@ -172,7 +264,14 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       }
 
       let columnQuery;
-      switch (column.uidt) {
+
+      // V2 MO/OO are `Links` columns but have single-record semantics, so they
+      // group on the linked display value like BT — not on a link count.
+      const groupByUidt = isBtLikeV2Junction(column)
+        ? UITypes.LinkToAnotherRecord
+        : column.uidt;
+
+      switch (groupByUidt) {
         case UITypes.Attachment:
           NcError.get(baseModel.context).badRequest(
             'Group by using attachment column is not supported',
@@ -189,9 +288,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             await genRollupSelectv2({
               baseModelSqlv2: baseModel,
               knex: baseModel.dbDriver,
-              columnOptions: (await column.getColOptions(
-                baseModel.context,
-              )) as RollupColumn,
+              columnOptions: (await column.getColOptions()) as RollupColumn,
             })
           ).builder;
           if (!isSubGroup) {
@@ -264,10 +361,15 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             column,
             columns,
           );
+          // a LastModifiedTime column tracking specific fields has no
+          // physical column — bucket its synthetic formula expression
+          const columnRef = isFieldTrackingLmtCol(column)
+            ? (await lmtFieldQueryBuilder({ baseModel, column })).builder
+            : columnName;
           if (baseModel.dbDriver.clientType() === 'pg') {
             columnQuery = baseModel.dbDriver.raw(
               "date_trunc('minute', ??) + interval '0 seconds'",
-              [columnName],
+              [columnRef],
             );
           } else if (
             baseModel.dbDriver.clientType() === 'mysql' ||
@@ -275,12 +377,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           ) {
             columnQuery = baseModel.dbDriver.raw(
               "DATE_SUB(CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00'), INTERVAL SECOND(??) SECOND)",
-              [columnName, columnName],
+              [columnRef, columnRef],
             );
           } else if (baseModel.dbDriver.clientType() === 'sqlite3') {
             columnQuery = baseModel.dbDriver.raw(
               `strftime('%Y-%m-%d %H:%M:00', ??)`,
-              [columnName],
+              [columnRef],
             );
           } else if (baseModel.isMssql) {
             // SQL Server 2022 (major version 16) introduced native DATETRUNC;
@@ -358,15 +460,21 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           break;
         }
         default: {
-          const defaultColumnName = await getColumnName(
-            baseModel.context,
-            column,
-            columns,
-          );
-          const defaultColumnNameQb = sqlNullIfBlank({
-            columnName: defaultColumnName,
-            baseModel,
-          });
+          // a LastModifiedBy column tracking specific fields has no
+          // physical column — group on its latest-tracked-editor expression
+          const defaultColumnName: any = isFieldTrackingLmbCol(column)
+            ? (await lmbFieldQueryBuilder({ baseModel, column })).builder
+            : await getColumnName(baseModel.context, column, columns);
+          const defaultColumnNameQb =
+            checkboxGroupKey({
+              baseModel,
+              column,
+              columnName: defaultColumnName,
+            }) ??
+            sqlNullIfBlank({
+              columnName: defaultColumnName,
+              baseModel,
+            });
           columnQuery = baseModel.dbDriver.raw('??', [defaultColumnNameQb]);
           if (!isSubGroup) {
             selectors.push(
@@ -410,6 +518,21 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             '__nc_sub_group_col__',
           ]),
         );
+      } else if (baseModel.isOracle) {
+        // Oracle counts sub-groups on the OUTER derived table too (see the
+        // `isMssql || isOracle` branch below: COUNT(DISTINCT COALESCE(
+        // __nc_sub_group_col__, '__null__'))), so it must project the sub-group
+        // COLUMN here — NOT the pg-style inline COUNT(DISTINCT) aggregate.
+        // Oracle can't aggregate on this ungrouped inner query (ORA-00937), and
+        // taking the pg branch meant the outer referenced a __nc_sub_group_col__
+        // that was never projected → the sub-group count came back missing/NaN,
+        // so nested group expansion couldn't grow the canvas virtual height.
+        qb.select(
+          baseModel.dbDriver.raw(`TO_CHAR(??) as ??`, [
+            baseModel.dbDriver.raw(subGroupQuery),
+            '__nc_sub_group_col__',
+          ]),
+        );
       } else {
         // The template literal below coerces the wrapped Raw via `.toString()`
         // → `.toQuery()`, whose `formatQuery` step unescapes `\?` back to `?`.
@@ -438,10 +561,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       await baseModel.shuffle({ qb });
     }
 
-    const aliasColObjMap = await baseModel.model.getAliasColObjMap(
-      baseModel.context,
-      columns,
-    );
+    const aliasColObjMap = await baseModel.model.getAliasColObjMap(columns);
 
     let sorts = extractSortsObject(
       baseModel.context,
@@ -573,6 +693,8 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
     // Apply order by on the outer query, referencing g.<alias>
     for (const sort of sorts || []) {
+      // skip disabled sorts (enabled === false or enabled === 0)
+      if (sort.enabled != null && !sort.enabled) continue;
       if (!groupByColumns[sort.fk_column_id]) {
         continue;
       }
@@ -651,6 +773,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             sort.direction === 'count-desc' ? 'desc' : 'asc',
             sort.direction === 'count-desc' ? 'LAST' : 'FIRST',
           );
+          applyIeeeNanRank(outerQb, column, sort.direction, 'FIRST');
           outerQb.orderBy(
             baseModel.dbDriver.raw('??.??', ['g', getAs(column)]) as any,
             sort.direction,
@@ -664,6 +787,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             ['g', getAs(column), 'g', getAs(column)],
           );
         } else {
+          applyIeeeNanRank(
+            outerQb,
+            column,
+            sort.direction,
+            sort.direction === 'desc' ? 'LAST' : 'FIRST',
+          );
           outerQb.orderBy(
             baseModel.dbDriver.raw('??.??', ['g', getAs(column)]) as any,
             sort.direction,
@@ -732,7 +861,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     const groupBySelectors = [];
     const getAlias = getAliasGenerator('__nc_gb');
 
-    const columns = await baseModel.model.getColumns(baseModel.context);
+    const columns = await baseModel.model.getColumns();
 
     // todo: refactor and avoid duplicate code
     await Promise.all(
@@ -746,14 +875,23 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
         // if qrCode or Barcode replace it with value column nd keep the alias
         if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
-          column = new Column({
-            ...(await column
-              .getColOptions<BarcodeColumn | QrCodeColumn>(baseModel.context)
-              .then((col) => col.getValueColumn(baseModel.context))),
-            asId: column.id,
-          });
+          column = setModelContext(
+            new Column({
+              ...(await column
+                .getColOptions<BarcodeColumn | QrCodeColumn>()
+                .then((col) => col.getValueColumn())),
+              asId: column.id,
+            }),
+            baseModel.context,
+          );
 
-        switch (column.uidt) {
+        // See the equivalent normalization in `list` — V2 MO/OO group on the
+        // linked display value, not on a link count.
+        const groupByUidt = isBtLikeV2Junction(column)
+          ? UITypes.LinkToAnotherRecord
+          : column.uidt;
+
+        switch (groupByUidt) {
           case UITypes.Attachment:
             NcError.get(baseModel.context).badRequest(
               'Group by using attachment column is not supported',
@@ -767,9 +905,8 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           }
           case UITypes.Rollup:
           case UITypes.Links: {
-            const rollupColOptions = (await column.getColOptions(
-              baseModel.context,
-            )) as RollupColumn;
+            const rollupColOptions =
+              (await column.getColOptions()) as RollupColumn;
             if (rollupColOptions?.error) {
               selectors.push(
                 baseModel.dbDriver.raw(`? as ??`, [null, getAs(column)]),
@@ -856,12 +993,17 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 column,
                 columns,
               );
+              // a LastModifiedTime column tracking specific fields has no
+              // physical column — bucket its synthetic formula expression
+              const columnRef = isFieldTrackingLmtCol(column)
+                ? (await lmtFieldQueryBuilder({ baseModel, column })).builder
+                : columnName;
               // ignore seconds part in datetime and group
               if (baseModel.dbDriver.clientType() === 'pg') {
                 selectors.push(
                   baseModel.dbDriver.raw(
                     "date_trunc('minute', ??) + interval '0 seconds' as ??",
-                    [columnName, getAs(column)],
+                    [columnRef, getAs(column)],
                   ),
                 );
               } else if (
@@ -972,14 +1114,16 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           }
           default:
             {
-              const columnName = await getColumnName(
-                baseModel.context,
-                column,
-                columns,
-              );
+              // a LastModifiedBy column tracking specific fields has no
+              // physical column — group on its latest-tracked-editor
+              // expression
+              const columnName: any = isFieldTrackingLmbCol(column)
+                ? (await lmbFieldQueryBuilder({ baseModel, column })).builder
+                : await getColumnName(baseModel.context, column, columns);
               selectors.push(
                 baseModel.dbDriver.raw('?? as ??', [
-                  sqlNullIfBlank({ columnName, baseModel }),
+                  checkboxGroupKey({ baseModel, column, columnName }) ??
+                    sqlNullIfBlank({ columnName, baseModel }),
                   getAs(column),
                 ]),
               );
@@ -1000,10 +1144,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     }
     qb.select(...selectors);
 
-    const aliasColObjMap = await baseModel.model.getAliasColObjMap(
-      baseModel.context,
-      columns,
-    );
+    const aliasColObjMap = await baseModel.model.getAliasColObjMap(columns);
 
     const { filters: filterObj } = extractFilterFromXwhere(
       baseModel.context,

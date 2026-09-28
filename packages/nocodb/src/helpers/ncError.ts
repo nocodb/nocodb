@@ -4,6 +4,8 @@ import { NcErrorV3 } from './ncErrorV3';
 import type { ErrorObject } from 'ajv';
 import type {
   BaseType,
+  CreditsExhaustedDetailsType,
+  LicenseInactiveReason,
   NcErrorArgs,
   PlanLimitExceededDetailsType,
   SourceType,
@@ -37,6 +39,10 @@ export class NcError {
     return NcError._.workspaceNotFound(id, args);
   }
 
+  static orgNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.orgNotFound(id, args);
+  }
+
   static columnAssociatedWithLink(_id: string, args: NcErrorArgs): never {
     return NcError._.columnAssociatedWithLink(_id, args);
   }
@@ -65,6 +71,14 @@ export class NcError {
     return NcError._.dashboardNotFound(id, args);
   }
 
+  static interfaceNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.interfaceNotFound(id, args);
+  }
+
+  static interfacePageNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.interfacePageNotFound(id, args);
+  }
+
   static chatSessionNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.chatSessionNotFound(id, args);
   }
@@ -75,6 +89,18 @@ export class NcError {
 
   static viewSectionNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.viewSectionNotFound(id, args);
+  }
+
+  static baseSectionNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.baseSectionNotFound(id, args);
+  }
+
+  static automationSectionNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.automationSectionNotFound(id, args);
+  }
+
+  static agentSectionNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.agentSectionNotFound(id, args);
   }
 
   static sourceNotFound(id: string, args?: NcErrorArgs): never {
@@ -105,12 +131,32 @@ export class NcError {
     return NcError._.hookNotFound(id, args);
   }
 
+  static appVersionNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.appVersionNotFound(id, args);
+  }
+
+  static managedAppNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.managedAppNotFound(id, args);
+  }
+
   static genericNotFound(
     resource: string,
     id: string,
     args?: NcErrorArgs,
   ): never {
     return NcError._.genericNotFound(resource, id, args);
+  }
+
+  static skillNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.skillNotFound(id, args);
+  }
+
+  static skillSourceInvalid(ref: string, args?: NcErrorArgs): never {
+    return NcError._.skillSourceInvalid(ref, args);
+  }
+
+  static skillCatalogUnavailable(repo: string, args?: NcErrorArgs): never {
+    return NcError._.skillCatalogUnavailable(repo, args);
   }
 
   static requiredFieldMissing(field: string, args?: NcErrorArgs): never {
@@ -183,6 +229,10 @@ export class NcError {
     return NcError._.internalServerError(message, args);
   }
 
+  static contextAlreadySet(modelName: string): never {
+    return NcError._.contextAlreadySet(modelName);
+  }
+
   static systemMisconfigured(message: string, args?: NcErrorArgs): never {
     return NcError._.systemMisconfigured(message, args);
   }
@@ -219,6 +269,10 @@ export class NcError {
     return NcError._.integrationNotFound(id, args);
   }
 
+  static environmentNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.environmentNotFound(id, args);
+  }
+
   static syncConfigNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.syncConfigNotFound(id, args);
   }
@@ -249,6 +303,17 @@ export class NcError {
     args?: NcErrorArgs,
   ): never {
     return NcError._.planLimitExceeded(message, details, args);
+  }
+
+  static creditPackNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.creditPackNotFound(id, args);
+  }
+
+  static creditsExhausted(
+    details?: CreditsExhaustedDetailsType,
+    args?: NcErrorArgs,
+  ): never {
+    return NcError._.creditsExhausted(details, args);
   }
 
   static allowedOnlySSOAccess(ncWorkspaceId: string): never {
@@ -360,8 +425,12 @@ export class NcError {
   static pluginTestError(message: string, args?: NcErrorArgs): never {
     return NcError._.pluginTestError(message, args);
   }
-  static licenseRequired(feature?: string, args?: NcErrorArgs): never {
-    return NcError._.licenseRequired(feature, args);
+  static licenseRequired(
+    operation?: string,
+    reason?: LicenseInactiveReason,
+    args?: NcErrorArgs,
+  ): never {
+    return NcError._.licenseRequired(operation, reason, args);
   }
 
   static licenseSuspended(args?: NcErrorArgs): never {

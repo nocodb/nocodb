@@ -110,11 +110,19 @@ export const useOnboardingFlow = createSharedComposable(() => {
 
   const { updateUserProfile } = useUsers()
 
+  const { hasBuildIntent } = useBuildIntent()
+
+  const { markOnboardingHandoff } = useTours()
+
   const isEnabledOnboardingFlow = computed(() => {
     return (
       !appInfo.value.disableOnboardingFlow &&
       !ncIsPlaywright() &&
       signedIn.value &&
+      // A visitor who arrived from the landing page already told us what they want to
+      // build — hold the questionnaire back so the funnel goes straight to the build.
+      // `is_new_user` is left untouched, so they still see it on a later visit.
+      !hasBuildIntent.value &&
       !isSharedBase.value &&
       !isSharedErd.value &&
       !isSharedViewRoute(route.value) &&
@@ -532,7 +540,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
             value: 'Claude',
             icons: [
               {
-                icon: 'claude',
+                icon: 'ncLogoClaude',
               },
             ],
           },
@@ -958,6 +966,8 @@ export const useOnboardingFlow = createSharedComposable(() => {
     isSubmitting.value = true
 
     postCompleteOnboardingFlow(skipped)
+
+    markOnboardingHandoff()
 
     /**
      * Mark `is_new_user` as `false` in user object after onboarding flow is completed

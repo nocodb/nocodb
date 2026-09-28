@@ -27,19 +27,23 @@ const source = toRef(props, 'source')
 
 const base = toRef(props, 'base')
 
-const { isUIAllowed, sandboxRestrictionReason } = useRoles()
+const { isUIAllowed, environmentRestrictionReason } = useRoles()
 
 const baseRole = computed(() => base.value.project_role || base.value.workspace_role)
 
 const airtableImportReason = computed(() =>
-  sandboxRestrictionReason('airtableImport', { roles: baseRole.value, source: source.value }),
+  environmentRestrictionReason('airtableImport', { roles: baseRole.value, source: source.value }),
 )
 
-const csvImportReason = computed(() => sandboxRestrictionReason('csvImport', { roles: baseRole.value, source: source.value }))
+const csvImportReason = computed(() => environmentRestrictionReason('csvImport', { roles: baseRole.value, source: source.value }))
 
-const jsonImportReason = computed(() => sandboxRestrictionReason('jsonImport', { roles: baseRole.value, source: source.value }))
+const jsonImportReason = computed(() =>
+  environmentRestrictionReason('jsonImport', { roles: baseRole.value, source: source.value }),
+)
 
-const excelImportReason = computed(() => sandboxRestrictionReason('excelImport', { roles: baseRole.value, source: source.value }))
+const excelImportReason = computed(() =>
+  environmentRestrictionReason('excelImport', { roles: baseRole.value, source: source.value }),
+)
 
 const anyImportReason = computed(
   () => !!airtableImportReason.value || !!csvImportReason.value || !!jsonImportReason.value || !!excelImportReason.value,

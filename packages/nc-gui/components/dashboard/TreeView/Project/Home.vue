@@ -7,8 +7,6 @@ const { activeSidebarTab } = storeToRefs(sidebarStore)
 
 const { isSharedBase } = storeToRefs(useBase())
 
-const { isMobileMode } = useGlobal()
-
 const base = inject(ProjectInj)!
 
 const baseRole = inject(ProjectRoleInj)!
@@ -99,11 +97,9 @@ const hasTableCreatePermission = computed(() => {
 
       <!-- Settings panel -->
       <template v-else-if="activeSidebarTab === 'settings'">
-        <DashboardTreeViewProjectBaseSettingsMenu v-if="!isSharedBase" />
-        <template v-if="showWsSettingsInBase">
-          <div v-if="!isSharedBase && !isMobileMode" class="mx-3 border-t border-nc-border-gray-medium"></div>
-          <DashboardTreeViewProjectWsSettingsMenu />
-        </template>
+        <!-- Base settings is a modal now (ProjectSettingsShell); only the
+             workspace's own settings still live in this sidebar. -->
+        <DashboardTreeViewProjectWsSettingsMenu v-if="showWsSettingsInBase" />
       </template>
 
       <!-- Fallback to data -->

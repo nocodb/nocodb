@@ -4,6 +4,7 @@ import express from 'express';
 
 import Noco from '~/Noco';
 import { handleUncaughtErrors } from '~/utils';
+import { ncStaticCompression, ncStaticOptions } from '~/helpers/staticAssets';
 handleUncaughtErrors(process);
 
 const server = express();
@@ -11,7 +12,8 @@ server.enable('trust proxy');
 server.use(cors());
 server.use(
   process.env.NC_DASHBOARD_URL ?? '/',
-  express.static(path.join(__dirname, 'nc-gui')),
+  ncStaticCompression(),
+  express.static(path.join(__dirname, 'nc-gui'), ncStaticOptions),
 );
 server.set('view engine', 'ejs');
 

@@ -39,7 +39,6 @@ export class SharedBasesController {
       {
         baseId: baseId,
         roles: body?.roles,
-        password: body?.password,
         siteUrl: req.ncSiteUrl,
         req,
       },
@@ -64,7 +63,6 @@ export class SharedBasesController {
       {
         baseId: baseId,
         roles: body?.roles,
-        password: body?.password,
         siteUrl: req.ncSiteUrl,
         req,
         custom_url_path: body.custom_url_path,

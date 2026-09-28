@@ -174,16 +174,16 @@ async function copyComment(comment: CommentType) {
       />
     </div>
     <div
-      class="flex-1 bg-nc-bg-default rounded-lg border-1 group ml-11.5 rtl:(mr-11.5 ml-0)"
+      class="flex-1 bg-nc-bg-elevated rounded-lg border-1 group ml-11.5 rtl:(mr-11.5 ml-0)"
       :class="{
-        'border-nc-brand-200/70 dark:!border-[#388bfd4b]': isCreatedByYou,
+        'nc-own-comment border-nc-brand-200/70': isCreatedByYou,
         'border-nc-border-gray-medium': !isCreatedByYou,
       }"
     >
       <div
         class="flex items-center gap-2 bg-nc-bg-gray-extralight px-4 py-0.5 border-b rounded-t-lg text-nc-content-gray min-h-[28px]"
         :class="{
-          '!bg-nc-bg-brand border-nc-brand-200/70 dark:(!bg-[#151b23] !border-[#388bfd4b])': isCreatedByYou,
+          'nc-own-comment-head !bg-nc-bg-brand border-nc-brand-200/70': isCreatedByYou,
           'border-nc-border-gray-medium': !isCreatedByYou,
         }"
       >
@@ -284,7 +284,7 @@ async function copyComment(comment: CommentType) {
           autofocus-to-end
           :hide-options="false"
           :extra-save-enabled="editAttachments.length > 0"
-          class="cursor-text expanded-form-comment-input !py-3 !px-4 !pr-3 !m-0 w-full !border-1 !border-nc-border-gray-medium !rounded-lg !bg-nc-bg-default !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
+          class="cursor-text expanded-form-comment-input !py-3 !px-4 !pr-3 !m-0 w-full !border-1 !border-nc-border-gray-medium !rounded-lg !bg-nc-bg-elevated !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
           data-testid="expanded-form-comment-input"
           sync-value-change
           @save="onEditComment"
@@ -352,6 +352,13 @@ async function copyComment(comment: CommentType) {
 </style>
 
 <style lang="scss">
+/* dark: own-comment rim — brand at low alpha follows the palette and stays quiet
+   (a solid brand border reads as a harsh blue line on dark surfaces) */
+[theme='dark'] .nc-own-comment,
+[theme='dark'] .nc-own-comment-head {
+  border-color: rgba(var(--rgb-color-brand-500), 0.25) !important;
+}
+
 .rtl .nc-audit-comment-block {
   &::before,
   &::after {

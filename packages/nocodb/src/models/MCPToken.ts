@@ -171,10 +171,16 @@ export default class MCPToken implements MCPTokenType {
   public static async update(
     context: NcContext,
     mcpTokenId: string,
-    mcpToken: Partial<MCPTokenType>,
+    mcpToken: Partial<MCPTokenType> & {
+      permissions?: string | McpTokenPermissionsJson;
+    },
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(mcpToken, ['token']);
+    const updateObj = extractProps(mcpToken, ['token', 'title', 'permissions']);
+
+    if (updateObj.permissions && typeof updateObj.permissions !== 'string') {
+      updateObj.permissions = JSON.stringify(updateObj.permissions);
+    }
 
     await ncMeta.metaUpdate(
       context.workspace_id,

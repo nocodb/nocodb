@@ -123,6 +123,20 @@ export function getProjectRole(user, inheritFromWorkspace = false) {
   }
 }
 
+/**
+ * The caller's real standing in the base — what a role THRESHOLD must be
+ * evaluated against. An app runner's `base_roles` hold a fixed capability floor
+ * (see `resolveAppRunner`), so thresholding on it would make every "editors and
+ * up" gate a no-op inside an app. Null when they hold no base row, which loses
+ * every comparison.
+ */
+export function getStandingRole(user: any): ProjectRoles | null {
+  if (user?.is_app_effective_role) {
+    return (user.real_base_role as ProjectRoles) ?? null;
+  }
+  return getProjectRole(user) as ProjectRoles | null;
+}
+
 export function hasMinimumRoleAccess(
   user: any,
   minimumRole: ProjectRoles,

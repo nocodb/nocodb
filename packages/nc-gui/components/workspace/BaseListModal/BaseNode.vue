@@ -250,7 +250,7 @@ const onMenuClick = (e: Event) => {
 
 <style scoped lang="scss">
 .nc-base-node {
-  @apply bg-nc-bg-gray-extralight;
+  @apply bg-nc-bg-card;
 
   .nc-base-node-menu-btn {
     @apply !hover:bg-nc-bg-gray-medium;
@@ -259,7 +259,7 @@ const onMenuClick = (e: Event) => {
   &:hover,
   &:focus-within,
   &:focus-visible {
-    @apply bg-nc-bg-gray-light;
+    background-color: var(--nc-bg-card-hover);
 
     .nc-base-node-menu-wrapper {
       @apply w-6 !flex;
@@ -279,7 +279,8 @@ const onMenuClick = (e: Event) => {
   }
 
   &.is-marked {
-    @apply bg-nc-bg-gray-light border-nc-border-brand;
+    @apply border-nc-border-brand;
+    background-color: var(--nc-bg-card-hover);
   }
 
   &.is-editing {

@@ -114,7 +114,7 @@ export class ColumnDeleteKanbanGroupByDependencyHandler
     for (const viewId of viewIds) {
       const view = await View.get(context, viewId, false, Noco.ncMeta);
       if (!view) continue;
-      await view.getView(context, Noco.ncMeta);
+      await view.getView(Noco.ncMeta);
       NocoSocket.broadcastEvent(context, {
         event: EventType.META_EVENT,
         payload: { action: 'view_update', payload: view },

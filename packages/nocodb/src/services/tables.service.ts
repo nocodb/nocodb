@@ -43,6 +43,7 @@ import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
 import {
   Base,
   Column,
+  LmtTrackedField,
   Model,
   ModelRoleVisibility,
   Permission,
@@ -64,6 +65,7 @@ import NocoSocket from '~/socket/NocoSocket';
 import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
 import { OperationName } from '~/command-registry/op-names';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { isReplay } from '~/helpers/replayScope';
 
 @Injectable()
 export class TablesService {
@@ -284,17 +286,40 @@ export class TablesService {
   @TraceCommand(OperationName.tableReorder)
   async reorderTable(
     context: NcContext,
-    param: { tableId: string; order: any; req: NcRequest },
+    param: {
+      tableId: string;
+      order: any;
+      // EE-only: base-level sidebar section (null = top level, undefined =
+      // membership untouched). Validated in the EE service override.
+      fk_base_section_id?: string | null;
+      req: NcRequest;
+    },
   ) {
+    // Without either field updateOrder is a no-op — reject rather than emit a
+    // TABLE_UPDATE (and audit row) for a write that never happened.
+    if (param.order === undefined && param.fk_base_section_id === undefined) {
+      NcError.get(context).invalidRequestBody(
+        'Either order or fk_base_section_id is required',
+      );
+    }
+
     const model = await Model.get(context, param.tableId);
 
-    const res = await Model.updateOrder(context, param.tableId, param.order);
+    const res = await Model.updateOrder(
+      context,
+      param.tableId,
+      param.order,
+      param.fk_base_section_id,
+    );
 
     this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
       prevTable: model as TableType,
       table: {
         ...model,
-        order: param.order,
+        ...(param.order !== undefined ? { order: param.order } : {}),
+        ...(param.fk_base_section_id !== undefined
+          ? { fk_base_section_id: param.fk_base_section_id }
+          : {}),
       } as TableType,
       req: param.req,
       context,
@@ -355,16 +380,10 @@ export class TablesService {
         );
       }
 
-      await table.getColumns(context, ncMeta, undefined, true, true);
+      await table.getColumns(ncMeta, undefined, true, true);
 
       if (table.mm && !param.forceDeleteSyncs) {
-        const columns = await table.getColumns(
-          context,
-          ncMeta,
-          undefined,
-          true,
-          true,
-        );
+        const columns = await table.getColumns(ncMeta, undefined, true, true);
 
         // get table names of the relation which uses the current table as junction table
         const tables = await Promise.all(
@@ -376,23 +395,17 @@ export class TablesService {
         // get relation column names
         const relColumns = await Promise.all(
           tables.map((t) => {
-            return t
-              .getColumns({
-                ...context,
-                base_id: t.base_id,
-                workspace_id: t.fk_workspace_id,
-              })
-              .then((cols) => {
-                return cols.find((c) => {
-                  return (
-                    isLinksOrLTAR(c) &&
-                    (c.colOptions as LinkToAnotherRecordColumn).type ===
-                      RelationTypes.MANY_TO_MANY &&
-                    (c.colOptions as LinkToAnotherRecordColumn)
-                      .fk_mm_model_id === table.id
-                  );
-                });
+            return t.getColumns().then((cols) => {
+              return cols.find((c) => {
+                return (
+                  isLinksOrLTAR(c) &&
+                  (c.colOptions as LinkToAnotherRecordColumn).type ===
+                    RelationTypes.MANY_TO_MANY &&
+                  (c.colOptions as LinkToAnotherRecordColumn).fk_mm_model_id ===
+                    table.id
+                );
               });
+            });
           }),
         );
 
@@ -443,8 +456,8 @@ export class TablesService {
         const referredTables = await Promise.all(
           relationColumns.map(async (c) =>
             c
-              .getColOptions<LinkToAnotherRecordColumn>(context, ncMeta)
-              .then((opt) => opt.getRelatedTable(context, ncMeta))
+              .getColOptions<LinkToAnotherRecordColumn>(ncMeta)
+              .then((opt) => opt.getRelatedTable(ncMeta))
               .then((t) => t?.title),
           ),
         );
@@ -543,7 +556,7 @@ export class TablesService {
         });
       }
 
-      result = await table.delete(context, ncMeta);
+      result = await table.delete(ncMeta);
     } catch (e) {
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error(
@@ -590,7 +603,7 @@ export class TablesService {
             workspace_id: refTable.fk_workspace_id,
             base_id: refTable.base_id,
           };
-          await refTable.getColumns(refContext, ncMeta);
+          await refTable.getColumns(ncMeta);
           NocoSocket.broadcastEvent(refContext, {
             event: EventType.META_EVENT,
             payload: {
@@ -648,7 +661,7 @@ export class TablesService {
         ServiceUserType.SYNC_USER,
       ])
     ) {
-      await table.getViews(context);
+      await table.getViews();
       // Mask the bcrypt password hash before returning to the caller.
       if (table.views?.length) {
         table.views = table.views.map((v) =>
@@ -667,6 +680,10 @@ export class TablesService {
         );
       });
     }
+
+    // expose tracked-field sets of field-tracking LMT/LMB columns
+    // (persisted as junction rows, not in column meta)
+    await LmtTrackedField.hydrateColumns(context, table.columns);
 
     return table;
   }
@@ -702,7 +719,7 @@ export class TablesService {
     const result = await models.reduce(async (_obj, model) => {
       const obj = await _obj;
 
-      const views = await model.getViews(context);
+      const views = await model.getViews();
       for (const view of views) {
         // Mask the bcrypt password hash — the owner UI never needs the
         // stored value; it sees a sentinel and renders a masked state.
@@ -824,6 +841,7 @@ export class TablesService {
       req: NcRequest;
       synced?: boolean;
       mm?: boolean;
+      type?: ModelTypes;
       apiVersion?: NcApiVersion;
       isDuplicateOperation?: boolean;
       operationSource?: OperationSource;
@@ -855,7 +873,16 @@ export class TablesService {
       ...param.table,
       ...(param.synced ? { synced: true } : {}),
       ...(param.mm ? { mm: true } : {}),
+      ...(param.type ? { type: param.type } : {}),
     };
+
+    // Model ids are only unique per base, and several lookups key on the bare
+    // id — so a caller-chosen id lets an attacker mint a decoy table carrying
+    // another base's model id. Sandbox merge replay is the one path that must
+    // keep the original id (`sandbox.id_field` injects it).
+    if (!isReplay()) {
+      delete (tableCreatePayLoad as { id?: string }).id;
+    }
 
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
@@ -1249,17 +1276,19 @@ export class TablesService {
       context,
     });
 
-    NocoSocket.broadcastEvent(
-      context,
-      {
-        event: EventType.META_EVENT,
-        payload: {
-          action: 'table_create',
-          payload: result,
+    if (result.type === ModelTypes.TABLE) {
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'table_create',
+            payload: result,
+          },
         },
-      },
-      context.socket_id,
-    );
+        context.socket_id,
+      );
+    }
 
     return result;
   }

@@ -37,6 +37,7 @@ onMounted(() => {
     v-e="['c:base:create']"
     :type="type"
     data-testid="nc-sidebar-create-base-btn"
+    data-tour="create-base"
     :size="size"
     :centered="centered"
     :inner-class="innerClass"

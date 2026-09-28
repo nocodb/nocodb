@@ -71,4 +71,10 @@ if (!vModel.value.meta.separator) {
     :disabled="disableConfiguration"
     dropdown-class-name="nc-dropdown-decimal-separator-format"
   />
+
+  <SmartsheetColumnAbbreviationSelect
+    v-model:value="vModel.meta.abbreviate"
+    :disabled="disableConfiguration"
+    dropdown-class-name="nc-dropdown-decimal-abbreviation-format"
+  />
 </template>

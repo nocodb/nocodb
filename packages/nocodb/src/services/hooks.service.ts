@@ -20,6 +20,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { captureForTrace } from '~/decorators/trace-command.decorator';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
+import { claimObjectTitle } from '~/helpers/customObjects';
 import {
   populateSampleCommentPayload,
   populateSamplePayload,
@@ -116,6 +117,16 @@ export class HooksService {
       param.hook.trigger_field = false;
     }
 
+    // A webhook the install's owner hangs off one of the publisher's tables is
+    // theirs, and says so in its title.
+    const hookModel = await Model.get(context, param.tableId);
+    param.hook.title = await claimObjectTitle(
+      context,
+      'webhook',
+      param.hook.title,
+      { baseId: hookModel?.base_id, insideTable: hookModel?.table_name },
+    );
+
     if (!option?.isTableDuplicate) {
       validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
     }
@@ -155,9 +166,7 @@ export class HooksService {
           hookId: hook.id,
         });
         const walk = async (f: Filter): Promise<Record<string, unknown>> => {
-          const children = f.is_group
-            ? (await f.getChildren(context)) ?? []
-            : [];
+          const children = f.is_group ? (await f.getChildren()) ?? [] : [];
           const childNodes = await Promise.all(
             children.map((c) => walk(c as Filter)),
           );
@@ -537,9 +546,7 @@ export class HooksService {
       includeUser?: boolean;
     },
   ) {
-    const model = new Model(
-      await Model.getByIdOrName(context, { id: param.tableId }),
-    );
+    const model = await Model.getByIdOrName(context, { id: param.tableId });
 
     if (param.version === 'v1') {
       return await populateSamplePayload(

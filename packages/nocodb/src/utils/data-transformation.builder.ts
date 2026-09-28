@@ -1,6 +1,8 @@
 import {
   checkboxIconList,
   durationOptions,
+  getCurrencyFormatExample,
+  getCurrencySymbol,
   ratingIconList,
   UITypes,
 } from 'nocodb-sdk';
@@ -374,6 +376,20 @@ export const columnBuilder = builderGenerator<Column | ColumnType, unknown>({
       if (durationFormat !== undefined && durationFormat !== null) {
         options.duration_format = durationOptions[durationFormat]?.title;
       }
+    } else if (data.type === UITypes.Currency) {
+      // `currency_code` + `currency_locale` are stored; the symbol is a derived,
+      // locale-dependent projection the cell renderer computes at paint time.
+      // Surface it (and a format example) here so schema consumers that only
+      // receive the config — the v3 field API and the MCP connector — don't have
+      // to re-derive it or guess. Compute-on-read; nothing new is persisted.
+      const currencyCode = options.currency_code || 'USD';
+      const currencyLocale = options.currency_locale || 'en-US';
+      options.currency_symbol = getCurrencySymbol(currencyCode, currencyLocale);
+      options.currency_format_example = getCurrencyFormatExample(
+        currencyCode,
+        currencyLocale,
+        options.precision ?? 2,
+      );
     }
 
     return {

@@ -21,6 +21,7 @@ import {
 } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
+import { dataEventSubscriptionKey } from '~/utils/realtimeUtils'
 
 interface AuditTypeExtended extends AuditType {
   created_display_name?: string
@@ -44,6 +45,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     const { t } = useI18n()
 
     const isPublic = inject(IsPublicInj, ref(false))
+
+    const interfaceDataApi = inject(InterfacePageDataInj, undefined)
+
+    // Interface record overlay: route revision history through the injected
+    // record-sidebar adapter (grant + revision_history-toggle + record-scope
+    // gated) so consumers without base ACL can view it.
+    const ifaceSidebar = inject(InterfaceRecordSidebarInj, undefined)
 
     const audits = ref<Array<AuditTypeExtended>>([])
 
@@ -101,6 +109,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       useProvideRowComments(meta, row)
 
     const { isUIAllowed } = useRoles()
+
+    const { flushSmartTextDrafts } = useSmartTextDraftFlush()
 
     const { handleUpgradePlan, isPaymentEnabled } = useEeConfig()
 
@@ -246,7 +256,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       // No audit in public/shared bases — the backend 403s recordAuditList
       // there, and the audit tab + discussion entries are hidden accordingly.
       if (!isAuditEnabled.value) return
-      if (!isUIAllowed('recordAuditList') || (!row.value && !_rowId)) return
+      // Interface consumers lack base ACL — the adapter's op is grant/toggle gated.
+      if ((!ifaceSidebar && !isUIAllowed('recordAuditList')) || (!row.value && !_rowId)) return
 
       const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
@@ -257,16 +268,18 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           isAuditLoading.value = true
         }
 
-        const response = await internalGet(
-          base.value.fk_workspace_id ?? NO_SCOPE,
-          (meta.value.base_id as string) ?? (base.value.id as string),
-          {
-            operation: 'recordAuditList',
-            fk_model_id: meta.value.id as string,
-            row_id: rowId,
-            cursor: currentAuditCursor.value,
-          },
-        )
+        const response = ifaceSidebar
+          ? await ifaceSidebar.recordAuditList(rowId, currentAuditCursor.value)
+          : await internalGet(
+              base.value.fk_workspace_id ?? NO_SCOPE,
+              (meta.value.base_id as string) ?? (base.value.id as string),
+              {
+                operation: 'recordAuditList',
+                fk_model_id: meta.value.id as string,
+                row_id: rowId,
+                cursor: currentAuditCursor.value,
+              },
+            )
 
         const lastRecord = response.list?.[response.list.length - 1]
 
@@ -422,6 +435,20 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           ...(ltarState || {}),
         })
 
+        // Persist any SmartText (LongText + smartMode) drafts that were staged while
+        // the record was still new — the editor's rowId-keyed backend op couldn't run
+        // until the row existed (#9954). Awaited here so it completes before the form
+        // closes/reloads. Drafts whose flush fails are kept buffered so the SmartText
+        // modal can restore and re-save them instead of the rich content being lost.
+        const smartTextDrafts = row.value.rowMeta?.smartTextDrafts
+        let unflushedSmartTextDrafts: Record<string, Record<string, any> | null> = {}
+        if (smartTextDrafts && Object.keys(smartTextDrafts).length) {
+          const newRowId = extractPkFromRow(data, meta.value.columns as ColumnType[])
+          unflushedSmartTextDrafts = newRowId
+            ? await flushSmartTextDrafts(meta.value, newRowId, smartTextDrafts, data)
+            : smartTextDrafts
+        }
+
         Object.assign(row.value, {
           row: data,
           rowMeta: {
@@ -430,6 +457,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             // Links were persisted via the create payload — clear the buffer so the
             // record is no longer flagged as having unsaved relational changes (#14013).
             ltarState: {},
+            // SmartText drafts have been flushed to the backend — drop the buffer,
+            // keeping only drafts whose flush failed (recovered via the modal).
+            smartTextDrafts: unflushedSmartTextDrafts,
           },
           oldRow: { ...data },
         })
@@ -439,11 +469,22 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           return obj
         }, {} as Record<string, any>)
 
+        // SmartText columns are persisted via their own rowId-keyed op below (#10261) —
+        // strip their interim markdown preview from the payload so a failed flush
+        // can't leave the client-derived preview as the stored value.
+        const smartTextDrafts = row.value.rowMeta?.smartTextDrafts ?? {}
+        const hasSmartTextDrafts = Object.values(smartTextDrafts).some(Boolean)
+        for (const [columnId, draft] of Object.entries(smartTextDrafts)) {
+          if (!draft) continue
+          const colTitle = (meta.value.columns as ColumnType[])?.find((c) => c.id === columnId)?.title
+          if (colTitle) delete updateOrInsertObj[colTitle]
+        }
+
         // Relational fields queue their changes (#14013/#14058) and are persisted here on
         // save, not on each link/unlink. A record can be "modified" via links alone.
         const hasLtarChanges = rowStore.hasLtarChanges.value
 
-        if (Object.keys(updateOrInsertObj).length || hasLtarChanges) {
+        if (Object.keys(updateOrInsertObj).length || hasLtarChanges || hasSmartTextDrafts) {
           const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
           if (!id) {
@@ -463,6 +504,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             if (updatedData?.__nc_rls_hidden) {
               row.value.row.__nc_rls_hidden = true
             }
+          }
+
+          // Persist buffered SmartText drafts — deferred to the form's Save (#10261).
+          // Failed flushes stay buffered so the modal can restore and re-save them.
+          if (hasSmartTextDrafts) {
+            const unflushedSmartTextDrafts = await flushSmartTextDrafts(meta.value, id, smartTextDrafts, row.value.row)
+            if (row.value.rowMeta) row.value.rowMeta.smartTextDrafts = unflushedSmartTextDrafts
           }
 
           // Persist queued link/unlink changes after the row update.
@@ -837,7 +885,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           }
 
           activeDataListener.value = $ncSocket.onMessage(
-            `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
+            dataEventSubscriptionKey(newMeta, interfaceDataApi),
             (data: DataPayload) => {
               const { id, action, payload } = data
 
@@ -969,7 +1017,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
   'expanded-form-store',
 )
 
-export { useProvideExpandedFormStore }
+// The non-throw consumer is exported too: hosts that may mount OUTSIDE an
+// expanded form (e.g. the comment typing indicator inside the interface
+// record sidebar) probe for the store and degrade gracefully.
+export { useProvideExpandedFormStore, useExpandedFormStore }
 
 export function useExpandedFormStoreOrThrow() {
   const expandedFormStore = useExpandedFormStore()

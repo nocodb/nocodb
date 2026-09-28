@@ -2,7 +2,7 @@
 import dayjs from 'dayjs'
 import type { Row } from '~/lib/types'
 
-const emits = defineEmits(['expandRecord', 'newRecord'])
+const emits = defineEmits(['expandRecord', 'newRecord', 'recordContextMenu'])
 
 const {
   selectedDateRange,
@@ -17,10 +17,16 @@ const {
   updateFormat,
   timezoneDayjs,
   isSyncedFromColumn,
+  isAddDeleteInlineEnabled,
   activeCalendarView,
   isDayAnchoredMode,
   dayAnchoredSpan,
 } = useCalendarViewStoreOrThrow()
+
+// Interface editor: an hour cell / dblclick selects the calendar element (opens
+// `Page › Calendar`) instead of selecting the hour or adding a record. Null in
+// the published view and outside interface pages.
+const interfaceEditSelect = inject(InterfaceVizEditSelectInj, ref<(() => void) | null>(null))
 
 // Range (date) columns are already conveyed by the block's time + position, so
 // they're excluded from the card body — keeps it a clean title line by default.
@@ -46,6 +52,13 @@ const { width: containerWidth } = useElementSize(container)
 const isPublic = inject(IsPublicInj, ref(false))
 
 const { isUIAllowed } = useRoles()
+
+// Interface pages provide ReadonlyInj when the viz's edit_inline opt-in is
+// OFF — event drag/resize must honor it like grid cells do. Plain data-app
+// trees never provide it (fallback false → behavior unchanged).
+const isCalendarCellReadonly = inject(ReadonlyInj, ref(false))
+
+const canEditCalendarData = computed(() => isUIAllowed('dataEdit') && !isCalendarCellReadonly.value)
 
 const meta = inject(MetaInj, ref())
 
@@ -606,7 +619,7 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 }, 500)
 
 const onResize = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit') || !container.value || !resizeRecord.value || !scrollContainer.value) return
+  if (!canEditCalendarData.value || !container.value || !resizeRecord.value || !scrollContainer.value) return
   if (resizeRecord.value.rowMeta.range?.is_readonly) return
 
   const { width, left, top, bottom } = container.value.getBoundingClientRect()
@@ -691,7 +704,8 @@ const onResizeEnd = () => {
 }
 
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
-  if (!isUIAllowed('dataEdit')) return
+  if (event.button !== 0) return
+  if (!canEditCalendarData.value) return
 
   if (record.rowMeta.range?.is_readonly) return
 
@@ -798,7 +812,7 @@ const calculateNewRow = (
 }
 
 const onDrag = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit') || !scrollContainer.value || !dragRecord.value) return
+  if (!canEditCalendarData.value || !scrollContainer.value || !dragRecord.value) return
 
   const containerRect = scrollContainer.value.getBoundingClientRect()
   const scrollBottomThreshold = 20
@@ -813,7 +827,7 @@ const onDrag = (event: MouseEvent) => {
 }
 
 const stopDrag = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit') || !isDragging.value || !container.value || !dragRecord.value) return
+  if (!canEditCalendarData.value || !isDragging.value || !container.value || !dragRecord.value) return
 
   event.preventDefault()
   clearTimeout(dragTimeout.value!)
@@ -833,6 +847,8 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
+  // Right/middle-click never drags — it opens the record context menu (or the browser's).
+  if (event.button !== 0) return
   if (resizeInProgress.value) return
   let target = event.target as HTMLElement
 
@@ -840,7 +856,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
   // Drag-to-reschedule is gated to editable, non-synced ranges; click-to-expand
   // (onMouseUp below) must work regardless so synced records can be opened.
-  const canDrag = isUIAllowed('dataEdit') && !isSyncedFromColumn.value && !record.rowMeta.range?.is_readonly
+  const canDrag = canEditCalendarData.value && !isSyncedFromColumn.value && !record.rowMeta.range?.is_readonly
 
   if (canDrag) {
     dragTimeout.value = setTimeout(() => {
@@ -869,7 +885,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
 }
 
 const dropEvent = (event: DragEvent) => {
-  if (!isUIAllowed('dataEdit') || !container.value) return
+  if (!canEditCalendarData.value || !container.value) return
   event.preventDefault()
 
   const data = event.dataTransfer?.getData('text/plain')
@@ -931,9 +947,19 @@ const openDayViewForColumn = (dayIndex: number) => {
   if (date) openDayView(date)
 }
 
+// Single-click an hour cell — selects the hour, or (interface editor) selects the
+// calendar element.
+const selectHour = (hour: dayjs.Dayjs) => {
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
+  selectedDate.value = hour
+  selectedTime.value = hour
+  dragRecord.value = null
+}
+
 // TODO: Add Support for multiple ranges when multiple ranges are supported
 const addRecord = (date: dayjs.Dayjs) => {
-  if (!isUIAllowed('dataEdit') || !calendarRange.value || isSyncedTable.value) return
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
+  if (!isUIAllowed('dataEdit') || !isAddDeleteInlineEnabled.value || !calendarRange.value || isSyncedTable.value) return
   const fromCol = calendarRange.value[0]?.fk_from_col
   if (!fromCol) return
   const newRecord = {
@@ -957,6 +983,10 @@ watch(
 
 const expandRecord = (record: Row) => {
   emits('expandRecord', record)
+}
+
+function onRecordContextMenu(event: MouseEvent, record: Row) {
+  emits('recordContextMenu', event, record)
 }
 
 const spanningRecordsContainer = ref<HTMLElement | null>(null)
@@ -1039,6 +1069,7 @@ watch(
         ref="spanningRecordsContainer"
         :records="recordsAcrossAllRange.spanningRecords"
         @expand-record="expandRecord"
+        @record-context-menu="onRecordContextMenu"
       />
     </div>
     <div
@@ -1070,13 +1101,7 @@ watch(
           class="text-center relative transition h-13 text-sm text-nc-content-gray-muted w-full py-1 border-transparent border-1 border-x-nc-border-gray-light border-t-nc-border-gray-light border-l-nc-border-gray-light"
           data-testid="nc-calendar-week-hour"
           @dblclick="addRecord(hour)"
-          @click="
-            () => {
-              selectedDate = hour
-              selectedTime = hour
-              dragRecord = null
-            }
-          "
+          @click="selectHour(hour)"
         ></div>
       </div>
 
@@ -1100,6 +1125,7 @@ watch(
             }"
             class="absolute transition draggable-record group cursor-pointer pointer-events-auto"
             @mousedown.stop="dragStart($event, record)"
+            @contextmenu="onRecordContextMenu($event, record)"
             @mouseleave="hoverRecord = null"
             @mouseover="hoverRecord = record.rowMeta.id"
             @dragover.prevent
@@ -1109,7 +1135,7 @@ watch(
                 :hover="hoverRecord === record.rowMeta.id"
                 :position="record.rowMeta!.position"
                 :dragging="record.rowMeta.id === dragRecord?.rowMeta?.id || resizeRecord?.rowMeta.id === record.rowMeta.id"
-                :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
+                :resize="!!record.rowMeta.range?.fk_to_col && canEditCalendarData"
                 :record="record"
                 :selected="record.rowMeta!.id === dragRecord?.rowMeta?.id"
                 :clamp-lines="cardClampLines(record)"

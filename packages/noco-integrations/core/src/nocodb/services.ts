@@ -216,10 +216,12 @@ export interface ITablesService {
       tableId: string;
       user: NocoSDK.UserType;
     },
-  ): Promise<NocoSDK.TableType & {
-    views: Array<NocoSDK.ViewType>
-    columns: Array<NocoSDK.ColumnType>
-  }>;
+  ): Promise<
+    NocoSDK.TableType & {
+      views: Array<NocoSDK.ViewType>;
+      columns: Array<NocoSDK.ColumnType>;
+    }
+  >;
 
   getAccessibleTables(
     context: NocoSDK.NcContext,
@@ -274,13 +276,12 @@ interface XcEmailAttachment {
 interface RawMailParams {
   to: string;
   subject: string;
-  html: string;
+  html?: string;
   text?: string;
   attachments?: XcEmailAttachment[];
   cc?: string | string[];
   bcc?: string | string[];
 }
-
 
 export interface IMailService {
   sendMailRaw(param: RawMailParams): Promise<boolean>;
@@ -325,4 +326,46 @@ export interface ICommentsService {
     context: NocoSDK.NcContext,
     param: { modelId: string; limit?: number },
   ): Promise<CommentRecord[]>;
+}
+
+/** An agent as a node's picker sees it. */
+export interface WorkflowAgent {
+  id: string;
+  title: string;
+  enabled: boolean;
+  /** An agent has no runnable config until it has been published once. */
+  published: boolean;
+}
+
+export interface StartAgentRunParams {
+  agentId: string;
+  /** The turn's prompt — the agent reads it as a message from the workflow. */
+  message: string;
+  /** Continue this session instead of opening a new one. */
+  sessionId?: string;
+  /** Title of the node asking, for the session title and the trigger payload. */
+  nodeTitle?: string;
+}
+
+/**
+ * A queued agent run. A session IS a run, so the session id is the run's
+ * identity; it is null when the firing was suppressed — the loop guard, or a
+ * run already in flight.
+ */
+export interface StartedAgentRun {
+  sessionId: string | null;
+}
+
+export interface IAgentsService {
+  agentList(context: NocoSDK.NcContext): Promise<WorkflowAgent[]>;
+
+  agentGet(
+    context: NocoSDK.NcContext,
+    agentId: string,
+  ): Promise<WorkflowAgent | null>;
+
+  agentRun(
+    context: NocoSDK.NcContext,
+    param: StartAgentRunParams,
+  ): Promise<StartedAgentRun>;
 }

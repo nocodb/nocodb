@@ -1,3 +1,4 @@
+import { isAxiosError } from 'axios'
 import type { Api } from 'nocodb-sdk'
 import { NcErrorType } from 'nocodb-sdk'
 import type { UseGlobalReturn } from '../composables/useGlobal/types'
@@ -15,6 +16,46 @@ function safeSetLocalStorage(key: string, value: string) {
   } catch {
     // storage disabled/unavailable — non-critical, ignore
   }
+}
+
+/** Read counterpart of `safeSetLocalStorage` — same null/SecurityError hazard. */
+function safeGetLocalStorage(key: string) {
+  try {
+    return localStorage?.getItem(key) ?? null
+  } catch {
+    return null
+  }
+}
+
+/** Remove counterpart of `safeSetLocalStorage` — same null/SecurityError hazard. */
+function safeRemoveLocalStorage(key: string) {
+  try {
+    localStorage?.removeItem(key)
+  } catch {
+    // storage disabled/unavailable — non-critical, ignore
+  }
+}
+
+/**
+ * Only same-origin relative paths may be promoted back into the URL. Browsers
+ * have historically normalised forms like `/\evil.com` into protocol-relative
+ * URLs, so a plain `^https?://` check is not enough.
+ */
+function isSafeContinuePath(path: string) {
+  if (!path.startsWith('/') || path.startsWith('//') || path.startsWith('/\\')) return false
+
+  try {
+    return new URL(path, window.location.origin).origin === window.location.origin
+  } catch {
+    return false
+  }
+}
+
+/** Read-and-remove: an abandoned sign-in must not hijack a later, unrelated one. */
+function consumeStoredContinuePath() {
+  const stored = safeGetLocalStorage('continueAfterSignIn')
+  safeRemoveLocalStorage('continueAfterSignIn')
+  return stored
 }
 
 /** Strip continueAfterSignIn param from a path to prevent recursive nesting */
@@ -105,10 +146,16 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       await state.refreshToken({})
     } catch (e) {
       console.info('Refresh token failed', (e as Error)?.message)
-      // Clear stale auth state so the next signin starts clean. Without
-      // this, an invalid token persists in storage and can short-circuit
-      // subsequent SSO round-trips into a redirect loop.
-      await state.signOut({ skipApiCall: true })
+      // Only sign out when the SERVER rejected the refresh. `refreshToken` now
+      // rethrows transient failures (no response at all — offline, aborted,
+      // proxy blip) instead of swallowing them, and bouncing those to /signin
+      // mid-session is the bug this PR fixes everywhere else. Mirrors the
+      // interceptor. A genuine expiry still arrives as a 401 response.
+      if (isAxiosError(e) && e.response) {
+        // Clear stale auth state so the next signin starts clean; an invalid
+        // token left in storage can short-circuit SSO into a redirect loop.
+        await state.signOut({ skipApiCall: true })
+      }
     }
 
     /** if user is still not signed in, redirect to signin page */
@@ -195,8 +242,13 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
     const cleanURL = new URL(window.location.href)
     cleanURL.searchParams.delete('short-token')
     cleanURL.searchParams.delete('continueAfterSignIn')
-    if (extraProps?.continueAfterSignIn) {
-      cleanURL.searchParams.set('continueAfterSignIn', extraProps.continueAfterSignIn)
+    // Legacy Google/GitHub sign-in (genTokenByCode) returns no `extra`, so the
+    // return target lives only in localStorage. Restore it to the URL before the
+    // reload below — the reload wipes `isTokenUpdatedTab`, so without the query
+    // param the redirect plugin never navigates back to the gated page.
+    const continueAfterSignIn = extraProps?.continueAfterSignIn ?? consumeStoredContinuePath()
+    if (continueAfterSignIn && isSafeContinuePath(continueAfterSignIn)) {
+      cleanURL.searchParams.set('continueAfterSignIn', continueAfterSignIn)
     }
     window.history.pushState('object', document.title, cleanURL.toString())
     window.location.reload()
@@ -257,9 +309,13 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn'], state
       message.error(await extractSdkResponseErrorMsg(e))
     }
 
-    if (extraProps?.continueAfterSignIn) {
+    // `extra` is only populated on the authorization-callback request, never on
+    // this `/auth/long-lived-token` exchange, so SAML and every `/sso/:id` client
+    // type has to fall back to the stored target. Same reload hazard as above.
+    const continueAfterSignIn = extraProps?.continueAfterSignIn ?? consumeStoredContinuePath()
+    if (continueAfterSignIn && isSafeContinuePath(continueAfterSignIn)) {
       const continueURL = new URL(window.location.href)
-      continueURL.searchParams.set('continueAfterSignIn', extraProps.continueAfterSignIn)
+      continueURL.searchParams.set('continueAfterSignIn', continueAfterSignIn)
       window.history.pushState('object', document.title, continueURL.toString())
     }
     window.location.reload()

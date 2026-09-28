@@ -51,6 +51,11 @@ export class LRUMap<V> {
     return this.map.delete(key);
   }
 
+  /** Remove without calling onEvict — for a value the caller disposes of itself. */
+  detach(key: string): boolean {
+    return this.map.delete(key);
+  }
+
   /**
    * Remove all entries, calling onEvict for each.
    */

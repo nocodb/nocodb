@@ -7,10 +7,15 @@ interface MigrationOptions {
   INSERT_BATCH_SIZE?: number;
   whereConditions?: (queryBuilder: Knex.QueryBuilder) => Knex.QueryBuilder;
   selectColumns?: string | string[];
+  keyColumn?: string;
 }
 
 /**
- * Utility function to migrate table data in batches
+ * Migrate table data in batches.
+ *
+ * Paged by key, not OFFSET: an unordered `offset/limit` walk can return rows in
+ * a different order between batches, so some are never read and the migration
+ * reports success having silently dropped them.
  */
 export async function migrateTableInBatches(
   knex: Knex,
@@ -25,52 +30,71 @@ export async function migrateTableInBatches(
     INSERT_BATCH_SIZE = 200,
     whereConditions,
     selectColumns = '*',
+    keyColumn = 'id',
   } = options;
 
-  let fetchNextBatch = true;
-  const insertedIds = new Set<string>();
+  let cursor: string | number | null = null;
+  let migrated = 0;
 
-  for (let offset = 0; fetchNextBatch; offset += READ_BATCH_SIZE) {
-    // Build the base query
+  for (;;) {
     let query = knex.select(selectColumns).from(sourceTable as string);
 
-    // Apply where conditions if provided
     if (whereConditions) {
       query = whereConditions(query);
     }
-    const rows = await query.offset(offset).limit(READ_BATCH_SIZE + 1); // +1 to check if there are more rows
+    if (cursor !== null) {
+      query = query.where(keyColumn, '>', cursor);
+    }
 
-    logger.log(
-      `Data from ${sourceTable} fetched, batch: ${offset} - ${
-        offset + READ_BATCH_SIZE
-      }`,
-    );
+    const rows = await query.orderBy(keyColumn, 'asc').limit(READ_BATCH_SIZE);
 
-    const formattedRows = rows
-      .slice(0, READ_BATCH_SIZE) // exclude the last row used for pagination check
-      .filter((row) => {
-        if (insertedIds.has(row.id)) {
-          return false;
-        }
-        insertedIds.add(row.id);
-        return true;
-      })
-      .map(transformFn);
+    if (!rows.length) break;
+
+    const last = rows[rows.length - 1][keyColumn];
+    if (last === undefined || last === null) {
+      // Would otherwise re-read the same page forever.
+      throw new Error(
+        `migrateTableInBatches: "${keyColumn}" is not present on rows of ${sourceTable} — it must be selected to page on.`,
+      );
+    }
+    cursor = last;
+
+    const formattedRows = rows.map(transformFn);
 
     if (formattedRows.length > 0) {
-      await knex.batchInsert(
-        targetTable as string,
-        formattedRows,
-        INSERT_BATCH_SIZE,
-      );
+      // Chunked by hand: batchInsert cannot carry an onConflict.
+      for (let i = 0; i < formattedRows.length; i += INSERT_BATCH_SIZE) {
+        await knex(targetTable as string)
+          .insert(formattedRows.slice(i, i + INSERT_BATCH_SIZE))
+          .onConflict()
+          .ignore();
+      }
+      migrated += formattedRows.length;
       logger.log(
         `Inserted ${formattedRows.length} rows from ${sourceTable} to ${targetTable}`,
       );
     }
 
-    // check if there are more rows to fetch
-    fetchNextBatch = rows.length > READ_BATCH_SIZE;
+    if (rows.length < READ_BATCH_SIZE) break;
   }
 
-  logger.log(`Data migration from ${sourceTable} to ${targetTable} completed`);
+  // The counters only report what was written, so an over-tight filter would
+  // otherwise read as success.
+  if (whereConditions) {
+    const [{ count } = { count: 0 }] = await knex(sourceTable as string).count({
+      count: '*',
+    });
+    const total = Number(count) || 0;
+    if (total > migrated) {
+      logger.warn(
+        `${sourceTable}: ${
+          total - migrated
+        } of ${total} rows were excluded by the migration filter and not copied to ${targetTable}`,
+      );
+    }
+  }
+
+  logger.log(
+    `Data migration from ${sourceTable} to ${targetTable} completed (${migrated} rows)`,
+  );
 }

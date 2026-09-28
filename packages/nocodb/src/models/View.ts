@@ -12,6 +12,7 @@ import {
   NcBaseError,
   parseProp,
   UITypes,
+  ViewLockType,
   ViewTypes,
 } from 'nocodb-sdk';
 import bcrypt from 'bcryptjs';
@@ -58,6 +59,11 @@ import ListView from '~/models/ListView';
 import ListViewColumn from '~/models/ListViewColumn';
 import ListViewLevel from '~/models/ListViewLevel';
 import { extractProps } from '~/helpers/extractProps';
+import {
+  captureViewColumnIds,
+  recordViewColumnId,
+  replayedViewColumnId,
+} from '~/helpers/viewColumnReplay';
 import NocoCache from '~/cache/NocoCache';
 import {
   CacheDelDirection,
@@ -77,6 +83,11 @@ import { CustomUrl, LinkToAnotherRecordColumn } from '~/models';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { isEE } from '~/utils';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+import {
+  getModelContext,
+  setModelContext,
+  throwMissingContext,
+} from '~/helpers/modelContext';
 import NocoSocket from '~/socket/NocoSocket';
 import {
   SINGLE_QUERY_DEFAULT_VIEW,
@@ -86,6 +97,18 @@ import {
 const { v4: uuidv4 } = require('uuid');
 
 const logger = new Logger('View');
+
+const VIEW_COLUMN_META_TABLE: Partial<Record<ViewTypes, string>> = {
+  [ViewTypes.GRID]: MetaTable.GRID_VIEW_COLUMNS,
+  [ViewTypes.GALLERY]: MetaTable.GALLERY_VIEW_COLUMNS,
+  [ViewTypes.FORM]: MetaTable.FORM_VIEW_COLUMNS,
+  [ViewTypes.KANBAN]: MetaTable.KANBAN_VIEW_COLUMNS,
+  [ViewTypes.MAP]: MetaTable.MAP_VIEW_COLUMNS,
+  [ViewTypes.CALENDAR]: MetaTable.CALENDAR_VIEW_COLUMNS,
+  [ViewTypes.TIMELINE]: MetaTable.TIMELINE_VIEW_COLUMNS,
+  [ViewTypes.GANTT]: MetaTable.GANTT_VIEW_COLUMNS,
+  [ViewTypes.LIST]: MetaTable.LIST_VIEW_COLUMNS,
+};
 
 /*
 type ViewColumn =
@@ -150,6 +173,18 @@ export default class View implements ViewType {
   fk_custom_url_id?: string;
   fk_view_section_id?: string;
 
+  get context(): NcContext {
+    const ctx = getModelContext(this);
+    if (ctx) return ctx;
+    if (this.fk_workspace_id && this.base_id) {
+      return {
+        workspace_id: this.fk_workspace_id,
+        base_id: this.base_id,
+      } as NcContext;
+    }
+    throwMissingContext('View');
+  }
+
   constructor(data: View) {
     Object.assign(this, data);
   }
@@ -184,7 +219,9 @@ export default class View implements ViewType {
       return null;
     }
 
-    return view && new View(view);
+    const instance = view && new View(view);
+    if (instance) setModelContext(instance, context);
+    return instance;
   }
 
   public static async getByTitleOrId(
@@ -230,7 +267,9 @@ export default class View implements ViewType {
           view.id,
         );
       }
-      return view && new View(view);
+      const instance = view && new View(view);
+      if (instance) setModelContext(instance, context);
+      return instance;
     }
     return viewId && this.get(context, viewId?.id || viewId);
   }
@@ -265,7 +304,9 @@ export default class View implements ViewType {
         );
       }
     }
-    return view && new View(view);
+    const instance = view && new View(view);
+    if (instance) setModelContext(instance, context);
+    return instance;
   }
 
   public static async list(
@@ -308,7 +349,7 @@ export default class View implements ViewType {
         (a.order != null ? a.order : Infinity) -
         (b.order != null ? b.order : Infinity),
     );
-    return viewsList?.map((v) => new View(v));
+    return viewsList?.map((v) => setModelContext(new View(v), context));
   }
 
   // todo: refactor and move duplicate logic to service
@@ -378,7 +419,7 @@ export default class View implements ViewType {
       copyFromView =
         view.copy_from_id &&
         (await View.get(context, view.copy_from_id, false, ncMeta));
-      await copyFromView?.getView(context);
+      await copyFromView?.getView();
 
       const { id: view_id } = await ncMeta.metaInsert2(
         context.workspace_id,
@@ -399,7 +440,6 @@ export default class View implements ViewType {
         NcError.get(context).tableNotFound(view.fk_model_id);
       }
       let columns: any[] = await parentModel.getColumns(
-        context,
         ncMeta,
         undefined,
         true,
@@ -631,9 +671,9 @@ export default class View implements ViewType {
           id: eventId,
         });
 
-        const sorts = await copyFromView.getSorts(context, ncMeta);
-        const filters = await copyFromView.getFilters(context, ncMeta);
-        columns = await copyFromView.getColumns(context, ncMeta);
+        const sorts = await copyFromView.getSorts(ncMeta);
+        const filters = await copyFromView.getFilters(ncMeta);
+        columns = await copyFromView.getColumns(ncMeta);
 
         for (const sort of sorts) {
           const sortProps = extractProps(sort, [
@@ -717,6 +757,7 @@ export default class View implements ViewType {
         let galleryShowLimit = 0;
         let kanbanShowLimit = 0;
         let rangeColumns: Array<string> | null = null;
+        const viewColumnIds: Record<string, string> = {};
 
         if (
           view.type === ViewTypes.CALENDAR ||
@@ -848,7 +889,7 @@ export default class View implements ViewType {
               ? levelIdMap.get(vCol.fk_level_id)
               : defaultLevelId || undefined;
 
-          await View.insertColumn(
+          const insertedViewColumn = await View.insertColumn(
             context,
             {
               order: order++,
@@ -865,7 +906,16 @@ export default class View implements ViewType {
             },
             ncMeta,
           );
+
+          recordViewColumnId(
+            view_id,
+            vCol.fk_column_id || vCol.id,
+            (insertedViewColumn as { id?: string })?.id,
+            viewColumnIds,
+          );
         }
+
+        captureViewColumnIds(viewColumnIds);
       }
 
       cleanCommandPaletteCache(context.workspace_id).catch(() => {
@@ -969,7 +1019,11 @@ export default class View implements ViewType {
     // keep a map of column id to column object for easy access
     const colIdMap = new Map(tableColumns.map((c) => [c.id, c]));
 
+    const viewColumnIds: Record<string, string> = {};
+
     for (const view of views) {
+      let inserted: { id?: string } | undefined;
+
       const modifiedInsertObj = {
         ...insertObj,
         fk_view_id: view.id,
@@ -980,6 +1034,13 @@ export default class View implements ViewType {
         modifiedInsertObj.show = false;
       } else if (param.column_show?.view_id === view.id) {
         modifiedInsertObj.show = true;
+      } else if (
+        view.lock_type === ViewLockType.Personal ||
+        view.lock_type === ViewLockType.Locked
+      ) {
+        // New fields should not auto-appear in personal/locked views;
+        // their owners must add them explicitly.
+        modifiedInsertObj.show = false;
       } else if (view.uuid) {
         // if view is shared, then keep the show state as it is
       }
@@ -1008,14 +1069,22 @@ export default class View implements ViewType {
 
       switch (view.type) {
         case ViewTypes.GRID:
-          await GridViewColumn.insert(context, modifiedInsertObj, ncMeta);
+          inserted = await GridViewColumn.insert(
+            context,
+            modifiedInsertObj,
+            ncMeta,
+          );
           break;
         case ViewTypes.GALLERY:
-          await GalleryViewColumn.insert(context, modifiedInsertObj, ncMeta);
+          inserted = await GalleryViewColumn.insert(
+            context,
+            modifiedInsertObj,
+            ncMeta,
+          );
           break;
 
         case ViewTypes.MAP:
-          await MapViewColumn.insert(
+          inserted = await MapViewColumn.insert(
             context,
             {
               ...insertObj,
@@ -1037,7 +1106,7 @@ export default class View implements ViewType {
                 ncMeta,
               )
             : undefined;
-          await ListViewColumn.insert(
+          inserted = await ListViewColumn.insert(
             context,
             {
               ...insertObj,
@@ -1050,10 +1119,14 @@ export default class View implements ViewType {
           break;
         }
         case ViewTypes.KANBAN:
-          await KanbanViewColumn.insert(context, modifiedInsertObj, ncMeta);
+          inserted = await KanbanViewColumn.insert(
+            context,
+            modifiedInsertObj,
+            ncMeta,
+          );
           break;
         case ViewTypes.CALENDAR:
-          await CalendarViewColumn.insert(
+          inserted = await CalendarViewColumn.insert(
             context,
             {
               ...insertObj,
@@ -1063,7 +1136,7 @@ export default class View implements ViewType {
           );
           break;
         case ViewTypes.TIMELINE:
-          await TimelineViewColumn.insert(
+          inserted = await TimelineViewColumn.insert(
             context,
             {
               ...insertObj,
@@ -1073,7 +1146,7 @@ export default class View implements ViewType {
           );
           break;
         case ViewTypes.GANTT:
-          await GanttViewColumn.insert(
+          inserted = await GanttViewColumn.insert(
             context,
             {
               ...insertObj,
@@ -1083,10 +1156,23 @@ export default class View implements ViewType {
           );
           break;
         case ViewTypes.FORM:
-          await FormViewColumn.insert(context, modifiedInsertObj, ncMeta);
+          inserted = await FormViewColumn.insert(
+            context,
+            modifiedInsertObj,
+            ncMeta,
+          );
           break;
       }
+
+      recordViewColumnId(
+        view.id,
+        param.fk_column_id,
+        inserted?.id,
+        viewColumnIds,
+      );
     }
+
+    captureViewColumnIds(viewColumnIds);
   }
 
   static async insertColumn(
@@ -1228,7 +1314,7 @@ export default class View implements ViewType {
   ) {
     const list = await this.list(context, id, false, ncMeta);
     for (const item of list) {
-      await item.getViewWithInfo(context, ncMeta);
+      await item.getViewWithInfo(ncMeta);
     }
     return list;
   }
@@ -1747,7 +1833,9 @@ export default class View implements ViewType {
       view.meta = parseMetaProp(view);
     }
 
-    return view && new View(view);
+    const instance = view && new View(view);
+    if (instance) setModelContext(instance, context);
+    return instance;
   }
 
   static async share(context: NcContext, viewId, ncMeta = Noco.ncMeta) {
@@ -2266,8 +2354,8 @@ export default class View implements ViewType {
     const scope = this.extractViewColumnsTableNameScope(view);
 
     const columns = await view
-      .getModel(context, ncMeta)
-      .then((meta) => meta.getColumns(context, ncMeta));
+      .getModel(ncMeta)
+      .then((meta) => meta.getColumns(ncMeta));
     const viewColumns = await this.getColumns(context, viewId, ncMeta);
     const availableColumnsInView = viewColumns.map(
       (column) => column.fk_column_id,
@@ -2868,6 +2956,25 @@ export default class View implements ViewType {
       }
     }
 
+    // Safe to pre-assign here (unlike the per-model inserts): `insertObjs` is
+    // built internally, so no caller-supplied `id` can reach it.
+    const target = VIEW_COLUMN_META_TABLE[view.type];
+    const viewColumnIds: Record<string, string> = {};
+    if (target) {
+      for (const insertObj of insertObjs) {
+        insertObj.id =
+          replayedViewColumnId(view.id, insertObj.fk_column_id) ??
+          (await ncMeta.genNanoid(target));
+        recordViewColumnId(
+          view.id,
+          insertObj.fk_column_id,
+          insertObj.id,
+          viewColumnIds,
+        );
+      }
+      captureViewColumnIds(viewColumnIds);
+    }
+
     switch (view.type) {
       case ViewTypes.GRID:
         await ncMeta.bulkMetaInsert(
@@ -2972,7 +3079,7 @@ export default class View implements ViewType {
           attachment_mode_column_id?: string;
         };
       model: {
-        getColumns: (context: NcContext, ncMeta?) => Promise<Column[]>;
+        getColumns: (ncMeta?) => Promise<Column[]>;
       };
       req: NcRequest;
     },
@@ -2995,6 +3102,7 @@ export default class View implements ViewType {
             'expanded_record_mode',
             'attachment_mode_column_id',
             'row_coloring_mode',
+            'fk_view_section_id',
           ]
         : []),
     ]);
@@ -3025,7 +3133,14 @@ export default class View implements ViewType {
     const copyFromView =
       view.copy_from_id &&
       (await View.get(context, view.copy_from_id, false, ncMeta));
-    await copyFromView?.getView(context);
+    await copyFromView?.getView();
+
+    // When duplicating a view, keep the copy inside the same section as the
+    // source view. A caller-supplied value always wins — including `null`,
+    // which means "create at top level, not in the source's section".
+    if (isEE && copyFromView && insertObj.fk_view_section_id === undefined) {
+      insertObj.fk_view_section_id = copyFromView.fk_view_section_id;
+    }
 
     const table = await Model.getByIdOrName(
       context,
@@ -3296,13 +3411,13 @@ export default class View implements ViewType {
             idMap: new Map<string, string>([[copyFromView.id, view_id]]),
           });
 
-        const sorts = await copyFromView.getSorts(context, ncMeta);
+        const sorts = await copyFromView.getSorts(ncMeta);
         const filters = await Filter.rootFilterList(
           context,
           { viewId: copyFromView.id },
           ncMeta,
         );
-        const viewColumns = await copyFromView.getColumns(context, ncMeta);
+        const viewColumns = await copyFromView.getColumns(ncMeta);
 
         const sortInsertObjs = [];
         const filterInsertObjs = [];
@@ -3373,11 +3488,9 @@ export default class View implements ViewType {
             });
             if (filter.is_group)
               await Promise.all(
-                ((await filter.getChildren(context)) || []).map(
-                  async (child) => {
-                    await fn(child, generatedId);
-                  },
-                ),
+                ((await filter.getChildren()) || []).map(async (child) => {
+                  await fn(child, generatedId);
+                }),
               );
 
             Noco.appHooksService.emit(AppEvents.FILTER_CREATE, {
@@ -3427,7 +3540,7 @@ export default class View implements ViewType {
         // populate view columns
         await View.bulkColumnInsertToViews(
           context,
-          { columns: (await model.getColumns(context, ncMeta)) as any[] },
+          { columns: (await model.getColumns(ncMeta)) as any[] },
           insertedView,
         );
       }
@@ -3631,7 +3744,8 @@ export default class View implements ViewType {
     return scope;
   }
 
-  async getModel(context: NcContext, ncMeta = Noco.ncMeta): Promise<Model> {
+  async getModel(ncMeta = Noco.ncMeta): Promise<Model> {
+    const context = this.context;
     return (this.model = await Model.getByIdOrName(
       context,
       { id: this.fk_model_id },
@@ -3639,10 +3753,8 @@ export default class View implements ViewType {
     ));
   }
 
-  async getModelWithInfo(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Model> {
+  async getModelWithInfo(ncMeta = Noco.ncMeta): Promise<Model> {
+    const context = this.context;
     return (this.model = await Model.getWithInfo(
       context,
       { id: this.fk_model_id },
@@ -3650,7 +3762,8 @@ export default class View implements ViewType {
     ));
   }
 
-  async getView<T>(context: NcContext, ncMeta = Noco.ncMeta): Promise<T> {
+  async getView<T>(ncMeta = Noco.ncMeta): Promise<T> {
+    const context = this.context;
     switch (this.type) {
       case ViewTypes.GRID:
         this.view = await GridView.get(context, this.id, ncMeta);
@@ -3684,9 +3797,9 @@ export default class View implements ViewType {
   }
 
   async getViewWithInfo(
-    context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<FormView | GridView | KanbanView | GalleryView> {
+    const context = this.context;
     switch (this.type) {
       case ViewTypes.GRID:
         this.view = await GridView.getWithInfo(context, this.id, ncMeta);
@@ -3719,7 +3832,8 @@ export default class View implements ViewType {
     return this.view;
   }
 
-  public async getFilters(context: NcContext, ncMeta = Noco.ncMeta) {
+  public async getFilters(ncMeta = Noco.ncMeta) {
+    const context = this.context;
     return (this.filter = (await Filter.getFilterObject(
       context,
       {
@@ -3729,15 +3843,18 @@ export default class View implements ViewType {
     )) as any);
   }
 
-  public async getSorts(context: NcContext, ncMeta = Noco.ncMeta) {
+  public async getSorts(ncMeta = Noco.ncMeta) {
+    const context = this.context;
     return (this.sorts = await Sort.list(context, { viewId: this.id }, ncMeta));
   }
 
-  async getColumns(context: NcContext, ncMeta = Noco.ncMeta) {
+  async getColumns(ncMeta = Noco.ncMeta) {
+    const context = this.context;
     return (this.columns = await View.getColumns(context, this.id, ncMeta));
   }
 
-  async delete(context: NcContext, ncMeta = Noco.ncMeta) {
+  async delete(ncMeta = Noco.ncMeta) {
+    const context = this.context;
     await View.delete(context, this.id, ncMeta);
   }
 

@@ -1,11 +1,17 @@
 import type { RollupType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import Column from '~/models/Column';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
+import {
+  getModelContext,
+  setModelContext,
+  throwMissingContext,
+} from '~/helpers/modelContext';
 
 export const ROLLUP_FUNCTIONS = <const>[
   'count',
@@ -30,6 +36,18 @@ export default class RollupColumn implements RollupType {
 
   constructor(data: Partial<RollupColumn>) {
     Object.assign(this, data);
+  }
+
+  get context(): NcContext {
+    const ctx = getModelContext(this);
+    if (ctx) return ctx;
+    if (this.fk_workspace_id && this.base_id) {
+      return {
+        workspace_id: this.fk_workspace_id,
+        base_id: this.base_id,
+      } as NcContext;
+    }
+    throwMissingContext('RollupColumn');
   }
 
   public static async insert(
@@ -110,21 +128,31 @@ export default class RollupColumn implements RollupType {
         column,
       );
     }
-    return column ? new RollupColumn(column) : null;
+    if (!column) return null;
+    const instance = new RollupColumn(column);
+    setModelContext(instance, context);
+    return instance;
   }
 
-  public async getRollupColumn(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Column> {
-    return Column.get(context, { colId: this.fk_rollup_column_id }, ncMeta);
+  public async getRollupColumn(ncMeta = Noco.ncMeta): Promise<Column> {
+    // The rollup column lives in the related table, which may be in a different base.
+    // Derive refContext from the relation column's LTAR options.
+    const relationCol = await this.getRelationColumn(ncMeta);
+    const colOpts = await relationCol?.getColOptions<LinkToAnotherRecordColumn>(
+      ncMeta,
+    );
+    const refContext = colOpts
+      ? colOpts.getRelContext().refContext
+      : this.context;
+    return Column.get(refContext, { colId: this.fk_rollup_column_id }, ncMeta);
   }
 
-  public async getRelationColumn(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Column> {
-    return Column.get(context, { colId: this.fk_relation_column_id }, ncMeta);
+  public async getRelationColumn(ncMeta = Noco.ncMeta): Promise<Column> {
+    return Column.get(
+      this.context,
+      { colId: this.fk_relation_column_id },
+      ncMeta,
+    );
   }
 
   public static async update(

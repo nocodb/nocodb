@@ -12,7 +12,7 @@ const planUpgradeClickHook = createEventHook()
 
 provide(PlanUpgraderClickHookInj, planUpgradeClickHook)
 
-const { getFeature } = useEeConfig()
+const { getFeature, communityMode } = useEeConfig()
 
 const isFeatureEnabled = computed(() => getFeature(props.feature))
 
@@ -28,4 +28,4 @@ const onClick = (feature: PlanFeatureTypes, successCallback?: (...arg: any[]) =>
 }
 </script>
 
-<template><slot :is-feature-enabled="isFeatureEnabled" :click="onClick" /></template>
+<template><slot v-if="isFeatureEnabled || !communityMode" :is-feature-enabled="isFeatureEnabled" :click="onClick" /></template>

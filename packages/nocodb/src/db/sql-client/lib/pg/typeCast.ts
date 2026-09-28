@@ -1,4 +1,10 @@
-import { UITypes } from 'nocodb-sdk';
+import {
+  getCurrencyDecimalSymbol,
+  getCurrencyGroupSymbol,
+  getSeparatorChars,
+  resolveColumnSeparator,
+  UITypes,
+} from 'nocodb-sdk';
 import { NcError } from '~/helpers/ncError';
 import { DATE_FORMATS, TIME_FORMATS } from '~/db/sql-client/lib/pg/constants';
 
@@ -165,13 +171,54 @@ function getDateFormat(format: string) {
   else return 'dmy';
 }
 
+/**
+ * The separators the column renders with. `nc_parse_locale_number` reads text by
+ * its shape and only needs them to settle a lone separator that could be one
+ * group. Whitelisted to '.' or ',' (group may also be '') because they land in a
+ * SQL literal and meta is user-supplied.
+ */
+function resolveSeparators(uidt: UITypes, meta?: Record<string, any>) {
+  let decimal = '.';
+  let group: string | null = ',';
+
+  if (meta && uidt === UITypes.Currency) {
+    decimal = getCurrencyDecimalSymbol(
+      meta.currency_code,
+      meta.currency_locale,
+    );
+    group = getCurrencyGroupSymbol(meta.currency_code, meta.currency_locale);
+  } else if (meta && uidt === UITypes.Decimal) {
+    const chars = getSeparatorChars(resolveColumnSeparator(meta));
+    decimal = chars.decimalSeparator;
+    group = chars.thousandSeparator;
+  }
+
+  return {
+    decimal: decimal === ',' ? ',' : '.',
+    group: group === '.' || group === ',' ? group : '',
+  };
+}
+
+// Types `formatColumn` casts from a number, so their text is `12.345`-style.
+const NUMERIC_SOURCE_UIDTS = new Set<UITypes>([
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Rating,
+  UITypes.Duration,
+  UITypes.Year,
+]);
+
 export interface GenerateCastQueryArgs {
   uidt: UITypes;
+  sourceUidt?: UITypes;
   dt: string;
   source: string;
   limit: number;
   format: string;
   durationType?: number;
+  meta?: Record<string, any>;
 }
 
 /*
@@ -183,6 +230,8 @@ export interface GenerateCastQueryArgs {
  * @param args.limit - Limit for the data type
  * @param args.format - Date format
  * @param args.durationType - Duration format id (defaults to 0)
+ * @param args.meta - Column meta, for the configured decimal separator
+ * @param args.sourceUidt - UI data type the column is converted from
  * @returns {String} - query to cast column to a specific data type
  */
 export function generateCastQuery({
@@ -192,6 +241,8 @@ export function generateCastQuery({
   limit,
   format,
   durationType = 0,
+  meta,
+  sourceUidt,
 }: GenerateCastQueryArgs) {
   switch (uidt) {
     case UITypes.SingleLineText:
@@ -212,8 +263,16 @@ export function generateCastQuery({
         9999,
       );
     case UITypes.Decimal:
-    case UITypes.Currency:
-      return `${extractNumberQuery(source)};`;
+    case UITypes.Currency: {
+      // A numeric source renders as Postgres's own locale-free text.
+      if (sourceUidt && NUMERIC_SOURCE_UIDTS.has(sourceUidt)) {
+        return `${extractNumberQuery(source)};`;
+      }
+
+      // Text is read by its shape (nocodb/nocodb#14563).
+      const { decimal, group } = resolveSeparators(uidt, meta);
+      return `nc_parse_locale_number(${source}, '${decimal}', '${group}');`;
+    }
     case UITypes.Percent:
       return `LEAST(100, GREATEST(0, ${extractNumberQuery(source)}));`;
     case UITypes.Rating:

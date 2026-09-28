@@ -1,5 +1,10 @@
 import { ColumnType, FilterType } from './Api';
-import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from './enums';
+import {
+  InterfaceRoles,
+  OrgUserRoles,
+  ProjectRoles,
+  WorkspaceUserRoles,
+} from './enums';
 import { OnPremPlanTitles, PlanTitles } from './payment';
 
 export const enumColors = {
@@ -76,6 +81,7 @@ export enum ProjectTypes {
   DOCUMENTATION = 'documentation',
   COWRITER = 'cowriter',
   DASHBOARD = 'dashboard',
+  CODE = 'code',
 }
 
 export enum RelationTypes {
@@ -170,6 +176,19 @@ export enum NcDataErrorCodes {
   NC_ERR_MM_MODEL_NOT_FOUND = 'NC_ERR_MM_MODEL_NOT_FOUND',
 }
 
+/**
+ * Coarse buckets for SSO sign-in failures, surfaced to the browser as
+ * `/sso?error=<code>`. Deliberately coarse — the precise reason stays in the
+ * server log, since the redirect endpoint is unauthenticated.
+ */
+export enum SsoFailureCode {
+  SSO_STATE_INVALID = 'SSO_STATE_INVALID',
+  SSO_TOKEN_INVALID = 'SSO_TOKEN_INVALID',
+  SSO_PROVIDER_ERROR = 'SSO_PROVIDER_ERROR',
+  SSO_ACCOUNT_NOT_ALLOWED = 'SSO_ACCOUNT_NOT_ALLOWED',
+  SSO_FAILED = 'SSO_FAILED',
+}
+
 export const NC_ERROR_SENTINEL = '_____NC_ERROR_____';
 
 export enum NcErrorType {
@@ -177,6 +196,9 @@ export enum NcErrorType {
   ERR_FORBIDDEN = 'ERR_FORBIDDEN',
   ERR_API_TOKEN_NOT_ALLOWED = 'ERR_API_TOKEN_NOT_ALLOWED',
   ERR_WORKSPACE_NOT_FOUND = 'ERR_WORKSPACE_NOT_FOUND',
+  ERR_WORKSPACE_SUSPENDED = 'ERR_WORKSPACE_SUSPENDED',
+  ERR_BASE_SUSPENDED = 'ERR_BASE_SUSPENDED',
+  ERR_ORG_NOT_FOUND = 'ERR_ORG_NOT_FOUND',
   ERR_BASE_NOT_FOUND = 'ERR_BASE_NOT_FOUND',
   ERR_SOURCE_NOT_FOUND = 'ERR_SOURCE_NOT_FOUND',
   ERR_TABLE_NOT_FOUND = 'ERR_TABLE_NOT_FOUND',
@@ -210,6 +232,13 @@ export enum NcErrorType {
   ERR_TABLE_ASSOCIATED_WITH_LINK = 'ERR_TABLE_ASSOCIATED_WITH_LINK',
   ERR_INTEGRATION_NOT_FOUND = 'ERR_INTEGRATION_NOT_FOUND',
   ERR_INTEGRATION_LINKED_WITH_BASES = 'ERR_INTEGRATION_LINKED_WITH_BASES',
+  ERR_ENVIRONMENT_NOT_FOUND = 'ERR_ENVIRONMENT_NOT_FOUND',
+  ERR_INTEGRATION_USER_CREDENTIAL_REQUIRED = 'ERR_INTEGRATION_USER_CREDENTIAL_REQUIRED',
+  ERR_INTEGRATION_PER_USER_NOT_ALLOWED = 'ERR_INTEGRATION_PER_USER_NOT_ALLOWED',
+  // Connection credentials are no longer usable — only the user can fix it (reconnect).
+  ERR_INTEGRATION_AUTH_FAILED = 'ERR_INTEGRATION_AUTH_FAILED',
+  // Upstream call failed for a reason retrying may fix (rate limit, network, unknown).
+  ERR_INTEGRATION_REQUEST_FAILED = 'ERR_INTEGRATION_REQUEST_FAILED',
   ERR_FORMULA = 'ERR_FORMULA',
   ERR_CIRCULAR_REF_IN_FORMULA = 'ERR_CIRCULAR_REF_IN_FORMULA',
   ERR_PERMISSION_DENIED = 'ERR_PERMISSION_DENIED',
@@ -232,12 +261,35 @@ export enum NcErrorType {
   ERR_TRASH_NOT_FOUND = 'ERR_TRASH_NOT_FOUND',
   ERR_PARENT_IN_TRASH = 'ERR_PARENT_IN_TRASH',
   ERR_DASHBOARD_NOT_FOUND = 'ERR_DASHBOARD_NOT_FOUND',
+  ERR_INTERFACE_NOT_FOUND = 'ERR_INTERFACE_NOT_FOUND',
+  ERR_INTERFACE_PAGE_NOT_FOUND = 'ERR_INTERFACE_PAGE_NOT_FOUND',
+  ERR_INTERFACE_PREVIEW_WRITE_BLOCKED = 'ERR_INTERFACE_PREVIEW_WRITE_BLOCKED',
+  ERR_APP_NOT_FOUND = 'ERR_APP_NOT_FOUND',
+  ERR_APP_VERSION_NOT_FOUND = 'ERR_APP_VERSION_NOT_FOUND',
+  ERR_APP_TOKEN_NOT_FOUND = 'ERR_APP_TOKEN_NOT_FOUND',
+  ERR_APP_TEAM_NOT_FOUND = 'ERR_APP_TEAM_NOT_FOUND',
+  ERR_APP_INTEGRATION_GRANT_NOT_FOUND = 'ERR_APP_INTEGRATION_GRANT_NOT_FOUND',
+  ERR_ROUTINE_NOT_FOUND = 'ERR_ROUTINE_NOT_FOUND',
+  ERR_MANAGED_APP_NOT_FOUND = 'ERR_MANAGED_APP_NOT_FOUND',
+  ERR_MANAGED_APP_VERSION_NOT_FOUND = 'ERR_MANAGED_APP_VERSION_NOT_FOUND',
+  ERR_PUBLISHED_MANAGED_APP_VERSION_NOT_FOUND = 'ERR_PUBLISHED_MANAGED_APP_VERSION_NOT_FOUND',
+  ERR_MARKETPLACE_PUBLISHER_NOT_FOUND = 'ERR_MARKETPLACE_PUBLISHER_NOT_FOUND',
   ERR_WORKFLOW_NOT_FOUND = 'ERR_WORKFLOW_NOT_FOUND',
+  ERR_AGENT_NOT_FOUND = 'ERR_AGENT_NOT_FOUND',
+  ERR_AGENT_SESSION_NOT_FOUND = 'ERR_AGENT_SESSION_NOT_FOUND',
+  ERR_SKILL_NOT_FOUND = 'ERR_SKILL_NOT_FOUND',
+  ERR_SKILL_SOURCE_INVALID = 'ERR_SKILL_SOURCE_INVALID',
+  ERR_SKILL_CATALOG_UNAVAILABLE = 'ERR_SKILL_CATALOG_UNAVAILABLE',
   ERR_WIDGET_NOT_FOUND = 'ERR_WIDGET_NOT_FOUND',
   ERR_CHAT_SESSION_NOT_FOUND = 'ERR_CHAT_SESSION_NOT_FOUND',
   ERR_CHAT_MESSAGE_NOT_FOUND = 'ERR_CHAT_MESSAGE_NOT_FOUND',
+  ERR_CHAT_ARTIFACT_NOT_FOUND = 'ERR_CHAT_ARTIFACT_NOT_FOUND',
   ERR_VIEW_SECTION_NOT_FOUND = 'ERR_VIEW_SECTION_NOT_FOUND',
+  ERR_BASE_SECTION_NOT_FOUND = 'ERR_BASE_SECTION_NOT_FOUND',
+  ERR_AUTOMATION_SECTION_NOT_FOUND = 'ERR_AUTOMATION_SECTION_NOT_FOUND',
+  ERR_AGENT_SECTION_NOT_FOUND = 'ERR_AGENT_SECTION_NOT_FOUND',
   ERR_SHARED_DASHBOARD_PASSWORD_INVALID = 'ERR_SHARED_DASHBOARD_PASSWORD_INVALID',
+  ERR_SHARED_INTERFACE_PAGE_PASSWORD_INVALID = 'ERR_SHARED_INTERFACE_PAGE_PASSWORD_INVALID',
   ERR_DUPLICATE_IN_ALIAS = 'ERR_DUPLICATE_IN_ALIAS',
   ERR_OUT_OF_SYNC = 'ERR_OUT_OF_SYNC',
   ERR_FILTER_VERIFICATION_FAILED = 'ERR_FILTER_VERIFICATION_FAILED',
@@ -298,12 +350,43 @@ export enum NcErrorType {
   ERR_SYSTEM_MISCONFIGURED = 'ERR_SYSTEM_MISCONFIGURED',
   ERR_TOO_MANY_REQUESTS = 'ERR_TOO_MANY_REQUESTS',
 
-  // Sandbox errors
-  ERR_SANDBOX_BLOCKED = 'ERR_SANDBOX_BLOCKED',
-  ERR_SANDBOX_PRODUCTION_BLOCKED = 'ERR_SANDBOX_PRODUCTION_BLOCKED',
+  // Environment errors
+  ERR_ENVIRONMENT_LANE_BLOCKED = 'ERR_ENVIRONMENT_LANE_BLOCKED',
+  ERR_ENVIRONMENT_PRODUCTION_LOCKED = 'ERR_ENVIRONMENT_PRODUCTION_LOCKED',
 
   // Snapshot errors
   ERR_SNAPSHOT_BLOCKED = 'ERR_SNAPSHOT_BLOCKED',
+
+  // Credit system errors
+  ERR_CREDITS_EXHAUSTED = 'ERR_CREDITS_EXHAUSTED',
+  ERR_CREDIT_PACK_NOT_FOUND = 'ERR_CREDIT_PACK_NOT_FOUND',
+}
+
+/**
+ * Why EE is inactive when an operation is refused with ERR_LICENSE_REQUIRED.
+ * Never a plan tier — it says the license is not active, not that the feature
+ * belongs to a higher plan.
+ */
+export enum LicenseInactiveReason {
+  /** No license key configured */
+  NONE = 'none',
+  EXPIRED = 'expired',
+  SUSPENDED = 'suspended',
+  /** Heartbeat grace period lapsed — license server unreachable */
+  UNREACHABLE = 'unreachable',
+}
+
+/**
+ * Liveness of the license-server heartbeat. `degraded` is the window worth
+ * warning in: beats are failing but EE is still active, so connectivity can
+ * still be restored before features switch off at `gracePeriodExpiresAt`.
+ * Once that passes, EE is off and `LicenseInactiveReason.UNREACHABLE` applies.
+ */
+export interface LicenseHeartbeatHealth {
+  degraded: boolean;
+  consecutiveFailures: number;
+  lastSuccessAt?: string;
+  gracePeriodExpiresAt?: string;
 }
 
 export enum ROW_COLORING_MODE {
@@ -331,6 +414,11 @@ export const NON_SEAT_ROLES = [
   ProjectRoles.VIEWER,
   ProjectRoles.INHERIT,
   ProjectRoles.COMMENTER,
+  // app_user base role is free for now (per-app editor-tier seat counting is a follow-up).
+  ProjectRoles.APP_USER,
+  InterfaceRoles.NO_ACCESS,
+  InterfaceRoles.VIEWER,
+  InterfaceRoles.COMMENTER,
 ];
 
 export const DURATION_TYPE_MAP = {
@@ -380,6 +468,11 @@ export type RowColoringInfoFilter = {
 export type RowColoringInfo = {
   fk_model_id: string;
   fk_view_id: string;
+  /**
+   * Background tint strength when colouring is set as background.
+   * Absent = 'light' (the historical tint).
+   */
+  background_intensity?: 'light' | 'medium' | 'bold';
 } & (RowColoringInfoSelect | RowColoringInfoFilter);
 
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
@@ -395,7 +488,18 @@ interface PlanLimitExceededDetailsType {
   higherPlan?: PlanTitles | OnPremPlanTitles;
 }
 
-export { Roles, RolesObj, RolesType, PlanLimitExceededDetailsType };
+interface CreditsExhaustedDetailsType {
+  available_credits?: number;
+  period_end?: string;
+}
+
+export {
+  Roles,
+  RolesObj,
+  RolesType,
+  PlanLimitExceededDetailsType,
+  CreditsExhaustedDetailsType,
+};
 
 export type RowColoringMode = null | 'SELECT' | 'FILTER';
 
@@ -425,6 +529,8 @@ export enum DependencyTableType {
   Workflow = 'workflow',
   DateDependency = 'date_dependency',
   Bookmark = 'bookmark',
+  InterfacePage = 'interface_page',
+  Agent = 'agent',
 }
 
 export enum BaseVersion {
@@ -432,15 +538,44 @@ export enum BaseVersion {
   V3 = 3,
 }
 
-export enum ManagedAppVersionStatus {
-  DRAFT = 'draft',
-  PUBLISHED = 'published',
+export enum ManagedAppVisibility {
+  /** Listed in the store for everyone, reachable and installable by everyone. */
+  PUBLIC = 'public',
+  /** Listed for the publisher's org when the workspace belongs to one,
+   *  otherwise for the publisher's workspace. Same scope for reach and
+   *  install. */
+  INTERNAL = 'internal',
+  /** Listed for nobody. Reachable and installable by any authenticated user
+   *  holding the id — the id is the bearer secret. Link sharing. */
+  UNLISTED = 'unlisted',
+  /** Owners only: `created_by`, or an effective base OWNER. */
+  PRIVATE = 'private',
 }
 
-export enum ManagedAppVisibility {
-  PUBLIC = 'public',
-  PRIVATE = 'private',
-  UNLISTED = 'unlisted',
+/**
+ * What an install hands the person who installed it. The publisher decides, because
+ * only they know which one their app is.
+ *
+ * One question, two answers: does the base underneath come with the app, or not.
+ * There was a third — visible but schema-locked — and it made the publisher answer
+ * two questions instead of one for a middle nobody could describe in a sentence.
+ *
+ * Neither is a boundary. The only person `APP` withholds the dashboard from is the
+ * owner of the workspace the data already lives in, and ejecting is a platform
+ * guarantee offered at both. A publisher picking `APP` is saying "the tables are my
+ * plumbing, don't lead with them".
+ */
+export enum ManagedAppInstallSurface {
+  /** The app, and nothing else. Tables, fields and views are the publisher's
+   *  implementation detail; the owner administers the install — setup,
+   *  connections, their own team, upgrades — and is never shown the dashboard.
+   *  What a finished product looks like. */
+  APP = 'app',
+  /** The app plus the base, unlocked. The owner may add their own tables,
+   *  fields, views and agents; everything they add is named into their own half
+   *  of the namespace (`__c`) and survives every upgrade. A starting point
+   *  rather than a product. */
+  FULL = 'full',
 }
 
 export enum DeploymentStatus {
@@ -453,6 +588,7 @@ export enum DeploymentStatus {
 export enum DeploymentType {
   INSTALL = 'install',
   UPDATE = 'update',
+  UNINSTALL = 'uninstall',
 }
 
 export enum BaseVariableInheritance {
@@ -465,3 +601,9 @@ export enum BaseVariableValueType {
   TEXT = 'text',
   SECRET = 'secret',
 }
+
+/**
+ * Maximum nesting depth for List view self-link trees. Shared so the backend's
+ * recursive CTE bound and the frontend's drop-target guard can never drift.
+ */
+export const LIST_VIEW_NESTED_MAX_DEPTH = 7;

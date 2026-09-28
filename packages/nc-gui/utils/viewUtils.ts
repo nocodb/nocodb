@@ -69,6 +69,9 @@ export const defaultRowColorInfo: RowColoringInfo = {
   is_set_as_background: null,
 }
 
+/** stored on every new form view — treated as "no custom color" so dark palettes can theme it */
+export const DEFAULT_FORM_BACKGROUND_COLOR = '#F9F9FA'
+
 export const getDefaultViewMetas = (viewType: ViewTypes) => {
   switch (viewType) {
     case ViewTypes.FORM:
@@ -77,7 +80,7 @@ export const getDefaultViewMetas = (viewType: ViewTypes) => {
         show_blank_form: false,
         meta: {
           hide_branding: false,
-          background_color: '#F9F9FA',
+          background_color: DEFAULT_FORM_BACKGROUND_COLOR,
           hide_banner: false,
         },
       }

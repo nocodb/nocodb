@@ -2,7 +2,7 @@
 import { Form } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import { diff } from 'deep-object-diff'
-import { IntegrationsType, validateAndExtractSSLProp } from 'nocodb-sdk'
+import { IntegrationsType, isSecretRef, isVaultReferenceablePath, validateAndExtractSSLProp } from 'nocodb-sdk'
 import { defineAsyncComponent } from 'vue'
 import {
   type CertTypes,
@@ -90,7 +90,7 @@ const activeIntegrationformState = ref<ProjectCreateForm>(defaultFormState())
 
 const isEnabledSaveChangesBtn = ref(false)
 
-const { blockMssql, showUpgradeToUseMssql, blockOracle, showUpgradeToUseOracle } = useEeConfig()
+const { blockMssql, showUpgradeToUseMssql, blockOracle, showUpgradeToUseOracle, showEEFeatures } = useEeConfig()
 
 const easterEgg = ref(false)
 
@@ -115,6 +115,23 @@ const isDisabledSubmitBtn = computed(() => {
   return !testSuccess.value
 })
 
+// A vault-backed credential replaces its plain input.
+const isVaultModeUser = ref(false)
+
+const isVaultModePassword = ref(false)
+
+const isVaultBackedUser = computed(
+  () => isVaultModeUser.value || isSecretRef((formState.value.dataSource.connection as DefaultConnection).user),
+)
+
+const isVaultBackedPassword = computed(
+  () => isVaultModePassword.value || isSecretRef((formState.value.dataSource.connection as DefaultConnection).password),
+)
+
+function setCredential(field: 'user' | 'password', value: string | null) {
+  ;(formState.value.dataSource.connection as DefaultConnection)[field] = value ?? ''
+}
+
 const onEasterEgg = () => {
   easterEggCount.value += 1
   if (easterEggCount.value >= 2) {
@@ -124,8 +141,9 @@ const onEasterEgg = () => {
 
 const clientTypes = computed(() => {
   return _clientTypes.filter((type) => {
-    // MSSQL/Oracle are EE-only — hidden in CE; in EE they're gated by their paid add-on.
-    if (!isEeUI && [ClientType.MSSQL, ClientType.ORACLE].includes(type.value)) return false
+    // MSSQL/Oracle are EE-only — hidden in CE and in community mode; in a normal EE
+    // build they're gated by their paid add-on.
+    if (!showEEFeatures.value && [ClientType.MSSQL, ClientType.ORACLE].includes(type.value)) return false
 
     return (
       ([ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(type.value) && easterEgg.value) ||
@@ -166,7 +184,9 @@ const validators = computed(() => {
       }
       break
     case ClientType.PG:
-      clientValidations['dataSource.searchPath.0'] = [fieldRequiredValidator()]
+      // Schema is optional for PG — an empty value is treated as undefined on
+      // submit and the connection uses the DB default (public).
+      clientValidations['dataSource.searchPath.0'] = []
       break
   }
 
@@ -290,6 +310,18 @@ const focusInvalidInput = () => {
   form.value?.$el.querySelector('.ant-form-item-explain-error')?.parentNode?.parentNode?.querySelector('input')?.focus()
 }
 
+// PG/MSSQL schema is optional: an empty searchPath (`['']`, `[]`, …) means "use
+// the DB default". Strip it to `undefined` so NEITHER save nor test-connection
+// posts a meaningless value — this form bypasses the integration-merge path, and
+// knex renders `['']` as `set search_path to ""` and `[]` as `set search_path to`,
+// both of which Postgres rejects. Shared so the two call sites can't drift.
+const stripEmptySearchPath = <T extends { searchPath?: any }>(config: T): T => {
+  if (config && !config.searchPath?.filter?.(Boolean).length) {
+    config.searchPath = undefined
+  }
+  return config
+}
+
 const createOrUpdateIntegration = async () => {
   // if it is edit mode and activeIntegration id is not present then return
   if (isEditMode.value && !activeIntegration.value?.id) return
@@ -306,7 +338,7 @@ const createOrUpdateIntegration = async () => {
 
     const connection = getConnectionConfig()
 
-    const config = { ...formState.value.dataSource, connection }
+    const config = stripEmptySearchPath({ ...formState.value.dataSource, connection })
 
     if (!isEditMode.value) {
       await saveIntegration(
@@ -380,10 +412,10 @@ const testConnection = async (retry = 0, initialConfig = null, initialError = nu
 
       connection.database = getTestDatabaseName(formState.value.dataSource)!
 
-      const testConnectionConfig = {
+      const testConnectionConfig = stripEmptySearchPath({
         ...formState.value.dataSource,
         connection,
-      }
+      })
 
       const result = await api.utils.testConnection(testConnectionConfig)
 
@@ -565,6 +597,13 @@ onMounted(async () => {
       is_private: activeIntegration.value?.is_private,
     }
 
+    // Ensure a schema-aware connection always exposes an (editable) schema field
+    // when editing — a stored config with no searchPath would otherwise hide it,
+    // leaving no way to set/change the schema on an existing connection.
+    if ([ClientType.PG, ClientType.MSSQL].includes(formState.value.dataSource.client) && !formState.value.dataSource.searchPath) {
+      formState.value.dataSource.searchPath = ['']
+    }
+
     if (formState.value.dataSource?.connection?.password === null) {
       maskedPassword.value = true
       formState.value.dataSource.connection.password = '*'.repeat(8)
@@ -678,7 +717,7 @@ watch(
                 <div class="nc-form-section-body">
                   <a-row :gutter="24">
                     <a-col :span="12">
-                      <a-form-item label="Connection name" v-bind="validateInfos.title">
+                      <a-form-item :label="$t('labels.connectionName')" v-bind="validateInfos.title">
                         <a-input v-model:value="formState.title" />
                       </a-form-item>
                     </a-col>
@@ -688,7 +727,7 @@ watch(
 
               <div class="nc-form-section">
                 <div class="flex items-center justify-between">
-                  <div class="nc-form-section-title">Connection details</div>
+                  <div class="nc-form-section-title">{{ $t('labels.connectionDetailsSection') }}</div>
 
                   <!-- Use Connection URL -->
                   <NcDropdown
@@ -710,7 +749,7 @@ watch(
                     <template #overlay>
                       <div class="p-4 w-[448px] flex flex-col gap-3">
                         <div class="text-sm text-nc-content-gray-subtle">
-                          Auto populate connection configuration using database connection URL
+                          {{ $t('msg.info.autoPopulateConnectionFromUrl') }}
                         </div>
 
                         <a-textarea
@@ -769,7 +808,7 @@ watch(
                         >
                           <a-input
                             v-model:value="(formState.dataSource.connection as SQLiteConnection).connection.filename"
-                            placeholder="Enter absolute file path"
+                            :placeholder="$t('placeholder.enterAbsoluteFilePath')"
                           />
                         </a-form-item>
                       </a-col>
@@ -818,7 +857,7 @@ watch(
                     <a-row :gutter="24">
                       <a-col :span="12">
                         <!-- Warehouse -->
-                        <a-form-item label="Warehouse" v-bind="validateInfos['dataSource.connection.warehouse']">
+                        <a-form-item :label="$t('labels.warehouse')" v-bind="validateInfos['dataSource.connection.warehouse']">
                           <a-input
                             v-model:value="(formState.dataSource.connection as SnowflakeConnection).warehouse"
                             class="nc-extdb-host-database"
@@ -860,7 +899,7 @@ watch(
                         </a-form-item>
                       </a-col>
                       <a-col :span="12">
-                        <a-form-item label="Host" v-bind="validateInfos['dataSource.connection.host']">
+                        <a-form-item :label="$t('labels.host')" v-bind="validateInfos['dataSource.connection.host']">
                           <a-input
                             v-model:value="(formState.dataSource.connection as DatabricksConnection).host"
                             class="nc-extdb-host-address"
@@ -870,7 +909,7 @@ watch(
                     </a-row>
                     <a-row :gutter="24">
                       <a-col :span="12">
-                        <a-form-item label="Path" v-bind="validateInfos['dataSource.connection.path']">
+                        <a-form-item :label="$t('labels.path')" v-bind="validateInfos['dataSource.connection.path']">
                           <a-input
                             v-model:value="(formState.dataSource.connection as DatabricksConnection).path"
                             class="nc-extdb-host-path"
@@ -928,8 +967,17 @@ watch(
                         <!-- Username -->
                         <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.user']">
                           <a-input
+                            v-if="!isVaultBackedUser"
                             v-model:value="(formState.dataSource.connection as DefaultConnection).user"
                             class="nc-extdb-host-user"
+                          />
+                          <WorkspaceIntegrationsVaultSecretField
+                            v-if="isEeUI && isVaultReferenceablePath(['connection', 'user'])"
+                            :value="(formState.dataSource.connection as DefaultConnection).user"
+                            field-key="user"
+                            :label="$t('labels.username')"
+                            @update:value="(value) => setCredential('user', value)"
+                            @update:vault-mode="(mode) => (isVaultModeUser = mode)"
                           />
                         </a-form-item>
                       </a-col>
@@ -940,9 +988,18 @@ watch(
                             <div class="text-xs text-warning mt-1">{{ maskedPasswordHelp }}</div>
                           </template>
                           <a-input-password
+                            v-if="!isVaultBackedPassword"
                             v-model:value="(formState.dataSource.connection as DefaultConnection).password"
                             class="nc-extdb-host-password"
                             @focus="onFocusPassword"
+                          />
+                          <WorkspaceIntegrationsVaultSecretField
+                            v-if="isEeUI && isVaultReferenceablePath(['connection', 'password'])"
+                            :value="(formState.dataSource.connection as DefaultConnection).password"
+                            field-key="password"
+                            :label="$t('labels.password')"
+                            @update:value="(value) => setCredential('password', value)"
+                            @update:vault-mode="(mode) => (isVaultModePassword = mode)"
                           />
                         </a-form-item>
                       </a-col>
@@ -962,11 +1019,14 @@ watch(
                       <a-col :span="12">
                         <!-- Schema name -->
                         <a-form-item
-                          v-if="[ClientType.PG].includes(formState.dataSource.client) && formState.dataSource.searchPath"
+                          v-if="
+                            [ClientType.PG, ClientType.MSSQL].includes(formState.dataSource.client) &&
+                            formState.dataSource.searchPath
+                          "
                           :label="$t('labels.schemaName')"
                           v-bind="validateInfos['dataSource.searchPath.0']"
                         >
-                          <a-input v-model:value="formState.dataSource.searchPath[0]" />
+                          <a-input v-model:value="formState.dataSource.searchPath[0]" data-testid="nc-extdb-schema-name" />
                         </a-form-item>
                       </a-col>
                     </a-row>
@@ -981,7 +1041,7 @@ watch(
                         <!-- Extra connection parameters -->
                         <a-form-item
                           class="nc-form-extra-connectin-parameters mb-2"
-                          label="Connection parameters"
+                          :label="$t('labels.connectionParameters')"
                           v-bind="validateInfos.extraParameters"
                         >
                           <div class="flex flex-col gap-3">
@@ -1006,7 +1066,7 @@ watch(
                               <NcButton size="small" type="secondary" class="" @click="addNewParam">
                                 <div class="flex items-center">
                                   <GeneralIcon icon="plus" />
-                                  Add
+                                  {{ $t('general.add') }}
                                 </div>
                               </NcButton>
                             </div>
@@ -1034,7 +1094,7 @@ watch(
                           class="nc-form-section-title cursor-pointer"
                           @click="handleUpdateUseSslExpannsionPanel(!useSslExpansionPanel.length)"
                         >
-                          Use SSL
+                          {{ $t('labels.useSsl') }}
                         </div>
                       </div>
                     </template>
@@ -1042,7 +1102,7 @@ watch(
                     <div class="border-1 border-nc-border-gray-medium rounded-lg p-3">
                       <a-row :gutter="24">
                         <a-col :span="12">
-                          <a-form-item label="SSL mode">
+                          <a-form-item :label="$t('labels.sslMode')">
                             <NcSelect
                               v-model:value="formState.sslUse"
                               class="nc-select-shadow"
@@ -1072,7 +1132,7 @@ watch(
                         <a-col :span="24">
                           <a-form-item
                             v-if="formState.sslUse && ![SSLUsage.No, SSLUsage.Allowed].includes(formState.sslUse)"
-                            label="SSL keys"
+                            :label="$t('labels.sslKeys')"
                             class="!mt-3"
                           >
                             <div class="flex gap-2 w-full">
@@ -1200,7 +1260,7 @@ watch(
                       class="!-ml-1.5"
                       @click="handleUpdateAdvancedOptionsExpansionPanel(!advancedOptionsExpansionPanel.length)"
                     >
-                      <div class="nc-form-section-title">Advanced options</div>
+                      <div class="nc-form-section-title">{{ $t('labels.advancedOptions') }}</div>
 
                       <GeneralIcon
                         icon="chevronDown"

@@ -1,16 +1,20 @@
 <script lang="ts" setup>
-import { IntegrationsType } from 'nocodb-sdk'
-import type { IntegrationType, UserType, WorkspaceUserType } from 'nocodb-sdk'
+import { DefaultEnvironmentKey, IntegrationsType, integrationSupportsEnvironments } from 'nocodb-sdk'
+import type { EnvironmentType, IntegrationType, UserType, WorkspaceUserType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     showTitle?: boolean
+    showEnvironments?: boolean
   }>(),
   {
     showTitle: false,
+    showEnvironments: false,
   },
 )
+
+const emit = defineEmits<{ manageEnvironments: [] }>()
 
 type SortFields = 'title' | 'sub_type' | 'created_at' | 'created_by' | 'source_count'
 
@@ -38,6 +42,67 @@ const { bases } = storeToRefs(useBases())
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const environmentsStore = useEnvironments()
+
+const { environments, activeEnvironmentKey, activeEnvironment } = storeToRefs(environmentsStore)
+
+const { loadEnvironments } = environmentsStore
+
+const showEnvUI = computed(() => props.showEnvironments)
+
+const { isUIAllowed } = useRoles()
+
+// Viewers reach this list to browse the inventory and connect their own
+// account on per-user integrations — creating/editing/deleting connections
+// stays a manage capability.
+const canManageIntegrations = computed(() => isUIAllowed('integrationManage'))
+
+const { isEnvironmentBlocked, environmentUpgradeFeature, showUpgradeToUseStagingEnvironment, showUpgradeToUseCustomEnvironment } =
+  useEeConfig()
+
+// Per-user integrations have no shared credential — each member connects
+// their own account per environment.
+function isPerUserIntegration(integration: IntegrationType) {
+  return integration.credential_mode === 'per_user'
+}
+
+// Shared integrations: Production is always configured (it IS the
+// integration's own config); other stages are configured only when they
+// appear in `integration.environments`.
+// Per-user integrations: the dot reflects YOUR OWN connection state for that
+// environment (`connected_environment_ids` is attached per caller by the
+// list endpoint) — there is no shared "configured" notion.
+function isEnvConfigured(integration: IntegrationType, env: EnvironmentType) {
+  if (isPerUserIntegration(integration)) {
+    return (integration.connected_environment_ids ?? []).includes(env.id!)
+  }
+  if (env.key === DefaultEnvironmentKey.PRODUCTION) return true
+  return (integration.environments ?? []).some((c) => c.fk_environment_id === env.id)
+}
+
+// Opens the matching upgrade prompt for a plan-locked environment.
+function showBlockedEnvUpgrade(env: EnvironmentType, triggerSource: string) {
+  if (env.key === DefaultEnvironmentKey.STAGING) {
+    showUpgradeToUseStagingEnvironment({ triggerSource })
+  } else {
+    showUpgradeToUseCustomEnvironment({ triggerSource })
+  }
+}
+
+// Selecting a plan-locked environment opens the matching upgrade prompt instead of switching.
+function onEnvironmentChange(key: string) {
+  const env = environments.value.find((e) => e.key === key)
+  if (env && isEnvironmentBlocked(env)) {
+    showBlockedEnvUpgrade(env, 'connections-environment-selector')
+    return
+  }
+  activeEnvironmentKey.value = key
+}
+
+onMounted(() => {
+  if (showEnvUI.value) loadEnvironments()
+})
+
 const connectionsSearchInputRef = ref<HTMLInputElement>()
 
 const isDeleteIntegrationModalOpen = ref(false)
@@ -59,7 +124,15 @@ const isLoadingGetLinkedSources = ref(false)
 const isBaseAssignmentOpen = ref(false)
 const baseAssignmentIntegration = ref<IntegrationType | null>(null)
 
+// The NocoDB row is injected client-side with a placeholder id (`nc-data-reflection`) and has no
+// integration record, so the base-assignment endpoints 404 on it.
+function canManageBaseAccess(integration: IntegrationType) {
+  return integration.sub_type !== SyncDataType.NOCODB
+}
+
 function openBaseAssignment(integration: IntegrationType) {
+  if (!canManageBaseAccess(integration)) return
+
   baseAssignmentIntegration.value = integration
   isBaseAssignmentOpen.value = true
 }
@@ -227,6 +300,10 @@ const isUserDeleted = (userId?: string) => {
   }
 }
 
+// The line under the name, standing in for the Date added column.
+const integrationSubtext = (integration: IntegrationType) =>
+  t('labels.addedOnDate', { date: dayjs(integration.created_at).local().format('DD MMM YYYY') })
+
 const getUserNameByCreatedBy = (createdBy: string) => {
   return (
     collaboratorsMap.value.get(createdBy)?.display_name ||
@@ -236,7 +313,7 @@ const getUserNameByCreatedBy = (createdBy: string) => {
 
 useEventListener(tableWrapper, 'scroll', () => {
   const stickyHeaderCell = tableWrapper.value?.querySelector('th.cell-title')
-  const nonStickyHeaderFirstCell = tableWrapper.value?.querySelector('th.cell-type')
+  const nonStickyHeaderFirstCell = tableWrapper.value?.querySelector('th.cell-title + th')
 
   if (!stickyHeaderCell?.getBoundingClientRect().right || !nonStickyHeaderFirstCell?.getBoundingClientRect().left) {
     return
@@ -272,63 +349,69 @@ onKeyStroke('ArrowRight', onRight)
 onKeyStroke('ArrowUp', onUp)
 onKeyStroke('ArrowDown', onDown)
 
-const columns = [
-  {
-    key: 'title',
-    title: t('general.name'),
-    minWidth: 250,
-    dataIndex: 'title',
-    showOrderBy: true,
-  },
-  {
-    key: 'sub_type',
-    title: t('general.type'),
-    minWidth: 98,
-    width: 120,
-    dataIndex: 'sub_type',
-    showOrderBy: true,
-  },
-  {
-    key: 'created_at',
-    title: t('labels.dateAdded'),
-    basis: '20%',
-    minWidth: 200,
-
-    dataIndex: 'created_at',
-    showOrderBy: true,
-  },
-  {
-    key: 'created_by',
-    title: t('labels.addedBy'),
-    minWidth: 250,
-    basis: '20%',
-    dataIndex: 'created_by',
-    showOrderBy: true,
-  },
-  {
-    key: 'source_count',
-    title: t('general.usage'),
-    width: 120,
-    dataIndex: 'source_count',
-    showOrderBy: true,
-  },
-  {
-    key: 'base_access',
-    title: t('labels.baseAccess'),
-    minWidth: 140,
-    width: 160,
-  },
-  {
-    key: 'action',
-    title: t('labels.actions'),
-    minWidth: 100,
-    width: 100,
-    justify: 'justify-end',
-  },
-] as NcTableColumnProps[]
+const columns = computed(
+  () =>
+    [
+      {
+        key: 'title',
+        title: t('general.name'),
+        minWidth: 250,
+        dataIndex: 'title',
+        showOrderBy: true,
+      },
+      // Environments column — opt-in via the `showEnvironments` prop (parent gates by isEeUI).
+      ...(props.showEnvironments
+        ? [
+            {
+              key: 'environments',
+              title: t('title.environments'),
+              minWidth: 120,
+              width: 140,
+            },
+          ]
+        : []),
+      {
+        key: 'created_by',
+        title: t('labels.addedBy'),
+        minWidth: 250,
+        basis: '20%',
+        dataIndex: 'created_by',
+        showOrderBy: true,
+      },
+      {
+        key: 'source_count',
+        title: t('general.usage'),
+        width: 120,
+        dataIndex: 'source_count',
+        showOrderBy: true,
+      },
+      // Base assignment + row actions are manager-only surfaces — hide the
+      // columns outright for everyone else.
+      ...(canManageIntegrations.value
+        ? [
+            {
+              key: 'base_access',
+              title: t('labels.baseAccess'),
+              minWidth: 140,
+              width: 160,
+            },
+            {
+              key: 'action',
+              title: t('labels.actions'),
+              minWidth: 100,
+              width: 100,
+              justify: 'justify-end',
+            },
+          ]
+        : []),
+    ] as NcTableColumnProps[],
+)
 
 const customRow = (record: Record<string, any>) => ({
   onclick: () => {
+    // Non-managers may only open per-user integrations (to connect their own
+    // account) — a shared integration's editor is creator-gated server-side.
+    if (!canManageIntegrations.value && !isPerUserIntegration(record as IntegrationType)) return
     openEditIntegration(record)
   },
 })
@@ -336,39 +419,85 @@ const customRow = (record: Record<string, any>) => ({
 
 <template>
   <div class="h-full flex flex-col gap-6 nc-workspace-connections nc-content-max-w mx-auto">
-    <div class="flex flex-col justify-between gap-2">
+    <!-- Search, environment and manage share one row: they all scope the same table. -->
+    <div class="flex flex-col gap-2">
       <h2 v-if="showTitle" class="text-lg font-semibold text-nc-content-gray mb-0">
         {{ $t('general.activeConnections') }}
       </h2>
 
       <div class="text-sm font-normal text-nc-content-gray-subtle2">
-        <div>
-          {{ $t('msg.manageConnections') }}
-          <a
-            target="_blank"
-            href="https://nocodb.com/docs/product-docs/integrations/actions-on-connection"
-            rel="noopener noreferrer"
-          >
-            {{ $t('msg.learnMore') }}
-          </a>
-        </div>
-      </div>
-      <div class="flex items-center gap-3 mt-2">
-        <a-input
-          ref="connectionsSearchInputRef"
-          v-model:value="searchQuery"
-          type="text"
-          class="nc-search-integration-input !rounded-lg !py-2 !h-9 flex-1"
-          :placeholder="`${$t('general.search')} ${$t('general.connections').toLowerCase()}`"
-          allow-clear
-          @input="handleSearchConnection"
+        {{ $t('msg.manageConnections') }}
+        <a
+          class="nc-inline-doc-link"
+          target="_blank"
+          href="https://nocodb.com/docs/product-docs/integrations/actions-on-connection"
+          rel="noopener noreferrer"
         >
-          <template #prefix>
-            <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
-          </template>
-        </a-input>
+          {{ $t('msg.learnMore') }}
+        </a>
       </div>
     </div>
+
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <a-input
+        ref="connectionsSearchInputRef"
+        v-model:value="searchQuery"
+        type="text"
+        class="nc-search-integration-input !rounded-lg !py-2 !h-9 !w-full sm:!w-80 flex-none"
+        :placeholder="`${$t('general.search')} ${$t('general.connections').toLowerCase()}`"
+        allow-clear
+        @input="handleSearchConnection"
+      >
+        <template #prefix>
+          <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
+        </template>
+      </a-input>
+
+      <!-- Manage environments lives at the foot of this dropdown, not as a second button. -->
+      <NcTooltip v-if="showEnvUI" class="flex-none" :title="$t('msg.info.showingEnvConfig', { env: activeEnvironment?.title })">
+        <NcSelect
+          :value="activeEnvironmentKey"
+          class="nc-environment-select !w-52 flex-none"
+          data-testid="nc-environment-select"
+          :dropdown-match-select-width="false"
+          @change="onEnvironmentChange"
+        >
+          <a-select-option v-for="env in environments" :key="env.key" :value="env.key">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full flex-none" :style="{ backgroundColor: env.color || '#6a7184' }" />
+              <span class="truncate">{{ env.title }}</span>
+              <!-- remove-click: let the click select the option so onEnvironmentChange shows the full upgrade prompt -->
+              <PaymentUpgradeBadge
+                v-if="isEnvironmentBlocked(env)"
+                :feature="environmentUpgradeFeature(env)"
+                remove-click
+                class="ml-auto"
+              />
+            </div>
+          </a-select-option>
+
+          <template v-if="isUIAllowed('environmentCreate')" #dropdownRender="{ menuNode: menu }">
+            <component :is="menu" />
+            <a-divider style="margin: 4px 0" />
+            <!-- mousedown.prevent so the select does not close-and-blur before the click lands -->
+            <div
+              class="px-1.5 flex items-center text-sm cursor-pointer"
+              data-testid="nc-manage-environments-btn"
+              @mousedown.prevent
+              @click="emit('manageEnvironments')"
+            >
+              <div
+                class="w-full flex items-center gap-2 px-2 py-2 rounded-md text-nc-content-gray-subtle2 hover:bg-nc-bg-gray-light"
+              >
+                <GeneralIcon icon="ncSlidersHorizontal" class="flex-none h-4 w-4" />
+                {{ $t('title.manageEnvironments') }}
+              </div>
+            </div>
+          </template>
+        </NcSelect>
+      </NcTooltip>
+    </div>
+
     <NcTable
       v-model:order-by="orderBy"
       :columns="columns"
@@ -376,37 +505,77 @@ const customRow = (record: Record<string, any>) => ({
       :is-data-loading="isLoadingIntegrations"
       sticky-first-column
       :custom-row="customRow"
-      class="h-full"
+      class="max-h-full min-h-0 w-full"
     >
       <template #bodyCell="{ column, record: integration }">
         <div v-if="column.key === 'title'" class="w-full flex items-center gap-3">
-          <NcTooltip placement="bottom" class="truncate !text-nc-content-gray font-semibold" show-on-truncate-only>
-            <template #title> {{ integration.title }}</template>
-            {{ integration.title }}
+          <!-- The type rides on the name rather than holding a column of its own. -->
+          <NcTooltip
+            placement="bottom"
+            class="h-8 w-8 flex-none flex items-center justify-center rounded-lg overflow-hidden bg-nc-bg-gray-extralight"
+          >
+            <template #title> {{ clientTypesMap[integration?.sub_type]?.text || integration?.sub_type }}</template>
+
+            <GeneralIntegrationIcon :type="integration.sub_type" class="!w-4.5 !h-4.5" />
           </NcTooltip>
-          <span v-if="integration.is_private">
-            <NcBadge :border="false" class="text-primary !h-4.5 bg-nc-bg-brand text-xs">{{ $t('general.private') }}</NcBadge>
-          </span>
+
+          <div class="flex-1 min-w-0 flex flex-col">
+            <div class="flex items-center gap-2">
+              <NcTooltip placement="bottom" class="truncate !text-nc-content-gray font-semibold" show-on-truncate-only>
+                <template #title> {{ integration.title }}</template>
+                {{ integration.title }}
+              </NcTooltip>
+              <span v-if="integration.is_private">
+                <NcBadge :border="false" class="text-primary !h-4.5 bg-nc-bg-brand text-xs">{{ $t('general.private') }}</NcBadge>
+              </span>
+              <span v-if="isPerUserIntegration(integration)">
+                <NcTooltip placement="bottom" :title="$t('msg.info.perUserIntegration')">
+                  <NcBadge :border="false" class="!h-4.5 text-xs bg-nc-bg-purple-light text-nc-content-purple-dark">
+                    {{ $t('general.perUser') }}
+                  </NcBadge>
+                </NcTooltip>
+              </span>
+            </div>
+
+            <NcTooltip class="truncate text-bodySm text-nc-content-gray-muted" show-on-truncate-only placement="bottom">
+              <template #title>{{ integrationSubtext(integration) }}</template>
+              {{ integrationSubtext(integration) }}
+            </NcTooltip>
+          </div>
         </div>
 
-        <NcTooltip
-          v-if="column.key === 'sub_type'"
-          placement="bottom"
-          class="h-8 w-8 flex-none flex items-center justify-center children:flex-none"
-        >
-          <template #title> {{ clientTypesMap[integration?.sub_type]?.text || integration?.sub_type }}</template>
+        <div v-if="column.key === 'environments'" class="flex items-center gap-1.5">
+          <!-- Only Auth & AI integrations support per-environment overrides -->
+          <span v-if="!integrationSupportsEnvironments(integration.type)" class="text-nc-content-gray-muted">–</span>
+          <NcTooltip v-for="env in environments" v-else :key="env.key" placement="bottom">
+            <template #title>
+              {{ env.title }}:
+              <template v-if="isEnvironmentBlocked(env)">{{ $t('msg.info.environmentLocked') }}</template>
+              <template v-else-if="isPerUserIntegration(integration)">
+                {{ isEnvConfigured(integration, env) ? $t('general.connected') : $t('general.notConnected') }}
+              </template>
+              <template v-else>
+                {{ isEnvConfigured(integration, env) ? $t('general.configured') : $t('msg.info.fallsBackToProduction') }}
+              </template>
+            </template>
+            <span v-if="isEnvironmentBlocked(env)" @click.stop="showBlockedEnvUpgrade(env, 'connections-environments-column')">
+              <PaymentUpgradeBadge :feature="environmentUpgradeFeature(env)" remove-click />
+            </span>
+            <span
+              v-else
+              class="w-2.5 h-2.5 rounded-full border-2 flex-none inline-block"
+              :style="
+                isEnvConfigured(integration, env)
+                  ? { backgroundColor: env.color, borderColor: env.color }
+                  : {
+                      backgroundColor: 'transparent',
+                      borderColor: env.key === activeEnvironmentKey ? env.color : 'var(--nc-border-gray-medium)',
+                    }
+              "
+            />
+          </NcTooltip>
+        </div>
 
-          <GeneralIntegrationIcon
-            :type="integration.sub_type"
-            :size="integration.sub_type === SyncDataType.NOCODB ? 'xxl' : 'lg'"
-          />
-        </NcTooltip>
-
-        <NcTooltip v-if="column.key === 'created_at'" placement="bottom" show-on-truncate-only>
-          <template #title> {{ dayjs(integration.created_at).local().format('DD MMM YYYY') }}</template>
-
-          {{ dayjs(integration.created_at).local().format('DD MMM YYYY') }}
-        </NcTooltip>
         <template v-if="column.key === 'created_by'">
           <div v-if="integration.sub_type === SyncDataType.NOCODB" class="flex items-center gap-3">
             <div class="h-8 w-8 grid place-items-center">
@@ -476,13 +645,15 @@ const customRow = (record: Record<string, any>) => ({
           </NcTooltip>
         </template>
 
+        <!-- Base assignment is manager-only (linked-base list + update ops are
+             creator+); for others the badge is purely informational. -->
         <div v-if="column.key === 'base_access'" class="text-sm">
           <NcBadge
             v-if="!integration.is_restricted"
             size="xs"
             color="green"
             :border="false"
-            class="cursor-pointer"
+            :class="{ 'cursor-pointer': canManageBaseAccess(integration) }"
             @click.stop="openBaseAssignment(integration)"
           >
             {{ $t('activity.allBases') }}
@@ -492,14 +663,14 @@ const customRow = (record: Record<string, any>) => ({
             size="xs"
             color="gray"
             :border="false"
-            class="cursor-pointer"
+            :class="{ 'cursor-pointer': canManageBaseAccess(integration) }"
             @click.stop="openBaseAssignment(integration)"
           >
             {{ $t('labels.restricted') }}
           </NcBadge>
         </div>
 
-        <div v-if="column.key === 'action'" @click.stop>
+        <div v-if="column.key === 'action' && canManageIntegrations" @click.stop>
           <WorkspaceIntegrationsConnectionActionMenu
             :integration="integration"
             @delete="openDeleteIntegration"
@@ -687,5 +858,19 @@ const customRow = (record: Record<string, any>) => ({
 
 .nc-new-integration-type-wrapper {
   @apply flex flex-col gap-3;
+}
+
+/* Reads as part of the sentence; shows as a link only on hover. */
+.nc-inline-doc-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--nc-border-gray-dark);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--nc-content-brand);
+    text-decoration-color: currentColor;
+  }
 }
 </style>

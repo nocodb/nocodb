@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-import type { NcListItemProps } from '#imports'
+// Imported by path, not '#imports': the SFC compiler has to resolve the type to
+// generate runtime props and cannot follow Nuxt's virtual module.
+import type { NcListItemProps } from '../../../lib/types'
 
 /**
  * NcListItem — standalone list-row component.

@@ -12,17 +12,28 @@ import {
   isVirtualCol,
   ncHasProperties,
 } from 'nocodb-sdk'
-import type { ButtonType, ColumnType, FormulaType, LinkToAnotherRecordType, TableType, UserType, ViewType } from 'nocodb-sdk'
+import type {
+  ButtonType,
+  ColumnType,
+  FormulaType,
+  GridType,
+  LinkToAnotherRecordType,
+  TableType,
+  UserType,
+  ViewType,
+} from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { MarkdownLoader } from '../loaders/markdownLoader'
 import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '../utils/cell'
-import { clearTextCache } from '../utils/canvas'
+import { extractUserKeys } from '../../../../cell/User/utils'
+import { clearTextCache, selectOptionBgColorCache, selectOptionTextColorCache } from '../utils/canvas'
 import {
   CELL_BOTTOM_BORDER_IN_PX,
   COLUMN_HEADER_HEIGHT_IN_PX,
   EDIT_INTERACTABLE,
+  FROZEN_AREA_MAX_WIDTH_RATIO,
   ROW_COLOR_BORDER_WIDTH,
   ROW_META_COLUMN_WIDTH,
 } from '../utils/constants'
@@ -35,6 +46,7 @@ import { calculateGroupRowTop, isGroupExpanded } from '../utils/groupby'
 import { BaseRoleLoader } from '../loaders/BaseRoleLoader'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
+import { useFreezeDivider } from './useFreezeDivider'
 import { useColumnReorder } from './useColumnReorder'
 import { normalizeWidth, useColumnResize } from './useColumnResize'
 import { useKeyboardNavigation } from './useKeyboardNavigation'
@@ -44,6 +56,7 @@ import { useRowReorder } from './useRowReOrder'
 import { type BulkLtarOp, useCopyPaste } from './useCopyPaste'
 
 export function useCanvasTable({
+  anchorActiveCell,
   rowHeightEnum,
   cachedRows,
   clearCache,
@@ -56,6 +69,7 @@ export function useCanvasTable({
   width,
   height,
   scrollToCell,
+  scrollToLeftEdge,
   aggregations,
   vSelectedAllRecords,
   vSelectedAllRecordsSkipPks,
@@ -79,6 +93,7 @@ export function useCanvasTable({
   groupSyncCount: syncGroupCount,
   groupByColumns,
   fetchMissingGroupChunks,
+  fetchMissingGroupAggregations,
   getDataCache,
   maxSelectionLimit,
 }: {
@@ -94,6 +109,8 @@ export function useCanvasTable({
   width: Ref<number>
   height: Ref<number>
   scrollToCell: CanvasScrollToCellFn
+  /** Jump the grid to `scrollLeft: 0` — the freeze divider only previews truthfully there. */
+  scrollToLeftEdge: () => void
   aggregations: Ref<Record<string, any>>
   vSelectedAllRecords: WritableComputedRef<boolean>
   vSelectedAllRecordsSkipPks: WritableComputedRef<Record<string, string>>
@@ -101,6 +118,8 @@ export function useCanvasTable({
   selectedHeaderColumnIds: Ref<Set<string>>
   mousePosition: { x: number; y: number }
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
+  /** Interface pages: select the record-sheet's row when nothing is selected (see useKeyboardNavigation). */
+  anchorActiveCell?: () => void
   updateRecordOrder: (
     originalIndex: number,
     targetIndex: number | null,
@@ -136,7 +155,7 @@ export function useCanvasTable({
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
     path?: Array<number>,
-  ) => Promise<void>
+  ) => Promise<Record<string, any>[] | void>
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
@@ -166,6 +185,7 @@ export function useCanvasTable({
   toggleExpand: (group: CanvasGroup) => void
   groupSyncCount: (group?: CanvasGroup) => Promise<void>
   fetchMissingGroupChunks: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => Promise<void>
+  fetchMissingGroupAggregations: (groups: CanvasGroup[]) => void
   getDataCache: (path?: Array<number>) => {
     cachedRows: Ref<Map<number, Row>>
     totalRows: Ref<number>
@@ -178,7 +198,7 @@ export function useCanvasTable({
   const { metas, getMeta, getPartialMeta } = useMetas()
   const { getBaseRoles } = useBases()
   const { isAllowed } = usePermissions()
-  const { getColor } = useTheme()
+  const { getColor, themeRepaintVersion } = useTheme()
 
   const { brandColor } = useBranding()
   const rowSlice = ref({ start: 0, end: 0 })
@@ -267,14 +287,79 @@ export function useCanvasTable({
     return isRowColouringEnabled.value ? ROW_COLOR_BORDER_WIDTH : 0
   })
 
-  const baseUsers = computed<(Partial<UserType> | Partial<User>)[]>(() =>
+  const isPublicView = inject(IsPublicInj, ref(false))
+
+  const { resolvedUsers, resolveUsers } = useResolveUsers()
+
+  const baseCollaborators = computed<(Partial<UserType> | Partial<User>)[]>(() =>
     meta.value?.base_id ? basesUser.value.get(meta.value?.base_id) || [] : [],
+  )
+
+  const collaboratorIds = computed(() => new Set((baseCollaborators.value || []).map((u) => u.id)))
+
+  // Collaborators + any resolved external submitters (e.g. captured via a
+  // "require sign-in" shared form) so CreatedBy / User cells can display users
+  // who are not base members. Externals are display-only and never collaborators.
+  const baseUsers = computed<(Partial<UserType> | Partial<User>)[]>(() => {
+    const collaborators = baseCollaborators.value
+
+    if (!resolvedUsers.value.size) return collaborators
+
+    const externals: (Partial<UserType> | Partial<User>)[] = []
+    for (const user of resolvedUsers.value.values()) {
+      if (user?.id && !collaboratorIds.value.has(user.id)) {
+        externals.push({ ...user, deleted: false } as Partial<UserType>)
+      }
+    }
+
+    return externals.length ? [...collaborators, ...externals] : collaborators
+  })
+
+  // Column titles that may reference users (incl. CreatedBy / LastModifiedBy).
+  const userColumnTitles = computed(() =>
+    fields.value
+      .filter((f) => f.title && [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(f.uidt as UITypes))
+      .map((f) => f.title as string),
+  )
+
+  // Scan loaded rows for user ids that are not base collaborators and resolve
+  // them for display. Debounced — re-runs as chunks load / the user scrolls.
+  const resolveExternalUsersFromRows = useDebounceFn(() => {
+    // Public/shared views have no session to resolve with.
+    if (isPublicView.value) return
+
+    const baseId = meta.value?.base_id
+    const tableId = meta.value?.id
+    if (!baseId || !tableId || !userColumnTitles.value.length || !cachedRows.value?.size) return
+
+    const keys: string[] = []
+    for (const row of cachedRows.value.values()) {
+      for (const title of userColumnTitles.value) {
+        const value = row?.row?.[title]
+        if (value) keys.push(...extractUserKeys(value))
+      }
+    }
+
+    const unknown = keys.filter((key) => !collaboratorIds.value.has(key))
+    if (unknown.length) resolveUsers(baseId, tableId, unknown)
+  }, 300)
+
+  watch([() => totalRows.value, () => chunkStates.value, userColumnTitles], () => resolveExternalUsersFromRows(), { deep: true })
+
+  // Resolution lands after the rows have already been painted, and updating
+  // `baseUsers` alone does not invalidate the canvas — the cell would stay blank
+  // until some unrelated redraw (scroll, resize) happened to repaint it. Same
+  // pattern the image/sprite loaders use for their async completions.
+  watch(
+    () => resolvedUsers.value,
+    () => triggerRefreshCanvas(),
   )
 
   const { hideTooltip } = tooltipStore
 
-  const isPublicView = inject(IsPublicInj, ref(false))
   const readOnly = inject(ReadonlyInj, ref(false))
+  const interfaceInlineEditHint = inject(InterfaceInlineEditHintInj, ref(null))
+  const readonlyEditNotice = inject(ReadonlyEditNoticeInj, ref(null))
 
   const { eventBus: scriptEventBus } = useScriptExecutor()
 
@@ -318,11 +403,61 @@ export function useCanvasTable({
 
   const isDataEditAllowed = computed(() => isUIAllowed('dataEdit') && !isSqlView.value && !isPublicView.value)
 
-  const isFieldEditAllowed = computed(() => isUIAllowed('fieldAdd'))
+  // Interface pages flag row add/delete separately from cell editing.
+  const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
 
-  const isRowDraggingEnabled = computed(() => isOrderColumnExists.value && !isRowReorderDisabled.value && !isMobileMode.value)
+  actionManager.setInterfaceDataApi(interfacePageDataApi)
 
-  const isAddingEmptyRowAllowed = computed(() => isDataEditAllowed.value && !meta.value?.synced && !meta.value?.mm)
+  // Optimistic frozen count while a divider-drag write is in flight; any
+  // upstream change (own write, undo, realtime) clears it.
+  const frozenCountOverride = ref<number | null>(null)
+
+  // Interface grids persist the count in the viz config; native grids in view meta.
+  const metaFrozenCount = computed(() =>
+    clampFrozenFieldCount(
+      interfacePageDataApi
+        ? interfacePageDataApi.frozenFieldCount?.value
+        : parseProp((view.value?.view as GridType)?.meta)?.frozen_column_count,
+    ),
+  )
+
+  // Persisted frozen field count (frozen fields = first N visible fields,
+  // display value hoisted first). Row-number gutter is not counted.
+  const savedFrozenCount = computed(() => frozenCountOverride.value ?? metaFrozenCount.value)
+
+  watch(metaFrozenCount, () => {
+    frozenCountOverride.value = null
+  })
+
+  // Interface builder: the clicked header field (blue border + 3-dot button) —
+  // deliberately separate from selectedHeaderColumnIds so no cell range selects.
+  const interfaceActiveHeaderFieldId = ref<string | null>(null)
+
+  // Inside an interface page the header field affordance (and the trailing
+  // add-column "+") exists only for the builder in edit mode — published /
+  // consumer grids draw neither, whatever the viewer's base role.
+  const isFieldEditAllowed = computed(
+    () => isUIAllowed('fieldAdd') && (!interfacePageDataApi || !!interfacePageDataApi.canConfigureFields?.value),
+  )
+
+  const isRowDraggingEnabled = computed(
+    // Role term — reorder writes dataMove (editor+) and the optimistic shuffle
+    // is not reverted on failure.
+    () =>
+      isDataEditAllowed.value &&
+      !readOnly.value &&
+      isOrderColumnExists.value &&
+      !isRowReorderDisabled.value &&
+      !isMobileMode.value,
+  )
+
+  const isAddingEmptyRowAllowed = computed(
+    () =>
+      isDataEditAllowed.value &&
+      !meta.value?.synced &&
+      !meta.value?.mm &&
+      (!interfacePageDataApi || interfacePageDataApi.canAddDeleteInline.value),
+  )
 
   const isAddingEmptyRowPermitted = computed(() =>
     meta.value?.id ? isAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD) : true,
@@ -451,13 +586,31 @@ export function useCanvasTable({
           isReadOnly: isPublicView.value || !isDataEditAllowed.value || isSqlView.value,
           isNocoAiAvailable: isNocoAiAvailable.value,
           columns: meta.value?.columns as ColumnType[],
+          isInterfaceUi: !!interfacePageDataApi,
         })
         const sqlUi = sqlUis.value[f.source_id] ?? Object.values(sqlUis.value)[0]
 
+        // Interface builder: a per-column "Edit this column inline" opt-out
+        // (field_configs[id].edit_inline === false) keeps the column read-only.
+        // It forces isCellEditable off so paste / fill / bulk-clear skip it, but
+        // is tracked separately as `inlineEditDisabled` so the renderer draws the
+        // read-only gray border WITHOUT the permission "Edit restricted" tooltip.
+        //
+        // Only engages when the grid is OTHERWISE editable — mirroring the
+        // field-permission gray border, which never shows for viewer / commenter /
+        // public / element-editing-off (those go uniformly read-only, no border).
+        const inlineEditDisabled =
+          !!interfacePageDataApi &&
+          isDataEditAllowed.value &&
+          !isDataReadOnly.value &&
+          !readOnly.value &&
+          interfacePageDataApi.fieldConfigs?.value?.[f.id]?.edit_inline === false
+
         const isCellEditable =
-          showReadonlyColumnTooltip(f) ||
-          !showEditRestrictedColumnTooltip(f) ||
-          isAllowed(PermissionEntity.FIELD, f.id, PermissionKey.RECORD_FIELD_EDIT)
+          !inlineEditDisabled &&
+          (showReadonlyColumnTooltip(f) ||
+            !showEditRestrictedColumnTooltip(f) ||
+            isAllowed(PermissionEntity.FIELD, f.id, PermissionKey.RECORD_FIELD_EDIT))
 
         const isSyncedCol = meta.value?.synced && f.readonly && !isAutoGeneratedColumn(f)
 
@@ -475,21 +628,17 @@ export function useCanvasTable({
           title: f.title,
           uidt: f.uidt,
           width: gridViewCol.width,
-          fixed: isMobileMode.value
-            ? false
-            : isGroupBy.value
-            ? !!f.pv
-            : parseCellWidth(gridViewCol.width) > width.value * (3 / 4)
-            ? false
-            : !!f.pv,
+          fixed: false,
           readonly:
             f.readonly ||
             isDataReadOnly.value ||
             !isDataEditAllowed.value ||
             isPublicView.value ||
+            readOnly.value ||
             !isCellEditable ||
             isSyncedCol,
           isCellEditable,
+          inlineEditDisabled,
           pv: !!f.pv,
           virtual: isVirtualCol(f),
           aggregation,
@@ -507,8 +656,27 @@ export function useCanvasTable({
           abstractType: sqlUi?.getAbstractType(f),
         }
       })
-      .filter((c) => !!c)
-      .sort((a, b) => !!b.fixed - !!a.fixed)
+      .filter((c): c is Exclude<typeof c, false> => !!c)
+      .sort((a, b) => Number(!!b.pv) - Number(!!a.pv))
+
+    // Freeze the first `savedFrozenCount` visible fields, dropping fields from
+    // the right while the cumulative frozen width exceeds the viewport ratio.
+    // Under group-by the display value always stays frozen (merged group
+    // headers/footers render against it).
+    if (!isMobileMode.value) {
+      const maxFrozenWidth = width.value * FROZEN_AREA_MAX_WIDTH_RATIO
+      const minFrozen = isGroupBy.value ? 1 : 0
+      let frozenWidth = 0
+      let frozenCount = 0
+      while (frozenCount < Math.min(savedFrozenCount.value, cols.length)) {
+        frozenWidth += parseCellWidth(cols[frozenCount].width)
+        if (frozenWidth > maxFrozenWidth && frozenCount >= minFrozen) break
+        frozenCount++
+      }
+      for (let i = 0; i < frozenCount; i++) {
+        cols[i].fixed = true
+      }
+    }
 
     fetchMetaIds.value.push(...fetchMetaIdsLocal)
 
@@ -804,6 +972,10 @@ export function useCanvasTable({
     })
   })
 
+  // Frozen fields actually rendered fixed right now — may be lower than
+  // savedFrozenCount when the viewport-width clamp kicked in.
+  const effectiveFrozenCount = computed(() => _columnsBase.value.filter((col) => col.fixed && col.id !== 'row_number').length)
+
   const columnWidths = computed(() =>
     columns.value.map((col) => {
       if (col.id === 'row_number') {
@@ -836,6 +1008,8 @@ export function useCanvasTable({
   })
 
   const isSelectedOnlyScript = computed(() => {
+    if (interfacePageDataApi) return { enabled: false, disabled: false }
+
     // selectedRange
     if (selection.value.start.col === selection.value.end.col) {
       const column = columns.value[selection.value.start.col]
@@ -873,12 +1047,15 @@ export function useCanvasTable({
     return !(
       !isDataReadOnly.value &&
       !readOnly.value &&
+      // Role term — every sibling write path checks it; fill writes rows
+      // optimistically, so a 403 would leave data LOOKING saved.
+      isDataEditAllowed.value &&
       (!editEnabled.value || EDIT_INTERACTABLE.includes(editEnabled.value?.column?.uidt)) &&
       (!selection.value.isEmpty() || (activeCell.value.row !== null && activeCell.value.column !== null)) &&
       !dataCache.cachedRows.value.get((isNaN(selection.value.end.row) ? activeCell.value.row : selection.value.end.row) ?? -1)
         ?.rowMeta?.new &&
-      activeCell.value.column !== null &&
-      fields.value[activeCell.value.column - 1] &&
+      !!activeCell.value.column &&
+      columns.value[activeCell.value.column]?.columnObj &&
       dataCache.totalRows.value &&
       !isSelectionReadOnly.value &&
       !isSqlView.value
@@ -1160,11 +1337,78 @@ export function useCanvasTable({
     attachmentCellDropOver,
   })
 
+  const getFocusRowPk = (rowIndex: number, path: Array<number> = []) => {
+    if (rowIndex == null || rowIndex < 0) return null
+    const dataCache = getDataCache(path)
+    const row = dataCache?.cachedRows?.value?.get(rowIndex)
+    if (!row) return null
+    return extractPkFromRow(row.row, (meta.value?.columns ?? []) as ColumnType[])
+  }
+
+  const { remoteFocuses, remoteRecords, remoteFields, followedFocus } = useGridFocusPresence({
+    view,
+    activeCell,
+    editEnabled,
+    columns,
+    getRowPk: getFocusRowPk,
+  })
+
+  // Reverse of getFocusRowPk — locate a loaded row by pk so follow-scroll can
+  // target it. Flat-view loaded chunks only: an unloaded or grouped row simply
+  // doesn't scroll (the remote cursor still renders when it comes into view).
+  const findFocusRowIndex = (rowPk: string): number | null => {
+    const rows = getDataCache([])?.cachedRows?.value
+    if (!rows) return null
+    const metaColumns = (meta.value?.columns ?? []) as ColumnType[]
+    for (const [index, row] of rows) {
+      if (extractPkFromRow(row.row, metaColumns) === rowPk) return index
+    }
+    return null
+  }
+
+  watch([remoteFocuses, remoteRecords, remoteFields], () => triggerRefreshCanvas())
+
+  // repaint with fresh colors when the theme mode or dark palette changes
+  watch(themeRepaintVersion, () => {
+    clearTextCache()
+    selectOptionBgColorCache.clear()
+    selectOptionTextColorCache.clear()
+    triggerRefreshCanvas()
+  })
+
+  const {
+    freezeDrag,
+    canAdjustFrozen,
+    freezeDividerX,
+    isFreezeDividerHovered,
+    isInFreezeDividerZone,
+    handleFreezeDividerMouseDown,
+  } = useFreezeDivider({
+    columns,
+    width,
+    height,
+    headerRowHeight,
+    mousePosition,
+    savedFrozenCount,
+    effectiveFrozenCount,
+    frozenCountOverride,
+    view,
+    isMobileMode,
+    isViewOperationsAllowed,
+    getFillHandlerPosition,
+    triggerRefreshCanvas,
+    scrollToLeftEdge,
+  })
+
   const { canvasRef, renderCanvas, colResizeHoveredColIds } = useCanvasRender({
     width,
+    interfaceActiveHeaderFieldId,
     mousePosition,
     elementMap,
     height,
+    remoteFocuses,
+    remoteRecords,
+    remoteFields,
     columns,
     colSlice,
     groupByColumns,
@@ -1218,6 +1462,7 @@ export function useCanvasTable({
     totalColumnsWidth,
     getDataCache,
     fetchMissingGroupChunks,
+    fetchMissingGroupAggregations,
     getRows,
     draggedRowGroupPath,
     isAddingEmptyRowAllowed,
@@ -1229,6 +1474,10 @@ export function useCanvasTable({
     isRecordSelected,
     isViewOperationsAllowed,
     groupSelectionAggregations,
+    freezeDrag,
+    canAdjustFrozen,
+    freezeDividerX,
+    isFreezeDividerHovered,
   })
 
   const { handleDragStart } = useRowReorder({
@@ -1258,9 +1507,11 @@ export function useCanvasTable({
     triggerRefreshCanvas,
     isAlreadyShownUpgradeModal,
     isExternalSource,
+    tableColumns: computed(() => (meta.value?.columns ?? []) as ColumnType[]),
   })
 
   const { clearCell, copyValue, isPasteable, handleAttachmentCellDrop } = useCopyPaste({
+    hostEl: canvasRef,
     activeCell,
     selection,
     columns,
@@ -1272,7 +1523,8 @@ export function useCanvasTable({
     syncCellData: async (ctx: { row: number; column?: number; updatedColumnTitle?: string }, path: Array<number> = []) => {
       const dataCache = getDataCache(path)
       const rowObj = dataCache.cachedRows.value.get(ctx.row)
-      const columnObj = ctx.column !== undefined ? fields.value[ctx.column - 1] : null
+      // `columns` drops some fields and moves the display value first, so it can't be read as `fields[column - 1]`
+      const columnObj = ctx.column !== undefined ? columns.value[ctx.column]?.columnObj ?? null : null
 
       if (!rowObj || !columnObj) {
         triggerRefreshCanvas()
@@ -1466,6 +1718,8 @@ export function useCanvasTable({
   )
 
   useKeyboardNavigation({
+    anchorActiveCell,
+    hostEl: canvasRef,
     activeCell,
     triggerReRender: triggerRefreshCanvas,
     columns,
@@ -1554,15 +1808,23 @@ export function useCanvasTable({
     }
     if (bulkLtarDeleteOps.length) {
       try {
-        await $api.internal.postOperation(
-          meta.value?.fk_workspace_id as string,
-          meta.value?.base_id as string,
-          {
-            operation: 'nestedDataBulkCopyPasteOrDeleteAll',
-            tableId: meta.value?.id as string,
-          },
-          bulkLtarDeleteOps.map(({ columnId, data }) => ({ columnId, data })),
-        )
+        const bulkPayload = bulkLtarDeleteOps.map(({ columnId, data }) => ({ columnId, data }))
+
+        // Interface pages route through the page-scoped op — the raw
+        // internal op 403s for interface collaborators.
+        if (interfacePageDataApi?.nestedBulkCopyPaste) {
+          await interfacePageDataApi.nestedBulkCopyPaste(bulkPayload as any)
+        } else {
+          await $api.internal.postOperation(
+            meta.value?.fk_workspace_id as string,
+            meta.value?.base_id as string,
+            {
+              operation: 'nestedDataBulkCopyPasteOrDeleteAll',
+              tableId: meta.value?.id as string,
+            },
+            bulkPayload,
+          )
+        }
       } catch (e: any) {
         for (const op of bulkLtarDeleteOps) {
           op.rowRef.row[op.columnTitle] = op.oldValue
@@ -1706,7 +1968,18 @@ export function useCanvasTable({
 
     const isEditRestricted = column.id && !isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)
 
-    if (!isDataEditAllowed.value || readOnly.value || isPublicView.value || !isAddingEmptyRowAllowed.value || isEditRestricted) {
+    // Interface builder: `inlineEditDisabled` (per-column "Edit this column
+    // inline" opt-out) behaves like a real read-only field — expandable cells
+    // below still open their viewer (read-only, since isCellEditable is off),
+    // all other cells stay inert.
+    if (
+      !isDataEditAllowed.value ||
+      readOnly.value ||
+      isPublicView.value ||
+      !isAddingEmptyRowAllowed.value ||
+      isEditRestricted ||
+      clickedColumn.inlineEditDisabled
+    ) {
       if (
         [
           UITypes.LongText,
@@ -1727,7 +2000,20 @@ export function useCanvasTable({
 
     const isSystemCol = isSystemColumn(column) && !isLinksOrLTAR(column)
 
-    if (!isDataEditAllowed.value || editEnabled.value || readOnly.value || isSystemCol) {
+    // Read-only surface with an explanation (read-only interface preview) —
+    // surface it on the attempt instead of silently swallowing the gesture.
+    // Edit-restricted columns keep their own, more specific field-lock signal.
+    if (readOnly.value && readonlyEditNotice.value && !isEditRestricted) {
+      message.toast(readonlyEditNotice.value)
+      return null
+    }
+
+    if (!isDataEditAllowed.value || editEnabled.value || readOnly.value || isSystemCol || clickedColumn.inlineEditDisabled) {
+      // Interface builder: the element's "Edit records inline" option is the blocker —
+      // surface it instead of dying silently (system columns stay inert regardless).
+      if (readOnly.value && !isSystemCol && isDataEditAllowed.value && !editEnabled.value) {
+        interfaceInlineEditHint.value?.()
+      }
       return null
     }
 
@@ -1804,6 +2090,20 @@ export function useCanvasTable({
     renderCanvas()
   }
 
+  // Interface builder: redraw headers when a per-column label override changes
+  // (the label lives in the viz config, not the column meta, so the render loop
+  // has no other dependency on it).
+  if (interfacePageDataApi?.fieldConfigs) {
+    watch(
+      interfacePageDataApi.fieldConfigs,
+      () => {
+        clearTextCache()
+        triggerRefreshCanvas()
+      },
+      { deep: true },
+    )
+  }
+
   watch(rowHeight, () => {
     clearTextCache()
     triggerRefreshCanvas()
@@ -1868,7 +2168,10 @@ export function useCanvasTable({
             }
             const metaKey = `${relatedBaseId}:${tableId}`
             if (!metas.value[metaKey]) {
-              await getPartialMeta(relatedBaseId, colId, tableId)
+              await getPartialMeta(relatedBaseId, colId, tableId, {
+                workspaceId: (meta.value as any)?.fk_workspace_id,
+                baseId: meta.value?.base_id,
+              })
             }
           }),
         )
@@ -1916,6 +2219,10 @@ export function useCanvasTable({
     findColumnPosition,
     isRecordSelectedInSelectedAllRecords,
     isRecordSelected,
+
+    // Focus presence (follow mode)
+    followedFocus,
+    findFocusRowIndex,
 
     // GroupBy Related
     syncGroupCount,
@@ -1985,8 +2292,16 @@ export function useCanvasTable({
 
     totalColumnsWidth,
 
+    // Frozen fields
+    savedFrozenCount,
+    effectiveFrozenCount,
+    isInFreezeDividerZone,
+    handleFreezeDividerMouseDown,
+    isFreezeDividerDragging: computed(() => !!freezeDrag.value),
+
     // permissions
     isFieldEditAllowed,
+    interfaceActiveHeaderFieldId,
     isDataEditAllowed,
     isContextMenuAllowed,
     removeInlineAddRecord,

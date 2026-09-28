@@ -105,13 +105,55 @@ export const imageMimeTypes = [
   'image/x-emf',
   'image/x-wmf',
 ];
-const previewableMimeTypes = [...imageMimeTypes, 'pdf', 'video', 'audio'];
+// Lower-cased: lookups normalize case, and a few entries (`image/jxrA`,
+// `image/jxrS`) carry uppercase letters that would otherwise never match.
+const previewableImageMimeTypes = new Set(
+  imageMimeTypes.map((type) => type.toLowerCase()),
+);
+
+/**
+ * Decide whether an attachment may be served inline (previewed) in the browser.
+ *
+ * Security-critical: a positive result causes the file to be served with
+ * `Content-Disposition: inline` and its (client-supplied) content type, so it
+ * MUST NOT accept anything the browser could render as an active document
+ * (e.g. `text/html`, `image/svg+xml`, JS). We match on the exact media type —
+ * NOT a substring — because the stored mimetype is attacker-controlled and a
+ * substring match let a compound value such as `text/html; image/png` (or
+ * `text/html;pdf`) pass while the browser parses the leading `text/html`.
+ */
+function isPreviewableMimeType(mimetype: unknown): boolean {
+  // The stored value is client-supplied and not guaranteed to be a string (a
+  // repeated query param arrives as an array), so narrow before splitting.
+  if (typeof mimetype !== 'string') return false;
+
+  // Consider only the media type, dropping any parameters (`; charset=...`).
+  // Reject compound values (comma / whitespace) outright — a legitimate media
+  // type never contains them, but they are how the substring bypass smuggled
+  // `text/html` past this check.
+  const mediaType = mimetype.split(';')[0].trim().toLowerCase();
+
+  if (!mediaType || /[\s,]/.test(mediaType)) return false;
+
+  const topLevel = mediaType.split('/')[0];
+
+  if (topLevel === 'image') {
+    // SVG is intentionally excluded — it can carry active script.
+    return (
+      mediaType !== 'image/svg+xml' && previewableImageMimeTypes.has(mediaType)
+    );
+  }
+
+  if (mediaType === 'application/pdf') return true;
+
+  return topLevel === 'video' || topLevel === 'audio';
+}
 
 export function isPreviewAllowed(args: { mimetype?: string; path?: string }) {
   const { mimetype, path } = args;
 
   if (mimetype) {
-    return previewableMimeTypes.some((type) => mimetype.includes(type));
+    return isPreviewableMimeType(mimetype);
   } else if (path) {
     const ext = path.split('.').pop();
 
@@ -120,7 +162,7 @@ export function isPreviewAllowed(args: { mimetype?: string; path?: string }) {
 
     if (extWithoutQuery) {
       const mimeType = mime.getType(extWithoutQuery);
-      return previewableMimeTypes.some((type) => mimeType?.includes(type));
+      return mimeType ? isPreviewableMimeType(mimeType) : false;
     }
   }
 
@@ -135,6 +177,23 @@ export function validateAndNormaliseLocalPath(
   fileOrFolderPath = slash(fileOrFolderPath);
 
   const toolDir = getToolDir();
+
+  // Defense-in-depth only: every caller today reaches this via `path.join(...)`,
+  // which already collapses `..` before we see it. It still guards the storage
+  // adapters (`Local.ts`), which take a raw `key` straight from the caller.
+  // Legitimate storage keys never contain `..`.
+  if (
+    fileOrFolderPath
+      .replace(toolDir, '')
+      .split('/')
+      .some((segment) => segment === '..')
+  ) {
+    if (throw404) {
+      NcError.notFound();
+    } else {
+      NcError.badRequest('Invalid path');
+    }
+  }
 
   // Get the absolute path to the base directory
   const absoluteBasePath = path.resolve(toolDir, 'nc');
@@ -174,6 +233,36 @@ export function getPathFromUrl(url: string, removePrefix = false) {
   return decodeURI(`${pathName}${newUrl.search}${newUrl.hash}`);
 }
 
+/**
+ * Whether a client-supplied attachment `path`/`url` resolves to an object in
+ * OUR storage — and therefore must pass an ownership check before a data write
+ * accepts it — as opposed to a genuinely external http(s) file.
+ *
+ * Mirrors `PresignedUrl.getSignedUrl`: an http(s) url is reduced to its pathname
+ * via `getPathFromUrl` and, on external storage, that pathname is signed as a
+ * storage key. So a crafted `https://anything/nc/uploads/<victim>/secret.pdf`
+ * would resolve to another tenant's object regardless of its host. We gate on
+ * the resolved key living under the `nc/uploads/` record-attachment root, using
+ * the SAME normalisation `getSignedUrl` applies so URL-encoding can't slip past.
+ * A non-http(s) value is always an opaque local storage path.
+ */
+export function attachmentRefResolvesToStorage(ref?: string): boolean {
+  if (!ref || typeof ref !== 'string') return false;
+
+  // a non-http(s) url/path is always an opaque storage path
+  if (!/^https?:\/\//i.test(ref)) return true;
+
+  let storageKey: string;
+  try {
+    storageKey = getPathFromUrl(ref).replace(/^\/+/, '');
+  } catch {
+    // unparseable url — fail closed and force the ownership check
+    return true;
+  }
+
+  return /^nc\/uploads\//i.test(storageKey);
+}
+
 export function resolveAttachmentFilePath(attachment: {
   path?: string;
   url?: string;
@@ -204,6 +293,7 @@ export const ATTACHMENT_ROOTS = [
   PublicAttachmentScope.PROFILEPICS,
   PublicAttachmentScope.ORGANIZATIONPICS,
   PublicAttachmentScope.WHITELABEL,
+  PublicAttachmentScope.MARKETPLACE,
 ];
 
 export const validateNumberOfFilesInCell = async (
@@ -213,8 +303,12 @@ export const validateNumberOfFilesInCell = async (
 ) => {};
 
 // ref: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html - extended with some more characters
-const normalizeFilename = (filename: string) => {
-  return filename.replace(/[\\/:*?"<>'`#|%~{}[\]^]/g, '_');
+// Control chars (\x00-\x1f, \x7f) are stripped too: multer >=2.3.0 decodes the
+// WHATWG %0A/%0D/%22 escapes, so a CR/LF in a filename now arrives raw rather
+// than percent-escaped and would otherwise land in the storage key verbatim.
+export const normalizeFilename = (filename: string) => {
+  // eslint-disable-next-line no-control-regex
+  return filename.replace(/[\\/:*?"<>'`#|%~{}[\]^\x00-\x1f\x7f]/g, '_');
 };
 
 export const getFileNameFromUrl = (param: { url: string; scope?: string }) => {
@@ -350,6 +444,7 @@ export async function serveStoredAttachment(
     }
 
     res.setHeader('Cache-Control', opts.cacheControl);
+    res.setHeader('X-Content-Type-Options', 'nosniff');
 
     if (isPreviewAllowed({ mimetype: file.type, path: file.path })) {
       res.sendFile(file.path);

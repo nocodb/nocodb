@@ -16,7 +16,9 @@ import { JobsModule } from '~/modules/jobs/jobs.module';
 
 import appConfig from '~/app.config';
 import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { SignedBodyMiddleware } from '~/middlewares/signed-body.middleware';
 import { RawBodyMiddleware } from '~/middlewares/raw-body.middleware';
+import { AppLlmRawBodyMiddleware } from '~/middlewares/app-llm-raw-body.middleware';
 import { JsonBodyMiddleware } from '~/middlewares/json-body.middleware';
 
 import { UrlEncodeMiddleware } from '~/middlewares/url-encode.middleware';
@@ -67,6 +69,25 @@ export class AppModule {
 
     consumer.apply(RawBodyMiddleware).forRoutes({
       path: '/api/payment/webhook',
+      method: RequestMethod.POST,
+    });
+
+    // Transparent proxy — forward the body verbatim, no parse+re-serialize.
+    // ':path*' (not '*', which path-to-regexp@3 treats as a literal — see
+    // backend-route-prefixes.ts) matches every sub-path under the mount.
+    consumer.apply(AppLlmRawBodyMiddleware).forRoutes({
+      path: '/api/internal/app-llm/:path*',
+      method: RequestMethod.ALL,
+    });
+
+    consumer.apply(SignedBodyMiddleware).forRoutes({
+      path: '/api/v3/agents/*',
+      method: RequestMethod.POST,
+    });
+
+    // The App Factory's provider webhooks are signed over the bytes as sent.
+    consumer.apply(SignedBodyMiddleware).forRoutes({
+      path: '/api/v2/app-factory/webhook/*',
       method: RequestMethod.POST,
     });
 

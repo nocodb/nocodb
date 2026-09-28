@@ -138,16 +138,9 @@ const copyLicenseKey = async () => {
 const onBuyLicense = async () => {
   $e('c:account:license:buy')
 
-  // Manage license: skip state and go straight to the cloud self-hosted page.
-  if (licenseStatus.value !== 'none') {
-    const licenseServerUrl = appInfo.value.licenseServerUrl || NC_CLOUD_URL
-    window.open(`${licenseServerUrl}/account/self-hosted`, '_blank')
-    return
-  }
-
   // Best-effort: fetch the seat-consuming user count (editor+, matching how
-  // billing reseats) and a stable instance_id so the cloud checkout can
-  // pre-fill seats and bind the resulting license to this instance.
+  // billing reseats) and a stable instance_id so the cloud side can pre-fill
+  // seats on checkout and locate this instance's license when managing.
   let seatCount: number | undefined
   let instanceId: string | undefined
   try {
@@ -165,6 +158,17 @@ const onBuyLicense = async () => {
     }
   } catch {
     // Ignore — fall back to the URL without instance hints.
+  }
+
+  // Manage license: skip checkout state and go straight to the cloud
+  // self-hosted page; instance_id deep-links to this license's detail.
+  if (licenseStatus.value !== 'none') {
+    const licenseServerUrl = appInfo.value.licenseServerUrl || NC_CLOUD_URL
+    window.open(
+      `${licenseServerUrl}/account/self-hosted${instanceId ? `?instance_id=${encodeURIComponent(instanceId)}` : ''}`,
+      '_blank',
+    )
+    return
   }
 
   window.open(buildBuyLicenseUrl(seatCount, instanceId), '_blank')
@@ -301,7 +305,8 @@ loadLicense()
                     {{ $t('labels.removeLicense') }}
                   </NcButton>
                 </NcTooltip>
-                <NcTooltip v-if="savedKey && isEEActive" :title="$t('labels.refreshLicenseTooltip')">
+                <!-- Shown while expired too — refreshing is what picks up a renewal -->
+                <NcTooltip v-if="savedKey" :title="$t('labels.refreshLicenseTooltip')">
                   <NcButton
                     v-e="['c:account:license:refresh']"
                     type="secondary"
@@ -316,6 +321,8 @@ loadLicense()
               </div>
             </template>
           </div>
+
+          <AccountLicenseCredits v-if="isEeUI" />
 
           <!-- Buy / Manage License card -->
           <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-4">

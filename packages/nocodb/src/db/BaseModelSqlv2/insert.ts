@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import {
   coerceOracleReturnedPk,
   dataWrapper,
@@ -26,6 +27,8 @@ import { nocoExecute } from '~/utils';
 import { captureForTrace } from '~/decorators/trace-command.decorator';
 import { isReplay } from '~/helpers/replayScope';
 
+const logger = new Logger('BaseModelSqlv2');
+
 export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
   const single = async (
     data,
@@ -35,7 +38,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
   ) => {
     let insertObj: Record<string, any> | undefined;
     try {
-      const columns = await baseModel.model.getColumns(baseModel.context);
+      const columns = await baseModel.model.getColumns();
       const dbDataWrapper = dataWrapper(data);
       // exclude auto increment columns in body
       for (const col of columns) {
@@ -52,7 +55,6 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
 
       // todo: filter based on view
       insertObj = await baseModel.model.mapAliasToColumn(
-        baseModel.context,
         data,
         baseModel.clientMeta,
         baseModel.dbDriver,
@@ -255,6 +257,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       apiVersion = NcApiVersion.V2,
       onInsertedPks,
       skipPermissionCheck = false,
+      skipAttachmentOwnershipCheck = false,
     }: {
       chunkSize?: number;
       cookie?: NcRequest;
@@ -278,15 +281,29 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       onInsertedPks?: (pks: (string | number)[]) => void;
       /** Consumed by the EE override to skip per-field edit-permission checks. */
       skipPermissionCheck?: boolean;
+      /** Trusted internal copy paths only — see `prepareNocoData`. */
+      skipAttachmentOwnershipCheck?: boolean;
     } = {},
   ) => {
-    const capturePks = typeof onInsertedPks === 'function';
+    // The after-insert hooks read the inserted rows back by pk. In raw mode the
+    // usual MySQL pk-wrapping below can't run (it needs the ai/ag columns the
+    // non-raw branch resolves), so force pk capture to get pk-bearing responses
+    // out of the insert itself.
+    const capturePks =
+      typeof onInsertedPks === 'function' || (raw && !skip_hooks);
     let trx;
     try {
       const insertDatas = raw ? datas : [];
       const postInsertOpsMap: Record<
         number,
         ((rowId: any, trx?: Knex | Knex.Transaction) => Promise<string>)[]
+      > = {};
+      // Ops that must not run until the insert is visible to other connections
+      // — see AttachmentUrlUploadPreparator. Keyed by row index like
+      // postInsertOpsMap, but drained after `trx.commit()`.
+      const postCommitOpsMap: Record<
+        number,
+        ((rowId: any) => Promise<void>)[]
       > = {};
       const preInsertOps: ((
         trx?: Knex | Knex.Transaction,
@@ -303,7 +320,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       let columns: Column[];
 
       if (!raw) {
-        columns = await baseModel.model.getColumns(baseModel.context);
+        columns = await baseModel.model.getColumns();
 
         const order = await baseModel.getHighestOrderInTable();
         const nestedCols = columns.filter((c) => isLinksOrLTAR(c));
@@ -325,6 +342,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             undo,
             allowSystemColumn,
             skipPermissionCheck,
+            skipAttachmentOwnershipCheck,
           });
 
           // prepare nested link data for insert only if it is single record insertion
@@ -353,11 +371,10 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
                   req: cookie,
                 },
               );
-            postInsertOpsMap[index] = [
-              ...(postInsertOpsMap[index] ?? []),
-              ...(attachmentOperations.postInsertOps ?? []),
+            postCommitOpsMap[index] = [
+              ...(postCommitOpsMap[index] ?? []),
+              ...(attachmentOperations.postCommitOps ?? []),
             ];
-            preInsertOps.push(...(attachmentOperations.preInsertOps ?? []));
           }
 
           insertDatas.push(insertObj);
@@ -366,7 +383,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         aiPkCol = baseModel.model.primaryKeys.find((pk) => pk.ai);
         agPkCol = baseModel.model.primaryKeys.find((pk) => pk.meta?.ag);
       } else {
-        columns = await baseModel.model.getColumns(baseModel.context);
+        columns = await baseModel.model.getColumns();
 
         const order = await baseModel.getHighestOrderInTable();
 
@@ -379,6 +396,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
                 ncOrder: order?.plus(i),
                 allowSystemColumn,
                 skipPermissionCheck,
+                skipAttachmentOwnershipCheck,
               }),
           ),
         );
@@ -572,6 +590,8 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         }
       }
 
+      const postCommitOps: (() => Promise<void>)[] = [];
+
       // insert nested link data for single record insertion or v3
       if (isSingleRecordInsertion || apiVersion === NcApiVersion.V3) {
         for (let i = 0; i < responses.length; i++) {
@@ -587,6 +607,12 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             (postInsertOpsMap[i] ?? []).map((f) => f(rowId, trx)),
             trx,
           );
+
+          // Bind the pk now (it is only resolvable here) but defer the call
+          // until after commit.
+          for (const op of postCommitOpsMap[i] ?? []) {
+            postCommitOps.push(() => op(rowId));
+          }
         }
       }
 
@@ -595,51 +621,85 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       // failure below can't trigger rollback() on an already-closed trx.
       trx = null;
 
-      if (!raw && !skip_hooks) {
-        // we will wrap returning primary key values with primary key column name
-        // only needed when responses are raw auto-increment IDs (batchInsert path)
-        // skip when insertOneByOneAsFallback already wrapped them via extractCompositePK
-        if (baseModel.isMySQL && !insertOneByOneAsFallback) {
-          responses = responses.map((r, idx) => {
-            const rowId = baseModel.extractCompositePK({
-              rowId: r,
-              ai: aiPkCol,
-              ag: agPkCol,
-              insertObj: insertDatas[idx],
-            });
-            if (rowId && typeof rowId === 'object') return rowId;
-            return { [baseModel.model.primaryKey.column_name]: rowId ?? r };
-          });
+      // Safe to run now that the rows are visible to other connections. These
+      // only enqueue background jobs, so a failure must not fail the insert.
+      for (const op of postCommitOps) {
+        try {
+          await op();
+        } catch (e) {
+          logger.error('Failed to dispatch post-commit op', e);
         }
+      }
 
-        if (isSingleRecordInsertion) {
-          const insertData = await baseModel.readByPk(responses[0]);
-          await baseModel.afterInsert({
-            data: insertData,
-            insertData: datas?.[0],
-            req: cookie,
-          });
-        } else {
-          const insertResponseList = await baseModel.chunkList({
-            // composite PKs require the `___`-joined string form (asString=true);
-            // the object form stringifies to "[object Object]" in chunkList's join
-            pks: responses.map((d) => baseModel.extractPksValues(d, true)),
-          });
+      if (!skip_hooks) {
+        try {
+          // we will wrap returning primary key values with primary key column name
+          // only needed when responses are raw auto-increment IDs (batchInsert path)
+          // skip when the one-by-one path already wrapped them via
+          // extractCompositePK — taken for the fallback and whenever capturePks
+          // forces it (see the insert branch above)
+          if (baseModel.isMySQL && !insertOneByOneAsFallback && !capturePks) {
+            responses = responses.map((r, idx) => {
+              const rowId = baseModel.extractCompositePK({
+                rowId: r,
+                ai: aiPkCol,
+                ag: agPkCol,
+                insertObj: insertDatas[idx],
+              });
+              if (rowId && typeof rowId === 'object') return rowId;
+              return { [baseModel.model.primaryKey.column_name]: rowId ?? r };
+            });
+          }
 
-          // get ast
-          const { ast, parsedQuery } = await getAst(baseModel.context, {
-            model: baseModel.model,
-            query: {},
-            extractOnlyPrimaries: false,
-          });
-          // nocoexecute
-          const insertResponses = await nocoExecute(
-            ast,
-            insertResponseList,
-            {},
-            parsedQuery,
+          if (isSingleRecordInsertion) {
+            const insertData = await baseModel.readByPk(responses[0]);
+            await baseModel.afterInsert({
+              data: insertData,
+              insertData: datas?.[0],
+              req: cookie,
+            });
+          } else if (!baseModel.model.primaryKeys?.length) {
+            // A PK-less table's readback pk filter (`_wherePk`) resolves to an
+            // empty `{}` where-clause, which `orWhere` no-ops — chunkList would
+            // silently return the table's first N pre-existing rows instead of
+            // the ones just inserted, dispatching hooks against the wrong rows.
+            logger.warn(
+              `skipping after-insert hook dispatch for model ${baseModel.model?.id}: table has no primary key columns to re-read inserted rows by`,
+            );
+          } else {
+            const insertResponseList = await baseModel.chunkList({
+              // composite PKs require the `___`-joined string form (asString=true);
+              // the object form stringifies to "[object Object]" in chunkList's join
+              pks: responses.map((d) => baseModel.extractPksValues(d, true)),
+            });
+
+            // get ast
+            const { ast, parsedQuery } = await getAst(baseModel.context, {
+              model: baseModel.model,
+              query: {},
+              extractOnlyPrimaries: false,
+            });
+            // nocoexecute
+            const insertResponses = await nocoExecute(
+              ast,
+              insertResponseList,
+              {},
+              parsedQuery,
+            );
+            await baseModel.afterBulkInsert(insertResponses, cookie);
+          }
+        } catch (hookErr: any) {
+          // The rows are already durably committed above. On the raw import
+          // path a hook/readback failure must not surface as an insert
+          // failure: that would mark committed rows failed and drop the whole
+          // batch's LTAR links (the caller's onInsertedPks loop is skipped on
+          // throw). Log and continue so pk capture / statsUpdate still run.
+          // The non-raw HTTP bulk path keeps throwing, preserving its 5xx.
+          if (!raw) throw hookErr;
+          logger.error(
+            `after-insert hooks failed on raw insert for model ${baseModel.model?.id}: ${hookErr?.message}`,
+            hookErr?.stack,
           );
-          await baseModel.afterBulkInsert(insertResponses, cookie);
         }
       }
 
@@ -649,7 +709,9 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
 
       // Hand back inserted pks in insertion order. `responses` are pk-bearing
       // (PG returning / mysql-sqlite one-by-one) whenever `capturePks` is set.
-      if (capturePks) {
+      // `capturePks` can be set via `raw && !skip_hooks` with no `onInsertedPks`
+      // sink supplied, so guard against a missing one.
+      if (capturePks && onInsertedPks) {
         onInsertedPks(
           responses.map((r) => baseModel.extractPksValues(r, true)),
         );

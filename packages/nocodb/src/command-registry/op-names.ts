@@ -112,6 +112,12 @@ export const OperationName = {
   scriptDelete: 'scriptDelete',
   scriptDuplicate: 'scriptDuplicate',
 
+  // Apps
+  appCreate: 'appCreate',
+  appUpdate: 'appUpdate',
+  appDelete: 'appDelete',
+  appBuildCommit: 'appBuildCommit',
+
   // Workflows
   workflowCreate: 'workflowCreate',
   workflowUpdate: 'workflowUpdate',
@@ -119,10 +125,52 @@ export const OperationName = {
   workflowPublish: 'workflowPublish',
   workflowDuplicate: 'workflowDuplicate',
 
+  // Interfaces + interface pages
+  interfaceCreate: 'interfaceCreate',
+  interfaceUpdate: 'interfaceUpdate',
+  interfaceDelete: 'interfaceDelete',
+  interfaceDuplicate: 'interfaceDuplicate',
+  interfacePageCreate: 'interfacePageCreate',
+  interfacePageUpdate: 'interfacePageUpdate',
+  interfacePageDelete: 'interfacePageDelete',
+  interfacePageDuplicate: 'interfacePageDuplicate',
+  interfacePageClearDraft: 'interfacePageClearDraft',
+  // Interface sharing grants (PrincipalAssignment upserts/revokes) —
+  // base-scoped.
+  interfaceGrantSet: 'interfaceGrantSet',
+  interfaceGrantDelete: 'interfaceGrantDelete',
+  // Record writes made through a page's visualization or form — same
+  // record semantics as recordInsert/recordUpdate/recordDelete but
+  // scoped to the page's undo stack instead of the table's.
+  interfaceRecordInsert: 'interfaceRecordInsert',
+  interfaceRecordBulkInsert: 'interfaceRecordBulkInsert',
+  interfaceRecordUpdate: 'interfaceRecordUpdate',
+  interfaceRecordDelete: 'interfaceRecordDelete',
+  interfaceRecordBulkDelete: 'interfaceRecordBulkDelete',
+  interfaceRecordBulkUpdate: 'interfaceRecordBulkUpdate',
+  interfaceRecordLinkAdd: 'interfaceRecordLinkAdd',
+  interfaceRecordLinkRemove: 'interfaceRecordLinkRemove',
+  interfaceRecordLinkSwap: 'interfaceRecordLinkSwap',
+  interfaceRecordLinkSwapBulk: 'interfaceRecordLinkSwapBulk',
+  interfaceRecordLinkByDisplay: 'interfaceRecordLinkByDisplay',
+
   // View sections
   viewSectionCreate: 'viewSectionCreate',
   viewSectionUpdate: 'viewSectionUpdate',
   viewSectionDelete: 'viewSectionDelete',
+  baseSectionCreate: 'baseSectionCreate',
+  baseSectionUpdate: 'baseSectionUpdate',
+  baseSectionDelete: 'baseSectionDelete',
+  automationSectionCreate: 'automationSectionCreate',
+  automationSectionUpdate: 'automationSectionUpdate',
+  automationSectionDelete: 'automationSectionDelete',
+  agentCreate: 'agentCreate',
+  agentUpdate: 'agentUpdate',
+  agentDelete: 'agentDelete',
+  agentDuplicate: 'agentDuplicate',
+  agentSectionCreate: 'agentSectionCreate',
+  agentSectionUpdate: 'agentSectionUpdate',
+  agentSectionDelete: 'agentSectionDelete',
 
   // Record templates
   recordTemplateCreate: 'recordTemplateCreate',
@@ -143,6 +191,17 @@ export const OperationName = {
   tableSyncConfigUpdate: 'tableSyncConfigUpdate',
   tableSyncDetachTable: 'tableSyncDetachTable',
   tableSyncAttachTable: 'tableSyncAttachTable',
+
+  // App Actions
+  appActionCreate: 'appActionCreate',
+  appActionUpdate: 'appActionUpdate',
+  appActionDelete: 'appActionDelete',
+
+  // App Teams. Membership is not here on purpose: a lane's roster is not
+  // production's, so assignments are made on production and never replay.
+  appTeamCreate: 'appTeamCreate',
+  appTeamUpdate: 'appTeamUpdate',
+  appTeamDelete: 'appTeamDelete',
 
   // App Sync (integration-based SyncConfig)
   appSyncCreate: 'appSyncCreate',

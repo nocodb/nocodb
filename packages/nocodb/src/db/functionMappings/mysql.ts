@@ -7,7 +7,10 @@ import commonFns, {
 } from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
-import { getWeekdayByText } from '~/helpers/formulaFnHelper';
+import {
+  getWeekdayByText,
+  getWeekStartOffsetSunday,
+} from '~/helpers/formulaFnHelper';
 import { getDatetimeFormatHandler } from '~/db/datetime-format';
 
 const mysql2 = {
@@ -144,6 +147,22 @@ const mysql2 = {
               )}'`
             : (await fn(pt.arguments[0])).builder
         }) - ${getWeekdayByText(pt?.arguments[1]?.value)} % 7 + 7) % 7`,
+      ),
+    };
+  },
+  WEEKNUM: async ({ fn, knex, pt }: MapFnArgs) => {
+    // Excel-compatible WEEKNUM: week 1 is the week containing Jan 1, weeks start
+    // on Sunday by default. DAYOFWEEK() is 1 (Sunday) .. 7 (Saturday).
+    const source =
+      pt.arguments[0].type === 'Literal'
+        ? `'${dayjs((await fn(pt.arguments[0])).builder).format('YYYY-MM-DD')}'`
+        : `(${(await fn(pt.arguments[0])).builder})`;
+    const startSun = getWeekStartOffsetSunday(pt?.arguments[1]?.value);
+    const doy = `DAYOFYEAR(${source})`;
+    const dow = `(DAYOFWEEK(${source}) - 1)`;
+    return {
+      builder: knex.raw(
+        `(FLOOR(((${doy} - 1) + ((((${dow} - (${doy} - 1) - ${startSun}) % 7) + 7) % 7)) / 7) + 1)`,
       ),
     };
   },

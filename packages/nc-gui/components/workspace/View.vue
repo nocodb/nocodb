@@ -14,7 +14,7 @@ const { t } = useI18n()
 
 const { hideSidebar, isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
-const { isUIAllowed, isBaseRolesLoaded, loadRoles } = useRoles()
+const { isUIAllowed, isBaseRolesLoaded, loadRoles, workspaceRoles } = useRoles()
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
@@ -28,14 +28,19 @@ const { loadCollaborators, loadWorkspace } = workspaceStore
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
-const { isWsAuditEnabled, handleUpgradePlan, blockTeamsManagement, showUpgradeToUseTeams, showEEFeatures } = useEeConfig()
+const { isWsAuditEnabled, handleUpgradePlan, blockTeamsManagement, blockWorkspaceSso, showUpgradeToUseWorkspaceSso } =
+  useEeConfig()
 
 const { isFromIntegrationPage, eventBus, searchQuery: storeSearchQuery, loadIntegrations } = useProvideIntegrationViewStore()
 
 // Local ref for integrations view mode (main page vs all-connections page).
 // Cannot use activeViewTab (which writes to route.query.tab) because the outer NcTabs
 // also reads route.query.tab — changing it to 'connections' makes the outer pane blank.
-const integrationsViewMode = ref<'main' | 'all-connections'>('main')
+// Deep-linkable via `?integrationsView=environments` (used by the base Variables
+// page's "Manage environments" action).
+const integrationsViewMode = ref<'main' | 'all-connections' | 'environments'>(
+  route.value.query?.integrationsView === 'environments' ? 'environments' : 'main',
+)
 
 // After creating an integration, switch to all-connections view
 // (the store sets activeViewTab='connections' which breaks outer NcTabs, so we handle it here)
@@ -53,6 +58,17 @@ onBeforeUnmount(() => {
 
 watch(integrationsViewMode, () => {
   storeSearchQuery.value = ''
+})
+
+// Non-managers (viewers/editors) can't create integrations — the catalog is
+// pointless for them, so they land on (and stay in) the connections list,
+// where per-user integrations offer their connect action. Only enforced once
+// workspace roles have resolved, so managers aren't bounced mid-load.
+watchEffect(() => {
+  if (!Object.keys(workspaceRoles.value ?? {}).length) return
+  if (!isUIAllowed('integrationManage') && integrationsViewMode.value === 'main') {
+    integrationsViewMode.value = 'all-connections'
+  }
 })
 
 const currentWorkspace = computedAsync(async () => {
@@ -91,8 +107,9 @@ const tab = computed({
       })
     }
 
-    if (isEeUI && tab === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams({ triggerSource: 'ws-home-teams' }))
+    if (tab === 'sso' && showUpgradeToUseWorkspaceSso({ triggerSource: 'ws-home-sso' })) {
       return
+    }
 
     if (['collaborators', 'teams'].includes(tab) && isUIAllowed('workspaceCollaborators')) {
       loadCollaborators({} as any, props.workspaceId)
@@ -112,6 +129,7 @@ const tabTitleMap: Record<string, string> = {
   teams: t('general.teams'),
   integrations: t('general.integrations'),
   billing: t('general.billing'),
+  usage: t('general.usage'),
   audits: t('title.audits'),
   sso: t('title.sso'),
   settings: t('labels.settings'),
@@ -166,11 +184,13 @@ watch(
 
     await until(() => isBaseRolesLoaded.value).toBeTruthy()
 
-    if (!isAdminPanel.value && !isUIAllowed('workspaceCollaborators') && showEEFeatures.value) {
+    if (!isAdminPanel.value && !isUIAllowed('workspaceCollaborators') && isEeUI) {
       tab.value = 'settings'
     } else if (
       (!isWsAuditEnabled.value && newTab === 'audits') ||
-      ((!isEeUI || !hasTeamsEditPermission.value || blockTeamsManagement.value) && newTab === 'teams')
+      // blockTeamsManagement deliberately absent: a blocked plan now renders the
+      // upgrade card on the teams tab rather than being bounced to collaborators
+      ((!isEeUI || !hasTeamsEditPermission.value) && newTab === 'teams')
     ) {
       tab.value = 'collaborators'
     }
@@ -283,7 +303,15 @@ if (!props.isNewWsPage) {
             </div>
           </template>
 
-          <WorkspaceTeams :workspace-id="currentWorkspace.id" :is-active="tab === 'teams'" />
+          <PaymentUpgradeFeatureCard
+            v-if="blockTeamsManagement"
+            :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT"
+            :title="$t('labels.baseNav.upgradeTitleTeams')"
+            :detail="$t('labels.baseNav.upgradeDescTeams')"
+            icon="ncBuilding"
+            trigger-source="ws-teams-page"
+          />
+          <WorkspaceTeams v-else :workspace-id="currentWorkspace.id" :is-active="tab === 'teams'" />
         </a-tab-pane>
       </template>
       <template v-if="!isMobileMode">
@@ -294,7 +322,10 @@ if (!props.isNewWsPage) {
               {{ $t('general.integrations') }}
             </div>
           </template>
-          <div class="nc-integrations-layout h-[calc(100vh-var(--topbar-height)-44px)] nc-content-max-w mx-auto">
+          <div
+            class="nc-integrations-layout nc-content-max-w mx-auto"
+            :class="isNewWsPage ? 'h-[calc(100vh-var(--topbar-height))]' : 'h-[calc(100vh-var(--topbar-height)-44px)]'"
+          >
             <!-- Main integrations page -->
             <template v-if="integrationsViewMode === 'main'">
               <div class="h-full">
@@ -311,6 +342,7 @@ if (!props.isNewWsPage) {
             <template v-else-if="integrationsViewMode === 'all-connections'">
               <div class="h-full flex flex-col px-8 py-6">
                 <NcButton
+                  v-if="isUIAllowed('integrationManage')"
                   type="link"
                   size="small"
                   class="!text-nc-content-brand self-start !-ml-1.5 mb-4 !p-0 !h-auto !min-h-0"
@@ -325,12 +357,20 @@ if (!props.isNewWsPage) {
                   <h2 class="text-lg font-semibold text-nc-content-gray mb-0">
                     {{ $t('general.allConnections') }}
                   </h2>
-                  <WorkspaceIntegrationsAddConnectionDropdown />
+                  <WorkspaceIntegrationsAddConnectionDropdown v-if="isUIAllowed('integrationManage')" />
                 </div>
 
                 <div class="flex-1 min-h-0">
-                  <WorkspaceIntegrationsConnectionsTab />
+                  <WorkspaceIntegrationsConnectionsTab
+                    :show-environments="isEeUI"
+                    @manage-environments="integrationsViewMode = 'environments'"
+                  />
                 </div>
+              </div>
+            </template>
+            <template v-else-if="integrationsViewMode === 'environments'">
+              <div class="h-full flex flex-col px-8 py-6">
+                <WorkspaceIntegrationsEnvironmentsManageEnvironments @back="integrationsViewMode = 'all-connections'" />
               </div>
             </template>
 
@@ -348,6 +388,19 @@ if (!props.isNewWsPage) {
             </template>
 
             <PaymentBillingPage />
+          </a-tab-pane>
+        </template>
+
+        <template v-if="wsTabVisibility.usage">
+          <a-tab-pane key="usage" class="w-full">
+            <template #tab>
+              <div class="tab-title" data-testid="nc-workspace-settings-tab-usage">
+                <GeneralIcon icon="ncBarChart2" class="flex-none h-4 w-4" />
+                {{ $t('general.usage') }}
+              </div>
+            </template>
+
+            <WorkspaceUsage :workspace-id="currentWorkspace.id" />
           </a-tab-pane>
         </template>
 
@@ -372,13 +425,22 @@ if (!props.isNewWsPage) {
         <template v-if="wsTabVisibility.sso">
           <a-tab-pane key="sso" class="w-full">
             <template #tab>
-              <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
+              <div class="tab-title" data-testid="nc-workspace-settings-tab-sso">
                 <GeneralIcon icon="sso" class="flex-none h-4 w-4" />
                 {{ $t('title.sso') }}
+                <LazyPaymentUpgradeBadge
+                  :feature="PlanFeatureTypes.FEATURE_SSO"
+                  :feature-enabled-callback="() => !blockWorkspaceSso"
+                  remove-click
+                />
               </div>
             </template>
 
-            <WorkspaceSso class="!h-[calc(100vh-92px)]" />
+            <WorkspaceSso
+              v-if="!blockWorkspaceSso"
+              :class="isNewWsPage ? '!h-[calc(100vh-var(--topbar-height)-44px)]' : '!h-[calc(100vh-92px)]'"
+            />
+            <div v-else>&nbsp;</div>
           </a-tab-pane>
         </template>
       </template>

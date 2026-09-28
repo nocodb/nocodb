@@ -50,6 +50,11 @@ import {
 import { NcCache } from '~/decorators/nc-cache.decorator';
 import { validateColumnInternalMeta } from '~/types/column-internal-meta';
 import { getReplay, isReplay } from '~/helpers/replayScope';
+import {
+  getModelContext,
+  setModelContext,
+  throwMissingContext,
+} from '~/helpers/modelContext';
 
 const selectColors = enumColors.light;
 
@@ -118,6 +123,11 @@ export default class Column<T = any> implements ColumnType {
   public meta: any;
   public internal_meta?: ColumnInternalMeta;
 
+  // tracked-field set of a field-tracking LMT/LMB column — persisted as
+  // column→column edges in nc_dependency_tracker and hydrated on demand
+  // (LmtTrackedField.hydrateColumns), mirroring hook.trigger_fields
+  public tracked_field_ids?: string[];
+
   public asId?: string;
 
   public deleted?: boolean;
@@ -126,15 +136,24 @@ export default class Column<T = any> implements ColumnType {
   // we create custom index when custom link created using the column
   public custom_index_name?: boolean;
 
+  get context(): NcContext {
+    const ctx = getModelContext(this);
+    if (ctx) return ctx;
+    if (this.fk_workspace_id && this.base_id) {
+      return {
+        workspace_id: this.fk_workspace_id,
+        base_id: this.base_id,
+      } as NcContext;
+    }
+    throwMissingContext('Column');
+  }
+
   constructor(data: Partial<(ColumnType & { asId?: string }) | Column>) {
     Object.assign(this, data);
   }
 
-  public async getModel(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Model> {
-    return Model.get(context, this.fk_model_id, false, ncMeta);
+  public async getModel(ncMeta = Noco.ncMeta): Promise<Model> {
+    return Model.get(this.context, this.fk_model_id, false, ncMeta);
   }
 
   public static async insert<T>(
@@ -596,10 +615,8 @@ export default class Column<T = any> implements ColumnType {
       thisArg.colOptions = result;
     },
   })
-  public async getColOptions<U = T>(
-    context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ): Promise<U> {
+  public async getColOptions<U = T>(ncMeta = Noco.ncMeta): Promise<U> {
+    const context = this.context;
     let res: any;
 
     switch (this.uidt) {
@@ -659,14 +676,10 @@ export default class Column<T = any> implements ColumnType {
     return res;
   }
 
-  async loadModel(
-    context: NcContext,
-    force = false,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Model> {
+  async loadModel(force = false, ncMeta = Noco.ncMeta): Promise<Model> {
     if (!this.model || force) {
       this.model = await Model.getByIdOrName(
-        context,
+        this.context,
         {
           // source_id: this.base_id,
           // db_alias: this.db_alias,
@@ -762,7 +775,8 @@ export default class Column<T = any> implements ColumnType {
           };
         }
         const column = new Column(m);
-        await column.getColOptions(context, ncMeta);
+        setModelContext(column, context);
+        await column.getColOptions(ncMeta);
         return column;
       }),
     );
@@ -851,14 +865,12 @@ export default class Column<T = any> implements ColumnType {
 
     if (colData) {
       const column = new Column(colData);
-      await column.getColOptions(
-        {
-          ...context,
-          workspace_id: column.fk_workspace_id,
-          base_id: column.base_id,
-        },
-        ncMeta,
-      );
+      setModelContext(column, {
+        ...context,
+        workspace_id: column.fk_workspace_id,
+        base_id: column.base_id,
+      });
+      await column.getColOptions(ncMeta);
       return column;
     }
     return null;
@@ -961,10 +973,9 @@ export default class Column<T = any> implements ColumnType {
       buttonColumns = buttonColumns.filter((c) => c.uidt === UITypes.Button);
 
       for (const buttonCol of buttonColumns) {
-        const button = await new Column(buttonCol).getColOptions<ButtonColumn>(
-          context,
-          ncMeta,
-        );
+        const buttonColumn = new Column(buttonCol);
+        setModelContext(buttonColumn, context);
+        const button = await buttonColumn.getColOptions<ButtonColumn>(ncMeta);
 
         if (button.type === 'url') {
           if (
@@ -1013,10 +1024,9 @@ export default class Column<T = any> implements ColumnType {
       aiColumns = aiColumns.filter((c) => isAIPromptCol(c));
 
       for (const aiCol of aiColumns) {
-        const ai = await new Column(aiCol).getColOptions<AIColumn>(
-          context,
-          ncMeta,
-        );
+        const aiColumn = new Column(aiCol);
+        setModelContext(aiColumn, context);
+        const ai = await aiColumn.getColOptions<AIColumn>(ncMeta);
 
         if (!ai) continue;
 
@@ -1054,9 +1064,11 @@ export default class Column<T = any> implements ColumnType {
       formulaColumns = formulaColumns.filter((c) => c.uidt === UITypes.Formula);
 
       for (const formulaCol of formulaColumns) {
-        const formula = await new Column(
-          formulaCol,
-        ).getColOptions<FormulaColumn>(context, ncMeta);
+        const formulaColumn = new Column(formulaCol);
+        setModelContext(formulaColumn, context);
+        const formula = await formulaColumn.getColOptions<FormulaColumn>(
+          ncMeta,
+        );
 
         // Orphaned formula column: COLUMNS row carries uidt=Formula but its
         // COL_FORMULA option row is already gone (FormulaColumn.read → null).
@@ -1164,6 +1176,11 @@ export default class Column<T = any> implements ColumnType {
       MetaTable.GALLERY_VIEW_COLUMNS,
       MetaTable.CALENDAR_VIEW_COLUMNS,
       MetaTable.MAP_VIEW_COLUMNS,
+      // LIST_VIEW_COLUMNS (EE nested-records list view): a list view level holds
+      // a per-column row too, so drop it here like every other view type —
+      // otherwise the deleted column orphans its list-view-column row. No-op in
+      // CE, which has no list-view-column rows.
+      MetaTable.LIST_VIEW_COLUMNS,
     ];
     const viewColumnCacheScope = [
       CacheScope.GRID_VIEW_COLUMN,
@@ -1172,6 +1189,7 @@ export default class Column<T = any> implements ColumnType {
       CacheScope.GALLERY_VIEW_COLUMN,
       CacheScope.CALENDAR_VIEW_COLUMN,
       CacheScope.MAP_VIEW_COLUMN,
+      CacheScope.LIST_VIEW_COLUMN,
     ];
 
     for (let i = 0; i < viewColumnTables.length; i++) {
@@ -1195,6 +1213,36 @@ export default class Column<T = any> implements ColumnType {
           CacheDelDirection.CHILD_TO_PARENT,
         );
       }
+    }
+
+    // Nested-records list views (EE) nest a leaf level by a self-link column
+    // (fk_self_link_column_id). Deleting that column must RESET the tree —
+    // mirroring how deleting a grid group-by column drops the grouping — so the
+    // level falls back to a flat list instead of pointing at a dead column
+    // (which otherwise leaves a dangling ref and stale nested output). No-op in
+    // CE. Only the self-link (tree) ref is reset here; between-level links are
+    // handled by the list view's own level lifecycle.
+    const nestedLevels = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.LIST_VIEW_LEVELS,
+      { condition: { fk_self_link_column_id: id } },
+    );
+    for (const level of nestedLevels) {
+      await ncMeta.metaUpdate(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.LIST_VIEW_LEVELS,
+        { fk_self_link_column_id: null, enable_nested_records: false },
+        level.id,
+      );
+      // Patched, not evicted: `deepDel` would unlink the level from its view's
+      // list, which `ListViewLevel.list` only rebuilds once that list is empty.
+      await NocoCache.update(
+        context,
+        `${CacheScope.LIST_VIEW_LEVEL}:${level.id}`,
+        { fk_self_link_column_id: null, enable_nested_records: false },
+      );
     }
 
     // Get LTAR columns in which current column is referenced as foreign key
@@ -1304,13 +1352,26 @@ export default class Column<T = any> implements ColumnType {
         ncMeta,
       );
 
+      // title/description are part of the EE base schema snapshot
+      cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+        logger.error('Failed to clean base schema cache');
+      });
+
       return this.get(context, { colId }, ncMeta);
     }
 
     const oldCol = await Column.get(context, { colId }, ncMeta);
+
+    // insertColOption() dispatches on the incoming uidt, so without one the
+    // delete below would drop colOptions it can never rebuild. Same `||`
+    // fallback as that dispatch.
+    const incomingUidt =
+      column.uidt || (column as { ui_data_type?: UITypes }).ui_data_type;
+
     const requiredColAvail =
-      !requiredColumnsToRecreate[oldCol.uidt] ||
-      requiredColumnsToRecreate[oldCol.uidt].every((k) => column[k]);
+      !!incomingUidt &&
+      (!requiredColumnsToRecreate[oldCol.uidt] ||
+        requiredColumnsToRecreate[oldCol.uidt].every((k) => column[k]));
 
     if (requiredColAvail) {
       switch (oldCol.uidt) {
@@ -1385,7 +1446,14 @@ export default class Column<T = any> implements ColumnType {
         }
 
         case UITypes.Button: {
-          await Filter.deleteAllByButtonColumn(context, colId, ncMeta);
+          // Visibility-condition filters are keyed on the (stable) column id, so
+          // they survive this colOption rebuild. Only wipe them when the column
+          // is being converted away from Button — otherwise the delta-based
+          // filter CRUD in the column-update service (applyFilterCrud) would drop
+          // every filter that wasn't re-sent with a create/update/delete status.
+          if (incomingUidt !== UITypes.Button) {
+            await Filter.deleteAllByButtonColumn(context, colId, ncMeta);
+          }
 
           await ncMeta.metaDelete(
             context.workspace_id,
@@ -1516,7 +1584,12 @@ export default class Column<T = any> implements ColumnType {
     }
 
     // get qr code columns and delete if target type is not supported by QR code column type
-    if (!AllowedColumnTypesForQrAndBarcodes.includes(updateObj.uidt)) {
+    // An absent uidt means "type unchanged", not "unsupported" — without the
+    // guard a description-only update drops every dependent QR/Barcode column.
+    if (
+      updateObj.uidt &&
+      !AllowedColumnTypesForQrAndBarcodes.includes(updateObj.uidt)
+    ) {
       const qrCodeCols = await ncMeta.metaList2(
         context.workspace_id,
         context.base_id,
@@ -1791,8 +1864,8 @@ export default class Column<T = any> implements ColumnType {
     return null;
   }
 
-  async delete(context: NcContext, ncMeta = Noco.ncMeta) {
-    return await Column.delete(context, this.id, ncMeta);
+  async delete(ncMeta = Noco.ncMeta) {
+    return await Column.delete(this.context, this.id, ncMeta);
   }
 
   static async checkTitleAvailable(
@@ -1903,6 +1976,16 @@ export default class Column<T = any> implements ColumnType {
       `${CacheScope.COLUMN}:${colId}`,
       prepareForResponse({ meta }),
     );
+
+    // Meta is baked into the compiled single-query plans (this model and any
+    // Lookup/Rollup referrer) and into the EE base schema snapshot.
+    const col = await Column.get(context, { colId }, ncMeta);
+    await View.clearSingleQueryCache(context, col.fk_model_id, null, ncMeta);
+    await clearSingleQueryCacheForColumnReferences(context, col, ncMeta);
+
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
+    });
   }
 
   static async updateValidation(

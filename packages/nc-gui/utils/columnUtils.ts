@@ -12,6 +12,7 @@ import {
   isColumnInError,
   isLinksOrLTAR,
   isNumericCol,
+  isRollupAggregatableColumn,
   isSystemColumn,
   isValidURL,
   isVirtualCol,
@@ -329,12 +330,14 @@ const isColumnInvalid = ({
   isReadOnly = false,
   isNocoAiAvailable = false,
   columns = [],
+  isInterfaceUi = false,
 }: {
   col: ColumnType
   aiIntegrations?: Partial<IntegrationType>[]
   isReadOnly?: boolean
   isNocoAiAvailable?: boolean
   columns?: ColumnType[]
+  isInterfaceUi?: boolean
 }): { isInvalid: boolean; tooltip: string; ignoreTooltip?: boolean } => {
   const result = {
     isInvalid: false,
@@ -358,7 +361,7 @@ const isColumnInvalid = ({
       if (isAiButton(col) && isReadOnly) {
         result.isInvalid = true
         result.ignoreTooltip = true
-      } else if (colOptions.type === ButtonActionsType.Script && isReadOnly) {
+      } else if (colOptions.type === ButtonActionsType.Script && (isReadOnly || isInterfaceUi)) {
         result.isInvalid = true
         result.ignoreTooltip = true
       } else if (colOptions.type === ButtonActionsType.Webhook) {
@@ -601,18 +604,9 @@ const canUseForLookupLinkField = (c: ColumnType, metaSourceId?: string) => {
 }
 
 const getValidRollupColumn = (c: ColumnType) => {
-  return (
-    (!isVirtualCol(c.uidt as UITypes) ||
-      [
-        UITypes.CreatedTime,
-        UITypes.CreatedBy,
-        UITypes.LastModifiedTime,
-        UITypes.LastModifiedBy,
-        UITypes.Formula,
-        UITypes.Rollup,
-      ].includes(c.uidt as UITypes)) &&
-    (!isSystemColumn(c) || c.pk)
-  )
+  // shares the aggregatable-type rule with the backend so the picker and
+  // `validateRollupPayload` can't drift apart
+  return isRollupAggregatableColumn(c as { uidt: UITypes }) && (!isSystemColumn(c) || c.pk)
 }
 
 export {

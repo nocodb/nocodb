@@ -11,6 +11,7 @@ import {
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { throttlerLogger } from '~/helpers/throttlerLogger';
+import { DBErrorKind } from '~/helpers/db-error/utils';
 import { mapExceptionToResponse } from '~/filters/global-exception/exception-mapper';
 import {
   AjvError,
@@ -27,6 +28,15 @@ import {
   Unauthorized,
   UnprocessableEntity,
 } from '~/helpers/catchError';
+
+// NcBaseErrorv2 types that stand for a server-side failure, not caller error.
+// The mapper marks them handled (they carry a safe user message), but there's a
+// real bug underneath — so they must both log AND reach Sentry.
+const SERVER_SIDE_NC_ERROR_TYPES = [
+  NcErrorType.ERR_INTERNAL_SERVER,
+  NcErrorType.ERR_DATABASE_OP_FAILED,
+  NcErrorType.ERR_UNKNOWN,
+];
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -58,11 +68,20 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const dbError =
       exception instanceof NcBaseError ? null : extractDBError(exception);
 
+    // Only a user-caused db error is quiet. Infra errors (connection loss,
+    // pool exhaustion) are logged so operators see an outage, and unknown
+    // ones — any failure carrying a `code` that no dialect matched — are
+    // logged and reported.
+    const quietDbError =
+      (dbError?.kind ?? DBErrorKind.EXPECTED) === DBErrorKind.EXPECTED
+        ? dbError
+        : null;
+
     // skip unnecessary error logging
     if (
       process.env.NC_ENABLE_ALL_API_ERROR_LOGGING === 'true' ||
       !(
-        dbError ||
+        quietDbError ||
         exception instanceof BadRequest ||
         exception instanceof AjvError ||
         exception instanceof Unauthorized ||
@@ -77,11 +96,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception instanceof SdkBadRequest ||
         exception instanceof NcSDKError ||
         (exception instanceof NcBaseErrorv2 &&
-          ![
-            NcErrorType.ERR_INTERNAL_SERVER,
-            NcErrorType.ERR_DATABASE_OP_FAILED,
-            NcErrorType.ERR_UNKNOWN,
-          ].includes(exception.error))
+          !SERVER_SIDE_NC_ERROR_TYPES.includes(exception.error))
       )
     )
       this.logError(exception, request);
@@ -120,17 +135,24 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     const mapped = mapExceptionToResponse(exception, apiVersion);
 
-    if (mapped.unhandled) {
+    // A raw throw maps unhandled; a server-side NcBaseErrorv2 (e.g.
+    // internalServerError) maps handled but is still a real bug. Both must page
+    // Sentry — mirrors the log gate above so logging and capture never diverge.
+    if (
+      mapped.unhandled ||
+      (exception instanceof NcBaseErrorv2 &&
+        SERVER_SIDE_NC_ERROR_TYPES.includes(exception.error))
+    ) {
       this.captureException(exception, request);
+    }
 
-      // Include actual error message only in development
-      if (process.env.NODE_ENV !== 'production') {
-        const msgProp = apiVersion === NcApiVersion.V3 ? 'message' : 'msg';
-        mapped.body.innerError = {
-          [msgProp]: exception?.message || 'An unexpected error occurred',
-          stack: exception?.stack,
-        };
-      }
+    // Include actual error message only in development
+    if (mapped.unhandled && process.env.NODE_ENV !== 'production') {
+      const msgProp = apiVersion === NcApiVersion.V3 ? 'message' : 'msg';
+      mapped.body.innerError = {
+        [msgProp]: exception?.message || 'An unexpected error occurred',
+        stack: exception?.stack,
+      };
     }
 
     return response.status(mapped.status).json(mapped.body);

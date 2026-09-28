@@ -49,6 +49,10 @@ export default class ApiToken implements ApiTokenType {
         token,
         fk_user_id: apiToken.fk_user_id,
         fk_sso_client_id: apiToken.fk_sso_client_id ?? null,
+        // Persist the base scope when the token is minted through a
+        // base-scoped endpoint. `null` means account-wide (the account-level
+        // /api/v1/tokens endpoint), which keeps existing tokens working.
+        base_id: apiToken.base_id ?? null,
       },
       true,
     );
@@ -131,6 +135,22 @@ export default class ApiToken implements ApiTokenType {
     }
   }
 
+  // Remove tokens confined to a base (base_id set at creation) so a hard-deleted
+  // base leaves no token pointing at it.
+  static async deleteByBaseId(baseId: string, ncMeta = Noco.ncMeta) {
+    const tokens = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.API_TOKENS,
+      {
+        condition: { base_id: baseId },
+      },
+    );
+    for (const token of tokens) {
+      await this.delete(token.id, ncMeta);
+    }
+  }
+
   static async getByToken(token, ncMeta = Noco.ncMeta) {
     let data =
       token &&
@@ -189,12 +209,14 @@ export default class ApiToken implements ApiTokenType {
       fk_user_id,
       includeUnmappedToken = false,
       ssoClientId,
+      tokenIds,
     }: {
       limit: number;
       offset: number;
       fk_user_id?: string;
       includeUnmappedToken: boolean;
       ssoClientId?: string;
+      tokenIds?: string[];
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -224,6 +246,10 @@ export default class ApiToken implements ApiTokenType {
           )
           .as('created_by'),
       );
+
+    if (tokenIds) {
+      queryBuilder.whereIn(`${MetaTable.API_TOKENS}.id`, tokenIds);
+    }
 
     if (fk_user_id) {
       queryBuilder.where(`${MetaTable.API_TOKENS}.fk_user_id`, fk_user_id);

@@ -9,6 +9,10 @@ interface Props {
   columnTitle?: string | null
   column?: ColumnType | null
   readOnly?: boolean
+  isNewRecord?: boolean
+  draftContent?: Record<string, any> | null
+  initialMarkdown?: string | null
+  deferSave?: boolean
 }
 
 defineProps<Props>()
@@ -16,6 +20,7 @@ defineProps<Props>()
 defineEmits<{
   (e: 'update:visible', val: boolean): void
   (e: 'saved', markdown: string | null): void
+  (e: 'update:draftContent', pm: Record<string, any> | null): void
 }>()
 </script>
 

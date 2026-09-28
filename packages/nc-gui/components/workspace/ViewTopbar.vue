@@ -1,45 +1,136 @@
 <script lang="ts" setup>
-const workspaceStore = useWorkspace()
+const router = useRouter()
 
-const { activeWorkspace } = storeToRefs(workspaceStore)
-
-const { activePlanTitle, isPaymentEnabled, showEEFeatures, handleUpgradePlan, getPlanTitle } = useEeConfig()
-
-const isFreePlan = computed(() => activePlanTitle.value === 'Free')
+const route = router.currentRoute
 
 const { t } = useI18n()
 
-const showUpgrade = () => {
-  handleUpgradePlan({
-    content: t('upgrade.upgradeGenericSubtitle'),
-    triggerSource: 'ws-topbar',
-  })
-}
+const { isMobileMode } = useGlobal()
+
+const workspaceStore = useWorkspace()
+
+const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspaceStore)
+
+const { commandPalette } = useCommandPalette()
+
+const { isBaseListAllLoading, loadBaseListAll } = useWsBaseListAll()
+
+const searchQuery = useState<string>('ws-home-search', () => '')
 
 const workspaceTitle = computed(() => {
   if (isEeUI) return activeWorkspace.value?.title
   return 'Default Workspace'
 })
+
+const activeTabKey = computed(() => {
+  if (isWsAdminRoute(route.value)) return 'admin'
+
+  return routeNameToWsTab[route.value.name as string] || 'bases'
+})
+
+const activeTabLabel = computed(() => {
+  switch (activeTabKey.value) {
+    case 'home':
+      return t('general.home')
+    case 'collaborators':
+      return t('labels.members')
+    case 'teams':
+      return t('general.teams')
+    case 'integrations':
+      return t('general.integrations')
+    case 'admin':
+      return t('labels.settings')
+    default:
+      return t('objects.projects')
+  }
+})
+
+function navigateToBases() {
+  const typeOrId = route.value.params.typeOrId || activeWorkspaceId.value || 'nc'
+
+  router.push({ name: 'index-typeOrId', params: { typeOrId } })
+}
+
+function onWorkspaceCrumbClick() {
+  if (activeTabKey.value === 'bases') return
+
+  navigateToBases()
+}
+
+function openCommandPalette() {
+  commandPalette.value?.open()
+}
+
+// Searching is only meaningful on the bases page — jump there when the user starts typing
+watch(searchQuery, (value) => {
+  if (value && activeTabKey.value !== 'bases') {
+    navigateToBases()
+  }
+})
+
+onMounted(() => {
+  if (isEeUI) {
+    loadBaseListAll()
+  }
+})
 </script>
 
 <template>
-  <div class="flex items-center gap-2 px-2 sm:px-4 h-[var(--topbar-height)] flex-none border-b-1 border-nc-border-gray-medium">
-    <GeneralOpenLeftSidebarBtn />
-    <h1 class="text-bodyLgBold text-nc-content-gray capitalize truncate mb-0" data-testid="nc-ws-home-topbar-title">
-      {{ workspaceTitle }}
-    </h1>
-    <div
-      v-if="isEeUI && showEEFeatures"
-      dir="ltr"
-      class="hidden md:flex items-center justify-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-medium leading-none bg-nc-bg-gray-light text-nc-content-gray-subtle flex-shrink-0"
-    >
-      <span class="uppercase">{{ getPlanTitle(activePlanTitle) }} {{ $t('general.plan') }}</span>
-      <template v-if="isFreePlan && isPaymentEnabled && showEEFeatures">
-        <span class="text-nc-content-gray-muted">&middot;</span>
-        <span class="text-primary cursor-pointer hover:underline" @click="showUpgrade">{{ $t('general.upgrade') }}</span>
-      </template>
+  <div class="flex items-center gap-2 px-2 sm:px-4 h-[var(--topbar-height)] flex-none border-b-1 border-nc-border-gray-light">
+    <div class="flex-1 flex items-center gap-2 min-w-0">
+      <GeneralOpenLeftSidebarBtn />
+      <div class="flex items-center gap-1.5 min-w-0 text-bodyDefaultSm" data-testid="nc-ws-home-topbar-breadcrumb">
+        <span
+          class="text-nc-content-gray-muted capitalize truncate"
+          :class="{ 'cursor-pointer hover:text-nc-content-gray': activeTabKey !== 'bases' }"
+          data-testid="nc-ws-home-topbar-title"
+          @click="onWorkspaceCrumbClick"
+        >
+          {{ workspaceTitle }}
+        </span>
+        <span class="text-nc-content-gray-muted">/</span>
+        <span class="text-bodyDefaultSmBold text-nc-content-gray truncate">{{ activeTabLabel }}</span>
+      </div>
     </div>
+
+    <!-- Centered search -->
+    <div v-if="!isMobileMode" class="flex-none w-full max-w-[420px]">
+      <a-input
+        v-model:value="searchQuery"
+        type="text"
+        class="nc-ws-home-search nc-input-shadow !h-9 !pl-2 !pr-1.5 !py-1 !rounded-lg"
+        :placeholder="$t('placeholder.searchBases')"
+        data-testid="nc-ws-home-topbar-search"
+        allow-clear
+        @keydown.stop
+      >
+        <template #prefix>
+          <div class="flex items-center gap-1 mr-1">
+            <GeneralLoader v-if="isBaseListAllLoading" size="regular" class="h-4 w-4" />
+            <!-- gray-400, not -muted: the placeholder beside it is #bfbfbf, and at
+                 gray-500 the icon read heavier than the text it labels. -->
+            <GeneralIcon v-else icon="search" class="h-4 w-4 text-nc-content-gray-disabled" />
+          </div>
+        </template>
+        <template #suffix>
+          <div class="nc-kbd-chip" @click="openCommandPalette">{{ renderCmdOrCtrlKey(true) }} K</div>
+        </template>
+      </a-input>
+    </div>
+
+    <div class="flex-1 hidden sm:block"></div>
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+/* Styled as a key cap rather than a grey pill. */
+.nc-kbd-chip {
+  @apply px-1.5 py-0.5 rounded-md text-bodySmBold cursor-pointer transition-colors duration-150
+    text-nc-content-gray-subtle2 bg-nc-bg-default border-1 border-nc-border-gray-medium;
+  box-shadow: 0 1px 0 0 var(--nc-border-gray-medium);
+
+  &:hover {
+    @apply text-nc-content-gray bg-nc-bg-gray-extralight;
+  }
+}
+</style>

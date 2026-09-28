@@ -57,8 +57,12 @@ const bases = useBases()
 
 const { openedProject } = storeToRefs(bases)
 
-if (showEEFeatures.value) {
-  await Promise.all([loadHooksList(), loadScripts({ baseId: openedProject.value!.id, force: true })])
+// The injected table meta covers hosts without a route-level active table /
+// opened base (e.g. the interface builder's field editor).
+const scriptsBaseId = openedProject.value?.id ?? meta.value?.base_id
+
+if (isEeUI) {
+  await Promise.all([loadHooksList(meta.value), ...(scriptsBaseId ? [loadScripts({ baseId: scriptsBaseId, force: true })] : [])])
 }
 
 const { activeBaseScripts } = toRefs(scriptStore)
@@ -106,7 +110,7 @@ const buttonTypes = computed(() => [
         },
       ]
     : []),
-  ...(isEeUI && showEEFeatures.value
+  ...(showEEFeatures.value
     ? [
         {
           icon: 'ncScript',
@@ -370,10 +374,17 @@ const filtersCount = ref(0)
 
 if (isEdit.value) {
   const existingFilters = (vModel.value.colOptions as ButtonType)?.filters
-  if (Array.isArray(existingFilters) && existingFilters.length) {
-    vModel.value.filters = existingFilters.map((f: FilterType) => ({ ...f }))
+  // Prefer draft filters already on the form (e.g. restored from an unsaved
+  // edit) over colOptions so remounting the editor does not drop in-progress
+  // visibility conditions.
+  if (!Array.isArray(vModel.value.filters) || !vModel.value.filters.length) {
+    if (Array.isArray(existingFilters) && existingFilters.length) {
+      vModel.value.filters = existingFilters.map((f: FilterType) => ({ ...f }))
+    }
+  }
+  if (Array.isArray(vModel.value.filters) && vModel.value.filters.length) {
     isFilterSectionOpen.value = true
-    filtersCount.value = existingFilters.filter((f: FilterType) => !f.is_group && f.fk_column_id).length
+    filtersCount.value = vModel.value.filters.filter((f: FilterType) => !f.is_group && f.fk_column_id).length
   }
 }
 </script>
@@ -554,7 +565,7 @@ if (isEdit.value) {
       v-model:selected-script="selectedScript"
     />
 
-    <PaymentUpgradeBadgeProvider v-if="isEeUI && showEEFeatures" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY">
+    <PaymentUpgradeBadgeProvider v-if="showEEFeatures" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY">
       <template #default="{ click }">
         <div class="nc-button-filter-section mt-2">
           <div

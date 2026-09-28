@@ -1,12 +1,15 @@
 <script lang="ts" setup>
 import { useVirtualList } from '@vueuse/core'
-import type { NcListProps } from '#imports'
+// Imported by path, not '#imports': the SFC compiler has to resolve the type to
+// generate runtime props and cannot follow Nuxt's virtual module.
+import type { NcListProps } from '../../../lib/types'
 
 interface Emits {
   (e: 'update:value', value: RawValueType): void
   (e: 'update:open', open: boolean): void
   (e: 'change', option: NcListItemType): void
   (e: 'escape', event: KeyboardEvent): void
+  (e: 'searchChange', query: string): void
 }
 
 const props = withDefaults(defineProps<NcListProps>(), {
@@ -22,6 +25,8 @@ const props = withDefaults(defineProps<NcListProps>(), {
   isMultiSelect: false,
   minItemsForSearch: 4,
   isLoading: false,
+  serverSearch: false,
+  searchDebounce: 300,
   listWrapperClassName: '',
   containerClassName: '',
   wrapperClassName: '',
@@ -125,6 +130,10 @@ const defaultFilter = (item: NcListItemType, i: number, _array: NcListItemType[]
 }
 
 const applyFilterOnList = (listToFilter: NcListItemType[], query: string) => {
+  // The server already answered this query — filtering again would drop rows it
+  // matched on something other than the label.
+  if (props.serverSearch) return listToFilter
+
   return listToFilter.filter((item, i, array) => {
     // Step 1: apply default filter
     if (defaultFilter(item, i, array, query)) return true
@@ -395,7 +404,10 @@ const focusInputBox = () => {
     .toBeTruthy()
     .then(() => {
       forcedNextTick(() => {
-        inputRef.value?.focus()
+        // preventScroll: the overlay may still be at its pre-align position,
+        // overflowing the viewport — focusing it would scroll the page there
+        // and back as soon as the trigger re-aligns.
+        inputRef.value?.focus({ preventScroll: true })
       })
     })
 }
@@ -411,7 +423,7 @@ const focusListWrapper = () => {
   if (!vOpen.value || isSearchEnabled.value) return
 
   setTimeout(() => {
-    listRef.value?.focus()
+    listRef.value?.focus({ preventScroll: true })
   }, 100)
 }
 
@@ -455,6 +467,18 @@ watch(searchQuery, () => {
   nextTick(() => {
     handleAutoScrollOption()
   })
+})
+
+const emitSearchChange = useDebounceFn((query: string) => {
+  emits('searchChange', query)
+}, props.searchDebounce)
+
+// Only lists that fetch need this; a local list is already filtered by the
+// computed above and would just be emitting into the void.
+watch(searchQuery, (query) => {
+  if (!props.serverSearch) return
+
+  emitSearchChange(query.trim())
 })
 
 defineExpose({

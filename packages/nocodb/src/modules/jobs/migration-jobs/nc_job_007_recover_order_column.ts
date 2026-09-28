@@ -250,7 +250,7 @@ export class RecoverOrderColumnMigration {
 
       await realDbDriver.raw(query);
 
-      await model.getColumns(context, ncMeta);
+      await model.getColumns(ncMeta);
 
       const decimalOrderCol = model.columns.find(
         (c) =>

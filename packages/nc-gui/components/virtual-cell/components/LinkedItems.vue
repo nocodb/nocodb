@@ -11,9 +11,16 @@ interface Prop {
   items: number
   /** Breadcrumb trail passed from parent (across dropdown teleport boundary) */
   parentBreadcrumbs?: string[]
+  /** Grid interface: allow expanding a linked record (follows viz inline-edit toggle) */
+  allowRecordExpand?: boolean
+  /** Grid interface: allow the "+ New record" button (follows viz add-record toggle) */
+  allowNewRecord?: boolean
 }
 
-const props = defineProps<Prop>()
+const props = withDefaults(defineProps<Prop>(), {
+  allowRecordExpand: true,
+  allowNewRecord: true,
+})
 
 const emit = defineEmits(['update:modelValue', 'attachRecord', 'escape'])
 
@@ -197,7 +204,15 @@ watch(
 
 const unlinkRow = async (row: Record<string, any>, id: number) => {
   if (isNew.value) {
-    await removeLTARRef(row, injectedColumn?.value as ColumnType)
+    // The virtual list hands over a decorated COPY ({...row, _index, ...}) —
+    // removeLTARRef locates the staged entry by deep comparison, which the
+    // copy defeats (reactive unwrapping skews the compare). The list entry at
+    // _index IS the staged buffer object, so pass THAT — identity match.
+    const original = childrenList.value?.list?.[row._index ?? id] ?? row
+    await removeLTARRef(original, injectedColumn?.value as ColumnType)
+    // New-row list renders the staged buffer — refresh the snapshot like the
+    // add paths do, or the unlinked record keeps showing.
+    loadChildrenList(false, state.value)
   } else {
     await unlink(row, {}, id)
   }
@@ -235,6 +250,7 @@ const onClick = (row: Row) => {
   expandedFormDlg.value = true
 }
 const addNewRecord = () => {
+  if (readOnly.value) return
   if (showRecordPlanLimitExceededModal()) return
   // Don't allow creating new record if linked table is not accessible
   if (!isLinkedTableAccessible.value) return
@@ -624,9 +640,11 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
                     :is-loading="false"
                     :related-table-display-value-prop="relatedTableDisplayValueProp"
                     :row="element"
+                    :allow-expand="allowRecordExpand"
                     data-testid="nc-child-list-item"
                     @link-or-unlink="unlinkRow(element, index)"
                     @expand="onClick(element)"
+                    @close="vModel = false"
                   />
                 </div>
               </template>
@@ -645,9 +663,11 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
               :is-loading="false"
               :related-table-display-value-prop="relatedTableDisplayValueProp"
               :row="pItem"
+              :allow-expand="allowRecordExpand"
               data-testid="nc-child-list-item-pending"
               @link-or-unlink="removePendingLink(pItem)"
               @expand="onClick(pItem)"
+              @close="vModel = false"
               @keydown.space.prevent.stop="() => removePendingLink(pItem)"
               @keydown.enter.prevent.stop="() => removePendingLink(pItem)"
             />
@@ -681,9 +701,11 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
                 :is-selected="!!(isSearchInputFocused && childrenListPagination.query && item._index === 0)"
                 :related-table-display-value-prop="relatedTableDisplayValueProp"
                 :row="item"
+                :allow-expand="allowRecordExpand"
                 data-testid="nc-child-list-item"
                 @link-or-unlink="linkOrUnLink(item, String(item._index))"
                 @expand="onClick(item)"
+                @close="vModel = false"
                 @keydown.space.prevent.stop="() => linkOrUnLink(item, String(item._index))"
                 @keydown.enter.prevent.stop="() => linkOrUnLink(item, String(item._index))"
               />
@@ -722,6 +744,9 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
         <div class="flex items-center gap-2">
           <PermissionsTooltip
             v-if="
+              allowNewRecord &&
+              !readOnly &&
+              isLinkedTableAccessible &&
               !isPublic &&
               !isDataReadOnly &&
               !isTemplateMode &&

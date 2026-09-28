@@ -15,8 +15,16 @@ export const getOptions = (
         (column.colOptions as any).options.filter((el: SelectOptionType) => el.title !== '') || []
       : []
 
-    for (const op of opts.filter((el: any) => el.order === null)) {
-      op.title = op.title.replace(/^'/, '').replace(/'$/, '')
+    for (const op of opts) {
+      // malformed colOptions can carry non-string titles (e.g. numbers) — normalize
+      // so downstream optionsMap keys and lookups always operate on strings
+      if (!ncIsString(op.title) && !ncIsNullOrUndefined(op.title)) {
+        op.title = String(op.title)
+      }
+
+      if (op.order === null && ncIsString(op.title)) {
+        op.title = op.title.replace(/^'/, '').replace(/'$/, '')
+      }
     }
 
     const isColorCodeEnabled = parseProp(column.meta)?.isColorCodeEnabled !== false

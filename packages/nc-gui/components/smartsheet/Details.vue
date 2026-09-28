@@ -1,26 +1,68 @@
 <script setup lang="ts">
 import { PlanFeatureTypes } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
+import type { ShellRailGroup } from '../shell/Rail.vue'
+import type { ViewPageType } from '~/lib/types'
+
+// Unified "Tools" shell: a modal with a left tool-nav rail and a content area
+// (per-tool header band, body, unified save bar) hosting every table-scoped tool.
+// Route-driven: open while the route slug (openedViewsTab) names a tool, and the
+// rail switches tools by changing that slug, so deep links / back button keep
+// working and the view stays rendered underneath. Closing routes back to 'view'.
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
 const { onViewsTabChange } = useViewsStore()
-
-const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
 const { $e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
-const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions, isEEFeatureBlocked, showEEFeatures } =
-  useEeConfig()
+const { blockTableAndFieldPermissions, blockRls, blockDateDependency, blockRecordTemplates, showEEFeatures } = useEeConfig()
 
 const { base } = storeToRefs(useBase())
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 
-const { hasV2Webhooks } = storeToRefs(useWebhooksStore())
+// Provide the shell's unified save-bar contract. Editing tool bodies (Fields,
+// Date Dependencies) register their dirty/save/reset; the bar shows only then.
+const { hasSaveBar } = useProvideShell()
+
+const isOpen = computed(() => openedViewsTab.value !== 'view')
+
+// Tool bodies expose their primary/secondary actions so the title band can
+// surface them (the page contract: one action zone, top-right of the band).
+const recordTemplatesRef = ref<{ openTemplateForm: () => void }>()
+
+const rlsRef = ref<{ addPolicy: () => void; addDefaultPolicy: () => void; hasDefaultPolicy: boolean }>()
+
+const webhooksRef = ref<{ createWebhook: () => void }>()
+
+const permissionsRef = ref<{ resetPermissions: () => void }>()
+
+const onCreateTemplate = () => recordTemplatesRef.value?.openTemplateForm()
+
+// Base-wide ERD, stacked over the shell so closing it lands back on this table's relations.
+const openBaseRelations = () => {
+  if (!meta.value?.source_id || !meta.value?.base_id) return
+
+  const isErdOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgBaseErd'), {
+    'modelValue': isErdOpen,
+    'sourceId': meta.value.source_id,
+    'baseId': meta.value.base_id,
+    'onUpdate:modelValue': () => {
+      isErdOpen.value = false
+      close(1000)
+    },
+  })
+}
+
+const WEBHOOK_DOCS_URL = 'https://nocodb.com/docs/product-docs/automation/webhook'
 
 const indicator = h(LoadingOutlined, {
   style: {
@@ -29,49 +71,180 @@ const indicator = h(LoadingOutlined, {
   spin: true,
 })
 
-const shouldShowTab = computed(() => {
-  return {
-    field: isUIAllowed('fieldAdd') && !isSqlView.value,
-    permissions: isEeUI && isUIAllowed('fieldAdd') && !isSqlView.value && showEEFeatures.value,
-    webhook: isUIAllowed('hookList') && !isSqlView.value,
+// Per-tool visibility gates — kept in lockstep with the toolbar Tools menu
+// (components/smartsheet/toolbar/TableTools.vue).
+const showFieldsAction = computed(() => isUIAllowed('fieldAdd') && !isSqlView.value)
+
+const showWebhooksAction = computed(() => isUIAllowed('hookList') && !isSqlView.value)
+
+const showPermissionsAction = computed(() => isEeUI && isUIAllowed('tablePermission') && !isSqlView.value && showEEFeatures.value)
+
+const showRlsAction = computed(() => isEeUI && isUIAllowed('rlsManage') && !isSqlView.value && showEEFeatures.value)
+
+const showDateDependencyAction = computed(
+  () => isEeUI && isUIAllowed('dateDependencyManage') && !isSqlView.value && showEEFeatures.value,
+)
+
+// Record templates are base-level data; unlike the toolbar dropdown (which
+// gates to grid because its manager modal is grid-hosted), the shell embeds the
+// manager itself, so it's reachable from any view's Tools surface.
+// recordTemplate* is an EDITOR-and-up ACL block, so keep the role gate.
+const showRecordTemplatesAction = computed(() => isEeUI && isUIAllowed('viewOperations') && showEEFeatures.value)
+
+// Slug → "is this tool reachable" map. Relations / API are always available;
+// a deep link to a tool that isn't reachable (or isn't yet wired) bounces to
+// 'relation' once roles have loaded.
+const tabAvailability = computed<Partial<Record<ViewPageType, boolean>>>(() => ({
+  field: showFieldsAction.value,
+  relation: true,
+  permissions: showPermissionsAction.value,
+  rls: showRlsAction.value,
+  templates: showRecordTemplatesAction.value,
+  dates: showDateDependencyAction.value,
+  api: true,
+  webhook: showWebhooksAction.value,
+}))
+
+const railGroups = computed<ShellRailGroup[]>(() => {
+  const structure = [
+    showFieldsAction.value && { slug: 'field' as const, icon: 'ncList', title: t('general.manageFields') },
+    { slug: 'relation' as const, icon: 'ncErd', title: t('title.relations') },
+  ].filter(Boolean) as ShellRailGroup['items']
+
+  const access = [
+    showPermissionsAction.value && {
+      slug: 'permissions' as const,
+      icon: 'ncLock',
+      title: t('general.permissions'),
+    },
+    showRlsAction.value && {
+      slug: 'rls' as const,
+      icon: 'ncShield',
+      title: t('objects.permissions.rlsPolicy.rowLevelSecurity'),
+    },
+  ].filter(Boolean) as ShellRailGroup['items']
+
+  const records = [
+    showRecordTemplatesAction.value && {
+      slug: 'templates' as const,
+      icon: 'ncClipboard',
+      title: t('objects.recordTemplates'),
+    },
+    showDateDependencyAction.value && {
+      slug: 'dates' as const,
+      icon: 'ncCalendar',
+      title: t('labels.dateDependency.title'),
+    },
+  ].filter(Boolean) as ShellRailGroup['items']
+
+  const developer = [
+    showWebhooksAction.value && { slug: 'webhook' as const, icon: 'ncWebhook', title: t('objects.webhooks') },
+    { slug: 'api' as const, icon: 'ncCode', title: t('labels.apiSnippet') },
+  ].filter(Boolean) as ShellRailGroup['items']
+
+  return [
+    { label: t('labels.toolsSectionStructure'), items: structure },
+    { label: t('labels.toolsSectionAccess'), items: access },
+    { label: t('labels.toolsSectionRecords'), items: records },
+    { label: t('labels.toolsSectionDeveloper'), items: developer },
+  ]
+})
+
+// Title-block copy per tool.
+const toolHeader = computed(() => {
+  switch (openedViewsTab.value) {
+    case 'permissions':
+      return { title: t('general.permissions'), description: t('labels.permissionsSubtext') }
+    case 'rls':
+      return { title: t('objects.permissions.rlsPolicy.rowLevelSecurity'), description: t('labels.rlsSubtext') }
+    case 'templates':
+      return { title: t('objects.recordTemplates'), description: t('labels.recordTemplatesSubtext') }
+    case 'dates':
+      return { title: t('labels.dateDependency.title'), description: t('labels.dateDependencySubtext') }
+    case 'relation':
+      return { title: t('title.relations'), description: t('labels.relationsSubtext') }
+    case 'api':
+      return { title: t('labels.apiSnippet'), description: t('labels.apiSnippetSubtext') }
+    case 'webhook':
+      return { title: t('objects.webhooks'), description: t('labels.webhooksSubtext'), docsHref: WEBHOOK_DOCS_URL }
+    case 'field':
+    default:
+      return { title: t('general.manageFields'), description: t('labels.manageFieldsSubtext') }
   }
 })
 
-const openedSubTab = computed({
-  get() {
-    return openedViewsTab.value
-  },
-  set(val) {
-    if (
-      val === 'permissions' &&
-      showUpgradeToUseTableAndFieldPermissions({ triggerSource: 'table-details-table-field-permissions' })
-    ) {
+// Plan-locked tools open to an in-pane upgrade card instead of their body.
+const upgradeCard = computed(() => {
+  switch (openedViewsTab.value) {
+    case 'permissions':
+      return blockTableAndFieldPermissions.value
+        ? {
+            feature: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS,
+            title: t('labels.baseNav.upgradeTitlePermissionsTablesFields'),
+            detail: t('labels.baseNav.upgradeDescPermissionsTablesFields'),
+            icon: 'ncLock',
+          }
+        : null
+    case 'rls':
+      return blockRls.value
+        ? {
+            feature: PlanFeatureTypes.FEATURE_RLS,
+            title: t('objects.permissions.rlsPolicy.rowLevelSecurity'),
+            detail: t('labels.baseNav.upgradeDescRls'),
+            icon: 'ncShield',
+          }
+        : null
+    case 'templates':
+      return blockRecordTemplates.value
+        ? {
+            feature: PlanFeatureTypes.FEATURE_RECORD_TEMPLATES,
+            title: t('objects.recordTemplates'),
+            detail: t('labels.baseNav.upgradeDescRecordTemplates'),
+            icon: 'ncClipboard',
+          }
+        : null
+    case 'dates':
+      return blockDateDependency.value
+        ? {
+            feature: PlanFeatureTypes.FEATURE_DATE_DEPENDENCY,
+            title: t('labels.dateDependency.title'),
+            detail: t('labels.baseNav.upgradeDescDateDependency'),
+            icon: 'ncCalendar',
+          }
+        : null
+    default:
+      return null
+  }
+})
+
+const onSelectTool = (rawSlug: string) => {
+  const slug = rawSlug as ViewPageType
+
+  if (slug === openedViewsTab.value) return
+
+  onViewsTabChange(slug)
+}
+
+const onClose = () => {
+  onViewsTabChange('view')
+}
+
+const onVisibleChange = (visible: boolean) => {
+  if (!visible) onClose()
+}
+
+watch(
+  [openedViewsTab, isBaseRolesLoaded],
+  () => {
+    if (!isBaseRolesLoaded.value || !isOpen.value) return
+
+    // Bounce un-entitled / not-yet-wired tabs (incl. CE deep links) to Relations.
+    if (!tabAvailability.value[openedViewsTab.value]) {
+      onViewsTabChange('relation')
       return
     }
 
-    onViewsTabChange(val)
-  },
-})
-
-watch(
-  [openedSubTab, isBaseRolesLoaded],
-  () => {
-    // Re-enable this check for first render
-
-    const fieldTabCondition = openedSubTab.value !== 'field' || shouldShowTab.value.field
-    const permissionsTabCondition =
-      openedSubTab.value !== 'permissions' || (shouldShowTab.value.permissions && !blockTableAndFieldPermissions.value)
-    const webhookTabCondition = openedSubTab.value !== 'webhook' || shouldShowTab.value.webhook
-
-    if (
-      // check page access only after base roles are loaded
-      isBaseRolesLoaded.value &&
-      (!fieldTabCondition || !webhookTabCondition || !permissionsTabCondition)
-    ) {
-      onViewsTabChange('relation')
-    }
-
-    $e(`c:table:tab-open:${openedSubTab.value}`)
+    $e(`c:table:tab-open:${openedViewsTab.value}`)
   },
   {
     immediate: true,
@@ -80,113 +253,166 @@ watch(
 </script>
 
 <template>
-  <div
-    class="flex flex-col h-full w-full"
-    data-testid="nc-details-wrapper"
-    :class="{
-      'nc-details-tab-left-sidebar-close': !isLeftSidebarOpen,
-    }"
+  <NcModal
+    :visible="isOpen"
+    size="xl"
+    nc-modal-class-name="!p-0"
+    wrap-class-name="nc-modal-table-tools"
+    @update:visible="onVisibleChange"
   >
-    <NcTabs v-model:active-key="openedSubTab" centered class="nc-details-tab">
-      <a-tab-pane v-if="shouldShowTab.field" key="field">
-        <template #tab>
-          <div class="tab" data-testid="nc-fields-tab">
-            <GeneralIcon icon="ncList" class="tab-icon" :class="{}" />
-            <div>{{ $t('objects.fields') }}</div>
-          </div>
+    <div class="relative flex h-full w-full" data-testid="nc-details-wrapper">
+      <ShellClose @close="onClose" />
+
+      <ShellRail :groups="railGroups" :active="openedViewsTab" @select="onSelectTool">
+        <template v-if="meta" #subject>
+          <GeneralTableIcon :meta="meta" class="!h-5 !w-5 !mx-0 flex-none text-nc-content-gray-subtle2" />
+          <NcTooltip show-on-truncate-only class="truncate">{{ meta.title }}</NcTooltip>
         </template>
-        <LazySmartsheetDetailsFields />
-      </a-tab-pane>
-      <a-tab-pane v-if="shouldShowTab.permissions" key="permissions">
-        <template #tab>
-          <div class="tab" data-testid="nc-permissions-tab">
-            <GeneralIcon icon="ncLock" class="tab-icon" :class="{}" />
-            <div>{{ $t('general.permissions') }}</div>
-            <LazyPaymentUpgradeBadge
-              :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
-              :feature-enabled-callback="() => !isEEFeatureBlocked"
-              remove-click
+      </ShellRail>
+
+      <div class="flex-1 flex flex-col min-w-0 min-h-0">
+        <ShellHeader :title="toolHeader.title" :description="toolHeader.description" :docs-href="toolHeader.docsHref">
+          <template v-if="!upgradeCard" #actions>
+            <!-- Record Templates -->
+            <NcButton
+              v-if="openedViewsTab === 'templates' && isEeUI"
+              v-e="['c:table:tools:create-template']"
+              size="small"
+              type="primary"
+              @click="onCreateTemplate"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="plus" class="h-4 w-4" />
+                {{ $t('activity.createTemplate') }}
+              </div>
+            </NcButton>
+
+            <!-- Record-Level Security -->
+            <template v-else-if="openedViewsTab === 'rls' && isEeUI">
+              <NcButton
+                v-if="!rlsRef?.hasDefaultPolicy"
+                size="small"
+                type="text"
+                class="!text-nc-content-brand"
+                @click="rlsRef?.addDefaultPolicy()"
+              >
+                <div class="flex items-center gap-1.5">
+                  <GeneralIcon icon="plus" class="h-4 w-4" />
+                  {{ $t('objects.permissions.rlsPolicy.addDefaultPolicy') }}
+                </div>
+              </NcButton>
+              <NcButton size="small" type="primary" @click="rlsRef?.addPolicy()">
+                <div class="flex items-center gap-1.5">
+                  <GeneralIcon icon="plus" class="h-4 w-4" />
+                  {{ $t('objects.permissions.rlsPolicy.addPolicy') }}
+                </div>
+              </NcButton>
+            </template>
+
+            <!-- Permissions: secondary Reset -->
+            <NcButton
+              v-else-if="openedViewsTab === 'permissions' && isEeUI"
+              v-e="['c:table:tools:reset-permissions']"
+              size="small"
+              type="secondary"
+              @click="permissionsRef?.resetPermissions()"
+            >
+              <div class="flex items-center gap-1.5">
+                <GeneralIcon icon="ncRotateCcw" class="h-4 w-4" />
+                {{ $t('activity.resetPermissions') }}
+              </div>
+            </NcButton>
+
+            <!-- Relations: base-wide diagram -->
+            <NcButton
+              v-else-if="openedViewsTab === 'relation' && meta?.source_id"
+              v-e="['c:table:tools:open-base-relations']"
+              size="small"
+              type="secondary"
+              data-testid="nc-tools-base-relations-btn"
+              @click="openBaseRelations"
+            >
+              <div class="flex items-center gap-1.5">
+                <GeneralIcon icon="ncErd" class="h-4 w-4" />
+                {{ $t('labels.baseRelations') }}
+              </div>
+            </NcButton>
+
+            <!-- Webhooks -->
+            <NcButton
+              v-else-if="openedViewsTab === 'webhook'"
+              v-e="['c:actions:webhook']"
+              size="small"
+              type="primary"
+              @click="webhooksRef?.createWebhook()"
+            >
+              <div class="flex items-center gap-1.5">
+                <GeneralIcon icon="plus" class="h-4 w-4" />
+                {{ $t('activity.newWebhook') }}
+              </div>
+            </NcButton>
+          </template>
+        </ShellHeader>
+
+        <!-- Same gutter as ShellHeader so every pane lines up with its title. -->
+        <div class="flex-1 min-h-0 nc-shell-gutter">
+          <LazySmartsheetDetailsFields v-if="openedViewsTab === 'field'" />
+
+          <div v-else-if="upgradeCard" class="h-full overflow-auto nc-scrollbar-thin">
+            <PaymentUpgradeFeatureCard
+              :feature="upgradeCard.feature"
+              :title="upgradeCard.title"
+              :detail="upgradeCard.detail"
+              :icon="upgradeCard.icon"
             />
           </div>
-        </template>
 
-        <PermissionsModalContent
-          v-if="meta?.id"
-          :table-id="meta.id"
-          class="!px-4 !pb-4"
-          permissions-table-wrapper-class="max-w-250"
-          permissions-field-wrapper-class="max-w-250 !top-4"
-          permissions-table-toolbar-class-name="pt-4"
-          style="height: calc(100vh - (var(--topbar-height) * 2))"
-        />
-      </a-tab-pane>
-      <a-tab-pane key="relation">
-        <template #tab>
-          <div class="tab" data-testid="nc-relations-tab">
-            <GeneralIcon icon="ncErd" class="tab-icon" :class="{}" />
-            <div>{{ $t('title.relations') }}</div>
+          <!-- Top space sits outside the scroll container, so the field table's sticky header pins flush. -->
+          <div v-else-if="openedViewsTab === 'permissions' && meta?.id" class="h-full pt-5">
+            <PermissionsModalContent
+              ref="permissionsRef"
+              :table-id="meta.id"
+              class="nc-tools-permissions h-full !px-0"
+              hide-section-title
+              permissions-table-wrapper-class="!min-w-0 !mx-0"
+              permissions-field-wrapper-class="!min-w-0 !mx-0"
+            />
           </div>
-        </template>
-        <LazySmartsheetDetailsErd />
-      </a-tab-pane>
 
-      <a-tab-pane key="api">
-        <template #tab>
-          <div class="tab" data-testid="nc-apis-tab">
-            <GeneralIcon icon="ncCode" class="tab-icon" :class="{}" />
-            <div>{{ $t('labels.apiSnippet') }}</div>
+          <div v-else-if="openedViewsTab === 'rls' && isEeUI && meta?.id" class="h-full py-5 overflow-hidden">
+            <RlsPolicyList ref="rlsRef" :table-id="meta.id" :base="base" :table-name="meta.title" in-shell />
           </div>
-        </template>
-        <LazySmartsheetDetailsApi v-if="base && meta && view" />
-        <div v-else class="h-full w-full flex flex-col justify-center items-center mt-28 mb-4">
-          <a-spin size="large" :indicator="indicator" />
+
+          <div v-else-if="openedViewsTab === 'dates' && isEeUI && meta?.id" class="h-full py-5">
+            <SmartsheetDetailsDateDependency :table-id="meta.id" :title="meta.title" in-shell />
+          </div>
+
+          <div v-else-if="openedViewsTab === 'templates' && isEeUI" class="h-full py-5">
+            <SmartsheetDetailsRecordTemplates ref="recordTemplatesRef" in-shell />
+          </div>
+
+          <!-- Erd / Api / Webhooks size themselves off the viewport unless told they're in a modal. -->
+          <LazySmartsheetDetailsErd v-else-if="openedViewsTab === 'relation'" in-modal />
+
+          <template v-else-if="openedViewsTab === 'api'">
+            <LazySmartsheetDetailsApi v-if="base && meta && view" in-modal />
+            <div v-else class="h-full w-full flex flex-col justify-center items-center mt-28 mb-4">
+              <a-spin size="large" :indicator="indicator" />
+            </div>
+          </template>
+
+          <LazySmartsheetDetailsWebhooks v-else-if="openedViewsTab === 'webhook'" ref="webhooksRef" in-modal in-shell />
         </div>
-      </a-tab-pane>
 
-      <a-tab-pane v-if="shouldShowTab.webhook" key="webhook">
-        <template #tab>
-          <div class="tab" data-testid="nc-webhooks-tab">
-            <GeneralIcon icon="ncWebhook" class="tab-icon" />
-            <div>{{ $t('objects.webhooks') }}</div>
-            <GeneralIcon v-if="hasV2Webhooks" icon="alertTriangleSolid" class="text-nc-content-orange-medium h-4 w-4" />
-          </div>
-        </template>
-        <LazySmartsheetDetailsWebhooks />
-      </a-tab-pane>
-    </NcTabs>
-  </div>
+        <ShellSaveBar v-if="hasSaveBar" />
+      </div>
+    </div>
+  </NcModal>
 </template>
 
 <style lang="scss" scoped>
-.tab {
-  @apply flex flex-row items-center gap-x-1.5 pr-0.5;
-}
-
-:deep(.nc-details-tab > .ant-tabs-nav:first-of-type) {
-  min-height: calc(var(--toolbar-height) - 1px);
-
-  .ant-tabs-tab {
-    @apply pt-3 pb-3 text-small leading-[18px];
-  }
-}
-</style>
-
-<style lang="scss">
-.nc-details-tab.nc-tabs.centered {
-  > .ant-tabs-nav {
-    @apply px-3;
-    .ant-tabs-nav-wrap {
-      @apply absolute mx-auto;
-    }
-  }
-}
-
-.nc-details-tab-left-sidebar-close > .nc-details-tab.nc-tabs.centered {
-  > .ant-tabs-nav {
-    @apply px-3;
-    .ant-tabs-nav-wrap {
-      @apply absolute mx-auto;
-    }
-  }
+// Field names one step down (13px), matching the Manage fields rows.
+.nc-tools-permissions :deep(.nc-field-permissions-name) {
+  @apply !text-[13px];
 }
 </style>

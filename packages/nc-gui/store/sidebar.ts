@@ -108,11 +108,9 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const hideSidebar = ref(false)
 
-  const isBaseSettingsFullPage = ref(false)
-
   const showTopbar = ref(false)
 
-  type SidebarTab = 'data' | 'workflows' | 'agents' | 'settings'
+  type SidebarTab = 'data' | 'workflows' | 'interfaces' | 'agents' | 'settings' | 'app' | 'store'
 
   const activeSidebarTab = ref<SidebarTab>('data')
 
@@ -125,7 +123,9 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
     // Base routes — only derive tab when a baseId is present
     if (name.startsWith('index-typeOrId-baseId-')) {
-      if (name.startsWith('index-typeOrId-baseId-index-settings')) return 'settings'
+      // Base settings is a modal over the base page, so the sidebar keeps
+      // showing whichever vertical the reader came from rather than swapping
+      // itself out — only workspace settings still owns the sidebar.
 
       if (
         name.startsWith('index-typeOrId-baseId-index-workflows') ||
@@ -134,6 +134,18 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
         name.startsWith('index-typeOrId-baseId-index-automations')
       ) {
         return 'workflows'
+      }
+
+      // App routes own their highlight via the rail App tiles — keep the main tabs (Data/Workflows/Settings) inactive.
+      if (name.startsWith('index-typeOrId-baseId-index-apps')) return 'app'
+
+      if (name.startsWith('index-typeOrId-baseId-index-interfaces')) {
+        return 'interfaces'
+      }
+
+      if (name.startsWith('index-typeOrId-baseId-index-store')) return 'store'
+      if (name.startsWith('index-typeOrId-baseId-index-agents')) {
+        return 'agents'
       }
 
       // All other routes resolve to data tab (table, dashboard, document, etc.)
@@ -197,7 +209,6 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     formRightSidebarWidthPercent,
     hideMiniSidebar,
     hideSidebar,
-    isBaseSettingsFullPage,
     showTopbar,
     miniSidebarWidth,
     isFullScreen,

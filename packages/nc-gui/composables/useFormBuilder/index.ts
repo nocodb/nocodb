@@ -33,6 +33,8 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
     const isLoadingFieldOptions = ref<Record<string, boolean>>({})
 
+    const fieldOptionsError = ref<Record<string, string>>({})
+
     const dependencyWatcherCleanups: Array<() => void> = []
 
     const setNestedProp = (obj: any, path: string, value: any) => {
@@ -88,9 +90,15 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       if (!fetchOptions || !field.fetchOptionsKey || !field.model || !checkCondition(field)) return []
 
       isLoadingFieldOptions.value[field.model] = true
+      delete fieldOptionsError.value[field.model]
 
       try {
         fieldOptions.value[field.model] = await fetchOptions(field.fetchOptionsKey, searchQuery)
+      } catch (e: any) {
+        // Keep the reason on the field. An empty dropdown alone is
+        // indistinguishable from a list that genuinely has no entries.
+        fieldOptionsError.value[field.model] = await extractSdkResponseErrorMsg(e)
+        fieldOptions.value[field.model] = []
       } finally {
         isLoadingFieldOptions.value[field.model] = false
       }
@@ -98,6 +106,30 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
     const getFieldOptions = (model: string) => {
       return fieldOptions.value[model] || []
+    }
+
+    const getFieldOptionsError = (model: string) => {
+      return fieldOptionsError.value[model]
+    }
+
+    /**
+     * Label of the first `dependsOn` field that is still empty. Options can't
+     * load until it is set, so the field says what to pick instead of "No data".
+     */
+    const getFieldOptionsBlockedBy = (field: FormBuilderElement): string | undefined => {
+      if (!field.dependsOn) return undefined
+
+      const dependencies = Array.isArray(field.dependsOn) ? field.dependsOn : [field.dependsOn]
+
+      for (const depPath of dependencies) {
+        const value = deepReference(depPath)
+
+        if (value === undefined || value === null || value === '' || (Array.isArray(value) && !value.length)) {
+          return (unref(formSchema) || []).find((el) => el.model === depPath)?.label || depPath
+        }
+      }
+
+      return undefined
     }
 
     const getIsLoadingFieldOptions = (model: string) => {
@@ -482,6 +514,8 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       setFormState,
       loadOptions,
       getFieldOptions,
+      getFieldOptionsError,
+      getFieldOptionsBlockedBy,
       getIsLoadingFieldOptions,
       toggleGroup,
       isGroupCollapsed,

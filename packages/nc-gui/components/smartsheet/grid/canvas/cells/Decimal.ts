@@ -1,9 +1,11 @@
 import {
   SeparatorType,
+  abbreviateNumber,
   formatNumberWithSeparator,
   getSeparatorChars,
   resolveColumnSeparator,
   roundUpToPrecision,
+  shouldAbbreviateNumber,
 } from 'nocodb-sdk'
 import { renderSingleLineText, renderTagLabel } from '../utils/canvas'
 
@@ -19,7 +21,9 @@ export const DecimalCellRenderer: CellRenderer = {
       const precision = meta.precision ?? 1
       const numValue = Number(roundUpToPrecision(Number(value), precision))
 
-      if (separator === SeparatorType.Locale) {
+      if (shouldAbbreviateNumber(meta)) {
+        displayValue = abbreviateNumber(numValue, meta, { precision })
+      } else if (separator === SeparatorType.Locale) {
         displayValue = numValue.toLocaleString(undefined, {
           minimumFractionDigits: precision,
           maximumFractionDigits: precision,

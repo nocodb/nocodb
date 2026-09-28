@@ -6,7 +6,7 @@ const props = defineProps<{
   records: Row[]
 }>()
 
-const emit = defineEmits(['expandRecord', 'newRecord'])
+const emit = defineEmits(['expandRecord', 'newRecord', 'recordContextMenu'])
 
 const container = ref<null | HTMLElement>(null)
 
@@ -15,6 +15,12 @@ const { width: containerWidth } = useElementSize(container)
 const meta = inject(MetaInj, ref())
 
 const { isUIAllowed } = useRoles()
+
+// Interface pages provide ReadonlyInj when the viz's edit_inline opt-in is
+// OFF — spanning-event drag/resize must honor it like the sibling field views.
+const isCalendarCellReadonly = inject(ReadonlyInj, ref(false))
+
+const canEditCalendarData = computed(() => isUIAllowed('dataEdit') && !isCalendarCellReadonly.value)
 
 const records = toRef(props, 'records')
 
@@ -47,6 +53,7 @@ const {
   timezoneDayjs,
   isDayAnchoredMode,
   dayAnchoredSpan,
+  jumpToRecordEdge,
 } = useCalendarViewStoreOrThrow()
 
 const maxVisibleDays = computed(() => {
@@ -290,7 +297,7 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 
 // This function is used to calculate the new start and end date of a record when resizing
 const onResize = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit') || !container.value || !resizeRecord.value) return
+  if (!canEditCalendarData.value || !container.value || !resizeRecord.value) return
 
   const { width, left } = container.value.getBoundingClientRect()
 
@@ -376,7 +383,8 @@ const onResizeEnd = () => {
 }
 
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
-  if (!isUIAllowed('dataEdit')) return
+  if (event.button !== 0) return
+  if (!canEditCalendarData.value) return
   resizeInProgress.value = true
   resizeDirection.value = direction
   resizeRecord.value = record
@@ -385,7 +393,7 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
 }
 
 const onDrag = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit')) return
+  if (!canEditCalendarData.value) return
   if (!container.value || !dragRecord.value) return
   calculateNewRow(event, false)
 }
@@ -394,7 +402,7 @@ const stopDrag = (event: MouseEvent) => {
   event.preventDefault()
   clearTimeout(dragTimeout.value!)
 
-  if (!isUIAllowed('dataEdit')) return
+  if (!canEditCalendarData.value) return
   if (!isDragging.value || !container.value || !dragRecord.value) return
 
   const { updateProperty, newRow } = calculateNewRow(event)
@@ -421,6 +429,8 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
+  // Right/middle-click never drags — it opens the record context menu (or the browser's).
+  if (event.button !== 0) return
   if (resizeInProgress.value) return
   let target = event.target as HTMLElement
 
@@ -432,7 +442,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
   isDragging.value = false
 
   dragTimeout.value = setTimeout(() => {
-    if (!isUIAllowed('dataEdit')) return
+    if (!canEditCalendarData.value) return
     isDragging.value = true
     while (!target.classList.contains('draggable-record')) {
       target = target.parentElement as HTMLElement
@@ -533,6 +543,7 @@ defineExpose({
             @mouseleave="hoverRecord = null"
             @mouseover="hoverRecord = record.rowMeta.id"
             @mousedown.stop="dragStart($event, record)"
+            @contextmenu="emit('recordContextMenu', $event, record)"
           >
             <LazySmartsheetRow :row="record">
               <LazySmartsheetCalendarRecordCard
@@ -543,6 +554,8 @@ defineExpose({
                 :resize="activeCalendarView === 'week'"
                 @dblclick.stop="emit('expandRecord', record)"
                 @resize-start="onResizeStart"
+                @jump-start="jumpToRecordEdge(record, 'start')"
+                @jump-end="jumpToRecordEdge(record, 'end')"
               >
                 <template v-for="(field, index) in fields" :key="index">
                   <LazySmartsheetPlainCell

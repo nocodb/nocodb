@@ -20,9 +20,11 @@ import {
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useTitle } from '@vueuse/core'
 import type { ViewPageType } from '~/lib/types'
+import { INTERFACE_VIEW_ID_PREFIX } from '~/lib/interfaceData'
 import { getFormattedViewTabTitle } from '~/helpers/parsers/parserHelpers'
 import { DlgViewCopyViewConfigFromAnotherView, DlgViewCreate } from '#components'
 import { userLocalStorageInfoManager } from '#imports'
+import { getI18n } from '~/plugins/a.i18n'
 
 // Types and Interfaces
 interface RecentView {
@@ -40,7 +42,7 @@ interface RecentView {
 export const useViewsStore = defineStore('viewsStore', () => {
   const { $api, $e, $eventBus } = useNuxtApp()
 
-  const { t } = useI18n()
+  const { t } = getI18n().global
 
   const { appInfo, ncNavigateTo, user } = useGlobal()
 
@@ -155,7 +157,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
     // For types in ViewPageType type
     if (!route.value.params?.slugs || route.value.params.slugs?.length <= 1) return 'view'
 
-    if (['field', 'permissions', 'relation', 'api', 'webhook'].includes(route.value.params.slugs[1] as ViewPageType)) {
+    if (
+      ['field', 'permissions', 'relation', 'api', 'webhook', 'rls', 'templates', 'dates'].includes(
+        route.value.params.slugs[1] as ViewPageType,
+      )
+    ) {
       return route.value.params.slugs[1] as ViewPageType
     }
 
@@ -207,13 +213,22 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const isLockedView = computed(() => activeView.value?.lock_type === 'locked')
 
   const isActiveViewFieldHeaderVisible = computed(() => {
+    const viewMeta = parseProp((activeView.value?.view as GalleryType | KanbanType)?.meta)
+
+    // Synthetic interface views carry the builder's "Display field names" toggle
+    // in their meta and bypass the view-feature plan gate — the toggle belongs to
+    // the interface builder surface, not the view settings UI the gate protects.
+    if (activeView.value?.id?.startsWith(INTERFACE_VIEW_ID_PREFIX)) {
+      return viewMeta?.is_field_header_visible ?? true
+    }
+
     // If card field header visibility is not enabled or blocked, return true to show header by default
     if (blockCardFieldHeaderVisibility.value || !isEeUI) return true
 
-    return parseProp((activeView.value?.view as GalleryType | KanbanType)?.meta)?.is_field_header_visible ?? true
+    return viewMeta?.is_field_header_visible ?? true
   })
 
-  const isListViewEnabled = computed(() => isEeUI && showEEFeatures.value)
+  const isListViewEnabled = computed(() => showEEFeatures.value)
 
   const isShowEveryonePersonalViewsEnabled = computed({
     get: () => {
@@ -804,9 +819,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
         updates,
       )
 
-      // Find the table and update the view in the store
-      const tableId = activeView.value?.fk_model_id
-      const baseId = activeView.value?.base_id
+      // Locate the updated view's own bucket. `activeView` is not it — the
+      // sidebar context menu updates views other than the open one, and often
+      // no view is open at all, which silently skipped the store update.
+      const tableId = updatedView?.fk_model_id ?? activeView.value?.fk_model_id
+      const baseId = updatedView?.base_id ?? activeView.value?.base_id
       if (tableId && baseId) {
         const key = getViewsKey(baseId, tableId)
         const tableViews = viewsByTable.value.get(key) || []
@@ -975,8 +992,21 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
-  const onViewsTabChange = (page: ViewPageType) => {
-    router.push({
+  const onViewsTabChange = async (page: ViewPageType) => {
+    // Both params below are built from state that is empty until the view
+    // store settles: `activeViewTitleOrId` falls back to
+    // getFirstNonPersonalView(views) — undefined while `views` is still
+    // loading — and `activeViewReadableUrlSlug` is '' until `activeView`
+    // resolves. Pushing then yields a route that mounts nothing and the click
+    // is silently lost: no error, no log, the panel just never opens. Wait for
+    // the state the route depends on, the way loadViews waits for tables.
+    await until(() => !!activeViewTitleOrId.value && !!activeView.value).toBeTruthy({ timeout: 10000 })
+
+    // `toBeTruthy` resolves rather than throws when the timeout elapses, so
+    // re-check instead of pushing a route with unresolved params anyway.
+    if (!activeViewTitleOrId.value || !activeView.value) return
+
+    const location = {
       name: 'index-typeOrId-baseId-index-index-viewId-viewTitle-slugs',
       params: {
         typeOrId: route.value.params.typeOrId,
@@ -985,7 +1015,16 @@ export const useViewsStore = defineStore('viewsStore', () => {
         viewTitle: activeViewTitleOrId.value,
         slugs: [activeViewReadableUrlSlug.value, ...(page !== 'view' ? [page] : [])],
       },
-    })
+    }
+
+    // Opening and closing the Tools shell are real history steps; switching
+    // tools inside it is not, or leaving costs one Back per tool visited.
+    if (page !== 'view' && openedViewsTab.value !== 'view') {
+      router.replace(location)
+      return
+    }
+
+    router.push(location)
   }
 
   const changeView = async ({ viewId, tableId, baseId }: { viewId: string | null; tableId: string; baseId: string }) => {
@@ -1189,7 +1228,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     const result = {
       isDisabled: false,
       tooltip: '',
-      isVisible: isEeUI && isUIAllowed('viewCreateOrEdit') && showEEFeatures.value,
+      isVisible: isUIAllowed('viewCreateOrEdit') && showEEFeatures.value,
     }
 
     if (!view) return result
@@ -1510,6 +1549,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     lastOpenedViewId,
     activeViewRowColorInfo,
     sharedView,
+    isPublic,
     isActiveViewFieldHeaderVisible,
 
     // Methods

@@ -3,14 +3,18 @@ import type { ColumnType, RecordTemplateType } from 'nocodb-sdk'
 export const useRecordTemplate = createSharedComposable(() => {
   const showRecordTemplateManager = ref(false)
   const templates = ref<RecordTemplateType[]>([])
+  const isLoadingTemplates = ref(false)
   const selectedTemplateId = ref<string | null>(null)
   const openManager = () => {}
+  const loadTemplates = async () => {}
   const selectedTemplate = computed(() => null)
   const setSelectedTemplate = (_templateId: string | null) => {}
 
   return {
     showRecordTemplateManager,
     templates,
+    isLoadingTemplates,
+    loadTemplates,
     openManager,
     selectedTemplate,
     selectedTemplateId,

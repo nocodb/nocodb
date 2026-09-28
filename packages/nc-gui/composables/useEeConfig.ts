@@ -73,7 +73,37 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockPrivateBases = computed(() => true)
 
+  const blockEnterpriseVaults = computed(() => true)
+
   const blockAddNewDashboard = computed(() => true)
+
+  // Interfaces are EE-only — every gate stays blocked in CE.
+  const hideInterfaces = computed(() => true)
+
+  const blockAddNewInterface = computed(() => true)
+  const isInterfacePageLimitReached = (_count: number) => true
+  const blockInterfaceMultiViz = computed(() => true)
+  const blockInterfaceMetricColorConditions = computed(() => true)
+  const blockInterfacePivotWidget = computed(() => true)
+  const blockInterfaceViewWidget = computed(() => true)
+  const blockInterfaceIframeWidget = computed(() => true)
+  const blockInterfaceUserFilters = computed(() => true)
+  const blockCopyViewSettingFromOther = computed(() => true)
+
+  // Skills governance is EE-only; CE has no plan concept at all.
+  const blockSkillsGovernance = computed(() => true)
+  const blockSkillsOrg = computed(() => true)
+  const showUpgradeToUseSkillsGovernance = (..._args: any[]) => {}
+  const showUpgradeToUseSkillsOrg = (..._args: any[]) => {}
+  const blockInterfaceToolbarToggles = computed(() => true)
+  const blockInterfaceDrafts = computed(() => true)
+  const blockInterfacePreviewAs = computed(() => true)
+  const blockInterfaceAccessControl = computed(() => true)
+  const blockInterfacePageAccessControl = computed(() => true)
+  const blockInterfaceButtonVisibility = computed(() => true)
+  const showUpgradeForInterfaceFeature = (..._args: any[]) => {}
+  const showInterfacePlanLimitExceededModal = (..._args: any[]) => {}
+  const showInterfacePageLimitExceededModal = (..._args: any[]) => {}
 
   const blockCalendarRange = computed(() => true)
 
@@ -82,6 +112,8 @@ export const useEeConfig = createSharedComposable(() => {
   const blockGanttView = computed(() => true)
 
   const blockAddNewScript = computed(() => true)
+
+  const blockAddNewAgent = computed(() => true)
 
   const showUserMayChargeAlert = computed(() => false)
 
@@ -118,7 +150,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockCardFieldHeaderVisibility = computed(() => true)
 
-  const blockAddNewSandbox = computed(() => true)
+  const blockAddNewEnvironmentInstance = computed(() => true)
 
   const blockSync = computed(() => true)
 
@@ -139,6 +171,11 @@ export const useEeConfig = createSharedComposable(() => {
 
   // AutoNumber field is EE-only — always blocked in CE
   const blockAutoNumberField = computed(() => true)
+
+  // AI credits are EE/Cloud-only — CE never gates on them
+  const blockAiCredits = computed(() => false)
+
+  const showBuyCredits = (..._args: any[]) => {}
 
   const calculatePrice = (..._args: any[]) => {}
 
@@ -167,6 +204,8 @@ export const useEeConfig = createSharedComposable(() => {
   const navigateToCheckout = (..._args: any[]) => {}
 
   const handleUpgradePlan = (..._args: any[]) => {}
+
+  const handleRequestUpgrade = async (..._args: any[]) => false
 
   const showUserPlanLimitExceededModal = (..._args: any[]) => {}
 
@@ -234,6 +273,22 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showDashboardPlanLimitExceededModal = (..._args: any[]) => {}
 
+  const blockStagingEnvironment = computed(() => true)
+
+  const blockPerUserCredentials = computed(() => true)
+
+  const blockCustomEnvironment = computed(() => true)
+
+  const isEnvironmentBlocked = (..._args: any[]) => true
+
+  const environmentUpgradeFeature = (..._args: any[]) => undefined
+
+  const showUpgradeToUseStagingEnvironment = (..._args: any[]) => {}
+
+  const showUpgradeToUsePerUserCredentials = (..._args: any[]) => {}
+
+  const showUpgradeToUseCustomEnvironment = (..._args: any[]) => {}
+
   const showDocumentPagePlanLimitExceededModal = (..._args: any[]) => {}
 
   const showUpgradeToUseDocsInlineComments = (..._args: any[]) => {}
@@ -251,6 +306,8 @@ export const useEeConfig = createSharedComposable(() => {
   const requiredPlanForRevisionAge = (..._args: any[]): string | null => null
 
   const showScriptPlanLimitExceededModal = (..._args: any[]) => {}
+
+  const showAgentPlanLimitExceededModal = (..._args: any[]) => {}
 
   const showUpgradeToUseCalendarRange = (..._args: any[]) => {}
 
@@ -306,15 +363,23 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseFormScheduling = (..._args: any[]) => {}
 
+  const blockFormRequireSignin = computed(() => true)
+
+  const showUpgradeToUseFormRequireSignin = (..._args: any[]) => {}
+
   const blockViewSections = computed(() => true)
 
   const showUpgradeToUseViewSections = (..._args: any[]) => {}
+
+  const blockBaseSections = computed(() => true)
+
+  const showUpgradeToUseBaseSections = (..._args: any[]) => {}
 
   const blockBaseVariables = computed(() => true)
 
   const showUpgradeToUseBaseVariables = (..._args: any[]) => {}
 
-  const showSandboxPlanLimitExceededModal = (..._args: any[]) => {}
+  const showEnvironmentPlanLimitExceededModal = (..._args: any[]) => {}
   const showUpgradeToUseListView = (..._args: any[]) => {}
 
   const showUpgradeToUseMapView = (..._args: any[]) => {}
@@ -332,6 +397,11 @@ export const useEeConfig = createSharedComposable(() => {
 
   const isEEFeatureBlocked = computed(() => true)
 
+  const hideUpgradePrompts = ref(false)
+  const communityMode = computed(() => false)
+
+  const showUpgradeSurface = (_isBlocked: boolean) => true
+
   const showEEFeatures = computed(() => false)
 
   const blockWorkspaceCreate = computed(() => true)
@@ -347,6 +417,10 @@ export const useEeConfig = createSharedComposable(() => {
   const blockSSO = computed(() => true)
 
   const showUpgradeToUseSSO = (..._args: any[]) => {}
+
+  const blockWorkspaceSso = computed(() => true)
+
+  const showUpgradeToUseWorkspaceSso = (..._args: any[]) => {}
 
   const blockScim = computed(() => true)
 
@@ -388,7 +462,35 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockWorkflows = computed(() => true)
 
+  const blockAgents = computed(() => true)
+
+  const showUpgradeToUseAgents = (..._args: any[]) => {}
+
+  const blockAppFactory = computed(() => true)
+
+  const showUpgradeToUseAppFactory = (..._args: any[]) => {}
+
   const showUpgradeToUseWorkflows = (..._args: any[]) => {}
+
+  const blockApps = computed(() => true)
+
+  const showUpgradeToUseApps = (..._args: any[]) => {}
+
+  const blockAppVanityUrl = computed(() => true)
+
+  const showUpgradeToUseAppVanityUrl = (..._args: any[]) => {}
+
+  const blockAppCustomDomain = computed(() => true)
+
+  const showUpgradeToUseAppCustomDomain = (..._args: any[]) => {}
+
+  const blockAppApi = computed(() => true)
+
+  const showUpgradeToUseAppApi = (..._args: any[]) => {}
+
+  const isWorkflowLimitReached = (_count: number) => false
+
+  const showWorkflowPlanLimitExceededModal = (..._args: any[]) => {}
 
   const blockBookmarks = computed(() => true)
 
@@ -408,6 +510,7 @@ export const useEeConfig = createSharedComposable(() => {
     getHigherPlan,
     getPlanTitle,
     handleUpgradePlan,
+    handleRequestUpgrade,
     isPaymentEnabled,
     showUserPlanLimitExceededModal,
     isRecordLimitReached,
@@ -460,6 +563,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockDocumentPermissions,
     showUpgradeToUseDocumentPermissions,
     blockPrivateBases,
+    blockEnterpriseVaults,
     showUpgradeToUsePrivateBases,
     showUserMayChargeAlert,
     maxAttachmentsAllowedInCell,
@@ -472,6 +576,14 @@ export const useEeConfig = createSharedComposable(() => {
     blockDocShare,
     showUpgradeToShareDoc,
     showDashboardPlanLimitExceededModal,
+    blockStagingEnvironment,
+    blockPerUserCredentials,
+    blockCustomEnvironment,
+    isEnvironmentBlocked,
+    environmentUpgradeFeature,
+    showUpgradeToUseStagingEnvironment,
+    showUpgradeToUsePerUserCredentials,
+    showUpgradeToUseCustomEnvironment,
     showDocumentPagePlanLimitExceededModal,
     showUpgradeToUseDocsInlineComments,
     showUpgradeToUseDocsResolveComments,
@@ -482,7 +594,32 @@ export const useEeConfig = createSharedComposable(() => {
     requiredPlanForRevisionAge,
     showScriptPlanLimitExceededModal,
     blockAddNewScript,
+    showAgentPlanLimitExceededModal,
+    blockAddNewAgent,
     blockAddNewDashboard,
+    hideInterfaces,
+    blockAddNewInterface,
+    isInterfacePageLimitReached,
+    blockInterfaceMultiViz,
+    blockCopyViewSettingFromOther,
+    blockSkillsGovernance,
+    blockSkillsOrg,
+    showUpgradeToUseSkillsGovernance,
+    showUpgradeToUseSkillsOrg,
+    blockInterfaceMetricColorConditions,
+    blockInterfacePivotWidget,
+    blockInterfaceViewWidget,
+    blockInterfaceIframeWidget,
+    blockInterfaceUserFilters,
+    blockInterfaceToolbarToggles,
+    blockInterfaceDrafts,
+    blockInterfacePreviewAs,
+    blockInterfaceAccessControl,
+    blockInterfacePageAccessControl,
+    blockInterfaceButtonVisibility,
+    showUpgradeForInterfaceFeature,
+    showInterfacePlanLimitExceededModal,
+    showInterfacePageLimitExceededModal,
     blockCalendarRange,
     showUpgradeToUseCalendarRange,
     blockTimelineView,
@@ -496,6 +633,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseAiButtonField,
     blockAiChat,
     showUpgradeToUseAiChat,
+    blockAiCredits,
+    showBuyCredits,
     blockAiIntegrations,
     showUpgradeToUseAiIntegrations,
     blockAiIntegrationsLimit,
@@ -531,14 +670,18 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseAutoNumberField,
     showUpgradeToDuplicateTableToOtherWs,
     showUpgradeToDuplicateTableToOtherBase,
-    blockAddNewSandbox,
-    showSandboxPlanLimitExceededModal,
+    blockAddNewEnvironmentInstance,
+    showEnvironmentPlanLimitExceededModal,
     blockRecordTemplates,
     showUpgradeToUseRecordTemplates,
     blockFormScheduling,
     showUpgradeToUseFormScheduling,
+    blockFormRequireSignin,
+    showUpgradeToUseFormRequireSignin,
     blockViewSections,
     showUpgradeToUseViewSections,
+    blockBaseSections,
+    showUpgradeToUseBaseSections,
     blockBaseVariables,
     showUpgradeToUseBaseVariables,
     blockListView,
@@ -550,6 +693,9 @@ export const useEeConfig = createSharedComposable(() => {
     blockExtensions,
     showUpgradeToUseExtensions,
     isEEFeatureBlocked,
+    communityMode,
+    hideUpgradePrompts,
+    showUpgradeSurface,
     showEEFeatures,
     blockWorkspaceCreate,
     blockWorkspaceMembers,
@@ -558,6 +704,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeForEEFeature,
     blockSSO,
     showUpgradeToUseSSO,
+    blockWorkspaceSso,
+    showUpgradeToUseWorkspaceSso,
     blockScim,
     showUpgradeToUseScim,
     blockMssql,
@@ -575,6 +723,20 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseScripts,
     blockWorkflows,
     showUpgradeToUseWorkflows,
+    blockApps,
+    showUpgradeToUseApps,
+    blockAppVanityUrl,
+    showUpgradeToUseAppVanityUrl,
+    blockAppCustomDomain,
+    showUpgradeToUseAppCustomDomain,
+    blockAppApi,
+    showUpgradeToUseAppApi,
+    blockAgents,
+    showUpgradeToUseAgents,
+    isWorkflowLimitReached,
+    showWorkflowPlanLimitExceededModal,
+    blockAppFactory,
+    showUpgradeToUseAppFactory,
     blockBookmarks,
     showUpgradeToUseBookmarks,
     blockTrashSettings,

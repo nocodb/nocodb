@@ -203,9 +203,7 @@ export const getNestedParams = async (
       if (column.system) {
         return paramsArr;
       }
-      const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>(
-        context,
-      );
+      const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>();
       if (colOpt.type !== RelationTypes.BELONGS_TO) {
         return [
           ...(await paramsArr),

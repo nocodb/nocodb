@@ -10,7 +10,7 @@ import { ColumnType, FilterType, LinkToAnotherRecordType } from '~/lib/Api';
 import { isDateMonthFormat } from '~/lib/dateTimeHelper';
 import { buildFilterTree } from '~/lib/filterHelpers';
 import { parseProp } from '~/lib/helperFunctions';
-import UITypes from '~/lib/UITypes';
+import UITypes, { isBtLikeV2Junction } from '~/lib/UITypes';
 import { FormulaDataTypes } from '~/lib/formula/enums';
 import { getLookupColumnType } from '~/lib/columnHelper/utils/get-lookup-column-type';
 import { getNodejsTimezone } from '~/lib/timezoneUtils';
@@ -163,6 +163,8 @@ export class RowFilterValidator {
       };
       timezone?: string;
     };
+    /** Internal: input is already a built tree (recursive call). */
+    isTree?: boolean;
   }) {
     const {
       filters: _filters,
@@ -176,7 +178,13 @@ export class RowFilterValidator {
       return true;
     }
 
-    const filters: (FilterType & { meta?: any })[] = buildFilterTree(_filters);
+    // `isTree` marks a recursive call, whose input is a already-built subtree.
+    // Re-running buildFilterTree on it would reset `children` to [] on every
+    // node (it rebuilds purely from id/fk_parent_id), so a group nested two
+    // levels deep would lose its conditions and be skipped as condition-less.
+    const filters: (FilterType & { meta?: any })[] = params.isTree
+      ? _filters
+      : buildFilterTree(_filters);
 
     let isValid: boolean | null = null;
     for (const filter of filters) {
@@ -192,6 +200,8 @@ export class RowFilterValidator {
           client: client,
           metas: metas,
           baseId: baseId,
+          options: params.options,
+          isTree: true,
         });
       } else {
         const column = columns.find((c) => c.id === filter.fk_column_id);
@@ -256,12 +266,19 @@ export class RowFilterValidator {
             default:
               res = false; // Unsupported operation for User fields
           }
-        } else if (column.uidt === UITypes.LinkToAnotherRecord) {
-          // LTAR holds the related records themselves (Links, by contrast, is a
-          // numeric count and falls through to the scalar path).
-          let linkData = rawVal;
-
-          linkData = Array.isArray(linkData) ? linkData : [linkData];
+        } else if (
+          column.uidt === UITypes.LinkToAnotherRecord ||
+          (column.uidt === UITypes.Links && isBtLikeV2Junction(column))
+        ) {
+          // LTAR (and single-record V2 Links) hold the related records
+          // themselves; many-record Links is a numeric count and falls
+          // through to the scalar path.
+          // A single-record link (bt/oo) is an object, or null/undefined when
+          // nothing is linked — wrapping that bare would yield `[null]`, which
+          // reads as one linked record and inverts every emptiness op below.
+          const linkData = (Array.isArray(rawVal) ? rawVal : [rawVal]).filter(
+            (v) => v !== null && v !== undefined
+          );
 
           const colOptions = column.colOptions as LinkToAnotherRecordType;
 
@@ -290,6 +307,7 @@ export class RowFilterValidator {
 
               switch (filter.comparison_op as any) {
                 case 'eq':
+                case 'gb_eq':
                   res = childValues.includes(ncToString(filter.value));
                   break;
                 case 'neq':
@@ -1030,6 +1048,8 @@ export function validateRowFilters(params: {
     };
     timezone?: string;
   };
+  /** Internal: input is already a built tree (recursive call). */
+  isTree?: boolean;
 }) {
   return new RowFilterValidator().validateSync(params);
 }

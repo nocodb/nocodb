@@ -1,10 +1,13 @@
 <script lang="ts" setup>
 import { type FormBuilderElement, type FormBuilderResponsiveSpan, type IntegrationType, ncIsArray } from 'nocodb-sdk'
 import { FORM_BUILDER_NON_CATEGORIZED, FormBuilderInputType, iconMap } from '#imports'
+import { FormBuilderGroupLabelsInj } from '~/context'
 
 const emit = defineEmits(['change'])
 
 const workflowContext = inject(WorkflowVariableInj, null)
+
+const groupLabels = inject(FormBuilderGroupLabelsInj, ref<Record<string, string>>({}))
 
 const { activeBreakpoint } = useGlobal()
 
@@ -40,6 +43,8 @@ const {
   setFormState,
   loadOptions,
   getFieldOptions,
+  getFieldOptionsError,
+  getFieldOptionsBlockedBy,
   getIsLoadingFieldOptions,
   toggleGroup,
   isGroupCollapsed,
@@ -89,9 +94,11 @@ const integrationOptions = computed(() => {
     acc[key] = filteredIntegrations.value[key]!.map((integration) => ({
       label: integration.title as string,
       value: integration.id as string,
+      disabled: integration.credential_mode === 'per_user',
+      integration,
     }))
     return acc
-  }, {} as Record<string, { label: string; value: string }[]>)
+  }, {} as Record<string, { label: string; value: string; disabled?: boolean; integration: IntegrationType }[]>)
 })
 
 const activeModel = ref<string | null>(null)
@@ -296,7 +303,7 @@ watch(
                       />
                       <span>{{
                         isGroupCollapsed(`${category}-${field.group}`, getGroupDefaultCollapsed(category, field.group))
-                          ? field.groupLabel || $t('general.showMore')
+                          ? groupLabels[field.group] || field.groupLabel || $t('general.showMore')
                           : $t('general.showLess')
                       }}</span>
                     </div>
@@ -360,7 +367,7 @@ watch(
                     <a-input
                       autocomplete="off"
                       class="!w-full"
-                      :disabled="disabled"
+                      :disabled="disabled || field.disabled"
                       :value="deepReference(field.model)"
                       :placeholder="field.placeholder"
                       @update:value="setFormStateWithEmit(field.model, $event)"
@@ -377,7 +384,7 @@ watch(
                   <template v-else-if="field.type === FormBuilderInputType.Date">
                     <a-date-picker
                       class="!w-full !rounded-lg"
-                      :disabled="disabled"
+                      :disabled="disabled || field.disabled"
                       :value="deepReference(field.model)"
                       :placeholder="field.placeholder"
                       format="YYYY-MM-DD"
@@ -400,7 +407,7 @@ watch(
                       autocomplete="off"
                       class="!w-full !rounded-lg"
                       :controls="false"
-                      :disabled="disabled"
+                      :disabled="disabled || field.disabled"
                       :value="deepReference(field.model)"
                       :placeholder="field.placeholder"
                       @update:value="setFormStateWithEmit(field.model, $event)"
@@ -409,7 +416,7 @@ watch(
                   <template v-else-if="field.type === FormBuilderInputType.Password">
                     <a-input-password
                       readonly
-                      :disabled="disabled"
+                      :disabled="disabled || field.disabled"
                       onfocus="this.removeAttribute('readonly');"
                       onblur="this.setAttribute('readonly', true);"
                       autocomplete="off"
@@ -421,7 +428,7 @@ watch(
                   <template v-else-if="field.type === FormBuilderInputType.Select">
                     <NcFormBuilderInputMountedWrapper @mounted="loadOptions(field)">
                       <NcSelect
-                        :disabled="disabled"
+                        :disabled="disabled || field.disabled"
                         :value="getSelectValue(field)"
                         :mode="selectMode(field)"
                         :max-tag-count="field.selectMode === 'singleWithInput' ? 1 : undefined"
@@ -458,6 +465,29 @@ watch(
                             />
                           </div>
                         </a-select-option>
+
+                        <template v-if="field.fetchOptionsKey" #notFoundContent>
+                          <div
+                            v-if="getFieldOptionsError(field.model)"
+                            class="flex flex-col gap-2 items-start p-2 text-bodySm text-nc-content-gray-subtle"
+                            data-testid="nc-form-builder-options-error"
+                          >
+                            <span>{{ getFieldOptionsError(field.model) }}</span>
+                            <NcButton size="xsmall" type="secondary" @mousedown.prevent="loadOptions(field)">
+                              {{ $t('general.retry') }}
+                            </NcButton>
+                          </div>
+                          <div
+                            v-else-if="getFieldOptionsBlockedBy(field)"
+                            class="p-2 text-bodySm text-nc-content-gray-subtle"
+                            data-testid="nc-form-builder-options-blocked"
+                          >
+                            {{ $t('msg.info.selectFieldFirst', { field: getFieldOptionsBlockedBy(field) }) }}
+                          </div>
+                          <div v-else class="p-2 text-bodySm text-nc-content-gray-subtle">
+                            {{ $t('labels.noResults') }}
+                          </div>
+                        </template>
                       </NcSelect>
                     </NcFormBuilderInputMountedWrapper>
                   </template>
@@ -465,7 +495,7 @@ watch(
                     <div class="flex flex-col px-2" :class="field.border ? 'border-1 rounded-lg shadow' : ''">
                       <div class="flex items-center aa">
                         <NcSwitch
-                          :disabled="disabled"
+                          :disabled="disabled || field.disabled"
                           :checked="!!deepReference(field.model)"
                           @update:checked="setFormStateWithEmit(field.model, $event)"
                         />
@@ -488,38 +518,44 @@ watch(
                     <a-select
                       :value="deepReference(field.model)"
                       :options="integrationOptions[field.model]"
+                      option-filter-prop="label"
                       dropdown-match-select-width
                       class="nc-select nc-select-shadow"
                       placeholder="Select Integration"
                       allow-clear
-                      :disabled="disabled"
+                      :disabled="disabled || field.disabled"
                       show-search
                       @update:value="setFormStateWithEmit(field.model, $event)"
                     >
                       <template #suffixIcon>
                         <GeneralIcon icon="ncChevronDown" class="text-nc-content-gray-muted" />
                       </template>
-                      <a-select-option
-                        v-for="integration in filteredIntegrations[field.model]"
-                        :key="integration.id"
-                        :value="integration.id"
-                      >
-                        <div class="w-full h-full flex gap-2 items-center" :data-testid="integration.title">
-                          <GeneralIntegrationIcon v-if="integration?.sub_type" :type="integration.sub_type" />
-                          <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                            <template #title>
+                      <template #option="{ integration, disabled: isOptionDisabled }">
+                        <NcTooltip class="w-full h-full" :disabled="!isOptionDisabled" placement="left">
+                          <template #title>
+                            {{ $t('msg.info.perUserIntegrationNotSelectable') }}
+                          </template>
+                          <div
+                            class="w-full h-full flex gap-2 items-center"
+                            :class="{ 'opacity-40 cursor-not-allowed': isOptionDisabled }"
+                            :data-testid="integration.title"
+                          >
+                            <GeneralIntegrationIcon v-if="integration?.sub_type" :type="integration.sub_type" />
+                            <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                              <template #title>
+                                {{ integration.title }}
+                              </template>
                               {{ integration.title }}
-                            </template>
-                            {{ integration.title }}
-                          </NcTooltip>
-                          <component
-                            :is="iconMap.check"
-                            v-if="formState.fk_integration_id === integration.id"
-                            id="nc-selected-item-icon"
-                            class="text-nc-content-brand w-4 h-4"
-                          />
-                        </div>
-                      </a-select-option>
+                            </NcTooltip>
+                            <component
+                              :is="iconMap.check"
+                              v-if="formState.fk_integration_id === integration.id"
+                              id="nc-selected-item-icon"
+                              class="text-nc-content-brand w-4 h-4"
+                            />
+                          </div>
+                        </NcTooltip>
+                      </template>
 
                       <template #dropdownRender="{ menuNode: menu }">
                         <component :is="menu" />
@@ -540,7 +576,7 @@ watch(
                   <template v-else-if="field.type === FormBuilderInputType.SelectBase">
                     <NcFormBuilderInputSelectBase
                       :value="deepReference(field.model)"
-                      :disabled="disabled"
+                      :disabled="disabled || field.disabled"
                       :filter-option="field.filterOption"
                       @update:value="setFormStateWithEmit(field.model, $event)"
                     />
@@ -550,7 +586,7 @@ watch(
                       <NcFormBuilderInputSelectTable
                         :multiple="field?.selectMode === 'multiple'"
                         :value="deepReference(field.model)"
-                        :disabled="disabled"
+                        :disabled="disabled || field.disabled"
                         :options="getFieldOptions(field.model)"
                         @update:value="setFormStateWithEmit(field.model, $event)"
                       />
@@ -561,7 +597,7 @@ watch(
                       <NcFormBuilderInputSelectView
                         :multiple="field?.selectMode === 'multiple'"
                         :value="deepReference(field.model)"
-                        :disabled="disabled"
+                        :disabled="disabled || field.disabled"
                         :options="getFieldOptions(field.model)"
                         @update:value="setFormStateWithEmit(field.model, $event)"
                       />
@@ -572,7 +608,7 @@ watch(
                       <NcFormBuilderInputSelectField
                         :multiple="field?.selectMode === 'multiple'"
                         :value="deepReference(field.model)"
-                        :disabled="disabled"
+                        :disabled="disabled || field.disabled"
                         :options="getFieldOptions(field.model)"
                         @update:value="setFormStateWithEmit(field.model, $event)"
                       />
@@ -593,7 +629,7 @@ watch(
                       @click="setFormStateWithEmit(field.model, !deepReference(field.model))"
                     >
                       <div class="flex gap-3">
-                        <NcCheckbox :disabled="disabled" :checked="deepReference(field.model)" />
+                        <NcCheckbox :disabled="disabled || field.disabled" :checked="deepReference(field.model)" />
                         <div class="text-nc-content-gray text-caption">
                           {{ field.label }}
                         </div>
@@ -618,7 +654,7 @@ watch(
                     <NcFormBuilderInputKeyValue
                       :model-value="deepReference(field.model)"
                       :element="field"
-                      :disabled="disabled"
+                      :disabled="disabled || field.disabled"
                       @update:model-value="setFormStateWithEmit(field.model, $event)"
                     />
                   </template>
@@ -627,7 +663,7 @@ watch(
                       <NcFormBuilderInputEntitySelector
                         :model-value="deepReference(field.model)"
                         :element="field"
-                        :disabled="disabled"
+                        :disabled="disabled || field.disabled"
                         @update:model-value="setFormStateWithEmit(field.model, $event)"
                       />
                     </NcFormBuilderInputMountedWrapper>
@@ -636,7 +672,7 @@ watch(
                     <NcFormBuilderInputConditionBuilder
                       :model-value="deepReference(field.model)"
                       :element="field"
-                      :disabled="disabled"
+                      :disabled="disabled || field.disabled"
                       @update:model-value="setFormStateWithEmit(field.model, $event)"
                     />
                   </template>
@@ -802,10 +838,11 @@ watch(
 }
 
 .nc-group-toggle {
-  @apply mt-2 mb-2;
+  // Room for the button's focus ring, which the scroll container would clip at the edge.
+  @apply mt-2 mb-2 pl-1;
 
   button {
-    @apply hover: !text-nc-content-brand;
+    @apply hover:!text-nc-content-brand;
   }
 }
 </style>

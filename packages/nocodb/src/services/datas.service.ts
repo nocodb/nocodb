@@ -7,7 +7,10 @@ import type { Filter } from '~/models';
 import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
 import { NcContext } from '~/interface/config';
 import { NcBaseError, NcError } from '~/helpers/catchError';
-import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
+import {
+  assertLinkColOptions,
+  getViewAndModelByAliasOrId,
+} from '~/helpers/dataHelpers';
 import { restrictNestedLinkQueryForColumn } from '~/helpers/nestedLinkQueryHelpers';
 import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import getAst from '~/helpers/getAst';
@@ -41,6 +44,7 @@ export class DatasService {
       ignoreViewFilterAndSort?: boolean;
       baseModel?: BaseModelSqlv2;
       skipSortBasedOnOrderCol?: boolean;
+      customConditions?: Filter[];
     },
   ) {
     let { model, view } = param as { view?: View; model?: Model };
@@ -90,6 +94,7 @@ export class DatasService {
       includeButtonFilterColumns: param.includeButtonFilterColumns,
       ignoreViewFilterAndSort: param.ignoreViewFilterAndSort,
       baseModel: param.baseModel,
+      customConditions: param.customConditions,
     });
   }
 
@@ -244,6 +249,8 @@ export class DatasService {
       includeRowColorColumns?: boolean;
       includeButtonFilterColumns?: boolean;
       skipSortBasedOnOrderCol?: boolean;
+      /** Serve the system order column (client caches sort live inserts by it). */
+      extractOrderColumn?: boolean;
     },
   ) {
     const {
@@ -277,6 +284,7 @@ export class DatasService {
       includeSortAndFilterColumns: includeSortAndFilterColumns,
       includeRowColorColumns: param.includeRowColorColumns,
       includeButtonFilterColumns: param.includeButtonFilterColumns,
+      extractOrderColumn: param.extractOrderColumn,
       skipSubstitutingColumnIds:
         query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
     });
@@ -366,7 +374,7 @@ export class DatasService {
 
   async getDataGroupBy(
     context: NcContext,
-    param: { model: Model; view: View; query?: any },
+    param: { model: Model; view?: View; query?: any },
   ) {
     const { model, view, query = {} } = param;
 
@@ -491,7 +499,8 @@ export class DatasService {
     context: NcContext,
     param: {
       model;
-      view: View;
+      /** Optional — view-less callers (interface pages) scope via query.filterArrJson. */
+      view?: View;
       query: any;
       columnId: string;
     },
@@ -670,14 +679,14 @@ export class DatasService {
       source,
     });
 
+    const column = await Column.get(context, { colId: param.colId });
+
+    await assertLinkColOptions(context, column);
+
     // Strip caller-supplied where/sort references to columns the link doesn't
     // expose (cross-base / visibility-limited related tables). Mutates
     // `param.query`, which both the data fetch and the count read from.
-    await restrictNestedLinkQueryForColumn(
-      context,
-      await Column.get(context, { colId: param.colId }),
-      param.query,
-    );
+    await restrictNestedLinkQueryForColumn(context, column, param.query);
 
     const key = `${model.title}List`;
     const requestObj: any = {
@@ -745,6 +754,10 @@ export class DatasService {
       source,
     });
 
+    const column = await Column.get(context, { colId: param.colId });
+
+    await assertLinkColOptions(context, column);
+
     // Strip caller-supplied where/sort references to columns the link doesn't
     // expose (cross-base / visibility-limited related tables — NOT the view-`show`
     // dimension, which stays queryable). The excluded (link-picker) fetch is
@@ -752,11 +765,7 @@ export class DatasService {
     // predicate on a non-exposed column is the same one-bit oracle — over the
     // *unlinked* rows here. Mutates `param.query`, which both the data fetch and
     // the count read from.
-    await restrictNestedLinkQueryForColumn(
-      context,
-      await Column.get(context, { colId: param.colId }),
-      param.query,
-    );
+    await restrictNestedLinkQueryForColumn(context, column, param.query);
 
     const key = 'List';
     const requestObj: any = {
@@ -824,6 +833,10 @@ export class DatasService {
       source,
     });
 
+    const column = await Column.get(context, { colId: param.colId });
+
+    await assertLinkColOptions(context, column);
+
     // Strip caller-supplied where/sort references to columns the link doesn't
     // expose (cross-base / visibility-limited related tables — NOT the view-`show`
     // dimension, which stays queryable). The excluded (link-picker) fetch is
@@ -831,11 +844,7 @@ export class DatasService {
     // predicate on a non-exposed column is the same one-bit oracle — over the
     // *unlinked* rows here. Mutates `param.query`, which both the data fetch and
     // the count read from.
-    await restrictNestedLinkQueryForColumn(
-      context,
-      await Column.get(context, { colId: param.colId }),
-      param.query,
-    );
+    await restrictNestedLinkQueryForColumn(context, column, param.query);
 
     const key = 'List';
     const requestObj: any = {
@@ -905,6 +914,10 @@ export class DatasService {
       source,
     });
 
+    const column = await Column.get(context, { colId: param.colId });
+
+    await assertLinkColOptions(context, column);
+
     // Strip caller-supplied where/sort references to columns the link doesn't
     // expose (cross-base / visibility-limited related tables — NOT the view-`show`
     // dimension, which stays queryable). The excluded (link-picker) fetch is
@@ -912,11 +925,7 @@ export class DatasService {
     // predicate on a non-exposed column is the same one-bit oracle — over the
     // *unlinked* rows here. Mutates `param.query`, which both the data fetch and
     // the count read from.
-    await restrictNestedLinkQueryForColumn(
-      context,
-      await Column.get(context, { colId: param.colId }),
-      param.query,
-    );
+    await restrictNestedLinkQueryForColumn(context, column, param.query);
 
     const key = 'List';
     const requestObj: any = {
@@ -985,6 +994,8 @@ export class DatasService {
     });
 
     const column = await Column.get(context, { colId: param.colId });
+
+    await assertLinkColOptions(context, column);
 
     // Strip caller-supplied where/sort references to columns the link doesn't
     // expose (cross-base / visibility-limited related tables — NOT the view-`show`
@@ -1094,15 +1105,15 @@ export class DatasService {
       source,
     });
 
+    const column = await Column.get(context, { colId: param.colId });
+
+    await assertLinkColOptions(context, column);
+
     // Strip caller-supplied where/sort references to columns the link doesn't
     // expose (cross-base / visibility-limited related tables — NOT the view-`show`
     // dimension, which stays queryable). Mutates `param.query`, which both the
     // data fetch and the count read from.
-    await restrictNestedLinkQueryForColumn(
-      context,
-      await Column.get(context, { colId: param.colId }),
-      param.query,
-    );
+    await restrictNestedLinkQueryForColumn(context, column, param.query);
 
     const key = `${model.title}List`;
     const requestObj: any = {
@@ -1366,7 +1377,7 @@ export class DatasService {
     columnNameOrId: string,
     model: Model,
   ) {
-    const column = (await model.getColumns(context)).find(
+    const column = (await model.getColumns()).find(
       (c) =>
         c.title === columnNameOrId ||
         c.id === columnNameOrId ||

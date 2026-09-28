@@ -19,6 +19,14 @@ export class McpPostOperations
   ];
   httpMethod = 'POST' as const;
 
+  // An anonymous shared-base session is authorized as `viewer`, which holds the
+  // MCP grants — so without this it can mint API-capable MCP tokens.
+  publicBaseBlockedOperations = [
+    'mcpCreate' as const,
+    'mcpUpdate' as const,
+    'mcpDelete' as const,
+  ];
+
   async handle(
     context: NcContext,
     {

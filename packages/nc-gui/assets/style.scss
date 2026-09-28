@@ -2,18 +2,14 @@
 @import '@vue-flow/core/dist/style.css';
 @import '@vue-flow/core/dist/theme-default.css';
 
-@layer utilities {
-  @variants responsive {
-    /* Chrome, Safari and Opera */
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
+/* Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 
-    .no-scrollbar {
-      -ms-overflow-style: none; /* IE and Edge */
-      scrollbar-width: none; /* Firefox */
-    }
-  }
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 * {
@@ -47,14 +43,14 @@ body {
 }
 
 :root {
-  --mini-sidebar-width: 3rem; /* 48px — compact by default */
+  --mini-sidebar-width: 2.875rem; /* 46px — same at every width */
   --toolbar-height: 2.75rem;
   --topbar-height: 3rem;
   --footer-height: 2.125rem;
   --sidebar-bottom-height: 8.5rem;
   --new-header-height: 3.5rem;
-  --tw-text-opacity: 1;
-  --tw-bg-opacity: 1;
+  --un-text-opacity: 1;
+  --un-bg-opacity: 1;
   --navbar-bg: #fafafa;
   --navbar-border: #e0e0e0;
 
@@ -62,12 +58,6 @@ body {
   --ant-primary-color-hover: #5c85ff !important;
   --ant-primary-color-active: #3366ff !important;
   --ant-primary-color-outline: rgba(51, 102, 255, 0.24) !important;
-}
-
-@media (min-width: 1280px) {
-  :root {
-    --mini-sidebar-width: 4rem; /* 64px — expanded with labels on large screens */
-  }
 }
 
 ::-moz-selection {
@@ -1418,9 +1408,12 @@ svg.nc-virtual-cell-icon {
         border-width: 1.5px;
         @apply border-gray-700;
       }
+      // Default fill is currentColor (text), which hides the white tick on light text in dark palettes
+      [theme='dark'] & input:checked {
+        background-color: var(--nc-bg-gray-dark);
+      }
     }
   }
-
 }
 
 .nc-rich-text-content {

@@ -4,6 +4,7 @@ import View from '~/models/View';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
+import { replayedViewColumnId } from '~/helpers/viewColumnReplay';
 import { deserializeJSON } from '~/utils/serialize';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 
@@ -76,6 +77,11 @@ export default class CalendarViewColumn {
       'bold',
       'italic',
     ]);
+    const replayId = replayedViewColumnId(
+      insertObj.fk_view_id,
+      insertObj.fk_column_id,
+    );
+    if (replayId) insertObj.id = replayId;
 
     insertObj.order = await ncMeta.metaGetNextOrder(
       MetaTable.CALENDAR_VIEW_COLUMNS,

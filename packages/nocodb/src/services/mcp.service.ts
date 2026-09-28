@@ -40,7 +40,7 @@ export class McpTokenService {
   async regenerateToken(
     context: NcContext,
     tokenId: string,
-    payload: Pick<MCPTokenType, 'token'>,
+    _payload: Pick<MCPTokenType, 'token'>,
     req: NcRequest,
   ) {
     const token = await MCPToken.get(context, tokenId);
@@ -52,9 +52,11 @@ export class McpTokenService {
       NcError.get(context).forbidden('Not authorized to modify this token');
     }
 
-    payload.token = nanoid(32);
-
-    const mcp = await MCPToken.update(context, tokenId, payload);
+    // Only the minted secret reaches the row: `MCPToken.update` also writes
+    // title and permissions, and this route must not let a caller change them.
+    const mcp = await MCPToken.update(context, tokenId, {
+      token: nanoid(32),
+    });
 
     return {
       ...mcp,

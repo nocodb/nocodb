@@ -72,12 +72,7 @@ import type {
 import type { NcContext } from '~/interface/config';
 import type LookupColumn from '~/models/LookupColumn';
 import type { ResolverObj } from '~/utils';
-import type {
-  FormulaColumn,
-  LinkToAnotherRecordColumn,
-  SelectOption,
-  User,
-} from '~/models';
+import type { FormulaColumn, LinkToAnotherRecordColumn } from '~/models';
 import { LTARColsUpdater } from '~/db/BaseModelSqlv2/ltar-cols-updater';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
@@ -100,7 +95,9 @@ import {
 import { groupBy as baseModelGroupBy } from '~/db/BaseModelSqlv2/group-by';
 import conditionV2 from '~/db/conditionV2';
 import { DBQueryClient } from '~/dbQueryClient';
-import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import formulaQueryBuilderv2, {
+  checkStoredFormulaError,
+} from '~/db/formulav2/formulaQueryBuilderv2';
 import { RelationManager } from '~/db/relation-manager';
 import sortV2 from '~/db/sortV2';
 import { customValidators } from '~/db/util/customValidators';
@@ -113,8 +110,10 @@ import {
   dataWrapper,
   deletedColValue,
   displayValueMapKey,
+  extractLinkFieldsByTitle,
   extractSortsObject,
   formatDataForAudit,
+  getAs,
   getBaseModelSqlFromModelId,
   getCompositePkValue,
   getListArgs,
@@ -129,8 +128,12 @@ import {
 } from '~/helpers/dbHelpers';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import { extractProps } from '~/helpers/extractProps';
+import { mapNonFiniteToString } from '~/helpers/formulaNonFinite';
+import { isNonFiniteFormulaHandlingEnabled } from '~/db/formulav2/pg-ieee';
+import { attachmentRefResolvesToStorage } from '~/helpers/attachmentHelpers';
 import { extractDisplayNameFromEmail } from '~/utils/emailUtils';
 import getAst from '~/helpers/getAst';
+import { setModelContext } from '~/helpers/modelContext';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
 import {
   Audit,
@@ -142,6 +145,7 @@ import {
   PresignedUrl,
   Sort,
   Source,
+  User,
   View,
 } from '~/models';
 import Noco from '~/Noco';
@@ -167,7 +171,10 @@ import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { Profiler } from '~/helpers/profiler';
 import { StageTimer } from '~/helpers/stageTimer';
-import { isTransientError } from '~/helpers/db-error/utils';
+import {
+  isExternalSourceError,
+  isTransientError,
+} from '~/helpers/db-error/utils';
 import {
   captureForTrace,
   isTraceActive,
@@ -188,11 +195,27 @@ const ORDER_STEP_INCREMENT = 1;
 
 const MAX_RECURSION_DEPTH = 2;
 
+// Safety ceiling on distinct group values, NOT a page size — groupedList gives
+// each discovered value its own cloned subquery, so a high-cardinality group
+// column builds an enormous statement. Deliberately decoupled from
+// `defaultGroupByLimitConfig.limitGroup`, which is a published client page size
+// (appInfo.defaultGroupByLimit) with a floor clamp only.
+export const MAX_GROUPING_VALUES = 1000;
+
+// SQLite refuses a compound SELECT past SQLITE_MAX_COMPOUND_SELECT (500) terms,
+// and groupedList unions one term per discovered value plus the appended
+// `null`. Measured on sqlite3 5.1.7 / SQLite 3.44.2: 500 terms run, 501 fails
+// with "too many terms in compound SELECT statement". Above this the request
+// would die as a raw SQLITE_ERROR instead of the clean 400 the ceiling exists
+// to return, so SQLite gets its own — 499 values + the null term = 500.
+export const MAX_GROUPING_VALUES_SQLITE = 499;
+
 const SELECT_REGEX = /^(\(|)select/i;
 const INSERT_REGEX = /^(\(|)insert/i;
 
 export interface ExecAndParseOptions {
   skipDateConversion?: boolean;
+  skipFormulaNonFiniteConversion?: boolean;
   skipAttachmentConversion?: boolean;
   skipSubstitutingColumnIds?: boolean;
   skipUserConversion?: boolean;
@@ -221,6 +244,21 @@ class DataLoaderWithArgs<K, V> extends DataLoader<K, V> {
 }
 
 /**
+ * Fresh Filter instances for a memoized condition tree — conditionV2 normalizes
+ * `comparison_op` / `value` in place, so handing out the cached objects would let
+ * one query's normalization reach the next.
+ */
+function cloneFilters(filters: Filter[]): Filter[] {
+  return filters.map(
+    (filter) =>
+      new Filter({
+        ...filter,
+        ...(filter.children ? { children: cloneFilters(filter.children) } : {}),
+      }),
+  );
+}
+
+/**
  * Base class for models
  *
  * @class
@@ -246,6 +284,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   protected _queryQueue: PQueue;
   protected _columns = {};
   protected _softDeleteFilter: Promise<Knex.QueryCallback | null> | undefined;
+  protected _rlsConditions: Promise<Filter[]> | undefined;
   protected source: Source;
   public model: Model;
   public context: NcContext;
@@ -343,6 +382,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       ignoreRls = false,
       fk_display_value_column_id,
       skipPublicRedaction = false,
+      applyViewFilters = false,
     }: {
       ignoreView?: boolean;
       getHiddenColumn?: boolean;
@@ -353,6 +393,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       ignoreRls?: boolean;
       fk_display_value_column_id?: string | null;
       skipPublicRedaction?: boolean;
+      // Also apply the view's row filters, so the record is only returned when
+      // visible in the view. Opt-in: the public shared-view checks rely on it as
+      // the anonymous caller's access boundary.
+      applyViewFilters?: boolean;
     } = {},
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
@@ -398,6 +442,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
     }
 
+    // Mirrors list()/count(): a record filtered out of the view is not visible.
+    if (applyViewFilters && !ignoreView && this.viewId) {
+      await conditionV2(
+        this,
+        [
+          new Filter({
+            children:
+              (await Filter.rootFilterList(this.context, {
+                viewId: this.viewId,
+              })) || [],
+            is_group: true,
+          }),
+        ],
+        qb,
+      );
+    }
+
     // Exclude soft-deleted records
     const softDeleteFilterReadByPk = await this.getSoftDeleteFilter();
     if (softDeleteFilterReadByPk) {
@@ -416,18 +477,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         skipPublicRedaction,
       });
     } catch (e) {
-      const isTransient = isTransientError(e);
+      const skipFormulaRetry = isTransientError(e) || isExternalSourceError(e);
 
       if (
-        isTransient ||
+        skipFormulaRetry ||
         validateFormula ||
-        !haveFormulaColumn(await this.model.getColumns(this.context))
+        !haveFormulaColumn(await this.model.getColumns())
       )
         throw e;
       logger.log(e);
       return this.readByPk(id, true, query, {
         apiVersion,
         skipPublicRedaction,
+        // Must be re-forwarded: it is the caller's row-visibility boundary, so
+        // dropping it here would make the retry fail open.
+        applyViewFilters,
       });
     }
 
@@ -464,7 +528,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     // load columns if not loaded already
-    await model.getCachedColumns(context);
+    await model.getCachedColumns();
 
     if (extractDisplayValueData) {
       return data ? data[model.displayValue.title] ?? null : '';
@@ -556,7 +620,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         fk_display_value_column_id: displayColumn?.id,
       });
 
-      await model.getCachedColumns(context);
+      await model.getCachedColumns();
 
       const pkMap = new Map<string, any>();
       for (const record of records) {
@@ -643,7 +707,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async exist(id?: any): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
-    await this.model.getColumns(this.context);
+    await this.model.getColumns();
     const pks = this.model.primaryKeys;
 
     if (!pks.length) return false;
@@ -683,15 +747,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } = {},
     validateFormula = false,
   ): Promise<any> {
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
     const { where, ...rest } = this._getListArgs(args);
     const qb = this.dbDriver(this.tnPath);
     await this.selectObject({ ...args, qb, validateFormula, columns });
 
-    const aliasColObjMap = await this.model.getAliasColObjMap(
-      this.context,
-      columns,
-    );
+    const aliasColObjMap = await this.model.getAliasColObjMap(columns);
     const sorts = extractSortsObject(this.context, rest?.sort, aliasColObjMap);
     const { filters: filterObj } = extractFilterFromXwhere(
       this.context,
@@ -746,9 +807,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     try {
       data = await this.execAndParse(qb, null, { first: true });
     } catch (e) {
-      const isTransient = isTransientError(e);
+      const skipFormulaRetry = isTransientError(e) || isExternalSourceError(e);
 
-      if (isTransient || validateFormula || !haveFormulaColumn(columns))
+      if (skipFormulaRetry || validateFormula || !haveFormulaColumn(columns))
         throw e;
       logger.log(e);
       return this.findOne(args, true);
@@ -798,7 +859,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       deletedOnly = false,
     } = options;
 
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
 
     const { where, fields, ...rest } = this._getListArgs(args);
 
@@ -819,10 +880,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await this.shuffle({ qb });
     }
 
-    const aliasColObjMap = await this.model.getAliasColObjMap(
-      this.context,
-      columns,
-    );
+    const aliasColObjMap = await this.model.getAliasColObjMap(columns);
     let sorts = extractSortsObject(
       this.context,
       rest?.sort,
@@ -985,6 +1043,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     // if limitOverride is provided, use it as limit for the query (for internal usage eg. calendar, export)
+    // NOTE: an explicit `limitOverride: 0` is treated the same as "not provided"
+    // here (falls through to the default page size) — every current caller
+    // passes a positive length (chunk/batch sizes), so this hasn't mattered,
+    // but it's pinned by a test in interface-data-viz.test.ts
+    // (tableGanttDataList's `limit=0` case) that depends on this behavior.
     if (!ignorePagination) {
       if (!limitOverride) {
         applyPaginate(qb, rest);
@@ -1001,10 +1064,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         skipSubstitutingColumnIds: options.skipSubstitutingColumnIds,
       });
     } catch (e) {
-      // Check if this is a transient error (connection/timeout issue)
-      const isTransient = isTransientError(e);
+      const skipFormulaRetry = isTransientError(e) || isExternalSourceError(e);
 
-      if (isTransient || validateFormula || !haveFormulaColumn(columns))
+      if (skipFormulaRetry || validateFormula || !haveFormulaColumn(columns))
         throw e;
       logger.log(e);
       return this.list(args, {
@@ -1030,16 +1092,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     ignoreViewFilterAndSort = false,
     throwErrorIfInvalidParams = false,
   ): Promise<any> {
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
     const { where } = this._getListArgs(args);
 
     const qb = this.dbDriver(this.tnPath);
 
     // qb.xwhere(where, await this.model.getAliasColMapping());
-    const aliasColObjMap = await this.model.getAliasColObjMap(
-      this.context,
-      columns,
-    );
+    const aliasColObjMap = await this.model.getAliasColObjMap(columns);
     const { filters: filterObj } = extractFilterFromXwhere(
       this.context,
       where,
@@ -1148,7 +1207,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       groupByColumnName?: string;
     },
   ) {
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
 
     const { where, ...rest } = this._getListArgs(args);
 
@@ -1167,10 +1226,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await this.shuffle({ qb });
     }
 
-    const aliasColObjMap = await this.model.getAliasColObjMap(
-      this.context,
-      columns,
-    );
+    const aliasColObjMap = await this.model.getAliasColObjMap(columns);
 
     const { filters: filterObj } = extractFilterFromXwhere(
       this.context,
@@ -1498,7 +1554,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     skipSort?: boolean;
     prioritizePvSort?: boolean;
   }) {
-    const childAliasColMap = await table.getAliasColObjMap(this.context);
+    const childAliasColMap = await table.getAliasColObjMap();
 
     if (!onlySort) {
       const { filters: filter } = extractFilterFromXwhere(
@@ -1530,7 +1586,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // Highest priority: when searching in LTAR dropdowns, sort PV (display value) matches first
     if (where && !skipSort && prioritizePvSort) {
       if (!table.columns?.length) {
-        await table.getColumns(this.context);
+        await table.getColumns();
       }
       const pvColumn = table.columns?.find((col) => col.pv);
       // TODO: support virtual PV columns (Formula, Lookup, Rollup) by building
@@ -1585,13 +1641,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
     // First priority View Sort
     if (view && !skipSort) {
-      const sortObj = await view.getSorts(this.context);
+      const sortObj = await view.getSorts();
       await sortV2(this, sortObj, qb);
     }
 
     if (!skipSort) {
       let orderColumnBy = '';
-      await table.getColumns(this.context);
+      await table.getColumns();
       const orderCol = table.columns?.find((col) => col.uidt === UITypes.Order);
       const childTn = await this.getTnPath(table);
       if (orderCol) {
@@ -1624,8 +1680,24 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     validateFormula = false,
     aliasToColumnBuilder = {},
   ) {
-    const formula = await column.getColOptions<FormulaColumn>(this.context);
-    if (formula.error) NcError.get(this.context).formulaError(formula.error);
+    const formula = await column.getColOptions<FormulaColumn>();
+    let dryRunLimit: number | undefined;
+    if (formula.error) {
+      const stored = await checkStoredFormulaError(
+        this.context,
+        column,
+        formula,
+      );
+      if (stored.blocking) {
+        NcError.get(this.context).formulaError(formula.error);
+      }
+      // the stored error reads as stale — validating this build is what
+      // proves the formula works (the success-path clear removes it), and
+      // re-flags it if it doesn't. The self-heal probe is bounded; an
+      // explicit validation from a column edit stays unbounded.
+      if (stored.revalidate && !validateFormula) dryRunLimit = 1;
+      validateFormula = validateFormula || stored.revalidate;
+    }
 
     const qb = await formulaQueryBuilderv2({
       baseModel: this,
@@ -1635,6 +1707,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       aliasToColumn: aliasToColumnBuilder,
       tableAlias,
       validateFormula,
+      dryRunLimit,
     });
     return qb;
   }
@@ -1653,31 +1726,34 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const proto: ResolverObj = {
       __columnAliases: {},
     };
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
     await Promise.all(
       columns.map(async (column) => {
         switch (column.uidt) {
           case UITypes.Lookup:
             {
               // @ts-ignore
-              const colOptions: LookupColumn = await column.getColOptions(
-                this.context,
-              );
+              const colOptions: LookupColumn = await column.getColOptions();
               // Skip registering lookup alias if column has an error — sentinel value
               // is already selected in selectObject
               if (colOptions?.error) break;
               const relCol = await Column.get(this.context, {
                 colId: colOptions.fk_relation_column_id,
               });
+              const relColOptions =
+                await relCol.getColOptions<LinkToAnotherRecordColumn>();
+              // A V2 junction mo/bt/oo link is a `Links` column, but its
+              // resolver is registered under the bare title (select-object
+              // skips its rollup count), so it must not take the `_nc_lk_`
+              // prefix every other Links relation is served under.
               const relColTitle =
-                relCol.uidt === UITypes.Links && !linksAsLtar
+                relCol.uidt === UITypes.Links &&
+                !linksAsLtar &&
+                !isBtLikeV2Junction(relCol)
                   ? `_nc_lk_${relCol.title}`
                   : relCol.title;
-              const { refContext: lookupRefContext } = (
-                await relCol.getColOptions<LinkToAnotherRecordColumn>(
-                  this.context,
-                )
-              ).getRelContext(this.context);
+              const { refContext: lookupRefContext } =
+                relColOptions.getRelContext();
               proto.__columnAliases[column.title] = {
                 path: [
                   relColTitle,
@@ -1695,11 +1771,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             {
               const isMMLike = isMMOrMMLike(column);
               this._columns[column.title] = column;
-              const colOptions = (await column.getColOptions(
-                this.context,
-              )) as LinkToAnotherRecordColumn;
+              const colOptions =
+                (await column.getColOptions()) as LinkToAnotherRecordColumn;
 
-              const { refContext } = colOptions.getRelContext(this.context);
+              const { refContext } = colOptions.getRelContext();
 
               if (colOptions?.type === 'hm' && !isMMLike) {
                 // DataLoader collects all .load(id) calls from the same microtick
@@ -1840,9 +1915,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 };
               } else if (colOptions.type === 'bt' && !isMMLike) {
                 // @ts-ignore
-                const colOptions = (await column.getColOptions(
-                  this.context,
-                )) as LinkToAnotherRecordColumn;
+                const colOptions =
+                  (await column.getColOptions()) as LinkToAnotherRecordColumn;
 
                 const pCol = await Column.get(refContext, {
                   colId: colOptions.fk_parent_column_id,
@@ -1936,9 +2010,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
                 if (isBt) {
                   // @ts-ignore
-                  const colOptions = (await column.getColOptions(
-                    this.context,
-                  )) as LinkToAnotherRecordColumn;
+                  const colOptions =
+                    (await column.getColOptions()) as LinkToAnotherRecordColumn;
                   const pCol = await Column.get(refContext, {
                     colId: colOptions.fk_parent_column_id,
                   });
@@ -2218,10 +2291,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         if (!isLinksOrLTAR(column)) continue;
 
         const colOptions =
-          await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
+          await column.getColOptions<LinkToAnotherRecordColumn>();
 
-        const { mmContext, refContext, parentContext, childContext } =
-          await colOptions.getParentChildContext(this.context);
+        const { mmContext, refContext, parentContext } =
+          await colOptions.getParentChildContext();
 
         const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
 
@@ -2257,9 +2330,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 colId: colOptions.fk_mm_parent_column_id,
               });
               const parentTable = await (
-                await colOptions.getParentColumn(parentContext)
-              ).getModel(parentContext);
-              await parentTable.getColumns(parentContext);
+                await colOptions.getParentColumn()
+              ).getModel();
+              await parentTable.getColumns();
               const parentBaseModel = await Model.getBaseModelSQL(
                 parentContext,
                 { model: parentTable, dbDriver: this.dbDriver },
@@ -2304,7 +2377,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               if (!shouldCascadeHere) break;
 
               // skip if it's an mm table column
-              const relatedTable = await colOptions.getRelatedTable(refContext);
+              const relatedTable = await colOptions.getRelatedTable();
 
               if (relatedTable.mm) {
                 break;
@@ -2320,7 +2393,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 colId: colOptions.fk_child_column_id,
               });
 
-              await relatedTable.getColumns(refContext);
+              await relatedTable.getColumns();
 
               // Collect linked child IDs BEFORE FK nulling so we can broadcast
               // LMT updates to them later. PG-imported junction tables (and any
@@ -2370,16 +2443,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               if (column.meta?.bt) {
                 // BT-side: FK is on the deleted record — no cleanup needed
                 // Collect parent IDs for LMT from deleted record's FK
-                const btChildColumn = await colOptions.getChildColumn(
-                  childContext,
-                );
-                const btParentColumn = await colOptions.getParentColumn(
-                  parentContext,
-                );
-                const btParentTable = await btParentColumn.getModel(
-                  parentContext,
-                );
-                await btParentTable.getColumns(parentContext);
+                const btChildColumn = await colOptions.getChildColumn();
+                const btParentColumn = await colOptions.getParentColumn();
+                const btParentTable = await btParentColumn.getModel();
+                await btParentTable.getColumns();
                 const btParentBaseModel = await Model.getBaseModelSQL(
                   parentContext,
                   { model: btParentTable, dbDriver: this.dbDriver },
@@ -2412,9 +2479,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 break;
               }
               // HM-side: FK on child table needs nulling (same as HM)
-              const ooRelatedTable = await colOptions.getRelatedTable(
-                refContext,
-              );
+              const ooRelatedTable = await colOptions.getRelatedTable();
 
               if (ooRelatedTable.mm) {
                 break;
@@ -2430,7 +2495,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 colId: colOptions.fk_child_column_id,
               });
 
-              await ooRelatedTable.getColumns(refContext);
+              await ooRelatedTable.getColumns();
 
               // Collect linked child ID BEFORE FK nulling. Skip the broadcast
               // collection when the related table has no PK (PG-imported
@@ -2479,16 +2544,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           case 'bt':
             {
               // Collect parent IDs for LMT from deleted record's FK
-              const btChildColumn = await colOptions.getChildColumn(
-                childContext,
-              );
-              const btParentColumn = await colOptions.getParentColumn(
-                parentContext,
-              );
-              const btParentTable = await btParentColumn.getModel(
-                parentContext,
-              );
-              await btParentTable.getColumns(parentContext);
+              const btChildColumn = await colOptions.getChildColumn();
+              const btParentColumn = await colOptions.getParentColumn();
+              const btParentTable = await btParentColumn.getModel();
+              await btParentTable.getColumns();
               const btParentBaseModel = await Model.getBaseModelSQL(
                 parentContext,
                 { model: btParentTable, dbDriver: this.dbDriver },
@@ -2572,24 +2631,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   async hasLTARData(rowId, model: Model): Promise<any> {
     const res = [];
-    const LTARColumns = (await model.getColumns(this.context)).filter(
+    const LTARColumns = (await model.getColumns()).filter(
       (c) => c.uidt === UITypes.LinkToAnotherRecord,
     );
     let i = 0;
     for (const column of LTARColumns) {
-      const colOptions = (await column.getColOptions(
-        this.context,
-      )) as LinkToAnotherRecordColumn;
+      const colOptions =
+        (await column.getColOptions()) as LinkToAnotherRecordColumn;
 
-      const { childContext, parentContext, mmContext } =
-        await colOptions.getParentChildContext(this.context);
+      const { childContext, mmContext } =
+        await colOptions.getParentChildContext();
 
-      const childColumn = await colOptions.getChildColumn(childContext);
-      const parentColumn = await colOptions.getParentColumn(parentContext);
-      const childModel = await childColumn.getModel(childContext);
-      await childModel.getColumns(childContext);
-      const parentModel = await parentColumn.getModel(parentContext);
-      await parentModel.getColumns(parentContext);
+      const childColumn = await colOptions.getChildColumn();
+      const parentColumn = await colOptions.getParentColumn();
+      const childModel = await childColumn.getModel();
+      await childModel.getColumns();
+      const parentModel = await parentColumn.getModel();
+      await parentModel.getColumns();
       let cnt = 0;
       if (colOptions.type === RelationTypes.HAS_MANY) {
         const childBaseModel = await Model.getBaseModelSQL(childContext, {
@@ -2606,8 +2664,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           )
         ).cnt;
       } else if (colOptions.type === RelationTypes.MANY_TO_MANY) {
-        const mmModel = await colOptions.getMMModel(mmContext);
-        const mmChildColumn = await colOptions.getMMChildColumn(mmContext);
+        const mmModel = await colOptions.getMMModel();
+        const mmChildColumn = await colOptions.getMMChildColumn();
         const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
           model: mmModel,
           dbDriver: this.dbDriver,
@@ -2642,7 +2700,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     beforeRowId: string;
     cookie?: { user?: any };
   }) {
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
 
     const row = await this.readByPk(
       rowId,
@@ -2700,10 +2758,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     { typecast = false }: { typecast?: boolean } = {},
   ) {
     try {
-      const columns = await this.model.getColumns(this.context);
+      const columns = await this.model.getColumns();
 
       const updateObj = await this.model.mapAliasToColumn(
-        this.context,
         data,
         this.clientMeta,
         this.dbDriver,
@@ -2803,7 +2860,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async _wherePk(id, skipGetColumns = false, skipPkValidation = false) {
-    if (!skipGetColumns) await this.model.getColumns(this.context);
+    if (!skipGetColumns) await this.model.getColumns();
     return _wherePk(this.model.primaryKeys, id, skipPkValidation);
   }
 
@@ -2909,7 +2966,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     try {
       const source = await this.getSource();
 
-      const columns = await this.model.getColumns(this.context);
+      const columns = await this.model.getColumns();
 
       // Exclude auto-increment columns from the insert body so the DB assigns
       // them.
@@ -2926,7 +2983,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await populatePk(this.context, this.model, data);
 
       const insertObj = await this.model.mapAliasToColumn(
-        this.context,
         data,
         this.clientMeta,
         this.dbDriver,
@@ -2959,14 +3015,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             req: request,
           },
         );
-      postInsertOps = [
-        ...(postInsertOps ?? []),
-        ...(attachmentOperations.postInsertOps ?? []),
-      ];
-      preInsertOps = [
-        ...(preInsertOps ?? []),
-        ...(attachmentOperations.preInsertOps ?? []),
-      ];
+      // Dispatched after the row lands (this path is autocommit — no trx), so
+      // the worker can see it. See AttachmentUrlUploadPreparator.
+      const postCommitOps = attachmentOperations.postCommitOps ?? [];
 
       await this.validate(insertObj, columns);
 
@@ -3167,6 +3218,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       await this.runOps(postInsertOps.map((f) => f(rowId)));
+
+      for (const op of postCommitOps) {
+        try {
+          await op(rowId);
+        } catch (e) {
+          this.logger.error('Failed to dispatch post-commit op', e);
+        }
+      }
 
       // batch-fetch display values and write link audits
       try {
@@ -3407,7 +3466,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ): Promise<Record<string, any>[]> {
     if (mergeValuesPerRecord.length === 0) return [];
 
-    await this.model.getColumns(this.context);
+    await this.model.getColumns();
 
     const mergeColNames = mergeColumns.map((col) => col.column_name);
 
@@ -3462,6 +3521,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       mergeColumns,
       throwOnDuplicate = false,
       typecast = false,
+      apiVersion,
+      onUpsertSplit,
     }: {
       chunkSize?: number;
       cookie?: any;
@@ -3471,11 +3532,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       mergeColumns?: Column[];
       throwOnDuplicate?: boolean;
       typecast?: boolean;
+      /** V3 honours inline link fields; earlier versions ignore them. */
+      apiVersion?: NcApiVersion;
+      /**
+       * Reports which pks were matched-and-updated. The return value merges
+       * updates and inserts, so callers that need per-record status (v3
+       * `status: inserted | updated`) can't derive it otherwise.
+       */
+      onUpsertSplit?: (split: { updatedPks: string[] }) => void;
     } = {},
   ) {
     let trx;
     try {
-      const columns = await this.model.getColumns(this.context);
+      const columns = await this.model.getColumns();
 
       let order = await this.getHighestOrderInTable();
 
@@ -3501,7 +3570,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             datas.map(async (d) => {
               if (!typecast) await this.validate(d, columns);
               return this.model.mapAliasToColumn(
-                this.context,
                 d,
                 this.clientMeta,
                 this.dbDriver,
@@ -3509,6 +3577,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               );
             }),
           );
+
+      // Link columns are virtual, so `mapAliasToColumn` strips them from the
+      // prepared rows — the values survive only on the originals. The split
+      // below shuffles prepared rows into toInsert/toUpdate, so key the
+      // originals by prepared-object identity to find them again afterwards.
+      const originalByPrepared = new Map<any, any>();
+      preparedDatas.forEach((prepared, i) =>
+        originalByPrepared.set(prepared, datas[i]),
+      );
 
       const toInsert = [];
       const toUpdate = [];
@@ -3657,9 +3734,60 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             toInsert.push(data);
           }
         }
+
+        // Pre-update snapshot for the after-update hooks, as in EE bulkUpsert
+        if (toUpdate.length > 0) {
+          existingRecords = dbRecords;
+        }
+      }
+
+      // V3 accepts inline link fields on upsert. Inserted rows reuse the same
+      // preparator `bulkInsert` uses; it mutates `insertObj` with the FK for
+      // BELONGS_TO / MANY_TO_ONE, so it has to run before the INSERT is built.
+      const nestedCols =
+        !raw && apiVersion === NcApiVersion.V3
+          ? columns.filter((col) => isLinksOrLTAR(col))
+          : [];
+
+      const linkPreInsertOps: ((
+        trx?: Knex | Knex.Transaction,
+      ) => Promise<string>)[] = [];
+      const linkPostInsertOpsMap: Record<
+        number,
+        ((rowId: any, trx?: Knex | Knex.Transaction) => Promise<string>)[]
+      > = {};
+
+      if (nestedCols.length) {
+        for (let i = 0; i < toInsert.length; i++) {
+          const original = originalByPrepared.get(toInsert[i]);
+          if (!original) continue;
+
+          const operations = await this.prepareNestedLinkQb({
+            nestedCols,
+            // The preparator matches link fields by title only; re-key
+            // id/column_name payloads so an inserted row honours the same keys
+            // a matched row does.
+            data: {
+              ...original,
+              ...extractLinkFieldsByTitle(original, nestedCols),
+            },
+            insertObj: toInsert[i],
+            req: cookie,
+          });
+
+          linkPostInsertOpsMap[i] = operations.postInsertOps;
+          linkPreInsertOps.push(...operations.preInsertOps);
+        }
       }
 
       trx = await this.dbDriver.transaction();
+
+      if (linkPreInsertOps.length) {
+        await this.runOps(
+          linkPreInsertOps.map((f) => f(trx)),
+          trx,
+        );
+      }
 
       const updatedPks = [];
 
@@ -3678,6 +3806,53 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             : data;
           await trx(this.tnPath).update(dataToUpdate).where(wherePk);
         }
+      }
+
+      // Matched rows get replace semantics, the same as PATCH: the sent link
+      // set becomes the row's link set.
+      const linkUpdateDatas = [];
+
+      if (nestedCols.length && toUpdate.length) {
+        for (const data of toUpdate) {
+          const original = originalByPrepared.get(data);
+          if (!original) continue;
+
+          const linkFields = extractLinkFieldsByTitle(original, nestedCols);
+
+          // `null` means "unlink all". The shared updater would turn it into
+          // `[null]` and then fail resolving that id, so send `[]` instead.
+          for (const title of Object.keys(linkFields)) {
+            linkFields[title] ??= [];
+          }
+
+          if (!Object.keys(linkFields).length) continue;
+
+          linkUpdateDatas.push({
+            ...this.model.primaryKeys.reduce((acc, pk) => {
+              acc[pk.title] = data[pk.column_name];
+              return acc;
+            }, {}),
+            ...linkFields,
+          });
+        }
+      }
+
+      // Everywhere but sqlite the link writes join `trx`, so a rejected link id
+      // rolls the field writes back with it. sqlite's pool is a single
+      // connection, and in CE a meta source shares it with `Noco.ncMeta`, so
+      // there the link writer's own queries would wait on the connection `trx`
+      // is holding — a deadlock that only ends at the 60s acquire timeout.
+      // Those links are written after the commit instead, giving up atomicity.
+      // TODO: drop the split once the sqlite pool can hand out a second
+      // connection.
+      const deferLinkUpdates = this.isSqlite;
+
+      if (linkUpdateDatas.length && !deferLinkUpdates) {
+        await this.updateLTARCols({
+          datas: linkUpdateDatas,
+          cookie,
+          trx,
+        });
       }
 
       if (toInsert.length > 0) {
@@ -3792,6 +3967,25 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
         }
         insertedDatas.push(...responses);
+
+        // Inserted rows only get their pk here, so the link writes that need it
+        // run now — still inside `trx`, matching bulkInsert's ordering.
+        for (let i = 0; i < responses.length; i++) {
+          const ops = linkPostInsertOpsMap[i];
+          if (!ops?.length) continue;
+
+          const rowId = this.extractCompositePK({
+            rowId: responses[i][this.model.primaryKey?.title],
+            ai: aiPkCol,
+            ag: agPkCol,
+            insertObj: toInsert[i],
+          });
+
+          await this.runOps(
+            ops.map((f) => f(rowId, trx)),
+            trx,
+          );
+        }
       }
 
       await trx.commit();
@@ -3799,16 +3993,28 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       // failure below can't trigger rollback() on an already-closed trx.
       trx = null;
 
+      if (linkUpdateDatas.length && deferLinkUpdates) {
+        await this.updateLTARCols({
+          datas: linkUpdateDatas,
+          cookie,
+        });
+      }
+
       const updatedRecords = await this.chunkList({
         pks: updatedPks,
       });
       updatedDatas.push(...updatedRecords);
 
+      const insertedPks = insertedDatas.map((d) =>
+        this.extractPksValues(d, true),
+      );
+      // Insert order — callers map inserted rows back to their input by index
       const insertedDataList =
         insertedDatas.length > 0
-          ? await this.chunkList({
-              pks: insertedDatas.map((d) => this.extractPksValues(d, true)),
-            })
+          ? this.orderRowsByPks(
+              await this.chunkList({ pks: insertedPks }),
+              insertedPks,
+            )
           : [];
 
       const updatedDataList =
@@ -3889,6 +4095,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await this.afterBulkUpdate(existingRecords, updatedDataList, cookie);
       }
 
+      onUpsertSplit?.({ updatedPks: updatedPks.map((pk) => String(pk)) });
+
       return [...updatedDataList, ...insertedDataList];
     } catch (e) {
       await trx?.rollback();
@@ -3901,6 +4109,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     chunkSize?: number;
     apiVersion?: NcApiVersion;
     args?: Record<string, any>;
+    ignoreRls?: boolean;
     extractOnlyPrimaries?: boolean;
     deletedOnly?: boolean;
     fk_display_value_column_id?: string | null;
@@ -3928,6 +4137,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         {
           limitOverride: chunk.length,
           ignoreViewFilterAndSort: true,
+          ignoreRls: args.ignoreRls,
           deletedOnly: args.deletedOnly,
         },
       );
@@ -3936,6 +4146,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     return data;
+  }
+
+  /** `chunkList` re-reads rows in list order — put them back in `pks` order. */
+  protected orderRowsByPks(rows: Record<string, any>[], pks: string[]) {
+    const byPk = new Map(
+      rows.map((r) => [String(this.extractPksValues(r, true)), r]),
+    );
+    return pks.map((pk) => byPk.get(String(pk))).filter(Boolean);
   }
 
   async handleValidateBulkInsert(
@@ -3952,7 +4170,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     },
   ) {
     const { allowSystemColumn } = params;
-    const cols = columns || (await this.model.getColumns(this.context));
+    const cols = columns || (await this.model.getColumns());
     const insertObj = {};
 
     for (let i = 0; i < cols.length; ++i) {
@@ -4143,6 +4361,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       onInsertedPks?: (pks: (string | number)[]) => void;
       /** Consumed by the EE override to skip per-field edit-permission checks. */
       skipPermissionCheck?: boolean;
+      /** Trusted internal copy paths only — see `prepareNocoData`. */
+      skipAttachmentOwnershipCheck?: boolean;
     },
   ) {
     return await baseModelInsert(this).bulk(datas, params);
@@ -4158,6 +4378,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       allowSystemColumn = false,
       typecast = false,
       apiVersion,
+      inlineLinkWrites = false,
       skip_hooks = false,
     }: {
       cookie?: any;
@@ -4167,6 +4388,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       allowSystemColumn?: boolean;
       typecast?: boolean;
       apiVersion?: NcApiVersion;
+      /**
+       * Write inline link fields without opting into the rest of V3, which also
+       * reshapes the rows `chunkList` feeds to hooks and audit.
+       */
+      inlineLinkWrites?: boolean;
       skip_hooks?: boolean;
     } = {},
   ) {
@@ -4175,7 +4401,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const profiler = Profiler.start(`base-model/bulkUpdate`);
 
     try {
-      const columns = await this.model.getColumns(this.context);
+      const columns = await this.model.getColumns();
 
       // validate update data
       if (!raw) {
@@ -4189,7 +4415,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         : await Promise.all(
             datas.map((d) =>
               this.model.mapAliasToColumn(
-                this.context,
                 d,
                 this.clientMeta,
                 this.dbDriver,
@@ -4217,7 +4442,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       const attachmentCols = columns.filter((col) => isAttachment(col));
-      let postUpdateOps: (() => Promise<string>)[] = [];
+      let postUpdateOps: (() => Promise<void>)[] = [];
 
       for (let i = 0; i < pkAndData.length; i += readChunkSize) {
         const chunk = pkAndData.slice(i, i + readChunkSize);
@@ -4264,7 +4489,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 },
               );
             postUpdateOps = postUpdateOps.concat(
-              attachmentOperation.postInsertOps.map((ops) => {
+              attachmentOperation.postCommitOps.map((ops) => {
                 return () => ops(pk);
               }),
             );
@@ -4329,15 +4554,24 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         throw ex;
       }
 
-      if (apiVersion === NcApiVersion.V3) {
+      if (apiVersion === NcApiVersion.V3 || inlineLinkWrites) {
         profiler.log('updateLTARCols start');
         // remove LTAR/Links if part of the update request
         await this.updateLTARCols({
           datas,
           cookie,
         });
+      }
+
+      if (apiVersion === NcApiVersion.V3) {
         profiler.log('postUpdateOps start');
-        await Promise.all(postUpdateOps.map((ops) => ops()));
+        await Promise.all(
+          postUpdateOps.map((ops) =>
+            ops().catch((e) =>
+              this.logger.error('Failed to dispatch post-commit op', e),
+            ),
+          ),
+        );
         profiler.log('postUpdateOps end');
       }
 
@@ -4393,10 +4627,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
-  async updateLTARCols({ datas, cookie }: { datas: any[]; cookie: NcRequest }) {
+  async updateLTARCols({
+    datas,
+    cookie,
+    trx,
+  }: {
+    datas: any[];
+    cookie: NcRequest;
+    trx?: Knex.Transaction;
+  }) {
     return LTARColsUpdater({ baseModel: this, logger }).updateLTARCols({
       datas,
       cookie,
+      trx,
     });
   }
 
@@ -4427,10 +4670,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     try {
       let count = 0;
 
-      const columns = await this.model.getColumns(this.context);
+      const columns = await this.model.getColumns();
 
       const updateData = await this.model.mapAliasToColumn(
-        this.context,
         data,
         this.clientMeta,
         this.dbDriver,
@@ -4456,10 +4698,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       } else {
         const { where } = this._getListArgs(args);
         const qb = this.dbDriver(this.tnPath);
-        const aliasColObjMap = await this.model.getAliasColObjMap(
-          this.context,
-          columns,
-        );
+        const aliasColObjMap = await this.model.getAliasColObjMap(columns);
         const { filters: filterObj } = extractFilterFromXwhere(
           this.context,
           where,
@@ -4571,7 +4810,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       allowSystemColumn?: boolean;
     } = {},
   ) {
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
 
     // Each record to delete must be an object carrying its primary key(s)
     // (e.g. `{ Id: 123 }`). A bare primitive blows up in `mapAliasToColumn`'s
@@ -4589,7 +4828,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const deleteIds = await Promise.all(
         ids.map((d) =>
           this.model.mapAliasToColumn(
-            this.context,
             d,
             this.clientMeta,
             this.dbDriver,
@@ -4717,9 +4955,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           if (!isLinksOrLTAR(column)) continue;
 
           const colOptions =
-            await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
+            await column.getColOptions<LinkToAnotherRecordColumn>();
           const { mmContext, refContext, childContext, parentContext } =
-            await colOptions.getParentChildContext(this.context);
+            await colOptions.getParentChildContext();
 
           const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
           const shouldCascadeHere = await shouldCascadeLinkCleanup(
@@ -4746,9 +4984,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   colId: colOptions.fk_mm_parent_column_id,
                 });
                 const parentTable = await (
-                  await colOptions.getParentColumn(parentContext)
-                ).getModel(parentContext);
-                await parentTable.getColumns(parentContext);
+                  await colOptions.getParentColumn()
+                ).getModel();
+                await parentTable.getColumns();
                 const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
                   model: mmTable,
                   dbDriver: this.dbDriver,
@@ -4797,9 +5035,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               {
                 if (!shouldCascadeHere) break;
                 // skip if it's an mm table column
-                const relatedTable = await colOptions.getRelatedTable(
-                  refContext,
-                );
+                const relatedTable = await colOptions.getRelatedTable();
                 if (relatedTable.mm) {
                   break;
                 }
@@ -4808,7 +5044,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   colId: colOptions.fk_child_column_id,
                 });
 
-                await relatedTable.getColumns(refContext);
+                await relatedTable.getColumns();
                 const refBaseModel = await Model.getBaseModelSQL(refContext, {
                   model: relatedTable,
                   dbDriver: this.dbDriver,
@@ -4862,16 +5098,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               {
                 if (column.meta?.bt) {
                   // BT-side: collect parent IDs from deleted records' FKs
-                  const btChildColumn = await colOptions.getChildColumn(
-                    childContext,
-                  );
-                  const btParentColumn = await colOptions.getParentColumn(
-                    parentContext,
-                  );
-                  const btParentTable = await btParentColumn.getModel(
-                    parentContext,
-                  );
-                  await btParentTable.getColumns(parentContext);
+                  const btChildColumn = await colOptions.getChildColumn();
+                  const btParentColumn = await colOptions.getParentColumn();
+                  const btParentTable = await btParentColumn.getModel();
+                  await btParentTable.getColumns();
                   const btParentBaseModel = await Model.getBaseModelSQL(
                     parentContext,
                     { model: btParentTable, dbDriver: this.dbDriver },
@@ -4909,16 +5139,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   break;
                 }
                 // HM-side: same as HM
-                const ooRelatedTable = await colOptions.getRelatedTable(
-                  refContext,
-                );
+                const ooRelatedTable = await colOptions.getRelatedTable();
                 if (ooRelatedTable.mm) break;
 
                 const ooChildColumn = await Column.get(childContext, {
                   colId: colOptions.fk_child_column_id,
                 });
 
-                await ooRelatedTable.getColumns(refContext);
+                await ooRelatedTable.getColumns();
                 const ooRefBaseModel = await Model.getBaseModelSQL(refContext, {
                   model: ooRelatedTable,
                   dbDriver: this.dbDriver,
@@ -4971,16 +5199,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             case 'bt':
               {
                 // Collect parent IDs from deleted records' FKs
-                const btChildColumn = await colOptions.getChildColumn(
-                  childContext,
-                );
-                const btParentColumn = await colOptions.getParentColumn(
-                  parentContext,
-                );
-                const btParentTable = await btParentColumn.getModel(
-                  parentContext,
-                );
-                await btParentTable.getColumns(parentContext);
+                const btChildColumn = await colOptions.getChildColumn();
+                const btParentColumn = await colOptions.getParentColumn();
+                const btParentTable = await btParentColumn.getModel();
+                await btParentTable.getColumns();
                 const btParentBaseModel = await Model.getBaseModelSQL(
                   parentContext,
                   { model: btParentTable, dbDriver: this.dbDriver },
@@ -5131,7 +5353,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       skipPks?: string;
       permanentDelete?: boolean;
     } = {},
-    { cookie, skip_hooks = false }: { cookie: NcRequest; skip_hooks?: boolean },
+    {
+      cookie,
+      skip_hooks = false,
+    }: {
+      cookie: NcRequest;
+      skip_hooks?: boolean;
+      // Honored by the EE override (skips the TABLE_RECORD_DELETE check for
+      // system sweeps). No-op in CE.
+      skipPermissionCheck?: boolean;
+    },
   ) {
     return await new BaseModelDelete(this).bulkAll({
       args,
@@ -5641,7 +5872,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const data: { [key: string]: any } = {};
 
     if (updateObj) {
-      updateObj = await this.model.mapColumnToAlias(this.context, updateObj);
+      updateObj = await this.model.mapColumnToAlias(updateObj);
 
       for (const k of Object.keys(updateObj)) {
         oldData[k] = prevData[k];
@@ -5845,7 +6076,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       allowSystemColumn: false,
     },
   ): Promise<boolean> {
-    const cols = columns || (await this.model.getColumns(this.context));
+    const cols = columns || (await this.model.getColumns());
     // let cols = Object.keys(this.columns);
     for (let i = 0; i < cols.length; ++i) {
       const column = this.model.columns[i];
@@ -6022,7 +6253,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     const options = await column
-      .getColOptions<{ options: SelectOption[] }>(this.context)
+      .getColOptions<{ options: SelectOption[] }>()
       .then(
         (selectOptionsMeta) =>
           selectOptionsMeta?.options?.map((opt) => opt.title) || [],
@@ -6086,7 +6317,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       req: cookie,
     });
 
-    await this.model.getColumns(this.context);
+    await this.model.getColumns();
     const column = this.model.columnsById[colId];
 
     if (
@@ -6095,9 +6326,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     )
       NcError.get(this.context).fieldNotFound(colId);
 
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-      this.context,
-    );
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 
     // return if onlyUpdateAuditLogs is true and is not bt column
     if (onlyUpdateAuditLogs && colOptions.type !== RelationTypes.BELONGS_TO) {
@@ -6349,8 +6578,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       queryQueue: this._queryQueue,
     });
 
-    await model.getColumns(context);
-    await refModel.getColumns(refContext);
+    await model.getColumns();
+    await refModel.getColumns();
 
     const missingDisplayValues = auditObjs.filter(
       (auditObj) => !auditObj.displayValue,
@@ -6489,7 +6718,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       req: cookie,
     });
 
-    await this.model.getColumns(this.context);
+    await this.model.getColumns();
     const column = this.model.columnsById[colId];
     if (
       !column ||
@@ -6594,10 +6823,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   /**
    * Extract distinct group column values for grouping operations
    * Handles options parameter, SingleSelect columns, and other column types
+   *
+   * The distinct-value query is scoped to the same rows the caller's row query
+   * can see (RLS + view filter + any link conditions). Without that, a value
+   * occurring only in filtered-out rows leaks as a group key — the row list
+   * comes back empty, but the key itself is the secret.
    */
   public async extractGroupingValues(
     column: Column,
     options?: (string | number | null | boolean)[],
+    scope?: {
+      ignoreViewFilterAndSort?: boolean;
+      extraConditions?: Filter[];
+    },
   ): Promise<Set<any>> {
     // TODO: Add virtual column support
     if (isVirtualCol(column)) {
@@ -6611,7 +6849,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } else if (column.uidt === UITypes.SingleSelect) {
       const colOptions = await column.getColOptions<{
         options: SelectOption[];
-      }>(this.context);
+      }>();
       groupingValues = new Set(
         (colOptions?.options ?? []).map((opt) => opt.title),
       );
@@ -6626,11 +6864,65 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         qb.where(softDeleteFilter);
       }
 
-      groupingValues = new Set(
-        (await this.execAndParse(qb, null, { raw: true })).map(
-          (row) => row[column.column_name],
-        ),
-      );
+      const rlsConditions = await this.getRlsConditions();
+      const scopeConditions: Filter[] = [];
+
+      if (rlsConditions.length) {
+        scopeConditions.push(
+          new Filter({ children: rlsConditions, is_group: true }),
+        );
+      }
+
+      if (!scope?.ignoreViewFilterAndSort && this.viewId) {
+        scopeConditions.push(
+          new Filter({
+            children:
+              (await Filter.rootFilterList(this.context, {
+                viewId: this.viewId,
+              })) || [],
+            is_group: true,
+            logical_op: 'and',
+          }),
+        );
+      }
+
+      if (scope?.extraConditions?.length) {
+        scopeConditions.push(
+          new Filter({
+            children: scope.extraConditions,
+            is_group: true,
+            logical_op: 'and',
+          }),
+        );
+      }
+
+      if (scopeConditions.length) {
+        await conditionV2(this, scopeConditions, qb);
+      }
+
+      // Bound the discovery: grouping by a high-cardinality column loads every
+      // distinct value and gives groupedList one subquery per value, on a route
+      // that is anonymous for shared views. Read one row past the ceiling and
+      // reject — callers here have no group-level pagination, so slicing would
+      // drop groups from the response silently and with no way to fetch them.
+      // Ordered so the ceiling check can't depend on planner row order.
+      const maxGroupingValues = this.isSqlite
+        ? MAX_GROUPING_VALUES_SQLITE
+        : MAX_GROUPING_VALUES;
+
+      qb.orderBy(column.column_name).limit(maxGroupingValues + 1);
+
+      const discoveredValues = (
+        await this.execAndParse(qb, null, { raw: true })
+      ).map((row) => row[column.column_name]);
+
+      if (discoveredValues.length > maxGroupingValues) {
+        NcError.get(this.context).badRequest(
+          `Cannot group by '${column.title}': it has more than ${maxGroupingValues} distinct values. Filter the records first or group by a field with fewer values.`,
+        );
+      }
+
+      groupingValues = new Set(discoveredValues);
       groupingValues.add(null);
     }
 
@@ -6651,7 +6943,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   > {
     try {
       const { where, ...rest } = this._getListArgs(args);
-      const columns = await this.model.getColumns(this.context);
+      const columns = await this.model.getColumns();
       const column = columns?.find((col) => col.id === args.groupColumnId);
 
       if (!column) NcError.get(this.context).fieldNotFound(args.groupColumnId);
@@ -6664,6 +6956,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const groupingValues = await this.extractGroupingValues(
         column,
         args.options,
+        {
+          ignoreViewFilterAndSort: args.ignoreViewFilterAndSort,
+          // The interface/kanban path builds its baseModel without a viewId and
+          // carries its confinement here instead, so `this.viewId` alone would
+          // leave the values unscoped.
+          extraConditions: args.filterArr,
+        },
       );
 
       const qb = this.dbDriver(this.tnPath);
@@ -6673,10 +6972,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await this.selectObject({ qb, extractPkAndPv: true });
 
       // todo: refactor and move to a method (applyFilterAndSort)
-      const aliasColObjMap = await this.model.getAliasColObjMap(
-        this.context,
-        columns,
-      );
+      const aliasColObjMap = await this.model.getAliasColObjMap(columns);
       let sorts = extractSortsObject(this.context, args?.sort, aliasColObjMap);
       const { filters: filterObj } = extractFilterFromXwhere(
         this.context,
@@ -6852,7 +7148,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       ignoreViewFilterAndSort?: boolean;
     } & XcFilter,
   ) {
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
     const column = columns?.find((col) => col.id === args.groupColumnId);
 
     if (!column) NcError.get(this.context).fieldNotFound(args.groupColumnId);
@@ -6897,10 +7193,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     // todo: refactor and move to a common method (applyFilterAndSort)
-    const aliasColObjMap = await this.model.getAliasColObjMap(
-      this.context,
-      columns,
-    );
+    const aliasColObjMap = await this.model.getAliasColObjMap(columns);
     const { filters: filterObj } = extractFilterFromXwhere(
       this.context,
       args.where,
@@ -6968,11 +7261,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     await this.selectObject({
       qb,
       columns: [
-        new Column({
-          ...column,
-          title: 'key',
-          id: 'key',
-        }),
+        setModelContext(
+          new Column({
+            ...column,
+            title: 'key',
+            id: 'key',
+          }),
+          this.context,
+        ),
       ],
     });
 
@@ -7032,6 +7328,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     dependencyColumns?: Column[],
     options: ExecAndParseOptions = {
       skipDateConversion: false,
+      skipFormulaNonFiniteConversion: false,
       skipAttachmentConversion: false,
       skipSubstitutingColumnIds: false,
       skipUserConversion: false,
@@ -7069,7 +7366,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     _perf?.set('client', this.clientType);
 
     if (!this.model?.columns) {
-      await this.model.getColumns(this.context);
+      await this.model.getColumns();
     }
 
     // we need to post process lookup fields based on the looked up column instead of the lookup column
@@ -7106,6 +7403,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       data = this.convertDateFormat(data, dependencyColumns);
     }
     _perf?.mark('date');
+
+    // stringify pg IEEE formula values (Infinity/-Infinity/NaN)
+    if (!options.skipFormulaNonFiniteConversion) {
+      data = this.convertFormulaNonFinite(data, dependencyColumns);
+    }
+    _perf?.mark('formulaNonFinite');
 
     // update user fields
     if (!options.skipUserConversion) {
@@ -7267,7 +7570,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ) {
           const { refContext } = (
             col.colOptions as LinkToAnotherRecordColumn
-          ).getRelContext(this.context);
+          ).getRelContext();
           const columns = await Column.list(refContext, {
             fk_model_id: (col.colOptions as LinkToAnotherRecordColumn)
               .fk_related_model_id,
@@ -7609,7 +7912,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   // we care about for `_applyPublicEmailRedaction`. Exposed as a helper so
   // afterInsert/afterUpdate can resolve once and reuse.
   protected async _getUserBearingColumns(): Promise<Column[]> {
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
     const directUserColumns: Column[] = [];
     const lookupColumns: Column[] = [];
 
@@ -7847,7 +8150,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return d;
   }
 
-  public async getNestedColumn(column: Column, context = this.context) {
+  public async getNestedColumn(column: Column, _context = this.context) {
     if (!column)
       return {
         uidt: UITypes.SingleLineText,
@@ -7856,17 +8159,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (column.uidt !== UITypes.Lookup) {
       return column;
     }
-    const colOptions = await column.getColOptions<LookupColumn>(context);
+    const colOptions = await column.getColOptions<LookupColumn>();
     if (colOptions?.error) return { uidt: UITypes.SingleLineText };
-    const relationCol = await colOptions.getRelationColumn(context);
+    const relationCol = await colOptions.getRelationColumn();
     if (!relationCol) return { uidt: UITypes.SingleLineText };
     const relationColOpt = await (relationCol.colOptions ??
-      relationCol.getColOptions<LinkToAnotherRecordColumn>(context));
+      relationCol.getColOptions<LinkToAnotherRecordColumn>());
     if (!relationColOpt) return { uidt: UITypes.SingleLineText };
 
-    const { refContext } = relationColOpt.getRelContext(context);
+    const { refContext } = relationColOpt.getRelContext();
     return this.getNestedColumn(
-      await colOptions?.getLookupColumn(refContext),
+      await colOptions?.getLookupColumn(),
       refContext,
     );
   }
@@ -8010,7 +8313,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         this.clientType === ClientType.PG &&
         col.uidt === UITypes.Formula
       ) {
-        const colOptions = await col.getColOptions<FormulaColumn>(this.context);
+        const colOptions = await col.getColOptions<FormulaColumn>();
         const parsedTree: ParsedFormulaNode = colOptions.getParsedTree();
         if (parsedTree?.referencedColumn?.uidt === UITypes.Attachment) {
           formulaColumns.push(col);
@@ -8242,6 +8545,42 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return data;
   }
 
+  // PG returns float8 Infinity/-Infinity/NaN as JS numbers, and JSON.stringify
+  // collapses all three to null — indistinguishable from a real NULL. Convert
+  // them to strings before serialization. PG-only: no other dialect can produce
+  // a non-finite value here.
+  public convertFormulaNonFinite(
+    data: Record<string, any>[],
+    dependencyColumns?: Column[],
+  ): Record<string, any>[];
+  public convertFormulaNonFinite(
+    data: Record<string, any>,
+    dependencyColumns?: Column[],
+  ): Record<string, any>;
+  public convertFormulaNonFinite(
+    data: Record<string, any>,
+    dependencyColumns?: Column[],
+  ) {
+    if (!data || !this.isPg || !isNonFiniteFormulaHandlingEnabled())
+      return data;
+
+    const columns = this.model?.columns.concat(dependencyColumns ?? []);
+    const formulaColumns = columns?.filter((c) => c.uidt === UITypes.Formula);
+    if (!formulaColumns?.length) return data;
+
+    const apply = (d: Record<string, any>) => {
+      if (!d) return d;
+      for (const col of formulaColumns) {
+        // The select is aliased with getAs (asId || id), not the raw id.
+        const key = getAs(col);
+        if (key in d) d[key] = mapNonFiniteToString(d[key]);
+      }
+      return d;
+    };
+
+    return Array.isArray(data) ? data.map(apply) : apply(data);
+  }
+
   async addLinks(params: {
     cookie: any;
     childIds: (string | number)[];
@@ -8299,16 +8638,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     _args: { limit?; offset?; fieldSet?: Set<string> } = {},
   ) {
     try {
-      await this.model.getColumns(this.context);
+      await this.model.getColumns();
 
       const relColumn = this.model.columnsById[colId];
       if (!relColumn) {
         NcError.get(this.context).fieldNotFound(colId);
       }
-      const relColOptions = (await relColumn.getColOptions(
-        this.context,
-      )) as LinkToAnotherRecordColumn;
-      const relatedContext = await relColOptions.getRelContext(this.context);
+      const relColOptions =
+        (await relColumn.getColOptions()) as LinkToAnotherRecordColumn;
+      const relatedContext = await relColOptions.getRelContext();
       const relatedBaseModel = await getBaseModelSqlFromModelId({
         modelId: relColOptions.fk_related_model_id,
         context: relatedContext.refContext,
@@ -8317,9 +8655,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         relColOptions.fk_child_column_id,
         relColOptions.fk_parent_column_id,
       ];
-      const relatedColumn = (
-        await relatedBaseModel.model.getColumns(relatedBaseModel.context)
-      ).find((col) => joinIds.includes(col.id));
+      const relatedColumn = (await relatedBaseModel.model.getColumns()).find(
+        (col) => joinIds.includes(col.id),
+      );
 
       const ooQb = relatedBaseModel
         .dbDriver(relatedBaseModel.getTnPath(relatedBaseModel.model.table_name))
@@ -8352,10 +8690,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   async btRead(
     { colId, id }: { colId; id; apiVersion?: NcApiVersion },
-    args: { limit?; offset?; fieldSet?: Set<string> } = {},
+    args: {
+      limit?;
+      offset?;
+      fieldSet?: Set<string>;
+      pkAndPvOnly?: boolean;
+    } = {},
   ) {
     try {
-      await this.model.getColumns(this.context);
+      await this.model.getColumns();
 
       const { where, sort } = this._getListArgs(args);
       // todo: get only required fields
@@ -8379,17 +8722,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         NcError.get(this.context).recordNotFound(id);
       }
 
-      const colOptions = (await relColumn.getColOptions(
-        this.context,
-      )) as LinkToAnotherRecordColumn;
+      const colOptions =
+        (await relColumn.getColOptions()) as LinkToAnotherRecordColumn;
 
       const { childContext, parentContext } =
-        await colOptions.getParentChildContext(this.context);
+        await colOptions.getParentChildContext();
 
-      const parentCol = await colOptions.getParentColumn(parentContext);
-      const parentTable = await parentCol.getModel(parentContext);
-      const chilCol = await colOptions.getChildColumn(childContext);
-      const childTable = await chilCol.getModel(childContext);
+      const parentCol = await colOptions.getParentColumn();
+      const parentTable = await parentCol.getModel();
+      const chilCol = await colOptions.getChildColumn();
+      const childTable = await chilCol.getModel();
 
       const parentModel = await Model.getBaseModelSQL(parentContext, {
         model: parentTable,
@@ -8400,7 +8742,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         model: childTable,
         dbDriver: this.dbDriver,
       });
-      await childTable.getColumns(childContext);
+      await childTable.getColumns();
 
       const childTn = childBaseModel.getTnPath(childTable);
       const parentTn = parentModel.getTnPath(parentTable);
@@ -8421,11 +8763,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         qb.where(parentSoftDeleteFilter);
       }
 
-      await parentModel.selectObject({ qb, fieldsSet: args.fieldSet });
+      await parentModel.selectObject({
+        qb,
+        fieldsSet: args.fieldSet,
+        pkAndPvOnly: args.pkAndPvOnly,
+      });
 
       const parent = await this.execAndParse(
         qb,
-        await parentTable.getColumns(parentContext),
+        await parentTable.getColumns(),
         {
           first: true,
         },
@@ -8462,7 +8808,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // affected linked record gets the same LastModifiedTime.
     timestamp?: string;
   }) {
-    const columns = await model.getColumns(this.context);
+    const columns = await model.getColumns();
 
     const updateObject = {};
 
@@ -8719,6 +9065,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
+  // Whether a system CreatedBy/LastModifiedBy actor id may bypass
+  // base-membership validation for a captured actor. Default false; edition
+  // overrides may relax it.
+  protected skipSystemActorMembershipValidation(_column: {
+    system?: boolean;
+    uidt?: string;
+  }): boolean {
+    return false;
+  }
+
   async prepareNocoData(
     data,
     isInsertData = false,
@@ -8734,6 +9090,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       // Consumed by the EE override to skip per-field edit-permission checks
       // on trusted internal data-load paths (duplication / snapshot / import).
       skipPermissionCheck?: boolean;
+      // Skip the attachment ownership check below. Set only by trusted internal
+      // copy paths, which re-insert another base's rows verbatim and so can
+      // never satisfy it. Not settable over HTTP.
+      skipAttachmentOwnershipCheck?: boolean;
     },
   ): Promise<void> {
     const runAfterForLoop = [];
@@ -9043,6 +9403,44 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 !sanitizedAttachment.id ||
                 regenerateIds.includes(sanitizedAttachment.id)
               ) {
+                // A client-supplied `path` — or a `url` that resolves to our
+                // own object storage rather than a genuinely external file — is
+                // a disk-resolvable reference. Accepting an arbitrary one lets a
+                // caller embed another base's attachment and later have it
+                // signed & served (cross-tenant disclosure). `insert` below
+                // persists `file_url: url ?? path`, and read-time signing
+                // (`getSignedUrl`) reduces even an http(s) `url` to its pathname
+                // and, on external storage, signs THAT as a storage key — so a
+                // crafted `https://anything/nc/uploads/<victim>/secret.pdf`
+                // discloses another tenant's object. We therefore check any
+                // reference whose resolved storage key lives under `nc/uploads/`
+                // (using the same `getPathFromUrl` normalisation `getSignedUrl`
+                // applies, so URL-encoding can't slip past this), plus any
+                // non-http(s) `url` (an opaque local path). Only a reference the
+                // caller already owns — one they uploaded, or already stored in
+                // this base — is accepted.
+                const diskResolvableRefs = extra?.skipAttachmentOwnershipCheck
+                  ? []
+                  : [sanitizedAttachment.path, sanitizedAttachment.url].filter(
+                      (ref) => attachmentRefResolvesToStorage(ref),
+                    );
+
+                for (const ref of diskResolvableRefs) {
+                  const accessible =
+                    await FileReference.isFileUrlAccessibleForWrite(
+                      this.context,
+                      {
+                        fileUrl: ref,
+                        userId: cookie?.user?.id,
+                      },
+                    );
+                  if (!accessible) {
+                    NcError.get(this.context).unprocessableEntity(
+                      'Invalid attachment reference',
+                    );
+                  }
+                }
+
                 const source = await this.getSource();
                 sanitizedAttachment.id = await FileReference.insert(
                   this.context,
@@ -9088,8 +9486,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           );
         }
 
-        if (!ncIsNullOrUndefined(data[column.column_name])) {
+        if (this.skipSystemActorMembershipValidation(column)) {
+          // System-set actor id (created_by / last_modified_by) — not user
+          // input, so accept it as-is and skip base-membership validation.
+        } else if (!ncIsNullOrUndefined(data[column.column_name])) {
           const userIds = [];
+
+          // Copy paths carry values across: keep any user that exists on this instance.
+          const skipMembershipValidation = !!extra?.skipPermissionCheck;
 
           if (
             typeof data[column.column_name] === 'string' &&
@@ -9107,6 +9511,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             include_ws_deleted: true,
             include_internal_user: true,
             include_team_users: true,
+            include_agents: true,
           });
 
           if (typeof data[column.column_name] === 'object') {
@@ -9121,6 +9526,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 if ('id' in user) {
                   const u = baseUsers.find((u) => u.id === user.id);
                   if (!u) {
+                    if (skipMembershipValidation) {
+                      // keep the id only if the user exists on this instance
+                      if ((await User.get(user.id))?.id) userIds.push(user.id);
+                      continue;
+                    }
                     NcError.get(this.context).unprocessableEntity(
                       `User with id '${user.id}' is not part of this workspace`,
                     );
@@ -9135,6 +9545,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   if (user.email.length === 0) continue;
                   const u = baseUsers.find((u) => u.email === user.email);
                   if (!u) {
+                    if (skipMembershipValidation) {
+                      // resolve the user globally so the reference survives the
+                      // copy; drop it only if no such user exists at all
+                      const globalUser = await User.getByEmail(user.email);
+                      if (globalUser?.id) userIds.push(globalUser.id);
+                      continue;
+                    }
                     NcError.get(this.context).unprocessableEntity(
                       `User with email '${user.email}' is not part of this workspace`,
                     );
@@ -9159,6 +9576,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 if (user.includes('@')) {
                   const u = baseUsers.find((u) => u.email === user);
                   if (!u) {
+                    if (skipMembershipValidation) {
+                      // resolve the user globally so the reference survives the
+                      // copy; drop it only if no such user exists at all
+                      const globalUser = await User.getByEmail(user);
+                      if (globalUser?.id) userIds.push(globalUser.id);
+                      continue;
+                    }
                     NcError.get(this.context).unprocessableEntity(
                       `User with email '${user}' is not part of this workspace`,
                     );
@@ -9167,6 +9591,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 } else {
                   const u = baseUsers.find((u) => u.id === user);
                   if (!u) {
+                    if (skipMembershipValidation) {
+                      // keep the id only if the user exists on this instance
+                      if ((await User.get(user))?.id) userIds.push(user);
+                      continue;
+                    }
                     NcError.get(this.context).unprocessableEntity(
                       `User with id '${user}' is not part of this workspace`,
                     );
@@ -9359,7 +9788,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const { oldData: _oldData, columns } = args;
     const oldData = Array.isArray(_oldData) ? _oldData : [_oldData];
 
-    const modelColumns = columns || (await this.model.getColumns(this.context));
+    const modelColumns = columns || (await this.model.getColumns());
 
     const attachmentColumns = modelColumns.filter(
       (c) => c.uidt === UITypes.Attachment,
@@ -9404,7 +9833,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const { oldData: _oldData, columns } = args;
     const oldData = Array.isArray(_oldData) ? _oldData : [_oldData];
 
-    const modelColumns = columns || (await this.model.getColumns(this.context));
+    const modelColumns = columns || (await this.model.getColumns());
 
     const attachmentColumns = modelColumns.filter(
       (c) => c.uidt === UITypes.Attachment,
@@ -9502,18 +9931,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }[] = [];
     if (!deletedIds.length) return result;
 
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
 
     for (const column of columns) {
       if (!isLinksOrLTAR(column)) continue;
 
-      const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-        this.context,
-      );
+      const colOptions =
+        await column.getColOptions<LinkToAnotherRecordColumn>();
 
       try {
         const { mmContext, parentContext, childContext } =
-          await colOptions.getParentChildContext(this.context);
+          await colOptions.getParentChildContext();
 
         const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
 
@@ -9521,10 +9949,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           relationType === 'bt' ||
           (relationType === 'oo' && column.meta?.bt)
         ) {
-          const childColumn = await colOptions.getChildColumn(childContext);
-          const parentColumn = await colOptions.getParentColumn(parentContext);
-          const parentTable = await parentColumn.getModel(parentContext);
-          await parentTable.getColumns(parentContext);
+          const childColumn = await colOptions.getChildColumn();
+          const parentColumn = await colOptions.getParentColumn();
+          const parentTable = await parentColumn.getModel();
+          await parentTable.getColumns();
           const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
             model: parentTable,
             dbDriver: this.dbDriver,
@@ -9561,13 +9989,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           relationType === 'hm' ||
           (relationType === 'oo' && !column.meta?.bt)
         ) {
-          const childColumn = await colOptions.getChildColumn(childContext);
-          const childTable = await childColumn.getModel(childContext);
+          const childColumn = await colOptions.getChildColumn();
+          const childTable = await childColumn.getModel();
 
           // Skip junction tables (system HM columns from MM point here)
           if (childTable.mm) continue;
 
-          await childTable.getColumns(childContext);
+          await childTable.getColumns();
 
           // PK-less child tables (PG-imported junctions, etc.) can't be
           // addressed by row id; skip rather than throwing into the catch.
@@ -9605,13 +10033,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             });
           }
         } else if (relationType === 'mm') {
-          const vChildCol = await colOptions.getMMChildColumn(mmContext);
-          const vParentCol = await colOptions.getMMParentColumn(mmContext);
-          const vTable = await colOptions.getMMModel(mmContext);
+          const vChildCol = await colOptions.getMMChildColumn();
+          const vParentCol = await colOptions.getMMParentColumn();
+          const vTable = await colOptions.getMMModel();
           const parentTable = await (
-            await colOptions.getParentColumn(parentContext)
-          ).getModel(parentContext);
-          await parentTable.getColumns(parentContext);
+            await colOptions.getParentColumn()
+          ).getModel();
+          await parentTable.getColumns();
           const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
             model: vTable,
             dbDriver: this.dbDriver,
@@ -9657,7 +10085,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public async updateLinkedRecordsOnDelete(deletedIds: any[], cookie?: any) {
     if (!deletedIds.length) return;
 
-    const columns = await this.model.getColumns(this.context);
+    const columns = await this.model.getColumns();
     const deletedSet = new Set(deletedIds.map((id) => String(id)));
     const filterSelfOverlap = <T>(ids: T[], otherModelId: string): T[] =>
       otherModelId === this.model.id
@@ -9667,13 +10095,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     for (const column of columns) {
       if (!isLinksOrLTAR(column)) continue;
 
-      const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-        this.context,
-      );
+      const colOptions =
+        await column.getColOptions<LinkToAnotherRecordColumn>();
 
       try {
         const { mmContext, parentContext, childContext } =
-          await colOptions.getParentChildContext(this.context);
+          await colOptions.getParentChildContext();
 
         const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
 
@@ -9684,10 +10111,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           relationType === 'bt' ||
           (relationType === 'oo' && column.meta?.bt)
         ) {
-          const childColumn = await colOptions.getChildColumn(childContext);
-          const parentColumn = await colOptions.getParentColumn(parentContext);
-          const parentTable = await parentColumn.getModel(parentContext);
-          await parentTable.getColumns(parentContext);
+          const childColumn = await colOptions.getChildColumn();
+          const parentColumn = await colOptions.getParentColumn();
+          const parentTable = await parentColumn.getModel();
+          await parentTable.getColumns();
 
           const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
             model: parentTable,
@@ -9738,15 +10165,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           relationType === 'hm' ||
           (relationType === 'oo' && !column.meta?.bt)
         ) {
-          const childColumn = await colOptions.getChildColumn(childContext);
-          const childTable = await childColumn.getModel(childContext);
+          const childColumn = await colOptions.getChildColumn();
+          const childTable = await childColumn.getModel();
 
           // Skip junction tables — they are internal MM tables, not user-facing.
           // System HM columns from V1 MM point to the junction table as child;
           // broadcasting / LMT updates on them fails (composite PK) and is meaningless.
           if (childTable.mm) continue;
 
-          await childTable.getColumns(childContext);
+          await childTable.getColumns();
 
           // PK-less child tables (PG-imported junctions, etc.) can't be
           // addressed by row id; skip the LMT broadcast rather than failing.
@@ -9792,13 +10219,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         // ── V1 MM + ALL V2 (mm/om/mo/oo/bt) ───────────────────────────────
         // Junction-table-based. Query junction for linked record IDs.
         else if (relationType === 'mm') {
-          const vChildCol = await colOptions.getMMChildColumn(mmContext);
-          const vParentCol = await colOptions.getMMParentColumn(mmContext);
-          const vTable = await colOptions.getMMModel(mmContext);
+          const vChildCol = await colOptions.getMMChildColumn();
+          const vParentCol = await colOptions.getMMParentColumn();
+          const vTable = await colOptions.getMMModel();
           const parentTable = await (
-            await colOptions.getParentColumn(parentContext)
-          ).getModel(parentContext);
-          await parentTable.getColumns(parentContext);
+            await colOptions.getParentColumn()
+          ).getModel();
+          await parentTable.getColumns();
 
           const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
             model: vTable,
@@ -9998,10 +10425,25 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   /**
    * Returns RLS (Row-Level Security) filter conditions for the current user.
-   * CE version: no-op, returns empty array (no RLS).
-   * EE version: resolves applicable policies and returns filter conditions.
+   *
+   * Memoized per instance — `Model.getBaseModelSQL` constructs a fresh
+   * BaseModelSqlv2 on every call and `this.context` is never reassigned after
+   * construction, so one instance is always one user. A single request can hit
+   * this a dozen times (list + count + each grouped-list query), and the EE
+   * resolution is a team expansion plus per-policy filter loads.
+   *
+   * Callers get their own Filter instances because conditionV2 mutates the
+   * filters it is handed (`comparison_op` / `value` normalization).
    */
   public async getRlsConditions(): Promise<Filter[]> {
+    this._rlsConditions ??= this.resolveRlsConditions();
+    return cloneFilters(await this._rlsConditions);
+  }
+
+  /**
+   * CE: no-op, no RLS. EE overrides with policy resolution.
+   */
+  protected async resolveRlsConditions(): Promise<Filter[]> {
     return [];
   }
 
@@ -10013,7 +10455,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (this._softDeleteFilter !== undefined) return this._softDeleteFilter;
 
     this._softDeleteFilter = (async () => {
-      const columns = await this.model.getColumns(this.context);
+      const columns = await this.model.getColumns();
       const deletedColumn = columns.find((c) => isDeletedCol(c));
       if (!deletedColumn) return null;
 

@@ -1,5 +1,6 @@
 import z from 'zod';
 import { OAuthClientType } from 'nocodb-sdk';
+import { isHttpRedirectUri } from '~/modules/oauth/helpers/redirectUri';
 
 export const CreateOAuthClientSchema = z.object({
   client_name: z
@@ -33,7 +34,15 @@ export const CreateOAuthClientSchema = z.object({
   logo_uri: z.record(z.string(), z.unknown()).optional(),
 
   redirect_uris: z
-    .array(z.string().url('Each redirect URI must be a valid URL'))
+    .array(
+      z
+        .string()
+        .url('Each redirect URI must be a valid URL')
+        // `z.string().url()` alone accepts javascript:/data:/vbscript:/file:.
+        .refine(isHttpRedirectUri, {
+          message: 'Each redirect URI must use the http(s) scheme',
+        }),
+    )
     .min(1, 'At least one redirect URI is required'),
 
   allowed_grant_types: z
@@ -85,7 +94,15 @@ export const UpdateOAuthClientSchema = z.object({
   logo_uri: z.record(z.string(), z.unknown()).optional(),
 
   redirect_uris: z
-    .array(z.string().url('Each redirect URI must be a valid URL'))
+    .array(
+      z
+        .string()
+        .url('Each redirect URI must be a valid URL')
+        // Must match create, or a client can be edited into an XSS sink.
+        .refine(isHttpRedirectUri, {
+          message: 'Each redirect URI must use the http(s) scheme',
+        }),
+    )
     .min(1, 'At least one redirect URI is required')
     .optional(),
 

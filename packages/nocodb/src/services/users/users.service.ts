@@ -33,6 +33,7 @@ import { OAuthToken, PresignedUrl, User, UserRefreshToken } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
 import { isTokenExpired } from '~/helpers/isTokenExpired';
+import { withSignupClaim } from '~/helpers/signupClaim';
 import { BasesService } from '~/services/bases.service';
 import { extractProps } from '~/helpers/extractProps';
 import deepClone from '~/helpers/deepClone';
@@ -300,11 +301,15 @@ export class UsersService {
 
     if (user) {
       const token = uuidv4();
+      // Issue the reset token WITHOUT rotating `token_version`. Rotating it here
+      // would invalidate every active access JWT the moment an unauthenticated
+      // caller requests a reset link for a known address, letting an attacker
+      // repeatedly sign a user out (CWE-400). Session revocation belongs in
+      // reset COMPLETION (passwordReset), not reset-token issuance.
       const updatedUser = await User.update(user.id, {
         email: user.email,
         reset_password_token: token,
         reset_password_expires: new Date(Date.now() + 60 * 60 * 1000),
-        token_version: randomTokenString(),
       });
       try {
         await this.mailService.sendMail({
@@ -394,14 +399,18 @@ export class UsersService {
     const salt = await promisify(bcrypt.genSalt)(10);
     const password = await promisify(bcrypt.hash)(body.password, salt);
 
-    await User.update(user.id, {
-      salt,
-      password,
-      email: user.email,
-      reset_password_expires: null,
-      reset_password_token: '',
-      token_version: randomTokenString(),
-    });
+    // The read above is stale by the time we get here — the bcrypt hash alone is
+    // a ~100ms window in which the same link can be replayed. Claim the token in
+    // the write itself and reject if another request already consumed it.
+    const consumed = await User.consumeResetPasswordToken(
+      token,
+      { id: user.id, email: user.email },
+      { salt, password, token_version: randomTokenString() },
+    );
+
+    if (!consumed) {
+      NcError.badRequest('Invalid reset url');
+    }
 
     // delete all refresh tokens to invalidate existing sessions
     await UserRefreshToken.deleteAllUserToken(user.id);
@@ -484,13 +493,29 @@ export class UsersService {
         NcError.unauthorized(`Invalid refresh token`);
       }
 
+      User.assertNotBlocked(user);
+
       const refreshToken = randomTokenString();
 
+      // Rotation is a compare-and-swap: 0 rows means this token was already
+      // rotated (concurrent presentation / replay of a single-use token).
+      let rotatedRows: number;
       try {
-        await UserRefreshToken.updateOldToken(oldRefreshToken, refreshToken);
+        rotatedRows = await UserRefreshToken.updateOldToken(
+          oldRefreshToken,
+          refreshToken,
+        );
       } catch (error) {
         console.error('Failed to update old refresh token:', error);
         NcError.internalServerError('Failed to update refresh token');
+      }
+
+      if (!rotatedRows) {
+        // Reject without minting a second token. Deliberately not invalidating
+        // the user's whole token set: rows are per-login with no lineage column,
+        // so that would sign them out on every device for what is usually a
+        // benign double-submit.
+        NcError.unauthorized('Invalid refresh token');
       }
 
       setTokenCookie(param.res, refreshToken, param.req);
@@ -582,14 +607,20 @@ export class UsersService {
         NcError.badRequest('User already exist');
       }
     } else {
-      const { createdProject: _createdProject } =
-        await this.registerNewUserIfAllowed({
-          email,
-          salt,
-          password,
-          email_verification_token,
-          req: param.req,
-        });
+      const { createdProject: _createdProject } = await withSignupClaim(
+        email,
+        async () =>
+          (await User.getByCanonicalEmail(email)) ||
+          (await User.getByEmail(email)),
+        () =>
+          this.registerNewUserIfAllowed({
+            email,
+            salt,
+            password,
+            email_verification_token,
+            req: param.req,
+          }),
+      );
       createdProject = _createdProject;
     }
     user = await User.getByEmail(email);
@@ -643,6 +674,10 @@ export class UsersService {
   }
 
   async login(user: UserType & { provider?: string }, req: any) {
+    // Reject at signin so a blocked user gets a clear failure instead of a
+    // successful login followed by 401s on every subsequent request.
+    User.assertNotBlocked(user);
+
     this.appHooksService.emit(AppEvents.USER_SIGNIN, {
       user,
       req,

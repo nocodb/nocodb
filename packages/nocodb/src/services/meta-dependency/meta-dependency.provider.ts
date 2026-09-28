@@ -5,6 +5,7 @@ import { ColumnDeleteCoverImageDependencyHandler } from '~/services/meta-depende
 import { ColumnDeleteKanbanGroupByDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-kanban-groupby-dependency.handler';
 import { ColumnDeleteCalendarRangeDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-calendar-range-dependency.handler';
 import { ColumnDeleteHookTriggerDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-hook-trigger-dependency.handler';
+import { ColumnDeleteLmtTrackedDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-lmt-tracked-dependency.handler';
 import { ColumnDeleteExpandedModeDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-expanded-mode-dependency.handler';
 import { ColumnDeleteRowColorDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-row-color-dependency.handler';
 import { ColumnDeleteTransitiveDependentsDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-transitive-dependents-dependency.handler';
@@ -23,6 +24,7 @@ export const MetaDependencyServices = [
   ColumnDeleteKanbanGroupByDependencyHandler,
   ColumnDeleteCalendarRangeDependencyHandler,
   ColumnDeleteHookTriggerDependencyHandler,
+  ColumnDeleteLmtTrackedDependencyHandler,
   ColumnDeleteExpandedModeDependencyHandler,
   ColumnDeleteRowColorDependencyHandler,
   ColumnDeleteTransitiveDependentsDependencyHandler,

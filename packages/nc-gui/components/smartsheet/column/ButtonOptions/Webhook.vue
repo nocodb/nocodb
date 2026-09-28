@@ -16,9 +16,9 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const { t } = useI18n()
 
-const { isUIAllowed, sandboxRestrictionReason } = useRoles()
+const { isUIAllowed, environmentRestrictionReason } = useRoles()
 
-const hookCreateReason = computed(() => sandboxRestrictionReason('hookCreate'))
+const hookCreateReason = computed(() => environmentRestrictionReason('hookCreate'))
 
 const isWebHookSelectionDropdownOpen = ref(false)
 

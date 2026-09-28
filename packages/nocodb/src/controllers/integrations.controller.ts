@@ -56,6 +56,13 @@ export class IntegrationsController {
 
     if (integration.type === IntegrationsType.Database) {
       maskKnexConfig(integration);
+    } else if (
+      integration.type === IntegrationsType.Auth ||
+      integration.type === IntegrationsType.Ai
+    ) {
+      // Masking these lives in the integration packages, and CE registers none —
+      // with nothing able to mask them, hide the config rather than echo secrets.
+      integration.config = undefined;
     }
 
     return integration;
@@ -135,14 +142,21 @@ export class IntegrationsController {
     @Query('offset') offset?: string,
     @Query('query') query?: string,
   ) {
+    // Parse once. The strip guard below MUST key off the same boolean the
+    // service receives — testing the raw query string instead (`!includeDatabaseInfo`)
+    // inverts for every value but `'true'`/absent, so `includeDatabaseInfo=false`
+    // skips both the field reduction and the strip and returns the raw stored
+    // config.
+    const withDatabaseInfo = includeDatabaseInfo === 'true';
+
     const integrations = await this.integrationsService.integrationList({
       req,
-      includeDatabaseInfo: includeDatabaseInfo === 'true',
+      includeDatabaseInfo: withDatabaseInfo,
       type,
       query,
     });
 
-    if (!includeDatabaseInfo) {
+    if (!withDatabaseInfo) {
       for (const integration of integrations.list) {
         integration.config = undefined;
       }

@@ -37,8 +37,11 @@ export class PluginsController {
   }
 
   @Get(['/api/v1/db/meta/plugins/webhook', '/api/v2/meta/plugins/webhook'])
+  // Plugin rows are instance-global and carry the notification webhook secret in
+  // `input`, so this must sit at the same org/SUPER_ADMIN level as pluginList
+  // and pluginRead rather than being reachable by a workspace Creator.
   @Acl('webhookPluginList', {
-    scope: 'workspace',
+    scope: 'org',
   })
   async webhookPluginList() {
     return new PagedResponseImpl(await this.pluginsService.webhookPluginList());

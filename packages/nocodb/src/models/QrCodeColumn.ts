@@ -5,6 +5,11 @@ import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import {
+  getModelContext,
+  setModelContext,
+  throwMissingContext,
+} from '~/helpers/modelContext';
 
 export default class QrCodeColumn {
   base_id?: string;
@@ -15,6 +20,18 @@ export default class QrCodeColumn {
 
   constructor(data: Partial<QrCodeColumn>) {
     Object.assign(this, data);
+  }
+
+  get context(): NcContext {
+    const ctx = getModelContext(this);
+    if (ctx) return ctx;
+    if (this.fk_workspace_id && this.base_id) {
+      return {
+        workspace_id: this.fk_workspace_id,
+        base_id: this.base_id,
+      } as NcContext;
+    }
+    throwMissingContext('QrCodeColumn');
   }
 
   public static async insert(
@@ -75,13 +92,16 @@ export default class QrCodeColumn {
       );
     }
 
-    return column ? new QrCodeColumn(column) : null;
+    if (!column) return null;
+    const instance = new QrCodeColumn(column);
+    setModelContext(instance, context);
+    return instance;
   }
 
   id: string;
 
-  async getValueColumn(context: NcContext) {
-    return Column.get(context, {
+  async getValueColumn() {
+    return Column.get(this.context, {
       colId: this.fk_qr_value_column_id,
     });
   }

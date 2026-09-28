@@ -345,16 +345,16 @@ const cellClassName = computed(() => {
     className += ' nc-grid-numeric-cell-right'
   }
 
-  if (
+  // One height utility only — h-10 and h-full tie on specificity, so emission order would decide.
+  const isFormFixedHeight =
     !isEditColumnMenu.value &&
     isForm.value &&
     !props.virtual &&
     cellType.value !== 'attachment' &&
     cellType.value !== 'textarea' &&
     cellType.value !== 'ai'
-  ) {
-    className += ' h-10'
-  }
+
+  className += isFormFixedHeight ? ' h-10' : ' h-full'
 
   if ((isForm.value && isNumericField.value && isExpandedFormOpen.value) || isEditColumnMenu.value) {
     className += ' nc-grid-numeric-cell-left'
@@ -375,7 +375,7 @@ const cellClassName = computed(() => {
 <template>
   <div
     :class="[cellClassName, { 'nc-under-ltar': isUnderLTAR }]"
-    class="nc-cell w-full h-full relative"
+    class="nc-cell w-full relative"
     @contextmenu="onContextmenu"
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="navigate(NavigateDir.PREV, $event)"

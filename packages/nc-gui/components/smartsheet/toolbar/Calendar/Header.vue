@@ -2,6 +2,16 @@
 import type dayjs from 'dayjs'
 import { computed } from '#imports'
 
+interface Props {
+  /**
+   * Interface second-level bar variant: borderless text button reading as a
+   * heading — full month name in bold, year a step lighter (month view).
+   */
+  plain?: boolean
+}
+
+const props = defineProps<Props>()
+
 const {
   selectedDate,
   selectedMonth,
@@ -100,14 +110,30 @@ const headerText = computed(() => {
       return ''
   }
 })
+
+/** Plain variant, month view: "July" (bold) + "2026" (lighter), unabbreviated. */
+const plainMonthParts = computed(() => {
+  if (!props.plain || isMobileMode.value || activeCalendarView.value !== 'month') return null
+
+  const date = timezoneDayjs.timezonize(selectedMonth.value)
+  return { month: date.format('MMMM'), year: date.format('YYYY') }
+})
 </script>
 
 <template>
   <div class="flex gap-1">
-    <NcDropdown v-model:visible="calendarRangeDropdown" :auto-close="false" :trigger="['click']">
+    <NcDropdown
+      v-model:visible="calendarRangeDropdown"
+      :auto-close="false"
+      :trigger="['click']"
+      :overlay-class-name="props.plain ? 'nc-interface-calendar-header-overlay' : undefined"
+    >
       <NcButton
-        :class="
-          isMobileMode
+        :class="[
+          props.plain ? '!px-1' : 'prev-next-btn',
+          props.plain
+            ? ''
+            : isMobileMode
             ? '!w-auto !max-w-[7.5rem]'
             : {
                 'w-20': activeCalendarView === 'year',
@@ -119,15 +145,24 @@ const headerText = computed(() => {
                   activeCalendarView === '2week' ||
                   activeCalendarView === '6week' ||
                   activeCalendarView === 'custom',
-              }
-        "
-        class="prev-next-btn !h-7"
-        full-width
+              },
+        ]"
+        class="!h-7"
+        :full-width="!props.plain"
         size="small"
-        type="secondary"
+        :type="props.plain ? 'text' : 'secondary'"
       >
         <div class="flex w-full px-1 items-center justify-between gap-1">
           <span
+            v-if="plainMonthParts"
+            class="inline-flex items-baseline gap-1.5 text-[16px] text-nc-content-gray whitespace-nowrap"
+            data-testid="nc-calendar-active-date"
+          >
+            <span class="font-bold">{{ plainMonthParts.month }}</span>
+            <span class="font-medium text-nc-content-gray-subtle">{{ plainMonthParts.year }}</span>
+          </span>
+          <span
+            v-else
             :class="{
               'max-w-38 truncate':
                 !isMobileMode &&
@@ -136,13 +171,19 @@ const headerText = computed(() => {
                   activeCalendarView === '2week' ||
                   activeCalendarView === '6week'),
               'truncate': isMobileMode || activeCalendarView === 'custom',
+              'font-bold text-[13px]': !props.plain,
+              '!text-[16px] font-bold': props.plain,
             }"
-            class="font-bold text-[13px] text-center text-nc-content-gray"
+            class="text-center text-nc-content-gray"
             data-testid="nc-calendar-active-date"
             >{{ headerText }}</span
           >
           <div class="flex-1" />
-          <component :is="iconMap.arrowDown" class="h-4 min-w-4 text-nc-content-gray-subtle" />
+          <component
+            :is="iconMap.arrowDown"
+            class="text-nc-content-gray-subtle"
+            :class="props.plain ? 'h-3.5 min-w-3.5 opacity-70' : 'h-4 min-w-4'"
+          />
         </div>
       </NcButton>
 

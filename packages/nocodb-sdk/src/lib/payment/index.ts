@@ -16,6 +16,8 @@ export enum PlanLimitTypes {
   // were merged in here). Retention governs the automation_executions log.
   LIMIT_AUTOMATION_RUN = 'limit_automation_run',
   LIMIT_AUTOMATION_RETENTION = 'limit_automation_retention',
+  // App routine (sql/http external-data) invocation budget — mirrors automation runs.
+  LIMIT_APP_ROUTINE_RUN = 'limit_app_routine_run',
   LIMIT_WEBHOOK_PER_WORKSPACE = 'limit_webhook',
   LIMIT_EXTENSION_PER_WORKSPACE = 'limit_extension',
   LIMIT_SNAPSHOT_PER_WORKSPACE = 'limit_snapshot',
@@ -31,7 +33,11 @@ export enum PlanLimitTypes {
   LIMIT_SORT_PER_VIEW = 'limit_sort_per_view',
   LIMIT_ATTACHMENTS_IN_CELL = 'limit_attachments_in_cell',
   LIMIT_SCRIPT_PER_WORKSPACE = 'limit_script',
+  LIMIT_AGENT_PER_WORKSPACE = 'limit_agent',
   LIMIT_DASHBOARD_PER_WORKSPACE = 'limit_dashboard',
+  LIMIT_INTERFACE_PER_WORKSPACE = 'limit_interface',
+  LIMIT_INTERFACE_PAGE_PER_INTERFACE = 'limit_interface_page',
+  LIMIT_WORKFLOW_PER_BASE = 'limit_workflow_per_base',
   LIMIT_TEAM_MANAGEMENT = 'limit_team_management',
   LIMIT_RLS_POLICIES_PER_TABLE = 'limit_rls_policies_per_table',
   LIMIT_DOCUMENT_PAGE_PER_BASE = 'limit_document_page_per_base',
@@ -40,6 +46,9 @@ export enum PlanLimitTypes {
   LIMIT_WORKSPACE = 'limit_workspace',
   LIMIT_TRASH_RETENTION = 'limit_trash_retention',
   LIMIT_AI_INTEGRATIONS = 'limit_ai_integrations',
+  LIMIT_CREDITS = 'limit_credits',
+  LIMIT_CREDITS_PER_SEAT = 'limit_credits_per_seat',
+  LIMIT_ENVIRONMENTS_PER_BASE = 'limit_environments_per_base',
 }
 
 export enum PlanFeatureTypes {
@@ -79,6 +88,8 @@ export enum PlanFeatureTypes {
   FEATURE_API_DASHBOARD_V3 = 'feature_api_dashboard_v3',
   FEATURE_API_VIEW_V3 = 'feature_api_view_v3',
   FEATURE_API_WEBHOOK_V3 = 'feature_api_webhook_v3',
+  FEATURE_MCP_SCRIPT = 'feature_mcp_script',
+  FEATURE_MCP_WEBHOOK = 'feature_mcp_webhook',
   FEATURE_CALENDAR_RANGE = 'feature_calendar_range',
   FEATURE_AI_PROMPT_FIELD = 'feature_ai_prompt_field',
   FEATURE_AI_BUTTON_FIELD = 'feature_ai_button_field',
@@ -93,6 +104,7 @@ export enum PlanFeatureTypes {
   FEATURE_TABLE_SYNC = 'feature_table_sync',
   FEATURE_TABLE_SYNC_AUTO = 'feature_table_sync_auto',
   FEATURE_CUSTOM_SYNC = 'feature_custom_sync',
+  FEATURE_SYNC_15_MIN = 'feature_sync_15_min',
   FEATURE_UNIQUE = 'feature_unique',
   FEATURE_LOOKUP_SORT_LIMIT = 'feature_lookup_sort_limit',
   FEATURE_TOGGLE_FILTER = 'feature_toggle_filter',
@@ -104,6 +116,7 @@ export enum PlanFeatureTypes {
   FEATURE_RECORD_TEMPLATES = 'feature_record_templates',
   FEATURE_RLS = 'feature_rls',
   FEATURE_VIEW_SECTIONS = 'feature_view_sections',
+  FEATURE_BASE_SECTIONS = 'feature_base_sections',
   FEATURE_MAP_VIEW = 'feature_map_view',
   FEATURE_LIST_VIEW = 'feature_list_view',
   FEATURE_TEAM_HIERARCHY = 'feature_team_hierarchy',
@@ -122,8 +135,12 @@ export enum PlanFeatureTypes {
   FEATURE_DATE_DEPENDENCY = 'feature_date_dependency',
   FEATURE_API_COMMENT_V3 = 'feature_api_comment_v3',
   FEATURE_API_WORKFLOW_MANAGEMENT = 'feature_api_workflow_management',
+  /** Workflow builder (Automations). Node-level tiers live in workflowNodeHelpers. */
+  FEATURE_WORKFLOWS = 'feature_workflows',
   FEATURE_BASE_VARIABLES = 'feature_base_variables',
   /** Sandbox (branch & merge for a base). Cloud: Scale+. On-prem: Enterprise add-on only. */
+  // Stored key — persisted in every plan row's meta. Renaming it is a data
+  // migration for zero gain; only the display copy uses Environments wording.
   FEATURE_SANDBOX = 'feature_sandbox',
   /** On-prem: core EE capability flag — true for all paid plans, false for free */
   FEATURE_EE_CORE = 'feature_ee_core',
@@ -134,10 +151,65 @@ export enum PlanFeatureTypes {
   FEATURE_BOOKMARKS = 'feature_bookmarks',
   FEATURE_MSSQL = 'feature_mssql',
   FEATURE_ORACLE = 'feature_oracle',
+  /** Enterprise Vaults: source integration credentials from a customer-owned
+   * secrets manager (AWS Secrets Manager, HashiCorp Vault, …) */
+  FEATURE_ENTERPRISE_VAULTS = 'feature_enterprise_vaults',
+  /** Interfaces (Interface Designer): page-based shareable apps on base data */
+  FEATURE_INTERFACES = 'feature_interfaces',
+  FEATURE_INTERFACE_TABLE_MULTI_VIZ = 'feature_interface_table_multi_viz',
+  FEATURE_INTERFACE_METRIC_COLOR_CONDITIONS = 'feature_interface_metric_color_conditions',
+  FEATURE_INTERFACE_PIVOT_WIDGET = 'feature_interface_pivot_widget',
+  FEATURE_INTERFACE_VIEW_WIDGET = 'feature_interface_view_widget',
+  FEATURE_INTERFACE_IFRAME_WIDGET = 'feature_interface_iframe_widget',
+  FEATURE_INTERFACE_USER_FILTERS = 'feature_interface_user_filters',
+  FEATURE_INTERFACE_TOOLBAR_TOGGLES = 'feature_interface_toolbar_toggles',
+  FEATURE_INTERFACE_DRAFTS = 'feature_interface_drafts',
+  FEATURE_INTERFACE_PREVIEW_AS = 'feature_interface_preview_as',
+  FEATURE_INTERFACE_ACCESS_CONTROL = 'feature_interface_access_control',
+  FEATURE_INTERFACE_RECORD_REVIEW = 'feature_interface_record_review',
+  FEATURE_INTERFACE_OVERVIEW = 'feature_interface_overview',
+  FEATURE_INTERFACE_PAGE_ACCESS_CONTROL = 'feature_interface_page_access_control',
+  FEATURE_INTERFACE_BUTTON_VISIBILITY = 'feature_interface_button_visibility',
   /** On-prem (white-label add-on, Scale+): instance-wide white-labeling (logo, product name, brand color, favicon) */
   FEATURE_WHITE_LABEL = 'feature_white_label',
   /** Scheduled (periodic) base snapshots. Sold only as the Enterprise add-on on both ladders — never granted by a plan tier (see AddonDefinitions.ADDON_SCHEDULED_SNAPSHOTS). */
   FEATURE_SCHEDULED_SNAPSHOTS = 'feature_scheduled_snapshots',
+  FEATURE_APP = 'feature_app',
+  FEATURE_APP_EXTERNAL_DATA = 'feature_app_external_data',
+  /** Clean app URL without the random suffix (`<slug>` vs `<slug>-<suffix>`). Enterprise-only. */
+  FEATURE_APP_VANITY_URL = 'feature_app_vanity_url',
+  /** Serving a published app on the publisher's own domain (`app.acme.com`). */
+  FEATURE_APP_CUSTOM_DOMAIN = 'feature_app_custom_domain',
+  /** The app's own external API + MCP server, and the tokens that reach them. */
+  FEATURE_APP_API = 'feature_app_api',
+  /** Use of the built-in Staging environment (Production is always free). */
+  FEATURE_STAGING_ENVIRONMENT = 'feature_staging_environment',
+  /** Creating custom environments (beyond Production/Staging). */
+  FEATURE_CUSTOM_ENVIRONMENT = 'feature_custom_environment',
+  /** Per-user credentials on OAuth auth integrations (each user connects their own account). */
+  FEATURE_PER_USER_CREDENTIALS = 'feature_per_user_credentials',
+  /**
+   * Migrating a base OUT to another NocoDB instance (POST /api/v2/meta/migrate/:baseId).
+   * On-prem: enabled on every tier including Free — self-hosted users own their data.
+   * Cloud: disabled on every tier and never sold; granted per workspace/org through
+   * `subscription.meta.plan_meta` for customers moving to paid on-prem.
+   * Does not gate inbound import — that is FEATURE_EE_CORE.
+   */
+  FEATURE_MIGRATE_BASE_EXPORT = 'feature_migrate_base_export',
+
+  /** Configured, autonomous agents in a base — the Agents vertical. */
+  FEATURE_AGENTS = 'feature_agents',
+
+  /** App Factory — coding agents dispatched against a workspace's source-control repos. */
+  FEATURE_APP_FACTORY = 'feature_app_factory',
+
+  /** Editing a workspace's skills policy: which repos, and whether personal catalogs load. */
+  FEATURE_SKILLS_GOVERNANCE = 'feature_skills_governance',
+  /** Org-scope skills, org policy over every workspace, inventory and load reporting. */
+  FEATURE_SKILLS_ORG = 'feature_skills_org',
+
+  /** Shared form views can require the submitter to sign in. */
+  FEATURE_FORM_REQUIRE_SIGNIN = 'feature_form_require_signin',
 }
 
 export enum PlanAddonTypes {
@@ -348,6 +420,7 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 'to run more automations.',
   [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]:
     'to increase automation retention.',
+  [PlanLimitTypes.LIMIT_APP_ROUTINE_RUN]: 'to run more app routines.',
   [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: 'to add more webhooks.',
   [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: 'to add more extensions.',
   [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]:
@@ -369,8 +442,16 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
     'to add more attachments in a cell.',
   [PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE]:
     'to add more scripts in a workspace.',
+  [PlanLimitTypes.LIMIT_AGENT_PER_WORKSPACE]:
+    'to add more agents in a workspace.',
   [PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE]:
     'to add more dashboards in a workspace.',
+  [PlanLimitTypes.LIMIT_INTERFACE_PER_WORKSPACE]:
+    'to add more interfaces in a workspace.',
+  [PlanLimitTypes.LIMIT_INTERFACE_PAGE_PER_INTERFACE]:
+    'to add more pages in an interface.',
+  [PlanLimitTypes.LIMIT_WORKFLOW_PER_BASE]:
+    'to add more workflows in a base.',
   [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 'to add more teams in a workspace.',
   [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]:
     'to add more row-level security policies per table.',
@@ -383,6 +464,10 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
     'to keep document revision history for longer.',
   [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 'for extended trash retention.',
   [PlanLimitTypes.LIMIT_AI_INTEGRATIONS]: 'to add more AI integrations.',
+  [PlanLimitTypes.LIMIT_CREDITS]: 'to get more credits.',
+  [PlanLimitTypes.LIMIT_CREDITS_PER_SEAT]: 'to get more credits per seat.',
+  [PlanLimitTypes.LIMIT_ENVIRONMENTS_PER_BASE]:
+    'to add more environments in a base.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
@@ -436,6 +521,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_API_WEBHOOK_V3]: 'to use webhook api.',
   [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: 'to use script api.',
   [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: 'to use dashboard api.',
+  [PlanFeatureTypes.FEATURE_MCP_SCRIPT]: 'to use script tools over MCP.',
+  [PlanFeatureTypes.FEATURE_MCP_WEBHOOK]: 'to use webhook tools over MCP.',
   [PlanFeatureTypes.FEATURE_CALENDAR_RANGE]:
     'to visualize records in a calendar range.',
   [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: 'to use AI text fields.',
@@ -456,6 +543,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_TABLE_SYNC]: 'to use NocoDB Sync.',
   [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: 'to use automatic NocoDB Sync.',
   [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: 'to use Custom Sync.',
+  [PlanFeatureTypes.FEATURE_SYNC_15_MIN]: 'to sync every 15 minutes.',
   [PlanFeatureTypes.FEATURE_UNIQUE]: 'to use unique constraint.',
   [PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT]:
     'to sort and limit lookup field values.',
@@ -470,7 +558,9 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_AUTONUMBER_FIELD]: 'to use AutoNumber fields.',
   [PlanFeatureTypes.FEATURE_RECORD_TEMPLATES]: 'to use record templates.',
   [PlanFeatureTypes.FEATURE_RLS]: 'to use row-level security.',
-  [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: 'to organize views into sections.',
+  [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: 'to organize views into folders.',
+  [PlanFeatureTypes.FEATURE_BASE_SECTIONS]:
+    'to organize tables, documents and dashboards into folders.',
   [PlanFeatureTypes.FEATURE_MAP_VIEW]: 'to use map view.',
   [PlanFeatureTypes.FEATURE_LIST_VIEW]: 'to use list view.',
   [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: 'to use team hierarchy.',
@@ -491,8 +581,9 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_DATE_DEPENDENCY]: 'to use date dependencies.',
   [PlanFeatureTypes.FEATURE_API_COMMENT_V3]: 'to use comment api.',
   [PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT]: 'to use workflow api.',
+  [PlanFeatureTypes.FEATURE_WORKFLOWS]: 'to build workflows.',
   [PlanFeatureTypes.FEATURE_BASE_VARIABLES]: 'to use base variables.',
-  [PlanFeatureTypes.FEATURE_SANDBOX]: 'to use Sandboxes.',
+  [PlanFeatureTypes.FEATURE_SANDBOX]: 'to use Environments.',
   [PlanFeatureTypes.FEATURE_EE_CORE]: 'to access enterprise features.',
   [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]:
     'to configure per-table trash settings.',
@@ -509,6 +600,73 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to white-label this instance with your own logo, product name, and brand color.',
   [PlanFeatureTypes.FEATURE_SCHEDULED_SNAPSHOTS]:
     'to schedule automatic snapshots.',
+  [PlanFeatureTypes.FEATURE_APP]: 'to build Apps.',
+  [PlanFeatureTypes.FEATURE_APP_EXTERNAL_DATA]:
+    'to use external data sources in apps.',
+  [PlanFeatureTypes.FEATURE_APP_VANITY_URL]:
+    'to use a clean app URL without a random suffix.',
+  [PlanFeatureTypes.FEATURE_APP_CUSTOM_DOMAIN]:
+    'to serve apps on your own custom domain.',
+  [PlanFeatureTypes.FEATURE_APP_API]:
+    "to expose your app's API and MCP server.",
+  [PlanFeatureTypes.FEATURE_STAGING_ENVIRONMENT]:
+    'to use the Staging environment.',
+  [PlanFeatureTypes.FEATURE_CUSTOM_ENVIRONMENT]:
+    'to create custom environments.',
+  [PlanFeatureTypes.FEATURE_PER_USER_CREDENTIALS]:
+    'to let each user connect their own account.',
+  [PlanFeatureTypes.FEATURE_FORM_REQUIRE_SIGNIN]:
+    'to require sign-in on shared forms.',
+  [PlanFeatureTypes.FEATURE_INTERFACES]: 'to build interfaces.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_TABLE_MULTI_VIZ]:
+    'to add multiple visualizations to an interface page.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_METRIC_COLOR_CONDITIONS]:
+    'to colour metric widgets by value conditions.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_PIVOT_WIDGET]: 'to use pivot widgets.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_VIEW_WIDGET]:
+    'to embed views in dashboards.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_IFRAME_WIDGET]: 'to embed web pages.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_USER_FILTERS]:
+    'to add filter tabs and dropdowns for interface users.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_TOOLBAR_TOGGLES]:
+    'to let interface users sort, search and filter.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_DRAFTS]:
+    'to stage interface changes as drafts before publishing.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_PREVIEW_AS]:
+    'to preview interfaces as other roles and collaborators.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_ACCESS_CONTROL]:
+    'to manage interface-level member access.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_RECORD_REVIEW]:
+    'to build record review pages.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_OVERVIEW]: 'to build overview pages.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_PAGE_ACCESS_CONTROL]:
+    'to control access per interface page.',
+  [PlanFeatureTypes.FEATURE_INTERFACE_BUTTON_VISIBILITY]:
+    'to show interface buttons conditionally.',
+  [PlanFeatureTypes.FEATURE_MIGRATE_BASE_EXPORT]:
+    'to migrate a base to another NocoDB instance.',
+  [PlanFeatureTypes.FEATURE_AGENTS]: 'to use agents.',
+  [PlanFeatureTypes.FEATURE_APP_FACTORY]: 'to use the App Factory.',
+  [PlanFeatureTypes.FEATURE_SKILLS_GOVERNANCE]:
+    'to control which skills your workspace can install.',
+  [PlanFeatureTypes.FEATURE_SKILLS_ORG]:
+    'to manage skills across every workspace in your organization.',
+  [PlanFeatureTypes.FEATURE_ENTERPRISE_VAULTS]:
+    'to keep integration credentials in your own secrets manager.',
+};
+
+// Add-on-only features — no plan tier grants these, so "upgrade your plan"
+// would send the user to a purchase that cannot unlock them. Standalone
+// sentences, not fragments appended to an upgrade prefix.
+export const PlanFeatureAddonMessages: Partial<
+  Record<PlanFeatureTypes, string>
+> = {
+  [PlanFeatureTypes.FEATURE_MSSQL]:
+    'Microsoft SQL Server sources require the MSSQL add-on.',
+  [PlanFeatureTypes.FEATURE_ORACLE]:
+    'Oracle Database sources require the Oracle add-on.',
+  [PlanFeatureTypes.FEATURE_SCIM]:
+    'SCIM provisioning requires the SCIM add-on.',
 };
 
 export const getUpgradeMessage = (
@@ -542,3 +700,16 @@ export const PlanFeatureTypesToPlanTitles = {} as Record<
 export type PlanMetaType = Partial<
   Record<PlanFeatureTypes, boolean> & Record<PlanLimitTypes, number>
 >;
+
+/**
+ * Sentinel `stripe_customer_id` for workspaces/orgs with no real Stripe
+ * customer — free, internal and comped accounts. Nothing can be charged
+ * against it, so any money-in path must check before calling Stripe.
+ */
+export const INTERNAL_STRIPE_CUSTOMER_ID = 'nocodb';
+
+/** True when this is a chargeable Stripe customer, not the internal sentinel. */
+export const isChargeableStripeCustomer = (
+  stripeCustomerId?: string | null
+): boolean =>
+  !!stripeCustomerId && stripeCustomerId !== INTERNAL_STRIPE_CUSTOMER_ID;

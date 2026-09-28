@@ -41,6 +41,7 @@ const options = ref({
   includeComments: true,
   includeScripts: !!appInfo.value?.ee,
   includeDashboards: !!appInfo.value?.ee,
+  includeInterfaces: !!appInfo.value?.ee,
   includeWorkflows: !!appInfo.value?.ee,
   includeDocuments: !!appInfo.value?.ee,
 })
@@ -58,14 +59,25 @@ const isEaster = ref(false)
 const dropdownOpen = ref(false)
 
 const optionsToExclude = computed(() => {
-  const { includeData, includeViews, includeHooks, includeComments, includeScripts, includeWorkflows, includeDocuments } =
-    options.value
+  const {
+    includeData,
+    includeViews,
+    includeHooks,
+    includeComments,
+    includeScripts,
+    includeDashboards,
+    includeInterfaces,
+    includeWorkflows,
+    includeDocuments,
+  } = options.value
   return {
     excludeData: !includeData,
     excludeViews: !includeViews,
     excludeHooks: !includeHooks,
     excludeComments: !includeComments,
     excludeScripts: !includeScripts,
+    excludeDashboards: !includeDashboards,
+    excludeInterfaces: !includeInterfaces,
     excludeWorkflows: !includeWorkflows,
     excludeDocuments: !includeDocuments,
   }
@@ -294,6 +306,15 @@ onKeyStroke('Enter', () => {
           >
             <NcSwitch :checked="options.includeDashboards" />
             {{ $t('labels.includeDashboards') }}
+          </div>
+
+          <div
+            v-if="isEeActive"
+            class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
+            @click="options.includeInterfaces = !options.includeInterfaces"
+          >
+            <NcSwitch :checked="options.includeInterfaces" />
+            {{ $t('labels.includeInterfaces') }}
           </div>
 
           <div

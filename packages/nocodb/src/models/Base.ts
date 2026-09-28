@@ -1,6 +1,11 @@
 import { Logger } from '@nestjs/common';
 import { BaseVersion } from 'nocodb-sdk';
-import type { BaseType, BoolType, MetaType } from 'nocodb-sdk';
+import type {
+  BaseType,
+  BoolType,
+  ManagedAppInstallSurface,
+  MetaType,
+} from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';
 import type { NcContext } from '~/interface/config';
 import {
@@ -27,6 +32,11 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { NcError } from '~/helpers/catchError';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+import {
+  getModelContext,
+  setModelContext,
+  throwMissingContext,
+} from '~/helpers/modelContext';
 
 const logger = new Logger('Base');
 
@@ -42,14 +52,22 @@ export default class Base implements BaseType {
   public deleted: BoolType | number;
   public order: number;
   public is_meta: boolean | number = false;
+  public type?: BaseType['type'];
   public sources?: Source[];
   public linked_db_projects?: Base[];
   public default_role?: 'no-access';
   public is_snapshot?: boolean;
   public version?: BaseVersion;
+  // Declared on CE Base (like default_role) so the shared PROJECT column is
+  // readable through the CE-typed Base.get/getWithInfo.
+  public suspended?: boolean;
+  public suspended_reason?: string;
+  public suspended_at?: Date | string | number;
+  public suspended_by?: string;
 
   // shared base props
   uuid?: string;
+  // Never verified. Base share is uuid-only; writable via update(), never read.
   password?: string;
   roles?: string;
   fk_custom_url_id?: string;
@@ -59,21 +77,44 @@ export default class Base implements BaseType {
   managed_app_id?: string; // Points to MANAGED_APPS (for both master and installed instances)
   managed_app_version_id?: string; // Current version ID from MANAGED_APP_VERSIONS
   auto_update?: boolean; // For installed instances: auto-update to new published versions
+  // For installed instances: what the publisher chose to hand this install's
+  // owner. Stamped at install and never re-read from the listing. Null on an
+  // install from before the column — read via resolveInstallSurface().
+  managed_app_surface?: ManagedAppInstallSurface;
   // managed app info (populated fields)
   managed_app_version?: string; // Current version string
   managed_app_published_at?: string; // When this version was published
   managed_app_schema_locked?: boolean; // Computed: whether schema modifications are allowed
+  // An operator's kill switch, resolved for display. 'app' stops every install
+  // of the listing; 'version' only the installs pinned to that release. Unset
+  // while the app runs.
+  managed_app_suspended_scope?: 'app' | 'version';
+  managed_app_suspended_reason?: string | null;
 
   // sandbox props
-  is_sandbox_production?: boolean; // Is this base a production base that has sandbox(es) derived from it?
-  is_sandbox?: boolean; // Is this base a sandbox base?
+  has_lane_instances?: boolean; // Is this base a production base that has sandbox(es) derived from it?
+  is_lane_instance?: boolean; // Is this base a sandbox base?
+
+  get context(): NcContext {
+    const ctx = getModelContext(this);
+    if (ctx) return ctx;
+    if (this.fk_workspace_id && this.id) {
+      return {
+        workspace_id: this.fk_workspace_id,
+        base_id: this.id,
+      } as NcContext;
+    }
+    throwMissingContext('Base');
+  }
 
   constructor(base: Partial<Base>) {
     Object.assign(this, base);
   }
 
-  public static castType(base: Base): Base {
-    return base && new Base(base);
+  public static castType(base: Base, context?: NcContext): Base {
+    const instance = base && new Base(base);
+    if (instance && context) setModelContext(instance, context);
+    return instance;
   }
 
   public static async populateManagedAppInfo(_base: Base): Promise<void> {
@@ -99,8 +140,8 @@ export default class Base implements BaseType {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
-      'is_sandbox_production',
-      'is_sandbox',
+      'has_lane_instances',
+      'is_lane_instance',
     ]);
 
     if (!insertObj.order) {
@@ -296,7 +337,7 @@ export default class Base implements BaseType {
         baseData = null;
       }
     }
-    const base = this.castType(baseData);
+    const base = this.castType(baseData, context);
 
     if (base && base.managed_app_id) {
       await this.populateManagedAppInfo(base);
@@ -309,8 +350,14 @@ export default class Base implements BaseType {
     includeConfig = true,
     ncMeta = Noco.ncMeta,
   ): Promise<Source[]> {
+    // Deliberately row-derived, NOT this.context: a Base can be fetched
+    // through a root-scoped lookup (Base.getByTitleOrId with
+    // {workspace_id: RootScopes.BASE, base_id: RootScopes.BASE}), and that
+    // scope gets stamped on the instance. Source.list is base-scoped, so
+    // handing it the lookup scope returns an empty list. The base's own ids
+    // are the correct scope here.
     const sources = await Source.list(
-      { workspace_id: this.fk_workspace_id, base_id: this.id },
+      { workspace_id: this.fk_workspace_id, base_id: this.id } as NcContext,
       { baseId: this.id },
       ncMeta,
     );
@@ -376,7 +423,7 @@ export default class Base implements BaseType {
       }
     }
     if (baseData) {
-      const base = this.castType(baseData);
+      const base = this.castType(baseData, context);
 
       if (base.managed_app_id) {
         await this.populateManagedAppInfo(base);
@@ -482,8 +529,8 @@ export default class Base implements BaseType {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
-      'is_sandbox_production',
-      'is_sandbox',
+      'has_lane_instances',
+      'is_lane_instance',
     ]);
 
     // stringify meta
@@ -625,7 +672,8 @@ export default class Base implements BaseType {
       ncMeta,
     );
     for (const source of sources) {
-      await source.delete(context, ncMeta);
+      // The base is going away, so its own source goes with it.
+      await source.delete(ncMeta, { force: true });
     }
 
     await DataReflection.revokeBase(base.fk_workspace_id, base.id, ncMeta);
@@ -681,6 +729,15 @@ export default class Base implements BaseType {
     await FileReference.bulkDelete(context, { base_id: baseId }, ncMeta);
 
     await Extension.deleteByBaseId(context, baseId, ncMeta);
+
+    // Invite links minted for this base. A link is a standing grant holding a
+    // redeemable secret, so it must not outlive the base it grants access to.
+    await ncMeta.metaDelete(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.INVITE_LINKS,
+      { base_id: baseId },
+    );
 
     return await ncMeta.metaDelete(
       context.workspace_id,

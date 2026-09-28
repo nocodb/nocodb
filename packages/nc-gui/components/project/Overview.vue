@@ -10,7 +10,7 @@ const isNewBaseModalOpen = ref(false)
 
 const { isMobileMode } = useGlobal()
 
-const { isUIAllowed, sandboxRestrictionReason } = useRoles()
+const { isUIAllowed, environmentRestrictionReason } = useRoles()
 
 const { $e } = useNuxtApp()
 
@@ -23,6 +23,7 @@ const { activeSidebarTab } = storeToRefs(useSidebarStore())
 const tabActionLabel = computed(() => {
   const labels: Record<string, string> = {
     workflows: t('objects.workflow'),
+    agents: t('objects.agent'),
     docs: t('objects.document'),
   }
   return labels[activeSidebarTab.value] ?? t('general.data')
@@ -70,7 +71,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
   }
 }
 
-const tableCreateReason = computed(() => sandboxRestrictionReason('tableCreate', { source: base.value?.sources?.[0] }))
+const tableCreateReason = computed(() => environmentRestrictionReason('tableCreate', { source: base.value?.sources?.[0] }))
 
 const onCreateBaseClick = () => {
   if (showExternalSourcePlanLimitExceededModal() || isDataSourceLimitReached.value) return
@@ -126,7 +127,7 @@ const onCreateBaseClick = () => {
             </template>
           </ProjectActionItem>
 
-          <ProjectActionCreateNewDocument v-if="showEEFeatures" :base-id="base?.id" />
+          <ProjectActionCreateNewDocument v-if="isEeUI" :base-id="base?.id" />
 
           <ProjectActionCreateEmptyDashboard v-if="!isMobileMode && showEEFeatures" />
 
@@ -173,6 +174,10 @@ const onCreateBaseClick = () => {
           <ProjectActionCreateEmptyWorkflow />
           <ProjectActionCreateEmptyScript />
           <ProjectActionScriptsByNocoDB />
+        </template>
+        <!-- Agent actions (shown on Agents tab) -->
+        <template v-if="activeSidebarTab === 'agents' && !isMobileMode && showEEFeatures">
+          <ProjectActionCreateEmptyAgent />
         </template>
       </template>
     </div>

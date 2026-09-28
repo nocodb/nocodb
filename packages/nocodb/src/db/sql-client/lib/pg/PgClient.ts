@@ -3288,6 +3288,10 @@ class PGClient extends KnexClient {
           query += pgQueries.dateConversionFunction.default.sql;
         }
 
+        if ([UITypes.Decimal, UITypes.Currency].includes(n.uidt)) {
+          query += pgQueries.localeNumberFunction.default.sql;
+        }
+
         query += this.genQuery(
           `\nALTER TABLE ?? ALTER COLUMN ?? TYPE ${this.sanitiseDataType(
             n.dt,
@@ -3312,6 +3316,8 @@ class PGClient extends KnexClient {
             limit,
             format: n.meta?.date_format || 'YYYY-MM-DD',
             durationType: n.meta?.duration ?? 0,
+            meta: n.meta,
+            sourceUidt: o.uidt,
           });
 
           query += this.genQuery(castQuery, [], shouldSanitize);
@@ -3365,6 +3371,18 @@ class PGClient extends KnexClient {
           [t, n.cn],
           shouldSanitize,
         );
+        // `serial` is `NOT NULL DEFAULT nextval(...)`, but it is added via the
+        // `n.ai` branch which never emits a NOT NULL clause — so metadata keeps
+        // rqd=false and the `n.rqd !== o.rqd` diff above can't see the
+        // constraint. Dropping the default without it leaves a NOT NULL column
+        // that nothing populates, breaking every insert on the table.
+        if (!n.rqd) {
+          query += this.genQuery(
+            `\nALTER TABLE ?? ALTER COLUMN ?? DROP NOT NULL;\n`,
+            [t, n.cn],
+            shouldSanitize,
+          );
+        }
       }
 
       // Handle unique constraint changes

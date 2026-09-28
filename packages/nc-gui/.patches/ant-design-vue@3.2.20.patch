@@ -11,3 +11,37 @@ index b82d75140e62213973551b10a852a2ce194f3e83..c2c00a079518d3ded4f89cd831b63fd1
              instance.update();
            }
          });
+diff --git a/es/vc-select/OptionList.js b/es/vc-select/OptionList.js
+index a93021fd63f8c5aeda5e9486952f72d3695de18c..f35ac48f5590c8801b6a15615e4836548d075956 100644
+--- a/es/vc-select/OptionList.js
++++ b/es/vc-select/OptionList.js
+@@ -214,8 +214,11 @@ var OptionList = defineComponent({
+         // >>> Close
+         case KeyCode.ESC:
+           {
++            // `baseProps.open` is a live unwrap of mergedOpen, so toggleOpen has
++            // already reset it here; capture first or Esc bubbles to the host modal.
++            var wasOpen = baseProps.open;
+             baseProps.toggleOpen(false);
+-            if (baseProps.open) {
++            if (wasOpen) {
+               event.stopPropagation();
+             }
+           }
+diff --git a/lib/vc-select/OptionList.js b/lib/vc-select/OptionList.js
+index 067cf56330322759fcd481e0a8b33537a050e162..f2e81a179533cda3ef97151a2b78250ef952821a 100644
+--- a/lib/vc-select/OptionList.js
++++ b/lib/vc-select/OptionList.js
+@@ -220,8 +220,11 @@ var OptionList = (0, _vue.defineComponent)({
+         // >>> Close
+         case _KeyCode.default.ESC:
+           {
++            // `baseProps.open` is a live unwrap of mergedOpen, so toggleOpen has
++            // already reset it here; capture first or Esc bubbles to the host modal.
++            var wasOpen = baseProps.open;
+             baseProps.toggleOpen(false);
+-            if (baseProps.open) {
++            if (wasOpen) {
+               event.stopPropagation();
+             }
+           }

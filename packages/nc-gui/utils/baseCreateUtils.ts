@@ -28,6 +28,7 @@ interface ProjectCreateForm {
 interface DefaultConnection {
   host: string
   database: string
+  // May be a vault reference, resolved by the backend.
   user: string
   password: string
   port: number | string

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { type TableType, ViewLockType, type ViewType, type ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import { LockType, isDefaultBase } from '#imports'
+import { LockType } from '#imports'
 
 interface Props {
   view: ViewType
@@ -58,13 +58,39 @@ provide(MetaInj, injectedTable)
 
 const isLocked = inject(IsLockedInj, ref(false))
 
+// Shallow indent iff the owning table renders at the sidebar root, i.e. it
+// belongs to the base's own source — a single external source does not.
 const isDefaultBaseLocal = computed(() => {
-  if (base.value?.sources?.length === 1) return true
+  const ownSourceId = baseOwnSourceId(base.value?.sources)
+  return !!ownSourceId && vModel.value.source_id === ownSourceId
+})
 
-  const source = base.value?.sources?.find((b) => b.id === vModel.value.source_id)
-  if (!source) return false
+const { isRtl } = useRtl()
 
-  return isDefaultBase(source)
+/** Extra indent when the owning table sits inside a base-level section — the
+ *  table node provides it, and the views step in by the same amount so they
+ *  stay one level below their table. */
+const sectionIndentPx = inject(SidebarSectionIndentInj, ref(0))
+
+/**
+ * A table row renders a leading chevron on mobile only, which shifts its icon
+ * right by this much. View rows have no chevron, so without matching it they
+ * line up WITH the table icon instead of one level below it.
+ */
+const MOBILE_TABLE_CHEVRON_PX = 20
+
+/**
+ * Left indent by context, in px. A computed style rather than the utility
+ * classes this replaces, because both corrections are dynamic: the section
+ * offset is viewport-dependent (22px desktop, 12px mobile) and the chevron
+ * compensation applies only on mobile.
+ */
+const indentStyle = computed(() => {
+  const base = props.isInSection ? (isDefaultBaseLocal.value ? 54 : 82) : isDefaultBaseLocal.value ? 30 : 56
+
+  const padding = `${base + (isMobileMode.value ? MOBILE_TABLE_CHEVRON_PX : 0) + sectionIndentPx.value}px`
+
+  return isRtl.value ? { paddingRight: padding, paddingLeft: '0px' } : { paddingLeft: padding }
 })
 
 const { openViewDescriptionDialog: _openViewDescriptionDialog } = inject(TreeViewInj)!
@@ -297,12 +323,7 @@ watch(isDropdownOpen, async () => {
 <template>
   <div
     class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle text-bodyDefaultSm !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray) cursor-pointer"
-    :class="{
-      '!pl-7.5 rtl:(!pr-7.5 !pl-0)': isDefaultBaseLocal && !isInSection,
-      '!pl-14 rtl:(!pr-14 !pl-0)': !isDefaultBaseLocal && !isInSection,
-      '!pl-13.5 rtl:(!pr-13.5 !pl-0)': isDefaultBaseLocal && isInSection,
-      '!pl-20.5 rtl:(!pr-20.5 !pl-0)': !isDefaultBaseLocal && isInSection,
-    }"
+    :style="indentStyle"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @click.prevent="handleOnClick"
   >
@@ -471,7 +492,7 @@ watch(isDropdownOpen, async () => {
               @mouseenter="showViewNodeTooltip = false"
               @mouseleave="showViewNodeTooltip = true"
             >
-              <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
+              <GeneralIcon icon="threeDotHorizontal" class="w-4 h-4" />
             </NcButton>
 
             <template #overlay>

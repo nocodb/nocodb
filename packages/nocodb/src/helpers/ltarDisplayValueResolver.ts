@@ -51,13 +51,11 @@ export async function getLtarDisplayValueContext(
     );
   }
 
-  const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-    context,
-  );
+  const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 
-  const { refContext } = await colOptions.getParentChildContext(context);
-  const relatedModel = await colOptions.getRelatedTable(refContext);
-  await relatedModel.getColumns(refContext);
+  const { refContext } = await colOptions.getParentChildContext();
+  const relatedModel = await colOptions.getRelatedTable();
+  await relatedModel.getColumns();
 
   const customDisplayColId = (colOptions as any).fk_display_value_column_id;
   const customDisplayCol =
@@ -104,11 +102,22 @@ export async function getLtarDisplayValueContext(
  * Returns a Map from submitted display value → matched primary key. Unmatched
  * values are simply absent. Ambiguous values (matching multiple rows) resolve
  * to the first row seen.
+ *
+ * @param options.caseInsensitiveFallback Whether step 2 runs. Defaults to
+ *   `true`, which is what interactive callers want — someone pasting "paris"
+ *   from a spreadsheet means the row titled "Paris". Set `false` for callers
+ *   that need a deterministic, exact match instead: the v3 write API does this
+ *   so an unattended sync can't silently link a near-miss, and so the same
+ *   payload always resolves the same way regardless of database collation.
+ *   Turning it off also skips the `like` query, which is an unindexed scan on
+ *   the related table.
  */
 export async function resolveLtarDisplayValuesToPks(
   groupCtx: LtarDisplayValueContext,
   uniqueValues: Iterable<string>,
+  options?: { caseInsensitiveFallback?: boolean },
 ): Promise<Map<string, string | number>> {
+  const { caseInsensitiveFallback = true } = options ?? {};
   const { relatedModel, relatedBaseModel, displayValueColumn } = groupCtx;
   const dvTitle = displayValueColumn.title;
 
@@ -174,6 +183,8 @@ export async function resolveLtarDisplayValuesToPks(
   }
 
   // Step 2: case-insensitive fallback for the values eq didn't match
+  if (!caseInsensitiveFallback) return valueToPk;
+
   const unmatchedValues = [...allUniqueValues].filter((v) => !valueToPk.has(v));
   if (unmatchedValues.length > 0) {
     const likeFilterArr = await buildVerifiedFilters(unmatchedValues, 'like');

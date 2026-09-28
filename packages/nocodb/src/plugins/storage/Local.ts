@@ -104,7 +104,7 @@ export default class Local implements IStorageAdapterV2 {
 
   public async fileReadByStream(
     key: string,
-    options: { encoding?: string },
+    options?: { encoding?: string; start?: number; end?: number },
   ): Promise<Readable> {
     try {
       const srcPath = validateAndNormaliseLocalPath(key);
@@ -116,9 +116,22 @@ export default class Local implements IStorageAdapterV2 {
         ...(options?.encoding && {
           encoding: options.encoding as BufferEncoding,
         }),
+        ...(options?.start !== undefined && { start: options.start }),
+        ...(options?.end !== undefined && { end: options.end }),
       });
     } catch (e) {
       NcError._.storageFileStreamError(e.message);
+    }
+  }
+
+  public async fileSize(key: string): Promise<number> {
+    try {
+      const { size } = await fs.promises.stat(
+        validateAndNormaliseLocalPath(key),
+      );
+      return size;
+    } catch (e) {
+      NcError._.storageFileReadError(e.message);
     }
   }
 

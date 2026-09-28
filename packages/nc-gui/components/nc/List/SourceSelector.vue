@@ -31,8 +31,11 @@ const sourceId = useVModel(props, 'sourceId', emits, {
 
 const isOpenSourceSelectDropdown = ref(false)
 
+// The base's own source is the one flagged internal, or the unnamed one — not whichever happens to sit first.
+const ownSourceId = computed(() => baseOwnSourceId(base.value?.sources))
+
 const sourceList = computed(() => {
-  return (base.value?.sources || [])?.map((source, idx) => {
+  return (base.value?.sources || [])?.map((source) => {
     const isHidden = source.enabled === false
 
     const isSchemaReadonly = !!source.is_schema_readonly
@@ -54,10 +57,8 @@ const sourceList = computed(() => {
 
     let sourceLabel = t('general.default')
 
-    if (idx !== 0 && (source.is_meta || source.is_local)) {
-      sourceLabel = t('general.base')
-    } else if (idx !== 0) {
-      sourceLabel = source.alias || source.id!
+    if (source.id !== ownSourceId.value) {
+      sourceLabel = source.alias || (isDefaultBase(source) ? t('general.base') : source.id!)
     }
 
     return {

@@ -92,4 +92,21 @@ export const BATCHABLE_INTERNAL_OPERATIONS: ReadonlySet<string> = new Set([
   'dashboardList',
   'workflowList',
   'listSync',
+
+  // Interfaces — module-registered ops (InterfaceGet.operations.ts), so
+  // both batched and non-batched dispatch resolve via the module map
+  'interfaceList',
+  'interfaceGet',
+  'interfacePageList',
+  'interfacePageGet',
+
+  'interfaceWidgetDataGet',
+  'interfaceTableDataList',
+  'interfaceTableDataCount',
+  'interfaceTableGroupedDataList',
+  'interfaceTableGroupBy',
+  'interfaceTableCalendarDataList',
+  'interfaceTableCalendarActiveDates',
+  'interfaceTableTimelineDataList',
+  'interfaceTableGanttDataList',
 ]);

@@ -1,5 +1,9 @@
 import { RelationTypes } from '~/lib/globals';
 import UITypes from '~/lib/UITypes';
+import type {
+  ActionInvokeAuditDetail,
+  RoutineInvokeAuditDetail,
+} from '../app/routine';
 
 enum AuditV1OperationTypes {
   USER_SIGNUP = 'USER_SIGNUP',
@@ -11,6 +15,9 @@ enum AuditV1OperationTypes {
   WORKSPACE_USER_UPDATE = 'WORKSPACE_USER_UPDATE',
   WORKSPACE_USER_DELETE = 'WORKSPACE_USER_DELETE',
   WORKSPACE_TEAM_INVITE = 'WORKSPACE_TEAM_INVITE',
+  WORKSPACE_INVITE_LINK_CREATE = 'WORKSPACE_INVITE_LINK_CREATE',
+  WORKSPACE_INVITE_LINK_UPDATE = 'WORKSPACE_INVITE_LINK_UPDATE',
+  WORKSPACE_INVITE_LINK_REVOKE = 'WORKSPACE_INVITE_LINK_REVOKE',
   WORKSPACE_TEAM_UPDATE = 'WORKSPACE_TEAM_UPDATE',
   WORKSPACE_TEAM_DELETE = 'WORKSPACE_TEAM_DELETE',
 
@@ -53,6 +60,9 @@ enum AuditV1OperationTypes {
   BASE_USER_UPDATE = 'BASE_USER_UPDATE',
   BASE_USER_INVITE_RESEND = 'BASE_USER_INVITE_RESEND',
   BASE_TEAM_INVITE = 'BASE_TEAM_INVITE',
+  BASE_INVITE_LINK_CREATE = 'BASE_INVITE_LINK_CREATE',
+  BASE_INVITE_LINK_UPDATE = 'BASE_INVITE_LINK_UPDATE',
+  BASE_INVITE_LINK_REVOKE = 'BASE_INVITE_LINK_REVOKE',
   BASE_TEAM_UPDATE = 'BASE_TEAM_UPDATE',
   BASE_TEAM_DELETE = 'BASE_TEAM_DELETE',
 
@@ -207,6 +217,27 @@ enum AuditV1OperationTypes {
   WIDGET_DELETE = 'WIDGET_DELETE',
   WIDGET_DUPLICATE = 'WIDGET_DUPLICATE',
 
+  INTERFACE_CREATE = 'INTERFACE_CREATE',
+  INTERFACE_UPDATE = 'INTERFACE_UPDATE',
+  INTERFACE_DELETE = 'INTERFACE_DELETE',
+  INTERFACE_DUPLICATE = 'INTERFACE_DUPLICATE',
+  INTERFACE_PUBLISH = 'INTERFACE_PUBLISH',
+
+  INTERFACE_PAGE_CREATE = 'INTERFACE_PAGE_CREATE',
+  INTERFACE_PAGE_UPDATE = 'INTERFACE_PAGE_UPDATE',
+  INTERFACE_PAGE_DELETE = 'INTERFACE_PAGE_DELETE',
+  INTERFACE_PAGE_DUPLICATE = 'INTERFACE_PAGE_DUPLICATE',
+
+  SHARED_INTERFACE_PAGE_CREATE = 'SHARED_INTERFACE_PAGE_CREATE',
+  SHARED_INTERFACE_PAGE_UPDATE = 'SHARED_INTERFACE_PAGE_UPDATE',
+  SHARED_INTERFACE_PAGE_DELETE = 'SHARED_INTERFACE_PAGE_DELETE',
+
+  INTERFACE_DATA_EXPORT = 'INTERFACE_DATA_EXPORT',
+
+  INTERFACE_USER_INVITE = 'INTERFACE_USER_INVITE',
+  INTERFACE_USER_UPDATE = 'INTERFACE_USER_UPDATE',
+  INTERFACE_USER_DELETE = 'INTERFACE_USER_DELETE',
+
   PERMISSION_CREATE = 'PERMISSION_CREATE',
   PERMISSION_UPDATE = 'PERMISSION_UPDATE',
   PERMISSION_DELETE = 'PERMISSION_DELETE',
@@ -252,6 +283,79 @@ enum AuditV1OperationTypes {
 
   DATE_DEPENDENCY_UPDATE = 'DATE_DEPENDENCY_UPDATE',
   DATE_DEPENDENCY_DELETE = 'DATE_DEPENDENCY_DELETE',
+
+  ACTION_INVOKE = 'ACTION_INVOKE',
+  /** @deprecated Superseded by ACTION_INVOKE; kept so existing rows still render. */
+  ROUTINE_INVOKE = 'ROUTINE_INVOKE',
+  ROUTINE_GRANT = 'ROUTINE_GRANT',
+
+  APP_PUBLISH = 'APP_PUBLISH',
+  APP_ROLLBACK = 'APP_ROLLBACK',
+  APP_TOKEN_CREATE = 'APP_TOKEN_CREATE',
+  APP_TOKEN_UPDATE = 'APP_TOKEN_UPDATE',
+  APP_TOKEN_DELETE = 'APP_TOKEN_DELETE',
+
+  APP_CREATE = 'APP_CREATE',
+  APP_UPDATE = 'APP_UPDATE',
+  APP_DELETE = 'APP_DELETE',
+
+  ACTION_CREATE = 'ACTION_CREATE',
+  ACTION_UPDATE = 'ACTION_UPDATE',
+  ACTION_DELETE = 'ACTION_DELETE',
+
+  AGENT_CREATE = 'AGENT_CREATE',
+  AGENT_UPDATE = 'AGENT_UPDATE',
+  AGENT_DELETE = 'AGENT_DELETE',
+  AGENT_ROLE_UPDATE = 'AGENT_ROLE_UPDATE',
+  AGENT_SECTION_CREATE = 'AGENT_SECTION_CREATE',
+  AGENT_SECTION_UPDATE = 'AGENT_SECTION_UPDATE',
+  AGENT_SECTION_DELETE = 'AGENT_SECTION_DELETE',
+
+  CHAT_SESSION_CREATE = 'CHAT_SESSION_CREATE',
+  CHAT_SESSION_UPDATE = 'CHAT_SESSION_UPDATE',
+  CHAT_SESSION_DELETE = 'CHAT_SESSION_DELETE',
+
+  MANAGED_APP_CREATE = 'MANAGED_APP_CREATE',
+  MANAGED_APP_UPDATE = 'MANAGED_APP_UPDATE',
+  MANAGED_APP_DELETE = 'MANAGED_APP_DELETE',
+  MANAGED_APP_PUBLISH = 'MANAGED_APP_PUBLISH',
+  MANAGED_APP_INSTALL = 'MANAGED_APP_INSTALL',
+  MANAGED_APP_UNINSTALL = 'MANAGED_APP_UNINSTALL',
+  MANAGED_APP_UPDATE_COMPLETE = 'MANAGED_APP_UPDATE_COMPLETE',
+  MANAGED_APP_UPDATE_FAIL = 'MANAGED_APP_UPDATE_FAIL',
+  MANAGED_APP_ROLLOUT_HALT = 'MANAGED_APP_ROLLOUT_HALT',
+  MANAGED_APP_ROLLOUT_RESUME = 'MANAGED_APP_ROLLOUT_RESUME',
+
+  MARKETPLACE_LISTING_DELIST = 'MARKETPLACE_LISTING_DELIST',
+  MARKETPLACE_LISTING_SUSPEND = 'MARKETPLACE_LISTING_SUSPEND',
+  MARKETPLACE_LISTING_REPORT = 'MARKETPLACE_LISTING_REPORT',
+  MARKETPLACE_PUBLISHER_VERIFY = 'MARKETPLACE_PUBLISHER_VERIFY',
+  MARKETPLACE_PUBLISHER_DELIST = 'MARKETPLACE_PUBLISHER_DELIST',
+  MARKETPLACE_CURATION_UPDATE = 'MARKETPLACE_CURATION_UPDATE',
+
+  ENVIRONMENT_CREATE = 'ENVIRONMENT_CREATE',
+  ENVIRONMENT_UPDATE = 'ENVIRONMENT_UPDATE',
+  ENVIRONMENT_DELETE = 'ENVIRONMENT_DELETE',
+  ENVIRONMENT_OPEN = 'ENVIRONMENT_OPEN',
+  ENVIRONMENT_CLOSE = 'ENVIRONMENT_CLOSE',
+  ENVIRONMENT_DISCARD = 'ENVIRONMENT_DISCARD',
+  ENVIRONMENT_PROMOTE = 'ENVIRONMENT_PROMOTE',
+  ENVIRONMENT_PROMOTE_FAILED = 'ENVIRONMENT_PROMOTE_FAILED',
+  ENVIRONMENT_REFRESH = 'ENVIRONMENT_REFRESH',
+  SKILL_CREATE = 'SKILL_CREATE',
+  SKILL_UPDATE = 'SKILL_UPDATE',
+  SKILL_DELETE = 'SKILL_DELETE',
+  SKILL_IMPORT = 'SKILL_IMPORT',
+  SKILL_POLICY_UPDATE = 'SKILL_POLICY_UPDATE',
+
+  FACTORY_SESSION_CREATE = 'FACTORY_SESSION_CREATE',
+  FACTORY_SESSION_STOP = 'FACTORY_SESSION_STOP',
+  FACTORY_SESSION_ARCHIVE = 'FACTORY_SESSION_ARCHIVE',
+  FACTORY_SESSION_RESUME = 'FACTORY_SESSION_RESUME',
+  FACTORY_SESSION_RENAME = 'FACTORY_SESSION_RENAME',
+  FACTORY_SESSION_DELETE = 'FACTORY_SESSION_DELETE',
+  FACTORY_REPO_ENABLE = 'FACTORY_REPO_ENABLE',
+  FACTORY_REPO_DISABLE = 'FACTORY_REPO_DISABLE',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -415,6 +519,21 @@ export const auditV1OperationsCategory: Record<
       (key) => key.startsWith('DASHBOARD_') || key.startsWith('WIDGET_')
     ),
   },
+  SKILL: {
+    label: 'general.skill',
+    value: 'SKILL',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('SKILL_')
+    ),
+  },
+  INTERFACE: {
+    label: 'general.interface',
+    value: 'INTERFACE',
+    types: Object.values(AuditV1OperationTypes).filter(
+      (key) =>
+        key.startsWith('INTERFACE_') || key.startsWith('SHARED_INTERFACE_')
+    ),
+  },
   WORKFLOW: {
     label: 'objects.workflow',
     value: 'WORKFLOW',
@@ -427,6 +546,13 @@ export const auditV1OperationsCategory: Record<
     value: 'DOCUMENT',
     types: Object.values(AuditV1OperationTypes).filter((key) =>
       key.startsWith('DOCUMENT_')
+    ),
+  },
+  FACTORY: {
+    label: 'general.appFactory',
+    value: 'FACTORY',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('FACTORY_')
     ),
   },
 };
@@ -484,7 +610,25 @@ export interface BaseUserInvitePayload {
   base_role: string;
   user_name?: string;
   base_title: string;
+  /** How the membership came about; absent for a direct invite. */
+  via?: 'invite_link';
 }
+
+/* Invite links (base and workspace scope share one shape) */
+export interface InviteLinkPayload {
+  link_id: string;
+  scope: string;
+  role: string;
+  email_domain?: string | null;
+  expires_at?: string | null;
+  max_uses?: number | null;
+  base_title?: string;
+  workspace_title?: string;
+}
+
+export interface InviteLinkUpdatePayload
+  extends InviteLinkPayload,
+    UpdatePayload {}
 
 export interface BaseUserDeletePayload {
   user_email: string;
@@ -748,6 +892,8 @@ export interface WorkspaceInvitePayload {
   user_name?: string;
   user_id: string;
   user_role: string;
+  /** How the membership came about; absent for a direct invite. */
+  via?: 'invite_link';
 }
 
 export interface WorkspaceUserUpdatePayload extends UpdatePayload {
@@ -1275,6 +1421,174 @@ export interface WidgetDuplicatePayload {
   error?: string;
 }
 
+export interface InterfaceCreatePayload {
+  interface_title: string;
+  interface_id: string;
+}
+
+export interface InterfaceUpdatePayload extends UpdatePayload {
+  interface_title: string;
+  interface_id: string;
+}
+
+export interface InterfaceDeletePayload {
+  interface_title: string;
+  interface_id: string;
+}
+
+export interface InterfaceDuplicatePayload {
+  duplicated_interface_title: string;
+  duplicated_interface_id: string;
+  source_interface_title: string;
+  source_interface_id: string;
+}
+
+export interface InterfacePublishPayload {
+  interface_title: string;
+  interface_id: string;
+  /** Pages carried into the published snapshot by this publish. */
+  published_page_count: number;
+}
+
+export interface InterfaceAuditTableRef {
+  id: string;
+  title: string;
+}
+
+/**
+ * Identity carried by every page-scoped interface audit. An id alone is dead
+ * weight in a log — the reader needs to know WHICH interface the page belongs
+ * to and WHICH tables it reads, without resolving those entities by hand (some
+ * of which may already be deleted by the time the log is read).
+ */
+export interface InterfacePageContext {
+  page_title: string;
+  page_id: string;
+  page_layout: string;
+  interface_id: string;
+  interface_title: string;
+  /**
+   * EVERY table the page reads, not just its primary binding. A table or
+   * record-review page binds one; a DASHBOARD binds one per widget and a LIST
+   * visualization one per level — so this is a list. Absent for layouts that
+   * read no table at all (overview).
+   *
+   * Capped at {@link INTERFACE_AUDIT_TABLE_LIMIT}; `table_count` is not.
+   */
+  tables?: InterfaceAuditTableRef[];
+  /** Distinct tables the page reads — accurate even when `tables` is capped. */
+  table_count?: number;
+}
+
+/** Keeps a wide dashboard from writing an unbounded list into every audit row. */
+export const INTERFACE_AUDIT_TABLE_LIMIT = 20;
+
+export type InterfacePageCreatePayload = InterfacePageContext;
+
+/** One entry of {@link InterfacePageConfigDiff}. */
+export interface InterfacePageConfigChange {
+  op: 'added' | 'removed' | 'changed' | 'reordered';
+  /** Id-keyed path, e.g. `visualizations[viz1].sorts[0].direction`. */
+  path: string;
+  from?: unknown;
+  to?: unknown;
+  /** Id space of this leaf, when the page schema declares one. */
+  ref?: 'column' | 'model' | 'page';
+  /** Resolved names for `from`/`to` when they hold ids. */
+  from_title?: string;
+  to_title?: string;
+  /** Identity of an entity added or removed wholesale. */
+  entity?: { id?: string; type?: string; title?: string };
+  /** Stands in for `from`/`to` when the value was too large to embed. */
+  summary?: string;
+}
+
+/**
+ * The DELTA of a page's builder config — never the config itself, which is
+ * the whole page and would be rewritten into `nc_audit` on every save.
+ *
+ * Computed against the layout's zod schema, so entity arrays match by id
+ * (reordering a visualization doesn't rewrite every index) and id-valued
+ * leaves are resolved to names.
+ */
+export interface InterfacePageConfigDiff {
+  changes: InterfacePageConfigChange[];
+  /** True total — `changes` is capped. */
+  change_count: number;
+  truncated: boolean;
+}
+
+export interface InterfacePageUpdatePayload
+  extends InterfacePageContext,
+    Partial<UpdatePayload> {
+  config_changed: boolean;
+  /**
+   * Absent when the config didn't change, or when it was unreadable — in the
+   * latter case `config_changed` still records that it did.
+   */
+  config_diff?: InterfacePageConfigDiff;
+}
+
+export type InterfacePageDeletePayload = InterfacePageContext;
+
+/** Page context here describes the DUPLICATE; the source is named alongside. */
+export interface InterfacePageDuplicatePayload extends InterfacePageContext {
+  source_page_title: string;
+  source_page_id: string;
+}
+
+export interface SharedInterfacePageCreatePayload extends InterfacePageContext {
+  uuid: string;
+  password_protected: boolean;
+}
+
+export interface SharedInterfacePageUpdatePayload extends InterfacePageContext {
+  uuid: string;
+  password_protected: boolean;
+  /** The hash itself is never recorded — only that it was rotated/cleared. */
+  password_changed: boolean;
+}
+
+export interface SharedInterfacePageDeletePayload extends InterfacePageContext {
+  uuid: string;
+}
+
+export interface InterfaceDataExportPayload extends InterfacePageContext {
+  table_id: string;
+  table_title: string;
+  export_type: 'csv';
+  /** True when served through the public share-to-web link. */
+  is_public_share: boolean;
+}
+
+/**
+ * Interface access grants. The principal is either a user or a team, and the
+ * grant targets either the whole interface (`page_id` absent) or a single page.
+ */
+export interface InterfaceGrantContext {
+  interface_title: string;
+  interface_id: string;
+  principal_type: 'user' | 'team';
+  principal_id: string;
+  principal_title: string;
+  /** Present only for page-level grants. */
+  page_id?: string;
+  page_title?: string;
+}
+
+export interface InterfaceUserInvitePayload extends InterfaceGrantContext {
+  role: string;
+}
+
+export interface InterfaceUserUpdatePayload extends InterfaceGrantContext {
+  role: string;
+  old_role?: string | null;
+}
+
+export interface InterfaceUserDeletePayload extends InterfaceGrantContext {
+  role?: string | null;
+}
+
 export interface PermissionCreatePayload {
   permission_id: string;
   permission: string;
@@ -1284,7 +1598,7 @@ export interface PermissionCreatePayload {
   granted_role?: string;
   enforce_for_form?: boolean;
   enforce_for_automation?: boolean;
-  subjects?: Array<{ type: 'user' | 'team'; id: string }>;
+  subjects?: Array<{ type: 'user' | 'team' | 'appTeam' | 'agent'; id: string }>;
 }
 
 export interface PermissionUpdatePayload {
@@ -1296,7 +1610,7 @@ export interface PermissionUpdatePayload {
   granted_role?: string;
   enforce_for_form?: boolean;
   enforce_for_automation?: boolean;
-  subjects?: Array<{ type: 'user' | 'team'; id: string }>;
+  subjects?: Array<{ type: 'user' | 'team' | 'appTeam' | 'agent'; id: string }>;
 }
 
 export interface PermissionDeletePayload {
@@ -1357,6 +1671,52 @@ export interface DocAiCompletionPayload {
   operation: 'write' | 'continue' | 'improve' | 'summarize' | 'translate';
 }
 
+/** One App Factory session, as the audit trail names it. */
+export interface FactorySessionPayload {
+  session_id: string;
+  session_title?: string;
+  /** Set on a rename only: what the session was called before. */
+  old_session_title?: string;
+  /** `owner/repo` of the repository the session works on. */
+  repo?: string;
+  /** `prompt` | `branch` | `pr` | `issue`, and the ref it named. */
+  source_kind?: string;
+  source_ref?: string;
+}
+
+/** A repository added to or removed from a workspace's factory. */
+export interface FactoryRepoPayload {
+  repo_id: string;
+  repo: string;
+  integration_id?: string;
+}
+
+export interface SkillPayload {
+  skill_id: string;
+  skill_title: string;
+  /** `org` | `workspace` | `base` | `user` — which catalog it was filed in. */
+  scope: string;
+  scope_id: string;
+  source_type?: string;
+  /** Present for imports: the repo and the exact commit installed. */
+  source_ref?: string;
+  source_commit?: string;
+  content_hash?: string;
+}
+
+export interface SkillPolicyUpdatePayload {
+  scope: string;
+  scope_id: string;
+  community: string;
+  allowlist: string[];
+  personal: string;
+  previous?: {
+    community: string;
+    allowlist: string[];
+    personal: string;
+  } | null;
+}
+
 export interface DocumentCreatePayload {
   document_title: string;
   document_id: string;
@@ -1415,6 +1775,227 @@ export interface DocumentCommentUpdatePayload {
 export interface DocumentCommentDeletePayload {
   document_id: string;
   comment_id: string;
+}
+
+export interface ActionInvokePayload {
+  appId: string;
+  appVersionId: string;
+  /** The dotted wire id — `POST /api/v1/:appId/:actionId`. */
+  actionId: string;
+  actionVersionId: string;
+  /** The capability the action required, which the caller's grants had to match. */
+  capability: string;
+  kind: string;
+  bodyHash?: string;
+  status: 'success' | 'error';
+  durationMs: number;
+  actorRole: string;
+  /**
+   * Which caller class invoked. The bearer (external API / MCP) path builds an
+   * `AppLiveScope` identical to the cookie path's, so without this an external
+   * call is indistinguishable from the app's own frontend. Absent on rows
+   * written before the external surface existed; read those as `app_session`.
+   *
+   * `app_public` is the anonymous surface: no session, no account, and the
+   * `public` team's grant as the whole access decision.
+   */
+  callerClass?: 'app_session' | 'app_token' | 'app_public';
+  /** The `nc_app_tokens` row that authenticated the call. Set only for
+   *  `callerClass: 'app_token'`. */
+  appTokenId?: string;
+  auditDetail?: ActionInvokeAuditDetail;
+}
+
+/** @deprecated Emitted by the removed routine registry; kept for existing rows. */
+export interface RoutineInvokePayload {
+  appId: string;
+  appVersionId?: string;
+  routineName: string;
+  routineVersionId: string;
+  bodyHash: string;
+  sourceType: string;
+  status: 'success' | 'error';
+  durationMs: number;
+  actorRole: string;
+  auditDetail?: RoutineInvokeAuditDetail;
+}
+
+export interface RoutineGrantPayload {
+  appId: string;
+  integrationId: string;
+  action: 'request' | 'approve' | 'revoke' | 'remove';
+  status: 'pending' | 'active' | 'revoked';
+  grantId?: string;
+  reason?: string;
+}
+
+export interface AppPublishAuditDetails {
+  app_id: string;
+  app_title?: string;
+  version_id: string;
+  version_number: number;
+  git_sha: string;
+  pinned_actions: string[];
+}
+
+export interface AppRollbackAuditDetails {
+  app_id: string;
+  app_title?: string;
+  from_version_id?: string;
+  to_version_id: string;
+  to_version_number: number;
+}
+
+/** Minting and revoking an app token. The plaintext is never in an audit row —
+ *  only which token, on which app, for whose persona. */
+export interface AppTokenAuditDetails {
+  app_id: string;
+  token_id: string;
+  token_prefix?: string;
+  title?: string;
+  /** The persona the token acts as — always its creator in v1. */
+  fk_user_id: string;
+  expires_at?: string | null;
+}
+
+/** The app itself, as the maker sees it — distinct from APP_PUBLISH, which is a version. */
+export interface AppLifecycleAuditDetails {
+  app_id?: string;
+  app_title?: string;
+}
+
+/** A change to what an action DOES, as opposed to ACTION_INVOKE's record of it running. */
+export interface ActionLifecycleAuditDetails {
+  action_id?: string;
+  action_title?: string;
+  app_id?: string;
+  /** Present when the change cut a new action version. */
+  action_version_id?: string;
+}
+
+export interface AgentLifecycleAuditDetails {
+  agent_id?: string;
+  agent_title?: string;
+  /** Only on a role change. */
+  role?: string;
+}
+
+export interface AgentSectionAuditDetails {
+  agent_section_id?: string;
+  agent_section_title?: string;
+}
+
+export interface ChatSessionAuditDetails {
+  session_id: string;
+}
+
+export interface ManagedAppLifecycleAuditDetails {
+  managed_app_id?: string;
+  managed_app_title?: string;
+  /** The production base the listing was cut from. */
+  base_id?: string;
+}
+
+export interface ManagedAppPublishAuditDetails {
+  managed_app_id?: string;
+  managed_app_title?: string;
+  base_id?: string;
+  version_id?: string;
+  version?: string;
+}
+
+/** An install, and the deployment outcomes that follow an installed app forward. */
+export interface ManagedAppDeploymentAuditDetails {
+  managed_app_id?: string;
+  managed_app_title?: string;
+  installed_base_id: string;
+  version_id?: string;
+  version?: string;
+  /** Only on a failed deployment. */
+  error?: string;
+}
+
+/** Removing an installed app. The base deletion audits separately as BASE_DELETE;
+ *  this row is what names the app and the version that was running. */
+export interface ManagedAppUninstallAuditDetails {
+  managed_app_id?: string;
+  managed_app_title?: string;
+  installed_base_id: string;
+  version_id?: string;
+}
+
+/** Overriding a halted rollout — an operator decision, so the reason being
+ *  cleared is the part a reader needs. */
+/** The breaker tripping, not a person acting — `remaining` is the blast radius it prevented. */
+export interface ManagedAppRolloutHaltAuditDetails {
+  managed_app_id?: string;
+  managed_app_title?: string;
+  version_id?: string;
+  version?: string;
+  reason: string;
+  attempted: number;
+  failed: number;
+  remaining: number;
+}
+
+export interface ManagedAppRolloutResumeAuditDetails {
+  managed_app_id?: string;
+  managed_app_title?: string;
+  version_id?: string;
+  version?: string;
+  cleared_reason?: string | null;
+}
+
+/** Both toggles carry the new state — one route delists and relists, so without
+ *  the boolean the trail cannot tell a takedown from its reversal. */
+export interface MarketplaceListingModerationAuditDetails {
+  listing_id: string;
+  listing_title: string;
+  /** The workspace that owns the listing — the publisher's own copy of this row. */
+  listing_workspace_id?: string;
+  delisted?: boolean;
+  suspended?: boolean;
+  /** Null when the whole app was suspended rather than one version. */
+  version_id?: string | null;
+  reason?: string;
+}
+
+export interface MarketplaceListingReportAuditDetails {
+  listing_id: string;
+  listing_title: string;
+  reason: string;
+  detail?: string;
+}
+
+export interface MarketplacePublisherModerationAuditDetails {
+  publisher_id: string;
+  publisher_handle: string;
+  publisher_name: string;
+  verified?: boolean;
+  delisted?: boolean;
+  reason?: string;
+}
+
+export interface MarketplaceCurationAuditDetails {
+  slot: string;
+  listing_ids: string[];
+}
+
+/** The environment definition (a workspace-level name and colour), not a copy of a base. */
+export interface EnvironmentConfigAuditDetails {
+  environment_id?: string;
+  environment_title?: string;
+  environment_key?: string;
+}
+
+/** One copy of one base, through its whole life: open → promote/discard → close. */
+export interface EnvironmentLaneAuditDetails {
+  base_environment_id: string;
+  base_id: string;
+  lane_base_id: string;
+  /** Only on a failed promote. */
+  error?: string;
+  counts?: { applied: number; skipped: number; failed: number };
 }
 
 export interface TeamCreatePayload {
@@ -1559,6 +2140,30 @@ export interface AuditV1<T = any> {
   fk_ref_id?: string | null;
 }
 
+/**
+ * ` on table 'X'` for a single-table page, ` across N tables` for a dashboard
+ * or leveled list, empty for a page that reads none (overview).
+ */
+function interfaceTableSuffix(details: {
+  tables?: InterfaceAuditTableRef[];
+  table_count?: number;
+}): string {
+  const count = details.table_count ?? details.tables?.length ?? 0;
+  if (!count) return '';
+  if (count === 1 && details.tables?.[0])
+    return ` on table '${details.tables[0].title}'`;
+  return ` across ${count} tables`;
+}
+
+/** `page 'X' of ` — grants target either the whole interface or one page. */
+function interfaceGrantScope(details: {
+  page_title?: string;
+  page_id?: string;
+}): string {
+  if (!details.page_id) return '';
+  return `page '${details.page_title ?? details.page_id}' of `;
+}
+
 const descriptionTemplates = {
   [AuditV1OperationTypes.USER_SIGNUP]: (audit: AuditV1<UserSignupPayload>) =>
     `User '${audit.user}' signed up`,
@@ -1608,7 +2213,30 @@ const descriptionTemplates = {
   ) => `User '${audit.user}' used a backup code to sign in`,
   [AuditV1OperationTypes.BASE_USER_INVITE]: (
     audit: AuditV1<BaseUserInvitePayload>
-  ) => `User '${audit.user}' invited '${audit.details.user_email}' to base`,
+  ) =>
+    audit.details?.via === 'invite_link'
+      ? `User '${audit.details.user_email}' joined base via invite link`
+      : `User '${audit.user}' invited '${audit.details.user_email}' to base`,
+  [AuditV1OperationTypes.BASE_INVITE_LINK_CREATE]: (
+    audit: AuditV1<InviteLinkPayload>
+  ) =>
+    `User '${audit.user}' created a ${audit.details.role} invite link for base`,
+  [AuditV1OperationTypes.BASE_INVITE_LINK_UPDATE]: (
+    audit: AuditV1<InviteLinkUpdatePayload>
+  ) => `User '${audit.user}' updated an invite link for base`,
+  [AuditV1OperationTypes.BASE_INVITE_LINK_REVOKE]: (
+    audit: AuditV1<InviteLinkPayload>
+  ) => `User '${audit.user}' revoked an invite link for base`,
+  [AuditV1OperationTypes.WORKSPACE_INVITE_LINK_CREATE]: (
+    audit: AuditV1<InviteLinkPayload>
+  ) =>
+    `User '${audit.user}' created a ${audit.details.role} invite link for workspace`,
+  [AuditV1OperationTypes.WORKSPACE_INVITE_LINK_UPDATE]: (
+    audit: AuditV1<InviteLinkUpdatePayload>
+  ) => `User '${audit.user}' updated an invite link for workspace`,
+  [AuditV1OperationTypes.WORKSPACE_INVITE_LINK_REVOKE]: (
+    audit: AuditV1<InviteLinkPayload>
+  ) => `User '${audit.user}' revoked an invite link for workspace`,
   [AuditV1OperationTypes.BASE_USER_INVITE_RESEND]: (
     audit: AuditV1<BaseUserInviteResendPayload>
   ) => `User '${audit.user}' resent invite to '${audit.details.user_email}'`,
@@ -1836,6 +2464,99 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.WIDGET_DUPLICATE]: (
     audit: AuditV1<WidgetDuplicatePayload>
   ) => `Widget '${audit.details.duplicated_widget_title}' has been duplicated`,
+  [AuditV1OperationTypes.INTERFACE_CREATE]: (
+    audit: AuditV1<InterfaceCreatePayload>
+  ) => `Interface '${audit.details.interface_title}' has been created`,
+  [AuditV1OperationTypes.INTERFACE_UPDATE]: (
+    audit: AuditV1<InterfaceUpdatePayload>
+  ) => `Interface '${audit.details.interface_title}' has been updated`,
+  [AuditV1OperationTypes.INTERFACE_DELETE]: (
+    audit: AuditV1<InterfaceDeletePayload>
+  ) => `Interface '${audit.details.interface_title}' has been deleted`,
+  [AuditV1OperationTypes.INTERFACE_DUPLICATE]: (
+    audit: AuditV1<InterfaceDuplicatePayload>
+  ) =>
+    `Interface '${audit.details.source_interface_title}' has been duplicated`,
+  [AuditV1OperationTypes.INTERFACE_PUBLISH]: (
+    audit: AuditV1<InterfacePublishPayload>
+  ) =>
+    `Interface '${audit.details.interface_title}' has been published with ${audit.details.published_page_count} page(s)`,
+  [AuditV1OperationTypes.INTERFACE_PAGE_CREATE]: (
+    audit: AuditV1<InterfacePageCreatePayload>
+  ) =>
+    `Interface page '${audit.details.page_title}' (${
+      audit.details.page_layout
+    }) has been created in interface '${
+      audit.details.interface_title
+    }'${interfaceTableSuffix(audit.details)}`,
+  [AuditV1OperationTypes.INTERFACE_PAGE_UPDATE]: (
+    audit: AuditV1<InterfacePageUpdatePayload>
+  ) => {
+    const count = audit.details.config_diff?.change_count ?? 0;
+    return `Interface page '${audit.details.page_title}' in interface '${
+      audit.details.interface_title
+    }' has been updated${count ? ` (${count} config change(s))` : ''}`;
+  },
+  [AuditV1OperationTypes.INTERFACE_PAGE_DELETE]: (
+    audit: AuditV1<InterfacePageDeletePayload>
+  ) =>
+    `Interface page '${audit.details.page_title}' has been deleted from interface '${audit.details.interface_title}'`,
+  [AuditV1OperationTypes.INTERFACE_PAGE_DUPLICATE]: (
+    audit: AuditV1<InterfacePageDuplicatePayload>
+  ) =>
+    `Interface page '${audit.details.source_page_title}' has been duplicated as '${audit.details.page_title}' in interface '${audit.details.interface_title}'`,
+  [AuditV1OperationTypes.SHARED_INTERFACE_PAGE_CREATE]: (
+    audit: AuditV1<SharedInterfacePageCreatePayload>
+  ) =>
+    `Interface page '${audit.details.page_title}' of interface '${
+      audit.details.interface_title
+    }' has been shared publicly${
+      audit.details.password_protected ? ' with a password' : ''
+    }${interfaceTableSuffix(audit.details)}`,
+  [AuditV1OperationTypes.SHARED_INTERFACE_PAGE_UPDATE]: (
+    audit: AuditV1<SharedInterfacePageUpdatePayload>
+  ) =>
+    `Public share settings of interface page '${audit.details.page_title}' of interface '${audit.details.interface_title}' have been updated`,
+  [AuditV1OperationTypes.SHARED_INTERFACE_PAGE_DELETE]: (
+    audit: AuditV1<SharedInterfacePageDeletePayload>
+  ) =>
+    `Public share of interface page '${audit.details.page_title}' of interface '${audit.details.interface_title}' has been revoked`,
+  [AuditV1OperationTypes.INTERFACE_DATA_EXPORT]: (
+    audit: AuditV1<InterfaceDataExportPayload>
+  ) =>
+    `User '${audit.user}' exported ${
+      audit.details.export_type
+    } from interface page '${audit.details.page_title}' of interface '${
+      audit.details.interface_title
+    }' (table '${audit.details.table_title}')${
+      audit.details.is_public_share ? ' via the public share link' : ''
+    }`,
+  [AuditV1OperationTypes.INTERFACE_USER_INVITE]: (
+    audit: AuditV1<InterfaceUserInvitePayload>
+  ) =>
+    `${audit.details.principal_type === 'team' ? 'Team' : 'User'} '${
+      audit.details.principal_title
+    }' has been granted '${audit.details.role}' on ${interfaceGrantScope(
+      audit.details
+    )}interface '${audit.details.interface_title}'`,
+  [AuditV1OperationTypes.INTERFACE_USER_UPDATE]: (
+    audit: AuditV1<InterfaceUserUpdatePayload>
+  ) =>
+    `${audit.details.principal_type === 'team' ? 'Team' : 'User'} '${
+      audit.details.principal_title
+    }' role on ${interfaceGrantScope(audit.details)}interface '${
+      audit.details.interface_title
+    }' has been changed${
+      audit.details.old_role ? ` from '${audit.details.old_role}'` : ''
+    } to '${audit.details.role}'`,
+  [AuditV1OperationTypes.INTERFACE_USER_DELETE]: (
+    audit: AuditV1<InterfaceUserDeletePayload>
+  ) =>
+    `${audit.details.principal_type === 'team' ? 'Team' : 'User'} '${
+      audit.details.principal_title
+    }' access to ${interfaceGrantScope(audit.details)}interface '${
+      audit.details.interface_title
+    }' has been revoked`,
   [AuditV1OperationTypes.PERMISSION_CREATE]: (
     audit: AuditV1<PermissionCreatePayload>
   ) =>
@@ -1940,6 +2661,305 @@ const descriptionTemplates = {
     audit.details.gantt_view_title
       ? `Date dependency deleted from Gantt view '${audit.details.gantt_view_title}' (table '${audit.details.table_title}')`
       : `Date dependency deleted from table '${audit.details.table_title}'`,
+  [AuditV1OperationTypes.ACTION_INVOKE]: (
+    audit: AuditV1<ActionInvokePayload>
+  ) =>
+    `Action '${audit.details.actionId}' invoked with status '${audit.details.status}'`,
+  [AuditV1OperationTypes.ROUTINE_INVOKE]: (
+    audit: AuditV1<RoutineInvokePayload>
+  ) =>
+    `Routine '${audit.details.routineName}' invoked with status '${audit.details.status}'`,
+  [AuditV1OperationTypes.ROUTINE_GRANT]: (
+    audit: AuditV1<RoutineGrantPayload>
+  ) =>
+    `Integration access ${audit.details.action} (status '${audit.details.status}') for app '${audit.details.appId}'`,
+  [AuditV1OperationTypes.APP_PUBLISH]: (
+    audit: AuditV1<AppPublishAuditDetails>
+  ) =>
+    `App '${
+      audit.details.app_title ?? audit.details.app_id
+    }' published as version ${audit.details.version_number}`,
+  [AuditV1OperationTypes.APP_ROLLBACK]: (
+    audit: AuditV1<AppRollbackAuditDetails>
+  ) =>
+    `App '${
+      audit.details.app_title ?? audit.details.app_id
+    }' rolled back to version ${audit.details.to_version_number}`,
+  [AuditV1OperationTypes.APP_TOKEN_CREATE]: (
+    audit: AuditV1<AppTokenAuditDetails>
+  ) =>
+    `App token '${
+      audit.details.title ?? audit.details.token_id
+    }' created for app '${audit.details.app_id}'`,
+  [AuditV1OperationTypes.APP_TOKEN_UPDATE]: (
+    audit: AuditV1<AppTokenAuditDetails>
+  ) =>
+    `App token '${
+      audit.details.title ?? audit.details.token_id
+    }' updated on app '${audit.details.app_id}'`,
+  [AuditV1OperationTypes.APP_TOKEN_DELETE]: (
+    audit: AuditV1<AppTokenAuditDetails>
+  ) =>
+    `App token '${
+      audit.details.title ?? audit.details.token_id
+    }' deleted on app '${audit.details.app_id}'`,
+
+  [AuditV1OperationTypes.APP_CREATE]: (
+    audit: AuditV1<AppLifecycleAuditDetails>
+  ) => `App '${audit.details.app_title ?? audit.details.app_id}' created`,
+  [AuditV1OperationTypes.APP_UPDATE]: (
+    audit: AuditV1<AppLifecycleAuditDetails>
+  ) => `App '${audit.details.app_title ?? audit.details.app_id}' updated`,
+  [AuditV1OperationTypes.APP_DELETE]: (
+    audit: AuditV1<AppLifecycleAuditDetails>
+  ) => `App '${audit.details.app_title ?? audit.details.app_id}' deleted`,
+  [AuditV1OperationTypes.ACTION_CREATE]: (
+    audit: AuditV1<ActionLifecycleAuditDetails>
+  ) =>
+    `Action '${audit.details.action_title ?? audit.details.action_id}' created`,
+  [AuditV1OperationTypes.ACTION_UPDATE]: (
+    audit: AuditV1<ActionLifecycleAuditDetails>
+  ) =>
+    `Action '${audit.details.action_title ?? audit.details.action_id}' updated`,
+  [AuditV1OperationTypes.ACTION_DELETE]: (
+    audit: AuditV1<ActionLifecycleAuditDetails>
+  ) =>
+    `Action '${audit.details.action_title ?? audit.details.action_id}' deleted`,
+  [AuditV1OperationTypes.AGENT_CREATE]: (
+    audit: AuditV1<AgentLifecycleAuditDetails>
+  ) => `Agent '${audit.details.agent_title ?? audit.details.agent_id}' created`,
+  [AuditV1OperationTypes.AGENT_UPDATE]: (
+    audit: AuditV1<AgentLifecycleAuditDetails>
+  ) => `Agent '${audit.details.agent_title ?? audit.details.agent_id}' updated`,
+  [AuditV1OperationTypes.AGENT_DELETE]: (
+    audit: AuditV1<AgentLifecycleAuditDetails>
+  ) => `Agent '${audit.details.agent_title ?? audit.details.agent_id}' deleted`,
+  [AuditV1OperationTypes.AGENT_ROLE_UPDATE]: (
+    audit: AuditV1<AgentLifecycleAuditDetails>
+  ) =>
+    `Agent '${
+      audit.details.agent_title ?? audit.details.agent_id
+    }' role set to '${audit.details.role}'`,
+  [AuditV1OperationTypes.AGENT_SECTION_CREATE]: (
+    audit: AuditV1<AgentSectionAuditDetails>
+  ) =>
+    `Agent section '${
+      audit.details.agent_section_title ?? audit.details.agent_section_id
+    }' created`,
+  [AuditV1OperationTypes.AGENT_SECTION_UPDATE]: (
+    audit: AuditV1<AgentSectionAuditDetails>
+  ) =>
+    `Agent section '${
+      audit.details.agent_section_title ?? audit.details.agent_section_id
+    }' updated`,
+  [AuditV1OperationTypes.AGENT_SECTION_DELETE]: (
+    audit: AuditV1<AgentSectionAuditDetails>
+  ) =>
+    `Agent section '${
+      audit.details.agent_section_title ?? audit.details.agent_section_id
+    }' deleted`,
+  [AuditV1OperationTypes.CHAT_SESSION_CREATE]: (
+    audit: AuditV1<ChatSessionAuditDetails>
+  ) => `Chat session '${audit.details.session_id}' created`,
+  [AuditV1OperationTypes.CHAT_SESSION_UPDATE]: (
+    audit: AuditV1<ChatSessionAuditDetails>
+  ) => `Chat session '${audit.details.session_id}' updated`,
+  [AuditV1OperationTypes.CHAT_SESSION_DELETE]: (
+    audit: AuditV1<ChatSessionAuditDetails>
+  ) => `Chat session '${audit.details.session_id}' deleted`,
+  [AuditV1OperationTypes.MANAGED_APP_CREATE]: (
+    audit: AuditV1<ManagedAppLifecycleAuditDetails>
+  ) =>
+    `Store listing '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' created`,
+  [AuditV1OperationTypes.MANAGED_APP_UPDATE]: (
+    audit: AuditV1<ManagedAppLifecycleAuditDetails>
+  ) =>
+    `Store listing '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' updated`,
+  [AuditV1OperationTypes.MANAGED_APP_DELETE]: (
+    audit: AuditV1<ManagedAppLifecycleAuditDetails>
+  ) =>
+    `Store listing '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' deleted`,
+  [AuditV1OperationTypes.MANAGED_APP_PUBLISH]: (
+    audit: AuditV1<ManagedAppPublishAuditDetails>
+  ) =>
+    `Store listing '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' published version ${audit.details.version ?? audit.details.version_id}`,
+  [AuditV1OperationTypes.MANAGED_APP_INSTALL]: (
+    audit: AuditV1<ManagedAppDeploymentAuditDetails>
+  ) =>
+    `App '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' installed into base '${audit.details.installed_base_id}'`,
+  [AuditV1OperationTypes.MANAGED_APP_UNINSTALL]: (
+    audit: AuditV1<ManagedAppUninstallAuditDetails>
+  ) =>
+    `App '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' uninstalled from base '${audit.details.installed_base_id}'`,
+  [AuditV1OperationTypes.MANAGED_APP_UPDATE_COMPLETE]: (
+    audit: AuditV1<ManagedAppDeploymentAuditDetails>
+  ) =>
+    `App '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' updated to version ${
+      audit.details.version ?? audit.details.version_id
+    } on base '${audit.details.installed_base_id}'`,
+  [AuditV1OperationTypes.MANAGED_APP_UPDATE_FAIL]: (
+    audit: AuditV1<ManagedAppDeploymentAuditDetails>
+  ) =>
+    `App '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' failed to update on base '${audit.details.installed_base_id}'`,
+  [AuditV1OperationTypes.MANAGED_APP_ROLLOUT_HALT]: (
+    audit: AuditV1<ManagedAppRolloutHaltAuditDetails>
+  ) =>
+    `Rollout of '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' version ${
+      audit.details.version ?? audit.details.version_id
+    } halted after ${audit.details.failed} of ${
+      audit.details.attempted
+    } installs failed (${audit.details.reason}), ${
+      audit.details.remaining
+    } not attempted`,
+  [AuditV1OperationTypes.MANAGED_APP_ROLLOUT_RESUME]: (
+    audit: AuditV1<ManagedAppRolloutResumeAuditDetails>
+  ) =>
+    `Rollout resumed for '${
+      audit.details.managed_app_title ?? audit.details.managed_app_id
+    }' version ${audit.details.version ?? audit.details.version_id}`,
+  [AuditV1OperationTypes.MARKETPLACE_LISTING_DELIST]: (
+    audit: AuditV1<MarketplaceListingModerationAuditDetails>
+  ) =>
+    `Listing '${audit.details.listing_title}' ${
+      audit.details.delisted ? 'delisted' : 'relisted'
+    }`,
+  [AuditV1OperationTypes.MARKETPLACE_LISTING_SUSPEND]: (
+    audit: AuditV1<MarketplaceListingModerationAuditDetails>
+  ) =>
+    `Listing '${audit.details.listing_title}'${
+      audit.details.version_id ? ` version ${audit.details.version_id}` : ''
+    } ${audit.details.suspended ? 'suspended' : 'reinstated'}`,
+  [AuditV1OperationTypes.MARKETPLACE_LISTING_REPORT]: (
+    audit: AuditV1<MarketplaceListingReportAuditDetails>
+  ) =>
+    `Listing '${audit.details.listing_title}' reported for '${audit.details.reason}'`,
+  [AuditV1OperationTypes.MARKETPLACE_PUBLISHER_VERIFY]: (
+    audit: AuditV1<MarketplacePublisherModerationAuditDetails>
+  ) =>
+    `Publisher '@${audit.details.publisher_handle}' ${
+      audit.details.verified ? 'verified' : 'unverified'
+    }`,
+  [AuditV1OperationTypes.MARKETPLACE_PUBLISHER_DELIST]: (
+    audit: AuditV1<MarketplacePublisherModerationAuditDetails>
+  ) =>
+    `Publisher '@${audit.details.publisher_handle}' ${
+      audit.details.delisted ? 'delisted' : 'relisted'
+    }`,
+  [AuditV1OperationTypes.MARKETPLACE_CURATION_UPDATE]: (
+    audit: AuditV1<MarketplaceCurationAuditDetails>
+  ) =>
+    `Curation slot '${audit.details.slot}' set to ${audit.details.listing_ids.length} listing(s)`,
+  [AuditV1OperationTypes.ENVIRONMENT_CREATE]: (
+    audit: AuditV1<EnvironmentConfigAuditDetails>
+  ) =>
+    `Environment '${
+      audit.details.environment_title ??
+      audit.details.environment_key ??
+      audit.details.environment_id
+    }' created`,
+  [AuditV1OperationTypes.ENVIRONMENT_UPDATE]: (
+    audit: AuditV1<EnvironmentConfigAuditDetails>
+  ) =>
+    `Environment '${
+      audit.details.environment_title ??
+      audit.details.environment_key ??
+      audit.details.environment_id
+    }' updated`,
+  [AuditV1OperationTypes.ENVIRONMENT_DELETE]: (
+    audit: AuditV1<EnvironmentConfigAuditDetails>
+  ) =>
+    `Environment '${
+      audit.details.environment_title ??
+      audit.details.environment_key ??
+      audit.details.environment_id
+    }' deleted`,
+  [AuditV1OperationTypes.ENVIRONMENT_OPEN]: (
+    audit: AuditV1<EnvironmentLaneAuditDetails>
+  ) =>
+    `Base '${audit.details.base_id}' opened in an environment as '${audit.details.lane_base_id}'`,
+  [AuditV1OperationTypes.ENVIRONMENT_CLOSE]: (
+    audit: AuditV1<EnvironmentLaneAuditDetails>
+  ) => `Environment copy '${audit.details.lane_base_id}' closed`,
+  [AuditV1OperationTypes.ENVIRONMENT_DISCARD]: (
+    audit: AuditV1<EnvironmentLaneAuditDetails>
+  ) =>
+    `Environment copy '${audit.details.lane_base_id}' discarded without promoting`,
+  [AuditV1OperationTypes.ENVIRONMENT_PROMOTE]: (
+    audit: AuditV1<EnvironmentLaneAuditDetails>
+  ) =>
+    `Environment copy '${audit.details.lane_base_id}' promoted to base '${audit.details.base_id}'`,
+  [AuditV1OperationTypes.ENVIRONMENT_PROMOTE_FAILED]: (
+    audit: AuditV1<EnvironmentLaneAuditDetails>
+  ) =>
+    `Promote failed for environment copy '${audit.details.lane_base_id}'${
+      audit.details.counts ? ` (${audit.details.counts.failed} failed)` : ''
+    }`,
+  [AuditV1OperationTypes.ENVIRONMENT_REFRESH]: (
+    audit: AuditV1<EnvironmentLaneAuditDetails>
+  ) =>
+    `Environment copy '${audit.details.lane_base_id}' refreshed from base '${audit.details.base_id}'`,
+  [AuditV1OperationTypes.SKILL_CREATE]: (audit: AuditV1<SkillPayload>) =>
+    `Skill '${audit.details.skill_title}' has been created in ${audit.details.scope} scope`,
+  [AuditV1OperationTypes.SKILL_UPDATE]: (audit: AuditV1<SkillPayload>) =>
+    `Skill '${audit.details.skill_title}' has been updated`,
+  [AuditV1OperationTypes.SKILL_DELETE]: (audit: AuditV1<SkillPayload>) =>
+    `Skill '${audit.details.skill_title}' has been deleted`,
+  [AuditV1OperationTypes.SKILL_IMPORT]: (audit: AuditV1<SkillPayload>) =>
+    `Skill '${audit.details.skill_title}' has been installed from ${
+      audit.details.source_ref ?? 'a repository'
+    }`,
+  [AuditV1OperationTypes.FACTORY_SESSION_CREATE]: (
+    audit: AuditV1<FactorySessionPayload>
+  ) => `App Factory session started on ${audit.details.repo ?? 'a repository'}`,
+  [AuditV1OperationTypes.FACTORY_SESSION_STOP]: (
+    audit: AuditV1<FactorySessionPayload>
+  ) => `App Factory session '${audit.details.session_title ?? ''}' was stopped`,
+  [AuditV1OperationTypes.FACTORY_SESSION_ARCHIVE]: (
+    audit: AuditV1<FactorySessionPayload>
+  ) =>
+    `App Factory session '${
+      audit.details.session_title ?? ''
+    }' was archived and its sandbox released`,
+  [AuditV1OperationTypes.FACTORY_SESSION_RESUME]: (
+    audit: AuditV1<FactorySessionPayload>
+  ) => `App Factory session '${audit.details.session_title ?? ''}' was resumed`,
+  [AuditV1OperationTypes.FACTORY_SESSION_RENAME]: (
+    audit: AuditV1<FactorySessionPayload>
+  ) =>
+    `App Factory session '${
+      audit.details.old_session_title ?? ''
+    }' was renamed to '${audit.details.session_title ?? ''}'`,
+  [AuditV1OperationTypes.FACTORY_SESSION_DELETE]: (
+    audit: AuditV1<FactorySessionPayload>
+  ) => `App Factory session '${audit.details.session_title ?? ''}' was deleted`,
+  [AuditV1OperationTypes.FACTORY_REPO_ENABLE]: (
+    audit: AuditV1<FactoryRepoPayload>
+  ) => `Repository '${audit.details.repo}' was added to App Factory`,
+  [AuditV1OperationTypes.FACTORY_REPO_DISABLE]: (
+    audit: AuditV1<FactoryRepoPayload>
+  ) => `Repository '${audit.details.repo}' was removed from App Factory`,
+  [AuditV1OperationTypes.SKILL_POLICY_UPDATE]: (
+    audit: AuditV1<SkillPolicyUpdatePayload>
+  ) =>
+    `Skills policy updated for ${audit.details.scope}: community '${audit.details.community}', personal '${audit.details.personal}'`,
 };
 
 function auditDescription(audit: AuditV1) {

@@ -1,5 +1,4 @@
 import { customAlphabet } from 'nanoid';
-import oracledb from 'oracledb';
 import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
@@ -38,6 +37,10 @@ import { swaggerSanitizeSchemaName } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import {
+  LIST_ARG_ALIASES,
+  resolveListArgAlias,
+} from '~/helpers/listArgAliases';
+import {
   Column,
   type LinkToAnotherRecordColumn,
   Model,
@@ -47,6 +50,34 @@ import {
 } from '~/models';
 import { excludeAttachmentProps } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+
+/**
+ * Effective schema for metadata introspection (tableList / columnList /
+ * relationListAll / viewList).
+ *
+ * External (non-meta, non-local) PG / MSSQL sources carry the schema under
+ * `searchPath` (see `Model.ts` and `PgClient.get schema()`); meta / local
+ * sources — and every other client type — keep it on `.schema`. Reading
+ * `.schema` for an external PG source returns undefined, so introspection
+ * silently falls back to `public` and ignores the configured schema.
+ *
+ * Gate on `isMeta()` (`is_meta || is_local`), NOT `isMeta(true, 1)` (which is
+ * `is_local` only): an `is_meta` pg/mssql source (e.g. NC_DISABLE_PG_DATA_
+ * REFLECTION) has `getConfig()` return the META db config, whose schema lives
+ * on `.schema` (from `NC_DB ?schema=`), not `searchPath` — so it must take the
+ * `.schema` branch, exactly as it did before this change.
+ */
+export function getSourceIntrospectionSchema(
+  source: Source,
+): string | undefined {
+  if (
+    !source?.isMeta?.() &&
+    (source?.type === 'pg' || source?.type === 'mssql')
+  ) {
+    return source.getConfig()?.searchPath?.[0];
+  }
+  return source?.getConfig()?.schema;
+}
 
 export type QueryWithCte = {
   builder: string | Knex.QueryBuilder;
@@ -220,23 +251,6 @@ export function coerceOracleReturnedPk(value: any, column: Column): any {
   return value;
 }
 
-/**
- * Make a knex `toSQL().bindings` array safe to ship to the sql-executor for an
- * Oracle `INSERT … RETURNING`. knex serializes the RETURNING out-bind as the
- * placeholder object `{columnName}`; the executor runs the insert via
- * `kn.raw(sql, bindings)`, which hands bindings to node-oracledb verbatim — and
- * it rejects `{columnName}` (NJS-044). Swap each one for a real,
- * JSON-serializable out-bind descriptor (`dir` alone captures the value as a
- * string; {@link coerceOracleReturnedPk} normalizes numeric pks downstream).
- */
-export function toOracleReturningBindings(bindings: readonly any[]): any[] {
-  return bindings.map((b) =>
-    b && typeof b === 'object' && !Array.isArray(b) && 'columnName' in b
-      ? { dir: oracledb.BIND_OUT }
-      : b,
-  );
-}
-
 export function getOppositeRelationType(
   type: RelationTypes | LinkToAnotherRecordColumn['type'],
 ) {
@@ -293,11 +307,11 @@ export async function shouldCascadeLinkCleanup(
   if (relationType === 'mm') {
     const assocModel = await Model.get(mmContext, colOptions.fk_mm_model_id);
     if (!assocModel) return false;
-    await assocModel.getColumns(mmContext);
+    await assocModel.getColumns();
     effectiveDr = undefined;
     for (const c of assocModel.columns) {
       if (!isLinksOrLTAR(c)) continue;
-      const opts = await c.getColOptions<LinkToAnotherRecordColumn>(mmContext);
+      const opts = await c.getColOptions<LinkToAnotherRecordColumn>();
       if (
         opts?.type === 'bt' &&
         opts.fk_child_column_id === colOptions.fk_mm_child_column_id
@@ -381,6 +395,30 @@ export function getRelatedLinksColumn(
 export function extractIdPropIfObjectOrReturn(id: any, prop: string) {
   return typeof id === 'object' ? id[prop] : id;
 }
+
+/**
+ * Pick the inline link fields out of a payload and re-key them by column title
+ * — the only key the nested-link writers look for. V3 accepts a field keyed by
+ * title *or* column id, so every consumer has to resolve the key the same way
+ * or the same payload behaves differently per code path.
+ *
+ * Key presence decides, not the value: an explicit `null` (unlink all) has to
+ * be told apart from an absent field.
+ */
+export function extractLinkFieldsByTitle(
+  data: Record<string, any>,
+  linkColumns: { title: string; id: string; column_name?: string }[],
+): Record<string, any> {
+  const linkFields: Record<string, any> = {};
+
+  for (const col of linkColumns) {
+    const key = [col.title, col.id, col.column_name].find((k) => k in data);
+    if (key === undefined) continue;
+    linkFields[col.title] = data[key];
+  }
+
+  return linkFields;
+}
 export const nanoidv2 = customAlphabet(
   '1234567890abcdefghijklmnopqrstuvwxyz',
   14,
@@ -391,7 +429,7 @@ export async function populatePk(
   model: Model,
   insertObj: any,
 ) {
-  await model.getColumns(context);
+  await model.getColumns();
   for (const pkCol of model.primaryKeys) {
     if (!pkCol.meta?.ag || insertObj[pkCol.title]) continue;
     insertObj[pkCol.title] =
@@ -551,6 +589,10 @@ export function extractSortsObject(
       if (throwErrorIfInvalid && !sort.fk_column_id) {
         NcError.get(context).fieldNotFound(s.field);
       }
+      // Deliberately UNSTAMPED. The alias map may describe a related table in
+      // another base, and sortV2 stamps an unstamped Sort with the context of
+      // the base model it is applied to — which is the base the sort key must
+      // resolve in. Stamping here would win over that and silently drop it.
       return new Sort(sort);
     });
   }
@@ -580,6 +622,10 @@ export function extractSortsObject(
       const fieldNameOrId = s.replace(/^~?[+-]/, '');
       NcError.get(context).fieldNotFound(fieldNameOrId);
     }
+    // Deliberately UNSTAMPED. The alias map may describe a related table in
+    // another base, and sortV2 stamps an unstamped Sort with the context of
+    // the base model it is applied to — which is the base the sort key must
+    // resolve in. Stamping here would win over that and silently drop it.
     return new Sort(sort);
   });
 }
@@ -602,6 +648,34 @@ export function haveFormulaColumn(columns: Column[]) {
 }
 
 /**
+ * True when any Formula/Button column carries a stored error.
+ *
+ * Such a column compiles to `'ERR' as …` (or is dropped, for Button), so a plan
+ * built now is poisoned. Caching it puts the model on the cache-hit path, which
+ * returns before the columns are extracted — and the self-heal probe lives in
+ * that extraction, so the column would stay broken until the hash expires
+ * (NC_REDIS_TTL, 3 days) even after the source recovered.
+ *
+ * colOptions are NocoCache-backed, and this only runs on the plan-building
+ * (cache-miss) path.
+ */
+export async function hasFlaggedFormulaColumn(
+  context: NcContext,
+  columns: Column[],
+): Promise<boolean> {
+  for (const col of columns) {
+    if (col.uidt !== UITypes.Formula && col.uidt !== UITypes.Button) continue;
+    try {
+      const colOptions = await col.getColOptions<{ error?: string }>();
+      if (colOptions?.error) return true;
+    } catch {
+      // a missing colOptions row is not a reason to skip caching
+    }
+  }
+  return false;
+}
+
+/**
  * Returns a Knex where-clause callback that excludes soft-deleted records
  * using an alias-qualified column name. For use in subqueries where the
  * table is aliased (e.g. lookups, rollups, CTEs).
@@ -612,7 +686,7 @@ export async function getAliasedSoftDeleteFilter(
   baseModel: IBaseModelSqlV2,
   tableAlias: string,
 ): Promise<Knex.QueryCallback | null> {
-  const columns = await baseModel.model.getColumns(baseModel.context);
+  const columns = await baseModel.model.getColumns();
   const deletedColumn = columns.find((c) => isDeletedCol(c));
   if (!deletedColumn) return null;
 
@@ -700,7 +774,7 @@ export async function getQueriedColumns(
   ncMeta?: MetaService,
 ) {
   let viewOrTableColumns: Column[] | { fk_column_id?: string }[];
-  const _columns = await model.getColumns(context, ncMeta);
+  const _columns = await model.getColumns(ncMeta);
 
   const viewColumns = view?.id && (await View.getColumns(context, view.id));
   if (viewColumns) {
@@ -736,7 +810,7 @@ export function getListArgs(
   } = {},
 ): XcFilter {
   const obj: XcFilter = {};
-  obj.where = args.where || args.filter || args.w || '';
+  obj.where = resolveListArgAlias(args, LIST_ARG_ALIASES.where) || '';
   obj.having = args.having || args.h || '';
   obj.shuffle = args.shuffle || args.r || '';
   obj.condition = args.condition || args.c || {};
@@ -772,8 +846,11 @@ export function getListArgs(
     NcError.invalidOffsetValue(obj.offset);
   }
   obj.fields =
-    args?.fields || args?.f || (ignoreAssigningWildcardSelect ? null : '*');
-  obj.sort = args?.sort || args?.s || model.primaryKey?.[0]?.column_name;
+    resolveListArgAlias(args, LIST_ARG_ALIASES.fields) ||
+    (ignoreAssigningWildcardSelect ? null : '*');
+  obj.sort =
+    resolveListArgAlias(args, LIST_ARG_ALIASES.sort) ||
+    model.primaryKey?.[0]?.column_name;
   obj.pks = args?.pks;
   obj.aggregation = args.aggregation || [];
   obj.column_name = args.column_name;
@@ -889,13 +966,15 @@ export const isFilterValueConsistOf = <T extends string | string[]>(
   const evalNeedle = needle.toLowerCase().trim();
 
   if (Array.isArray(filterValue)) {
-    const arr = filterValue as string[];
-    const result = arr.some((k) => k.toLowerCase().trim() === evalNeedle);
+    // Array entries are not guaranteed to be strings — a link-row constraint
+    // carries numeric ids, and only the optimised query path scans these.
+    const arr = filterValue as unknown[];
+    const matches = (k: unknown) =>
+      typeof k === 'string' && k.toLowerCase().trim() === evalNeedle;
+    const result = arr.some(matches);
 
     if (result && option?.replace) {
-      const replaced = arr.map((k) =>
-        k.toLowerCase().trim() === evalNeedle ? option.replace! : k,
-      );
+      const replaced = arr.map((k) => (matches(k) ? option.replace! : k));
       return { exists: true, value: replaced as T };
     }
 

@@ -15,8 +15,17 @@ import UITypes from '~/lib/UITypes';
 import { SerializerOrParserFnProps } from '../column.interface';
 import { SelectTypeConversionError } from '~/lib/error';
 import { checkboxTypeMap } from '~/lib/columnHelper/utils/common';
-import { getGroupDecimalSymbolFromLocale } from '~/lib/currencyHelpers';
+import {
+  getCurrencyDecimalSymbol,
+  getCurrencyGroupSymbol,
+  normalizeLocaleNumericString,
+} from '~/lib/currencyHelpers';
 import { getSeparatorChars, resolveColumnSeparator } from './separator';
+import {
+  applyNumberAbbreviation,
+  extractNumberAbbreviation,
+  shouldAbbreviateNumber,
+} from './abbreviation';
 
 /**
  * Remove outer quotes & unescape
@@ -61,6 +70,20 @@ export const serializeDecimalValue = (
       return ncIsNaN(value) ? null : Number(value);
     }
 
+    // Intl.NumberFormat renders negatives with U+2212 MINUS SIGN in 36 locales
+    // (sv, fi, nb, nn, hr, et, sl, lt, eu, fo, gsw, se, ksh), so copying one of
+    // our own cells and pasting it back dropped the sign. Normalize to ASCII '-'
+    // before the strips below, which treat U+2212 as noise.
+    value = value.replace(/\u2212/g, '-');
+
+    // a column that displays abbreviated values also accepts them: "1.2M" -> 1200000
+    let multiplier = 1;
+    if (params?.col && shouldAbbreviateNumber(parseProp(params.col.meta))) {
+      const extracted = extractNumberAbbreviation(value);
+      value = extracted.text;
+      multiplier = extracted.multiplier;
+    }
+
     let cleanedValue: string;
     if (ncIsFunction(callback)) {
       cleanedValue = callback(value);
@@ -85,10 +108,11 @@ export const serializeDecimalValue = (
           cleanedValue = cleanedValue.substring(0, secondIdx);
         }
       }
-      // Remove anything that's not digit, decimal separator, or leading minus
-      cleanedValue = cleanedValue
-        .replace(new RegExp(`(?!^-)[^\\d\\${decimalSeparator}-]`, 'g'), '')
-        .trim();
+      // Remove anything that's not a digit, the decimal separator, or a minus
+      cleanedValue = cleanedValue.replace(
+        new RegExp(`[^\\d\\${decimalSeparator}-]`, 'g'),
+        ''
+      );
       // Replace decimal separator with dot
       if (decimalSeparator !== '.') {
         cleanedValue = cleanedValue.replace(
@@ -104,19 +128,24 @@ export const serializeDecimalValue = (
           cleanedValue.substring(dotIdx + 1).replace(/\./g, '');
       }
     } else {
-      cleanedValue = value
-        .replace(/[\s\u00A0]/g, '')
-        .replace(/(?!^-)[^\d.-]/g, '');
+      cleanedValue = value.replace(/[^\d.-]/g, '');
     }
+
+    // Phase two — the strips above keep every '-', so the sign is resolved here,
+    // the same way extractDecimalFromString does it for the cell editor: a minus
+    // ahead of the digits is the sign ("-$1", "$-1"); any later one is noise
+    // ("100-50" -> 10050).
+    const isNegative = cleanedValue.startsWith('-');
+    cleanedValue = cleanedValue.replace(/-/g, '');
 
     if (!cleanedValue) return null;
 
     // Try converting the cleaned value to a number
-    const numberValue = Number(cleanedValue);
+    const numberValue = Number(isNegative ? `-${cleanedValue}` : cleanedValue);
 
     // If it's a valid number, return it
     if (!isNaN(numberValue)) {
-      return numberValue;
+      return applyNumberAbbreviation(numberValue, multiplier);
     }
   }
 
@@ -205,6 +234,45 @@ export const serializeImportValue = (raw: any, col: ColumnType) => {
   }
 };
 
+/**
+ * Convert an Excel date *serial* into the string a date column expects.
+ *
+ * Excel stores dates as numbers — days since 1899-12-30 (the epoch includes the
+ * historical 1900 leap-year bug). When a spreadsheet cell holding a date is NOT
+ * formatted as a date (General / numeric format), the xlsx parser hands us the
+ * raw serial instead of a `Date`. Forwarding that integer to a typed date
+ * column then fails at the DB (`column ... is of type date but expression is of
+ * type integer`).
+ *
+ * This is Excel-specific and intentionally NOT wired into `serializeImportValue`
+ * (which stays format-agnostic and is shared with the CSV-upload extension). It
+ * is invoked only from the Excel import path — see `DataImportProcessor`. Only a
+ * numeric `value` is treated as a serial; anything else (a Date, an already-
+ * formatted date string) is returned untouched for the normal path to handle.
+ *
+ * The importer bulk-inserts with `raw: true`, so `_convertDateFormat` is skipped
+ * — the returned string must already be DB-ready:
+ *   - `Date`     → `YYYY-MM-DD`
+ *   - `DateTime` → `YYYY-MM-DD HH:mm:ssZ` (UTC; Excel serials carry no timezone)
+ */
+export const serializeExcelDateValue = (value: any, col: ColumnType) => {
+  if (value === null || value === undefined || value === '') return null;
+
+  // Only numeric Excel serials need conversion; leave everything else alone.
+  if (!ncIsNumber(value)) return value;
+
+  // 25569 = the serial of 1970-01-01 in the Excel 1900 date system.
+  const ms = Math.round((value - 25569) * 86400000);
+  const date = new Date(ms);
+  if (ncIsNaN(date.getTime())) return null;
+
+  const iso = date.toISOString(); // YYYY-MM-DDTHH:mm:ss.sssZ (UTC)
+
+  return (col?.uidt as UITypes) === UITypes.DateTime
+    ? `${iso.slice(0, 10)} ${iso.slice(11, 19)}+00:00`
+    : iso.slice(0, 10);
+};
+
 export const serializeJsonValue = (value: any) => {
   try {
     return ncIsString(value)
@@ -232,29 +300,20 @@ export const serializeCurrencyValue = (
     value,
     (value) => {
       const columnMeta = parseProp(params.col.meta);
-      // Create a number formatter for the target locale (e.g., 'de-DE', 'en-US')
-      const formatter = new Intl.NumberFormat(
-        columnMeta?.currency_locale || 'en-US'
+
+      // Keeps '-' for the sign pass in serializeDecimalValue. The separators
+      // have to come from the currency formatter, which is what rendered the cell.
+      return normalizeLocaleNumericString(
+        value,
+        getCurrencyDecimalSymbol(
+          columnMeta?.currency_code,
+          columnMeta?.currency_locale
+        ),
+        getCurrencyGroupSymbol(
+          columnMeta?.currency_code,
+          columnMeta?.currency_locale
+        )
       );
-
-      // If the locale is not set or is 'en-US', or the formatter does not support formatToParts, use the default behavior
-      if (
-        !columnMeta?.currency_locale ||
-        columnMeta.currency_locale === 'en-US' ||
-        typeof (formatter as any).formatToParts !== 'function'
-      ) {
-        return value?.replace(/[^0-9.]/g, '')?.trim();
-      }
-
-      const { group, decimal } = getGroupDecimalSymbolFromLocale(
-        columnMeta?.currency_locale
-      );
-
-      return value
-        .replace(new RegExp('\\' + group, 'g'), '') // 1. Remove all group (thousands) separators
-        .replace(new RegExp('\\' + decimal), '.') // 2. Replace the locale-specific decimal separator with a dot (.)
-        .replace(/[^\d.-]/g, '') // 3. Remove any non-digit, non-dot, non-minus characters (e.g., currency symbols, spaces)
-        .trim(); // 4. Trim whitespace from both ends of the string
     },
     params
   );

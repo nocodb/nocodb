@@ -45,7 +45,9 @@ export function useMouseSelection({
     let fixedWidth = 0
     const fixedCols = columns.value.filter((col) => col.fixed)
     for (let i = 0; i < fixedCols.length; i++) {
-      if (!fixedCols[i]?.width) continue
+      // No stored width still occupies rendered space (parseCellWidth's 180
+      // default) — skipping it here would shift every later hit region left
+      // (interface synthetic views store no per-column widths at all).
       const width = parseCellWidth(fixedCols[i]?.width)
       if (x >= fixedWidth && x < fixedWidth + width) {
         return { row, col: i === 0 ? -1 : columns.value.findIndex((c) => c.id === fixedCols[i]!.id), path: path ?? [] }

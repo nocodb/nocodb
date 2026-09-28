@@ -149,10 +149,36 @@ const { state } = useProvideSmartsheetRowStore(
   }),
 )
 
-const { blockAddNewRecord, navigateToPricing, getPlanTitle, activePlan, isWsOwner, showEEFeatures, blockFormGridLayout } =
-  useEeConfig()
+const {
+  blockAddNewRecord,
+  blockFormRequireSignin,
+  showUpgradeToUseFormRequireSignin,
+  navigateToPricing,
+  getPlanTitle,
+  activePlan,
+  isWsOwner,
+  showEEFeatures,
+  blockFormGridLayout,
+} = useEeConfig()
 
 const columns = computed(() => meta?.value?.columns || [])
+
+// Only a user-added "Created by" field counts. Every table also carries the
+// system `nc_created_by` column, which matches on uidt alone and would make
+// this always true — leaving the option enabled on tables with nowhere to show
+// the submitter, and its "add a Created by field" hint permanently unreachable.
+const hasCreatedByField = computed(() => meta.value?.columns?.some((c) => c.uidt === UITypes.CreatedBy && !c.system) ?? false)
+
+const easterEgg = ref(false)
+
+const easterEggCount = ref(0)
+
+const onEasterEgg = () => {
+  easterEggCount.value += 1
+  if (easterEggCount.value >= 2) {
+    easterEgg.value = true
+  }
+}
 
 const isSidebarVisible = ref(ncIsPlaywright())
 
@@ -969,7 +995,7 @@ function setFormData() {
     save_draft_to_browser: !!(formViewData.value?.save_draft_to_browser ?? 1),
     meta: {
       hide_branding: false,
-      background_color: '#F9F9FA',
+      background_color: DEFAULT_FORM_BACKGROUND_COLOR,
       hide_banner: false,
       ...(parseProp(formViewData.value?.meta) ?? {}),
     },
@@ -1023,6 +1049,21 @@ const onFormItemClick = (element: any, sidebarClick = false) => {
 
   activeRow.value = element.id
 }
+
+/**
+ * Form page background. The stored default (#F9F9FA) is light gray-50 — in dark mode it must
+ * follow the palette token instead of an adaptive tint, otherwise every dark palette renders
+ * the same computed gray. Colors the user actually picked still adapt.
+ */
+const formBackground = computed(() => {
+  const color = parseProp(formViewData.value?.meta)?.background_color
+
+  if (!color || color.toLowerCase() === DEFAULT_FORM_BACKGROUND_COLOR.toLowerCase()) {
+    return 'var(--nc-bg-gray-extralight)'
+  }
+
+  return getDarkModeCompatibleBgColor({ color, isDark: isDark.value, shade: 0 })
+})
 
 const handleChangeBackground = (color: string) => {
   if (isLocked.value || !isEditable) return
@@ -1128,7 +1169,7 @@ const updateFieldTitle = (value: string) => {
 
 const handleAutoScrollFormField = (title: string, isSidebar: boolean) => {
   const field = document.querySelector(
-    `${isSidebar ? '.nc-form-field-item-' : '.nc-form-drag-'}${CSS.escape(title?.replaceAll(' ', ''))}`,
+    `${isSidebar ? '.nc-form-field-item-' : '.nc-form-drag-'}${CSS.escape(toSafeClassName(title))}`,
   )
 
   if (field) {
@@ -1351,11 +1392,7 @@ const { message: templatedMessage } = useTemplatedMessage(
       <div
         v-if="submitted"
         class="h-full p-6 overflow-auto nc-scrollbar-thin"
-        :style="{
-          background: parseProp(formViewData?.meta)?.background_color
-            ? getDarkModeCompatibleBgColor({ color: parseProp(formViewData?.meta)?.background_color, isDark, shade: 0 })
-            : 'var(--nc-bg-gray-extralight)',
-        }"
+        :style="{ background: formBackground }"
         data-testid="nc-form-wrapper-submit"
       >
         <div class="max-w-[max(33%,688px)] mx-auto">
@@ -1445,15 +1482,7 @@ const { message: templatedMessage } = useTemplatedMessage(
             <template #preview>
               <div
                 class="nc-form-preview-scroller w-full h-full overflow-auto nc-scrollbar-thin p-6"
-                :style="{
-                  background: parseProp(formViewData?.meta)?.background_color
-                    ? getDarkModeCompatibleBgColor({
-                        color: parseProp(formViewData?.meta)?.background_color,
-                        isDark,
-                        shade: 0,
-                      })
-                    : 'var(--nc-bg-gray-extralight)',
-                }"
+                :style="{ background: formBackground }"
               >
                 <Transition
                   enter-active-class="transition-opacity delay-300 duration-300"
@@ -1502,7 +1531,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                     />
                     <div class="absolute bottom-0 right-0 hidden group-hover:block">
                       <div class="flex items-center space-x-1 m-2">
-                        <NcTooltip :disabled="(isEeUI && showEEFeatures) || isLocked">
+                        <NcTooltip :disabled="showEEFeatures || isLocked">
                           <template #title>
                             <div class="text-center">
                               {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
@@ -1625,7 +1654,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               class="items-center space-x-1 flex-nowrap m-3"
                               :class="formViewData.logo_url ? 'hidden absolute top-0 left-0 group-hover:flex' : 'flex'"
                             >
-                              <NcTooltip :disabled="(isEeUI && showEEFeatures) || isLocked">
+                              <NcTooltip :disabled="showEEFeatures || isLocked">
                                 <template #title>
                                   <div class="text-center">
                                     {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
@@ -1781,6 +1810,20 @@ const { message: templatedMessage } = useTemplatedMessage(
                         </div>
                       </div>
 
+                      <!-- Signed-in user indicator in form preview -->
+                      <div
+                        v-if="isEeUI && parseProp(formViewData?.meta)?.require_signin && user?.email"
+                        class="px-4 lg:px-6"
+                        data-testid="nc-form-preview-signin-banner"
+                      >
+                        <SharedViewSignedInUserBanner
+                          preview
+                          :email="user.email"
+                          :display-name="user.display_name"
+                          :user-meta="user.meta"
+                        />
+                      </div>
+
                       <!-- EE: multi-column grid layout (gated by plan feature) -->
                       <div v-if="!blockFormGridLayout" class="h-full px-4 lg:px-6 nc-form-rows">
                         <template v-for="formRow in rowsWithKey" :key="formRow._key">
@@ -1891,7 +1934,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             :key="element.id"
                             class="nc-editable nc-form-focus-element item relative bg-nc-bg-default p-4 lg:p-6"
                             :class="[
-                              `nc-form-drag-${element.title.replaceAll(' ', '')}`,
+                              `nc-form-drag-${toSafeClassName(element.title)}`,
                               {
                                 'rounded-2xl border-2 my-1': isEditable,
                               },
@@ -2374,7 +2417,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 </span>
 
                                 <a-switch
-                                  v-if="isEeUI && showEEFeatures"
+                                  v-if="showEEFeatures"
                                   v-e="[`a:form-view:hide-branding`]"
                                   :checked="parseProp(formViewData.meta)?.hide_branding"
                                   size="small"
@@ -2436,7 +2479,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     />
                                   </span>
                                   <a-switch
-                                    v-if="isEeUI && showEEFeatures"
+                                    v-if="showEEFeatures"
                                     v-e="[`a:form-view:custom-submit-label`]"
                                     :checked="parseProp(formViewData.meta)?.custom_submit_enabled"
                                     size="small"
@@ -2501,8 +2544,15 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                       <div class="p-4 flex flex-col space-y-4">
                         <!-- Post Form Submission Settings -->
-                        <div class="text-sm font-bold text-nc-content-gray">
-                          {{ $t('msg.info.postFormSubmissionSettings') }}
+                        <div class="flex items-center justify-between">
+                          <div class="text-sm font-bold text-nc-content-gray">
+                            {{ $t('msg.info.postFormSubmissionSettings') }}
+                          </div>
+                          <div
+                            class="w-[15px] h-[15px] cursor-pointer"
+                            data-testid="nc-form-require-signin-easter-egg"
+                            @dblclick="onEasterEgg"
+                          ></div>
                         </div>
 
                         <div class="flex flex-col gap-3">
@@ -2526,7 +2576,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     />
                                   </span>
                                   <a-switch
-                                    v-if="showEEFeatures"
+                                    v-if="isEeUI"
                                     v-e="[`a:form-view:redirect-url`]"
                                     :checked="isOpenRedirectUrl"
                                     size="small"
@@ -2642,6 +2692,49 @@ const { message: templatedMessage } = useTemplatedMessage(
                               @update:model-value="(val) => (formViewData!.email = val)"
                               @change="updateView"
                             />
+                          </div>
+
+                          <!-- See who submitted a response -->
+                          <div
+                            v-if="isEeUI && (easterEgg || !!parseProp(formViewData.meta)?.require_signin)"
+                            class="flex items-start justify-between gap-3"
+                          >
+                            <div class="flex flex-col">
+                              <span>{{ $t('msg.info.seeWhoSubmitted') }}</span>
+                              <span class="text-xs text-nc-content-gray-subtle2">
+                                {{
+                                  hasCreatedByField
+                                    ? $t('msg.info.seeWhoSubmittedSubtitle')
+                                    : $t('msg.info.seeWhoSubmittedDisabledHint')
+                                }}
+                              </span>
+                            </div>
+                            <div class="flex items-center gap-2 h-6">
+                              <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_FORM_REQUIRE_SIGNIN" />
+                              <a-switch
+                                v-e="[`a:form-view:require-signin`]"
+                                :checked="!!parseProp(formViewData.meta)?.require_signin"
+                                size="small"
+                                class="nc-form-checkbox-require-signin"
+                                data-testid="nc-form-checkbox-require-signin"
+                                :disabled="
+                                  isLocked ||
+                                  !isEditable ||
+                                  (!parseProp(formViewData.meta)?.require_signin &&
+                                    (blockFormRequireSignin || !hasCreatedByField))
+                                "
+                                @change="(value: boolean) => {
+                                  // Turning OFF is always allowed, so a flag stored on a plan
+                                  // that no longer has the feature can still be cleared.
+                                  if (value && blockFormRequireSignin) {
+                                    showUpgradeToUseFormRequireSignin()
+                                    return
+                                  }
+                                  (formViewData!.meta as Record<string,any>).require_signin = value
+                                  updateView()
+                                }"
+                              />
+                            </div>
                           </div>
                         </div>
 

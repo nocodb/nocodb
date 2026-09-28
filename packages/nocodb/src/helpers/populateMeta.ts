@@ -10,7 +10,7 @@ import type PGClient from '~/db/sql-client/lib/pg/PgClient';
 import type { NcContext } from '~/interface/config';
 import Source from '~/models/Source';
 import { META_COL_NAME } from '~/constants';
-import { normalizeDr } from '~/helpers/dbHelpers';
+import { getSourceIntrospectionSchema, normalizeDr } from '~/helpers/dbHelpers';
 import { formatLinkDbMapping } from '~/helpers/formatLinkDbMapping';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import getColumnUiType from '~/helpers/getColumnUiType';
@@ -56,12 +56,10 @@ async function isMMRelationExist(
 ) {
   let isExist = false;
   const colChildOpt =
-    await belongsToCol.getColOptions<LinkToAnotherRecordColumn>(context);
-  for (const col of await model.getColumns(context)) {
+    await belongsToCol.getColOptions<LinkToAnotherRecordColumn>();
+  for (const col of await model.getColumns()) {
     if (isLTARType(col)) {
-      const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
-        context,
-      );
+      const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>();
       if (
         colOpt &&
         isMMOrMMLike(col) &&
@@ -83,7 +81,7 @@ export async function extractAndGenerateManyToManyRelations(
   modelsArr: Array<Model>,
 ) {
   for (const assocModel of modelsArr) {
-    await assocModel.getColumns(context);
+    await assocModel.getColumns();
     // check if table is a Bridge table(or Associative Table) by checking
     // number of foreign keys and columns
 
@@ -91,9 +89,7 @@ export async function extractAndGenerateManyToManyRelations(
     const belongsToCols: Column<LinkToAnotherRecordColumn>[] = [];
     for (const col of assocModel.columns) {
       if (col.uidt == UITypes.LinkToAnotherRecord) {
-        const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
-          context,
-        );
+        const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>();
         if (colOpt?.type === RelationTypes.BELONGS_TO) belongsToCols.push(col);
       }
     }
@@ -108,11 +104,11 @@ export async function extractAndGenerateManyToManyRelations(
         belongsToCols.some((c) => c.colOptions?.fk_child_column_id === pk.id),
       )
     ) {
-      const modelA = await belongsToCols[0].colOptions.getRelatedTable(context);
-      const modelB = await belongsToCols[1].colOptions.getRelatedTable(context);
+      const modelA = await belongsToCols[0].colOptions.getRelatedTable();
+      const modelB = await belongsToCols[1].colOptions.getRelatedTable();
 
-      await modelA.getColumns(context);
-      await modelB.getColumns(context);
+      await modelA.getColumns();
+      await modelB.getColumns();
 
       // check tableA already have the relation or not
       const isRelationAvailInA = await isMMRelationExist(
@@ -214,14 +210,12 @@ export async function extractAndGenerateManyToManyRelations(
       // mark has many relation associated with mm as system field in both table
       for (const btCol of [belongsToCols[0], belongsToCols[1]]) {
         const colOpt = await btCol.colOptions;
-        const model = await colOpt.getRelatedTable(context);
+        const model = await colOpt.getRelatedTable();
 
-        for (const col of await model.getColumns(context)) {
+        for (const col of await model.getColumns()) {
           if (!isLinksOrLTAR(col.uidt)) continue;
 
-          const colOpt1 = await col.getColOptions<LinkToAnotherRecordColumn>(
-            context,
-          );
+          const colOpt1 = await col.getColOptions<LinkToAnotherRecordColumn>();
           if (!colOpt1 || colOpt1.type !== RelationTypes.HAS_MANY) continue;
 
           if (
@@ -288,13 +282,15 @@ export async function populateMeta(
 
   /* Get all relations */
   const relations = (
-    await sqlClient.relationListAll({ schema: source.getConfig()?.schema })
+    await sqlClient.relationListAll({
+      schema: getSourceIntrospectionSchema(source),
+    })
   )?.data?.list;
 
   info.relationsCount = relations.length;
 
   let tables = (
-    await sqlClient.tableList({ schema: source.getConfig()?.schema })
+    await sqlClient.tableList({ schema: getSourceIntrospectionSchema(source) })
   )?.data?.list
     ?.filter(({ tn }) => !IGNORE_TABLES.includes(tn))
     ?.map((t) => {
@@ -362,7 +358,7 @@ export async function populateMeta(
       > = (
         await sqlClient.columnList({
           tn: table.tn,
-          schema: source.getConfig()?.schema,
+          schema: getSourceIntrospectionSchema(source),
         })
       )?.data?.list;
 
@@ -494,14 +490,14 @@ export async function populateMeta(
 
           const rel = column.hm || column.bt;
 
-          const rel_column_id = (
-            await models2?.[rel.tn]?.getColumns(context)
-          )?.find((c) => c.column_name === rel.cn)?.id;
+          const rel_column_id = (await models2?.[rel.tn]?.getColumns())?.find(
+            (c) => c.column_name === rel.cn,
+          )?.id;
 
           const tnId = models2?.[rel.tn]?.id;
 
           const ref_rel_column_id = (
-            await models2?.[rel.rtn]?.getColumns(context)
+            await models2?.[rel.rtn]?.getColumns()
           )?.find((c) => c.column_name === rel.rcn)?.id;
 
           const rtnId = models2?.[rel.rtn]?.id;
@@ -570,7 +566,7 @@ export async function populateMeta(
 
   let views: Array<{ order: number; table_name: string; title: string }> = (
     await sqlClient.viewList({
-      schema: source.getConfig()?.schema,
+      schema: getSourceIntrospectionSchema(source),
     })
   )?.data?.list
     // ?.filter(({ tn }) => !IGNORE_TABLES.includes(tn))
@@ -595,7 +591,7 @@ export async function populateMeta(
       const columns = (
         await sqlClient.columnList({
           tn: table.table_name,
-          schema: source.getConfig()?.schema,
+          schema: getSourceIntrospectionSchema(source),
         })
       )?.data?.list;
 
@@ -644,7 +640,7 @@ export async function populateMeta(
   });
 
   for (const model of models) {
-    const views = await model.getViews(context);
+    const views = await model.getViews();
     for (const view of views) {
       if (view.type === ViewTypes.GRID) {
         await View.fixPVColumnForView(context, view.id);

@@ -1,6 +1,7 @@
 import {
   convertMS2Duration,
   getEffectiveLookupColumn,
+  isLinksOrLTAR,
   isSupportedDisplayValueColumn,
   LongTextAiMetaProp,
   parseDecimalValue,
@@ -18,7 +19,10 @@ import type Column from '~/models/Column';
 import { NcError } from '~/helpers/catchError';
 import { Model, View } from '~/models';
 import Base from '~/models/Base';
-import { V1_V2_DATA_PAYLOAD_LIMIT } from '~/constants';
+import {
+  NC_GRID_MAX_SELECTION_LIMIT,
+  V1_V2_DATA_PAYLOAD_LIMIT,
+} from '~/constants';
 
 export interface PathParams {
   baseName: string;
@@ -123,17 +127,17 @@ export async function serializeCellValue(
     }
     case UITypes.Lookup:
       {
-        const colOptions = await column.getColOptions<LookupColumn>(context);
+        const colOptions = await column.getColOptions<LookupColumn>();
         if (colOptions?.error) return value?.toString?.() ?? '';
 
-        const relationCol = await colOptions.getRelationColumn(context);
+        const relationCol = await colOptions.getRelationColumn();
         if (!relationCol) return value?.toString?.() ?? '';
 
         const relationColOptions =
-          await relationCol.getColOptions<LinkToAnotherRecordColumn>(context);
-        const { refContext } = relationColOptions.getRelContext(context);
+          await relationCol.getColOptions<LinkToAnotherRecordColumn>();
+        const { refContext } = relationColOptions.getRelContext();
 
-        const lookupColumn = await colOptions.getLookupColumn(refContext);
+        const lookupColumn = await colOptions.getLookupColumn();
         if (!lookupColumn) return value?.toString?.() ?? '';
 
         // Apply the lookup column's own formatting override (meta.display_type +
@@ -163,10 +167,9 @@ export async function serializeCellValue(
     case UITypes.LinkToAnotherRecord:
       {
         const colOptions =
-          await column.getColOptions<LinkToAnotherRecordColumn>(context);
-        const { refContext } = await colOptions.getRelContext(context);
-        const relatedModel = await colOptions.getRelatedTable(refContext);
-        await relatedModel.getColumns(refContext);
+          await column.getColOptions<LinkToAnotherRecordColumn>();
+        const relatedModel = await colOptions.getRelatedTable();
+        await relatedModel.getColumns();
         // Honor the per-LTAR custom display value override — the grid shows
         // that column, so exports must print the same value.
         const overrideCol = colOptions.fk_display_value_column_id
@@ -200,6 +203,10 @@ export async function serializeCellValue(
           currency: currencyMeta.currency_code || 'USD',
           minimumFractionDigits: currencyMeta.precision ?? 2,
           maximumFractionDigits: currencyMeta.precision ?? 2,
+          // Matches Number/Decimal, which already skip it here: a group separator
+          // makes "1.234" ambiguous across locales, and fr-* use U+202F, which
+          // Excel cannot render (nocodb/nocodb#14563).
+          useGrouping: false,
         }).format(+roundedValue);
       } catch {
         return value;
@@ -250,12 +257,43 @@ export async function serializeCellValue(
   }
 }
 
+/**
+ * A link column whose `nc_col_relations_v2` row is orphaned (Column.delete2 drops
+ * it before the COLUMNS row, non-transactionally) passes every uidt check, so the
+ * nested-link read paths would deref null. Fail naming the column instead.
+ *
+ * Returns the resolved relation metadata so callers can reuse it instead of
+ * re-fetching — in CE `getColOptions` is a real `NocoCache` round-trip, not a
+ * per-request memo.
+ *
+ * No-op (returns `undefined`) for a missing or non-link column — `getColOptions`
+ * returning null is legitimate there, and those callers own that validation.
+ */
+export async function assertLinkColOptions(
+  context: NcContext,
+  column: Column,
+): Promise<LinkToAnotherRecordColumn | undefined> {
+  if (!column || !isLinksOrLTAR(column)) return undefined;
+
+  const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+
+  if (!colOptions) {
+    NcError.get(context).internalServerError(
+      `Link field '${
+        column.title || column.column_name
+      }' is missing its relation metadata`,
+    );
+  }
+
+  return colOptions;
+}
+
 export async function getColumnByIdOrName(
   context: NcContext,
   columnNameOrId: string,
   model: Model,
 ) {
-  const column = (await model.getColumns(context)).find(
+  const column = (await model.getColumns()).find(
     (c) =>
       c.title === columnNameOrId ||
       c.id === columnNameOrId ||
@@ -271,11 +309,17 @@ export const validateV1V2DataPayloadLimit = (
   context: NcContext,
   param: { body: any },
 ) => {
-  if (
-    context.is_api_token &&
-    Array.isArray(param.body) &&
-    param.body.length > V1_V2_DATA_PAYLOAD_LIMIT
-  ) {
-    NcError.get(context).maxPayloadLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
+  if (!Array.isArray(param.body)) return;
+
+  // The api-token cap is the programmatic budget. Sessions were left uncapped on
+  // the assumption the grid's 1000-row selection limit bound them, but that is
+  // client-side only — so enforce it here. Never below the token cap, or a
+  // custom NC_API_BULK_OPERATION_MAX_RECORDS would tighten the UI by surprise.
+  const limit = context.is_api_token
+    ? V1_V2_DATA_PAYLOAD_LIMIT
+    : Math.max(NC_GRID_MAX_SELECTION_LIMIT, V1_V2_DATA_PAYLOAD_LIMIT);
+
+  if (param.body.length > limit) {
+    NcError.get(context).maxPayloadLimitExceeded(limit);
   }
 };

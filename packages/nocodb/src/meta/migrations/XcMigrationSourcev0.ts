@@ -86,6 +86,29 @@ import * as nc_202607030001_ltar_order_columns from './v0/nc_202607030001_ltar_o
 import * as nc_202607071200_comment_attachments from './v0/nc_202607071200_comment_attachments';
 import * as nc_202607090505_snapshot_schedule from './v0/nc_202607090505_snapshot_schedule';
 import * as nc_202607091000_comments_meta from './v0/nc_202607091000_comments_meta';
+import * as nc_202607251200_interfaces from './v0/nc_202607251200_interfaces';
+import * as nc_202607271818_composite_pk_missing_tables_2 from './v0/nc_202607271818_composite_pk_missing_tables_2';
+import * as nc_202607281200_snapshot_schedule_daily_floor from './v0/nc_202607281200_snapshot_schedule_daily_floor';
+import * as nc_202607121506_credit_system from './v0/nc_202607121506_credit_system';
+import * as nc_202608071500_ai_col_global_model_reset from './v0/nc_202608071500_ai_col_global_model_reset';
+import * as nc_202608121200_base_sections from './v0/nc_202608121200_base_sections';
+import * as nc_202608191200_credit_hold_ref_scoped from './v0/nc_202608191200_credit_hold_ref_scoped';
+import * as nc_202608201200_automation_sections from './v0/nc_202608201200_automation_sections';
+import * as nc_202608211200_widen_entity_id_columns from './v0/nc_202608211200_widen_entity_id_columns';
+import * as nc_202608281200_comment_notification_pref_index from './v0/nc_202608281200_comment_notification_pref_index';
+import * as nc_202609021200_admin_suspend from './v0/nc_202609021200_admin_suspend';
+import * as nc_202609021200_apps from './v0/nc_202609021200_apps';
+import * as nc_202609021201_environments from './v0/nc_202609021201_environments';
+import * as nc_202609021202_marketplace from './v0/nc_202609021202_marketplace';
+import * as nc_202609031200_agents from './v0/nc_202609031200_agents';
+import * as nc_202609091200_mcp_token_permissions from './v0/nc_202609091200_mcp_token_permissions';
+import * as nc_202609161200_chat_sessions_agents from './v0/nc_202609161200_chat_sessions_agents';
+import * as nc_202609171500_invite_links from './v0/nc_202609171500_invite_links';
+import * as nc_202609181111_oauth_grant_permissions from './v0/nc_202609181111_oauth_grant_permissions';
+import * as nc_202609191200_app_factory from './v0/nc_202609191200_app_factory';
+import * as nc_202609211109_code_projects from './v0/nc_202609211109_code_projects';
+import * as nc_202609250735_oauth_scope_text from './v0/nc_202609250735_oauth_scope_text';
+import * as nc_202609251200_vaults from './v0/nc_202609251200_vaults';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -183,6 +206,29 @@ export default class XcMigrationSourcev0 {
       'nc_202607071200_comment_attachments',
       'nc_202607090505_snapshot_schedule',
       'nc_202607091000_comments_meta',
+      'nc_202607251200_interfaces',
+      'nc_202607271818_composite_pk_missing_tables_2',
+      'nc_202607281200_snapshot_schedule_daily_floor',
+      'nc_202607121506_credit_system',
+      'nc_202608071500_ai_col_global_model_reset',
+      'nc_202608121200_base_sections',
+      'nc_202608191200_credit_hold_ref_scoped',
+      'nc_202608201200_automation_sections',
+      'nc_202608211200_widen_entity_id_columns',
+      'nc_202608281200_comment_notification_pref_index',
+      'nc_202609021200_admin_suspend',
+      'nc_202609021200_apps',
+      'nc_202609021201_environments',
+      'nc_202609021202_marketplace',
+      'nc_202609031200_agents',
+      'nc_202609091200_mcp_token_permissions',
+      'nc_202609161200_chat_sessions_agents',
+      'nc_202609171500_invite_links',
+      'nc_202609181111_oauth_grant_permissions',
+      'nc_202609191200_app_factory',
+      'nc_202609211109_code_projects',
+      'nc_202609250735_oauth_scope_text',
+      'nc_202609251200_vaults',
     ]);
   }
 
@@ -368,6 +414,52 @@ export default class XcMigrationSourcev0 {
         return nc_202607090505_snapshot_schedule;
       case 'nc_202607091000_comments_meta':
         return nc_202607091000_comments_meta;
+      case 'nc_202607251200_interfaces':
+        return nc_202607251200_interfaces;
+      case 'nc_202607271818_composite_pk_missing_tables_2':
+        return nc_202607271818_composite_pk_missing_tables_2;
+      case 'nc_202607281200_snapshot_schedule_daily_floor':
+        return nc_202607281200_snapshot_schedule_daily_floor;
+      case 'nc_202607121506_credit_system':
+        return nc_202607121506_credit_system;
+      case 'nc_202608071500_ai_col_global_model_reset':
+        return nc_202608071500_ai_col_global_model_reset;
+      case 'nc_202608121200_base_sections':
+        return nc_202608121200_base_sections;
+      case 'nc_202608191200_credit_hold_ref_scoped':
+        return nc_202608191200_credit_hold_ref_scoped;
+      case 'nc_202608201200_automation_sections':
+        return nc_202608201200_automation_sections;
+      case 'nc_202608211200_widen_entity_id_columns':
+        return nc_202608211200_widen_entity_id_columns;
+      case 'nc_202608281200_comment_notification_pref_index':
+        return nc_202608281200_comment_notification_pref_index;
+      case 'nc_202609021200_admin_suspend':
+        return nc_202609021200_admin_suspend;
+      case 'nc_202609021200_apps':
+        return nc_202609021200_apps;
+      case 'nc_202609021201_environments':
+        return nc_202609021201_environments;
+      case 'nc_202609021202_marketplace':
+        return nc_202609021202_marketplace;
+      case 'nc_202609031200_agents':
+        return nc_202609031200_agents;
+      case 'nc_202609171500_invite_links':
+        return nc_202609171500_invite_links;
+      case 'nc_202609091200_mcp_token_permissions':
+        return nc_202609091200_mcp_token_permissions;
+      case 'nc_202609161200_chat_sessions_agents':
+        return nc_202609161200_chat_sessions_agents;
+      case 'nc_202609181111_oauth_grant_permissions':
+        return nc_202609181111_oauth_grant_permissions;
+      case 'nc_202609191200_app_factory':
+        return nc_202609191200_app_factory;
+      case 'nc_202609211109_code_projects':
+        return nc_202609211109_code_projects;
+      case 'nc_202609250735_oauth_scope_text':
+        return nc_202609250735_oauth_scope_text;
+      case 'nc_202609251200_vaults':
+        return nc_202609251200_vaults;
     }
   }
 }

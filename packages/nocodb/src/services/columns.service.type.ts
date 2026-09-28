@@ -76,6 +76,8 @@ export interface IColumnsService {
       user: UserType;
       reuse?: ReusableParams;
       suppressFormulaError?: boolean;
+      /** import only — see validateLmtTrackedFields */
+      allowEmptyLmtTrackedSet?: boolean;
       apiVersion?: T;
     },
   ): Promise<T extends NcApiVersion.V3 ? Column : Model>;

@@ -3,8 +3,8 @@ import { FormulaDataTypes } from 'nocodb-sdk';
 import type { Column, LinkToAnotherRecordColumn, Model } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type LookupColumn from '~/models/LookupColumn';
-import type { DriverClient } from '~/utils/nc-config';
 import type { SourcesMap } from '~/services/api-docs/types';
+import { DriverClient } from '~/utils/nc-config';
 import { Base } from '~/models';
 import SwaggerTypes from '~/db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
 import Noco from '~/Noco';
@@ -42,11 +42,10 @@ async function processColumnToSwaggerField(
     case UITypes.LinkToAnotherRecord:
       {
         const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>(
-          context,
           ncMeta,
         );
         if (colOpt) {
-          const relTable = await colOpt.getRelatedTable(context, ncMeta);
+          const relTable = await colOpt.getRelatedTable(ncMeta);
           if (colOpt.type === RelationTypes.BELONGS_TO) {
             field.type = undefined;
 
@@ -76,7 +75,17 @@ async function processColumnToSwaggerField(
         const formulaDataType = column.colOptions.parsed_tree.dataType;
         switch (formulaDataType) {
           case FormulaDataTypes.NUMERIC:
-            field.type = 'number';
+            // pg carries the IEEE error values as strings; no other dialect can
+            // produce one. OpenAPI 3.0 has no type arrays, so it must be oneOf.
+            if (dbType === DriverClient.PG) {
+              field.type = undefined;
+              field.oneOf = [{ type: 'number' }, { type: 'string' }];
+              field.description =
+                'Numeric formula result. Division by zero returns the string "Infinity", "-Infinity" or "NaN".';
+            } else {
+              field.type = 'number';
+            }
+            field.nullable = true;
             break;
           case FormulaDataTypes.STRING:
             field.type = 'string';
@@ -104,12 +113,9 @@ async function processColumnToSwaggerField(
     case UITypes.Lookup:
       if (isLookupHelper) {
         // For recursive lookup resolution, get the underlying column type
-        const colOpt = await column.getColOptions<LookupColumn>(
-          context,
-          ncMeta,
-        );
+        const colOpt = await column.getColOptions<LookupColumn>(ncMeta);
         if (colOpt && !colOpt.error) {
-          const lookupCol = await colOpt.getLookupColumn(context);
+          const lookupCol = await colOpt.getLookupColumn();
           if (lookupCol) {
             return await processColumnToSwaggerField(
               context,
@@ -128,24 +134,18 @@ async function processColumnToSwaggerField(
         field.type = 'object';
       } else {
         // For main lookup processing, determine relation type and structure
-        const colOpt = await column.getColOptions<LookupColumn>(
-          context,
-          ncMeta,
-        );
+        const colOpt = await column.getColOptions<LookupColumn>(ncMeta);
         if (colOpt && !colOpt.error) {
-          const relationCol = await colOpt.getRelationColumn(context);
+          const relationCol = await colOpt.getRelationColumn();
           if (!relationCol) {
             field.type = 'object';
             break;
           }
           const relationColOpt =
-            await relationCol.getColOptions<LinkToAnotherRecordColumn>(
-              context,
-              ncMeta,
-            );
-          const { refContext } = await relationColOpt.getRelContext(context);
+            await relationCol.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+          const { refContext } = await relationColOpt.getRelContext();
 
-          const lookupCol = await colOpt.getLookupColumn(refContext);
+          const lookupCol = await colOpt.getLookupColumn();
 
           const refBase =
             !relationColOpt.fk_related_base_id ||
@@ -283,4 +283,6 @@ export interface SwaggerColumn {
   column: Column;
   items?: any;
   format?: string;
+  oneOf?: any[];
+  nullable?: boolean;
 }

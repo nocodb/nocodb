@@ -52,19 +52,19 @@ const hookType = (item: HookLogType) => {
 
       <div class="log-details">
         <div v-if="item.execution_time" class="log-detail-item">
-          <span class="label">Execution Time</span>
+          <span class="label">{{ $t('labels.executionTime') }}</span>
           <span class="value">{{ item.execution_time }} ms</span>
         </div>
         <div class="log-detail-item">
-          <span class="label">Trigger type</span>
+          <span class="label">{{ $t('labels.triggerType') }}</span>
           <span class="value">{{ hookType(item) }}</span>
         </div>
         <div class="log-detail-item">
-          <span class="label">Request Time</span>
+          <span class="label">{{ $t('labels.requestTime') }}</span>
           <span class="value">{{ hookLogFormatter(item.created_at) }}</span>
         </div>
         <div class="log-detail-item">
-          <span class="label">Test call</span>
+          <span class="label">{{ $t('labels.testCall') }}</span>
           <span class="value">{{ !!item.test_call }}</span>
         </div>
         <div class="log-detail-item">
@@ -73,16 +73,16 @@ const hookType = (item: HookLogType) => {
         </div>
 
         <div v-if="item.error_code" class="log-detail-item">
-          <span class="label">Error code</span>
+          <span class="label">{{ $t('labels.errorCode') }}</span>
           <span class="value">{{ item.error_code }}</span>
         </div>
 
         <div v-if="item.error_message" class="log-detail-item">
-          <span class="label">Error message</span>
+          <span class="label">{{ $t('labels.webhookLogErrorMessage') }}</span>
           <span class="value">{{ item.error_message }}</span>
         </div>
         <div class="log-detail-item">
-          <span class="label">Triggered By</span>
+          <span class="label">{{ $t('labels.triggeredBy') }}</span>
           <span class="value">{{ item.triggered_by }}</span>
         </div>
       </div>
@@ -98,7 +98,7 @@ const hookType = (item: HookLogType) => {
         </div>
         <div class="response-wrapper">
           <WebhookCallLogReqResDetailCard
-            title="Response"
+            :title="$t('labels.appApi.response')"
             :headers="parsedRespondePayload.headers"
             :payload="parsedRespondePayload.data"
           />

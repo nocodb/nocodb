@@ -2,6 +2,17 @@ import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, UITypesName, isLinksOrLTAR } from 'nocodb-sdk'
 import type { CanvasGridColumn } from '~/lib/types'
 
+/**
+ * Header drag-drop landing spot: the dragged field is inserted *after*
+ * `columns[getColumnDropTargetIndex(...)]`. Hovering a column means "insert
+ * before it", except the display value — it is pinned first, so a drop on it
+ * inserts right after it (`index - 1` there would be the row-number gutter,
+ * which has no view column and silently drops the reorder).
+ */
+export function getColumnDropTargetIndex(columns: CanvasGridColumn[], hoveredIndex: number) {
+  return columns[hoveredIndex]?.pv ? hoveredIndex : hoveredIndex - 1
+}
+
 export function columnTypeName(column: CanvasGridColumn) {
   if (column?.columnObj.uidt === UITypes.LongText) {
     if (parseProp(column?.columnObj?.meta)?.richMode) {

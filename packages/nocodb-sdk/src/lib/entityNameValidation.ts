@@ -64,8 +64,11 @@ const DISALLOWED_CHARS_PATTERN = /[^\p{L}\p{N} \-_.,&'()]/gu;
  */
 export function sanitizeEntityName(name: string | undefined | null): string {
   if (name == null) return '';
+  // Collapse with a global regex — CONSECUTIVE_SPACES_PATTERN has no `g` flag
+  // (it's reused by validateEntityName's stateless `.test()`), so replacing with
+  // it would only collapse the FIRST run and leave later double-spaces behind.
   return name
     .replace(DISALLOWED_CHARS_PATTERN, ' ')
-    .replace(CONSECUTIVE_SPACES_PATTERN, ' ')
+    .replace(/ {2,}/g, ' ')
     .trim();
 }

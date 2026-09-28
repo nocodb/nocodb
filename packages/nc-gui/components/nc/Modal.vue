@@ -33,7 +33,7 @@ const props = withDefaults(defineProps<NcModalProps>(), {
 
 const emits = defineEmits(['update:visible'])
 
-const { width: propWidth, height: propHeight, destroyOnClose, wrapClassName: _wrapClassName, showSeparator } = props
+const { destroyOnClose, wrapClassName: _wrapClassName, showSeparator } = props
 
 const { maskClosable, keyboard, ncModalClassName, stopEventPropogation } = toRefs(props)
 
@@ -57,8 +57,8 @@ const width = computed(() => {
     return '95vw'
   }
 
-  if (propWidth) {
-    return propWidth
+  if (props.width) {
+    return props.width
   }
 
   if (props.size === 'small') {
@@ -85,8 +85,8 @@ const height = computed(() => {
     return '95vh'
   }
 
-  if (propHeight) {
-    return propHeight
+  if (props.height) {
+    return props.height
   }
 
   if (props.size === 'small') {
@@ -119,6 +119,43 @@ const newWrapClassName = computed(() => {
 const visible = useVModel(props, 'visible', emits)
 
 const slots = useSlots()
+
+/**
+ * Escape is ours, not ant's.
+ *
+ * Ant's dialog closes on Escape from a handler on `.ant-modal-wrap` and calls
+ * `stopPropagation()` there, so a popup opened from inside the modal — a select
+ * list, a dropdown menu, a date picker — never sees the key: the modal closes
+ * out from under it. With ant's `keyboard` off we answer here instead, and only
+ * ever *decline*: the key is never consumed, so whatever else is listening still
+ * gets it.
+ *
+ * Listening on `document` rather than the wrapper because `@keydown.esc` on
+ * `<a-modal>` never fires — it lands on a node the key does not reach, which is
+ * why ant's own handler was doing all the work.
+ */
+function isTopmostModal() {
+  const wrap = ncModalRef.value?.closest('.ant-modal-wrap')
+  if (!wrap) return false
+
+  const open = Array.from(document.querySelectorAll('.ant-modal-wrap')).filter(
+    (el) => window.getComputedStyle(el).display !== 'none',
+  )
+
+  return open[open.length - 1] === wrap
+}
+
+useEventListener(document, 'keydown', (e: KeyboardEvent) => {
+  if (e.key !== 'Escape' || !visible.value || !keyboard.value) return
+
+  // The popup closes itself on this press; the modal takes the next one.
+  if (isPortalledOverlayActive()) return
+
+  // Stacked modals: only the one on top answers.
+  if (!isTopmostModal()) return
+
+  visible.value = false
+})
 
 const stopPropagation = (event: MouseEvent) => {
   event.stopPropagation()
@@ -153,9 +190,8 @@ if (stopEventPropogation.value) {
     :footer="null"
     :mask-closable="maskClosable"
     :mask-style="maskStyle"
-    :keyboard="keyboard"
+    :keyboard="false"
     :destroy-on-close="destroyOnClose"
-    @keydown.esc="visible = false"
   >
     <div
       ref="ncModalRef"
@@ -184,7 +220,16 @@ if (stopEventPropogation.value) {
 <style lang="scss">
 .nc-modal-wrapper {
   .ant-modal-content {
-    @apply !p-0 overflow-hidden;
+    @apply !p-0;
+    // Use `clip`, not `hidden`: an `overflow: hidden` box is still a scroll
+    // container, so a focus / scrollIntoView originating from a nested modal or
+    // dropdown can scroll THIS chrome box (its content can slightly exceed the
+    // fixed modal height) and shove the whole modal body out of view — the box
+    // stays centered but its content ends up scrolled ~300px up, leaving a blank
+    // modal. `clip` clips identically (border-radius included) but never becomes
+    // a scroll container, so scrollTop is pinned at 0. The intended inner scroll
+    // areas keep their own `overflow: auto` and are unaffected.
+    overflow: clip;
   }
 }
 </style>

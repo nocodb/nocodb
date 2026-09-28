@@ -15,7 +15,10 @@ import type {
 } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
 import {
+  ncIsKnexRawOrRef,
   ncIsStringHasValue,
+  ncLikePatternForRef,
+  ncSplitFilterValue,
   unsupportedFilter,
 } from '~/db/field-handler/utils/handlerUtils';
 import { getAs, getColumnName } from '~/helpers/dbHelpers';
@@ -57,7 +60,7 @@ export class GenericFieldHandler
     const columnName = await getColumnName(
       context,
       column,
-      await baseModel.model.getColumns(context),
+      await baseModel.model.getColumns(),
     );
 
     const tableName = alias || tnPath || '';
@@ -345,7 +348,18 @@ export class GenericFieldHandler
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
-        if (!ncIsStringHasValue(val)) {
+        if (ncIsKnexRawOrRef(val)) {
+          // Dynamic field-to-field: val is a column reference. Concatenate the
+          // wildcards in SQL so the reference isn't stringified into a literal.
+          const pattern = ncLikePatternForRef(knex, val);
+          if (knex.clientType() === 'oracledb') {
+            qb.where(
+              knex.raw('UPPER(??) like UPPER(?)', [sourceField, pattern]),
+            );
+          } else {
+            qb.where(knex.raw('?? like ?', [sourceField, pattern]));
+          }
+        } else if (!ncIsStringHasValue(val)) {
           qb.where((subQb) => {
             if (!isNativePgEnum && !emptyStringIsNull(knex))
               subQb.where(sourceField as any, '');
@@ -386,7 +400,21 @@ export class GenericFieldHandler
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
         const emptyAsNull = isNativePgEnum || emptyStringIsNull(knex);
-        if (!ncIsStringHasValue(val)) {
+        if (ncIsKnexRawOrRef(val)) {
+          // Dynamic field-to-field: val is a column reference. Concatenate the
+          // wildcards in SQL so the reference isn't stringified into a literal.
+          const pattern = ncLikePatternForRef(knex, val);
+          if (knex.clientType() === 'oracledb') {
+            qb.whereNot(
+              knex.raw('UPPER(??) like UPPER(?)', [sourceField, pattern]),
+            );
+          } else {
+            qb.whereNot(knex.raw('?? like ?', [sourceField, pattern]));
+          }
+          // a non-matching (non-empty) filter should still surface empty/null
+          if (!emptyAsNull) qb.orWhere(sourceField as any, '');
+          qb.orWhereNull(sourceField as any);
+        } else if (!ncIsStringHasValue(val)) {
           // val is empty -> all values including NULL but empty strings.
           // Native PG enums and Oracle columns can't hold '', so every row
           // qualifies — emit an explicit no-op to keep the subquery group
@@ -857,7 +885,7 @@ export class GenericFieldHandler
 
     // Condition for filter, without negation
     const condition = (builder: Knex.QueryBuilder) => {
-      const items = Array.isArray(val) ? val : val?.split(',');
+      const items = ncSplitFilterValue(val, filter.comparison_op);
       for (let i = 0; i < items?.length; i++) {
         const bindings = [
           sourceField,

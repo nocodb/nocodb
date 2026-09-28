@@ -15,6 +15,7 @@ export function useDataFetch({
   triggerRefreshCanvas,
   isAlreadyShownUpgradeModal,
   isExternalSource,
+  tableColumns,
 }: {
   chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
   cachedRows: Ref<Map<number, Row>>
@@ -25,6 +26,7 @@ export function useDataFetch({
   triggerRefreshCanvas: () => void
   isAlreadyShownUpgradeModal: Ref<boolean>
   isExternalSource: ComputedRef<boolean>
+  tableColumns: ComputedRef<ColumnType[]>
 }) {
   const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
 
@@ -73,11 +75,12 @@ export function useDataFetch({
     }
     try {
       const newItems = await loadData({ offset, limit }, undefined, [])
-      newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
+      const removed = upsertCachedRows(cachedRows.value, newItems, (row) => extractPkFromRow(row, tableColumns.value))
       chunkStates.value[chunkId] = 'loaded'
       if (isInitialLoad) {
         chunkStates.value[chunkId + 1] = 'loaded'
       }
+      invalidateChunksAt(chunkStates.value, removed, CHUNK_SIZE, isInitialLoad ? [chunkId, chunkId + 1] : [chunkId])
     } catch (error) {
       console.error(`Error fetching chunk ${chunkId}:`, error)
       chunkStates.value[chunkId] = undefined
@@ -101,8 +104,9 @@ export function useDataFetch({
     group.forEach((chunkId) => (chunkStates.value[chunkId] = 'loading'))
     try {
       const newItems = await loadData({ offset, limit }, undefined, [])
-      newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
+      const removed = upsertCachedRows(cachedRows.value, newItems, (row) => extractPkFromRow(row, tableColumns.value))
       group.forEach((chunkId) => (chunkStates.value[chunkId] = 'loaded'))
+      invalidateChunksAt(chunkStates.value, removed, CHUNK_SIZE, group)
     } catch (error) {
       console.error(`Error fetching chunks group from ${startChunk} to ${endChunk}:`, error)
       group.forEach((chunkId) => (chunkStates.value[chunkId] = undefined))

@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import { UITypes, ViewLockType, ViewTypes } from 'nocodb-sdk'
+import { UITypes, ViewLockType, ViewTypes, isOrderCol } from 'nocodb-sdk'
 import type {
   Api,
   ColumnType,
@@ -695,9 +695,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     async function updateOrSaveRow(row: Row) {
       if (row.rowMeta.new) {
-        await insertRow(row.row, formattedData.value.get(row.row.title!)!.indexOf(row))
+        return await insertRow(row.row, formattedData.value.get(row.row.title!)!.indexOf(row))
       } else {
-        await updateRowProperty(row, groupingField.value)
+        return await updateRowProperty(row, groupingField.value)
       }
     }
 
@@ -710,6 +710,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     async function updateRecordOrder(row: Row, beforeRow: Row | null) {
       if (interfaceDataApi || isPublic.value || sorts.value?.length) return
       if (!base.value?.id || !meta.value?.id) return
+      // moveRecord needs an order column (absent on e.g. external-source tables).
+      if (!meta.value.columns?.some((c) => isOrderCol(c))) return
 
       try {
         const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])

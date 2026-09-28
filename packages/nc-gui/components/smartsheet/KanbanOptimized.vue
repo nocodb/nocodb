@@ -722,9 +722,13 @@ async function onMoveStack(event: any) {
 
 // The card the dragged card should sit before after a drop, or null when it landed last.
 // vuedraggable has already spliced the moved card into `formattedData.get(stackKey)` at `newIndex`,
-// so its new neighbour is the next element.
+// so its new neighbour is the next element. Returns undefined when the drop is below the last loaded
+// card but the stack has unloaded cards — the true neighbour is unknown, so the order is left as is.
 function getBeforeRow(stackKey: string, newIndex: number) {
-  return formattedData.value.get(stackKey)?.[newIndex + 1] ?? null
+  const stack = formattedData.value.get(stackKey) ?? []
+  const next = stack[newIndex + 1]
+  if (next) return next
+  return stack.length < (countByStack.value.get(stackKey) ?? 0) ? undefined : null
 }
 
 async function onMove(event: any, stackKey: string) {
@@ -744,7 +748,9 @@ async function onMove(event: any, stackKey: string) {
     // Persist the grouping change first, then the drop position, so the row keeps its landing spot
     // instead of snapping to nc_order's default on the next fetch.
     const beforeRow = getBeforeRow(stackKey, event.added.newIndex)
-    pendingCardMove.value = updateOrSaveRow(ele).then(() => updateRecordOrder(ele, beforeRow))
+    pendingCardMove.value = updateOrSaveRow(ele).then((saved) => {
+      if (saved && beforeRow !== undefined) return updateRecordOrder(ele, beforeRow)
+    })
     await pendingCardMove.value
   } else if (event.removed) {
     countByStack.value.set(stackKey, Math.max(0, (countByStack.value.get(stackKey) || 0) - 1))
@@ -753,6 +759,7 @@ async function onMove(event: any, stackKey: string) {
     // Within-stack reorder — vuedraggable only mutates the local array, so persist nc_order too.
     const ele = event.moved.element
     const beforeRow = getBeforeRow(stackKey, event.moved.newIndex)
+    if (beforeRow === undefined) return
     pendingCardMove.value = updateRecordOrder(ele, beforeRow)
     await pendingCardMove.value
   }

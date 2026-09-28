@@ -5155,7 +5155,6 @@
     "appAssistantStarter": "ex. : Qu'est-ce qui est réservé cette semaine ?",
     "describeEmail": "Décrivez cet e-mail, ex. : \"Remercier le client et lister les articles de sa commande\"",
     "searchAgents": "Rechercher des agents",
-    "searchBasesInWorkspace": "Rechercher des projets dans {workspace}...",
     "searchAllIcons": "Rechercher toutes les icônes…",
     "interfaceNameExample": "ex. : Suivi des ventes",
     "interfaceOverviewDescription": "Ajoutez une description pour cette page…",

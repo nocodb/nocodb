@@ -45,6 +45,23 @@ const permissionsRef = ref<{ resetPermissions: () => void }>()
 
 const onCreateTemplate = () => recordTemplatesRef.value?.openTemplateForm()
 
+// Base-wide ERD, stacked over the shell so closing it lands back on this table's relations.
+const openBaseRelations = () => {
+  if (!meta.value?.source_id || !meta.value?.base_id) return
+
+  const isErdOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgBaseErd'), {
+    'modelValue': isErdOpen,
+    'sourceId': meta.value.source_id,
+    'baseId': meta.value.base_id,
+    'onUpdate:modelValue': () => {
+      isErdOpen.value = false
+      close(1000)
+    },
+  })
+}
+
 const WEBHOOK_DOCS_URL = 'https://nocodb.com/docs/product-docs/automation/webhook'
 
 const indicator = h(LoadingOutlined, {
@@ -303,6 +320,21 @@ watch(
               <div class="flex items-center gap-1.5">
                 <GeneralIcon icon="ncRotateCcw" class="h-4 w-4" />
                 {{ $t('activity.resetPermissions') }}
+              </div>
+            </NcButton>
+
+            <!-- Relations: base-wide diagram -->
+            <NcButton
+              v-else-if="openedViewsTab === 'relation' && meta?.source_id"
+              v-e="['c:table:tools:open-base-relations']"
+              size="small"
+              type="secondary"
+              data-testid="nc-tools-base-relations-btn"
+              @click="openBaseRelations"
+            >
+              <div class="flex items-center gap-1.5">
+                <GeneralIcon icon="ncErd" class="h-4 w-4" />
+                {{ $t('labels.baseRelations') }}
               </div>
             </NcButton>
 

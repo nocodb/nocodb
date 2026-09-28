@@ -5191,7 +5191,6 @@
     "appAssistantStarter": "ex.: O que está agendado para esta semana?",
     "describeEmail": "Descreva este e-mail, ex.: \"Agradeça ao cliente e liste os itens do pedido\"",
     "searchAgents": "Pesquisar agentes",
-    "searchBasesInWorkspace": "Pesquisar projetos em {workspace}...",
     "searchAllIcons": "Pesquisar todos os ícones…",
     "interfaceNameExample": "ex.: Acompanhamento de vendas",
     "interfaceOverviewDescription": "Adicione uma descrição para esta página…",

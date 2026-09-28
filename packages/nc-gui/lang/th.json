@@ -5199,7 +5199,6 @@
     "appAssistantStarter": "เช่น สัปดาห์นี้มีการจองอะไรบ้าง",
     "describeEmail": "อธิบายอีเมลนี้ เช่น \"ขอบคุณลูกค้าและแสดงรายการสินค้าในคำสั่งซื้อ\"",
     "searchAgents": "ค้นหาเอเจนต์",
-    "searchBasesInWorkspace": "ค้นหาโครงการใน {workspace}...",
     "searchAllIcons": "ค้นหาไอคอนทั้งหมด…",
     "interfaceNameExample": "เช่น ติดตามยอดขาย",
     "interfaceOverviewDescription": "เพิ่มคำอธิบายสำหรับหน้านี้…",

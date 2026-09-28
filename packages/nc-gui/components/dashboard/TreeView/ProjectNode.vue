@@ -297,25 +297,6 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
   }
 }
 
-function openErdView(source: SourceType) {
-  $e('c:project:relation')
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgBaseErd'), {
-    'modelValue': isOpen,
-    'sourceId': source!.id,
-    'onUpdate:modelValue': () => closeDialog(),
-    'baseId': base.value.id,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
 const contextMenuBase = computed(() => {
   if (contextMenuTarget.type === 'source') {
     return contextMenuTarget.value
@@ -655,7 +636,6 @@ defineExpose({
                       @rename="enableEditMode()"
                       @duplicate-project="duplicateProject($event)"
                       @copy-project-info="copyProjectInfo()"
-                      @open-erd-view="openErdView($event)"
                       @open-base-settings="openBaseSettings($event)"
                       @open-mcp-server="openMcpSettings($event)"
                       @delete="projectDelete"
@@ -699,7 +679,6 @@ defineExpose({
         @rename="enableEditMode(true)"
         @duplicate-project="duplicateProject($event)"
         @copy-project-info="copyProjectInfo()"
-        @open-erd-view="openErdView($event)"
         @open-base-settings="openBaseSettings($event)"
         @open-mcp-server="openMcpSettings($event)"
         @delete="projectDelete"

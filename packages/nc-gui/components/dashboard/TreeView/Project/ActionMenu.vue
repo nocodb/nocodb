@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type SourceType, stringifyRolesObj } from 'nocodb-sdk'
+import { BaseVersion, type SourceType, stringifyRolesObj } from 'nocodb-sdk'
 
 interface Props {
   showBaseOption: (source: SourceType) => boolean
@@ -14,7 +14,6 @@ const emits = defineEmits<Emits>()
 interface Emits {
   (e: 'clickMenu'): void
   (e: 'rename'): void
-  (e: 'openErdView', value: SourceType): void
   (e: 'duplicateProject', base: NcProject): void
   (e: 'shareBase'): void
   (e: 'openBaseSettings', id: string): void
@@ -120,19 +119,6 @@ const isOptionVisible = computed(() => {
       </div>
     </NcMenuItem>
 
-    <!-- ERD View -->
-    <NcMenuItem
-      v-if="base?.sources?.[0]?.enabled"
-      key="erd"
-      data-testid="nc-sidebar-base-relations"
-      @click="emits('openErdView', base?.sources?.[0])"
-    >
-      <div v-e="['c:base:erd']" class="flex gap-2 items-center">
-        <GeneralIcon icon="ncErd" />
-        {{ $t('title.relations') }}
-      </div>
-    </NcMenuItem>
-
     <NcMenuItem key="mcp" data-testid="nc-sidebar-mcp-server" @click="emits('openMcpServer', base.id!)">
       <div v-e="['c:base:mcp-server']" class="flex gap-2 items-center">
         <GeneralIcon icon="mcp" />
@@ -142,7 +128,7 @@ const isOptionVisible = computed(() => {
 
     <!-- Swagger: Rest APIs -->
     <NcSubMenu
-      v-if="isOptionVisible.apiDocs"
+      v-if="isOptionVisible.apiDocs && base.version === BaseVersion.V2"
       key="api"
       data-testid="nc-sidebar-base-rest-apis"
       class="py-0"
@@ -173,6 +159,17 @@ const isOptionVisible = computed(() => {
         API v3
       </NcMenuItem>
     </NcSubMenu>
+    <NcMenuItem
+      v-else-if="isOptionVisible.apiDocs"
+      key="api-v3"
+      data-testid="nc-sidebar-base-rest-apis"
+      @click="openLink(`/api/v3/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)"
+    >
+      <div v-e="['e:api-docs']" class="flex gap-2 items-center">
+        <GeneralIcon icon="ncCode" class="opacity-80 !max-w-3.9" />
+        {{ $t('activity.account.swagger') }}
+      </div>
+    </NcMenuItem>
 
     <template v-if="isOptionVisible.baseOptions">
       <NcDivider />

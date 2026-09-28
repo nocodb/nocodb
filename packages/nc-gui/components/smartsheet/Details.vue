@@ -47,14 +47,14 @@ const onCreateTemplate = () => recordTemplatesRef.value?.openTemplateForm()
 
 // Base-wide ERD, stacked over the shell so closing it lands back on this table's relations.
 const openBaseRelations = () => {
-  if (!meta.value?.source_id || !base.value?.id) return
+  if (!meta.value?.source_id || !meta.value?.base_id) return
 
   const isErdOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgBaseErd'), {
     'modelValue': isErdOpen,
     'sourceId': meta.value.source_id,
-    'baseId': base.value.id,
+    'baseId': meta.value.base_id,
     'onUpdate:modelValue': () => {
       isErdOpen.value = false
       close(1000)
@@ -326,7 +326,7 @@ watch(
             <!-- Relations: base-wide diagram -->
             <NcButton
               v-else-if="openedViewsTab === 'relation' && meta?.source_id"
-              v-e="['c:table:tools:base-relations']"
+              v-e="['c:table:tools:open-base-relations']"
               size="small"
               type="secondary"
               data-testid="nc-tools-base-relations-btn"

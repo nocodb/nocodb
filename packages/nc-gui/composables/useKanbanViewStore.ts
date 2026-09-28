@@ -695,15 +695,15 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     async function updateOrSaveRow(row: Row) {
       if (row.rowMeta.new) {
-        return await insertRow(row.row, formattedData.value.get(row.row.title!)!.indexOf(row))
+        await insertRow(row.row, formattedData.value.get(row.row.title!)!.indexOf(row))
       } else {
-        return await updateRowProperty(row, groupingField.value)
+        await updateRowProperty(row, groupingField.value)
       }
     }
 
     /**
-     * Persist a card's position (writes the table's `nc_order` column) so a within-stack — or
-     * cross-stack — drag survives a reload. `beforeRow` is the card the dragged card should sit
+     * Persist a card's position (writes the table's `nc_order` column) so a within-stack drag
+     * survives a reload. `beforeRow` is the card the dragged card should sit
      * before, or null to move it to the end. Skipped when the order can't be manually controlled
      * (interface/public views, or an active sort re-sorts on the next fetch anyway).
      */

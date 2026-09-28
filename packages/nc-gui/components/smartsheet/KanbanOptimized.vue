@@ -745,12 +745,8 @@ async function onMove(event: any, stackKey: string) {
     // Remember the move so drag end can reconcile it against the reloaded data: the grouped-data read
     // can briefly lag a just-committed move, so a reload of the target may come back without this row.
     lastCardMove.value = { row: ele, toKey: stackKey, fromKey: lastCardMove.value.fromKey }
-    // Persist the grouping change first, then the drop position, so the row keeps its landing spot
-    // instead of snapping to nc_order's default on the next fetch.
-    const beforeRow = getBeforeRow(stackKey, event.added.newIndex)
-    pendingCardMove.value = updateOrSaveRow(ele).then((saved) => {
-      if (saved && beforeRow !== undefined) return updateRecordOrder(ele, beforeRow)
-    })
+    // Grouping change only — also persisting the drop position would record a second undo entry.
+    pendingCardMove.value = updateOrSaveRow(ele)
     await pendingCardMove.value
   } else if (event.removed) {
     countByStack.value.set(stackKey, Math.max(0, (countByStack.value.get(stackKey) || 0) - 1))

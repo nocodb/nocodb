@@ -530,6 +530,16 @@ export class AtImportProcessor {
       }
     };
 
+    const aTbl_getColumn = (
+      colId,
+    ): { tn: string; cn: string; type: string } | undefined => {
+      for (const sheetObj of g_aTblSchema) {
+        const column = sheetObj.columns.find((col) => col.id === colId);
+        if (column)
+          return { tn: sheetObj.name, cn: column.name, type: column.type };
+      }
+    };
+
     // retrieve nc column schema from using aTbl field ID as reference
     //
     const nc_getColumnSchema = async (aTblFieldId) => {
@@ -650,9 +660,12 @@ export class AtImportProcessor {
                 table: tableName,
                 field: col.name,
                 airtable_type: col.type,
-                reason: `duplicate option '${
-                  (value as any).name
-                }' merged into '${existing.title}'`,
+                reason:
+                  existing.title === (value as any).name
+                    ? `Airtable has more than one option named '${existing.title}'; kept as one`
+                    : `option '${(value as any).name}' merged into '${
+                        existing.title
+                      }', which differs only in case`,
               });
               continue;
             }
@@ -1387,6 +1400,67 @@ export class AtImportProcessor {
       }
     };
 
+    // Why a lookup or rollup could not resolve its link or target.
+    const reportUnresolvedField = async (
+      col: any,
+      category: AirtableImportIssueCategory,
+    ) => {
+      const isRollup = (t?: { type: string }) =>
+        ['rollup', 'count'].includes(t?.type);
+      const link = aTbl_getColumn(col.typeOptions?.relationColumnId);
+      const target = aTbl_getColumn(
+        col.typeOptions?.foreignTableRollupColumnId,
+      );
+      const targetName = target ? `${target.tn}/${target.cn}` : undefined;
+
+      let reason: string;
+      if (
+        link &&
+        !(await sMap.getNcIdFromAtId(col.typeOptions.relationColumnId))
+      ) {
+        reason = `its link field '${link.cn}' was not imported`;
+      } else if (isRollup(target) && !syncDB.options.syncRollup) {
+        reason = `its target field ${targetName} is a rollup, and 'Import rollup columns' was off`;
+      } else if (
+        isRollup(target) &&
+        category === AirtableImportIssueCategory.ROLLUP
+      ) {
+        reason = `rollup over another rollup (${targetName}) not supported yet`;
+      } else if (target) {
+        reason = `its target field ${targetName} (${target.type}) was not imported`;
+      } else {
+        reason = 'its target field was not found';
+      }
+      updateMigrationSkipLog(
+        ncSchema.tablesById[col.srcTableId]?.title,
+        col.name,
+        col.type,
+        reason,
+        { category },
+      );
+    };
+
+    // Fields an import option switched off still belong in the report.
+    const reportNotImported = (
+      aTblSchema: any[],
+      types: string[],
+      category: AirtableImportIssueCategory,
+      option: string,
+    ) => {
+      for (const table of aTblSchema) {
+        for (const col of table.columns) {
+          if (!types.includes(col.type)) continue;
+          updateMigrationSkipLog(
+            table.name,
+            col.name,
+            col.type,
+            `not imported: '${option}' was off`,
+            { category },
+          );
+        }
+      }
+    };
+
     const nocoCreateLookups = async (aTblSchema) => {
       // LookUps
       for (let idx = 0; idx < aTblSchema.length; idx++) {
@@ -1494,19 +1568,15 @@ export class AtImportProcessor {
       while (nestedLookupTbl.length) {
         // if nothing has changed from previous iteration, skip rest
         if (nestedCnt === nestedLookupTbl.length) {
-          for (let i = 0; i < nestedLookupTbl.length; i++) {
-            const fTblField =
-              nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId;
-            const name = aTbl_getColumnName(fTblField);
-            updateMigrationSkipLog(
-              ncSchema.tablesById[nestedLookupTbl[i].srcTableId]?.title,
-              nestedLookupTbl[i].name,
-              nestedLookupTbl[i].type,
-              `foreign table field not found [${name.tn}/${name.cn}]`,
-              {
-                category: AirtableImportIssueCategory.LOOKUP,
-              },
-            );
+          // With rollups on, what is left may target a rollup: it gets a
+          // second pass once rollups exist, which reports what still fails.
+          if (!syncDB.options.syncRollup) {
+            for (const lookup of nestedLookupTbl.splice(0)) {
+              await reportUnresolvedField(
+                lookup,
+                AirtableImportIssueCategory.LOOKUP,
+              );
+            }
           }
           if (enableErrorLogs)
             logger.log(
@@ -1776,33 +1846,41 @@ export class AtImportProcessor {
         }
       }
       logDetailed(`Nested rollup: ${nestedRollupTbl.length}`);
+      for (const rollup of nestedRollupTbl) {
+        await reportUnresolvedField(rollup, AirtableImportIssueCategory.ROLLUP);
+      }
     };
 
     const nocoLookupForRollup = async () => {
-      const nestedCnt = nestedLookupTbl.length;
-      for (let i = 0; i < nestedLookupTbl.length; i++) {
-        const srcTableId = nestedLookupTbl[0].srcTableId;
-
+      // lookups nocoCreateLookups could not resolve before rollups existed
+      const pending = nestedLookupTbl.splice(0);
+      for (let i = 0; i < pending.length; i++) {
+        const lookup = pending[i];
+        const srcTableId = lookup.srcTableId;
         const srcTableSchema = ncSchema.tablesById[srcTableId];
 
         const ncRelationColumnId = await sMap.getNcIdFromAtId(
-          nestedLookupTbl[0].typeOptions.relationColumnId,
+          lookup.typeOptions.relationColumnId,
         );
         const ncLookupColumnId = await sMap.getNcIdFromAtId(
-          nestedLookupTbl[0].typeOptions.foreignTableRollupColumnId,
+          lookup.typeOptions.foreignTableRollupColumnId,
         );
 
         if (!ncLookupColumnId || !ncRelationColumnId) {
+          await reportUnresolvedField(
+            lookup,
+            AirtableImportIssueCategory.LOOKUP,
+          );
           continue;
         }
 
         const ncName = nc_getSanitizedColumnName(
-          nestedLookupTbl[0].name,
+          lookup.name,
           srcTableSchema.table_name,
         );
 
         logDetailed(
-          `Configuring Lookup over Rollup :: [${i + 1}/${nestedCnt}] ${
+          `Configuring Lookup over Rollup :: [${i + 1}/${pending.length}] ${
             ncName.title
           }`,
         );
@@ -1813,8 +1891,8 @@ export class AtImportProcessor {
           {
             category: AirtableImportIssueCategory.LOOKUP,
             table: srcTableSchema?.title,
-            field: nestedLookupTbl[0].name,
-            airtable_type: nestedLookupTbl[0].type,
+            field: lookup.name,
+            airtable_type: lookup.type,
           },
           () =>
             this.columnsService.columnAdd(context, {
@@ -1831,26 +1909,13 @@ export class AtImportProcessor {
               operationSource: OperationSource.AT_IMPORT,
             }),
         );
-        if (!ncTbl) {
-          nestedLookupTbl.splice(0, 1);
-          continue;
-        }
         recordPerfStats(_perfStart, 'dbTableColumn.create');
+        if (!ncTbl) continue;
 
         updateNcTblSchema(ncTbl);
 
-        const ncId = ncTbl.columns.find(
-          (x) => x.title === nestedLookupTbl[0].name,
-        )?.id;
-        await sMap.addToMappingTbl(
-          nestedLookupTbl[0].id,
-          ncId,
-          nestedLookupTbl[0].name,
-          ncTbl.id,
-        );
-
-        // remove entry
-        nestedLookupTbl.splice(0, 1);
+        const ncId = ncTbl.columns.find((x) => x.title === lookup.name)?.id;
+        await sMap.addToMappingTbl(lookup.id, ncId, lookup.name, ncTbl.id);
       }
     };
 
@@ -3540,6 +3605,22 @@ export class AtImportProcessor {
         // add look-ups
         await nocoCreateLookups(aTblSchema);
         logDetailed('Migrating Lookup columns completed');
+      } else {
+        reportNotImported(
+          aTblSchema,
+          ['lookup'],
+          AirtableImportIssueCategory.LOOKUP,
+          'Import lookup columns',
+        );
+      }
+
+      if (!syncDB.options.syncRollup) {
+        reportNotImported(
+          aTblSchema,
+          ['rollup', 'count'],
+          AirtableImportIssueCategory.ROLLUP,
+          'Import rollup columns',
+        );
       }
 
       if (syncDB.options.syncRollup) {

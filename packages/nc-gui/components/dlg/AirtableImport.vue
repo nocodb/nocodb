@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { AirtableImportIssueKind } from 'nocodb-sdk'
+import type { AirtableImportReport } from 'nocodb-sdk'
 import { JobStatus } from '#imports'
 
 const {
@@ -50,6 +52,40 @@ const listeningForUpdates = ref(false)
 
 const hasWarning = ref(false)
 
+// What did not come across as-is, returned by the import job.
+const importReport = ref<AirtableImportReport | null>(null)
+
+const reportCounts = computed(() => {
+  const counts = importReport.value?.counts
+  if (!counts) return null
+  const total = Object.values(counts).reduce((a, b) => a + b, 0)
+  return total ? counts : null
+})
+
+function csvCell(value: unknown) {
+  const text = value === null || value === undefined ? '' : String(value)
+  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text
+}
+
+function downloadReport() {
+  const report = importReport.value
+  if (!report) return
+
+  const header = ['kind', 'category', 'table', 'view', 'field', 'airtable_type', 'reason']
+  const rows = report.issues.map((issue) =>
+    [issue.kind, issue.category, issue.table, issue.view, issue.field, issue.airtable_type, issue.reason].map(csvCell).join(','),
+  )
+  const text = [header.join(','), ...rows].join('\n')
+
+  const element = document.createElement('a')
+  element.setAttribute('href', `data:text/csv;charset=utf-8,${encodeURIComponent(text)}`)
+  element.setAttribute('download', 'airtable-import-report.csv')
+  element.style.display = 'none'
+  document.body.appendChild(element)
+  element.click()
+  document.body.removeChild(element)
+}
+
 const syncSource = ref({
   id: '',
   type: 'Airtable',
@@ -88,6 +124,10 @@ const onLog = (data: { message: string }) => {
 
 const onStatus = async (status: JobStatus, data?: any) => {
   lastProgress.value = { msg: data?.message, status }
+
+  if (status === JobStatus.COMPLETED || status === JobStatus.FAILED) {
+    importReport.value = data?.result?.report ?? null
+  }
 
   if (status === JobStatus.COMPLETED) {
     showGoToDashboardButton.value = true
@@ -255,6 +295,7 @@ async function loadSyncSrc() {
 }
 
 async function sync() {
+  importReport.value = null
   try {
     const jobData: any = await $api.internal.postOperation(
       activeWorkspace.value!.id,
@@ -493,6 +534,37 @@ const collapseKey = ref('')
           </div>
           <div v-if="hasWarning" class="text-yellow-500">{{ $t('msg.airtableImportWarning') }}</div>
         </div>
+      </div>
+
+      <div
+        v-if="!isInProgress && reportCounts"
+        class="flex items-center justify-between gap-3 mt-3 text-sm text-nc-content-gray-subtle"
+      >
+        <div class="flex flex-col gap-1">
+          <span>
+            {{
+              $t('msg.airtableImportReportSummary', {
+                skipped: reportCounts[AirtableImportIssueKind.SKIPPED],
+                approximated: reportCounts[AirtableImportIssueKind.APPROXIMATED],
+                failed: reportCounts[AirtableImportIssueKind.FAILED],
+              })
+            }}
+          </span>
+          <span v-if="importReport?.truncated" class="text-xs">
+            {{
+              $t('msg.airtableImportReportTruncated', {
+                shown: importReport.issues.length,
+                total: importReport.issues.length + importReport.truncated,
+              })
+            }}
+          </span>
+        </div>
+        <NcButton size="small" type="secondary" class="flex-none" @click="downloadReport">
+          <div class="flex items-center gap-2">
+            <GeneralIcon icon="download" />
+            {{ $t('labels.downloadReport') }}
+          </div>
+        </NcButton>
       </div>
 
       <div v-if="!isInProgress" class="text-right mt-5">

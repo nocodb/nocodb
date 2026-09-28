@@ -143,6 +143,7 @@ export const OperationName = {
   // record semantics as recordInsert/recordUpdate/recordDelete but
   // scoped to the page's undo stack instead of the table's.
   interfaceRecordInsert: 'interfaceRecordInsert',
+  interfaceRecordBulkInsert: 'interfaceRecordBulkInsert',
   interfaceRecordUpdate: 'interfaceRecordUpdate',
   interfaceRecordDelete: 'interfaceRecordDelete',
   interfaceRecordBulkDelete: 'interfaceRecordBulkDelete',

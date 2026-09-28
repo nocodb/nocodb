@@ -1054,8 +1054,8 @@ export function useCanvasTable({
       (!selection.value.isEmpty() || (activeCell.value.row !== null && activeCell.value.column !== null)) &&
       !dataCache.cachedRows.value.get((isNaN(selection.value.end.row) ? activeCell.value.row : selection.value.end.row) ?? -1)
         ?.rowMeta?.new &&
-      activeCell.value.column !== null &&
-      fields.value[activeCell.value.column - 1] &&
+      !!activeCell.value.column &&
+      columns.value[activeCell.value.column]?.columnObj &&
       dataCache.totalRows.value &&
       !isSelectionReadOnly.value &&
       !isSqlView.value

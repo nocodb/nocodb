@@ -798,28 +798,26 @@ export function useCopyPaste({
         }
 
         if (options.expand) {
-          const newColumns = bulkOpsCols.map(({ column }) => column)
+          const upserted = await bulkUpsertRows?.(
+            newRows,
+            updatedRows,
+            propsToPaste,
+            undefined,
+            bulkOpsCols.map(({ column }) => column),
+            groupPath,
+          )
 
-          // Insert blank and link first: interface pages only accept link writes on rows still
-          // matching the page filter, which the pasted values can move a row out of.
-          if (newRowTextLtarOps.length || newRowBulkLtarOps.length) {
-            const blankRows = newRows.map(() => ({ row: {}, oldRow: {}, rowMeta: { isExistingRow: false } } as Row))
-            const insertedRecords = await bulkUpsertRows?.(blankRows, [], [], undefined, newColumns, groupPath)
-
-            // bulkUpsertRows already reported the failure
-            if (!insertedRecords?.length) return
-
-            const pkColumns = meta.value?.columns?.filter((c) => c.pk) ?? []
-            insertedRecords.forEach((record, i) => {
-              if (!newRows[i]) return
-              for (const col of pkColumns) newRows[i].row[col.title!] = record[col.title!]
-            })
+          if (upserted?.length && (newRowTextLtarOps.length || newRowBulkLtarOps.length)) {
+            // Interface pages accept these links even once the pasted values move a row out of
+            // the page filter — the insert grants the writer an edit grace.
+            const updatedPks = new Set(updatedRows.map((r) => extractPkFromRow(r.row, meta.value?.columns as ColumnType[])))
+            const insertedRecords = upserted.filter(
+              (r) => !updatedPks.has(extractPkFromRow(r, meta.value?.columns as ColumnType[])),
+            )
 
             if (newRowTextLtarOps.length) await linkNewRowsByDisplayValues(newRowTextLtarOps, insertedRecords)
             if (newRowBulkLtarOps.length) await linkNewRowsByCopyPaste(newRowBulkLtarOps, insertedRecords)
           }
-
-          await bulkUpsertRows?.(newRows, updatedRows, propsToPaste, undefined, newColumns, groupPath)
 
           scrollToCell?.(undefined, undefined, groupPath)
         } else if (propsToPaste.length) {

@@ -6,6 +6,9 @@ import type { CanvasGroup } from '../lib/types'
 import { useInfiniteGroups } from './useInfiniteGroups'
 import { type CellRange, type Row } from '#imports'
 
+// Under the server's 500-row cap on the interface bulk ops
+const INTERFACE_BULK_CHUNK_SIZE = 100
+
 export function useGridViewData(
   _meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
   viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
@@ -484,13 +487,40 @@ export function useGridViewData(
         return row
       })
 
-      const bulkUpsertedRows = await $api.dbTableRow.bulkUpsert(
-        NOCO,
-        metaValue?.base_id ?? (base.value?.id as string),
-        metaValue?.id as string,
-        [...insertRows.map((row) => cleanRow(row.row)), ...updateRows.map((row) => cleanRow(row.row))],
-        { typecast: 'true' },
-      )
+      let bulkUpsertedRows: Record<string, any>[]
+
+      if (interfaceDataApi?.bulkInsertRows && interfaceDataApi.bulkUpdateRows) {
+        // Interface pages — page-scoped ops, so the rows get edit grace and the
+        // field allow-list applies (the raw upsert 403s for interface collaborators).
+        const pkTitles = ((metaValue?.columns ?? []) as ColumnType[]).filter((c) => c.pk).map((c) => c.title!)
+        const insertData = insertRows.map((row) => cleanRow(row.row))
+        const insertedPks: Record<string, any>[] = []
+        for (let i = 0; i < insertData.length; i += INTERFACE_BULK_CHUNK_SIZE) {
+          insertedPks.push(...(await interfaceDataApi.bulkInsertRows(insertData.slice(i, i + INTERFACE_BULK_CHUNK_SIZE))))
+        }
+        const updateData = updateRows.map((row) => ({
+          rowId: getPk(row) as string,
+          data: props.reduce(
+            (acc, prop) => (pkTitles.includes(prop) ? acc : { ...acc, [prop]: row.row[prop] }),
+            {} as Record<string, any>,
+          ),
+        }))
+        for (let i = 0; i < updateData.length; i += INTERFACE_BULK_CHUNK_SIZE) {
+          await interfaceDataApi.bulkUpdateRows(updateData.slice(i, i + INTERFACE_BULK_CHUNK_SIZE))
+        }
+        bulkUpsertedRows = [
+          ...insertedPks.map((pk, i) => ({ ...insertData[i], ...pk })),
+          ...updateRows.map((row) => cleanRow(row.row)),
+        ]
+      } else {
+        bulkUpsertedRows = await $api.dbTableRow.bulkUpsert(
+          NOCO,
+          metaValue?.base_id ?? (base.value?.id as string),
+          metaValue?.id as string,
+          [...insertRows.map((row) => cleanRow(row.row)), ...updateRows.map((row) => cleanRow(row.row))],
+          { typecast: 'true' },
+        )
+      }
 
       const existingPks = new Set(Array.from(dataCache.cachedRows.value.values()).map((row) => getPk(row)))
       const [insertedRows, updatedRows] = bulkUpsertedRows.reduce(

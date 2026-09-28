@@ -124,7 +124,7 @@ export default class PresignedUrl {
   ) {
     const isUrl = /^https?:\/\//i.test(param.pathOrUrl);
 
-    let path = (
+    const path = (
       isUrl ? getPathFromUrl(param.pathOrUrl) : param.pathOrUrl
     ).replace(/^\/+/, '');
 
@@ -188,10 +188,14 @@ export default class PresignedUrl {
       pathParameters.ResponseContentEncoding = encoding;
     }
 
-    // append query params to the cache path
-    const cachePath = `${path}?${new URLSearchParams(
-      pathParameters,
-    ).toString()}`;
+    // append query params to the cache path; the absolute expiry is left out
+    // (it changes every 10 minutes) and the requested duration is used instead,
+    // so callers asking for different lifetimes don't share an entry
+    const { expireAt: _expireAt, ...cacheParameters } = pathParameters;
+    const cachePath = `${path}?${new URLSearchParams({
+      expireSeconds: String(expireSeconds),
+      ...cacheParameters,
+    }).toString()}`;
 
     const url = await NocoCache.get(
       'root',
@@ -200,12 +204,12 @@ export default class PresignedUrl {
     );
 
     if (url) {
-      // if present, check if the expiry date is greater than now
-      if (new Date(url.expires_at).getTime() > new Date().getTime()) {
-        // if greater, return the url
+      const remainingMs = new Date(url.expires_at).getTime() - Date.now();
+      // reuse the url while at least half of the requested lifetime is left
+      if (remainingMs > (expireSeconds * 1000) / 2) {
         return url.url;
-      } else {
-        // if not, delete the url
+      } else if (remainingMs <= 0) {
+        // expired, delete the url
         await this.delete({ path: url.path, url: url.url });
       }
     }
@@ -233,10 +237,8 @@ export default class PresignedUrl {
         ? param.pathOrUrl
         : `dltemp/${nanoid(16)}/${expireAt.getTime()}/${path}`;
 
-      path = `${path}?${new URLSearchParams(pathParameters).toString()}`;
-
       await this.add({
-        path: path,
+        path: cachePath,
         url: tempUrl,
         expires_at: expireAt,
         expiresInSeconds,

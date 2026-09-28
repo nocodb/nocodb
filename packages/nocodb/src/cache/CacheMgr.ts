@@ -353,10 +353,12 @@ export default abstract class CacheMgr {
 
     if (values.some((v) => v === null)) {
       // FALLBACK: a list references a key that has since expired/been evicted.
-      // Detected, handled and recovered from below (list is rebuilt from
-      // parents), so this needs no operator action — log at warn, not error.
+      // Detected, handled and recovered from below (the stale list is
+      // invalidated — parents and children deep-deleted — and the caller
+      // refetches from the DB), so this needs no operator action — log at
+      // warn, not error.
       logger.warn(
-        `${this.context}::getList: missing value for ${key}, rebuilding list from parents`,
+        `${this.context}::getList: missing value for ${key}, invalidating list (will refetch from DB)`,
       );
       const allParents = [];
       // get all parents from children

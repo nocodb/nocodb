@@ -352,8 +352,12 @@ export default abstract class CacheMgr {
     const values = await this.client.mget(arr);
 
     if (values.some((v) => v === null)) {
-      // FALLBACK: a key is missing from list, this should never happen
-      logger.error(`${this.context}::getList: missing value for ${key}`);
+      // FALLBACK: a list references a key that has since expired/been evicted.
+      // Detected, handled and recovered from below (list is rebuilt from
+      // parents), so this needs no operator action — log at warn, not error.
+      logger.warn(
+        `${this.context}::getList: missing value for ${key}, rebuilding list from parents`,
+      );
       const allParents = [];
       // get all parents from children
       values.forEach((v) => {

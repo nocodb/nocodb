@@ -23,7 +23,9 @@ type TemplateProps<K extends keyof typeof MailTemplates> = Omit<
 
 @Injectable()
 export class MailService {
-  protected logger = new Logger(MailService.name);
+  // String literal — MailService.name mangles under production minification,
+  // which turns the log context into an unattributable name (e.g. "_0x276fcd").
+  protected logger = new Logger('MailService');
   private static adapterMissingLogged = false;
   protected async getAdapter(ncMeta = Noco.ncMeta) {
     try {
@@ -555,7 +557,14 @@ export class MailService {
       }
       return true;
     } catch (e) {
-      this.logger.error('Error sending email', e);
+      // Pass e.message as the message and e.stack as the stack — NestJS treats
+      // logger.error's 2nd arg as a stack string, so passing the Error object
+      // there would discard its message and leave the real cause (e.g. SMTP
+      // connection refused / auth failure) undiagnosable.
+      this.logger.error(
+        `Error sending email for ${params.mailEvent}: ${e.message}`,
+        e.stack,
+      );
       return false;
     }
   }

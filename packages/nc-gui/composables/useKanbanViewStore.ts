@@ -1112,7 +1112,44 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         } catch (e) {
           console.error('Failed to delete row from kanban on socket event', e)
         }
+      } else if (action === 'reorder') {
+        // A sort decides the order, not nc_order.
+        if (sorts.value?.length) return
+
+        try {
+          const pkOf = (row: Row) => `${extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])}`
+
+          for (const [stackKey, rows] of formattedData.value.entries()) {
+            const index = rows.findIndex((row) => pkOf(row) === `${id}`)
+            if (index === -1) continue
+
+            const stackRows = [...rows]
+            const [moved] = stackRows.splice(index, 1)
+            const beforeIndex = before ? stackRows.findIndex((row) => pkOf(row) === `${before}`) : -1
+
+            if (beforeIndex !== -1) {
+              stackRows.splice(beforeIndex, 0, moved!)
+              formattedData.value.set(stackKey, stackRows)
+            } else if (!before && rows.length >= (countByStack.value.get(stackKey) ?? 0)) {
+              stackRows.push(moved!)
+              formattedData.value.set(stackKey, stackRows)
+            } else {
+              // `before` is in another stack or not loaded, so the slot within this stack is unknown.
+              reloadStack(stackKey).catch((e) => console.error('Failed to reload kanban stack on reorder', e))
+            }
+            break
+          }
+        } catch (e) {
+          console.error('Failed to reorder row in kanban on socket event', e)
+        }
       }
+    }
+
+    async function reloadStack(stackKey: string | null) {
+      if (!useWindowedKanbanLoad.value) return loadKanbanData()
+
+      loadedStacks.value.delete(stackKey)
+      await loadKanbanDataForStacks([stackKey])
     }
 
     watch(

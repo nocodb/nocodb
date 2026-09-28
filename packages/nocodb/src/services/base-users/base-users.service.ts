@@ -24,7 +24,7 @@ import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { Base, BaseUser, PresignedUrl, User } from '~/models';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { getProjectRole, getProjectRolePower } from '~/utils/roleHelper';
 import { MailService } from '~/services/mail/mail.service';
@@ -861,8 +861,8 @@ export class BaseUsersService {
     const baseUser = await BaseUser.get(context, param.baseId, user.id);
 
     const pluginData = await Noco.ncMeta.metaGet2(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.PLUGIN,
       {
         category: PluginCategory.EMAIL,

@@ -198,20 +198,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // ops clear the plain ACL for base roles too).
     const interfaceDataApi = inject(InterfacePageDataInj, undefined)
 
-    // Interface reads are scoped to the page filter — once a link moves the row out of it,
-    // the picker's refetch comes back as not found.
-    function isOutsidePageFilterError(error: { error: NcErrorType }) {
-      return !!interfaceDataApi && error.error === NcErrorType.ERR_RECORD_NOT_FOUND
-    }
-
-    async function showLinkError(e: unknown, prefix: string) {
-      if (isOutsidePageFilterError(await extractSdkResponseErrorMsgv2(e))) {
-        message.error(t('msg.error.recordOutsidePageFilter'))
-        return
-      }
-      message.error(`${prefix}: ${await extractSdkResponseErrorMsg(e)}`)
-    }
-
     // Record-form field element hosting this cell — picker calls carry its
     // addressing so the server applies the ELEMENT's link-record selection,
     // not the adapter page viz's per-column one. Absent on viz inline cells.
@@ -236,7 +222,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { sharedView } = useSharedView()
 
-    const { getViewColumns } = useSmartsheetStoreOrThrow()
+    const { getViewColumns, eventBus } = useSmartsheetStoreOrThrow()
 
     const { getValidSearchQueryForColumn } = useFieldQuery()
 
@@ -799,11 +785,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           return loadChildrenExcludedList(activeState, true)
         }
 
-        if (isOutsidePageFilterError(error)) {
-          message.error(t('msg.error.recordOutsidePageFilter'))
-          return
-        }
-
         message.error(`${t('msg.error.failedToLoadList')}: ${error.message}`)
       } finally {
         // Only the request matching the active id owns the loading flag — a stale
@@ -962,7 +943,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           }
         }
       } catch (e: any) {
-        await showLinkError(e, t('msg.error.failedToLoadChildrenList'))
+        message.error(`${t('msg.error.failedToLoadChildrenList')}: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {
         // Only the request matching the active id owns the loading flag.
         if (req.isCurrent()) {
@@ -1240,8 +1221,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             getRelatedRowId: getRelatedTableRowId,
           })
         }
+
+        if (interfaceDataApi) {
+          eventBus.emit(SmartsheetStoreEvents.INTERFACE_ROW_REFRESH, { rowId: rowId.value })
+        }
       } catch (e: any) {
-        await showLinkError(e, t('msg.error.unlinkFailed'))
+        message.error(`${t('msg.error.unlinkFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {
         isChildrenExcludedListLoading.value[index] = false
         isChildrenListLoading.value[index] = false
@@ -1365,8 +1350,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             getRelatedRowId: getRelatedTableRowId,
           })
         }
+
+        if (interfaceDataApi) {
+          eventBus.emit(SmartsheetStoreEvents.INTERFACE_ROW_REFRESH, { rowId: rowId.value })
+        }
       } catch (e: any) {
-        await showLinkError(e, 'Linking failed')
+        message.error(`Linking failed: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {
         isChildrenExcludedListLoading.value[index] = false
         isChildrenListLoading.value[index] = false

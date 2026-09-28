@@ -425,6 +425,12 @@ export interface InterfacePageDataApi {
    * Mirroring them would make the client STRICTER than the server.
    */
   userFilterSelectionFilters(): FilterType[]
+  /**
+   * The builder's page ∧ viz filters as filter roots — the server rejects
+   * writes to rows outside them, so a write that moves a row out marks it
+   * filtered client-side like a classic-grid view filter.
+   */
+  builderScopeFilters?(): FilterType[]
   /** viz-config editability gates the UI */
   canEditInline: Ref<boolean>
   canAddDeleteInline: Ref<boolean>

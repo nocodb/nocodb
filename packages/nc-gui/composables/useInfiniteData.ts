@@ -7,6 +7,7 @@ import {
   EventType,
   type FilterType,
   NcApiVersion,
+  NcErrorType,
   type PaginatedType,
   type TableType,
   UITypes,
@@ -1710,6 +1711,19 @@ export function useInfiniteData(args: {
       }
 
       toUpdate.row[property] = toUpdate.oldRow[property]
+
+      // Interface writes are scoped to the page filter — a row still on screen that no longer
+      // matches it comes back as not found. Hide it like an RLS-hidden row instead.
+      if (interfaceDataApi && (await extractSdkResponseErrorMsgv2(e)).error === NcErrorType.ERR_RECORD_NOT_FOUND) {
+        toUpdate.rowMeta.isRlsHidden = true
+        if (toUpdate.rowMeta.rowIndex !== undefined) {
+          dataCache.cachedRows.value.set(toUpdate.rowMeta.rowIndex, toUpdate)
+        }
+        callbacks?.syncVisibleData?.()
+        message.error(t('msg.error.recordOutsidePageFilter'))
+        return undefined
+      }
+
       const errorMessage = await extractSdkResponseErrorMsg(e)
       message.error(`${t('msg.error.rowUpdateFailed')}: ${errorMessage}`)
       throw e

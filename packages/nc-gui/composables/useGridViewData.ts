@@ -523,6 +523,8 @@ export function useGridViewData(
       reloadViewDataHook?.trigger()
       syncVisibleData()
       await syncCount(path, true, false)
+
+      return bulkUpsertedRows
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
     } finally {

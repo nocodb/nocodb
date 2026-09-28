@@ -84,3 +84,65 @@ export interface ImportPreviewSheet {
 export interface ImportPreviewResponse {
   sheets: ImportPreviewSheet[];
 }
+
+/**
+ * Airtable import migration report — returned as the AtImport job result so the
+ * import dialog can summarise what did not come across and offer it for download.
+ */
+export enum AirtableImportIssueKind {
+  /** Not imported at all. */
+  SKIPPED = 'skipped',
+  /** Imported, but with different semantics from the Airtable original. */
+  APPROXIMATED = 'approximated',
+  /** Import was attempted and the server rejected it. */
+  FAILED = 'failed',
+}
+
+export enum AirtableImportIssueCategory {
+  TABLE = 'table',
+  COLUMN = 'column',
+  SELECT_OPTION = 'select_option',
+  LINK = 'link',
+  LOOKUP = 'lookup',
+  ROLLUP = 'rollup',
+  DISPLAY_VALUE = 'display_value',
+  VIEW = 'view',
+  FIELD_VISIBILITY = 'field_visibility',
+  FILTER = 'filter',
+  SORT = 'sort',
+  GROUP = 'group',
+  DATA = 'data',
+}
+
+export interface AirtableImportIssue {
+  kind: AirtableImportIssueKind;
+  category: AirtableImportIssueCategory;
+  table?: string;
+  view?: string;
+  field?: string;
+  /** Airtable field type, when the issue concerns a field. */
+  airtable_type?: string;
+  reason: string;
+}
+
+export interface AirtableImportReport {
+  version: 1;
+  summary: {
+    tables: number;
+    columns: number;
+    views: number;
+    filters: number;
+    sorts: number;
+    records: number;
+    nested_links: number;
+    duration_ms: number;
+  };
+  counts: Record<AirtableImportIssueKind, number>;
+  by_category: Partial<Record<AirtableImportIssueCategory, number>>;
+  issues: AirtableImportIssue[];
+  /**
+   * Issues left out of `issues` to keep the report storable; `counts` and
+   * `by_category` still cover them, and every issue is in the job log.
+   */
+  truncated?: number;
+}

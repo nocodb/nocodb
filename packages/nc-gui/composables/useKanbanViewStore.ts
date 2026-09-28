@@ -701,6 +701,36 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
     }
 
+    /**
+     * Persist a card's position (writes the table's `nc_order` column) so a within-stack — or
+     * cross-stack — drag survives a reload. `beforeRow` is the card the dragged card should sit
+     * before, or null to move it to the end. Skipped when the order can't be manually controlled
+     * (interface/public views, or an active sort re-sorts on the next fetch anyway).
+     */
+    async function updateRecordOrder(row: Row, beforeRow: Row | null) {
+      if (interfaceDataApi || isPublic.value || sorts.value?.length) return
+      if (!base.value?.id || !meta.value?.id) return
+
+      try {
+        const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+        const beforeRowId = beforeRow ? extractPkFromRow(beforeRow.row, meta.value?.columns as ColumnType[]) : null
+
+        await $api.internal.postOperation(
+          base.value.fk_workspace_id!,
+          meta.value?.base_id ?? (base.value.id as string),
+          {
+            operation: 'dataMove',
+            tableId: meta.value.id as string,
+            rowId,
+            before: beforeRowId,
+          } as any,
+          undefined,
+        )
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    }
+
     async function deleteStack(stackTitle: string, _stackIdx: number) {
       if (!viewMeta?.value?.id || !groupingFieldColumn.value) return
       try {
@@ -1123,6 +1153,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       groupingFieldColOptions,
       groupingFieldColumn,
       updateOrSaveRow,
+      updateRecordOrder,
       addEmptyRow,
       addOrEditStackRow,
       deleteStack,

@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import { UITypes, ViewLockType, ViewTypes } from 'nocodb-sdk'
+import { UITypes, ViewLockType, ViewTypes, isOrderCol } from 'nocodb-sdk'
 import type {
   Api,
   ColumnType,
@@ -527,7 +527,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       })
     }
 
-    async function loadMoreKanbanData(stackTitle: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
+    async function loadMoreKanbanData(stackTitle: string | null, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
       if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value && !interfaceDataApi) return
       let where = `(${groupingField.value},eq,${stackTitle})`
       if (stackTitle === null) {
@@ -698,6 +698,38 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         await insertRow(row.row, formattedData.value.get(row.row.title!)!.indexOf(row))
       } else {
         await updateRowProperty(row, groupingField.value)
+      }
+    }
+
+    /**
+     * Persist a card's position (writes the table's `nc_order` column) so a within-stack drag
+     * survives a reload. `beforeRow` is the card the dragged card should sit
+     * before, or null to move it to the end. Skipped when the order can't be manually controlled
+     * (interface/public views, or an active sort re-sorts on the next fetch anyway).
+     */
+    async function updateRecordOrder(row: Row, beforeRow: Row | null) {
+      if (interfaceDataApi || isPublic.value || sorts.value?.length) return
+      if (!base.value?.id || !meta.value?.id) return
+      // moveRecord needs an order column (absent on e.g. external-source tables).
+      if (!meta.value.columns?.some((c) => isOrderCol(c))) return
+
+      try {
+        const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+        const beforeRowId = beforeRow ? extractPkFromRow(beforeRow.row, meta.value?.columns as ColumnType[]) : null
+
+        await $api.internal.postOperation(
+          base.value.fk_workspace_id!,
+          meta.value?.base_id ?? (base.value.id as string),
+          {
+            operation: 'dataMove',
+            tableId: meta.value.id as string,
+            rowId,
+            before: beforeRowId,
+          } as any,
+          undefined,
+        )
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
       }
     }
 
@@ -1080,6 +1112,59 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         } catch (e) {
           console.error('Failed to delete row from kanban on socket event', e)
         }
+      } else if (action === 'reorder') {
+        // A sort decides the order, not nc_order.
+        if (sorts.value?.length) return
+
+        try {
+          const pkOf = (row: Row) => `${extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])}`
+          const reload = (stackKey: string | null) =>
+            reloadStack(stackKey).catch((e) => console.error('Failed to reload kanban stack on reorder', e))
+
+          for (const [stackKey, rows] of formattedData.value.entries()) {
+            const index = rows.findIndex((row) => pkOf(row) === `${id}`)
+            if (index === -1) continue
+
+            const stackRows = [...rows]
+            const [moved] = stackRows.splice(index, 1)
+            const beforeIndex = before ? stackRows.findIndex((row) => pkOf(row) === `${before}`) : -1
+
+            if (beforeIndex !== -1) {
+              stackRows.splice(beforeIndex, 0, moved!)
+              formattedData.value.set(stackKey, stackRows)
+            } else if (!before && rows.length >= (countByStack.value.get(stackKey) ?? 0)) {
+              stackRows.push(moved!)
+              formattedData.value.set(stackKey, stackRows)
+            } else {
+              // `before` is in another stack or not loaded, so the slot within this stack is unknown.
+              reload(stackKey)
+            }
+            return
+          }
+
+          // The card isn't loaded, but it now sits before a loaded card of its stack, so it's inside the window.
+          const stackKey =
+            typeof payload?.[groupingField.value] === 'string' && payload[groupingField.value].length
+              ? payload[groupingField.value]
+              : null
+          if (before && formattedData.value.get(stackKey)?.some((row) => pkOf(row) === `${before}`)) reload(stackKey)
+        } catch (e) {
+          console.error('Failed to reorder row in kanban on socket event', e)
+        }
+      }
+    }
+
+    async function reloadStack(stackKey: string | null) {
+      if (!useWindowedKanbanLoad.value) return loadKanbanData()
+
+      // Refetching resets the stack to its first page; top it back up so scrolled-in cards stay.
+      const loadedCount = formattedData.value.get(stackKey)?.length ?? 0
+      loadedStacks.value.delete(stackKey)
+      await loadKanbanDataForStacks([stackKey])
+
+      const reloadedCount = formattedData.value.get(stackKey)?.length ?? 0
+      if (loadedCount > reloadedCount) {
+        await loadMoreKanbanData(stackKey, { offset: reloadedCount, limit: loadedCount - reloadedCount })
       }
     }
 
@@ -1123,6 +1208,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       groupingFieldColOptions,
       groupingFieldColumn,
       updateOrSaveRow,
+      updateRecordOrder,
       addEmptyRow,
       addOrEditStackRow,
       deleteStack,

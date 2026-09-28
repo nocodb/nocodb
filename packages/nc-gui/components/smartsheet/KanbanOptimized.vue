@@ -73,6 +73,7 @@ const {
   kanbanMetaData,
   formattedData,
   updateOrSaveRow,
+  updateRecordOrder,
   addEmptyRow,
   groupingFieldColOptions,
   groupingField,
@@ -719,6 +720,17 @@ async function onMoveStack(event: any) {
   }
 }
 
+// The card the dragged card should sit before after a drop, or null when it landed last.
+// vuedraggable has already spliced the moved card into `formattedData.get(stackKey)` at `newIndex`,
+// so its new neighbour is the next element. Returns undefined when the drop is below the last loaded
+// card but the stack has unloaded cards — the true neighbour is unknown, so the order is left as is.
+function getBeforeRow(stackKey: string, newIndex: number) {
+  const stack = formattedData.value.get(stackKey) ?? []
+  const next = stack[newIndex + 1]
+  if (next) return next
+  return stack.length < (countByStack.value.get(stackKey) ?? 0) ? undefined : null
+}
+
 async function onMove(event: any, stackKey: string) {
   if (event.added) {
     const ele = event.added.element
@@ -733,11 +745,19 @@ async function onMove(event: any, stackKey: string) {
     // Remember the move so drag end can reconcile it against the reloaded data: the grouped-data read
     // can briefly lag a just-committed move, so a reload of the target may come back without this row.
     lastCardMove.value = { row: ele, toKey: stackKey, fromKey: lastCardMove.value.fromKey }
+    // Grouping change only — also persisting the drop position would record a second undo entry.
     pendingCardMove.value = updateOrSaveRow(ele)
     await pendingCardMove.value
   } else if (event.removed) {
     countByStack.value.set(stackKey, Math.max(0, (countByStack.value.get(stackKey) || 0) - 1))
     lastCardMove.value = { row: lastCardMove.value.row, toKey: lastCardMove.value.toKey, fromKey: stackKey }
+  } else if (event.moved) {
+    // Within-stack reorder — vuedraggable only mutates the local array, so persist nc_order too.
+    const ele = event.moved.element
+    const beforeRow = getBeforeRow(stackKey, event.moved.newIndex)
+    if (beforeRow === undefined) return
+    pendingCardMove.value = updateRecordOrder(ele, beforeRow)
+    await pendingCardMove.value
   }
 }
 

@@ -282,20 +282,34 @@ export function useViewFilters(
     }
   }
 
-  const placeholderFilter = (): ColumnFilterType => {
+  const placeholderFilter = (columnId?: string): ColumnFilterType => {
     const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
 
-    const defaultColumn = fieldsToFilter?.value?.find((col) => {
-      return !isSystemColumn(col) && !(fieldsMap.value[col.id] && !fieldsMap.value[col.id]?.initialShow)
-    })
+    const defaultColumn =
+      (columnId && allMetaColumns.value.find((col) => col.id === columnId)) ||
+      fieldsToFilter?.value?.find((col) => {
+        return !isSystemColumn(col) && !(fieldsMap.value[col.id] && !fieldsMap.value[col.id]?.initialShow)
+      })
+
+    // Derive the operator from the column the filter actually targets
+    const opColumn = defaultColumn ?? options.value?.[0]
+    const opUidt = (opColumn?.id && types.value[opColumn.id]) || (opColumn?.uidt as UITypes)
+    const comparisonOp = getDefaultComparisonOp(
+      comparisonOpList(opUidt, parseProp(opColumn?.meta)?.date_format),
+      (compOp) => isComparisonOpAllowed({ fk_column_id: opColumn?.id }, compOp),
+      opUidt,
+    ) as FilterType['comparison_op']
 
     const filter: ColumnFilterType = {
       tmp_id: getDraftFilterId(),
-      comparison_op: getDefaultComparisonOp(
-        comparisonOpList(options.value?.[0]?.uidt as UITypes),
-        (compOp) => isComparisonOpAllowed({ fk_column_id: options.value?.[0]?.id }, compOp),
-        options.value?.[0]?.uidt as UITypes,
-      ) as FilterType['comparison_op'],
+      comparison_op: comparisonOp,
+      ...(isDateType(opUidt) && !['blank', 'notblank'].includes(comparisonOp!)
+        ? {
+            comparison_sub_op: (comparisonOp === 'isWithin'
+              ? 'pastNumberOfDays'
+              : 'exactDate') as FilterType['comparison_sub_op'],
+          }
+        : {}),
       value: null,
       status: 'create',
       logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
@@ -983,7 +997,7 @@ export function useViewFilters(
     }
 
     // 🔹 LEAF FILTER
-    const leaf = placeholderFilter()
+    const leaf = placeholderFilter(raw.fk_column_id)
     Object.assign(leaf, raw)
 
     return leaf

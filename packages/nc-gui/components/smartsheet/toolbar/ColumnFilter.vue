@@ -560,14 +560,12 @@ const selectFilterField = (filter: Filter, index: number) => {
 
   if (!col) return
 
-  // reset dynamic field if the field is changed to virtual column
+  // Reset inline, not via resetDynamicField: that saves immediately, before the
+  // operator below is adjusted, persisting the new column with a stale operator.
   if (isVirtualCol(col)) {
-    resetDynamicField(filter, index).catch(() => {
-      // do nothing
-    })
-  } else {
-    filter.fk_value_col_id = null
+    filter.dynamic = false
   }
+  filter.fk_value_col_id = null
 
   // when we change the field,
   // the corresponding default filter operator needs to be changed as well

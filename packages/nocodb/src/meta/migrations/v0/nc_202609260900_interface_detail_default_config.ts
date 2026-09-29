@@ -37,24 +37,18 @@ const groupsEmpty = (config: Record<string, any> | null): boolean => {
   });
 };
 
-/** Does any node under a page config bind `detailPageId` as a detail sheet? */
-const bindsDetailPage = (node: unknown, detailPageId: string): boolean => {
-  if (!node || typeof node !== 'object') return false;
+/** Collect every `fk_detail_page_id` under a page config. */
+const collectBoundIds = (node: unknown, out: Set<string>) => {
+  if (!node || typeof node !== 'object') return;
   if (Array.isArray(node)) {
-    return node.some((child) => bindsDetailPage(child, detailPageId));
+    for (const child of node) collectBoundIds(child, out);
+    return;
   }
   const obj = node as Record<string, unknown>;
-  if (obj.fk_detail_page_id === detailPageId) return true;
+  if (typeof obj.fk_detail_page_id === 'string') out.add(obj.fk_detail_page_id);
   for (const value of Object.values(obj)) {
-    if (
-      value &&
-      typeof value === 'object' &&
-      bindsDetailPage(value, detailPageId)
-    ) {
-      return true;
-    }
+    if (value && typeof value === 'object') collectBoundIds(value, out);
   }
-  return false;
 };
 
 /**
@@ -79,11 +73,25 @@ const up = async (knex: Knex) => {
   );
   if (!pages.length) return;
 
-  const byInterface = new Map<string, PageRow[]>();
+  // Parse once; binders map each bound detail page id to the pages binding it.
+  const parsed = new Map<
+    string,
+    { draft: Record<string, any> | null; published: Record<string, any> | null }
+  >();
+  const bindersOf = new Map<string, Set<string>>();
+  const interfaceOf = new Map(pages.map((p) => [p.id, p.fk_interface_id]));
   for (const page of pages) {
-    const list = byInterface.get(page.fk_interface_id) ?? [];
-    list.push(page);
-    byInterface.set(page.fk_interface_id, list);
+    const draft = parseConfig(page.config);
+    const published = parseConfig(page.published_config);
+    parsed.set(page.id, { draft, published });
+    const bound = new Set<string>();
+    collectBoundIds(draft, bound);
+    collectBoundIds(published, bound);
+    for (const id of bound) {
+      const set = bindersOf.get(id) ?? new Set<string>();
+      set.add(page.id);
+      bindersOf.set(id, set);
+    }
   }
 
   const columnsByModel = new Map<string, ColumnType[]>();
@@ -92,20 +100,16 @@ const up = async (knex: Knex) => {
     if (page.layout !== InterfacePageLayoutTypes.RECORD_DETAIL) continue;
     if (!page.fk_model_id) continue;
 
-    const draft = parseConfig(page.config);
-    const published = parseConfig(page.published_config);
+    const { draft, published } = parsed.get(page.id)!;
     const healDraft = groupsEmpty(draft);
     // A null published_config means never published — leave it null.
     const healPublished =
       page.published_config != null && groupsEmpty(published);
     if (!healDraft && !healPublished) continue;
 
-    const siblings = byInterface.get(page.fk_interface_id) ?? [];
-    const bound = siblings.some(
-      (sibling) =>
-        sibling.id !== page.id &&
-        (bindsDetailPage(parseConfig(sibling.config), page.id) ||
-          bindsDetailPage(parseConfig(sibling.published_config), page.id)),
+    const binders = bindersOf.get(page.id);
+    const bound = [...(binders ?? [])].some(
+      (id) => id !== page.id && interfaceOf.get(id) === page.fk_interface_id,
     );
     if (!bound) continue;
 
@@ -113,15 +117,8 @@ const up = async (knex: Knex) => {
     if (!columns) {
       columns = (await knex(MetaTable.COLUMNS)
         .where('fk_model_id', page.fk_model_id)
-        .select(
-          'id',
-          'uidt',
-          'pk',
-          'ai',
-          'cdf',
-          'system',
-          'meta',
-        )) as ColumnType[];
+        .select('id', 'uidt', 'pk', 'ai', 'cdf', 'system', 'meta')
+        .orderBy('order', 'asc')) as ColumnType[];
       columnsByModel.set(page.fk_model_id, columns);
     }
 

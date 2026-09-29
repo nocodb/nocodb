@@ -1,5 +1,13 @@
 <script lang="ts" setup>
-import { InviteLinkScope, ProjectRoles, ViewLockType, type ViewType, ViewTypes } from 'nocodb-sdk'
+import {
+  InviteLinkScope,
+  ProjectRoles,
+  ViewLockType,
+  type ViewType,
+  ViewTypes,
+  WorkspaceRolesToProjectRoles,
+  type WorkspaceUserRoles,
+} from 'nocodb-sdk'
 import { useViewsStore } from '~/store/views'
 
 const { isViewToolbar } = defineProps<{
@@ -59,11 +67,10 @@ const memberCount = ref(0)
 const membersLoaded = ref(false)
 
 /**
- * Only the count is on screen, so read the total off the pagination metadata
- * rather than counting rows. `limit` is passed but this endpoint ignores it
- * today, so the payload is not yet smaller -- the win is that getBaseUsers is
- * no longer called with force: true, which refetched on every open and
- * rewrote the shared cache other screens read.
+ * The list includes workspace members with no base role, who inherit their
+ * workspace role -- often No Access (every signup lands in the default
+ * workspace that way), so the row total overcounts. Count effective access
+ * only, resolved the way the members page resolves it.
  *
  * Deliberately not awaited by the opener: the modal paints immediately and the
  * footer swaps its skeleton for the number whenever this lands.
@@ -72,9 +79,18 @@ async function loadMemberCount() {
   if (!base.value?.id) return
 
   try {
-    const res: any = await $api.auth.baseUserList(base.value.id, { query: { limit: 1 } } as any)
+    const res: any = await $api.auth.baseUserList(base.value.id)
 
-    memberCount.value = res?.users?.pageInfo?.totalRows ?? 0
+    memberCount.value = (res?.users?.list ?? []).filter((u: any) => {
+      if (u?.deleted) return false
+
+      const role =
+        u.roles && u.roles !== ProjectRoles.INHERIT
+          ? u.roles
+          : WorkspaceRolesToProjectRoles[u.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
+
+      return role !== ProjectRoles.NO_ACCESS
+    }).length
     membersLoaded.value = true
   } catch (e) {
     // The line is a doorway to the members page; a failure here must not take

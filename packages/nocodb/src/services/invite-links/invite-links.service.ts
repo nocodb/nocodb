@@ -18,6 +18,7 @@ import type {
   InviteLinkReqType,
   InviteLinkRole,
   InviteLinkType,
+  InviteLinkUnusableReason,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -129,22 +130,24 @@ export class InviteLinksService {
    * grant (retired roles like inherit disarm old links), and the minter must
    * still hold it -- otherwise an editor demoted to viewer, or removed
    * outright, kept handing out editor to anyone holding the URL.
+   *
+   * Returns why the link can no longer grant, or null when it still can.
    */
-  protected async stillGrantable(
+  protected async ungrantableReason(
     context: NcContext,
     link: Pick<
       InviteLinkType,
       'scope' | 'base_id' | 'fk_workspace_id' | 'created_by' | 'role'
     >,
     ncMeta = Noco.ncMeta,
-  ) {
-    if (!isInviteLinkRole(link.scope, link.role)) return false;
+  ): Promise<InviteLinkUnusableReason | null> {
+    if (!isInviteLinkRole(link.scope, link.role)) return 'retired_role';
 
     const minter = link.created_by
       ? await User.get(link.created_by, ncMeta)
       : null;
 
-    if (!minter) return false;
+    if (!minter) return 'minter_role';
 
     const withRoles = await User.getWithRoles(
       { ...context, base_id: link.base_id, workspace_id: link.fk_workspace_id },
@@ -157,19 +160,16 @@ export class InviteLinksService {
       ncMeta,
     );
 
-    if (link.scope === InviteLinkScope.WORKSPACE) {
-      return (
-        extractWorkspaceRolePower(withRoles) >=
-        [...OrderedWorkspaceRoles]
-          .reverse()
-          .indexOf(link.role as WorkspaceUserRoles)
-      );
-    }
+    const covers =
+      link.scope === InviteLinkScope.WORKSPACE
+        ? extractWorkspaceRolePower(withRoles) >=
+          [...OrderedWorkspaceRoles]
+            .reverse()
+            .indexOf(link.role as WorkspaceUserRoles)
+        : extractProjectRolePower(withRoles) >=
+          [...OrderedProjectRoles].reverse().indexOf(link.role as ProjectRoles);
 
-    return (
-      extractProjectRolePower(withRoles) >=
-      [...OrderedProjectRoles].reverse().indexOf(link.role as ProjectRoles)
-    );
+    return covers ? null : 'minter_role';
   }
 
   /** Days from now. `0` is an explicit "never expires"; undefined takes the default. */
@@ -406,11 +406,13 @@ export class InviteLinksService {
   ): Promise<InviteLinkType[]> {
     if (!links.length) return links;
 
-    const covered = await Promise.all(
-      links.map((l) => this.stillGrantable(context, l, ncMeta)),
+    const reasons = await Promise.all(
+      links.map((l) => this.ungrantableReason(context, l, ncMeta)),
     );
 
-    links = links.map((l, i) => (covered[i] ? l : { ...l, usable: false }));
+    links = links.map((l, i) =>
+      reasons[i] ? { ...l, usable: false, unusable_reason: reasons[i] } : l,
+    );
 
     if (param.scope !== InviteLinkScope.BASE) return links;
 
@@ -434,7 +436,13 @@ export class InviteLinksService {
     }
 
     return links.map((l) =>
-      l.created_by && owners.has(l.created_by) ? l : { ...l, usable: false },
+      l.created_by && owners.has(l.created_by)
+        ? l
+        : {
+            ...l,
+            usable: false,
+            unusable_reason: l.unusable_reason ?? 'private_base',
+          },
     );
   }
 
@@ -731,7 +739,7 @@ export class InviteLinksService {
     link: InviteLink,
     ncMeta = Noco.ncMeta,
   ): Promise<boolean> {
-    if (!(await this.stillGrantable(context, link, ncMeta))) return false;
+    if (await this.ungrantableReason(context, link, ncMeta)) return false;
 
     if (link.scope !== InviteLinkScope.BASE) return true;
 
@@ -816,7 +824,7 @@ export class InviteLinksService {
       }
     }
 
-    if (!(await this.stillGrantable(context, link, ncMeta))) {
+    if (await this.ungrantableReason(context, link, ncMeta)) {
       NcError.forbidden(this.invalidMessage('unavailable'));
     }
 

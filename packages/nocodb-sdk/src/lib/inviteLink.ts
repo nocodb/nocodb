@@ -82,6 +82,14 @@ export const INVITE_LINK_MAX_USES = 100000;
 /** Longest `email_domain` the column accepts. */
 export const INVITE_LINK_MAX_DOMAIN_LENGTH = 255;
 
+export type InviteLinkUnusableReason =
+  /** The minter no longer holds the role the link grants. */
+  | 'minter_role'
+  /** The role is no longer one a link may grant (e.g. inherit). */
+  | 'retired_role'
+  /** The base is private, or gone, and the minter is not its owner. */
+  | 'private_base';
+
 export interface InviteLinkType {
   id?: string;
   scope?: InviteLinkScope;
@@ -113,6 +121,8 @@ export interface InviteLinkType {
    * again brings it back, which is why these stay listed.
    */
   usable?: boolean;
+  /** Why `usable` is false, so the list can say what would fix it. */
+  unusable_reason?: InviteLinkUnusableReason;
   created_at?: string;
   updated_at?: string;
   /**

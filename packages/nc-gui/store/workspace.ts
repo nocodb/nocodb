@@ -122,9 +122,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const inviteCollaborator = async (email: string, roles: WorkspaceUserRoles, workspaceId?: string) => {
     isInvitingCollaborators.value = true
     try {
-      await $api.workspaceUser.invite(workspaceId ?? activeWorkspaceId.value, { email, roles } as any)
+      // Single invite returns `invite_token` for a manual signup link
+      const res = await $api.workspaceUser.invite(workspaceId ?? activeWorkspaceId.value, { email, roles } as any)
       await loadCollaborators({} as any, workspaceId)
       basesStore.clearBasesUser()
+      return res
     } finally {
       isInvitingCollaborators.value = false
     }

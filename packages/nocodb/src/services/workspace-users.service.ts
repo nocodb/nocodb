@@ -12,9 +12,11 @@ import { User } from '~/models';
 import Workspace from '~/models/Workspace';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { MailService } from '~/services/mail/mail.service';
 import { UsersService } from '~/services/users/users.service';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
 import { sanitizeEmail } from '~/utils/emailUtils';
+import { MailEvent } from '~/interface/Mail';
 
 @Injectable()
 export class WorkspaceUsersService {
@@ -23,6 +25,7 @@ export class WorkspaceUsersService {
   constructor(
     protected appHooksService: AppHooksService,
     protected usersService: UsersService,
+    protected mailService: MailService,
   ) {}
 
   async list(param: { workspaceId: string }, ncMeta = Noco.ncMeta) {
@@ -183,18 +186,20 @@ export class WorkspaceUsersService {
     }
 
     const error = [];
-    let invite_token: string;
+    // Only set when the token was saved on the user row, i.e. usable for signup
+    let invite_token: string | null = null;
 
     for (const emailAddr of emails) {
-      invite_token = uuidv4();
+      const token = uuidv4();
       // Check if user exists
       let user = await User.getByCanonicalEmail(emailAddr, ncMeta);
+      let signupToken: string | null = null;
 
       if (!user) {
         // Create new user
         user = await User.insert(
           {
-            invite_token,
+            invite_token: token,
             invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
             email: emailAddr,
             roles: OrgUserRoles.VIEWER,
@@ -202,6 +207,7 @@ export class WorkspaceUsersService {
           },
           ncMeta,
         );
+        signupToken = token;
       }
 
       // Check if already a workspace member
@@ -232,24 +238,53 @@ export class WorkspaceUsersService {
             email: emailAddr,
             msg: `${emailAddr} already exists in this workspace`,
           });
+          continue;
         }
-        continue;
+      } else {
+        // Insert workspace user
+        await WorkspaceUser.insert(
+          {
+            fk_workspace_id: workspaceId,
+            fk_user_id: user.id,
+            roles: roles || WorkspaceUserRoles.VIEWER,
+            invite_token: token,
+          },
+          ncMeta,
+        );
       }
 
-      // Insert workspace user
-      await WorkspaceUser.insert(
-        {
-          fk_workspace_id: workspaceId,
-          fk_user_id: user.id,
-          roles: roles || WorkspaceUserRoles.VIEWER,
-          invite_token,
-        },
-        ncMeta,
-      );
+      // Existing user who never finished signup: refresh their invite token
+      if (!signupToken && !user.password) {
+        await User.update(
+          user.id,
+          {
+            invite_token: token,
+            invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          },
+          ncMeta,
+        );
+        signupToken = token;
+      }
+      invite_token = signupToken;
+
+      // Best-effort; mail failure must not fail the invite.
+      this.mailService
+        .sendMail({
+          mailEvent: MailEvent.WORKSPACE_INVITE,
+          payload: {
+            workspace,
+            user,
+            req: param.req,
+            token: signupToken,
+          },
+        })
+        .catch((e) => this.logger.error(e.message, e.stack));
     }
 
     if (emails.length === 1 && error.length === 0) {
-      return { msg: 'success', invite_token };
+      return invite_token
+        ? { msg: 'success', invite_token }
+        : { msg: 'success' };
     }
 
     return { msg: 'success', emails, error };

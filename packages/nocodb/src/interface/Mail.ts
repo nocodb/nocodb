@@ -8,6 +8,7 @@ import type {
   TableType,
   UITypes,
   UserType,
+  WorkspaceType,
 } from 'nocodb-sdk';
 import type { XcEmailAttachment } from '~/types/nc-plugin';
 
@@ -120,6 +121,13 @@ interface OrganizationInvitePayload {
   token?: string;
 }
 
+interface WorkspaceInvitePayload {
+  workspace: WorkspaceType;
+  user: UserType;
+  req: NcRequest;
+  token?: string;
+}
+
 interface OrganizationRoleUpdatePayload {
   user: UserType;
   req: NcRequest;
@@ -188,6 +196,10 @@ type MailParams =
   | {
       mailEvent: MailEvent.ORGANIZATION_INVITE;
       payload: OrganizationInvitePayload;
+    }
+  | {
+      mailEvent: MailEvent.WORKSPACE_INVITE;
+      payload: WorkspaceInvitePayload;
     }
   | {
       mailEvent: MailEvent.ORGANIZATION_ROLE_UPDATE;

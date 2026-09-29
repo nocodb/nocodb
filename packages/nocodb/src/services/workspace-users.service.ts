@@ -12,9 +12,11 @@ import { User } from '~/models';
 import Workspace from '~/models/Workspace';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { MailService } from '~/services/mail/mail.service';
 import { UsersService } from '~/services/users/users.service';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
 import { sanitizeEmail } from '~/utils/emailUtils';
+import { MailEvent } from '~/interface/Mail';
 
 @Injectable()
 export class WorkspaceUsersService {
@@ -23,6 +25,7 @@ export class WorkspaceUsersService {
   constructor(
     protected appHooksService: AppHooksService,
     protected usersService: UsersService,
+    protected mailService: MailService,
   ) {}
 
   async list(param: { workspaceId: string }, ncMeta = Noco.ncMeta) {
@@ -189,6 +192,7 @@ export class WorkspaceUsersService {
       invite_token = uuidv4();
       // Check if user exists
       let user = await User.getByCanonicalEmail(emailAddr, ncMeta);
+      let isUserCreated = false;
 
       if (!user) {
         // Create new user
@@ -202,6 +206,7 @@ export class WorkspaceUsersService {
           },
           ncMeta,
         );
+        isUserCreated = true;
       }
 
       // Check if already a workspace member
@@ -232,20 +237,37 @@ export class WorkspaceUsersService {
             email: emailAddr,
             msg: `${emailAddr} already exists in this workspace`,
           });
+          continue;
         }
-        continue;
+      } else {
+        // Insert workspace user
+        await WorkspaceUser.insert(
+          {
+            fk_workspace_id: workspaceId,
+            fk_user_id: user.id,
+            roles: roles || WorkspaceUserRoles.VIEWER,
+            invite_token,
+          },
+          ncMeta,
+        );
       }
 
-      // Insert workspace user
-      await WorkspaceUser.insert(
-        {
-          fk_workspace_id: workspaceId,
-          fk_user_id: user.id,
-          roles: roles || WorkspaceUserRoles.VIEWER,
-          invite_token,
-        },
-        ncMeta,
-      );
+      // Send the invite email, mirroring base/org invites. Best-effort: a
+      // failed/absent mailer must not fail the invite — the caller still gets
+      // the invite_token back (single-invite response) to hand out manually.
+      // A fresh token is only meaningful for a newly created user; existing
+      // users receive a plain notification without a signup link.
+      this.mailService
+        .sendMail({
+          mailEvent: MailEvent.WORKSPACE_INVITE,
+          payload: {
+            workspace,
+            user,
+            req: param.req,
+            token: isUserCreated ? invite_token : null,
+          },
+        })
+        .catch((e) => this.logger.error(e.message, e.stack));
     }
 
     if (emails.length === 1 && error.length === 0) {

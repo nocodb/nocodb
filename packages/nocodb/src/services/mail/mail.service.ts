@@ -500,6 +500,33 @@ export class MailService {
           });
           break;
         }
+        case MailEvent.WORKSPACE_INVITE: {
+          const { req, user, workspace, token } = payload;
+          const invitee = req.user;
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: mailEvent,
+            fk_user_id: user.id,
+            to: user.email,
+            subject: 'You’ve been invited to a Workspace',
+            html: await this.renderMail(
+              'WorkspaceInvite',
+              {
+                workspaceTitle: workspace.title,
+                name: extractDisplayNameFromEmail(
+                  invitee.email,
+                  invitee.display_name,
+                ),
+                email: invitee.email,
+                link: this.buildUrl(req, {
+                  workspaceId: workspace.id,
+                  token,
+                }),
+              },
+              branding,
+            ),
+          });
+          break;
+        }
         case MailEvent.ORGANIZATION_ROLE_UPDATE: {
           const { req, user, oldRole, newRole } = payload;
           const invitee = req.user;

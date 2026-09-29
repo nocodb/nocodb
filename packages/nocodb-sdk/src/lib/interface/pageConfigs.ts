@@ -3,6 +3,7 @@
  * `InterfacePageLayoutTypes`. Stored as JSON in `nc_interface_pages.config` /
  * `published_config`. All fields snake_case.
  */
+import type { ColumnType } from '~/lib/Api';
 import type {
   InterfaceButtonConfig,
   InterfaceFilterGroup,
@@ -14,6 +15,8 @@ import type {
   InterfaceUserFilterConfig,
 } from './elements';
 import { InterfacePageLayoutTypes } from './enums';
+import { isSystemColumn } from '~/lib/helperFunctions';
+import { generateRandomUuid } from '~/lib/stringHelpers';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Visualizations (table pages; also embeddable in dashboard groups)
@@ -142,7 +145,11 @@ export type InterfaceGalleryVizTheme = 'card' | 'poster' | 'minimal' | 'simple';
  * Cover crop on `card` (`none` = the fixed 208px band); tile geometry on
  * `minimal`/`simple` (16:10 when `none`). `poster` ignores it.
  */
-export type InterfaceGalleryCoverAspectRatio = 'none' | 'wide' | 'square' | 'tall';
+export type InterfaceGalleryCoverAspectRatio =
+  | 'none'
+  | 'wide'
+  | 'square'
+  | 'tall';
 
 export interface InterfaceGalleryVizConfig
   extends InterfaceVizCommon,
@@ -578,6 +585,44 @@ export interface InterfaceDashboardPageConfig {
 export type InterfaceFormPageConfig = InterfaceFormConfig;
 
 export type InterfaceRecordDetailPageConfig = InterfaceRecordDetailConfig;
+
+/**
+ * The one-group-per-config, one-row-per-column shape a record form/detail
+ * renders by default. Shared by the client fallback (`buildDefaultRecordFormConfig`),
+ * the click-into-details auto-create, and the heal migration so the three
+ * can't drift. Callers filter `columns` to the fields they want first.
+ */
+export function buildRecordFormConfigFromColumns(
+  columns: Pick<ColumnType, 'id'>[]
+): InterfaceRecordDetailConfig {
+  return {
+    groups: [
+      {
+        id: generateRandomUuid(),
+        rows: columns
+          .filter((column) => column.id)
+          .map((column) => ({
+            id: generateRandomUuid(),
+            fields: [{ id: generateRandomUuid(), fk_column_id: column.id! }],
+          })),
+      },
+    ],
+  };
+}
+
+/** A column a RECORD_DETAIL layout renders by default — every non-system, non-pk field. */
+export function isRecordDetailDefaultColumn(column: ColumnType): boolean {
+  return !isSystemColumn(column) && !column.pk;
+}
+
+/** Default RECORD_DETAIL config for a table's columns (server + heal migration). */
+export function buildDefaultRecordDetailConfig(
+  columns: ColumnType[]
+): InterfaceRecordDetailConfig {
+  return buildRecordFormConfigFromColumns(
+    columns.filter(isRecordDetailDefaultColumn)
+  );
+}
 
 // ────────────────────────────────────────────────────────────────────────────
 // Layout: CUSTOM (sandboxed custom-code page — @nocodb/blocks interface mode)

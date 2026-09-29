@@ -64,6 +64,7 @@ export class BaseUsersService {
       baseUser: ProjectUserReqType;
       req: NcRequest;
       workspaceInvited?: boolean;
+      registeredEmails?: string[];
       invite_token?: string;
     },
     ncMeta = Noco.ncMeta,
@@ -229,10 +230,12 @@ export class BaseUsersService {
 
           if (param?.workspaceInvited) {
             // buildUrl turns any token into a /signup/<token> link, which only
-            // resolves if that token is on the row. Send one to accounts that
-            // never completed signup (invited rows carry an empty password),
-            // and give everyone else the base deep link instead.
-            const needsSignupLink = !user.password;
+            // resolves if that token is on the row. Send one only to accounts
+            // the workspace invite just created or that never finished signup;
+            // everyone else (incl. passwordless SSO/OAuth accounts) gets the
+            // base deep link.
+            const needsSignupLink =
+              !!param.registeredEmails?.includes(email) || !!user.invite_token;
 
             if (needsSignupLink) {
               await User.update(

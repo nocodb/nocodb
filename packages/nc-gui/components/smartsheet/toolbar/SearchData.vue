@@ -176,7 +176,6 @@ watchDebounced(
   },
   {
     debounce: 500,
-    maxWait: 600,
   },
 )
 

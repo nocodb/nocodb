@@ -186,19 +186,20 @@ export class WorkspaceUsersService {
     }
 
     const error = [];
-    let invite_token: string;
+    // Only set when the token was saved on the user row, i.e. usable for signup
+    let invite_token: string | null = null;
 
     for (const emailAddr of emails) {
-      invite_token = uuidv4();
+      const token = uuidv4();
       // Check if user exists
       let user = await User.getByCanonicalEmail(emailAddr, ncMeta);
-      let isUserCreated = false;
+      let signupToken: string | null = null;
 
       if (!user) {
         // Create new user
         user = await User.insert(
           {
-            invite_token,
+            invite_token: token,
             invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
             email: emailAddr,
             roles: OrgUserRoles.VIEWER,
@@ -206,7 +207,7 @@ export class WorkspaceUsersService {
           },
           ncMeta,
         );
-        isUserCreated = true;
+        signupToken = token;
       }
 
       // Check if already a workspace member
@@ -246,17 +247,27 @@ export class WorkspaceUsersService {
             fk_workspace_id: workspaceId,
             fk_user_id: user.id,
             roles: roles || WorkspaceUserRoles.VIEWER,
-            invite_token,
+            invite_token: token,
           },
           ncMeta,
         );
       }
 
-      // Send the invite email, mirroring base/org invites. Best-effort: a
-      // failed/absent mailer must not fail the invite — the caller still gets
-      // the invite_token back (single-invite response) to hand out manually.
-      // A fresh token is only meaningful for a newly created user; existing
-      // users receive a plain notification without a signup link.
+      // Existing user who never finished signup: refresh their invite token
+      if (!signupToken && !user.password) {
+        await User.update(
+          user.id,
+          {
+            invite_token: token,
+            invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          },
+          ncMeta,
+        );
+        signupToken = token;
+      }
+      invite_token = signupToken;
+
+      // Best-effort; mail failure must not fail the invite.
       this.mailService
         .sendMail({
           mailEvent: MailEvent.WORKSPACE_INVITE,
@@ -264,14 +275,16 @@ export class WorkspaceUsersService {
             workspace,
             user,
             req: param.req,
-            token: isUserCreated ? invite_token : null,
+            token: signupToken,
           },
         })
         .catch((e) => this.logger.error(e.message, e.stack));
     }
 
     if (emails.length === 1 && error.length === 0) {
-      return { msg: 'success', invite_token };
+      return invite_token
+        ? { msg: 'success', invite_token }
+        : { msg: 'success' };
     }
 
     return { msg: 'success', emails, error };

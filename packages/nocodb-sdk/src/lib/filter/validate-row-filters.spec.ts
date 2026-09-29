@@ -647,6 +647,56 @@ describe('validateRowFilters', () => {
     // Intl.DateTimeFormat#formatToParts call throws — "date value is not finite" on
     // Safari, "Invalid time value" in V8. This crashed filter validation (e.g. when a
     // realtime update delivered a malformed date), so the validator must not throw.
+    // Server-side a NULL date never matches `isWithin` (SQL BETWEEN). An
+    // undefined result used to reset the AND chain, so a later passing
+    // condition made the whole tree pass.
+    it('an empty date is never "isWithin", even AND-ed with a passing condition', () => {
+      const filters: FilterType[] = [
+        {
+          id: 'f1',
+          fk_column_id: '4',
+          comparison_op: 'isWithin',
+          comparison_sub_op: 'nextWeek',
+          logical_op: 'and',
+        },
+        {
+          id: 'f2',
+          fk_column_id: '1',
+          comparison_op: 'eq',
+          value: 'Active',
+          logical_op: 'and',
+        },
+      ];
+      for (const CreatedAt of [null, undefined, '']) {
+        expect(
+          validateRowFilters({
+            filters,
+            data: { CreatedAt, Name: 'Active' },
+            columns: mockColumns,
+            client: mockClient,
+            metas: mockMetas,
+            options: { timezone: 'Etc/UTC' },
+          })
+        ).toBe(false);
+      }
+    });
+
+    it('an empty date still passes "neq"', () => {
+      const filters: FilterType[] = [
+        { fk_column_id: '4', comparison_op: 'neq', value: '2024-01-01' },
+      ];
+      expect(
+        validateRowFilters({
+          filters,
+          data: { CreatedAt: null },
+          columns: mockColumns,
+          client: mockClient,
+          metas: mockMetas,
+          options: { timezone: 'Etc/UTC' },
+        })
+      ).toBe(true);
+    });
+
     it('does not throw when the row value is an invalid date', () => {
       const filters: FilterType[] = [
         { fk_column_id: '9', comparison_op: 'eq', comparison_sub_op: 'today' },

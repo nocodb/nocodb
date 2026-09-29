@@ -393,10 +393,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         const groupby = groupBy.value[group.nestedIn.length]
 
         const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
-        const effectiveWhere =
-          hideEmptyGroups.value && groupby?.column?.title
-            ? `${nestedWhere}${nestedWhere ? '~and' : ''}(${groupby.column.title},notblank)`
-            : nestedWhere
+        // Same predicate as useInfiniteGroups: every level non-blank, Checkbox skipped.
+        const hideEmptyWhere = hideEmptyGroups.value
+          ? groupBy.value
+              .filter((g) => g?.column?.title && g.column.uidt !== UITypes.Checkbox)
+              .map((g) => `(${g.column.title},notblank)`)
+              .join('~and')
+          : ''
+        const effectiveWhere = hideEmptyWhere ? `${nestedWhere}${nestedWhere ? '~and' : ''}${hideEmptyWhere}` : nestedWhere
         if (!groupby || !groupby.column.title) return
 
         if (!interfaceDataApi && isPublic && !sharedView.value?.uuid) {

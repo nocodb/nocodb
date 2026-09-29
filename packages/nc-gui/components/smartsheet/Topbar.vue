@@ -15,6 +15,9 @@ const { activeAgentId } = storeToRefs(useAgentStore())
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+// Form view has no view toolbar, so its Tools entry lives here.
+const isFormView = inject(IsFormInj, ref(false))
+
 const { isMobileMode } = storeToRefs(useConfigStore())
 
 const { appInfo } = useGlobal()
@@ -87,6 +90,10 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <LazySmartsheetTopbarCollaboratorPresence v-if="!isPublic && !isSharedBase && !isMobileMode && isEeUI" />
 
         <LazySmartsheetTopbarHistory v-if="!isSharedBase && !isMobileMode && isEeUI" />
+
+        <SmartsheetToolbarTableTools
+          v-if="isFormView && !activeScriptId && !activeDashboardId && !activeWorkflowId && !activeAgentId"
+        />
 
         <NcTooltip
           v-if="

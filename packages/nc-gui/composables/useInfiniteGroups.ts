@@ -72,9 +72,15 @@ export const useInfiniteGroups = (
 
   const groupByColumns = computed(() => injectedGroupBy.value)
 
-  const appendHideEmptyWhere = (colTitle: string | undefined, existingWhere?: string) => {
-    if (!hideEmptyGroups?.value || !colTitle) return existingWhere
-    const hideFilter = `(${colTitle},notblank)`
+  // Every level must be non-blank, or a parent counts rows its hidden (Empty) sub-groups hold.
+  // Checkbox is skipped: blank groups as Unchecked, so it has no empty group to hide.
+  const appendHideEmptyWhere = (existingWhere?: string) => {
+    if (!hideEmptyGroups?.value) return existingWhere
+    const hideFilter = groupByColumns.value
+      .filter((g) => g?.column?.title && g.column.uidt !== UITypes.Checkbox)
+      .map((g) => `(${g.column.title},notblank)`)
+      .join('~and')
+    if (!hideFilter) return existingWhere
     return existingWhere ? `${existingWhere}~and${hideFilter}` : hideFilter
   }
 
@@ -166,7 +172,7 @@ export const useInfiniteGroups = (
     try {
       const nestedGrpWhereArr = buildNestedFilterArr(parentGroup) ?? []
 
-      const effectiveWhere = appendHideEmptyWhere(groupCol.column.title, where.value)
+      const effectiveWhere = appendHideEmptyWhere(where.value)
 
       let response: Awaited<ReturnType<typeof $api.dbViewRow.groupBy>> | undefined
       for (let attempt = 0; attempt <= GROUPBY_MAX_RETRIES; attempt++) {
@@ -595,7 +601,7 @@ export const useInfiniteGroups = (
         const groupCol = groupByColumns.value?.[0]
         if (!groupCol) return
 
-        const effectiveWhere = appendHideEmptyWhere(groupCol.column.title, where?.value)
+        const effectiveWhere = appendHideEmptyWhere(where?.value)
 
         totalGroups.value = interfaceDataApi
           ? // no dedicated count op — the group-by op's `pageInfo.totalRows` is
@@ -632,7 +638,7 @@ export const useInfiniteGroups = (
         if (!groupCol) return
 
         const groupFilterArr = buildNestedFilterArr(group) ?? []
-        const effectiveWhere = appendHideEmptyWhere(groupCol.column.title, where?.value)
+        const effectiveWhere = appendHideEmptyWhere(where?.value)
 
         group.groupCount = interfaceDataApi
           ? (

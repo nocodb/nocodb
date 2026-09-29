@@ -5795,6 +5795,8 @@
       "linkCreatedBy": "Created by {name}",
       "linkCreatedByYou": "Created by you",
       "linkNotWorkingPrivateBase": "Not working while this base is private",
+      "linkNotWorkingMinterRole": "Not working: its creator no longer has this role",
+      "linkNotWorkingRetiredRole": "Not working: links can no longer grant this role",
       "domainNeedsVerifiedEmail": "Only people with an {'@'}{domain} address can join.",
       "signedInWrongDomain": "You're signed in as {email}. This link only accepts {'@'}{domain} addresses.",
       "signedInAs": "You're signed in as {email}.",

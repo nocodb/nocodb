@@ -35,9 +35,15 @@ const rows = computed(() =>
       domainNote: l.email_domain || '',
       uses: l.max_uses ? `${l.used_count ?? 0}/${l.max_uses}` : '',
       createdBy: isMine ? t('msg.info.linkCreatedByYou') : creator ? t('msg.info.linkCreatedBy', { name: creator }) : '',
-      // Dormant, not gone: make the base public again and this works, so it
-      // stays listed and stays revocable rather than being hidden.
+      // Dormant, not gone: restore the minter's role or make the base public
+      // again and this works, so it stays listed and stays revocable.
       usable: l.usable !== false,
+      unusableNote:
+        l.unusable_reason === 'minter_role'
+          ? t('msg.info.linkNotWorkingMinterRole')
+          : l.unusable_reason === 'retired_role'
+          ? t('msg.info.linkNotWorkingRetiredRole')
+          : t('msg.info.linkNotWorkingPrivateBase'),
     }
   }),
 )
@@ -120,7 +126,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
           <!-- Its own line: appended to the creator's it was the half that got
                truncated away, which is the half that matters. -->
           <div v-if="!row.usable" class="text-captionSm text-nc-content-red-dark">
-            {{ $t('msg.info.linkNotWorkingPrivateBase') }}
+            {{ row.unusableNote }}
           </div>
         </div>
 

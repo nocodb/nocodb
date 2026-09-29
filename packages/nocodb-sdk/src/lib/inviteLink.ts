@@ -19,20 +19,13 @@ export enum InviteLinkScope {
 /**
  * Roles a link may grant, per scope. Owner is deliberately absent from both: a
  * link hands access to whoever holds the URL, and that is never the right way
- * to transfer ownership. `inherit` and `no-access` are meaningless for a link.
- */
-/**
- * Owner and No Access stay out: one is never handed out by a link, the other
- * grants nothing.
+ * to transfer ownership.
  *
- * Inherit is safe here because it defers to the role the redeemer already holds
- * at workspace level rather than granting a new one, and links are refused on
- * private bases, so there is no base they could reach this way that their
- * workspace role did not already reach.
+ * No Access and Inherit grant nothing: a redeemer who is new to the workspace
+ * inherits no-access, and one who is already a member already had that role.
  */
 export const BASE_INVITE_LINK_ROLES = [
   ProjectRoles.CREATOR,
-  ProjectRoles.INHERIT,
   ProjectRoles.EDITOR,
   ProjectRoles.COMMENTER,
   ProjectRoles.VIEWER,
@@ -89,6 +82,14 @@ export const INVITE_LINK_MAX_USES = 100000;
 /** Longest `email_domain` the column accepts. */
 export const INVITE_LINK_MAX_DOMAIN_LENGTH = 255;
 
+export type InviteLinkUnusableReason =
+  /** The minter no longer holds the role the link grants. */
+  | 'minter_role'
+  /** The role is no longer one a link may grant (e.g. inherit). */
+  | 'retired_role'
+  /** The base is private, or gone, and the minter is not its owner. */
+  | 'private_base';
+
 export interface InviteLinkType {
   id?: string;
   scope?: InviteLinkScope;
@@ -113,12 +114,15 @@ export interface InviteLinkType {
   created_by_email?: string;
   created_by_display_name?: string;
   /**
-   * Absent means the link works. `false` means it is intact but its base will
-   * not honour it -- today that is a base gone private under a link its minter
-   * is not the owner of. Dormant rather than dead: the base can be made public
-   * again and the link starts working, which is why these stay listed.
+   * Absent means the link works. `false` means it is intact but will not be
+   * honoured: its minter no longer holds the role it grants (demoted, removed),
+   * or its base went private under a minter who is not the owner. Dormant
+   * rather than dead -- restoring the minter's role or making the base public
+   * again brings it back, which is why these stay listed.
    */
   usable?: boolean;
+  /** Why `usable` is false, so the list can say what would fix it. */
+  unusable_reason?: InviteLinkUnusableReason;
   created_at?: string;
   updated_at?: string;
   /**
@@ -142,7 +146,10 @@ export type InviteLinkInvalidReason =
   | 'revoked'
   | 'exhausted'
   | 'domain_mismatch'
-  /** Intact, but its base will not honour it -- deleted, or made private. */
+  /**
+   * Intact, but will not be honoured: base deleted or made private, or the
+   * minter no longer holds the role the link grants.
+   */
   | 'unavailable';
 
 /** What a holder of the token is allowed to learn before redeeming it. */

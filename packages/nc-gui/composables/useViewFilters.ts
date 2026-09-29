@@ -282,7 +282,7 @@ export function useViewFilters(
     }
   }
 
-  const placeholderFilter = (columnId?: string): ColumnFilterType => {
+  const placeholderFilter = (columnId?: string, draftComparisonOp?: FilterType['comparison_op']): ColumnFilterType => {
     const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
 
     const defaultColumn =
@@ -294,11 +294,13 @@ export function useViewFilters(
     // Derive the operator from the column the filter actually targets
     const opColumn = defaultColumn ?? options.value?.[0]
     const opUidt = (opColumn?.id && types.value[opColumn.id]) || (opColumn?.uidt as UITypes)
-    const comparisonOp = getDefaultComparisonOp(
-      comparisonOpList(opUidt, parseProp(opColumn?.meta)?.date_format),
-      (compOp) => isComparisonOpAllowed({ fk_column_id: opColumn?.id }, compOp),
-      opUidt,
-    ) as FilterType['comparison_op']
+    const comparisonOp =
+      draftComparisonOp ??
+      (getDefaultComparisonOp(
+        comparisonOpList(opUidt, parseProp(opColumn?.meta)?.date_format),
+        (compOp) => isComparisonOpAllowed({ fk_column_id: opColumn?.id }, compOp),
+        opUidt,
+      ) as FilterType['comparison_op'])
 
     const filter: ColumnFilterType = {
       tmp_id: getDraftFilterId(),
@@ -313,7 +315,7 @@ export function useViewFilters(
       value: null,
       status: 'create',
       logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
-      // set the default column to the first column in the list, excluding system columns
+      // targeted column, else the first non-system column
       fk_column_id: defaultColumn?.id ?? undefined,
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value } : {}),
       ...(widgetId?.value ? { fk_widget_id: widgetId.value } : {}),
@@ -997,7 +999,7 @@ export function useViewFilters(
     }
 
     // 🔹 LEAF FILTER
-    const leaf = placeholderFilter(raw.fk_column_id)
+    const leaf = placeholderFilter(raw.fk_column_id, raw.comparison_op)
     Object.assign(leaf, raw)
 
     return leaf
@@ -1011,7 +1013,10 @@ export function useViewFilters(
         ? // Strip only 'order' from the draft so it gets a fresh order from placeholderFilter.
           // Preserve 'logical_op' from the draft when provided (e.g. AI-generated filters may use 'or'),
           // otherwise normalizeFilterNode falls back to placeholderFilter's default.
-          { ...placeholderFilter(), ...normalizeFilterNode(draftFilter, ['order']) }
+          {
+            ...placeholderFilter(draftFilter.fk_column_id, draftFilter.comparison_op),
+            ...normalizeFilterNode(draftFilter, ['order']),
+          }
         : {
             ...placeholderFilter(),
             ...(draftFilter.fk_level_id

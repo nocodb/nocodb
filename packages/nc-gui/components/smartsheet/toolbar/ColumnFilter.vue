@@ -560,8 +560,7 @@ const selectFilterField = (filter: Filter, index: number) => {
 
   if (!col) return
 
-  // Reset inline, not via resetDynamicField: that saves immediately, before the
-  // operator below is adjusted, persisting the new column with a stale operator.
+  // reset inline: resetDynamicField saves before the operator is re-derived
   if (isVirtualCol(col)) {
     filter.dynamic = false
   }

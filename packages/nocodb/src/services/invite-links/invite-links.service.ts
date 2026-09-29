@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
+  extractProjectRolePower,
+  extractWorkspaceRolePower,
   INVITE_LINK_DEFAULT_EXPIRY_DAYS,
   INVITE_LINK_MAX_DOMAIN_LENGTH,
   INVITE_LINK_MAX_EXPIRY_DAYS,
@@ -8,6 +10,7 @@ import {
   InviteLinkScope,
   isInviteLinkRole,
   OrderedProjectRoles,
+  OrderedWorkspaceRoles,
   ProjectRoles,
 } from 'nocodb-sdk';
 import type {
@@ -15,6 +18,7 @@ import type {
   InviteLinkReqType,
   InviteLinkRole,
   InviteLinkType,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import InviteLink from '~/models/InviteLink';
@@ -31,7 +35,8 @@ import { getProjectRolePower } from '~/utils/roleHelper';
  * emailed invite it is redeemable by whoever ends up holding the URL, for as
  * long as it lives. In order of how much damage they prevent:
  *
- *  1. A link can never grant Owner, and never a role above the minter's own.
+ *  1. A link can never grant Owner, and never a role above the minter's own --
+ *     checked at redeem too, so demoting or removing the minter disarms it.
  *  2. Redeeming runs the same membership and seat path as an emailed invite,
  *     so a link is never a cheaper door than the invite form.
  *  3. A domain restriction is matched on the `@domain` boundary of the address
@@ -117,6 +122,54 @@ export class InviteLinksService {
         'Insufficient privilege to create a link with this role',
       );
     }
+  }
+
+  /**
+   * The mint-time checks, re-run at redeem. The role must still be one links
+   * grant (retired roles like inherit disarm old links), and the minter must
+   * still hold it -- otherwise an editor demoted to viewer, or removed
+   * outright, kept handing out editor to anyone holding the URL.
+   */
+  protected async stillGrantable(
+    context: NcContext,
+    link: Pick<
+      InviteLinkType,
+      'scope' | 'base_id' | 'fk_workspace_id' | 'created_by' | 'role'
+    >,
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!isInviteLinkRole(link.scope, link.role)) return false;
+
+    const minter = link.created_by
+      ? await User.get(link.created_by, ncMeta)
+      : null;
+
+    if (!minter) return false;
+
+    const withRoles = await User.getWithRoles(
+      { ...context, base_id: link.base_id, workspace_id: link.fk_workspace_id },
+      minter.id,
+      {
+        user: minter,
+        baseId: link.base_id ?? undefined,
+        workspaceId: link.fk_workspace_id ?? undefined,
+      },
+      ncMeta,
+    );
+
+    if (link.scope === InviteLinkScope.WORKSPACE) {
+      return (
+        extractWorkspaceRolePower(withRoles) >=
+        [...OrderedWorkspaceRoles]
+          .reverse()
+          .indexOf(link.role as WorkspaceUserRoles)
+      );
+    }
+
+    return (
+      extractProjectRolePower(withRoles) >=
+      [...OrderedProjectRoles].reverse().indexOf(link.role as ProjectRoles)
+    );
   }
 
   /** Days from now. `0` is an explicit "never expires"; undefined takes the default. */
@@ -338,8 +391,8 @@ export class InviteLinksService {
   }
 
   /**
-   * Marks links their base will not honour, so the list can grey them out
-   * rather than offering a Copy button for a token that would be refused.
+   * Marks links redeem would refuse, so the list can grey them out rather than
+   * offering a Copy button for a token that would be refused.
    *
    * The base is read once, not once per link: what varies per link is only who
    * minted it. Links stay listed because a private base can be made public
@@ -351,7 +404,15 @@ export class InviteLinksService {
     param: { scope: InviteLinkScope; baseId?: string },
     ncMeta = Noco.ncMeta,
   ): Promise<InviteLinkType[]> {
-    if (param.scope !== InviteLinkScope.BASE || !links.length) return links;
+    if (!links.length) return links;
+
+    const covered = await Promise.all(
+      links.map((l) => this.stillGrantable(context, l, ncMeta)),
+    );
+
+    links = links.map((l, i) => (covered[i] ? l : { ...l, usable: false }));
+
+    if (param.scope !== InviteLinkScope.BASE) return links;
 
     const baseContext = { ...context, base_id: param.baseId };
     const base = await Base.get(baseContext, param.baseId, ncMeta);
@@ -531,6 +592,8 @@ export class InviteLinksService {
         return 'This invite link has been revoked. Ask for a new one.';
       case 'exhausted':
         return 'This invite link has been used the maximum number of times.';
+      case 'unavailable':
+        return 'This invite link is no longer valid. Ask for a new one.';
       default:
         return 'This invite link is not valid.';
     }
@@ -566,20 +629,29 @@ export class InviteLinksService {
     // was told about the same URL -- and the opposite of what redeeming it
     // would say.
     const reason = this.invalidReason(link);
+    const userId = param.req?.user?.id;
+
+    // The exception is a use cap: it limits who else gets in, so it says
+    // nothing to someone already holding the role -- typically whoever took
+    // the last use and is opening the link again.
+    if (reason === 'exhausted' && userId) {
+      const access = await this.existingAccess(context, link, userId, ncMeta);
+
+      if (access) return { scope: link.scope, already_member: true, ...access };
+    }
 
     if (reason) return { invalid_reason: reason };
 
     // A link can be perfectly intact and still not work: its base may have been
-    // deleted, or made private since it was minted. The preview used to skip
-    // this, so the join page showed a real-looking invitation with a live Join
-    // button that only failed on the press.
+    // deleted or made private, or its minter lost the role it grants. The
+    // preview used to skip this, so the join page showed a real-looking
+    // invitation with a live Join button that only failed on the press.
     if (!(await this.isTargetRedeemable(context, link, ncMeta))) {
       return { invalid_reason: 'unavailable' };
     }
 
     // The link is usable, but a member at its role or better has nothing to
     // redeem, so send them to the thing they can already open.
-    const userId = param.req?.user?.id;
     const access = userId
       ? await this.existingAccess(context, link, userId, ncMeta)
       : null;
@@ -650,15 +722,17 @@ export class InviteLinksService {
   }
 
   /**
-   * Whether the thing on the other end would still accept this link. Mirrors
-   * what `grant` enforces, but without a user: the private-base rule turns on
-   * who minted the link, not on who is looking at it.
+   * Whether the thing on the other end would still accept this link. Both
+   * rules turn on who minted the link, not on who is looking at it: the minter
+   * must still hold the role it grants, and on a private base must be owner.
    */
   protected async isTargetRedeemable(
     context: NcContext,
     link: InviteLink,
     ncMeta = Noco.ncMeta,
   ): Promise<boolean> {
+    if (!(await this.stillGrantable(context, link, ncMeta))) return false;
+
     if (link.scope !== InviteLinkScope.BASE) return true;
 
     const base = await Base.get(
@@ -712,11 +786,22 @@ export class InviteLinksService {
     const link = await InviteLink.getByToken(param.token, ncMeta);
     const reason = this.invalidReason(link);
 
-    if (reason) NcError.badRequest(this.invalidMessage(reason));
+    if (reason && reason !== 'exhausted') {
+      NcError.badRequest(this.invalidMessage(reason));
+    }
 
     const user = await User.get(param.req.user?.id, ncMeta);
 
     if (!user) NcError.unauthorized('Sign in to use an invite link');
+
+    // Same exception as preview: a spent cap turns away newcomers, not members.
+    if (reason === 'exhausted') {
+      const access = await this.existingAccess(context, link, user.id, ncMeta);
+
+      if (access) return { ...access, already_member: true };
+
+      NcError.badRequest(this.invalidMessage(reason));
+    }
 
     if (link.email_domain) {
       // Matched on the address alone: real on cloud, where Cognito verifies
@@ -729,6 +814,10 @@ export class InviteLinksService {
           `This invite link only accepts @${link.email_domain} addresses`,
         );
       }
+    }
+
+    if (!(await this.stillGrantable(context, link, ncMeta))) {
+      NcError.forbidden(this.invalidMessage('unavailable'));
     }
 
     // Claim the use *before* granting. `invalidReason` above only read the

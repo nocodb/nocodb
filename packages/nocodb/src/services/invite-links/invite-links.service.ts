@@ -29,6 +29,11 @@ import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { getProjectRolePower } from '~/utils/roleHelper';
 
+type InviteLinkGrant = Pick<
+  InviteLinkType,
+  'scope' | 'base_id' | 'fk_workspace_id' | 'created_by' | 'role'
+>;
+
 /**
  * Shareable invite links.
  *
@@ -132,22 +137,61 @@ export class InviteLinksService {
    * outright, kept handing out editor to anyone holding the URL.
    *
    * Returns why the link can no longer grant, or null when it still can.
+   *
+   * `minterPowers` lets a caller checking many links look each minter up once.
    */
   protected async ungrantableReason(
     context: NcContext,
-    link: Pick<
-      InviteLinkType,
-      'scope' | 'base_id' | 'fk_workspace_id' | 'created_by' | 'role'
-    >,
+    link: InviteLinkGrant,
     ncMeta = Noco.ncMeta,
+    minterPowers?: Map<string, Promise<number | null>>,
   ): Promise<InviteLinkUnusableReason | null> {
     if (!isInviteLinkRole(link.scope, link.role)) return 'retired_role';
 
+    let power: Promise<number | null>;
+
+    if (minterPowers) {
+      const key = [
+        link.scope,
+        link.fk_workspace_id,
+        link.base_id,
+        link.created_by,
+      ].join(':');
+
+      if (!minterPowers.has(key)) {
+        minterPowers.set(key, this.minterRolePower(context, link, ncMeta));
+      }
+
+      power = minterPowers.get(key);
+    } else {
+      power = this.minterRolePower(context, link, ncMeta);
+    }
+
+    const minterPower = await power;
+
+    if (minterPower === null) return 'minter_role';
+
+    const rolePower =
+      link.scope === InviteLinkScope.WORKSPACE
+        ? [...OrderedWorkspaceRoles]
+            .reverse()
+            .indexOf(link.role as WorkspaceUserRoles)
+        : [...OrderedProjectRoles].reverse().indexOf(link.role as ProjectRoles);
+
+    return minterPower >= rolePower ? null : 'minter_role';
+  }
+
+  /** The minter's power in the link's scope, or null if they no longer exist. */
+  protected async minterRolePower(
+    context: NcContext,
+    link: InviteLinkGrant,
+    ncMeta = Noco.ncMeta,
+  ): Promise<number | null> {
     const minter = link.created_by
       ? await User.get(link.created_by, ncMeta)
       : null;
 
-    if (!minter) return 'minter_role';
+    if (!minter) return null;
 
     const withRoles = await User.getWithRoles(
       { ...context, base_id: link.base_id, workspace_id: link.fk_workspace_id },
@@ -160,16 +204,9 @@ export class InviteLinksService {
       ncMeta,
     );
 
-    const covers =
-      link.scope === InviteLinkScope.WORKSPACE
-        ? extractWorkspaceRolePower(withRoles) >=
-          [...OrderedWorkspaceRoles]
-            .reverse()
-            .indexOf(link.role as WorkspaceUserRoles)
-        : extractProjectRolePower(withRoles) >=
-          [...OrderedProjectRoles].reverse().indexOf(link.role as ProjectRoles);
-
-    return covers ? null : 'minter_role';
+    return link.scope === InviteLinkScope.WORKSPACE
+      ? extractWorkspaceRolePower(withRoles)
+      : extractProjectRolePower(withRoles);
   }
 
   /** Days from now. `0` is an explicit "never expires"; undefined takes the default. */
@@ -406,8 +443,11 @@ export class InviteLinksService {
   ): Promise<InviteLinkType[]> {
     if (!links.length) return links;
 
+    const minterPowers = new Map<string, Promise<number | null>>();
     const reasons = await Promise.all(
-      links.map((l) => this.ungrantableReason(context, l, ncMeta)),
+      links.map((l) =>
+        this.ungrantableReason(context, l, ncMeta, minterPowers),
+      ),
     );
 
     links = links.map((l, i) =>

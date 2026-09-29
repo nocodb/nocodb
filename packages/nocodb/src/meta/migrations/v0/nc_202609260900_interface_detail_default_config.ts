@@ -4,10 +4,13 @@ import {
 } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { ColumnType } from 'nocodb-sdk';
-import { MetaTable } from '~/utils/globals';
+import { CacheScope, MetaTable } from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
 
 type PageRow = {
   id: string;
+  base_id: string;
+  fk_workspace_id: string;
   fk_interface_id: string;
   fk_model_id: string | null;
   layout: string;
@@ -65,6 +68,8 @@ const collectBoundIds = (node: unknown, out: Set<string>) => {
 const up = async (knex: Knex) => {
   const pages: PageRow[] = await knex(MetaTable.INTERFACE_PAGES).select(
     'id',
+    'base_id',
+    'fk_workspace_id',
     'fk_interface_id',
     'fk_model_id',
     'layout',
@@ -102,9 +107,11 @@ const up = async (knex: Knex) => {
 
     const { draft, published } = parsed.get(page.id)!;
     const healDraft = groupsEmpty(draft);
-    // A null published_config means never published — leave it null.
+    // A null published_config means never published — leave it null. A
+    // designed draft means the builder chose fields but hasn't published:
+    // leave the snapshot closed rather than publish every column.
     const healPublished =
-      page.published_config != null && groupsEmpty(published);
+      page.published_config != null && groupsEmpty(published) && healDraft;
     if (!healDraft && !healPublished) continue;
 
     const binders = bindersOf.get(page.id);
@@ -141,6 +148,14 @@ const up = async (knex: Knex) => {
     }
     if (Object.keys(update).length) {
       await knex(MetaTable.INTERFACE_PAGES).where('id', page.id).update(update);
+      // Knex migrations don't flush the cache, and cloud never flushes on boot.
+      await NocoCache.del(
+        { workspace_id: page.fk_workspace_id, base_id: page.base_id },
+        [
+          `${CacheScope.INTERFACE_PAGE}:${page.id}`,
+          `${CacheScope.INTERFACE_PAGE}:${page.fk_interface_id}:list`,
+        ],
+      );
     }
   }
 };

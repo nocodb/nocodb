@@ -615,11 +615,13 @@ export class RowFilterValidator {
             }
           }
         }
-      } else if (op === 'neq' || op === 'not') {
+      } else {
         // A missing date value is "not equal to" any concrete date —
         // mirrors the backend `neq`/`not` clause that ORs in `IS NULL`,
         // so realtime updates don't drop rows whose date got cleared.
-        res = true;
+        // Every other op fails on NULL server-side. Explicit `false`: an
+        // `undefined` here resets the AND chain in `validateSync`.
+        res = op === 'neq' || op === 'not';
       }
       return res;
     }

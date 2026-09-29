@@ -87,10 +87,17 @@ const hasEditPermission = computed(() => {
 // the same list in browse mode (linked records only, nothing checkable).
 const { isSimpleLinkRecordList, isSimpleLinkRecordListReadonly } = useLinkRecordDropdownVariant(hasEditPermission)
 
+function linkCountText(count: number) {
+  return count === 1
+    ? `1 ${column.value?.meta?.singular || t('general.link')}`
+    : `${count} ${column.value?.meta?.plural || t('general.links')}`
+}
+
 const textVal = computed(() => {
   if (isForm.value || isNew.value) {
-    return state.value?.[colTitle.value]?.length
-      ? `${+state.value?.[colTitle.value]?.length} ${t('msg.recordsLinked')}`
+    const linkedCount = +state.value?.[colTitle.value]?.length || 0
+    return linkedCount
+      ? linkCountText(linkedCount)
       : isForm.value && !isExpandedFormOpen.value
       ? t('title.linkRecords')
       : t('msg.noRecordsLinked')
@@ -98,13 +105,7 @@ const textVal = computed(() => {
 
   const parsedValue = +value?.value || 0
 
-  if (!parsedValue) {
-    return t('msg.noRecordsLinked')
-  } else if (parsedValue === 1) {
-    return `1 ${column.value?.meta?.singular || t('general.link')}`
-  } else {
-    return `${parsedValue} ${column.value?.meta?.plural || t('general.links')}`
-  }
+  return parsedValue ? linkCountText(parsedValue) : t('msg.noRecordsLinked')
 })
 
 const toatlRecordsLinked = computed(() => {

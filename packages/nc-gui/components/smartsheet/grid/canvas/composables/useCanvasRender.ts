@@ -722,6 +722,10 @@ export function useCanvasRender({
     if (!isGroupBy.value) {
       const fillHandler = getFillHandlerPosition()
 
+      // Extend to the "+ New record" row only when renderRows draws it.
+      const showsAddNewRow = isAddingEmptyRowAllowed.value && !isMobileMode.value && !removeInlineAddRecord.value
+      const bordersRowCount = rowSlice.value.end - rowSlice.value.start + (showsAddNewRow ? 1 : 0)
+
       // The issue is the border gets drawn over the active state border.
       // For quick hack, we skip rendering border over the y values of the active state to avoid the overlap.
       if (
@@ -758,13 +762,13 @@ export function useCanvasRender({
           // Draw line below the fill handler
           ctx.beginPath()
           ctx.moveTo(xOffset - _scrollLeft, fillHandler.y + fillHandler.size / 2)
-          ctx.lineTo(xOffset - _scrollLeft, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + _headerRowHeight)
+          ctx.lineTo(xOffset - _scrollLeft, bordersRowCount * rowHeight.value + _headerRowHeight)
           ctx.stroke()
         } else if (activeState?.y && activeState?.height) {
           // Draw line below active state
           ctx.beginPath()
           ctx.moveTo(xOffset - _scrollLeft, activeState.y + activeState.height)
-          ctx.lineTo(xOffset - _scrollLeft, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + _headerRowHeight)
+          ctx.lineTo(xOffset - _scrollLeft, bordersRowCount * rowHeight.value + _headerRowHeight)
           ctx.stroke()
         }
       } else if (visibleCols.filter((f) => !f.fixed).length) {
@@ -774,10 +778,7 @@ export function useCanvasRender({
         ctx.strokeStyle = getColor(themeV4Colors.gray['200'], 'var(--nc-grid-line)')
         ctx.beginPath()
         ctx.moveTo(verticalLineXOffset, _headerRowHeight)
-        ctx.lineTo(
-          verticalLineXOffset,
-          (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 33 - partialRowHeight.value,
-        )
+        ctx.lineTo(verticalLineXOffset, bordersRowCount * rowHeight.value + 33 - partialRowHeight.value)
         ctx.stroke()
       }
     }

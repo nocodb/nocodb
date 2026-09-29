@@ -138,9 +138,11 @@ export const isActiveElementInsideExtension = () =>
 export const isActiveElementInsideScriptPane = () => document.querySelector('.nc-action-pane')?.contains(document.activeElement)
 export const isActiveElementInsideSmartTextPanel = () =>
   document.querySelector('.nc-smart-text-panel')?.contains(document.activeElement)
+// `.nc-dropdown-form-edit-column` is the panel's "Edit field" popup — portalled
+// to <body>, so it sits outside the panel element.
 export const isActiveElementInsideInterfacePanel = () =>
-  ['.nc-interface-properties-panel', '.nc-interface-page-description'].some((selector) =>
-    document.querySelector(selector)?.contains(document.activeElement),
+  !!document.activeElement?.closest(
+    '.nc-interface-properties-panel, .nc-interface-page-description, .nc-dropdown-form-edit-column',
   )
 // The LTAR embed (view mode) the last click landed in — embeds inside the sheet
 // take turns owning the keyboard the same way the sheet does against the page.

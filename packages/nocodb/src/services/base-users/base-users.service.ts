@@ -64,6 +64,7 @@ export class BaseUsersService {
       baseUser: ProjectUserReqType;
       req: NcRequest;
       workspaceInvited?: boolean;
+      invite_token?: string;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<any> {
@@ -126,7 +127,9 @@ export class BaseUsersService {
     await this.assertNoExistingMembers(context, param.baseId, emails, ncMeta);
 
     for (const email of emails) {
-      const invite_token = uuidv4();
+      // Reuse the caller's token when there is one — the workspace invite that
+      // precedes this call already stored it on the row.
+      const invite_token = param.invite_token || uuidv4();
       // add user to base if user already exist (canonical lookup handles alias variants)
       const user = await User.getByCanonicalEmail(email, ncMeta);
 
@@ -225,6 +228,25 @@ export class BaseUsersService {
           );
 
           if (param?.workspaceInvited) {
+            // buildUrl turns any token into a /signup/<token> link, which only
+            // resolves if that token is on the row. Send one to accounts that
+            // never completed signup (invited rows carry an empty password),
+            // and give everyone else the base deep link instead.
+            const needsSignupLink = !user.password;
+
+            if (needsSignupLink) {
+              await User.update(
+                user.id,
+                {
+                  invite_token,
+                  invite_token_expires: new Date(
+                    Date.now() + 24 * 60 * 60 * 1000,
+                  ),
+                },
+                ncMeta,
+              );
+            }
+
             await this.mailService.sendMail(
               {
                 mailEvent: MailEvent.BASE_INVITE,
@@ -233,7 +255,7 @@ export class BaseUsersService {
                   user: user,
                   base: base,
                   role: (param.baseUser.roles || 'editor') as ProjectRoles,
-                  token: invite_token,
+                  token: needsSignupLink ? invite_token : null,
                 },
               },
               ncMeta,

@@ -116,7 +116,7 @@ onMounted(async () => {
             <div v-if="showTooltip" class="w-1/6 flex justify-end">
               <NcTooltip placement="top">
                 <template #title>
-                  <span>Integration to use for this operation</span>
+                  <span>{{ $t('tooltip.aiIntegrationForOperation') }}</span>
                 </template>
                 <GeneralIcon icon="info" class="text-sm text-nc-content-gray-muted" />
               </NcTooltip>
@@ -126,7 +126,7 @@ onMounted(async () => {
                 v-model:value="vFkIntegrationId"
                 class="w-full nc-select-shadow nc-ai-input"
                 size="middle"
-                placeholder="- select integration -"
+                :placeholder="$t('placeholder.aiSelectIntegration')"
                 @change="onIntegrationChange"
               >
                 <a-select-option v-for="integration in aiIntegrations" :key="integration.id" :value="integration.id">
@@ -151,17 +151,17 @@ onMounted(async () => {
           </div>
           <!-- Model Select -->
           <div v-if="isGlobalIntegration" class="flex items-center gap-2">
-            <span class="text-nc-content-gray w-2/6">Model</span>
+            <span class="text-nc-content-gray w-2/6">{{ $t('labels.model') }}</span>
             <span class="flex-1 text-nc-content-gray-muted nc-ai-model-auto-note">
               {{ $t('labels.aiModelAutoSelected') }}
             </span>
           </div>
           <div v-else class="flex items-center gap-2">
-            <span class="text-nc-content-gray w-2/6">Model</span>
+            <span class="text-nc-content-gray w-2/6">{{ $t('labels.model') }}</span>
             <div v-if="showTooltip" class="w-1/6 flex justify-end">
               <NcTooltip placement="top">
                 <template #title>
-                  <span>Model to use for this operation</span>
+                  <span>{{ $t('tooltip.aiModelForOperation') }}</span>
                 </template>
                 <GeneralIcon icon="info" class="text-sm text-nc-content-gray-muted" />
               </NcTooltip>
@@ -172,7 +172,7 @@ onMounted(async () => {
                 v-model:value="vModel"
                 class="w-full nc-select-shadow nc-ai-input"
                 size="middle"
-                placeholder="- select model -"
+                :placeholder="$t('placeholder.aiSelectModel')"
                 :disabled="!vFkIntegrationId || availableModels.length === 0"
                 :loading="isLoadingAvailableModels"
               >

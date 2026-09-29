@@ -476,7 +476,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
         <div class="h-6 self-start flex items-center">
           <GeneralIcon icon="server1" class="!text-nc-content-green-dark !h-4 !w-4" />
         </div>
-        <div class="flex-1 text-base font-weight-700">Add Data Source</div>
+        <div class="flex-1 text-base font-weight-700">{{ $t('labels.addDataSource') }}</div>
 
         <div class="flex items-center gap-3">
           <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>
@@ -514,7 +514,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
             class="nc-extdb-btn-submit"
             @click="createSource"
           >
-            Add Source
+            {{ $t('labels.addSource') }}
           </NcButton>
           <NcButton :disabled="creatingSource" size="small" type="text" @click="vOpen = false">
             <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
@@ -537,19 +537,19 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                 <div class="nc-form-section-body">
                   <a-row :gutter="24">
                     <a-col :span="12">
-                      <a-form-item label="Data Source Name" v-bind="validateInfos.title">
+                      <a-form-item :label="$t('labels.dataSourceName')" v-bind="validateInfos.title">
                         <a-input v-model:value="formState.title" />
                       </a-form-item>
                     </a-col>
                   </a-row>
                   <a-row :gutter="24">
                     <a-col :span="12">
-                      <a-form-item label="Select connection" v-bind="validateInfos.fk_integration_id">
+                      <a-form-item :label="$t('placeholder.selectConnection')" v-bind="validateInfos.fk_integration_id">
                         <NcSelect
                           v-model:value="formState.fk_integration_id"
                           class="nc-extdb-db-type nc-select-shadow"
                           dropdown-class-name="nc-dropdown-ext-db-type"
-                          placeholder="Select connection"
+                          :placeholder="$t('placeholder.selectConnection')"
                           allow-clear
                           show-search
                           dropdown-match-select-width
@@ -719,7 +719,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                         class="!-ml-1.5"
                         @click="handleUpdateAdvancedOptionsExpansionPanel(!advancedOptionsExpansionPanel.length)"
                       >
-                        <div class="nc-form-section-title">Advanced options</div>
+                        <div class="nc-form-section-title">{{ $t('labels.advancedOptions') }}</div>
 
                         <GeneralIcon
                           icon="chevronDown"

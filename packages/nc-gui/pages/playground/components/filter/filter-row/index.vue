@@ -45,10 +45,10 @@ const isFieldInaccessible1 = ref(true)
   <div class="bg-nc-bg-gray-light overflow-y-scroll">
     <a-card>
       <div class="flex flex-col gap-2">
-        <h4>Simple</h4>
+        <h4>{{ $t('activity.galleryThemeSimple') }}</h4>
 
         <div class="flex">
-          <span>Filter:</span>
+          <span>{{ $t('activity.filter') }}:</span>
 
           <div class="w-[300px] max-h-[100px] overflow-wrap bg-nc-bg-gray-dark overflow-y-scroll">
             {{ filter1 }}

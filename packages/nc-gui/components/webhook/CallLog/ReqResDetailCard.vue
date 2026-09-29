@@ -35,12 +35,14 @@ const formattedPayload = computed(() => {
     <div class="detail-title font-weight-bold">{{ title }}</div>
     <div class="content">
       <div v-if="headers" class="detail-headers">
-        <span v-if="!headers['nc-script-id']" class="text-nc-content-gray-muted font-weight-bold text-small1">Header</span>
+        <span v-if="!headers['nc-script-id']" class="text-nc-content-gray-muted font-weight-bold text-small1">{{
+          $t('labels.header')
+        }}</span>
         <div v-if="headers['nc-script-id']" class="log-details">
           <div class="log-detail-item">
             <NcTooltip class="text-small1 min-w-40" show-on-truncate-only>
-              <template #title>Script ID</template>
-              <span class="label script"> Script ID </span>
+              <template #title>{{ $t('labels.scriptId') }}</template>
+              <span class="label script"> {{ $t('labels.scriptId') }} </span>
             </NcTooltip>
             <NcTooltip class="text-small1 max-w-[calc(100%_-_160px)] truncate" show-on-truncate-only>
               <template #title>{{ headers['nc-script-id'] }}</template>
@@ -49,8 +51,8 @@ const formattedPayload = computed(() => {
           </div>
           <div class="log-detail-item">
             <NcTooltip class="text-small1 min-w-40" show-on-truncate-only>
-              <template #title>Script Title</template>
-              <span class="label script"> Script Title </span>
+              <template #title>{{ $t('labels.scriptTitle') }}</template>
+              <span class="label script"> {{ $t('labels.scriptTitle') }} </span>
             </NcTooltip>
             <NcTooltip class="text-small1 max-w-[calc(100%_-_160px)] truncate" show-on-truncate-only>
               <template #title>{{ headers['nc-script-title'] }}</template>
@@ -88,7 +90,7 @@ const formattedPayload = computed(() => {
       </div>
       <div v-if="payload && Object.keys(payload).length" class="detail-payload -mt-1">
         <div class="text-sm text-nc-content-gray-muted font-weight-bold pb-2 flex justify-between items-center">
-          <span class="text-xs leading-[18px]">Payload</span>
+          <span class="text-xs leading-[18px]">{{ $t('labels.payload') }}</span>
           <GeneralCopyButton :content="copyPayloadContent" size="xs" class="!px-1" />
         </div>
 

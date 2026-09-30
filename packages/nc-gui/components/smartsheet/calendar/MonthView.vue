@@ -517,7 +517,8 @@ const recordsToDisplay = computed<{
             continue
           }
 
-          const duration = recordEnd.diff(recordStart, 'day') + 1
+          // Calendar days, not 24h periods — Fri 16:00 → Sat 10:00 spans 2 cells.
+          const duration = recordEnd.startOf('day').diff(recordStart.startOf('day'), 'day') + 1
 
           const dateKey = recordStart.format('YYYY-MM-DD')
           const lane = findAvailableLane(dateKey, duration)

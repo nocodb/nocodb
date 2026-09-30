@@ -25,6 +25,8 @@ export enum PermissionKey {
   ROUTINE_INVOKE = 'ROUTINE_INVOKE',
   APP_USE = 'APP_USE',
   CHAT_ARTIFACT_VISIBILITY = 'CHAT_ARTIFACT_VISIBILITY',
+  /** Who may point a credential at this vault's secrets — as good as reading them. */
+  VAULT_REFERENCE = 'VAULT_REFERENCE',
 }
 
 export enum PermissionGrantedType {
@@ -40,6 +42,8 @@ export enum PermissionEntity {
   DASHBOARD = 'dashboard',
   APP = 'app',
   CHAT_ARTIFACT = 'chat_artifact',
+  /** Workspace- or org-owned; stored outside `nc_permissions`, which needs a base. */
+  VAULT = 'vault',
 }
 
 export enum PermissionRole {
@@ -213,6 +217,14 @@ export const PermissionMeta = {
     description: 'can view this artifact',
     userSelectorDescription:
       'Only members selected here will be able to view this artifact.',
+  },
+  [PermissionKey.VAULT_REFERENCE]: {
+    // Owner by default: referencing is as good as reading.
+    minimumRole: PermissionRole.OWNER,
+    label: 'Who can use this vault',
+    description: 'can reference secrets from this vault',
+    userSelectorDescription:
+      'Only members selected here will be able to point a connection credential at a secret in this vault.',
   },
 };
 

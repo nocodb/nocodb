@@ -7,6 +7,13 @@
  * `formatSecretRef` renders it as `secrets.awsProd["prod/db/creds"].password`.
  */
 
+import { PermissionGrantedType, PermissionRole } from '../permission';
+import type {
+  EvaluablePermission,
+  PermissionKey,
+  PermissionSubject,
+} from '../permission';
+
 /** Secrets providers a workspace can connect. */
 export enum VaultProviderType {
   HASHICORP_VAULT = 'hashicorp_vault',
@@ -321,10 +328,49 @@ export interface VaultType {
   meta?: VaultMetaType;
   /** Owning workspace's name, on the org listing only. */
   workspace_title?: string;
+  /** Absent for callers who may not manage the vault. */
+  permission?: VaultPermissionType;
+  /** Whether the current caller may reference this vault. Computed per request. */
+  can_reference?: boolean;
   created_by?: string;
   created_at?: string;
   updated_at?: string;
 }
+
+/** The `VAULT_REFERENCE` permission on one vault, decided by `evaluatePermission()`. */
+export interface VaultPermissionType extends EvaluablePermission {
+  id?: string;
+  fk_vault_id?: string;
+  permission?: PermissionKey.VAULT_REFERENCE;
+  created_by?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/** The body of `vaultPermissionSet`. */
+export interface VaultPermissionDraft {
+  granted_type: PermissionGrantedType;
+  granted_role?: PermissionRole;
+  subjects?: PermissionSubject[];
+}
+
+/** What a vault with no stored permission resolves to. */
+export const defaultVaultPermission = (): VaultPermissionDraft => ({
+  granted_type: PermissionGrantedType.ROLE,
+  granted_role: PermissionRole.OWNER,
+  subjects: [],
+});
+
+export const isDefaultVaultPermission = (draft?: VaultPermissionDraft) =>
+  !draft ||
+  (draft.granted_type === PermissionGrantedType.ROLE &&
+    draft.granted_role === PermissionRole.OWNER);
+
+/** A specific-users grant needs at least one user. */
+export const isVaultPermissionComplete = (draft?: VaultPermissionDraft) =>
+  !!draft &&
+  (draft.granted_type !== PermissionGrantedType.USER ||
+    !!draft.subjects?.length);
 
 /** Outcome of a `vaultTestConnection` probe, surfaced in the wizard's last step. */
 export interface VaultTestResultType {

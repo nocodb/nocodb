@@ -199,6 +199,7 @@ export class MetaService {
       [MetaTable.INTEGRATION_ENV_CONFIGS]: 'iec',
       [MetaTable.INTEGRATION_USER_CONFIGS]: 'iuc',
       [MetaTable.VAULTS]: 'vlt',
+      [MetaTable.VAULT_PERMISSIONS]: 'vpm',
       [MetaTable.FILE_REFERENCES]: 'at',
       [MetaTable.COL_BUTTON]: 'btn',
       [MetaTable.SNAPSHOT]: 'snap',

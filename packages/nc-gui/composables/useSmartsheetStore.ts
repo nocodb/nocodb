@@ -68,6 +68,37 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const { search, getValidSearchQueryForColumn } = useFieldQuery()
 
+    // The rows/count requests still running when the search term changes are already superseded —
+    // only the last term's result is ever shown. Hand them a signal so the next term can abort them
+    // instead of leaving each one to finish its full row materialisation server-side.
+    let searchAbortController: AbortController | null = null
+    const searchAbortSignal = ref<AbortSignal | undefined>()
+
+    const abortInflightSearchRequests = () => {
+      searchAbortController?.abort()
+      searchAbortController = new AbortController()
+      searchAbortSignal.value = searchAbortController.signal
+    }
+
+    abortInflightSearchRequests()
+
+    watch(
+      () => [search.value.query, search.value.field] as const,
+      ([query], [prevQuery] = []) => {
+        // With no query the rows don't depend on the field, and no reload follows a field change —
+        // aborting here would kill the view's own initial load. `field` moves on every view open:
+        // loadFieldQuery swaps in an empty object and the displayColumn computed writes the PV id.
+        if (!query?.trim() && !prevQuery?.trim()) return
+
+        abortInflightSearchRequests()
+      },
+      // onSelectOption sets `field` and triggers the reload in the same tick, so the new controller
+      // has to exist before any caller can read the signal.
+      { flush: 'sync' },
+    )
+
+    onScopeDispose(() => searchAbortController?.abort())
+
     const globalEventBus = $eventBus.smartsheetStoreEventBus
     const eventBus = isolatedEventBus ? useEventBus<SmartsheetStoreEvents>(Symbol('nc-smartsheet-store')) : globalEventBus
 
@@ -360,6 +391,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       fetchTotalRowsWithSearchQuery,
       gridEditEnabled,
       getValidSearchQueryForColumn,
+      searchAbortSignal,
       isViewOperationsAllowed,
     }
   },

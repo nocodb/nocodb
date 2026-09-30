@@ -26,10 +26,10 @@ const up = async (knex: Knex) => {
     table.string('created_by', 20);
     table.timestamps(true, true);
 
+    // Also serves lookups by vault.
     table.unique(['fk_vault_id', 'permission'], {
       indexName: 'nc_vault_permissions_vault_permission_unique',
     });
-    table.index(['fk_vault_id'], 'nc_vault_permissions_vault_index');
   });
 
   await knex.schema.createTable(
@@ -46,13 +46,8 @@ const up = async (knex: Knex) => {
 
       table.timestamps(true, true);
 
-      table.primary(['fk_vault_permission_id', 'subject_type', 'subject_id'], {
-        constraintName: 'nc_vault_permission_subjects_pkey',
-      });
-      table.index(
-        ['fk_vault_permission_id'],
-        'nc_vault_permission_subjects_permission_index',
-      );
+      // Unnamed: sqlite rejects a named composite key. Also serves lookups by permission.
+      table.primary(['fk_vault_permission_id', 'subject_type', 'subject_id']);
     },
   );
 };

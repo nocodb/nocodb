@@ -9,7 +9,7 @@ const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.VAULT_PERMISSIONS, (table) => {
     table.string('id', 20).primary();
 
-    // Owning scope, denormalised so the scope delete cascade finds these rows.
+    // The vault's owning scope, kept in step when the vault moves.
     table.string('fk_workspace_id', 20);
     table.string('fk_org_id', 20);
 

@@ -4,6 +4,7 @@ import type { AutoScrollOptions } from 'sortablejs/plugins'
 import type { UserType } from 'nocodb-sdk'
 import { NOCO_SERVICE_USERS, ncIsArray } from 'nocodb-sdk'
 import GraphemeSplitter from 'grapheme-splitter'
+import { type EffectScope, getCurrentScope } from 'vue'
 
 export const modalSizes = {
   xs: {
@@ -319,11 +320,18 @@ export const findServiceUser = (idOrEmail?: string | null): ResolvedUserLike | u
  * Wait for a condition to be truthy
  * @param conditionFn - Function that returns the condition to check
  * @param interval - Polling interval in milliseconds (default: 100)
+ * @param scope - Polling stops, leaving the promise pending, once this scope is stopped (default: the current scope)
  * @returns Promise that resolves when condition becomes truthy
  */
-export function waitForCondition(conditionFn: () => unknown, interval: number = 100): Promise<void> {
+export function waitForCondition(
+  conditionFn: () => unknown,
+  interval: number = 100,
+  scope: EffectScope | undefined = getCurrentScope(),
+): Promise<void> {
   return new Promise((resolve) => {
     const check = (): void => {
+      if (scope && !scope.active) return
+
       if (conditionFn()) {
         resolve()
       } else {

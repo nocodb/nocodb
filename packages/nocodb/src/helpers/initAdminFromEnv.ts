@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { validatePassword } from 'nocodb-sdk';
 import boxen from 'boxen';
 import isEmail from 'validator/lib/isEmail';
+import type { MetaService } from '~/meta/meta.service';
 import type { NcContext } from '~/interface/config';
 import {
   verifyDefaultWorkspace,
@@ -82,7 +83,9 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
       process.exit(1);
     }
 
-    let ncMeta;
+    // annotated so a shifted argument fails to compile — inferred `any` here
+    // is what hid the context bug below
+    let ncMeta: MetaService;
     try {
       ncMeta = await _ncMeta.startTransaction();
       const email = sanitizeEmail(process.env.NC_ADMIN_EMAIL).toLowerCase();
@@ -124,7 +127,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
         );
         const email_verification_token = uuidv4();
         // TODO improve this
-        const superUsers = await ncMeta.metaList2(
+        const superUsers: User[] = await ncMeta.metaList2(
           RootScopes.ROOT,
           RootScopes.ROOT,
           MetaTable.USERS,
@@ -149,16 +152,13 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
             if (existingUserWithNewEmail?.id) {
               // get all base access belongs to the existing account
               // and migrate to the admin account
-              const existingUserProjects = await ncMeta
+              const existingUserProjects: BaseUser[] = await ncMeta
                 .knexConnection(MetaTable.PROJECT_USERS)
                 .where({ fk_user_id: existingUserWithNewEmail.id });
 
               for (const existingUserProject of existingUserProjects) {
-                // Every BaseUser call below is workspace-scoped. The row only
-                // carries fk_workspace_id (not workspace_id), so resolve the
-                // base through the root scope and build the context from it —
-                // an undefined scope is rejected by metaGet2 as 'Invalid scope'
-                // and kills the boot.
+                // nc_base_users carries no workspace_id, so the scope every
+                // BaseUser call needs has to come from the base itself
                 const base = await Base.get(
                   {
                     workspace_id: RootScopes.BASE,
@@ -168,7 +168,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                   ncMeta,
                 );
 
-                // orphaned membership row — the base is already gone
+                // orphaned row — base already deleted
                 if (!base) continue;
 
                 const baseContext: NcContext = {
@@ -184,9 +184,8 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 );
 
                 // if admin user already have access to the base
-                // then update role based on the highest access level
-                // (get resolves the user row even without a membership, so
-                // is_mapped is what decides update vs insert)
+                // then update role based on the highest access level.
+                // get left-joins, so it is truthy without a membership
                 if (userProject?.is_mapped) {
                   if (
                     rolesLevel[userProject.roles] >

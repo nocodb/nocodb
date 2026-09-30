@@ -256,6 +256,16 @@ export const PublicDocShareInj: InjectionKey<Ref<{ sharedDocUuid: string; docId:
 export const InterfacePageDataInj: InjectionKey<InterfacePageDataApi | undefined> = Symbol('interface-page-data')
 
 /**
+ * Lazily-loaded record counts for the page's user-filter tab strip, keyed by
+ * tab id (the synthetic "All records" tab under `INTERFACE_ALL_RECORDS_TAB_KEY`).
+ * Provided by the viz wrapper that owns the data adapter + realtime room; the
+ * tab strip injects it to render count badges. Empty until the first load.
+ */
+export const InterfaceUserFilterTabCountsInj: InjectionKey<Ref<Record<string, number>>> = Symbol(
+  'interface-user-filter-tab-counts',
+)
+
+/**
  * Marks an interface surface that sits OUTSIDE the viz tree, so it has no
  * `InterfacePageDataInj` ancestor to be recognised by — the builder's
  * properties panel, whose "Edit field" hosts the same column editor the canvas

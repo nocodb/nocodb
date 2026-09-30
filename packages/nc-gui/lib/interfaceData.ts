@@ -130,6 +130,14 @@ export interface InterfacePageDataApi {
     nestedFiltersArr?: FilterType[]
   }): Promise<{ count: number }>
   /**
+   * Record-count badges for the page's TABS user-filter element — one count
+   * per tab that opts in, over the tab's filters ∧ page ∧ viz filters ∧ RLS
+   * (the viewer's ad-hoc toolbar search/filter is NOT applied). Keyed by tab
+   * id; the "All records" tab under `INTERFACE_ALL_RECORDS_TAB_KEY`. Optional —
+   * absent on adapters that don't back a tab strip (public shares return `{}`).
+   */
+  fetchUserFilterTabCounts?: () => Promise<{ counts: Record<string, number> }>
+  /**
    * Enqueue a server-side CSV export of this page/viz scope (builder-opt-in
    * via the page's Advanced `allow_csv_export` toggle). The server resolves
    * the exact same composed scope as `fetchList` — grants, draft/published

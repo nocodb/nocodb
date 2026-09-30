@@ -1582,7 +1582,7 @@
     "vaultPermissionOwners": "Workspace owners",
     "vaultPermissionCreators": "Creators and owners",
     "vaultPermissionUsers": "Specific people",
-    "vaultPermissionNobody": "Frozen",
+    "vaultPermissionNobody": "Inactive",
     "vaultStepVerify": "Verify",
     "vaultStatus": "Status",
     "vaultVerified": "Verified",

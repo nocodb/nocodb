@@ -6628,12 +6628,13 @@
       "screenshotSize": "Screenshots must be under 5 MB.",
       "screenshotUploadFailed": "Could not upload that screenshot. Try again.",
       "vaultSecretNeedsProperty": "This secret holds several fields. Pick the one to use, or the connection will fail when it runs.",
-      "vaultUnknownAlias": "No vault named '{name}' is available here.",
+      "vaultUnknownAlias": "No vault named '{name}' is available to you.",
       "atLeastOneOperationRequired": "At least one operation need to be selected",
       "triggerFormRequired": "You must select a trigger form",
       "failedToStartListening": "Failed to start listening",
       "unknownPermissionRequested": "Not a permission this server offers",
-      "authorizationWillBeRefused": "This request will be refused because of the permissions above."
+      "authorizationWillBeRefused": "This request will be refused because of the permissions above.",
+      "vaultAliasNotAllowed": "You are not allowed to use the vault '{name}'. Ask a workspace owner for access, or enter the credential directly."
     },
     "toast": {
       "changesSaved": "Changes saved",

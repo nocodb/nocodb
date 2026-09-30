@@ -5,6 +5,18 @@ const DbNotFoundMsg = 'Database config not found'
 
 const TIMEOUT_RETRY_COUNT = 1
 
+/**
+ * /signin that returns to the page being loaded. Reads the address bar, not the
+ * router: mid-navigation the router still reports the previous route, and this
+ * redirect cancels the auth middleware's own one.
+ */
+function signinUrlForCurrentPage() {
+  const { pathname, search } = window.location
+  const path = `${pathname}${search}`
+  if (path === '/' || /^\/(signin|signup|sso)(\/|$)/.test(pathname)) return '/signin'
+  return `/signin?continueAfterSignIn=${encodeURIComponent(path)}`
+}
+
 export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
   const state = useGlobal()
   const router = useRouter()
@@ -71,6 +83,7 @@ export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
       if (error.config.url === '/auth/token/refresh') {
         await state.signOut({
           redirectToSignin: !route.value.meta.public,
+          signinUrl: signinUrlForCurrentPage(),
           skipApiCall: true,
         })
         return Promise.reject(error)
@@ -91,6 +104,7 @@ export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
           if (!token) {
             await state.signOut({
               redirectToSignin: !isSharedPage,
+              signinUrl: signinUrlForCurrentPage(),
               skipApiCall: true,
             })
             return Promise.reject(error)
@@ -117,6 +131,7 @@ export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
           if (!(refreshTokenError instanceof SharedExecutionError) && refreshServerRejected) {
             await state.signOut({
               redirectToSignin: !isSharedPage,
+              signinUrl: signinUrlForCurrentPage(),
               skipApiCall: true,
             })
             return Promise.reject(error)

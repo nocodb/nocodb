@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { validatePassword } from 'nocodb-sdk';
 import boxen from 'boxen';
 import isEmail from 'validator/lib/isEmail';
+import type { NcContext } from '~/interface/config';
 import {
   verifyDefaultWorkspace,
   verifyDefaultWsOwner,
@@ -11,7 +12,7 @@ import {
 import { T } from '~/utils';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
-import { BaseUser, User } from '~/models';
+import { Base, BaseUser, User } from '~/models';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import { randomTokenString } from '~/services/users/helpers';
 import { sanitizeEmail } from '~/utils/emailUtils';
@@ -153,25 +154,47 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 .where({ fk_user_id: existingUserWithNewEmail.id });
 
               for (const existingUserProject of existingUserProjects) {
-                const userProject = await BaseUser.get(
+                // Every BaseUser call below is workspace-scoped. The row only
+                // carries fk_workspace_id (not workspace_id), so resolve the
+                // base through the root scope and build the context from it —
+                // an undefined scope is rejected by metaGet2 as 'Invalid scope'
+                // and kills the boot.
+                const base = await Base.get(
+                  {
+                    workspace_id: RootScopes.BASE,
+                    base_id: RootScopes.BASE,
+                  } as NcContext,
                   existingUserProject.base_id,
+                  ncMeta,
+                );
+
+                // orphaned membership row — the base is already gone
+                if (!base) continue;
+
+                const baseContext: NcContext = {
+                  workspace_id: base.fk_workspace_id,
+                  base_id: base.id,
+                };
+
+                const userProject = await BaseUser.get(
+                  baseContext,
+                  base.id,
                   user.id,
                   ncMeta,
                 );
 
                 // if admin user already have access to the base
                 // then update role based on the highest access level
-                if (userProject) {
+                // (get resolves the user row even without a membership, so
+                // is_mapped is what decides update vs insert)
+                if (userProject?.is_mapped) {
                   if (
                     rolesLevel[userProject.roles] >
                     rolesLevel[existingUserProject.roles]
                   ) {
-                    await BaseUser.update(
-                      {
-                        workspace_id: existingUserProject.workspace_id,
-                        base_id: existingUserProject.base_id,
-                      },
-                      userProject.base_id,
+                    await BaseUser.updateRoles(
+                      baseContext,
+                      base.id,
                       user.id,
                       existingUserProject.roles,
                       ncMeta,
@@ -180,6 +203,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 } else {
                   // if super doesn't have access then add the access
                   await BaseUser.insert(
+                    baseContext,
                     {
                       ...existingUserProject,
                       fk_user_id: user.id,
@@ -189,7 +213,8 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 }
                 // delete the old base access entry from DB
                 await BaseUser.delete(
-                  existingUserProject.base_id,
+                  baseContext,
+                  base.id,
                   existingUserProject.fk_user_id,
                   ncMeta,
                 );

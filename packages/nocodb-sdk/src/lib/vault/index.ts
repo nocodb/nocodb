@@ -7,6 +7,8 @@
  * `formatSecretRef` renders it as `secrets.awsProd["prod/db/creds"].password`.
  */
 
+import type { EvaluablePermission, PermissionKey } from '../permission';
+
 /** Secrets providers a workspace can connect. */
 export enum VaultProviderType {
   HASHICORP_VAULT = 'hashicorp_vault',
@@ -321,6 +323,20 @@ export interface VaultType {
   meta?: VaultMetaType;
   /** Owning workspace's name, on the org listing only. */
   workspace_title?: string;
+  /** Absent for callers who may not manage the vault. */
+  permission?: VaultPermissionType;
+  /** Whether the current caller may reference this vault. Computed per request. */
+  can_reference?: boolean;
+  created_by?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/** The `VAULT_REFERENCE` permission on one vault, decided by `evaluatePermission()`. */
+export interface VaultPermissionType extends EvaluablePermission {
+  id?: string;
+  fk_vault_id?: string;
+  permission?: PermissionKey.VAULT_REFERENCE;
   created_by?: string;
   created_at?: string;
   updated_at?: string;

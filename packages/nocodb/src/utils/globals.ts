@@ -76,6 +76,8 @@ export enum MetaTable {
   INTEGRATION_ENV_CONFIGS = 'nc_integration_env_configs',
   INTEGRATION_USER_CONFIGS = 'nc_integration_user_configs',
   VAULTS = 'nc_vaults',
+  VAULT_PERMISSIONS = 'nc_vault_permissions',
+  VAULT_PERMISSION_SUBJECTS = 'nc_vault_permission_subjects',
   BASE_VARIABLE_ENV_VALUES = 'nc_base_variable_env_values',
   FILE_REFERENCES = 'nc_file_references',
   COL_BUTTON = 'nc_col_button_v2',
@@ -439,6 +441,8 @@ export const orderedMetaTables = [
   MetaTable.INTEGRATIONS_STORE,
   MetaTable.INTEGRATIONS,
   // After integrations: a vault is referenced BY integration configs.
+  MetaTable.VAULT_PERMISSION_SUBJECTS,
+  MetaTable.VAULT_PERMISSIONS,
   MetaTable.VAULTS,
   MetaTable.DATA_REFLECTION,
   MetaTable.SOURCES,
@@ -620,6 +624,7 @@ export enum CacheScope {
   INTEGRATION_ENV_CONFIG = 'integrationEnvConfig',
   INTEGRATION_USER_CONFIG = 'integrationUserConfig',
   VAULT = 'vault',
+  VAULT_PERMISSION = 'vaultPermission',
   COL_BUTTON = 'colButton',
   CMD_PALETTE = 'cmdPalette',
   PRODUCT_FEED = 'productFeed',
@@ -790,6 +795,8 @@ export const RootScopeTables = {
     MetaTable.ENVIRONMENTS,
     // Dual-scoped: runs under ROOT, scoped by the fk columns.
     MetaTable.VAULTS,
+    MetaTable.VAULT_PERMISSIONS,
+    MetaTable.VAULT_PERMISSION_SUBJECTS,
     MetaTable.BOOKMARK_GROUPS,
     MetaTable.BOOKMARKS,
     MetaTable.MAIL_SENDS,
@@ -810,6 +817,8 @@ export const RootScopeTables = {
     MetaTable.INTEGRATION_ENV_CONFIGS,
     MetaTable.INTEGRATION_USER_CONFIGS,
     MetaTable.VAULTS,
+    MetaTable.VAULT_PERMISSIONS,
+    MetaTable.VAULT_PERMISSION_SUBJECTS,
     MetaTable.SOURCES,
     // We need to clear fk_integration_id from following tables
     MetaTable.COL_BUTTON,

@@ -156,10 +156,11 @@ export class NestedLinkPreparator {
       }
 
       // hm / oo(reverse): the named children have their FK re-pointed.
+      // `extractPksValues` (not `extractIdPropIfObjectOrReturn`) because the
+      // assert matches with `_wherePk`, and on a composite-PK child only the
+      // compound `a___b` form splits back into every PK column.
       const childIds = (Array.isArray(nestedData) ? nestedData : [nestedData])
-        .map((r) =>
-          extractIdPropIfObjectOrReturn(r, childModel.primaryKey.title),
-        )
+        .map((r) => childBaseModel.extractPksValues(r, true))
         .filter((v) => v != null);
 
       if (childIds.length) {

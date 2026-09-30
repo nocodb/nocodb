@@ -82,19 +82,19 @@ export const roleColorsMapping: Record<
 export const getTableAndFieldPermissionsColors = (color: string) => {
   switch (color) {
     case 'purple':
-      return 'text-purple-700'
+      return 'text-purple-700 dark:text-nc-purple-500'
     case 'blue':
       return 'text-blue-700 dark:text-nc-blue-500'
     case 'green':
       return 'text-green-700 dark:text-nc-green-600'
     case 'orange':
-      return 'text-orange-700'
+      return 'text-orange-700 dark:text-nc-orange-500'
     case 'yellow':
-      return 'text-yellow-700'
+      return 'text-yellow-700 dark:text-nc-yellow-500'
     case 'red':
       return 'text-red-700 dark:text-nc-red-500'
     case 'maroon':
-      return 'text-maroon-700'
+      return 'text-maroon-700 dark:text-nc-maroon-500'
     case 'gray':
     default:
       return 'text-gray-700 dark:text-nc-gray-600'

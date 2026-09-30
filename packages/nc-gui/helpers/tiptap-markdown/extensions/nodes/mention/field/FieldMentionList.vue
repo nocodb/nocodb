@@ -42,7 +42,8 @@ export default {
   computed: {
     // `items` already reflects what was typed in the editor; the search box narrows further
     filteredItems() {
-      const term = (this.search ?? '').trim().toLowerCase()
+      // A trailing `}` closes a `{Field}` reference rather than being part of the name
+      const term = (this.search ?? '').trim().replace(/}$/, '').toLowerCase()
       if (!term) return this.items
 
       return this.items.filter((item) => item?.title?.toLowerCase().includes(term))
@@ -79,6 +80,14 @@ export default {
 
     // Keys pressed in the search box
     onSearchKeyDown(event) {
+      // `{Name}` typed straight through: the closing brace picks the match
+      if (event.key === '}') {
+        event.preventDefault()
+        event.stopPropagation()
+        this.selectItem(this.selectedIndex)
+        return
+      }
+
       if (event.key === 'Escape' || (event.key === 'Backspace' && !this.search)) {
         event.preventDefault()
         event.stopPropagation()

@@ -178,16 +178,23 @@ function onCellValueChange(colTitle: string | undefined) {
 }
 
 // Field Agent: determine if a column should show the "Run Agent" button.
-// Excludes SingleSelect/MultiSelect since they render their own button inside the cell editor.
 const isFieldAgentVisible = (col: ColumnType) => {
   if (!isFieldAgentFeatureEnabled.value || !aiIntegrationAvailable.value) return false
   if (!isFieldAgentCol(col)) return false
   if (isNew.value) return false
   if (readOnly.value) return false
-  // SingleSelect and MultiSelect already have their own Run Agent button in their Editor.vue
-  if (col.uidt === UITypes.SingleSelect || col.uidt === UITypes.MultiSelect) return false
   return true
 }
+
+// Select editors skip their own Run button here
+provide(FieldAgentRunHostedInj, ref(true))
+
+// Attached under the field box; compact mode has no box, so it keeps the inline button
+const hasFieldAgentFooter = (col: ColumnType, isAllowed?: boolean) =>
+  !props.compactMode && !!isAllowed && isFieldAgentVisible(col)
+
+// Multi-line boxes carry the strip attached; single-line inputs get it as a separate box below
+const isMultiLineAgent = (col: ColumnType) => col.uidt === UITypes.LongText || col.uidt === UITypes.JSON
 
 const rowPk = computed(() => {
   if (!_row.value?.row || !meta.value?.columns) return null
@@ -305,10 +312,16 @@ const runFieldAgent = async (col: ColumnType) => {
           :disabled="showReadonlyColumnTooltip(col) || !showEditRestrictedColumnTooltip(col)"
         >
           <template #default="{ isAllowed }">
-            <div class="flex items-center gap-1 w-full">
+            <div
+              class="flex w-full"
+              :class="
+                hasFieldAgentFooter(col, isAllowed) ? ['flex-col', isMultiLineAgent(col) ? '' : 'gap-1'] : 'items-center gap-1'
+              "
+            >
               <SmartsheetDivDataCell
                 class="flex-1 flex relative"
                 :class="[
+                  { '!rounded-b-none': hasFieldAgentFooter(col, isAllowed) && isMultiLineAgent(col) },
                   compactMode
                     ? 'min-h-4 items-start !bg-transparent pl-1 pr-1 -mt-0.5'
                     : 'min-h-8 items-center bg-nc-bg-elevated px-1',
@@ -354,24 +367,16 @@ const runFieldAgent = async (col: ColumnType) => {
                 />
               </SmartsheetDivDataCell>
 
-              <!-- Field Agent: Run Agent button for non-select field agent columns -->
-              <NcTooltip v-if="isFieldAgentVisible(col) && isAllowed">
-                <template #title>{{ t('labels.fieldAgent.runAiAgent') }}</template>
-                <NcButton
-                  v-e="['a:field-agent:cell:generate', { source: 'expanded-record' }]"
-                  size="xs"
-                  type="text"
-                  theme="ai"
-                  class="!px-1 flex-none"
-                  :loading="isFieldAgentGenerating(col.id!)"
-                  :disabled="isFieldAgentGenerating(col.id!)"
-                  @click.stop="runFieldAgent(col)"
-                >
-                  <template #icon>
-                    <GeneralIcon icon="ncAutoAwesome" class="h-3.5 w-3.5" />
-                  </template>
-                </NcButton>
-              </NcTooltip>
+              <!-- Custom agent: Run button for non-select agent fields (selects have it in their editor) -->
+              <CellFieldAgentRunButton
+                v-if="isFieldAgentVisible(col) && isAllowed"
+                source="expanded-record"
+                :variant="compactMode ? 'button' : 'footer'"
+                :attached="isMultiLineAgent(col)"
+                :has-value="!isBlankFieldValue(_row.row[col.title!])"
+                :loading="isFieldAgentGenerating(col.id!)"
+                @click="runFieldAgent(col)"
+              />
             </div>
           </template>
         </PermissionsTooltip>

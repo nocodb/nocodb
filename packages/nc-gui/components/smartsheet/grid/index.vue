@@ -201,7 +201,7 @@ const interfaceExpandRecord = inject(InterfaceExpandRecordInj, undefined)
 
 provide(ReloadRowDataHookInj, reloadViewDataHook)
 
-provide('onAgentStatus', onAgentStatus)
+provide(FieldAgentStatusHandlerInj, onAgentStatus)
 
 const skipRowRemovalOnCancel = ref(false)
 

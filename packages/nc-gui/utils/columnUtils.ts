@@ -36,6 +36,19 @@ export const AIPrompt = 'AIPrompt'
 
 export const AIFieldAgent = 'AIFieldAgent'
 
+/**
+ * The extra-options row a custom agent field gets in its panel: Options for
+ * selects, Format for numbers, none for text types (whose options — rich text,
+ * Smart text, AI Text — conflict with an agent).
+ */
+export const getFieldAgentOptionsKind = (uidt?: string): 'options' | 'format' | null => {
+  if (uidt === UITypes.SingleSelect || uidt === UITypes.MultiSelect) return 'options'
+  if (uidt === UITypes.Number || uidt === UITypes.Decimal || uidt === UITypes.Percent || uidt === UITypes.Currency) {
+    return 'format'
+  }
+  return null
+}
+
 export const LongTextAiMetaProp = _LongTextAiMetaProp
 
 /**

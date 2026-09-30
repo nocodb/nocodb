@@ -74,8 +74,13 @@ const { isUIAllowed, isMetaReadOnly, isDataReadOnly, environmentRestrictionReaso
 
 const { showEEFeatures } = useEeConfig()
 
-const { isAiFeaturesEnabled, aiIntegrationAvailable, getFieldAgentDirtyCount, fetchFieldAgentDirtyCount, isDirtyCountLoading } =
-  useNocoAi()
+const {
+  isFieldAgentFeatureEnabled,
+  aiIntegrationAvailable,
+  getFieldAgentDirtyCount,
+  fetchFieldAgentDirtyCount,
+  isDirtyCountLoading,
+} = useNocoAi()
 
 const { isColumnRunning: isFieldAgentColumnRunning, runFieldAgentBulk } = useFieldAgentBulkRun()
 
@@ -956,7 +961,14 @@ const onDeleteColumn = () => {
 
       <!-- Field Agent Bulk Run (EE only — select columns with field agent enabled) -->
       <template
-        v-if="isEeUI && isAiFeaturesEnabled && aiIntegrationAvailable && isFieldAgentCol(column) && !isLocked && !isDataReadOnly"
+        v-if="
+          isEeUI &&
+          isFieldAgentFeatureEnabled &&
+          aiIntegrationAvailable &&
+          isFieldAgentCol(column) &&
+          !isLocked &&
+          !isDataReadOnly
+        "
       >
         <NcDivider />
         <NcSubMenu class="nc-column-field-agent-run" :disabled="isFieldAgentColumnRunning(column.id)">

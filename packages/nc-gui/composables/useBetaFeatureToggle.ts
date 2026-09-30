@@ -62,6 +62,15 @@ const FEATURES = [
     isEE: true,
   },
   {
+    id: 'ai_field_agents',
+    title: 'Custom agents',
+    description: 'Enable custom agents: fields whose values an AI fills in from your instructions.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
     id: 'integrations',
     get title() {
       return getI18n().global.t('general.integrations')

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import {
+  type ColumnType,
   PermissionEntity,
   PermissionKey,
+  SelectFieldAgentMetaProp,
   type TableType,
   type ViewType,
   isAIPromptCol,
@@ -97,7 +99,7 @@ const isDeleteAllRecordsModalOpen = ref(false)
 // Composables
 const { isDataReadOnly, isUIAllowed } = useRoles()
 const { showUpgradeToUseFieldAgent } = useEeConfig()
-const { aiIntegrations, isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi()
+const { aiIntegrations, isFieldAgentFeatureEnabled, aiIntegrationAvailable } = useNocoAi()
 const { isAiRecordContextEnabled, setAiRecordContext } = useAiRecordContext()
 const { appInfo, isMobileMode } = useGlobal()
 const { paste } = usePaste()
@@ -344,24 +346,24 @@ const execBulkAction = async (path: Array<number>) => {
   )
 }
 
-// Field Agent: enabled only when all selected cells are in the same column AND it's a field agent column
-const isSelectionFieldAgent = computed(() => {
-  if (!selection.value || contextMenuCol.value === null) return false
+// Field agent columns inside the selected column range; non-agent columns are skipped.
+const selectedFieldAgentColumns = computed(() => {
+  if (!selection.value || contextMenuCol.value === null) return []
 
-  // All selected cells must be in the same column
-  if (selection.value.start.col !== selection.value.end.col) return false
+  const from = Math.min(selection.value.start.col, selection.value.end.col)
+  const to = Math.max(selection.value.start.col, selection.value.end.col)
 
-  const col = columns.value[selection.value.start.col]?.columnObj
-  if (!col) return false
-
-  return isFieldAgentCol(col)
+  return columns.value
+    .slice(from, to + 1)
+    .map((c) => c?.columnObj)
+    .filter((c): c is ColumnType => !!c?.id && isFieldAgentCol(c))
 })
 
 const showRunFieldAgent = computed(() => {
   return (
-    isAiFeaturesEnabled.value &&
+    isFieldAgentFeatureEnabled.value &&
     aiIntegrationAvailable.value &&
-    isSelectionFieldAgent.value &&
+    selectedFieldAgentColumns.value.length > 0 &&
     contextMenuCol.value !== null &&
     contextMenuRow.value !== null &&
     contextMenuPath.value !== null &&
@@ -370,15 +372,54 @@ const showRunFieldAgent = computed(() => {
   )
 })
 
+/**
+ * Order agents so one whose prompt references another selected agent runs after it —
+ * each run reads its rows fresh, so it then sees the value just generated. Anything
+ * left in a cycle falls back to column order.
+ */
+function orderByPromptDependency(agentCols: ColumnType[]) {
+  const byTitle = new Map(agentCols.map((c) => [c.title, c]))
+
+  const deps = new Map<string, Set<string>>()
+  for (const col of agentCols) {
+    const promptRaw: string = parseProp(col.meta)?.[SelectFieldAgentMetaProp]?.prompt_raw ?? ''
+    const refs = new Set<string>()
+    for (const [, title] of promptRaw.matchAll(/\{([^}]+)\}/g)) {
+      const dep = byTitle.get(title)
+      if (dep?.id && dep.id !== col.id) refs.add(dep.id)
+    }
+    deps.set(col.id!, refs)
+  }
+
+  const ordered: ColumnType[] = []
+  const done = new Set<string>()
+  let pending = [...agentCols]
+
+  while (pending.length) {
+    const ready = pending.filter((c) => [...deps.get(c.id!)!].every((d) => done.has(d)))
+    const next = ready.length ? ready : pending // cycle — keep column order
+
+    for (const col of next) {
+      ordered.push(col)
+      done.add(col.id!)
+    }
+    pending = pending.filter((c) => !done.has(c.id!))
+  }
+
+  return ordered
+}
+
 const execFieldAgent = async (path: Array<number>) => {
   if (showUpgradeToUseFieldAgent()) return
 
-  const column = columns.value[selection.value.start.col]
-  const colObj = column?.columnObj
+  const agentCols = orderByPromptDependency(selectedFieldAgentColumns.value)
+  if (!agentCols.length) return
 
-  if (!colObj || !colObj.id) return
-
-  const rows = await getRows(selection.value.start.row, selection.value.end.row, path)
+  const rows = await getRows(
+    Math.min(selection.value.start.row, selection.value.end.row),
+    Math.max(selection.value.start.row, selection.value.end.row),
+    path,
+  )
 
   if (!rows || rows.length === 0) return
 
@@ -391,12 +432,15 @@ const execFieldAgent = async (path: Array<number>) => {
 
   if (!pks.length) return
 
-  await actionManager.value.executeBulkAiGeneration(
-    colObj.id,
-    pks.map((r) => r.pk!),
-    pks.map((r) => r.row),
-    path,
-  )
+  // Sequential on purpose: see orderByPromptDependency.
+  for (const col of agentCols) {
+    await actionManager.value.executeBulkAiGeneration(
+      col.id!,
+      pks.map((r) => r.pk!),
+      pks.map((r) => r.row),
+      path,
+    )
+  }
 }
 </script>
 
@@ -886,7 +930,7 @@ const execFieldAgent = async (path: Array<number>) => {
       >
         <div v-e="['a:field-agent:cell:generate', { source: 'context-menu' }]" class="flex gap-2 items-center">
           <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
-          {{ $t('labels.fieldAgent.runAiAgent') }}
+          {{ selectedFieldAgentColumns.length > 1 ? $t('labels.fieldAgent.runAiAgents') : $t('labels.fieldAgent.runAiAgent') }}
         </div>
       </NcMenuItem>
 

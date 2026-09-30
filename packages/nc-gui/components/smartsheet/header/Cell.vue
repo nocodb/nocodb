@@ -372,5 +372,4 @@ const onClick = (e: Event) => {
   word-break: break-word;
   white-space: pre-line;
 }
-
 </style>

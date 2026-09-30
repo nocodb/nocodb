@@ -24,6 +24,12 @@ export interface NcContext {
     is_agent?: boolean;
   };
   fk_model_id?: string;
+  /**
+   * Server-set only, on field-agent job contexts: how many agent runs led to
+   * this write. Rides into record hooks so automatic generation can stop
+   * agent-to-agent chains from looping. Never read from a request.
+   */
+  field_agent_depth?: number;
   socket_id?: string;
   /**
    * Per-tab UUID propagated from the GUI via the `x-nc-tab-id` request header.

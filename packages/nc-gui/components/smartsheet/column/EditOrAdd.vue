@@ -5,6 +5,7 @@ import {
   FIELD_AGENT_SUPPORTED_TYPES,
   PlanFeatureTypes,
   PlanTitles,
+  SelectFieldAgentMetaProp,
   UITypesSearchTerms,
   isAIPromptCol,
   isSupportedDisplayValueColumn,
@@ -76,7 +77,8 @@ if (props.preload?.colOptions) {
   formState.value.colOptions = { ...props.preload.colOptions }
 }
 
-const { isAiFeaturesEnabled, isAiBetaFeaturesEnabled, aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
+const { isAiFeaturesEnabled, isAiBetaFeaturesEnabled, isFieldAgentFeatureEnabled, aiIntegrationAvailable, aiLoading, aiError } =
+  useNocoAi()
 
 const {
   aiMode: aiAutoSuggestMode,
@@ -131,6 +133,7 @@ const {
   blockColourField,
   showUpgradeToUseColourField,
   showEEFeatures,
+  showUpgradeToUseFieldAgent,
 } = useEeConfig()
 
 const { eventBus } = useSmartsheetStoreOrThrow()
@@ -189,7 +192,7 @@ const columnUidt = computed({
     return formState.value.uidt
   },
   set: (value: UITypes) => {
-    // AIFieldAgent is handled via its submenu, not direct selection
+    // Handled by onSelectType (the select's @change), which knows the output type
     if (value === AIFieldAgent) return
 
     if (value === AIPrompt && showUpgradeToUseAiPromptField({ triggerSource: 'field-menu-ai-prompt' })) {
@@ -273,9 +276,15 @@ const uiFilters = (t: UiTypesType) => {
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
-  const showAiFields = [AIPrompt, AIButton, AIFieldAgent].includes(t.name)
-    ? isAiBetaFeaturesEnabled.value && !isEdit.value && isEeUI && showEEFeatures.value
-    : true
+  // AIFieldAgent has its own experimental flag, independent of the AI beta features flag
+  const showAiFields =
+    t.name === AIPrompt && isFieldAgentFeatureEnabled.value
+      ? false
+      : [AIPrompt, AIButton].includes(t.name)
+      ? isAiBetaFeaturesEnabled.value && !isEdit.value && isEeUI && showEEFeatures.value
+      : t.name === AIFieldAgent
+      ? isFieldAgentFeatureEnabled.value && !isEdit.value && isEeUI && showEEFeatures.value
+      : true
   const showColourField = t.name === UITypes.Colour ? showEEFeatures.value : true
   const isAllowToAddInFormView = isForm.value ? !isFormViewHiddenCol(t.name as UITypes) : true
 
@@ -405,7 +414,10 @@ const handleScrollDebounce = useDebounceFn(() => {
   }
 }, 500)
 
-const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSearchList = false) => {
+const onSelectType = (
+  uidt: UITypes | typeof AIButton | typeof AIPrompt | typeof AIFieldAgent | `${typeof AIFieldAgent}:${UITypes}`,
+  fromSearchList = false,
+) => {
   let preload
 
   if ((uidt === AIPrompt && blockAiPromptField.value) || (uidt === AIButton && blockAiButtonField.value)) return
@@ -416,8 +428,18 @@ const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSea
     onInit()
   }
 
-  if (typeof uidt === 'string' && uidt.startsWith(AIFieldAgent + ':')) {
-    // AIFieldAgent submenu: extract real UIType and preload field_agent enabled meta
+  // Bare "Custom agent" from the type dropdown: keep the current type when an agent supports it
+  if (uidt === AIFieldAgent) {
+    const agentType = FIELD_AGENT_SUPPORTED_TYPES.includes(formState.value.uidt)
+      ? formState.value.uidt
+      : FIELD_AGENT_SUPPORTED_TYPES[0]
+    uidt = `${AIFieldAgent}:${agentType as UITypes}`
+  }
+
+  if (typeof uidt === 'string' && uidt.startsWith(`${AIFieldAgent}:`) && showUpgradeToUseFieldAgent()) return
+
+  if (typeof uidt === 'string' && uidt.startsWith(`${AIFieldAgent}:`)) {
+    // Custom agent: extract the output UIType and preload field_agent enabled meta
     const realType = uidt.split(':')[1] as UITypes
     formState.value.uidt = realType
     preload = {
@@ -446,6 +468,32 @@ const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSea
   nextTick(() => {
     handleScrollDebounce()
   })
+}
+
+// Custom agent panel: the column editor swaps its type picker and extra options for the agent layout
+const isAgentMode = computed(
+  () =>
+    isFieldAgentFeatureEnabled.value &&
+    FIELD_AGENT_SUPPORTED_TYPES.includes(formState.value.uidt) &&
+    parseProp(formState.value.meta)?.[SelectFieldAgentMetaProp]?.enabled === true,
+)
+
+// Which options row the agent panel shows: none for text types, whose options conflict with an agent
+const agentOptionsKind = computed<'format' | 'options' | null>(() => {
+  if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(formState.value.uidt)) return 'options'
+  if ([UITypes.Number, UITypes.Decimal, UITypes.Percent, UITypes.Currency].includes(formState.value.uidt)) return 'format'
+  return null
+})
+
+function onAgentTypeChange(uidt: UITypes) {
+  const agent = parseProp(formState.value.meta)?.[SelectFieldAgentMetaProp] ?? {}
+
+  onSelectType(`${AIFieldAgent}:${uidt}`)
+
+  formState.value.meta = {
+    ...(parseProp(formState.value.meta) ?? {}),
+    [SelectFieldAgentMetaProp]: { ...agent, enabled: true },
+  }
 }
 
 const reloadMetaAndData = async () => {
@@ -1239,7 +1287,11 @@ const unique = computed({
             ref="antInput"
             v-model="formState.title"
             :disabled="readOnly || !isFullUpdateAllowed || isSystem || isSyncedField"
-            :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
+            :placeholder="
+              isAgentMode
+                ? $t('labels.fieldAgent.agentNamePlaceholder')
+                : `${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`
+            "
             class="flex flex-grow nc-fields-input nc-input-shadow text-sm font-semibold outline-none bg-inherit min-h-6"
             :class="{
               'nc-ai-input': isAiMode,
@@ -1267,7 +1319,11 @@ const unique = computed({
             :class="{
               'nc-ai-input': isAiMode,
             }"
-            :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
+            :placeholder="
+              isAgentMode
+                ? $t('labels.fieldAgent.agentNamePlaceholder')
+                : `${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`
+            "
             :disabled="isKanban || readOnly || !isFullUpdateAllowed || isSystem || isSyncedField"
             @change="debouncedOnPredictFieldType"
             @input="onAlter(8)"
@@ -1275,7 +1331,9 @@ const unique = computed({
         </NcTooltip>
       </a-form-item>
 
-      <div class="flex items-center gap-1 empty:hidden">
+      <LazySmartsheetColumnFieldAgentConfig v-if="isAgentMode" v-model:value="formState" @change-type="onAgentTypeChange" />
+
+      <div v-if="!isAgentMode" class="flex items-center gap-1 empty:hidden">
         <template v-if="!props.hideType && !formState.uidt">
           <SmartsheetColumnUITypesOptionsWithSearch
             v-if="!(aiAutoSuggestMode && !props.fromTableExplorer)"
@@ -1438,67 +1496,77 @@ const unique = computed({
         />
       </a-form-item>
 
-      <template v-if="!readOnly && formState.uidt">
-        <SmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
-        <SmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
-        <SmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
-        <SmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
-        <SmartsheetColumnLongTextOptions
-          v-if="formState.uidt === UITypes.LongText"
-          v-model="formState"
-          @navigate-to-integrations="handleNavigateToIntegrations"
-        />
-        <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
-        <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
-        <SmartsheetColumnColourOptions v-if="formState.uidt === UITypes.Colour" v-model:value="formState" />
-        <SmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
-        <SmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" v-model:value="formState" />
-        <SmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
-        <SmartsheetColumnTimeOptions v-if="formState.uidt === UITypes.Time" v-model:value="formState" />
-        <SmartsheetColumnNumberOptions v-if="formState.uidt === UITypes.Number" v-model:value="formState" />
-        <SmartsheetColumnAutoNumberOptions v-if="formState.uidt === UITypes.AutoNumber" v-model:value="formState" />
-        <SmartsheetColumnDecimalOptions v-if="formState.uidt === UITypes.Decimal" v-model:value="formState" />
-        <!-- LastModifiedTime renders its own Fields/Formatting tabs and embeds DateTimeOptions -->
-        <SmartsheetColumnLastModifiedTimeOptions v-if="formState.uidt === UITypes.LastModifiedTime" v-model:value="formState" />
-        <!-- LastModifiedBy has no formatting options — only the tracked-fields section -->
-        <SmartsheetColumnTrackedFieldsOptions v-if="formState.uidt === UITypes.LastModifiedBy" v-model:value="formState" />
-        <SmartsheetColumnDateTimeOptions
-          v-if="[UITypes.DateTime, UITypes.CreatedTime].includes(formState.uidt)"
-          v-model:value="formState"
-        />
-        <SmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
-        <SmartsheetColumnLinkedToAnotherRecordOptions
-          v-if="isLinksOrLTAR(formState.uidt)"
-          :key="`${formState.uidt}-${formState.id || 'new'}`"
-          v-model:value="formState"
-          :is-edit="isEdit && !isTextToLtarConversion"
-          :hide-advanced-options="isTextToLtarConversion"
-          @upgrade="isConvertLinkV2ModalOpen = true"
-        />
-        <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" v-model:value="formState" />
-        <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
-        <SmartsheetColumnUserOptions v-if="formState.uidt === UITypes.User" v-model:value="formState" :is-edit="isEdit" />
-        <SmartsheetColumnSelectOptions
-          v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
-          ref="selectOptionsRef"
-          v-model:value="formState"
-          :from-table-explorer="props.fromTableExplorer || false"
-        />
-        <SmartsheetColumnButtonOptions
-          v-if="formState.uidt === UITypes.Button"
-          v-model:value="formState"
-          :from-table-explorer="props.fromTableExplorer || false"
-          @navigate-to-integrations="handleNavigateToIntegrations"
-        />
-        <SmartsheetColumnAiButtonOptions
-          v-if="formState.uidt === UITypes.Button && formState?.type === ButtonActionsType.Ai"
-          v-model:value="formState"
-          :submit-btn-label="submitBtnLabel"
-          :saving="saving"
-          @navigate-to-integrations="handleNavigateToIntegrations"
-          @on-submit="onSubmit"
-        />
-      </template>
+      <!-- Agent mode groups these rows on one rhythm; otherwise the wrapper is layout-transparent -->
+      <div :class="isAgentMode ? 'flex flex-col gap-2' : 'contents'">
+        <SmartsheetColumnOptionsFlyout :enabled="isAgentMode && !!agentOptionsKind" :value="formState">
+          <template v-if="!readOnly && formState.uidt && (!isAgentMode || agentOptionsKind)">
+            <SmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
+            <SmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
+            <SmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
+            <SmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
+            <SmartsheetColumnLongTextOptions
+              v-if="formState.uidt === UITypes.LongText && !isAgentMode"
+              v-model="formState"
+              @navigate-to-integrations="handleNavigateToIntegrations"
+            />
+            <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
+            <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
+            <SmartsheetColumnColourOptions v-if="formState.uidt === UITypes.Colour" v-model:value="formState" />
+            <SmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
+            <SmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" v-model:value="formState" />
+            <SmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
+            <SmartsheetColumnTimeOptions v-if="formState.uidt === UITypes.Time" v-model:value="formState" />
+            <SmartsheetColumnNumberOptions v-if="formState.uidt === UITypes.Number" v-model:value="formState" />
+            <SmartsheetColumnAutoNumberOptions v-if="formState.uidt === UITypes.AutoNumber" v-model:value="formState" />
+            <SmartsheetColumnDecimalOptions v-if="formState.uidt === UITypes.Decimal" v-model:value="formState" />
+            <!-- LastModifiedTime renders its own Fields/Formatting tabs and embeds DateTimeOptions -->
+            <SmartsheetColumnLastModifiedTimeOptions
+              v-if="formState.uidt === UITypes.LastModifiedTime"
+              v-model:value="formState"
+            />
+            <!-- LastModifiedBy has no formatting options — only the tracked-fields section -->
+            <SmartsheetColumnTrackedFieldsOptions v-if="formState.uidt === UITypes.LastModifiedBy" v-model:value="formState" />
+            <SmartsheetColumnDateTimeOptions
+              v-if="[UITypes.DateTime, UITypes.CreatedTime].includes(formState.uidt)"
+              v-model:value="formState"
+            />
+            <SmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
+            <SmartsheetColumnLinkedToAnotherRecordOptions
+              v-if="isLinksOrLTAR(formState.uidt)"
+              :key="`${formState.uidt}-${formState.id || 'new'}`"
+              v-model:value="formState"
+              :is-edit="isEdit && !isTextToLtarConversion"
+              :hide-advanced-options="isTextToLtarConversion"
+              @upgrade="isConvertLinkV2ModalOpen = true"
+            />
+            <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" v-model:value="formState" />
+            <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
+            <SmartsheetColumnUserOptions v-if="formState.uidt === UITypes.User" v-model:value="formState" :is-edit="isEdit" />
+            <SmartsheetColumnSelectOptions
+              v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
+              ref="selectOptionsRef"
+              v-model:value="formState"
+              :from-table-explorer="props.fromTableExplorer || false"
+            />
+            <SmartsheetColumnButtonOptions
+              v-if="formState.uidt === UITypes.Button"
+              v-model:value="formState"
+              :from-table-explorer="props.fromTableExplorer || false"
+              @navigate-to-integrations="handleNavigateToIntegrations"
+            />
+            <SmartsheetColumnAiButtonOptions
+              v-if="formState.uidt === UITypes.Button && formState?.type === ButtonActionsType.Ai"
+              v-model:value="formState"
+              :submit-btn-label="submitBtnLabel"
+              :saving="saving"
+              @navigate-to-integrations="handleNavigateToIntegrations"
+              @on-submit="onSubmit"
+            />
+          </template>
+        </SmartsheetColumnOptionsFlyout>
+
+        <LazySmartsheetColumnFieldAgentTriggers v-if="isAgentMode" v-model:value="formState" />
+      </div>
 
       <template v-if="formState.uidt">
         <div v-if="formState.meta && columnToValidate.includes(formState.uidt)" class="flex items-center gap-1">
@@ -1516,7 +1584,7 @@ const unique = computed({
           </NcSwitch>
         </div>
 
-        <template v-if="!readOnly && isFullUpdateAllowed">
+        <template v-if="!readOnly && isFullUpdateAllowed && !isAgentMode">
           <div class="nc-column-options-wrapper flex flex-col gap-4">
             <!-- Unique Constraint Toggle -->
             <div
@@ -1665,12 +1733,6 @@ const unique = computed({
             </Transition>
           </template>
         </template>
-
-        <!-- Field Agent Config - shown as last section before description/buttons for all supported types -->
-        <LazySmartsheetColumnFieldAgentConfig
-          v-if="isAiFeaturesEnabled && FIELD_AGENT_SUPPORTED_TYPES.includes(formState.uidt)"
-          v-model:value="formState"
-        />
 
         <a-form-item
           v-if="enableDescription && !aiAutoSuggestMode"

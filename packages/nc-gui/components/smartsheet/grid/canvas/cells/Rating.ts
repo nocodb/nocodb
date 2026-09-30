@@ -242,20 +242,18 @@ export const RatingCellRenderer: CellRenderer = {
     }
   },
 
-  async handleClick(props) {
-    const {
-      mousePosition,
-      column,
-      row,
-      getCellPosition,
-      updateOrSaveRow,
-      value,
-      cellRenderStore,
-      readonly,
-      path,
-      formula,
-    } = props
-
+  async handleClick({
+    mousePosition,
+    column,
+    row,
+    getCellPosition,
+    updateOrSaveRow,
+    value,
+    cellRenderStore,
+    readonly,
+    path,
+    formula,
+  }) {
     if (!row || !column || readonly || formula || !column.isCellEditable || column.isSyncedColumn) return false
 
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)

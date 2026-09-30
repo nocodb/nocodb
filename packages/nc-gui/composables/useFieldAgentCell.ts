@@ -15,11 +15,11 @@ export function useFieldAgentCell({
   emit: (event: 'update:modelValue', value: any) => void
 }) {
   const smartsheetRowStore = useSmartsheetRowStore()
-  const { generateRows, generatingRows, generatingColumnRows, isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi()
+  const { generateRows, generatingRows, generatingColumnRows, isFieldAgentFeatureEnabled, aiIntegrationAvailable } = useNocoAi()
   const { showUpgradeToUseFieldAgent } = useEeConfig()
 
   const isFieldAgent = computed(() => {
-    return isAiFeaturesEnabled.value && aiIntegrationAvailable.value && isFieldAgentCol(column.value)
+    return isFieldAgentFeatureEnabled.value && aiIntegrationAvailable.value && isFieldAgentCol(column.value)
   })
 
   const rowPk = computed(() => {

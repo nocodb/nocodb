@@ -115,7 +115,7 @@ export const UITypesName = {
   [UITypes.UUID]: 'UUID',
   AIButton: 'AI Button',
   AIPrompt: 'AI Text',
-  AIFieldAgent: 'AI Field Agent',
+  AIFieldAgent: 'Custom agent',
 };
 
 export const UITypesSearchTerms = {
@@ -264,7 +264,7 @@ export const UITypesSearchTerms = {
   ],
   AIButton: ['AI Button', 'AI action', 'smart button'],
   AIPrompt: ['AI Text', 'AI Prompt', 'AI field', 'smart field'],
-  AIFieldAgent: ['AI Field Agent', 'field agent', 'AI agent', 'smart agent'],
+  AIFieldAgent: ['Custom agent', 'AI agent', 'field agent', 'AI field agent', 'smart agent'],
 };
 
 export const columnTypeName = (column?: ColumnType) => {
@@ -416,6 +416,7 @@ export function isAIPromptCol(col: ColumnReqType | ColumnType) {
  * and backend (ai-data.service.ts) to gate field agent functionality.
  */
 export const FIELD_AGENT_SUPPORTED_TYPES = [
+  UITypes.LongText,
   UITypes.SingleSelect,
   UITypes.MultiSelect,
   UITypes.SingleLineText,
@@ -425,6 +426,16 @@ export const FIELD_AGENT_SUPPORTED_TYPES = [
   UITypes.Currency,
   UITypes.JSON,
 ];
+
+/** Shape of `column.meta[SelectFieldAgentMetaProp]`. */
+export interface FieldAgentMeta {
+  enabled?: boolean;
+  prompt_raw?: string;
+  fk_integration_id?: string | null;
+  model?: string;
+  /** Regenerate when the record is created or a referenced field changes. */
+  auto_generate?: boolean;
+}
 
 /**
  * Returns true if the column has field agent enabled in its metadata

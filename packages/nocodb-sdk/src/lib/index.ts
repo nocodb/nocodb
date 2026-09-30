@@ -41,6 +41,7 @@ export {
   numericUITypes,
   isAIPromptCol,
   isFieldAgentCol,
+  type FieldAgentMeta,
   FIELD_AGENT_SUPPORTED_TYPES,
   isNumericCol,
   isVirtualCol,

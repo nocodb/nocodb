@@ -98,6 +98,7 @@ export type InternalGETResponseType = Promise<
   | FactoryRepoType[]
   | FactoryPort[]
   | FactoryPreview
+  | { count: number; rowIds: string[] }
 >;
 
 export type InternalPOSTResponseType = Promise<

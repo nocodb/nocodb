@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTagLabel, truncateText } from '../utils/canvas'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
+
 const defaultDateFormat = 'YYYY-MM-DD'
 
 export const DateCellRenderer: CellRenderer = {
@@ -74,6 +75,7 @@ export const DateCellRenderer: CellRenderer = {
 
   async handleClick(ctx) {
     const { row, column, makeCellEditable, getCellPosition, mousePosition, value, selected } = ctx
+
     if (!selected) return false
     const bound = getCellPosition(column, row.rowMeta.rowIndex!)
     const padding = 8

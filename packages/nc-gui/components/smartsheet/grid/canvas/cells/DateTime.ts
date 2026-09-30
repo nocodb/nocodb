@@ -8,7 +8,8 @@ import { timeCellMaxWidthMap, timeFormatsObj } from '../utils/cell'
 dayjs.extend(utc)
 
 export const DateTimeCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, selected, pv, column, padding, readonly, getColor }) => {
+  render: (ctx, props) => {
+    const { value, x, y, width, selected, pv, column, padding, readonly, getColor } = props
     ctx.font = `${pv ? 600 : 500} 13px Inter`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
@@ -55,6 +56,7 @@ export const DateTimeCellRenderer: CellRenderer = {
     }
 
     const dateStr = dateTimeValue?.format(dateFormat) ?? ''
+
     const truncatedDate = truncateText(ctx, dateStr, dateWidth - 4 * 2)
 
     ctx.fillStyle = pv ? getColor(themeV4Colors.brand['500']) : getColor(themeV4Colors.gray['600'])
@@ -76,6 +78,7 @@ export const DateTimeCellRenderer: CellRenderer = {
 
   async handleClick(ctx) {
     const { row, column, makeCellEditable, getCellPosition, mousePosition, value, selected } = ctx
+
     const bound = getCellPosition(column, row.rowMeta.rowIndex)
     const padding = 8
     if (!selected || column.readonly || isCreatedOrLastModifiedTimeCol(column.uidt)) return false

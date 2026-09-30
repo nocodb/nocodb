@@ -110,6 +110,7 @@ import * as nc_202609211109_code_projects from './v0/nc_202609211109_code_projec
 import * as nc_202609250735_oauth_scope_text from './v0/nc_202609250735_oauth_scope_text';
 import * as nc_202609251200_vaults from './v0/nc_202609251200_vaults';
 import * as nc_202609260900_interface_detail_default_config from './v0/nc_202609260900_interface_detail_default_config';
+import * as nc_202608201200_rls_policy_access_level from './v0/nc_202608201200_rls_policy_access_level';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -231,6 +232,7 @@ export default class XcMigrationSourcev0 {
       'nc_202609250735_oauth_scope_text',
       'nc_202609251200_vaults',
       'nc_202609260900_interface_detail_default_config',
+      'nc_202608201200_rls_policy_access_level',
     ]);
   }
 
@@ -464,6 +466,8 @@ export default class XcMigrationSourcev0 {
         return nc_202609251200_vaults;
       case 'nc_202609260900_interface_detail_default_config':
         return nc_202609260900_interface_detail_default_config;
+      case 'nc_202608201200_rls_policy_access_level':
+        return nc_202608201200_rls_policy_access_level;
     }
   }
 }

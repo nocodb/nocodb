@@ -106,7 +106,7 @@ onMounted(async () => {
   <MockInjection>
     <div class="bg-nc-bg-gray-light pb-8 overflow-y-auto">
       <a-card>
-        <h4>Simple</h4>
+        <h4>{{ $t('activity.galleryThemeSimple') }}</h4>
 
         <div class="flex gap-4">
           <div class="flex flex-col gap-2">
@@ -128,7 +128,7 @@ onMounted(async () => {
               <div>
                 actionBtnType:
                 <NcSelect v-model:value="options1.actionBtnType">
-                  <a-select-option value="text"> Text </a-select-option>
+                  <a-select-option value="text"> {{ $t('general.text') }} </a-select-option>
                   <a-select-option value="secondary"> Secondary </a-select-option>
                 </NcSelect>
               </div>

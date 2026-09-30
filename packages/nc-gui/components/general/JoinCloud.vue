@@ -77,7 +77,7 @@ const onMouseover = async () => {
       class="flex flex-grow !no-underline items-center justify-center border-r-1 h-full hover:bg-nc-bg-gray-light"
       href="https://app.nocodb.com/signin?utm_source=OSS&utm_medium=OSS&utm_campaign=OSS&utm_content=OSS"
     >
-      <div class="px-1 text-nc-content-gray-muted prose-sm" style="line-height: 1.3125rem">Try NocoDB Cloud</div>
+      <div class="px-1 text-nc-content-gray-muted prose-sm" style="line-height: 1.3125rem">{{ $t('labels.tryNocodbCloud') }}</div>
     </a>
 
     <a-tooltip arrow-point-at-center overlay-class-name="nc-join-cloud-tooltip">
@@ -89,10 +89,10 @@ const onMouseover = async () => {
           <div class="p-4 bg-nc-bg-default gap-4 inline-flex flex-col w-full">
             <div class="flex items-center gap-3">
               <div class="text-base text-nc-content-gray-emphasis font-bold flex-1">NocoDB Cloud</div>
-              <div class="text-caption px-1 rounded-md bg-nc-bg-brand text-nc-content-brand">Usage based</div>
+              <div class="text-caption px-1 rounded-md bg-nc-bg-brand text-nc-content-brand">{{ $t('labels.usageBased') }}</div>
             </div>
 
-            <div class="text-sm font-bold text-nc-content-gray-emphasis">Includes</div>
+            <div class="text-sm font-bold text-nc-content-gray-emphasis">{{ $t('labels.includes') }}</div>
 
             <div v-if="!isLoading" class="flex flex-col gap-2">
               <div
@@ -112,7 +112,7 @@ const onMouseover = async () => {
                 </span>
                 <span v-if="feature['Coming Soon']" class="flex-1 inline-flex justify-end">
                   <span class="inline-block px-1 rounded-md bg-nc-bg-gray-medium text-sm text-nc-content-gray-subtle2">
-                    Soon
+                    {{ $t('labels.onboarding.tabSoon') }}
                   </span>
                 </span>
               </div>
@@ -123,10 +123,10 @@ const onMouseover = async () => {
 
             <div class="flex flex-col gap-2">
               <div class="text-xs leading-[18px] font-normal text-nc-content-gray-muted text-center">
-                (no credit card required)
+                {{ $t('labels.noCreditCardRequired') }}
               </div>
               <a href="https://app.nocodb.com/signin" target="_blank" class="!no-underline" rel="noopener">
-                <NcButton type="secondary" class="w-full">Start for Free</NcButton>
+                <NcButton type="secondary" class="w-full">{{ $t('labels.startForFree') }}</NcButton>
               </a>
             </div>
           </div>

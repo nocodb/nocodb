@@ -139,7 +139,7 @@ onMounted(() => {
   <div class="oauth-authorize-page bg-nc-bg-gray-extralight min-h-screen flex items-center justify-center p-4">
     <div v-if="loading" class="flex items-center bg-nc-bg-default flex-col gap-4">
       <GeneralLoader size="xlarge" />
-      <p class="text-nc-content-gray-subtle2">Loading authorization request...</p>
+      <p class="text-nc-content-gray-subtle2">{{ $t('msg.info.loadingAuthorizationRequest') }}</p>
     </div>
 
     <div
@@ -147,7 +147,7 @@ onMounted(() => {
       class="rounded-xl shadow-sm bg-nc-bg-default border-1 border-nc-border-gray-medium p-8 max-w-md w-full text-center"
     >
       <GeneralIcon icon="alertTriangle" class="w-12 h-12 text-nc-content-red-medium mx-auto mb-4" />
-      <h2 class="text-xl font-semibold text-nc-content-gray-extreme mb-2">Authorization Error</h2>
+      <h2 class="text-xl font-semibold text-nc-content-gray-extreme mb-2">{{ $t('labels.authorizationError') }}</h2>
       <p class="text-nc-content-gray-subtle2 mb-6">{{ error }}</p>
       <NcButton size="small" type="primary" @click="$router.push('/')"> Back to {{ productName }} </NcButton>
     </div>
@@ -190,19 +190,19 @@ onMounted(() => {
       </div>
 
       <div class="bg-nc-bg-gray-extralight mt-4 rounded-lg p-4">
-        <h3 class="font-medium text-nc-content-gray-emphasis mb-3">This application will be able to:</h3>
+        <h3 class="font-medium text-nc-content-gray-emphasis mb-3">{{ $t('labels.applicationWillBeAbleTo') }}:</h3>
         <ul class="space-y-2">
           <li class="flex items-center text-sm text-nc-content-gray-subtle">
             <GeneralIcon icon="ncCheck" class="w-4 h-4 text-green-600 mr-2 flex-shrink-0" />
-            Access the selected base
+            {{ $t('labels.oauthScopeAccessBase') }}
           </li>
           <li class="flex items-center text-sm text-nc-content-gray-subtle">
             <GeneralIcon icon="ncCheck" class="w-4 h-4 text-green-600 mr-2 flex-shrink-0" />
-            Read, create, update, and delete records in this base
+            {{ $t('labels.oauthScopeManageRecords') }}
           </li>
           <li class="flex items-center text-sm text-nc-content-gray-subtle">
             <GeneralIcon icon="ncCheck" class="w-4 h-4 text-green-600 mr-2 flex-shrink-0" />
-            Act on your behalf within the selected resources
+            {{ $t('labels.oauthScopeActOnBehalf') }}
           </li>
         </ul>
       </div>
@@ -212,7 +212,7 @@ onMounted(() => {
           {{ $t('general.cancel') }}
         </NcButton>
         <NcButton :disabled="!canAuthorize" :loading="authorizing" class="flex-1" @click="approveAuthorization">
-          Authorize
+          {{ $t('labels.authorize') }}
         </NcButton>
       </div>
 

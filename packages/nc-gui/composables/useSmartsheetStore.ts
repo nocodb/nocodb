@@ -1,6 +1,7 @@
 import type { ColumnType, FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import { NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere, getFirstNonPersonalView } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import type { CanvasEditEnabledType } from '~/lib/types'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { flattenFiltersForEval } from '~/utils/realtimeUtils'
 
@@ -99,7 +100,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
       return getFirstGridView?.id === view.value?.id
     })
-    const gridEditEnabled = ref(true)
+    const gridEditEnabled = ref<CanvasEditEnabledType>(null)
 
     const isExternalSource = computed(
       () => !!base.value?.sources?.some((s) => s.id === (meta.value as TableType)?.source_id && !s.is_meta && !s.is_local),

@@ -45,6 +45,9 @@ const isFieldListCompact = inject(FieldListCompactInj, ref(false))
 
 const showSearchBox = ref(false)
 
+// Query cleared by Escape; restored (selected) on the next open.
+const lastClosedQuery = ref('')
+
 const globalSearchRef = ref<HTMLInputElement>()
 
 const globalSearchWrapperRef = ref<HTMLInputElement>()
@@ -126,6 +129,7 @@ watch(
         reset = true
       }
 
+      lastClosedQuery.value = ''
       loadFieldQuery(activeView.value?.id, reset)
     }
   },
@@ -193,6 +197,10 @@ const onSelectOption = (column: ColumnType) => {
 }
 
 const handleShowSearchInput = () => {
+  if (!search.value.query && lastClosedQuery.value) {
+    search.value.query = lastClosedQuery.value
+  }
+  lastClosedQuery.value = ''
   showSearchBox.value = true
 
   setTimeout(() => {
@@ -205,29 +213,26 @@ const handleShowSearchInput = () => {
   }, 300)
 }
 
-const handleEscapeKey = () => {
-  if (isDropdownOpen.value || gridEditEnabled.value) return
+const handleEscapeKey = (e: KeyboardEvent) => {
+  if (isDropdownOpen.value) return
 
+  // Outside the box, the first Escape belongs to an in-progress cell edit.
+  const isFromSearchBox = !!globalSearchWrapperRef.value?.contains(e.target as Node)
+  if (!isFromSearchBox && gridEditEnabled.value) return
+
+  if (search.value.query) lastClosedQuery.value = search.value.query
   search.value.query = ''
   showSearchBox.value = false
 }
 
-const handleClickOutside = (e: MouseEvent | KeyboardEvent) => {
-  const targetEl = e.target as HTMLElement
-  if (targetEl?.closest('.nc-dropdown-toolbar-search, .nc-dropdown-toolbar-search-field-option')) {
-    return
-  }
+// Mobile has no Escape key: an empty search box closes on an outside tap.
+onClickOutside(globalSearchWrapperRef, (e) => {
+  if (!isMobileMode.value || !showSearchBox.value || search.value.query || isDropdownOpen.value) return
 
-  // With room, an active query keeps the box open (existing behaviour). When the toolbar is too
-  // narrow we instead fold it back to the indicator icon so it stops overlapping the toolbar.
-  if (search.value.query && !shouldCollapseSearch.value) {
-    return
-  }
+  if ((e.target as HTMLElement)?.closest?.('.nc-dropdown-toolbar-search, .nc-dropdown-toolbar-search-field-option')) return
 
   showSearchBox.value = false
-}
-
-onClickOutside(globalSearchWrapperRef, handleClickOutside)
+})
 
 // Re-align the search dropdown when the toolbar width changes. Opening/resizing the
 // expanded-form, extension or action side panels shrinks the view (and the toolbar
@@ -266,7 +271,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
     e.preventDefault()
     handleShowSearchInput()
   } else if (e.key === 'Escape') {
-    handleEscapeKey()
+    handleEscapeKey(e)
   }
 })
 

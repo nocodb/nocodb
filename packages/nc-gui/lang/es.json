@@ -756,7 +756,8 @@
     "continue": "Continuar",
     "manage": "Gestionar",
     "orgBadge": "Org.",
-    "migrate": "Migrar"
+    "migrate": "Migrar",
+    "email": "Correo electrónico"
   },
   "objects": {
     "script": "Script",
@@ -3097,7 +3098,12 @@
         "variables": "Valores reutilizables para automatizaciones y campos.",
         "migrateToV3": "Actualizar esta base a la plataforma y las API v3.",
         "migrateToCloud": "Mover los datos de esta base a NocoDB Cloud."
-      }
+      },
+      "upgradeAskOwner": "Pedir al propietario que mejore el plan",
+      "upgradeRequestSent": "Solicitud enviada",
+      "upgradeDescRls": "Limita qué registros puede ver y editar cada persona.",
+      "upgradeDescRecordTemplates": "Crea registros nuevos a partir de plantillas guardadas y precargadas.",
+      "upgradeDescDateDependency": "Desplaza automáticamente las fechas dependientes cuando se mueve un registro."
     },
     "categories": "Categorías",
     "blockquote": "Cita",
@@ -4565,7 +4571,113 @@
     "regenerateSecret": "Regenerar secreto",
     "createOauthClients": "Crear clientes OAuth",
     "managingOauthClients": "Gestión de clientes OAuth",
-    "clientInformation": "Información del cliente"
+    "clientInformation": "Información del cliente",
+    "byUser": "por {user}",
+    "requestIntegration": "Solicitar integración",
+    "browseIntegrations": "Explorar integraciones",
+    "examplePrompt": "Ejemplo de prompt",
+    "connectYourAi": "Conecta tu IA",
+    "connectAVault": "Conectar una bóveda",
+    "manageVaults": "Gestionar bóvedas",
+    "baseRelations": "Relaciones de la base",
+    "downloadReport": "Descargar informe",
+    "noLongerWorkspaceMember": "Ya no es miembro de este espacio de trabajo",
+    "notBaseMember": "No es miembro de esta base",
+    "factoryNoSessionMatches": "Ninguna sesión coincide con esa búsqueda",
+    "factoryRepoHasProject": "Tiene un proyecto",
+    "factoryOpenRepo": "Abrir repositorio",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Tablas, vistas, automatizaciones y aplicaciones sobre tus datos.",
+    "projectKindCode": "Proyecto de código",
+    "projectKindCodeHint": "Conecta un repositorio y deja que los agentes trabajen en su código.",
+    "planStatusPending": "Pendiente",
+    "planStatusInProgress": "En curso",
+    "planStatusCompleted": "Completado",
+    "createOauthClient": "Crear cliente OAuth",
+    "downgradeToFreePlan": "Cambiar al plan Free",
+    "plusApplicableTax": "+ impuestos aplicables",
+    "beforeYouCancelPlan": "Antes de cancelar tu plan",
+    "formBranding": "Personalización del formulario",
+    "aiIntegration": "Integración de IA",
+    "model": "Modelo",
+    "enableWebSearch": "Activar búsqueda web",
+    "enableWebSearchHint": "Permitir que el modelo de IA busque en la web información actualizada",
+    "outputSchema": "Esquema de salida",
+    "itemType": "Tipo de elemento",
+    "addProperty": "Añadir propiedad",
+    "addField": "Añadir campo",
+    "planSubtitleBusiness": "Para las necesidades de tu empresa",
+    "planTaglineBusiness": "Ahorra hasta un 70 % frente a Airtable, Monday & Smartsheet",
+    "planSubtitleScale": "Para equipos en crecimiento",
+    "planTaglineScale": "Equipos ágiles con presupuesto.",
+    "planTaglineScaleNoSalesCall": "Sin necesidad de hablar con ventas.",
+    "everythingInBusinessAnd": "Todo lo de Business y",
+    "planSubtitleEnterprise": "Adaptado a tu organización",
+    "scheduleACall": "Programar una llamada",
+    "everythingInScaleAnd": "Todo lo de Scale y",
+    "connectionName": "Nombre de la conexión",
+    "connectionDetailsSection": "Detalles de la conexión",
+    "path": "Ruta",
+    "connectionParameters": "Parámetros de conexión",
+    "advancedOptions": "Opciones avanzadas",
+    "integrationDetails": "Detalles de la integración",
+    "pgConnectionDetails": "Detalles de la conexión",
+    "pgPort": "Puerto",
+    "pgSslMode": "Modo SSL",
+    "connectionJson": "JSON de conexión",
+    "input": "Entrada",
+    "output": "Salida",
+    "console": "Consola",
+    "forgotPassword": "¿Has olvidado tu contraseña?",
+    "privacyPolicy": "Política de privacidad",
+    "clickHere": "Haz clic aquí",
+    "emailVerification": "Verificación del correo electrónico",
+    "method": "Método",
+    "queryParameters": "Parámetros de consulta",
+    "samplePayload": "Ejemplo de carga útil",
+    "addDataSource": "Añadir fuente de datos",
+    "addSource": "Añadir fuente",
+    "dataSourceName": "Nombre de la fuente de datos",
+    "goBack": "Volver",
+    "interval": "Intervalo",
+    "everyMinutes": "Cada minutos",
+    "selectMinute": "Seleccionar minuto",
+    "selectTimeOfDay": "Seleccionar la hora del día",
+    "selectTimeAndDayOfWeek": "Seleccionar la hora y el día de la semana",
+    "selectTimeAndDayOfMonth": "Seleccionar la hora y el día del mes",
+    "editedByYou": "Editado por ti",
+    "regenerating": "Regenerando...",
+    "calendarIsReadonly": "El calendario es de solo lectura",
+    "generatedViews": "Vista(s) generada(s)",
+    "disableConnection": "Desactivar conexión",
+    "connectWithFavoriteTools": "Conecta con tus herramientas favoritas",
+    "getConnectionDetails": "Obtener detalles de la conexión",
+    "connectionUrl": "URL de conexión",
+    "chartSortBy": "Ordenar por",
+    "categoryLimit": "Límite de categorías",
+    "chartLegendOrientation": "Orientación de la leyenda",
+    "plotDataPoints": "Representar puntos de datos",
+    "retryImport": "Reintentar importación",
+    "listening": "A la escucha",
+    "generateAndCopyUrl": "Generar y copiar URL",
+    "executionTime": "Tiempo de ejecución",
+    "requestTime": "Hora de la solicitud",
+    "errorCode": "Código de error",
+    "authorizationError": "Error de autorización",
+    "requestedPermissions": "Permisos solicitados",
+    "applicationWillBeAbleTo": "Esta aplicación podrá",
+    "authorize": "Autorizar",
+    "noUrl": "Sin URL",
+    "imageUrl": "URL de la imagen",
+    "altText": "Texto alternativo",
+    "fitToView": "Ajustar a la vista",
+    "requestBody": "Cuerpo de la solicitud",
+    "bodyType": "Tipo de cuerpo",
+    "httpAdvancedOptions": "Opciones avanzadas",
+    "followRedirects": "Seguir redirecciones",
+    "followRedirectsDescription": "Seguir automáticamente las redirecciones HTTP",
+    "failOnErrorStatus": "Fallar si el estado es de error",
+    "failOnErrorStatusDescription": "Fallar cuando la respuesta sea 4xx o 5xx"
   },
   "activity": {
     "useTemplate": "Usar plantilla",
@@ -6593,7 +6705,7 @@
     "notAvailablePending": "La papelera aún no está disponible para esta tabla.",
     "conflict": {
       "panelTitle": "El registro {count} tiene un conflicto | Los registros {count} tienen conflictos",
-      "panelHelp": "Arreglarlos en el origen y vuelva a intentarlo, o restaurar ahora — borraremos los valores en conflicto.",
+      "panelHelp": "Corrige esto en el origen y vuelve a intentarlo, o restaura ahora. Borraremos los valores en conflicto.",
       "cleanRemainder": "{count} otro registro se restaurará normalmente. | {count} otros registros se restaurarán normalmente.",
       "group": {
         "link": "Enlaces ya tomados",
@@ -6753,7 +6865,7 @@
       "title": "Muévete por tu espacio de trabajo",
       "welcome": {
         "title": "Te damos la bienvenida a NocoDB",
-        "description": "Una vuelta rápida por tu espacio de trabajo. Puedes salir cuando quieras: pulsa Omitir."
+        "description": "Un recorrido rápido por tu espacio de trabajo. Puedes salir cuando quieras: pulsa Saltar."
       },
       "createBase": {
         "title": "Empieza con una Base",
@@ -6780,7 +6892,7 @@
       },
       "create": {
         "title": "Crear un flujo de trabajo",
-        "description": "Empieza desde cero: se abrirá un formulario breve."
+        "description": "Empieza desde cero. Se abrirá un formulario breve."
       },
       "createSubmit": {
         "title": "Créalo",
@@ -6788,7 +6900,7 @@
       },
       "addTrigger": {
         "title": "Añadir un activador",
-        "description": "Todo flujo de trabajo empieza aquí: haz clic para ver qué puede ponerlo en marcha."
+        "description": "Todo flujo de trabajo empieza aquí. Haz clic para ver qué puede activarlo."
       },
       "pickManualTrigger": {
         "title": "Elige «Cuando se active manualmente»",
@@ -6820,15 +6932,15 @@
       },
       "enable": {
         "title": "Actívalo",
-        "description": "Publicado no es lo mismo que en marcha. Un flujo de trabajo permanece <b>En pausa</b> hasta que lo activas: este es el paso que la gente pasa por alto."
+        "description": "Publicado no es lo mismo que en ejecución. Un flujo de trabajo permanece <b>en pausa</b> hasta que lo habilitas. Este es el paso que casi todos olvidan."
       },
       "run": {
         "title": "Ejecútalo una vez",
-        "description": "Un activador manual se dispara cuando tú quieres: pruébalo y míralo ejecutarse."
+        "description": "Un disparador manual se ejecuta bajo demanda. Pruébalo y observa cómo se ejecuta."
       },
       "logs": {
         "title": "Revisar los registros",
-        "description": "Cada ejecución queda registrada aquí: qué se disparó, qué devolvió cada paso y qué falló."
+        "description": "Cada ejecución queda registrada aquí: qué la activó, qué devolvió cada paso y qué falló."
       },
       "wrapUp": {
         "title": "Ese es todo el ciclo",

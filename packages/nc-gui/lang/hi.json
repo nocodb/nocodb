@@ -756,7 +756,8 @@
     "continue": "जारी रखें",
     "manage": "प्रबंधित करें",
     "orgBadge": "संगठन",
-    "migrate": "माइग्रेट करें"
+    "migrate": "माइग्रेट करें",
+    "email": "ईमेल"
   },
   "objects": {
     "script": "स्क्रिप्ट",
@@ -3102,7 +3103,12 @@
         "variables": "स्वचालन और कॉलम के लिए दोबारा इस्तेमाल होने वाले मान।",
         "migrateToV3": "इस बेस को v3 प्लेटफ़ॉर्म और API पर अपग्रेड करें।",
         "migrateToCloud": "इस बेस का डेटा NocoDB Cloud में ले जाएँ।"
-      }
+      },
+      "upgradeAskOwner": "मालिक से अपग्रेड करने को कहें",
+      "upgradeRequestSent": "अनुरोध भेजा गया",
+      "upgradeDescRls": "सीमित करें कि हर व्यक्ति कौन-से अभिलेख देख और संपादित कर सकता है.",
+      "upgradeDescRecordTemplates": "सहेजे गए, पहले से भरे टेम्पलेट से नए अभिलेख बनाएँ.",
+      "upgradeDescDateDependency": "जब कोई अभिलेख खिसकता है तो आश्रित तिथियाँ अपने आप खिसका देता है."
     },
     "categories": "श्रेणियाँ",
     "blockquote": "उद्धरण",
@@ -4579,7 +4585,114 @@
     "regenerateSecret": "सीक्रेट फिर से बनाएँ",
     "createOauthClients": "OAuth क्लाइंट बनाएँ",
     "managingOauthClients": "OAuth क्लाइंट का प्रबंधन",
-    "clientInformation": "क्लाइंट जानकारी"
+    "clientInformation": "क्लाइंट जानकारी",
+    "byUser": "{user} द्वारा",
+    "requestIntegration": "एकीकरण का अनुरोध करें",
+    "browseIntegrations": "एकीकरण ब्राउज़ करें",
+    "examplePrompt": "उदाहरण प्रॉम्प्ट",
+    "connectYourAi": "अपना एआई जोड़ें",
+    "connectAVault": "एक वॉल्ट जोड़ें",
+    "manageVaults": "वॉल्ट प्रबंधित करें",
+    "baseRelations": "बेस संबंध",
+    "downloadReport": "रिपोर्ट डाउनलोड करें",
+    "noLongerWorkspaceMember": "अब इस कार्यस्थान का सदस्य नहीं",
+    "notBaseMember": "इस बेस का सदस्य नहीं",
+    "factoryNoSessionMatches": "उस खोज से कोई सत्र मेल नहीं खाता",
+    "factoryRepoHasProject": "इसमें एक प्रोजेक्ट है",
+    "factoryOpenRepo": "रिपॉजिटरी खोलें",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "आपके डेटा पर तालिकाएँ, दृश्य, स्वचालन और ऐप्स.",
+    "projectKindCode": "कोड प्रोजेक्ट",
+    "projectKindCodeHint": "एक रिपॉजिटरी जोड़ें और एजेंट्स से उसके कोड पर काम करवाएँ.",
+    "planStatusPending": "लंबित",
+    "planStatusInProgress": "प्रगति पर",
+    "planStatusCompleted": "पूर्ण",
+    "createOauthClient": "OAuth क्लाइंट बनाएँ",
+    "downgradeToFreePlan": "Free योजना पर जाएँ",
+    "plusApplicableTax": "+ लागू कर",
+    "beforeYouCancelPlan": "अपनी योजना रद्द करने से पहले",
+    "formBranding": "फ़ॉर्म ब्रांडिंग",
+    "aiIntegration": "एआई एकीकरण",
+    "model": "मॉडल",
+    "enableWebSearch": "वेब खोज सक्षम करें",
+    "enableWebSearchHint": "एआई मॉडल को नवीनतम जानकारी के लिए वेब पर खोज करने दें",
+    "outputSchema": "आउटपुट स्कीमा",
+    "itemType": "आइटम प्रकार",
+    "addProperty": "गुण जोड़ें",
+    "addField": "कॉलम जोड़ें",
+    "planSubtitleBusiness": "आपके व्यवसाय की ज़रूरतों के लिए",
+    "planTaglineBusiness": "Airtable, Monday और Smartsheet की तुलना में 70% तक बचत करें",
+    "planSubtitleScale": "बढ़ती टीमों के लिए",
+    "planTaglineScale": "बजट वाली तेज़ी से आगे बढ़ने वाली टीमें.",
+    "planTaglineScaleNoSalesCall": "किसी सेल्स कॉल की ज़रूरत नहीं.",
+    "everythingInBusinessAnd": "Business में सब कुछ और",
+    "planSubtitleEnterprise": "आपके संगठन के अनुरूप",
+    "scheduleACall": "कॉल शेड्यूल करें",
+    "everythingInScaleAnd": "Scale में सब कुछ और",
+    "connectionName": "कनेक्शन नाम",
+    "connectionDetailsSection": "कनेक्शन विवरण",
+    "host": "होस्ट",
+    "path": "पथ",
+    "connectionParameters": "कनेक्शन पैरामीटर",
+    "advancedOptions": "उन्नत विकल्प",
+    "integrationDetails": "एकीकरण विवरण",
+    "pgConnectionDetails": "कनेक्शन विवरण",
+    "pgPort": "पोर्ट",
+    "pgSslMode": "SSL मोड",
+    "connectionJson": "कनेक्शन JSON",
+    "input": "इनपुट",
+    "output": "आउटपुट",
+    "console": "कंसोल",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "privacyPolicy": "गोपनीयता नीति",
+    "clickHere": "यहाँ क्लिक करें",
+    "emailVerification": "ईमेल सत्यापन",
+    "method": "विधि",
+    "queryParameters": "क्वेरी पैरामीटर",
+    "samplePayload": "नमूना पेलोड",
+    "addDataSource": "डेटा स्रोत जोड़ें",
+    "addSource": "स्रोत जोड़ें",
+    "dataSourceName": "डेटा स्रोत का नाम",
+    "goBack": "वापस जाएँ",
+    "interval": "अंतराल",
+    "everyMinutes": "हर मिनट",
+    "selectMinute": "मिनट चुनें",
+    "selectTimeOfDay": "दिन का समय चुनें",
+    "selectTimeAndDayOfWeek": "समय और सप्ताह का दिन चुनें",
+    "selectTimeAndDayOfMonth": "समय और महीने का दिन चुनें",
+    "editedByYou": "आपके द्वारा संपादित",
+    "regenerating": "फिर से बनाया जा रहा है...",
+    "calendarIsReadonly": "कैलेंडर केवल पढ़ने के लिए है",
+    "generatedViews": "बनाए गए दृश्य",
+    "disableConnection": "कनेक्शन अक्षम करें",
+    "connectWithFavoriteTools": "अपने पसंदीदा टूल से जुड़ें",
+    "getConnectionDetails": "कनेक्शन विवरण प्राप्त करें",
+    "connectionUrl": "कनेक्शन URL",
+    "chartSortBy": "इसके अनुसार क्रमबद्ध करें",
+    "categoryLimit": "श्रेणी सीमा",
+    "chartLegendOrientation": "लेजेंड की दिशा",
+    "plotDataPoints": "डेटा बिंदु आलेखित करें",
+    "retryImport": "आयात फिर से आज़माएँ",
+    "listening": "सुन रहा है",
+    "generateAndCopyUrl": "URL बनाएँ और कॉपी करें",
+    "executionTime": "निष्पादन समय",
+    "requestTime": "अनुरोध का समय",
+    "errorCode": "त्रुटि कोड",
+    "authorizationError": "प्राधिकरण त्रुटि",
+    "requestedPermissions": "माँगी गई अनुमतियाँ",
+    "applicationWillBeAbleTo": "यह एप्लिकेशन ये कर सकेगा",
+    "authorize": "अधिकृत करें",
+    "noUrl": "कोई URL नहीं",
+    "imageUrl": "छवि URL",
+    "altText": "वैकल्पिक पाठ",
+    "fitToView": "दृश्य में फ़िट करें",
+    "requestBody": "अनुरोध बॉडी",
+    "bodyType": "बॉडी प्रकार",
+    "httpAdvancedOptions": "उन्नत विकल्प",
+    "followRedirects": "पुनर्निर्देशन का अनुसरण करें",
+    "followRedirectsDescription": "HTTP पुनर्निर्देशन का स्वतः अनुसरण करें",
+    "failOnErrorStatus": "त्रुटि स्थिति पर विफल करें",
+    "failOnErrorStatusDescription": "जब प्रतिक्रिया 4xx या 5xx हो तो विफल करें"
   },
   "activity": {
     "useTemplate": "टेम्पलेट का उपयोग करें",
@@ -6606,7 +6719,7 @@
     "notAvailablePending": "इस तालिका के लिए कचरा अभी उपलब्ध नहीं है।",
     "conflict": {
       "panelTitle": "{count} रिकॉर्ड में संघर्ष है | {count} रिकॉर्ड्स में संघर्ष हैं",
-      "panelHelp": "इन समस्याओं को स्रोत पर ठीक करें और फिर से प्रयास करें, या अभी पुनर्स्थापित करें — हम विरोधी मानों को हटा देंगे।",
+      "panelHelp": "इन्हें स्रोत पर ठीक करें और फिर से कोशिश करें, या अभी पुनर्स्थापित करें. हम परस्पर विरोधी मान हटा देंगे.",
       "cleanRemainder": "{count} अन्य रिकॉर्ड सामान्य रूप से पुनर्स्थापित हो जाएगा। | {count} अन्य रिकॉर्ड सामान्य रूप से पुनर्स्थापित हो जाएंगे।",
       "group": {
         "link": "लिंक पहले से ही लिए जा चुके हैं",
@@ -6765,7 +6878,7 @@
     "workflows": {
       "addTrigger": {
         "title": "एक ट्रिगर जोड़ें",
-        "description": "हर कार्यप्रवाह यहीं से शुरू होता है — देखिए इसे क्या-क्या शुरू कर सकता है।"
+        "description": "हर वर्कफ़्लो यहीं से शुरू होता है. यह देखने के लिए क्लिक करें कि इसे क्या शुरू कर सकता है."
       },
       "addAction": {
         "title": "एक क्रिया जोड़ें",
@@ -6782,7 +6895,7 @@
       },
       "create": {
         "title": "एक कार्यप्रवाह बनाएँ",
-        "description": "शुरुआत से शुरू करें — इससे एक छोटा फ़ॉर्म खुलेगा।"
+        "description": "शून्य से शुरू करें. इससे एक छोटा फ़ॉर्म खुलेगा."
       },
       "createSubmit": {
         "title": "इसे बनाएँ",
@@ -6810,15 +6923,15 @@
       },
       "enable": {
         "title": "इसे चालू करें",
-        "description": "प्रकाशित होना और चलना एक बात नहीं है। जब तक आप सक्षम नहीं करते, कार्यप्रवाह <b>रुका हुआ</b> ही रहता है — यही वह चरण है जो लोग चूक जाते हैं।"
+        "description": "प्रकाशित होना और चलना एक बात नहीं है. जब तक आप इसे सक्षम नहीं करते, वर्कफ़्लो <b>रुका हुआ</b> रहता है. यही वह चरण है जिसे लोग छोड़ देते हैं."
       },
       "run": {
         "title": "इसे एक बार चलाएँ",
-        "description": "मैन्युअल ट्रिगर माँग पर चलता है — इसे आज़माएँ और चलते हुए देखें।"
+        "description": "मैन्युअल ट्रिगर माँग पर चलता है. इसे आज़माएँ और इसका निष्पादन देखें."
       },
       "logs": {
         "title": "लॉग देखें",
-        "description": "हर चलन यहाँ दर्ज होता है — क्या चला, हर चरण ने क्या लौटाया, और क्या विफल रहा।"
+        "description": "हर बार का चलना यहाँ दर्ज होता है: किसने इसे शुरू किया, हर चरण ने क्या लौटाया, और क्या विफल रहा."
       },
       "wrapUp": {
         "title": "यही पूरा चक्र है",
@@ -6829,7 +6942,7 @@
       "title": "अपने कार्यस्थान से परिचित हों",
       "welcome": {
         "title": "NocoDB में आपका स्वागत है",
-        "description": "आपके कार्यस्थान का एक त्वरित चक्कर। आप कभी भी बाहर निकल सकते हैं — छोड़ें दबाएँ।"
+        "description": "आपके कार्यस्थान का एक त्वरित चक्कर. आप कभी भी बाहर निकल सकते हैं: छोड़ें दबाएँ."
       },
       "createBase": {
         "title": "एक बेस से शुरू करें",

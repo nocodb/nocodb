@@ -756,7 +756,8 @@
     "continue": "Продовжити",
     "manage": "Керувати",
     "orgBadge": "Орг.",
-    "migrate": "Перенести"
+    "migrate": "Перенести",
+    "email": "Ел. пошта"
   },
   "objects": {
     "script": "Скрипт",
@@ -3102,7 +3103,12 @@
         "variables": "Багаторазові значення для автоматизацій і полів.",
         "migrateToV3": "Оновити цю базу до платформи та API версії v3.",
         "migrateToCloud": "Перенести дані цієї бази до NocoDB Cloud."
-      }
+      },
+      "upgradeAskOwner": "Попросити власника підвищити тариф",
+      "upgradeRequestSent": "Запит надіслано",
+      "upgradeDescRls": "Обмежте, які записи кожна людина може бачити та редагувати.",
+      "upgradeDescRecordTemplates": "Створюйте нові записи зі збережених, попередньо заповнених шаблонів.",
+      "upgradeDescDateDependency": "Автоматично зсуває залежні дати під час переміщення запису."
     },
     "categories": "Категорії",
     "blockquote": "Цитата",
@@ -4580,7 +4586,114 @@
     "regenerateSecret": "Створити секрет заново",
     "createOauthClients": "Створення клієнтів OAuth",
     "managingOauthClients": "Керування клієнтами OAuth",
-    "clientInformation": "Відомості про клієнта"
+    "clientInformation": "Відомості про клієнта",
+    "byUser": "від {user}",
+    "requestIntegration": "Запросити інтеграцію",
+    "browseIntegrations": "Переглянути інтеграції",
+    "examplePrompt": "Приклад промпту",
+    "connectYourAi": "Підключіть свій ШІ",
+    "connectAVault": "Підключити сховище",
+    "manageVaults": "Керувати сховищами",
+    "baseRelations": "Зв'язки бази",
+    "downloadReport": "Завантажити звіт",
+    "noLongerWorkspaceMember": "Більше не учасник цієї робочої області",
+    "notBaseMember": "Не є учасником цієї бази",
+    "factoryNoSessionMatches": "Жодна сесія не відповідає цьому пошуку",
+    "factoryRepoHasProject": "Містить проєкт",
+    "factoryOpenRepo": "Відкрити репозиторій",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Таблиці, вигляди, автоматизації та застосунки поверх ваших даних.",
+    "projectKindCode": "Кодовий проєкт",
+    "projectKindCodeHint": "Підключіть репозиторій і доручіть агентам працювати з його кодом.",
+    "planStatusPending": "Очікує",
+    "planStatusInProgress": "У процесі",
+    "planStatusCompleted": "Завершено",
+    "createOauthClient": "Створити клієнт OAuth",
+    "downgradeToFreePlan": "Перейти на тариф Free",
+    "plusApplicableTax": "+ відповідні податки",
+    "beforeYouCancelPlan": "Перш ніж скасувати тариф",
+    "formBranding": "Оформлення форми",
+    "aiIntegration": "Інтеграція ШІ",
+    "model": "Модель",
+    "enableWebSearch": "Увімкнути пошук в інтернеті",
+    "enableWebSearchHint": "Дозволити моделі ШІ шукати в інтернеті актуальну інформацію",
+    "outputSchema": "Схема виведення",
+    "itemType": "Тип елемента",
+    "addProperty": "Додати властивість",
+    "addField": "Додати поле",
+    "planSubtitleBusiness": "Для потреб вашого бізнесу",
+    "planTaglineBusiness": "Заощаджуйте до 70 % порівняно з Airtable, Monday & Smartsheet",
+    "planSubtitleScale": "Для команд, що зростають",
+    "planTaglineScale": "Для швидких команд із бюджетом.",
+    "planTaglineScaleNoSalesCall": "Дзвінок відділу продажів не потрібен.",
+    "everythingInBusinessAnd": "Усе з тарифу Business і",
+    "planSubtitleEnterprise": "Під вашу організацію",
+    "scheduleACall": "Запланувати дзвінок",
+    "everythingInScaleAnd": "Усе з тарифу Scale і",
+    "connectionName": "Назва підключення",
+    "connectionDetailsSection": "Параметри підключення",
+    "host": "Хост",
+    "path": "Шлях",
+    "connectionParameters": "Параметри підключення",
+    "advancedOptions": "Додаткові параметри",
+    "integrationDetails": "Відомості про інтеграцію",
+    "pgConnectionDetails": "Параметри підключення",
+    "pgPort": "Порт",
+    "pgSslMode": "Режим SSL",
+    "connectionJson": "JSON підключення",
+    "input": "Введення",
+    "output": "Виведення",
+    "console": "Консоль",
+    "forgotPassword": "Забули пароль?",
+    "privacyPolicy": "Політика конфіденційності",
+    "clickHere": "Натисніть тут",
+    "emailVerification": "Підтвердження ел. пошти",
+    "method": "Метод",
+    "queryParameters": "Параметри запиту",
+    "samplePayload": "Приклад корисного навантаження",
+    "addDataSource": "Додати джерело даних",
+    "addSource": "Додати джерело",
+    "dataSourceName": "Назва джерела даних",
+    "goBack": "Назад",
+    "interval": "Інтервал",
+    "everyMinutes": "Кожні хвилин",
+    "selectMinute": "Виберіть хвилину",
+    "selectTimeOfDay": "Виберіть час доби",
+    "selectTimeAndDayOfWeek": "Виберіть час і день тижня",
+    "selectTimeAndDayOfMonth": "Виберіть час і день місяця",
+    "editedByYou": "Відредаговано вами",
+    "regenerating": "Повторне створення...",
+    "calendarIsReadonly": "Календар доступний лише для читання",
+    "generatedViews": "Створені вигляди",
+    "disableConnection": "Вимкнути підключення",
+    "connectWithFavoriteTools": "Підключіть свої улюблені інструменти",
+    "getConnectionDetails": "Отримати параметри підключення",
+    "connectionUrl": "URL підключення",
+    "chartSortBy": "Сортувати за",
+    "categoryLimit": "Ліміт категорій",
+    "chartLegendOrientation": "Орієнтація легенди",
+    "plotDataPoints": "Відобразити точки даних",
+    "retryImport": "Повторити імпорт",
+    "listening": "Очікування подій",
+    "generateAndCopyUrl": "Створити та скопіювати URL",
+    "executionTime": "Час виконання",
+    "requestTime": "Час запиту",
+    "errorCode": "Код помилки",
+    "authorizationError": "Помилка авторизації",
+    "requestedPermissions": "Запитані дозволи",
+    "applicationWillBeAbleTo": "Цей застосунок зможе",
+    "authorize": "Авторизувати",
+    "noUrl": "Немає URL",
+    "imageUrl": "URL зображення",
+    "altText": "Альтернативний текст",
+    "fitToView": "Вписати в область",
+    "requestBody": "Тіло запиту",
+    "bodyType": "Тип тіла",
+    "httpAdvancedOptions": "Додаткові параметри",
+    "followRedirects": "Слідувати перенаправленням",
+    "followRedirectsDescription": "Автоматично слідувати перенаправленням HTTP",
+    "failOnErrorStatus": "Вважати помилкою за статусу помилки",
+    "failOnErrorStatusDescription": "Вважати помилкою, коли відповідь 4xx або 5xx"
   },
   "activity": {
     "useTemplate": "Використовувати шаблон",
@@ -6607,7 +6720,7 @@
     "notAvailablePending": "Кошик поки що недоступний для цієї таблиці.",
     "conflict": {
       "panelTitle": "Запис {count} має конфлікт | Записи {count} мають конфлікти",
-      "panelHelp": "Виправте це в джерелі і повторіть спробу або відновіть зараз - ми видалимо конфліктні значення.",
+      "panelHelp": "Виправте їх у джерелі та спробуйте ще раз або відновіть зараз. Ми очистимо конфліктні значення.",
       "cleanRemainder": "Інший запис {count} відновиться нормально. | {count} інші записи будуть відновлюватися нормально.",
       "group": {
         "link": "Посилання вже зайняті",
@@ -6767,7 +6880,7 @@
       "title": "Зорієнтуйтеся у своїй робочій області",
       "welcome": {
         "title": "Вітаємо в NocoDB",
-        "description": "Швидке коло вашою робочою областю. Вийти можна будь-коли — натисніть «Пропустити»."
+        "description": "Швидка екскурсія вашою робочою областю. Вийти можна будь-коли: натисніть «Пропустити»."
       },
       "createBase": {
         "title": "Почніть із Бази",
@@ -6794,7 +6907,7 @@
       },
       "create": {
         "title": "Створіть робочий процес",
-        "description": "Почніть з нуля — відкриється коротка форма."
+        "description": "Почніть з нуля. Відкриється коротка форма."
       },
       "createSubmit": {
         "title": "Створити",
@@ -6802,7 +6915,7 @@
       },
       "addTrigger": {
         "title": "Додайте тригер",
-        "description": "Кожен робочий процес починається тут — натисніть, щоб побачити, що може його запустити."
+        "description": "Будь-який робочий процес починається тут. Натисніть, щоб побачити, що може його запустити."
       },
       "pickManualTrigger": {
         "title": "Виберіть «За ручним запуском»",
@@ -6834,15 +6947,15 @@
       },
       "enable": {
         "title": "Увімкніть його",
-        "description": "Опублікований — не те саме, що запущений. Робочий процес лишається <b>На паузі</b>, доки ви його не увімкнете, — саме цей крок зазвичай пропускають."
+        "description": "Опубліковано — це не те саме, що запущено. Робочий процес залишається <b>призупиненим</b>, доки ви його не увімкнете. Саме цей крок найчастіше пропускають."
       },
       "run": {
         "title": "Запустіть один раз",
-        "description": "Ручний тригер спрацьовує на вимогу — спробуйте й подивіться, як усе виконується."
+        "description": "Ручний тригер спрацьовує на вимогу. Спробуйте та подивіться, як він виконується."
       },
       "logs": {
         "title": "Перевірте журнали",
-        "description": "Кожен запуск фіксується тут — що спрацювало, що повернув кожен крок і що не вдалося."
+        "description": "Кожен запуск записується тут: що його спричинило, що повернув кожен крок і що не вдалося."
       },
       "wrapUp": {
         "title": "Ось і весь цикл",

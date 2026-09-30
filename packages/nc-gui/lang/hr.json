@@ -756,7 +756,8 @@
     "continue": "Nastavi",
     "manage": "Upravljaj",
     "orgBadge": "Org.",
-    "migrate": "Migriraj"
+    "migrate": "Migriraj",
+    "email": "E-pošta"
   },
   "objects": {
     "script": "Skripta",
@@ -3102,7 +3103,12 @@
         "variables": "Vrijednosti za višekratnu upotrebu u automatizacijama i poljima.",
         "migrateToV3": "Nadogradite ovu bazu na platformu i API-je v3.",
         "migrateToCloud": "Premjestite podatke ove baze u NocoDB Cloud."
-      }
+      },
+      "upgradeAskOwner": "Zamoli vlasnika za nadogradnju",
+      "upgradeRequestSent": "Zahtjev poslan",
+      "upgradeDescRls": "Ograničite koje zapise svaka osoba može vidjeti i uređivati.",
+      "upgradeDescRecordTemplates": "Stvarajte nove zapise iz spremljenih, unaprijed popunjenih predložaka.",
+      "upgradeDescDateDependency": "Automatski pomiče ovisne datume kada se zapis premjesti."
     },
     "categories": "Kategorije",
     "blockquote": "Citat",
@@ -4576,7 +4582,111 @@
     "regenerateSecret": "Ponovno generiraj tajnu",
     "createOauthClients": "Stvori OAuth klijente",
     "managingOauthClients": "Upravljanje OAuth klijentima",
-    "clientInformation": "Podaci o klijentu"
+    "clientInformation": "Podaci o klijentu",
+    "byUser": "od {user}",
+    "requestIntegration": "Zatraži integraciju",
+    "browseIntegrations": "Pregledaj integracije",
+    "examplePrompt": "Primjer upita",
+    "connectYourAi": "Povežite svoju umjetnu inteligenciju",
+    "connectAVault": "Poveži trezor",
+    "manageVaults": "Upravljaj trezorima",
+    "baseRelations": "Odnosi baze",
+    "downloadReport": "Preuzmi izvješće",
+    "noLongerWorkspaceMember": "Više nije član ovog radnog prostora",
+    "notBaseMember": "Nije član ove baze",
+    "factoryNoSessionMatches": "Nijedna sesija ne odgovara toj pretrazi",
+    "factoryRepoHasProject": "Sadrži projekt",
+    "factoryOpenRepo": "Otvori repozitorij",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Tablice, pogledi, automatizacije i aplikacije nad vašim podacima.",
+    "projectKindCode": "Projekt s kodom",
+    "projectKindCodeHint": "Povežite repozitorij i prepustite agentima rad na njegovu kodu.",
+    "planStatusPending": "Na čekanju",
+    "planStatusInProgress": "U tijeku",
+    "planStatusCompleted": "Dovršeno",
+    "createOauthClient": "Stvori OAuth klijenta",
+    "downgradeToFreePlan": "Prijeđi na plan Free",
+    "plusApplicableTax": "+ primjenjivi porez",
+    "beforeYouCancelPlan": "Prije nego otkažete svoj plan",
+    "formBranding": "Vizualni identitet obrasca",
+    "aiIntegration": "Integracija umjetne inteligencije",
+    "enableWebSearch": "Omogući pretraživanje weba",
+    "enableWebSearchHint": "Dopusti modelu umjetne inteligencije da pretražuje web za najnovijim informacijama",
+    "outputSchema": "Shema izlaza",
+    "itemType": "Vrsta stavke",
+    "addProperty": "Dodaj svojstvo",
+    "addField": "Dodaj polje",
+    "planSubtitleBusiness": "Za potrebe vašeg poslovanja",
+    "planTaglineBusiness": "Uštedite do 70 % u odnosu na Airtable, Monday & Smartsheet",
+    "planSubtitleScale": "Za timove u rastu",
+    "planTaglineScale": "Za brze timove s proračunom.",
+    "planTaglineScaleNoSalesCall": "Razgovor s prodajom nije potreban.",
+    "everythingInBusinessAnd": "Sve iz plana Business i",
+    "planSubtitleEnterprise": "Prilagođeno vašoj organizaciji",
+    "scheduleACall": "Dogovori poziv",
+    "everythingInScaleAnd": "Sve iz plana Scale i",
+    "connectionName": "Naziv veze",
+    "connectionDetailsSection": "Detalji veze",
+    "host": "Poslužitelj",
+    "path": "Putanja",
+    "connectionParameters": "Parametri veze",
+    "advancedOptions": "Napredne mogućnosti",
+    "integrationDetails": "Detalji integracije",
+    "pgConnectionDetails": "Detalji veze",
+    "pgSslMode": "SSL način rada",
+    "connectionJson": "JSON veze",
+    "input": "Ulaz",
+    "output": "Izlaz",
+    "console": "Konzola",
+    "forgotPassword": "Zaboravili ste lozinku?",
+    "privacyPolicy": "Pravila privatnosti",
+    "clickHere": "Kliknite ovdje",
+    "emailVerification": "Potvrda e-pošte",
+    "method": "Metoda",
+    "queryParameters": "Parametri upita",
+    "samplePayload": "Primjer korisnog tereta",
+    "addDataSource": "Dodaj izvor podataka",
+    "addSource": "Dodaj izvor",
+    "dataSourceName": "Naziv izvora podataka",
+    "goBack": "Natrag",
+    "everyMinutes": "Svakih minuta",
+    "selectMinute": "Odaberite minutu",
+    "selectTimeOfDay": "Odaberite doba dana",
+    "selectTimeAndDayOfWeek": "Odaberite vrijeme i dan u tjednu",
+    "selectTimeAndDayOfMonth": "Odaberite vrijeme i dan u mjesecu",
+    "editedByYou": "Uredili ste vi",
+    "regenerating": "Ponovno generiranje...",
+    "calendarIsReadonly": "Kalendar je samo za čitanje",
+    "generatedViews": "Generirani pogledi",
+    "disableConnection": "Onemogući vezu",
+    "connectWithFavoriteTools": "Povežite se sa svojim omiljenim alatima",
+    "getConnectionDetails": "Dohvati detalje veze",
+    "connectionUrl": "URL veze",
+    "chartSortBy": "Poredaj prema",
+    "categoryLimit": "Ograničenje kategorija",
+    "chartLegendOrientation": "Orijentacija legende",
+    "plotDataPoints": "Iscrtaj točke podataka",
+    "retryImport": "Ponovi uvoz",
+    "listening": "Osluškuje",
+    "generateAndCopyUrl": "Generiraj i kopiraj URL",
+    "executionTime": "Vrijeme izvršavanja",
+    "requestTime": "Vrijeme zahtjeva",
+    "errorCode": "Kod pogreške",
+    "authorizationError": "Pogreška autorizacije",
+    "requestedPermissions": "Tražene dozvole",
+    "applicationWillBeAbleTo": "Ova aplikacija moći će",
+    "authorize": "Autoriziraj",
+    "noUrl": "Nema URL-a",
+    "imageUrl": "URL slike",
+    "altText": "Alternativni tekst",
+    "fitToView": "Prilagodi prikazu",
+    "requestBody": "Tijelo zahtjeva",
+    "bodyType": "Vrsta tijela",
+    "httpAdvancedOptions": "Napredne mogućnosti",
+    "followRedirects": "Slijedi preusmjeravanja",
+    "followRedirectsDescription": "Automatski slijedi HTTP preusmjeravanja",
+    "failOnErrorStatus": "Prekini pri statusu pogreške",
+    "failOnErrorStatusDescription": "Prekini kada je odgovor 4xx ili 5xx"
   },
   "activity": {
     "useTemplate": "Koristite predložak",
@@ -6604,7 +6714,7 @@
     "notAvailablePending": "Otpad još nije dostupan za ovaj stol.",
     "conflict": {
       "panelTitle": "{count} zapis ima sukob | {count} zapisi imaju sukobe",
-      "panelHelp": "Popravite ovo u izvoru i pokušajte ponovno, ili sada obavite vraćanje — uklonit ćemo sukobljene vrijednosti.",
+      "panelHelp": "Ispravite ih na izvoru pa pokušajte ponovno ili vratite odmah. Obrisat ćemo sukobljene vrijednosti.",
       "cleanRemainder": "{count} Ostale zapise će se vratiti normalno. | {count} Ostale zapise će se vratiti normalno.",
       "group": {
         "link": "Veze su već zauzete",
@@ -6763,7 +6873,7 @@
     "workflows": {
       "addTrigger": {
         "title": "Dodajte okidač",
-        "description": "Svaki tijek rada počinje ovdje — kliknite da vidite što ga može pokrenuti."
+        "description": "Svaki radni tok počinje ovdje. Kliknite da vidite što ga može pokrenuti."
       },
       "addAction": {
         "title": "Dodajte radnju",
@@ -6780,7 +6890,7 @@
       },
       "create": {
         "title": "Izradite radni tok",
-        "description": "Krenite od nule — ovo otvara kratak obrazac."
+        "description": "Počnite od nule. Otvorit će se kratak obrazac."
       },
       "createSubmit": {
         "title": "Izradi",
@@ -6808,15 +6918,15 @@
       },
       "enable": {
         "title": "Uključite ga",
-        "description": "Objavljeno nije isto što i pokrenuto. Radni tok ostaje <b>Pauziran</b> dok ga ne uključite — upravo se ovaj korak najčešće previdi."
+        "description": "Objavljeno nije isto što i pokrenuto. Radni tok ostaje <b>pauziran</b> dok ga ne omogućite. Upravo taj korak ljudi preskaču."
       },
       "run": {
         "title": "Pokrenite ga jednom",
-        "description": "Ručni okidač pokreće se na zahtjev — probajte i pogledajte kako se izvodi."
+        "description": "Ručni okidač pokreće se na zahtjev. Isprobajte ga i pratite izvršavanje."
       },
       "logs": {
         "title": "Provjerite zapisnike",
-        "description": "Svako pokretanje bilježi se ovdje — što je pokrenuto, što je svaki korak vratio i što nije uspjelo."
+        "description": "Svako izvršavanje bilježi se ovdje: što ga je pokrenulo, što je svaki korak vratio i što nije uspjelo."
       },
       "wrapUp": {
         "title": "To je cijeli krug",
@@ -6827,7 +6937,7 @@
       "title": "Snađite se u svom radnom prostoru",
       "welcome": {
         "title": "Dobro došli u NocoDB",
-        "description": "Brzi krug po vašem radnom prostoru. Možete izaći bilo kada — pritisnite Preskoči."
+        "description": "Brzi obilazak vašeg radnog prostora. Možete izaći u bilo kojem trenutku: kliknite Preskoči."
       },
       "createBase": {
         "title": "Počnite s Bazom",

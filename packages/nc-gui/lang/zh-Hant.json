@@ -756,7 +756,8 @@
     "continue": "繼續",
     "manage": "管理",
     "orgBadge": "組織",
-    "migrate": "遷移"
+    "migrate": "遷移",
+    "email": "電子郵件"
   },
   "objects": {
     "script": "指令碼",
@@ -3102,7 +3103,12 @@
         "variables": "可在自動化與欄位中重複使用的值。",
         "migrateToV3": "將此資料庫升級至 v3 平台與 API。",
         "migrateToCloud": "將此資料庫的資料移至 NocoDB Cloud。"
-      }
+      },
+      "upgradeAskOwner": "請擁有者升級",
+      "upgradeRequestSent": "請求已送出",
+      "upgradeDescRls": "限制每個人可以檢視與編輯的記錄。",
+      "upgradeDescRecordTemplates": "依據已儲存的預填範本建立新記錄。",
+      "upgradeDescDateDependency": "移動記錄時自動調整相依的日期。"
     },
     "categories": "分類",
     "blockquote": "引用",
@@ -4579,7 +4585,114 @@
     "regenerateSecret": "重新產生密鑰",
     "createOauthClients": "建立 OAuth 用戶端",
     "managingOauthClients": "管理 OAuth 用戶端",
-    "clientInformation": "用戶端資訊"
+    "clientInformation": "用戶端資訊",
+    "byUser": "由 {user} 完成",
+    "requestIntegration": "申請整合",
+    "browseIntegrations": "瀏覽整合",
+    "examplePrompt": "提示詞範例",
+    "connectYourAi": "連接你的 AI",
+    "connectAVault": "連接金鑰庫",
+    "manageVaults": "管理金鑰庫",
+    "baseRelations": "Base 關聯",
+    "downloadReport": "下載報告",
+    "noLongerWorkspaceMember": "已不再是此工作區的成員",
+    "notBaseMember": "不是此 Base 的成員",
+    "factoryNoSessionMatches": "沒有工作階段符合該搜尋",
+    "factoryRepoHasProject": "包含一個專案",
+    "factoryOpenRepo": "開啟程式碼儲存庫",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "在你的資料之上建立表格、檢視、自動化與應用程式。",
+    "projectKindCode": "程式碼專案",
+    "projectKindCodeHint": "連接一個程式碼儲存庫，讓代理程式處理它的程式碼。",
+    "planStatusPending": "待處理",
+    "planStatusInProgress": "進行中",
+    "planStatusCompleted": "已完成",
+    "createOauthClient": "建立 OAuth 用戶端",
+    "downgradeToFreePlan": "降級至 Free 方案",
+    "plusApplicableTax": "+ 適用稅金",
+    "beforeYouCancelPlan": "在取消方案之前",
+    "formBranding": "表單品牌識別",
+    "aiIntegration": "AI 整合",
+    "model": "模型",
+    "enableWebSearch": "啟用網頁搜尋",
+    "enableWebSearchHint": "允許 AI 模型在網頁上搜尋最新資訊",
+    "outputSchema": "輸出結構描述",
+    "itemType": "項目類型",
+    "addProperty": "新增屬性",
+    "addField": "新增欄位",
+    "planSubtitleBusiness": "滿足你的業務需求",
+    "planTaglineBusiness": "相比 Airtable、Monday 與 Smartsheet 最多可節省 70%",
+    "planSubtitleScale": "為成長中的團隊打造",
+    "planTaglineScale": "有預算的快節奏團隊。",
+    "planTaglineScaleNoSalesCall": "無需與業務團隊通話。",
+    "everythingInBusinessAnd": "Business 方案的所有內容，以及",
+    "planSubtitleEnterprise": "為你的組織量身打造",
+    "scheduleACall": "預約通話",
+    "everythingInScaleAnd": "Scale 方案的所有內容，以及",
+    "connectionName": "連接名稱",
+    "connectionDetailsSection": "連接詳細資訊",
+    "host": "主機",
+    "path": "路徑",
+    "connectionParameters": "連接參數",
+    "advancedOptions": "進階選項",
+    "integrationDetails": "整合詳細資訊",
+    "pgConnectionDetails": "連接詳細資訊",
+    "pgPort": "連接埠",
+    "pgSslMode": "SSL 模式",
+    "connectionJson": "連接 JSON",
+    "input": "輸入",
+    "output": "輸出",
+    "console": "主控台",
+    "forgotPassword": "忘記密碼？",
+    "privacyPolicy": "隱私權政策",
+    "clickHere": "點擊這裡",
+    "emailVerification": "電子郵件驗證",
+    "method": "方法",
+    "queryParameters": "查詢參數",
+    "samplePayload": "範例酬載",
+    "addDataSource": "新增資料來源",
+    "addSource": "新增來源",
+    "dataSourceName": "資料來源名稱",
+    "goBack": "返回",
+    "interval": "間隔",
+    "everyMinutes": "每隔分鐘",
+    "selectMinute": "選擇分鐘",
+    "selectTimeOfDay": "選擇一天中的時間",
+    "selectTimeAndDayOfWeek": "選擇時間與每週的星期",
+    "selectTimeAndDayOfMonth": "選擇時間與每月的日期",
+    "editedByYou": "由你編輯",
+    "regenerating": "正在重新產生...",
+    "calendarIsReadonly": "日曆為唯讀",
+    "generatedViews": "已產生的檢視",
+    "disableConnection": "停用連接",
+    "connectWithFavoriteTools": "連接你喜愛的工具",
+    "getConnectionDetails": "取得連接詳細資訊",
+    "connectionUrl": "連接 URL",
+    "chartSortBy": "排序依據",
+    "categoryLimit": "分類上限",
+    "chartLegendOrientation": "圖例方向",
+    "plotDataPoints": "繪製資料點",
+    "retryImport": "重試匯入",
+    "listening": "正在監聽",
+    "generateAndCopyUrl": "產生並複製 URL",
+    "executionTime": "執行時間",
+    "requestTime": "請求時間",
+    "errorCode": "錯誤碼",
+    "authorizationError": "授權錯誤",
+    "requestedPermissions": "請求的權限",
+    "applicationWillBeAbleTo": "此應用程式將能夠",
+    "authorize": "授權",
+    "noUrl": "沒有 URL",
+    "imageUrl": "圖片 URL",
+    "altText": "替代文字",
+    "fitToView": "符合檢視範圍",
+    "requestBody": "請求主體",
+    "bodyType": "請求主體類型",
+    "httpAdvancedOptions": "進階選項",
+    "followRedirects": "跟隨重新導向",
+    "followRedirectsDescription": "自動跟隨 HTTP 重新導向",
+    "failOnErrorStatus": "遇到錯誤狀態時視為失敗",
+    "failOnErrorStatusDescription": "回應為 4xx 或 5xx 時視為失敗"
   },
   "activity": {
     "useTemplate": "使用範本",
@@ -6606,7 +6719,7 @@
     "notAvailablePending": "此表尚未提供垃圾。",
     "conflict": {
       "panelTitle": "{count} 記錄有衝突 | {count} 記錄有衝突",
-      "panelHelp": "在原始碼中修正這些問題，然後再試一次，或者現在就還原 - 我們會清除衝突的值。",
+      "panelHelp": "請在來源端修正這些問題後再試一次，或者立即還原。我們會清除衝突的值。",
       "cleanRemainder": "{count} 其他記錄會正常還原。| {count} 其他記錄將正常還原。",
       "group": {
         "link": "連結已被使用",
@@ -6766,7 +6879,7 @@
       "title": "熟悉你的工作區",
       "welcome": {
         "title": "歡迎使用 NocoDB",
-        "description": "快速逛一圈你的工作區。你隨時可以離開——點擊「略過」。"
+        "description": "快速瀏覽一遍你的工作區。你隨時可以離開，點擊跳過即可。"
       },
       "createBase": {
         "title": "從一個 Base 開始",
@@ -6793,7 +6906,7 @@
       },
       "create": {
         "title": "建立工作流程",
-        "description": "從零開始——這會開啟一份簡短的表單。"
+        "description": "從零開始。這會開啟一份簡短的表單。"
       },
       "createSubmit": {
         "title": "建立",
@@ -6801,7 +6914,7 @@
       },
       "addTrigger": {
         "title": "新增觸發程序",
-        "description": "每個工作流程都從這裡開始——點擊看看有哪些方式可以啟動它。"
+        "description": "每個工作流程都從這裡開始。點擊即可查看有哪些方式可以觸發它。"
       },
       "pickManualTrigger": {
         "title": "選擇「手動觸發時」",
@@ -6833,15 +6946,15 @@
       },
       "enable": {
         "title": "把它開啟",
-        "description": "已發布不等於正在執行。工作流程在你啟用之前會一直保持<b>已暫停</b>——這一步最容易被忽略。"
+        "description": "已發布並不等於正在執行。工作流程在你啟用之前會一直維持 <b>已暫停</b> 狀態。這一步最容易被忽略。"
       },
       "run": {
         "title": "執行一次",
-        "description": "手動觸發程序隨時可以觸發——試一下，看看它如何執行。"
+        "description": "手動觸發器會依需求執行。試一次，看看它是怎麼執行的。"
       },
       "logs": {
         "title": "查看記錄檔",
-        "description": "每次執行都會記錄在這裡——什麼被觸發、每一步回傳了什麼，以及哪裡失敗了。"
+        "description": "每次執行都會記錄在這裡：是什麼觸發了它、每個步驟回傳了什麼，以及哪裡失敗了。"
       },
       "wrapUp": {
         "title": "這就是完整的流程",

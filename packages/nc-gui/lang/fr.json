@@ -753,7 +753,8 @@
     "continue": "Continuer",
     "manage": "Gérer",
     "orgBadge": "Org.",
-    "migrate": "Migrer"
+    "migrate": "Migrer",
+    "email": "E-mail"
   },
   "objects": {
     "script": "Script",
@@ -3086,7 +3087,12 @@
         "variables": "Valeurs réutilisables pour les automatisations et les champs.",
         "migrateToV3": "Mettre à niveau cette base vers la plateforme et les API v3.",
         "migrateToCloud": "Déplacer les données de cette base vers NocoDB Cloud."
-      }
+      },
+      "upgradeAskOwner": "Demander au propriétaire de mettre à niveau",
+      "upgradeRequestSent": "Demande envoyée",
+      "upgradeDescRls": "Limiter les enregistrements que chaque personne peut voir et modifier.",
+      "upgradeDescRecordTemplates": "Créer de nouveaux enregistrements à partir de modèles enregistrés et préremplis.",
+      "upgradeDescDateDependency": "Décaler automatiquement les dates dépendantes lorsqu'un enregistrement est déplacé."
     },
     "categories": "Catégories",
     "blockquote": "Citation",
@@ -4538,7 +4544,112 @@
     "regenerateSecret": "Régénérer le secret",
     "createOauthClients": "Créer des clients OAuth",
     "managingOauthClients": "Gestion des clients OAuth",
-    "clientInformation": "Informations sur le client"
+    "clientInformation": "Informations sur le client",
+    "byUser": "par {user}",
+    "requestIntegration": "Demander une intégration",
+    "browseIntegrations": "Parcourir les intégrations",
+    "examplePrompt": "Exemple de prompt",
+    "connectYourAi": "Connectez votre IA",
+    "connectAVault": "Connecter un coffre-fort",
+    "manageVaults": "Gérer les coffres-forts",
+    "baseRelations": "Relations de la base",
+    "downloadReport": "Télécharger le rapport",
+    "noLongerWorkspaceMember": "N'est plus membre de cet espace de travail",
+    "notBaseMember": "N'est pas membre de cette base",
+    "factoryNoSessionMatches": "Aucune session ne correspond à cette recherche",
+    "factoryRepoHasProject": "Possède un projet",
+    "factoryOpenRepo": "Ouvrir le dépôt",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Tables, vues, automatisations et applications sur vos données.",
+    "projectKindCode": "Projet de code",
+    "projectKindCodeHint": "Connectez un dépôt et laissez les agents travailler sur son code.",
+    "planStatusPending": "En attente",
+    "planStatusInProgress": "En cours",
+    "planStatusCompleted": "Terminé",
+    "createOauthClient": "Créer un client OAuth",
+    "downgradeToFreePlan": "Revenir au plan Free",
+    "plusApplicableTax": "+ taxes applicables",
+    "beforeYouCancelPlan": "Avant d'annuler votre plan",
+    "formBranding": "Personnalisation du formulaire",
+    "aiIntegration": "Intégration IA",
+    "model": "Modèle",
+    "enableWebSearch": "Activer la recherche web",
+    "enableWebSearchHint": "Autoriser le modèle d'IA à effectuer des recherches sur le web pour obtenir des informations à jour",
+    "outputSchema": "Schéma de sortie",
+    "itemType": "Type d'élément",
+    "addProperty": "Ajouter une propriété",
+    "addField": "Ajouter un champ",
+    "planSubtitleBusiness": "Pour les besoins de votre entreprise",
+    "planTaglineBusiness": "Économisez jusqu'à 70 % par rapport à Airtable, Monday & Smartsheet",
+    "planSubtitleScale": "Pour les équipes en croissance",
+    "planTaglineScale": "Des équipes rapides avec du budget.",
+    "planTaglineScaleNoSalesCall": "Aucun rendez-vous commercial nécessaire.",
+    "everythingInBusinessAnd": "Tout ce que contient Business, et",
+    "planSubtitleEnterprise": "Adapté à votre organisation",
+    "scheduleACall": "Planifier un appel",
+    "everythingInScaleAnd": "Tout ce que contient Scale, et",
+    "connectionName": "Nom de la connexion",
+    "connectionDetailsSection": "Détails de la connexion",
+    "host": "Hôte",
+    "path": "Chemin",
+    "connectionParameters": "Paramètres de connexion",
+    "advancedOptions": "Options avancées",
+    "integrationDetails": "Détails de l'intégration",
+    "pgConnectionDetails": "Détails de la connexion",
+    "pgSslMode": "Mode SSL",
+    "connectionJson": "JSON de connexion",
+    "input": "Entrée",
+    "output": "Sortie",
+    "forgotPassword": "Mot de passe oublié ?",
+    "privacyPolicy": "Politique de confidentialité",
+    "clickHere": "Cliquez ici",
+    "emailVerification": "Vérification de l'e-mail",
+    "method": "Méthode",
+    "queryParameters": "Paramètres de requête",
+    "samplePayload": "Exemple de charge utile",
+    "addDataSource": "Ajouter une source de données",
+    "addSource": "Ajouter une source",
+    "dataSourceName": "Nom de la source de données",
+    "goBack": "Retour",
+    "interval": "Intervalle",
+    "everyMinutes": "Toutes les minutes",
+    "selectMinute": "Sélectionner la minute",
+    "selectTimeOfDay": "Sélectionner l'heure de la journée",
+    "selectTimeAndDayOfWeek": "Sélectionner l'heure et le jour de la semaine",
+    "selectTimeAndDayOfMonth": "Sélectionner l'heure et le jour du mois",
+    "editedByYou": "Modifié par vous",
+    "regenerating": "Régénération en cours...",
+    "calendarIsReadonly": "Le calendrier est en lecture seule",
+    "generatedViews": "Vue(s) générée(s)",
+    "disableConnection": "Désactiver la connexion",
+    "connectWithFavoriteTools": "Connectez-vous à vos outils préférés",
+    "getConnectionDetails": "Obtenir les détails de la connexion",
+    "connectionUrl": "URL de connexion",
+    "chartSortBy": "Trier par",
+    "categoryLimit": "Limite de catégories",
+    "chartLegendOrientation": "Orientation de la légende",
+    "plotDataPoints": "Tracer les points de données",
+    "retryImport": "Réessayer l'import",
+    "listening": "À l'écoute",
+    "generateAndCopyUrl": "Générer et copier l'URL",
+    "executionTime": "Durée d'exécution",
+    "requestTime": "Heure de la requête",
+    "errorCode": "Code d'erreur",
+    "authorizationError": "Erreur d'autorisation",
+    "requestedPermissions": "Autorisations demandées",
+    "applicationWillBeAbleTo": "Cette application pourra",
+    "authorize": "Autoriser",
+    "noUrl": "Aucune URL",
+    "imageUrl": "URL de l'image",
+    "altText": "Texte alternatif",
+    "fitToView": "Ajuster à la vue",
+    "requestBody": "Corps de la requête",
+    "bodyType": "Type de corps",
+    "httpAdvancedOptions": "Options avancées",
+    "followRedirects": "Suivre les redirections",
+    "followRedirectsDescription": "Suivre automatiquement les redirections HTTP",
+    "failOnErrorStatus": "Échouer en cas de statut d'erreur",
+    "failOnErrorStatusDescription": "Échouer lorsque la réponse est 4xx ou 5xx"
   },
   "activity": {
     "useTemplate": "Utiliser le modèle",
@@ -6563,7 +6674,7 @@
     "notAvailablePending": "La corbeille n'est pas encore disponible pour cette table.",
     "conflict": {
       "panelTitle": "L'enregistrement {count} a un conflit | Les enregistrements {count} ont des conflits",
-      "panelHelp": "Corrigez ces éléments à la source et réessayez, ou restaurez maintenant — nous effacerons les valeurs en conflit.",
+      "panelHelp": "Corrigez-les à la source puis réessayez, ou restaurez maintenant. Nous effacerons les valeurs en conflit.",
       "cleanRemainder": "{count} autre enregistrement restaurera normalement. | {count} autres enregistrements restaureront normalement.",
       "group": {
         "link": "Liens déjà pris",
@@ -6723,7 +6834,7 @@
       "title": "Prenez vos repères dans votre espace de travail",
       "welcome": {
         "title": "Bienvenue dans NocoDB",
-        "description": "Un tour rapide de votre espace de travail. Vous pouvez quitter à tout moment — cliquez sur Passer."
+        "description": "Un petit tour de votre espace de travail. Vous pouvez quitter à tout moment : cliquez sur Ignorer."
       },
       "createBase": {
         "title": "Commencer par une Base",
@@ -6750,7 +6861,7 @@
       },
       "create": {
         "title": "Créer un Workflow",
-        "description": "Partez de zéro — cela ouvre un court formulaire."
+        "description": "Partez de zéro. Un court formulaire s'ouvre."
       },
       "createSubmit": {
         "title": "Créez-le",
@@ -6758,7 +6869,7 @@
       },
       "addTrigger": {
         "title": "Ajouter un déclencheur",
-        "description": "Chaque Workflow commence ici — cliquez pour voir ce qui peut le déclencher."
+        "description": "Tout workflow commence ici. Cliquez pour voir ce qui peut le déclencher."
       },
       "pickManualTrigger": {
         "title": "Choisir « Lors d'un déclenchement manuel »",
@@ -6790,15 +6901,15 @@
       },
       "enable": {
         "title": "Activez-le",
-        "description": "Publié ne veut pas dire actif. Un Workflow reste <b>En pause</b> tant que vous ne l'activez pas — c'est l'étape que l'on oublie."
+        "description": "Publié ne veut pas dire actif. Un workflow reste <b>en pause</b> tant que vous ne l'activez pas. C'est l'étape que l'on oublie le plus souvent."
       },
       "run": {
         "title": "Exécutez-le une fois",
-        "description": "Un déclencheur manuel se lance à la demande — essayez et regardez-le s'exécuter."
+        "description": "Un déclencheur manuel s'exécute à la demande. Essayez-le et regardez-le s'exécuter."
       },
       "logs": {
         "title": "Consulter les journaux",
-        "description": "Chaque exécution est consignée ici — ce qui s'est déclenché, ce que chaque étape a renvoyé et ce qui a échoué."
+        "description": "Chaque exécution est enregistrée ici : ce qui l'a déclenchée, ce que chaque étape a renvoyé et ce qui a échoué."
       },
       "wrapUp": {
         "title": "Voilà la boucle complète",

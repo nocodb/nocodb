@@ -755,7 +755,8 @@
     "continue": "Fortsæt",
     "manage": "Administrer",
     "orgBadge": "Org.",
-    "migrate": "Migrer"
+    "migrate": "Migrer",
+    "email": "E-mail"
   },
   "objects": {
     "script": "Script",
@@ -3099,7 +3100,12 @@
         "variables": "Genbrugelige værdier til automatiseringer og felter.",
         "migrateToV3": "Opgrader denne base til v3-platformen og v3-API'erne.",
         "migrateToCloud": "Flyt denne bases data til NocoDB Cloud."
-      }
+      },
+      "upgradeAskOwner": "Bed ejeren om at opgradere",
+      "upgradeRequestSent": "Anmodning sendt",
+      "upgradeDescRls": "Begræns, hvilke poster hver person kan se og redigere.",
+      "upgradeDescRecordTemplates": "Opret nye poster ud fra gemte, forudfyldte skabeloner.",
+      "upgradeDescDateDependency": "Flyt automatisk afhængige datoer, når en post flyttes."
     },
     "categories": "Kategorier",
     "blockquote": "Citat",
@@ -4564,7 +4570,109 @@
     "regenerateSecret": "Generer ny hemmelighed",
     "createOauthClients": "Opret OAuth-klienter",
     "managingOauthClients": "Administration af OAuth-klienter",
-    "clientInformation": "Klientoplysninger"
+    "clientInformation": "Klientoplysninger",
+    "byUser": "af {user}",
+    "requestIntegration": "Anmod om integration",
+    "browseIntegrations": "Gennemse integrationer",
+    "examplePrompt": "Eksempel på prompt",
+    "connectYourAi": "Forbind din AI",
+    "connectAVault": "Forbind et pengeskab",
+    "manageVaults": "Administrér pengeskabe",
+    "baseRelations": "Base-relationer",
+    "downloadReport": "Hent rapport",
+    "noLongerWorkspaceMember": "Ikke længere medlem af dette arbejdsområde",
+    "notBaseMember": "Ikke medlem af denne base",
+    "factoryNoSessionMatches": "Ingen sessioner matcher den søgning",
+    "factoryRepoHasProject": "Har et projekt",
+    "factoryOpenRepo": "Åbn repository",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Tabeller, visninger, automatiseringer og apps oven på dine data.",
+    "projectKindCode": "Kodeprojekt",
+    "projectKindCodeHint": "Forbind et repository, og lad agenter arbejde på dets kode.",
+    "planStatusPending": "Afventer",
+    "planStatusInProgress": "I gang",
+    "planStatusCompleted": "Fuldført",
+    "createOauthClient": "Opret OAuth-klient",
+    "downgradeToFreePlan": "Nedgradér til Free-abonnementet",
+    "plusApplicableTax": "+ gældende moms",
+    "beforeYouCancelPlan": "Før du opsiger dit abonnement",
+    "formBranding": "Formularens branding",
+    "aiIntegration": "AI-integration",
+    "enableWebSearch": "Aktivér websøgning",
+    "enableWebSearchHint": "Tillad AI-modellen at søge på nettet efter opdaterede oplysninger",
+    "outputSchema": "Outputskema",
+    "itemType": "Elementtype",
+    "addProperty": "Tilføj egenskab",
+    "addField": "Tilføj felt",
+    "planSubtitleBusiness": "Til din virksomheds behov",
+    "planTaglineBusiness": "Spar op til 70 % i forhold til Airtable, Monday & Smartsheet",
+    "planSubtitleScale": "Til voksende teams",
+    "planTaglineScale": "Hurtigt arbejdende teams med budget.",
+    "planTaglineScaleNoSalesCall": "Ingen salgssamtale nødvendig.",
+    "everythingInBusinessAnd": "Alt i Business og",
+    "planSubtitleEnterprise": "Skræddersyet til din organisation",
+    "scheduleACall": "Book et møde",
+    "everythingInScaleAnd": "Alt i Scale og",
+    "connectionName": "Forbindelsesnavn",
+    "connectionDetailsSection": "Forbindelsesdetaljer",
+    "host": "Vært",
+    "path": "Sti",
+    "connectionParameters": "Forbindelsesparametre",
+    "advancedOptions": "Avancerede indstillinger",
+    "integrationDetails": "Integrationsdetaljer",
+    "pgConnectionDetails": "Forbindelsesdetaljer",
+    "pgSslMode": "SSL-tilstand",
+    "connectionJson": "Forbindelses-JSON",
+    "console": "Konsol",
+    "forgotPassword": "Glemt adgangskode?",
+    "privacyPolicy": "Privatlivspolitik",
+    "clickHere": "Klik her",
+    "emailVerification": "E-mailbekræftelse",
+    "method": "Metode",
+    "queryParameters": "Forespørgselsparametre",
+    "samplePayload": "Eksempel på payload",
+    "addDataSource": "Tilføj datakilde",
+    "addSource": "Tilføj kilde",
+    "dataSourceName": "Navn på datakilde",
+    "goBack": "Tilbage",
+    "everyMinutes": "Hvert minutter",
+    "selectMinute": "Vælg minut",
+    "selectTimeOfDay": "Vælg tidspunkt på dagen",
+    "selectTimeAndDayOfWeek": "Vælg tidspunkt og ugedag",
+    "selectTimeAndDayOfMonth": "Vælg tidspunkt og dag i måneden",
+    "editedByYou": "Redigeret af dig",
+    "regenerating": "Genererer igen...",
+    "calendarIsReadonly": "Kalenderen er skrivebeskyttet",
+    "generatedViews": "Genereret visning(er)",
+    "disableConnection": "Deaktivér forbindelse",
+    "connectWithFavoriteTools": "Forbind med dine foretrukne værktøjer",
+    "getConnectionDetails": "Hent forbindelsesdetaljer",
+    "connectionUrl": "Forbindelses-URL",
+    "chartSortBy": "Sortér efter",
+    "categoryLimit": "Kategorigrænse",
+    "chartLegendOrientation": "Signaturforklaringens retning",
+    "plotDataPoints": "Afsæt datapunkter",
+    "retryImport": "Prøv importen igen",
+    "listening": "Lytter",
+    "generateAndCopyUrl": "Generér og kopiér URL",
+    "executionTime": "Udførelsestid",
+    "requestTime": "Anmodningstidspunkt",
+    "errorCode": "Fejlkode",
+    "authorizationError": "Autorisationsfejl",
+    "requestedPermissions": "Anmodede rettigheder",
+    "applicationWillBeAbleTo": "Denne applikation vil kunne",
+    "authorize": "Godkend",
+    "noUrl": "Ingen URL",
+    "imageUrl": "Billed-URL",
+    "altText": "Alternativ tekst",
+    "fitToView": "Tilpas til visning",
+    "requestBody": "Anmodningens body",
+    "bodyType": "Body-type",
+    "httpAdvancedOptions": "Avancerede indstillinger",
+    "followRedirects": "Følg omdirigeringer",
+    "followRedirectsDescription": "Følg automatisk HTTP-omdirigeringer",
+    "failOnErrorStatus": "Fejl ved fejlstatus",
+    "failOnErrorStatusDescription": "Fejl når svaret er 4xx eller 5xx"
   },
   "activity": {
     "useTemplate": "Brug skabelon",
@@ -6592,7 +6700,7 @@
     "notAvailablePending": "Papirkurv er endnu ikke tilgængelig for denne tabel.",
     "conflict": {
       "panelTitle": "{count} rekord har en konflikt i {count} posteringer har konflikter",
-      "panelHelp": "Løs disse ved kilden, og prøv igen, eller gendan nu - vi vil rydde de modstridende værdier.",
+      "panelHelp": "Ret dem ved kilden, og prøv igen, eller gendan nu. Vi rydder de modstridende værdier.",
       "cleanRemainder": "{count} anden post vil genoprette normalt. ● {count} andre poster vil genoprette normalt.",
       "group": {
         "link": "Links allerede taget",
@@ -6751,7 +6859,7 @@
     "workflows": {
       "addTrigger": {
         "title": "Tilføj en udløser",
-        "description": "Enhver arbejdsgang starter her — klik for at se, hvad der kan sætte den i gang."
+        "description": "Ethvert workflow starter her. Klik for at se, hvad der kan sætte det i gang."
       },
       "addAction": {
         "title": "Tilføj en handling",
@@ -6768,7 +6876,7 @@
       },
       "create": {
         "title": "Opret en arbejdsgang",
-        "description": "Start fra bunden — det åbner en kort formular."
+        "description": "Start helt fra bunden. Dette åbner en kort formular."
       },
       "createSubmit": {
         "title": "Opret den",
@@ -6796,15 +6904,15 @@
       },
       "enable": {
         "title": "Slå den til",
-        "description": "Udgivet er ikke det samme som kørende. En arbejdsgang forbliver <b>Sat på pause</b>, indtil du slår den til — det er her, folk falder i."
+        "description": "Udgivet er ikke det samme som kørende. Et workflow forbliver <b>sat på pause</b>, indtil du aktiverer det. Det er det trin, folk overser."
       },
       "run": {
         "title": "Kør den én gang",
-        "description": "En manuel udløser kører på opfordring — prøv den, og se den blive udført."
+        "description": "En manuel udløser kører efter behov. Prøv den, og se den blive udført."
       },
       "logs": {
         "title": "Tjek loggene",
-        "description": "Hver kørsel registreres her — hvad der udløste den, hvad hvert trin returnerede, og hvad der gik galt."
+        "description": "Hver kørsel registreres her: hvad der udløste den, hvad hvert trin returnerede, og hvad der fejlede."
       },
       "wrapUp": {
         "title": "Det er hele forløbet",
@@ -6815,7 +6923,7 @@
       "title": "Find rundt i dit arbejdsområde",
       "welcome": {
         "title": "Velkommen til NocoDB",
-        "description": "En hurtig rundtur i dit arbejdsområde. Du kan afslutte når som helst — tryk på Spring over."
+        "description": "En hurtig rundtur i dit arbejdsområde. Du kan afslutte når som helst: tryk på Spring over."
       },
       "createBase": {
         "title": "Start med en Base",

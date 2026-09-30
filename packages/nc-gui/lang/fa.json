@@ -756,7 +756,8 @@
     "continue": "ادامه",
     "manage": "مدیریت",
     "orgBadge": "سازمان",
-    "migrate": "انتقال"
+    "migrate": "انتقال",
+    "email": "رایانامه"
   },
   "objects": {
     "script": "اسکریپت",
@@ -3102,7 +3103,12 @@
         "variables": "مقادیر قابل استفاده مجدد برای اتوماسیون‌ها و فیلدها.",
         "migrateToV3": "این بیس را به پلتفرم و رابط‌های برنامه‌نویسی نسخه v3 ارتقا دهید.",
         "migrateToCloud": "داده‌های این بیس را به NocoDB Cloud منتقل کنید."
-      }
+      },
+      "upgradeAskOwner": "از مالک بخواهید ارتقا دهد",
+      "upgradeRequestSent": "درخواست ارسال شد",
+      "upgradeDescRls": "محدود کنید هر فرد کدام رکوردها را ببیند و ویرایش کند.",
+      "upgradeDescRecordTemplates": "رکوردهای جدید را از قالب‌های ذخیره‌شده و از پیش پرشده بسازید.",
+      "upgradeDescDateDependency": "هنگام جابه‌جایی یک رکورد، تاریخ‌های وابسته را به‌طور خودکار جابه‌جا می‌کند."
     },
     "categories": "دسته‌ها",
     "blockquote": "نقل‌قول",
@@ -4579,7 +4585,114 @@
     "regenerateSecret": "ساخت دوبارهٔ رمز",
     "createOauthClients": "ایجاد کلاینت‌های OAuth",
     "managingOauthClients": "مدیریت کلاینت‌های OAuth",
-    "clientInformation": "اطلاعات کلاینت"
+    "clientInformation": "اطلاعات کلاینت",
+    "byUser": "توسط {user}",
+    "requestIntegration": "درخواست یکپارچه‌سازی",
+    "browseIntegrations": "مرور یکپارچه‌سازی‌ها",
+    "examplePrompt": "نمونه دستور",
+    "connectYourAi": "هوش مصنوعی خود را متصل کنید",
+    "connectAVault": "اتصال یک گاوصندوق",
+    "manageVaults": "مدیریت گاوصندوق‌ها",
+    "baseRelations": "روابط پایگاه",
+    "downloadReport": "دانلود گزارش",
+    "noLongerWorkspaceMember": "دیگر عضو این فضای کار نیست",
+    "notBaseMember": "عضو این پایگاه نیست",
+    "factoryNoSessionMatches": "هیچ نشستی با این جستجو مطابقت ندارد",
+    "factoryRepoHasProject": "دارای یک پروژه است",
+    "factoryOpenRepo": "باز کردن مخزن",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "جدول‌ها، نماها، خودکارسازی‌ها و برنامه‌ها روی داده‌های شما.",
+    "projectKindCode": "پروژه کد",
+    "projectKindCodeHint": "یک مخزن را متصل کنید و بگذارید عامل‌ها روی کد آن کار کنند.",
+    "planStatusPending": "در انتظار",
+    "planStatusInProgress": "در حال انجام",
+    "planStatusCompleted": "تکمیل‌شده",
+    "createOauthClient": "ایجاد کلاینت OAuth",
+    "downgradeToFreePlan": "بازگشت به پلن Free",
+    "plusApplicableTax": "+ مالیات متعلقه",
+    "beforeYouCancelPlan": "پیش از لغو پلن خود",
+    "formBranding": "هویت بصری فرم",
+    "aiIntegration": "یکپارچه‌سازی هوش مصنوعی",
+    "model": "مدل",
+    "enableWebSearch": "فعال کردن جستجوی وب",
+    "enableWebSearchHint": "به مدل هوش مصنوعی اجازه دهید برای اطلاعات به‌روز در وب جستجو کند",
+    "outputSchema": "طرحواره خروجی",
+    "itemType": "نوع مورد",
+    "addProperty": "افزودن ویژگی",
+    "addField": "افزودن فیلد",
+    "planSubtitleBusiness": "برای نیازهای کسب‌وکار شما",
+    "planTaglineBusiness": "تا ۷۰٪ صرفه‌جویی در مقایسه با Airtable، Monday و Smartsheet",
+    "planSubtitleScale": "برای تیم‌های در حال رشد",
+    "planTaglineScale": "تیم‌های پرشتاب با بودجه.",
+    "planTaglineScaleNoSalesCall": "نیازی به تماس با بخش فروش نیست.",
+    "everythingInBusinessAnd": "همه امکانات پلن Business و",
+    "planSubtitleEnterprise": "متناسب با سازمان شما",
+    "scheduleACall": "زمان‌بندی یک تماس",
+    "everythingInScaleAnd": "همه امکانات پلن Scale و",
+    "connectionName": "نام اتصال",
+    "connectionDetailsSection": "جزئیات اتصال",
+    "host": "میزبان",
+    "path": "مسیر",
+    "connectionParameters": "پارامترهای اتصال",
+    "advancedOptions": "گزینه‌های پیشرفته",
+    "integrationDetails": "جزئیات یکپارچه‌سازی",
+    "pgConnectionDetails": "جزئیات اتصال",
+    "pgPort": "درگاه",
+    "pgSslMode": "حالت SSL",
+    "connectionJson": "فایل JSON اتصال",
+    "input": "ورودی",
+    "output": "خروجی",
+    "console": "کنسول",
+    "forgotPassword": "کلمه عبور را فراموش کرده‌اید؟",
+    "privacyPolicy": "سیاست حریم خصوصی",
+    "clickHere": "اینجا کلیک کنید",
+    "emailVerification": "تأیید رایانامه",
+    "method": "روش",
+    "queryParameters": "پارامترهای پرس‌وجو",
+    "samplePayload": "نمونه بار داده",
+    "addDataSource": "افزودن منبع داده",
+    "addSource": "افزودن منبع",
+    "dataSourceName": "نام منبع داده",
+    "goBack": "بازگشت",
+    "interval": "بازه زمانی",
+    "everyMinutes": "هر چند دقیقه",
+    "selectMinute": "دقیقه را انتخاب کنید",
+    "selectTimeOfDay": "زمان روز را انتخاب کنید",
+    "selectTimeAndDayOfWeek": "زمان و روز هفته را انتخاب کنید",
+    "selectTimeAndDayOfMonth": "زمان و روز ماه را انتخاب کنید",
+    "editedByYou": "ویرایش‌شده توسط شما",
+    "regenerating": "در حال ساخت دوباره...",
+    "calendarIsReadonly": "تقویم فقط‌خواندنی است",
+    "generatedViews": "نمایش‌های ساخته‌شده",
+    "disableConnection": "غیرفعال کردن اتصال",
+    "connectWithFavoriteTools": "به ابزارهای محبوب خود متصل شوید",
+    "getConnectionDetails": "دریافت جزئیات اتصال",
+    "connectionUrl": "نشانی URL اتصال",
+    "chartSortBy": "مرتب‌سازی بر اساس",
+    "categoryLimit": "محدودیت دسته‌ها",
+    "chartLegendOrientation": "جهت راهنما",
+    "plotDataPoints": "رسم نقاط داده",
+    "retryImport": "تلاش دوباره برای درون‌ریزی",
+    "listening": "در حال شنیدن",
+    "generateAndCopyUrl": "ساخت و کپی نشانی URL",
+    "executionTime": "زمان اجرا",
+    "requestTime": "زمان درخواست",
+    "errorCode": "کد خطا",
+    "authorizationError": "خطای مجوز",
+    "requestedPermissions": "دسترسی‌های درخواست‌شده",
+    "applicationWillBeAbleTo": "این برنامه قادر خواهد بود",
+    "authorize": "صدور مجوز",
+    "noUrl": "بدون نشانی URL",
+    "imageUrl": "نشانی URL تصویر",
+    "altText": "متن جایگزین",
+    "fitToView": "متناسب با نما",
+    "requestBody": "بدنه درخواست",
+    "bodyType": "نوع بدنه",
+    "httpAdvancedOptions": "گزینه‌های پیشرفته",
+    "followRedirects": "دنبال کردن تغییر مسیرها",
+    "followRedirectsDescription": "دنبال کردن خودکار تغییر مسیرهای HTTP",
+    "failOnErrorStatus": "شکست در وضعیت خطا",
+    "failOnErrorStatusDescription": "شکست وقتی پاسخ 4xx یا 5xx باشد"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6606,7 +6719,7 @@
     "notAvailablePending": "Trash is not yet available for this table.",
     "conflict": {
       "panelTitle": "{count} record has a conflict | {count} records have conflicts",
-      "panelHelp": "Fix these at the source and try again, or restore now — we'll clear the conflicting values.",
+      "panelHelp": "این موارد را در منبع اصلاح کنید و دوباره تلاش کنید، یا همین حالا بازیابی کنید. ما مقادیر متناقض را پاک می‌کنیم.",
       "cleanRemainder": "{count} other record will restore normally. | {count} other records will restore normally.",
       "group": {
         "link": "Links already taken",
@@ -6765,7 +6878,7 @@
     "workflows": {
       "addTrigger": {
         "title": "یک راه‌انداز بیفزایید",
-        "description": "هر گردش‌کاری از اینجا آغاز می‌شود — کلیک کنید تا ببینید چه چیزی می‌تواند آن را به راه بیندازد."
+        "description": "هر گردش کار از اینجا آغاز می‌شود. کلیک کنید تا ببینید چه چیزی می‌تواند آن را راه بیندازد."
       },
       "addAction": {
         "title": "یک کنش بیفزایید",
@@ -6782,7 +6895,7 @@
       },
       "create": {
         "title": "یک Workflow بسازید",
-        "description": "از صفر شروع کنید — این کار یک فرم کوتاه باز می‌کند."
+        "description": "از صفر شروع کنید. این کار یک فرم کوتاه باز می‌کند."
       },
       "createSubmit": {
         "title": "بسازید",
@@ -6810,15 +6923,15 @@
       },
       "enable": {
         "title": "روشنش کنید",
-        "description": "منتشرشده با در حال اجرا یکی نیست. یک Workflow تا وقتی فعالش نکنید <b>متوقف‌شده</b> می‌ماند — همین مرحله است که معمولاً از قلم می‌افتد."
+        "description": "منتشرشده با در حال اجرا یکی نیست. گردش کار تا زمانی که آن را فعال نکنید <b>متوقف</b> می‌ماند. این همان مرحله‌ای است که بیشتر افراد از آن غافل می‌شوند."
       },
       "run": {
         "title": "یک بار اجرایش کنید",
-        "description": "راه‌انداز دستی هر وقت بخواهید اجرا می‌شود — امتحانش کنید و اجرایش را ببینید."
+        "description": "راه‌انداز دستی به‌صورت درخواستی اجرا می‌شود. آن را امتحان کنید و اجرایش را تماشا کنید."
       },
       "logs": {
         "title": "گزارش‌ها را بررسی کنید",
-        "description": "هر اجرا اینجا ثبت می‌شود — چه چیزی فعال شد، هر مرحله چه چیزی برگرداند و چه چیزی شکست خورد."
+        "description": "هر اجرا اینجا ثبت می‌شود: چه چیزی آن را راه انداخته، هر مرحله چه چیزی برگردانده و چه چیزی شکست خورده است."
       },
       "wrapUp": {
         "title": "کل چرخه همین است",
@@ -6829,7 +6942,7 @@
       "title": "در فضای کاری خود راه بیفتید",
       "welcome": {
         "title": "به NocoDB خوش آمدید",
-        "description": "یک دور سریع در فضای کاری شما. هر وقت خواستید می‌توانید بیرون بیایید — روی «رد کردن» بزنید."
+        "description": "یک دور سریع در فضای کاری شما. هر زمان بخواهید می‌توانید خارج شوید: روی رد کردن بزنید."
       },
       "createBase": {
         "title": "با یک پایگاه شروع کنید",

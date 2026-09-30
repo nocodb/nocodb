@@ -756,7 +756,8 @@
     "continue": "Lanjutkan",
     "manage": "Kelola",
     "orgBadge": "Org.",
-    "migrate": "Migrasikan"
+    "migrate": "Migrasikan",
+    "email": "Surel"
   },
   "objects": {
     "script": "Skrip",
@@ -3100,7 +3101,12 @@
         "variables": "Nilai yang dapat dipakai ulang untuk otomatisasi dan bidang.",
         "migrateToV3": "Tingkatkan base ini ke platform dan API v3.",
         "migrateToCloud": "Pindahkan data base ini ke NocoDB Cloud."
-      }
+      },
+      "upgradeAskOwner": "Minta pemilik untuk meningkatkan paket",
+      "upgradeRequestSent": "Permintaan terkirim",
+      "upgradeDescRls": "Batasi catatan mana yang dapat dilihat dan diedit setiap orang.",
+      "upgradeDescRecordTemplates": "Buat catatan baru dari templat tersimpan yang sudah terisi.",
+      "upgradeDescDateDependency": "Menggeser tanggal terkait secara otomatis saat sebuah catatan dipindahkan."
     },
     "categories": "Kategori",
     "blockquote": "Kutipan",
@@ -4569,7 +4575,110 @@
     "regenerateSecret": "Buat ulang rahasia",
     "createOauthClients": "Buat klien OAuth",
     "managingOauthClients": "Mengelola klien OAuth",
-    "clientInformation": "Informasi klien"
+    "clientInformation": "Informasi klien",
+    "byUser": "oleh {user}",
+    "requestIntegration": "Ajukan integrasi",
+    "browseIntegrations": "Jelajahi integrasi",
+    "examplePrompt": "Contoh prompt",
+    "connectYourAi": "Hubungkan AI Anda",
+    "connectAVault": "Hubungkan brankas",
+    "manageVaults": "Kelola brankas",
+    "baseRelations": "Relasi basis",
+    "downloadReport": "Unduh laporan",
+    "noLongerWorkspaceMember": "Bukan lagi anggota ruang kerja ini",
+    "notBaseMember": "Bukan anggota basis ini",
+    "factoryNoSessionMatches": "Tidak ada sesi yang cocok dengan pencarian itu",
+    "factoryRepoHasProject": "Memiliki proyek",
+    "factoryOpenRepo": "Buka repositori",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Tabel, tampilan, otomatisasi, dan aplikasi di atas data Anda.",
+    "projectKindCode": "Proyek kode",
+    "projectKindCodeHint": "Hubungkan sebuah repositori dan biarkan agen mengerjakan kodenya.",
+    "planStatusPending": "Tertunda",
+    "planStatusInProgress": "Sedang berjalan",
+    "planStatusCompleted": "Selesai",
+    "createOauthClient": "Buat klien OAuth",
+    "downgradeToFreePlan": "Turunkan ke paket Free",
+    "plusApplicableTax": "+ pajak yang berlaku",
+    "beforeYouCancelPlan": "Sebelum Anda membatalkan paket",
+    "formBranding": "Identitas merek formulir",
+    "aiIntegration": "Integrasi AI",
+    "enableWebSearch": "Aktifkan pencarian web",
+    "enableWebSearchHint": "Izinkan model AI mencari informasi terkini di web",
+    "outputSchema": "Skema keluaran",
+    "itemType": "Tipe item",
+    "addProperty": "Tambah properti",
+    "addField": "Tambah bidang",
+    "planSubtitleBusiness": "Untuk kebutuhan bisnis Anda",
+    "planTaglineBusiness": "Hemat hingga 70% dibandingkan Airtable, Monday & Smartsheet",
+    "planSubtitleScale": "Untuk tim yang sedang tumbuh",
+    "planTaglineScale": "Tim yang bergerak cepat dan punya anggaran.",
+    "planTaglineScaleNoSalesCall": "Tidak perlu panggilan penjualan.",
+    "everythingInBusinessAnd": "Semua yang ada di Business dan",
+    "planSubtitleEnterprise": "Disesuaikan dengan organisasi Anda",
+    "scheduleACall": "Jadwalkan panggilan",
+    "everythingInScaleAnd": "Semua yang ada di Scale dan",
+    "connectionName": "Nama koneksi",
+    "connectionDetailsSection": "Rincian koneksi",
+    "path": "Jalur",
+    "connectionParameters": "Parameter koneksi",
+    "advancedOptions": "Opsi lanjutan",
+    "integrationDetails": "Rincian integrasi",
+    "pgConnectionDetails": "Rincian koneksi",
+    "pgSslMode": "Mode SSL",
+    "connectionJson": "JSON koneksi",
+    "input": "Masukan",
+    "output": "Keluaran",
+    "console": "Konsol",
+    "forgotPassword": "Lupa kata sandi?",
+    "privacyPolicy": "Kebijakan Privasi",
+    "clickHere": "Klik di sini",
+    "emailVerification": "Verifikasi surel",
+    "method": "Metode",
+    "queryParameters": "Parameter kueri",
+    "samplePayload": "Contoh muatan",
+    "addDataSource": "Tambah sumber data",
+    "addSource": "Tambah sumber",
+    "dataSourceName": "Nama sumber data",
+    "goBack": "Kembali",
+    "everyMinutes": "Setiap menit",
+    "selectMinute": "Pilih menit",
+    "selectTimeOfDay": "Pilih waktu dalam sehari",
+    "selectTimeAndDayOfWeek": "Pilih waktu dan hari dalam minggu",
+    "selectTimeAndDayOfMonth": "Pilih waktu dan tanggal dalam bulan",
+    "editedByYou": "Diedit oleh Anda",
+    "regenerating": "Membuat ulang...",
+    "calendarIsReadonly": "Kalender hanya dapat dibaca",
+    "generatedViews": "Tampilan yang dihasilkan",
+    "disableConnection": "Nonaktifkan koneksi",
+    "connectWithFavoriteTools": "Hubungkan dengan alat favorit Anda",
+    "getConnectionDetails": "Dapatkan rincian koneksi",
+    "connectionUrl": "URL koneksi",
+    "chartSortBy": "Urutkan berdasarkan",
+    "categoryLimit": "Batas kategori",
+    "chartLegendOrientation": "Orientasi legenda",
+    "plotDataPoints": "Gambarkan titik data",
+    "retryImport": "Coba impor lagi",
+    "listening": "Mendengarkan",
+    "generateAndCopyUrl": "Buat dan salin URL",
+    "executionTime": "Waktu eksekusi",
+    "requestTime": "Waktu permintaan",
+    "errorCode": "Kode kesalahan",
+    "authorizationError": "Kesalahan otorisasi",
+    "requestedPermissions": "Izin yang diminta",
+    "applicationWillBeAbleTo": "Aplikasi ini akan dapat",
+    "authorize": "Otorisasi",
+    "noUrl": "Tidak ada URL",
+    "imageUrl": "URL gambar",
+    "altText": "Teks alternatif",
+    "fitToView": "Sesuaikan dengan tampilan",
+    "requestBody": "Isi permintaan",
+    "bodyType": "Tipe isi",
+    "httpAdvancedOptions": "Opsi lanjutan",
+    "followRedirects": "Ikuti pengalihan",
+    "followRedirectsDescription": "Ikuti pengalihan HTTP secara otomatis",
+    "failOnErrorStatus": "Gagalkan pada status kesalahan",
+    "failOnErrorStatusDescription": "Gagalkan bila respons berupa 4xx atau 5xx"
   },
   "activity": {
     "useTemplate": "Gunakan templat",
@@ -6597,7 +6706,7 @@
     "notAvailablePending": "Sampah belum tersedia untuk tabel ini.",
     "conflict": {
       "panelTitle": "{count} catatan memiliki konflik | {count} catatan memiliki konflik",
-      "panelHelp": "Perbaiki ini di sumbernya dan coba lagi, atau pulihkan sekarang - kami akan menghapus nilai yang bertentangan.",
+      "panelHelp": "Perbaiki di sumbernya lalu coba lagi, atau pulihkan sekarang. Kami akan menghapus nilai yang bertentangan.",
       "cleanRemainder": "{count} catatan lain akan pulih secara normal. | {count} catatan lain akan pulih secara normal.",
       "group": {
         "link": "Tautan sudah diambil",
@@ -6756,7 +6865,7 @@
     "workflows": {
       "addTrigger": {
         "title": "Tambahkan sebuah pemicu",
-        "description": "Setiap alur kerja dimulai di sini — klik untuk melihat apa yang bisa memulainya."
+        "description": "Setiap alur kerja dimulai di sini. Klik untuk melihat apa yang dapat memicunya."
       },
       "addAction": {
         "title": "Tambahkan sebuah tindakan",
@@ -6773,7 +6882,7 @@
       },
       "create": {
         "title": "Buat sebuah alur kerja",
-        "description": "Mulai dari nol — ini akan membuka formulir singkat."
+        "description": "Mulai dari awal. Ini akan membuka formulir singkat."
       },
       "createSubmit": {
         "title": "Buat",
@@ -6801,15 +6910,15 @@
       },
       "enable": {
         "title": "Aktifkan",
-        "description": "Diterbitkan tidak sama dengan berjalan. Alur kerja tetap <b>Dijeda</b> sampai Anda mengaktifkannya — langkah inilah yang sering terlewat."
+        "description": "Diterbitkan tidak sama dengan berjalan. Alur kerja tetap <b>dijeda</b> sampai Anda mengaktifkannya. Inilah langkah yang sering terlewat."
       },
       "run": {
         "title": "Jalankan sekali",
-        "description": "Pemicu manual berjalan sesuai permintaan — coba dan saksikan eksekusinya."
+        "description": "Pemicu manual berjalan sesuai permintaan. Cobalah dan saksikan eksekusinya."
       },
       "logs": {
         "title": "Periksa log",
-        "description": "Setiap eksekusi dicatat di sini — apa yang terpicu, apa yang dikembalikan setiap langkah, dan apa yang gagal."
+        "description": "Setiap eksekusi dicatat di sini: apa yang memicunya, apa yang dikembalikan tiap langkah, dan apa yang gagal."
       },
       "wrapUp": {
         "title": "Itulah keseluruhan siklusnya",
@@ -6820,7 +6929,7 @@
       "title": "Kenali ruang kerja Anda",
       "welcome": {
         "title": "Selamat datang di NocoDB",
-        "description": "Putaran singkat mengelilingi ruang kerja Anda. Anda bisa keluar kapan saja — tekan Lewati."
+        "description": "Tur singkat di ruang kerja Anda. Anda dapat keluar kapan saja: tekan Lewati."
       },
       "createBase": {
         "title": "Mulai dengan sebuah Base",

@@ -756,7 +756,8 @@
     "continue": "Jatka",
     "manage": "Hallitse",
     "orgBadge": "Org.",
-    "migrate": "Siirrä"
+    "migrate": "Siirrä",
+    "email": "Sähköposti"
   },
   "objects": {
     "script": "Skripti",
@@ -3102,7 +3103,12 @@
         "variables": "Uudelleenkäytettävät arvot automaatioille ja kentille.",
         "migrateToV3": "Päivitä tämä kanta v3-alustaan ja v3-rajapintoihin.",
         "migrateToCloud": "Siirrä tämän kannan tiedot NocoDB Cloudiin."
-      }
+      },
+      "upgradeAskOwner": "Pyydä omistajaa päivittämään",
+      "upgradeRequestSent": "Pyyntö lähetetty",
+      "upgradeDescRls": "Rajaa, mitä tietueita kukin henkilö voi nähdä ja muokata.",
+      "upgradeDescRecordTemplates": "Luo uusia tietueita tallennetuista, esitäytetyistä malleista.",
+      "upgradeDescDateDependency": "Siirrä riippuvaiset päivämäärät automaattisesti, kun tietue siirtyy."
     },
     "categories": "Kategoriat",
     "blockquote": "Lainaus",
@@ -4577,7 +4583,114 @@
     "regenerateSecret": "Luo uusi salaisuus",
     "createOauthClients": "Luo OAuth-asiakkaita",
     "managingOauthClients": "OAuth-asiakkaiden hallinta",
-    "clientInformation": "Asiakkaan tiedot"
+    "clientInformation": "Asiakkaan tiedot",
+    "byUser": "käyttäjältä {user}",
+    "requestIntegration": "Pyydä integraatiota",
+    "browseIntegrations": "Selaa integraatioita",
+    "examplePrompt": "Esimerkkikehote",
+    "connectYourAi": "Yhdistä tekoälysi",
+    "connectAVault": "Yhdistä holvi",
+    "manageVaults": "Hallitse holveja",
+    "baseRelations": "Basen suhteet",
+    "downloadReport": "Lataa raportti",
+    "noLongerWorkspaceMember": "Ei enää tämän työtilan jäsen",
+    "notBaseMember": "Ei tämän basen jäsen",
+    "factoryNoSessionMatches": "Yksikään istunto ei vastaa hakua",
+    "factoryRepoHasProject": "Sisältää projektin",
+    "factoryOpenRepo": "Avaa säilö",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Taulukoita, näkymiä, automaatioita ja sovelluksia datasi päälle.",
+    "projectKindCode": "Koodiprojekti",
+    "projectKindCodeHint": "Yhdistä säilö ja anna agenttien työstää sen koodia.",
+    "planStatusPending": "Odottaa",
+    "planStatusInProgress": "Käynnissä",
+    "planStatusCompleted": "Valmis",
+    "createOauthClient": "Luo OAuth-asiakas",
+    "downgradeToFreePlan": "Siirry Free-pakettiin",
+    "plusApplicableTax": "+ sovellettavat verot",
+    "beforeYouCancelPlan": "Ennen kuin peruutat pakettisi",
+    "formBranding": "Lomakkeen ilme",
+    "aiIntegration": "Tekoälyintegraatio",
+    "model": "Malli",
+    "enableWebSearch": "Ota verkkohaku käyttöön",
+    "enableWebSearchHint": "Salli tekoälymallin hakea verkosta ajantasaista tietoa",
+    "outputSchema": "Tulosteen skeema",
+    "itemType": "Kohteen tyyppi",
+    "addProperty": "Lisää ominaisuus",
+    "addField": "Lisää kenttä",
+    "planSubtitleBusiness": "Yrityksesi tarpeisiin",
+    "planTaglineBusiness": "Säästä jopa 70 % verrattuna palveluihin Airtable, Monday & Smartsheet",
+    "planSubtitleScale": "Kasvaville tiimeille",
+    "planTaglineScale": "Nopeasti liikkuville tiimeille, joilla on budjetti.",
+    "planTaglineScaleNoSalesCall": "Myyntipuhelua ei tarvita.",
+    "everythingInBusinessAnd": "Kaikki Business-paketista ja",
+    "planSubtitleEnterprise": "Räätälöity organisaatiollesi",
+    "scheduleACall": "Varaa puhelu",
+    "everythingInScaleAnd": "Kaikki Scale-paketista ja",
+    "connectionName": "Yhteyden nimi",
+    "connectionDetailsSection": "Yhteyden tiedot",
+    "host": "Isäntä",
+    "path": "Polku",
+    "connectionParameters": "Yhteyden parametrit",
+    "advancedOptions": "Lisäasetukset",
+    "integrationDetails": "Integraation tiedot",
+    "pgConnectionDetails": "Yhteyden tiedot",
+    "pgPort": "Portti",
+    "pgSslMode": "SSL-tila",
+    "connectionJson": "Yhteyden JSON",
+    "input": "Syöte",
+    "output": "Tuloste",
+    "console": "Konsoli",
+    "forgotPassword": "Unohditko salasanan?",
+    "privacyPolicy": "Tietosuojakäytäntö",
+    "clickHere": "Napsauta tästä",
+    "emailVerification": "Sähköpostin vahvistus",
+    "method": "Metodi",
+    "queryParameters": "Kyselyparametrit",
+    "samplePayload": "Esimerkkihyötykuorma",
+    "addDataSource": "Lisää tietolähde",
+    "addSource": "Lisää lähde",
+    "dataSourceName": "Tietolähteen nimi",
+    "goBack": "Takaisin",
+    "interval": "Aikaväli",
+    "everyMinutes": "Joka minuutti",
+    "selectMinute": "Valitse minuutti",
+    "selectTimeOfDay": "Valitse kellonaika",
+    "selectTimeAndDayOfWeek": "Valitse kellonaika ja viikonpäivä",
+    "selectTimeAndDayOfMonth": "Valitse kellonaika ja kuukauden päivä",
+    "editedByYou": "Sinun muokkaamasi",
+    "regenerating": "Luodaan uudelleen...",
+    "calendarIsReadonly": "Kalenteri on vain luettavissa",
+    "generatedViews": "Luodut näkymät",
+    "disableConnection": "Poista yhteys käytöstä",
+    "connectWithFavoriteTools": "Yhdistä suosikkityökaluihisi",
+    "getConnectionDetails": "Hae yhteyden tiedot",
+    "connectionUrl": "Yhteyden URL",
+    "chartSortBy": "Lajitteluperuste",
+    "categoryLimit": "Luokkien raja",
+    "chartLegendOrientation": "Selitteen suunta",
+    "plotDataPoints": "Piirrä datapisteet",
+    "retryImport": "Yritä tuontia uudelleen",
+    "listening": "Kuuntelee",
+    "generateAndCopyUrl": "Luo ja kopioi URL",
+    "executionTime": "Suoritusaika",
+    "requestTime": "Pyynnön aika",
+    "errorCode": "Virhekoodi",
+    "authorizationError": "Valtuutusvirhe",
+    "requestedPermissions": "Pyydetyt oikeudet",
+    "applicationWillBeAbleTo": "Tämä sovellus voi",
+    "authorize": "Valtuuta",
+    "noUrl": "Ei URL-osoitetta",
+    "imageUrl": "Kuvan URL",
+    "altText": "Vaihtoehtoinen teksti",
+    "fitToView": "Sovita näkymään",
+    "requestBody": "Pyynnön runko",
+    "bodyType": "Rungon tyyppi",
+    "httpAdvancedOptions": "Lisäasetukset",
+    "followRedirects": "Seuraa uudelleenohjauksia",
+    "followRedirectsDescription": "Seuraa HTTP-uudelleenohjauksia automaattisesti",
+    "failOnErrorStatus": "Epäonnistu virhetilassa",
+    "failOnErrorStatusDescription": "Epäonnistu, kun vastaus on 4xx tai 5xx"
   },
   "activity": {
     "useTemplate": "Käytä mallia",
@@ -6605,7 +6718,7 @@
     "notAvailablePending": "Roskakori ei ole vielä käytettävissä tälle taulukolle.",
     "conflict": {
       "panelTitle": "{count} tietueessa on ristiriita | {count} tietueissa on ristiriitoja.",
-      "panelHelp": "Korjaa nämä lähteellä ja yritä uudelleen tai palauta nyt — me tyhjennämme ristiriitaiset arvot.",
+      "panelHelp": "Korjaa nämä lähteessä ja yritä uudelleen, tai palauta nyt. Tyhjennämme ristiriitaiset arvot.",
       "cleanRemainder": "{count} muut tietueet palautuvat normaalisti. | {count} muut tietueet palautuvat normaalisti.",
       "group": {
         "link": "Linkit on jo otettu",
@@ -6764,7 +6877,7 @@
     "workflows": {
       "addTrigger": {
         "title": "Lisää laukaisin",
-        "description": "Jokainen työnkulku alkaa tästä — napsauta nähdäksesi, mikä voi käynnistää sen."
+        "description": "Jokainen työnkulku alkaa täältä. Napsauta nähdäksesi, mikä voi käynnistää sen."
       },
       "addAction": {
         "title": "Lisää toiminto",
@@ -6781,7 +6894,7 @@
       },
       "create": {
         "title": "Luo työnkulku",
-        "description": "Aloita tyhjästä — tämä avaa lyhyen lomakkeen."
+        "description": "Aloita tyhjästä. Tämä avaa lyhyen lomakkeen."
       },
       "createSubmit": {
         "title": "Luo se",
@@ -6809,15 +6922,15 @@
       },
       "enable": {
         "title": "Kytke se päälle",
-        "description": "Julkaistu ei ole sama asia kuin käynnissä. Työnkulku pysyy <b>Keskeytettynä</b>, kunnes otat sen käyttöön — tämä vaihe jää useimmilta huomaamatta."
+        "description": "Julkaistu ei tarkoita samaa kuin käynnissä. Työnkulku pysyy <b>keskeytettynä</b>, kunnes otat sen käyttöön. Tämä vaihe unohtuu useimmilta."
       },
       "run": {
         "title": "Suorita se kerran",
-        "description": "Manuaalinen liipaisin laukeaa pyydettäessä — kokeile ja katso, miten se suoritetaan."
+        "description": "Manuaalinen liipaisin käynnistyy pyynnöstä. Kokeile sitä ja seuraa suoritusta."
       },
       "logs": {
         "title": "Tarkista lokit",
-        "description": "Jokainen suoritus kirjataan tänne — mikä laukesi, mitä kukin vaihe palautti ja mikä epäonnistui."
+        "description": "Jokainen suoritus kirjataan tähän: mikä sen käynnisti, mitä kukin vaihe palautti ja mikä epäonnistui."
       },
       "wrapUp": {
         "title": "Siinä koko kierros",
@@ -6828,7 +6941,7 @@
       "title": "Löydä perille työtilassasi",
       "welcome": {
         "title": "Tervetuloa NocoDB:hen",
-        "description": "Nopea kierros työtilassasi. Voit poistua milloin tahansa — paina Ohita."
+        "description": "Nopea kierros työtilassasi. Voit poistua milloin tahansa: paina Ohita."
       },
       "createBase": {
         "title": "Aloita Basesta",

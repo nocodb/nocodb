@@ -755,7 +755,8 @@
     "continue": "Turpināt",
     "manage": "Pārvaldīt",
     "orgBadge": "Org.",
-    "migrate": "Migrēt"
+    "migrate": "Migrēt",
+    "email": "E-pasts"
   },
   "objects": {
     "script": "Skripts",
@@ -3100,7 +3101,12 @@
         "variables": "Atkārtoti izmantojamas vērtības automatizācijām un laukiem.",
         "migrateToV3": "Jaunināt šo bāzi uz v3 platformu un API.",
         "migrateToCloud": "Pārvietot šīs bāzes datus uz NocoDB Cloud."
-      }
+      },
+      "upgradeAskOwner": "Lūgt īpašniekam veikt jaunināšanu",
+      "upgradeRequestSent": "Pieprasījums nosūtīts",
+      "upgradeDescRls": "Ierobežojiet, kurus ierakstus katra persona var skatīt un rediģēt.",
+      "upgradeDescRecordTemplates": "Veidojiet jaunus ierakstus no saglabātām, iepriekš aizpildītām veidnēm.",
+      "upgradeDescDateDependency": "Automātiski pārbīda atkarīgos datumus, kad ieraksts tiek pārvietots."
     },
     "categories": "Kategorijas",
     "blockquote": "Citāts",
@@ -4572,7 +4578,114 @@
     "regenerateSecret": "Ģenerēt jaunu noslēpumu",
     "createOauthClients": "Izveidot OAuth klientus",
     "managingOauthClients": "OAuth klientu pārvaldība",
-    "clientInformation": "Informācija par klientu"
+    "clientInformation": "Informācija par klientu",
+    "byUser": "no {user}",
+    "requestIntegration": "Pieprasīt integrāciju",
+    "browseIntegrations": "Pārlūkot integrācijas",
+    "examplePrompt": "Uzvednes piemērs",
+    "connectYourAi": "Pievienojiet savu MI",
+    "connectAVault": "Pievienot seifu",
+    "manageVaults": "Pārvaldīt seifus",
+    "baseRelations": "Bāzes attiecības",
+    "downloadReport": "Lejupielādēt atskaiti",
+    "noLongerWorkspaceMember": "Vairs nav šīs darbtelpas dalībnieks",
+    "notBaseMember": "Nav šīs bāzes dalībnieks",
+    "factoryNoSessionMatches": "Neviena sesija neatbilst šim meklējumam",
+    "factoryRepoHasProject": "Ir projekts",
+    "factoryOpenRepo": "Atvērt repozitoriju",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Tabulas, skatījumi, automatizācijas un lietotnes uz jūsu datiem.",
+    "projectKindCode": "Koda projekts",
+    "projectKindCodeHint": "Pievienojiet repozitoriju un ļaujiet aģentiem strādāt ar tā kodu.",
+    "planStatusPending": "Gaida",
+    "planStatusInProgress": "Norisinās",
+    "planStatusCompleted": "Pabeigts",
+    "createOauthClient": "Izveidot OAuth klientu",
+    "downgradeToFreePlan": "Pāriet uz Free plānu",
+    "plusApplicableTax": "+ piemērojamie nodokļi",
+    "beforeYouCancelPlan": "Pirms atceļat savu plānu",
+    "formBranding": "Veidlapas zīmolvedība",
+    "aiIntegration": "MI integrācija",
+    "model": "Modelis",
+    "enableWebSearch": "Iespējot tīmekļa meklēšanu",
+    "enableWebSearchHint": "Atļaut MI modelim meklēt tīmeklī aktuālu informāciju",
+    "outputSchema": "Izvades shēma",
+    "itemType": "Vienuma tips",
+    "addProperty": "Pievienot īpašību",
+    "addField": "Pievienot lauku",
+    "planSubtitleBusiness": "Jūsu uzņēmuma vajadzībām",
+    "planTaglineBusiness": "Ietaupiet līdz pat 70 % salīdzinājumā ar Airtable, Monday & Smartsheet",
+    "planSubtitleScale": "Augošām komandām",
+    "planTaglineScale": "Ātri strādājošām komandām ar budžetu.",
+    "planTaglineScaleNoSalesCall": "Saruna ar pārdošanas komandu nav nepieciešama.",
+    "everythingInBusinessAnd": "Viss, kas ir Business, un",
+    "planSubtitleEnterprise": "Pielāgots jūsu organizācijai",
+    "scheduleACall": "Ieplānot zvanu",
+    "everythingInScaleAnd": "Viss, kas ir Scale, un",
+    "connectionName": "Savienojuma nosaukums",
+    "connectionDetailsSection": "Savienojuma detaļas",
+    "host": "Resursdators",
+    "path": "Ceļš",
+    "connectionParameters": "Savienojuma parametri",
+    "advancedOptions": "Papildu opcijas",
+    "integrationDetails": "Integrācijas detaļas",
+    "pgConnectionDetails": "Savienojuma detaļas",
+    "pgPort": "Ports",
+    "pgSslMode": "SSL režīms",
+    "connectionJson": "Savienojuma JSON",
+    "input": "Ievade",
+    "output": "Izvade",
+    "console": "Konsole",
+    "forgotPassword": "Aizmirsāt paroli?",
+    "privacyPolicy": "Privātuma politika",
+    "clickHere": "Noklikšķiniet šeit",
+    "emailVerification": "E-pasta verifikācija",
+    "method": "Metode",
+    "queryParameters": "Vaicājuma parametri",
+    "samplePayload": "Datu piemērs",
+    "addDataSource": "Pievienot datu avotu",
+    "addSource": "Pievienot avotu",
+    "dataSourceName": "Datu avota nosaukums",
+    "goBack": "Atpakaļ",
+    "interval": "Intervāls",
+    "everyMinutes": "Ik pēc minūtēm",
+    "selectMinute": "Atlasiet minūti",
+    "selectTimeOfDay": "Atlasiet diennakts laiku",
+    "selectTimeAndDayOfWeek": "Atlasiet laiku un nedēļas dienu",
+    "selectTimeAndDayOfMonth": "Atlasiet laiku un mēneša dienu",
+    "editedByYou": "Jūsu rediģēts",
+    "regenerating": "Notiek atkārtota ģenerēšana...",
+    "calendarIsReadonly": "Kalendārs ir tikai lasāms",
+    "generatedViews": "Ģenerētie skatījumi",
+    "disableConnection": "Atspējot savienojumu",
+    "connectWithFavoriteTools": "Savienojieties ar saviem iecienītākajiem rīkiem",
+    "getConnectionDetails": "Iegūt savienojuma detaļas",
+    "connectionUrl": "Savienojuma URL",
+    "chartSortBy": "Kārtot pēc",
+    "categoryLimit": "Kategoriju ierobežojums",
+    "chartLegendOrientation": "Leģendas orientācija",
+    "plotDataPoints": "Attēlot datu punktus",
+    "retryImport": "Mēģināt importu vēlreiz",
+    "listening": "Klausās",
+    "generateAndCopyUrl": "Ģenerēt un kopēt URL",
+    "executionTime": "Izpildes laiks",
+    "requestTime": "Pieprasījuma laiks",
+    "errorCode": "Kļūdas kods",
+    "authorizationError": "Autorizācijas kļūda",
+    "requestedPermissions": "Pieprasītās atļaujas",
+    "applicationWillBeAbleTo": "Šī lietotne varēs",
+    "authorize": "Autorizēt",
+    "noUrl": "Nav URL",
+    "imageUrl": "Attēla URL",
+    "altText": "Alternatīvais teksts",
+    "fitToView": "Ietilpināt skatā",
+    "requestBody": "Pieprasījuma pamatteksts",
+    "bodyType": "Ķermeņa tips",
+    "httpAdvancedOptions": "Papildu opcijas",
+    "followRedirects": "Sekot novirzīšanām",
+    "followRedirectsDescription": "Automātiski sekot HTTP novirzīšanām",
+    "failOnErrorStatus": "Neizdoties kļūdas statusa gadījumā",
+    "failOnErrorStatusDescription": "Neizdoties, ja atbilde ir 4xx vai 5xx"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6600,7 +6713,7 @@
     "notAvailablePending": "Trash is not yet available for this table.",
     "conflict": {
       "panelTitle": "{count} record has a conflict | {count} records have conflicts",
-      "panelHelp": "Fix these at the source and try again, or restore now — we'll clear the conflicting values.",
+      "panelHelp": "Izlabojiet tos avotā un mēģiniet vēlreiz vai atjaunojiet tūlīt. Mēs notīrīsim pretrunīgās vērtības.",
       "cleanRemainder": "{count} other record will restore normally. | {count} other records will restore normally.",
       "group": {
         "link": "Links already taken",
@@ -6759,7 +6872,7 @@
     "workflows": {
       "addTrigger": {
         "title": "Pievienojiet trigeri",
-        "description": "Katra darbplūsma sākas šeit — noklikšķiniet, lai redzētu, kas to var iedarbināt."
+        "description": "Katra darbplūsma sākas šeit. Noklikšķiniet, lai redzētu, kas to var iedarbināt."
       },
       "addAction": {
         "title": "Pievienojiet darbību",
@@ -6776,7 +6889,7 @@
       },
       "create": {
         "title": "Izveidojiet Workflow",
-        "description": "Sāciet no nulles — tiks atvērta īsa veidlapa."
+        "description": "Sāciet no nulles. Tiks atvērta īsa veidlapa."
       },
       "createSubmit": {
         "title": "Izveidot",
@@ -6804,15 +6917,15 @@
       },
       "enable": {
         "title": "Ieslēdziet to",
-        "description": "Publicēts nav tas pats, kas darbojas. Workflow paliek <b>Apturēts</b>, līdz to iespējojat — tieši šo soli mēdz palaist garām."
+        "description": "Publicēts nenozīmē, ka darbojas. Darbplūsma paliek <b>apturēta</b>, līdz to iespējojat. Tieši šo soli cilvēki aizmirst."
       },
       "run": {
         "title": "Palaidiet to vienu reizi",
-        "description": "Manuālais trigeris nostrādā pēc pieprasījuma — pamēģiniet un vērojiet izpildi."
+        "description": "Manuālais trigeris nostrādā pēc pieprasījuma. Izmēģiniet to un vērojiet izpildi."
       },
       "logs": {
         "title": "Pārbaudiet žurnālus",
-        "description": "Katra izpilde tiek pierakstīta šeit — kas nostrādāja, ko atgrieza katrs solis un kas neizdevās."
+        "description": "Katra izpilde tiek reģistrēta šeit: kas to izsauca, ko atgrieza katrs solis un kas neizdevās."
       },
       "wrapUp": {
         "title": "Tas ir viss cikls",
@@ -6823,7 +6936,7 @@
       "title": "Iepazīstiet savu darbtelpu",
       "welcome": {
         "title": "Laipni lūdzam NocoDB",
-        "description": "Ātrs aplis pa jūsu darbtelpu. Varat iziet jebkurā brīdī — nospiediet Izlaist."
+        "description": "Īss aplis pa jūsu darbtelpu. Varat pārtraukt jebkurā brīdī: nospiediet Izlaist."
       },
       "createBase": {
         "title": "Sāciet ar Bāzi",

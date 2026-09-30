@@ -754,7 +754,8 @@
     "continue": "Doorgaan",
     "manage": "Beheren",
     "orgBadge": "Org.",
-    "migrate": "Migreren"
+    "migrate": "Migreren",
+    "email": "E-mail"
   },
   "objects": {
     "script": "Script",
@@ -3094,7 +3095,12 @@
         "variables": "Herbruikbare waarden voor automatiseringen en velden.",
         "migrateToV3": "Werk deze base bij naar het v3-platform en de v3-API's.",
         "migrateToCloud": "Verplaats de gegevens van deze base naar NocoDB Cloud."
-      }
+      },
+      "upgradeAskOwner": "Vraag de eigenaar om te upgraden",
+      "upgradeRequestSent": "Verzoek verzonden",
+      "upgradeDescRls": "Beperk welke records iedere persoon mag zien en bewerken.",
+      "upgradeDescRecordTemplates": "Maak nieuwe records op basis van opgeslagen, vooraf ingevulde sjablonen.",
+      "upgradeDescDateDependency": "Verschuif afhankelijke datums automatisch wanneer een record verplaatst wordt."
     },
     "categories": "Categorieën",
     "blockquote": "Citaat",
@@ -4557,7 +4563,110 @@
     "regenerateSecret": "Geheim opnieuw genereren",
     "createOauthClients": "OAuth-clients aanmaken",
     "managingOauthClients": "OAuth-clients beheren",
-    "clientInformation": "Clientgegevens"
+    "clientInformation": "Clientgegevens",
+    "byUser": "door {user}",
+    "requestIntegration": "Integratie aanvragen",
+    "browseIntegrations": "Integraties bekijken",
+    "examplePrompt": "Voorbeeldprompt",
+    "connectYourAi": "Verbind je AI",
+    "connectAVault": "Een kluis verbinden",
+    "manageVaults": "Kluizen beheren",
+    "baseRelations": "Basisrelaties",
+    "downloadReport": "Rapport downloaden",
+    "noLongerWorkspaceMember": "Geen lid meer van deze werkruimte",
+    "notBaseMember": "Geen lid van deze basis",
+    "factoryNoSessionMatches": "Geen sessies komen overeen met die zoekopdracht",
+    "factoryRepoHasProject": "Heeft een project",
+    "factoryOpenRepo": "Repository openen",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Tabellen, weergaven, automatiseringen en apps op je gegevens.",
+    "projectKindCode": "Codeproject",
+    "projectKindCodeHint": "Verbind een repository en laat agents aan de code ervan werken.",
+    "planStatusPending": "In behandeling",
+    "planStatusInProgress": "Bezig",
+    "planStatusCompleted": "Voltooid",
+    "createOauthClient": "OAuth-client aanmaken",
+    "downgradeToFreePlan": "Terug naar het Free-abonnement",
+    "plusApplicableTax": "+ van toepassing zijnde belasting",
+    "beforeYouCancelPlan": "Voordat je je abonnement opzegt",
+    "formBranding": "Formulierhuisstijl",
+    "aiIntegration": "AI-integratie",
+    "enableWebSearch": "Webzoeken inschakelen",
+    "enableWebSearchHint": "Sta het AI-model toe op het web te zoeken naar actuele informatie",
+    "outputSchema": "Uitvoerschema",
+    "itemType": "Itemtype",
+    "addProperty": "Eigenschap toevoegen",
+    "addField": "Veld toevoegen",
+    "planSubtitleBusiness": "Voor de behoeften van je bedrijf",
+    "planTaglineBusiness": "Bespaar tot 70% ten opzichte van Airtable, Monday & Smartsheet",
+    "planSubtitleScale": "Voor groeiende teams",
+    "planTaglineScale": "Snel bewegende teams met budget.",
+    "planTaglineScaleNoSalesCall": "Geen verkoopgesprek nodig.",
+    "everythingInBusinessAnd": "Alles uit Business en",
+    "planSubtitleEnterprise": "Afgestemd op jouw organisatie",
+    "scheduleACall": "Een gesprek inplannen",
+    "everythingInScaleAnd": "Alles uit Scale en",
+    "connectionName": "Verbindingsnaam",
+    "connectionDetailsSection": "Verbindingsgegevens",
+    "path": "Pad",
+    "connectionParameters": "Verbindingsparameters",
+    "advancedOptions": "Geavanceerde opties",
+    "integrationDetails": "Integratiegegevens",
+    "pgConnectionDetails": "Verbindingsgegevens",
+    "pgPort": "Poort",
+    "pgSslMode": "SSL-modus",
+    "connectionJson": "Verbindings-JSON",
+    "input": "Invoer",
+    "output": "Uitvoer",
+    "forgotPassword": "Wachtwoord vergeten?",
+    "privacyPolicy": "Privacybeleid",
+    "clickHere": "Klik hier",
+    "emailVerification": "E-mailverificatie",
+    "method": "Methode",
+    "queryParameters": "Queryparameters",
+    "samplePayload": "Voorbeeldpayload",
+    "addDataSource": "Gegevensbron toevoegen",
+    "addSource": "Bron toevoegen",
+    "dataSourceName": "Naam van de gegevensbron",
+    "goBack": "Terug",
+    "everyMinutes": "Elke minuten",
+    "selectMinute": "Minuut selecteren",
+    "selectTimeOfDay": "Selecteer het tijdstip van de dag",
+    "selectTimeAndDayOfWeek": "Selecteer het tijdstip en de dag van de week",
+    "selectTimeAndDayOfMonth": "Selecteer het tijdstip en de dag van de maand",
+    "editedByYou": "Door jou bewerkt",
+    "regenerating": "Opnieuw genereren...",
+    "calendarIsReadonly": "Kalender is alleen-lezen",
+    "generatedViews": "Gegenereerde weergave(n)",
+    "disableConnection": "Verbinding uitschakelen",
+    "connectWithFavoriteTools": "Verbind met je favoriete tools",
+    "getConnectionDetails": "Verbindingsgegevens ophalen",
+    "connectionUrl": "Verbindings-URL",
+    "chartSortBy": "Sorteren op",
+    "categoryLimit": "Categorielimiet",
+    "chartLegendOrientation": "Oriëntatie van de legenda",
+    "plotDataPoints": "Datapunten uitzetten",
+    "retryImport": "Import opnieuw proberen",
+    "listening": "Luisteren",
+    "generateAndCopyUrl": "URL genereren en kopiëren",
+    "executionTime": "Uitvoeringstijd",
+    "requestTime": "Aanvraagtijd",
+    "errorCode": "Foutcode",
+    "authorizationError": "Autorisatiefout",
+    "requestedPermissions": "Gevraagde machtigingen",
+    "applicationWillBeAbleTo": "Deze applicatie kan het volgende",
+    "authorize": "Autoriseren",
+    "noUrl": "Geen URL",
+    "imageUrl": "Afbeeldings-URL",
+    "altText": "Alternatieve tekst",
+    "fitToView": "Passend maken",
+    "requestBody": "Aanvraagbody",
+    "bodyType": "Body-type",
+    "httpAdvancedOptions": "Geavanceerde opties",
+    "followRedirects": "Omleidingen volgen",
+    "followRedirectsDescription": "HTTP-omleidingen automatisch volgen",
+    "failOnErrorStatus": "Mislukken bij foutstatus",
+    "failOnErrorStatusDescription": "Mislukken wanneer het antwoord 4xx of 5xx is"
   },
   "activity": {
     "useTemplate": "Sjabloon gebruiken",
@@ -6582,7 +6691,7 @@
     "notAvailablePending": "Prullenbak is nog niet beschikbaar voor deze tabel.",
     "conflict": {
       "panelTitle": "{count} record heeft een conflictralender {count} records hebben conflicten",
-      "panelHelp": "Repareer deze aan de bron en probeer het opnieuw of herstel nu — we lossen de conflicterende waarden op.",
+      "panelHelp": "Los deze bij de bron op en probeer het opnieuw, of zet nu terug. Wij wissen dan de conflicterende waarden.",
       "cleanRemainder": "{count} andere record zal normaal herstellen. | {count} Andere records worden normaal hersteld.",
       "group": {
         "link": "Links al in gebruik",
@@ -6742,7 +6851,7 @@
       "title": "Vind je weg in je werkruimte",
       "welcome": {
         "title": "Welkom bij NocoDB",
-        "description": "Een snel rondje door je werkruimte. Je kunt op elk moment stoppen — klik op Overslaan."
+        "description": "Een korte rondleiding door je werkruimte. Je kunt op elk moment stoppen: klik op Overslaan."
       },
       "createBase": {
         "title": "Begin met een Base",
@@ -6769,7 +6878,7 @@
       },
       "create": {
         "title": "Een Workflow maken",
-        "description": "Begin vanaf nul — dit opent een kort formulier."
+        "description": "Begin helemaal opnieuw. Hiermee opent een kort formulier."
       },
       "createSubmit": {
         "title": "Maak hem aan",
@@ -6777,7 +6886,7 @@
       },
       "addTrigger": {
         "title": "Een trigger toevoegen",
-        "description": "Elke Workflow begint hier — klik om te zien wat hem kan starten."
+        "description": "Elke workflow begint hier. Klik om te zien wat hem kan starten."
       },
       "pickManualTrigger": {
         "title": "Kies 'Bij handmatige start'",
@@ -6809,15 +6918,15 @@
       },
       "enable": {
         "title": "Zet hem aan",
-        "description": "Gepubliceerd is niet hetzelfde als draaiend. Een Workflow blijft <b>Gepauzeerd</b> tot je hem inschakelt — dit is de stap die mensen missen."
+        "description": "Gepubliceerd is niet hetzelfde als actief. Een workflow blijft <b>gepauzeerd</b> totdat je hem inschakelt. Dit is de stap die mensen vergeten."
       },
       "run": {
         "title": "Voer hem één keer uit",
-        "description": "Een handmatige trigger gaat af wanneer jij dat wilt — probeer het en kijk hem draaien."
+        "description": "Een handmatige trigger start op verzoek. Probeer het en kijk hoe hij wordt uitgevoerd."
       },
       "logs": {
         "title": "De logboeken bekijken",
-        "description": "Elke uitvoering wordt hier vastgelegd — wat er afging, wat elke stap teruggaf en wat er misging."
+        "description": "Elke uitvoering wordt hier vastgelegd: wat hem startte, wat elke stap teruggaf en wat er misging."
       },
       "wrapUp": {
         "title": "Dat is de hele cyclus",

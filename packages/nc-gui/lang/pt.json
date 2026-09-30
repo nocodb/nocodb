@@ -756,7 +756,8 @@
     "continue": "Continuar",
     "manage": "Gerir",
     "orgBadge": "Org.",
-    "migrate": "Migrar"
+    "migrate": "Migrar",
+    "email": "E-mail"
   },
   "objects": {
     "script": "Script",
@@ -3101,7 +3102,12 @@
         "variables": "Valores reutilizáveis para automações e campos.",
         "migrateToV3": "Atualizar esta base para a plataforma e as API v3.",
         "migrateToCloud": "Mover os dados desta base para a NocoDB Cloud."
-      }
+      },
+      "upgradeAskOwner": "Pedir ao proprietário para actualizar o plano",
+      "upgradeRequestSent": "Pedido enviado",
+      "upgradeDescRls": "Limite os registos que cada pessoa pode ver e editar.",
+      "upgradeDescRecordTemplates": "Crie novos registos a partir de modelos guardados e pré-preenchidos.",
+      "upgradeDescDateDependency": "Desloca automaticamente as datas dependentes quando um registo é movido."
     },
     "categories": "Categorias",
     "blockquote": "Citação",
@@ -4572,7 +4578,114 @@
     "regenerateSecret": "Regenerar segredo",
     "createOauthClients": "Criar clientes OAuth",
     "managingOauthClients": "Gestão de clientes OAuth",
-    "clientInformation": "Informações do cliente"
+    "clientInformation": "Informações do cliente",
+    "byUser": "por {user}",
+    "requestIntegration": "Solicitar integração",
+    "browseIntegrations": "Explorar integrações",
+    "examplePrompt": "Exemplo de prompt",
+    "connectYourAi": "Ligue a sua IA",
+    "connectAVault": "Ligar um cofre",
+    "manageVaults": "Gerir cofres",
+    "baseRelations": "Relações da base",
+    "downloadReport": "Transferir relatório",
+    "noLongerWorkspaceMember": "Já não é membro desta área de trabalho",
+    "notBaseMember": "Não é membro desta base",
+    "factoryNoSessionMatches": "Nenhuma sessão corresponde a essa pesquisa",
+    "factoryRepoHasProject": "Tem um projecto",
+    "factoryOpenRepo": "Abrir repositório",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Tabelas, vistas, automatizações e aplicações sobre os seus dados.",
+    "projectKindCode": "Projecto de código",
+    "projectKindCodeHint": "Ligue um repositório e deixe os agentes trabalharem no seu código.",
+    "planStatusPending": "Pendente",
+    "planStatusInProgress": "Em curso",
+    "planStatusCompleted": "Concluído",
+    "createOauthClient": "Criar cliente OAuth",
+    "downgradeToFreePlan": "Mudar para o plano Free",
+    "plusApplicableTax": "+ impostos aplicáveis",
+    "beforeYouCancelPlan": "Antes de cancelar o seu plano",
+    "formBranding": "Identidade visual do formulário",
+    "aiIntegration": "Integração de IA",
+    "model": "Modelo",
+    "enableWebSearch": "Activar pesquisa na Web",
+    "enableWebSearchHint": "Permitir que o modelo de IA pesquise na Web informações actualizadas",
+    "outputSchema": "Esquema de saída",
+    "itemType": "Tipo de item",
+    "addProperty": "Adicionar propriedade",
+    "addField": "Adicionar campo",
+    "planSubtitleBusiness": "Para as necessidades do seu negócio",
+    "planTaglineBusiness": "Poupe até 70% em comparação com Airtable, Monday & Smartsheet",
+    "planSubtitleScale": "Para equipas em crescimento",
+    "planTaglineScale": "Equipas rápidas com orçamento.",
+    "planTaglineScaleNoSalesCall": "Sem necessidade de falar com vendas.",
+    "everythingInBusinessAnd": "Tudo o que está em Business e",
+    "planSubtitleEnterprise": "Feito à medida da sua organização",
+    "scheduleACall": "Agendar uma chamada",
+    "everythingInScaleAnd": "Tudo o que está em Scale e",
+    "connectionName": "Nome da ligação",
+    "connectionDetailsSection": "Detalhes da ligação",
+    "host": "Anfitrião",
+    "path": "Caminho",
+    "connectionParameters": "Parâmetros da ligação",
+    "advancedOptions": "Opções avançadas",
+    "integrationDetails": "Detalhes da integração",
+    "pgConnectionDetails": "Detalhes da ligação",
+    "pgPort": "Porta",
+    "pgSslMode": "Modo SSL",
+    "connectionJson": "JSON da ligação",
+    "input": "Entrada",
+    "output": "Saída",
+    "console": "Consola",
+    "forgotPassword": "Esqueceu-se da palavra-passe?",
+    "privacyPolicy": "Política de privacidade",
+    "clickHere": "Clique aqui",
+    "emailVerification": "Verificação de e-mail",
+    "method": "Método",
+    "queryParameters": "Parâmetros de consulta",
+    "samplePayload": "Exemplo de payload",
+    "addDataSource": "Adicionar fonte de dados",
+    "addSource": "Adicionar origem",
+    "dataSourceName": "Nome da fonte de dados",
+    "goBack": "Voltar",
+    "interval": "Intervalo",
+    "everyMinutes": "A cada minutos",
+    "selectMinute": "Seleccionar minuto",
+    "selectTimeOfDay": "Seleccionar a hora do dia",
+    "selectTimeAndDayOfWeek": "Seleccionar a hora e o dia da semana",
+    "selectTimeAndDayOfMonth": "Seleccionar a hora e o dia do mês",
+    "editedByYou": "Editado por si",
+    "regenerating": "A regenerar...",
+    "calendarIsReadonly": "O calendário é apenas de leitura",
+    "generatedViews": "Vista(s) gerada(s)",
+    "disableConnection": "Desactivar ligação",
+    "connectWithFavoriteTools": "Ligue-se às suas ferramentas preferidas",
+    "getConnectionDetails": "Obter detalhes da ligação",
+    "connectionUrl": "URL da ligação",
+    "chartSortBy": "Ordenar por",
+    "categoryLimit": "Limite de categorias",
+    "chartLegendOrientation": "Orientação da legenda",
+    "plotDataPoints": "Representar pontos de dados",
+    "retryImport": "Repetir importação",
+    "listening": "À escuta",
+    "generateAndCopyUrl": "Gerar e copiar URL",
+    "executionTime": "Tempo de execução",
+    "requestTime": "Hora do pedido",
+    "errorCode": "Código de erro",
+    "authorizationError": "Erro de autorização",
+    "requestedPermissions": "Permissões solicitadas",
+    "applicationWillBeAbleTo": "Esta aplicação poderá",
+    "authorize": "Autorizar",
+    "noUrl": "Sem URL",
+    "imageUrl": "URL da imagem",
+    "altText": "Texto alternativo",
+    "fitToView": "Ajustar à vista",
+    "requestBody": "Corpo do pedido",
+    "bodyType": "Tipo de corpo",
+    "httpAdvancedOptions": "Opções avançadas",
+    "followRedirects": "Seguir redireccionamentos",
+    "followRedirectsDescription": "Seguir automaticamente os redireccionamentos HTTP",
+    "failOnErrorStatus": "Falhar em estado de erro",
+    "failOnErrorStatusDescription": "Falhar quando a resposta for 4xx ou 5xx"
   },
   "activity": {
     "useTemplate": "Usar modelo",
@@ -6600,7 +6713,7 @@
     "notAvailablePending": "A lixeira ainda não está disponível para esta tabela.",
     "conflict": {
       "panelTitle": "O registro de {count} tem um conflito - {count} registros tem conflitos",
-      "panelHelp": "Corrija esses na fonte e tente novamente, ou restaure agora — vamos limpar os valores conflitantes.",
+      "panelHelp": "Corrija-os na origem e tente novamente, ou restaure agora. Iremos limpar os valores em conflito.",
       "cleanRemainder": "{count} outro registro irá restaurar normalmente. {count} outros registros irão restaurar normalmente.",
       "group": {
         "link": "Links já usados",
@@ -6760,7 +6873,7 @@
       "title": "Oriente-se na sua área de trabalho",
       "welcome": {
         "title": "Bem-vindo ao NocoDB",
-        "description": "Uma volta rápida pela sua área de trabalho. Pode sair a qualquer momento — carregue em Ignorar."
+        "description": "Uma volta rápida pela sua área de trabalho. Pode sair a qualquer momento: carregue em Saltar."
       },
       "createBase": {
         "title": "Comece por uma Base",
@@ -6787,7 +6900,7 @@
       },
       "create": {
         "title": "Criar um Workflow",
-        "description": "Comece do zero — isto abre um formulário curto."
+        "description": "Comece do zero. Isto abre um formulário curto."
       },
       "createSubmit": {
         "title": "Criar",
@@ -6795,7 +6908,7 @@
       },
       "addTrigger": {
         "title": "Adicionar um acionador",
-        "description": "Todos os Workflows começam aqui — clique para ver o que os pode desencadear."
+        "description": "Todos os workflows começam aqui. Clique para ver o que os pode desencadear."
       },
       "pickManualTrigger": {
         "title": "Escolha «Quando acionado manualmente»",
@@ -6827,15 +6940,15 @@
       },
       "enable": {
         "title": "Ative-o",
-        "description": "Publicado não é o mesmo que em execução. Um Workflow fica <b>Em pausa</b> até o ativar — é o passo que costuma escapar."
+        "description": "Publicado não é o mesmo que em execução. Um workflow fica <b>em pausa</b> até o activar. É este o passo que a maioria se esquece."
       },
       "run": {
         "title": "Execute uma vez",
-        "description": "Um acionador manual dispara a pedido — experimente e veja-o executar."
+        "description": "Um acionador manual é executado a pedido. Experimente e veja-o a executar."
       },
       "logs": {
         "title": "Consultar os registos",
-        "description": "Cada execução fica registada aqui — o que disparou, o que cada passo devolveu e o que falhou."
+        "description": "Cada execução fica registada aqui: o que a desencadeou, o que cada passo devolveu e o que falhou."
       },
       "wrapUp": {
         "title": "É este o ciclo completo",

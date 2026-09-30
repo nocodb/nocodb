@@ -114,6 +114,14 @@ export class DataV3Service {
     column: Column,
   ): Promise<RelatedModelInfo | null> {
     const colOptions = column.colOptions as LinkToAnotherRecordColumn;
+
+    // A link column can outlive its nc_col_relations row; skip it rather than
+    // failing every read of the table.
+    if (!colOptions) {
+      this.logger.warn(`Relation metadata missing for column ${column.id}`);
+      return null;
+    }
+
     const relatedModel = await colOptions.getRelatedTable();
 
     if (!relatedModel) {

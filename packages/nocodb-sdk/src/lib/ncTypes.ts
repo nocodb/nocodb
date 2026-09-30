@@ -118,6 +118,12 @@ export interface NcRequest extends Partial<Request> {
    * remain traceable to the form/view they came through.
    */
   ncSharedViewId?: string;
+  /**
+   * Which MCP credential drove this call. `nc_audit` has no token column, so
+   * this is merged into `details.mcp` — without it an audit row names the user
+   * but not the token, and revoking the right one means guessing.
+   */
+  ncMcpProvenance?: { api_token_id?: string; oauth_client_id?: string };
   ncModel?: TableType;
   user: UserType & {
     base_roles?: Record<string, boolean>;

@@ -6,6 +6,8 @@ declare module 'express-serve-static-core' {
     ncWorkspaceId?: string;
     // @Acl scope of the matched route; gates the default-workspace fallback
     ncAclScope?: string;
+    // @Acl permission of the matched route; lets token auth exempt discovery ops
+    ncAclPermission?: string;
     ncBaseId?: string;
     user: UserType & {
       base_roles?: Record<string, boolean>;

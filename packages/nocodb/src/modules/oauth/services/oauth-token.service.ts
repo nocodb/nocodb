@@ -222,6 +222,7 @@ export class OauthTokenService {
       scope: authCode.scope,
       granted_resources: authCode.granted_resources,
       resource: authCode.resource,
+      permissions: authCode.permissions,
     };
 
     // Atomic single-use claim deferred until all preconditions pass so a
@@ -245,7 +246,7 @@ export class OauthTokenService {
       expires_in: this.ACCESS_TOKEN_EXPIRES_IN,
       refresh_token: refreshToken,
       refresh_expires_in: this.REFRESH_TOKEN_EXPIRES_IN,
-      scope: 'mcp',
+      scope: authCode.scope,
       resource: authCode.resource,
     };
   }
@@ -335,6 +336,7 @@ export class OauthTokenService {
       scope: tokenRecord.scope,
       granted_resources: tokenRecord.granted_resources,
       resource: tokenRecord.resource,
+      permissions: tokenRecord.permissions,
     });
 
     return {

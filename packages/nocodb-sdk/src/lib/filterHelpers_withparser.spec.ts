@@ -75,6 +75,40 @@ describe('filterHelpers_withparser_specific', () => {
         expect(result.filters[0].children?.[1].logical_op).toBe('or');
       });
 
+      it('will keep multiple dates comma-separated after the sub-operator', () => {
+        const columnAlias: Record<string, ColumnType> = {
+          Date: {
+            id: 'field1',
+            column_name: 'col1',
+            title: 'Date',
+            uidt: UITypes.Date,
+          },
+        };
+
+        // The date handlers split an `in` value back on ',', so the parser must
+        // not fuse the dates when it drops the sub-operator token.
+        const multi = extractFilterFromXwhere(context, {
+          str: '(Date,in,exactDate,2024-06-15,2024-07-01)',
+          aliasColObjMap: columnAlias,
+        });
+        expect(multi.filters[0].comparison_op).toBe('in');
+        expect(multi.filters[0].comparison_sub_op).toBe('exactDate');
+        expect(multi.filters[0].value).toBe('2024-06-15,2024-07-01');
+
+        const single = extractFilterFromXwhere(context, {
+          str: '(Date,eq,exactDate,2024-06-15)',
+          aliasColObjMap: columnAlias,
+        });
+        expect(single.filters[0].value).toBe('2024-06-15');
+
+        const noValue = extractFilterFromXwhere(context, {
+          str: '(Date,isWithin,pastMonth)',
+          aliasColObjMap: columnAlias,
+        });
+        expect(noValue.filters[0].comparison_sub_op).toBe('pastMonth');
+        expect(noValue.filters[0].value).toBeUndefined();
+      });
+
       it('will parse multiselect with ~or connection', () => {
         const query = '(fMultiSelect,allof,jun)~or(fMultiSelect,allof,may)';
 

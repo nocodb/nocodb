@@ -200,10 +200,16 @@ export async function generateAuditV1Payload<T = any>(
   }
 
   const triggeredVia = context?.triggered_via;
-  const detailsWithOrigin =
+  const detailsWithTrigger =
     triggeredVia && details
       ? { ...details, triggered_via: triggeredVia }
       : details;
+
+  // Unconditional, unlike `triggered_via` above: a delete carries no details
+  // and is exactly the row you want attributed to a credential.
+  const detailsWithOrigin = req?.ncMcpProvenance
+    ? { ...detailsWithTrigger, mcp: req.ncMcpProvenance }
+    : detailsWithTrigger;
 
   return {
     user: req?.user?.email,

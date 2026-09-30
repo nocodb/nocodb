@@ -147,6 +147,9 @@ export class UsersService {
       password,
       email_verification_token,
       req,
+      invite_token,
+      display_name,
+      meta,
       is_invite = false,
       workspace_invite = false,
     }: {
@@ -155,6 +158,9 @@ export class UsersService {
       password;
       email_verification_token;
       req: NcRequest;
+      invite_token?: string;
+      display_name?: string;
+      meta?: MetaType;
       is_invite?: boolean;
       workspace_invite?: boolean;
     },
@@ -193,6 +199,15 @@ export class UsersService {
         email_verification_token,
         roles,
         token_version,
+        invite_token,
+        // set expiry only when an invite token is present
+        invite_token_expires: invite_token
+          ? new Date(Date.now() + 24 * 60 * 60 * 1000)
+          : null,
+        // `user_name` is deliberately not forwarded: it is absent from the CE
+        // User type, and neither edition's User.insert persists it.
+        display_name,
+        meta,
       },
       ncMeta,
     );

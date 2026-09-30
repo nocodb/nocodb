@@ -171,6 +171,22 @@ export const multiLinkTableSchemas = [
     views: [gridView('viwMlAssets')],
     viewOrder: ['viwMlAssets'],
   },
+  {
+    id: 'tblMlPeople',
+    name: 'MlPeople',
+    primaryColumnId: 'fldMlPeName',
+    description: null,
+    columns: [
+      {
+        id: 'fldMlPeName',
+        name: 'Name',
+        type: 'text',
+        initialCreatedByUserId: USER_ID,
+      },
+    ],
+    views: [gridView('viwMlPeople')],
+    viewOrder: ['viwMlPeople'],
+  },
 ];
 
 export const responseData = {

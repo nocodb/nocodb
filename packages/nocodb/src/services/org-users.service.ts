@@ -20,6 +20,7 @@ import { randomTokenString } from '~/helpers/stringHelpers';
 import {
   ApiToken,
   BaseUser,
+  MCPToken,
   PresignedUrl,
   SyncSource,
   User,
@@ -195,6 +196,9 @@ export class OrgUsersService {
 
       // delete api tokens (with cache invalidation)
       await ApiToken.deleteByUser(param.userId, ncMeta);
+
+      // BaseUser.delete only clears MCP tokens for the base it leaves.
+      await MCPToken.bulkDelete({ fk_user_id: param.userId }, ncMeta);
 
       // soft-delete user (preserves record for audit/cell data)
       await User.softDelete(param.userId, ncMeta);

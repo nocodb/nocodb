@@ -91,6 +91,30 @@ const isAiEdited = useVModel(props, 'isAiEdited', emits)
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const textAreaRef = ref<HTMLTextAreaElement>()
+const inputWrapperRef = ref<HTMLElement | null>(null)
+
+// An external value change (another user's edit arriving over realtime) makes Vue
+// re-assign `textarea.value`, which collapses the caret to the end. Restore it,
+// shifted by the length delta when the change landed before the caret.
+watch(vModel, (next, prev) => {
+  const el = document.activeElement
+  if (!(el instanceof HTMLTextAreaElement)) return
+  // Only this cell's textareas — another Long Text field's open modal has the same class.
+  if (el !== textAreaRef.value && el !== inputWrapperRef.value?.querySelector('.nc-text-area-expanded')) return
+  const nextStr = ncIsString(next) ? next : ''
+  // Local typing already updated `el.value`; only a remote change differs from it.
+  if (el.value === nextStr) return
+  const prevStr = ncIsString(prev) ? prev : ''
+  let common = 0
+  while (common < prevStr.length && common < nextStr.length && prevStr[common] === nextStr[common]) common++
+  const delta = nextStr.length - prevStr.length
+  const shift = (pos: number) => Math.min(Math.max(pos > common ? pos + delta : pos, 0), nextStr.length)
+  const start = shift(el.selectionStart)
+  const end = shift(el.selectionEnd)
+  nextTick(() => {
+    if (document.activeElement === el) el.setSelectionRange(start, end)
+  })
+})
 
 const position = ref<
   | {
@@ -134,8 +158,6 @@ const isFullHeight = computed(() => {
 
 const isVisible = ref(false)
 
-const inputWrapperRef = ref<HTMLElement | null>(null)
-
 const inputRef = ref<HTMLTextAreaElement | null>(null)
 
 const aiWarningRef = ref<HTMLDivElement>()
@@ -151,6 +173,10 @@ const rowId = computed(() => {
 // a locally-buffered ProseMirror draft (see below) which is flushed to the backend
 // once the record is created (useExpandedFormStore.save).
 const isNewRecord = computed(() => !!currentRow.value?.rowMeta?.new)
+
+// No co-editing session where the form's Save owns the write: a live CRDT is
+// written through by the server, which would make the edit undiscardable.
+const isCollabDeferred = computed(() => isNewRecord.value || isExpandedFormOpen.value)
 
 // The SmartText ProseMirror draft buffered on the row for this column while the
 // record is new. Two-way bound into the SmartText modal.
@@ -1088,6 +1114,9 @@ useResizeObserver(inputWrapperRef, () => {
           full-mode
           sync-value-change
           :read-only="readOnly"
+          :collab-table-id="meta?.id"
+          :collab-row-id="isCollabDeferred ? null : rowId"
+          :collab-column-id="column?.id"
           @close="handleClose"
         />
       </div>

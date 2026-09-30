@@ -40,7 +40,9 @@ export const LTARColsUpdater = (param: {
     // Same guard as the EE updater — EE falls back here for external sources.
     // No-op in CE, where checkPermission is a stub.
     const writtenLinkColIds = baseModel.model.columns
-      .filter((col) => isLinksOrLTAR(col) && datas.some((d) => col.title in d))
+      .filter(
+        (col) => isLinksOrLTAR(col) && datas.some((d) => d[col.title] != null),
+      )
       .map((col) => col.id);
 
     // One call per column: checkPermission resolves a single grant with `.find()`,
@@ -80,8 +82,9 @@ export const LTARColsUpdater = (param: {
       for (const d of datas) {
         const rowId = baseModel.extractPksValues(d, true);
 
-        // skip if value is not part of the update
-        if (!(col.title in d)) continue;
+        // skip if value is not part of the update; `null` is not a link
+        // value (only `[]` clears), so it is skipped too — same as EE.
+        if (d[col.title] == null) continue;
 
         // extract existing link values to current record
         let existingLinks: Record<string, any>[] | Record<string, any> = [];

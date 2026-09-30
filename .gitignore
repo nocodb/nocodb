@@ -128,6 +128,7 @@ antd.variable.css
 .nc-dev-proxy.pid
 .nc-dev-proxy.log
 .nc-dev-logs/
+.nc-dev-env/
 
 # Local-only payment-dev secrets (license-server private key, etc.) — never commit
 scripts/.payment-dev-secrets.env

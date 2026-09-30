@@ -42,6 +42,7 @@ export enum EventType {
   DOCUMENT_COMMENT_EVENT = 'event-document-comment',
   DOCUMENT_SYNC_EVENT = 'event-document-sync',
   SMART_TEXT_EVENT = 'event-smart-text',
+  COLLAB_SYNC_EVENT = 'event-collab-sync',
   CREDIT_EVENT = 'event-credit',
   AGENT_EVENT = 'event-agent',
 }
@@ -60,6 +61,52 @@ export function getDocSyncRoom(
   docId: string
 ): string {
   return `${EventType.DOCUMENT_SYNC_EVENT}:${workspaceId}:${baseId}:${docId}`;
+}
+
+/**
+ * Client→server socket events for ephemeral collaborative editing sessions
+ * (binary Yjs frames, same wire shape as {@link DocCollabClientEvents}).
+ * Unlike docs these sessions are never persisted server-side — clients save
+ * through the resource's normal save path; the CRDT only keeps concurrently
+ * open editors converged.
+ */
+export const CollabClientEvents = {
+  SYNC: 'collab:sync',
+  UPDATE: 'collab:update',
+  AWARENESS: 'collab:awareness',
+  LEAVE: 'collab:leave',
+} as const;
+
+/**
+ * Collab resource for a rich-text cell. `columnId` is the LAST segment so a
+ * row PK containing `:` can be recovered by parsing from both ends.
+ */
+export function getCellCollabResource(
+  tableId: string,
+  rowId: string,
+  columnId: string
+): string {
+  return `cell:${tableId}:${rowId}:${columnId}`;
+}
+
+/** Collab resource for a script's source editor. */
+export function getScriptCollabResource(scriptId: string): string {
+  return `script:${scriptId}`;
+}
+
+/**
+ * Room key for an ephemeral collab session's sync channel.
+ *
+ * NOTE: `resource` itself contains `:` separators, so a subscriber parsing this
+ * key must rejoin everything from the 4th segment onward — taking a single
+ * segment truncates `cell:tbl:row:col` to `cell`.
+ */
+export function getCollabSyncRoom(
+  workspaceId: string,
+  baseId: string,
+  resource: string
+): string {
+  return `${EventType.COLLAB_SYNC_EVENT}:${workspaceId}:${baseId}:${resource}`;
 }
 
 /**
@@ -371,6 +418,13 @@ export type FocusValue =
   | {
       type: 'record';
       rowPk: string;
+      /**
+       * Field within the record the connection is focused on — set while typing
+       * in an expanded-form field (long text) or the smart-text editor. Lets the
+       * per-field presence dot light for a collaborator in another expanded form,
+       * not just for a grid cell cursor.
+       */
+      fieldId?: string;
       editing?: boolean;
       typing?: 'comment';
     }

@@ -76,7 +76,7 @@ const getCookieRootDomain = (appInfo: { baseHostName?: string; ncSiteUrl?: strin
 }
 
 /**
- * Last visited workspace/base ids in cookies on the root domain, so sibling sites like
+ * Last visited workspace/base ids and page url in cookies on the root domain, so sibling sites like
  * docs.nocodb.com can read them.
  */
 export const ncLastVisitedCookie = (appInfo: {
@@ -86,11 +86,13 @@ export const ncLastVisitedCookie = (appInfo: {
 }): {
   setWorkspace: (workspaceId: string | null | undefined) => void
   setBase: (baseId: string | null | undefined, workspaceId: string | null | undefined) => void
+  setPageUrl: (url: string | null | undefined) => void
   clear: () => void
 } => {
   const rootDomain = getCookieRootDomain(appInfo)
   const WORKSPACE_COOKIE = 'nc_last_workspace_id'
   const BASE_COOKIE = 'nc_last_base_id'
+  const PROJECT_URL_COOKIE = 'nc_last_active_project_url'
 
   const write = (name: string, value: string, maxAge: number) => {
     if (!rootDomain || typeof document === 'undefined') return
@@ -120,9 +122,14 @@ export const ncLastVisitedCookie = (appInfo: {
       write(WORKSPACE_COOKIE, workspaceId, LAST_VISITED_COOKIE_MAX_AGE)
       write(BASE_COOKIE, baseId, LAST_VISITED_COOKIE_MAX_AGE)
     },
+    setPageUrl: (url) => {
+      // Stay well under the ~4KB per-cookie limit.
+      if (url && url.length <= 2000) write(PROJECT_URL_COOKIE, url, LAST_VISITED_COOKIE_MAX_AGE)
+    },
     clear: () => {
       write(WORKSPACE_COOKIE, '', 0)
       write(BASE_COOKIE, '', 0)
+      write(PROJECT_URL_COOKIE, '', 0)
     },
   }
 }

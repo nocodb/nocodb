@@ -8,10 +8,12 @@ import type {
 import type {
   BaseVariableType,
   DependencyTableType,
+  McpToolCatalogEntry,
   NcContext,
   NcRequest,
   ProseMirrorDoc,
   RowColoringInfo,
+  TableType,
 } from 'nocodb-sdk';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
@@ -25,6 +27,7 @@ import type {
   Filter,
   Hook,
   HookLog,
+  Integration,
   MCPToken,
   Model,
   OAuthClient,
@@ -38,6 +41,9 @@ export type InternalGETResponseType = Promise<
   | RowColoringInfo
   | null
   | DataReflection
+  | Integration
+  // `refTableGet` spreads the Model, so the methods and getters are gone.
+  | (TableType & { is_private: boolean })
   | Document
   | Document[]
   | MCPToken

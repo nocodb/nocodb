@@ -4,17 +4,19 @@ import {
   NcBaseError,
   ncIsArray,
   NOCO_SERVICE_USERS,
+  parseProp,
   ServiceUserType,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
-import type { ClientType, NcRequest } from 'nocodb-sdk';
+import type { ClientType, NcRequest, Validation } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { DependantFields } from '~/helpers/getAst';
 import { DBQueryClient } from '~/dbQueryClient';
 import { nocoExecute } from '~/utils';
 import { Base, Column, FormView, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { evaluateFormFieldValidators } from '~/helpers/formValidators';
 import getAst from '~/helpers/getAst';
 import { sanitizePublicQuery } from '~/helpers/publicQuerySanitizer';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -822,7 +824,68 @@ export class PublicDatasService {
       insertObject[column] = JSON.stringify(data);
     }
 
+    await this.validateFormSubmission(context, { view, fields, insertObject });
+
     return await baseModel.nestedInsert(insertObject, param.req, null);
+  }
+
+  /**
+   * Which stored validators the submit path enforces. The CE renderer ignores
+   * `meta.validators` entirely, so CE enforces none of them.
+   */
+  protected async getValidatorFilter(
+    _context: NcContext,
+    _view: View,
+  ): Promise<(rule: Validation) => boolean> {
+    return () => false;
+  }
+
+  /**
+   * Enforce the form's per-field `meta.validators` on submit.
+   *
+   * The Enterprise renderer already applies these in the browser, which means
+   * they were never a guarantee — a direct POST to this endpoint skipped them
+   * entirely. See `evaluateFormFieldValidators` for why this errs towards
+   * accepting.
+   */
+  protected async validateFormSubmission(
+    context: NcContext,
+    param: {
+      view: View;
+      fields: Record<string, Column>;
+      insertObject: Record<string, unknown>;
+    },
+  ) {
+    const { view, fields, insertObject } = param;
+
+    const isEnforced = await this.getValidatorFilter(context, view);
+
+    const failures: string[] = [];
+
+    for (const viewColumn of view.columns ?? []) {
+      const column = view.model.columnsById[viewColumn.fk_column_id];
+      // only fields the form actually shows can be filled in
+      if (!column || !(column.title in fields) || !(viewColumn as any).show) {
+        continue;
+      }
+
+      const validators = parseProp((viewColumn as any).meta)?.validators;
+      if (!Array.isArray(validators) || !validators.length) continue;
+
+      for (const message of evaluateFormFieldValidators(
+        validators.filter(isEnforced),
+        insertObject[column.title],
+        column,
+      )) {
+        failures.push(`${column.title}: ${message}`);
+      }
+    }
+
+    if (failures.length) {
+      NcError.get(context).invalidRequestBody(
+        `Form validation failed — ${failures.join('; ')}`,
+      );
+    }
   }
 
   async relDataList(

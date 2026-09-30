@@ -567,9 +567,13 @@ export default class View implements ViewType {
           );
           break;
         case ViewTypes.CALENDAR: {
+          // The CALENDAR_VIEW row must be written even with no range
+          // configured. Skipping it leaves the view orphaned, and
+          // CalendarView.get then resolves to undefined for a view that
+          // still exists in nc_views_v2 — which export/import dereferences.
           const obj = extractProps(view, ['calendar_range']);
-          if (!obj.calendar_range) break;
-          const calendarRange = obj.calendar_range as Partial<CalendarRange>[];
+          const calendarRange = (obj.calendar_range ??
+            []) as Partial<CalendarRange>[];
           calendarRange.forEach((range) => {
             range.fk_view_id = view_id;
           });
@@ -584,13 +588,17 @@ export default class View implements ViewType {
             ncMeta,
           );
 
-          await CalendarRange.bulkInsert(context, calendarRange, ncMeta);
+          if (calendarRange.length) {
+            await CalendarRange.bulkInsert(context, calendarRange, ncMeta);
+          }
           break;
         }
         case ViewTypes.TIMELINE: {
+          // Same orphan hazard as CALENDAR above — always write the
+          // TIMELINE_VIEW row, the range is the optional part.
           const obj = extractProps(view, ['timeline_range']);
-          if (!obj.timeline_range) break;
-          const timelineRange = obj.timeline_range as Partial<TimelineRange>[];
+          const timelineRange = (obj.timeline_range ??
+            []) as Partial<TimelineRange>[];
           timelineRange.forEach((range) => {
             range.fk_view_id = view_id;
           });
@@ -605,7 +613,9 @@ export default class View implements ViewType {
             ncMeta,
           );
 
-          await TimelineRange.bulkInsert(context, timelineRange, ncMeta);
+          if (timelineRange.length) {
+            await TimelineRange.bulkInsert(context, timelineRange, ncMeta);
+          }
           break;
         }
         case ViewTypes.GANTT: {
@@ -3282,14 +3292,20 @@ export default class View implements ViewType {
         );
         break;
       case ViewTypes.CALENDAR: {
+        // The CALENDAR_VIEW row must be written even with no range
+        // configured. Skipping it leaves the view orphaned, and
+        // CalendarView.get then resolves to undefined for a view that
+        // still exists in nc_views_v2 — which export/import dereferences.
         const obj = extractProps(view, ['calendar_range']);
-        if (!obj.calendar_range) break;
-        const calendarRange = obj.calendar_range as Partial<CalendarRange>[];
+        const calendarRange = (obj.calendar_range ??
+          []) as Partial<CalendarRange>[];
         calendarRange.forEach((range) => {
           range.fk_view_id = view_id;
         });
 
-        await CalendarRange.bulkInsert(context, calendarRange, ncMeta);
+        if (calendarRange.length) {
+          await CalendarRange.bulkInsert(context, calendarRange, ncMeta);
+        }
         await CalendarView.insert(
           context,
           {
@@ -3303,14 +3319,18 @@ export default class View implements ViewType {
         break;
       }
       case ViewTypes.TIMELINE: {
+        // Same orphan hazard as CALENDAR above — always write the
+        // TIMELINE_VIEW row, the range is the optional part.
         const obj = extractProps(view, ['timeline_range']);
-        if (!obj.timeline_range) break;
-        const timelineRange = obj.timeline_range as Partial<TimelineRange>[];
+        const timelineRange = (obj.timeline_range ??
+          []) as Partial<TimelineRange>[];
         timelineRange.forEach((range) => {
           range.fk_view_id = view_id;
         });
 
-        await TimelineRange.bulkInsert(context, timelineRange, ncMeta);
+        if (timelineRange.length) {
+          await TimelineRange.bulkInsert(context, timelineRange, ncMeta);
+        }
         await TimelineView.insert(
           context,
           {

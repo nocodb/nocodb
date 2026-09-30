@@ -3101,7 +3101,7 @@ export class AtImportProcessor {
               fk_column_id: columnId,
               logical_op: f.conjunction,
               comparison_op: filter.operator,
-              comparison_sub_op: filter.value?.mode,
+              comparison_sub_op: subOp,
               value: filter.value?.numberOfDays,
             });
           } else {

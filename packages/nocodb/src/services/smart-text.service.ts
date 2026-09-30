@@ -5,6 +5,12 @@ import type { NcContext, NcRequest } from '~/interface/config';
 export interface SmartTextGetResult {
   pm: ProseMirrorDoc | null;
   markdown: string | null;
+  /**
+   * SHA-1 of the trimmed markdown this content represents. Clients echo it back
+   * as `updateContent`'s `expectedMdHash` to get optimistic-concurrency
+   * protection against overwriting a concurrent edit.
+   */
+  mdHash?: string | null;
 }
 
 /**
@@ -32,6 +38,12 @@ export class SmartTextService {
       rowId: string;
       columnId: string;
       pmContent: ProseMirrorDoc;
+      /**
+       * Hash of the content the client believes it is editing. When supplied and
+       * it no longer matches storage, the write is rejected as out-of-sync
+       * instead of clobbering a concurrent edit.
+       */
+      expectedMdHash?: string;
       req: NcRequest;
     },
   ): Promise<SmartTextGetResult> {

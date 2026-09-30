@@ -347,6 +347,8 @@ export interface DataExportJobData extends JobData {
     // Set on the anonymous public export route to restrict the ICS description
     // to view-visible columns.
     isPublicExport?: boolean;
+    // Excel only: stop after this many data rows.
+    maxRows?: number;
   };
   modelId: string;
   viewId: string;

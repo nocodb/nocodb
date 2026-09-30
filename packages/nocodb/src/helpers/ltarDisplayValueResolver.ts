@@ -101,7 +101,7 @@ export async function getLtarDisplayValueContext(
  *
  * Returns a Map from submitted display value → matched primary key. Unmatched
  * values are simply absent. Ambiguous values (matching multiple rows) resolve
- * to the first row seen.
+ * to the first row seen; pass `options.ambiguous` to collect them.
  *
  * @param options.caseInsensitiveFallback Whether step 2 runs. Defaults to
  *   `true`, which is what interactive callers want — someone pasting "paris"
@@ -111,13 +111,18 @@ export async function getLtarDisplayValueContext(
  *   payload always resolves the same way regardless of database collation.
  *   Turning it off also skips the `like` query, which is an unindexed scan on
  *   the related table.
+ * @param options.ambiguous Filled with every value that matched more than one
+ *   row, mapped to all of the matching primary keys.
  */
 export async function resolveLtarDisplayValuesToPks(
   groupCtx: LtarDisplayValueContext,
   uniqueValues: Iterable<string>,
-  options?: { caseInsensitiveFallback?: boolean },
+  options?: {
+    caseInsensitiveFallback?: boolean;
+    ambiguous?: Map<string, (string | number)[]>;
+  },
 ): Promise<Map<string, string | number>> {
-  const { caseInsensitiveFallback = true } = options ?? {};
+  const { caseInsensitiveFallback = true, ambiguous } = options ?? {};
   const { relatedModel, relatedBaseModel, displayValueColumn } = groupCtx;
   const dvTitle = displayValueColumn.title;
 
@@ -135,6 +140,18 @@ export async function resolveLtarDisplayValuesToPks(
   const allUniqueValues = new Set<string>(uniqueValues);
 
   const valueToPk = new Map<string, string | number>();
+
+  const assign = (value: string, pk: string | number) => {
+    const first = valueToPk.get(value);
+    if (first === undefined) {
+      valueToPk.set(value, pk);
+      return;
+    }
+    if (!ambiguous) return;
+    const pks = ambiguous.get(value) ?? [first];
+    pks.push(pk);
+    ambiguous.set(value, pks);
+  };
 
   if (allUniqueValues.size === 0) return valueToPk;
 
@@ -173,11 +190,8 @@ export async function resolveLtarDisplayValuesToPks(
       const dv = row[dvTitle];
       if (dv == null) continue;
       const dvStr = String(dv);
-      if (allUniqueValues.has(dvStr) && !valueToPk.has(dvStr)) {
-        valueToPk.set(
-          dvStr,
-          dataWrapper(row).extractPksValue(relatedModel, true),
-        );
+      if (allUniqueValues.has(dvStr)) {
+        assign(dvStr, dataWrapper(row).extractPksValue(relatedModel, true));
       }
     }
   }
@@ -206,8 +220,8 @@ export async function resolveLtarDisplayValuesToPks(
         if (dv == null) continue;
         const dvLower = String(dv).toLowerCase();
         const originalValue = lowerToOriginal.get(dvLower);
-        if (originalValue && !valueToPk.has(originalValue)) {
-          valueToPk.set(
+        if (originalValue) {
+          assign(
             originalValue,
             dataWrapper(row).extractPksValue(relatedModel, true),
           );

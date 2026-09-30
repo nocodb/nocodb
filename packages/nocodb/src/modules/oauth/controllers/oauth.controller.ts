@@ -20,6 +20,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { OauthAuthorizationService } from '~/modules/oauth/services/oauth-authorization.service';
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
 import { toPublicOAuthClient } from '~/modules/oauth/helpers/sanitizeOAuthClient';
+import { OAuthInvalidScopeError } from '~/modules/oauth/helpers/consentScopeError';
 
 const logger = new Logger('OAuthController');
 
@@ -78,6 +79,8 @@ export class OAuthController {
       workspace_id,
       base_id,
       resource,
+      scopes,
+      tools,
     } = body;
 
     if (!client_id || !redirect_uri) {
@@ -119,6 +122,8 @@ export class OAuthController {
           workspaceId: workspace_id,
           baseId: base_id,
           resource,
+          scopes,
+          tools,
         });
 
       const successRedirectUrl =
@@ -135,10 +140,17 @@ export class OAuthController {
       let error = 'server_error';
       let error_description = 'Authorization server encountered an error';
       if (e instanceof NcBaseError) {
-        error =
-          e instanceof NcBaseErrorv2 && e.code === 403
-            ? 'access_denied'
-            : 'invalid_request';
+        // RFC 6749 §4.1.2.1 wants invalid_scope when the *requested* scope is
+        // the problem; the consent path tags those rather than leaving the
+        // code to be inferred from message wording.
+        if (e instanceof OAuthInvalidScopeError) {
+          error = 'invalid_scope';
+        } else {
+          error =
+            e instanceof NcBaseErrorv2 && e.code === 403
+              ? 'access_denied'
+              : 'invalid_request';
+        }
         error_description = e.message;
       }
 

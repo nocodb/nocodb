@@ -1581,36 +1581,51 @@ export class ColumnsService implements IColumnsService {
     ) {
       if (column.uidt === colBody.uidt) {
         if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt)) {
+          // Same dangling-ref hazard as the create path: an id that does not
+          // resolve is persisted and then breaks every record read for the
+          // table. Only checked when the payload carries it, so unrelated
+          // updates to an already-broken field stay possible.
+          const valueColumnId =
+            column.uidt === UITypes.QrCode
+              ? (colBody as { fk_qr_value_column_id?: string })
+                  .fk_qr_value_column_id
+              : (colBody as { fk_barcode_value_column_id?: string })
+                  .fk_barcode_value_column_id;
+
+          if (valueColumnId !== undefined) {
+            await this.validateValueColumnRef(context, valueColumnId, table.id);
+          }
+
           await Column.update(context, column.id, {
             ...column,
             ...colBody,
             error: null,
           } as Column);
         } else if (column.uidt === UITypes.Formula) {
-          const relatedModels: Map<string, Model> = await getRelatedModelMap(
-            context,
-            table,
-          );
-
-          const formulaColumns = table.columns.filter(
-            (c) => !c.colOptions?.error,
-          );
-
-          colBody.formula = await substituteColumnAliasWithIdInFormula(
-            colBody.formula_raw || colBody.formula,
-            table.columns,
-          );
-          colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
-            formula: colBody.formula || colBody.formula_raw,
-            columns: formulaColumns,
-            column,
-            clientOrSqlUi: source.type as any,
-            getMeta: async (_, { id }) => {
-              return relatedModels.get(id);
-            },
-          });
-
           try {
+            const relatedModels: Map<string, Model> = await getRelatedModelMap(
+              context,
+              table,
+            );
+
+            const formulaColumns = table.columns.filter(
+              (c) => !c.colOptions?.error,
+            );
+
+            colBody.formula = await substituteColumnAliasWithIdInFormula(
+              colBody.formula_raw || colBody.formula,
+              table.columns,
+            );
+            colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
+              formula: colBody.formula || colBody.formula_raw,
+              columns: formulaColumns,
+              column,
+              clientOrSqlUi: source.type as any,
+              getMeta: async (_, { id }) => {
+                return relatedModels.get(id);
+              },
+            });
+
             const baseModel = await reuseOrSave('baseModel', reuse, async () =>
               Model.getBaseModelSQL(context, {
                 id: table.id,
@@ -1629,11 +1644,17 @@ export class ColumnsService implements IColumnsService {
             });
           } catch (e) {
             if (e instanceof NcError || e instanceof NcBaseError) throw e;
+            // Surface the formula parser's reason as a client error rather than
+            // a generic 500 — see the create path above.
             this.logger.error(
-              `Failed to update column: ${e?.message ?? e}`,
+              `Formula validation failed: ${e?.message ?? e}`,
               e?.stack,
             );
-            NcError.get(context).internalServerError('Failed to update column');
+            NcError.get(context).invalidRequestBody(
+              `Invalid formula: ${
+                e?.message ?? 'the expression could not be parsed'
+              }`,
+            );
           }
 
           await Column.update(context, column.id, {
@@ -3972,6 +3993,25 @@ export class ColumnsService implements IColumnsService {
     return result;
   }
 
+  // Barcode/QrCode encode a value read from another field in the same table.
+  // `validateParams` above only checks the id is present, not that it resolves —
+  // so a stale or mistyped id would be persisted and later rendered as
+  // `"table".undefined` in the read query, breaking every record read for the
+  // table. Resolve it up front, the way Lookup/Rollup validate their refs.
+  protected async validateValueColumnRef(
+    context: NcContext,
+    valueColumnId: string | undefined,
+    tableId: string,
+  ) {
+    const valueColumn = valueColumnId
+      ? await Column.get(context, { colId: valueColumnId })
+      : null;
+
+    if (!valueColumn || valueColumn.fk_model_id !== tableId) {
+      NcError.get(context).fieldNotFound(valueColumnId);
+    }
+  }
+
   async columnAdd<T extends NcApiVersion = NcApiVersion | null | undefined>(
     context: NcContext,
     param: {
@@ -4254,22 +4294,41 @@ export class ColumnsService implements IColumnsService {
         break;
       }
 
-      case UITypes.QrCode:
+      case UITypes.QrCode: {
         validateParams(['fk_qr_value_column_id'], param.column, context);
 
-        savedColumn = await Column.insert(context, {
-          ...colBody,
-          fk_model_id: table.id,
-        });
-        break;
-      case UITypes.Barcode:
-        validateParams(['fk_barcode_value_column_id'], param.column, context);
+        // The referenced value column must exist and live in this table.
+        // A dangling id is otherwise inserted verbatim and later rendered as
+        // `"table".undefined` in the read query, breaking every record read.
+        await this.validateValueColumnRef(
+          context,
+          (param.column as { fk_qr_value_column_id?: string })
+            .fk_qr_value_column_id,
+          table.id,
+        );
 
         savedColumn = await Column.insert(context, {
           ...colBody,
           fk_model_id: table.id,
         });
         break;
+      }
+      case UITypes.Barcode: {
+        validateParams(['fk_barcode_value_column_id'], param.column, context);
+
+        await this.validateValueColumnRef(
+          context,
+          (param.column as { fk_barcode_value_column_id?: string })
+            .fk_barcode_value_column_id,
+          table.id,
+        );
+
+        savedColumn = await Column.insert(context, {
+          ...colBody,
+          fk_model_id: table.id,
+        });
+        break;
+      }
       case UITypes.UUID:
         {
           if (source.type !== 'pg' && source.type !== 'mssql') {
@@ -4387,11 +4446,18 @@ export class ColumnsService implements IColumnsService {
           colBody.parsed_tree = null;
           if (!param.suppressFormulaError) {
             if (e instanceof NcError || e instanceof NcBaseError) throw e;
+            // A bad formula is a client error, not a 500 — and the parser's
+            // message is what tells the caller what to fix. Swallowing it into
+            // "Failed to update column" left API/MCP callers with no signal.
             this.logger.error(
-              `Failed to update column: ${e?.message ?? e}`,
+              `Formula validation failed: ${e?.message ?? e}`,
               e?.stack,
             );
-            NcError.get(context).internalServerError('Failed to update column');
+            NcError.get(context).invalidRequestBody(
+              `Invalid formula: ${
+                e?.message ?? 'the expression could not be parsed'
+              }`,
+            );
           }
         }
 

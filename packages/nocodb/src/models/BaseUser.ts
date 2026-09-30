@@ -489,7 +489,10 @@ export default class BaseUser {
       logger.error('Error cleaning command palette cache');
     });
 
-    await MCPToken.bulkDelete({ fk_user_id: userId }, ncMeta);
+    // Scoped to this base: `bulkDelete` runs at ROOT and matches only the
+    // props given, so `fk_user_id` alone would revoke the user's tokens in
+    // every other base and workspace too.
+    await MCPToken.bulkDelete({ fk_user_id: userId, base_id: baseId }, ncMeta);
     return response;
   }
 

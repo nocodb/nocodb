@@ -3,6 +3,8 @@ import StarterKit from '@tiptap/starter-kit'
 import TaskList from '@tiptap/extension-task-list'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import Placeholder from '@tiptap/extension-placeholder'
+import Collaboration from '@tiptap/extension-collaboration'
+import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
 import { NcMarkdownParser, suggestion } from '~/helpers/tiptap'
 import { Markdown } from '~/helpers/tiptap-markdown'
 
@@ -32,6 +34,14 @@ const props = withDefaults(
     renderAsText?: boolean
     hiddenBubbleMenuOptions?: RichTextBubbleMenuOptions[]
     hideMention?: boolean
+    /**
+     * Ephemeral co-editing identity for this cell. All three must be set for a
+     * session to open; every other RichText mount site leaves them undefined and
+     * keeps today's single-writer behaviour byte for byte.
+     */
+    collabTableId?: string | null
+    collabRowId?: string | null
+    collabColumnId?: string | null
   }>(),
   {
     isFormField: false,
@@ -79,6 +89,53 @@ const { basesUser } = storeToRefs(basesStore)
 
 const baseUsers = computed(() => (meta.value.base_id ? basesUser.value.get(meta.value.base_id) || [] : []))
 
+const workspaceStore = useWorkspace()
+
+const { activeWorkspaceId } = storeToRefs(workspaceStore)
+
+const { activeProjectId } = storeToRefs(basesStore)
+
+// Resolved once, synchronously — the Yjs binding is a tiptap extension, so it is
+// fixed when the editor is constructed. A read-only editor never opens a session:
+// the user gets today's behaviour, the session keyspace stays bounded to actual
+// editors, and nobody types into a buffer the server would silently drop.
+const collabSession = props.readOnly
+  ? null
+  : useCellCollabSession({
+      tableId: props.collabTableId,
+      rowId: props.collabRowId,
+      columnId: props.collabColumnId,
+      workspaceId: activeWorkspaceId.value,
+      baseId: activeProjectId.value,
+    })
+
+const collab = collabSession?.active ? collabSession : null
+
+// Latches true once the shared document can be trusted to represent this cell.
+// Until then `onUpdate` does not propagate to vModel.
+const collabAuthoritative = ref(false)
+
+/**
+ * Latches true when a session we asked for never materialised.
+ *
+ * `active` only means the client-side gates passed and a subscribe was sent.
+ * The server refuses silently — session cap, plan check, per-resource
+ * authorization — and every refusal is designed to leave the client on its
+ * normal single-writer path. `synced` simply never flips, so without this the
+ * editor waits forever: it was mounted EMPTY for the CRDT to fill, and nothing
+ * ever fills it, leaving a blank editor over a non-empty cell that then saves
+ * the blank over real text.
+ */
+const collabRefused = ref(false)
+
+/**
+ * While a confirmed session is live the SERVER owns persistence — it derives
+ * the markdown from the CRDT and writes the cell on a debounce. The client must
+ * not also write, or two writers race over one value. The updated value comes
+ * back through the normal realtime data broadcast, like any other user's edit.
+ */
+const collabOwnsPersistence = computed(() => !!collab && collabAuthoritative.value)
+
 const localRowHeight = computed(() => {
   if (readOnlyCell.value && !isExpandedFormOpen.value && (isGallery.value || isKanban.value)) return 6
 
@@ -114,6 +171,9 @@ const getTiptapExtensions = () => {
       hardBreak: false,
       italic: false,
       paragraph: false,
+      // Yjs owns undo/redo when co-editing; two history stacks over one document
+      // desync every peer on the first undo.
+      ...(collab ? { history: false } : {}),
     }),
     // Marks
     Strike,
@@ -157,14 +217,40 @@ const getTiptapExtensions = () => {
     )
   }
 
+  if (collab) {
+    extensions.push(
+      Collaboration.configure({ document: collab.ydoc!, field: 'default' }),
+      // CollaborationCursor only reads `provider.awareness`, so the transport's
+      // Awareness instance is passed directly rather than wrapping a y-websocket
+      // provider we do not have.
+      CollaborationCursor.configure({
+        provider: { awareness: collab.awareness! },
+        user: collab.user!,
+      }),
+    )
+  }
+
   return extensions
 }
 
 const editor = useEditor({
-  content: vModel.value,
+  // With Collaboration the document comes from the Y.Doc; seeding is the granted
+  // bootstrapper's job (see the watcher below). Passing content here too would
+  // make EVERY client insert its copy and Yjs would merge them into duplicated
+  // text — the exact bug the server's single-seeder grant exists to prevent.
+  content: collab ? '' : vModel.value,
   extensions: getTiptapExtensions(),
   onUpdate: ({ editor }) => {
     hasLocalEdits.value = true
+    // The server writes this cell while a confirmed session is live; see
+    // collabOwnsPersistence.
+    if (collabOwnsPersistence.value) return
+    // Yjs is not authoritative until the session has converged AND holds content.
+    // Before that the shared doc is empty for reasons that have nothing to do
+    // with the cell's value, and letting that empty document flow into vModel
+    // would save a blank cell over real text. A refused session never converges,
+    // so it falls through to the normal save instead of waiting forever.
+    if (collab && !collabRefused.value) return
     vModel.value = editor.storage.markdown.getMarkdown()
   },
   editable: !props.readOnly,
@@ -205,7 +291,133 @@ function focusEditor() {
   })
 }
 
-if (props.syncValueChange) {
+if (collab) {
+  /**
+   * How long to wait for the server's step1 before deciding the subscribe was
+   * refused. Generous: a slow first connect must not be mistaken for a refusal,
+   * because falling back seeds the editor from the cell and resumes local saves.
+   */
+  const COLLAB_CONFIRM_TIMEOUT_MS = 8000
+
+  /**
+   * Take over the cell locally: show the stored value and resume normal saves.
+   * The editor was mounted empty for the CRDT to fill; when nothing will fill it,
+   * this is what keeps the cell editable instead of blank-and-unsaveable.
+   */
+  function fallBackToLocalEditing() {
+    if (collabRefused.value || collabAuthoritative.value) return
+    collabRefused.value = true
+    if (vModel.value) setEditorContent(vModel.value)
+  }
+
+  const confirmTimer = setTimeout(() => {
+    if (collab.serverAcked.value || collabAuthoritative.value) return
+    fallBackToLocalEditing()
+  }, COLLAB_CONFIRM_TIMEOUT_MS)
+
+  // Gate on serverAcked, NOT synced: the transport flips `synced` itself after
+  // its own shorter timeout, which would clear this timer before it can run and
+  // make a refusal indistinguishable from a successful sync.
+  watch(collab.serverAcked, (acked) => {
+    if (acked) clearTimeout(confirmTimer)
+  })
+
+  // The server told us outright, so there is nothing to wait for.
+  watch(
+    collab.refused,
+    (isRefused) => {
+      if (isRefused) {
+        clearTimeout(confirmTimer)
+        fallBackToLocalEditing()
+      }
+    },
+    { immediate: true },
+  )
+
+  onBeforeUnmount(() => clearTimeout(confirmTimer))
+
+  const fragment = collab.ydoc!.getXmlFragment('default')
+
+  function onFragmentChange() {
+    // The seeder's content landing is what makes a non-seeder authoritative.
+    if (fragment.length > 0 && !collabAuthoritative.value) {
+      collabAuthoritative.value = true
+      stopFragmentWatch()
+    }
+  }
+
+  function stopFragmentWatch() {
+    fragment.unobserveDeep(onFragmentChange)
+  }
+
+  fragment.observeDeep(onFragmentChange)
+
+  /**
+   * How long to wait for the granted seeder's content before taking the cell
+   * locally. Longer than the confirm timeout — here the server *did* grant a seat
+   * to someone, so content is usually in flight and adopting it is preferable.
+   */
+  const COLLAB_SEED_WAIT_MS = 10000
+
+  let seedWaitTimer: ReturnType<typeof setTimeout> | undefined
+
+  function armSeedWait() {
+    if (seedWaitTimer) return
+    seedWaitTimer = setTimeout(() => {
+      if (fragment.length > 0 || collabAuthoritative.value) return
+      fallBackToLocalEditing()
+    }, COLLAB_SEED_WAIT_MS)
+  }
+
+  onBeforeUnmount(() => clearTimeout(seedWaitTimer))
+
+  watch(
+    [collab.synced, collab.mayBootstrap, editor],
+    ([synced, mayBootstrap, editorInstance]) => {
+      if (!synced || !editorInstance || collabAuthoritative.value) return
+
+      // Someone already holds content — adopt it.
+      if (fragment.length > 0) {
+        collabAuthoritative.value = true
+        stopFragmentWatch()
+        return
+      }
+
+      if (mayBootstrap) {
+        // At most one client across the cluster is granted this. If every client
+        // seeded, Yjs would merge each copy and duplicate the cell's text once
+        // per participant.
+        if (vModel.value) setEditorContent(vModel.value)
+        collabAuthoritative.value = true
+        stopFragmentWatch()
+        return
+      }
+
+      // Not the seeder, and the document is empty. If the cell is empty too there
+      // is nothing to wait for. Otherwise hold: propagating '' here is the
+      // data-loss case, and the seeder's content arrives via onFragmentChange.
+      if (!vModel.value) {
+        collabAuthoritative.value = true
+        stopFragmentWatch()
+        return
+      }
+
+      // Holding, but not forever. The grant is cluster-wide, so if the seeder
+      // disconnected before seeding nobody else will ever be granted it and the
+      // wait cannot resolve — leaving a blank editor over a non-empty cell that
+      // saves nothing. Bounded wait, then take the cell locally.
+      armSeedWait()
+    },
+    { immediate: true },
+  )
+
+  onScopeDispose(stopFragmentWatch)
+}
+
+// Yjs owns the document when co-editing is active; the setContent() below is a
+// full-document replace, which would blow away the binding's state on every peer
+// save. Off the collab path this stays exactly as it was.
+if (props.syncValueChange && !collab) {
   watch([vModel, editor], () => {
     // Skip while the user has uncommitted local input that re-running `setContent` would destroy —
     // either they're actively typing (`hasLocalEdits`, keystrokes already flow out via `onUpdate` →
@@ -409,6 +621,33 @@ onClickOutside(editorDom, (e) => {
 </template>
 
 <style lang="scss">
+// Remote collaborator carets. CollaborationCursor renders these spans with an
+// inline colour per user; without these rules they have no geometry and are
+// invisible.
+.nc-rich-text {
+  .collaboration-cursor__caret {
+    @apply relative pointer-events-none;
+
+    border-left: 1px solid;
+    border-right: 1px solid;
+    margin-left: -1px;
+    margin-right: -1px;
+    word-break: normal;
+  }
+
+  .collaboration-cursor__label {
+    @apply absolute left-[-1px] text-white whitespace-nowrap select-none;
+
+    top: -1.4em;
+    border-radius: 3px 3px 3px 0;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: normal;
+    padding: 0.1rem 0.3rem;
+    user-select: none;
+  }
+}
+
 .nc-text-rich-scroll {
   &::-webkit-scrollbar-thumb {
     @apply bg-transparent;

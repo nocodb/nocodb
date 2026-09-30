@@ -69,6 +69,8 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 
+export const IMPORT_BATCH_SIZE = 1000;
+
 @Injectable()
 export class ImportService {
   protected readonly debugLog = debug('nc:jobs:import');
@@ -1807,7 +1809,12 @@ export class ImportService {
     elapsedTime(hrTime, 'create referenced columns', 'importModels');
 
     // create views
+    // A task rejection is NOT surfaced by onIdle(), so an unguarded throw in
+    // here escapes as an unhandledRejection and takes the process down
+    // instead of failing the job. Capture the first error, stop queueing,
+    // and rethrow once the queue drains (mirrors NcConcurrent).
     const vieProcessQueue = new PQueue({ concurrency: 3 });
+    let viewProcessError: unknown;
     for (const data of param.data) {
       if (param.existingModel) break;
 
@@ -1819,7 +1826,7 @@ export class ImportService {
       // get default view
       await table.getViews();
       for (const view of viewsData) {
-        vieProcessQueue.add(async () => {
+        const viewTask = vieProcessQueue.add(async () => {
           const viewData = withoutId({
             ...view,
             meta: RowColorViewHelpers.withContext(targetContext).mapMetaColumn({
@@ -1970,9 +1977,15 @@ export class ImportService {
             'importModels',
           );
         });
+
+        viewTask.catch((e) => {
+          viewProcessError ??= e;
+          vieProcessQueue.clear();
+        });
       }
     }
     await vieProcessQueue.onIdle();
+    if (viewProcessError) throw viewProcessError;
 
     // create row color info
     for (const data of param.data) {
@@ -2131,17 +2144,22 @@ export class ImportService {
         return fview;
       }
       case ViewTypes.CALENDAR: {
+        // `vw.view` is absent for calendar views orphaned by the old insert
+        // path (view row with no CALENDAR_VIEW row), so both the sub-object
+        // and the range are optional here.
+        const calendarRange = (
+          (vw.view as CalendarView)?.calendar_range ?? []
+        ).map((a) => ({
+          fk_from_column_id: idMap.get(a.fk_from_column_id),
+          fk_to_column_id: idMap.get((a as any).fk_to_column_id),
+        }));
+
         return await this.calendarsService.calendarViewCreate(context, {
           tableId: md.id,
           ownedBy: vw.owned_by,
           calendar: {
             ...vw,
-            calendar_range: (vw.view as CalendarView).calendar_range.map(
-              (a) => ({
-                fk_from_column_id: idMap.get(a.fk_from_column_id),
-                fk_to_column_id: idMap.get((a as any).fk_to_column_id),
-              }),
-            ),
+            calendar_range: calendarRange,
           } as ViewCreateReqType,
           user,
           req,
@@ -2528,7 +2546,7 @@ export class ImportService {
                 chunk.push(row);
               }
 
-              if (chunk.length > 1000) {
+              if (chunk.length >= IMPORT_BATCH_SIZE) {
                 parser.pause();
                 try {
                   await this.bulkDataService.bulkDataInsert(context, {
@@ -2557,6 +2575,7 @@ export class ImportService {
                     // instead of passing refs through verbatim.
                     // github.com/nocodb/nocohub/pull/10063#discussion_r3773398681
                     skipAttachmentOwnershipCheck: true,
+                    skipPayloadLimit: true,
                   });
                 } catch (e) {
                   // stop the stream
@@ -2590,6 +2609,7 @@ export class ImportService {
                 skipPermissionCheck: true,
                 // see the chunked insert above
                 skipAttachmentOwnershipCheck: true,
+                skipPayloadLimit: true,
               });
             } catch (e) {
               // stop the stream
@@ -2643,7 +2663,7 @@ export class ImportService {
             tableName: k,
             body: v,
             cookie: null,
-            chunkSize: 1000,
+            chunkSize: IMPORT_BATCH_SIZE,
             foreign_key_checks: !!destBase.isMeta(),
             raw: true,
             // Junction row copy, not a user write — no webhooks or audit.
@@ -2655,6 +2675,7 @@ export class ImportService {
             // declare the bypass explicitly (matching the data copy above) so the
             // guarantee survives if a real cookie is ever threaded here.
             skipPermissionCheck: true,
+            skipPayloadLimit: true,
           });
           lChunks[k] = [];
         } catch (e) {
@@ -2703,6 +2724,18 @@ export class ImportService {
                     [mm.parent]: parent,
                     [mm.child]: child,
                   });
+
+                  if (lChunks[mmModelId].length >= IMPORT_BATCH_SIZE) {
+                    parser.pause();
+                    try {
+                      await insertChunks();
+                    } catch (e) {
+                      parser.abort();
+                      reject(e);
+                      return;
+                    }
+                    parser.resume();
+                  }
                 } else {
                   // get column for the first time
                   parser.pause();

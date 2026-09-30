@@ -74,6 +74,7 @@ export interface DataDeleteParams {
   cookie: any;
   body?: DataDeleteRequest | DataDeleteRequest[];
   queryRecords?: string | string[];
+  maxPayloadOverride?: number;
 }
 
 export interface NestedDataListParams {
@@ -111,4 +112,5 @@ export interface DataUpsertParams {
   modelId: string;
   body: DataUpsertRequest;
   cookie: any;
+  maxPayloadOverride?: number;
 }

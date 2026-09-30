@@ -148,6 +148,9 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     auditEnabled: true,
     undoRedoEnabled: true,
     docsRealtimeEnabled: true,
+    // Opt-in, so the default must be false — an older backend that doesn't send
+    // the flag must not switch co-editing on.
+    collabRealtimeEnabled: false,
     type: 'nocodb',
     version: '0.0.0',
     ncAttachmentFieldSize: 20,

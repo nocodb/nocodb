@@ -132,6 +132,8 @@ export enum PlanFeatureTypes {
   FEATURE_DOCS_EXPORT_PDF = 'feature_docs_export_pdf',
   FEATURE_DOCUMENT_PERMISSIONS = 'feature_document_permissions',
   FEATURE_DOC_AI = 'feature_doc_ai',
+  /** Live co-editing of long-form fields (script source, Long Text, SmartText). */
+  FEATURE_REALTIME_CO_EDITING = 'feature_realtime_co_editing',
   FEATURE_DATE_DEPENDENCY = 'feature_date_dependency',
   FEATURE_API_COMMENT_V3 = 'feature_api_comment_v3',
   FEATURE_API_WORKFLOW_MANAGEMENT = 'feature_api_workflow_management',
@@ -578,6 +580,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS]:
     'to use document permissions.',
   [PlanFeatureTypes.FEATURE_DOC_AI]: 'to use AI features in documents.',
+  [PlanFeatureTypes.FEATURE_REALTIME_CO_EDITING]:
+    'to edit long-form fields together in real time.',
   [PlanFeatureTypes.FEATURE_DATE_DEPENDENCY]: 'to use date dependencies.',
   [PlanFeatureTypes.FEATURE_API_COMMENT_V3]: 'to use comment api.',
   [PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT]: 'to use workflow api.',

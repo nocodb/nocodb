@@ -38,6 +38,7 @@ let httpServer: http.Server | null = null;
 async function createServer(isMaster: boolean): Promise<http.Server> {
   const server = express();
   server.enable('trust proxy');
+  server.disable('x-powered-by');
   server.use(cors());
 
   // Add static file serving for the dashboard

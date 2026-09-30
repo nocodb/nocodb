@@ -17,6 +17,8 @@ const BULK_DATA_BATCH_COUNT =
   +process.env.AT_IMPORT_BULK_DATA_BATCH_COUNT || 10; // check size for every N records
 const BULK_DATA_BATCH_SIZE =
   +process.env.AT_IMPORT_BULK_DATA_BATCH_SIZE || 20 * 1024; // import N bytes at a time
+// tiny rows can stay under the byte threshold for thousands of records
+const BULK_DATA_MAX_ROWS = +process.env.AT_IMPORT_BULK_DATA_MAX_ROWS || 1000;
 const BULK_LINK_BATCH_COUNT =
   +process.env.AT_IMPORT_BULK_LINK_BATCH_COUNT || 500; // import N links at a time
 const BULK_PARALLEL_PROCESS = +process.env.AT_IMPORT_BULK_PARALLEL_PROCESS || 2; // process N records at a time
@@ -239,7 +241,10 @@ export async function importData(
                 tempCount++;
 
                 if (tempCount >= BULK_DATA_BATCH_COUNT) {
-                  if (sizeof(tempData) >= BULK_DATA_BATCH_SIZE) {
+                  if (
+                    tempData.length >= BULK_DATA_MAX_ROWS ||
+                    sizeof(tempData) >= BULK_DATA_BATCH_SIZE
+                  ) {
                     let insertArray = tempData.splice(0, tempData.length);
 
                     await services.bulkDataService.bulkDataInsert(context, {
@@ -252,6 +257,7 @@ export async function importData(
                       allowSystemColumn: true,
                       // allow passing id
                       undo: true,
+                      skipPayloadLimit: true,
                     });
 
                     logBasic(
@@ -301,6 +307,7 @@ export async function importData(
               allowSystemColumn: true,
               // allow passing id
               undo: true,
+              skipPayloadLimit: true,
             });
 
             logBasic(
@@ -510,6 +517,7 @@ export async function importLTARData(
                       allowSystemColumn: true,
                       // allow passing id
                       undo: true,
+                      skipPayloadLimit: true,
                     });
 
                     insertArray = [];
@@ -556,6 +564,7 @@ export async function importLTARData(
               allowSystemColumn: true,
               // allow passing id
               undo: true,
+              skipPayloadLimit: true,
             });
 
             importedCount += assocTableData[assocMeta.modelMeta.id].length;

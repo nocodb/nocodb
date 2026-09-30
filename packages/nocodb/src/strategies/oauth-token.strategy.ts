@@ -5,6 +5,7 @@ import { extractRolesObj } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { OAuthClient, OAuthToken, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
+import { checkOAuthResourceAccess } from '~/mcp/oauth-scope-guard';
 
 @Injectable()
 export class OAuthTokenStrategy extends PassportStrategy(
@@ -88,34 +89,13 @@ export class OAuthTokenStrategy extends PassportStrategy(
       const isContextExemptPath =
         req.path?.startsWith('/auth/user/me') || req.path?.startsWith('/mcp');
 
-      // Validate resource limitations if granted_resources exist. This must FAIL
-      // CLOSED: a grant scoped to a workspace/base is only valid when the
-      // request's resolved context matches. A missing context (e.g. a
-      // workspace-scoped V3 route with no base_id) is a mismatch, not a licence
-      // to skip the check — otherwise a base-restricted bearer reaches other
-      // bases through context-less routes (CWE-863).
-      if (oAuthToken.granted_resources && !isContextExemptPath) {
-        const grantedResources = oAuthToken.granted_resources;
+      if (!isContextExemptPath) {
+        const refusal = checkOAuthResourceAccess(oAuthToken, {
+          workspace_id: req.context?.workspace_id,
+          base_id: req.context?.base_id,
+        });
 
-        // Check workspace access limitation (EE only)
-        if (
-          grantedResources.workspace_id &&
-          req.context?.workspace_id !== grantedResources.workspace_id
-        ) {
-          return callback({
-            msg: 'OAuth token access limited to specific workspace',
-          });
-        }
-
-        // Check base access limitation
-        if (
-          grantedResources.base_id &&
-          req.context?.base_id !== grantedResources.base_id
-        ) {
-          return callback({
-            msg: 'OAuth token access limited to specific base',
-          });
-        }
+        if (refusal) return callback({ msg: refusal });
       }
 
       // Build user object with OAuth context
@@ -139,6 +119,7 @@ export class OAuthTokenStrategy extends PassportStrategy(
         oauth_granted_resources: oAuthToken.granted_resources,
         oauth_scope: oAuthToken.scope,
         oauth_token_id: oAuthToken.id,
+        oauth_permissions: oAuthToken.permissions,
       };
 
       return callback(null, sanitiseUserObj(user));

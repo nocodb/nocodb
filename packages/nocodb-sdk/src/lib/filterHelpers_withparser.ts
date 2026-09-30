@@ -327,7 +327,10 @@ function handleDataTypes(
       : (filterType.value as string).split(',').map((k) => k.trim());
 
     filterType.comparison_sub_op = subOp as any;
-    filterType.value = value.join('');
+    // Multi-value date ops (`in`) carry a comma-separated list — the date
+    // handlers split it back on ','. Joining on '' fused the entries into one
+    // unparseable token.
+    filterType.value = value.join(',');
     if (filterType.comparison_sub_op) {
       if (!COMPARISON_SUB_OPS.includes(filterType.comparison_sub_op)) {
         if (throwErrorIfInvalid)

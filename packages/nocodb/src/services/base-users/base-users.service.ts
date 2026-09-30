@@ -806,10 +806,7 @@ export class BaseUsersService {
     );
 
     // check if user have access to delete user based on role power
-    if (
-      getProjectRolePower(baseUser.base_roles) >
-      getProjectRolePower(param.req.user)
-    ) {
+    if (getProjectRolePower(baseUser) > getProjectRolePower(param.req.user)) {
       NcError.forbidden('Insufficient privilege to delete user');
     }
 

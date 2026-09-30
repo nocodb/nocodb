@@ -21,10 +21,12 @@ OPERATORS:
     gte       Greater than or equal (>=)  (rating,gte,4)
     lte       Less than or equal (<=)     (age,lte,65)
 
-  Range:
-    btw       Between (inclusive)         (price,btw,10,100)
-    nbtw      Not between                 (score,nbtw,0,50)
-    NOTE: btw/nbtw may not work for Currency fields. Use (field,gte,min)~and(field,lte,max) instead.
+  Range: btw/nbtw are REJECTED on Number, Decimal, Currency, Percent, Rating,
+  Duration, Date/DateTime and Checkbox with "Operation btw is not supported for
+  type <T>". Only Time and text fields accept them. Two bounds work on every type,
+  so always express a range that way:
+    Between (inclusive)        (price,gte,10)~and(price,lte,100)
+    Not between                (score,lt,0)~or(score,gt,50)
 
   Null/Empty (no value needed):
     blank     Is blank (null or empty)    (notes,blank)
@@ -75,8 +77,11 @@ DATE/TIME FILTERING (for Date, DateTime, CreatedTime, LastModifiedTime fields):
       (deadline,lt,exactDate,2024-12-31)       Before Dec 31, 2024
       (created_at,gte,daysAgo,7)               Created within last 7 days
 
-  btw - Date range (no sub-operator, uses YYYY-MM-DD):
-      (event_date,btw,2024-01-01,2024-12-31)   Events in year 2024
+  Date ranges - btw/nbtw are NOT supported on date fields. Use two bounds:
+      (event_date,gte,exactDate,2024-01-01)~and(event_date,lte,exactDate,2024-12-31)
+
+  in - Match any of several exact dates (sub-operator required):
+      (due_date,in,exactDate,2024-06-15,2024-07-01)
 
   Null checks for dates (no sub-operator):
       (due_date,blank)                         Date is not set
@@ -84,28 +89,38 @@ DATE/TIME FILTERING (for Date, DateTime, CreatedTime, LastModifiedTime fields):
 
 LOGICAL OPERATIONS:
 
-  IMPORTANT: Use ~and, ~or, ~not (with tilde). Plain "and"/"or" will error.
+  IMPORTANT: Use ~and, ~or, ~not (with tilde). Plain "and"/"or" will error, and so
+  does "~AND"/"~OR" — the operators are lowercase.
 
   AND: (filter1)~and(filter2)           Example: (name,eq,John)~and(age,gte,18)
   OR:  (filter1)~or(filter2)            Example: (status,eq,active)~or(status,eq,pending)
   NOT: ~not(filter)                     Example: ~not(is_deleted,checked)
-  
-  Complex grouping: Use 'in' operator instead of nested OR conditions:
-    Instead of: ((status,eq,active)~or(status,eq,pending))~and(country,eq,USA)
-    Use:        (status,in,active,pending)~and(country,eq,USA)
+
+  CRITICAL — never put whitespace after ~and/~or/~not. A space or newline before
+  them is fine; one after them is a parse error. Write the whole clause on one line.
+    CORRECT:   (a,eq,1)~and(b,eq,2)     WRONG: (a,eq,1)~and (b,eq,2)
+
+  ~not only starts an expression or a group. To negate a later term, wrap it:
+    CORRECT:   (a,eq,1)~and(~not(b,checked))     WRONG: (a,eq,1)~and~not(b,checked)
+
+  Nested grouping works:  ((status,eq,active)~or(status,eq,pending))~and(country,eq,USA)
+  For a single field, 'in' is shorter:  (status,in,active,pending)~and(country,eq,USA)
 
 SPECIAL VALUES:
   NULL value:         (field,eq,null)
   Empty string:       (field,eq,'') or (field,eq,"")
   Value with comma:   (field,eq,"hello, world")
   Value with quotes:  (field,eq,"it's here") or (field,eq,'say "hello"')
-  Field with spaces:  (Full Name,eq,John)    NOTE: Do NOT use quotes around field names
+  Field with spaces:  (Full Name,eq,John)    Quotes optional: ("Full Name",eq,John)
+  NOTE: a field name must not carry a trailing space — (name ,eq,John) reports
+  "field 'name ' not found". A trailing space in a VALUE is kept, so (name,eq,John )
+  filters on "John " and silently matches nothing.
 
 EXAMPLES:
   Active users this month:     (status,eq,active)~and(created_at,isWithin,pastMonth)
   Overdue high-priority:       (due_date,lt,today)~and(priority,eq,high)~and(completed,notchecked)
   Orders $100-$500 pending:    (amount,gte,100)~and(amount,lte,500)~and(status,in,pending,processing)
-  Updated recently, not archived: (updated_at,isWithin,pastNumberOfDays,14)~and~not(is_archived,checked)
+  Updated recently, not archived: (updated_at,isWithin,pastNumberOfDays,14)~and(is_archived,notchecked)
   Multiple segments & countries: (Segment,in,Government,Enterprise)~and(Country,in,Germany,France)
 `;
 

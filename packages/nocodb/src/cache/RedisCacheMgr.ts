@@ -10,6 +10,11 @@ export default class RedisCacheMgr extends CacheMgr {
     super();
     this.client = new Redis(config);
 
+    // TODO(cache): fetch orgs once it's implemented
+    const orgs = 'noco';
+    this.prefix = `${CACHE_PREFIX}:${orgs}`;
+    this.context = 'RedisCacheMgr';
+
     // avoid flushing db in worker container
     if (
       process.env.NC_WORKER_CONTAINER !== 'true' &&
@@ -17,13 +22,8 @@ export default class RedisCacheMgr extends CacheMgr {
         process.env.NC_CLOUD !== 'true') &&
       process.env.NC_KEEP_CACHE !== 'true'
     ) {
-      // flush the existing db with selected key (Default: 0)
-      this.client.flushdb();
+      // Selective, not FLUSHDB — the collab crash buffer has to outlive a restart.
+      this.ready = this.flushDisposable();
     }
-
-    // TODO(cache): fetch orgs once it's implemented
-    const orgs = 'noco';
-    this.prefix = `${CACHE_PREFIX}:${orgs}`;
-    this.context = 'RedisCacheMgr';
   }
 }

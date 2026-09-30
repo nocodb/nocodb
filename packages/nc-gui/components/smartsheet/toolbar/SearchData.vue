@@ -225,10 +225,9 @@ const handleEscapeKey = (e: KeyboardEvent) => {
   showSearchBox.value = false
 }
 
-// Outside click closes an empty box, and folds a query to its icon when the toolbar is too narrow.
+// Mobile has no Escape key: an empty search box closes on an outside tap.
 onClickOutside(globalSearchWrapperRef, (e) => {
-  if (!showSearchBox.value || isDropdownOpen.value) return
-  if (search.value.query && !shouldCollapseSearch.value) return
+  if (!isMobileMode.value || !showSearchBox.value || search.value.query || isDropdownOpen.value) return
 
   if ((e.target as HTMLElement)?.closest?.('.nc-dropdown-toolbar-search, .nc-dropdown-toolbar-search-field-option')) return
 

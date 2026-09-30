@@ -5856,6 +5856,8 @@
       "vaultPermissionNobody": "No one can add new references to this vault, owners included. Existing connections keep working.",
       "vaultPermissionHint": "Referencing a secret is as good as reading it. Only people who can create integrations can use a vault.",
       "vaultPermissionUsersCount": "Granted to {count} people. Change it from that workspace.",
+      "vaultPermissionTeamsCount": "Also granted to {count} teams, set through the API. They are kept.",
+      "vaultPermissionPickSomeone": "Pick at least one person. Nothing is saved until you do.",
       "vaultsAdminSubtitle": "Every secrets provider connected to this organization or to one of its workspaces. An organization vault can be referenced from every workspace under it.",
       "vaultsEmpty": "No secrets provider is connected to this organization or to any of its workspaces yet.",
       "vaultsNoWorkspace": "Add a workspace to this organization before connecting a vault.",

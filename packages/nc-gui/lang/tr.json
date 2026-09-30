@@ -756,7 +756,8 @@
     "continue": "Devam et",
     "manage": "Yönet",
     "orgBadge": "Org.",
-    "migrate": "Taşı"
+    "migrate": "Taşı",
+    "email": "E-posta"
   },
   "objects": {
     "script": "Script",
@@ -3102,7 +3103,12 @@
         "variables": "Otomasyonlar ve alanlar için yeniden kullanılabilir değerler.",
         "migrateToV3": "Bu tabanı v3 platformuna ve API'lerine yükseltin.",
         "migrateToCloud": "Bu tabanın verilerini NocoDB Cloud'a taşıyın."
-      }
+      },
+      "upgradeAskOwner": "Sahibinden yükseltme isteyin",
+      "upgradeRequestSent": "İstek gönderildi",
+      "upgradeDescRls": "Her kişinin hangi kayıtları görebileceğini ve düzenleyebileceğini sınırlayın.",
+      "upgradeDescRecordTemplates": "Kaydedilmiş, önceden doldurulmuş şablonlardan yeni kayıtlar oluşturun.",
+      "upgradeDescDateDependency": "Bir kayıt taşındığında bağımlı tarihleri otomatik olarak kaydırır."
     },
     "categories": "Kategoriler",
     "blockquote": "Alıntı",
@@ -4575,7 +4581,113 @@
     "regenerateSecret": "Gizli anahtarı yeniden oluştur",
     "createOauthClients": "OAuth istemcileri oluştur",
     "managingOauthClients": "OAuth istemcilerini yönetme",
-    "clientInformation": "İstemci bilgileri"
+    "clientInformation": "İstemci bilgileri",
+    "byUser": "{user} tarafından",
+    "requestIntegration": "Entegrasyon talep et",
+    "browseIntegrations": "Entegrasyonlara göz atın",
+    "examplePrompt": "Örnek istem",
+    "connectYourAi": "Yapay zekânızı bağlayın",
+    "connectAVault": "Bir kasa bağlayın",
+    "manageVaults": "Kasaları yönet",
+    "baseRelations": "Taban ilişkileri",
+    "downloadReport": "Raporu indir",
+    "noLongerWorkspaceMember": "Artık bu çalışma alanının üyesi değil",
+    "notBaseMember": "Bu tabanın üyesi değil",
+    "factoryNoSessionMatches": "Bu aramayla eşleşen oturum yok",
+    "factoryRepoHasProject": "Bir projesi var",
+    "factoryOpenRepo": "Deposu aç",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Verilerinizin üzerinde tablolar, görünümler, otomasyonlar ve uygulamalar.",
+    "projectKindCode": "Kod projesi",
+    "projectKindCodeHint": "Bir depo bağlayın ve aracıların kodu üzerinde çalışmasını sağlayın.",
+    "planStatusPending": "Beklemede",
+    "planStatusInProgress": "Devam ediyor",
+    "planStatusCompleted": "Tamamlandı",
+    "createOauthClient": "OAuth istemcisi oluştur",
+    "downgradeToFreePlan": "Free planına geçin",
+    "plusApplicableTax": "+ geçerli vergiler",
+    "beforeYouCancelPlan": "Planınızı iptal etmeden önce",
+    "formBranding": "Form marka kimliği",
+    "aiIntegration": "Yapay zekâ entegrasyonu",
+    "enableWebSearch": "Web aramasını etkinleştir",
+    "enableWebSearchHint": "Yapay zekâ modelinin güncel bilgi için web'de arama yapmasına izin verin",
+    "outputSchema": "Çıktı şeması",
+    "itemType": "Öğe türü",
+    "addProperty": "Özellik ekle",
+    "addField": "Alan ekle",
+    "planSubtitleBusiness": "İşletmenizin ihtiyaçları için",
+    "planTaglineBusiness": "Airtable, Monday & Smartsheet ile karşılaştırıldığında %70'e varan tasarruf",
+    "planSubtitleScale": "Büyüyen ekipler için",
+    "planTaglineScale": "Bütçesi olan, hızlı hareket eden ekipler.",
+    "planTaglineScaleNoSalesCall": "Satış görüşmesine gerek yok.",
+    "everythingInBusinessAnd": "Business'taki her şey ve",
+    "planSubtitleEnterprise": "Kuruluşunuza özel",
+    "scheduleACall": "Görüşme planla",
+    "everythingInScaleAnd": "Scale'deki her şey ve",
+    "connectionName": "Bağlantı adı",
+    "connectionDetailsSection": "Bağlantı ayrıntıları",
+    "host": "Ana bilgisayar",
+    "path": "Yol",
+    "connectionParameters": "Bağlantı parametreleri",
+    "advancedOptions": "Gelişmiş seçenekler",
+    "integrationDetails": "Entegrasyon ayrıntıları",
+    "pgConnectionDetails": "Bağlantı ayrıntıları",
+    "pgPort": "Bağlantı noktası",
+    "pgSslMode": "SSL modu",
+    "connectionJson": "Bağlantı JSON'u",
+    "input": "Girdi",
+    "output": "Çıktı",
+    "console": "Konsol",
+    "forgotPassword": "Şifrenizi mi unuttunuz?",
+    "privacyPolicy": "Gizlilik Politikası",
+    "clickHere": "Buraya tıklayın",
+    "emailVerification": "E-posta doğrulama",
+    "method": "Yöntem",
+    "queryParameters": "Sorgu parametreleri",
+    "samplePayload": "Örnek veri yükü",
+    "addDataSource": "Veri kaynağı ekle",
+    "addSource": "Kaynak ekle",
+    "dataSourceName": "Veri kaynağı adı",
+    "goBack": "Geri dön",
+    "interval": "Aralık",
+    "everyMinutes": "Her dakikada",
+    "selectMinute": "Dakika seçin",
+    "selectTimeOfDay": "Günün saatini seçin",
+    "selectTimeAndDayOfWeek": "Saati ve haftanın gününü seçin",
+    "selectTimeAndDayOfMonth": "Saati ve ayın gününü seçin",
+    "editedByYou": "Sizin tarafınızdan düzenlendi",
+    "regenerating": "Yeniden oluşturuluyor...",
+    "calendarIsReadonly": "Takvim salt okunur",
+    "generatedViews": "Oluşturulan görünüm(ler)",
+    "disableConnection": "Bağlantıyı devre dışı bırak",
+    "connectWithFavoriteTools": "Favori araçlarınızla bağlantı kurun",
+    "getConnectionDetails": "Bağlantı ayrıntılarını al",
+    "connectionUrl": "Bağlantı URL'si",
+    "chartSortBy": "Sıralama ölçütü",
+    "categoryLimit": "Kategori sınırı",
+    "chartLegendOrientation": "Gösterge yönü",
+    "plotDataPoints": "Veri noktalarını çiz",
+    "retryImport": "İçe aktarmayı yeniden dene",
+    "listening": "Dinliyor",
+    "generateAndCopyUrl": "URL oluştur ve kopyala",
+    "executionTime": "Çalışma süresi",
+    "requestTime": "İstek zamanı",
+    "errorCode": "Hata kodu",
+    "authorizationError": "Yetkilendirme hatası",
+    "requestedPermissions": "İstenen izinler",
+    "applicationWillBeAbleTo": "Bu uygulama şunları yapabilecek",
+    "authorize": "Yetkilendir",
+    "noUrl": "URL yok",
+    "imageUrl": "Görsel URL'si",
+    "altText": "Alternatif metin",
+    "fitToView": "Görünüme sığdır",
+    "requestBody": "İstek gövdesi",
+    "bodyType": "Gövde türü",
+    "httpAdvancedOptions": "Gelişmiş seçenekler",
+    "followRedirects": "Yönlendirmeleri izle",
+    "followRedirectsDescription": "HTTP yönlendirmelerini otomatik olarak izle",
+    "failOnErrorStatus": "Hata durumunda başarısız say",
+    "failOnErrorStatusDescription": "Yanıt 4xx veya 5xx olduğunda başarısız say"
   },
   "activity": {
     "useTemplate": "Şablon kullan",
@@ -6603,7 +6715,7 @@
     "notAvailablePending": "Çöp kutusu bu tablo için henüz mevcut değil.",
     "conflict": {
       "panelTitle": "{count} record has a conflict | {count} records have conflicts",
-      "panelHelp": "Bunları kaynağında düzeltip tekrar deneyin veya şimdi geri yükleyin — çakışan değerler temizlenecek.",
+      "panelHelp": "Bunları kaynağında düzeltip yeniden deneyin veya şimdi geri yükleyin. Çakışan değerleri temizleyeceğiz.",
       "cleanRemainder": "{count} other record will restore normally. | {count} other records will restore normally.",
       "group": {
         "link": "Bağlantılar zaten alınmış",
@@ -6762,7 +6874,7 @@
     "workflows": {
       "addTrigger": {
         "title": "Bir tetikleyici ekleyin",
-        "description": "Her iş akışı burada başlar — onu neyin başlatabileceğini görmek için tıklayın."
+        "description": "Her iş akışı burada başlar. Neyin onu tetikleyebileceğini görmek için tıklayın."
       },
       "addAction": {
         "title": "Bir eylem ekleyin",
@@ -6779,7 +6891,7 @@
       },
       "create": {
         "title": "Bir iş akışı oluşturun",
-        "description": "Sıfırdan başlayın — bu, kısa bir form açar."
+        "description": "Sıfırdan başlayın. Bu, kısa bir form açar."
       },
       "createSubmit": {
         "title": "Oluşturun",
@@ -6807,15 +6919,15 @@
       },
       "enable": {
         "title": "Çalıştırmaya açın",
-        "description": "Yayımlanmış olmak, çalışıyor olmakla aynı şey değildir. Bir iş akışı siz etkinleştirene kadar <b>Duraklatıldı</b> kalır — bu, çoğu kişinin atladığı adımdır."
+        "description": "Yayımlanmış olmak çalışıyor olmakla aynı şey değildir. Bir iş akışı, siz etkinleştirene kadar <b>duraklatılmış</b> kalır. İnsanların atladığı adım budur."
       },
       "run": {
         "title": "Bir kez çalıştırın",
-        "description": "Elle tetikleyici istendiğinde çalışır — bir deneyin ve yürütülmesini izleyin."
+        "description": "Manuel tetikleyici istek üzerine çalışır. Deneyin ve çalışmasını izleyin."
       },
       "logs": {
         "title": "Günlükleri kontrol edin",
-        "description": "Her çalıştırma burada kaydedilir — neyin tetiklendiği, her adımın ne döndürdüğü ve nelerin başarısız olduğu."
+        "description": "Her çalıştırma burada kaydedilir: onu neyin tetiklediği, her adımın ne döndürdüğü ve nelerin başarısız olduğu."
       },
       "wrapUp": {
         "title": "Döngünün tamamı bu",
@@ -6826,7 +6938,7 @@
       "title": "Çalışma alanınızda yolunuzu bulun",
       "welcome": {
         "title": "NocoDB'ye hoş geldiniz",
-        "description": "Çalışma alanınızda hızlı bir tur. İstediğiniz an çıkabilirsiniz — Atla'ya basın."
+        "description": "Çalışma alanınızda kısa bir tur. İstediğiniz zaman çıkabilirsiniz: Atla'ya basın."
       },
       "createBase": {
         "title": "Bir Base ile başlayın",

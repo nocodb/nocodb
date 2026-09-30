@@ -756,7 +756,8 @@
     "continue": "Folytatás",
     "manage": "Kezelés",
     "orgBadge": "Szerv.",
-    "migrate": "Migrálás"
+    "migrate": "Migrálás",
+    "email": "E-mail"
   },
   "objects": {
     "script": "Szkript",
@@ -3102,7 +3103,12 @@
         "variables": "Újrafelhasználható értékek automatizációkhoz és mezőkhöz.",
         "migrateToV3": "A bázis frissítése a v3 platformra és API-kra.",
         "migrateToCloud": "A bázis adatainak áthelyezése a NocoDB Cloudba."
-      }
+      },
+      "upgradeAskOwner": "Kérje meg a tulajdonost a csomagváltásra",
+      "upgradeRequestSent": "Kérés elküldve",
+      "upgradeDescRls": "Korlátozza, hogy ki mely rekordokat láthatja és szerkesztheti.",
+      "upgradeDescRecordTemplates": "Hozzon létre új rekordokat mentett, előre kitöltött sablonokból.",
+      "upgradeDescDateDependency": "Automatikusan eltolja a függő dátumokat, amikor egy rekord áthelyeződik."
     },
     "categories": "Kategóriák",
     "blockquote": "Idézet",
@@ -4575,7 +4581,113 @@
     "regenerateSecret": "Új titok létrehozása",
     "createOauthClients": "OAuth-ügyfelek létrehozása",
     "managingOauthClients": "OAuth-ügyfelek kezelése",
-    "clientInformation": "Ügyféladatok"
+    "clientInformation": "Ügyféladatok",
+    "byUser": "{user} által",
+    "requestIntegration": "Integráció kérése",
+    "browseIntegrations": "Integrációk böngészése",
+    "examplePrompt": "Példa promptra",
+    "connectYourAi": "Csatlakoztassa a saját MI-jét",
+    "connectAVault": "Széf csatlakoztatása",
+    "manageVaults": "Széfek kezelése",
+    "baseRelations": "Bázis kapcsolatai",
+    "downloadReport": "Jelentés letöltése",
+    "noLongerWorkspaceMember": "Már nem tagja ennek a munkaterületnek",
+    "notBaseMember": "Nem tagja ennek a bázisnak",
+    "factoryNoSessionMatches": "Nincs a keresésnek megfelelő munkamenet",
+    "factoryRepoHasProject": "Van benne projekt",
+    "factoryOpenRepo": "Tároló megnyitása",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Táblák, nézetek, automatizálások és alkalmazások az adatain.",
+    "projectKindCode": "Kódprojekt",
+    "projectKindCodeHint": "Csatlakoztasson egy tárolót, és hagyja, hogy az ügynökök dolgozzanak a kódján.",
+    "planStatusPending": "Függőben",
+    "planStatusInProgress": "Folyamatban",
+    "planStatusCompleted": "Befejezve",
+    "createOauthClient": "OAuth-kliens létrehozása",
+    "downgradeToFreePlan": "Visszaváltás a Free csomagra",
+    "plusApplicableTax": "+ a vonatkozó adó",
+    "beforeYouCancelPlan": "Mielőtt lemondaná a csomagját",
+    "formBranding": "Űrlap arculata",
+    "aiIntegration": "MI-integráció",
+    "model": "Modell",
+    "enableWebSearch": "Webes keresés engedélyezése",
+    "enableWebSearchHint": "Engedélyezze az MI-modellnek, hogy naprakész információkat keressen a weben",
+    "outputSchema": "Kimeneti séma",
+    "itemType": "Elem típusa",
+    "addProperty": "Tulajdonság hozzáadása",
+    "addField": "Mező hozzáadása",
+    "planSubtitleBusiness": "Vállalkozása igényeire szabva",
+    "planTaglineBusiness": "Takarítson meg akár 70%-ot az Airtable, Monday & Smartsheet megoldásokhoz képest",
+    "planSubtitleScale": "Növekvő csapatoknak",
+    "planTaglineScale": "Gyorsan mozgó, költségkerettel rendelkező csapatoknak.",
+    "planTaglineScaleNoSalesCall": "Nincs szükség értékesítési beszélgetésre.",
+    "everythingInBusinessAnd": "Minden a Business csomagból, és",
+    "planSubtitleEnterprise": "Az Ön szervezetére szabva",
+    "scheduleACall": "Hívás egyeztetése",
+    "everythingInScaleAnd": "Minden a Scale csomagból, és",
+    "connectionName": "Kapcsolat neve",
+    "connectionDetailsSection": "Kapcsolat részletei",
+    "host": "Gazdagép",
+    "path": "Útvonal",
+    "connectionParameters": "Kapcsolati paraméterek",
+    "advancedOptions": "Speciális beállítások",
+    "integrationDetails": "Integráció részletei",
+    "pgConnectionDetails": "Kapcsolat részletei",
+    "pgSslMode": "SSL-mód",
+    "connectionJson": "Kapcsolati JSON",
+    "input": "Bemenet",
+    "output": "Kimenet",
+    "console": "Konzol",
+    "forgotPassword": "Elfelejtette a jelszavát?",
+    "privacyPolicy": "Adatvédelmi irányelvek",
+    "clickHere": "Kattintson ide",
+    "emailVerification": "E-mail-ellenőrzés",
+    "method": "Metódus",
+    "queryParameters": "Lekérdezési paraméterek",
+    "samplePayload": "Minta adattartalom",
+    "addDataSource": "Adatforrás hozzáadása",
+    "addSource": "Forrás hozzáadása",
+    "dataSourceName": "Adatforrás neve",
+    "goBack": "Vissza",
+    "interval": "Időköz",
+    "everyMinutes": "Minden percben",
+    "selectMinute": "Válasszon percet",
+    "selectTimeOfDay": "Válassza ki a napszakot",
+    "selectTimeAndDayOfWeek": "Válassza ki az időpontot és a hét napját",
+    "selectTimeAndDayOfMonth": "Válassza ki az időpontot és a hónap napját",
+    "editedByYou": "Ön szerkesztette",
+    "regenerating": "Újragenerálás...",
+    "calendarIsReadonly": "A naptár csak olvasható",
+    "generatedViews": "Létrehozott nézet(ek)",
+    "disableConnection": "Kapcsolat letiltása",
+    "connectWithFavoriteTools": "Csatlakozzon kedvenc eszközeihez",
+    "getConnectionDetails": "Kapcsolat részleteinek lekérése",
+    "connectionUrl": "Kapcsolati URL",
+    "chartSortBy": "Rendezés szerint",
+    "categoryLimit": "Kategóriakorlát",
+    "chartLegendOrientation": "Jelmagyarázat tájolása",
+    "plotDataPoints": "Adatpontok ábrázolása",
+    "retryImport": "Importálás újrapróbálása",
+    "listening": "Figyel",
+    "generateAndCopyUrl": "URL létrehozása és másolása",
+    "executionTime": "Végrehajtási idő",
+    "requestTime": "Kérés időpontja",
+    "errorCode": "Hibakód",
+    "authorizationError": "Engedélyezési hiba",
+    "requestedPermissions": "Kért engedélyek",
+    "applicationWillBeAbleTo": "Ez az alkalmazás a következőkre lesz képes",
+    "authorize": "Engedélyezés",
+    "noUrl": "Nincs URL",
+    "imageUrl": "Kép URL-je",
+    "altText": "Alternatív szöveg",
+    "fitToView": "Igazítás a nézethez",
+    "requestBody": "Kérés törzse",
+    "bodyType": "Törzs típusa",
+    "httpAdvancedOptions": "Speciális beállítások",
+    "followRedirects": "Átirányítások követése",
+    "followRedirectsDescription": "HTTP-átirányítások automatikus követése",
+    "failOnErrorStatus": "Sikertelen hibás állapot esetén",
+    "failOnErrorStatusDescription": "Sikertelen, ha a válasz 4xx vagy 5xx"
   },
   "activity": {
     "useTemplate": "Sablon használata",
@@ -6603,7 +6715,7 @@
     "notAvailablePending": "A szemét még nem érhető el ehhez az asztalhoz.",
     "conflict": {
       "panelTitle": "{count} a rekordnak konfliktusa van | {count} a rekordoknak konfliktusai vannak",
-      "panelHelp": "Javítsa ki ezeket a forrásnál, és próbálja meg újra, vagy állítsa vissza most - törölni fogjuk az ellentmondásos értékeket.",
+      "panelHelp": "Javítsa ezeket a forrásnál, és próbálja újra, vagy állítsa vissza most. Az ütköző értékeket töröljük.",
       "cleanRemainder": "{count} a többi rekord normálisan visszaáll. | {count} más rekordok visszaállítása normálisan történik.",
       "group": {
         "link": "A linkek már foglaltak",
@@ -6762,7 +6874,7 @@
     "workflows": {
       "addTrigger": {
         "title": "Adjon hozzá egy eseményindítót",
-        "description": "Minden munkafolyamat itt kezdődik — kattintson, hogy lássa, mi indíthatja el."
+        "description": "Minden munkafolyamat itt kezdődik. Kattintson, hogy lássa, mi indíthatja el."
       },
       "addAction": {
         "title": "Adjon hozzá egy műveletet",
@@ -6779,7 +6891,7 @@
       },
       "create": {
         "title": "Hozz létre egy munkafolyamatot",
-        "description": "Kezdd a nulláról — ez egy rövid űrlapot nyit meg."
+        "description": "Kezdje a nulláról. Ez egy rövid űrlapot nyit meg."
       },
       "createSubmit": {
         "title": "Létrehozom",
@@ -6807,15 +6919,15 @@
       },
       "enable": {
         "title": "Kapcsold be",
-        "description": "A közzétett nem ugyanaz, mint a futó. A munkafolyamat <b>Szüneteltetve</b> marad, amíg nem engedélyezed — ezt a lépést szokták kihagyni."
+        "description": "A közzétett nem ugyanaz, mint a futó. A munkafolyamat <b>szüneteltetve</b> marad, amíg nem engedélyezi. Ezt a lépést szokták kihagyni."
       },
       "run": {
         "title": "Futtasd le egyszer",
-        "description": "A kézi indító igény szerint fut le — próbáld ki, és nézd meg, hogyan hajtódik végre."
+        "description": "A kézi indító igény szerint fut le. Próbálja ki, és nézze végig a végrehajtást."
       },
       "logs": {
         "title": "Nézd meg a naplókat",
-        "description": "Minden futás ide kerül — mi indította el, mit adott vissza az egyes lépések, és mi hiúsult meg."
+        "description": "Minden futás itt kerül rögzítésre: mi indította el, mit adott vissza az egyes lépések, és mi hiúsult meg."
       },
       "wrapUp": {
         "title": "Ennyi az egész kör",
@@ -6826,7 +6938,7 @@
       "title": "Igazodj el a munkaterületeden",
       "welcome": {
         "title": "Üdvözlünk a NocoDB-ben",
-        "description": "Egy gyors kör a munkaterületeden. Bármikor kiléphetsz — nyomd meg a Kihagyás gombot."
+        "description": "Egy gyors kör a munkaterületén. Bármikor kiléphet: nyomja meg az Átugrás gombot."
       },
       "createBase": {
         "title": "Kezdd egy Bázissal",

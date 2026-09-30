@@ -756,7 +756,8 @@
     "continue": "Jarraitu",
     "manage": "Kudeatu",
     "orgBadge": "Erak.",
-    "migrate": "Migratu"
+    "migrate": "Migratu",
+    "email": "Helbide elektronikoa"
   },
   "objects": {
     "script": "Script",
@@ -3102,7 +3103,12 @@
         "variables": "Automatizazioetarako eta eremuetarako berrerabil daitezkeen balioak.",
         "migrateToV3": "Eguneratu base hau v3 plataformara eta APIetara.",
         "migrateToCloud": "Eraman base honen datuak NocoDB Cloud-era."
-      }
+      },
+      "upgradeAskOwner": "Eskatu jabeari bertsio-berritzea",
+      "upgradeRequestSent": "Eskaera bidalita",
+      "upgradeDescRls": "Mugatu pertsona bakoitzak zein erregistro ikus eta edita ditzakeen.",
+      "upgradeDescRecordTemplates": "Sortu erregistro berriak gordetako txantiloi aurrez betetakoetatik.",
+      "upgradeDescDateDependency": "Mendeko datak automatikoki lekualdatzen ditu erregistro bat mugitzean."
     },
     "categories": "Kategoriak",
     "blockquote": "Aipua",
@@ -4575,7 +4581,114 @@
     "regenerateSecret": "Sortu sekretu berria",
     "createOauthClients": "Sortu OAuth bezeroak",
     "managingOauthClients": "OAuth bezeroen kudeaketa",
-    "clientInformation": "Bezeroaren informazioa"
+    "clientInformation": "Bezeroaren informazioa",
+    "byUser": "{user} erabiltzaileak egina",
+    "requestIntegration": "Eskatu integrazioa",
+    "browseIntegrations": "Arakatu integrazioak",
+    "examplePrompt": "Prompt adibidea",
+    "connectYourAi": "Konektatu zure AA",
+    "connectAVault": "Konektatu kutxa gotor bat",
+    "manageVaults": "Kudeatu kutxa gotorrak",
+    "baseRelations": "Oinarriaren erlazioak",
+    "downloadReport": "Deskargatu txostena",
+    "noLongerWorkspaceMember": "Jada ez da lan-espazio honetako kidea",
+    "notBaseMember": "Ez da oinarri honetako kidea",
+    "factoryNoSessionMatches": "Ez dago bilaketa horrekin bat datorren saiorik",
+    "factoryRepoHasProject": "Proiektu bat du",
+    "factoryOpenRepo": "Ireki biltegia",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Taulak, bistak, automatizazioak eta aplikazioak zure datuen gainean.",
+    "projectKindCode": "Kode-proiektua",
+    "projectKindCodeHint": "Konektatu biltegi bat eta utzi agenteei bere kodean lan egiten.",
+    "planStatusPending": "Zain",
+    "planStatusInProgress": "Abian",
+    "planStatusCompleted": "Osatuta",
+    "createOauthClient": "Sortu OAuth bezeroa",
+    "downgradeToFreePlan": "Jaitsi Free planera",
+    "plusApplicableTax": "+ dagozkion zergak",
+    "beforeYouCancelPlan": "Zure plana bertan behera utzi aurretik",
+    "formBranding": "Inprimakiaren marka",
+    "aiIntegration": "AA integrazioa",
+    "model": "Eredua",
+    "enableWebSearch": "Gaitu web bilaketa",
+    "enableWebSearchHint": "Baimendu AA ereduari webean informazio eguneratua bilatzea",
+    "outputSchema": "Irteerako eskema",
+    "itemType": "Elementu mota",
+    "addProperty": "Gehitu propietatea",
+    "addField": "Gehitu eremua",
+    "planSubtitleBusiness": "Zure negozioaren beharretarako",
+    "planTaglineBusiness": "Aurreztu % 70 arte Airtable, Monday & Smartsheet aukerekin alderatuta",
+    "planSubtitleScale": "Hazten ari diren taldeentzat",
+    "planTaglineScale": "Azkar mugitzen diren taldeak, aurrekontuarekin.",
+    "planTaglineScaleNoSalesCall": "Ez da salmenta-deirik behar.",
+    "everythingInBusinessAnd": "Business planeko guztia eta",
+    "planSubtitleEnterprise": "Zure erakundera egokitua",
+    "scheduleACall": "Antolatu dei bat",
+    "everythingInScaleAnd": "Scale planeko guztia eta",
+    "connectionName": "Konexioaren izena",
+    "connectionDetailsSection": "Konexioaren xehetasunak",
+    "host": "Ostalaria",
+    "path": "Bidea",
+    "connectionParameters": "Konexioaren parametroak",
+    "advancedOptions": "Aukera aurreratuak",
+    "integrationDetails": "Integrazioaren xehetasunak",
+    "pgConnectionDetails": "Konexioaren xehetasunak",
+    "pgPort": "Ataka",
+    "pgSslMode": "SSL modua",
+    "connectionJson": "Konexioaren JSON",
+    "input": "Sarrera",
+    "output": "Irteera",
+    "console": "Kontsola",
+    "forgotPassword": "Pasahitza ahaztu duzu?",
+    "privacyPolicy": "Pribatutasun-politika",
+    "clickHere": "Egin klik hemen",
+    "emailVerification": "Helbide elektronikoaren egiaztapena",
+    "method": "Metodoa",
+    "queryParameters": "Kontsulta-parametroak",
+    "samplePayload": "Karga-adibidea",
+    "addDataSource": "Gehitu datu-iturria",
+    "addSource": "Gehitu iturria",
+    "dataSourceName": "Datu-iturriaren izena",
+    "goBack": "Itzuli",
+    "interval": "Tartea",
+    "everyMinutes": "Minuturo",
+    "selectMinute": "Hautatu minutua",
+    "selectTimeOfDay": "Hautatu eguneko ordua",
+    "selectTimeAndDayOfWeek": "Hautatu ordua eta asteko eguna",
+    "selectTimeAndDayOfMonth": "Hautatu ordua eta hilabeteko eguna",
+    "editedByYou": "Zuk editatua",
+    "regenerating": "Birsortzen...",
+    "calendarIsReadonly": "Egutegia irakurtzeko soilik da",
+    "generatedViews": "Sortutako bistak",
+    "disableConnection": "Desgaitu konexioa",
+    "connectWithFavoriteTools": "Konektatu zure tresna gogokoenekin",
+    "getConnectionDetails": "Lortu konexioaren xehetasunak",
+    "connectionUrl": "Konexioaren URL",
+    "chartSortBy": "Ordenatu honen arabera",
+    "categoryLimit": "Kategorien muga",
+    "chartLegendOrientation": "Legendaren orientazioa",
+    "plotDataPoints": "Marraztu datu-puntuak",
+    "retryImport": "Saiatu inportazioa berriro",
+    "listening": "Entzuten",
+    "generateAndCopyUrl": "Sortu eta kopiatu URL",
+    "executionTime": "Exekuzio-denbora",
+    "requestTime": "Eskaeraren ordua",
+    "errorCode": "Errore-kodea",
+    "authorizationError": "Baimen-errorea",
+    "requestedPermissions": "Eskatutako baimenak",
+    "applicationWillBeAbleTo": "Aplikazio honek hau egin ahal izango du",
+    "authorize": "Baimendu",
+    "noUrl": "URL-rik ez",
+    "imageUrl": "Irudiaren URL",
+    "altText": "Testu alternatiboa",
+    "fitToView": "Doitu ikuspegira",
+    "requestBody": "Eskaeraren gorputza",
+    "bodyType": "Gorputz mota",
+    "httpAdvancedOptions": "Aukera aurreratuak",
+    "followRedirects": "Jarraitu birbideratzeei",
+    "followRedirectsDescription": "Jarraitu automatikoki HTTP birbideratzeei",
+    "failOnErrorStatus": "Huts egin errore-egoeran",
+    "failOnErrorStatusDescription": "Huts egin erantzuna 4xx edo 5xx denean"
   },
   "activity": {
     "useTemplate": "Erabili txantiloia",
@@ -6603,7 +6716,7 @@
     "notAvailablePending": "Zaborra oraindik ez dago eskuragarri mahai honetarako.",
     "conflict": {
       "panelTitle": "{count} erregistroak gatazka bat du | {count} erregistroek gatazkak dituzte",
-      "panelHelp": "Konpondu hauek iturburuan eta saiatu berriro, edo berreskuratu orain — gatazkatsu diren balioak garbitu egingo ditugu.",
+      "panelHelp": "Konpondu horiek iturburuan eta saiatu berriro, edo leheneratu orain. Gatazkan dauden balioak garbituko ditugu.",
       "cleanRemainder": "{count} Beste erregistroek normalean berreskuratuko dira. | {count} Beste erregistroek normalean berreskuratuko dira.",
       "group": {
         "link": "Estekak jada hartu dira",
@@ -6762,7 +6875,7 @@
     "workflows": {
       "addTrigger": {
         "title": "Gehitu abiarazle bat",
-        "description": "Lan-fluxu oro hemen hasten da — egin klik zerk abiaraz dezakeen ikusteko."
+        "description": "Lan-fluxu oro hemen hasten da. Egin klik zerk abiaraz dezakeen ikusteko."
       },
       "addAction": {
         "title": "Gehitu ekintza bat",
@@ -6779,7 +6892,7 @@
       },
       "create": {
         "title": "Sortu lan-fluxu bat",
-        "description": "Hasi hutsetik — honek inprimaki labur bat irekitzen du."
+        "description": "Hasi hutsetik. Honek inprimaki labur bat irekiko du."
       },
       "createSubmit": {
         "title": "Sortu",
@@ -6807,15 +6920,15 @@
       },
       "enable": {
         "title": "Piztu ezazu",
-        "description": "Argitaratua eta martxan ez dira gauza bera. Lan-fluxua <b>pausatuta</b> egongo da piztu arte — jendeak urrats hau ahazten du."
+        "description": "Argitaratuta egotea ez da abian egotea bezala. Lan-fluxua <b>pausatuta</b> egongo da zuk gaitu arte. Jendeak urrats hau ahazten du."
       },
       "run": {
         "title": "Exekutatu behin",
-        "description": "Eskuzko abiarazlea eskatutakoan abiatzen da — probatu eta ikusi nola exekutatzen den."
+        "description": "Eskuzko abiarazlea eskatutakoan exekutatzen da. Probatu eta ikusi nola exekutatzen den."
       },
       "logs": {
         "title": "Begiratu erregistroak",
-        "description": "Exekuzio bakoitza hemen erregistratzen da — zerk abiarazi duen, urrats bakoitzak zer itzuli duen, eta zer huts egin duen."
+        "description": "Exekuzio bakoitza hemen erregistratzen da: zerk abiarazi duen, urrats bakoitzak zer itzuli duen eta zerk huts egin duen."
       },
       "wrapUp": {
         "title": "Hori da begizta osoa",
@@ -6826,7 +6939,7 @@
       "title": "Molda zaitez zure laneko esparruan",
       "welcome": {
         "title": "Ongi etorri NocoDB zerbitzura",
-        "description": "Itzuli azkar bat zure laneko esparruan. Edonoiz utz dezakezu — sakatu Saltatu."
+        "description": "Bira azkar bat zure lan-espazioan. Nahi duzunean irten zaitezke: sakatu Jauzi."
       },
       "createBase": {
         "title": "Hasi proiektu batekin",

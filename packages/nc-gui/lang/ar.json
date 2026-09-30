@@ -756,7 +756,8 @@
     "continue": "متابعة",
     "manage": "إدارة",
     "orgBadge": "مؤسسة",
-    "migrate": "ترحيل"
+    "migrate": "ترحيل",
+    "email": "البريد الإلكتروني"
   },
   "objects": {
     "script": "سكربت",
@@ -3102,7 +3103,12 @@
         "variables": "قيم قابلة لإعادة الاستخدام في الأتمتة والحقول.",
         "migrateToV3": "رقِّ هذه القاعدة إلى منصة وواجهات برمجة الإصدار v3.",
         "migrateToCloud": "انقل بيانات هذه القاعدة إلى NocoDB Cloud."
-      }
+      },
+      "upgradeAskOwner": "اطلب من المالك الترقية",
+      "upgradeRequestSent": "تم إرسال الطلب",
+      "upgradeDescRls": "حدّد السجلات التي يمكن لكل شخص عرضها وتحريرها.",
+      "upgradeDescRecordTemplates": "أنشئ سجلات جديدة من قوالب محفوظة ومعبأة مسبقًا.",
+      "upgradeDescDateDependency": "إزاحة التواريخ المرتبطة تلقائيًا عند نقل سجل."
     },
     "categories": "الفئات",
     "blockquote": "اقتباس",
@@ -4580,7 +4586,114 @@
     "regenerateSecret": "إعادة إنشاء المفتاح السري",
     "createOauthClients": "إنشاء عملاء OAuth",
     "managingOauthClients": "إدارة عملاء OAuth",
-    "clientInformation": "معلومات العميل"
+    "clientInformation": "معلومات العميل",
+    "byUser": "بواسطة {user}",
+    "requestIntegration": "طلب تكامل",
+    "browseIntegrations": "تصفح عمليات التكامل",
+    "examplePrompt": "مثال على الموجّه",
+    "connectYourAi": "اربط الذكاء الاصطناعي الخاص بك",
+    "connectAVault": "ربط خزنة",
+    "manageVaults": "إدارة الخزائن",
+    "baseRelations": "علاقات القاعدة",
+    "downloadReport": "تنزيل التقرير",
+    "noLongerWorkspaceMember": "لم يعد عضوًا في مساحة العمل هذه",
+    "notBaseMember": "ليس عضوًا في هذه القاعدة",
+    "factoryNoSessionMatches": "لا توجد جلسات تطابق هذا البحث",
+    "factoryRepoHasProject": "يحتوي على مشروع",
+    "factoryOpenRepo": "فتح المستودع",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "جداول وطرق عرض وأتمتة وتطبيقات تعمل على بياناتك.",
+    "projectKindCode": "مشروع برمجي",
+    "projectKindCodeHint": "اربط مستودعًا ودع الوكلاء يعملون على شيفرته.",
+    "planStatusPending": "قيد الانتظار",
+    "planStatusInProgress": "قيد التنفيذ",
+    "planStatusCompleted": "مكتمل",
+    "createOauthClient": "إنشاء عميل OAuth",
+    "downgradeToFreePlan": "الرجوع إلى خطة Free",
+    "plusApplicableTax": "+ الضرائب المطبقة",
+    "beforeYouCancelPlan": "قبل إلغاء خطتك",
+    "formBranding": "هوية النموذج",
+    "aiIntegration": "تكامل الذكاء الاصطناعي",
+    "model": "النموذج",
+    "enableWebSearch": "تفعيل البحث على الويب",
+    "enableWebSearchHint": "السماح لنموذج الذكاء الاصطناعي بالبحث على الويب عن معلومات محدّثة",
+    "outputSchema": "مخطط المخرجات",
+    "itemType": "نوع العنصر",
+    "addProperty": "إضافة خاصية",
+    "addField": "إضافة حقل",
+    "planSubtitleBusiness": "لاحتياجات عملك",
+    "planTaglineBusiness": "وفّر حتى 70% مقارنة بـ Airtable وMonday وSmartsheet",
+    "planSubtitleScale": "للفرق النامية",
+    "planTaglineScale": "للفرق سريعة الحركة التي لديها ميزانية.",
+    "planTaglineScaleNoSalesCall": "لا حاجة إلى مكالمة مع فريق المبيعات.",
+    "everythingInBusinessAnd": "كل ما في خطة Business إضافة إلى",
+    "planSubtitleEnterprise": "مصمّم خصيصًا لمؤسستك",
+    "scheduleACall": "جدولة مكالمة",
+    "everythingInScaleAnd": "كل ما في خطة Scale إضافة إلى",
+    "connectionName": "اسم الاتصال",
+    "connectionDetailsSection": "تفاصيل الاتصال",
+    "host": "المضيف",
+    "path": "المسار",
+    "connectionParameters": "معاملات الاتصال",
+    "advancedOptions": "خيارات متقدمة",
+    "integrationDetails": "تفاصيل التكامل",
+    "pgConnectionDetails": "تفاصيل الاتصال",
+    "pgPort": "المنفذ",
+    "pgSslMode": "وضع SSL",
+    "connectionJson": "ملف JSON للاتصال",
+    "input": "المدخلات",
+    "output": "المخرجات",
+    "console": "وحدة التحكم",
+    "forgotPassword": "هل نسيت كلمة المرور؟",
+    "privacyPolicy": "سياسة الخصوصية",
+    "clickHere": "انقر هنا",
+    "emailVerification": "التحقق من البريد الإلكتروني",
+    "method": "الطريقة",
+    "queryParameters": "معاملات الاستعلام",
+    "samplePayload": "نموذج للحمولة",
+    "addDataSource": "إضافة مصدر بيانات",
+    "addSource": "إضافة مصدر",
+    "dataSourceName": "اسم مصدر البيانات",
+    "goBack": "رجوع",
+    "interval": "الفاصل الزمني",
+    "everyMinutes": "كل دقائق",
+    "selectMinute": "اختر الدقيقة",
+    "selectTimeOfDay": "اختر وقت اليوم",
+    "selectTimeAndDayOfWeek": "اختر الوقت واليوم من الأسبوع",
+    "selectTimeAndDayOfMonth": "اختر الوقت واليوم من الشهر",
+    "editedByYou": "تم التحرير بواسطتك",
+    "regenerating": "جارٍ إعادة الإنشاء...",
+    "calendarIsReadonly": "التقويم للقراءة فقط",
+    "generatedViews": "المشاهدات المُنشأة",
+    "disableConnection": "تعطيل الاتصال",
+    "connectWithFavoriteTools": "اتصل بأدواتك المفضلة",
+    "getConnectionDetails": "الحصول على تفاصيل الاتصال",
+    "connectionUrl": "عنوان URL للاتصال",
+    "chartSortBy": "الترتيب حسب",
+    "categoryLimit": "حد الفئات",
+    "chartLegendOrientation": "اتجاه وسيلة الإيضاح",
+    "plotDataPoints": "رسم نقاط البيانات",
+    "retryImport": "إعادة محاولة الاستيراد",
+    "listening": "قيد الاستماع",
+    "generateAndCopyUrl": "إنشاء ونسخ عنوان URL",
+    "executionTime": "وقت التنفيذ",
+    "requestTime": "وقت الطلب",
+    "errorCode": "رمز الخطأ",
+    "authorizationError": "خطأ في التفويض",
+    "requestedPermissions": "الأذونات المطلوبة",
+    "applicationWillBeAbleTo": "سيتمكن هذا التطبيق مما يلي",
+    "authorize": "تفويض",
+    "noUrl": "لا يوجد عنوان URL",
+    "imageUrl": "عنوان URL للصورة",
+    "altText": "نص بديل",
+    "fitToView": "ملاءمة العرض",
+    "requestBody": "نص الطلب",
+    "bodyType": "نوع المحتوى",
+    "httpAdvancedOptions": "خيارات متقدمة",
+    "followRedirects": "تتبع عمليات إعادة التوجيه",
+    "followRedirectsDescription": "تتبع عمليات إعادة توجيه HTTP تلقائيًا",
+    "failOnErrorStatus": "الإخفاق عند حالة الخطأ",
+    "failOnErrorStatusDescription": "الإخفاق عندما تكون الاستجابة 4xx أو 5xx"
   },
   "activity": {
     "useTemplate": "استخدام القالب",
@@ -6607,7 +6720,7 @@
     "notAvailablePending": "سلة المهملات غير متوفرة بعد لهذا الجدول.",
     "conflict": {
       "panelTitle": "{count} السجل به تعارض | {count} السجلات بها تعارضات",
-      "panelHelp": "أصلح هذه في المصدر وحاول مرة أخرى، أو استعادة الآن - سنقوم بمسح القيم المتضاربة.",
+      "panelHelp": "صحّح هذه القيم في المصدر ثم أعد المحاولة، أو استعد الآن. سنقوم بمسح القيم المتعارضة.",
       "cleanRemainder": "{count} ستتم استعادة السجلات الأخرى بشكل طبيعي. | {count} ستتم استعادة السجلات الأخرى بشكل طبيعي.",
       "group": {
         "link": "الروابط المأخوذة بالفعل",
@@ -6766,7 +6879,7 @@
     "workflows": {
       "addTrigger": {
         "title": "أضف مشغّلًا",
-        "description": "كل سير عمل يبدأ من هنا — انقر لترى ما الذي يمكن أن يطلقه."
+        "description": "كل سير عمل يبدأ من هنا. انقر لترى ما الذي يمكن أن يطلقه."
       },
       "addAction": {
         "title": "أضف إجراءً",
@@ -6783,7 +6896,7 @@
       },
       "create": {
         "title": "أنشئ سير عمل",
-        "description": "ابدأ من الصفر — سيفتح هذا نموذجًا قصيرًا."
+        "description": "ابدأ من الصفر. سيفتح هذا نموذجًا قصيرًا."
       },
       "createSubmit": {
         "title": "أنشئه",
@@ -6811,15 +6924,15 @@
       },
       "enable": {
         "title": "شغّله",
-        "description": "النشر لا يعني التشغيل. يبقى سير العمل <b>موقوفًا مؤقتًا</b> حتى تفعّله — وهذه هي الخطوة التي يغفل عنها الكثيرون."
+        "description": "النشر لا يعني التشغيل. يبقى سير العمل <b>موقوفًا مؤقتًا</b> حتى تفعّله. وهذه هي الخطوة التي يغفل عنها الكثيرون."
       },
       "run": {
         "title": "شغّله مرة واحدة",
-        "description": "يعمل المُشغّل اليدوي عند الطلب — جرّبه وراقب تنفيذه."
+        "description": "يعمل المُشغّل اليدوي عند الطلب. جرّبه وراقب تنفيذه."
       },
       "logs": {
         "title": "راجع السجلات",
-        "description": "يُسجَّل كل تشغيل هنا — ما الذي أطلقه، وما الذي أعادته كل خطوة، وما الذي أخفق."
+        "description": "يُسجَّل كل تشغيل هنا: ما الذي أطلقه، وما الذي أعادته كل خطوة، وما الذي أخفق."
       },
       "wrapUp": {
         "title": "هذه هي الدورة كاملة",
@@ -6830,7 +6943,7 @@
       "title": "تعرّف على مساحة عملك",
       "welcome": {
         "title": "مرحبًا بك في NocoDB",
-        "description": "جولة سريعة في مساحة عملك. يمكنك الخروج في أي وقت — اضغط على «تخطٍّ»."
+        "description": "جولة سريعة في مساحة عملك. يمكنك الخروج في أي وقت: اضغط على تخطي."
       },
       "createBase": {
         "title": "ابدأ بقاعدة",

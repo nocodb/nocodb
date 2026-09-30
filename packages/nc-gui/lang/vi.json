@@ -756,7 +756,8 @@
     "continue": "Tiếp tục",
     "manage": "Quản lý",
     "orgBadge": "Tổ chức",
-    "migrate": "Di chuyển"
+    "migrate": "Di chuyển",
+    "email": "E-mail"
   },
   "objects": {
     "script": "Script",
@@ -3102,7 +3103,12 @@
         "variables": "Các giá trị dùng lại được cho tự động hóa và trường.",
         "migrateToV3": "Nâng cấp base này lên nền tảng và API v3.",
         "migrateToCloud": "Chuyển dữ liệu của base này sang NocoDB Cloud."
-      }
+      },
+      "upgradeAskOwner": "Đề nghị chủ sở hữu nâng cấp",
+      "upgradeRequestSent": "Đã gửi yêu cầu",
+      "upgradeDescRls": "Giới hạn những bản ghi mà mỗi người có thể xem và chỉnh sửa.",
+      "upgradeDescRecordTemplates": "Tạo bản ghi mới từ các mẫu đã lưu và điền sẵn.",
+      "upgradeDescDateDependency": "Tự động dời các ngày phụ thuộc khi một bản ghi được di chuyển."
     },
     "categories": "Danh mục",
     "blockquote": "Trích dẫn",
@@ -4576,7 +4582,114 @@
     "regenerateSecret": "Tạo lại khóa bí mật",
     "createOauthClients": "Tạo ứng dụng khách OAuth",
     "managingOauthClients": "Quản lý ứng dụng khách OAuth",
-    "clientInformation": "Thông tin ứng dụng khách"
+    "clientInformation": "Thông tin ứng dụng khách",
+    "byUser": "bởi {user}",
+    "requestIntegration": "Yêu cầu tích hợp",
+    "browseIntegrations": "Duyệt các tích hợp",
+    "examplePrompt": "Ví dụ về lời nhắc",
+    "connectYourAi": "Kết nối AI của bạn",
+    "connectAVault": "Kết nối một kho khóa",
+    "manageVaults": "Quản lý kho khóa",
+    "baseRelations": "Quan hệ của base",
+    "downloadReport": "Tải báo cáo",
+    "noLongerWorkspaceMember": "Không còn là thành viên của không gian làm việc này",
+    "notBaseMember": "Không phải thành viên của base này",
+    "factoryNoSessionMatches": "Không có phiên nào khớp với tìm kiếm đó",
+    "factoryRepoHasProject": "Có một dự án",
+    "factoryOpenRepo": "Mở kho mã nguồn",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Bảng, chế độ xem, tự động hóa và ứng dụng trên dữ liệu của bạn.",
+    "projectKindCode": "Dự án mã nguồn",
+    "projectKindCodeHint": "Kết nối một kho mã nguồn và để các tác nhân làm việc trên mã của nó.",
+    "planStatusPending": "Đang chờ",
+    "planStatusInProgress": "Đang tiến hành",
+    "planStatusCompleted": "Hoàn tất",
+    "createOauthClient": "Tạo ứng dụng khách OAuth",
+    "downgradeToFreePlan": "Hạ xuống gói Free",
+    "plusApplicableTax": "+ thuế áp dụng",
+    "beforeYouCancelPlan": "Trước khi bạn hủy gói",
+    "formBranding": "Thương hiệu biểu mẫu",
+    "aiIntegration": "Tích hợp AI",
+    "model": "Mô hình",
+    "enableWebSearch": "Bật tìm kiếm trên web",
+    "enableWebSearchHint": "Cho phép mô hình AI tìm kiếm trên web để có thông tin mới nhất",
+    "outputSchema": "Lược đồ đầu ra",
+    "itemType": "Loại mục",
+    "addProperty": "Thêm thuộc tính",
+    "addField": "Thêm trường dữ liệu",
+    "planSubtitleBusiness": "Cho nhu cầu doanh nghiệp của bạn",
+    "planTaglineBusiness": "Tiết kiệm tới 70% so với Airtable, Monday & Smartsheet",
+    "planSubtitleScale": "Cho các nhóm đang phát triển",
+    "planTaglineScale": "Cho các nhóm làm việc nhanh và có ngân sách.",
+    "planTaglineScaleNoSalesCall": "Không cần gọi cho bộ phận kinh doanh.",
+    "everythingInBusinessAnd": "Mọi thứ trong Business và",
+    "planSubtitleEnterprise": "Thiết kế riêng cho tổ chức của bạn",
+    "scheduleACall": "Đặt lịch gọi",
+    "everythingInScaleAnd": "Mọi thứ trong Scale và",
+    "connectionName": "Tên kết nối",
+    "connectionDetailsSection": "Chi tiết kết nối",
+    "host": "Máy chủ",
+    "path": "Đường dẫn",
+    "connectionParameters": "Tham số kết nối",
+    "advancedOptions": "Tùy chọn nâng cao",
+    "integrationDetails": "Chi tiết tích hợp",
+    "pgConnectionDetails": "Chi tiết kết nối",
+    "pgPort": "Cổng",
+    "pgSslMode": "Chế độ SSL",
+    "connectionJson": "JSON kết nối",
+    "input": "Đầu vào",
+    "output": "Đầu ra",
+    "console": "Bảng điều khiển",
+    "forgotPassword": "Quên mật khẩu?",
+    "privacyPolicy": "Chính sách quyền riêng tư",
+    "clickHere": "Nhấp vào đây",
+    "emailVerification": "Xác minh e-mail",
+    "method": "Phương thức",
+    "queryParameters": "Tham số truy vấn",
+    "samplePayload": "Dữ liệu mẫu",
+    "addDataSource": "Thêm nguồn dữ liệu",
+    "addSource": "Thêm nguồn",
+    "dataSourceName": "Tên nguồn dữ liệu",
+    "goBack": "Quay lại",
+    "interval": "Khoảng thời gian",
+    "everyMinutes": "Mỗi phút",
+    "selectMinute": "Chọn phút",
+    "selectTimeOfDay": "Chọn thời điểm trong ngày",
+    "selectTimeAndDayOfWeek": "Chọn giờ và ngày trong tuần",
+    "selectTimeAndDayOfMonth": "Chọn giờ và ngày trong tháng",
+    "editedByYou": "Do bạn chỉnh sửa",
+    "regenerating": "Đang tạo lại...",
+    "calendarIsReadonly": "Lịch ở chế độ chỉ đọc",
+    "generatedViews": "Các chế độ xem đã tạo",
+    "disableConnection": "Vô hiệu hóa kết nối",
+    "connectWithFavoriteTools": "Kết nối với các công cụ yêu thích của bạn",
+    "getConnectionDetails": "Lấy chi tiết kết nối",
+    "connectionUrl": "URL kết nối",
+    "chartSortBy": "Sắp xếp theo",
+    "categoryLimit": "Giới hạn danh mục",
+    "chartLegendOrientation": "Hướng chú giải",
+    "plotDataPoints": "Vẽ các điểm dữ liệu",
+    "retryImport": "Thử nhập lại",
+    "listening": "Đang lắng nghe",
+    "generateAndCopyUrl": "Tạo và sao chép URL",
+    "executionTime": "Thời gian thực thi",
+    "requestTime": "Thời điểm yêu cầu",
+    "errorCode": "Mã lỗi",
+    "authorizationError": "Lỗi ủy quyền",
+    "requestedPermissions": "Quyền được yêu cầu",
+    "applicationWillBeAbleTo": "Ứng dụng này sẽ có thể",
+    "authorize": "Ủy quyền",
+    "noUrl": "Không có URL",
+    "imageUrl": "URL hình ảnh",
+    "altText": "Văn bản thay thế",
+    "fitToView": "Vừa khung nhìn",
+    "requestBody": "Nội dung yêu cầu",
+    "bodyType": "Loại nội dung",
+    "httpAdvancedOptions": "Tùy chọn nâng cao",
+    "followRedirects": "Đi theo chuyển hướng",
+    "followRedirectsDescription": "Tự động đi theo các chuyển hướng HTTP",
+    "failOnErrorStatus": "Báo lỗi khi trạng thái là lỗi",
+    "failOnErrorStatusDescription": "Báo lỗi khi phản hồi là 4xx hoặc 5xx"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6604,7 +6717,7 @@
     "notAvailablePending": "Trash is not yet available for this table.",
     "conflict": {
       "panelTitle": "{count} record has a conflict | {count} records have conflicts",
-      "panelHelp": "Fix these at the source and try again, or restore now — we'll clear the conflicting values.",
+      "panelHelp": "Hãy sửa những mục này tại nguồn rồi thử lại, hoặc khôi phục ngay bây giờ. Chúng tôi sẽ xóa các giá trị xung đột.",
       "cleanRemainder": "{count} other record will restore normally. | {count} other records will restore normally.",
       "group": {
         "link": "Links already taken",
@@ -6763,7 +6876,7 @@
     "workflows": {
       "addTrigger": {
         "title": "Thêm một trình kích hoạt",
-        "description": "Mọi quy trình đều bắt đầu ở đây — nhấp để xem điều gì có thể khởi động nó."
+        "description": "Mọi quy trình đều bắt đầu từ đây. Nhấp để xem điều gì có thể kích hoạt nó."
       },
       "addAction": {
         "title": "Thêm một hành động",
@@ -6780,7 +6893,7 @@
       },
       "create": {
         "title": "Tạo một Workflow",
-        "description": "Bắt đầu từ đầu — thao tác này mở một biểu mẫu ngắn."
+        "description": "Bắt đầu từ đầu. Thao tác này mở một biểu mẫu ngắn."
       },
       "createSubmit": {
         "title": "Tạo ngay",
@@ -6808,15 +6921,15 @@
       },
       "enable": {
         "title": "Bật nó lên",
-        "description": "Đã xuất bản không có nghĩa là đang chạy. Workflow vẫn ở trạng thái <b>Tạm dừng</b> cho đến khi bạn bật nó lên — đây là bước mọi người hay bỏ sót."
+        "description": "Đã xuất bản không có nghĩa là đang chạy. Quy trình vẫn <b>tạm dừng</b> cho đến khi bạn bật nó. Đây là bước mà mọi người hay bỏ sót."
       },
       "run": {
         "title": "Chạy thử một lần",
-        "description": "Trình kích hoạt thủ công chạy khi được yêu cầu — thử một lần và xem nó thực thi."
+        "description": "Trình kích hoạt thủ công chạy theo yêu cầu. Hãy thử và theo dõi quá trình thực thi."
       },
       "logs": {
         "title": "Xem nhật ký",
-        "description": "Mọi lần chạy đều được ghi lại ở đây — cái gì đã kích hoạt, mỗi bước trả về gì và có gì thất bại."
+        "description": "Mọi lần chạy đều được ghi lại ở đây: điều gì đã kích hoạt, mỗi bước trả về gì và điều gì đã thất bại."
       },
       "wrapUp": {
         "title": "Đó là trọn vẹn một vòng",
@@ -6827,7 +6940,7 @@
       "title": "Làm quen với không gian làm việc của bạn",
       "welcome": {
         "title": "Chào mừng bạn đến với NocoDB",
-        "description": "Một vòng nhanh quanh không gian làm việc của bạn. Bạn có thể thoát bất cứ lúc nào — nhấn Bỏ qua."
+        "description": "Một vòng nhanh quanh không gian làm việc của bạn. Bạn có thể thoát bất cứ lúc nào: nhấn Bỏ qua."
       },
       "createBase": {
         "title": "Bắt đầu với một Base",

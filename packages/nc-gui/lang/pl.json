@@ -756,7 +756,8 @@
     "continue": "Kontynuuj",
     "manage": "Zarządzaj",
     "orgBadge": "Org.",
-    "migrate": "Migruj"
+    "migrate": "Migruj",
+    "email": "E-mail"
   },
   "objects": {
     "script": "Skrypt",
@@ -3101,7 +3102,12 @@
         "variables": "Wielokrotnie używane wartości dla automatyzacji i pól.",
         "migrateToV3": "Zaktualizuj tę bazę do platformy i interfejsów API w wersji v3.",
         "migrateToCloud": "Przenieś dane tej bazy do NocoDB Cloud."
-      }
+      },
+      "upgradeAskOwner": "Poproś właściciela o ulepszenie planu",
+      "upgradeRequestSent": "Prośba wysłana",
+      "upgradeDescRls": "Ogranicz, które rekordy każda osoba może widzieć i edytować.",
+      "upgradeDescRecordTemplates": "Twórz nowe rekordy na podstawie zapisanych, wstępnie wypełnionych szablonów.",
+      "upgradeDescDateDependency": "Automatycznie przesuwa zależne daty, gdy rekord zostaje przeniesiony."
     },
     "categories": "Kategorie",
     "blockquote": "Cytat blokowy",
@@ -4577,7 +4583,111 @@
     "regenerateSecret": "Wygeneruj nowy sekret",
     "createOauthClients": "Tworzenie klientów OAuth",
     "managingOauthClients": "Zarządzanie klientami OAuth",
-    "clientInformation": "Informacje o kliencie"
+    "clientInformation": "Informacje o kliencie",
+    "byUser": "przez {user}",
+    "requestIntegration": "Poproś o integrację",
+    "browseIntegrations": "Przeglądaj integracje",
+    "examplePrompt": "Przykładowy prompt",
+    "connectYourAi": "Podłącz swoją AI",
+    "connectAVault": "Podłącz sejf",
+    "manageVaults": "Zarządzaj sejfami",
+    "baseRelations": "Relacje bazy",
+    "downloadReport": "Pobierz raport",
+    "noLongerWorkspaceMember": "Nie jest już członkiem tego obszaru roboczego",
+    "notBaseMember": "Nie jest członkiem tej bazy",
+    "factoryNoSessionMatches": "Żadna sesja nie pasuje do tego wyszukiwania",
+    "factoryRepoHasProject": "Zawiera projekt",
+    "factoryOpenRepo": "Otwórz repozytorium",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Tabele, widoki, automatyzacje i aplikacje na Twoich danych.",
+    "projectKindCode": "Projekt kodu",
+    "projectKindCodeHint": "Podłącz repozytorium i pozwól agentom pracować nad jego kodem.",
+    "planStatusPending": "Oczekuje",
+    "planStatusInProgress": "W toku",
+    "planStatusCompleted": "Ukończono",
+    "createOauthClient": "Utwórz klienta OAuth",
+    "downgradeToFreePlan": "Przejdź na plan Free",
+    "plusApplicableTax": "+ należny podatek",
+    "beforeYouCancelPlan": "Zanim anulujesz swój plan",
+    "formBranding": "Branding formularza",
+    "aiIntegration": "Integracja AI",
+    "enableWebSearch": "Włącz wyszukiwanie w sieci",
+    "enableWebSearchHint": "Zezwól modelowi AI na wyszukiwanie w sieci aktualnych informacji",
+    "outputSchema": "Schemat wyjścia",
+    "itemType": "Typ elementu",
+    "addProperty": "Dodaj właściwość",
+    "addField": "Dodaj pole",
+    "planSubtitleBusiness": "Na potrzeby Twojej firmy",
+    "planTaglineBusiness": "Oszczędzaj do 70% w porównaniu z Airtable, Monday & Smartsheet",
+    "planSubtitleScale": "Dla rosnących zespołów",
+    "planTaglineScale": "Szybko działające zespoły z budżetem.",
+    "planTaglineScaleNoSalesCall": "Rozmowa z działem sprzedaży nie jest potrzebna.",
+    "everythingInBusinessAnd": "Wszystko z planu Business oraz",
+    "planSubtitleEnterprise": "Dopasowany do Twojej organizacji",
+    "scheduleACall": "Umów rozmowę",
+    "everythingInScaleAnd": "Wszystko z planu Scale oraz",
+    "connectionName": "Nazwa połączenia",
+    "connectionDetailsSection": "Szczegóły połączenia",
+    "path": "Ścieżka",
+    "connectionParameters": "Parametry połączenia",
+    "advancedOptions": "Opcje zaawansowane",
+    "integrationDetails": "Szczegóły integracji",
+    "pgConnectionDetails": "Szczegóły połączenia",
+    "pgSslMode": "Tryb SSL",
+    "connectionJson": "JSON połączenia",
+    "input": "Wejście",
+    "output": "Wyjście",
+    "console": "Konsola",
+    "forgotPassword": "Nie pamiętasz hasła?",
+    "privacyPolicy": "Polityka prywatności",
+    "clickHere": "Kliknij tutaj",
+    "emailVerification": "Weryfikacja adresu e-mail",
+    "method": "Metoda",
+    "queryParameters": "Parametry zapytania",
+    "samplePayload": "Przykładowy ładunek",
+    "addDataSource": "Dodaj źródło danych",
+    "addSource": "Dodaj źródło",
+    "dataSourceName": "Nazwa źródła danych",
+    "goBack": "Wróć",
+    "interval": "Interwał",
+    "everyMinutes": "Co minut",
+    "selectMinute": "Wybierz minutę",
+    "selectTimeOfDay": "Wybierz porę dnia",
+    "selectTimeAndDayOfWeek": "Wybierz godzinę i dzień tygodnia",
+    "selectTimeAndDayOfMonth": "Wybierz godzinę i dzień miesiąca",
+    "editedByYou": "Edytowane przez Ciebie",
+    "regenerating": "Ponowne generowanie...",
+    "calendarIsReadonly": "Kalendarz jest tylko do odczytu",
+    "generatedViews": "Wygenerowane widoki",
+    "disableConnection": "Wyłącz połączenie",
+    "connectWithFavoriteTools": "Połącz się ze swoimi ulubionymi narzędziami",
+    "getConnectionDetails": "Pobierz szczegóły połączenia",
+    "connectionUrl": "URL połączenia",
+    "chartSortBy": "Sortuj według",
+    "categoryLimit": "Limit kategorii",
+    "chartLegendOrientation": "Orientacja legendy",
+    "plotDataPoints": "Nanieś punkty danych",
+    "retryImport": "Ponów import",
+    "listening": "Nasłuchiwanie",
+    "generateAndCopyUrl": "Wygeneruj i skopiuj URL",
+    "executionTime": "Czas wykonania",
+    "requestTime": "Czas żądania",
+    "errorCode": "Kod błędu",
+    "authorizationError": "Błąd autoryzacji",
+    "requestedPermissions": "Żądane uprawnienia",
+    "applicationWillBeAbleTo": "Ta aplikacja będzie mogła",
+    "authorize": "Autoryzuj",
+    "noUrl": "Brak adresu URL",
+    "imageUrl": "URL obrazu",
+    "altText": "Tekst alternatywny",
+    "fitToView": "Dopasuj do widoku",
+    "requestBody": "Treść żądania",
+    "bodyType": "Typ treści",
+    "httpAdvancedOptions": "Opcje zaawansowane",
+    "followRedirects": "Podążaj za przekierowaniami",
+    "followRedirectsDescription": "Automatycznie podążaj za przekierowaniami HTTP",
+    "failOnErrorStatus": "Zakończ niepowodzeniem przy statusie błędu",
+    "failOnErrorStatusDescription": "Zakończ niepowodzeniem, gdy odpowiedź to 4xx lub 5xx"
   },
   "activity": {
     "useTemplate": "Użyj szablonu",
@@ -6605,7 +6715,7 @@
     "notAvailablePending": "Kosz nie jest jeszcze dostępny dla tej tabeli.",
     "conflict": {
       "panelTitle": "Rekord {count} ma konflikt | {count} rekordy mają konflikty",
-      "panelHelp": "Napraw je u źródła i spróbuj ponownie lub przywrócimy teraz — wyczyścimy sprzeczne wartości.",
+      "panelHelp": "Popraw je u źródła i spróbuj ponownie albo przywróć teraz. Wyczyścimy sprzeczne wartości.",
       "cleanRemainder": "{count} inne rekordy przywrócą się normalnie. | {count} inne rekordy przywrócą normalnie.",
       "group": {
         "link": "Linki już zajęte",
@@ -6765,7 +6875,7 @@
       "title": "Rozejrzyj się w swoim obszarze roboczym",
       "welcome": {
         "title": "Witamy w NocoDB",
-        "description": "Szybka runda po Twoim obszarze roboczym. Możesz wyjść w każdej chwili — kliknij Pomiń."
+        "description": "Szybka wycieczka po Twoim obszarze roboczym. Możesz wyjść w każdej chwili: kliknij Pomiń."
       },
       "createBase": {
         "title": "Zacznij od Bazy",
@@ -6792,7 +6902,7 @@
       },
       "create": {
         "title": "Utwórz Workflow",
-        "description": "Zacznij od zera — otworzy się krótki formularz."
+        "description": "Zacznij od zera. Otworzy się krótki formularz."
       },
       "createSubmit": {
         "title": "Utwórz",
@@ -6800,7 +6910,7 @@
       },
       "addTrigger": {
         "title": "Dodaj wyzwalacz",
-        "description": "Każdy Workflow zaczyna się tutaj — kliknij, aby zobaczyć, co może go uruchomić."
+        "description": "Każdy przepływ pracy zaczyna się tutaj. Kliknij, aby zobaczyć, co może go uruchomić."
       },
       "pickManualTrigger": {
         "title": "Wybierz „Przy ręcznym uruchomieniu”",
@@ -6832,15 +6942,15 @@
       },
       "enable": {
         "title": "Włącz go",
-        "description": "Opublikowany to nie to samo co działający. Workflow pozostaje <b>Wstrzymany</b>, dopóki go nie włączysz — właśnie ten krok bywa pomijany."
+        "description": "Opublikowany to nie to samo co działający. Przepływ pracy pozostaje <b>wstrzymany</b>, dopóki go nie włączysz. To krok, o którym wszyscy zapominają."
       },
       "run": {
         "title": "Uruchom raz",
-        "description": "Ręczny wyzwalacz działa na żądanie — spróbuj i zobacz, jak się wykonuje."
+        "description": "Wyzwalacz ręczny uruchamia się na żądanie. Wypróbuj go i obserwuj wykonanie."
       },
       "logs": {
         "title": "Sprawdź dzienniki",
-        "description": "Każde uruchomienie jest tu zapisywane — co zadziałało, co zwrócił każdy krok i co się nie powiodło."
+        "description": "Każde uruchomienie jest tu zapisywane: co je wywołało, co zwrócił każdy krok i co się nie powiodło."
       },
       "wrapUp": {
         "title": "To cały cykl",

@@ -756,7 +756,8 @@
     "continue": "ดำเนินการต่อ",
     "manage": "จัดการ",
     "orgBadge": "องค์กร",
-    "migrate": "ย้ายข้อมูล"
+    "migrate": "ย้ายข้อมูล",
+    "email": "อีเมล"
   },
   "objects": {
     "script": "สคริปต์",
@@ -3102,7 +3103,12 @@
         "variables": "ค่าที่ใช้ซ้ำได้สำหรับระบบอัตโนมัติและฟิลด์",
         "migrateToV3": "อัปเกรดเบสนี้เป็นแพลตฟอร์มและ API เวอร์ชัน v3",
         "migrateToCloud": "ย้ายข้อมูลของเบสนี้ไปยัง NocoDB Cloud"
-      }
+      },
+      "upgradeAskOwner": "ขอให้เจ้าของอัปเกรด",
+      "upgradeRequestSent": "ส่งคำขอแล้ว",
+      "upgradeDescRls": "จำกัดว่าแต่ละคนสามารถดูและแก้ไขระเบียนใดได้บ้าง",
+      "upgradeDescRecordTemplates": "สร้างระเบียนใหม่จากเทมเพลตที่บันทึกไว้และกรอกข้อมูลไว้ล่วงหน้า",
+      "upgradeDescDateDependency": "เลื่อนวันที่ที่เกี่ยวข้องโดยอัตโนมัติเมื่อมีการย้ายระเบียน"
     },
     "categories": "หมวดหมู่",
     "blockquote": "ข้อความอ้างอิง",
@@ -4580,7 +4586,114 @@
     "regenerateSecret": "สร้างความลับใหม่",
     "createOauthClients": "สร้างไคลเอนต์ OAuth",
     "managingOauthClients": "การจัดการไคลเอนต์ OAuth",
-    "clientInformation": "ข้อมูลไคลเอนต์"
+    "clientInformation": "ข้อมูลไคลเอนต์",
+    "byUser": "โดย {user}",
+    "requestIntegration": "ขอการเชื่อมต่อ",
+    "browseIntegrations": "เรียกดูการเชื่อมต่อ",
+    "examplePrompt": "ตัวอย่างพรอมต์",
+    "connectYourAi": "เชื่อมต่อ AI ของคุณ",
+    "connectAVault": "เชื่อมต่อวอลต์",
+    "manageVaults": "จัดการวอลต์",
+    "baseRelations": "ความสัมพันธ์ของเบส",
+    "downloadReport": "ดาวน์โหลดรายงาน",
+    "noLongerWorkspaceMember": "ไม่ได้เป็นสมาชิกของพื้นที่ทำงานนี้อีกต่อไป",
+    "notBaseMember": "ไม่ได้เป็นสมาชิกของเบสนี้",
+    "factoryNoSessionMatches": "ไม่มีเซสชันที่ตรงกับการค้นหานั้น",
+    "factoryRepoHasProject": "มีโปรเจกต์อยู่",
+    "factoryOpenRepo": "เปิดที่เก็บโค้ด",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "ตาราง มุมมอง ระบบอัตโนมัติ และแอปบนข้อมูลของคุณ",
+    "projectKindCode": "โปรเจกต์โค้ด",
+    "projectKindCodeHint": "เชื่อมต่อที่เก็บโค้ดแล้วให้เอเจนต์ทำงานกับโค้ดนั้น",
+    "planStatusPending": "รอดำเนินการ",
+    "planStatusInProgress": "กำลังดำเนินการ",
+    "planStatusCompleted": "เสร็จสิ้น",
+    "createOauthClient": "สร้างไคลเอ็นต์ OAuth",
+    "downgradeToFreePlan": "ลดระดับเป็นแผน Free",
+    "plusApplicableTax": "+ ภาษีที่เกี่ยวข้อง",
+    "beforeYouCancelPlan": "ก่อนที่คุณจะยกเลิกแผน",
+    "formBranding": "แบรนด์ของแบบฟอร์ม",
+    "aiIntegration": "การเชื่อมต่อ AI",
+    "model": "โมเดล",
+    "enableWebSearch": "เปิดใช้งานการค้นหาบนเว็บ",
+    "enableWebSearchHint": "อนุญาตให้โมเดล AI ค้นหาข้อมูลล่าสุดบนเว็บ",
+    "outputSchema": "สคีมาของเอาต์พุต",
+    "itemType": "ชนิดของรายการ",
+    "addProperty": "เพิ่มคุณสมบัติ",
+    "addField": "เพิ่มฟิลด์",
+    "planSubtitleBusiness": "สำหรับความต้องการของธุรกิจคุณ",
+    "planTaglineBusiness": "ประหยัดสูงสุด 70% เมื่อเทียบกับ Airtable, Monday และ Smartsheet",
+    "planSubtitleScale": "สำหรับทีมที่กำลังเติบโต",
+    "planTaglineScale": "ทีมที่ทำงานรวดเร็วและมีงบประมาณ",
+    "planTaglineScaleNoSalesCall": "ไม่ต้องคุยกับฝ่ายขาย",
+    "everythingInBusinessAnd": "ทุกอย่างในแผน Business และ",
+    "planSubtitleEnterprise": "ออกแบบมาเพื่อองค์กรของคุณ",
+    "scheduleACall": "นัดหมายการโทร",
+    "everythingInScaleAnd": "ทุกอย่างในแผน Scale และ",
+    "connectionName": "ชื่อการเชื่อมต่อ",
+    "connectionDetailsSection": "รายละเอียดการเชื่อมต่อ",
+    "host": "โฮสต์",
+    "path": "เส้นทาง",
+    "connectionParameters": "พารามิเตอร์การเชื่อมต่อ",
+    "advancedOptions": "ตัวเลือกขั้นสูง",
+    "integrationDetails": "รายละเอียดการเชื่อมต่อ",
+    "pgConnectionDetails": "รายละเอียดการเชื่อมต่อ",
+    "pgPort": "พอร์ต",
+    "pgSslMode": "โหมด SSL",
+    "connectionJson": "JSON ของการเชื่อมต่อ",
+    "input": "อินพุต",
+    "output": "เอาต์พุต",
+    "console": "คอนโซล",
+    "forgotPassword": "ลืมรหัสผ่านใช่ไหม",
+    "privacyPolicy": "นโยบายความเป็นส่วนตัว",
+    "clickHere": "คลิกที่นี่",
+    "emailVerification": "การยืนยันอีเมล",
+    "method": "เมธอด",
+    "queryParameters": "พารามิเตอร์ของคิวรี",
+    "samplePayload": "ตัวอย่างเพย์โหลด",
+    "addDataSource": "เพิ่มแหล่งข้อมูล",
+    "addSource": "เพิ่มแหล่งที่มา",
+    "dataSourceName": "ชื่อแหล่งข้อมูล",
+    "goBack": "ย้อนกลับ",
+    "interval": "ช่วงเวลา",
+    "everyMinutes": "ทุก ๆ นาที",
+    "selectMinute": "เลือกนาที",
+    "selectTimeOfDay": "เลือกเวลาของวัน",
+    "selectTimeAndDayOfWeek": "เลือกเวลาและวันของสัปดาห์",
+    "selectTimeAndDayOfMonth": "เลือกเวลาและวันของเดือน",
+    "editedByYou": "แก้ไขโดยคุณ",
+    "regenerating": "กำลังสร้างใหม่...",
+    "calendarIsReadonly": "ปฏิทินอ่านได้อย่างเดียว",
+    "generatedViews": "มุมมองที่สร้างขึ้น",
+    "disableConnection": "ปิดใช้งานการเชื่อมต่อ",
+    "connectWithFavoriteTools": "เชื่อมต่อกับเครื่องมือที่คุณชื่นชอบ",
+    "getConnectionDetails": "ดูรายละเอียดการเชื่อมต่อ",
+    "connectionUrl": "URL ของการเชื่อมต่อ",
+    "chartSortBy": "เรียงลำดับตาม",
+    "categoryLimit": "ขีดจำกัดหมวดหมู่",
+    "chartLegendOrientation": "แนวของคำอธิบายแผนภูมิ",
+    "plotDataPoints": "พล็อตจุดข้อมูล",
+    "retryImport": "ลองนำเข้าอีกครั้ง",
+    "listening": "กำลังรอรับ",
+    "generateAndCopyUrl": "สร้างและคัดลอก URL",
+    "executionTime": "เวลาที่ใช้ทำงาน",
+    "requestTime": "เวลาของคำขอ",
+    "errorCode": "รหัสข้อผิดพลาด",
+    "authorizationError": "ข้อผิดพลาดในการให้สิทธิ์",
+    "requestedPermissions": "สิทธิ์ที่ขอ",
+    "applicationWillBeAbleTo": "แอปพลิเคชันนี้จะสามารถ",
+    "authorize": "ให้สิทธิ์",
+    "noUrl": "ไม่มี URL",
+    "imageUrl": "URL ของรูปภาพ",
+    "altText": "ข้อความแทนภาพ",
+    "fitToView": "พอดีกับมุมมอง",
+    "requestBody": "เนื้อหาของคำขอ",
+    "bodyType": "ชนิดของเนื้อหา",
+    "httpAdvancedOptions": "ตัวเลือกขั้นสูง",
+    "followRedirects": "ติดตามการเปลี่ยนเส้นทาง",
+    "followRedirectsDescription": "ติดตามการเปลี่ยนเส้นทาง HTTP โดยอัตโนมัติ",
+    "failOnErrorStatus": "ถือว่าล้มเหลวเมื่อสถานะเป็นข้อผิดพลาด",
+    "failOnErrorStatusDescription": "ถือว่าล้มเหลวเมื่อการตอบกลับเป็น 4xx หรือ 5xx"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6607,7 +6720,7 @@
     "notAvailablePending": "Trash is not yet available for this table.",
     "conflict": {
       "panelTitle": "{count} record has a conflict | {count} records have conflicts",
-      "panelHelp": "Fix these at the source and try again, or restore now — we'll clear the conflicting values.",
+      "panelHelp": "แก้ไขรายการเหล่านี้ที่ต้นทางแล้วลองใหม่ หรือกู้คืนเลยตอนนี้ เราจะล้างค่าที่ขัดแย้งกันออก",
       "cleanRemainder": "{count} other record will restore normally. | {count} other records will restore normally.",
       "group": {
         "link": "Links already taken",
@@ -6766,7 +6879,7 @@
     "workflows": {
       "addTrigger": {
         "title": "เพิ่มทริกเกอร์",
-        "description": "ทุกเวิร์กโฟลว์เริ่มที่นี่ — คลิกเพื่อดูว่าอะไรเริ่มมันได้บ้าง"
+        "description": "ทุกเวิร์กโฟลว์เริ่มต้นที่นี่ คลิกเพื่อดูว่าอะไรสามารถเริ่มการทำงานได้บ้าง"
       },
       "addAction": {
         "title": "เพิ่มการกระทำ",
@@ -6783,7 +6896,7 @@
       },
       "create": {
         "title": "สร้าง Workflow",
-        "description": "เริ่มจากศูนย์ — การกดนี้จะเปิดแบบฟอร์มสั้น ๆ"
+        "description": "เริ่มต้นจากศูนย์ การกระทำนี้จะเปิดแบบฟอร์มสั้น ๆ"
       },
       "createSubmit": {
         "title": "สร้างเลย",
@@ -6811,15 +6924,15 @@
       },
       "enable": {
         "title": "เปิดใช้งาน",
-        "description": "เผยแพร่แล้วไม่ได้แปลว่ากำลังทำงาน Workflow จะยังคง <b>หยุดชั่วคราว</b> จนกว่าคุณจะเปิดใช้งาน — ขั้นตอนนี้แหละที่คนมักมองข้าม"
+        "description": "เผยแพร่แล้วไม่ได้แปลว่ากำลังทำงาน เวิร์กโฟลว์จะยัง <b>หยุดชั่วคราว</b> อยู่จนกว่าคุณจะเปิดใช้งาน นี่คือขั้นตอนที่คนส่วนใหญ่มองข้าม"
       },
       "run": {
         "title": "เรียกใช้สักครั้ง",
-        "description": "ทริกเกอร์แบบสั่งเองจะทำงานเมื่อคุณต้องการ — ลองดูแล้วเฝ้าดูการทำงาน"
+        "description": "ทริกเกอร์แบบกำหนดเองจะทำงานเมื่อสั่ง ลองใช้ดูและเฝ้าดูการทำงาน"
       },
       "logs": {
         "title": "ตรวจสอบบันทึก",
-        "description": "ทุกการทำงานจะถูกบันทึกไว้ที่นี่ — อะไรเป็นตัวจุดชนวน แต่ละขั้นตอนคืนค่าอะไร และมีอะไรล้มเหลวบ้าง"
+        "description": "ทุกการรันจะถูกบันทึกไว้ที่นี่ ทั้งสิ่งที่เรียกให้ทำงาน สิ่งที่แต่ละขั้นตอนส่งกลับมา และสิ่งที่ล้มเหลว"
       },
       "wrapUp": {
         "title": "นี่คือวงจรทั้งหมด",
@@ -6830,7 +6943,7 @@
       "title": "ทำความรู้จักพื้นที่ทำงานของคุณ",
       "welcome": {
         "title": "ยินดีต้อนรับสู่ NocoDB",
-        "description": "พาชมพื้นที่ทำงานของคุณอย่างรวดเร็ว คุณออกเมื่อไหร่ก็ได้ — กดข้าม"
+        "description": "พาชมพื้นที่ทำงานของคุณอย่างรวดเร็ว คุณออกได้ทุกเมื่อ เพียงกด ข้าม"
       },
       "createBase": {
         "title": "เริ่มต้นด้วย Base",

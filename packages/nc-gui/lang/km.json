@@ -756,7 +756,8 @@
     "continue": "បន្ត",
     "manage": "គ្រប់គ្រង",
     "orgBadge": "អង្គការ",
-    "migrate": "ផ្ទេរ"
+    "migrate": "ផ្ទេរ",
+    "email": "អ៊ីមែល"
   },
   "objects": {
     "script": "ស្គ្រីប",
@@ -3098,7 +3099,12 @@
         "variables": "តម្លៃដែលអាចប្រើឡើងវិញសម្រាប់ស្វ័យប្រវត្តិកម្ម និងវាល។",
         "migrateToV3": "ធ្វើបច្ចុប្បន្នភាពមូលដ្ឋាននេះទៅវេទិកា និង API កំណែ v3។",
         "migrateToCloud": "ផ្លាស់ទីទិន្នន័យរបស់មូលដ្ឋាននេះទៅ NocoDB Cloud។"
-      }
+      },
+      "upgradeAskOwner": "ស្នើសុំម្ចាស់ឱ្យធ្វើបច្ចុប្បន្នភាពគម្រោង",
+      "upgradeRequestSent": "បានផ្ញើសំណើ",
+      "upgradeDescRls": "កំណត់ថាតើមនុស្សម្នាក់ៗអាចមើល និងកែសម្រួលកំណត់ត្រាណាខ្លះ។",
+      "upgradeDescRecordTemplates": "បង្កើតកំណត់ត្រាថ្មីពីគំរូដែលបានរក្សាទុក និងបំពេញជាមុន។",
+      "upgradeDescDateDependency": "ផ្លាស់ប្តូរកាលបរិច្ឆេទពាក់ព័ន្ធដោយស្វ័យប្រវត្តិនៅពេលកំណត់ត្រាត្រូវបានផ្លាស់ទី។"
     },
     "categories": "ប្រភេទ",
     "blockquote": "សម្រង់",
@@ -4557,7 +4563,114 @@
     "regenerateSecret": "បង្កើតសោសម្ងាត់ថ្មី",
     "createOauthClients": "បង្កើត client OAuth",
     "managingOauthClients": "ការគ្រប់គ្រង client OAuth",
-    "clientInformation": "ព័ត៌មាន client"
+    "clientInformation": "ព័ត៌មាន client",
+    "byUser": "ដោយ {user}",
+    "requestIntegration": "ស្នើសុំការរួមបញ្ចូល",
+    "browseIntegrations": "រកមើលការរួមបញ្ចូល",
+    "examplePrompt": "ឧទាហរណ៍នៃការណែនាំ",
+    "connectYourAi": "ភ្ជាប់ AI របស់អ្នក",
+    "connectAVault": "ភ្ជាប់ទូសុវត្ថិភាព",
+    "manageVaults": "គ្រប់គ្រងទូសុវត្ថិភាព",
+    "baseRelations": "ទំនាក់ទំនងរបស់ Base",
+    "downloadReport": "ទាញយករបាយការណ៍",
+    "noLongerWorkspaceMember": "លែងជាសមាជិកនៃកន្លែងធ្វើការនេះទៀតហើយ",
+    "notBaseMember": "មិនមែនជាសមាជិកនៃ Base នេះទេ",
+    "factoryNoSessionMatches": "គ្មានវគ្គណាដែលត្រូវនឹងការស្វែងរកនោះទេ",
+    "factoryRepoHasProject": "មានគម្រោងមួយ",
+    "factoryOpenRepo": "បើកឃ្លាំងកូដ",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "តារាង ទិដ្ឋភាព ស្វ័យប្រវត្តិកម្ម និងកម្មវិធីនៅលើទិន្នន័យរបស់អ្នក។",
+    "projectKindCode": "គម្រោងកូដ",
+    "projectKindCodeHint": "ភ្ជាប់ឃ្លាំងកូដមួយ ហើយឱ្យភ្នាក់ងារធ្វើការលើកូដរបស់វា។",
+    "planStatusPending": "កំពុងរង់ចាំ",
+    "planStatusInProgress": "កំពុងដំណើរការ",
+    "planStatusCompleted": "បានបញ្ចប់",
+    "createOauthClient": "បង្កើតកម្មវិធីអតិថិជន OAuth",
+    "downgradeToFreePlan": "បន្ថយទៅផែនការ Free",
+    "plusApplicableTax": "+ ពន្ធដែលត្រូវអនុវត្ត",
+    "beforeYouCancelPlan": "មុនពេលអ្នកលុបចោលផែនការរបស់អ្នក",
+    "formBranding": "ម៉ាកយីហោរបស់ទម្រង់",
+    "aiIntegration": "ការរួមបញ្ចូល AI",
+    "model": "ម៉ូដែល",
+    "enableWebSearch": "បើកការស្វែងរកតាមអ៊ីនធឺណិត",
+    "enableWebSearchHint": "អនុញ្ញាតឱ្យម៉ូដែល AI ស្វែងរកព័ត៌មានថ្មីៗតាមអ៊ីនធឺណិត",
+    "outputSchema": "គ្រោងលទ្ធផល",
+    "itemType": "ប្រភេទធាតុ",
+    "addProperty": "បន្ថែមលក្ខណៈសម្បត្តិ",
+    "addField": "បន្ថែមវាល",
+    "planSubtitleBusiness": "សម្រាប់តម្រូវការអាជីវកម្មរបស់អ្នក",
+    "planTaglineBusiness": "សន្សំបានរហូតដល់ 70% បើប្រៀបធៀបនឹង Airtable, Monday និង Smartsheet",
+    "planSubtitleScale": "សម្រាប់ក្រុមដែលកំពុងរីកចម្រើន",
+    "planTaglineScale": "ក្រុមដែលធ្វើការរហ័ស និងមានថវិកា។",
+    "planTaglineScaleNoSalesCall": "មិនចាំបាច់ហៅទៅផ្នែកលក់ទេ។",
+    "everythingInBusinessAnd": "អ្វីៗគ្រប់យ៉ាងក្នុងផែនការ Business និង",
+    "planSubtitleEnterprise": "រៀបចំតាមតម្រូវការអង្គភាពរបស់អ្នក",
+    "scheduleACall": "កំណត់ពេលហៅទូរសព្ទ",
+    "everythingInScaleAnd": "អ្វីៗគ្រប់យ៉ាងក្នុងផែនការ Scale និង",
+    "connectionName": "ឈ្មោះការតភ្ជាប់",
+    "connectionDetailsSection": "ព័ត៌មានលម្អិតនៃការតភ្ជាប់",
+    "host": "ម៉ាស៊ីនបម្រើ",
+    "path": "ផ្លូវ",
+    "connectionParameters": "ប៉ារ៉ាម៉ែត្រនៃការតភ្ជាប់",
+    "advancedOptions": "ជម្រើសកម្រិតខ្ពស់",
+    "integrationDetails": "ព័ត៌មានលម្អិតនៃការរួមបញ្ចូល",
+    "pgConnectionDetails": "ព័ត៌មានលម្អិតនៃការតភ្ជាប់",
+    "pgPort": "ច្រក",
+    "pgSslMode": "របៀប SSL",
+    "connectionJson": "ឯកសារ JSON នៃការតភ្ជាប់",
+    "input": "ធាតុចូល",
+    "output": "លទ្ធផល",
+    "console": "កុងសូល",
+    "forgotPassword": "ភ្លេចពាក្យសម្ងាត់មែនទេ?",
+    "privacyPolicy": "គោលការណ៍ឯកជនភាព",
+    "clickHere": "ចុចទីនេះ",
+    "emailVerification": "ការផ្ទៀងផ្ទាត់អ៊ីមែល",
+    "method": "វិធីសាស្ត្រ",
+    "queryParameters": "ប៉ារ៉ាម៉ែត្រសំណួរ",
+    "samplePayload": "គំរូទិន្នន័យ",
+    "addDataSource": "បន្ថែមប្រភពទិន្នន័យ",
+    "addSource": "បន្ថែមប្រភព",
+    "dataSourceName": "ឈ្មោះប្រភពទិន្នន័យ",
+    "goBack": "ត្រឡប់ក្រោយ",
+    "interval": "ចន្លោះពេល",
+    "everyMinutes": "រៀងរាល់នាទី",
+    "selectMinute": "ជ្រើសរើសនាទី",
+    "selectTimeOfDay": "ជ្រើសរើសពេលវេលានៃថ្ងៃ",
+    "selectTimeAndDayOfWeek": "ជ្រើសរើសពេលវេលា និងថ្ងៃនៃសប្តាហ៍",
+    "selectTimeAndDayOfMonth": "ជ្រើសរើសពេលវេលា និងថ្ងៃនៃខែ",
+    "editedByYou": "បានកែសម្រួលដោយអ្នក",
+    "regenerating": "កំពុងបង្កើតឡើងវិញ...",
+    "calendarIsReadonly": "ប្រតិទិនអានបានតែប៉ុណ្ណោះ",
+    "generatedViews": "ទិដ្ឋភាពដែលបានបង្កើត",
+    "disableConnection": "បិទការតភ្ជាប់",
+    "connectWithFavoriteTools": "ភ្ជាប់ជាមួយឧបករណ៍ដែលអ្នកចូលចិត្ត",
+    "getConnectionDetails": "យកព័ត៌មានលម្អិតនៃការតភ្ជាប់",
+    "connectionUrl": "URL នៃការតភ្ជាប់",
+    "chartSortBy": "តម្រៀបតាម",
+    "categoryLimit": "ដែនកំណត់ប្រភេទ",
+    "chartLegendOrientation": "ទិសដៅនៃការពន្យល់",
+    "plotDataPoints": "គូសចំណុចទិន្នន័យ",
+    "retryImport": "ព្យាយាមនាំចូលម្តងទៀត",
+    "listening": "កំពុងស្តាប់",
+    "generateAndCopyUrl": "បង្កើត និងចម្លង URL",
+    "executionTime": "រយៈពេលដំណើរការ",
+    "requestTime": "ពេលវេលានៃសំណើ",
+    "errorCode": "លេខកូដកំហុស",
+    "authorizationError": "កំហុសក្នុងការផ្តល់សិទ្ធិ",
+    "requestedPermissions": "សិទ្ធិដែលបានស្នើសុំ",
+    "applicationWillBeAbleTo": "កម្មវិធីនេះនឹងអាច",
+    "authorize": "ផ្តល់សិទ្ធិ",
+    "noUrl": "គ្មាន URL",
+    "imageUrl": "URL របស់រូបភាព",
+    "altText": "អត្ថបទជំនួស",
+    "fitToView": "ឱ្យសមនឹងទិដ្ឋភាព",
+    "requestBody": "តួនៃសំណើ",
+    "bodyType": "ប្រភេទតួខ្លួន",
+    "httpAdvancedOptions": "ជម្រើសកម្រិតខ្ពស់",
+    "followRedirects": "តាមដានការបញ្ជូនបន្ត",
+    "followRedirectsDescription": "តាមដានការបញ្ជូនបន្ត HTTP ដោយស្វ័យប្រវត្តិ",
+    "failOnErrorStatus": "បរាជ័យនៅពេលស្ថានភាពជាកំហុស",
+    "failOnErrorStatusDescription": "បរាជ័យនៅពេលការឆ្លើយតបជា 4xx ឬ 5xx"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6580,7 +6693,7 @@
     "notAvailablePending": "Trash is not yet available for this table.",
     "conflict": {
       "panelTitle": "{count} record has a conflict | {count} records have conflicts",
-      "panelHelp": "Fix these at the source and try again, or restore now — we'll clear the conflicting values.",
+      "panelHelp": "កែតម្រូវទាំងនេះនៅប្រភព រួចព្យាយាមម្តងទៀត ឬស្តារឡើងវិញឥឡូវនេះ។ យើងនឹងសម្អាតតម្លៃដែលមានជម្លោះ។",
       "cleanRemainder": "{count} other record will restore normally. | {count} other records will restore normally.",
       "group": {
         "link": "Links already taken",
@@ -6739,7 +6852,7 @@
     "workflows": {
       "addTrigger": {
         "title": "បន្ថែមគន្លឹះកេះមួយ",
-        "description": "លំហូរការងារគ្រប់យ៉ាងចាប់ផ្ដើមនៅទីនេះ — ចុចដើម្បីមើលថាអ្វីអាចចាប់ផ្ដើមវា។"
+        "description": "រាល់លំហូរការងារចាប់ផ្តើមនៅទីនេះ។ ចុចដើម្បីមើលថាតើអ្វីអាចធ្វើឱ្យវាចាប់ផ្តើម។"
       },
       "addAction": {
         "title": "បន្ថែមសកម្មភាពមួយ",
@@ -6756,7 +6869,7 @@
       },
       "create": {
         "title": "បង្កើតលំហូរការងារ",
-        "description": "ចាប់ផ្តើមពីសូន្យ — វានឹងបើកទម្រង់ខ្លីមួយ។"
+        "description": "ចាប់ផ្តើមពីដំបូង។ វានឹងបើកទម្រង់ខ្លីមួយ។"
       },
       "createSubmit": {
         "title": "បង្កើតវា",
@@ -6784,15 +6897,15 @@
       },
       "enable": {
         "title": "បើកវា",
-        "description": "ការបោះផ្សាយមិនមែនជាការដំណើរការទេ។ លំហូរការងារនៅតែ <b>ផ្អាក</b> រហូតដល់អ្នកបើកវា — នេះជាជំហានដែលមនុស្សភ្លេច។"
+        "description": "ការបោះពុម្ពផ្សាយមិនមែនមានន័យថាកំពុងដំណើរការទេ។ លំហូរការងារនៅតែ <b>ផ្អាក</b> រហូតដល់អ្នកបើកដំណើរការវា។ នេះជាជំហានដែលមនុស្សភាគច្រើនភ្លេច។"
       },
       "run": {
         "title": "ដំណើរការវាម្តង",
-        "description": "កត្តាកេះដោយដៃដំណើរការតាមតម្រូវការ — សាកល្បងវា ហើយមើលវាប្រតិបត្តិ។"
+        "description": "កម្មវិធីចាប់ផ្តើមដោយដៃដំណើរការតាមតម្រូវការ។ សាកល្បងវា ហើយមើលការដំណើរការរបស់វា។"
       },
       "logs": {
         "title": "ពិនិត្យកំណត់ហេតុ",
-        "description": "រាល់ការដំណើរការត្រូវបានកត់ត្រានៅទីនេះ — អ្វីដែលបានចាប់ផ្តើមវា អ្វីដែលជំហាននីមួយៗបានឆ្លើយតប និងអ្វីដែលបរាជ័យ។"
+        "description": "រាល់ការដំណើរការត្រូវបានកត់ត្រានៅទីនេះ៖ អ្វីដែលបានចាប់ផ្តើមវា អ្វីដែលជំហាននីមួយៗបានឆ្លើយតប និងអ្វីដែលបានបរាជ័យ។"
       },
       "wrapUp": {
         "title": "នេះជាវដ្តទាំងមូល",
@@ -6803,7 +6916,7 @@
       "title": "ស្គាល់កន្លែងធ្វើការរបស់អ្នក",
       "welcome": {
         "title": "សូមស្វាគមន៍មកកាន់ NocoDB",
-        "description": "ដំណើរកម្សាន្តខ្លីជុំវិញកន្លែងធ្វើការរបស់អ្នក។ អ្នកអាចចាកចេញពេលណាក៏បាន — ចុច រំលង។"
+        "description": "ដំណើរកម្សាន្តខ្លីមួយជុំវិញកន្លែងធ្វើការរបស់អ្នក។ អ្នកអាចចាកចេញបានគ្រប់ពេល៖ ចុច រំលង។"
       },
       "createBase": {
         "title": "ចាប់ផ្តើមដោយមូលដ្ឋានមួយ",

@@ -756,7 +756,8 @@
     "continue": "המשך",
     "manage": "ניהול",
     "orgBadge": "ארגון",
-    "migrate": "העברה"
+    "migrate": "העברה",
+    "email": "דוא\"ל"
   },
   "objects": {
     "script": "סקריפט",
@@ -3102,7 +3103,12 @@
         "variables": "ערכים לשימוש חוזר באוטומציות ובשדות.",
         "migrateToV3": "שדרגו את הבסיס הזה לפלטפורמה ולממשקי ה‑API בגרסה v3.",
         "migrateToCloud": "העבירו את הנתונים של הבסיס הזה אל NocoDB Cloud."
-      }
+      },
+      "upgradeAskOwner": "בקשו מהבעלים לשדרג",
+      "upgradeRequestSent": "הבקשה נשלחה",
+      "upgradeDescRls": "הגבילו אילו רשומות כל אדם יכול לראות ולערוך.",
+      "upgradeDescRecordTemplates": "צרו רשומות חדשות מתבניות שמורות וממולאות מראש.",
+      "upgradeDescDateDependency": "הזזת תאריכים תלויים באופן אוטומטי כאשר רשומה זזה."
     },
     "categories": "קטגוריות",
     "blockquote": "ציטוט",
@@ -4580,7 +4586,114 @@
     "regenerateSecret": "יצירת סוד חדש",
     "createOauthClients": "יצירת לקוחות OAuth",
     "managingOauthClients": "ניהול לקוחות OAuth",
-    "clientInformation": "פרטי הלקוח"
+    "clientInformation": "פרטי הלקוח",
+    "byUser": "מאת {user}",
+    "requestIntegration": "בקשת אינטגרציה",
+    "browseIntegrations": "עיון באינטגרציות",
+    "examplePrompt": "דוגמה להנחיה",
+    "connectYourAi": "חברו את הבינה המלאכותית שלכם",
+    "connectAVault": "חיבור כספת",
+    "manageVaults": "ניהול כספות",
+    "baseRelations": "יחסי הבסיס",
+    "downloadReport": "הורדת דוח",
+    "noLongerWorkspaceMember": "כבר לא חבר במרחב עבודה זה",
+    "notBaseMember": "לא חבר בבסיס זה",
+    "factoryNoSessionMatches": "אין הפעלות שתואמות את החיפוש הזה",
+    "factoryRepoHasProject": "מכיל פרויקט",
+    "factoryOpenRepo": "פתיחת המאגר",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "טבלאות, תצוגות, אוטומציות ואפליקציות על הנתונים שלכם.",
+    "projectKindCode": "פרויקט קוד",
+    "projectKindCodeHint": "חברו מאגר ותנו לסוכנים לעבוד על הקוד שלו.",
+    "planStatusPending": "ממתין",
+    "planStatusInProgress": "בתהליך",
+    "planStatusCompleted": "הושלם",
+    "createOauthClient": "יצירת לקוח OAuth",
+    "downgradeToFreePlan": "מעבר לתוכנית Free",
+    "plusApplicableTax": "+ מס כנדרש",
+    "beforeYouCancelPlan": "לפני ביטול התוכנית שלכם",
+    "formBranding": "מיתוג הטופס",
+    "aiIntegration": "אינטגרציית בינה מלאכותית",
+    "model": "מודל",
+    "enableWebSearch": "הפעלת חיפוש באינטרנט",
+    "enableWebSearchHint": "אפשרו למודל הבינה המלאכותית לחפש באינטרנט מידע עדכני",
+    "outputSchema": "סכימת הפלט",
+    "itemType": "סוג הפריט",
+    "addProperty": "הוספת מאפיין",
+    "addField": "הוספת שדה",
+    "planSubtitleBusiness": "לצורכי העסק שלכם",
+    "planTaglineBusiness": "חסכו עד 70% בהשוואה ל-Airtable, Monday ו-Smartsheet",
+    "planSubtitleScale": "לצוותים שצומחים",
+    "planTaglineScale": "לצוותים מהירים עם תקציב.",
+    "planTaglineScaleNoSalesCall": "בלי צורך בשיחת מכירות.",
+    "everythingInBusinessAnd": "כל מה שיש בתוכנית Business וגם",
+    "planSubtitleEnterprise": "מותאם לארגון שלכם",
+    "scheduleACall": "קביעת שיחה",
+    "everythingInScaleAnd": "כל מה שיש בתוכנית Scale וגם",
+    "connectionName": "שם החיבור",
+    "connectionDetailsSection": "פרטי החיבור",
+    "host": "מארח",
+    "path": "נתיב",
+    "connectionParameters": "פרמטרים של החיבור",
+    "advancedOptions": "אפשרויות מתקדמות",
+    "integrationDetails": "פרטי האינטגרציה",
+    "pgConnectionDetails": "פרטי החיבור",
+    "pgPort": "פורט",
+    "pgSslMode": "מצב SSL",
+    "connectionJson": "קובץ JSON של החיבור",
+    "input": "קלט",
+    "output": "פלט",
+    "console": "מסוף",
+    "forgotPassword": "שכחתם את הסיסמה?",
+    "privacyPolicy": "מדיניות פרטיות",
+    "clickHere": "לחצו כאן",
+    "emailVerification": "אימות דוא\"ל",
+    "method": "שיטה",
+    "queryParameters": "פרמטרים של השאילתה",
+    "samplePayload": "דוגמת מטען",
+    "addDataSource": "הוספת מקור נתונים",
+    "addSource": "הוספת מקור",
+    "dataSourceName": "שם מקור הנתונים",
+    "goBack": "חזרה",
+    "interval": "מרווח זמן",
+    "everyMinutes": "כל דקות",
+    "selectMinute": "בחרו דקה",
+    "selectTimeOfDay": "בחרו שעה ביום",
+    "selectTimeAndDayOfWeek": "בחרו שעה ויום בשבוע",
+    "selectTimeAndDayOfMonth": "בחרו שעה ויום בחודש",
+    "editedByYou": "נערך על ידיכם",
+    "regenerating": "יוצר מחדש...",
+    "calendarIsReadonly": "לוח השנה לקריאה בלבד",
+    "generatedViews": "תצוגות שנוצרו",
+    "disableConnection": "השבתת החיבור",
+    "connectWithFavoriteTools": "התחברו לכלים האהובים עליכם",
+    "getConnectionDetails": "קבלת פרטי החיבור",
+    "connectionUrl": "כתובת URL של החיבור",
+    "chartSortBy": "מיון לפי",
+    "categoryLimit": "מגבלת קטגוריות",
+    "chartLegendOrientation": "כיוון המקרא",
+    "plotDataPoints": "שרטוט נקודות נתונים",
+    "retryImport": "ניסיון ייבוא חוזר",
+    "listening": "מאזין",
+    "generateAndCopyUrl": "יצירה והעתקה של כתובת URL",
+    "executionTime": "זמן ביצוע",
+    "requestTime": "זמן הבקשה",
+    "errorCode": "קוד שגיאה",
+    "authorizationError": "שגיאת הרשאה",
+    "requestedPermissions": "ההרשאות המבוקשות",
+    "applicationWillBeAbleTo": "יישום זה יוכל",
+    "authorize": "אישור גישה",
+    "noUrl": "אין כתובת URL",
+    "imageUrl": "כתובת URL של התמונה",
+    "altText": "טקסט חלופי",
+    "fitToView": "התאמה לתצוגה",
+    "requestBody": "גוף הבקשה",
+    "bodyType": "סוג גוף הבקשה",
+    "httpAdvancedOptions": "אפשרויות מתקדמות",
+    "followRedirects": "מעקב אחר הפניות",
+    "followRedirectsDescription": "מעקב אוטומטי אחר הפניות HTTP",
+    "failOnErrorStatus": "כישלון בסטטוס שגיאה",
+    "failOnErrorStatusDescription": "כישלון כאשר התגובה היא 4xx או 5xx"
   },
   "activity": {
     "useTemplate": "השתמש בתבנית",
@@ -6607,7 +6720,7 @@
     "notAvailablePending": "אשפה עדיין אינה זמינה עבור טבלה זו.",
     "conflict": {
       "panelTitle": "{count} יש התנגשות ברשומה | {count} יש התנגשויות ברשומות",
-      "panelHelp": "תקן את הבעיות במקור ונסה שוב, או בצע שחזור כעת — אנו נמחק את הערכים הסותרים.",
+      "panelHelp": "תקנו אותם במקור ונסו שוב, או שחזרו עכשיו. אנחנו ננקה את הערכים המתנגשים.",
       "cleanRemainder": "{count} רשומות אחרות ישוחזרו כרגיל. | {count} רשומות אחרות ישוחזרו כרגיל.",
       "group": {
         "link": "הקישורים כבר תפוסים",
@@ -6766,7 +6879,7 @@
     "workflows": {
       "addTrigger": {
         "title": "הוסיפו טריגר",
-        "description": "כל תהליך עבודה מתחיל כאן — לחצו כדי לראות מה יכול להפעיל אותו."
+        "description": "כל תהליך עבודה מתחיל כאן. לחצו כדי לראות מה יכול להפעיל אותו."
       },
       "addAction": {
         "title": "הוסיפו פעולה",
@@ -6783,7 +6896,7 @@
       },
       "create": {
         "title": "צרו זרימת עבודה",
-        "description": "התחילו מאפס — הפעולה פותחת טופס קצר."
+        "description": "התחילו מאפס. פעולה זו פותחת טופס קצר."
       },
       "createSubmit": {
         "title": "צרו אותה",
@@ -6811,15 +6924,15 @@
       },
       "enable": {
         "title": "הפעילו אותה",
-        "description": "פורסם זה לא אותו דבר כמו פועל. זרימת עבודה נשארת <b>מושהית</b> עד שתפעילו אותה — זה השלב שהכי הרבה אנשים מפספסים."
+        "description": "פורסם אינו אותו דבר כמו פועל. תהליך עבודה נשאר <b>מושהה</b> עד שתפעילו אותו. זהו השלב שרוב האנשים מפספסים."
       },
       "run": {
         "title": "הריצו אותה פעם אחת",
-        "description": "טריגר ידני פועל לפי דרישה — נסו אותו וצפו בביצוע."
+        "description": "טריגר ידני פועל לפי דרישה. נסו אותו וצפו בו רץ."
       },
       "logs": {
         "title": "בדקו את היומנים",
-        "description": "כל הרצה נרשמת כאן — מה הופעל, מה כל שלב החזיר, ומה נכשל."
+        "description": "כל הרצה נרשמת כאן: מה הפעיל אותה, מה כל שלב החזיר ומה נכשל."
       },
       "wrapUp": {
         "title": "זה כל המעגל",
@@ -6830,7 +6943,7 @@
       "title": "התמצאו במרחב העבודה שלכם",
       "welcome": {
         "title": "ברוכים הבאים ל-NocoDB",
-        "description": "סיבוב מהיר במרחב העבודה שלכם. אפשר לצאת בכל רגע — לחצו על דילוג."
+        "description": "סיבוב מהיר במרחב העבודה שלכם. אפשר לצאת בכל רגע: הקישו על דלג."
       },
       "createBase": {
         "title": "התחילו עם בסיס",

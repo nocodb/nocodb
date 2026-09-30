@@ -756,7 +756,8 @@
     "continue": "계속",
     "manage": "관리",
     "orgBadge": "조직",
-    "migrate": "마이그레이션"
+    "migrate": "마이그레이션",
+    "email": "이메일"
   },
   "objects": {
     "script": "스크립트",
@@ -3102,7 +3103,12 @@
         "variables": "자동화와 필드에서 재사용할 수 있는 값입니다.",
         "migrateToV3": "이 베이스를 v3 플랫폼과 API로 업그레이드합니다.",
         "migrateToCloud": "이 베이스의 데이터를 NocoDB Cloud로 옮깁니다."
-      }
+      },
+      "upgradeAskOwner": "소유자에게 업그레이드 요청",
+      "upgradeRequestSent": "요청을 보냈습니다",
+      "upgradeDescRls": "각 사용자가 보고 편집할 수 있는 항목을 제한합니다.",
+      "upgradeDescRecordTemplates": "저장된 사전 입력 템플릿으로 새 항목을 만듭니다.",
+      "upgradeDescDateDependency": "항목이 이동하면 연관된 날짜를 자동으로 조정합니다."
     },
     "categories": "카테고리",
     "blockquote": "인용문",
@@ -4579,7 +4585,114 @@
     "regenerateSecret": "시크릿 재생성",
     "createOauthClients": "OAuth 클라이언트 만들기",
     "managingOauthClients": "OAuth 클라이언트 관리",
-    "clientInformation": "클라이언트 정보"
+    "clientInformation": "클라이언트 정보",
+    "byUser": "{user} 님이 작성",
+    "requestIntegration": "통합 요청",
+    "browseIntegrations": "통합 둘러보기",
+    "examplePrompt": "프롬프트 예시",
+    "connectYourAi": "AI 를 연결하세요",
+    "connectAVault": "볼트 연결",
+    "manageVaults": "볼트 관리",
+    "baseRelations": "베이스 관계",
+    "downloadReport": "보고서 다운로드",
+    "noLongerWorkspaceMember": "더 이상 이 작업공간의 멤버가 아닙니다",
+    "notBaseMember": "이 베이스의 멤버가 아닙니다",
+    "factoryNoSessionMatches": "검색과 일치하는 세션이 없습니다",
+    "factoryRepoHasProject": "프로젝트가 있음",
+    "factoryOpenRepo": "저장소 열기",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "내 데이터 위에 만드는 테이블, 뷰, 자동화, 앱.",
+    "projectKindCode": "코드 프로젝트",
+    "projectKindCodeHint": "저장소를 연결하고 에이전트가 그 코드를 다루게 하세요.",
+    "planStatusPending": "대기 중",
+    "planStatusInProgress": "진행 중",
+    "planStatusCompleted": "완료됨",
+    "createOauthClient": "OAuth 클라이언트 만들기",
+    "downgradeToFreePlan": "Free 요금제로 변경",
+    "plusApplicableTax": "+ 해당 세금 별도",
+    "beforeYouCancelPlan": "요금제를 해지하기 전에",
+    "formBranding": "폼 브랜딩",
+    "aiIntegration": "AI 통합",
+    "model": "모델",
+    "enableWebSearch": "웹 검색 사용",
+    "enableWebSearchHint": "AI 모델이 최신 정보를 웹에서 검색하도록 허용합니다",
+    "outputSchema": "출력 스키마",
+    "itemType": "항목 유형",
+    "addProperty": "속성 추가",
+    "addField": "필드 추가",
+    "planSubtitleBusiness": "비즈니스 요구에 맞게",
+    "planTaglineBusiness": "Airtable, Monday, Smartsheet 대비 최대 70% 절감",
+    "planSubtitleScale": "성장하는 팀을 위해",
+    "planTaglineScale": "예산이 있는 빠르게 움직이는 팀을 위해.",
+    "planTaglineScaleNoSalesCall": "영업 상담이 필요 없습니다.",
+    "everythingInBusinessAnd": "Business 의 모든 기능과",
+    "planSubtitleEnterprise": "조직에 맞춘 구성",
+    "scheduleACall": "통화 일정 잡기",
+    "everythingInScaleAnd": "Scale 의 모든 기능과",
+    "connectionName": "연결 이름",
+    "connectionDetailsSection": "연결 세부사항",
+    "host": "호스트",
+    "path": "경로",
+    "connectionParameters": "연결 매개변수",
+    "advancedOptions": "고급 옵션",
+    "integrationDetails": "통합 세부사항",
+    "pgConnectionDetails": "연결 세부사항",
+    "pgPort": "포트",
+    "pgSslMode": "SSL 모드",
+    "connectionJson": "연결 JSON",
+    "input": "입력",
+    "output": "출력",
+    "console": "콘솔",
+    "forgotPassword": "비밀번호를 잊으셨나요?",
+    "privacyPolicy": "개인정보 처리방침",
+    "clickHere": "여기를 클릭하세요",
+    "emailVerification": "이메일 인증",
+    "method": "메서드",
+    "queryParameters": "쿼리 매개변수",
+    "samplePayload": "페이로드 예시",
+    "addDataSource": "데이터 소스 추가",
+    "addSource": "소스 추가",
+    "dataSourceName": "데이터 소스 이름",
+    "goBack": "뒤로 가기",
+    "interval": "간격",
+    "everyMinutes": "분마다",
+    "selectMinute": "분 선택",
+    "selectTimeOfDay": "하루 중 시각 선택",
+    "selectTimeAndDayOfWeek": "시각과 요일 선택",
+    "selectTimeAndDayOfMonth": "시각과 날짜 선택",
+    "editedByYou": "내가 편집함",
+    "regenerating": "다시 생성하는 중...",
+    "calendarIsReadonly": "캘린더는 읽기 전용입니다",
+    "generatedViews": "생성된 뷰",
+    "disableConnection": "연결 비활성화",
+    "connectWithFavoriteTools": "즐겨 쓰는 도구와 연결하세요",
+    "getConnectionDetails": "연결 세부사항 가져오기",
+    "connectionUrl": "연결 URL",
+    "chartSortBy": "정렬 기준",
+    "categoryLimit": "카테고리 제한",
+    "chartLegendOrientation": "범례 방향",
+    "plotDataPoints": "데이터 포인트 표시",
+    "retryImport": "가져오기 다시 시도",
+    "listening": "수신 대기 중",
+    "generateAndCopyUrl": "URL 생성 및 복사",
+    "executionTime": "실행 시간",
+    "requestTime": "요청 시각",
+    "errorCode": "오류 코드",
+    "authorizationError": "인가 오류",
+    "requestedPermissions": "요청된 권한",
+    "applicationWillBeAbleTo": "이 애플리케이션은 다음을 수행할 수 있습니다",
+    "authorize": "권한 부여",
+    "noUrl": "URL 없음",
+    "imageUrl": "이미지 URL",
+    "altText": "대체 텍스트",
+    "fitToView": "화면에 맞추기",
+    "requestBody": "요청 본문",
+    "bodyType": "본문 유형",
+    "httpAdvancedOptions": "고급 옵션",
+    "followRedirects": "리디렉션 따라가기",
+    "followRedirectsDescription": "HTTP 리디렉션을 자동으로 따라갑니다",
+    "failOnErrorStatus": "오류 상태일 때 실패 처리",
+    "failOnErrorStatusDescription": "응답이 4xx 또는 5xx일 때 실패 처리"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6606,7 +6719,7 @@
     "notAvailablePending": "Trash is not yet available for this table.",
     "conflict": {
       "panelTitle": "{count} record has a conflict | {count} records have conflicts",
-      "panelHelp": "Fix these at the source and try again, or restore now — we'll clear the conflicting values.",
+      "panelHelp": "원본에서 수정한 뒤 다시 시도하거나 지금 복원하세요. 충돌하는 값은 삭제됩니다.",
       "cleanRemainder": "{count} other record will restore normally. | {count} other records will restore normally.",
       "group": {
         "link": "Links already taken",
@@ -6766,7 +6879,7 @@
       "title": "작업공간 둘러보기",
       "welcome": {
         "title": "NocoDB 사용을 환영합니다",
-        "description": "작업공간을 빠르게 한 바퀴 돌아봅니다. 언제든지 그만둘 수 있습니다. 건너뛰기를 누르세요."
+        "description": "작업공간을 빠르게 둘러봅니다. 언제든지 나갈 수 있습니다. 건너뛰기를 누르세요."
       },
       "createBase": {
         "title": "베이스에서 시작하기",
@@ -6793,7 +6906,7 @@
       },
       "create": {
         "title": "워크플로 만들기",
-        "description": "처음부터 시작해 보세요. 짧은 폼이 열립니다."
+        "description": "처음부터 시작합니다. 짧은 양식이 열립니다."
       },
       "createSubmit": {
         "title": "만들기",
@@ -6801,7 +6914,7 @@
       },
       "addTrigger": {
         "title": "트리거 추가하기",
-        "description": "모든 워크플로는 여기서 시작합니다. 무엇이 워크플로를 시작할 수 있는지 클릭해서 확인하세요."
+        "description": "모든 워크플로는 여기에서 시작합니다. 무엇이 워크플로를 시작할 수 있는지 보려면 클릭하세요."
       },
       "pickManualTrigger": {
         "title": "\"수동으로 실행할 때\" 고르기",
@@ -6833,15 +6946,15 @@
       },
       "enable": {
         "title": "켜기",
-        "description": "게시했다고 실행 중인 것은 아닙니다. 워크플로는 켜기 전까지 <b>일시중지</b> 상태로 남습니다. 많은 분들이 놓치는 단계입니다."
+        "description": "게시된 것과 실행 중인 것은 다릅니다. 워크플로는 활성화하기 전까지 <b>일시중지</b> 상태로 남습니다. 많은 분들이 놓치는 단계입니다."
       },
       "run": {
         "title": "한 번 실행해 보기",
-        "description": "수동 트리거는 원할 때 실행됩니다. 한번 눌러 실행되는 모습을 확인해 보세요."
+        "description": "수동 트리거는 필요할 때 실행됩니다. 직접 실행해 보고 동작을 확인하세요."
       },
       "logs": {
         "title": "로그 확인하기",
-        "description": "모든 실행이 여기 기록됩니다. 무엇이 실행되었는지, 각 단계가 무엇을 반환했는지, 무엇이 실패했는지 확인할 수 있습니다."
+        "description": "모든 실행이 여기에 기록됩니다. 무엇이 실행을 시작했는지, 각 단계가 무엇을 반환했는지, 무엇이 실패했는지 확인할 수 있습니다."
       },
       "wrapUp": {
         "title": "이것이 전체 흐름입니다",

@@ -756,7 +756,8 @@
     "continue": "Pokračovat",
     "manage": "Spravovat",
     "orgBadge": "Org.",
-    "migrate": "Migrovat"
+    "migrate": "Migrovat",
+    "email": "E-mail"
   },
   "objects": {
     "script": "Skript",
@@ -3101,7 +3102,12 @@
         "variables": "Opakovaně použitelné hodnoty pro automatizace a pole.",
         "migrateToV3": "Povyšte tuto bázi na platformu a API verze v3.",
         "migrateToCloud": "Přesuňte data této báze do NocoDB Cloud."
-      }
+      },
+      "upgradeAskOwner": "Požádat vlastníka o upgrade",
+      "upgradeRequestSent": "Požadavek odeslán",
+      "upgradeDescRls": "Omezte, které záznamy může každá osoba vidět a upravovat.",
+      "upgradeDescRecordTemplates": "Vytvářejte nové záznamy z uložených, předvyplněných šablon.",
+      "upgradeDescDateDependency": "Automaticky posune závislá data, když se záznam přesune."
     },
     "categories": "Kategorie",
     "blockquote": "Citace",
@@ -4574,7 +4580,111 @@
     "regenerateSecret": "Vygenerovat nový tajný klíč",
     "createOauthClients": "Vytvořit klienty OAuth",
     "managingOauthClients": "Správa klientů OAuth",
-    "clientInformation": "Informace o klientovi"
+    "clientInformation": "Informace o klientovi",
+    "byUser": "od {user}",
+    "requestIntegration": "Vyžádat integraci",
+    "browseIntegrations": "Procházet integrace",
+    "examplePrompt": "Ukázkový prompt",
+    "connectYourAi": "Připojte svou AI",
+    "connectAVault": "Připojit trezor",
+    "manageVaults": "Spravovat trezory",
+    "baseRelations": "Vztahy báze",
+    "downloadReport": "Stáhnout report",
+    "noLongerWorkspaceMember": "Již není členem tohoto pracovního prostoru",
+    "notBaseMember": "Není členem této báze",
+    "factoryNoSessionMatches": "Tomuto hledání neodpovídají žádné relace",
+    "factoryRepoHasProject": "Obsahuje projekt",
+    "factoryOpenRepo": "Otevřít repozitář",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Tabulky, pohledy, automatizace a aplikace nad vašimi daty.",
+    "projectKindCode": "Kódový projekt",
+    "projectKindCodeHint": "Připojte repozitář a nechte agenty pracovat na jeho kódu.",
+    "planStatusPending": "Čeká se",
+    "planStatusInProgress": "Probíhá",
+    "planStatusCompleted": "Dokončeno",
+    "createOauthClient": "Vytvořit klienta OAuth",
+    "downgradeToFreePlan": "Přejít na tarif Free",
+    "plusApplicableTax": "+ příslušná daň",
+    "beforeYouCancelPlan": "Než zrušíte svůj tarif",
+    "formBranding": "Branding formuláře",
+    "aiIntegration": "Integrace AI",
+    "enableWebSearch": "Povolit vyhledávání na webu",
+    "enableWebSearchHint": "Umožnit modelu AI vyhledávat na webu aktuální informace",
+    "outputSchema": "Schéma výstupu",
+    "itemType": "Typ položky",
+    "addProperty": "Přidat vlastnost",
+    "addField": "Přidat pole",
+    "planSubtitleBusiness": "Pro potřeby vaší firmy",
+    "planTaglineBusiness": "Ušetřete až 70 % oproti Airtable, Monday & Smartsheet",
+    "planSubtitleScale": "Pro rostoucí týmy",
+    "planTaglineScale": "Rychle se rozvíjející týmy s rozpočtem.",
+    "planTaglineScaleNoSalesCall": "Bez nutnosti hovoru s obchodem.",
+    "everythingInBusinessAnd": "Vše z tarifu Business a",
+    "planSubtitleEnterprise": "Na míru vaší organizaci",
+    "scheduleACall": "Domluvit hovor",
+    "everythingInScaleAnd": "Vše z tarifu Scale a",
+    "connectionName": "Název připojení",
+    "connectionDetailsSection": "Podrobnosti připojení",
+    "host": "Hostitel",
+    "path": "Cesta",
+    "connectionParameters": "Parametry připojení",
+    "advancedOptions": "Pokročilé možnosti",
+    "integrationDetails": "Podrobnosti integrace",
+    "pgConnectionDetails": "Podrobnosti připojení",
+    "pgSslMode": "Režim SSL",
+    "connectionJson": "JSON připojení",
+    "input": "Vstup",
+    "output": "Výstup",
+    "console": "Konzole",
+    "forgotPassword": "Zapomněli jste heslo?",
+    "privacyPolicy": "Zásady ochrany osobních údajů",
+    "clickHere": "Klikněte zde",
+    "emailVerification": "Ověření e-mailu",
+    "method": "Metoda",
+    "queryParameters": "Parametry dotazu",
+    "samplePayload": "Ukázkový payload",
+    "addDataSource": "Přidat zdroj dat",
+    "addSource": "Přidat zdroj",
+    "dataSourceName": "Název zdroje dat",
+    "goBack": "Zpět",
+    "everyMinutes": "Každých minut",
+    "selectMinute": "Vyberte minutu",
+    "selectTimeOfDay": "Vyberte denní dobu",
+    "selectTimeAndDayOfWeek": "Vyberte čas a den v týdnu",
+    "selectTimeAndDayOfMonth": "Vyberte čas a den v měsíci",
+    "editedByYou": "Upraveno vámi",
+    "regenerating": "Generuje se znovu...",
+    "calendarIsReadonly": "Kalendář je jen pro čtení",
+    "generatedViews": "Vygenerované pohledy",
+    "disableConnection": "Zakázat připojení",
+    "connectWithFavoriteTools": "Propojte se se svými oblíbenými nástroji",
+    "getConnectionDetails": "Získat podrobnosti připojení",
+    "connectionUrl": "URL připojení",
+    "chartSortBy": "Seřadit podle",
+    "categoryLimit": "Limit kategorií",
+    "chartLegendOrientation": "Orientace legendy",
+    "plotDataPoints": "Vykreslit datové body",
+    "retryImport": "Zkusit import znovu",
+    "listening": "Naslouchá",
+    "generateAndCopyUrl": "Vygenerovat a zkopírovat URL",
+    "executionTime": "Doba provedení",
+    "requestTime": "Čas požadavku",
+    "errorCode": "Kód chyby",
+    "authorizationError": "Chyba autorizace",
+    "requestedPermissions": "Požadovaná oprávnění",
+    "applicationWillBeAbleTo": "Tato aplikace bude moci",
+    "authorize": "Autorizovat",
+    "noUrl": "Žádná URL",
+    "imageUrl": "URL obrázku",
+    "altText": "Alternativní text",
+    "fitToView": "Přizpůsobit zobrazení",
+    "requestBody": "Tělo požadavku",
+    "bodyType": "Typ těla",
+    "httpAdvancedOptions": "Pokročilé možnosti",
+    "followRedirects": "Následovat přesměrování",
+    "followRedirectsDescription": "Automaticky následovat přesměrování HTTP",
+    "failOnErrorStatus": "Selhat při chybovém stavu",
+    "failOnErrorStatusDescription": "Selhat, když je odpověď 4xx nebo 5xx"
   },
   "activity": {
     "useTemplate": "Použít šablonu",
@@ -6602,7 +6712,7 @@
     "notAvailablePending": "Pro tuto tabulku ještě není k dispozici koš.",
     "conflict": {
       "panelTitle": "{count} záznam má konflikt | {count} záznamy mají konflikty",
-      "panelHelp": "Opravte je u zdroje a zkuste to znovu, nebo je obnovíme nyní - vymažeme protichůdné hodnoty.",
+      "panelHelp": "Opravte je u zdroje a zkuste to znovu, nebo obnovte hned teď. Konfliktní hodnoty vymažeme.",
       "cleanRemainder": "Další {count} záznam se obnoví normálně. | Další {count} záznamy se obnoví normálně.",
       "group": {
         "link": "Odkazy jsou již obsazeny",
@@ -6761,7 +6871,7 @@
     "workflows": {
       "addTrigger": {
         "title": "Přidejte spouštěč",
-        "description": "Každý pracovní postup začíná zde — kliknutím zjistíte, co jej může spustit."
+        "description": "Každý workflow začíná zde. Kliknutím zobrazíte, co jej může spustit."
       },
       "addAction": {
         "title": "Přidejte akci",
@@ -6778,7 +6888,7 @@
       },
       "create": {
         "title": "Vytvořte pracovní postup",
-        "description": "Začněte od nuly — otevře se krátký formulář."
+        "description": "Začněte od nuly. Otevře se krátký formulář."
       },
       "createSubmit": {
         "title": "Vytvořit",
@@ -6806,15 +6916,15 @@
       },
       "enable": {
         "title": "Zapněte ho",
-        "description": "Publikovaný neznamená běžící. Pracovní postup zůstává <b>Pozastavený</b>, dokud ho nezapnete — právě tenhle krok se často přehlédne."
+        "description": "Publikováno neznamená spuštěno. Workflow zůstává <b>pozastaven</b>, dokud jej nepovolíte. Právě tento krok lidé opomíjejí."
       },
       "run": {
         "title": "Spusťte ho jednou",
-        "description": "Ruční spouštěč se spustí, kdykoli chcete — zkuste to a sledujte průběh."
+        "description": "Ruční spouštěč se spustí na vyžádání. Vyzkoušejte si to a sledujte průběh."
       },
       "logs": {
         "title": "Zkontrolujte protokoly",
-        "description": "Každý běh se zaznamenává sem — co se spustilo, co vrátil každý krok a co selhalo."
+        "description": "Každé spuštění se zaznamenává zde: co jej vyvolalo, co vrátil každý krok a co selhalo."
       },
       "wrapUp": {
         "title": "To je celý koloběh",
@@ -6825,7 +6935,7 @@
       "title": "Zorientujte se ve svém pracovním prostoru",
       "welcome": {
         "title": "Vítejte v NocoDB",
-        "description": "Rychlé kolečko po vašem pracovním prostoru. Kdykoli můžete skončit — klikněte na Přeskočit."
+        "description": "Rychlá prohlídka vašeho pracovního prostoru. Kdykoli můžete skončit: klikněte na Přeskočit."
       },
       "createBase": {
         "title": "Začněte Databází",

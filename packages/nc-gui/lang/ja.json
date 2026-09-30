@@ -756,7 +756,8 @@
     "continue": "続ける",
     "manage": "管理",
     "orgBadge": "組織",
-    "migrate": "移行"
+    "migrate": "移行",
+    "email": "メールアドレス"
   },
   "objects": {
     "script": "スクリプト",
@@ -3102,7 +3103,12 @@
         "variables": "オートメーションやフィールドで再利用できる値です。",
         "migrateToV3": "このベースを v3 のプラットフォームと API にアップグレードします。",
         "migrateToCloud": "このベースのデータを NocoDB Cloud に移動します。"
-      }
+      },
+      "upgradeAskOwner": "オーナーにアップグレードを依頼",
+      "upgradeRequestSent": "リクエストを送信しました",
+      "upgradeDescRls": "各ユーザーが閲覧・編集できるレコードを制限します。",
+      "upgradeDescRecordTemplates": "保存済みの入力済みテンプレートから新しいレコードを作成します。",
+      "upgradeDescDateDependency": "レコードを移動したときに、連動する日付を自動的にずらします。"
     },
     "categories": "カテゴリ",
     "blockquote": "引用",
@@ -4579,7 +4585,114 @@
     "regenerateSecret": "シークレットを再生成",
     "createOauthClients": "OAuth クライアントを作成",
     "managingOauthClients": "OAuth クライアントの管理",
-    "clientInformation": "クライアント情報"
+    "clientInformation": "クライアント情報",
+    "byUser": "{user} による",
+    "requestIntegration": "インテグレーションをリクエスト",
+    "browseIntegrations": "インテグレーションを見る",
+    "examplePrompt": "プロンプトの例",
+    "connectYourAi": "AI を接続する",
+    "connectAVault": "ボールトを接続",
+    "manageVaults": "ボールトを管理",
+    "baseRelations": "Base のリレーション",
+    "downloadReport": "レポートをダウンロード",
+    "noLongerWorkspaceMember": "このワークスペースのメンバーではなくなりました",
+    "notBaseMember": "この Base のメンバーではありません",
+    "factoryNoSessionMatches": "その検索に一致するセッションはありません",
+    "factoryRepoHasProject": "プロジェクトがあります",
+    "factoryOpenRepo": "リポジトリを開く",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "データの上に構築するテーブル、ビュー、自動化、アプリ。",
+    "projectKindCode": "コードプロジェクト",
+    "projectKindCodeHint": "リポジトリを接続して、エージェントにそのコードを扱わせます。",
+    "planStatusPending": "保留中",
+    "planStatusInProgress": "進行中",
+    "planStatusCompleted": "完了",
+    "createOauthClient": "OAuth クライアントを作成",
+    "downgradeToFreePlan": "Free プランにダウングレード",
+    "plusApplicableTax": "＋ 別途税金",
+    "beforeYouCancelPlan": "プランを解約する前に",
+    "formBranding": "フォームのブランディング",
+    "aiIntegration": "AI インテグレーション",
+    "model": "モデル",
+    "enableWebSearch": "ウェブ検索を有効にする",
+    "enableWebSearchHint": "AI モデルが最新の情報をウェブで検索できるようにします",
+    "outputSchema": "出力スキーマ",
+    "itemType": "項目の種類",
+    "addProperty": "プロパティを追加",
+    "addField": "フィールドを追加",
+    "planSubtitleBusiness": "ビジネスのニーズに合わせて",
+    "planTaglineBusiness": "Airtable、Monday、Smartsheet と比べて最大 70% の節約",
+    "planSubtitleScale": "成長するチームのために",
+    "planTaglineScale": "予算のあるスピード重視のチームに。",
+    "planTaglineScaleNoSalesCall": "営業との通話は不要です。",
+    "everythingInBusinessAnd": "Business のすべての機能に加えて",
+    "planSubtitleEnterprise": "組織に合わせてカスタマイズ",
+    "scheduleACall": "打ち合わせを予約",
+    "everythingInScaleAnd": "Scale のすべての機能に加えて",
+    "connectionName": "接続名",
+    "connectionDetailsSection": "接続の詳細",
+    "host": "ホスト",
+    "path": "パス",
+    "connectionParameters": "接続パラメーター",
+    "advancedOptions": "詳細オプション",
+    "integrationDetails": "インテグレーションの詳細",
+    "pgConnectionDetails": "接続の詳細",
+    "pgPort": "ポート",
+    "pgSslMode": "SSL モード",
+    "connectionJson": "接続 JSON",
+    "input": "入力",
+    "output": "出力",
+    "console": "コンソール",
+    "forgotPassword": "パスワードをお忘れですか？",
+    "privacyPolicy": "プライバシーポリシー",
+    "clickHere": "ここをクリック",
+    "emailVerification": "メールアドレスの確認",
+    "method": "メソッド",
+    "queryParameters": "クエリパラメーター",
+    "samplePayload": "ペイロードの例",
+    "addDataSource": "データソースを追加",
+    "addSource": "ソースを追加",
+    "dataSourceName": "データソース名",
+    "goBack": "戻る",
+    "interval": "間隔",
+    "everyMinutes": "分ごと",
+    "selectMinute": "分を選択",
+    "selectTimeOfDay": "時刻を選択",
+    "selectTimeAndDayOfWeek": "時刻と曜日を選択",
+    "selectTimeAndDayOfMonth": "時刻と日付を選択",
+    "editedByYou": "あなたが編集しました",
+    "regenerating": "再生成中...",
+    "calendarIsReadonly": "カレンダーは読み取り専用です",
+    "generatedViews": "生成されたビュー",
+    "disableConnection": "接続を無効にする",
+    "connectWithFavoriteTools": "お気に入りのツールと連携する",
+    "getConnectionDetails": "接続の詳細を取得",
+    "connectionUrl": "接続 URL",
+    "chartSortBy": "並べ替えの基準",
+    "categoryLimit": "カテゴリの上限",
+    "chartLegendOrientation": "凡例の向き",
+    "plotDataPoints": "データポイントをプロット",
+    "retryImport": "インポートを再試行",
+    "listening": "待機中",
+    "generateAndCopyUrl": "URL を生成してコピー",
+    "executionTime": "実行時間",
+    "requestTime": "リクエスト時刻",
+    "errorCode": "エラーコード",
+    "authorizationError": "認可エラー",
+    "requestedPermissions": "要求される権限",
+    "applicationWillBeAbleTo": "このアプリケーションは次のことができます",
+    "authorize": "認可する",
+    "noUrl": "URL なし",
+    "imageUrl": "画像 URL",
+    "altText": "代替テキスト",
+    "fitToView": "表示領域に合わせる",
+    "requestBody": "リクエストボディ",
+    "bodyType": "ボディの種類",
+    "httpAdvancedOptions": "詳細オプション",
+    "followRedirects": "リダイレクトをたどる",
+    "followRedirectsDescription": "HTTP リダイレクトを自動的にたどります",
+    "failOnErrorStatus": "エラーステータスで失敗にする",
+    "failOnErrorStatusDescription": "レスポンスが 4xx または 5xx のときに失敗にする"
   },
   "activity": {
     "useTemplate": "テンプレートを使用",
@@ -6606,7 +6719,7 @@
     "notAvailablePending": "このテーブルではゴミ箱はまだ利用できません。",
     "conflict": {
       "panelTitle": "{count} レコードに競合があります | {count} レコードに競合があります",
-      "panelHelp": "ソースでこれらを修正してもう一度試すか、今すぐ復元してください — 競合する値をクリアします。",
+      "panelHelp": "これらを元のデータで修正してからやり直すか、今すぐ復元してください。競合する値は削除されます。",
       "cleanRemainder": "{count} その他のレコードは正常に復元されます。 | {count} 他のレコードは正常に復元されます。",
       "group": {
         "link": "リンクは既に使用されています",
@@ -6766,7 +6879,7 @@
       "title": "ワークスペースを使いこなす",
       "welcome": {
         "title": "NocoDB へようこそ",
-        "description": "ワークスペースをひと巡りします。いつでも終了できます。スキップを押してください。"
+        "description": "ワークスペースをざっと一周します。いつでも終了できます。スキップを押してください。"
       },
       "createBase": {
         "title": "ベースから始めましょう",
@@ -6793,7 +6906,7 @@
       },
       "create": {
         "title": "ワークフローを作成",
-        "description": "ゼロから始めましょう。短いフォームが開きます。"
+        "description": "ゼロから始めます。短いフォームが開きます。"
       },
       "createSubmit": {
         "title": "作成する",
@@ -6801,7 +6914,7 @@
       },
       "addTrigger": {
         "title": "トリガーを追加",
-        "description": "ワークフローはすべてここから始まります。クリックして、何が起点になれるかを確認しましょう。"
+        "description": "すべてのワークフローはここから始まります。何がワークフローを開始できるかを確認するにはクリックしてください。"
       },
       "pickManualTrigger": {
         "title": "「手動で実行したとき」を選択",
@@ -6833,15 +6946,15 @@
       },
       "enable": {
         "title": "オンにする",
-        "description": "公開済みと実行中は別物です。ワークフローは有効にするまで <b>一時停止</b> のままです。ここが見落とされがちなステップです。"
+        "description": "公開済みであることと実行中であることは別です。ワークフローは有効にするまで <b>一時停止</b> のままです。これは見落とされがちな手順です。"
       },
       "run": {
         "title": "一度実行してみる",
-        "description": "手動トリガーは必要なときに発火します。試して、実行の様子を見てみましょう。"
+        "description": "手動トリガーは必要なときに実行されます。実際に試して、実行の様子を確認してください。"
       },
       "logs": {
         "title": "ログを確認",
-        "description": "すべての実行がここに記録されます。何が発火し、各ステップが何を返し、何が失敗したかがわかります。"
+        "description": "すべての実行がここに記録されます。何が実行を開始したか、各ステップが何を返したか、何が失敗したかがわかります。"
       },
       "wrapUp": {
         "title": "これで一通りの流れです",

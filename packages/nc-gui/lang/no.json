@@ -755,7 +755,8 @@
     "continue": "Fortsett",
     "manage": "Administrer",
     "orgBadge": "Org.",
-    "migrate": "Migrer"
+    "migrate": "Migrer",
+    "email": "E-post"
   },
   "objects": {
     "script": "Skript",
@@ -3100,7 +3101,12 @@
         "variables": "Gjenbrukbare verdier for automatiseringer og felter.",
         "migrateToV3": "Oppgrader denne basen til v3-plattformen og v3-API-ene.",
         "migrateToCloud": "Flytt dataene i denne basen til NocoDB Cloud."
-      }
+      },
+      "upgradeAskOwner": "Be eieren om å oppgradere",
+      "upgradeRequestSent": "Forespørsel sendt",
+      "upgradeDescRls": "Begrens hvilke poster hver enkelt kan se og redigere.",
+      "upgradeDescRecordTemplates": "Opprett nye poster fra lagrede, forhåndsutfylte maler.",
+      "upgradeDescDateDependency": "Flytt avhengige datoer automatisk når en post flyttes."
     },
     "categories": "Kategorier",
     "blockquote": "Sitat",
@@ -4569,7 +4575,113 @@
     "regenerateSecret": "Generer ny hemmelighet",
     "createOauthClients": "Opprett OAuth-klienter",
     "managingOauthClients": "Administrere OAuth-klienter",
-    "clientInformation": "Klientinformasjon"
+    "clientInformation": "Klientinformasjon",
+    "byUser": "av {user}",
+    "requestIntegration": "Be om integrasjon",
+    "browseIntegrations": "Bla gjennom integrasjoner",
+    "examplePrompt": "Eksempel på prompt",
+    "connectYourAi": "Koble til din AI",
+    "connectAVault": "Koble til et hvelv",
+    "manageVaults": "Administrer hvelv",
+    "baseRelations": "Base-relasjoner",
+    "downloadReport": "Last ned rapport",
+    "noLongerWorkspaceMember": "Ikke lenger medlem av dette arbeidsområdet",
+    "notBaseMember": "Ikke medlem av denne basen",
+    "factoryNoSessionMatches": "Ingen økter samsvarer med søket",
+    "factoryRepoHasProject": "Har et prosjekt",
+    "factoryOpenRepo": "Åpne repositoriet",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Tabeller, visninger, automatiseringer og apper oppå dataene dine.",
+    "projectKindCode": "Kodeprosjekt",
+    "projectKindCodeHint": "Koble til et repositorium og la agenter jobbe med koden.",
+    "planStatusPending": "Venter",
+    "planStatusInProgress": "Pågår",
+    "planStatusCompleted": "Fullført",
+    "createOauthClient": "Opprett OAuth-klient",
+    "downgradeToFreePlan": "Nedgrader til Free-abonnementet",
+    "plusApplicableTax": "+ gjeldende avgifter",
+    "beforeYouCancelPlan": "Før du sier opp abonnementet",
+    "formBranding": "Skjemaets profilering",
+    "aiIntegration": "AI-integrasjon",
+    "model": "Modell",
+    "enableWebSearch": "Aktiver nettsøk",
+    "enableWebSearchHint": "La AI-modellen søke på nettet etter oppdatert informasjon",
+    "outputSchema": "Utdataskjema",
+    "itemType": "Elementtype",
+    "addProperty": "Legg til egenskap",
+    "addField": "Legg til felt",
+    "planSubtitleBusiness": "For bedriftens behov",
+    "planTaglineBusiness": "Spar opptil 70 % sammenlignet med Airtable, Monday & Smartsheet",
+    "planSubtitleScale": "For team i vekst",
+    "planTaglineScale": "Hurtigarbeidende team med budsjett.",
+    "planTaglineScaleNoSalesCall": "Ingen salgssamtale nødvendig.",
+    "everythingInBusinessAnd": "Alt i Business og",
+    "planSubtitleEnterprise": "Skreddersydd for organisasjonen din",
+    "scheduleACall": "Avtal en samtale",
+    "everythingInScaleAnd": "Alt i Scale og",
+    "connectionName": "Tilkoblingsnavn",
+    "connectionDetailsSection": "Tilkoblingsdetaljer",
+    "host": "Vert",
+    "path": "Sti",
+    "connectionParameters": "Tilkoblingsparametere",
+    "advancedOptions": "Avanserte innstillinger",
+    "integrationDetails": "Integrasjonsdetaljer",
+    "pgConnectionDetails": "Tilkoblingsdetaljer",
+    "pgSslMode": "SSL-modus",
+    "connectionJson": "Tilkoblings-JSON",
+    "input": "Inndata",
+    "output": "Utdata",
+    "console": "Konsoll",
+    "forgotPassword": "Glemt passord?",
+    "privacyPolicy": "Personvernerklæring",
+    "clickHere": "Klikk her",
+    "emailVerification": "E-postbekreftelse",
+    "method": "Metode",
+    "queryParameters": "Spørringsparametere",
+    "samplePayload": "Eksempel på nyttelast",
+    "addDataSource": "Legg til datakilde",
+    "addSource": "Legg til kilde",
+    "dataSourceName": "Navn på datakilde",
+    "goBack": "Tilbake",
+    "interval": "Intervall",
+    "everyMinutes": "Hvert minutter",
+    "selectMinute": "Velg minutt",
+    "selectTimeOfDay": "Velg tidspunkt på dagen",
+    "selectTimeAndDayOfWeek": "Velg tidspunkt og ukedag",
+    "selectTimeAndDayOfMonth": "Velg tidspunkt og dag i måneden",
+    "editedByYou": "Redigert av deg",
+    "regenerating": "Genererer på nytt ...",
+    "calendarIsReadonly": "Kalenderen er skrivebeskyttet",
+    "generatedViews": "Generert visning(er)",
+    "disableConnection": "Deaktiver tilkobling",
+    "connectWithFavoriteTools": "Koble til favorittverktøyene dine",
+    "getConnectionDetails": "Hent tilkoblingsdetaljer",
+    "connectionUrl": "Tilkoblings-URL",
+    "chartSortBy": "Sorter etter",
+    "categoryLimit": "Kategorigrense",
+    "chartLegendOrientation": "Retning på tegnforklaringen",
+    "plotDataPoints": "Tegn inn datapunkter",
+    "retryImport": "Prøv importen på nytt",
+    "listening": "Lytter",
+    "generateAndCopyUrl": "Generer og kopier URL",
+    "executionTime": "Kjøretid",
+    "requestTime": "Tidspunkt for forespørsel",
+    "errorCode": "Feilkode",
+    "authorizationError": "Autorisasjonsfeil",
+    "requestedPermissions": "Forespurte rettigheter",
+    "applicationWillBeAbleTo": "Denne applikasjonen vil kunne",
+    "authorize": "Godkjenn",
+    "noUrl": "Ingen URL",
+    "imageUrl": "Bilde-URL",
+    "altText": "Alternativ tekst",
+    "fitToView": "Tilpass til visningen",
+    "requestBody": "Forespørselens body",
+    "bodyType": "Body-type",
+    "httpAdvancedOptions": "Avanserte innstillinger",
+    "followRedirects": "Følg videresendinger",
+    "followRedirectsDescription": "Følg HTTP-videresendinger automatisk",
+    "failOnErrorStatus": "Feil ved feilstatus",
+    "failOnErrorStatusDescription": "Feil når svaret er 4xx eller 5xx"
   },
   "activity": {
     "useTemplate": "Bruk mal",
@@ -6597,7 +6709,7 @@
     "notAvailablePending": "Denne tabellen er ennå ikke tilgjengelig for papirkurv.",
     "conflict": {
       "panelTitle": "{count} poster har en konflikt- {count} oppføringer har konflikter",
-      "panelHelp": "Fiks disse ved kilden og prøv igjen, eller gjenopprett nå - vi fjerner de motstridende verdiene.",
+      "panelHelp": "Rett dem ved kilden og prøv igjen, eller gjenopprett nå. Vi tømmer de motstridende verdiene.",
       "cleanRemainder": "{count} andre poster vil gjenopprette normalt. {count} andre poster vil gjenopprette normalt.",
       "group": {
         "link": "Lenker allerede tatt",
@@ -6756,7 +6868,7 @@
     "workflows": {
       "addTrigger": {
         "title": "Legg til en utløser",
-        "description": "Hver arbeidsflyt starter her — klikk for å se hva som kan sette den i gang."
+        "description": "Enhver arbeidsflyt starter her. Klikk for å se hva som kan utløse den."
       },
       "addAction": {
         "title": "Legg til en handling",
@@ -6773,7 +6885,7 @@
       },
       "create": {
         "title": "Opprett en Workflow",
-        "description": "Start fra bunnen av — dette åpner et kort skjema."
+        "description": "Start helt fra bunnen. Dette åpner et kort skjema."
       },
       "createSubmit": {
         "title": "Opprett den",
@@ -6801,15 +6913,15 @@
       },
       "enable": {
         "title": "Slå den på",
-        "description": "Publisert er ikke det samme som å kjøre. En Workflow forblir <b>Satt på pause</b> til du slår den på — det er dette steget folk overser."
+        "description": "Publisert er ikke det samme som i drift. En arbeidsflyt forblir <b>satt på pause</b> til du aktiverer den. Dette er steget folk glemmer."
       },
       "run": {
         "title": "Kjør den én gang",
-        "description": "En manuell utløser kjører på forespørsel — prøv den, og se den bli utført."
+        "description": "En manuell utløser kjører ved behov. Prøv den, og se den bli utført."
       },
       "logs": {
         "title": "Sjekk loggene",
-        "description": "Hver kjøring loggføres her — hva som utløste den, hva hvert steg returnerte, og hva som gikk galt."
+        "description": "Hver kjøring loggføres her: hva som utløste den, hva hvert steg returnerte, og hva som feilet."
       },
       "wrapUp": {
         "title": "Det er hele runden",
@@ -6820,7 +6932,7 @@
       "title": "Finn fram i arbeidsområdet ditt",
       "welcome": {
         "title": "Velkommen til NocoDB",
-        "description": "En rask runde i arbeidsområdet ditt. Du kan avslutte når som helst — trykk Hopp over."
+        "description": "En rask runde i arbeidsområdet ditt. Du kan avslutte når som helst: trykk Hopp over."
       },
       "createBase": {
         "title": "Start med en Base",

@@ -756,7 +756,8 @@
     "continue": "Продолжить",
     "manage": "Управлять",
     "orgBadge": "Орг.",
-    "migrate": "Перенести"
+    "migrate": "Перенести",
+    "email": "Эл. почта"
   },
   "objects": {
     "script": "Скрипт",
@@ -3102,7 +3103,12 @@
         "variables": "Многократно используемые значения для автоматизаций и полей.",
         "migrateToV3": "Обновить эту базу до платформы и API версии v3.",
         "migrateToCloud": "Перенести данные этой базы в NocoDB Cloud."
-      }
+      },
+      "upgradeAskOwner": "Попросить владельца повысить тариф",
+      "upgradeRequestSent": "Запрос отправлен",
+      "upgradeDescRls": "Ограничьте, какие записи каждый человек может видеть и редактировать.",
+      "upgradeDescRecordTemplates": "Создавайте новые записи из сохранённых, предзаполненных шаблонов.",
+      "upgradeDescDateDependency": "Автоматически сдвигает зависимые даты при перемещении записи."
     },
     "categories": "Категории",
     "blockquote": "Цитата",
@@ -4580,7 +4586,114 @@
     "regenerateSecret": "Создать секрет заново",
     "createOauthClients": "Создание клиентов OAuth",
     "managingOauthClients": "Управление клиентами OAuth",
-    "clientInformation": "Сведения о клиенте"
+    "clientInformation": "Сведения о клиенте",
+    "byUser": "от {user}",
+    "requestIntegration": "Запросить интеграцию",
+    "browseIntegrations": "Просмотреть интеграции",
+    "examplePrompt": "Пример промпта",
+    "connectYourAi": "Подключите свой ИИ",
+    "connectAVault": "Подключить хранилище",
+    "manageVaults": "Управление хранилищами",
+    "baseRelations": "Связи базы",
+    "downloadReport": "Скачать отчёт",
+    "noLongerWorkspaceMember": "Больше не участник этого рабочего пространства",
+    "notBaseMember": "Не является участником этой базы",
+    "factoryNoSessionMatches": "Ни одна сессия не соответствует этому запросу",
+    "factoryRepoHasProject": "Содержит проект",
+    "factoryOpenRepo": "Открыть репозиторий",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Таблицы, представления, автоматизации и приложения поверх ваших данных.",
+    "projectKindCode": "Кодовый проект",
+    "projectKindCodeHint": "Подключите репозиторий и поручите агентам работать с его кодом.",
+    "planStatusPending": "В ожидании",
+    "planStatusInProgress": "В процессе",
+    "planStatusCompleted": "Завершено",
+    "createOauthClient": "Создать клиент OAuth",
+    "downgradeToFreePlan": "Перейти на тариф Free",
+    "plusApplicableTax": "+ применимые налоги",
+    "beforeYouCancelPlan": "Прежде чем отменить тариф",
+    "formBranding": "Оформление формы",
+    "aiIntegration": "Интеграция ИИ",
+    "model": "Модель",
+    "enableWebSearch": "Включить поиск в интернете",
+    "enableWebSearchHint": "Разрешить модели ИИ искать в интернете актуальную информацию",
+    "outputSchema": "Схема вывода",
+    "itemType": "Тип элемента",
+    "addProperty": "Добавить свойство",
+    "addField": "Добавить поле",
+    "planSubtitleBusiness": "Для нужд вашего бизнеса",
+    "planTaglineBusiness": "Экономьте до 70 % по сравнению с Airtable, Monday & Smartsheet",
+    "planSubtitleScale": "Для растущих команд",
+    "planTaglineScale": "Быстро растущим командам с бюджетом.",
+    "planTaglineScaleNoSalesCall": "Звонок отделу продаж не нужен.",
+    "everythingInBusinessAnd": "Всё из тарифа Business и",
+    "planSubtitleEnterprise": "Под вашу организацию",
+    "scheduleACall": "Назначить звонок",
+    "everythingInScaleAnd": "Всё из тарифа Scale и",
+    "connectionName": "Имя соединения",
+    "connectionDetailsSection": "Параметры соединения",
+    "host": "Хост",
+    "path": "Путь",
+    "connectionParameters": "Параметры соединения",
+    "advancedOptions": "Дополнительные параметры",
+    "integrationDetails": "Сведения об интеграции",
+    "pgConnectionDetails": "Параметры соединения",
+    "pgPort": "Порт",
+    "pgSslMode": "Режим SSL",
+    "connectionJson": "JSON соединения",
+    "input": "Ввод",
+    "output": "Вывод",
+    "console": "Консоль",
+    "forgotPassword": "Забыли пароль?",
+    "privacyPolicy": "Политика конфиденциальности",
+    "clickHere": "Нажмите здесь",
+    "emailVerification": "Подтверждение эл. почты",
+    "method": "Метод",
+    "queryParameters": "Параметры запроса",
+    "samplePayload": "Пример полезной нагрузки",
+    "addDataSource": "Добавить источник данных",
+    "addSource": "Добавить источник",
+    "dataSourceName": "Имя источника данных",
+    "goBack": "Назад",
+    "interval": "Интервал",
+    "everyMinutes": "Каждые минут",
+    "selectMinute": "Выберите минуту",
+    "selectTimeOfDay": "Выберите время суток",
+    "selectTimeAndDayOfWeek": "Выберите время и день недели",
+    "selectTimeAndDayOfMonth": "Выберите время и день месяца",
+    "editedByYou": "Отредактировано вами",
+    "regenerating": "Повторная генерация...",
+    "calendarIsReadonly": "Календарь доступен только для чтения",
+    "generatedViews": "Созданные представления",
+    "disableConnection": "Отключить соединение",
+    "connectWithFavoriteTools": "Подключите свои любимые инструменты",
+    "getConnectionDetails": "Получить параметры соединения",
+    "connectionUrl": "URL соединения",
+    "chartSortBy": "Сортировать по",
+    "categoryLimit": "Лимит категорий",
+    "chartLegendOrientation": "Ориентация легенды",
+    "plotDataPoints": "Отобразить точки данных",
+    "retryImport": "Повторить импорт",
+    "listening": "Ожидание событий",
+    "generateAndCopyUrl": "Создать и скопировать URL",
+    "executionTime": "Время выполнения",
+    "requestTime": "Время запроса",
+    "errorCode": "Код ошибки",
+    "authorizationError": "Ошибка авторизации",
+    "requestedPermissions": "Запрошенные разрешения",
+    "applicationWillBeAbleTo": "Это приложение сможет",
+    "authorize": "Авторизовать",
+    "noUrl": "Нет URL",
+    "imageUrl": "URL изображения",
+    "altText": "Альтернативный текст",
+    "fitToView": "Вписать в область",
+    "requestBody": "Тело запроса",
+    "bodyType": "Тип тела",
+    "httpAdvancedOptions": "Дополнительные параметры",
+    "followRedirects": "Следовать перенаправлениям",
+    "followRedirectsDescription": "Автоматически следовать перенаправлениям HTTP",
+    "failOnErrorStatus": "Считать ошибкой при статусе ошибки",
+    "failOnErrorStatusDescription": "Считать ошибкой, когда ответ 4xx или 5xx"
   },
   "activity": {
     "useTemplate": "Использовать шаблон",
@@ -6607,7 +6720,7 @@
     "notAvailablePending": "Корзина еще не доступна для этой таблицы.",
     "conflict": {
       "panelTitle": "{count} запись имеет конфликт | {count} записи имеют конфликты",
-      "panelHelp": "Исправьте их в исходном коде и попробуйте еще раз или восстановите сейчас — мы очистим конфликтующие значения.",
+      "panelHelp": "Исправьте их в источнике и повторите попытку или восстановите сейчас. Мы очистим конфликтующие значения.",
       "cleanRemainder": "Другая запись {count} будет восстанавливаться нормально. | {count} другие записи будут восстанавливаться нормально.",
       "group": {
         "link": "Ссылки уже заняты",
@@ -6767,7 +6880,7 @@
       "title": "Освойтесь в рабочем пространстве",
       "welcome": {
         "title": "Добро пожаловать в NocoDB",
-        "description": "Быстрый круг по вашему рабочему пространству. Выйти можно в любой момент — нажмите «Пропустить»."
+        "description": "Быстрая экскурсия по вашему рабочему пространству. Выйти можно в любой момент: нажмите «Пропустить»."
       },
       "createBase": {
         "title": "Начните с Базы",
@@ -6794,7 +6907,7 @@
       },
       "create": {
         "title": "Создайте рабочий процесс",
-        "description": "Начните с нуля — откроется короткая форма."
+        "description": "Начните с нуля. Откроется короткая форма."
       },
       "createSubmit": {
         "title": "Создать",
@@ -6802,7 +6915,7 @@
       },
       "addTrigger": {
         "title": "Добавьте триггер",
-        "description": "Любой рабочий процесс начинается отсюда — нажмите, чтобы увидеть, что может его запустить."
+        "description": "Любой рабочий процесс начинается здесь. Нажмите, чтобы увидеть, что может его запустить."
       },
       "pickManualTrigger": {
         "title": "Выберите «При ручном запуске»",
@@ -6834,15 +6947,15 @@
       },
       "enable": {
         "title": "Включите его",
-        "description": "Опубликован — не значит запущен. Рабочий процесс остаётся <b>На паузе</b>, пока вы его не включите, — именно этот шаг чаще всего пропускают."
+        "description": "Опубликован — не значит запущен. Рабочий процесс остаётся <b>приостановленным</b>, пока вы его не включите. Именно этот шаг чаще всего пропускают."
       },
       "run": {
         "title": "Запустите один раз",
-        "description": "Ручной триггер срабатывает по требованию — попробуйте и посмотрите, как всё выполняется."
+        "description": "Ручной триггер срабатывает по требованию. Попробуйте и посмотрите, как он выполняется."
       },
       "logs": {
         "title": "Загляните в журналы",
-        "description": "Каждый запуск фиксируется здесь — что сработало, что вернул каждый шаг и что не удалось."
+        "description": "Каждый запуск фиксируется здесь: что его вызвало, что вернул каждый шаг и что завершилось ошибкой."
       },
       "wrapUp": {
         "title": "Вот и весь цикл",

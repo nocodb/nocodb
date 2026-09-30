@@ -754,7 +754,8 @@
     "continue": "Continuă",
     "manage": "Administrează",
     "orgBadge": "Org.",
-    "migrate": "Migrează"
+    "migrate": "Migrează",
+    "email": "E-mail"
   },
   "objects": {
     "script": "Script",
@@ -3099,7 +3100,12 @@
         "variables": "Valori reutilizabile pentru automatizări și câmpuri.",
         "migrateToV3": "Actualizează această bază la platforma și API-urile v3.",
         "migrateToCloud": "Mută datele acestei baze în NocoDB Cloud."
-      }
+      },
+      "upgradeAskOwner": "Cereți proprietarului să facă upgrade",
+      "upgradeRequestSent": "Cerere trimisă",
+      "upgradeDescRls": "Limitați ce înregistrări poate vedea și edita fiecare persoană.",
+      "upgradeDescRecordTemplates": "Creați înregistrări noi din șabloane salvate și precompletate.",
+      "upgradeDescDateDependency": "Deplasează automat datele dependente atunci când o înregistrare este mutată."
     },
     "categories": "Categorii",
     "blockquote": "Citat",
@@ -4563,7 +4569,111 @@
     "regenerateSecret": "Regenerează secretul",
     "createOauthClients": "Creează clienți OAuth",
     "managingOauthClients": "Gestionarea clienților OAuth",
-    "clientInformation": "Informații despre client"
+    "clientInformation": "Informații despre client",
+    "byUser": "de {user}",
+    "requestIntegration": "Solicitați o integrare",
+    "browseIntegrations": "Răsfoiți integrările",
+    "examplePrompt": "Exemplu de prompt",
+    "connectYourAi": "Conectați-vă IA",
+    "connectAVault": "Conectați un seif",
+    "manageVaults": "Gestionați seifurile",
+    "baseRelations": "Relațiile bazei",
+    "downloadReport": "Descărcați raportul",
+    "noLongerWorkspaceMember": "Nu mai este membru al acestui spațiu de lucru",
+    "notBaseMember": "Nu este membru al acestei baze",
+    "factoryNoSessionMatches": "Nicio sesiune nu corespunde acestei căutări",
+    "factoryRepoHasProject": "Conține un proiect",
+    "factoryOpenRepo": "Deschideți depozitul",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Tabele, vizualizări, automatizări și aplicații peste datele dumneavoastră.",
+    "projectKindCode": "Proiect de cod",
+    "projectKindCodeHint": "Conectați un depozit și lăsați agenții să lucreze la codul acestuia.",
+    "planStatusPending": "În așteptare",
+    "planStatusInProgress": "În desfășurare",
+    "planStatusCompleted": "Finalizat",
+    "createOauthClient": "Creați un client OAuth",
+    "downgradeToFreePlan": "Treceți la planul Free",
+    "plusApplicableTax": "+ taxele aplicabile",
+    "beforeYouCancelPlan": "Înainte de a vă anula planul",
+    "formBranding": "Identitatea vizuală a formularului",
+    "aiIntegration": "Integrare IA",
+    "enableWebSearch": "Activați căutarea pe web",
+    "enableWebSearchHint": "Permiteți modelului IA să caute pe web informații actualizate",
+    "outputSchema": "Schema de ieșire",
+    "itemType": "Tipul elementului",
+    "addProperty": "Adăugați o proprietate",
+    "addField": "Adăugați un câmp",
+    "planSubtitleBusiness": "Pentru nevoile afacerii dumneavoastră",
+    "planTaglineBusiness": "Economisiți până la 70% față de Airtable, Monday & Smartsheet",
+    "planSubtitleScale": "Pentru echipe în creștere",
+    "planTaglineScale": "Echipe care se mișcă rapid și au buget.",
+    "planTaglineScaleNoSalesCall": "Fără discuție cu echipa de vânzări.",
+    "everythingInBusinessAnd": "Tot ce include Business și",
+    "planSubtitleEnterprise": "Adaptat organizației dumneavoastră",
+    "scheduleACall": "Programați un apel",
+    "everythingInScaleAnd": "Tot ce include Scale și",
+    "connectionName": "Numele conexiunii",
+    "connectionDetailsSection": "Detaliile conexiunii",
+    "host": "Gazdă",
+    "path": "Cale",
+    "connectionParameters": "Parametrii conexiunii",
+    "advancedOptions": "Opțiuni avansate",
+    "integrationDetails": "Detaliile integrării",
+    "pgConnectionDetails": "Detaliile conexiunii",
+    "pgSslMode": "Mod SSL",
+    "connectionJson": "JSON-ul conexiunii",
+    "input": "Intrare",
+    "output": "Ieșire",
+    "console": "Consolă",
+    "forgotPassword": "Ați uitat parola?",
+    "privacyPolicy": "Politica de confidențialitate",
+    "clickHere": "Faceți clic aici",
+    "emailVerification": "Verificarea e-mailului",
+    "method": "Metodă",
+    "queryParameters": "Parametrii interogării",
+    "samplePayload": "Exemplu de conținut",
+    "addDataSource": "Adăugați o sursă de date",
+    "addSource": "Adăugați o sursă",
+    "dataSourceName": "Numele sursei de date",
+    "goBack": "Înapoi",
+    "everyMinutes": "La fiecare minute",
+    "selectMinute": "Selectați minutul",
+    "selectTimeOfDay": "Selectați ora din zi",
+    "selectTimeAndDayOfWeek": "Selectați ora și ziua săptămânii",
+    "selectTimeAndDayOfMonth": "Selectați ora și ziua lunii",
+    "editedByYou": "Editat de dumneavoastră",
+    "regenerating": "Se regenerează...",
+    "calendarIsReadonly": "Calendarul este doar pentru citire",
+    "generatedViews": "Vizualizări generate",
+    "disableConnection": "Dezactivați conexiunea",
+    "connectWithFavoriteTools": "Conectați-vă cu instrumentele preferate",
+    "getConnectionDetails": "Obțineți detaliile conexiunii",
+    "connectionUrl": "URL-ul conexiunii",
+    "chartSortBy": "Sortați după",
+    "categoryLimit": "Limita de categorii",
+    "chartLegendOrientation": "Orientarea legendei",
+    "plotDataPoints": "Trasați punctele de date",
+    "retryImport": "Reîncercați importul",
+    "listening": "În ascultare",
+    "generateAndCopyUrl": "Generați și copiați URL-ul",
+    "executionTime": "Timp de execuție",
+    "requestTime": "Ora cererii",
+    "errorCode": "Cod de eroare",
+    "authorizationError": "Eroare de autorizare",
+    "requestedPermissions": "Permisiuni solicitate",
+    "applicationWillBeAbleTo": "Această aplicație va putea",
+    "authorize": "Autorizați",
+    "noUrl": "Fără URL",
+    "imageUrl": "URL-ul imaginii",
+    "altText": "Text alternativ",
+    "fitToView": "Încadrați în vizualizare",
+    "requestBody": "Corpul cererii",
+    "bodyType": "Tipul corpului",
+    "httpAdvancedOptions": "Opțiuni avansate",
+    "followRedirects": "Urmați redirecționările",
+    "followRedirectsDescription": "Urmați automat redirecționările HTTP",
+    "failOnErrorStatus": "Eșuați la stare de eroare",
+    "failOnErrorStatusDescription": "Eșuați când răspunsul este 4xx sau 5xx"
   },
   "activity": {
     "useTemplate": "Folosește șablon",
@@ -6588,7 +6698,7 @@
     "notAvailablePending": "Gunoiul nu este încă disponibil pentru acest tabel.",
     "conflict": {
       "panelTitle": "{count} înregistrare are un conflict <unk> {count} înregistrările au conflicte",
-      "panelHelp": "Repară acestea la sursă și încearcă din nou, sau restabilește acum - vom curăța valorile conflictuale.",
+      "panelHelp": "Corectați-le la sursă și încercați din nou sau restaurați acum. Vom șterge valorile aflate în conflict.",
       "cleanRemainder": "{count} other record will restore normally. | {count} other records will restore normally.",
       "group": {
         "link": "Link-uri deja luate",
@@ -6747,7 +6857,7 @@
     "workflows": {
       "addTrigger": {
         "title": "Adaugă un declanșator",
-        "description": "Orice flux de lucru începe aici — dă clic pentru a vedea ce îl poate porni."
+        "description": "Orice flux de lucru începe aici. Faceți clic pentru a vedea ce îl poate declanșa."
       },
       "addAction": {
         "title": "Adaugă o acțiune",
@@ -6764,7 +6874,7 @@
       },
       "create": {
         "title": "Creează un Workflow",
-        "description": "Începe de la zero — se va deschide un formular scurt."
+        "description": "Începeți de la zero. Se va deschide un formular scurt."
       },
       "createSubmit": {
         "title": "Creează-l",
@@ -6792,15 +6902,15 @@
       },
       "enable": {
         "title": "Pornește-l",
-        "description": "Publicat nu înseamnă același lucru cu în execuție. Un Workflow rămâne <b>În pauză</b> până îl activezi — acesta e pasul pe care lumea îl ratează."
+        "description": "Publicat nu înseamnă același lucru cu în execuție. Un flux de lucru rămâne <b>întrerupt</b> până când îl activați. Acesta este pasul pe care lumea îl omite."
       },
       "run": {
         "title": "Rulează-l o dată",
-        "description": "Un declanșator manual pornește la cerere — încearcă-l și urmărește-l cum se execută."
+        "description": "Un declanșator manual pornește la cerere. Încercați-l și urmăriți execuția."
       },
       "logs": {
         "title": "Verifică jurnalele",
-        "description": "Fiecare execuție este consemnată aici — ce s-a declanșat, ce a returnat fiecare pas și ce a eșuat."
+        "description": "Fiecare execuție este înregistrată aici: ce a declanșat-o, ce a returnat fiecare pas și ce a eșuat."
       },
       "wrapUp": {
         "title": "Asta e tot ciclul",
@@ -6811,7 +6921,7 @@
       "title": "Orientează-te în spațiul tău de lucru",
       "welcome": {
         "title": "Bine ai venit în NocoDB",
-        "description": "O tură rapidă prin spațiul tău de lucru. Poți ieși oricând — apasă pe Omite."
+        "description": "Un tur rapid prin spațiul dumneavoastră de lucru. Puteți ieși oricând: apăsați Săriți."
       },
       "createBase": {
         "title": "Începe cu o Bază",

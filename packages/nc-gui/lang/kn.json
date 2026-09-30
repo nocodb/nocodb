@@ -756,7 +756,8 @@
     "continue": "ಮುಂದುವರಿಸಿ",
     "manage": "ನಿರ್ವಹಿಸಿ",
     "orgBadge": "ಸಂಸ್ಥೆ",
-    "migrate": "ವರ್ಗಾಯಿಸಿ"
+    "migrate": "ವರ್ಗಾಯಿಸಿ",
+    "email": "ಇಮೇಲ್"
   },
   "objects": {
     "script": "ಸ್ಕ್ರಿಪ್ಟ್",
@@ -3102,7 +3103,12 @@
         "variables": "ಸ್ವಯಂಚಾಲನೆಗಳು ಮತ್ತು ಕ್ಷೇತ್ರಗಳಿಗೆ ಮರುಬಳಕೆ ಮಾಡಬಹುದಾದ ಮೌಲ್ಯಗಳು.",
         "migrateToV3": "ಈ ಬೇಸ್ ಅನ್ನು v3 ವೇದಿಕೆ ಮತ್ತು API ಗಳಿಗೆ ನವೀಕರಿಸಿ.",
         "migrateToCloud": "ಈ ಬೇಸ್‌ನ ಡೇಟಾವನ್ನು NocoDB Cloud ಗೆ ಸರಿಸಿ."
-      }
+      },
+      "upgradeAskOwner": "ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಲು ಮಾಲೀಕರನ್ನು ಕೇಳಿ",
+      "upgradeRequestSent": "ಕೋರಿಕೆ ಕಳುಹಿಸಲಾಗಿದೆ",
+      "upgradeDescRls": "ಪ್ರತಿಯೊಬ್ಬರೂ ಯಾವ ದಾಖಲೆಗಳನ್ನು ನೋಡಬಹುದು ಮತ್ತು ಸಂಪಾದಿಸಬಹುದು ಎಂಬುದನ್ನು ಮಿತಿಗೊಳಿಸಿ.",
+      "upgradeDescRecordTemplates": "ಉಳಿಸಿದ, ಮೊದಲೇ ತುಂಬಿದ ಟೆಂಪ್ಲೇಟ್‌ಗಳಿಂದ ಹೊಸ ದಾಖಲೆಗಳನ್ನು ರಚಿಸಿ.",
+      "upgradeDescDateDependency": "ದಾಖಲೆ ಸ್ಥಳಾಂತರಗೊಂಡಾಗ ಅವಲಂಬಿತ ದಿನಾಂಕಗಳನ್ನು ತಾನಾಗಿಯೇ ಸರಿಸುತ್ತದೆ."
     },
     "categories": "ವರ್ಗಗಳು",
     "blockquote": "ಉದ್ಧರಣ",
@@ -4579,7 +4585,114 @@
     "regenerateSecret": "ಹೊಸ ಸೀಕ್ರೆಟ್ ರಚಿಸಿ",
     "createOauthClients": "OAuth ಕ್ಲೈಂಟ್‌ಗಳನ್ನು ರಚಿಸಿ",
     "managingOauthClients": "OAuth ಕ್ಲೈಂಟ್‌ಗಳ ನಿರ್ವಹಣೆ",
-    "clientInformation": "ಕ್ಲೈಂಟ್ ಮಾಹಿತಿ"
+    "clientInformation": "ಕ್ಲೈಂಟ್ ಮಾಹಿತಿ",
+    "byUser": "{user} ಅವರಿಂದ",
+    "requestIntegration": "ಸಂಯೋಜನೆಯನ್ನು ಕೋರಿ",
+    "browseIntegrations": "ಸಂಯೋಜನೆಗಳನ್ನು ವೀಕ್ಷಿಸಿ",
+    "examplePrompt": "ಉದಾಹರಣೆ ಪ್ರಾಂಪ್ಟ್",
+    "connectYourAi": "ನಿಮ್ಮ ಎಐ ಸಂಪರ್ಕಿಸಿ",
+    "connectAVault": "ಒಂದು ವಾಲ್ಟ್ ಸಂಪರ್ಕಿಸಿ",
+    "manageVaults": "ವಾಲ್ಟ್‌ಗಳನ್ನು ನಿರ್ವಹಿಸಿ",
+    "baseRelations": "ಬೇಸ್ ಸಂಬಂಧಗಳು",
+    "downloadReport": "ವರದಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
+    "noLongerWorkspaceMember": "ಈ ಕಾರ್ಯದ್ವಾರದ ಸದಸ್ಯರಲ್ಲ",
+    "notBaseMember": "ಈ ಬೇಸ್‌ನ ಸದಸ್ಯರಲ್ಲ",
+    "factoryNoSessionMatches": "ಆ ಹುಡುಕಾಟಕ್ಕೆ ಯಾವುದೇ ಅವಧಿ ಹೊಂದಿಕೆಯಾಗಲಿಲ್ಲ",
+    "factoryRepoHasProject": "ಒಂದು ಯೋಜನೆ ಇದೆ",
+    "factoryOpenRepo": "ರೆಪೊಸಿಟರಿ ತೆರೆಯಿರಿ",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "ನಿಮ್ಮ ಡೇಟಾದ ಮೇಲೆ ಕೋಷ್ಟಕಗಳು, ವೀಕ್ಷಣೆಗಳು, ಸ್ವಯಂಚಾಲನೆಗಳು ಮತ್ತು ಅಪ್ಲಿಕೇಶನ್‌ಗಳು.",
+    "projectKindCode": "ಕೋಡ್ ಯೋಜನೆ",
+    "projectKindCodeHint": "ಒಂದು ರೆಪೊಸಿಟರಿ ಸಂಪರ್ಕಿಸಿ ಮತ್ತು ಏಜೆಂಟ್‌ಗಳಿಂದ ಅದರ ಕೋಡ್‌ನಲ್ಲಿ ಕೆಲಸ ಮಾಡಿಸಿ.",
+    "planStatusPending": "ಬಾಕಿ",
+    "planStatusInProgress": "ಪ್ರಗತಿಯಲ್ಲಿದೆ",
+    "planStatusCompleted": "ಪೂರ್ಣಗೊಂಡಿದೆ",
+    "createOauthClient": "OAuth ಕ್ಲೈಂಟ್ ರಚಿಸಿ",
+    "downgradeToFreePlan": "Free ಪ್ಲ್ಯಾನ್‌ಗೆ ಇಳಿಸಿ",
+    "plusApplicableTax": "+ ಅನ್ವಯವಾಗುವ ತೆರಿಗೆ",
+    "beforeYouCancelPlan": "ನಿಮ್ಮ ಪ್ಲ್ಯಾನ್ ರದ್ದುಗೊಳಿಸುವ ಮೊದಲು",
+    "formBranding": "ನಮೂನೆಯ ಬ್ರ್ಯಾಂಡಿಂಗ್",
+    "aiIntegration": "ಎಐ ಸಂಯೋಜನೆ",
+    "model": "ಮಾದರಿ",
+    "enableWebSearch": "ವೆಬ್ ಹುಡುಕಾಟ ಸಕ್ರಿಯಗೊಳಿಸಿ",
+    "enableWebSearchHint": "ಇತ್ತೀಚಿನ ಮಾಹಿತಿಗಾಗಿ ಎಐ ಮಾದರಿಗೆ ವೆಬ್‌ನಲ್ಲಿ ಹುಡುಕಲು ಅನುಮತಿಸಿ",
+    "outputSchema": "ಔಟ್‌ಪುಟ್ ಸ್ಕೀಮಾ",
+    "itemType": "ಐಟಂ ಪ್ರಕಾರ",
+    "addProperty": "ಗುಣ ಸೇರಿಸಿ",
+    "addField": "ಕ್ಷೇತ್ರ ಸೇರಿಸಿ",
+    "planSubtitleBusiness": "ನಿಮ್ಮ ವ್ಯವಹಾರದ ಅಗತ್ಯಗಳಿಗೆ",
+    "planTaglineBusiness": "Airtable, Monday ಮತ್ತು Smartsheet ಗೆ ಹೋಲಿಸಿದರೆ 70% ವರೆಗೆ ಉಳಿಸಿ",
+    "planSubtitleScale": "ಬೆಳೆಯುತ್ತಿರುವ ತಂಡಗಳಿಗೆ",
+    "planTaglineScale": "ಬಜೆಟ್ ಇರುವ ವೇಗವಾಗಿ ಸಾಗುವ ತಂಡಗಳು.",
+    "planTaglineScaleNoSalesCall": "ಮಾರಾಟದ ಕರೆಯ ಅಗತ್ಯವಿಲ್ಲ.",
+    "everythingInBusinessAnd": "Business ನಲ್ಲಿರುವ ಎಲ್ಲವೂ ಮತ್ತು",
+    "planSubtitleEnterprise": "ನಿಮ್ಮ ಸಂಸ್ಥೆಗೆ ಅನುಗುಣವಾಗಿ",
+    "scheduleACall": "ಕರೆಯನ್ನು ನಿಗದಿಪಡಿಸಿ",
+    "everythingInScaleAnd": "Scale ನಲ್ಲಿರುವ ಎಲ್ಲವೂ ಮತ್ತು",
+    "connectionName": "ಸಂಪರ್ಕದ ಹೆಸರು",
+    "connectionDetailsSection": "ಸಂಪರ್ಕದ ವಿವರಗಳು",
+    "host": "ಹೋಸ್ಟ್",
+    "path": "ಮಾರ್ಗ",
+    "connectionParameters": "ಸಂಪರ್ಕದ ನಿಯತಾಂಕಗಳು",
+    "advancedOptions": "ಸುಧಾರಿತ ಆಯ್ಕೆಗಳು",
+    "integrationDetails": "ಸಂಯೋಜನೆಯ ವಿವರಗಳು",
+    "pgConnectionDetails": "ಸಂಪರ್ಕದ ವಿವರಗಳು",
+    "pgPort": "ಪೋರ್ಟ್",
+    "pgSslMode": "SSL ಮೋಡ್",
+    "connectionJson": "ಸಂಪರ್ಕದ JSON",
+    "input": "ಇನ್‌ಪುಟ್",
+    "output": "ಔಟ್‌ಪುಟ್",
+    "console": "ಕನ್ಸೋಲ್",
+    "forgotPassword": "ಪಾಸ್‌ವರ್ಡ್ ಮರೆತಿರಾ?",
+    "privacyPolicy": "ಗೌಪ್ಯತಾ ನೀತಿ",
+    "clickHere": "ಇಲ್ಲಿ ಕ್ಲಿಕ್ ಮಾಡಿ",
+    "emailVerification": "ಇಮೇಲ್ ಪರಿಶೀಲನೆ",
+    "method": "ವಿಧಾನ",
+    "queryParameters": "ಪ್ರಶ್ನೆ ನಿಯತಾಂಕಗಳು",
+    "samplePayload": "ಮಾದರಿ ಪೇಲೋಡ್",
+    "addDataSource": "ಡೇಟಾ ಮೂಲ ಸೇರಿಸಿ",
+    "addSource": "ಮೂಲ ಸೇರಿಸಿ",
+    "dataSourceName": "ಡೇಟಾ ಮೂಲದ ಹೆಸರು",
+    "goBack": "ಹಿಂತಿರುಗಿ",
+    "interval": "ಅಂತರ",
+    "everyMinutes": "ಪ್ರತಿ ನಿಮಿಷಕ್ಕೆ",
+    "selectMinute": "ನಿಮಿಷ ಆಯ್ಕೆಮಾಡಿ",
+    "selectTimeOfDay": "ದಿನದ ಸಮಯವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+    "selectTimeAndDayOfWeek": "ಸಮಯ ಮತ್ತು ವಾರದ ದಿನವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+    "selectTimeAndDayOfMonth": "ಸಮಯ ಮತ್ತು ತಿಂಗಳ ದಿನವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+    "editedByYou": "ನಿಮ್ಮಿಂದ ಸಂಪಾದಿಸಲಾಗಿದೆ",
+    "regenerating": "ಮತ್ತೆ ರಚಿಸಲಾಗುತ್ತಿದೆ...",
+    "calendarIsReadonly": "ಕ್ಯಾಲೆಂಡರ್ ಓದಲು ಮಾತ್ರ",
+    "generatedViews": "ರಚಿಸಲಾದ ವೀಕ್ಷಣೆಗಳು",
+    "disableConnection": "ಸಂಪರ್ಕ ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ",
+    "connectWithFavoriteTools": "ನಿಮ್ಮ ನೆಚ್ಚಿನ ಪರಿಕರಗಳೊಂದಿಗೆ ಸಂಪರ್ಕಿಸಿ",
+    "getConnectionDetails": "ಸಂಪರ್ಕದ ವಿವರಗಳನ್ನು ಪಡೆಯಿರಿ",
+    "connectionUrl": "ಸಂಪರ್ಕದ URL",
+    "chartSortBy": "ಇದರ ಪ್ರಕಾರ ವಿಂಗಡಿಸಿ",
+    "categoryLimit": "ವರ್ಗದ ಮಿತಿ",
+    "chartLegendOrientation": "ಲೆಜೆಂಡ್ ದಿಕ್ಕು",
+    "plotDataPoints": "ಡೇಟಾ ಬಿಂದುಗಳನ್ನು ಚಿತ್ರಿಸಿ",
+    "retryImport": "ಆಮದನ್ನು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
+    "listening": "ಆಲಿಸುತ್ತಿದೆ",
+    "generateAndCopyUrl": "URL ರಚಿಸಿ ಮತ್ತು ನಕಲಿಸಿ",
+    "executionTime": "ಕಾರ್ಯಾಚರಣೆಯ ಸಮಯ",
+    "requestTime": "ಕೋರಿಕೆಯ ಸಮಯ",
+    "errorCode": "ದೋಷ ಸಂಕೇತ",
+    "authorizationError": "ಅಧಿಕೃತಗೊಳಿಸುವಿಕೆಯ ದೋಷ",
+    "requestedPermissions": "ಕೋರಲಾದ ಅನುಮತಿಗಳು",
+    "applicationWillBeAbleTo": "ಈ ಅಪ್ಲಿಕೇಶನ್ ಇವನ್ನು ಮಾಡಬಲ್ಲದು",
+    "authorize": "ಅಧಿಕೃತಗೊಳಿಸಿ",
+    "noUrl": "URL ಇಲ್ಲ",
+    "imageUrl": "ಚಿತ್ರದ URL",
+    "altText": "ಪರ್ಯಾಯ ಪಠ್ಯ",
+    "fitToView": "ನೋಟಕ್ಕೆ ಹೊಂದಿಸಿ",
+    "requestBody": "ಕೋರಿಕೆಯ ಬಾಡಿ",
+    "bodyType": "ಬಾಡಿ ಪ್ರಕಾರ",
+    "httpAdvancedOptions": "ಸುಧಾರಿತ ಆಯ್ಕೆಗಳು",
+    "followRedirects": "ಮರುನಿರ್ದೇಶನಗಳನ್ನು ಅನುಸರಿಸಿ",
+    "followRedirectsDescription": "HTTP ಮರುನಿರ್ದೇಶನಗಳನ್ನು ತಾನಾಗಿಯೇ ಅನುಸರಿಸಿ",
+    "failOnErrorStatus": "ದೋಷ ಸ್ಥಿತಿಯಲ್ಲಿ ವಿಫಲಗೊಳಿಸಿ",
+    "failOnErrorStatusDescription": "ಪ್ರತಿಕ್ರಿಯೆ 4xx ಅಥವಾ 5xx ಆದಾಗ ವಿಫಲಗೊಳಿಸಿ"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6606,7 +6719,7 @@
     "notAvailablePending": "Trash is not yet available for this table.",
     "conflict": {
       "panelTitle": "{count} record has a conflict | {count} records have conflicts",
-      "panelHelp": "Fix these at the source and try again, or restore now — we'll clear the conflicting values.",
+      "panelHelp": "ಇವನ್ನು ಮೂಲದಲ್ಲೇ ಸರಿಪಡಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ, ಅಥವಾ ಈಗಲೇ ಮರುಸ್ಥಾಪಿಸಿ. ಸಂಘರ್ಷದ ಮೌಲ್ಯಗಳನ್ನು ನಾವು ಅಳಿಸುತ್ತೇವೆ.",
       "cleanRemainder": "{count} other record will restore normally. | {count} other records will restore normally.",
       "group": {
         "link": "Links already taken",
@@ -6765,7 +6878,7 @@
     "workflows": {
       "addTrigger": {
         "title": "ಒಂದು ಟ್ರಿಗರ್ ಸೇರಿಸಿ",
-        "description": "ಪ್ರತಿ ಕಾರ್ಯಹರಿವು ಇಲ್ಲಿಂದಲೇ ಶುರುವಾಗುತ್ತದೆ — ಅದನ್ನು ಯಾವುದು ಆರಂಭಿಸಬಹುದು ಎಂದು ನೋಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ."
+        "description": "ಪ್ರತಿ ಕಾರ್ಯಹರಿವು ಇಲ್ಲಿಂದಲೇ ಆರಂಭವಾಗುತ್ತದೆ. ಅದನ್ನು ಯಾವುದು ಚಾಲನೆಗೊಳಿಸಬಹುದು ಎಂದು ನೋಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ."
       },
       "addAction": {
         "title": "ಒಂದು ಕ್ರಿಯೆ ಸೇರಿಸಿ",
@@ -6782,7 +6895,7 @@
       },
       "create": {
         "title": "ಒಂದು ಕಾರ್ಯಹರಿವು ರಚಿಸಿ",
-        "description": "ಮೊದಲಿನಿಂದ ಆರಂಭಿಸಿ — ಇದು ಒಂದು ಚಿಕ್ಕ ನಮೂನೆಯನ್ನು ತೆರೆಯುತ್ತದೆ."
+        "description": "ಶೂನ್ಯದಿಂದ ಆರಂಭಿಸಿ. ಇದು ಒಂದು ಚಿಕ್ಕ ನಮೂನೆಯನ್ನು ತೆರೆಯುತ್ತದೆ."
       },
       "createSubmit": {
         "title": "ಅದನ್ನು ರಚಿಸಿ",
@@ -6810,15 +6923,15 @@
       },
       "enable": {
         "title": "ಅದನ್ನು ಚಾಲೂ ಮಾಡಿ",
-        "description": "ಪ್ರಕಟಿಸಿದ್ದು ಮತ್ತು ಚಾಲನೆಯಲ್ಲಿರುವುದು ಒಂದೇ ಅಲ್ಲ. ನೀವು ಅದನ್ನು ಚಾಲೂ ಮಾಡುವವರೆಗೆ ಕಾರ್ಯಹರಿವು <b>ತಡೆಹಿಡಿದ</b> ಸ್ಥಿತಿಯಲ್ಲಿಯೇ ಇರುತ್ತದೆ — ಜನರು ತಪ್ಪಿಸಿಕೊಳ್ಳುವ ಹಂತ ಇದೇ."
+        "description": "ಪ್ರಕಟಿಸಿದ್ದು ಮತ್ತು ಚಾಲನೆಯಲ್ಲಿರುವುದು ಒಂದೇ ಅಲ್ಲ. ನೀವು ಸಕ್ರಿಯಗೊಳಿಸುವವರೆಗೆ ಕಾರ್ಯಹರಿವು <b>ವಿರಾಮಗೊಂಡಿರುತ್ತದೆ</b>. ಜನರು ತಪ್ಪಿಸಿಕೊಳ್ಳುವ ಹಂತ ಇದೇ."
       },
       "run": {
         "title": "ಒಮ್ಮೆ ಚಲಾಯಿಸಿ",
-        "description": "ಕೈಯಿಂದ ಕೊಡುವ ಪ್ರಚೋದಕ ಬೇಕೆಂದಾಗ ಚಲಿಸುತ್ತದೆ — ಒಮ್ಮೆ ಪ್ರಯತ್ನಿಸಿ ಅದು ನಡೆಯುವುದನ್ನು ನೋಡಿ."
+        "description": "ಹಸ್ತಚಾಲಿತ ಟ್ರಿಗರ್ ಬೇಡಿಕೆಯ ಮೇರೆಗೆ ಚಾಲನೆಯಾಗುತ್ತದೆ. ಒಮ್ಮೆ ಪ್ರಯತ್ನಿಸಿ ಮತ್ತು ಅದರ ಕಾರ್ಯಾಚರಣೆಯನ್ನು ನೋಡಿ."
       },
       "logs": {
         "title": "ದಾಖಲೆಗಳನ್ನು ನೋಡಿ",
-        "description": "ಪ್ರತಿ ಚಾಲನೆಯೂ ಇಲ್ಲಿ ದಾಖಲಾಗುತ್ತದೆ — ಯಾವುದು ಆರಂಭಿಸಿತು, ಪ್ರತಿ ಹಂತವೂ ಏನನ್ನು ಹಿಂತಿರುಗಿಸಿತು, ಮತ್ತು ಏನು ವಿಫಲವಾಯಿತು."
+        "description": "ಪ್ರತಿ ಚಾಲನೆಯೂ ಇಲ್ಲಿ ದಾಖಲಾಗುತ್ತದೆ: ಯಾವುದು ಚಾಲನೆಗೊಳಿಸಿತು, ಪ್ರತಿ ಹಂತವು ಏನನ್ನು ಹಿಂತಿರುಗಿಸಿತು ಮತ್ತು ಏನು ವಿಫಲವಾಯಿತು."
       },
       "wrapUp": {
         "title": "ಇಡೀ ಸುತ್ತು ಇಷ್ಟೇ",
@@ -6829,7 +6942,7 @@
       "title": "ನಿಮ್ಮ ಕಾರ್ಯಕ್ಷೇತ್ರವನ್ನು ಪರಿಚಯ ಮಾಡಿಕೊಳ್ಳಿ",
       "welcome": {
         "title": "NocoDB ಗೆ ಸ್ವಾಗತ",
-        "description": "ನಿಮ್ಮ ಕಾರ್ಯಕ್ಷೇತ್ರದ ಸುತ್ತ ಒಂದು ಸಣ್ಣ ಸುತ್ತು. ಯಾವಾಗ ಬೇಕಾದರೂ ಹೊರಬರಬಹುದು — ಬಿಟ್ಟುಬಿಡಿ ಒತ್ತಿ."
+        "description": "ನಿಮ್ಮ ಕಾರ್ಯದ್ವಾರದ ಸುತ್ತ ಒಂದು ಸಣ್ಣ ಸುತ್ತು. ಯಾವಾಗ ಬೇಕಾದರೂ ಹೊರನಡೆಯಬಹುದು: ಬಿಟ್ಟುಬಿಡಿ ಒತ್ತಿ."
       },
       "createBase": {
         "title": "ಒಂದು ಆಧಾರದಿಂದ ಆರಂಭಿಸಿ",

@@ -755,7 +755,8 @@
     "continue": "Continua",
     "manage": "Gestisci",
     "orgBadge": "Org.",
-    "migrate": "Migra"
+    "migrate": "Migra",
+    "email": "E-mail"
   },
   "objects": {
     "script": "Script",
@@ -3101,7 +3102,12 @@
         "variables": "Valori riutilizzabili per automazioni e campi.",
         "migrateToV3": "Aggiorna questa base alla piattaforma e alle API v3.",
         "migrateToCloud": "Sposta i dati di questa base su NocoDB Cloud."
-      }
+      },
+      "upgradeAskOwner": "Chiedi al proprietario di aggiornare il piano",
+      "upgradeRequestSent": "Richiesta inviata",
+      "upgradeDescRls": "Limita quali record ogni persona può vedere e modificare.",
+      "upgradeDescRecordTemplates": "Crea nuovi record da modelli salvati e precompilati.",
+      "upgradeDescDateDependency": "Sposta automaticamente le date dipendenti quando un record viene spostato."
     },
     "categories": "Categorie",
     "blockquote": "Citazione",
@@ -4574,7 +4580,110 @@
     "regenerateSecret": "Rigenera secret",
     "createOauthClients": "Crea client OAuth",
     "managingOauthClients": "Gestione dei client OAuth",
-    "clientInformation": "Informazioni sul client"
+    "clientInformation": "Informazioni sul client",
+    "byUser": "da {user}",
+    "requestIntegration": "Richiedi un'integrazione",
+    "browseIntegrations": "Sfoglia le integrazioni",
+    "examplePrompt": "Esempio di prompt",
+    "connectYourAi": "Collega la tua IA",
+    "connectAVault": "Collega una cassaforte",
+    "manageVaults": "Gestisci le casseforti",
+    "baseRelations": "Relazioni della base",
+    "downloadReport": "Scarica il report",
+    "noLongerWorkspaceMember": "Non è più membro di questo spazio di lavoro",
+    "notBaseMember": "Non è membro di questa base",
+    "factoryNoSessionMatches": "Nessuna sessione corrisponde a questa ricerca",
+    "factoryRepoHasProject": "Ha un progetto",
+    "factoryOpenRepo": "Apri il repository",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Tabelle, viste, automazioni e app sui tuoi dati.",
+    "projectKindCode": "Progetto di codice",
+    "projectKindCodeHint": "Collega un repository e lascia che gli agenti lavorino sul suo codice.",
+    "planStatusPending": "In sospeso",
+    "planStatusInProgress": "In corso",
+    "planStatusCompleted": "Completato",
+    "createOauthClient": "Crea client OAuth",
+    "downgradeToFreePlan": "Passa al piano Free",
+    "plusApplicableTax": "+ imposte applicabili",
+    "beforeYouCancelPlan": "Prima di annullare il tuo piano",
+    "formBranding": "Personalizzazione del modulo",
+    "aiIntegration": "Integrazione IA",
+    "model": "Modello",
+    "enableWebSearch": "Abilita la ricerca sul web",
+    "enableWebSearchHint": "Consenti al modello di IA di cercare sul web informazioni aggiornate",
+    "outputSchema": "Schema di output",
+    "itemType": "Tipo di elemento",
+    "addProperty": "Aggiungi proprietà",
+    "addField": "Aggiungi campo",
+    "planSubtitleBusiness": "Per le esigenze della tua azienda",
+    "planTaglineBusiness": "Risparmia fino al 70% rispetto ad Airtable, Monday & Smartsheet",
+    "planSubtitleScale": "Per team in crescita",
+    "planTaglineScale": "Team veloci con budget a disposizione.",
+    "planTaglineScaleNoSalesCall": "Nessuna chiamata commerciale necessaria.",
+    "everythingInBusinessAnd": "Tutto ciò che è incluso in Business e",
+    "planSubtitleEnterprise": "Su misura per la tua organizzazione",
+    "scheduleACall": "Fissa una chiamata",
+    "everythingInScaleAnd": "Tutto ciò che è incluso in Scale e",
+    "connectionName": "Nome della connessione",
+    "connectionDetailsSection": "Dettagli della connessione",
+    "path": "Percorso",
+    "connectionParameters": "Parametri di connessione",
+    "advancedOptions": "Opzioni avanzate",
+    "integrationDetails": "Dettagli dell'integrazione",
+    "pgConnectionDetails": "Dettagli della connessione",
+    "pgPort": "Porta",
+    "pgSslMode": "Modalità SSL",
+    "connectionJson": "JSON di connessione",
+    "forgotPassword": "Password dimenticata?",
+    "privacyPolicy": "Informativa sulla privacy",
+    "clickHere": "Fai clic qui",
+    "emailVerification": "Verifica dell'e-mail",
+    "method": "Metodo",
+    "queryParameters": "Parametri di query",
+    "samplePayload": "Payload di esempio",
+    "addDataSource": "Aggiungi sorgente dati",
+    "addSource": "Aggiungi sorgente",
+    "dataSourceName": "Nome della sorgente dati",
+    "goBack": "Indietro",
+    "interval": "Intervallo",
+    "everyMinutes": "Ogni minuti",
+    "selectMinute": "Seleziona il minuto",
+    "selectTimeOfDay": "Seleziona l'ora del giorno",
+    "selectTimeAndDayOfWeek": "Seleziona l'ora e il giorno della settimana",
+    "selectTimeAndDayOfMonth": "Seleziona l'ora e il giorno del mese",
+    "editedByYou": "Modificato da te",
+    "regenerating": "Rigenerazione in corso...",
+    "calendarIsReadonly": "Il calendario è di sola lettura",
+    "generatedViews": "Vista/e generata/e",
+    "disableConnection": "Disattiva connessione",
+    "connectWithFavoriteTools": "Collegati ai tuoi strumenti preferiti",
+    "getConnectionDetails": "Ottieni i dettagli della connessione",
+    "connectionUrl": "URL di connessione",
+    "chartSortBy": "Ordina per",
+    "categoryLimit": "Limite di categorie",
+    "chartLegendOrientation": "Orientamento della legenda",
+    "plotDataPoints": "Traccia i punti dati",
+    "retryImport": "Riprova l'importazione",
+    "listening": "In ascolto",
+    "generateAndCopyUrl": "Genera e copia l'URL",
+    "executionTime": "Tempo di esecuzione",
+    "requestTime": "Ora della richiesta",
+    "errorCode": "Codice di errore",
+    "authorizationError": "Errore di autorizzazione",
+    "requestedPermissions": "Permessi richiesti",
+    "applicationWillBeAbleTo": "Questa applicazione potrà",
+    "authorize": "Autorizza",
+    "noUrl": "Nessun URL",
+    "imageUrl": "URL dell'immagine",
+    "altText": "Testo alternativo",
+    "fitToView": "Adatta alla vista",
+    "requestBody": "Corpo della richiesta",
+    "bodyType": "Tipo di body",
+    "httpAdvancedOptions": "Opzioni avanzate",
+    "followRedirects": "Segui i reindirizzamenti",
+    "followRedirectsDescription": "Segui automaticamente i reindirizzamenti HTTP",
+    "failOnErrorStatus": "Fallisci in caso di stato di errore",
+    "failOnErrorStatusDescription": "Fallisci quando la risposta è 4xx o 5xx"
   },
   "activity": {
     "useTemplate": "Usa modello",
@@ -6602,7 +6711,7 @@
     "notAvailablePending": "Il cestino non è ancora disponibile per questa tabella.",
     "conflict": {
       "panelTitle": "{count} record ha un conflitto <unk> {count} record hanno conflitti",
-      "panelHelp": "Correggi questi alla fonte e riprova o ripristinali ora — elimineremo i valori in conflitto.",
+      "panelHelp": "Correggili all'origine e riprova, oppure ripristina ora. Cancelleremo i valori in conflitto.",
       "cleanRemainder": "{count} altro record verrà ripristinato normalmente. <unk> {count} altri record verranno ripristinati normalmente.",
       "group": {
         "link": "Link già presi",
@@ -6789,7 +6898,7 @@
       },
       "create": {
         "title": "Crea un flusso di lavoro",
-        "description": "Parti da zero: si apre un breve modulo."
+        "description": "Parti da zero. Si aprirà un breve modulo."
       },
       "createSubmit": {
         "title": "Crealo",
@@ -6797,7 +6906,7 @@
       },
       "addTrigger": {
         "title": "Aggiungi un attivatore",
-        "description": "Ogni flusso di lavoro inizia da qui: fai clic per vedere che cosa può avviarlo."
+        "description": "Ogni workflow inizia qui. Fai clic per vedere che cosa può avviarlo."
       },
       "pickManualTrigger": {
         "title": "Scegli «Quando attivato manualmente»",
@@ -6829,15 +6938,15 @@
       },
       "enable": {
         "title": "Attivalo",
-        "description": "Pubblicato non significa in esecuzione. Un flusso di lavoro resta <b>In pausa</b> finché non lo attivi: è il passaggio che quasi tutti si perdono."
+        "description": "Pubblicato non significa in esecuzione. Un workflow resta <b>in pausa</b> finché non lo abiliti. È il passaggio che quasi tutti dimenticano."
       },
       "run": {
         "title": "Eseguilo una volta",
-        "description": "Un attivatore manuale scatta su richiesta: provalo e guardalo eseguire."
+        "description": "Un trigger manuale si avvia su richiesta. Provalo e guardalo mentre viene eseguito."
       },
       "logs": {
         "title": "Controlla i registri",
-        "description": "Ogni esecuzione viene registrata qui: che cosa è scattato, che cosa ha restituito ogni passaggio e che cosa non ha funzionato."
+        "description": "Ogni esecuzione viene registrata qui: che cosa l'ha avviata, che cosa ha restituito ogni passaggio e che cosa non è riuscito."
       },
       "wrapUp": {
         "title": "Questo è tutto il ciclo",

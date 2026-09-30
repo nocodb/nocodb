@@ -756,7 +756,8 @@
     "continue": "തുടരുക",
     "manage": "കൈകാര്യം ചെയ്യുക",
     "orgBadge": "സ്ഥാപനം",
-    "migrate": "മാറ്റുക"
+    "migrate": "മാറ്റുക",
+    "email": "ഇമെയിൽ"
   },
   "objects": {
     "script": "സ്‌ക്രിപ്റ്റ്",
@@ -3102,7 +3103,12 @@
         "variables": "ഓട്ടോമേഷനുകൾക്കും ഫീൽഡുകൾക്കും വീണ്ടും ഉപയോഗിക്കാവുന്ന മൂല്യങ്ങൾ.",
         "migrateToV3": "ഈ ബേസ് v3 പ്ലാറ്റ്‌ഫോമിലേക്കും API-കളിലേക്കും അപ്ഗ്രേഡ് ചെയ്യുക.",
         "migrateToCloud": "ഈ ബേസിന്റെ ഡാറ്റ NocoDB Cloud-ലേക്ക് മാറ്റുക."
-      }
+      },
+      "upgradeAskOwner": "അപ്‌ഗ്രേഡ് ചെയ്യാൻ ഉടമയോട് ആവശ്യപ്പെടുക",
+      "upgradeRequestSent": "അപേക്ഷ അയച്ചു",
+      "upgradeDescRls": "ഓരോ വ്യക്തിക്കും ഏതൊക്കെ റെക്കോർഡുകൾ കാണാനും തിരുത്താനും കഴിയുമെന്ന് പരിമിതപ്പെടുത്തുക.",
+      "upgradeDescRecordTemplates": "സംരക്ഷിച്ച, മുൻകൂട്ടി പൂരിപ്പിച്ച ടെംപ്ലേറ്റുകളിൽ നിന്ന് പുതിയ റെക്കോർഡുകൾ ഉണ്ടാക്കുക.",
+      "upgradeDescDateDependency": "ഒരു റെക്കോർഡ് നീക്കുമ്പോൾ ആശ്രിത തീയതികൾ സ്വയമേവ നീക്കുന്നു."
     },
     "categories": "വിഭാഗങ്ങൾ",
     "blockquote": "ഉദ്ധരണി",
@@ -4579,7 +4585,114 @@
     "regenerateSecret": "പുതിയ സീക്രട്ട് സൃഷ്ടിക്കുക",
     "createOauthClients": "OAuth ക്ലയന്റുകൾ സൃഷ്ടിക്കുക",
     "managingOauthClients": "OAuth ക്ലയന്റുകളുടെ നടത്തിപ്പ്",
-    "clientInformation": "ക്ലയന്റ് വിവരങ്ങൾ"
+    "clientInformation": "ക്ലയന്റ് വിവരങ്ങൾ",
+    "byUser": "{user} ചെയ്തത്",
+    "requestIntegration": "സംയോജനം അഭ്യർത്ഥിക്കുക",
+    "browseIntegrations": "സംയോജനങ്ങൾ പരിശോധിക്കുക",
+    "examplePrompt": "ഉദാഹരണ പ്രോംപ്റ്റ്",
+    "connectYourAi": "നിങ്ങളുടെ എഐ ബന്ധിപ്പിക്കുക",
+    "connectAVault": "ഒരു വോൾട്ട് ബന്ധിപ്പിക്കുക",
+    "manageVaults": "വോൾട്ടുകൾ കൈകാര്യം ചെയ്യുക",
+    "baseRelations": "ബേസ് ബന്ധങ്ങൾ",
+    "downloadReport": "റിപ്പോർട്ട് ഡൗൺലോഡ് ചെയ്യുക",
+    "noLongerWorkspaceMember": "ഇനി ഈ പ്രവർത്തനസ്ഥലത്തെ അംഗമല്ല",
+    "notBaseMember": "ഈ ബേസിലെ അംഗമല്ല",
+    "factoryNoSessionMatches": "ആ തിരയലുമായി പൊരുത്തപ്പെടുന്ന സെഷനുകളില്ല",
+    "factoryRepoHasProject": "ഒരു പ്രോജക്ട് ഉണ്ട്",
+    "factoryOpenRepo": "റിപ്പോസിറ്ററി തുറക്കുക",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "നിങ്ങളുടെ ഡാറ്റയ്ക്ക് മുകളിൽ പട്ടികകൾ, കാഴ്ചകൾ, ഓട്ടോമേഷനുകൾ, ആപ്പുകൾ.",
+    "projectKindCode": "കോഡ് പ്രോജക്ട്",
+    "projectKindCodeHint": "ഒരു റിപ്പോസിറ്ററി ബന്ധിപ്പിച്ച് ഏജന്റുമാരെക്കൊണ്ട് അതിന്റെ കോഡിൽ ജോലി ചെയ്യിക്കുക.",
+    "planStatusPending": "പെന്‍ഡിംഗ്",
+    "planStatusInProgress": "പുരോഗമിക്കുന്നു",
+    "planStatusCompleted": "പൂർത്തിയായി",
+    "createOauthClient": "OAuth ക്ലയന്റ് ഉണ്ടാക്കുക",
+    "downgradeToFreePlan": "Free പ്ലാനിലേക്ക് താഴ്ത്തുക",
+    "plusApplicableTax": "+ ബാധകമായ നികുതി",
+    "beforeYouCancelPlan": "നിങ്ങളുടെ പ്ലാൻ റദ്ദാക്കുന്നതിന് മുൻപ്",
+    "formBranding": "ഫോമിന്റെ ബ്രാൻഡിംഗ്",
+    "aiIntegration": "എഐ സംയോജനം",
+    "model": "മോഡൽ",
+    "enableWebSearch": "വെബ് തിരയൽ പ്രവർത്തനക്ഷമമാക്കുക",
+    "enableWebSearchHint": "ഏറ്റവും പുതിയ വിവരങ്ങൾക്കായി എഐ മോഡലിനെ വെബിൽ തിരയാൻ അനുവദിക്കുക",
+    "outputSchema": "ഔട്ട്പുട്ട് സ്കീമ",
+    "itemType": "ഇനത്തിന്റെ തരം",
+    "addProperty": "ഗുണവിശേഷം ചേർക്കുക",
+    "addField": "വിഭാഗം ചേർക്കുക",
+    "planSubtitleBusiness": "നിങ്ങളുടെ ബിസിനസ്സിന്റെ ആവശ്യങ്ങൾക്ക്",
+    "planTaglineBusiness": "Airtable, Monday എന്നിവയെയും Smartsheet നെയും അപേക്ഷിച്ച് 70% വരെ ലാഭിക്കുക",
+    "planSubtitleScale": "വളരുന്ന ടീമുകൾക്ക്",
+    "planTaglineScale": "ബജറ്റുള്ള വേഗത്തിൽ നീങ്ങുന്ന ടീമുകൾ.",
+    "planTaglineScaleNoSalesCall": "വിൽപ്പന കോൾ ആവശ്യമില്ല.",
+    "everythingInBusinessAnd": "Business ലെ എല്ലാം കൂടാതെ",
+    "planSubtitleEnterprise": "നിങ്ങളുടെ സ്ഥാപനത്തിന് അനുയോജ്യമാക്കിയത്",
+    "scheduleACall": "ഒരു കോൾ ക്രമീകരിക്കുക",
+    "everythingInScaleAnd": "Scale ലെ എല്ലാം കൂടാതെ",
+    "connectionName": "കണക്ഷന്റെ പേര്",
+    "connectionDetailsSection": "കണക്ഷൻ വിശദാംശങ്ങൾ",
+    "host": "ഹോസ്റ്റ്",
+    "path": "പാത",
+    "connectionParameters": "കണക്ഷൻ പാരാമീറ്ററുകൾ",
+    "advancedOptions": "വിപുലമായ ഓപ്ഷനുകൾ",
+    "integrationDetails": "സംയോജനത്തിന്റെ വിശദാംശങ്ങൾ",
+    "pgConnectionDetails": "കണക്ഷൻ വിശദാംശങ്ങൾ",
+    "pgPort": "പോർട്ട്",
+    "pgSslMode": "SSL മോഡ്",
+    "connectionJson": "കണക്ഷൻ JSON",
+    "input": "ഇൻപുട്ട്",
+    "output": "ഔട്ട്പുട്ട്",
+    "console": "കൺസോൾ",
+    "forgotPassword": "പാസ്സ്‌വേഡ് മറന്നോ?",
+    "privacyPolicy": "സ്വകാര്യതാ നയം",
+    "clickHere": "ഇവിടെ ക്ലിക്ക് ചെയ്യുക",
+    "emailVerification": "ഇമെയിൽ പരിശോധന",
+    "method": "രീതി",
+    "queryParameters": "ക്വറി പാരാമീറ്ററുകൾ",
+    "samplePayload": "മാതൃകാ പേലോഡ്",
+    "addDataSource": "ഡാറ്റ ഉറവിടം ചേർക്കുക",
+    "addSource": "ഉറവിടം ചേർക്കുക",
+    "dataSourceName": "ഡാറ്റ ഉറവിടത്തിന്റെ പേര്",
+    "goBack": "തിരികെ പോകുക",
+    "interval": "ഇടവേള",
+    "everyMinutes": "ഓരോ മിനിറ്റിലും",
+    "selectMinute": "മിനിറ്റ് തിരഞ്ഞെടുക്കുക",
+    "selectTimeOfDay": "ദിവസത്തിലെ സമയം തിരഞ്ഞെടുക്കുക",
+    "selectTimeAndDayOfWeek": "സമയവും ആഴ്ചയിലെ ദിവസവും തിരഞ്ഞെടുക്കുക",
+    "selectTimeAndDayOfMonth": "സമയവും മാസത്തിലെ ദിവസവും തിരഞ്ഞെടുക്കുക",
+    "editedByYou": "നിങ്ങൾ തിരുത്തിയത്",
+    "regenerating": "വീണ്ടും ഉണ്ടാക്കുന്നു...",
+    "calendarIsReadonly": "കലണ്ടർ വായിക്കാൻ മാത്രം",
+    "generatedViews": "ഉണ്ടാക്കിയ കാഴ്ചകൾ",
+    "disableConnection": "കണക്ഷൻ പ്രവർത്തനരഹിതമാക്കുക",
+    "connectWithFavoriteTools": "നിങ്ങളുടെ പ്രിയപ്പെട്ട ഉപകരണങ്ങളുമായി ബന്ധിപ്പിക്കുക",
+    "getConnectionDetails": "കണക്ഷൻ വിശദാംശങ്ങൾ നേടുക",
+    "connectionUrl": "കണക്ഷൻ URL",
+    "chartSortBy": "ഇതനുസരിച്ച് അടുക്കുക",
+    "categoryLimit": "വിഭാഗ പരിധി",
+    "chartLegendOrientation": "ലെജൻഡിന്റെ ദിശ",
+    "plotDataPoints": "ഡാറ്റ പോയിന്റുകൾ വരയ്ക്കുക",
+    "retryImport": "ഇറക്കുമതി വീണ്ടും ശ്രമിക്കുക",
+    "listening": "ശ്രദ്ധിക്കുന്നു",
+    "generateAndCopyUrl": "URL ഉണ്ടാക്കി പകർത്തുക",
+    "executionTime": "നിർവഹണ സമയം",
+    "requestTime": "അഭ്യർത്ഥനയുടെ സമയം",
+    "errorCode": "പിശക് കോഡ്",
+    "authorizationError": "അംഗീകാര പിശക്",
+    "requestedPermissions": "ആവശ്യപ്പെട്ട അനുമതികൾ",
+    "applicationWillBeAbleTo": "ഈ ആപ്ലിക്കേഷന് ഇവ ചെയ്യാനാകും",
+    "authorize": "അംഗീകരിക്കുക",
+    "noUrl": "URL ഇല്ല",
+    "imageUrl": "ചിത്രത്തിന്റെ URL",
+    "altText": "ബദൽ വാചകം",
+    "fitToView": "കാഴ്ചയ്ക്ക് അനുയോജ്യമാക്കുക",
+    "requestBody": "അഭ്യർത്ഥനയുടെ ബോഡി",
+    "bodyType": "ബോഡി തരം",
+    "httpAdvancedOptions": "വിപുലമായ ഓപ്ഷനുകൾ",
+    "followRedirects": "റീഡയറക്ടുകൾ പിന്തുടരുക",
+    "followRedirectsDescription": "HTTP റീഡയറക്ടുകൾ സ്വയമേവ പിന്തുടരുക",
+    "failOnErrorStatus": "പിശക് നിലയിൽ പരാജയപ്പെടുത്തുക",
+    "failOnErrorStatusDescription": "പ്രതികരണം 4xx അല്ലെങ്കിൽ 5xx ആകുമ്പോൾ പരാജയപ്പെടുത്തുക"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6606,7 +6719,7 @@
     "notAvailablePending": "Trash is not yet available for this table.",
     "conflict": {
       "panelTitle": "{count} record has a conflict | {count} records have conflicts",
-      "panelHelp": "Fix these at the source and try again, or restore now — we'll clear the conflicting values.",
+      "panelHelp": "ഇവ ഉറവിടത്തിൽ തന്നെ ശരിയാക്കി വീണ്ടും ശ്രമിക്കുക, അല്ലെങ്കിൽ ഇപ്പോൾ പുനഃസ്ഥാപിക്കുക. വൈരുദ്ധ്യമുള്ള മൂല്യങ്ങൾ ഞങ്ങൾ മായ്ക്കും.",
       "cleanRemainder": "{count} other record will restore normally. | {count} other records will restore normally.",
       "group": {
         "link": "Links already taken",
@@ -6765,7 +6878,7 @@
     "workflows": {
       "addTrigger": {
         "title": "ഒരു ട്രിഗർ ചേർക്കുക",
-        "description": "എല്ലാ വർക്ക്ഫ്ലോയും ഇവിടെ തുടങ്ങുന്നു — എന്തൊക്കെ അത് ആരംഭിക്കാമെന്ന് കാണാൻ ക്ലിക്ക് ചെയ്യുക."
+        "description": "എല്ലാ വർക്ക്ഫ്ലോയും ഇവിടെ നിന്നാണ് തുടങ്ങുന്നത്. എന്താണ് അതിനെ തുടക്കമിടാൻ കഴിയുന്നതെന്ന് കാണാൻ ക്ലിക്ക് ചെയ്യുക."
       },
       "addAction": {
         "title": "ഒരു പ്രവർത്തനം ചേർക്കുക",
@@ -6782,7 +6895,7 @@
       },
       "create": {
         "title": "ഒരു പ്രവർത്തനക്രമം ഉണ്ടാക്കുക",
-        "description": "പൂജ്യത്തിൽ നിന്ന് തുടങ്ങുക — ഇത് ഒരു ചെറിയ ഫോം തുറക്കും."
+        "description": "പൂജ്യത്തിൽ നിന്ന് തുടങ്ങുക. ഇത് ഒരു ചെറിയ ഫോം തുറക്കും."
       },
       "createSubmit": {
         "title": "ഉണ്ടാക്കുക",
@@ -6810,15 +6923,15 @@
       },
       "enable": {
         "title": "അത് ഓണാക്കുക",
-        "description": "പ്രസിദ്ധീകരിച്ചു എന്നതും പ്രവർത്തിക്കുന്നു എന്നതും ഒന്നല്ല. നിങ്ങൾ ഓണാക്കുന്നതുവരെ പ്രവർത്തനക്രമം <b>നിർത്തിവച്ച</b> നിലയിൽ തുടരും — ആളുകൾ വിട്ടുപോകുന്ന ഘട്ടം ഇതാണ്."
+        "description": "പ്രസിദ്ധീകരിച്ചത് പ്രവർത്തിക്കുന്നതിന് തുല്യമല്ല. നിങ്ങൾ പ്രവർത്തനക്ഷമമാക്കുന്നതുവരെ വർക്ക്ഫ്ലോ <b>താൽക്കാലികമായി നിർത്തിയ</b> നിലയിൽ തുടരും. ആളുകൾ വിട്ടുപോകുന്ന ഘട്ടം ഇതാണ്."
       },
       "run": {
         "title": "ഒരിക്കൽ പ്രവർത്തിപ്പിക്കുക",
-        "description": "സ്വയം നൽകുന്ന ട്രിഗർ ആവശ്യാനുസരണം പ്രവർത്തിക്കും — ഒന്ന് പരീക്ഷിച്ച് അത് നടക്കുന്നത് കാണുക."
+        "description": "മാനുവൽ ട്രിഗർ ആവശ്യാനുസരണം പ്രവർത്തിക്കുന്നു. ഒന്ന് പരീക്ഷിച്ച് അതിന്റെ പ്രവർത്തനം കാണുക."
       },
       "logs": {
         "title": "രേഖകൾ പരിശോധിക്കുക",
-        "description": "ഓരോ പ്രവർത്തനവും ഇവിടെ രേഖപ്പെടുത്തുന്നു — എന്താണ് തുടക്കമിട്ടത്, ഓരോ ഘട്ടവും എന്ത് മടക്കി നൽകി, എന്ത് പരാജയപ്പെട്ടു എന്നിവ."
+        "description": "ഓരോ പ്രവർത്തനവും ഇവിടെ രേഖപ്പെടുത്തുന്നു: എന്താണ് അത് തുടങ്ങിയത്, ഓരോ ഘട്ടവും എന്താണ് തിരികെ നൽകിയത്, എന്താണ് പരാജയപ്പെട്ടത്."
       },
       "wrapUp": {
         "title": "ഇതാണ് മുഴുവൻ ചക്രം",
@@ -6829,7 +6942,7 @@
       "title": "നിങ്ങളുടെ പണിയിടം പരിചയപ്പെടുക",
       "welcome": {
         "title": "NocoDB ലേക്ക് സ്വാഗതം",
-        "description": "നിങ്ങളുടെ പണിയിടത്തിലൂടെ ഒരു ചെറു ചുറ്റിക്കറക്കം. എപ്പോൾ വേണമെങ്കിലും പുറത്തുകടക്കാം — ഒഴിവാക്കുക അമർത്തുക."
+        "description": "നിങ്ങളുടെ പ്രവർത്തനസ്ഥലത്തിലൂടെ ഒരു വേഗത്തിലുള്ള ചുറ്റിക്കറക്കം. എപ്പോൾ വേണമെങ്കിലും പുറത്തുകടക്കാം: വിട്ടുക അമർത്തുക."
       },
       "createBase": {
         "title": "ഒരു മേൽസ്ഥലത്തിൽ നിന്ന് തുടങ്ങുക",

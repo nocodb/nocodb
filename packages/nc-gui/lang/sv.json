@@ -756,7 +756,8 @@
     "continue": "Fortsätt",
     "manage": "Hantera",
     "orgBadge": "Org.",
-    "migrate": "Migrera"
+    "migrate": "Migrera",
+    "email": "E-post"
   },
   "objects": {
     "script": "Skript",
@@ -3101,7 +3102,12 @@
         "variables": "Återanvändbara värden för automatiseringar och fält.",
         "migrateToV3": "Uppgradera den här basen till v3-plattformen och v3-API:erna.",
         "migrateToCloud": "Flytta den här basens data till NocoDB Cloud."
-      }
+      },
+      "upgradeAskOwner": "Be ägaren att uppgradera",
+      "upgradeRequestSent": "Förfrågan skickad",
+      "upgradeDescRls": "Begränsa vilka poster varje person kan se och redigera.",
+      "upgradeDescRecordTemplates": "Skapa nya poster utifrån sparade, förifyllda mallar.",
+      "upgradeDescDateDependency": "Flytta beroende datum automatiskt när en post flyttas."
     },
     "categories": "Kategorier",
     "blockquote": "Citat",
@@ -4570,7 +4576,113 @@
     "regenerateSecret": "Generera ny hemlighet",
     "createOauthClients": "Skapa OAuth-klienter",
     "managingOauthClients": "Hantera OAuth-klienter",
-    "clientInformation": "Klientinformation"
+    "clientInformation": "Klientinformation",
+    "byUser": "av {user}",
+    "requestIntegration": "Begär integration",
+    "browseIntegrations": "Bläddra bland integrationer",
+    "examplePrompt": "Exempel på prompt",
+    "connectYourAi": "Anslut din AI",
+    "connectAVault": "Anslut ett valv",
+    "manageVaults": "Hantera valv",
+    "baseRelations": "Basrelationer",
+    "downloadReport": "Ladda ner rapport",
+    "noLongerWorkspaceMember": "Inte längre medlem i den här arbetsytan",
+    "notBaseMember": "Inte medlem i den här basen",
+    "factoryNoSessionMatches": "Inga sessioner matchar den sökningen",
+    "factoryRepoHasProject": "Har ett projekt",
+    "factoryOpenRepo": "Öppna repositoriet",
+    "projectKindApp": "NocoDB App",
+    "projectKindAppHint": "Tabeller, vyer, automatiseringar och appar ovanpå dina data.",
+    "projectKindCode": "Kodprojekt",
+    "projectKindCodeHint": "Anslut ett repositorium och låt agenter arbeta med dess kod.",
+    "planStatusPending": "Väntar",
+    "planStatusInProgress": "Pågår",
+    "planStatusCompleted": "Slutförd",
+    "createOauthClient": "Skapa OAuth-klient",
+    "downgradeToFreePlan": "Nedgradera till Free-abonnemanget",
+    "plusApplicableTax": "+ tillkommande skatt",
+    "beforeYouCancelPlan": "Innan du säger upp ditt abonnemang",
+    "formBranding": "Formulärets varumärkesprofil",
+    "aiIntegration": "AI-integration",
+    "model": "Modell",
+    "enableWebSearch": "Aktivera webbsökning",
+    "enableWebSearchHint": "Låt AI-modellen söka på webben efter aktuell information",
+    "outputSchema": "Utdataschema",
+    "itemType": "Objekttyp",
+    "addProperty": "Lägg till egenskap",
+    "addField": "Lägg till fält",
+    "planSubtitleBusiness": "För ditt företags behov",
+    "planTaglineBusiness": "Spara upp till 70 % jämfört med Airtable, Monday & Smartsheet",
+    "planSubtitleScale": "För växande team",
+    "planTaglineScale": "Snabbrörliga team med budget.",
+    "planTaglineScaleNoSalesCall": "Inget säljsamtal behövs.",
+    "everythingInBusinessAnd": "Allt i Business och",
+    "planSubtitleEnterprise": "Skräddarsytt för din organisation",
+    "scheduleACall": "Boka ett samtal",
+    "everythingInScaleAnd": "Allt i Scale och",
+    "connectionName": "Anslutningsnamn",
+    "connectionDetailsSection": "Anslutningsdetaljer",
+    "host": "Värd",
+    "path": "Sökväg",
+    "connectionParameters": "Anslutningsparametrar",
+    "advancedOptions": "Avancerade inställningar",
+    "integrationDetails": "Integrationsdetaljer",
+    "pgConnectionDetails": "Anslutningsdetaljer",
+    "pgSslMode": "SSL-läge",
+    "connectionJson": "Anslutnings-JSON",
+    "input": "Indata",
+    "output": "Utdata",
+    "console": "Konsol",
+    "forgotPassword": "Glömt lösenordet?",
+    "privacyPolicy": "Integritetspolicy",
+    "clickHere": "Klicka här",
+    "emailVerification": "E-postverifiering",
+    "method": "Metod",
+    "queryParameters": "Frågeparametrar",
+    "samplePayload": "Exempel på nyttolast",
+    "addDataSource": "Lägg till datakälla",
+    "addSource": "Lägg till källa",
+    "dataSourceName": "Datakällans namn",
+    "goBack": "Tillbaka",
+    "interval": "Intervall",
+    "everyMinutes": "Var minuter",
+    "selectMinute": "Välj minut",
+    "selectTimeOfDay": "Välj tid på dagen",
+    "selectTimeAndDayOfWeek": "Välj tid och veckodag",
+    "selectTimeAndDayOfMonth": "Välj tid och dag i månaden",
+    "editedByYou": "Redigerad av dig",
+    "regenerating": "Genererar om ...",
+    "calendarIsReadonly": "Kalendern är skrivskyddad",
+    "generatedViews": "Genererad vy/vyer",
+    "disableConnection": "Inaktivera anslutning",
+    "connectWithFavoriteTools": "Anslut till dina favoritverktyg",
+    "getConnectionDetails": "Hämta anslutningsdetaljer",
+    "connectionUrl": "Anslutnings-URL",
+    "chartSortBy": "Sortera efter",
+    "categoryLimit": "Kategorigräns",
+    "chartLegendOrientation": "Förklaringens orientering",
+    "plotDataPoints": "Rita ut datapunkter",
+    "retryImport": "Försök importera igen",
+    "listening": "Lyssnar",
+    "generateAndCopyUrl": "Generera och kopiera URL",
+    "executionTime": "Körtid",
+    "requestTime": "Tidpunkt för förfrågan",
+    "errorCode": "Felkod",
+    "authorizationError": "Auktoriseringsfel",
+    "requestedPermissions": "Begärda behörigheter",
+    "applicationWillBeAbleTo": "Den här applikationen kommer att kunna",
+    "authorize": "Auktorisera",
+    "noUrl": "Ingen URL",
+    "imageUrl": "Bild-URL",
+    "altText": "Alternativtext",
+    "fitToView": "Anpassa till vyn",
+    "requestBody": "Förfrågans body",
+    "bodyType": "Body-typ",
+    "httpAdvancedOptions": "Avancerade inställningar",
+    "followRedirects": "Följ omdirigeringar",
+    "followRedirectsDescription": "Följ HTTP-omdirigeringar automatiskt",
+    "failOnErrorStatus": "Misslyckas vid felstatus",
+    "failOnErrorStatusDescription": "Misslyckas när svaret är 4xx eller 5xx"
   },
   "activity": {
     "useTemplate": "Använd mall",
@@ -6598,7 +6710,7 @@
     "notAvailablePending": "Papperskorgen är ännu inte tillgänglig för den här tabellen.",
     "conflict": {
       "panelTitle": "{count} post har en konflikt <unk> {count} poster har konflikter",
-      "panelHelp": "Fixa dessa vid källan och försök igen, eller återställ nu — vi rensar de motstridiga värdena.",
+      "panelHelp": "Åtgärda dem vid källan och försök igen, eller återställ nu. Vi rensar de motstridiga värdena.",
       "cleanRemainder": "{count} andra poster kommer att återställa normalt. <unk> {count} andra poster kommer att återställa normalt.",
       "group": {
         "link": "Länkar har redan tagits",
@@ -6757,7 +6869,7 @@
     "workflows": {
       "addTrigger": {
         "title": "Lägg till en utlösare",
-        "description": "Varje arbetsflöde börjar här — klicka för att se vad som kan sätta igång det."
+        "description": "Varje arbetsflöde börjar här. Klicka för att se vad som kan utlösa det."
       },
       "addAction": {
         "title": "Lägg till en åtgärd",
@@ -6774,7 +6886,7 @@
       },
       "create": {
         "title": "Skapa ett Workflow",
-        "description": "Börja från början — det här öppnar ett kort formulär."
+        "description": "Börja från början. Detta öppnar ett kort formulär."
       },
       "createSubmit": {
         "title": "Skapa det",
@@ -6802,15 +6914,15 @@
       },
       "enable": {
         "title": "Slå på det",
-        "description": "Publicerat är inte samma sak som igång. Ett Workflow förblir <b>Pausat</b> tills du slår på det — det är det här steget folk missar."
+        "description": "Publicerat är inte samma sak som igång. Ett arbetsflöde förblir <b>pausat</b> tills du aktiverar det. Det är det här steget folk missar."
       },
       "run": {
         "title": "Kör den en gång",
-        "description": "En manuell utlösare körs på begäran — testa den och se hur den körs."
+        "description": "En manuell utlösare körs på begäran. Testa den och se den köras."
       },
       "logs": {
         "title": "Kolla loggarna",
-        "description": "Varje körning loggas här — vad som utlöstes, vad varje steg returnerade och vad som misslyckades."
+        "description": "Varje körning registreras här: vad som utlöste den, vad varje steg returnerade och vad som misslyckades."
       },
       "wrapUp": {
         "title": "Det är hela varvet",
@@ -6821,7 +6933,7 @@
       "title": "Hitta rätt i din arbetsyta",
       "welcome": {
         "title": "Välkommen till NocoDB",
-        "description": "Ett snabbt varv runt din arbetsyta. Du kan avsluta när som helst — tryck på Hoppa över."
+        "description": "Ett snabbt varv i din arbetsyta. Du kan avsluta när som helst: tryck på Hoppa över."
       },
       "createBase": {
         "title": "Börja med en Base",

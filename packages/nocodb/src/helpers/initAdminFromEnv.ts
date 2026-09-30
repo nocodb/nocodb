@@ -133,11 +133,24 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
           MetaTable.USERS,
         );
 
+        // NC_ADMIN_EMAIL names one identity, so exactly one super may claim
+        // it: the one already holding it, else the first. Running the rename
+        // below for every super walks them all onto the same address, and each
+        // pass absorbs and deletes the account the previous pass just renamed.
+        const superAdmins = superUsers.filter((u) =>
+          u.roles?.includes('super'),
+        );
+        const targetSuperId = (
+          superAdmins.find((u) => u.email === email) ?? superAdmins[0]
+        )?.id;
+
         let superUserPresent = false;
         for (const user of superUsers) {
           if (!user.roles?.includes('super')) continue;
 
           superUserPresent = true;
+
+          if (user.id !== targetSuperId) continue;
 
           if (email !== user.email) {
             // update admin email and password and migrate bases

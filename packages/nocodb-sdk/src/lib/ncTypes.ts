@@ -22,6 +22,12 @@ export interface NcContext {
     is_app_effective_role?: boolean;
     real_base_role?: ProjectRoles;
     is_agent?: boolean;
+    /**
+     * Set on the WORKFLOW_USER when a workflow runs "as a role": it carries that
+     * role's `base_roles` and must obey RLS like that role would — so the
+     * read_only write gate must NOT exempt it as a plain platform service actor.
+     */
+    run_as_role?: boolean;
   };
   fk_model_id?: string;
   socket_id?: string;

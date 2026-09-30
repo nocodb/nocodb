@@ -81,7 +81,20 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     abortInflightSearchRequests()
 
-    watch(() => [search.value.query, search.value.field], abortInflightSearchRequests)
+    watch(
+      () => [search.value.query, search.value.field] as const,
+      ([query], [prevQuery] = []) => {
+        // With no query the rows don't depend on the field, and no reload follows a field change —
+        // aborting here would kill the view's own initial load. `field` moves on every view open:
+        // loadFieldQuery swaps in an empty object and the displayColumn computed writes the PV id.
+        if (!query?.trim() && !prevQuery?.trim()) return
+
+        abortInflightSearchRequests()
+      },
+      // onSelectOption sets `field` and triggers the reload in the same tick, so the new controller
+      // has to exist before any caller can read the signal.
+      { flush: 'sync' },
+    )
 
     onScopeDispose(() => searchAbortController?.abort())
 

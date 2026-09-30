@@ -669,7 +669,8 @@ export function useInfiniteData(args: {
       // against the same aborted signal, so reset them for the new term's fetch and stop here.
       if (axios.isCancel(error)) {
         for (const request of batch) {
-          getDataCache(request.path).chunkStates.value[request.chunkId] = undefined
+          // Skip stale group requests — getDataCache would leave a placeholder cache behind.
+          if (!isStaleChunkRequest(request)) getDataCache(request.path).chunkStates.value[request.chunkId] = undefined
           request.resolve(undefined)
         }
         return

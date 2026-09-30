@@ -59,7 +59,7 @@ interface RelatedModelInfo {
   primaryKeys: Column[];
 }
 
-const UPSERT_MAX_MERGE_FIELDS = 3;
+export const UPSERT_MAX_MERGE_FIELDS = 3;
 const UPSERT_DISALLOWED_UITYPES = new Set([
   UITypes.ID,
   UITypes.Attachment,
@@ -652,8 +652,6 @@ export class DataV3Service {
             relatedPrimaryKeys,
             getPrimaryKey,
           );
-        } else if (fieldValue === null) {
-          transformedFields[key] = null;
         }
       }
     }
@@ -894,8 +892,10 @@ export class DataV3Service {
       }
     }
 
-    if (records.length > V3_DATA_PAYLOAD_LIMIT) {
-      NcError.get(context).maxPayloadLimitExceeded(V3_DATA_PAYLOAD_LIMIT);
+    const upsertPayloadLimit =
+      param.maxPayloadOverride ?? V3_DATA_PAYLOAD_LIMIT;
+    if (records.length > upsertPayloadLimit) {
+      NcError.get(context).maxPayloadLimitExceeded(upsertPayloadLimit);
     }
 
     // 2. Get model info
@@ -1074,8 +1074,10 @@ export class DataV3Service {
       [primaryKey.title]: record.id,
     }));
 
-    if (recordIds.length > V3_DATA_PAYLOAD_LIMIT) {
-      NcError.get(context).maxPayloadLimitExceeded(V3_DATA_PAYLOAD_LIMIT);
+    const deletePayloadLimit =
+      param.maxPayloadOverride ?? V3_DATA_PAYLOAD_LIMIT;
+    if (recordIds.length > deletePayloadLimit) {
+      NcError.get(context).maxPayloadLimitExceeded(deletePayloadLimit);
     }
     await this.dataTableService.dataDelete(context, {
       ...param,
@@ -1180,7 +1182,14 @@ export class DataV3Service {
     // whose whole purpose here is not to leak RLS-restricted rows.
     const fullRecords = await baseModel.chunkList({
       pks: idsAsStrings,
-      apiVersion: context.api_version,
+      // Default to V3 like the insert read-back: it is what drops system
+      // columns (the `_nc_m2m_*` junction link). Only fills in for callers that
+      // reach this service directly with no version on the context (MCP); the
+      // AI `update_records` tool inherits a V2 chat context and keeps it, so
+      // its read-back shape is unchanged. Effective on the EE optimised query
+      // clients — `chunkList`'s sqlite/unsupported-MariaDB fallback builds its
+      // ast without an apiVersion.
+      apiVersion: context.api_version ?? NcApiVersion.V3,
       args: {
         ...(linksAsLtar ? { linksAsLtar: 'true' } : {}),
       },

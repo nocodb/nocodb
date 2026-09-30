@@ -27,6 +27,7 @@ export default class OAuthAuthorizationCode {
 
   resource?: string;
   granted_resources?: Record<string, any>;
+  permissions?: string;
 
   expires_at: string;
   is_used: boolean;
@@ -50,6 +51,7 @@ export default class OAuthAuthorizationCode {
       'state',
       'resource',
       'granted_resources',
+      'permissions',
       'expires_at',
     ]);
 

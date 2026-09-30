@@ -56,6 +56,11 @@ export const getAjvValidatorMw = (schema: string) => {
   };
 };
 
+// Whether a $ref resolves. `validatePayload` 404s on an unknown schema, so
+// call sites that build a ref from runtime data (a stored column's uidt, say)
+// must check first — not every UIType has a FieldOptions entry.
+export const hasValidationSchema = (schema: string) => !!ajv.getSchema(schema);
+
 // a function to validate the payload against the schema
 export const validatePayload = (
   schema: string,

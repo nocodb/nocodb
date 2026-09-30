@@ -9168,6 +9168,11 @@
               "enum": [
                 "SingleLineText"
               ]
+            },
+            "options": {
+              "type": "object",
+              "description": "SingleLineText takes no options.",
+              "additionalProperties": false
             }
           }
         },
@@ -9386,6 +9391,9 @@
               "enum": [
                 "Attachment"
               ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Attachment"
             }
           }
         },
@@ -9396,6 +9404,11 @@
               "enum": [
                 "Geometry"
               ]
+            },
+            "options": {
+              "type": "object",
+              "description": "Geometry takes no options.",
+              "additionalProperties": false
             }
           }
         },
@@ -9484,6 +9497,11 @@
               "enum": [
                 "Year"
               ]
+            },
+            "options": {
+              "type": "object",
+              "description": "Year takes no options.",
+              "additionalProperties": false
             }
           }
         },
@@ -9494,6 +9512,11 @@
               "enum": [
                 "AutoNumber"
               ]
+            },
+            "options": {
+              "type": "object",
+              "description": "AutoNumber takes no options.",
+              "additionalProperties": false
             }
           }
         },
@@ -9543,6 +9566,9 @@
               "enum": [
                 "CreatedBy"
               ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_CreatedBy"
             }
           }
         },
@@ -9553,6 +9579,9 @@
               "enum": [
                 "LastModifiedBy"
               ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_LastModifiedBy"
             }
           }
         },
@@ -9589,6 +9618,11 @@
               "enum": [
                 "JSON"
               ]
+            },
+            "options": {
+              "type": "object",
+              "description": "JSON takes no options.",
+              "additionalProperties": false
             }
           }
         }
@@ -11222,19 +11256,39 @@
               "description": "Whether to hide branding on the form."
             },
             "banner": {
-              "type": "string",
-              "format": "uri",
-              "description": "URL of the banner image for the form."
+              "description": "Banner image for the form. A bare URL string is accepted and normalized into an attachment object.",
+              "oneOf": [
+                {
+                  "type": "string",
+                  "format": "uri"
+                },
+                {
+                  "$ref": "#/components/schemas/FormImage"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "logo": {
-              "type": "string",
-              "format": "uri",
-              "description": "URL of the logo for the form."
+              "description": "Logo for the form. A bare URL string is accepted and normalized into an attachment object.",
+              "oneOf": [
+                {
+                  "type": "string",
+                  "format": "uri"
+                },
+                {
+                  "$ref": "#/components/schemas/FormImage"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "form_background_color": {
               "type": "string",
-              "description": "Background color for the form.",
-              "pattern": "^#[0-9A-Fa-f]{6}$"
+              "description": "Background color for the form. 3-, 6- and 8-digit (with alpha) forms are accepted.",
+              "pattern": "^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$"
             },
             "redirect_url": {
               "type": "string",
@@ -11256,7 +11310,8 @@
                 "$ref": "#/components/schemas/FormFieldConfig"
               }
             }
-          }
+          },
+          "additionalProperties": false
         },
       "ViewCreate": {
           "type": "object",
@@ -12229,6 +12284,10 @@
           "generate_text_using_ai": {
             "type": "boolean",
             "description": "Enable text generation for this field using NocoAI."
+          },
+          "smart_mode": {
+            "type": "boolean",
+            "description": "Enable smart text mode."
           }
         },
         "additionalProperties": false
@@ -12237,7 +12296,7 @@
         "type": "object",
         "title": "PhoneNumber",
         "properties": {
-          "validation": {
+          "validate": {
             "type": "boolean",
             "description": "Enable validation for phone numbers."
           }
@@ -12248,7 +12307,7 @@
         "type": "object",
         "title": "URL",
         "properties": {
-          "validation": {
+          "validate": {
             "type": "boolean",
             "description": "Enable validation for URL."
           }
@@ -12259,7 +12318,7 @@
         "type": "object",
         "title": "Email",
         "properties": {
-          "validation": {
+          "validate": {
             "type": "boolean",
             "description": "Enable validation for Email."
           }
@@ -12315,13 +12374,19 @@
       "FieldOptions_Currency": {
         "type": "object",
         "title": "Currency",
-        "description": "Currency settings for this column. Locale defaults to `en-US` and currency code defaults to `USD`",
+        "description": "Currency settings for this column. `currency_locale` defaults to `en-US` and `currency_code` defaults to `USD`",
         "properties": {
-          "locale": {
+          "currency_locale": {
             "type": "string",
             "description": "Locale for currency formatting. Refer https://simplelocalize.io/data/locales/"
           },
-          "code": {
+          "precision": {
+            "type": "number",
+            "description": "Number of decimal places. Defaults to 2.",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "currency_code": {
             "type": "string",
             "description": "Currency code. Refer https://simplelocalize.io/data/locales/",
             "enum": [
@@ -12525,6 +12590,12 @@
             "type": "string",
             "enum": ["bar", "circle"],
             "description": "Progress bar shape. Only applies when `show_as_progress` is enabled.\n- `bar` (default)\n- `circle`"
+          },
+          "precision": {
+            "type": "number",
+            "description": "Number of decimal places. Defaults to 2.",
+            "minimum": 0,
+            "maximum": 5
           }
         },
         "additionalProperties": false
@@ -12644,8 +12715,8 @@
           },
           "color": {
             "type": "string",
-            "description": "Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`).",
-            "pattern": "^#[0-9A-Fa-f]{6}$"
+            "description": "Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`). 3-, 6- and 8-digit (with alpha) forms are accepted.",
+            "pattern": "^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$"
           }
         },
         "additionalProperties": false
@@ -12669,8 +12740,8 @@
           },
           "color": {
             "type": "string",
-            "description": "Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`).",
-            "pattern": "^#[0-9A-Fa-f]{6}$"
+            "description": "Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`). 3-, 6- and 8-digit (with alpha) forms are accepted.",
+            "pattern": "^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$"
           }
         },
         "additionalProperties": false
@@ -12679,7 +12750,7 @@
         "type": "object",
         "title": "Barcode",
         "properties": {
-          "format": {
+          "barcode_format": {
             "type": "string",
             "description": "Barcode format (e.g., CODE128)."
           },
@@ -12708,6 +12779,68 @@
           "formula": {
             "type": "string",
             "description": "Formula expression."
+          },
+          "display_type": {
+            "type": ["string", "null"],
+            "description": "Field type the formula result is rendered as. Null renders the raw result."
+          },
+          "display_column_meta": {
+            "type": "object",
+            "description": "Field options applied to the rendered result, shaped like the `display_type` field's own options."
+          }
+        },
+        "additionalProperties": false
+      },
+      "FieldOptions_Attachment": {
+        "type": "object",
+        "title": "Attachment",
+        "properties": {
+          "max_number_of_attachments": {
+            "type": "integer",
+            "description": "Maximum number of files per cell.",
+            "minimum": 1
+          },
+          "max_attachment_size": {
+            "type": "integer",
+            "description": "Maximum size per file, in megabytes.",
+            "minimum": 1
+          },
+          "supported_attachment_mime_types": {
+            "type": "array",
+            "description": "Allowed MIME types. `*` allows everything.",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "FieldOptions_CreatedBy": {
+        "type": "object",
+        "title": "CreatedBy",
+        "properties": {
+          "allow_multiple_users": {
+            "type": "boolean",
+            "description": "Allow selecting multiple users."
+          },
+          "notify": {
+            "type": "boolean",
+            "description": "Notify the user when they are assigned to a record."
+          }
+        },
+        "additionalProperties": false
+      },
+      "FieldOptions_LastModifiedBy": {
+        "type": "object",
+        "title": "LastModifiedBy",
+        "properties": {
+          "allow_multiple_users": {
+            "type": "boolean",
+            "description": "Allow selecting multiple users."
+          },
+          "notify": {
+            "type": "boolean",
+            "description": "Notify the user when they are assigned to a record."
           }
         },
         "additionalProperties": false
@@ -12719,6 +12852,10 @@
           "allow_multiple_users": {
             "type": "boolean",
             "description": "Allow selecting multiple users."
+          },
+          "notify": {
+            "type": "boolean",
+            "description": "Notify the user when they are assigned to a record."
           }
         },
         "additionalProperties": false
@@ -12738,6 +12875,26 @@
           "error": {
             "type": "string",
             "description": "Error message when dependent field is deleted"
+          },
+          "enable_conditions": {
+            "type": "boolean",
+            "description": "Apply the linked field's filters when resolving the lookup."
+          },
+          "lookup_limit": {
+            "type": "number",
+            "description": "Maximum number of linked records to resolve."
+          },
+          "use_recursive_evaluation": {
+            "type": "boolean",
+            "description": "Resolve lookups of lookups recursively."
+          },
+          "display_type": {
+            "type": ["string", "null"],
+            "description": "Field type the looked-up value is rendered as. Null renders the raw value."
+          },
+          "display_column_meta": {
+            "type": "object",
+            "description": "Field options applied to the rendered value, shaped like the `display_type` field's own options."
           }
         },
         "required": [
@@ -12775,6 +12932,16 @@
           "error": {
             "type": "string",
             "description": "Error message when dependent field is deleted"
+          },
+          "precision": {
+            "type": "number",
+            "description": "Number of decimal places for numeric rollups. Defaults to 0.",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "enable_conditions": {
+            "type": "boolean",
+            "description": "Apply the linked field's filters when computing the rollup."
           },
           "separator": {
             "type": "string",
@@ -12867,9 +13034,14 @@
                 ],
                 "description": "Button type: webhook"
               },
-              "button_hook_id": {
+              "webhook_id": {
                 "type": "string",
                 "description": "ID of the webhook to trigger"
+              },
+              "button_hook_id": {
+                "type": "string",
+                "deprecated": true,
+                "description": "Deprecated alias of `webhook_id`, accepted on write and normalised to it. Responses always use `webhook_id`."
               },
               "label": {
                 "type": "string",
@@ -12907,7 +13079,7 @@
             },
             "required": [
               "type",
-              "button_hook_id"
+              "webhook_id"
             ],
             "additionalProperties": false
           },
@@ -13029,6 +13201,61 @@
               "script_id"
             ],
             "additionalProperties": false
+          },
+          {
+            "title": "URL Button",
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "url"
+                ],
+                "description": "Button type: url"
+              },
+              "formula": {
+                "type": "string",
+                "description": "Formula that produces the URL to open"
+              },
+              "label": {
+                "type": "string",
+                "description": "Label of the button"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Icon of the button"
+              },
+              "color": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "red",
+                  "green",
+                  "maroon",
+                  "blue",
+                  "orange",
+                  "pink",
+                  "purple",
+                  "yellow",
+                  "gray"
+                ],
+                "description": "Color of the button"
+              },
+              "theme": {
+                "type": "string",
+                "enum": [
+                  "solid",
+                  "light",
+                  "text"
+                ],
+                "description": "Theme of the button"
+              }
+            },
+            "required": [
+              "type",
+              "formula"
+            ],
+            "additionalProperties": false
           }
         ],
         "errorMessage": {
@@ -13040,7 +13267,8 @@
             "formula": "#/components/schemas/FieldOptions_Button/oneOf/0",
             "webhook": "#/components/schemas/FieldOptions_Button/oneOf/1",
             "ai": "#/components/schemas/FieldOptions_Button/oneOf/2",
-            "script": "#/components/schemas/FieldOptions_Button/oneOf/3"
+            "script": "#/components/schemas/FieldOptions_Button/oneOf/3",
+            "url": "#/components/schemas/FieldOptions_Button/oneOf/4"
           }
         }
       },
@@ -13050,11 +13278,16 @@
         "properties": {
           "relation_type": {
             "type": "string",
-            "description": "Type of relationship.\n\nSupported options are listed below\n- `om` one-to-many\n- `mo` many-to-one\n- `mm` many-to-many\n- `oo` one-to-one"
+            "enum": ["om", "mo", "mm", "oo", "hm", "bt"],
+            "description": "Type of relationship.\n\nSupported options are listed below\n- `om` one-to-many\n- `mo` many-to-one\n- `mm` many-to-many\n- `oo` one-to-one\n- `hm` has-many\n- `bt` belongs-to"
           },
           "related_table_id": {
             "type": "string",
             "description": "Identifier of the linked table."
+          },
+          "enable_conditions": {
+            "type": "boolean",
+            "description": "Apply the link's configured filters when resolving linked records."
           }
         },
         "required": [
@@ -13069,11 +13302,16 @@
         "properties": {
           "relation_type": {
             "type": "string",
-            "description": "Type of relationship.\n\nSupported options are listed below\n- `om` one-to-many\n- `mo` many-to-one\n- `mm` many-to-many\n- `oo` one-to-one"
+            "enum": ["om", "mo", "mm", "oo", "hm", "bt"],
+            "description": "Type of relationship.\n\nSupported options are listed below\n- `om` one-to-many\n- `mo` many-to-one\n- `mm` many-to-many\n- `oo` one-to-one\n- `hm` has-many\n- `bt` belongs-to"
           },
           "related_table_id": {
             "type": "string",
             "description": "Identifier of the linked table."
+          },
+          "enable_conditions": {
+            "type": "boolean",
+            "description": "Apply the link's configured filters when resolving linked records."
           }
         },
         "required": [
@@ -16511,6 +16749,46 @@
           "list"
         ]
       },
+      "FormImage": {
+        "type": "object",
+        "description": "An image attached to a form (banner or logo).",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Publicly reachable image URL."
+          },
+          "path": {
+            "type": "string",
+            "description": "Storage path, for images already uploaded to this instance."
+          },
+          "title": {
+            "type": "string",
+            "description": "Display title."
+          },
+          "mimetype": {
+            "type": "string",
+            "description": "MIME type of the image."
+          },
+          "size": {
+            "type": "number",
+            "description": "Size in bytes."
+          },
+          "icon": {
+            "type": "string",
+            "description": "Icon name shown in place of a thumbnail."
+          },
+          "signedUrl": {
+            "type": "string",
+            "description": "Read-only. Signed URL generated on read; ignored on write."
+          },
+          "signedPath": {
+            "type": "string",
+            "description": "Read-only. Signed path generated on read; ignored on write."
+          }
+        },
+        "additionalProperties": false
+      },
       "FormFieldConfig": {
         "type": "object",
         "description": "Form-specific configuration for a field.",
@@ -16541,51 +16819,79 @@
           },
           "validators": {
             "type": "array",
-            "description": "List of validators for the field.",
+            "description": "List of validators for the field. Evaluated by the Enterprise form renderer only; the community edition ignores them.",
             "items": {
               "$ref": "#/components/schemas/FormFieldValidator"
             }
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FormFieldValidator": {
         "type": "object",
-        "description": "Validator configuration for a form field.",
+        "description": "One validation rule on a form field. The renderer matches on `type` with no fallback branch, so a type outside this enum is dropped silently — the enum is kept in sync with `nocodb-sdk`'s validation type unions (`src/lib/form.ts`).\n\nNote `required` is NOT a validator type: use the sibling `required` boolean on the field config. Option limiting is not a validator either: use `is_limit_option`.\n\nCustom validators are evaluated by the Enterprise form renderer only.",
         "properties": {
           "type": {
             "type": "string",
             "enum": [
-              "required",
-              "regex",
-              "minValue",
-              "maxValue",
               "minLength",
               "maxLength",
+              "startsWith",
+              "endsWith",
+              "includes",
+              "notIncludes",
+              "regex",
               "email",
+              "businessEmail",
+              "phoneNumber",
               "url",
-              "custom"
+              "min",
+              "max",
+              "minDate",
+              "maxDate",
+              "minTime",
+              "maxTime",
+              "minYear",
+              "maxYear",
+              "minSelected",
+              "maxSelected",
+              "fileTypes",
+              "fileSize",
+              "fileCount"
             ],
-            "description": "Type of validation to apply."
+            "description": "Type of validation to apply. Applicable field types:\n- text: `minLength`, `maxLength`, `startsWith`, `endsWith`, `includes`, `notIncludes`, `regex`\n- Email / PhoneNumber / URL: `email`, `businessEmail`, `phoneNumber`, `url`\n- numeric: `min`, `max`\n- Date / DateTime: `minDate`, `maxDate`\n- Time: `minTime`, `maxTime`\n- Year: `minYear`, `maxYear`\n- MultiSelect / User: `minSelected`, `maxSelected`\n- Attachment: `fileTypes`, `fileSize`, `fileCount`"
           },
           "value": {
             "type": [
               "string",
-              "integer",
+              "number",
+              "array",
               "null"
             ],
-            "description": "Validator parameter value (e.g., min/max number, pattern string)."
+            "description": "Validator parameter. Number for `minLength`, `maxLength`, `min`, `max`, `minYear`, `maxYear`, `minSelected`, `maxSelected`, `fileCount`, `fileSize` (kilobytes, whatever `unit` says). String for `startsWith`, `endsWith`, `includes`, `notIncludes`, `minDate`, `maxDate`, `minTime`, `maxTime`. Array of MIME patterns (`image/*`, `application/pdf`) for `fileTypes`. Omitted for `email`, `businessEmail`, `phoneNumber`, `url`, which are presence toggles, and for `regex`, which reads `regex` instead.\n\nAn empty string or explicit null disables the rule."
           },
           "message": {
             "type": "string",
-            "description": "Custom error message for validation failure."
+            "description": "Error message shown when the rule fails. Falls back to a generated message."
           },
           "regex": {
             "type": "string",
-            "description": "Regular expression pattern (for regex validator type)."
+            "description": "Regular expression pattern. Required when `type` is `regex`, ignored otherwise. Evaluated by the form renderer in the browser only — the submit endpoint does not re-check it, because an author-supplied backtracking pattern would stall the server."
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "KB",
+              "MB"
+            ],
+            "description": "`fileSize` only — the unit the limit was authored in. `value` is stored in kilobytes either way; this only controls how the limit is displayed."
           }
-        }
+        },
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false
       },
-
       "WorkflowList": {
         "type": "object",
         "properties": {

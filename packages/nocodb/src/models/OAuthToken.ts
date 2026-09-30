@@ -29,6 +29,7 @@ export default class OAuthToken {
   audience?: string;
 
   granted_resources?: Record<string, any>;
+  permissions?: string;
   scope?: string;
   is_revoked: boolean;
 
@@ -53,6 +54,7 @@ export default class OAuthToken {
       'resource',
       'audience',
       'granted_resources',
+      'permissions',
       'scope',
     ]);
 

@@ -338,9 +338,10 @@ const initEmblaApi = (val: any) => {
                   :src="getPossibleAttachmentSrc(item)"
                   @error="triggerReload"
                 />
-                <div v-else class="bg-white h-full flex flex-col justify-center rounded-md gap-1 items-center w-full">
+                <div v-else class="bg-white h-full flex flex-col justify-center rounded-md gap-1 items-center w-full px-6">
                   <component :is="iconMap.file" class="text-gray-600 w-20 h-20" />
                   <div class="text-gray-800 text-sm">{{ item.title }}</div>
+                  <div class="text-nc-content-gray-muted text-xs text-center max-w-100">{{ $t('labels.noPreviewAvailable') }}</div>
                 </div>
               </div>
             </NcCarouselItem>

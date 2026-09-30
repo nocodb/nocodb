@@ -24,7 +24,7 @@ export default class NocoCache {
     return this.cacheDisabled;
   }
 
-  public static init() {
+  public static async init() {
     this.cacheDisabled = (process.env.NC_DISABLE_CACHE || false) === 'true';
     if (this.cacheDisabled) {
       return;
@@ -38,6 +38,9 @@ export default class NocoCache {
     // TODO(cache): fetch orgs once it's implemented
     const orgs = 'noco';
     this.prefix = `${CACHE_PREFIX}:${orgs}`;
+
+    // The boot flush must finish before anything reads the cache.
+    await this.client.ready;
   }
 
   public static disableCache() {

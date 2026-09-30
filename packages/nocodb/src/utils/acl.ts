@@ -84,6 +84,10 @@ export const permissionScopes = {
     'oAuthClientGet',
 
     'mcpRootList',
+    'mcpToolCatalog',
+    'mcpRootCreate',
+    'mcpRootUpdate',
+    'mcpRootDelete',
 
     'getUserProfile',
 
@@ -386,6 +390,10 @@ const rolePermissions:
       oAuthClientRegenerateSecret: true,
 
       mcpRootList: true,
+      mcpToolCatalog: true,
+      mcpRootCreate: true,
+      mcpRootUpdate: true,
+      mcpRootDelete: true,
       getUserProfile: true,
 
       // Bookmarks

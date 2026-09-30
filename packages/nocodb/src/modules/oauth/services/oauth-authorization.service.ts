@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { NcBaseError } from 'nocodb-sdk';
+import { NcBaseError, ProjectRoles } from 'nocodb-sdk';
+import type { ApiTokenScopeEntry, NcContext } from 'nocodb-sdk';
 import {
-  BaseUser,
+  Base,
   OAuthAuthorizationCode,
   OAuthClient,
+  User,
   WorkspaceUser,
 } from '~/models';
 import { NcError } from '~/helpers/ncError';
@@ -11,6 +13,7 @@ import {
   isHttpRedirectUri,
   isRegisteredRedirectUri,
 } from '~/modules/oauth/helpers/redirectUri';
+import { hasMinimumRole } from '~/utils/roleHelper';
 
 @Injectable()
 export class OauthAuthorizationService {
@@ -64,6 +67,18 @@ export class OauthAuthorizationService {
     return url.toString();
   }
 
+  /**
+   * CE records no scopes on a consent: there is no scope model to record.
+   */
+  protected async buildConsentPermissions(_params: {
+    scopes?: ApiTokenScopeEntry[];
+    tools?: string[];
+    userId: string;
+    scope?: string;
+  }): Promise<string | null> {
+    return null;
+  }
+
   async createAuthorizationCode(params: {
     clientId: string;
     userId: string;
@@ -75,6 +90,8 @@ export class OauthAuthorizationService {
     workspaceId?: string;
     baseId?: string;
     resource?: string;
+    scopes?: ApiTokenScopeEntry[];
+    tools?: string[];
   }): Promise<OAuthAuthorizationCode> {
     const {
       clientId,
@@ -87,6 +104,8 @@ export class OauthAuthorizationService {
       workspaceId,
       baseId,
       resource,
+      scopes,
+      tools,
     } = params;
 
     // Validate the client and that the redirect URI is one it registered. Also
@@ -120,6 +139,16 @@ export class OauthAuthorizationService {
       NcError.badRequest('invalid_code_challenge');
     }
 
+    // The two consent shapes are mutually exclusive: a base pin grants the
+    // user's full authority over that base, scopes grant only what they name.
+    // Stored together they are honoured inconsistently — `/api/v3/` reads the
+    // blob, `/mcp` takes the pin — so the grant would mean two things at once.
+    if (baseId && scopes?.length) {
+      NcError.badRequest(
+        'A consent may name a base or a set of scopes, not both.',
+      );
+    }
+
     const expiresAt = new Date(
       Date.now() + this.AUTHORIZATION_CODE_EXPIRES_IN_MS,
     );
@@ -148,9 +177,25 @@ export class OauthAuthorizationService {
     // Validate base access if specified
     if (baseId) {
       try {
-        const bases = await BaseUser.getProjectsList(userId, {});
+        const context = {
+          workspace_id: workspaceId,
+          base_id: baseId,
+        } as NcContext;
 
-        const base = bases?.find?.((b) => b.id === baseId);
+        // Effective role, not a base-membership row: a workspace owner holds no
+        // `nc_bases_users` row yet owns every regular base in the workspace.
+        // Same check `/mcp` applies per call, so consent cannot be stricter
+        // than the surface it grants.
+        const userWithRoles = await User.getWithRoles(context, userId, {
+          baseId,
+          workspaceId,
+        });
+
+        if (!hasMinimumRole(userWithRoles, ProjectRoles.VIEWER)) {
+          NcError.forbidden('User does not have access to the specified base');
+        }
+
+        const base = await Base.get(context, baseId);
 
         if (!base) {
           NcError.forbidden('User does not have access to the specified base');
@@ -181,6 +226,12 @@ export class OauthAuthorizationService {
       granted_resources:
         Object.keys(grantedResources).length > 0 ? grantedResources : null,
       expires_at: expiresAt.toISOString(),
+      permissions: await this.buildConsentPermissions({
+        scopes,
+        tools,
+        userId,
+        scope,
+      }),
     });
   }
 }

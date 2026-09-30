@@ -1,6 +1,4 @@
 import { z } from 'zod';
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { McpToolRegistrar } from '~/mcp/tools/annotations';
 
 export function isZodSchema(value: unknown): value is z.ZodTypeAny {
   return typeof (value as any)?.safeParseAsync === 'function';
@@ -46,14 +44,15 @@ export function toStrictInputSchema(
 }
 
 /**
- * Wrap a real `McpServer` so tools registered straight onto it get a strict
- * input schema, as tools routed through the EE registry do. The CE-standalone
- * path and the EE discovery meta-tools both register through here; the EE
- * families are tightened inside `McpToolRegistry`.
+ * Wrap a real `McpServer` so tools registered straight onto it get the same
+ * treatment as tools routed through the EE registry. Only the CE-standalone
+ * path needs this — EE normalizes inside `McpToolRegistry`.
  */
-export function strictRegistrar(
-  server: Pick<McpServer, 'registerTool'>,
-): McpToolRegistrar {
+export function strictRegistrar<
+  T extends {
+    registerTool: (name: string, config: any, handler: any) => unknown;
+  },
+>(server: T): T {
   return {
     registerTool: (name: string, config: any, handler: any) =>
       server.registerTool(
@@ -61,5 +60,5 @@ export function strictRegistrar(
         { ...config, inputSchema: toStrictInputSchema(config?.inputSchema) },
         handler,
       ),
-  } as McpToolRegistrar;
+  } as unknown as T;
 }

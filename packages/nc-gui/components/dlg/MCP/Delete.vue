@@ -18,13 +18,16 @@ const { mcpToken } = props
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-const { deleteMcpToken } = useMcpSettings()
+const { deleteMcpToken, deleteAccountMcpToken } = useMcpSettings()
 
 async function onDelete() {
   if (!mcpToken.id) return
 
   try {
-    await deleteMcpToken(mcpToken, props.isAccountScope)
+    // The account surface goes through the org-scoped route: a scoped
+    // connection's row carries no base, so a base-addressed delete cannot
+    // reach it.
+    await (props.isAccountScope ? deleteAccountMcpToken(mcpToken) : deleteMcpToken(mcpToken))
 
     vModel.value = false
     emits('deleted')

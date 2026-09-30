@@ -1,6 +1,12 @@
 import { NcError } from 'src/helpers/catchError';
 import { nanoid } from 'nanoid';
-import type { MCPTokenType, NcContext } from 'nocodb-sdk';
+import { NO_SCOPE } from 'nocodb-sdk';
+import type {
+  MCPTokenType,
+  McpTokenPermissionsJson,
+  McpTokenStoredPermissions,
+  NcContext,
+} from 'nocodb-sdk';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import {
@@ -22,9 +28,72 @@ export default class MCPToken implements MCPTokenType {
   updated_at: string;
   created_at: string;
   token: string;
+  /**
+   * Granular scopes, as stored. Null means the credential predates them and
+   * carries the user's own authority pinned to `base_id` — see
+   * `McpTokenPermissionsJson`.
+   */
+  permissions?: string | null;
 
   constructor(mcpToken: MCPToken | MCPTokenType) {
     Object.assign(this, mcpToken);
+  }
+
+  /**
+   * The column as stored, or null when it is absent or unreadable.
+   *
+   * The caller has to tell those two apart: a credential whose column cannot
+   * be read must not fall back to the legacy "user's own authority" reading,
+   * which would turn corruption into an escalation. `grantFromMcpToken` does
+   * that by testing the raw column alongside this.
+   */
+  parseStoredPermissions(): McpTokenStoredPermissions | null {
+    if (!this.permissions) return null;
+
+    try {
+      const parsed =
+        typeof this.permissions === 'string'
+          ? JSON.parse(this.permissions)
+          : this.permissions;
+
+      return parsed && typeof parsed === 'object' ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /** The scopes this credential grants, or null for a legacy one. */
+  parsePermissions(): McpTokenPermissionsJson | null {
+    const stored = this.parseStoredPermissions();
+
+    return Array.isArray(stored?.scopes)
+      ? (stored as McpTokenPermissionsJson)
+      : null;
+  }
+
+  /**
+   * A row whose authority is its own scopes names no base: it carries the
+   * sentinel in `base_id`, which the composite primary key will not let be
+   * null.
+   */
+  static isScoped(token: Pick<MCPToken, 'base_id'>) {
+    return !token.base_id || token.base_id === NO_SCOPE;
+  }
+
+  /**
+   * The scope to address a row under. A scoped row's columns hold the
+   * sentinel, which the meta layer does not know as a scope — but
+   * `nc_mcp_tokens` is a root-scope table, so ROOT reaches any row while the
+   * columns stay the pin `grantFromMcpToken` reads.
+   */
+  static metaContext(
+    token: Pick<MCPToken, 'fk_workspace_id' | 'base_id'>,
+  ): NcContext {
+    return (
+      this.isScoped(token)
+        ? { workspace_id: RootScopes.ROOT, base_id: RootScopes.ROOT }
+        : { workspace_id: token.fk_workspace_id, base_id: token.base_id }
+    ) as NcContext;
   }
 
   public static async validateToken(
@@ -133,7 +202,12 @@ export default class MCPToken implements MCPTokenType {
 
   public static async insert(
     context: NcContext,
-    mcpToken: Partial<MCPTokenType>,
+    // `permissions` is not on the generated `MCPTokenType` (Api.ts is built
+    // from swagger and not hand-edited), so it is widened here rather than
+    // there.
+    mcpToken: Partial<MCPTokenType> & {
+      permissions?: string | McpTokenPermissionsJson;
+    },
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(mcpToken, [
@@ -141,7 +215,12 @@ export default class MCPToken implements MCPTokenType {
       'base_id',
       'fk_user_id',
       'fk_workspace_id',
+      'permissions',
     ]);
+
+    if (insertObj.permissions && typeof insertObj.permissions !== 'string') {
+      insertObj.permissions = JSON.stringify(insertObj.permissions);
+    }
 
     insertObj.token = nanoid(32);
 
@@ -192,6 +271,7 @@ export default class MCPToken implements MCPTokenType {
 
     const key = `${CacheScope.MCP_TOKEN}:${mcpTokenId}`;
     await NocoCache.update(context, key, updateObj);
+    await this.delBypassCache(mcpTokenId);
 
     return await this.get(context, mcpTokenId, ncMeta);
   }
@@ -213,8 +293,67 @@ export default class MCPToken implements MCPTokenType {
 
     const key = `${CacheScope.MCP_TOKEN}:${mcpTokenId}`;
     await NocoCache.del(context, key);
+    await this.delBypassCache(mcpTokenId);
 
     return true;
+  }
+
+  /**
+   * Record a base this credential itself created, so its own base pin does not
+   * shut it out of it.
+   *
+   * Only `created_bases` is written — never `scopes` — so a legacy credential
+   * stays the legacy credential it was: same authority, same reading, one more
+   * base it can address. (A scoped credential needs nothing recorded: it can
+   * only create where it holds a workspace-wide or account-wide scope, and
+   * that scope already covers whatever it creates.)
+   *
+   * Read-modify-write on a single JSON column: two creates racing can lose an
+   * append, and the loser is a refusal the agent can report rather than a
+   * widening nobody can see.
+   */
+  public static async recordCreatedBase(
+    token: MCPToken,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const stored: McpTokenStoredPermissions =
+      token.parseStoredPermissions() ?? {
+        version: 1,
+      };
+
+    if (stored.created_bases?.includes(baseId)) return;
+
+    stored.created_bases = [...(stored.created_bases ?? []), baseId];
+
+    const context = MCPToken.metaContext(token);
+    const permissions = JSON.stringify(stored);
+
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MCP_TOKENS,
+      { permissions },
+      token.id,
+    );
+
+    await NocoCache.update(context, `${CacheScope.MCP_TOKEN}:${token.id}`, {
+      permissions,
+    });
+    await this.delBypassCache(token.id);
+  }
+
+  /**
+   * The row is cached under two contexts: its own, and the bypass one every
+   * caller that has only an id must read it under — `extract-ids` and the MCP
+   * route itself. The secret is validated off that copy, so a regenerate or a
+   * delete has to reach it or the old secret keeps working.
+   */
+  private static async delBypassCache(mcpTokenId: string) {
+    await NocoCache.del(
+      { workspace_id: RootScopes.FULL_BYPASS, base_id: RootScopes.FULL_BYPASS },
+      `${CacheScope.MCP_TOKEN}:${mcpTokenId}`,
+    );
   }
 
   public static async bulkDelete(
@@ -264,6 +403,7 @@ export default class MCPToken implements MCPTokenType {
         },
         key,
       );
+      await this.delBypassCache(token.id);
     }
 
     return true;

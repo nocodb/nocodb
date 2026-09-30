@@ -54,6 +54,15 @@ export const V3_DATA_PAYLOAD_LIMIT =
   +process.env['NC_DATA_PAYLOAD_LIMIT'] ||
   10;
 export const V3_META_REQUEST_LIMIT = 10;
+// MCP record tools pass this as `maxPayloadOverride`; the public V3 cap above
+// is untouched. Same pattern as the AI chat's NC_AI_DATA_PAYLOAD_LIMIT.
+// Clamped to the v1/v2 cap: an api-token MCP session is re-checked against that
+// one downstream, so a higher value here would only fail later with a different
+// number in the message.
+export const MCP_DATA_PAYLOAD_LIMIT = Math.min(
+  +process.env['NC_MCP_DATA_PAYLOAD_LIMIT'] || 100,
+  V1_V2_DATA_PAYLOAD_LIMIT,
+);
 
 // Max number of rows a user can select as a range in the grid UI (drag / shift-arrow).
 // Bounds client-side copy/paste/fill range size; surfaced to the frontend via appInfo.

@@ -176,60 +176,67 @@ export default defineNuxtConfig({
       },
     },
     plugins: [
-      VueI18nPlugin({
-        include: [resolve(dirname('./lang/*.json'))],
-        runtimeOnly: false,
-      }),
-      Icons({
-        autoInstall: false,
-        compiler: 'vue3',
-        defaultClass: 'nc-icon',
-        customCollections: {
-          'nc-icons': FileSystemIconLoader('./assets/nc-icons', (svg) =>
-            svg.replace(/^<svg (?!=\s*data-ignore)/, '<svg stroke="currentColor" '),
-          ),
-          'nc-icons-v2': FileSystemIconLoader('./assets/nc-icons-v2', (svg) =>
-            svg.replace(/^<svg (?!=\s*data-ignore)/, '<svg stroke="currentColor" '),
-          ),
-        },
-      }),
-      Components({
-        resolvers: [
-          AntDesignVueResolver({
-            importStyle: false,
-            resolveIcons: false,
-          }),
-          IconsResolver({
-            prefix: false,
-            enabledCollections: [
-              'ant-design',
-              'bi',
-              'cil',
-              'clarity',
-              'eva',
-              'ic',
-              'logos',
-              'lucide',
-              'material-symbols',
-              'mdi',
-              'mi',
-              'ph',
-              'ri',
-              'system-uicons',
-              'vscode-icons',
-              'simple-icons',
-              'nc-icons',
-              'ion',
-              'tabler',
-              'carbon',
-            ],
-          }),
-        ],
-      }),
-      PurgeIcons({
-        /* PurgeIcons Options */
-        includedCollections: ['emojione'],
-      }),
+      // ee/nuxt.config.ts re-declares these four, and Nuxt's `extends` concatenates
+      // arrays — registering them here too made every SFC run through
+      // unplugin-vue-components twice. EE owns its copies.
+      ...(process.env.EE === 'true'
+        ? []
+        : [
+            VueI18nPlugin({
+              include: [resolve(dirname('./lang/*.json'))],
+              runtimeOnly: false,
+            }),
+            Icons({
+              autoInstall: false,
+              compiler: 'vue3',
+              defaultClass: 'nc-icon',
+              customCollections: {
+                'nc-icons': FileSystemIconLoader('./assets/nc-icons', (svg) =>
+                  svg.replace(/^<svg (?!=\s*data-ignore)/, '<svg stroke="currentColor" '),
+                ),
+                'nc-icons-v2': FileSystemIconLoader('./assets/nc-icons-v2', (svg) =>
+                  svg.replace(/^<svg (?!=\s*data-ignore)/, '<svg stroke="currentColor" '),
+                ),
+              },
+            }),
+            Components({
+              resolvers: [
+                AntDesignVueResolver({
+                  importStyle: false,
+                  resolveIcons: false,
+                }),
+                IconsResolver({
+                  prefix: false,
+                  enabledCollections: [
+                    'ant-design',
+                    'bi',
+                    'cil',
+                    'clarity',
+                    'eva',
+                    'ic',
+                    'logos',
+                    'lucide',
+                    'material-symbols',
+                    'mdi',
+                    'mi',
+                    'ph',
+                    'ri',
+                    'system-uicons',
+                    'vscode-icons',
+                    'simple-icons',
+                    'nc-icons',
+                    'ion',
+                    'tabler',
+                    'carbon',
+                  ],
+                }),
+              ],
+            }),
+            PurgeIcons({
+              /* PurgeIcons Options */
+              includedCollections: ['emojione'],
+            }),
+          ]),
     ],
     define: {
       'process.env.DEBUG': 'false',
@@ -242,7 +249,9 @@ export default defineNuxtConfig({
     },
     server: {
       watch: {
-        usePolling: true,
+        // Polling is the portable option (Docker / network FS); NC_DEV_FAST=true
+        // swaps in native fs events, which is much cheaper on a local checkout.
+        usePolling: process.env.NC_DEV_FAST !== 'true',
       },
     },
     resolve: {
@@ -368,6 +377,7 @@ export default defineNuxtConfig({
         'uuid',
         '@tiptap/extension-collaboration',
         '@tiptap/extension-collaboration-cursor',
+        'y-monaco',
         'yjs',
         'lib0/encoding',
         'lib0/decoding',

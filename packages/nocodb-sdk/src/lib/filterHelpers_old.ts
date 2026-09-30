@@ -333,7 +333,11 @@ export function extractCondition(
         ) {
           value = (value as string)?.split(',');
           sub_op = (value as string[])?.shift();
-          value = (value as string[])?.[0];
+          // `in` carries a comma-separated list; the date handler splits it on ','.
+          value =
+            op === 'in'
+              ? (value as string[])?.join(',')
+              : (value as string[])?.[0];
           if (sub_op === 'null') {
             sub_op = undefined;
             value = null;

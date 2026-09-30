@@ -24,4 +24,8 @@ export default class Agent {
   public static async hasRecordInsertTriggers(..._args: any) {
     return false;
   }
+
+  public static async hasRecordUpdateTriggers(..._args: any) {
+    return false;
+  }
 }

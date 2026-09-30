@@ -81,6 +81,8 @@ export class DataExportProcessor {
     const destPath = `nc/uploads/data-export/${dateFolder}/${modelId}/${filename}.${fileExtension}`;
 
     let url = null;
+    let excelStats: { rows: number; truncated: boolean } | undefined;
+    let excelDone: Promise<void> = Promise.resolve();
 
     try {
       const dataStream = new Readable({
@@ -147,7 +149,7 @@ export class DataExportProcessor {
             error = e;
           });
       } else if (exportAs === 'excel') {
-        this.exportService
+        excelDone = this.exportService
           .streamModelDataAsExcel(context, {
             dataStream,
             baseId: model.base_id,
@@ -158,6 +160,10 @@ export class DataExportProcessor {
             filterArrJson: options.filterArrJson,
             sortArrJson: options.sortArrJson,
             locale,
+            maxRows: options?.maxRows,
+          })
+          .then((stats) => {
+            excelStats = stats;
           })
           .catch((e) => {
             this.logger.debug(e);
@@ -207,6 +213,13 @@ export class DataExportProcessor {
       }
 
       url = await uploadFilePromise;
+
+      if (error) {
+        throw error;
+      }
+
+      // The upload can settle before the writer's own promise does.
+      await excelDone;
 
       if (error) {
         throw error;
@@ -266,6 +279,9 @@ export class DataExportProcessor {
       type: exportAs,
       title: filename,
       url,
+      // Excel only, and undefined elsewhere.
+      rows: excelStats?.rows,
+      truncated: excelStats?.truncated,
     };
   }
 }

@@ -70,6 +70,9 @@ export class AttachmentsService {
       NcError.invalidAttachmentUploadScope();
     }
 
+    // No MIME allow-list by design — active types are served as forced
+    // downloads (isPreviewAllowed). Keep the serve-time guards.
+
     const userId = param.req?.user?.id || 'anonymous';
 
     param.path = param.scope
@@ -251,6 +254,9 @@ export class AttachmentsService {
     ) {
       NcError.invalidAttachmentUploadScope();
     }
+
+    // No MIME allow-list by design — active types are served as forced
+    // downloads (isPreviewAllowed). Keep the serve-time guards.
 
     const userId = param.req?.user?.id || 'anonymous';
 

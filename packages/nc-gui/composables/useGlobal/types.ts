@@ -29,6 +29,8 @@ export interface AppInfo {
   auditEnabled: boolean
   undoRedoEnabled: boolean
   docsRealtimeEnabled?: boolean
+  /** Yjs co-editing of long-form fields. Opt-in per deployment (NC_COLLAB_REALTIME). */
+  collabRealtimeEnabled?: boolean
   type: string
   version: string
   ee?: boolean

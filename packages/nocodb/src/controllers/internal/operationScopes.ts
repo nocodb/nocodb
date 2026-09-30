@@ -5,6 +5,14 @@ export const OPERATION_SCOPES = {
   mcpDelete: 'base',
   mcpGet: 'base',
   mcpRootList: 'org',
+  mcpToolCatalog: 'org',
+  // Org-scoped counterparts of the base-scoped CRUD above. A scoped MCP
+  // credential may reach several bases, or none, so its row carries the
+  // `NO_SCOPE` sentinel in `base_id` and cannot be managed through a
+  // base-addressed route.
+  mcpRootCreate: 'org',
+  mcpRootUpdate: 'org',
+  mcpRootDelete: 'org',
   baseListAll: 'org',
   instanceAdminStats: 'org',
   instanceAdminWorkspaces: 'org',

@@ -1,4 +1,4 @@
-import { type MCPTokenType } from 'nocodb-sdk'
+import { type ApiTokenScopeEntry, type MCPTokenType, type McpToolCatalogEntry, NO_SCOPE } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
 export type MCPTokenExtendedType = MCPTokenType & {
@@ -8,6 +8,8 @@ export type MCPTokenExtendedType = MCPTokenType & {
   created_display_name?: string
   workspace?: { title?: string }
   base?: { title?: string }
+  /** Raw JSON as stored; null on a connection created before scopes existed. */
+  permissions?: string | null
 }
 
 export const useMcpSettings = createSharedComposable(() => {

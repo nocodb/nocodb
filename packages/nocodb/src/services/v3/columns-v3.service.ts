@@ -23,13 +23,14 @@ import {
   ColumnWebhookManagerBuilder,
 } from '~/utils/column-webhook-manager';
 import { ColumnsService } from '~/services/columns.service';
-import { Column } from '~/models';
+import { Column, Model } from '~/models';
 import Noco from '~/Noco';
 import {
   columnBuilder,
   columnV3ToV2Builder,
 } from '~/utils/api-v3-data-transformation.builder';
 import { validatePayload } from '~/helpers';
+import { resolveFieldOptionsSchema } from '~/helpers/fieldOptionsSchema';
 
 type ColumnReqWithMeta = ColumnReqType & {
   meta?: any;
@@ -39,7 +40,38 @@ type ColumnReqWithMeta = ColumnReqType & {
 
 type SelectChoiceV3 = { id?: string; title: string; color?: string };
 
+// `FieldV3Type`/`FieldUpdateV3Type` are discriminated unions, so `options` is
+// not uniformly indexable — this is the shape both collapse to here.
+type FieldOptionsRecord = { options?: Record<string, unknown> };
+
 const META_ONLY_PROPS = new Set(['description']);
+
+// Button is the one options schema that is a `oneOf`: its properties and its
+// `required` list live per action branch, keyed by `options.type`. Reading only
+// the top level finds neither, leaving every partial Button update to fail the
+// branch's own `required` plus `additionalProperties: false`.
+function optionsBranchFor(schema: any, optionsType: unknown): any {
+  if (!Array.isArray(schema?.oneOf)) return schema;
+
+  return schema.oneOf.find((branch) =>
+    branch?.properties?.type?.enum?.includes(optionsType),
+  );
+}
+
+// The v3 read builder emits a webhook button's hook as `webhook_id`; older
+// callers (and the pre-deprecation schema) send `button_hook_id`. The v3->v2
+// write builder already maps both to `fk_webhook_id`, so only validation needs
+// to be taught that they are one key — otherwise the object `GET` just returned
+// is rejected by the `PATCH` that takes it back.
+function withCanonicalOptionAliases<T>(payload: T): T {
+  const options = (payload as FieldOptionsRecord).options;
+
+  if (!options || options.button_hook_id === undefined) return payload;
+
+  const { button_hook_id, ...rest } = options;
+
+  return { ...payload, options: { webhook_id: button_hook_id, ...rest } };
+}
 
 @Injectable()
 export class ColumnsV3Service {
@@ -65,19 +97,45 @@ export class ColumnsV3Service {
       context,
     );
 
-    if (param.column.type) {
-      validatePayload(
-        `swagger-v3.json#/components/schemas/FieldOptions/${param.column.type}`,
-        param.column,
-        true,
-        context,
-      );
-    }
-
     let column = await Column.get(context, { colId: param.columnId }, ncMeta);
 
     if (!column) {
       NcError.get(context).fieldNotFound(param.columnId);
+    }
+
+    // Validate `options` against the field type. `type` is optional on update
+    // (a rename must not require re-sending it), so fall back to the stored
+    // type — otherwise an options-only update skips validation entirely and
+    // unsupported keys (min/max/max_length/pattern) get silently persisted
+    // into column meta where they read back as though enforced.
+    const optionsType = (param.column.type ?? column.uidt) as string;
+    const optionsSchema = optionsType
+      ? resolveFieldOptionsSchema(optionsType)
+      : null;
+
+    if (optionsSchema) {
+      param.column = withCanonicalOptionAliases(param.column);
+
+      // A partial options update ("only the keys to change") must merge onto
+      // the stored options, not replace them. Without this, an options-only
+      // PATCH like `{ options: { rollup_function: 'sum' } }` fails the schema's
+      // `required` members (Lookup/Rollup/Links/LTAR and every Button branch
+      // declare them) and, even when it validates, wipes every option the
+      // caller didn't resend. Skipped on a type change — the stored options
+      // belong to the old type.
+      const incomingOptions = (param.column as FieldOptionsRecord).options;
+      const isTypeChange =
+        !!param.column.type && param.column.type !== column.uidt;
+
+      if (incomingOptions && !isTypeChange) {
+        (param.column as FieldOptionsRecord).options = this.mergeStoredOptions(
+          optionsSchema.schema,
+          incomingOptions,
+          column,
+        );
+      }
+
+      validatePayload(optionsSchema.ref, param.column, true, context);
     }
 
     const columnWebhookManager =
@@ -153,6 +211,42 @@ export class ColumnsV3Service {
     return v3Response;
   }
 
+  // Merge the stored options under an incoming partial `options` so callers can
+  // send only the keys they want to change. Only keys the type's options schema
+  // declares are carried over — the v3 read emits extra keys (e.g. an LTAR's
+  // read-only `related_field_id`, or `custom`) that `additionalProperties:
+  // false` would reject on echo. Types whose schema models no named properties
+  // are left untouched.
+  private mergeStoredOptions(
+    optionsSchema: any,
+    incomingOptions: Record<string, unknown>,
+    stored: Column,
+  ): Record<string, unknown> {
+    const storedOptions =
+      (columnBuilder().build(stored) as FieldOptionsRecord).options ?? {};
+
+    // Which branch a Button update targets is decided by the action type it
+    // carries, falling back to the stored one for an options-only update.
+    const branch = optionsBranchFor(
+      optionsSchema,
+      incomingOptions.type ?? storedOptions.type,
+    );
+
+    const allowedKeys = branch?.properties
+      ? Object.keys(branch.properties)
+      : null;
+
+    if (!allowedKeys) return incomingOptions;
+
+    const merged: Record<string, unknown> = {};
+    for (const key of allowedKeys) {
+      if (key in storedOptions) merged[key] = storedOptions[key];
+    }
+    Object.assign(merged, incomingOptions);
+
+    return merged;
+  }
+
   async columnGet(context: NcContext, param: { columnId: string }) {
     const column = await Column.get(context, { colId: param.columnId });
     if (!column) {
@@ -181,10 +275,17 @@ export class ColumnsV3Service {
     );
     validatePayload(
       `swagger-v3.json#/components/schemas/FieldOptions/${param.column.type}`,
-      param.column,
+      withCanonicalOptionAliases(param.column),
       true,
       context,
     );
+
+    // Guard the target table before it is dereferenced downstream — an unknown
+    // id otherwise surfaces as a raw `Cannot read properties of undefined
+    // (reading 'base_id')` from the webhook-manager builder.
+    if (!(await Model.get(context, param.tableId, false, ncMeta))) {
+      NcError.get(context).tableNotFound(param.tableId);
+    }
 
     const columnWebhookManager =
       param.columnWebhookManager ??

@@ -57,8 +57,10 @@ export default class CalendarView implements CalendarType {
         },
       );
       const calendarRange = await CalendarRange.read(context, viewId, ncMeta);
-      if (view && calendarRange) {
-        view.calendar_range = calendarRange.ranges;
+      if (view) {
+        // Normalise to [] so a range-less calendar reads the same here as
+        // it does on the cache-hit branch above.
+        view.calendar_range = calendarRange ? calendarRange.ranges : [];
       }
       await NocoCache.set(
         context,

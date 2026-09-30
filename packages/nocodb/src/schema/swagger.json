@@ -13476,6 +13476,69 @@
                     ],
                     "description": "PKCE code challenge method",
                     "example": "S256"
+                  },
+                  "scope": {
+                    "type": "string",
+                    "description": "Space-delimited capability scopes the client is requesting, each '<category>:<level>' with level read, write or delete (e.g. records:read). When present the consent is locked to exactly these permissions and records no tools. EE only.",
+                    "example": "records:read tables:read"
+                  },
+                  "workspace_id": {
+                    "type": "string",
+                    "description": "Workspace the consent is limited to. EE only.",
+                    "example": "w1a2b3c4"
+                  },
+                  "base_id": {
+                    "type": "string",
+                    "description": "Base the consent is pinned to, granting the user's full authority over it. Mutually exclusive with scopes.",
+                    "example": "p1a2b3c4d5e6f7g"
+                  },
+                  "resource": {
+                    "type": "string",
+                    "description": "RFC 8707 resource indicator, echoed back on the issued token.",
+                    "example": "https://app.nocodb.com/mcp"
+                  },
+                  "scopes": {
+                    "type": "array",
+                    "description": "Resources this authorization may reach. Mutually exclusive with base_id. EE only; ignored on CE, where no scope model exists.",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "resource_type",
+                        "resource_id"
+                      ],
+                      "properties": {
+                        "resource_type": {
+                          "type": "string",
+                          "enum": [
+                            "base",
+                            "workspace",
+                            "all"
+                          ],
+                          "description": "Kind of resource this scope names"
+                        },
+                        "resource_id": {
+                          "type": "string",
+                          "description": "Id of the resource, or '*' for an 'all' scope",
+                          "example": "p1a2b3c4d5e6f7g"
+                        },
+                        "permissions": {
+                          "type": "object",
+                          "additionalProperties": true,
+                          "description": "Permission categories granted on this resource. Omitted means every category the resource type allows."
+                        }
+                      }
+                    }
+                  },
+                  "tools": {
+                    "type": "array",
+                    "description": "MCP tool allowlist for this authorization. Every name must exist in the server's tool catalog. Only meaningful alongside scopes.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": [
+                      "listTables",
+                      "listRecords"
+                    ]
                   }
                 }
               }
@@ -22157,7 +22220,7 @@
             "type": "string"
           },
           "environments": {
-            "description": "EE only. Per-environment config overrides to apply when creating the integration. Each entry's `config` is persisted as that environment's override (production is skipped — it uses the integration's own config). Ignored in CE.",
+            "description": "EE only. Per-environment config overrides to apply when creating the integration. Each entry's `config` is persisted as that environment's override (production is skipped \u2014 it uses the integration's own config). Ignored in CE.",
             "type": "array",
             "items": {
               "type": "object",
@@ -23311,12 +23374,19 @@
           },
           "logical_op": {
             "description": "Logical Operator",
-            "enum": [
-              "and",
-              "not",
-              "or"
-            ],
-            "type": "string"
+            "anyOf": [
+              {
+                "enum": [
+                  "and",
+                  "not",
+                  "or"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "value": {
             "description": "The filter value. Can be NULL for some operators."
@@ -31298,7 +31368,19 @@
           "resource_type": {
             "type": "string",
             "description": "Type of the trashed resource",
-            "enum": ["table", "view", "field", "dashboard", "widget", "script", "workflow", "extension", "record", "hook", "app"]
+            "enum": [
+              "table",
+              "view",
+              "field",
+              "dashboard",
+              "widget",
+              "script",
+              "workflow",
+              "extension",
+              "record",
+              "hook",
+              "app"
+            ]
           },
           "resource_id": {
             "$ref": "#/components/schemas/Id",

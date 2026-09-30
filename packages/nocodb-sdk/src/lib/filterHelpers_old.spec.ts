@@ -358,6 +358,41 @@ describe('filterHelpers_old_specific', () => {
       expect(result.filters[0].comparison_op).toBe('eq');
       expect(result.filters[0].value).toBe('Istanbul, India');
     });
+
+    it('keeps every date of a date `in` filter', () => {
+      const columnAlias: Record<string, ColumnType> = {
+        Date: {
+          id: 'field1',
+          column_name: 'col1',
+          title: 'Date',
+          uidt: UITypes.Date,
+        },
+      };
+
+      // The date handlers split an `in` value back on ',', same as the v3 parser.
+      const multi = extractFilterFromXwhere(
+        '(Date,in,exactDate,2024-06-15,2024-07-01)',
+        columnAlias
+      );
+      expect(multi.filters[0].comparison_op).toBe('in');
+      expect(multi.filters[0].comparison_sub_op).toBe('exactDate');
+      expect(multi.filters[0].value).toBe('2024-06-15,2024-07-01');
+
+      const single = extractFilterFromXwhere(
+        '(Date,eq,exactDate,2024-06-15)',
+        columnAlias
+      );
+      expect(single.filters[0].value).toBe('2024-06-15');
+
+      // No dates: empty string (verification treats it as empty, like undefined).
+      const noValue = extractFilterFromXwhere(
+        '(Date,in,exactDate)',
+        columnAlias
+      );
+      expect(noValue.filters[0].comparison_sub_op).toBe('exactDate');
+      expect(noValue.filters[0].value).toBe('');
+    });
+
     describe('logical', () => {
       it('will parse basic logical query', () => {
         // isWithin need to have specific suboperator :|

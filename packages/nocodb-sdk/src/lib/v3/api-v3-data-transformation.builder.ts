@@ -66,6 +66,9 @@ export class ApiV3DataTransformationBuilder<
 > {
   private transformations: Array<(data: any) => any> = [];
 
+  // Populated by filterColumns on each build(); see getDroppedKeys().
+  private droppedKeys: string[] = [];
+
   remapColumns<S = Input, T = Output>(mappings: Record<string, string>): this {
     this.transformations.push((data: S) => {
       return Object.entries(data).reduce<T>((result, [key, value]) => {
@@ -83,9 +86,14 @@ export class ApiV3DataTransformationBuilder<
     this.transformations.push((data: S) => {
       return Object.keys(data)
         .filter((key) => {
-          if ('allowed' in args) return args.allowed.includes(key);
-          if ('excluded' in args) return !args.excluded.includes(key);
-          return true;
+          const keep =
+            'allowed' in args
+              ? args.allowed.includes(key)
+              : 'excluded' in args
+              ? !args.excluded.includes(key)
+              : true;
+          if (!keep && data[key] !== undefined) this.droppedKeys.push(key);
+          return keep;
         })
         .reduce<T>((result, key) => {
           result[key] = data[key];
@@ -168,7 +176,19 @@ export class ApiV3DataTransformationBuilder<
     return this;
   }
 
+  /**
+   * Keys `filterColumns` removed during the last `build()`.
+   *
+   * A write allowlist that omits a key the request schema accepts drops it
+   * with no error, so a 200 response reads the same whether the value was
+   * applied or ignored. Callers that need to tell those apart read this.
+   */
+  getDroppedKeys(): string[] {
+    return [...new Set(this.droppedKeys)];
+  }
+
   build(data: Input | Input[]): MatchInputToOutput<Input, Output> {
+    this.droppedKeys = [];
     if (Array.isArray(data)) {
       return data.map((item) =>
         this.transformations.reduce(
@@ -339,6 +359,17 @@ export const colOptionBuilder = builderGenerator({
     'fk_lookup_column_id',
     'rollup_function',
     'fk_webhook_id',
+    // Button. Without these the v3 read cannot report which script an action
+    // button runs, which integration an AI button uses, or how any button is
+    // labelled — and the object it returns then fails `FieldOptions_Button` on
+    // the way back in.
+    'fk_script_id',
+    'fk_integration_id',
+    'output_column_ids',
+    'label',
+    'color',
+    'theme',
+    'icon',
   ],
   mappings: {
     formula_raw: 'formula',
@@ -354,6 +385,7 @@ export const colOptionBuilder = builderGenerator({
 
     fk_webhook_id: 'button_hook_id',
     fk_script_id: 'script_id',
+    fk_integration_id: 'integration_id',
   },
 });
 
@@ -505,9 +537,20 @@ export const columnBuilder = builderGenerator<ColumnType, FieldV3Type>({
       } else if (type === 'ai') {
         options = {
           type,
-          prompt: rest.prompt,
+          // An AI button stores its prompt in `formula_raw` (ButtonColumn's
+          // `aiProps`), which arrives here mapped to `formula`.
+          prompt: rest.prompt ?? rest.formula,
           integration_id: rest.integration_id,
           output_column_ids: rest.output_column_ids,
+          label: rest.label,
+          color: rest.color,
+          theme: rest.theme,
+          icon: rest.icon,
+        };
+      } else if (type === 'url') {
+        options = {
+          type,
+          formula: rest.formula,
           label: rest.label,
           color: rest.color,
           theme: rest.theme,
@@ -517,6 +560,14 @@ export const columnBuilder = builderGenerator<ColumnType, FieldV3Type>({
         // Fallback to original transformation
         options = { ...rest, button_type: type };
       }
+    } else if (data.type === UITypes.LongText) {
+      // A NocoAI LongText stores an `AIColumn`, which also declares
+      // `fk_integration_id` — so the Button-only widening of
+      // `colOptionBuilder.allowed` reaches it too. `FieldOptions_LongText`
+      // declares no `integration_id`, so emitting it makes the read fail its
+      // own schema on the way back in.
+      const { integration_id: _integrationId, ...rest } = options;
+      options = rest;
     } else if (isLinksOrLTAR(data.type)) {
       const { type, ...rest } = options;
       options = { ...rest, relation_type: type };
@@ -585,6 +636,12 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
     button_hook_id: 'fk_webhook_id',
     script_id: 'fk_script_id',
     webhook_id: 'fk_webhook_id',
+
+    // AI button: `prompt` is stored as `formula_raw`. Without these two the
+    // write drops both keys (ButtonColumn's `aiProps` never sees them) and the
+    // update returns 200 having applied nothing.
+    prompt: 'formula_raw',
+    integration_id: 'fk_integration_id',
 
     // parent id we need to extract from the url
     related_table_id: 'childId',

@@ -6,6 +6,7 @@ import {
   isServiceUser,
   NcAccessSource,
   NcApiVersion,
+  NO_SCOPE,
   OrgUserRoles,
   ProjectRoles,
   SourceRestriction,
@@ -208,8 +209,13 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         if (!mcpToken) {
           NcError.get(context).genericNotFound('MCPToken', mcpTokenId);
         }
-        req.ncBaseId = mcpToken.base_id;
-        req.ncWorkspaceId = mcpToken.fk_workspace_id;
+        // A connection whose authority is its scopes carries the sentinel here
+        // instead of a base. Extracting it would resolve a base id that does
+        // not exist; the route resolves a base per tool call instead.
+        if (mcpToken.base_id !== NO_SCOPE) {
+          req.ncBaseId = mcpToken.base_id;
+          req.ncWorkspaceId = mcpToken.fk_workspace_id;
+        }
       } else if (integrationId) {
         const integration = await Integration.get(context, integrationId);
         if (!integration) {
@@ -557,8 +563,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.get(context).genericNotFound('MCPToken', params.mcpTokenId);
       }
 
-      req.ncBaseId = mcpToken.base_id;
-      req.ncWorkspaceId = mcpToken.fk_workspace_id;
+      if (mcpToken.base_id !== NO_SCOPE) {
+        req.ncBaseId = mcpToken.base_id;
+        req.ncWorkspaceId = mcpToken.fk_workspace_id;
+      }
     } else if (
       params.baseId &&
       !(isInternalWorkspaceScope || isInternalOrgScope)

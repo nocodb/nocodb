@@ -170,6 +170,10 @@ export default class Noco {
 
     Noco._nestApp = nestApp;
 
+    // Nest serves the API routes from its own express instance, so disabling
+    // x-powered-by on the outer server (run/*.ts) is not enough — do it here.
+    nestApp.getHttpAdapter().getInstance().disable('x-powered-by');
+
     this.initCustomLogger(nestApp);
     NcDebug.log('Custom logger initialized');
     nestApp.flushLogs();

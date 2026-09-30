@@ -60,10 +60,12 @@ export class BulkDataAliasService {
       undo?: boolean;
       skipPermissionCheck?: boolean;
       skipAttachmentOwnershipCheck?: boolean;
+      // Internal jobs batch on their own; the cap guards client requests.
+      skipPayloadLimit?: boolean;
       onInsertedPks?: (pks: (string | number)[]) => void;
     },
   ) {
-    validateV1V2DataPayloadLimit(context, param);
+    if (!param.skipPayloadLimit) validateV1V2DataPayloadLimit(context, param);
 
     return await this.executeBulkOperation(context, {
       ...param,
@@ -95,9 +97,11 @@ export class BulkDataAliasService {
       raw?: boolean;
       allowSystemColumn?: boolean;
       apiVersion?: NcApiVersion;
+      // Internal jobs batch on their own; the cap guards client requests.
+      skipPayloadLimit?: boolean;
     },
   ) {
-    validateV1V2DataPayloadLimit(context, param);
+    if (!param.skipPayloadLimit) validateV1V2DataPayloadLimit(context, param);
 
     return await this.executeBulkOperation(context, {
       ...param,

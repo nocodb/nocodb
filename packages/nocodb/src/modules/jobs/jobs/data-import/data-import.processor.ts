@@ -811,6 +811,7 @@ export class DataImportProcessor {
         cookie: req,
         skip_hooks: skipHooks,
         raw: true,
+        skipPayloadLimit: true,
         ...(options.typecast ? { typecast: 'true' } : {}),
         ...(onInsertedPks ? { onInsertedPks } : {}),
       });

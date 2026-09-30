@@ -83,6 +83,8 @@ export const useEeConfig = createSharedComposable(() => {
   const blockAddNewInterface = computed(() => true)
   const isInterfacePageLimitReached = (_count: number) => true
   const blockInterfaceMultiViz = computed(() => true)
+
+  const blockCoEditing = computed(() => true)
   const blockInterfaceMetricColorConditions = computed(() => true)
   const blockInterfacePivotWidget = computed(() => true)
   const blockInterfaceViewWidget = computed(() => true)
@@ -601,6 +603,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockAddNewInterface,
     isInterfacePageLimitReached,
     blockInterfaceMultiViz,
+    blockCoEditing,
     blockCopyViewSettingFromOther,
     blockSkillsGovernance,
     blockSkillsOrg,

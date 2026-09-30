@@ -99,7 +99,8 @@ export class PublicMetasService {
     const rangeColumns = [];
 
     if (view.type === ViewTypes.CALENDAR) {
-      for (const c of (view.view as CalendarView).calendar_range) {
+      const calendarRange = (view.view as CalendarView)?.calendar_range ?? [];
+      for (const c of calendarRange) {
         if (c.fk_from_column_id) {
           rangeColumns.push(c.fk_from_column_id);
         } else if ((c as any).fk_to_column_id) {

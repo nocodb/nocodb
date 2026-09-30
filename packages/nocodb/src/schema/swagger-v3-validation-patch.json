@@ -276,6 +276,16 @@
             "type": "string",
             "description": "Error message when dependent field is deleted"
           },
+          "precision": {
+            "type": "number",
+            "description": "Number of decimal places for numeric rollups. Defaults to 0.",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "enable_conditions": {
+            "type": "boolean",
+            "description": "Apply the linked field's filters when computing the rollup."
+          },
           "separator": {
             "type": "string",
             "description": "Thousand/decimal separator style for numeric rollups. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping.",

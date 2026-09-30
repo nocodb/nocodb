@@ -3,7 +3,7 @@ import { Logger } from '@nestjs/common';
 import { getCircularReplacer } from 'nocodb-sdk';
 import type { ChainableCommander } from 'ioredis';
 import type IORedis from 'ioredis';
-import { CacheDelDirection, CacheGetType } from '~/utils/globals';
+import { CacheDelDirection, CacheGetType, CacheScope } from '~/utils/globals';
 import { NC_REDIS_GRACE_TTL, NC_REDIS_TTL } from '~/helpers/redisHelpers';
 
 const log = debug('nc:cache');
@@ -20,10 +20,56 @@ const logger = new Logger('CacheMgr');
   - getRaw returns the whole cache object with metadata
 */
 
+/**
+ * Cache scopes that a boot-time flush must leave alone. Everything else cached
+ * is re-derivable from the meta DB; these are not.
+ */
+const DURABLE_SCOPES = [CacheScope.COLLAB_STATE];
+
 export default abstract class CacheMgr {
   client: IORedis;
   prefix: string;
   context: string;
+
+  /** Resolves once any boot-time flush has finished. Awaited by `NocoCache.init`. */
+  ready: Promise<void> = Promise.resolve();
+
+  /**
+   * Boot-time flush of everything except {@link DURABLE_SCOPES}. Used instead of
+   * FLUSHDB because the collab crash buffer is the only copy of unsaved
+   * co-editing content, and a restart is exactly when it has to be read back.
+   *
+   * Costs a full SCAN rather than an O(1) FLUSHDB. Only deployments that flush
+   * on boot pay it — Cloud does not flush at all.
+   */
+  async flushDisposable(): Promise<void> {
+    const doomed: string[] = [];
+
+    // Accumulate synchronously: scanStream does not await its `data` handler,
+    // so anything async here can lose keys to an early `end`.
+    await new Promise<void>((resolve, reject) => {
+      const stream = this.client.scanStream({ match: '*', count: 1000 });
+      stream.on('data', (keys: string[]) => {
+        for (const key of keys) {
+          if (!DURABLE_SCOPES.some((scope) => key.includes(`:${scope}:`))) {
+            doomed.push(key);
+          }
+        }
+      });
+      stream.on('end', () => resolve());
+      stream.on('error', reject);
+    });
+
+    for (let i = 0; i < doomed.length; i += 1000) {
+      await this.client.unlink(...doomed.slice(i, i + 1000));
+    }
+
+    log(
+      `${this.context}::flushDisposable: dropped ${
+        doomed.length
+      } keys, kept ${DURABLE_SCOPES.join(', ')}`,
+    );
+  }
 
   // @ts-ignore
   async del(key: string[] | string): Promise<any> {

@@ -32,4 +32,8 @@ export default class Workflow {
   public static async hasRecordInsertTriggers(..._args: any) {
     return false;
   }
+
+  public static async hasRecordUpdateTriggers(..._args: any) {
+    return false;
+  }
 }

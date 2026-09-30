@@ -22,8 +22,8 @@
  * `copyViewConfigOptionMap` — sources are real views, so that map is exact.
  */
 import {
-  copyViewConfigOptionMap,
   type CopyViewConfigOption,
+  copyViewConfigOptionMap,
 } from '../viewUtils';
 import { ViewSettingOverrideOptions } from '../enums';
 import { ViewTypes } from '../globals';
@@ -262,6 +262,13 @@ export enum InterfaceCopyFromViewWarnings {
    * background treatment does not.
    */
   ROW_COLOR_BACKGROUND_LOST = 'row_color_background_lost',
+  /**
+   * Row colouring was requested but could not be converted: in select-field
+   * mode the colouring column is a system column or is not a column of the
+   * destination model (`allowedColumnIds` is every non-system column of it);
+   * in filter mode every condition lost its predicate.
+   */
+  ROW_COLOR_LOST = 'row_color_lost',
   /**
    * Grouping was requested but the destination cannot hold it (a grid view
    * copied into a gallery/kanban/calendar page).

@@ -225,6 +225,15 @@ const handleEscapeKey = (e: KeyboardEvent) => {
   showSearchBox.value = false
 }
 
+// Mobile has no Escape key: an empty search box closes on an outside tap.
+onClickOutside(globalSearchWrapperRef, (e) => {
+  if (!isMobileMode.value || !showSearchBox.value || search.value.query || isDropdownOpen.value) return
+
+  if ((e.target as HTMLElement)?.closest?.('.nc-dropdown-toolbar-search, .nc-dropdown-toolbar-search-field-option')) return
+
+  showSearchBox.value = false
+})
+
 // Re-align the search dropdown when the toolbar width changes. Opening/resizing the
 // expanded-form, extension or action side panels shrinks the view (and the toolbar
 // inside it), which moves the dropdown's anchor. Ant does not re-align a teleported

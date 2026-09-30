@@ -38,7 +38,7 @@ const { source, loading, disabled, showLabel, variant, attached, hasValue } = to
       <GeneralIcon icon="ncAutoAwesome" class="nc-field-agent-run-marker" />
       <NcTooltip :title="$t('labels.fieldAgent.runAgentAgain')" :disabled="loading" placement="bottom" class="ml-auto">
         <button
-          v-e="['a:field-agent:cell:generate', { source, rerun: true }]"
+          v-e="['c:custom-agent:cell:run', { source, rerun: true }]"
           type="button"
           class="nc-field-agent-run-chip !p-1.5"
           :aria-label="$t('labels.fieldAgent.runAgentAgain')"
@@ -54,7 +54,7 @@ const { source, loading, disabled, showLabel, variant, attached, hasValue } = to
 
     <NcTooltip v-else :title="$t('labels.fieldAgent.runAgent')" :disabled="loading" placement="bottom">
       <button
-        v-e="['a:field-agent:cell:generate', { source }]"
+        v-e="['c:custom-agent:cell:run', { source }]"
         type="button"
         class="nc-field-agent-run-chip"
         :disabled="disabled || loading"
@@ -72,7 +72,7 @@ const { source, loading, disabled, showLabel, variant, attached, hasValue } = to
 
   <NcTooltip v-else :title="$t('labels.fieldAgent.runAgent')" :disabled="showLabel" placement="top">
     <NcButton
-      v-e="['a:field-agent:cell:generate', { source }]"
+      v-e="['c:custom-agent:cell:run', { source }]"
       size="xs"
       type="text"
       class="nc-field-agent-run-btn flex-none"

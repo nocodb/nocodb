@@ -892,7 +892,7 @@ const execFieldAgent = async (path: Array<number>) => {
         theme="ai"
         @click="execFieldAgent(contextMenuPath || [])"
       >
-        <div v-e="['a:field-agent:cell:generate', { source: 'context-menu' }]" class="flex gap-2 items-center">
+        <div v-e="['c:custom-agent:cell:run', { source: 'context-menu' }]" class="flex gap-2 items-center">
           <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
           {{ selectedFieldAgentColumns.length > 1 ? $t('labels.fieldAgent.runAiAgents') : $t('labels.fieldAgent.runAgent') }}
         </div>

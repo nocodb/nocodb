@@ -105,11 +105,11 @@ export function useFieldAgentBulkRun() {
 
     // Literal event names per mode so the telemetry catalog scanner can find them
     if (mode === 'all') {
-      $e('c:field-agent:bulk-run:all', { source })
+      $e('c:custom-agent:bulk:run-all', { source })
     } else if (mode === 'unmodified') {
-      $e('c:field-agent:bulk-run:unmodified', { source })
+      $e('c:custom-agent:bulk:run-empty', { source })
     } else {
-      $e('c:field-agent:bulk-run:modified', { source })
+      $e('c:custom-agent:bulk:run-stale', { source })
     }
 
     const colId = column.id

@@ -138,6 +138,13 @@ const editor = useEditor({
 
       return text
     },
+    // Prompts were written with `{Field}` before `@` existed; typing `{` still opens the field list
+    handleTextInput(view, from, to, text) {
+      if (text !== '{' || props.mentionChar === '{') return false
+
+      view.dispatch(view.state.tr.insertText(props.mentionChar, from, to))
+      return true
+    },
     handlePaste(view, event) {
       const text = event.clipboardData?.getData('text/plain') ?? ''
       if (!text.includes('{')) return false

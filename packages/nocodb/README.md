@@ -163,8 +163,6 @@ Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/
 # Table of Contents
 
 - [Quick try](#quick-try)
-  - [NPX](#npx)
-  - [Node Application](#node-application)
   - [Docker](#docker)
   - [Docker Compose](#docker-compose)
 - [GUI](#gui)

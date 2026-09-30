@@ -10,7 +10,12 @@ import type {
 } from 'nocodb-sdk'
 import type { ComputedRef, Reactive, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
-import type { InterfacePageDataApi, InterfacePublicPageState, InterfaceRecordSidebarApi } from '../lib/interfaceData'
+import type {
+  InterfacePageDataApi,
+  InterfacePublicPageState,
+  InterfaceRecordSidebarApi,
+  InterfaceUserFilterTabCountsApi,
+} from '../lib/interfaceData'
 import type { LinkRecordDropdownVariant, NcTooltipGroup, Row } from '../lib/types'
 import type { PageSidebarNode } from '#imports'
 
@@ -254,6 +259,11 @@ export const PublicDocShareInj: InjectionKey<Ref<{ sharedDocUuid: string; docId:
  * view / shared-view endpoints. Undefined in normal dashboard contexts.
  */
 export const InterfacePageDataInj: InjectionKey<InterfacePageDataApi | undefined> = Symbol('interface-page-data')
+
+/** Record counts for the TABLE page's user-filter tab strip — provided by the page, fed by the mounted viz. */
+export const InterfaceUserFilterTabCountsInj: InjectionKey<InterfaceUserFilterTabCountsApi> = Symbol(
+  'interface-user-filter-tab-counts',
+)
 
 /**
  * Marks an interface surface that sits OUTSIDE the viz tree, so it has no

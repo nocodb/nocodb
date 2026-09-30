@@ -3701,6 +3701,8 @@
     "showBackgroundColor": "Show background color",
     "includeAllRecordsTab": "Include 'All records' tab",
     "defaultVisualization": "Default visualization",
+    "showRecordCount": "Show record count on tab",
+    "hideRecordCount": "Hide record count on tab",
     "buildItYourself": "Build it yourself",
     "tryBuildingWithAi": "Try building with AI",
     "clearUnpublishedChanges": "Clear unpublished changes",

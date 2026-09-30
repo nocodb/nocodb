@@ -67,6 +67,24 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const { search, getValidSearchQueryForColumn } = useFieldQuery()
 
+    // The rows/count requests still running when the search term changes are already superseded —
+    // only the last term's result is ever shown. Hand them a signal so the next term can abort them
+    // instead of leaving each one to finish its full row materialisation server-side.
+    let searchAbortController: AbortController | null = null
+    const searchAbortSignal = ref<AbortSignal | undefined>()
+
+    const abortInflightSearchRequests = () => {
+      searchAbortController?.abort()
+      searchAbortController = new AbortController()
+      searchAbortSignal.value = searchAbortController.signal
+    }
+
+    abortInflightSearchRequests()
+
+    watch(() => [search.value.query, search.value.field], abortInflightSearchRequests)
+
+    onScopeDispose(() => searchAbortController?.abort())
+
     const globalEventBus = $eventBus.smartsheetStoreEventBus
     const eventBus = isolatedEventBus ? useEventBus<SmartsheetStoreEvents>(Symbol('nc-smartsheet-store')) : globalEventBus
 
@@ -359,6 +377,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       fetchTotalRowsWithSearchQuery,
       gridEditEnabled,
       getValidSearchQueryForColumn,
+      searchAbortSignal,
       isViewOperationsAllowed,
     }
   },

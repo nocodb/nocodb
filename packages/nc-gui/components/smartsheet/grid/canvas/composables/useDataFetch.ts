@@ -1,3 +1,5 @@
+import axios from 'axios'
+
 const MAX_RECORDS_PER_CALL = 100
 const INITIAL_LOAD_SIZE = 100 // Shouldn't exceed MAX_RECORDS_PER_CALL
 const CHUNK_SIZE = 50 // Shouldn't exceed MAX_RECORDS_PER_CALL
@@ -82,7 +84,8 @@ export function useDataFetch({
       }
       invalidateChunksAt(chunkStates.value, removed, CHUNK_SIZE, isInitialLoad ? [chunkId, chunkId + 1] : [chunkId])
     } catch (error) {
-      console.error(`Error fetching chunk ${chunkId}:`, error)
+      // A superseded search aborts in flight; the chunk resets below and the new term refetches it.
+      if (!axios.isCancel(error)) console.error(`Error fetching chunk ${chunkId}:`, error)
       chunkStates.value[chunkId] = undefined
       if (isInitialLoad) {
         chunkStates.value[chunkId + 1] = undefined
@@ -108,7 +111,7 @@ export function useDataFetch({
       group.forEach((chunkId) => (chunkStates.value[chunkId] = 'loaded'))
       invalidateChunksAt(chunkStates.value, removed, CHUNK_SIZE, group)
     } catch (error) {
-      console.error(`Error fetching chunks group from ${startChunk} to ${endChunk}:`, error)
+      if (!axios.isCancel(error)) console.error(`Error fetching chunks group from ${startChunk} to ${endChunk}:`, error)
       group.forEach((chunkId) => (chunkStates.value[chunkId] = undefined))
     }
   }

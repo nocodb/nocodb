@@ -632,8 +632,14 @@ export abstract class AiIntegration<
    * assuming they support all capabilities
    */
   public async availableModels(
-    capability?: ModelCapability,
+    capability?: ModelCapability | { capability?: ModelCapability },
   ): Promise<ModelInfo[]> {
+    // Over the HTTP endpoint the request body arrives here — `{}` when the caller
+    // wants every model. Treating that object as a capability filtered out every
+    // known model, so only a string (or `{ capability }`) narrows the list.
+    const filter =
+      typeof capability === 'string' ? capability : capability?.capability;
+
     const results: ModelInfo[] = [];
 
     for (const modelId of this.config.models || []) {
@@ -644,7 +650,7 @@ export abstract class AiIntegration<
 
       if (supportedModel) {
         // Known model - check capabilities if specified
-        if (!capability || supportedModel.capabilities.includes(capability)) {
+        if (!filter || supportedModel.capabilities.includes(filter)) {
           results.push(supportedModel);
         }
       } else {

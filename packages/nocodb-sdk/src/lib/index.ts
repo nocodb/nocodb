@@ -40,6 +40,9 @@ export {
   FieldNameFromUITypes,
   numericUITypes,
   isAIPromptCol,
+  isFieldAgentCol,
+  type FieldAgentMeta,
+  FIELD_AGENT_SUPPORTED_TYPES,
   isNumericCol,
   isVirtualCol,
   isLinksOrLTAR,
@@ -148,3 +151,4 @@ export * from '~/lib/previewAs';
 export * from '~/lib/agent';
 export * from '~/lib/skill';
 export * from '~/lib/inviteLink';
+export * from '~/lib/fieldAgent';

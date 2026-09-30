@@ -54,6 +54,9 @@ const { isUIAllowed, isMetaReadOnly } = useRoles()
 
 const { isPg, isMysql } = useBase()
 
+// Field Agent support
+const { isFieldAgent, rowPk, isAiGenerating, runFieldAgent } = useFieldAgentCell({ column, meta, emit })
+
 // a variable to keep newly created option value
 // temporary until it's add the option to column meta
 const tempSelectedOptState = ref<string>()
@@ -292,6 +295,8 @@ const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEv
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+
+const isRunHosted = inject(FieldAgentRunHostedInj, ref(false))
 const isGrid = inject(IsGridInj, ref(false))
 onMounted(() => {
   if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value && !isEditColumn.value) {
@@ -411,6 +416,13 @@ onMounted(() => {
         </div>
       </a-select-option>
     </NcSelect>
+
+    <CellFieldAgentRunButton
+      v-if="isFieldAgent && rowPk && !isRunHosted && !isEditColumn && !isForm && editAllowed && !readOnly"
+      source="cell"
+      :loading="isAiGenerating"
+      @click="runFieldAgent"
+    />
   </div>
 </template>
 

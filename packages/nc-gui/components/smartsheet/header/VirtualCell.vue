@@ -114,10 +114,10 @@ const tooltipMsg = computed(() => {
       const fkColumn = getMetaByKey(relatedBaseId, column.value?.colOptions?.fk_related_model_id as string)?.columns?.find(
         (c) => c.id === column.value?.colOptions?.fk_child_column_id,
       )
-      suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\n${t('labels.foreignKeyColumn', { title: fkColumn.title })}`
+      suffix = !fkColumn?.title || fkColumn.title.startsWith('nc_') ? '' : `\n${t('labels.foreignKeyColumn', { title: fkColumn.title })}`
     } else if (isBt(column.value)) {
       const fkColumn = meta.value?.columns?.find((c) => c.id === column.value?.colOptions?.fk_child_column_id)
-      suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\n${t('labels.foreignKeyColumn', { title: fkColumn.title })}`
+      suffix = !fkColumn?.title || fkColumn.title.startsWith('nc_') ? '' : `\n${t('labels.foreignKeyColumn', { title: fkColumn.title })}`
     }
   }
 

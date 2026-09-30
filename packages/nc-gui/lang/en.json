@@ -1584,6 +1584,7 @@
     "vaultPermissionUsers": "Specific people",
     "vaultPermissionNobody": "Inactive",
     "vaultPermissionUnknownMember": "Unknown member",
+    "vaultPermissionNoLongerCreator": "no longer Creator or Owner",
     "vaultStepVerify": "Verify",
     "vaultStatus": "Status",
     "vaultVerified": "Verified",

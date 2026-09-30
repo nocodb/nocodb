@@ -109,10 +109,6 @@ export class BaseModelDelete {
         : []),
     ];
 
-    // Reject the bulk delete if any row in scope is locked read-only by RLS
-    // (EE-only; no-op in CE). No PK list here, so this is a scope-based check.
-    await this.baseModel.assertConditionWritable(conditionObjBDA);
-
     await conditionV2(this.baseModel, conditionObjBDA, qb, undefined, true);
     const execQueries: ExecQueryType[] = [];
 
@@ -126,6 +122,14 @@ export class BaseModelDelete {
       !!deletedColumn &&
       isMeta &&
       (await this.baseModel.model.isTrashEnabledForWorkspace());
+
+    // Reject the bulk delete if any row in scope is locked read-only by RLS
+    // (EE-only; no-op in CE). No PK list here, so this is a scope-based check.
+    // A hard delete reaches trashed rows, so the probe must scan them too —
+    // otherwise a trashed locked row is invisible to the gate and destroyed.
+    await this.baseModel.assertConditionWritable(conditionObjBDA, {
+      includeSoftDeleted: !isSoftDelete,
+    });
 
     if (isSoftDelete) {
       const notDeletedValue = deletedColValue(this.baseModel, false);

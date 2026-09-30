@@ -10727,16 +10727,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // Only a link displaces a third row; unlink just clears the named row's FK.
     isLink?: boolean;
   }): Promise<void> {
-    await this.model.getColumns(this.context);
+    await this.model.getColumns();
     const column = this.model.columnsById[colId];
     if (!column || !isLinksOrLTAR(column)) return;
 
     // mm / mm-like: junction-table rows only — neither record is mutated
     if (isMMOrMMLike(column)) return;
 
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
-      this.context,
-    );
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 
     // Same bt-side detection as RelationManager.isRelationReversed
     const isBtSide =
@@ -10749,11 +10747,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       // hm / oo(reverse): FK lives on the related (child) table's rows
       if (!childIds?.length) return;
 
-      const { childContext } = await colOptions.getParentChildContext(
-        this.context,
-      );
-      const childColumn = await colOptions.getChildColumn(childContext);
-      const childTable = await childColumn.getModel(childContext);
+      const { childContext } = await colOptions.getParentChildContext();
+      const childColumn = await colOptions.getChildColumn();
+      const childTable = await childColumn.getModel();
       const childBaseModel = await Model.getBaseModelSQL(childContext, {
         model: childTable,
         dbDriver: this.dbDriver,

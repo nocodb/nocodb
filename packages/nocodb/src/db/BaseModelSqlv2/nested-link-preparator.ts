@@ -90,9 +90,7 @@ export class NestedLinkPreparator {
     for (const col of nestedCols) {
       if (!(col.title in data)) continue;
 
-      const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>(
-        baseModel.context,
-      );
+      const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>();
       if (!colOptions) continue;
 
       // Junction-only: neither record row is mutated.
@@ -115,12 +113,10 @@ export class NestedLinkPreparator {
       }
       if (nestedData == null) continue;
 
-      const { childContext } = await colOptions.getParentChildContext(
-        baseModel.context,
-      );
-      const childCol = await colOptions.getChildColumn(childContext);
-      const childModel = await childCol.getModel(childContext);
-      await childModel.getColumns(childContext);
+      const { childContext } = await colOptions.getParentChildContext();
+      const childCol = await colOptions.getChildColumn();
+      const childModel = await childCol.getModel();
+      await childModel.getColumns();
       if (!childModel.primaryKey) continue;
 
       const childBaseModel = await Model.getBaseModelSQL(childContext, {

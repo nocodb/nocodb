@@ -5855,7 +5855,6 @@
       "vaultPermissionUsers": "Only the owners and creators you pick can use this vault.",
       "vaultPermissionNobody": "No new references to this vault, owners included. Connections already using it keep working.",
       "vaultPermissionHint": "Referencing a secret is as good as reading it. Only people who can create integrations can use a vault.",
-      "vaultPermissionUsersCount": "Granted to {count} people. Change it from that workspace.",
       "vaultPermissionTeamsCount": "Also granted to {count} teams, set through the API. They are kept.",
       "vaultPermissionPickSomeone": "Pick at least one person. Nothing is saved until you do.",
       "vaultConnectedOwnerOnly": "Vault connected, but its access could not be set. Only workspace owners can use it until you change it from Edit.",

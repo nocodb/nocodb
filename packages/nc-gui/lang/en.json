@@ -5870,6 +5870,8 @@
       "vaultAliasImmutable": "The reference name cannot be changed — every stored reference embeds it.",
       "vaultEditSubtitle": "Change who can use this vault, or enter new provider credentials. The stored ones are never shown, not even here.",
       "vaultPromoteConfirmTitle": "Make this vault organization-wide?",
+      "vaultMoveConfirmTitle": "Limit this vault to {workspace}?",
+      "vaultMoveConfirm": "Only {workspace} will see this vault. The move is refused while integrations in other workspaces still use it. Who can use it stays as set, limited to members of {workspace}.",
       "vaultPromoteConfirm": "Every workspace in the organization will see this vault. Who can use it resets to workspace owners, and only an organization admin can edit it afterwards.",
       "vaultDisconnectWarning": "Disconnecting breaks every secret reference that names this vault, and cannot be undone.",
       "keepTypingFullEmail": "Keep typing a full email to invite.",
@@ -6767,6 +6769,7 @@
       "oauthClientCreated": "OAuth client created successfully!",
       "oauthClientCreatedTitle": "OAuth Client Created Successfully!",
       "vaultScopeOrg": "Vault is now available to every workspace in the organization",
+      "vaultScopeWorkspace": "Vault is now limited to {workspace}",
       "webhookUpgradedToV3": "Webhook upgraded to v3 successfully!",
       "webhookUrlCopied": "Webhook URL copied to clipboard"
     },

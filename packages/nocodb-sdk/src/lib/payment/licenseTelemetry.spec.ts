@@ -75,6 +75,11 @@ describe('licenseTelemetry', () => {
         source: 'home-sidebar-create-workspace',
       }),
     ).toEqual({ source: 'home-sidebar-create-workspace' });
+    expect(
+      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.UPGRADE_CTA_CLICKED, {
+        source: 'extensions',
+      }),
+    ).toEqual({ source: 'extensions' });
   });
 
   it('drops a feature that is not a real plan feature or addon', () => {

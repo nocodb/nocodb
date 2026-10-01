@@ -33,8 +33,8 @@ const ALLOWED_PROPS: Record<LicenseTelemetryEvent, readonly string[]> = {
 
 const USER_HASH = /^[a-f0-9]{32}$/;
 
-// Lowercase kebab slug, 2+ segments — excludes raw ids (no hyphen) and UUIDs (checked below).
-const SOURCE_SLUG = /^[a-z0-9]+(-[a-z0-9]+)+$/;
+// Letters-only word or lowercase kebab slug — excludes raw ids (digits, no hyphen) and UUIDs (checked below).
+const SOURCE_SLUG = /^([a-z]+|[a-z0-9]+(-[a-z0-9]+)+)$/;
 const UUID_SHAPE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

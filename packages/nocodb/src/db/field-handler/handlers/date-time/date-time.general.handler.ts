@@ -504,17 +504,23 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     }
     // for straight date value without sub op
     if (!filter.comparison_sub_op && filter.value) {
-      anchorDate = this.parseFilterValue(
-        filter.value,
-        knex,
-        filter,
-        column,
-        options,
-      );
-      anchorDate = filter.groupby ? anchorDate : anchorDate.startOf('day');
-      if (!anchorDate.isValid()) {
-        return emptyResult;
+      try {
+        anchorDate = this.parseFilterValue(
+          filter.value,
+          knex,
+          filter,
+          column,
+          options,
+        );
+      } catch {
+        anchorDate = undefined;
       }
+      // No date equals a non-date. An empty clause here returned every row for
+      // filters nested under a link, which skip top-level validation (#10695).
+      if (!anchorDate?.isValid()) {
+        return { clause: (qb) => qb.whereRaw('1 = 0') };
+      }
+      anchorDate = filter.groupby ? anchorDate : anchorDate.startOf('day');
     }
     if (!anchorDate) {
       return emptyResult;

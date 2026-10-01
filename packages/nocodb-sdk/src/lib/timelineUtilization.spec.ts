@@ -1,3 +1,6 @@
+import type { ColumnType } from './Api';
+import { RelationTypes } from './globals';
+import UITypes from './UITypes';
 import {
   computeUtilization,
   countCountedDays,
@@ -331,37 +334,69 @@ describe('timelineUtilization', () => {
   });
   it('classifies LTAR and Links fields of either version', () => {
     const link = (
-      uidt: string,
-      type: string,
+      uidt: UITypes,
+      type: RelationTypes,
       version?: number,
       meta?: Record<string, unknown>
-    ) => ({ uidt, meta, colOptions: { type, version } });
+    ): ColumnType => ({ uidt, meta, colOptions: { type, version } });
 
-    for (const uidt of ['LinkToAnotherRecord', 'Links']) {
+    for (const uidt of [UITypes.LinkToAnotherRecord, UITypes.Links]) {
       // V1 foreign key
-      expect(isUtilizationResourceLink(link(uidt, 'bt'))).toBe(true);
-      expect(isUtilizationTimeOffLink(link(uidt, 'bt'))).toBe(true);
-      expect(isUtilizationResourceLink(link(uidt, 'oo', 1, { bt: true }))).toBe(
-        true
-      );
+      expect(
+        isUtilizationResourceLink(link(uidt, RelationTypes.BELONGS_TO))
+      ).toBe(true);
+      expect(
+        isUtilizationTimeOffLink(link(uidt, RelationTypes.BELONGS_TO))
+      ).toBe(true);
+      expect(
+        isUtilizationResourceLink(
+          link(uidt, RelationTypes.ONE_TO_ONE, 1, { bt: true })
+        )
+      ).toBe(true);
       // V2 single-record links go through a junction
-      expect(isUtilizationResourceLink(link(uidt, 'mo', 2))).toBe(true);
-      expect(isUtilizationResourceLink(link(uidt, 'oo', 2))).toBe(true);
-      expect(isUtilizationTimeOffLink(link(uidt, 'mo', 2))).toBe(true);
+      expect(
+        isUtilizationResourceLink(link(uidt, RelationTypes.MANY_TO_ONE, 2))
+      ).toBe(true);
+      expect(
+        isUtilizationResourceLink(link(uidt, RelationTypes.ONE_TO_ONE, 2))
+      ).toBe(true);
+      expect(
+        isUtilizationTimeOffLink(link(uidt, RelationTypes.MANY_TO_ONE, 2))
+      ).toBe(true);
       // Several records per row
-      expect(isUtilizationResourceLink(link(uidt, 'mm'))).toBe(false);
-      expect(isUtilizationResourceLink(link(uidt, 'mm', 2))).toBe(false);
-      expect(isUtilizationResourceLink(link(uidt, 'om', 2))).toBe(false);
-      expect(isUtilizationResourceLink(link(uidt, 'hm'))).toBe(false);
-      expect(isUtilizationTimeOffLink(link(uidt, 'mm'))).toBe(true);
-      expect(isUtilizationTimeOffLink(link(uidt, 'hm'))).toBe(false);
+      expect(
+        isUtilizationResourceLink(link(uidt, RelationTypes.MANY_TO_MANY))
+      ).toBe(false);
+      expect(
+        isUtilizationResourceLink(link(uidt, RelationTypes.MANY_TO_MANY, 2))
+      ).toBe(false);
+      expect(
+        isUtilizationResourceLink(link(uidt, RelationTypes.ONE_TO_MANY, 2))
+      ).toBe(false);
+      expect(
+        isUtilizationResourceLink(link(uidt, RelationTypes.HAS_MANY))
+      ).toBe(false);
+      expect(
+        isUtilizationTimeOffLink(link(uidt, RelationTypes.MANY_TO_MANY))
+      ).toBe(true);
+      expect(isUtilizationTimeOffLink(link(uidt, RelationTypes.HAS_MANY))).toBe(
+        false
+      );
       // Resource-side counterparts of a time-off link
-      expect(isUtilizationTimeOffSource(link(uidt, 'hm'))).toBe(true);
-      expect(isUtilizationTimeOffSource(link(uidt, 'om', 2))).toBe(true);
-      expect(isUtilizationTimeOffSource(link(uidt, 'mm'))).toBe(true);
-      expect(isUtilizationTimeOffSource(link(uidt, 'bt'))).toBe(false);
+      expect(
+        isUtilizationTimeOffSource(link(uidt, RelationTypes.HAS_MANY))
+      ).toBe(true);
+      expect(
+        isUtilizationTimeOffSource(link(uidt, RelationTypes.ONE_TO_MANY, 2))
+      ).toBe(true);
+      expect(
+        isUtilizationTimeOffSource(link(uidt, RelationTypes.MANY_TO_MANY))
+      ).toBe(true);
+      expect(
+        isUtilizationTimeOffSource(link(uidt, RelationTypes.BELONGS_TO))
+      ).toBe(false);
     }
-    expect(isUtilizationResourceLink({ uidt: 'User' })).toBe(false);
+    expect(isUtilizationResourceLink({ uidt: UITypes.User })).toBe(false);
     expect(isUtilizationResourceLink(null)).toBe(false);
   });
 });

@@ -1,4 +1,5 @@
 import {
+  LICENSE_INSTANCE_STAT_KEYS,
   LICENSE_TELEMETRY_CLIENT_EVENTS,
   LicenseTelemetryEvent,
   licenseActivityCategory,
@@ -12,17 +13,20 @@ describe('licenseTelemetry', () => {
       sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.FEATURE_BLOCKED, {
         feature: 'feature_sso',
         source: 'x',
-      }),
+      })
     ).toEqual({ feature: 'feature_sso' });
   });
 
   it('drops strings that could carry PII', () => {
     expect(
-      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.UPGRADE_PROMPT_SHOWN, {
-        source: 'jane@acme.com',
-        feature: 'https://acme.internal/x?y=1',
-        viewer_role: 'member',
-      }),
+      sanitizeLicenseTelemetryProps(
+        LicenseTelemetryEvent.UPGRADE_PROMPT_SHOWN,
+        {
+          source: 'jane@acme.com',
+          feature: 'https://acme.internal/x?y=1',
+          viewer_role: 'member',
+        }
+      )
     ).toEqual({ viewer_role: 'member' });
   });
 
@@ -32,14 +36,20 @@ describe('licenseTelemetry', () => {
         limit: 'limit_editor',
         limit_value: 5,
         current: Infinity,
-      }),
+      })
     ).toEqual({ limit: 'limit_editor', limit_value: 5 });
   });
 
   it('rejects unknown events and bad timestamps', () => {
-    expect(sanitizeLicenseTelemetryEvent({ event: 'page_view', ts: 1, props: {} })).toBeNull();
     expect(
-      sanitizeLicenseTelemetryEvent({ event: 'feature_blocked', ts: 'x', props: {} }),
+      sanitizeLicenseTelemetryEvent({ event: 'page_view', ts: 1, props: {} })
+    ).toBeNull();
+    expect(
+      sanitizeLicenseTelemetryEvent({
+        event: 'feature_blocked',
+        ts: 'x',
+        props: {},
+      })
     ).toBeNull();
   });
 
@@ -64,22 +74,22 @@ describe('licenseTelemetry', () => {
     expect(
       sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.UPGRADE_CTA_CLICKED, {
         source: 'w1a2b3c4d5e6f7',
-      }),
+      })
     ).toEqual({});
     expect(
       sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.UPGRADE_CTA_CLICKED, {
         source: '123e4567-e89b-12d3-a456-426614174000',
-      }),
+      })
     ).toEqual({});
     expect(
       sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.UPGRADE_CTA_CLICKED, {
         source: 'home-sidebar-create-workspace',
-      }),
+      })
     ).toEqual({ source: 'home-sidebar-create-workspace' });
     expect(
       sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.UPGRADE_CTA_CLICKED, {
         source: 'extensions',
-      }),
+      })
     ).toEqual({ source: 'extensions' });
   });
 
@@ -87,7 +97,7 @@ describe('licenseTelemetry', () => {
     expect(
       sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.FEATURE_BLOCKED, {
         feature: 'not_a_feature',
-      }),
+      })
     ).toEqual({});
   });
 
@@ -95,7 +105,7 @@ describe('licenseTelemetry', () => {
     expect(
       sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.UPGRADE_CTA_CLICKED, {
         cta: 'hack',
-      }),
+      })
     ).toEqual({});
   });
 
@@ -103,16 +113,19 @@ describe('licenseTelemetry', () => {
     expect(
       sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.LIMIT_HIT, {
         current: '5',
-      }),
+      })
     ).toEqual({});
   });
 
   it('keeps a valid license state transition', () => {
     expect(
-      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.LICENSE_STATE_CHANGED, {
-        from: 'active',
-        to: 'expired',
-      }),
+      sanitizeLicenseTelemetryProps(
+        LicenseTelemetryEvent.LICENSE_STATE_CHANGED,
+        {
+          from: 'active',
+          to: 'expired',
+        }
+      )
     ).toEqual({ from: 'active', to: 'expired' });
   });
 
@@ -122,7 +135,7 @@ describe('licenseTelemetry', () => {
         delta: 2,
         current: 3,
         limit_value: 10,
-      }),
+      })
     ).toEqual({ delta: 2, current: 3, limit_value: 10 });
     expect(
       sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.SEAT_ADDED, {
@@ -130,18 +143,36 @@ describe('licenseTelemetry', () => {
         current: '3',
         limit_value: 'ten',
         email: 'a@b.c',
-      }),
+      })
     ).toEqual({});
   });
 
   it('seat events are server-only', () => {
     expect(LICENSE_TELEMETRY_CLIENT_EVENTS).not.toContain(
-      LicenseTelemetryEvent.SEAT_ADDED,
+      LicenseTelemetryEvent.SEAT_ADDED
     );
     expect(LICENSE_TELEMETRY_CLIENT_EVENTS).not.toContain(
-      LicenseTelemetryEvent.SEAT_REMOVED,
+      LicenseTelemetryEvent.SEAT_REMOVED
     );
   });
+  it('instance_stats keeps non-negative integer counts only', () => {
+    expect(
+      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.INSTANCE_STATS, {
+        workspace_count: 3,
+        base_count: 0,
+        table_count: 1.5,
+        view_count: -1,
+        user_count: '12',
+        webhook_count: 4,
+        base_title: 'Sales CRM',
+      })
+    ).toEqual({ workspace_count: 3, base_count: 0, webhook_count: 4 });
+    expect(LICENSE_INSTANCE_STAT_KEYS).toContain('table_count');
+    expect(LICENSE_TELEMETRY_CLIENT_EVENTS).not.toContain(
+      LicenseTelemetryEvent.INSTANCE_STATS
+    );
+  });
+
   describe('activity summary', () => {
     it('maps event names to a fixed category, everything else to other', () => {
       expect(licenseActivityCategory('c:table:create')).toBe('table');
@@ -166,7 +197,7 @@ describe('licenseTelemetry', () => {
           cat_jane: 2,
           cat_view: -1,
           cat_base: 1.5,
-        }),
+        })
       ).toEqual({
         total_events: 12,
         frontend_events: 7,
@@ -180,7 +211,7 @@ describe('licenseTelemetry', () => {
 
     it('is not a client event', () => {
       expect(LICENSE_TELEMETRY_CLIENT_EVENTS).not.toContain(
-        LicenseTelemetryEvent.ACTIVITY_SUMMARY,
+        LicenseTelemetryEvent.ACTIVITY_SUMMARY
       );
     });
   });

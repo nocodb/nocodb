@@ -11,6 +11,7 @@ export enum LicenseTelemetryEvent {
   SEAT_ADDED = 'seat_added',
   SEAT_REMOVED = 'seat_removed',
   ACTIVITY_SUMMARY = 'activity_summary',
+  INSTANCE_STATS = 'instance_stats',
 }
 
 // Events the browser may report; the rest are emitted server-side only.
@@ -74,6 +75,24 @@ export function licenseActivityCategory(
 
 type LicenseActivityCategoryPropKey = `cat_${LicenseActivityCategory}`;
 
+export const LICENSE_INSTANCE_STAT_KEYS = [
+  'workspace_count',
+  'base_count',
+  'table_count',
+  'view_count',
+  'user_count',
+  'external_source_count',
+  'integration_count',
+  'workflow_count',
+  'script_count',
+  'dashboard_count',
+  'doc_count',
+  'webhook_count',
+] as const;
+
+export type LicenseInstanceStatKey =
+  (typeof LICENSE_INSTANCE_STAT_KEYS)[number];
+
 const ACTIVITY_CATEGORY_PROP_KEYS = LICENSE_ACTIVITY_CATEGORIES.map(
   (c) => `cat_${c}` as LicenseActivityCategoryPropKey
 );
@@ -94,6 +113,7 @@ type LicenseTelemetryPropKey =
   | 'backend_events'
   | 'active_users'
   | 'window_ms'
+  | LicenseInstanceStatKey
   | LicenseActivityCategoryPropKey;
 
 const ALLOWED_PROPS: Record<
@@ -127,6 +147,7 @@ const ALLOWED_PROPS: Record<
     'window_ms',
     ...ACTIVITY_CATEGORY_PROP_KEYS,
   ],
+  [LicenseTelemetryEvent.INSTANCE_STATS]: LICENSE_INSTANCE_STAT_KEYS,
 };
 
 const USER_HASH = /^[a-f0-9]{32}$/;
@@ -183,6 +204,13 @@ const CATEGORY_VALIDATORS = {} as Record<
 for (const key of ACTIVITY_CATEGORY_PROP_KEYS)
   CATEGORY_VALIDATORS[key] = isCount;
 
+const INSTANCE_STAT_VALIDATORS = {} as Record<
+  LicenseInstanceStatKey,
+  (value: unknown) => boolean
+>;
+for (const key of LICENSE_INSTANCE_STAT_KEYS)
+  INSTANCE_STAT_VALIDATORS[key] = isCount;
+
 const PROP_VALIDATORS: Record<
   LicenseTelemetryPropKey,
   (value: unknown) => boolean
@@ -203,6 +231,7 @@ const PROP_VALIDATORS: Record<
   active_users: isCount,
   window_ms: isCount,
   ...CATEGORY_VALIDATORS,
+  ...INSTANCE_STAT_VALIDATORS,
 };
 
 export type LicenseTelemetryProps = Record<string, string | number | boolean>;

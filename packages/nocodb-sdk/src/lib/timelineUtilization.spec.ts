@@ -7,6 +7,7 @@ import {
   instantToDayNumber,
   MONDAY_TO_FRIDAY,
   remapDateAxisSummaryIds,
+  toCapacity,
   utilizationColor,
   utilizationPercent,
   workingDayMask,
@@ -257,5 +258,72 @@ describe('timelineUtilization', () => {
     expect(utilizationColor(10)).toBe('green');
     expect(utilizationColor(Infinity)).toBe('red');
     expect(utilizationColor(null)).toBeNull();
+  });
+  it('counts days off on working days only', () => {
+    const res = computeUtilization({
+      buckets: [week1],
+      tasks: [
+        {
+          fromDay: week1.startDay,
+          toDay: week1.endDay - 1,
+          allocated: 8,
+          resources: ['a'],
+          available: 8,
+        },
+      ],
+      timeOff: [
+        { resource: 'a', fromDay: week1.startDay, toDay: week1.endDay - 1 },
+      ],
+      allocatedRate: 'day',
+      availableRate: 'day',
+      workingDays: MONDAY_TO_FRIDAY,
+    });
+    expect(res.groups[0].buckets[0].time_off).toBe(5);
+  });
+
+  it('keeps a total scheduled only on non-working days', () => {
+    const res = computeUtilization({
+      buckets: [week1],
+      tasks: [
+        {
+          fromDay: day('2026-09-12'),
+          toDay: day('2026-09-13'),
+          allocated: 6,
+          resources: ['a'],
+          available: 40,
+        },
+      ],
+      allocatedRate: 'total',
+      availableRate: 'week',
+      workingDays: MONDAY_TO_FRIDAY,
+    });
+    expect(res.groups[0].buckets[0]).toMatchObject({
+      allocated: 6,
+      available: 40,
+    });
+  });
+
+  it('ignores bucket ends past the window', () => {
+    const res = computeUtilization({
+      buckets: [
+        { startDay: week1.startDay, endDay: week1.startDay + 1_000_000 },
+        week2,
+      ],
+      tasks: [],
+      allocatedRate: 'total',
+      availableRate: 'day',
+    });
+    expect(res.buckets).toHaveLength(2);
+  });
+
+  it('reads working hours from single values and lookup lists', () => {
+    expect(toCapacity(8)).toBe(8);
+    expect(toCapacity('7.5')).toBe(7.5);
+    expect(toCapacity([6, 8])).toBe(8);
+    expect(toCapacity('[4, "6"]')).toBe(6);
+    expect(toCapacity([])).toBeNull();
+    expect(toCapacity(null)).toBeNull();
+    expect(toCapacity('')).toBeNull();
+    expect(toCapacity('abc')).toBeNull();
   });
 });

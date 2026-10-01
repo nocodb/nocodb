@@ -152,14 +152,39 @@ export function countCountedDays(
   return count;
 }
 
+/**
+ * A working-hours value as read from a field. A lookup through a has-many
+ * link yields several values; the largest is taken, as across tasks.
+ */
+export function toCapacity(value: unknown): number | null {
+  let v = value;
+  if (typeof v === 'string' && v.trim().startsWith('[')) {
+    try {
+      v = JSON.parse(v);
+    } catch {
+      return null;
+    }
+  }
+  if (Array.isArray(v)) {
+    const nums = v
+      .flat(Infinity)
+      .map((x) => (x === null || x === '' ? NaN : Number(x)))
+      .filter(Number.isFinite);
+    return nums.length ? Math.max(...nums) : null;
+  }
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
 export interface UtilizationTask {
   fromDay: number;
   /** Inclusive; defaults to `fromDay`. */
   toDay?: number | null;
   allocated: number;
   resources: string[];
-  /** Working hours read from the task (lookup of the resource's capacity). */
-  available?: number | null;
+  /** Working hours read from the task (lookup of the resource's capacity); see `toCapacity`. */
+  available?: unknown;
 }
 
 export interface UtilizationTimeOff {
@@ -223,7 +248,8 @@ export function computeUtilization(
   // day offset → bucket index, and whether the day counts at all
   const bucketOfDay = new Int32Array(dayCount).fill(-1);
   buckets.forEach((b, i) => {
-    for (let d = Math.max(b.startDay, windowStart); d < b.endDay; d++) {
+    const end = Math.min(b.endDay, windowEnd);
+    for (let d = Math.max(b.startDay, windowStart); d < end; d++) {
       bucketOfDay[d - windowStart] = i;
     }
   });
@@ -237,6 +263,8 @@ export function computeUtilization(
   // per resource rather than O(tasks × span).
   interface ResourceAcc {
     allocated: Float64Array;
+    /** Hours of tasks with no counted day, kept on the days they cover. */
+    uncounted: Float64Array | null;
     work: Int32Array;
     off: Int32Array | null;
     capacity: number | null;
@@ -248,6 +276,7 @@ export function computeUtilization(
     if (!acc) {
       acc = {
         allocated: new Float64Array(dayCount + 1),
+        uncounted: null,
         work: new Int32Array(dayCount + 1),
         off: null,
         capacity: null,
@@ -273,9 +302,13 @@ export function computeUtilization(
       params.multipleResources === 'split' ? 1 / resources.length : 1;
 
     let perDay: number;
+    // A total on a task with no counted day (a Saturday-only task on a
+    // Mon–Fri week) is spread over its calendar days rather than dropped.
+    let onUncounted = false;
     if (allocFactor === null) {
       const days = countCountedDays(fromDay, toDay, mask);
-      perDay = days ? allocated / days : 0;
+      onUncounted = !days;
+      perDay = allocated / (days || toDay - fromDay + 1);
     } else {
       perDay = allocated * allocFactor;
     }
@@ -283,11 +316,8 @@ export function computeUtilization(
 
     const from = Math.max(fromDay, windowStart) - windowStart;
     const to = Math.min(toDay, windowEnd - 1) - windowStart;
-    const taskCapacity = Number(task.available);
-    const hasCapacity =
-      task.available !== null &&
-      task.available !== undefined &&
-      Number.isFinite(taskCapacity);
+    const taskCapacity = toCapacity(task.available);
+    const hasCapacity = taskCapacity !== null;
 
     for (const key of resources) {
       const acc = accFor(key);
@@ -295,8 +325,14 @@ export function computeUtilization(
         acc.capacity = Math.max(acc.capacity ?? 0, taskCapacity);
       }
       if (to < from) continue;
-      acc.allocated[from] += perDay;
-      acc.allocated[to + 1] -= perDay;
+      if (onUncounted) {
+        if (!acc.uncounted) acc.uncounted = new Float64Array(dayCount + 1);
+        acc.uncounted[from] += perDay;
+        acc.uncounted[to + 1] -= perDay;
+      } else {
+        acc.allocated[from] += perDay;
+        acc.allocated[to + 1] -= perDay;
+      }
       acc.work[from] += 1;
       acc.work[to + 1] -= 1;
     }
@@ -337,20 +373,23 @@ export function computeUtilization(
     const total = { allocated: 0, available: 0, time_off: 0 };
 
     let allocated = 0;
+    let uncounted = 0;
     let work = 0;
     let off = 0;
     for (let i = 0; i < dayCount; i++) {
       allocated += acc.allocated[i];
+      if (acc.uncounted) uncounted += acc.uncounted[i];
       work += acc.work[i];
       if (acc.off) off += acc.off[i];
       const b = bucketOfDay[i];
       if (b < 0) continue;
       const cell = groupBuckets[b];
+      cell.allocated += uncounted;
       if (counted[i]) {
         cell.allocated += allocated;
         if (off <= 0) cell.available += capacityPerDay;
+        if (off > 0 && work > 0) cell.time_off++;
       }
-      if (off > 0 && work > 0) cell.time_off++;
     }
 
     groupBuckets.forEach((cell, i) => {

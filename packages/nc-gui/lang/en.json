@@ -6022,6 +6022,7 @@
       "utilizationUnavailable": "Nothing is available in this period",
       "utilizationTruncated": "Utilization counts the first 50,000 records in this date range, so some periods may read low",
       "utilizationTimeOffUnavailable": "Time off isn't counted: its table or fields are no longer available",
+      "utilizationAvailableMissing": "Some resources have no working hours in the selected field, so they show as nothing available",
       "utilizationTimeOffNeedsLink": "Time off is read from a table linked to the resource, so it needs a linked-record resource",
       "noTimeOffTable": "No table links to {table} yet",
       "utilizationNoNumberField": "Add a number field for the hours first",

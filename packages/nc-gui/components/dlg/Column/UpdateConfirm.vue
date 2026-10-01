@@ -12,7 +12,7 @@ const visible = useVModel(props, 'visible', emit)
 <template>
   <NcModal v-model:visible="visible" size="small" :show-separator="false" :centered="false">
     <template #header>
-      <div class="flex flex-row items-center gap-x-2">Field Type Change</div>
+      <div class="flex flex-row items-center gap-x-2">{{ $t('labels.fieldTypeChange') }}</div>
     </template>
 
     <div class="flex flex-col" @click.stop>
@@ -24,7 +24,7 @@ const visible = useVModel(props, 'visible', emit)
       >
         <div class="flex item-center gap-2">
           <GeneralIcon id="nc-selected-item-icon" icon="alertTriangle" class="h-10 w-10 text-nc-content-yellow-medium" />
-          Converting data types may result in data loss; any incompatible filters will be removed.
+          {{ $t('msg.info.fieldTypeChangeWarning') }}
         </div>
       </div>
 
@@ -46,7 +46,7 @@ const visible = useVModel(props, 'visible', emit)
           @click="emit('submit')"
         >
           {{ $t('general.update') }}
-          <template #loading> Saving... </template>
+          <template #loading> {{ $t('labels.saving') }} </template>
         </NcButton>
       </div>
     </div>

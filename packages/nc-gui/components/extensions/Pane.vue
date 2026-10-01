@@ -208,7 +208,7 @@ onMounted(() => {
                 v-model:value="searchQuery"
                 type="text"
                 class="nc-input-border-on-value !h-7 !px-3 !py-1 !rounded-lg"
-                placeholder="Search Extension"
+                :placeholder="$t('placeholder.searchExtension')"
                 allow-clear
                 @keydown.esc="handleCloseSearchbox"
               >
@@ -230,10 +230,9 @@ onMounted(() => {
         </div>
         <template v-if="extensionList.length === 0">
           <div class="flex-1 flex items-center justify-center flex-col gap-4 w-full nc-scrollbar-md text-center p-4">
-            <div class="text-base font-bold text-nc-content-gray">Supercharge Your Workflow with Extensions</div>
+            <div class="text-base font-bold text-nc-content-gray">{{ $t('labels.extensionsEmptyTitle') }}</div>
             <div class="text-sm text-nc-content-gray-subtle2">
-              Unlock powerful scripts and tools to enhance how you work with your databases. Get started by exploring available
-              extensions.
+              {{ $t('msg.info.extensionsEmptyDescription') }}
             </div>
             <NcButton size="small" @click="toggleMarket">
               <div class="flex items-center gap-1 -ml-3px">

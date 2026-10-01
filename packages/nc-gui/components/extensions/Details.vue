@@ -129,7 +129,7 @@ const detailsBody = computed(() => {
 
           <NcDivider />
           <div v-if="activeExtension.publisher" class="extension-details-right-section">
-            <div class="extension-details-right-title">Publisher</div>
+            <div class="extension-details-right-title">{{ $t('labels.publisher') }}</div>
             <div class="flex items-center gap-2">
               <img
                 v-if="activeExtension.publisher?.icon?.src"
@@ -151,7 +151,7 @@ const detailsBody = computed(() => {
                 rel="noopener noreferrer"
                 class="!no-underline !hover:underline"
               >
-                Website
+                {{ $t('labels.publisherWebsite') }}
               </a>
               <template v-if="activeExtension.publisher?.email">
                 <div class="border-l-1 border-nc-border-gray-medium h-5"></div>
@@ -161,7 +161,7 @@ const detailsBody = computed(() => {
                   rel="noopener noreferrer"
                   class="!no-underline !hover:underline"
                 >
-                  Contact
+                  {{ $t('labels.publisherContact') }}
                 </a>
               </template>
             </div>

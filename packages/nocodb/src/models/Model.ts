@@ -837,6 +837,24 @@ export default class Model implements TableType {
           fk_mm_model_id: this.id,
         },
       );
+
+      // A link column without its relation row breaks every read of its
+      // table, so drop the columns too. includeDeleted: the cache can still
+      // hold a soft-deleted copy written outside this transaction.
+      const ownColumnIds = new Set(
+        (await this.getColumns(ncMeta)).map((c) => c.id),
+      );
+      for (const { fk_column_id } of [
+        ...leftOverColumns,
+        ...leftOverMmColumns,
+      ]) {
+        if (ownColumnIds.has(fk_column_id)) continue;
+        await Column.delete2(
+          context,
+          { id: fk_column_id, includeDeleted: true },
+          ncMeta,
+        );
+      }
     }
 
     await NocoCache.deepDel(

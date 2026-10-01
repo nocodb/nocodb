@@ -36,6 +36,7 @@ export enum MigrationJobTypes {
   PgSourceSearchPathBackfill = 'pg-source-searchpath-backfill',
   CreditPlanBackfill = 'credit-plan-backfill',
   StoreLaneBackfill = 'store-lane-backfill',
+  CleanupOrphanLinkColumns = 'cleanup-orphan-link-columns',
 }
 
 export enum JobTypes {

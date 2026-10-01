@@ -668,6 +668,7 @@ export enum CacheScope {
   DOC_BOOTSTRAP = 'docBootstrap',
   COLLAB_BOOTSTRAP = 'collabBootstrap',
   COLLAB_STATE = 'collabState',
+  LICENSE_ACTIVITY = 'licenseActivity',
   COLLAB_LIVE = 'collabLive',
   COLLAB_PERSIST_LOCK = 'collabPersistLock',
   DOC_PERSIST_LOCK = 'docPersistLock',

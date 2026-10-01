@@ -1,5 +1,11 @@
 import { PlanAddonTypes, PlanFeatureTypes, PlanLimitTypes } from './index';
 import { LicenseInactiveReason } from '../globals';
+import {
+  LICENSE_ACTIVITY_ALIASES,
+  LICENSE_ACTIVITY_FEATURES,
+} from './licenseActivityVocabulary';
+
+export { LICENSE_ACTIVITY_ALIASES, LICENSE_ACTIVITY_FEATURES };
 
 export enum LicenseTelemetryEvent {
   UPGRADE_PROMPT_SHOWN = 'upgrade_prompt_shown',
@@ -10,7 +16,7 @@ export enum LicenseTelemetryEvent {
   LICENSE_STATE_CHANGED = 'license_state_changed',
   SEAT_ADDED = 'seat_added',
   SEAT_REMOVED = 'seat_removed',
-  ACTIVITY_SUMMARY = 'activity_summary',
+  ACTIVITY_DAILY = 'activity_daily',
   INSTANCE_STATS = 'instance_stats',
 }
 
@@ -22,58 +28,40 @@ export const LICENSE_TELEMETRY_CLIENT_EVENTS: LicenseTelemetryEvent[] = [
 
 export const LICENSE_TELEMETRY_MAX_BATCH = 200;
 
-// Fixed list so a crafted event name can't carry free text out; everything else counts as `other`.
-export const LICENSE_ACTIVITY_CATEGORIES = [
-  'page',
-  'interface',
-  'doc',
-  'document',
-  'app',
-  'managed_app',
-  'table',
-  'base',
-  'workflow',
-  'chat',
-  'agent',
-  'row',
-  'field',
-  'column',
-  'view',
-  'dashboard',
-  'gantt',
-  'calendar',
-  'filter',
-  'share',
-  'script',
-  'marketplace',
-  'integration',
-  'workspace',
-  'source',
-  'sync',
-  'team',
-  'user',
-  'account',
-  'links',
-  'other',
-] as const;
-
+// Glossary nouns only, so a crafted event name can't carry free text out; anything else is `other`.
 export type LicenseActivityCategory =
-  (typeof LICENSE_ACTIVITY_CATEGORIES)[number];
+  | (typeof LICENSE_ACTIVITY_FEATURES)[number]
+  | 'other';
 
-// `c:table:create` → `table`, `base:invite` → `base`, `$pageview` → `page`.
+const ACTIVITY_FEATURES = new Set<string>(LICENSE_ACTIVITY_FEATURES);
+
+// `c:table:create` → `table`, `a:column:add` → `field`, `base:invite` → `base`.
 export function licenseActivityCategory(
   eventName: string
 ): LicenseActivityCategory {
-  if (eventName === '$pageview') return 'page';
   const parts = String(eventName ?? '').split(':');
   const segment = (/^[a-z]$/i.test(parts[0]) ? parts[1] : parts[0]) ?? '';
-  const normalized = segment.toLowerCase().replace(/-/g, '_');
-  return (LICENSE_ACTIVITY_CATEGORIES as readonly string[]).includes(normalized)
-    ? (normalized as LicenseActivityCategory)
+  const noun = LICENSE_ACTIVITY_ALIASES[segment] ?? segment;
+  return ACTIVITY_FEATURES.has(noun)
+    ? (noun as LicenseActivityCategory)
     : 'other';
 }
 
-type LicenseActivityCategoryPropKey = `cat_${LicenseActivityCategory}`;
+// PostHog property names: `cat_managed_app` for `managed-app`.
+export function licenseActivityCategoryPropKey(
+  category: LicenseActivityCategory
+) {
+  return `cat_${category.replace(/-/g, '_')}` as const;
+}
+
+type LicenseActivityCategoryPropKey = `cat_${string}`;
+
+const ACTIVITY_CATEGORY_PROP_KEYS: LicenseActivityCategoryPropKey[] = [
+  ...LICENSE_ACTIVITY_FEATURES,
+  'other' as const,
+].map(licenseActivityCategoryPropKey);
+
+const ACTIVITY_CATEGORY_OTHER = licenseActivityCategoryPropKey('other');
 
 export const LICENSE_INSTANCE_STAT_KEYS = [
   'workspace_count',
@@ -93,10 +81,6 @@ export const LICENSE_INSTANCE_STAT_KEYS = [
 export type LicenseInstanceStatKey =
   (typeof LICENSE_INSTANCE_STAT_KEYS)[number];
 
-const ACTIVITY_CATEGORY_PROP_KEYS = LICENSE_ACTIVITY_CATEGORIES.map(
-  (c) => `cat_${c}` as LicenseActivityCategoryPropKey
-);
-
 type LicenseTelemetryPropKey =
   | 'feature'
   | 'limit'
@@ -111,8 +95,10 @@ type LicenseTelemetryPropKey =
   | 'total_events'
   | 'frontend_events'
   | 'backend_events'
-  | 'active_users'
-  | 'window_ms'
+  | 'date'
+  | 'active_users_1d'
+  | 'active_users_7d'
+  | 'active_users_30d'
   | LicenseInstanceStatKey
   | LicenseActivityCategoryPropKey;
 
@@ -139,12 +125,14 @@ const ALLOWED_PROPS: Record<
   [LicenseTelemetryEvent.LICENSE_STATE_CHANGED]: ['from', 'to'],
   [LicenseTelemetryEvent.SEAT_ADDED]: ['delta', 'current', 'limit_value'],
   [LicenseTelemetryEvent.SEAT_REMOVED]: ['delta', 'current', 'limit_value'],
-  [LicenseTelemetryEvent.ACTIVITY_SUMMARY]: [
+  [LicenseTelemetryEvent.ACTIVITY_DAILY]: [
+    'date',
     'total_events',
     'frontend_events',
     'backend_events',
-    'active_users',
-    'window_ms',
+    'active_users_1d',
+    'active_users_7d',
+    'active_users_30d',
     ...ACTIVITY_CATEGORY_PROP_KEYS,
   ],
   [LicenseTelemetryEvent.INSTANCE_STATS]: LICENSE_INSTANCE_STAT_KEYS,
@@ -153,6 +141,8 @@ const ALLOWED_PROPS: Record<
 const USER_HASH = /^[a-f0-9]{32}$/;
 
 // Letters-only word or lowercase kebab slug — excludes raw ids (digits, no hyphen) and UUIDs (checked below).
+const UTC_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
 const SOURCE_SLUG = /^([a-z]+|[a-z0-9]+(-[a-z0-9]+)+)$/;
 const UUID_SHAPE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -197,6 +187,9 @@ const isSource = (v: unknown): v is string =>
   SOURCE_SLUG.test(v) &&
   !UUID_SHAPE.test(v);
 
+const isUtcDate = (v: unknown): v is string =>
+  typeof v === 'string' && UTC_DATE.test(v);
+
 const CATEGORY_VALIDATORS = {} as Record<
   LicenseActivityCategoryPropKey,
   (value: unknown) => boolean
@@ -228,8 +221,10 @@ const PROP_VALIDATORS: Record<
   total_events: isCount,
   frontend_events: isCount,
   backend_events: isCount,
-  active_users: isCount,
-  window_ms: isCount,
+  date: isUtcDate,
+  active_users_1d: isCount,
+  active_users_7d: isCount,
+  active_users_30d: isCount,
   ...CATEGORY_VALIDATORS,
   ...INSTANCE_STAT_VALIDATORS,
 };
@@ -258,6 +253,15 @@ export function sanitizeLicenseTelemetryProps(
     const value = (props as Record<string, unknown>)[key];
     const isValid = PROP_VALIDATORS[key];
     if (isValid?.(value)) out[key] = value as string | number;
+  }
+
+  // A newer install may count a noun this side doesn't know; keep it in `other` so categories still sum to the total.
+  if (event === LicenseTelemetryEvent.ACTIVITY_DAILY) {
+    for (const [key, value] of Object.entries(props)) {
+      if (!key.startsWith('cat_') || key in out || !isCount(value)) continue;
+      out[ACTIVITY_CATEGORY_OTHER] =
+        ((out[ACTIVITY_CATEGORY_OTHER] as number) ?? 0) + value;
+    }
   }
   return out;
 }

@@ -146,6 +146,16 @@ export default class NocoCache {
     );
   }
 
+  public static async sunion(
+    context: CacheContext,
+    keys: string[],
+  ): Promise<string[]> {
+    if (this.cacheDisabled || !keys.length) return [];
+    return this.client.sunion(
+      keys.map((key) => `${this.prefix}:${cacheContext(context)}:${key}`),
+    );
+  }
+
   public static async zadd(
     context: CacheContext,
     key: string,

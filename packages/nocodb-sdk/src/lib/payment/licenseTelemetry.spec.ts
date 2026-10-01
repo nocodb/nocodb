@@ -3,6 +3,7 @@ import {
   LICENSE_TELEMETRY_CLIENT_EVENTS,
   LicenseTelemetryEvent,
   licenseActivityCategory,
+  licenseActivityCategoryPropKey,
   sanitizeLicenseTelemetryEvent,
   sanitizeLicenseTelemetryProps,
 } from './licenseTelemetry';
@@ -173,45 +174,80 @@ describe('licenseTelemetry', () => {
     );
   });
 
-  describe('activity summary', () => {
-    it('maps event names to a fixed category, everything else to other', () => {
+  describe('activity daily', () => {
+    it('maps event names to glossary nouns through aliases, everything else to other', () => {
       expect(licenseActivityCategory('c:table:create')).toBe('table');
-      expect(licenseActivityCategory('a:links:link')).toBe('links');
+      expect(licenseActivityCategory('a:column:add')).toBe('field');
+      expect(licenseActivityCategory('c:project:open')).toBe('base');
       expect(licenseActivityCategory('base:invite')).toBe('base');
-      expect(licenseActivityCategory('c:managed-app:open')).toBe('managed_app');
-      expect(licenseActivityCategory('$pageview')).toBe('page');
+      expect(licenseActivityCategory('c:managed-app:open')).toBe('managed-app');
+      expect(licenseActivityCategory('a:signup')).toBe('other');
+      expect(licenseActivityCategory('$pageview')).toBe('other');
       expect(licenseActivityCategory('c:jane_acme_com:x')).toBe('other');
       expect(licenseActivityCategory('')).toBe('other');
     });
 
-    it('keeps counts and known categories, drops unknown keys and bad values', () => {
+    it('names category props in snake case', () => {
+      expect(licenseActivityCategoryPropKey('managed-app')).toBe(
+        'cat_managed_app'
+      );
+      expect(licenseActivityCategoryPropKey('other')).toBe('cat_other');
+    });
+
+    it('keeps the date, counts and known categories, drops bad values', () => {
       expect(
-        sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.ACTIVITY_SUMMARY, {
+        sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.ACTIVITY_DAILY, {
+          date: '2026-09-28',
           total_events: 12,
           frontend_events: 7,
           backend_events: 5,
-          active_users: 3,
-          window_ms: 21600000,
+          active_users_1d: 3,
+          active_users_7d: 5,
+          active_users_30d: 9,
           cat_table: 4,
+          cat_managed_app: 2,
           cat_other: 1,
-          cat_jane: 2,
           cat_view: -1,
           cat_base: 1.5,
+          email: 'a@b.c',
         })
       ).toEqual({
+        date: '2026-09-28',
         total_events: 12,
         frontend_events: 7,
         backend_events: 5,
-        active_users: 3,
-        window_ms: 21600000,
+        active_users_1d: 3,
+        active_users_7d: 5,
+        active_users_30d: 9,
         cat_table: 4,
+        cat_managed_app: 2,
         cat_other: 1,
       });
     });
 
+    it('drops a date that is not YYYY-MM-DD', () => {
+      expect(
+        sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.ACTIVITY_DAILY, {
+          date: 'yesterday',
+        })
+      ).toEqual({});
+    });
+
+    it('counts an unknown category (newer install) as other so categories still sum', () => {
+      expect(
+        sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.ACTIVITY_DAILY, {
+          total_events: 6,
+          cat_table: 1,
+          cat_other: 2,
+          cat_hologram: 3,
+          cat_bogus: 'x',
+        })
+      ).toEqual({ total_events: 6, cat_table: 1, cat_other: 5 });
+    });
+
     it('is not a client event', () => {
       expect(LICENSE_TELEMETRY_CLIENT_EVENTS).not.toContain(
-        LicenseTelemetryEvent.ACTIVITY_SUMMARY
+        LicenseTelemetryEvent.ACTIVITY_DAILY
       );
     });
   });

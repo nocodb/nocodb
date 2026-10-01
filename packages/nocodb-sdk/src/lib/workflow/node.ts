@@ -85,4 +85,24 @@ export interface WorkflowNodeDefinition {
    * Lower numbers appear first.
    */
   groupOrder?: number;
+
+  /**
+   * Running this step twice has no extra effect (reads, pure logic, waits).
+   * Such steps are retried by default and resumed automatically when their
+   * worker dies mid-step; others need an explicit retry policy or a person.
+   */
+  retrySafe?: boolean;
+}
+
+/** Per-step "On failure" setting, stored on the node as `data.retry`. */
+export interface WorkflowNodeRetryPolicy {
+  /** Extra attempts after the first; 0 turns retrying off. */
+  retries: number;
+  /** Wait before the first retry. */
+  delaySeconds: number;
+  /** exponential doubles the wait each time, capped at maxDelaySeconds. */
+  backoff: 'fixed' | 'exponential';
+  maxDelaySeconds?: number;
+  /** temporary = timeouts, rate limits and server errors only. */
+  retryOn: 'temporary' | 'any';
 }

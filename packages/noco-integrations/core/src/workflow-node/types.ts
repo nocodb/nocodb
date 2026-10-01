@@ -31,6 +31,11 @@ export interface WorkflowNodeRunContext<TConfig = any> {
    */
   htmlInputPaths?: string[];
   /**
+   * Aborted when the user cancels the run. Long-running nodes should stop
+   * their work (requests, sandboxes) and return.
+   */
+  signal?: AbortSignal;
+  /**
    * Load an integration by ID (AI, Auth, or any other integration type).
    * Returns an Integration wrapper containing the integration.
    *
@@ -108,7 +113,15 @@ export interface WorkflowNodeResult {
 
   status?: 'success' | 'pending' | 'skipped' | 'error' | 'running';
 
-  error?: { message: string; code?: string; data?: any };
+  error?: {
+    message: string;
+    code?: string;
+    data?: any;
+    /** Temporary failure (timeout, rate limit, 5xx): a retry may succeed. */
+    retryable?: boolean;
+    /** Server-requested wait before retrying, e.g. from Retry-After. */
+    retryAfterMs?: number;
+  };
 
   loopContext?: LoopContext;
 }
@@ -135,6 +148,8 @@ export interface CapabilityDispatchRequest {
   action: string;
   authored?: Record<string, unknown>;
   input?: Record<string, unknown>;
+  /** Aborted when the run is cancelled; forwarded to the provider call. */
+  signal?: AbortSignal;
 }
 
 export type CapabilityDispatcher = (

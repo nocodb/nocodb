@@ -59,6 +59,11 @@ export interface ExecutionPolicy {
   runTimeoutMs: number;
 }
 
+export interface ActionsCallOptions {
+  /** Aborted when the caller (e.g. a cancelled workflow run) gives up. */
+  signal?: AbortSignal;
+}
+
 /**
  * A failed call, split into what the caller may see and whether it counts
  * against the circuit breaker.
@@ -344,6 +349,7 @@ export abstract class ActionsIntegration<
     capabilityId: string,
     authored: Record<string, unknown>,
     input: Record<string, unknown>,
+    options?: ActionsCallOptions,
   ): Promise<unknown>;
 
   fetchOptions?(

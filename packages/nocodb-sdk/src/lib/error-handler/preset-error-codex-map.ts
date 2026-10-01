@@ -283,6 +283,10 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Workflow '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_WORKFLOW_EXECUTION_NOT_FOUND]: {
+    message: (id: string) => `Workflow execution '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_AGENT_NOT_FOUND]: {
     message: (id: string) => `Agent '${id}' not found`,
     code: 404,

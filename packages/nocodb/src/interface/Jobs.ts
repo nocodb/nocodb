@@ -76,6 +76,7 @@ export enum JobTypes {
   ExecuteWorkflow = 'execute-workflow',
   WorkflowCronSchedule = 'workflow-cron-schedule',
   WorkflowResumeSchedule = 'workflow-resume-schedule',
+  WorkflowExecutionRecovery = 'workflow-execution-recovery',
   ResumeWorkflow = 'resume-workflow',
   TestWorkflowNode = 'test-workflow-node',
   HeartbeatWorkflow = 'heartbeat-workflow',
@@ -115,6 +116,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.ReseatSubscription,
   JobTypes.WorkflowCronSchedule,
   JobTypes.WorkflowResumeSchedule,
+  JobTypes.WorkflowExecutionRecovery,
   JobTypes.BaseTrashCleanUp,
   JobTypes.OperationCleanup,
   JobTypes.CreditReaper,
@@ -156,6 +158,8 @@ export const JobVersions: {
   [JobTypes.InitMigrationJobs]: 2,
   [JobTypes.ChatMessage]: 2,
   [JobTypes.ChatApproval]: 2,
+  [JobTypes.ExecuteWorkflow]: 2,
+  [JobTypes.ResumeWorkflow]: 2,
 };
 
 export const JOB_REQUEUED = 'job.requeued';
@@ -192,6 +196,7 @@ export enum InstanceCommands {
   STOP_OTHER_WORKER_GROUPS = 'stopOtherWorkerGroups',
   ABORT_CHAT_STREAM = 'abortChatStream',
   ABORT_CHAT_STREAM_ACK = 'abortChatStreamAck',
+  CONTROL_WORKFLOW_EXECUTION = 'controlWorkflowExecution',
 }
 
 export interface JobData {
@@ -445,6 +450,7 @@ export interface ExecuteWorkflowJobData extends JobData {
   workflowId: string;
   triggerNodeId?: string; // Optional: specific trigger node to start from
   triggerInputs: any; // Data passed to the trigger node
+  executionId?: string;
 }
 
 export interface ResumeWorkflowJobData extends JobData {

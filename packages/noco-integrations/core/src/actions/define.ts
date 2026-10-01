@@ -1,5 +1,9 @@
 import { ActionsIntegration } from './types';
-import type { ActionsIntegrationConstructor, Capability } from './types';
+import type {
+  ActionsCallOptions,
+  ActionsIntegrationConstructor,
+  Capability,
+} from './types';
 
 /** The `{capabilities, call}` pair a capability factory hands back — e.g.
  *  `httpCapabilities(endpoints)`. Kept structural so a provider with a bespoke
@@ -11,6 +15,7 @@ export interface ActionsDelegate<TAuth = unknown> {
     capabilityId: string,
     authored: Record<string, unknown>,
     input: Record<string, unknown>,
+    options?: ActionsCallOptions,
   ): Promise<unknown>;
 }
 
@@ -40,8 +45,9 @@ export function defineActionsIntegration<TAuth>(
       capabilityId: string,
       authored: Record<string, unknown>,
       input: Record<string, unknown>,
+      options?: ActionsCallOptions,
     ): Promise<unknown> {
-      return delegate.call(auth, capabilityId, authored, input);
+      return delegate.call(auth, capabilityId, authored, input, options);
     }
   };
 }

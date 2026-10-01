@@ -1,4 +1,5 @@
 import { ColumnType } from '~/lib/Api';
+import type { WorkflowNodeRetryPolicy } from '~/lib/workflow/node';
 
 enum VariableType {
   String = 'string',
@@ -88,6 +89,22 @@ interface VariableDefinition {
   children?: VariableDefinition[];
 }
 
+interface NodeExecutionLog {
+  level: 'info' | 'warn' | 'error';
+  message: string;
+  ts?: number;
+  data?: any;
+}
+
+// One failed try of a step.
+interface NodeExecutionAttempt {
+  startTime: number;
+  endTime?: number;
+  error?: string;
+  output?: any;
+  logs?: NodeExecutionLog[];
+}
+
 interface NodeExecutionResult {
   testMode?: string;
   nodeId: string;
@@ -96,15 +113,16 @@ interface NodeExecutionResult {
   output?: any;
   input?: any;
   error?: string;
+  // The error is temporary (timeout, rate limit, server error): a retry may succeed.
+  retryable?: boolean;
+  // Server-requested wait before retrying (e.g. HTTP 429 Retry-After).
+  retryAfterMs?: number;
+  // Earlier failed tries of this step, oldest first; absent when it ran once.
+  attempts?: NodeExecutionAttempt[];
   startTime: number;
   endTime?: number;
   nextNode?: string; // Next node to execute (for conditional branching)
-  logs?: Array<{
-    level: 'info' | 'warn' | 'error';
-    message: string;
-    ts?: number;
-    data?: any;
-  }>;
+  logs?: NodeExecutionLog[];
   metrics?: Record<string, number>;
   isStale?: boolean;
 
@@ -152,16 +170,60 @@ interface LoopData {
   };
 }
 
+type WorkflowExecutionStatus =
+  | 'queued'
+  | 'running'
+  | 'waiting'
+  | 'paused'
+  | 'completed'
+  | 'error'
+  | 'cancelled'
+  | 'skipped';
+
+// Requested by a user; the executor acts on it at the next node boundary.
+type WorkflowExecutionControl = 'cancel' | 'pause';
+
+// Why a run ended without a node error: `error` when its worker died or its
+// schedule couldn't be read, `cancelled` on an app/base/workspace suspension.
+type WorkflowExecutionErrorCode =
+  | 'INTERRUPTED'
+  | 'APP_SUSPENDED'
+  | 'WORKSPACE_SUSPENDED'
+  | 'INVALID_SCHEDULE';
+
+// A `waiting` run held back by something other than its own schedule;
+// rechecked by the resume sweep and continued once it clears.
+interface WorkflowExecutionHold {
+  kind: 'app_suspended';
+  reason: string | null;
+  since: number;
+}
+
+type WorkflowExecutionRetryMode = 'from_failed' | 'from_start';
+
+// Which graph a from_failed retry runs: what originally ran, or the current
+// published workflow (e.g. after fixing the failing node).
+type WorkflowExecutionRetryVersion = 'snapshot' | 'latest';
+
+// Loop position at the time state was saved, so a resume re-enters the loop.
+interface ActiveLoopState {
+  nodeId: string;
+  nodeTitle: string;
+  state: Record<string, any>;
+  bodyPort: string;
+  exitPort: string;
+  bodyStartNodeId: string | null;
+  exitNodeId: string | null;
+}
+
 interface WorkflowExecutionState {
   id: string;
   workflowId: string;
-  status:
-    | 'running'
-    | 'waiting'
-    | 'completed'
-    | 'error'
-    | 'cancelled'
-    | 'skipped';
+  status: WorkflowExecutionStatus;
+  errorCode?: WorkflowExecutionErrorCode;
+  // Shown with errorCode, e.g. the operator's suspension reason.
+  errorMessage?: string;
+  hold?: WorkflowExecutionHold;
   startTime: number;
   endTime?: number;
   nodeResults: NodeExecutionResult[];
@@ -176,6 +238,24 @@ interface WorkflowExecutionState {
   pausedAt?: number; // When workflow was paused
   resumeAt?: number; // When to resume (timestamp from delay node)
   nextNodeId?: string; // Which node to execute after resume
+  // The step at nextNodeId already finished before the run stopped: continue
+  // with what follows it instead of running it again.
+  nextNodeFinished?: boolean;
+  activeLoops?: ActiveLoopState[];
+
+  // Failed tries of the step waiting on a long retry backoff (keyed by node id
+  // + loop position), carried across the rest so the policy's count holds.
+  pendingRetry?: {
+    key: string;
+    attempts: NodeExecutionAttempt[];
+  };
+
+  // When the current step started; with no result for it, the step was in
+  // flight when the run stopped.
+  currentNodeStartedAt?: number;
+
+  // Times this run was resumed automatically after its worker died.
+  autoResumes?: number;
 }
 
 interface IWorkflowExecution {
@@ -204,16 +284,14 @@ interface IWorkflowExecution {
   started_at?: string;
   finished?: boolean;
 
-  status:
-    | 'running'
-    | 'waiting'
-    | 'completed'
-    | 'error'
-    | 'cancelled'
-    | 'skipped';
+  status: WorkflowExecutionStatus;
 
   // When to resume if paused
   resume_at?: string | Date;
+
+  heartbeat_at?: string;
+  control?: WorkflowExecutionControl | null;
+  fk_retry_of_id?: string | null;
 }
 
 interface NodeConfig {
@@ -234,6 +312,8 @@ interface WorkflowGeneralNode {
     testResult?: NodeExecutionResult;
     inputVariables?: VariableDefinition[];
     outputVariables?: VariableDefinition[];
+    // "On failure" setting; absent = the default for the node's retrySafe.
+    retry?: WorkflowNodeRetryPolicy;
   };
   targetPosition: 'top' | 'bottom' | 'left' | 'right';
   sourcePosition: 'top' | 'bottom' | 'left' | 'right';
@@ -285,8 +365,17 @@ export {
   VariableDefinition,
   WorkflowGeneralEdge,
   WorkflowGeneralNode,
+  NodeExecutionLog,
+  NodeExecutionAttempt,
   NodeExecutionResult,
   WorkflowExecutionState,
+  WorkflowExecutionStatus,
+  WorkflowExecutionControl,
+  WorkflowExecutionErrorCode,
+  WorkflowExecutionHold,
+  WorkflowExecutionRetryMode,
+  WorkflowExecutionRetryVersion,
+  ActiveLoopState,
   IWorkflowExecution,
   LoopContext,
   LoopIteration,

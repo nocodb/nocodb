@@ -534,6 +534,7 @@ export abstract class AiIntegration<
       model,
       system: args.system,
       temperature: this.temperature,
+      abortSignal: args.abortSignal,
       ...('messages' in args
         ? { messages: args.messages }
         : { prompt: args.prompt }),
@@ -577,6 +578,7 @@ export abstract class AiIntegration<
       output: Output.object({ schema: args.schema }),
       messages: args.messages,
       temperature: this.temperature,
+      abortSignal: args.abortSignal,
       ...(tools ? { tools } : {}),
     });
 
@@ -698,6 +700,7 @@ export interface AiGenerateObjectArgs {
   /** System activity — only activity-routing integrations map this to a model. */
   useCase?: AiUseCase;
   websearch?: boolean;
+  abortSignal?: AbortSignal;
 }
 
 interface AiGenerateObjectResponse<T> {
@@ -711,6 +714,7 @@ export type AiGenerateTextArgs = {
   /** System activity — only activity-routing integrations map this to a model. */
   useCase?: AiUseCase;
   websearch?: boolean;
+  abortSignal?: AbortSignal;
 } & ({ prompt: string } | { messages: ModelMessage[] });
 
 interface AiGenerateTextResponse {

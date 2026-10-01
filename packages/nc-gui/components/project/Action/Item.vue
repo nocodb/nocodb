@@ -1,11 +1,17 @@
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   disabled?: boolean
   label: string
+  /** The shorter label a pill shows. */
+  compactLabel?: string
   subtext?: string
   isLoading?: boolean
   icon?: IconMapKey
 }>()
+
+const isCompact = inject(ProjectActionCompactInj, false)
+
+const displayLabel = computed(() => (isCompact ? props.compactLabel ?? props.label : props.label))
 </script>
 
 <template>
@@ -14,6 +20,7 @@ defineProps<{
     class="nc-base-view-all-table-btn"
     :class="{
       disabled,
+      'compact': isCompact,
       'loading cursor-wait': isLoading,
       'cursor-pointer': !isLoading,
     }"
@@ -29,12 +36,12 @@ defineProps<{
         <a-skeleton v-if="isLoading" active :title="false" :paragraph="{ rows: 1 }" />
 
         <slot v-else name="label">
-          <NcTooltip :title="label" show-on-truncate-only class="min-w-0 truncate">
-            {{ label }}
+          <NcTooltip :title="displayLabel" show-on-truncate-only class="min-w-0 truncate">
+            {{ displayLabel }}
           </NcTooltip>
         </slot>
       </div>
-      <div v-if="$slots.subtext || subtext || isLoading" class="subtext">
+      <div v-if="!isCompact && ($slots.subtext || subtext || isLoading)" class="subtext">
         <a-skeleton v-if="isLoading" active title :paragraph="false" />
         <slot v-else name="subtext">{{ subtext }}</slot>
       </div>
@@ -73,6 +80,30 @@ defineProps<{
 
   .subtext {
     @apply text-xs text-nc-content-gray-subtle2;
+  }
+
+  &.compact {
+    @apply flex-row items-center gap-2 px-3 py-2 min-w-0 max-w-none rounded-lg bg-nc-bg-default border-nc-border-gray-medium;
+
+    &:hover:not(.loading):not(.disabled) {
+      @apply bg-nc-bg-gray-extralight;
+      box-shadow: none;
+    }
+
+    .icon-wrapper {
+      @apply w-4 h-4;
+    }
+
+    // The icon is slotted from each action, so it only matches through :deep.
+    .icon-wrapper :deep(.nc-icon) {
+      width: 16px !important;
+      height: 16px !important;
+      @apply !text-nc-content-gray-subtle;
+    }
+
+    .label {
+      @apply text-sm font-medium;
+    }
   }
 
   :deep(.ant-skeleton-title) {

@@ -82,109 +82,113 @@ const onCreateBaseClick = () => {
 
 <template>
   <div class="nc-all-tables-view py-4 px-6 nc-scrollbar-thin h-full overflow-y-auto">
-    <div class="text-subHeading2 text-nc-content-gray mb-5 -mt-1.5">{{ tabActionLabel }} {{ $t('labels.actions') }}</div>
+    <ProjectOverviewPage v-if="isEeUI" />
 
-    <div
-      class="nc-overview-actions flex flex-row gap-6 flex-wrap max-w-[1000px]"
-      :class="{
-        'pointer-events-none': base?.isLoading,
-      }"
-    >
-      <template v-if="base?.isLoading">
-        <ProjectActionItem v-for="item in 7" :key="item" is-loading label="loading" />
-      </template>
-      <template v-else>
-        <!-- Data actions (shown on Data tab) -->
-        <template v-if="activeSidebarTab === 'data'">
-          <NcTooltip
-            v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] }) || !!tableCreateReason"
-            :title="tableCreateReason ? $t(tableCreateReason) : ''"
-            :disabled="!tableCreateReason"
-          >
-            <ProjectActionItem
-              :disabled="!!tableCreateReason"
-              :label="$t('dashboards.create_new_table')"
-              :subtext="$t('msg.subText.startFromScratch')"
-              data-testid="proj-view-btn__add-new-table"
-              @click="tableCreateReason ? undefined : openTableCreateDialog()"
+    <template v-else>
+      <div class="text-subHeading2 text-nc-content-gray mb-5 -mt-1.5">{{ tabActionLabel }} {{ $t('labels.actions') }}</div>
+
+      <div
+        class="nc-overview-actions flex flex-row gap-6 flex-wrap max-w-[1000px]"
+        :class="{
+          'pointer-events-none': base?.isLoading,
+        }"
+      >
+        <template v-if="base?.isLoading">
+          <ProjectActionItem v-for="item in 7" :key="item" is-loading label="loading" />
+        </template>
+        <template v-else>
+          <!-- Data actions (shown on Data tab) -->
+          <template v-if="activeSidebarTab === 'data'">
+            <NcTooltip
+              v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] }) || !!tableCreateReason"
+              :title="tableCreateReason ? $t(tableCreateReason) : ''"
+              :disabled="!tableCreateReason"
             >
-              <template #icon>
-                <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-nc-content-brand" />
-              </template>
-            </ProjectActionItem>
-          </NcTooltip>
-
-          <ProjectActionItem
-            v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
-            v-e="['c:table:import']"
-            data-testid="proj-view-btn__import-data"
-            :label="`${$t('activity.import')} ${$t('general.data')}`"
-            :subtext="$t('msg.subText.importData')"
-            @click="isImportModalOpen = true"
-          >
-            <template #icon>
-              <GeneralIcon icon="download" class="!h-7.5 !w-7.5 !text-nc-content-orange-dark" />
-            </template>
-          </ProjectActionItem>
-
-          <ProjectActionCreateNewDocument v-if="isEeUI" :base-id="base?.id" />
-
-          <ProjectActionCreateEmptyDashboard v-if="!isMobileMode && showEEFeatures" />
-
-          <ProjectActionCreateNewSync v-if="!isMobileMode && showEEFeatures" :base-id="base?.id" />
-
-          <NcTooltip
-            v-if="!isMobileMode && isUIAllowed('sourceCreate')"
-            placement="bottom"
-            :disabled="!isDataSourceLimitReached"
-            class="flex-none flex"
-          >
-            <template #title>
-              {{ $t('tooltip.reachedSourceLimit') }}
-            </template>
+              <ProjectActionItem
+                :disabled="!!tableCreateReason"
+                :label="$t('dashboards.create_new_table')"
+                :subtext="$t('msg.subText.startFromScratch')"
+                data-testid="proj-view-btn__add-new-table"
+                @click="tableCreateReason ? undefined : openTableCreateDialog()"
+              >
+                <template #icon>
+                  <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-nc-content-brand" />
+                </template>
+              </ProjectActionItem>
+            </NcTooltip>
 
             <ProjectActionItem
-              v-if="!isMobileMode"
-              v-e="['c:table:create-source']"
-              data-testid="proj-view-btn__create-source"
-              :disabled="isDataSourceLimitReached"
-              :label="$t('labels.connectDataSource')"
-              :subtext="$t('msg.subText.connectExternalData')"
-              @click="onCreateBaseClick"
+              v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
+              v-e="['c:table:import']"
+              data-testid="proj-view-btn__import-data"
+              :label="`${$t('activity.import')} ${$t('general.data')}`"
+              :subtext="$t('msg.subText.importData')"
+              @click="isImportModalOpen = true"
             >
               <template #icon>
-                <GeneralIcon icon="server1" class="!h-7 !w-7 !text-nc-content-green-dark" />
-              </template>
-              <template #label>
-                <NcTooltip
-                  :title="$t('labels.connectDataSource')"
-                  :disabled="isDataSourceLimitReached"
-                  show-on-truncate-only
-                  class="min-w-0 truncate"
-                >
-                  {{ $t('labels.connectDataSource') }}
-                </NcTooltip>
+                <GeneralIcon icon="download" class="!h-7.5 !w-7.5 !text-nc-content-orange-dark" />
               </template>
             </ProjectActionItem>
-          </NcTooltip>
-        </template>
 
-        <!-- Automation actions (shown on Automation tab) -->
-        <template v-if="activeSidebarTab === 'workflows' && !isMobileMode && showEEFeatures">
-          <ProjectActionCreateEmptyWorkflow />
-          <ProjectActionCreateEmptyScript />
-          <ProjectActionScriptsByNocoDB />
-        </template>
-        <!-- Agent actions (shown on Agents tab) -->
-        <template v-if="activeSidebarTab === 'agents' && !isMobileMode && showEEFeatures">
-          <ProjectActionCreateEmptyAgent />
-        </template>
-      </template>
-    </div>
+            <ProjectActionCreateNewDocument v-if="isEeUI" :base-id="base?.id" />
 
-    <div v-if="!base.isLoading" class="nc-overview-empty-placeholder">
-      <NcEmptyPlaceholder :title="$t('msg.noActionsAvailable')" />
-    </div>
+            <ProjectActionCreateEmptyDashboard v-if="!isMobileMode && showEEFeatures" />
+
+            <ProjectActionCreateNewSync v-if="!isMobileMode && showEEFeatures" :base-id="base?.id" />
+
+            <NcTooltip
+              v-if="!isMobileMode && isUIAllowed('sourceCreate')"
+              placement="bottom"
+              :disabled="!isDataSourceLimitReached"
+              class="flex-none flex"
+            >
+              <template #title>
+                {{ $t('tooltip.reachedSourceLimit') }}
+              </template>
+
+              <ProjectActionItem
+                v-if="!isMobileMode"
+                v-e="['c:table:create-source']"
+                data-testid="proj-view-btn__create-source"
+                :disabled="isDataSourceLimitReached"
+                :label="$t('labels.connectDataSource')"
+                :subtext="$t('msg.subText.connectExternalData')"
+                @click="onCreateBaseClick"
+              >
+                <template #icon>
+                  <GeneralIcon icon="server1" class="!h-7 !w-7 !text-nc-content-green-dark" />
+                </template>
+                <template #label>
+                  <NcTooltip
+                    :title="$t('labels.connectDataSource')"
+                    :disabled="isDataSourceLimitReached"
+                    show-on-truncate-only
+                    class="min-w-0 truncate"
+                  >
+                    {{ $t('labels.connectDataSource') }}
+                  </NcTooltip>
+                </template>
+              </ProjectActionItem>
+            </NcTooltip>
+          </template>
+
+          <!-- Automation actions (shown on Automation tab) -->
+          <template v-if="activeSidebarTab === 'workflows' && !isMobileMode && showEEFeatures">
+            <ProjectActionCreateEmptyWorkflow />
+            <ProjectActionCreateEmptyScript />
+            <ProjectActionScriptsByNocoDB />
+          </template>
+          <!-- Agent actions (shown on Agents tab) -->
+          <template v-if="activeSidebarTab === 'agents' && !isMobileMode && showEEFeatures">
+            <ProjectActionCreateEmptyAgent />
+          </template>
+        </template>
+      </div>
+
+      <div v-if="!base.isLoading" class="nc-overview-empty-placeholder">
+        <NcEmptyPlaceholder :title="$t('msg.noActionsAvailable')" />
+      </div>
+    </template>
 
     <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :source="defaultBase" />
     <LazyDashboardSettingsDataSourcesCreateBase v-if="isNewBaseModalOpen" v-model:open="isNewBaseModalOpen" is-modal />

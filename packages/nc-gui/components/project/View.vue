@@ -122,6 +122,7 @@ onMounted(() => {
         <!-- Base-level presence: this topbar backs base home, settings and docs, so
              without it the avatars vanish the moment a user steps off a table. -->
         <LazySmartsheetTopbarCollaboratorPresence v-if="!isSharedBase && isEeUI" />
+        <ProjectOverviewTopbarChats v-if="isEeUI" />
         <LazySmartsheetTopbarHistory />
         <LazyGeneralShareProject />
       </div>

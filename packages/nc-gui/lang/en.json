@@ -4028,6 +4028,8 @@
       "starterEvents": "Event planner",
       "starterEventsPrompt": "Build an event planning database with events, attendees, venues, and a calendar view.",
       "starterEventsDesc": "Events, attendees & venues with a calendar view",
+      "stepTemplate": "Start from the {name} template",
+      "stepTailor": "Tailor it to your request",
       "stepSchema": "Design the data model",
       "stepTables": "Create tables",
       "stepFields": "Add fields",

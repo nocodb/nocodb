@@ -28,6 +28,13 @@ export const LICENSE_TELEMETRY_CLIENT_EVENTS: LicenseTelemetryEvent[] = [
 
 export const LICENSE_TELEMETRY_MAX_BATCH = 200;
 
+export type LicenseUpgradeRequestResult =
+  | { notified: true }
+  | {
+      notified: false;
+      reason: 'no_admin' | 'already_notified' | 'daily_limit';
+    };
+
 // Glossary nouns only, so a crafted event name can't carry free text out; anything else is `other`.
 export type LicenseActivityCategory =
   | (typeof LICENSE_ACTIVITY_FEATURES)[number]

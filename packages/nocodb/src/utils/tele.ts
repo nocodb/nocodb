@@ -6,10 +6,9 @@ import isDocker from 'is-docker';
 import { packageVersion } from '~/utils/packageVersion';
 import TeleBatchProcessor from '~/utils/TeleBatchProcessor';
 import { getRedisURL } from '~/helpers/redisHelpers';
-import { isTelemetryOptedOut } from '~/helpers/teleOptOut';
 import { ncSiteUrl } from '~/utils/envs';
 
-const isDisabled = isTelemetryOptedOut();
+const isDisabled = !!process.env.NC_DISABLE_TELE;
 const cache = !!getRedisURL();
 const executable = !!process.env.NC_BINARY_BUILD;
 const litestream = !!(

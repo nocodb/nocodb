@@ -155,7 +155,7 @@ describe('licenseTelemetry', () => {
       LicenseTelemetryEvent.SEAT_REMOVED
     );
   });
-  it('instance_stats keeps non-negative integer counts only', () => {
+  it('instance_stats keeps allowlisted counts and drops non-counts and names like a base title', () => {
     expect(
       sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.INSTANCE_STATS, {
         workspace_count: 3,

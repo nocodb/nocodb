@@ -116,74 +116,72 @@ export class IntegrationsService {
     context: Omit<NcContext, 'base_id'>,
     param: { integrationId: string; req: any; force: boolean },
   ) {
-    const ncMeta = await Noco.ncMeta.startTransaction();
     try {
-      const integration = await Integration.get(
-        context,
-        param.integrationId,
-        true,
-        ncMeta,
-      );
-
-      if (!integration) {
-        NcError.get(context).integrationNotFound(param.integrationId);
-      }
-
-      // get linked sources
-      const sourceListQb = ncMeta
-        .knex(MetaTable.SOURCES)
-        .where({
-          fk_integration_id: integration.id,
-        })
-        .where((qb) => {
-          qb.where('deleted', false).orWhere('deleted', null);
-        });
-
-      if (integration.fk_workspace_id) {
-        sourceListQb.where('fk_workspace_id', integration.fk_workspace_id);
-      }
-
-      const sources: Pick<Source, 'id' | 'base_id'>[] =
-        await sourceListQb.select('id', 'base_id');
-
-      if (sources.length > 0 && !param.force) {
-        const bases = await Promise.all(
-          sources.map(async (source) => {
-            return Base.get(
-              {
-                workspace_id: integration.fk_workspace_id,
-                base_id: source.base_id,
-              },
-              source.base_id,
-              ncMeta,
-            );
-          }),
+      await Noco.ncMeta.runInTransaction(async (ncMeta) => {
+        const integration = await Integration.get(
+          context,
+          param.integrationId,
+          true,
+          ncMeta,
         );
 
-        NcError.get(context).integrationLinkedWithMultiple(bases, sources);
-      }
+        if (!integration) {
+          NcError.get(context).integrationNotFound(param.integrationId);
+        }
 
-      // Delete integration links
-      await IntegrationLink.deleteByIntegration(
-        { ...context, base_id: null },
-        param.integrationId,
-        ncMeta,
-      );
+        // get linked sources
+        const sourceListQb = ncMeta
+          .knex(MetaTable.SOURCES)
+          .where({
+            fk_integration_id: integration.id,
+          })
+          .where((qb) => {
+            qb.where('deleted', false).orWhere('deleted', null);
+          });
 
-      await integration.delete(ncMeta);
-      this.appHooksService.emit(AppEvents.INTEGRATION_DELETE, {
-        integration,
-        req: param.req,
-        user: param.req?.user,
-        context: {
-          ...context,
-          base_id: null,
-        },
+        if (integration.fk_workspace_id) {
+          sourceListQb.where('fk_workspace_id', integration.fk_workspace_id);
+        }
+
+        const sources: Pick<Source, 'id' | 'base_id'>[] =
+          await sourceListQb.select('id', 'base_id');
+
+        if (sources.length > 0 && !param.force) {
+          const bases = await Promise.all(
+            sources.map(async (source) => {
+              return Base.get(
+                {
+                  workspace_id: integration.fk_workspace_id,
+                  base_id: source.base_id,
+                },
+                source.base_id,
+                ncMeta,
+              );
+            }),
+          );
+
+          NcError.get(context).integrationLinkedWithMultiple(bases, sources);
+        }
+
+        // Delete integration links
+        await IntegrationLink.deleteByIntegration(
+          { ...context, base_id: null },
+          param.integrationId,
+          ncMeta,
+        );
+
+        await integration.delete(ncMeta);
+        this.appHooksService.emit(AppEvents.INTEGRATION_DELETE, {
+          integration,
+          req: param.req,
+          user: param.req?.user,
+          context: {
+            ...context,
+            base_id: null,
+          },
+        });
       });
-
-      await ncMeta.commit();
     } catch (e) {
-      await ncMeta.rollback(e);
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Error deleting integeration', e);
       NcError.get(context).internalServerError('Error deleting integeration');
@@ -202,55 +200,53 @@ export class IntegrationsService {
         NcError.get(context).integrationNotFound(param.integrationId);
       }
 
-      const ncMeta = await Noco.ncMeta.startTransaction();
       try {
-        // get linked sources
-        const sourceListQb = ncMeta
-          .knex(MetaTable.SOURCES)
-          .where({
-            fk_integration_id: integration.id,
-          })
-          .where((qb) => {
-            qb.where('deleted', false).orWhere('deleted', null);
-          });
+        await Noco.ncMeta.runInTransaction(async (ncMeta) => {
+          // get linked sources
+          const sourceListQb = ncMeta
+            .knex(MetaTable.SOURCES)
+            .where({
+              fk_integration_id: integration.id,
+            })
+            .where((qb) => {
+              qb.where('deleted', false).orWhere('deleted', null);
+            });
 
-        if (integration.fk_workspace_id) {
-          sourceListQb.where('fk_workspace_id', integration.fk_workspace_id);
-        }
+          if (integration.fk_workspace_id) {
+            sourceListQb.where('fk_workspace_id', integration.fk_workspace_id);
+          }
 
-        const sources: Pick<Source, 'id' | 'base_id'>[] =
-          await sourceListQb.select('id', 'base_id');
+          const sources: Pick<Source, 'id' | 'base_id'>[] =
+            await sourceListQb.select('id', 'base_id');
 
-        for (const source of sources) {
-          await this.sourcesService.baseSoftDelete(
-            {
-              workspace_id: integration.fk_workspace_id,
-              base_id: source.base_id,
-            },
-            {
-              sourceId: source.id,
-            },
+          for (const source of sources) {
+            await this.sourcesService.baseSoftDelete(
+              {
+                workspace_id: integration.fk_workspace_id,
+                base_id: source.base_id,
+              },
+              {
+                sourceId: source.id,
+              },
+              ncMeta,
+            );
+          }
+
+          // Delete integration links
+          await IntegrationLink.deleteByIntegration(
+            { ...context, base_id: null },
+            param.integrationId,
             ncMeta,
           );
-        }
 
-        // Delete integration links
-        await IntegrationLink.deleteByIntegration(
-          { ...context, base_id: null },
-          param.integrationId,
-          ncMeta,
-        );
-
-        await integration.softDelete(ncMeta);
-        this.appHooksService.emit(AppEvents.INTEGRATION_DELETE, {
-          integration,
-          req: param.req,
-          user: param.req?.user,
+          await integration.softDelete(ncMeta);
+          this.appHooksService.emit(AppEvents.INTEGRATION_DELETE, {
+            integration,
+            req: param.req,
+            user: param.req?.user,
+          });
         });
-
-        await ncMeta.commit();
       } catch (e) {
-        await ncMeta.rollback(e);
         if (e instanceof NcError || e instanceof NcBaseError) throw e;
         this.logger.error('Error  deleting integeration', e);
         NcError.get(context).internalServerError('Error deleting integeration');
@@ -271,6 +267,8 @@ export class IntegrationsService {
       integration: IntegrationReqType;
       logger?: (message: string) => void;
       req: any;
+      /** Runs right after the row is created, before any OAuth exchange. */
+      afterCreate?: (integration: Integration) => Promise<void>;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -389,6 +387,8 @@ export class IntegrationsService {
       },
       ncMeta,
     );
+
+    await param.afterCreate?.(integration);
 
     integration.config = undefined;
 

@@ -33,85 +33,85 @@ export default class NcUpgrader {
     let oldVersion;
 
     try {
-      ctx.ncMeta = await ctx.ncMeta.startTransaction();
-
       if (
         !(await ctx.ncMeta.knexConnection?.schema?.hasTable?.(MetaTable.STORE))
       ) {
         return;
       }
-      this.log(`upgrade : Getting configuration from meta database`);
 
-      const config = await ctx.ncMeta.metaGet(
-        RootScopes.ROOT,
-        RootScopes.ROOT,
-        MetaTable.STORE,
-        {
-          key: this.STORE_KEY,
-        },
-      );
+      await ctx.ncMeta.runInTransaction(async (ncMeta) => {
+        ctx.ncMeta = ncMeta;
+        this.log(`upgrade : Getting configuration from meta database`);
 
-      const NC_VERSIONS: any[] = this.getUpgraderList();
-
-      if (config) {
-        const configObj: NcConfig = JSON.parse(config.value);
-        if (configObj.version !== process.env.NC_VERSION) {
-          oldVersion = configObj.version;
-          for (const version of NC_VERSIONS) {
-            // compare current version and old version
-            if (version.name > configObj.version) {
-              this.log(
-                `upgrade : Upgrading '%s' => '%s'`,
-                configObj.version,
-                version.name,
-              );
-              await version?.handler?.(ctx);
-
-              // update version in meta after each upgrade
-              config.version = version.name;
-              await ctx.ncMeta.metaUpdate(
-                RootScopes.ROOT,
-                RootScopes.ROOT,
-                MetaTable.STORE,
-                {
-                  value: JSON.stringify({ version: config.version }),
-                },
-                {
-                  key: NcUpgrader.STORE_KEY,
-                },
-              );
-
-              // todo: backup data
-            }
-            if (version.name === process.env.NC_VERSION) {
-              break;
-            }
-          }
-          config.version = process.env.NC_VERSION;
-        }
-      } else {
-        this.log(`upgrade : Inserting config to meta database`);
-        const configObj: any = {};
-        configObj.version = process.env.NC_VERSION;
-        await ctx.ncMeta.metaInsert2(
+        const config = await ctx.ncMeta.metaGet(
           RootScopes.ROOT,
           RootScopes.ROOT,
           MetaTable.STORE,
           {
-            key: NcUpgrader.STORE_KEY,
-            value: JSON.stringify(configObj),
+            key: this.STORE_KEY,
           },
-          true,
         );
-      }
-      await ctx.ncMeta.commit();
+
+        const NC_VERSIONS: any[] = this.getUpgraderList();
+
+        if (config) {
+          const configObj: NcConfig = JSON.parse(config.value);
+          if (configObj.version !== process.env.NC_VERSION) {
+            oldVersion = configObj.version;
+            for (const version of NC_VERSIONS) {
+              // compare current version and old version
+              if (version.name > configObj.version) {
+                this.log(
+                  `upgrade : Upgrading '%s' => '%s'`,
+                  configObj.version,
+                  version.name,
+                );
+                await version?.handler?.(ctx);
+
+                // update version in meta after each upgrade
+                config.version = version.name;
+                await ctx.ncMeta.metaUpdate(
+                  RootScopes.ROOT,
+                  RootScopes.ROOT,
+                  MetaTable.STORE,
+                  {
+                    value: JSON.stringify({ version: config.version }),
+                  },
+                  {
+                    key: NcUpgrader.STORE_KEY,
+                  },
+                );
+
+                // todo: backup data
+              }
+              if (version.name === process.env.NC_VERSION) {
+                break;
+              }
+            }
+            config.version = process.env.NC_VERSION;
+          }
+        } else {
+          this.log(`upgrade : Inserting config to meta database`);
+          const configObj: any = {};
+          configObj.version = process.env.NC_VERSION;
+          await ctx.ncMeta.metaInsert2(
+            RootScopes.ROOT,
+            RootScopes.ROOT,
+            MetaTable.STORE,
+            {
+              key: NcUpgrader.STORE_KEY,
+              value: JSON.stringify(configObj),
+            },
+            true,
+          );
+        }
+      });
       T.emit('evt', {
         evt_type: 'appMigration:upgraded',
         from: oldVersion,
         to: process.env.NC_VERSION,
       });
     } catch (e) {
-      await ctx.ncMeta.rollback(e);
       T.emit('evt', {
         evt_type: 'appMigration:failed',
         from: oldVersion,

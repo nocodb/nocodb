@@ -99,29 +99,27 @@ export default class RowColorCondition implements IRowColorCondition {
   }
 
   static async delete(context: NcContext, id: string, ncMeta = Noco.ncMeta) {
-    const ncMetaTrans = await ncMeta.startTransaction();
-
     try {
-      await ncMetaTrans.metaDelete(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.ROW_COLOR_CONDITIONS,
-        {
-          id: id,
-        },
-      );
+      await ncMeta.runInTransaction(async (ncMetaTrans) => {
+        await ncMetaTrans.metaDelete(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.ROW_COLOR_CONDITIONS,
+          {
+            id: id,
+          },
+        );
 
-      await ncMetaTrans.metaDelete(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.FILTER_EXP,
-        {
-          fk_row_color_condition_id: id,
-        },
-      );
-      await ncMetaTrans.commit();
+        await ncMetaTrans.metaDelete(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          {
+            fk_row_color_condition_id: id,
+          },
+        );
+      });
     } catch (ex) {
-      await ncMetaTrans.rollback();
       if (ex instanceof NcError || ex instanceof NcBaseError) throw ex;
       logger.error('Failed to remove Row Colouring', ex);
       NcError.get(context).internalServerError(

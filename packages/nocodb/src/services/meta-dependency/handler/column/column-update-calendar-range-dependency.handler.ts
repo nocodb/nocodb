@@ -9,6 +9,7 @@ import type {
 import { CalendarRange, Column, View } from '~/models';
 import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
+import { deferUntilCommit } from '~/cache/trxScope';
 
 const DATE_TIME_TYPES: UITypes[] = [
   UITypes.Date,
@@ -86,12 +87,14 @@ export class ColumnUpdateCalendarRangeDependencyHandler
         await CalendarRange.delete(range.id, context, ncMeta);
         if (range.fk_view_id) affectedViewIds.add(range.fk_view_id);
       }
-      this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
-        this.logger.error(
-          `Failed to broadcast view_update events: ${e?.message}`,
-          e?.stack,
-        ),
-      );
+      const broadcast = () =>
+        this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
+          this.logger.error(
+            `Failed to broadcast view_update events: ${e?.message}`,
+            e?.stack,
+          ),
+        );
+      if (!deferUntilCommit(broadcast)) broadcast();
       return;
     }
 
@@ -145,12 +148,14 @@ export class ColumnUpdateCalendarRangeDependencyHandler
       }
     }
 
-    this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
-      this.logger.error(
-        `Failed to broadcast view_update events: ${e?.message}`,
-        e?.stack,
-      ),
-    );
+    const broadcast = () =>
+      this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
+        this.logger.error(
+          `Failed to broadcast view_update events: ${e?.message}`,
+          e?.stack,
+        ),
+      );
+    if (!deferUntilCommit(broadcast)) broadcast();
   }
 
   private async broadcastViewUpdates(

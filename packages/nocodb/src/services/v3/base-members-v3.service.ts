@@ -79,47 +79,45 @@ export class BaseMembersV3Service {
     if (param.baseMembers?.length > V3_META_REQUEST_LIMIT) {
       NcError.get(context).maxPayloadLimitExceeded(V3_META_REQUEST_LIMIT);
     }
-    const ncMeta = await Noco.ncMeta.startTransaction();
     const userIds = [];
     try {
-      for (const baseUser of param.baseMembers) {
-        let user: User;
-        let userEmail: string;
+      await Noco.ncMeta.runInTransaction(async (ncMeta) => {
+        for (const baseUser of param.baseMembers) {
+          let user: User;
+          let userEmail: string;
 
-        if ('user_id' in baseUser && baseUser.user_id) {
-          user = await User.get(baseUser.user_id, ncMeta);
-          if (!user) {
-            NcError.get(context).userNotFound(baseUser.user_id);
+          if ('user_id' in baseUser && baseUser.user_id) {
+            user = await User.get(baseUser.user_id, ncMeta);
+            if (!user) {
+              NcError.get(context).userNotFound(baseUser.user_id);
+            }
+            userEmail = user.email;
+          } else if ('email' in baseUser && baseUser.email) {
+            user = await User.getByEmail(baseUser.email, ncMeta);
+            userEmail = baseUser.email;
+          } else {
+            NcError.get(context).invalidRequestBody(
+              'Either email or id is required',
+            );
           }
-          userEmail = user.email;
-        } else if ('email' in baseUser && baseUser.email) {
-          user = await User.getByEmail(baseUser.email, ncMeta);
-          userEmail = baseUser.email;
-        } else {
-          NcError.get(context).invalidRequestBody(
-            'Either email or id is required',
-          );
-        }
 
-        await this.baseUsersService.userInvite(
-          context,
-          {
-            baseId: param.baseId,
-            baseUser: {
-              email: userEmail,
-              roles: baseUser.base_role as ProjectUserReqType['roles'],
+          await this.baseUsersService.userInvite(
+            context,
+            {
+              baseId: param.baseId,
+              baseUser: {
+                email: userEmail,
+                roles: baseUser.base_role as ProjectUserReqType['roles'],
+              },
+              req: param.req,
             },
-            req: param.req,
-          },
-          ncMeta,
-        );
+            ncMeta,
+          );
 
-        userIds.push(user.id);
-      }
-      await ncMeta.commit();
+          userIds.push(user.id);
+        }
+      });
     } catch (e) {
-      // on error rollback the transaction and throw the error
-      await ncMeta.rollback();
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Error inviting base members', e);
       NcError.get(context).baseUserError('Bad Request');
@@ -150,31 +148,28 @@ export class BaseMembersV3Service {
     if (param.baseMembers?.length > V3_META_REQUEST_LIMIT) {
       NcError.get(context).maxPayloadLimitExceeded(V3_META_REQUEST_LIMIT);
     }
-    const ncMeta = await Noco.ncMeta.startTransaction();
     const userIds = [];
     try {
-      for (const baseUser of param.baseMembers) {
-        const userId = baseUser.user_id;
-        userIds.push(userId);
+      await Noco.ncMeta.runInTransaction(async (ncMeta) => {
+        for (const baseUser of param.baseMembers) {
+          const userId = baseUser.user_id;
+          userIds.push(userId);
 
-        await this.baseUsersService.baseUserUpdate(
-          context,
-          {
-            baseId: param.baseId,
-            baseUser: {
-              roles: baseUser.base_role as ProjectUserReqType['roles'],
+          await this.baseUsersService.baseUserUpdate(
+            context,
+            {
+              baseId: param.baseId,
+              baseUser: {
+                roles: baseUser.base_role as ProjectUserReqType['roles'],
+              },
+              userId,
+              req: param.req,
             },
-            userId,
-            req: param.req,
-          },
-          ncMeta,
-        );
-      }
-
-      await ncMeta.commit();
+            ncMeta,
+          );
+        }
+      });
     } catch (e) {
-      // on error rollback the transaction and throw the error
-      await ncMeta.rollback();
       this.logger.error('Error updating base members', e);
       NcError.get(context).baseUserError('Bad Request');
     }

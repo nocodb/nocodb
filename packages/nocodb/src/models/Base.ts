@@ -476,7 +476,7 @@ export default class Base implements BaseType {
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
-    CustomUrl.bulkDelete({ base_id: baseId }, ncMeta).catch(() => {
+    await CustomUrl.bulkDelete({ base_id: baseId }, ncMeta).catch(() => {
       logger.error(`Failed to delete custom urls of baseId: ${baseId}`);
     });
 
@@ -714,7 +714,7 @@ export default class Base implements BaseType {
       },
     );
 
-    CustomUrl.bulkDelete({ base_id: baseId }, ncMeta).catch(() => {
+    await CustomUrl.bulkDelete({ base_id: baseId }, ncMeta).catch(() => {
       logger.error(`Failed to delete custom urls of baseId: ${baseId}`);
     });
 

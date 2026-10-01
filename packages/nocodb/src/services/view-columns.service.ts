@@ -265,9 +265,7 @@ export class ViewColumnsService {
       NcError.get(context).viewNotFound('View not found');
     }
 
-    // Build the webhook manager before opening the transaction — its async
-    // builder chain can throw on transient DB errors, which would otherwise
-    // leak an open trx between startTransaction and the try block.
+    // Build the webhook manager before opening the transaction.
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
       viewWebhookManager =
@@ -281,43 +279,43 @@ export class ViewColumnsService {
         ).forUpdate();
     }
 
-    const updateOrInsertOptions: Promise<any>[] = [];
-
     let result: any;
-    const ncMeta = await Noco.ncMeta.startTransaction();
 
     try {
-      const table = View.extractViewColumnsTableName(view);
+      await Noco.ncMeta.runInTransaction(async (ncMeta) => {
+        const table = View.extractViewColumnsTableName(view);
 
-      // iterate over view columns and update/insert accordingly
-      for (const [indexOrId, column] of Object.entries(columns)) {
-        const columnId = Array.isArray(param.columns)
-          ? column['id']
-          : indexOrId;
+        // iterate over view columns and update/insert accordingly
+        for (const [indexOrId, column] of Object.entries(columns)) {
+          const columnId = Array.isArray(param.columns)
+            ? column['id']
+            : indexOrId;
 
-        const existingCol = await ncMeta.metaGet2(
-          context.workspace_id,
-          context.base_id,
-          table,
-          {
-            fk_view_id: viewId,
-            fk_column_id: columnId,
-          },
-        );
+          const existingCol = await ncMeta.metaGet2(
+            context.workspace_id,
+            context.base_id,
+            table,
+            {
+              fk_view_id: viewId,
+              fk_column_id: columnId,
+            },
+          );
 
-        switch (view.type) {
-          case ViewTypes.GRID:
-            validatePayload(
-              'swagger.json#/components/schemas/GridColumnReq',
-              column,
-            );
-            if (existingCol) {
-              updateOrInsertOptions.push(
-                GridViewColumn.update(context, existingCol.id, column, ncMeta),
+          switch (view.type) {
+            case ViewTypes.GRID:
+              validatePayload(
+                'swagger.json#/components/schemas/GridColumnReq',
+                column,
               );
-            } else {
-              updateOrInsertOptions.push(
-                GridViewColumn.insert(
+              if (existingCol) {
+                await GridViewColumn.update(
+                  context,
+                  existingCol.id,
+                  column,
+                  ncMeta,
+                );
+              } else {
+                await GridViewColumn.insert(
                   context,
                   {
                     ...(column as GridColumnReqType),
@@ -325,27 +323,23 @@ export class ViewColumnsService {
                     fk_column_id: columnId,
                   },
                   ncMeta,
-                ),
+                );
+              }
+              break;
+            case ViewTypes.GALLERY:
+              validatePayload(
+                'swagger.json#/components/schemas/GalleryColumnReq',
+                column,
               );
-            }
-            break;
-          case ViewTypes.GALLERY:
-            validatePayload(
-              'swagger.json#/components/schemas/GalleryColumnReq',
-              column,
-            );
-            if (existingCol) {
-              updateOrInsertOptions.push(
-                GalleryViewColumn.update(
+              if (existingCol) {
+                await GalleryViewColumn.update(
                   context,
                   existingCol.id,
                   column,
                   ncMeta,
-                ),
-              );
-            } else {
-              updateOrInsertOptions.push(
-                GalleryViewColumn.insert(
+                );
+              } else {
+                await GalleryViewColumn.insert(
                   context,
                   {
                     ...(column as GalleryColumnReqType),
@@ -353,27 +347,23 @@ export class ViewColumnsService {
                     fk_column_id: columnId,
                   },
                   ncMeta,
-                ),
+                );
+              }
+              break;
+            case ViewTypes.KANBAN:
+              validatePayload(
+                'swagger.json#/components/schemas/KanbanColumnReq',
+                column,
               );
-            }
-            break;
-          case ViewTypes.KANBAN:
-            validatePayload(
-              'swagger.json#/components/schemas/KanbanColumnReq',
-              column,
-            );
-            if (existingCol) {
-              updateOrInsertOptions.push(
-                KanbanViewColumn.update(
+              if (existingCol) {
+                await KanbanViewColumn.update(
                   context,
                   existingCol.id,
                   column,
                   ncMeta,
-                ),
-              );
-            } else {
-              updateOrInsertOptions.push(
-                KanbanViewColumn.insert(
+                );
+              } else {
+                await KanbanViewColumn.insert(
                   context,
                   {
                     ...(column as KanbanColumnReqType),
@@ -381,22 +371,23 @@ export class ViewColumnsService {
                     fk_column_id: columnId,
                   },
                   ncMeta,
-                ),
+                );
+              }
+              break;
+            case ViewTypes.MAP:
+              validatePayload(
+                'swagger.json#/components/schemas/MapColumn',
+                column,
               );
-            }
-            break;
-          case ViewTypes.MAP:
-            validatePayload(
-              'swagger.json#/components/schemas/MapColumn',
-              column,
-            );
-            if (existingCol) {
-              updateOrInsertOptions.push(
-                MapViewColumn.update(context, existingCol.id, column, ncMeta),
-              );
-            } else {
-              updateOrInsertOptions.push(
-                MapViewColumn.insert(
+              if (existingCol) {
+                await MapViewColumn.update(
+                  context,
+                  existingCol.id,
+                  column,
+                  ncMeta,
+                );
+              } else {
+                await MapViewColumn.insert(
                   context,
                   {
                     ...(column as MapViewColumn),
@@ -404,22 +395,23 @@ export class ViewColumnsService {
                     fk_column_id: columnId,
                   },
                   ncMeta,
-                ),
+                );
+              }
+              break;
+            case ViewTypes.FORM:
+              validatePayload(
+                'swagger.json#/components/schemas/FormColumnReq',
+                column,
               );
-            }
-            break;
-          case ViewTypes.FORM:
-            validatePayload(
-              'swagger.json#/components/schemas/FormColumnReq',
-              column,
-            );
-            if (existingCol) {
-              updateOrInsertOptions.push(
-                FormViewColumn.update(context, existingCol.id, column, ncMeta),
-              );
-            } else {
-              updateOrInsertOptions.push(
-                FormViewColumn.insert(
+              if (existingCol) {
+                await FormViewColumn.update(
+                  context,
+                  existingCol.id,
+                  column,
+                  ncMeta,
+                );
+              } else {
+                await FormViewColumn.insert(
                   context,
                   {
                     ...(column as FormColumnReqType),
@@ -427,27 +419,23 @@ export class ViewColumnsService {
                     fk_column_id: columnId,
                   },
                   ncMeta,
-                ),
+                );
+              }
+              break;
+            case ViewTypes.CALENDAR:
+              validatePayload(
+                'swagger.json#/components/schemas/CalendarColumnReq',
+                column,
               );
-            }
-            break;
-          case ViewTypes.CALENDAR:
-            validatePayload(
-              'swagger.json#/components/schemas/CalendarColumnReq',
-              column,
-            );
-            if (existingCol) {
-              updateOrInsertOptions.push(
-                CalendarViewColumn.update(
+              if (existingCol) {
+                await CalendarViewColumn.update(
                   context,
                   existingCol.id,
                   column,
                   ncMeta,
-                ),
-              );
-            } else {
-              updateOrInsertOptions.push(
-                CalendarViewColumn.insert(
+                );
+              } else {
+                await CalendarViewColumn.insert(
                   context,
                   {
                     ...(column as CalendarColumnReqType),
@@ -455,27 +443,23 @@ export class ViewColumnsService {
                     fk_column_id: columnId,
                   },
                   ncMeta,
-                ),
-              );
-            }
-            break;
-          case ViewTypes.TIMELINE:
-            // Timeline shares the Calendar-style column model (show/order +
-            // bold/italic/underline). Bulk import via columnsUpdate needs
-            // to reach the right column row; without this case, B/I/U +
-            // visibility silently get dropped on table duplicate.
-            if (existingCol) {
-              updateOrInsertOptions.push(
-                TimelineViewColumn.update(
+                );
+              }
+              break;
+            case ViewTypes.TIMELINE:
+              // Timeline shares the Calendar-style column model (show/order +
+              // bold/italic/underline). Bulk import via columnsUpdate needs
+              // to reach the right column row; without this case, B/I/U +
+              // visibility silently get dropped on table duplicate.
+              if (existingCol) {
+                await TimelineViewColumn.update(
                   context,
                   existingCol.id,
                   column,
                   ncMeta,
-                ),
-              );
-            } else {
-              updateOrInsertOptions.push(
-                TimelineViewColumn.insert(
+                );
+              } else {
+                await TimelineViewColumn.insert(
                   context,
                   {
                     ...(column as any),
@@ -483,20 +467,21 @@ export class ViewColumnsService {
                     fk_column_id: columnId,
                   },
                   ncMeta,
-                ),
-              );
-            }
-            break;
-          case ViewTypes.GANTT:
-            // Gantt mirrors Timeline — same column model shape. Same
-            // motivation: keep duplicate carrying B/I/U + visibility.
-            if (existingCol) {
-              updateOrInsertOptions.push(
-                GanttViewColumn.update(context, existingCol.id, column, ncMeta),
-              );
-            } else {
-              updateOrInsertOptions.push(
-                GanttViewColumn.insert(
+                );
+              }
+              break;
+            case ViewTypes.GANTT:
+              // Gantt mirrors Timeline — same column model shape. Same
+              // motivation: keep duplicate carrying B/I/U + visibility.
+              if (existingCol) {
+                await GanttViewColumn.update(
+                  context,
+                  existingCol.id,
+                  column,
+                  ncMeta,
+                );
+              } else {
+                await GanttViewColumn.insert(
                   context,
                   {
                     ...(column as any),
@@ -504,16 +489,12 @@ export class ViewColumnsService {
                     fk_column_id: columnId,
                   },
                   ncMeta,
-                ),
-              );
-            }
-            break;
+                );
+              }
+              break;
+          }
         }
-      }
-
-      await Promise.all(updateOrInsertOptions);
-
-      await ncMeta.commit();
+      });
 
       await View.clearSingleQueryCache(context, view.fk_model_id, [view]);
 
@@ -525,7 +506,6 @@ export class ViewColumnsService {
 
       return result;
     } catch (e) {
-      await ncMeta.rollback();
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Error updating view columns', e);
       NcError.get(context).badRequest('Bad Request');

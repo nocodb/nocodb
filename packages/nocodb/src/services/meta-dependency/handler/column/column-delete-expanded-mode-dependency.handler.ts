@@ -10,6 +10,7 @@ import { View } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
+import { deferUntilCommit } from '~/cache/trxScope';
 
 /**
  * Reset `attachment_mode_column_id` on any view that pinned the deleted
@@ -71,12 +72,14 @@ export class ColumnDeleteExpandedModeDependencyHandler
       ncMeta,
     );
 
-    this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
-      this.logger.error(
-        `Failed to broadcast view_update events: ${e?.message}`,
-        e?.stack,
-      ),
-    );
+    const broadcast = () =>
+      this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
+        this.logger.error(
+          `Failed to broadcast view_update events: ${e?.message}`,
+          e?.stack,
+        ),
+      );
+    if (!deferUntilCommit(broadcast)) broadcast();
   }
 
   private async broadcastViewUpdates(

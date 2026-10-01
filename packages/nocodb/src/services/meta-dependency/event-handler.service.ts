@@ -71,30 +71,43 @@ export class MetaDependencyEventHandler implements OnModuleInit {
       ...context,
       suppressDependencyEvaluation: true,
     } as NcContext;
-    let trxNcMeta: MetaService;
-    try {
-      for (const handler of this.metaEventHandlerMap[param.eventType] ?? []) {
-        const affectedDependencies = await handler.getAffectedDependency(
+    const handlers = this.metaEventHandlerMap[param.eventType] ?? [];
+    for (let i = 0; i < handlers.length; i++) {
+      const affectedDependencies = await handlers[i].getAffectedDependency(
+        nextContext,
+        param,
+        ncMeta,
+      );
+      if (!affectedDependencies) continue;
+
+      // The first affected handler opens the transaction; the rest run in it.
+      await ncMeta.runInTransaction(async (trxNcMeta: MetaService) => {
+        await handlers[i].handle(
           nextContext,
-          param,
-          trxNcMeta ?? ncMeta,
+          {
+            ...param,
+            affectedDependencyResult: affectedDependencies,
+          },
+          trxNcMeta,
         );
-        if (affectedDependencies) {
-          trxNcMeta = trxNcMeta ?? (await ncMeta.startTransaction());
+        for (const handler of handlers.slice(i + 1)) {
+          const affected = await handler.getAffectedDependency(
+            nextContext,
+            param,
+            trxNcMeta,
+          );
+          if (!affected) continue;
           await handler.handle(
             nextContext,
             {
               ...param,
-              affectedDependencyResult: affectedDependencies,
+              affectedDependencyResult: affected,
             },
             trxNcMeta,
           );
         }
-      }
-      await trxNcMeta?.commit();
-    } catch (ex) {
-      await trxNcMeta?.rollback();
-      throw ex;
+      });
+      return;
     }
   }
 }

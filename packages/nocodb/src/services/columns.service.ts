@@ -8768,8 +8768,6 @@ export class ColumnsService implements IColumnsService {
       // All meta operations run inside a single transaction so that a failure
       // in Column.insert or RollupColumn.insert rolls back the entire batch
       // (uidt change, col_relations, new LTAR column, rollup metadata).
-      const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
-
       let newLtarCol: Column | undefined;
       let dependentLookupColIds: string[] = [];
       let dependentRollupColIds: string[] = [];
@@ -8778,7 +8776,7 @@ export class ColumnsService implements IColumnsService {
       // transaction; their cache is busted post-commit (see below).
       const fkViewColumnDeepDelKeys: { scope: CacheScope; id: string }[] = [];
 
-      try {
+      await (Noco.ncMeta as MetaService).runInTransaction(async (ncMeta) => {
         // Delete old HM col_relations
         await ncMeta.metaDelete(
           context.workspace_id,
@@ -9048,12 +9046,7 @@ export class ColumnsService implements IColumnsService {
             dependentLevelIds = dependentLevelRows.map((r: any) => r.id);
           }
         }
-
-        await ncMeta.commit();
-      } catch (metaError) {
-        await ncMeta.rollback();
-        throw metaError;
-      }
+      });
 
       // ── Post-commit: Drop the legacy FK column from the data DB ──
       // All meta changes are committed at this point. If the DROP COLUMN
@@ -9327,13 +9320,11 @@ export class ColumnsService implements IColumnsService {
 
     // Meta transaction: all meta operations in a single transaction so that
     // a failure in Column.insert or RollupColumn.insert rolls back everything
-    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
-
     let mmNewLtarCol: Column | undefined;
     let dependentLookupRows: any[] = [];
     let dependentRollupRows: any[] = [];
 
-    try {
+    await (Noco.ncMeta as MetaService).runInTransaction(async (ncMeta) => {
       if (isLinksColumn) {
         // Links MM → convert to Rollup in-place
         await ncMeta.metaUpdate(
@@ -9468,29 +9459,24 @@ export class ColumnsService implements IColumnsService {
           );
         }
       }
+    });
 
-      await ncMeta.commit();
-
-      // Post-commit: update cached fk_relation_column_id for retargeted dependents
-      if (isLinksColumn) {
-        for (const row of dependentLookupRows) {
-          await NocoCache.update(
-            context,
-            `${CacheScope.COL_LOOKUP}:${row.fk_column_id}`,
-            { fk_relation_column_id: mmNewLtarCol.id },
-          );
-        }
-        for (const row of dependentRollupRows) {
-          await NocoCache.update(
-            context,
-            `${CacheScope.COL_ROLLUP}:${row.fk_column_id}`,
-            { fk_relation_column_id: mmNewLtarCol.id },
-          );
-        }
+    // Post-commit: update cached fk_relation_column_id for retargeted dependents
+    if (isLinksColumn) {
+      for (const row of dependentLookupRows) {
+        await NocoCache.update(
+          context,
+          `${CacheScope.COL_LOOKUP}:${row.fk_column_id}`,
+          { fk_relation_column_id: mmNewLtarCol.id },
+        );
       }
-    } catch (metaError) {
-      await ncMeta.rollback();
-      throw metaError;
+      for (const row of dependentRollupRows) {
+        await NocoCache.update(
+          context,
+          `${CacheScope.COL_ROLLUP}:${row.fk_column_id}`,
+          { fk_relation_column_id: mmNewLtarCol.id },
+        );
+      }
     }
 
     if (isLinksColumn) {

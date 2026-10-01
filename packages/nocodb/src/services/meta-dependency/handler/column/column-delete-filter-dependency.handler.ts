@@ -10,6 +10,7 @@ import { Filter, Sort } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
+import { deferUntilCommit } from '~/cache/trxScope';
 
 /**
  * Sort + filter cleanup for a deleted column.
@@ -120,12 +121,14 @@ export class ColumnDeleteFilterDependencyHandler implements MetaEventHandler {
 
     await Filter.deleteAllByParentColumn(context, id, ncMeta);
 
-    this.broadcastDeletes(context, deletedSorts, deletedFilters).catch((e) =>
-      this.logger.error(
-        `Failed to broadcast sort/filter delete events: ${e?.message}`,
-        e?.stack,
-      ),
-    );
+    const broadcast = () =>
+      this.broadcastDeletes(context, deletedSorts, deletedFilters).catch((e) =>
+        this.logger.error(
+          `Failed to broadcast sort/filter delete events: ${e?.message}`,
+          e?.stack,
+        ),
+      );
+    if (!deferUntilCommit(broadcast)) broadcast();
   }
 
   // `getFilterObject({ parentColId })` returns either a root filter or a

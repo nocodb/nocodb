@@ -474,7 +474,6 @@ const getWorkflowExecutionStatusDisplay = (
 
 export {
   getWorkflowExecutionStatusDisplay,
-  getWorkflowPendingRetry,
   formatWorkflowResumeTime,
   filterNodesByPermission,
   getSourceNodesAndEdges,

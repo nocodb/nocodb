@@ -4419,6 +4419,8 @@
       "retryFromFailedLatest": "Retry the failed step with your latest changes",
       "continueRunOriginal": "Continue from where it stopped",
       "continueRunLatest": "Continue from where it stopped, with your latest changes",
+      "turnedOff": "Turned off",
+      "turnedOffTitle": "This workflow was turned off",
       "rerunFromStart": "Run again from the start",
       "retryOf": "Retried from",
       "originalRun": "the original run",

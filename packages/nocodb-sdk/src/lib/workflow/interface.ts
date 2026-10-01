@@ -183,8 +183,8 @@ type WorkflowExecutionStatus =
 // Requested by a user; the executor acts on it at the next node boundary.
 type WorkflowExecutionControl = 'cancel' | 'pause';
 
-// Why a run ended without a node error: `error` + INTERRUPTED (its worker died),
-// or `cancelled` because its app, base or workspace was suspended.
+// Why a run ended without a node error: `error` when its worker died or its
+// schedule couldn't be read, `cancelled` on an app/base/workspace suspension.
 type WorkflowExecutionErrorCode =
   | 'INTERRUPTED'
   | 'APP_SUSPENDED'
@@ -238,6 +238,9 @@ interface WorkflowExecutionState {
   pausedAt?: number; // When workflow was paused
   resumeAt?: number; // When to resume (timestamp from delay node)
   nextNodeId?: string; // Which node to execute after resume
+  // The step at nextNodeId already finished before the run stopped: continue
+  // with what follows it instead of running it again.
+  nextNodeFinished?: boolean;
   activeLoops?: ActiveLoopState[];
 
   // Failed tries of the step waiting on a long retry backoff (keyed by node id

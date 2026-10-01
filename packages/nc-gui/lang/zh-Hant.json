@@ -1615,7 +1615,7 @@
       "lockedDescOnPrem": "輸入您的授權金鑰，以存取早於 {count} 天的版本。| 輸入您的授權金鑰，以存取早於 {count} 天的版本。",
       "upgradeNow": "立即升級",
       "retentionByPlanTitle": "各計劃的版本歷史",
-      "retentionByPlanDays": "{count} 日｜ {count} 日",
+      "retentionByPlanDays": "{count} 日 | {count} 日",
       "previewEmptyTitle": "選擇要預覽的版本",
       "previewEmptySubtitle": "從右側清單中選取一個，即可看到當時的頁面。與目前版本相較的變更會在線上高亮顯示。",
       "currentVersion": "目前版本 - {author}",

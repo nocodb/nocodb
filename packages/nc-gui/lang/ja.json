@@ -4821,7 +4821,7 @@
     "copyPasswordResetURL": "パスワードリセット URL をコピー",
     "nextRecord": "次のレコード",
     "previousRecord": "前のレコード",
-    "dropToCreate": "{count} 新しいレコードを作成するにはここにドロップします。 {count} 新しいレコードを作成するにはここにドロップします",
+    "dropToCreate": "ここにドロップして {count} 件の新しいレコードを作成 | ここにドロップして {count} 件の新しいレコードを作成",
     "dropToCreateRecords": "ここにドロップして新しいレコードを作成します",
     "createNRecords": "{count} 新しいレコードの作成 | {count} 新しいレコードの作成",
     "createTable": "テーブルを新規作成",

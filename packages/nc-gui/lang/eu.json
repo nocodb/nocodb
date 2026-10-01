@@ -6185,7 +6185,7 @@
       "fileTypeNotAllowed": "{name} MIME mota {type} du, eta hori ez da zutabe honetan onartzen.",
       "tableDataImportFailed": "Inportazioa huts egin du: {failed} ilara ezin izan da inportatu | Inportazioa huts egin du: {failed} ilarak ezin izan dira inportatu",
       "tableDataImportFailedWithReason": "Inportazioa huts egin du: {failed} ilara ezin izan da inportatu. {error} | Inportazioa huts egin du: {failed} ilarak ezin izan dira inportatu. {error}",
-      "tableDataImportPartial": "{inserted} -eko ilara inportatzean huts egin da | {failed} -eko ilara inportatzean huts egin da {inserted} -eko ilarak inportatzean huts egin da | {failed} -eko ilara inportatzean huts egin da",
+      "tableDataImportPartial": "{inserted} errenkada inportatu da, {failed} huts egin du | {inserted} errenkada inportatu dira, {failed} huts egin dute",
       "tableDataImportPartialWithReason": "{inserted} -etik inportatutako lerroan, {failed} huts egin du. {error} | {inserted} -etik inportatutako lerroetan, {failed} huts egin du. {error}",
       "failedToCreateRecords": "Huts egin da {count} erregistroa sortzen utzitako fitxategietatik | Huts egin da {count} erregistroak sortzen utzitako fitxategietatik",
       "errorLoadingRecord": "Errorea erregistroen datuak kargatzean",

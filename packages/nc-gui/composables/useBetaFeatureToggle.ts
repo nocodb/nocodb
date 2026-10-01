@@ -201,17 +201,6 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'agents',
-    get title() {
-      return getI18n().global.t('general.agents')
-    },
-    description: 'Enable the Agents section in the sidebar.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-    isEE: true,
-  },
-  {
     id: 'app_factory',
     get title() {
       return getI18n().global.t('general.appFactory')
@@ -276,12 +265,10 @@ const FEATURES = [
     isEngineering: true,
   },
   {
-    // id is persisted in localStorage and drives FEATURE_FLAG — renaming it
-    // would silently reset the toggle for anyone who had it on.
-    id: 'apps',
-    title: 'Apps',
+    id: 'build_modes',
+    title: 'Build modes',
     description:
-      'Build, publish and install apps: the app tile in the sidebar, App Settings, the App target on the workspace home, and the /apps routes.',
+      'Pick what the workspace home builds — an app, a Dev Factory or tables — instead of always tables. Each needs its own plan or flag.',
     enabled: false,
     version: 1,
     isAdvanced: true,
@@ -443,13 +430,18 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
       return false
     }
 
-    // A sub-feature of something that is itself behind a flag: off whenever its
-    // parent is. One level of recursion per hop and FEATURES declares no cycle.
-    if (feature && 'requires' in feature && feature.requires && !isFeatureEnabled(feature.requires)) {
+    // A sub-feature of something that is itself behind a flag or the plan: off
+    // whenever its parent is. One level of recursion per hop and FEATURES declares no cycle.
+    if (feature && 'requires' in feature && feature.requires && !isParentEnabled(feature.requires)) {
       return false
     }
 
     return featureStates.value[id] ?? RETIRED_FEATURE_STATES[id] ?? false
+  }
+
+  // Apps has no flag of its own: the plan opens it.
+  function isParentEnabled(id: BetaFeatureId | RetiredFeatureId | 'apps') {
+    return id === 'apps' ? useAppStore().isAppsEnabled : isFeatureEnabled(id)
   }
 
   const initializeFeatures = () => {

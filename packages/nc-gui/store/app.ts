@@ -7,8 +7,8 @@ export const useAppStore = defineStore('app', () => {
   const isLoadingApp = ref(false)
 
   // Getters
-  // Apps is EE-only AND behind the `apps` advanced experimental flag, so the CE
-  // gate is a constant false — see the EE store for the real one.
+  // Apps is EE-only and gated by plan, so the CE gate is a constant false — see
+  // the EE store for the real one.
   const isAppsEnabled = computed(() => false)
 
   const activeBaseApps = computed(() => [])

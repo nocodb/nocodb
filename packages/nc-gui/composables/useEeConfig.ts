@@ -19,6 +19,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const activePlan = computed(() => undefined)
 
+  const isPlanResolved = computed(() => true)
+
   const activePlanTitle = computed(() => undefined)
 
   const isHigherActivePlan = computed(() => false)
@@ -507,6 +509,7 @@ export const useEeConfig = createSharedComposable(() => {
     getFeatureForPlanTitle,
     isPaidPlan,
     activePlan,
+    isPlanResolved,
     activePlanTitle,
     activeSubscription,
     getHigherPlan,

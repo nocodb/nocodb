@@ -588,6 +588,8 @@ export interface ChatUIContext {
   onboarding?: boolean;
   /** What that build should produce. Absent means a full app. */
   buildScope?: BuildScope;
+  /** Apps is on for this user — its experimental flag lives in the browser, so only the client knows. */
+  appsEnabled?: boolean;
 }
 
 /**

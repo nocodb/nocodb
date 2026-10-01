@@ -30,6 +30,10 @@ export const BUILD_SCOPE_PARAM = 'buildScope'
 
 const toScope = (raw: unknown): BuildScope => (isBuildScope(raw) ? raw : 'app')
 
+/** `website` runs the app pipeline too, so both fall back to tables while Apps is off. */
+export const buildScopeWithApps = (scope: BuildScope, appsEnabled: boolean): BuildScope =>
+  !appsEnabled && (scope === 'app' || scope === 'website') ? 'table' : scope
+
 /**
  * Parse a hand-off query string. Returns null unless the search carries both a
  * non-empty `basePrompt` and a truthy `autoBuild` — a plain `?basePrompt=` is an

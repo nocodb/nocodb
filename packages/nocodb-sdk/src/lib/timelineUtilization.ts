@@ -4,8 +4,10 @@
  *
  * Everything is normalised to a per-day amount and summed over the days of a
  * bucket, so a weekly rate on a task that covers three days of a week adds
- * 3/7 (or 3/5 with workdays only) of that rate to the week.
+ * 3/7 (or 3/5 with a Monday–Friday working week) of that rate to the week.
  */
+
+import type { DateAxisSummaryConfig } from './interface/pageConfigs';
 
 export const UTILIZATION_AGGREGATION = 'utilization';
 
@@ -52,13 +54,17 @@ export interface DateAxisUtilizationConfig {
   /** Fixed working hours, used when no field is picked. */
   available_value?: number | null;
   available_rate: UtilizationAvailableRate;
-  /** Count Monday–Friday only. */
-  workdays_only?: boolean;
+  /** Weekdays that count (0 = Sunday … 6 = Saturday). Absent → every day. */
+  working_days?: number[] | null;
   multiple_resources?: UtilizationMultiResourceMode;
   time_off?: UtilizationTimeOffConfig | null;
   color_conditions?: UtilizationColorCondition[];
   default_color?: UtilizationColor;
 }
+
+export const ALL_WEEKDAYS = [0, 1, 2, 3, 4, 5, 6];
+
+export const MONDAY_TO_FRIDAY = [1, 2, 3, 4, 5];
 
 /** Per-bucket (or total) utilization cell returned by the server. */
 export interface UtilizationValue {
@@ -99,24 +105,33 @@ export function dayNumberWeekday(day: number): number {
   return (((day + 4) % 7) + 7) % 7;
 }
 
-export function isCountedDay(day: number, workdaysOnly?: boolean): boolean {
-  if (!workdaysOnly) return true;
-  const wd = dayNumberWeekday(day);
-  return wd !== 0 && wd !== 6;
+/** Weekday mask (index = weekday); an empty or absent list counts every day. */
+export function workingDayMask(workingDays?: number[] | null): boolean[] {
+  const days = (workingDays ?? []).filter(
+    (d) => Number.isInteger(d) && d >= 0 && d <= 6
+  );
+  const set = new Set(days.length ? days : ALL_WEEKDAYS);
+  return ALL_WEEKDAYS.map((d) => set.has(d));
+}
+
+export function isCountedDay(day: number, mask: boolean[]): boolean {
+  return mask[dayNumberWeekday(day)];
 }
 
 /** Share of a recurring rate that falls on one counted day. */
 export function perDayFactor(
   rate: UtilizationAvailableRate | Exclude<UtilizationAllocatedRate, 'total'>,
-  workdaysOnly?: boolean,
+  mask: boolean[]
 ): number {
+  const perWeek = mask.filter(Boolean).length || 7;
   switch (rate) {
     case 'day':
       return 1;
     case 'week':
-      return 1 / (workdaysOnly ? 5 : 7);
+      return 1 / perWeek;
     case 'month':
-      return 12 / (workdaysOnly ? 260 : 365);
+      // 12 months over the year's counted days (52 weeks + a day).
+      return 12 / ((365 / 7) * perWeek);
   }
   return 0;
 }
@@ -124,16 +139,15 @@ export function perDayFactor(
 export function countCountedDays(
   fromDay: number,
   toDay: number,
-  workdaysOnly?: boolean,
+  mask: boolean[]
 ): number {
   if (toDay < fromDay) return 0;
   const total = toDay - fromDay + 1;
-  if (!workdaysOnly) return total;
-  let count = 0;
+  const perWeek = mask.filter(Boolean).length;
   const fullWeeks = Math.floor(total / 7);
-  count += fullWeeks * 5;
+  let count = fullWeeks * perWeek;
   for (let d = fromDay + fullWeeks * 7; d <= toDay; d++) {
-    if (isCountedDay(d, true)) count++;
+    if (isCountedDay(d, mask)) count++;
   }
   return count;
 }
@@ -169,7 +183,8 @@ export interface ComputeUtilizationParams {
   availableRate: UtilizationAvailableRate;
   /** Working hours when a task carries none. */
   availableValue?: number | null;
-  workdaysOnly?: boolean;
+  /** Weekdays that count; absent → every day. */
+  workingDays?: number[] | null;
   multipleResources?: UtilizationMultiResourceMode;
 }
 
@@ -187,9 +202,10 @@ export interface ComputeUtilizationResult {
 const round = (n: number) => Math.round(n * 1e6) / 1e6;
 
 export function computeUtilization(
-  params: ComputeUtilizationParams,
+  params: ComputeUtilizationParams
 ): ComputeUtilizationResult {
-  const { buckets, workdaysOnly } = params;
+  const { buckets } = params;
+  const mask = workingDayMask(params.workingDays);
 
   const emptyResult = (): ComputeUtilizationResult => ({
     buckets: buckets.map(() => ({ allocated: 0, available: 0 })),
@@ -204,17 +220,25 @@ export function computeUtilization(
   const dayCount = windowEnd - windowStart;
   if (dayCount <= 0) return emptyResult();
 
-  // day offset → bucket index
+  // day offset → bucket index, and whether the day counts at all
   const bucketOfDay = new Int32Array(dayCount).fill(-1);
   buckets.forEach((b, i) => {
     for (let d = Math.max(b.startDay, windowStart); d < b.endDay; d++) {
       bucketOfDay[d - windowStart] = i;
     }
   });
+  const counted = new Uint8Array(dayCount);
+  for (let i = 0; i < dayCount; i++) {
+    counted[i] = isCountedDay(windowStart + i, mask) ? 1 : 0;
+  }
 
+  // Spans are added as difference arrays (+ at the first day, − after the
+  // last) and summed in one pass per resource, so cost is O(tasks + days)
+  // per resource rather than O(tasks × span).
   interface ResourceAcc {
     allocated: Float64Array;
-    hasWork: Uint8Array;
+    work: Int32Array;
+    off: Int32Array | null;
     capacity: number | null;
   }
 
@@ -223,8 +247,9 @@ export function computeUtilization(
     let acc = byResource.get(key);
     if (!acc) {
       acc = {
-        allocated: new Float64Array(dayCount),
-        hasWork: new Uint8Array(dayCount),
+        allocated: new Float64Array(dayCount + 1),
+        work: new Int32Array(dayCount + 1),
+        off: null,
         capacity: null,
       };
       byResource.set(key, acc);
@@ -235,7 +260,7 @@ export function computeUtilization(
   const allocFactor =
     params.allocatedRate === 'total'
       ? null
-      : perDayFactor(params.allocatedRate, workdaysOnly);
+      : perDayFactor(params.allocatedRate, mask);
 
   for (const task of params.tasks) {
     const resources = Array.from(new Set(task.resources.filter(Boolean)));
@@ -249,51 +274,48 @@ export function computeUtilization(
 
     let perDay: number;
     if (allocFactor === null) {
-      const counted = countCountedDays(fromDay, toDay, workdaysOnly);
-      perDay = counted ? allocated / counted : 0;
+      const days = countCountedDays(fromDay, toDay, mask);
+      perDay = days ? allocated / days : 0;
     } else {
       perDay = allocated * allocFactor;
     }
     perDay *= share;
 
-    const from = Math.max(fromDay, windowStart);
-    const to = Math.min(toDay, windowEnd - 1);
+    const from = Math.max(fromDay, windowStart) - windowStart;
+    const to = Math.min(toDay, windowEnd - 1) - windowStart;
+    const taskCapacity = Number(task.available);
+    const hasCapacity =
+      task.available !== null &&
+      task.available !== undefined &&
+      Number.isFinite(taskCapacity);
 
     for (const key of resources) {
       const acc = accFor(key);
-      const taskCapacity = Number(task.available);
-      if (
-        task.available !== null &&
-        task.available !== undefined &&
-        Number.isFinite(taskCapacity)
-      ) {
+      if (hasCapacity) {
         acc.capacity = Math.max(acc.capacity ?? 0, taskCapacity);
       }
-      for (let d = from; d <= to; d++) {
-        const off = d - windowStart;
-        acc.hasWork[off] = 1;
-        if (isCountedDay(d, workdaysOnly)) acc.allocated[off] += perDay;
-      }
+      if (to < from) continue;
+      acc.allocated[from] += perDay;
+      acc.allocated[to + 1] -= perDay;
+      acc.work[from] += 1;
+      acc.work[to + 1] -= 1;
     }
   }
 
-  const timeOffDays = new Map<string, Uint8Array>();
   for (const t of params.timeOff ?? []) {
-    if (!t.resource || !byResource.has(t.resource)) continue;
-    let days = timeOffDays.get(t.resource);
-    if (!days) {
-      days = new Uint8Array(dayCount);
-      timeOffDays.set(t.resource, days);
-    }
-    const from = Math.max(t.fromDay, windowStart);
-    const to = Math.min(
-      Math.max(t.toDay ?? t.fromDay, t.fromDay),
-      windowEnd - 1,
-    );
-    for (let d = from; d <= to; d++) days[d - windowStart] = 1;
+    const acc = t.resource ? byResource.get(t.resource) : undefined;
+    if (!acc) continue;
+    const from = Math.max(t.fromDay, windowStart) - windowStart;
+    const to =
+      Math.min(Math.max(t.toDay ?? t.fromDay, t.fromDay), windowEnd - 1) -
+      windowStart;
+    if (to < from) continue;
+    if (!acc.off) acc.off = new Int32Array(dayCount + 1);
+    acc.off[from] += 1;
+    acc.off[to + 1] -= 1;
   }
 
-  const capFactor = perDayFactor(params.availableRate, workdaysOnly);
+  const capFactor = perDayFactor(params.availableRate, mask);
   const fallbackCapacity = Number(params.availableValue) || 0;
 
   const teamBuckets = buckets.map(() => ({
@@ -307,7 +329,6 @@ export function computeUtilization(
 
   for (const [key, acc] of byResource) {
     const capacityPerDay = (acc.capacity ?? fallbackCapacity) * capFactor;
-    const off = timeOffDays.get(key);
     const groupBuckets = buckets.map(() => ({
       allocated: 0,
       available: 0,
@@ -315,21 +336,26 @@ export function computeUtilization(
     }));
     const total = { allocated: 0, available: 0, time_off: 0 };
 
+    let allocated = 0;
+    let work = 0;
+    let off = 0;
     for (let i = 0; i < dayCount; i++) {
+      allocated += acc.allocated[i];
+      work += acc.work[i];
+      if (acc.off) off += acc.off[i];
       const b = bucketOfDay[i];
       if (b < 0) continue;
-      const day = windowStart + i;
-      const isOff = !!off?.[i];
-      const available =
-        isOff || !isCountedDay(day, workdaysOnly) ? 0 : capacityPerDay;
       const cell = groupBuckets[b];
-      cell.allocated += acc.allocated[i];
-      cell.available += available;
-      if (isOff && acc.hasWork[i]) cell.time_off++;
+      if (counted[i]) {
+        cell.allocated += allocated;
+        if (off <= 0) cell.available += capacityPerDay;
+      }
+      if (off > 0 && work > 0) cell.time_off++;
     }
 
     groupBuckets.forEach((cell, i) => {
-      cell.allocated = round(cell.allocated);
+      // Difference-array sums can leave float dust around zero.
+      cell.allocated = round(Math.max(cell.allocated, 0));
       cell.available = round(cell.available);
       total.allocated += cell.allocated;
       total.available += cell.available;
@@ -368,7 +394,7 @@ export function computeUtilization(
  * while nothing is available; `null` when there is neither.
  */
 export function utilizationPercent(
-  value?: Partial<UtilizationValue> | null,
+  value?: Partial<UtilizationValue> | null
 ): number | null {
   const allocated = Number(value?.allocated) || 0;
   const available = Number(value?.available) || 0;
@@ -379,7 +405,7 @@ export function utilizationPercent(
 export function utilizationColor(
   percent: number | null,
   conditions: UtilizationColorCondition[] = UTILIZATION_DEFAULT_COLOR_CONDITIONS,
-  defaultColor: UtilizationColor = UTILIZATION_DEFAULT_COLOR,
+  defaultColor: UtilizationColor = UTILIZATION_DEFAULT_COLOR
 ): UtilizationColor | null {
   if (percent === null) return null;
   const match = [...conditions]
@@ -393,4 +419,60 @@ export function formatUtilizationPercent(percent: number | null): string {
   if (percent === null) return '';
   if (percent === Infinity) return '∞%';
   return `${Math.round(percent)}%`;
+}
+
+/**
+ * Re-points a saved date-axis summary at another copy of the base (duplicate
+ * / import). Returns `undefined` when a field it needs has no counterpart;
+ * time off is dropped alone when only its table or fields are missing.
+ */
+export function remapDateAxisSummaryIds(
+  summary: DateAxisSummaryConfig | undefined | null,
+  mapId: (id: string) => string | undefined | null
+): DateAxisSummaryConfig | undefined {
+  if (!summary?.fk_column_id) return undefined;
+  const fkColumnId = mapId(summary.fk_column_id);
+  if (!fkColumnId) return undefined;
+
+  const next: DateAxisSummaryConfig = { ...summary, fk_column_id: fkColumnId };
+  const util = summary.utilization;
+  if (!util) return next;
+
+  const resource = util.fk_resource_column_id
+    ? mapId(util.fk_resource_column_id)
+    : undefined;
+  if (!resource) return undefined;
+
+  let available: string | null = null;
+  if (util.fk_available_column_id) {
+    available = mapId(util.fk_available_column_id) ?? null;
+    if (!available) return undefined;
+  }
+
+  let timeOff: UtilizationTimeOffConfig | null = null;
+  if (util.time_off) {
+    const off = util.time_off;
+    const model = mapId(off.fk_model_id);
+    const link = mapId(off.fk_link_column_id);
+    const start = mapId(off.fk_start_column_id);
+    const end = off.fk_end_column_id ? mapId(off.fk_end_column_id) : null;
+    timeOff =
+      model && link && start && (!off.fk_end_column_id || end)
+        ? {
+            ...off,
+            fk_model_id: model,
+            fk_link_column_id: link,
+            fk_start_column_id: start,
+            fk_end_column_id: end,
+          }
+        : null;
+  }
+
+  next.utilization = {
+    ...util,
+    fk_resource_column_id: resource,
+    fk_available_column_id: available,
+    time_off: timeOff,
+  };
+  return next;
 }

@@ -1,3 +1,6 @@
+import { PlanAddonTypes, PlanFeatureTypes, PlanLimitTypes } from './index';
+import { LicenseInactiveReason } from '../globals';
+
 export enum LicenseTelemetryEvent {
   UPGRADE_PROMPT_SHOWN = 'upgrade_prompt_shown',
   UPGRADE_CTA_CLICKED = 'upgrade_cta_clicked',
@@ -24,9 +27,59 @@ const ALLOWED_PROPS: Record<LicenseTelemetryEvent, readonly string[]> = {
   [LicenseTelemetryEvent.LICENSE_STATE_CHANGED]: ['from', 'to'],
 };
 
-// Enum keys and slugs only — rejects emails, URLs and free text.
-const SAFE_STRING = /^[A-Za-z0-9_:.\-]{1,64}$/;
 const USER_HASH = /^[a-f0-9]{32}$/;
+
+// Lowercase kebab slug, 2+ segments — excludes raw ids (no hyphen) and UUIDs (checked below).
+const SOURCE_SLUG = /^[a-z0-9]+(-[a-z0-9]+)+$/;
+const UUID_SHAPE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const CTA_VALUES = [
+  'upgrade_license',
+  'contact_sales',
+  'enter_license',
+  'notify_admin',
+] as const;
+
+const VIEWER_ROLE_VALUES = ['super_admin', 'member'] as const;
+
+const isFiniteNumber = (v: unknown): v is number =>
+  typeof v === 'number' && Number.isFinite(v);
+
+const isEnumValue = (values: readonly string[]) => (v: unknown): v is string =>
+  typeof v === 'string' && values.includes(v);
+
+const isFeatureOrAddon = (v: unknown): v is string =>
+  typeof v === 'string' &&
+  ((Object.values(PlanFeatureTypes) as string[]).includes(v) ||
+    (Object.values(PlanAddonTypes) as string[]).includes(v));
+
+const isLimitType = (v: unknown): v is string =>
+  typeof v === 'string' && (Object.values(PlanLimitTypes) as string[]).includes(v);
+
+const isLicenseState = (v: unknown): v is string =>
+  typeof v === 'string' &&
+  (v === 'active' ||
+    (Object.values(LicenseInactiveReason) as string[]).includes(v));
+
+const isSource = (v: unknown): v is string =>
+  typeof v === 'string' &&
+  v.length <= 64 &&
+  SOURCE_SLUG.test(v) &&
+  !UUID_SHAPE.test(v);
+
+// Every key referenced in ALLOWED_PROPS must have a validator here.
+const PROP_VALIDATORS: Record<string, (value: unknown) => boolean> = {
+  feature: isFeatureOrAddon,
+  limit: isLimitType,
+  cta: isEnumValue(CTA_VALUES),
+  viewer_role: isEnumValue(VIEWER_ROLE_VALUES),
+  from: isLicenseState,
+  to: isLicenseState,
+  limit_value: isFiniteNumber,
+  current: isFiniteNumber,
+  source: isSource,
+};
 
 export type LicenseTelemetryProps = Record<string, string | number | boolean>;
 
@@ -50,9 +103,8 @@ export function sanitizeLicenseTelemetryProps(
 
   for (const key of ALLOWED_PROPS[event]) {
     const value = (props as Record<string, unknown>)[key];
-    if (typeof value === 'boolean') out[key] = value;
-    else if (typeof value === 'number' && Number.isFinite(value)) out[key] = value;
-    else if (typeof value === 'string' && SAFE_STRING.test(value)) out[key] = value;
+    const isValid = PROP_VALIDATORS[key];
+    if (isValid?.(value)) out[key] = value as string | number;
   }
   return out;
 }

@@ -57,4 +57,55 @@ describe('licenseTelemetry', () => {
     });
     expect(bad?.user_hash).toBeUndefined();
   });
+
+  it('drops a raw id and a UUID as source, keeps a real slug', () => {
+    expect(
+      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.UPGRADE_CTA_CLICKED, {
+        source: 'w1a2b3c4d5e6f7',
+      }),
+    ).toEqual({});
+    expect(
+      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.UPGRADE_CTA_CLICKED, {
+        source: '123e4567-e89b-12d3-a456-426614174000',
+      }),
+    ).toEqual({});
+    expect(
+      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.UPGRADE_CTA_CLICKED, {
+        source: 'home-sidebar-create-workspace',
+      }),
+    ).toEqual({ source: 'home-sidebar-create-workspace' });
+  });
+
+  it('drops a feature that is not a real plan feature or addon', () => {
+    expect(
+      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.FEATURE_BLOCKED, {
+        feature: 'not_a_feature',
+      }),
+    ).toEqual({});
+  });
+
+  it('drops a cta outside the fixed list', () => {
+    expect(
+      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.UPGRADE_CTA_CLICKED, {
+        cta: 'hack',
+      }),
+    ).toEqual({});
+  });
+
+  it('drops a numeric prop sent as a string', () => {
+    expect(
+      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.LIMIT_HIT, {
+        current: '5',
+      }),
+    ).toEqual({});
+  });
+
+  it('keeps a valid license state transition', () => {
+    expect(
+      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.LICENSE_STATE_CHANGED, {
+        from: 'active',
+        to: 'expired',
+      }),
+    ).toEqual({ from: 'active', to: 'expired' });
+  });
 });

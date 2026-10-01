@@ -1,3 +1,5 @@
+export * from './licenseTelemetry';
+
 export enum PlanLimitTypes {
   LIMIT_FREE_WORKSPACE = 'limit_free_workspace',
   LIMIT_EDITOR = 'limit_editor',

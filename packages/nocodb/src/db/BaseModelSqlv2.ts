@@ -1751,7 +1751,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 colId: colOptions.fk_relation_column_id,
               });
               const relColOptions =
-                await relCol.getColOptions<LinkToAnotherRecordColumn>();
+                await relCol?.getColOptions<LinkToAnotherRecordColumn>();
+              // A link can outlive its nc_col_relations row; skip it rather
+              // than failing every read of the table.
+              if (!relColOptions) break;
               // A V2 junction mo/bt/oo link is a `Links` column, but its
               // resolver is registered under the bare title (select-object
               // skips its rollup count), so it must not take the `_nc_lk_`
@@ -1783,6 +1786,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               this._columns[column.title] = column;
               const colOptions =
                 (await column.getColOptions()) as LinkToAnotherRecordColumn;
+              if (!colOptions) break;
 
               const { refContext } = colOptions.getRelContext();
 

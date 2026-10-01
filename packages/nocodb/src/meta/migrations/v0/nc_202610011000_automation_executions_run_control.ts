@@ -9,6 +9,7 @@ const up = async (knex: Knex) => {
     table.string('control', 20);
     table.string('fk_retry_of_id', 20);
     table.string('claim_id', 20);
+    table.string('job_id', 64);
   });
   await knex.schema.alterTable(MetaTable.AUTOMATION_EXECUTIONS, (table) => {
     table.index(
@@ -47,6 +48,7 @@ const down = async (knex: Knex) => {
     table.dropColumn('control');
     table.dropColumn('fk_retry_of_id');
     table.dropColumn('claim_id');
+    table.dropColumn('job_id');
   });
 };
 

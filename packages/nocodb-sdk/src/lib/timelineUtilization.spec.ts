@@ -5,6 +5,9 @@ import {
   dayNumberWeekday,
   formatUtilizationPercent,
   instantToDayNumber,
+  isUtilizationResourceLink,
+  isUtilizationTimeOffLink,
+  isUtilizationTimeOffSource,
   MONDAY_TO_FRIDAY,
   remapDateAxisSummaryIds,
   toCapacity,
@@ -325,5 +328,40 @@ describe('timelineUtilization', () => {
     expect(toCapacity(null)).toBeNull();
     expect(toCapacity('')).toBeNull();
     expect(toCapacity('abc')).toBeNull();
+  });
+  it('classifies LTAR and Links fields of either version', () => {
+    const link = (
+      uidt: string,
+      type: string,
+      version?: number,
+      meta?: Record<string, unknown>
+    ) => ({ uidt, meta, colOptions: { type, version } });
+
+    for (const uidt of ['LinkToAnotherRecord', 'Links']) {
+      // V1 foreign key
+      expect(isUtilizationResourceLink(link(uidt, 'bt'))).toBe(true);
+      expect(isUtilizationTimeOffLink(link(uidt, 'bt'))).toBe(true);
+      expect(isUtilizationResourceLink(link(uidt, 'oo', 1, { bt: true }))).toBe(
+        true
+      );
+      // V2 single-record links go through a junction
+      expect(isUtilizationResourceLink(link(uidt, 'mo', 2))).toBe(true);
+      expect(isUtilizationResourceLink(link(uidt, 'oo', 2))).toBe(true);
+      expect(isUtilizationTimeOffLink(link(uidt, 'mo', 2))).toBe(true);
+      // Several records per row
+      expect(isUtilizationResourceLink(link(uidt, 'mm'))).toBe(false);
+      expect(isUtilizationResourceLink(link(uidt, 'mm', 2))).toBe(false);
+      expect(isUtilizationResourceLink(link(uidt, 'om', 2))).toBe(false);
+      expect(isUtilizationResourceLink(link(uidt, 'hm'))).toBe(false);
+      expect(isUtilizationTimeOffLink(link(uidt, 'mm'))).toBe(true);
+      expect(isUtilizationTimeOffLink(link(uidt, 'hm'))).toBe(false);
+      // Resource-side counterparts of a time-off link
+      expect(isUtilizationTimeOffSource(link(uidt, 'hm'))).toBe(true);
+      expect(isUtilizationTimeOffSource(link(uidt, 'om', 2))).toBe(true);
+      expect(isUtilizationTimeOffSource(link(uidt, 'mm'))).toBe(true);
+      expect(isUtilizationTimeOffSource(link(uidt, 'bt'))).toBe(false);
+    }
+    expect(isUtilizationResourceLink({ uidt: 'User' })).toBe(false);
+    expect(isUtilizationResourceLink(null)).toBe(false);
   });
 });

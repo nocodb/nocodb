@@ -7,7 +7,16 @@
  * 3/7 (or 3/5 with a Monday–Friday working week) of that rate to the week.
  */
 
+import type { ColumnType, LinkToAnotherRecordType } from './Api';
 import type { DateAxisSummaryConfig } from './interface/pageConfigs';
+import { RelationTypes } from './globals';
+import { parseProp } from './helperFunctions';
+import {
+  isBtLikeV2Junction,
+  isLinksOrLTAR,
+  isLinkV2,
+  isMMOrMMLike,
+} from './UITypes';
 
 export const UTILIZATION_AGGREGATION = 'utilization';
 
@@ -60,6 +69,44 @@ export interface DateAxisUtilizationConfig {
   time_off?: UtilizationTimeOffConfig | null;
   color_conditions?: UtilizationColorCondition[];
   default_color?: UtilizationColor;
+}
+
+type LinkColumn = Pick<ColumnType, 'uidt' | 'colOptions' | 'meta'>;
+
+const linkType = (col: LinkColumn) =>
+  (col.colOptions as LinkToAnotherRecordType | undefined)?.type;
+
+/** V1 belongs-to: the link's own table holds the foreign key. */
+export function isFkBelongsToLink(col: LinkColumn): boolean {
+  if (!isLinksOrLTAR(col) || !col.colOptions || isLinkV2(col)) return false;
+  const type = linkType(col);
+  return (
+    type === RelationTypes.BELONGS_TO ||
+    (type === RelationTypes.ONE_TO_ONE && !!parseProp(col.meta)?.bt)
+  );
+}
+
+/** A link (LTAR or Links, V1 or V2) naming one record per row. */
+export function isUtilizationResourceLink(col?: LinkColumn | null): boolean {
+  if (!col || !isLinksOrLTAR(col) || !col.colOptions) return false;
+  return isBtLikeV2Junction(col) || isFkBelongsToLink(col);
+}
+
+/** A time-off table's link to the resource table: a foreign key or a junction. */
+export function isUtilizationTimeOffLink(col?: LinkColumn | null): boolean {
+  if (!col || !isLinksOrLTAR(col) || !col.colOptions) return false;
+  return isMMOrMMLike(col) || isFkBelongsToLink(col);
+}
+
+/** A resource-table link whose other side can be a time-off link. */
+export function isUtilizationTimeOffSource(col?: LinkColumn | null): boolean {
+  if (!col || !isLinksOrLTAR(col) || !col.colOptions) return false;
+  const type = linkType(col);
+  return (
+    isMMOrMMLike(col) ||
+    type === RelationTypes.HAS_MANY ||
+    (type === RelationTypes.ONE_TO_ONE && !parseProp(col.meta)?.bt)
+  );
 }
 
 export const ALL_WEEKDAYS = [0, 1, 2, 3, 4, 5, 6];

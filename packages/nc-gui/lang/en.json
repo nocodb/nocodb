@@ -280,7 +280,7 @@
     "licenseRefreshFailed": "Failed to refresh license",
     "refreshLicense": "Refresh License",
     "askAdminTitle": "Not included in your license",
-    "askAdminSubtitle": "{detail} Ask your admin to upgrade the license.",
+    "askAdminSubtitle": "Ask your admin to upgrade the license {detail}",
     "askAdminSubtitleGeneric": "This feature isn't included in your current license. Ask your admin to upgrade.",
     "notifyAdmin": "Notify admin",
     "adminNotified": "Admin notified",

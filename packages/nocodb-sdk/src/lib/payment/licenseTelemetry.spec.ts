@@ -148,6 +148,32 @@ describe('licenseTelemetry', () => {
     ).toEqual({});
   });
 
+  it('drops negative, oversized and non-finite quantities', () => {
+    expect(
+      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.LIMIT_HIT, {
+        limit: 'limit_editor',
+        limit_value: -1,
+        current: 1e308,
+      })
+    ).toEqual({ limit: 'limit_editor' });
+    expect(
+      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.LIMIT_HIT, {
+        limit: 'limit_editor',
+        limit_value: 1.5,
+        current: 0,
+      })
+    ).toEqual({ limit: 'limit_editor', limit_value: 1.5, current: 0 });
+  });
+
+  it('caps the folded other category at the largest exact integer', () => {
+    expect(
+      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.ACTIVITY_DAILY, {
+        cat_x: Number.MAX_SAFE_INTEGER,
+        cat_y: Number.MAX_SAFE_INTEGER,
+      }).cat_other
+    ).toBe(Number.MAX_SAFE_INTEGER);
+  });
+
   it('seat events are server-only', () => {
     expect(LICENSE_TELEMETRY_CLIENT_EVENTS).not.toContain(
       LicenseTelemetryEvent.SEAT_ADDED

@@ -156,8 +156,12 @@ const CTA_VALUES = [
 
 const VIEWER_ROLE_VALUES = ['super_admin', 'member'] as const;
 
-const isFiniteNumber = (v: unknown): v is number =>
-  typeof v === 'number' && Number.isFinite(v);
+// Limits and usage can be fractional (storage), but never negative or beyond exact precision.
+const isQuantity = (v: unknown): v is number =>
+  typeof v === 'number' &&
+  Number.isFinite(v) &&
+  v >= 0 &&
+  v <= Number.MAX_SAFE_INTEGER;
 
 const isCount = (v: unknown): v is number =>
   typeof v === 'number' && Number.isSafeInteger(v) && v >= 0;
@@ -214,9 +218,9 @@ const PROP_VALIDATORS: Record<
   viewer_role: isEnumValue(VIEWER_ROLE_VALUES),
   from: isLicenseState,
   to: isLicenseState,
-  limit_value: isFiniteNumber,
-  current: isFiniteNumber,
-  delta: isFiniteNumber,
+  limit_value: isQuantity,
+  current: isQuantity,
+  delta: isQuantity,
   source: isSource,
   total_events: isCount,
   frontend_events: isCount,
@@ -259,8 +263,10 @@ export function sanitizeLicenseTelemetryProps(
   if (event === LicenseTelemetryEvent.ACTIVITY_DAILY) {
     for (const [key, value] of Object.entries(props)) {
       if (!key.startsWith('cat_') || key in out || !isCount(value)) continue;
-      out[ACTIVITY_CATEGORY_OTHER] =
-        ((out[ACTIVITY_CATEGORY_OTHER] as number) ?? 0) + value;
+      out[ACTIVITY_CATEGORY_OTHER] = Math.min(
+        ((out[ACTIVITY_CATEGORY_OTHER] as number) ?? 0) + value,
+        Number.MAX_SAFE_INTEGER
+      );
     }
   }
   return out;

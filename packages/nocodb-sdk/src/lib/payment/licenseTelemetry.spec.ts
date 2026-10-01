@@ -1,6 +1,7 @@
 import {
   LICENSE_TELEMETRY_CLIENT_EVENTS,
   LicenseTelemetryEvent,
+  licenseActivityCategory,
   sanitizeLicenseTelemetryEvent,
   sanitizeLicenseTelemetryProps,
 } from './licenseTelemetry';
@@ -140,5 +141,47 @@ describe('licenseTelemetry', () => {
     expect(LICENSE_TELEMETRY_CLIENT_EVENTS).not.toContain(
       LicenseTelemetryEvent.SEAT_REMOVED,
     );
+  });
+  describe('activity summary', () => {
+    it('maps event names to a fixed category, everything else to other', () => {
+      expect(licenseActivityCategory('c:table:create')).toBe('table');
+      expect(licenseActivityCategory('a:links:link')).toBe('links');
+      expect(licenseActivityCategory('base:invite')).toBe('base');
+      expect(licenseActivityCategory('c:managed-app:open')).toBe('managed_app');
+      expect(licenseActivityCategory('$pageview')).toBe('page');
+      expect(licenseActivityCategory('c:jane_acme_com:x')).toBe('other');
+      expect(licenseActivityCategory('')).toBe('other');
+    });
+
+    it('keeps counts and known categories, drops unknown keys and bad values', () => {
+      expect(
+        sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.ACTIVITY_SUMMARY, {
+          total_events: 12,
+          frontend_events: 7,
+          backend_events: 5,
+          active_users: 3,
+          window_ms: 21600000,
+          cat_table: 4,
+          cat_other: 1,
+          cat_jane: 2,
+          cat_view: -1,
+          cat_base: 1.5,
+        }),
+      ).toEqual({
+        total_events: 12,
+        frontend_events: 7,
+        backend_events: 5,
+        active_users: 3,
+        window_ms: 21600000,
+        cat_table: 4,
+        cat_other: 1,
+      });
+    });
+
+    it('is not a client event', () => {
+      expect(LICENSE_TELEMETRY_CLIENT_EVENTS).not.toContain(
+        LicenseTelemetryEvent.ACTIVITY_SUMMARY,
+      );
+    });
   });
 });

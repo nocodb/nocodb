@@ -98,7 +98,8 @@ function stripContinueParam(fullPath: string) {
 export default defineNuxtRouteMiddleware(async (to, from) => {
   const state = useGlobal()
 
-  const { api } = useApi({ useGlobalInstance: true })
+  // Not useApi(): it adds interceptors to the shared $api on every call, and this runs on every navigation
+  const { $api: api } = useNuxtApp()
 
   const { allRoles, loadRoles } = useRoles()
 

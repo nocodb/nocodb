@@ -48,7 +48,8 @@ watch(
 
     if (!viewTitle && ncIsUndefined(slugs) && route.value.name !== 'account-index-setup-nestedPage-app') return
 
-    await until(() => !!nuxtLoadingIndicatorRef.value).toBeTruthy()
+    // VueUse 10's until() never stops its watcher when the condition is already true
+    if (!nuxtLoadingIndicatorRef.value) await until(() => !!nuxtLoadingIndicatorRef.value).toBeTruthy()
 
     stopLoadingIndicator()
   },

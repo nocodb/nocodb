@@ -462,6 +462,8 @@
     "reload": "Reload",
     "replay": "Replay",
     "newUpdateAvailable": "New update available!",
+    "appJustGotBetter": "NocoDB just got better!",
+    "refreshToEnjoyUpdates": "Refresh to enjoy new updates",
     "refresh": "Refresh",
     "reset": "Reset",
     "install": "Install",

@@ -194,7 +194,7 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       { maxWait: 2000 },
     )
 
-    const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
+    async function saveColMeta(col: Record<string, any>) {
       if (col?.id && isEditable) {
         validateActiveField(col)
 
@@ -209,7 +209,23 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
           message.error(await extractSdkResponseErrorMsg(e))
         }
       }
-    }, 250)
+    }
+
+    // One debounce per form column: a single shared debounce dropped a column's pending save
+    // whenever another column was edited within the window (e.g. a range max, then the next field)
+    const colMetaSavers = new Map<string, (col: Record<string, any>) => Promise<void>>()
+
+    function updateColMeta(col: Record<string, any>) {
+      if (!col?.id) return saveColMeta(col)
+
+      let save = colMetaSavers.get(col.id)
+      if (!save) {
+        save = useDebounceFn(saveColMeta, 250)
+        colMetaSavers.set(col.id, save)
+      }
+
+      return save(col)
+    }
 
     /**
      * Atomically re-layout multiple form columns after a drag-drop reflow.

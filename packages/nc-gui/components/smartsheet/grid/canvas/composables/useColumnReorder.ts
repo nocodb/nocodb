@@ -1,5 +1,6 @@
 import { parseCellWidth } from '../utils/cell'
-import { getColumnDropTargetIndex } from '../utils/headerUtils'
+import { getColumnDropTargetIndex, getDisplayValueDropSlot } from '../utils/headerUtils'
+import { COLUMN_HEADER_HEIGHT_IN_PX } from '../utils/constants'
 
 export function useColumnReorder(
   canvasRef: Ref<HTMLCanvasElement | undefined>,
@@ -7,12 +8,18 @@ export function useColumnReorder(
   colSlice: Ref<{ start: number; end: number }>,
   scrollLeft: Ref<number>,
   drawCanvas: () => void,
-  dragOver: Ref<{ id: string; index: number } | null>,
+  dragOver: Ref<ColumnDragOver | null>,
   emit: (event: string, ...args: any[]) => void,
   isViewOperationsAllowed: ComputedRef<boolean>,
 ) {
   const isLocked = inject(IsLockedInj, ref(false))
+  const { isUIAllowed } = useRoles()
+  const { isSyncedTable, isSqlView } = useSmartsheetStoreOrThrow()
+  const { t } = useI18n()
+  const tooltipStore = useTooltipStore()
   const isDragging = ref(false)
+  // field dropped on the display value slot — opens the change-display-value modal
+  const displayValueDropColumnId = ref<string | null>(null)
   const dragStart = ref<{
     id: string
     index: number
@@ -57,6 +64,47 @@ export function useColumnReorder(
     return null
   }
 
+  let isHintShown = false
+
+  const canChangeDisplayValue = () => isUIAllowed('fieldAlter') && !isSyncedTable.value && !isSqlView.value
+
+  const getDisplayValueSlot = (x: number) => {
+    if (!dragStart.value || !canChangeDisplayValue()) return null
+    return getDisplayValueDropSlot(columns.value, scrollLeft.value, x)
+  }
+
+  // `undefined` = pointer is over the source itself (keep the last target)
+  const resolveDropTarget = (x: number): ColumnDragOver | null | undefined => {
+    const slot = getDisplayValueSlot(x)
+    if (slot) {
+      return { id: slot.pvCol.id, index: slot.pvIndex, setDisplayValue: true }
+    }
+
+    const col = findColumnAtPosition(x)
+    if (!col) return null
+    if (col.id === dragStart.value?.id) return undefined
+
+    return { id: col.id, index: columns.value.findIndex((c) => c.id === col.id) }
+  }
+
+  const hideHint = () => {
+    if (!isHintShown) return
+    tooltipStore.hideTooltip()
+    isHintShown = false
+  }
+
+  const updateHint = (x: number, y: number) => {
+    const slot = getDisplayValueSlot(x)
+    if (!slot) return hideHint()
+
+    tooltipStore.showTooltip({
+      text: t('tooltip.dropToSetAsDisplayValue'),
+      rect: { x: slot.edgeX, y: 0, width: 1, height: COLUMN_HEADER_HEIGHT_IN_PX },
+      mousePosition: { x, y },
+    })
+    isHintShown = true
+  }
+
   const handleDrag = (e: MouseEvent) => {
     if (!isDragging.value || !dragStart.value) return
 
@@ -64,15 +112,13 @@ export function useColumnReorder(
     if (!rect) return
 
     const x = e.clientX - rect.left
-    const col = findColumnAtPosition(x)
+    const target = resolveDropTarget(x)
+    updateHint(x, e.clientY - rect.top)
 
-    if (col && col.id !== dragStart.value.id) {
-      dragOver.value = {
-        id: col.id,
-        index: columns.value.findIndex((c) => c.id === col.id),
-      }
+    if (target) {
+      dragOver.value = target
       requestAnimationFrame(drawCanvas)
-    } else if (!col && dragOver.value) {
+    } else if (target === null && dragOver.value) {
       // No valid target under the pointer (other side of the freeze divider, or
       // the row-number gutter) — drop the pending target so mouseup cancels
       // instead of committing the last one we saw.
@@ -83,7 +129,11 @@ export function useColumnReorder(
 
   const dragEndHandler = () => {
     if (dragStart.value && dragOver.value) {
-      emit('reorderColumns', dragStart.value.index, getColumnDropTargetIndex(columns.value, dragOver.value.index))
+      if (dragOver.value.setDisplayValue) {
+        displayValueDropColumnId.value = dragStart.value.id
+      } else {
+        emit('reorderColumns', dragStart.value.index, getColumnDropTargetIndex(columns.value, dragOver.value.index))
+      }
     }
     cleanup()
   }
@@ -92,6 +142,7 @@ export function useColumnReorder(
     isDragging.value = false
     dragStart.value = null
     dragOver.value = null
+    hideHint()
 
     window.removeEventListener('mousemove', handleDrag)
     window.removeEventListener('mouseup', dragEndHandler)
@@ -123,5 +174,7 @@ export function useColumnReorder(
     dragStart,
     startDrag,
     findColumnAtPosition,
+    resolveDropTarget,
+    displayValueDropColumnId,
   }
 }

@@ -343,6 +343,8 @@ const {
   findClickedColumn,
   findColumnPosition,
   findColumnAtPosition,
+  resolveColumnDropTarget,
+  displayValueDropColumnId,
   dragOver,
   attachmentCellDropOver,
   dragStart,
@@ -2492,7 +2494,12 @@ const handleMouseMove = (e: MouseEvent) => {
           }
         }, 0)
       }
-    } else if (canAutoScroll && mousePosition.x <= fixedWidth) {
+    } else if (
+      canAutoScroll &&
+      mousePosition.x <= fixedWidth &&
+      // hovering the set-as-display-value slot must not scroll the target away
+      !(isDragging.value && resolveColumnDropTarget(mousePosition.x)?.setDisplayValue)
+    ) {
       scroller.value?.scrollTo({
         left: scrollLeft.value - 10,
       })
@@ -4067,6 +4074,15 @@ watch(
       :file-count="dragFileCount"
     />
   </div>
+
+  <LazySmartsheetHeaderUpdateDisplayValue
+    v-if="displayValueDropColumnId"
+    :value="true"
+    :column-id="displayValueDropColumnId"
+    :use-meta-fields="meta?.id !== view?.fk_model_id"
+    source="drag"
+    @update:value="(isOpen) => !isOpen && (displayValueDropColumnId = null)"
+  />
 
   <DlgSendRecordEmail v-model="showSendRecordModal" :meta="meta" :view="view" :row-id="sendRecordRowId" />
   <DlgAttachmentFieldSelect

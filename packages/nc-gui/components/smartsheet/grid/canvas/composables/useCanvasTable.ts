@@ -218,7 +218,7 @@ export function useCanvasTable({
   })
   const editEnabled = ref<CanvasEditEnabledType>(null)
   const isFillMode = ref(false)
-  const dragOver = ref<{ id: string; index: number } | null>(null)
+  const dragOver = ref<ColumnDragOver | null>(null)
   const attachmentCellDropOver = ref<AttachmentCellDropOverType | null>(null)
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
@@ -1668,6 +1668,8 @@ export function useCanvasTable({
     dragStart: columnDragStart,
     startDrag,
     findColumnAtPosition,
+    resolveDropTarget: resolveColumnDropTarget,
+    displayValueDropColumnId,
   } = useColumnReorder(
     canvasRef,
     columns,
@@ -2215,6 +2217,8 @@ export function useCanvasTable({
     renderCanvasDirect,
     startDrag,
     findColumnAtPosition,
+    resolveColumnDropTarget,
+    displayValueDropColumnId,
     findClickedColumn,
     findColumnPosition,
     isRecordSelectedInSelectedAllRecords,

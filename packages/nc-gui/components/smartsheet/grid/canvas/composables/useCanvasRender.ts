@@ -34,7 +34,7 @@ import {
   MAX_SELECTED_ROWS,
 } from '../utils/constants'
 import { parseCellWidth } from '../utils/cell'
-import { getColumnDropTargetIndex } from '../utils/headerUtils'
+import { getColumnDropTargetIndex, getDisplayValueDropSlot } from '../utils/headerUtils'
 import {
   calculateGroupHeight,
   calculateGroupRange,
@@ -143,7 +143,7 @@ export function useCanvasRender({
   scrollLeft: Ref<number>
   scrollTop: Ref<number>
   cachedGroups: Ref<Map<number, CanvasGroup>>
-  dragOver: Ref<{ id: string; index: number } | null>
+  dragOver: Ref<ColumnDragOver | null>
   hoverRow: Ref<{
     path?: Array<number> | null
     rowIndex: number
@@ -2657,6 +2657,19 @@ export function useCanvasRender({
 
   const renderColumnDragIndicator = (ctx: CanvasRenderingContext2D) => {
     if (!dragOver.value || !isViewOperationsAllowed.value) return
+
+    if (dragOver.value.setDisplayValue) {
+      // Set-as-display-value slot: highlight the row-number gutter's right border
+      const drawX = getDisplayValueDropSlot(columns.value, scrollLeft.value, 0)?.edgeX ?? 0
+
+      ctx.strokeStyle = getColor(themeV4Colors.brand['500'])
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.moveTo(drawX, 0)
+      ctx.lineTo(drawX, height.value)
+      ctx.stroke()
+      return
+    }
 
     // Edge the field would land on — right of the drop target, so a drop on the
     // display value shows at its right edge (that is where it inserts)

@@ -41,8 +41,6 @@ const { views } = storeToRefs(viewStore)
 
 const reloadDataHook = inject(ReloadViewDataHookInj)
 
-const reloadRowTrigger = inject(ReloadRowDataHookInj, null)
-
 const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
@@ -55,7 +53,7 @@ const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const { insertSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
-const { $api, $e } = useNuxtApp()
+const { $api } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -75,37 +73,13 @@ const { showEEFeatures } = useEeConfig()
 
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
+const { setAsDisplayValue: setDisplayValue } = useSetDisplayValue()
+
 const setAsDisplayValue = async () => {
   isLoading.value = 'setDisplay'
-  try {
-    isOpen.value = false
-
-    await $api.internal.postOperation(
-      meta!.value!.fk_workspace_id!,
-      meta!.value!.base_id!,
-      {
-        operation: 'columnSetAsPrimary',
-        columnId: column?.value?.id as string,
-      },
-      {},
-    )
-
-    await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
-
-    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-    $e('a:column:set-primary')
-
-    // reload data since there might be some changes in the data if there is LTAR
-    // or a formula field which refers to a LTAR field
-    reloadDataHook?.trigger()
-
-    // same way reload the row data if trigger is available
-    reloadRowTrigger?.trigger()
-  } catch (e) {
-    message.error(t('msg.error.primaryColumnUpdateFailed'))
-  } finally {
-    isLoading.value = ''
-  }
+  isOpen.value = false
+  await setDisplayValue(column.value.id!)
+  isLoading.value = ''
 }
 
 const sortByColumn = async (direction: 'asc' | 'desc') => {

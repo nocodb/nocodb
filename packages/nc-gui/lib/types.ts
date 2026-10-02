@@ -705,6 +705,13 @@ interface FillHandlerPosition {
   fixedCol: boolean
 }
 
+interface ColumnDragOver {
+  id: string
+  index: number
+  // drop on the display value slot: set the dragged field as display value instead of reordering
+  setDisplayValue?: boolean
+}
+
 interface CanvasGridColumn {
   id: string
   grid_column_id: string
@@ -1259,6 +1266,7 @@ export type {
   CellRendererOptions,
   CellRenderStore,
   CanvasGridColumn,
+  ColumnDragOver,
   FillHandlerPosition,
   ParsePlainCellValueProps,
   CanvasEditEnabledType,

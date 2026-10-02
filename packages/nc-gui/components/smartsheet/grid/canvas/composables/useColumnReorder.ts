@@ -24,12 +24,6 @@ export function useColumnReorder(
   } | null>(null)
 
   const findColumnAtPosition = (x: number) => {
-    // While a drag is in progress, targets must stay on the same side of the
-    // freeze divider — fields can be reordered within the frozen band or within
-    // the scrollable area, never across.
-    const sourceCol = dragStart.value ? columns.value.find((c) => c.id === dragStart.value!.id) : null
-    const matchesSide = (col: CanvasGridColumn) => !sourceCol || !!col.fixed === !!sourceCol.fixed
-
     let currentX = 0
     const fixedCols = columns.value.filter((col) => col.fixed)
     for (const col of fixedCols) {
@@ -37,7 +31,7 @@ export function useColumnReorder(
       if (x >= currentX && x < currentX + width) {
         // row-number gutter is never a drag source/target
         if (!col.uidt) return null
-        return matchesSide(col) ? col : null
+        return col
       }
       currentX += width
     }
@@ -54,7 +48,7 @@ export function useColumnReorder(
       const column = columns.value[i]
       if (!column?.fixed) {
         const width = parseCellWidth(column?.width)
-        if (x >= currentX && x < currentX + width) return column && matchesSide(column) ? column : null
+        if (x >= currentX && x < currentX + width) return column ?? null
         currentX += width
       }
     }

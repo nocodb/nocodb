@@ -29,6 +29,7 @@ import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType, parseCellWidth } f
 import {
   ADD_NEW_COLUMN_WIDTH,
   AGGREGATION_HEIGHT,
+  COLUMN_DRAG_LEFT_SCROLL_ZONE,
   GROUP_HEADER_HEIGHT,
   GROUP_PADDING,
   MAX_SELECTED_ROWS,
@@ -2460,12 +2461,12 @@ const handleMouseMove = (e: MouseEvent) => {
   } else if (isDragging.value || resizeableColumn.value) {
     const fixedWidth = fixedCols.reduce((sum, col) => sum + parseCellWidth(col.width), 0)
 
-    // A frozen-band drag never auto-scrolls: the whole band sits left of
-    // `fixedWidth` (up to 75% of the viewport), so the left-edge test below would
-    // fire for every pointer move — and targets can't cross the divider anyway.
-    const canAutoScroll = !isDragging.value || !columns.value.find((c) => c.id === dragStart.value?.id)?.fixed
+    // Column drags scroll left only just right of the divider, so frozen fields stay drop targets
+    const isInLeftScrollZone = isDragging.value
+      ? mousePosition.x >= fixedWidth && mousePosition.x <= fixedWidth + COLUMN_DRAG_LEFT_SCROLL_ZONE
+      : mousePosition.x <= fixedWidth
 
-    if (canAutoScroll && mousePosition.x >= width.value - 200) {
+    if (mousePosition.x >= width.value - 200) {
       scroller.value?.scrollTo({
         left: scrollLeft.value + 10,
       })
@@ -2495,8 +2496,7 @@ const handleMouseMove = (e: MouseEvent) => {
         }, 0)
       }
     } else if (
-      canAutoScroll &&
-      mousePosition.x <= fixedWidth &&
+      isInLeftScrollZone &&
       // hovering the set-as-display-value slot must not scroll the target away
       !(isDragging.value && resolveColumnDropTarget(mousePosition.x)?.setDisplayValue)
     ) {

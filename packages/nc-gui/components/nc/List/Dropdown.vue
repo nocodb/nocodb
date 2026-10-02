@@ -53,7 +53,7 @@ const vModelIsOpen = computed({
 
 const onEsc = (_e: KeyboardEvent) => {
   nextTick(() => {
-    triggerRef.value?.focus()
+    triggerRef.value?.focus({ preventScroll: true })
   })
 }
 
@@ -67,13 +67,15 @@ const onEnter = (e: KeyboardEvent) => {
 }
 
 /**
- * On close dropdown it's important to focus the trigger element so that tabbing works as expected
+ * On close dropdown it's important to focus the trigger element so that tabbing works as expected.
+ * `preventScroll`: the sentinel is `sr-only` (absolute); focusing it must never scroll an
+ * overflow-hidden ancestor (interface builder layout) into a shifted position.
  */
 watch(vModelIsOpen, (newVal) => {
   if (newVal) return
 
   nextTick(() => {
-    triggerRef.value?.focus()
+    triggerRef.value?.focus({ preventScroll: true })
   })
 })
 </script>
@@ -83,7 +85,7 @@ watch(vModelIsOpen, (newVal) => {
     <div
       v-if="defaultSlotWrapper"
       tabindex="0"
-      class="nc-list-dropdown-wrapper border-1 rounded-lg h-8 px-3 py-1 flex items-center justify-between transition-all select-none outline-none"
+      class="nc-list-dropdown-wrapper relative border-1 rounded-lg h-8 px-3 py-1 flex items-center justify-between transition-all select-none outline-none"
       :class="[
         defaultSlotWrapperClass,
         {
@@ -111,7 +113,7 @@ watch(vModelIsOpen, (newVal) => {
 
       <slot name="default" :is-open="vModelIsOpen"> </slot>
     </div>
-    <div v-else :class="defaultSlotWrapperClass">
+    <div v-else class="relative" :class="defaultSlotWrapperClass">
       <button
         ref="triggerRef"
         type="button"

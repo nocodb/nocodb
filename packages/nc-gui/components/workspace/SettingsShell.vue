@@ -136,7 +136,7 @@ watch(
         <!-- Which workspace these settings belong to, level with the breadcrumb strip. -->
         <div class="nc-ws-settings-topbar gap-2 !px-4" data-testid="nc-ws-settings-workspace">
           <template v-if="activeWorkspace">
-            <GeneralWorkspaceIcon :workspace="activeWorkspace" size="small" class="flex-none" />
+            <GeneralWorkspaceIcon :workspace="activeWorkspace" size="medium" class="flex-none" />
             <!-- `capitalize`, like the main sidebar: display only, the stored title is untouched. -->
             <NcTooltip show-on-truncate-only class="truncate capitalize text-bodyDefaultSmBold text-nc-content-gray-emphasis">
               {{ activeWorkspace.title }}
@@ -165,7 +165,14 @@ watch(
         <span class="text-bodyDefaultSmBold text-nc-content-gray truncate">{{ meta?.title }}</span>
       </div>
 
-      <ShellHeader :title="meta?.title ?? ''" :description="meta?.description" :docs-href="meta?.docsHref" no-close-inset />
+      <!-- Title on one line with the rail's Back row. -->
+      <ShellHeader
+        :title="meta?.title ?? ''"
+        :description="meta?.description"
+        :docs-href="meta?.docsHref"
+        :class="{ '!pt-2.5': !isMobileMode }"
+        no-close-inset
+      />
 
       <div v-if="!isPaneAllowed || !workspaceId" class="flex-1 min-h-0 flex items-center justify-center">
         <GeneralLoader size="xlarge" />

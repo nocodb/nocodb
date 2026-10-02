@@ -76,7 +76,12 @@ const ISO_TIME = '\\d{1,2}:\\d{2}(:\\d{2}(\\.\\d+){0,1}){0,1}';
 const ISO_OFFSET = '\\s*(z|[+-]\\d{2}(:{0,1}\\d{2}){0,1})';
 const ISO_DATETIME_REGEX = `^\\d{4}-\\d{1,2}-\\d{1,2}(t${ISO_TIME}(${ISO_OFFSET}){0,1}|\\s+${ISO_TIME}${ISO_OFFSET})$`;
 
-function generateDateTimeCastQuery(source: string, dateFormat: string) {
+function generateDateTimeCastQuery(
+  source: string,
+  dateFormat: string,
+  // Date targets have no zone: keep the date as written rather than shifting it by the offset.
+  keepWallTime = false,
+) {
   if (!(dateFormat in DATE_FORMATS)) {
     NcError.badRequest(`Invalid date format: ${dateFormat}`);
   }
@@ -105,7 +110,7 @@ function generateDateTimeCastQuery(source: string, dateFormat: string) {
   const isoCase =
     dateFormat === 'empty'
       ? ''
-      : `WHEN ${source} ~* '${ISO_DATETIME_REGEX}' THEN nc_iso_to_timestamp_safe(${source})\n`;
+      : `WHEN ${source} ~* '${ISO_DATETIME_REGEX}' THEN nc_iso_to_timestamp_safe(${source}, ${keepWallTime})\n`;
 
   return `CASE
     ${isoCase}${cases.join('\n')}
@@ -298,6 +303,7 @@ export function generateCastQuery({
       return `CAST(${generateDateTimeCastQuery(
         source,
         getDateFormat(format),
+        true,
       ).slice(0, -1)} AS DATE);`;
     case UITypes.DateTime:
       return generateDateTimeCastQuery(source, getDateFormat(format));

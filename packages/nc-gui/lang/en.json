@@ -7349,6 +7349,7 @@
     "summary": {
       "trial": "Trial",
       "trialEnds": "Trial ends {date}",
+      "planEnds": "Ends {date}",
       "dueOn": "Due {date}",
       "noPaidSubscription": "No paid subscription",
       "seatUtilization": "Seat utilization",

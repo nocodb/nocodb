@@ -3,10 +3,12 @@ definePageMeta({
   // One key for every pane, so switching panes keeps the page (and its rail) mounted.
   key: (route) => `/${route.params.typeOrId}/settings`,
   middleware: [
-    (to, from) => {
-      // Back returns to the page settings was entered from; a fresh load has none, so it goes home.
-      if (!from.matched.length) ncWsSettingsBackRoute().clear()
-      else if (!wsSettingsSlugFromRoute(from)) ncWsSettingsBackRoute().set(from.fullPath)
+    (to) => {
+      // On a fresh load the current route is an unnamed placeholder for the landing URL: no origin, Back goes home.
+      const current = useRouter().currentRoute.value
+
+      if (!current.name) ncWsSettingsBackRoute().clear()
+      else if (!wsSettingsSlugFromRoute(current)) ncWsSettingsBackRoute().set(current.fullPath)
 
       const slug = resolveWsSettingsSlug(to.params.page)
 

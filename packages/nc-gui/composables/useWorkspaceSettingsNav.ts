@@ -22,7 +22,7 @@ export function useWorkspaceSettingsNav() {
 
   const { showEEFeatures, isWsAuditEnabled, blockWorkspaceSso, blockTeamsManagement } = useEeConfig()
 
-  const { wsTabVisibility } = useWorkspaceTabVisibility(activeWorkspace)
+  const { wsTabAccess, wsTabVisibility } = useWorkspaceTabVisibility(activeWorkspace)
 
   // The General page's sections, each keeping the gate it had there.
   const canSeeGeneral = computed(() => wsTabVisibility.value.settings)
@@ -150,7 +150,16 @@ export function useWorkspaceSettingsNav() {
     return groups.filter((g) => g.items.length)
   })
 
-  const availableTabs = computed(() => new Set(navGroups.value.flatMap((g) => g.items.map((i) => i.slug as WsSettingsSlug))))
+  // Rail rows, plus the panes a phone hides from the rail but a link (a Stripe return, an email) still opens.
+  const availableTabs = computed(() => {
+    const tabs = new Set(navGroups.value.flatMap((g) => g.items.map((i) => i.slug as WsSettingsSlug)))
+
+    for (const slug of ['integrations', 'billing', 'usage', 'audits', 'sso'] as const) {
+      if (wsTabAccess.value[slug]) tabs.add(slug)
+    }
+
+    return tabs
+  })
 
   const firstAvailableTab = computed(() => (navGroups.value[0]?.items[0]?.slug as WsSettingsSlug | undefined) ?? null)
 

@@ -61,7 +61,7 @@ const integrationsInitialView = computed(() =>
 )
 
 /** A phone shows rail or pane, not both — see the base settings shell. */
-const isRailOnlyOnMobile = ref(true)
+const isRailOnlyOnMobile = ref(props.tab === 'general')
 
 const showRail = computed(() => !isMobileMode.value || isRailOnlyOnMobile.value)
 

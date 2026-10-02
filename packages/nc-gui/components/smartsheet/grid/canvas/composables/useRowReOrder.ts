@@ -3,7 +3,6 @@ import { comparePath, findGroupByPath, generateGroupPath } from '../utils/groupb
 
 export interface RowDropTarget {
   path: number[]
-  group: CanvasGroup
   patch?: Record<string, any>
   changedLevel?: number
   blockedMessage?: string
@@ -59,12 +58,23 @@ export function useRowReorder({
   rowDropTarget: Ref<RowDropTarget | null>
   canReorderWithinGroup: ComputedRef<boolean>
   isGroupMoveEnabled: ComputedRef<boolean>
-  resolveDropTarget: (sourcePath: number[], target: CanvasGroup) => Omit<RowDropTarget, 'path' | 'group'> | null
-  moveRowToGroup: (params: { row: Row; path: number[]; patch: Record<string, any>; changedLevel: number }) => Promise<void>
+  resolveDropTarget: (sourcePath: number[], target: CanvasGroup) => Omit<RowDropTarget, 'path'> | null
+  moveRowToGroup?: (params: {
+    row: Row
+    path: number[]
+    targetPath: number[]
+    patch: Record<string, any>
+    changedLevel: number
+  }) => Promise<void>
   scrollVerticallyBy: (delta: number) => void
 }) {
   const dragStartY = ref(0)
   const currentDragY = ref(0)
+
+  // Held by reference: a group refresh during the drag can shift indices, so the drop must not re-read by index.
+  let draggedRow: Row | null = null
+
+  let isMoveInFlight = false
 
   const findElement = (x: number, y: number) => {
     const mouseTop = y
@@ -83,11 +93,30 @@ export function useRowReorder({
 
   function updateCrossGroupTarget(element: CanvasElementItem) {
     const group = getTargetGroup(element)
-    const sourcePath = draggedRowGroupPath.value ?? []
-    const result = group ? resolveDropTarget(sourcePath, group) : null
-
     targetRowIndex.value = null
-    rowDropTarget.value = group && result ? { path: generateGroupPath(group), group, ...result } : null
+
+    if (!group) {
+      rowDropTarget.value = null
+      return
+    }
+
+    const path = generateGroupPath(group)
+    // mousemove fires far more often than the hovered group changes
+    if (rowDropTarget.value && comparePath(rowDropTarget.value.path, path)) return
+
+    const result = resolveDropTarget(draggedRowGroupPath.value ?? [], group)
+    rowDropTarget.value = result ? { path, ...result } : null
+  }
+
+  function onKeyDown(e: KeyboardEvent) {
+    if (e.key !== 'Escape') return
+    e.preventDefault()
+    cleanup()
+  }
+
+  // The dragged row is still at its drag-start slot, so the drop acts on the record that was picked up.
+  function isDraggedRowInPlace(sourcePath: number[]) {
+    return !!draggedRow && getDataCache(sourcePath).cachedRows.value.get(draggedRowIndex.value!) === draggedRow
   }
 
   const handleDragStart = (e: MouseEvent) => {
@@ -96,7 +125,7 @@ export function useRowReorder({
 
     const element = findElement(e.clientX - rect.left, e.clientY - rect.top)
 
-    if (!element || element.isGroup) return
+    if (!element || element.isGroup || isMoveInFlight) return
 
     const { cachedRows } = getDataCache(element.groupPath)
 
@@ -110,6 +139,7 @@ export function useRowReorder({
 
     row.rowMeta.isDragging = true
     cachedRows.value.set(rowIndex, row)
+    draggedRow = row
     isDragging.value = true
     draggedRowIndex.value = rowIndex
     targetRowIndex.value = canReorderWithinGroup.value ? rowIndex + 1 : null
@@ -119,6 +149,7 @@ export function useRowReorder({
 
     window.addEventListener('mousemove', handleDrag)
     window.addEventListener('mouseup', handleDragEnd)
+    window.addEventListener('keydown', onKeyDown)
   }
 
   function handleDrag(e: MouseEvent) {
@@ -126,9 +157,20 @@ export function useRowReorder({
     const rect = canvasRef.value?.getBoundingClientRect()
     if (!rect) return
 
-    const targetElement = findElement(e.clientX - rect.left, e.clientY - rect.top + rowHeight.value / 2)
+    const isInsideCanvas = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom
 
-    if (!targetElement) return
+    const targetElement = isInsideCanvas
+      ? findElement(e.clientX - rect.left, e.clientY - rect.top + rowHeight.value / 2)
+      : undefined
+
+    if (!targetElement) {
+      // Releasing over a gap or outside the grid must not move the record to the last hovered group.
+      if (rowDropTarget.value) {
+        rowDropTarget.value = null
+        triggerRefreshCanvas()
+      }
+      return
+    }
 
     const { totalRows } = getDataCache(targetElement.groupPath)
 
@@ -166,12 +208,26 @@ export function useRowReorder({
   async function handleDragEnd() {
     const dropTarget = rowDropTarget.value
     const sourcePath = draggedRowGroupPath.value ?? []
+    const row = draggedRow
 
-    if (dropTarget?.patch && dropTarget.changedLevel !== undefined && draggedRowIndex.value !== null) {
-      const row = getDataCache(sourcePath).cachedRows.value.get(draggedRowIndex.value)
+    if (!isDraggedRowInPlace(sourcePath)) {
       cleanup()
-      if (row) {
-        await moveRowToGroup({ row, path: sourcePath, patch: dropTarget.patch, changedLevel: dropTarget.changedLevel })
+      return
+    }
+
+    if (row && dropTarget?.patch && dropTarget.changedLevel !== undefined && moveRowToGroup) {
+      cleanup()
+      isMoveInFlight = true
+      try {
+        await moveRowToGroup({
+          row,
+          path: sourcePath,
+          targetPath: dropTarget.path,
+          patch: dropTarget.patch,
+          changedLevel: dropTarget.changedLevel,
+        })
+      } finally {
+        isMoveInFlight = false
       }
       return
     }
@@ -189,6 +245,8 @@ export function useRowReorder({
   }
 
   function cleanup() {
+    if (draggedRow) draggedRow.rowMeta.isDragging = false
+    draggedRow = null
     isDragging.value = false
     draggedRowIndex.value = null
     targetRowIndex.value = null
@@ -196,6 +254,7 @@ export function useRowReorder({
     rowDropTarget.value = null
     window.removeEventListener('mousemove', handleDrag)
     window.removeEventListener('mouseup', handleDragEnd)
+    window.removeEventListener('keydown', onKeyDown)
     triggerRefreshCanvas()
   }
 

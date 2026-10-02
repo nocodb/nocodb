@@ -6312,7 +6312,7 @@
       "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
       "groupMoveBlockedReadonly": "Can't move here: {field} can't be edited",
       "groupMoveBlockedLink": "Can't move here: {field} is a link field",
-      "groupMoveBlockedDateTime": "Can't move here: {field} is grouped by date only",
+      "groupMoveBlockedDateTime": "Can't move here: {field} groups don't keep the exact time",
       "groupMoveBlockedPermission": "Can't move here: you can't edit {field}",
       "groupMoveBlockedRequired": "Can't move here: {field} is required",
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "This feature is only available in enterprise edition",

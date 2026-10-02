@@ -106,7 +106,7 @@ watch(
       loadCollaborators({}, workspaceId.value)
     }
 
-    $e('a:workspace:settings:tab:switch', { tab: props.tab })
+    $e('a:ws:settings:tab:switch', { tab: props.tab })
   },
   { immediate: true },
 )

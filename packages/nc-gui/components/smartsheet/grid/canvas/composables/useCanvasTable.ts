@@ -490,6 +490,7 @@ export function useCanvasTable({
     dateTime: 'msg.info.groupMoveBlockedDateTime',
     permission: 'msg.info.groupMoveBlockedPermission',
     required: 'msg.info.groupMoveBlockedRequired',
+    missing: 'msg.info.groupMoveBlockedMissing',
   }
 
   function resolveDropTarget(sourcePath: number[], target: CanvasGroup) {

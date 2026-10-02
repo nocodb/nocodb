@@ -68,6 +68,8 @@ export function useRowReorder({
   }) => Promise<void>
   scrollVerticallyBy: (delta: number) => void
 }) {
+  const { t } = useI18n()
+
   const dragStartY = ref(0)
   const currentDragY = ref(0)
 
@@ -111,6 +113,7 @@ export function useRowReorder({
   function onKeyDown(e: KeyboardEvent) {
     if (e.key !== 'Escape') return
     e.preventDefault()
+    e.stopImmediatePropagation()
     cleanup()
   }
 
@@ -149,7 +152,7 @@ export function useRowReorder({
 
     window.addEventListener('mousemove', handleDrag)
     window.addEventListener('mouseup', handleDragEnd)
-    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('keydown', onKeyDown, true)
   }
 
   function handleDrag(e: MouseEvent) {
@@ -211,6 +214,7 @@ export function useRowReorder({
     const row = draggedRow
 
     if (!isDraggedRowInPlace(sourcePath)) {
+      if (dropTarget?.patch) message.info(t('msg.info.groupMoveCancelledRowChanged'))
       cleanup()
       return
     }
@@ -254,7 +258,7 @@ export function useRowReorder({
     rowDropTarget.value = null
     window.removeEventListener('mousemove', handleDrag)
     window.removeEventListener('mouseup', handleDragEnd)
-    window.removeEventListener('keydown', onKeyDown)
+    window.removeEventListener('keydown', onKeyDown, true)
     triggerRefreshCanvas()
   }
 

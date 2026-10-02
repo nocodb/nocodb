@@ -6315,6 +6315,8 @@
       "groupMoveBlockedDateTime": "Can't move here: {field} groups don't keep the exact time",
       "groupMoveBlockedPermission": "Can't move here: you can't edit {field}",
       "groupMoveBlockedRequired": "Can't move here: {field} is required",
+      "groupMoveBlockedMissing": "Can't move here: {field} no longer exists",
+      "groupMoveCancelledRowChanged": "Record changed while dragging. Try moving it again.",
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "This feature is only available in enterprise edition",
       "yourCurrentRoleIs": "Your current role is",
       "pleaseRequestAccessForView": "Please request for higher permission from the Admin / Base owner / Workspace owner to get access to this {viewName}",

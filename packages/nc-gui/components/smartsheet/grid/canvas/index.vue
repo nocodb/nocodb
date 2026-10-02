@@ -1003,8 +1003,8 @@ async function moveRowToGroup({
   }
 }
 
-// Reloads only the two sibling groups a move touched, at the first changed level. If either now holds a
-// different group (the source emptied out), indices have shifted and the whole level is refreshed instead.
+// Refetches the sibling chunk(s) at the first changed level, keeping untouched siblings' loaded sub-groups.
+// If the source or target index now holds a different group, indices have shifted and the whole level is refreshed.
 async function refreshAfterGroupMove(sourcePath: number[], targetPath: number[], level: number) {
   const parentPath = sourcePath.slice(0, level)
   const parentGroup = parentPath.length ? findGroupByPath(cachedGroups.value, parentPath) : undefined
@@ -1015,6 +1015,14 @@ async function refreshAfterGroupMove(sourcePath: number[], targetPath: number[],
   const keysBefore = changedIndexes.map((index) => siblings.get(index)?.nestedIn[level]?.key)
 
   const chunkIds = [...new Set(changedIndexes.map((index) => Math.floor(index / GROUP_CHUNK_SIZE)))]
+  const untouchedBefore = new Map<number, CanvasGroup>()
+  for (const chunkId of chunkIds) {
+    for (let index = chunkId * GROUP_CHUNK_SIZE; index < (chunkId + 1) * GROUP_CHUNK_SIZE; index++) {
+      const group = siblings.get(index)
+      if (group && !changedIndexes.includes(index)) untouchedBefore.set(index, group)
+    }
+  }
+
   await Promise.all(
     chunkIds.map((chunkId) => fetchMissingGroupChunks(chunkId * GROUP_CHUNK_SIZE, chunkId * GROUP_CHUNK_SIZE, parentGroup, true)),
   )
@@ -1022,6 +1030,10 @@ async function refreshAfterGroupMove(sourcePath: number[], targetPath: number[],
   const refreshedSiblings = parentGroup?.groups ?? cachedGroups.value
   const isShifted = changedIndexes.some((index, i) => refreshedSiblings.get(index)?.nestedIn[level]?.key !== keysBefore[i])
   if (isShifted) return onGroupRowChange({ level, path: sourcePath })
+
+  for (const [index, group] of untouchedBefore) {
+    if (refreshedSiblings.get(index)?.nestedIn[level]?.key === group.nestedIn[level]?.key) refreshedSiblings.set(index, group)
+  }
 
   const branchKeys = changedIndexes.map((index) => [...parentPath, index].join('-'))
   for (const key of groupDataCache.value.keys()) {

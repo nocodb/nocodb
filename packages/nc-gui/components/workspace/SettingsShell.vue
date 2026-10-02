@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import { PlanFeatureTypes } from 'nocodb-sdk'
 
-// The workspace settings page at `/{ws}/settings/{slug}`, laid out like the base
-// settings modal (`components/project/SettingsShell.vue`): a nav rail, then a
-// content column of header band → pane → save bar. It stays a page because it
-// hosts the billing and payment flows. The old `/{ws}/{page}` routes redirect here.
+// The workspace settings page at `/{ws}/settings/{slug}`: a full-screen page like
+// the account page (its own sidebar, Back to where it was opened from), with the
+// base settings shell's anatomy — nav rail, then header band → pane → save bar.
+// It is a page, not a modal, because it hosts the billing and payment flows.
+// The old `/{ws}/{page}` routes redirect here.
 
 const props = defineProps<{
   tab: WsSettingsSlug
@@ -72,6 +73,13 @@ function goToTab(tab: string) {
   navigateTo(wsSettingsPath(workspaceId.value, tab as WsSettingsSlug))
 }
 
+function onBack() {
+  const backRoute = ncWsSettingsBackRoute().get()
+
+  // Only back into this workspace; a stale entry from another one falls back to its home.
+  navigateTo(backRoute?.startsWith(`/${workspaceId.value}`) ? backRoute : `/${workspaceId.value}`)
+}
+
 function onGroupToggle(key: string, open: boolean) {
   $e('c:settings:ws:group-toggle', { group: key, open })
 }
@@ -120,21 +128,27 @@ watch(
       @select="goToTab"
       @group-toggle="onGroupToggle"
     >
-      <template v-if="activeWorkspace" #subject>
-        <GeneralWorkspaceIcon :workspace="activeWorkspace" size="small" class="flex-none" />
-        <!-- `capitalize`, like the main sidebar: display only, the stored title is untouched. -->
-        <NcTooltip show-on-truncate-only class="truncate capitalize">{{ activeWorkspace.title }}</NcTooltip>
+      <template #top>
+        <div class="nc-ws-settings-topbar !px-2">
+          <NcButton type="text" size="small" data-testid="nc-ws-settings-back-btn" @click="onBack">
+            <div class="flex items-center gap-2">
+              <GeneralIcon icon="ncArrowLeft" />
+              <span class="text-small leading-[18px] font-semibold">{{ $t('labels.back') }}</span>
+            </div>
+          </NcButton>
+        </div>
       </template>
     </ShellRail>
 
     <div v-if="showPane" class="flex-1 flex flex-col min-w-0 min-h-0">
-      <ShellHeader
-        :title="meta?.title ?? ''"
-        :description="meta?.description"
-        :docs-href="meta?.docsHref"
-        :leading-inset="isMobileMode"
-        no-close-inset
-      />
+      <!-- Same height as the rail's Back row, so both columns start on one line. -->
+      <div class="nc-ws-settings-topbar nc-shell-gutter gap-1.5 text-bodyDefaultSm" :class="{ '!pl-14': isMobileMode }">
+        <span class="text-nc-content-gray-muted">{{ $t('labels.settings') }}</span>
+        <span class="text-nc-content-gray-muted">/</span>
+        <span class="text-bodyDefaultSmBold text-nc-content-gray truncate">{{ meta?.title }}</span>
+      </div>
+
+      <ShellHeader :title="meta?.title ?? ''" :description="meta?.description" :docs-href="meta?.docsHref" no-close-inset />
 
       <div v-if="!isPaneAllowed || !workspaceId" class="flex-1 min-h-0 flex items-center justify-center">
         <GeneralLoader size="xlarge" />
@@ -195,3 +209,9 @@ watch(
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-ws-settings-topbar {
+  @apply h-[var(--topbar-height)] flex-none flex items-center border-b-1 border-nc-border-gray-medium;
+}
+</style>

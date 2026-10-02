@@ -28,6 +28,9 @@ const isHomeSidebarRoute = computed(() => {
   return isWsHomeRoute(route.value)
 })
 
+// Workspace settings is a full page with its own sidebar, like the account page.
+const isWsSettingsRoute = computed(() => !!wsSettingsSlugFromRoute(route.value))
+
 const { hideMiniSidebar } = storeToRefs(useSidebarStore())
 
 const wsHomeSearchQuery = useState<string>('ws-home-search', () => '')
@@ -151,6 +154,9 @@ onMounted(() => {
     </NuxtLayout>
     <NuxtLayout v-else-if="isSharedView" name="shared-view">
       <NuxtPage />
+    </NuxtLayout>
+    <NuxtLayout v-else-if="isWsSettingsRoute" name="empty">
+      <NuxtPage :transition="false" />
     </NuxtLayout>
     <NuxtLayout v-else name="dashboard">
       <template #sidebar>

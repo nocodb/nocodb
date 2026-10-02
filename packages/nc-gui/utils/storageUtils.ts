@@ -35,6 +35,19 @@ export const ncBackRoute = (): {
   }
 }
 
+/** Where the workspace settings page's Back button returns to. */
+export const ncWsSettingsBackRoute = (): {
+  get: () => string | null
+  set: (value: string) => void
+} => {
+  const key = 'ncWsSettingsBackRoute'
+
+  return {
+    get: () => sessionStorage.getItem(key),
+    set: (value: string) => sessionStorage.setItem(key, value),
+  }
+}
+
 export const ncLastVisitedBase = (): {
   key: string
   get: () => string | null

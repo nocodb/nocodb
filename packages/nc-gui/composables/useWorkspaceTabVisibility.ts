@@ -30,7 +30,8 @@ export function useWorkspaceTabVisibility(
     return isEeUI && isTeamsEnabled.value && (isAdmin.value || isUIAllowed('teamCreate'))
   })
 
-  const wsTabVisibility = computed(() => {
+  // Who may open each tab, whatever the screen size.
+  const wsTabAccess = computed(() => {
     // Access to trigger re-evaluation when roles finish loading
     // eslint-disable-next-line no-unused-expressions
     isBaseRolesLoaded.value
@@ -38,9 +39,8 @@ export function useWorkspaceTabVisibility(
     return {
       collaborators: isAdmin.value || isUIAllowed('workspaceCollaborators'),
       teams: hasTeamsEditPermission.value && showEEFeatures.value,
-      integrations: !isMobileMode.value && isUIAllowed('workspaceIntegrations'),
+      integrations: isUIAllowed('workspaceIntegrations'),
       billing:
-        !isMobileMode.value &&
         !isAdmin.value &&
         isEeUI &&
         !ws.value?.fk_org_id &&
@@ -49,20 +49,9 @@ export function useWorkspaceTabVisibility(
         isUIAllowed('workspaceBilling'),
       // Org-linked (enterprise) workspaces have no Billing tab — Usage shows their
       // plan limits instead. Also visible to org admins drilling into a workspace.
-      usage:
-        !isMobileMode.value &&
-        isEeUI &&
-        !!ws.value?.fk_org_id &&
-        isBaseRolesLoaded.value &&
-        (isAdmin.value || isUIAllowed('workspaceBilling')),
-      audits:
-        !isMobileMode.value &&
-        !isAdmin.value &&
-        showEEFeatures.value &&
-        isBaseRolesLoaded.value &&
-        isUIAllowed('workspaceAuditList'),
+      usage: isEeUI && !!ws.value?.fk_org_id && isBaseRolesLoaded.value && (isAdmin.value || isUIAllowed('workspaceBilling')),
+      audits: !isAdmin.value && showEEFeatures.value && isBaseRolesLoaded.value && isUIAllowed('workspaceAuditList'),
       sso:
-        !isMobileMode.value &&
         isWorkspaceSsoAvail.value &&
         showEEFeatures.value &&
         !ws.value?.fk_org_id &&
@@ -70,6 +59,15 @@ export function useWorkspaceTabVisibility(
         isUIAllowed('workspaceSSO'),
       settings: isEeUI,
     }
+  })
+
+  // Phones hide these rows; a link can still open them (see `wsTabAccess`).
+  const wsTabVisibility = computed(() => {
+    const access = wsTabAccess.value
+
+    if (!isMobileMode.value) return access
+
+    return { ...access, integrations: false, billing: false, usage: false, audits: false, sso: false }
   })
 
   /**
@@ -93,6 +91,7 @@ export function useWorkspaceTabVisibility(
   return {
     isWorkspaceSsoAvail,
     hasTeamsEditPermission,
+    wsTabAccess,
     wsTabVisibility,
     visibleAdminTabKeys,
     hasAdminTabBar,

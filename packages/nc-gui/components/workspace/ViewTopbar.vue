@@ -22,24 +22,12 @@ const workspaceTitle = computed(() => {
   return 'Default Workspace'
 })
 
-const activeTabKey = computed(() => {
-  if (isWsAdminRoute(route.value)) return 'admin'
-
-  return routeNameToWsTab[route.value.name as string] || 'bases'
-})
+const activeTabKey = computed(() => routeNameToWsTab[route.value.name as string] || 'bases')
 
 const activeTabLabel = computed(() => {
   switch (activeTabKey.value) {
     case 'home':
       return t('general.home')
-    case 'collaborators':
-      return t('labels.members')
-    case 'teams':
-      return t('general.teams')
-    case 'integrations':
-      return t('general.integrations')
-    case 'admin':
-      return t('labels.settings')
     default:
       return t('objects.projects')
   }

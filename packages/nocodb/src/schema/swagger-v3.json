@@ -14794,6 +14794,10 @@
             "type": "boolean",
             "description": "Whether the requesting user is a member of this team."
           },
+          "scim_managed": {
+            "type": "boolean",
+            "description": "Whether the team is provisioned by SCIM from an identity provider."
+          },
           "managers": {
             "type": "array",
             "description": "List of user IDs who are owners/managers of this team.",

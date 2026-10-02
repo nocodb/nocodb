@@ -86,7 +86,7 @@ const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
-const { addOrEditStackRow } = useKanbanViewStoreOrThrow()
+const kanbanViewStore = useKanbanViewStore()
 
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
@@ -387,7 +387,7 @@ const save = async () => {
     let kanbanClbk
     if (activeView.value?.type === ViewTypes.KANBAN) {
       kanbanClbk = (row: any, isNewRow: boolean) => {
-        addOrEditStackRow(row, isNewRow)
+        kanbanViewStore?.addOrEditStackRow(row, isNewRow)
       }
     }
 

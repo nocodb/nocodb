@@ -49,6 +49,7 @@ import { ElementTypes } from '../utils/CanvasElement'
 import type { RenderTagProps } from '../utils/types'
 import { getSafe2DContext } from '../utils/safeCanvas'
 import type { MarkdownLoader } from '../loaders/markdownLoader'
+import type { RowDropTarget } from './useRowReOrder'
 import type { GridRemoteFieldMap, GridRemoteFocus, GridRemoteFocusMap, GridRemoteRecordMap } from '~/lib/types'
 
 export function useCanvasRender({
@@ -89,6 +90,7 @@ export function useCanvasRender({
   isDragging,
   draggedRowIndex,
   targetRowIndex,
+  rowDropTarget,
   mousePosition,
   renderCell,
   updateFrameTimestamp,
@@ -170,6 +172,7 @@ export function useCanvasRender({
   isDragging: Ref<boolean>
   draggedRowIndex: Ref<number | null>
   targetRowIndex: Ref<number | null>
+  rowDropTarget: Ref<RowDropTarget | null>
   mousePosition: { x: number; y: number }
   renderCell: (ctx: CanvasRenderingContext2D, column: ColumnType, options: any) => void
   updateFrameTimestamp: () => void
@@ -3229,9 +3232,7 @@ export function useCanvasRender({
     }
   }
 
-  const renderRowDragPreview = (ctx: CanvasRenderingContext2D, path: Array<number> = []) => {
-    if (!isDragging.value || draggedRowIndex.value === null || targetRowIndex.value === null) return
-
+  function renderRowDropLine(ctx: CanvasRenderingContext2D, path: Array<number>, targetIndex: number) {
     const _headerRowHeight = headerRowHeight.value
 
     let targetRowLine
@@ -3240,7 +3241,7 @@ export function useCanvasRender({
         calculateGroupRowTop(
           cachedGroups.value,
           path,
-          targetRowIndex.value,
+          targetIndex,
           rowHeight.value,
           _headerRowHeight,
           isAddingEmptyRowAllowed.value,
@@ -3249,10 +3250,9 @@ export function useCanvasRender({
         // add column header height since it's not included
         _headerRowHeight
     } else {
-      targetRowLine = (targetRowIndex.value - rowSlice.value.start) * rowHeight.value - partialRowHeight.value + _headerRowHeight
+      targetRowLine = (targetIndex - rowSlice.value.start) * rowHeight.value - partialRowHeight.value + _headerRowHeight
     }
 
-    // First render the blue line indicator
     ctx.strokeStyle = getColor(themeV4Colors.brand['500'])
     ctx.lineWidth = 2
     ctx.beginPath()
@@ -3260,6 +3260,37 @@ export function useCanvasRender({
     ctx.moveTo(groupByColumns.value.length * 13, targetRowLine)
     ctx.lineTo(ctx.canvas.width, targetRowLine)
     ctx.stroke()
+  }
+
+  function renderGroupMoveHint(ctx: CanvasRenderingContext2D, text: string) {
+    ctx.save()
+    ctx.font = '500 12px Inter'
+
+    const paddingX = 8
+    const boxHeight = 24
+    const boxWidth = ctx.measureText(text).width + paddingX * 2
+    const x = Math.max(8, Math.min(mousePosition.x + 12, width.value - boxWidth - 8))
+    const y = mousePosition.y + rowHeight.value / 2 + 8
+
+    roundedRect(ctx, x, y, boxWidth, boxHeight, 6, {
+      backgroundColor: getColor(themeV4Colors.red['50']),
+      borderColor: getColor(themeV4Colors.red['500']),
+    })
+
+    ctx.fillStyle = getColor(themeV4Colors.red['700'])
+    ctx.textBaseline = 'middle'
+    ctx.textAlign = 'left'
+    ctx.fillText(text, x + paddingX, y + boxHeight / 2)
+    ctx.restore()
+  }
+
+  const renderRowDragPreview = (ctx: CanvasRenderingContext2D, path: Array<number> = []) => {
+    if (!isDragging.value || draggedRowIndex.value === null) return
+
+    // Line only for a same-group reorder; a cross-group target is highlighted on its group instead.
+    if (targetRowIndex.value !== null) {
+      renderRowDropLine(ctx, path, targetRowIndex.value)
+    }
 
     // Then render the preview row
     ctx.save()
@@ -3333,6 +3364,10 @@ export function useCanvasRender({
     }
 
     ctx.restore()
+
+    if (rowDropTarget.value?.blockedMessage) {
+      renderGroupMoveHint(ctx, rowDropTarget.value.blockedMessage)
+    }
   }
 
   function renderGroupRows(
@@ -3839,6 +3874,17 @@ export function useCanvasRender({
             },
           },
         )
+
+        if (group && rowDropTarget.value && comparePath(rowDropTarget.value.path, generateGroupPath(group))) {
+          const isBlocked = !!rowDropTarget.value.blockedMessage
+          const outlineHeight = group.isExpanded ? groupHeight - GROUP_PADDING : GROUP_HEADER_HEIGHT
+          postRenderCbks.push(() => {
+            roundedRect(ctx, xOffset, groupHeaderY, adjustedWidth, outlineHeight, 8, {
+              borderColor: getColor(isBlocked ? themeV4Colors.red['500'] : themeV4Colors.brand['500']),
+              borderWidth: 2,
+            })
+          })
+        }
 
         if (!appInfo.value.disableGroupByAggregation) {
           const { start: startColIndex, end: endColIndex } = colSlice.value

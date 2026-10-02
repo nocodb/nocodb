@@ -1,5 +1,13 @@
-import type { CanvasElement } from '../utils/CanvasElement'
-import { comparePath } from '../utils/groupby'
+import type { CanvasElement, CanvasElementItem } from '../utils/CanvasElement'
+import { comparePath, findGroupByPath, generateGroupPath } from '../utils/groupby'
+
+export interface RowDropTarget {
+  path: number[]
+  group: CanvasGroup
+  patch?: Record<string, any>
+  changedLevel?: number
+  blockedMessage?: string
+}
 
 export function useRowReorder({
   isDragging,
@@ -13,6 +21,13 @@ export function useRowReorder({
   scrollToCell,
   elementMap,
   getDataCache,
+  cachedGroups,
+  rowDropTarget,
+  canReorderWithinGroup,
+  isGroupMoveEnabled,
+  resolveDropTarget,
+  moveRowToGroup,
+  scrollVerticallyBy,
 }: {
   isDragging: Ref<boolean>
   draggedRowIndex: Ref<number | null>
@@ -40,6 +55,13 @@ export function useRowReorder({
     selectedRows: ComputedRef<Array<Row>>
     isRowSortRequiredRows: ComputedRef<Array<Row>>
   }
+  cachedGroups: Ref<Map<number, CanvasGroup>>
+  rowDropTarget: Ref<RowDropTarget | null>
+  canReorderWithinGroup: ComputedRef<boolean>
+  isGroupMoveEnabled: ComputedRef<boolean>
+  resolveDropTarget: (sourcePath: number[], target: CanvasGroup) => Omit<RowDropTarget, 'path' | 'group'> | null
+  moveRowToGroup: (params: { row: Row; path: number[]; patch: Record<string, any>; changedLevel: number }) => Promise<void>
+  scrollVerticallyBy: (delta: number) => void
 }) {
   const dragStartY = ref(0)
   const currentDragY = ref(0)
@@ -49,9 +71,23 @@ export function useRowReorder({
 
     const element = elementMap.findElementAt(x, mouseTop)
 
-    if (element?.isRow || element?.isAddNewRow) {
+    if (element?.isRow || element?.isAddNewRow || (element?.isGroup && isGroupMoveEnabled.value)) {
       return element
     }
+  }
+
+  function getTargetGroup(element: CanvasElementItem) {
+    if (element.isGroup) return element.group
+    return element.group ?? findGroupByPath(cachedGroups.value, element.groupPath)
+  }
+
+  function updateCrossGroupTarget(element: CanvasElementItem) {
+    const group = getTargetGroup(element)
+    const sourcePath = draggedRowGroupPath.value ?? []
+    const result = group ? resolveDropTarget(sourcePath, group) : null
+
+    targetRowIndex.value = null
+    rowDropTarget.value = group && result ? { path: generateGroupPath(group), group, ...result } : null
   }
 
   const handleDragStart = (e: MouseEvent) => {
@@ -60,7 +96,7 @@ export function useRowReorder({
 
     const element = findElement(e.clientX - rect.left, e.clientY - rect.top)
 
-    if (!element) return
+    if (!element || element.isGroup) return
 
     const { cachedRows } = getDataCache(element.groupPath)
 
@@ -76,7 +112,7 @@ export function useRowReorder({
     cachedRows.value.set(rowIndex, row)
     isDragging.value = true
     draggedRowIndex.value = rowIndex
-    targetRowIndex.value = rowIndex + 1
+    targetRowIndex.value = canReorderWithinGroup.value ? rowIndex + 1 : null
     dragStartY.value = e.clientY
     currentDragY.value = e.clientY
     draggedRowGroupPath.value = element.groupPath
@@ -94,18 +130,32 @@ export function useRowReorder({
 
     if (!targetElement) return
 
-    if (!comparePath(targetElement.groupPath, draggedRowGroupPath.value)) {
-      return
-    }
-
     const { totalRows } = getDataCache(targetElement.groupPath)
 
-    targetRowIndex.value = targetElement.rowIndex ?? totalRows.value
+    if (!targetElement.isGroup && comparePath(targetElement.groupPath, draggedRowGroupPath.value)) {
+      rowDropTarget.value = null
+      targetRowIndex.value = canReorderWithinGroup.value ? targetElement.rowIndex ?? totalRows.value : null
+    } else if (isGroupMoveEnabled.value) {
+      updateCrossGroupTarget(targetElement)
+    } else {
+      return
+    }
 
     triggerRefreshCanvas()
 
     const edgeThreshold = 100
     const mouseY = e.clientY - rect.top
+
+    if (draggedRowGroupPath.value?.length) {
+      if (mouseY < edgeThreshold) {
+        scrollVerticallyBy(-rowHeight.value)
+      } else if (mouseY > rect.height - edgeThreshold) {
+        scrollVerticallyBy(rowHeight.value)
+      }
+      return
+    }
+
+    if (targetRowIndex.value === null) return
 
     if (mouseY < edgeThreshold) {
       scrollToCell(Math.max(0, targetRowIndex.value - 2), 0)
@@ -114,13 +164,25 @@ export function useRowReorder({
     }
   }
   async function handleDragEnd() {
-    if (draggedRowIndex.value !== null && draggedRowIndex.value + 1 !== targetRowIndex.value) {
-      const { totalRows } = getDataCache(draggedRowGroupPath.value)
+    const dropTarget = rowDropTarget.value
+    const sourcePath = draggedRowGroupPath.value ?? []
+
+    if (dropTarget?.patch && dropTarget.changedLevel !== undefined && draggedRowIndex.value !== null) {
+      const row = getDataCache(sourcePath).cachedRows.value.get(draggedRowIndex.value)
+      cleanup()
+      if (row) {
+        await moveRowToGroup({ row, path: sourcePath, patch: dropTarget.patch, changedLevel: dropTarget.changedLevel })
+      }
+      return
+    }
+
+    if (draggedRowIndex.value !== null && targetRowIndex.value !== null && draggedRowIndex.value + 1 !== targetRowIndex.value) {
+      const { totalRows } = getDataCache(sourcePath)
       await updateRecordOrder(
         draggedRowIndex.value,
         targetRowIndex.value === totalRows.value ? null : targetRowIndex.value,
         undefined,
-        draggedRowGroupPath.value,
+        sourcePath,
       )
     }
     cleanup()
@@ -131,6 +193,7 @@ export function useRowReorder({
     draggedRowIndex.value = null
     targetRowIndex.value = null
     draggedRowGroupPath.value = null
+    rowDropTarget.value = null
     window.removeEventListener('mousemove', handleDrag)
     window.removeEventListener('mouseup', handleDragEnd)
     triggerRefreshCanvas()

@@ -1625,6 +1625,23 @@ export function useInfiniteData(args: {
     }
   }
 
+  // One request for several fields, so a cross-group move is a single undo entry.
+  async function updateRowFields(toUpdate: Row, data: Record<string, any>) {
+    const id = extractPkFromRow(toUpdate.row, meta.value?.columns as ColumnType[])
+
+    return interfaceDataApi
+      ? await interfaceDataApi.updateRow(id, data)
+      : await $api.dbViewRow.update(
+          NOCO,
+          meta.value?.base_id ?? (base?.value.id as string),
+          meta.value?.id as string,
+          viewMeta.value?.id as string,
+          encodeURIComponent(id),
+          data,
+          { typecast: 'true' },
+        )
+  }
+
   async function updateRowProperty(
     toUpdate: Row,
     property: string,
@@ -2748,6 +2765,7 @@ export function useInfiniteData(args: {
     loadAggCommentsCount,
     navigateToSiblingRow,
     updateRecordOrder,
+    updateRowFields,
     selectedAllRecords,
     selectedAllRecordsSkipPks,
     getRows,

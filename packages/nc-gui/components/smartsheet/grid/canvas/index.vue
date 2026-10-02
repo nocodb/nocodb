@@ -87,6 +87,7 @@ const props = defineProps<{
     isFailed?: boolean,
     path?: Array<number>,
   ) => Promise<void>
+  updateRowFields?: (row: Row, data: Record<string, any>) => Promise<Record<string, any> | undefined>
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
@@ -154,6 +155,7 @@ const {
   deleteRangeOfRows,
   clearInvalidRows,
   updateRecordOrder,
+  updateRowFields,
   applySorting,
   bulkDeleteAll,
   removeRowIfNew,
@@ -465,6 +467,8 @@ const {
   fetchMissingGroupAggregations,
   getDataCache,
   maxSelectionLimit,
+  moveRowToGroup: updateRowFields ? moveRowToGroup : undefined,
+  scrollVerticallyBy,
 })
 
 watch(
@@ -963,6 +967,43 @@ async function onGroupRowChange({ row, level }) {
     // if scrolltop is beyond totaheight, reset it to maximum possible value
     scroller.value?.scrollTo({ top: Math.max(0, Math.min(totalHeight.value, scrollTop.value)) })
   }, 150)
+}
+
+// Optimistically drops the row from its group, writes every changed group field in one request,
+// then refreshes the groups under the first changed level so source and target counts settle.
+async function moveRowToGroup({
+  row,
+  path,
+  patch,
+  changedLevel,
+}: {
+  row: Row
+  path: number[]
+  patch: Record<string, any>
+  changedLevel: number
+}) {
+  const previousValues = Object.fromEntries(Object.keys(patch).map((title) => [title, row.row[title]]))
+
+  Object.assign(row.row, patch)
+  row.rowMeta.isGroupChanged = true
+  row.rowMeta.changedGroupIndex = changedLevel
+  clearInvalidRows?.(path)
+  triggerRefreshCanvas()
+
+  try {
+    await updateRowFields!(row, patch)
+  } catch (e: any) {
+    Object.assign(row.row, previousValues)
+    message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+  } finally {
+    row.rowMeta.isGroupChanged = false
+    await onGroupRowChange({ row, level: changedLevel })
+  }
+}
+
+function scrollVerticallyBy(delta: number) {
+  const top = scroller.value?.getScrollPosition().top ?? 0
+  scroller.value?.scrollTo({ top: Math.max(0, Math.min(totalHeight.value, top + delta)) })
 }
 
 function onActiveCellChanged() {

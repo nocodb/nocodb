@@ -108,6 +108,7 @@ export class DuplicateProcessor {
       excludeInterfaces?: boolean;
       excludeWorkflows?: boolean;
       excludeDocuments?: boolean;
+      excludePermissions?: boolean;
     };
     operation: JobTypes;
   }) {
@@ -233,6 +234,7 @@ export class DuplicateProcessor {
         : await this.exportService.serializeInterfaces(context, {
             idMap: exportModelMap,
             req,
+            excludePermissions: options.excludePermissions,
           });
 
       elapsedTime(

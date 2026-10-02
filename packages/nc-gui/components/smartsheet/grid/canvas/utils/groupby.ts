@@ -1,52 +1,48 @@
+import tinycolor from 'tinycolor2'
 import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { GROUP_EXPANDED_BOTTOM_PADDING, GROUP_HEADER_HEIGHT, GROUP_PADDING } from './constants'
 
-// Indexed by distance from the innermost group level: the leaf level is white, each outer level one shade darker.
-const GROUP_COLOR_TIERS = [
-  {
-    background: themeV4Colors.base.white,
-    border: themeV4Colors.gray['200'],
-    hover: themeV4Colors.gray['50'],
-    aggBorder: themeV4Colors.gray['100'],
-  },
-  {
-    background: themeV4Colors.gray['50'],
-    border: themeV4Colors.gray['300'],
-    hover: themeV4Colors.gray['100'],
-    aggBorder: themeV4Colors.gray['200'],
-  },
-  {
-    background: themeV4Colors.gray['100'],
-    border: themeV4Colors.gray['400'],
-    hover: themeV4Colors.gray['200'],
-    aggBorder: themeV4Colors.gray['200'],
-  },
-  {
-    background: themeV4Colors.gray['200'],
-    border: themeV4Colors.gray['400'],
-    hover: themeV4Colors.gray['300'],
-    aggBorder: themeV4Colors.gray['300'],
-  },
-  {
-    background: themeV4Colors.gray['300'],
-    border: themeV4Colors.gray['500'],
-    hover: themeV4Colors.gray['400'],
-    aggBorder: themeV4Colors.gray['400'],
-  },
-]
+// Shading stops for a 3-level group-by, innermost first.
+const GROUP_COLOR_STOPS = {
+  background: [themeV4Colors.base.white, themeV4Colors.gray['50'], themeV4Colors.gray['100']],
+  border: [themeV4Colors.gray['200'], themeV4Colors.gray['300'], themeV4Colors.gray['400']],
+  hover: [themeV4Colors.gray['50'], themeV4Colors.gray['100'], themeV4Colors.gray['200']],
+  aggBorder: [themeV4Colors.gray['100'], themeV4Colors.gray['200'], themeV4Colors.gray['200']],
+}
+
+/**
+ * Shade for a group level from resolved `stops` (innermost first). Up to `stops.length` levels each take a stop;
+ * deeper groupings are spread across the same range so outer levels never get darker than the outermost stop.
+ * `tier` is the distance from the innermost level.
+ */
+export function getGroupShade(stops: string[], tier: number, levels: number): string {
+  const last = stops.length - 1
+  const pos = levels > stops.length ? (tier / (levels - 1)) * last : Math.min(tier, last)
+  const i = Math.min(Math.floor(pos), last)
+  const fraction = pos - i
+  if (!fraction) return stops[i]!
+  return tinycolor.mix(stops[i]!, stops[i + 1]!, fraction * 100).toRgbString()
+}
 
 export function getGroupColors(depth: number, maxDepth: number, getColor: (color: string) => string) {
-  const tierIndex = Math.min(Math.max(maxDepth - depth - 1, 0), GROUP_COLOR_TIERS.length - 1)
-  const tier = GROUP_COLOR_TIERS[tierIndex]!
+  const tier = Math.max(maxDepth - depth - 1, 0)
+  const shade = (stops: string[]) =>
+    getGroupShade(
+      stops.map((c) => getColor(c)),
+      tier,
+      maxDepth,
+    )
+
+  const background = shade(GROUP_COLOR_STOPS.background)
 
   return {
-    background: getColor(tier.background),
-    border: getColor(tier.border),
+    background,
+    border: shade(GROUP_COLOR_STOPS.border),
     aggregation: {
-      hover: getColor(tier.hover), // Hover State
-      default: getColor(tier.background), // Default Bg State
-      border: getColor(tier.aggBorder),
+      hover: shade(GROUP_COLOR_STOPS.hover), // Hover State
+      default: background, // Default Bg State
+      border: shade(GROUP_COLOR_STOPS.aggBorder),
     },
   }
 }

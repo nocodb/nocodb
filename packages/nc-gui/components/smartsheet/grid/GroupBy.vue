@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { CommonAggregations } from 'nocodb-sdk'
 import { shouldRenderCell } from '../../../utils/groupbyUtils'
+import { getGroupShade } from './canvas/utils/groupby'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 import GroupByTable from './GroupByTable.vue'
@@ -302,21 +303,13 @@ const computedWidth = computed(() => {
   return getSubGroupWidth(maxDepth)
 })
 
-// Indexed by distance from the innermost group level; each outer level is one shade darker.
 const bgColor = computed(() => {
-  const tier = Math.max((props.maxDepth || 1) - 1 - _depth, 0)
-  switch (tier) {
-    case 0:
-      return getColor(themeV4Colors.gray['50'])
-    case 1:
-      return getColor(themeV4Colors.gray['100'])
-    case 2:
-      return getColor('#F1F1F1', themeV4Colors.gray['200'])
-    case 3:
-      return getColor(themeV4Colors.gray['300'])
-    default:
-      return getColor(themeV4Colors.gray['400'])
-  }
+  const levels = props.maxDepth || 1
+  return getGroupShade(
+    [getColor(themeV4Colors.gray['50']), getColor(themeV4Colors.gray['100']), getColor('#F1F1F1', themeV4Colors.gray['200'])],
+    Math.max(levels - 1 - _depth, 0),
+    levels,
+  )
 })
 async function openNewRecordHandler() {
   if (_depth !== 0) return

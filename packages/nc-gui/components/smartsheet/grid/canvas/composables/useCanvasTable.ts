@@ -218,7 +218,7 @@ export function useCanvasTable({
   })
   const editEnabled = ref<CanvasEditEnabledType>(null)
   const isFillMode = ref(false)
-  const dragOver = ref<{ id: string; index: number } | null>(null)
+  const dragOver = ref<ColumnDragOver | null>(null)
   const attachmentCellDropOver = ref<AttachmentCellDropOverType | null>(null)
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
@@ -1668,6 +1668,8 @@ export function useCanvasTable({
     dragStart: columnDragStart,
     startDrag,
     findColumnAtPosition,
+    resolveDropTarget: resolveColumnDropTarget,
+    displayValueDropColumnId,
   } = useColumnReorder(
     canvasRef,
     columns,
@@ -1692,7 +1694,9 @@ export function useCanvasTable({
 
       if (nextToViewCol === null && lastViewCol === null) return
 
-      const newOrder = nextToViewCol ? toViewCol.order + (nextToViewCol.order - toViewCol.order) / 2 : lastViewCol.order + 1
+      // the display value is pinned first but isn't always lowest-order (interface `field_order`)
+      const lowerOrder = toCol.pv && nextToViewCol ? Math.min(toViewCol.order, nextToViewCol.order - 1) : toViewCol.order
+      const newOrder = nextToViewCol ? lowerOrder + (nextToViewCol.order - lowerOrder) / 2 : lastViewCol.order + 1
 
       toBeReorderedViewCol.order = newOrder
 
@@ -2215,6 +2219,8 @@ export function useCanvasTable({
     renderCanvasDirect,
     startDrag,
     findColumnAtPosition,
+    resolveColumnDropTarget,
+    displayValueDropColumnId,
     findClickedColumn,
     findColumnPosition,
     isRecordSelectedInSelectedAllRecords,

@@ -29,6 +29,7 @@ import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType, parseCellWidth } f
 import {
   ADD_NEW_COLUMN_WIDTH,
   AGGREGATION_HEIGHT,
+  COLUMN_DRAG_LEFT_SCROLL_ZONE,
   GROUP_HEADER_HEIGHT,
   GROUP_PADDING,
   MAX_SELECTED_ROWS,
@@ -343,6 +344,8 @@ const {
   findClickedColumn,
   findColumnPosition,
   findColumnAtPosition,
+  resolveColumnDropTarget,
+  displayValueDropColumnId,
   dragOver,
   attachmentCellDropOver,
   dragStart,
@@ -1682,6 +1685,9 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   }
   // Handle all Column Header Operations
   if (y <= headerRowHeight.value) {
+    // the mouseup ending a column drag is not a header click
+    if (isDragging.value && dragOver.value) return
+
     // If x less than 80px, use is hovering over the row meta column
     if (x < rowMetaColumnWidth.value + groupByColumns.value.length * 13) {
       // If the click is not normal single click, return
@@ -2458,12 +2464,12 @@ const handleMouseMove = (e: MouseEvent) => {
   } else if (isDragging.value || resizeableColumn.value) {
     const fixedWidth = fixedCols.reduce((sum, col) => sum + parseCellWidth(col.width), 0)
 
-    // A frozen-band drag never auto-scrolls: the whole band sits left of
-    // `fixedWidth` (up to 75% of the viewport), so the left-edge test below would
-    // fire for every pointer move — and targets can't cross the divider anyway.
-    const canAutoScroll = !isDragging.value || !columns.value.find((c) => c.id === dragStart.value?.id)?.fixed
+    // Column drags scroll left only just right of the divider, so frozen fields stay drop targets
+    const isInLeftScrollZone = isDragging.value
+      ? mousePosition.x >= fixedWidth && mousePosition.x <= fixedWidth + COLUMN_DRAG_LEFT_SCROLL_ZONE
+      : mousePosition.x <= fixedWidth
 
-    if (canAutoScroll && mousePosition.x >= width.value - 200) {
+    if (mousePosition.x >= width.value - 200) {
       scroller.value?.scrollTo({
         left: scrollLeft.value + 10,
       })
@@ -2492,7 +2498,11 @@ const handleMouseMove = (e: MouseEvent) => {
           }
         }, 0)
       }
-    } else if (canAutoScroll && mousePosition.x <= fixedWidth) {
+    } else if (
+      isInLeftScrollZone &&
+      // hovering the set-as-display-value slot must not scroll the target away
+      !(isDragging.value && resolveColumnDropTarget(mousePosition.x)?.setDisplayValue)
+    ) {
       scroller.value?.scrollTo({
         left: scrollLeft.value - 10,
       })
@@ -4067,6 +4077,15 @@ watch(
       :file-count="dragFileCount"
     />
   </div>
+
+  <LazySmartsheetHeaderUpdateDisplayValue
+    v-if="displayValueDropColumnId"
+    :value="true"
+    :column-id="displayValueDropColumnId"
+    :use-meta-fields="meta?.id !== view?.fk_model_id"
+    source="drag"
+    @update:value="(isOpen) => !isOpen && (displayValueDropColumnId = null)"
+  />
 
   <DlgSendRecordEmail v-model="showSendRecordModal" :meta="meta" :view="view" :row-id="sendRecordRowId" />
   <DlgAttachmentFieldSelect

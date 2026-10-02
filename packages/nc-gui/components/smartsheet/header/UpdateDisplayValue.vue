@@ -4,19 +4,18 @@ import { type ColumnType, columnTypeName, isSupportedDisplayValueColumn, isSyste
 interface Props {
   value?: boolean
   useMetaFields?: boolean
+  // preselect this field instead of the menu's column (e.g. a field dropped on the display value slot)
+  columnId?: string
+  source?: 'menu' | 'drag'
 }
 
 const props = defineProps<Props>()
 
-const { $api } = useNuxtApp()
-
-const { getMeta } = useMetas()
-
-const { eventBus } = useSmartsheetStoreOrThrow()
-
 const { fields } = useViewColumnsOrThrow()
 
 const { t } = useI18n()
+
+const { setAsDisplayValue } = useSetDisplayValue()
 
 const meta = inject(MetaInj, ref())
 
@@ -44,6 +43,22 @@ const column = computed(() => menuColumn?.value || canvasColumn?.value)
 const selectedFieldId = ref()
 
 const isLoading = ref(false)
+
+const isFieldDropdownOpen = ref(false)
+
+const currentDisplayValueId = computed(() => meta.value?.columns?.find((c) => c.pv)?.id)
+
+const selectedColumn = computed(() => meta.value?.columns?.find((c) => c.id === selectedFieldId.value))
+
+const selectedFieldError = computed(() =>
+  selectedColumn.value && !selectedColumn.value.pv && !isSupportedDisplayValueColumn(selectedColumn.value)
+    ? t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: columnTypeName(selectedColumn.value) })
+    : '',
+)
+
+const currentDisplayValueHint = computed(() =>
+  selectedColumn.value?.pv ? t('msg.info.fieldIsCurrentDisplayValue', { field: selectedColumn.value.title }) : '',
+)
 
 const getFormatedColumn = (column: ColumnType) => ({
   title: column.title,
@@ -77,68 +92,76 @@ const filteredColumns = computed(() => {
 const changeDisplayField = async () => {
   if (!selectedFieldId.value) return
   isLoading.value = true
-
-  try {
-    await $api.internal.postOperation(
-      meta!.value!.fk_workspace_id!,
-      meta!.value!.base_id!,
-      {
-        operation: 'columnSetAsPrimary',
-        columnId: selectedFieldId.value,
-      },
-      {},
-    )
-
-    await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
-
-    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-    value.value = false
-  } catch (e) {
-    console.error(e)
-  } finally {
-    isLoading.value = false
-  }
+  const isUpdated = await setAsDisplayValue(selectedFieldId.value, props.source)
+  isLoading.value = false
+  if (isUpdated) value.value = false
 }
 
 onMounted(() => {
+  const preselectId = props.columnId ?? column.value?.id
   selectedFieldId.value = useMetaFields.value
-    ? meta.value?.columns?.find((c) => c.id === column.value.id)?.id
-    : fields.value?.find((f) => f.fk_column_id === column.value.id)?.fk_column_id
+    ? meta.value?.columns?.find((c) => c.id === preselectId)?.id
+    : fields.value?.find((f) => f.fk_column_id === preselectId)?.fk_column_id
 })
 </script>
 
 <template>
   <NcModal v-model:visible="isVisible" size="small">
-    <div class="flex flex-col gap-3">
-      <div>
-        <h1 class="text-base text-nc-content-gray font-semibold">{{ $t('labels.searchDisplayValue') }}</h1>
-        <div class="text-nc-content-gray-subtle2 flex items-center gap-1">
-          {{ $t('labels.selectYourNewTitleFor') }}
+    <div class="flex flex-col gap-4">
+      <h1 class="text-base text-nc-content-gray font-semibold">{{ $t('labels.changeDisplayValueField') }}</h1>
 
-          <span class="bg-nc-bg-gray-light inline-flex items-center gap-1 px-1 rounded-md">
-            <component :is="iconMap.table" />
-            {{ meta?.title ?? meta?.table_name }}
-          </span>
-        </div>
-      </div>
-
-      <div class="border-1 rounded-lg border-nc-border-gray-medium">
-        <NcList
-          v-model:value="selectedFieldId"
-          v-model:open="value"
-          :list="filteredColumns"
-          option-label-key="title"
-          option-value-key="id"
-          :close-on-select="false"
-          class="!w-auto"
-          show-search-always
-          container-class-name="!max-h-[200px]"
+      <a-form layout="vertical" no-style>
+        <a-form-item
+          :label="$t('labels.displayValueField')"
+          class="!mb-0"
+          :validate-status="selectedFieldError ? 'error' : ''"
+          :help="selectedFieldError ? [selectedFieldError] : undefined"
         >
-          <template #listItemExtraLeft="{ option }">
-            <SmartsheetHeaderIcon :column="option.column" class="!mx-0 opacity-70" />
-          </template>
-        </NcList>
-      </div>
+          <NcListDropdown
+            v-model:is-open="isFieldDropdownOpen"
+            :has-error="!!selectedFieldError"
+            data-testid="nc-display-value-field-select"
+          >
+            <div class="flex-1 flex items-center gap-2 min-w-0">
+              <div v-if="selectedColumn" class="min-w-5 flex items-center justify-center">
+                <SmartsheetHeaderIcon :column="selectedColumn" class="!mx-0" color="text-nc-content-gray-muted" />
+              </div>
+              <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ selectedColumn?.title }}</template>
+                <span v-if="selectedColumn" class="text-sm truncate text-nc-content-gray">{{ selectedColumn.title }}</span>
+                <span v-else class="text-sm truncate text-nc-content-gray-muted">{{ $t('placeholder.selectField') }}</span>
+              </NcTooltip>
+              <GeneralIcon
+                icon="ncChevronDown"
+                class="flex-none h-4 w-4 transition-transform opacity-70"
+                :class="{ 'transform rotate-180': isFieldDropdownOpen }"
+              />
+            </div>
+            <template #overlay="{ onEsc }">
+              <NcList
+                v-model:open="isFieldDropdownOpen"
+                v-model:value="selectedFieldId"
+                :list="filteredColumns"
+                option-label-key="title"
+                option-value-key="id"
+                variant="medium"
+                class="!w-auto"
+                wrapper-class-name="!h-auto"
+                @escape="onEsc"
+              >
+                <template #listItemExtraLeft="{ option }">
+                  <div class="min-w-5 flex items-center justify-center">
+                    <SmartsheetHeaderIcon :column="option.column" class="!mx-0" color="text-nc-content-gray-muted" />
+                  </div>
+                </template>
+              </NcList>
+            </template>
+          </NcListDropdown>
+          <div v-if="currentDisplayValueHint" class="w-full mt-1" data-testid="nc-display-value-field-hint">
+            <div class="text-xs text-nc-content-gray-muted">{{ currentDisplayValueHint }}</div>
+          </div>
+        </a-form-item>
+      </a-form>
 
       <div class="flex w-full gap-2 justify-end">
         <NcButton type="secondary" size="small" @click="value = false">
@@ -146,7 +169,7 @@ onMounted(() => {
         </NcButton>
 
         <NcButton
-          :disabled="!selectedFieldId || selectedFieldId === column.id"
+          :disabled="!selectedFieldId || selectedFieldId === currentDisplayValueId || !!selectedFieldError"
           :loading="isLoading"
           size="small"
           @click="changeDisplayField"
@@ -157,17 +180,3 @@ onMounted(() => {
     </div>
   </NcModal>
 </template>
-
-<style scoped lang="scss">
-.ant-input::placeholder {
-  @apply text-nc-content-gray-muted;
-}
-
-.ant-input:placeholder-shown {
-  @apply text-nc-content-gray-muted !text-md;
-}
-
-.ant-input-affix-wrapper {
-  @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-nc-border-brand border-nc-border-gray-medium !ring-0;
-}
-</style>

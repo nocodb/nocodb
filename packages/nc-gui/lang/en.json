@@ -2459,8 +2459,7 @@
     "addedOn": "Added on",
     "addedOnDate": "Added {date}",
     "changeDisplayValueField": "Change display value field",
-    "selectYourNewTitleFor": "Select your new title field for ",
-    "searchDisplayValue": "Select display value field",
+    "displayValueField": "Display value field",
     "clearAll": "Clear all",
     "emailResponses": "Email responses",
     "peopleSelected": "{count} person | {count} people",
@@ -6192,6 +6191,7 @@
       "syncedFieldsAreNotEditable": "Synced fields are not editable",
       "previewReadonlyEdits": "Read-only preview. Editing is disabled while previewing",
       "displayValueChangeNotAvailableForSyncedTable": "Cannot change display value in synced table",
+      "fieldIsCurrentDisplayValue": "\"{field}\" is currently the display value field.",
       "codeScanner": {
         "loadingScanner": "Loading the scanner...",
         "selectColumn": "Select a field (QR code or Barcode) that you want to use for finding a record by scanning.",

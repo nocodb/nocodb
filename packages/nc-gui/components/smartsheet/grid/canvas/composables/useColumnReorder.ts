@@ -14,6 +14,7 @@ export function useColumnReorder(
   const isLocked = inject(IsLockedInj, ref(false))
   const { isUIAllowed } = useRoles()
   const { isSyncedTable, isSqlView } = useSmartsheetStoreOrThrow()
+  const isInterfaceUi = useIsInterfaceUi()
   const isDragging = ref(false)
   // field dropped on the display value slot — opens the change-display-value modal
   const displayValueDropColumnId = ref<string | null>(null)
@@ -55,23 +56,24 @@ export function useColumnReorder(
     return null
   }
 
-  const canChangeDisplayValue = () => isUIAllowed('fieldAlter') && !isSyncedTable.value && !isSqlView.value
+  // interfaces don't allow changing the display value
+  const canChangeDisplayValue = () =>
+    !isInterfaceUi.value && isUIAllowed('fieldAlter') && !isSyncedTable.value && !isSqlView.value
 
   const getDisplayValueSlot = (x: number) => {
     if (!dragStart.value || !canChangeDisplayValue()) return null
     return getDisplayValueDropSlot(columns.value, scrollLeft.value, x)
   }
 
-  // `undefined` = pointer is over the source itself (keep the last target)
-  const resolveDropTarget = (x: number): ColumnDragOver | null | undefined => {
+  const resolveDropTarget = (x: number): ColumnDragOver | null => {
     const slot = getDisplayValueSlot(x)
     if (slot) {
       return { id: slot.pvCol.id, index: slot.pvIndex, setDisplayValue: true }
     }
 
+    // over the source itself = no target, so releasing there cancels
     const col = findColumnAtPosition(x)
-    if (!col) return null
-    if (col.id === dragStart.value?.id) return undefined
+    if (!col || col.id === dragStart.value?.id) return null
 
     return { id: col.id, index: columns.value.findIndex((c) => c.id === col.id) }
   }
@@ -88,10 +90,8 @@ export function useColumnReorder(
     if (target) {
       dragOver.value = target
       requestAnimationFrame(drawCanvas)
-    } else if (target === null && dragOver.value) {
-      // No valid target under the pointer (other side of the freeze divider, or
-      // the row-number gutter) — drop the pending target so mouseup cancels
-      // instead of committing the last one we saw.
+    } else if (dragOver.value) {
+      // no valid target (row-number gutter or the source itself): clear it so mouseup cancels
       dragOver.value = null
       requestAnimationFrame(drawCanvas)
     }

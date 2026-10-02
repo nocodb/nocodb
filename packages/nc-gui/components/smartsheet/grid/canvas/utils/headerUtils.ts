@@ -14,10 +14,7 @@ export function getColumnDropTargetIndex(columns: CanvasGridColumn[], hoveredInd
   return columns[hoveredIndex]?.pv ? hoveredIndex : hoveredIndex - 1
 }
 
-/**
- * Set-as-display-value drop slot: the row-number gutter plus the left half of the
- * display value. `edgeX` is the gutter's right border, where the indicator is drawn.
- */
+// Display value drop slot: gutter + left half of the display value; edgeX = gutter right border
 export function getDisplayValueDropSlot(columns: CanvasGridColumn[], scrollLeft: number, x: number) {
   const pvIndex = columns.findIndex((c) => c.pv)
   const pvCol = columns[pvIndex]

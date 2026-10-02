@@ -1685,6 +1685,9 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   }
   // Handle all Column Header Operations
   if (y <= headerRowHeight.value) {
+    // the mouseup ending a column drag is not a header click
+    if (isDragging.value) return
+
     // If x less than 80px, use is hovering over the row meta column
     if (x < rowMetaColumnWidth.value + groupByColumns.value.length * 13) {
       // If the click is not normal single click, return

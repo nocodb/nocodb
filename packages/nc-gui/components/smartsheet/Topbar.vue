@@ -22,15 +22,11 @@ const { isMobileMode } = storeToRefs(useConfigStore())
 
 const { appInfo } = useGlobal()
 
-const { toggleExtensionPanel, isPanelExpanded } = useExtensions()
-
 const { toggleActionPanel, isPanelExpanded: isActionPanelExpanded, isViewActionsEnabled } = useActionPane()
 
 const { isPanelExpanded: isChatPanelExpanded } = useChatPanel()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-const { isEEFeatureBlocked, blockExtensions, showUpgradeToUseExtensions, communityMode, blockWorkflows } = useEeConfig()
+const { isEEFeatureBlocked, blockWorkflows } = useEeConfig()
 
 const isSharedBase = computed(() => route.params.typeOrId === 'base')
 
@@ -94,37 +90,6 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <SmartsheetToolbarTableTools
           v-if="isFormView && !activeScriptId && !activeDashboardId && !activeWorkflowId && !activeAgentId"
         />
-
-        <NcTooltip
-          v-if="
-            (isEeUI || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
-            !communityMode &&
-            !isSharedBase &&
-            !activeScriptId &&
-            !activeDashboardId &&
-            !activeWorkflowId &&
-            !activeAgentId &&
-            !isMobileMode
-          "
-          placement="bottom"
-        >
-          <template #title>{{ $t('general.extensions') }}</template>
-          <NcButton
-            v-e="['c:extension-toggle']"
-            type="text"
-            size="small"
-            class="nc-topbar-extension-btn"
-            :class="{ '!bg-nc-bg-brand !text-nc-content-brand': isPanelExpanded }"
-            data-testid="nc-topbar-extension-btn"
-            @click="
-              blockExtensions && !isPanelExpanded
-                ? showUpgradeToUseExtensions({ triggerSource: 'toolbar-extensions' })
-                : toggleExtensionPanel()
-            "
-          >
-            <GeneralIcon :icon="isPanelExpanded ? 'ncPuzzleSolid' : 'ncPuzzleOutline'" class="w-4 h-4 !stroke-transparent" />
-          </NcButton>
-        </NcTooltip>
 
         <NcButton
           v-if="

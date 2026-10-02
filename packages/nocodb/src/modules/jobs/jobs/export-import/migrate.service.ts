@@ -102,7 +102,8 @@ export class MigrateService {
 
     const exportedInterfaces = await this.exportService.serializeInterfaces(
       context,
-      { idMap: exportModelMap, req },
+      // Another instance: page-rule subjects must resolve by email there.
+      { idMap: exportModelMap, req, includeSubjectEmails: true },
     );
 
     // Gathered here with the other serializers, above the stream: everything

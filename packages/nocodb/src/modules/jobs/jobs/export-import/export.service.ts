@@ -113,7 +113,12 @@ export class ExportService {
 
   async serializeInterfaces(
     _context: NcContext,
-    _param: { idMap: Map<string, string>; req: NcRequest },
+    _param: {
+      idMap: Map<string, string>;
+      req: NcRequest;
+      excludePermissions?: boolean;
+      includeSubjectEmails?: boolean;
+    },
   ) {
     return [];
   }

@@ -4,6 +4,7 @@ export * from '~/lib/Api';
 export * from '~/lib/internalBatch';
 export * from '~/lib/timelineTypes';
 export * from '~/lib/ganttTypes';
+export * from '~/lib/timelineUtilization';
 export * from '~/lib/columnRules';
 export * from '~/lib/sqlUi';
 export * from '~/lib/globals';

@@ -1,3 +1,30 @@
+diff --git a/es/form/useForm.js b/es/form/useForm.js
+index 53e3b7bade39c33df217ea3e006ea31be0e059d2..045e843bf1ead856a4f9e92d39c1a0b56e1e9fe4 100644
+--- a/es/form/useForm.js
++++ b/es/form/useForm.js
+@@ -157,6 +157,8 @@ function useForm(modelRef) {
+     });
+     return returnPromise;
+   };
++  // nocodb: per-field sequence so only the latest validation's result is applied
++  var validateSeq = {};
+   var validateField = function validateField(name, value, rules) {
+     var option = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+     var promise = validateRules([name], value, rules, _objectSpread({
+@@ -168,11 +170,12 @@ function useForm(modelRef) {
+       });
+     }
+     validateInfos[name].validateStatus = 'validating';
++    var seq = validateSeq[name] = (validateSeq[name] || 0) + 1;
+     promise.catch(function (e) {
+       return e;
+     }).then(function () {
+       var results = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+-      if (validateInfos[name].validateStatus === 'validating') {
++      if (validateInfos[name].validateStatus === 'validating' && validateSeq[name] === seq) {
+         var _options$onValidate;
+         var res = results.filter(function (result) {
+           return result && result.errors.length;
 diff --git a/es/input/Input.js b/es/input/Input.js
 index b82d75140e62213973551b10a852a2ce194f3e83..c2c00a079518d3ded4f89cd831b63fd115e42d64 100644
 --- a/es/input/Input.js
@@ -28,6 +55,33 @@ index a93021fd63f8c5aeda5e9486952f72d3695de18c..f35ac48f5590c8801b6a15615e483654
                event.stopPropagation();
              }
            }
+diff --git a/lib/form/useForm.js b/lib/form/useForm.js
+index 1185a17aa98c8d6eceeca231bce1ebd119c41c56..71c55020f197a7bf29e8779b1bdab51fef3eb0de 100644
+--- a/lib/form/useForm.js
++++ b/lib/form/useForm.js
+@@ -164,6 +164,8 @@ function useForm(modelRef) {
+     });
+     return returnPromise;
+   };
++  // nocodb: per-field sequence so only the latest validation's result is applied
++  var validateSeq = {};
+   var validateField = function validateField(name, value, rules) {
+     var option = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+     var promise = (0, _validateUtil.validateRules)([name], value, rules, (0, _objectSpread2.default)({
+@@ -175,11 +177,12 @@ function useForm(modelRef) {
+       });
+     }
+     validateInfos[name].validateStatus = 'validating';
++    var seq = validateSeq[name] = (validateSeq[name] || 0) + 1;
+     promise.catch(function (e) {
+       return e;
+     }).then(function () {
+       var results = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+-      if (validateInfos[name].validateStatus === 'validating') {
++      if (validateInfos[name].validateStatus === 'validating' && validateSeq[name] === seq) {
+         var _options$onValidate;
+         var res = results.filter(function (result) {
+           return result && result.errors.length;
 diff --git a/lib/vc-select/OptionList.js b/lib/vc-select/OptionList.js
 index 067cf56330322759fcd481e0a8b33537a050e162..f2e81a179533cda3ef97151a2b78250ef952821a 100644
 --- a/lib/vc-select/OptionList.js

@@ -309,7 +309,7 @@ onMounted(() => {
           <div class="flex items-center content-center gap-2">
             <NcTooltip :disabled="canTargetOtherBase" class="mt-2 flex-1">
               <template v-if="!canTargetOtherBase" #title>
-                <span> This table contains linked records that reference data in the current base. </span>
+                <span> {{ $t('msg.info.duplicateTableLinkedRecords') }} </span>
               </template>
               <NcListDropdown v-model:is-open="wsDropdownOpen" :disabled="!canTargetOtherBase" default-slot-wrapper-class="gap-2">
                 <GeneralWorkspaceIcon size="small" :workspace="targetWorkspace!" />
@@ -384,7 +384,7 @@ onMounted(() => {
             <NcTooltip :disabled="canTargetOtherBase && isTargetOtherBaseSufficientPlan" class="mt-2 flex-1">
               <template v-if="!canTargetOtherBase || !isTargetOtherBaseSufficientPlan" #title>
                 <span v-if="!canTargetOtherBase">
-                  This table contains linked records that reference data in the current base.
+                  {{ $t('msg.info.duplicateTableLinkedRecords') }}
                 </span>
                 <span v-if="!isTargetOtherBaseSufficientPlan">
                   {{ $t('upgrade.upgradeToDuplicateTableToOtherBase') }}
@@ -484,7 +484,7 @@ onMounted(() => {
         $t('general.cancel')
       }}</NcButton>
       <NcButton key="submit" v-e="['a:table:duplicate']" type="primary" size="small" :loading="isLoading" @click="_duplicate">
-        Duplicate Table
+        {{ $t('labels.duplicateTable') }}
       </NcButton>
     </div>
   </GeneralModal>

@@ -5,7 +5,7 @@ const color1 = ref('')
 <template>
   <div class="bg-nc-bg-gray-light">
     <a-card>
-      <h4>Simple</h4>
+      <h4>{{ $t('activity.galleryThemeSimple') }}</h4>
 
       Selected color: {{ color1 }}
       <div class="inline-block min-h-[24px] min-w-[24px] h-[24px] w-[24px] rounded-md" :class="[`bg-${color1}`]"></div>

@@ -1,6 +1,5 @@
 import { parseCellWidth } from '../utils/cell'
 import { getColumnDropTargetIndex, getDisplayValueDropSlot } from '../utils/headerUtils'
-import { COLUMN_HEADER_HEIGHT_IN_PX } from '../utils/constants'
 
 export function useColumnReorder(
   canvasRef: Ref<HTMLCanvasElement | undefined>,
@@ -15,8 +14,6 @@ export function useColumnReorder(
   const isLocked = inject(IsLockedInj, ref(false))
   const { isUIAllowed } = useRoles()
   const { isSyncedTable, isSqlView } = useSmartsheetStoreOrThrow()
-  const { t } = useI18n()
-  const tooltipStore = useTooltipStore()
   const isDragging = ref(false)
   // field dropped on the display value slot — opens the change-display-value modal
   const displayValueDropColumnId = ref<string | null>(null)
@@ -64,8 +61,6 @@ export function useColumnReorder(
     return null
   }
 
-  let isHintShown = false
-
   const canChangeDisplayValue = () => isUIAllowed('fieldAlter') && !isSyncedTable.value && !isSqlView.value
 
   const getDisplayValueSlot = (x: number) => {
@@ -87,24 +82,6 @@ export function useColumnReorder(
     return { id: col.id, index: columns.value.findIndex((c) => c.id === col.id) }
   }
 
-  const hideHint = () => {
-    if (!isHintShown) return
-    tooltipStore.hideTooltip()
-    isHintShown = false
-  }
-
-  const updateHint = (x: number, y: number) => {
-    const slot = getDisplayValueSlot(x)
-    if (!slot) return hideHint()
-
-    tooltipStore.showTooltip({
-      text: t('tooltip.dropToSetAsDisplayValue'),
-      rect: { x: slot.edgeX, y: 0, width: 1, height: COLUMN_HEADER_HEIGHT_IN_PX },
-      mousePosition: { x, y },
-    })
-    isHintShown = true
-  }
-
   const handleDrag = (e: MouseEvent) => {
     if (!isDragging.value || !dragStart.value) return
 
@@ -113,7 +90,6 @@ export function useColumnReorder(
 
     const x = e.clientX - rect.left
     const target = resolveDropTarget(x)
-    updateHint(x, e.clientY - rect.top)
 
     if (target) {
       dragOver.value = target
@@ -142,7 +118,6 @@ export function useColumnReorder(
     isDragging.value = false
     dragStart.value = null
     dragOver.value = null
-    hideHint()
 
     window.removeEventListener('mousemove', handleDrag)
     window.removeEventListener('mouseup', dragEndHandler)

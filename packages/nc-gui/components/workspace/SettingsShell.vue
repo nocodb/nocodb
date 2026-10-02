@@ -17,7 +17,7 @@ const route = router.currentRoute
 
 const { $e } = useNuxtApp()
 
-const { isUIAllowed, isBaseRolesLoaded } = useRoles()
+const { isUIAllowed, isWorkspaceRolesLoaded } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
@@ -37,13 +37,16 @@ provide(IsSettingsSidebarInj, ref(true))
 
 const workspaceId = computed(() => activeWorkspace.value?.id)
 
+// Gate on this workspace's roles: after a switch, the previous workspace's linger until the reload lands.
+const isRolesLoaded = computed(() => isWorkspaceRolesLoaded(workspaceId.value))
+
 const meta = computed(() => paneMeta.value[props.tab])
 
 // `availableTabs` is a new Set on every recompute; watch its contents so reloads and telemetry fire only on real change.
 const availableTabsKey = computed(() => [...availableTabs.value].sort().join(','))
 
 // Panes load on mount, so one the reader cannot reach must never mount.
-const isPaneAllowed = computed(() => isBaseRolesLoaded.value && availableTabs.value.has(props.tab))
+const isPaneAllowed = computed(() => isRolesLoaded.value && availableTabs.value.has(props.tab))
 
 // The General page's sections, one rail row each.
 const generalSectionBySlug: Partial<Record<WsSettingsSlug, WsSettingsSection>> = {
@@ -80,28 +83,24 @@ function onBack() {
   const backRoute = ncWsSettingsBackRoute().get()
 
   // Only back into this workspace; a stale entry from another one falls back to its home.
-  navigateTo(backRoute?.startsWith(`/${workspaceId.value}`) ? backRoute : `/${workspaceId.value}`)
-}
+  // CE has one workspace, and its bases live under `/nc/`, not under its id.
+  const isSameWorkspace = !!backRoute && (!isEeUI || backRoute.split(/[/?#]/)[1] === workspaceId.value)
 
-function onGroupToggle(key: string, open: boolean) {
-  $e('c:settings:ws:group:toggle', { group: key, open })
+  navigateTo(isSameWorkspace ? backRoute : `/${workspaceId.value}`)
 }
 
 watch(
-  [() => props.tab, isBaseRolesLoaded, availableTabsKey, workspaceId],
+  [() => props.tab, isRolesLoaded, availableTabsKey, workspaceId],
   () => {
-    if (!isBaseRolesLoaded.value) return
+    if (!isRolesLoaded.value) return
 
     if (!workspaceId.value) return
 
-    if (!availableTabs.value.size || !firstAvailableTab.value) {
-      navigateTo(`/${workspaceId.value}`, { replace: true })
-      return
-    }
-
     // Bounce a deep link this role, edition or plan cannot reach.
     if (!availableTabs.value.has(props.tab)) {
-      navigateTo(wsSettingsPath(workspaceId.value, firstAvailableTab.value), { replace: true })
+      navigateTo(firstAvailableTab.value ? wsSettingsPath(workspaceId.value, firstAvailableTab.value) : `/${workspaceId.value}`, {
+        replace: true,
+      })
       return
     }
 
@@ -130,7 +129,6 @@ watch(
       testid-prefix="nc-ws-settings-rail"
       event-prefix="c:settings:ws:"
       @select="goToTab"
-      @group-toggle="onGroupToggle"
     >
       <template #top>
         <!-- Which workspace these settings belong to, level with the breadcrumb strip. -->

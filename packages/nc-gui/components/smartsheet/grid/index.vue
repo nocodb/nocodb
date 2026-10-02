@@ -78,6 +78,7 @@ const {
   isFirstRow,
   chunkStates,
   updateRecordOrder,
+  updateRowFields,
   clearInvalidRows,
   isRowSortRequiredRows,
   applySorting,
@@ -928,6 +929,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
         :bulk-update-rows="bulkUpdateRows"
         :bulk-upsert-rows="bulkUpsertRows"
         :update-record-order="updateRecordOrder"
+        :update-row-fields="updateRowFields"
         :bulk-delete-all="bulkDeleteAll"
         :clear-cache="clearCache"
         :clear-invalid-rows="clearInvalidRows"

@@ -9,10 +9,10 @@ import {
   type ViewType,
 } from 'nocodb-sdk'
 import { createGroupUniqueIdentifier, generateGroupPath } from '../components/smartsheet/grid/canvas/utils/groupby'
+import { GROUP_CHUNK_SIZE } from '../components/smartsheet/grid/canvas/utils/constants'
 import type { CanvasGroup } from '#imports'
 import { groupKeysManager } from '#imports'
 
-const GROUP_CHUNK_SIZE = 100
 const MAX_GROUP_CACHE_SIZE = 100
 
 const getSortParams = (sort: string) => {
@@ -517,22 +517,25 @@ export const useInfiniteGroups = (
     await Promise.all(chunksToFetch.map((chunkId) => fetchGroupChunk(chunkId, parentGroup, force)))
     callbacks?.syncVisibleData()
 
-    // if found empty chunk, remove all chunks after it and fetch all chunks again
-    if (force) {
-      let foundEmptyChunk = false
-      for (let i = startIndex; i <= endIndex; i++) {
-        const targetGroup = cachedGroups.value.get(i)
-        if (targetGroup?.count === 0) {
-          foundEmptyChunk = true
-        }
+    if (!force) return
 
-        if (foundEmptyChunk) {
-          cachedGroups.value.delete(i)
-        }
+    // if found empty chunk, remove all chunks after it and fetch all chunks again
+    const groupMap = parentGroup ? parentGroup.groups : cachedGroups.value
+    let foundEmptyChunk = false
+    for (let i = startIndex; i <= endIndex; i++) {
+      const targetGroup = groupMap.get(i)
+      if (targetGroup?.count === 0) {
+        foundEmptyChunk = true
+      }
+
+      if (foundEmptyChunk) {
+        groupMap.delete(i)
       }
     }
 
-    await Promise.all(chunksToFetch.map((chunkId) => fetchGroupChunk(chunkId, parentGroup, force)))
+    if (foundEmptyChunk) {
+      await Promise.all(chunksToFetch.map((chunkId) => fetchGroupChunk(chunkId, parentGroup, force)))
+    }
   }
 
   const clearGroupCache = (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => {

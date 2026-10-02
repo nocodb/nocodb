@@ -40,10 +40,7 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
   <template v-for="({ field, width, column, value }, index) in visibleFieldsComputed" :key="index">
     <div
       v-if="index === 0 && scrollLeft > 30"
-      :style="`width: ${getAddnlMargin(depth, true)}px;min-width: ${getAddnlMargin(depth, true)}px;max-width: ${getAddnlMargin(
-        depth,
-        true,
-      )}px`"
+      :style="`width: ${getAddnlMargin(depth)}px;min-width: ${getAddnlMargin(depth)}px;max-width: ${getAddnlMargin(depth)}px`"
     ></div>
     <NcDropdown
       v-if="field && column?.id"

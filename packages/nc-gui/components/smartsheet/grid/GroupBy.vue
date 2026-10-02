@@ -270,17 +270,7 @@ const computedWidth = computed(() => {
   // The _scrollLeft is calculated only on root and passed down to nested groups
   const tempScrollLeft = vGroup.value.root ? _scrollLeft.value ?? 0 : scrollLeft.value ?? 0
 
-  const getSubGroupWidth = (depth: number) => {
-    switch (depth) {
-      case 3:
-        return `${baseValue - 18}px`
-      case 2:
-        return `${baseValue - 9}px`
-      case 1:
-      default:
-        return `${baseValue}px`
-    }
-  }
+  const getSubGroupWidth = (depth: number) => `${baseValue - Math.max(depth - 1, 0) * 9}px`
 
   if (_depth === 0) {
     if (tempScrollLeft < 29) {
@@ -306,40 +296,27 @@ const computedWidth = computed(() => {
     return getSubGroupWidth(maxDepth)
   }
 
-  // TODO: We only allow 3 levels of nesting for now
-  // We only allow 3 levels of nesting for now
-  // If we add support for more levels, we need to adjust the width calculation
-  // for each level
-
-  return `${baseValue}px`
+  if (tempScrollLeft <= 14) {
+    return `${baseValue - _depth * 9}px`
+  }
+  return getSubGroupWidth(maxDepth)
 })
 
+// Indexed by distance from the innermost group level; each outer level is one shade darker.
 const bgColor = computed(() => {
-  if (props.maxDepth === 3) {
-    switch (_depth) {
-      case 2:
-        return getColor(themeV4Colors.gray['50'])
-      case 1:
-        return getColor(themeV4Colors.gray['100'])
-      default:
-        return getColor('#F1F1F1', themeV4Colors.gray['200'])
-    }
+  const tier = Math.max((props.maxDepth || 1) - 1 - _depth, 0)
+  switch (tier) {
+    case 0:
+      return getColor(themeV4Colors.gray['50'])
+    case 1:
+      return getColor(themeV4Colors.gray['100'])
+    case 2:
+      return getColor('#F1F1F1', themeV4Colors.gray['200'])
+    case 3:
+      return getColor(themeV4Colors.gray['300'])
+    default:
+      return getColor(themeV4Colors.gray['400'])
   }
-
-  if (props.maxDepth === 2) {
-    switch (_depth) {
-      case 1:
-        return getColor(themeV4Colors.gray['50'])
-      default:
-        return getColor(themeV4Colors.gray['100'])
-    }
-  }
-
-  if (props.maxDepth === 1) {
-    return getColor(themeV4Colors.gray['50'])
-  }
-
-  return getColor(themeV4Colors.gray['50'])
 })
 async function openNewRecordHandler() {
   if (_depth !== 0) return

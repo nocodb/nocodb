@@ -76,6 +76,9 @@ export const stringToViewTypeMap: Record<string, ViewTypes> = Object.entries(
 
 export const VIEW_GRID_DEFAULT_WIDTH = 200;
 
+/** Maximum number of group-by levels on a view. */
+export const GROUP_BY_MAX_LEVELS = 5;
+
 export enum ProjectTypes {
   DATABASE = 'database',
   DOCUMENTATION = 'documentation',

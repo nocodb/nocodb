@@ -10,7 +10,7 @@ import {
   isColumnInError,
   isSupportedDisplayValueColumn,
 } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { GROUP_BY_MAX_LEVELS, UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { Group } from '../lib/types'
 import type { InterfacePageDataApi } from '../lib/interfaceData'
@@ -34,7 +34,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     /** Same-instance-provide workaround as the adapter — the interface hosts' own reload hook. */
     reloadData?: () => void,
   ) => {
-    const groupByLimit = 3
+    const groupByLimit = GROUP_BY_MAX_LEVELS
 
     const { t } = useI18n()
 

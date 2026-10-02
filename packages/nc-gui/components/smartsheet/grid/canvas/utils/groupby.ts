@@ -1,93 +1,48 @@
+import tinycolor from 'tinycolor2'
 import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { GROUP_EXPANDED_BOTTOM_PADDING, GROUP_HEADER_HEIGHT, GROUP_PADDING } from './constants'
 
+// Shading stops for a 3-level group-by, innermost first.
+const GROUP_COLOR_STOPS = {
+  background: [themeV4Colors.base.white, themeV4Colors.gray['50'], themeV4Colors.gray['100']],
+  border: [themeV4Colors.gray['200'], themeV4Colors.gray['300'], themeV4Colors.gray['400']],
+  hover: [themeV4Colors.gray['50'], themeV4Colors.gray['100'], themeV4Colors.gray['200']],
+  aggBorder: [themeV4Colors.gray['100'], themeV4Colors.gray['200'], themeV4Colors.gray['200']],
+}
+
+/**
+ * Shade for a group level from resolved `stops` (innermost first). Up to `stops.length` levels each take a stop;
+ * deeper groupings are spread across the same range so outer levels never get darker than the outermost stop.
+ * `tier` is the distance from the innermost level.
+ */
+export function getGroupShade(stops: string[], tier: number, levels: number): string {
+  const last = stops.length - 1
+  const pos = levels > stops.length ? (tier / (levels - 1)) * last : Math.min(tier, last)
+  const i = Math.min(Math.floor(pos), last)
+  const fraction = pos - i
+  if (!fraction) return stops[i]!
+  return tinycolor.mix(stops[i]!, stops[i + 1]!, fraction * 100).toRgbString()
+}
+
 export function getGroupColors(depth: number, maxDepth: number, getColor: (color: string) => string) {
-  depth = depth + 1
-  if (maxDepth === 1) {
-    return {
-      border: getColor(themeV4Colors.gray['200']),
-      background: getColor(themeV4Colors.base.white),
-      aggregation: {
-        hover: getColor(themeV4Colors.gray['50']), // Hover State
-        default: getColor(themeV4Colors.base.white), // Default Bg State
-        border: getColor(themeV4Colors.gray['100']),
-      },
-    }
-  }
+  const tier = Math.max(maxDepth - depth - 1, 0)
+  const shade = (stops: string[]) =>
+    getGroupShade(
+      stops.map((c) => getColor(c)),
+      tier,
+      maxDepth,
+    )
 
-  if (maxDepth === 2) {
-    switch (depth) {
-      case 2: {
-        return {
-          background: getColor(themeV4Colors.base.white),
-          border: getColor(themeV4Colors.gray['200']),
-          aggregation: {
-            hover: getColor(themeV4Colors.gray['50']), // Hover State
-            default: getColor(themeV4Colors.base.white), // Default Bg State
-            border: getColor(themeV4Colors.gray['100']),
-          },
-        }
-      }
-      case 1: {
-        return {
-          background: getColor(themeV4Colors.gray['50']),
-          border: getColor(themeV4Colors.gray['300']),
-          aggregation: {
-            hover: getColor(themeV4Colors.gray['100']), // Hover State
-            default: getColor(themeV4Colors.gray['50']), // Default Bg State
-            border: getColor(themeV4Colors.gray['200']),
-          },
-        }
-      }
-    }
-  }
-
-  if (maxDepth === 3) {
-    switch (depth) {
-      case 3: {
-        return {
-          background: getColor(themeV4Colors.base.white),
-          border: getColor(themeV4Colors.gray['200']),
-          aggregation: {
-            hover: getColor(themeV4Colors.gray['50']), // Hover State
-            default: getColor(themeV4Colors.base.white), // Default Bg State
-            border: getColor(themeV4Colors.gray['100']),
-          },
-        }
-      }
-      case 2: {
-        return {
-          background: getColor(themeV4Colors.gray['50']),
-          border: getColor(themeV4Colors.gray['300']),
-          aggregation: {
-            hover: getColor(themeV4Colors.gray['100']), // Hover State
-            default: getColor(themeV4Colors.gray['50']), // Default Bg State
-            border: getColor(themeV4Colors.gray['200']),
-          },
-        }
-      }
-      case 1: {
-        return {
-          background: getColor(themeV4Colors.gray['100']),
-          border: getColor(themeV4Colors.gray['400']),
-          aggregation: {
-            hover: getColor(themeV4Colors.gray['200']), // Hover State
-            default: getColor(themeV4Colors.gray['100']), // Default Bg State
-            border: getColor(themeV4Colors.gray['200']),
-          },
-        }
-      }
-    }
-  }
+  const background = shade(GROUP_COLOR_STOPS.background)
 
   return {
-    background: getColor(themeV4Colors.base.white),
-    border: getColor(themeV4Colors.gray['200']),
+    background,
+    border: shade(GROUP_COLOR_STOPS.border),
     aggregation: {
-      hover: getColor(themeV4Colors.gray['50']), // Hover State
-      default: getColor(themeV4Colors.base.white), // Default Bg State
-      border: getColor(themeV4Colors.gray['100']),
+      hover: shade(GROUP_COLOR_STOPS.hover), // Hover State
+      default: background, // Default Bg State
+      border: shade(GROUP_COLOR_STOPS.aggBorder),
     },
   }
 }

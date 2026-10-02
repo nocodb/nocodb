@@ -4036,12 +4036,10 @@ export function useCanvasRender({
           y: groupHeaderY + (GROUP_HEADER_HEIGHT - 16) / 2,
         })
 
-        // 16px is the icon size
-        // 16px is the right padding
-        // xOffset + 16 is the left padding
-        const availableWidth = mergedWidth - (xOffset + 16 + 16)
-
         const contentX = xOffset + 34
+
+        // mergedWidth already excludes the indent, so only the chevron offset and an 11px gap before the count are subtracted.
+        const availableWidth = mergedWidth - (contentX - xOffset) - 11
 
         const contentY = groupHeaderY + (GROUP_HEADER_HEIGHT - 30) / 2
 

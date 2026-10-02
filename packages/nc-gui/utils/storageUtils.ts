@@ -39,12 +39,14 @@ export const ncBackRoute = (): {
 export const ncWsSettingsBackRoute = (): {
   get: () => string | null
   set: (value: string) => void
+  clear: () => void
 } => {
   const key = 'ncWsSettingsBackRoute'
 
   return {
     get: () => sessionStorage.getItem(key),
     set: (value: string) => sessionStorage.setItem(key, value),
+    clear: () => sessionStorage.removeItem(key),
   }
 }
 

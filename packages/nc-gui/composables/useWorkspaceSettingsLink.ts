@@ -2,8 +2,6 @@
 export function useWorkspaceSettingsLink() {
   const router = useRouter()
 
-  const route = router.currentRoute
-
   return function openWorkspaceSettings(
     slug: WsSettingsSlug,
     { workspaceId, query, newTab }: { workspaceId?: string; query?: Record<string, string>; newTab?: boolean } = {},
@@ -14,9 +12,6 @@ export function useWorkspaceSettingsLink() {
     if (!targetWsId) return
 
     const target = { path: wsSettingsPath(targetWsId, slug), query }
-
-    // Back on the settings page returns here; moving between panes keeps the first origin.
-    if (!newTab && !wsSettingsSlugFromRoute(route.value)) ncWsSettingsBackRoute().set(route.value.fullPath)
 
     if (newTab) {
       return navigateTo(router.resolve(target).href, { open: navigateToBlankTargetOpenOption })

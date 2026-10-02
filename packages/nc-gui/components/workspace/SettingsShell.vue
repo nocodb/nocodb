@@ -39,6 +39,9 @@ const workspaceId = computed(() => activeWorkspace.value?.id)
 
 const meta = computed(() => paneMeta.value[props.tab])
 
+// `availableTabs` is a new Set on every recompute; watch its contents so reloads and telemetry fire only on real change.
+const availableTabsKey = computed(() => [...availableTabs.value].sort().join(','))
+
 // Panes load on mount, so one the reader cannot reach must never mount.
 const isPaneAllowed = computed(() => isBaseRolesLoaded.value && availableTabs.value.has(props.tab))
 
@@ -85,7 +88,7 @@ function onGroupToggle(key: string, open: boolean) {
 }
 
 watch(
-  [() => props.tab, isBaseRolesLoaded, availableTabs, workspaceId],
+  [() => props.tab, isBaseRolesLoaded, availableTabsKey, workspaceId],
   () => {
     if (!isBaseRolesLoaded.value) return
 

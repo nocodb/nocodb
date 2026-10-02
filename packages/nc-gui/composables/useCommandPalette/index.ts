@@ -168,6 +168,13 @@ export const useCommandPalette = createSharedComposable(() => {
       })
       .catch((e) => {
         cmdLoading.value = false
+        // Re-arm the refresh. `needRefresh` is cleared BEFORE the request, so
+        // without this a single failed or aborted `commandPalette` call
+        // disables the palette's data for the rest of the page session: every
+        // later open early-returns on `!needRefresh` and never refetches, and
+        // the palette shows only the static commands plus "No results found".
+        // That is the state captured for the flaky `Verify Command K`.
+        needRefresh.value = true
         console.log(e)
       })
   }

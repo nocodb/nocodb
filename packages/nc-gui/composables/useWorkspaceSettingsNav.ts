@@ -36,6 +36,20 @@ export function useWorkspaceSettingsNav() {
 
     const groups: ShellRailGroup[] = [
       {
+        // The workspace itself, above the groups: where Settings lands.
+        key: 'workspace',
+        label: '',
+        items: [
+          canSeeGeneral.value && {
+            slug: 'general',
+            icon: 'ncSettings',
+            testId: 'ws-general',
+            title: t('general.general'),
+            keywords: 'appearance name rename icon image logo',
+          },
+        ].filter(Boolean) as ShellRailGroup['items'],
+      },
+      {
         key: 'people',
         label: t('labels.wsNav.groupPeople'),
         items: [
@@ -90,24 +104,16 @@ export function useWorkspaceSettingsNav() {
         ].filter(Boolean) as ShellRailGroup['items'],
       },
       {
-        // Everything about the workspace itself, in one group: its identity and
-        // AI defaults first, then oversight, then the irreversible actions last.
+        // Oversight and policy first, then the irreversible actions last.
         key: 'admin',
         label: t('labels.wsNav.groupAdmin'),
         items: [
-          canSeeGeneral.value && {
-            slug: 'general',
-            icon: 'ncSettings',
-            testId: 'ws-general',
-            title: t('general.general'),
-            keywords: 'appearance name rename icon image logo',
-          },
-          canSeeSkills.value && {
-            slug: 'skills',
-            icon: 'ncScript',
-            testId: 'ws-skills',
-            title: t('labels.aiSkills'),
-            keywords: 'ai skill prompt assistant',
+          v.audits && {
+            slug: 'audits',
+            icon: 'audit',
+            testId: 'ws-audits',
+            title: t('title.audits'),
+            keywords: 'audit history activity log who changed',
           },
           canSeeSecurity.value && {
             slug: 'security',
@@ -116,19 +122,19 @@ export function useWorkspaceSettingsNav() {
             title: t('labels.enableTwoFactor'),
             keywords: 'security two factor 2fa mfa force authentication',
           },
-          v.audits && {
-            slug: 'audits',
-            icon: 'audit',
-            testId: 'ws-audits',
-            title: t('title.audits'),
-            keywords: 'audit history activity log who changed',
-          },
           v.sso && {
             slug: 'sso',
             icon: 'sso',
             testId: 'ws-sso',
             title: t('title.sso'),
             keywords: 'sso saml oidc single sign on login identity provider',
+          },
+          canSeeSkills.value && {
+            slug: 'skills',
+            icon: 'ncScript',
+            testId: 'ws-skills',
+            title: t('labels.aiSkills'),
+            keywords: 'ai skill prompt assistant',
           },
           canSeeGeneral.value && {
             slug: 'danger-zone',

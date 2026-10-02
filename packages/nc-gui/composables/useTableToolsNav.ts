@@ -1,10 +1,7 @@
 import type { ShellRailGroup } from '~/components/shell/Rail.vue'
 import type { ViewPageType } from '~/lib/types'
 
-/**
- * Table Tools menu: per-tool visibility gates and grouped items, shared by the
- * Tools shell rail (smartsheet/Details.vue) and the toolbar Tools dropdown.
- */
+// Tools gates + groups, shared by the shell rail and the toolbar dropdown.
 export const useTableToolsNav = () => {
   const { t } = useI18n()
 
@@ -28,8 +25,7 @@ export const useTableToolsNav = () => {
     () => isEeUI && isUIAllowed('dateDependencyManage') && !isSqlView.value && showEEFeatures.value,
   )
 
-  // Record templates are base-level data and the shell embeds their manager, so
-  // they're reachable from any view. recordTemplate* is an EDITOR-and-up ACL block.
+  // Base-level, so reachable from any view; EDITOR+ ACL.
   const showRecordTemplatesAction = computed(() => isEeUI && isUIAllowed('viewOperations') && showEEFeatures.value)
 
   // Relations / API are always available.

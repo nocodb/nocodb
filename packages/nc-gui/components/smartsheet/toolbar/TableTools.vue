@@ -1,9 +1,6 @@
 <script lang="ts" setup>
 import type { ViewPageType } from '~/lib/types'
 
-// Icon-only "Tools" toolbar entry: a dropdown listing the table tools; picking
-// one opens the Tools shell modal (components/smartsheet/Details.vue) on it.
-
 const { onViewsTabChange } = useViewsStore()
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
@@ -33,7 +30,7 @@ const isDropdownOpen = ref(false)
 
 const visibleGroups = computed(() => toolGroups.value.filter((group) => group.items.length))
 
-// Same gate as the topbar Extensions button. Menu-only: it opens the side panel, not a shell tool.
+// Opens the side panel, not a shell tool.
 const showExtensions = computed(() => (isEeUI || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) && !communityMode.value)
 
 function openTool(slug: string) {
@@ -81,6 +78,7 @@ function openExtensions() {
           <NcMenuItem
             v-for="item in group.items"
             :key="item.slug"
+            v-e="[`c:table:tools-shell:${item.ev ?? item.slug}`]"
             :data-testid="`nc-table-tools-menu-${item.slug}`"
             @click="openTool(item.slug)"
           >

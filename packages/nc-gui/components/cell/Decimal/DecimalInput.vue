@@ -295,6 +295,16 @@ const onInputBlur = (e: FocusEvent) => {
     saveValue(targetValue)
     setTimeout(() => {
       // allow for debouncing to clear first
+      //
+      // ...but never rewrite an input that has been refocused in the meantime.
+      // This deferred refresh writes the formatted MODEL value into the DOM, so
+      // if a new value was entered within these 100ms without a keyup having
+      // committed it yet (browser autofill, IME composition, programmatic
+      // fill), it was silently replaced by the previous value. Same rule as the
+      // vModel watcher below: don't touch the input while it is being edited.
+      // The next blur formats it.
+      if (document.activeElement === inputRef.value) return
+
       refreshVModel()
     }, 100)
   }

@@ -240,7 +240,19 @@ AND t.table_name=?;`,
   BEGIN
     RETURN to_timestamp(value, format);
     EXCEPTION
-      WHEN others THEN RETURN NULL;  
+      WHEN others THEN RETURN NULL;
+  END;
+  $$ LANGUAGE plpgsql;
+CREATE OR REPLACE FUNCTION nc_iso_to_timestamp_safe(value text, keep_wall_time boolean) RETURNS TIMESTAMP AS $$
+  BEGIN
+    -- An offset (Z / +05:30) is honoured, landing in the session zone the app writes DateTime in.
+    -- keep_wall_time (Date targets) ignores it: ::timestamp drops the offset, so the date stays as written.
+    IF NOT keep_wall_time AND value ~* '\\d(\\.\\d+){0,1}\\s*(z|[+-]\\d{2}(:{0,1}\\d{2}){0,1})$' THEN
+      RETURN value::timestamptz::timestamp;
+    END IF;
+    RETURN value::timestamp;
+    EXCEPTION
+      WHEN others THEN RETURN NULL;
   END;
   $$ LANGUAGE plpgsql;`,
       paramsHints: [],

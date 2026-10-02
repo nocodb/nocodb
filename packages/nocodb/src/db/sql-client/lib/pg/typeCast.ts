@@ -70,7 +70,18 @@ function generateBooleanCastQuery(columnName: string): string {
  * @param {String} functionName - Function name to cast value to date time
  * @returns {String} - query to cast value to date time
  */
-function generateDateTimeCastQuery(source: string, dateFormat: string) {
+// Only shapes the format cases can't read (a `T` or an offset) — a plain
+// `YYYY-MM-DD HH:mm` must still go through the column's own date format.
+const ISO_TIME = '\\d{1,2}:\\d{2}(:\\d{2}(\\.\\d+){0,1}){0,1}';
+const ISO_OFFSET = '\\s*(z|[+-]\\d{2}(:{0,1}\\d{2}){0,1})';
+const ISO_DATETIME_REGEX = `^\\d{4}-\\d{1,2}-\\d{1,2}(t${ISO_TIME}(${ISO_OFFSET}){0,1}|\\s+${ISO_TIME}${ISO_OFFSET})$`;
+
+function generateDateTimeCastQuery(
+  source: string,
+  dateFormat: string,
+  // Date targets have no zone: keep the date as written rather than shifting it by the offset.
+  keepWallTime = false,
+) {
   if (!(dateFormat in DATE_FORMATS)) {
     NcError.badRequest(`Invalid date format: ${dateFormat}`);
   }
@@ -94,8 +105,15 @@ function generateDateTimeCastQuery(source: string, dateFormat: string) {
       .join('\n'),
   );
 
-  return `CASE 
-    ${cases.join('\n')}
+  // ISO-8601 / our own CSV export (`2026-10-02 10:30:00+00:00`, `…T…Z`) —
+  // checked first: the format cases below never match an offset or a `T`.
+  const isoCase =
+    dateFormat === 'empty'
+      ? ''
+      : `WHEN ${source} ~* '${ISO_DATETIME_REGEX}' THEN nc_iso_to_timestamp_safe(${source}, ${keepWallTime})\n`;
+
+  return `CASE
+    ${isoCase}${cases.join('\n')}
     ELSE NULL
    END;`;
 }
@@ -285,6 +303,7 @@ export function generateCastQuery({
       return `CAST(${generateDateTimeCastQuery(
         source,
         getDateFormat(format),
+        true,
       ).slice(0, -1)} AS DATE);`;
     case UITypes.DateTime:
       return generateDateTimeCastQuery(source, getDateFormat(format));

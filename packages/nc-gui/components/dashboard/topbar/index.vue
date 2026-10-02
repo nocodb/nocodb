@@ -5,7 +5,7 @@ const props = defineProps<{
 
 const navigateToWorkspace = () => {
   if (props.workspaceId) {
-    navigateTo(`/${props.workspaceId}/settings`)
+    navigateTo({ path: `/${props.workspaceId}`, query: { wsSettings: 'general' } })
   }
 }
 </script>

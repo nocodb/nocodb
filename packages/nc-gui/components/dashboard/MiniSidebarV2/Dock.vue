@@ -33,6 +33,8 @@ const sidebarStore = useSidebarStore()
 
 const { activeSidebarTab } = storeToRefs(sidebarStore)
 
+const openWorkspaceSettings = useWorkspaceSettingsLink()
+
 const { isUIAllowed, workspaceRoles } = useRoles()
 
 const notificationStore = useNotification()
@@ -127,15 +129,12 @@ const onTabClick = async (tabKey: string) => {
   if (isChatFullScreen.value) isChatFullScreen.value = false
 
   if (tabKey === 'settings') {
-    // Base settings opens as a modal over wherever you are — same route, plus
-    // `?settings=` — so the table underneath stays put. Workspace settings is
-    // still a page, and still owns the sidebar.
+    // Both settings open as a modal over wherever you are, so the page
+    // underneath stays put.
     if (isBaseOpen.value) {
       navigateTo({ query: { ...route.value.query, settings: 'members' } })
     } else {
-      activeSidebarTab.value = 'settings'
-      const wsId = route.value.params.typeOrId || activeWorkspaceId.value
-      navigateTo(`/${wsId}/members`)
+      openWorkspaceSettings('members')
     }
     return
   }
@@ -379,7 +378,7 @@ const handleOpenBookmarkPanel = () => {
 // own, so the tile reads the query alongside the workspace-settings page. Only a
 // slug the nav knows counts — `?settings=true` belongs to the agent panel.
 const isSettingsActive = computed(
-  () => activeSidebarTab.value === 'settings' || !!resolveBaseSettingsTab(route.value.query.settings),
+  () => !!resolveBaseSettingsTab(route.value.query.settings) || !!resolveWsSettingsSlug(route.value.query.wsSettings),
 )
 </script>
 

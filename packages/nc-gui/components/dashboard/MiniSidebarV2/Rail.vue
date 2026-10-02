@@ -34,6 +34,8 @@ const sidebarStore = useSidebarStore()
 
 const { activeSidebarTab } = storeToRefs(sidebarStore)
 
+const openWorkspaceSettings = useWorkspaceSettingsLink()
+
 const { isUIAllowed, workspaceRoles } = useRoles()
 
 const notificationStore = useNotification()
@@ -151,19 +153,15 @@ const onTabClick = async (tabKey: string) => {
   if (isChatFullScreen.value) isChatFullScreen.value = false
 
   if (tabKey === 'settings') {
-    // Base settings opens as a modal over wherever you are — same route, plus
-    // `?settings=` — so the table underneath stays put and the sidebar keeps
-    // showing the vertical you were in. Workspace settings is still a page, and
-    // still owns the sidebar.
+    // Both settings open as a modal over wherever you are — same route, plus a
+    // query param — so the page underneath stays put and the sidebar keeps
+    // showing the vertical you were in.
     if (isBaseOpen.value) {
       navigateTo({ query: { ...route.value.query, settings: 'members' } })
       return
     }
 
-    activeSidebarTab.value = 'settings'
-
-    const wsId = route.value.params.typeOrId || activeWorkspaceId.value
-    navigateTo(`/${wsId}/members`)
+    openWorkspaceSettings('members')
     return
   }
 
@@ -333,12 +331,11 @@ const handleOpenBookmarkPanel = () => {
   }
 }
 
-// Base settings is an overlay on the current route rather than a route of its
-// own, so the tile reads the query alongside the workspace-settings page. Only a
-// slug the nav knows counts — `?settings=true` belongs to the agent panel.
+// Both settings are overlays on the current route, so the tile reads the query.
+// Only a slug the nav knows counts — `?settings=true` belongs to the agent panel.
 const isBaseSettingsOpen = computed(() => !!resolveBaseSettingsTab(route.value.query.settings))
 
-const isSettingsActive = computed(() => activeSidebarTab.value === 'settings' || isBaseSettingsOpen.value)
+const isSettingsActive = computed(() => isBaseSettingsOpen.value || !!resolveWsSettingsSlug(route.value.query.wsSettings))
 </script>
 
 <template>

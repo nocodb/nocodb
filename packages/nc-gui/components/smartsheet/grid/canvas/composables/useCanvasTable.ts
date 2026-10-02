@@ -1694,7 +1694,9 @@ export function useCanvasTable({
 
       if (nextToViewCol === null && lastViewCol === null) return
 
-      const newOrder = nextToViewCol ? toViewCol.order + (nextToViewCol.order - toViewCol.order) / 2 : lastViewCol.order + 1
+      // the display value is pinned first but isn't always lowest-order (interface `field_order`)
+      const lowerOrder = toCol.pv && nextToViewCol ? Math.min(toViewCol.order, nextToViewCol.order - 1) : toViewCol.order
+      const newOrder = nextToViewCol ? lowerOrder + (nextToViewCol.order - lowerOrder) / 2 : lastViewCol.order + 1
 
       toBeReorderedViewCol.order = newOrder
 

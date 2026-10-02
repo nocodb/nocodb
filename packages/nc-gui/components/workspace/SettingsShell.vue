@@ -116,8 +116,6 @@ watch(
 
 <template>
   <div class="nc-ws-settings relative flex h-full w-full" data-testid="nc-ws-settings-wrapper">
-    <ShellBack v-if="isMobileMode && !isRailOnlyOnMobile" testid="nc-ws-settings-back" @back="isRailOnlyOnMobile = true" />
-
     <ShellRail
       v-if="showRail"
       class="!bg-nc-bg-default"
@@ -157,7 +155,14 @@ watch(
 
     <div v-if="showPane" class="flex-1 flex flex-col min-w-0 min-h-0">
       <!-- Same height as the rail's Back row, so both columns start on one line. -->
-      <div class="nc-ws-settings-topbar nc-shell-gutter gap-1.5 text-bodyDefaultSm" :class="{ '!pl-14': isMobileMode }">
+      <div class="nc-ws-settings-topbar nc-shell-gutter gap-1.5 text-bodyDefaultSm" :class="{ '!pl-3': isMobileMode }">
+        <ShellBack
+          v-if="isMobileMode && !isRailOnlyOnMobile"
+          inline
+          class="mr-1"
+          testid="nc-ws-settings-back"
+          @back="isRailOnlyOnMobile = true"
+        />
         <span class="text-nc-content-gray-muted">{{ $t('labels.settings') }}</span>
         <span class="text-nc-content-gray-muted">/</span>
         <span class="text-bodyDefaultSmBold text-nc-content-gray truncate">{{ meta?.title }}</span>
@@ -168,7 +173,7 @@ watch(
         :title="meta?.title ?? ''"
         :description="meta?.description"
         :docs-href="meta?.docsHref"
-        :class="{ '!pt-2.5': !isMobileMode }"
+        :class="{ '!pt-3': !isMobileMode }"
         no-close-inset
       />
 

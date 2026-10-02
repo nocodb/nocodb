@@ -845,6 +845,27 @@ interface PermissionSelectorUser {
   hierarchy_scope?: 'self_only' | 'self_and_descendants'
 }
 
+/** A user offered in the "Specific users" pool beyond the base members (e.g. interface-only collaborators). */
+interface PermissionPoolUser {
+  id: string
+  email: string
+  display_name?: string | null
+  /** Base-role-shaped role so the minimum-role filter can place them; viewer when unknown. */
+  roles?: string
+  meta?: Record<string, any> | string | null
+}
+
+/** A team offered in the "Specific users" pool beyond the base teams — shaped like a base-team row. */
+interface PermissionPoolTeam {
+  team_id: string
+  team_title: string
+  team_icon?: string | null
+  team_icon_type?: string | null
+  team_badge_color?: string | null
+  /** Base-role-shaped role so the minimum-role filter can place it; viewer when unknown. */
+  base_role?: string
+}
+
 // NcList type starts here
 
 type MultiSelectRawValueType = Array<string | number>
@@ -1272,6 +1293,8 @@ export type {
   SharedPageTitle,
   PermissionConfig,
   PermissionSelectorUser,
+  PermissionPoolUser,
+  PermissionPoolTeam,
   NcListProps,
   NcListItemProps,
   NcListItemType,

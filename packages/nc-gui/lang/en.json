@@ -3688,6 +3688,7 @@
     "editThisColumnInline": "Edit this column inline",
     "addDeleteRecordsInline": "Add/delete records inline",
     "allowCsvExport": "Allow export to CSV",
+    "whoCanExport": "Who can export",
     "groups": "Groups",
     "addGroup": "Add group",
     "addToGroup": "Add to group",

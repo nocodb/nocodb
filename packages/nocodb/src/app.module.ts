@@ -22,6 +22,7 @@ import { AppLlmRawBodyMiddleware } from '~/middlewares/app-llm-raw-body.middlewa
 import { JsonBodyMiddleware } from '~/middlewares/json-body.middleware';
 
 import { UrlEncodeMiddleware } from '~/middlewares/url-encode.middleware';
+import { RequestCacheMiddleware } from '~/middlewares/request-cache.middleware';
 import { OAuthModule } from '~/modules/oauth/oauth.module';
 import { backendRouteExcludePatterns } from '~/utils/backend-route-prefixes';
 
@@ -56,6 +57,11 @@ export const ceModuleConfig = {
 export class AppModule {
   // Global Middleware
   configure(consumer: MiddlewareConsumer) {
+    // Opens the request-scoped cache for @NcCache. Applied first so that every
+    // later middleware, guard and controller shares one memoization map; without
+    // it the decorator stays a pass-through.
+    consumer.apply(RequestCacheMiddleware).forRoutes('*');
+
     // GUI — serve frontend static files + SPA fallback (GET only, non-backend paths)
     consumer
       .apply(GuiMiddleware)

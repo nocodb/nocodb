@@ -241,4 +241,8 @@ watch(
 .nc-ws-settings-topbar {
   @apply h-[var(--topbar-height)] flex-none flex items-center border-b-1 border-nc-border-gray-medium;
 }
+
+:deep(.nc-shell-header-actions) {
+  @apply !mt-0;
+}
 </style>

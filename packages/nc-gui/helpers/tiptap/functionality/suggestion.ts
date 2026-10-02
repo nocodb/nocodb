@@ -6,9 +6,7 @@ import type { Instance, Placement } from 'tippy.js'
 export default (comp: Component, opts?: { placement?: Placement }) => ({
   render: () => {
     let component: VueRenderer | undefined
-    // Only created once the suggestion has a `clientRect` to anchor to — which
-    // may not be available on `onStart` (e.g. decoration not yet in the DOM),
-    // so every access below must tolerate it being undefined.
+    // Created lazily: `clientRect` may be missing on `onStart`.
     let popup: Instance[] | undefined
 
     function ensurePopup(props: Record<string, any>) {

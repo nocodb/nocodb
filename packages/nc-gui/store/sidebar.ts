@@ -123,8 +123,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
       // The base overview belongs to every tab: opening it keeps the sidebar where it was.
       if (name === BASE_OVERVIEW_ROUTE) return null
 
-      // Settings (base and workspace) are modals over the page, so the sidebar
-      // keeps showing whichever vertical the reader came from.
+      // Base settings is a modal over the page, so the sidebar keeps showing
+      // whichever vertical the reader came from.
 
       if (
         name.startsWith('index-typeOrId-baseId-index-workflows') ||

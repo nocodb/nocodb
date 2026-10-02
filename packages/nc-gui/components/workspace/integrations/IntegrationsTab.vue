@@ -393,9 +393,7 @@ watch(activeViewTab, (value) => {
                 type="text"
                 class="nc-input-border-on-value nc-search-integration-input"
                 :class="
-                  isShellPane
-                    ? 'flex-1 !min-w-60 !max-w-90 nc-input-sm'
-                    : '!rounded-lg !py-2 !h-9 !w-full sm:!w-80 flex-none'
+                  isShellPane ? 'flex-1 !min-w-60 !max-w-90 nc-input-sm' : '!rounded-lg !py-2 !h-9 !w-full sm:!w-80 flex-none'
                 "
                 :placeholder="
                   showActiveConnections

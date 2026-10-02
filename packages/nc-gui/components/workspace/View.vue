@@ -3,7 +3,7 @@ import { useTitle } from '@vueuse/core'
 import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 // The org admin panel's view of one workspace. On the workspace itself these
-// panes live in the settings overlay (`WorkspaceSettingsShell`).
+// panes live on the settings page (`WorkspaceSettingsShell`).
 const props = defineProps<{
   workspaceId?: string
 }>()

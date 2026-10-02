@@ -1,13 +1,12 @@
 <script setup lang="ts">
-// Legacy route. Workspace settings is a `?wsSettings=` overlay now; the General
-// page's `?tab=` sections are rail rows of their own.
+// The old General page's `?tab=` sections are panes of their own now.
 definePageMeta({
   middleware: [
     (to) => {
       const { tab, ...query } = to.query
 
       return navigateTo(
-        { path: `/${to.params.typeOrId}`, query: { ...query, wsSettings: resolveWsSettingsSlug(tab) ?? 'general' } },
+        { path: wsSettingsPath(to.params.typeOrId as string, resolveWsSettingsSlug(tab) ?? 'general'), query },
         { replace: true },
       )
     },

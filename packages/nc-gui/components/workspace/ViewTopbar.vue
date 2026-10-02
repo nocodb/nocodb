@@ -28,6 +28,8 @@ const activeTabLabel = computed(() => {
   switch (activeTabKey.value) {
     case 'home':
       return t('general.home')
+    case 'settings':
+      return t('labels.settings')
     default:
       return t('objects.projects')
   }

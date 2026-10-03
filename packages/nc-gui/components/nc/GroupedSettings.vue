@@ -29,9 +29,9 @@ const isOpen = ref(!props.defaultCollapsed)
 
 <style lang="scss" scoped>
 .grouped-settings {
-  @apply py-4 px-5 border-b-1 border-nc-border-gray-medium;
+  @apply py-3.5 px-5 border-b-1 border-nc-border-gray-light;
   header > span {
-    @apply text-[16px] font-700;
+    @apply text-captionBold text-nc-content-gray-emphasis;
   }
 }
 

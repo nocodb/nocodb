@@ -205,6 +205,19 @@ type WorkflowExecutionRetryMode = 'from_failed' | 'from_start';
 // published workflow (e.g. after fixing the failing node).
 type WorkflowExecutionRetryVersion = 'snapshot' | 'latest';
 
+// Run history filters. Each maps to a column on the executions table, never to execution_data.
+interface WorkflowExecutionListFilter {
+  statuses?: WorkflowExecutionStatus[];
+  // ISO timestamps, matched against created_at.
+  from?: string;
+  to?: string;
+  retriesOnly?: boolean;
+  // Finished runs that took at least this long.
+  minDurationMs?: number;
+  // Failed or cancelled runs that no retry points at yet.
+  needsAttention?: boolean;
+}
+
 // Loop position at the time state was saved, so a resume re-enters the loop.
 interface ActiveLoopState {
   nodeId: string;
@@ -375,6 +388,7 @@ export {
   WorkflowExecutionHold,
   WorkflowExecutionRetryMode,
   WorkflowExecutionRetryVersion,
+  WorkflowExecutionListFilter,
   ActiveLoopState,
   IWorkflowExecution,
   LoopContext,

@@ -5,14 +5,16 @@ import Placeholder from '@tiptap/extension-placeholder'
 import Underline from '@tiptap/extension-underline'
 import StarterKit from '@tiptap/starter-kit'
 import { BubbleMenu, EditorContent, VueRenderer, useEditor } from '@tiptap/vue-3'
-import { isPrimitiveValue } from 'nocodb-sdk'
-import type { VariableDefinition } from 'nocodb-sdk'
+import type { VariableDefinition, WorkflowTransformStep, WorkflowValueKind } from 'nocodb-sdk'
+import { applyWorkflowExpressionTransforms, isPrimitiveValue, parseWorkflowExpressionTransforms } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import tippy from 'tippy.js'
 import type { WorkflowInputTool } from './WorkflowInputTools.vue'
 import WorkflowInputAiEmptyState from './WorkflowInputAiEmptyState.vue'
+import WorkflowTransformMenu from './WorkflowTransformMenu.vue'
+import WorkflowCodeInput from './WorkflowCodeInput.vue'
 import { expressionSpansToTokens, parseInertHtml } from '~/helpers/workflowExpressionHtml'
-import { WorkflowComposeInj, WorkflowComposeModeInj } from '~/context'
+import { WorkflowComposeInj, WorkflowComposeModeInj, WorkflowVariableInj } from '~/context'
 import { useWorkflowEmailAi } from '#imports'
 import { WorkflowExpression, WorkflowVariablePicker } from '~/helpers/tiptap-markdown/extensions'
 import { Markdown } from '~/helpers/tiptap-markdown'
@@ -75,6 +77,34 @@ const vModel = computed({
 })
 
 const { readOnly } = toRefs(props)
+
+const workflowVariables = inject(WorkflowVariableInj, undefined)
+
+const codeInputRef = ref<{ focus: () => void; insertVariable: () => void }>()
+
+const TRANSFORM_MENU_SIZE = { width: 320, height: 440 }
+
+/** The chip whose transform menu is open: its doc position, the value it starts from and the steps on it. */
+const transformTarget = ref<{
+  pos: number
+  base: string
+  steps: WorkflowTransformStep[]
+  label: string
+  kind: WorkflowValueKind
+  top: number
+  left: number
+} | null>(null)
+
+const transformMenuRef = ref<HTMLElement>()
+
+// Set while the menu rewrites its own chip, so that edit doesn't close it.
+let isApplyingTransform = false
+
+const transformPreview = computed(() => {
+  const target = transformTarget.value
+  if (!target || !workflowVariables?.previewExpression) return null
+  return workflowVariables.previewExpression(applyWorkflowExpressionTransforms(target.base, target.steps))
+})
 
 // Custom suggestion render to pass groupedItems
 // The panel (if any) owns the compose modal; inside it the body renders its full toolbar.
@@ -204,27 +234,7 @@ function escapeHtml(value: string): string {
 
 // Resolve the {{ expression }} token to the id + display label used by the expression chip.
 function deriveExpressionMeta(expression: string): { id: string; label: string } {
-  const variable = props.variables.filter((v) => expression.includes(v.key)).sort((a, b) => b.key.length - a.key.length)[0]
-
-  if (!variable) return { id: expression, label: expression }
-
-  const remainingPath = expression.slice(variable.key.length)
-
-  if (!remainingPath) return { id: variable.key, label: variable.name }
-
-  const properties: string[] = []
-  const pathRegex = /\.(\w+)|\[['"]([^'"]+)['"]\]/g
-  let pathMatch
-
-  // eslint-disable-next-line no-cond-assign
-  while ((pathMatch = pathRegex.exec(remainingPath)) !== null) {
-    properties.push(pathMatch[1] || pathMatch[2])
-  }
-
-  return {
-    id: variable.key,
-    label: properties.length > 0 ? properties[properties.length - 1] : variable.name,
-  }
+  return getWorkflowExpressionChipMeta(expression, props.variables, t)
 }
 
 // Turn stored {{ }} tokens into expression chip spans (only within text nodes, never inside attributes).
@@ -353,6 +363,8 @@ const editor = useEditor({
     // the editor while they are open, so typing would shift the text out from under them and
     // Apply/Remove would rewrite the wrong span (or throw, once the positions fall off the end).
     closeLinkPopovers()
+    // Same for the transform menu's chip position, unless the menu made the change itself.
+    if (!isApplyingTransform) closeTransformMenu()
 
     if (isRichText.value) {
       // Record what we emit, not the prop: the parent hasn't applied the update yet,
@@ -387,6 +399,14 @@ const editor = useEditor({
     attributes: {
       class: 'nc-workflow-input-editor',
     },
+    // A chip opens its transform menu.
+    handleClickOn(view, _pos, node, nodePos) {
+      if (readOnly.value || node.type.name !== 'workflowExpression') return false
+      const dom = view.nodeDOM(nodePos)
+      if (!(dom instanceof HTMLElement)) return false
+      openTransformMenu(nodePos, String(node.attrs.expression ?? ''), dom)
+      return true
+    },
     // `openOnClick: false` keeps the click from navigating; it lands here instead and
     // raises the view bubble. Returns false so the caret still moves where it was clicked.
     handleClick(_view, pos, event) {
@@ -413,6 +433,12 @@ const editor = useEditor({
       // Escape belongs to whatever is layered over the editor. Left alone it reaches the
       // compose modal, which closes the whole thing when the user only meant to dismiss a popover.
       if (event.key === 'Escape') {
+        if (transformTarget.value) {
+          closeTransformMenu()
+          event.preventDefault()
+          event.stopPropagation()
+          return true
+        }
         if (showLinkMenu.value || showLinkView.value) {
           closeLinkPopovers()
           event.preventDefault()
@@ -427,7 +453,8 @@ const editor = useEditor({
 })
 
 function loadContent() {
-  if (!editor.value) return
+  // Plain fields are edited by WorkflowCodeInput; the Tiptap editor only backs rich text.
+  if (!editor.value || !isRichText.value) return
 
   syncAiEmptyEligibility()
 
@@ -471,49 +498,11 @@ function loadContent() {
       continue
     }
 
-    const trimmedExpression = expression.trim()
+    const { id, label } = deriveExpressionMeta(expression.trim())
 
-    // Find the longest matching variable key
-    const variable = props.variables
-      .filter((v) => trimmedExpression.includes(v.key))
-      .sort((a, b) => b.key.length - a.key.length)[0]
-
-    let displayLabel = trimmedExpression
-
-    if (variable) {
-      // Extract the property path after the variable key
-      const remainingPath = trimmedExpression.slice(variable.key.length)
-
-      if (remainingPath) {
-        // Parse the entire path to get all properties
-        const properties = []
-        const currentPath = remainingPath
-
-        // Match alternating dot notation and bracket notation
-        // Supports: .prop, ['prop'], ["prop"], .prop['nested'], etc.
-        const pathRegex = /\.(\w+)|\[['"]([^'"]+)['"]\]/g
-        let pathMatch
-
-        // eslint-disable-next-line no-cond-assign
-        while ((pathMatch = pathRegex.exec(currentPath)) !== null) {
-          // pathMatch[1] is dot notation capture, pathMatch[2] is bracket notation capture
-          properties.push(pathMatch[1] || pathMatch[2])
-        }
-
-        if (properties.length > 0) {
-          // Use the last property in the chain as the display label
-          displayLabel = properties[properties.length - 1]
-        } else {
-          displayLabel = variable.name
-        }
-      } else {
-        displayLabel = variable.name
-      }
-    }
-
-    htmlContent += `<span data-type="workflowExpression" data-id="${escapeHtml(
-      variable?.key || trimmedExpression,
-    )}" data-label="${escapeHtml(displayLabel)}" data-expression="${escapeHtml(fullMatch)}"></span>`
+    htmlContent += `<span data-type="workflowExpression" data-id="${escapeHtml(id)}" data-label="${escapeHtml(
+      label,
+    )}" data-expression="${escapeHtml(fullMatch)}"></span>`
 
     lastIndex = match.index + fullMatch.length
   }
@@ -617,7 +606,10 @@ const insertExpression = async () => {
   }
 }
 
-defineExpose({ focus: () => editor.value?.commands.focus('end'), insertVariable: insertExpression })
+defineExpose({
+  focus: () => (isRichText.value ? editor.value?.commands.focus('end') : codeInputRef.value?.focus()),
+  insertVariable: () => (isRichText.value ? insertExpression() : codeInputRef.value?.insertVariable()),
+})
 
 // ── Email body shell: expand modal, word count, quick variables ──
 
@@ -864,6 +856,39 @@ function popoverPos(anchor: { left: number; top: number; bottom: number }, size:
   return { top, left }
 }
 
+function openTransformMenu(pos: number, token: string, dom: HTMLElement) {
+  const { base, steps } = parseWorkflowExpressionTransforms(token.replace(/^\{\{\s*|\s*\}\}$/g, ''))
+  transformTarget.value = {
+    pos,
+    base,
+    steps,
+    label: getWorkflowVariableChipMeta(base, props.variables).label,
+    kind: getWorkflowExpressionKind(base, props.variables, workflowVariables?.previewExpression?.(base)),
+    ...popoverPos(dom.getBoundingClientRect(), TRANSFORM_MENU_SIZE),
+  }
+}
+
+function closeTransformMenu() {
+  transformTarget.value = null
+}
+
+function updateTransformSteps(steps: WorkflowTransformStep[]) {
+  const target = transformTarget.value
+  if (!target || !editor.value) return
+
+  const node = editor.value.state.doc.nodeAt(target.pos)
+  if (!node || node.type.name !== 'workflowExpression') return closeTransformMenu()
+
+  const expression = applyWorkflowExpressionTransforms(target.base, steps)
+  const { id, label } = deriveExpressionMeta(expression)
+  isApplyingTransform = true
+  editor.value.view.dispatch(
+    editor.value.state.tr.setNodeMarkup(target.pos, undefined, { ...node.attrs, id, label, expression: `{{ ${expression} }}` }),
+  )
+  isApplyingTransform = false
+  transformTarget.value = { ...target, steps }
+}
+
 /** The full extent + href of the link mark covering `pos`, or null when there is none. */
 function linkRangeAt(pos: number) {
   if (!editor.value) return null
@@ -1065,6 +1090,19 @@ onClickOutside(linkViewRef, () => {
   if (showLinkView.value) closeLinkPopovers()
 })
 
+// Another chip's click opens its own menu, and the unit select renders its options outside the menu.
+onClickOutside(transformMenuRef, closeTransformMenu, { ignore: ['.nc-workflow-expression', '.ant-select-dropdown'] })
+
+// Fixed-position like the link view; the menu's own list scrolling is not a reason to close it.
+useEventListener(
+  window,
+  ['scroll', 'resize'],
+  (event: Event) => {
+    if (transformTarget.value && !transformMenuRef.value?.contains(event.target as Node)) closeTransformMenu()
+  },
+  { capture: true, passive: true },
+)
+
 // Both popovers are fixed-positioned against a rect measured on open, so scrolling (the compose
 // modal's body does) leaves them stranded over unrelated content. Only the read-only bubble is
 // dismissed — doing the same to the edit form would discard a half-typed URL.
@@ -1091,6 +1129,26 @@ watch(readOnly, (newValue) => {
     class="nc-workflow-input relative"
   >
     <!-- ── Rich-text (email body) shell: toolbar + editor + footer in one bordered box ── -->
+    <!-- Every field kind, not just rich text: any chip can carry transforms. -->
+    <div
+      v-if="transformTarget"
+      ref="transformMenuRef"
+      class="nc-workflow-transform-popover"
+      :style="{ top: `${transformTarget.top}px`, left: `${transformTarget.left}px` }"
+      data-testid="nc-workflow-transform-menu"
+      @mousedown.stop
+      @click.stop
+      @keydown.esc.stop.prevent="closeTransformMenu"
+    >
+      <WorkflowTransformMenu
+        :label="transformTarget.label"
+        :steps="transformTarget.steps"
+        :kind="transformTarget.kind"
+        :preview="transformPreview"
+        @update:steps="updateTransformSteps"
+      />
+    </div>
+
     <template v-if="isRichText">
       <div
         class="nc-email-shell"
@@ -1297,31 +1355,18 @@ watch(readOnly, (newValue) => {
       </div>
     </template>
 
-    <!-- ── Plain / multiline (unchanged) ── -->
-    <template v-else>
-      <EditorContent
-        :editor="editor"
-        class="nc-workflow-input-editor"
-        :class="{
-          multiline: isMultiline,
-        }"
-      />
-
-      <NcTooltip
-        v-if="!readOnly"
-        class="!absolute nc-workflow-insert-btn-tooltip right-1.5"
-        :class="{
-          'top-1': isMultiline,
-          'top-1.5': !isMultiline,
-        }"
-        hide-on-click
-        title="Insert variable"
-      >
-        <NcButton size="xs" type="text" class="nc-workflow-input-insert-btn !px-1.5" @click.stop="insertExpression">
-          <GeneralIcon icon="ncPlusSquareSolid" class="text-nc-content-brand flex-none w-4 h-4" />
-        </NcButton>
-      </NcTooltip>
-    </template>
+    <!-- Plain and multiline fields: the text is the stored value, so CodeMirror edits it directly. -->
+    <WorkflowCodeInput
+      v-else
+      ref="codeInputRef"
+      v-model="vModel"
+      :placeholder="placeholder ?? t('placeholder.variableValue')"
+      :variables="variables"
+      :grouped-variables="groupedVariables"
+      :read-only="readOnly"
+      :multiline="isMultiline"
+      @enter="emit('enter')"
+    />
   </div>
 </template>
 
@@ -1615,6 +1660,11 @@ watch(readOnly, (newValue) => {
     height: 0;
     pointer-events: none;
   }
+}
+
+.nc-workflow-transform-popover {
+  @apply fixed;
+  z-index: 10001; // same layer as the link view: above the compose modal
 }
 
 .nc-workflow-link-view {

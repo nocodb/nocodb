@@ -1,5 +1,17 @@
 import { generateRandomUuid } from '~/lib/stringHelpers';
 import { WorkflowNodeCategory, WorkflowNodeDefinition } from './node';
+import type { WorkflowExecutionStatus } from './interface';
+
+export const WORKFLOW_EXECUTION_STATUSES: readonly WorkflowExecutionStatus[] = [
+  'queued',
+  'running',
+  'waiting',
+  'paused',
+  'completed',
+  'error',
+  'cancelled',
+  'skipped',
+];
 
 export const GeneralNodeID = {
   TRIGGER: 'core.trigger',

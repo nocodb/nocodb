@@ -219,6 +219,8 @@ export const WorkflowVariableInj: InjectionKey<{
   selectedNodeId: Ref<string | null>
   getAvailableVariablesFlat: (nodeId: string) => any[]
   getAvailableVariables: (nodeId: string) => Array<{ nodeId: string; nodeTitle: string; variables: any[] }>
+  /** Evaluates an expression on the steps' latest test outputs; null when there is nothing to run it on. */
+  previewExpression?: (expression: string) => { value?: unknown; error?: string } | null
 }> = Symbol('workflow-variable-injection')
 
 export const IsWsBaseListModalInj: InjectionKey<Ref<boolean>> = Symbol('is-ws-base-list-modal-injection')

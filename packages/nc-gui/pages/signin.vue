@@ -12,7 +12,7 @@ const { signIn: _signIn, appInfo } = useGlobal()
 
 const { productName } = useBranding()
 
-const { lastMethod, isLastUsed, selectMethod } = useAuthLastMethod()
+const { isLastUsed, selectMethod } = useAuthLastMethod()
 
 const { $e } = useNuxtApp()
 
@@ -60,7 +60,7 @@ async function signIn() {
 
   api.auth.signin(form).then(
     async ({ token }) => {
-      lastMethod.value = 'email'
+      commitAuthMethod('email')
       _signIn(token!)
 
       $e('a:auth:sign-in:success', { method: 'email', twoFactor: false, lastUsed: wasLastUsed })

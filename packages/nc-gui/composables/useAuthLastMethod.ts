@@ -7,11 +7,16 @@ const lastMethod = useStorage<AuthLastMethod | ''>('nc-auth-last-method', '')
 // a provider click only stages the method: a cancelled redirect must not move the badge
 const pendingMethod = useSessionStorage<AuthLastMethod | ''>('nc-auth-pending-method', '')
 
+/** A sign-in finished with `method`; drops any staged provider so it can't overwrite this later. */
+export function commitAuthMethod(method: AuthLastMethod) {
+  pendingMethod.value = ''
+  lastMethod.value = method
+}
+
 /** A redirect sign-in finished: keep the staged provider, else `fallback`. */
 export function commitPendingAuthMethod(fallback?: AuthLastMethod) {
   const method = pendingMethod.value || fallback
-  pendingMethod.value = ''
-  if (method) lastMethod.value = method
+  if (method) commitAuthMethod(method)
 }
 
 /** The sign-in method used last on this browser, for the "Last used" badge on the auth screens. SSO clients keep their own. */
@@ -31,5 +36,5 @@ export function useAuthLastMethod() {
     pendingMethod.value = method
   }
 
-  return { lastMethod, isLastUsed, selectMethod }
+  return { isLastUsed, selectMethod }
 }

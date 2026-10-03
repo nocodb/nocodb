@@ -116,13 +116,12 @@ onMounted(async () => {
         <template #message>
           <div class="flex flex-row items-center gap-3">
             <GeneralIcon icon="ncAlertCircle" class="text-nc-content-orange-medium w-6 h-6" />
-            <span class="font-weight-bold">App Store Deprecation</span>
+            <span class="font-weight-bold">{{ $t('labels.appStoreDeprecation') }}</span>
           </div>
         </template>
         <template #description>
           <div class="text-nc-content-gray-muted ml-9">
-            App store will soon be removed. Email & Storage plugins are now available in Accounts/Setup page. Rest of the plugins
-            here will be moved to integrations.
+            {{ $t('msg.info.appStoreDeprecationNotice') }}
           </div>
         </template>
       </a-alert>

@@ -485,7 +485,7 @@ onMounted(() => {
       <button
         class="rounded-full bg-nc-gray-800/70 p-2 text-nc-content-inverted-primary hover:bg-nc-gray-700/70 disabled:opacity-50"
         :disabled="scale >= MAX_SCALE"
-        title="Zoom in"
+        :title="$t('labels.zoomIn')"
         @click="zoom('in')"
       >
         <GeneralIcon icon="ncZoomIn" class="h-5 w-5" />
@@ -493,7 +493,7 @@ onMounted(() => {
       <button
         class="rounded-full bg-nc-gray-800/70 p-2 text-nc-content-inverted-primary hover:bg-nc-gray-700/70 disabled:opacity-50"
         :disabled="scale <= MIN_SCALE"
-        title="Zoom out"
+        :title="$t('labels.zoomOut')"
         @click="zoom('out')"
       >
         <GeneralIcon icon="ncZoomOut" class="h-5 w-5" />

@@ -16,7 +16,8 @@
       "pie_chart": "Pie Chart",
       "donut_chart": "Donut Chart",
       "scatter_plot": "Scatter Plot",
-      "treemap_chart": "Treemap Chart"
+      "treemap_chart": "Treemap Chart",
+      "donut": "Donut"
     }
   },
   "aggregation": {
@@ -4979,7 +4980,32 @@
     "extensionsEmptyTitle": "Supercharge Your Workflow with Extensions",
     "errorShort": "ERR!",
     "goToDocumentation": "Go to documentation",
-    "signInUrl": "SignIn URL"
+    "signInUrl": "SignIn URL",
+    "verifying": "Verifying",
+    "whitelistIps": "Whitelist IPs",
+    "saveToBase": "Save to base",
+    "allowUsersToPrintChart": "Allow users to print chart",
+    "allowUsersToViewRecords": "Allow users to view records",
+    "offset": "Offset",
+    "noSortingAdded": "No sorting added",
+    "inputVariables": "Input Variables",
+    "editCode": "Edit code",
+    "addInputVariable": "Add input variable",
+    "fromTemplate": "From Template",
+    "buildWithAi": "Build with AI",
+    "fromAppStore": "From App Store",
+    "plans": "Plans",
+    "cloud": "Cloud",
+    "onPrem": "On-Prem",
+    "addIntegrationCta": "Add integration",
+    "openLink": "Open link",
+    "appStoreDeprecation": "App Store Deprecation",
+    "regenerateClientSecret": "Regenerate Client Secret",
+    "defaultTheme": "Default Theme",
+    "ssoLoginRequired": "SSO Login Required",
+    "continueToSsoSignin": "Continue to SSO Signin",
+    "supportedImageFormats": "Supported: image/*",
+    "crop": "Crop"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5516,7 +5542,8 @@
     "selectionMode": "Selection Mode",
     "addNote": "Add Note",
     "aiIntegrationForOperation": "Integration to use for this operation",
-    "aiModelForOperation": "Model to use for this operation"
+    "aiModelForOperation": "Model to use for this operation",
+    "setupScriptSettingsFirstToExecute": "Setup script settings first to execute"
   },
   "placeholder": {
     "requestIntegration": "Provide integration name and your use-case.",
@@ -5741,7 +5768,8 @@
     "legendOrientation": "Legent Orientation",
     "airtablePersonalAccessToken": "Enter your Airtable Personal Access Token",
     "airtableBaseUrlOrId": "Paste the Base URL or Base ID from Airtable",
-    "searchExtension": "Search Extension"
+    "searchExtension": "Search Extension",
+    "scriptVariableValue": "Variable value"
   },
   "msg": {
     "agentSkillsSubtitle": "Reusable instructions this agent can load when relevant.",
@@ -6650,7 +6678,17 @@
       "noAuthorizedApplications": "You haven't authorized any applications yet",
       "fieldTypeChangeWarning": "Converting data types may result in data loss; any incompatible filters will be removed.",
       "duplicateTableLinkedRecords": "This table contains linked records that reference data in the current base.",
-      "extensionsEmptyDescription": "Unlock powerful scripts and tools to enhance how you work with your databases. Get started by exploring available extensions."
+      "extensionsEmptyDescription": "Unlock powerful scripts and tools to enhance how you work with your databases. Get started by exploring available extensions.",
+      "verifyDomainOwnership": "Verify your domain ownership to manage it’s user accounts and setup SSO Authentication.",
+      "confirmTxtRecordThenVerify": "Confirm the TXT record in your DNS settings, then verify your domain by clicking on the 'Verify' option in the three-dot menu",
+      "allowListTheseIps": "Ensure your database has allow-listed the following IPs",
+      "scriptSettingsRequiredToRun": "You cannot run this script without setting up the script settings first.",
+      "fillAllRequiredFields": "Please fill in all required fields",
+      "noExecutionStepsYet": "No execution steps yet...",
+      "noAiIntegrationsAdded": "No AI Integrations added.",
+      "appStoreDeprecationNotice": "App store will soon be removed. Email & Storage plugins are now available in Accounts/Setup page. Rest of the plugins here will be moved to integrations.",
+      "sharedFormDefaultTheme": "Set the default theme (light or dark) for this shared form. Adds ?nc-theme=light or ?nc-theme=dark to the URL.",
+      "croppedFileExceedsMaxSize": "Cropped file size is greater than max file size"
     },
     "error": {
       "inviteLinkInvalid": "This invite link isn't valid",
@@ -6990,7 +7028,9 @@
       "vaultScopeOrg": "Vault is now available to every workspace in the organization",
       "vaultScopeWorkspace": "Vault is now limited to {workspace}",
       "webhookUpgradedToV3": "Webhook upgraded to v3 successfully!",
-      "webhookUrlCopied": "Webhook URL copied to clipboard"
+      "webhookUrlCopied": "Webhook URL copied to clipboard",
+      "tableSavedToBase": "Table saved to base",
+      "clientSecretRegenerated": "Client secret regenerated successfully! Make sure to copy it now."
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

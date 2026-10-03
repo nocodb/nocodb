@@ -65,9 +65,9 @@ const onCancel = async () => {
 <template>
   <NcModalConfirm
     v-model:visible="ssoLoginRequiredDlg"
-    title="SSO Login Required"
+    :title="$t('labels.ssoLoginRequired')"
     content="You are trying to access a workspace that requires SSO login. Please click the button below to continue to SSO login."
-    ok-text="Continue to SSO Signin"
+    :ok-text="$t('labels.continueToSsoSignin')"
     @cancel="onCancel"
     @ok="onOk"
   >

@@ -824,12 +824,9 @@ const copyCustomUrl = async (custUrl = '') => {
         <div v-if="activeView?.type === ViewTypes.FORM" class="nc-share-option gap-y-3">
           <div class="flex flex-row items-center justify-between">
             <div class="text-nc-content-gray-extreme flex items-center space-x-1">
-              <div>Default Theme</div>
+              <div>{{ $t('labels.defaultTheme') }}</div>
               <NcTooltip class="flex items-center">
-                <template #title
-                  >Set the default theme (light or dark) for this shared form. Adds ?nc-theme=light or ?nc-theme=dark to the
-                  URL.</template
-                >
+                <template #title>{{ $t('msg.info.sharedFormDefaultTheme') }}</template>
                 <GeneralIcon icon="info" class="flex-none text-gray-400 cursor-pointer"></GeneralIcon>
               </NcTooltip>
             </div>

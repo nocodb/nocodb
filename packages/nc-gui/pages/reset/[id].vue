@@ -3,6 +3,8 @@ import { validatePassword } from 'nocodb-sdk'
 
 definePageMeta({
   requiresAuth: false,
+  // the emailed link must reach the form even when this browser is already signed in
+  public: true,
 })
 
 const { api, isLoading, error } = useApi()
@@ -19,6 +21,8 @@ const form = reactive({
 })
 
 const formValidator = ref()
+
+const isTokenInvalid = ref(false)
 
 async function resetPassword() {
   if (form.newPassword !== form.password) {
@@ -39,6 +43,7 @@ async function resetPassword() {
       password: form.password,
     })
     $e('a:auth:password-reset:save')
+    message.success(t('labels.auth.passwordResetDone'))
     navigateTo('/signin')
   } catch (e: any) {
     $e('a:auth:password-reset:error', { step: 'save' })
@@ -49,16 +54,26 @@ async function resetPassword() {
 function resetError() {
   if (error.value) error.value = null
 }
+
+onMounted(async () => {
+  try {
+    await api.auth.passwordResetTokenValidate(route.params.id as string)
+  } catch {
+    isTokenInvalid.value = true
+  }
+})
 </script>
 
 <template>
   <NuxtLayout>
     <AuthShell class="forgot-password" :title="$t('labels.auth.resetTitle')" :loading="isLoading">
-      <a-form ref="formValidator" layout="vertical" :model="form" no-style @finish="resetPassword">
+      <AuthFormError v-if="isTokenInvalid" :message="$t('labels.auth.resetLinkInvalid')" data-testid="nc-reset-link-invalid" />
+
+      <a-form v-else ref="formValidator" layout="vertical" :model="form" no-style @finish="resetPassword">
         <a-form-item
           :label="$t('placeholder.password.new')"
           name="password"
-          :rules="[{ required: true, message: t('msg.error.signUpRules.passwdRequired') }]"
+          :rules="[{ required: true, message: $t('msg.error.signUpRules.passwdRequired') }]"
         >
           <a-input-password
             v-model:value="form.password"
@@ -72,7 +87,7 @@ function resetError() {
         <a-form-item
           :label="$t('placeholder.password.confirm')"
           name="newPassword"
-          :rules="[{ required: true, message: t('msg.error.signUpRules.passwdRequired') }]"
+          :rules="[{ required: true, message: $t('msg.error.signUpRules.passwdRequired') }]"
         >
           <a-input-password
             v-model:value="form.newPassword"
@@ -89,7 +104,10 @@ function resetError() {
       </a-form>
 
       <template #footer>
-        <nuxt-link to="/signin" class="nc-auth-link">{{ $t('labels.auth.backToSignIn') }}</nuxt-link>
+        <nuxt-link v-if="isTokenInvalid" to="/forgot-password" class="nc-auth-link">{{
+          $t('labels.auth.sendResetLink')
+        }}</nuxt-link>
+        <nuxt-link v-else to="/signin" class="nc-auth-link">{{ $t('labels.auth.backToSignIn') }}</nuxt-link>
       </template>
     </AuthShell>
   </NuxtLayout>

@@ -51,7 +51,7 @@ onBeforeUnmount(() => {
     <div class="px-12">
       <div
         role="tablist"
-        :aria-label="t('labels.preview')"
+        :aria-label="$t('labels.preview')"
         class="nc-auth-tabs inline-flex items-center gap-0.5 rounded-full p-1 bg-white/12 backdrop-blur-sm"
       >
         <button

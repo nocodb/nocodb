@@ -31,8 +31,6 @@ interface Flash {
 
 const { isDark } = useTheme()
 
-const { t } = useI18n()
-
 // presence palette from ee/composables/usePresence.ts
 const lena: Peer = { name: 'Lena Fischer', color: '#10b981' }
 
@@ -282,10 +280,10 @@ onBeforeUnmount(() => {
       <div
         class="h-10 flex-none flex items-center gap-4 px-4 border-b-1 border-nc-border-gray-medium text-bodyDefaultSm text-nc-content-gray-subtle"
       >
-        <span class="flex items-center gap-1.5"><GeneralIcon icon="fields" class="w-4 h-4" />{{ t('objects.fields') }}</span>
-        <span class="flex items-center gap-1.5"><GeneralIcon icon="filter" class="w-4 h-4" />{{ t('activity.filter') }}</span>
-        <span class="flex items-center gap-1.5"><GeneralIcon icon="group" class="w-4 h-4" />{{ t('activity.group') }}</span>
-        <span class="flex items-center gap-1.5"><GeneralIcon icon="sort" class="w-4 h-4" />{{ t('activity.sort') }}</span>
+        <span class="flex items-center gap-1.5"><GeneralIcon icon="fields" class="w-4 h-4" />{{ $t('objects.fields') }}</span>
+        <span class="flex items-center gap-1.5"><GeneralIcon icon="filter" class="w-4 h-4" />{{ $t('activity.filter') }}</span>
+        <span class="flex items-center gap-1.5"><GeneralIcon icon="group" class="w-4 h-4" />{{ $t('activity.group') }}</span>
+        <span class="flex items-center gap-1.5"><GeneralIcon icon="sort" class="w-4 h-4" />{{ $t('activity.sort') }}</span>
       </div>
 
       <!-- grid -->
@@ -374,7 +372,7 @@ onBeforeUnmount(() => {
                   class="absolute right-0 bottom-0 h-4 flex items-center px-[5px] rounded-tl-md text-[11px] leading-4 font-semibold text-white whitespace-nowrap"
                   :style="{ backgroundColor: lena.color }"
                 >
-                  {{ cellFocus(deal.id, col.id)?.editing ? t('labels.userIsTyping', { name: 'Lena' }) : lena.name }}
+                  {{ cellFocus(deal.id, col.id)?.editing ? $t('labels.userIsTyping', { name: 'Lena' }) : lena.name }}
                 </span>
               </span>
             </div>

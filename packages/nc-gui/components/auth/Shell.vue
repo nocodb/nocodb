@@ -19,11 +19,15 @@ const { productName, brandColor, isWhiteLabelled } = useBranding()
 const { isDark } = useTheme()
 
 const panelStyle = computed(() => (isWhiteLabelled.value && brandColor.value ? { background: brandColor.value } : undefined))
+
+// the brand panel is lg+ only; unmounted below it so the preview scenes don't animate unseen
+const isDesktop = useMediaQuery('(min-width: 1024px)')
 </script>
 
 <template>
   <div class="nc-auth-shell nc-h-screen w-full flex overflow-hidden" :class="{ 'nc-auth-shell--dark': isDark }">
     <aside
+      v-if="isDesktop"
       class="nc-auth-stage hidden lg:flex flex-col w-[48%] max-w-[720px] pt-12 text-white relative overflow-hidden"
       :style="panelStyle"
     >

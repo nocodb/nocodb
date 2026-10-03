@@ -20,8 +20,6 @@ type MetricKey = 'open' | 'won' | 'rate' | 'count'
 
 const { isDark } = useTheme()
 
-const { t } = useI18n()
-
 // presence palette from ee/composables/usePresence.ts
 const peers = [
   { name: 'Lena Fischer', color: '#10b981' },
@@ -316,7 +314,7 @@ onBeforeUnmount(() => {
         <span
           class="ml-3 h-7 flex items-center gap-1.5 px-2 rounded-lg border-1 border-nc-border-gray-medium text-bodyDefaultSmBold text-nc-content-gray-subtle"
         >
-          <GeneralIcon icon="ncEdit3" class="w-4 h-4" />{{ t('labels.editDashboard') }}
+          <GeneralIcon icon="ncEdit3" class="w-4 h-4" />{{ $t('labels.editDashboard') }}
         </span>
       </div>
 

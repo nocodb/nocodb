@@ -1,11 +1,21 @@
-import { useStorage } from '@vueuse/core'
+import { useSessionStorage, useStorage } from '@vueuse/core'
 
 export type AuthLastMethod = 'email' | 'google' | 'oidc' | 'saml' | 'sso'
 
+const lastMethod = useStorage<AuthLastMethod | ''>('nc-auth-last-method', '')
+
+// a provider click only stages the method: a cancelled redirect must not move the badge
+const pendingMethod = useSessionStorage<AuthLastMethod | ''>('nc-auth-pending-method', '')
+
+/** A redirect sign-in finished: keep the staged provider, else `fallback`. */
+export function commitPendingAuthMethod(fallback?: AuthLastMethod) {
+  const method = pendingMethod.value || fallback
+  pendingMethod.value = ''
+  if (method) lastMethod.value = method
+}
+
 /** The sign-in method used last on this browser, for the "Last used" badge on the auth screens. SSO clients keep their own. */
 export function useAuthLastMethod() {
-  const lastMethod = useStorage<AuthLastMethod | ''>('nc-auth-last-method', '')
-
   // set from the Cognito token and the SSO callback; covers browsers that predate `lastMethod`
   const { lastUsedAuthMethod } = useGlobal()
 
@@ -15,10 +25,10 @@ export function useAuthLastMethod() {
     return (lastMethod.value || lastUsedAuthMethod.value) === method
   }
 
-  /** A provider button was clicked: record it, then remember it for the badge. */
+  /** A provider button was clicked: record it, and stage it until the sign-in completes. */
   function selectMethod(method: AuthLastMethod, screen: 'signin' | 'signup') {
     $e('c:auth:provider:select', { provider: method, screen, lastUsed: isLastUsed(method) })
-    lastMethod.value = method
+    pendingMethod.value = method
   }
 
   return { lastMethod, isLastUsed, selectMethod }

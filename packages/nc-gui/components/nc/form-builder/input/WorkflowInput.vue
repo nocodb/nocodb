@@ -28,6 +28,7 @@ import { EmailTextStyle } from '~/helpers/tiptap-markdown/extensions/marks/textS
 interface NodeGroup {
   nodeId: string
   nodeTitle: string
+  stepTitle?: string
   variables: VariableDefinition[]
 }
 

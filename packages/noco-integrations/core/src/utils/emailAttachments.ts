@@ -6,9 +6,16 @@ import type {
   ResolveEmailAttachmentsOptions,
 } from '../nocodb';
 
-/** Platform defaults; the host may lower them via env. */
+/**
+ * Per-email caps. The host enforces them (bytes overridable via
+ * NC_EMAIL_ATTACHMENT_MAX_SIZE); node forms quote them in help text.
+ */
 export const EMAIL_MAX_ATTACHMENTS = 10;
 export const EMAIL_MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024;
+
+export const EMAIL_ATTACHMENTS_HELP_TEXT = `Files from attachment fields, uploaded files or URLs. Up to ${EMAIL_MAX_ATTACHMENTS} files and ${formatByteSize(
+  EMAIL_MAX_ATTACHMENT_BYTES,
+)} per email.`;
 
 const HTTP_URL_RE = /^https?:\/\/\S+$/i;
 
@@ -48,9 +55,10 @@ function collectString(
     return collectEmailAttachmentSources(parsed);
   }
 
-  // `.map(item => item.url).join(', ')` style variables arrive comma-joined.
+  // `.map(item => item.url).join(', ')` style variables arrive comma-joined. Split only
+  // where the next URL starts, so a comma inside a single URL's query survives.
   const parts = trimmed
-    .split(',')
+    .split(/\s*,\s*(?=https?:\/\/)/i)
     .map((p) => p.trim())
     .filter(Boolean);
 

@@ -244,7 +244,7 @@ onMounted(async () => {
 
       <div class="mt-4 text-center lg:text-left text-bodySm text-nc-content-gray-muted">
         {{ $t('msg.bySigningUp') }}
-        <a class="nc-auth-link" target="_blank" href="https://nocodb.com/policy-nocodb" rel="noopener">{{
+        <a class="nc-auth-link" target="_blank" href="https://nocodb.com/terms-of-service" rel="noopener">{{
           $t('title.termsOfService')
         }}</a>
       </div>

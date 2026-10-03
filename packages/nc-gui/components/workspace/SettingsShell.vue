@@ -132,7 +132,7 @@ watch(
         <!-- Which workspace these settings belong to, level with the breadcrumb strip. -->
         <div class="nc-ws-settings-topbar gap-2 !px-4" data-testid="nc-ws-settings-workspace">
           <template v-if="activeWorkspace">
-            <GeneralWorkspaceIcon :workspace="activeWorkspace" size="medium" class="flex-none" />
+            <GeneralWorkspaceIcon :workspace="activeWorkspace" show-nocodb-icon size="medium" class="flex-none" />
             <!-- `capitalize`, like the main sidebar: display only, the stored title is untouched. -->
             <NcTooltip show-on-truncate-only class="truncate capitalize text-bodyDefaultSmBold text-nc-content-gray-emphasis">
               {{ activeWorkspace.title }}

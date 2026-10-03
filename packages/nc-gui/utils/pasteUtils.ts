@@ -133,6 +133,29 @@ export const valueToCopy = (
     skipAbbreviation: true,
   })
 
+  // #14442 — a single Long Text cell must not carry the TSV quoting into the clipboard.
+  //
+  // LongTextHelper.parseValue wraps every value in double quotes so that serializeRange can build
+  // a TSV that a multi-line value would otherwise tear apart. Inside NocoDB it is invisible because
+  // serializeStringValue strips the wrapper again on paste; outside NocoDB the user gets
+  // `"line one\nline \"two\""` instead of the text.
+  //
+  // Only single-cell copies are unwrapped: `skipClipboardColumn` is set exactly by serializeRange,
+  // so multi-cell copy, the fill handle and the CSV export keep the quoting they need.
+  //
+  // The check is an equality probe against the wrapping itself rather than a `uidt === LongText`
+  // comparison. That undoes this one wrapper and nothing else, and it also covers Lookup/Formula
+  // columns that point at a Long Text field. Values that already start and end with a quote are
+  // left wrapped — serializeStringValue would otherwise eat their quotes on paste-back.
+  if (
+    !option?.skipClipboardColumn &&
+    typeof textToCopy === 'string' &&
+    !/^"[\s\S]*"$/.test(textToCopy) &&
+    result.textToCopy === `"${textToCopy.replace(/"/g, '\\"')}"`
+  ) {
+    result.textToCopy = textToCopy
+  }
+
   // For a top-level-URL formula cell, override text/plain with markdown and (single-column only) add a
   // clean anchor under text/html. `textToCopy` for non-enriched cells stays the raw parsed value, so
   // `json`/`dbCellValueArr` (used by fill-drag + internal paste) are unaffected.
@@ -147,6 +170,27 @@ export const valueToCopy = (
   }
 
   return result
+}
+
+/**
+ * #14442 — counterpart to the unwrapping in `valueToCopy`.
+ *
+ * NocoDB decides purely from tabs/newlines in the clipboard text whether the pasted payload is a
+ * matrix. Without the quoting, a multi-line Long Text copied from one cell would be split into rows
+ * and silently overwrite the records below it. When the clipboard entry we recorded on copy matches
+ * and describes exactly one cell, the text is pasted as ONE value instead.
+ *
+ * Uses `copiedPlainText`, not the local clipboard string: the caller has already trimmed a single
+ * trailing newline off the latter (the XLS/XLSX workaround), so a value ending in a line break would
+ * silently lose it. The guard sits inside the matrix branch, so no link/attachment path is affected,
+ * and it also covers "several cells selected, single cell pasted".
+ *
+ * Returns `null` when the payload is not a single cell — the caller keeps its parsed matrix.
+ */
+export const singleCellClipboardMatrix = (storedCopiedData: NcClipboardDataItemType | null): string[][] | null => {
+  const cells = storedCopiedData?.dbCellValueArr
+  if (cells?.length !== 1 || cells[0]?.length !== 1) return null
+  return [[storedCopiedData?.copiedPlainText ?? '']]
 }
 
 export const serializeRange = (

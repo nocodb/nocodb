@@ -6498,7 +6498,7 @@
       "workflowButtonTriggerFieldDisconnect1": "Open the table and edit the Button field",
       "workflowButtonTriggerFieldDisconnect2": "Change \"On click\", or choose another automation",
       "workflowButtonTriggerConnectField": "Or add a Button field to a table, set \"On click\" to Run automation and choose this automation.",
-      "workflowButtonTriggerFieldMissing": "This automation is connected to a Button field that no longer exists.",
+      "workflowButtonTriggerFieldMissing": "The Button field connected to this automation no longer exists or no longer runs it.",
       "interfaceButtonConfirmDeleteRecord": "This will delete the record. This can't be undone.",
       "interfaceRecordUpdatedMovedNext": "{from} updated · now showing {to} ({index} of {total})",
       "interfaceNoConfiguredPage": "No configured page",

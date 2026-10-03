@@ -3,16 +3,7 @@
   "info": {
     "title": "NocoDB v3",
     "version": "3.0.0",
-    "description": "NocoDB API Documentation",
-    "contact": {
-      "name": "NocoDB Support",
-      "url": "https://nocodb.com/contact",
-      "email": "support@nocodb.com"
-    },
-    "license": {
-      "name": "Proprietary",
-      "url": "https://nocodb.com/terms"
-    }
+    "description": "NocoDB API Documentation"
   },
   "externalDocs": {
     "description": "NocoDB documentation",

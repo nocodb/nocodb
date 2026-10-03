@@ -1509,6 +1509,8 @@ export class DataV3Service {
 
     const linksAsLtar = param.query[QUERY_STRING_LINKS_AS_LTAR] === 'true';
 
+    const nestedLimit = +param.query?.nestedLimit || BaseModelSqlv2.config.ltarV3Limit;
+
     return hasPrimaryKey(result)
       ? await this.transformRecordToV3Format({
           context: context,
@@ -1517,7 +1519,7 @@ export class DataV3Service {
           primaryKeys: primaryKeys,
           requestedFields: requestedFields,
           columns: columns,
-          nestedLimit: undefined,
+          nestedLimit: nestedLimit,
           skipSubstitutingColumnIds:
             param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
           reuse: {}, // Create reuse cache for this data read operation

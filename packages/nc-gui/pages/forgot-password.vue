@@ -11,6 +11,8 @@ const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 
+const { $e } = useNuxtApp()
+
 const success = ref(false)
 
 const formValidator = ref()
@@ -45,9 +47,11 @@ async function resetPassword() {
   try {
     await api.auth.passwordForgot(form).then(() => {
       success.value = true
+      $e('a:auth:password-reset:send')
     })
   } catch {
-    // ignore since error value is set by useApi and will be displayed in UI
+    // error value is set by useApi and displayed in the UI
+    $e('a:auth:password-reset:error', { step: 'send' })
   }
 }
 

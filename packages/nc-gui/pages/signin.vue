@@ -12,7 +12,9 @@ const { signIn: _signIn, appInfo } = useGlobal()
 
 const { productName } = useBranding()
 
-const { lastMethod } = useAuthLastMethod()
+const { lastMethod, isLastUsed, selectMethod } = useAuthLastMethod()
+
+const { $e } = useNuxtApp()
 
 const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
@@ -54,15 +56,22 @@ async function signIn() {
 
   resetError()
 
-  api.auth.signin(form).then(async ({ token }) => {
-    lastMethod.value = 'email'
-    _signIn(token!)
+  const wasLastUsed = isLastUsed('email')
 
-    await navigateTo({
-      path: '/',
-      query: route.query,
-    })
-  })
+  api.auth.signin(form).then(
+    async ({ token }) => {
+      lastMethod.value = 'email'
+      _signIn(token!)
+
+      $e('a:auth:sign-in:success', { method: 'email', twoFactor: false, lastUsed: wasLastUsed })
+
+      await navigateTo({
+        path: '/',
+        query: route.query,
+      })
+    },
+    () => $e('a:auth:sign-in:error', { method: 'email' }),
+  )
 }
 
 function resetError() {
@@ -100,7 +109,7 @@ const hasProviders = computed(() => !!appInfo.value.googleAuthEnabled || !!appIn
           v-if="appInfo.googleAuthEnabled"
           :href="`${appInfo.ncSiteUrl}/auth/google`"
           class="nc-auth-provider"
-          @click="lastMethod = 'google'"
+          @click="selectMethod('google', 'signin')"
         >
           <NcButton type="secondary" class="w-full">
             <template #icon>
@@ -115,7 +124,7 @@ const hasProviders = computed(() => !!appInfo.value.googleAuthEnabled || !!appIn
           v-if="appInfo.oidcAuthEnabled"
           :href="`${appInfo.ncSiteUrl}/auth/oidc`"
           class="nc-auth-provider"
-          @click="lastMethod = 'oidc'"
+          @click="selectMethod('oidc', 'signin')"
         >
           <NcButton type="secondary" class="w-full">
             <template #icon>

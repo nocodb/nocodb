@@ -9,6 +9,8 @@ const { api, isLoading, error } = useApi()
 
 const { t } = useI18n()
 
+const { $e } = useNuxtApp()
+
 const route = useRoute()
 
 const form = reactive({
@@ -36,8 +38,10 @@ async function resetPassword() {
     await api.auth.passwordReset(route.params.id as string, {
       password: form.password,
     })
+    $e('a:auth:password-reset:save')
     navigateTo('/signin')
   } catch (e: any) {
+    $e('a:auth:password-reset:error', { step: 'save' })
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }

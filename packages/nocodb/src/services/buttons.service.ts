@@ -43,29 +43,39 @@ export class ButtonsService {
     const model = await Model.get(context, column.fk_model_id);
     if (!model) NcError.get(context).tableNotFound(column.fk_model_id);
 
+    return await this.runOnRow(context, {
+      model,
+      button,
+      rowId: param.rowId,
+      req: param.req,
+    });
+  }
+
+  /** Runs a resolved button on a row, honouring its visibility condition. */
+  async runOnRow(
+    context: NcContext,
+    {
+      model,
+      button,
+      rowId,
+      req,
+    }: { model: Model; button: ButtonColumn; rowId: string; req: NcRequest },
+  ) {
     const row = await this.dataService.dataRead(context, {
       baseName: model.base_id,
       tableName: model.id,
-      rowId: param.rowId,
+      rowId,
       query: {},
     });
-    if (!row) NcError.get(context).recordNotFound(param.rowId);
+    if (!row) NcError.get(context).recordNotFound(rowId);
 
-    if (
-      !(await this.isButtonEnabledForRow(
-        context,
-        model,
-        button,
-        row,
-        param.req,
-      ))
-    ) {
+    if (!(await this.isButtonEnabledForRow(context, model, button, row, req))) {
       NcError.get(context).badRequest(
         'This button is disabled for this record',
       );
     }
 
-    return await this.dispatch(context, { model, button, row, ...param });
+    return await this.dispatch(context, { model, button, row, rowId, req });
   }
 
   protected async dispatch(

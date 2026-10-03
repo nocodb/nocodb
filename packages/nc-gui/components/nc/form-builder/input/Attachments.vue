@@ -284,13 +284,14 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
         <template #title>
           <span :class="{ 'font-mono text-xs break-all': item.type === 'url' }">{{ chipTooltip(item) }}</span>
         </template>
+        <!-- File-type glyphs carry their own padding; the paperclip and link glyphs don't, so they run a step smaller to match. -->
         <GeneralIcon
           :icon="chipIcon(item)"
-          class="w-4 h-4 flex-none"
-          :class="item.type === 'file' ? 'text-nc-content-brand' : 'text-nc-content-gray-subtle'"
+          class="flex-none"
+          :class="item.type === 'file' ? 'w-4 h-4 text-nc-content-brand' : 'w-3.5 h-3.5 text-nc-content-gray-subtle'"
         />
-        <span class="nc-attachment-chip-name truncate text-nc-content-gray-emphasis">{{ chipName(item) }}</span>
-        <span class="text-nc-content-gray-muted flex-none">{{ chipMeta(item) }}</span>
+        <span class="nc-attachment-chip-name truncate text-nc-content-gray-emphasis min-w-[4ch]">{{ chipName(item) }}</span>
+        <span class="text-nc-content-gray-muted flex-none truncate max-w-[55%]">{{ chipMeta(item) }}</span>
         <button
           v-if="!disabled"
           type="button"

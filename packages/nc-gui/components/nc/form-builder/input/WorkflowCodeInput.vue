@@ -3,7 +3,7 @@ import type { Completion, CompletionContext, CompletionResult } from '@codemirro
 import { autocompletion, completionKeymap, completionStatus, snippetCompletion, startCompletion } from '@codemirror/autocomplete'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import type { Extension } from '@codemirror/state'
-import { Annotation, EditorState, Prec, RangeSetBuilder, StateEffect } from '@codemirror/state'
+import { Annotation, ChangeSet, EditorState, Prec, RangeSetBuilder, StateEffect, Transaction } from '@codemirror/state'
 import type { DecorationSet, ViewUpdate } from '@codemirror/view'
 import { Decoration, EditorView, ViewPlugin, WidgetType, placeholder as cmPlaceholder, keymap, tooltips } from '@codemirror/view'
 import type { VariableDefinition, WorkflowTransformStep, WorkflowValueKind } from 'nocodb-sdk'
@@ -414,11 +414,24 @@ function extensions(): Extension[] {
               if (inserted.lines > 1) hasBreak = true
             })
             if (!hasBreak) return tr
-            const changes: { from: number; to: number; insert: string }[] = []
+            const specs: { from: number; to: number; insert: string }[] = []
             tr.changes.iterChanges((fromA, toA, _fromB, _toB, inserted) => {
-              changes.push({ from: fromA, to: toA, insert: inserted.sliceString(0).replace(/\r?\n/g, ' ') })
+              specs.push({ from: fromA, to: toA, insert: inserted.sliceString(0).replace(/\r?\n/g, ' ') })
             })
-            return { changes }
+            const changes = ChangeSet.of(specs, tr.startState.doc.length)
+            // Keep the caret after inserted text and the annotations that tell user edits from parent writes.
+            const userEvent = tr.annotation(Transaction.userEvent)
+            const isProgrammatic = tr.annotation(programmatic)
+            return {
+              changes,
+              selection: tr.startState.selection.map(changes, 1),
+              effects: tr.effects,
+              scrollIntoView: tr.scrollIntoView,
+              annotations: [
+                ...(userEvent ? [Transaction.userEvent.of(userEvent)] : []),
+                ...(isProgrammatic !== undefined ? [programmatic.of(isProgrammatic)] : []),
+              ],
+            }
           }),
         ]),
     autocompletion({
@@ -555,7 +568,16 @@ watch(
   () => createView(),
 )
 
-onClickOutside(transformMenuRef, closeTransformMenu, { ignore: ['.nc-workflow-expression', '.ant-select-dropdown'] })
+// A chip in another field closes this menu; one in this field opens its own.
+onClickOutside(
+  transformMenuRef,
+  (event) => {
+    const chip = (event.target as Element | null)?.closest?.('.nc-workflow-expression')
+    if (chip && hostRef.value?.contains(chip)) return
+    closeTransformMenu()
+  },
+  { ignore: ['.ant-select-dropdown'] },
+)
 
 onClickOutside(pickerRootRef, () => (picker.value = null), { ignore: [hostRef] })
 

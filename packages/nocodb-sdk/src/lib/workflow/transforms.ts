@@ -109,6 +109,11 @@ function isSingleOperand(text: string) {
   return true;
 }
 
+/** Brackets a compound expression so a method call applies to all of it. */
+function asOperand(text: string) {
+  return isSingleOperand(text) ? text : `(${text})`;
+}
+
 type TransformKinds = Pick<WorkflowExpressionTransform, 'accepts' | 'returns'>;
 
 function methodTransform(
@@ -122,7 +127,7 @@ function methodTransform(
     id,
     category,
     ...kinds,
-    apply: (inner) => `${inner}.${method}()`,
+    apply: (inner) => `${asOperand(inner)}.${method}()`,
     peel: (expression) => {
       const match = pattern.exec(expression);
       return match && isSingleOperand(match[1])
@@ -219,7 +224,8 @@ export const WORKFLOW_EXPRESSION_TRANSFORMS: WorkflowExpressionTransform[] = [
     accepts: ['list'],
     returns: 'text',
     args: [{ key: 'separator', type: 'string', default: ', ' }],
-    apply: (inner, args) => `${inner}.join(${quote(args.separator ?? ', ')})`,
+    apply: (inner, args) =>
+      `${asOperand(inner)}.join(${quote(args.separator ?? ', ')})`,
     peel: (expression) => {
       const match = joinPattern.exec(expression);
       return match && isSingleOperand(match[1])

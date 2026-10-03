@@ -30,6 +30,9 @@ const searchQuery = ref(props.query || '')
 
 const navigationStack = ref<{ title: string; variables: VariableDefinition[] }[]>([])
 
+// ←/→ stay with the search text's caret.
+const SEARCH_NAV_KEYS = ['ArrowUp', 'ArrowDown', 'Enter', 'Escape']
+
 const nodeGroups = computed(() => {
   if (props.groupedItems && props.groupedItems.length > 0) {
     return props.groupedItems
@@ -348,7 +351,10 @@ defineExpose({
         :placeholder="t('labels.workflow.picker.search')"
         data-testid="nc-workflow-variable-picker-search"
         @click.stop
-        @keydown="(event: KeyboardEvent) => onKeyDown({ event }) && event.preventDefault()"
+        @keydown="
+          (event: KeyboardEvent) =>
+            SEARCH_NAV_KEYS.includes(event.key) && onKeyDown({ event }) && event.preventDefault()
+        "
       />
     </div>
 

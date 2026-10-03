@@ -218,6 +218,12 @@ interface WorkflowExecutionListFilter {
   needsAttention?: boolean;
 }
 
+// Run counts for a workflow under a date range.
+interface WorkflowExecutionStats {
+  total: number;
+  failed: number;
+}
+
 // Loop position at the time state was saved, so a resume re-enters the loop.
 interface ActiveLoopState {
   nodeId: string;
@@ -389,6 +395,7 @@ export {
   WorkflowExecutionRetryMode,
   WorkflowExecutionRetryVersion,
   WorkflowExecutionListFilter,
+  WorkflowExecutionStats,
   ActiveLoopState,
   IWorkflowExecution,
   LoopContext,

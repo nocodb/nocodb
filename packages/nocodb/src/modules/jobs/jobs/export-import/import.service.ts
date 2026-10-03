@@ -1614,6 +1614,15 @@ export class ImportService {
                 icon: colOptions?.icon,
                 type: colOptions?.type,
                 fk_webhook_id: getIdOrExternalId(colOptions?.fk_webhook_id),
+                action_config: colOptions?.action_config
+                  ? {
+                      ...colOptions.action_config,
+                      updates: colOptions.action_config.updates?.map((u) => ({
+                        ...u,
+                        fk_column_id: getIdOrExternalId(u.fk_column_id),
+                      })),
+                    }
+                  : undefined,
                 output_column_ids: (
                   colOptions?.output_column_ids?.split(',') || []
                 )

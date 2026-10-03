@@ -95,6 +95,7 @@ import { GalleriesService } from '~/services/galleries.service';
 import { GridColumnsService } from '~/services/grid-columns.service';
 import { GridsService } from '~/services/grids.service';
 import { HooksService } from '~/services/hooks.service';
+import { ButtonsService } from '~/services/buttons.service';
 import { JobsMetaService } from '~/services/jobs-meta.service';
 import { KanbansService } from '~/services/kanbans.service';
 import { MapsService } from '~/services/maps.service';
@@ -309,6 +310,7 @@ export const nocoModuleMetadata = {
     GridColumnsService,
     GridsService,
     HooksService,
+    ButtonsService,
     KanbansService,
     MapsService,
     MetaDiffsService,
@@ -419,6 +421,7 @@ export const nocoModuleMetadata = {
     AttachmentsService,
     BaseUsersService,
     HooksService,
+    ButtonsService,
     MetaDiffsService,
     SourcesService,
     UtilsService,

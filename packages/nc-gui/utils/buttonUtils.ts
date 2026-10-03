@@ -1,3 +1,9 @@
+import { ButtonActionsType, UITypes } from 'nocodb-sdk'
+import type { ButtonActionConfig, ButtonRecordUpdate, ButtonType, ColumnType } from 'nocodb-sdk'
+import useNcConfirmModal from '~/composables/useNcConfirmModal'
+import { getI18n } from '~/plugins/a.i18n'
+import { getCheckBoxValue } from '~/utils/dataUtils'
+
 export const buttonColorMap = {
   solid: {
     brand: {
@@ -233,4 +239,122 @@ export const getButtonColorsCssVariables = (
     '--btn-cell-disabled-bg': disabledColors.background,
     '--btn-cell-disabled-text': disabledColors.text,
   }
+}
+
+/** Column types whose stored and read-back shapes differ enough that a raw compare is wrong. */
+const BUTTON_USER_VALUE_TYPES: string[] = [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy]
+
+/** User cells arrive as user objects, one object, or a comma-joined id/email list. */
+function buttonUserKeys(value: unknown): string {
+  const list = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : value ? [value] : []
+
+  return list
+    .map((entry) => {
+      if (entry === null || entry === undefined) return ''
+      if (typeof entry === 'object') {
+        const user = entry as { id?: string; email?: string }
+        return (user.id ?? user.email ?? '').trim()
+      }
+      return String(entry).trim()
+    })
+    .filter(Boolean)
+    .sort()
+    .join(',')
+}
+
+/** Multi-select is a set — stored comma-joined, sometimes read back as an array. */
+function buttonTokenSet(value: unknown): string {
+  const list = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : value ? [value] : []
+
+  return list
+    .map((entry) => String(entry ?? '').trim())
+    .filter(Boolean)
+    .sort()
+    .join(',')
+}
+
+/**
+ * Loose value equality for "already applied" checks — `'40'` ≡ `40`, `null` ≡ `''` ≡
+ * `undefined`, objects by JSON.
+ *
+ * `column` makes the comparison type-aware where a raw compare is simply wrong: a
+ * checkbox configured `true` reads back as `1` on MySQL/SQLite, and a user cell is
+ * written as the picker's object but read back as the API's user objects with a
+ * different key set and order — neither survives `String()` or `JSON.stringify`.
+ */
+export function buttonValuesEqual(a: unknown, b: unknown, column?: ColumnType): boolean {
+  if (column?.uidt === UITypes.Checkbox) {
+    return getCheckBoxValue(a as never) === getCheckBoxValue(b as never)
+  }
+
+  if (column?.uidt && BUTTON_USER_VALUE_TYPES.includes(column.uidt)) {
+    return buttonUserKeys(a) === buttonUserKeys(b)
+  }
+
+  if (column?.uidt === UITypes.MultiSelect) {
+    return buttonTokenSet(a) === buttonTokenSet(b)
+  }
+
+  const norm = (v: unknown) => (v === undefined || v === null || v === '' ? null : v)
+  const x = norm(a)
+  const y = norm(b)
+
+  if (x === null || y === null) return x === y
+  if (typeof x !== 'object' && typeof y !== 'object') return String(x) === String(y)
+
+  return JSON.stringify(x) === JSON.stringify(y)
+}
+
+/**
+ * An Update-record button reads as "done" (its `appearance_after`) when the
+ * record already carries every configured value — derived from data, so it
+ * survives reloads and agrees across users.
+ */
+export function buttonUpdatesApplied(
+  updates: ButtonRecordUpdate[] | null | undefined,
+  row: Record<string, any> | null | undefined,
+  columns: ColumnType[] | null | undefined,
+): boolean {
+  if (!row || !updates?.length) return false
+
+  return updates.every((update) => {
+    const column = columns?.find((c) => c.id === update.fk_column_id)
+
+    return !!column?.title && buttonValuesEqual(row[column.title], update.value, column)
+  })
+}
+
+/** Runs a Button field's action, behind its confirmation dialog when the field asks for one. */
+export function withButtonConfirmation(
+  colOptions: (ButtonType & { action_config?: ButtonActionConfig | null }) | null | undefined,
+  run: () => unknown,
+) {
+  const config = colOptions?.action_config
+  if (!config?.require_confirmation) {
+    run()
+    return
+  }
+
+  const { t } = getI18n().global
+
+  const defaultMessage =
+    colOptions?.type === ButtonActionsType.UpdateRecord
+      ? t('msg.info.interfaceButtonConfirmUpdateRecord')
+      : colOptions?.type === ButtonActionsType.Url
+      ? t('msg.info.interfaceButtonConfirmExternalUrl')
+      : colOptions?.type === ButtonActionsType.Workflow
+      ? t('msg.info.interfaceButtonConfirmRunAutomation')
+      : t('msg.info.interfaceButtonConfirmMessage')
+
+  useNcConfirmModal().showInfoModal({
+    title: config.confirmation?.title || colOptions?.label || t('general.confirm'),
+    content: config.confirmation?.message || defaultMessage,
+    okText: config.confirmation?.button_label || t('general.confirm'),
+    showIcon: false,
+    showCancelBtn: true,
+    // Close at once — the action shows its own progress.
+    okCallback: async () => {
+      run()
+    },
+  })
 }

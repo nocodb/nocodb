@@ -790,6 +790,8 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
       column.color = colOptions?.color
       column.fk_webhook_id = colOptions?.fk_webhook_id
       column.fk_script_id = colOptions?.fk_script_id
+      column.fk_workflow_id = colOptions?.fk_workflow_id
+      column.action_config = colOptions?.action_config
       column.icon = colOptions?.icon
       column.formula_raw = colOptions?.formula_raw || ''
 

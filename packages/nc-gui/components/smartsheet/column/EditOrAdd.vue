@@ -50,6 +50,8 @@ const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update'])
 const {
   formState,
   isWebhookCreateModalOpen,
+  isAutomationCreateModalOpen,
+  fieldSaveHandler,
   isAiButtonConfigModalOpen,
   isConvertLinkV2ModalOpen,
   generateNewColumnMeta,
@@ -454,7 +456,7 @@ const warningVisible = ref(false)
 const selectOptionsRef = ref<{ flushSort: () => void } | null>(null)
 
 const saveSubmitted = async () => {
-  if (readOnly.value) return
+  if (readOnly.value) return false
   let saved, savedColumn
   saving.value = true
   if (aiAutoSuggestMode.value) {
@@ -474,7 +476,7 @@ const saveSubmitted = async () => {
   }
   saving.value = false
 
-  if (!saved) return
+  if (!saved) return false
 
   // add delay to complete minimize transition
   setTimeout(() => {
@@ -490,10 +492,12 @@ const saveSubmitted = async () => {
   if (isForm.value) {
     $e('a:form-view:add-new-field')
   }
+
+  return true
 }
 
 async function onSubmit() {
-  if (readOnly.value) return
+  if (readOnly.value) return false
 
   selectOptionsRef.value?.flushSort()
   await nextTick()
@@ -511,8 +515,13 @@ async function onSubmit() {
         await saveSubmitted()
       },
     })
-  } else await saveSubmitted()
+    return false
+  }
+
+  return await saveSubmitted()
 }
+
+fieldSaveHandler.value = onSubmit
 
 // focus and select the column name field
 const antInput = ref()
@@ -644,6 +653,7 @@ const handleEscape = (event: KeyboardEvent): void => {
   if (
     isColumnTypeOpen.value ||
     isWebhookCreateModalOpen.value ||
+    isAutomationCreateModalOpen.value ||
     isAiButtonConfigModalOpen.value ||
     isConvertLinkV2ModalOpen.value
   )

@@ -38,6 +38,7 @@ interface TableExplorerColumn extends ColumnType {
   label?: string
   fk_column_id?: string
   fk_webhook_id?: string
+  fk_workflow_id?: string
   fk_qr_value_column_id?: string
   fk_barcode_value_column_id?: string
   fk_lookup_column_id?: string
@@ -724,6 +725,9 @@ const isColumnValid = (column: TableExplorerColumn) => {
       if (column.type === ButtonActionsType.Url && !column.formula_raw) return false
       if (column.type === ButtonActionsType.Webhook && !column.fk_webhook_id) return false
     }
+
+    // No create-on-save here — an automation must be picked (also when switching an existing field to it).
+    if (column.type === ButtonActionsType.Workflow && !column.fk_workflow_id) return false
 
     if (column.type === ButtonActionsType.Ai) {
       return !(

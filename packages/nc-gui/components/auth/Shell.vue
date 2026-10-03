@@ -31,7 +31,11 @@ const isDesktop = useMediaQuery('(min-width: 1024px)')
       class="nc-auth-stage hidden lg:flex flex-col w-[48%] max-w-[960px] pt-12 text-white relative overflow-hidden"
       :style="panelStyle"
     >
-      <div class="px-12 flex items-center gap-3">
+      <div v-if="!isWhiteLabelled" class="px-12 flex items-center">
+        <img src="~/assets/img/brand/text.png" alt="NocoDB" class="h-6 w-auto select-none" @dblclick="emits('logoDblclick')" />
+      </div>
+
+      <div v-else class="px-12 flex items-center gap-3">
         <div
           class="w-10 h-10 rounded-[10px] flex items-center justify-center shadow-sm"
           :class="isDark ? 'bg-[#16161a] ring-1 ring-white/15' : 'bg-white'"

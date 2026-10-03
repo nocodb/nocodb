@@ -220,7 +220,7 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
   if (window.location.search && /\bscope=|\bstate=/.test(window.location.search) && /\bcode=/.test(window.location.search)) {
     let extraProps: any = {}
     try {
-      let authProvider = 'google'
+      let authProvider: 'google' | 'github' | 'oidc' = 'google'
       if (window.location.search.includes('state=github')) {
         authProvider = 'github'
       } else if (window.location.search.includes('state=oidc')) {
@@ -236,7 +236,8 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
       extraProps = extra || {}
 
       signIn(token)
-      commitPendingAuthMethod()
+      // the staged click is lost when the callback opens in another tab; GitHub has no badge
+      commitPendingAuthMethod(authProvider === 'github' ? undefined : authProvider)
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }

@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { OAuthClient } from 'nocodb-sdk'
 
+const { t } = useI18n()
+
 interface Props {
   modelValue: boolean
   oauthClient: OAuthClient
@@ -31,7 +33,7 @@ async function onRegenerate() {
     const updated = await regenerateClientSecret(oauthClient.client_id)
 
     if (updated) {
-      message.success('Client secret regenerated successfully! Make sure to copy it now.')
+      message.success(t('msg.success.clientSecretRegenerated'))
       vModel.value = false
       emits('regenerated')
     }
@@ -49,7 +51,7 @@ async function onRegenerate() {
       <div class="flex items-start gap-3">
         <GeneralIcon icon="alertTriangle" class="flex-none !text-nc-orange-500 h-5 w-5 mt-0.5" />
         <div class="flex flex-col gap-1">
-          <h3 class="font-bold text-base text-nc-content-gray-emphasis">Regenerate Client Secret</h3>
+          <h3 class="font-bold text-base text-nc-content-gray-emphasis">{{ $t('labels.regenerateClientSecret') }}</h3>
           <div class="text-sm text-nc-content-gray-subtle">
             Are you sure you want to regenerate the client secret for
             <span class="font-semibold">{{ oauthClient.client_name }}</span

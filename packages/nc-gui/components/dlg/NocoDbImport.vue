@@ -267,9 +267,13 @@ onUnmounted(() => {
         <p class="mb-2">{{ $t('msg.info.migrateBaseSteps') }}:</p>
         <ol class="list-decimal list-inside mt-2 pl-1">
           <li>{{ $t('general.open') }} <strong>settings</strong> in your NocoDB base</li>
-          <li>Navigate to <strong>Migrate</strong> tab</li>
+          <li>
+            Navigate to <strong>{{ $t('general.migrate') }}</strong> tab
+          </li>
           <li>Paste the <strong>URL</strong></li>
-          <li>Click <strong>Migrate</strong></li>
+          <li>
+            Click <strong>{{ $t('general.migrate') }}</strong>
+          </li>
         </ol>
       </div>
 

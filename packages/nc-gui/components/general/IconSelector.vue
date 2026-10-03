@@ -402,8 +402,9 @@ watch(isOpen, (newValue) => {
                     </div>
 
                     <div class="ant-upload-text !text-nc-content-gray-muted !text-sm">
-                      Drop your icon here or <span class="text-nc-content-brand hover:underline">browse file</span>
-                      <div class="mt-1">Supported: image/*</div>
+                      Drop your icon here or
+                      <span class="text-nc-content-brand hover:underline">{{ $t('labels.csvImport.browseFile') }}</span>
+                      <div class="mt-1">{{ $t('labels.supportedImageFormats') }}</div>
                     </div>
                   </a-upload-dragger>
                 </div>

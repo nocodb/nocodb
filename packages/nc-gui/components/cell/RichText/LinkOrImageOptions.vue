@@ -284,7 +284,7 @@ const tabIndex = computed(() => {
           />
         </div>
         <NcTooltip overlay-class-name="nc-text-area-rich-link-options">
-          <template #title> Open link </template>
+          <template #title> {{ $t('labels.openLink') }} </template>
           <NcButton
             :tabindex="tabIndex"
             :class="{
@@ -299,7 +299,7 @@ const tabIndex = computed(() => {
           </NcButton>
         </NcTooltip>
         <NcTooltip overlay-class-name="nc-text-area-rich-link-options">
-          <template #title> Delete link </template>
+          <template #title> {{ $t('activity.deleteLink') }} </template>
           <NcButton
             :tabindex="tabIndex"
             class="!duration-0 !hover:(text-nc-content-red-medium bg-nc-bg-red-light)"

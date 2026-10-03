@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 // The workspace settings page at `/{ws}/settings/{slug}`: a full-screen page like
 // the account page (its own sidebar, Back to where it was opened from), with the
@@ -26,6 +26,15 @@ const workspaceStore = useWorkspace()
 const { loadCollaborators } = workspaceStore
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
+
+const { isEEFeatureBlocked, isPaymentEnabled, activePlanTitle } = useEeConfig()
+
+const { isWhiteLabelled, faviconUrl, productName } = useBranding()
+
+// Same rule as the home sidebar: free deployments show the NocoDB mark.
+const isFreePlan = computed(
+  () => isEEFeatureBlocked.value || (isPaymentEnabled.value && activePlanTitle.value === PlanTitles.FREE),
+)
 
 const { navGroups, paneMeta, availableTabs, firstAvailableTab, isWsAuditEnabled, blockWorkspaceSso, blockTeamsManagement } =
   useWorkspaceSettingsNav()
@@ -132,7 +141,14 @@ watch(
         <!-- Which workspace these settings belong to, level with the breadcrumb strip. -->
         <div class="nc-ws-settings-topbar gap-2 !px-4" data-testid="nc-ws-settings-workspace">
           <template v-if="activeWorkspace">
-            <GeneralWorkspaceIcon :workspace="activeWorkspace" size="medium" class="flex-none" />
+            <img
+              v-if="isWhiteLabelled && faviconUrl"
+              :src="faviconUrl"
+              :alt="productName"
+              class="flex-none !w-6 !h-6 object-contain"
+            />
+            <GeneralNocodbLogo v-else-if="isFreePlan" class="flex-none !w-6 !h-6" />
+            <GeneralWorkspaceIcon v-else :workspace="activeWorkspace" size="medium" class="flex-none" />
             <!-- `capitalize`, like the main sidebar: display only, the stored title is untouched. -->
             <NcTooltip show-on-truncate-only class="truncate capitalize text-bodyDefaultSmBold text-nc-content-gray-emphasis">
               {{ activeWorkspace.title }}

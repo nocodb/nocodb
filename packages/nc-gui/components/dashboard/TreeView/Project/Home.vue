@@ -71,7 +71,7 @@ const hasTableCreatePermission = computed(() => {
               data-testid="nc-home-create-new-btn"
             >
               <div class="flex items-center gap-2">
-                <GeneralIcon icon="ncPlusCircle" class="!text-nc-content-brand" />
+                <GeneralIcon icon="ncPlusCircleSolid" class="!text-nc-content-brand" />
 
                 <div>{{ $t('labels.createNew') }}</div>
               </div>

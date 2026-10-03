@@ -969,6 +969,11 @@ a {
   @apply !text-center;
 }
 
+// The update card draws its own surface; the ant notice would clip its corner close button.
+.ant-message .ant-message-notice.nc-update-notification-center .ant-message-notice-content {
+  @apply !p-0 !bg-transparent !shadow-none !border-0 overflow-visible;
+}
+
 .ant-pagination {
   @apply !flex !flex-row !gap-1;
 }

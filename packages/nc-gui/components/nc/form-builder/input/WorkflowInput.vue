@@ -40,6 +40,8 @@ interface Props {
   groupedVariables?: NodeGroup[]
   readOnly?: boolean
   plugins?: Array<'multiline' | 'richText'>
+  // `below`: the field sits in a floating popover, where the sidebar fly-out would cover it.
+  pickerPlacement?: 'auto' | 'below'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -48,6 +50,7 @@ const props = withDefaults(defineProps<Props>(), {
   variables: () => [],
   groupedVariables: () => [],
   readOnly: false,
+  pickerPlacement: 'auto',
 })
 
 const emit = defineEmits(['update:modelValue', 'enter'])
@@ -119,7 +122,7 @@ const { available: aiAvailable } = useWorkflowEmailAi()
 // In the sidebar the picker flies out over the canvas; inside the expand modal the caret is
 // mid-screen, so it drops below the caret instead.
 const suggestionPlacement = () =>
-  expanded.value
+  expanded.value || props.pickerPlacement === 'below'
     ? { placement: 'bottom-start' as const, offset: [0, 8] as [number, number] }
     : { placement: 'left-end' as const, offset: [40, 100] as [number, number] }
 

@@ -80,15 +80,24 @@ function itemSchemaChildren(variable: VariableDefinition): VariableDefinition[] 
   return schema.filter((child) => child.key).map(mapped)
 }
 
-// Attachment-typed variables only, kept in their node groups. A parent survives when a descendant
-// qualifies (a linked record → its attachment fields); a matching field drops its children so a
-// click picks the whole file list instead of drilling into `.length` and friends.
-function pickAttachmentVariables(variables: VariableDefinition[]): VariableDefinition[] {
+// Attachment-typed variables only, flattened within their node group: every row is a pickable file
+// list (no Record › Fields drill-down whose Select would attach a non-file), with its path as the
+// description and its top-level group kept so it lands under the same heading.
+function pickAttachmentVariables(variables: VariableDefinition[], path: string[] = [], groupKey?: string): VariableDefinition[] {
   return variables.flatMap((variable) => {
-    if (isAttachmentVariable(variable)) return [{ ...variable, children: undefined }]
+    const group = groupKey ?? variable.groupKey
+    if (isAttachmentVariable(variable)) {
+      return [
+        {
+          ...variable,
+          children: undefined,
+          groupKey: group,
+          ...(path.length ? { extra: { ...variable.extra, description: path.join(' › ') } } : {}),
+        },
+      ]
+    }
     const nested = [...(variable.children ?? []), ...itemSchemaChildren(variable)]
-    const children = nested.length ? pickAttachmentVariables(nested) : []
-    return children.length ? [{ ...variable, children }] : []
+    return nested.length ? pickAttachmentVariables(nested, [...path, variable.name], group) : []
   })
 }
 
@@ -180,7 +189,10 @@ const normaliseUrl = (value: string): string | null => {
     const prefix = trimmed.slice(0, trimmed.indexOf('{{'))
     return !prefix || /^https?:\/\//i.test(prefix) ? trimmed : null
   }
-  return parseHttpUrl(trimmed)?.href ?? null
+  if (/^[a-z][a-z\d+.-]*:\/\//i.test(trimmed)) return parseHttpUrl(trimmed)?.href ?? null
+  // `example.com/report.pdf` is what people paste; assume https rather than reject it.
+  const url = parseHttpUrl(`https://${trimmed}`)
+  return url?.hostname.includes('.') && !url.username ? url.href : null
 }
 
 const urlIsValid = computed(() => !!normaliseUrl(urlValue.value))
@@ -243,8 +255,14 @@ const uploadFiles = async (selected: File[]) => {
     return
   }
 
-  const files = selected.slice(0, Math.max(0, maxItems.value - items.value.length))
-  if (files.length < selected.length) message.info(limitHint.value)
+  // Same name and size as a file already uploaded here: the recipient would get it twice.
+  const isAttached = (file: File) =>
+    items.value.some((item) => item.type === 'file' && item.title === file.name && item.size === file.size)
+  const fresh = selected.filter((file) => !isAttached(file))
+  if (fresh.length < selected.length) message.info(t('msg.error.attachmentAlreadyAttached'))
+
+  const files = fresh.slice(0, Math.max(0, maxItems.value - items.value.length))
+  if (files.length < fresh.length) message.info(limitHint.value)
 
   if (!files.length) return
 
@@ -378,7 +396,8 @@ const chipMeta = (item: FormBuilderAttachmentItem) => {
 const chipTooltip = (item: FormBuilderAttachmentItem) => {
   if (item.type === 'variable') return item.expression
   if (item.type === 'file') return item.title
-  return item.url
+  const segments = templateSegments(item)
+  return segments ? segments.map((segment) => (segment.label ? `{${segment.label}}` : segment.text)).join('') : item.url
 }
 </script>
 
@@ -430,43 +449,40 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
     </div>
 
     <div class="flex items-center gap-2">
-      <NcDropdown v-model:visible="dropdownVisible" :trigger="['click']" :disabled="disabled" placement="bottomLeft">
-        <NcButton type="text" size="small" :disabled="disabled" :loading="isUploading">
-          <div class="flex items-center gap-1">
-            <GeneralIcon icon="plus" />
-            <span>{{ $t('labels.addAttachment') }}</span>
-          </div>
-        </NcButton>
+      <NcDropdown v-model:visible="dropdownVisible" :trigger="['click']" :disabled="disabled || atLimit" placement="bottomLeft">
+        <NcTooltip :disabled="!atLimit || disabled" placement="right">
+          <template #title>{{ limitHint }}</template>
+          <NcButton type="text" size="small" :disabled="disabled || atLimit" :loading="isUploading">
+            <div class="flex items-center gap-1">
+              <GeneralIcon icon="plus" />
+              <span>{{ $t('labels.addAttachment') }}</span>
+            </div>
+          </NcButton>
+        </NcTooltip>
 
         <template #overlay>
           <NcMenu v-if="panel === 'menu'">
-            <NcTooltip :disabled="!atLimit" placement="right">
-              <template #title>{{ limitHint }}</template>
-              <NcMenuItem :disabled="atLimit || !flatAttachmentVariables.length" @click="panel = 'picker'">
+            <NcTooltip :disabled="!!flatAttachmentVariables.length" placement="right">
+              <template #title>{{ $t('msg.info.noAttachmentFieldsAvailable') }}</template>
+              <NcMenuItem :disabled="!flatAttachmentVariables.length" @click="panel = 'picker'">
                 <div class="flex items-center gap-2 text-[13px]">
                   <GeneralIcon icon="cellAttachment" class="w-4 h-4" />
                   <span>{{ $t('labels.fromAttachmentField') }}</span>
                 </div>
               </NcMenuItem>
             </NcTooltip>
-            <NcTooltip v-if="allowUpload" :disabled="!atLimit" placement="right">
-              <template #title>{{ limitHint }}</template>
-              <NcMenuItem :disabled="atLimit" @click="triggerUpload">
-                <div class="flex items-center gap-2 text-[13px]">
-                  <GeneralIcon icon="ncUpload" class="w-4 h-4" />
-                  <span>{{ $t('labels.uploadFile') }}</span>
-                </div>
-              </NcMenuItem>
-            </NcTooltip>
-            <NcTooltip v-if="allowUrl" :disabled="!atLimit" placement="right">
-              <template #title>{{ limitHint }}</template>
-              <NcMenuItem :disabled="atLimit" @click="openUrlPopover">
-                <div class="flex items-center gap-2 text-[13px]">
-                  <GeneralIcon icon="ncLink" class="w-4 h-4" />
-                  <span>{{ $t('labels.fromUrl') }}</span>
-                </div>
-              </NcMenuItem>
-            </NcTooltip>
+            <NcMenuItem v-if="allowUpload" @click="triggerUpload">
+              <div class="flex items-center gap-2 text-[13px]">
+                <GeneralIcon icon="ncUpload" class="w-4 h-4" />
+                <span>{{ $t('labels.uploadFile') }}</span>
+              </div>
+            </NcMenuItem>
+            <NcMenuItem v-if="allowUrl" @click="openUrlPopover">
+              <div class="flex items-center gap-2 text-[13px]">
+                <GeneralIcon icon="ncLink" class="w-4 h-4" />
+                <span>{{ $t('labels.fromUrl') }}</span>
+              </div>
+            </NcMenuItem>
           </NcMenu>
 
           <div v-else-if="panel === 'picker'" @click.stop>
@@ -494,6 +510,7 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
                   :placeholder="$t('placeholder.attachmentUrl')"
                   :variables="flatUrlVariables"
                   :grouped-variables="groupedUrlVariables"
+                  picker-placement="below"
                   @enter="addUrl"
                 />
               </div>

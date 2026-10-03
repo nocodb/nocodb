@@ -372,7 +372,7 @@ const isColumnInvalid = ({
           result.isInvalid = !colOptions.fk_webhook_id
         }
       } else if (colOptions.type === ButtonActionsType.Workflow) {
-        if (isReadOnly || isInterfaceUi) {
+        if (isReadOnly) {
           result.isInvalid = true
           result.ignoreTooltip = true
         } else {

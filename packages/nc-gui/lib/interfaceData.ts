@@ -412,6 +412,11 @@ export interface InterfacePageDataApi {
    */
   triggerButtonHook?(params: { rowId: string; columnId: string }): Promise<unknown>
   /**
+   * Run a workflow Button field — the workflow resolves server-side from the
+   * column. Interface edit rule, same as the webhook button.
+   */
+  triggerButtonWorkflow?(params: { rowId: string; columnId: string }): Promise<unknown>
+  /**
    * Identity of the page/viz this api serves — appended to the DATA_EVENT
    * subscription key (see `interfaceDataEventSuffix`) so the server routes
    * the socket into the page-scoped realtime room (grant-gated, filters +

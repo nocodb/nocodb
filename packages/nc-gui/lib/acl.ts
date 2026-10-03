@@ -151,6 +151,7 @@ const rolePermissions = {
       csvTableImport: true,
       excelTableImport: true,
       hookTrigger: true,
+      buttonRun: true,
 
       // Editors can directly edit view filters / sorts / group-by / field
       // visibility & order / row coloring on collaborative views (backend

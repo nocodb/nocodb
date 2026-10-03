@@ -112,6 +112,7 @@ import * as nc_202609251200_vaults from './v0/nc_202609251200_vaults';
 import * as nc_202609260900_interface_detail_default_config from './v0/nc_202609260900_interface_detail_default_config';
 import * as nc_202609300900_vault_permissions from './v0/nc_202609300900_vault_permissions';
 import * as nc_202610011000_automation_executions_run_control from './v0/nc_202610011000_automation_executions_run_control';
+import * as nc_202610011100_col_button_workflow_meta from './v0/nc_202610011100_col_button_workflow_meta';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -235,6 +236,7 @@ export default class XcMigrationSourcev0 {
       'nc_202609260900_interface_detail_default_config',
       'nc_202609300900_vault_permissions',
       'nc_202610011000_automation_executions_run_control',
+      'nc_202610011100_col_button_workflow_meta',
     ]);
   }
 
@@ -472,6 +474,8 @@ export default class XcMigrationSourcev0 {
         return nc_202609300900_vault_permissions;
       case 'nc_202610011000_automation_executions_run_control':
         return nc_202610011000_automation_executions_run_control;
+      case 'nc_202610011100_col_button_workflow_meta':
+        return nc_202610011100_col_button_workflow_meta;
     }
   }
 }

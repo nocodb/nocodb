@@ -23998,6 +23998,10 @@
             "$ref": "#/components/schemas/Id",
             "description": "Script ID"
           },
+          "fk_workflow_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Workflow ID"
+          },
           "fk_column_id": {
             "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to Column"
@@ -31018,7 +31022,8 @@
           "webhook",
           "url",
           "ai",
-          "script"
+          "script",
+          "workflow"
         ]
       },
       "CustomUrl": {

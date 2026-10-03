@@ -99,6 +99,7 @@ export const OPERATION_SCOPES = {
   hookDelete: 'base',
   hookTest: 'base',
   hookTrigger: 'base',
+  buttonRun: 'base',
   hookFilterCreate: 'base',
   buttonFilterCreate: 'base',
   gridViewCreate: 'base',

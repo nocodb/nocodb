@@ -9,6 +9,12 @@
 import type { Validation } from '../form';
 import type { AttachmentResType } from '~/lib/Api';
 import type { InterfaceVisualizationConfig } from './pageConfigs';
+import type {
+  ButtonAppearanceAfter,
+  ButtonConfirmation,
+  ButtonRecordUpdate,
+  ButtonTriggerSource,
+} from '~/lib/button';
 
 /**
  * Filter tree stored inside page configs.
@@ -85,11 +91,7 @@ export enum InterfaceButtonActionTypes {
   OPEN_NOCO_AI = 'open_noco_ai',
 }
 
-export interface InterfaceButtonConfirmation {
-  title?: string;
-  message?: string;
-  button_label?: string;
-}
+export type InterfaceButtonConfirmation = ButtonConfirmation;
 
 interface InterfaceButtonBase {
   id: string;
@@ -130,13 +132,9 @@ export interface InterfaceButtonOpenRecordForm extends InterfaceButtonBase {
 /** Record-scoped — valid only inside record-detail / record-review contexts. */
 export interface InterfaceButtonUpdateRecord extends InterfaceButtonBase {
   action: InterfaceButtonActionTypes.UPDATE_RECORD;
-  updates: Array<{ fk_column_id: string; value: unknown }>;
+  updates: ButtonRecordUpdate[];
   move_to_next_after?: boolean;
-  appearance_after?: {
-    color?: string;
-    label?: string;
-    show_check_icon?: boolean;
-  };
+  appearance_after?: ButtonAppearanceAfter;
 }
 
 export interface InterfaceButtonCopyRecordLink extends InterfaceButtonBase {
@@ -192,12 +190,19 @@ export const INTERFACE_BUTTON_TRIGGER_NODE_TYPE = 'core.trigger.button';
 /** Where a Run-automation button sits: on an open record (sheet) or on page chrome (no record). */
 export type InterfaceButtonScope = 'record' | 'page';
 
-/** `data.config` of a `core.trigger.button` node — set by the interface, read-only in the editor. */
+/**
+ * `data.config` of a `core.trigger.button` node — written by whichever button
+ * binds it (interface page save or Button field save), read-only in the editor.
+ */
 export interface InterfaceButtonTriggerConfig {
+  /** Absent = 'interface' (bindings written before Button fields could run workflows). */
+  source?: ButtonTriggerSource;
   modelId?: string;
   interfaceId?: string;
   pageId?: string;
   buttonId?: string;
+  /** Button field id — `source: 'field'` only. */
+  columnId?: string;
   /** Absent = 'record' (bindings written before page-level buttons existed). */
   scope?: InterfaceButtonScope;
 }

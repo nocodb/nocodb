@@ -117,6 +117,11 @@ const buttonTypes = computed(() => [
           label: t('labels.runScript'),
           value: ButtonActionsType.Script,
         },
+        {
+          icon: 'ncAutomation',
+          label: t('labels.interfaceActionRunAutomation'),
+          value: ButtonActionsType.Workflow,
+        },
       ]
     : []),
 ])
@@ -283,6 +288,7 @@ if (isEdit.value) {
   vModel.value.color = colOptions?.color
   vModel.value.fk_webhook_id = colOptions?.fk_webhook_id
   vModel.value.fk_script_id = colOptions?.fk_script_id
+  vModel.value.fk_workflow_id = colOptions?.fk_workflow_id
   vModel.value.icon = colOptions?.icon
   selectedWebhook.value = hooks.value.find((hook) => hook.id === vModel.value?.fk_webhook_id)
   selectedScript.value = activeBaseScripts.value.find((script) => script.id === vModel.value?.fk_script_id)
@@ -422,15 +428,15 @@ if (isEdit.value) {
                   color: getButtonColors(vModel.theme ?? 'solid', vModel.color ?? 'brand', false, false, getColor).text,
                 }"
                 :class="`${vModel.color ?? 'brand'} ${vModel.theme ?? 'solid'}`"
-                class="flex items-center justify-center nc-cell-button rounded-md h-6 w-6 gap-2"
+                class="flex items-center justify-center nc-cell-button rounded h-5 w-5 gap-2"
               >
-                <component :is="iconMap.cellText" class="w-4 h-4" />
+                <component :is="iconMap.cellText" class="w-3.5 h-3.5" />
               </div>
               <GeneralIcon icon="arrowDown" class="text-nc-content-gray-muted !w-4 !h-4" />
             </div>
             <template #overlay>
-              <div class="bg-nc-bg-default space-y-2 p-2 rounded-lg">
-                <div v-for="[type, colors] in Object.entries(buttonColorMap)" :key="type" class="flex gap-2">
+              <div class="bg-nc-bg-default space-y-1.5 p-2 rounded-lg">
+                <div v-for="[type, colors] in Object.entries(buttonColorMap)" :key="type" class="flex gap-1.5">
                   <div v-for="[name, color] in Object.entries(colors)" :key="name">
                     <button
                       :style="{
@@ -440,10 +446,10 @@ if (isEdit.value) {
                       :class="{
                         '!border-transparent': type !== 'text',
                       }"
-                      class="border-1 border-nc-border-gray-medium flex items-center justify-center rounded h-6 w-6"
+                      class="border-1 border-nc-border-gray-medium flex items-center justify-center rounded h-5 w-5"
                       @click="updateButtonTheme(type, name)"
                     >
-                      <component :is="iconMap.cellText" class="w-3.5 h-3.5" />
+                      <component :is="iconMap.cellText" class="w-3 h-3" />
                     </button>
                   </div>
                 </div>
@@ -564,12 +570,16 @@ if (isEdit.value) {
       v-model:model-value="vModel"
       v-model:selected-script="selectedScript"
     />
+    <SmartsheetColumnButtonOptionsWorkflow
+      v-if="vModel?.type === buttonActionsType.Workflow && showEEFeatures"
+      v-model:model-value="vModel"
+    />
 
     <PaymentUpgradeBadgeProvider v-if="showEEFeatures" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY">
       <template #default="{ click }">
         <div class="nc-button-filter-section mt-2">
           <div
-            class="flex items-center gap-2 cursor-pointer py-1 text-nc-content-gray-subtle2 hover:text-nc-content-gray"
+            class="flex items-center gap-2 cursor-pointer py-1 text-nc-content-gray-subtle hover:text-nc-content-gray"
             @click="click(PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY, () => (isFilterSectionOpen = !isFilterSectionOpen))"
           >
             <GeneralIcon
@@ -577,7 +587,8 @@ if (isEdit.value) {
               class="transform transition-transform duration-150 !w-4 !h-4"
               :class="{ '-rotate-90': !isFilterSectionOpen }"
             />
-            <span class="text-small font-medium select-none">{{ $t('labels.visibilityCondition') }}</span>
+            <!-- Matches the "Add description" toggle below (small NcButton: 14px, medium). -->
+            <span class="text-sm font-medium select-none">{{ $t('labels.visibilityCondition') }}</span>
             <PaymentUpgradeBadge
               :plan-title="PlanTitles.BUSINESS"
               :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY"

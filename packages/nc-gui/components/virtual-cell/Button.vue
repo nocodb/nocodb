@@ -178,10 +178,20 @@ const componentProps = computed(() => {
         filterDisabled ||
         isPublic.value ||
         (isInterfaceUi.value && !interfaceDataApi?.triggerButtonHook) ||
-        !isUIAllowed('hookTrigger') ||
+        !isUIAllowed('buttonRun') ||
         isLoading.value ||
         !column.value.colOptions.fk_webhook_id ||
         !cellValue.value?.fk_webhook_id,
+    }
+  } else if (column.value.colOptions.type === ButtonActionsType.Workflow) {
+    return {
+      disabled:
+        filterDisabled ||
+        isPublic.value ||
+        (isInterfaceUi.value && !interfaceDataApi?.triggerButtonWorkflow) ||
+        !isUIAllowed('buttonRun') ||
+        isLoading.value ||
+        !column.value.colOptions.fk_workflow_id,
     }
   } else if (column.value.colOptions.type === ButtonActionsType.Script) {
     return {
@@ -235,22 +245,25 @@ const triggerAction = async () => {
 
   if (colOptions.type === ButtonActionsType.Url) {
     confirmPageLeavingRedirect(componentProps.value?.href, componentProps.value?.target, appInfo.value?.allowLocalUrl)
-  } else if (colOptions.type === ButtonActionsType.Webhook) {
+  } else if (colOptions.type === ButtonActionsType.Webhook || colOptions.type === ButtonActionsType.Workflow) {
     try {
       isLoading.value = true
 
-      if (interfaceDataApi?.triggerButtonHook) {
+      if (colOptions.type === ButtonActionsType.Webhook && interfaceDataApi?.triggerButtonHook) {
         await interfaceDataApi.triggerButtonHook({ rowId: rowId!.value, columnId: column.value.id as string })
+      } else if (colOptions.type === ButtonActionsType.Workflow && interfaceDataApi?.triggerButtonWorkflow) {
+        await interfaceDataApi.triggerButtonWorkflow({ rowId: rowId!.value, columnId: column.value.id as string })
       } else {
         await $api.internal.postOperation(
           meta.value!.fk_workspace_id!,
           meta.value!.base_id!,
           {
-            operation: 'hookTrigger',
-            hookId: cellValue.value?.fk_webhook_id,
+            operation: 'buttonRun',
+          },
+          {
+            columnId: column.value.id,
             rowId: rowId!.value,
           },
-          {},
         )
       }
 

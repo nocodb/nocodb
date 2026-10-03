@@ -698,6 +698,8 @@ export type FormBuilderAttachmentItem =
     }
   | {
       type: 'file';
+      /** FileReference id from the upload; lets the host look the file up by key */
+      id?: string;
       title: string;
       mimetype: string;
       size: number;
@@ -722,6 +724,8 @@ export interface FormBuilderAttachmentsElement extends FormBuilderElementBase {
   allowUrl?: boolean;
   /** Maximum number of entries */
   maxItems?: number;
+  /** Provider ceiling on the summed size of uploaded files, checked before upload */
+  maxTotalBytes?: number;
   defaultValue?: FormBuilderAttachmentItem[] | null;
 }
 

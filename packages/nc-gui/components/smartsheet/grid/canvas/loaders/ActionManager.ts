@@ -1,4 +1,4 @@
-import type { Api, ButtonActionConfig, ButtonType, TableType } from 'nocodb-sdk'
+import type { Api, ButtonType, TableType } from 'nocodb-sdk'
 import type { UserObject } from 'packages/nc-gui/composables/useUserSync'
 import type { InterfacePageDataApi } from '~/lib/interfaceData'
 
@@ -294,24 +294,6 @@ export class ActionManager {
     const colOptions = column?.columnObj.colOptions as ButtonType
     if (!colOptions || column.isInvalidColumn?.isInvalid) return
 
-    if (extra.isAiPromptCol) return this.runButtonAction(rowIds, column, extra)
-
-    withButtonConfirmation(colOptions, () => this.runButtonAction(rowIds, column, extra))
-  }
-
-  private async runButtonAction(
-    rowIds: string[],
-    column: CanvasGridColumn,
-    extra: {
-      row?: Row[]
-      isAiPromptCol?: boolean
-      path?: Array<number>
-      allowLocalUrl?: boolean
-    } = {},
-  ) {
-    const colOptions = column?.columnObj.colOptions as ButtonType & { action_config?: ButtonActionConfig }
-    if (!colOptions || column.isInvalidColumn?.isInvalid) return
-
     extra.path = extra.path || []
     const { cachedRows } = this.getDataCache(extra.path)
 
@@ -358,48 +340,6 @@ export class ActionManager {
                 },
               )
             })
-          }
-          break
-        }
-
-        case 'update_record': {
-          if (this.interfaceDataApi) return
-          if (!this.baseInfo) {
-            throw new Error('Base information not available. Call setBaseInfo() first.')
-          }
-
-          const targets = (colOptions.action_config?.updates ?? [])
-            .map((update) => ({ update, col: this.meta.value?.columnsById[update.fk_column_id] }))
-            .filter((t) => !!t.col?.title)
-
-          for (const [i, rowId] of rowIds.entries()) {
-            await this.executeAction(
-              rowId,
-              column.id,
-              targets.map((t) => t.update.fk_column_id),
-              async () => {
-                const updated = (await this.api.internal.postOperation(
-                  this.baseInfo!.workspaceId,
-                  this.baseInfo!.baseId,
-                  {
-                    operation: 'buttonRun',
-                  },
-                  {
-                    columnId: column.columnObj.id,
-                    rowId,
-                  },
-                )) as Record<string, any> | undefined
-
-                const rowIndex = extra.row?.[i]?.rowMeta?.rowIndex
-                const row = rowIndex !== undefined ? cachedRows.value.get(rowIndex) : undefined
-                if (row) {
-                  for (const { update, col } of targets) {
-                    row.row[col!.title!] = updated?.[col!.title!] ?? update.value
-                  }
-                  cachedRows.value.set(rowIndex!, row)
-                }
-              },
-            )
           }
           break
         }

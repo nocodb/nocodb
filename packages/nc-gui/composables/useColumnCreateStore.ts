@@ -64,12 +64,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const isScriptCreateModalOpen = ref(false)
 
-    const isAutomationCreateModalOpen = ref(false)
-
-    // Registered by the field editor so a nested section can save the field (resolves true on success).
-    const fieldSaveHandler = shallowRef<(() => Promise<boolean>) | null>(null)
-
-    const requestFieldSave = async () => (fieldSaveHandler.value ? fieldSaveHandler.value() : false)
+    // Set by a type-specific section (Button → new automation): `before` runs after validation and may
+    // cancel the save; `after` runs once it succeeded.
+    const fieldSaveHooks = shallowRef<{ before?: () => Promise<boolean>; after?: () => Promise<void> } | null>(null)
 
     const isAiButtonConfigModalOpen = ref(false)
 
@@ -621,9 +618,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       tableExplorerColumns,
       defaultFormState,
       isScriptCreateModalOpen,
-      isAutomationCreateModalOpen,
-      fieldSaveHandler,
-      requestFieldSave,
+      fieldSaveHooks,
       isSaving,
       isSyncedField,
     }

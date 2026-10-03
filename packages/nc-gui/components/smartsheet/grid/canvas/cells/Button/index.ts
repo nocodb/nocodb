@@ -1,4 +1,4 @@
-import { type ButtonActionConfig, ButtonActionsType, type ButtonType } from 'nocodb-sdk'
+import { ButtonActionsType, type ButtonType } from 'nocodb-sdk'
 import { defaultOffscreen2DContext, renderSpinner, truncateText } from '../../utils/canvas'
 
 const horizontalPadding = 12
@@ -26,8 +26,6 @@ export const ButtonCellRenderer: CellRenderer = {
       t,
       rowMeta,
       getColor,
-      row,
-      meta,
     } = props
 
     const isQueued = actionManager.isQueued(pk, column.id!)
@@ -50,23 +48,13 @@ export const ButtonCellRenderer: CellRenderer = {
 
     if (!colOptions) return
 
-    // Update-record button whose values the record already carries → "after" look.
-    const actionConfig = (colOptions as ButtonType & { action_config?: ButtonActionConfig }).action_config
-    const after = actionConfig?.appearance_after
-    const isApplied =
-      colOptions.type === ButtonActionsType.UpdateRecord && buttonUpdatesApplied(actionConfig?.updates, row, meta?.columns)
-
     const buttonMeta = {
-      label: isQueued ? 'Queued...' : isApplied ? after?.label || t('general.updated') : colOptions?.label || '',
-      icon: isApplied && after?.show_check_icon !== false ? 'ncCheck' : colOptions.icon,
+      label: isQueued ? 'Queued...' : colOptions?.label || '',
+      icon: colOptions.icon,
       theme: colOptions.theme || 'solid',
-      color: (isApplied && after?.color) || colOptions.color || 'brand',
+      color: colOptions.color || 'brand',
       type: colOptions.type,
     }
-
-    // handleClick has no row values — it hit-tests with the label/icon drawn here.
-    cellRenderStore.buttonLabel = buttonMeta.label
-    cellRenderStore.buttonIcon = buttonMeta.icon
 
     if (buttonMeta.type === ButtonActionsType.Url) {
       let url = addMissingUrlSchma(value?.url?.toString() ?? '')
@@ -203,8 +191,8 @@ export const ButtonCellRenderer: CellRenderer = {
     if (!colOptions) return false
 
     const buttonMeta = {
-      label: cellRenderStore?.buttonLabel ?? (colOptions?.label || ''),
-      icon: cellRenderStore?.buttonIcon ?? colOptions?.icon,
+      label: colOptions?.label || '',
+      icon: colOptions?.icon,
       theme: colOptions?.theme || 'solid',
       color: colOptions?.color || 'brand',
       type: colOptions?.type,
@@ -267,8 +255,8 @@ export const ButtonCellRenderer: CellRenderer = {
     if (!colOptions || !colOptions.type) return
 
     const buttonMeta = {
-      label: cellRenderStore?.buttonLabel ?? (colOptions?.label || ''),
-      icon: cellRenderStore?.buttonIcon ?? colOptions?.icon,
+      label: colOptions?.label || '',
+      icon: colOptions?.icon,
       theme: colOptions?.theme || 'solid',
       color: colOptions?.color || 'brand',
       type: colOptions?.type,

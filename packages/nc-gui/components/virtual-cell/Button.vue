@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ButtonActionConfig, ButtonActionsType, type ButtonType, type ColumnType, type FilterType } from 'nocodb-sdk'
+import { ButtonActionsType, type ButtonType, type ColumnType, type FilterType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { validateRowFilters } from '~/utils/dataUtils'
 
@@ -150,25 +150,6 @@ const filterDisabledTooltip = computed(() => {
   return t('msg.buttonConditionNotMet')
 })
 
-const actionConfig = computed(() => column.value.colOptions?.action_config as ButtonActionConfig | undefined)
-
-/** Update-record button whose values the record already carries → "after" look. */
-const isApplied = computed(
-  () =>
-    column.value.colOptions?.type === ButtonActionsType.UpdateRecord &&
-    buttonUpdatesApplied(actionConfig.value?.updates, currentRow.value?.row, meta.value?.columns),
-)
-
-const displayLabel = computed(() =>
-  isApplied.value ? actionConfig.value?.appearance_after?.label || t('general.updated') : column.value.colOptions.label,
-)
-
-const displayColor = computed(
-  () => (isApplied.value && actionConfig.value?.appearance_after?.color) || column.value.colOptions.color || 'brand',
-)
-
-const showAppliedCheck = computed(() => isApplied.value && actionConfig.value?.appearance_after?.show_check_icon !== false)
-
 const componentProps = computed(() => {
   const filterDisabled = !isFilterConditionMet.value
 
@@ -201,16 +182,6 @@ const componentProps = computed(() => {
         isLoading.value ||
         !column.value.colOptions.fk_webhook_id ||
         !cellValue.value?.fk_webhook_id,
-    }
-  } else if (column.value.colOptions.type === ButtonActionsType.UpdateRecord) {
-    return {
-      disabled:
-        filterDisabled ||
-        isPublic.value ||
-        isInterfaceUi.value ||
-        !isUIAllowed('buttonRun') ||
-        isLoading.value ||
-        !actionConfig.value?.updates?.length,
     }
   } else if (column.value.colOptions.type === ButtonActionsType.Workflow) {
     return {
@@ -258,7 +229,7 @@ const componentProps = computed(() => {
 })
 
 const buttonColors = computed(() => {
-  return getButtonColorsCssVariables(column.value.colOptions.theme ?? 'solid', displayColor.value, getColor)
+  return getButtonColorsCssVariables(column.value.colOptions.theme ?? 'solid', column.value.colOptions.color ?? 'brand', getColor)
 })
 
 const afterActionStatus = ref<{
@@ -266,13 +237,7 @@ const afterActionStatus = ref<{
   tooltip?: string
 } | null>(null)
 
-function triggerAction() {
-  if (!column.value.colOptions.type || componentProps.value?.disabled) return
-
-  withButtonConfirmation(column.value.colOptions, runAction)
-}
-
-async function runAction() {
+const triggerAction = async () => {
   const colOptions = column.value.colOptions
   afterActionStatus.value = null
 
@@ -280,40 +245,6 @@ async function runAction() {
 
   if (colOptions.type === ButtonActionsType.Url) {
     confirmPageLeavingRedirect(componentProps.value?.href, componentProps.value?.target, appInfo.value?.allowLocalUrl)
-  } else if (colOptions.type === ButtonActionsType.UpdateRecord) {
-    try {
-      isLoading.value = true
-
-      const updated = (await $api.internal.postOperation(
-        meta.value!.fk_workspace_id!,
-        meta.value!.base_id!,
-        {
-          operation: 'buttonRun',
-        },
-        {
-          columnId: column.value.id,
-          rowId: rowId!.value,
-        },
-      )) as Record<string, any> | undefined
-
-      // Reflect the written values here; other views pick them up through the usual data events.
-      for (const update of actionConfig.value?.updates ?? []) {
-        const target = meta.value?.columns?.find((c) => c.id === update.fk_column_id)
-        if (target?.title && currentRow.value?.row) {
-          currentRow.value.row[target.title] = updated?.[target.title] ?? update.value
-        }
-      }
-    } catch (e: any) {
-      const errorMsg = await extractSdkResponseErrorMsg(e)
-      message.error(errorMsg)
-
-      afterActionStatus.value = { status: 'error', tooltip: errorMsg }
-      ncDelay(3000).then(() => {
-        afterActionStatus.value = null
-      })
-    } finally {
-      isLoading.value = false
-    }
   } else if (colOptions.type === ButtonActionsType.Webhook || colOptions.type === ButtonActionsType.Workflow) {
     try {
       isLoading.value = true
@@ -433,8 +364,8 @@ async function runAction() {
         v-bind="componentProps"
         data-testid="nc-button-cell"
         :class="[
-          `${displayColor} ${column.colOptions.theme ?? 'solid'}`,
-          { '!w-6': !displayLabel, 'disabled': componentProps.disabled, 'is-expanded-form': isExpandedForm },
+          `${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`,
+          { '!w-6': !column.colOptions.label, 'disabled': componentProps.disabled, 'is-expanded-form': isExpandedForm },
         ]"
         class="nc-cell-button nc-button-cell-link btn-cell-colors truncate flex items-center"
         :style="buttonColors"
@@ -454,14 +385,13 @@ async function runAction() {
           class="flex w-4 h-4 !text-current"
           size="medium"
         />
-        <GeneralIcon v-else-if="showAppliedCheck" icon="ncCheck" class="!w-4 min-w-4 min-h-4 !h-4" />
         <GeneralIcon v-else-if="column.colOptions.icon" :icon="column.colOptions.icon" class="!w-4 min-w-4 min-h-4 !h-4" />
-        <NcTooltip v-if="displayLabel" class="!truncate" show-on-truncate-only>
+        <NcTooltip v-if="column.colOptions.label" class="!truncate" show-on-truncate-only>
           <span class="truncate font-medium" :class="{ 'text-sm': isExpandedForm, 'text-[13px]': !isExpandedForm }">
-            {{ displayLabel }}
+            {{ column.colOptions.label }}
           </span>
           <template #title>
-            {{ displayLabel }}
+            {{ column.colOptions.label }}
           </template>
         </NcTooltip>
       </component>

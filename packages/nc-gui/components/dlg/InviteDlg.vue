@@ -129,6 +129,7 @@ watch(dialogShow, (open) => {
     :header="$t('activity.createTable')"
     :show-separator="false"
     size="medium"
+    :mask-style="{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }"
     class="nc-invite-dlg"
     @keydown.esc="dialogShow = false"
   >

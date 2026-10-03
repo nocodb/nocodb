@@ -35,7 +35,7 @@
     "test:spelling": "cspell \"{README.md,.github/*.md,src/**/*.ts}\"",
     "test:unit": "ENV_FILE=./config/.env.test jest",
     "watch:build": "tsc -p tsconfig.json -w",
-    "generate:sdk": "node build-script/mergeAndGenerateSwaggerCE && pnpm dlx swagger-typescript-api@10.0.3 -r -p ./nc_swagger.json -o ./src/lib/  --axios --unwrap-response-data  --module-name-first-tag --type-suffix=Type --templates ../../scripts/sdk/templates; rm ./nc_swagger.json",
+    "generate:sdk": "node build-script/mergeAndGenerateSwaggerCE && pnpm dlx swagger-typescript-api@10.0.3 -r -p ./nc_swagger.json -o ./src/lib/  --axios --unwrap-response-data  --module-name-first-tag --type-suffix=Type --templates ../../scripts/sdk/templates && node -e \"fs.rmSync('nc_swagger.json',{force:true})\"",
     "preinstall": "npx only-allow pnpm"
   },
   "dependencies": {

@@ -3,7 +3,7 @@ import type { Completion, CompletionContext, CompletionResult } from '@codemirro
 import { autocompletion, completionKeymap, completionStatus, snippetCompletion, startCompletion } from '@codemirror/autocomplete'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import type { Extension } from '@codemirror/state'
-import { Annotation, ChangeSet, EditorState, Prec, RangeSetBuilder, StateEffect, Transaction } from '@codemirror/state'
+import { Annotation, EditorState, Prec, RangeSetBuilder, StateEffect } from '@codemirror/state'
 import type { DecorationSet, ViewUpdate } from '@codemirror/view'
 import { Decoration, EditorView, ViewPlugin, WidgetType, placeholder as cmPlaceholder, keymap, tooltips } from '@codemirror/view'
 import type { VariableDefinition, WorkflowTransformStep, WorkflowValueKind } from 'nocodb-sdk'
@@ -20,8 +20,6 @@ import { WorkflowVariableInj } from '~/context'
 interface NodeGroup {
   nodeId: string
   nodeTitle: string
-  /** Real step title when `nodeTitle` is a display label. */
-  stepTitle?: string
   variables: VariableDefinition[]
 }
 
@@ -219,7 +217,7 @@ function stepCompletions(partial: string, from: number): CompletionResult {
       .filter((group) => group.nodeTitle.toLowerCase().includes(partial.toLowerCase()))
       .map((group) => ({
         label: group.nodeTitle,
-        apply: `$('${group.stepTitle ?? group.nodeTitle}')`,
+        apply: `$('${group.nodeTitle}')`,
         type: 'namespace',
         detail: t('labels.workflow.transforms.step'),
       })),
@@ -328,7 +326,7 @@ function onPickerCommand(attrs: { expression: string }) {
 // ── Transform menu on a chip ──
 
 function openTransformMenu(editorView: EditorView, pos: number, chip: HTMLElement) {
-  const token = findWorkflowExpressionTokens(editorView.state.doc.toString()).find((tk) => pos >= tk.from && pos < tk.to)
+  const token = findWorkflowExpressionTokens(editorView.state.doc.toString()).find((tk) => pos >= tk.from && pos <= tk.to)
   if (!token) return
   const { base, steps } = parseWorkflowExpressionTransforms(token.expression)
   transformTarget.value = {
@@ -414,24 +412,11 @@ function extensions(): Extension[] {
               if (inserted.lines > 1) hasBreak = true
             })
             if (!hasBreak) return tr
-            const specs: { from: number; to: number; insert: string }[] = []
+            const changes: { from: number; to: number; insert: string }[] = []
             tr.changes.iterChanges((fromA, toA, _fromB, _toB, inserted) => {
-              specs.push({ from: fromA, to: toA, insert: inserted.sliceString(0).replace(/\r?\n/g, ' ') })
+              changes.push({ from: fromA, to: toA, insert: inserted.sliceString(0).replace(/\r?\n/g, ' ') })
             })
-            const changes = ChangeSet.of(specs, tr.startState.doc.length)
-            // Keep the caret after inserted text and the annotations that tell user edits from parent writes.
-            const userEvent = tr.annotation(Transaction.userEvent)
-            const isProgrammatic = tr.annotation(programmatic)
-            return {
-              changes,
-              selection: tr.startState.selection.map(changes, 1),
-              effects: tr.effects,
-              scrollIntoView: tr.scrollIntoView,
-              annotations: [
-                ...(userEvent ? [Transaction.userEvent.of(userEvent)] : []),
-                ...(isProgrammatic !== undefined ? [programmatic.of(isProgrammatic)] : []),
-              ],
-            }
+            return { changes }
           }),
         ]),
     autocompletion({
@@ -568,16 +553,7 @@ watch(
   () => createView(),
 )
 
-// A chip in another field closes this menu; one in this field opens its own.
-onClickOutside(
-  transformMenuRef,
-  (event) => {
-    const chip = (event.target as Element | null)?.closest?.('.nc-workflow-expression')
-    if (chip && hostRef.value?.contains(chip)) return
-    closeTransformMenu()
-  },
-  { ignore: ['.ant-select-dropdown'] },
-)
+onClickOutside(transformMenuRef, closeTransformMenu, { ignore: ['.nc-workflow-expression', '.ant-select-dropdown'] })
 
 onClickOutside(pickerRootRef, () => (picker.value = null), { ignore: [hostRef] })
 

@@ -351,10 +351,7 @@ defineExpose({
         :placeholder="t('labels.workflow.picker.search')"
         data-testid="nc-workflow-variable-picker-search"
         @click.stop
-        @keydown="
-          (event: KeyboardEvent) =>
-            SEARCH_NAV_KEYS.includes(event.key) && onKeyDown({ event }) && event.preventDefault()
-        "
+        @keydown="(event: KeyboardEvent) => onKeyDown({ event }) && event.preventDefault()"
       />
     </div>
 

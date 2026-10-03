@@ -1,13 +1,96 @@
 {
   "openapi": "3.1.0",
-  "x-stoplight": {
-    "id": "qiz1rcfqd2jy6"
-  },
   "info": {
     "title": "NocoDB v3",
-    "version": "",
+    "version": "3.0.0",
     "description": "NocoDB API Documentation"
   },
+  "externalDocs": {
+    "description": "NocoDB documentation",
+    "url": "https://docs.nocodb.com"
+  },
+  "tags": [
+    {
+      "name": "Workspaces",
+      "description": "Workspace-level operations."
+    },
+    {
+      "name": "Workspace Members",
+      "description": "Manage members of a workspace and their roles."
+    },
+    {
+      "name": "Teams",
+      "description": "Groups of users that can be granted access collectively."
+    },
+    {
+      "name": "Bases",
+      "description": "Create and manage bases within a workspace."
+    },
+    {
+      "name": "Base Members",
+      "description": "Manage member access to an individual base."
+    },
+    {
+      "name": "Tables",
+      "description": "Create and manage tables within a base."
+    },
+    {
+      "name": "Fields",
+      "description": "Create and manage the fields (columns) of a table."
+    },
+    {
+      "name": "Views",
+      "description": "Create and manage views over a table."
+    },
+    {
+      "name": "View Filters",
+      "description": "Filter conditions applied to a view."
+    },
+    {
+      "name": "View Sorts",
+      "description": "Sort rules applied to a view."
+    },
+    {
+      "name": "Table Records",
+      "description": "Read and write the records of a table."
+    },
+    {
+      "name": "Linked Records",
+      "description": "Read and write records linked through a Link field."
+    },
+    {
+      "name": "Comments",
+      "description": "Comments attached to records."
+    },
+    {
+      "name": "Documents",
+      "description": "Document pages stored in a base."
+    },
+    {
+      "name": "Dashboards",
+      "description": "Dashboards and their widgets."
+    },
+    {
+      "name": "Scripts",
+      "description": "Automation scripts."
+    },
+    {
+      "name": "Workflows",
+      "description": "Workflow definitions and their executions."
+    },
+    {
+      "name": "Hooks",
+      "description": "Webhooks triggered by record and button events."
+    },
+    {
+      "name": "Environments",
+      "description": "Environment configuration for a workspace."
+    },
+    {
+      "name": "API Tokens",
+      "description": "Create and revoke API tokens."
+    }
+  ],
   "x-tagGroups": [
     {
       "name": "Meta APIs",
@@ -36,7 +119,24 @@
   ],
   "servers": [
     {
-      "url": "https://app.nocodb.com"
+      "url": "https://app.nocodb.com",
+      "description": "NocoDB Cloud"
+    },
+    {
+      "url": "{protocol}://{host}",
+      "description": "Self-hosted deployment",
+      "variables": {
+        "protocol": {
+          "default": "https",
+          "enum": [
+            "https",
+            "http"
+          ]
+        },
+        "host": {
+          "default": "localhost:8080"
+        }
+      }
     }
   ],
   "paths": {
@@ -5919,6 +6019,15 @@
           "schema": {
             "type": "string"
           },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "**Base Identifier**"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
           "name": "tableId",
           "in": "path",
           "required": true,
@@ -6479,7 +6588,7 @@
             "$ref": "#/components/responses/BadRequest"
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
+            "$ref": "#/components/responses/UnauthorizedV3"
           }
         },
         "parameters": [
@@ -7539,6 +7648,7 @@
     },
     "/api/v3/meta/tokens": {
       "get": {
+        "operationId": "tokens-list",
         "summary": "List API tokens",
         "description": "Retrieve a list of all API tokens for the organization.\n\n**Note**: \nAPI Token APIs are available on all cloud-hosted plans, and on licensed self-hosted deployments (**Business** plan and above).\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
         "tags": [
@@ -7580,6 +7690,7 @@
         }
       },
       "post": {
+        "operationId": "tokens-create",
         "summary": "Create API token",
         "description": "Create a new API token for the organization.\n\n**Note**: API Token APIs are available on all cloud-hosted plans, and on licensed self-hosted deployments (**Business** plan and above).\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
         "tags": [
@@ -7649,6 +7760,7 @@
     },
     "/api/v3/meta/tokens/{tokenId}": {
       "delete": {
+        "operationId": "tokens-delete",
         "summary": "Delete API token",
         "description": "Delete an API token by its ID.\n\n**Note**: API Token APIs are available on all cloud-hosted plans, and on licensed self-hosted deployments (**Business** plan and above).\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
         "tags": [
@@ -7721,8 +7833,7 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string",
-              "nullable": true
+              "type": "string"
             },
             "description": "Parent document ID. Use `null` (or omit) for root-level documents, or a document ID to list its children.",
             "example": "null"
@@ -10196,8 +10307,10 @@
             "description": "Sorting direction, either 'asc' (ascending) or 'desc' (descending)."
           },
           "enabled": {
-            "type": "boolean",
-            "nullable": true,
+            "type": [
+              "boolean",
+              "null"
+            ],
             "description": "Whether this sort is enabled. Disabled sorts are skipped during evaluation."
           }
         },
@@ -11022,8 +11135,10 @@
                   "description": "Field ID of the start date column."
                 },
                 "end_date_field_id": {
-                  "type": "string",
-                  "nullable": true,
+                  "type": [
+                    "string",
+                    "null"
+                  ],
                   "description": "Field ID of the end date column. Null means the range is a single point in time."
                 }
               },
@@ -11087,8 +11202,10 @@
             ]
           },
           "duration_field_id": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Optional standalone duration field; independent of the `dates` block."
           },
           "dependency": {
@@ -11177,8 +11294,10 @@
                   "description": "Table shown at this level."
                 },
                 "link_field_id": {
-                  "type": "string",
-                  "nullable": true,
+                  "type": [
+                    "string",
+                    "null"
+                  ],
                   "description": "Link field connecting this level to its parent. Omitted/null for the root level."
                 },
                 "filters": {
@@ -16450,8 +16569,10 @@
             "description": "Arbitrary metadata (icon, cover image, settings, etc.)."
           },
           "parent_id": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Parent document ID. null or omitted for root-level documents."
           }
         }
@@ -16490,8 +16611,10 @@
             "description": "New sort order value (float). Compute midpoint between neighbors for fractional ordering."
           },
           "parent_id": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "New parent document ID. null to move to root. Omit to keep current parent."
           }
         }
@@ -16537,8 +16660,10 @@
             "description": "Sort order among siblings."
           },
           "parent_id": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Parent document ID. null for root documents."
           },
           "has_children": {
@@ -16604,8 +16729,10 @@
             "type": "number"
           },
           "parent_id": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "has_children": {
             "type": "boolean"
@@ -17918,6 +18045,97 @@
       }
     },
     "responses": {
+      "BadRequestV3": {
+        "description": "Bad Request",
+        "content": {
+          "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+          }
+        }
+      },
+      "UnauthorizedV3": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+          }
+        }
+      },
+      "ForbiddenV3": {
+        "description": "Forbidden",
+        "content": {
+          "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string",
+                "example": "Accessing api token api require enterprise plan"
+              }
+            }
+          }
+          }
+        }
+      },
+      "NotFoundV3": {
+        "description": "Not Found",
+        "content": {
+          "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+          }
+        }
+      },
+      "InternalServerErrorV3": {
+        "description": "Internal Server Error",
+        "content": {
+          "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+          }
+        }
+      },
       "BadRequest": {
         "description": "BadRequest",
         "content": {
@@ -17927,9 +18145,6 @@
               "properties": {
                 "msg": {
                   "type": "string",
-                  "x-stoplight": {
-                    "id": "p9mk4oi0hbihm"
-                  },
                   "example": "BadRequest [Error]: <ERROR MESSAGE>"
                 }
               },
@@ -17947,62 +18162,6 @@
           }
         },
         "headers": {}
-      }
-    },
-    "BadRequestV3": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        }
-      }
-    },
-    "UnauthorizedV3": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        }
-      }
-    },
-    "ForbiddenV3": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string",
-          "example": "Accessing api token api require enterprise plan"
-        }
-      }
-    },
-    "NotFoundV3": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        }
-      }
-    },
-    "InternalServerErrorV3": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        }
       }
     },
     "securitySchemes": {

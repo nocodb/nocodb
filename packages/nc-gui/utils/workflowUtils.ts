@@ -2,6 +2,7 @@ import type { Edge, Node } from '@vue-flow/core'
 import dayjs from 'dayjs'
 import type {
   IWorkflowExecution,
+  VariableDefinition,
   WorkflowExecutionStatus,
   WorkflowGeneralNode,
   WorkflowNodeDefinition,
@@ -472,66 +473,59 @@ const getWorkflowExecutionStatusDisplay = (
   return (status && WORKFLOW_EXECUTION_STATUS_DISPLAY[status]) || WORKFLOW_EXECUTION_STATUS_DISPLAY.queued
 }
 
-// Literal class strings: this file is on UnoCSS's scan list.
-const WORKFLOW_NODE_TINTS = {
-  purple: 'bg-nc-purple-100 dark:bg-nc-purple-20 text-nc-content-purple-dark',
-  orange: 'bg-nc-orange-100 dark:bg-nc-orange-20 text-nc-content-orange-dark',
-  pink: 'bg-nc-pink-100 dark:bg-nc-pink-20 text-nc-content-pink-dark',
-  blue: 'bg-nc-blue-100 dark:bg-nc-blue-20 text-nc-content-blue-dark',
-  green: 'bg-nc-green-100 dark:bg-nc-green-20 text-nc-content-green-dark',
-  neutral: 'bg-nc-bg-gray-light text-nc-content-gray-subtle',
-}
+/**
+ * The chip label for a `{{ expression }}`: the variable's name, or the last property when the
+ * expression drills into it (`$('Trigger').user.email` → `email`).
+ */
+function deriveWorkflowExpressionMeta(expression: string, variables: VariableDefinition[]): { id: string; label: string } {
+  const variable = variables.filter((v) => expression.includes(v.key)).sort((a, b) => b.key.length - a.key.length)[0]
 
-/** Icon tile colour by what a step does. Third-party steps carry brand logos, so they stay neutral. */
-function getWorkflowNodeIconClass(node: Pick<WorkflowNodeDefinition, 'id' | 'category'>) {
-  const id = node.id ?? ''
-  if (node.category === WorkflowNodeCategory.TRIGGER) return WORKFLOW_NODE_TINTS.purple
-  if (node.category === WorkflowNodeCategory.FLOW) return WORKFLOW_NODE_TINTS.orange
-  if (id.startsWith('ai.') || id === 'nocodb.run_agent') return WORKFLOW_NODE_TINTS.pink
-  if (id === 'nocodb.run_script' || id === 'core.action.http') return WORKFLOW_NODE_TINTS.neutral
-  if (id.startsWith('nocodb.')) return WORKFLOW_NODE_TINTS.blue
-  if (id.startsWith('core.action.send')) return WORKFLOW_NODE_TINTS.green
-  return WORKFLOW_NODE_TINTS.neutral
-}
+  if (!variable) return { id: expression, label: expression }
 
-interface WorkflowLoop {
-  loopNodeId: string
-  bodyNodeIds: Set<string>
-  exitNodeId?: string
-  exitEdgeId?: string
-}
+  const remainingPath = expression.slice(variable.key.length)
 
-/** Each iterate node with the steps inside its loop and the step it continues to when done. */
-function getWorkflowLoops(nodes: Pick<Node, 'id' | 'type'>[], edges: Pick<Edge, 'id' | 'source' | 'target' | 'sourceHandle'>[]) {
-  const outgoing = new Map<string, string[]>()
-  for (const edge of edges) {
-    outgoing.set(edge.source, [...(outgoing.get(edge.source) ?? []), edge.target])
+  if (!remainingPath) return { id: variable.key, label: variable.name }
+
+  const properties: string[] = []
+  const pathRegex = /\.(\w+)|\[['"]([^'"]+)['"]\]/g
+  let pathMatch
+
+  // eslint-disable-next-line no-cond-assign
+  while ((pathMatch = pathRegex.exec(remainingPath)) !== null) {
+    properties.push(pathMatch[1] || pathMatch[2])
   }
 
-  const loops: WorkflowLoop[] = []
-  for (const node of nodes) {
-    if (node.type !== 'core.flow.iterate') continue
-    const bodyEdge = edges.find((e) => e.source === node.id && e.sourceHandle === 'body')
-    if (!bodyEdge) continue
-    const exitEdge = edges.find((e) => e.source === node.id && e.sourceHandle === 'output')
-
-    const bodyNodeIds = new Set<string>()
-    const queue = [bodyEdge.target]
-    while (queue.length) {
-      const id = queue.shift()!
-      if (bodyNodeIds.has(id) || id === node.id) continue
-      bodyNodeIds.add(id)
-      queue.push(...(outgoing.get(id) ?? []))
-    }
-
-    loops.push({ loopNodeId: node.id, bodyNodeIds, exitNodeId: exitEdge?.target, exitEdgeId: exitEdge?.id })
+  return {
+    id: variable.key,
+    label: properties.length > 0 ? properties[properties.length - 1] : variable.name,
   }
-  return loops
+}
+
+/** A template split into literal text and `{{ }}` tokens, so it can render variables as pills. */
+function splitWorkflowTemplate(
+  template: string,
+  variables: VariableDefinition[],
+): { text?: string; label?: string; expression?: string }[] {
+  const segments: { text?: string; label?: string; expression?: string }[] = []
+  const regex = /\{\{([^}]+)}}/g
+  let lastIndex = 0
+  let match
+
+  // eslint-disable-next-line no-cond-assign
+  while ((match = regex.exec(template)) !== null) {
+    if (match.index > lastIndex) segments.push({ text: template.slice(lastIndex, match.index) })
+    const expression = match[1].trim()
+    segments.push({ label: deriveWorkflowExpressionMeta(expression, variables).label, expression })
+    lastIndex = match.index + match[0].length
+  }
+  if (lastIndex < template.length) segments.push({ text: template.slice(lastIndex) })
+
+  return segments
 }
 
 export {
-  getWorkflowLoops,
-  getWorkflowNodeIconClass,
+  deriveWorkflowExpressionMeta,
+  splitWorkflowTemplate,
   getWorkflowExecutionStatusDisplay,
   formatWorkflowResumeTime,
   filterNodesByPermission,

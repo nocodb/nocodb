@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { PlanFeatureTypes } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
-import type { ShellRailGroup } from '../shell/Rail.vue'
 import type { ViewPageType } from '~/lib/types'
 
 // Unified "Tools" shell: a modal with a left tool-nav rail and a content area
@@ -13,15 +12,13 @@ import type { ViewPageType } from '~/lib/types'
 const { openedViewsTab } = storeToRefs(useViewsStore())
 const { onViewsTabChange } = useViewsStore()
 
-const { isSqlView } = useSmartsheetStoreOrThrow()
-
 const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { isUIAllowed, isBaseRolesLoaded } = useRoles()
+const { isBaseRolesLoaded } = useRoles()
 
-const { blockTableAndFieldPermissions, blockRls, blockDateDependency, blockRecordTemplates, showEEFeatures } = useEeConfig()
+const { blockTableAndFieldPermissions, blockRls, blockDateDependency, blockRecordTemplates } = useEeConfig()
 
 const { base } = storeToRefs(useBase())
 const meta = inject(MetaInj, ref())
@@ -71,84 +68,7 @@ const indicator = h(LoadingOutlined, {
   spin: true,
 })
 
-// Per-tool visibility gates — kept in lockstep with the toolbar Tools menu
-// (components/smartsheet/toolbar/TableTools.vue).
-const showFieldsAction = computed(() => isUIAllowed('fieldAdd') && !isSqlView.value)
-
-const showWebhooksAction = computed(() => isUIAllowed('hookList') && !isSqlView.value)
-
-const showPermissionsAction = computed(() => isEeUI && isUIAllowed('tablePermission') && !isSqlView.value && showEEFeatures.value)
-
-const showRlsAction = computed(() => isEeUI && isUIAllowed('rlsManage') && !isSqlView.value && showEEFeatures.value)
-
-const showDateDependencyAction = computed(
-  () => isEeUI && isUIAllowed('dateDependencyManage') && !isSqlView.value && showEEFeatures.value,
-)
-
-// Record templates are base-level data; unlike the toolbar dropdown (which
-// gates to grid because its manager modal is grid-hosted), the shell embeds the
-// manager itself, so it's reachable from any view's Tools surface.
-// recordTemplate* is an EDITOR-and-up ACL block, so keep the role gate.
-const showRecordTemplatesAction = computed(() => isEeUI && isUIAllowed('viewOperations') && showEEFeatures.value)
-
-// Slug → "is this tool reachable" map. Relations / API are always available;
-// a deep link to a tool that isn't reachable (or isn't yet wired) bounces to
-// 'relation' once roles have loaded.
-const tabAvailability = computed<Partial<Record<ViewPageType, boolean>>>(() => ({
-  field: showFieldsAction.value,
-  relation: true,
-  permissions: showPermissionsAction.value,
-  rls: showRlsAction.value,
-  templates: showRecordTemplatesAction.value,
-  dates: showDateDependencyAction.value,
-  api: true,
-  webhook: showWebhooksAction.value,
-}))
-
-const railGroups = computed<ShellRailGroup[]>(() => {
-  const structure = [
-    showFieldsAction.value && { slug: 'field' as const, icon: 'ncList', title: t('general.manageFields') },
-    { slug: 'relation' as const, icon: 'ncErd', title: t('title.relations') },
-  ].filter(Boolean) as ShellRailGroup['items']
-
-  const access = [
-    showPermissionsAction.value && {
-      slug: 'permissions' as const,
-      icon: 'ncLock',
-      title: t('general.permissions'),
-    },
-    showRlsAction.value && {
-      slug: 'rls' as const,
-      icon: 'ncShield',
-      title: t('objects.permissions.rlsPolicy.rowLevelSecurity'),
-    },
-  ].filter(Boolean) as ShellRailGroup['items']
-
-  const records = [
-    showRecordTemplatesAction.value && {
-      slug: 'templates' as const,
-      icon: 'ncClipboard',
-      title: t('objects.recordTemplates'),
-    },
-    showDateDependencyAction.value && {
-      slug: 'dates' as const,
-      icon: 'ncCalendar',
-      title: t('labels.dateDependency.title'),
-    },
-  ].filter(Boolean) as ShellRailGroup['items']
-
-  const developer = [
-    showWebhooksAction.value && { slug: 'webhook' as const, icon: 'ncWebhook', title: t('objects.webhooks') },
-    { slug: 'api' as const, icon: 'ncCode', title: t('labels.apiSnippet') },
-  ].filter(Boolean) as ShellRailGroup['items']
-
-  return [
-    { label: t('labels.toolsSectionStructure'), items: structure },
-    { label: t('labels.toolsSectionAccess'), items: access },
-    { label: t('labels.toolsSectionRecords'), items: records },
-    { label: t('labels.toolsSectionDeveloper'), items: developer },
-  ]
-})
+const { tabAvailability, toolGroups: railGroups } = useTableToolsNav()
 
 // Title-block copy per tool.
 const toolHeader = computed(() => {

@@ -193,123 +193,89 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <NuxtLayout>
-      <div class="nc-invite-page flex items-center justify-center min-h-full py-16 bg-nc-bg-default px-6">
-        <div class="w-full max-w-100 flex flex-col items-center gap-6">
-          <div class="relative h-12 w-12 flex-none">
-            <GeneralNocoIcon :size="40" />
-          </div>
-
-          <div v-if="isLoading || isRedirecting" class="flex flex-col items-center gap-3 w-full">
-            <span class="h-5 w-48 rounded bg-nc-bg-gray-light" />
-            <span class="h-10 w-full rounded-lg bg-nc-bg-gray-light" />
-          </div>
-
-          <template v-else-if="loadError">
-            <div class="text-heading3 text-nc-content-gray text-center">{{ $t('msg.error.inviteLinkInvalid') }}</div>
-            <div class="text-bodyDefault text-nc-content-gray-subtle2 text-center">{{ loadError }}</div>
-            <NcButton type="secondary" size="medium" @click="navigateTo('/')">{{ $t('general.home') }}</NcButton>
-          </template>
-
-          <template v-else-if="invalidReason">
-            <div class="text-heading3 text-nc-content-gray text-center" data-testid="nc-invite-invalid">{{ invalidCopy }}</div>
-            <div class="text-bodyDefault text-nc-content-gray-subtle2 text-center">{{ $t('msg.info.askForANewLink') }}</div>
-            <NcButton type="secondary" size="medium" @click="navigateTo('/')">{{ $t('general.home') }}</NcButton>
-          </template>
-
-          <!-- `preview`, not a bare `v-else`: with nothing to show this rendered a
-               card with a blank name and a live Join button. -->
-          <template v-else-if="preview">
-            <div class="flex flex-col items-center gap-2 text-center">
-              <div class="text-heading3 text-nc-content-gray" data-testid="nc-invite-heading">
-                {{
-                  preview?.scope === InviteLinkScope.WORKSPACE
-                    ? $t('msg.info.invitedToWorkspace', { name: preview?.target_title })
-                    : $t('msg.info.invitedToBase', { name: preview?.target_title })
-                }}
-              </div>
-              <div class="text-bodyDefault text-nc-content-gray-subtle2">
-                {{ $t('msg.info.youWillJoinAs', { role: roleLabel }) }}
-              </div>
-              <div v-if="preview?.email_domain" class="text-bodyDefaultSm text-nc-content-gray-muted">
-                {{ $t('msg.info.domainNeedsVerifiedEmail', { domain: preview.email_domain }) }}
-              </div>
-            </div>
-
-            <div v-if="signedIn && wrongDomain" class="flex flex-col gap-3 w-full">
-              <div class="text-bodyDefault text-nc-content-red-dark text-center" data-testid="nc-invite-wrong-domain">
-                {{ $t('msg.info.signedInWrongDomain', { email: user?.email, domain: preview?.email_domain }) }}
-              </div>
-              <NcButton
-                type="secondary"
-                size="medium"
-                class="!w-full"
-                data-testid="nc-invite-switch-account"
-                @click="switchAccount"
-              >
-                {{ $t('activity.signInWithDifferentAccount') }}
-              </NcButton>
-
-              <!-- Signing out is a heavy price for opening the wrong link. The
-                   account they are in is still theirs; let them go back to it. -->
-              <NcButton type="text" size="medium" class="!w-full" data-testid="nc-invite-home" @click="navigateTo('/')">
-                {{ $t('general.home') }}
-              </NcButton>
-            </div>
-
-            <div v-else-if="signedIn" class="flex flex-col gap-3 w-full">
-              <NcButton
-                type="primary"
-                size="medium"
-                class="!w-full"
-                :loading="isJoining"
-                data-testid="nc-invite-join"
-                @click="onJoin"
-              >
-                {{ $t('activity.joinNow') }}
-              </NcButton>
-
-              <template v-if="joinError">
-                <div class="text-bodyDefault text-nc-content-red-dark text-center" data-testid="nc-invite-join-error">
-                  {{ joinError }}
-                </div>
-                <div class="text-bodyDefaultSm text-nc-content-gray-muted text-center">
-                  {{ $t('msg.info.signedInAs', { email: user?.email }) }}
-                </div>
-                <NcButton
-                  type="secondary"
-                  size="medium"
-                  class="!w-full"
-                  data-testid="nc-invite-switch-account"
-                  @click="switchAccount"
-                >
-                  {{ $t('activity.signInWithDifferentAccount') }}
-                </NcButton>
-
-                <NcButton type="text" size="medium" class="!w-full" data-testid="nc-invite-home" @click="navigateTo('/')">
-                  {{ $t('general.home') }}
-                </NcButton>
-              </template>
-            </div>
-
-            <div v-else class="flex flex-col gap-2 w-full">
-              <NcButton type="primary" size="medium" class="!w-full" data-testid="nc-invite-signup" @click="goSignIn('/signup')">
-                {{ $t('activity.createAccountToJoin') }}
-              </NcButton>
-              <NcButton
-                type="secondary"
-                size="medium"
-                class="!w-full"
-                data-testid="nc-invite-signin"
-                @click="goSignIn('/signin')"
-              >
-                {{ $t('activity.signInToJoin') }}
-              </NcButton>
-            </div>
-          </template>
-        </div>
+  <NuxtLayout>
+    <AuthShell v-if="isLoading || isRedirecting" class="nc-invite-page" :title="$t('labels.auth.inviteTitle')" :loading="true">
+      <div class="flex flex-col gap-3 w-full">
+        <span class="h-5 w-48 rounded bg-nc-bg-gray-light" />
+        <span class="h-11 w-full rounded-lg bg-nc-bg-gray-light" />
       </div>
-    </NuxtLayout>
-  </div>
+    </AuthShell>
+
+    <AuthShell v-else-if="loadError" class="nc-invite-page" :title="$t('msg.error.inviteLinkInvalid')" :subtitle="loadError">
+      <NcButton type="primary" class="nc-auth-primary w-full" @click="navigateTo('/')">{{ $t('general.home') }}</NcButton>
+    </AuthShell>
+
+    <AuthShell
+      v-else-if="invalidReason"
+      class="nc-invite-page"
+      data-testid="nc-invite-invalid"
+      :title="invalidCopy"
+      :subtitle="$t('msg.info.askForANewLink')"
+    >
+      <NcButton type="primary" class="nc-auth-primary w-full" @click="navigateTo('/')">{{ $t('general.home') }}</NcButton>
+    </AuthShell>
+
+    <!-- `preview`, not a bare `v-else`: with nothing to show this rendered a
+         card with a blank name and a live Join button. -->
+    <AuthShell
+      v-else-if="preview"
+      class="nc-invite-page"
+      data-testid="nc-invite-heading"
+      :title="
+        preview.scope === InviteLinkScope.WORKSPACE
+          ? $t('msg.info.invitedToWorkspace', { name: preview.target_title })
+          : $t('msg.info.invitedToBase', { name: preview.target_title })
+      "
+      :subtitle="$t('msg.info.youWillJoinAs', { role: roleLabel })"
+    >
+      <div v-if="preview.email_domain" class="text-bodyDefaultSm text-nc-content-gray-muted -mt-4 mb-6">
+        {{ $t('msg.info.domainNeedsVerifiedEmail', { domain: preview.email_domain }) }}
+      </div>
+
+      <div v-if="signedIn && wrongDomain" class="flex flex-col gap-3 w-full">
+        <p class="text-bodyDefaultSm text-nc-content-gray-subtle m-0" data-testid="nc-invite-wrong-domain">
+          {{ $t('msg.info.signedInWrongDomain', { email: user?.email, domain: preview.email_domain }) }}
+        </p>
+        <NcButton type="primary" class="nc-auth-primary w-full" data-testid="nc-invite-switch-account" @click="switchAccount">
+          {{ $t('activity.signInWithDifferentAccount') }}
+        </NcButton>
+      </div>
+
+      <div v-else-if="signedIn" class="flex flex-col gap-3 w-full">
+        <AuthSubmitButton
+          :error="joinError"
+          error-testid="nc-invite-join-error"
+          :loading="isJoining"
+          data-testid="nc-invite-join"
+          @click="onJoin"
+        >
+          {{ $t('activity.joinNow') }}
+        </AuthSubmitButton>
+
+        <template v-if="joinError">
+          <div class="text-bodyDefaultSm text-nc-content-gray-muted text-center">
+            {{ $t('msg.info.signedInAs', { email: user?.email }) }}
+          </div>
+          <NcButton type="secondary" class="w-full" data-testid="nc-invite-switch-account" @click="switchAccount">
+            {{ $t('activity.signInWithDifferentAccount') }}
+          </NcButton>
+        </template>
+      </div>
+
+      <div v-else class="flex flex-col gap-2 w-full">
+        <NcButton type="primary" class="nc-auth-primary w-full" data-testid="nc-invite-signup" @click="goSignIn('/signup')">
+          {{ $t('activity.createAccountToJoin') }}
+        </NcButton>
+        <NcButton type="secondary" class="w-full" data-testid="nc-invite-signin" @click="goSignIn('/signin')">
+          {{ $t('activity.signInToJoin') }}
+        </NcButton>
+      </div>
+
+      <!-- Signing out is a heavy price for opening the wrong link. The
+           account they are in is still theirs; let them go back to it. -->
+      <template v-if="signedIn && (wrongDomain || joinError)" #footer>
+        <a class="nc-auth-link" data-testid="nc-invite-home" @click="navigateTo('/')">{{ $t('general.home') }}</a>
+      </template>
+    </AuthShell>
+  </NuxtLayout>
 </template>

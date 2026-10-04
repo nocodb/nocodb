@@ -220,7 +220,7 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
   if (window.location.search && /\bscope=|\bstate=/.test(window.location.search) && /\bcode=/.test(window.location.search)) {
     let extraProps: any = {}
     try {
-      let authProvider = 'google'
+      let authProvider: 'google' | 'github' | 'oidc' = 'google'
       if (window.location.search.includes('state=github')) {
         authProvider = 'github'
       } else if (window.location.search.includes('state=oidc')) {
@@ -236,6 +236,8 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
       extraProps = extra || {}
 
       signIn(token)
+      // the staged click is lost when the callback opens in another tab; GitHub has no badge
+      commitPendingAuthMethod(authProvider === 'github' ? undefined : authProvider)
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -302,6 +304,7 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn'], state
       if (state.lastUsedAuthMethod) state.lastUsedAuthMethod.value = 'sso'
 
       signIn(token)
+      commitPendingAuthMethod('sso')
     } catch (e: any) {
       if (e?.response?.data?.error === NcErrorType.ERR_MAX_WORKSPACE_LIMIT_REACHED) {
         // Store error information in global state

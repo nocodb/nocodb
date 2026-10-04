@@ -13,7 +13,6 @@ import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { extractRolesObj } from 'nocodb-sdk';
-import * as ejs from 'ejs';
 import { PresignedUrl } from 'src/models';
 import type { AppConfig } from '~/interface/config';
 
@@ -23,7 +22,6 @@ import { clearAuthCookie, setAuthCookie } from '~/services/users/helpers';
 
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { NcError } from '~/helpers/catchError';
-import { ncSiteUrl } from '~/utils/envs';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
@@ -277,25 +275,9 @@ export class AuthController {
     @Res() res: Response,
     @Param('tokenId') tokenId: string,
   ): Promise<any> {
-    try {
-      res.send(
-        ejs.render(
-          (await import('~/modules/auth/ui/auth/resetPassword')).default,
-          {
-            ncPublicUrl: ncSiteUrl || '',
-            token: tokenId,
-            // Honor the configured site URL so the in-page API calls resolve
-            // correctly when NocoDB is served from a sub-path / behind a
-            // reverse proxy (e.g. https://example.com/noco). Falling back to
-            // `/` keeps root deployments working. Used as `<%= baseUrl %>api/..`
-            // so it must carry a single trailing slash.
-            baseUrl: ncSiteUrl ? `${ncSiteUrl.replace(/\/+$/, '')}/` : `/`,
-          },
-        ),
-      );
-    } catch (e) {
-      return res.status(400).json({ msg: e.message });
-    }
+    // the emailed link opens the app's reset page; a non-root dashboard path is redirected to the root by Noco
+    const dashboardUrl = (req.dashboardUrl || '/').replace(/\/+$/, '');
+    res.redirect(`${dashboardUrl}/reset/${encodeURIComponent(tokenId)}`);
   }
 
   async setRefreshToken({ res, req }) {

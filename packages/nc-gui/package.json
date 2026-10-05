@@ -131,6 +131,7 @@
     "nocodb-sdk": "workspace:^",
     "nocodb-sdk-v2": "workspace:^",
     "papaparse": "^5.5.2",
+    "pdfjs-dist": "4.10.38",
     "pdfobject": "^2.3.0",
     "pdfobject-vue": "^0.0.4",
     "pinia": "^2.3.1",

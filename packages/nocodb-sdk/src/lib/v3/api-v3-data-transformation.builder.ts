@@ -715,6 +715,9 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
       'icon',
       'iconIdx',
       'duration_format',
+      // v2 meta keeps these snake_case
+      'date_format',
+      'time_format',
       'is_multi',
       'is_progress',
       'max',

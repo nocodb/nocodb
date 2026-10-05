@@ -388,6 +388,8 @@ export interface VaultProviderField {
   /** Masked on input and never echoed back once stored. */
   secret?: boolean;
   helpText?: string;
+  /** A pasted file, shown in full so it can be checked. Never echoed back. */
+  multiline?: boolean;
 }
 
 /** Per-provider picker and form definition. `available` = has a working driver. */
@@ -558,6 +560,7 @@ export const VAULT_PROVIDER_META: Record<VaultProviderType, VaultProviderMeta> =
           placeholder: '{ "type": "service_account", … }',
           required: true,
           secret: true,
+          multiline: true,
           helpText:
             'Paste the whole downloaded key file. It needs roles/secretmanager.secretAccessor on the secrets it should reach. Stored encrypted and never returned.',
         },

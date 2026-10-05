@@ -271,23 +271,26 @@ const removeFieldFromGroupBy = async (group: Group) => {
   await saveGroupBy()
 }
 
+// In local mode (public view / shared base) the applied group-by lives in
+// `localGroupBy` (incl. empty []), not the synced view columns (matches
+// `groupedByColumnIds`). Otherwise (creators/editors synced, or read-only
+// locked / others' personal) use the persisted synced state.
+function seedGroupByFromState() {
+  if (!isRestrictedEditor.value && localGroupBy.value !== null) {
+    _groupBy.value = localGroupBy.value.map((e, i) => ({
+      fk_column_id: e.column.id,
+      sort: e.sort,
+      order: i + 1,
+      enabled: e.enabled ?? true,
+    }))
+  } else {
+    _groupBy.value = [...syncedGroupByEntries.value]
+  }
+}
+
 watch(open, () => {
   if (open.value) {
-    // In local mode (public view / shared base) the applied group-by lives in
-    // `localGroupBy` (incl. empty []), not the synced view columns — seed the
-    // editor from it so reopening the dropdown shows the rows (matches
-    // `groupedByColumnIds`). Otherwise (creators/editors synced, or read-only
-    // locked / others' personal) show the persisted synced state.
-    if (!isRestrictedEditor.value && localGroupBy.value !== null) {
-      _groupBy.value = localGroupBy.value.map((e, i) => ({
-        fk_column_id: e.column.id,
-        sort: e.sort,
-        order: i + 1,
-        enabled: e.enabled ?? true,
-      }))
-    } else {
-      _groupBy.value = [...syncedGroupByEntries.value]
-    }
+    seedGroupByFromState()
   } else {
     showCreateGroupBy.value = false
   }
@@ -306,6 +309,12 @@ watch(syncedGroupByEntries, (next) => {
 const smartSheetListener = async (event: SmartsheetStoreEvents, payload: any = {}) => {
   const column = payload?.column
   const columns = payload?.columns as ColumnType[] | undefined
+
+  if (event !== SmartsheetStoreEvents.GROUP_BY_ADD && event !== SmartsheetStoreEvents.GROUP_BY_REMOVE) return
+
+  // Header-menu edits can arrive while the dropdown is closed, when `_groupBy` is
+  // empty or stale; saveGroupBy() would then turn off every level missing from it.
+  if (!open.value) seedGroupByFromState()
 
   if (event === SmartsheetStoreEvents.GROUP_BY_ADD) {
     // Bulk path: a list of columns from the multi-field menu. Push them all

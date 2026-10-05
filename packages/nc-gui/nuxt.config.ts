@@ -413,6 +413,7 @@ export default defineNuxtConfig({
         'grapheme-splitter',
         'html-entities',
         'inflection',
+        'pdfjs-dist/legacy/build/pdf.mjs',
         'pdfobject-vue',
         'pinia',
         'rfdc',

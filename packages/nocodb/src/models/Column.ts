@@ -2,6 +2,7 @@ import {
   AllowedColumnTypesForQrAndBarcodes,
   enumColors,
   isAIPromptCol,
+  isLinksOrLTAR,
   LinksVersion,
   LongTextAiMetaProp,
   RelationTypes,
@@ -263,6 +264,14 @@ export default class Column<T = any> implements ColumnType {
       }
     }
 
+    // Relation row first: these writes are not atomic, and an interruption must
+    // not leave a live link column whose colOptions is null.
+    const relationFirst = isLinksOrLTAR(column.uidt);
+    if (relationFirst) {
+      insertObj.id ||= await ncMeta.genNanoid(MetaTable.COLUMNS);
+      await this.insertColOption(context, column, insertObj.id, ncMeta);
+    }
+
     const row = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
@@ -279,7 +288,9 @@ export default class Column<T = any> implements ColumnType {
       `${CacheScope.COLUMN}:${row.id}`,
     );
 
-    await this.insertColOption(context, column, row.id, ncMeta);
+    if (!relationFirst) {
+      await this.insertColOption(context, column, row.id, ncMeta);
+    }
 
     await View.insertColumnToAllViews(
       context,

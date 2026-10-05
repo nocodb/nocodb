@@ -258,6 +258,8 @@ export enum AppEvents {
   VAULT_CREATE = 'vault.create',
   VAULT_UPDATE = 'vault.update',
   VAULT_DELETE = 'vault.delete',
+  VAULT_PERMISSION_UPDATE = 'vault.permission.update',
+  VAULT_SCOPE_UPDATE = 'vault.scope.update',
 
   ROW_USER_MENTION = 'row.user.mention',
   ROW_LMT_TOUCHED = 'row.lmt.touched',

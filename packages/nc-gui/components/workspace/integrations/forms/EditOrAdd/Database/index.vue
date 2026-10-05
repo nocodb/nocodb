@@ -60,6 +60,13 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
+const { isUIAllowed } = useRoles()
+
+// Updating a connection 401s for anyone without integration management
+// rights (ref #14725), so don't offer the action to them. Matches the
+// integrations Common form and connections table gating.
+const canManageIntegrations = computed(() => isUIAllowed('integrationManage'))
+
 const { appInfo } = useGlobal()
 
 const creatingSource = ref(false)
@@ -689,6 +696,7 @@ watch(
         </NcTooltip>
 
         <NcButton
+          v-if="canManageIntegrations"
           size="small"
           type="primary"
           :disabled="isDisabledSubmitBtn || isLoading"

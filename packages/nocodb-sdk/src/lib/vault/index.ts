@@ -513,7 +513,7 @@ export const VAULT_PROVIDER_META: Record<VaultProviderType, VaultProviderMeta> =
           placeholder: 'https://my-vault.vault.azure.net',
           required: true,
           helpText:
-            'The vault DNS name from the Key Vault overview page. Managed HSM URLs are accepted too.',
+            'The vault DNS name from the Key Vault overview page.',
         },
         {
           key: 'tenantId',

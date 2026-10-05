@@ -146,7 +146,7 @@ async function loadDocument() {
   pageSizes.value = []
 
   for (const url of props.src) {
-    const task = getDocument({ url })
+    const task = getDocument({ url, isEvalSupported: false })
     loadingTask = task
 
     try {
@@ -176,8 +176,12 @@ async function loadDocument() {
   isLoading.value = false
   hasError.value = true
 
+  const srcKey = props.src.join('\n')
+  if (reloadRequested.has(srcKey)) return
+
   const isURLExp = await isURLExpired(props.src[0])
   if (currentLoadId === loadId && isURLExp.isExpired) {
+    reloadRequested.add(srcKey)
     emits('error')
   }
 }
@@ -207,6 +211,11 @@ onBeforeUnmount(() => {
 })
 </script>
 
+<script lang="ts">
+// Module-scoped so it survives the parent's remount; CORS/offline failures look expired and would reload forever
+const reloadRequested = new Set<string>()
+</script>
+
 <template>
   <div ref="containerRef" :class="props.class" class="nc-attachment-pdf-js-viewer w-full h-full overflow-auto">
     <div v-if="isLoading" class="w-full h-full flex items-center justify-center text-nc-content-gray-muted">
@@ -214,8 +223,8 @@ onBeforeUnmount(() => {
     </div>
 
     <div v-else-if="hasError" class="w-full h-full flex items-center justify-center">
-      <div class="bg-white flex flex-col justify-center rounded-md gap-2 items-center px-6 py-8 max-w-100">
-        <GeneralIcon icon="pdfFile" class="text-gray-600 w-16 h-16" />
+      <div class="bg-nc-bg-default flex flex-col justify-center rounded-md gap-2 items-center px-6 py-8 max-w-100">
+        <GeneralIcon icon="pdfFile" class="text-nc-content-gray-subtle w-16 h-16" />
         <div class="text-nc-content-gray-muted text-sm text-center">{{ $t('labels.noPreviewAvailable') }}</div>
         <a :href="props.src[0]" target="_blank" rel="noopener noreferrer" class="text-sm font-semibold">
           {{ $t('general.download') }}

@@ -186,6 +186,12 @@ enum AuditV1OperationTypes {
   INTEGRATION_UPDATE = 'INTEGRATION_UPDATE',
   INTEGRATION_DELETE = 'INTEGRATION_DELETE',
 
+  VAULT_CREATE = 'VAULT_CREATE',
+  VAULT_UPDATE = 'VAULT_UPDATE',
+  VAULT_DELETE = 'VAULT_DELETE',
+  VAULT_PERMISSION_UPDATE = 'VAULT_PERMISSION_UPDATE',
+  VAULT_SCOPE_UPDATE = 'VAULT_SCOPE_UPDATE',
+
   SNAPSHOT_DELETE = 'SNAPSHOT_DELETE',
   SNAPSHOT_CREATE = 'SNAPSHOT_CREATE',
   SNAPSHOT_RESTORE = 'SNAPSHOT_RESTORE',
@@ -475,6 +481,13 @@ export const auditV1OperationsCategory: Record<
     value: 'INTEGRATION',
     types: Object.values(AuditV1OperationTypes).filter((key) =>
       key.startsWith('INTEGRATION_')
+    ),
+  },
+  VAULT: {
+    label: 'title.vaults',
+    value: 'VAULT',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('VAULT_')
     ),
   },
   API: {
@@ -1285,6 +1298,32 @@ export interface IntegrationDeletePayload {
   integration_id: string;
   integration_title: string;
   integration_type: string;
+}
+
+// Vault (secrets provider). Never carries the provider credentials.
+export interface VaultPayload {
+  vault_id: string;
+  vault_title: string;
+  vault_provider: string;
+  /** Owned by one workspace, or by the organization. */
+  vault_scope: 'workspace' | 'org';
+}
+
+export interface VaultUpdatePayload extends VaultPayload {
+  /** False for a change that left the stored credentials alone. */
+  config_changed: boolean;
+}
+
+export interface VaultPermissionUpdatePayload extends VaultPayload {
+  granted_type: string;
+  granted_role?: string;
+  subject_count: number;
+}
+
+export interface VaultScopeUpdatePayload extends VaultPayload {
+  previous_scope: 'workspace' | 'org';
+  /** The workspace the vault now belongs to, when limited to one. */
+  fk_workspace_id?: string;
 }
 
 export interface SnapshotPayload {

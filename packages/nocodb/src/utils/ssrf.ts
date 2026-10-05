@@ -46,6 +46,12 @@ export function isSsrfProtectionEnabled({
   )
     return false;
 
+  if (
+    source === OperationSource.VAULTS &&
+    process.env.NC_ALLOW_LOCAL_VAULTS === 'true'
+  )
+    return false;
+
   return true;
 }
 

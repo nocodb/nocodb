@@ -258,6 +258,8 @@ export enum AppEvents {
   VAULT_CREATE = 'vault.create',
   VAULT_UPDATE = 'vault.update',
   VAULT_DELETE = 'vault.delete',
+  VAULT_PERMISSION_UPDATE = 'vault.permission.update',
+  VAULT_SCOPE_UPDATE = 'vault.scope.update',
 
   ROW_USER_MENTION = 'row.user.mention',
   ROW_LMT_TOUCHED = 'row.lmt.touched',
@@ -1000,4 +1002,6 @@ export enum OperationSource {
   // Kept separate from HOOKS so the webhook SSRF bypass (NC_ALLOW_LOCAL_HOOKS)
   // does not also loosen the lower-privilege data-import path.
   DATA_IMPORT = 'data_import',
+  // A customer's HashiCorp Vault or Conjur, often on a private network.
+  VAULTS = 'vaults',
 }

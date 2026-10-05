@@ -73,6 +73,11 @@ export const extractCorrespondingLinkColumn = async (
 
     const refColOptions = await column.getColOptions();
 
+    // A link column can outlive its `nc_col_relations` row, leaving a system
+    // `_nc_m2m_*` column with no colOptions. It can never be the mirror, and
+    // dereferencing it 500s every link write into this table. nocohub#10868
+    if (!refColOptions) continue;
+
     // Check if this column links back to the source table
     if (refColOptions.fk_related_model_id !== sourceTableId) continue;
 

@@ -293,6 +293,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, unknown>({
     metaProps: ['meta'],
     mappings: {
       is12hrFormat: '12hr_format',
+      isDisplayTimezone: 'display_timezone',
       separator: 'separator',
       showAsProgress: 'show_as_progress',
       // duration: 'duration_format',
@@ -441,6 +442,7 @@ export const columnV3ToV2Builder = builderGenerator({
     metaProps: ['options'],
     mappings: {
       '12hr_format': 'is12hrFormat',
+      display_timezone: 'isDisplayTimezone',
       // legacy V3 field — preserved so older clients sending locale_string
       // still resolve via resolveColumnSeparator on read
       locale_string: 'isLocaleString',
@@ -450,12 +452,15 @@ export const columnV3ToV2Builder = builderGenerator({
     },
     skipfn: (data) => columnsWithOptions.includes(data.uidt || data.type),
     excluded: ['defaultViewColOrder', 'singular', 'plural'],
+    // v2 meta keeps these snake_case; camelCasing them hides them from every reader.
     skipTransformFor: [
       'currency_locale',
       'currency_code',
       'icon',
       'iconIdx',
       'duration_format',
+      'date_format',
+      'time_format',
     ],
   },
   transformFn: (data) => {

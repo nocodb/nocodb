@@ -425,7 +425,7 @@ export const VAULT_PROVIDER_META: Record<VaultProviderType, VaultProviderMeta> =
           placeholder: 'https://vault.example.com:8200',
           required: true,
           helpText:
-            'The API address, without a trailing /v1. Must be reachable from NocoDB and resolve to a public address.',
+            'The API address, without a trailing /v1. Must be reachable from NocoDB.',
         },
         {
           key: 'mount',
@@ -578,7 +578,7 @@ export const VAULT_PROVIDER_META: Record<VaultProviderType, VaultProviderMeta> =
           placeholder: 'https://conjur.example.com/api',
           required: true,
           helpText:
-            'Conjur Cloud uses https://<subdomain>.secretsmgr.cyberark.cloud/api. Must resolve to a public address.',
+            'Conjur Cloud uses https://<subdomain>.secretsmgr.cyberark.cloud/api. Must be reachable from NocoDB.',
         },
         {
           key: 'account',

@@ -1000,4 +1000,6 @@ export enum OperationSource {
   // Kept separate from HOOKS so the webhook SSRF bypass (NC_ALLOW_LOCAL_HOOKS)
   // does not also loosen the lower-privilege data-import path.
   DATA_IMPORT = 'data_import',
+  // A customer's HashiCorp Vault or Conjur, often on a private network.
+  VAULTS = 'vaults',
 }

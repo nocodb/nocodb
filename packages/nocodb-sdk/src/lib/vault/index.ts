@@ -411,13 +411,60 @@ export const VAULT_PROVIDER_META: Record<VaultProviderType, VaultProviderMeta> =
     [VaultProviderType.HASHICORP_VAULT]: {
       type: VaultProviderType.HASHICORP_VAULT,
       title: 'HashiCorp Vault',
-      description:
-        'HCP Vault or self-hosted. KV v2, database and AWS secrets engines.',
-      authLabel: 'AppRole · JWT',
+      description: 'HCP Vault or self-hosted, read through the KV v2 engine.',
+      authLabel: 'AppRole · Token',
       icon: 'ncLogoHashicorpVault',
-      available: false,
+      available: true,
+      // A KV v2 secret IS a JSON object — `data.data` is always a map, even for
+      // a single-field secret. So a reference names a field inside it.
       supportsProperty: true,
-      fields: [],
+      fields: [
+        {
+          key: 'address',
+          label: 'Vault address',
+          placeholder: 'https://vault.example.com:8200',
+          required: true,
+          helpText:
+            'The API address, without a trailing /v1. Must be reachable from NocoDB and resolve to a public address.',
+        },
+        {
+          key: 'mount',
+          label: 'KV v2 mount path',
+          placeholder: 'secret',
+          required: true,
+          helpText:
+            'Where the KV version 2 engine is mounted. Version 1 mounts are not supported.',
+        },
+        {
+          key: 'namespace',
+          label: 'Namespace',
+          placeholder: 'admin/team',
+          helpText:
+            'HCP Vault and Vault Enterprise only. Leave empty for Vault Community.',
+        },
+        {
+          key: 'roleId',
+          label: 'AppRole role ID',
+          placeholder: '675a50e1-79c9-…',
+          helpText:
+            'Fill in the AppRole pair OR a token below — whichever your Vault is set up for.',
+        },
+        {
+          key: 'secretId',
+          label: 'AppRole secret ID',
+          secret: true,
+          helpText:
+            'Stored encrypted and never returned. A secret ID with a use limit or a short TTL will stop working once it expires.',
+        },
+        {
+          key: 'token',
+          label: 'Token',
+          placeholder: 'hvs.…',
+          secret: true,
+          helpText:
+            'Used only when no AppRole pair is given. A periodic or long-lived token is required — NocoDB does not renew it.',
+        },
+      ],
     },
     [VaultProviderType.AWS_SECRETS_MANAGER]: {
       type: VaultProviderType.AWS_SECRETS_MANAGER,
@@ -453,34 +500,111 @@ export const VAULT_PROVIDER_META: Record<VaultProviderType, VaultProviderMeta> =
     [VaultProviderType.AZURE_KEY_VAULT]: {
       type: VaultProviderType.AZURE_KEY_VAULT,
       title: 'Azure Key Vault',
-      description: 'Entra ID app registration or managed identity.',
-      authLabel: 'Entra ID · client cert',
+      description: 'Read secrets with an Entra ID app registration.',
+      authLabel: 'Entra ID client secret',
       icon: 'ncLogoAzureColored',
-      available: false,
+      available: true,
+      // One opaque string per secret.
       supportsProperty: false,
-      fields: [],
+      fields: [
+        {
+          key: 'vaultUrl',
+          label: 'Vault URL',
+          placeholder: 'https://my-vault.vault.azure.net',
+          required: true,
+          helpText:
+            'The vault DNS name from the Key Vault overview page. Managed HSM URLs are accepted too.',
+        },
+        {
+          key: 'tenantId',
+          label: 'Directory (tenant) ID',
+          placeholder: '72f988bf-86f1-41af-91ab-…',
+          required: true,
+        },
+        {
+          key: 'clientId',
+          label: 'Application (client) ID',
+          placeholder: '04b07795-8ddb-461a-bbee-…',
+          required: true,
+        },
+        {
+          key: 'clientSecret',
+          label: 'Client secret',
+          required: true,
+          secret: true,
+          helpText:
+            'Give the app registration the Key Vault Secrets User role, or a get/list access policy. Stored encrypted and never returned — rotate it in Entra ID.',
+        },
+      ],
     },
     [VaultProviderType.GOOGLE_SECRET_MANAGER]: {
       type: VaultProviderType.GOOGLE_SECRET_MANAGER,
       title: 'Google Secret Manager',
-      description:
-        'Workload identity federation. No service-account keys to rotate.',
-      authLabel: 'Workload identity',
+      description: 'Read secrets with a service account key.',
+      authLabel: 'Service account key',
       icon: 'ncLogoGoogleColored',
-      available: false,
+      available: true,
       supportsProperty: false,
-      fields: [],
+      fields: [
+        {
+          key: 'projectId',
+          label: 'Project ID',
+          placeholder: 'my-project-123456',
+          required: true,
+        },
+        {
+          key: 'credentials',
+          label: 'Service account key (JSON)',
+          placeholder: '{ "type": "service_account", … }',
+          required: true,
+          secret: true,
+          helpText:
+            'Paste the whole downloaded key file. It needs roles/secretmanager.secretAccessor on the secrets it should reach. Stored encrypted and never returned.',
+        },
+      ],
     },
     [VaultProviderType.CYBERARK_CONJUR]: {
       type: VaultProviderType.CYBERARK_CONJUR,
       title: 'CyberArk Conjur',
-      description:
-        'Conjur Cloud or Enterprise. Host identity with API key or JWT.',
-      authLabel: 'Host · JWT',
+      description: 'Conjur Cloud or Enterprise, authenticated as a host.',
+      authLabel: 'Host API key',
       icon: 'ncLogoCyberarkConjur',
-      available: false,
       supportsProperty: false,
-      fields: [],
+      available: true,
+      fields: [
+        {
+          key: 'applianceUrl',
+          label: 'Appliance URL',
+          placeholder: 'https://conjur.example.com/api',
+          required: true,
+          helpText:
+            'Conjur Cloud uses https://<subdomain>.secretsmgr.cyberark.cloud/api. Must resolve to a public address.',
+        },
+        {
+          key: 'account',
+          label: 'Account',
+          placeholder: 'conjur',
+          required: true,
+          helpText:
+            'The Conjur organization account. Conjur Cloud always uses "conjur".',
+        },
+        {
+          key: 'login',
+          label: 'Host ID',
+          placeholder: 'host/data/nocodb',
+          required: true,
+          helpText:
+            'The identity NocoDB authenticates as, including the host/ prefix.',
+        },
+        {
+          key: 'apiKey',
+          label: 'API key',
+          required: true,
+          secret: true,
+          helpText:
+            'The host API key issued when the host was rotated or created. Stored encrypted and never returned.',
+        },
+      ],
     },
   };
 

@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { parseProp } from 'nocodb-sdk';
 import type {
+  HookNotificationV3V3Type,
   HookReqType,
   HookV3CreateV3Type,
   HookV3UpdateV3Type,
@@ -118,6 +120,45 @@ export class HooksV3Service {
     }
   }
 
+  // PATCH is a partial update — `HookV3Update` requires nothing, and the
+  // documented examples send `{title}` or `{active}` alone. The body reaches
+  // `HooksService.hookUpdate`, which revalidates it against the v1 `HookReq`
+  // (title/event/operation/notification all required) and 400s, and
+  // `requestBuilder` defaults an absent `event` to `after` — converting a
+  // `manual` hook into a record one and detaching every button column bound to
+  // it. Merge the body over the stored hook so an omitted property keeps its
+  // stored value; `Hook.update` likewise rewrites the trigger-field rows on
+  // every v3 write, so `trigger_fields` has to be carried too.
+  protected mergeOverStored(
+    existing: Hook,
+    patch: HookV3UpdateV3Type,
+  ): HookV3UpdateV3Type {
+    const stored: HookV3UpdateV3Type = {
+      title: existing.title,
+      description: existing.description,
+      // `manual` is spelled the same on both sides, and an internal event with
+      // no v3 spelling (a comment hook) is carried through untouched rather
+      // than rewritten.
+      event: (eventToV3[existing.event] ??
+        existing.event) as HookV3UpdateV3Type['event'],
+      operation: existing.operation as HookV3UpdateV3Type['operation'],
+      notification: parseProp(
+        existing.notification,
+      ) as HookNotificationV3V3Type,
+      active: !!existing.active,
+      trigger_fields: existing.trigger_fields ?? [],
+    };
+
+    // Presence, not truthiness: a key the caller omits keeps its stored value,
+    // a key sent explicitly — `[]`, `false`, `null` — overrides it.
+    return {
+      ...stored,
+      ...Object.fromEntries(
+        Object.entries(patch ?? {}).filter(([, value]) => value !== undefined),
+      ),
+    };
+  }
+
   async hookList(context: NcContext, param: { tableId: string }) {
     const list = await Hook.list(context, { fk_model_id: param.tableId });
 
@@ -178,21 +219,9 @@ export class HooksV3Service {
       NcError.get(context).hookNotFound(param.hookId);
     }
 
-    // `Hook.update` rewrites the trigger-field rows on every v3 write, so an
-    // absent `trigger_fields` wipes the scoping instead of leaving it alone.
-    // v3 update is shaped as a full-body PUT, so an agent resending only
-    // title/operation/notification would silently un-scope the hook — carry the
-    // stored value forward. An explicit `[]` still clears it.
-    const body: HookV3UpdateV3Type = { ...param.hook };
-    if (body.trigger_fields === undefined) {
-      body.trigger_fields = existing.trigger_fields ?? [];
-    }
+    const body = this.mergeOverStored(existing, param.hook);
 
-    this.assertTriggerFieldsScope(context, {
-      event: body.event ?? existing.event,
-      operation: body.operation ?? existing.operation,
-      trigger_fields: body.trigger_fields,
-    });
+    this.assertTriggerFieldsScope(context, body);
 
     // Transform V3 request to internal format
     const hookData = this.requestBuilder().build(body);

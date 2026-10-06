@@ -8,6 +8,8 @@ const { isDark } = useTheme()
 
 const { t } = useI18n()
 
+const { $e } = useNuxtApp()
+
 const scenes = computed<{ id: Scene; label: string; icon: keyof typeof iconMap }[]>(() => [
   { id: 'grid', label: t('objects.viewType.grid'), icon: 'grid' },
   { id: 'interface', label: t('general.interfaces'), icon: 'ncLayout' },
@@ -30,6 +32,7 @@ function startRotation() {
 }
 
 function pick(scene: Scene) {
+  $e('c:auth:preview:switch', { scene, from: current.value })
   current.value = scene
   startRotation()
 }

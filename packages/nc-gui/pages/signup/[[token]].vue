@@ -14,7 +14,7 @@ const { appInfo, signIn } = useGlobal()
 
 const { productName } = useBranding()
 
-const { lastMethod } = useAuthLastMethod()
+const { lastMethod, selectMethod } = useAuthLastMethod()
 
 const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
@@ -76,55 +76,58 @@ async function signUp() {
 
   data.ignore_subscribe = !subscribe.value
 
-  api.auth.signup(data).then(async (user) => {
-    lastMethod.value = 'email'
-    signIn(user.token!)
+  api.auth.signup(data).then(
+    async (user) => {
+      lastMethod.value = 'email'
+      signIn(user.token!)
 
-    $e('a:auth:sign-up')
+      $e('a:auth:sign-up')
 
-    try {
-      // TODO: Add to swagger
+      try {
+        // TODO: Add to swagger
+        if (isEnabledOnboardingFlow.value) {
+          const continueAfterOnboardingFlow = 'nc'
+
+          /**
+           * Onboarding flow is shown only for new users
+           */
+          showOnboardingFlowLocalState.value = true
+
+          await navigateTo({
+            path: '/',
+            query: continueAfterOnboardingFlow ? { continueAfterOnboardingFlow } : {},
+          })
+
+          return
+        }
+
+        // if user signed up then redirect to ws bases list page
+        return await navigateTo({
+          name: 'index-typeOrId',
+          params: {
+            typeOrId: 'nc',
+          },
+        })
+      } catch (e) {
+        console.error(e)
+      }
+
       if (isEnabledOnboardingFlow.value) {
-        const continueAfterOnboardingFlow = 'nc'
-
         /**
          * Onboarding flow is shown only for new users
          */
         showOnboardingFlowLocalState.value = true
-
-        await navigateTo({
-          path: '/',
-          query: continueAfterOnboardingFlow ? { continueAfterOnboardingFlow } : {},
-        })
-
+        await navigateTo('/')
         return
       }
 
-      // if user signed up then redirect to ws bases list page
-      return await navigateTo({
-        name: 'index-typeOrId',
-        params: {
-          typeOrId: 'nc',
-        },
+      await navigateTo({
+        path: '/',
+        query: route.query,
       })
-    } catch (e) {
-      console.error(e)
-    }
-
-    if (isEnabledOnboardingFlow.value) {
-      /**
-       * Onboarding flow is shown only for new users
-       */
-      showOnboardingFlowLocalState.value = true
-      await navigateTo('/')
-      return
-    }
-
-    await navigateTo({
-      path: '/',
-      query: route.query,
-    })
-  })
+    },
+    () => $e('a:auth:sign-up:error', { method: 'email' }),
+  )
 }
 
 function resetError() {
@@ -156,7 +159,7 @@ onMounted(async () => {
           v-if="appInfo.googleAuthEnabled"
           :href="`${appInfo.ncSiteUrl}/auth/google`"
           class="nc-auth-provider"
-          @click="lastMethod = 'google'"
+          @click="selectMethod('google', 'signup')"
         >
           <NcButton type="secondary" class="w-full">
             <template #icon>
@@ -171,7 +174,7 @@ onMounted(async () => {
           v-if="appInfo.oidcAuthEnabled"
           :href="`${appInfo.ncSiteUrl}/auth/oidc`"
           class="nc-auth-provider"
-          @click="lastMethod = 'oidc'"
+          @click="selectMethod('oidc', 'signup')"
         >
           <NcButton type="secondary" class="w-full">
             <template #icon>

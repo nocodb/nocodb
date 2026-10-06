@@ -5,18 +5,13 @@ const props = defineProps<{
   method: AuthLastMethod
 }>()
 
-const { lastMethod } = useAuthLastMethod()
-
-// set from the Cognito token and the SSO callback; covers browsers that predate `lastMethod`
-const { lastUsedAuthMethod } = useGlobal()
-
-const isLastUsed = computed(() => (lastMethod.value || lastUsedAuthMethod.value) === props.method)
+const { isLastUsed } = useAuthLastMethod()
 </script>
 
 <template>
   <!-- same look as the last-used provider in AuthSsoProviders -->
   <NcBadge
-    v-if="isLastUsed"
+    v-if="isLastUsed(props.method)"
     color="brand"
     size="xs"
     :border="false"

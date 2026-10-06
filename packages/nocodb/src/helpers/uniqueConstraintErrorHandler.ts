@@ -267,14 +267,6 @@ export async function handleUniqueConstraintError({
     // This is definitely a unique constraint violation - handle it immediately
     const uniqueColumns = modelColumns.filter((c) => c.unique);
 
-    // If no unique columns, still throw but with generic info
-    if (uniqueColumns.length === 0) {
-      throw new UniqueConstraintViolationError({
-        value: 'unknown',
-        fieldName: 'unknown',
-      });
-    }
-
     // Try to identify the column and value from error detail first
     let column = null;
     let value = 'unknown';
@@ -311,6 +303,15 @@ export async function handleUniqueConstraintError({
           value = valueMatch[1].trim().replace(/^["']|["']$/g, '');
         }
       }
+    }
+
+    // The DB can enforce uniqueness the meta no longer records; the error
+    // detail above is then the only way to name the field.
+    if (!column && uniqueColumns.length === 0) {
+      throw new UniqueConstraintViolationError({
+        value: 'unknown',
+        fieldName: 'unknown',
+      });
     }
 
     // If we couldn't extract from error detail, try to find column from payload

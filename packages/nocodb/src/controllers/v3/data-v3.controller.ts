@@ -187,7 +187,11 @@ export class Datav3Controller {
       // per-record `id` check runs before it merges in `?records=`.
       body:
         normalizeArrayQueryParam(records) && isEmptyPayload(body) ? [] : body,
-      queryRecords: records,
+      // Normalised, not raw: past qs's 20-entry `arrayLimit` the parameter
+      // arrives as an object keyed by index, which the service would wrap as a
+      // single id — collapsing 25 records into one bogus delete that also slips
+      // under the payload limit.
+      queryRecords: normalizeArrayQueryParam(records),
     });
   }
 

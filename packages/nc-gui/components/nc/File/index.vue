@@ -109,7 +109,7 @@ useProvideUploadState(handleModalUpload, handleAttachmentUpload, closeModalFn, u
         <NcButton size="small" :disabled="disabled" type="secondary" @click="openModal">
           <div class="flex gap-2 items-center">
             <GeneralIcon icon="upload" />
-            Click to Upload
+            {{ $t('labels.clickToUpload') }}
           </div>
         </NcButton>
       </slot>
@@ -156,7 +156,7 @@ useProvideUploadState(handleModalUpload, handleAttachmentUpload, closeModalFn, u
           <NcButton size="small" :disabled="disabled" type="text">
             <div class="flex gap-2 items-center">
               <GeneralIcon icon="plus" />
-              Add More Files
+              {{ $t('labels.addMoreFiles') }}
             </div>
           </NcButton>
         </slot>

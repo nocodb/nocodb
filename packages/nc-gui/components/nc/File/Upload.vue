@@ -282,11 +282,11 @@ onUnmounted(() => {
         <div class="flex items-center space-x-4">
           <NcButton type="secondary" size="small" :disabled="isLoading" @click="handleCropImage">
             <GeneralIcon icon="crop"></GeneralIcon>
-            <span class="ml-2">Crop</span>
+            <span class="ml-2">{{ $t('labels.crop') }}</span>
           </NcButton>
 
           <NcTooltip :disabled="isValidFileSize">
-            <template #title> Cropped file size is greater than max file size </template>
+            <template #title> {{ $t('msg.info.croppedFileExceedsMaxSize') }} </template>
 
             <NcButton
               size="small"

@@ -32,7 +32,7 @@ const { toggleRead, deleteNotification } = notificationStore
     <div class="flex items-start">
       <NcTooltip v-if="!item.is_read">
         <template #title>
-          <span>Mark as read</span>
+          <span>{{ $t('labels.markAsRead') }}</span>
         </template>
 
         <NcButton
@@ -61,7 +61,7 @@ const { toggleRead, deleteNotification } = notificationStore
 
         <template #overlay>
           <NcMenu variant="small">
-            <NcMenuItem @click.stop="() => toggleRead(item)"> Mark as unread </NcMenuItem>
+            <NcMenuItem @click.stop="() => toggleRead(item)"> {{ $t('labels.markAsUnread') }} </NcMenuItem>
             <NcDivider />
             <NcMenuItem danger @click.stop="deleteNotification(item)"> {{ $t('general.delete') }} </NcMenuItem>
           </NcMenu>

@@ -1005,9 +1005,9 @@ watch(inviteDlg, (newVal) => {
               </div>
 
               <div class="flex flex-col gap-2">
-                <div class="font-semibold">Apply to all bases</div>
+                <div class="font-semibold">{{ $t('labels.applyToAllBases') }}</div>
                 <div class="text-nc-content-gray-subtle">
-                  This will override explicit base roles and apply the workspace role to all bases.
+                  {{ $t('msg.info.applyRoleToAllBasesHint') }}
                 </div>
               </div>
             </div>

@@ -5180,7 +5180,24 @@
     "ssoLoginRequired": "SSO Login Required",
     "continueToSsoSignin": "Continue to SSO Signin",
     "supportedImageFormats": "Supported: image/*",
-    "crop": "Crop"
+    "crop": "Crop",
+    "loadingEllipsis": "Loading...",
+    "downloadLogs": "Download Logs",
+    "hourShort": "Hr",
+    "minuteShort": "Min",
+    "clickToUpload": "Click to Upload",
+    "addMoreFiles": "Add More Files",
+    "markAsRead": "Mark as read",
+    "markAsUnread": "Mark as unread",
+    "applyToAllBases": "Apply to all bases",
+    "noProjects": "No Projects",
+    "newDatabaseBase": "New Database Base",
+    "tellUsMoreAboutUsecase": "Tell us more about your usecase",
+    "scriptActions": "Script Actions",
+    "licenseExpired": "License expired",
+    "talkToSales": "Talk to sales",
+    "paidAnnually": "Paid Annually",
+    "paidMonthly": "Paid Monthly"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5718,7 +5735,8 @@
     "addNote": "Add Note",
     "aiIntegrationForOperation": "Integration to use for this operation",
     "aiModelForOperation": "Model to use for this operation",
-    "setupScriptSettingsFirstToExecute": "Setup script settings first to execute"
+    "setupScriptSettingsFirstToExecute": "Setup script settings first to execute",
+    "selectTable": "Select table"
   },
   "placeholder": {
     "requestIntegration": "Provide integration name and your use-case.",
@@ -5944,7 +5962,9 @@
     "airtablePersonalAccessToken": "Enter your Airtable Personal Access Token",
     "airtableBaseUrlOrId": "Paste the Base URL or Base ID from Airtable",
     "searchExtension": "Search Extension",
-    "scriptVariableValue": "Variable value"
+    "scriptVariableValue": "Variable value",
+    "selectTable": "-- Select table --",
+    "typeSomething": "Type something..."
   },
   "msg": {
     "agentSkillsSubtitle": "Reusable instructions this agent can load when relevant.",
@@ -6863,7 +6883,9 @@
       "noAiIntegrationsAdded": "No AI Integrations added.",
       "appStoreDeprecationNotice": "App store will soon be removed. Email & Storage plugins are now available in Accounts/Setup page. Rest of the plugins here will be moved to integrations.",
       "sharedFormDefaultTheme": "Set the default theme (light or dark) for this shared form. Adds ?nc-theme=light or ?nc-theme=dark to the URL.",
-      "croppedFileExceedsMaxSize": "Cropped file size is greater than max file size"
+      "croppedFileExceedsMaxSize": "Cropped file size is greater than max file size",
+      "applyRoleToAllBasesHint": "This will override explicit base roles and apply the workspace role to all bases.",
+      "scriptActionsSubtitle": "Execute scripts and view their progress in real-time"
     },
     "error": {
       "inviteLinkInvalid": "This invite link isn't valid",
@@ -7090,7 +7112,9 @@
       "unknownPermissionRequested": "Not a permission this server offers",
       "authorizationWillBeRefused": "This request will be refused because of the permissions above.",
       "vaultAliasNotAllowed": "You are not allowed to use the vault '{name}'. Ask a workspace owner for access, or enter the credential directly.",
-      "selectTargetField": "Please select a target field!"
+      "selectTargetField": "Please select a target field!",
+      "parentTableNoPrimaryKey": "Parent table does not have a primary key column",
+      "childTableNoPrimaryKey": "Child table does not have a primary key column"
     },
     "toast": {
       "changesSaved": "Changes saved",
@@ -7205,7 +7229,9 @@
       "webhookUpgradedToV3": "Webhook upgraded to v3 successfully!",
       "webhookUrlCopied": "Webhook URL copied to clipboard",
       "tableSavedToBase": "Table saved to base",
-      "clientSecretRegenerated": "Client secret regenerated successfully! Make sure to copy it now."
+      "clientSecretRegenerated": "Client secret regenerated successfully! Make sure to copy it now.",
+      "dashboardSharingDisabled": "Dashboard sharing disabled",
+      "dashboardSharingEnabled": "Dashboard sharing enabled"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

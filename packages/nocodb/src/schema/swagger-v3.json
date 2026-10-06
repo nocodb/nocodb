@@ -60,11 +60,11 @@
     },
     {
       "name": "Table Records",
-      "description": "Read and write the records of a table.\n\nA record is `{ \"id\", \"fields\" }`. `fields` holds every non-primary-key field.\n\nLink fields return a count by default, or the linked records when `linksAsLtar=true`; has-many, many-to-many and the forward side of a one-to-one return an array; belongs-to and the owning side of a one-to-one return a single object or `null`. Attachment writes replace the whole cell, so send the existing files alongside any new ones.\n\nSee [the NocoDB docs](https://docs.nocodb.com) for field types and their value formats."
+      "description": "Read and write the records of a table."
     },
     {
       "name": "Linked Records",
-      "description": "Read and write the records linked through a Link field.\n\nHas-many and many-to-many links answer with `records`, an array; belongs-to and one-to-one answer with `record`, a single object or `null`. For has-many and many-to-many links, linking adds to the existing set rather than replacing it; belongs-to and one-to-one hold a single target, so linking displaces it."
+      "description": "Read and write the records linked through a Link field."
     },
     {
       "name": "Comments",

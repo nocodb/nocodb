@@ -27,7 +27,6 @@
   },
   "dependencies": {
     "@aws-amplify/core": "^5.8.14",
-    "@aws-amplify/ui-vue": "^3.1.30",
     "@ckpack/vue-color": "^1.6.0",
     "@dagrejs/dagre": "^1.1.8",
     "@floating-ui/vue": "^1.1.6",
@@ -87,6 +86,7 @@
     "@vvo/tzdb": "^6.183.0",
     "ant-design-vue": "^3.2.20",
     "aws-amplify": "^5.3.27",
+    "axios": "^1.18.0",
     "company-email-validator": "^1.1.0",
     "cron-parser": "^5.4.0",
     "cronstrue": "^3.9.0",

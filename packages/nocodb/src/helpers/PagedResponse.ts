@@ -1,6 +1,4 @@
-// Imported from the module, not the `helpers` barrel: the barrel pulls in
-// populateMeta and with it the whole model graph.
-import { extractLimitAndOffset } from '~/helpers/extractLimitAndOffset';
+import { extractLimitAndOffset } from '.';
 import type { NcContext, PaginatedType, PaginatedV3Type } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';

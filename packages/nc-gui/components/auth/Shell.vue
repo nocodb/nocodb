@@ -28,7 +28,7 @@ const isDesktop = useMediaQuery('(min-width: 1024px)')
   <div class="nc-auth-shell nc-h-screen w-full flex overflow-hidden" :class="{ 'nc-auth-shell--dark': isDark }">
     <aside
       v-if="isDesktop"
-      class="nc-auth-stage hidden lg:flex flex-col w-[48%] max-w-[720px] pt-12 text-white relative overflow-hidden"
+      class="nc-auth-stage hidden lg:flex flex-col w-[48%] max-w-[960px] pt-12 text-white relative overflow-hidden"
       :style="panelStyle"
     >
       <div class="px-12 flex items-center gap-3">
@@ -62,7 +62,16 @@ const isDesktop = useMediaQuery('(min-width: 1024px)')
       <div class="min-h-full flex flex-col items-center justify-center px-4 py-12">
         <div class="w-full max-w-[380px] flex flex-col">
           <div class="flex flex-col items-center lg:items-start text-center lg:text-left mb-8">
-            <GeneralNocoIcon inline :size="44" :animate="loading" class="mb-6 lg:!hidden" @dblclick="emits('logoDblclick')" />
+            <!-- the in-product mark; a white-labelled instance keeps its own icon -->
+            <GeneralNocoIcon
+              v-if="isWhiteLabelled"
+              inline
+              :size="44"
+              :animate="loading"
+              class="mb-6 lg:!hidden"
+              @dblclick="emits('logoDblclick')"
+            />
+            <GeneralNocodbLogo v-else class="!h-11 !w-11 mb-6 lg:!hidden" @dblclick="emits('logoDblclick')" />
 
             <h1 class="nc-auth-title text-heading3 m-0" data-testid="nc-auth-title">{{ title }}</h1>
 

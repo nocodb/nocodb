@@ -7,6 +7,11 @@ const lastMethod = useStorage<AuthLastMethod | ''>('nc-auth-last-method', '')
 // a provider click only stages the method: a cancelled redirect must not move the badge
 const pendingMethod = useSessionStorage<AuthLastMethod | ''>('nc-auth-pending-method', '')
 
+/** An SSO / OAuth redirect is starting: it commits on return, a cancel leaves the badge alone. */
+export function stageAuthMethod(method: AuthLastMethod) {
+  pendingMethod.value = method
+}
+
 /** A sign-in finished with `method`; drops any staged provider so it can't overwrite this later. */
 export function commitAuthMethod(method: AuthLastMethod) {
   pendingMethod.value = ''
@@ -33,7 +38,7 @@ export function useAuthLastMethod() {
   /** A provider button was clicked: record it, and stage it until the sign-in completes. */
   function selectMethod(method: AuthLastMethod, screen: 'signin' | 'signup') {
     $e('c:auth:provider:select', { provider: method, screen, lastUsed: isLastUsed(method) })
-    pendingMethod.value = method
+    stageAuthMethod(method)
   }
 
   return { isLastUsed, selectMethod }

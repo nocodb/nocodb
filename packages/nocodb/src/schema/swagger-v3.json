@@ -3,12 +3,20 @@
   "info": {
     "title": "NocoDB v3",
     "version": "3.0.0",
-    "description": "NocoDB API Documentation"
+    "description": "NocoDB v3 REST API.\n\n## Authentication\n\nEvery operation requires authentication. For programmatic access use an API token, sent as either `xc-token: <token>` or `Authorization: Bearer <token>`. A request succeeds only if both the token and the owning user's role allow it. See [API tokens](https://docs.nocodb.com/account-settings/api-tokens/).\n\n## Errors\n\nMost errors return `{\"error\": \"<code>\", \"message\": \"<text>\"}`, plus `details` when there is extra context. Some older paths still answer with a bare `{\"msg\": \"<text>\"}` and no `error` code. Match on `error`, not on `message`.\n\n## Conventions\n\n`PATCH` is a merge — omitted properties are left unchanged and an explicit `null` clears a nullable one. Requests are rate limited per user — all API tokens belonging to one user share a quota — and answer `429` with `Retry-After` when throttled. Limits and page sizes are configurable per deployment."
   },
   "externalDocs": {
     "description": "NocoDB documentation",
     "url": "https://docs.nocodb.com"
   },
+  "security": [
+    {
+      "xc-token": []
+    },
+    {
+      "bearerAuth": []
+    }
+  ],
   "x-tagGroups": [
     {
       "name": "Meta APIs",
@@ -61,7 +69,7 @@
     "/api/v3/meta/workspaces": {
       "get": {
         "summary": "List workspaces",
-        "operationId": "workspace-list",
+        "operationId": "workspaces-list",
         "description": "Retrieve a list of all workspaces accessible to the user.\n\n**Note**: Listing and creating workspaces is available on all cloud-hosted plans and on all self-hosted deployments. Reading, updating, and deleting a specific workspace requires cloud-hosted **Business** plans and above, or a licensed self-hosted deployment (**Business** plan and above). Unlicensed self-hosted deployments are limited to the default workspace.",
         "tags": [
           "Workspaces"
@@ -91,9 +99,6 @@
                 }
               }
             }
-          },
-          "400": {
-            "description": "Bad request."
           },
           "500": {
             "description": "The server encountered an unexpected error while processing the request."
@@ -934,7 +939,7 @@
         }
       }
     },
-    "/api/v3/meta/bases/{base_id}/tables": {
+    "/api/v3/meta/bases/{baseId}/tables": {
       "get": {
         "summary": "List tables",
         "description": "Retrieve list of all tables within the specified base.",
@@ -944,7 +949,7 @@
         ],
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": {
@@ -997,7 +1002,7 @@
               }
             }
           },
-          "404": {
+          "422": {
             "description": "Base not found."
           },
           "500": {
@@ -1011,7 +1016,7 @@
         "operationId": "table-create",
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": {
@@ -2460,7 +2465,7 @@
     "/api/v3/meta/bases/{baseId}/fields/{fieldId}/options": {
       "post": {
         "summary": "Add field options",
-        "description": "Add one or more choices (options) to a SingleSelect or MultiSelect field. Existing choices are kept. Choices whose `title` already exists on the field are skipped (idempotent). Returns the updated field.",
+        "description": "Add one or more choices (options) to a SingleSelect or MultiSelect field. Existing choices are kept. Titles are trimmed before comparison, and choices whose `title` already exists on the field are skipped (idempotent). Two choices sharing a title within one request body are rejected with a 400. Returns the updated field.",
         "operationId": "field-options-create",
         "tags": [
           "Fields"
@@ -2534,7 +2539,7 @@
       },
       "delete": {
         "summary": "Remove field options",
-        "description": "Remove one or more choices (options) from a SingleSelect or MultiSelect field, addressed by `id`. Ids not present on the field are ignored (idempotent). Removing a choice clears that value from existing records. At least one choice must remain. Returns the updated field.",
+        "description": "Remove one or more choices (options) from a SingleSelect or MultiSelect field, addressed by `title`. Titles are matched exactly — they are neither trimmed nor case-folded — and titles not present on the field are ignored (idempotent). Removing a choice clears that value from existing records. At least one choice must remain. Returns the updated field.",
         "operationId": "field-options-delete",
         "tags": [
           "Fields"
@@ -2667,6 +2672,9 @@
               }
             }
           },
+          "403": {
+            "description": "Webhook APIs are not included in this plan."
+          },
           "404": {
             "description": "Table not found."
           },
@@ -2780,6 +2788,9 @@
           "400": {
             "description": "Invalid request body."
           },
+          "403": {
+            "description": "Webhook APIs are not included in this plan, or the per-table or per-workspace webhook limit is already reached."
+          },
           "404": {
             "description": "Table not found."
           },
@@ -2849,6 +2860,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Webhook APIs are not included in this plan."
           },
           "404": {
             "description": "Hook not found."
@@ -2969,6 +2983,9 @@
           "400": {
             "description": "Invalid request body."
           },
+          "403": {
+            "description": "Webhook APIs are not included in this plan."
+          },
           "404": {
             "description": "Hook not found."
           },
@@ -3007,6 +3024,9 @@
         "responses": {
           "200": {
             "description": "Hook deleted successfully."
+          },
+          "403": {
+            "description": "Webhook APIs are not included in this plan."
           },
           "404": {
             "description": "Hook not found."
@@ -3367,7 +3387,7 @@
       },
       "post": {
         "summary": "Create filter",
-        "description": "Create a new filter or filter-group for a specific view.",
+        "description": "Create a new filter or filter-group for a specific view. Groups may nest at most three levels deep; a fourth level of nesting is rejected with a 400. A group's `id` is assigned by the server and must not be supplied.",
         "operationId": "view-filter-create",
         "tags": [
           "View Filters"
@@ -3397,7 +3417,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/FilterCreateUpdate"
+                "$ref": "#/components/schemas/FilterCreate"
               }
             }
           }
@@ -3423,7 +3443,7 @@
       },
       "put": {
         "summary": "Replace filter",
-        "description": "Replace filters for a specific view. All the existing filters will be overwritten with the new filters specified in this request.",
+        "description": "Replace filters for a specific view. All the existing filters will be overwritten with the new filters specified in this request. Groups may nest at most three levels deep; a fourth level of nesting is rejected with a 400. A group's `id` is assigned by the server and must not be supplied.",
         "operationId": "view-filter-replace",
         "tags": [
           "View Filters"
@@ -3453,7 +3473,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/FilterCreateUpdate"
+                "$ref": "#/components/schemas/FilterCreate"
               }
             }
           }
@@ -3894,14 +3914,14 @@
         }
       }
     },
-    "/api/v3/meta/bases/{base_id}/members": {
+    "/api/v3/meta/bases/{baseId}/members": {
       "post": {
         "summary": "Invite base members",
         "description": "Invite new members to a specific base using their User ID or Email address.\n\nNotes: Base collaboration APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "base-members-invite",
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": {
@@ -3955,7 +3975,7 @@
         "operationId": "base-members-update",
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": {
@@ -4009,7 +4029,7 @@
         "operationId": "base-members-delete",
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": {
@@ -4047,7 +4067,7 @@
         }
       }
     },
-    "/api/v3/meta/bases/{base_id}/scripts": {
+    "/api/v3/meta/bases/{baseId}/scripts": {
       "get": {
         "summary": "List Scripts",
         "description": "Retrieve a list of scripts associated with a specific base.\n\n**Note**: Script APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
@@ -4057,7 +4077,7 @@
         ],
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": {
@@ -4099,6 +4119,9 @@
               }
             }
           },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
           "404": {
             "description": "Base not found."
           },
@@ -4113,7 +4136,7 @@
         "operationId": "script-create",
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": {
@@ -4174,11 +4197,20 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
           }
         }
       }
     },
-    "/api/v3/meta/bases/{base_id}/scripts/{script_id}": {
+    "/api/v3/meta/bases/{baseId}/scripts/{scriptId}": {
       "get": {
         "summary": "Get Script Info",
         "description": "Retrieve the details of a specific script.\n\n**Note**: Script APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
@@ -4188,7 +4220,7 @@
         ],
         "parameters": [
           {
-            "name": "script_id",
+            "name": "scriptId",
             "in": "path",
             "required": true,
             "schema": {
@@ -4197,7 +4229,7 @@
             "description": "Unique identifier for the script."
           },
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": {
@@ -4232,6 +4264,15 @@
                 }
               }
             }
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntityV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
           }
         }
       },
@@ -4244,7 +4285,7 @@
         ],
         "parameters": [
           {
-            "name": "script_id",
+            "name": "scriptId",
             "in": "path",
             "required": true,
             "schema": {
@@ -4253,7 +4294,7 @@
             "description": "Unique identifier for the script."
           },
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": {
@@ -4282,6 +4323,18 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntityV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
           }
         }
       },
@@ -4294,7 +4347,7 @@
         ],
         "parameters": [
           {
-            "name": "script_id",
+            "name": "scriptId",
             "in": "path",
             "required": true,
             "schema": {
@@ -4303,7 +4356,7 @@
             "description": "Unique identifier for the script."
           },
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": {
@@ -4315,11 +4368,20 @@
         "responses": {
           "200": {
             "description": "Script deleted."
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntityV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
           }
         }
       }
     },
-    "/api/v3/meta/bases/{base_id}/dashboards": {
+    "/api/v3/meta/bases/{baseId}/dashboards": {
       "get": {
         "summary": "List Dashboards",
         "description": "Retrieve a list of dashboards in the specified base.\n\n**Note**: Dashboard APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
@@ -4327,7 +4389,7 @@
         "tags": ["Dashboards"],
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
@@ -4356,7 +4418,7 @@
         "tags": ["Dashboards"],
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
@@ -4388,22 +4450,22 @@
         }
       }
     },
-    "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}": {
+    "/api/v3/meta/bases/{baseId}/dashboards/{dashboardId}": {
       "get": {
         "summary": "Get Dashboard",
-        "description": "Retrieve details of a specific dashboard. Optionally include widgets by setting the `includeWidgets` query parameter to `true`.\n\n**Note**: Dashboard APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
+        "description": "Retrieve details of a specific dashboard. Pass `include=widgets` to include the dashboard's widgets in the response.\n\n**Note**: Dashboard APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
         "operationId": "dashboard-read",
         "tags": ["Dashboards"],
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
-            "name": "dashboard_id",
+            "name": "dashboardId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
@@ -4416,10 +4478,11 @@
             "schema": {
               "type": "array",
               "items": {
-                "type": "string"
+                "type": "string",
+                "enum": ["widgets"]
               }
             },
-            "description": "Include additional data. Use 'widgets' to include widget information.",
+            "description": "Include additional data. `include=widgets` adds the dashboard's widgets to the response.",
             "example": "widgets"
           }
         ],
@@ -4445,14 +4508,14 @@
         "tags": ["Dashboards"],
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
-            "name": "dashboard_id",
+            "name": "dashboardId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
@@ -4491,14 +4554,14 @@
         "tags": ["Dashboards"],
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
-            "name": "dashboard_id",
+            "name": "dashboardId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
@@ -4508,11 +4571,14 @@
         "responses": {
           "200": {
             "description": "Dashboard deleted."
-          }
+          },
+          "403": { "description": "Dashboard APIs are not included in this plan." },
+          "422": { "description": "Dashboard not found." },
+          "500": { "description": "Server error." }
         }
       }
     },
-    "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}/data": {
+    "/api/v3/meta/bases/{baseId}/dashboards/{dashboardId}/data": {
       "get": {
         "summary": "Get Dashboard Data",
         "description": "Retrieve data for all widgets in the specified dashboard. Returns a map of widget IDs to their data.\n\n**Note**: Dashboard APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
@@ -4520,14 +4586,14 @@
         "tags": ["Dashboards"],
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
-            "name": "dashboard_id",
+            "name": "dashboardId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
@@ -4550,7 +4616,7 @@
         }
       }
     },
-    "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}/widgets": {
+    "/api/v3/meta/bases/{baseId}/dashboards/{dashboardId}/widgets": {
       "get": {
         "summary": "List Widgets",
         "description": "Retrieve a list of widgets in the specified dashboard.\n\n**Note**: Widget APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
@@ -4558,14 +4624,14 @@
         "tags": ["Dashboards"],
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
-            "name": "dashboard_id",
+            "name": "dashboardId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
@@ -4594,14 +4660,14 @@
         "tags": ["Dashboards"],
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
-            "name": "dashboard_id",
+            "name": "dashboardId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
@@ -4634,7 +4700,7 @@
         }
       }
     },
-    "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}/widgets/{widget_id}": {
+    "/api/v3/meta/bases/{baseId}/dashboards/{dashboardId}/widgets/{widgetId}": {
       "get": {
         "summary": "Get Widget",
         "description": "Retrieve details of a specific widget.\n\n**Note**: Widget APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
@@ -4642,21 +4708,21 @@
         "tags": ["Dashboards"],
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
-            "name": "dashboard_id",
+            "name": "dashboardId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
             "description": "Unique identifier for the dashboard."
           },
           {
-            "name": "widget_id",
+            "name": "widgetId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
@@ -4685,21 +4751,21 @@
         "tags": ["Dashboards"],
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
-            "name": "dashboard_id",
+            "name": "dashboardId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
             "description": "Unique identifier for the dashboard."
           },
           {
-            "name": "widget_id",
+            "name": "widgetId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
@@ -4738,21 +4804,21 @@
         "tags": ["Dashboards"],
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
-            "name": "dashboard_id",
+            "name": "dashboardId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
             "description": "Unique identifier for the dashboard."
           },
           {
-            "name": "widget_id",
+            "name": "widgetId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
@@ -4762,11 +4828,14 @@
         "responses": {
           "200": {
             "description": "Widget deleted."
-          }
+          },
+          "403": { "description": "Dashboard APIs are not included in this plan." },
+          "422": { "description": "Widget not found." },
+          "500": { "description": "Server error." }
         }
       }
     },
-    "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}/widgets/{widget_id}/data": {
+    "/api/v3/meta/bases/{baseId}/dashboards/{dashboardId}/widgets/{widgetId}/data": {
       "get": {
         "summary": "Get Widget Data",
         "description": "Retrieve data for a specific widget.\n\n**Note**: Widget APIs are available on cloud-hosted **Enterprise** plans, and on licensed self-hosted deployments (**Business** plan and above).",
@@ -4774,21 +4843,21 @@
         "tags": ["Dashboards"],
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
-            "name": "dashboard_id",
+            "name": "dashboardId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
             "description": "Unique identifier for the dashboard."
           },
           {
-            "name": "widget_id",
+            "name": "widgetId",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
@@ -4813,7 +4882,7 @@
       }
     },
 
-    "/api/v3/meta/bases/{base_id}/workflows": {
+    "/api/v3/meta/bases/{baseId}/workflows": {
       "get": {
         "summary": "List Workflows",
         "description": "Retrieve a list of workflows associated with a specific base.\n\n**Note**: Workflow APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
@@ -4822,7 +4891,7 @@
         "parameters": [
           {
             "schema": { "type": "string" },
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "description": "Unique identifier for the base."
@@ -4838,11 +4907,13 @@
                 }
               }
             }
-          }
+          },
+          "403": { "$ref": "#/components/responses/ForbiddenV3" },
+          "500": { "$ref": "#/components/responses/InternalServerErrorV3" }
         }
       }
     },
-    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}": {
+    "/api/v3/meta/bases/{baseId}/workflows/{workflowId}": {
       "get": {
         "summary": "Get Workflow",
         "description": "Retrieve the details of a specific workflow.\n\n**Note**: Workflow APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
@@ -4851,14 +4922,14 @@
         "parameters": [
           {
             "schema": { "type": "string" },
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "description": "Unique identifier for the base."
           },
           {
             "schema": { "type": "string" },
-            "name": "workflow_id",
+            "name": "workflowId",
             "in": "path",
             "required": true,
             "description": "Unique identifier for the workflow."
@@ -4874,11 +4945,14 @@
                 }
               }
             }
-          }
+          },
+          "403": { "$ref": "#/components/responses/ForbiddenV3" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntityV3" },
+          "500": { "$ref": "#/components/responses/InternalServerErrorV3" }
         }
       }
     },
-    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/execute": {
+    "/api/v3/meta/bases/{baseId}/workflows/{workflowId}/execute": {
       "post": {
         "summary": "Execute Workflow",
         "description": "Manually trigger a workflow execution. This endpoint only works for workflows whose trigger type is `manual-trigger`.\n\n**Note**: Workflow APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
@@ -4887,14 +4961,14 @@
         "parameters": [
           {
             "schema": { "type": "string" },
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "description": "Unique identifier for the base."
           },
           {
             "schema": { "type": "string" },
-            "name": "workflow_id",
+            "name": "workflowId",
             "in": "path",
             "required": true,
             "description": "Unique identifier for the workflow."
@@ -4919,33 +4993,37 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "Execution identifier. Use this ID with the `GET /api/v3/meta/bases/{base_id}/workflows/{workflow_id}/executions/{execution_id}` endpoint to poll the execution status and retrieve results."
+                      "description": "Execution identifier. Use this ID with the `GET /api/v3/meta/bases/{baseId}/workflows/{workflowId}/executions/{executionId}` endpoint to poll the execution status and retrieve results."
                     }
                   }
                 }
               }
             }
-          }
+          },
+          "400": { "$ref": "#/components/responses/BadRequestV3" },
+          "403": { "$ref": "#/components/responses/ForbiddenV3" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntityV3" },
+          "500": { "$ref": "#/components/responses/InternalServerErrorV3" }
         }
       }
     },
-    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/executions": {
+    "/api/v3/meta/bases/{baseId}/workflows/{workflowId}/executions": {
       "get": {
         "summary": "List Workflow Executions",
         "description": "Retrieve a list of executions for a specific workflow.\n\n**Note**: Workflow APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
-        "operationId": "workflow-execution-list",
+        "operationId": "workflow-executions-list",
         "tags": ["Workflows"],
         "parameters": [
           {
             "schema": { "type": "string" },
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "description": "Unique identifier for the base."
           },
           {
             "schema": { "type": "string" },
-            "name": "workflow_id",
+            "name": "workflowId",
             "in": "path",
             "required": true,
             "description": "Unique identifier for the workflow."
@@ -4973,11 +5051,14 @@
                 }
               }
             }
-          }
+          },
+          "403": { "$ref": "#/components/responses/ForbiddenV3" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntityV3" },
+          "500": { "$ref": "#/components/responses/InternalServerErrorV3" }
         }
       }
     },
-    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/executions/{execution_id}": {
+    "/api/v3/meta/bases/{baseId}/workflows/{workflowId}/executions/{executionId}": {
       "get": {
         "summary": "Get Workflow Execution",
         "description": "Retrieve the details of a specific workflow execution.\n\n**Note**: Workflow APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
@@ -4986,21 +5067,21 @@
         "parameters": [
           {
             "schema": { "type": "string" },
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "description": "Unique identifier for the base."
           },
           {
             "schema": { "type": "string" },
-            "name": "workflow_id",
+            "name": "workflowId",
             "in": "path",
             "required": true,
             "description": "Unique identifier for the workflow."
           },
           {
             "schema": { "type": "string" },
-            "name": "execution_id",
+            "name": "executionId",
             "in": "path",
             "required": true,
             "description": "Unique identifier for the execution."
@@ -5016,7 +5097,10 @@
                 }
               }
             }
-          }
+          },
+          "403": { "$ref": "#/components/responses/ForbiddenV3" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntityV3" },
+          "500": { "$ref": "#/components/responses/InternalServerErrorV3" }
         }
       }
     },
@@ -5065,7 +5149,7 @@
             },
             "in": "query",
             "name": "fields",
-            "description": "Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.\n\nExample: `fields=[\"field1\",\"field2\"]` or `fields=field1,field2` will include only 'field1' and 'field2' in the API response."
+            "description": "Restricts the response to the listed fields. By default **every** field of the table is returned.\n\nA field may be named by its id or its title. An unknown name is rejected with `422 ERR_FIELD_NOT_FOUND`.\n\nExample: `fields=[\"field1\",\"field2\"]` or `fields=field1,field2`."
           },
           {
             "schema": {
@@ -5087,8 +5171,7 @@
                       }
                     },
                     "required": [
-                      "field",
-                      "direction"
+                      "field"
                     ]
                   }
                 },
@@ -5107,8 +5190,7 @@
                     }
                   },
                   "required": [
-                    "field",
-                    "direction"
+                    "field"
                   ]
                 }
               ]
@@ -5132,7 +5214,7 @@
             },
             "in": "query",
             "name": "page",
-            "description": "Enables you to control the pagination of your API response by specifying the page number you want to retrieve. By default, the first page is returned. If you want to retrieve the next page, you can increment the page number by one.\n\nExample: `page=2` will return the second page of records in the dataset."
+            "description": "Page of records to return, 1 by default.\n\nA page past the end of the result set is rejected with `422 ERR_INVALID_OFFSET_VALUE` rather than returning an empty page — including `page=2` on a table with no records.\n\nExample: `page=2` returns the second page."
           },
           {
             "schema": {
@@ -5150,7 +5232,34 @@
             },
             "in": "query",
             "name": "pageSize",
-            "description": "Enables you to set a limit on the number of records you want to retrieve in your API response. By default, your response includes all the available records, but by using this parameter, you can control the quantity you receive.\n\nExample: `pageSize=100` will constrain your response to the first 100 records in the dataset."
+            "description": "Number of records per page. Defaults to 25.\n\nCapped per deployment (1000 by default, 100 on NocoDB Cloud). A request above the ceiling is not rejected — it is silently served at the ceiling.\n\nExample: `pageSize=100` returns at most 100 records per page."
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "Alias for `pageSize`. When both are given, `limit` wins. Note that `pageSize` is the parameter carried into the `next`/`prev` URLs."
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "Number of records to skip, as an alternative to `page`. Ignored when `page` is given."
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "nestedLimit",
+            "description": "Maximum number of linked records returned inside each Link or LinkToAnotherRecord field. Defaults to 1000 (`NC_DB_QUERY_LIMIT_LTAR_V3_LIMIT`). A field truncated at this limit is returned without any indication; there is currently no continuation link for nested records."
           },
           {
             "schema": {
@@ -5158,7 +5267,7 @@
             },
             "name": "viewId",
             "in": "query",
-            "description": "***View Identifier***. Allows you to fetch records that are currently visible within a specific view. API retrieves records in the order they are displayed if the SORT option is enabled within that view.\n\nAdditionally, if you specify a `sort` query parameter, it will take precedence over any sorting configuration defined in the view. If you specify a `where` query parameter, it will be applied over the filtering configuration defined in the view. \n\nBy default, all fields, including those that are disabled within the view, are included in the response. To explicitly specify which fields to include or exclude, you can use the `fields` query parameter to customize the output according to your requirements."
+            "description": "***View Identifier***. Returns the records visible in that view, in its order, and only the fields visible in it — fields hidden in the view are omitted. A `sort` parameter takes precedence over the view's own sort; a `where` parameter is applied in addition to the view's filters. `fields` narrows the selection further."
           },
           {
             "schema": {
@@ -5170,6 +5279,17 @@
             "name": "linksAsLtar",
             "in": "query",
             "description": "When set to `true`, Links fields will return full linked record data (id and display value) instead of just a count. This makes Links fields behave like LinkToAnotherRecord (LTAR) fields in the response."
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "name": "fieldIdOnResult",
+            "in": "query",
+            "description": "When set to `true`, record fields are keyed by field id instead of field title. Useful when titles may change or are not unique in the caller's model."
           },
           {
             "required": true,
@@ -5239,6 +5359,9 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "422": {
+            "description": "Unprocessable Entity — an unknown field in `fields` or `sort` (`ERR_FIELD_NOT_FOUND`), or a `page` past the end of the result set (`ERR_INVALID_OFFSET_VALUE`)."
           }
         }
       },
@@ -5280,6 +5403,9 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "422": {
+            "description": "Unprocessable Entity — more records than the deployment's bulk cap (`ERR_MAX_PAYLOAD_LIMIT_EXCEEDED`), a value that is not valid for its field's type, or a malformed composite record id. A link id matching no row answers `404`; a property outside `fields` answers `400`; unrecognised keys inside `fields` are ignored."
           }
         },
         "tags": [
@@ -5295,6 +5421,7 @@
                   },
                   {
                     "type": "array",
+                    "description": "Up to 10 records per request by default; the cap is configured per deployment and exceeding it returns 422. Records are created in the order given.",
                     "items": {
                       "$ref": "#/components/schemas/DataInsertRequestV3"
                     }
@@ -5355,8 +5482,38 @@
             }
           }
         },
-        "description": "This API endpoint allows the creation of new records within a specified table. Records to be inserted are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values. \n\nCertain read-only field types will be disregarded if included in the request. These field types include Look Up, Roll Up, Formula, Created By, Updated By, Created At, Updated At, Button, Barcode and QR Code.\n\nFor **Attachment** field types, this API cannot be used. Instead, utilize the storage APIs for managing attachments. Support for attachment fields in the record update API will be added soon.",
+        "description": "Create one or more records. Send a single object or an array; the array length is capped per deployment (10 by default) and a longer request answers `422`.\n\nLink fields accept the related record's id. Attachment fields replace the whole cell, so send any existing files alongside new ones. See [the NocoDB docs](https://docs.nocodb.com) for field value formats.",
         "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "view_id",
+            "in": "query",
+            "description": "**View Identifier**. Scopes the write to a view; a view that does not belong to the table is rejected with `422`."
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "name": "linksAsLtar",
+            "in": "query",
+            "description": "When set to `true`, Links fields in the response carry the linked records instead of a count."
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "name": "fieldIdOnResult",
+            "in": "query",
+            "description": "When set to `true`, record fields are keyed by field id instead of field title. Useful when titles may change or are not unique in the caller's model."
+          },
           {
             "required": true,
             "$ref": "#/components/parameters/xc-token"
@@ -5393,6 +5550,9 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "422": {
+            "description": "Unprocessable Entity — more records than the deployment's bulk cap (`ERR_MAX_PAYLOAD_LIMIT_EXCEEDED`), a value that is not valid for its field's type, or a malformed composite record id. A link id matching no row answers `404`; a property outside `fields` answers `400`; unrecognised keys inside `fields` are ignored."
           }
         },
         "tags": [
@@ -5408,6 +5568,7 @@
                   },
                   {
                     "type": "array",
+                    "description": "Up to 10 records per request by default; the cap is configured per deployment and exceeding it returns 422. Each entry must carry the record id.",
                     "items": {
                       "$ref": "#/components/schemas/DataUpdateRequestV3"
                     }
@@ -5438,8 +5599,38 @@
             }
           }
         },
-        "description": "This API endpoint allows you to update records within a specified table by their Record ID. The request payload should contain the Record ID and the fields that need to be updated.\n\nCertain read-only field types will be disregarded if included in the request. These field types include Look Up, Roll Up, Formula, Created By, Updated By, Created At, Updated At, Button, Barcode and QR Code.\n\nFor **Attachment** field types, this API cannot be used. Instead, utilize the storage APIs for managing attachments. Support for attachment fields in the record update API will be added soon.",
+        "description": "Update one or more records, addressed by `id`. Send a single object or an array; the array length is capped per deployment (10 by default) and a longer request answers `422`.\n\nOnly the fields you send are changed. Writing a link field replaces that record's link set rather than adding to it.",
         "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "view_id",
+            "in": "query",
+            "description": "**View Identifier**. Scopes the write to a view; a view that does not belong to the table is rejected with `422`."
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "name": "linksAsLtar",
+            "in": "query",
+            "description": "When set to `true`, Links fields in the response carry the linked records instead of a count."
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "name": "fieldIdOnResult",
+            "in": "query",
+            "description": "When set to `true`, record fields are keyed by field id instead of field title. Useful when titles may change or are not unique in the caller's model."
+          },
           {
             "required": true,
             "$ref": "#/components/parameters/xc-token"
@@ -5478,6 +5669,9 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "422": {
+            "description": "Unprocessable Entity — more records than the deployment's bulk cap (`ERR_MAX_PAYLOAD_LIMIT_EXCEEDED`)."
           }
         },
         "tags": [
@@ -5493,6 +5687,7 @@
                   },
                   {
                     "type": "array",
+                    "description": "Up to 10 records per request by default; the cap is configured per deployment and exceeding it returns 422. Ids given through the `records` query parameter are merged into this array before the count.",
                     "items": {
                       "$ref": "#/components/schemas/DataDeleteRequestV3"
                     }
@@ -5514,8 +5709,34 @@
             }
           }
         },
-        "description": "This API endpoint allows the deletion of records within a specified table by Record ID. The request should include the Record ID of the record(s) to be deleted.",
+        "description": "Delete one or more records, addressed by `id`. Send a single object or an array, or pass ids in the `records` query parameter. The count is capped per deployment (10 by default).",
         "parameters": [
+          {
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "name": "records",
+            "in": "query",
+            "description": "Record ids to delete, as an alternative to the request body. They are merged into the body before the bulk cap is applied, so the two forms share one budget."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "view_id",
+            "in": "query",
+            "description": "**View Identifier**. Scopes the write to a view; a view that does not belong to the table is rejected with `422`."
+          },
           {
             "required": true,
             "$ref": "#/components/parameters/xc-token"
@@ -5542,9 +5763,37 @@
       ],
       "post": {
         "summary": "Upsert Table Records",
-        "operationId": "db-v3-data-table-row-upsert",
-        "description": "Find-or-create records in a single call. If a record matching the merge key exists, update it; otherwise insert a new one.",
+        "operationId": "db-data-table-row-upsert",
+        "description": "Find-or-create records in a single call. If a record matching the merge key exists it is updated, otherwise a new one is inserted.\n\nUnlike the other write operations, upsert also accepts a **display value** in place of a link target object: a bare string or number is resolved against the related table's display value and must match at least one record. A value matching none is rejected with `400`; a value matching more than one resolves to the first match.\n\nThe same per-request bulk cap applies as for create and update — 10 records by default, configured per deployment.",
         "tags": ["Table Records"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "name": "linksAsLtar",
+            "in": "query",
+            "description": "When set to `true`, Links fields in the response carry the linked records instead of a count."
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "name": "fieldIdOnResult",
+            "in": "query",
+            "description": "When set to `true`, record fields are keyed by field id instead of field title. Useful when titles may change or are not unique in the caller's model."
+          },
+          {
+            "required": true,
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -5609,6 +5858,14 @@
         "parameters": [
           {
             "schema": {
+              "type": "string"
+            },
+            "name": "view_id",
+            "in": "query",
+            "description": "**View Identifier**. Reads the record as it appears in a view. A view that does not belong to the table is rejected with `422`."
+          },
+          {
+            "schema": {
               "oneOf": [
                 {
                   "type": "array",
@@ -5623,7 +5880,7 @@
             },
             "in": "query",
             "name": "fields",
-            "description": "Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.\n\nExample: `fields=[\"field1\",\"field2\"]` or `fields=field1,field2` will include only 'field1' and 'field2' in the API response."
+            "description": "Restricts the response to the listed fields. By default **every** field of the table is returned.\n\nA field may be named by its id or its title. An unknown name is rejected with `422 ERR_FIELD_NOT_FOUND`.\n\nExample: `fields=[\"field1\",\"field2\"]` or `fields=field1,field2`."
           },
           {
             "schema": {
@@ -5635,6 +5892,17 @@
             "name": "linksAsLtar",
             "in": "query",
             "description": "When set to `true`, Links fields will return full linked record data (id and display value) instead of just a count. This makes Links fields behave like LinkToAnotherRecord (LTAR) fields in the response."
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "name": "fieldIdOnResult",
+            "in": "query",
+            "description": "When set to `true`, record fields are keyed by field id instead of field title. Useful when titles may change or are not unique in the caller's model."
           },
           {
             "required": true,
@@ -5703,11 +5971,11 @@
         }
       }
     },
-    "/api/v3/data/{baseId}/{modelId}/records/{recordId}/fields/{fieldId}/upload": {
+    "/api/v3/data/{baseId}/{tableId}/records/{recordId}/fields/{fieldId}/upload": {
       "post": {
         "summary": "Upload Attachment to Cell",
         "operationId": "db-data-table-row-attachment-upload",
-        "description": "This API endpoint allows you to upload an attachment (base64 encoded) to a specific cell in a table. The attachment data includes content type, base64 encoded file, and filename.",
+        "description": "Upload one base64-encoded file into an Attachment cell. The file is **appended**; nothing is replaced.\n\nMaximum file size is set per deployment (20 MB by default); the number of files a cell may hold is a plan limit. An oversized file answers `400`.\n\nTo replace or remove files, write the Attachment field through the record `POST`/`PATCH` endpoints — that replaces the whole cell.",
         "tags": [
           "Table Records"
         ],
@@ -5725,10 +5993,10 @@
             "schema": {
               "type": "string"
             },
-            "name": "modelId",
+            "name": "tableId",
             "in": "path",
             "required": true,
-            "description": "**Model Identifier**."
+            "description": "**Table Identifier**."
           },
           {
             "schema": {
@@ -5899,6 +6167,7 @@
             "description": "Enables you to define specific conditions for filtering record count in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format, for further information on this please see [the documentation](https://nocodb.com/docs/product-docs/developer-resources/rest-apis#v3-where-query-parameter)"
           },
           {
+            "required": true,
             "$ref": "#/components/parameters/xc-token"
           }
         ],
@@ -5964,7 +6233,7 @@
       "get": {
         "summary": "List Linked Records",
         "operationId": "db-data-table-row-nested-list",
-        "description": "This API endpoint allows you to retrieve list of linked records for a specific `Link to another record field` and `Record ID`. The response is an array of objects containing Primary Key and its corresponding display value.",
+        "description": "Retrieves the records linked to a given record through a Link field.\n\nThe response shape follows the relation type of the link field:\n\n- **has-many, many-to-many** — `records`, an array of `{ id, fields }` objects, empty when nothing is linked.\n- **belongs-to, one-to-one** — `record`, a single object, or `null` when nothing is linked. There is no `records` key in this case.\n\nThe `record` shapes carry `next`, `prev`, `nestedNext` and `nestedPrev`, all `null`; the `records` shape carries `next` and `prev` only.",
         "tags": [
           "Linked Records"
         ],
@@ -6016,8 +6285,7 @@
                       }
                     },
                     "required": [
-                      "field",
-                      "direction"
+                      "field"
                     ]
                   }
                 },
@@ -6036,8 +6304,7 @@
                     }
                   },
                   "required": [
-                    "field",
-                    "direction"
+                    "field"
                   ]
                 }
               ]
@@ -6057,7 +6324,7 @@
           {
             "schema": {
               "type": "integer",
-              "minimum": 0
+              "minimum": 1
             },
             "in": "query",
             "name": "page",
@@ -6070,7 +6337,29 @@
             },
             "in": "query",
             "name": "pageSize",
-            "description": "Enables you to set a limit on the number of linked records you want to retrieve in your API response. By default, your response includes all the available linked records, but by using this parameter, you can control the quantity you receive.\n\nExample: `pageSize=100` will constrain your response to the first 100 linked records in the dataset."
+            "description": "Number of linked records per page. Defaults to 25.\n\nCapped per deployment (1000 by default, 100 on NocoDB Cloud).\n\nExample: `pageSize=100` returns at most 100 linked records per page."
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "name": "fieldIdOnResult",
+            "in": "query",
+            "description": "When set to `true`, record fields are keyed by field id instead of field title. Useful when titles may change or are not unique in the caller's model."
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "name": "linksAsLtar",
+            "in": "query",
+            "description": "When set to `true`, Links fields in the response carry the linked records instead of a count."
           },
           {
             "required": true,
@@ -6083,7 +6372,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DataListResponseV3"
+                  "$ref": "#/components/schemas/DataNestedListResponseV3"
                 },
                 "examples": {
                   "Example 1": {
@@ -6132,6 +6421,34 @@
                         }
                       ],
                       "next": "https://app.nocodb.com/api/v3/data/baseId/tableId/records?page=2"
+                    }
+                  },
+                  "Example 2": {
+                    "summary": "Belongs-to or one-to-one link",
+                    "value": {
+                      "record": {
+                        "id": 1,
+                        "id_fields": {
+                          "Id": 1
+                        },
+                        "fields": {
+                          "SingleLineText": "record #1"
+                        }
+                      },
+                      "next": null,
+                      "prev": null,
+                      "nestedNext": null,
+                      "nestedPrev": null
+                    }
+                  },
+                  "Example 3": {
+                    "summary": "Belongs-to link with nothing linked",
+                    "value": {
+                      "record": null,
+                      "next": null,
+                      "prev": null,
+                      "nestedNext": null,
+                      "nestedPrev": null
                     }
                   }
                 }
@@ -6185,7 +6502,7 @@
         ],
         "requestBody": {
           "required": true,
-          "description": "Array of record objects to be linked, each containing an id field",
+          "description": "One record id or an array of them. Each entry may be `{ \"id\": … }`, or the id given directly as a string or a number.",
           "content": {
             "application/json": {
               "schema": {
@@ -6194,8 +6511,15 @@
                     "type": "object",
                     "properties": {
                       "id": {
-                        "type": "string",
-                        "description": "Unique identifier for the record",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ],
+                        "description": "Record id in the related table. For a composite primary key, the parts joined with `___`.",
                         "example": "33"
                       }
                     },
@@ -6205,23 +6529,50 @@
                     "additionalProperties": false
                   },
                   {
+                    "type": "string",
+                    "description": "Record id given directly, without the wrapper object."
+                  },
+                  {
+                    "type": "number",
+                    "description": "Numeric record id given directly, without the wrapper object."
+                  },
+                  {
                     "type": "array",
+                    "description": "Record ids to link. No per-request cap is enforced by the server.",
                     "items": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                }
+                              ],
+                              "description": "Record id in the related table. For a composite primary key, the parts joined with `___`.",
+                              "example": "22"
+                            }
+                          },
+                          "required": [
+                            "id"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
                           "type": "string",
-                          "description": "Unique identifier for the record",
-                          "example": "22"
+                          "description": "Record id given directly, without the wrapper object."
+                        },
+                        {
+                          "type": "number",
+                          "description": "Numeric record id given directly, without the wrapper object."
                         }
-                      },
-                      "required": [
-                        "id"
-                      ],
-                      "additionalProperties": false
+                      ]
                     },
-                    "minItems": 1,
-                    "maxItems": 1000
+                    "minItems": 1
                   }
                 ]
               },
@@ -6257,6 +6608,14 @@
             "in": "path",
             "required": true,
             "description": "**Record Identifier** corresponding to the record in this table for which links are being created."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "view_id",
+            "in": "query",
+            "description": "**View Identifier**. Scopes the write to a view; a view that does not belong to the table is rejected with `422`."
           },
           {
             "required": true,
@@ -6306,7 +6665,7 @@
         ],
         "requestBody": {
           "required": true,
-          "description": "Array of record objects to be unlinked, each containing an id field",
+          "description": "One record id or an array of them. Each entry may be `{ \"id\": … }`, or the id given directly as a string or a number.",
           "content": {
             "application/json": {
               "schema": {
@@ -6315,8 +6674,15 @@
                     "type": "object",
                     "properties": {
                       "id": {
-                        "type": "string",
-                        "description": "Unique identifier for the record",
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ],
+                        "description": "Record id in the related table. For a composite primary key, the parts joined with `___`.",
                         "example": "33"
                       }
                     },
@@ -6326,23 +6692,50 @@
                     "additionalProperties": false
                   },
                   {
+                    "type": "string",
+                    "description": "Record id given directly, without the wrapper object."
+                  },
+                  {
+                    "type": "number",
+                    "description": "Numeric record id given directly, without the wrapper object."
+                  },
+                  {
                     "type": "array",
+                    "description": "Record ids to unlink. No per-request cap is enforced by the server.",
                     "items": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                }
+                              ],
+                              "description": "Record id in the related table. For a composite primary key, the parts joined with `___`.",
+                              "example": "33"
+                            }
+                          },
+                          "required": [
+                            "id"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
                           "type": "string",
-                          "description": "Unique identifier for the record",
-                          "example": "33"
+                          "description": "Record id given directly, without the wrapper object."
+                        },
+                        {
+                          "type": "number",
+                          "description": "Numeric record id given directly, without the wrapper object."
                         }
-                      },
-                      "required": [
-                        "id"
-                      ],
-                      "additionalProperties": false
+                      ]
                     },
-                    "minItems": 1,
-                    "maxItems": 1000
+                    "minItems": 1
                   }
                 ]
               },
@@ -6378,6 +6771,14 @@
             "in": "path",
             "required": true,
             "description": "**Record Identifier** corresponding to the record in this table for which links are being removed."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "view_id",
+            "in": "query",
+            "description": "**View Identifier**. Scopes the write to a view; a view that does not belong to the table is rejected with `422`."
           },
           {
             "required": true,
@@ -6520,8 +6921,8 @@
     "/api/v3/meta/workspaces/{workspaceId}/teams": {
       "get": {
         "summary": "List Teams",
-        "operationId": "teams-list-v3",
-        "description": "Retrieve a list of teams associated with a Workspace or ORG",
+        "operationId": "teams-list",
+        "description": "Retrieve a list of teams in a workspace.\n\n**Note**: Team Management is a plan feature. A workspace whose plan does not include it is rejected with `403` on every team operation.",
         "tags": [
           "Teams"
         ],
@@ -6557,12 +6958,18 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
           }
         }
       },
       "post": {
         "summary": "Create Team",
-        "operationId": "teams-create-v3",
+        "operationId": "teams-create",
         "description": "Create a new team",
         "tags": [
           "Teams"
@@ -6597,6 +7004,19 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntityV3",
+            "description": "Team not found."
           }
         }
       }
@@ -6604,7 +7024,7 @@
     "/api/v3/meta/workspaces/{workspaceId}/teams/{teamId}": {
       "get": {
         "summary": "Get Team",
-        "operationId": "teams-get-v3",
+        "operationId": "teams-read",
         "description": "Fetch details of a specific team",
         "tags": [
           "Teams"
@@ -6627,15 +7047,6 @@
               "type": "string"
             },
             "description": "Team ID"
-          },
-          {
-            "name": "include_workspace",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Include workspace teams"
           }
         ],
         "responses": {
@@ -6648,12 +7059,22 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntityV3",
+            "description": "Team not found."
           }
         }
       },
       "patch": {
         "summary": "Update Team",
-        "operationId": "teams-update-v3",
+        "operationId": "teams-update",
         "description": "Update name, icon, or badge color",
         "tags": [
           "Teams"
@@ -6676,15 +7097,6 @@
               "type": "string"
             },
             "description": "Team ID"
-          },
-          {
-            "name": "include_workspace",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Include workspace teams"
           }
         ],
         "requestBody": {
@@ -6706,12 +7118,25 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntityV3",
+            "description": "Team not found."
           }
         }
       },
       "delete": {
         "summary": "Delete Team",
-        "operationId": "teams-delete-v3",
+        "operationId": "teams-delete",
         "description": "Delete a team",
         "tags": [
           "Teams"
@@ -6736,13 +7161,17 @@
             "description": "Team ID"
           },
           {
-            "name": "include_workspace",
+            "name": "force",
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
             },
-            "description": "Include workspace teams"
+            "description": "Set to `true` to delete a team that has sub-teams. The sub-teams are reparented to the deleted team's parent. Without it, deleting a team that has children is rejected."
           }
         ],
         "responses": {
@@ -6761,6 +7190,19 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntityV3",
+            "description": "Team not found."
           }
         }
       }
@@ -6768,7 +7210,7 @@
     "/api/v3/meta/workspaces/{workspaceId}/teams/{teamId}/members": {
       "post": {
         "summary": "Add Members to Team",
-        "operationId": "teams-members-add-v3",
+        "operationId": "teams-members-add",
         "description": "Add members to a team",
         "tags": [
           "Teams"
@@ -6791,15 +7233,6 @@
               "type": "string"
             },
             "description": "Team ID"
-          },
-          {
-            "name": "include_workspace",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Include workspace teams"
           }
         ],
         "requestBody": {
@@ -6822,17 +7255,30 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TeamUser"
+                    "$ref": "#/components/schemas/TeamMemberV3Response"
                   }
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntityV3",
+            "description": "Team or user not found."
           }
         }
       },
       "delete": {
         "summary": "Remove Member from Team",
-        "operationId": "teams-members-remove-v3",
+        "operationId": "teams-members-remove",
         "description": "Remove members from a team",
         "tags": [
           "Teams"
@@ -6855,15 +7301,6 @@
               "type": "string"
             },
             "description": "Team ID"
-          },
-          {
-            "name": "include_workspace",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Include workspace teams"
           }
         ],
         "requestBody": {
@@ -6894,12 +7331,25 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntityV3",
+            "description": "Team or user not found."
           }
         }
       },
       "patch": {
         "summary": "Update Member Role",
-        "operationId": "teams-members-update-v3",
+        "operationId": "teams-members-update",
         "description": "Update member roles in a team",
         "tags": [
           "Teams"
@@ -6922,15 +7372,6 @@
               "type": "string"
             },
             "description": "Team ID"
-          },
-          {
-            "name": "include_workspace",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Include workspace teams"
           }
         ],
         "requestBody": {
@@ -6953,11 +7394,24 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TeamUser"
+                    "$ref": "#/components/schemas/TeamMemberV3Response"
                   }
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntityV3",
+            "description": "Team or user not found."
           }
         }
       }
@@ -6965,8 +7419,8 @@
     "/api/v3/meta/workspaces/{workspaceId}/environments": {
       "get": {
         "summary": "List Environments",
-        "operationId": "environments-list-v3",
-        "description": "Retrieve the effective environment set for a workspace: the built-in `production` and `staging` environments (virtual, locked — present for every workspace with no stored row), plus the organization’s shared environments and the workspace’s own custom environments. Environments resolve per-environment integration configuration.\n\nRequires **Workspace Owner** or **Workspace Creator** role.\n\n**Note**: Environment APIs are available only with self-hosted **Enterprise** plans and cloud-hosted plans. Creating custom environments requires a plan that includes the custom-environments feature.",
+        "operationId": "environments-list",
+        "description": "Retrieve the effective environment set for a workspace: the built-in `production` and `staging` environments (virtual, locked — present for every workspace with no stored row), plus the organization’s shared environments and the workspace’s own custom environments. Environments resolve per-environment integration configuration.\n\nRequires **Workspace Viewer** role or above — listing is read-only. Creating, updating and deleting custom environments requires **Workspace Owner** or **Workspace Creator**.\n\n**Note**: Environment APIs are available only with self-hosted **Enterprise** plans and cloud-hosted plans. Creating custom environments requires a plan that includes the custom-environments feature.",
         "tags": [
           "Environments"
         ],
@@ -7052,7 +7506,7 @@
       },
       "post": {
         "summary": "Create Environment",
-        "operationId": "environments-create-v3",
+        "operationId": "environments-create",
         "description": "Create a custom environment in a workspace. The stable `key` slug is auto-derived from the title server-side (lowercased, non-alphanumeric runs collapsed to `-`, capped at 50 characters) and frozen thereafter — clients never send a key. Titles that collide with a built-in environment name (Production / Staging) or derive to a key already in use are rejected.\n\nRequires **Workspace Owner** or **Workspace Creator** role. Plan-gated: the plan must include the custom-environments feature and the workspace must be within its custom-environment limit.\n\n**Note**: Environment APIs are available only with self-hosted **Enterprise** plans and cloud-hosted plans. Creating custom environments requires a plan that includes the custom-environments feature.",
         "tags": [
           "Environments"
@@ -7130,7 +7584,7 @@
     "/api/v3/meta/workspaces/{workspaceId}/environments/{environmentId}": {
       "patch": {
         "summary": "Update Environment",
-        "operationId": "environments-update-v3",
+        "operationId": "environments-update",
         "description": "Update a custom environment’s title, description, color or order. The `key` slug is frozen at create time — renaming the title never re-derives it, so references to the environment stay valid. The built-in environments (`production` / `staging`) cannot be edited, and org-scoped environments cannot be edited from the workspace routes.\n\nRequires **Workspace Owner** or **Workspace Creator** role.\n\n**Note**: Environment APIs are available only with self-hosted **Enterprise** plans and cloud-hosted plans. Creating custom environments requires a plan that includes the custom-environments feature.",
         "tags": [
           "Environments"
@@ -7214,7 +7668,7 @@
       },
       "delete": {
         "summary": "Delete Environment",
-        "operationId": "environments-delete-v3",
+        "operationId": "environments-delete",
         "description": "Delete a custom environment. All per-environment integration configuration overrides bound to it are removed as well. The built-in environments (`production` / `staging`) cannot be deleted, and org-scoped environments cannot be deleted from the workspace routes.\n\nRequires **Workspace Owner** or **Workspace Creator** role.\n\n**Note**: Environment APIs are available only with self-hosted **Enterprise** plans and cloud-hosted plans. Creating custom environments requires a plan that includes the custom-environments feature.",
         "tags": [
           "Environments"
@@ -7266,7 +7720,7 @@
     "/api/v3/meta/orgs/{orgId}/environments": {
       "get": {
         "summary": "List Organization Environments",
-        "operationId": "org-environments-list-v3",
+        "operationId": "org-environments-list",
         "description": "Retrieve the organization-level environment set: the built-in `production` and `staging` environments (virtual, locked) plus the organization’s own environments. Organization environments are shared by every workspace under the organization; workspace-scoped environments are not included here.\n\nRequires organization membership (**Org Viewer** or above). Available on cloud-hosted plans with organizations.\n\n**Note**: Environment APIs are available only with self-hosted **Enterprise** plans and cloud-hosted plans. Creating custom environments requires a plan that includes the custom-environments feature.",
         "tags": [
           "Environments"
@@ -7353,7 +7807,7 @@
       },
       "post": {
         "summary": "Create Organization Environment",
-        "operationId": "org-environments-create-v3",
+        "operationId": "org-environments-create",
         "description": "Create a custom environment at the organization level, shared by all of the organization’s workspaces. The stable `key` slug is auto-derived from the title server-side and frozen thereafter — clients never send a key. Titles that collide with a built-in environment name (Production / Staging) or derive to a key already in use are rejected.\n\nRequires **Org Owner** role. Available on cloud-hosted plans with organizations.\n\n**Note**: Environment APIs are available only with self-hosted **Enterprise** plans and cloud-hosted plans. Creating custom environments requires a plan that includes the custom-environments feature.",
         "tags": [
           "Environments"
@@ -7431,7 +7885,7 @@
     "/api/v3/meta/orgs/{orgId}/environments/{environmentId}": {
       "patch": {
         "summary": "Update Organization Environment",
-        "operationId": "org-environments-update-v3",
+        "operationId": "org-environments-update",
         "description": "Update an organization environment’s title, description, color or order. The `key` slug is frozen at create time — renaming the title never re-derives it. The built-in environments (`production` / `staging`) cannot be edited.\n\nRequires **Org Owner** role. Available on cloud-hosted plans with organizations.\n\n**Note**: Environment APIs are available only with self-hosted **Enterprise** plans and cloud-hosted plans. Creating custom environments requires a plan that includes the custom-environments feature.",
         "tags": [
           "Environments"
@@ -7515,7 +7969,7 @@
       },
       "delete": {
         "summary": "Delete Organization Environment",
-        "operationId": "org-environments-delete-v3",
+        "operationId": "org-environments-delete",
         "description": "Delete an organization environment. All per-environment integration configuration overrides bound to it — across every workspace under the organization — are removed as well. The built-in environments (`production` / `staging`) cannot be deleted.\n\nRequires **Org Owner** role. Available on cloud-hosted plans with organizations.\n\n**Note**: Environment APIs are available only with self-hosted **Enterprise** plans and cloud-hosted plans. Creating custom environments requires a plan that includes the custom-environments feature.",
         "tags": [
           "Environments"
@@ -7568,13 +8022,40 @@
       "get": {
         "operationId": "tokens-list",
         "summary": "List API tokens",
-        "description": "Retrieve a list of all API tokens for the organization.\n\n**Note**: \nAPI Token APIs are available on all cloud-hosted plans, and on licensed self-hosted deployments (**Business** plan and above).\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
+        "description": "Retrieve a list of all API tokens for the organization.\n\n**Note**: This endpoint accepts a session credential only. An API token is rejected with 401 `ERR_API_TOKEN_NOT_ALLOWED`; an OAuth access token with 403 `ERR_FORBIDDEN`.\n\n**Note**: \nAPI Token APIs are available on all cloud-hosted plans, and on licensed self-hosted deployments (**Business** plan and above).\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
         "tags": [
           "API Tokens"
         ],
-        "security": [
+        "parameters": [
           {
-            "xc-token": []
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Number of tokens to return. Defaults to 25 and is capped per deployment."
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Number of tokens to skip. An offset at or past the total row count is rejected. Ignored when `baseId` is set."
+          },
+          {
+            "name": "baseId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Return only the tokens scoped to this base, unpaginated. Used by the base settings token list.",
+            "example": "p_abc123def456"
           }
         ],
         "responses": {
@@ -7589,6 +8070,33 @@
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/ApiTokenV3"
+                      }
+                    },
+                    "pageInfo": {
+                      "type": "object",
+                      "description": "Offset-based page information. This endpoint uses the v1 paging envelope rather than the cursor paging used elsewhere in v3. When `baseId` is supplied the result is unpaginated and only `totalRows` is present.",
+                      "properties": {
+                        "totalRows": {
+                          "type": "integer",
+                          "description": "Total number of API tokens on the deployment. For a non-super-admin the list is filtered to the caller's own tokens while this count is not, so it can exceed what the caller can see",
+                          "example": 3
+                        },
+                        "page": {
+                          "type": "integer",
+                          "description": "Current page number, derived from `offset` and `limit`",
+                          "example": 1
+                        },
+                        "pageSize": {
+                          "type": "integer",
+                          "description": "Effective page size after the per-deployment cap is applied",
+                          "example": 25
+                        },
+                        "isFirstPage": {
+                          "type": "boolean"
+                        },
+                        "isLastPage": {
+                          "type": "boolean"
+                        }
                       }
                     }
                   }
@@ -7610,14 +8118,9 @@
       "post": {
         "operationId": "tokens-create",
         "summary": "Create API token",
-        "description": "Create a new API token for the organization.\n\n**Note**: API Token APIs are available on all cloud-hosted plans, and on licensed self-hosted deployments (**Business** plan and above).\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
+        "description": "Create a new API token for the organization.\n\n**Note**: This endpoint accepts a session credential only. An API token is rejected with 401 `ERR_API_TOKEN_NOT_ALLOWED`; an OAuth access token with 403 `ERR_FORBIDDEN`.\n\n**Note**: API Token APIs are available on all cloud-hosted plans, and on licensed self-hosted deployments (**Business** plan and above).\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
         "tags": [
           "API Tokens"
-        ],
-        "security": [
-          {
-            "xc-token": []
-          }
         ],
         "requestBody": {
           "required": true,
@@ -7631,8 +8134,56 @@
                 "properties": {
                   "title": {
                     "type": "string",
+                    "maxLength": 255,
                     "description": "Title / description for the API token",
                     "example": "Github Integration"
+                  },
+                  "scopes": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 100,
+                    "description": "Access scopes for the token. Required on Cloud and on licensed self-hosted deployments — a request without at least one scope is rejected with `400`. For account-wide access send a single scope with `resource_type: all` and `resource_id: *`.",
+                    "items": {
+                      "$ref": "#/components/schemas/ApiTokenScope"
+                    }
+                  },
+                  "expiry": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "When the token stops working. Must be in the future. Honoured only on Cloud and licensed self-hosted deployments; elsewhere it is ignored and the token never expires.",
+                    "example": "2026-12-30 15:17:24+00:00"
+                  }
+                }
+              },
+              "examples": {
+                "Scoped to one base": {
+                  "value": {
+                    "title": "Github Integration",
+                    "scopes": [
+                      {
+                        "resource_type": "base",
+                        "resource_id": "p_abc123def456",
+                        "permissions": {
+                          "records": "write",
+                          "tables": "read"
+                        }
+                      }
+                    ]
+                  }
+                },
+                "Account-wide": {
+                  "value": {
+                    "title": "CI runner",
+                    "expiry": "2026-12-30 15:17:24+00:00",
+                    "scopes": [
+                      {
+                        "resource_type": "all",
+                        "resource_id": "*",
+                        "permissions": {
+                          "records": "delete"
+                        }
+                      }
+                    ]
                   }
                 }
               }
@@ -7640,8 +8191,8 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Created API token",
+          "201": {
+            "description": "Created API token. This is the only response that carries the token value.",
             "content": {
               "application/json": {
                 "schema": {
@@ -7652,7 +8203,20 @@
                     "value": {
                       "id": 5,
                       "title": "Github Integration",
-                      "token": "wxAFzFO2wwOf9ozVRjragBJ7KPWMaW2OGpklGqHh",
+                      "token": "nc_pat_wxAFzFO2wwOf9ozVRjragBJ7KPWMaW2OGpklGqHh",
+                      "token_prefix": "nc_pat_wxAFz",
+                      "scopes": [
+                        {
+                          "resource_type": "base",
+                          "resource_id": "p_abc123def456",
+                          "permissions": {
+                            "records": "write",
+                            "tables": "read"
+                          }
+                        }
+                      ],
+                      "expiry": null,
+                      "enabled": true,
                       "created_at": "2025-12-30 15:17:24+00:00",
                       "updated_at": "2025-12-30 15:17:24+00:00"
                     }
@@ -7677,17 +8241,97 @@
       }
     },
     "/api/v3/meta/tokens/{tokenId}": {
-      "delete": {
-        "operationId": "tokens-delete",
-        "summary": "Delete API token",
-        "description": "Delete an API token by its ID.\n\n**Note**: API Token APIs are available on all cloud-hosted plans, and on licensed self-hosted deployments (**Business** plan and above).\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
+      "patch": {
+        "operationId": "tokens-update",
+        "summary": "Update API token",
+        "description": "Update an API token's title, scopes, expiry or enabled flag. `expiry: null` clears the expiry. The token value is never returned. A caller who does not own the token gets `404`, unless they are a super admin.\n\nAccepts a session credential only: an API token is rejected with 401 `ERR_API_TOKEN_NOT_ALLOWED`, an OAuth access token with 403 `ERR_FORBIDDEN`.",
         "tags": [
           "API Tokens"
         ],
-        "security": [
+        "parameters": [
           {
-            "xc-token": []
+            "name": "tokenId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the API token to update",
+            "schema": {
+              "type": "string",
+              "example": "5"
+            }
           }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Every field is optional; only the fields present are changed.",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "description": "New title / description for the API token",
+                    "example": "Github Integration (read only)"
+                  },
+                  "scopes": {
+                    "type": "array",
+                    "maxItems": 100,
+                    "description": "Replaces the token's scopes wholesale — the existing scope rows are deleted and these inserted. Omit to leave scopes untouched.",
+                    "items": {
+                      "$ref": "#/components/schemas/ApiTokenScope"
+                    }
+                  },
+                  "expiry": {
+                    "type": ["string", "null"],
+                    "format": "date-time",
+                    "description": "New expiry; must be in the future. Send null to clear it. Honoured only on Cloud and licensed self-hosted deployments; elsewhere any value is treated as null.",
+                    "example": "2026-12-30 15:17:24+00:00"
+                  },
+                  "enabled": {
+                    "type": "boolean",
+                    "description": "Whether the token is accepted. Disabling a token keeps it listed but stops it authenticating.",
+                    "example": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated API token, without the token value",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiTokenV3"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "tokens-delete",
+        "summary": "Delete API token",
+        "description": "Delete an API token by its ID.\n\n**Note**: This endpoint accepts a session credential only. An API token is rejected with 401 `ERR_API_TOKEN_NOT_ALLOWED`; an OAuth access token with 403 `ERR_FORBIDDEN`.\n\n**Note**: API Token APIs are available on all cloud-hosted plans, and on licensed self-hosted deployments (**Business** plan and above).\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
+        "tags": [
+          "API Tokens"
         ],
         "parameters": [
           {
@@ -7703,11 +8347,21 @@
         ],
         "responses": {
           "200": {
-            "description": "Deleted API token",
+            "description": "Token deleted",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiTokenV3"
+                  "type": "object",
+                  "properties": {
+                    "deleted": {
+                      "type": "boolean",
+                      "description": "Always true — a failed delete is reported as an error status.",
+                      "example": true
+                    }
+                  },
+                  "required": [
+                    "deleted"
+                  ]
                 }
               }
             }
@@ -7730,7 +8384,7 @@
     "/api/v3/docs/{baseId}": {
       "get": {
         "summary": "List documents",
-        "operationId": "document-list",
+        "operationId": "documents-list",
         "description": "Retrieve a list of documents in a base. Documents are returned without content for lightweight listing.\n\nUse the `parent_id` query parameter to navigate the document hierarchy:\n- `parent_id=null` or omitted — returns root-level documents\n- `parent_id={docId}` — returns children of the specified document\n\nDocuments APIs are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments (**Business** plan and above).",
         "tags": [
           "Documents"
@@ -8002,6 +8656,10 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFoundV3"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntityV3",
+            "description": "Unprocessable — `content` exceeds the workspace plan's maximum document size."
           },
           "500": {
             "$ref": "#/components/responses/InternalServerErrorV3"
@@ -8298,7 +8956,8 @@
             "$ref": "#/components/responses/NotFoundV3"
           },
           "422": {
-            "description": "Version conflict — the document has been modified since it was last fetched. Fetch the latest version and retry."
+            "$ref": "#/components/responses/UnprocessableEntityV3",
+            "description": "Unprocessable. Either `version` is missing or stale for a write that carries `title` or `content` (fetch the document again and retry); or `content` exceeds the workspace plan's maximum document size; or the document is open in a live collaborative editing session, in which case REST body writes are refused — edit in the editor, or retry once the session ends."
           },
           "500": {
             "$ref": "#/components/responses/InternalServerErrorV3"
@@ -8809,6 +9468,155 @@
   },
   "components": {
     "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Stable machine-readable error code, for example `ERR_TABLE_NOT_FOUND`. Match on this rather than on the message. Absent on an unhandled server error.",
+            "example": "ERR_TABLE_NOT_FOUND"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable description of what went wrong. Wording is not stable across releases."
+          },
+          "details": {
+            "description": "Extra context carried by some errors — the failing validation entries for an invalid request body, or the plan, limit and current count for a plan-limit refusal. Omitted when the error carries none."
+          }
+        }
+      },
+      "FeedbackSubmit": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "type",
+          "summary",
+          "intent"
+        ],
+        "properties": {
+          "source": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "origin"
+            ],
+            "properties": {
+              "origin": {
+                "type": "string",
+                "enum": [
+                  "user_request",
+                  "agent_observed"
+                ],
+                "description": "`user_request`: the user asked to send it. `agent_observed`: the agent noticed it (requires `evidence`)."
+              },
+              "agent": {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "Informational only.",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "model": {
+                    "type": "string",
+                    "maxLength": 100
+                  }
+                }
+              }
+            }
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "bug",
+              "missing_capability",
+              "confusing_behavior",
+              "docs_gap"
+            ]
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "One line."
+          },
+          "intent": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "What the caller was trying to accomplish."
+          },
+          "details": {
+            "type": "string",
+            "maxLength": 4000,
+            "description": "What happened vs what was expected."
+          },
+          "suggestion": {
+            "type": "string",
+            "maxLength": 4000,
+            "description": "Proposed fix or API shape."
+          },
+          "evidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "The failed call. Required when `source.origin` is `agent_observed`.",
+            "properties": {
+              "toolName": {
+                "type": "string",
+                "maxLength": 100,
+                "description": "MCP tool name."
+              },
+              "method": {
+                "type": "string",
+                "maxLength": 10,
+                "description": "REST method."
+              },
+              "path": {
+                "type": "string",
+                "maxLength": 500,
+                "description": "REST path."
+              },
+              "requestId": {
+                "type": "string",
+                "maxLength": 100,
+                "description": "`requestId` from the failed call's error response."
+              },
+              "errorMessage": {
+                "type": "string",
+                "maxLength": 2000
+              }
+            }
+          },
+          "userQuote": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "The user's own words (`user_request` only)."
+          }
+        }
+      },
+      "FeedbackResponse": {
+        "type": "object",
+        "required": [
+          "feedbackId",
+          "status"
+        ],
+        "properties": {
+          "feedbackId": {
+            "type": "string",
+            "description": "Receipt id for the report."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "received"
+            ]
+          },
+          "duplicateOf": {
+            "type": "string",
+            "description": "Earlier report this one matched, when known."
+          }
+        }
+      },
       "DataUpsertRecordRequest": {
         "type": "object",
         "required": ["fields"],
@@ -9865,6 +10673,9 @@
               },
               {
                 "$ref": "#/components/schemas/FieldOptions/User"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/AutoNumber"
               }
             ],
             "errorMessage": {
@@ -9874,7 +10685,8 @@
           {
             "$ref": "#/components/schemas/TableFieldBaseCreate"
           }
-        ]
+        ],
+        "description": "A field declared inline while creating a table. Lookup, Rollup, Barcode and QrCode are not accepted here because each one points at another field by id, and those ids do not exist until the table has been created — add such a field afterwards with the create-field endpoint."
       },
       "Table": {
         "type": "object",
@@ -9911,7 +10723,7 @@
             "type": "array",
             "description": "List of fields associated with this table.",
             "items": {
-              "$ref": "#/components/schemas/CreateField"
+              "$ref": "#/components/schemas/Field"
             }
           },
           "views": {
@@ -9949,7 +10761,7 @@
             "description": "Display name of the user."
           },
           "base_role": {
-            "$ref": "#/components/schemas/BaseRoles"
+            "$ref": "#/components/schemas/BaseRolesResponse"
           }
         },
         "required": [
@@ -9977,10 +10789,10 @@
             "description": "Display name of the user."
           },
           "base_role": {
-            "$ref": "#/components/schemas/BaseRoles"
+            "$ref": "#/components/schemas/BaseRolesResponse"
           },
           "workspace_role": {
-            "$ref": "#/components/schemas/WorkspaceRoles",
+            "$ref": "#/components/schemas/WorkspaceRolesResponse",
             "description": "Role assigned to the user in the workspace"
           }
         },
@@ -10004,7 +10816,7 @@
           }
         },
         "required": [
-          "users"
+          "list"
         ]
       },
       "BaseMemberCreate": {
@@ -10116,8 +10928,11 @@
             "description": "New title of the table."
           },
           "description": {
-            "type": "string",
-            "description": "Description of the table."
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Description of the table. Send `null` to clear it."
           },
           "display_field_id": {
             "type": "string",
@@ -10177,6 +10992,13 @@
               "desc"
             ],
             "description": "Sorting direction, either 'asc' (ascending) or 'desc' (descending)."
+          },
+          "enabled": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "Whether this sort is enabled. Disabled sorts are skipped during evaluation."
           }
         },
         "required": [
@@ -10963,7 +11785,8 @@
                 "field_id"
               ]
             },
-            "description": "List of groups to be applied on the grid view."
+            "maxItems": 5,
+            "description": "List of groups to be applied on the grid view. At most five grouping levels are supported."
           },
           "row_height": {
             "type": "string",
@@ -11386,7 +12209,7 @@
                     },
                     "row_coloring": {
                       "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the the view."
+                      "description": "Row colour configuration for the view."
                     }
                   }
                 },
@@ -11418,7 +12241,7 @@
                     },
                     "row_coloring": {
                       "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the the view."
+                      "description": "Row colour configuration for the view."
                     }
                   }
                 },
@@ -11450,7 +12273,7 @@
                     },
                     "row_coloring": {
                       "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the the view."
+                      "description": "Row colour configuration for the view."
                     }
                   },
                   "required": [
@@ -11485,7 +12308,7 @@
                     },
                     "row_coloring": {
                       "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the the view."
+                      "description": "Row colour configuration for the view."
                     }
                   },
                   "required": [
@@ -11520,7 +12343,7 @@
                     },
                     "row_coloring": {
                       "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the the view."
+                      "description": "Row colour configuration for the view."
                     }
                   },
                   "required": [
@@ -11555,7 +12378,7 @@
                     },
                     "row_coloring": {
                       "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the the view."
+                      "description": "Row colour configuration for the view."
                     }
                   },
                   "required": [
@@ -11590,7 +12413,7 @@
                     },
                     "row_coloring": {
                       "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the the view."
+                      "description": "Row colour configuration for the view."
                     }
                   }
                 },
@@ -11670,7 +12493,7 @@
                     },
                     "row_coloring": {
                       "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the the view."
+                      "description": "Row colour configuration for the view."
                     }
                   }
                 },
@@ -11696,7 +12519,7 @@
                     },
                     "row_coloring": {
                       "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the the view."
+                      "description": "Row colour configuration for the view."
                     }
                   }
                 },
@@ -11722,7 +12545,7 @@
                     },
                     "row_coloring": {
                       "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the the view."
+                      "description": "Row colour configuration for the view."
                     }
                   }
                 },
@@ -11748,7 +12571,7 @@
                     },
                     "row_coloring": {
                       "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the the view."
+                      "description": "Row colour configuration for the view."
                     }
                   }
                 },
@@ -11774,7 +12597,7 @@
                     },
                     "row_coloring": {
                       "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the the view."
+                      "description": "Row colour configuration for the view."
                     }
                   }
                 },
@@ -11800,7 +12623,7 @@
                     },
                     "row_coloring": {
                       "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the the view."
+                      "description": "Row colour configuration for the view."
                     }
                   }
                 },
@@ -11826,7 +12649,7 @@
                     },
                     "row_coloring": {
                       "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the the view."
+                      "description": "Row colour configuration for the view."
                     }
                   }
                 },
@@ -11937,7 +12760,7 @@
                   },
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "description": "Row colour configuration for the view."
                   }
                 }
               },
@@ -11969,7 +12792,7 @@
                   },
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "description": "Row colour configuration for the view."
                   }
                 }
               },
@@ -12001,7 +12824,7 @@
                   },
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "description": "Row colour configuration for the view."
                   }
                 },
                 "required": [
@@ -12036,7 +12859,7 @@
                   },
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "description": "Row colour configuration for the view."
                   }
                 },
                 "required": [
@@ -12071,7 +12894,7 @@
                   },
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "description": "Row colour configuration for the view."
                   }
                 },
                 "required": [
@@ -12106,7 +12929,7 @@
                   },
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "description": "Row colour configuration for the view."
                   }
                 }
               },
@@ -12138,7 +12961,7 @@
                   },
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "description": "Row colour configuration for the view."
                   }
                 }
               },
@@ -12219,7 +13042,7 @@
               "JSON",
               "AutoNumber"
             ],
-            "description": "Field data type."
+            "description": "Field data type. Read responses additionally return `ID` for a table's auto-generated primary-key field; `ID` cannot be used when creating or updating a field."
           },
           "description": {
             "type": [
@@ -12234,7 +13057,7 @@
               "boolean",
               "number"
             ],
-            "description": "Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields."
+            "description": "Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields. A MultiSelect default holding several choices is given as a single comma-separated string of choice titles."
           },
           "unique": {
             "type": "boolean",
@@ -12710,6 +13533,11 @@
             "items": {
               "type": "object",
               "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Stable identifier for the choice. Returned on reads; pass it back unchanged on update so the choice and the records referencing it are preserved.",
+                  "readOnly": true
+                },
                 "title": {
                   "type": "string",
                   "description": "Choice title."
@@ -12911,7 +13739,8 @@
           },
           "error": {
             "type": "string",
-            "description": "Error message when dependent field is deleted"
+            "description": "Error message recorded by the server when a field this one depends on is deleted. Server-maintained and never returned by v3 reads.",
+            "readOnly": true
           },
           "enable_conditions": {
             "type": "boolean",
@@ -12954,7 +13783,7 @@
           },
           "rollup_function": {
             "type": "string",
-            "description": "Rollup function.",
+            "description": "Rollup function. The accepted set depends on the target field's type — date-like targets take only `count`, `min`, `max` and `countDistinct`, numeric targets additionally take `sum`, `avg`, `sumDistinct` and `avgDistinct`. A function outside the target's set is rejected with `400`.",
             "enum": [
               "count",
               "min",
@@ -12968,7 +13797,8 @@
           },
           "error": {
             "type": "string",
-            "description": "Error message when dependent field is deleted"
+            "description": "Error message recorded by the server when a field this one depends on is deleted. Server-maintained and never returned by v3 reads.",
+            "readOnly": true
           },
           "precision": {
             "type": "number",
@@ -13312,11 +14142,12 @@
       "FieldOptions_Links": {
         "type": "object",
         "title": "Links",
+        "description": "Creates a relation between two tables, stored with field type `Links`. `LinkToAnotherRecord` accepts the same options and creates the same kind of relation; for `relation_type: oo` the choice decides the underlying implementation (`Links` the foreign-key form, `LinkToAnotherRecord` the junction-table form). Neither type is deprecated.",
         "properties": {
           "relation_type": {
             "type": "string",
             "enum": ["om", "mo", "mm", "oo", "hm", "bt"],
-            "description": "Type of relationship.\n\nSupported options are listed below\n- `om` one-to-many\n- `mo` many-to-one\n- `mm` many-to-many\n- `oo` one-to-one\n- `hm` has-many\n- `bt` belongs-to"
+            "description": "Type of relationship: `om` one-to-many, `mo` many-to-one, `mm` many-to-many, `oo` one-to-one, `hm` has-many, `bt` belongs-to.\n\nNormalised on create: when the link is backed by a junction table `hm` is stored as `om` and `bt` as `mo`, and `oo` is always stored as a `LinkToAnotherRecord` field, so a read may report a different field type than the one requested."
           },
           "related_table_id": {
             "type": "string",
@@ -13336,11 +14167,12 @@
       "FieldOptions_LinkToAnotherRecord": {
         "type": "object",
         "title": "LinkToAnotherRecord",
+        "description": "Creates a relation between two tables, stored with field type `LinkToAnotherRecord`. `Links` accepts the same options and creates the same kind of relation; for `relation_type: oo` the choice decides the underlying implementation (`Links` the foreign-key form, `LinkToAnotherRecord` the junction-table form). Neither type is deprecated.",
         "properties": {
           "relation_type": {
             "type": "string",
             "enum": ["om", "mo", "mm", "oo", "hm", "bt"],
-            "description": "Type of relationship.\n\nSupported options are listed below\n- `om` one-to-many\n- `mo` many-to-one\n- `mm` many-to-many\n- `oo` one-to-one\n- `hm` has-many\n- `bt` belongs-to"
+            "description": "Type of relationship: `om` one-to-many, `mo` many-to-one, `mm` many-to-many, `oo` one-to-one, `hm` has-many, `bt` belongs-to.\n\nNormalised on create: when the link is backed by a junction table `hm` is stored as `om` and `bt` as `mo`, and `oo` is always stored as a `LinkToAnotherRecord` field, so a read may report a different field type than the one requested."
           },
           "related_table_id": {
             "type": "string",
@@ -13488,12 +14320,23 @@
                 "properties": {
                   "type": {
                     "enum": [
-                      "Rating",
-                      "Checkbox"
+                      "Rating"
                     ]
                   },
                   "options": {
                     "$ref": "#/components/schemas/FieldOptions_Rating"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Checkbox"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Checkbox"
                   }
                 }
               },
@@ -13568,10 +14411,106 @@
                     "$ref": "#/components/schemas/FieldOptions_LinkToAnotherRecord"
                   }
                 }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Rollup"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Rollup"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Button"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Button"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Attachment"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Attachment"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "QrCode"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_QrCode"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "CreatedTime",
+                      "LastModifiedTime"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_DateTime"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "CreatedBy"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_CreatedBy"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "LastModifiedBy"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_LastModifiedBy"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Geometry",
+                      "Year",
+                      "AutoNumber"
+                    ]
+                  }
+                }
               }
             ],
             "errorMessage": {
-              "oneOf": "Invalid field options. Ensure 'uidt' is a valid field type and the options match the schema for that type."
+              "oneOf": "Invalid field options. Ensure 'type' is a valid field type and the options match the schema for that type."
             }
           }
         ]
@@ -13948,7 +14887,7 @@
             "items": {
               "$ref": "#/components/schemas/FilterGroup"
             },
-            "description": "List of filter groups. Initial set of filters are mapped to a default group with group-id set to **root**."
+            "description": "List of filter groups. Initial set of filters are mapped to a default group with group-id set to **root**. A view with no filters still returns that root group, with an empty `filters` array and `group_operator` set to `null`."
           }
         },
         "required": [
@@ -14170,7 +15109,7 @@
           },
           "fields": {
             "type": "object",
-            "description": "Record fields data (excluding primary key). Undefined when empty.",
+            "description": "Record fields data, excluding the primary key. Always present; an empty object when the record has no other fields.",
             "additionalProperties": true
           }
         },
@@ -14345,7 +15284,7 @@
                 },
                 "fields": {
                   "type": "object",
-                  "description": "Record fields data (excluding primary key). Undefined when empty.",
+                  "description": "Record fields data, excluding the primary key. Always present; an empty object when the record has no other fields.",
                   "additionalProperties": true
                 }
               },
@@ -14418,12 +15357,26 @@
               "null"
             ],
             "description": "Pagination token for previous page"
+          },
+          "nestedNext": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Nested pagination token for next page"
+          },
+          "nestedPrev": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Nested pagination token for previous page"
           }
         }
       },
       "BaseRoles": {
         "type": "string",
-        "description": "Base roles for the user.",
+        "description": "Base roles for the user. These are the values accepted when granting a role.",
         "enum": [
           "owner",
           "creator",
@@ -14431,6 +15384,20 @@
           "viewer",
           "commenter",
           "no-access"
+        ]
+      },
+      "BaseRolesResponse": {
+        "type": "string",
+        "description": "Base role as reported on a member read. A superset of `BaseRoles`: `inherit` means the role comes from the workspace rather than the base, and `app-user` is an external app-only collaborator with no ambient base access. Neither can be assigned — they are never valid in a request body.",
+        "enum": [
+          "owner",
+          "creator",
+          "editor",
+          "viewer",
+          "commenter",
+          "no-access",
+          "inherit",
+          "app-user"
         ]
       },
       "Workspace": {
@@ -14599,7 +15566,7 @@
             "description": "Timestamp when the user was last updated in the workspace"
           },
           "workspace_role": {
-            "$ref": "#/components/schemas/WorkspaceRoles",
+            "$ref": "#/components/schemas/WorkspaceRolesResponse",
             "description": "Role assigned to the user in the workspace"
           }
         },
@@ -14635,7 +15602,7 @@
             "description": "Timestamp when the user was last updated in the workspace"
           },
           "workspace_role": {
-            "$ref": "#/components/schemas/WorkspaceRoles",
+            "$ref": "#/components/schemas/WorkspaceRolesResponse",
             "description": "Role assigned to the user in the workspace"
           }
         },
@@ -15063,7 +16030,7 @@
           },
           "order": {
             "type": "number",
-            "description": "Display position among environments; defaults to the end of the list",
+            "description": "Display position among environments; defaults to the end of the list. Write-only — it is persisted but is not returned on any environment response.",
             "example": 1
           }
         },
@@ -15095,7 +16062,7 @@
           },
           "order": {
             "type": "number",
-            "description": "Display position among environments",
+            "description": "Display position among environments. Write-only — it is persisted but is not returned on any environment response.",
             "example": 1
           }
         }
@@ -15352,7 +16319,7 @@
       },
       "WorkspaceRoles": {
         "type": "string",
-        "description": "Workspace roles for the user.",
+        "description": "Workspace roles for the user. These are the values accepted when granting a role.",
         "enum": [
           "workspace-level-owner",
           "workspace-level-creator",
@@ -15360,6 +16327,19 @@
           "workspace-level-viewer",
           "workspace-level-commenter",
           "workspace-level-no-access"
+        ]
+      },
+      "WorkspaceRolesResponse": {
+        "type": "string",
+        "description": "Workspace role as reported on a member read. A superset of `WorkspaceRoles`: `workspace-level-inherit` means the role is inherited from the organization rather than set on the workspace. It cannot be assigned — it is never valid in a request body.",
+        "enum": [
+          "workspace-level-owner",
+          "workspace-level-creator",
+          "workspace-level-editor",
+          "workspace-level-viewer",
+          "workspace-level-commenter",
+          "workspace-level-no-access",
+          "workspace-level-inherit"
         ]
       },
       "WorkspaceTeamCreate": {
@@ -15835,7 +16815,7 @@
                 "items": {
                   "$ref": "#/components/schemas/WidgetRead"
                 },
-                "description": "List of widgets. Only included when `includeWidgets=true`."
+                "description": "List of widgets. Only included when the request passes `include=widgets`."
               }
             }
           }
@@ -16220,12 +17200,12 @@
           },
           "type": {
             "type": "string",
-            "enum": ["chart", "metric", "text", "iframe"],
-            "description": "Type of the widget."
+            "enum": ["chart", "metric", "gauge", "table", "pivot", "text", "iframe"],
+            "description": "Type of the widget. `gauge`, `table` and `pivot` widgets are returned here but cannot yet be created or updated through this API — create them in the dashboard editor."
           },
           "options": {
-            "description": "Widget configuration. Structure depends on widget type. See WidgetOptions* schemas.",
-            "oneOf": [
+            "description": "Widget configuration. Structure depends on widget type. The branches below cover `metric`, `text`, `iframe` and `chart` with `chart_type` pie, donut, bar, line or scatter. A `gauge`, `table` or `pivot` widget, or a chart with `chart_type: treemap`, is returned with an options shape that is not modelled here yet and matches the open branch instead.",
+            "anyOf": [
               { "$ref": "#/components/schemas/WidgetOptionsMetric" },
               { "$ref": "#/components/schemas/WidgetOptionsPieChart" },
               { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
@@ -16233,7 +17213,8 @@
               { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
               { "$ref": "#/components/schemas/WidgetOptionsScatter" },
               { "$ref": "#/components/schemas/WidgetOptionsText" },
-              { "$ref": "#/components/schemas/WidgetOptionsIframe" }
+              { "$ref": "#/components/schemas/WidgetOptionsIframe" },
+              { "type": "object", "description": "Options for a widget type whose shape is not modelled above." }
             ]
           },
           "order": {
@@ -16333,7 +17314,7 @@
           "type": {
             "type": "string",
             "enum": ["chart", "metric", "text", "iframe"],
-            "description": "Type of the widget."
+            "description": "Type of the widget. `gauge`, `table` and `pivot` exist and are returned by read, but are not accepted here yet."
           },
           "options": {
             "description": "Widget configuration. Structure depends on widget type.",
@@ -16441,6 +17422,35 @@
             "format": "date-time",
             "description": "Token last update timestamp",
             "example": "2025-12-30 15:17:24+00:00"
+          },
+          "scopes": {
+            "type": "array",
+            "description": "Access scopes attached to the token. Present on fine-grained tokens, which is every token minted through this API on Cloud and licensed self-hosted deployments.",
+            "items": {
+              "$ref": "#/components/schemas/ApiTokenScope"
+            }
+          },
+          "token_prefix": {
+            "type": "string",
+            "description": "First 12 characters of the token value, kept for display. Fine-grained tokens only — the value itself is stored hashed and is never returned again after creation.",
+            "example": "nc_pat_wxAFz"
+          },
+          "expiry": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Expiry timestamp, or null for a token that never expires. Always null outside Cloud and licensed self-hosted deployments.",
+            "example": "2026-12-30 15:17:24+00:00"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether the token is currently accepted. Fine-grained tokens only.",
+            "example": true
+          },
+          "last_used_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the token was last used. Absent until the token has been used; updated on a 5-second batched flush, so it lags slightly behind live use.",
+            "example": "2025-12-31 09:02:11+00:00"
           }
         },
         "required": [
@@ -16460,14 +17470,108 @@
             "properties": {
               "token": {
                 "type": "string",
-                "description": "The actual API token value (only returned on creation)",
-                "example": "wxAFzFO2wwOf9ozVRjragBJ7KPWMaW2OGpklGqHh"
+                "description": "The actual API token value. Returned only on creation — it is stored hashed and cannot be retrieved again. Fine-grained tokens are prefixed `nc_pat_`.",
+                "example": "nc_pat_wxAFzFO2wwOf9ozVRjragBJ7KPWMaW2OGpklGqHh"
               }
             },
             "required": [
               "token"
             ]
           }
+        ]
+      },
+      "ApiTokenPermissionLevel": {
+        "type": "string",
+        "description": "Permission level for one resource category. `delete` is the top of the ladder and includes everything `write` allows.",
+        "enum": [
+          "none",
+          "read",
+          "write",
+          "delete"
+        ]
+      },
+      "ApiTokenPermissions": {
+        "type": "object",
+        "description": "Permission level per resource category. A category that is omitted is treated as `none`. An unknown category key is rejected with `400`.",
+        "additionalProperties": false,
+        "properties": {
+          "records": {
+            "$ref": "#/components/schemas/ApiTokenPermissionLevel"
+          },
+          "tables": {
+            "$ref": "#/components/schemas/ApiTokenPermissionLevel"
+          },
+          "fields": {
+            "$ref": "#/components/schemas/ApiTokenPermissionLevel"
+          },
+          "views": {
+            "$ref": "#/components/schemas/ApiTokenPermissionLevel"
+          },
+          "base": {
+            "$ref": "#/components/schemas/ApiTokenPermissionLevel"
+          },
+          "comments": {
+            "$ref": "#/components/schemas/ApiTokenPermissionLevel"
+          },
+          "webhooks": {
+            "$ref": "#/components/schemas/ApiTokenPermissionLevel"
+          },
+          "users": {
+            "$ref": "#/components/schemas/ApiTokenPermissionLevel"
+          },
+          "workflows": {
+            "$ref": "#/components/schemas/ApiTokenPermissionLevel"
+          },
+          "agents": {
+            "$ref": "#/components/schemas/ApiTokenPermissionLevel"
+          },
+          "scripts": {
+            "$ref": "#/components/schemas/ApiTokenPermissionLevel"
+          },
+          "integrations": {
+            "$ref": "#/components/schemas/ApiTokenPermissionLevel"
+          },
+          "environments": {
+            "$ref": "#/components/schemas/ApiTokenPermissionLevel"
+          },
+          "apps": {
+            "$ref": "#/components/schemas/ApiTokenPermissionLevel"
+          },
+          "workspaces": {
+            "$ref": "#/components/schemas/ApiTokenPermissionLevel"
+          }
+        }
+      },
+      "ApiTokenScope": {
+        "type": "object",
+        "description": "One access scope on a fine-grained API token: the resource it reaches and what it may do there. A token may carry at most 100 scopes. The minting user must already have access to every base or workspace named, or the request is rejected with `400`.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Scope identifier. Returned on reads; ignored on writes."
+          },
+          "resource_type": {
+            "type": "string",
+            "description": "What the scope names. `all` is account-wide: every resource the token's user can reach, present or future.",
+            "enum": [
+              "base",
+              "workspace",
+              "all"
+            ],
+            "example": "base"
+          },
+          "resource_id": {
+            "type": "string",
+            "description": "ID of the base or workspace the scope grants access to. Use `*` when `resource_type` is `all`.",
+            "example": "p_abc123def456"
+          },
+          "permissions": {
+            "$ref": "#/components/schemas/ApiTokenPermissions"
+          }
+        },
+        "required": [
+          "resource_type",
+          "resource_id"
         ]
       },
       "DocumentCreate": {
@@ -16480,7 +17584,7 @@
           },
           "content": {
             "type": "object",
-            "description": "rich-text JSON document content."
+            "description": "Document body as a ProseMirror / TipTap JSON node tree. Markdown and HTML strings are not parsed. Defaults to an empty document when omitted."
           },
           "meta": {
             "type": "object",
@@ -16508,7 +17612,7 @@
           },
           "content": {
             "type": "object",
-            "description": "Updated rich-text JSON document content."
+            "description": "Replacement document body, as a ProseMirror / TipTap JSON node tree. Markdown and HTML strings are not parsed."
           },
           "meta": {
             "type": "object",
@@ -16516,7 +17620,7 @@
           },
           "version": {
             "type": "integer",
-            "description": "Current document version for optimistic concurrency control. Must match the server's version."
+            "description": "Current document version, for optimistic concurrency control. Always required by request validation. The server only compares it against the stored version when the body also carries `title` or `content`; a metadata-only update is last-write-wins and the value is ignored."
           }
         }
       },
@@ -16567,7 +17671,7 @@
           },
           "content": {
             "type": "object",
-            "description": "rich-text JSON document content."
+            "description": "Document body as a ProseMirror / TipTap JSON node tree."
           },
           "meta": {
             "type": "object",
@@ -17425,8 +18529,8 @@
           },
           "status": {
             "type": "string",
-            "enum": ["running", "waiting", "completed", "error", "cancelled", "skipped"],
-            "description": "Overall execution status"
+            "enum": ["queued", "running", "waiting", "paused", "completed", "error", "cancelled", "skipped"],
+            "description": "Execution status. A new execution starts as `queued`; `completed`, `error`, `cancelled` and `skipped` are terminal."
           },
           "startTime": {
             "type": "number",
@@ -17897,8 +19001,8 @@
                 },
                 "status": {
                   "type": "string",
-                  "description": "Execution status",
-                  "enum": ["running", "waiting", "completed", "error", "cancelled", "skipped"]
+                  "description": "Execution status. A new execution starts as `queued`; `completed`, `error`, `cancelled` and `skipped` are terminal.",
+                  "enum": ["queued", "running", "waiting", "paused", "completed", "error", "cancelled", "skipped"]
                 },
                 "started_at": {
                   "type": ["string", "null"],
@@ -17936,8 +19040,8 @@
           },
           "status": {
             "type": "string",
-            "description": "Execution status",
-            "enum": ["running", "waiting", "completed", "error", "cancelled", "skipped"]
+            "description": "Execution status. A new execution starts as `queued`; `completed`, `error`, `cancelled` and `skipped` are terminal.",
+            "enum": ["queued", "running", "waiting", "paused", "completed", "error", "cancelled", "skipped"]
           },
           "execution_data": {
             "$ref": "#/components/schemas/WorkflowExecutionData",
@@ -17964,93 +19068,123 @@
     },
     "responses": {
       "BadRequestV3": {
-        "description": "Bad Request",
+        "description": "The request body or a query parameter failed validation.",
         "content": {
           "application/json": {
-          "schema": {
-            "type": "object",
-            "properties": {
-              "error": {
-                "type": "string"
-              },
-              "message": {
-                "type": "string"
-              }
+            "schema": {
+              "$ref": "#/components/schemas/Error"
             }
-          }
           }
         }
       },
       "UnauthorizedV3": {
-        "description": "Unauthorized",
+        "description": "No credential was supplied, it was not valid, or this operation does not accept the kind of credential that was sent.",
         "content": {
           "application/json": {
-          "schema": {
-            "type": "object",
-            "properties": {
-              "error": {
-                "type": "string"
-              },
-              "message": {
-                "type": "string"
-              }
+            "schema": {
+              "$ref": "#/components/schemas/Error"
             }
           }
+        }
+      },
+      "PaymentRequiredV3": {
+        "description": "The deployment has no active licence, or the workspace has run out of credits.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
           }
         }
       },
       "ForbiddenV3": {
-        "description": "Forbidden",
+        "description": "Authenticated, but not allowed: the role is too low, the token scope does not cover the operation, or the plan does not include the feature or allows no more of this resource.",
         "content": {
           "application/json": {
-          "schema": {
-            "type": "object",
-            "properties": {
-              "error": {
-                "type": "string"
-              },
-              "message": {
-                "type": "string",
-                "example": "Accessing api token api require enterprise plan"
-              }
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": "ERR_FEATURE_NOT_SUPPORTED",
+              "message": "Accessing api token api require enterprise plan"
             }
-          }
           }
         }
       },
       "NotFoundV3": {
-        "description": "Not Found",
+        "description": "The resource does not exist. Hooks and documents answer 404; most other resources answer 422 instead.",
         "content": {
           "application/json": {
-          "schema": {
-            "type": "object",
-            "properties": {
-              "error": {
-                "type": "string"
-              },
-              "message": {
-                "type": "string"
-              }
+            "schema": {
+              "$ref": "#/components/schemas/Error"
             }
           }
+        }
+      },
+      "ConflictV3": {
+        "description": "The request conflicts with the current state. A unique-constraint violation also carries `fieldName` and `value`.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "UnprocessableEntityV3": {
+        "description": "The request was well formed but could not be acted on — most commonly a referenced base, table, field, view, script, dashboard, widget or workflow does not exist.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "TooManyRequestsV3": {
+        "description": "Rate limit exceeded. The token is blocked for a further cool-down period. Note that a throttled response body is a bare JSON string today, not the standard error object.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "string",
+              "example": "ThrottlerException: Too Many Requests"
+            }
+          }
+        },
+        "headers": {
+          "Retry-After": {
+            "description": "How long to wait before retrying.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "X-RateLimit-Limit": {
+            "description": "Requests permitted in the current window. Sent only on API-token requests.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "X-RateLimit-Remaining": {
+            "description": "Requests left in the current window. Sent only on API-token requests.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "X-RateLimit-Reset": {
+            "description": "Time until the current window resets. Sent only on API-token requests.",
+            "schema": {
+              "type": "integer"
+            }
           }
         }
       },
       "InternalServerErrorV3": {
-        "description": "Internal Server Error",
+        "description": "Unexpected server error. The body carries `message` only — no `error` code.",
         "content": {
           "application/json": {
-          "schema": {
-            "type": "object",
-            "properties": {
-              "error": {
-                "type": "string"
-              },
-              "message": {
-                "type": "string"
-              }
+            "schema": {
+              "$ref": "#/components/schemas/Error"
             }
-          }
           }
         }
       },
@@ -18084,28 +19218,16 @@
     },
     "securitySchemes": {
       "xc-token": {
-        "name": "Auth Token ",
+        "name": "xc-token",
         "type": "apiKey",
         "in": "header",
-        "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable `NC_JWT_EXPIRES_IN`."
+        "description": "An API token created from account or workspace settings. The value is an opaque string, not a JWT. A token may carry an expiry and may be scoped to a subset of permission categories."
       },
       "bearerAuth": {
         "name": "Authorization",
         "type": "http",
         "scheme": "bearer",
-        "description": "Bearer token authentication. Use 'Authorization: Bearer <token>' header format. This is an alternative to the xc-token header."
-      },
-      "xc-shared-base-id": {
-        "name": "Shared Base ID",
-        "type": "apiKey",
-        "in": "header",
-        "description": "Shared base uuid"
-      },
-      "xc-shared-erd-id": {
-        "name": "Shared ERD ID",
-        "type": "apiKey",
-        "in": "header",
-        "description": "Shared ERD uuid"
+        "description": "`Authorization: Bearer <token>`, carrying the same API token as the `xc-token` header. `xc-token` wins when both are sent."
       }
     },
     "parameters": {

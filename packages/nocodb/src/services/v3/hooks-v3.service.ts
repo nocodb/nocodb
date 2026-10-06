@@ -120,15 +120,10 @@ export class HooksV3Service {
     }
   }
 
-  // PATCH is a partial update — `HookV3Update` requires nothing, and the
-  // documented examples send `{title}` or `{active}` alone. The body reaches
-  // `HooksService.hookUpdate`, which revalidates it against the v1 `HookReq`
-  // (title/event/operation/notification all required) and 400s, and
-  // `requestBuilder` defaults an absent `event` to `after` — converting a
-  // `manual` hook into a record one and detaching every button column bound to
-  // it. Merge the body over the stored hook so an omitted property keeps its
-  // stored value; `Hook.update` likewise rewrites the trigger-field rows on
-  // every v3 write, so `trigger_fields` has to be carried too.
+  // The body is revalidated downstream against the v1 `HookReq`, which requires
+  // title/event/operation/notification, so a partial PATCH 400s. Merging also
+  // stops an absent `event` defaulting to `after`, which would convert a
+  // `manual` hook and detach its button columns.
   protected mergeOverStored(
     existing: Hook,
     patch: HookV3UpdateV3Type,
@@ -136,9 +131,7 @@ export class HooksV3Service {
     const stored: HookV3UpdateV3Type = {
       title: existing.title,
       description: existing.description,
-      // `manual` is spelled the same on both sides, and an internal event with
-      // no v3 spelling (a comment hook) is carried through untouched rather
-      // than rewritten.
+      // An internal event with no v3 spelling (comment hooks) passes through.
       event: (eventToV3[existing.event] ??
         existing.event) as HookV3UpdateV3Type['event'],
       operation: existing.operation as HookV3UpdateV3Type['operation'],
@@ -146,11 +139,11 @@ export class HooksV3Service {
         existing.notification,
       ) as HookNotificationV3V3Type,
       active: !!existing.active,
+      // `Hook.update` rewrites these rows on every write.
       trigger_fields: existing.trigger_fields ?? [],
     };
 
-    // Presence, not truthiness: a key the caller omits keeps its stored value,
-    // a key sent explicitly — `[]`, `false`, `null` — overrides it.
+    // Presence, not truthiness: an explicit `[]`, `false` or `null` overrides.
     return {
       ...stored,
       ...Object.fromEntries(

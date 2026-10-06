@@ -8,7 +8,7 @@ defineProps<{
   <Transition name="nc-auth-error">
     <div v-if="message" role="alert" class="nc-auth-error flex items-start gap-1.5 text-bodyDefaultSm">
       <GeneralIcon icon="ncAlertCircle" class="w-4 h-4 flex-none mt-px" />
-      <span class="min-w-0 truncate" :title="message">{{ message }}</span>
+      <span class="min-w-0 break-words">{{ message }}</span>
     </div>
   </Transition>
 </template>

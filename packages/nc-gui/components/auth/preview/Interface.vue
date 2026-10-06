@@ -22,8 +22,6 @@ interface Flash {
 
 const { isDark } = useTheme()
 
-const { t } = useI18n()
-
 // presence palette from ee/composables/usePresence.ts
 const arjun = { name: 'Arjun Patel', color: '#f59e0b' }
 
@@ -262,7 +260,7 @@ onBeforeUnmount(() => {
               class="h-8 flex items-center gap-2 px-2.5 rounded-lg border-1 border-nc-border-gray-medium text-bodyDefaultSm text-nc-content-gray-muted"
             >
               <GeneralIcon icon="ncSearch" class="w-4 h-4 flex-none" />
-              {{ t('general.search') }}
+              {{ $t('general.search') }}
             </div>
           </div>
 
@@ -306,7 +304,7 @@ onBeforeUnmount(() => {
                     class="absolute right-0 bottom-0 h-4 flex items-center px-[5px] rounded-tl-md text-[11px] leading-4 font-semibold text-white whitespace-nowrap"
                     :style="{ backgroundColor: arjun.color }"
                   >
-                    {{ focus?.editing ? t('labels.userIsTyping', { name: 'Arjun' }) : arjun.name }}
+                    {{ focus?.editing ? $t('labels.userIsTyping', { name: 'Arjun' }) : arjun.name }}
                   </span>
                 </span>
               </div>

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
 import { useSsoError } from '~/composables/useSsoError'
 
 const props = defineProps<{
@@ -10,30 +9,32 @@ const props = defineProps<{
   errorRef?: string
 }>()
 
-const { t } = useI18n()
-
 const { clearError } = useSsoError()
+
+const route = useRoute()
 
 const supportCode = computed(() => [props.code, props.errorRef].filter(Boolean).join(' · '))
 
 const handleRetry = () => {
   clearError()
+  // on /sso, clearing alone would only re-show the SSO email form
+  if (route.path.startsWith('/sso')) navigateTo('/signin')
 }
 </script>
 
 <template>
-  <AuthShell :title="title || t('msg.noAccess')" data-testid="nc-sso-error-title">
+  <AuthShell :title="title || $t('msg.noAccess')" data-testid="nc-sso-error-title">
     <template #subtitle>
-      <span data-testid="nc-sso-error-message">{{ message || t('msg.noAccessDescription') }}</span>
+      <span data-testid="nc-sso-error-message">{{ message || $t('msg.noAccessDescription') }}</span>
     </template>
 
     <NcButton type="primary" class="nc-auth-primary w-full" data-testid="nc-sso-error-retry" @click="handleRetry">
-      {{ t('labels.auth.backToSignIn') }}
+      {{ $t('labels.auth.backToSignIn') }}
     </NcButton>
 
     <template v-if="supportCode" #footer>
       <div class="flex flex-col gap-1">
-        <span class="text-captionSm">{{ t('msg.sso.shareCode') }}</span>
+        <span class="text-captionSm">{{ $t('msg.sso.shareCode') }}</span>
         <div class="flex items-center gap-2 text-caption">
           <i18n-t keypath="labels.auth.reference" tag="span" class="min-w-0 break-all">
             <template #ref>

@@ -1611,7 +1611,10 @@
       "newPasswordTitle": "Set a new password",
       "newPasswordSubtitle": "Your account needs a new password before you continue.",
       "emailPlusNotAllowed": "Email addresses with '+' aren't allowed.",
-      "permanentEmailRequired": "Please sign up with a permanent email address. Disposable addresses aren't allowed."
+      "permanentEmailRequired": "Please sign up with a permanent email address. Disposable addresses aren't allowed.",
+      "hostedSignInFailed": "Sign-in with your provider didn't finish. Please try again.",
+      "resetLinkInvalid": "This reset link is invalid or has expired. Request a new one.",
+      "passwordResetDone": "Password updated. Sign in with your new password."
     },
     "baseOverview": {
       "copy": {

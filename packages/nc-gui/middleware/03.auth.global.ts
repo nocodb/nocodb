@@ -236,6 +236,7 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
       extraProps = extra || {}
 
       signIn(token)
+      commitPendingAuthMethod()
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -302,6 +303,7 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn'], state
       if (state.lastUsedAuthMethod) state.lastUsedAuthMethod.value = 'sso'
 
       signIn(token)
+      commitPendingAuthMethod('sso')
     } catch (e: any) {
       if (e?.response?.data?.error === NcErrorType.ERR_MAX_WORKSPACE_LIMIT_REACHED) {
         // Store error information in global state

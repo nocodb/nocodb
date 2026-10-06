@@ -199,10 +199,10 @@ onBeforeUnmount(() => {
           class="ml-4 rounded-md flex items-center gap-2 px-2 py-0.5 bg-nc-bg-green-dark text-nc-content-green-dark text-captionBold"
         >
           <span class="nc-auth-wf-ripple" />
-          {{ t('general.live') }}
+          {{ $t('general.live') }}
         </div>
         <div class="ml-2 flex items-center gap-1.5 text-caption text-nc-content-gray-subtle">
-          {{ t('labels.runHistory') }}
+          {{ $t('labels.runHistory') }}
           <span class="text-captionBold text-nc-content-gray-emphasis tabular-nums">{{ Math.round(runs) }}</span>
         </div>
       </div>

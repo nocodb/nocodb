@@ -1051,6 +1051,40 @@ export class DataV3Service {
     return { records: result };
   }
 
+  /**
+   * Build the internal `{ pkTitle: value }` lookup from a V3 record `id`.
+   *
+   * V3 serialises a composite primary key as its parts joined by `___`, with
+   * a literal `_` escaped to `\_` (`getCompositePkValue`). Assigning that whole
+   * string to the first key alone leaves the remaining keys `undefined`, which
+   * can never match a row — update/delete then fail on every composite-PK
+   * table even though list/read hand that same id back.
+   */
+  private buildPkLookup(
+    context: NcContext,
+    primaryKeys: Column[],
+    id: string | number,
+  ): Record<string, any> {
+    if (primaryKeys.length <= 1) {
+      return { [primaryKeys[0].title]: id };
+    }
+
+    const parts = `${id}`.split('___').map((p) => p.replaceAll('\\_', '_'));
+
+    // Same guard as `_wherePk`: an incomplete composite id would otherwise
+    // build a WHERE with undefined bindings.
+    if (parts.length < primaryKeys.length) {
+      NcError.get(context).invalidPrimaryKey(
+        id,
+        primaryKeys.map((pk) => pk.title).join(','),
+      );
+    }
+
+    return Object.fromEntries(
+      primaryKeys.map((pk, i) => [pk.title, parts[i]]),
+    );
+  }
+
   async dataDelete(
     context: NcContext,
     param: DataDeleteParams,
@@ -1075,12 +1109,12 @@ export class DataV3Service {
         : []),
     ];
 
-    const { primaryKey } = await this.getModelInfo(context, param.modelId);
+    const { primaryKeys } = await this.getModelInfo(context, param.modelId);
 
     // Transform the request body to match internal format
-    const recordIds = param.body.map((record) => ({
-      [primaryKey.title]: record.id,
-    }));
+    const recordIds = param.body.map((record) =>
+      this.buildPkLookup(context, primaryKeys, record.id),
+    );
 
     const deletePayloadLimit =
       param.maxPayloadOverride ?? V3_DATA_PAYLOAD_LIMIT;
@@ -1124,7 +1158,7 @@ export class DataV3Service {
     const transformedBody = Array.isArray(param.body)
       ? await Promise.all(
           param.body.map(async (record) => ({
-            [primaryKey.title]: record.id,
+            ...this.buildPkLookup(context, primaryKeys, record.id),
             ...(await this.transformLTARFieldsToInternal(
               context,
               record.fields,
@@ -1134,7 +1168,7 @@ export class DataV3Service {
         )
       : [
           {
-            [primaryKey.title]: param.body.id,
+            ...this.buildPkLookup(context, primaryKeys, param.body.id),
             ...(await this.transformLTARFieldsToInternal(
               context,
               param.body.fields,
@@ -1229,7 +1263,7 @@ export class DataV3Service {
       columns: columns,
       nestedLimit: undefined,
       skipSubstitutingColumnIds:
-        param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT],
+        param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
       reuse: {}, // Create reuse cache for this data update operation
       depth: 0, // Start at depth 0 for main records
       linksAsLtar,
@@ -1415,6 +1449,12 @@ export class DataV3Service {
       {
         context,
         tableId: param.modelId,
+        // Page the link list, not the parent table's records.
+        path: `/api/v3/data/${context.base_id}/${
+          param.modelId
+        }/links/${encodeURIComponent(param.columnId)}/${encodeURIComponent(
+          param.rowId,
+        )}`,
         baseUrl: param.req.ncSiteUrl,
         queryParams: param.query,
       },

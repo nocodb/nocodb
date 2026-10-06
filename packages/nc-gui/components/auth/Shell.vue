@@ -237,7 +237,8 @@ const isDesktop = useMediaQuery('(min-width: 1024px)')
   }
 
   :deep(.ant-input:focus),
-  :deep(.ant-input-affix-wrapper-focused) {
+  // doubled class so the ring outranks the affix wrapper's :hover shadow
+  :deep(.ant-input-affix-wrapper.ant-input-affix-wrapper-focused) {
     box-shadow: 0 0 0 2px var(--auth-blue) !important;
   }
 

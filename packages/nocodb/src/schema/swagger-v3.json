@@ -17,6 +17,92 @@
       "bearerAuth": []
     }
   ],
+  "tags": [
+    {
+      "name": "Workspaces",
+      "description": "Workspace-level operations."
+    },
+    {
+      "name": "Workspace Members",
+      "description": "Manage members of a workspace and their roles."
+    },
+    {
+      "name": "Teams",
+      "description": "Groups of users that can be granted access collectively."
+    },
+    {
+      "name": "Bases",
+      "description": "Create and manage bases within a workspace."
+    },
+    {
+      "name": "Base Members",
+      "description": "Manage member access to an individual base."
+    },
+    {
+      "name": "Tables",
+      "description": "Create and manage tables within a base."
+    },
+    {
+      "name": "Fields",
+      "description": "Create and manage the fields (columns) of a table."
+    },
+    {
+      "name": "Views",
+      "description": "Create and manage views over a table."
+    },
+    {
+      "name": "View Filters",
+      "description": "Filter conditions applied to a view."
+    },
+    {
+      "name": "View Sorts",
+      "description": "Sort rules applied to a view."
+    },
+    {
+      "name": "Table Records",
+      "description": "Read and write the records of a table.\n\nA record is `{ \"id\", \"fields\" }`. `fields` holds every non-primary-key field.\n\nLink fields return a count by default, or the linked records when `linksAsLtar=true`; has-many, many-to-many and the forward side of a one-to-one return an array; belongs-to and the owning side of a one-to-one return a single object or `null`. Attachment writes replace the whole cell, so send the existing files alongside any new ones.\n\nSee [the NocoDB docs](https://docs.nocodb.com) for field types and their value formats."
+    },
+    {
+      "name": "Linked Records",
+      "description": "Read and write the records linked through a Link field.\n\nHas-many and many-to-many links answer with `records`, an array; belongs-to and one-to-one answer with `record`, a single object or `null`. For has-many and many-to-many links, linking adds to the existing set rather than replacing it; belongs-to and one-to-one hold a single target, so linking displaces it."
+    },
+    {
+      "name": "Comments",
+      "description": "Comments attached to records."
+    },
+    {
+      "name": "Documents",
+      "description": "Document pages stored in a base."
+    },
+    {
+      "name": "Dashboards",
+      "description": "Dashboards and their widgets."
+    },
+    {
+      "name": "Scripts",
+      "description": "Automation scripts."
+    },
+    {
+      "name": "Workflows",
+      "description": "Workflow definitions and their executions."
+    },
+    {
+      "name": "Hooks",
+      "description": "Webhooks triggered by record and button events."
+    },
+    {
+      "name": "Environments",
+      "description": "Environment configuration for a workspace."
+    },
+    {
+      "name": "API Tokens",
+      "description": "Create and revoke API tokens."
+    },
+    {
+      "name": "Feedback",
+      "description": "Report a bug, a missing capability or a documentation gap."
+    }
+  ],
   "x-tagGroups": [
     {
       "name": "Meta APIs",

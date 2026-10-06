@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Decorative, aria-hidden copy of the marketing site's live "Sales overview" dashboard (landing-page nc/dashboard.tsx):
-// a teammate edits deals and every widget glides to its new value. Demo data is sample content, not UI copy.
+// Demo data is sample content, not UI copy.
 
 interface Deal {
   id: number
@@ -8,12 +8,6 @@ interface Deal {
   stage: string
   owner: string
   value: number
-}
-
-interface Delta {
-  text: string
-  up: boolean
-  at: number
 }
 
 type MetricKey = 'open' | 'won' | 'rate' | 'count'
@@ -53,17 +47,10 @@ const chartW = 407
 
 const chartH = 250
 
-const deals = ref<Deal[]>(seedDeals())
-
-const shown = ref<Record<string, number>>({})
-
-const deltas = ref<Partial<Record<MetricKey, Delta>>>({})
-
-// an object so the async loop reads the flag the unmount hook flips
-const loop = { stopped: false, raf: 0 }
+const deals = seedDeals()
 
 const stats = computed(() => {
-  const rows = deals.value
+  const rows = deals
   const won = rows.filter((d) => d.stage === 'Closed won')
   const lost = rows.filter((d) => d.stage === 'Closed lost')
   const open = rows.filter((d) => !isClosed(d.stage))
@@ -149,7 +136,7 @@ function sum(list: Deal[]) {
 }
 
 function val(key: string) {
-  return shown.value[key] ?? stats.value.values[key] ?? 0
+  return stats.value.values[key] ?? 0
 }
 
 function money(value: number) {
@@ -194,88 +181,6 @@ function bar(i: number) {
 function tickY(value: number) {
   return 6 + (chartH - 28) * (1 - value / barMax.value)
 }
-
-function wait(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-// values glide to their new size instead of jumping
-function glide(from: Record<string, number>, to: Record<string, number>) {
-  cancelAnimationFrame(loop.raf)
-  const start = performance.now()
-  const step = (now: number) => {
-    const p = Math.min(1, (now - start) / 600)
-    const e = 1 - (1 - p) ** 3
-    const next: Record<string, number> = {}
-    for (const [key, end] of Object.entries(to)) {
-      const begin = from[key] ?? end
-      next[key] = begin + (end - begin) * e
-    }
-    shown.value = next
-    if (p < 1 && !loop.stopped) loop.raf = requestAnimationFrame(step)
-  }
-  loop.raf = requestAnimationFrame(step)
-}
-
-// the teammate's edits, cycled: advance a stage, update a value after a call, close a deal
-function edit(n: number) {
-  const open = deals.value.filter((d) => !isClosed(d.stage))
-  const deal = open[(n * 5) % open.length]
-  if (!deal) return
-  if (n % 4 === 1) {
-    deal.value = Math.round((deal.value * 1.15) / 500) * 500
-  } else if (n % 4 === 3 || deal.stage === 'Negotiation') {
-    const closing = open.find((d) => d.stage === 'Negotiation') ?? deal
-    closing.stage = n % 8 === 7 ? 'Closed lost' : 'Closed won'
-  } else {
-    deal.stage = stages[stages.indexOf(deal.stage) + 1] ?? deal.stage
-  }
-}
-
-async function run() {
-  await wait(1200)
-  let n = 0
-  while (!loop.stopped) {
-    if (document.hidden) {
-      await wait(500)
-      continue
-    }
-    // closing deals drains the pipeline; start over before it runs dry
-    if (deals.value.filter((d) => !isClosed(d.stage)).length < 4) {
-      deals.value = seedDeals()
-      n = 0
-    }
-    edit(n)
-    n += 1
-    await wait(n % 5 === 0 ? 3200 : 2000)
-  }
-}
-
-watch(
-  () => stats.value.values,
-  (to, from) => {
-    for (const { key } of metrics) {
-      const d = (to[key] ?? 0) - (from[key] ?? 0)
-      if (!d) continue
-      const at = Date.now()
-      deltas.value = { ...deltas.value, [key]: { text: `${d > 0 ? '+' : '−'}${format(key, Math.abs(d))}`, up: d > 0, at } }
-      setTimeout(() => {
-        if (deltas.value[key]?.at === at) deltas.value = { ...deltas.value, [key]: undefined }
-      }, 1600)
-    }
-    glide({ ...from, ...shown.value }, to)
-  },
-)
-
-onMounted(() => {
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-  run()
-})
-
-onBeforeUnmount(() => {
-  loop.stopped = true
-  cancelAnimationFrame(loop.raf)
-})
 </script>
 
 <template>
@@ -325,30 +230,14 @@ onBeforeUnmount(() => {
             <div
               v-for="metric of metrics"
               :key="metric.key"
-              class="relative row-span-2 flex flex-col justify-center gap-1 p-4 rounded-xl border-1 border-nc-border-gray-medium overflow-hidden"
+              class="row-span-2 flex flex-col justify-center gap-1 p-4 rounded-xl border-1 border-nc-border-gray-medium overflow-hidden"
               :style="tile(metric.theme)"
             >
-              <span
-                v-if="deltas[metric.key]"
-                :key="`glow-${deltas[metric.key]?.at}`"
-                class="nc-auth-live-flash absolute inset-0 rounded-[11px]"
-                :style="{ boxShadow: 'inset 0 0 0 2px currentColor' }"
-              />
               <span class="truncate text-bodyBold">{{ metric.title }}</span>
               <span class="truncate text-[28px] leading-[1.2] font-bold tabular-nums">
                 {{ format(metric.key, val(metric.key)) }}
               </span>
-              <span class="flex min-w-0 items-center gap-1.5 text-bodySm">
-                <span class="truncate opacity-80">{{ stats.subs[metric.key] }}</span>
-                <span
-                  v-if="deltas[metric.key]"
-                  :key="`chip-${deltas[metric.key]?.at}`"
-                  class="nc-auth-dash-fade flex-none px-1.5 rounded-md text-bodySmBold tabular-nums"
-                  :style="{ backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.75)' }"
-                >
-                  {{ deltas[metric.key]?.up ? '↑' : '↓' }} {{ deltas[metric.key]?.text }}
-                </span>
-              </span>
+              <span class="truncate text-bodySm opacity-80">{{ stats.subs[metric.key] }}</span>
             </div>
 
             <!-- bar chart -->
@@ -448,29 +337,3 @@ onBeforeUnmount(() => {
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.nc-auth-live-flash {
-  animation: nc-auth-live-flash 1.4s ease-out forwards;
-}
-
-.nc-auth-dash-fade {
-  animation: nc-auth-dash-fade 150ms ease-out both;
-}
-
-@keyframes nc-auth-live-flash {
-  from {
-    opacity: 1;
-  }
-
-  to {
-    opacity: 0;
-  }
-}
-
-@keyframes nc-auth-dash-fade {
-  from {
-    opacity: 0;
-  }
-}
-</style>

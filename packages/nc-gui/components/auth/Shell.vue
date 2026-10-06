@@ -20,7 +20,7 @@ const { isDark } = useTheme()
 
 const panelStyle = computed(() => (isWhiteLabelled.value && brandColor.value ? { background: brandColor.value } : undefined))
 
-// the brand panel is lg+ only; unmounted below it so the preview scenes don't animate unseen
+// the brand panel is lg+ only; unmounted below it so the preview scenes don't render unseen
 const isDesktop = useMediaQuery('(min-width: 1024px)')
 </script>
 
@@ -58,7 +58,8 @@ const isDesktop = useMediaQuery('(min-width: 1024px)')
       </template>
     </aside>
 
-    <main class="nc-auth-form-side relative flex-1 min-w-0 overflow-y-auto">
+    <!-- not <main>: the layout around it already provides the main landmark -->
+    <div class="nc-auth-form-side relative flex-1 min-w-0 overflow-y-auto">
       <div class="nc-auth-lang absolute top-6 right-6 z-10">
         <GeneralLanguage button />
       </div>
@@ -91,7 +92,7 @@ const isDesktop = useMediaQuery('(min-width: 1024px)')
           </div>
         </div>
       </div>
-    </main>
+    </div>
   </div>
 </template>
 
@@ -107,11 +108,11 @@ const isDesktop = useMediaQuery('(min-width: 1024px)')
   --auth-blue-ink: oklch(0.45 0.23 267);
   --auth-shadow-border: 0 0 0 1px oklch(0 0 0 / 0.06), 0 1px 2px -1px oklch(0 0 0 / 0.06), 0 2px 4px 0 oklch(0 0 0 / 0.04);
   --auth-shadow-border-hover: 0 0 0 1px oklch(0 0 0 / 0.08), 0 1px 2px -1px oklch(0 0 0 / 0.08), 0 2px 4px 0 oklch(0 0 0 / 0.06);
-  --auth-inverse: oklch(0.17 0.006 270);
-  --auth-inverse-hover: oklch(0.27 0.008 270);
-  --auth-on-inverse: oklch(1 0 0);
-  --auth-shadow-button: inset 0 1px 0 oklch(1 0 0 / 0.16), 0 0 0 1px var(--auth-inverse), 0 1px 2px oklch(0 0 0 / 0.3),
-    0 2px 4px oklch(0 0 0 / 0.12);
+  --auth-cta: var(--auth-blue);
+  --auth-cta-hover: oklch(0.44 0.23 267);
+  --auth-on-cta: oklch(1 0 0);
+  --auth-shadow-button: inset 0 1px 0 oklch(1 0 0 / 0.16), 0 0 0 1px var(--auth-cta), 0 1px 2px oklch(0.3 0.2 267 / 0.3),
+    0 2px 4px oklch(0.3 0.2 267 / 0.12);
   --auth-danger: oklch(0.5 0.19 22);
 }
 
@@ -125,10 +126,10 @@ const isDesktop = useMediaQuery('(min-width: 1024px)')
   --auth-blue-ink: oklch(0.78 0.13 267);
   --auth-shadow-border: 0 0 0 1px oklch(1 0 0 / 0.08);
   --auth-shadow-border-hover: 0 0 0 1px oklch(1 0 0 / 0.13);
-  --auth-inverse: oklch(0.96 0.003 270);
-  --auth-inverse-hover: oklch(0.86 0.005 270);
-  --auth-on-inverse: oklch(0.17 0.006 270);
-  --auth-shadow-button: inset 0 1px 0 oklch(1 0 0 / 0.5), 0 1px 2px oklch(0 0 0 / 0.4);
+  --auth-cta: var(--auth-blue);
+  --auth-cta-hover: oklch(0.57 0.22 267);
+  --auth-on-cta: oklch(1 0 0);
+  --auth-shadow-button: inset 0 1px 0 oklch(1 0 0 / 0.2), 0 1px 2px oklch(0 0 0 / 0.4);
   --auth-danger: oklch(0.7 0.16 22);
 }
 
@@ -270,17 +271,17 @@ const isDesktop = useMediaQuery('(min-width: 1024px)')
     }
   }
 
-  // primary action: the marketing site's inverse button (near-black in light, near-white in dark)
+  // primary action: brand blue in both themes, so it's the one thing on the form that stands out
   :deep(.nc-auth-primary.ant-btn) {
     @apply h-11 rounded-lg text-[15px];
     border: none !important;
-    background: var(--auth-inverse) !important;
-    color: var(--auth-on-inverse) !important;
+    background: var(--auth-cta) !important;
+    color: var(--auth-on-cta) !important;
     box-shadow: var(--auth-shadow-button) !important;
     transition: scale 150ms ease-out, background-color 150ms ease-out;
 
     &:hover {
-      background: var(--auth-inverse-hover) !important;
+      background: var(--auth-cta-hover) !important;
     }
 
     &:active {
@@ -292,9 +293,20 @@ const isDesktop = useMediaQuery('(min-width: 1024px)')
     }
   }
 
+  // links and link-styled buttons (in-form actions) look the same
   :deep(.nc-auth-link) {
     @apply !no-underline hover:underline cursor-pointer;
     color: var(--auth-blue-ink) !important;
+    background: none;
+    border: 0;
+    padding: 0;
+    font: inherit;
+
+    &:focus-visible {
+      @apply rounded-sm;
+      outline: 2px solid var(--auth-blue);
+      outline-offset: 2px;
+    }
   }
 
   // provider buttons carry the "Last used" badge on their right edge

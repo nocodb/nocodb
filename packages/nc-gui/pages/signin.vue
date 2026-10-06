@@ -78,18 +78,9 @@ function resetError() {
   if (error.value) error.value = null
 }
 
-function navigateSignUp() {
-  navigateTo({
-    path: '/signup',
-    query: route.query,
-  })
-}
-
-function navigateForgotPassword() {
-  navigateTo({
-    path: '/forgot-password',
-    query: route.query,
-  })
+function signInWithProvider(method: 'google' | 'oidc', url: string) {
+  selectMethod(method, 'signin')
+  window.location.href = url
 }
 
 const hasProviders = computed(() => !!appInfo.value.googleAuthEnabled || !!appInfo.value.oidcAuthEnabled)
@@ -105,28 +96,18 @@ const hasProviders = computed(() => !!appInfo.value.googleAuthEnabled || !!appIn
       :loading="isLoading"
     >
       <div v-if="hasProviders" class="flex flex-col gap-2">
-        <a
-          v-if="appInfo.googleAuthEnabled"
-          :href="`${appInfo.ncSiteUrl}/auth/google`"
-          class="nc-auth-provider"
-          @click="selectMethod('google', 'signin')"
-        >
-          <NcButton type="secondary" class="w-full">
+        <div v-if="appInfo.googleAuthEnabled" class="nc-auth-provider">
+          <NcButton type="secondary" class="w-full" @click="signInWithProvider('google', `${appInfo.ncSiteUrl}/auth/google`)">
             <template #icon>
               <LogosGoogleIcon class="w-4 h-4" />
             </template>
             {{ $t('labels.continueWithProvider', { provider: 'Google' }) }}
           </NcButton>
           <AuthLastUsedBadge method="google" class="nc-auth-provider-badge" />
-        </a>
+        </div>
 
-        <a
-          v-if="appInfo.oidcAuthEnabled"
-          :href="`${appInfo.ncSiteUrl}/auth/oidc`"
-          class="nc-auth-provider"
-          @click="selectMethod('oidc', 'signin')"
-        >
-          <NcButton type="secondary" class="w-full">
+        <div v-if="appInfo.oidcAuthEnabled" class="nc-auth-provider">
+          <NcButton type="secondary" class="w-full" @click="signInWithProvider('oidc', `${appInfo.ncSiteUrl}/auth/oidc`)">
             <template #icon>
               <MdiLogin />
             </template>
@@ -136,7 +117,7 @@ const hasProviders = computed(() => !!appInfo.value.googleAuthEnabled || !!appIn
             <template v-else>{{ $t('labels.auth.signIn') }}</template>
           </NcButton>
           <AuthLastUsedBadge method="oidc" class="nc-auth-provider-badge" />
-        </a>
+        </div>
       </div>
 
       <div
@@ -170,9 +151,9 @@ const hasProviders = computed(() => !!appInfo.value.googleAuthEnabled || !!appIn
           <template #label>
             <div class="w-full flex items-center justify-between">
               {{ $t('labels.auth.password') }}
-              <a class="nc-auth-link !text-caption" tabindex="-1" @click="navigateForgotPassword">
+              <NuxtLink class="nc-auth-link !text-caption" :to="{ path: '/forgot-password', query: route.query }">
                 {{ $t('labels.auth.forgotPassword') }}
-              </a>
+              </NuxtLink>
             </div>
           </template>
           <a-input-password
@@ -197,7 +178,7 @@ const hasProviders = computed(() => !!appInfo.value.googleAuthEnabled || !!appIn
 
       <template v-if="!appInfo.inviteOnlySignup" #footer>
         {{ $t('labels.auth.noAccount') }}
-        <a class="nc-auth-link" @click="navigateSignUp">{{ $t('labels.auth.signUp') }}</a>
+        <NuxtLink class="nc-auth-link" :to="{ path: '/signup', query: route.query }">{{ $t('labels.auth.signUp') }}</NuxtLink>
       </template>
     </AuthShell>
   </NuxtLayout>

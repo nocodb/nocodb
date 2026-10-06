@@ -159,7 +159,7 @@ defineExpose({
           </span>
           <template v-else>
             <slot name="placeholder">
-              <span class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select table --</span>
+              <span class="text-sm flex-1 truncate text-nc-content-gray-muted">{{ $t('placeholder.selectTable') }}</span>
             </slot>
           </template>
 
@@ -167,7 +167,7 @@ defineExpose({
             <template v-if="selectedTable?.label">
               {{ selectedTable?.label }}
             </template>
-            <slot v-else name="placeholderTooltip"> Select table </slot>
+            <slot v-else name="placeholderTooltip"> {{ $t('tooltip.selectTable') }} </slot>
           </template>
         </NcTooltip>
 

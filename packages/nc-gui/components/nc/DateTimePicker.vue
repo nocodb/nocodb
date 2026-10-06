@@ -288,9 +288,13 @@ watch(isOpen, (next) => {
         <div v-if="!isDateOnly" class="nc-dtp-time-panel flex flex-col border-l-1 border-nc-border-gray-medium">
           <!-- Column headers -->
           <div class="flex flex-none border-b-1 border-nc-border-gray-medium h-10 items-center">
-            <div class="nc-dtp-col-header w-[46px] text-center text-nc-content-gray-subtle text-sm font-semibold">Hr</div>
+            <div class="nc-dtp-col-header w-[46px] text-center text-nc-content-gray-subtle text-sm font-semibold">
+              {{ $t('labels.hourShort') }}
+            </div>
             <div class="w-px h-full bg-nc-border-gray-light" />
-            <div class="nc-dtp-col-header w-[46px] text-center text-nc-content-gray-subtle text-sm font-semibold">Min</div>
+            <div class="nc-dtp-col-header w-[46px] text-center text-nc-content-gray-subtle text-sm font-semibold">
+              {{ $t('labels.minuteShort') }}
+            </div>
             <template v-if="is12hrFormat">
               <div class="w-px h-full bg-nc-border-gray-light" />
               <div class="nc-dtp-col-header w-[46px] text-center text-xs font-semibold text-nc-content-gray-subtle2" />

@@ -371,7 +371,7 @@ onMounted(() => {
                   >
                     <a-select-option value="and">
                       <div class="flex items-center justify-between gap-2">
-                        <span class="capitalize">And</span>
+                        <span class="capitalize">{{ $t('general.and') }}</span>
                         <GeneralIcon
                           v-if="combinator === 'and'"
                           id="nc-selected-item-icon"
@@ -382,7 +382,7 @@ onMounted(() => {
                     </a-select-option>
                     <a-select-option value="or">
                       <div class="flex items-center justify-between gap-2">
-                        <span class="capitalize">Or</span>
+                        <span class="capitalize">{{ $t('general.or') }}</span>
                         <GeneralIcon
                           v-if="combinator === 'or'"
                           id="nc-selected-item-icon"

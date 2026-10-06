@@ -772,7 +772,7 @@ const toggleIncludeUser = async () => {
                       <LazyApiClientHeaders v-model="hookRef.notification.payload.headers" disabled />
                     </a-tab-pane>
 
-                    <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
+                    <a-tab-pane v-if="isBodyShown" key="body" :tab="$t('labels.body')">
                       <div
                         style="
                           box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08), 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
@@ -947,7 +947,7 @@ const toggleIncludeUser = async () => {
               <div class="flex items-center justify-between -ml-1.5">
                 <NcButton type="text" class="mb-3" size="small" @click="toggleSamplePayload()">
                   <div class="flex items-center gap-3">
-                    Sample Payload
+                    {{ $t('labels.samplePayload') }}
                     <GeneralIcon
                       class="transition-transform"
                       :class="{

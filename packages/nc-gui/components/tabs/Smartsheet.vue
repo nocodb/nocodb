@@ -6,6 +6,8 @@ import { UITypes, isLinksOrLTAR, isSmartText } from 'nocodb-sdk'
 import { UseDetachedLongTextProvider } from '../smartsheet/grid/canvas/composables/useDetachedLongText'
 import DetachedExpandedText from '../smartsheet/grid/canvas/components/DetachedExpandedText.vue'
 
+const { t } = useI18n()
+
 const props = defineProps<{
   activeTab: TabItem
 }>()
@@ -216,12 +218,12 @@ const onDrop = async (event: DragEvent) => {
       })
     } else {
       if (!parentPkCol) {
-        message.error('Parent table does not have a primary key column')
+        message.error(t('msg.error.parentTableNoPrimaryKey'))
         return
       }
 
       if (!childPkCol) {
-        message.error('Child table does not have a primary key column')
+        message.error(t('msg.error.childTableNoPrimaryKey'))
         return
       }
 

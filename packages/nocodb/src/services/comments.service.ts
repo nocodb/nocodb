@@ -100,7 +100,14 @@ export class CommentsService {
   ) {
     const comment = await Comment.get(context, param.commentId);
 
-    if (comment.created_by !== param.user.id || comment.is_deleted) {
+    // An unknown id and a soft-deleted comment are both "gone" — answer
+    // not-found rather than dereferencing null (500) or claiming an
+    // authorship problem (403).
+    if (!comment || comment.is_deleted) {
+      NcError.get(context).genericNotFound('Comment', param.commentId);
+    }
+
+    if (comment.created_by !== param.user.id) {
       NcError.get(context).insufficientPrivilege(
         'Only the user who wrote this comment can delete it.',
       );
@@ -179,7 +186,13 @@ export class CommentsService {
 
     const comment = await Comment.get(context, param.commentId);
 
-    if (comment.created_by !== param.user.id || comment.is_deleted) {
+    // See `commentDelete` — missing or soft-deleted is a not-found, not a 500
+    // and not an authorship error.
+    if (!comment || comment.is_deleted) {
+      NcError.get(context).genericNotFound('Comment', param.commentId);
+    }
+
+    if (comment.created_by !== param.user.id) {
       NcError.get(context).insufficientPrivilege(
         'Only the user who wrote this comment can edit it.',
       );

@@ -22,7 +22,7 @@ import type {
 } from '~/services/v3/data-v3.types';
 import { DataUpsertRequest } from '~/services/v3/data-v3.types';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { parseHrtimeToMilliSeconds } from '~/helpers';
+import { normalizeArrayQueryParam, parseHrtimeToMilliSeconds } from '~/helpers';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
@@ -31,6 +31,47 @@ import { DataV3Service } from '~/services/v3/data-v3.service';
 import { DataTableService } from '~/services/data-table.service';
 import { DataAttachmentV3Service } from '~/services/v3/data-attachment-v3.service';
 import { PREFIX_APIV3_DATA } from '~/constants/controllers';
+
+type V3RefRowIds =
+  | string
+  | string[]
+  | number
+  | number[]
+  | Record<string, any>
+  | Record<string, any>[];
+
+/** `{}` is what body-parser leaves behind when a request carries no body. */
+function isEmptyPayload(body: unknown): boolean {
+  if (body === undefined || body === null) return true;
+  if (Array.isArray(body)) return body.length === 0;
+  return typeof body === 'object' && Object.keys(body).length === 0;
+}
+
+/**
+ * Unlink ids may arrive in the body, in `?records=` (the body-less form left
+ * behind when an intermediary drops a DELETE body, per RFC 9110 — same param
+ * name as DELETE .../records), or both. The body is handed through untouched
+ * when the query param is absent.
+ */
+function mergeUnlinkIdsFromQuery(
+  refRowIds: V3RefRowIds,
+  records: string | string[],
+): V3RefRowIds {
+  const queryIds = normalizeArrayQueryParam(records);
+  if (!queryIds) return refRowIds;
+
+  // The service reads the shape off the first entry, so both sources have to
+  // arrive in the same `{ id }` form.
+  const fromBody = (
+    isEmptyPayload(refRowIds)
+      ? []
+      : Array.isArray(refRowIds)
+      ? refRowIds
+      : [refRowIds]
+  ).map((id) => (id && typeof id === 'object' ? id : { id }));
+
+  return [...fromBody, ...queryIds.map((id) => ({ id }))];
+}
 
 @Controller()
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
@@ -142,8 +183,15 @@ export class Datav3Controller {
       modelId: modelId,
       cookie: req,
       viewId,
-      body,
-      queryRecords: records,
+      // `{}` is what a body-less DELETE leaves behind, and the service's
+      // per-record `id` check runs before it merges in `?records=`.
+      body:
+        normalizeArrayQueryParam(records) && isEmptyPayload(body) ? [] : body,
+      // Normalised, not raw: past qs's 20-entry `arrayLimit` the parameter
+      // arrives as an object keyed by index, which the service would wrap as a
+      // single id — collapsing 25 records into one bogus delete that also slips
+      // under the payload limit.
+      queryRecords: normalizeArrayQueryParam(records),
     });
   }
 
@@ -231,13 +279,8 @@ export class Datav3Controller {
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
     @Body()
-    refRowIds:
-      | string
-      | string[]
-      | number
-      | number[]
-      | Record<string, any>
-      | Record<string, any>[],
+    refRowIds: V3RefRowIds,
+    @Query('records') records: string | string[],
   ) {
     context.cache = true;
     return await this.dataV3Service.nestedUnlink(context, {
@@ -246,7 +289,7 @@ export class Datav3Controller {
       query: req.query,
       viewId,
       columnId,
-      refRowIds,
+      refRowIds: mergeUnlinkIdsFromQuery(refRowIds, records),
       cookie: req,
     });
   }

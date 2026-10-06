@@ -11,6 +11,8 @@ const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 
+const { $e } = useNuxtApp()
+
 const success = ref(false)
 
 const formValidator = ref()
@@ -45,9 +47,11 @@ async function resetPassword() {
   try {
     await api.auth.passwordForgot(form).then(() => {
       success.value = true
+      $e('a:auth:password-reset:send')
     })
   } catch {
-    // ignore since error value is set by useApi and will be displayed in UI
+    // error value is set by useApi and displayed in the UI
+    $e('a:auth:password-reset:error', { step: 'send' })
   }
 }
 
@@ -64,75 +68,44 @@ function navigateSignIn() {
 </script>
 
 <template>
-  <div>
-    <NuxtLayout>
-      <div class="md:bg-primary/5 forgot-password h-full min-h-[600px] flex flex-col justify-center items-center">
-        <div
-          class="bg-nc-bg-default md:mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-nc-border-gray-medium shadow-xl)"
-        >
-          <GeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
+  <NuxtLayout>
+    <AuthShell
+      v-if="success"
+      class="forgot-password"
+      :title="$t('labels.auth.checkEmailTitle')"
+      :subtitle="$t('labels.auth.checkEmailSubtitle', { email: form.email })"
+    >
+      <template #footer>
+        <a class="nc-auth-link" @click="navigateSignIn">{{ $t('labels.auth.backToSignIn') }}</a>
+      </template>
+    </AuthShell>
 
-          <div class="self-center flex flex-col justify-center items-center text-center gap-2">
-            <h1 class="prose-2xl font-bold my-4 w-full">{{ $t('title.resetPassword') }}</h1>
+    <AuthShell
+      v-else
+      class="forgot-password"
+      :title="$t('title.resetPassword')"
+      :subtitle="$t('labels.auth.forgotSubtitle')"
+      :loading="isLoading"
+    >
+      <a-form ref="formValidator" layout="vertical" :model="form" no-style @finish="resetPassword">
+        <a-form-item :label="$t('labels.auth.email')" name="email" :rules="formRules.email">
+          <a-input
+            v-model:value="form.email"
+            type="email"
+            autocomplete="email"
+            :placeholder="$t('labels.auth.emailPlaceholder')"
+            @focus="resetError"
+          />
+        </a-form-item>
 
-            <template v-if="!success">
-              <div class="prose-sm">{{ $t('msg.info.passwordRecovery.message_1') }}</div>
-              <div class="prose-sm mb-4">{{ $t('msg.info.passwordRecovery.message_2') }}</div>
-            </template>
+        <AuthSubmitButton html-type="submit" :error="error" :loading="isLoading">
+          {{ $t('labels.auth.sendResetLink') }}
+        </AuthSubmitButton>
+      </a-form>
 
-            <template v-else>
-              <div class="prose-sm text-success flex items-center leading-8 gap-2">
-                {{ $t('msg.info.passwordRecovery.success') }} <ClaritySuccessLine />
-              </div>
-
-              <nuxt-link @click="navigateSignIn">{{ $t('general.signIn') }}</nuxt-link>
-            </template>
-          </div>
-
-          <a-form ref="formValidator" layout="vertical" :model="form" no-style @finish="resetPassword">
-            <Transition name="layout">
-              <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
-                <div class="flex items-center gap-2 justify-center">
-                  <MaterialSymbolsWarning />
-                  <div class="break-words">{{ error }}</div>
-                </div>
-              </div>
-            </Transition>
-
-            <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
-              <a-input
-                v-model:value="form.email"
-                size="large"
-                :placeholder="$t('msg.info.signUp.workEmail')"
-                @focus="resetError"
-              />
-            </a-form-item>
-
-            <div class="self-center flex flex-col gap-4 items-center justify-center w-full">
-              <button class="scaling-btn bg-opacity-100" type="submit">
-                <span class="flex items-center gap-2">
-                  <component :is="iconMap.signin" />
-                  {{ $t('activity.sendEmail') }}
-                </span>
-              </button>
-
-              <div class="text-end prose-sm">
-                {{ $t('msg.info.signUp.alreadyHaveAccount') }}
-                <nuxt-link @click="navigateSignIn">{{ $t('general.signIn') }}</nuxt-link>
-              </div>
-            </div>
-          </a-form>
-        </div>
-      </div>
-    </NuxtLayout>
-  </div>
+      <template #footer>
+        <a class="nc-auth-link" @click="navigateSignIn">{{ $t('labels.auth.backToSignIn') }}</a>
+      </template>
+    </AuthShell>
+  </NuxtLayout>
 </template>
-
-<style lang="scss">
-.forgot-password {
-  .ant-input-affix-wrapper,
-  .ant-input {
-    @apply !appearance-none my-1 border-1 border-solid border-primary border-opacity-50 rounded;
-  }
-}
-</style>

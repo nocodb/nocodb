@@ -1566,6 +1566,165 @@
     "agentSettings": "Settings"
   },
   "labels": {
+    "auth": {
+      "signIn": "Sign in",
+      "signInTitle": "Sign in to {product}",
+      "signInSubtitle": "Welcome back. Enter your details to continue.",
+      "email": "Email",
+      "emailPlaceholder": "you{'@'}company.com",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "forgotPassword": "Forgot password?",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up",
+      "or": "or",
+      "brandHeadline": "Build the software your business runs on.",
+      "brandSubtitle": "The no-code platform for databases, internal apps, automations and AI agents.",
+      "twoFactorTitle": "Two-factor authentication",
+      "backToSignIn": "Back to sign in",
+      "verificationCode": "Verification code",
+      "backupCode": "Backup code",
+      "signUpTitle": "Create your {product} account",
+      "signUpSubtitle": "Get started in a few minutes.",
+      "haveAccount": "Already have an account?",
+      "forgotSubtitle": "Enter your email and we'll send you a reset link.",
+      "sendResetLink": "Send reset link",
+      "checkEmailTitle": "Check your email",
+      "checkEmailSubtitle": "If an account exists for {email}, a reset link is on its way.",
+      "resetTitle": "Choose a new password",
+      "resetPassword": "Reset password",
+      "ssoTitle": "Sign in with SSO",
+      "ssoSubtitle": "Enter your work email and we'll find your organization.",
+      "continueWithSso": "Continue with SSO",
+      "reference": "Reference: {ref}",
+      "inviteTitle": "You've been invited",
+      "confirmPassword": "Confirm password",
+      "confirmEmailTitle": "Verify your email",
+      "confirmEmailSubtitle": "We sent a verification code to {email}.",
+      "resendCode": "Resend code",
+      "forgotCodeSubtitle": "Enter your email and we'll send you a reset code.",
+      "sendResetCode": "Send reset code",
+      "resetCodeSubtitle": "If an account exists for {email}, a reset code is on its way. Enter it and choose a new password.",
+      "unverifiedEmail": "Haven't verified your email yet?",
+      "verifyEmailFirst": "Verify it first",
+      "emailVerifiedReset": "Email verified. You can reset your password now.",
+      "newPasswordTitle": "Set a new password",
+      "newPasswordSubtitle": "Your account needs a new password before you continue.",
+      "emailPlusNotAllowed": "Email addresses with '+' aren't allowed.",
+      "permanentEmailRequired": "Please sign up with a permanent email address. Disposable addresses aren't allowed.",
+      "hostedSignInFailed": "Sign-in with your provider didn't finish. Please try again.",
+      "resetLinkInvalid": "This reset link is invalid or has expired. Request a new one.",
+      "passwordResetDone": "Password updated. Sign in with your new password."
+    },
+    "baseOverview": {
+      "copy": {
+        "data": {
+          "headline": "What do you want to build?",
+          "subtitle": "Describe it, and AI will set up the tables for you.",
+          "placeholder": "e.g. Job applicants by hiring stage, with interview dates and notes from each reviewer"
+        },
+        "dataInUse": {
+          "headline": "What would you like to do?",
+          "subtitle": "Ask a question, find records, or make a change — across every table in this base.",
+          "placeholder": "e.g. Which open deals haven't been updated in the last 14 days?"
+        },
+        "workflows": {
+          "headline": "What should happen automatically?",
+          "subtitle": "Describe it, and AI will build the steps for you to review.",
+          "placeholder": "e.g. When a deal moves to Won, post it in #sales on Slack and create an onboarding task"
+        },
+        "workflowsInUse": {
+          "headline": "What should we automate next?",
+          "subtitle": "Describe a new workflow, or ask to change one you already have.",
+          "placeholder": "e.g. Every Friday, email the team a summary of the records added this week"
+        },
+        "interfaces": {
+          "headline": "What will your team use?",
+          "subtitle": "Describe the app you have in mind, or build it yourself below.",
+          "placeholder": "e.g. A dashboard of open deals by stage, with a form to log new ones"
+        },
+        "interfacesInUse": {
+          "headline": "What should your team get next?",
+          "subtitle": "Describe another app or page, or add one yourself below.",
+          "placeholder": "e.g. A form for the sales team to log new leads"
+        },
+        "agents": {
+          "headline": "What should your agent do?",
+          "subtitle": "Describe an agent, and AI will set up its instructions and tools.",
+          "placeholder": "e.g. An agent that answers the team's questions about open deals and who owns them"
+        },
+        "agentsInUse": {
+          "headline": "What should your next agent do?",
+          "subtitle": "Describe a new agent, or ask to change one you already have.",
+          "placeholder": "e.g. A support agent that looks up an order by its number and explains its status"
+        }
+      },
+      "addFile": "Add a file",
+      "startFromScratch": "Start from scratch",
+      "orStartFromScratch": "Or start from scratch",
+      "blankTable": "New table",
+      "newDoc": "New doc",
+      "importFile": "Import",
+      "connectDatabase": "Connect to DB",
+      "syncApp": "Sync from app",
+      "blankWorkflow": "New workflow",
+      "writeScript": "New script",
+      "browseScripts": "Browse scripts",
+      "blankAgent": "New agent",
+      "descTable": "Set up your own table and fields",
+      "descDoc": "Write notes, specs or a wiki",
+      "descImport": "Upload a spreadsheet or data file",
+      "descSync": "Keep data in step with another app",
+      "descConnect": "Work live on an external database",
+      "descWorkflow": "Build the steps yourself",
+      "descScript": "Write code that runs on your data",
+      "descBrowseScripts": "Ready-made scripts by NocoDB",
+      "descAgent": "Set up its instructions and tools",
+      "descInterfaceTable": "Grid, gallery, kanban and more on one table",
+      "descInterfaceRecordReview": "Go through records one at a time",
+      "descInterfaceForm": "Collect new records from anyone",
+      "descInterfaceDashboard": "Charts and numbers at a glance",
+      "descInterfaceOverview": "A home page with links and resources",
+      "recentChats": "Recent chats",
+      "searchChats": "Search chats",
+      "noChats": "No chats yet",
+      "noChatsMatch": "No chats match your search"
+    },
+    "workspaceHome": {
+      "headline": "What do you want to build?",
+      "subtitle": "Describe it and AI sets up the tables in seconds. Edit anything after.",
+      "placeholder": "e.g. Hiring pipeline with interview dates and reviewer notes",
+      "uploadFile": "Upload CSV or Excel",
+      "pickTemplate": "Or pick a starting template",
+      "moreTemplates": "More",
+      "untitledBase": "Untitled base",
+      "templates": {
+        "projectManagement": {
+          "label": "Project management",
+          "prompt": "A project tracker with projects and tasks, each task with an owner, status, priority and due date."
+        },
+        "product": {
+          "label": "Product",
+          "prompt": "A product roadmap with features, the problem each solves, priority, status and target release."
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "A marketing calendar with campaigns, the channels each runs on, budget, owner and launch date."
+        },
+        "sales": {
+          "label": "Sales",
+          "prompt": "A sales CRM with companies, contacts and deals, where each deal has a stage, value and expected close date."
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "A support desk with tickets, the customer who raised each, priority, status and the agent assigned."
+        },
+        "hr": {
+          "label": "HR",
+          "prompt": "An applicant tracker with open roles, candidates by hiring stage, and interviews with dates and reviewer notes."
+        }
+      }
+    },
     "byUser": "by {user}",
     "showMoreConnections": "Show {count} more connections",
     "yourConnections": "Your connections",

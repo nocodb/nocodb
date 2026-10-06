@@ -22,34 +22,27 @@ const handleRetry = () => {
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center nc-min-h-screen bg-nc-bg-gray-extralight">
-    <div class="w-full max-w-md p-8 space-y-8 bg-nc-bg-default rounded-lg shadow">
-      <div class="text-center">
-        <h1 class="text-2xl font-bold text-nc-content-gray-emphasis" data-testid="nc-sso-error-title">
-          {{ title || t('msg.noAccess') }}
-        </h1>
-        <p class="mt-2 text-sm text-nc-content-gray-subtle2" data-testid="nc-sso-error-message">
-          {{ message || t('msg.noAccessDescription') }}
-        </p>
+  <AuthShell :title="title || t('msg.noAccess')" data-testid="nc-sso-error-title">
+    <template #subtitle>
+      <span data-testid="nc-sso-error-message">{{ message || t('msg.noAccessDescription') }}</span>
+    </template>
 
-        <div v-if="supportCode" class="mt-6 text-left">
-          <p class="text-bodySm text-nc-content-gray-subtle2">
-            {{ t('msg.sso.shareCode') }}
-          </p>
-          <div
-            class="mt-1 flex items-center gap-2 px-3 py-2 rounded-lg bg-nc-bg-gray-light border-1 border-nc-border-gray-medium"
-          >
-            <span class="flex-1 font-mono text-bodySm text-nc-content-gray break-all" data-testid="nc-sso-error-code">
-              {{ supportCode }}
-            </span>
-            <GeneralCopyButton :content="supportCode" data-testid="nc-sso-error-copy" />
-          </div>
+    <NcButton type="primary" class="nc-auth-primary w-full" data-testid="nc-sso-error-retry" @click="handleRetry">
+      {{ t('labels.auth.backToSignIn') }}
+    </NcButton>
+
+    <template v-if="supportCode" #footer>
+      <div class="flex flex-col gap-1">
+        <span class="text-captionSm">{{ t('msg.sso.shareCode') }}</span>
+        <div class="flex items-center gap-2 text-caption">
+          <i18n-t keypath="labels.auth.reference" tag="span" class="min-w-0 break-all">
+            <template #ref>
+              <span class="font-mono" data-testid="nc-sso-error-code">{{ supportCode }}</span>
+            </template>
+          </i18n-t>
+          <GeneralCopyButton :content="supportCode" data-testid="nc-sso-error-copy" />
         </div>
-
-        <NcButton class="mt-4" type="primary" size="medium" data-testid="nc-sso-error-retry" @click="handleRetry">
-          {{ t('msg.tryAgain') }}
-        </NcButton>
       </div>
-    </div>
-  </div>
+    </template>
+  </AuthShell>
 </template>

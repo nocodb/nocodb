@@ -2162,11 +2162,20 @@ export default class Column<T = any> implements ColumnType {
         'source_id',
         'system',
         'meta',
+        'internal_meta',
         'readonly',
       ]);
 
       if (column.meta && typeof column.meta === 'object') {
         insertObj.meta = JSON.stringify(column.meta);
+      }
+
+      if (
+        insertObj.internal_meta &&
+        typeof insertObj.internal_meta === 'object'
+      ) {
+        validateColumnInternalMeta(insertObj.internal_meta);
+        insertObj.internal_meta = JSON.stringify(insertObj.internal_meta);
       }
 
       if (column.validate) {

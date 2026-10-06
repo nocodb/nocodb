@@ -3142,8 +3142,19 @@ class PGClient extends KnexClient {
   createTable(table, args) {
     let query = '';
 
+    // Mirrors alterTable: on a soft-delete-aware table, unique columns get a
+    // partial unique index appended below instead of an inline UNIQUE, so
+    // trashed rows don't reserve values from live ones. nocohub#10873
+    const deletedCol = args.columns.find((c) => c.uidt === UITypes.Deleted);
+    const softDeleteColumnName = deletedCol?.cn || deletedCol?.column_name;
+
     for (let i = 0; i < args.columns.length; ++i) {
-      query += this.createTableColumn(args.columns[i], null, query);
+      query += this.createTableColumn(
+        args.columns[i],
+        null,
+        query,
+        softDeleteColumnName,
+      );
     }
 
     query += this.alterTablePK(table, args.columns, [], query, true);
@@ -3151,6 +3162,22 @@ class PGClient extends KnexClient {
     query = this.genQuery(`CREATE TABLE ?? (${query});`, [
       args.schema ? `${args.schema}.${args.tn}` : args.tn,
     ]);
+
+    if (softDeleteColumnName) {
+      const tn = args.schema ? `${args.schema}.${args.tn}` : args.tn;
+      for (const column of args.columns) {
+        if (column.unique && !column.pk && !column.ai) {
+          query = this.addUniqueConstraintToQuery(
+            column,
+            tn,
+            query,
+            true,
+            softDeleteColumnName,
+          );
+        }
+      }
+    }
+
     return query;
   }
 
@@ -3198,8 +3225,10 @@ class PGClient extends KnexClient {
         query += n.rqd ? ' NOT NULL' : ' NULL';
         query += defaultValue ? ` DEFAULT ${defaultValue}` : '';
 
-        // For change === 0 (CREATE TABLE), add UNIQUE inline
-        if (n.unique) {
+        // For change === 0 (CREATE TABLE), add UNIQUE inline — unless the
+        // table is soft-delete aware, where createTable appends a partial
+        // unique index after the statement instead. nocohub#10873
+        if (n.unique && !(softDeleteColumnName && !n.pk && !n.ai)) {
           query += ' UNIQUE';
         }
       }
@@ -3476,6 +3505,32 @@ class PGClient extends KnexClient {
 
       if (result.rows && result.rows.length > 0) {
         return result.rows[0].constraint_name;
+      }
+
+      // A soft-delete partial unique index isn't a constraint, so it's only
+      // visible in pg_index.
+      const indexResult = await this.sqlClient.raw(
+        `
+        SELECT idx.relname as constraint_name
+        FROM pg_index pi
+        JOIN pg_class idx ON idx.oid = pi.indexrelid
+        JOIN pg_class rel ON rel.oid = pi.indrelid
+        JOIN pg_namespace n ON n.oid = rel.relnamespace
+        JOIN pg_attribute attr ON attr.attrelid = pi.indrelid
+        WHERE pi.indisunique
+          AND NOT pi.indisprimary
+          AND n.nspname = ?
+          AND rel.relname = ?
+          AND attr.attname = ?
+          AND pi.indnatts = 1
+          AND pi.indkey[0] = attr.attnum
+        LIMIT 1
+        `,
+        [schemaName, tableOnly, columnName],
+      );
+
+      if (indexResult.rows && indexResult.rows.length > 0) {
+        return indexResult.rows[0].constraint_name;
       }
       return null;
     } catch (e) {

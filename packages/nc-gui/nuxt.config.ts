@@ -57,6 +57,7 @@ export default defineNuxtConfig({
     /** In production build we need to load assets using absolute path for history-mode routing */
     cdnURL: process.env.NODE_ENV === 'production' ? process.env.NC_CDN_URL || '/' : undefined,
     head: {
+      htmlAttrs: { lang: 'en' },
       link: [
         {
           rel: 'icon',

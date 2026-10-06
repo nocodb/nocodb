@@ -274,7 +274,7 @@ onMounted(() => {
       <!-- Signing out is a heavy price for opening the wrong link. The
            account they are in is still theirs; let them go back to it. -->
       <template v-if="signedIn && (wrongDomain || joinError)" #footer>
-        <a class="nc-auth-link" data-testid="nc-invite-home" @click="navigateTo('/')">{{ $t('general.home') }}</a>
+        <NuxtLink class="nc-auth-link" data-testid="nc-invite-home" to="/">{{ $t('general.home') }}</NuxtLink>
       </template>
     </AuthShell>
   </NuxtLayout>

@@ -23,7 +23,11 @@ export async function setI18nLanguage(locale: keyof typeof Language, i18n = glob
 
   i18n.global.locale.value = locale
 
-  if (isClient) applyLanguageDirection(isRtlLang(locale) ? 'rtl' : 'ltr')
+  if (isClient) {
+    applyLanguageDirection(isRtlLang(locale) ? 'rtl' : 'ltr')
+    // locale keys use `_` (e.g. pt_BR); `lang` wants BCP 47
+    document.documentElement.lang = locale.replace('_', '-')
+  }
 }
 
 export async function loadLocaleMessages(

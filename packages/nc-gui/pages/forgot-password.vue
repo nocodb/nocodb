@@ -58,13 +58,6 @@ async function resetPassword() {
 function resetError() {
   if (error.value) error.value = null
 }
-
-function navigateSignIn() {
-  navigateTo({
-    path: '/signin',
-    query: route.query,
-  })
-}
 </script>
 
 <template>
@@ -76,7 +69,9 @@ function navigateSignIn() {
       :subtitle="$t('labels.auth.checkEmailSubtitle', { email: form.email })"
     >
       <template #footer>
-        <a class="nc-auth-link" @click="navigateSignIn">{{ $t('labels.auth.backToSignIn') }}</a>
+        <NuxtLink class="nc-auth-link" :to="{ path: '/signin', query: route.query }">{{
+          $t('labels.auth.backToSignIn')
+        }}</NuxtLink>
       </template>
     </AuthShell>
 
@@ -104,7 +99,9 @@ function navigateSignIn() {
       </a-form>
 
       <template #footer>
-        <a class="nc-auth-link" @click="navigateSignIn">{{ $t('labels.auth.backToSignIn') }}</a>
+        <NuxtLink class="nc-auth-link" :to="{ path: '/signin', query: route.query }">{{
+          $t('labels.auth.backToSignIn')
+        }}</NuxtLink>
       </template>
     </AuthShell>
   </NuxtLayout>

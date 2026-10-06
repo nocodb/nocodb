@@ -1,6 +1,5 @@
 <script setup lang="ts">
-// The auth panel's live product window: four scenes behind the marketing site's pill tabs (landing-page app-window.tsx).
-// Scenes always rotate; picking a tab jumps there and restarts the timer.
+// The auth panel's product window: four static scenes behind the marketing site's pill tabs (landing-page app-window.tsx).
 
 type Scene = 'grid' | 'interface' | 'dashboard' | 'workflow'
 
@@ -19,31 +18,10 @@ const scenes = computed<{ id: Scene; label: string; icon: keyof typeof iconMap }
 
 const current = ref<Scene>('grid')
 
-let rotation: ReturnType<typeof setInterval> | undefined
-
-function startRotation() {
-  clearInterval(rotation)
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-  rotation = setInterval(() => {
-    if (document.hidden) return
-    const ids = scenes.value.map((s) => s.id)
-    current.value = ids[(ids.indexOf(current.value) + 1) % ids.length]!
-  }, 12000)
-}
-
 function pick(scene: Scene) {
   $e('c:auth:preview:switch', { scene, from: current.value })
   current.value = scene
-  startRotation()
 }
-
-onMounted(() => {
-  startRotation()
-})
-
-onBeforeUnmount(() => {
-  clearInterval(rotation)
-})
 </script>
 
 <template>
@@ -54,11 +32,13 @@ onBeforeUnmount(() => {
         :aria-label="$t('labels.preview')"
         class="nc-auth-tabs inline-flex items-center gap-0.5 rounded-full p-1 bg-white/12 backdrop-blur-sm"
       >
+        <!-- decorative: out of the tab order so Tab reaches the form first -->
         <button
           v-for="scene of scenes"
           :key="scene.id"
           type="button"
           role="tab"
+          tabindex="-1"
           :aria-selected="current === scene.id"
           class="h-8 flex items-center gap-1.5 px-3.5 rounded-full text-bodyDefaultSm transition-colors duration-150"
           :class="current === scene.id ? 'bg-white text-[#16161a]' : 'text-white/85 hover:text-white'"

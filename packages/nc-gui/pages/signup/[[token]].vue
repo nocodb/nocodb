@@ -134,11 +134,9 @@ function resetError() {
   if (error.value) error.value = null
 }
 
-function navigateSignIn() {
-  navigateTo({
-    path: '/signin',
-    query: route.query,
-  })
+function signUpWithProvider(method: 'google' | 'oidc', url: string) {
+  selectMethod(method, 'signup')
+  window.location.href = url
 }
 
 onMounted(async () => {
@@ -155,28 +153,18 @@ onMounted(async () => {
       </template>
 
       <div v-if="hasProviders" class="flex flex-col gap-2">
-        <a
-          v-if="appInfo.googleAuthEnabled"
-          :href="`${appInfo.ncSiteUrl}/auth/google`"
-          class="nc-auth-provider"
-          @click="selectMethod('google', 'signup')"
-        >
-          <NcButton type="secondary" class="w-full">
+        <div v-if="appInfo.googleAuthEnabled" class="nc-auth-provider">
+          <NcButton type="secondary" class="w-full" @click="signUpWithProvider('google', `${appInfo.ncSiteUrl}/auth/google`)">
             <template #icon>
               <LogosGoogleIcon class="w-4 h-4" />
             </template>
             {{ $t('labels.continueWithProvider', { provider: 'Google' }) }}
           </NcButton>
           <AuthLastUsedBadge method="google" class="nc-auth-provider-badge" />
-        </a>
+        </div>
 
-        <a
-          v-if="appInfo.oidcAuthEnabled"
-          :href="`${appInfo.ncSiteUrl}/auth/oidc`"
-          class="nc-auth-provider"
-          @click="selectMethod('oidc', 'signup')"
-        >
-          <NcButton type="secondary" class="w-full">
+        <div v-if="appInfo.oidcAuthEnabled" class="nc-auth-provider">
+          <NcButton type="secondary" class="w-full" @click="signUpWithProvider('oidc', `${appInfo.ncSiteUrl}/auth/oidc`)">
             <template #icon>
               <MdiLogin />
             </template>
@@ -186,7 +174,7 @@ onMounted(async () => {
             <template v-else>{{ $t('labels.auth.signUp') }}</template>
           </NcButton>
           <AuthLastUsedBadge method="oidc" class="nc-auth-provider-badge" />
-        </a>
+        </div>
       </div>
 
       <div
@@ -226,10 +214,11 @@ onMounted(async () => {
           />
         </a-form-item>
 
-        <div class="flex items-center gap-2">
+        <!-- a label so clicking the text toggles the switch too -->
+        <label class="w-fit flex items-center gap-2 cursor-pointer">
           <a-switch v-model:checked="subscribe" size="small" />
           <span class="text-bodySm text-nc-content-gray-subtle">{{ $t('msg.subscribeToOurWeeklyNewsletter') }}</span>
-        </div>
+        </label>
 
         <AuthSubmitButton
           data-testid="nc-form-signup__submit"
@@ -251,7 +240,7 @@ onMounted(async () => {
 
       <template #footer>
         {{ $t('labels.auth.haveAccount') }}
-        <a class="nc-auth-link" @click="navigateSignIn">{{ $t('labels.auth.signIn') }}</a>
+        <NuxtLink class="nc-auth-link" :to="{ path: '/signin', query: route.query }">{{ $t('labels.auth.signIn') }}</NuxtLink>
       </template>
     </AuthShell>
   </NuxtLayout>

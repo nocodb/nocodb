@@ -14,7 +14,7 @@ const { appInfo, signIn } = useGlobal()
 
 const { productName } = useBranding()
 
-const { lastMethod, selectMethod } = useAuthLastMethod()
+const { selectMethod } = useAuthLastMethod()
 
 const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
@@ -78,7 +78,7 @@ async function signUp() {
 
   api.auth.signup(data).then(
     async (user) => {
-      lastMethod.value = 'email'
+      commitAuthMethod('email')
       signIn(user.token!)
 
       $e('a:auth:sign-up')

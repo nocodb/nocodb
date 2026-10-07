@@ -8413,6 +8413,8 @@
       "createGroup": "Create group",
       "saveChanges": "Save changes",
       "archiveGroup": "Archive group",
+      "deleteGroup": "Delete group",
+      "groupDeletedToast": "Group “{title}” deleted",
       "colors": {
         "blue": "Blue",
         "purple": "Purple",

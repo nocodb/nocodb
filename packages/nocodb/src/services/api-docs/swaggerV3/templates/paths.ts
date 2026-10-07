@@ -15,13 +15,28 @@ import {
 import type { SwaggerColumn } from '../getSwaggerColumnMetasV3';
 import type { SwaggerView } from '~/services/api-docs/shared/swaggerUtils';
 import { isRelationExist } from '~/services/api-docs/swagger/templates/paths';
-import { swaggerSanitizeSchemaName } from '~/helpers/stringHelpers';
+
+const badRequest = { $ref: '#/components/responses/BadRequest' };
+const unauthorized = { $ref: '#/components/responses/Unauthorized' };
+const notFound = { $ref: '#/components/responses/NotFound' };
+
+const linkRecordIdSchema = {
+  type: 'object',
+  properties: {
+    id: {
+      oneOf: [{ type: 'string' }, { type: 'number' }],
+      description: 'Unique identifier for the record',
+    },
+  },
+  required: ['id'],
+};
 
 export const getModelPaths = async (
   _context: any,
   ctx: {
     baseId: string;
     tableName: string;
+    schemaName: string;
     type: ModelTypes;
     columns: SwaggerColumn[];
     tableId: string;
@@ -31,7 +46,7 @@ export const getModelPaths = async (
   [`/api/v3/data/${ctx.baseId}/${ctx.tableId}/records`]: {
     get: {
       summary: `${ctx.tableName} list`,
-      operationId: `${ctx.tableName.toLowerCase()}-db-table-row-list`,
+      operationId: `${ctx.schemaName.toLowerCase()}-db-table-row-list`,
       description: `List all rows from **${ctx.tableName}** ${ctx.type}. Fields to be included in the response can be refined through query parameters. Additionally, filtering, sorting, and pagination can be applied to the results.`,
       tags: [ctx.tableName],
       parameters: [
@@ -48,10 +63,14 @@ export const getModelPaths = async (
           description: 'OK',
           content: {
             'application/json': {
-              schema: getPaginatedResponseTypeV3(`${ctx.tableName}Response`),
+              schema: getPaginatedResponseTypeV3(
+                `#/components/schemas/${ctx.schemaName}Response`,
+              ),
             },
           },
         },
+        '400': badRequest,
+        '401': unauthorized,
       },
     },
     ...(ctx.type === ModelTypes.TABLE
@@ -60,7 +79,7 @@ export const getModelPaths = async (
             summary: `${ctx.tableName} create`,
             description:
               'Insert a new row in table by providing a key value pair object where key refers to the column alias. All the required fields should be included with payload excluding `autoincrement` and column with default value.',
-            operationId: `${ctx.tableName.toLowerCase()}-create`,
+            operationId: `${ctx.schemaName.toLowerCase()}-create`,
             responses: {
               '200': {
                 description: 'OK',
@@ -72,9 +91,7 @@ export const getModelPaths = async (
                         records: {
                           type: 'array',
                           items: {
-                            $ref: `#/components/schemas/${swaggerSanitizeSchemaName(
-                              ctx.tableName,
-                            )}Response`,
+                            $ref: `#/components/schemas/${ctx.schemaName}Response`,
                           },
                         },
                       },
@@ -83,9 +100,8 @@ export const getModelPaths = async (
                   },
                 },
               },
-              '400': {
-                $ref: '#/components/responses/BadRequest',
-              },
+              '400': badRequest,
+              '401': unauthorized,
             },
             tags: [ctx.tableName],
             requestBody: {
@@ -94,16 +110,12 @@ export const getModelPaths = async (
                   schema: {
                     oneOf: [
                       {
-                        $ref: `#/components/schemas/${swaggerSanitizeSchemaName(
-                          ctx.tableName,
-                        )}Request`,
+                        $ref: `#/components/schemas/${ctx.schemaName}Request`,
                       },
                       {
                         type: 'array',
                         items: {
-                          $ref: `#/components/schemas/${swaggerSanitizeSchemaName(
-                            ctx.tableName,
-                          )}Request`,
+                          $ref: `#/components/schemas/${ctx.schemaName}Request`,
                         },
                       },
                     ],
@@ -114,7 +126,7 @@ export const getModelPaths = async (
           },
           patch: {
             summary: `${ctx.tableName} update`,
-            operationId: `${ctx.tableName.toLowerCase()}-update`,
+            operationId: `${ctx.schemaName.toLowerCase()}-update`,
             description:
               'Partial update row in table by providing a key value pair object where key refers to the column alias. You need to only include columns which you want to update.',
             responses: {
@@ -128,9 +140,7 @@ export const getModelPaths = async (
                         records: {
                           type: 'array',
                           items: {
-                            $ref: `#/components/schemas/${swaggerSanitizeSchemaName(
-                              ctx.tableName,
-                            )}Response`,
+                            $ref: `#/components/schemas/${ctx.schemaName}Response`,
                           },
                         },
                       },
@@ -139,9 +149,8 @@ export const getModelPaths = async (
                   },
                 },
               },
-              '400': {
-                $ref: '#/components/responses/BadRequest',
-              },
+              '400': badRequest,
+              '401': unauthorized,
             },
             tags: [ctx.tableName],
             requestBody: {
@@ -150,16 +159,12 @@ export const getModelPaths = async (
                   schema: {
                     oneOf: [
                       {
-                        $ref: `#/components/schemas/${swaggerSanitizeSchemaName(
-                          ctx.tableName,
-                        )}UpdateRequest`,
+                        $ref: `#/components/schemas/${ctx.schemaName}UpdateRequest`,
                       },
                       {
                         type: 'array',
                         items: {
-                          $ref: `#/components/schemas/${swaggerSanitizeSchemaName(
-                            ctx.tableName,
-                          )}UpdateRequest`,
+                          $ref: `#/components/schemas/${ctx.schemaName}UpdateRequest`,
                         },
                       },
                     ],
@@ -170,11 +175,36 @@ export const getModelPaths = async (
           },
           delete: {
             summary: `${ctx.tableName} delete`,
-            operationId: `${ctx.tableName.toLowerCase()}-delete`,
+            operationId: `${ctx.schemaName.toLowerCase()}-delete`,
             responses: {
               '200': {
                 description: 'OK',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        records: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            properties: {
+                              id: {
+                                oneOf: [{ type: 'string' }, { type: 'number' }],
+                              },
+                              deleted: { type: 'boolean' },
+                            },
+                            required: ['id', 'deleted'],
+                          },
+                        },
+                      },
+                      required: ['records'],
+                    },
+                  },
+                },
               },
+              '400': badRequest,
+              '401': unauthorized,
             },
             tags: [ctx.tableName],
             description:
@@ -185,16 +215,12 @@ export const getModelPaths = async (
                   schema: {
                     oneOf: [
                       {
-                        $ref: `#/components/schemas/${swaggerSanitizeSchemaName(
-                          ctx.tableName,
-                        )}IdRequest`,
+                        $ref: `#/components/schemas/${ctx.schemaName}IdRequest`,
                       },
                       {
                         type: 'array',
                         items: {
-                          $ref: `#/components/schemas/${swaggerSanitizeSchemaName(
-                            ctx.tableName,
-                          )}IdRequest`,
+                          $ref: `#/components/schemas/${ctx.schemaName}IdRequest`,
                         },
                       },
                     ],
@@ -211,7 +237,7 @@ export const getModelPaths = async (
     get: {
       summary: `${ctx.tableName} read`,
       description: 'Read a row data by using the **primary key** column value.',
-      operationId: `${ctx.tableName.toLowerCase()}-read`,
+      operationId: `${ctx.schemaName.toLowerCase()}-read`,
       tags: [ctx.tableName],
       responses: {
         '200': {
@@ -219,13 +245,14 @@ export const getModelPaths = async (
           content: {
             'application/json': {
               schema: {
-                $ref: `#/components/schemas/${swaggerSanitizeSchemaName(
-                  ctx.tableName,
-                )}Response`,
+                $ref: `#/components/schemas/${ctx.schemaName}Response`,
               },
             },
           },
         },
+        '400': badRequest,
+        '401': unauthorized,
+        '404': notFound,
       },
     },
   },
@@ -233,7 +260,7 @@ export const getModelPaths = async (
     parameters: [viewIdParam(ctx.views)],
     get: {
       summary: `${ctx.tableName} count`,
-      operationId: `${ctx.tableName.toLowerCase()}-count`,
+      operationId: `${ctx.schemaName.toLowerCase()}-count`,
       description: 'Get rows count of a table by applying optional filters.',
       tags: [ctx.tableName],
       parameters: [whereParam],
@@ -246,7 +273,7 @@ export const getModelPaths = async (
                 type: 'object',
                 properties: {
                   count: {
-                    type: 'number',
+                    type: 'integer',
                   },
                 },
               },
@@ -260,9 +287,8 @@ export const getModelPaths = async (
             },
           },
         },
-        '400': {
-          $ref: '#/components/responses/BadRequest',
-        },
+        '400': badRequest,
+        '401': unauthorized,
       },
     },
   },
@@ -274,7 +300,7 @@ export const getModelPaths = async (
             parameters: [linkFieldNameParam(ctx.columns), recordIdParam],
             get: {
               summary: 'Link Records list',
-              operationId: `${ctx.tableName.toLowerCase()}-nested-list`,
+              operationId: `${ctx.schemaName.toLowerCase()}-nested-list`,
               description:
                 'This API endpoint allows you to retrieve list of linked records for a specific `Link field` and `Record ID`. The response is an array of objects containing Primary Key and its corresponding display value.',
               tags: [ctx.tableName],
@@ -291,19 +317,19 @@ export const getModelPaths = async (
                   content: {
                     'application/json': {
                       schema: getPaginatedResponseTypeV3(
-                        `${ctx.tableName}Response`,
+                        '#/components/schemas/LinkedRecord',
                       ),
                     },
                   },
                 },
-                '400': {
-                  $ref: '#/components/responses/BadRequest',
-                },
+                '400': badRequest,
+                '401': unauthorized,
+                '404': notFound,
               },
             },
             post: {
               summary: 'Link Records',
-              operationId: `${ctx.tableName.toLowerCase()}-nested-link`,
+              operationId: `${ctx.schemaName.toLowerCase()}-nested-link`,
               responses: {
                 '200': {
                   description: 'Records successfully linked',
@@ -330,9 +356,9 @@ export const getModelPaths = async (
                     },
                   },
                 },
-                '400': {
-                  $ref: '#/components/responses/BadRequest',
-                },
+                '400': badRequest,
+                '401': unauthorized,
+                '404': notFound,
               },
               tags: [ctx.tableName],
               requestBody: {
@@ -343,28 +369,10 @@ export const getModelPaths = async (
                   'application/json': {
                     schema: {
                       oneOf: [
-                        {
-                          type: 'object',
-                          properties: {
-                            id: {
-                              type: 'string',
-                              description: 'Unique identifier for the record',
-                            },
-                          },
-                          required: ['id'],
-                        },
+                        linkRecordIdSchema,
                         {
                           type: 'array',
-                          items: {
-                            type: 'object',
-                            properties: {
-                              id: {
-                                type: 'string',
-                                description: 'Unique identifier for the record',
-                              },
-                            },
-                            required: ['id'],
-                          },
+                          items: linkRecordIdSchema,
                         },
                       ],
                     },
@@ -392,11 +400,10 @@ export const getModelPaths = async (
               },
               description:
                 'This API endpoint allows you to link records to a specific `Link field` and `Record ID`. The request payload is an array of record-ids from the adjacent table for linking purposes. Note that any existing links, if present, will be unaffected during this operation.',
-              parameters: [recordIdParam],
             },
             delete: {
               summary: 'Unlink Records',
-              operationId: `${ctx.tableName.toLowerCase()}-nested-unlink`,
+              operationId: `${ctx.schemaName.toLowerCase()}-nested-unlink`,
               responses: {
                 '200': {
                   description: 'Records successfully unlinked',
@@ -423,9 +430,9 @@ export const getModelPaths = async (
                     },
                   },
                 },
-                '400': {
-                  $ref: '#/components/responses/BadRequest',
-                },
+                '400': badRequest,
+                '401': unauthorized,
+                '404': notFound,
               },
               tags: [ctx.tableName],
               requestBody: {
@@ -436,28 +443,10 @@ export const getModelPaths = async (
                   'application/json': {
                     schema: {
                       oneOf: [
-                        {
-                          type: 'object',
-                          properties: {
-                            id: {
-                              type: 'string',
-                              description: 'Unique identifier for the record',
-                            },
-                          },
-                          required: ['id'],
-                        },
+                        linkRecordIdSchema,
                         {
                           type: 'array',
-                          items: {
-                            type: 'object',
-                            properties: {
-                              id: {
-                                type: 'string',
-                                description: 'Unique identifier for the record',
-                              },
-                            },
-                            required: ['id'],
-                          },
+                          items: linkRecordIdSchema,
                         },
                       ],
                     },
@@ -485,7 +474,6 @@ export const getModelPaths = async (
               },
               description:
                 'This API endpoint allows you to unlink records from a specific `Link field` and `Record ID`. The request payload is an array of record-ids from the adjacent table for unlinking purposes. Note that, \n- duplicated record-ids will be ignored.\n- non-existent record-ids will be ignored.',
-              parameters: [recordIdParam],
             },
           },
       }
@@ -498,7 +486,7 @@ export const getModelPaths = async (
             parameters: [recordIdParam, attachmentFieldIdParam(ctx.columns)],
             post: {
               summary: 'Upload Attachment to Cell',
-              operationId: `${ctx.tableName.toLowerCase()}-attachment-upload`,
+              operationId: `${ctx.schemaName.toLowerCase()}-attachment-upload`,
               description:
                 'This API endpoint allows you to upload an attachment (base64 encoded) to a specific cell in a table. The attachment data includes content type, base64 encoded file, and filename.',
               tags: [ctx.tableName],
@@ -578,9 +566,9 @@ export const getModelPaths = async (
                     },
                   },
                 },
-                '400': {
-                  $ref: '#/components/responses/BadRequest',
-                },
+                '400': badRequest,
+                '401': unauthorized,
+                '404': notFound,
               },
             },
           },
@@ -588,31 +576,33 @@ export const getModelPaths = async (
     : {}),
 });
 
-function getPaginatedResponseTypeV3(type: string) {
+function getPaginatedResponseTypeV3(ref: string) {
   return {
     type: 'object',
     properties: {
       records: {
         type: 'array',
-        items: {
-          $ref: `#/components/schemas/${swaggerSanitizeSchemaName(type)}`,
-        },
+        items: { $ref: ref },
       },
       next: {
         type: ['string', 'null'],
-        description: 'Pagination token for next page',
+        format: 'uri',
+        description: 'URL of the next page',
       },
       prev: {
         type: ['string', 'null'],
-        description: 'Pagination token for previous page',
+        format: 'uri',
+        description: 'URL of the previous page',
       },
       nestedNext: {
         type: ['string', 'null'],
-        description: 'Nested pagination token for next page',
+        format: 'uri',
+        description: 'URL of the next page of nested (linked) records',
       },
       nestedPrev: {
         type: ['string', 'null'],
-        description: 'Nested pagination token for previous page',
+        format: 'uri',
+        description: 'URL of the previous page of nested (linked) records',
       },
     },
     required: ['records'],

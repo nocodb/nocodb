@@ -1,14 +1,14 @@
-import { isSystemColumn } from 'nocodb-sdk';
+import { isCreatedOrLastModifiedTimeCol, isSystemColumn } from 'nocodb-sdk';
 import type { SwaggerColumn } from '../getSwaggerColumnMetasV3';
-import { swaggerSanitizeSchemaName } from '~/helpers/stringHelpers';
 
 export const getModelSchemas = (ctx: {
   tableName: string;
+  schemaName: string;
   orgs: string;
   baseName: string;
   columns: Array<SwaggerColumn>;
 }) => ({
-  [`${swaggerSanitizeSchemaName(ctx.tableName)}Response`]: {
+  [`${ctx.schemaName}Response`]: {
     title: `${ctx.tableName} Response`,
     type: 'object',
     description: '',
@@ -42,7 +42,10 @@ export const getModelSchemas = (ctx: {
           ...(ctx.columns?.reduce(
             (colsObj, { title, virtual, column, ...fieldProps }) => ({
               ...colsObj,
-              ...(isSystemColumn(column) || column.pk
+              // The API returns the system created/modified time columns.
+              ...((isSystemColumn(column) &&
+                !(column.system && isCreatedOrLastModifiedTimeCol(column))) ||
+              column.pk
                 ? {}
                 : {
                     [title]: fieldProps,
@@ -55,7 +58,7 @@ export const getModelSchemas = (ctx: {
     },
     required: ['id'],
   },
-  [`${swaggerSanitizeSchemaName(ctx.tableName)}Request`]: {
+  [`${ctx.schemaName}Request`]: {
     title: `${ctx.tableName} Request`,
     type: 'object',
     description: '',
@@ -84,7 +87,7 @@ export const getModelSchemas = (ctx: {
     },
     required: ['fields'],
   },
-  [`${swaggerSanitizeSchemaName(ctx.tableName)}UpdateRequest`]: {
+  [`${ctx.schemaName}UpdateRequest`]: {
     title: `${ctx.tableName} Update Request`,
     type: 'object',
     description: '',
@@ -118,7 +121,7 @@ export const getModelSchemas = (ctx: {
     },
     required: ['id', 'fields'],
   },
-  [`${swaggerSanitizeSchemaName(ctx.tableName)}IdRequest`]: {
+  [`${ctx.schemaName}IdRequest`]: {
     title: `${ctx.tableName} Id Request`,
     type: 'object',
     description: '',
@@ -131,91 +134,5 @@ export const getModelSchemas = (ctx: {
       },
     },
     required: ['id'],
-  },
-});
-
-export const getViewSchemas = (ctx: {
-  tableName: string;
-  viewName: string;
-  orgs: string;
-  baseName: string;
-  columns: Array<SwaggerColumn>;
-}) => ({
-  [`${swaggerSanitizeSchemaName(ctx.tableName)}${swaggerSanitizeSchemaName(
-    ctx.viewName,
-  )}GridResponse`]: {
-    title: `${ctx.tableName} : ${ctx.viewName} Response`,
-    type: 'object',
-    description: '',
-    'x-internal': false,
-    properties: {
-      id: {
-        oneOf: [{ type: 'string' }, { type: 'number' }],
-        description: 'Record identifier (primary key value)',
-      },
-      id_fields: {
-        type: 'object',
-        description: 'Individual primary key field values as object',
-        properties: {
-          ...(ctx.columns?.reduce(
-            (colsObj, { title, column, ...fieldProps }) => ({
-              ...colsObj,
-              ...(column.pk
-                ? {
-                    [title]: fieldProps,
-                  }
-                : {}),
-            }),
-            {},
-          ) || {}),
-        },
-      },
-      fields: {
-        type: 'object',
-        description: 'Record fields data from view',
-        properties: {
-          ...(ctx.columns?.reduce(
-            (colsObj, { title, virtual, column, ...fieldProps }) => ({
-              ...colsObj,
-              ...(isSystemColumn(column) || column.pk
-                ? {}
-                : {
-                    [title]: fieldProps,
-                  }),
-            }),
-            {},
-          ) || {}),
-        },
-      },
-    },
-    required: ['id'],
-  },
-  [`${swaggerSanitizeSchemaName(ctx.tableName)}${swaggerSanitizeSchemaName(
-    ctx.viewName,
-  )}GridRequest`]: {
-    title: `${ctx.tableName} : ${ctx.viewName} Request`,
-    type: 'object',
-    description: '',
-    'x-internal': false,
-    properties: {
-      fields: {
-        type: 'object',
-        description: 'Record fields data for view-based operations',
-        properties: {
-          ...(ctx.columns?.reduce(
-            (colsObj, { title, virtual, column, ...fieldProps }) => ({
-              ...colsObj,
-              ...(virtual
-                ? {}
-                : {
-                    [title]: fieldProps,
-                  }),
-            }),
-            {},
-          ) || {}),
-        },
-      },
-    },
-    required: ['fields'],
   },
 });

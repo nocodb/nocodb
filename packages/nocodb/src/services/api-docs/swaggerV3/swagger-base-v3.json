@@ -33,6 +33,53 @@
             "type": "string"
           }
         }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error code",
+            "example": "ERR_INVALID_FILTER"
+          },
+          "message": {
+            "type": "string",
+            "example": "Invalid filter field 'Nope' not found"
+          }
+        },
+        "required": [
+          "error",
+          "message"
+        ]
+      },
+      "LinkedRecord": {
+        "title": "Linked record",
+        "type": "object",
+        "description": "A record from the related table. `fields` holds the requested fields, or the display value by default.",
+        "properties": {
+          "id": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "description": "Record identifier (primary key value)"
+          },
+          "id_fields": {
+            "type": "object",
+            "description": "Individual primary key field values as object"
+          },
+          "fields": {
+            "type": "object",
+            "description": "Record fields data"
+          }
+        },
+        "required": [
+          "id"
+        ]
       }
     },
     "securitySchemes": {
@@ -55,21 +102,49 @@
         "content": {
           "application/json": {
             "schema": {
-              "type": "object",
-              "properties": {
-                "msg": {
-                  "type": "string",
-                  "example": "BadRequest [Error]: <ERROR MESSAGE>"
-                }
-              },
-              "required": [
-                "msg"
-              ]
+              "$ref": "#/components/schemas/Error"
             },
             "examples": {
               "Example 1": {
                 "value": {
-                  "msg": "BadRequest [Error]: <ERROR MESSAGE>"
+                  "error": "ERR_INVALID_FILTER",
+                  "message": "Invalid filter field 'Nope' not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "error": "ERR_AUTHENTICATION_REQUIRED",
+                  "message": "Authentication required - Invalid token"
+                }
+              }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "NotFound",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "error": "ERR_RECORD_NOT_FOUND",
+                  "message": "Record '99999' not found"
                 }
               }
             }

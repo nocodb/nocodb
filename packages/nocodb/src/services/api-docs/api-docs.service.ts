@@ -59,18 +59,13 @@ export class ApiDocsService {
       source_id: null,
     });
 
-    const models: Model[] = [];
-    // filter based on table visibility permission
-    Promise.all(
-      allModels.map(async (model) => {
-        if (
-          await hasTableVisibilityAccess(context, model.id, param.req?.user)
-        ) {
-          models.push(model);
-        }
-      }),
+    // filter based on table visibility permission, keeping list order
+    const visible = await Promise.all(
+      allModels.map((model) =>
+        hasTableVisibilityAccess(context, model.id, param.req?.user),
+      ),
     );
-    return models;
+    return allModels.filter((_, i) => visible[i]);
   }
 
   async swaggerJsonV2(

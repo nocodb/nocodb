@@ -12,6 +12,7 @@ import type {
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { swaggerGetSourcePrefix } from '~/helpers/dbHelpers';
+import { swaggerSanitizeSchemaName } from '~/helpers/stringHelpers';
 
 export interface SwaggerView {
   view: View;
@@ -24,11 +25,20 @@ export interface SwaggerGenerationContext {
   sourcesMap: SourcesMap;
   models: Model[];
   ncMeta?: any;
+  // View types offered per table; defaults to grid only.
+  viewTypes?: ViewTypes[];
+}
+
+export interface SwaggerGenerationOptions {
+  // Junction tables have no paths; skip their schemas too unless another
+  // schema references them.
+  skipMmSchemas?: boolean;
 }
 
 export interface SwaggerGenerationResult {
   sourcesMap: Map<string, Source>;
   tableNamesMap: Map<string, string>;
+  schemaNamesMap: Map<string, string>;
   swaggerViews: Map<string, SwaggerView[]>;
 }
 
@@ -42,10 +52,15 @@ export async function prepareSwaggerGenerationData({
   models,
   sourcesMap,
   ncMeta = Noco.ncMeta,
+  viewTypes = [ViewTypes.GRID],
 }: SwaggerGenerationContext): Promise<SwaggerGenerationResult> {
   // Pre-construct table names for all models to avoid repeated construction and handle duplicates
   const tableNamesMap = new Map<string, string>();
   const usedTableNames = new Set<string>();
+  // Component names and operationIds are sanitized to ASCII and lowercased in
+  // operationIds, so uniqueness is checked on that form, not the title.
+  const schemaNamesMap = new Map<string, string>();
+  const usedSchemaNames = new Set<string>();
 
   for (const model of models) {
     const source = sourcesMap.get(model.source_id);
@@ -62,6 +77,20 @@ export async function prepareSwaggerGenerationData({
 
     usedTableNames.add(finalTableName);
     tableNamesMap.set(model.id, finalTableName);
+
+    let schemaName = swaggerSanitizeSchemaName(finalTableName);
+    // A title with no ASCII letters or digits sanitizes to underscores only.
+    if (!/[A-Za-z0-9]/.test(schemaName)) {
+      schemaName = `${schemaName}${model.id}`;
+    }
+    let finalSchemaName = schemaName;
+    counter = 1;
+    while (usedSchemaNames.has(finalSchemaName.toLowerCase())) {
+      finalSchemaName = `${schemaName}_${counter}`;
+      counter++;
+    }
+    usedSchemaNames.add(finalSchemaName.toLowerCase());
+    schemaNamesMap.set(model.id, finalSchemaName);
   }
 
   // Prepare views data for all models
@@ -71,7 +100,7 @@ export async function prepareSwaggerGenerationData({
     const views: SwaggerView[] = [];
 
     for (const view of (await model.getViews(false, ncMeta)) || []) {
-      if (view.type !== ViewTypes.GRID) continue;
+      if (!viewTypes.includes(view.type)) continue;
       views.push({
         view,
         columns: await view.getColumns(ncMeta),
@@ -84,6 +113,7 @@ export async function prepareSwaggerGenerationData({
   return {
     sourcesMap,
     tableNamesMap,
+    schemaNamesMap,
     swaggerViews,
   };
 }
@@ -107,28 +137,31 @@ export async function generateSwagger<TSwaggerColumn, TSwaggerView>(
   getPaths: (
     context: NcContext,
     params: {
-      base?: Base;
+      base: Base;
       model: Model;
       columns: TSwaggerColumn[];
       views: TSwaggerView[];
       sourcesMap: Map<string, Source>;
       tableName: string;
+      schemaName: string;
     },
     ncMeta?: any,
   ) => Promise<any>,
   getSchemas: (
     context: NcContext,
     params: {
-      base?: Base;
+      base: Base;
       model: Model;
       columns: TSwaggerColumn[];
       views: TSwaggerView[];
       sourcesMap: Map<string, Source>;
       tableName: string;
+      schemaName: string;
     },
     ncMeta?: any,
   ) => Promise<any>,
   transformViews?: (swaggerViews: SwaggerView[]) => TSwaggerView[],
+  options: SwaggerGenerationOptions = {},
 ) {
   const {
     context,
@@ -149,12 +182,13 @@ export async function generateSwagger<TSwaggerColumn, TSwaggerView>(
   };
 
   // Prepare common data structures
-  const { tableNamesMap, swaggerViews } = await prepareSwaggerGenerationData(
-    generationContext,
-  );
+  const { tableNamesMap, schemaNamesMap, swaggerViews } =
+    await prepareSwaggerGenerationData(generationContext);
 
   // iterate and populate swagger schema and path for models and views
   for (const model of models) {
+    if (model.mm && options.skipMmSchemas) continue;
+
     let paths = {};
 
     const columns = await getSwaggerColumnMetas(
@@ -184,6 +218,7 @@ export async function generateSwagger<TSwaggerColumn, TSwaggerView>(
           views,
           sourcesMap,
           tableName: tableNamesMap.get(model.id),
+          schemaName: schemaNamesMap.get(model.id),
         },
         ncMeta,
       );
@@ -198,6 +233,7 @@ export async function generateSwagger<TSwaggerColumn, TSwaggerView>(
         views,
         sourcesMap,
         tableName: tableNamesMap.get(model.id),
+        schemaName: schemaNamesMap.get(model.id),
       },
       ncMeta,
     );

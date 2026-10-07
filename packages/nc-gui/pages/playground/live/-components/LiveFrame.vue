@@ -10,7 +10,7 @@ const props = defineProps<{
 
 const { css, registerFrame, unregisterFrame } = usePlaygroundTokens()
 
-const { isDark } = useTheme()
+const { isDark, selectedTheme } = useTheme()
 
 const frameRef = ref<HTMLIFrameElement>()
 
@@ -26,6 +26,10 @@ let reapplyTimer: ReturnType<typeof setTimeout> | undefined
 function mirrorTheme() {
   const root = frameRef.value?.contentDocument?.documentElement
   if (!root) return
+  // the playground doesn't persist its theme, so hand it to the frame's useTheme directly
+  try {
+    frameRef.value?.contentWindow?.dispatchEvent(new StorageEvent('storage', { key: 'nc-theme', newValue: selectedTheme.value }))
+  } catch {}
   if (isDark.value) {
     root.setAttribute('theme', 'dark')
     root.classList.add('dark')
@@ -118,7 +122,6 @@ watch(
   },
 )
 
-// the frame's own useTheme follows the host through the `nc-theme` storage event; this covers the gap until it reacts
 watch(isDark, () => nextTick(mirrorTheme))
 
 watch(css, repaintFrame, { flush: 'post' })

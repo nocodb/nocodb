@@ -8,9 +8,15 @@ import type {
   TableType,
   UITypes,
   UserType,
-  WorkspaceType,
 } from 'nocodb-sdk';
 import type { XcEmailAttachment } from '~/types/nc-plugin';
+
+// The OSS SDK has no WorkspaceType; workspace invites are an EE flow, so the
+// CE payload only needs the identity fields the shared templates read.
+interface WorkspaceType {
+  id?: string;
+  title?: string;
+}
 
 enum MailEvent {
   COMMENT_CREATE = 'COMMENT_CREATE',

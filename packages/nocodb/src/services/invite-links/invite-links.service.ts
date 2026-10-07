@@ -19,6 +19,7 @@ import type {
   InviteLinkRole,
   InviteLinkType,
   InviteLinkUnusableReason,
+  ProjectUserReqType,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -972,8 +973,8 @@ export class InviteLinksService {
       this.appHooksService.emit(AppEvents.PROJECT_USER_UPDATE, {
         base,
         user,
-        baseUser: { roles: link.role as ProjectRoles },
-        oldBaseUser: { roles: existing.roles as ProjectRoles },
+        baseUser: { roles: link.role } as Partial<ProjectUserReqType>,
+        oldBaseUser: { roles: existing.roles } as Partial<ProjectUserReqType>,
         via: 'invite_link',
         context: baseContext,
         req: param.req,

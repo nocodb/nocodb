@@ -1,0 +1,97 @@
+# Release guard: prove the OSS tree bootstraps and builds from its own source.
+#
+# Context: releases are cut from nocohub and tagged against the matching develop
+# commit here. Nothing else compiles this repo, so a usage can land before the
+# sync that carries its definition and ship in a tag that does not build
+# (see #14693). Both jobs run the real production builds, which type-check:
+#   - backend:  rspack with ts-checker-rspack-plugin (fails on TS errors)
+#   - frontend: nuxt build (fails on unresolved imports)
+name: "Build Check"
+on:
+  push:
+    branches: [develop]
+    # Path filters are not applied to tag pushes, so every tag is checked.
+    tags: ["*"]
+    paths:
+      - "packages/nocodb/**"
+      - "packages/nocodb-sdk/**"
+      - "packages/nc-gui/**"
+      - "packages/noco-integrations/**"
+      - "packages/nc-mail-templates/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/build-check.yml"
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, labeled]
+    branches: [develop]
+    paths:
+      - "packages/nocodb/**"
+      - "packages/nocodb-sdk/**"
+      - "packages/nc-gui/**"
+      - "packages/noco-integrations/**"
+      - "packages/nc-mail-templates/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/build-check.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend build (nocodb)
+    runs-on: ubicloud-standard-2
+    timeout-minutes: 30
+    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 10
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.14.0
+          cache: "pnpm"
+      - name: remove use-node-version line from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
+      - name: Bootstrap
+        run: pnpm bootstrap
+      - name: Build backend
+        working-directory: ./packages/nocodb
+        run: pnpm exec rspack --config rspack.config.js
+
+  frontend:
+    name: Frontend build (nc-gui)
+    runs-on: ubicloud-standard-2
+    timeout-minutes: 40
+    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 10
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.14.0
+          cache: "pnpm"
+      - name: remove use-node-version line from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
+      - name: Bootstrap
+        run: pnpm bootstrap
+      - name: Build frontend
+        working-directory: ./packages/nc-gui
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: pnpm exec nuxt build

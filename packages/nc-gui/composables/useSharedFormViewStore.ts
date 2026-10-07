@@ -336,8 +336,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           ) {
             const defaultValue = typeof c.cdf === 'string' ? c.cdf.replace(/^['"]|['"]$/g, '') : c.cdf
             if ([UITypes.Number, UITypes.Duration, UITypes.Percent, UITypes.Currency, UITypes.Decimal].includes(c.uidt)) {
-              formState.value[c.title] = Number(defaultValue) || null
-              preFilledDefaultValueformState.value[c.title] = Number(defaultValue) || null
+              formState.value[c.title] = parseNumericDefault(defaultValue)
+              preFilledDefaultValueformState.value[c.title] = parseNumericDefault(defaultValue)
             } else if (c.uidt === UITypes.Checkbox) {
               if (['true', '1'].includes(String(defaultValue).toLowerCase())) {
                 formState.value[c.title] = true
@@ -568,13 +568,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         ...attachment,
       })
 
-      // A prefilled default the user cleared goes as null; left out, the database would put it back.
-      // Hidden fields are deleted from formState, so they keep the database default.
-      for (const title of Object.keys(preFilledDefaultValueformState.value)) {
-        if (title in formState.value && (formState.value[title] === null || formState.value[title] === undefined)) {
-          filtedData.data[title] = null
-        }
-      }
+      keepClearedDefaults(filtedData.data, formState.value, preFilledDefaultValueformState.value)
 
       const newRecord = await api.public.dataCreate(sharedView.value!.uuid!, filtedData, {
         headers: {

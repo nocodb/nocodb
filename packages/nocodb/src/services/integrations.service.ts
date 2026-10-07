@@ -507,7 +507,7 @@ export class IntegrationsService {
 
     const integrationMeta = integration.getIntegrationMeta();
 
-    const wrapper = integration.getIntegrationWrapper();
+    const wrapper = await integration.getIntegrationWrapper();
 
     if (!integrationMeta || !wrapper) {
       NcError.get(context).badRequest('Invalid integration');

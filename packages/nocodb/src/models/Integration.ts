@@ -3,12 +3,21 @@ import {
   integrationCategoryNeedDefault,
   IntegrationsType,
   type IntegrationType,
+  preserveSecretRefs,
   type SourceType,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import { setExternalDbSsrfEnforcement } from '@noco-local-integrations/core';
 import type { ClientType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+
+/**
+ * `context` is the trusted tenant to resolve vault references against; only
+ * pass it after `assertSecretRefsAllowed` has run on the config.
+ */
+export interface TempWrapperOptions {
+  context?: Omit<NcContext, 'base_id'>;
+}
 import type {
   IntegrationEntry,
   IntegrationWrapper,
@@ -465,45 +474,76 @@ export default class Integration implements IntegrationType {
 
   public wrapper: IntegrationWrapper;
 
-  getIntegrationWrapper<T = any>(pLogger?: (message: string) => void) {
-    if (!this.wrapper) {
-      const IntegrationClass = this.constructor as typeof Integration;
+  /** The in-flight build, so concurrent callers share one wrapper (and one pool). */
+  protected wrapperBuild?: Promise<IntegrationWrapper>;
 
-      const integrationWrapper = IntegrationClass.availableIntegrations.find(
-        (el) => el.type === this.type && el.sub_type === this.sub_type,
-      );
+  async getIntegrationWrapper<T = any>(
+    pLogger?: (message: string) => void,
+  ): Promise<T> {
+    if (this.wrapper) return this.wrapper as T;
 
-      if (!integrationWrapper) {
-        logger.error('Integration not found');
-        NcError._.internalServerError('Integration not found');
-      }
+    const build = (this.wrapperBuild ??= this.buildWrapper(pLogger));
+    try {
+      const wrapper = await build;
+      // A rebind while building cleared `wrapperBuild`; keep its slot empty.
+      if (this.wrapperBuild === build) this.wrapper = wrapper;
+      return wrapper as T;
+    } finally {
+      if (this.wrapperBuild === build) this.wrapperBuild = undefined;
+    }
+  }
 
-      this.wrapper = new integrationWrapper.wrapper(this.getWrapperConfig(), {
-        saveConfig: async (config: any) => {
-          await this.persistWrapperConfig(config);
-        },
-        logger: pLogger,
-      });
+  /** Drop the memoized wrapper; the next call builds from the current binding. */
+  protected resetWrapper(): void {
+    this.wrapper = undefined;
+    this.wrapperBuild = undefined;
+  }
 
-      // Refreshed OAuth tokens persist back to the slot the config came from
-      // (production / env override / user row — see persistWrapperConfig).
-      if (
-        this.type === IntegrationsType.Auth &&
-        this.wrapper &&
-        typeof (this.wrapper as any).setTokenRefreshCallback === 'function'
-      ) {
-        (this.wrapper as any).setTokenRefreshCallback(
-          async (tokens: { oauth_token: string; refresh_token?: string }) => {
-            await this.persistWrapperConfig({
-              ...this.getWrapperConfig(),
-              ...tokens,
-            });
-          },
-        );
-      }
+  private async buildWrapper(
+    pLogger?: (message: string) => void,
+  ): Promise<IntegrationWrapper> {
+    const IntegrationClass = this.constructor as typeof Integration;
+
+    const integrationWrapper = IntegrationClass.availableIntegrations.find(
+      (el) => el.type === this.type && el.sub_type === this.sub_type,
+    );
+
+    if (!integrationWrapper) {
+      logger.error('Integration not found');
+      NcError._.internalServerError('Integration not found');
     }
 
-    return this.wrapper as T;
+    const wrapper: IntegrationWrapper = new integrationWrapper.wrapper(
+      await this.prepareWrapperConfig(),
+      {
+        saveConfig: async (config: any) => {
+          // The wrapper holds resolved secrets; the stored references win.
+          await this.persistWrapperConfig(
+            preserveSecretRefs(this.getWrapperConfig(), config),
+          );
+        },
+        logger: pLogger,
+      },
+    );
+
+    // Refreshed OAuth tokens persist back to the slot the config came from
+    // (production / env override / user row — see persistWrapperConfig).
+    if (
+      this.type === IntegrationsType.Auth &&
+      wrapper &&
+      typeof (wrapper as any).setTokenRefreshCallback === 'function'
+    ) {
+      (wrapper as any).setTokenRefreshCallback(
+        async (tokens: { oauth_token: string; refresh_token?: string }) => {
+          await this.persistWrapperConfig({
+            ...this.getWrapperConfig(),
+            ...tokens,
+          });
+        },
+      );
+    }
+
+    return wrapper;
   }
 
   /**
@@ -514,6 +554,25 @@ export default class Integration implements IntegrationType {
    */
   protected getWrapperConfig(): any {
     return this.getConfig();
+  }
+
+  /**
+   * The wrapper config as the client must see it. EE resolves vault
+   * references here; CE has none to resolve.
+   */
+  protected async prepareWrapperConfig(): Promise<any> {
+    return this.getWrapperConfig();
+  }
+
+  /**
+   * Same for a throwaway wrapper built from an arbitrary config. EE resolves
+   * references only against `opts.context`, never a workspace id in `config`.
+   */
+  protected static async prepareTempConfig(
+    config: Partial<IntegrationType>,
+    _opts: TempWrapperOptions = {},
+  ): Promise<any> {
+    return config.config;
   }
 
   /**
@@ -545,7 +604,10 @@ export default class Integration implements IntegrationType {
   }
 
   /** Build a throwaway wrapper from an arbitrary config (no persistence hooks). */
-  static tempIntegrationWrapper<T = any>(config: Partial<IntegrationType>) {
+  static async tempIntegrationWrapper<T = any>(
+    config: Partial<IntegrationType>,
+    opts: TempWrapperOptions = {},
+  ): Promise<T> {
     const integrationWrapper = Integration.availableIntegrations.find(
       (el) => el.type === config.type && el.sub_type === config.sub_type,
     );
@@ -555,7 +617,10 @@ export default class Integration implements IntegrationType {
       NcError._.internalServerError('Integration not found');
     }
 
-    return new integrationWrapper.wrapper(config.config, {}) as T;
+    return new integrationWrapper.wrapper(
+      await this.prepareTempConfig(config, opts),
+      {},
+    ) as T;
   }
 
   static getManifestForConfig(config: Partial<IntegrationType>) {

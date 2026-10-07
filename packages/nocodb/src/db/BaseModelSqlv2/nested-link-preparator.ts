@@ -40,6 +40,45 @@ export interface NestedLinkLastModifiedEntry {
   req: NcRequest;
 }
 
+/**
+ * Push the linked-side rows of a nested insert to open views. Nested links are
+ * written directly rather than through addLinks(), which is what broadcasts
+ * them on a regular link. Call only after the insert has committed.
+ */
+export const broadcastNestedLinkRefRows = async (
+  entries: NestedLinkLastModifiedEntry[],
+) => {
+  // Bulk inserts yield one entry per row per link column; dedupe per ref table
+  // so a shared parent is read and broadcast once.
+  const idsByRefModel = new Map<
+    string,
+    { refBaseModel: IBaseModelSqlV2; ids: Set<string> }
+  >();
+
+  for (const { refBaseModel, nestedData } of entries) {
+    const ids = (Array.isArray(nestedData) ? nestedData : [nestedData])
+      .map((d) =>
+        d && typeof d === 'object' ? refBaseModel.extractPksValues(d, true) : d,
+      )
+      .filter((id) => id !== null && id !== undefined && id !== '')
+      .map((id) => String(id));
+
+    if (!ids.length) continue;
+
+    const refModelId = refBaseModel.model.id;
+    let group = idsByRefModel.get(refModelId);
+    if (!group) {
+      group = { refBaseModel, ids: new Set() };
+      idsByRefModel.set(refModelId, group);
+    }
+    for (const id of ids) group.ids.add(id);
+  }
+
+  for (const { refBaseModel, ids } of idsByRefModel.values()) {
+    await refBaseModel.broadcastLinkUpdates([...ids]);
+  }
+};
+
 export class NestedLinkPreparator {
   /**
    * Run a capture/lookup SELECT used during nested-link preparation in an

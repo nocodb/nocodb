@@ -1,3 +1,5 @@
+import { isSecretRef } from 'nocodb-sdk';
+
 /**
  * Placeholder returned in place of secret config values in API responses.
  * Update flows treat an incoming value that exactly equals this sentinel as
@@ -13,5 +15,7 @@ export const CREDENTIAL_MASK = '********';
  */
 export function maskSecret<T>(value: T): T | typeof CREDENTIAL_MASK {
   if (value === undefined || value === null || value === '') return value;
+  // A vault reference is a pointer, not a credential: the form shows it back.
+  if (isSecretRef(value)) return value;
   return CREDENTIAL_MASK;
 }

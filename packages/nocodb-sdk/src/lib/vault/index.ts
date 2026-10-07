@@ -13,6 +13,7 @@ import type {
   PermissionKey,
   PermissionSubject,
 } from '../permission';
+import type { FormDefinition } from '../formBuilder';
 
 /** Secrets providers a workspace can connect. */
 export enum VaultProviderType {
@@ -619,3 +620,50 @@ export const VAULT_PROVIDER_ORDER: VaultProviderType[] = [
   VaultProviderType.GOOGLE_SECRET_MANAGER,
   VaultProviderType.CYBERARK_CONJUR,
 ];
+
+/**
+ * The `config.*` paths a package form marks `vault: true`: where a reference
+ * may stand in for the value on a non-database integration.
+ */
+export const vaultReferenceablePathsFromForm = (
+  form: FormDefinition | undefined | null
+): string[][] =>
+  // A test stub may register something that is not a field list.
+  (Array.isArray(form) ? form : [])
+    .map((field) => field as { vault?: boolean; model?: unknown })
+    .filter(
+      (field) =>
+        field.vault === true &&
+        typeof field.model === 'string' &&
+        field.model.startsWith('config.')
+    )
+    .map((field) => (field.model as string).slice('config.'.length).split('.'));
+
+/**
+ * Put the stored references back into a config a wrapper is about to persist.
+ * A wrapper holds the resolved config, so a save of its own state would write
+ * the plaintext secret over the reference.
+ */
+export const preserveSecretRefs = <T>(stored: unknown, incoming: T): T => {
+  if (parseSecretRef(stored)) return stored as unknown as T;
+  if (
+    !stored ||
+    typeof stored !== 'object' ||
+    Array.isArray(stored) ||
+    !incoming ||
+    typeof incoming !== 'object' ||
+    Array.isArray(incoming)
+  ) {
+    return incoming;
+  }
+  const out: Record<string, unknown> = {
+    ...(incoming as Record<string, unknown>),
+  };
+  for (const [key, storedValue] of Object.entries(
+    stored as Record<string, unknown>
+  )) {
+    if (!(key in out)) continue;
+    out[key] = preserveSecretRefs(storedValue, out[key]);
+  }
+  return out as T;
+};

@@ -177,7 +177,12 @@ const { form, formState, isLoading, initialState, submit } = useProvideFormBuild
       activeProjectId.value || NO_SCOPE,
       { operation: activeProjectId.value ? 'baseIntegrationFetchOptions' : 'integrationFetchOptions' },
       {
-        integration: formState.value,
+        // The id lets the backend restore masked values from the stored config;
+        // an environment tab holds an override, which that config cannot restore.
+        integration: {
+          ...formState.value,
+          id: isEditMode.value && isProductionEnv.value ? activeIntegration.value?.id : undefined,
+        },
         key,
       },
     )

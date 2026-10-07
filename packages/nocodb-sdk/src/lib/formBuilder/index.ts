@@ -346,6 +346,11 @@ interface FormBuilderElementBase {
    * Default: true for collapsible groups
    */
   groupDefaultCollapsed?: boolean;
+  /**
+   * The field holds a credential that may be a `$vault` reference instead of
+   * the value. Only `config.*` fields; never one the backend writes itself.
+   */
+  vault?: boolean;
 }
 
 /**

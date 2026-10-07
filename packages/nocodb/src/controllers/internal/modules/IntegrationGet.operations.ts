@@ -6,6 +6,7 @@ import type {
   InternalGETResponseType,
 } from '~/utils/internal-type';
 import { BaseIntegrationsService } from '~/services/base-integrations.service';
+import { hideSecretRefIds } from '~/helpers/secretRefVisibility';
 import {
   assertResolvedBaseAcl,
   resolveAccessContext,
@@ -56,13 +57,23 @@ export class IntegrationGetOperations
           subType: req.query.subType as string,
           userId: req.user?.id,
         });
-      case 'baseIntegrationRead':
-        return await this.baseIntegrationsService.readFromBase(context, {
-          baseId: context.base_id,
-          integrationId: req.query.integrationId as string,
-          userId: req.user?.id,
-          includeConfig: req.query.includeConfig === 'true',
-        });
+      case 'baseIntegrationRead': {
+        const integration = await this.baseIntegrationsService.readFromBase(
+          context,
+          {
+            baseId: context.base_id,
+            integrationId: req.query.integrationId as string,
+            userId: req.user?.id,
+            includeConfig: req.query.includeConfig === 'true',
+          },
+        );
+        // Below workspace owner, a reference's secret id is hidden.
+        hideSecretRefIds(req, integration?.config);
+        for (const env of integration?.environments ?? []) {
+          hideSecretRefIds(req, env.config);
+        }
+        return integration;
+      }
       case 'integrationLinkedBaseList':
         return (await this.baseIntegrationsService.linkedBaseList(context, {
           integrationId: req.query.integrationId as string,

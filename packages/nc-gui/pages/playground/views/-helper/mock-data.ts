@@ -264,7 +264,7 @@ export function buildView(kind: MockViewKind): ViewType {
     base_id: MOCK_BASE_ID,
     source_id: MOCK_SOURCE_ID,
     fk_workspace_id: MOCK_WORKSPACE_ID,
-    lock_type: 'collaborative',
+    lock_type: 'collaborative' as const,
     show: true,
     order: 1,
     meta: {},
@@ -340,7 +340,7 @@ export function buildView(kind: MockViewKind): ViewType {
     },
   }
 
-  return { ...common, view: typeMeta[kind] } as unknown as ViewType
+  return { ...common, view: typeMeta[kind] }
 }
 
 // deterministic pseudo-random so every reload shows the same board

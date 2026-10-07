@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { PlaygroundTokenEditorOpenInj } from '../-helper/registry'
+
 /** Page frame for a playground page: heading, optional TOC built from `sections`. */
 defineProps<{
   title: string
@@ -7,6 +9,9 @@ defineProps<{
   /** full-size surfaces (modal shells, settings): no max width, no TOC column */
   wide?: boolean
 }>()
+
+// the TOC gives up its column while the token editor squeezes the page
+const isTokenEditorOpen = inject(PlaygroundTokenEditorOpenInj, ref(false))
 
 // scrollIntoView would also scroll the overflow-hidden app wrappers and push the shell off-screen
 function scrollTo(id: string) {
@@ -29,7 +34,7 @@ function scrollTo(id: string) {
         <slot />
       </div>
     </div>
-    <nav v-if="sections?.length && !wide" class="hidden xl:block flex-none w-52 py-6 pr-4">
+    <nav v-if="sections?.length && !wide && !isTokenEditorOpen" class="hidden xl:block flex-none w-52 py-6 pr-4">
       <div class="sticky top-6 flex flex-col gap-0.5">
         <div class="text-captionXsBold uppercase tracking-wide text-nc-content-gray-muted px-2 mb-1">On this page</div>
         <button

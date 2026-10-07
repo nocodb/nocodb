@@ -26,6 +26,7 @@ interface Session {
 interface Saved {
   mergeRequestParams: MergeParams
   user: unknown
+  baseRoles: unknown
   lastVisitedBase: string | null
   recentViews: unknown[] | null
   interceptorId: number | null
@@ -40,13 +41,27 @@ let session: Session | null = null
 
 let guardRegistered = false
 
+/** Store state touched by seedStores, kept so uninstall can undo it outside a component setup. */
+let seeded: {
+  metas: ReturnType<typeof useMetas>['metas']
+  bases: ReturnType<typeof useBases>
+  tables: ReturnType<typeof useTablesStore>
+  views: ReturnType<typeof useViewsStore>
+} | null = null
+
 export const unmockedRequests = shallowRef<UnmockedRequest[]>([])
 
 export const getMockSession = () => session
 
+declare global {
+  interface Window {
+    __ncPlaygroundMocks?: { unmockedRequests: typeof unmockedRequests; getMockSession: typeof getMockSession }
+  }
+}
+
 if (typeof window !== 'undefined') {
   // console handle for debugging the mocks: __ncPlaygroundMocks.unmockedRequests.value
-  ;(window as unknown as Record<string, unknown>).__ncPlaygroundMocks = { unmockedRequests, getMockSession }
+  window.__ncPlaygroundMocks = { unmockedRequests, getMockSession }
 }
 
 function recordUnmocked(req: UnmockedRequest) {
@@ -69,18 +84,38 @@ function seedStores(kind: MockViewKind, db: MockDb) {
   basesStore.bases.set(MOCK_BASE_ID, mockBase() as NcProject)
   // the signed-in user too, so comments posted here get a name and avatar
   const me = { id: db.user.id, email: db.user.email, display_name: db.user.display_name, roles: 'owner' }
+  // the store types roles as RolesObj, but the API and its consumers use role strings
   basesStore.basesUser.set(MOCK_BASE_ID, [...MOCK_USERS.map((u) => ({ ...u, roles: 'editor' })), me] as unknown as User[])
 
   useTablesStore().baseTables.set(MOCK_BASE_ID, [table, tasksTable] as SidebarTableNode[])
 
-  useViewsStore().viewsByTable.set(`${MOCK_BASE_ID}:${table.id}`, table.views ?? [])
+  const viewsStore = useViewsStore()
+  viewsStore.viewsByTable.set(`${MOCK_BASE_ID}:${table.id}`, table.views ?? [])
+
+  seeded = { metas, bases: basesStore, tables: useTablesStore(), views: viewsStore }
+}
+
+function unseedStores() {
+  if (!seeded) return
+  const prefix = `${MOCK_BASE_ID}:`
+  const { metas, bases, tables, views } = seeded
+  metas.value = Object.fromEntries(Object.entries(metas.value).filter(([key]) => !key.startsWith(prefix)))
+  bases.bases.delete(MOCK_BASE_ID)
+  bases.basesUser.delete(MOCK_BASE_ID)
+  tables.baseTables.delete(MOCK_BASE_ID)
+  for (const key of [...views.viewsByTable.keys()]) {
+    if (key.startsWith(prefix)) views.viewsByTable.delete(key)
+  }
+  seeded = null
 }
 
 function uninstall(user: Ref<any>, api: ReturnType<typeof useNuxtApp>['$api']) {
   if (!saved) return
   HttpClient.prototype.mergeRequestParams = saved.mergeRequestParams
   if (saved.interceptorId !== null) api.instance.interceptors.request.eject(saved.interceptorId)
-  user.value = saved.user
+  unseedStores()
+  // only base_roles was overridden; keep any profile changes made meanwhile
+  if (user.value) user.value = { ...user.value, base_roles: saved.baseRoles }
   if (saved.recentViews) {
     const viewsStore = useViewsStore()
     viewsStore.allRecentViews = saved.recentViews as typeof viewsStore.allRecentViews
@@ -109,6 +144,7 @@ export function installPlaygroundMocks(kind: MockViewKind) {
     saved = {
       mergeRequestParams: HttpClient.prototype.mergeRequestParams,
       user: user.value,
+      baseRoles: user.value?.base_roles,
       lastVisitedBase: localStorage.getItem('ncLastVisitedBase'),
       recentViews: null,
       interceptorId: null,
@@ -121,9 +157,13 @@ export function installPlaygroundMocks(kind: MockViewKind) {
     const db: MockDb = {
       tables: { [table.id!]: table, [tasksTable.id!]: tasksTable },
       views: Object.fromEntries((table.views ?? []).map((v) => [v.id!, v])),
-      rows: buildRows(),
+      // reactive so the harness header can show the live row count
+      rows: shallowReactive(buildRows()),
       comments: buildComments(table.id!),
       user: { ...(saved.user as object), base_roles: { owner: true } },
+      filters: [],
+      sorts: [],
+      viewColumnPatches: {},
     }
     session = { kind, db, seeded: false }
     unmockedRequests.value = []

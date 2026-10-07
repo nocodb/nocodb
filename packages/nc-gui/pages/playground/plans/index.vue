@@ -244,7 +244,7 @@ const LOCKED_FEATURES = ['Data permissions', 'Audit logs', 'SSO / SAML']
           <div
             v-for="feature in LOCKED_FEATURES"
             :key="feature"
-            class="flex items-center justify-between h-9 border-b-1 border-nc-border-gray-light last:border-b-0"
+            class="flex items-center gap-1.5 h-9 border-b-1 border-nc-border-gray-light last:border-b-0"
           >
             <span class="text-caption text-nc-content-gray">{{ feature }}</span>
             <GeneralIcon

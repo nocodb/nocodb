@@ -1,5 +1,5 @@
 import { ButtonActionsType, ColumnHelper, FormulaDataTypes, LongTextAiMetaProp, RelationTypes, UITypes } from 'nocodb-sdk'
-import type { ColumnType, TableType } from 'nocodb-sdk'
+import type { ColumnType, SourceType, TableType } from 'nocodb-sdk'
 import type { Row } from '~/lib/types'
 
 export const CELLS_BASE_ID = 'pPgCellsBase'
@@ -253,7 +253,12 @@ export const cellGroups: CellGroup[] = [
         value: [
           { title: 'cover.svg', mimetype: 'image/svg+xml', size: 2048, url: svgThumb('#3366ff', 'Cover') },
           { title: 'moodboard.svg', mimetype: 'image/svg+xml', size: 4096, url: svgThumb('#7c3aed', 'Mood') },
-          { title: 'brief.pdf', mimetype: 'application/pdf', size: 120400, url: 'about:blank' },
+          {
+            title: 'brief.pdf',
+            mimetype: 'application/pdf',
+            size: 120400,
+            url: 'data:application/pdf;base64,JVBERi0xLjQKJSVFT0YK',
+          },
         ],
         note: 'Upload needs a backend',
       },
@@ -436,8 +441,16 @@ export const createCellsRow = (): Row => ({
   rowMeta: {},
 })
 
+export const cellsSource: SourceType = {
+  id: CELLS_SOURCE_ID,
+  base_id: CELLS_BASE_ID,
+  type: 'pg',
+  enabled: true,
+  is_meta: false,
+}
+
 export const cellsBase = {
   id: CELLS_BASE_ID,
   title: 'Playground cells',
-  sources: [{ id: CELLS_SOURCE_ID, base_id: CELLS_BASE_ID, type: 'pg', enabled: true, is_meta: false }],
+  sources: [cellsSource],
 }

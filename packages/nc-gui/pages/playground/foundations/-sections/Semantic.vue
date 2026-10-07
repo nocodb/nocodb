@@ -22,10 +22,17 @@ const search = ref('')
 
 const activeFamily = computed(() => FAMILIES.find((f) => f.id === family.value)!)
 
-const rows = computed(() => {
+function matching(f: Family) {
   const q = search.value.trim().toLowerCase()
-  return tokens.value[family.value].filter((name) => !q || name.includes(q))
-})
+  return tokens.value[f].filter((name) => !q || name.includes(q))
+}
+
+const rows = computed(() => matching(family.value))
+
+// inverted content sits on the opposite surface (gray-800 flips with the theme)
+function isInverted(name: string) {
+  return family.value === 'content' && name.includes('-inverted-')
+}
 
 const columns = computed(() => (isDark.value ? (['dark'] as const) : (['light', 'dark'] as const)))
 
@@ -67,7 +74,7 @@ onMounted(() => {
           @click="family = f.id"
         >
           {{ f.label }}
-          <span class="text-captionXs text-nc-content-gray-muted ml-1">{{ tokens[f.id].length }}</span>
+          <span class="text-captionXs text-nc-content-gray-muted ml-1">{{ matching(f.id).length }}</span>
         </button>
         <span v-if="isDark" class="ml-auto text-captionXs text-nc-content-gray-muted">
           Switch to light theme to compare light and dark side by side
@@ -80,6 +87,13 @@ onMounted(() => {
       >
         <span>Token</span>
         <span v-for="c in columns" :key="c" class="capitalize">{{ c }}</span>
+      </div>
+
+      <div
+        v-if="!rows.length && search.trim()"
+        class="px-4 py-6 border-t-1 border-nc-border-gray-light text-center text-captionSm text-nc-content-gray-muted"
+      >
+        No tokens match “{{ search.trim() }}”
       </div>
 
       <div
@@ -108,7 +122,10 @@ onMounted(() => {
           :key="c"
           :theme="c === 'dark' && !isDark ? 'dark' : undefined"
           class="h-12 rounded-lg flex items-center gap-3 px-3 border-1"
-          :style="{ background: 'var(--nc-bg-default)', borderColor: 'var(--nc-border-gray-light)' }"
+          :style="{
+            background: isInverted(name) ? 'var(--color-gray-800)' : 'var(--nc-bg-default)',
+            borderColor: 'var(--nc-border-gray-light)',
+          }"
         >
           <span v-if="family === 'content'" class="text-subHeading1" :style="{ color: `var(${name})` }">Aa</span>
           <span
@@ -124,9 +141,11 @@ onMounted(() => {
           >
             Fill
           </span>
-          <span class="text-captionXs font-mono truncate" :style="{ color: 'var(--nc-content-gray-muted)' }">{{
-            resolved(c, name)
-          }}</span>
+          <span
+            class="text-captionXs font-mono truncate"
+            :style="{ color: isInverted(name) ? 'var(--color-gray-300)' : 'var(--nc-content-gray-muted)' }"
+            >{{ resolved(c, name) }}</span
+          >
         </div>
       </div>
     </template>

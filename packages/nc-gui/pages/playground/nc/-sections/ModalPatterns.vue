@@ -151,7 +151,9 @@ const isCreateOpen = isOpen('create')
         </ShellRail>
         <div class="flex-1 flex flex-col min-w-0 min-h-0">
           <ShellHeader :title="activeRailTitle" description="Each rail item renders its pane here, under a shared header." />
-          <div class="flex-1 min-h-0 p-6 text-caption text-nc-content-gray-muted">Pane content for “{{ activeRailTitle }}”.</div>
+          <div class="flex-1 min-h-0 nc-shell-gutter py-6 text-caption text-nc-content-gray-muted">
+            Pane content for “{{ activeRailTitle }}”.
+          </div>
         </div>
       </div>
     </NcModal>

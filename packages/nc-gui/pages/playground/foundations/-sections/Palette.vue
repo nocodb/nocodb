@@ -1,21 +1,13 @@
 <script setup lang="ts">
 import PgDemo from '../../-components/PgDemo.vue'
 import { collectTokenDefs } from '../../-helper/tokens'
-import { copyText, toHex, useResolvedVars } from './useResolvedVars'
+import { copyText, isLightColor, toHex, useResolvedVars } from './useResolvedVars'
 
 const { isDark, lightProbe, darkProbe, resolveLight, resolveDark } = useResolvedVars()
 
 const ramps = ref<Array<{ hue: string; stops: string[] }>>([])
 
 const modes = computed(() => (isDark.value ? (['dark'] as const) : (['light', 'dark'] as const)))
-
-function isLightColor(value: string) {
-  const hex = toHex(value)
-  const m = hex.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i)
-  if (!m) return true
-  const [r, g, b] = [m[1], m[2], m[3]].map((v) => parseInt(v, 16))
-  return 0.299 * r + 0.587 * g + 0.114 * b > 150
-}
 
 function resolve(mode: 'light' | 'dark', name: string) {
   return toHex(mode === 'dark' ? resolveDark(name) : resolveLight(name))
@@ -51,7 +43,10 @@ onMounted(() => {
         class="flex items-center gap-2"
       >
         <span class="w-10 flex-none text-captionXs text-nc-content-gray-muted capitalize">{{ mode }}</span>
-        <div class="flex-1 grid gap-1" :style="{ gridTemplateColumns: `repeat(${ramp.stops.length}, minmax(0, 1fr))` }">
+        <div
+          class="flex-1 min-w-0 grid gap-1 overflow-x-auto"
+          :style="{ gridTemplateColumns: `repeat(${ramp.stops.length}, minmax(44px, 1fr))` }"
+        >
           <NcTooltip v-for="stop in ramp.stops" :key="stop" :title="`--color-${ramp.hue}-${stop} · click to copy`" :arrow="false">
             <button
               class="w-full h-14 rounded-md flex flex-col justify-end items-start p-1.5 border-1 border-nc-border-gray-light"

@@ -36,6 +36,9 @@ const search = ref('')
 
 const openGroups = ref<string[]>(['content'])
 
+/** semantic token names whose last typed value wasn't a colour */
+const invalidValues = ref<string[]>([])
+
 const brandBase = computed(() => overrides.value.light['--nc-brand-accent'] ?? '#3366ff')
 
 const grayBase = computed(() => overrides.value.light['--color-gray-500'] ?? '')
@@ -75,12 +78,22 @@ function shortValue(def: TokenDef) {
   return value.match(/^var\(--color-([a-z]+-\d+)\)$/)?.[1] ?? value
 }
 
+function onSemanticInput(name: string, raw: string) {
+  const value = normalise(raw)
+  if (value && !CSS.supports('color', value)) {
+    if (!invalidValues.value.includes(name)) invalidValues.value = [...invalidValues.value, name]
+    return
+  }
+  invalidValues.value = invalidValues.value.filter((n) => n !== name)
+  setToken(props.mode, name, value || null)
+}
+
 function onBrand(value: string) {
   if (/^#[0-9a-f]{6}$/i.test(value)) setRamp('brand', value)
 }
 
 function onGray(value: string) {
-  if (value) setRamp('gray', value, ['light'])
+  if (value) setRamp('gray', value)
   else clearRamp('gray')
 }
 
@@ -120,17 +133,22 @@ onMounted(() => {
         <button
           v-for="c in BRAND_PRESETS"
           :key="c"
-          class="w-6 h-6 rounded-full border-2"
+          class="w-6 h-6 rounded-full border-2 ring-1 ring-nc-border-gray-medium focus-visible:(outline-none ring-2 ring-nc-border-brand)"
           :class="brandBase === c ? 'border-nc-border-gray-dark' : 'border-transparent'"
           :style="{ background: c }"
+          :aria-label="`Brand colour ${c}`"
+          :aria-pressed="brandBase === c"
           @click="onBrand(c)"
         />
-        <label class="relative w-6 h-6 rounded-full border-1 border-dashed border-nc-border-gray-dark cursor-pointer">
+        <label
+          class="relative w-6 h-6 rounded-full border-1 border-dashed border-nc-border-gray-dark cursor-pointer focus-within:(ring-2 ring-nc-border-brand)"
+        >
           <GeneralIcon icon="plus" class="absolute inset-0 m-auto w-3 h-3 text-nc-content-gray-muted" />
           <input
             type="color"
             :value="brandBase"
             class="absolute inset-0 opacity-0 cursor-pointer"
+            aria-label="Custom brand colour"
             @input="onBrand(($event.target as HTMLInputElement).value)"
           />
         </label>
@@ -176,13 +194,14 @@ onMounted(() => {
         <span class="text-captionSm text-nc-content-gray capitalize">{{ ramp.hue }}</span>
         <NcTooltip title="Regenerate ramp from one colour" :arrow="false">
           <label
-            class="relative w-3.5 h-3.5 rounded-full border-1 border-nc-border-gray-medium cursor-pointer"
+            class="relative inline-block flex-none w-3.5 h-3.5 rounded-full border-1 border-nc-border-gray-medium cursor-pointer focus-within:(ring-2 ring-nc-border-brand)"
             :style="{ background: `var(--color-${ramp.hue}-500)` }"
           >
             <input
               type="color"
               :value="resolved(`--color-${ramp.hue}-500`)"
               class="absolute inset-0 opacity-0 cursor-pointer"
+              :aria-label="`Regenerate ${ramp.hue} ramp`"
               @change="setRamp(ramp.hue, ($event.target as HTMLInputElement).value)"
             />
           </label>
@@ -201,14 +220,19 @@ onMounted(() => {
         >
           <label
             :theme="mode === 'dark' ? 'dark' : undefined"
-            class="relative block h-6 rounded cursor-pointer first:rounded-l-md"
-            :class="{ 'ring-2 ring-offset-1 ring-nc-border-brand': isChanged(`--color-${ramp.hue}-${stop}`) }"
+            class="relative block h-6 rounded cursor-pointer first:rounded-l-md focus-within:(ring-2 ring-nc-border-brand)"
+            :class="
+              isChanged(`--color-${ramp.hue}-${stop}`)
+                ? 'ring-2 ring-offset-1 ring-nc-border-brand'
+                : 'ring-1 ring-inset ring-nc-border-gray-medium'
+            "
             :style="{ background: `var(--color-${ramp.hue}-${stop})` }"
           >
             <input
               type="color"
               :value="resolved(`--color-${ramp.hue}-${stop}`)"
               class="absolute inset-0 opacity-0 cursor-pointer"
+              :aria-label="`${ramp.hue} ${stop}`"
               @input="setToken(mode, `--color-${ramp.hue}-${stop}`, ($event.target as HTMLInputElement).value)"
             />
           </label>
@@ -268,9 +292,14 @@ onMounted(() => {
             </div>
             <input
               :value="shortValue(def)"
-              class="w-full bg-transparent outline-none text-captionXs font-mono text-nc-content-gray-muted"
-              @change="setToken(mode, def.name, normalise(($event.target as HTMLInputElement).value) || null)"
+              class="w-full bg-transparent outline-none text-captionXs font-mono"
+              :class="invalidValues.includes(def.name) ? 'text-nc-content-red-dark' : 'text-nc-content-gray-muted'"
+              :aria-invalid="invalidValues.includes(def.name)"
+              @change="onSemanticInput(def.name, ($event.target as HTMLInputElement).value)"
             />
+            <div v-if="invalidValues.includes(def.name)" class="text-captionXs text-nc-content-red-dark">
+              {{ $t('msg.invalidColor') }}
+            </div>
           </div>
           <NcButton v-if="isChanged(def.name)" size="xxsmall" type="text" icon-only @click="setToken(mode, def.name, null)">
             <template #icon>

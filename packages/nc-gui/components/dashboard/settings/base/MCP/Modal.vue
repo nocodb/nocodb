@@ -61,7 +61,7 @@ const closeModal = () => {
         </div>
       </div>
     </template>
-    <div class="flex bg-nc-bg-default rounded-b-2xl h-[calc(100%_-_66px)]">
+    <div class="flex flex-1 min-h-0 bg-nc-bg-default rounded-b-2xl">
       <div
         ref="containerElem"
         class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-24 py-6 mx-auto"

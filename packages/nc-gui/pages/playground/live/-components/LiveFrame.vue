@@ -16,6 +16,8 @@ const frameRef = ref<HTMLIFrameElement>()
 
 const isLoading = ref(true)
 
+const loadError = ref<string>()
+
 /** bumped to get a fresh iframe window — a written document can't boot the app twice in one realm */
 const frameKey = ref(0)
 
@@ -55,10 +57,21 @@ function repaintFrame() {
  */
 async function boot(path: string) {
   isLoading.value = true
+  loadError.value = undefined
   await nextTick()
   const doc = frameRef.value?.contentDocument
   if (!doc) return
-  const html = await (await fetch(path)).text()
+  // the shell is the same for every route; deep paths have no SPA fallback on deployed builds
+  let html: string
+  try {
+    const res = await fetch('/')
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+    html = await res.text()
+  } catch (e) {
+    loadError.value = `Couldn't load the app shell: ${e instanceof Error ? e.message : String(e)}`
+    isLoading.value = false
+    return
+  }
   const prelude = `<script>history.replaceState(null, '', ${JSON.stringify(path)}); window.self = window.top<\/script>`
   doc.open()
   doc.write(html.replace(/<head[^>]*>/i, (head) => `${head}${prelude}`))
@@ -78,6 +91,13 @@ function onLoad() {
   // a full reload inside the frame (sign-out, hard refresh) lands unpatched — reboot at that route
   if (win.self !== win.top) {
     const path = `${win.location.pathname}${win.location.search}`
+    // rebooting at an inherited playground URL would frame the playground inside itself
+    if (path === '/playground' || path.startsWith('/playground/')) {
+      loadError.value = `The frame lost its route and landed on ${win.location.pathname}`
+      isLoading.value = false
+      win.location.replace('about:blank')
+      return
+    }
     frameKey.value++
     nextTick(() => boot(path))
     return
@@ -123,7 +143,13 @@ onBeforeUnmount(() => {
       data-testid="nc-playground-live-frame"
       @load="onLoad"
     />
-    <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+    <div
+      v-if="loadError"
+      class="absolute inset-0 flex items-center justify-center p-6 rounded-lg bg-nc-bg-default text-center text-captionSm text-nc-content-red-dark"
+    >
+      {{ loadError }}
+    </div>
+    <div v-else-if="isLoading" class="absolute inset-0 flex items-center justify-center pointer-events-none">
       <GeneralLoader size="xlarge" />
     </div>
   </div>

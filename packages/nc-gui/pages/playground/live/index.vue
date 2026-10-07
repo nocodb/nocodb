@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ViewTypes } from 'nocodb-sdk'
 import type { ViewType } from 'nocodb-sdk'
-import { DEMO_STORAGE_KEY, SEED_STEPS, seedDemoBase } from './-helper/demo-seed'
-import type { DemoBase, SeedStep } from './-helper/demo-seed'
+import { DEMO_BASE_TITLE, DEMO_STORAGE_KEY, DEMO_VIEW_LABELS, SEED_STEPS, seedDemoBase } from './-helper/demo-seed'
+import type { DemoBase, DemoViewKey, SeedStep } from './-helper/demo-seed'
 import LiveFrame from './-components/LiveFrame.vue'
 
 interface LivePage {
@@ -14,6 +14,8 @@ interface LivePage {
 
 const { $api } = useNuxtApp()
 
+const { t } = useI18n()
+
 const { user, appInfo } = useGlobal()
 
 const workspaceStore = useWorkspace()
@@ -21,6 +23,8 @@ const workspaceStore = useWorkspace()
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
+
+const { showWarningModal } = useNcConfirmModal()
 
 const DEVICES = [
   { key: 'desktop', label: 'Desktop', icon: 'ncMonitor', width: null },
@@ -60,6 +64,8 @@ const isSeeding = ref(false)
 
 const isCheckingDemo = ref(true)
 
+const isDeletingDemo = ref(false)
+
 const device = ref<(typeof DEVICES)[number]['key']>('desktop')
 
 const isSplit = ref(false)
@@ -71,6 +77,15 @@ const secondaryKey = ref('account-profile')
 const frameHeight = ref(760)
 
 const workspaceId = computed(() => activeWorkspaceId.value)
+
+/** scoped per user + workspace so another account or workspace never acts on this base id */
+const demoStorageKey = computed(() =>
+  user.value?.id && workspaceId.value ? `${DEMO_STORAGE_KEY}:${user.value.id}:${workspaceId.value}` : undefined,
+)
+
+const demoViewLabels = computed(() =>
+  (Object.keys(DEMO_VIEW_LABELS) as DemoViewKey[]).filter((k) => demo.value?.views[k]).map((k) => DEMO_VIEW_LABELS[k]),
+)
 
 const pages = computed<LivePage[]>(() => {
   const ws = workspaceId.value
@@ -158,21 +173,31 @@ function openInNewTab(path: string) {
 
 function persist(value: DemoBase | null) {
   demo.value = value
+  const key = demoStorageKey.value
+  if (!key) return
   try {
-    if (value) localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(value))
-    else localStorage.removeItem(DEMO_STORAGE_KEY)
+    if (value) localStorage.setItem(key, JSON.stringify(value))
+    else localStorage.removeItem(key)
   } catch {}
 }
 
-async function restoreDemo() {
+/** The stored demo base, only while it is still in this workspace under the demo title. */
+function ownedDemo(stored: DemoBase | null) {
+  if (!stored || stored.workspaceId !== workspaceId.value) return null
+  return bases.value.some((b) => b.id === stored.baseId && b.title === DEMO_BASE_TITLE) ? stored : null
+}
+
+async function restoreDemo(basesLoaded: boolean) {
   isCheckingDemo.value = true
   try {
-    const stored = localStorage.getItem(DEMO_STORAGE_KEY)
+    // pre-scoping entry; only forget it, never act on it
+    localStorage.removeItem(DEMO_STORAGE_KEY)
+    const key = demoStorageKey.value
+    const stored = key ? localStorage.getItem(key) : null
     const parsed: DemoBase | null = stored ? JSON.parse(stored) : null
     if (!parsed) return
-    // a base deleted elsewhere (or a reset dev DB) must not leave dead links
-    await $api.instance.get(`/api/v3/meta/bases/${parsed.baseId}`)
-    demo.value = parsed
+    // deleted, renamed or moved elsewhere: stop tracking it
+    if (basesLoaded) persist(ownedDemo(parsed))
   } catch {
     persist(null)
   } finally {
@@ -180,23 +205,74 @@ async function restoreDemo() {
   }
 }
 
+/** Deletes the tracked demo base after re-checking it is still ours; returns false on failure. */
+async function deleteOwnedDemo() {
+  if (!demo.value) return true
+  if (!(await loadBases())) return false
+  const owned = ownedDemo(demo.value)
+  if (owned) {
+    try {
+      await $api.instance.delete(`/api/v3/meta/bases/${owned.baseId}`)
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+      return false
+    }
+  }
+  persist(null)
+  steps.value = []
+  await loadBases()
+  if (owned && selectedBaseId.value === owned.baseId) {
+    selectedBaseId.value = undefined
+    selectedTableId.value = undefined
+    tables.value = []
+    tableViews.value = []
+    if (bases.value[0]) await selectTarget(bases.value[0].id)
+  }
+  return true
+}
+
+function confirmDeleteDemo() {
+  showWarningModal({
+    title: t('msg.info.deleteDemoBaseTitle'),
+    content: t('msg.info.deleteDemoBaseConfirm', { title: DEMO_BASE_TITLE }),
+    showCancelBtn: true,
+    okText: t('general.delete'),
+    okProps: { type: 'danger' },
+    okCallback: async () => {
+      isDeletingDemo.value = true
+      try {
+        if (await deleteOwnedDemo()) message.success(t('msg.success.demoBaseDeleted'))
+      } finally {
+        isDeletingDemo.value = false
+      }
+    },
+  })
+}
+
+function onSeedClick() {
+  if (!demo.value) return createDemo()
+  showWarningModal({
+    title: t('msg.info.recreateDemoBaseTitle'),
+    content: t('msg.info.recreateDemoBaseConfirm', { title: DEMO_BASE_TITLE }),
+    showCancelBtn: true,
+    okText: t('general.confirm'),
+    okProps: { type: 'danger' },
+    okCallback: createDemo,
+  })
+}
+
 async function createDemo() {
   if (!workspaceId.value) await workspaceStore.loadWorkspaces()
   const wsId = workspaceId.value
   if (!wsId) {
-    message.error('No workspace available')
+    message.error(t('msg.error.noWorkspaceAvailable'))
     return
   }
 
   isSeeding.value = true
-  steps.value = SEED_STEPS.map((s) => ({ ...s, status: 'pending' }))
   try {
-    if (demo.value) {
-      try {
-        await $api.instance.delete(`/api/v3/meta/bases/${demo.value.baseId}`)
-      } catch {}
-      persist(null)
-    }
+    if (!(await deleteOwnedDemo())) return
+    steps.value = SEED_STEPS.map((s) => ({ ...s, status: 'pending' }))
     const result = await seedDemoBase({
       api: $api,
       workspaceId: wsId,
@@ -207,9 +283,15 @@ async function createDemo() {
       },
     })
     persist(result)
+    // the views step names only what was actually created (Timeline is plan-gated)
+    steps.value = steps.value.map((s) =>
+      s.key === 'views'
+        ? { ...s, label: `Create ${demoViewLabels.value.filter((l) => l !== DEMO_VIEW_LABELS.grid).join(', ')} views` }
+        : s,
+    )
     await loadBases()
     await selectTarget(result.baseId, result.tableId)
-    message.success('Demo base ready')
+    message.success(t('msg.success.demoBaseReady'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -218,12 +300,14 @@ async function createDemo() {
 }
 
 async function loadBases() {
-  if (!workspaceId.value) return
+  if (!workspaceId.value) return false
   try {
     const { data } = await $api.instance.get(`/api/v3/meta/workspaces/${workspaceId.value}/bases`)
     bases.value = data.list ?? []
+    return true
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+    return false
   }
 }
 
@@ -257,7 +341,7 @@ async function selectTarget(baseId: string, tableId?: string) {
 
 onMounted(async () => {
   if (!workspaceId.value) await workspaceStore.loadWorkspaces(true)
-  await Promise.all([restoreDemo(), loadBases()])
+  await restoreDemo(await loadBases())
   let saved: { baseId?: string; tableId?: string } = {}
   try {
     saved = JSON.parse(localStorage.getItem(TARGET_STORAGE_KEY) ?? '{}')
@@ -282,17 +366,28 @@ onMounted(async () => {
         <div class="flex items-center gap-2">
           <GeneralIcon icon="ncDatabase" class="w-4 h-4 text-nc-content-brand" />
           <span class="text-captionBold text-nc-content-gray-emphasis">Demo base</span>
-          <span v-if="demo" class="text-captionSm text-nc-content-gray-muted truncate">
-            Design Playground · {{ Object.keys(demo.views).length }} views
+          <span v-if="demo" class="min-w-0 text-captionSm text-nc-content-gray-muted truncate">
+            {{ DEMO_BASE_TITLE }} · {{ demoViewLabels.length }} views
           </span>
-          <div class="ml-auto">
+          <div class="ml-auto flex items-center gap-2">
+            <NcButton
+              v-if="demo"
+              size="small"
+              type="text"
+              :loading="isDeletingDemo"
+              :disabled="isCheckingDemo || isSeeding"
+              data-testid="nc-playground-live-delete-demo"
+              @click="confirmDeleteDemo"
+            >
+              Delete demo base
+            </NcButton>
             <NcButton
               size="small"
               :type="demo ? 'secondary' : 'primary'"
               :loading="isSeeding"
-              :disabled="isCheckingDemo"
+              :disabled="isCheckingDemo || isDeletingDemo"
               data-testid="nc-playground-live-seed"
-              @click="createDemo"
+              @click="onSeedClick"
             >
               {{ demo ? 'Recreate' : 'Create demo base' }}
             </NcButton>
@@ -300,7 +395,10 @@ onMounted(async () => {
         </div>
         <p v-if="!demo && !steps.length" class="text-captionSm text-nc-content-gray-muted mt-2">
           Creates a base with a Projects table holding every common field type, 30 rows, a linked Teams table, and Grid, Gallery,
-          Kanban, Calendar, Form and Timeline views. Recreate deletes the previous demo base first.
+          Kanban, Calendar and Form views, plus Timeline where your plan includes it.
+        </p>
+        <p v-else-if="demo && !steps.length" class="text-captionSm text-nc-content-gray-muted mt-2">
+          Projects and Teams tables with {{ demoViewLabels.join(', ') }} views.
         </p>
         <div v-if="steps.length" class="mt-3 flex flex-col gap-1.5">
           <div v-for="step in steps" :key="step.key" class="flex items-start gap-2">
@@ -363,7 +461,9 @@ onMounted(async () => {
           data-testid="nc-playground-live-table"
           @change="(id: string) => selectTarget(selectedBaseId!, id)"
         >
-          <a-select-option v-for="t in tables" :key="t.id" :value="t.id" :label="t.title">{{ t.title }}</a-select-option>
+          <a-select-option v-for="table in tables" :key="table.id" :value="table.id" :label="table.title">{{
+            table.title
+          }}</a-select-option>
         </NcSelect>
       </div>
 
@@ -394,9 +494,12 @@ onMounted(async () => {
         </NcSelect>
       </template>
 
-      <NcSwitch v-model:checked="isSplit" size="small">
-        <span class="text-captionSm">Side by side</span>
-      </NcSwitch>
+      <!-- NcSwitch renders sibling roots; keep the label on the switch's row -->
+      <div class="flex-none flex items-center whitespace-nowrap">
+        <NcSwitch v-model:checked="isSplit" size="small">
+          <span class="text-captionSm">Side by side</span>
+        </NcSwitch>
+      </div>
 
       <div class="ml-auto flex items-center gap-2">
         <div class="flex items-center p-0.5 rounded-lg bg-nc-bg-gray-light">

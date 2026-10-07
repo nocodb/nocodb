@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { playgroundNav } from './playground/-helper/registry'
+import { PlaygroundTokenEditorOpenInj, playgroundNav } from './playground/-helper/registry'
 import { usePlaygroundTokens } from './playground/-helper/tokens'
 import TokenEditor from './playground/-components/TokenEditor.vue'
 
@@ -9,13 +9,23 @@ definePageMeta({
 
 const route = useRoute()
 
-const { selectedTheme, setTheme } = useTheme()
+const { selectedTheme, clearColorCache, themeRepaintVersion } = useTheme()
 
 const { overrideCount } = usePlaygroundTokens()
 
-const isNavOpen = ref(true)
+/** below md: nav is an overlay drawer */
+const isNarrow = useMediaQuery('(max-width: 819.98px)')
+
+const isBelowXl = useMediaQuery('(max-width: 1279.98px)')
+
+const isNavOpen = ref(!isNarrow.value)
 
 const isTokenEditorOpen = ref(false)
+
+provide(PlaygroundTokenEditorOpenInj, isTokenEditorOpen)
+
+// theme picks here are playground-only: not persisted, and the app's choice is restored on leave
+const appTheme = selectedTheme.value
 
 const mainRef = ref<HTMLElement>()
 
@@ -23,14 +33,22 @@ const mainRef = ref<HTMLElement>()
 const isDocumentScrollLocked = useScrollLock(document.documentElement)
 
 const themeOptions = [
-  { value: 'light', icon: 'ncSun' },
-  { value: 'dark', icon: 'ncMoon' },
-  { value: 'system', icon: 'ncMonitor' },
+  { value: 'light', label: 'Light', icon: 'ncSun' },
+  { value: 'dark', label: 'Dark', icon: 'ncMoon' },
+  { value: 'system', label: 'System', icon: 'ncMonitor' },
 ] as const
 
-const activeItem = computed(() =>
-  playgroundNav.flatMap((s) => s.items).find((item) => route.path === item.path || route.path.startsWith(`${item.path}/`)),
-)
+const navItems = playgroundNav.flatMap((s) => s.items)
+
+const activeItem = computed(() => {
+  // `expanded` redirects to the grid with `?rowId=`
+  if (route.query.rowId && route.path.startsWith('/playground/views/grid')) {
+    return navItems.find((item) => item.path === '/playground/views/expanded')
+  }
+  return navItems.find((item) => route.path === item.path || route.path.startsWith(`${item.path}/`))
+})
+
+useTitle(computed(() => `${activeItem.value?.name ?? 'Overview'} | Playground`))
 
 /** until then, autofocus from a demo mounting (NcList search, editing cells) is undone instead of scrolling to it */
 let settleUntil = 0
@@ -55,7 +73,22 @@ for (const event of ['wheel', 'pointerdown', 'keydown', 'touchstart']) {
   useEventListener(mainRef, event, () => (settleUntil = 0), { passive: true })
 }
 
-watch(() => route.path, settle)
+watch(
+  () => route.path,
+  () => {
+    settle()
+    if (isNarrow.value) isNavOpen.value = false
+  },
+)
+
+watch(isNarrow, (narrow) => {
+  isNavOpen.value = !narrow
+})
+
+// keep usable width for the page while the editor is open
+watch(isTokenEditorOpen, (open) => {
+  if (open && isBelowXl.value) isNavOpen.value = false
+})
 
 onMounted(() => {
   isDocumentScrollLocked.value = true
@@ -65,14 +98,20 @@ onMounted(() => {
 onBeforeUnmount(() => {
   isDocumentScrollLocked.value = false
   document.getElementById('nc-playground-tokens')?.remove()
+  selectedTheme.value = appTheme
+  // the canvas grid cached the overridden token colours
+  clearColorCache()
+  themeRepaintVersion.value++
 })
 </script>
 
 <template>
-  <div class="nc-playground h-full w-full flex bg-nc-bg-default text-nc-content-gray overflow-hidden">
+  <div class="nc-playground relative h-full w-full flex bg-nc-bg-default text-nc-content-gray overflow-hidden">
+    <div v-if="isNavOpen && isNarrow" class="absolute inset-0 z-40 bg-black/40" @click="isNavOpen = false" />
     <aside
       v-if="isNavOpen"
       class="nc-playground-sidebar flex-none w-60 h-full flex flex-col border-r-1 border-nc-border-gray-medium bg-nc-bg-default select-none"
+      :class="{ 'absolute inset-y-0 left-0 z-50 shadow-lg': isNarrow }"
     >
       <div class="flex-none h-14 px-2 flex items-center border-b-1 border-nc-border-gray-light">
         <NuxtLink
@@ -92,19 +131,28 @@ onBeforeUnmount(() => {
         <div v-for="section in playgroundNav" :key="section.title" class="mb-2">
           <div class="nc-pg-section-header">{{ section.title }}</div>
           <div class="px-2">
-            <NcSidebarMenuItem
+            <NuxtLink
               v-for="item in section.items"
               :key="item.path"
-              :icon="item.icon"
-              :active="activeItem?.path === item.path"
-              class="!h-8 !my-0.5"
-              @click="navigateTo(item.path)"
+              :to="item.path"
+              class="nc-pg-nav-link block !no-underline rounded-md focus-visible:outline-none focus-visible:shadow-selected"
             >
-              {{ item.name }}
-            </NcSidebarMenuItem>
+              <NcSidebarMenuItem :icon="item.icon" :active="activeItem?.path === item.path" class="!h-8 !my-0.5">
+                {{ item.name }}
+              </NcSidebarMenuItem>
+            </NuxtLink>
           </div>
         </div>
       </nav>
+      <div class="flex-none px-2 py-2 border-t-1 border-nc-border-gray-light">
+        <NuxtLink
+          to="/"
+          class="nc-pg-nav-link block !no-underline rounded-md focus-visible:outline-none focus-visible:shadow-selected"
+          data-testid="nc-playground-back-to-app"
+        >
+          <NcSidebarMenuItem icon="ncArrowLeft" class="!h-8 !my-0">Back to app</NcSidebarMenuItem>
+        </NuxtLink>
+      </div>
     </aside>
 
     <div class="flex-1 min-w-0 h-full flex flex-col">
@@ -115,19 +163,23 @@ onBeforeUnmount(() => {
           </template>
         </NcButton>
         <div class="min-w-0 flex items-center gap-2">
-          <span class="text-captionBold text-nc-content-gray-emphasis truncate">{{ activeItem?.name ?? 'Overview' }}</span>
-          <span v-if="activeItem" class="text-captionSm text-nc-content-gray-muted truncate hidden md:inline">
+          <span class="flex-none text-captionBold text-nc-content-gray-emphasis whitespace-nowrap">
+            {{ activeItem?.name ?? 'Overview' }}
+          </span>
+          <span v-if="activeItem" class="text-captionSm text-nc-content-gray-muted truncate hidden lg:inline">
             {{ activeItem.description }}
           </span>
         </div>
 
         <div class="ml-auto flex items-center gap-2">
           <div class="flex items-center p-0.5 rounded-lg bg-nc-bg-gray-light">
-            <NcTooltip v-for="opt in themeOptions" :key="opt.value" :title="opt.value" :arrow="false">
+            <NcTooltip v-for="opt in themeOptions" :key="opt.value" :title="opt.label" :arrow="false">
               <button
                 class="w-7 h-6 rounded-md flex items-center justify-center text-nc-content-gray-muted"
                 :class="{ 'bg-nc-bg-default shadow-sm !text-nc-content-gray-emphasis': selectedTheme === opt.value }"
-                @click="setTheme(opt.value)"
+                :aria-label="opt.label"
+                :aria-pressed="selectedTheme === opt.value"
+                @click="selectedTheme = opt.value"
               >
                 <GeneralIcon :icon="opt.icon" class="w-3.5 h-3.5" />
               </button>
@@ -144,7 +196,7 @@ onBeforeUnmount(() => {
               <span>Tokens</span>
               <span
                 v-if="overrideCount"
-                class="min-w-4 h-4 px-1 rounded-full bg-nc-fill-red-medium text-white text-captionXsBold flex items-center justify-center"
+                class="min-w-4 h-4 px-1 rounded-full bg-nc-bg-brand text-nc-content-brand text-captionXsBold flex items-center justify-center"
               >
                 {{ overrideCount }}
               </span>
@@ -153,11 +205,15 @@ onBeforeUnmount(() => {
         </div>
       </header>
 
-      <div class="flex-1 min-h-0 flex">
+      <div class="relative flex-1 min-h-0 flex">
         <main ref="mainRef" class="nc-playground-main flex-1 min-w-0 h-full overflow-auto nc-scrollbar-thin bg-nc-bg-default">
           <NuxtPage />
         </main>
-        <TokenEditor v-if="isTokenEditorOpen" class="flex-none w-[400px] h-full border-l-1 border-nc-border-gray-medium" />
+        <TokenEditor
+          v-if="isTokenEditorOpen"
+          class="flex-none w-full max-w-[400px] h-full border-l-1 border-nc-border-gray-medium"
+          :class="{ 'absolute inset-y-0 right-0 z-30 shadow-lg': isNarrow }"
+        />
       </div>
     </div>
   </div>

@@ -67,7 +67,7 @@ provide(ReadonlyInj, ref(false))
 useExpandedFormDetachedProvider()
 UseDetachedLongTextProvider()
 
-useProvideViewColumns(activeView, meta, () => reloadViewDataEventHook?.trigger())
+const { loadViewColumns } = useProvideViewColumns(activeView, meta, () => reloadViewDataEventHook?.trigger())
 
 useProvideViewGroupBy(activeView, meta, xWhere)
 
@@ -90,16 +90,30 @@ const componentName = computed(
     }[props.kind]),
 )
 
+const rowCount = computed(() => getMockSession()?.db.rows.length ?? 0)
+
+const unmockedLabel = computed(
+  () => `${unmockedRequests.value.length} unmocked request${unmockedRequests.value.length === 1 ? '' : 's'}`,
+)
+
 const headerNote = computed(() => {
   if (route.query.rowId) return `with record #${route.query.rowId} expanded`
   if (props.kind === 'map') return 'map tiles load from the configured tile server'
   return ''
 })
 
-function resetData() {
-  const rows = getMockSession()?.db.rows
-  if (!rows) return
-  rows.splice(0, rows.length, ...buildRows())
+/** Restores the seed rows and drops saved filters, sorts, groups and column changes. */
+async function resetData() {
+  const db = getMockSession()?.db
+  if (!db) return
+  db.rows.splice(0, db.rows.length, ...buildRows())
+  db.filters.splice(0, db.filters.length)
+  db.sorts.splice(0, db.sorts.length)
+  db.viewColumnPatches = {}
+  eventBus.emit(SmartsheetStoreEvents.FILTER_RELOAD)
+  eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+  await loadViewColumns()
+  reloadViewMetaEventHook.trigger()
   reloadViewDataEventHook.trigger()
 }
 
@@ -111,14 +125,14 @@ defineExpose({ reload: () => reloadViewDataEventHook.trigger(), resetData })
     <div class="flex-none flex items-center gap-2 px-3 h-9 border-b-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight">
       <GeneralIcon icon="ncInfo" class="w-3.5 h-3.5 text-nc-content-gray-muted" />
       <span class="text-captionSm text-nc-content-gray-subtle">
-        Real <code>{{ componentName }}</code> on 40 in-memory rows<template v-if="headerNote">, {{ headerNote }}</template> —
-        edits stay in this tab.
+        Real <code>{{ componentName }}</code> on {{ rowCount }} in-memory rows{{ headerNote ? `, ${headerNote}` : '' }} — edits
+        stay in this tab.
       </span>
       <slot name="controls" />
       <div class="ml-auto flex items-center gap-2">
         <NcDropdown v-if="unmockedRequests.length" placement="bottomRight">
           <NcButton size="xxsmall" type="secondary">
-            <span class="text-captionXs text-nc-content-orange-dark">{{ unmockedRequests.length }} unmocked requests</span>
+            <span class="text-captionXs text-nc-content-orange-dark">{{ unmockedLabel }}</span>
           </NcButton>
           <template #overlay>
             <div class="p-2 max-w-[520px] max-h-[360px] overflow-auto nc-scrollbar-thin">

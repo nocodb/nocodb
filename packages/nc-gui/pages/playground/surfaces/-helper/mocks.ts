@@ -42,7 +42,7 @@ interface ViewColumnPatch {
 interface SurfaceState {
   filters: FilterType[]
   sorts: SortType[]
-  hooks: HookType[]
+  hooks: (HookType & { condition?: boolean; created_at?: string })[]
   viewColumns: Record<string, ViewColumnPatch>
 }
 
@@ -109,7 +109,7 @@ function initialState(): SurfaceState {
         notification: { type: 'URL', payload: { method: 'POST', path: 'https://crm.acme.dev/api/launches' } },
         created_at: '2026-09-02T16:40:00.000Z',
       },
-    ] as unknown as HookType[],
+    ],
     viewColumns: {
       [COL.status]: { group_by: true, group_by_order: 1, group_by_sort: 'asc' },
       [COL.owner]: { group_by: true, group_by_order: 2, group_by_sort: 'desc' },

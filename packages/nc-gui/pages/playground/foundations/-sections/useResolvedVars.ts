@@ -1,3 +1,5 @@
+import { getI18n } from '~/plugins/a.i18n'
+
 /**
  * Resolves CSS custom properties against probe elements so values follow the
  * token editor and theme toggle. `dark` resolves inside a `[theme='dark']` probe,
@@ -40,11 +42,30 @@ export function useResolvedVars() {
 }
 
 export function toHex(value: string) {
+  const short = value.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])?$/i)
+  if (short)
+    return `#${short
+      .slice(1)
+      .map((v) => (v ?? '').repeat(2))
+      .join('')}`.toLowerCase()
   const m = value.match(/^rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/i)
   if (!m) return value
   return `#${[m[1], m[2], m[3]].map((v) => Number(v).toString(16).padStart(2, '0')).join('')}`
 }
 
+/** True when dark text reads better than white on `value` (WCAG relative luminance). */
+export function isLightColor(value: string) {
+  const m = toHex(value).match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i)
+  if (!m) return true
+  const [r, g, b] = [m[1], m[2], m[3]].map((v) => {
+    const c = parseInt(v, 16) / 255
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+  })
+  // above ~0.18 black text out-contrasts white
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.18
+}
+
 export function copyText(text: string) {
-  navigator.clipboard?.writeText(text).then(() => message.success(`Copied ${text}`))
+  const { t } = getI18n().global
+  navigator.clipboard?.writeText(text).then(() => message.success(t('msg.success.copiedValue', { value: text })))
 }

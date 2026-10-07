@@ -20,14 +20,16 @@ import { playgroundNav } from './-helper/registry'
           v-for="item in section.items"
           :key="item.path"
           :to="item.path"
-          class="group block p-4 !no-underline bg-nc-bg-default rounded-xl border-1 border-nc-border-gray-medium hover:border-nc-border-brand hover:shadow-hover transition-all"
+          class="group block p-4 !no-underline bg-nc-bg-default rounded-xl border-1 border-nc-border-gray-medium hover:border-nc-border-brand hover:shadow-hover focus-visible:outline-none focus-visible:border-nc-border-brand focus-visible:shadow-selected transition-all"
         >
           <div class="flex items-start gap-3">
             <div class="flex-none w-9 h-9 rounded-lg bg-nc-bg-brand flex items-center justify-center">
               <GeneralIcon :icon="item.icon" class="w-4.5 h-4.5 text-nc-content-brand" />
             </div>
             <div class="flex-1 min-w-0">
-              <div class="text-captionBold text-nc-content-gray-emphasis group-hover:text-nc-content-brand transition-colors">
+              <div
+                class="text-captionBold text-nc-content-gray-emphasis group-hover:text-nc-content-brand group-focus-visible:text-nc-content-brand transition-colors"
+              >
                 {{ item.name }}
               </div>
               <div class="text-captionSm text-nc-content-gray-subtle mt-1">{{ item.description }}</div>

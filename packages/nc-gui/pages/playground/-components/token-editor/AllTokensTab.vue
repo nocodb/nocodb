@@ -18,6 +18,9 @@ const group = ref('all')
 
 const showOnlyChanged = ref(false)
 
+/** token names whose last typed value wasn't a colour */
+const invalidValues = ref<string[]>([])
+
 const groups = computed(() => ['all', ...new Set(tokenDefs.value.map((d) => d.group))])
 
 const filteredDefs = computed(() => {
@@ -44,6 +47,18 @@ function currentValue(def: TokenDef) {
 function swatch(def: TokenDef) {
   const value = currentValue(def)
   return isHex(value) || value.startsWith('var(') || value.startsWith('rgb') ? value : 'transparent'
+}
+
+/** palette and system tokens are colours; spacing and the rest are free-form */
+function onValueInput(def: TokenDef, raw: string) {
+  const value = raw.trim()
+  const isColourToken = def.group.startsWith('Palette') || def.group.startsWith('System')
+  if (value && isColourToken && !CSS.supports('color', value)) {
+    if (!invalidValues.value.includes(def.name)) invalidValues.value = [...invalidValues.value, def.name]
+    return
+  }
+  invalidValues.value = invalidValues.value.filter((n) => n !== def.name)
+  setToken(props.mode, def.name, value || null)
 }
 
 onMounted(() => {
@@ -99,9 +114,14 @@ onMounted(() => {
           </div>
           <input
             :value="currentValue(def)"
-            class="w-full bg-transparent outline-none text-captionXs font-mono text-nc-content-gray-muted"
-            @change="setToken(mode, def.name, ($event.target as HTMLInputElement).value.trim() || null)"
+            class="w-full bg-transparent outline-none text-captionXs font-mono"
+            :class="invalidValues.includes(def.name) ? 'text-nc-content-red-dark' : 'text-nc-content-gray-muted'"
+            :aria-invalid="invalidValues.includes(def.name)"
+            @change="onValueInput(def, ($event.target as HTMLInputElement).value)"
           />
+          <div v-if="invalidValues.includes(def.name)" class="text-captionXs text-nc-content-red-dark">
+            {{ $t('msg.invalidColor') }}
+          </div>
         </div>
         <NcButton v-if="def.name in overrides[mode]" size="xxsmall" type="text" icon-only @click="setToken(mode, def.name, null)">
           <template #icon>

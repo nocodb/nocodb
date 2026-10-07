@@ -11,6 +11,8 @@ type ProgressStatus = JobStatus | 'progress' | 'warning'
 
 const progressRef = ref<{ pushProgress: (..._args: [string, ProgressStatus]) => void }>()
 
+const isMaintenanceChecked = ref(false)
+
 const loaderSizes = ['small', 'medium', 'regular', 'large', 'xlarge'] as const
 
 const lockedViews = [
@@ -40,6 +42,11 @@ function replayLog() {
 }
 
 onMounted(replayLog)
+
+// the real button navigates to '/', out of the playground
+function onGoHome() {
+  message.info('Demo only — navigation is disabled in the playground')
+}
 </script>
 
 <template>
@@ -114,8 +121,9 @@ onMounted(replayLog)
     description="Data-driven: these render only when the server reports a maintenance window or a newer release, so an empty card is expected."
   >
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-      <PgDemo label="MaintenanceAlert">
-        <GeneralMaintenanceAlert />
+      <PgDemo label="MaintenanceAlert" hint="fetches the remote config on mount, so it loads on demand">
+        <GeneralMaintenanceAlert v-if="isMaintenanceChecked" />
+        <NcButton v-else size="small" type="secondary" @click="isMaintenanceChecked = true">Check maintenance</NcButton>
       </PgDemo>
       <PgDemo label="ReleaseInfo">
         <GeneralReleaseInfo />
@@ -126,7 +134,13 @@ onMounted(replayLog)
   <PgSection id="page-not-found" title="Page does not exist" source="GeneralPageDoesNotExist">
     <PgDemo :padded="false">
       <div class="h-[480px] overflow-hidden relative">
-        <GeneralPageDoesNotExist class="!h-full !min-h-0" />
+        <GeneralPageDoesNotExist class="!h-full !min-h-0">
+          <template #actions>
+            <NcButton class="!text-base" @click="onGoHome">
+              {{ $t('activity.goBackHome') }}
+            </NcButton>
+          </template>
+        </GeneralPageDoesNotExist>
       </div>
     </PgDemo>
   </PgSection>

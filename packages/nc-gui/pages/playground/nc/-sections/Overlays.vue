@@ -99,6 +99,10 @@ function openComposableModal(type: ConfirmType) {
               show{{ t.charAt(0).toUpperCase() + t.slice(1) }}Modal
             </NcButton>
           </div>
+          <div class="text-captionXs text-nc-content-gray-muted">
+            NcModalConfirm defaults <code>keyboard</code> to false (Esc ignored) — these pass :keyboard="true" to match the
+            composable.
+          </div>
         </div>
       </PgDemo>
 
@@ -111,7 +115,8 @@ function openComposableModal(type: ConfirmType) {
       </PgDemo>
 
       <PgDemo label="NcPopover">
-        <NcPopover v-model="isPopoverOpen" placement="bottom" width="280px">
+        <!-- inline-block: NcPopover centres on its trigger wrapper, which is otherwise full width -->
+        <NcPopover v-model="isPopoverOpen" placement="bottom" width="280px" class="inline-block">
           <template #trigger="{ open }">
             <NcButton size="small" type="secondary" @click="open">Open popover</NcButton>
           </template>
@@ -126,7 +131,11 @@ function openComposableModal(type: ConfirmType) {
       </PgDemo>
     </div>
 
-    <NcModal v-model:visible="isModalOpen" :size="activeModalSize ?? 'md'">
+    <NcModal
+      v-model:visible="isModalOpen"
+      :size="activeModalSize ?? 'md'"
+      :height="activeModalSize === 'xs' ? 'auto' : undefined"
+    >
       <template #header>
         <div class="flex items-center gap-2 w-full">
           <GeneralIcon icon="table" class="w-5 h-5" />
@@ -151,12 +160,17 @@ function openComposableModal(type: ConfirmType) {
       :title="CONFIRM_COPY[activeConfirmType].title"
       :content="CONFIRM_COPY[activeConfirmType].content"
       :ok-text="CONFIRM_COPY[activeConfirmType].okText"
+      :keyboard="true"
       @ok="isConfirmOpen = false"
       @cancel="isConfirmOpen = false"
     />
 
-    <NcDrawer v-model:visible="isDrawerOpen" :placement="activeDrawer ?? 'bottom'" title="Record details" closable>
-      <div class="p-4 flex flex-col gap-3">
+    <NcDrawer v-model:visible="isDrawerOpen" :placement="activeDrawer ?? 'bottom'" closable>
+      <!-- NcDrawer's header has no inset; pad it to the body's px-4 -->
+      <template #header>
+        <div class="px-4 text-sm font-semibold text-nc-content-gray">Record details</div>
+      </template>
+      <div class="pt-2 flex flex-col gap-3">
         <div class="text-caption text-nc-content-gray-subtle">placement="{{ activeDrawer }}"</div>
         <a-input class="nc-input-sm nc-input-shadow" value="Spring launch campaign" />
         <NcButton size="small" @click="isDrawerOpen = false">Close</NcButton>

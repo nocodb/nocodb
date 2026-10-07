@@ -3,6 +3,17 @@ import type { Api } from 'nocodb-sdk'
 
 export const DEMO_STORAGE_KEY = 'nc-playground-demo-base'
 
+export const DEMO_BASE_TITLE = 'Design Playground'
+
+export const DEMO_VIEW_LABELS: Record<DemoViewKey, string> = {
+  grid: 'Grid',
+  gallery: 'Gallery',
+  kanban: 'Kanban',
+  calendar: 'Calendar',
+  form: 'Form',
+  timeline: 'Timeline',
+}
+
 export type DemoViewKey = 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form' | 'timeline'
 
 export interface DemoBase {
@@ -32,7 +43,7 @@ interface V3Table {
 }
 
 export const SEED_STEPS: Array<Pick<SeedStep, 'key' | 'label'>> = [
-  { key: 'base', label: 'Create base "Design Playground"' },
+  { key: 'base', label: `Create base "${DEMO_BASE_TITLE}"` },
   { key: 'teams', label: 'Create Teams table + rows' },
   { key: 'table', label: 'Create Projects table with every field type' },
   { key: 'derived', label: 'Add links, lookup, rollup, formula, barcode, QR' },
@@ -180,7 +191,7 @@ export async function seedDemoBase({
     }
   }
 
-  const base = await run('base', () => createBase('Design Playground'))
+  const base = await run('base', () => createBase(DEMO_BASE_TITLE))
   const baseId = base.id!
 
   // v3 data API caps bulk writes at 10 records per request

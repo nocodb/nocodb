@@ -9,6 +9,7 @@ import {
   COMPANY_TABLE_ID,
   cellGroups,
   cellsBase,
+  cellsSource,
   cellsTableMeta,
   cellsUsers,
   companyTableMeta,
@@ -62,6 +63,12 @@ function resetValues() {
 provide(MetaInj, meta)
 
 provide(IsPublicInj, ref(false))
+
+// useRoles reads source restrictions from here; without it every dataEdit check warns
+provide(
+  ActiveSourceInj,
+  computed(() => cellsSource),
+)
 
 provide(ReloadViewDataHookInj, createEventHook())
 
@@ -163,7 +170,7 @@ onBeforeUnmount(() => {
 .pg-cells-grid {
   display: grid;
   /* the expanded form gives fields the most room */
-  grid-template-columns: 200px repeat(2, minmax(0, 1fr)) minmax(0, 1.3fr);
+  grid-template-columns: 252px repeat(2, minmax(0, 1fr)) minmax(0, 1.3fr);
   align-items: stretch;
 }
 </style>

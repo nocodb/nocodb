@@ -73,7 +73,9 @@ const isReady = computed(() => !!meta.value && activeView.value?.id === SURFACE_
       v-if="unmockedRequests.length"
       class="mb-4 px-3 py-2 rounded-lg border-1 border-nc-border-orange bg-nc-orange-50 text-captionSm"
     >
-      <div class="text-captionSmBold text-nc-content-orange-dark mb-1">{{ unmockedRequests.length }} unmocked requests</div>
+      <div class="text-captionSmBold text-nc-content-orange-dark mb-1">
+        {{ unmockedRequests.length }} unmocked request{{ unmockedRequests.length === 1 ? '' : 's' }}
+      </div>
       <div
         v-for="req in unmockedRequests"
         :key="`${req.method}${req.url}${req.operation}`"

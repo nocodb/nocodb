@@ -60,16 +60,6 @@ const validators = computed(() => ({
       },
     },
   ],
-  logo_uri: [
-    {
-      validator: (_: any, value: string) => {
-        if (!value) {
-          return Promise.reject(new Error('Please select a valid File'))
-        }
-        return Promise.resolve()
-      },
-    },
-  ],
   redirect_uris: [
     { required: true, message: 'At least one redirect URI is required' },
     {
@@ -192,7 +182,7 @@ function copyToClipboard(text: string, label: string) {
       </div>
     </template>
 
-    <div class="flex bg-nc-bg-default rounded-b-2xl h-[calc(100%_-_66px)]">
+    <div class="flex flex-1 min-h-0 bg-nc-bg-default rounded-b-2xl">
       <div
         ref="containerElem"
         class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-24 py-6 mx-auto"

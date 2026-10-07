@@ -1,5 +1,5 @@
 import type { AxiosAdapter, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
-import type { ColumnType, ListType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, FilterType, ListType, SelectOptionsType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, ViewTypes } from 'nocodb-sdk'
 import { MOCK_BASE_ID, MOCK_TASKS_TABLE_ID, MOCK_USERS, buildAudits, mockBase } from './mock-data'
 import type { MockComment } from './mock-data'
@@ -17,6 +17,11 @@ export interface MockDb {
   rows: Record<string, any>[]
   comments: MockComment[]
   user: Record<string, any>
+  /** toolbar config saved through filter/sort/view-column ops, across all mock views */
+  filters: FilterType[]
+  sorts: (SortType & { fk_view_id?: string })[]
+  /** view-column overrides keyed by view column id (width, show, group_by, ...) */
+  viewColumnPatches: Record<string, Record<string, unknown>>
 }
 
 const pageInfo = (total: number, offset: number, limit: number) => ({
@@ -36,10 +41,24 @@ function parseBody(data: unknown) {
   }
 }
 
-/** Supports the `(Field,op,value)~and(...)` shapes the toolbar search + kanban stacks send. */
+function parseJson<T>(raw: unknown): T | undefined {
+  if (typeof raw !== 'string' || !raw) return undefined
+  try {
+    return JSON.parse(raw) as T
+  } catch {
+    return undefined
+  }
+}
+
+const isBlank = (v: unknown) => v === null || v === undefined || v === '' || (Array.isArray(v) && !v.length)
+
+/** User cells are addressed by comma-joined ids in group keys and filter values. */
+const userIds = (v: unknown) => (Array.isArray(v) ? v.map((u) => u?.id).join(',') : '')
+
+/** Supports the `(Field,op,value)~and(...)` shapes the toolbar search, kanban stacks and hide-empty-groups send. */
 function applyWhere(rows: Record<string, any>[], where?: string) {
   if (!where) return rows
-  const clauses = [...where.matchAll(/\(([^,()]+),([a-z]+),?([^)]*)\)/g)]
+  const clauses = [...where.matchAll(/\(([^,()]+),([a-z_]+),?([^)]*)\)/g)]
   return rows.filter((row) =>
     clauses.every(([, field, op, raw]) => {
       const value = row[field]
@@ -48,21 +67,108 @@ function applyWhere(rows: Record<string, any>[], where?: string) {
         return String(value ?? '')
           .toLowerCase()
           .includes(needle.toLowerCase())
-      if (op === 'eq') return String(value ?? '') === needle
-      if (op === 'blank') return value === null || value === undefined || value === ''
+      if (op === 'eq' || op === 'gb_eq') return String(value ?? '') === needle
+      if (op === 'blank' || op === 'gb_null') return isBlank(value)
+      if (op === 'notblank') return !isBlank(value)
       return true
     }),
   )
 }
 
-function applySort(rows: Record<string, any>[], columns: ColumnType[], sortArrJson?: string) {
-  let sorts: Array<{ fk_column_id: string; direction: string }> = []
-  try {
-    sorts = sortArrJson ? JSON.parse(sortArrJson) : []
-  } catch {}
+const NO_VALUE_OPS = ['blank', 'notblank', 'empty', 'notempty', 'null', 'notnull', 'checked', 'notchecked', 'gb_null']
+
+function matchFilter(row: Record<string, any>, f: FilterType, columns: ColumnType[]): boolean {
+  const col = columns.find((c) => c.id === f.fk_column_id)
+  // widened: groupby requests also send gb_eq / gb_null
+  const op: string = f.comparison_op ?? 'eq'
+  if (!col) return true
+  const raw = row[col.title!]
+  const value = f.value === null || f.value === undefined ? '' : String(f.value)
+  // the server skips conditions that have no value yet
+  if (!value && !NO_VALUE_OPS.includes(op)) return true
+
+  const isUser = col.uidt === UITypes.User
+  const text = isUser ? userIds(raw) : raw && typeof raw === 'object' ? JSON.stringify(raw) : String(raw ?? '')
+  const items = isUser
+    ? (Array.isArray(raw) ? raw : []).flatMap((u) => [u?.id, u?.email])
+    : text
+        .split(',')
+        .map((x) => x.trim())
+        .filter(Boolean)
+  const wanted = value
+    .split(',')
+    .map((x) => x.trim())
+    .filter(Boolean)
+  const isDate = col.uidt === UITypes.Date || col.uidt === UITypes.DateTime
+  const left = isDate ? text.slice(0, 10) : text
+  const right = isDate ? value.slice(0, 10) : value
+  const numeric = !isDate && left !== '' && !Number.isNaN(Number(left)) && !Number.isNaN(Number(right))
+  const cmp = numeric ? Number(left) - Number(right) : left.localeCompare(right)
+
+  switch (op) {
+    case 'eq':
+    case 'is':
+      return numeric ? cmp === 0 : left.toLowerCase() === right.toLowerCase()
+    case 'neq':
+    case 'isnot':
+      return numeric ? cmp !== 0 : left.toLowerCase() !== right.toLowerCase()
+    case 'like':
+      return text.toLowerCase().includes(value.toLowerCase())
+    case 'nlike':
+      return !text.toLowerCase().includes(value.toLowerCase())
+    case 'gt':
+      return left !== '' && cmp > 0
+    case 'gte':
+      return left !== '' && cmp >= 0
+    case 'lt':
+      return left !== '' && cmp < 0
+    case 'lte':
+      return left !== '' && cmp <= 0
+    case 'blank':
+    case 'empty':
+    case 'null':
+    case 'gb_null':
+      return isBlank(raw)
+    case 'notblank':
+    case 'notempty':
+    case 'notnull':
+      return !isBlank(raw)
+    case 'checked':
+      return !!raw
+    case 'notchecked':
+      return !raw
+    case 'anyof':
+      return wanted.some((w) => items.includes(w))
+    case 'nanyof':
+      return !wanted.some((w) => items.includes(w))
+    case 'allof':
+      return wanted.every((w) => items.includes(w))
+    case 'nallof':
+      return !wanted.every((w) => items.includes(w))
+    // same key the groupby endpoint produced
+    case 'gb_eq':
+      return text === value
+    default:
+      return true
+  }
+}
+
+/** Evaluates a filter tree left to right, each node joined by its own `logical_op`. */
+function matchFilters(row: Record<string, any>, filters: FilterType[], columns: ColumnType[]): boolean {
+  let result: boolean | undefined
+  for (const f of filters) {
+    if (f.enabled === false || f.enabled === 0) continue
+    const ok = f.is_group ? matchFilters(row, f.children ?? [], columns) : matchFilter(row, f, columns)
+    result = result === undefined ? ok : f.logical_op === 'or' ? result || ok : result && ok
+  }
+  return result ?? true
+}
+
+function applySort(rows: Record<string, any>[], columns: ColumnType[], sorts: SortType[]) {
   if (!sorts.length) return rows
   return [...rows].sort((a, b) => {
     for (const s of sorts) {
+      if (s.enabled === false) continue
       const title = columns.find((c) => c.id === s.fk_column_id)?.title
       if (!title) continue
       const av = a[title]
@@ -87,12 +193,33 @@ export function createMockAdapter(
 ): AxiosAdapter {
   let nextId = db.rows.length + 1
 
+  let seq = 0
+
+  const nextKey = (prefix: string) => `${prefix}-${Date.now().toString(36)}${(seq++).toString(36)}`
+
   const tableOf = (id: string) => db.tables[id]
 
-  const listRows = (tableId: string, q: Record<string, any> = {}) => {
+  /** A view's saved filters as a tree (children under `is_group` filters). */
+  const viewFilterTree = (viewId?: string) => {
+    const build = (parentId: string | null): FilterType[] =>
+      db.filters
+        .filter((f) => f.fk_view_id === viewId && (f.fk_parent_id ?? null) === parentId)
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        .map((f) => (f.is_group ? { ...f, children: build(f.id!) } : f))
+    return viewId ? build(null) : []
+  }
+
+  const viewSorts = (viewId?: string) =>
+    db.sorts.filter((s) => viewId && s.fk_view_id === viewId).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+
+  /** Rows as the server would return them: the view's saved filters + sorts, then request-level filters. */
+  const listRows = (tableId: string, q: Record<string, any> = {}, viewId: string | undefined = q.viewId) => {
     if (tableId === MOCK_TASKS_TABLE_ID) return []
     const columns = (tableOf(tableId)?.columns ?? []) as ColumnType[]
-    return applySort(applyWhere(db.rows, q.where), columns, q.sortArrJson)
+    const filters = [...viewFilterTree(viewId), ...(parseJson<FilterType[]>(q.filterArrJson) ?? [])]
+    const rows = applyWhere(db.rows, q.where).filter((r) => matchFilters(r, filters, columns))
+    // the client only sends sortArrJson when it can't save sorts to the view
+    return applySort(rows, columns, parseJson<SortType[]>(q.sortArrJson) ?? viewSorts(viewId))
   }
 
   const page = (rows: Record<string, any>[], q: Record<string, any> = {}) => {
@@ -101,10 +228,10 @@ export function createMockAdapter(
     return { list: rows.slice(offset, offset + limit), pageInfo: pageInfo(rows.length, offset, limit) }
   }
 
-  const grouped = (tableId: string, colId: string, q: Record<string, any> = {}) => {
+  const grouped = (tableId: string, viewId: string, colId: string, q: Record<string, any> = {}) => {
     const col = (tableOf(tableId)?.columns ?? []).find((c) => c.id === colId)
     if (!col) return []
-    const rows = listRows(tableId, q)
+    const rows = listRows(tableId, q, viewId)
     let titles: Array<string | null> = [
       null,
       ...((col.colOptions as SelectOptionsType | undefined)?.options ?? []).map((o) => o.title ?? null),
@@ -118,6 +245,47 @@ export function createMockAdapter(
       const stackRows = rows.filter((r) => (r[col.title!] ?? null) === title || (!title && !r[col.title!]))
       return { key: title ?? '', value: page(stackRows, { offset: 0, limit: q.limit ?? 25 }) }
     })
+  }
+
+  const groupKey = (col: ColumnType, v: unknown) =>
+    isBlank(v) ? '' : col.uidt === UITypes.User ? userIds(v) : v && typeof v === 'object' ? JSON.stringify(v) : String(v)
+
+  /** `GET .../groupby` — one item per distinct value, sorted like `sort=+Title` / `-Title` / `~+Title` (by count). */
+  const groupBy = (tableId: string, viewId: string, q: Record<string, any> = {}) => {
+    const columns = (tableOf(tableId)?.columns ?? []) as ColumnType[]
+    const col = columns.find((c) => c.title === q.column_name)
+    if (!col) return page([], q)
+    const sub = columns.find((c) => c.title === q.subGroupColumnName)
+    const buckets = new Map<string, { value: unknown; rows: Record<string, any>[] }>()
+    for (const row of listRows(tableId, q, viewId)) {
+      const raw = row[col.title!]
+      const key = groupKey(col, raw)
+      if (!buckets.has(key)) buckets.set(key, { value: isBlank(raw) ? null : raw, rows: [] })
+      buckets.get(key)!.rows.push(row)
+    }
+    const sort = String(q.sort ?? '')
+    const byCount = sort.startsWith('~')
+    const dir = sort.replace(/^~/, '').startsWith('-') ? -1 : 1
+    const optionOrder = ((col.colOptions as SelectOptionsType | undefined)?.options ?? []).map((o) => o.title)
+    const groups = [...buckets.entries()].sort(([ak, a], [bk, b]) => {
+      if (byCount) return dir * (a.rows.length - b.rows.length)
+      if (!ak || !bk) return ak ? 1 : bk ? -1 : 0
+      const ai = optionOrder.indexOf(ak)
+      const bi = optionOrder.indexOf(bk)
+      return dir * (ai > -1 && bi > -1 ? ai - bi : ak.localeCompare(bk, undefined, { numeric: true }))
+    })
+    const list = groups.map(([, g]) => ({
+      [col.title!]: g.value,
+      count: g.rows.length,
+      ...(sub ? { __sub_group_count__: new Set(g.rows.map((r) => groupKey(sub, r[sub.title!]))).size } : {}),
+    }))
+    return page(list, q)
+  }
+
+  const groupByCount = (tableId: string, viewId: string, q: Record<string, any> = {}) => {
+    const col = (tableOf(tableId)?.columns ?? []).find((c) => c.title === q.column_name)
+    if (!col) return 0
+    return new Set(listRows(tableId, q, viewId).map((r) => groupKey(col, r[col.title!]))).size
   }
 
   const updateRow = (rowId: string, data: Record<string, any>) => {
@@ -150,11 +318,22 @@ export function createMockAdapter(
         aggregation: c.uidt === UITypes.Currency ? 'sum' : c.uidt === UITypes.Checkbox ? 'checked' : 'none',
         // list view columns belong to a level
         ...(view?.type === ViewTypes.LIST ? { fk_level_id: (view.view as ListType)?.levels?.[0]?.id } : {}),
+        ...db.viewColumnPatches[`vc-${viewId}-${c.id}`],
       }))
   }
 
-  const aggregate = (tableId: string, payload: any) => {
-    const rows = listRows(tableId)
+  const patchViewColumn = (viewColumnId: string | undefined, payload: unknown) => {
+    if (!viewColumnId) return {}
+    db.viewColumnPatches[viewColumnId] = {
+      ...db.viewColumnPatches[viewColumnId],
+      ...(payload && typeof payload === 'object' ? payload : {}),
+    }
+    const viewId = Object.keys(db.views).find((id) => viewColumnId.startsWith(`vc-${id}-`))
+    return (viewId && viewColumns(viewId).find((c) => c.id === viewColumnId)) || { id: viewColumnId }
+  }
+
+  const aggregate = (tableId: string, payload: any, q: Record<string, any> = {}) => {
+    const rows = listRows(tableId, q, payload?.viewId)
     const out: Record<string, any> = {}
     // no explicit list = every view column's configured aggregation, like the server
     const aggregations: Array<{ field: string; type: string }> = Array.isArray(payload?.aggregation)
@@ -209,7 +388,7 @@ export function createMockAdapter(
         }
       case 'bulkDataList':
         return Object.fromEntries(
-          (Array.isArray(payload) ? payload : []).map((req: any) => [req.alias, page(listRows(tableId, req), req)]),
+          (Array.isArray(payload) ? payload : []).map((req: any) => [req.alias, page(listRows(tableId, req, q.viewId), req)]),
         )
       case 'dataList':
         return page(listRows(tableId, q), q)
@@ -308,21 +487,106 @@ export function createMockAdapter(
         return { list, pageInfo: { isLastPage: true } }
       }
       case 'dataAggregate':
-      case 'bulkAggregate':
-        return aggregate(tableId, {
+      case 'bulkAggregate': {
+        const agg = {
           viewId: q.viewId,
           aggregation: typeof q.aggregation === 'string' ? JSON.parse(q.aggregation) : q.aggregation ?? payload?.aggregation,
-        })
+        }
+        // bulk = one result per group, keyed by the alias the caller generated
+        if (Array.isArray(payload))
+          return Object.fromEntries(payload.map((p: Record<string, any>) => [p.alias, aggregate(tableId, agg, p)]))
+        return aggregate(tableId, agg, q)
+      }
       case 'viewRowColorInfo':
         return null
       case 'dataUpdate':
         return updateRow(q.rowId ?? payload?.Id, payload)
       case 'dataInsert':
         return insertRow(payload)
-      // toolbar meta for a fresh view: nothing configured yet
       case 'filterList':
+        return { list: viewFilterTree(q.viewId).map(({ children: _, ...f }) => f) }
       case 'filterChildrenList':
+        return {
+          list: db.filters.filter((f) => f.fk_parent_id === q.filterId).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
+        }
+      case 'filterCreate': {
+        const { children: _c, status: _s, ...rest } = (payload ?? {}) as FilterType & { status?: string }
+        const filter: FilterType = { ...rest, id: nextKey('pgf'), fk_view_id: q.viewId, base_id: MOCK_BASE_ID }
+        db.filters.push(filter)
+        return filter
+      }
+      case 'filterUpdate': {
+        const filter = db.filters.find((f) => f.id === q.filterId)
+        const { children: _c, status: _s, ...rest } = (payload ?? {}) as FilterType & { status?: string }
+        if (filter) Object.assign(filter, rest, { id: filter.id })
+        return filter ?? { ...rest, id: q.filterId }
+      }
+      case 'filterDelete': {
+        const doomed = new Set<string>([q.filterId])
+        // a group takes its nested conditions with it
+        for (let grew = true; grew; ) {
+          grew = false
+          for (const f of db.filters) {
+            if (f.fk_parent_id && doomed.has(f.fk_parent_id) && !doomed.has(f.id!)) {
+              doomed.add(f.id!)
+              grew = true
+            }
+          }
+        }
+        db.filters.splice(0, db.filters.length, ...db.filters.filter((f) => !doomed.has(f.id!)))
+        return {}
+      }
       case 'sortList':
+        return { list: viewSorts(q.viewId) }
+      case 'sortCreate': {
+        const sort: SortType = {
+          order: viewSorts(q.viewId).length + 1,
+          ...(payload ?? {}),
+          id: nextKey('pgs'),
+          fk_view_id: q.viewId,
+          base_id: MOCK_BASE_ID,
+        }
+        db.sorts.push(sort)
+        return sort
+      }
+      case 'sortUpdate': {
+        const sort = db.sorts.find((s) => s.id === q.sortId)
+        if (sort) Object.assign(sort, payload ?? {}, { id: sort.id })
+        return sort ?? { ...(payload ?? {}), id: q.sortId }
+      }
+      case 'sortDelete': {
+        const idx = db.sorts.findIndex((s) => s.id === q.sortId)
+        if (idx > -1) db.sorts.splice(idx, 1)
+        return {}
+      }
+      case 'viewColumnUpdate':
+        return patchViewColumn(q.columnId, payload)
+      case 'gridColumnUpdate':
+        return patchViewColumn(q.gridViewColumnId, payload)
+      case 'timelineColumnUpdate':
+        return patchViewColumn(q.timelineViewColumnId, payload)
+      case 'listColumnUpdate':
+        return patchViewColumn(q.listViewColumnId, payload)
+      case 'ganttColumnUpdate':
+        return patchViewColumn(q.ganttViewColumnId, payload)
+      case 'showAllColumns':
+      case 'hideAllColumns':
+        for (const vc of viewColumns(q.viewId)) {
+          const col = tableOf(tableId)?.columns?.find((c) => c.id === vc.fk_column_id)
+          if (!col?.pv) patchViewColumn(vc.id, { show: operation === 'showAllColumns' })
+        }
+        return {}
+      case 'viewUpdate': {
+        const view = db.views[q.viewId]
+        if (view) Object.assign(view, payload ?? {})
+        return view ?? {}
+      }
+      case 'gridViewUpdate': {
+        const view = db.views[q.viewId]
+        if (view) view.view = { ...(view.view as object), ...(payload ?? {}) } as typeof view.view
+        return view?.view ?? {}
+      }
+      // toolbar meta that never gets configured here
       case 'buttonFilterList':
       case 'linkFilterList':
       case 'widgetFilterList':
@@ -356,28 +620,33 @@ export function createMockAdapter(
 
   // first match wins — more specific paths first
   const routes: Array<[RegExp, Handler]> = [
-    [/\/api\/v1\/db\/data\/[^/]+\/[^/]+\/([^/]+)\/views\/[^/]+\/group\/([^/?]+)/, (m, _, q) => grouped(m[1], m[2], q)],
-    [/\/api\/v1\/db\/data\/[^/]+\/[^/]+\/([^/]+)\/views\/[^/]+\/count/, (m, _, q) => ({ count: listRows(m[1], q).length })],
+    [/\/api\/v1\/db\/data\/[^/]+\/[^/]+\/([^/]+)\/views\/([^/]+)\/groupby\/count$/, (m, _, q) => groupByCount(m[1], m[2], q)],
+    [/\/api\/v1\/db\/data\/[^/]+\/[^/]+\/([^/]+)\/views\/([^/]+)\/groupby$/, (m, _, q) => groupBy(m[1], m[2], q)],
+    [/\/api\/v1\/db\/data\/[^/]+\/[^/]+\/([^/]+)\/views\/([^/]+)\/group\/([^/?]+)/, (m, _, q) => grouped(m[1], m[2], m[3], q)],
     [
-      /\/api\/v1\/db\/calendar-data\/[^/]+\/[^/]+\/([^/]+)\/views\/[^/]+\/countByDate/,
+      /\/api\/v1\/db\/data\/[^/]+\/[^/]+\/([^/]+)\/views\/([^/]+)\/count/,
+      (m, _, q) => ({ count: listRows(m[1], q, m[2]).length }),
+    ],
+    [
+      /\/api\/v1\/db\/calendar-data\/[^/]+\/[^/]+\/([^/]+)\/views\/([^/]+)\/countByDate/,
       (m, _, q) => {
-        const rows = inWindow(listRows(m[1], q), q)
+        const rows = inWindow(listRows(m[1], q, m[2]), q)
         return { count: rows.length, dates: [...new Set(rows.map((r) => r['Launch date']))] }
       },
     ],
     [
-      /\/api\/v1\/db\/calendar-data\/[^/]+\/[^/]+\/([^/]+)\/views\/[^/?]+/,
+      /\/api\/v1\/db\/calendar-data\/[^/]+\/[^/]+\/([^/]+)\/views\/([^/?]+)/,
       (m, _, q) => {
-        const rows = inWindow(listRows(m[1], q), q)
+        const rows = inWindow(listRows(m[1], q, m[2]), q)
         return { list: rows, pageInfo: pageInfo(rows.length, 0, rows.length) }
       },
     ],
     [
-      /\/api\/v1\/db\/timeline-data\/[^/]+\/[^/]+\/([^/]+)\/views\/[^/?]+/,
+      /\/api\/v1\/db\/timeline-data\/[^/]+\/[^/]+\/([^/]+)\/views\/([^/?]+)/,
       (m, _, q) => {
         const from = String(q.from_date ?? '').slice(0, 10)
         const to = String(q.to_date ?? '').slice(0, 10)
-        const rows = listRows(m[1], q).filter(
+        const rows = listRows(m[1], q, m[2]).filter(
           (r) => !from || !to || (r['Start date'] <= to && (r['End date'] ?? r['Start date']) >= from),
         )
         return { list: rows, pageInfo: pageInfo(rows.length, 0, rows.length) }
@@ -392,9 +661,9 @@ export function createMockAdapter(
       }),
     ],
     [
-      /\/api\/v1\/db\/gantt-data\/[^/]+\/[^/]+\/([^/]+)\/views\/[^/?]+/,
+      /\/api\/v1\/db\/gantt-data\/[^/]+\/[^/]+\/([^/]+)\/views\/([^/?]+)/,
       (m, _, q) => {
-        const rows = [...listRows(m[1], q)].sort((a, b) => (a['Start date'] > b['Start date'] ? 1 : -1))
+        const rows = [...listRows(m[1], q, m[2])].sort((a, b) => (a['Start date'] > b['Start date'] ? 1 : -1))
         return page(rows, q)
       },
     ],
@@ -411,8 +680,8 @@ export function createMockAdapter(
       },
     ],
     [
-      /\/api\/v1\/db\/data\/[^/]+\/[^/]+\/([^/]+)\/views\/[^/?]+$/,
-      (m, method, q, body) => (method === 'POST' ? insertRow(body) : page(listRows(m[1], q), q)),
+      /\/api\/v1\/db\/data\/[^/]+\/[^/]+\/([^/]+)\/views\/([^/?]+)$/,
+      (m, method, q, body) => (method === 'POST' ? insertRow(body) : page(listRows(m[1], q, m[2]), q)),
     ],
     [
       /\/api\/v1\/db\/data\/[^/]+\/[^/]+\/([^/]+)\/([^/?]+)$/,

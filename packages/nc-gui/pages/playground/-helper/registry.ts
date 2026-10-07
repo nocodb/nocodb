@@ -1,3 +1,8 @@
+import type { InjectionKey, Ref } from 'vue'
+
+/** shell -> pages: whether the token editor panel is open */
+export const PlaygroundTokenEditorOpenInj: InjectionKey<Ref<boolean>> = Symbol('PlaygroundTokenEditorOpenInj')
+
 export interface PlaygroundNavItem {
   name: string
   path: string
@@ -68,13 +73,13 @@ export const playgroundNav: PlaygroundNavSection[] = [
         name: 'Toolbar menus',
         path: '/playground/surfaces/toolbar',
         description: 'Filter, sort, group, fields, row height, search and view actions',
-        icon: 'filter',
+        icon: 'ncLayout',
       },
       {
         name: 'Field editor',
         path: '/playground/surfaces/fields',
         description: 'Field editor per type and the column header menu',
-        icon: 'cellText',
+        icon: 'ncEdit3',
       },
       {
         name: 'Table details',
@@ -120,7 +125,7 @@ export const playgroundNav: PlaygroundNavSection[] = [
         name: 'Colour pickers',
         path: '/playground/components/advance-color-picker',
         description: 'Advance + base icon colour pickers',
-        icon: 'ncPalette',
+        icon: 'ncPaintRoller',
       },
       { name: 'Plans', path: '/playground/plans', description: 'Plan badges and billing tables', icon: 'ncArrowUpCircle' },
     ],

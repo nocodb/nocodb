@@ -13,6 +13,8 @@ const { overrides, css, overrideCount, reset, importJson } = usePlaygroundTokens
 
 const { copy } = useClipboard()
 
+const { t } = useI18n()
+
 const TABS = [
   { key: 'colours', label: 'Colours' },
   { key: 'type', label: 'Type' },
@@ -29,35 +31,58 @@ const importText = ref('')
 
 const isImportOpen = ref(false)
 
+const importError = ref('')
+
+const isImported = ref(false)
+
+const rootRef = ref<HTMLElement>()
+
+const bodyRef = ref<HTMLElement>()
+
 const isModeScoped = computed(() => tab.value === 'colours' || tab.value === 'all')
 
 function copyCss() {
   copy(css.value || '/* no overrides */')
-  message.success('CSS copied')
+  message.success(t('msg.success.cssCopied'))
 }
 
 function copyJson() {
   copy(JSON.stringify(overrides.value, null, 2))
-  message.success('JSON copied')
+  message.success(t('msg.success.jsonCopied'))
 }
 
+const { start: flashImported } = useTimeoutFn(() => (isImported.value = false), 2500, { immediate: false })
+
 function applyImport() {
-  try {
-    importJson(importText.value)
-    isImportOpen.value = false
-    importText.value = ''
-  } catch {
-    message.error('Invalid JSON')
+  const result = importJson(importText.value)
+  if (result !== 'ok') {
+    importError.value = t(result === 'invalidJson' ? 'msg.error.invalidJson' : 'msg.error.invalidTokensJson')
+    return
   }
+  importError.value = ''
+  isImportOpen.value = false
+  importText.value = ''
+  isImported.value = true
+  flashImported()
 }
+
+watch(importText, () => (importError.value = ''))
 
 watch(isDark, (dark) => {
   editMode.value = dark ? 'dark' : 'light'
 })
+
+watch(tab, () => {
+  if (bodyRef.value) bodyRef.value.scrollTop = 0
+})
+
+onMounted(() => {
+  rootRef.value?.querySelector<HTMLElement>('button:not([disabled]), input, [tabindex="0"]')?.focus()
+})
 </script>
 
 <template>
-  <aside class="nc-playground-token-editor flex flex-col bg-nc-bg-default">
+  <aside ref="rootRef" class="nc-playground-token-editor flex flex-col bg-nc-bg-default">
     <div class="flex-none px-4 h-11 flex items-center gap-2 border-b-1 border-nc-border-gray-medium">
       <span class="text-captionBold text-nc-content-gray-emphasis">Design tokens</span>
       <span class="text-captionSm text-nc-content-gray-muted">{{ overrideCount }} changed</span>
@@ -71,18 +96,18 @@ watch(isDark, (dark) => {
 
     <div class="flex-none px-4 pt-2 flex items-end gap-2 border-b-1 border-nc-border-gray-medium">
       <button
-        v-for="t in TABS"
-        :key="t.key"
+        v-for="tabItem in TABS"
+        :key="tabItem.key"
         class="h-8 px-1.5 -mb-px border-b-2 text-captionSm"
         :class="
-          tab === t.key
+          tab === tabItem.key
             ? 'border-nc-border-brand text-nc-content-brand'
             : 'border-transparent text-nc-content-gray-subtle hover:text-nc-content-gray-emphasis'
         "
-        :data-testid="`nc-playground-tokens-tab-${t.key}`"
-        @click="tab = t.key"
+        :data-testid="`nc-playground-tokens-tab-${tabItem.key}`"
+        @click="tab = tabItem.key"
       >
-        {{ t.label }}
+        {{ tabItem.label }}
       </button>
       <div v-if="isModeScoped" class="ml-auto mb-1.5 flex items-center p-0.5 rounded-md bg-nc-bg-gray-light">
         <NcTooltip v-for="m in ['light', 'dark'] as const" :key="m" :title="`Edit ${m}-mode values`" :arrow="false">
@@ -97,7 +122,7 @@ watch(isDark, (dark) => {
       </div>
     </div>
 
-    <div class="flex-1 min-h-0 overflow-y-auto nc-scrollbar-thin">
+    <div ref="bodyRef" class="flex-1 min-h-0 overflow-y-auto nc-scrollbar-thin">
       <ColoursTab v-if="tab === 'colours'" :mode="editMode" />
       <TypographyTab v-else-if="tab === 'type'" />
       <IconsTab v-else-if="tab === 'icons'" />
@@ -107,7 +132,14 @@ watch(isDark, (dark) => {
 
     <div class="flex-none p-3 border-t-1 border-nc-border-gray-medium flex flex-col gap-2">
       <div v-if="isImportOpen" class="flex flex-col gap-2">
-        <a-textarea v-model:value="importText" :rows="4" placeholder="Paste exported JSON" class="!text-captionXs font-mono" />
+        <a-textarea
+          v-model:value="importText"
+          :rows="4"
+          placeholder="Paste exported JSON"
+          class="!text-captionXs font-mono"
+          :status="importError ? 'error' : undefined"
+        />
+        <div v-if="importError" class="text-captionXs text-nc-content-red-dark">{{ importError }}</div>
         <div class="flex gap-2 justify-end">
           <NcButton size="xsmall" type="text" @click="isImportOpen = false">Cancel</NcButton>
           <NcButton size="xsmall" :disabled="!importText" @click="applyImport">Apply</NcButton>
@@ -117,6 +149,10 @@ watch(isDark, (dark) => {
         <NcButton size="small" type="secondary" class="flex-1" @click="copyCss">Copy CSS</NcButton>
         <NcButton size="small" type="secondary" class="flex-1" @click="copyJson">Copy JSON</NcButton>
         <NcButton size="small" type="secondary" @click="isImportOpen = !isImportOpen">Import</NcButton>
+      </div>
+      <div v-if="isImported" class="flex items-center gap-1 text-captionXs text-nc-content-green-dark">
+        <GeneralIcon icon="check" class="w-3.5 h-3.5" />
+        {{ $t('msg.success.tokensImported') }}
       </div>
     </div>
   </aside>

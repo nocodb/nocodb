@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import PgDemo from '../../-components/PgDemo.vue'
-import { copyText, useResolvedVars } from './useResolvedVars'
+import { copyText, toHex, useResolvedVars } from './useResolvedVars'
 
 const props = defineProps<{
   kind: 'shadows' | 'radii' | 'spacing' | 'surfaces'
@@ -55,6 +55,17 @@ const SURFACES = [
 
 const { version, lightProbe, resolveLight } = useResolvedVars()
 
+const TOOLTIP_VAR = '--nc-bg-tooltip'
+
+// --nc-bg-tooltip is dark-only; light NcTooltip paints bg-gray-800
+const TOOLTIP_BG = 'var(--nc-bg-tooltip, var(--color-gray-800))'
+
+function surfaceValue(cssVar: string) {
+  const value = resolveLight(cssVar)
+  if (value || cssVar !== TOOLTIP_VAR) return value || 'not set in this mode'
+  return `${toHex(resolveLight('--color-gray-800'))} · --color-gray-800`
+}
+
 const els = ref<Record<string, HTMLElement>>({})
 
 function cssOf(key: string, prop: 'borderRadius' | 'boxShadow') {
@@ -62,6 +73,15 @@ function cssOf(key: string, prop: 'borderRadius' | 'boxShadow') {
   version.value
   const el = els.value[key]
   return el ? getComputedStyle(el)[prop] : ''
+}
+
+// computed box-shadow leads with Uno's empty ring layers — keep only the declared ones
+function shadowOf(key: string) {
+  const layers = cssOf(key, 'boxShadow')
+    .split(/,(?![^(]*\))/)
+    .map((l) => l.trim())
+    .filter((l) => l && l !== 'none' && !/^rgba\(0, 0, 0, 0\) 0px 0px( 0px)?( 0px)?$/.test(l))
+  return layers.length ? layers.join(', ') : 'none'
 }
 
 function setEl(key: string, el: unknown) {
@@ -83,7 +103,9 @@ function setEl(key: string, el: unknown) {
         @click="copyText(cls)"
       >
         <span class="text-captionSmBold font-mono text-nc-content-gray">{{ cls }}</span>
-        <span class="text-captionXs font-mono text-nc-content-gray-muted line-clamp-2">{{ cssOf(cls, 'boxShadow') }}</span>
+        <span class="text-captionXs font-mono text-nc-content-gray-muted line-clamp-2" :title="shadowOf(cls)">{{
+          shadowOf(cls)
+        }}</span>
       </button>
     </div>
   </PgDemo>
@@ -115,20 +137,26 @@ function setEl(key: string, el: unknown) {
         :key="s.cssVar"
         class="w-40 h-28 rounded-xl border-1 border-nc-border-gray-medium p-3 flex flex-col justify-between"
         :class="{ 'shadow-default': i >= 5 }"
-        :style="{ background: `var(${s.cssVar}, transparent)` }"
+        :style="{ background: s.cssVar === TOOLTIP_VAR ? TOOLTIP_BG : `var(${s.cssVar}, transparent)` }"
       >
         <span
           class="text-captionBold"
-          :style="{
-            color: s.cssVar === '--nc-bg-tooltip' ? 'var(--nc-content-inverted-primary)' : 'var(--nc-content-gray-emphasis)',
-          }"
+          :style="{ color: s.cssVar === TOOLTIP_VAR ? '#ffffff' : 'var(--nc-content-gray-emphasis)' }"
         >
           {{ s.name }}
         </span>
         <button class="text-left" @click="copyText(s.cssVar)">
-          <div class="text-captionXs font-mono text-nc-content-gray-muted">{{ s.cssVar }}</div>
-          <div class="text-captionXs font-mono text-nc-content-gray-muted">
-            {{ resolveLight(s.cssVar) || 'not set in this mode' }}
+          <div
+            class="text-captionXs font-mono"
+            :class="s.cssVar === TOOLTIP_VAR ? 'text-white/70' : 'text-nc-content-gray-muted'"
+          >
+            {{ s.cssVar }}
+          </div>
+          <div
+            class="text-captionXs font-mono"
+            :class="s.cssVar === TOOLTIP_VAR ? 'text-white/70' : 'text-nc-content-gray-muted'"
+          >
+            {{ surfaceValue(s.cssVar) }}
           </div>
         </button>
       </div>
@@ -158,7 +186,7 @@ function setEl(key: string, el: unknown) {
           </div>
           <div
             class="absolute left-8 bottom-8 px-2 py-1 rounded-md text-captionSm"
-            :style="{ background: 'var(--nc-bg-tooltip, var(--color-gray-900))', color: 'var(--nc-content-inverted-primary)' }"
+            :style="{ background: TOOLTIP_BG, color: '#ffffff' }"
           >
             Tooltip
           </div>

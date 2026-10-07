@@ -56,6 +56,22 @@ export interface TokenDef {
   dark: string
 }
 
+/** icon fonts and code keep their own face when the font is overridden */
+const FONT_EXCLUDED = [
+  '.material-symbols',
+  '.material-icons',
+  'code',
+  'code *',
+  'pre',
+  'pre *',
+  'kbd',
+  'samp',
+  '.font-mono',
+  '.font-dmmono',
+  '.monaco-editor *',
+  '.cm-editor *',
+].join(', ')
+
 const STORAGE_KEY = 'nc-playground-tokens'
 const STYLE_ID = 'nc-playground-tokens'
 
@@ -78,6 +94,23 @@ const emptyOverrides = (): TokenOverrides => ({
   typography: {},
   iconStroke: 1,
 })
+
+const isPlainObject = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v)
+
+/** a (partial) export from Copy JSON: at least one known key, each of the right type */
+const isTokenOverrides = (v: unknown): v is Partial<TokenOverrides> => {
+  if (!isPlainObject(v)) return false
+  const checks: Record<keyof TokenOverrides, (x: unknown) => boolean> = {
+    light: (x) => isPlainObject(x) && Object.values(x).every((y) => typeof y === 'string'),
+    dark: (x) => isPlainObject(x) && Object.values(x).every((y) => typeof y === 'string'),
+    font: (x) => typeof x === 'string',
+    radiusScale: (x) => typeof x === 'number',
+    typography: isPlainObject,
+    iconStroke: (x) => typeof x === 'number',
+  }
+  const keys = Object.keys(v)
+  return keys.some((k) => k in checks) && keys.every((k) => !(k in checks) || checks[k as keyof TokenOverrides](v[k]))
+}
 
 export const hexToRgbTriplet = (hex: string): string | null => {
   const m = hex.trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6})([0-9a-f]{2})?$/i)
@@ -114,6 +147,47 @@ export const generateRamp = (base: string, mode: TokenMode): Record<number, stri
     }
   }
   return ramp
+}
+
+/** the ant palette vars ConfigProvider derives from the primary colour (sliders, pickers, tags) */
+const antPrimaryPalette = (base: string): Record<string, string> => {
+  const rgb = hexToRgbTriplet(base)
+  return {
+    '--ant-primary-1': mixHex(base, '#ffffff', 0.1),
+    '--ant-primary-2': mixHex(base, '#ffffff', 0.2),
+    '--ant-primary-3': mixHex(base, '#ffffff', 0.4),
+    '--ant-primary-4': mixHex(base, '#ffffff', 0.6),
+    '--ant-primary-5': mixHex(base, '#ffffff', 0.8),
+    '--ant-primary-6': base,
+    '--ant-primary-7': mixHex(base, '#000000', 0.8),
+    '--ant-primary-color-deprecated-l-35': mixHex(base, '#ffffff', 0.12),
+    '--ant-primary-color-deprecated-l-20': mixHex(base, '#ffffff', 0.5),
+    '--ant-primary-color-deprecated-t-20': mixHex(base, '#ffffff', 0.8),
+    '--ant-primary-color-deprecated-t-50': mixHex(base, '#ffffff', 0.5),
+    '--ant-primary-color-deprecated-f-12': `rgba(${rgb}, 0.12)`,
+    '--ant-primary-color-active-deprecated-f-30': `rgba(${rgb}, 0.3)`,
+    '--ant-primary-color-active-deprecated-d-02': base,
+  }
+}
+
+/** logical edits: a regenerated ramp, type scale, font, radius or stroke each count once; hand-edited tokens count each */
+const countEdits = (o: TokenOverrides) => {
+  const names = [...Object.keys(o.light), ...Object.keys(o.dark)]
+  const fullRamps = new Set<string>()
+  for (const name of names) {
+    const hue = name.match(/^--color-([a-z]+)-\d+$/)?.[1]
+    if (hue && [o.light, o.dark].some((v) => RAMP_STOPS.every((stop) => `--color-${hue}-${stop}` in v))) fullRamps.add(hue)
+  }
+  const loose = names.filter((name) => {
+    const hue = name.match(/^--color-([a-z]+)-\d+$/)?.[1]
+    if (hue) return !fullRamps.has(hue)
+    return !(fullRamps.has('brand') && /^--(nc-brand-accent|ant-primary-)/.test(name))
+  })
+  const typeKeys = Object.keys(o.typography)
+  const typeEdits = typeKeys.length && typeKeys.length === TYPE_STYLES.length ? 1 : typeKeys.length
+  return (
+    fullRamps.size + loose.length + typeEdits + (o.font ? 1 : 0) + (o.radiusScale !== 1 ? 1 : 0) + (o.iconStroke !== 1 ? 1 : 0)
+  )
 }
 
 const groupOf = (name: string) => {
@@ -176,7 +250,7 @@ const declarations = (values: Record<string, string>) => {
   for (const [name, value] of Object.entries(values)) {
     if (!value) continue
     lines.push(`${name}: ${value} !important;`)
-    const rgb = hexToRgbTriplet(value)
+    const rgb = name.startsWith('--ant-') ? null : hexToRgbTriplet(value)
     if (rgb) lines.push(`--rgb-${name.slice(2)}: ${rgb} !important;`)
     if (rgb && name.startsWith('--nc-brand-accent')) lines.push(`${name}-rgb: ${rgb} !important;`)
   }
@@ -187,7 +261,8 @@ export const buildCss = (o: TokenOverrides) => {
   const blocks: string[] = []
   const light = declarations(o.light)
   const dark = declarations(o.dark)
-  if (light.length) blocks.push(`:root {\n  ${light.join('\n  ')}\n}`)
+  // scoped so light-only edits can't leak into dark mode
+  if (light.length) blocks.push(`:root:not([theme='dark']) {\n  ${light.join('\n  ')}\n}`)
   if (dark.length) blocks.push(`[theme='dark'] {\n  ${dark.join('\n  ')}\n}`)
 
   // Not !important and single-class specificity: wins over the base utility by source order,
@@ -226,13 +301,27 @@ export const buildCss = (o: TokenOverrides) => {
     )
   }
 
-  if (o.font) blocks.push(`body, body * { font-family: ${o.font} !important; }`)
+  // Button.vue paints primary from the static bg-brand-500 utility (a literal), not a var
+  if (o.light['--nc-brand-accent'] || o.dark['--nc-brand-accent']) {
+    const enabled = '.nc-button.ant-btn-primary.theme-default:not([disabled]):not(.nc-show-as-disabled)'
+    blocks.push(
+      [
+        `${enabled} { background-color: var(--nc-brand-accent) !important; }`,
+        `${enabled}:hover, ${enabled}:active { background-color: var(--nc-brand-accent-hover) !important; }`,
+      ].join('\n'),
+    )
+  }
+
+  if (o.font) {
+    blocks.push(`body, body *:not(:is(${FONT_EXCLUDED})) { font-family: ${o.font} !important; }`)
+  }
   if (o.radiusScale !== 1) {
     const r = o.radiusScale
     blocks.push(
       [
         `.rounded-sm { border-radius: ${2 * r}px !important; }`,
-        `.rounded, .rounded-md { border-radius: ${6 * r}px !important; }`,
+        `.rounded { border-radius: ${4 * r}px !important; }`,
+        `.rounded-md { border-radius: ${6 * r}px !important; }`,
         `.rounded-lg { border-radius: ${8 * r}px !important; }`,
         `.rounded-xl { border-radius: ${12 * r}px !important; }`,
         `.rounded-2xl { border-radius: ${16 * r}px !important; }`,
@@ -316,6 +405,7 @@ export const usePlaygroundTokens = createSharedComposable(() => {
         values['--ant-primary-color-hover'] = mixHex(base, '#ffffff', 0.76)
         values['--ant-primary-color-active'] = base
         values['--ant-primary-color-outline'] = `rgba(${hexToRgbTriplet(base)}, 0.24)`
+        Object.assign(values, antPrimaryPalette(base))
       }
       next[mode] = values
     }
@@ -326,7 +416,7 @@ export const usePlaygroundTokens = createSharedComposable(() => {
     const strip = (values: Record<string, string>) =>
       Object.fromEntries(
         Object.entries(values).filter(
-          ([k]) => !k.startsWith(`--color-${hue}-`) && !(hue === 'brand' && /^--(nc-brand-accent|ant-primary-color)/.test(k)),
+          ([k]) => !k.startsWith(`--color-${hue}-`) && !(hue === 'brand' && /^--(nc-brand-accent|ant-primary-)/.test(k)),
         ),
       )
     overrides.value = { ...overrides.value, light: strip(overrides.value.light), dark: strip(overrides.value.dark) }
@@ -367,19 +457,19 @@ export const usePlaygroundTokens = createSharedComposable(() => {
     overrides.value = emptyOverrides()
   }
 
-  const importJson = (json: string) => {
-    overrides.value = { ...emptyOverrides(), ...JSON.parse(json) }
+  const importJson = (json: string): 'ok' | 'invalidJson' | 'wrongShape' => {
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(json)
+    } catch {
+      return 'invalidJson'
+    }
+    if (!isTokenOverrides(parsed)) return 'wrongShape'
+    overrides.value = { ...emptyOverrides(), ...parsed }
+    return 'ok'
   }
 
-  const overrideCount = computed(
-    () =>
-      Object.keys(overrides.value.light).length +
-      Object.keys(overrides.value.dark).length +
-      (overrides.value.font ? 1 : 0) +
-      (overrides.value.radiusScale !== 1 ? 1 : 0) +
-      Object.keys(overrides.value.typography).length +
-      (overrides.value.iconStroke !== 1 ? 1 : 0),
-  )
+  const overrideCount = computed(() => countEdits(overrides.value))
 
   const registerFrame = (frame: HTMLIFrameElement) => {
     frames.add(frame)

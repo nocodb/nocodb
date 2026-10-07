@@ -28,6 +28,10 @@
   "dependencies": {
     "@aws-amplify/core": "^5.8.14",
     "@ckpack/vue-color": "^1.6.0",
+    "@codemirror/autocomplete": "^6.20.3",
+    "@codemirror/commands": "^6.11.1",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/view": "^6.43.13",
     "@dagrejs/dagre": "^1.1.8",
     "@floating-ui/vue": "^1.1.6",
     "@iconify/vue": "^4.3.0",

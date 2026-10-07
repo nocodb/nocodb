@@ -8,9 +8,14 @@ import type {
   TableType,
   UITypes,
   UserType,
-  WorkspaceType,
 } from 'nocodb-sdk';
 import type { XcEmailAttachment } from '~/types/nc-plugin';
+
+// Not exported by the OSS SDK; only the fields the shared template reads.
+interface WorkspaceType {
+  id?: string;
+  title?: string;
+}
 
 enum MailEvent {
   COMMENT_CREATE = 'COMMENT_CREATE',

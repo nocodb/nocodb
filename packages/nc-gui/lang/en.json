@@ -4921,8 +4921,6 @@
     "textAlign": "Alignment",
     "justify": "Justify",
     "wsNav": {
-      "groupPeople": "People",
-      "groupConnect": "Connect",
       "groupBilling": "Plan",
       "groupAdmin": "Admin",
       "membersPage": "Workspace Members",

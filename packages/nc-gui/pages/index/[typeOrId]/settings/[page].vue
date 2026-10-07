@@ -4,6 +4,13 @@ definePageMeta({
   key: (route) => `/${route.params.typeOrId}/settings`,
   middleware: [
     (to) => {
+      const homePane = wsHomePaneBySettingsSlug[to.params.page as string]
+
+      // Members, Teams and Integrations open on the workspace home page.
+      if (homePane) {
+        return navigateTo({ path: wsHomePanePath(to.params.typeOrId as string, homePane), query: to.query }, { replace: true })
+      }
+
       // On a fresh load the current route is an unnamed placeholder for the landing URL: no origin, Back goes home.
       const current = useRouter().currentRoute.value
 

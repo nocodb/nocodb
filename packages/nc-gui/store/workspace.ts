@@ -38,7 +38,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isWorkspaceSettingsPageOpened = computed(() => !!openWorkspaceSettingsSlug.value)
 
-  const isIntegrationsPageOpened = computed(() => openWorkspaceSettingsSlug.value === 'integrations')
+  const isIntegrationsPageOpened = computed(() => wsHomePaneFromRoute(route.value) === 'integrations')
 
   const isTemplatesPageOpened = computed(() => false)
 

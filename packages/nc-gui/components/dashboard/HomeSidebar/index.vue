@@ -64,34 +64,12 @@ const navItems = computed<NavItem[]>(() => {
   ].filter((item) => !item.hidden)
 })
 
-// Members and Integrations are panes of the settings page; their rows open it.
-const wsSettingsSlugByNavKey: Record<string, WsSettingsSlug> = {
-  collaborators: 'members',
-  integrations: 'integrations',
-}
-
-const openWorkspaceSettings = useWorkspaceSettingsLink()
-
-const activeNavKey = computed(() => {
-  const wsSettings = wsSettingsSlugFromRoute(route.value)
-
-  if (wsSettings) {
-    return Object.keys(wsSettingsSlugByNavKey).find((key) => wsSettingsSlugByNavKey[key] === wsSettings) ?? 'bases'
-  }
-
-  return routeNameToWsTab[route.value.name as string] || 'bases'
-})
+const activeNavKey = computed(() => routeNameToWsTab[route.value.name as string] || 'bases')
 
 function onNavClick(item: NavItem) {
-  const wsSettingsSlug = wsSettingsSlugByNavKey[item.key]
+  const typeOrId = route.value.params.typeOrId || activeWorkspaceId.value || 'nc'
 
-  if (wsSettingsSlug) {
-    openWorkspaceSettings(wsSettingsSlug)
-  } else {
-    const typeOrId = route.value.params.typeOrId || activeWorkspaceId.value || 'nc'
-
-    router.push({ name: wsTabToRouteName[item.key] || 'index-typeOrId', params: { typeOrId } })
-  }
+  router.push({ name: wsTabToRouteName[item.key] || 'index-typeOrId', params: { typeOrId } })
 
   if (isMobileMode.value) {
     isLeftSidebarOpen.value = false

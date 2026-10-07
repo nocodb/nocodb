@@ -1,3 +1,5 @@
+import type { WsHomePane } from './routeUtils'
+
 /**
  * Shared settings route slug mappings.
  *
@@ -117,19 +119,7 @@ export function appSettingsNavFor(isInstall: boolean, isListing = false, hasApp 
 }
 
 /** Workspace settings panes, by their `/{ws}/settings/{slug}` slug. The slug is the pane key. */
-export const wsSettingsSlugs = [
-  'members',
-  'teams',
-  'integrations',
-  'general',
-  'skills',
-  'security',
-  'danger-zone',
-  'billing',
-  'usage',
-  'audits',
-  'sso',
-] as const
+export const wsSettingsSlugs = ['general', 'skills', 'security', 'danger-zone', 'billing', 'usage', 'audits', 'sso'] as const
 
 export type WsSettingsSlug = (typeof wsSettingsSlugs)[number]
 
@@ -147,13 +137,20 @@ export const wsSettingsLegacySlugs: Record<string, WsSettingsSlug> = {
   'ws-settings': 'general',
   'appearance': 'general',
   'dangerZone': 'danger-zone',
-  'collaborators': 'members',
-  'ws-collaborators': 'members',
-  'ws-teams': 'teams',
-  'ws-integrations': 'integrations',
   'ws-billing': 'billing',
   'ws-audits': 'audits',
   'ws-sso': 'sso',
+}
+
+/** Settings slugs, current and legacy, for the panes that moved to the workspace home page. */
+export const wsHomePaneBySettingsSlug: Record<string, WsHomePane> = {
+  'members': 'members',
+  'collaborators': 'members',
+  'ws-collaborators': 'members',
+  'teams': 'teams',
+  'ws-teams': 'teams',
+  'integrations': 'integrations',
+  'ws-integrations': 'integrations',
 }
 
 /** The pane a slug (or a legacy name) names, or null when it names none. */

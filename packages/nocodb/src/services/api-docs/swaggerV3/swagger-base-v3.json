@@ -107,8 +107,8 @@
             "examples": {
               "Example 1": {
                 "value": {
-                  "error": "ERR_INVALID_FILTER",
-                  "message": "Invalid filter field 'Nope' not found"
+                  "error": "ERR_INVALID_REQUEST_BODY",
+                  "message": "Property 'id' is required on index 0"
                 }
               }
             }
@@ -133,6 +133,24 @@
           }
         }
       },
+      "Forbidden": {
+        "description": "Forbidden",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "error": "ERR_FORBIDDEN",
+                  "message": "Forbidden - You do not have permission to perform this action"
+                }
+              }
+            }
+          }
+        }
+      },
       "NotFound": {
         "description": "NotFound",
         "content": {
@@ -145,6 +163,24 @@
                 "value": {
                   "error": "ERR_RECORD_NOT_FOUND",
                   "message": "Record '99999' not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "UnprocessableEntity": {
+        "description": "Unprocessable entity: an unknown field, view or table, or an invalid filter or sort",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "error": "ERR_INVALID_FILTER",
+                  "message": "Invalid filter field 'Nope' not found"
                 }
               }
             }

@@ -14,10 +14,17 @@ import { Base } from '~/models';
 import SwaggerTypes from '~/db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
 import Noco from '~/Noco';
 
-// An empty schema accepts any value, null included. `nullable` is not a 3.1
-// keyword and ajv refuses to compile it without a sibling `type`.
+// Same branch list and no-null rule as the pg numeric formula below; keeps the
+// enum generated clients (progenitor) already have for these fields.
 const setAsAnyType = (field: SwaggerColumn) => {
   field.type = undefined;
+  field.anyOf = [
+    { type: 'string' },
+    { type: 'number' },
+    { type: 'integer' },
+    { type: 'boolean' },
+    { type: 'object' },
+  ];
 };
 
 // Relation types whose link cell holds a list of records.

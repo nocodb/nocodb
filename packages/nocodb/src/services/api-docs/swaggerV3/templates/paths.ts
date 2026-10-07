@@ -18,7 +18,9 @@ import { isRelationExist } from '~/services/api-docs/swagger/templates/paths';
 
 const badRequest = { $ref: '#/components/responses/BadRequest' };
 const unauthorized = { $ref: '#/components/responses/Unauthorized' };
+const forbidden = { $ref: '#/components/responses/Forbidden' };
 const notFound = { $ref: '#/components/responses/NotFound' };
+const unprocessable = { $ref: '#/components/responses/UnprocessableEntity' };
 
 const linkRecordIdSchema = {
   type: 'object',
@@ -71,6 +73,8 @@ export const getModelPaths = async (
         },
         '400': badRequest,
         '401': unauthorized,
+        '403': forbidden,
+        '422': unprocessable,
       },
     },
     ...(ctx.type === ModelTypes.TABLE
@@ -102,6 +106,8 @@ export const getModelPaths = async (
               },
               '400': badRequest,
               '401': unauthorized,
+              '403': forbidden,
+              '422': unprocessable,
             },
             tags: [ctx.tableName],
             requestBody: {
@@ -151,6 +157,8 @@ export const getModelPaths = async (
               },
               '400': badRequest,
               '401': unauthorized,
+              '403': forbidden,
+              '422': unprocessable,
             },
             tags: [ctx.tableName],
             requestBody: {
@@ -205,6 +213,8 @@ export const getModelPaths = async (
               },
               '400': badRequest,
               '401': unauthorized,
+              '403': forbidden,
+              '422': unprocessable,
             },
             tags: [ctx.tableName],
             description:
@@ -252,7 +262,9 @@ export const getModelPaths = async (
         },
         '400': badRequest,
         '401': unauthorized,
+        '403': forbidden,
         '404': notFound,
+        '422': unprocessable,
       },
     },
   },
@@ -289,6 +301,8 @@ export const getModelPaths = async (
         },
         '400': badRequest,
         '401': unauthorized,
+        '403': forbidden,
+        '422': unprocessable,
       },
     },
   },
@@ -324,7 +338,9 @@ export const getModelPaths = async (
                 },
                 '400': badRequest,
                 '401': unauthorized,
+                '403': forbidden,
                 '404': notFound,
+                '422': unprocessable,
               },
             },
             post: {
@@ -358,7 +374,9 @@ export const getModelPaths = async (
                 },
                 '400': badRequest,
                 '401': unauthorized,
+                '403': forbidden,
                 '404': notFound,
+                '422': unprocessable,
               },
               tags: [ctx.tableName],
               requestBody: {
@@ -432,7 +450,9 @@ export const getModelPaths = async (
                 },
                 '400': badRequest,
                 '401': unauthorized,
+                '403': forbidden,
                 '404': notFound,
+                '422': unprocessable,
               },
               tags: [ctx.tableName],
               requestBody: {
@@ -568,7 +588,9 @@ export const getModelPaths = async (
                 },
                 '400': badRequest,
                 '401': unauthorized,
+                '403': forbidden,
                 '404': notFound,
+                '422': unprocessable,
               },
             },
           },

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
 import { getMockSession, installPlaygroundMocks, seedPlaygroundStores, unmockedRequests } from '../-helper/install'
-import { MOCK_BASE_ID, buildRows } from '../-helper/mock-data'
+import { MOCK_BASE_ID, MOCK_TASKS_TABLE_ID, buildRows, buildTable, buildTasks, buildTasksTable } from '../-helper/mock-data'
 import type { MockViewKind } from '../-helper/mock-data'
 import { UseDetachedLongTextProvider } from '~/components/smartsheet/grid/canvas/composables/useDetachedLongText'
 
@@ -19,6 +19,8 @@ installPlaygroundMocks(props.kind)
 seedPlaygroundStores()
 
 const { metas } = useMetas()
+
+const { $eventBus } = useNuxtApp()
 
 const basesStore = useBases()
 
@@ -102,20 +104,43 @@ const headerNote = computed(() => {
   return ''
 })
 
-/** Restores the seed rows and drops saved filters, sorts, groups and column changes. */
+/** Restores the seed rows and schema and drops saved filters, sorts, groups and column changes. */
 async function resetData() {
   const db = getMockSession()?.db
   if (!db) return
+  const table = buildTable(props.kind)
+  const tasksTable = buildTasksTable()
+  db.tables[table.id!] = table
+  db.tables[tasksTable.id!] = tasksTable
+  metas.value = {
+    ...metas.value,
+    [`${MOCK_BASE_ID}:${table.id}`]: table,
+    [`${MOCK_BASE_ID}:${MOCK_TASKS_TABLE_ID}`]: tasksTable,
+  }
   db.rows.splice(0, db.rows.length, ...buildRows())
+  db.tasks.splice(0, db.tasks.length, ...buildTasks(db.rows))
+  db.audits.splice(0, db.audits.length)
   db.filters.splice(0, db.filters.length)
   db.sorts.splice(0, db.sorts.length)
   db.viewColumnPatches = {}
+  db.rowColors = {}
   eventBus.emit(SmartsheetStoreEvents.FILTER_RELOAD)
   eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+  eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
   await loadViewColumns()
   reloadViewMetaEventHook.trigger()
   reloadViewDataEventHook.trigger()
 }
+
+// stands in for the realtime column_add/update/delete event (useRealtime.ts), which has no socket here
+watch(
+  () => meta.value?.columns?.map((c) => `${c.id}:${c.title}:${c.uidt}`).join(),
+  (next, prev) => {
+    if (!prev || next === prev) return
+    $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+    $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+  },
+)
 
 defineExpose({ reload: () => reloadViewDataEventHook.trigger(), resetData })
 </script>

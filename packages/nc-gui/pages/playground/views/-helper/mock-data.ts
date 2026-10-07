@@ -69,6 +69,7 @@ export const COL = {
   location: 'pgc-location',
   nextSteps: 'pgc-next-steps',
   parentFk: 'pgc-parent-fk',
+  order: 'pgc-order',
   createdAt: 'pgc-created-at',
   updatedAt: 'pgc-updated-at',
 } as const
@@ -165,6 +166,8 @@ export function buildColumns(tableId: string): ColumnType[] {
           col({ id: COL.parentFk, title: 'parent_id', uidt: UITypes.ForeignKey, dt: 'int4', system: true }),
         ]
       : []),
+    // real tables carry nc_order; it enables insert above/below, duplicate and row drag
+    col({ id: COL.order, title: 'nc_order', uidt: UITypes.Order, dt: 'decimal', system: true }),
     col({ id: COL.createdAt, title: 'CreatedAt', uidt: UITypes.CreatedTime, dt: 'timestamp', system: true }),
     col({ id: COL.updatedAt, title: 'UpdatedAt', uidt: UITypes.LastModifiedTime, dt: 'timestamp', system: true }),
   ]
@@ -363,14 +366,33 @@ const PALETTE = [
   ['#9333ea', '#f0abfc'],
 ]
 
+const coverCache = new Map<number, string>()
+
+/** PNG, not SVG: the file previewer refuses SVG attachments. */
 function coverImage(i: number, label: string) {
+  const cached = coverCache.get(i)
+  if (cached) return cached
   const [a, b] = PALETTE[i % PALETTE.length]
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="300" viewBox="0 0 480 300"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="480" height="300" fill="url(#g)"/><circle cx="${
-    120 + ((i * 53) % 260)
-  }" cy="${90 + ((i * 37) % 140)}" r="${
-    60 + ((i * 11) % 50)
-  }" fill="#ffffff" fill-opacity="0.18"/><text x="32" y="262" font-family="Inter,Arial,sans-serif" font-size="30" font-weight="700" fill="#ffffff">${label}</text></svg>`
-  return `data:image/svg+xml;base64,${btoa(svg)}`
+  const canvas = document.createElement('canvas')
+  canvas.width = 480
+  canvas.height = 300
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return ''
+  const gradient = ctx.createLinearGradient(0, 0, 480, 300)
+  gradient.addColorStop(0, a)
+  gradient.addColorStop(1, b)
+  ctx.fillStyle = gradient
+  ctx.fillRect(0, 0, 480, 300)
+  ctx.beginPath()
+  ctx.arc(120 + ((i * 53) % 260), 90 + ((i * 37) % 140), 60 + ((i * 11) % 50), 0, Math.PI * 2)
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.18)'
+  ctx.fill()
+  ctx.font = '700 30px Inter, Arial, sans-serif'
+  ctx.fillStyle = '#ffffff'
+  ctx.fillText(label, 32, 262)
+  const url = canvas.toDataURL('image/png')
+  coverCache.set(i, url)
+  return url
 }
 
 const NAMES = [
@@ -442,6 +464,12 @@ export const ganttParentIndex = (i: number) => (i < 20 && i % 5 > 0 && i % 5 < 3
 const toDateStr = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
+function cover(i: number, name: string, slug: string) {
+  const url = coverImage(i, name)
+  // base64 → bytes, close enough for the size label
+  return { url, signedUrl: url, title: `${slug}.png`, mimetype: 'image/png', size: Math.round(url.length * 0.75), id: `att-${i}` }
+}
+
 export function buildRows(count = 40): Record<string, any>[] {
   const r = rng(42)
   // separate stream so the original columns keep their values
@@ -480,19 +508,7 @@ export function buildRows(count = 40): Record<string, any>[] {
       'Tags': tags.join(','),
       'Launch date': launch.toISOString().slice(0, 10),
       'Kickoff': kickoff.toISOString(),
-      'Cover':
-        i % 5 === 3
-          ? null
-          : [
-              {
-                url: coverImage(i, name),
-                signedUrl: coverImage(i, name),
-                title: `${slug}.svg`,
-                mimetype: 'image/svg+xml',
-                size: 2048,
-                id: `att-${i}`,
-              },
-            ],
+      'Cover': i % 5 === 3 ? null : [cover(i, name, slug)],
       'Budget': Math.round(5 + r() * 120) * 1000,
       'Progress': status === 'Shipped' ? 100 : Math.round(r() * 95),
       'Priority': 1 + Math.floor(r() * 5),
@@ -508,11 +524,36 @@ export function buildRows(count = 40): Record<string, any>[] {
       'Location': location,
       'Next steps': ganttParentIndex(i + 1) === i ? 1 : 0,
       'parent_id': parentIdx === null ? null : parentIdx + 1,
+      'nc_order': i + 1,
       'CreatedAt': new Date(kickoff.getTime() - 86400000 * 3).toISOString(),
       'UpdatedAt': new Date(kickoff.getTime() + 86400000).toISOString(),
     })
   }
   return rows
+}
+
+const TASK_NAMES = [
+  'Write the spec',
+  'Design review',
+  'API contract',
+  'Build a prototype',
+  'QA pass',
+  'Docs draft',
+  'Changelog post',
+  'Beta rollout',
+  'Perf check',
+  'Security review',
+]
+
+/** Rows of the linked Tasks table: each launch's `Tasks` count worth, plus a few unassigned. */
+export function buildTasks(rows: Record<string, any>[]): Record<string, any>[] {
+  const tasks: Record<string, any>[] = []
+  const add = (launchId: number | null, name: string) => tasks.push({ Id: tasks.length + 1, Task: name, launch_id: launchId })
+  for (const row of rows) {
+    for (let j = 0; j < (row.Tasks ?? 0); j++) add(row.Id, TASK_NAMES[(row.Id + j) % TASK_NAMES.length])
+  }
+  for (let j = 0; j < 6; j++) add(null, `${TASK_NAMES[(j * 3) % TASK_NAMES.length]} (unassigned)`)
+  return tasks
 }
 
 const hoursAgo = (h: number) => new Date(Date.now() - h * 3600000).toISOString()
@@ -555,19 +596,32 @@ export function buildComments(tableId: string): MockComment[] {
   }))
 }
 
-/** Revision history for a record, newest first (the server's order). */
-export function buildAudits(tableId: string, row: Record<string, any>) {
-  const statusMeta = {
-    Status: {
-      id: COL.status,
-      title: 'Status',
-      type: UITypes.SingleSelect,
-      options: { choices: STATUS.map((s) => ({ title: s.title, color: s.color })) },
-    },
+/** v3 field shape the audit renderer reads from `details.column_meta`. */
+export function auditColumnMeta(columns: ColumnType[], titles: string[]) {
+  const meta: Record<string, { id?: string; title?: string; type?: string; options: Record<string, unknown> }> = {}
+  for (const title of titles) {
+    const c = columns.find((col) => col.title === title)
+    if (!c) continue
+    const choices = (c.colOptions as { options?: Array<{ title?: string; color?: string }> } | undefined)?.options
+    const options: Record<string, unknown> =
+      c.uidt === UITypes.SingleSelect || c.uidt === UITypes.MultiSelect
+        ? { choices: (choices ?? []).map((o) => ({ title: o.title, color: o.color })) }
+        : c.uidt === UITypes.Currency
+        ? { locale: 'en-US', code: 'USD' }
+        : { ...(c.meta as object) }
+    meta[title] = { id: c.id, title: c.title, type: c.uidt, options }
   }
+  return meta
+}
+
+const EFFORT = [1, 2, 3, 5, 8, 13]
+
+/** Seeded revision history for a record, newest first (the server's order). Built from the seed values, so edits made in the tab append their own entries instead of rewriting these. */
+export function buildAudits(tableId: string, seed: Record<string, any>) {
+  const columns = buildColumns(tableId)
   const audit = (n: number, userIdx: number, hours: number, op_type: string, details: Record<string, any>) => ({
-    id: `pg-audit-${row.Id}-${n}`,
-    row_id: String(row.Id),
+    id: `pg-audit-${seed.Id}-${n}`,
+    row_id: String(seed.Id),
     fk_model_id: tableId,
     op_type,
     version: 1,
@@ -576,26 +630,28 @@ export function buildAudits(tableId: string, row: Record<string, any>) {
     created_at: hoursAgo(hours),
     details: JSON.stringify(details),
   })
+  const statusIdx = STATUS.findIndex((s) => s.title === seed.Status)
+  const effortIdx = EFFORT.indexOf(seed['Effort (pts)'])
+  const oldEffort = EFFORT[effortIdx > 0 ? effortIdx - 1 : 1]
   return [
-    audit(3, 0, 5, 'DATA_UPDATE', {
-      data: { Status: row.Status ?? 'Planned' },
-      old_data: { Status: 'Idea' },
-      column_meta: statusMeta,
-    }),
+    // a status that moved past Idea gets a "moved on from Idea" entry
+    ...(statusIdx > 0
+      ? [
+          audit(3, 0, 5, 'DATA_UPDATE', {
+            data: { Status: seed.Status },
+            old_data: { Status: STATUS[statusIdx - 1].title },
+            column_meta: auditColumnMeta(columns, ['Status']),
+          }),
+        ]
+      : []),
     audit(2, 1, 28, 'DATA_UPDATE', {
-      data: { 'Budget': row.Budget, 'Effort (pts)': row['Effort (pts)'] },
-      old_data: { 'Budget': 40000, 'Effort (pts)': 3 },
-      column_meta: {
-        'Budget': { id: COL.budget, title: 'Budget', type: UITypes.Currency, options: { locale: 'en-US', code: 'USD' } },
-        'Effort (pts)': { id: COL.effort, title: 'Effort (pts)', type: UITypes.Number, options: {} },
-      },
+      data: { 'Budget': seed.Budget, 'Effort (pts)': seed['Effort (pts)'] },
+      old_data: { 'Budget': seed.Budget > 20000 ? seed.Budget - 15000 : seed.Budget + 15000, 'Effort (pts)': oldEffort },
+      column_meta: auditColumnMeta(columns, ['Budget', 'Effort (pts)']),
     }),
     audit(1, 1, 72, 'DATA_INSERT', {
-      data: { Launch: row.Launch, Status: 'Idea' },
-      column_meta: {
-        Launch: { id: COL.title, title: 'Launch', type: UITypes.SingleLineText, options: {} },
-        ...statusMeta,
-      },
+      data: { Launch: seed.Launch, Status: STATUS[0].title },
+      column_meta: auditColumnMeta(columns, ['Launch', 'Status']),
     }),
   ]
 }

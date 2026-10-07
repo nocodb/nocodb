@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
-import type { ColumnType, TableType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
 import PgPage from '../-components/PgPage.vue'
 import PgSection from '../-components/PgSection.vue'
 import PgDemo from '../-components/PgDemo.vue'
@@ -105,15 +105,39 @@ const menuColumnId = ref<string>(COL.status)
 
 const editingFromMenu = ref<string | null>(null)
 
+/** Insert left / right from the menu: the add-field editor with the new column's view position. */
+const insertPosition = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
+
+const editDescription = ref(false)
+
 // opened after mount so the popup resolves the stage as its container
 const isColumnMenuOpen = ref(false)
+
+const columnMenuStage = ref<InstanceType<typeof PopupStage> | null>(null)
 
 function headerColumnIds(meta: TableType) {
   return (meta.columns ?? []).filter((c) => !c.system && c.uidt !== UITypes.ID).map((c) => c.id!)
 }
 
-function onMenuColumnChange() {
+function onMenuEdit(_event: MouseEvent | undefined, description = false) {
+  insertPosition.value = null
+  editDescription.value = description
+  editingFromMenu.value = menuColumnId.value
+}
+
+function onMenuAddColumn(position: Pick<ColumnReqType, 'column_order'>) {
+  editDescription.value = false
+  insertPosition.value = position
   editingFromMenu.value = null
+}
+
+function closeMenuEditor() {
+  editingFromMenu.value = null
+  insertPosition.value = null
+}
+
+function onMenuColumnChange() {
+  closeMenuEditor()
   nextTick(() => (isColumnMenuOpen.value = true))
 }
 
@@ -206,11 +230,11 @@ function reset(key: string, note?: string) {
                 {{ c.title }}
               </a-select-option>
             </NcSelect>
-            <NcButton size="xxsmall" type="text" class="!px-2" @click="isColumnMenuOpen = true">
+            <NcButton size="xxsmall" type="text" class="!px-2" @click="columnMenuStage?.open()">
               <span class="text-captionXs">Reopen</span>
             </NcButton>
           </template>
-          <PopupStage open-selector=".nc-pg-column-menu-trigger" :height="620">
+          <PopupStage ref="columnMenuStage" open-selector=".nc-pg-column-menu-trigger" :height="620">
             <div v-if="columnOf(meta, menuColumnId)" class="flex items-start gap-4">
               <!-- a real dropdown, like SmartsheetHeaderMenu, so the menu gets its in-dropdown density -->
               <div class="w-[300px] flex-none">
@@ -232,18 +256,21 @@ function reset(key: string, note?: string) {
                       v-model:is-open="isColumnMenuOpen"
                       :column="columnOf(meta, menuColumnId)!"
                       :virtual="isVirtualCol(columnOf(meta, menuColumnId)!)"
-                      @edit="editingFromMenu = menuColumnId"
+                      @edit="onMenuEdit"
+                      @add-column="onMenuAddColumn"
                     />
                   </template>
                 </a-dropdown>
               </div>
-              <div v-if="editingFromMenu" class="w-[440px]">
+              <div v-if="editingFromMenu || insertPosition" class="w-[440px]">
                 <SmartsheetColumnEditOrAddProvider
-                  :key="`menu-${editingFromMenu}`"
-                  :column="columnOf(meta, editingFromMenu)"
+                  :key="`menu-${editingFromMenu ?? 'insert'}-${insertPosition?.column_order?.order ?? ''}-${editDescription}`"
+                  :column="editingFromMenu ? columnOf(meta, editingFromMenu) : undefined"
+                  :column-position="insertPosition ?? undefined"
+                  :edit-description="editDescription"
                   class="w-full"
-                  @submit="editingFromMenu = null"
-                  @cancel="editingFromMenu = null"
+                  @submit="closeMenuEditor"
+                  @cancel="closeMenuEditor"
                 />
               </div>
             </div>

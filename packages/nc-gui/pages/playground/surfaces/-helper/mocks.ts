@@ -1,7 +1,8 @@
 import type { AxiosAdapter, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
-import type { ColumnType, FilterType, HookType, SortType, TableType } from 'nocodb-sdk'
-import { HttpClient, UITypes } from 'nocodb-sdk'
+import type { FilterType, HookType, SortType } from 'nocodb-sdk'
+import { HttpClient } from 'nocodb-sdk'
 import { getMockSession, installPlaygroundMocks } from '../../views/-helper/install'
+import { serialize } from '../../views/-helper/mock-api'
 import type { MockDb } from '../../views/-helper/mock-api'
 import { COL, MOCK_BASE_ID, MOCK_USERS, buildTable, buildView, mockBase } from '../../views/-helper/mock-data'
 
@@ -80,6 +81,18 @@ function initialState(): SurfaceState {
         logical_op: 'or',
         order: 2,
       }),
+      // the CRM hook's "trigger only when conditions match"
+      {
+        id: 'pgf-hook-shipped',
+        fk_hook_id: 'pgh-crm',
+        base_id: MOCK_BASE_ID,
+        fk_column_id: COL.status,
+        comparison_op: 'eq',
+        value: 'Shipped',
+        logical_op: 'and',
+        is_group: false,
+        order: 1,
+      },
     ],
     sorts: [
       { id: 'pgs-launch', fk_view_id: SURFACE_VIEW_ID, fk_column_id: COL.launch, direction: 'asc', order: 1 },
@@ -131,31 +144,6 @@ function stateFor(db: MockDb) {
 /** Column ids from `vc-<viewId>-<columnId>` view-column ids. */
 const columnIdOf = (viewColumnId: string) => viewColumnId.replace(`vc-${SURFACE_VIEW_ID}-`, '')
 
-function replaceTable(db: MockDb, columns: ColumnType[]): TableType {
-  const table = db.tables[SURFACE_TABLE_ID]!
-  const next = { ...table, columns, columnsById: Object.fromEntries(columns.map((c) => [c.id!, c])) } as TableType
-  db.tables[SURFACE_TABLE_ID] = next
-  return next
-}
-
-function columnFromPayload(payload: Record<string, any>, id: string, order: number): ColumnType {
-  const { view_id: _v, column_order: _o, userHasChangedTitle: _u, ...rest } = payload
-  return {
-    ...rest,
-    id,
-    fk_model_id: SURFACE_TABLE_ID,
-    base_id: MOCK_BASE_ID,
-    column_name:
-      rest.column_name ||
-      String(rest.title ?? id)
-        .toLowerCase()
-        .replace(/\W+/g, '_'),
-    order,
-    system: false,
-    meta: rest.meta ?? {},
-  } as ColumnType
-}
-
 const OWN_OPS = new Set([
   'filterList',
   'filterChildrenList',
@@ -171,16 +159,16 @@ const OWN_OPS = new Set([
   'gridColumnUpdate',
   'showAllColumns',
   'hideAllColumns',
-  'gridViewUpdate',
   'viewUpdate',
   'hookList',
   'hookCreate',
   'hookUpdate',
   'hookDelete',
-  'columnUpdate',
-  'columnAdd',
-  'columnDelete',
-  'columnsBulk',
+  'hookFilterList',
+  'hookFilterCreate',
+  'hookTest',
+  'hookLogList',
+  'hookListSubscribers',
   'mcpList',
   'baseTrashSettingsList',
 ])
@@ -191,22 +179,40 @@ function handle(db: MockDb, op: string, q: Record<string, any>, payload: any): u
   const table = db.tables[SURFACE_TABLE_ID]!
   switch (op) {
     case 'filterList':
-      return { list: s.filters.filter((f) => !f.fk_parent_id) }
+      return { list: s.filters.filter((f) => f.fk_view_id && !f.fk_parent_id) }
     case 'filterChildrenList':
+      if (!s.filters.some((f) => f.id === q.filterId)) return undefined
       return { list: s.filters.filter((f) => f.fk_parent_id === q.filterId) }
     case 'filterCreate': {
       const filter = { ...payload, id: nextId('pgf'), fk_view_id: q.viewId } as FilterType
       s.filters.push(filter)
       return filter
     }
+    // filters this store doesn't hold (e.g. row-colour conditions) belong to the views adapter
     case 'filterUpdate': {
       const filter = s.filters.find((f) => f.id === q.filterId)
-      if (filter) Object.assign(filter, payload)
-      return filter ?? { ...payload, id: q.filterId }
+      if (!filter) return undefined
+      Object.assign(filter, payload)
+      return filter
     }
     case 'filterDelete':
+      if (!s.filters.some((f) => f.id === q.filterId)) return undefined
       s.filters = s.filters.filter((f) => f.id !== q.filterId && f.fk_parent_id !== q.filterId)
       return {}
+    case 'hookFilterList':
+      return { list: s.filters.filter((f) => f.fk_hook_id === q.hookId && !f.fk_parent_id) }
+    case 'hookFilterCreate': {
+      const filter = { ...payload, id: nextId('pgf'), fk_hook_id: q.hookId, base_id: MOCK_BASE_ID } as FilterType
+      s.filters.push(filter)
+      return filter
+    }
+    // nothing is sent anywhere; the server answers a successful test with `true`
+    case 'hookTest':
+      return true
+    case 'hookLogList':
+      return { list: [], pageInfo: { totalRows: 0, page: 1, pageSize: 25, isFirstPage: true, isLastPage: true } }
+    case 'hookListSubscribers':
+      return []
     case 'sortList':
       return { list: s.sorts }
     case 'sortCreate': {
@@ -235,11 +241,6 @@ function handle(db: MockDb, op: string, q: Record<string, any>, payload: any): u
         s.viewColumns[c.id!] = { ...s.viewColumns[c.id!], show: op === 'showAllColumns' }
       }
       return {}
-    case 'gridViewUpdate': {
-      const view = db.views[q.viewId ?? SURFACE_VIEW_ID]
-      if (view) view.view = { ...(view.view as object), ...payload } as typeof view.view
-      return view?.view ?? {}
-    }
     case 'viewUpdate': {
       const view = db.views[q.viewId ?? SURFACE_VIEW_ID]
       if (view) Object.assign(view, payload)
@@ -260,29 +261,6 @@ function handle(db: MockDb, op: string, q: Record<string, any>, payload: any): u
     case 'hookDelete':
       s.hooks = s.hooks.filter((h) => h.id !== q.hookId)
       return {}
-    case 'columnUpdate': {
-      const columns = (table.columns ?? []).map((c) => (c.id === q.columnId ? { ...c, ...payload, id: c.id } : c))
-      replaceTable(db, columns as ColumnType[])
-      return columns.find((c) => c.id === q.columnId) ?? {}
-    }
-    case 'columnAdd': {
-      const columns = [...(table.columns ?? [])]
-      columns.push(columnFromPayload(payload ?? {}, nextId('pgc'), columns.length + 1))
-      return replaceTable(db, columns)
-    }
-    case 'columnsBulk': {
-      let columns = [...(table.columns ?? [])]
-      for (const { op: kind, column } of (payload?.ops ?? []) as Array<{ op: string; column: Record<string, any> }>) {
-        if (kind === 'add') columns.push(columnFromPayload(column, nextId('pgc'), columns.length + 1))
-        else if (kind === 'update') columns = columns.map((c) => (c.id === column.id ? { ...c, ...column } : c))
-        else if (kind === 'delete') columns = columns.filter((c) => c.id !== column.id)
-      }
-      for (const v of (payload?.visibility ?? []) as Array<{ columnId: string; column: Record<string, unknown> }>) {
-        s.viewColumns[v.columnId] = { ...s.viewColumns[v.columnId], show: !!v.column.show }
-      }
-      replaceTable(db, columns as ColumnType[])
-      return { failedOps: [] }
-    }
     case 'mcpList':
       return []
     case 'baseTrashSettingsList':
@@ -297,11 +275,6 @@ function handle(db: MockDb, op: string, q: Record<string, any>, payload: any): u
           has_deleted_column: true,
         })),
       }
-    case 'columnDelete':
-      return replaceTable(
-        db,
-        (table.columns ?? []).filter((c) => c.id !== q.columnId),
-      )
     default:
       return undefined
   }
@@ -311,20 +284,6 @@ function handle(db: MockDb, op: string, q: Record<string, any>, payload: any): u
 function patchViewColumns(db: MockDb, data: any) {
   const s = stateFor(db)
   const list = (data?.list ?? []).map((vc: Record<string, any>) => ({ ...vc, ...s.viewColumns[vc.fk_column_id] }))
-  // columns added through the field editor have no base view column yet
-  const known = new Set(list.map((vc: Record<string, any>) => vc.fk_column_id))
-  for (const c of db.tables[SURFACE_TABLE_ID]?.columns ?? []) {
-    if (known.has(c.id) || c.system || c.uidt === UITypes.ID) continue
-    list.push({
-      id: `vc-${SURFACE_VIEW_ID}-${c.id}`,
-      fk_view_id: SURFACE_VIEW_ID,
-      fk_column_id: c.id,
-      show: true,
-      order: list.length + 1,
-      width: '180px',
-      ...s.viewColumns[c.id!],
-    })
-  }
   return { ...data, list }
 }
 
@@ -365,7 +324,7 @@ const REST_ROUTES: Array<[RegExp, (db: MockDb) => unknown]> = [
 function createSurfaceAdapter(base: AxiosAdapter): AxiosAdapter {
   const respond = async (config: InternalAxiosRequestConfig, data: unknown): Promise<AxiosResponse> => {
     await new Promise((resolve) => setTimeout(resolve, 40))
-    return { data, status: 200, statusText: 'OK', headers: {}, config, request: {} }
+    return { data: serialize(data), status: 200, statusText: 'OK', headers: {}, config, request: {} }
   }
 
   const single = async (config: InternalAxiosRequestConfig, db: MockDb, op: string, q: Record<string, any>, payload: any) => {

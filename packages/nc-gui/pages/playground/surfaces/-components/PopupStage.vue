@@ -18,8 +18,24 @@ function getPopupContainer() {
   return stageRef.value ?? document.body
 }
 
-function open() {
+/** A menu already showing in this stage — clicking the trigger again would toggle it shut. */
+function isPopupOpen() {
+  const popups = stageRef.value?.querySelectorAll<HTMLElement>('.ant-dropdown, .ant-popover') ?? []
+  return [...popups].some(
+    (el) =>
+      !el.classList.contains('ant-dropdown-hidden') &&
+      !el.classList.contains('ant-popover-hidden') &&
+      getComputedStyle(el).display !== 'none',
+  )
+}
+
+async function open() {
   if (!props.openSelector) return
+  // the Reopen click itself counts as an outside click: let that close land, then open again
+  for (let waited = 0; isPopupOpen() && waited < 1000; waited += 50) {
+    await new Promise((resolve) => setTimeout(resolve, 50))
+  }
+  if (isPopupOpen()) return
   stageRef.value?.querySelector<HTMLElement>(props.openSelector)?.click()
 }
 

@@ -1,7 +1,7 @@
 import axios from 'axios'
 import type { AxiosRequestConfig } from 'axios'
 import { HttpClient } from 'nocodb-sdk'
-import { createMockAdapter } from './mock-api'
+import { createMockAdapter, serialize } from './mock-api'
 import type { MockDb, UnmockedRequest } from './mock-api'
 import {
   MOCK_BASE_ID,
@@ -10,6 +10,7 @@ import {
   buildComments,
   buildRows,
   buildTable,
+  buildTasks,
   buildTasksTable,
   mockBase,
 } from './mock-data'
@@ -154,16 +155,21 @@ export function installPlaygroundMocks(kind: MockViewKind) {
   if (session?.kind !== kind) {
     const table = buildTable(kind)
     const tasksTable = buildTasksTable()
+    // reactive so the harness header can show the live row count
+    const rows = shallowReactive(buildRows())
     const db: MockDb = {
       tables: { [table.id!]: table, [tasksTable.id!]: tasksTable },
-      views: Object.fromEntries((table.views ?? []).map((v) => [v.id!, v])),
-      // reactive so the harness header can show the live row count
-      rows: shallowReactive(buildRows()),
+      // copies: the views store holds table.views, and the mock edits its own in place
+      views: Object.fromEntries((table.views ?? []).map((v) => [v.id!, serialize(v)])),
+      rows,
+      tasks: buildTasks(rows),
       comments: buildComments(table.id!),
+      audits: [],
       user: { ...(saved.user as object), base_roles: { owner: true } },
       filters: [],
       sorts: [],
       viewColumnPatches: {},
+      rowColors: {},
     }
     session = { kind, db, seeded: false }
     unmockedRequests.value = []

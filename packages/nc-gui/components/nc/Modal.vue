@@ -94,7 +94,7 @@ const height = computed(() => {
   }
 
   if (props.size === 'medium') {
-    return '26.5'
+    return 'auto'
   }
 
   if (props.size === 'large') {

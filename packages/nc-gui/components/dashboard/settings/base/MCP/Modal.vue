@@ -38,7 +38,13 @@ const closeModal = () => {
 </script>
 
 <template>
-  <NcModal v-model:visible="modalVisible" :show-separator="true" size="large" wrap-class-name="nc-modal-mcp-token-create-edit">
+  <NcModal
+    v-model:visible="modalVisible"
+    :show-separator="true"
+    size="feature"
+    nc-modal-class-name="!p-0"
+    wrap-class-name="nc-modal-mcp-token-create-edit"
+  >
     <template #header>
       <div class="flex w-full items-center p-2 justify-between">
         <div class="flex items-center gap-3 pl-1 flex-1">
@@ -55,7 +61,7 @@ const closeModal = () => {
         </div>
       </div>
     </template>
-    <div class="flex bg-nc-bg-default rounded-b-2xl h-[calc(100%_-_66px)]">
+    <div class="flex flex-1 min-h-0 bg-nc-bg-default rounded-b-2xl">
       <div
         ref="containerElem"
         class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-24 py-6 mx-auto"
@@ -113,12 +119,6 @@ const closeModal = () => {
   a {
     @apply !no-underline !text-nc-content-gray-subtle !hover:text-primary;
   }
-  .nc-modal {
-    @apply !p-0;
-    height: min(calc(100vh - 100px), 1024px);
-    max-height: min(calc(100vh - 100px), 1024px) !important;
-  }
-
   .nc-modal-header {
     @apply !mb-0 !pb-0;
   }

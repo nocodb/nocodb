@@ -1,6 +1,6 @@
 import type { Preset } from 'unocss'
 
-const fontStyleMap: Record<string, [string, { lineHeight: string; letterSpacing?: string; fontWeight: number }]> = {
+export const fontStyleMap: Record<string, [string, { lineHeight: string; letterSpacing?: string; fontWeight: number }]> = {
   heading1: ['64px', { lineHeight: '92px', letterSpacing: '-0.02rem', fontWeight: 700 }],
   heading2: ['40px', { lineHeight: '64px', letterSpacing: '-0.02rem', fontWeight: 700 }],
   heading3: ['24px', { lineHeight: '36px', letterSpacing: '-0.02rem', fontWeight: 700 }],

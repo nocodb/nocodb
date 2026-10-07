@@ -7046,7 +7046,11 @@
       "sharedFormDefaultTheme": "Set the default theme (light or dark) for this shared form. Adds ?nc-theme=light or ?nc-theme=dark to the URL.",
       "croppedFileExceedsMaxSize": "Cropped file size is greater than max file size",
       "applyRoleToAllBasesHint": "This will override explicit base roles and apply the workspace role to all bases.",
-      "scriptActionsSubtitle": "Execute scripts and view their progress in real-time"
+      "scriptActionsSubtitle": "Execute scripts and view their progress in real-time",
+      "recreateDemoBaseTitle": "Recreate demo base?",
+      "recreateDemoBaseConfirm": "This permanently deletes the \"{title}\" base and all its data, then creates a fresh one.",
+      "deleteDemoBaseTitle": "Delete demo base?",
+      "deleteDemoBaseConfirm": "This permanently deletes the \"{title}\" base and all its data."
     },
     "error": {
       "inviteLinkInvalid": "This invite link isn't valid",
@@ -7275,7 +7279,10 @@
       "vaultAliasNotAllowed": "You are not allowed to use the vault '{name}'. Ask a workspace owner for access, or enter the credential directly.",
       "selectTargetField": "Please select a target field!",
       "parentTableNoPrimaryKey": "Parent table does not have a primary key column",
-      "childTableNoPrimaryKey": "Child table does not have a primary key column"
+      "childTableNoPrimaryKey": "Child table does not have a primary key column",
+      "noWorkspaceAvailable": "No workspace available",
+      "invalidJson": "Invalid JSON",
+      "invalidTokensJson": "Not a token export. Expected keys like light, dark, font or radiusScale."
     },
     "toast": {
       "changesSaved": "Changes saved",
@@ -7392,7 +7399,13 @@
       "tableSavedToBase": "Table saved to base",
       "clientSecretRegenerated": "Client secret regenerated successfully! Make sure to copy it now.",
       "dashboardSharingDisabled": "Dashboard sharing disabled",
-      "dashboardSharingEnabled": "Dashboard sharing enabled"
+      "dashboardSharingEnabled": "Dashboard sharing enabled",
+      "demoBaseReady": "Demo base ready",
+      "cssCopied": "CSS copied",
+      "jsonCopied": "JSON copied",
+      "copiedValue": "Copied {value}",
+      "demoBaseDeleted": "Demo base deleted",
+      "tokensImported": "Tokens imported"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

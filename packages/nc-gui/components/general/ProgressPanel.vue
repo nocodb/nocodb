@@ -130,14 +130,6 @@ onMounted(() => {
 </style>
 
 <style lang="scss">
-.nc-modal-create-source {
-  .nc-modal {
-    @apply !p-0;
-    height: min(calc(100vh - 100px), 1024px);
-    max-height: min(calc(100vh - 100px), 1024px) !important;
-  }
-}
-
 .nc-dropdown-ext-db-type {
   @apply !z-1000;
 }

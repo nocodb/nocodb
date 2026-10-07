@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { mockSetupInit } from '../-helper/mock-setup'
+import { mockSetupInit, mockSetupRestore } from '../-helper/mock-setup'
+
 interface MockRefType {
   meta: globalThis.Ref
   view: globalThis.Ref
@@ -37,7 +38,8 @@ provide(ActiveSourceInj, mockRef.source)
 
 useProvideSmartsheetStore(mockRef.view, mockRef.meta, true, ref([]), mockRef.filters)
 useProvideMapViewStore(mockRef.meta, mockRef.view)
-useProvideViewColumns(mockRef.view, mockRef.meta, () => reloadEventHook?.trigger(), mockRef.isPublic.value)
+// local mode: the mock has no workspace to call viewColumnList against
+useProvideViewColumns(mockRef.view, mockRef.meta, () => reloadEventHook?.trigger(), true)
 
 useViewRowColorProvider({ shared: true })
 
@@ -48,6 +50,8 @@ onMounted(async () => {
   mockRef.source.value = bases.get(baseId)?.sources?.[0]
   route.value.params.typeOrId = baseId
 })
+
+onBeforeUnmount(mockSetupRestore)
 </script>
 
 <template>

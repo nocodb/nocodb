@@ -66,20 +66,20 @@ export class FiltersV3Controller {
     };
   }
 
+  // Hook (`/hooks/:hookId/filters`) and link (`/links/:linkColumnId/filters`)
+  // creates were declared here but never worked: only `viewId` was forwarded, so
+  // the service got no owning key and Filter.insert 500'd. They are undocumented
+  // in swagger-v3 and have no list/update/delete counterpart; the routes are
+  // dropped rather than half-built. Re-add them with the full CRUD set.
   @Post([
     `${PREFIX_APIV3_METABASE}/tables/:tableId/views/:viewId/filters`,
-
     `${PREFIX_APIV3_METABASE}/views/:viewId/filters`,
-    `${PREFIX_APIV3_METABASE}/hooks/:hookId/filters`,
-    `${PREFIX_APIV3_METABASE}/links/:linkColumnId/filters`,
   ])
   @HttpCode(200)
   @Acl('filterCreate')
   async filterCreate(
     @TenantContext() context: NcContext,
     @Param('viewId') viewId: string,
-    @Param('linkColumnId') linkColumnId: string,
-    @Param('hookId') hookId: string,
     @Body() body: FilterCreateV3Type,
     @Req() req: NcRequest,
   ) {

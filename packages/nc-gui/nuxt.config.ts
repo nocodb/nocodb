@@ -13,8 +13,6 @@ export default defineNuxtConfig({
     compatibilityVersion: 4,
   },
 
-  ignore: [...(process.env.NODE_ENV === 'production' ? ['pages/playground/**/*'] : [])],
-
   modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],
   ssr: false,
 

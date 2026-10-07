@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { OnPremPlanMeta, OnPremPlanTitles, PlanMeta, PlanTitles } from 'nocodb-sdk'
 
-if (import.meta.env.PROD) {
-  navigateTo('/')
-}
-
 const { isDark } = useTheme()
 
 const cloudPlans = [PlanTitles.FREE, PlanTitles.PLUS, PlanTitles.BUSINESS, PlanTitles.ENTERPRISE] as const
@@ -132,7 +128,7 @@ const enterpriseOrangeBadge = { bg: '#FEE6D6', text: '#C86827' }
 </script>
 
 <template>
-  <div class="h-screen w-screen overflow-auto bg-nc-bg-default">
+  <div class="min-h-full bg-nc-bg-default">
     <div class="max-w-4xl mx-auto p-8">
       <div class="mb-8">
         <a href="/playground" class="text-sm text-nc-content-brand no-underline">← Playground</a>

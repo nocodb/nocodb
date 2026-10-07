@@ -1,64 +1,39 @@
 <script setup lang="ts">
-// Redirect to development environment only
-if (import.meta.env.PROD) {
-  navigateTo('/')
-}
-
-const navItems = [
-  {
-    name: 'Icons',
-    path: '/playground/icons',
-    description: 'Browse all icons from iconUtils',
-    icon: 'star',
-  },
-  {
-    name: 'Components',
-    path: '/playground/components',
-    description: 'Test NcComponents',
-    icon: 'appStore',
-  },
-  {
-    name: 'Plans',
-    path: '/playground/plans',
-    description: 'Plan badges & billing tables in light + dark',
-    icon: 'ncArrowUpCircle',
-  },
-]
+import { playgroundNav } from './-helper/registry'
 </script>
 
 <template>
-  <div class="h-screen w-screen bg-nc-bg-gray-light overflow-auto">
-    <div class="max-w-6xl mx-auto p-8">
-      <div class="mb-8">
-        <h1 class="text-4xl font-bold text-nc-content-gray-emphasis mb-2">NocoDB Playground</h1>
-        <div>
-          <NcBadge color="purple" :border="false" class="!h-5 max-w-34 text-nc-content-purple-dark"> Development Only </NcBadge>
-        </div>
-      </div>
+  <div class="max-w-6xl mx-auto p-8">
+    <div class="mb-8">
+      <h1 class="text-heading3 text-nc-content-gray-emphasis mb-1">NocoDB Playground</h1>
+      <p class="text-body text-nc-content-gray-subtle max-w-2xl">
+        Every design-system building block and the main product surfaces in one place. Open <b>Tokens</b> in the top bar to change
+        the brand colour, grays, font, radii or any CSS variable — every page here, including the live app frames, updates as you
+        edit.
+      </p>
+    </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <a
-          v-for="item in navItems"
+    <div v-for="section in playgroundNav" :key="section.title" class="mb-8">
+      <div class="text-captionSmBold uppercase tracking-wide text-nc-content-gray-muted mb-3">{{ section.title }}</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        <NuxtLink
+          v-for="item in section.items"
           :key="item.path"
-          :href="item.path"
-          class="group block p-6 !no-underline bg-nc-bg-default rounded-lg border-1 border-nc-border-gray-medium hover:border-nc-border-brand transition-all"
+          :to="item.path"
+          class="group block p-4 !no-underline bg-nc-bg-default rounded-xl border-1 border-nc-border-gray-medium hover:border-nc-border-brand hover:shadow-hover transition-all"
         >
           <div class="flex items-start gap-3">
-            <div class="flex-none w-10 h-10 rounded-lg bg-nc-bg-brand-light flex items-center justify-center">
-              <GeneralIcon :icon="item.icon" class="w-5 h-5 text-nc-content-brand" />
+            <div class="flex-none w-9 h-9 rounded-lg bg-nc-bg-brand flex items-center justify-center">
+              <GeneralIcon :icon="item.icon" class="w-4.5 h-4.5 text-nc-content-brand" />
             </div>
-            <div class="flex-1">
-              <h2
-                class="text-lg font-semibold text-nc-content-gray-emphasis mb-1 group-hover:text-nc-content-brand transition-colors"
-              >
+            <div class="flex-1 min-w-0">
+              <div class="text-captionBold text-nc-content-gray-emphasis group-hover:text-nc-content-brand transition-colors">
                 {{ item.name }}
-              </h2>
-              <p class="text-sm text-nc-content-gray-subtle">
-                {{ item.description }}
-              </p>
+              </div>
+              <div class="text-captionSm text-nc-content-gray-subtle mt-1">{{ item.description }}</div>
             </div>
           </div>
-        </a>
+        </NuxtLink>
       </div>
     </div>
   </div>

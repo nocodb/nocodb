@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { iconMap } from '~/utils/iconUtils'
 
-if (import.meta.env.PROD) {
-  navigateTo('/')
-}
-
 const searchQuery = ref('')
 const copiedIcon = ref<string | null>(null)
 
@@ -38,7 +34,7 @@ const getIconComponent = (iconName: string) => {
 </script>
 
 <template>
-  <div class="h-screen w-screen bg-nc-bg-gray-light overflow-auto">
+  <div class="min-h-full bg-nc-bg-gray-light">
     <!-- Header -->
     <div class="sticky top-0 bg-nc-bg-default border-b-1 border-nc-border-gray-medium z-10 shadow-sm">
       <div class="max-w-7xl mx-auto px-6 py-4">

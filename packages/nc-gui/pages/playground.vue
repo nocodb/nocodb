@@ -7,9 +7,8 @@ definePageMeta({
   hideHeader: true,
   middleware: [
     () => {
-      if (!import.meta.env.PROD) return
       const { user } = useGlobal()
-      if (!user.value?.email?.toLowerCase().endsWith('@nocodb.com')) return navigateTo('/', { replace: true })
+      if (!canOpenPlayground(user.value?.email)) return navigateTo('/', { replace: true })
     },
   ],
 })

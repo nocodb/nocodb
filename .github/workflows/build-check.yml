@@ -61,7 +61,7 @@ jobs:
 
   frontend:
     name: Frontend build (nc-gui)
-    runs-on: ubicloud-standard-2
+    runs-on: ubicloud-standard-4
     timeout-minutes: 40
     if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') }}
     steps:
@@ -85,5 +85,6 @@ jobs:
       - name: Build frontend
         working-directory: ./packages/nc-gui
         env:
-          NODE_OPTIONS: --max-old-space-size=6144
+          NODE_OPTIONS: --max-old-space-size=8192
+          NUXT_PUBLIC_ENV: CI
         run: pnpm exec nuxt build

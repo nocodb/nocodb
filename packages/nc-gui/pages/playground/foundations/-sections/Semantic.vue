@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import PgDemo from '../../-components/PgDemo.vue'
 import { collectTokenDefs } from '../../-helper/tokens'
-import { copyText, toHex, useResolvedVars } from './useResolvedVars'
+import { copyText, isLightColor, toHex, useResolvedVars } from './useResolvedVars'
 
 type Family = 'content' | 'bg' | 'border' | 'fill'
 
@@ -29,9 +29,9 @@ function matching(f: Family) {
 
 const rows = computed(() => matching(family.value))
 
-// inverted content sits on the opposite surface (gray-800 flips with the theme)
+// inverted-primary sits on a filled surface (gray-800 flips with the theme); inverted-secondary is for the default surface
 function isInverted(name: string) {
-  return family.value === 'content' && name.includes('-inverted-')
+  return family.value === 'content' && name.includes('-inverted-primary')
 }
 
 const columns = computed(() => (isDark.value ? (['dark'] as const) : (['light', 'dark'] as const)))
@@ -86,7 +86,7 @@ onMounted(() => {
         :style="{ gridTemplateColumns: `minmax(0, 1.4fr) repeat(${columns.length}, minmax(0, 1fr))` }"
       >
         <span>Token</span>
-        <span v-for="c in columns" :key="c" class="capitalize">{{ c }}</span>
+        <span v-for="c in columns" :key="c">{{ c }}</span>
       </div>
 
       <div
@@ -137,7 +137,7 @@ onMounted(() => {
           <span
             v-else
             class="h-6 px-2.5 rounded-full flex items-center text-captionXsBold"
-            :style="{ background: `var(${name})`, color: '#fff' }"
+            :style="{ background: `var(${name})`, color: isLightColor(resolved(c, name)) ? '#101015' : '#ffffff' }"
           >
             Fill
           </span>

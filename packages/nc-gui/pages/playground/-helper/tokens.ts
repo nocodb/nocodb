@@ -20,6 +20,8 @@ export interface TokenOverrides {
   radiusScale: number
   /** per text-* preset style; only the changed fields */
   typography: Record<string, Partial<TypeStyle>>
+  /** the overall type scale the per-style sizes were derived from (1 = product default) */
+  typeScale: number
   /** multiplier for icon stroke widths (1 = product default) */
   iconStroke: number
 }
@@ -36,6 +38,19 @@ export const TYPE_STYLES: Array<{ key: string } & TypeStyle> = Object.entries(fo
   // presets write rem
   letterSpacing: o.letterSpacing ? parseFloat(o.letterSpacing) * 16 : 0,
 }))
+
+/** a preset's size and line height at an overall type scale; weight and tracking stay */
+export const scaledTypeStyle = (key: string, factor: number): TypeStyle | undefined => {
+  const s = TYPE_STYLES.find((style) => style.key === key)
+  if (!s) return undefined
+  if (factor === 1) return { size: s.size, lineHeight: s.lineHeight, weight: s.weight, letterSpacing: s.letterSpacing }
+  return {
+    size: Math.round(s.size * factor * 2) / 2,
+    lineHeight: Math.round(s.lineHeight * factor),
+    weight: s.weight,
+    letterSpacing: s.letterSpacing,
+  }
+}
 
 /** which utility property each semantic family paints — utilities compile to palette stops, not the --nc-* var */
 const SEMANTIC_UTILITIES: Record<string, Array<[prefix: string, property: string]>> = {
@@ -92,6 +107,7 @@ const emptyOverrides = (): TokenOverrides => ({
   font: '',
   radiusScale: 1,
   typography: {},
+  typeScale: 1,
   iconStroke: 1,
 })
 
@@ -106,6 +122,7 @@ const isTokenOverrides = (v: unknown): v is Partial<TokenOverrides> => {
     font: (x) => typeof x === 'string',
     radiusScale: (x) => typeof x === 'number',
     typography: isPlainObject,
+    typeScale: (x) => typeof x === 'number',
     iconStroke: (x) => typeof x === 'number',
   }
   const keys = Object.keys(v)
@@ -172,7 +189,8 @@ const antPrimaryPalette = (base: string): Record<string, string> => {
 
 /** logical edits: a regenerated ramp, type scale, font, radius or stroke each count once; hand-edited tokens count each */
 const countEdits = (o: TokenOverrides) => {
-  const names = [...Object.keys(o.light), ...Object.keys(o.dark)]
+  // a token set in both modes is one edit
+  const names = [...new Set([...Object.keys(o.light), ...Object.keys(o.dark)])]
   const fullRamps = new Set<string>()
   for (const name of names) {
     const hue = name.match(/^--color-([a-z]+)-\d+$/)?.[1]
@@ -183,10 +201,19 @@ const countEdits = (o: TokenOverrides) => {
     if (hue) return !fullRamps.has(hue)
     return !(fullRamps.has('brand') && /^--(nc-brand-accent|ant-primary-)/.test(name))
   })
-  const typeKeys = Object.keys(o.typography)
-  const typeEdits = typeKeys.length && typeKeys.length === TYPE_STYLES.length ? 1 : typeKeys.length
+  // the overall scale counts once; a style counts only where it differs from what the scale gives it
+  const typeEdits = Object.entries(o.typography).filter(([key, style]) => {
+    const scaled = scaledTypeStyle(key, o.typeScale ?? 1)
+    return (Object.keys(style) as Array<keyof TypeStyle>).some((field) => style[field] !== scaled?.[field])
+  }).length
   return (
-    fullRamps.size + loose.length + typeEdits + (o.font ? 1 : 0) + (o.radiusScale !== 1 ? 1 : 0) + (o.iconStroke !== 1 ? 1 : 0)
+    fullRamps.size +
+    loose.length +
+    typeEdits +
+    ((o.typeScale ?? 1) !== 1 ? 1 : 0) +
+    (o.font ? 1 : 0) +
+    (o.radiusScale !== 1 ? 1 : 0) +
+    (o.iconStroke !== 1 ? 1 : 0)
   )
 }
 
@@ -243,6 +270,19 @@ export const collectTokenDefs = (): TokenDef[] => {
       a.group.localeCompare(b.group) ||
       a.name.localeCompare(b.name, undefined, { numeric: true }),
   )
+}
+
+/** a token's value in one mode, following var() references through the overrides and the stylesheet values */
+export const resolveTokenValue = (
+  defs: Map<string, TokenDef>,
+  o: TokenOverrides,
+  mode: TokenMode,
+  name: string,
+  depth = 0,
+): string => {
+  const value = o[mode][name] ?? defs.get(name)?.[mode] ?? ''
+  const ref = value.match(/^var\((--[\w-]+)\)$/)?.[1]
+  return ref && depth < 8 ? resolveTokenValue(defs, o, mode, ref, depth + 1) : value
 }
 
 const declarations = (values: Record<string, string>) => {
@@ -325,9 +365,9 @@ export const buildCss = (o: TokenOverrides) => {
         `.rounded-lg { border-radius: ${8 * r}px !important; }`,
         `.rounded-xl { border-radius: ${12 * r}px !important; }`,
         `.rounded-2xl { border-radius: ${16 * r}px !important; }`,
-        `.nc-button.ant-btn, .ant-input, .ant-select-selector, .ant-dropdown-menu, .ant-modal-content { border-radius: ${
-          8 * r
-        }px !important; }`,
+        `.nc-button.ant-btn, .ant-input, .ant-dropdown-menu, .ant-modal-content { border-radius: ${8 * r}px !important; }`,
+        // matches the product's own `.ant-select .ant-select-selector` !important rule
+        `.ant-select .ant-select-selector { border-radius: ${6 * r}px !important; }`,
       ].join('\n'),
     )
   }
@@ -433,11 +473,15 @@ export const usePlaygroundTokens = createSharedComposable(() => {
     overrides.value = { ...overrides.value, light: strip(overrides.value.light), dark: strip(overrides.value.dark) }
   }
 
-  /** `null` for a field drops it back to the preset; `null` for the patch drops the whole style */
+  /** `null` for a field drops it back to the preset; `null` for the patch drops the whole style back to the overall scale */
   const setTypography = (key: string, patch: Partial<Record<keyof TypeStyle, number | null>> | null) => {
     const next = { ...overrides.value.typography }
-    if (!patch) delete next[key]
-    else {
+    const factor = overrides.value.typeScale ?? 1
+    if (!patch) {
+      const scaled = scaledTypeStyle(key, factor)
+      if (factor !== 1 && scaled) next[key] = { size: scaled.size, lineHeight: scaled.lineHeight }
+      else delete next[key]
+    } else {
       const style = { ...next[key] }
       for (const [field, value] of Object.entries(patch) as Array<[keyof TypeStyle, number | null]>) {
         if (value === null || Number.isNaN(value)) delete style[field]
@@ -449,19 +493,16 @@ export const usePlaygroundTokens = createSharedComposable(() => {
     overrides.value = { ...overrides.value, typography: next }
   }
 
-  /** scales every preset's size and line-height from the product defaults */
+  /** scales every preset's size and line-height from the product defaults; weight and tracking edits stay */
   const scaleTypography = (factor: number) => {
     const typography: TokenOverrides['typography'] = {}
-    if (factor !== 1) {
-      for (const s of TYPE_STYLES) {
-        typography[s.key] = {
-          ...overrides.value.typography[s.key],
-          size: Math.round(s.size * factor * 2) / 2,
-          lineHeight: Math.round(s.lineHeight * factor),
-        }
-      }
+    for (const s of TYPE_STYLES) {
+      const { size: _size, lineHeight: _lineHeight, ...kept } = overrides.value.typography[s.key] ?? {}
+      const scaled = scaledTypeStyle(s.key, factor)!
+      const style = factor === 1 ? kept : { ...kept, size: scaled.size, lineHeight: scaled.lineHeight }
+      if (Object.keys(style).length) typography[s.key] = style
     }
-    overrides.value = { ...overrides.value, typography }
+    overrides.value = { ...overrides.value, typography, typeScale: factor }
   }
 
   const reset = () => {

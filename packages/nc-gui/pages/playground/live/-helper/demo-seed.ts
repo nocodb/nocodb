@@ -169,10 +169,13 @@ export async function seedDemoBase({
   userEmail,
   createBase,
   onStep,
+  skipViews = [],
 }: {
   api: Api<unknown>
   workspaceId: string
   userEmail?: string
+  /** views the plan doesn't include; requesting them only produces a 403 */
+  skipViews?: DemoViewKey[]
   createBase: (title: string) => Promise<{ id?: string }>
   onStep: (key: string, status: SeedStep['status'], message?: string) => void
 }): Promise<DemoBase> {
@@ -363,6 +366,7 @@ export async function seedDemoBase({
     ]
     const failed: string[] = []
     for (const [key, operation, body] of specs) {
+      if (skipViews.includes(key)) continue
       try {
         const data = (await api.internal.postOperation(workspaceId, baseId, { operation, tableId: table.id }, body)) as {
           id: string

@@ -12,11 +12,11 @@ const FIELDS: Array<{ key: Exclude<keyof TypeStyle, 'weight'>; label: string; st
   { key: 'letterSpacing', label: 'Track', step: 0.05 },
 ]
 
-const scale = ref(1)
-
 const search = ref('')
 
 const expanded = ref<string | null>(null)
+
+const scale = computed(() => overrides.value.typeScale ?? 1)
 
 const visibleStyles = computed(() => {
   const q = search.value.trim().toLowerCase()
@@ -36,7 +36,6 @@ function summary(key: string) {
 }
 
 function onScale(value: number) {
-  scale.value = value
   scaleTypography(value)
 }
 </script>
@@ -45,7 +44,7 @@ function onScale(value: number) {
   <section class="p-4 flex flex-col gap-4 border-b-1 border-nc-border-gray-medium">
     <div>
       <div class="text-captionSmBold text-nc-content-gray-subtle mb-2">Font family</div>
-      <NcSelect v-model:value="overrides.font" size="small" class="w-full">
+      <NcSelect v-model:value="overrides.font" class="w-full">
         <a-select-option v-for="f in FONT_OPTIONS" :key="f.label" :value="f.value">{{ f.label }}</a-select-option>
       </NcSelect>
     </div>
@@ -104,12 +103,12 @@ function onScale(value: number) {
             <div class="flex flex-col gap-1">
               <span class="text-captionXs text-nc-content-gray-muted">Weight</span>
               <NcSelect
-                :value="current(style.key, 'weight')"
+                :value="String(current(style.key, 'weight'))"
                 size="small"
                 class="w-full"
-                @change="(v: number) => setTypography(style.key, { weight: v })"
+                @change="(v: string) => setTypography(style.key, { weight: Number(v) })"
               >
-                <a-select-option v-for="w in WEIGHTS" :key="w" :value="w">{{ w }}</a-select-option>
+                <a-select-option v-for="w in WEIGHTS" :key="w" :value="String(w)">{{ w }}</a-select-option>
               </NcSelect>
             </div>
           </div>

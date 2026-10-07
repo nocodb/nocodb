@@ -113,7 +113,7 @@ const suggestGroups = [
         </div>
       </PgDemo>
 
-      <PgDemo label="NcEditableText & NcSuggestInput" hint="double-click the title to rename">
+      <PgDemo label="NcEditableText" hint="double-click the title to rename">
         <div class="flex flex-col gap-4">
           <div class="flex items-center gap-2 text-subHeading2">
             <GeneralIcon icon="table" class="w-4 h-4" />
@@ -122,6 +122,16 @@ const suggestGroups = [
           <div class="flex items-center gap-2 text-caption text-nc-content-gray-muted">
             <NcEditableText model-value="Disabled — cannot rename" disabled />
           </div>
+        </div>
+      </PgDemo>
+
+      <!-- the menu is positioned inline, not teleported: the stage keeps room for it -->
+      <PgDemo
+        label="NcSuggestInput"
+        hint="focus or type to see grouped suggestions; arrows + Enter pick one"
+        class="lg:col-span-2"
+      >
+        <div class="min-h-[300px] max-w-md">
           <NcSuggestInput v-model="formula" :groups="suggestGroups" placeholder="Type to search fields and functions" />
         </div>
       </PgDemo>

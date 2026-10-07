@@ -16,11 +16,12 @@ const viewMode = ref('grid')
 
 const sortOrder = ref('asc')
 
+// NcSelectTab runs `title` through $t
 const VIEW_ITEMS = [
-  { icon: 'grid', title: 'Grid', value: 'grid' },
-  { icon: 'gallery', title: 'Gallery', value: 'gallery' },
-  { icon: 'kanban', title: 'Kanban', value: 'kanban' },
-  { icon: 'calendar', title: 'Calendar', value: 'calendar' },
+  { icon: 'grid', title: 'objects.viewType.grid', value: 'grid' },
+  { icon: 'gallery', title: 'objects.viewType.gallery', value: 'gallery' },
+  { icon: 'kanban', title: 'objects.viewType.kanban', value: 'kanban' },
+  { icon: 'calendar', title: 'objects.viewType.calendar', value: 'calendar' },
 ] as const
 
 const SORT_ITEMS = [
@@ -31,7 +32,8 @@ const SORT_ITEMS = [
 
 <template>
   <PgSection id="selects" title="Selects" source="NcSelect · NcSelectTab · NcDropdownSelect">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+    <!-- auto-fill: NcSelectTab doesn't shrink, so a card needs ~400px; the token editor narrows the page -->
+    <div class="grid grid-cols-[repeat(auto-fill,minmax(400px,1fr))] gap-3">
       <PgDemo label="NcSelect sizes">
         <div class="flex flex-col gap-3">
           <div v-for="size in SIZES" :key="size" class="flex items-center gap-3">
@@ -70,16 +72,28 @@ const SORT_ITEMS = [
 
       <PgDemo label="NcDropdownSelect">
         <div class="flex items-center gap-3">
-          <NcDropdownSelect v-model="sortOrder" :items="SORT_ITEMS">
+          <!-- the overlay sizes to its content, so callers give it a width (as in the attachments presenter) -->
+          <NcDropdownSelect v-model="sortOrder" :items="SORT_ITEMS" overlay-class-name="w-48">
             <NcButton size="small" type="secondary">
               <div class="flex items-center gap-2">
                 {{ SORT_ITEMS.find((i) => i.value === sortOrder)?.label }}
-                <GeneralIcon icon="arrowDown" />
+                <GeneralIcon icon="chevronDown" class="w-4 h-4 text-nc-content-gray-muted" />
               </div>
             </NcButton>
           </NcDropdownSelect>
-          <NcDropdownSelect v-model="sortOrder" :items="SORT_ITEMS" disabled tooltip="Sorting is locked">
-            <NcButton size="small" type="secondary">Disabled</NcButton>
+          <NcDropdownSelect
+            v-model="sortOrder"
+            :items="SORT_ITEMS"
+            disabled
+            tooltip="Sorting is locked"
+            overlay-class-name="w-48"
+          >
+            <NcButton size="small" type="secondary">
+              <div class="flex items-center gap-2">
+                Disabled
+                <GeneralIcon icon="chevronDown" class="w-4 h-4" />
+              </div>
+            </NcButton>
           </NcDropdownSelect>
         </div>
       </PgDemo>

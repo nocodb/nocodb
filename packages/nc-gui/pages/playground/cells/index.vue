@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ViewType } from 'nocodb-sdk'
 import { isVirtualCol } from 'nocodb-sdk'
 import PgPage from '../-components/PgPage.vue'
 import PgSection from '../-components/PgSection.vue'
@@ -15,7 +16,8 @@ import {
   companyTableMeta,
   createCellsRow,
 } from './-helper/fixtures'
-import { installCellsMocks, uninstallCellsMocks } from './-helper/mock-api'
+import { installCellsFocusGuard, uninstallCellsFocusGuard } from './-helper/focus-guard'
+import { installCellsMocks, resetCellsMocks, uninstallCellsMocks } from './-helper/mock-api'
 
 const { $api } = useNuxtApp()
 
@@ -35,6 +37,9 @@ const isReadOnly = ref(false)
 
 const search = ref('')
 
+// reactive, so a column an editor saves (e.g. a new select option) re-renders every slot
+const groups = reactive(cellGroups)
+
 const previousForcedProjectId = baseStore.forcedProjectId
 
 const modes = [
@@ -45,7 +50,7 @@ const modes = [
 
 const visibleGroups = computed(() => {
   const q = search.value.trim().toLowerCase()
-  return cellGroups
+  return groups
     .map((g) => ({
       ...g,
       fixtures: g.fixtures.filter(
@@ -60,6 +65,7 @@ const sections = computed(() => visibleGroups.value.map((g) => ({ id: `cells-${g
 const fieldCount = cellGroups.reduce((n, g) => n + g.fixtures.length, 0)
 
 function resetValues() {
+  resetCellsMocks()
   row.value = createCellsRow()
 }
 
@@ -81,10 +87,15 @@ provide(
 
 provide(ReloadViewDataHookInj, createEventHook())
 
+// link cells read the smartsheet store; like the expanded form, provide one with no view
+useProvideSmartsheetStore(ref<ViewType>(), meta)
+
 useProvideSmartsheetLtarHelpers(meta)
 
 // link cells fetch, list and link related records; answer those for the fixture base
 installCellsMocks($api.instance)
+
+installCellsFocusGuard()
 
 onMounted(() => {
   metas.value[`${CELLS_BASE_ID}:${CELLS_TABLE_ID}`] = meta.value
@@ -97,6 +108,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   uninstallCellsMocks($api.instance)
+  uninstallCellsFocusGuard()
   baseStore.forcedProjectId = previousForcedProjectId
   basesStore.bases.delete(CELLS_BASE_ID)
   basesStore.basesUser.delete(CELLS_BASE_ID)
@@ -155,9 +167,9 @@ onBeforeUnmount(() => {
                   v-if="isVirtualCol(fixture.column)"
                   :column="fixture.column"
                   hide-menu
-                  class="h-6"
+                  class="!h-6"
                 />
-                <LazySmartsheetHeaderCell v-else :column="fixture.column" hide-menu class="h-6" />
+                <LazySmartsheetHeaderCell v-else :column="fixture.column" hide-menu class="!h-6" />
                 <div class="flex items-center gap-1.5 text-captionXs text-nc-content-gray-muted">
                   <code class="font-mono">{{ fixture.column.uidt }}</code>
                   <NcBadge v-if="fixture.displayOnly" color="orange" :border="false" class="!h-4 !text-captionXs">

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { collectTokenDefs, usePlaygroundTokens } from '../../-helper/tokens'
+import { collectTokenDefs, resolveTokenValue, usePlaygroundTokens } from '../../-helper/tokens'
 import type { TokenDef, TokenMode } from '../../-helper/tokens'
+import { toHex } from '../../foundations/-sections/useResolvedVars'
 
 const props = defineProps<{
   mode: TokenMode
@@ -11,6 +12,8 @@ const { overrides, setToken } = usePlaygroundTokens()
 const RENDER_LIMIT = 150
 
 const tokenDefs = ref<TokenDef[]>([])
+
+const defsByName = computed(() => new Map(tokenDefs.value.map((d) => [d.name, d])))
 
 const search = ref('')
 
@@ -44,21 +47,29 @@ function currentValue(def: TokenDef) {
   return overrides.value[props.mode][def.name] ?? def[props.mode]
 }
 
-function swatch(def: TokenDef) {
-  const value = currentValue(def)
-  return isHex(value) || value.startsWith('var(') || value.startsWith('rgb') ? value : 'transparent'
+/** palette and system tokens are colours; spacing and the rest are free-form */
+function isColourToken(def: TokenDef) {
+  return def.group.startsWith('Palette') || def.group.startsWith('System')
 }
 
-/** palette and system tokens are colours; spacing and the rest are free-form */
+/** the edited mode's value with var() references followed, independent of the theme the page is showing */
+function resolved(def: TokenDef) {
+  return resolveTokenValue(defsByName.value, overrides.value, props.mode, def.name)
+}
+
+/** non-colour tokens are the same in both themes, so an edit applies to both */
+function setValue(def: TokenDef, value: string | null) {
+  for (const mode of isColourToken(def) ? [props.mode] : (['light', 'dark'] as const)) setToken(mode, def.name, value)
+}
+
 function onValueInput(def: TokenDef, raw: string) {
   const value = raw.trim()
-  const isColourToken = def.group.startsWith('Palette') || def.group.startsWith('System')
-  if (value && isColourToken && !CSS.supports('color', value)) {
+  if (value && isColourToken(def) && !CSS.supports('color', value)) {
     if (!invalidValues.value.includes(def.name)) invalidValues.value = [...invalidValues.value, def.name]
     return
   }
   invalidValues.value = invalidValues.value.filter((n) => n !== def.name)
-  setToken(props.mode, def.name, value || null)
+  setValue(def, value || null)
 }
 
 onMounted(() => {
@@ -78,7 +89,7 @@ onMounted(() => {
       </template>
     </a-input>
     <div class="flex items-center gap-2">
-      <NcSelect v-model:value="group" size="small" class="flex-1 min-w-0" show-search>
+      <NcSelect v-model:value="group" class="flex-1 min-w-0" show-search>
         <a-select-option v-for="g in groups" :key="g" :value="g">{{ g === 'all' ? 'All groups' : g }}</a-select-option>
       </NcSelect>
       <NcSwitch v-model:checked="showOnlyChanged" size="small">
@@ -93,18 +104,21 @@ onMounted(() => {
     <div class="flex flex-col">
       <div v-for="def in visibleDefs" :key="def.name" class="flex items-center gap-2 py-1 border-b-1 border-nc-border-gray-light">
         <label
-          :theme="mode === 'dark' ? 'dark' : undefined"
-          class="relative flex-none w-5 h-5 rounded border-1 border-nc-border-gray-medium overflow-hidden cursor-pointer"
-          :style="{ background: swatch(def) }"
+          v-if="isColourToken(def)"
+          class="relative flex-none w-5 h-5 rounded border-1 border-nc-border-gray-medium overflow-hidden"
+          :class="{ 'cursor-pointer': isHex(resolved(def)) }"
+          :style="{ background: resolved(def) }"
         >
           <input
-            v-if="isHex(currentValue(def))"
+            v-if="isHex(resolved(def))"
             type="color"
-            :value="currentValue(def)"
+            :value="toHex(resolved(def))"
             class="absolute inset-0 opacity-0 cursor-pointer"
+            :aria-label="def.name"
             @input="setToken(mode, def.name, ($event.target as HTMLInputElement).value)"
           />
         </label>
+        <div v-else class="flex-none w-5" />
         <div class="flex-1 min-w-0">
           <div
             class="text-captionXs font-mono truncate"
@@ -114,6 +128,7 @@ onMounted(() => {
           </div>
           <input
             :value="currentValue(def)"
+            :aria-label="`${def.name} value`"
             class="w-full bg-transparent outline-none text-captionXs font-mono"
             :class="invalidValues.includes(def.name) ? 'text-nc-content-red-dark' : 'text-nc-content-gray-muted'"
             :aria-invalid="invalidValues.includes(def.name)"
@@ -123,7 +138,7 @@ onMounted(() => {
             {{ $t('msg.invalidColor') }}
           </div>
         </div>
-        <NcButton v-if="def.name in overrides[mode]" size="xxsmall" type="text" icon-only @click="setToken(mode, def.name, null)">
+        <NcButton v-if="def.name in overrides[mode]" size="xxsmall" type="text" icon-only @click="setValue(def, null)">
           <template #icon>
             <GeneralIcon icon="ncX" class="w-3 h-3" />
           </template>

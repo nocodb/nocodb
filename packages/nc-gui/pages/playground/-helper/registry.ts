@@ -111,7 +111,8 @@ export const playgroundNav: PlaygroundNavSection[] = [
     items: [
       {
         name: 'Filters',
-        path: '/playground/components/filter/filter-group',
+        // the index redirects to filter-group; the prefix also highlights filter-row
+        path: '/playground/components/filter',
         description: 'Filter group builder',
         icon: 'filter',
       },

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { mockSetupInit } from '../-helper/mock-setup'
+import { mockSetupInit, mockSetupRestore } from '../-helper/mock-setup'
+
 interface MockRefType {
   meta: globalThis.Ref
   view: globalThis.Ref
@@ -49,6 +50,9 @@ onMounted(async () => {
   mockRef.source.value = bases.get(baseId)?.sources?.[0]
   route.value.params.typeOrId = baseId
 })
+
+// the mock user / base must not outlive the sandbox page
+onBeforeUnmount(mockSetupRestore)
 </script>
 
 <template>

@@ -27,9 +27,9 @@ const emojiSizes = ['xsmall', 'small', 'medium', 'large', 'xlarge'] as const
   <PgSection id="emoji-picker" title="Emoji picker" source="GeneralEmojiPicker">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       <PgDemo label="Interactive" :hint="`selected: ${emoji || 'none'}`">
+        <!-- the default slot is the trigger while no emoji is set, so Remove leaves something to click -->
         <div class="flex items-center gap-4">
-          <GeneralEmojiPicker :emoji="emoji" size="large" @emoji-selected="emoji = $event" />
-          <GeneralEmojiPicker size="large" @emoji-selected="emoji = $event">
+          <GeneralEmojiPicker :emoji="emoji" size="large" @emoji-selected="emoji = $event">
             <GeneralIcon icon="ncSmile" class="w-5 h-5 text-nc-content-gray-muted" />
           </GeneralEmojiPicker>
         </div>
@@ -44,7 +44,7 @@ const emojiSizes = ['xsmall', 'small', 'medium', 'large', 'xlarge'] as const
 
   <PgSection id="icon-picker" title="Icon pickers" source="GeneralIconPicker · GeneralIconSelector">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-      <PgDemo label="IconPicker" :hint="`value: ${pickedIcon ?? 'null'}`">
+      <PgDemo label="IconPicker" :hint="`value: ${pickedIcon ?? 'none'}`">
         <GeneralIconPicker v-model="pickedIcon">
           <template #default="{ isOpen }">
             <div
@@ -57,7 +57,7 @@ const emojiSizes = ['xsmall', 'small', 'medium', 'large', 'xlarge'] as const
           </template>
         </GeneralIconPicker>
       </PgDemo>
-      <PgDemo label="IconSelector" :hint="`type: ${selectorIconType}`">
+      <PgDemo label="IconSelector" :hint="`type: ${selectorIconType || 'none'}`">
         <GeneralIconSelector
           v-model:icon="selectorIcon"
           v-model:icon-type="selectorIconType"
@@ -74,7 +74,8 @@ const emojiSizes = ['xsmall', 'small', 'medium', 'large', 'xlarge'] as const
                 :icon="selectorIcon as IconMapKey"
                 class="w-4 h-4"
               />
-              <span v-else-if="typeof selectorIcon === 'string'">{{ selectorIcon }}</span>
+              <span v-else-if="typeof selectorIcon === 'string' && selectorIcon">{{ selectorIcon }}</span>
+              <GeneralIcon v-else icon="ncPlus" class="w-4 h-4 text-nc-content-gray-muted" />
             </div>
           </template>
         </GeneralIconSelector>
@@ -99,13 +100,15 @@ const emojiSizes = ['xsmall', 'small', 'medium', 'large', 'xlarge'] as const
       </PgDemo>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-      <PgDemo label="AdvanceColorPicker dropdown">
+      <PgDemo label="AdvanceColorPicker dropdown" hint="default · custom trigger · disabled">
         <div class="flex items-center gap-4">
           <GeneralAdvanceColorPickerDropdown v-model="advanceColor" />
           <GeneralAdvanceColorPickerDropdown v-model="advanceColor">
             <NcButton size="small" type="secondary">Custom trigger</NcButton>
           </GeneralAdvanceColorPickerDropdown>
-          <GeneralAdvanceColorPickerDropdown v-model="advanceColor" disabled />
+          <NcTooltip title="disabled — the dropdown won't open" :arrow="false">
+            <GeneralAdvanceColorPickerDropdown v-model="advanceColor" disabled />
+          </NcTooltip>
         </div>
       </PgDemo>
       <PgDemo label="BaseIconColorPicker" :hint="baseColor">

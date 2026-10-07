@@ -73,9 +73,15 @@ function removeTag(title: string) {
             @close="removeTag(tag.title)"
           />
           <NcSelectOptionTag title="No colour code" color="#cfdffe" :is-color-code-enabled="false" />
-          <NcButton v-if="tags.length < OPTION_TAGS.length" size="xxsmall" type="text" @click="tags = [...OPTION_TAGS]"
-            >Reset</NcButton
+          <NcButton
+            v-if="tags.length < OPTION_TAGS.length"
+            size="xsmall"
+            type="text"
+            class="!px-2"
+            @click="tags = [...OPTION_TAGS]"
           >
+            Reset
+          </NcButton>
         </div>
       </PgDemo>
     </div>

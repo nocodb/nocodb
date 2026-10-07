@@ -23,6 +23,7 @@ const BOOLEAN_PROPS = [
   'isPublic',
   'queryFilter',
   'disableAddNewFilter',
+  'parentEnabled',
 ] as const
 
 const NUMBER_PROPS = ['index', 'nestedLevel', 'filterPerViewLimit', 'filtersCount'] as const
@@ -31,9 +32,7 @@ const { metas } = useMetas()
 
 const rootMeta = ref({})
 
-const filterMap = ref({})
-
-const filters = ref([])
+const filters = ref<ColumnFilterType[]>([])
 
 const options1 = ref({
   index: 0,
@@ -53,6 +52,8 @@ const options1 = ref({
   filtersCount: 0,
   queryFilter: false,
   disableAddNewFilter: false,
+  // a boolean prop, so leaving it off reads as false and greys every row out
+  parentEnabled: true,
 })
 
 const lastChangeEvent1 = ref({})
@@ -67,51 +68,72 @@ const columns = computedAsync(async () => {
   })
 }, [])
 
+// FilterGroup also sends the new filter's tmp_id, and the parent group on copy
+type GroupEvent = FilterGroupChangeEvent & { tmp_id?: string }
+
+type CopyEvent = FilterRowChangeEvent & { parentFilter?: ColumnFilterType }
+
+// a group's list is its parent's `children`; the root list is the v-model
+function siblingsOf(parent?: ColumnFilterType | null): ColumnFilterType[] {
+  if (!parent) return filters.value
+  parent.children ??= []
+  return parent.children
+}
+
+function levelOf(list: ColumnFilterType[], filter: ColumnFilterType): ColumnFilterType[] | undefined {
+  if (list.includes(filter)) return list
+  for (const f of list) {
+    const level = f.children && levelOf(f.children, filter)
+    if (level) return level
+  }
+}
+
+function cloneFilter(filter: ColumnFilterType): ColumnFilterType {
+  return {
+    ...filter,
+    id: undefined,
+    tmp_id: Math.random().toString(36).substring(2, 15),
+    children: filter.children?.map(cloneFilter),
+  }
+}
+
 const handler = {
-  addFilter: async (event: FilterGroupChangeEvent) => {
-    const newFilter = {
-      tmp_id: Math.random().toString(36).substring(2, 15),
-      fk_column_id: columns.value[1].id,
+  addFilter: async (event: GroupEvent) => {
+    siblingsOf(event.parentFilter).push({
+      tmp_id: event.tmp_id,
+      fk_column_id: columns.value[1]?.id,
       comparison_op: 'eq',
       is_group: false,
       logical_op: 'and',
       fk_parent_id: event.fk_parent_id,
-      tmp_fk_parent_id: event.tmp_fk_parent_id,
-      parent: filterMap.value[event.tmp_fk_parent_id],
-    }
-    filterMap.value[newFilter.tmp_id] = newFilter
-    if (event.tmp_fk_parent_id) {
-      filterMap.value[event.tmp_fk_parent_id].children.push(newFilter)
-    } else {
-      filters.value.push(newFilter)
-    }
+    })
   },
-  addFilterGroup: async (event: FilterGroupChangeEvent) => {
-    const newFilter = {
-      tmp_id: Math.random().toString(36).substring(2, 15),
+  addFilterGroup: async (event: GroupEvent) => {
+    siblingsOf(event.parentFilter).push({
+      tmp_id: event.tmp_id,
       is_group: true,
       logical_op: 'and',
       children: [],
       fk_parent_id: event.fk_parent_id,
-      tmp_fk_parent_id: event.tmp_fk_parent_id,
-      parent: filterMap.value[event.tmp_fk_parent_id],
-    }
-    filterMap.value[newFilter.tmp_id] = newFilter
-    if (event.tmp_fk_parent_id) {
-      filterMap.value[event.tmp_fk_parent_id].children.push(newFilter)
-    } else {
-      filters.value.push(newFilter)
-    }
+    })
   },
-  deleteFilter: async (event: FilterGroupChangeEvent) => {
-    if (event.filter.parent) {
-      event.filter.parent.children = event.filter.parent.children?.filter((child) => child.tmp_id !== event.filter?.tmp_id)
-    } else if (!event.filter?.tmp_fk_parent_id) {
-      filters.value = filters.value.filter((filter) => filter.tmp_id !== event.filter.tmp_id)
-    }
+  deleteFilter: async (event: GroupEvent) => {
+    if (!event.filter) return
+    const list = siblingsOf(event.parentFilter)
+    const at = list.indexOf(event.filter)
+    if (at !== -1) list.splice(at, 1)
+  },
+  copyFilter: async (event: CopyEvent) => {
+    const list = siblingsOf(event.parentFilter)
+    const at = list.indexOf(event.filter)
+    if (at !== -1) list.splice(at + 1, 0, cloneFilter(event.filter))
   },
   rowChange: async (event: FilterRowChangeEvent) => {
     event.filter[event.type] = event.value
+    // one level shares one logical op, so the whole level follows
+    if (event.type === 'logical_op') {
+      for (const sibling of levelOf(filters.value, event.filter) ?? []) sibling.logical_op = event.value
+    }
     const evalColumn = columns.value.find((k) => k.id === event.filter.fk_column_id)
     if (evalColumn && event.type === 'fk_column_id') {
       adjustFilterWhenColumnChange({
@@ -121,6 +143,11 @@ const handler = {
       })
     }
   },
+}
+
+// filters FilterGroup adds without a handler keep a `parentFilter` back-reference, which JSON can't follow
+function toJson(value: unknown) {
+  return JSON.stringify(value, (key, val) => (key === 'parentFilter' ? undefined : val), 2)
 }
 
 function onChange(event) {
@@ -183,14 +210,14 @@ onMounted(async () => {
               <span class="text-captionXs text-nc-content-gray-muted font-mono">row-change</span>
               <pre
                 class="text-captionXs font-mono text-nc-content-gray bg-nc-bg-gray-extralight rounded-lg p-3 overflow-auto max-h-48 !m-0"
-                >{{ JSON.stringify(lastRowChangeEvent1, null, 2) }}</pre
+                >{{ toJson(lastRowChangeEvent1) }}</pre
               >
             </div>
             <div class="flex flex-col gap-1 min-w-0">
               <span class="text-captionXs text-nc-content-gray-muted font-mono">change</span>
               <pre
                 class="text-captionXs font-mono text-nc-content-gray bg-nc-bg-gray-extralight rounded-lg p-3 overflow-auto max-h-48 !m-0"
-                >{{ JSON.stringify(lastChangeEvent1, null, 2) }}</pre
+                >{{ toJson(lastChangeEvent1) }}</pre
               >
             </div>
           </div>
@@ -219,6 +246,7 @@ onMounted(async () => {
             :disable-add-new-filter="options1.disableAddNewFilter"
             :filters-count="options1.filtersCount"
             :query-filter="options1.queryFilter"
+            :parent-enabled="options1.parentEnabled"
             @change="onChange"
             @row-change="onRowChange"
           />
@@ -245,6 +273,7 @@ onMounted(async () => {
             :disable-add-new-filter="options1.disableAddNewFilter"
             :filters-count="options1.filtersCount"
             :query-filter="options1.queryFilter"
+            :parent-enabled="options1.parentEnabled"
             :handler="handler"
             @change="onChange"
             @row-change="onRowChange"
@@ -272,6 +301,7 @@ onMounted(async () => {
             :disable-add-new-filter="options1.disableAddNewFilter"
             :filters-count="options1.filtersCount"
             :query-filter="options1.queryFilter"
+            :parent-enabled="options1.parentEnabled"
             @change="onChange"
             @row-change="onRowChange"
           >

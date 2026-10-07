@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { syncLinkedValues } from '../-helper/mock-api'
 import type { Row } from '~/lib/types'
 
 /** One cell rendered the way a given surface renders it; each slot owns a row store over the shared row. */
@@ -21,9 +22,9 @@ const isExpanded = computed(() => props.mode === 'expanded')
 
 const isActive = computed(() => props.mode !== 'idle')
 
-const editEnabled = ref(
-  props.mode === 'expanded' || (props.mode === 'edit' && !POPUP_ON_EDIT_UIDTS.includes(props.column.uidt as string)),
-)
+const isPopupEditor = POPUP_ON_EDIT_UIDTS.includes(props.column.uidt as string)
+
+const editEnabled = ref(props.mode === 'edit' && !isPopupEditor)
 
 const title = computed(() => props.column.title!)
 
@@ -33,34 +34,38 @@ provide(IsGridInj, ref(props.mode !== 'expanded'))
 
 provide(IsFormInj, ref(false))
 
-provide(ReloadRowDataHookInj, createEventHook())
+// grid/index.vue provides the view's row height; the short row sizes QR / barcode / clamped text to one line
+if (props.mode !== 'expanded') provide(RowHeightInj, ref(1 as const))
+
+// the grid refetches the row when a link picker asks; read the mocked links back instead
+const reloadRowHook = createEventHook()
+
+reloadRowHook.on(() => syncLinkedValues(row.value.row))
+
+provide(ReloadRowDataHookInj, reloadRowHook)
 
 useProvideSmartsheetRowStore(row)
 </script>
 
 <template>
-  <!-- expanded form: ColumnList's SmartsheetDivDataCell -->
-  <div v-if="mode === 'expanded'" class="w-full">
-    <SmartsheetDivDataCell
-      class="pg-expanded-cell flex-1 flex relative min-h-8 items-center bg-nc-bg-elevated px-1"
-      :class="{ '!select-text nc-readonly-div-data-cell': readOnly }"
-    >
-      <SmartsheetVirtualCell
-        v-if="isVirtualCol(column)"
-        v-model="row.row[title]"
-        :column="column"
-        :row="row"
-        :read-only="readOnly"
-      />
-      <SmartsheetCell
-        v-else
-        v-model="row.row[title]"
-        v-model:edit-enabled="editEnabled"
-        :column="column"
-        active
-        :read-only="readOnly"
-      />
-    </SmartsheetDivDataCell>
+  <!-- expanded form: ColumnList's row wrappers (global cell styles key off them) and SmartsheetDivDataCell -->
+  <div v-if="mode === 'expanded'" class="nc-expanded-form-row w-full" :class="`nc-expand-col-${title}`">
+    <div class="nc-expanded-cell w-full flex">
+      <SmartsheetDivDataCell
+        class="pg-expanded-cell flex-1 flex relative min-h-8 items-center bg-nc-bg-elevated px-1"
+        :class="{ '!select-text nc-readonly-div-data-cell': readOnly }"
+      >
+        <SmartsheetVirtualCell
+          v-if="isVirtualCol(column)"
+          v-model="row.row[title]"
+          :column="column"
+          :row="row"
+          :read-only="readOnly"
+        />
+        <!-- one-way like ColumnList: the expanded form keeps every editor open -->
+        <SmartsheetCell v-else v-model="row.row[title]" :edit-enabled="true" :column="column" active :read-only="readOnly" />
+      </SmartsheetDivDataCell>
+    </div>
   </div>
 
   <!-- grid: a flat 32px cell between grid lines; the active/edit cell gets the 2px brand ring.
@@ -69,7 +74,7 @@ useProvideSmartsheetRowStore(row)
     v-else
     :active="false"
     class="pg-grid-cell"
-    :class="{ 'pg-grid-cell-edit': mode === 'edit' }"
+    :class="{ 'pg-grid-cell-edit': mode === 'edit' || editEnabled }"
     @dblclick="!readOnly && (editEnabled = true)"
   >
     <div class="w-full min-w-0">

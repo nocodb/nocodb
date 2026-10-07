@@ -63,49 +63,65 @@ function simulateSave() {
 
     <PgDemo label="States">
       <div class="flex flex-col gap-3">
-        <div v-for="type in TYPES" :key="type" class="flex flex-wrap items-center gap-3">
-          <span class="w-20 text-captionXs text-nc-content-gray-muted font-mono">{{ type }}</span>
-          <NcButton :type="type" size="small">Default</NcButton>
-          <NcButton :type="type" size="small" disabled>Disabled</NcButton>
-          <NcButton :type="type" size="small" show-as-disabled>Shown as disabled</NcButton>
-          <NcButton :type="type" size="small" loading>Loading</NcButton>
-          <NcButton :type="type" size="small">
-            <template #icon>
-              <GeneralIcon icon="plus" />
-            </template>
-            New record
-          </NcButton>
-          <NcButton :type="type" size="small" icon-position="right">
-            <template #icon>
-              <GeneralIcon icon="arrowRight" />
-            </template>
-            Continue
-          </NcButton>
-          <NcButton :type="type" size="small" icon-only>
-            <template #icon>
-              <GeneralIcon icon="threeDotVertical" />
-            </template>
-          </NcButton>
+        <!-- label column stays put; only the buttons wrap when the stage narrows -->
+        <div v-for="type in TYPES" :key="type" class="flex items-start gap-3">
+          <span class="w-20 flex-none h-8 flex items-center text-captionXs text-nc-content-gray-muted font-mono">{{ type }}</span>
+          <div class="flex-1 min-w-0 flex flex-wrap items-center gap-3">
+            <NcButton :type="type" size="small">Default</NcButton>
+            <NcButton :type="type" size="small" disabled>Disabled</NcButton>
+            <NcButton :type="type" size="small" show-as-disabled>Shown as disabled</NcButton>
+            <NcButton :type="type" size="small" loading>Loading</NcButton>
+            <NcButton :type="type" size="small">
+              <template #icon>
+                <GeneralIcon icon="plus" />
+              </template>
+              New record
+            </NcButton>
+            <NcButton :type="type" size="small" icon-position="right">
+              <template #icon>
+                <GeneralIcon icon="arrowRight" />
+              </template>
+              Continue
+            </NcButton>
+            <NcButton :type="type" size="small" icon-only>
+              <template #icon>
+                <GeneralIcon icon="threeDotVertical" />
+              </template>
+            </NcButton>
+          </div>
         </div>
       </div>
     </PgDemo>
 
     <PgDemo label="Themes & modifiers" hint="theme, bordered, shadow, fullWidth, textColor">
       <div class="flex flex-col gap-3">
-        <div v-for="theme in THEMES" :key="theme" class="flex flex-wrap items-center gap-3">
-          <span class="w-20 text-captionXs text-nc-content-gray-muted font-mono">{{ theme }}</span>
-          <NcButton :theme="theme" size="small">Primary</NcButton>
-          <NcButton :theme="theme" type="secondary" size="small">Secondary</NcButton>
-          <NcButton :theme="theme" type="text" size="small">Text</NcButton>
+        <div v-for="theme in THEMES" :key="theme" class="flex items-center gap-3">
+          <span class="w-20 flex-none text-captionXs text-nc-content-gray-muted font-mono">{{ theme }}</span>
+          <div class="flex-1 min-w-0 flex flex-wrap items-center gap-3">
+            <NcButton :theme="theme" size="small">Primary</NcButton>
+            <NcButton :theme="theme" type="secondary" size="small">Secondary</NcButton>
+            <NcButton :theme="theme" type="text" size="small">Text</NcButton>
+          </div>
         </div>
-        <div class="flex flex-wrap items-center gap-3">
-          <span class="w-20 text-captionXs text-nc-content-gray-muted font-mono">modifiers</span>
-          <NcButton type="secondary" size="small" :bordered="false">No border</NcButton>
-          <NcButton type="secondary" size="small" :shadow="false">No shadow</NcButton>
-          <NcButton type="text" size="small" text-color="primary">Primary text</NcButton>
-          <NcButton type="primary" size="small" :loading="isSaving" @click="simulateSave">Click to load</NcButton>
+        <div class="flex items-start gap-3">
+          <span class="w-20 flex-none h-8 flex items-center text-captionXs text-nc-content-gray-muted font-mono">modifiers</span>
+          <div class="flex-1 min-w-0 flex flex-wrap items-center gap-3">
+            <NcButton type="secondary" size="small" :bordered="false">No border</NcButton>
+            <NcButton type="secondary" size="small" :shadow="false">No shadow</NcButton>
+            <NcButton type="text" size="small" text-color="primary">Primary text</NcButton>
+            <NcButton type="primary" size="small" :loading="isSaving" @click="simulateSave">Click to load</NcButton>
+          </div>
         </div>
-        <NcButton type="primary" size="small" full-width>Full width</NcButton>
+        <!-- fullWidth stretches the label, as in role pickers: content sits left, not centred -->
+        <div class="flex items-center gap-3">
+          <span class="w-20 flex-none text-captionXs text-nc-content-gray-muted font-mono">fullWidth</span>
+          <NcButton type="secondary" size="small" full-width class="flex-1">
+            <div class="flex-1 flex items-center justify-between">
+              Choose a role
+              <GeneralIcon icon="arrowDown" />
+            </div>
+          </NcButton>
+        </div>
       </div>
     </PgDemo>
   </PgSection>

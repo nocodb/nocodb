@@ -16,11 +16,26 @@ export const cellsUsers = [
 const userValue = (...ids: string[]) =>
   cellsUsers.filter((u) => ids.includes(u.id)).map(({ id, email, display_name }) => ({ id, email, display_name }))
 
-/** Inline SVG so attachments render without network access. */
-const svgThumb = (bg: string, label: string) =>
-  `data:image/svg+xml;utf8,${encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200"><rect width="100%" height="100%" fill="${bg}"/><text x="50%" y="54%" font-family="Inter,sans-serif" font-size="28" fill="#fff" text-anchor="middle">${label}</text></svg>`,
-  )}`
+/** PNG drawn in the browser so attachments render (and preview; SVG gets no carousel preview) offline. */
+function pngThumb(bg: string, label: string) {
+  const canvas = document.createElement('canvas')
+  canvas.width = 320
+  canvas.height = 200
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return ''
+  ctx.fillStyle = bg
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillStyle = '#fff'
+  ctx.font = '28px Inter, sans-serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(label, canvas.width / 2, canvas.height / 2)
+  return canvas.toDataURL('image/png')
+}
+
+/** a valid one-page PDF, so the attachment carousel can render it */
+const BRIEF_PDF =
+  'data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA0MjAgMjk3XSAvQ29udGVudHMgNCAwIFIgL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgNSAwIFIgPj4gPj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCA0NCA+PgpzdHJlYW0KQlQgL0YxIDI4IFRmIDYwIDE2MCBUZCAoUHJvamVjdCBicmllZikgVGogRVQKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9Gb250IC9TdWJ0eXBlIC9UeXBlMSAvQmFzZUZvbnQgL0hlbHZldGljYSA+PgplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzMzUgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo0MDUKJSVFT0YK'
 
 let order = 1
 
@@ -251,13 +266,13 @@ export const cellGroups: CellGroup[] = [
       {
         column: col('c_attachment', UITypes.Attachment, 'Attachment', { dt: 'text' }),
         value: [
-          { title: 'cover.svg', mimetype: 'image/svg+xml', size: 2048, url: svgThumb('#3366ff', 'Cover') },
-          { title: 'moodboard.svg', mimetype: 'image/svg+xml', size: 4096, url: svgThumb('#7c3aed', 'Mood') },
+          { title: 'cover.png', mimetype: 'image/png', size: 2048, url: pngThumb('#3366ff', 'Cover') },
+          { title: 'moodboard.png', mimetype: 'image/png', size: 4096, url: pngThumb('#7c3aed', 'Mood') },
           {
             title: 'brief.pdf',
             mimetype: 'application/pdf',
-            size: 120400,
-            url: 'data:application/pdf;base64,JVBERi0xLjQKJSVFT0YK',
+            size: 588,
+            url: BRIEF_PDF,
           },
         ],
         note: 'Upload needs a backend',
@@ -372,18 +387,17 @@ export const cellGroups: CellGroup[] = [
   {
     id: 'relations',
     title: 'Relations',
-    description: 'Link fields. Opening the record picker queries the backend, so interact with these read-only.',
+    description: 'Link fields. The record picker lists, links, unlinks and creates against a local set of companies.',
     fixtures: [
-      { column: hmLinks, value: 3, displayOnly: true },
+      { column: hmLinks, value: 3 },
       {
         column: mmLtar,
         value: [
           { Id: 1, Name: 'Acme' },
           { Id: 2, Name: 'Globex' },
         ],
-        displayOnly: true,
       },
-      { column: btLtar, value: { Id: 3, Name: 'Initech' }, displayOnly: true },
+      { column: btLtar, value: { Id: 3, Name: 'Initech' } },
     ],
   },
   {

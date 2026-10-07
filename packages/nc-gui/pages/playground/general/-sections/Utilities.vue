@@ -106,11 +106,12 @@ const badgeSizes = ['xs', 'sm', 'md', 'lg'] as const
   </PgSection>
 
   <PgSection v-if="isEeUI" id="misc-buttons" title="Misc buttons" source="GeneralCreateLinkedFieldButton">
-    <PgDemo>
-      <div class="flex items-center gap-3">
-        <GeneralCreateLinkedFieldButton />
-        <GeneralCreateLinkedFieldButton loading />
-        <GeneralCreateLinkedFieldButton disabled />
+    <PgDemo label="CreateLinkedFieldButton" hint="default · loading · disabled">
+      <div class="flex flex-wrap items-start gap-6">
+        <div v-for="state in ['default', 'loading', 'disabled'] as const" :key="state" class="flex flex-col items-start gap-1.5">
+          <GeneralCreateLinkedFieldButton :loading="state === 'loading'" :disabled="state === 'disabled'" />
+          <span class="text-captionXs font-mono text-nc-content-gray-muted">{{ state }}</span>
+        </div>
       </div>
     </PgDemo>
   </PgSection>

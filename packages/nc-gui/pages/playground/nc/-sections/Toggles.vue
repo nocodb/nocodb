@@ -73,10 +73,11 @@ function toggleAll(value: boolean) {
             <NcCheckbox :checked="allChecked" :indeterminate="someChecked" @update:checked="toggleAll"
               >All permissions</NcCheckbox
             >
+            <!-- one block each: ant indents adjacent checkbox wrappers by 8px -->
             <div class="pl-6 flex flex-col gap-2">
-              <NcCheckbox v-model:checked="permissions.read">Read records</NcCheckbox>
-              <NcCheckbox v-model:checked="permissions.write">Edit records</NcCheckbox>
-              <NcCheckbox v-model:checked="permissions.delete">Delete records</NcCheckbox>
+              <div><NcCheckbox v-model:checked="permissions.read">Read records</NcCheckbox></div>
+              <div><NcCheckbox v-model:checked="permissions.write">Edit records</NcCheckbox></div>
+              <div><NcCheckbox v-model:checked="permissions.delete">Delete records</NcCheckbox></div>
             </div>
           </div>
         </div>

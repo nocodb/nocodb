@@ -12,52 +12,65 @@ const LEGACY_SIZES: ModalSize[] = ['small', 'medium', 'large']
 
 const CONFIRM_TYPES: ConfirmType[] = ['info', 'success', 'warning', 'error']
 
-const DRAWER_PLACEMENTS = ['bottom', 'right', 'left', 'top'] as const
+// NcDrawer is the mobile bottom sheet (DropDrawer, doc comments); its chrome assumes placement="bottom"
+const DRAWER_VARIANTS = [
+  { key: 'fit', label: 'Fit content', height: 'auto', contentHeight: true },
+  { key: 'tall', label: 'Fixed 85svh', height: '85svh', contentHeight: false },
+] as const
 
 const { showInfoModal, showSuccessModal, showWarningModal, showErrorModal } = useNcConfirmModal()
 
-const activeModalSize = ref<ModalSize | null>(null)
+// the last choice outlives the close so the leave animation keeps its size / placement / type
+const activeModalSize = ref<ModalSize>('md')
 
-const activeConfirmType = ref<ConfirmType | null>(null)
+const activeConfirmType = ref<ConfirmType>('info')
 
-const activeDrawer = ref<(typeof DRAWER_PLACEMENTS)[number] | null>(null)
+const activeDrawer = ref<(typeof DRAWER_VARIANTS)[number]>(DRAWER_VARIANTS[0])
 
 const isPopoverOpen = ref(false)
 
-const isModalOpen = computed({
-  get: () => !!activeModalSize.value,
-  set: (v: boolean) => {
-    if (!v) activeModalSize.value = null
-  },
-})
+const isModalOpen = ref(false)
 
-const isConfirmOpen = computed({
-  get: () => !!activeConfirmType.value,
-  set: (v: boolean) => {
-    if (!v) activeConfirmType.value = null
-  },
-})
+const isConfirmOpen = ref(false)
 
-const isDrawerOpen = computed({
-  get: () => !!activeDrawer.value,
-  set: (v: boolean) => {
-    if (!v) activeDrawer.value = null
-  },
-})
+const isDrawerOpen = ref(false)
 
-const CONFIRM_COPY: Record<ConfirmType, { title: string; content: string; okText: string }> = {
+function openModal(size: ModalSize) {
+  activeModalSize.value = size
+  isModalOpen.value = true
+}
+
+function openConfirm(type: ConfirmType) {
+  activeConfirmType.value = type
+  isConfirmOpen.value = true
+}
+
+function openDrawer(variant: (typeof DRAWER_VARIANTS)[number]) {
+  activeDrawer.value = variant
+  isDrawerOpen.value = true
+}
+
+// destructive confirms pass okProps { type: 'danger' }, as License.vue / TeamCard.vue do
+const CONFIRM_COPY: Record<ConfirmType, { title: string; content: string; okText: string; okProps?: { type: 'danger' } }> = {
   info: { title: 'New version available', content: 'Reload to get the latest improvements.', okText: 'Reload' },
   success: { title: 'Import complete', content: '1,248 records were imported into Campaigns.', okText: 'View table' },
   warning: {
     title: 'Delete field?',
     content: 'Budget will be removed from every view. This cannot be undone.',
     okText: 'Delete',
+    okProps: { type: 'danger' },
   },
   error: { title: 'Sync failed', content: 'The Postgres connection timed out after 30 seconds.', okText: 'Retry' },
 }
 
 function openComposableModal(type: ConfirmType) {
-  const props = { ...CONFIRM_COPY[type], showCancelBtn: true, okCallback: () => message.success(`${type} confirmed`) }
+  const props = {
+    ...CONFIRM_COPY[type],
+    showCancelBtn: true,
+    okCallback: async () => {
+      message.success(`${type} confirmed`)
+    },
+  }
   if (type === 'info') showInfoModal(props)
   else if (type === 'success') showSuccessModal(props)
   else if (type === 'warning') showWarningModal(props)
@@ -75,12 +88,12 @@ function openComposableModal(type: ConfirmType) {
       <PgDemo label="NcModal" hint="modalSizes + legacy sizes">
         <div class="flex flex-col gap-3">
           <div class="flex flex-wrap gap-2">
-            <NcButton v-for="size in MODAL_SIZES" :key="size" size="small" type="secondary" @click="activeModalSize = size">
+            <NcButton v-for="size in MODAL_SIZES" :key="size" size="small" type="secondary" @click="openModal(size)">
               {{ size }}
             </NcButton>
           </div>
           <div class="flex flex-wrap gap-2">
-            <NcButton v-for="size in LEGACY_SIZES" :key="size" size="small" type="text" @click="activeModalSize = size">
+            <NcButton v-for="size in LEGACY_SIZES" :key="size" size="small" type="text" @click="openModal(size)">
               {{ size }} (legacy)
             </NcButton>
           </div>
@@ -90,7 +103,7 @@ function openComposableModal(type: ConfirmType) {
       <PgDemo label="NcModalConfirm" hint="component + useNcConfirmModal()">
         <div class="flex flex-col gap-3">
           <div class="flex flex-wrap gap-2">
-            <NcButton v-for="t in CONFIRM_TYPES" :key="t" size="small" type="secondary" @click="activeConfirmType = t">
+            <NcButton v-for="t in CONFIRM_TYPES" :key="t" size="small" type="secondary" @click="openConfirm(t)">
               {{ t }}
             </NcButton>
           </div>
@@ -106,11 +119,11 @@ function openComposableModal(type: ConfirmType) {
         </div>
       </PgDemo>
 
-      <PgDemo label="NcDrawer" hint="placements">
+      <PgDemo label="NcDrawer" hint="mobile bottom sheet · drag handle · Esc or mask click closes">
         <div class="flex flex-wrap gap-2">
-          <NcButton v-for="p in DRAWER_PLACEMENTS" :key="p" size="small" type="secondary" @click="activeDrawer = p">{{
-            p
-          }}</NcButton>
+          <NcButton v-for="v in DRAWER_VARIANTS" :key="v.key" size="small" type="secondary" @click="openDrawer(v)">
+            {{ v.label }}
+          </NcButton>
         </div>
       </PgDemo>
 
@@ -131,11 +144,7 @@ function openComposableModal(type: ConfirmType) {
       </PgDemo>
     </div>
 
-    <NcModal
-      v-model:visible="isModalOpen"
-      :size="activeModalSize ?? 'md'"
-      :height="activeModalSize === 'xs' ? 'auto' : undefined"
-    >
+    <NcModal v-model:visible="isModalOpen" :size="activeModalSize" :height="activeModalSize === 'xs' ? 'auto' : undefined">
       <template #header>
         <div class="flex items-center gap-2 w-full">
           <GeneralIcon icon="table" class="w-5 h-5" />
@@ -154,24 +163,24 @@ function openComposableModal(type: ConfirmType) {
     </NcModal>
 
     <NcModalConfirm
-      v-if="activeConfirmType"
       v-model:visible="isConfirmOpen"
       :type="activeConfirmType"
       :title="CONFIRM_COPY[activeConfirmType].title"
       :content="CONFIRM_COPY[activeConfirmType].content"
       :ok-text="CONFIRM_COPY[activeConfirmType].okText"
+      :ok-props="CONFIRM_COPY[activeConfirmType].okProps"
       :keyboard="true"
       @ok="isConfirmOpen = false"
       @cancel="isConfirmOpen = false"
     />
 
-    <NcDrawer v-model:visible="isDrawerOpen" :placement="activeDrawer ?? 'bottom'" closable>
+    <NcDrawer v-model:visible="isDrawerOpen" :height="activeDrawer.height" :content-height="activeDrawer.contentHeight">
       <!-- NcDrawer's header has no inset; pad it to the body's px-4 -->
       <template #header>
         <div class="px-4 text-sm font-semibold text-nc-content-gray">Record details</div>
       </template>
       <div class="pt-2 flex flex-col gap-3">
-        <div class="text-caption text-nc-content-gray-subtle">placement="{{ activeDrawer }}"</div>
+        <div class="text-caption text-nc-content-gray-subtle">{{ activeDrawer.label }}</div>
         <a-input class="nc-input-sm nc-input-shadow" value="Spring launch campaign" />
         <NcButton size="small" @click="isDrawerOpen = false">Close</NcButton>
       </div>

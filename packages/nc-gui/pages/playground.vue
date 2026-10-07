@@ -13,6 +13,10 @@ const { selectedTheme, clearColorCache, themeRepaintVersion } = useTheme()
 
 const { overrideCount } = usePlaygroundTokens()
 
+const { productName } = useBranding()
+
+const { lastOpenedWorkspaceId } = useGlobal()
+
 /** below md: nav is an overlay drawer */
 const isNarrow = useMediaQuery('(max-width: 819.98px)')
 
@@ -28,6 +32,8 @@ provide(PlaygroundTokenEditorOpenInj, isTokenEditorOpen)
 const appTheme = selectedTheme.value
 
 const mainRef = ref<HTMLElement>()
+
+const tokensToggleRef = ref<{ $el?: HTMLElement }>()
 
 // only <main> scrolls; a dropdown a demo opens near the bottom would otherwise stretch the document
 const isDocumentScrollLocked = useScrollLock(document.documentElement)
@@ -48,7 +54,26 @@ const activeItem = computed(() => {
   return navItems.find((item) => route.path === item.path || route.path.startsWith(`${item.path}/`))
 })
 
-useTitle(computed(() => `${activeItem.value?.name ?? 'Overview'} | Playground`))
+const pageName = computed(() => {
+  if (activeItem.value) return activeItem.value.name
+  return /^\/playground\/?$/.test(route.path) ? 'Overview' : 'Page not found'
+})
+
+const pageTitle = computed(() => `${pageName.value} | Playground`)
+
+// "/" redirects to the workspace with a push, which would leave a dead history entry behind
+const appHomePath = computed(() => (lastOpenedWorkspaceId.value ? `/${lastOpenedWorkspaceId.value}` : '/'))
+
+useTitle(pageTitle, { restoreOnUnmount: (original) => original || productName.value })
+
+// the views a page mounts write their own tab title (store/views.ts updateTabTitle)
+useMutationObserver(
+  document.head,
+  () => {
+    if (document.title !== pageTitle.value) document.title = pageTitle.value
+  },
+  { childList: true, subtree: true, characterData: true },
+)
 
 /** until then, autofocus from a demo mounting (NcList search, editing cells) is undone instead of scrolling to it */
 let settleUntil = 0
@@ -69,9 +94,26 @@ useEventListener(mainRef, 'scroll', () => {
   if (Date.now() < settleUntil && mainRef.value?.scrollTop) mainRef.value.scrollTop = 0
 })
 
+// any input means the user has taken over, wherever it lands (Tab from the header into a demo)
 for (const event of ['wheel', 'pointerdown', 'keydown', 'touchstart']) {
-  useEventListener(mainRef, event, () => (settleUntil = 0), { passive: true })
+  useEventListener(window, event, () => (settleUntil = 0), { passive: true, capture: true })
 }
+
+useEventListener(document, 'keydown', (e: KeyboardEvent) => {
+  if (e.key !== 'Escape' || e.defaultPrevented) return
+  const target = e.target as HTMLElement | null
+  // an open select, dropdown or modal takes the Escape itself
+  if (target?.closest('[role="combobox"][aria-expanded="true"], .ant-modal-wrap, .ant-dropdown, .ant-select-dropdown')) return
+  if (document.querySelector('.ant-modal-wrap:not([style*="display: none"])')) return
+  if (isNavOpen.value && isNarrow.value) {
+    isNavOpen.value = false
+    return
+  }
+  if (isTokenEditorOpen.value && (isNarrow.value || target?.closest('.nc-playground-token-editor'))) {
+    isTokenEditorOpen.value = false
+    tokensToggleRef.value?.$el?.focus()
+  }
+})
 
 watch(
   () => route.path,
@@ -146,7 +188,7 @@ onBeforeUnmount(() => {
       </nav>
       <div class="flex-none px-2 py-2 border-t-1 border-nc-border-gray-light">
         <NuxtLink
-          to="/"
+          :to="appHomePath"
           class="nc-pg-nav-link block !no-underline rounded-md focus-visible:outline-none focus-visible:shadow-selected"
           data-testid="nc-playground-back-to-app"
         >
@@ -157,14 +199,21 @@ onBeforeUnmount(() => {
 
     <div class="flex-1 min-w-0 h-full flex flex-col">
       <header class="flex-none h-14 px-3 flex items-center gap-2 border-b-1 border-nc-border-gray-light">
-        <NcButton size="small" type="text" icon-only @click="isNavOpen = !isNavOpen">
+        <NcButton
+          size="small"
+          type="text"
+          icon-only
+          :aria-label="isNavOpen ? 'Hide navigation' : 'Show navigation'"
+          :aria-expanded="isNavOpen"
+          @click="isNavOpen = !isNavOpen"
+        >
           <template #icon>
             <GeneralIcon icon="ncMenu" />
           </template>
         </NcButton>
         <div class="min-w-0 flex items-center gap-2">
           <span class="flex-none text-captionBold text-nc-content-gray-emphasis whitespace-nowrap">
-            {{ activeItem?.name ?? 'Overview' }}
+            {{ pageName }}
           </span>
           <span v-if="activeItem" class="text-captionSm text-nc-content-gray-muted truncate hidden lg:inline">
             {{ activeItem.description }}
@@ -173,7 +222,7 @@ onBeforeUnmount(() => {
 
         <div class="ml-auto flex items-center gap-2">
           <div class="flex items-center p-0.5 rounded-lg bg-nc-bg-gray-light">
-            <NcTooltip v-for="opt in themeOptions" :key="opt.value" :title="opt.label" :arrow="false">
+            <NcTooltip v-for="opt in themeOptions" :key="opt.value" :title="opt.label" placement="bottom" :arrow="false">
               <button
                 class="w-7 h-6 rounded-md flex items-center justify-center text-nc-content-gray-muted"
                 :class="{ 'bg-nc-bg-default shadow-sm !text-nc-content-gray-emphasis': selectedTheme === opt.value }"
@@ -186,8 +235,10 @@ onBeforeUnmount(() => {
             </NcTooltip>
           </div>
           <NcButton
+            ref="tokensToggleRef"
             size="small"
             :type="isTokenEditorOpen ? 'primary' : 'secondary'"
+            :aria-pressed="isTokenEditorOpen"
             data-testid="nc-playground-tokens-toggle"
             @click="isTokenEditorOpen = !isTokenEditorOpen"
           >

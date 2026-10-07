@@ -65,15 +65,17 @@ const sortedMembers = computed(() => {
 
 <template>
   <PgSection id="lists" title="Lists & tables" source="NcList · NcListWithSearch · NcTable">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+    <!-- auto-fill, not lg:grid-cols-3: the token editor narrows the page without changing the viewport.
+         NcList / NcListWithSearch are w-64 by default, so each frame hugs its list like the dropdown it lives in -->
+    <div class="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3">
       <PgDemo label="NcList" hint="single select, disabled item">
-        <div class="rounded-lg border-1 border-nc-border-gray-medium">
+        <div class="w-fit max-w-full mx-auto rounded-lg border-1 border-nc-border-gray-medium">
           <NcList v-model:value="timezone" :open="true" :list="TIMEZONES" :close-on-select="false" variant="small" />
         </div>
       </PgDemo>
 
       <PgDemo label="NcList" hint="multi-select, grouped">
-        <div class="rounded-lg border-1 border-nc-border-gray-medium">
+        <div class="w-fit max-w-full mx-auto rounded-lg border-1 border-nc-border-gray-medium">
           <NcList
             v-model:value="selectedFields"
             :open="true"
@@ -90,7 +92,7 @@ const sortedMembers = computed(() => {
       </PgDemo>
 
       <PgDemo label="NcListWithSearch">
-        <div class="rounded-lg border-1 border-nc-border-gray-medium">
+        <div class="w-fit max-w-full mx-auto rounded-lg border-1 border-nc-border-gray-medium">
           <NcListWithSearch
             :is-parent-open="true"
             search-input-placeholder="Search webhooks"
@@ -121,7 +123,8 @@ const sortedMembers = computed(() => {
       <template #actions>
         <NcSwitch v-model:checked="isTableLoading" size="xsmall"><span class="text-captionSm">Loading</span></NcSwitch>
       </template>
-      <div class="h-80">
+      <!-- no fixed height: NcTable grows to min-h-120 while loading, which a fixed box would clip -->
+      <div>
         <NcTable
           v-model:order-by="orderBy"
           :columns="TABLE_COLUMNS"

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { FilterType, RowColoringInfoFilter, RowColoringInfoFilterRow, RowColoringMode } from 'nocodb-sdk'
-import { ClientType, ROW_COLORING_MODE } from 'nocodb-sdk'
+import type { ColumnType, FilterType, RowColoringInfoFilter, RowColoringInfoFilterRow, RowColoringMode } from 'nocodb-sdk'
+import { ClientType, ROW_COLORING_MODE, UITypes } from 'nocodb-sdk'
 import PgDemo from '../../../-components/PgDemo.vue'
 import PgPage from '../../../-components/PgPage.vue'
 import PgSection from '../../../-components/PgSection.vue'
@@ -13,11 +13,12 @@ const SECTIONS = [
   { id: 'type-option', title: 'Mode picker' },
 ]
 
-const BOOLEAN_PROPS = ['disabled', 'isLockedView', 'disableAddNewFilter'] as const
+const BOOLEAN_PROPS = ['disabled', 'isLockedView'] as const
 
-const SELECT_COLUMNS = [
-  { id: 'col_1', title: 'First Column' },
-  { id: 'col_2', title: 'Second Column' },
+// the single-select fields Dropdown.vue hands both the mode picker and the select panel
+const SELECT_COLUMNS: ColumnType[] = [
+  { id: 'col_status', title: 'Status', uidt: UITypes.SingleSelect },
+  { id: 'col_priority', title: 'Priority', uidt: UITypes.SingleSelect },
 ]
 
 const { metas } = useMetas()
@@ -27,11 +28,9 @@ const vModel = ref<RowColoringInfoFilter>({ mode: ROW_COLORING_MODE.FILTER, cond
 const rootMeta = ref({})
 
 const options1 = ref({
-  filtersCount: 0,
   filterPerViewLimit: 5,
   disabled: false,
   isLockedView: false,
-  disableAddNewFilter: false,
   dbClientType: ClientType.PG,
 })
 
@@ -183,9 +182,16 @@ const rowColorHandler = {
       dropFilter(condition.nestedConditions, id)
     },
     rowChange: async (index: number, event: FilterRowChangeEvent) => {
-      const filter = conditionsOf()[index]?.conditions.find((f) => f.id === event.filter?.id)
-      if (!filter) return
+      const condition = conditionsOf()[index]
+      const filter = condition?.conditions.find((f) => f.id === event.filter?.id)
+      if (!condition || !filter) return
       ;(filter as Record<string, unknown>)[event.type] = event.value
+      // one level shares one logical op, so the whole level follows
+      if (event.type === 'logical_op') {
+        for (const sibling of condition.conditions) {
+          if (sibling.fk_parent_id === filter.fk_parent_id) sibling.logical_op = event.value
+        }
+      }
       if (event.type === 'fk_column_id') {
         const column = columns.value.find((c) => c.id === event.value)
         adjustFilterWhenColumnChange({ column, filter, showNullAndEmptyInFilter: false })
@@ -227,7 +233,7 @@ onMounted(async () => {
                 <span class="text-captionSm text-nc-content-gray font-mono">{{ prop }}</span>
               </label>
             </div>
-            <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 pt-4 border-t-1 border-nc-border-gray-light">
+            <div class="grid grid-cols-2 gap-3 pt-4 border-t-1 border-nc-border-gray-light">
               <div class="flex flex-col gap-1">
                 <span class="text-captionXs text-nc-content-gray-muted font-mono">dbClientType</span>
                 <NcSelect v-model:value="options1.dbClientType">
@@ -240,10 +246,6 @@ onMounted(async () => {
                 <span class="text-captionXs text-nc-content-gray-muted font-mono">filterPerViewLimit</span>
                 <a-input-number v-model:value="options1.filterPerViewLimit" :min="0" class="!w-full !rounded-lg" />
               </div>
-              <div class="flex flex-col gap-1">
-                <span class="text-captionXs text-nc-content-gray-muted font-mono">filtersCount</span>
-                <a-input-number v-model:value="options1.filtersCount" :min="0" class="!w-full !rounded-lg" />
-              </div>
             </div>
           </div>
         </PgDemo>
@@ -254,12 +256,10 @@ onMounted(async () => {
             :columns="columns"
             :target-field-columns="columns"
             :handler="rowColorHandler"
-            :filters-count="options1.filtersCount"
             :filter-per-view-limit="options1.filterPerViewLimit"
             :disabled="options1.disabled"
             :is-locked-view="options1.isLockedView"
             :db-client-type="options1.dbClientType"
-            :disable-add-new-filter="options1.disableAddNewFilter"
           />
         </PgDemo>
 
@@ -305,7 +305,7 @@ onMounted(async () => {
               Reset
             </NcButton>
           </template>
-          <SmartsheetToolbarRowColorFilterTypeOption v-model:row-coloring-mode="rowColoringMode">
+          <SmartsheetToolbarRowColorFilterTypeOption v-model:row-coloring-mode="rowColoringMode" :columns="SELECT_COLUMNS">
             <template #filter>
               <div class="p-3 rounded-lg bg-nc-bg-gray-extralight text-captionSm text-nc-content-gray-subtle">
                 #filter slot renders here

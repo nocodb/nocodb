@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ViewTypes } from 'nocodb-sdk'
+import { PlanFeatureTypes, ViewTypes } from 'nocodb-sdk'
 import type { ViewType } from 'nocodb-sdk'
 import { DEMO_BASE_TITLE, DEMO_STORAGE_KEY, DEMO_VIEW_LABELS, SEED_STEPS, seedDemoBase } from './-helper/demo-seed'
 import type { DemoBase, DemoViewKey, SeedStep } from './-helper/demo-seed'
@@ -25,6 +25,8 @@ const { activeWorkspaceId } = storeToRefs(workspaceStore)
 const basesStore = useBases()
 
 const { showWarningModal } = useNcConfirmModal()
+
+const { getFeature } = useEeConfig()
 
 const DEVICES = [
   { key: 'desktop', label: 'Desktop', icon: 'ncMonitor', width: null },
@@ -74,7 +76,7 @@ const primaryKey = ref('ws-home')
 
 const secondaryKey = ref('account-profile')
 
-const frameHeight = ref(760)
+const frameHeight = ref('760')
 
 const workspaceId = computed(() => activeWorkspaceId.value)
 
@@ -132,11 +134,16 @@ const pages = computed<LivePage[]>(() => {
   list.push(
     { key: 'account-profile', group: 'Account', label: 'Profile', path: '/account/profile' },
     { key: 'account-tokens', group: 'Account', label: 'API tokens', path: '/account/tokens' },
-    { key: 'account-users', group: 'Account', label: 'Users', path: '/account/users' },
     { key: 'account-integrations', group: 'Account', label: 'Integrations', path: '/account/external-integrations' },
     { key: 'account-mcp', group: 'Account', label: 'MCP', path: '/account/mcp' },
   )
-  if (!appInfo.value.isCloud) list.push({ key: 'account-apps', group: 'Account', label: 'App store', path: '/account/apps' })
+  // cloud has neither page (the account menu doesn't link them)
+  if (!appInfo.value.isCloud) {
+    list.push(
+      { key: 'account-users', group: 'Account', label: 'Users', path: '/account/users' },
+      { key: 'account-apps', group: 'Account', label: 'App store', path: '/account/apps' },
+    )
+  }
   return list
 })
 
@@ -261,6 +268,16 @@ function onSeedClick() {
   })
 }
 
+/** playground routes never load the workspace's plan, so read it here; unknown means try */
+async function isTimelineInPlan(wsId: string) {
+  try {
+    const { workspace } = await $api.workspace.read(wsId)
+    return getFeature(PlanFeatureTypes.FEATURE_TIMELINE_VIEW, workspace)
+  } catch {
+    return true
+  }
+}
+
 async function createDemo() {
   if (!workspaceId.value) await workspaceStore.loadWorkspaces()
   const wsId = workspaceId.value
@@ -278,6 +295,7 @@ async function createDemo() {
       workspaceId: wsId,
       userEmail: user.value?.email,
       createBase: (title) => basesStore.createProject({ title, workspaceId: wsId }),
+      skipViews: (await isTimelineInPlan(wsId)) ? [] : ['timeline'],
       onStep: (key, status, msg) => {
         steps.value = steps.value.map((s) => (s.key === key ? { ...s, status, message: msg } : s))
       },
@@ -364,22 +382,20 @@ onMounted(async () => {
 
       <div class="w-full lg:w-[420px] rounded-xl border-1 border-nc-border-gray-medium p-4 bg-nc-bg-default">
         <div class="flex items-center gap-2">
-          <GeneralIcon icon="ncDatabase" class="w-4 h-4 text-nc-content-brand" />
-          <span class="text-captionBold text-nc-content-gray-emphasis">Demo base</span>
-          <span v-if="demo" class="min-w-0 text-captionSm text-nc-content-gray-muted truncate">
-            {{ DEMO_BASE_TITLE }} · {{ demoViewLabels.length }} views
-          </span>
-          <div class="ml-auto flex items-center gap-2">
+          <GeneralIcon icon="ncDatabase" class="flex-none w-4 h-4 text-nc-content-brand" />
+          <span class="flex-none text-captionBold text-nc-content-gray-emphasis whitespace-nowrap">Demo base</span>
+          <div class="ml-auto flex-none flex items-center gap-2">
             <NcButton
               v-if="demo"
               size="small"
               type="text"
+              class="!px-2"
               :loading="isDeletingDemo"
               :disabled="isCheckingDemo || isSeeding"
               data-testid="nc-playground-live-delete-demo"
               @click="confirmDeleteDemo"
             >
-              Delete demo base
+              Delete
             </NcButton>
             <NcButton
               size="small"
@@ -398,7 +414,7 @@ onMounted(async () => {
           Kanban, Calendar and Form views, plus Timeline where your plan includes it.
         </p>
         <p v-else-if="demo && !steps.length" class="text-captionSm text-nc-content-gray-muted mt-2">
-          Projects and Teams tables with {{ demoViewLabels.join(', ') }} views.
+          {{ DEMO_BASE_TITLE }}: Projects and Teams tables with {{ demoViewLabels.join(', ') }} views.
         </p>
         <div v-if="steps.length" class="mt-3 flex flex-col gap-1.5">
           <div v-for="step in steps" :key="step.key" class="flex items-start gap-2">
@@ -507,16 +523,16 @@ onMounted(async () => {
             <button
               class="w-8 h-6 rounded-md flex items-center justify-center text-nc-content-gray-muted"
               :class="{ 'bg-nc-bg-default shadow-sm !text-nc-content-gray-emphasis': device === d.key }"
+              :aria-label="d.label"
+              :aria-pressed="device === d.key"
               @click="device = d.key"
             >
               <GeneralIcon :icon="d.icon" class="w-3.5 h-3.5" />
             </button>
           </NcTooltip>
         </div>
-        <NcSelect v-model:value="frameHeight" size="small" class="w-28">
-          <a-select-option :value="600">600px</a-select-option>
-          <a-select-option :value="760">760px</a-select-option>
-          <a-select-option :value="960">960px</a-select-option>
+        <NcSelect v-model:value="frameHeight" class="w-28" aria-label="Frame height">
+          <a-select-option v-for="h in ['600', '760', '960']" :key="h" :value="h">{{ h }}px</a-select-option>
         </NcSelect>
       </div>
     </div>

@@ -10,7 +10,7 @@ const SECTIONS = [
   { id: 'badges', title: 'Badges' },
   { id: 'cloud', title: 'Cloud billing' },
   { id: 'on-prem', title: 'On-prem billing' },
-  { id: 'lock', title: 'Lock-only variant' },
+  { id: 'lock', title: 'Icon-only variant' },
   { id: 'legacy', title: 'Legacy orange Enterprise' },
 ]
 
@@ -24,56 +24,57 @@ const onPremPlans = [
   OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
 ] as const
 
-const badgePlans = [
-  ...cloudPlans.filter((p) => p !== PlanTitles.FREE).map((p) => PlanMeta[p]),
-  ...onPremPlans.map((p) => OnPremPlanMeta[p]),
+// on-prem titles render without the "Self-hosted" prefix (objects.paymentPlan), so the rows are labelled
+const badgeGroups = [
+  { label: 'Cloud', plans: cloudPlans.filter((p) => p !== PlanTitles.FREE).map((p) => PlanMeta[p]) },
+  { label: 'On-prem', plans: onPremPlans.map((p) => OnPremPlanMeta[p]) },
 ]
 
 const billingForCloud = (plan: PlanTitles): Array<[string, string]> => {
   switch (plan) {
     case PlanTitles.FREE:
       return [
-        ['Number of billable users', '0 Billable Users'],
+        ['Billable users', '0 Billable Users'],
         ['Records', '226 of 1,000 records'],
-        ['Storage used (GB)', '0.0 GB of 1 GB attachments'],
-        ['Webhook calls (monthly)', '0 of 100 webhook calls per month'],
-        ['API calls (monthly)', '0 of 1,000 API calls per month'],
+        ['Storage used', '0.0 GB of 1 GB attachments'],
+        ['Webhook calls', '0 of 100 webhook calls per month'],
+        ['API calls', '0 of 1,000 API calls per month'],
       ]
     case PlanTitles.PLUS:
       return [
         ['Next invoice', '$90, Dec 12'],
-        ['Number of billed users', '9 Paid Users'],
+        ['Billed users', '9 Paid Users'],
         ['Records', '11,204 of 50,000 records'],
-        ['Storage used (GB)', '1.2 GB of 20 GB attachments'],
-        ['Webhook calls (monthly)', '320 of 10,000 webhook calls per month'],
-        ['API calls (monthly)', '812 of 10,000 API calls per month'],
+        ['Storage used', '1.2 GB of 20 GB attachments'],
+        ['Webhook calls', '320 of 10,000 webhook calls per month'],
+        ['API calls', '812 of 10,000 API calls per month'],
       ]
     case PlanTitles.BUSINESS:
       return [
         ['Next invoice', '$375, Dec 12'],
-        ['Number of billed users', '15 Paid Users'],
+        ['Billed users', '15 Paid Users'],
         ['Records', '78,430 of 250,000 records'],
-        ['Storage used (GB)', '8.3 GB of 100 GB attachments'],
-        ['Webhook calls (monthly)', '4,210 of 50,000 webhook calls per month'],
-        ['API calls (monthly)', '9,802 of 50,000 API calls per month'],
+        ['Storage used', '8.3 GB of 100 GB attachments'],
+        ['Webhook calls', '4,210 of 50,000 webhook calls per month'],
+        ['API calls', '9,802 of 50,000 API calls per month'],
       ]
     case PlanTitles.SCALE:
       return [
         ['Next invoice', '$1,200, Dec 12'],
-        ['Number of billed users', '40 Paid Users'],
+        ['Billed users', '40 Paid Users'],
         ['Records', '412,900 of 1,000,000 records'],
-        ['Storage used (GB)', '31 GB of 250 GB attachments'],
-        ['Webhook calls (monthly)', '18,300 of 200,000 webhook calls per month'],
-        ['API calls (monthly)', '61,020 of 200,000 API calls per month'],
+        ['Storage used', '31 GB of 250 GB attachments'],
+        ['Webhook calls', '18,300 of 200,000 webhook calls per month'],
+        ['API calls', '61,020 of 200,000 API calls per month'],
       ]
     default:
       return [
-        ['Next invoice', '—'],
-        ['Number of billed users', '0 Paid Users'],
+        ['Next invoice', '-'],
+        ['Billed users', '0 Paid Users'],
         ['Records', '226 of 5,000,000 records'],
-        ['Storage used (GB)', '0.0 GB of 500 GB attachments'],
-        ['Webhook calls (monthly)', '0 of Unlimited webhook calls per month'],
-        ['API calls (monthly)', '0 of Unlimited API calls per month'],
+        ['Storage used', '0.0 GB of 500 GB attachments'],
+        ['Webhook calls', '0 of Unlimited webhook calls per month'],
+        ['API calls', '0 of Unlimited API calls per month'],
       ]
   }
 }
@@ -85,7 +86,7 @@ const billingForOnPrem = (plan: OnPremPlanTitles): Array<[string, string]> => {
         ['License', 'Self-hosted Business'],
         ['Billed users', '10 Paid Users'],
         ['Records', 'Unlimited'],
-        ['Storage used (GB)', '4.1 GB (self-hosted)'],
+        ['Storage used', '4.1 GB (self-hosted)'],
         ['API calls', 'Unlimited'],
       ]
     case OnPremPlanTitles.SELF_HOSTED_SCALE:
@@ -93,7 +94,7 @@ const billingForOnPrem = (plan: OnPremPlanTitles): Array<[string, string]> => {
         ['License', 'Self-hosted Scale'],
         ['Billed users', '50 Paid Users'],
         ['Records', 'Unlimited'],
-        ['Storage used (GB)', '72 GB (self-hosted)'],
+        ['Storage used', '72 GB (self-hosted)'],
         ['API calls', 'Unlimited'],
       ]
     default:
@@ -101,7 +102,7 @@ const billingForOnPrem = (plan: OnPremPlanTitles): Array<[string, string]> => {
         ['License', 'Self-hosted Enterprise'],
         ['Billed users', 'Unlimited'],
         ['Records', 'Unlimited'],
-        ['Storage used (GB)', 'Unlimited (self-hosted)'],
+        ['Storage used', 'Unlimited (self-hosted)'],
         ['API calls', 'Unlimited'],
       ]
   }
@@ -154,19 +155,20 @@ const LOCKED_FEATURES = ['Data permissions', 'Audit logs', 'SSO / SAML']
       source="staticBadgeBgColor · staticBadgeTextColor"
       description="Static badge colours are plain hex so the pill looks the same in light and dark mode."
     >
-      <PgDemo label="All paid SKUs">
-        <div class="flex items-center gap-3 flex-wrap">
-          <div v-for="meta in badgePlans" :key="meta.title" class="flex items-center gap-1.5">
-            <span
-              class="nc-play-badge text-caption"
-              :style="{ background: meta.staticBadgeBgColor, color: meta.staticBadgeTextColor }"
-            >
-              <svg class="nc-play-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                <path d="M8 0 C8.6 5 11 7.4 16 8 C11 8.6 8.6 11 8 16 C7.4 11 5 8.6 0 8 C5 7.4 7.4 5 8 0 Z" />
-              </svg>
-              {{ meta.title }}
-            </span>
-            <GeneralIcon icon="ncLock" class="h-3.5 w-3.5" :style="{ color: meta.staticBadgeTextColor }" />
+      <PgDemo label="All paid SKUs" hint="badge, then the icon-only form">
+        <div class="flex flex-col gap-3">
+          <div v-for="group in badgeGroups" :key="group.label" class="flex items-center gap-3 flex-wrap">
+            <span class="w-16 flex-none text-captionSm text-nc-content-gray-muted">{{ group.label }}</span>
+            <div v-for="meta in group.plans" :key="meta.title" class="flex items-center gap-1.5">
+              <span
+                class="nc-play-badge text-caption"
+                :style="{ background: meta.staticBadgeBgColor, color: meta.staticBadgeTextColor }"
+              >
+                <GeneralIcon icon="ncUpgradeSparkle" class="nc-play-icon" />
+                {{ $t(`objects.paymentPlan.${meta.title}`) }}
+              </span>
+              <GeneralIcon icon="ncUpgradeSparkle" class="h-3.5 w-3.5" :style="{ color: meta.staticBadgeTextColor }" />
+            </div>
           </div>
         </div>
       </PgDemo>
@@ -185,7 +187,8 @@ const LOCKED_FEATURES = ['Data permissions', 'Audit logs', 'SSO / SAML']
             class="nc-play-badge text-caption"
             :style="{ background: PlanMeta[plan].staticBadgeBgColor, color: PlanMeta[plan].staticBadgeTextColor }"
           >
-            {{ plan }}
+            <GeneralIcon icon="ncUpgradeSparkle" class="nc-play-icon" />
+            {{ $t(`objects.paymentPlan.${plan}`) }}
           </span>
         </template>
         <div
@@ -214,7 +217,8 @@ const LOCKED_FEATURES = ['Data permissions', 'Audit logs', 'SSO / SAML']
               color: OnPremPlanMeta[plan].staticBadgeTextColor,
             }"
           >
-            {{ plan }}
+            <GeneralIcon icon="ncUpgradeSparkle" class="nc-play-icon" />
+            {{ $t(`objects.paymentPlan.${plan}`) }}
           </span>
         </template>
         <div
@@ -235,8 +239,8 @@ const LOCKED_FEATURES = ['Data permissions', 'Audit logs', 'SSO / SAML']
 
     <PgSection
       id="lock"
-      title="Lock-only variant"
-      source="showAsLock"
+      title="Icon-only variant"
+      source="iconOnly · showAsLock"
       description="Used in dense lists where a full badge would be too loud."
     >
       <PgDemo label="Settings list">
@@ -248,7 +252,7 @@ const LOCKED_FEATURES = ['Data permissions', 'Audit logs', 'SSO / SAML']
           >
             <span class="text-caption text-nc-content-gray">{{ feature }}</span>
             <GeneralIcon
-              icon="ncLock"
+              icon="ncUpgradeSparkle"
               class="h-3.5 w-3.5"
               :style="{ color: PlanMeta[PlanTitles.ENTERPRISE].staticBadgeTextColor }"
             />
@@ -271,7 +275,8 @@ const LOCKED_FEATURES = ['Data permissions', 'Audit logs', 'SSO / SAML']
               color: enterpriseOrangeMeta.staticBadgeTextColor,
             }"
           >
-            Enterprise
+            <GeneralIcon icon="ncUpgradeSparkle" class="nc-play-icon" />
+            {{ $t('objects.paymentPlan.Enterprise') }}
           </span>
         </template>
         <div

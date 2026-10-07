@@ -3,19 +3,23 @@ import { defaultColumns, table2Columns } from './columns'
 import { defaultViews } from './views'
 
 const defaultBaseId = 'pRdVnZXPZgA'
+
+// MockInjection reads view columns in public-view mode: the meta columns double as view columns, keyed by
+// fk_column_id, and only the ones marked `show` are offered in field pickers
+const shown = <T extends { id?: string }>(columns: T[]) => columns.map((c) => ({ ...c, fk_column_id: c.id, show: true }))
 export const MOCK_TABLES_RAW = [
   {
     id: 'mtWA9ZXvsuh',
     name: 'table1',
     source_id: 'bmpgnvh49n8i51l',
-    columns: defaultColumns,
+    columns: shown(defaultColumns),
     base_id: defaultBaseId,
   },
   {
     id: 'mehpRLA42Cz',
     name: 'table2',
     source_id: 'bmpgnvh49n8i51l',
-    columns: table2Columns,
+    columns: shown(table2Columns),
     base_id: defaultBaseId,
   },
   {
@@ -43,6 +47,9 @@ const mockUsers = [
   },
 ]
 
+// the signed-in user and active base that mockSetupInit swaps out, put back by mockSetupRestore
+let saved: { user: ReturnType<typeof useGlobalState>['user']['value']; forcedProjectId?: string } | null = null
+
 export const mockSetupInit = () => {
   const { metas } = useMetas()
   for (const table of MOCK_TABLES_RAW) {
@@ -55,9 +62,10 @@ export const mockSetupInit = () => {
   }
 
   const baseStore = useBase()
-  baseStore.forcedProjectId = defaultBaseId
-
   const globalState = useGlobalState()
+  saved ??= { user: globalState.user.value, forcedProjectId: baseStore.forcedProjectId }
+
+  baseStore.forcedProjectId = defaultBaseId
   globalState.user.value = mockUsers[0]
 
   return {
@@ -70,4 +78,15 @@ export const mockSetupInit = () => {
     view: defaultViews[0],
     user: mockUsers[0],
   }
+}
+
+export const mockSetupRestore = () => {
+  if (!saved) return
+  const { metas } = useMetas()
+  for (const table of MOCK_TABLES_RAW) delete metas.value[`${table.base_id}:${table.id}`]
+  const basesStore = useBases()
+  for (const baseId of Object.keys(defaultBases)) basesStore.bases.delete(baseId)
+  useBase().forcedProjectId = saved.forcedProjectId
+  useGlobalState().user.value = saved.user
+  saved = null
 }

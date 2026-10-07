@@ -58,23 +58,29 @@ function showToastType() {
           :message="`${ALERT_COPY[t].message} (background)`"
         />
         <NcAlert
+          v-if="isDismissibleVisible"
           v-model:visible="isDismissibleVisible"
           type="info"
           closable
           message="Closable alert"
           description="Dismiss me with the × button."
         />
+        <!-- holds the slot so the grid doesn't reflow when the alert closes -->
+        <div
+          v-else
+          class="min-h-20 rounded-lg border-1 border-dashed border-nc-border-gray-medium flex items-center justify-center"
+        >
+          <NcButton size="xsmall" type="text" class="!px-2" @click="isDismissibleVisible = true">Restore closable alert</NcButton>
+        </div>
         <NcAlert type="error" message="Copyable error" description="ERR_DATABASE_OP_FAILED" copy-text="ERR_DATABASE_OP_FAILED" />
-        <NcAlert type="toast" message="Toast-style alert" description="Used inside ncMessage.toast." />
+        <!-- ncMessage.toast renders type="toast" with no icon (lib/ncMessage.ts initialToastTypeValue) -->
+        <NcAlert type="toast" :show-icon="false" message="Toast-style alert" description="Used inside ncMessage.toast." />
         <NcAlert type="warning" align="center" message="Centre aligned, with action">
           <template #action>
-            <NcButton size="xsmall" type="secondary">Upgrade</NcButton>
+            <NcButton size="xsmall" type="secondary" class="!px-2">Upgrade</NcButton>
           </template>
         </NcAlert>
       </div>
-      <NcButton v-if="!isDismissibleVisible" size="xsmall" type="text" class="!px-2 mt-2" @click="isDismissibleVisible = true">
-        Restore closable alert
-      </NcButton>
     </PgDemo>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">

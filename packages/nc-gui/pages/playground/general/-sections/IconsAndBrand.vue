@@ -119,11 +119,15 @@ function iconExists(icon: string) {
           <GeneralNocodbLogo class="!h-10 !w-10" />
         </div>
       </PgDemo>
-      <PgDemo label="NocoIcon" hint="click to ping">
-        <div class="flex items-center gap-6">
-          <!-- NocoIcon positions itself absolutely -->
-          <div class="relative w-14 h-14"><GeneralNocoIcon :size="48" /></div>
-          <div class="relative w-18 h-18"><GeneralNocoIcon :size="64" animate /></div>
+      <PgDemo label="NocoIcon" hint="click to ping · animate while loading">
+        <!-- NocoIcon straddles its parent's top edge (top: -size/2), as on the sign-in card -->
+        <div class="flex items-end gap-4 pt-8">
+          <div class="relative w-24 h-12 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight">
+            <GeneralNocoIcon :size="48" />
+          </div>
+          <div class="relative w-28 h-12 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight">
+            <GeneralNocoIcon :size="64" animate />
+          </div>
         </div>
       </PgDemo>
       <PgDemo v-if="isEeUI" label="AiSparkleHero">

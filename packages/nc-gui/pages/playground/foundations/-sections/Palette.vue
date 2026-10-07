@@ -49,7 +49,7 @@ onMounted(() => {
         >
           <NcTooltip v-for="stop in ramp.stops" :key="stop" :title="`--color-${ramp.hue}-${stop} · click to copy`" :arrow="false">
             <button
-              class="w-full h-14 rounded-md flex flex-col justify-end items-start p-1.5 border-1 border-nc-border-gray-light"
+              class="w-full h-14 rounded-md flex flex-col justify-end items-start px-1 py-1.5 border-1 border-nc-border-gray-light"
               :style="{ background: `var(--color-${ramp.hue}-${stop})` }"
               @click="copyText(`--color-${ramp.hue}-${stop}`)"
             >
@@ -60,8 +60,8 @@ onMounted(() => {
                 {{ stop }}
               </span>
               <span
-                class="text-captionXs font-mono truncate max-w-full"
-                :style="{ color: isLightColor(resolve(mode, `--color-${ramp.hue}-${stop}`)) ? '#4a5268' : '#d5dce8' }"
+                class="text-captionXs font-mono truncate max-w-full opacity-85"
+                :style="{ color: isLightColor(resolve(mode, `--color-${ramp.hue}-${stop}`)) ? '#101015' : '#ffffff' }"
               >
                 {{ resolve(mode, `--color-${ramp.hue}-${stop}`) }}
               </span>

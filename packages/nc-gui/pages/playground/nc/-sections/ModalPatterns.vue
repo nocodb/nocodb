@@ -79,6 +79,19 @@ const isFeatureOpen = isOpen('feature')
 const isShellOpen = isOpen('shell')
 
 const isCreateOpen = isOpen('create')
+
+const tableNameInput = ref<HTMLInputElement>()
+
+// fresh, focused input on every open, as dlg/Table/Create.vue does
+watch(isCreateOpen, (visible) => {
+  if (!visible) return
+  tableName.value = ''
+  nextTick(() => tableNameInput.value?.focus())
+})
+
+function createTable() {
+  if (tableName.value.trim()) open.value = null
+}
 </script>
 
 <template>
@@ -173,11 +186,17 @@ const isCreateOpen = isOpen('create')
           Create table
         </div>
         <div class="px-5">
-          <a-input v-model:value="tableName" class="nc-input-sm nc-input-shadow" placeholder="Enter table name" />
+          <a-input
+            ref="tableNameInput"
+            v-model:value="tableName"
+            class="nc-input-sm nc-input-shadow"
+            placeholder="Enter table name"
+            @keydown.enter="createTable"
+          />
         </div>
         <div class="px-5 flex justify-end gap-2">
           <NcButton size="small" type="secondary" @click="open = null">Cancel</NcButton>
-          <NcButton size="small" :disabled="!tableName" @click="open = null">Create table</NcButton>
+          <NcButton size="small" :disabled="!tableName.trim()" @click="createTable">Create table</NcButton>
         </div>
       </div>
     </NcModal>

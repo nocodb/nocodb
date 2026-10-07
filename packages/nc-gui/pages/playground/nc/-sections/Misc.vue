@@ -116,7 +116,7 @@ function viewOf(type: ViewTypes) {
           <NcCarouselContent>
             <NcCarouselItem v-for="s in SLIDES" :key="s.title">
               <div
-                class="h-36 rounded-xl border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight px-12 py-4 flex flex-col gap-2"
+                class="w-full h-36 rounded-xl border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight px-12 py-4 flex flex-col gap-2"
               >
                 <GeneralIcon :icon="s.icon" class="w-6 h-6 text-nc-content-brand" />
                 <div class="text-captionBold">{{ s.title }}</div>
@@ -184,7 +184,7 @@ function viewOf(type: ViewTypes) {
           <NcErrorBoundary>
             <component :is="Bomb" :explode="shouldThrow" />
           </NcErrorBoundary>
-          <NcButton size="small" type="danger" @click="shouldThrow = !shouldThrow">
+          <NcButton size="small" :type="shouldThrow ? 'secondary' : 'danger'" @click="shouldThrow = !shouldThrow">
             {{ shouldThrow ? 'Reset' : 'Throw error' }}
           </NcButton>
         </div>

@@ -12,6 +12,9 @@ const BASE_ICON_SIZES = ['xsmall', 'small', 'medium', 'large', 'xlarge'] as cons
 
 const color1 = ref('')
 
+// the inline picker reads its value once (product callers remount it via :key), so a dropdown pick remounts it
+const inlinePickerKey = ref(0)
+
 const baseIconColor = ref('')
 
 const baseIconSize = ref<(typeof BASE_ICON_SIZES)[number]>('medium')
@@ -56,13 +59,13 @@ const managedApp = computed(() => (isManagedApp.value ? { managed_app_master: tr
       </PgDemo>
 
       <PgDemo label="Inline">
-        <GeneralAdvanceColorPicker v-model="color1" @input="(c: string) => (color1 = c)" />
+        <GeneralAdvanceColorPicker :key="inlinePickerKey" :model-value="color1" @input="(c: string) => (color1 = c)" />
       </PgDemo>
 
       <PgDemo label="Dropdown" hint="default trigger and a custom trigger in the default slot">
         <div class="flex items-center gap-4">
-          <GeneralAdvanceColorPickerDropdown v-model="color1" />
-          <GeneralAdvanceColorPickerDropdown v-model="color1">
+          <GeneralAdvanceColorPickerDropdown v-model="color1" @update:model-value="inlinePickerKey++" />
+          <GeneralAdvanceColorPickerDropdown v-model="color1" @update:model-value="inlinePickerKey++">
             <NcButton type="secondary" size="small">Pick a colour</NcButton>
           </GeneralAdvanceColorPickerDropdown>
         </div>

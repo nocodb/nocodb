@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import { collectTokenDefs, usePlaygroundTokens } from '../../-helper/tokens'
+import { collectTokenDefs, resolveTokenValue, usePlaygroundTokens } from '../../-helper/tokens'
 import type { TokenDef, TokenMode } from '../../-helper/tokens'
-import { toHex, useResolvedVars } from '../../foundations/-sections/useResolvedVars'
+import { toHex } from '../../foundations/-sections/useResolvedVars'
 
 const props = defineProps<{
   mode: TokenMode
 }>()
 
 const { overrides, setToken, setRamp, clearRamp } = usePlaygroundTokens()
-
-const { lightProbe, darkProbe, resolveLight, resolveDark } = useResolvedVars()
 
 const BRAND_PRESETS = ['#3366ff', '#7c3aed', '#0d9488', '#059669', '#e11d48', '#ea580c', '#111827']
 
@@ -30,6 +28,8 @@ const SEMANTIC_GROUPS = [
 
 const ramps = ref<Array<{ hue: string; stops: string[] }>>([])
 
+const defs = shallowRef(new Map<string, TokenDef>())
+
 const semantic = ref<Record<string, TokenDef[]>>({})
 
 const search = ref('')
@@ -43,6 +43,8 @@ const brandBase = computed(() => overrides.value.light['--nc-brand-accent'] ?? '
 
 const grayBase = computed(() => overrides.value.light['--color-gray-500'] ?? '')
 
+const isCustomBrand = computed(() => !BRAND_PRESETS.includes(brandBase.value))
+
 const filteredSemantic = computed(() => {
   const q = search.value.trim().toLowerCase()
   return Object.fromEntries(
@@ -50,10 +52,14 @@ const filteredSemantic = computed(() => {
   ) as Record<string, TokenDef[]>
 })
 
+/** the edited mode's value, independent of the theme the page is showing */
+function swatch(name: string) {
+  return resolveTokenValue(defs.value, overrides.value, props.mode, name)
+}
+
+/** hex for the colour inputs and tooltips */
 function resolved(name: string) {
-  const value = overrides.value[props.mode][name]
-  if (value?.startsWith('#')) return value
-  return toHex(props.mode === 'dark' ? resolveDark(name) : resolveLight(name))
+  return toHex(swatch(name))
 }
 
 function isChanged(name: string) {
@@ -104,7 +110,9 @@ function toggleGroup(id: string) {
 onMounted(() => {
   const byHue = new Map<string, string[]>()
   const groups: Record<string, TokenDef[]> = { content: [], bg: [], border: [], fill: [] }
+  const tokenDefs = new Map<string, TokenDef>()
   for (const def of collectTokenDefs()) {
+    tokenDefs.set(def.name, def)
     const stop = def.name.match(/^--color-([a-z]+)-(\d+)$/)
     if (stop) byHue.set(stop[1], [...(byHue.get(stop[1]) ?? []), stop[2]])
     const family = def.name.match(/^--nc-(content|bg|border|fill)-/)?.[1]
@@ -119,13 +127,11 @@ onMounted(() => {
       return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib) || a.hue.localeCompare(b.hue)
     })
   semantic.value = groups
+  defs.value = tokenDefs
 })
 </script>
 
 <template>
-  <div ref="lightProbe" class="hidden" />
-  <div ref="darkProbe" theme="dark" class="hidden" />
-
   <section class="p-4 flex flex-col gap-4 border-b-1 border-nc-border-gray-medium">
     <div>
       <div class="text-captionSmBold text-nc-content-gray-subtle mb-2">Brand colour</div>
@@ -141,9 +147,11 @@ onMounted(() => {
           @click="onBrand(c)"
         />
         <label
-          class="relative w-6 h-6 rounded-full border-1 border-dashed border-nc-border-gray-dark cursor-pointer focus-within:(ring-2 ring-nc-border-brand)"
+          class="relative w-6 h-6 rounded-full cursor-pointer ring-1 ring-nc-border-gray-medium focus-within:(ring-2 ring-nc-border-brand)"
+          :class="isCustomBrand ? 'border-2 border-nc-border-gray-dark' : 'border-1 border-dashed border-nc-border-gray-dark'"
+          :style="isCustomBrand ? { background: brandBase } : undefined"
         >
-          <GeneralIcon icon="plus" class="absolute inset-0 m-auto w-3 h-3 text-nc-content-gray-muted" />
+          <GeneralIcon v-if="!isCustomBrand" icon="plus" class="absolute inset-0 m-auto w-3 h-3 text-nc-content-gray-muted" />
           <input
             type="color"
             :value="brandBase"
@@ -154,12 +162,12 @@ onMounted(() => {
         </label>
         <NcButton
           class="!ml-auto !px-2"
-          size="xsmall"
+          size="xxsmall"
           type="text"
           :disabled="!overrides.light['--nc-brand-accent']"
           @click="clearRamp('brand')"
         >
-          Reset
+          <span class="text-captionXs">Reset</span>
         </NcButton>
       </div>
       <div class="text-captionXs text-nc-content-gray-muted mt-1.5">Rebuilds the whole brand ramp, buttons and focus rings.</div>
@@ -195,7 +203,7 @@ onMounted(() => {
         <NcTooltip title="Regenerate ramp from one colour" :arrow="false">
           <label
             class="relative inline-block flex-none w-3.5 h-3.5 rounded-full border-1 border-nc-border-gray-medium cursor-pointer focus-within:(ring-2 ring-nc-border-brand)"
-            :style="{ background: `var(--color-${ramp.hue}-500)` }"
+            :style="{ background: swatch(`--color-${ramp.hue}-500`) }"
           >
             <input
               type="color"
@@ -219,14 +227,13 @@ onMounted(() => {
           :arrow="false"
         >
           <label
-            :theme="mode === 'dark' ? 'dark' : undefined"
-            class="relative block h-6 rounded cursor-pointer first:rounded-l-md focus-within:(ring-2 ring-nc-border-brand)"
+            class="relative block h-6 rounded cursor-pointer focus-within:(ring-2 ring-nc-border-brand)"
             :class="
               isChanged(`--color-${ramp.hue}-${stop}`)
                 ? 'ring-2 ring-offset-1 ring-nc-border-brand'
                 : 'ring-1 ring-inset ring-nc-border-gray-medium'
             "
-            :style="{ background: `var(--color-${ramp.hue}-${stop})` }"
+            :style="{ background: swatch(`--color-${ramp.hue}-${stop}`) }"
           >
             <input
               type="color"
@@ -272,14 +279,14 @@ onMounted(() => {
           class="flex items-center gap-2 py-1 pl-5 border-b-1 border-nc-border-gray-light last:border-b-0"
         >
           <label
-            :theme="mode === 'dark' ? 'dark' : undefined"
             class="relative flex-none w-5 h-5 rounded border-1 border-nc-border-gray-medium cursor-pointer"
-            :style="{ background: `var(${def.name})` }"
+            :style="{ background: swatch(def.name) }"
           >
             <input
               type="color"
               :value="resolved(def.name)"
               class="absolute inset-0 opacity-0 cursor-pointer"
+              :aria-label="def.name"
               @input="setToken(mode, def.name, ($event.target as HTMLInputElement).value)"
             />
           </label>
@@ -292,6 +299,7 @@ onMounted(() => {
             </div>
             <input
               :value="shortValue(def)"
+              :aria-label="`${def.name} value`"
               class="w-full bg-transparent outline-none text-captionXs font-mono"
               :class="invalidValues.includes(def.name) ? 'text-nc-content-red-dark' : 'text-nc-content-gray-muted'"
               :aria-invalid="invalidValues.includes(def.name)"

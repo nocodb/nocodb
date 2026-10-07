@@ -23,6 +23,8 @@ const frameKey = ref(0)
 
 let reapplyTimer: ReturnType<typeof setTimeout> | undefined
 
+let themeObserver: MutationObserver | undefined
+
 function mirrorTheme() {
   const root = frameRef.value?.contentDocument?.documentElement
   if (!root) return
@@ -60,6 +62,7 @@ function repaintFrame() {
  * script run first: it moves the URL to the target route and aliases `self` to `top`.
  */
 async function boot(path: string) {
+  themeObserver?.disconnect()
   isLoading.value = true
   loadError.value = undefined
   await nextTick()
@@ -82,10 +85,25 @@ async function boot(path: string) {
   doc.close()
 }
 
+/**
+ * The framed app applies its own stored theme once it boots, which can be after `load`
+ * and after the event above was sent; put the playground's back whenever that happens.
+ */
+function watchFrameTheme() {
+  themeObserver?.disconnect()
+  const root = frameRef.value?.contentDocument?.documentElement
+  if (!root) return
+  themeObserver = new MutationObserver(() => {
+    if ((root.getAttribute('theme') === 'dark') !== isDark.value) mirrorTheme()
+  })
+  themeObserver.observe(root, { attributes: true, attributeFilter: ['theme'] })
+}
+
 function syncFrame() {
   if (!frameRef.value) return
   registerFrame(frameRef.value)
   mirrorTheme()
+  watchFrameTheme()
   repaintFrame()
 }
 
@@ -130,6 +148,7 @@ onMounted(() => boot(props.src))
 
 onBeforeUnmount(() => {
   clearTimeout(reapplyTimer)
+  themeObserver?.disconnect()
   if (frameRef.value) unregisterFrame(frameRef.value)
 })
 </script>

@@ -18,6 +18,16 @@ const users = [
   { id: 'u6', email: 'li.wei@acme.io', display_name: 'Li Wei' },
 ]
 
+const userVariants = [
+  { label: 'Initials', user: users[0] },
+  { label: 'Email only', user: users[2] },
+  { label: 'Emoji', user: users[3] },
+  { label: 'Icon', user: users[4] },
+  { label: 'Placeholder', placeholder: true },
+  { label: 'Disabled', user: users[0], disabled: true },
+  { label: 'Deleted', user: users[1], deleted: true },
+]
+
 const presenceUsers: PresenceStackUser[] = users.map((u) => ({
   userId: u.id,
   email: u.email,
@@ -56,16 +66,26 @@ function viewMeta(type: number, icon?: string) {
 
 <template>
   <PgSection id="user-icon" title="User avatars" source="GeneralUserIcon · GeneralUserName">
-    <PgDemo label="Sizes" hint="initials, emoji, icon, placeholder">
-      <div class="flex flex-col gap-4">
-        <div v-for="size in userSizes" :key="size" class="flex items-center gap-3">
-          <span class="w-16 flex-none text-captionSm text-nc-content-gray-muted">{{ size }}</span>
-          <div class="flex-1 min-w-0 flex flex-wrap items-center gap-3">
-            <GeneralUserIcon v-for="u in users" :key="u.id" :user="u" :size="size" />
-            <GeneralUserIcon :size="size" show-placeholder-icon />
-            <GeneralUserIcon :user="users[0]" :size="size" disabled />
-            <GeneralUserIcon :user="users[1]" :size="size" is-deleted />
-          </div>
+    <!-- sizes and variants apart: every variant at xlarge wraps past the card -->
+    <PgDemo label="Sizes" :hint="userSizes.join(' · ')">
+      <div class="flex flex-wrap items-end gap-6">
+        <div v-for="size in userSizes" :key="size" class="flex flex-col items-center gap-2">
+          <GeneralUserIcon :user="users[0]" :size="size" />
+          <span class="text-captionXs font-mono text-nc-content-gray-muted">{{ size }}</span>
+        </div>
+      </div>
+    </PgDemo>
+    <PgDemo label="Variants" hint="initials, emoji, icon, placeholder, disabled, deleted · size base">
+      <div class="flex flex-wrap items-start gap-5">
+        <div v-for="v in userVariants" :key="v.label" class="w-16 flex flex-col items-center gap-2">
+          <GeneralUserIcon
+            :user="v.user"
+            size="base"
+            :show-placeholder-icon="v.placeholder"
+            :disabled="v.disabled"
+            :is-deleted="v.deleted"
+          />
+          <span class="text-captionXs text-nc-content-gray-muted text-center">{{ v.label }}</span>
         </div>
       </div>
     </PgDemo>

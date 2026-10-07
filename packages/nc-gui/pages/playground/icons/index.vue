@@ -75,7 +75,7 @@ async function copyIconName(name: string) {
       <button
         v-for="name in filteredIcons"
         :key="name"
-        class="group h-20 px-1.5 rounded-lg flex flex-col items-center justify-center gap-2 text-nc-content-gray hover:bg-nc-bg-gray-light hover:text-nc-content-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nc-border-brand"
+        class="group h-[88px] px-1.5 rounded-lg flex flex-col items-center justify-center gap-1.5 text-nc-content-gray hover:bg-nc-bg-gray-light hover:text-nc-content-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nc-border-brand"
         :title="name"
         @click="copyIconName(name)"
       >
@@ -86,7 +86,9 @@ async function copyIconName(name: string) {
         >
           <component :is="iconMap[name]" class="w-5 h-5 flex-none" />
         </span>
-        <span class="w-full text-captionXs font-mono text-nc-content-gray-muted group-hover:text-nc-content-brand truncate">
+        <span
+          class="w-full min-h-7 text-captionXs font-mono text-center break-all line-clamp-2 text-nc-content-gray-muted group-hover:text-nc-content-brand"
+        >
           {{ name }}
         </span>
       </button>

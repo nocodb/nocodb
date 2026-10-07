@@ -13,8 +13,6 @@ const route = useRoute()
       There's no playground page at <code class="font-mono text-captionSm">{{ route.path }}</code
       >.
     </p>
-    <NuxtLink to="/playground" class="!no-underline">
-      <NcButton size="small" type="secondary">Back to playground</NcButton>
-    </NuxtLink>
+    <NcButton size="small" type="secondary" @click="navigateTo('/playground')">Back to playground</NcButton>
   </div>
 </template>

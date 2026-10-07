@@ -63,7 +63,7 @@ const TOOLTIP_BG = 'var(--nc-bg-tooltip, var(--color-gray-800))'
 function surfaceValue(cssVar: string) {
   const value = resolveLight(cssVar)
   if (value || cssVar !== TOOLTIP_VAR) return value || 'not set in this mode'
-  return `${toHex(resolveLight('--color-gray-800'))} · --color-gray-800`
+  return `${toHex(resolveLight('--color-gray-800'))} · gray-800`
 }
 
 const els = ref<Record<string, HTMLElement>>({})

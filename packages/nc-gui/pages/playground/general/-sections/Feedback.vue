@@ -101,7 +101,8 @@ function onGoHome() {
 
   <PgSection id="locked-view" title="Locked view footer" source="GeneralLockedViewFooter">
     <PgDemo stage="canvas" hint="flush at the bottom of a toolbar menu (filter, group, fields)">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
+      <!-- auto-fill: the footer wraps its label once a column drops below ~280px (token editor open) -->
+      <div class="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3 items-start">
         <div
           v-for="v in lockedViews"
           :key="v.id"
@@ -118,15 +119,17 @@ function onGoHome() {
     id="alerts"
     title="System banners"
     source="GeneralMaintenanceAlert · GeneralReleaseInfo"
-    description="Data-driven: these render only when the server reports a maintenance window or a newer release, so an empty card is expected."
+    description="Data-driven: these render only when the server reports a maintenance window or a newer release; until then each card says so."
   >
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       <PgDemo label="MaintenanceAlert" hint="fetches the remote config on mount, so it loads on demand">
-        <GeneralMaintenanceAlert v-if="isMaintenanceChecked" />
+        <div v-if="isMaintenanceChecked" class="pg-banner-slot" data-empty="No maintenance window reported">
+          <GeneralMaintenanceAlert />
+        </div>
         <NcButton v-else size="small" type="secondary" @click="isMaintenanceChecked = true">Check maintenance</NcButton>
       </PgDemo>
-      <PgDemo label="ReleaseInfo">
-        <GeneralReleaseInfo />
+      <PgDemo label="ReleaseInfo" hint="hidden on EE builds">
+        <div class="pg-banner-slot" data-empty="No newer release reported"><GeneralReleaseInfo /></div>
       </PgDemo>
     </div>
   </PgSection>
@@ -145,3 +148,11 @@ function onGoHome() {
     </PgDemo>
   </PgSection>
 </template>
+
+<style scoped lang="scss">
+/* the banners render a bare v-if comment when there is nothing to show */
+.pg-banner-slot:empty::before {
+  content: attr(data-empty);
+  @apply text-captionSm text-nc-content-gray-muted;
+}
+</style>

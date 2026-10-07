@@ -64,6 +64,11 @@ async function onFilePicked(e: Event) {
   if (file) importText.value = await file.text()
 }
 
+function cancelImport() {
+  isImportOpen.value = false
+  importText.value = ''
+}
+
 const { start: flashImported } = useTimeoutFn(() => (isImported.value = false), 2500, { immediate: false })
 
 function applyImport() {
@@ -90,7 +95,7 @@ watch(tab, () => {
 })
 
 onMounted(() => {
-  rootRef.value?.querySelector<HTMLElement>('button:not([disabled]), input, [tabindex="0"]')?.focus()
+  rootRef.value?.querySelector<HTMLElement>(`[data-testid="nc-playground-tokens-tab-${tab.value}"]`)?.focus()
 })
 </script>
 
@@ -118,6 +123,7 @@ onMounted(() => {
             : 'border-transparent text-nc-content-gray-subtle hover:text-nc-content-gray-emphasis'
         "
         :data-testid="`nc-playground-tokens-tab-${tabItem.key}`"
+        :aria-pressed="tab === tabItem.key"
         @click="tab = tabItem.key"
       >
         {{ tabItem.label }}
@@ -126,6 +132,8 @@ onMounted(() => {
         <NcTooltip v-for="m in ['light', 'dark'] as const" :key="m" :title="`Edit ${m}-mode values`" :arrow="false">
           <button
             class="w-6 h-5 rounded flex items-center justify-center"
+            :aria-label="`Edit ${m}-mode values`"
+            :aria-pressed="editMode === m"
             :class="editMode === m ? 'bg-nc-bg-default shadow-sm text-nc-content-gray-emphasis' : 'text-nc-content-gray-muted'"
             @click="editMode = m"
           >
@@ -168,14 +176,21 @@ onMounted(() => {
           </NcButton>
           <input ref="fileInputRef" type="file" accept=".json,application/json" class="hidden" @change="onFilePicked" />
           <div class="flex-1" />
-          <NcButton size="xsmall" type="text" class="!px-2" @click="isImportOpen = false">Cancel</NcButton>
+          <NcButton size="xsmall" type="text" class="!px-2" @click="cancelImport">Cancel</NcButton>
           <NcButton size="xsmall" :disabled="!importText" class="!px-2" @click="applyImport">Apply</NcButton>
         </div>
       </div>
       <div class="flex gap-2">
         <NcButton size="small" type="secondary" class="flex-1" @click="copyCss">Copy CSS</NcButton>
         <NcButton size="small" type="secondary" class="flex-1" @click="copyJson">Copy JSON</NcButton>
-        <NcButton size="small" type="secondary" @click="isImportOpen = !isImportOpen">Import</NcButton>
+        <NcButton
+          size="small"
+          type="secondary"
+          :aria-expanded="isImportOpen"
+          @click="isImportOpen ? cancelImport() : (isImportOpen = true)"
+        >
+          Import
+        </NcButton>
       </div>
       <div v-if="isImported" class="flex items-center gap-1 text-captionXs text-nc-content-green-dark">
         <GeneralIcon icon="check" class="w-3.5 h-3.5" />

@@ -8,11 +8,24 @@ const aiTab = ref('chat')
 
 const page = ref(3)
 
+const TOTAL_RECORDS = 1248
+
 const pageSize = ref(25)
+
+// NcPagination leaves the page untouched on a size change — callers clamp it (smartsheet/Pagination.vue)
+watch(pageSize, (size) => {
+  page.value = Math.min(page.value, Math.ceil(TOTAL_RECORDS / size))
+})
 
 const pageV2 = ref(1)
 
+const TOTAL_ROWS_V2 = 312
+
 const pageSizeV2 = ref(25)
+
+watch(pageSizeV2, (size) => {
+  pageV2.value = Math.min(pageV2.value, Math.ceil(TOTAL_ROWS_V2 / size))
+})
 
 const stripePage = ref(1)
 
@@ -23,6 +36,8 @@ const activeNav = ref('members')
 const showRowNumbers = ref(true)
 
 const wrapText = ref(false)
+
+const webhooksV2 = ref(false)
 
 const NAV_ITEMS = [
   { key: 'overview', icon: 'ncHome', label: 'Overview' },
@@ -54,7 +69,7 @@ const NAV_ITEMS = [
             </a-tab-pane>
             <a-tab-pane key="webhooks" tab="Webhooks" disabled />
             <template #rightExtra>
-              <NcButton size="xsmall" type="text">Docs</NcButton>
+              <NcButton size="xsmall" type="text" class="!px-2">Docs</NcButton>
             </template>
           </NcTabs>
           <NcTabs v-model:active-key="aiTab" theme="ai" centered>
@@ -91,7 +106,7 @@ const NAV_ITEMS = [
           <NcPagination
             v-model:current="page"
             v-model:page-size="pageSize"
-            :total="1248"
+            :total="TOTAL_RECORDS"
             entity-name="records"
             show-size-changer
             :use-stored-page-size="false"
@@ -99,21 +114,27 @@ const NAV_ITEMS = [
         </div>
         <div class="flex items-center gap-3">
           <span class="w-28 text-captionXs text-nc-content-gray-muted font-mono">simple</span>
-          <NcPagination v-model:current="page" :page-size="pageSize" :total="1248" mode="simple" :use-stored-page-size="false" />
+          <NcPagination
+            v-model:current="page"
+            :page-size="pageSize"
+            :total="TOTAL_RECORDS"
+            mode="simple"
+            :use-stored-page-size="false"
+          />
         </div>
         <div class="flex items-center gap-3">
           <span class="w-28 text-captionXs text-nc-content-gray-muted font-mono">V2 default</span>
           <NcPaginationV2
             v-model:current="pageV2"
             v-model:page-size="pageSizeV2"
-            :total="312"
+            :total="TOTAL_ROWS_V2"
             entity-name="rows"
             show-size-changer
           />
         </div>
         <div class="flex items-center gap-3">
           <span class="w-28 text-captionXs text-nc-content-gray-muted font-mono">V2 variant v2</span>
-          <NcPaginationV2 v-model:current="pageV2" v-model:page-size="pageSizeV2" :total="312" variant="v2" />
+          <NcPaginationV2 v-model:current="pageV2" v-model:page-size="pageSizeV2" :total="TOTAL_ROWS_V2" variant="v2" />
         </div>
         <div class="flex items-center gap-3">
           <span class="w-28 text-captionXs text-nc-content-gray-muted font-mono">stripe</span>
@@ -160,7 +181,7 @@ const NAV_ITEMS = [
         </NcGroupedSettings>
         <NcGroupedSettings title="Advanced" default-collapsed>
           <div>
-            <NcSwitch :checked="false">
+            <NcSwitch v-model:checked="webhooksV2">
               <span class="text-caption text-nc-content-gray select-none">Enable webhooks v2</span>
             </NcSwitch>
           </div>

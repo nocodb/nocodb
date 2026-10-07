@@ -3,6 +3,7 @@ import {
   integrationCategoryNeedDefault,
   IntegrationsType,
   type IntegrationType,
+  preserveSecretRefs,
   type SourceType,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
@@ -465,7 +466,9 @@ export default class Integration implements IntegrationType {
 
   public wrapper: IntegrationWrapper;
 
-  getIntegrationWrapper<T = any>(pLogger?: (message: string) => void) {
+  async getIntegrationWrapper<T = any>(
+    pLogger?: (message: string) => void,
+  ): Promise<T> {
     if (!this.wrapper) {
       const IntegrationClass = this.constructor as typeof Integration;
 
@@ -478,12 +481,18 @@ export default class Integration implements IntegrationType {
         NcError._.internalServerError('Integration not found');
       }
 
-      this.wrapper = new integrationWrapper.wrapper(this.getWrapperConfig(), {
-        saveConfig: async (config: any) => {
-          await this.persistWrapperConfig(config);
+      this.wrapper = new integrationWrapper.wrapper(
+        await this.prepareWrapperConfig(),
+        {
+          saveConfig: async (config: any) => {
+            // The wrapper holds resolved secrets; the stored references win.
+            await this.persistWrapperConfig(
+              preserveSecretRefs(this.getWrapperConfig(), config),
+            );
+          },
+          logger: pLogger,
         },
-        logger: pLogger,
-      });
+      );
 
       // Refreshed OAuth tokens persist back to the slot the config came from
       // (production / env override / user row — see persistWrapperConfig).
@@ -517,6 +526,21 @@ export default class Integration implements IntegrationType {
   }
 
   /**
+   * The wrapper config as the client must see it. EE resolves vault
+   * references here; CE has none to resolve.
+   */
+  protected async prepareWrapperConfig(): Promise<any> {
+    return this.getWrapperConfig();
+  }
+
+  /** Same for a throwaway wrapper built from an arbitrary config. */
+  protected static async prepareTempConfig(
+    config: Partial<IntegrationType>,
+  ): Promise<any> {
+    return config.config;
+  }
+
+  /**
    * Public accessor for the effective, binding-aware config: the integration's
    * own (production) config, or the per-environment override / per-user
    * credential once the instance has been bound via EE `applyEnvironment()` /
@@ -545,7 +569,9 @@ export default class Integration implements IntegrationType {
   }
 
   /** Build a throwaway wrapper from an arbitrary config (no persistence hooks). */
-  static tempIntegrationWrapper<T = any>(config: Partial<IntegrationType>) {
+  static async tempIntegrationWrapper<T = any>(
+    config: Partial<IntegrationType>,
+  ): Promise<T> {
     const integrationWrapper = Integration.availableIntegrations.find(
       (el) => el.type === config.type && el.sub_type === config.sub_type,
     );
@@ -555,7 +581,10 @@ export default class Integration implements IntegrationType {
       NcError._.internalServerError('Integration not found');
     }
 
-    return new integrationWrapper.wrapper(config.config, {}) as T;
+    return new integrationWrapper.wrapper(
+      await this.prepareTempConfig(config),
+      {},
+    ) as T;
   }
 
   static getManifestForConfig(config: Partial<IntegrationType>) {

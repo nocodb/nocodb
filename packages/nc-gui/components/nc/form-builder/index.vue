@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type FormBuilderElement, type FormBuilderResponsiveSpan, type IntegrationType, ncIsArray } from 'nocodb-sdk'
+import { type FormBuilderElement, type FormBuilderResponsiveSpan, type IntegrationType, isSecretRef, ncIsArray } from 'nocodb-sdk'
 import { FORM_BUILDER_NON_CATEGORIZED, FormBuilderInputType, iconMap } from '#imports'
 import { FormBuilderGroupLabelsInj } from '~/context'
 
@@ -166,6 +166,24 @@ const filterIntegration = computed(() => {
     },
   }
 })
+
+// Fields the package form marks `vault: true` may hold a `$vault` reference
+// (EE only; the CE SecretField renders nothing).
+const vaultModes = ref<Record<string, boolean>>({})
+
+const isVaultBacked = (field: FormBuilderElement) =>
+  isEeUI &&
+  !!(field as { vault?: boolean }).vault &&
+  !!field.model &&
+  (vaultModes.value[field.model] || isSecretRef(deepReference(field.model)))
+
+// `config.auth.token` → `auth-token`, for test ids.
+const vaultFieldKey = (model?: string) => (model ?? '').replace(/^config\./, '').replace(/\./g, '-')
+
+const setVaultMode = (model: string | undefined, mode: boolean) => {
+  if (!model) return
+  vaultModes.value = { ...vaultModes.value, [model]: mode }
+}
 
 const setFormStateWithEmit = (path: string, value: any) => {
   setFormState(path, value)
@@ -365,6 +383,7 @@ watch(
                   </template>
                   <template v-if="field.type === FormBuilderInputType.Input">
                     <a-input
+                      v-if="!isVaultBacked(field)"
                       autocomplete="off"
                       class="!w-full"
                       :disabled="disabled || field.disabled"
@@ -380,6 +399,15 @@ watch(
                         <slot :name="getValidSlotName(field.model, 'suffix')" />
                       </template> -->
                     </a-input>
+                    <WorkspaceIntegrationsVaultSecretField
+                      v-if="isEeUI && field.vault"
+                      :value="deepReference(field.model)"
+                      :field-key="vaultFieldKey(field.model)"
+                      :label="field.label"
+                      :disabled="disabled || field.disabled"
+                      @update:value="setFormStateWithEmit(field.model, $event)"
+                      @update:vault-mode="(mode) => setVaultMode(field.model, mode)"
+                    />
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.Date">
                     <a-date-picker
@@ -415,6 +443,7 @@ watch(
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.Password">
                     <a-input-password
+                      v-if="!isVaultBacked(field)"
                       readonly
                       :disabled="disabled || field.disabled"
                       onfocus="this.removeAttribute('readonly');"
@@ -423,6 +452,15 @@ watch(
                       :value="deepReference(field.model)"
                       :placeholder="field.placeholder"
                       @update:value="setFormStateWithEmit(field.model, $event)"
+                    />
+                    <WorkspaceIntegrationsVaultSecretField
+                      v-if="isEeUI && field.vault"
+                      :value="deepReference(field.model)"
+                      :field-key="vaultFieldKey(field.model)"
+                      :label="field.label"
+                      :disabled="disabled || field.disabled"
+                      @update:value="setFormStateWithEmit(field.model, $event)"
+                      @update:vault-mode="(mode) => setVaultMode(field.model, mode)"
                     />
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.Select">

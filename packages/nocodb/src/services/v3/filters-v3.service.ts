@@ -459,9 +459,12 @@ export class FiltersV3Service {
       true,
     );
 
+    // confirm if filter belongs to view — without this an editor on view A can
+    // PATCH a filter of view B in the same base (incl. locked/personal views).
+    // Same guard and same error as filterDelete.
     const filter = await Filter.get(context, param.filterId ?? '');
 
-    if (!filter) {
+    if (!filter || filter.fk_view_id !== param.viewId) {
       NcError.badRequest('Filter not found');
     }
 

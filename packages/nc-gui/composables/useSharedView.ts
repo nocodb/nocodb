@@ -108,7 +108,14 @@ export function useSharedView() {
       meta.value.columns = [...viewMeta.model.columns].map((c) => ({ ...c, order: order++ })).sort((a, b) => a.order - b.order)
     }
 
-    await setMeta(viewMeta.model)
+    // A self-linking table is also in relatedMetas, trimmed to pk/pv + lookup/rollup
+    // targets — merge it in so neither copy's columns are lost. #10931
+    const relatedMetas = { ...viewMeta.relatedMetas }
+    const model = viewMeta.model
+    if (model?.id) {
+      await setMeta(mergeProjectedMetaColumns(model, relatedMetas[model.id]))
+      delete relatedMetas[model.id]
+    }
 
     // if base is not defined then set it with an object containing source
     if (!base.value?.sources)
@@ -123,11 +130,6 @@ export function useSharedView() {
         ],
       })
 
-    const relatedMetas = { ...viewMeta.relatedMetas }
-    // The server trims related metas to pk + pv on a shared view, and a table that
-    // links to itself is in there too — seeding that stub would clobber the full
-    // model set above and leave every Lookup/Rollup cell unable to resolve. #10931
-    if (viewMeta.model?.id) delete relatedMetas[viewMeta.model.id]
     Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
 
     if (viewMeta.users) {

@@ -226,9 +226,11 @@ watch(
             :managed-app="{ managed_app_master: base.managed_app_master, managed_app_id: base.managed_app_id }"
             class="!h-5 !w-5 flex-none"
           />
-          <NcTooltip show-on-truncate-only class="truncate text-bodyDefaultSm font-semibold text-nc-content-gray-emphasis">
+          <NcTooltip show-on-truncate-only class="truncate text-body font-semibold text-nc-content-gray-emphasis">
             {{ base.title }}
           </NcTooltip>
+          <!-- Names what this modal is, after the base it belongs to. -->
+          <span class="flex-none text-body text-nc-content-gray-muted">: {{ $t('labels.settings') }}</span>
         </div>
 
         <!-- Centred on the band, not between its neighbours: the base's name is as

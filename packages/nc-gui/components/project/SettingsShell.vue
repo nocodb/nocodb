@@ -69,6 +69,11 @@ const activeConcern = computed(() => concernOfTab(railActive.value))
 /** Only the active concern's rows are in the rail; the tabs switch the column. */
 const concernGroups = computed(() => groupsByConcern.value[activeConcern.value] ?? navGroups.value)
 
+const railSearch = ref('')
+
+/** A search spans every concern; picking a result moves the tab with it. */
+const railGroups = computed(() => (railSearch.value.trim() ? navGroups.value : concernGroups.value))
+
 const meta = computed(() => paneMeta.value[props.tab] ?? paneMeta.value[railActive.value])
 
 const baseId = computed(() => base.value?.id)
@@ -280,8 +285,9 @@ watch(
       <div class="flex-1 min-h-0 flex">
         <ShellRail
           v-if="showRail"
+          v-model:search="railSearch"
           :full-width="isMobileMode"
-          :groups="concernGroups"
+          :groups="railGroups"
           :active="railActive"
           :search-placeholder="$t('labels.baseNav.searchPlaceholder')"
           empty-text="labels.baseNav.searchEmpty"

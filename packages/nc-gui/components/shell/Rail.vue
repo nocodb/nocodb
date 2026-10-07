@@ -57,7 +57,8 @@ const emits = defineEmits<{
 
 const { t } = useI18n()
 
-const search = ref('')
+/** Bindable so a host can widen `groups` while a query is typed. */
+const search = defineModel<string>('search', { default: '' })
 
 const isSearching = computed(() => !!search.value.trim())
 

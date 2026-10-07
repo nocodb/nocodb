@@ -14,7 +14,7 @@ on:
       - "pnpm-lock.yaml"
       - ".github/workflows/build-check.yml"
   pull_request:
-    types: [labeled, synchronize, reopened]
+    types: [opened, reopened, synchronize, ready_for_review, labeled]
     branches: [develop]
     paths:
       - "packages/nocodb/**"
@@ -35,8 +35,8 @@ jobs:
   backend:
     name: Backend build (nocodb)
     runs-on: ubicloud-standard-2
-    timeout-minutes: 30
-    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') }}
+    timeout-minutes: 15
+    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -62,8 +62,8 @@ jobs:
   frontend:
     name: Frontend build (nc-gui)
     runs-on: ubicloud-standard-2
-    timeout-minutes: 40
-    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') }}
+    timeout-minutes: 15
+    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

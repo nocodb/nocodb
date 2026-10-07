@@ -42,7 +42,7 @@ export function useWorkspaceSettingsNav() {
         items: [
           canSeeGeneral.value && {
             slug: 'general',
-            icon: 'ncSettings',
+            icon: 'ncSliders',
             testId: 'ws-general',
             title: t('general.general'),
             keywords: 'appearance name rename icon image logo',

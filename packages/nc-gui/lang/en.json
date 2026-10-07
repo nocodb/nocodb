@@ -7892,6 +7892,7 @@
     "category": "Category",
     "categories": "Categories",
     "filters": {
+      "search": "Search filters",
       "plan": "Plan",
       "remove": "Remove filter",
       "clear": "Clear filters",

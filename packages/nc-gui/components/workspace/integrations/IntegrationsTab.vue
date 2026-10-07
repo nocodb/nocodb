@@ -339,10 +339,11 @@ watch(activeViewTab, (value) => {
     :is="isModal ? NcModal : 'div'"
     v-model:visible="isAddNewIntegrationModalOpen"
     centered
-    size="large"
+    size="feature"
     :class="{
       'h-full': !isModal,
     }"
+    nc-modal-class-name="!p-0"
     wrap-class-name="nc-modal-available-integrations-list"
     @keydown.esc="isAddNewIntegrationModalOpen = false"
   >
@@ -707,11 +708,6 @@ watch(activeViewTab, (value) => {
 
 <style lang="scss">
 .nc-modal-available-integrations-list {
-  .nc-modal {
-    @apply !p-0;
-    height: min(calc(100vh - 100px), 1024px);
-    max-height: min(calc(100vh - 100px), 1024px) !important;
-  }
   .ant-modal-content {
     overflow: hidden;
   }

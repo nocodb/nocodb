@@ -49,6 +49,8 @@ const TooltipGlideItems = [
 
 const color = ref('#cfdffe')
 
+const isColorPanelOpen = ref(false)
+
 const shouldThrow = ref(false)
 
 const Bomb = defineComponent({
@@ -91,8 +93,21 @@ function viewOf(type: ViewTypes) {
         </div>
       </PgDemo>
 
-      <PgDemo label="NcColorPanel" :hint="color">
-        <NcColorPanel v-model="color" preview-label="In progress" />
+      <!-- always inside a dropdown, as in CheckboxOptions: while visible it captures Escape for the whole page -->
+      <PgDemo label="NcColorPanel" :hint="`${color} · opens from a chip, as in field options`">
+        <NcDropdown v-model:visible="isColorPanelOpen" placement="bottomLeft" :auto-close="false" use-backdrop>
+          <div
+            class="w-48 border-1 border-nc-border-gray-dark rounded-lg h-8 px-[11px] flex items-center gap-2 cursor-pointer transition-all"
+            :class="{ 'border-nc-border-brand shadow-selected': isColorPanelOpen }"
+          >
+            <span class="w-4 h-4 rounded" :style="{ background: color }" />
+            <span class="flex-1 text-caption text-nc-content-gray">In progress</span>
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle h-4 w-4" />
+          </div>
+          <template #overlay>
+            <NcColorPanel v-model="color" preview-label="In progress" @escape="isColorPanelOpen = false" />
+          </template>
+        </NcDropdown>
       </PgDemo>
 
       <PgDemo label="NcCarousel">

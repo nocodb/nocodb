@@ -2,11 +2,11 @@
 import PgDemo from '../../-components/PgDemo.vue'
 import PgSection from '../../-components/PgSection.vue'
 
-type ModalSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'fullscreen' | 'small' | 'medium' | 'large'
+type ModalSize = keyof typeof modalSizes | 'small' | 'medium' | 'large'
 
 type ConfirmType = 'error' | 'success' | 'warning' | 'info'
 
-const MODAL_SIZES: ModalSize[] = ['xs', 'sm', 'md', 'lg', 'xl', 'fullscreen']
+const MODAL_SIZES: ModalSize[] = ['xs', 'sm', 'md', 'lg', 'xl', 'feature', 'fullscreen']
 
 const LEGACY_SIZES: ModalSize[] = ['small', 'medium', 'large']
 

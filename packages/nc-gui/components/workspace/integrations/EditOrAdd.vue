@@ -42,7 +42,8 @@ const activeIntegrationType = computed(() => {
 <template>
   <NcModal
     v-model:visible="isEditOrAddIntegrationModalOpen"
-    size="large"
+    size="feature"
+    nc-modal-class-name="!p-0"
     wrap-class-name="nc-modal-edit-or-add-integration"
     @keydown.esc="isEditOrAddIntegrationModalOpen = false"
   >
@@ -74,10 +75,6 @@ const activeIntegrationType = computed(() => {
 <style lang="scss">
 .nc-modal-edit-or-add-integration {
   .nc-modal {
-    @apply !p-0;
-    height: min(calc(100vh - 100px), 1024px);
-    max-height: min(calc(100vh - 100px), 1024px) !important;
-
     .nc-edit-or-add-integration-left-panel {
       @apply w-full p-6 flex-1 flex justify-center;
     }

@@ -12,8 +12,11 @@ export const MOCK_WORKSPACE_ID = 'pgws'
 export const MOCK_SOURCE_ID = 'pgsrc'
 export const MOCK_TASKS_TABLE_ID = 'pg-tasks'
 
-export const MOCK_VIEW_KINDS = ['grid', 'gallery', 'kanban', 'calendar', 'form'] as const
+export const MOCK_VIEW_KINDS = ['grid', 'gallery', 'kanban', 'calendar', 'form', 'map', 'list', 'timeline', 'gantt'] as const
 export type MockViewKind = (typeof MOCK_VIEW_KINDS)[number]
+
+/** Record the `/playground/views/expanded` alias opens. */
+export const EXPANDED_DEMO_ROW_ID = 3
 
 export const isMockViewKind = (v: unknown): v is MockViewKind => MOCK_VIEW_KINDS.includes(v as MockViewKind)
 
@@ -61,6 +64,11 @@ export const COL = {
   phone: 'pgc-phone',
   cover: 'pgc-cover',
   tasks: 'pgc-tasks',
+  start: 'pgc-start',
+  end: 'pgc-end',
+  location: 'pgc-location',
+  nextSteps: 'pgc-next-steps',
+  parentFk: 'pgc-parent-fk',
   createdAt: 'pgc-created-at',
   updatedAt: 'pgc-updated-at',
 } as const
@@ -136,6 +144,27 @@ export function buildColumns(tableId: string): ColumnType[] {
         fk_parent_column_id: COL.id,
       } as ColumnType['colOptions'],
     }),
+    col({ id: COL.start, title: 'Start date', uidt: UITypes.Date, dt: 'date', meta: { date_format: 'YYYY-MM-DD' } }),
+    col({ id: COL.end, title: 'End date', uidt: UITypes.Date, dt: 'date', meta: { date_format: 'YYYY-MM-DD' } }),
+    col({ id: COL.location, title: 'Location', uidt: UITypes.GeoData, dt: 'text' }),
+    // gantt only: self has-many link driving the dependency arrows
+    ...(tableId === 'gantt'
+      ? [
+          col({
+            id: COL.nextSteps,
+            title: 'Next steps',
+            uidt: UITypes.Links,
+            meta: { singular: 'Next step', plural: 'Next steps' },
+            colOptions: {
+              type: 'hm',
+              fk_related_model_id: tableId,
+              fk_child_column_id: COL.parentFk,
+              fk_parent_column_id: COL.id,
+            } as ColumnType['colOptions'],
+          }),
+          col({ id: COL.parentFk, title: 'parent_id', uidt: UITypes.ForeignKey, dt: 'int4', system: true }),
+        ]
+      : []),
     col({ id: COL.createdAt, title: 'CreatedAt', uidt: UITypes.CreatedTime, dt: 'timestamp', system: true }),
     col({ id: COL.updatedAt, title: 'UpdatedAt', uidt: UITypes.LastModifiedTime, dt: 'timestamp', system: true }),
   ]
@@ -159,6 +188,10 @@ const VIEW_TYPE: Record<MockViewKind, ViewTypes> = {
   kanban: ViewTypes.KANBAN,
   calendar: ViewTypes.CALENDAR,
   form: ViewTypes.FORM,
+  map: ViewTypes.MAP,
+  list: ViewTypes.LIST,
+  timeline: ViewTypes.TIMELINE,
+  gantt: ViewTypes.GANTT,
 }
 
 export function buildTable(kind: MockViewKind): TableType {
@@ -275,6 +308,36 @@ export function buildView(kind: MockViewKind): ViewType {
       logo_url: null,
       meta: { theme: 'default' },
     },
+    map: { fk_view_id: id, fk_geo_data_col_id: COL.location, meta: {} },
+    // one level = a flat list of this table's records
+    list: {
+      fk_view_id: id,
+      show_empty_parents: true,
+      levels: [{ id: 'pg-list-level-1', fk_view_id: id, level: 1, fk_model_id: kind, meta: {} }],
+      meta: {},
+    },
+    timeline: {
+      fk_view_id: id,
+      timeline_range: [{ id: 'pg-timeline-range', fk_from_column_id: COL.start, fk_to_column_id: COL.end }],
+      meta: {},
+    },
+    gantt: {
+      fk_view_id: id,
+      date_dependency: {
+        id: 'pg-gantt-dep',
+        fk_model_id: kind,
+        fk_start_date_field_id: COL.start,
+        fk_end_date_field_id: COL.end,
+        fk_dependency_linkrow_field_id: COL.nextSteps,
+        dependency_linkrow_role: 'successors',
+        dependency_connection_type: 'end-to-start',
+        dependency_buffer_type: 'flexible',
+        dependency_buffer_days: 0,
+        include_weekends: true,
+        is_active: true,
+      },
+      meta: {},
+    },
   }
 
   return { ...common, view: typeMeta[kind] } as unknown as ViewType
@@ -362,8 +425,28 @@ const NOTES = [
   'Blocked on the API contract — see the RFC thread.',
 ]
 
+const CITIES: Array<[number, number]> = [
+  [37.7749, -122.4194],
+  [40.7128, -74.006],
+  [51.5074, -0.1278],
+  [52.52, 13.405],
+  [12.9716, 77.5946],
+  [35.6762, 139.6503],
+  [-33.8688, 151.2093],
+  [-23.5505, -46.6333],
+]
+
+/** Row index (0-based) of the gantt predecessor, or null — chains of three: i%5 = 0 → 1 → 2. */
+export const ganttParentIndex = (i: number) => (i < 20 && i % 5 > 0 && i % 5 < 3 ? i - 1 : null)
+
+const toDateStr = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
 export function buildRows(count = 40): Record<string, any>[] {
   const r = rng(42)
+  // separate stream so the original columns keep their values
+  const r2 = rng(7)
+  const ends: Date[] = []
   const pick = <T>(arr: readonly T[]) => arr[Math.floor(r() * arr.length)]
   const base = new Date()
   base.setDate(1)
@@ -380,6 +463,15 @@ export function buildRows(count = 40): Record<string, any>[] {
     const tags = [...new Set(Array.from({ length: tagCount }, () => pick(TAGS).title))]
     const owner = pick(MOCK_USERS)
     const slug = name.toLowerCase().replace(/\W+/g, '-')
+    const parentIdx = ganttParentIndex(i)
+    const start = new Date(base)
+    if (parentIdx !== null) start.setTime(ends[parentIdx].getTime() + 86400000)
+    else start.setDate(1 + Math.floor(r2() * 22))
+    const end = new Date(start)
+    end.setDate(start.getDate() + 1 + Math.floor(r2() * 7))
+    ends.push(end)
+    const [lat, lng] = CITIES[i % CITIES.length]
+    const location = `${(lat + (r2() - 0.5) * 0.2).toFixed(4)};${(lng + (r2() - 0.5) * 0.2).toFixed(4)}`
     rows.push({
       'Id': i + 1,
       'Launch': name,
@@ -411,9 +503,99 @@ export function buildRows(count = 40): Record<string, any>[] {
       'Website': `https://acme.dev/launch/${slug}`,
       'Phone': `+1 415 555 0${String(100 + i).slice(-3)}`,
       'Tasks': Math.floor(r() * 9),
+      'Start date': toDateStr(start),
+      'End date': toDateStr(end),
+      'Location': location,
+      'Next steps': ganttParentIndex(i + 1) === i ? 1 : 0,
+      'parent_id': parentIdx === null ? null : parentIdx + 1,
       'CreatedAt': new Date(kickoff.getTime() - 86400000 * 3).toISOString(),
       'UpdatedAt': new Date(kickoff.getTime() + 86400000).toISOString(),
     })
   }
   return rows
+}
+
+const hoursAgo = (h: number) => new Date(Date.now() - h * 3600000).toISOString()
+
+export interface MockComment {
+  id: string
+  row_id: string
+  fk_model_id: string
+  comment: string
+  created_by: string
+  created_by_email: string
+  created_at: string
+  updated_at: string
+  is_edited?: boolean
+  parent_comment_id?: string | null
+  resolved_by?: string | null
+}
+
+const COMMENT_SEED: Array<[rowId: number, userIdx: number, hours: number, text: string]> = [
+  [3, 1, 30, 'Pulled the latest usage numbers — 18% of new tables already have a suggested field accepted.'],
+  [3, 4, 26, '@Ava Chen can we keep the model picker hidden for the beta? One less decision for users.'],
+  [3, 0, 3, 'Agreed. Shipping behind the flag on Monday, docs are in review.'],
+  [1, 2, 50, 'Cursor colours clash in dark mode, filed a follow-up.'],
+  [7, 3, 12, 'Security review signed off.'],
+]
+
+export function buildComments(tableId: string): MockComment[] {
+  return COMMENT_SEED.map(([rowId, userIdx, hours, text], i) => ({
+    id: `pg-cmt-${i + 1}`,
+    row_id: String(rowId),
+    fk_model_id: tableId,
+    comment: text,
+    created_by: MOCK_USERS[userIdx].id,
+    created_by_email: MOCK_USERS[userIdx].email,
+    created_at: hoursAgo(hours),
+    updated_at: hoursAgo(hours),
+    is_edited: false,
+    parent_comment_id: null,
+    resolved_by: null,
+  }))
+}
+
+/** Revision history for a record, newest first (the server's order). */
+export function buildAudits(tableId: string, row: Record<string, any>) {
+  const statusMeta = {
+    Status: {
+      id: COL.status,
+      title: 'Status',
+      type: UITypes.SingleSelect,
+      options: { choices: STATUS.map((s) => ({ title: s.title, color: s.color })) },
+    },
+  }
+  const audit = (n: number, userIdx: number, hours: number, op_type: string, details: Record<string, any>) => ({
+    id: `pg-audit-${row.Id}-${n}`,
+    row_id: String(row.Id),
+    fk_model_id: tableId,
+    op_type,
+    version: 1,
+    user: MOCK_USERS[userIdx].email,
+    fk_user_id: MOCK_USERS[userIdx].id,
+    created_at: hoursAgo(hours),
+    details: JSON.stringify(details),
+  })
+  return [
+    audit(3, 0, 5, 'DATA_UPDATE', {
+      data: { Status: row.Status ?? 'Planned' },
+      old_data: { Status: 'Idea' },
+      column_meta: statusMeta,
+    }),
+    audit(2, 1, 28, 'DATA_UPDATE', {
+      data: { 'Budget': row.Budget, 'Effort (pts)': row['Effort (pts)'] },
+      old_data: { 'Budget': 40000, 'Effort (pts)': 3 },
+      column_meta: {
+        'Budget': { id: COL.budget, title: 'Budget', type: UITypes.Currency, options: { locale: 'en-US', code: 'USD' } },
+        'Effort (pts)': { id: COL.effort, title: 'Effort (pts)', type: UITypes.Number, options: {} },
+      },
+    }),
+    audit(1, 1, 72, 'DATA_INSERT', {
+      data: { Launch: row.Launch, Status: 'Idea' },
+      column_meta: {
+        Launch: { id: COL.title, title: 'Launch', type: UITypes.SingleLineText, options: {} },
+        ...statusMeta,
+      },
+    }),
+  ]
 }

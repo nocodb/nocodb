@@ -49,6 +49,45 @@ export const playgroundNav: PlaygroundNavSection[] = [
       { name: 'Kanban', path: '/playground/views/kanban', description: 'Kanban stacks', icon: 'kanban' },
       { name: 'Calendar', path: '/playground/views/calendar', description: 'Month / week / day', icon: 'calendar' },
       { name: 'Form', path: '/playground/views/form', description: 'Form view builder', icon: 'form' },
+      { name: 'Map', path: '/playground/views/map', description: 'Geo markers (tiles need network)', icon: 'map' },
+      { name: 'List', path: '/playground/views/list', description: 'Nested list view', icon: 'ncList' },
+      { name: 'Timeline', path: '/playground/views/timeline', description: 'Date-range bars', icon: 'timeline' },
+      { name: 'Gantt', path: '/playground/views/gantt', description: 'Bars with dependencies', icon: 'gantt' },
+      {
+        name: 'Expanded record',
+        path: '/playground/views/expanded',
+        description: 'Record modal with comments and revision history',
+        icon: 'maximize',
+      },
+    ],
+  },
+  {
+    title: 'Surfaces (mock data)',
+    items: [
+      {
+        name: 'Toolbar menus',
+        path: '/playground/surfaces/toolbar',
+        description: 'Filter, sort, group, fields, row height, search and view actions',
+        icon: 'filter',
+      },
+      {
+        name: 'Field editor',
+        path: '/playground/surfaces/fields',
+        description: 'Field editor per type and the column header menu',
+        icon: 'cellText',
+      },
+      {
+        name: 'Table details',
+        path: '/playground/surfaces/details',
+        description: 'Fields, relations, webhooks, API snippets, record templates',
+        icon: 'table',
+      },
+      {
+        name: 'Base settings',
+        path: '/playground/surfaces/base-settings',
+        description: 'The real base settings shell and every pane',
+        icon: 'settings',
+      },
     ],
   },
   {

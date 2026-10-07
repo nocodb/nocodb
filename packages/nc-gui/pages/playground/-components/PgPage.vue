@@ -4,6 +4,8 @@ defineProps<{
   title: string
   description?: string
   sections?: Array<{ id: string; title: string }>
+  /** full-size surfaces (modal shells, settings): no max width, no TOC column */
+  wide?: boolean
 }>()
 
 // scrollIntoView would also scroll the overflow-hidden app wrappers and push the shell off-screen
@@ -19,7 +21,7 @@ function scrollTo(id: string) {
 <template>
   <div class="flex min-h-full">
     <div class="flex-1 min-w-0 px-8 py-6">
-      <div class="max-w-6xl mx-auto">
+      <div class="mx-auto" :class="{ 'max-w-6xl': !wide }">
         <div class="mb-6">
           <h1 class="text-heading3 text-nc-content-gray-emphasis">{{ title }}</h1>
           <p v-if="description" class="text-body text-nc-content-gray-subtle mt-1 max-w-3xl">{{ description }}</p>
@@ -27,7 +29,7 @@ function scrollTo(id: string) {
         <slot />
       </div>
     </div>
-    <nav v-if="sections?.length" class="hidden xl:block flex-none w-52 py-6 pr-4">
+    <nav v-if="sections?.length && !wide" class="hidden xl:block flex-none w-52 py-6 pr-4">
       <div class="sticky top-6 flex flex-col gap-0.5">
         <div class="text-captionXsBold uppercase tracking-wide text-nc-content-gray-muted px-2 mb-1">On this page</div>
         <button

@@ -167,7 +167,13 @@ function copyToClipboard(text: string, label: string) {
 </script>
 
 <template>
-  <NcModal v-model:visible="modalVisible" :show-separator="true" size="large" wrap-class-name="nc-modal-oauth-client-details">
+  <NcModal
+    v-model:visible="modalVisible"
+    :show-separator="true"
+    size="feature"
+    nc-modal-class-name="!p-0"
+    wrap-class-name="nc-modal-oauth-client-details"
+  >
     <template #header>
       <div class="flex w-full items-center p-2 justify-between">
         <div class="flex items-center gap-3 pl-1 flex-1">
@@ -412,12 +418,6 @@ function copyToClipboard(text: string, label: string) {
 <style lang="scss">
 .nc-modal-oauth-client-details {
   z-index: 1050;
-  .nc-modal {
-    @apply !p-0;
-    height: min(calc(100vh - 100px), 1024px);
-    max-height: min(calc(100vh - 100px), 1024px) !important;
-  }
-
   .nc-modal-header {
     @apply !mb-0 !pb-0;
   }

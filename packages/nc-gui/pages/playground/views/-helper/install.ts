@@ -3,7 +3,16 @@ import type { AxiosRequestConfig } from 'axios'
 import { HttpClient } from 'nocodb-sdk'
 import { createMockAdapter } from './mock-api'
 import type { MockDb, UnmockedRequest } from './mock-api'
-import { MOCK_BASE_ID, MOCK_TASKS_TABLE_ID, MOCK_USERS, buildRows, buildTable, buildTasksTable, mockBase } from './mock-data'
+import {
+  MOCK_BASE_ID,
+  MOCK_TASKS_TABLE_ID,
+  MOCK_USERS,
+  buildComments,
+  buildRows,
+  buildTable,
+  buildTasksTable,
+  mockBase,
+} from './mock-data'
 import type { MockViewKind } from './mock-data'
 
 type MergeParams = (this: HttpClient, params1: AxiosRequestConfig, params2?: AxiosRequestConfig) => AxiosRequestConfig
@@ -19,9 +28,11 @@ interface Saved {
   user: unknown
   lastVisitedBase: string | null
   recentViews: unknown[] | null
+  interceptorId: number | null
 }
 
-const VIEW_ROUTE = /^\/playground\/views\/(grid|gallery|kanban|calendar|form)(\/|$)/
+// surfaces/* pages reuse the grid session
+const VIEW_ROUTE = /^\/playground\/(views\/(grid|gallery|kanban|calendar|form|map|list|timeline|gantt|expanded)|surfaces)(\/|$)/
 
 let saved: Saved | null = null
 
@@ -56,16 +67,19 @@ function seedStores(kind: MockViewKind, db: MockDb) {
 
   const basesStore = useBases()
   basesStore.bases.set(MOCK_BASE_ID, mockBase() as NcProject)
-  basesStore.basesUser.set(MOCK_BASE_ID, MOCK_USERS.map((u) => ({ ...u, roles: 'editor' })) as unknown as User[])
+  // the signed-in user too, so comments posted here get a name and avatar
+  const me = { id: db.user.id, email: db.user.email, display_name: db.user.display_name, roles: 'owner' }
+  basesStore.basesUser.set(MOCK_BASE_ID, [...MOCK_USERS.map((u) => ({ ...u, roles: 'editor' })), me] as unknown as User[])
 
   useTablesStore().baseTables.set(MOCK_BASE_ID, [table, tasksTable] as SidebarTableNode[])
 
   useViewsStore().viewsByTable.set(`${MOCK_BASE_ID}:${table.id}`, table.views ?? [])
 }
 
-function uninstall(user: Ref<any>) {
+function uninstall(user: Ref<any>, api: ReturnType<typeof useNuxtApp>['$api']) {
   if (!saved) return
   HttpClient.prototype.mergeRequestParams = saved.mergeRequestParams
+  if (saved.interceptorId !== null) api.instance.interceptors.request.eject(saved.interceptorId)
   user.value = saved.user
   if (saved.recentViews) {
     const viewsStore = useViewsStore()
@@ -97,6 +111,7 @@ export function installPlaygroundMocks(kind: MockViewKind) {
       user: user.value,
       lastVisitedBase: localStorage.getItem('ncLastVisitedBase'),
       recentViews: null,
+      interceptorId: null,
     }
   }
 
@@ -107,6 +122,7 @@ export function installPlaygroundMocks(kind: MockViewKind) {
       tables: { [table.id!]: table, [tasksTable.id!]: tasksTable },
       views: Object.fromEntries((table.views ?? []).map((v) => [v.id!, v])),
       rows: buildRows(),
+      comments: buildComments(table.id!),
       user: { ...(saved.user as object), base_roles: { owner: true } },
     }
     session = { kind, db, seeded: false }
@@ -119,6 +135,14 @@ export function installPlaygroundMocks(kind: MockViewKind) {
     HttpClient.prototype.mergeRequestParams = function (params1, params2) {
       return { ...merge.call(this, params1, params2), adapter }
     } satisfies MergeParams
+
+    // timeline/gantt fetch through `$api.instance.get(url)`, which skips mergeRequestParams
+    const instance = nuxtApp.$api.instance
+    if (saved.interceptorId !== null) instance.interceptors.request.eject(saved.interceptorId)
+    saved.interceptorId = instance.interceptors.request.use((config) => {
+      config.adapter = adapter
+      return config
+    })
   }
 
   user.value = { ...(saved.user as object), base_roles: { owner: true } } as typeof user.value
@@ -126,7 +150,7 @@ export function installPlaygroundMocks(kind: MockViewKind) {
   if (!guardRegistered) {
     guardRegistered = true
     nuxtApp.$router.afterEach((to) => {
-      if (!VIEW_ROUTE.test(to.path)) uninstall(user)
+      if (!VIEW_ROUTE.test(to.path)) uninstall(user, nuxtApp.$api)
     })
   }
 }

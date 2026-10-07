@@ -1,7 +1,8 @@
 import type { AxiosAdapter, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
-import type { ColumnType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, ListType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, ViewTypes } from 'nocodb-sdk'
-import { MOCK_BASE_ID, MOCK_TASKS_TABLE_ID, mockBase } from './mock-data'
+import { MOCK_BASE_ID, MOCK_TASKS_TABLE_ID, MOCK_USERS, buildAudits, mockBase } from './mock-data'
+import type { MockComment } from './mock-data'
 
 export interface UnmockedRequest {
   method: string
@@ -14,6 +15,7 @@ export interface MockDb {
   tables: Record<string, TableType>
   views: Record<string, ViewType>
   rows: Record<string, any>[]
+  comments: MockComment[]
   user: Record<string, any>
 }
 
@@ -146,6 +148,8 @@ export function createMockAdapter(
         order: i + 1,
         width: c.pv ? '220px' : c.uidt === UITypes.LongText ? '260px' : '180px',
         aggregation: c.uidt === UITypes.Currency ? 'sum' : c.uidt === UITypes.Checkbox ? 'checked' : 'none',
+        // list view columns belong to a level
+        ...(view?.type === ViewTypes.LIST ? { fk_level_id: (view.view as ListType)?.levels?.[0]?.id } : {}),
       }))
   }
 
@@ -228,10 +232,81 @@ export function createMockAdapter(
           columns: viewColumns(q.formViewId).map((c) => ({ ...c, label: null, help: null, required: false })),
         }
       }
+      case 'mapViewGet':
+        return db.views[q.mapViewId]?.view ?? {}
+      // list view = one level over this table: flat rows tagged with the leveled-list markers
+      case 'listViewDataList': {
+        const modelId = db.views[q.viewId]?.fk_model_id ?? ''
+        const rows = listRows(modelId, q).map((r) => ({
+          ...r,
+          __nc_depth: 0,
+          __nc_row_id: r.Id,
+          __nc_pk: r.Id,
+          __nc_parent_id: null,
+          __nc_row_type: modelId,
+        }))
+        const offset = Number(q.offset ?? 0)
+        const limit = Number(q.limit ?? 100)
+        return { list: rows.slice(offset, offset + limit), pageInfo: { offset, limit, totalRows: rows.length } }
+      }
+      case 'listViewDataCount': {
+        const modelId = db.views[q.viewId]?.fk_model_id ?? ''
+        const total = listRows(modelId, q).length
+        return { totalRows: total, counts: { [modelId]: total } }
+      }
       case 'columnsHash':
         return { hash: 'playground' }
-      case 'commentCount':
-        return []
+      case 'commentCount': {
+        const ids = (Array.isArray(q.ids) ? q.ids : [q.ids]).map(String)
+        return ids.map((id) => ({ row_id: id, count: db.comments.filter((c) => c.row_id === id).length })).filter((c) => c.count)
+      }
+      case 'commentList':
+        return { list: db.comments.filter((c) => c.row_id === String(q.row_id)) }
+      case 'commentNotificationPreferenceGet':
+        return { preference: 'mentions' }
+      case 'commentNotificationPreferenceSet':
+        return { preference: payload?.preference ?? 'mentions' }
+      case 'commentRow': {
+        const me = MOCK_USERS.find((u) => u.email === db.user.email) ?? MOCK_USERS[0]
+        const now = new Date().toISOString()
+        const comment: MockComment = {
+          id: `pg-cmt-${db.comments.length + 1}-${Date.now()}`,
+          row_id: String(payload?.row_id),
+          fk_model_id: payload?.fk_model_id,
+          comment: payload?.comment ?? '',
+          created_by: db.user.id ?? me.id,
+          created_by_email: db.user.email ?? me.email,
+          created_at: now,
+          updated_at: now,
+          parent_comment_id: payload?.parent_comment_id ?? null,
+        }
+        db.comments.push(comment)
+        return comment
+      }
+      case 'commentUpdate': {
+        const comment = db.comments.find((c) => c.id === payload?.commentId)
+        if (comment) {
+          const { commentId: _, ...changes } = payload ?? {}
+          Object.assign(comment, changes, { is_edited: true, updated_at: new Date().toISOString() })
+        }
+        return comment ?? {}
+      }
+      case 'commentResolve': {
+        const comment = db.comments.find((c) => c.id === payload?.commentId)
+        if (comment) comment.resolved_by = comment.resolved_by ? null : db.user.id ?? MOCK_USERS[0].id
+        return comment ?? {}
+      }
+      case 'commentDelete': {
+        const idx = db.comments.findIndex((c) => c.id === payload?.commentId)
+        if (idx > -1) db.comments.splice(idx, 1)
+        return {}
+      }
+      case 'recordAuditList': {
+        const row = db.rows.find((r) => String(r.Id) === String(q.row_id))
+        // a cursor means "older than the last page" — there is only one page
+        const list = row && !q.cursor ? buildAudits(q.fk_model_id, row) : []
+        return { list, pageInfo: { isLastPage: true } }
+      }
       case 'dataAggregate':
       case 'bulkAggregate':
         return aggregate(tableId, {
@@ -295,6 +370,32 @@ export function createMockAdapter(
       (m, _, q) => {
         const rows = inWindow(listRows(m[1], q), q)
         return { list: rows, pageInfo: pageInfo(rows.length, 0, rows.length) }
+      },
+    ],
+    [
+      /\/api\/v1\/db\/timeline-data\/[^/]+\/[^/]+\/([^/]+)\/views\/[^/?]+/,
+      (m, _, q) => {
+        const from = String(q.from_date ?? '').slice(0, 10)
+        const to = String(q.to_date ?? '').slice(0, 10)
+        const rows = listRows(m[1], q).filter(
+          (r) => !from || !to || (r['Start date'] <= to && (r['End date'] ?? r['Start date']) >= from),
+        )
+        return { list: rows, pageInfo: pageInfo(rows.length, 0, rows.length) }
+      },
+    ],
+    [
+      /\/api\/v1\/db\/gantt-data\/[^/]+\/[^/]+\/([^/]+)\/views\/[^/]+\/deps/,
+      (m) => ({
+        edges: listRows(m[1])
+          .filter((r) => r.parent_id)
+          .map((r) => [String(r.Id), String(r.parent_id)]),
+      }),
+    ],
+    [
+      /\/api\/v1\/db\/gantt-data\/[^/]+\/[^/]+\/([^/]+)\/views\/[^/?]+/,
+      (m, _, q) => {
+        const rows = [...listRows(m[1], q)].sort((a, b) => (a['Start date'] > b['Start date'] ? 1 : -1))
+        return page(rows, q)
       },
     ],
     [

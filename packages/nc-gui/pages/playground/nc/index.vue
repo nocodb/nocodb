@@ -8,6 +8,7 @@ import Inputs from './-sections/Inputs.vue'
 import Lists from './-sections/Lists.vue'
 import Menus from './-sections/Menus.vue'
 import Misc from './-sections/Misc.vue'
+import ModalPatterns from './-sections/ModalPatterns.vue'
 import Navigation from './-sections/Navigation.vue'
 import Overlays from './-sections/Overlays.vue'
 import Selects from './-sections/Selects.vue'
@@ -20,6 +21,7 @@ const SECTIONS = [
   { id: 'inputs', title: 'Text inputs' },
   { id: 'selects', title: 'Selects' },
   { id: 'menus', title: 'Dropdowns & menus' },
+  { id: 'modal-patterns', title: 'Modal patterns' },
   { id: 'overlays', title: 'Modals & drawers' },
   { id: 'feedback', title: 'Alerts & tooltips' },
   { id: 'navigation', title: 'Navigation' },
@@ -41,6 +43,7 @@ const SECTIONS = [
     <Inputs />
     <Selects />
     <Menus />
+    <ModalPatterns />
     <Overlays />
     <Feedback />
     <Navigation />

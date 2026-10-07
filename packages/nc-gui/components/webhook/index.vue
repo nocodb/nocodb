@@ -1152,8 +1152,9 @@ const webhookV2AndV3Diff = computed(() => {
   <NcModal
     v-model:visible="modalVisible"
     :show-separator="true"
-    size="large"
+    size="feature"
     :width="activeTab === HookTab.Log ? 'min(90vw, 1280px)' : 'min(90vw, 960px)'"
+    nc-modal-class-name="!p-0"
     wrap-class-name="nc-modal-webhook-create-edit"
   >
     <template #header>
@@ -1891,12 +1892,6 @@ const webhookV2AndV3Diff = computed(() => {
   a:not(.nc-link) {
     @apply !no-underline !text-nc-content-gray-subtle !hover:text-primary;
   }
-  .nc-modal {
-    @apply !p-0;
-    height: min(calc(100vh - 100px), 1024px);
-    max-height: min(calc(100vh - 100px), 1024px) !important;
-  }
-
   .nc-modal-header {
     @apply !mb-0 !pb-0;
   }

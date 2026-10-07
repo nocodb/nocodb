@@ -26,14 +26,14 @@ const { activeView } = storeToRefs(useViewsStore())
 
 const meta = computed<TableType | undefined>(() => metas.value[`${MOCK_BASE_ID}:${props.kind}`])
 
-const { isGallery, isGrid, isForm, isKanban, isCalendar, isLocked, xWhere, eventBus } = useProvideSmartsheetStore(
-  activeView,
-  meta,
-)
+const { isGallery, isGrid, isForm, isKanban, isCalendar, isMap, isList, isTimeline, isGantt, isLocked, xWhere, eventBus } =
+  useProvideSmartsheetStore(activeView, meta)
 
 useViewRowColorProvider({ view: activeView, eventBus })
 
-useProvideExpandedFormPanel()
+const expandedFormPanelStore = useProvideExpandedFormPanel()
+
+const route = useRoute()
 
 const reloadViewDataEventHook = createEventHook()
 
@@ -57,8 +57,8 @@ provide(ReloadViewDataHookInj, reloadViewDataEventHook)
 provide(ReloadViewMetaHookInj, reloadViewMetaEventHook)
 provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(IsFormInj, isForm)
-provide(IsTimelineInj, ref(false))
-provide(IsGanttInj, ref(false))
+provide(IsTimelineInj, isTimeline)
+provide(IsGanttInj, isGantt)
 provide(TabMetaInj, ref({ id: props.kind, title: meta.value?.title, type: TabType.TABLE } as TabItem))
 provide(ActiveSourceInj, activeSource)
 provide(ReloadAggregateHookInj, createEventHook())
@@ -75,6 +75,27 @@ useProvideSmartsheetLtarHelpers(meta)
 
 const isReady = computed(() => !!meta.value && activeView.value?.id === `vw-pg-${props.kind}`)
 
+const componentName = computed(
+  () =>
+    ({
+      grid: 'SmartsheetGrid',
+      gallery: 'SmartsheetGallery',
+      kanban: 'SmartsheetKanbanOptimized',
+      calendar: 'SmartsheetCalendar',
+      form: 'SmartsheetForm',
+      map: 'SmartsheetMap',
+      list: 'SmartsheetList',
+      timeline: 'SmartsheetTimeline',
+      gantt: 'SmartsheetGantt',
+    }[props.kind]),
+)
+
+const headerNote = computed(() => {
+  if (route.query.rowId) return `with record #${route.query.rowId} expanded`
+  if (props.kind === 'map') return 'map tiles load from the configured tile server'
+  return ''
+})
+
 function resetData() {
   const rows = getMockSession()?.db.rows
   if (!rows) return
@@ -90,7 +111,8 @@ defineExpose({ reload: () => reloadViewDataEventHook.trigger(), resetData })
     <div class="flex-none flex items-center gap-2 px-3 h-9 border-b-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight">
       <GeneralIcon icon="ncInfo" class="w-3.5 h-3.5 text-nc-content-gray-muted" />
       <span class="text-captionSm text-nc-content-gray-subtle">
-        Real <code>Smartsheet{{ kind[0].toUpperCase() + kind.slice(1) }}</code> on 40 in-memory rows — edits stay in this tab.
+        Real <code>{{ componentName }}</code> on 40 in-memory rows<template v-if="headerNote">, {{ headerNote }}</template> —
+        edits stay in this tab.
       </span>
       <slot name="controls" />
       <div class="ml-auto flex items-center gap-2">
@@ -119,13 +141,22 @@ defineExpose({ reload: () => reloadViewDataEventHook.trigger(), resetData })
     </div>
 
     <template v-if="isReady">
-      <SmartsheetToolbar v-if="!isForm" class="flex-none" />
-      <div class="flex-1 min-h-0 flex flex-col relative">
-        <SmartsheetGrid v-if="isGrid" />
-        <SmartsheetGallery v-else-if="isGallery" />
-        <SmartsheetForm v-else-if="isForm" />
-        <LazySmartsheetKanbanOptimized v-else-if="isKanban" />
-        <SmartsheetCalendar v-else-if="isCalendar" />
+      <div class="flex-1 min-h-0 flex flex-row">
+        <div v-show="!expandedFormPanelStore.isFullscreen.value" class="flex-1 min-w-0 flex flex-col">
+          <SmartsheetToolbar v-if="!isForm && !isGantt" class="flex-none" />
+          <div class="flex-1 min-h-0 flex flex-col relative bg-nc-bg-default">
+            <SmartsheetGrid v-if="isGrid" />
+            <SmartsheetGallery v-else-if="isGallery" />
+            <SmartsheetForm v-else-if="isForm" />
+            <LazySmartsheetKanbanOptimized v-else-if="isKanban" />
+            <SmartsheetCalendar v-else-if="isCalendar" />
+            <SmartsheetTimeline v-else-if="isTimeline" />
+            <SmartsheetGantt v-else-if="isGantt" />
+            <SmartsheetMap v-else-if="isMap" />
+            <SmartsheetList v-else-if="isList" />
+          </div>
+        </div>
+        <SmartsheetGridExpandedFormPanel v-if="expandedFormPanelStore.isOpen.value && isGrid" />
       </div>
       <LazySmartsheetExpandedFormDetached />
     </template>

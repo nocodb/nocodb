@@ -73,7 +73,13 @@ const detailsBody = computed(() => {
 </script>
 
 <template>
-  <NcModal v-model:visible="vModel" :footer="null" size="lg" wrap-class-name="nc-modal-extension-details">
+  <NcModal
+    v-model:visible="vModel"
+    :footer="null"
+    size="feature"
+    nc-modal-class-name="!p-0"
+    wrap-class-name="nc-modal-extension-details"
+  >
     <div v-if="activeExtension" class="flex flex-col w-full h-full">
       <div class="flex items-center gap-3 px-4 py-3 border-b-1 border-nc-border-gray-medium">
         <NcButton v-if="from === 'market'" size="small" type="text" @click="onBack">
@@ -222,9 +228,6 @@ const detailsBody = computed(() => {
 .nc-modal-extension-details {
   .ant-modal-content {
     @apply overflow-hidden;
-  }
-  .nc-modal {
-    @apply !p-0;
   }
 
   .nc-extension-details-body {

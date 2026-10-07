@@ -39,6 +39,11 @@ export const modalSizes = {
       height: 'min(90vh, 864px)',
     },
   },
+  /** large configuration modals: webhook, MCP, sync, integration, data source, extensions market… */
+  feature: {
+    width: 'min(calc(100vw - 32px), 1280px)',
+    height: 'min(calc(100vh - 100px), 1024px)',
+  },
   fullscreen: {
     width: '100vw',
     height: '100vh',

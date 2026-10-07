@@ -79,7 +79,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <NcModal v-model:visible="vModel" :footer="null" size="lg" wrap-class-name="nc-modal-extension-market">
+  <NcModal
+    v-model:visible="vModel"
+    :footer="null"
+    size="feature"
+    nc-modal-class-name="!p-0"
+    wrap-class-name="nc-modal-extension-market"
+  >
     <div class="h-full">
       <div class="nc-extension-market-header flex items-center gap-3 px-4 py-3 border-b-1 border-nc-border-gray-medium">
         <div
@@ -193,10 +199,6 @@ onMounted(() => {
 
 <style lang="scss">
 .nc-modal-extension-market {
-  .nc-modal {
-    @apply !p-0;
-  }
-
   .nc-extension-market-header {
     .nc-extension-market-header-tab-item {
       @apply relative;

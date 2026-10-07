@@ -373,7 +373,8 @@ const handleClickRow = (source: SourceType, tab?: string) => {
       <NcModal
         v-model:visible="isOpenModal"
         centered
-        size="large"
+        size="feature"
+        nc-modal-class-name="!p-0"
         wrap-class-name="nc-active-data-sources-view"
         @keydown.esc="activeSource = null"
       >
@@ -738,11 +739,6 @@ const handleClickRow = (source: SourceType, tab?: string) => {
 .nc-active-data-sources-view {
   .ant-modal-content {
     @apply overflow-hidden;
-  }
-  .nc-modal {
-    @apply !p-0;
-    height: min(calc(100vh - 100px), 1024px);
-    max-height: min(calc(100vh - 100px), 1024px) !important;
   }
   .ant-tabs-nav {
     @apply pl-3;

@@ -751,7 +751,9 @@ export function shouldSkipField(
       pkAndPvOnly &&
       !column.pk &&
       !column.pv &&
-      column.id !== fk_display_value_column_id
+      column.id !== fk_display_value_column_id &&
+      !fieldsSet?.has(column.title) &&
+      !fieldsSet?.has(column.id)
     )
       return true;
 

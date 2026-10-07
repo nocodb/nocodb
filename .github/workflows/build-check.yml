@@ -61,7 +61,7 @@ jobs:
 
   frontend:
     name: Frontend build (nc-gui)
-    runs-on: ubicloud-standard-4
+    runs-on: ubicloud-standard-2
     timeout-minutes: 40
     if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') }}
     steps:

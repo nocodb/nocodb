@@ -1,5 +1,5 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
-import type { ButtonType, ColumnType, FormulaType, IntegrationType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, FormulaType, IntegrationType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import {
   ButtonActionsType,
   FormulaDataTypes,
@@ -607,6 +607,31 @@ const getValidRollupColumn = (c: ColumnType) => {
   // shares the aggregatable-type rule with the backend so the picker and
   // `validateRollupPayload` can't drift apart
   return isRollupAggregatableColumn(c as { uidt: UITypes }) && (!isSystemColumn(c) || c.pk)
+}
+
+/**
+ * Union a projected model's columns with a previously seeded copy of the same
+ * model. Shared views and interface consumers receive differently-trimmed
+ * projections of one table (view model vs `relatedMetas`, LIST `levelMetas`,
+ * per-widget `vizMetas`) — a plain `setMeta` lets the last copy win and drops
+ * columns another surface renders from. The incoming copy wins per-column and
+ * for model-level fields; columns only the existing copy carries are appended.
+ */
+export function mergeProjectedMetaColumns<T extends TableType>(incoming: T, existing?: TableType | null): T {
+  const incomingCols = incoming.columns ?? []
+  const existingCols = existing?.columns ?? []
+
+  const have = new Set(incomingCols.map((c) => c.id))
+  const preserved = existingCols.filter((c) => c.id && !have.has(c.id))
+
+  const columns = preserved.length ? [...incomingCols, ...preserved] : incomingCols
+
+  // Page meta omits `columnsById` on the wire — always rebuild it.
+  return {
+    ...incoming,
+    columns,
+    columnsById: Object.fromEntries(columns.filter((c) => !!c.id).map((c) => [c.id!, c])),
+  } as T
 }
 
 export {

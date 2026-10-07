@@ -5,6 +5,7 @@ defineProps<{
   value?: VaultSecretRef | string | null
   fieldKey: string
   label?: string
+  disabled?: boolean
 }>()
 
 defineEmits<{

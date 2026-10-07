@@ -11,10 +11,12 @@ import {
   type NcRequest,
 } from 'nocodb-sdk';
 import { AttachmentUrlUploadPreparator } from './attachment-url-upload-preparator';
+import { broadcastNestedLinkRefRows } from './nested-link-preparator';
 import type { Knex } from 'knex';
 import type { Column } from 'src/models';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
 import type { DisplacedRecord } from '~/command-registry/types';
+import type { NestedLinkLastModifiedEntry } from './nested-link-preparator';
 import {
   mssqlBuildBulkInsertWithCapture,
   mssqlChunkSize,
@@ -315,6 +317,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       // trace decorator sees the union across every row.
       const displacedRecords: DisplacedRecord[] = [];
       const displacedRecordRefs: DisplacedRecord[][] = [];
+      const nestedLinkEntries: NestedLinkLastModifiedEntry[] = [];
       let aiPkCol: Column;
       let agPkCol: Column;
       let columns: Column[];
@@ -360,6 +363,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             // push into it when `runOps` fires below. Reading `.length`
             // here would be 0 (closures haven't run yet).
             displacedRecordRefs.push(operations.displacedRecords);
+            nestedLinkEntries.push(...operations.postInsertLastModifiedEntries);
           }
           if (attachmentCols.length > 0) {
             const attachmentOperations =
@@ -630,6 +634,8 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           logger.error('Failed to dispatch post-commit op', e);
         }
       }
+
+      await broadcastNestedLinkRefRows(nestedLinkEntries);
 
       if (!skip_hooks) {
         try {

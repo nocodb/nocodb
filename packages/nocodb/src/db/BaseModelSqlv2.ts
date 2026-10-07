@@ -65,6 +65,7 @@ import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { XKnex } from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { NestedLinkLastModifiedEntry } from '~/db/BaseModelSqlv2/nested-link-preparator';
 import type {
   XcFilter,
   XcFilterWithAlias,
@@ -80,7 +81,10 @@ import { AttachmentUrlUploadPreparator } from '~/db/BaseModelSqlv2/attachment-ur
 import { FieldHandler } from '~/db/field-handler';
 import { selectObject } from '~/db/BaseModelSqlv2/select-object';
 import { relationDataFetcher } from '~/db/BaseModelSqlv2/relation-data-fetcher';
-import { NestedLinkPreparator } from '~/db/BaseModelSqlv2/nested-link-preparator';
+import {
+  broadcastNestedLinkRefRows,
+  NestedLinkPreparator,
+} from '~/db/BaseModelSqlv2/nested-link-preparator';
 import { baseModelInsert } from '~/db/BaseModelSqlv2/insert';
 import {
   mssqlBuildBulkInsertWithCapture,
@@ -3369,6 +3373,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         );
       }
 
+      await broadcastNestedLinkRefRows(postInsertLastModifiedEntries);
+
       if (this.model.primaryKey && rowId !== null && rowId !== undefined) {
         response = await this.readRecord({
           idOrRecord: rowId,
@@ -3770,6 +3776,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         number,
         ((rowId: any, trx?: Knex | Knex.Transaction) => Promise<string>)[]
       > = {};
+      const nestedLinkEntries: NestedLinkLastModifiedEntry[] = [];
 
       if (nestedCols.length) {
         for (let i = 0; i < toInsert.length; i++) {
@@ -3790,6 +3797,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           });
 
           linkPostInsertOpsMap[i] = operations.postInsertOps;
+          nestedLinkEntries.push(...operations.postInsertLastModifiedEntries);
           linkPreInsertOps.push(...operations.preInsertOps);
         }
       }
@@ -4013,6 +4021,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           cookie,
         });
       }
+
+      await broadcastNestedLinkRefRows(nestedLinkEntries);
 
       const updatedRecords = await this.chunkList({
         pks: updatedPks,

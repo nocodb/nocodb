@@ -1,6 +1,7 @@
 import { isLinksOrLTAR, isSelfLinkCol, UITypes } from 'nocodb-sdk';
 import type { SwaggerColumn } from '../getSwaggerColumnMetasV3';
 import type { SwaggerView } from '~/services/api-docs/shared/swaggerUtils';
+import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 
 export const recordIdParam = {
   schema: {
@@ -9,7 +10,7 @@ export const recordIdParam = {
   name: 'recordId',
   in: 'path',
   required: true,
-  example: 1,
+  example: '1',
   description: 'Primary key of the record you want to read.',
 };
 export const fieldsParam = {
@@ -52,12 +53,13 @@ export const pageParam = {
 export const pageSizeParam = {
   schema: {
     type: 'integer',
-    minimum: 1,
+    minimum: defaultLimitConfig.limitMin,
+    maximum: defaultLimitConfig.limitMax,
+    default: defaultLimitConfig.limitDefault,
   },
   in: 'query',
   name: 'pageSize',
-  description:
-    'Sets a limit on the number of records returned in the API response. By default, all available records are returned, but this parameter allows you to control the quantity.\n\nExample: pageSize=`100` will limit the response to 100 records per page.',
+  description: `Sets the number of records returned per page. Defaults to ${defaultLimitConfig.limitDefault}; values above ${defaultLimitConfig.limitMax} are capped.\n\nExample: pageSize=\`100\` will limit the response to 100 records per page.`,
 };
 export const nestedPageParam = {
   schema: {

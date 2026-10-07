@@ -1,7 +1,12 @@
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { ButtonActionsType, RelationTypes, UITypes } from 'nocodb-sdk';
 import { FormulaDataTypes } from 'nocodb-sdk';
 import type { SourcesMap } from '~/services/api-docs/types';
-import type { Column, LinkToAnotherRecordColumn, RollupColumn } from '~/models';
+import type {
+  Column,
+  LinkToAnotherRecordColumn,
+  Model,
+  RollupColumn,
+} from '~/models';
 import type { NcContext } from '~/interface/config';
 import type LookupColumn from '~/models/LookupColumn';
 import { DriverClient } from '~/utils/nc-config';
@@ -9,17 +14,74 @@ import { Base } from '~/models';
 import SwaggerTypes from '~/db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
 import Noco from '~/Noco';
 
-const setAsAnyType = (field: SwaggerColumn, nullable = true) => {
-  const result = field as any;
-  result.nullable = nullable;
-  result.type = undefined;
-  result.anyOf = [
+// Same branch list and no-null rule as the pg numeric formula below; keeps the
+// enum generated clients (progenitor) already have for these fields.
+const setAsAnyType = (field: SwaggerColumn) => {
+  field.type = undefined;
+  field.anyOf = [
     { type: 'string' },
     { type: 'number' },
     { type: 'integer' },
     { type: 'boolean' },
     { type: 'object' },
   ];
+};
+
+// Relation types whose link cell holds a list of records.
+const MULTI_RECORD_RELATIONS = [
+  RelationTypes.HAS_MANY,
+  RelationTypes.MANY_TO_MANY,
+  RelationTypes.ONE_TO_MANY,
+];
+
+const linkIdSchema = {
+  oneOf: [{ type: 'string' }, { type: 'number' }],
+  description: 'Record identifier for linking',
+};
+
+const userSchema = {
+  type: 'object',
+  properties: {
+    id: { type: 'string' },
+    email: { type: 'string' },
+    display_name: { type: ['string', 'null'] },
+  },
+};
+
+const SQL_DRIVERS: string[] = [
+  DriverClient.MYSQL,
+  DriverClient.MYSQL_LEGACY,
+  'mariadb',
+  DriverClient.PG,
+  DriverClient.SQLITE,
+];
+
+// Fallback for drivers SwaggerTypes has no column-type table for.
+const setSwaggerTypeFromUidt = (column: Column, field: SwaggerColumn) => {
+  switch (column.uidt) {
+    case UITypes.ID:
+    case UITypes.Number:
+    case UITypes.Rating:
+    case UITypes.Year:
+    case UITypes.AutoNumber:
+      field.type = ['integer', 'null'];
+      break;
+    case UITypes.Decimal:
+    case UITypes.Currency:
+    case UITypes.Percent:
+    case UITypes.Duration:
+      field.type = ['number', 'null'];
+      break;
+    case UITypes.Checkbox:
+      field.type = ['boolean', 'null'];
+      break;
+    case UITypes.JSON:
+      setAsAnyType(field);
+      break;
+    default:
+      field.type = ['string', 'null'];
+      break;
+  }
 };
 
 // TODO: refactor and avoid duplication
@@ -55,32 +117,19 @@ async function processColumnToSwaggerField(
           ncMeta,
         );
         if (colOpt) {
-          if (
-            [RelationTypes.HAS_MANY, RelationTypes.MANY_TO_MANY].includes(
-              colOpt.type as RelationTypes,
-            )
-          ) {
+          if (MULTI_RECORD_RELATIONS.includes(colOpt.type as RelationTypes)) {
             field.type = 'array';
             field.items = {
               type: 'object',
-              properties: {
-                id: {
-                  oneOf: [{ type: 'string' }, { type: 'number' }],
-                  description: 'Record identifier for linking',
-                },
-              },
+              properties: { id: linkIdSchema },
               required: ['id'],
             };
-            field.virtual = false;
           } else {
             field.type = ['object', 'null'];
-            field.properties = {
-              id: {
-                oneOf: [{ type: 'string' }, { type: 'number' }],
-                description: 'Record identifier for linking',
-              },
-            };
+            field.properties = { id: linkIdSchema };
           }
+          // Writable inline as `{id}` / `[{id}]`.
+          field.virtual = false;
         }
       }
       break;
@@ -187,8 +236,9 @@ async function processColumnToSwaggerField(
           // Determine if this is a single value or array based on relation type
           if (
             relationColOpt &&
-            (relationColOpt.type === RelationTypes.BELONGS_TO ||
-              relationColOpt.type === RelationTypes.ONE_TO_ONE)
+            !MULTI_RECORD_RELATIONS.includes(
+              relationColOpt.type as RelationTypes,
+            )
           ) {
             // Single value lookup
             field.type = lookupField.type;
@@ -196,7 +246,7 @@ async function processColumnToSwaggerField(
             field.$ref = lookupField.$ref;
             field.items = lookupField.items;
             field.anyOf = lookupField.anyOf;
-            field.nullable = lookupField.nullable;
+            field.properties = lookupField.properties;
           } else {
             // Array lookup (HAS_MANY or MANY_TO_MANY)
             field.type = 'array';
@@ -207,7 +257,8 @@ async function processColumnToSwaggerField(
                 type: lookupField.type,
                 format: lookupField.format,
                 anyOf: lookupField.anyOf,
-                nullable: lookupField.nullable,
+                items: lookupField.items,
+                properties: lookupField.properties,
               };
             }
           }
@@ -254,20 +305,11 @@ async function processColumnToSwaggerField(
       field.format = 'uri';
       field.virtual = false;
       break;
-    case UITypes.User: {
-      const userProperties = {
-        id: { type: 'string' },
-        email: { type: 'string' },
-        display_name: { type: ['string', 'null'] },
-      };
+    case UITypes.User:
       field.type = ['array', 'null'];
-      field.items = {
-        type: 'object',
-        properties: userProperties,
-      };
+      field.items = userSchema;
       field.virtual = false;
       break;
-    }
     case UITypes.LastModifiedTime:
       field.type = ['string', 'null'];
       field.format = 'date-time';
@@ -278,9 +320,23 @@ async function processColumnToSwaggerField(
       break;
     case UITypes.LastModifiedBy:
       field.type = ['object', 'null'];
+      field.properties = userSchema.properties;
       break;
     case UITypes.CreatedBy:
       field.type = 'object';
+      field.properties = userSchema.properties;
+      break;
+    case UITypes.Button:
+      field.type = ['object', 'null'];
+      field.properties = {
+        type: {
+          type: 'string',
+          enum: Object.values(ButtonActionsType),
+        },
+        label: { type: 'string' },
+        url: { type: 'string' },
+      };
+      field.readOnly = true;
       break;
     case UITypes.QrCode:
     case UITypes.Barcode:
@@ -288,9 +344,18 @@ async function processColumnToSwaggerField(
       // not worth to handle atm
       setAsAnyType(field);
       break;
+    case UITypes.Checkbox:
+      // MySQL stores it as tinyint, but the API always returns a boolean.
+      field.virtual = false;
+      field.type = ['boolean', 'null'];
+      break;
     default:
       field.virtual = false;
-      SwaggerTypes.setSwaggerType('3.1', column, field, dbType);
+      if (SQL_DRIVERS.includes(dbType)) {
+        SwaggerTypes.setSwaggerType('3.1', column, field, dbType);
+      } else {
+        setSwaggerTypeFromUidt(column, field);
+      }
       break;
   }
 
@@ -303,7 +368,6 @@ async function processColumnToSwaggerField(
         field.type = field.type[0];
       }
     }
-    field.nullable = false;
   }
 
   return field;
@@ -314,19 +378,17 @@ export default async (
   {
     columns,
     base,
+    model,
     sourcesMap,
   }: {
     columns: Column[];
     base: Base;
+    model: Model;
     sourcesMap: SourcesMap;
   },
   ncMeta = Noco.ncMeta,
 ): Promise<SwaggerColumn[]> => {
-  // Extract dbtype based on column source
-  const dbType = await base.getSources().then((sources) => {
-    const sourceId = columns[0]?.source_id;
-    return sources.find((s) => s.id === sourceId)?.type || sources[0]?.type;
-  });
+  const dbType = sourcesMap.get(model.source_id)?.type as DriverClient;
 
   return Promise.all(
     columns.map(async (c) => {
@@ -356,5 +418,5 @@ export interface SwaggerColumn {
   properties?: any;
   format?: string;
   anyOf?: any[];
-  nullable?: boolean;
+  readOnly?: boolean;
 }

@@ -13,6 +13,7 @@ export default async function getPathsV3(
     columns,
     views,
     tableName,
+    schemaName,
   }: {
     base: Base;
     model: Model;
@@ -20,12 +21,14 @@ export default async function getPathsV3(
     views: SwaggerView[];
     sourcesMap: Map<string, Source>;
     tableName: string;
+    schemaName: string;
   },
   _ncMeta = Noco.ncMeta,
 ) {
   const swaggerPaths = await getModelPaths(context, {
     baseId: base.id,
     tableName,
+    schemaName,
     tableId: model.id,
     views,
     type: model.type,

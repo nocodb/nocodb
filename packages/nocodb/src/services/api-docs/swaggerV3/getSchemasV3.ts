@@ -11,6 +11,7 @@ export default async function getSchemasV3(
     base,
     columns,
     tableName,
+    schemaName,
   }: {
     base: Base;
     model: Model;
@@ -18,11 +19,13 @@ export default async function getSchemasV3(
     views: SwaggerView[];
     sourcesMap: Map<string, Source>;
     tableName: string;
+    schemaName: string;
   },
   _ncMeta = Noco.ncMeta,
 ) {
   const swaggerSchemas = getModelSchemas({
     tableName,
+    schemaName,
     orgs: 'v3',
     baseName: base.title,
     columns,

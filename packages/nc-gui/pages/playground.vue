@@ -5,6 +5,14 @@ import TokenEditor from './playground/-components/TokenEditor.vue'
 
 definePageMeta({
   hideHeader: true,
+  // production builds show the playground to NocoDB team accounts only; covers every child route
+  middleware: [
+    () => {
+      if (!import.meta.env.PROD) return
+      const { user } = useGlobal()
+      if (!user.value?.email?.toLowerCase().endsWith('@nocodb.com')) return navigateTo('/', { replace: true })
+    },
+  ],
 })
 
 const route = useRoute()

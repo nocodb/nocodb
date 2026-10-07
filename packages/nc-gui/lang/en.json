@@ -7880,6 +7880,7 @@
       "muteAgain": "Mute again",
       "viewRequest": "View request",
       "emailSettings": "Roadmap email settings",
+      "goToRoadmap": "Go to the roadmap",
       "invalidTitle": "This link no longer works",
       "invalid": "The mute link is invalid or has expired. You can still mute the request from its page.",
       "failedTitle": "Couldn't mute this request",
@@ -8087,8 +8088,10 @@
       "closed": "Comments are closed on this request.",
       "deleteTitle": "Delete this comment?",
       "deleteContent": "This can't be undone.",
-      "triagePlaceholder": "Reply to the submitter. Only they and the team can see this.",
+      "triagePlaceholder": "Reply to {name}. Only they and the team can see this.",
+      "triageStaffPlaceholder": "Write a comment. Only the team can see this request until it's approved.",
       "postingAs": "Posting as {handle}",
+      "postingAsStaff": "Posting as {name} · NocoDB",
       "shortcut": "⌘/Ctrl + Enter to post",
       "posted": "Comment posted",
       "replyPosted": "Reply posted",
@@ -8450,6 +8453,7 @@
       "moveDown": "Move down",
       "moveBottom": "Move to bottom",
       "moveToColumn": "Move to column",
+      "allStatuses": "all statuses",
       "moved": "Moved “{title}” to {column}, position {position} of {count}"
     },
     "submittedBy": "submitted by {name}"

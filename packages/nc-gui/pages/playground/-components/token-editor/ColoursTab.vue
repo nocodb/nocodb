@@ -153,7 +153,7 @@ onMounted(() => {
           />
         </label>
         <NcButton
-          class="!ml-auto"
+          class="!ml-auto !px-2"
           size="xsmall"
           type="text"
           :disabled="!overrides.light['--nc-brand-accent']"
@@ -206,7 +206,7 @@ onMounted(() => {
             />
           </label>
         </NcTooltip>
-        <NcButton v-if="rampChanged(ramp.hue)" class="!ml-auto" size="xxsmall" type="text" @click="clearRamp(ramp.hue)">
+        <NcButton v-if="rampChanged(ramp.hue)" class="!ml-auto !px-2" size="xxsmall" type="text" @click="clearRamp(ramp.hue)">
           <span class="text-captionXs">Reset</span>
         </NcButton>
       </div>

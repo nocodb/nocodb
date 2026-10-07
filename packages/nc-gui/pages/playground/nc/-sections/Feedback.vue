@@ -72,7 +72,7 @@ function showToastType() {
           </template>
         </NcAlert>
       </div>
-      <NcButton v-if="!isDismissibleVisible" size="xsmall" type="text" class="mt-2" @click="isDismissibleVisible = true">
+      <NcButton v-if="!isDismissibleVisible" size="xsmall" type="text" class="!px-2 mt-2" @click="isDismissibleVisible = true">
         Restore closable alert
       </NcButton>
     </PgDemo>

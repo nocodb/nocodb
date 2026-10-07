@@ -116,7 +116,7 @@ function onScale(value: number) {
           <div class="flex items-center">
             <code class="text-captionXs text-nc-content-gray-muted">.text-{{ style.key }}</code>
             <NcButton
-              class="!ml-auto"
+              class="!ml-auto !px-2"
               size="xxsmall"
               type="text"
               :disabled="!isChanged(style.key)"

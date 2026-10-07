@@ -99,7 +99,7 @@ onMounted(() => {
     <div class="flex-none px-4 h-11 flex items-center gap-2 border-b-1 border-nc-border-gray-medium">
       <span class="text-captionBold text-nc-content-gray-emphasis">Design tokens</span>
       <span class="text-captionSm text-nc-content-gray-muted">{{ overrideCount }} changed</span>
-      <NcButton class="!ml-auto" size="xsmall" type="text" :disabled="!overrideCount" @click="reset">
+      <NcButton class="!ml-auto !px-2" size="xsmall" type="text" :disabled="!overrideCount" @click="reset">
         <div class="flex items-center gap-1">
           <GeneralIcon icon="ncRotateCcw" class="w-3.5 h-3.5" />
           Reset all
@@ -154,16 +154,22 @@ onMounted(() => {
         />
         <div v-if="importError" class="text-captionXs text-nc-content-red-dark">{{ importError }}</div>
         <div class="flex gap-2 items-center">
-          <NcButton size="xsmall" type="text" data-testid="nc-playground-tokens-import-example" @click="useExample">
+          <NcButton size="xsmall" type="text" data-testid="nc-playground-tokens-import-example" class="!px-2" @click="useExample">
             Use example
           </NcButton>
-          <NcButton size="xsmall" type="text" data-testid="nc-playground-tokens-import-file" @click="fileInputRef?.click()">
+          <NcButton
+            size="xsmall"
+            type="text"
+            data-testid="nc-playground-tokens-import-file"
+            class="!px-2"
+            @click="fileInputRef?.click()"
+          >
             Choose file
           </NcButton>
           <input ref="fileInputRef" type="file" accept=".json,application/json" class="hidden" @change="onFilePicked" />
           <div class="flex-1" />
-          <NcButton size="xsmall" type="text" @click="isImportOpen = false">Cancel</NcButton>
-          <NcButton size="xsmall" :disabled="!importText" @click="applyImport">Apply</NcButton>
+          <NcButton size="xsmall" type="text" class="!px-2" @click="isImportOpen = false">Cancel</NcButton>
+          <NcButton size="xsmall" :disabled="!importText" class="!px-2" @click="applyImport">Apply</NcButton>
         </div>
       </div>
       <div class="flex gap-2">

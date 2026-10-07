@@ -18,10 +18,19 @@ const baseIconSize = ref<(typeof BASE_ICON_SIZES)[number]>('medium')
 
 const isBaseIconReadonly = ref(false)
 
-const managedApp = ref({
-  managed_app_master: false,
-  managed_app_id: 'prr1pr4xx9vqn5c',
-})
+const isManagedApp = ref(false)
+
+// `size` only sizes the trigger box; the glyph is sized through icon-class (medium matches BaseNode.vue)
+const BASE_ICON_CLASS: Record<(typeof BASE_ICON_SIZES)[number], string> = {
+  xsmall: '',
+  small: '',
+  medium: '!h-6 !w-6',
+  large: '!h-8 !w-8',
+  xlarge: '!h-12 !w-12',
+}
+
+// any managed_app_id swaps the base icon for a managed-app one, so pass none when off
+const managedApp = computed(() => (isManagedApp.value ? { managed_app_master: true, managed_app_id: 'prr1pr4xx9vqn5c' } : {}))
 </script>
 
 <template>
@@ -73,9 +82,9 @@ const managedApp = ref({
             <NcSwitch v-model:checked="isBaseIconReadonly" size="small" />
             <span class="text-captionSm text-nc-content-gray font-mono">readonly</span>
           </label>
-          <NcTooltip title="Sets managedApp.managed_app_master" :arrow="false">
+          <NcTooltip title="Passes managedApp with managed_app_master, which shows the managed-app icon" :arrow="false">
             <label class="flex items-center gap-2 h-8 cursor-pointer">
-              <NcSwitch v-model:checked="managedApp.managed_app_master" size="small" />
+              <NcSwitch v-model:checked="isManagedApp" size="small" />
               <span class="text-captionSm text-nc-content-gray font-mono">Managed App</span>
             </label>
           </NcTooltip>
@@ -83,7 +92,10 @@ const managedApp = ref({
       </PgDemo>
 
       <PgDemo label="Picker" :hint="`modelValue: ${baseIconColor || 'none'}`">
+        <!-- size is read once at setup, so remount to apply a new one -->
         <GeneralBaseIconColorPicker
+          :key="baseIconSize"
+          :icon-class="BASE_ICON_CLASS[baseIconSize]"
           :model-value="baseIconColor"
           :size="baseIconSize"
           :readonly="isBaseIconReadonly"

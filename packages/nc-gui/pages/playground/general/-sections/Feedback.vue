@@ -91,7 +91,7 @@ function onGoHome() {
   >
     <PgDemo>
       <template #actions>
-        <NcButton size="xsmall" type="text" @click="replayLog">Replay</NcButton>
+        <NcButton size="xsmall" type="text" class="!px-2" @click="replayLog">Replay</NcButton>
       </template>
       <div class="h-56">
         <GeneralProgressPanel ref="progressRef" class="h-full" />

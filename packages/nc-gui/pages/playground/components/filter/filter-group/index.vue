@@ -156,7 +156,7 @@ onMounted(async () => {
             <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 pt-4 border-t-1 border-nc-border-gray-light">
               <div class="flex flex-col gap-1">
                 <span class="text-captionXs text-nc-content-gray-muted font-mono">dbClientType</span>
-                <NcSelect v-model:value="options1.dbClientType" size="small">
+                <NcSelect v-model:value="options1.dbClientType">
                   <a-select-option v-for="client in Object.values(ClientType)" :key="client" :value="client">
                     {{ client }}
                   </a-select-option>
@@ -164,14 +164,14 @@ onMounted(async () => {
               </div>
               <div class="flex flex-col gap-1">
                 <span class="text-captionXs text-nc-content-gray-muted font-mono">actionBtnType</span>
-                <NcSelect v-model:value="options1.actionBtnType" size="small">
+                <NcSelect v-model:value="options1.actionBtnType">
                   <a-select-option value="text">text</a-select-option>
                   <a-select-option value="secondary">secondary</a-select-option>
                 </NcSelect>
               </div>
               <div v-for="prop in NUMBER_PROPS" :key="prop" class="flex flex-col gap-1">
                 <span class="text-captionXs text-nc-content-gray-muted font-mono">{{ prop }}</span>
-                <a-input-number v-model:value="options1[prop]" :min="0" size="small" class="!w-full !rounded-lg" />
+                <a-input-number v-model:value="options1[prop]" :min="0" class="!w-full !rounded-lg" />
               </div>
             </div>
           </div>

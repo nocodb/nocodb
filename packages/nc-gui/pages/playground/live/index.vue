@@ -526,7 +526,7 @@ onMounted(async () => {
         <div class="flex items-center gap-2 min-w-0">
           <span class="text-captionSmBold text-nc-content-gray-subtle">{{ page.group }} · {{ page.label }}</span>
           <code class="text-captionXs text-nc-content-gray-muted font-mono truncate">{{ page.path }}</code>
-          <NcButton class="!ml-auto" size="xsmall" type="text" @click="openInNewTab(page.path)">
+          <NcButton class="!px-2 !ml-auto" size="xsmall" type="text" @click="openInNewTab(page.path)">
             <div class="flex items-center gap-1">
               <GeneralIcon icon="ncExternalLink" class="w-3.5 h-3.5" />
               Open

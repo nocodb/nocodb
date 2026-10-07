@@ -8072,7 +8072,6 @@
       "placeholder": "Add a comment",
       "staffPlaceholder": "Public reply, visible to customers",
       "internalPlaceholder": "Internal note, visible only to the NocoDB team",
-      "replyPlaceholder": "Write a reply",
       "post": "Comment",
       "addNote": "Add note",
       "reply": "Reply",
@@ -8096,7 +8095,7 @@
       "deleted": "Comment deleted",
       "replyTo": "Reply to {name}",
       "editLabel": "Edit comment",
-      "editShortcut": "Enter to save · Shift + Enter for a new line · Esc to cancel",
+      "editShortcut": "⌘/Ctrl + Enter to save · Esc to cancel",
       "internalNote": "Internal note",
       "likeLabel": "Like, {count} like | Like, {count} likes",
       "notifyFollowers": "Email followers",
@@ -8124,6 +8123,11 @@
       "visibilityChanged": "made this {to}",
       "relation_added": "added a relation",
       "relation_removed": "removed a relation",
+      "relationAdded": "added a relation: {relation} {item}",
+      "relationRemoved": "removed a relation: {relation} {item}",
+      "labelsAdded": "added the label {labels} | added the labels {labels}",
+      "labelsRemoved": "removed the label {labels} | removed the labels {labels}",
+      "labelsAddedRemoved": "added the labels {added} and removed {removed}",
       "linkAdded": "linked {url}",
       "linkUpdated": "updated the link {url}",
       "linkRemoved": "removed the link {url}",
@@ -8181,7 +8185,8 @@
       "searchPlaceholder": "Search requests",
       "type": "Relation type",
       "remove": "Remove relation",
-      "removeNamed": "Remove relation to {title}"
+      "removeNamed": "Remove relation to {title}",
+      "removed": "Relation removed"
     },
     "metaEditor": {
       "title": "Metadata",
@@ -8191,7 +8196,8 @@
       "value": "Value (text or JSON)",
       "invalidKey": "Use up to 64 letters, digits, and _ . : -",
       "remove": "Remove field",
-      "removeNamed": "Remove {key}"
+      "removeNamed": "Remove {key}",
+      "removed": "Removed “{key}”"
     },
     "links": {
       "urlPlaceholder": "Paste a GitHub, Slack or doc link",
@@ -8200,6 +8206,7 @@
       "urlLabel": "Link URL",
       "remove": "Remove link",
       "removeNamed": "Remove link {title}",
+      "removed": "Link removed",
       "edit": "Edit link",
       "editNamed": "Edit link {title}"
     },

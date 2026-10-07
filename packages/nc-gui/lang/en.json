@@ -7873,16 +7873,16 @@
       "pendingTitle": "Muting this request",
       "pending": "One moment…",
       "mutedTitle": "Request muted",
-      "muted": "You won’t get updates about “{title}” anymore, by email or in the app.",
+      "muted": "You won't get updates about “{title}” anymore, by email or in the app.",
       "unmutedTitle": "Updates are back on",
-      "unmuted": "You’ll get updates about “{title}” again.",
+      "unmuted": "You'll get updates about “{title}” again.",
       "undo": "Undo",
       "muteAgain": "Mute again",
       "viewRequest": "View request",
       "emailSettings": "Roadmap email settings",
       "invalidTitle": "This link no longer works",
       "invalid": "The mute link is invalid or has expired. You can still mute the request from its page.",
-      "failedTitle": "Couldn’t mute this request",
+      "failedTitle": "Couldn't mute this request",
       "failed": "Something went wrong. Try again."
     },
     "title": "Noco Roadmap",
@@ -8107,8 +8107,8 @@
       "approved": "approved this request",
       "publicStatusChanged": "moved this to {to}",
       "statusChanged": "changed status from {from} to {to}",
-      "mergedIn": "merged \"{title}\" into this",
-      "mergedInto": "merged this into \"{title}\"",
+      "mergedIn": "merged “{title}” into this",
+      "mergedInto": "merged this into “{title}”",
       "mergedIntoAnother": "merged this into another request",
       "closed": "closed this request",
       "declined": "declined this request",
@@ -8203,7 +8203,7 @@
       "editNamed": "Edit link {title}"
     },
     "voters": {
-      "summary": "{real} real votes · {adjustment} adjustment",
+      "summary": "{real} real vote · {adjustment} adjustment | {real} real votes · {adjustment} adjustment",
       "person": "Person",
       "account": "Workspace / org",
       "plan": "Plan",
@@ -8296,7 +8296,7 @@
       },
       "voted": {
         "title": "You haven't voted on anything yet",
-        "subtitle": "Vote for the requests you care about. It's how we prioritise."
+        "subtitle": "Vote for the requests you care about. It's how we prioritize."
       },
       "triage": {
         "title": "Triage is clear",
@@ -8336,7 +8336,7 @@
     "intro": {
       "title": "Help shape NocoDB",
       "submit": "Submit a request. Our team reviews every one.",
-      "vote": "Vote for what matters to you. We prioritise by demand.",
+      "vote": "Vote for what matters to you. We prioritize by demand.",
       "follow": "Follow a request to get an email when it moves forward or ships.",
       "anonymous": "Other customers see an anonymous name, not yours. Only your teammates and the NocoDB team see who you are.",
       "dismiss": "Dismiss"
@@ -8361,12 +8361,12 @@
     "labels": {
       "manage": "Manage labels",
       "title": "Labels",
-      "hint": "Organise requests with labels. Customers only see labels in public groups.",
+      "hint": "Organize requests with labels. Customers only see labels in public groups.",
       "groups": "Groups",
       "newGroup": "New group",
       "untitledGroup": "Untitled group",
       "noGroups": "No label groups yet",
-      "noGroupsHint": "Create a group, like Category or Team, to start labelling requests.",
+      "noGroupsHint": "Create a group, like Category or Team, to start labeling requests.",
       "visibleToCustomers": "Visible to customers",
       "staffOnly": "Staff only",
       "editGroup": "Edit group",

@@ -339,6 +339,31 @@ export const buildCss = (o: TokenOverrides) => {
  * host document and every registered same-origin iframe, mirroring how
  * useTheme() applies the dark palette.
  */
+/** the CSS variables a regenerated ramp writes for one mode */
+const rampValues = (hue: string, base: string, mode: TokenMode): Record<string, string> => {
+  const ramp = generateRamp(base, mode)
+  const values: Record<string, string> = {}
+  for (const stop of RAMP_STOPS) values[`--color-${hue}-${stop}`] = ramp[stop]
+  if (hue === 'brand') {
+    values['--nc-brand-accent'] = base
+    values['--nc-brand-accent-hover'] = mixHex(base, '#000000', 0.8)
+    values['--ant-primary-color'] = base
+    values['--ant-primary-color-hover'] = mixHex(base, '#ffffff', 0.76)
+    values['--ant-primary-color-active'] = base
+    values['--ant-primary-color-outline'] = `rgba(${hexToRgbTriplet(base)}, 0.24)`
+    Object.assign(values, antPrimaryPalette(base))
+  }
+  return values
+}
+
+/** a sample export for the import box: purple brand, a heading tweak, softer corners */
+export const exampleTokens = (): TokenOverrides => ({
+  ...emptyOverrides(),
+  light: { ...rampValues('brand', '#7c3aed', 'light'), '--nc-content-gray-emphasis': '#1e1b4b' },
+  dark: rampValues('brand', '#7c3aed', 'dark'),
+  radiusScale: 1.25,
+})
+
 export const usePlaygroundTokens = createSharedComposable(() => {
   const overrides = ref<TokenOverrides>(emptyOverrides())
   const frames = new Set<HTMLIFrameElement>()
@@ -394,21 +419,7 @@ export const usePlaygroundTokens = createSharedComposable(() => {
 
   const setRamp = (hue: string, base: string, modes: TokenMode[] = ['light', 'dark']) => {
     const next = { ...overrides.value }
-    for (const mode of modes) {
-      const ramp = generateRamp(base, mode)
-      const values = { ...next[mode] }
-      for (const stop of RAMP_STOPS) values[`--color-${hue}-${stop}`] = ramp[stop]
-      if (hue === 'brand') {
-        values['--nc-brand-accent'] = base
-        values['--nc-brand-accent-hover'] = mixHex(base, '#000000', 0.8)
-        values['--ant-primary-color'] = base
-        values['--ant-primary-color-hover'] = mixHex(base, '#ffffff', 0.76)
-        values['--ant-primary-color-active'] = base
-        values['--ant-primary-color-outline'] = `rgba(${hexToRgbTriplet(base)}, 0.24)`
-        Object.assign(values, antPrimaryPalette(base))
-      }
-      next[mode] = values
-    }
+    for (const mode of modes) next[mode] = { ...next[mode], ...rampValues(hue, base, mode) }
     overrides.value = next
   }
 

@@ -91,7 +91,7 @@ function showToastType() {
 
       <PgDemo label="NcTooltip" hint="placements · light · truncate-only">
         <div class="flex flex-col gap-3">
-          <div class="grid grid-cols-4 gap-2">
+          <div class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-2">
             <NcTooltip v-for="p in PLACEMENTS" :key="p" :title="`placement: ${p}`" :placement="p">
               <NcButton size="small" type="secondary" class="w-full">{{ p }}</NcButton>
             </NcTooltip>

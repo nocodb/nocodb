@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { usePlaygroundTokens } from '../-helper/tokens'
+import { exampleTokens, usePlaygroundTokens } from '../-helper/tokens'
 import type { TokenMode } from '../-helper/tokens'
 import AllTokensTab from './token-editor/AllTokensTab.vue'
 import ColoursTab from './token-editor/ColoursTab.vue'
@@ -37,6 +37,8 @@ const isImported = ref(false)
 
 const rootRef = ref<HTMLElement>()
 
+const fileInputRef = ref<HTMLInputElement>()
+
 const bodyRef = ref<HTMLElement>()
 
 const isModeScoped = computed(() => tab.value === 'colours' || tab.value === 'all')
@@ -49,6 +51,17 @@ function copyCss() {
 function copyJson() {
   copy(JSON.stringify(overrides.value, null, 2))
   message.success(t('msg.success.jsonCopied'))
+}
+
+function useExample() {
+  importText.value = JSON.stringify(exampleTokens(), null, 2)
+}
+
+async function onFilePicked(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (file) importText.value = await file.text()
 }
 
 const { start: flashImported } = useTimeoutFn(() => (isImported.value = false), 2500, { immediate: false })
@@ -136,11 +149,19 @@ onMounted(() => {
           v-model:value="importText"
           :rows="4"
           placeholder="Paste exported JSON"
-          class="!text-captionXs font-mono"
+          class="!text-captionXs font-mono !rounded-lg"
           :status="importError ? 'error' : undefined"
         />
         <div v-if="importError" class="text-captionXs text-nc-content-red-dark">{{ importError }}</div>
-        <div class="flex gap-2 justify-end">
+        <div class="flex gap-2 items-center">
+          <NcButton size="xsmall" type="text" data-testid="nc-playground-tokens-import-example" @click="useExample">
+            Use example
+          </NcButton>
+          <NcButton size="xsmall" type="text" data-testid="nc-playground-tokens-import-file" @click="fileInputRef?.click()">
+            Choose file
+          </NcButton>
+          <input ref="fileInputRef" type="file" accept=".json,application/json" class="hidden" @change="onFilePicked" />
+          <div class="flex-1" />
           <NcButton size="xsmall" type="text" @click="isImportOpen = false">Cancel</NcButton>
           <NcButton size="xsmall" :disabled="!importText" @click="applyImport">Apply</NcButton>
         </div>

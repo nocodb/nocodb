@@ -116,7 +116,7 @@ function setStage(id: string, el: unknown) {
       >
         <PgDemo :label="menu.title" stage="canvas">
           <template #actions>
-            <NcButton size="xxsmall" type="text" @click="stages[menu.id]?.open()">
+            <NcButton size="xxsmall" type="text" class="!px-2" @click="stages[menu.id]?.open()">
               <span class="text-captionXs">Reopen</span>
             </NcButton>
           </template>
@@ -142,16 +142,24 @@ function setStage(id: string, el: unknown) {
         id="view-actions"
         title="View actions"
         source="SmartsheetToolbarViewActionMenu"
-        description="The ⋮ menu next to the view name, rendered inline. Sub-menus (download, lock type, …) open inside the card."
+        description="The ⋮ menu next to the view name, in its real dropdown. Sub-menus (download, lock type, …) open inside the card."
       >
         <PgDemo label="View actions" stage="canvas">
-          <PopupStage :height="520">
-            <!-- dropdown overlay classes so the menu gets its in-dropdown density -->
-            <div
-              class="ant-dropdown nc-dropdown nc-dropdown-actions-menu !static w-fit rounded-lg border-1 border-nc-border-gray-medium shadow-lg bg-nc-bg-default overflow-hidden"
-            >
-              <SmartsheetToolbarViewActionMenu v-if="activeTable" :view="view" :table="activeTable" />
-            </div>
+          <template #actions>
+            <NcButton size="xxsmall" type="text" class="!px-2" @click="stages['view-actions']?.open()">
+              <span class="text-captionXs">Reopen</span>
+            </NcButton>
+          </template>
+          <PopupStage :ref="(el) => setStage('view-actions', el)" open-selector=".nc-view-action-menu-btn" :height="520">
+            <!-- same trigger + overlay as SmartsheetToolbarOpenedViewAction, bound to the harness view -->
+            <NcDropdown v-if="activeTable" overlay-class-name="nc-dropdown-actions-menu">
+              <NcButton class="nc-view-action-menu-btn !h-7 !px-1.5 !min-w-7" size="small" type="secondary">
+                <GeneralIcon icon="threeDotVertical" class="!h-4 !w-4" />
+              </NcButton>
+              <template #overlay>
+                <SmartsheetToolbarViewActionMenu :view="view" :table="activeTable" />
+              </template>
+            </NcDropdown>
           </PopupStage>
         </PgDemo>
       </PgSection>

@@ -105,8 +105,16 @@ const menuColumnId = ref<string>(COL.status)
 
 const editingFromMenu = ref<string | null>(null)
 
+// opened after mount so the popup resolves the stage as its container
+const isColumnMenuOpen = ref(false)
+
 function headerColumnIds(meta: TableType) {
   return (meta.columns ?? []).filter((c) => !c.system && c.uidt !== UITypes.ID).map((c) => c.id!)
+}
+
+function onMenuColumnChange() {
+  editingFromMenu.value = null
+  nextTick(() => (isColumnMenuOpen.value = true))
 }
 
 function columnOf(meta: TableType, id: string) {
@@ -189,29 +197,45 @@ function reset(key: string, note?: string) {
         id="column-menu"
         title="Column menu"
         source="SmartsheetHeaderColumnMenu"
-        description="The header ▾ menu, rendered open. “Edit field” opens the editor beside it; sort / filter / group items write to the mock toolbar store."
+        description="The header ▾ menu in its real dropdown. “Edit field” opens the editor beside it; sort / filter / group items write to the mock toolbar store."
       >
         <PgDemo label="Column menu" stage="canvas">
           <template #actions>
-            <NcSelect v-model:value="menuColumnId" size="small" class="w-48" @change="editingFromMenu = null">
+            <NcSelect v-model:value="menuColumnId" size="small" class="w-48" @change="onMenuColumnChange">
               <a-select-option v-for="c in meta.columns?.filter((c) => !c.system)" :key="c.id" :value="c.id">
                 {{ c.title }}
               </a-select-option>
             </NcSelect>
+            <NcButton size="xxsmall" type="text" class="!px-2" @click="isColumnMenuOpen = true">
+              <span class="text-captionXs">Reopen</span>
+            </NcButton>
           </template>
-          <PopupStage :height="620">
+          <PopupStage open-selector=".nc-pg-column-menu-trigger" :height="620">
             <div v-if="columnOf(meta, menuColumnId)" class="flex items-start gap-4">
-              <!-- dropdown overlay classes so the menu gets its in-dropdown density -->
-              <div
-                class="ant-dropdown nc-dropdown nc-dropdown-column-operations !static flex-none rounded-lg border-1 border-nc-border-gray-medium shadow-lg bg-nc-bg-default overflow-hidden"
-              >
-                <SmartsheetHeaderColumnMenu
-                  :key="menuColumnId"
-                  :is-open="true"
-                  :column="columnOf(meta, menuColumnId)!"
-                  :virtual="isVirtualCol(columnOf(meta, menuColumnId)!)"
-                  @edit="editingFromMenu = menuColumnId"
-                />
+              <!-- a real dropdown, like SmartsheetHeaderMenu, so the menu gets its in-dropdown density -->
+              <div class="w-[300px] flex-none">
+                <a-dropdown
+                  v-model:visible="isColumnMenuOpen"
+                  :trigger="['click']"
+                  placement="bottomLeft"
+                  overlay-class-name="nc-dropdown-column-operations active !border-1 rounded-lg !shadow-xl"
+                >
+                  <NcButton size="small" type="secondary" class="nc-pg-column-menu-trigger">
+                    <div class="flex items-center gap-1">
+                      {{ columnOf(meta, menuColumnId)!.title }}
+                      <GeneralIcon icon="arrowDown" class="text-nc-content-gray-muted" />
+                    </div>
+                  </NcButton>
+                  <template #overlay>
+                    <SmartsheetHeaderColumnMenu
+                      :key="menuColumnId"
+                      v-model:is-open="isColumnMenuOpen"
+                      :column="columnOf(meta, menuColumnId)!"
+                      :virtual="isVirtualCol(columnOf(meta, menuColumnId)!)"
+                      @edit="editingFromMenu = menuColumnId"
+                    />
+                  </template>
+                </a-dropdown>
               </div>
               <div v-if="editingFromMenu" class="w-[440px]">
                 <SmartsheetColumnEditOrAddProvider

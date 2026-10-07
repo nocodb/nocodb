@@ -65,18 +65,20 @@ const managedApp = ref({
         <div class="flex flex-wrap items-end gap-x-6 gap-y-3">
           <div class="flex flex-col gap-1 w-40">
             <span class="text-captionXs text-nc-content-gray-muted font-mono">size</span>
-            <NcSelect v-model:value="baseIconSize" size="small">
+            <NcSelect v-model:value="baseIconSize">
               <a-select-option v-for="size in BASE_ICON_SIZES" :key="size" :value="size">{{ size }}</a-select-option>
             </NcSelect>
           </div>
-          <label class="flex items-center gap-2 h-7 cursor-pointer">
+          <label class="flex items-center gap-2 h-8 cursor-pointer">
             <NcSwitch v-model:checked="isBaseIconReadonly" size="small" />
             <span class="text-captionSm text-nc-content-gray font-mono">readonly</span>
           </label>
-          <label class="flex items-center gap-2 h-7 cursor-pointer">
-            <NcSwitch v-model:checked="managedApp.managed_app_master" size="small" />
-            <span class="text-captionSm text-nc-content-gray font-mono">managedApp.managed_app_master</span>
-          </label>
+          <NcTooltip title="Sets managedApp.managed_app_master" :arrow="false">
+            <label class="flex items-center gap-2 h-8 cursor-pointer">
+              <NcSwitch v-model:checked="managedApp.managed_app_master" size="small" />
+              <span class="text-captionSm text-nc-content-gray font-mono">Managed App</span>
+            </label>
+          </NcTooltip>
         </div>
       </PgDemo>
 

@@ -15,9 +15,12 @@ withDefaults(
 <template>
   <div class="rounded-xl border-1 border-nc-border-gray-medium overflow-hidden bg-nc-bg-default">
     <div v-if="label || hint || $slots.actions" class="flex items-center gap-2 px-4 h-9 border-b-1 border-nc-border-gray-light">
-      <span v-if="label" class="text-captionSmBold text-nc-content-gray-subtle">{{ label }}</span>
-      <span v-if="hint" class="text-captionXs text-nc-content-gray-muted truncate">{{ hint }}</span>
-      <div class="ml-auto flex items-center gap-2">
+      <span v-if="label" class="flex-none max-w-full truncate text-captionSmBold text-nc-content-gray-subtle">{{ label }}</span>
+      <NcTooltip v-if="hint" show-on-truncate-only class="min-w-0 truncate text-captionXs text-nc-content-gray-muted">
+        <template #title>{{ hint }}</template>
+        {{ hint }}
+      </NcTooltip>
+      <div class="ml-auto flex-none flex items-center gap-2">
         <slot name="actions" />
       </div>
     </div>

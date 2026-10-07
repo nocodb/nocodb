@@ -131,7 +131,7 @@ defineExpose({ reload: () => reloadViewDataEventHook.trigger(), resetData })
       <slot name="controls" />
       <div class="ml-auto flex items-center gap-2">
         <NcDropdown v-if="unmockedRequests.length" placement="bottomRight">
-          <NcButton size="xxsmall" type="secondary">
+          <NcButton size="xxsmall" type="secondary" class="!px-2">
             <span class="text-captionXs text-nc-content-orange-dark">{{ unmockedLabel }}</span>
           </NcButton>
           <template #overlay>
@@ -148,7 +148,7 @@ defineExpose({ reload: () => reloadViewDataEventHook.trigger(), resetData })
             </div>
           </template>
         </NcDropdown>
-        <NcButton size="xxsmall" type="text" @click="resetData">
+        <NcButton size="xxsmall" type="text" class="!px-2" @click="resetData">
           <span class="text-captionXs">Reset data</span>
         </NcButton>
       </div>

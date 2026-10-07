@@ -10,6 +10,8 @@ const description = ref('Tracks every campaign from brief to launch, including b
 
 const notes = ref('Auto-sizing textarea — keep typing and it grows.\nSecond line.')
 
+const borderlessNotes = ref('Borderless auto-size')
+
 const seats = ref(12)
 
 const rowLimit = ref<string | number>(100)
@@ -82,7 +84,7 @@ const suggestGroups = [
           <a-textarea v-model:value="description" class="nc-input-sm nc-input-shadow" :rows="3" placeholder="Description" />
           <a-textarea class="nc-input-sm nc-input-shadow" :rows="2" value="Disabled textarea" disabled />
           <NcAutoSizeTextarea v-model="notes" placeholder="Add notes" class="!rounded-lg px-3 py-1 text-sm" />
-          <NcAutoSizeTextarea model-value="Borderless auto-size" :bordered="false" />
+          <NcAutoSizeTextarea v-model="borderlessNotes" placeholder="Borderless — type here" :bordered="false" />
         </div>
       </PgDemo>
 

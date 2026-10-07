@@ -15,6 +15,9 @@ import {
   companyTableMeta,
   createCellsRow,
 } from './-helper/fixtures'
+import { installCellsMocks, uninstallCellsMocks } from './-helper/mock-api'
+
+const { $api } = useNuxtApp()
 
 const { metas } = useMetas()
 
@@ -64,6 +67,12 @@ provide(MetaInj, meta)
 
 provide(IsPublicInj, ref(false))
 
+// link cells read the grid's visible fields; the product grid provides them from useViewColumns
+provide(
+  FieldsInj,
+  computed(() => (meta.value.columns ?? []).filter((c) => !c.system)),
+)
+
 // useRoles reads source restrictions from here; without it every dataEdit check warns
 provide(
   ActiveSourceInj,
@@ -73,6 +82,9 @@ provide(
 provide(ReloadViewDataHookInj, createEventHook())
 
 useProvideSmartsheetLtarHelpers(meta)
+
+// link cells fetch, list and link related records; answer those for the fixture base
+installCellsMocks($api.instance)
 
 onMounted(() => {
   metas.value[`${CELLS_BASE_ID}:${CELLS_TABLE_ID}`] = meta.value
@@ -84,6 +96,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  uninstallCellsMocks($api.instance)
   baseStore.forcedProjectId = previousForcedProjectId
   basesStore.bases.delete(CELLS_BASE_ID)
   basesStore.basesUser.delete(CELLS_BASE_ID)
@@ -123,37 +136,39 @@ onBeforeUnmount(() => {
         :title="group.title"
         :description="group.description"
       >
-        <div class="rounded-xl border-1 border-nc-border-gray-medium overflow-hidden">
-          <div class="pg-cells-grid bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-medium">
-            <div class="px-3 py-2 text-captionSmBold text-nc-content-gray-subtle">Field</div>
-            <NcTooltip v-for="m in modes" :key="m.key" :title="m.hint" class="px-3 py-2" :arrow="false">
-              <span class="text-captionSmBold text-nc-content-gray-subtle">{{ m.label }}</span>
-            </NcTooltip>
-          </div>
-          <div
-            v-for="fixture in group.fixtures"
-            :key="fixture.column.id"
-            class="pg-cells-grid border-b-1 border-nc-border-gray-light last:border-b-0"
-            :data-testid="`pg-cell-${fixture.column.id}`"
-          >
-            <div class="px-3 py-2 min-w-0 flex flex-col justify-center gap-0.5">
-              <LazySmartsheetHeaderVirtualCell
-                v-if="isVirtualCol(fixture.column)"
-                :column="fixture.column"
-                hide-menu
-                class="h-6"
-              />
-              <LazySmartsheetHeaderCell v-else :column="fixture.column" hide-menu class="h-6" />
-              <div class="flex items-center gap-1.5 text-captionXs text-nc-content-gray-muted">
-                <code class="font-mono">{{ fixture.column.uidt }}</code>
-                <NcBadge v-if="fixture.displayOnly" color="orange" :border="false" class="!h-4 !text-captionXs">
-                  needs backend
-                </NcBadge>
-              </div>
-              <div v-if="fixture.note" class="text-captionXs text-nc-content-gray-muted">{{ fixture.note }}</div>
+        <div class="rounded-xl border-1 border-nc-border-gray-medium overflow-x-auto nc-scrollbar-thin">
+          <div class="min-w-[680px]">
+            <div class="pg-cells-grid bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-medium">
+              <div class="px-3 py-2 text-captionSmBold text-nc-content-gray-subtle">Field</div>
+              <NcTooltip v-for="m in modes" :key="m.key" :title="m.hint" class="px-3 py-2" :arrow="false">
+                <span class="text-captionSmBold text-nc-content-gray-subtle">{{ m.label }}</span>
+              </NcTooltip>
             </div>
-            <div v-for="m in modes" :key="m.key" class="px-2 py-2 min-w-0 flex items-center">
-              <CellSlot :column="fixture.column" :row="row" :mode="m.key" :read-only="isReadOnly" />
+            <div
+              v-for="fixture in group.fixtures"
+              :key="fixture.column.id"
+              class="pg-cells-grid border-b-1 border-nc-border-gray-light last:border-b-0"
+              :data-testid="`pg-cell-${fixture.column.id}`"
+            >
+              <div class="px-3 py-2 min-w-0 flex flex-col justify-center gap-0.5">
+                <LazySmartsheetHeaderVirtualCell
+                  v-if="isVirtualCol(fixture.column)"
+                  :column="fixture.column"
+                  hide-menu
+                  class="h-6"
+                />
+                <LazySmartsheetHeaderCell v-else :column="fixture.column" hide-menu class="h-6" />
+                <div class="flex items-center gap-1.5 text-captionXs text-nc-content-gray-muted">
+                  <code class="font-mono">{{ fixture.column.uidt }}</code>
+                  <NcBadge v-if="fixture.displayOnly" color="orange" :border="false" class="!h-4 !text-captionXs">
+                    needs backend
+                  </NcBadge>
+                </div>
+                <div v-if="fixture.note" class="text-captionXs text-nc-content-gray-muted">{{ fixture.note }}</div>
+              </div>
+              <div v-for="m in modes" :key="m.key" class="px-2 py-2 min-w-0 flex items-center">
+                <CellSlot :column="fixture.column" :row="row" :mode="m.key" :read-only="isReadOnly" />
+              </div>
             </div>
           </div>
         </div>
@@ -170,7 +185,8 @@ onBeforeUnmount(() => {
 .pg-cells-grid {
   display: grid;
   /* the expanded form gives fields the most room */
-  grid-template-columns: 252px repeat(2, minmax(0, 1fr)) minmax(0, 1.3fr);
+  /* floors keep cells usable when the token editor narrows the page; the card scrolls instead */
+  grid-template-columns: minmax(180px, 252px) repeat(2, minmax(140px, 1fr)) minmax(200px, 1.3fr);
   align-items: stretch;
 }
 </style>

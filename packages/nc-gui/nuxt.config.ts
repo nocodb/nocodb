@@ -254,6 +254,9 @@ export default defineNuxtConfig({
         // swaps in native fs events, which is much cheaper on a local checkout.
         usePolling: process.env.NC_DEV_FAST !== 'true',
       },
+      // Vite turns this on under coding agents with warn included; a Vue warn
+      // serializes its vnode trace (MBs per line), stalling the page and the log.
+      forwardConsole: { unhandledErrors: true, logLevels: ['error'] },
     },
     resolve: {
       alias: {

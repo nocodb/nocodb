@@ -8213,10 +8213,11 @@
     },
     "triage": {
       "title": "Waiting for triage",
-      "hint": "Approve to publish it, merge it into an existing request, or decline it.",
       "approve": "Approve",
-      "merge": "Merge…",
-      "decline": "Decline…",
+      "merge": "Merge",
+      "mergeHint": "Merge into an existing request",
+      "decline": "Decline",
+      "declineHint": "Decline with a reason the requester sees",
       "approveInto": "Approve into",
       "approved": "Approved and moved to {status}",
       "clear": "Triage is clear"

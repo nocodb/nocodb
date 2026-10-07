@@ -8379,7 +8379,7 @@
       "restore": "Restore",
       "restoreNamed": "Restore {title}",
       "editNamed": "Edit {title}",
-      "archiveNamed": "Archive {title}",
+      "actionsNamed": "Actions for {title}",
       "edit": "Edit",
       "archive": "Archive",
       "showArchived": "Show archived ({count})",

@@ -11,8 +11,7 @@ import type {
 } from 'nocodb-sdk';
 import type { XcEmailAttachment } from '~/types/nc-plugin';
 
-// The OSS SDK has no WorkspaceType; workspace invites are an EE flow, so the
-// CE payload only needs the identity fields the shared templates read.
+// Not exported by the OSS SDK; only the fields the shared template reads.
 interface WorkspaceType {
   id?: string;
   title?: string;

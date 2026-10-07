@@ -1,16 +1,8 @@
-# Release guard: prove the OSS tree bootstraps and builds from its own source.
-#
-# Context: releases are cut from nocohub and tagged against the matching develop
-# commit here. Nothing else compiles this repo, so a usage can land before the
-# sync that carries its definition and ship in a tag that does not build
-# (see #14693). Both jobs run the real production builds, which type-check:
-#   - backend:  rspack with ts-checker-rspack-plugin (fails on TS errors)
-#   - frontend: nuxt build (fails on unresolved imports)
+# Proves the OSS tree bootstraps and builds from its own source (see #14693).
 name: "Build Check"
 on:
   push:
     branches: [develop]
-    # Path filters are not applied to tag pushes, so every tag is checked.
     tags: ["*"]
     paths:
       - "packages/nocodb/**"
@@ -22,7 +14,7 @@ on:
       - "pnpm-lock.yaml"
       - ".github/workflows/build-check.yml"
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review, labeled]
+    types: [labeled, synchronize, reopened]
     branches: [develop]
     paths:
       - "packages/nocodb/**"
@@ -44,7 +36,7 @@ jobs:
     name: Backend build (nocodb)
     runs-on: ubicloud-standard-2
     timeout-minutes: 30
-    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -71,7 +63,7 @@ jobs:
     name: Frontend build (nc-gui)
     runs-on: ubicloud-standard-2
     timeout-minutes: 40
-    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

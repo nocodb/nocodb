@@ -155,13 +155,20 @@ const onTabClick = async (tabKey: string) => {
   if (tabKey === 'settings') {
     // Inside a base, base settings opens as a modal over the page — same route,
     // plus a query param — so the sidebar keeps showing the vertical you were in.
-    // Elsewhere it goes to the workspace settings page.
     if (isBaseOpen.value) {
       navigateTo({ query: { ...route.value.query, settings: 'members' } })
       return
     }
 
-    openWorkspaceSettings('members')
+    // Elsewhere, like the other tiles, it opens the last-used base; with no base, workspace settings.
+    const settingsBasePath = getBasePath()
+
+    if (settingsBasePath) {
+      navigateTo({ path: settingsBasePath, query: { settings: 'members' } })
+    } else {
+      openWorkspaceSettings('general')
+    }
+
     return
   }
 

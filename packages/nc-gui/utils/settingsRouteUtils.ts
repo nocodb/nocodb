@@ -1,3 +1,5 @@
+import type { WsHomePane } from './routeUtils'
+
 /**
  * Shared settings route slug mappings.
  *
@@ -66,9 +68,10 @@ export const appSettingsNav: {
   listing?: boolean
   production?: boolean
 }[] = [
+  // Who may use the app is the first thing its owner reaches for, so it leads the nav.
+  { tab: 'app-access', label: 'labels.appAccess.membersTitle', icon: 'ncUsers', testId: 'app-access', installer: true },
   { tab: 'app-url', label: 'labels.appUrl', icon: 'ncGlobe', testId: 'app-url', installer: true },
   { tab: 'app-theme', label: 'labels.appTheme', icon: 'ncPalette', testId: 'app-theme' },
-  { tab: 'app-access', label: 'general.access', icon: 'ncShield', testId: 'app-access', installer: true },
   // The anonymous surface is its own subject: pages and the actions a visitor
   // may invoke are two halves of one answer, and neither belongs in a roster.
   { tab: 'app-public', label: 'labels.appPublic.title', icon: 'ncEye', testId: 'app-public', installer: true },
@@ -116,19 +119,7 @@ export function appSettingsNavFor(isInstall: boolean, isListing = false, hasApp 
 }
 
 /** Workspace settings panes, by their `/{ws}/settings/{slug}` slug. The slug is the pane key. */
-export const wsSettingsSlugs = [
-  'members',
-  'teams',
-  'integrations',
-  'general',
-  'skills',
-  'security',
-  'danger-zone',
-  'billing',
-  'usage',
-  'audits',
-  'sso',
-] as const
+export const wsSettingsSlugs = ['general', 'skills', 'security', 'danger-zone', 'billing', 'usage', 'audits', 'sso'] as const
 
 export type WsSettingsSlug = (typeof wsSettingsSlugs)[number]
 
@@ -146,13 +137,20 @@ export const wsSettingsLegacySlugs: Record<string, WsSettingsSlug> = {
   'ws-settings': 'general',
   'appearance': 'general',
   'dangerZone': 'danger-zone',
-  'collaborators': 'members',
-  'ws-collaborators': 'members',
-  'ws-teams': 'teams',
-  'ws-integrations': 'integrations',
   'ws-billing': 'billing',
   'ws-audits': 'audits',
   'ws-sso': 'sso',
+}
+
+/** Settings slugs, current and legacy, for the panes that moved to the workspace home page. */
+export const wsHomePaneBySettingsSlug: Record<string, WsHomePane> = {
+  'members': 'members',
+  'collaborators': 'members',
+  'ws-collaborators': 'members',
+  'teams': 'teams',
+  'ws-teams': 'teams',
+  'integrations': 'integrations',
+  'ws-integrations': 'integrations',
 }
 
 /** The pane a slug (or a legacy name) names, or null when it names none. */

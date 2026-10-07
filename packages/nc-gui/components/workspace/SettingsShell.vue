@@ -5,25 +5,20 @@ import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 // the account page (its own sidebar, Back to where it was opened from), with the
 // base settings shell's anatomy — nav rail, then header band → pane → save bar.
 // It is a page, not a modal, because it hosts the billing and payment flows.
-// The old `/{ws}/{page}` routes redirect here.
+// The old `/{ws}/{page}` routes redirect here, bar Members, Teams and Integrations,
+// which live on the workspace home page.
 
 const props = defineProps<{
   tab: WsSettingsSlug
 }>()
 
-const router = useRouter()
-
-const route = router.currentRoute
-
 const { $e } = useNuxtApp()
 
-const { isUIAllowed, isWorkspaceRolesLoaded } = useRoles()
+const { isWorkspaceRolesLoaded } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
 const workspaceStore = useWorkspace()
-
-const { loadCollaborators } = workspaceStore
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
@@ -36,8 +31,7 @@ const isFreePlan = computed(
   () => isEEFeatureBlocked.value || (isPaymentEnabled.value && activePlanTitle.value === PlanTitles.FREE),
 )
 
-const { navGroups, paneMeta, availableTabs, firstAvailableTab, isWsAuditEnabled, blockWorkspaceSso, blockTeamsManagement } =
-  useWorkspaceSettingsNav()
+const { navGroups, paneMeta, availableTabs, firstAvailableTab, isWsAuditEnabled, blockWorkspaceSso } = useWorkspaceSettingsNav()
 
 const { hasSaveBar } = useProvideShell()
 
@@ -66,11 +60,6 @@ const generalSectionBySlug: Partial<Record<WsSettingsSlug, WsSettingsSection>> =
 }
 
 const generalSection = computed(() => generalSectionBySlug[props.tab])
-
-// Read by the Integrations pane on mount: where it opens, not where it stays.
-const integrationsInitialView = computed(() =>
-  route.value.query.integrationsView === 'environments' ? 'environments' : undefined,
-)
 
 /** A phone shows rail or pane, not both — see the base settings shell. */
 const isRailOnlyOnMobile = ref(props.tab === 'general')
@@ -111,10 +100,6 @@ watch(
         replace: true,
       })
       return
-    }
-
-    if (['members', 'teams'].includes(props.tab) && workspaceId.value && isUIAllowed('workspaceCollaborators')) {
-      loadCollaborators({}, workspaceId.value)
     }
 
     $e('a:ws:settings:tab:switch', { tab: props.tab })
@@ -198,24 +183,7 @@ watch(
       </div>
 
       <div v-else class="flex-1 min-h-0">
-        <WorkspaceCollaboratorsList v-if="tab === 'members'" :workspace-id="workspaceId" is-active />
-
-        <template v-else-if="tab === 'teams'">
-          <div v-if="blockTeamsManagement" class="h-full overflow-auto nc-scrollbar-thin">
-            <PaymentUpgradeFeatureCard
-              :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT"
-              :title="$t('labels.baseNav.upgradeTitleTeams')"
-              :detail="$t('labels.baseNav.upgradeDescTeams')"
-              icon="ncBuilding"
-              trigger-source="ws-settings-teams"
-            />
-          </div>
-          <WorkspaceTeams v-else :workspace-id="workspaceId" is-active />
-        </template>
-
-        <WorkspaceIntegrationsPane v-else-if="tab === 'integrations'" :initial-view="integrationsInitialView" />
-
-        <WorkspaceSettings v-else-if="generalSection" :workspace-id="workspaceId" :section="generalSection" />
+        <WorkspaceSettings v-if="generalSection" :workspace-id="workspaceId" :section="generalSection" />
 
         <PaymentBillingPage v-else-if="tab === 'billing'" />
 

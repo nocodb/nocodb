@@ -15,6 +15,20 @@ const CODE_PROJECT_HIDDEN_SLUGS = [
   'migrate',
 ]
 
+/**
+ * The three things a base's settings are *about*: the project itself, the
+ * interfaces built on it, and the app it serves. The rail used to list all of
+ * them in one column, so a reader looking for an interface's roster scrolled
+ * past snapshots and migrations to find it.
+ */
+export type BaseSettingsConcern = 'project' | 'interfaces' | 'apps'
+
+/** Which concern each rail group belongs to; anything unlisted stays with the project. */
+const GROUP_CONCERN: Record<string, BaseSettingsConcern> = {
+  interfaces: 'interfaces',
+  app: 'apps',
+}
+
 export interface BaseSettingsPaneMeta {
   /** The header band's title. Often longer than the rail label ("Members" → "Base Members"). */
   title: string
@@ -413,6 +427,36 @@ export function useBaseSettingsNav() {
     return shown.filter((g) => g.items.length)
   })
 
+  /** The concern a group sits under, defaulting to the project. */
+  const concernOfGroup = (key?: string): BaseSettingsConcern => GROUP_CONCERN[key ?? ''] ?? 'project'
+
+  /** Rail groups for one concern, so the rail only ever shows one subject's rows. */
+  const groupsByConcern = computed<Record<BaseSettingsConcern, ShellRailGroup[]>>(() => {
+    const byConcern: Record<BaseSettingsConcern, ShellRailGroup[]> = { project: [], interfaces: [], apps: [] }
+    for (const group of navGroups.value) byConcern[concernOfGroup(group.key)].push(group)
+    return byConcern
+  })
+
+  /** The concern a pane belongs to — what a deep link to it has to switch the tabs to. */
+  const concernOfTab = (slug: string): BaseSettingsConcern => {
+    const group = navGroups.value.find((g) => g.items.some((i) => i.slug === slug))
+    return concernOfGroup(group?.key)
+  }
+
+  /**
+   * The tabs across the top. A concern with no reachable rows is dropped rather
+   * than shown empty — a viewer who cannot see an app has no Apps tab.
+   */
+  const concerns = computed(() =>
+    (
+      [
+        { key: 'project', label: t('labels.baseNav.concernProject'), icon: 'ncLayers' },
+        { key: 'interfaces', label: t('labels.baseNav.concernInterfaces'), icon: 'ncLayout' },
+        { key: 'apps', label: t('labels.baseNav.concernApps'), icon: 'ncBox' },
+      ] as { key: BaseSettingsConcern; label: string; icon: string }[]
+    ).filter((c) => groupsByConcern.value[c.key].length),
+  )
+
   /** Every reachable slug, flattened — the deep-link guard's allow-list. */
   const availableTabs = computed(() => new Set(navGroups.value.flatMap((g) => g.items.map((i) => i.slug))))
 
@@ -510,10 +554,10 @@ export function useBaseSettingsNav() {
       },
     }
 
-    // App panes share one title — "App Settings · Theme" — so the band says which
-    // app is being configured, not just which pane.
+    // App panes write their own heading and description, so the band would say the
+    // same thing twice. The Apps tab above already names the subject.
     for (const item of appSettingsNav) {
-      meta[item.tab] = { title: `${t('labels.appSettings')} · ${t(item.label)}` }
+      meta[item.tab] = { title: '' }
     }
 
     return meta
@@ -521,6 +565,9 @@ export function useBaseSettingsNav() {
 
   return {
     navGroups,
+    groupsByConcern,
+    concerns,
+    concernOfTab,
     paneMeta,
     availableTabs,
     firstAvailableTab,

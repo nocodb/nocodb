@@ -57,7 +57,8 @@ const emits = defineEmits<{
 
 const { t } = useI18n()
 
-const search = ref('')
+/** Bindable so a host can widen `groups` while a query is typed. */
+const search = defineModel<string>('search', { default: '' })
 
 const isSearching = computed(() => !!search.value.trim())
 
@@ -138,9 +139,9 @@ const onSearchEnter = () => {
     <!-- Page hosts put their way out here (a Back row); modals use the corner close. -->
     <slot name="top" />
 
-    <!-- Top padding matches ShellHeader so the subject lines up with the pane title;
-         under a `top` row the search sits right below it instead. -->
-    <div class="flex-none px-3 pb-3" :class="$slots.top ? 'pt-3' : 'pt-4 sm:pt-8'">
+    <!-- A subject row matches ShellHeader's top padding so it lines up with the pane
+         title; otherwise the search sits at the top of the column. -->
+    <div class="flex-none px-3 pb-3" :class="$slots.subject && !$slots.top ? 'pt-4 sm:pt-8' : 'pt-3'">
       <!-- Names the subject being configured, so the modal always states what these panes belong to. -->
       <div v-if="$slots.subject" class="nc-shell-rail-subject">
         <slot name="subject" />
@@ -169,13 +170,13 @@ const onSearchEnter = () => {
         {{ emptyText ? t(emptyText, { query: search.trim() }) : $t('labels.noResults') }}
       </div>
 
-      <template v-for="group in filteredGroups" :key="group.key ?? group.label">
+      <template v-for="(group, index) in filteredGroups" :key="group.key ?? group.label">
         <component
           :is="group.collapsible ? 'button' : 'div'"
           v-if="group.items.length && group.label"
           class="nc-shell-rail-group"
           :class="{
-            'nc-shell-rail-group-divider': group.divider,
+            'nc-shell-rail-group-divider': group.divider && index > 0,
             'nc-shell-rail-group-toggle': group.collapsible,
           }"
           :type="group.collapsible ? 'button' : undefined"

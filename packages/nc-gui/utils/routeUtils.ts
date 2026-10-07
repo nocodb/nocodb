@@ -61,7 +61,16 @@ export const isSharedBaseOrErdOrViewRoute = (route: RouteLocationNormalizedLoade
   )
 }
 
-export const wsHomeRouteNames = new Set(['index', 'index-index', 'index-typeOrId', 'index-typeOrId-home', 'index-typeOrId-index'])
+export const wsHomeRouteNames = new Set([
+  'index',
+  'index-index',
+  'index-typeOrId',
+  'index-typeOrId-home',
+  'index-typeOrId-index',
+  'index-typeOrId-members',
+  'index-typeOrId-teams',
+  'index-typeOrId-integrations',
+])
 
 export const isWsHomeRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
   if (!route) return false
@@ -80,6 +89,9 @@ export const routeNameToWsTab: Record<string, string> = {
   'index-typeOrId-home': 'home',
   'index-typeOrId-index': 'bases',
   'index-typeOrId': 'bases',
+  'index-typeOrId-members': 'collaborators',
+  'index-typeOrId-teams': 'teams',
+  'index-typeOrId-integrations': 'integrations',
 }
 
 /**
@@ -88,3 +100,23 @@ export const routeNameToWsTab: Record<string, string> = {
 export const wsTabToRouteName: Record<string, string> = Object.fromEntries(
   Object.entries(routeNameToWsTab).map(([k, v]) => [v, k]),
 )
+
+/** Workspace panes that open in the home page's content area, at `/{ws}/{pane}`. */
+export const wsHomePanes = ['members', 'teams', 'integrations'] as const
+
+export type WsHomePane = (typeof wsHomePanes)[number]
+
+export function isWsHomePane(value: unknown): value is WsHomePane {
+  return typeof value === 'string' && (wsHomePanes as readonly string[]).includes(value)
+}
+
+export function wsHomePanePath(workspaceId: string, pane: WsHomePane) {
+  return `/${workspaceId}/${pane}`
+}
+
+/** The home pane the current route shows, else null. */
+export function wsHomePaneFromRoute(route?: { name?: unknown }): WsHomePane | null {
+  const pane = typeof route?.name === 'string' ? route.name.replace(/^index-typeOrId-/, '') : ''
+
+  return isWsHomePane(pane) ? pane : null
+}

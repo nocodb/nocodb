@@ -647,6 +647,9 @@ interface ImportFinalStats {
   sampleError?: string
 }
 
+// Tables the last import wrote to, in sheet order — the first one is opened afterwards.
+const importedTableIds = ref<string[]>([])
+
 // Show a row-aware toast for the data-import job: success when everything
 // landed, a sticky error when nothing did, a warning for partial failures.
 // Default `message.success` here was masking DB-level rejections (date /
@@ -682,7 +685,7 @@ function surfaceImportResult(stats: ImportFinalStats | undefined) {
       warnLinkIssues()
       return
     }
-    message.success(t('msg.success.tableDataImported'))
+    message.toast(t('msg.success.tableDataImported'))
     return
   }
 
@@ -719,6 +722,8 @@ async function importViaJob() {
   expansionPanel.value = []
 
   let importFinalStats: ImportFinalStats | undefined
+
+  importedTableIds.value = []
 
   try {
     if (!importDataOnly) await validate()
@@ -840,6 +845,8 @@ async function importViaJob() {
                   linksFailed: Number(progress.linksFailed) || 0,
                   sampleError: typeof progress.sampleError === 'string' ? progress.sampleError : undefined,
                 }
+
+                if (Array.isArray(progress.tableIds)) importedTableIds.value.push(...progress.tableIds)
               }
             } catch {
               // plain-text log — ignore
@@ -868,7 +875,7 @@ async function importViaJob() {
       if (importFinalStats && importFinalStats.rowsFailed > 0) {
         surfaceImportResult(importFinalStats)
       } else {
-        message.success(t(`msg.success.${data.tables.length > 1 ? 'tableImportedPlural' : 'tableImported'}`))
+        message.toast(t(`msg.success.${data.tables.length > 1 ? 'tableImportedPlural' : 'tableImported'}`))
       }
     }
   } finally {
@@ -879,10 +886,11 @@ async function importViaJob() {
 async function importTemplate() {
   await importViaJob()
 
-  if (!data.tables?.length) return
+  // A data-only import already has its table open.
+  if (importDataOnly || !importedTableIds.value.length) return
 
   const tables = baseTables.value.get(base.value!.id!)
-  const toBeNavigatedTable = tables?.find((t) => t.id === data.tables[0].id)
+  const toBeNavigatedTable = tables?.find((t) => t.id === importedTableIds.value[0])
   if (!toBeNavigatedTable) return
 
   openTable(toBeNavigatedTable)

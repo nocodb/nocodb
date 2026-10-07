@@ -5,6 +5,12 @@ definePageMeta({
     (to) => {
       const { tab, ...query } = to.query
 
+      const homePane = wsHomePaneBySettingsSlug[tab as string]
+
+      if (homePane) {
+        return navigateTo({ path: wsHomePanePath(to.params.typeOrId as string, homePane), query }, { replace: true })
+      }
+
       return navigateTo(
         { path: wsSettingsPath(to.params.typeOrId as string, resolveWsSettingsSlug(tab) ?? 'general'), query },
         { replace: true },

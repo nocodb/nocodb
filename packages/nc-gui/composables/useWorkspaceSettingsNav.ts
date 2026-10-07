@@ -20,7 +20,7 @@ export function useWorkspaceSettingsNav() {
 
   const { activeWorkspace } = storeToRefs(useWorkspace())
 
-  const { showEEFeatures, isWsAuditEnabled, blockWorkspaceSso, blockTeamsManagement } = useEeConfig()
+  const { showEEFeatures, isWsAuditEnabled, blockWorkspaceSso } = useEeConfig()
 
   const { wsTabAccess, wsTabVisibility } = useWorkspaceTabVisibility(activeWorkspace)
 
@@ -42,44 +42,10 @@ export function useWorkspaceSettingsNav() {
         items: [
           canSeeGeneral.value && {
             slug: 'general',
-            icon: 'ncSettings',
+            icon: 'ncSliders',
             testId: 'ws-general',
             title: t('general.general'),
             keywords: 'appearance name rename icon image logo',
-          },
-        ].filter(Boolean) as ShellRailGroup['items'],
-      },
-      {
-        key: 'people',
-        label: t('labels.wsNav.groupPeople'),
-        items: [
-          v.collaborators && {
-            slug: 'members',
-            icon: 'ncUserPlus',
-            testId: 'ws-members',
-            title: t('labels.members'),
-            keywords: 'invite people users collaborators roles workspace access',
-          },
-          v.teams && {
-            slug: 'teams',
-            icon: 'ncBuilding',
-            testId: 'ws-teams',
-            title: t('general.teams'),
-            keywords: 'team group members roles',
-          },
-        ].filter(Boolean) as ShellRailGroup['items'],
-      },
-      {
-        key: 'connect',
-        label: t('labels.wsNav.groupConnect'),
-        items: [
-          v.integrations && {
-            slug: 'integrations',
-            icon: 'integration',
-            testId: 'ws-integrations',
-            title: t('general.integrations'),
-            keywords: 'credentials connection oauth api key environment slack gmail hubspot openai',
-            logos: ['ncLogoSlackColored', 'ncLogoGmailColored', 'ncLogoHubspotColored', 'ncLogoTwilioColored'],
           },
         ].filter(Boolean) as ShellRailGroup['items'],
       },
@@ -154,7 +120,7 @@ export function useWorkspaceSettingsNav() {
   const availableTabs = computed(() => {
     const tabs = new Set(navGroups.value.flatMap((g) => g.items.map((i) => i.slug as WsSettingsSlug)))
 
-    for (const slug of ['integrations', 'billing', 'usage', 'audits', 'sso'] as const) {
+    for (const slug of ['billing', 'usage', 'audits', 'sso'] as const) {
       if (wsTabAccess.value[slug]) tabs.add(slug)
     }
 
@@ -164,21 +130,6 @@ export function useWorkspaceSettingsNav() {
   const firstAvailableTab = computed(() => (navGroups.value[0]?.items[0]?.slug as WsSettingsSlug | undefined) ?? null)
 
   const paneMeta = computed<Record<WsSettingsSlug, WsSettingsPaneMeta>>(() => ({
-    'members': {
-      title: t('labels.wsNav.membersPage'),
-      description: t('labels.wsNav.desc.members'),
-      docsHref: 'https://nocodb.com/docs/product-docs/collaboration/workspace-collaboration',
-    },
-    'teams': {
-      title: t('general.teams'),
-      description: t('labels.wsNav.desc.teams'),
-      docsHref: 'https://nocodb.com/docs/product-docs/collaboration/teams',
-    },
-    'integrations': {
-      title: t('general.integrations'),
-      description: t('labels.wsNav.desc.integrations'),
-      docsHref: 'https://nocodb.com/docs/product-docs/integrations',
-    },
     'general': {
       title: t('general.general'),
       description: t('labels.wsNav.desc.general'),
@@ -222,6 +173,5 @@ export function useWorkspaceSettingsNav() {
     firstAvailableTab,
     isWsAuditEnabled,
     blockWorkspaceSso,
-    blockTeamsManagement,
   }
 }

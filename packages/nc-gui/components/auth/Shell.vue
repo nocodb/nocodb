@@ -203,7 +203,8 @@ const isDesktop = useMediaQuery('(min-width: 1024px)')
   }
 
   :deep(.ant-form-item-label) {
-    @apply pb-1.5;
+    // antd clips the label, which cuts off a label link's focus ring
+    @apply pb-1.5 overflow-visible;
 
     // full width so a label row can carry a right-aligned link (forgot password, resend code)
     label {

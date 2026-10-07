@@ -138,9 +138,9 @@ const onSearchEnter = () => {
     <!-- Page hosts put their way out here (a Back row); modals use the corner close. -->
     <slot name="top" />
 
-    <!-- The host's own band names the subject above this, so the search starts at
-         the top of the column rather than clearing a row that is no longer here. -->
-    <div class="flex-none px-3 pb-3 pt-3">
+    <!-- A subject row matches ShellHeader's top padding so it lines up with the pane
+         title; otherwise the search sits at the top of the column. -->
+    <div class="flex-none px-3 pb-3" :class="$slots.subject && !$slots.top ? 'pt-4 sm:pt-8' : 'pt-3'">
       <!-- Names the subject being configured, so the modal always states what these panes belong to. -->
       <div v-if="$slots.subject" class="nc-shell-rail-subject">
         <slot name="subject" />

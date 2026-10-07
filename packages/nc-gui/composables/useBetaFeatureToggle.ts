@@ -317,6 +317,17 @@ const FEATURES = [
     version: 1,
     isEngineering: true,
   },
+  {
+    // id is persisted in localStorage and drives FEATURE_FLAG — renaming it
+    // would silently reset the toggle for anyone who had it on.
+    id: 'multiple_sso_clients',
+    title: 'Multiple SSO providers',
+    description: 'Allow configuring more than one SAML / OpenID provider.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
 ] as const
 
 // Retired flags: FEATURES entries commented out above, but kept in FEATURE_FLAG

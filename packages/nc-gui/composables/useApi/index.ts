@@ -99,7 +99,7 @@ export function useApi<Data = any, RequestConfig = any>({
     response.value = null
   }
 
-  api.instance.interceptors.request.use(
+  const requestInterceptorId = api.instance.interceptors.request.use(
     (config) => {
       reset()
 
@@ -122,7 +122,7 @@ export function useApi<Data = any, RequestConfig = any>({
     },
   )
 
-  api.instance.interceptors.response.use(
+  const responseInterceptorId = api.instance.interceptors.response.use(
     (apiResponse) => {
       responseHook.trigger(apiResponse as AxiosResponse<Data, RequestConfig>)
       response.value = apiResponse
@@ -140,6 +140,14 @@ export function useApi<Data = any, RequestConfig = any>({
       return Promise.reject(apiError)
     },
   )
+
+  // $api outlives this caller, so drop the caller's interceptors when its scope ends
+  if (api === nuxtApp.$api) {
+    tryOnScopeDispose(() => {
+      api.instance.interceptors.request.eject(requestInterceptorId)
+      api.instance.interceptors.response.eject(responseInterceptorId)
+    })
+  }
 
   return {
     api,

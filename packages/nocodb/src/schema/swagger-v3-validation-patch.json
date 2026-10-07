@@ -172,7 +172,8 @@
                     { "$ref": "#/components/schemas/WidgetOptionsPieChart" },
                     { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
                     { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
-                    { "$ref": "#/components/schemas/WidgetOptionsLineChart" }
+                    { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
+                    { "$ref": "#/components/schemas/WidgetOptionsScatter" }
                   ]
                 }
               }

@@ -172,19 +172,19 @@ onMounted(async () => {
                   <NcMenu variant="small">
                     <NcMenuItem @click.stop="viewClientDetails(oAuthClient.client_id)">
                       <GeneralIcon icon="eye" />
-                      View Details
+                      {{ $t('labels.viewDetails') }}
                     </NcMenuItem>
                     <NcMenuItem
                       v-if="oAuthClient.client_type === 'confidential'"
                       @click.stop="handleRegenerateSecret(oAuthClient)"
                     >
                       <GeneralIcon icon="refresh" />
-                      Regenerate Secret
+                      {{ $t('labels.regenerateSecret') }}
                     </NcMenuItem>
                     <NcDivider />
                     <NcMenuItem danger @click.stop="handleDeleteClient(oAuthClient)">
                       <GeneralIcon icon="delete" />
-                      Delete Client
+                      {{ $t('labels.deleteOauthClient') }}
                     </NcMenuItem>
                   </NcMenu>
                 </template>

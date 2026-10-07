@@ -110,7 +110,13 @@ watch(vOpen, () => {
     <div ref="modalEl" class="cmdk-modal-content cmdj-modal-content relative h-[25.25rem]">
       <div class="cmdk-input-wrapper border-b-1 border-nc-border-gray-medium">
         <GeneralIcon class="h-4 w-4 text-nc-content-gray-muted" icon="search" />
-        <input ref="cmdInputEl" v-model="search" class="cmdk-input cmdj-input" placeholder="Search through docs" type="text" />
+        <input
+          ref="cmdInputEl"
+          v-model="search"
+          class="cmdk-input cmdj-input"
+          :placeholder="$t('placeholder.searchThroughDocs')"
+          type="text"
+        />
       </div>
 
       <div class="cmdk-results-container overflow-y-auto max-h-80">
@@ -120,7 +126,7 @@ watch(vOpen, () => {
             class="!w-[240px] flex-none"
             alt="Search through our documentation"
           />
-          <div class="text-nc-content-gray-muted">Search through our documentation</div>
+          <div class="text-nc-content-gray-muted">{{ $t('labels.docsSearchPrompt') }}</div>
         </div>
         <div
           v-else-if="(query.data.value === 'empty' || query.data.value?.length === 0) && !query.isLoading.value"
@@ -131,7 +137,7 @@ watch(vOpen, () => {
             class="!w-[240px] flex-none"
             alt="Your search did not match any results"
           />
-          <div class="text-nc-content-gray-muted">Your search did not match any results</div>
+          <div class="text-nc-content-gray-muted">{{ $t('msg.info.docsSearchNoResults') }}</div>
         </div>
 
         <div v-else-if="!query.isLoading.value" class="cmdk-results">
@@ -159,7 +165,7 @@ watch(vOpen, () => {
           </template>
         </div>
         <div v-else class="flex flex-col p-4 gap-4 justify-center text-sm">
-          <div>Searching...</div>
+          <div>{{ $t('labels.searching') }}</div>
         </div>
       </div>
 

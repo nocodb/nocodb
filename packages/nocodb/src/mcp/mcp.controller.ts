@@ -9,6 +9,7 @@ import {
 import { NcContext, NcRequest, ProjectRoles } from 'nocodb-sdk';
 import { MCPToken, Permission, User } from '~/models';
 import { McpService } from '~/mcp/mcp.service';
+import { refuseNonPostMcp } from '~/mcp/mcp-http';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcError } from '~/helpers/catchError';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -26,6 +27,8 @@ export class McpController {
     @Response() res,
     @TenantContext() context: NcContext,
   ) {
+    if (refuseNonPostMcp(req, res)) return;
+
     // `x-api-key` is the only custom header some MCP clients let you set.
     const token = (req.headers['xc-mcp-token'] ??
       req.headers['x-api-key']) as string;

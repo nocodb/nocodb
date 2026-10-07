@@ -34,6 +34,8 @@ const sidebarStore = useSidebarStore()
 
 const { activeSidebarTab } = storeToRefs(sidebarStore)
 
+const openWorkspaceSettings = useWorkspaceSettingsLink()
+
 const { isUIAllowed, workspaceRoles } = useRoles()
 
 const notificationStore = useNotification()
@@ -151,19 +153,22 @@ const onTabClick = async (tabKey: string) => {
   if (isChatFullScreen.value) isChatFullScreen.value = false
 
   if (tabKey === 'settings') {
-    // Base settings opens as a modal over wherever you are — same route, plus
-    // `?settings=` — so the table underneath stays put and the sidebar keeps
-    // showing the vertical you were in. Workspace settings is still a page, and
-    // still owns the sidebar.
+    // Inside a base, base settings opens as a modal over the page — same route,
+    // plus a query param — so the sidebar keeps showing the vertical you were in.
     if (isBaseOpen.value) {
       navigateTo({ query: { ...route.value.query, settings: 'members' } })
       return
     }
 
-    activeSidebarTab.value = 'settings'
+    // Elsewhere, like the other tiles, it opens the last-used base; with no base, workspace settings.
+    const settingsBasePath = getBasePath()
 
-    const wsId = route.value.params.typeOrId || activeWorkspaceId.value
-    navigateTo(`/${wsId}/members`)
+    if (settingsBasePath) {
+      navigateTo({ path: settingsBasePath, query: { settings: 'members' } })
+    } else {
+      openWorkspaceSettings('general')
+    }
+
     return
   }
 
@@ -333,12 +338,11 @@ const handleOpenBookmarkPanel = () => {
   }
 }
 
-// Base settings is an overlay on the current route rather than a route of its
-// own, so the tile reads the query alongside the workspace-settings page. Only a
-// slug the nav knows counts — `?settings=true` belongs to the agent panel.
+// Base settings is an overlay on the current route, so the tile reads the query.
+// Only a slug the nav knows counts — `?settings=true` belongs to the agent panel.
 const isBaseSettingsOpen = computed(() => !!resolveBaseSettingsTab(route.value.query.settings))
 
-const isSettingsActive = computed(() => activeSidebarTab.value === 'settings' || isBaseSettingsOpen.value)
+const isSettingsActive = computed(() => isBaseSettingsOpen.value || !!wsSettingsSlugFromRoute(route.value))
 </script>
 
 <template>

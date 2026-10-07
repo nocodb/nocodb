@@ -10,6 +10,12 @@ const route = useRoute()
 
 const { signIn: _signIn, appInfo } = useGlobal()
 
+const { productName } = useBranding()
+
+const { isLastUsed, selectMethod } = useAuthLastMethod()
+
+const { $e } = useNuxtApp()
+
 const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
@@ -50,162 +56,137 @@ async function signIn() {
 
   resetError()
 
-  api.auth.signin(form).then(async ({ token }) => {
-    _signIn(token!)
+  const wasLastUsed = isLastUsed('email')
 
-    await navigateTo({
-      path: '/',
-      query: route.query,
-    })
-  })
+  api.auth.signin(form).then(
+    async ({ token }) => {
+      commitAuthMethod('email')
+      _signIn(token!)
+
+      $e('a:auth:sign-in:success', { method: 'email', twoFactor: false, lastUsed: wasLastUsed })
+
+      await navigateTo({
+        path: '/',
+        query: route.query,
+      })
+    },
+    () => $e('a:auth:sign-in:error', { method: 'email' }),
+  )
 }
 
 function resetError() {
   if (error.value) error.value = null
 }
 
-function navigateSignUp() {
-  navigateTo({
-    path: '/signup',
-    query: route.query,
-  })
+function signInWithProvider(method: 'google' | 'oidc', url: string) {
+  selectMethod(method, 'signin')
+  window.location.href = url
 }
 
-function navigateForgotPassword() {
-  navigateTo({
-    path: '/forgot-password',
-    query: route.query,
-  })
-}
+const hasProviders = computed(() => !!appInfo.value.googleAuthEnabled || !!appInfo.value.oidcAuthEnabled)
 </script>
 
 <template>
-  <div>
-    <NuxtLayout>
-      <div
-        data-testid="nc-form-signin"
-        class="md:bg-primary/5 signin h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin"
-      >
-        <div
-          class="bg-nc-bg-default md:mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-nc-border-gray-medium shadow-xl)"
-        >
-          <GeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
-
-          <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signIn') }}</h1>
-
-          <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signIn">
-            <template v-if="!appInfo.disableEmailAuth">
-              <Transition name="layout">
-                <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
-                  <div class="flex items-center gap-2 justify-center">
-                    <MaterialSymbolsWarning />
-                    <div class="break-words">{{ error }}</div>
-                  </div>
-                </div>
-              </Transition>
-
-              <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
-                <a-input
-                  v-model:value="form.email"
-                  type="email"
-                  autocomplete="email"
-                  data-testid="nc-form-signin__email"
-                  size="large"
-                  :placeholder="$t('msg.info.signUp.workEmail')"
-                  @focus="resetError"
-                />
-              </a-form-item>
-
-              <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
-                <a-input-password
-                  v-model:value="form.password"
-                  autocomplete="current-password"
-                  data-testid="nc-form-signin__password"
-                  size="large"
-                  class="password"
-                  :placeholder="$t('msg.info.signUp.enterPassword')"
-                  @focus="resetError"
-                />
-              </a-form-item>
-
-              <div class="hidden md:block text-right">
-                <nuxt-link class="prose-sm" @click="navigateForgotPassword">
-                  {{ $t('msg.info.signUp.forgotPassword') }}
-                </nuxt-link>
-              </div>
+  <NuxtLayout>
+    <AuthShell
+      data-testid="nc-form-signin"
+      class="signin nc-form-signin"
+      :title="$t('labels.auth.signInTitle', { product: productName })"
+      :subtitle="$t('labels.auth.signInSubtitle')"
+      :loading="isLoading"
+    >
+      <div v-if="hasProviders" class="flex flex-col gap-2">
+        <div v-if="appInfo.googleAuthEnabled" class="nc-auth-provider">
+          <NcButton type="secondary" class="w-full" @click="signInWithProvider('google', `${appInfo.ncSiteUrl}/auth/google`)">
+            <template #icon>
+              <LogosGoogleIcon class="w-4 h-4" />
             </template>
+            {{ $t('labels.continueWithProvider', { provider: 'Google' }) }}
+          </NcButton>
+          <AuthLastUsedBadge method="google" class="nc-auth-provider-badge" />
+        </div>
 
-            <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
-              <template v-if="!appInfo.disableEmailAuth">
-                <button data-testid="nc-form-signin__submit" class="scaling-btn bg-opacity-100" type="submit">
-                  <span class="flex items-center gap-2">
-                    <component :is="iconMap.signin" />
-                    {{ $t('general.signIn') }}
-                  </span>
-                </button>
-              </template>
-              <a
-                v-if="appInfo.googleAuthEnabled"
-                :href="`${appInfo.ncSiteUrl}/auth/google`"
-                class="scaling-btn bg-opacity-100 after:(!bg-nc-bg-default) !text-primary !no-underline"
-              >
-                <span class="flex items-center gap-2">
-                  <LogosGoogleGmail />
-
-                  {{ $t('labels.signInWithProvider', { provider: 'Google' }) }}
-                </span>
-              </a>
-
-              <div
-                v-if="appInfo.oidcAuthEnabled"
-                class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
-              >
-                <a :href="`${appInfo.ncSiteUrl}/auth/oidc`" class="!text-primary !no-underline">
-                  <button type="button" class="scaling-btn bg-opacity-100">
-                    <span class="flex items-center gap-2">
-                      <MdiLogin />
-
-                      <template v-if="!appInfo.disableEmailAuth">
-                        {{ $t('labels.signUpWithProvider', { provider: appInfo.oidcProviderName || 'OpenID Connect' }) }}
-                      </template>
-                      <template v-else>
-                        {{ $t('general.signIn') }}
-                      </template>
-                    </span>
-                  </button>
-                </a>
-              </div>
-
-              <div v-if="!appInfo.inviteOnlySignup" class="text-end prose-sm">
-                {{ $t('msg.info.signUp.dontHaveAccount') }}
-                <nuxt-link @click="navigateSignUp">{{ $t('general.signUp') }}</nuxt-link>
-              </div>
-              <template v-if="!appInfo.disableEmailAuth">
-                <div class="md:hidden">
-                  <nuxt-link class="prose-sm" @click="navigateForgotPassword">
-                    {{ $t('msg.info.signUp.forgotPassword') }}
-                  </nuxt-link>
-                </div>
-              </template>
-            </div>
-          </a-form>
+        <div v-if="appInfo.oidcAuthEnabled" class="nc-auth-provider">
+          <NcButton type="secondary" class="w-full" @click="signInWithProvider('oidc', `${appInfo.ncSiteUrl}/auth/oidc`)">
+            <template #icon>
+              <MdiLogin />
+            </template>
+            <template v-if="!appInfo.disableEmailAuth">
+              {{ $t('labels.continueWithProvider', { provider: appInfo.oidcProviderName || 'OpenID Connect' }) }}
+            </template>
+            <template v-else>{{ $t('labels.auth.signIn') }}</template>
+          </NcButton>
+          <AuthLastUsedBadge method="oidc" class="nc-auth-provider-badge" />
         </div>
       </div>
-    </NuxtLayout>
-  </div>
+
+      <div
+        v-if="hasProviders && !appInfo.disableEmailAuth"
+        class="flex items-center gap-3 my-6 text-captionSm text-nc-content-gray-muted"
+      >
+        <span class="flex-1 h-px bg-nc-border-gray-medium" />
+        {{ $t('labels.auth.or') }}
+        <span class="flex-1 h-px bg-nc-border-gray-medium" />
+      </div>
+
+      <a-form v-if="!appInfo.disableEmailAuth" ref="formValidator" :model="form" layout="vertical" no-style @finish="signIn">
+        <a-form-item name="email" :rules="formRules.email">
+          <template #label>
+            <span class="flex items-center gap-2">
+              {{ $t('labels.auth.email') }}
+              <AuthLastUsedBadge method="email" />
+            </span>
+          </template>
+          <a-input
+            v-model:value="form.email"
+            type="email"
+            autocomplete="email"
+            data-testid="nc-form-signin__email"
+            :placeholder="$t('labels.auth.emailPlaceholder')"
+            @focus="resetError"
+          />
+        </a-form-item>
+
+        <a-form-item name="password" :rules="formRules.password">
+          <template #label>
+            <div class="w-full flex items-center justify-between">
+              {{ $t('labels.auth.password') }}
+              <NuxtLink class="nc-auth-link !text-caption" :to="{ path: '/forgot-password', query: route.query }">
+                {{ $t('labels.auth.forgotPassword') }}
+              </NuxtLink>
+            </div>
+          </template>
+          <a-input-password
+            v-model:value="form.password"
+            autocomplete="current-password"
+            data-testid="nc-form-signin__password"
+            :placeholder="$t('labels.auth.passwordPlaceholder')"
+            @focus="resetError"
+          />
+        </a-form-item>
+
+        <AuthSubmitButton
+          data-testid="nc-form-signin__submit"
+          html-type="submit"
+          :error="error"
+          error-testid="nc-signin-error"
+          :loading="isLoading"
+        >
+          {{ $t('labels.auth.signIn') }}
+        </AuthSubmitButton>
+      </a-form>
+
+      <template v-if="!appInfo.inviteOnlySignup" #footer>
+        {{ $t('labels.auth.noAccount') }}
+        <NuxtLink class="nc-auth-link" :to="{ path: '/signup', query: route.query }">{{ $t('labels.auth.signUp') }}</NuxtLink>
+      </template>
+    </AuthShell>
+  </NuxtLayout>
 </template>
 
-<style lang="scss">
-.signin {
-  .ant-input-affix-wrapper,
-  .ant-input {
-    @apply !appearance-none my-1 border-1 border-solid border-primary border-opacity-50 rounded;
-  }
-
-  .password {
-    input {
-      @apply !border-none !m-0;
-    }
-  }
+<style lang="scss" scoped>
+// the label row hosts the forgot-password link, so it must span the field
+:deep(.ant-form-item-label > label) {
+  @apply w-full;
 }
 </style>

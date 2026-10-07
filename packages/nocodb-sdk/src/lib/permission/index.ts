@@ -25,6 +25,9 @@ export enum PermissionKey {
   ROUTINE_INVOKE = 'ROUTINE_INVOKE',
   APP_USE = 'APP_USE',
   CHAT_ARTIFACT_VISIBILITY = 'CHAT_ARTIFACT_VISIBILITY',
+  /** Who may point a credential at this vault's secrets — as good as reading them. */
+  VAULT_REFERENCE = 'VAULT_REFERENCE',
+  INTERFACE_PAGE_CSV_EXPORT = 'INTERFACE_PAGE_CSV_EXPORT',
 }
 
 export enum PermissionGrantedType {
@@ -40,6 +43,9 @@ export enum PermissionEntity {
   DASHBOARD = 'dashboard',
   APP = 'app',
   CHAT_ARTIFACT = 'chat_artifact',
+  /** Workspace- or org-owned; stored outside `nc_permissions`, which needs a base. */
+  VAULT = 'vault',
+  INTERFACE_PAGE = 'interface_page',
 }
 
 export enum PermissionRole {
@@ -214,7 +220,33 @@ export const PermissionMeta = {
     userSelectorDescription:
       'Only members selected here will be able to view this artifact.',
   },
+  [PermissionKey.VAULT_REFERENCE]: {
+    // Owner by default: referencing is as good as reading.
+    minimumRole: PermissionRole.OWNER,
+    label: 'Who can use this vault',
+    description: 'can reference secrets from this vault',
+    userSelectorDescription:
+      'Only members selected here will be able to point a connection credential at a secret in this vault.',
+  },
+  [PermissionKey.INTERFACE_PAGE_CSV_EXPORT]: {
+    minimumRole: PermissionRole.VIEWER,
+    label: 'Who can export CSV',
+    description: 'can export CSV',
+    userSelectorDescription:
+      'Only members selected here will be able to export this page as CSV.',
+  },
 };
+
+/**
+ * Permission keys whose no-row default is "Everyone" and whose option set is
+ * Everyone / Editors & up / Creators & up / Specific users (table visibility
+ * shape). Interface pages reuse it: the page itself is already scoped by
+ * interface access, so "Everyone" means every viewer of the page.
+ */
+export const EVERYONE_DEFAULT_PERMISSION_KEYS = [
+  PermissionKey.TABLE_VISIBILITY,
+  PermissionKey.INTERFACE_PAGE_CSV_EXPORT,
+];
 
 // Restrictiveness order for document permission inheritance (lower = more permissive).
 // SPECIFIC_USERS is ranked high (5) by convention: it is treated as more restrictive

@@ -81,7 +81,7 @@ const onFileDialogOpen = (_event) => {
 }
 
 onFileDialogChange((files) => {
-  onDrop(files, {} as any)
+  if (files) onDrop(files, {} as any)
 })
 const isNewAttachmentModalOpen = ref(false)
 </script>

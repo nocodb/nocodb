@@ -11,7 +11,7 @@ defineProps<Props>()
 
     <div class="content">
       <div class="detail-headers">
-        <span class="text-nc-content-gray-muted font-weight-bold text-small1">Header</span>
+        <span class="text-nc-content-gray-muted font-weight-bold text-small1">{{ $t('labels.header') }}</span>
         <div class="log-details">
           <a-skeleton
             v-for="idx in 2"
@@ -27,7 +27,7 @@ defineProps<Props>()
       </div>
       <div class="detail-payload -mt-1">
         <div class="text-sm text-nc-content-gray-muted font-weight-bold pb-2 flex justify-between items-center">
-          <span class="text-xs leading-[18px]">Payload</span>
+          <span class="text-xs leading-[18px]">{{ $t('labels.payload') }}</span>
           <GeneralCopyButton content="" size="xs" class="!px-1" disabled />
         </div>
 

@@ -110,6 +110,9 @@ import * as nc_202609211109_code_projects from './v0/nc_202609211109_code_projec
 import * as nc_202609250735_oauth_scope_text from './v0/nc_202609250735_oauth_scope_text';
 import * as nc_202609251200_vaults from './v0/nc_202609251200_vaults';
 import * as nc_202609260900_interface_detail_default_config from './v0/nc_202609260900_interface_detail_default_config';
+import * as nc_202609300900_vault_permissions from './v0/nc_202609300900_vault_permissions';
+import * as nc_202610011000_automation_executions_run_control from './v0/nc_202610011000_automation_executions_run_control';
+import * as nc_202610040132_normalize_datetime_field_meta_keys from './v0/nc_202610040132_normalize_datetime_field_meta_keys';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -231,6 +234,9 @@ export default class XcMigrationSourcev0 {
       'nc_202609250735_oauth_scope_text',
       'nc_202609251200_vaults',
       'nc_202609260900_interface_detail_default_config',
+      'nc_202609300900_vault_permissions',
+      'nc_202610011000_automation_executions_run_control',
+      'nc_202610040132_normalize_datetime_field_meta_keys',
     ]);
   }
 
@@ -464,6 +470,12 @@ export default class XcMigrationSourcev0 {
         return nc_202609251200_vaults;
       case 'nc_202609260900_interface_detail_default_config':
         return nc_202609260900_interface_detail_default_config;
+      case 'nc_202609300900_vault_permissions':
+        return nc_202609300900_vault_permissions;
+      case 'nc_202610011000_automation_executions_run_control':
+        return nc_202610011000_automation_executions_run_control;
+      case 'nc_202610040132_normalize_datetime_field_meta_keys':
+        return nc_202610040132_normalize_datetime_field_meta_keys;
     }
   }
 }

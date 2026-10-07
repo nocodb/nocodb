@@ -268,6 +268,8 @@ export type CreditLedgerReasonType =
       rate: number;
       per_seat?: number;
       seats?: number;
+      /** Only the part of the period left at issue time was granted (a trial's first window). */
+      prorated?: boolean;
     }
   /** Mid-period re-price after a plan switch. */
   | {

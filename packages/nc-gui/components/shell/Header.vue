@@ -9,6 +9,8 @@ interface Props {
   docsHref?: string
   /** Clears the corner back button (`ShellBack`), the way `pr-14` clears the close one. */
   leadingInset?: boolean
+  /** A shell hosted as a page has no corner close button to clear. */
+  noCloseInset?: boolean
 }
 
 defineProps<Props>()
@@ -30,8 +32,8 @@ const crumb = computed(() => {
 -->
 <template>
   <div
-    class="flex-none flex flex-wrap items-start gap-x-4 gap-y-3 nc-shell-gutter pt-4 sm:pt-8 pb-3 pr-14 xl:pr-20"
-    :class="{ '!pl-14': leadingInset }"
+    class="flex-none flex flex-wrap items-start gap-x-4 gap-y-3 nc-shell-gutter pt-4 sm:pt-8 pb-3"
+    :class="{ '!pl-14': leadingInset, 'pr-14 xl:pr-20': !noCloseInset }"
     data-testid="nc-tool-header"
   >
     <!-- `min-w-60` is what makes the row wrap: rather than squeeze the title and

@@ -288,7 +288,13 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       const _sharedViewMeta = (viewMeta as any).meta
       sharedViewMeta.value = (isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta) ?? {}
 
-      await setMeta(viewMeta.model)
+      // Self-linking table: merge its trimmed relatedMetas copy — see useSharedView. #10931
+      const relatedMetas = { ...viewMeta.relatedMetas }
+      const model = viewMeta.model
+      if (model?.id) {
+        await setMeta(mergeProjectedMetaColumns(model, relatedMetas[model.id]))
+        delete relatedMetas[model.id]
+      }
 
       // if base is not defined then set it with an object containing source
       if (!base.value?.sources)
@@ -301,8 +307,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
             },
           ],
         })
-
-      const relatedMetas = { ...viewMeta.relatedMetas }
 
       Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
 

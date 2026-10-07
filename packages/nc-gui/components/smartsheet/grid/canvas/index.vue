@@ -29,6 +29,8 @@ import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType, parseCellWidth } f
 import {
   ADD_NEW_COLUMN_WIDTH,
   AGGREGATION_HEIGHT,
+  COLUMN_DRAG_LEFT_SCROLL_ZONE,
+  GROUP_CHUNK_SIZE,
   GROUP_HEADER_HEIGHT,
   GROUP_PADDING,
   MAX_SELECTED_ROWS,
@@ -86,6 +88,7 @@ const props = defineProps<{
     isFailed?: boolean,
     path?: Array<number>,
   ) => Promise<void>
+  updateRowFields?: (row: Row, data: Record<string, any>) => Promise<Record<string, any> | undefined>
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
@@ -131,7 +134,7 @@ const props = defineProps<{
   toggleExpand: (group: CanvasGroup) => void
   toggleExpandAll: (path: Array<number>, expand: boolean) => void
   groupSyncCount: (group?: CanvasGroup, throwError?: boolean, showToastMessage?: boolean) => Promise<void>
-  fetchMissingGroupChunks: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => Promise<void>
+  fetchMissingGroupChunks: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup, force?: boolean) => Promise<void>
   fetchMissingGroupAggregations: (groups: CanvasGroup[]) => void
   clearGroupCache: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => void
 }>()
@@ -153,6 +156,7 @@ const {
   deleteRangeOfRows,
   clearInvalidRows,
   updateRecordOrder,
+  updateRowFields,
   applySorting,
   bulkDeleteAll,
   removeRowIfNew,
@@ -343,6 +347,8 @@ const {
   findClickedColumn,
   findColumnPosition,
   findColumnAtPosition,
+  resolveColumnDropTarget,
+  displayValueDropColumnId,
   dragOver,
   attachmentCellDropOver,
   dragStart,
@@ -462,6 +468,8 @@ const {
   fetchMissingGroupAggregations,
   getDataCache,
   maxSelectionLimit,
+  moveRowToGroup: updateRowFields ? moveRowToGroup : undefined,
+  scrollVerticallyBy,
 })
 
 watch(
@@ -921,8 +929,8 @@ function clearSelection() {
   editEnabled.value = null
 }
 
-async function onGroupRowChange({ row, level }) {
-  const parentGroupPath = row.rowMeta?.path?.slice(0, level)
+async function onGroupRowChange({ row, level, path = row?.rowMeta?.path }: { row?: Row; level: number; path?: number[] }) {
+  const parentGroupPath = path?.slice(0, level)
 
   const parentGroup = parentGroupPath?.length ? findGroupByPath(cachedGroups.value, parentGroupPath) : undefined
 
@@ -960,6 +968,88 @@ async function onGroupRowChange({ row, level }) {
     // if scrolltop is beyond totaheight, reset it to maximum possible value
     scroller.value?.scrollTo({ top: Math.max(0, Math.min(totalHeight.value, scrollTop.value)) })
   }, 150)
+}
+
+// Optimistically drops the row from its group and writes every changed group field in one request.
+async function moveRowToGroup({
+  row,
+  path,
+  targetPath,
+  patch,
+  changedLevel,
+}: {
+  row: Row
+  path: number[]
+  targetPath: number[]
+  patch: Record<string, any>
+  changedLevel: number
+}) {
+  const previousValues = Object.fromEntries(Object.keys(patch).map((title) => [title, row.row[title]]))
+
+  Object.assign(row.row, patch)
+  row.rowMeta.isGroupChanged = true
+  row.rowMeta.changedGroupIndex = changedLevel
+  clearInvalidRows?.(path)
+  triggerRefreshCanvas()
+
+  try {
+    await updateRowFields!(row, patch)
+  } catch (e: any) {
+    Object.assign(row.row, previousValues)
+    message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+  } finally {
+    row.rowMeta.isGroupChanged = false
+    await refreshAfterGroupMove(path, targetPath, changedLevel)
+  }
+}
+
+// Refetches the sibling chunk(s) at the first changed level, keeping untouched siblings' loaded sub-groups.
+// If the source or target index now holds a different group, indices have shifted and the whole level is refreshed.
+async function refreshAfterGroupMove(sourcePath: number[], targetPath: number[], level: number) {
+  const parentPath = sourcePath.slice(0, level)
+  const parentGroup = parentPath.length ? findGroupByPath(cachedGroups.value, parentPath) : undefined
+  if (parentPath.length && !parentGroup) return onGroupRowChange({ level, path: sourcePath })
+
+  const siblings = parentGroup?.groups ?? cachedGroups.value
+  const changedIndexes = [...new Set([sourcePath[level]!, targetPath[level]!])]
+  const keysBefore = changedIndexes.map((index) => siblings.get(index)?.nestedIn[level]?.key)
+
+  const chunkIds = [...new Set(changedIndexes.map((index) => Math.floor(index / GROUP_CHUNK_SIZE)))]
+  const untouchedBefore = new Map<number, CanvasGroup>()
+  for (const chunkId of chunkIds) {
+    for (let index = chunkId * GROUP_CHUNK_SIZE; index < (chunkId + 1) * GROUP_CHUNK_SIZE; index++) {
+      const group = siblings.get(index)
+      if (group && !changedIndexes.includes(index)) untouchedBefore.set(index, group)
+    }
+  }
+
+  await Promise.all(
+    chunkIds.map((chunkId) => fetchMissingGroupChunks(chunkId * GROUP_CHUNK_SIZE, chunkId * GROUP_CHUNK_SIZE, parentGroup, true)),
+  )
+
+  const refreshedSiblings = parentGroup?.groups ?? cachedGroups.value
+  const isShifted = changedIndexes.some((index, i) => refreshedSiblings.get(index)?.nestedIn[level]?.key !== keysBefore[i])
+  if (isShifted) return onGroupRowChange({ level, path: sourcePath })
+
+  for (const [index, group] of untouchedBefore) {
+    if (refreshedSiblings.get(index)?.nestedIn[level]?.key === group.nestedIn[level]?.key) refreshedSiblings.set(index, group)
+  }
+
+  const branchKeys = changedIndexes.map((index) => [...parentPath, index].join('-'))
+  for (const key of groupDataCache.value.keys()) {
+    if (branchKeys.some((branchKey) => key === branchKey || key.startsWith(`${branchKey}-`))) {
+      clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, key.split('-').map(Number))
+    }
+  }
+
+  clearSelection()
+  calculateSlices()
+  triggerRefreshCanvas()
+}
+
+function scrollVerticallyBy(delta: number) {
+  const top = scroller.value?.getScrollPosition().top ?? 0
+  scroller.value?.scrollTo({ top: Math.max(0, Math.min(totalHeight.value, top + delta)) })
 }
 
 function onActiveCellChanged() {
@@ -1682,6 +1772,9 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   }
   // Handle all Column Header Operations
   if (y <= headerRowHeight.value) {
+    // the mouseup ending a column drag is not a header click
+    if (isDragging.value && dragOver.value) return
+
     // If x less than 80px, use is hovering over the row meta column
     if (x < rowMetaColumnWidth.value + groupByColumns.value.length * 13) {
       // If the click is not normal single click, return
@@ -2458,12 +2551,12 @@ const handleMouseMove = (e: MouseEvent) => {
   } else if (isDragging.value || resizeableColumn.value) {
     const fixedWidth = fixedCols.reduce((sum, col) => sum + parseCellWidth(col.width), 0)
 
-    // A frozen-band drag never auto-scrolls: the whole band sits left of
-    // `fixedWidth` (up to 75% of the viewport), so the left-edge test below would
-    // fire for every pointer move — and targets can't cross the divider anyway.
-    const canAutoScroll = !isDragging.value || !columns.value.find((c) => c.id === dragStart.value?.id)?.fixed
+    // Column drags scroll left only just right of the divider, so frozen fields stay drop targets
+    const isInLeftScrollZone = isDragging.value
+      ? mousePosition.x >= fixedWidth && mousePosition.x <= fixedWidth + COLUMN_DRAG_LEFT_SCROLL_ZONE
+      : mousePosition.x <= fixedWidth
 
-    if (canAutoScroll && mousePosition.x >= width.value - 200) {
+    if (mousePosition.x >= width.value - 200) {
       scroller.value?.scrollTo({
         left: scrollLeft.value + 10,
       })
@@ -2492,7 +2585,11 @@ const handleMouseMove = (e: MouseEvent) => {
           }
         }, 0)
       }
-    } else if (canAutoScroll && mousePosition.x <= fixedWidth) {
+    } else if (
+      isInLeftScrollZone &&
+      // hovering the set-as-display-value slot must not scroll the target away
+      !(isDragging.value && resolveColumnDropTarget(mousePosition.x)?.setDisplayValue)
+    ) {
       scroller.value?.scrollTo({
         left: scrollLeft.value - 10,
       })
@@ -4067,6 +4164,15 @@ watch(
       :file-count="dragFileCount"
     />
   </div>
+
+  <LazySmartsheetHeaderUpdateDisplayValue
+    v-if="displayValueDropColumnId"
+    :value="true"
+    :column-id="displayValueDropColumnId"
+    :use-meta-fields="meta?.id !== view?.fk_model_id"
+    source="drag"
+    @update:value="(isOpen) => !isOpen && (displayValueDropColumnId = null)"
+  />
 
   <DlgSendRecordEmail v-model="showSendRecordModal" :meta="meta" :view="view" :row-id="sendRecordRowId" />
   <DlgAttachmentFieldSelect

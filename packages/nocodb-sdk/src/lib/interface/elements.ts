@@ -238,7 +238,20 @@ export interface InterfaceUserFilterTab {
    * record review), which have no visualizations.
    */
   default_viz_id?: string | null;
+  /**
+   * Show a record-count badge on this tab — the count of rows matching the
+   * tab's filters ∧ page filters ∧ RLS (`@me` resolved for the viewer), capped
+   * for display. Default ON (absent = shown); builders turn it off for
+   * archive-style tabs where a big number is noise.
+   */
+  show_count?: boolean;
 }
+
+/**
+ * Response key standing in for the synthetic "All records" tab in the
+ * tab record-count map — that tab has no `id` (it is `null` client-side).
+ */
+export const INTERFACE_ALL_RECORDS_TAB_KEY = '__all_records__';
 
 export enum InterfaceUserFilterDropdownConditions {
   IS = 'is',
@@ -266,6 +279,8 @@ export type InterfaceUserFilterConfig =
       all_records_label?: string | null;
       /** TABLE pages only — the "All records" tab's `default_viz_id` twin (that tab is synthetic, it has no tab object). */
       all_records_default_viz_id?: string | null;
+      /** The "All records" tab's `show_count` twin — default ON. */
+      all_records_show_count?: boolean;
     }
   | {
       type: InterfaceUserFilterTypes.DROPDOWN;

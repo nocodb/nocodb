@@ -2,6 +2,7 @@ import {
   AllowedColumnTypesForQrAndBarcodes,
   enumColors,
   isAIPromptCol,
+  isLinksOrLTAR,
   LinksVersion,
   LongTextAiMetaProp,
   RelationTypes,
@@ -263,6 +264,14 @@ export default class Column<T = any> implements ColumnType {
       }
     }
 
+    // Relation row first: these writes are not atomic, and an interruption must
+    // not leave a live link column whose colOptions is null.
+    const relationFirst = isLinksOrLTAR(column.uidt);
+    if (relationFirst) {
+      insertObj.id ||= await ncMeta.genNanoid(MetaTable.COLUMNS);
+      await this.insertColOption(context, column, insertObj.id, ncMeta);
+    }
+
     const row = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
@@ -279,7 +288,9 @@ export default class Column<T = any> implements ColumnType {
       `${CacheScope.COLUMN}:${row.id}`,
     );
 
-    await this.insertColOption(context, column, row.id, ncMeta);
+    if (!relationFirst) {
+      await this.insertColOption(context, column, row.id, ncMeta);
+    }
 
     await View.insertColumnToAllViews(
       context,
@@ -2151,11 +2162,20 @@ export default class Column<T = any> implements ColumnType {
         'source_id',
         'system',
         'meta',
+        'internal_meta',
         'readonly',
       ]);
 
       if (column.meta && typeof column.meta === 'object') {
         insertObj.meta = JSON.stringify(column.meta);
+      }
+
+      if (
+        insertObj.internal_meta &&
+        typeof insertObj.internal_meta === 'object'
+      ) {
+        validateColumnInternalMeta(insertObj.internal_meta);
+        insertObj.internal_meta = JSON.stringify(insertObj.internal_meta);
       }
 
       if (column.validate) {

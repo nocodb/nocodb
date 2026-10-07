@@ -10,14 +10,11 @@ const { t } = useI18n()
 const workspaceStore = useWorkspace()
 
 const { activeWorkspaceId, activeWorkspace, workspaceUserCount } = storeToRefs(workspaceStore)
-const { loadCollaborators } = workspaceStore
 
 const basesStore = useBases()
 const { isProjectsLoaded, basesList } = storeToRefs(basesStore)
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
-
-const { isUIAllowed } = useRoles()
 
 const { wsTabVisibility } = useWorkspaceTabVisibility(activeWorkspace)
 
@@ -67,17 +64,9 @@ const navItems = computed<NavItem[]>(() => {
   ].filter((item) => !item.hidden)
 })
 
-const activeNavKey = computed(() => {
-  if (isWsAdminRoute(route.value)) return 'admin'
-
-  return routeNameToWsTab[route.value.name as string] || 'bases'
-})
+const activeNavKey = computed(() => routeNameToWsTab[route.value.name as string] || 'bases')
 
 function onNavClick(item: NavItem) {
-  if (item.key === 'collaborators' && isUIAllowed('workspaceCollaborators')) {
-    loadCollaborators({}, activeWorkspaceId.value)
-  }
-
   const typeOrId = route.value.params.typeOrId || activeWorkspaceId.value || 'nc'
 
   router.push({ name: wsTabToRouteName[item.key] || 'index-typeOrId', params: { typeOrId } })

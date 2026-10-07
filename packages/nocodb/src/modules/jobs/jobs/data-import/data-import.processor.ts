@@ -279,6 +279,7 @@ export class DataImportProcessor {
           valuesUnmatched,
           linksFailed,
           errorsCount,
+          tableIds: results.map((r) => r.tableId),
           ...(sampleError ? { sampleError } : {}),
         }),
         true,

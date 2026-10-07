@@ -2,11 +2,14 @@
 interface Props {
   size?: number
   animate?: boolean
+  /** Render in flow instead of floating over the top edge of a card. */
+  inline?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   size: 90,
   animate: false,
+  inline: false,
 })
 
 const { size, animate } = toRefs(props)
@@ -31,8 +34,9 @@ const onClick = useThrottleFn(() => {
 
 <template>
   <div
-    :style="{ left: `calc(50% - ${size / 2}px)`, top: `-${size / 2}px` }"
-    class="color-transition absolute rounded-lg pt-1 pl-1 -ml-1"
+    :style="inline ? undefined : { left: `calc(50% - ${size / 2}px)`, top: `-${size / 2}px` }"
+    class="color-transition rounded-lg"
+    :class="inline ? 'relative inline-block' : 'absolute pt-1 pl-1 -ml-1'"
     @click="onClick"
   >
     <div class="relative">

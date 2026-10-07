@@ -705,6 +705,13 @@ interface FillHandlerPosition {
   fixedCol: boolean
 }
 
+interface ColumnDragOver {
+  id: string
+  index: number
+  // drop on the display value slot: set the dragged field as display value instead of reordering
+  setDisplayValue?: boolean
+}
+
 interface CanvasGridColumn {
   id: string
   grid_column_id: string
@@ -843,6 +850,27 @@ interface PermissionSelectorUser {
   display_name?: string | null
   type?: 'user' | 'team' | 'appTeam' | 'agent'
   hierarchy_scope?: 'self_only' | 'self_and_descendants'
+}
+
+/** A user offered in the "Specific users" pool beyond the base members (e.g. interface-only collaborators). */
+interface PermissionPoolUser {
+  id: string
+  email: string
+  display_name?: string | null
+  /** Base-role-shaped role so the minimum-role filter can place them; viewer when unknown. */
+  roles?: string
+  meta?: Record<string, any> | string | null
+}
+
+/** A team offered in the "Specific users" pool beyond the base teams — shaped like a base-team row. */
+interface PermissionPoolTeam {
+  team_id: string
+  team_title: string
+  team_icon?: string | null
+  team_icon_type?: string | null
+  team_badge_color?: string | null
+  /** Base-role-shaped role so the minimum-role filter can place it; viewer when unknown. */
+  base_role?: string
 }
 
 // NcList type starts here
@@ -1259,6 +1287,7 @@ export type {
   CellRendererOptions,
   CellRenderStore,
   CanvasGridColumn,
+  ColumnDragOver,
   FillHandlerPosition,
   ParsePlainCellValueProps,
   CanvasEditEnabledType,
@@ -1272,6 +1301,8 @@ export type {
   SharedPageTitle,
   PermissionConfig,
   PermissionSelectorUser,
+  PermissionPoolUser,
+  PermissionPoolTeam,
   NcListProps,
   NcListItemProps,
   NcListItemType,

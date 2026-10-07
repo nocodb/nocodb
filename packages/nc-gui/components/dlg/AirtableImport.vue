@@ -429,7 +429,7 @@ const collapseKey = ref('')
 
           <a-input-password
             v-model:value="syncSource.details.apiKey"
-            placeholder="Enter your Airtable Personal Access Token"
+            :placeholder="$t('placeholder.airtablePersonalAccessToken')"
             class="!rounded-lg mt-2 nc-input-api-key nc-input-shadow !text-nc-content-gray"
           >
             <template #iconRender="isVisible">
@@ -442,7 +442,7 @@ const collapseKey = ref('')
           <label class="text-nc-content-gray text-sm"> {{ `${$t('labels.sharedBase')} ID/URL` }} </label>
           <a-input
             v-model:value="syncSource.details.syncSourceUrlOrId"
-            placeholder="Paste the Base URL or Base ID from Airtable"
+            :placeholder="$t('placeholder.airtableBaseUrlOrId')"
             class="!rounded-lg !mt-2 nc-input-shared-base nc-input-shadow !text-nc-content-gray"
           />
         </a-form-item>
@@ -568,7 +568,9 @@ const collapseKey = ref('')
       </div>
 
       <div v-if="!isInProgress" class="text-right mt-5">
-        <nc-button v-if="lastProgress?.status === JobStatus.FAILED" size="small" @click="step = 1"> Retry import </nc-button>
+        <nc-button v-if="lastProgress?.status === JobStatus.FAILED" size="small" @click="step = 1">
+          {{ $t('labels.retryImport') }}
+        </nc-button>
         <nc-button v-else size="small" @click="dialogShow = false"> {{ $t('labels.goToBase') }} </nc-button>
       </div>
     </div>

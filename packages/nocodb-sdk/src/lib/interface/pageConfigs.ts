@@ -17,6 +17,7 @@ import type {
 import { InterfacePageLayoutTypes } from './enums';
 import { isSystemColumn } from '~/lib/helperFunctions';
 import { generateRandomUuid } from '~/lib/stringHelpers';
+import type { DateAxisUtilizationConfig } from '../timelineUtilization';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Visualizations (table pages; also embeddable in dashboard groups)
@@ -279,7 +280,7 @@ export interface DateAxisSummaryConfig {
   /** One of the aggregation enums (see `aggregationHelper` in nocodb-sdk). */
   aggregation: string;
   /** `function` → show the aggregation's name; `custom` → show `custom_label`. */
-  label?: 'function' | 'custom';
+  label?: 'none' | 'function' | 'custom';
   custom_label?: string;
   /**
    * Where the summary is rendered. An omitted key means `true`, so summaries
@@ -290,6 +291,8 @@ export interface DateAxisSummaryConfig {
     bottom_bar?: boolean;
     groups?: boolean;
   };
+  /** Present when `aggregation` is `utilization`; `fk_column_id` is the allocated-hours field. */
+  utilization?: DateAxisUtilizationConfig;
 }
 
 export interface InterfaceCalendarVizConfig

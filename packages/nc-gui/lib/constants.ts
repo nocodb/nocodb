@@ -279,5 +279,3 @@ export const clampFrozenFieldCount = (value: unknown): number =>
 
 /** Virtual section ID for views not assigned to any real section */
 export const DEFAULT_SECTION_ID = '__default__'
-
-export const showWsSettingsInBase = false

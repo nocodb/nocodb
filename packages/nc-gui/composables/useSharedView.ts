@@ -108,7 +108,14 @@ export function useSharedView() {
       meta.value.columns = [...viewMeta.model.columns].map((c) => ({ ...c, order: order++ })).sort((a, b) => a.order - b.order)
     }
 
-    await setMeta(viewMeta.model)
+    // A self-linking table is also in relatedMetas, trimmed to pk/pv + lookup/rollup
+    // targets — merge it in so neither copy's columns are lost. #10931
+    const relatedMetas = { ...viewMeta.relatedMetas }
+    const model = viewMeta.model
+    if (model?.id) {
+      await setMeta(mergeProjectedMetaColumns(model, relatedMetas[model.id]))
+      delete relatedMetas[model.id]
+    }
 
     // if base is not defined then set it with an object containing source
     if (!base.value?.sources)
@@ -123,7 +130,6 @@ export function useSharedView() {
         ],
       })
 
-    const relatedMetas = { ...viewMeta.relatedMetas }
     Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
 
     if (viewMeta.users) {

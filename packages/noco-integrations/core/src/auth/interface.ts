@@ -68,19 +68,25 @@ export abstract class AuthIntegration<TConfig = any, TClient = any> extends Inte
 
   /**
    * Wraps a client call with token refresh & retry support.
-   * Automatically reauthenticates if needed.
+   * Automatically reauthenticates if needed. A given `signal` is only checked
+   * between steps; `fn` must forward it to its own request to abort mid-call.
    */
-  public async use<T>(fn: (client: TClient) => Promise<T>): Promise<T> {
+  public async use<T>(
+    fn: (client: TClient) => Promise<T>,
+    options?: { signal?: AbortSignal },
+  ): Promise<T> {
     if (!this.client) {
       this.client = await this.authenticate();
     }
 
+    options?.signal?.throwIfAborted();
     try {
       return await fn(this.client);
     } catch (err: any) {
       if (this.shouldRefreshToken(err)) {
         await this.refreshTokenIfNeeded();
         if (!this.client) this.client = await this.authenticate();
+        options?.signal?.throwIfAborted();
         return await fn(this.client);
       }
       throw err;

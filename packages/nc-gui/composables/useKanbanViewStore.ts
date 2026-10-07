@@ -1225,7 +1225,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
   'kanban-view-store',
 )
 
-export { useProvideKanbanViewStore }
+export { useProvideKanbanViewStore, useKanbanViewStore }
 
 export function useKanbanViewStoreOrThrow() {
   const kanbanViewStore = useKanbanViewStore()

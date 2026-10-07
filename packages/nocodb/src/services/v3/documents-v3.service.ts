@@ -25,26 +25,35 @@ import { assertNotLaneInstance } from '~/helpers/environmentGuards';
 export class DocumentsV3Service {
   constructor(protected readonly documentsService: DocumentsService) {}
 
+  /**
+   * SECURITY: `req` carries the caller — the EE service applies
+   * DOCUMENT_VISIBILITY filtering and the `has_children` correction only when
+   * it is present. Every call-site must pass it.
+   */
   async docList(
     context: NcContext,
     param: {
       baseId: string;
       parentId: string | null;
     },
+    req?: NcRequest,
   ): Promise<DocumentV3ListResponseType> {
     const docs = await this.documentsService.list(
       context,
       param.baseId,
       param.parentId,
+      req,
     );
     return { list: docs.map(toDocumentV3ListItem) };
   }
 
+  /** SECURITY: see `docList` — `req` is what enforces DOCUMENT_VISIBILITY. */
   async docGet(
     context: NcContext,
     param: { docId: string },
+    req?: NcRequest,
   ): Promise<DocumentV3Type> {
-    const doc = await this.documentsService.get(context, param.docId);
+    const doc = await this.documentsService.get(context, param.docId, req);
 
     if (!doc) {
       NcError.get(context).genericNotFound('Document', param.docId);
@@ -136,6 +145,9 @@ export class DocumentsV3Service {
 
     if (body.order == null && body.parent_id !== undefined) {
       const targetParentId = body.parent_id === null ? null : body.parent_id;
+      // Deliberately unfiltered (no `req`): the next order has to clear every
+      // sibling, including ones hidden from this caller, or the moved doc
+      // collides with one it cannot see.
       const siblings = await this.documentsService.list(
         context,
         context.base_id,

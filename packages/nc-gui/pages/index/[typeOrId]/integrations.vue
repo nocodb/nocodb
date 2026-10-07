@@ -6,5 +6,5 @@ definePageMeta({
 </script>
 
 <template>
-  <WorkspaceView is-new-ws-page />
+  <WorkspaceHomePane pane="integrations" />
 </template>

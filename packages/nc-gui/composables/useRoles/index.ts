@@ -209,6 +209,9 @@ export const useRolesShared = createSharedComposable(() => {
 
   const isBaseRolesLoaded = computed(() => !!user.value?.base_roles || !!user.value?.workspace_roles)
 
+  // CE has one workspace, so loaded roles are always its roles.
+  const isWorkspaceRolesLoaded = (_workspaceId?: string) => isBaseRolesLoaded.value
+
   // CE has no environments concept — always returns null so CE behavior is identical to before.
   const environmentRestrictionReason = (..._args: any[]): string | null => null
 
@@ -225,6 +228,7 @@ export const useRolesShared = createSharedComposable(() => {
     loadRoles,
     isUIAllowed,
     isBaseRolesLoaded,
+    isWorkspaceRolesLoaded,
     environmentRestrictionReason,
   }
 })

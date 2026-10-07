@@ -396,20 +396,20 @@ function handleAutoScroll(scroll: boolean, className: string) {
               <div class="nc-form-section-body">
                 <a-row :gutter="24">
                   <a-col :span="12">
-                    <a-form-item label="Data Source Name" v-bind="validateInfos.title">
+                    <a-form-item :label="$t('labels.dataSourceName')" v-bind="validateInfos.title">
                       <a-input v-model:value="formState.title" class="nc-extdb-proj-name" />
                     </a-form-item>
                   </a-col>
                 </a-row>
                 <a-row :gutter="24">
                   <a-col :span="12">
-                    <a-form-item label="Select connection">
+                    <a-form-item :label="$t('placeholder.selectConnection')">
                       <NcSelect
                         :value="formState.fk_integration_id"
                         disabled
                         class="nc-extdb-db-type nc-select-shadow"
                         dropdown-class-name="nc-dropdown-ext-db-type"
-                        placeholder="Select connection"
+                        :placeholder="$t('placeholder.selectConnection')"
                         allow-clear
                         show-search
                         dropdown-match-select-width
@@ -550,7 +550,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
                     class="!-ml-1.5"
                     @click="handleUpdateAdvancedOptionsExpansionPanel(!advancedOptionsExpansionPanel.length)"
                   >
-                    <div class="nc-form-section-title">Advanced options</div>
+                    <div class="nc-form-section-title">{{ $t('labels.advancedOptions') }}</div>
 
                     <GeneralIcon
                       icon="chevronDown"

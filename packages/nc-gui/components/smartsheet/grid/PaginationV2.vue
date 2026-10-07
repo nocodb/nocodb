@@ -107,16 +107,7 @@ const size = computed({
 
 const getAddnlMargin = (depth: number, ignoreCondition = false) => {
   if (!ignoreCondition ? (scrollLeft.value ?? 0) < 30 : true) {
-    switch (depth) {
-      case 3:
-        return 26
-      case 2:
-        return 17
-      case 1:
-        return 8
-      default:
-        return 0
-    }
+    return depth > 0 ? depth * 9 - 1 : 0
   }
   return 0
 }

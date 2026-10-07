@@ -42,7 +42,8 @@ import { useGridCellHandler } from '../cells'
 import { TableMetaLoader } from '../loaders/TableMetaLoader'
 import type { CanvasGridColumn } from '../../../../../lib/types'
 import { CanvasElement } from '../utils/CanvasElement'
-import { calculateGroupRowTop, isGroupExpanded } from '../utils/groupby'
+import { calculateGroupRowTop, findGroupByPath, isGroupExpanded } from '../utils/groupby'
+import { type GroupMoveBlockReason, getGroupLevelBlockReason, resolveGroupMove } from '../utils/groupMove'
 import { BaseRoleLoader } from '../loaders/BaseRoleLoader'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
@@ -52,7 +53,7 @@ import { normalizeWidth, useColumnResize } from './useColumnResize'
 import { useKeyboardNavigation } from './useKeyboardNavigation'
 import { useMouseSelection } from './useMouseSelection'
 import { useFillHandler } from './useFillHandler'
-import { useRowReorder } from './useRowReOrder'
+import { type RowDropTarget, useRowReorder } from './useRowReOrder'
 import { type BulkLtarOp, useCopyPaste } from './useCopyPaste'
 
 export function useCanvasTable({
@@ -96,6 +97,8 @@ export function useCanvasTable({
   fetchMissingGroupAggregations,
   getDataCache,
   maxSelectionLimit,
+  moveRowToGroup,
+  scrollVerticallyBy,
 }: {
   rowHeightEnum?: Ref<number | undefined>
   cachedRows: Ref<Map<number, Row>>
@@ -184,7 +187,7 @@ export function useCanvasTable({
   >
   toggleExpand: (group: CanvasGroup) => void
   groupSyncCount: (group?: CanvasGroup) => Promise<void>
-  fetchMissingGroupChunks: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => Promise<void>
+  fetchMissingGroupChunks: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup, force?: boolean) => Promise<void>
   fetchMissingGroupAggregations: (groups: CanvasGroup[]) => void
   getDataCache: (path?: Array<number>) => {
     cachedRows: Ref<Map<number, Row>>
@@ -194,6 +197,14 @@ export function useCanvasTable({
     isRowSortRequiredRows: ComputedRef<Array<Row>>
   }
   maxSelectionLimit: ComputedRef<number>
+  moveRowToGroup?: (params: {
+    row: Row
+    path: number[]
+    targetPath: number[]
+    patch: Record<string, any>
+    changedLevel: number
+  }) => Promise<void>
+  scrollVerticallyBy: (delta: number) => void
 }) {
   const { metas, getMeta, getPartialMeta } = useMetas()
   const { getBaseRoles } = useBases()
@@ -218,7 +229,7 @@ export function useCanvasTable({
   })
   const editEnabled = ref<CanvasEditEnabledType>(null)
   const isFillMode = ref(false)
-  const dragOver = ref<{ id: string; index: number } | null>(null)
+  const dragOver = ref<ColumnDragOver | null>(null)
   const attachmentCellDropOver = ref<AttachmentCellDropOverType | null>(null)
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
@@ -232,6 +243,7 @@ export function useCanvasTable({
   const draggedRowIndex = ref(-1)
   const draggedRowGroupPath = ref([])
   const targetRowIndex = ref(-1)
+  const rowDropTarget = shallowRef<RowDropTarget | null>(null)
   const upgradeModalInlineState = ref({
     isHoveredLearnMore: false,
     isHoveredUpgrade: false,
@@ -440,9 +452,9 @@ export function useCanvasTable({
     () => isUIAllowed('fieldAdd') && (!interfacePageDataApi || !!interfacePageDataApi.canConfigureFields?.value),
   )
 
-  const isRowDraggingEnabled = computed(
-    // Role term — reorder writes dataMove (editor+) and the optimistic shuffle
-    // is not reverted on failure.
+  // Role term — reorder writes dataMove (editor+) and the optimistic shuffle
+  // is not reverted on failure.
+  const canReorderWithinGroup = computed(
     () =>
       isDataEditAllowed.value &&
       !readOnly.value &&
@@ -450,6 +462,58 @@ export function useCanvasTable({
       !isRowReorderDisabled.value &&
       !isMobileMode.value,
   )
+
+  function canEditFieldForGroupMove(column: ColumnType) {
+    if (interfacePageDataApi?.fieldConfigs?.value?.[column.id!]?.edit_inline === false) return false
+    return isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)
+  }
+
+  // Moving a record to another group only writes its group-by fields, so sorts and the order column don't apply.
+  const isGroupMoveEnabled = computed(
+    () =>
+      isGroupBy.value &&
+      !!moveRowToGroup &&
+      isDataEditAllowed.value &&
+      !readOnly.value &&
+      isPrimaryKeyAvailable.value &&
+      !meta.value?.synced &&
+      !meta.value?.mm &&
+      !isMobileMode.value &&
+      groupByColumns.value.some(({ column }) => !getGroupLevelBlockReason(column, canEditFieldForGroupMove)),
+  )
+
+  const isRowDraggingEnabled = computed(() => canReorderWithinGroup.value || isGroupMoveEnabled.value)
+
+  const groupMoveBlockedMessageKeys: Record<GroupMoveBlockReason, string> = {
+    readonly: 'msg.info.groupMoveBlockedReadonly',
+    link: 'msg.info.groupMoveBlockedLink',
+    dateTime: 'msg.info.groupMoveBlockedDateTime',
+    permission: 'msg.info.groupMoveBlockedPermission',
+    required: 'msg.info.groupMoveBlockedRequired',
+    missing: 'msg.info.groupMoveBlockedMissing',
+  }
+
+  function resolveDropTarget(sourcePath: number[], target: CanvasGroup) {
+    const sourceGroup = findGroupByPath(cachedGroups.value, sourcePath)
+    if (!sourceGroup) return null
+
+    const result = resolveGroupMove(
+      sourceGroup.nestedIn,
+      target.nestedIn,
+      (meta.value?.columns ?? []) as ColumnType[],
+      canEditFieldForGroupMove,
+    )
+
+    if (result.blocked) {
+      return {
+        blockedMessage: t(groupMoveBlockedMessageKeys[result.blocked.reason], { field: result.blocked.column.title }),
+      }
+    }
+
+    if (!Object.keys(result.patch).length) return null
+
+    return { patch: result.patch, changedLevel: result.changedLevel }
+  }
 
   const isAddingEmptyRowAllowed = computed(
     () =>
@@ -1442,6 +1506,7 @@ export function useCanvasTable({
     isDragging,
     draggedRowIndex,
     targetRowIndex,
+    rowDropTarget,
     actionManager,
     renderCell,
     updateFrameTimestamp,
@@ -1495,6 +1560,13 @@ export function useCanvasTable({
     updateRecordOrder,
     elementMap,
     getDataCache,
+    cachedGroups,
+    rowDropTarget,
+    canReorderWithinGroup,
+    isGroupMoveEnabled,
+    resolveDropTarget,
+    moveRowToGroup,
+    scrollVerticallyBy,
   })
 
   const { fetchChunk, updateVisibleRows } = useDataFetch({
@@ -1668,6 +1740,8 @@ export function useCanvasTable({
     dragStart: columnDragStart,
     startDrag,
     findColumnAtPosition,
+    resolveDropTarget: resolveColumnDropTarget,
+    displayValueDropColumnId,
   } = useColumnReorder(
     canvasRef,
     columns,
@@ -1692,7 +1766,9 @@ export function useCanvasTable({
 
       if (nextToViewCol === null && lastViewCol === null) return
 
-      const newOrder = nextToViewCol ? toViewCol.order + (nextToViewCol.order - toViewCol.order) / 2 : lastViewCol.order + 1
+      // the display value is pinned first but isn't always lowest-order (interface `field_order`)
+      const lowerOrder = toCol.pv && nextToViewCol ? Math.min(toViewCol.order, nextToViewCol.order - 1) : toViewCol.order
+      const newOrder = nextToViewCol ? lowerOrder + (nextToViewCol.order - lowerOrder) / 2 : lastViewCol.order + 1
 
       toBeReorderedViewCol.order = newOrder
 
@@ -2215,6 +2291,8 @@ export function useCanvasTable({
     renderCanvasDirect,
     startDrag,
     findColumnAtPosition,
+    resolveColumnDropTarget,
+    displayValueDropColumnId,
     findClickedColumn,
     findColumnPosition,
     isRecordSelectedInSelectedAllRecords,

@@ -1,6 +1,9 @@
 import { Modal } from 'ant-design-vue'
 import { getI18n } from '../plugins/a.i18n'
 
+// VueUse 10's usePermission never removes its PermissionStatus listeners, so create one clipboard for the app
+const useSharedClipboard = createGlobalState(() => useClipboard())
+
 export const useCopy = (showDialogIfFailed = false) => {
   const { t } = getI18n().global
 
@@ -43,7 +46,7 @@ export const useCopy = (showDialogIfFailed = false) => {
     }
   }
 
-  const { copy: _copy, isSupported } = useClipboard()
+  const { copy: _copy, isSupported } = useSharedClipboard()
 
   const copy = async (text: string) => {
     try {

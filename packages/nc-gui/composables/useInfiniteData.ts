@@ -20,6 +20,7 @@ import {
   isOrderCol,
   isSystemColumn,
 } from 'nocodb-sdk'
+import axios from 'axios'
 import type { CanvasGroup } from '../lib/types'
 import type { InterfacePageDataApi } from '../lib/interfaceData'
 import { isInterfaceSyntheticViewId } from '../lib/interfaceData'
@@ -160,6 +161,7 @@ export function useInfiniteData(args: {
     totalRowsWithoutSearchQuery,
     fetchTotalRowsWithSearchQuery,
     whereQueryFromUrl,
+    searchAbortSignal,
     eventBus,
   } = disableSmartsheet
     ? {
@@ -173,6 +175,7 @@ export function useInfiniteData(args: {
         totalRowsWithoutSearchQuery: ref(0),
         fetchTotalRowsWithSearchQuery: computed(() => false),
         whereQueryFromUrl: computed(() => ''),
+        searchAbortSignal: ref<AbortSignal | undefined>(),
         eventBus: useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore),
       }
     : useSmartsheetStoreOrThrow()
@@ -411,7 +414,7 @@ export function useInfiniteData(args: {
       dataCache.chunkStates.value[chunkId] = 'loaded'
       invalidateChunksAt(dataCache.chunkStates.value, removed, CHUNK_SIZE, [chunkId])
     } catch (error) {
-      console.error('Error fetching chunk:', error)
+      if (!axios.isCancel(error)) console.error('Error fetching chunk:', error)
       dataCache.chunkStates.value[chunkId] = undefined
     }
   }
@@ -499,7 +502,7 @@ export function useInfiniteData(args: {
       })
       dataCache.chunkStates.value[chunkId] = 'loaded'
     } catch (error) {
-      console.error('Error fetching chunk:', error)
+      if (!axios.isCancel(error)) console.error('Error fetching chunk:', error)
       dataCache.chunkStates.value[chunkId] = undefined
       throw error
     }
@@ -593,6 +596,7 @@ export function useInfiniteData(args: {
               baseId: meta.value.base_id!,
             },
             bulkRequests,
+            { signal: searchAbortSignal.value },
           )
         : await fetchBulkListData({}, bulkRequests)
 
@@ -661,6 +665,17 @@ export function useInfiniteData(args: {
         }
       }
     } catch (error) {
+      // Superseded by a newer search term. The individual fallback would only re-issue every chunk
+      // against the same aborted signal, so reset them for the new term's fetch and stop here.
+      if (axios.isCancel(error)) {
+        for (const request of batch) {
+          // Skip stale group requests — getDataCache would leave a placeholder cache behind.
+          if (!isStaleChunkRequest(request)) getDataCache(request.path).chunkStates.value[request.chunkId] = undefined
+          request.resolve(undefined)
+        }
+        return
+      }
+
       // A single out-of-range chunk (offset >= row count) fails the WHOLE bulk
       // request. That's benign and recoverable — the individual fallback below
       // handles each chunk gracefully (loadData returns [] for
@@ -892,22 +907,29 @@ export function useInfiniteData(args: {
             nestedFiltersArr: jsonWhereFilterArr,
           })
         : !isPublic?.value
-        ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
-            ...params,
-            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value?.filter((s) => !s.id)) }),
-            ...(isUIAllowed('filterSync')
-              ? { filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr) }
-              : {
-                  filterArrJson: stringifyFilterOrSortArr([
-                    ...(nestedFilters.value || []).filter((f) => !f.id),
-                    ...jsonWhereFilterArr,
-                  ]),
-                }),
-            includeSortAndFilterColumns: true,
-            where: whereFilter,
-            include_row_color: true,
-            include_button_filter_columns: true,
-          } as any)
+        ? await $api.dbViewRow.list(
+            'noco',
+            base.value.id!,
+            meta.value!.id!,
+            viewMeta.value!.id!,
+            {
+              ...params,
+              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value?.filter((s) => !s.id)) }),
+              ...(isUIAllowed('filterSync')
+                ? { filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr) }
+                : {
+                    filterArrJson: stringifyFilterOrSortArr([
+                      ...(nestedFilters.value || []).filter((f) => !f.id),
+                      ...jsonWhereFilterArr,
+                    ]),
+                  }),
+              includeSortAndFilterColumns: true,
+              where: whereFilter,
+              include_row_color: true,
+              include_button_filter_columns: true,
+            } as any,
+            { signal: searchAbortSignal.value },
+          )
         : await fetchSharedViewData(
             {
               sortsArr: sorts.value,
@@ -936,6 +958,12 @@ export function useInfiniteData(args: {
 
       return data
     } catch (error: any) {
+      // Superseded by a newer search term. Rethrow so callers reset their chunk state (they all
+      // catch) instead of caching an empty chunk as loaded; the new term's fetch fills it.
+      if (axios.isCancel(error)) {
+        throw error
+      }
+
       if (error?.response?.data.error === 'ERR_INVALID_OFFSET_VALUE') {
         return []
       }
@@ -1597,6 +1625,23 @@ export function useInfiniteData(args: {
     }
   }
 
+  // One request for several fields, so a cross-group move is a single undo entry.
+  async function updateRowFields(toUpdate: Row, data: Record<string, any>) {
+    const id = extractPkFromRow(toUpdate.row, meta.value?.columns as ColumnType[])
+
+    return interfaceDataApi
+      ? await interfaceDataApi.updateRow(id, data)
+      : await $api.dbViewRow.update(
+          NOCO,
+          meta.value?.base_id ?? (base?.value.id as string),
+          meta.value?.id as string,
+          viewMeta.value?.id as string,
+          encodeURIComponent(id),
+          data,
+          { typecast: 'true' },
+        )
+  }
+
   async function updateRowProperty(
     toUpdate: Row,
     property: string,
@@ -1972,12 +2017,19 @@ export function useInfiniteData(args: {
             filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
             where: whereFilter,
           })
-        : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string, {
-            where: whereFilter,
-            ...(isUIAllowed('filterSync')
-              ? { filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr) }
-              : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
-          })
+        : await $api.dbViewRow.count(
+            NOCO,
+            base?.value?.id as string,
+            meta.value!.id as string,
+            viewMeta?.value?.id as string,
+            {
+              where: whereFilter,
+              ...(isUIAllowed('filterSync')
+                ? { filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr) }
+                : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
+            },
+            { signal: searchAbortSignal.value },
+          )
 
       if (fetchTotalRowsWithSearchQuery.value) {
         const { count: _count } = interfaceDataApi
@@ -1991,14 +2043,21 @@ export function useInfiniteData(args: {
               filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
               where: whereQueryFromUrl.value as string,
             })
-          : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string, {
-              where: whereQueryFromUrl.value as string,
-              ...(isUIAllowed('filterSync')
-                ? {
-                    filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr),
-                  }
-                : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
-            })
+          : await $api.dbViewRow.count(
+              NOCO,
+              base?.value?.id as string,
+              meta.value!.id as string,
+              viewMeta?.value?.id as string,
+              {
+                where: whereQueryFromUrl.value as string,
+                ...(isUIAllowed('filterSync')
+                  ? {
+                      filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr),
+                    }
+                  : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
+              },
+              { signal: searchAbortSignal.value },
+            )
         if (!disableSmartsheet && !path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
           totalRowsWithoutSearchQuery.value = Math.max(Math.min(200, _count as number), _count as number)
         } else {
@@ -2018,6 +2077,9 @@ export function useInfiniteData(args: {
 
       callbacks?.syncVisibleData?.()
     } catch (error: any) {
+      // Superseded by a newer search term — the count it would have written is already stale.
+      if (axios.isCancel(error)) return
+
       // Interface page deleted mid-flight — page-delete navigations race the
       // debounced count sync, the server rightly 404s, and this canvas is
       // already unmounting. A toast here is pure noise.
@@ -2703,6 +2765,7 @@ export function useInfiniteData(args: {
     loadAggCommentsCount,
     navigateToSiblingRow,
     updateRecordOrder,
+    updateRowFields,
     selectedAllRecords,
     selectedAllRecordsSkipPks,
     getRows,

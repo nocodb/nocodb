@@ -174,7 +174,7 @@ onMounted(() => {
       <div v-show="isPanelExpanded" class="flex flex-col h-full">
         <div
           ref="extensionHeaderRef"
-          class="h-[var(--toolbar-height)] flex items-center gap-3 px-4 py-2 border-b-1 border-nc-border-gray-medium bg-nc-bg-default"
+          class="h-[var(--toolbar-height)] flex items-center gap-2 px-4 py-2 border-b-1 border-nc-border-gray-medium bg-nc-bg-default"
         >
           <div
             class="flex"
@@ -208,7 +208,7 @@ onMounted(() => {
                 v-model:value="searchQuery"
                 type="text"
                 class="nc-input-border-on-value !h-7 !px-3 !py-1 !rounded-lg"
-                placeholder="Search Extension"
+                :placeholder="$t('placeholder.searchExtension')"
                 allow-clear
                 @keydown.esc="handleCloseSearchbox"
               >
@@ -227,13 +227,25 @@ onMounted(() => {
               {{ $t('general.add') }}
             </div>
           </NcButton>
+          <NcTooltip :title="$t('general.close')">
+            <NcButton
+              v-e="['c:extension-toggle']"
+              size="xs"
+              type="text"
+              :aria-label="$t('general.close')"
+              data-testid="nc-extension-pane-close"
+              class="!px-1"
+              @click="toggleExtensionPanel"
+            >
+              <GeneralIcon icon="close" class="w-4 h-4" />
+            </NcButton>
+          </NcTooltip>
         </div>
         <template v-if="extensionList.length === 0">
           <div class="flex-1 flex items-center justify-center flex-col gap-4 w-full nc-scrollbar-md text-center p-4">
-            <div class="text-base font-bold text-nc-content-gray">Supercharge Your Workflow with Extensions</div>
+            <div class="text-base font-bold text-nc-content-gray">{{ $t('labels.extensionsEmptyTitle') }}</div>
             <div class="text-sm text-nc-content-gray-subtle2">
-              Unlock powerful scripts and tools to enhance how you work with your databases. Get started by exploring available
-              extensions.
+              {{ $t('msg.info.extensionsEmptyDescription') }}
             </div>
             <NcButton size="small" @click="toggleMarket">
               <div class="flex items-center gap-1 -ml-3px">

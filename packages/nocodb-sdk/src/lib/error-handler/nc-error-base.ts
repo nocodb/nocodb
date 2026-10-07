@@ -278,6 +278,16 @@ export class NcErrorBase {
     });
   }
 
+  workflowExecutionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_WORKFLOW_EXECUTION_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      },
+    );
+  }
+
   agentNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_AGENT_NOT_FOUND, {
       params: id,

@@ -1,5 +1,5 @@
 import { parseCellWidth } from '../utils/cell'
-import { getColumnDropTargetIndex } from '../utils/headerUtils'
+import { getColumnDropTargetIndex, getDisplayValueDropSlot } from '../utils/headerUtils'
 
 export function useColumnReorder(
   canvasRef: Ref<HTMLCanvasElement | undefined>,
@@ -7,12 +7,17 @@ export function useColumnReorder(
   colSlice: Ref<{ start: number; end: number }>,
   scrollLeft: Ref<number>,
   drawCanvas: () => void,
-  dragOver: Ref<{ id: string; index: number } | null>,
+  dragOver: Ref<ColumnDragOver | null>,
   emit: (event: string, ...args: any[]) => void,
   isViewOperationsAllowed: ComputedRef<boolean>,
 ) {
   const isLocked = inject(IsLockedInj, ref(false))
+  const { isUIAllowed } = useRoles()
+  const { isSyncedTable, isSqlView } = useSmartsheetStoreOrThrow()
+  const isInterfaceUi = useIsInterfaceUi()
   const isDragging = ref(false)
+  // field dropped on the display value slot — opens the change-display-value modal
+  const displayValueDropColumnId = ref<string | null>(null)
   const dragStart = ref<{
     id: string
     index: number
@@ -20,12 +25,6 @@ export function useColumnReorder(
   } | null>(null)
 
   const findColumnAtPosition = (x: number) => {
-    // While a drag is in progress, targets must stay on the same side of the
-    // freeze divider — fields can be reordered within the frozen band or within
-    // the scrollable area, never across.
-    const sourceCol = dragStart.value ? columns.value.find((c) => c.id === dragStart.value!.id) : null
-    const matchesSide = (col: CanvasGridColumn) => !sourceCol || !!col.fixed === !!sourceCol.fixed
-
     let currentX = 0
     const fixedCols = columns.value.filter((col) => col.fixed)
     for (const col of fixedCols) {
@@ -33,7 +32,7 @@ export function useColumnReorder(
       if (x >= currentX && x < currentX + width) {
         // row-number gutter is never a drag source/target
         if (!col.uidt) return null
-        return matchesSide(col) ? col : null
+        return col
       }
       currentX += width
     }
@@ -50,11 +49,33 @@ export function useColumnReorder(
       const column = columns.value[i]
       if (!column?.fixed) {
         const width = parseCellWidth(column?.width)
-        if (x >= currentX && x < currentX + width) return column && matchesSide(column) ? column : null
+        if (x >= currentX && x < currentX + width) return column ?? null
         currentX += width
       }
     }
     return null
+  }
+
+  // interfaces don't allow changing the display value
+  const canChangeDisplayValue = () =>
+    !isInterfaceUi.value && isUIAllowed('fieldAlter') && !isSyncedTable.value && !isSqlView.value
+
+  const getDisplayValueSlot = (x: number) => {
+    if (!dragStart.value || !canChangeDisplayValue()) return null
+    return getDisplayValueDropSlot(columns.value, scrollLeft.value, x)
+  }
+
+  const resolveDropTarget = (x: number): ColumnDragOver | null => {
+    const slot = getDisplayValueSlot(x)
+    if (slot) {
+      return { id: slot.pvCol.id, index: slot.pvIndex, setDisplayValue: true }
+    }
+
+    // over the source itself = no target, so releasing there cancels
+    const col = findColumnAtPosition(x)
+    if (!col || col.id === dragStart.value?.id) return null
+
+    return { id: col.id, index: columns.value.findIndex((c) => c.id === col.id) }
   }
 
   const handleDrag = (e: MouseEvent) => {
@@ -64,18 +85,13 @@ export function useColumnReorder(
     if (!rect) return
 
     const x = e.clientX - rect.left
-    const col = findColumnAtPosition(x)
+    const target = resolveDropTarget(x)
 
-    if (col && col.id !== dragStart.value.id) {
-      dragOver.value = {
-        id: col.id,
-        index: columns.value.findIndex((c) => c.id === col.id),
-      }
+    if (target) {
+      dragOver.value = target
       requestAnimationFrame(drawCanvas)
-    } else if (!col && dragOver.value) {
-      // No valid target under the pointer (other side of the freeze divider, or
-      // the row-number gutter) — drop the pending target so mouseup cancels
-      // instead of committing the last one we saw.
+    } else if (dragOver.value) {
+      // no valid target (row-number gutter or the source itself): clear it so mouseup cancels
       dragOver.value = null
       requestAnimationFrame(drawCanvas)
     }
@@ -83,7 +99,11 @@ export function useColumnReorder(
 
   const dragEndHandler = () => {
     if (dragStart.value && dragOver.value) {
-      emit('reorderColumns', dragStart.value.index, getColumnDropTargetIndex(columns.value, dragOver.value.index))
+      if (dragOver.value.setDisplayValue) {
+        displayValueDropColumnId.value = dragStart.value.id
+      } else {
+        emit('reorderColumns', dragStart.value.index, getColumnDropTargetIndex(columns.value, dragOver.value.index))
+      }
     }
     cleanup()
   }
@@ -123,5 +143,7 @@ export function useColumnReorder(
     dragStart,
     startDrag,
     findColumnAtPosition,
+    resolveDropTarget,
+    displayValueDropColumnId,
   }
 }

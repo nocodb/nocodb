@@ -1,5 +1,6 @@
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, UITypesName, isLinksOrLTAR } from 'nocodb-sdk'
+import { parseCellWidth } from './cell'
 import type { CanvasGridColumn } from '~/lib/types'
 
 /**
@@ -11,6 +12,23 @@ import type { CanvasGridColumn } from '~/lib/types'
  */
 export function getColumnDropTargetIndex(columns: CanvasGridColumn[], hoveredIndex: number) {
   return columns[hoveredIndex]?.pv ? hoveredIndex : hoveredIndex - 1
+}
+
+// Display value drop slot: gutter + left half of the display value; edgeX = gutter right border
+export function getDisplayValueDropSlot(columns: CanvasGridColumn[], scrollLeft: number, x: number) {
+  const pvIndex = columns.findIndex((c) => c.pv)
+  const pvCol = columns[pvIndex]
+  if (!pvCol) return null
+
+  let left = 0
+  for (let i = 0; i < pvIndex; i++) left += parseCellWidth(columns[i]?.width)
+  if (!pvCol.fixed) left -= scrollLeft
+
+  const gutterWidth = columns[0]?.uidt ? 0 : parseCellWidth(columns[0]?.width)
+  const edgeX = Math.max(gutterWidth, left)
+  const slotEnd = Math.max(gutterWidth, left + parseCellWidth(pvCol.width) / 2)
+
+  return x >= 0 && x < slotEnd ? { pvCol, pvIndex, edgeX } : null
 }
 
 export function columnTypeName(column: CanvasGridColumn) {

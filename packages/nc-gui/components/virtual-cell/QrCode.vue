@@ -231,13 +231,13 @@ onMounted(() => {
     <template #title>
       <span class="font-bold">{{ column?.colOptions?.error }}</span>
     </template>
-    <span>ERR!</span>
+    <span>{{ $t('labels.errorShort') }}</span>
   </NcTooltip>
   <NcTooltip v-else-if="!showQrCode && qrValue === NC_ERROR_SENTINEL" placement="bottom" class="text-nc-content-orange-dark">
     <template #title>
-      <span class="font-bold">Please select a target field!</span>
+      <span class="font-bold">{{ $t('msg.error.selectTargetField') }}</span>
     </template>
-    <span>ERR!</span>
+    <span>{{ $t('labels.errorShort') }}</span>
   </NcTooltip>
 </template>
 

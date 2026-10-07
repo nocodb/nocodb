@@ -25,26 +25,12 @@ const { meta, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
 const isMmTable = computed(() => !!meta.value?.mm)
 
+// Indexed by distance from the innermost group level.
 const getAddnlMargin = (depth: number) => {
-  if (props.maxDepth === 3) {
-    switch (depth) {
-      case 3:
-        return 17
-      case 2:
-        return 0
-      case 1:
-        return 10
-      default:
-        return 18
-    }
-  } else if (props.maxDepth === 2) {
-    switch (depth) {
-      case 1:
-        return 0
-      default:
-        return 10
-    }
-  }
+  const tier = Math.max((props.maxDepth || 1) - 1 - depth, 0)
+  if (tier === 0) return 0
+  if (tier === 1) return 10
+  return 18 + (tier - 2) * 9
 }
 
 const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggregateOrThrow()
@@ -54,10 +40,7 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
   <template v-for="({ field, width, column, value }, index) in visibleFieldsComputed" :key="index">
     <div
       v-if="index === 0 && scrollLeft > 30"
-      :style="`width: ${getAddnlMargin(depth, true)}px;min-width: ${getAddnlMargin(depth, true)}px;max-width: ${getAddnlMargin(
-        depth,
-        true,
-      )}px`"
+      :style="`width: ${getAddnlMargin(depth)}px;min-width: ${getAddnlMargin(depth)}px;max-width: ${getAddnlMargin(depth)}px`"
     ></div>
     <NcDropdown
       v-if="field && column?.id"

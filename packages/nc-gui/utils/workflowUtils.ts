@@ -1,7 +1,15 @@
 import type { Edge, Node } from '@vue-flow/core'
-import type { WorkflowNodeDefinition, WorkflowType } from 'nocodb-sdk'
-import { GeneralNodeID, INIT_WORKFLOW_NODES } from 'nocodb-sdk'
+import dayjs from 'dayjs'
+import type {
+  IWorkflowExecution,
+  WorkflowExecutionStatus,
+  WorkflowGeneralNode,
+  WorkflowNodeDefinition,
+  WorkflowType,
+} from 'nocodb-sdk'
+import { GeneralNodeID, INIT_WORKFLOW_NODES, WorkflowNodeCategory } from 'nocodb-sdk'
 import { generateRandomUUID } from '~/utils/generateName'
+import type { IconMapKey } from '~/utils/iconUtils'
 
 /**
  * Filter nodes and edges based on edit permission
@@ -274,7 +282,258 @@ const updateVariableReferencesInObject = (obj: any, oldTitle: string, newTitle: 
   return obj
 }
 
+// `label` / `tooltip` are i18n keys (filled from `labelParams`); `bg` fills the status dot,
+// `text` colours inline status text. `detail` is free text, e.g. an operator's suspension reason.
+interface WorkflowExecutionStatusDisplay {
+  label: string
+  labelParams?: Record<string, string | number>
+  icon: IconMapKey
+  bg: string
+  text: string
+  spin?: boolean
+  tooltip?: string
+  detail?: string | null
+}
+
+// The engine's retry policy for a retry-safe step with no "On failure" setting of its own.
+const DEFAULT_STEP_RETRIES = 2
+
+const WORKFLOW_EXECUTION_STATUS_DISPLAY = {
+  queued: {
+    label: 'labels.workflow.status.queued',
+    icon: 'ncClock',
+    bg: 'bg-nc-gray-400 dark:bg-nc-gray-500',
+    text: 'text-nc-content-gray-subtle2',
+  },
+  running: {
+    label: 'labels.workflow.status.running',
+    icon: 'refresh',
+    bg: 'bg-nc-brand-500 dark:bg-nc-brand-500',
+    text: 'text-nc-content-brand',
+    spin: true,
+  },
+  stopping: {
+    label: 'labels.workflow.status.stopping',
+    icon: 'refresh',
+    bg: 'bg-nc-red-500 dark:bg-nc-red-500',
+    text: 'text-nc-content-red-dark',
+    spin: true,
+  },
+  pausing: {
+    label: 'labels.workflow.status.pausing',
+    icon: 'refresh',
+    bg: 'bg-nc-orange-400 dark:bg-nc-orange-500',
+    text: 'text-nc-content-orange-dark',
+    spin: true,
+  },
+  waiting: {
+    label: 'labels.workflow.status.waiting',
+    icon: 'ncClock',
+    bg: 'bg-nc-orange-400 dark:bg-nc-orange-500',
+    text: 'text-nc-content-orange-dark',
+  },
+  retrying: {
+    label: 'labels.workflow.status.retryingAt',
+    icon: 'ncRotateCcw',
+    bg: 'bg-nc-orange-400 dark:bg-nc-orange-500',
+    text: 'text-nc-content-orange-dark',
+  },
+  onHold: {
+    label: 'labels.workflow.status.onHoldAppSuspended',
+    tooltip: 'tooltip.workflowExecutionOnHold',
+    icon: 'ncPause',
+    bg: 'bg-nc-orange-400 dark:bg-nc-orange-500',
+    text: 'text-nc-content-orange-dark',
+  },
+  appSuspended: {
+    label: 'labels.workflow.status.stoppedAppSuspended',
+    icon: 'ncX',
+    bg: 'bg-nc-gray-400 dark:bg-nc-gray-500',
+    text: 'text-nc-content-gray-subtle2',
+  },
+  workspaceSuspended: {
+    label: 'labels.workflow.status.stoppedWorkspaceSuspended',
+    icon: 'ncX',
+    bg: 'bg-nc-gray-400 dark:bg-nc-gray-500',
+    text: 'text-nc-content-gray-subtle2',
+  },
+  paused: {
+    label: 'labels.workflow.status.paused',
+    icon: 'ncPause',
+    bg: 'bg-nc-orange-400 dark:bg-nc-orange-500',
+    text: 'text-nc-content-orange-dark',
+  },
+  completed: {
+    label: 'labels.workflow.status.completed',
+    icon: 'ncCheck',
+    bg: 'bg-nc-green-700 dark:bg-nc-green-200',
+    text: 'text-nc-content-green-dark',
+  },
+  error: {
+    label: 'labels.workflow.status.error',
+    icon: 'ncX',
+    bg: 'bg-nc-red-500 dark:bg-nc-red-500',
+    text: 'text-nc-content-red-dark',
+  },
+  interrupted: {
+    label: 'labels.workflow.status.interrupted',
+    tooltip: 'tooltip.workflowExecutionInterrupted',
+    icon: 'ncAlertCircle',
+    bg: 'bg-nc-red-500 dark:bg-nc-red-500',
+    text: 'text-nc-content-red-dark',
+  },
+  cancelled: {
+    label: 'labels.workflow.status.cancelled',
+    icon: 'ncX',
+    bg: 'bg-nc-gray-400 dark:bg-nc-gray-500',
+    text: 'text-nc-content-gray-subtle2',
+  },
+  skipped: {
+    label: 'labels.workflow.status.skipped',
+    icon: 'ncMinus',
+    bg: 'bg-nc-gray-400 dark:bg-nc-gray-500',
+    text: 'text-nc-content-gray-subtle2',
+  },
+} satisfies Record<
+  | WorkflowExecutionStatus
+  | 'stopping'
+  | 'pausing'
+  | 'interrupted'
+  | 'retrying'
+  | 'onHold'
+  | 'appSuspended'
+  | 'workspaceSuspended',
+  WorkflowExecutionStatusDisplay
+>
+
+function formatWorkflowResumeTime(value: number | string | Date) {
+  const time = dayjs(value)
+  return time.isSame(dayjs(), 'day') ? time.format('h:mm A') : time.format('MMM D, h:mm A')
+}
+
+/** Attempt numbers for a run waiting to retry a step; `total` is absent when the policy is unknown. */
+function getWorkflowPendingRetry(
+  execution?: Pick<IWorkflowExecution, 'status' | 'execution_data' | 'workflow_data'> | null,
+): { attempt: number; total?: number } | null {
+  const state = execution?.execution_data
+  if (execution?.status !== 'waiting' || !state?.pendingRetry) return null
+
+  const nodes: WorkflowGeneralNode[] | undefined = execution.workflow_data?.nodes
+  const node = nodes?.find((n) => n.id === state.nextNodeId)
+
+  return {
+    attempt: state.pendingRetry.attempts.length + 1,
+    total: node ? (node.data?.retry?.retries ?? DEFAULT_STEP_RETRIES) + 1 : undefined,
+  }
+}
+
+const getWorkflowExecutionStatusDisplay = (
+  execution?: Pick<IWorkflowExecution, 'status' | 'control' | 'execution_data' | 'resume_at' | 'workflow_data'> | null,
+): WorkflowExecutionStatusDisplay => {
+  const status = execution?.status
+  const state = execution?.execution_data
+
+  if (status === 'running' && execution?.control === 'cancel') return WORKFLOW_EXECUTION_STATUS_DISPLAY.stopping
+  if (status === 'running' && execution?.control === 'pause') return WORKFLOW_EXECUTION_STATUS_DISPLAY.pausing
+  if (status === 'error' && state?.errorCode === 'INTERRUPTED') {
+    return WORKFLOW_EXECUTION_STATUS_DISPLAY.interrupted
+  }
+  if (status === 'error' && state?.errorCode === 'INVALID_SCHEDULE') {
+    return { ...WORKFLOW_EXECUTION_STATUS_DISPLAY.error, detail: state.errorMessage }
+  }
+  if (status === 'cancelled' && state?.errorCode === 'APP_SUSPENDED') {
+    return { ...WORKFLOW_EXECUTION_STATUS_DISPLAY.appSuspended, detail: state.errorMessage }
+  }
+  if (status === 'cancelled' && state?.errorCode === 'WORKSPACE_SUSPENDED') {
+    return { ...WORKFLOW_EXECUTION_STATUS_DISPLAY.workspaceSuspended, detail: state.errorMessage }
+  }
+
+  if (status === 'waiting') {
+    if (state?.hold) return { ...WORKFLOW_EXECUTION_STATUS_DISPLAY.onHold, detail: state.hold.reason }
+
+    const resumeAt = execution?.resume_at ?? state?.resumeAt
+    const retry = getWorkflowPendingRetry(execution)
+    if (retry && resumeAt) {
+      return {
+        ...WORKFLOW_EXECUTION_STATUS_DISPLAY.retrying,
+        label: retry.total ? 'labels.workflow.status.retryingAt' : 'labels.workflow.status.retryingAtAttempt',
+        labelParams: { time: formatWorkflowResumeTime(resumeAt), n: retry.attempt, total: retry.total ?? '' },
+      }
+    }
+    if (resumeAt) {
+      return {
+        ...WORKFLOW_EXECUTION_STATUS_DISPLAY.waiting,
+        label: 'labels.workflow.status.scheduledFor',
+        labelParams: { time: formatWorkflowResumeTime(resumeAt) },
+      }
+    }
+  }
+
+  return (status && WORKFLOW_EXECUTION_STATUS_DISPLAY[status]) || WORKFLOW_EXECUTION_STATUS_DISPLAY.queued
+}
+
+// Literal class strings: this file is on UnoCSS's scan list.
+const WORKFLOW_NODE_TINTS = {
+  purple: 'bg-nc-purple-100 dark:bg-nc-purple-20 text-nc-content-purple-dark',
+  orange: 'bg-nc-orange-100 dark:bg-nc-orange-20 text-nc-content-orange-dark',
+  pink: 'bg-nc-pink-100 dark:bg-nc-pink-20 text-nc-content-pink-dark',
+  blue: 'bg-nc-blue-100 dark:bg-nc-blue-20 text-nc-content-blue-dark',
+  green: 'bg-nc-green-100 dark:bg-nc-green-20 text-nc-content-green-dark',
+  neutral: 'bg-nc-bg-gray-light text-nc-content-gray-subtle',
+}
+
+/** Icon tile colour by what a step does. Third-party steps carry brand logos, so they stay neutral. */
+function getWorkflowNodeIconClass(node: Pick<WorkflowNodeDefinition, 'id' | 'category'>) {
+  const id = node.id ?? ''
+  if (node.category === WorkflowNodeCategory.TRIGGER) return WORKFLOW_NODE_TINTS.purple
+  if (node.category === WorkflowNodeCategory.FLOW) return WORKFLOW_NODE_TINTS.orange
+  if (id.startsWith('ai.') || id === 'nocodb.run_agent') return WORKFLOW_NODE_TINTS.pink
+  if (id === 'nocodb.run_script' || id === 'core.action.http') return WORKFLOW_NODE_TINTS.neutral
+  if (id.startsWith('nocodb.')) return WORKFLOW_NODE_TINTS.blue
+  if (id.startsWith('core.action.send')) return WORKFLOW_NODE_TINTS.green
+  return WORKFLOW_NODE_TINTS.neutral
+}
+
+interface WorkflowLoop {
+  loopNodeId: string
+  bodyNodeIds: Set<string>
+  exitNodeId?: string
+  exitEdgeId?: string
+}
+
+/** Each iterate node with the steps inside its loop and the step it continues to when done. */
+function getWorkflowLoops(nodes: Pick<Node, 'id' | 'type'>[], edges: Pick<Edge, 'id' | 'source' | 'target' | 'sourceHandle'>[]) {
+  const outgoing = new Map<string, string[]>()
+  for (const edge of edges) {
+    outgoing.set(edge.source, [...(outgoing.get(edge.source) ?? []), edge.target])
+  }
+
+  const loops: WorkflowLoop[] = []
+  for (const node of nodes) {
+    if (node.type !== 'core.flow.iterate') continue
+    const bodyEdge = edges.find((e) => e.source === node.id && e.sourceHandle === 'body')
+    if (!bodyEdge) continue
+    const exitEdge = edges.find((e) => e.source === node.id && e.sourceHandle === 'output')
+
+    const bodyNodeIds = new Set<string>()
+    const queue = [bodyEdge.target]
+    while (queue.length) {
+      const id = queue.shift()!
+      if (bodyNodeIds.has(id) || id === node.id) continue
+      bodyNodeIds.add(id)
+      queue.push(...(outgoing.get(id) ?? []))
+    }
+
+    loops.push({ loopNodeId: node.id, bodyNodeIds, exitNodeId: exitEdge?.target, exitEdgeId: exitEdge?.id })
+  }
+  return loops
+}
+
 export {
+  getWorkflowLoops,
+  getWorkflowNodeIconClass,
+  getWorkflowExecutionStatusDisplay,
+  formatWorkflowResumeTime,
   filterNodesByPermission,
   getSourceNodesAndEdges,
   generateUniqueNodeId,
@@ -289,4 +548,4 @@ export {
   updateVariableReferencesInObject,
 }
 
-export type { UIWorkflowNodeDefinition }
+export type { UIWorkflowNodeDefinition, WorkflowLoop }

@@ -54,6 +54,8 @@ const form = ref<typeof Form>()
 
 const { api } = useApi()
 
+const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
 const { $e } = useNuxtApp()
 
 const { t } = useI18n()
@@ -415,6 +417,8 @@ const testConnection = async (retry = 0, initialConfig = null, initialError = nu
       const testConnectionConfig = stripEmptySearchPath({
         ...formState.value.dataSource,
         connection,
+        // Vault references are resolved for this workspace.
+        fk_workspace_id: activeWorkspaceId.value,
       })
 
       const result = await api.utils.testConnection(testConnectionConfig)

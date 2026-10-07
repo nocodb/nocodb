@@ -130,6 +130,14 @@ export interface InterfacePageDataApi {
     nestedFiltersArr?: FilterType[]
   }): Promise<{ count: number }>
   /**
+   * Record-count badges for the page's TABS user-filter element — one count
+   * per tab that opts in, each under the tab's own pinned viz (else the page
+   * default) ∧ RLS; the viewer's ad-hoc toolbar search/filter is NOT applied. Keyed by tab
+   * id; the "All records" tab under `INTERFACE_ALL_RECORDS_TAB_KEY`. Optional —
+   * absent on adapters that don't back a tab strip (public shares return `{}`).
+   */
+  fetchUserFilterTabCounts?: () => Promise<{ counts: Record<string, number> }>
+  /**
    * Enqueue a server-side CSV export of this page/viz scope (builder-opt-in
    * via the page's Advanced `allow_csv_export` toggle). The server resolves
    * the exact same composed scope as `fetchList` — grants, draft/published
@@ -494,6 +502,16 @@ export interface InterfacePageDataApi {
     filtersArr?: FilterType[]
     bulkFilterList: Array<{ alias: string; where?: string; filterArrJson?: string }>
   }) => Promise<Record<string, Record<string, any>>>
+}
+
+/** Page-level record counts for a TABS user-filter strip, fed by the mounted viz's data adapter. */
+export interface InterfaceUserFilterTabCountsApi {
+  /** Keyed by tab id; the "All records" tab under `INTERFACE_ALL_RECORDS_TAB_KEY`. Empty until loaded. */
+  counts: Ref<Record<string, number>>
+  /** Register the mounted viz's adapter + realtime room; returns the detach. */
+  attach: (dataApi: InterfacePageDataApi, sourceMeta: TableType | undefined, isPublic: boolean) => () => void
+  /** Debounced recount (realtime events, the viewer's own writes). */
+  invalidate: () => void
 }
 
 /**

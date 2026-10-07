@@ -30,6 +30,13 @@ export const useResolveUsers = createSharedComposable(() => {
   // Ids currently being fetched — prevents duplicate in-flight requests.
   const inFlight = new Set<string>()
 
+  const FAILURE_BACKOFF_MS = 60_000
+
+  // Failed keys → retry time; otherwise every grid chunk load re-fires the failed batch.
+  const failedUntil = new Map<string, number>()
+
+  const isBackingOff = (key: string) => (failedUntil.get(key) ?? 0) > Date.now()
+
   const getResolvedUser = (id?: string | null) => (id ? resolvedUsers.value.get(id.trim()) : undefined)
 
   // `tableId` is required by the backend to scope resolution to ids actually
@@ -47,7 +54,11 @@ export const useResolveUsers = createSharedComposable(() => {
           .map((id) => id.trim())
           .filter(
             (id) =>
-              id && !resolvedUsers.value.has(id) && !missedKeys.value.has(`${baseId}:${tableId}:${id}`) && !inFlight.has(id),
+              id &&
+              !resolvedUsers.value.has(id) &&
+              !missedKeys.value.has(`${baseId}:${tableId}:${id}`) &&
+              !isBackingOff(`${baseId}:${tableId}:${id}`) &&
+              !inFlight.has(id),
           ),
       ),
     ]
@@ -84,8 +95,10 @@ export const useResolveUsers = createSharedComposable(() => {
         batch.filter((id) => !found.has(id)).forEach((id) => nextMissed.add(`${baseId}:${tableId}:${id}`))
         missedKeys.value = nextMissed
       } catch (e) {
-        // Swallow — resolution is best-effort. Leaving ids un-tomb-stoned lets a
-        // later render retry once the cause (e.g. transient network) clears.
+        // Back off (not tomb-stone) the unsent batches too, so a transient failure heals.
+        const retryAt = Date.now() + FAILURE_BACKOFF_MS
+        toFetch.slice(i).forEach((id) => failedUntil.set(`${baseId}:${tableId}:${id}`, retryAt))
+        break
       } finally {
         batch.forEach((id) => inFlight.delete(id))
       }

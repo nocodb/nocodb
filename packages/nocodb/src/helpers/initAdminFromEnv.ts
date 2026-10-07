@@ -4,6 +4,8 @@ import bcrypt from 'bcryptjs';
 import { validatePassword } from 'nocodb-sdk';
 import boxen from 'boxen';
 import isEmail from 'validator/lib/isEmail';
+import type { MetaService } from '~/meta/meta.service';
+import type { NcContext } from '~/interface/config';
 import {
   verifyDefaultWorkspace,
   verifyDefaultWsOwner,
@@ -11,7 +13,7 @@ import {
 import { T } from '~/utils';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
-import { BaseUser, User } from '~/models';
+import { Base, BaseUser, User } from '~/models';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import { randomTokenString } from '~/services/users/helpers';
 import { sanitizeEmail } from '~/utils/emailUtils';
@@ -81,7 +83,9 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
       process.exit(1);
     }
 
-    let ncMeta;
+    // annotated so a shifted argument fails to compile — inferred `any` here
+    // is what hid the context bug below
+    let ncMeta: MetaService;
     try {
       ncMeta = await _ncMeta.startTransaction();
       const email = sanitizeEmail(process.env.NC_ADMIN_EMAIL).toLowerCase();
@@ -123,17 +127,30 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
         );
         const email_verification_token = uuidv4();
         // TODO improve this
-        const superUsers = await ncMeta.metaList2(
+        const superUsers: User[] = await ncMeta.metaList2(
           RootScopes.ROOT,
           RootScopes.ROOT,
           MetaTable.USERS,
         );
+
+        // NC_ADMIN_EMAIL names one identity, so exactly one super may claim
+        // it: the one already holding it, else the first. Running the rename
+        // below for every super walks them all onto the same address, and each
+        // pass absorbs and deletes the account the previous pass just renamed.
+        const superAdmins = superUsers.filter((u) =>
+          u.roles?.includes('super'),
+        );
+        const targetSuperId = (
+          superAdmins.find((u) => u.email === email) ?? superAdmins[0]
+        )?.id;
 
         let superUserPresent = false;
         for (const user of superUsers) {
           if (!user.roles?.includes('super')) continue;
 
           superUserPresent = true;
+
+          if (user.id !== targetSuperId) continue;
 
           if (email !== user.email) {
             // update admin email and password and migrate bases
@@ -148,30 +165,48 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
             if (existingUserWithNewEmail?.id) {
               // get all base access belongs to the existing account
               // and migrate to the admin account
-              const existingUserProjects = await ncMeta
+              const existingUserProjects: BaseUser[] = await ncMeta
                 .knexConnection(MetaTable.PROJECT_USERS)
                 .where({ fk_user_id: existingUserWithNewEmail.id });
 
               for (const existingUserProject of existingUserProjects) {
-                const userProject = await BaseUser.get(
+                // nc_base_users carries no workspace_id, so the scope every
+                // BaseUser call needs has to come from the base itself
+                const base = await Base.get(
+                  {
+                    workspace_id: RootScopes.BASE,
+                    base_id: RootScopes.BASE,
+                  } as NcContext,
                   existingUserProject.base_id,
+                  ncMeta,
+                );
+
+                // orphaned row — base already deleted
+                if (!base) continue;
+
+                const baseContext: NcContext = {
+                  workspace_id: base.fk_workspace_id,
+                  base_id: base.id,
+                };
+
+                const userProject = await BaseUser.get(
+                  baseContext,
+                  base.id,
                   user.id,
                   ncMeta,
                 );
 
                 // if admin user already have access to the base
-                // then update role based on the highest access level
-                if (userProject) {
+                // then update role based on the highest access level.
+                // get left-joins, so it is truthy without a membership
+                if (userProject?.is_mapped) {
                   if (
                     rolesLevel[userProject.roles] >
                     rolesLevel[existingUserProject.roles]
                   ) {
-                    await BaseUser.update(
-                      {
-                        workspace_id: existingUserProject.workspace_id,
-                        base_id: existingUserProject.base_id,
-                      },
-                      userProject.base_id,
+                    await BaseUser.updateRoles(
+                      baseContext,
+                      base.id,
                       user.id,
                       existingUserProject.roles,
                       ncMeta,
@@ -180,6 +215,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 } else {
                   // if super doesn't have access then add the access
                   await BaseUser.insert(
+                    baseContext,
                     {
                       ...existingUserProject,
                       fk_user_id: user.id,
@@ -189,7 +225,8 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 }
                 // delete the old base access entry from DB
                 await BaseUser.delete(
-                  existingUserProject.base_id,
+                  baseContext,
+                  base.id,
                   existingUserProject.fk_user_id,
                   ncMeta,
                 );

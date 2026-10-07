@@ -381,7 +381,7 @@ onMounted(() => {
         <!-- create base config panel -->
         <div class="flex-1 p-6 flex flex-col gap-6">
           <div class="text-sm font-bold text-nc-content-purple-dark dark:text-nc-content-purple-medium">
-            Tell us more about your usecase
+            {{ $t('labels.tellUsMoreAboutUsecase') }}
           </div>
           <div class="flex flex-wrap gap-3 max-h-[188px] nc-scrollbar-thin pt-1">
             <!-- Predefined tags -->
@@ -430,7 +430,7 @@ onMounted(() => {
             <a-textarea
               ref="aiPromptInputRef"
               :value="aiFormState.onHoverTagPrompt || aiFormState.prompt"
-              placeholder="Type something..."
+              :placeholder="$t('placeholder.typeSomething')"
               class="!w-full !min-h-[120px] !rounded-lg mt-2 overflow-y-auto nc-scrollbar-thin nc-input-shadow nc-ai-input"
               size="middle"
               :disabled="!aiIntegrationAvailable || (aiLoading && callFunction === 'onPredictSchema')"

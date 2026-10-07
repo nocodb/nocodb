@@ -25,12 +25,12 @@ const navigateToAiIntegrations = () => {
     </slot>
     <div class="flex-1 flex flex-col gap-1">
       <slot name="title">
-        <div class="text-sm text-nc-content-gray-subtle flex-1">No AI Integrations added.</div>
+        <div class="text-sm text-nc-content-gray-subtle flex-1">{{ $t('msg.info.noAiIntegrationsAdded') }}</div>
       </slot>
       <slot name="description"></slot>
     </div>
     <NcButton size="small" type="text" class="!text-nc-content-brand" @click.stop="navigateToAiIntegrations">
-      Add integration
+      {{ $t('labels.addIntegrationCta') }}
     </NcButton>
   </div>
 </template>

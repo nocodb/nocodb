@@ -57,6 +57,18 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
     }
   }
 
+  const loadAppInfo = async () => {
+    try {
+      state.appInfoStatus.value = 'loading'
+      const nuxtApp = useNuxtApp()
+      state.appInfo.value = (await nuxtApp.$api.utils.appInfo()) as AppInfo
+      state.appInfoStatus.value = 'loaded'
+    } catch (e) {
+      state.appInfoStatus.value = 'error'
+      console.error(e)
+    }
+  }
+
   /** Sign in by setting the token in localStorage
    * keepProps - is for keeping any existing role info if user id is same as previous user
    * */
@@ -75,6 +87,9 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
         display_name: state.jwtPayload.value.display_name,
       }
     }
+
+    // The default workspace is created when the first user signs up, after appInfo was loaded.
+    if (newToken && !state.appInfo.value.defaultWorkspaceId) loadAppInfo()
   }
 
   /** manually try to refresh token */
@@ -128,18 +143,6 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
     timeout: 10000,
     storageDelay: 1000,
   })
-
-  const loadAppInfo = async () => {
-    try {
-      state.appInfoStatus.value = 'loading'
-      const nuxtApp = useNuxtApp()
-      state.appInfo.value = (await nuxtApp.$api.utils.appInfo()) as AppInfo
-      state.appInfoStatus.value = 'loaded'
-    } catch (e) {
-      state.appInfoStatus.value = 'error'
-      console.error(e)
-    }
-  }
 
   const navigateToProject = ({
     workspaceId: _workspaceId,

@@ -13,6 +13,7 @@ import {
   NcApiVersion,
   PermissionEntity,
   RelationTypes,
+  remapDateAxisSummaryIds,
   UITypes,
   ViewTypes,
   type WidgetType,
@@ -112,7 +113,12 @@ export class ExportService {
 
   async serializeInterfaces(
     _context: NcContext,
-    _param: { idMap: Map<string, string>; req: NcRequest },
+    _param: {
+      idMap: Map<string, string>;
+      req: NcRequest;
+      excludePermissions?: boolean;
+      includeSubjectEmails?: boolean;
+    },
   ) {
     return [];
   }
@@ -404,9 +410,20 @@ export class ExportService {
         if (isLinksOrLTAR(column)) {
           const colOptions = column.colOptions as LinkToAnotherRecordColumn;
 
+          // A link column can outlive its `nc_col_relations` row: a deleted
+          // link has been seen leaving its `_nc_m2m_*` junction column behind
+          // with no colOptions. There is no filter to read off it, and a
+          // junction carries no user-facing filter anyway — so skip instead of
+          // dereferencing. Unguarded, this failed the whole export with
+          // "Cannot set properties of null (setting 'filter')", taking
+          // snapshots and base duplication down with it. nocohub#10842
+          if (!colOptions) {
+            continue;
+          }
+
           // if cross base link skip
           if (
-            colOptions?.fk_related_base_id &&
+            colOptions.fk_related_base_id &&
             colOptions.fk_related_base_id !== colOptions.base_id
           ) {
             continue;
@@ -536,6 +553,19 @@ export class ExportService {
                     }
                     meta[colId] = v;
                     delete meta[k];
+                  }
+                  view.view.meta = meta;
+                } else if (view.type === ViewTypes.TIMELINE) {
+                  // Summarize / utilization point at fields (and, for time
+                  // off, another table) — carry them as external ids.
+                  const meta = parseMetaProp(view.view) as Record<string, any>;
+                  if (meta?.summary) {
+                    const summary = remapDateAxisSummaryIds(
+                      meta.summary,
+                      (id) => idMap.get(id),
+                    );
+                    if (summary) meta.summary = summary;
+                    else delete meta.summary;
                   }
                   view.view.meta = meta;
                 }

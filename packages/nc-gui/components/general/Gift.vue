@@ -57,9 +57,9 @@ const closeAndShowAgain = () => {
     <div class="wrapper">
       <div class="header">
         <GeneralIcon class="icon" icon="gift" size="xlarge" />
-        <h4>Gifts Unlocked!</h4>
+        <h4>{{ $t('labels.giftsUnlocked') }}</h4>
       </div>
-      <div class="body">We are giving away $25 worth of amazon coupons to our pro community edition users!</div>
+      <div class="body">{{ $t('msg.info.giftCouponGiveaway') }}</div>
     </div>
     <div v-if="!hideImage && !giftBannerDismissedCount" class="img-wrapper">
       <img src="~assets/img/giftCard.svg" />
@@ -70,9 +70,9 @@ const closeAndShowAgain = () => {
     </NcButton>
     <NcModal v-model:visible="confirmDialog" size="small">
       <div>
-        <div class="mt-1 text-sm">Do you want to remind later on your next visit?</div>
+        <div class="mt-1 text-sm">{{ $t('msg.info.giftRemindLater') }}</div>
         <div class="flex justify-end mt-7 gap-x-2">
-          <NcButton type="secondary" size="small" @click="dontShowAgain"> Don’t show again </NcButton>
+          <NcButton type="secondary" size="small" @click="dontShowAgain"> {{ $t('labels.dontShowAgain') }} </NcButton>
           <NcButton type="primary" size="small" @click="closeAndShowAgain"> {{ $t('general.yes') }} </NcButton>
         </div>
       </div>

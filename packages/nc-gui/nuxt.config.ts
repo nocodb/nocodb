@@ -57,6 +57,7 @@ export default defineNuxtConfig({
     /** In production build we need to load assets using absolute path for history-mode routing */
     cdnURL: process.env.NODE_ENV === 'production' ? process.env.NC_CDN_URL || '/' : undefined,
     head: {
+      htmlAttrs: { lang: 'en' },
       link: [
         {
           rel: 'icon',
@@ -253,6 +254,9 @@ export default defineNuxtConfig({
         // swaps in native fs events, which is much cheaper on a local checkout.
         usePolling: process.env.NC_DEV_FAST !== 'true',
       },
+      // Vite turns this on under coding agents with warn included; a Vue warn
+      // serializes its vnode trace (MBs per line), stalling the page and the log.
+      forwardConsole: { unhandledErrors: true, logLevels: ['error'] },
     },
     resolve: {
       alias: {
@@ -413,6 +417,7 @@ export default defineNuxtConfig({
         'grapheme-splitter',
         'html-entities',
         'inflection',
+        'pdfjs-dist/legacy/build/pdf.mjs',
         'pdfobject-vue',
         'pinia',
         'rfdc',

@@ -221,6 +221,22 @@ export class TablesService {
       });
     }
 
+    // The meta checks above exclude trashed rows, so they pass even when a
+    // trashed table still owns this physical name — and the rename DDL then
+    // fails with "table already exists". Same treatment tableCreate applies.
+    // nocohub#10873
+    if (param.table.table_name !== model.table_name) {
+      param.table.table_name = await this.resolveFreePhysicalTableName(
+        context,
+        {
+          base_id: base.id,
+          source_id: source.id,
+          desired: param.table.table_name,
+          exclude_model_id: model.id,
+        },
+      );
+    }
+
     const sqlMgr = await ProjectMgrv2.getSqlMgr(context, base);
     const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
 
@@ -281,6 +297,38 @@ export class TablesService {
     );
 
     return true;
+  }
+
+  // A trashed table keeps its physical DB table until permanent delete, so its
+  // `table_name` stays taken even though the meta checks exclude trashed rows.
+  // Returns a physical name no live or trashed table in the source holds.
+  // nocohub#10873
+  private async resolveFreePhysicalTableName(
+    context: NcContext,
+    param: {
+      base_id: string;
+      source_id: string;
+      desired: string;
+      exclude_model_id?: string;
+    },
+  ): Promise<string> {
+    const models = await Model.list(context, {
+      base_id: param.base_id,
+      source_id: param.source_id,
+      includeDeleted: true,
+    });
+
+    const taken = new Set(
+      models
+        .filter((m) => m.id !== param.exclude_model_id)
+        .map((m) => m.table_name),
+    );
+
+    if (!taken.has(param.desired)) return param.desired;
+
+    let i = 1;
+    while (taken.has(`${param.desired}_${i}`)) i++;
+    return `${param.desired}_${i}`;
   }
 
   @TraceCommand(OperationName.tableReorder)
@@ -989,24 +1037,14 @@ export class TablesService {
     // If a trashed row shares the requested table_name, the CREATE TABLE DDL
     // will collide — uniquify the new name to dodge that. Live collisions have
     // already been rejected above.
-    const trashedModels = await Model.list(context, {
-      base_id: base.id,
-      source_id: source.id,
-      includeDeleted: true,
-    });
-    const trashedTableNames = new Set(
-      trashedModels.filter((m) => m.deleted).map((m) => m.table_name),
+    tableCreatePayLoad.table_name = await this.resolveFreePhysicalTableName(
+      context,
+      {
+        base_id: base.id,
+        source_id: source.id,
+        desired: tableCreatePayLoad.table_name,
+      },
     );
-    if (trashedTableNames.has(tableCreatePayLoad.table_name)) {
-      const baseName = tableCreatePayLoad.table_name;
-      let i = 1;
-      let candidate = `${baseName}_${i}`;
-      while (trashedTableNames.has(candidate)) {
-        i++;
-        candidate = `${baseName}_${i}`;
-      }
-      tableCreatePayLoad.table_name = candidate;
-    }
 
     if (!tableCreatePayLoad.title) {
       tableCreatePayLoad.title = getTableNameAlias(

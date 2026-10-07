@@ -1,0 +1,25 @@
+/** Opens a workspace settings pane, or a home pane (Members, Teams, Integrations), from anywhere. */
+export function useWorkspaceSettingsLink() {
+  const router = useRouter()
+
+  return function openWorkspaceSettings(
+    slug: WsSettingsSlug | WsHomePane,
+    { workspaceId, query, newTab }: { workspaceId?: string; query?: Record<string, string>; newTab?: boolean } = {},
+  ) {
+    // Read lazily: the workspace store itself calls this helper during setup.
+    const targetWsId = workspaceId ?? useWorkspace().activeWorkspaceId
+
+    if (!targetWsId) return
+
+    const target = {
+      path: isWsHomePane(slug) ? wsHomePanePath(targetWsId, slug) : wsSettingsPath(targetWsId, slug),
+      query,
+    }
+
+    if (newTab) {
+      return navigateTo(router.resolve(target).href, { open: navigateToBlankTargetOpenOption })
+    }
+
+    return navigateTo(target)
+  }
+}

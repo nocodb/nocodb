@@ -32,6 +32,7 @@ export default defineConfig({
         /components\/smartsheet\/header\/[^/]+\.ts($|\?)/,
         /components\/smartsheet\/grid\/canvas\/cells\/.+\.ts($|\?)/,
         /utils\/cssUtils\.ts($|\?)/,
+        /utils\/workflowUtils\.ts($|\?)/,
       ],
       exclude: [/node_modules/, /\.git\//, /\.nuxt\//, /\.output\//],
     },

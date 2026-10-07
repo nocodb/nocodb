@@ -136,7 +136,7 @@ const enterpriseOrangeBadge = { bg: '#FEE6D6', text: '#C86827' }
     <div class="max-w-4xl mx-auto p-8">
       <div class="mb-8">
         <a href="/playground" class="text-sm text-nc-content-brand no-underline">← Playground</a>
-        <h1 class="text-4xl font-bold text-nc-content-gray-emphasis mt-2 mb-1">Plans</h1>
+        <h1 class="text-4xl font-bold text-nc-content-gray-emphasis mt-2 mb-1">{{ $t('labels.plans') }}</h1>
         <p class="text-sm text-nc-content-gray-subtle">
           Current-plan billing table and upgrade badges for both Cloud and On-Prem SKUs. Toggle the app theme to check dark mode.
         </p>
@@ -144,7 +144,7 @@ const enterpriseOrangeBadge = { bg: '#FEE6D6', text: '#C86827' }
 
       <!-- ========== CLOUD ========== -->
       <div class="mb-6">
-        <div class="text-[11px] tracking-widest text-nc-content-gray-muted uppercase mb-1">Cloud</div>
+        <div class="text-[11px] tracking-widest text-nc-content-gray-muted uppercase mb-1">{{ $t('labels.cloud') }}</div>
         <div class="text-sm text-nc-content-gray-subtle">PlanMeta · Free · Plus · Business · Enterprise</div>
       </div>
 
@@ -240,7 +240,7 @@ const enterpriseOrangeBadge = { bg: '#FEE6D6', text: '#C86827' }
 
       <!-- ========== ON-PREM ========== -->
       <div class="mt-14 mb-6">
-        <div class="text-[11px] tracking-widest text-nc-content-gray-muted uppercase mb-1">On-Prem</div>
+        <div class="text-[11px] tracking-widest text-nc-content-gray-muted uppercase mb-1">{{ $t('labels.onPrem') }}</div>
         <div class="text-sm text-nc-content-gray-subtle">OnPremPlanMeta · Starter · Scale · Enterprise</div>
       </div>
 

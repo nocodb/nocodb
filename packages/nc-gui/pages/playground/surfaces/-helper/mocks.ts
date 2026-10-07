@@ -1,3 +1,4 @@
+import type { RouteLocationNormalized } from 'vue-router'
 import type { AxiosAdapter, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import type { FilterType, HookType, SortType } from 'nocodb-sdk'
 import { HttpClient } from 'nocodb-sdk'
@@ -29,6 +30,13 @@ export const surfaceRoute = (page: string) =>
 
 const SURFACE_PATH = /^\/playground\/surfaces\//
 
+/** Sends a surface route to its canonical path (the stores resolve the mock base/table/view from it). */
+export function surfaceRedirect(to: RouteLocationNormalized, page: string) {
+  const target = surfaceRoute(page)
+  if (to.path === target) return
+  return navigateTo({ path: target, query: to.query }, { replace: true })
+}
+
 type MergeParams = (this: HttpClient, params1: AxiosRequestConfig, params2?: AxiosRequestConfig) => AxiosRequestConfig
 
 interface ViewColumnPatch {
@@ -45,6 +53,8 @@ interface SurfaceState {
   sorts: SortType[]
   hooks: (HookType & { condition?: boolean; created_at?: string })[]
   viewColumns: Record<string, ViewColumnPatch>
+  /** webhook error-notification subscribers */
+  subscribers: Array<{ id: string; hookId: string; fk_user_id: string }>
 }
 
 const now = () => new Date().toISOString()
@@ -123,6 +133,7 @@ function initialState(): SurfaceState {
         created_at: '2026-09-02T16:40:00.000Z',
       },
     ],
+    subscribers: [{ id: 'pgsub-1', hookId: 'pgh-slack', fk_user_id: MOCK_USERS[0].id }],
     viewColumns: {
       [COL.status]: { group_by: true, group_by_order: 1, group_by_sort: 'asc' },
       [COL.owner]: { group_by: true, group_by_order: 2, group_by_sort: 'desc' },
@@ -169,6 +180,8 @@ const OWN_OPS = new Set([
   'hookTest',
   'hookLogList',
   'hookListSubscribers',
+  'hookAddSubscribers',
+  'hookRemoveSubscriber',
   'mcpList',
   'baseTrashSettingsList',
 ])
@@ -212,7 +225,24 @@ function handle(db: MockDb, op: string, q: Record<string, any>, payload: any): u
     case 'hookLogList':
       return { list: [], pageInfo: { totalRows: 0, page: 1, pageSize: 25, isFirstPage: true, isLastPage: true } }
     case 'hookListSubscribers':
-      return []
+      return s.subscribers
+        .filter((x) => x.hookId === q.hookId)
+        .map((x) => {
+          const u = [...MOCK_USERS, db.user].find((m) => m.id === x.fk_user_id)
+          return { id: x.id, fk_user_id: x.fk_user_id, email: u?.email ?? null, display_name: u?.display_name ?? null }
+        })
+    case 'hookAddSubscribers': {
+      const added = ((payload?.userIds ?? []) as string[]).map((userId) => ({
+        id: nextId('pgsub'),
+        hookId: payload.hookId,
+        fk_user_id: userId,
+      }))
+      s.subscribers.push(...added)
+      return added.map((a) => ({ id: a.id, fk_hook_id: a.hookId, fk_user_id: a.fk_user_id }))
+    }
+    case 'hookRemoveSubscriber':
+      s.subscribers = s.subscribers.filter((x) => x.id !== payload?.subscriberId)
+      return true
     case 'sortList':
       return { list: s.sorts }
     case 'sortCreate': {

@@ -599,6 +599,12 @@ export function createMockAdapter(
       .flatMap((t) => t.columns ?? [])
       .find((c) => c.id === colId)
 
+  /** A Gantt view's own scheduling rule (lives on the view in the mock). */
+  const dateDependencyOf = (ganttViewId?: string) =>
+    ganttViewId
+      ? (db.views[ganttViewId]?.view as { date_dependency?: Record<string, unknown> } | undefined)?.date_dependency
+      : undefined
+
   const ownerOf = (colId: string) => findColumn(colId)?.fk_model_id ?? mainTableId()
 
   /** Swaps in a new table object, like a refetched meta. */
@@ -1214,6 +1220,19 @@ export function createMockAdapter(
       case 'ganttViewCreate':
         message.info('The playground shows a single view, so new and duplicated views are not created here.')
         return null
+      // no email leaves the playground; the server answers a queued send with nothing to show
+      case 'sendRecordEmail':
+        return {}
+      // nothing in the mock base depends on anything else
+      case 'checkDependency':
+        return { hasBreakingChanges: false, entities: [] }
+      case 'getDateDependency':
+        return dateDependencyOf(q.fk_gantt_view_id) ?? null
+      case 'updateDateDependency': {
+        const rule = dateDependencyOf(q.fk_gantt_view_id)
+        if (rule) Object.assign(rule, payload ?? {})
+        return rule ?? payload ?? {}
+      }
       case 'dataExport': {
         const id = nextKey('pg-job')
         jobs.set(id, () => finishExport(id, { viewId: q.viewId, type: payload?.exportAs }))

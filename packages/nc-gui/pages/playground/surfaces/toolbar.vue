@@ -4,14 +4,14 @@ import PgSection from '../-components/PgSection.vue'
 import PgDemo from '../-components/PgDemo.vue'
 import SurfaceHarness from './-components/SurfaceHarness.vue'
 import PopupStage from './-components/PopupStage.vue'
-import { installSurfaceMocks, surfaceRoute } from './-helper/mocks'
+import { installSurfaceMocks, surfaceRedirect } from './-helper/mocks'
 
 definePageMeta({
   path: '/playground/surfaces/toolbar/:baseId(views)?/:viewId(grid)?/:slugs([^/]+)*',
   middleware: [
     (to) => {
-      const target = surfaceRoute('toolbar')
-      if (to.path !== target) return navigateTo(target, { replace: true })
+      const redirect = surfaceRedirect(to, 'toolbar')
+      if (redirect) return redirect
       installSurfaceMocks()
     },
   ],

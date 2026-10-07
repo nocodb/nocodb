@@ -3,14 +3,14 @@ import PgPage from '../-components/PgPage.vue'
 import PgSection from '../-components/PgSection.vue'
 import PgDemo from '../-components/PgDemo.vue'
 import SurfaceHarness from './-components/SurfaceHarness.vue'
-import { installSurfaceMocks, surfaceRoute } from './-helper/mocks'
+import { installSurfaceMocks, surfaceRedirect } from './-helper/mocks'
 
 definePageMeta({
   path: '/playground/surfaces/base-settings/:baseId(views)?/:viewId(grid)?/:slugs([^/]+)*',
   middleware: [
     (to) => {
-      const target = surfaceRoute('base-settings')
-      if (to.path !== target) return navigateTo({ path: target, query: to.query }, { replace: true })
+      const redirect = surfaceRedirect(to, 'base-settings')
+      if (redirect) return redirect
       installSurfaceMocks()
     },
   ],

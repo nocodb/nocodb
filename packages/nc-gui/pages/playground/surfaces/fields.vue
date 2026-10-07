@@ -7,14 +7,14 @@ import PgDemo from '../-components/PgDemo.vue'
 import { COL } from '../views/-helper/mock-data'
 import SurfaceHarness from './-components/SurfaceHarness.vue'
 import PopupStage from './-components/PopupStage.vue'
-import { installSurfaceMocks, surfaceRoute } from './-helper/mocks'
+import { installSurfaceMocks, surfaceRedirect } from './-helper/mocks'
 
 definePageMeta({
   path: '/playground/surfaces/fields/:baseId(views)?/:viewId(grid)?/:slugs([^/]+)*',
   middleware: [
     (to) => {
-      const target = surfaceRoute('fields')
-      if (to.path !== target) return navigateTo(target, { replace: true })
+      const redirect = surfaceRedirect(to, 'fields')
+      if (redirect) return redirect
       installSurfaceMocks()
     },
   ],

@@ -30,8 +30,8 @@ export interface SwaggerGenerationContext {
 }
 
 export interface SwaggerGenerationOptions {
-  // Junction tables have no paths; skip their schemas too unless another
-  // schema references them.
+  // Junction tables have no paths, and V3 never references their schemas, so it
+  // drops them. V1/V2 keep them because their link schemas do reference them.
   skipMmSchemas?: boolean;
 }
 
@@ -41,6 +41,14 @@ export interface SwaggerGenerationResult {
   schemaNamesMap: Map<string, string>;
   swaggerViews: Map<string, SwaggerView[]>;
 }
+
+// Every component key V3 emits per table (see swaggerV3/templates/schemas.ts).
+const SCHEMA_NAME_SUFFIXES = [
+  'Response',
+  'Request',
+  'UpdateRequest',
+  'IdRequest',
+];
 
 /**
  * Prepares common data structures for swagger generation
@@ -60,6 +68,11 @@ export async function prepareSwaggerGenerationData({
   // Component names and operationIds are sanitized to ASCII and lowercased in
   // operationIds, so uniqueness is checked on that form, not the title.
   const schemaNamesMap = new Map<string, string>();
+  // Holds the suffixed component keys, not the bare names: a key is the schema
+  // name plus a suffix, so distinct names can still collide once suffixed
+  // (`Order` + `UpdateRequest` and `OrderUpdate` + `Request` are one key, and
+  // whichever is written second wins). Reserving every suffixed form is what
+  // makes the keys unique.
   const usedSchemaNames = new Set<string>();
 
   for (const model of models) {
@@ -83,13 +96,16 @@ export async function prepareSwaggerGenerationData({
     if (!/[A-Za-z0-9]/.test(schemaName)) {
       schemaName = `${schemaName}${model.id}`;
     }
+    const keysFor = (name: string) =>
+      SCHEMA_NAME_SUFFIXES.map((suffix) => `${name}${suffix}`.toLowerCase());
+
     let finalSchemaName = schemaName;
     counter = 1;
-    while (usedSchemaNames.has(finalSchemaName.toLowerCase())) {
+    while (keysFor(finalSchemaName).some((key) => usedSchemaNames.has(key))) {
       finalSchemaName = `${schemaName}_${counter}`;
       counter++;
     }
-    usedSchemaNames.add(finalSchemaName.toLowerCase());
+    for (const key of keysFor(finalSchemaName)) usedSchemaNames.add(key);
     schemaNamesMap.set(model.id, finalSchemaName);
   }
 

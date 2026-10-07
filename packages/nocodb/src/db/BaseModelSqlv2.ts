@@ -9667,11 +9667,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           column.uidt,
         )
       ) {
-        // Resolve @me token in default value for User columns during insert
+        // Resolve @me default only when the field is omitted; an explicit null clears it
         if (
           isInsertData &&
           column.uidt === UITypes.User &&
-          ncIsNullOrUndefined(data[column.column_name]) &&
+          data[column.column_name] === undefined &&
           column.cdf &&
           typeof column.cdf === 'string' &&
           column.cdf.includes(CURRENT_USER_TOKEN) &&

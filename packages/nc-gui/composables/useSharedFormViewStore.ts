@@ -336,8 +336,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           ) {
             const defaultValue = typeof c.cdf === 'string' ? c.cdf.replace(/^['"]|['"]$/g, '') : c.cdf
             if ([UITypes.Number, UITypes.Duration, UITypes.Percent, UITypes.Currency, UITypes.Decimal].includes(c.uidt)) {
-              formState.value[c.title] = Number(defaultValue) || null
-              preFilledDefaultValueformState.value[c.title] = Number(defaultValue) || null
+              formState.value[c.title] = parseNumericDefault(defaultValue)
+              preFilledDefaultValueformState.value[c.title] = parseNumericDefault(defaultValue)
             } else if (c.uidt === UITypes.Checkbox) {
               if (['true', '1'].includes(String(defaultValue).toLowerCase())) {
                 formState.value[c.title] = true
@@ -567,6 +567,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         data,
         ...attachment,
       })
+
+      keepClearedDefaults(filtedData.data, formState.value, preFilledDefaultValueformState.value)
 
       const newRecord = await api.public.dataCreate(sharedView.value!.uuid!, filtedData, {
         headers: {

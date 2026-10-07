@@ -21,7 +21,7 @@ const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const { blockTeamsManagement } = useEeConfig()
 
-const { wsTabVisibility } = useWorkspaceTabVisibility(activeWorkspace)
+const { wsTabAccess } = useWorkspaceTabVisibility(activeWorkspace)
 
 const { hasSaveBar, goBack } = useProvideShell()
 
@@ -32,14 +32,15 @@ const workspaceId = computed(() => activeWorkspace.value?.id)
 
 const isRolesLoaded = computed(() => isWorkspaceRolesLoaded(workspaceId.value))
 
-const visibilityKey: Record<WsHomePane, 'collaborators' | 'teams' | 'integrations'> = {
+const accessKey: Record<WsHomePane, 'collaborators' | 'teams' | 'integrations'> = {
   members: 'collaborators',
   teams: 'teams',
   integrations: 'integrations',
 }
 
+// Access, not sidebar visibility: a phone hides the Integrations row, but a link still opens it.
 // Panes load on mount, so one the reader cannot reach must never mount.
-const isPaneAllowed = computed(() => isRolesLoaded.value && !!wsTabVisibility.value[visibilityKey[props.pane]])
+const isPaneAllowed = computed(() => isRolesLoaded.value && !!wsTabAccess.value[accessKey[props.pane]])
 
 const meta = computed(() => {
   switch (props.pane) {

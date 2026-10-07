@@ -57,7 +57,7 @@ export const playgroundNav: PlaygroundNavSection[] = [
       {
         name: 'Live pages',
         path: '/playground/live',
-        description: 'Real views and settings on a seeded demo base, with token overrides applied',
+        description: 'Any of your bases — real views and settings, with token overrides applied',
         icon: 'ncMonitor',
       },
     ],

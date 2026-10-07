@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { ViewTypes } from 'nocodb-sdk'
+import type { ViewType } from 'nocodb-sdk'
 import { DEMO_STORAGE_KEY, SEED_STEPS, seedDemoBase } from './-helper/demo-seed'
-import type { DemoBase, DemoViewKey, SeedStep } from './-helper/demo-seed'
+import type { DemoBase, SeedStep } from './-helper/demo-seed'
 import LiveFrame from './-components/LiveFrame.vue'
 
 interface LivePage {
@@ -26,16 +28,31 @@ const DEVICES = [
   { key: 'mobile', label: 'Mobile', icon: 'ncSmartphone', width: 390 },
 ] as const
 
-const VIEW_LABELS: Record<DemoViewKey, string> = {
-  grid: 'Grid view',
-  gallery: 'Gallery view',
-  kanban: 'Kanban view',
-  calendar: 'Calendar view',
-  form: 'Form view',
-  timeline: 'Timeline view',
+const VIEW_TYPE_LABELS: Partial<Record<ViewTypes, string>> = {
+  [ViewTypes.GRID]: 'Grid',
+  [ViewTypes.GALLERY]: 'Gallery',
+  [ViewTypes.KANBAN]: 'Kanban',
+  [ViewTypes.CALENDAR]: 'Calendar',
+  [ViewTypes.FORM]: 'Form',
+  [ViewTypes.MAP]: 'Map',
+  [ViewTypes.LIST]: 'List',
 }
 
+const TARGET_STORAGE_KEY = 'nc-playground-live-target'
+
 const demo = ref<DemoBase | null>(null)
+
+const bases = ref<Array<{ id: string; title: string }>>([])
+
+const tables = ref<Array<{ id: string; title: string }>>([])
+
+const tableViews = ref<ViewType[]>([])
+
+const selectedBaseId = ref<string>()
+
+const selectedTableId = ref<string>()
+
+const isLoadingTarget = ref(false)
 
 const steps = ref<SeedStep[]>([])
 
@@ -58,35 +75,32 @@ const workspaceId = computed(() => activeWorkspaceId.value)
 const pages = computed<LivePage[]>(() => {
   const ws = workspaceId.value
   const list: LivePage[] = []
-  const d = demo.value
-  if (d) {
-    const tableRoot = `/${d.workspaceId}/${d.baseId}/${d.tableId}`
-    for (const key of Object.keys(VIEW_LABELS) as DemoViewKey[]) {
-      const viewId = d.views[key]
-      if (viewId) list.push({ key: `view-${key}`, group: 'Demo views', label: VIEW_LABELS[key], path: `${tableRoot}/${viewId}` })
+  const baseId = selectedBaseId.value
+  const tableId = selectedTableId.value
+  if (ws && baseId && tableId && tableViews.value.length) {
+    const tableRoot = `/${ws}/${baseId}/${tableId}`
+    for (const v of tableViews.value) {
+      const kind = VIEW_TYPE_LABELS[v.type as ViewTypes]
+      list.push({
+        key: `view-${v.id}`,
+        group: 'Views',
+        label: kind ? `${v.title} · ${kind}` : v.title!,
+        path: `${tableRoot}/${v.id}`,
+      })
     }
-    const gridRoot = `${tableRoot}/${d.views.grid ?? ''}`
+    const gridView = tableViews.value.find((v) => v.type === ViewTypes.GRID) ?? tableViews.value[0]!
+    const gridRoot = `${tableRoot}/${gridView.id}`
     list.push(
-      { key: 'view-expanded', group: 'Demo views', label: 'Expanded record', path: `${gridRoot}?rowId=1` },
+      { key: 'view-expanded', group: 'Views', label: 'Expanded record', path: `${gridRoot}?rowId=1` },
       { key: 'table-fields', group: 'Table details', label: 'Fields', path: `${gridRoot}/projects/field` },
       { key: 'table-relations', group: 'Table details', label: 'Relations', path: `${gridRoot}/projects/relation` },
       { key: 'table-api', group: 'Table details', label: 'API snippets', path: `${gridRoot}/projects/api` },
       { key: 'table-webhooks', group: 'Table details', label: 'Webhooks', path: `${gridRoot}/projects/webhook` },
-      { key: 'base-overview', group: 'Base', label: 'Base overview', path: `/${d.workspaceId}/${d.baseId}` },
-      { key: 'base-members', group: 'Base', label: 'Settings · Members', path: `/${d.workspaceId}/${d.baseId}?settings=members` },
-      {
-        key: 'base-settings',
-        group: 'Base',
-        label: 'Settings · General',
-        path: `/${d.workspaceId}/${d.baseId}?settings=settings`,
-      },
-      {
-        key: 'base-sources',
-        group: 'Base',
-        label: 'Settings · Data sources',
-        path: `/${d.workspaceId}/${d.baseId}?settings=data-sources`,
-      },
-      { key: 'base-audits', group: 'Base', label: 'Settings · Audits', path: `/${d.workspaceId}/${d.baseId}?settings=audits` },
+      { key: 'base-overview', group: 'Base', label: 'Base overview', path: `/${ws}/${baseId}` },
+      { key: 'base-members', group: 'Base', label: 'Settings · Members', path: `/${ws}/${baseId}?settings=members` },
+      { key: 'base-settings', group: 'Base', label: 'Settings · General', path: `/${ws}/${baseId}?settings=settings` },
+      { key: 'base-sources', group: 'Base', label: 'Settings · Data sources', path: `/${ws}/${baseId}?settings=data-sources` },
+      { key: 'base-audits', group: 'Base', label: 'Settings · Audits', path: `/${ws}/${baseId}?settings=audits` },
     )
   }
   if (ws) {
@@ -159,7 +173,6 @@ async function restoreDemo() {
     // a base deleted elsewhere (or a reset dev DB) must not leave dead links
     await $api.instance.get(`/api/v3/meta/bases/${parsed.baseId}`)
     demo.value = parsed
-    primaryKey.value = 'view-grid'
   } catch {
     persist(null)
   } finally {
@@ -194,7 +207,8 @@ async function createDemo() {
       },
     })
     persist(result)
-    primaryKey.value = 'view-grid'
+    await loadBases()
+    await selectTarget(result.baseId, result.tableId)
     message.success('Demo base ready')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -203,9 +217,53 @@ async function createDemo() {
   }
 }
 
+async function loadBases() {
+  if (!workspaceId.value) return
+  try {
+    const { data } = await $api.instance.get(`/api/v3/meta/workspaces/${workspaceId.value}/bases`)
+    bases.value = data.list ?? []
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+/** Points every frame at a base + table; table defaults to the base's first. */
+async function selectTarget(baseId: string, tableId?: string) {
+  isLoadingTarget.value = true
+  try {
+    selectedBaseId.value = baseId
+    const { data } = await $api.instance.get(`/api/v3/meta/bases/${baseId}/tables`)
+    tables.value = data.list ?? []
+    selectedTableId.value = tables.value.find((t) => t.id === tableId)?.id ?? tables.value[0]?.id
+    tableViews.value = []
+    if (selectedTableId.value) {
+      const res = await $api.internal.getOperation(workspaceId.value!, baseId, {
+        operation: 'viewList',
+        tableId: selectedTableId.value,
+      })
+      tableViews.value = (res.list ?? []) as ViewType[]
+    }
+    const firstView = pages.value.find((p) => p.group === 'Views')
+    if (firstView && !pages.value.some((p) => p.key === primaryKey.value && p.group === 'Views')) primaryKey.value = firstView.key
+    try {
+      localStorage.setItem(TARGET_STORAGE_KEY, JSON.stringify({ baseId, tableId: selectedTableId.value }))
+    } catch {}
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoadingTarget.value = false
+  }
+}
+
 onMounted(async () => {
   if (!workspaceId.value) await workspaceStore.loadWorkspaces(true)
-  await restoreDemo()
+  await Promise.all([restoreDemo(), loadBases()])
+  let saved: { baseId?: string; tableId?: string } = {}
+  try {
+    saved = JSON.parse(localStorage.getItem(TARGET_STORAGE_KEY) ?? '{}')
+  } catch {}
+  const baseId = [saved.baseId, demo.value?.baseId, bases.value[0]?.id].find((id) => id && bases.value.some((b) => b.id === id))
+  if (baseId) await selectTarget(baseId, saved.baseId === baseId ? saved.tableId : demo.value?.tableId)
 })
 </script>
 
@@ -215,8 +273,8 @@ onMounted(async () => {
       <div class="flex-1 min-w-80">
         <h1 class="text-heading3 text-nc-content-gray-emphasis">Live pages</h1>
         <p class="text-body text-nc-content-gray-subtle mt-1 max-w-3xl">
-          The real app, framed. Views, settings and account pages render with real data, and every token edit and theme switch
-          reaches inside the frames as you make it.
+          The real app, framed. Pick any of your bases and a table — its views, table details and base settings render with real
+          data, and every token edit and theme switch reaches inside the frames as you make it.
         </p>
       </div>
 
@@ -274,6 +332,43 @@ onMounted(async () => {
     </div>
 
     <div class="flex items-center gap-3 flex-wrap">
+      <div class="flex items-center gap-2">
+        <span class="text-captionSm text-nc-content-gray-muted">Base</span>
+        <NcSelect
+          :value="selectedBaseId"
+          class="w-52"
+          show-search
+          option-filter-prop="label"
+          placeholder="Pick a base"
+          :loading="isLoadingTarget"
+          data-testid="nc-playground-live-base"
+          @change="(id: string) => selectTarget(id)"
+        >
+          <a-select-option v-for="b in bases" :key="b.id" :value="b.id" :label="b.title">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="truncate">{{ b.title }}</span>
+              <NcBadge v-if="b.id === demo?.baseId" color="purple" :border="false" class="!h-4 text-captionXs">demo</NcBadge>
+            </div>
+          </a-select-option>
+        </NcSelect>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-captionSm text-nc-content-gray-muted">Table</span>
+        <NcSelect
+          :value="selectedTableId"
+          class="w-44"
+          show-search
+          option-filter-prop="label"
+          :disabled="!tables.length"
+          data-testid="nc-playground-live-table"
+          @change="(id: string) => selectTarget(selectedBaseId!, id)"
+        >
+          <a-select-option v-for="t in tables" :key="t.id" :value="t.id" :label="t.title">{{ t.title }}</a-select-option>
+        </NcSelect>
+      </div>
+
+      <NcDivider type="vertical" class="!h-5 !mx-0" />
+
       <NcSelect
         v-model:value="primaryKey"
         class="w-64"
@@ -341,8 +436,8 @@ onMounted(async () => {
       </div>
     </div>
 
-    <p v-if="!demo && !isCheckingDemo" class="text-captionSm text-nc-content-gray-muted">
-      View, table and base pages appear in the picker once the demo base exists.
+    <p v-if="!bases.length && !isCheckingDemo" class="text-captionSm text-nc-content-gray-muted">
+      No bases in this workspace yet — create the demo base, or any base of your own, to frame its views and settings.
     </p>
   </div>
 </template>

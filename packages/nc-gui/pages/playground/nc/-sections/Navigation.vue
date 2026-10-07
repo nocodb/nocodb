@@ -20,6 +20,10 @@ const stripePageSize = ref(10)
 
 const activeNav = ref('members')
 
+const showRowNumbers = ref(true)
+
+const wrapText = ref(false)
+
 const NAV_ITEMS = [
   { key: 'overview', icon: 'ncHome', label: 'Overview' },
   { key: 'members', icon: 'ncUsers', label: 'Members', count: 24 },
@@ -139,12 +143,27 @@ const NAV_ITEMS = [
       </PgDemo>
 
       <PgDemo label="NcGroupedSettings" :padded="false">
+        <!-- dashboard widget config pattern: each NcSwitch in its own block div -->
         <NcGroupedSettings title="Appearance">
-          <NcSwitch :checked="true">Show row numbers</NcSwitch>
-          <NcSwitch :checked="false">Wrap long text</NcSwitch>
+          <div class="flex flex-col gap-3">
+            <div>
+              <NcSwitch v-model:checked="showRowNumbers">
+                <span class="text-caption text-nc-content-gray select-none">Show row numbers</span>
+              </NcSwitch>
+            </div>
+            <div>
+              <NcSwitch v-model:checked="wrapText">
+                <span class="text-caption text-nc-content-gray select-none">Wrap long text</span>
+              </NcSwitch>
+            </div>
+          </div>
         </NcGroupedSettings>
         <NcGroupedSettings title="Advanced" default-collapsed>
-          <NcSwitch :checked="false">Enable webhooks v2</NcSwitch>
+          <div>
+            <NcSwitch :checked="false">
+              <span class="text-caption text-nc-content-gray select-none">Enable webhooks v2</span>
+            </NcSwitch>
+          </div>
         </NcGroupedSettings>
       </PgDemo>
     </div>

@@ -6,6 +6,9 @@ const TYPES = ['primary', 'secondary', 'text', 'danger', 'link'] as const
 
 const SIZES = ['xxsmall', 'xsmall', 'xs', 'small', 'medium'] as const
 
+/** no horizontal padding — square icon buttons in the product */
+const ICON_SIZES: ReadonlyArray<(typeof SIZES)[number]> = ['xxsmall', 'xsmall']
+
 const THEMES = ['default', 'ai', 'orange'] as const
 
 const isSaving = ref(false)
@@ -23,7 +26,7 @@ function simulateSave() {
     source="NcButton"
     description="Every type across every size, plus the state and icon variants."
   >
-    <PgDemo label="Type × size">
+    <PgDemo label="Type × size" hint="xxsmall · xsmall are square icon buttons; xs · small · medium carry a label">
       <div class="overflow-x-auto">
         <table class="border-separate border-spacing-x-3 border-spacing-y-2">
           <thead>
@@ -38,7 +41,19 @@ function simulateSave() {
             <tr v-for="type in TYPES" :key="type">
               <td class="text-captionXs text-nc-content-gray-muted font-mono pr-2">{{ type }}</td>
               <td v-for="size in SIZES" :key="size">
-                <NcButton :type="type" :size="size">Save changes</NcButton>
+                <div v-if="ICON_SIZES.includes(size)" class="flex items-center gap-1.5">
+                  <NcButton :type="type" :size="size" icon-only>
+                    <template #icon>
+                      <GeneralIcon icon="plus" />
+                    </template>
+                  </NcButton>
+                  <NcButton :type="type" :size="size" icon-only>
+                    <template #icon>
+                      <GeneralIcon icon="threeDotVertical" />
+                    </template>
+                  </NcButton>
+                </div>
+                <NcButton v-else :type="type" :size="size">Save changes</NcButton>
               </td>
             </tr>
           </tbody>

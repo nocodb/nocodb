@@ -64,8 +64,13 @@ onMounted(replayLog)
       </PgDemo>
       <PgDemo label="ApiLoader" hint="driven by useGlobal().isLoading">
         <div class="flex items-center gap-3">
-          <NcSwitch v-model:checked="isLoading" size="small">isLoading</NcSwitch>
-          <div class="bg-nc-bg-gray-extra-dark rounded-md px-2 py-1"><GeneralApiLoader /></div>
+          <div>
+            <NcSwitch v-model:checked="isLoading" size="small">
+              <span class="text-caption text-nc-content-gray select-none">isLoading</span>
+            </NcSwitch>
+          </div>
+          <!-- sits bare on the smartsheet topbar -->
+          <GeneralApiLoader />
         </div>
       </PgDemo>
     </div>
@@ -88,9 +93,14 @@ onMounted(replayLog)
   </PgSection>
 
   <PgSection id="locked-view" title="Locked view footer" source="GeneralLockedViewFooter">
-    <PgDemo stage="canvas">
-      <div class="flex flex-col gap-3 max-w-md">
-        <div v-for="v in lockedViews" :key="v.id" class="bg-nc-bg-default rounded-lg border-1 border-nc-border-gray-medium p-1.5">
+    <PgDemo stage="canvas" hint="flush at the bottom of a toolbar menu (filter, group, fields)">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
+        <div
+          v-for="v in lockedViews"
+          :key="v.id"
+          class="rounded-lg border-1 border-nc-border-gray-medium shadow-lg bg-nc-bg-default overflow-hidden"
+        >
+          <div class="px-4 py-3 text-caption text-nc-content-gray-muted">No filters in this view</div>
           <GeneralLockedViewFooter :view="v" />
         </div>
       </div>

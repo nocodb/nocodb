@@ -44,18 +44,20 @@ const activeDates = [dayjs().subtract(2, 'day'), dayjs().add(1, 'day'), dayjs().
       </div>
     </PgDemo>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+    <div class="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-3">
       <PgDemo label="NcDatePicker" :hint="`type: ${pickerType}`">
         <template #actions>
           <NcSelect v-model:value="pickerType" size="small" class="w-24">
             <a-select-option v-for="t in PICKER_TYPES" :key="t" :value="t">{{ t }}</a-select-option>
           </NcSelect>
         </template>
-        <div class="w-[288px] mx-auto rounded-lg border-1 border-nc-border-gray-medium overflow-hidden">
+        <!-- cell DateTime editor dropdown: 256px overlay -->
+        <div class="pg-dropdown-overlay w-[256px] mx-auto">
           <NcDatePicker
             v-model:selected-date="selected"
             v-model:page-date="pageDate"
             :type="pickerType"
+            size="medium"
             is-open
             show-current-date-option
           />
@@ -63,14 +65,17 @@ const activeDates = [dayjs().subtract(2, 'day'), dayjs().add(1, 'day'), dayjs().
         <div class="text-captionSm text-nc-content-gray-muted mt-2 text-center">{{ selected?.format('YYYY-MM-DD') ?? '—' }}</div>
       </PgDemo>
 
-      <PgDemo label="NcDateWeekSelector" hint="week picker with active dates">
-        <div class="w-[288px] mx-auto rounded-lg border-1 border-nc-border-gray-medium overflow-hidden">
+      <PgDemo label="NcDateWeekSelector" hint="calendar side menu, week mode">
+        <!-- calendar SideMenu: 288px panel -->
+        <div class="pg-side-panel w-[288px] mx-auto">
           <NcDateWeekSelector
             v-model:selected-date="weekSelected"
             v-model:page-date="weekPage"
             v-model:selected-week="selectedWeek"
             :active-dates="activeDates"
             is-week-picker
+            size="medium"
+            header="v2"
           />
         </div>
         <div class="text-captionSm text-nc-content-gray-muted mt-2 text-center">
@@ -78,29 +83,54 @@ const activeDates = [dayjs().subtract(2, 'day'), dayjs().add(1, 'day'), dayjs().
         </div>
       </PgDemo>
 
-      <PgDemo label="NcMonthYearSelector">
-        <div class="w-[288px] mx-auto rounded-lg border-1 border-nc-border-gray-medium overflow-hidden">
-          <NcMonthYearSelector v-model:selected-date="monthSelected" v-model:page-date="monthPage" />
+      <PgDemo label="NcMonthYearSelector" hint="calendar side menu, month mode">
+        <div class="pg-side-panel w-[288px] mx-auto">
+          <NcMonthYearSelector v-model:selected-date="monthSelected" v-model:page-date="monthPage" size="medium" header="v2" />
         </div>
       </PgDemo>
 
-      <PgDemo label="NcMonthYearSelector (year)">
-        <div class="w-[288px] mx-auto rounded-lg border-1 border-nc-border-gray-medium overflow-hidden">
-          <NcMonthYearSelector v-model:selected-date="monthSelected" v-model:page-date="monthPage" is-year-picker />
+      <PgDemo label="NcMonthYearSelector (year)" hint="calendar side menu, year mode">
+        <div class="pg-side-panel w-[288px] mx-auto">
+          <NcMonthYearSelector
+            v-model:selected-date="monthSelected"
+            v-model:page-date="monthPage"
+            size="medium"
+            header="v2"
+            is-year-picker
+          />
         </div>
       </PgDemo>
 
-      <PgDemo label="NcTimeSelector" hint="30-min granularity">
-        <div class="w-[180px] h-64 mx-auto rounded-lg border-1 border-nc-border-gray-medium overflow-hidden">
+      <PgDemo label="NcTimeSelector" hint="30-min granularity, as in the Time cell">
+        <div class="pg-dropdown-overlay w-[160px] mx-auto">
           <NcTimeSelector v-model:selected-date="time" is-min-granularity-picker :min-granularity="30" is-open />
         </div>
       </PgDemo>
 
-      <PgDemo label="NcTimeSelector (12h)">
-        <div class="w-[180px] h-64 mx-auto rounded-lg border-1 border-nc-border-gray-medium overflow-hidden">
-          <NcTimeSelector v-model:selected-date="time" is12hr-format is-open show-current-date-option />
+      <PgDemo label="NcTimeSelector (12h)" hint="is12hr-format + current-date option">
+        <!-- the list only renders with is-min-granularity-picker -->
+        <div class="pg-dropdown-overlay w-[160px] mx-auto">
+          <NcTimeSelector
+            v-model:selected-date="time"
+            is-min-granularity-picker
+            :min-granularity="30"
+            is12hr-format
+            is-open
+            show-current-date-option
+          />
         </div>
       </PgDemo>
     </div>
   </PgSection>
 </template>
+
+<style scoped lang="scss">
+/* NcDropdown overlay chrome */
+.pg-dropdown-overlay {
+  @apply rounded-lg border-1 border-nc-border-gray-medium shadow-lg bg-nc-bg-default overflow-hidden;
+}
+
+.pg-side-panel {
+  @apply rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default overflow-hidden;
+}
+</style>

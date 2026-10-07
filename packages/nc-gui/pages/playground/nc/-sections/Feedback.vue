@@ -93,21 +93,21 @@ function showToastType() {
         <div class="flex flex-col gap-3">
           <div class="grid grid-cols-4 gap-2">
             <NcTooltip v-for="p in PLACEMENTS" :key="p" :title="`placement: ${p}`" :placement="p">
-              <NcButton size="xsmall" type="secondary" class="w-full">{{ p }}</NcButton>
+              <NcButton size="small" type="secondary" class="w-full">{{ p }}</NcButton>
             </NcTooltip>
           </div>
           <div class="flex flex-wrap items-center gap-2">
             <NcTooltip title="Light tooltip" color="light">
-              <NcButton size="xsmall" type="secondary">light</NcButton>
+              <NcButton size="small" type="secondary">light</NcButton>
             </NcTooltip>
             <NcTooltip title="No arrow" :arrow="false">
-              <NcButton size="xsmall" type="secondary">no arrow</NcButton>
+              <NcButton size="small" type="secondary">no arrow</NcButton>
             </NcTooltip>
             <NcTooltip title="Shown only while Alt is held" modifier-key="Alt">
-              <NcButton size="xsmall" type="secondary">hold Alt + hover</NcButton>
+              <NcButton size="small" type="secondary">hold Alt + hover</NcButton>
             </NcTooltip>
             <NcTooltip disabled title="never shown">
-              <NcButton size="xsmall" type="secondary">disabled</NcButton>
+              <NcButton size="small" type="secondary">disabled</NcButton>
             </NcTooltip>
           </div>
           <NcTooltip show-on-truncate-only class="truncate max-w-48 text-caption">

@@ -110,9 +110,15 @@ function act(action: string) {
 
     <PgDemo label="Menu variants" hint="rendered inline">
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div v-for="variant in VARIANTS" :key="variant" class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default">
-          <div class="px-3 pt-2 text-captionXs text-nc-content-gray-muted font-mono">{{ variant }}</div>
-          <NcMenu :variant="variant">
+        <div v-for="variant in VARIANTS" :key="variant" class="flex flex-col gap-1.5">
+          <div class="text-captionXs text-nc-content-gray-muted font-mono">{{ variant }}</div>
+          <!-- outside NcDropdown a-menu renders .ant-menu-*; the variant styles target .ant-dropdown-menu-*,
+               so borrow the dropdown prefix and NcDropdown's overlay chrome -->
+          <NcMenu
+            :variant="variant"
+            prefix-cls="ant-dropdown-menu"
+            class="rounded-lg border-1 border-nc-border-gray-medium shadow-lg bg-nc-bg-default"
+          >
             <NcMenuItem><GeneralIcon icon="ncEdit" class="opacity-80" /> Rename</NcMenuItem>
             <NcMenuItem><GeneralIcon icon="ncCopy" class="opacity-80" /> Copy link</NcMenuItem>
             <NcDivider />

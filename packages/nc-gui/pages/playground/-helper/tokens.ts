@@ -1,6 +1,15 @@
 import { barcodeCache } from '~/components/smartsheet/grid/canvas/utils/canvas'
+import { fontStyleMap } from '~/assets/nc-typography-preset'
 
 export type TokenMode = 'light' | 'dark'
+
+export interface TypeStyle {
+  size: number
+  lineHeight: number
+  weight: number
+  /** px; 0 = none */
+  letterSpacing: number
+}
 
 export interface TokenOverrides {
   light: Record<string, string>
@@ -9,6 +18,35 @@ export interface TokenOverrides {
   font: string
   /** multiplier for border radii (1 = product default) */
   radiusScale: number
+  /** per text-* preset style; only the changed fields */
+  typography: Record<string, Partial<TypeStyle>>
+  /** multiplier for icon stroke widths (1 = product default) */
+  iconStroke: number
+}
+
+/** stroke widths the icon SVGs ship with (nc-icons, nc-icons-v2) */
+const ICON_STROKE_WIDTHS = ['0.66', '1', '1.2', '1.33', '1.33333', '1.5', '1.66', '2']
+
+/** the text-* presets from assets/nc-typography-preset.ts, as numbers */
+export const TYPE_STYLES: Array<{ key: string } & TypeStyle> = Object.entries(fontStyleMap).map(([key, [size, o]]) => ({
+  key,
+  size: parseFloat(size),
+  lineHeight: parseFloat(o.lineHeight),
+  weight: o.fontWeight,
+  // presets write rem
+  letterSpacing: o.letterSpacing ? parseFloat(o.letterSpacing) * 16 : 0,
+}))
+
+/** which utility property each semantic family paints — utilities compile to palette stops, not the --nc-* var */
+const SEMANTIC_UTILITIES: Record<string, Array<[prefix: string, property: string]>> = {
+  content: [['text', 'color']],
+  bg: [['bg', 'background-color']],
+  border: [['border', 'border-color']],
+  fill: [
+    ['bg', 'background-color'],
+    ['text', 'color'],
+    ['fill', 'fill'],
+  ],
 }
 
 export interface TokenDef {
@@ -32,7 +70,14 @@ export const FONT_OPTIONS = [
   { label: 'Georgia (serif)', value: 'Georgia, serif' },
 ]
 
-const emptyOverrides = (): TokenOverrides => ({ light: {}, dark: {}, font: '', radiusScale: 1 })
+const emptyOverrides = (): TokenOverrides => ({
+  light: {},
+  dark: {},
+  font: '',
+  radiusScale: 1,
+  typography: {},
+  iconStroke: 1,
+})
 
 export const hexToRgbTriplet = (hex: string): string | null => {
   const m = hex.trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6})([0-9a-f]{2})?$/i)
@@ -144,6 +189,43 @@ export const buildCss = (o: TokenOverrides) => {
   const dark = declarations(o.dark)
   if (light.length) blocks.push(`:root {\n  ${light.join('\n  ')}\n}`)
   if (dark.length) blocks.push(`[theme='dark'] {\n  ${dark.join('\n  ')}\n}`)
+
+  // Not !important and single-class specificity: wins over the base utility by source order,
+  // still loses to hover:/focus: variants and explicit `!` utilities.
+  const semantic = new Set(
+    [...Object.keys(o.light), ...Object.keys(o.dark)].filter((n) => /^--nc-(content|bg|border|fill)-/.test(n)),
+  )
+  const utilityRules: string[] = []
+  for (const name of semantic) {
+    const family = name.match(/^--nc-([a-z]+)-/)![1]
+    for (const [prefix, property] of SEMANTIC_UTILITIES[family] ?? []) {
+      utilityRules.push(`.${prefix}-${name.slice(2)} { ${property}: var(${name}); }`)
+    }
+  }
+  if (utilityRules.length) blocks.push(utilityRules.join('\n'))
+
+  const typeRules = Object.entries(o.typography ?? {})
+    .filter(([, t]) => Object.keys(t).length)
+    .map(([key, t]) => {
+      const props = [
+        t.size !== undefined ? `font-size: ${t.size}px;` : '',
+        t.lineHeight !== undefined ? `line-height: ${t.lineHeight}px;` : '',
+        t.weight !== undefined ? `font-weight: ${t.weight};` : '',
+        t.letterSpacing !== undefined ? `letter-spacing: ${t.letterSpacing}px;` : '',
+      ]
+      return `.text-${key} { ${props.filter(Boolean).join(' ')} }`
+    })
+  if (typeRules.length) blocks.push(typeRules.join('\n'))
+
+  // a CSS stroke-width beats the SVG presentation attribute; scaling each shipped width keeps relative weights
+  if (o.iconStroke && o.iconStroke !== 1) {
+    blocks.push(
+      ICON_STROKE_WIDTHS.map(
+        (w) => `svg[stroke-width="${w}"], svg [stroke-width="${w}"] { stroke-width: ${+(Number(w) * o.iconStroke).toFixed(3)}; }`,
+      ).join('\n'),
+    )
+  }
+
   if (o.font) blocks.push(`body, body * { font-family: ${o.font} !important; }`)
   if (o.radiusScale !== 1) {
     const r = o.radiusScale
@@ -250,6 +332,37 @@ export const usePlaygroundTokens = createSharedComposable(() => {
     overrides.value = { ...overrides.value, light: strip(overrides.value.light), dark: strip(overrides.value.dark) }
   }
 
+  /** `null` for a field drops it back to the preset; `null` for the patch drops the whole style */
+  const setTypography = (key: string, patch: Partial<Record<keyof TypeStyle, number | null>> | null) => {
+    const next = { ...overrides.value.typography }
+    if (!patch) delete next[key]
+    else {
+      const style = { ...next[key] }
+      for (const [field, value] of Object.entries(patch) as Array<[keyof TypeStyle, number | null]>) {
+        if (value === null || Number.isNaN(value)) delete style[field]
+        else style[field] = value
+      }
+      if (Object.keys(style).length) next[key] = style
+      else delete next[key]
+    }
+    overrides.value = { ...overrides.value, typography: next }
+  }
+
+  /** scales every preset's size and line-height from the product defaults */
+  const scaleTypography = (factor: number) => {
+    const typography: TokenOverrides['typography'] = {}
+    if (factor !== 1) {
+      for (const s of TYPE_STYLES) {
+        typography[s.key] = {
+          ...overrides.value.typography[s.key],
+          size: Math.round(s.size * factor * 2) / 2,
+          lineHeight: Math.round(s.lineHeight * factor),
+        }
+      }
+    }
+    overrides.value = { ...overrides.value, typography }
+  }
+
   const reset = () => {
     overrides.value = emptyOverrides()
   }
@@ -263,7 +376,9 @@ export const usePlaygroundTokens = createSharedComposable(() => {
       Object.keys(overrides.value.light).length +
       Object.keys(overrides.value.dark).length +
       (overrides.value.font ? 1 : 0) +
-      (overrides.value.radiusScale !== 1 ? 1 : 0),
+      (overrides.value.radiusScale !== 1 ? 1 : 0) +
+      Object.keys(overrides.value.typography).length +
+      (overrides.value.iconStroke !== 1 ? 1 : 0),
   )
 
   const registerFrame = (frame: HTMLIFrameElement) => {
@@ -280,6 +395,8 @@ export const usePlaygroundTokens = createSharedComposable(() => {
     setToken,
     setRamp,
     clearRamp,
+    setTypography,
+    scaleTypography,
     reset,
     importJson,
     registerFrame,

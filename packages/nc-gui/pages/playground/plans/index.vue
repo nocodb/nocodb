@@ -1,14 +1,33 @@
 <script setup lang="ts">
 import { OnPremPlanMeta, OnPremPlanTitles, PlanMeta, PlanTitles } from 'nocodb-sdk'
+import PgDemo from '../-components/PgDemo.vue'
+import PgPage from '../-components/PgPage.vue'
+import PgSection from '../-components/PgSection.vue'
+
+type CloudPlanMeta = (typeof PlanMeta)[PlanTitles]
+
+const SECTIONS = [
+  { id: 'badges', title: 'Badges' },
+  { id: 'cloud', title: 'Cloud billing' },
+  { id: 'on-prem', title: 'On-prem billing' },
+  { id: 'lock', title: 'Lock-only variant' },
+  { id: 'legacy', title: 'Legacy orange Enterprise' },
+]
 
 const { isDark } = useTheme()
 
-const cloudPlans = [PlanTitles.FREE, PlanTitles.PLUS, PlanTitles.BUSINESS, PlanTitles.ENTERPRISE] as const
+const cloudPlans = [PlanTitles.FREE, PlanTitles.PLUS, PlanTitles.BUSINESS, PlanTitles.SCALE, PlanTitles.ENTERPRISE] as const
+
 const onPremPlans = [
-  OnPremPlanTitles.SELF_HOSTED_STARTER,
+  OnPremPlanTitles.SELF_HOSTED_BUSINESS,
   OnPremPlanTitles.SELF_HOSTED_SCALE,
   OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
 ] as const
+
+const badgePlans = [
+  ...cloudPlans.filter((p) => p !== PlanTitles.FREE).map((p) => PlanMeta[p]),
+  ...onPremPlans.map((p) => OnPremPlanMeta[p]),
+]
 
 const billingForCloud = (plan: PlanTitles): Array<[string, string]> => {
   switch (plan) {
@@ -38,6 +57,15 @@ const billingForCloud = (plan: PlanTitles): Array<[string, string]> => {
         ['Webhook calls (monthly)', '4,210 of 50,000 webhook calls per month'],
         ['API calls (monthly)', '9,802 of 50,000 API calls per month'],
       ]
+    case PlanTitles.SCALE:
+      return [
+        ['Next invoice', '$1,200, Dec 12'],
+        ['Number of billed users', '40 Paid Users'],
+        ['Records', '412,900 of 1,000,000 records'],
+        ['Storage used (GB)', '31 GB of 250 GB attachments'],
+        ['Webhook calls (monthly)', '18,300 of 200,000 webhook calls per month'],
+        ['API calls (monthly)', '61,020 of 200,000 API calls per month'],
+      ]
     default:
       return [
         ['Next invoice', '—'],
@@ -52,9 +80,9 @@ const billingForCloud = (plan: PlanTitles): Array<[string, string]> => {
 
 const billingForOnPrem = (plan: OnPremPlanTitles): Array<[string, string]> => {
   switch (plan) {
-    case OnPremPlanTitles.SELF_HOSTED_STARTER:
+    case OnPremPlanTitles.SELF_HOSTED_BUSINESS:
       return [
-        ['License', 'Self-hosted Starter'],
+        ['License', 'Self-hosted Business'],
         ['Billed users', '10 Paid Users'],
         ['Records', 'Unlimited'],
         ['Storage used (GB)', '4.1 GB (self-hosted)'],
@@ -79,144 +107,175 @@ const billingForOnPrem = (plan: OnPremPlanTitles): Array<[string, string]> => {
   }
 }
 
-const metaForCloud = (plan: PlanTitles) => PlanMeta[plan]
-const metaForOnPrem = (plan: OnPremPlanTitles) => OnPremPlanMeta[plan]
-
-/**
- * Pull static badge tokens from the SDK. Both PlanMeta and OnPremPlanMeta now
- * expose `staticBadgeBgColor` / `staticBadgeTextColor` (pure hex, no CSS var).
- */
-const staticBadge = (plan: PlanTitles | OnPremPlanTitles): { bg: string; text: string } => {
-  const meta = (OnPremPlanMeta as any)[plan] || (PlanMeta as any)[plan]
-  return { bg: meta.staticBadgeBgColor, text: meta.staticBadgeTextColor }
-}
-
-// Old Enterprise orange tokens — for side-by-side comparison with the
-// CEO-approved teal. Kept local to the playground; doesn't touch the product.
-// Table tokens swap on dark mode; badge pill stays the same (Airtable-style).
-const enterpriseOrangeMeta = computed(() => {
+// Pre-teal Enterprise tokens, kept here for side-by-side comparison only.
+const enterpriseOrangeMeta = computed<CloudPlanMeta>(() => {
   const base = PlanMeta[PlanTitles.ENTERPRISE]
-  if (isDark.value) {
-    return {
-      ...base,
-      color: '#1B120B',
-      accent: '#5E381D',
-      primary: '#E28E4C',
-      bgLight: '#24170D',
-      bgDark: '#160E08',
-      border: '#70492C',
-      chartFillColor: '#E28E4C',
-      badgeBgColor: '#FEE6D6',
-      badgeTextColor: '#C86827',
-    }
-  }
+  const tokens = isDark.value
+    ? {
+        color: '#1B120B',
+        accent: '#5E381D',
+        primary: '#E28E4C',
+        bgLight: '#24170D',
+        bgDark: '#160E08',
+        border: '#70492C',
+        chartFillColor: '#E28E4C',
+      }
+    : {
+        color: '#FFF5EF',
+        accent: '#FDCDAD',
+        primary: '#C86827',
+        bgLight: '#FFF5EF',
+        bgDark: '#FEE6D6',
+        border: '#FDCDAD',
+        chartFillColor: '#C86827',
+      }
   return {
     ...base,
-    color: '#FFF5EF',
-    accent: '#FDCDAD',
-    primary: '#C86827',
-    bgLight: '#FFF5EF',
-    bgDark: '#FEE6D6',
-    border: '#FDCDAD',
-    chartFillColor: '#C86827',
+    ...tokens,
     badgeBgColor: '#FEE6D6',
     badgeTextColor: '#C86827',
+    staticBadgeBgColor: '#FEE6D6',
+    staticBadgeTextColor: '#C86827',
   }
 })
 
-const enterpriseOrangeBadge = { bg: '#FEE6D6', text: '#C86827' }
+const LOCKED_FEATURES = ['Data permissions', 'Audit logs', 'SSO / SAML']
 </script>
 
 <template>
-  <div class="min-h-full bg-nc-bg-default">
-    <div class="max-w-4xl mx-auto p-8">
-      <div class="mb-8">
-        <a href="/playground" class="text-sm text-nc-content-brand no-underline">← Playground</a>
-        <h1 class="text-4xl font-bold text-nc-content-gray-emphasis mt-2 mb-1">{{ $t('labels.plans') }}</h1>
-        <p class="text-sm text-nc-content-gray-subtle">
-          Current-plan billing table and upgrade badges for both Cloud and On-Prem SKUs. Toggle the app theme to check dark mode.
-        </p>
-      </div>
-
-      <!-- ========== CLOUD ========== -->
-      <div class="mb-6">
-        <div class="text-[11px] tracking-widest text-nc-content-gray-muted uppercase mb-1">{{ $t('labels.cloud') }}</div>
-        <div class="text-sm text-nc-content-gray-subtle">PlanMeta · Free · Plus · Business · Enterprise</div>
-      </div>
-
-      <div class="flex flex-col gap-8">
-        <section v-for="plan in cloudPlans" :key="plan" class="flex flex-col gap-3">
-          <div class="flex items-center gap-3">
-            <h2
-              class="text-lg font-semibold leading-none !m-0 text-nc-content-gray-emphasis"
-              :style="{ color: metaForCloud(plan).primary }"
+  <PgPage
+    title="Plans"
+    description="Upgrade badges and the current-plan billing table for every Cloud and On-prem SKU. Switch the theme in the top bar to check dark mode."
+    :sections="SECTIONS"
+  >
+    <PgSection
+      id="badges"
+      title="Badges"
+      source="staticBadgeBgColor · staticBadgeTextColor"
+      description="Static badge colours are plain hex so the pill looks the same in light and dark mode."
+    >
+      <PgDemo label="All paid SKUs">
+        <div class="flex items-center gap-3 flex-wrap">
+          <div v-for="meta in badgePlans" :key="meta.title" class="flex items-center gap-1.5">
+            <span
+              class="nc-play-badge text-caption"
+              :style="{ background: meta.staticBadgeBgColor, color: meta.staticBadgeTextColor }"
             >
-              {{ plan }}
-            </h2>
-            <template v-if="plan !== PlanTitles.FREE">
-              <span
-                class="nc-play-badge"
-                :style="{
-                  background: staticBadge(plan).bg,
-                  color: staticBadge(plan).text,
-                }"
-              >
-                <svg class="nc-play-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                  <path d="M8 0 C8.6 5 11 7.4 16 8 C11 8.6 8.6 11 8 16 C7.4 11 5 8.6 0 8 C5 7.4 7.4 5 8 0 Z" />
-                </svg>
-                {{ plan }}
-              </span>
-              <GeneralIcon icon="ncLock" class="h-3.5 w-3.5 cursor-pointer" :style="{ color: staticBadge(plan).text }" />
-            </template>
+              <svg class="nc-play-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M8 0 C8.6 5 11 7.4 16 8 C11 8.6 8.6 11 8 16 C7.4 11 5 8.6 0 8 C5 7.4 7.4 5 8 0 Z" />
+              </svg>
+              {{ meta.title }}
+            </span>
+            <GeneralIcon icon="ncLock" class="h-3.5 w-3.5" :style="{ color: meta.staticBadgeTextColor }" />
           </div>
-
-          <div
-            class="nc-current-plan-table rounded-lg border-1"
-            :style="{
-              borderColor: metaForCloud(plan).border,
-              background: metaForCloud(plan).bgLight,
-              color: metaForCloud(plan).primary,
-            }"
-          >
-            <PaymentPlanUsageRow v-for="row in billingForCloud(plan)" :key="row[0]" :plan-meta="metaForCloud(plan)">
-              <template #label>{{ row[0] }}</template>
-              <template #value>{{ row[1] }}</template>
-            </PaymentPlanUsageRow>
-          </div>
-        </section>
-      </div>
-
-      <!-- Old orange Enterprise — for comparison only (not in product) -->
-      <div class="mt-14 mb-6">
-        <div class="text-[11px] tracking-widest text-nc-content-gray-muted uppercase mb-1">Legacy · Orange Enterprise</div>
-        <div class="text-sm text-nc-content-gray-subtle">
-          For comparison — the pre-teal Enterprise tokens. Not applied in product.
         </div>
-      </div>
+      </PgDemo>
+    </PgSection>
 
-      <section class="flex flex-col gap-3">
-        <div class="flex items-center gap-3">
-          <h2 class="text-lg font-semibold leading-none !m-0" :style="{ color: enterpriseOrangeMeta.primary }">
-            {{ $t('objects.paymentPlan.Enterprise') }}
-          </h2>
+    <PgSection
+      id="cloud"
+      title="Cloud billing"
+      source="PlanMeta · PaymentPlanUsageRow"
+      description="The current-plan table from Billing, tinted with each plan's bgLight / border / primary tokens."
+    >
+      <PgDemo v-for="plan in cloudPlans" :key="plan" :label="plan">
+        <template #actions>
           <span
-            class="nc-play-badge"
+            v-if="plan !== PlanTitles.FREE"
+            class="nc-play-badge text-caption"
+            :style="{ background: PlanMeta[plan].staticBadgeBgColor, color: PlanMeta[plan].staticBadgeTextColor }"
+          >
+            {{ plan }}
+          </span>
+        </template>
+        <div
+          class="rounded-lg border-1 overflow-hidden"
+          :style="{
+            borderColor: PlanMeta[plan].border,
+            background: PlanMeta[plan].bgLight,
+            color: PlanMeta[plan].primary,
+          }"
+        >
+          <PaymentPlanUsageRow v-for="row in billingForCloud(plan)" :key="row[0]" :plan-meta="PlanMeta[plan]">
+            <template #label>{{ row[0] }}</template>
+            <template #value>{{ row[1] }}</template>
+          </PaymentPlanUsageRow>
+        </div>
+      </PgDemo>
+    </PgSection>
+
+    <PgSection id="on-prem" title="On-prem billing" source="OnPremPlanMeta" description="Self-hosted licence tiers.">
+      <PgDemo v-for="plan in onPremPlans" :key="plan" :label="plan">
+        <template #actions>
+          <span
+            class="nc-play-badge text-caption"
             :style="{
-              background: enterpriseOrangeBadge.bg,
-              color: enterpriseOrangeBadge.text,
+              background: OnPremPlanMeta[plan].staticBadgeBgColor,
+              color: OnPremPlanMeta[plan].staticBadgeTextColor,
             }"
           >
-            <svg class="nc-play-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-              <path d="M8 0 C8.6 5 11 7.4 16 8 C11 8.6 8.6 11 8 16 C7.4 11 5 8.6 0 8 C5 7.4 7.4 5 8 0 Z" />
-            </svg>
-            {{ $t('objects.paymentPlan.Enterprise') }}
+            {{ plan }}
           </span>
-          <GeneralIcon icon="ncLock" class="h-3.5 w-3.5 cursor-pointer" :style="{ color: enterpriseOrangeBadge.text }" />
-          <span class="text-[11px] tracking-widest text-nc-content-gray-muted uppercase">Old · Orange</span>
-        </div>
-
+        </template>
         <div
-          class="nc-current-plan-table rounded-lg border-1"
+          class="rounded-lg border-1 overflow-hidden"
+          :style="{
+            borderColor: OnPremPlanMeta[plan].border,
+            background: OnPremPlanMeta[plan].bgLight,
+            color: OnPremPlanMeta[plan].primary,
+          }"
+        >
+          <PaymentPlanUsageRow v-for="row in billingForOnPrem(plan)" :key="row[0]" :plan-meta="OnPremPlanMeta[plan]">
+            <template #label>{{ row[0] }}</template>
+            <template #value>{{ row[1] }}</template>
+          </PaymentPlanUsageRow>
+        </div>
+      </PgDemo>
+    </PgSection>
+
+    <PgSection
+      id="lock"
+      title="Lock-only variant"
+      source="showAsLock"
+      description="Used in dense lists where a full badge would be too loud."
+    >
+      <PgDemo label="Settings list">
+        <div class="flex flex-col max-w-md">
+          <div
+            v-for="feature in LOCKED_FEATURES"
+            :key="feature"
+            class="flex items-center justify-between h-9 border-b-1 border-nc-border-gray-light last:border-b-0"
+          >
+            <span class="text-caption text-nc-content-gray">{{ feature }}</span>
+            <GeneralIcon
+              icon="ncLock"
+              class="h-3.5 w-3.5"
+              :style="{ color: PlanMeta[PlanTitles.ENTERPRISE].staticBadgeTextColor }"
+            />
+          </div>
+        </div>
+      </PgDemo>
+    </PgSection>
+
+    <PgSection
+      id="legacy"
+      title="Legacy orange Enterprise"
+      description="The pre-teal Enterprise tokens, for comparison only. Not applied in the product."
+    >
+      <PgDemo label="Enterprise (orange)">
+        <template #actions>
+          <span
+            class="nc-play-badge text-caption"
+            :style="{
+              background: enterpriseOrangeMeta.staticBadgeBgColor,
+              color: enterpriseOrangeMeta.staticBadgeTextColor,
+            }"
+          >
+            Enterprise
+          </span>
+        </template>
+        <div
+          class="rounded-lg border-1 overflow-hidden"
           :style="{
             borderColor: enterpriseOrangeMeta.border,
             background: enterpriseOrangeMeta.bgLight,
@@ -232,105 +291,14 @@ const enterpriseOrangeBadge = { bg: '#FEE6D6', text: '#C86827' }
             <template #value>{{ row[1] }}</template>
           </PaymentPlanUsageRow>
         </div>
-      </section>
-
-      <!-- ========== ON-PREM ========== -->
-      <div class="mt-14 mb-6">
-        <div class="text-[11px] tracking-widest text-nc-content-gray-muted uppercase mb-1">{{ $t('labels.onPrem') }}</div>
-        <div class="text-sm text-nc-content-gray-subtle">OnPremPlanMeta · Starter · Scale · Enterprise</div>
-      </div>
-
-      <div class="flex flex-col gap-8">
-        <section v-for="plan in onPremPlans" :key="plan" class="flex flex-col gap-3">
-          <div class="flex items-center gap-3">
-            <h2
-              class="text-lg font-semibold leading-none !m-0 text-nc-content-gray-emphasis"
-              :style="{ color: metaForOnPrem(plan).primary }"
-            >
-              {{ plan }}
-            </h2>
-            <span
-              class="nc-play-badge"
-              :style="{
-                background: staticBadge(plan).bg,
-                color: staticBadge(plan).text,
-              }"
-            >
-              <svg class="nc-play-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                <path d="M8 0 C8.6 5 11 7.4 16 8 C11 8.6 8.6 11 8 16 C7.4 11 5 8.6 0 8 C5 7.4 7.4 5 8 0 Z" />
-              </svg>
-              {{ plan }}
-            </span>
-            <GeneralIcon icon="ncLock" class="h-3.5 w-3.5 cursor-pointer" :style="{ color: staticBadge(plan).text }" />
-          </div>
-
-          <div
-            class="nc-current-plan-table rounded-lg border-1"
-            :style="{
-              borderColor: metaForOnPrem(plan).border,
-              background: metaForOnPrem(plan).bgLight,
-              color: metaForOnPrem(plan).primary,
-            }"
-          >
-            <PaymentPlanUsageRow v-for="row in billingForOnPrem(plan)" :key="row[0]" :plan-meta="metaForOnPrem(plan)">
-              <template #label>{{ row[0] }}</template>
-              <template #value>{{ row[1] }}</template>
-            </PaymentPlanUsageRow>
-          </div>
-        </section>
-      </div>
-
-      <!-- Lock-only variant (showAsLock) -->
-      <div class="mt-12">
-        <div class="text-[11px] tracking-widest text-nc-content-gray-muted uppercase mb-3">Lock-only variant</div>
-        <div class="p-5 bg-nc-bg-default rounded-xl border border-nc-border-gray-medium">
-          <div class="flex flex-col gap-3">
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-nc-content-gray">{{ $t('labels.baseNav.dataPermissionsNav') }}</span>
-              <GeneralIcon icon="ncLock" class="h-3.5 w-3.5 cursor-pointer" style="color: #0d5a5a" />
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-nc-content-gray">{{ $t('title.auditLogs') }}</span>
-              <GeneralIcon icon="ncLock" class="h-3.5 w-3.5 cursor-pointer" style="color: #0d5a5a" />
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-nc-content-gray">SSO / SAML</span>
-              <GeneralIcon icon="ncLock" class="h-3.5 w-3.5 cursor-pointer" style="color: #0d5a5a" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Stand-alone badges strip -->
-      <div class="mt-12">
-        <div class="text-[11px] tracking-widest text-nc-content-gray-muted uppercase mb-3">Standalone badges — all SKUs</div>
-        <div class="p-5 bg-nc-bg-default rounded-xl border border-nc-border-gray-medium">
-          <div class="flex items-center gap-3 flex-wrap">
-            <span
-              v-for="plan in [...cloudPlans, ...onPremPlans].filter((p) => p !== PlanTitles.FREE)"
-              :key="plan"
-              class="nc-play-badge"
-              :style="{
-                background: staticBadge(plan).bg,
-                color: staticBadge(plan).text,
-              }"
-            >
-              <svg class="nc-play-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                <path d="M8 0 C8.6 5 11 7.4 16 8 C11 8.6 8.6 11 8 16 C7.4 11 5 8.6 0 8 C5 7.4 7.4 5 8 0 Z" />
-              </svg>
-              {{ plan }}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+      </PgDemo>
+    </PgSection>
+  </PgPage>
 </template>
 
 <style scoped lang="scss">
 .nc-play-badge {
-  @apply inline-flex items-center gap-1 text-[13px] font-medium rounded-full px-2 py-1 leading-none whitespace-nowrap;
-  line-height: 1;
+  @apply inline-flex items-center gap-1 rounded-full px-2 py-1 leading-none whitespace-nowrap;
 }
 
 .nc-play-icon {

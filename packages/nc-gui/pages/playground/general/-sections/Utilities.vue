@@ -14,12 +14,13 @@ const badgeSizes = ['xs', 'sm', 'md', 'lg'] as const
 
 <template>
   <PgSection id="copy" title="Copy helpers" source="GeneralCopyButton · GeneralCopyInput · GeneralCopyUrl">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-      <PgDemo label="CopyButton" hint="extends NcButton props">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <PgDemo label="CopyButton" hint="icon-only; extends NcButton props">
         <div class="flex items-center gap-2">
           <GeneralCopyButton content="sk_live_51Hx…" />
           <GeneralCopyButton content="sk_live_51Hx…" type="secondary" size="small" />
-          <GeneralCopyButton content="sk_live_51Hx…" type="secondary" size="small">Copy token</GeneralCopyButton>
+          <!-- webhook call log payload card -->
+          <GeneralCopyButton content="sk_live_51Hx…" size="xs" class="!px-1" />
         </div>
       </PgDemo>
       <PgDemo label="CopyInput">
@@ -28,7 +29,7 @@ const badgeSizes = ['xs', 'sm', 'md', 'lg'] as const
           <GeneralCopyInput model-value="nc_pat_8Y2k9QmZr4LxVb" password />
         </div>
       </PgDemo>
-      <PgDemo label="CopyUrl">
+      <PgDemo label="CopyUrl" class="md:col-span-2">
         <GeneralCopyUrl v-model:url="shareUrl" />
       </PgDemo>
     </div>

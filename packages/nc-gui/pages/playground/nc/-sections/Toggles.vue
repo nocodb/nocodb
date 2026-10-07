@@ -18,8 +18,6 @@ const someChecked = computed(() => !allChecked.value && (permissions.read || per
 
 const role = ref('editor')
 
-const density = ref('comfortable')
-
 function toggleAll(value: boolean) {
   permissions.read = value
   permissions.write = value
@@ -39,9 +37,24 @@ function toggleAll(value: boolean) {
             <NcSwitch :checked="true" :size="size" disabled />
             <NcSwitch :checked="true" :size="size" loading />
           </div>
-          <NcSwitch v-model:checked="notifications">Email notifications</NcSwitch>
-          <NcSwitch v-model:checked="weeklyDigest" placement="right">Weekly digest (label left)</NcSwitch>
-          <NcSwitch :checked="false" disabled>Disabled with label</NcSwitch>
+          <!-- NcSwitch is a fragment (switch + label span): give each its own block div, as the product does -->
+          <div class="flex flex-col gap-3 pt-3 border-t-1 border-nc-border-gray-light">
+            <div>
+              <NcSwitch v-model:checked="notifications">
+                <span class="text-caption text-nc-content-gray select-none">Email notifications</span>
+              </NcSwitch>
+            </div>
+            <div>
+              <NcSwitch v-model:checked="weeklyDigest" placement="right">
+                <span class="text-caption text-nc-content-gray select-none">Weekly digest (label left)</span>
+              </NcSwitch>
+            </div>
+            <div>
+              <NcSwitch :checked="false" disabled>
+                <span class="text-caption text-nc-content-gray select-none">Disabled with label</span>
+              </NcSwitch>
+            </div>
+          </div>
         </div>
       </PgDemo>
 
@@ -70,19 +83,12 @@ function toggleAll(value: boolean) {
       </PgDemo>
 
       <PgDemo label="Radio group" hint="a-radio-group">
-        <div class="flex flex-col gap-4">
-          <a-radio-group v-model:value="role" class="!flex flex-col gap-2">
-            <a-radio value="owner">Owner</a-radio>
-            <a-radio value="editor">Editor</a-radio>
-            <a-radio value="viewer">Viewer</a-radio>
-            <a-radio value="guest" disabled>Guest (disabled)</a-radio>
-          </a-radio-group>
-          <a-radio-group v-model:value="density" button-style="solid" size="small">
-            <a-radio-button value="compact">Compact</a-radio-button>
-            <a-radio-button value="comfortable">Comfortable</a-radio-button>
-            <a-radio-button value="spacious">Spacious</a-radio-button>
-          </a-radio-group>
-        </div>
+        <a-radio-group v-model:value="role" class="!flex flex-col gap-2">
+          <a-radio value="owner">Owner</a-radio>
+          <a-radio value="editor">Editor</a-radio>
+          <a-radio value="viewer">Viewer</a-radio>
+          <a-radio value="guest" disabled>Guest (disabled)</a-radio>
+        </a-radio-group>
       </PgDemo>
     </div>
   </PgSection>

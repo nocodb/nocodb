@@ -59,11 +59,13 @@ function viewMeta(type: number, icon?: string) {
     <PgDemo label="Sizes" hint="initials, emoji, icon, placeholder">
       <div class="flex flex-col gap-4">
         <div v-for="size in userSizes" :key="size" class="flex items-center gap-3">
-          <span class="w-16 text-captionSm text-nc-content-gray-muted">{{ size }}</span>
-          <GeneralUserIcon v-for="u in users" :key="u.id" :user="u" :size="size" />
-          <GeneralUserIcon :size="size" show-placeholder-icon />
-          <GeneralUserIcon :user="users[0]" :size="size" disabled />
-          <GeneralUserIcon :user="users[1]" :size="size" is-deleted />
+          <span class="w-16 flex-none text-captionSm text-nc-content-gray-muted">{{ size }}</span>
+          <div class="flex-1 min-w-0 flex flex-wrap items-center gap-3">
+            <GeneralUserIcon v-for="u in users" :key="u.id" :user="u" :size="size" />
+            <GeneralUserIcon :size="size" show-placeholder-icon />
+            <GeneralUserIcon :user="users[0]" :size="size" disabled />
+            <GeneralUserIcon :user="users[1]" :size="size" is-deleted />
+          </div>
         </div>
       </div>
     </PgDemo>

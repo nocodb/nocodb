@@ -66,6 +66,9 @@ const dbTypes = [
 
 const integrationTypes = computed(() => Object.keys(integrationsIconMap.value).slice(0, 32))
 
+// the first entry is the composite NocoDB-sync mark; a plain logo reads better across sizes
+const sizeDemoType = computed(() => integrationTypes.value.find((t) => t === ClientType.PG) ?? integrationTypes.value[0])
+
 function iconExists(icon: string) {
   return icon in iconMap
 }
@@ -150,11 +153,11 @@ function iconExists(icon: string) {
             </div>
           </NcTooltip>
         </div>
-        <div v-if="integrationTypes[0]" class="flex items-end gap-4">
+        <div v-if="sizeDemoType" class="flex items-end gap-4">
           <GeneralIntegrationIcon
             v-for="s in ['sx', 'sm', 'md', 'lg', 'xl', 'xxl'] as const"
             :key="s"
-            :type="integrationTypes[0]"
+            :type="sizeDemoType"
             :size="s"
           />
         </div>

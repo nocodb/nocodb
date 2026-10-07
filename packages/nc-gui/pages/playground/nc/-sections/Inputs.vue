@@ -81,7 +81,7 @@ const suggestGroups = [
         <div class="flex flex-col gap-3">
           <a-textarea v-model:value="description" class="nc-input-sm nc-input-shadow" :rows="3" placeholder="Description" />
           <a-textarea class="nc-input-sm nc-input-shadow" :rows="2" value="Disabled textarea" disabled />
-          <NcAutoSizeTextarea v-model="notes" placeholder="Add notes" />
+          <NcAutoSizeTextarea v-model="notes" placeholder="Add notes" class="!rounded-lg px-3 py-1 text-sm" />
           <NcAutoSizeTextarea model-value="Borderless auto-size" :bordered="false" />
         </div>
       </PgDemo>
@@ -90,7 +90,7 @@ const suggestGroups = [
         <div class="flex flex-col gap-4">
           <div class="flex items-center gap-3">
             <span class="w-36 text-caption">a-input-number</span>
-            <a-input-number v-model:value="seats" :min="1" :max="500" class="nc-input-sm nc-input-shadow !w-32" />
+            <a-input-number v-model:value="seats" :min="1" :max="500" class="!w-32 !rounded-lg" />
           </div>
           <div class="flex items-center gap-3">
             <span class="w-36 text-caption">NonNullableNumber</span>

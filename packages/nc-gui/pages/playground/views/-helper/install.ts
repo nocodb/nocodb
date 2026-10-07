@@ -1,11 +1,12 @@
 import axios from 'axios'
-import type { AxiosInstance } from 'axios'
+import type { AxiosRequestConfig } from 'axios'
+import { HttpClient } from 'nocodb-sdk'
 import { createMockAdapter } from './mock-api'
 import type { MockDb, UnmockedRequest } from './mock-api'
 import { MOCK_BASE_ID, MOCK_TASKS_TABLE_ID, MOCK_USERS, buildRows, buildTable, buildTasksTable, mockBase } from './mock-data'
 import type { MockViewKind } from './mock-data'
 
-type Adapter = AxiosInstance['defaults']['adapter']
+type MergeParams = (this: HttpClient, params1: AxiosRequestConfig, params2?: AxiosRequestConfig) => AxiosRequestConfig
 
 interface Session {
   kind: MockViewKind
@@ -14,8 +15,7 @@ interface Session {
 }
 
 interface Saved {
-  instance: Adapter
-  global: Adapter
+  mergeRequestParams: MergeParams
   user: unknown
   lastVisitedBase: string | null
   recentViews: unknown[] | null
@@ -63,10 +63,9 @@ function seedStores(kind: MockViewKind, db: MockDb) {
   useViewsStore().viewsByTable.set(`${MOCK_BASE_ID}:${table.id}`, table.views ?? [])
 }
 
-function uninstall(api: { instance: AxiosInstance }, user: Ref<any>) {
+function uninstall(user: Ref<any>) {
   if (!saved) return
-  api.instance.defaults.adapter = saved.instance
-  axios.defaults.adapter = saved.global
+  HttpClient.prototype.mergeRequestParams = saved.mergeRequestParams
   user.value = saved.user
   if (saved.recentViews) {
     const viewsStore = useViewsStore()
@@ -90,13 +89,11 @@ function uninstall(api: { instance: AxiosInstance }, user: Ref<any>) {
  */
 export function installPlaygroundMocks(kind: MockViewKind) {
   const nuxtApp = useNuxtApp()
-  const api = nuxtApp.$api as unknown as { instance: AxiosInstance }
   const { user } = useGlobal()
 
   if (!saved) {
     saved = {
-      instance: api.instance.defaults.adapter,
-      global: axios.defaults.adapter,
+      mergeRequestParams: HttpClient.prototype.mergeRequestParams,
       user: user.value,
       lastVisitedBase: localStorage.getItem('ncLastVisitedBase'),
       recentViews: null,
@@ -115,11 +112,13 @@ export function installPlaygroundMocks(kind: MockViewKind) {
     session = { kind, db, seeded: false }
     unmockedRequests.value = []
 
-    const adapter = createMockAdapter(db, recordUnmocked, axios.getAdapter(saved.global ?? axios.defaults.adapter))
-    // useApi() creates fresh axios instances that copy axios.defaults at
-    // creation, so patch the global defaults as well as the shared $api.
-    api.instance.defaults.adapter = adapter
-    axios.defaults.adapter = adapter
+    const adapter = createMockAdapter(db, recordUnmocked, axios.getAdapter(axios.defaults.adapter))
+    // Stores build their Api clients at boot, and Vite can pre-bundle a second axios copy for the SDK,
+    // so neither instance defaults nor our `axios` import reach them. Every SDK call builds its config here.
+    const merge = saved.mergeRequestParams
+    HttpClient.prototype.mergeRequestParams = function (params1, params2) {
+      return { ...merge.call(this, params1, params2), adapter }
+    } satisfies MergeParams
   }
 
   user.value = { ...(saved.user as object), base_roles: { owner: true } } as typeof user.value
@@ -127,7 +126,7 @@ export function installPlaygroundMocks(kind: MockViewKind) {
   if (!guardRegistered) {
     guardRegistered = true
     nuxtApp.$router.afterEach((to) => {
-      if (!VIEW_ROUTE.test(to.path)) uninstall(api, user)
+      if (!VIEW_ROUTE.test(to.path)) uninstall(user)
     })
   }
 }

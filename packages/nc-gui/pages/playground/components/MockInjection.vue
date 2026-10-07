@@ -37,7 +37,8 @@ provide(ActiveSourceInj, mockRef.source)
 
 useProvideSmartsheetStore(mockRef.view, mockRef.meta, true, ref([]), mockRef.filters)
 useProvideMapViewStore(mockRef.meta, mockRef.view)
-useProvideViewColumns(mockRef.view, mockRef.meta, () => reloadEventHook?.trigger(), mockRef.isPublic.value)
+// Local mode: read columns from the mock meta instead of calling viewColumnList (the mock has no workspace).
+useProvideViewColumns(mockRef.view, mockRef.meta, () => reloadEventHook?.trigger(), true)
 
 useViewRowColorProvider({ shared: true })
 

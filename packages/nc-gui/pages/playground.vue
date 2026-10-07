@@ -17,6 +17,11 @@ const isNavOpen = ref(true)
 
 const isTokenEditorOpen = ref(false)
 
+const mainRef = ref<HTMLElement>()
+
+// only <main> scrolls; a dropdown a demo opens near the bottom would otherwise stretch the document
+const isDocumentScrollLocked = useScrollLock(document.documentElement)
+
 const themeOptions = [
   { value: 'light', icon: 'ncSun' },
   { value: 'dark', icon: 'ncMoon' },
@@ -27,43 +32,83 @@ const activeItem = computed(() =>
   playgroundNav.flatMap((s) => s.items).find((item) => route.path === item.path || route.path.startsWith(`${item.path}/`)),
 )
 
+/** until then, autofocus from a demo mounting (NcList search, editing cells) is undone instead of scrolling to it */
+let settleUntil = 0
+
+function settle() {
+  settleUntil = Date.now() + 3000
+  // <main> outlives the pages, so it would keep the previous page's scroll offset
+  mainRef.value?.scrollTo({ top: 0 })
+}
+
+useEventListener(mainRef, 'focusin', (e: FocusEvent) => {
+  if (Date.now() > settleUntil) return
+  ;(e.target as HTMLElement).blur()
+})
+
+// some demos also scrollIntoView after focusing; hold the top until the user takes over
+useEventListener(mainRef, 'scroll', () => {
+  if (Date.now() < settleUntil && mainRef.value?.scrollTop) mainRef.value.scrollTop = 0
+})
+
+for (const event of ['wheel', 'pointerdown', 'keydown', 'touchstart']) {
+  useEventListener(mainRef, event, () => (settleUntil = 0), { passive: true })
+}
+
+watch(() => route.path, settle)
+
+onMounted(() => {
+  isDocumentScrollLocked.value = true
+  settle()
+})
+
 onBeforeUnmount(() => {
+  isDocumentScrollLocked.value = false
   document.getElementById('nc-playground-tokens')?.remove()
 })
 </script>
 
 <template>
-  <div class="nc-playground nc-h-screen w-screen flex bg-nc-bg-default text-nc-content-gray overflow-hidden">
+  <div class="nc-playground h-full w-full flex bg-nc-bg-default text-nc-content-gray overflow-hidden">
     <aside
       v-if="isNavOpen"
-      class="flex-none w-60 h-full flex flex-col border-r-1 border-nc-border-gray-medium bg-[var(--color-sidebar-bg)]"
+      class="nc-playground-sidebar flex-none w-60 h-full flex flex-col border-r-1 border-nc-border-gray-medium bg-nc-bg-default select-none"
     >
-      <NuxtLink to="/playground" class="!no-underline flex items-center gap-2 px-4 h-12 border-b-1 border-nc-border-gray-medium">
-        <GeneralIcon icon="ncPalette" class="w-4 h-4 text-nc-content-brand" />
-        <span class="text-captionBold text-nc-content-gray-emphasis">Playground</span>
-        <NcBadge color="purple" :border="false" class="!h-5 ml-auto text-nc-content-purple-dark text-captionXsBold">DEV</NcBadge>
-      </NuxtLink>
-      <nav class="flex-1 overflow-y-auto nc-scrollbar-thin py-2">
-        <div v-for="section in playgroundNav" :key="section.title" class="mb-3">
-          <div class="px-4 py-1 text-captionXsBold uppercase tracking-wide text-nc-content-gray-muted">
-            {{ section.title }}
+      <div class="flex-none h-14 px-2 flex items-center border-b-1 border-nc-border-gray-light">
+        <NuxtLink
+          to="/playground"
+          class="!no-underline flex flex-1 items-center gap-2.5 pl-1.5 pr-2 py-1 rounded-lg min-w-0 hover:bg-nc-bg-gray-medium transition-colors"
+        >
+          <div class="flex-none w-7 h-7 rounded-lg bg-nc-bg-brand flex items-center justify-center">
+            <GeneralIcon icon="ncPalette" class="w-4 h-4 text-nc-content-brand" />
           </div>
-          <NuxtLink
-            v-for="item in section.items"
-            :key="item.path"
-            :to="item.path"
-            class="!no-underline mx-2 px-2 h-8 rounded-md flex items-center gap-2 text-captionDropdownDefault text-nc-content-gray-subtle hover:bg-nc-bg-gray-light"
-            :class="{ '!bg-nc-bg-brand !text-nc-content-brand': activeItem?.path === item.path }"
-          >
-            <GeneralIcon :icon="item.icon" class="w-4 h-4 flex-none" />
-            <span class="truncate">{{ item.name }}</span>
-          </NuxtLink>
+          <div class="flex-1 min-w-0">
+            <div class="truncate text-sidebarDefault text-nc-content-gray-extreme">Playground</div>
+            <div class="text-captionSm text-nc-content-gray-muted truncate">Design system</div>
+          </div>
+        </NuxtLink>
+      </div>
+      <nav class="flex-1 overflow-y-auto nc-scrollbar-thin pt-2 pb-3">
+        <div v-for="section in playgroundNav" :key="section.title" class="mb-2">
+          <div class="nc-pg-section-header">{{ section.title }}</div>
+          <div class="px-2">
+            <NcSidebarMenuItem
+              v-for="item in section.items"
+              :key="item.path"
+              :icon="item.icon"
+              :active="activeItem?.path === item.path"
+              class="!h-8 !my-0.5"
+              @click="navigateTo(item.path)"
+            >
+              {{ item.name }}
+            </NcSidebarMenuItem>
+          </div>
         </div>
       </nav>
     </aside>
 
     <div class="flex-1 min-w-0 h-full flex flex-col">
-      <header class="flex-none h-12 px-3 flex items-center gap-2 border-b-1 border-nc-border-gray-medium">
+      <header class="flex-none h-14 px-3 flex items-center gap-2 border-b-1 border-nc-border-gray-light">
         <NcButton size="small" type="text" icon-only @click="isNavOpen = !isNavOpen">
           <template #icon>
             <GeneralIcon icon="ncMenu" />
@@ -109,11 +154,20 @@ onBeforeUnmount(() => {
       </header>
 
       <div class="flex-1 min-h-0 flex">
-        <main class="nc-playground-main flex-1 min-w-0 h-full overflow-auto nc-scrollbar-thin bg-nc-bg-default">
+        <main ref="mainRef" class="nc-playground-main flex-1 min-w-0 h-full overflow-auto nc-scrollbar-thin bg-nc-bg-default">
           <NuxtPage />
         </main>
-        <TokenEditor v-if="isTokenEditorOpen" class="flex-none w-96 h-full border-l-1 border-nc-border-gray-medium" />
+        <TokenEditor v-if="isTokenEditorOpen" class="flex-none w-[400px] h-full border-l-1 border-nc-border-gray-medium" />
       </div>
     </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+/* same as HomeSidebar's .nc-ws-section-header */
+.nc-pg-section-header {
+  @apply pl-5 pr-2 pt-1.5 pb-1.5 font-semibold text-nc-content-gray-muted uppercase;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+}
+</style>

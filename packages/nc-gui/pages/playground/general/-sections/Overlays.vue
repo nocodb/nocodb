@@ -96,7 +96,7 @@ function openModal(size: 'small' | 'medium' | 'large') {
           </template>
           <template #back>
             <div
-              class="h-full rounded-xl bg-nc-bg-coloured-purple flex items-center justify-center text-captionBold text-nc-content-purple-dark"
+              class="h-full rounded-xl bg-nc-bg-purple-light flex items-center justify-center text-captionBold text-nc-content-purple-dark"
             >
               Back
             </div>
@@ -107,14 +107,14 @@ function openModal(size: 'small' | 'medium' | 'large') {
         <GeneralFlippingCard class="h-32 w-full" :triggers="[{ duration: 2500 }]">
           <template #front>
             <div
-              class="h-full rounded-xl bg-nc-bg-coloured-green flex items-center justify-center text-captionBold text-nc-content-green-dark"
+              class="h-full rounded-xl bg-nc-bg-green-light flex items-center justify-center text-captionBold text-nc-content-green-dark"
             >
               Tip 1 of 2
             </div>
           </template>
           <template #back>
             <div
-              class="h-full rounded-xl bg-nc-bg-coloured-orange flex items-center justify-center text-captionBold text-nc-content-orange-dark"
+              class="h-full rounded-xl bg-nc-bg-orange-light flex items-center justify-center text-captionBold text-nc-content-orange-dark"
             >
               Tip 2 of 2
             </div>

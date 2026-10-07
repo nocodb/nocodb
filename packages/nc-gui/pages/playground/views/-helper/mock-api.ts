@@ -259,7 +259,8 @@ export function createMockAdapter(
       case 'formViewUpdate': {
         const view = db.views[q.formViewId ?? q.viewId]
         if (view) view.view = { ...(view.view as object), ...(payload ?? {}) } as typeof view.view
-        return view?.view ?? {}
+        // the views store swaps the whole view for this response
+        return view ?? {}
       }
       default:
         return undefined

@@ -6,8 +6,13 @@ defineProps<{
   sections?: Array<{ id: string; title: string }>
 }>()
 
+// scrollIntoView would also scroll the overflow-hidden app wrappers and push the shell off-screen
 function scrollTo(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  const el = document.getElementById(id)
+  const scroller = el?.closest<HTMLElement>('.nc-playground-main')
+  if (!el || !scroller) return
+  const top = el.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - 16
+  scroller.scrollTo({ top, behavior: 'smooth' })
 }
 </script>
 

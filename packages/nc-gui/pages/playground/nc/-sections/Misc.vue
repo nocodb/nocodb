@@ -39,7 +39,13 @@ const ICON_USERS = [
   { email: 'lucas@acme.dev', display_name: '' },
 ]
 
-const TooltipGlideItems = ['Postgres', 'MySQL', 'SQLite', 'Snowflake', 'Databricks']
+const TooltipGlideItems = [
+  { type: 'pg', title: 'PostgreSQL' },
+  { type: 'mysql2', title: 'MySQL' },
+  { type: 'sqlite3', title: 'SQLite' },
+  { type: 'mssql', title: 'SQL Server' },
+  { type: 'oracledb', title: 'Oracle' },
+]
 
 const color = ref('#cfdffe')
 
@@ -90,23 +96,22 @@ function viewOf(type: ViewTypes) {
       </PgDemo>
 
       <PgDemo label="NcCarousel">
-        <div class="relative px-10">
-          <NcCarousel class="w-full">
-            <NcCarouselContent>
-              <NcCarouselItem v-for="s in SLIDES" :key="s.title">
-                <div
-                  class="h-36 rounded-xl border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight p-4 flex flex-col gap-2"
-                >
-                  <GeneralIcon :icon="s.icon" class="w-6 h-6 text-nc-content-brand" />
-                  <div class="text-captionBold">{{ s.title }}</div>
-                  <div class="text-captionSm text-nc-content-gray-subtle">{{ s.body }}</div>
-                </div>
-              </NcCarouselItem>
-            </NcCarouselContent>
-            <NcCarouselPrevious class="left-[-36px] top-1/2 -translate-y-1/2" />
-            <NcCarouselNext class="right-[-36px] top-1/2 -translate-y-1/2" />
-          </NcCarousel>
-        </div>
+        <!-- .embla clips overflow, so the arrows sit inside the slide; Next ships `absolute` (loses to .ant-btn), hence !absolute -->
+        <NcCarousel class="w-full rounded-xl">
+          <NcCarouselContent>
+            <NcCarouselItem v-for="s in SLIDES" :key="s.title">
+              <div
+                class="h-36 rounded-xl border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight px-12 py-4 flex flex-col gap-2"
+              >
+                <GeneralIcon :icon="s.icon" class="w-6 h-6 text-nc-content-brand" />
+                <div class="text-captionBold">{{ s.title }}</div>
+                <div class="text-captionSm text-nc-content-gray-subtle">{{ s.body }}</div>
+              </div>
+            </NcCarouselItem>
+          </NcCarouselContent>
+          <NcCarouselPrevious class="left-3 top-1/2 -translate-y-1/2" />
+          <NcCarouselNext class="!absolute right-3 top-1/2 -translate-y-1/2" />
+        </NcCarousel>
       </PgDemo>
 
       <PgDemo label="NcFile" hint="trigger + upload modal (upload needs a base)">
@@ -121,7 +126,7 @@ function viewOf(type: ViewTypes) {
         </div>
       </PgDemo>
 
-      <PgDemo label="Entity icons" hint="NcIconView · NcIconTable · NcIconDashboard · NcIconScript · NcIconWorkflow">
+      <PgDemo label="Entity icons" hint="NcIconView · Table · Dashboard · Script · Workflow">
         <div class="flex flex-col gap-3">
           <div class="flex flex-wrap items-center gap-4">
             <div v-for="v in VIEW_TYPES" :key="v.type" class="flex items-center gap-1.5 text-captionSm">
@@ -150,11 +155,9 @@ function viewOf(type: ViewTypes) {
       <PgDemo label="NcTooltipProvider (glide)" hint="hover along the row">
         <NcTooltipProvider glide :delay="200">
           <div class="flex gap-2">
-            <NcTooltipItem v-for="name in TooltipGlideItems" :key="name" :title="name">
-              <div
-                class="w-9 h-9 rounded-lg border-1 border-nc-border-gray-medium flex items-center justify-center text-captionBold"
-              >
-                {{ name.slice(0, 2) }}
+            <NcTooltipItem v-for="item in TooltipGlideItems" :key="item.type" :title="item.title">
+              <div class="w-9 h-9 rounded-lg border-1 border-nc-border-gray-medium flex items-center justify-center">
+                <GeneralIntegrationIcon :type="item.type" size="md" />
               </div>
             </NcTooltipItem>
           </div>

@@ -109,7 +109,7 @@ const emojiSizes = ['xsmall', 'small', 'medium', 'large', 'xlarge'] as const
         </div>
       </PgDemo>
       <PgDemo label="BaseIconColorPicker" :hint="baseColor">
-        <div class="flex items-end gap-4">
+        <div class="flex items-center gap-4">
           <GeneralBaseIconColorPicker v-model="baseColor" size="small" />
           <GeneralBaseIconColorPicker v-model="baseColor" size="medium" />
           <GeneralBaseIconColorPicker v-model="baseColor" size="large" />

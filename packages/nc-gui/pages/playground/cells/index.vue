@@ -162,7 +162,8 @@ onBeforeUnmount(() => {
 <style scoped lang="scss">
 .pg-cells-grid {
   display: grid;
-  grid-template-columns: 220px repeat(3, minmax(0, 1fr));
+  /* the expanded form gives fields the most room */
+  grid-template-columns: 200px repeat(2, minmax(0, 1fr)) minmax(0, 1.3fr);
   align-items: stretch;
 }
 </style>

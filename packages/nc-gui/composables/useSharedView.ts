@@ -124,6 +124,10 @@ export function useSharedView() {
       })
 
     const relatedMetas = { ...viewMeta.relatedMetas }
+    // The server trims related metas to pk + pv on a shared view, and a table that
+    // links to itself is in there too — seeding that stub would clobber the full
+    // model set above and leave every Lookup/Rollup cell unable to resolve. #10931
+    if (viewMeta.model?.id) delete relatedMetas[viewMeta.model.id]
     Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
 
     if (viewMeta.users) {

@@ -304,6 +304,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
       const relatedMetas = { ...viewMeta.relatedMetas }
 
+      // Same self-clobber as the shared grid view — see useSharedView. #10931
+      if (viewMeta.model?.id) delete relatedMetas[viewMeta.model.id]
+
       Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
 
       if (viewMeta.users) {

@@ -36,6 +36,9 @@ const { projectPageTab } = storeToRefs(useConfigStore())
 
 const {
   navGroups,
+  groupsByConcern,
+  concerns,
+  concernOfTab,
   paneMeta,
   availableTabs,
   firstAvailableTab,
@@ -56,6 +59,15 @@ provide(IsSettingsSidebarInj, ref(true))
 // Docs permissions is its own route slug (an old deep link) but not its own rail
 // row — it is the second tab inside the Data Permissions pane.
 const railActive = computed(() => (props.tab === 'docs-permissions' ? 'permissions' : props.tab))
+
+/**
+ * The open pane decides which tab is lit, not the other way round — so a deep
+ * link straight to an app pane opens on Apps without anyone clicking it.
+ */
+const activeConcern = computed(() => concernOfTab(railActive.value))
+
+/** Only the active concern's rows are in the rail; the tabs switch the column. */
+const concernGroups = computed(() => groupsByConcern.value[activeConcern.value] ?? navGroups.value)
 
 const meta = computed(() => paneMeta.value[props.tab] ?? paneMeta.value[railActive.value])
 
@@ -78,6 +90,14 @@ const isPaneAllowed = computed(() => isBaseRolesLoaded.value && availableTabs.va
  * On a wide screen both are always up and this stays false.
  */
 const isRailOnlyOnMobile = ref(true)
+
+/** Switching concern lands on its first row, so the pane always matches the tab. */
+function goToConcern(key: string) {
+  if (key === activeConcern.value) return
+
+  const first = groupsByConcern.value[key as typeof activeConcern.value]?.[0]?.items[0]?.slug
+  if (first) goToTab(first)
+}
 
 function goToTab(tab: string) {
   isRailOnlyOnMobile.value = false
@@ -190,24 +210,15 @@ watch(
     wrap-class-name="nc-modal-base-settings"
     @update:visible="onVisibleChange"
   >
-    <div class="nc-base-settings relative flex h-full w-full" data-testid="nc-base-settings-wrapper">
-      <ShellBack v-if="isMobileMode && !isRailOnlyOnMobile" testid="nc-base-settings-back" @back="isRailOnlyOnMobile = true" />
-
-      <ShellClose testid="nc-base-settings-close" @close="onClose" />
-
-      <ShellRail
-        v-if="showRail"
-        :full-width="isMobileMode"
-        :groups="navGroups"
-        :active="railActive"
-        :search-placeholder="$t('labels.baseNav.searchPlaceholder')"
-        empty-text="labels.baseNav.searchEmpty"
-        testid-prefix="nc-settings-rail"
-        event-prefix="c:settings:base:"
-        @select="goToTab"
-        @group-toggle="onGroupToggle"
+    <div class="nc-base-settings relative flex flex-col h-full w-full" data-testid="nc-base-settings-wrapper">
+      <!-- The band names the base once, for every pane under it, and carries the
+           three subjects it can be configured as. -->
+      <div
+        class="nc-base-settings-band flex-none relative flex items-center gap-3 h-14 px-4 border-b-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight"
       >
-        <template v-if="base" #subject>
+        <ShellBack v-if="isMobileMode && !isRailOnlyOnMobile" testid="nc-base-settings-back" @back="isRailOnlyOnMobile = true" />
+
+        <div v-if="base" class="flex items-center gap-2 min-w-0 flex-1">
           <GeneralProjectIcon
             :color="parseProp(base.meta).iconColor"
             :icon="parseProp(base.meta).icon"
@@ -215,113 +226,177 @@ watch(
             :managed-app="{ managed_app_master: base.managed_app_master, managed_app_id: base.managed_app_id }"
             class="!h-5 !w-5 flex-none"
           />
-          <NcTooltip show-on-truncate-only class="truncate">{{ base.title }}</NcTooltip>
-        </template>
-      </ShellRail>
-
-      <div v-if="showPane" class="flex-1 flex flex-col min-w-0 min-h-0">
-        <ShellHeader
-          :title="meta?.title ?? ''"
-          :description="meta?.description"
-          :docs-href="meta?.docsHref"
-          :leading-inset="isMobileMode"
-        />
-
-        <div v-if="!isPaneAllowed" class="flex-1 min-h-0 flex items-center justify-center">
-          <GeneralLoader size="xlarge" />
+          <NcTooltip show-on-truncate-only class="truncate text-bodyDefaultSm font-semibold text-nc-content-gray-emphasis">
+            {{ base.title }}
+          </NcTooltip>
         </div>
 
-        <div v-else class="flex-1 min-h-0">
-          <ProjectAccessSettings v-if="tab === 'collaborator'" :base-id="baseId" />
+        <!-- Centred on the band, not between its neighbours: the base's name is as
+             long as it is, and the tabs should not drift with it. -->
+        <div
+          v-if="concerns.length > 1"
+          class="nc-base-settings-concerns absolute left-1/2 -translate-x-1/2 flex items-center gap-0.5 p-1 rounded-lg bg-nc-brand-200 dark:bg-nc-brand-20 dark:ring-1 dark:ring-white/8"
+          role="tablist"
+          :aria-label="$t('labels.baseNav.concernTabs')"
+        >
+          <button
+            v-for="concern of concerns"
+            :key="concern.key"
+            type="button"
+            role="tab"
+            :aria-selected="activeConcern === concern.key"
+            :tabindex="activeConcern === concern.key ? 0 : -1"
+            class="flex items-center gap-1.5 h-8 px-3 rounded-md text-bodyDefaultSm whitespace-nowrap transition-colors outline-none cursor-pointer focus-visible:shadow-focus"
+            :class="
+              activeConcern === concern.key
+                ? 'bg-nc-bg-default dark:bg-white/12 text-nc-content-brand font-semibold shadow-sm dark:shadow-none dark:ring-1 dark:ring-white/10'
+                : 'text-nc-content-gray-subtle hover:text-nc-content-gray-emphasis hover:bg-nc-bg-default/60 dark:hover:bg-white/6'
+            "
+            :data-testid="`nc-base-settings-concern-${concern.key}`"
+            @mousedown.prevent
+            @click="goToConcern(concern.key)"
+          >
+            <GeneralIcon :icon="concern.icon" class="w-4 h-4 flex-none" aria-hidden="true" />
+            {{ concern.label }}
+            <ProjectSettingsConcernCount :concern="concern.key" />
+          </button>
+        </div>
 
-          <ProjectInterfaceMembers v-else-if="tab === 'interface-members'" />
+        <div class="flex-1" />
 
-          <ProjectWorkflowsList v-else-if="tab === 'workflows' && baseId" :base-id="baseId" />
+        <NcButton
+          type="text"
+          size="small"
+          :aria-label="$t('general.close')"
+          data-testid="nc-base-settings-close"
+          @click="onClose"
+        >
+          <GeneralIcon icon="ncX" class="w-4 h-4" aria-hidden="true" />
+        </NcButton>
+      </div>
 
-          <DashboardSettingsDataPermissions
-            v-else-if="(tab === 'permissions' || tab === 'docs-permissions') && baseId"
-            :base-id="baseId"
-            :initial-tab="tab === 'docs-permissions' ? 'docs' : 'tables'"
+      <div class="flex-1 min-h-0 flex">
+        <ShellRail
+          v-if="showRail"
+          :full-width="isMobileMode"
+          :groups="concernGroups"
+          :active="railActive"
+          :search-placeholder="$t('labels.baseNav.searchPlaceholder')"
+          empty-text="labels.baseNav.searchEmpty"
+          testid-prefix="nc-settings-rail"
+          event-prefix="c:settings:base:"
+          @select="goToTab"
+          @group-toggle="onGroupToggle"
+        >
+        </ShellRail>
+
+        <div v-if="showPane" class="flex-1 flex flex-col min-w-0 min-h-0">
+          <!-- Panes that write their own heading (the app ones) get no band, or the
+               title would appear twice. -->
+          <ShellHeader
+            v-if="meta?.title"
+            :title="meta.title"
+            :description="meta?.description"
+            :docs-href="meta?.docsHref"
+            :leading-inset="isMobileMode"
           />
 
-          <DashboardSettingsDataSources v-else-if="tab === 'data-source' && baseId" :base-id="baseId" class="max-h-full" />
+          <div v-if="!isPaneAllowed" class="flex-1 min-h-0 flex items-center justify-center">
+            <GeneralLoader size="xlarge" />
+          </div>
 
-          <DashboardSettingsBaseIntegrations v-else-if="tab === 'integrations' && baseId" :base-id="baseId" />
+          <div v-else class="flex-1 min-h-0">
+            <ProjectAccessSettings v-if="tab === 'collaborator'" :base-id="baseId" />
 
-          <template v-else-if="tab === 'syncs' && baseId">
-            <div v-if="blockSync" class="h-full overflow-auto nc-scrollbar-thin">
-              <PaymentUpgradeFeatureCard
-                :feature="PlanFeatureTypes.FEATURE_SYNC"
-                :title="$t('labels.baseNav.upgradeTitleSync')"
-                :detail="$t('labels.baseNav.upgradeDescSync')"
-                icon="ncZap"
-              />
-            </div>
-            <ProjectSync v-else :base-id="baseId" class="max-h-full" />
-          </template>
+            <ProjectInterfaceMembers v-else-if="tab === 'interface-members'" />
 
-          <WorkspaceAudits v-else-if="tab === 'audits' && baseId" :base-id="baseId" />
+            <ProjectWorkflowsList v-else-if="tab === 'workflows' && baseId" :base-id="baseId" />
 
-          <!-- Height-bounded so the pane's own overflow-auto has something to
+            <DashboardSettingsDataPermissions
+              v-else-if="(tab === 'permissions' || tab === 'docs-permissions') && baseId"
+              :base-id="baseId"
+              :initial-tab="tab === 'docs-permissions' ? 'docs' : 'tables'"
+            />
+
+            <DashboardSettingsDataSources v-else-if="tab === 'data-source' && baseId" :base-id="baseId" class="max-h-full" />
+
+            <DashboardSettingsBaseIntegrations v-else-if="tab === 'integrations' && baseId" :base-id="baseId" />
+
+            <template v-else-if="tab === 'syncs' && baseId">
+              <div v-if="blockSync" class="h-full overflow-auto nc-scrollbar-thin">
+                <PaymentUpgradeFeatureCard
+                  :feature="PlanFeatureTypes.FEATURE_SYNC"
+                  :title="$t('labels.baseNav.upgradeTitleSync')"
+                  :detail="$t('labels.baseNav.upgradeDescSync')"
+                  icon="ncZap"
+                />
+              </div>
+              <ProjectSync v-else :base-id="baseId" class="max-h-full" />
+            </template>
+
+            <WorkspaceAudits v-else-if="tab === 'audits' && baseId" :base-id="baseId" />
+
+            <!-- Height-bounded so the pane's own overflow-auto has something to
                resolve h-full against; padding stays inside the pane. -->
-          <div v-else-if="tab === 'mcp' && baseId" class="h-full max-h-full">
-            <DashboardSettingsBaseMCP :base-id="baseId" />
+            <div v-else-if="tab === 'mcp' && baseId" class="h-full max-h-full">
+              <DashboardSettingsBaseMCP :base-id="baseId" />
+            </div>
+
+            <div v-else-if="tab === 'api-tokens' && baseId" class="h-full max-h-full">
+              <DashboardSettingsBaseApiTokens :base-id="baseId" />
+            </div>
+
+            <template v-else-if="tab === 'variables'">
+              <div v-if="blockBaseVariables" class="h-full overflow-auto nc-scrollbar-thin">
+                <PaymentUpgradeFeatureCard
+                  :feature="PlanFeatureTypes.FEATURE_BASE_VARIABLES"
+                  :title="$t('labels.baseNav.upgradeTitleVariables')"
+                  :detail="$t('labels.baseNav.upgradeDescVariables')"
+                  icon="ncCode"
+                />
+              </div>
+              <DashboardSettingsBaseVariables v-else />
+            </template>
+
+            <DashboardSettingsBaseSkills v-else-if="tab === 'skills'" />
+
+            <template v-else-if="tab === 'record-trash'">
+              <div v-if="blockTrashSettings" class="h-full overflow-auto nc-scrollbar-thin">
+                <PaymentUpgradeFeatureCard
+                  :feature="PlanFeatureTypes.FEATURE_TRASH_SETTINGS"
+                  :title="$t('labels.baseNav.upgradeTitleTrashRetention')"
+                  :detail="$t('labels.baseNav.upgradeDescTrashRetention')"
+                  icon="ncHistory"
+                />
+              </div>
+              <DashboardSettingsBaseTrash v-else />
+            </template>
+
+            <template v-else-if="tab === 'snapshots'">
+              <div v-if="blockSnapshotsPane" class="h-full overflow-auto nc-scrollbar-thin">
+                <PaymentUpgradeFeatureCard
+                  :feature="PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE"
+                  :title="$t('labels.baseNav.upgradeTitleSnapshots')"
+                  :detail="$t('labels.baseNav.upgradeDescSnapshots')"
+                  icon="ncLayers"
+                />
+              </div>
+              <DashboardSettingsBaseSnapshots v-else />
+            </template>
+
+            <DashboardSettingsBaseAccess v-else-if="tab === 'base-type'" />
+
+            <DashboardSettingsBaseVisibility v-else-if="tab === 'data-display'" />
+
+            <DashboardSettingsBaseMigrateToV3 v-else-if="tab === 'migrate-to-v3'" />
+
+            <DashboardSettingsBaseMigrate v-else-if="tab === 'migrate'" />
+
+            <ProjectAppSettings v-else-if="tab.startsWith('app-')" :tab="tab" class="h-full max-h-full" />
           </div>
 
-          <div v-else-if="tab === 'api-tokens' && baseId" class="h-full max-h-full">
-            <DashboardSettingsBaseApiTokens :base-id="baseId" />
-          </div>
-
-          <template v-else-if="tab === 'variables'">
-            <div v-if="blockBaseVariables" class="h-full overflow-auto nc-scrollbar-thin">
-              <PaymentUpgradeFeatureCard
-                :feature="PlanFeatureTypes.FEATURE_BASE_VARIABLES"
-                :title="$t('labels.baseNav.upgradeTitleVariables')"
-                :detail="$t('labels.baseNav.upgradeDescVariables')"
-                icon="ncCode"
-              />
-            </div>
-            <DashboardSettingsBaseVariables v-else />
-          </template>
-
-          <DashboardSettingsBaseSkills v-else-if="tab === 'skills'" />
-
-          <template v-else-if="tab === 'record-trash'">
-            <div v-if="blockTrashSettings" class="h-full overflow-auto nc-scrollbar-thin">
-              <PaymentUpgradeFeatureCard
-                :feature="PlanFeatureTypes.FEATURE_TRASH_SETTINGS"
-                :title="$t('labels.baseNav.upgradeTitleTrashRetention')"
-                :detail="$t('labels.baseNav.upgradeDescTrashRetention')"
-                icon="ncHistory"
-              />
-            </div>
-            <DashboardSettingsBaseTrash v-else />
-          </template>
-
-          <template v-else-if="tab === 'snapshots'">
-            <div v-if="blockSnapshotsPane" class="h-full overflow-auto nc-scrollbar-thin">
-              <PaymentUpgradeFeatureCard
-                :feature="PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE"
-                :title="$t('labels.baseNav.upgradeTitleSnapshots')"
-                :detail="$t('labels.baseNav.upgradeDescSnapshots')"
-                icon="ncLayers"
-              />
-            </div>
-            <DashboardSettingsBaseSnapshots v-else />
-          </template>
-
-          <DashboardSettingsBaseAccess v-else-if="tab === 'base-type'" />
-
-          <DashboardSettingsBaseVisibility v-else-if="tab === 'data-display'" />
-
-          <DashboardSettingsBaseMigrateToV3 v-else-if="tab === 'migrate-to-v3'" />
-
-          <DashboardSettingsBaseMigrate v-else-if="tab === 'migrate'" />
-
-          <ProjectAppSettings v-else-if="tab.startsWith('app-')" :tab="tab" class="h-full max-h-full" />
+          <ShellSaveBar v-if="hasSaveBar" />
         </div>
-
-        <ShellSaveBar v-if="hasSaveBar" />
       </div>
     </div>
   </NcModal>

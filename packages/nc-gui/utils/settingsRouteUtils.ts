@@ -66,9 +66,10 @@ export const appSettingsNav: {
   listing?: boolean
   production?: boolean
 }[] = [
+  // Who may use the app is the first thing its owner reaches for, so it leads the nav.
+  { tab: 'app-access', label: 'labels.appAccess.membersTitle', icon: 'ncUsers', testId: 'app-access', installer: true },
   { tab: 'app-url', label: 'labels.appUrl', icon: 'ncGlobe', testId: 'app-url', installer: true },
   { tab: 'app-theme', label: 'labels.appTheme', icon: 'ncPalette', testId: 'app-theme' },
-  { tab: 'app-access', label: 'general.access', icon: 'ncShield', testId: 'app-access', installer: true },
   // The anonymous surface is its own subject: pages and the actions a visitor
   // may invoke are two halves of one answer, and neither belongs in a roster.
   { tab: 'app-public', label: 'labels.appPublic.title', icon: 'ncEye', testId: 'app-public', installer: true },

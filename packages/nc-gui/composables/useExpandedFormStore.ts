@@ -430,6 +430,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
         if (missingRequiredColumns.size) return
 
+        // Defaults are prefilled into a new record, so an empty one was cleared: send it as null,
+        // or the database would put the default back.
+        for (const title of Object.keys(rowDefaultData(meta.value.columns))) {
+          const value = row.value.row[title]
+          if (value === null || value === undefined) insertObj[title] = null
+        }
+
         data = await $api.dbTableRow.create('noco', meta.value.base_id, meta.value.id, {
           ...insertObj,
           ...(ltarState || {}),

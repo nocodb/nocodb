@@ -568,6 +568,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         ...attachment,
       })
 
+      // A prefilled default the user cleared goes as null; left out, the database would put it back.
+      // Hidden fields are deleted from formState, so they keep the database default.
+      for (const title of Object.keys(preFilledDefaultValueformState.value)) {
+        if (title in formState.value && (formState.value[title] === null || formState.value[title] === undefined)) {
+          filtedData.data[title] = null
+        }
+      }
+
       const newRecord = await api.public.dataCreate(sharedView.value!.uuid!, filtedData, {
         headers: {
           'xc-password': password.value,

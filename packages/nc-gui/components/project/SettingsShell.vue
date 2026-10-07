@@ -242,7 +242,7 @@ watch(
              long as it is, and the tabs should not drift with it. -->
         <div
           v-if="concerns.length > 1"
-          class="nc-base-settings-concerns absolute left-1/2 -translate-x-1/2 flex items-center gap-0.5 p-1 rounded-lg bg-nc-brand-200 dark:bg-nc-brand-20 dark:ring-1 dark:ring-white/8"
+          class="nc-base-settings-concerns absolute left-1/2 -translate-x-1/2 flex items-center gap-0.5 p-1 rounded-lg bg-nc-bg-gray-medium dark:ring-1 dark:ring-white/8"
           role="tablist"
           :aria-label="$t('labels.baseNav.concernTabs')"
         >

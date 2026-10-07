@@ -12,7 +12,7 @@ const BASE_ICON_SIZES = ['xsmall', 'small', 'medium', 'large', 'xlarge'] as cons
 
 const color1 = ref('')
 
-// the inline picker reads its value once (product callers remount it via :key), so a dropdown pick remounts it
+// the inline picker reads its value once, so a dropdown pick remounts it
 const inlinePickerKey = ref(0)
 
 const baseIconColor = ref('')
@@ -23,7 +23,7 @@ const isBaseIconReadonly = ref(false)
 
 const isManagedApp = ref(false)
 
-// `size` only sizes the trigger box; the glyph is sized through icon-class (medium matches BaseNode.vue)
+// `size` only sizes the trigger box; icon-class sizes the glyph
 const BASE_ICON_CLASS: Record<(typeof BASE_ICON_SIZES)[number], string> = {
   xsmall: '',
   small: '',
@@ -32,7 +32,7 @@ const BASE_ICON_CLASS: Record<(typeof BASE_ICON_SIZES)[number], string> = {
   xlarge: '!h-12 !w-12',
 }
 
-// any managed_app_id swaps the base icon for a managed-app one, so pass none when off
+// any managed_app_id swaps in a managed-app icon
 const managedApp = computed(() => (isManagedApp.value ? { managed_app_master: true, managed_app_id: 'prr1pr4xx9vqn5c' } : {}))
 </script>
 

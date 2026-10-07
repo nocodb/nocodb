@@ -75,7 +75,7 @@ function cssOf(key: string, prop: 'borderRadius' | 'boxShadow') {
   return el ? getComputedStyle(el)[prop] : ''
 }
 
-// computed box-shadow leads with Uno's empty ring layers — keep only the declared ones
+// computed box-shadow leads with Uno's empty ring layers; keep only the declared ones
 function shadowOf(key: string) {
   const layers = cssOf(key, 'boxShadow')
     .split(/,(?![^(]*\))/)

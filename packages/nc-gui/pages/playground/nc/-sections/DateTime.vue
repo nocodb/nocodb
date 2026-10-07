@@ -51,7 +51,6 @@ const activeDates = [dayjs().subtract(2, 'day'), dayjs().add(1, 'day'), dayjs().
             <a-select-option v-for="t in PICKER_TYPES" :key="t" :value="t">{{ t }}</a-select-option>
           </NcSelect>
         </template>
-        <!-- cell DateTime editor dropdown: 256px overlay -->
         <div class="pg-dropdown-overlay w-[256px] mx-auto">
           <NcDatePicker
             v-model:selected-date="selected"
@@ -66,7 +65,6 @@ const activeDates = [dayjs().subtract(2, 'day'), dayjs().add(1, 'day'), dayjs().
       </PgDemo>
 
       <PgDemo label="NcDateWeekSelector" hint="calendar side menu, week mode">
-        <!-- calendar SideMenu: 288px panel -->
         <div class="pg-side-panel w-[288px] mx-auto">
           <NcDateWeekSelector
             v-model:selected-date="weekSelected"
@@ -125,7 +123,6 @@ const activeDates = [dayjs().subtract(2, 'day'), dayjs().add(1, 'day'), dayjs().
 </template>
 
 <style scoped lang="scss">
-/* NcDropdown overlay chrome */
 .pg-dropdown-overlay {
   @apply rounded-lg border-1 border-nc-border-gray-medium shadow-lg bg-nc-bg-default overflow-hidden;
 }

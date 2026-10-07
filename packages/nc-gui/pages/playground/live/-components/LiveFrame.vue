@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { usePlaygroundTokens } from '../../-helper/tokens'
 
-/** Same-origin frame of a real app route, kept in sync with the host's tokens and theme. */
 const props = defineProps<{
   src: string
-  /** px width, or null for full width */
   width: number | null
 }>()
 
@@ -18,7 +16,7 @@ const isLoading = ref(true)
 
 const loadError = ref<string>()
 
-/** bumped to get a fresh iframe window — a written document can't boot the app twice in one realm */
+/** a written document can't boot the app twice in one realm, so bump for a fresh iframe */
 const frameKey = ref(0)
 
 let reapplyTimer: ReturnType<typeof setTimeout> | undefined
@@ -28,7 +26,7 @@ let themeObserver: MutationObserver | undefined
 function mirrorTheme() {
   const root = frameRef.value?.contentDocument?.documentElement
   if (!root) return
-  // the playground doesn't persist its theme, so hand it to the frame's useTheme directly
+  // the playground's theme isn't persisted, so hand it to the frame's useTheme directly
   try {
     frameRef.value?.contentWindow?.dispatchEvent(new StorageEvent('storage', { key: 'nc-theme', newValue: selectedTheme.value }))
   } catch {}
@@ -43,11 +41,7 @@ function mirrorTheme() {
   }
 }
 
-/**
- * The frame's canvas grid caches resolved colours in its own useTheme instance.
- * Its `storage` listener for the dark-palette key re-applies the palette, which
- * flushes those caches and bumps its repaint counter — so replay that event.
- */
+// replaying the dark-palette `storage` event flushes the frame grid's cached colours
 function repaintFrame() {
   const win = frameRef.value?.contentWindow
   if (!win) return
@@ -56,11 +50,7 @@ function repaintFrame() {
   } catch {}
 }
 
-/**
- * middleware/02.security.global.ts 403s every app route inside an iframe (`self !== top`).
- * Writing the app shell into the frame's initial about:blank document lets an inline
- * script run first: it moves the URL to the target route and aliases `self` to `top`.
- */
+// 02.security.global.ts 403s app routes in an iframe; the prelude aliases `self` to `top` first
 async function boot(path: string) {
   themeObserver?.disconnect()
   isLoading.value = true
@@ -68,7 +58,7 @@ async function boot(path: string) {
   await nextTick()
   const doc = frameRef.value?.contentDocument
   if (!doc) return
-  // the shell is the same for every route; deep paths have no SPA fallback on deployed builds
+  // deep paths have no SPA fallback on deployed builds
   let html: string
   try {
     const res = await fetch('/')
@@ -85,10 +75,7 @@ async function boot(path: string) {
   doc.close()
 }
 
-/**
- * The framed app applies its own stored theme once it boots, which can be after `load`
- * and after the event above was sent; put the playground's back whenever that happens.
- */
+// the framed app applies its stored theme after boot; put the playground's back
 function watchFrameTheme() {
   themeObserver?.disconnect()
   const root = frameRef.value?.contentDocument?.documentElement

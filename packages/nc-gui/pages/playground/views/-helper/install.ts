@@ -33,7 +33,6 @@ interface Saved {
   interceptorId: number | null
 }
 
-// surfaces/* pages reuse the grid session
 const VIEW_ROUTE = /^\/playground\/(views\/(grid|gallery|kanban|calendar|form|map|list|timeline|gantt|expanded)|surfaces)(\/|$)/
 
 let saved: Saved | null = null
@@ -61,7 +60,6 @@ declare global {
 }
 
 if (typeof window !== 'undefined') {
-  // console handle for debugging the mocks: __ncPlaygroundMocks.unmockedRequests.value
   window.__ncPlaygroundMocks = { unmockedRequests, getMockSession }
 }
 
@@ -83,7 +81,6 @@ function seedStores(kind: MockViewKind, db: MockDb) {
 
   const basesStore = useBases()
   basesStore.bases.set(MOCK_BASE_ID, mockBase() as NcProject)
-  // the signed-in user too, so comments posted here get a name and avatar
   const me = { id: db.user.id, email: db.user.email, display_name: db.user.display_name, roles: 'owner' }
   // the store types roles as RolesObj, but the API and its consumers use role strings
   basesStore.basesUser.set(MOCK_BASE_ID, [...MOCK_USERS.map((u) => ({ ...u, roles: 'editor' })), me] as unknown as User[])
@@ -129,14 +126,7 @@ function uninstall(user: Ref<any>, api: ReturnType<typeof useNuxtApp>['$api']) {
   session = null
 }
 
-/**
- * Called from the view page's route middleware — i.e. before the route
- * commits — because store watchers react to `route.params.baseId/viewId`
- * immediately and would otherwise hit the real backend for base `views`.
- * Only touches the adapter + user here: stores can't be created outside a
- * component setup (several call useI18n). Torn down by a router guard once
- * navigation leaves the view pages.
- */
+/** Runs from route middleware: store watchers hit the real backend as soon as the route commits. */
 export function installPlaygroundMocks(kind: MockViewKind) {
   const nuxtApp = useNuxtApp()
   const { user } = useGlobal()
@@ -155,7 +145,6 @@ export function installPlaygroundMocks(kind: MockViewKind) {
   if (session?.kind !== kind) {
     const table = buildTable(kind)
     const tasksTable = buildTasksTable()
-    // reactive so the harness header can show the live row count
     const rows = shallowReactive(buildRows())
     const db: MockDb = {
       tables: { [table.id!]: table, [tasksTable.id!]: tasksTable },
@@ -175,8 +164,7 @@ export function installPlaygroundMocks(kind: MockViewKind) {
     unmockedRequests.value = []
 
     const adapter = createMockAdapter(db, recordUnmocked, axios.getAdapter(axios.defaults.adapter))
-    // Stores build their Api clients at boot, and Vite can pre-bundle a second axios copy for the SDK,
-    // so neither instance defaults nor our `axios` import reach them. Every SDK call builds its config here.
+    // Vite may pre-bundle a second axios for the SDK, so every SDK call's config is patched here.
     const merge = saved.mergeRequestParams
     HttpClient.prototype.mergeRequestParams = function (params1, params2) {
       return { ...merge.call(this, params1, params2), adapter }
@@ -201,12 +189,9 @@ export function installPlaygroundMocks(kind: MockViewKind) {
   }
 }
 
-/** Seeds metas/bases/tables/views for the session — call from component setup. */
 export function seedPlaygroundStores() {
   if (!session || session.seeded) return
-  // Creation order matters on a direct load: the credits store reads
-  // useBases() in a computed when the route has a baseId but no workspace, so
-  // it must exist before the bases store's setup pulls it in.
+  // credits store reads useBases() on a direct load, so create it before the bases store
   useWorkspace()
   useCredits()
   const viewsStore = useViewsStore()

@@ -121,7 +121,6 @@ function setStage(id: string, el: unknown) {
             </NcButton>
           </template>
           <PopupStage :ref="(el) => setStage(menu.id, el)" :open-selector="menu.selector" :height="menu.height">
-            <!-- search anchors its box bottom-right of the trigger, like at the toolbar's right edge -->
             <div :class="{ 'flex justify-end': menu.id === 'search' }">
               <div
                 class="inline-flex items-center gap-1 px-1 py-0.5 rounded-lg bg-nc-bg-default border-1 border-nc-border-gray-medium"
@@ -151,7 +150,6 @@ function setStage(id: string, el: unknown) {
             </NcButton>
           </template>
           <PopupStage :ref="(el) => setStage('view-actions', el)" open-selector=".nc-view-action-menu-btn" :height="520">
-            <!-- same trigger + overlay as SmartsheetToolbarOpenedViewAction, bound to the harness view -->
             <NcDropdown v-if="activeTable" overlay-class-name="nc-dropdown-actions-menu">
               <NcButton class="nc-view-action-menu-btn !h-7 !px-1.5 !min-w-7" size="small" type="secondary">
                 <GeneralIcon icon="threeDotVertical" class="!h-4 !w-4" />

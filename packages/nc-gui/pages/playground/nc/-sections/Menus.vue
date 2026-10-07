@@ -112,8 +112,7 @@ function act(action: string) {
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div v-for="variant in VARIANTS" :key="variant" class="flex flex-col gap-1.5">
           <div class="text-captionXs text-nc-content-gray-muted font-mono">{{ variant }}</div>
-          <!-- outside NcDropdown a-menu renders .ant-menu-*; the variant styles target .ant-dropdown-menu-*,
-               so borrow the dropdown prefix and NcDropdown's overlay chrome -->
+          <!-- outside NcDropdown a-menu renders .ant-menu-*, but the variant styles target .ant-dropdown-menu-* -->
           <NcMenu
             :variant="variant"
             prefix-cls="ant-dropdown-menu"

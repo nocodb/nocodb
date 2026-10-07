@@ -15,7 +15,6 @@ const SECTIONS = [
 
 const BOOLEAN_PROPS = ['disabled', 'isLockedView'] as const
 
-// the single-select fields Dropdown.vue hands both the mode picker and the select panel
 const SELECT_COLUMNS: ColumnType[] = [
   { id: 'col_status', title: 'Status', uidt: UITypes.SingleSelect },
   { id: 'col_priority', title: 'Priority', uidt: UITypes.SingleSelect },
@@ -51,7 +50,6 @@ const columns = computedAsync(async () => {
   })
 }, [])
 
-// Local stand-ins for useViewRowColorOption's handlers: same state changes, no API calls
 let localSeq = 0
 
 const localId = (prefix: string) => `pg-${prefix}-${++localSeq}`
@@ -186,7 +184,6 @@ const rowColorHandler = {
       const filter = condition?.conditions.find((f) => f.id === event.filter?.id)
       if (!condition || !filter) return
       ;(filter as Record<string, unknown>)[event.type] = event.value
-      // one level shares one logical op, so the whole level follows
       if (event.type === 'logical_op') {
         for (const sibling of condition.conditions) {
           if (sibling.fk_parent_id === filter.fk_parent_id) sibling.logical_op = event.value

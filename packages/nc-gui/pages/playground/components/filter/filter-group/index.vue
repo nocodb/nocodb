@@ -52,7 +52,7 @@ const options1 = ref({
   filtersCount: 0,
   queryFilter: false,
   disableAddNewFilter: false,
-  // a boolean prop, so leaving it off reads as false and greys every row out
+  // boolean prop: omitting it reads as false and greys every row out
   parentEnabled: true,
 })
 
@@ -73,7 +73,6 @@ type GroupEvent = FilterGroupChangeEvent & { tmp_id?: string }
 
 type CopyEvent = FilterRowChangeEvent & { parentFilter?: ColumnFilterType }
 
-// a group's list is its parent's `children`; the root list is the v-model
 function siblingsOf(parent?: ColumnFilterType | null): ColumnFilterType[] {
   if (!parent) return filters.value
   parent.children ??= []
@@ -130,7 +129,6 @@ const handler = {
   },
   rowChange: async (event: FilterRowChangeEvent) => {
     event.filter[event.type] = event.value
-    // one level shares one logical op, so the whole level follows
     if (event.type === 'logical_op') {
       for (const sibling of levelOf(filters.value, event.filter) ?? []) sibling.logical_op = event.value
     }
@@ -145,7 +143,7 @@ const handler = {
   },
 }
 
-// filters FilterGroup adds without a handler keep a `parentFilter` back-reference, which JSON can't follow
+// FilterGroup adds a `parentFilter` back-reference, which JSON can't serialize
 function toJson(value: unknown) {
   return JSON.stringify(value, (key, val) => (key === 'parentFilter' ? undefined : val), 2)
 }

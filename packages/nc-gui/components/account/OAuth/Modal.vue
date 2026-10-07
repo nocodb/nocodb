@@ -115,7 +115,7 @@ async function handleSubmit() {
       .map((uri) => uri.trim())
       .filter(Boolean)
 
-    // logo is optional; the API rejects an empty value, so leave it out when none is picked
+    // the API rejects an empty logo_uri
     const { logo_uri, ...rest } = clientRef
     const payload = {
       ...rest,

@@ -24,7 +24,7 @@ const onPremPlans = [
   OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
 ] as const
 
-// on-prem titles render without the "Self-hosted" prefix (objects.paymentPlan), so the rows are labelled
+// on-prem titles render without the "Self-hosted" prefix, so the rows are labelled
 const badgeGroups = [
   { label: 'Cloud', plans: cloudPlans.filter((p) => p !== PlanTitles.FREE).map((p) => PlanMeta[p]) },
   { label: 'On-prem', plans: onPremPlans.map((p) => OnPremPlanMeta[p]) },
@@ -108,7 +108,7 @@ const billingForOnPrem = (plan: OnPremPlanTitles): Array<[string, string]> => {
   }
 }
 
-// Pre-teal Enterprise tokens, kept here for side-by-side comparison only.
+// pre-teal Enterprise tokens, for side-by-side comparison only
 const enterpriseOrangeMeta = computed<CloudPlanMeta>(() => {
   const base = PlanMeta[PlanTitles.ENTERPRISE]
   const tokens = isDark.value

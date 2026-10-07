@@ -3,14 +3,7 @@ import ViewHarness from './-components/ViewHarness.vue'
 import { EXPANDED_DEMO_ROW_ID, buildTable, buildView, isMockViewKind } from './-helper/mock-data'
 import { installPlaygroundMocks } from './-helper/install'
 
-/**
- * `baseId(views)` captures the literal `views` segment as the base id, so the
- * stores that read `route.params.baseId` / `route.params.viewId` (table id)
- * resolve the mock base and table unpatched. The trailing slug must equal the
- * view's readable slug, or the views store tries to rewrite the URL onto the
- * real table route (which needs a workspace param).
- * `expanded` is an alias: the grid with a record already open (`?rowId=`).
- */
+/** The slug must equal the view's slug, or the views store rewrites the URL to the real table route. */
 definePageMeta({
   path: '/playground/:baseId(views)/:viewId(grid|gallery|kanban|calendar|form|map|list|timeline|gantt|expanded)/:slugs([^/]+)*',
   middleware: [

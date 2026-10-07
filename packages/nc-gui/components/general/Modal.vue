@@ -56,7 +56,6 @@ const height = computed(() => {
     return 'auto'
   }
 
-  // Was a unitless '26.5' (invalid, ignored), so medium has always sized to content.
   if (props.size === 'medium') {
     return 'auto'
   }

@@ -6,7 +6,6 @@ export interface ParsedSheet {
   rows: unknown[][]
 }
 
-/** RFC 4180-ish: quoted fields, doubled quotes, commas and newlines inside quotes. */
 function parseCsv(text: string): string[][] {
   const rows: string[][] = []
   let row: string[] = []
@@ -36,7 +35,6 @@ function parseCsv(text: string): string[][] {
   return rows.filter((r) => r.some((v) => v !== ''))
 }
 
-/** Reads an uploaded import file the way the server's csv / json / excel handlers do. */
 export async function parseImportFile(file: File, importType: string): Promise<ParsedSheet[]> {
   if (importType === 'excel') {
     const XLSX = await import('xlsx')
@@ -60,7 +58,6 @@ export async function parseImportFile(file: File, importType: string): Promise<P
 const columnName = (title: string, i: number) =>
   title.trim().toLowerCase().replace(/\W+/g, '_').replace(/^_|_$/g, '') || `field_${i + 1}`
 
-/** Detected columns as the server previews them: every field starts as SingleLineText. */
 export function previewColumns(headers: string[]) {
   return headers.map((h, i) => {
     const title = String(h ?? '').trim() || `Field ${i + 1}`
@@ -69,7 +66,6 @@ export function previewColumns(headers: string[]) {
   })
 }
 
-/** Sheet rows keyed by the previewed column names. */
 export function sheetRecords(sheet: ParsedSheet) {
   const columns = previewColumns(sheet.headers)
   return sheet.rows.map((row) => Object.fromEntries(columns.map((c, i) => [c.column_name, row[i] ?? null])))

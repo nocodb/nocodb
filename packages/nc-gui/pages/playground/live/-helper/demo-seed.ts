@@ -174,7 +174,7 @@ export async function seedDemoBase({
   api: Api<unknown>
   workspaceId: string
   userEmail?: string
-  /** views the plan doesn't include; requesting them only produces a 403 */
+  /** views the plan doesn't include; requesting them 403s */
   skipViews?: DemoViewKey[]
   createBase: (title: string) => Promise<{ id?: string }>
   onStep: (key: string, status: SeedStep['status'], message?: string) => void
@@ -326,7 +326,7 @@ export async function seedDemoBase({
     )
   })
 
-  // views go through the internal ops the view-create dialog uses; the v3 view API is plan-gated
+  // the v3 view API is plan-gated, so use the internal ops the view-create dialog uses
   const views = await run('views', async (warn) => {
     const { list } = (await api.internal.getOperation(workspaceId, baseId, { operation: 'viewList', tableId: table.id })) as {
       list: Array<{ id: string; type: number }>

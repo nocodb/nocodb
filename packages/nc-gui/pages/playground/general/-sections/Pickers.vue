@@ -27,7 +27,7 @@ const emojiSizes = ['xsmall', 'small', 'medium', 'large', 'xlarge'] as const
   <PgSection id="emoji-picker" title="Emoji picker" source="GeneralEmojiPicker">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       <PgDemo label="Interactive" :hint="`selected: ${emoji || 'none'}`">
-        <!-- the default slot is the trigger while no emoji is set, so Remove leaves something to click -->
+        <!-- the default slot is the trigger while no emoji is set -->
         <div class="flex items-center gap-4">
           <GeneralEmojiPicker :emoji="emoji" size="large" @emoji-selected="emoji = $event">
             <GeneralIcon icon="ncSmile" class="w-5 h-5 text-nc-content-gray-muted" />

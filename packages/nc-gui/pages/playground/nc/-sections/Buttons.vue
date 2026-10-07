@@ -6,7 +6,6 @@ const TYPES = ['primary', 'secondary', 'text', 'danger', 'link'] as const
 
 const SIZES = ['xxsmall', 'xsmall', 'xs', 'small', 'medium'] as const
 
-/** no horizontal padding — square icon buttons in the product */
 const ICON_SIZES: ReadonlyArray<(typeof SIZES)[number]> = ['xxsmall', 'xsmall']
 
 const THEMES = ['default', 'ai', 'orange'] as const
@@ -63,7 +62,6 @@ function simulateSave() {
 
     <PgDemo label="States">
       <div class="flex flex-col gap-3">
-        <!-- label column stays put; only the buttons wrap when the stage narrows -->
         <div v-for="type in TYPES" :key="type" class="flex items-start gap-3">
           <span class="w-20 flex-none h-8 flex items-center text-captionXs text-nc-content-gray-muted font-mono">{{ type }}</span>
           <div class="flex-1 min-w-0 flex flex-wrap items-center gap-3">
@@ -112,7 +110,6 @@ function simulateSave() {
             <NcButton type="primary" size="small" :loading="isSaving" @click="simulateSave">Click to load</NcButton>
           </div>
         </div>
-        <!-- fullWidth stretches the label, as in role pickers: content sits left, not centred -->
         <div class="flex items-center gap-3">
           <span class="w-20 flex-none text-captionXs text-nc-content-gray-muted font-mono">fullWidth</span>
           <NcButton type="secondary" size="small" full-width class="flex-1">

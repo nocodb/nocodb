@@ -4,7 +4,6 @@ import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { syncLinkedValues } from '../-helper/mock-api'
 import type { Row } from '~/lib/types'
 
-/** One cell rendered the way a given surface renders it; each slot owns a row store over the shared row. */
 const props = defineProps<{
   column: ColumnType
   row: Row
@@ -12,8 +11,7 @@ const props = defineProps<{
   readOnly?: boolean
 }>()
 
-// Editors that open a floating picker as soon as edit mode turns on; start them closed so a
-// page load never opens an overlay. A click on the cell still opens it.
+// Picker editors start closed so a page load never opens an overlay.
 const POPUP_ON_EDIT_UIDTS: string[] = [UITypes.Colour]
 
 const row = toRef(props, 'row')
@@ -34,10 +32,10 @@ provide(IsGridInj, ref(props.mode !== 'expanded'))
 
 provide(IsFormInj, ref(false))
 
-// grid/index.vue provides the view's row height; the short row sizes QR / barcode / clamped text to one line
+// a short row sizes QR / barcode / clamped text to one line, as in the grid
 if (props.mode !== 'expanded') provide(RowHeightInj, ref(1 as const))
 
-// the grid refetches the row when a link picker asks; read the mocked links back instead
+// the grid refetches the row after a link pick; read the mocked links back
 const reloadRowHook = createEventHook()
 
 reloadRowHook.on(() => syncLinkedValues(row.value.row))
@@ -48,7 +46,6 @@ useProvideSmartsheetRowStore(row)
 </script>
 
 <template>
-  <!-- expanded form: ColumnList's row wrappers (global cell styles key off them) and SmartsheetDivDataCell -->
   <div v-if="mode === 'expanded'" class="nc-expanded-form-row w-full" :class="`nc-expand-col-${title}`">
     <div class="nc-expanded-cell w-full flex">
       <SmartsheetDivDataCell
@@ -62,14 +59,13 @@ useProvideSmartsheetRowStore(row)
           :row="row"
           :read-only="readOnly"
         />
-        <!-- one-way like ColumnList: the expanded form keeps every editor open -->
+        <!-- expanded form keeps every editor open, like ColumnList -->
         <SmartsheetCell v-else v-model="row.row[title]" :edit-enabled="true" :column="column" active :read-only="readOnly" />
       </SmartsheetDivDataCell>
     </div>
   </div>
 
-  <!-- grid: a flat 32px cell between grid lines; the active/edit cell gets the 2px brand ring.
-       TableDataCell stays inactive: an active one binds a window keydown listener, and every edit slot would react to each key. -->
+  <!-- inactive: an active TableDataCell binds a window keydown listener every slot would react to -->
   <SmartsheetTableDataCell
     v-else
     :active="false"
@@ -116,7 +112,7 @@ useProvideSmartsheetRowStore(row)
   border-radius: 2px;
 }
 
-/* ColumnList.vue (scoped there) — the expanded-form field look */
+/* copied from ColumnList.vue (scoped there) */
 .pg-expanded-cell {
   @apply !rounded-lg;
   transition: all 0.3s;
@@ -151,8 +147,7 @@ useProvideSmartsheetRowStore(row)
     @apply h-auto;
   }
 
-  /* expanded-form/index.vue's global `.nc-drawer-expanded-form .nc-data-cell …` rule, which only
-     loads with that (lazy) component */
+  /* mirrors expanded-form/index.vue's global rule, which only loads with that lazy component */
   :deep(.nc-cell .nc-cell-field),
   :deep(.nc-cell .nc-cell-field-link),
   :deep(.nc-cell input),

@@ -92,7 +92,6 @@ useProvideSmartsheetStore(ref<ViewType>(), meta)
 
 useProvideSmartsheetLtarHelpers(meta)
 
-// link cells fetch, list and link related records; answer those for the fixture base
 installCellsMocks($api.instance)
 
 installCellsFocusGuard()
@@ -196,8 +195,6 @@ onBeforeUnmount(() => {
 <style scoped lang="scss">
 .pg-cells-grid {
   display: grid;
-  /* the expanded form gives fields the most room */
-  /* floors keep cells usable when the token editor narrows the page; the card scrolls instead */
   grid-template-columns: minmax(180px, 252px) repeat(2, minmax(140px, 1fr)) minmax(200px, 1.3fr);
   align-items: stretch;
 }

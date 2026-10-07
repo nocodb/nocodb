@@ -80,7 +80,6 @@ const frameHeight = ref('760')
 
 const workspaceId = computed(() => activeWorkspaceId.value)
 
-/** scoped per user + workspace so another account or workspace never acts on this base id */
 const demoStorageKey = computed(() =>
   user.value?.id && workspaceId.value ? `${DEMO_STORAGE_KEY}:${user.value.id}:${workspaceId.value}` : undefined,
 )
@@ -137,7 +136,6 @@ const pages = computed<LivePage[]>(() => {
     { key: 'account-integrations', group: 'Account', label: 'Integrations', path: '/account/external-integrations' },
     { key: 'account-mcp', group: 'Account', label: 'MCP', path: '/account/mcp' },
   )
-  // cloud has neither page (the account menu doesn't link them)
   if (!appInfo.value.isCloud) {
     list.push(
       { key: 'account-users', group: 'Account', label: 'Users', path: '/account/users' },
@@ -188,7 +186,6 @@ function persist(value: DemoBase | null) {
   } catch {}
 }
 
-/** The stored demo base, only while it is still in this workspace under the demo title. */
 function ownedDemo(stored: DemoBase | null) {
   if (!stored || stored.workspaceId !== workspaceId.value) return null
   return bases.value.some((b) => b.id === stored.baseId && b.title === DEMO_BASE_TITLE) ? stored : null
@@ -197,13 +194,11 @@ function ownedDemo(stored: DemoBase | null) {
 async function restoreDemo(basesLoaded: boolean) {
   isCheckingDemo.value = true
   try {
-    // pre-scoping entry; only forget it, never act on it
     localStorage.removeItem(DEMO_STORAGE_KEY)
     const key = demoStorageKey.value
     const stored = key ? localStorage.getItem(key) : null
     const parsed: DemoBase | null = stored ? JSON.parse(stored) : null
     if (!parsed) return
-    // deleted, renamed or moved elsewhere: stop tracking it
     if (basesLoaded) persist(ownedDemo(parsed))
   } catch {
     persist(null)
@@ -212,7 +207,6 @@ async function restoreDemo(basesLoaded: boolean) {
   }
 }
 
-/** Deletes the tracked demo base after re-checking it is still ours; returns false on failure. */
 async function deleteOwnedDemo() {
   if (!demo.value) return true
   if (!(await loadBases())) return false
@@ -301,7 +295,6 @@ async function createDemo() {
       },
     })
     persist(result)
-    // the views step names only what was actually created (Timeline is plan-gated)
     steps.value = steps.value.map((s) =>
       s.key === 'views'
         ? { ...s, label: `Create ${demoViewLabels.value.filter((l) => l !== DEMO_VIEW_LABELS.grid).join(', ')} views` }
@@ -329,7 +322,6 @@ async function loadBases() {
   }
 }
 
-/** Points every frame at a base + table; table defaults to the base's first. */
 async function selectTarget(baseId: string, tableId?: string) {
   isLoadingTarget.value = true
   try {

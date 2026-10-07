@@ -12,7 +12,7 @@ const LEGACY_SIZES: ModalSize[] = ['small', 'medium', 'large']
 
 const CONFIRM_TYPES: ConfirmType[] = ['info', 'success', 'warning', 'error']
 
-// NcDrawer is the mobile bottom sheet (DropDrawer, doc comments); its chrome assumes placement="bottom"
+// NcDrawer's chrome assumes placement="bottom"
 const DRAWER_VARIANTS = [
   { key: 'fit', label: 'Fit content', height: 'auto', contentHeight: true },
   { key: 'tall', label: 'Fixed 85svh', height: '85svh', contentHeight: false },
@@ -20,7 +20,7 @@ const DRAWER_VARIANTS = [
 
 const { showInfoModal, showSuccessModal, showWarningModal, showErrorModal } = useNcConfirmModal()
 
-// the last choice outlives the close so the leave animation keeps its size / placement / type
+// kept after close so the leave animation keeps its size / placement / type
 const activeModalSize = ref<ModalSize>('md')
 
 const activeConfirmType = ref<ConfirmType>('info')
@@ -50,7 +50,6 @@ function openDrawer(variant: (typeof DRAWER_VARIANTS)[number]) {
   isDrawerOpen.value = true
 }
 
-// destructive confirms pass okProps { type: 'danger' }, as License.vue / TeamCard.vue do
 const CONFIRM_COPY: Record<ConfirmType, { title: string; content: string; okText: string; okProps?: { type: 'danger' } }> = {
   info: { title: 'New version available', content: 'Reload to get the latest improvements.', okText: 'Reload' },
   success: { title: 'Import complete', content: '1,248 records were imported into Campaigns.', okText: 'View table' },
@@ -175,7 +174,6 @@ function openComposableModal(type: ConfirmType) {
     />
 
     <NcDrawer v-model:visible="isDrawerOpen" :height="activeDrawer.height" :content-height="activeDrawer.contentHeight">
-      <!-- NcDrawer's header has no inset; pad it to the body's px-4 -->
       <template #header>
         <div class="px-4 text-sm font-semibold text-nc-content-gray">Record details</div>
       </template>

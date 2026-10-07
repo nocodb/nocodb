@@ -1,6 +1,5 @@
 import type { InjectionKey, Ref } from 'vue'
 
-/** shell -> pages: whether the token editor panel is open */
 export const PlaygroundTokenEditorOpenInj: InjectionKey<Ref<boolean>> = Symbol('PlaygroundTokenEditorOpenInj')
 
 export interface PlaygroundNavItem {

@@ -1,19 +1,16 @@
 <script setup lang="ts">
 import { PlaygroundTokenEditorOpenInj } from '../-helper/registry'
 
-/** Page frame for a playground page: heading, optional TOC built from `sections`. */
 defineProps<{
   title: string
   description?: string
   sections?: Array<{ id: string; title: string }>
-  /** full-size surfaces (modal shells, settings): no max width, no TOC column */
   wide?: boolean
 }>()
 
-// the TOC gives up its column while the token editor squeezes the page
 const isTokenEditorOpen = inject(PlaygroundTokenEditorOpenInj, ref(false))
 
-// scrollIntoView would also scroll the overflow-hidden app wrappers and push the shell off-screen
+// scrollIntoView would also scroll the overflow-hidden app wrappers
 function scrollTo(id: string) {
   const el = document.getElementById(id)
   const scroller = el?.closest<HTMLElement>('.nc-playground-main')

@@ -5,7 +5,6 @@ import TokenEditor from './playground/-components/TokenEditor.vue'
 
 definePageMeta({
   hideHeader: true,
-  // production builds show the playground to NocoDB team accounts only; covers every child route
   middleware: [
     () => {
       if (!import.meta.env.PROD) return
@@ -25,7 +24,6 @@ const { productName } = useBranding()
 
 const { lastOpenedWorkspaceId } = useGlobal()
 
-/** below md: nav is an overlay drawer */
 const isNarrow = useMediaQuery('(max-width: 819.98px)')
 
 const isBelowXl = useMediaQuery('(max-width: 1279.98px)')
@@ -36,14 +34,13 @@ const isTokenEditorOpen = ref(false)
 
 provide(PlaygroundTokenEditorOpenInj, isTokenEditorOpen)
 
-// theme picks here are playground-only: not persisted, and the app's choice is restored on leave
 const appTheme = selectedTheme.value
 
 const mainRef = ref<HTMLElement>()
 
 const tokensToggleRef = ref<{ $el?: HTMLElement }>()
 
-// only <main> scrolls; a dropdown a demo opens near the bottom would otherwise stretch the document
+// only <main> scrolls; otherwise a demo dropdown near the bottom stretches the document
 const isDocumentScrollLocked = useScrollLock(document.documentElement)
 
 const themeOptions = [
@@ -69,12 +66,12 @@ const pageName = computed(() => {
 
 const pageTitle = computed(() => `${pageName.value} | Playground`)
 
-// "/" redirects to the workspace with a push, which would leave a dead history entry behind
+// "/" redirects with a push, leaving a dead history entry
 const appHomePath = computed(() => (lastOpenedWorkspaceId.value ? `/${lastOpenedWorkspaceId.value}` : '/'))
 
 useTitle(pageTitle, { restoreOnUnmount: (original) => original || productName.value })
 
-// the views a page mounts write their own tab title (store/views.ts updateTabTitle)
+// mounted views write their own tab title (store/views.ts updateTabTitle)
 useMutationObserver(
   document.head,
   () => {
@@ -83,12 +80,11 @@ useMutationObserver(
   { childList: true, subtree: true, characterData: true },
 )
 
-/** until then, autofocus from a demo mounting (NcList search, editing cells) is undone instead of scrolling to it */
+// until then, demo autofocus on mount is undone instead of scrolled to
 let settleUntil = 0
 
 function settle() {
   settleUntil = Date.now() + 3000
-  // <main> outlives the pages, so it would keep the previous page's scroll offset
   mainRef.value?.scrollTo({ top: 0 })
 }
 
@@ -97,12 +93,11 @@ useEventListener(mainRef, 'focusin', (e: FocusEvent) => {
   ;(e.target as HTMLElement).blur()
 })
 
-// some demos also scrollIntoView after focusing; hold the top until the user takes over
+// some demos scrollIntoView after focusing; hold the top until the user takes over
 useEventListener(mainRef, 'scroll', () => {
   if (Date.now() < settleUntil && mainRef.value?.scrollTop) mainRef.value.scrollTop = 0
 })
 
-// any input means the user has taken over, wherever it lands (Tab from the header into a demo)
 for (const event of ['wheel', 'pointerdown', 'keydown', 'touchstart']) {
   useEventListener(window, event, () => (settleUntil = 0), { passive: true, capture: true })
 }
@@ -110,7 +105,6 @@ for (const event of ['wheel', 'pointerdown', 'keydown', 'touchstart']) {
 useEventListener(document, 'keydown', (e: KeyboardEvent) => {
   if (e.key !== 'Escape' || e.defaultPrevented) return
   const target = e.target as HTMLElement | null
-  // an open select, dropdown or modal takes the Escape itself
   if (target?.closest('[role="combobox"][aria-expanded="true"], .ant-modal-wrap, .ant-dropdown, .ant-select-dropdown')) return
   if (document.querySelector('.ant-modal-wrap:not([style*="display: none"])')) return
   if (isNavOpen.value && isNarrow.value) {
@@ -135,7 +129,6 @@ watch(isNarrow, (narrow) => {
   isNavOpen.value = !narrow
 })
 
-// keep usable width for the page while the editor is open
 watch(isTokenEditorOpen, (open) => {
   if (open && isBelowXl.value) isNavOpen.value = false
 })
@@ -279,7 +272,6 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped lang="scss">
-/* same as HomeSidebar's .nc-ws-section-header */
 .nc-pg-section-header {
   @apply pl-5 pr-2 pt-1.5 pb-1.5 font-semibold text-nc-content-gray-muted uppercase;
   font-size: 11px;

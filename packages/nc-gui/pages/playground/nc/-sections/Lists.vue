@@ -65,8 +65,7 @@ const sortedMembers = computed(() => {
 
 <template>
   <PgSection id="lists" title="Lists & tables" source="NcList · NcListWithSearch · NcTable">
-    <!-- auto-fill, not lg:grid-cols-3: the token editor narrows the page without changing the viewport.
-         NcList / NcListWithSearch are w-64 by default, so each frame hugs its list like the dropdown it lives in -->
+    <!-- auto-fill, not lg:grid-cols-3: the token editor narrows the page without changing the viewport -->
     <div class="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3">
       <PgDemo label="NcList" hint="single select, disabled item">
         <div class="w-fit max-w-full mx-auto rounded-lg border-1 border-nc-border-gray-medium">

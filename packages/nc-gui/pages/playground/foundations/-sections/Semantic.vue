@@ -29,7 +29,6 @@ function matching(f: Family) {
 
 const rows = computed(() => matching(family.value))
 
-// inverted-primary sits on a filled surface (gray-800 flips with the theme); inverted-secondary is for the default surface
 function isInverted(name: string) {
   return family.value === 'content' && name.includes('-inverted-primary')
 }

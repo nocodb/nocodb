@@ -11,7 +11,6 @@ interface Company {
   Employees: number
 }
 
-/** related records the link cells list, pick from and expand */
 const initialCompanies = (): Company[] => [
   { Id: 1, Name: 'Acme', Employees: 120 },
   { Id: 2, Name: 'Globex', Employees: 340 },
@@ -21,7 +20,6 @@ const initialCompanies = (): Company[] => [
   { Id: 6, Name: 'Stark Industries', Employees: 5100 },
 ]
 
-/** ids each link column starts with, matching the fixture values */
 const initialLinked = (): Record<string, number[]> => ({
   c_links_hm: [1, 2, 3],
   c_ltar_mm: [1, 2],
@@ -32,7 +30,7 @@ let COMPANIES = initialCompanies()
 
 let LINKED = initialLinked()
 
-/** link column whose picker was used last; "New record" there links the record it creates */
+/** "New record" in this link column's picker links the record it creates */
 let pickerColId: string | undefined
 
 const OWN_IDS = [CELLS_BASE_ID, CELLS_TABLE_ID, COMPANY_TABLE_ID]
@@ -84,13 +82,11 @@ function respond(config: InternalAxiosRequestConfig) {
   return { data, status: 200, statusText: 'OK', headers: {}, config, request: {} }
 }
 
-/** back to the fixture links, for Reset values */
 export function resetCellsMocks() {
   COMPANIES = initialCompanies()
   LINKED = initialLinked()
 }
 
-/** what a row reload reads back for the link fields (the grid refetches the row after a picker creates a record) */
 export function syncLinkedValues(row: Record<string, unknown>) {
   for (const column of cellsTableMeta().columns ?? []) {
     const ids = column.id ? LINKED[column.id] : undefined
@@ -104,7 +100,6 @@ export function syncLinkedValues(row: Record<string, unknown>) {
 
 let saved: { merge: MergeParams; interceptorId: number } | null = null
 
-/** Answers requests for the cells fixture base locally; everything else reaches the backend. */
 export function installCellsMocks(instance: ReturnType<typeof useNuxtApp>['$api']['instance']) {
   if (saved) return
   const real = axios.getAdapter(axios.defaults.adapter)

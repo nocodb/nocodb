@@ -1,7 +1,6 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { ExportTypes, UITypes } from 'nocodb-sdk'
 
-/** Plain-text value of a cell, roughly as the server's export writes it. */
 function cellText(col: ColumnType, value: unknown): string {
   if (value === null || value === undefined) return ''
   if (col.uidt === UITypes.User && Array.isArray(value)) return value.map((u) => u?.display_name || u?.email).join(', ')
@@ -13,7 +12,6 @@ function cellText(col: ColumnType, value: unknown): string {
   return String(value)
 }
 
-/** JSON keeps the raw value, minus inline data: urls on attachments. */
 function jsonValue(col: ColumnType, value: unknown) {
   if (col.uidt !== UITypes.Attachment || !Array.isArray(value)) return value ?? null
   return value.map(({ url, signedUrl, ...rest }) => (String(url).startsWith('data:') ? rest : { url, signedUrl, ...rest }))
@@ -78,7 +76,6 @@ const EXTENSION: Record<string, string> = {
   [ExportTypes.ICS]: 'ics',
 }
 
-/** Builds the export file in the browser and saves it, standing in for the server's export job + download link. */
 export async function downloadMockExport(
   type: string,
   title: string,

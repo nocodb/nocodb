@@ -12,7 +12,7 @@ const TOTAL_RECORDS = 1248
 
 const pageSize = ref(25)
 
-// NcPagination leaves the page untouched on a size change — callers clamp it (smartsheet/Pagination.vue)
+// NcPagination doesn't clamp the page on a size change; callers do
 watch(pageSize, (size) => {
   page.value = Math.min(page.value, Math.ceil(TOTAL_RECORDS / size))
 })
@@ -164,7 +164,6 @@ const NAV_ITEMS = [
       </PgDemo>
 
       <PgDemo label="NcGroupedSettings" :padded="false">
-        <!-- dashboard widget config pattern: each NcSwitch in its own block div -->
         <NcGroupedSettings title="Appearance">
           <div class="flex flex-col gap-3">
             <div>

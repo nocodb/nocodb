@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** Unknown /playground/* paths land here instead of falling through to the /:typeOrId workspace route. */
+// catches unknown /playground/* paths before the /:typeOrId workspace route
 const route = useRoute()
 </script>
 

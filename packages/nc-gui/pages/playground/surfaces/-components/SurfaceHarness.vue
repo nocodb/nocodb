@@ -5,11 +5,6 @@ import { MOCK_BASE_ID } from '../../views/-helper/mock-data'
 import { SURFACE_KIND, SURFACE_VIEW_ID, installSurfaceMocks } from '../-helper/mocks'
 import { UseDetachedLongTextProvider } from '~/components/smartsheet/grid/canvas/composables/useDetachedLongText'
 
-/**
- * Smartsheet providers for the mock grid table (same set as views/ViewHarness),
- * so real toolbar / field / details components can mount anywhere in the slot.
- */
-
 // normally installed by the route middleware; repeated for HMR remounts
 installSurfaceMocks()
 seedPlaygroundStores()

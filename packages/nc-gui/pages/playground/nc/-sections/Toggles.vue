@@ -37,7 +37,7 @@ function toggleAll(value: boolean) {
             <NcSwitch :checked="true" :size="size" disabled />
             <NcSwitch :checked="true" :size="size" loading />
           </div>
-          <!-- NcSwitch is a fragment (switch + label span): give each its own block div, as the product does -->
+          <!-- NcSwitch is a fragment (switch + label span): give each its own block div -->
           <div class="flex flex-col gap-3 pt-3 border-t-1 border-nc-border-gray-light">
             <div>
               <NcSwitch v-model:checked="notifications">

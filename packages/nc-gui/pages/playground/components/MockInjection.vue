@@ -38,7 +38,7 @@ provide(ActiveSourceInj, mockRef.source)
 
 useProvideSmartsheetStore(mockRef.view, mockRef.meta, true, ref([]), mockRef.filters)
 useProvideMapViewStore(mockRef.meta, mockRef.view)
-// Local mode: read columns from the mock meta instead of calling viewColumnList (the mock has no workspace).
+// local mode: the mock has no workspace to call viewColumnList against
 useProvideViewColumns(mockRef.view, mockRef.meta, () => reloadEventHook?.trigger(), true)
 
 useViewRowColorProvider({ shared: true })
@@ -51,7 +51,6 @@ onMounted(async () => {
   route.value.params.typeOrId = baseId
 })
 
-// the mock user / base must not outlive the sandbox page
 onBeforeUnmount(mockSetupRestore)
 </script>
 

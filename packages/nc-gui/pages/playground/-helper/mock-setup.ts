@@ -4,8 +4,7 @@ import { defaultViews } from './views'
 
 const defaultBaseId = 'pRdVnZXPZgA'
 
-// MockInjection reads view columns in public-view mode: the meta columns double as view columns, keyed by
-// fk_column_id, and only the ones marked `show` are offered in field pickers
+// MockInjection reads these as view columns in public-view mode: keyed by fk_column_id, `show` filters pickers
 const shown = <T extends { id?: string }>(columns: T[]) => columns.map((c) => ({ ...c, fk_column_id: c.id, show: true }))
 export const MOCK_TABLES_RAW = [
   {
@@ -47,7 +46,6 @@ const mockUsers = [
   },
 ]
 
-// the signed-in user and active base that mockSetupInit swaps out, put back by mockSetupRestore
 let saved: { user: ReturnType<typeof useGlobalState>['user']['value']; forcedProjectId?: string } | null = null
 
 export const mockSetupInit = () => {

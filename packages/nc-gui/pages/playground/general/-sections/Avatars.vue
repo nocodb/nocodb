@@ -66,7 +66,6 @@ function viewMeta(type: number, icon?: string) {
 
 <template>
   <PgSection id="user-icon" title="User avatars" source="GeneralUserIcon · GeneralUserName">
-    <!-- sizes and variants apart: every variant at xlarge wraps past the card -->
     <PgDemo label="Sizes" :hint="userSizes.join(' · ')">
       <div class="flex flex-wrap items-end gap-6">
         <div v-for="size in userSizes" :key="size" class="flex flex-col items-center gap-2">

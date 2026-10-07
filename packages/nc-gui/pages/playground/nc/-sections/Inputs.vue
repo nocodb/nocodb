@@ -125,7 +125,6 @@ const suggestGroups = [
         </div>
       </PgDemo>
 
-      <!-- the menu is positioned inline, not teleported: the stage keeps room for it -->
       <PgDemo
         label="NcSuggestInput"
         hint="focus or type to see grouped suggestions; arrows + Enter pick one"

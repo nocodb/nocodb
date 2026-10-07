@@ -32,7 +32,6 @@ const SORT_ITEMS = [
 
 <template>
   <PgSection id="selects" title="Selects" source="NcSelect · NcSelectTab · NcDropdownSelect">
-    <!-- auto-fill: NcSelectTab doesn't shrink, so a card needs ~400px; the token editor narrows the page -->
     <div class="grid grid-cols-[repeat(auto-fill,minmax(400px,1fr))] gap-3">
       <PgDemo label="NcSelect sizes">
         <div class="flex flex-col gap-3">
@@ -72,7 +71,7 @@ const SORT_ITEMS = [
 
       <PgDemo label="NcDropdownSelect">
         <div class="flex items-center gap-3">
-          <!-- the overlay sizes to its content, so callers give it a width (as in the attachments presenter) -->
+          <!-- the overlay sizes to its content, so callers give it a width -->
           <NcDropdownSelect v-model="sortOrder" :items="SORT_ITEMS" overlay-class-name="w-48">
             <NcButton size="small" type="secondary">
               <div class="flex items-center gap-2">

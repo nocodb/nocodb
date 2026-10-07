@@ -29,18 +29,14 @@ export interface MockDb {
   tables: Record<string, TableType>
   views: Record<string, ViewType>
   rows: Record<string, any>[]
-  /** rows of the linked Tasks table */
   tasks: Record<string, any>[]
   comments: MockComment[]
-  /** revision entries recorded for edits made in this tab, newest last */
   audits: Record<string, any>[]
   user: Record<string, any>
-  /** toolbar config saved through filter/sort/view-column ops, across all mock views */
   filters: FilterType[]
   sorts: (SortType & { fk_view_id?: string })[]
-  /** view-column overrides keyed by view column id (width, show, group_by, ...) */
   viewColumnPatches: Record<string, Record<string, unknown>>
-  /** row colouring per view id; condition filters live in `filters` under `fk_row_color_condition_id` */
+  /** condition filters live in `filters` under `fk_row_color_condition_id` */
   rowColors: Record<string, MockRowColor>
 }
 
@@ -65,14 +61,13 @@ const pageInfo = (total: number, offset: number, limit: number) => ({
   isLastPage: offset + limit >= total,
 })
 
-/** Thrown by a mock handler to answer with an error status, the way the server rejects bad input. */
 export class MockRequestError extends Error {
   constructor(message: string, readonly status = 400) {
     super(message)
   }
 }
 
-/** A copy, as if it crossed the network: stores must never hold the mock's own objects, or in-place edits here bypass their reactivity. */
+/** Copy: stores must never hold the mock's own objects, or in-place edits bypass reactivity. */
 export function serialize<T>(data: T): T {
   return data === undefined ? data : JSON.parse(JSON.stringify(data))
 }
@@ -159,7 +154,6 @@ const percent = (part: number, total: number) => (total ? (part / total) * 100 :
 
 const DAY_MS = 86400000
 
-/** One footer aggregation over a column's values, in the units the server returns. */
 function aggregateValue(type: string, values: unknown[]): unknown {
   const filled = values.filter((v) => !isBlank(v))
   const unique = new Set(filled.map((v) => JSON.stringify(v))).size
@@ -299,7 +293,6 @@ function matchFilter(row: Record<string, any>, f: FilterType, columns: ColumnTyp
       return wanted.every((w) => items.includes(w))
     case 'nallof':
       return !wanted.every((w) => items.includes(w))
-    // same key the groupby endpoint produced
     case 'gb_eq':
       return text === value
     default:
@@ -335,11 +328,6 @@ function applySort(rows: Record<string, any>[], columns: ColumnType[], sorts: So
   })
 }
 
-/**
- * Axios adapter that answers the smartsheet data/meta requests from an
- * in-memory table, so the real view components render without a backend.
- * Anything unrecognised resolves with an empty payload and is reported.
- */
 export function createMockAdapter(
   db: MockDb,
   onUnmocked: (req: UnmockedRequest) => void,
@@ -347,20 +335,17 @@ export function createMockAdapter(
 ): AxiosAdapter {
   let seq = 0
 
-  /** Jobs started here (export / import), answered by `jobs.listen` with their final status. */
   const jobs = new Map<string, () => Promise<unknown>>()
 
-  /** Files sent to the import upload endpoint, by the attachment path handed back. */
   const uploads = new Map<string, File>()
 
-  /** Bookmarks on mock views; the real backend refuses targets it doesn't know. */
+  /** the real backend refuses bookmark targets it doesn't know */
   const bookmarks: Array<Record<string, any>> = []
 
   const nextKey = (prefix: string) => `${prefix}-${Date.now().toString(36)}${(seq++).toString(36)}`
 
   const tableOf = (id: string) => db.tables[id]
 
-  /** The session's own table (the view kind), as opposed to the linked Tasks table. */
   const mainTableId = () => Object.keys(db.tables).find((id) => id !== MOCK_TASKS_TABLE_ID) ?? ''
 
   const rowsOf = (tableId: string) => (tableId === MOCK_TASKS_TABLE_ID ? db.tasks : db.rows)
@@ -368,7 +353,6 @@ export function createMockAdapter(
   // seed values, so seeded revision history doesn't shift as rows get edited
   const seedById = new Map(buildRows().map((r) => [String(r.Id), r]))
 
-  /** A view's saved filters as a tree (children under `is_group` filters). */
   const viewFilterTree = (viewId?: string) => {
     const build = (parentId: string | null): FilterType[] =>
       db.filters
@@ -381,7 +365,6 @@ export function createMockAdapter(
   const viewSorts = (viewId?: string) =>
     db.sorts.filter((s) => viewId && s.fk_view_id === viewId).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
-  /** Rows as the server would return them: the view's saved filters + sorts, then request-level filters. */
   const listRows = (tableId: string, q: Record<string, any> = {}, viewId: string | undefined = q.viewId) => {
     const columns = (tableOf(tableId)?.columns ?? []) as ColumnType[]
     const filters = [...viewFilterTree(viewId), ...(parseJson<FilterType[]>(q.filterArrJson) ?? [])]
@@ -456,7 +439,6 @@ export function createMockAdapter(
     return new Set(listRows(tableId, q, viewId).map((r) => groupKey(col, r[col.title!]))).size
   }
 
-  /** Appends a revision entry, shaped like the server's DATA_INSERT / DATA_UPDATE audits. */
   const recordAudit = (
     tableId: string,
     rowId: unknown,
@@ -522,7 +504,6 @@ export function createMockAdapter(
     return idx > -1
   }
 
-  /** `dataMove` / kanban drag: the row moves above `before`, or to the end. */
   const moveRow = (rowId: unknown, before: unknown) => {
     const idx = db.rows.findIndex((r) => String(r.Id) === String(rowId))
     if (idx < 0) return
@@ -532,7 +513,6 @@ export function createMockAdapter(
     reorder(db.rows)
   }
 
-  /** A Links column's child rows and the FK field on them that points back at the parent. */
   const relationOf = (tableId: string, colRef: string) => {
     const col = (tableOf(tableId)?.columns ?? []).find((c) => c.id === colRef || c.title === colRef)
     const opts = col?.colOptions as LinkToAnotherRecordType | undefined
@@ -544,7 +524,6 @@ export function createMockAdapter(
 
   type Relation = NonNullable<ReturnType<typeof relationOf>>
 
-  /** Keeps each parent's link count cell in step with its children. */
   const recount = (rel: Relation) => {
     for (const r of db.rows) r[rel.col.title!] = rel.children.filter((c) => String(c[rel.fk]) === String(r.Id)).length
   }
@@ -599,7 +578,6 @@ export function createMockAdapter(
       .flatMap((t) => t.columns ?? [])
       .find((c) => c.id === colId)
 
-  /** A Gantt view's own scheduling rule (lives on the view in the mock). */
   const dateDependencyOf = (ganttViewId?: string) =>
     ganttViewId
       ? (db.views[ganttViewId]?.view as { date_dependency?: Record<string, unknown> } | undefined)?.date_dependency
@@ -607,7 +585,6 @@ export function createMockAdapter(
 
   const ownerOf = (colId: string) => findColumn(colId)?.fk_model_id ?? mainTableId()
 
-  /** Swaps in a new table object, like a refetched meta. */
   const replaceColumns = (tableId: string, columns: ColumnType[]) => {
     const table = { ...tableOf(tableId), columns, columnsById: Object.fromEntries(columns.map((c) => [c.id!, c])) } as TableType
     db.tables[tableId] = table
@@ -640,7 +617,6 @@ export function createMockAdapter(
     return { type: payload.type ?? 'hm', fk_related_model_id: childId, fk_child_column_id: fkId, fk_parent_column_id: pk?.id }
   }
 
-  /** Payload keys the server moves into `colOptions`, per field type. */
   const COL_OPTION_KEYS: Partial<Record<string, string[]>> = {
     [UITypes.Lookup]: ['fk_relation_column_id', 'fk_lookup_column_id'],
     [UITypes.Rollup]: ['fk_relation_column_id', 'fk_rollup_column_id', 'rollup_function'],
@@ -650,7 +626,6 @@ export function createMockAdapter(
     [UITypes.Button]: ['type', 'label', 'theme', 'color', 'icon', 'formula', 'formula_raw', 'fk_webhook_id', 'fk_script_id'],
   }
 
-  /** A column as the server stores it from an add / update payload. */
   const buildColumn = (tableId: string, payload: Record<string, any>, base?: ColumnType): ColumnType => {
     const { view_id: _v, column_order: _o, userHasChangedTitle: _u, ...rest } = payload ?? {}
     const id = base?.id ?? nextKey('pgc')
@@ -685,7 +660,6 @@ export function createMockAdapter(
     } as ColumnType
   }
 
-  /** New fields show in every view of the table; `column_order` places them (insert left / right). */
   const showNewColumn = (tableId: string, colId: string, order?: { order?: number; view_id?: string }) => {
     for (const view of Object.values(db.views).filter((v) => v.fk_model_id === tableId)) {
       const key = `vc-${view.id}-${colId}`
@@ -714,7 +688,6 @@ export function createMockAdapter(
     const prev = columns.find((c) => c.id === colId)
     if (!prev) return tableOf(tableId) ?? {}
     const next = buildColumn(tableId, payload, prev)
-    // rows are keyed by title, so a rename carries the data over
     if (next.title && next.title !== prev.title) {
       for (const row of rowsOf(tableId)) {
         row[next.title] = row[prev.title!]
@@ -748,7 +721,6 @@ export function createMockAdapter(
         .filter((v): v is string => !!v)
       row[key] = values.length ? values.join(',') : null
     }
-    // kanban stacks are stored by option title too
     for (const view of Object.values(db.views)) {
       const stacks = (view.view as { meta?: Record<string, Array<{ title?: string | null }>> } | undefined)?.meta?.[next.id!]
       for (const stack of stacks ?? []) {
@@ -757,7 +729,6 @@ export function createMockAdapter(
     }
   }
 
-  /** Duplicate-column job: `<title> copy`, placed where the client asked, data copied unless excluded. */
   function duplicateColumn(colId: string, body: any) {
     const tableId = ownerOf(colId)
     const source = findColumn(colId)
@@ -785,7 +756,6 @@ export function createMockAdapter(
     )
   }
 
-  /** Lookup / rollup cells, computed from the linked rows the way the server would. */
   function withVirtuals(tableId: string, rows: Record<string, any>[]) {
     const virtuals = (tableOf(tableId)?.columns ?? []).filter((c) => c.uidt === UITypes.Lookup || c.uidt === UITypes.Rollup)
     if (!virtuals.length) return rows
@@ -814,12 +784,10 @@ export function createMockAdapter(
         id: `vc-${viewId}-${c.id}`,
         fk_view_id: viewId,
         fk_column_id: c.id,
-        // gallery/kanban cards: the cover image already shows, and fewer fields read better
         show: isCardView ? i < 9 && c.uidt !== UITypes.Attachment : i < 14,
         order: i + 1,
         width: c.pv ? '220px' : c.uidt === UITypes.LongText ? '260px' : '180px',
         aggregation: c.uidt === UITypes.Currency ? 'sum' : c.uidt === UITypes.Checkbox ? 'checked' : 'none',
-        // list view columns belong to a level
         ...(view?.type === ViewTypes.LIST ? { fk_level_id: (view.view as ListType)?.levels?.[0]?.id } : {}),
         ...db.viewColumnPatches[`vc-${viewId}-${c.id}`],
       }))
@@ -856,7 +824,6 @@ export function createMockAdapter(
     return out
   }
 
-  /** Drops the matching filters and, for groups, everything nested under them. */
   const removeFilters = (match: (f: FilterType) => boolean) => {
     const doomed = new Set(db.filters.filter(match).map((f) => f.id!))
     for (let grew = true; grew; ) {
@@ -876,7 +843,6 @@ export function createMockAdapter(
       .flatMap((c) => (c.mode === 'filter' ? c.conditions : []))
       .find((c) => c.id === conditionId)
 
-  /** Inserts a colour-condition filter; like Filter.insert, a group's `children` are inserted under it. */
   const createConditionFilter = (conditionId: string, payload: FilterType): FilterType => {
     const { children, status: _s, ...rest } = (payload ?? {}) as FilterType & { status?: string }
     const filter: FilterType = { ...rest, id: nextKey('pgf'), fk_row_color_condition_id: conditionId, base_id: MOCK_BASE_ID }
@@ -885,7 +851,6 @@ export function createMockAdapter(
     return filter
   }
 
-  /** Clears a view's colouring, conditions and their filters included. */
   const dropRowColor = (viewId: string) => {
     const current = db.rowColors[viewId]
     if (current?.mode === 'filter') {
@@ -895,7 +860,6 @@ export function createMockAdapter(
     delete db.rowColors[viewId]
   }
 
-  /** `RowColoringInfo` as the server's getByViewId builds it. */
   const rowColorInfo = (viewId: string) => {
     const current = db.rowColors[viewId]
     const tableId = db.views[viewId]?.fk_model_id ?? mainTableId()
@@ -929,10 +893,7 @@ export function createMockAdapter(
     }
   }
 
-  /**
-   * A webhook sample row like populateSamplePayloadV2 builds: no links / lookups, and attachments as the
-   * server's dummy file — the covers' inline data: urls would put a huge single line in the payload editor.
-   */
+  /** Like populateSamplePayloadV2: no links / lookups; dummy attachments, as inline data: urls bloat the editor. */
   function samplePayloadRow(tableId: string) {
     const seed = db.rows[0] ?? {}
     const row: Record<string, unknown> = {}
@@ -946,7 +907,6 @@ export function createMockAdapter(
     return row
   }
 
-  /** `known: false` = answered with a generic fallback; surfaced in the unmocked list. */
   const internal = (
     operation: string,
     q: Record<string, any>,
@@ -957,8 +917,6 @@ export function createMockAdapter(
     if (data !== undefined) return { data, known: true }
     if (operation.endsWith('List')) return { data: { list: [], pageInfo: pageInfo(0, 0, 25) }, known: false }
     if (/(Create|Update|Delete|Move)$/.test(operation) || method !== 'GET') {
-      // keep the entity id the caller addressed (viewId, filterId, ...) so stores
-      // that swap in the response don't lose track of the object
       const idKey = Object.keys(q).find((k) => k.endsWith('Id') && !['tableId', 'baseId', 'workspaceId'].includes(k))
       const id = q.id ?? (idKey ? q[idKey] : undefined) ?? `pg-${Math.random().toString(36).slice(2, 10)}`
       const base = q.viewId && db.views[q.viewId] ? db.views[q.viewId] : {}
@@ -1045,7 +1003,6 @@ export function createMockAdapter(
         return { preference: 'mentions' }
       case 'commentNotificationPreferenceSet':
         return { preference: payload?.preference ?? 'mentions' }
-      // webhook editor preview: same envelope as populateSamplePayloadV2, filled from the first mock row
       case 'tableSampleData':
       case 'hookSamplePayload': {
         const table = tableOf(q.tableId ?? tableId)
@@ -1173,7 +1130,6 @@ export function createMockAdapter(
         return true
       case 'rowColorConditionsFilterCreate':
         return createConditionFilter(q.rowColorConditionId, payload)
-      // single object or a chunk, like the server
       case 'dataUpdate':
         return Array.isArray(payload)
           ? payload.map((p: Record<string, any>) => updateRow(p.Id, p, tableId))
@@ -1220,10 +1176,8 @@ export function createMockAdapter(
       case 'ganttViewCreate':
         message.info('The playground shows a single view, so new and duplicated views are not created here.')
         return null
-      // no email leaves the playground; the server answers a queued send with nothing to show
       case 'sendRecordEmail':
         return {}
-      // nothing in the mock base depends on anything else
       case 'checkDependency':
         return { hasBreakingChanges: false, entities: [] }
       case 'getDateDependency':
@@ -1238,7 +1192,6 @@ export function createMockAdapter(
         jobs.set(id, () => finishExport(id, { viewId: q.viewId, type: payload?.exportAs }))
         return { id, name: 'data-export', status: 'waiting' }
       }
-      // the server answers field edits with the whole table
       case 'columnAdd':
         return addColumn(tableId, payload)
       case 'columnUpdate':
@@ -1264,7 +1217,6 @@ export function createMockAdapter(
         }
         return { failedOps: [], failedVisibility: [] }
       }
-      // clear / copy-paste a Links cell
       case 'nestedDataListCopyPasteOrDeleteAll': {
         const ops = (Array.isArray(payload) ? payload : []) as Array<{ operation: string; rowId: string; columnId: string }>
         const unlink: unknown[] = []
@@ -1360,7 +1312,6 @@ export function createMockAdapter(
         if (view) view.view = { ...(view.view as object), ...(payload ?? {}) } as typeof view.view
         return view ?? {}
       }
-      // toolbar meta that never gets configured here
       case 'buttonFilterList':
       case 'linkFilterList':
       case 'widgetFilterList':
@@ -1379,14 +1330,12 @@ export function createMockAdapter(
     return row ? withVirtuals(tableId, [row])[0] : {}
   }
 
-  /** Single-row read / update / delete, as the table and view row endpoints answer them. */
   const rowRequest = (tableId: string, rowId: string, method: string, body: any) => {
     if (method === 'PATCH') return updateRow(rowId, body, tableId)
     if (method === 'DELETE') return deleteRow(rowId, tableId) ? 1 : 0
     return findRow(tableId, rowId)
   }
 
-  /** `/api/v1/db/data/bulk/...`: insert / update / delete a list of records. */
   const bulkRequest = (tableId: string, method: string, body: any) => {
     const list = (Array.isArray(body) ? body : []) as Record<string, any>[]
     if (method === 'POST') return list.map((r) => ({ Id: insertRow(r, undefined, tableId).Id }))
@@ -1395,7 +1344,6 @@ export function createMockAdapter(
     return []
   }
 
-  /** The view's configured date range fields (calendar_range / timeline_range), as titles. */
   const rangeFields = (viewId: string) => {
     const view = db.views[viewId]
     const meta = view?.view as { calendar_range?: RangeRef[]; timeline_range?: RangeRef[] } | undefined
@@ -1422,7 +1370,6 @@ export function createMockAdapter(
 
   type Handler = (m: RegExpMatchArray, method: string, q: Record<string, any>, body: any) => unknown
 
-  // first match wins — more specific paths first
   const routes: Array<[RegExp, Handler]> = [
     [/\/api\/v1\/db\/data\/[^/]+\/[^/]+\/([^/]+)\/views\/([^/]+)\/groupby\/count$/, (m, _, q) => groupByCount(m[1], m[2], q)],
     [/\/api\/v1\/db\/data\/[^/]+\/[^/]+\/([^/]+)\/views\/([^/]+)\/groupby$/, (m, _, q) => groupBy(m[1], m[2], q)],
@@ -1446,7 +1393,6 @@ export function createMockAdapter(
         return { list: rows, pageInfo: pageInfo(rows.length, 0, rows.length) }
       },
     ],
-    // bottom summary bar: the aggregate over records overlapping each bucket, plus a dedup grand total
     [
       /\/api\/v1\/db\/(?:timeline|gantt)-summary\/[^/]+\/[^/]+\/([^/]+)\/views\/([^/?]+)/,
       (m, _, __, body) => {
@@ -1507,7 +1453,6 @@ export function createMockAdapter(
         ),
     ],
     [/\/api\/v1\/db\/data\/bulk\/[^/]+\/[^/]+\/([^/?]+)$/, (m, method, _, body) => bulkRequest(m[1], method, body)],
-    // linked records of a Links field
     [
       /\/api\/v1\/db\/data\/[^/]+\/[^/]+\/([^/]+)\/([^/]+)\/(?:hm|mm|bt|oo)\/([^/?]+)(?:\/([^/?]+))?$/,
       (m, method, q) => nested(m[1], safeDecode(m[2]), m[3], m[4], method, q),
@@ -1538,7 +1483,6 @@ export function createMockAdapter(
     [/\/record-templates/, () => ({ list: [] })],
   ]
 
-  /** `jobs.listen` reply for a finished export: the file is saved here, so the link just targets this page. */
   async function finishExport(jobId: string, job: { viewId: string; type: string }) {
     const view = db.views[job.viewId]
     const tableId = view?.fk_model_id ?? mainTableId()
@@ -1562,7 +1506,6 @@ export function createMockAdapter(
     return file ? parseImportFile(file, payload?.importType ?? 'csv') : []
   }
 
-  /** Runs a data-only import into this table; the job log carries the counters the editor toasts. */
   async function finishImport(jobId: string, payload: any) {
     const parsed = await sheetsOf(payload)
     let rowsInserted = 0
@@ -1598,7 +1541,6 @@ export function createMockAdapter(
     ]
   }
 
-  /** Requests answered asynchronously: job polling, import upload / preview / start. */
   async function asyncRequest(url: string, q: Record<string, any>, body: any): Promise<unknown> {
     if (/\/jobs\/listen$/.test(url)) {
       const job = jobs.get(body?.data?.id)
@@ -1642,7 +1584,6 @@ export function createMockAdapter(
     }
   }
 
-  /** Creates / deletes bookmarks on mock targets and merges them into the user's real list. */
   async function bookmarkRequest(
     method: string,
     url: string,
@@ -1694,8 +1635,7 @@ export function createMockAdapter(
     return { matched: false }
   }
 
-  // requests about the mock base are faked; app-wide ones (notifications,
-  // version, workspace) go to the real backend so the shell keeps working
+  // mock-base requests are faked; app-wide ones reach the real backend
   const mockScopeRe = new RegExp(`/${MOCK_BASE_ID}(/|$)`)
   const isMockScoped = (url: string, q: Record<string, any>) => mockScopeRe.test(url) || q.base_id === MOCK_BASE_ID
 
@@ -1704,7 +1644,6 @@ export function createMockAdapter(
     const url = config.url ?? ''
     const q = { ...(config.params ?? {}) }
     const body = parseBody(config.data)
-    // jobs started here finish here; any other job belongs to the real backend
     const asyncData = await asyncRequest(url, q, body)
     if (asyncData !== undefined)
       return { data: serialize(asyncData), status: 200, statusText: 'OK', headers: {}, config, request: {} }
@@ -1721,7 +1660,6 @@ export function createMockAdapter(
     const { matched, data } = routed
     if (!matched && passthrough && !isMockScoped(url, q)) return passthrough(config)
     if (!matched) onUnmocked({ method, url, operation: q.operation, at: Date.now() })
-    // a tick of latency so loaders/skeletons behave like the real thing
     await new Promise((resolve) => setTimeout(resolve, 60))
     // null is a real answer (e.g. no row colouring), undefined means nothing matched
     return { data: serialize(data === undefined ? {} : data), status: 200, statusText: 'OK', headers: {}, config, request: {} }

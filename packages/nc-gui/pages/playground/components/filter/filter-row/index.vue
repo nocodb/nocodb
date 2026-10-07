@@ -23,7 +23,7 @@ const BOOLEAN_PROPS = [
 
 const columns = defaultColumns
 
-// without a handler FilterRow writes each change straight into the filter it is given
+// without a handler FilterRow mutates the filter it is given
 const filter = ref<ColumnFilterType>({
   fk_column_id: columns[0]!.id,
   comparison_op: 'eq',
@@ -39,7 +39,7 @@ const options = ref({
   showNullAndEmptyInFilter: false,
   webHook: false,
   link: false,
-  // a boolean prop, so leaving it off reads as false and greys the row out
+  // boolean prop: omitting it reads as false and greys the row out
   parentEnabled: true,
   dbClientType: ClientType.PG,
 })

@@ -82,7 +82,6 @@ const isCreateOpen = isOpen('create')
 
 const tableNameInput = ref<HTMLInputElement>()
 
-// fresh, focused input on every open, as dlg/Table/Create.vue does
 watch(isCreateOpen, (visible) => {
   if (!visible) return
   tableName.value = ''
@@ -116,7 +115,6 @@ function createTable() {
       </PgDemo>
     </div>
 
-    <!-- Feature: header row over a two-pane body, like integrations EditOrAdd / MCP token -->
     <NcModal v-model:visible="isFeatureOpen" size="feature" nc-modal-class-name="!p-0">
       <div class="h-full flex flex-col">
         <div class="flex-none flex w-full items-center gap-3 px-4 py-3 border-b-1 border-nc-border-gray-medium">
@@ -152,7 +150,6 @@ function createTable() {
       </div>
     </NcModal>
 
-    <!-- Shell: same parts as SettingsShell -->
     <NcModal v-model:visible="isShellOpen" size="xl" nc-modal-class-name="!p-0">
       <div class="relative flex h-full w-full">
         <ShellClose @close="open = null" />
@@ -171,7 +168,6 @@ function createTable() {
       </div>
     </NcModal>
 
-    <!-- Create: copied from dlg/Table/Create.vue -->
     <NcModal
       v-model:visible="isCreateOpen"
       size="xs"

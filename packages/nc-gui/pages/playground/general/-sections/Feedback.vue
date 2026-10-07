@@ -43,7 +43,6 @@ function replayLog() {
 
 onMounted(replayLog)
 
-// the real button navigates to '/', out of the playground
 function onGoHome() {
   message.info('Demo only — navigation is disabled in the playground')
 }
@@ -76,7 +75,6 @@ function onGoHome() {
               <span class="text-caption text-nc-content-gray select-none">isLoading</span>
             </NcSwitch>
           </div>
-          <!-- sits bare on the smartsheet topbar -->
           <GeneralApiLoader />
         </div>
       </PgDemo>
@@ -101,7 +99,6 @@ function onGoHome() {
 
   <PgSection id="locked-view" title="Locked view footer" source="GeneralLockedViewFooter">
     <PgDemo stage="canvas" hint="flush at the bottom of a toolbar menu (filter, group, fields)">
-      <!-- auto-fill: the footer wraps its label once a column drops below ~280px (token editor open) -->
       <div class="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3 items-start">
         <div
           v-for="v in lockedViews"

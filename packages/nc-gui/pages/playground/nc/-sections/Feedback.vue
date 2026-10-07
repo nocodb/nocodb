@@ -65,7 +65,6 @@ function showToastType() {
           message="Closable alert"
           description="Dismiss me with the × button."
         />
-        <!-- holds the slot so the grid doesn't reflow when the alert closes -->
         <div
           v-else
           class="min-h-20 rounded-lg border-1 border-dashed border-nc-border-gray-medium flex items-center justify-center"
@@ -73,7 +72,7 @@ function showToastType() {
           <NcButton size="xsmall" type="text" class="!px-2" @click="isDismissibleVisible = true">Restore closable alert</NcButton>
         </div>
         <NcAlert type="error" message="Copyable error" description="ERR_DATABASE_OP_FAILED" copy-text="ERR_DATABASE_OP_FAILED" />
-        <!-- ncMessage.toast renders type="toast" with no icon (lib/ncMessage.ts initialToastTypeValue) -->
+        <!-- ncMessage.toast renders type="toast" with no icon -->
         <NcAlert type="toast" :show-icon="false" message="Toast-style alert" description="Used inside ncMessage.toast." />
         <NcAlert type="warning" align="center" message="Centre aligned, with action">
           <template #action>

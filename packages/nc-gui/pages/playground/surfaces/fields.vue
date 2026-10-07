@@ -24,11 +24,8 @@ interface EditorDemo {
   key: string
   label: string
   hint: string
-  /** edit an existing mock column */
   columnId?: string
-  /** or open the "add field" editor preloaded with this (form state, so colOptions keys sit flat) */
   preload?: Partial<ColumnType> & Record<string, unknown>
-  /** links / lookup / formula editors are wider than a half-width card */
   wide?: boolean
   height?: number
 }
@@ -96,7 +93,6 @@ const addTypes = [
 
 const addType = ref<UITypes>(UITypes.SingleSelect)
 
-// bumped on save/cancel so the editor remounts with a clean form
 const resetKeys = ref<Record<string, number>>({})
 
 const savedNote = ref<Record<string, string>>({})
@@ -105,7 +101,6 @@ const menuColumnId = ref<string>(COL.status)
 
 const editingFromMenu = ref<string | null>(null)
 
-/** Insert left / right from the menu: the add-field editor with the new column's view position. */
 const insertPosition = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
 const editDescription = ref(false)
@@ -236,7 +231,6 @@ function reset(key: string, note?: string) {
           </template>
           <PopupStage ref="columnMenuStage" open-selector=".nc-pg-column-menu-trigger" :height="620">
             <div v-if="columnOf(meta, menuColumnId)" class="flex items-start gap-4">
-              <!-- a real dropdown, like SmartsheetHeaderMenu, so the menu gets its in-dropdown density -->
               <div class="w-[300px] flex-none">
                 <a-dropdown
                   v-model:visible="isColumnMenuOpen"

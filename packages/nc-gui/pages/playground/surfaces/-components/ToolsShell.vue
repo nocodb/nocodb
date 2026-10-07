@@ -1,12 +1,6 @@
 <script setup lang="ts">
-/**
- * The table Tools shell from components/smartsheet/Details.vue, laid out
- * inline: same rail / header / save bar and the same tool bodies, but the
- * active tool is local state instead of the route slug (the real rail pushes
- * the workspace table route, which would leave the playground).
- */
+/** Details.vue's Tools shell with local active-tool state (the real rail routes out of the playground). */
 const props = defineProps<{
-  /** tools that have mocks behind them; others are dropped from the rail */
   tools: string[]
 }>()
 

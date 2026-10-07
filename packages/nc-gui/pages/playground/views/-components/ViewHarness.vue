@@ -5,11 +5,6 @@ import { MOCK_BASE_ID, MOCK_TASKS_TABLE_ID, buildRows, buildTable, buildTasks, b
 import type { MockViewKind } from '../-helper/mock-data'
 import { UseDetachedLongTextProvider } from '~/components/smartsheet/grid/canvas/composables/useDetachedLongText'
 
-/**
- * Mounts the real smartsheet toolbar + view for a mock table, mirroring the
- * providers in components/tabs/Smartsheet.vue. Stores and the axios adapter
- * are seeded by the page middleware (see -helper/install.ts).
- */
 const props = defineProps<{
   kind: MockViewKind
 }>()
@@ -104,7 +99,6 @@ const headerNote = computed(() => {
   return ''
 })
 
-/** Restores the seed rows and schema and drops saved filters, sorts, groups and column changes. */
 async function resetData() {
   const db = getMockSession()?.db
   if (!db) return

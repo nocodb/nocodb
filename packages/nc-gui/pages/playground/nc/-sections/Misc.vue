@@ -93,7 +93,7 @@ function viewOf(type: ViewTypes) {
         </div>
       </PgDemo>
 
-      <!-- always inside a dropdown, as in CheckboxOptions: while visible it captures Escape for the whole page -->
+      <!-- always inside a dropdown: while visible it captures Escape for the whole page -->
       <PgDemo label="NcColorPanel" :hint="`${color} · opens from a chip, as in field options`">
         <NcDropdown v-model:visible="isColorPanelOpen" placement="bottomLeft" :auto-close="false" use-backdrop>
           <div
@@ -111,7 +111,7 @@ function viewOf(type: ViewTypes) {
       </PgDemo>
 
       <PgDemo label="NcCarousel">
-        <!-- .embla clips overflow, so the arrows sit inside the slide; Next ships `absolute` (loses to .ant-btn), hence !absolute -->
+        <!-- .embla clips overflow; Next's `absolute` loses to .ant-btn, hence !absolute -->
         <NcCarousel class="w-full rounded-xl">
           <NcCarouselContent>
             <NcCarouselItem v-for="s in SLIDES" :key="s.title">

@@ -36,7 +36,6 @@ const search = ref('')
 
 const openGroups = ref<string[]>(['content'])
 
-/** semantic token names whose last typed value wasn't a colour */
 const invalidValues = ref<string[]>([])
 
 const brandBase = computed(() => overrides.value.light['--nc-brand-accent'] ?? '#3366ff')
@@ -52,12 +51,10 @@ const filteredSemantic = computed(() => {
   ) as Record<string, TokenDef[]>
 })
 
-/** the edited mode's value, independent of the theme the page is showing */
 function swatch(name: string) {
   return resolveTokenValue(defs.value, overrides.value, props.mode, name)
 }
 
-/** hex for the colour inputs and tooltips */
 function resolved(name: string) {
   return toHex(swatch(name))
 }
@@ -72,13 +69,11 @@ function rampChanged(hue: string) {
   )
 }
 
-/** `gray-700` → var(--color-gray-700); anything else is used as typed */
 function normalise(value: string) {
   const v = value.trim()
   return /^[a-z]+-\d+$/.test(v) ? `var(--color-${v})` : v
 }
 
-/** the palette stop a semantic token points at, or its literal value */
 function shortValue(def: TokenDef) {
   const value = overrides.value[props.mode][def.name] ?? def[props.mode]
   return value.match(/^var\(--color-([a-z]+-\d+)\)$/)?.[1] ?? value

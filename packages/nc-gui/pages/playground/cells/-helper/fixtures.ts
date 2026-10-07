@@ -16,7 +16,7 @@ export const cellsUsers = [
 const userValue = (...ids: string[]) =>
   cellsUsers.filter((u) => ids.includes(u.id)).map(({ id, email, display_name }) => ({ id, email, display_name }))
 
-/** PNG drawn in the browser so attachments render (and preview; SVG gets no carousel preview) offline. */
+/** PNG, not SVG: SVG attachments get no carousel preview. */
 function pngThumb(bg: string, label: string) {
   const canvas = document.createElement('canvas')
   canvas.width = 320
@@ -33,7 +33,6 @@ function pngThumb(bg: string, label: string) {
   return canvas.toDataURL('image/png')
 }
 
-/** a valid one-page PDF, so the attachment carousel can render it */
 const BRIEF_PDF =
   'data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA0MjAgMjk3XSAvQ29udGVudHMgNCAwIFIgL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgNSAwIFIgPj4gPj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCA0NCA+PgpzdHJlYW0KQlQgL0YxIDI4IFRmIDYwIDE2MCBUZCAoUHJvamVjdCBicmllZikgVGogRVQKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9Gb250IC9TdWJ0eXBlIC9UeXBlMSAvQmFzZUZvbnQgL0hlbHZldGljYSA+PgplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzMzUgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo0MDUKJSVFT0YK'
 
@@ -94,9 +93,8 @@ export const companyColumns: ColumnType[] = [
 export interface CellFixture {
   column: ColumnType
   value: unknown
-  /** shown under the field name */
   note?: string
-  /** editing needs a backend (link pickers, webhooks, AI) — the edit columns still render, but interactions may fail */
+  /** link pickers / webhooks / AI need a backend, so interactions may fail */
   displayOnly?: boolean
 }
 

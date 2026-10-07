@@ -1,5 +1,4 @@
-/** Grid editors focus themselves on mount and on every re-render (the grid only ever mounts one);
- * with a column of them live, only the grid cell the user last pressed in may take focus. */
+/** Grid editors self-focus on mount and re-render; only the last-pressed cell may take focus. */
 
 const GRID_CELL = '.pg-grid-cell'
 

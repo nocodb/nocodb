@@ -66,7 +66,6 @@ const dbTypes = [
 
 const integrationTypes = computed(() => Object.keys(integrationsIconMap.value).slice(0, 32))
 
-// the first entry is the composite NocoDB-sync mark; a plain logo reads better across sizes
 const sizeDemoType = computed(() => integrationTypes.value.find((t) => t === ClientType.PG) ?? integrationTypes.value[0])
 
 function iconExists(icon: string) {
@@ -120,7 +119,7 @@ function iconExists(icon: string) {
         </div>
       </PgDemo>
       <PgDemo label="NocoIcon" hint="click to ping · animate while loading">
-        <!-- NocoIcon straddles its parent's top edge (top: -size/2), as on the sign-in card -->
+        <!-- NocoIcon straddles its parent's top edge (top: -size/2) -->
         <div class="flex items-end gap-4 pt-8">
           <div class="relative w-24 h-12 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight">
             <GeneralNocoIcon :size="48" />

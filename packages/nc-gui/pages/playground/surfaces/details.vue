@@ -80,7 +80,6 @@ const active = ref<Record<string, string>>(Object.fromEntries(toolSlugs.map((slu
       >
         <PgDemo :label="tool.title" hint="Details.vue shell, inline" :padded="false">
           <PopupStage :height="640">
-            <!-- the real shell is an xl modal (≤1280px); narrower than this it squeezes field names out -->
             <div class="h-[640px] overflow-x-auto nc-scrollbar-thin">
               <div class="h-full min-w-[1100px]">
                 <ToolsShell v-model:active="active[tool.slug]" :tools="toolSlugs" />

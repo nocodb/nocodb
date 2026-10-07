@@ -7,39 +7,29 @@ export interface TypeStyle {
   size: number
   lineHeight: number
   weight: number
-  /** px; 0 = none */
   letterSpacing: number
 }
 
 export interface TokenOverrides {
   light: Record<string, string>
   dark: Record<string, string>
-  /** font-family applied app-wide; empty = product default */
   font: string
-  /** multiplier for border radii (1 = product default) */
   radiusScale: number
-  /** per text-* preset style; only the changed fields */
   typography: Record<string, Partial<TypeStyle>>
-  /** the overall type scale the per-style sizes were derived from (1 = product default) */
   typeScale: number
-  /** multiplier for icon stroke widths (1 = product default) */
   iconStroke: number
 }
 
-/** stroke widths the icon SVGs ship with (nc-icons, nc-icons-v2) */
 const ICON_STROKE_WIDTHS = ['0.66', '1', '1.2', '1.33', '1.33333', '1.5', '1.66', '2']
 
-/** the text-* presets from assets/nc-typography-preset.ts, as numbers */
 export const TYPE_STYLES: Array<{ key: string } & TypeStyle> = Object.entries(fontStyleMap).map(([key, [size, o]]) => ({
   key,
   size: parseFloat(size),
   lineHeight: parseFloat(o.lineHeight),
   weight: o.fontWeight,
-  // presets write rem
   letterSpacing: o.letterSpacing ? parseFloat(o.letterSpacing) * 16 : 0,
 }))
 
-/** a preset's size and line height at an overall type scale; weight and tracking stay */
 export const scaledTypeStyle = (key: string, factor: number): TypeStyle | undefined => {
   const s = TYPE_STYLES.find((style) => style.key === key)
   if (!s) return undefined
@@ -52,7 +42,7 @@ export const scaledTypeStyle = (key: string, factor: number): TypeStyle | undefi
   }
 }
 
-/** which utility property each semantic family paints — utilities compile to palette stops, not the --nc-* var */
+// utilities compile to palette stops, not the --nc-* var
 const SEMANTIC_UTILITIES: Record<string, Array<[prefix: string, property: string]>> = {
   content: [['text', 'color']],
   bg: [['bg', 'background-color']],
@@ -71,7 +61,6 @@ export interface TokenDef {
   dark: string
 }
 
-/** icon fonts and code keep their own face when the font is overridden */
 const FONT_EXCLUDED = [
   '.material-symbols',
   '.material-icons',
@@ -113,7 +102,6 @@ const emptyOverrides = (): TokenOverrides => ({
 
 const isPlainObject = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v)
 
-/** a (partial) export from Copy JSON: at least one known key, each of the right type */
 const isTokenOverrides = (v: unknown): v is Partial<TokenOverrides> => {
   if (!isPlainObject(v)) return false
   const checks: Record<keyof TokenOverrides, (x: unknown) => boolean> = {
@@ -145,7 +133,7 @@ const mixHex = (a: string, b: string, weightOfA: number) => {
     .join('')}`
 }
 
-/** 20..900 ramp around a 500 base; dark mode inverts it like variables.css does */
+// dark mode inverts the ramp, as variables.css does
 export const generateRamp = (base: string, mode: TokenMode): Record<number, string> => {
   const light: Record<number, number> = { 20: 0.03, 50: 0.06, 100: 0.18, 200: 0.36, 300: 0.54, 400: 0.76 }
   const shade: Record<number, number> = { 600: 0.8, 700: 0.6, 800: 0.4, 900: 0.2 }
@@ -166,7 +154,6 @@ export const generateRamp = (base: string, mode: TokenMode): Record<number, stri
   return ramp
 }
 
-/** the ant palette vars ConfigProvider derives from the primary colour (sliders, pickers, tags) */
 const antPrimaryPalette = (base: string): Record<string, string> => {
   const rgb = hexToRgbTriplet(base)
   return {
@@ -187,9 +174,7 @@ const antPrimaryPalette = (base: string): Record<string, string> => {
   }
 }
 
-/** logical edits: a regenerated ramp, type scale, font, radius or stroke each count once; hand-edited tokens count each */
 const countEdits = (o: TokenOverrides) => {
-  // a token set in both modes is one edit
   const names = [...new Set([...Object.keys(o.light), ...Object.keys(o.dark)])]
   const fullRamps = new Set<string>()
   for (const name of names) {
@@ -201,7 +186,6 @@ const countEdits = (o: TokenOverrides) => {
     if (hue) return !fullRamps.has(hue)
     return !(fullRamps.has('brand') && /^--(nc-brand-accent|ant-primary-)/.test(name))
   })
-  // the overall scale counts once; a style counts only where it differs from what the scale gives it
   const typeEdits = Object.entries(o.typography).filter(([key, style]) => {
     const scaled = scaledTypeStyle(key, o.typeScale ?? 1)
     return (Object.keys(style) as Array<keyof TypeStyle>).some((field) => style[field] !== scaled?.[field])
@@ -228,7 +212,6 @@ const groupOf = (name: string) => {
 
 const isDarkSelector = (sel: string) => /^\[theme=['"]dark['"]\]$/.test(sel.trim())
 
-/** Reads every custom property declared on :root / [theme='dark'] in the loaded stylesheets. */
 export const collectTokenDefs = (): TokenDef[] => {
   const defs = new Map<string, TokenDef>()
   const visit = (rules: CSSRuleList) => {
@@ -255,9 +238,7 @@ export const collectTokenDefs = (): TokenDef[] => {
   for (const sheet of Array.from(document.styleSheets)) {
     try {
       visit(sheet.cssRules)
-    } catch {
-      // cross-origin sheet (Google Fonts)
-    }
+    } catch {}
   }
   for (const def of defs.values()) {
     if (!def.dark) def.dark = def.light
@@ -272,7 +253,6 @@ export const collectTokenDefs = (): TokenDef[] => {
   )
 }
 
-/** a token's value in one mode, following var() references through the overrides and the stylesheet values */
 export const resolveTokenValue = (
   defs: Map<string, TokenDef>,
   o: TokenOverrides,
@@ -301,12 +281,10 @@ export const buildCss = (o: TokenOverrides) => {
   const blocks: string[] = []
   const light = declarations(o.light)
   const dark = declarations(o.dark)
-  // scoped so light-only edits can't leak into dark mode
   if (light.length) blocks.push(`:root:not([theme='dark']) {\n  ${light.join('\n  ')}\n}`)
   if (dark.length) blocks.push(`[theme='dark'] {\n  ${dark.join('\n  ')}\n}`)
 
-  // Not !important and single-class specificity: wins over the base utility by source order,
-  // still loses to hover:/focus: variants and explicit `!` utilities.
+  // not !important: still loses to hover:/focus: variants and `!` utilities
   const semantic = new Set(
     [...Object.keys(o.light), ...Object.keys(o.dark)].filter((n) => /^--nc-(content|bg|border|fill)-/.test(n)),
   )
@@ -332,7 +310,7 @@ export const buildCss = (o: TokenOverrides) => {
     })
   if (typeRules.length) blocks.push(typeRules.join('\n'))
 
-  // a CSS stroke-width beats the SVG presentation attribute; scaling each shipped width keeps relative weights
+  // CSS stroke-width beats the SVG attribute; scaling each shipped width keeps relative weights
   if (o.iconStroke && o.iconStroke !== 1) {
     blocks.push(
       ICON_STROKE_WIDTHS.map(
@@ -341,7 +319,7 @@ export const buildCss = (o: TokenOverrides) => {
     )
   }
 
-  // Button.vue paints primary from the static bg-brand-500 utility (a literal), not a var
+  // Button.vue paints primary from the static bg-brand-500 utility, not a var
   if (o.light['--nc-brand-accent'] || o.dark['--nc-brand-accent']) {
     const enabled = '.nc-button.ant-btn-primary.theme-default:not([disabled]):not(.nc-show-as-disabled)'
     blocks.push(
@@ -366,7 +344,6 @@ export const buildCss = (o: TokenOverrides) => {
         `.rounded-xl { border-radius: ${12 * r}px !important; }`,
         `.rounded-2xl { border-radius: ${16 * r}px !important; }`,
         `.nc-button.ant-btn, .ant-input, .ant-dropdown-menu, .ant-modal-content { border-radius: ${8 * r}px !important; }`,
-        // matches the product's own `.ant-select .ant-select-selector` !important rule
         `.ant-select .ant-select-selector { border-radius: ${6 * r}px !important; }`,
       ].join('\n'),
     )
@@ -374,12 +351,6 @@ export const buildCss = (o: TokenOverrides) => {
   return blocks.join('\n\n')
 }
 
-/**
- * Live design-token overrides for the playground. Writes one `<style>` into the
- * host document and every registered same-origin iframe, mirroring how
- * useTheme() applies the dark palette.
- */
-/** the CSS variables a regenerated ramp writes for one mode */
 const rampValues = (hue: string, base: string, mode: TokenMode): Record<string, string> => {
   const ramp = generateRamp(base, mode)
   const values: Record<string, string> = {}
@@ -396,7 +367,6 @@ const rampValues = (hue: string, base: string, mode: TokenMode): Record<string, 
   return values
 }
 
-/** a sample export for the import box: purple brand, a heading tweak, softer corners */
 export const exampleTokens = (): TokenOverrides => ({
   ...emptyOverrides(),
   light: { ...rampValues('brand', '#7c3aed', 'light'), '--nc-content-gray-emphasis': '#1e1b4b' },
@@ -427,7 +397,7 @@ export const usePlaygroundTokens = createSharedComposable(() => {
       el.id = STYLE_ID
     }
     el.textContent = css.value
-    // keep it last so it wins source-order ties with the dark-palette style
+    // last, so it wins source-order ties with the dark-palette style
     doc.head.appendChild(el)
   }
 
@@ -473,7 +443,7 @@ export const usePlaygroundTokens = createSharedComposable(() => {
     overrides.value = { ...overrides.value, light: strip(overrides.value.light), dark: strip(overrides.value.dark) }
   }
 
-  /** `null` for a field drops it back to the preset; `null` for the patch drops the whole style back to the overall scale */
+  /** `null` field: back to the preset; `null` patch: back to the overall scale */
   const setTypography = (key: string, patch: Partial<Record<keyof TypeStyle, number | null>> | null) => {
     const next = { ...overrides.value.typography }
     const factor = overrides.value.typeScale ?? 1
@@ -493,7 +463,6 @@ export const usePlaygroundTokens = createSharedComposable(() => {
     overrides.value = { ...overrides.value, typography: next }
   }
 
-  /** scales every preset's size and line-height from the product defaults; weight and tracking edits stay */
   const scaleTypography = (factor: number) => {
     const typography: TokenOverrides['typography'] = {}
     for (const s of TYPE_STYLES) {

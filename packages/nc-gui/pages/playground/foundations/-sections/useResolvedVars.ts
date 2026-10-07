@@ -1,10 +1,6 @@
 import { getI18n } from '~/plugins/a.i18n'
 
-/**
- * Resolves CSS custom properties against probe elements so values follow the
- * token editor and theme toggle. `dark` resolves inside a `[theme='dark']` probe,
- * which only differs from `light` while the app itself is in light mode.
- */
+/** `dark` resolves in a [theme='dark'] probe, so it only differs from `light` while the app is light */
 export function useResolvedVars() {
   const { isDark, themeRepaintVersion } = useTheme()
 
@@ -30,7 +26,7 @@ export function useResolvedVars() {
   }
 
   function bump() {
-    // the token style is written in a watcher of its own — read after it lands
+    // the token style is written in its own watcher; read after it lands
     requestAnimationFrame(() => version.value++)
   }
 
@@ -53,7 +49,6 @@ export function toHex(value: string) {
   return `#${[m[1], m[2], m[3]].map((v) => Number(v).toString(16).padStart(2, '0')).join('')}`
 }
 
-/** True when dark text reads better than white on `value` (WCAG relative luminance). */
 export function isLightColor(value: string) {
   const m = toHex(value).match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i)
   if (!m) return true

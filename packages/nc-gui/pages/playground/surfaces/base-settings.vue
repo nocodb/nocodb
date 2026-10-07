@@ -25,7 +25,6 @@ const sections = [
   { id: 'live', title: 'With real data' },
 ]
 
-// same resolution as the base route page: the shell opens while `?settings=` names a pane
 const settingsTab = computed(() => resolveBaseSettingsTab(route.query.settings))
 
 function open(tab: string) {

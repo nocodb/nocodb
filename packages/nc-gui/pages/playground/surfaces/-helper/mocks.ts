@@ -7,21 +7,12 @@ import { serialize } from '../../views/-helper/mock-api'
 import type { MockDb } from '../../views/-helper/mock-api'
 import { COL, MOCK_BASE_ID, MOCK_USERS, buildTable, buildView, mockBase } from '../../views/-helper/mock-data'
 
-/**
- * Surface pages reuse the views mock session for the grid table and layer a
- * small stateful adapter on top for toolbar config (filters, sorts, group-by),
- * webhooks and field create/update. Active only on `/playground/surfaces/...`.
- */
 export const SURFACE_KIND = 'grid' as const
 
 export const SURFACE_TABLE_ID = SURFACE_KIND
 
 export const SURFACE_VIEW_ID = `vw-pg-${SURFACE_KIND}`
 
-/**
- * Surface routes carry the same `baseId(views)/viewId(grid)/<slug>` params as
- * the view pages, so stores resolve the mock base/table/view from the route.
- */
 export const surfaceRoute = (page: string) =>
   `/playground/surfaces/${page}/views/${SURFACE_KIND}/${toReadableUrlSlug([
     buildTable(SURFACE_KIND).title,
@@ -30,7 +21,6 @@ export const surfaceRoute = (page: string) =>
 
 const SURFACE_PATH = /^\/playground\/surfaces\//
 
-/** Sends a surface route to its canonical path (the stores resolve the mock base/table/view from it). */
 export function surfaceRedirect(to: RouteLocationNormalized, page: string) {
   const target = surfaceRoute(page)
   if (to.path === target) return
@@ -53,7 +43,6 @@ interface SurfaceState {
   sorts: SortType[]
   hooks: (HookType & { condition?: boolean; created_at?: string })[]
   viewColumns: Record<string, ViewColumnPatch>
-  /** webhook error-notification subscribers */
   subscribers: Array<{ id: string; hookId: string; fk_user_id: string }>
 }
 
@@ -91,7 +80,6 @@ function initialState(): SurfaceState {
         logical_op: 'or',
         order: 2,
       }),
-      // the CRM hook's "trigger only when conditions match"
       {
         id: 'pgf-hook-shipped',
         fk_hook_id: 'pgh-crm',
@@ -152,7 +140,6 @@ function stateFor(db: MockDb) {
   return s
 }
 
-/** Column ids from `vc-<viewId>-<columnId>` view-column ids. */
 const columnIdOf = (viewColumnId: string) => viewColumnId.replace(`vc-${SURFACE_VIEW_ID}-`, '')
 
 const OWN_OPS = new Set([
@@ -219,7 +206,6 @@ function handle(db: MockDb, op: string, q: Record<string, any>, payload: any): u
       s.filters.push(filter)
       return filter
     }
-    // nothing is sent anywhere; the server answers a successful test with `true`
     case 'hookTest':
       return true
     case 'hookLogList':
@@ -310,7 +296,6 @@ function handle(db: MockDb, op: string, q: Record<string, any>, payload: any): u
   }
 }
 
-/** Overlays group-by / visibility state on the base adapter's view columns. */
 function patchViewColumns(db: MockDb, data: any) {
   const s = stateFor(db)
   const list = (data?.list ?? []).map((vc: Record<string, any>) => ({ ...vc, ...s.viewColumns[vc.fk_column_id] }))
@@ -402,11 +387,7 @@ let interceptorId: number | null = null
 
 let guardRegistered = false
 
-/**
- * The views install pins `config.adapter` from a request interceptor on
- * `$api.instance`, which would overwrite a plain wrapper — so the adapter
- * becomes an accessor that keeps wrapping whatever gets assigned.
- */
+/** The views install reassigns `config.adapter` per request, so keep wrapping via an accessor. */
 function pinSurfaceAdapter(config: InternalAxiosRequestConfig) {
   let base = config.adapter as AxiosAdapter | undefined
   Object.defineProperty(config, 'adapter', {

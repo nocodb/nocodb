@@ -1,9 +1,4 @@
 <script setup lang="ts">
-/**
- * Renders ant popups (dropdowns, selects, tooltips) inside this box instead of
- * <body>, so a menu opened in a demo scrolls with the page. `openSelector` is
- * clicked once on mount to show the menu open.
- */
 const props = withDefaults(
   defineProps<{
     openSelector?: string
@@ -18,7 +13,6 @@ function getPopupContainer() {
   return stageRef.value ?? document.body
 }
 
-/** A menu already showing in this stage — clicking the trigger again would toggle it shut. */
 function isPopupOpen() {
   const popups = stageRef.value?.querySelectorAll<HTMLElement>('.ant-dropdown, .ant-popover') ?? []
   return [...popups].some(
@@ -39,8 +33,7 @@ async function open() {
   stageRef.value?.querySelector<HTMLElement>(props.openSelector)?.click()
 }
 
-// ant flips/shifts a popup that would overflow the viewport, so wait until the
-// stage sits in the upper half of the viewport before the first open
+// ant flips popups that overflow the viewport, so wait for the stage to reach the upper half
 useIntersectionObserver(
   stageRef,
   ([entry], observer) => {

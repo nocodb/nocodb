@@ -1,12 +1,6 @@
 import { UITypes, ViewTypes } from 'nocodb-sdk'
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 
-/**
- * The view pages use the route `/playground/:baseId(views)/:viewId`, so the
- * base id is literally `views` and each view type gets its own mock table whose
- * id is the URL slug (`grid`, `gallery`, ...). Stores that resolve the active
- * table/view from route params then work unmodified.
- */
 export const MOCK_BASE_ID = 'views'
 export const MOCK_WORKSPACE_ID = 'pgws'
 export const MOCK_SOURCE_ID = 'pgsrc'
@@ -15,7 +9,6 @@ export const MOCK_TASKS_TABLE_ID = 'pg-tasks'
 export const MOCK_VIEW_KINDS = ['grid', 'gallery', 'kanban', 'calendar', 'form', 'map', 'list', 'timeline', 'gantt'] as const
 export type MockViewKind = (typeof MOCK_VIEW_KINDS)[number]
 
-/** Record the `/playground/views/expanded` alias opens. */
 export const EXPANDED_DEMO_ROW_ID = 3
 
 export const isMockViewKind = (v: unknown): v is MockViewKind => MOCK_VIEW_KINDS.includes(v as MockViewKind)
@@ -148,7 +141,6 @@ export function buildColumns(tableId: string): ColumnType[] {
     col({ id: COL.start, title: 'Start date', uidt: UITypes.Date, dt: 'date', meta: { date_format: 'YYYY-MM-DD' } }),
     col({ id: COL.end, title: 'End date', uidt: UITypes.Date, dt: 'date', meta: { date_format: 'YYYY-MM-DD' } }),
     col({ id: COL.location, title: 'Location', uidt: UITypes.GeoData, dt: 'text' }),
-    // gantt only: self has-many link driving the dependency arrows
     ...(tableId === 'gantt'
       ? [
           col({
@@ -312,7 +304,6 @@ export function buildView(kind: MockViewKind): ViewType {
       meta: { theme: 'default' },
     },
     map: { fk_view_id: id, fk_geo_data_col_id: COL.location, meta: {} },
-    // one level = a flat list of this table's records
     list: {
       fk_view_id: id,
       show_empty_parents: true,
@@ -346,7 +337,6 @@ export function buildView(kind: MockViewKind): ViewType {
   return { ...common, view: typeMeta[kind] }
 }
 
-// deterministic pseudo-random so every reload shows the same board
 function rng(seed: number) {
   let s = seed
   return () => {
@@ -458,7 +448,6 @@ const CITIES: Array<[number, number]> = [
   [-23.5505, -46.6333],
 ]
 
-/** Row index (0-based) of the gantt predecessor, or null — chains of three: i%5 = 0 → 1 → 2. */
 export const ganttParentIndex = (i: number) => (i < 20 && i % 5 > 0 && i % 5 < 3 ? i - 1 : null)
 
 const toDateStr = (d: Date) =>
@@ -466,7 +455,6 @@ const toDateStr = (d: Date) =>
 
 function cover(i: number, name: string, slug: string) {
   const url = coverImage(i, name)
-  // base64 → bytes, close enough for the size label
   return { url, signedUrl: url, title: `${slug}.png`, mimetype: 'image/png', size: Math.round(url.length * 0.75), id: `att-${i}` }
 }
 
@@ -545,7 +533,6 @@ const TASK_NAMES = [
   'Security review',
 ]
 
-/** Rows of the linked Tasks table: each launch's `Tasks` count worth, plus a few unassigned. */
 export function buildTasks(rows: Record<string, any>[]): Record<string, any>[] {
   const tasks: Record<string, any>[] = []
   const add = (launchId: number | null, name: string) => tasks.push({ Id: tasks.length + 1, Task: name, launch_id: launchId })
@@ -596,7 +583,6 @@ export function buildComments(tableId: string): MockComment[] {
   }))
 }
 
-/** v3 field shape the audit renderer reads from `details.column_meta`. */
 export function auditColumnMeta(columns: ColumnType[], titles: string[]) {
   const meta: Record<string, { id?: string; title?: string; type?: string; options: Record<string, unknown> }> = {}
   for (const title of titles) {
@@ -616,7 +602,7 @@ export function auditColumnMeta(columns: ColumnType[], titles: string[]) {
 
 const EFFORT = [1, 2, 3, 5, 8, 13]
 
-/** Seeded revision history for a record, newest first (the server's order). Built from the seed values, so edits made in the tab append their own entries instead of rewriting these. */
+/** Newest first; built from seed values so edits in the tab append instead of rewriting these. */
 export function buildAudits(tableId: string, seed: Record<string, any>) {
   const columns = buildColumns(tableId)
   const audit = (n: number, userIdx: number, hours: number, op_type: string, details: Record<string, any>) => ({
@@ -634,7 +620,6 @@ export function buildAudits(tableId: string, seed: Record<string, any>) {
   const effortIdx = EFFORT.indexOf(seed['Effort (pts)'])
   const oldEffort = EFFORT[effortIdx > 0 ? effortIdx - 1 : 1]
   return [
-    // a status that moved past Idea gets a "moved on from Idea" entry
     ...(statusIdx > 0
       ? [
           audit(3, 0, 5, 'DATA_UPDATE', {

@@ -21,7 +21,6 @@ const group = ref('all')
 
 const showOnlyChanged = ref(false)
 
-/** token names whose last typed value wasn't a colour */
 const invalidValues = ref<string[]>([])
 
 const groups = computed(() => ['all', ...new Set(tokenDefs.value.map((d) => d.group))])
@@ -47,17 +46,14 @@ function currentValue(def: TokenDef) {
   return overrides.value[props.mode][def.name] ?? def[props.mode]
 }
 
-/** palette and system tokens are colours; spacing and the rest are free-form */
 function isColourToken(def: TokenDef) {
   return def.group.startsWith('Palette') || def.group.startsWith('System')
 }
 
-/** the edited mode's value with var() references followed, independent of the theme the page is showing */
 function resolved(def: TokenDef) {
   return resolveTokenValue(defsByName.value, overrides.value, props.mode, def.name)
 }
 
-/** non-colour tokens are the same in both themes, so an edit applies to both */
 function setValue(def: TokenDef, value: string | null) {
   for (const mode of isColourToken(def) ? [props.mode] : (['light', 'dark'] as const)) setToken(mode, def.name, value)
 }

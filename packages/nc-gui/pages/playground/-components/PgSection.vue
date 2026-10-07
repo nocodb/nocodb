@@ -1,10 +1,8 @@
 <script setup lang="ts">
-/** A titled block on a playground page; `id` is the anchor PgPage's TOC scrolls to. */
 defineProps<{
   id: string
   title: string
   description?: string
-  /** source component name(s), shown as a mono hint */
   source?: string
 }>()
 </script>

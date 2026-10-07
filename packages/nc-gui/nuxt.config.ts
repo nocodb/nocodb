@@ -13,7 +13,6 @@ export default defineNuxtConfig({
     compatibilityVersion: 4,
   },
 
-  // internal tool with EE-only imports: out of production builds here; ee/nuxt.config.ts re-includes it
   ignore: [...(process.env.NODE_ENV === 'production' ? ['pages/playground.vue', 'pages/playground/**/*'] : [])],
 
   modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],

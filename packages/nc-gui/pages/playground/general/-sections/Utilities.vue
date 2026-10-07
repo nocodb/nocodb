@@ -19,7 +19,6 @@ const badgeSizes = ['xs', 'sm', 'md', 'lg'] as const
         <div class="flex items-center gap-2">
           <GeneralCopyButton content="sk_live_51Hx…" />
           <GeneralCopyButton content="sk_live_51Hx…" type="secondary" size="small" />
-          <!-- webhook call log payload card -->
           <GeneralCopyButton content="sk_live_51Hx…" size="xs" class="!px-1" />
         </div>
       </PgDemo>

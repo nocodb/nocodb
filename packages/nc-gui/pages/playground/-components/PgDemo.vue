@@ -1,10 +1,8 @@
 <script setup lang="ts">
-/** Bordered preview card: a label row over a padded stage. */
 withDefaults(
   defineProps<{
     label?: string
     hint?: string
-    /** stage background: plain surface, the gray canvas, or a checkerboard for transparency */
     stage?: 'default' | 'canvas' | 'checker'
     padded?: boolean
   }>(),

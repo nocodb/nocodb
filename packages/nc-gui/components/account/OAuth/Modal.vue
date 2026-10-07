@@ -115,9 +115,12 @@ async function handleSubmit() {
       .map((uri) => uri.trim())
       .filter(Boolean)
 
+    // logo is optional; the API rejects an empty value, so leave it out when none is picked
+    const { logo_uri, ...rest } = clientRef
     const payload = {
-      ...clientRef,
+      ...rest,
       redirect_uris,
+      ...(logo_uri ? { logo_uri } : {}),
     }
 
     createdClient.value = await createOAuthClient(payload)

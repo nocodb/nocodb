@@ -13,12 +13,8 @@ export default defineNuxtConfig({
     compatibilityVersion: 4,
   },
 
-  // the playground is an internal EE tool (gated to @nocodb.com) and imports EE-only SDK exports; keep it out of CE builds
-  ignore: [
-    ...(process.env.NODE_ENV === 'production' && process.env.EE !== 'true'
-      ? ['pages/playground.vue', 'pages/playground/**/*']
-      : []),
-  ],
+  // internal tool with EE-only imports: out of production builds here; ee/nuxt.config.ts re-includes it
+  ignore: [...(process.env.NODE_ENV === 'production' ? ['pages/playground.vue', 'pages/playground/**/*'] : [])],
 
   modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],
   ssr: false,

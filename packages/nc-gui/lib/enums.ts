@@ -44,7 +44,9 @@ export enum Language {
 
 export enum LanguageAlias {
   zh_CN = 'zh-Hans',
+  'zh-CN' = 'zh-Hans',
   zh_TW = 'zh-Hant',
+  'zh-TW' = 'zh-Hant',
 }
 
 export enum NavigateDir {

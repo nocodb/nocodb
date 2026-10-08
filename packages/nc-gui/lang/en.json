@@ -4589,6 +4589,7 @@
       "runStep": "Run this step",
       "running": "Running...",
       "simulatedNote": "Checked without running it.",
+      "stepRunAt": "Step run {time}",
       "runConfirmTitle": "Run this step for real?",
       "runConfirmBody": "This does what the step does. It sends, writes or starts things outside this editor. Checking the step is usually enough to carry on building.",
       "status": {

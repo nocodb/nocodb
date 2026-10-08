@@ -1091,8 +1091,16 @@ onClickOutside(linkViewRef, () => {
   if (showLinkView.value) closeLinkPopovers()
 })
 
-// Another chip's click opens its own menu, and the unit select renders its options outside the menu.
-onClickOutside(transformMenuRef, closeTransformMenu, { ignore: ['.nc-workflow-expression', '.ant-select-dropdown'] })
+// Another chip in this editor opens its own menu, and the unit select renders its options outside the menu.
+onClickOutside(
+  transformMenuRef,
+  (event) => {
+    const chip = (event.target as Element | null)?.closest?.('.nc-workflow-expression')
+    if (chip && editor.value?.view.dom.contains(chip)) return
+    closeTransformMenu()
+  },
+  { ignore: ['.ant-select-dropdown'] },
+)
 
 // Fixed-position like the link view; the menu's own list scrolling is not a reason to close it.
 useEventListener(

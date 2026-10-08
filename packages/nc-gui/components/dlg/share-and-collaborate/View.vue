@@ -495,13 +495,15 @@ watch(showShareModal, (val) => {
               <span data-testid="nc-share-tab-invite">{{ $t('activity.inviteTeam') }}</span>
             </template>
 
-            <NcAlert
-              v-if="isAppContext && !appShare.isLive.value"
-              type="info"
-              class="nc-share-app-not-live mx-7 mt-5 !p-3"
-              :description="$t('msg.info.appShareNotDeployed')"
-              data-testid="nc-share-app-not-live"
-            />
+            <!-- Gutter on a wrapper: NcAlert is full width, so a margin on it overflows. -->
+            <div v-if="isAppContext && !appShare.isLive.value" class="px-7 pt-5">
+              <NcAlert
+                type="info"
+                class="nc-share-app-not-live !p-3"
+                :description="$t('msg.info.appShareNotDeployed')"
+                data-testid="nc-share-app-not-live"
+              />
+            </div>
 
             <DlgShareAndCollaborateHubMain
               :member-count="memberCount"

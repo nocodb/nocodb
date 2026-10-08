@@ -12545,13 +12545,20 @@
             "propertyName": "type"
           }
         },
-      "ViewUpdate": {
-          "type": "object",
-          "allOf": [
-            {
-              "$ref": "#/components/schemas/ViewBaseInUpdate"
+"ViewUpdate": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ViewBaseInUpdate"
+          },
+          {
+            "description": "The type-specific half of the body. PATCH is partial, so this applies only when `type` is sent; omitting it leaves the stored type and its options alone.",
+            "if": {
+              "required": [
+                "type"
+              ]
             },
-            {
+            "then": {
               "oneOf": [
                 {
                   "type": "object",
@@ -12761,14 +12768,15 @@
                 "propertyName": "type"
               }
             }
-          ],
-          "errorMessage": {
-            "oneOf": "Invalid view type or options. Ensure the view type is valid and its properties match the expected schema."
-          },
-          "discriminator": {
-            "propertyName": "type"
           }
+        ],
+        "errorMessage": {
+          "oneOf": "Invalid view type or options. Ensure the view type is valid and its properties match the expected schema."
         },
+        "discriminator": {
+          "propertyName": "type"
+        }
+      },
       "View": {
         "type": "object",
         "allOf": [
@@ -14676,243 +14684,251 @@
         ],
         "additionalProperties": false
       },
-      "FieldUpdate": {
+"FieldUpdate": {
         "allOf": [
           {
             "$ref": "#/components/schemas/FieldBase"
           },
           {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/FieldOptions/SingleLineText"
-              },
-              {
-                "title": "LongText",
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "LongText"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_LongText"
+            "description": "The type-specific half of the body. PATCH is partial, so this applies only when `type` is sent; omitting it leaves the stored type and its options alone.",
+            "if": {
+              "required": [
+                "type"
+              ]
+            },
+            "then": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/FieldOptions/SingleLineText"
+                },
+                {
+                  "title": "LongText",
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "LongText"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/FieldOptions_LongText"
+                    }
+                  }
+                },
+                {
+                  "title": "PhoneNumber",
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "PhoneNumber",
+                        "URL",
+                        "Email"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/FieldOptions_PhoneNumber"
+                    }
+                  }
+                },
+                {
+                  "title": "Number / Decimal",
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "Number",
+                        "Decimal"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/FieldOptions_Number"
+                    }
+                  }
+                },
+                {
+                  "title": "JSON",
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "JSON"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "title": "Currency",
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "Currency"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/FieldOptions_Currency"
+                    }
+                  }
+                },
+                {
+                  "title": "Percent",
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "Percent"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/FieldOptions_Percent"
+                    }
+                  }
+                },
+                {
+                  "title": "Duration",
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "Duration"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/FieldOptions_Duration"
+                    }
+                  }
+                },
+                {
+                  "title": "Date / DateTime",
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "Date",
+                        "DateTime",
+                        "Time"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/FieldOptions_DateTime"
+                    }
+                  }
+                },
+                {
+                  "title": "Single / MultiSelect",
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "SingleSelect",
+                        "MultiSelect"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/FieldOptions_Select"
+                    }
+                  }
+                },
+                {
+                  "title": "Checkbox",
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "Checkbox"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/FieldOptions_Checkbox"
+                    }
+                  }
+                },
+                {
+                  "title": "Rating",
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "Rating"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/FieldOptions_Rating"
+                    }
+                  }
+                },
+                {
+                  "title": "Barcode",
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "Barcode"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/FieldOptions_Barcode"
+                    }
+                  }
+                },
+                {
+                  "title": "Formula",
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "Formula"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/FieldOptions_Formula"
+                    }
+                  }
+                },
+                {
+                  "title": "User",
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "User"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/FieldOptions_User"
+                    }
+                  }
+                },
+                {
+                  "title": "Lookup",
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "Lookup"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/FieldOptions_Lookup"
+                    }
+                  }
+                },
+                {
+                  "title": "Links",
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "Links"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/FieldOptions_Links"
+                    }
+                  }
+                },
+                {
+                  "title": "LinkToAnotherRecord",
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "LinkToAnotherRecord"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/FieldOptions_LinkToAnotherRecord"
+                    }
                   }
                 }
-              },
-              {
-                "title": "PhoneNumber",
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "PhoneNumber",
-                      "URL",
-                      "Email"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_PhoneNumber"
-                  }
-                }
-              },
-              {
-                "title": "Number / Decimal",
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Number",
-                      "Decimal"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Number"
-                  }
-                }
-              },
-              {
-                "title": "JSON",
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "JSON"
-                    ]
-                  }
-                }
-              },
-              {
-                "title": "Currency",
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Currency"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Currency"
-                  }
-                }
-              },
-              {
-                "title": "Percent",
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Percent"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Percent"
-                  }
-                }
-              },
-              {
-                "title": "Duration",
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Duration"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Duration"
-                  }
-                }
-              },
-              {
-                "title": "Date / DateTime",
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Date",
-                      "DateTime",
-                      "Time"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_DateTime"
-                  }
-                }
-              },
-              {
-                "title": "Single / MultiSelect",
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "SingleSelect",
-                      "MultiSelect"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Select"
-                  }
-                }
-              },
-              {
-                "title": "Checkbox",
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Checkbox"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Checkbox"
-                  }
-                }
-              },
-              {
-                "title": "Rating",
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Rating"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Rating"
-                  }
-                }
-              },
-              {
-                "title": "Barcode",
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Barcode"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Barcode"
-                  }
-                }
-              },
-              {
-                "title": "Formula",
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Formula"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Formula"
-                  }
-                }
-              },
-              {
-                "title": "User",
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "User"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_User"
-                  }
-                }
-              },
-              {
-                "title": "Lookup",
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Lookup"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Lookup"
-                  }
-                }
-              },
-              {
-                "title": "Links",
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Links"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Links"
-                  }
-                }
-              },
-              {
-                "title": "LinkToAnotherRecord",
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "LinkToAnotherRecord"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_LinkToAnotherRecord"
-                  }
-                }
+              ],
+              "errorMessage": {
+                "oneOf": "Invalid field type or options. Ensure 'type' is a valid field type and 'options' matches the schema for that type."
               }
-            ],
-            "errorMessage": {
-              "oneOf": "Invalid field type or options. Ensure 'type' is a valid field type and 'options' matches the schema for that type."
             }
           }
         ],
@@ -17380,58 +17396,174 @@
           }
         }
       },
-      "WidgetCreateReq": {
+"WidgetCreateReq": {
         "description": "Widget create request body",
         "type": "object",
-        "required": ["title", "type"],
+        "required": [
+          "title",
+          "type"
+        ],
         "properties": {
           "title": {
             "type": "string",
             "description": "Title of the widget."
           },
           "description": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Description of the widget."
           },
           "type": {
             "type": "string",
-            "enum": ["chart", "metric", "text", "iframe"],
+            "enum": [
+              "chart",
+              "metric",
+              "text",
+              "iframe"
+            ],
             "description": "Type of the widget. `gauge`, `table` and `pivot` exist and are returned by read, but are not accepted here yet."
           },
           "options": {
-            "description": "Widget configuration. Structure depends on widget type.",
-            "oneOf": [
-              { "$ref": "#/components/schemas/WidgetOptionsMetric" },
-              { "$ref": "#/components/schemas/WidgetOptionsPieChart" },
-              { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
-              { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
-              { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
-              { "$ref": "#/components/schemas/WidgetOptionsScatter" },
-              { "$ref": "#/components/schemas/WidgetOptionsText" },
-              { "$ref": "#/components/schemas/WidgetOptionsIframe" }
-            ]
+            "description": "Widget configuration. Structure depends on `type`."
           },
           "position": {
             "type": "object",
             "description": "Position and size of the widget on the dashboard grid.",
             "properties": {
-              "x": { "type": "number", "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column." },
-              "y": { "type": "number", "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row." },
-              "w": { "type": "number", "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)." },
-              "h": { "type": "number", "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall." }
+              "x": {
+                "type": "number",
+                "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column."
+              },
+              "y": {
+                "type": "number",
+                "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row."
+              },
+              "w": {
+                "type": "number",
+                "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)."
+              },
+              "h": {
+                "type": "number",
+                "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall."
+              }
             }
           },
           "table_id": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Unique identifier for the associated table."
           },
           "view_id": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Unique identifier for the associated view."
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "const": "metric"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/WidgetOptionsMetric"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "const": "text"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/WidgetOptionsText"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "const": "iframe"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "options": {
+                  "$ref": "#/components/schemas/WidgetOptionsIframe"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "const": "chart"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "options": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/WidgetOptionsPieChart"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WidgetOptionsDonutChart"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WidgetOptionsBarChart"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WidgetOptionsLineChart"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WidgetOptionsScatter"
+                    }
+                  ],
+                  "discriminator": {
+                    "propertyName": "chart_type"
+                  }
+                }
+              }
+            }
+          }
+        ]
       },
-      "WidgetUpdateReq": {
+"WidgetUpdateReq": {
         "description": "Widget update request body",
         "type": "object",
         "properties": {
@@ -17440,20 +17572,39 @@
             "description": "Title of the widget."
           },
           "description": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Description of the widget."
           },
           "options": {
-            "description": "Widget configuration. Structure depends on widget type.",
-            "oneOf": [
-              { "$ref": "#/components/schemas/WidgetOptionsMetric" },
-              { "$ref": "#/components/schemas/WidgetOptionsPieChart" },
-              { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
-              { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
-              { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
-              { "$ref": "#/components/schemas/WidgetOptionsScatter" },
-              { "$ref": "#/components/schemas/WidgetOptionsText" },
-              { "$ref": "#/components/schemas/WidgetOptionsIframe" }
+            "description": "Widget configuration. The update body carries no `type`, and the metric, text and iframe shapes share no distinguishing property, so the branches legitimately overlap — `anyOf`, not `oneOf`.",
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WidgetOptionsMetric"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsText"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsIframe"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsPieChart"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsDonutChart"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsBarChart"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsLineChart"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsScatter"
+              }
             ]
           },
           "order": {
@@ -17464,18 +17615,36 @@
             "type": "object",
             "description": "Position and size of the widget on the dashboard grid.",
             "properties": {
-              "x": { "type": "number", "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column." },
-              "y": { "type": "number", "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row." },
-              "w": { "type": "number", "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)." },
-              "h": { "type": "number", "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall." }
+              "x": {
+                "type": "number",
+                "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column."
+              },
+              "y": {
+                "type": "number",
+                "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row."
+              },
+              "w": {
+                "type": "number",
+                "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)."
+              },
+              "h": {
+                "type": "number",
+                "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall."
+              }
             }
           },
           "table_id": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Unique identifier for the associated table."
           },
           "view_id": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Unique identifier for the associated view."
           }
         }

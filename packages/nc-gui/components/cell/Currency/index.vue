@@ -25,7 +25,7 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const isForm = inject(IsFormInj)!
+const isForm = inject(IsFormInj, ref(false))
 
 const _vModel = useVModel(props, 'modelValue', emit)
 

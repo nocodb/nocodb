@@ -22,7 +22,7 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 
 const column = inject(ColumnInj)!
 
-const isForm = inject(IsFormInj)!
+const isForm = inject(IsFormInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
 

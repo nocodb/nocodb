@@ -26,7 +26,7 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const isForm = inject(IsFormInj)!
+const isForm = inject(IsFormInj, ref(false))
 
 // Used in the logic of when to display error since we are not storing the email if it's not valid
 const localState = ref(value)

@@ -90,7 +90,7 @@ const precision = computed(() => {
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const isForm = inject(IsFormInj)!
+const isForm = inject(IsFormInj, ref(false))
 
 // Handle the arrow keys as its default behavior is to increment/decrement the value
 const onKeyDown = (e: any) => {

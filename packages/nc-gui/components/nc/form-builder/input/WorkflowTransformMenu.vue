@@ -199,7 +199,7 @@ onMounted(() => searchRef.value?.focus())
               />
             </template>
           </div>
-          <NcTooltip :title="t('labels.workflow.transforms.removeFrom')">
+          <NcTooltip :title="t('labels.workflow.transforms.removeFrom')" overlay-class-name="!z-[10002]">
             <NcButton type="text" size="xxsmall" class="flex-none" @click="removeStep(index)">
               <GeneralIcon icon="close" class="!w-3.5 !h-3.5" />
             </NcButton>

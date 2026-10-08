@@ -569,7 +569,9 @@ function extensions(): Extension[] {
       if (!update.transactions.some((tr) => tr.annotation(programmatic) === true)) closeTransformMenu()
 
       const value = update.state.doc.toString()
-      if (value !== props.modelValue) emit('update:modelValue', value)
+      // The `{{` opened by focusing an empty field is ours until the user types or picks.
+      const isAutoPickerPlaceholder = isAutoPicker.value && value === '{{'
+      if (value !== (props.modelValue ?? '') && !isAutoPickerPlaceholder) emit('update:modelValue', value)
       if (isOurs) return
 
       const head = update.state.selection.main.head

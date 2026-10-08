@@ -4698,6 +4698,8 @@
         "inTable": "In {table}",
         "trueWhen": "Runs when {condition}",
         "falseWhen": "Runs when {condition} is not met",
+        "trueWhenConditions": "Runs when its conditions are met",
+        "falseWhenConditions": "Runs when its conditions are not met",
         "eachItemIn": "For each item in {source}",
         "loopBody": "For each item",
         "loopExit": "When done",

@@ -6446,6 +6446,7 @@
       "shareHubTooltipInterface": "Invite people to use this interface. They get access to the interface only, not to its project.",
       "interfacePageAccessHint": "Need different access for some pages?",
       "shareNothingPrivateBase": "Only the project owner can invite people to a private project. To publish a view, open one first.",
+      "shareNothingPrivateBaseInterface": "Only the project owner can share this interface on a private project.",
       "shareNothingToShow": "Nothing to share from here. Open a view to publish a read-only link.",
       "allowDownloadDescription": "Viewers can export the records they can see as CSV.",
       "anyoneCanAccessAs": "Anyone can access as {article} {role}",

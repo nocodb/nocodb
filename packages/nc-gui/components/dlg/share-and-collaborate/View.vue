@@ -408,7 +408,13 @@ watch(showShareModal, (val) => {
              invite, and off a view there is nothing to publish. Saying so beats
              an empty dialog with only a title in it. -->
         <div v-if="!canInvite && !canShareObject" class="px-7 pb-7 pt-2 text-bodyDefault text-nc-content-gray-subtle2">
-          {{ isPrivateBase ? $t('msg.info.shareNothingPrivateBase') : $t('msg.info.shareNothingToShow') }}
+          {{
+            isPrivateBase
+              ? isInterfaceContext
+                ? $t('msg.info.shareNothingPrivateBaseInterface')
+                : $t('msg.info.shareNothingPrivateBase')
+              : $t('msg.info.shareNothingToShow')
+          }}
         </div>
 
         <NcTabs v-else :active-key="activeTab" class="nc-share-tabs" @update:active-key="onTabChange">

@@ -222,7 +222,7 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Workspace created successfully.",
             "content": {
               "application/json": {
@@ -1013,7 +1013,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": "Base was deleted."
           },
           "404": {
@@ -2002,7 +2002,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": "Table deleted successfully."
           },
           "404": {
@@ -2490,7 +2490,7 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Field was updated.",
             "content": {
               "application/json": {
@@ -2536,7 +2536,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": "Field was deleted."
           },
           "404": {
@@ -3374,7 +3374,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": "View deleted successfully."
           },
           "404": {
@@ -3509,7 +3509,7 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Filter or group created successfully.",
             "content": {
               "application/json": {
@@ -4256,7 +4256,7 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Script created.",
             "content": {
               "application/json": {

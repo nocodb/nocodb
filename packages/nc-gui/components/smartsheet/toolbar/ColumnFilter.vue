@@ -59,6 +59,8 @@ interface Props {
   hideCheckbox?: boolean
   /** Host supplies the padding: drops this component's min-width floor, outer padding and trailing space. */
   flush?: boolean
+  /** Drop the "Where" prefix while there is a single condition, for narrow hosts. */
+  hideSoleWhere?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -90,6 +92,7 @@ const props = withDefaults(defineProps<Props>(), {
   isTempFilters: false,
   hideCheckbox: false,
   flush: false,
+  hideSoleWhere: false,
 })
 
 const emit = defineEmits([
@@ -1518,14 +1521,14 @@ defineExpose({
             >
               <NcWrap :wrap="!!isMobileMode" class="grid grid-cols-12 gap-x-0 flex-1 nc-filter-wrapper">
                 <div
-                  v-if="!visibleFilters.indexOf(filter)"
+                  v-if="!visibleFilters.indexOf(filter) && !(hideSoleWhere && visibleFilters.length === 1)"
                   class="xs:col-span-3 flex items-center sm:(!min-w-18 !max-w-18) pl-3 nc-filter-where-label"
                 >
                   {{ $t('labels.where') }}
                 </div>
 
                 <NcSelect
-                  v-else
+                  v-else-if="visibleFilters.indexOf(filter) > 0"
                   v-model:value="filter.logical_op"
                   v-e="['c:filter:logical-op:select', { link: !!link, webHook: !!webHook }]"
                   :dropdown-match-select-width="false"

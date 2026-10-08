@@ -6061,7 +6061,7 @@
       "post": {
         "summary": "Upload Attachment to Cell",
         "operationId": "db-data-table-row-attachment-upload",
-        "description": "Upload one base64-encoded file into an Attachment cell. The file is **appended**; nothing is replaced.\n\n`fieldId` must name an Attachment field; any other field type answers `422`.\n\nMaximum file size is set per deployment (20 MB by default); the number of files a cell may hold is a plan limit. An oversized file answers `400`.\n\nTo replace or remove files, write the Attachment field through the record `POST`/`PATCH` endpoints — that replaces the whole cell.",
+        "description": "Upload one base64-encoded file into an Attachment cell. The file is **appended**; nothing is replaced.\n\nMaximum file size is set per deployment (20 MB by default); the number of files a cell may hold is a plan limit. An oversized file answers `400`.\n\nTo replace or remove files, write the Attachment field through the record `POST`/`PATCH` endpoints — that replaces the whole cell.",
         "tags": [
           "Table Records"
         ],
@@ -6100,7 +6100,7 @@
             "name": "fieldId",
             "in": "path",
             "required": true,
-            "description": "**Field Identifier**."
+            "description": "**Field Identifier**. Must name an Attachment field; any other field type answers `422`."
           },
           {
             "required": true,

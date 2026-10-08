@@ -282,6 +282,29 @@ const updateVariableReferencesInObject = (obj: any, oldTitle: string, newTitle: 
   return obj
 }
 
+/**
+ * Steps saved without a title get their default one, and `$('<id>')` references to them follow.
+ * Runs look steps up by title, so an untitled step's outputs never resolve. Returns the same
+ * array when nothing needed a title, so callers can skip the write.
+ */
+function withRepairedNodeTitles(nodes: Node[], getNodeMeta: (type?: string) => UIWorkflowNodeDefinition | null) {
+  let repaired = nodes
+  for (const node of nodes) {
+    if (node.data?.title || node.type === GeneralNodeID.PLUS || node.type === GeneralNodeID.NOTE) continue
+    const meta = getNodeMeta(node.type)
+    if (!meta?.title) continue
+    const title = generateUniqueNodeTitle(meta, repaired)
+    repaired = repaired.map((n) =>
+      n.id === node.id
+        ? { ...n, data: { ...n.data, title } }
+        : n.data?.config
+        ? { ...n, data: { ...n.data, config: updateVariableReferencesInObject(n.data.config, node.id, title) } }
+        : n,
+    )
+  }
+  return repaired
+}
+
 // `label` / `tooltip` are i18n keys (filled from `labelParams`); `bg` fills the status dot,
 // `text` colours inline status text. `detail` is free text, e.g. an operator's suspension reason.
 interface WorkflowExecutionStatusDisplay {
@@ -546,6 +569,7 @@ export {
   findIterateNodePortForPath,
   updateVariableReferences,
   updateVariableReferencesInObject,
+  withRepairedNodeTitles,
 }
 
 export type { UIWorkflowNodeDefinition, WorkflowLoop }

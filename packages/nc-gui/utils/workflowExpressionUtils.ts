@@ -46,6 +46,10 @@ function getWorkflowVariableChipMeta(expression: string, variables: VariableDefi
   const remainingPath = expression.slice(variable.key.length)
   if (!remainingPath) return { id: variable.key, label: variable.name }
 
+  // A nested field the picker lists has a display name ("ID", not the key "id").
+  const nested = findWorkflowVariable(expression, variable.children ?? [])
+  if (nested) return { id: variable.key, label: nested.name }
+
   const properties = [...remainingPath.matchAll(/\.(\w+)|\[['"]([^'"]+)['"]\]/g)].map((match) => match[1] || match[2])
   return { id: variable.key, label: properties.length ? properties[properties.length - 1]! : variable.name }
 }

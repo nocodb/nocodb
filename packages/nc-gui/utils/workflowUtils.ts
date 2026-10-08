@@ -439,8 +439,10 @@ function formatWorkflowDuration(ms?: number | null) {
   if (ms === null || ms === undefined) return '-'
   const { t } = getI18n().global
   if (ms < 1000) return t('labels.workflow.duration.milliseconds', { n: Math.round(ms) })
-  if (ms < 60_000) return t('labels.workflow.duration.seconds', { n: (ms / 1000).toFixed(1) })
-  return t('labels.workflow.duration.minutesSeconds', { m: Math.floor(ms / 60_000), s: Math.round((ms % 60_000) / 1000) })
+  if (ms < 59_950) return t('labels.workflow.duration.seconds', { n: (ms / 1000).toFixed(1) })
+  // Round to whole seconds first, so 119.7s reads "2m 0s" and not "1m 60s".
+  const totalSeconds = Math.round(ms / 1000)
+  return t('labels.workflow.duration.minutesSeconds', { m: Math.floor(totalSeconds / 60), s: totalSeconds % 60 })
 }
 
 /** Attempt numbers for a run waiting to retry a step; `total` is absent when the policy is unknown. */

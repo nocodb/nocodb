@@ -472,6 +472,7 @@ function extensions(): Extension[] {
             const userEvent = tr.annotation(Transaction.userEvent)
             const isProgrammatic = tr.annotation(programmatic)
             const isFromParent = tr.annotation(fromParent)
+            const addToHistory = tr.annotation(Transaction.addToHistory)
             return {
               changes,
               selection: tr.startState.selection.map(changes, 1),
@@ -481,6 +482,7 @@ function extensions(): Extension[] {
                 ...(userEvent ? [Transaction.userEvent.of(userEvent)] : []),
                 ...(isProgrammatic !== undefined ? [programmatic.of(isProgrammatic)] : []),
                 ...(isFromParent ? [fromParent.of(true)] : []),
+                ...(addToHistory !== undefined ? [Transaction.addToHistory.of(addToHistory)] : []),
               ],
             }
           }),
@@ -658,7 +660,8 @@ watch(
     if (!view || (value ?? '') === view.state.doc.toString()) return
     view.dispatch({
       changes: { from: 0, to: view.state.doc.length, insert: value ?? '' },
-      annotations: [programmatic.of(false), fromParent.of(true)],
+      // Undo must not bring back the value the parent replaced.
+      annotations: [programmatic.of(false), fromParent.of(true), Transaction.addToHistory.of(false)],
     })
   },
 )

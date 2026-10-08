@@ -391,7 +391,7 @@ defineExpose({
       <!-- Steps -->
       <div
         v-if="!searchQuery"
-        class="w-[184px] flex-none p-1.5 overflow-y-auto nc-scrollbar-thin border-r-1 border-nc-border-gray-light"
+        class="w-[200px] flex-none p-1.5 overflow-y-auto nc-scrollbar-thin border-r-1 border-nc-border-gray-light"
       >
         <div class="px-2 pt-1 pb-1.5 text-captionSm text-nc-content-gray-muted">{{ t('labels.workflow.picker.steps') }}</div>
         <button

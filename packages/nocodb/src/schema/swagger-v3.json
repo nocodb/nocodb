@@ -8164,7 +8164,7 @@
                       "properties": {
                         "totalRows": {
                           "type": "integer",
-                          "description": "Total number of API tokens on the deployment. For a non-super-admin the list is filtered to the caller's own tokens while this count is not, so it can exceed what the caller can see",
+                          "description": "Total number of API tokens the caller can see, counted with the same filters as the list \u2014 their own tokens, or every token for a super admin.",
                           "example": 3
                         },
                         "page": {

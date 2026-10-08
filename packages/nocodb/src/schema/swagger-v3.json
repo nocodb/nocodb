@@ -3463,7 +3463,7 @@
               }
             }
           },
-          "404": {
+          "422": {
             "description": "View not found."
           },
           "500": {
@@ -3521,6 +3521,9 @@
           },
           "400": {
             "description": "Invalid request body."
+          },
+          "422": {
+            "description": "View not found."
           },
           "500": {
             "description": "Server error."
@@ -3585,12 +3588,10 @@
             "description": "Server error."
           }
         }
-      }
-    },
-    "/api/v3/meta/bases/{baseId}/filters/{filterId}": {
+      },
       "patch": {
         "summary": "Update filter",
-        "description": "Update the details of an existing filter or group.",
+        "description": "Update an existing filter or filter-group.",
         "operationId": "view-filter-update",
         "tags": [
           "View Filters"
@@ -3606,13 +3607,13 @@
             "description": "Unique identifier for the base."
           },
           {
-            "name": "filterId",
+            "name": "viewId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string"
             },
-            "description": "Unique identifier for the filter or group."
+            "description": "Unique identifier for the view."
           }
         ],
         "requestBody": {
@@ -3620,14 +3621,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/FilterCreateUpdate"
+                "$ref": "#/components/schemas/FilterUpdate"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Filter or group updated successfully.",
+            "description": "The view's root filter group after the update.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3637,10 +3638,10 @@
             }
           },
           "400": {
-            "description": "Invalid request body."
+            "description": "Invalid request body, or no filter with that `id` on this view."
           },
-          "404": {
-            "description": "Filter or group not found."
+          "422": {
+            "description": "View not found."
           },
           "500": {
             "description": "Server error."
@@ -3665,21 +3666,50 @@
             "description": "Unique identifier for the base."
           },
           {
-            "name": "filterId",
+            "name": "viewId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string"
             },
-            "description": "Unique identifier for the filter or group."
+            "description": "Unique identifier for the view."
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Unique identifier of the filter or filter-group to act on. The literal `root` deletes every filter on the view."
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
-          "204": {
-            "description": "Filter or group deleted successfully."
+          "200": {
+            "description": "Filter or group deleted. The handler returns an empty object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
           },
-          "404": {
-            "description": "Filter or group not found."
+          "400": {
+            "description": "Invalid request body, or no filter with that `id` on this view."
+          },
+          "422": {
+            "description": "View not found."
           },
           "500": {
             "description": "Server error."
@@ -3744,7 +3774,7 @@
               }
             }
           },
-          "404": {
+          "422": {
             "description": "View not found."
           },
           "500": {
@@ -3811,13 +3841,76 @@
           "400": {
             "description": "Invalid request body."
           },
+          "422": {
+            "description": "View not found."
+          },
           "500": {
             "description": "Server error."
           }
         }
-      }
-    },
-    "/api/v3/meta/bases/{baseId}/sorts/{sortId}": {
+      },
+      "patch": {
+        "summary": "Update sort",
+        "description": "Update an existing sort.",
+        "operationId": "view-sort-update",
+        "tags": [
+          "View Sorts"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SortUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Sort"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "Sort not found."
+          },
+          "422": {
+            "description": "View not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
       "delete": {
         "summary": "Delete sort",
         "description": "Delete an existing sort.",
@@ -3836,52 +3929,13 @@
             "description": "Unique identifier for the base."
           },
           {
-            "name": "sortId",
+            "name": "viewId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string"
             },
-            "description": "Unique identifier for the sort."
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Sort deleted successfully."
-          },
-          "404": {
-            "description": "Sort not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "patch": {
-        "summary": "Update sort",
-        "description": "Update the details of an existing sort.",
-        "operationId": "view-sort-update",
-        "tags": [
-          "View Sorts"
-        ],
-        "parameters": [
-          {
-            "name": "baseId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the base."
-          },
-          {
-            "name": "sortId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the sort."
+            "description": "Unique identifier for the view."
           }
         ],
         "requestBody": {
@@ -3889,13 +3943,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SortUpdate"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "id": "so3o7c6po0tktghc",
-                    "order": "desc"
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Unique identifier of the sort to act on."
                   }
                 }
               }
@@ -3904,11 +3959,11 @@
         },
         "responses": {
           "200": {
-            "description": "Sort updated successfully.",
+            "description": "Operation completed successfully.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Sort"
+                  "type": "object"
                 }
               }
             }
@@ -3918,6 +3973,9 @@
           },
           "404": {
             "description": "Sort not found."
+          },
+          "422": {
+            "description": "View not found."
           },
           "500": {
             "description": "Server error."
@@ -4967,7 +5025,6 @@
         }
       }
     },
-
     "/api/v3/meta/bases/{baseId}/workflows": {
       "get": {
         "summary": "List Workflows",

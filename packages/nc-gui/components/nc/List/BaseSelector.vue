@@ -160,10 +160,10 @@ defineExpose({
           >
             {{ selectedBase?.label }}
           </span>
-          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select base --</span>
+          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select project --</span>
 
           <template #title>
-            {{ selectedBase?.label || 'Select base' }}
+            {{ selectedBase?.label || 'Select project' }}
           </template>
         </NcTooltip>
 

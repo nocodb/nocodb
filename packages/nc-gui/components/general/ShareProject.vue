@@ -100,7 +100,7 @@ const copySharedBase = async () => {
           @click="copySharedBase"
         >
           <GeneralIcon class="mr-1" icon="duplicate" />
-          Copy Base
+          Copy Project
         </NcButton>
       </div>
     </div>

@@ -6642,7 +6642,6 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "أنواع الملفات المقبولة هي .xls، .xlsx، .xlsm، .ods، .ots",
       "duplicateParameterKeysAreNotAllowed": "مفاتيح المعلمة المكررة غير مسموح بها",
       "fieldRequired": "هذا الحقل لا يمكن أن يكون فارغًا.",
-      "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "فشل النسخ إلى الحافظة",
       "pasteFromClipboardError": "فشل اللصق من الحافظة",
       "multiFieldSaveValidation": "يرجى إكمال إعداد جميع الحقول قبل الحفظ",

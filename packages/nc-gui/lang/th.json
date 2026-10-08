@@ -6642,7 +6642,6 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
       "fieldRequired": "ฟิลด์นี้ห้ามเว้นว่างไว้",
-      "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "ไม่สามารถคัดลอกไปยังคลิปบอร์ดได้",
       "pasteFromClipboardError": "ไม่สำเร็จในการวางจากคลิปบอร์ด",
       "multiFieldSaveValidation": "กรุณาดำเนินการตั้งค่าฟิลด์ทั้งหมดให้เรียบร้อยก่อนบันทึก",

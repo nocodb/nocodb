@@ -135,7 +135,7 @@ onMounted(() => {
   handleRouteTypeIdChange().then(() => {
     if (sharedBaseId.value) {
       if (!isUIAllowed('baseDuplicate')) {
-        message.error('You are not allowed to create base')
+        message.error('You are not allowed to create project')
         return
       }
       isDuplicateDlgOpen.value = true

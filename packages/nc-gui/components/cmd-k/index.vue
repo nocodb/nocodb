@@ -49,6 +49,8 @@ const debouncedCmdInput = ref('')
 
 const { user } = useGlobal()
 
+const { t } = useI18n()
+
 const selected = ref<string>()
 
 const cmdkActionsRef = ref<HTMLElement>()
@@ -63,6 +65,11 @@ const SCROLL_MARGIN = ACTION_HEIGHT / 2
 
 const { cmdPlaceholder, loadScope, cmdLoading } = useCommandPalette()
 
+// The backend still names the base section 'Bases'.
+function sectionLabel(section?: string) {
+  return section === 'Bases' ? t('objects.projects') : section
+}
+
 const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(() => {
   const rt: (CmdAction & { weight: number })[] = []
   for (const el of props.data) {
@@ -72,7 +79,7 @@ const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(
       icon: el.icon,
       synced: el.synced,
       parent: el.parent || 'root',
-      weight: commandScore(`${el.section}${el.title}${el.keywords?.join()}`, debouncedCmdInput.value),
+      weight: commandScore(`${sectionLabel(el.section)}${el.title}${el.keywords?.join()}`, debouncedCmdInput.value),
     })
   }
   return rt
@@ -522,7 +529,7 @@ defineExpose({
                           height: `${ACTION_HEIGHT}px`,
                         }"
                       >
-                        {{ item.data.sectionTitle }}
+                        {{ sectionLabel(item.data.sectionTitle) }}
                       </div>
                     </template>
                     <template v-else>

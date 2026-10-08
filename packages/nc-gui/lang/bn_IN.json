@@ -6641,7 +6641,6 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "অনুমোদিত ফাইল প্রকারগুলি হল .xls, .xlsx, .xlsm, .ods, .ots",
       "duplicateParameterKeysAreNotAllowed": "ডুপ্লিকেট প্যারামিটার কী অনুমোদিত নয়",
       "fieldRequired": "এই ক্ষেত্রটি খালি রাখা যাবে না।",
-      "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "ক্লিপবোর্ডে অনুলিপি করতে ব্যর্থ হয়েছে",
       "pasteFromClipboardError": "ক্লিপবোর্ড থেকে পেস্ট করতে ব্যর্থ হয়েছে",
       "multiFieldSaveValidation": "সংরক্ষণ করার আগে সমস্ত ক্ষেত্রের কনফিগারেশন সম্পূর্ণ করুন",

@@ -189,7 +189,7 @@ const data = reactive<{
   })[]
 }>({
   title: null,
-  name: 'Base Name',
+  name: 'Project Name',
   tables: [],
 })
 

@@ -37,7 +37,7 @@ const baseOptions = computed(() => {
     :show-search="baseOptions.length > 4"
     allow-clear
     :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
-    placeholder="- Select base -"
+    placeholder="- Select project -"
     :dropdown-match-select-width="dropdownMatchSelectWidth"
   >
     <a-select-option v-for="option of baseOptions" :key="option.value" :value="option.value" :data-label="option.label">

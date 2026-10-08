@@ -161,7 +161,7 @@ const predictMore = async () => {
     predictedTables.value.push(...predictions)
     predictHistory.value.push(...predictions)
   } else if (!aiError.value) {
-    message.info(`No more auto suggestions were found for ${base.value?.title || 'the current base'}`)
+    message.info(`No more auto suggestions were found for ${base.value?.title || 'the current project'}`)
   }
 }
 
@@ -174,7 +174,7 @@ const predictRefresh = async () => {
     predictedTables.value = [...predictedTables.value.filter((t) => t.tab !== activeAiTab.value), ...predictions]
     predictHistory.value.push(...predictions)
   } else if (!aiError.value) {
-    message.info(`No auto suggestions were found for ${base.value?.title || 'the current base'}`)
+    message.info(`No auto suggestions were found for ${base.value?.title || 'the current project'}`)
   }
   aiModeStep.value = AiStep.pick
 }
@@ -459,7 +459,7 @@ watch(_baseId, () => {
           v-if="isAiFeaturesEnabled"
           :ai-mode="aiMode"
           :ai-loading="aiLoading"
-          :off-tooltip="`Auto suggest tables for ${base?.title || 'the current base'}`"
+          :off-tooltip="`Auto suggest tables for ${base?.title || 'the current project'}`"
           @click="aiMode ? disableAiMode() : toggleAiMode()"
         />
       </div>

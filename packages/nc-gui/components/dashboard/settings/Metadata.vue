@@ -127,7 +127,7 @@ async function syncMetaDiff() {
 
             emit('baseSynced')
           } else if (data.status === JobStatus.FAILED) {
-            progressRef.value?.pushProgress(data.data?.error?.message || 'Failed to sync base metadata', data.status)
+            progressRef.value?.pushProgress(data.data?.error?.message || 'Failed to sync project metadata', data.status)
             syncCompleted.value = true
             isLoading.value = false
           } else {

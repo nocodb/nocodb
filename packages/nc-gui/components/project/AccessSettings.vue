@@ -411,8 +411,8 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
         tableId: undefined,
       })
       showInfoModal({
-        title: `Base access no longer available`,
-        content: `You removed your access from base ${currentBase.value?.title}.`,
+        title: `Project access no longer available`,
+        content: `You removed your access from project ${currentBase.value?.title}.`,
       })
     } else {
       loadCollaborators()

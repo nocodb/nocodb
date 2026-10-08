@@ -6636,7 +6636,6 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Dozvoljeni tipovi datoteka su .xls, .xlsx, .xlsm, .ods, .ots",
       "duplicateParameterKeysAreNotAllowed": "Duplicirani ključevi parametara nisu dopušteni",
       "fieldRequired": "{value} ne može biti prazno.",
-      "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "Kopiranje u međuspremnik nije uspjelo",
       "pasteFromClipboardError": "Nije uspjelo preuzimanje iz međuspremnika",
       "multiFieldSaveValidation": "Molimo da dovršite konfiguraciju svih polja prije spremanja",

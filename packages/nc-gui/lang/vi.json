@@ -6639,7 +6639,6 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
       "fieldRequired": "Trường này không được để trống.",
-      "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "Không sao chép được vào clipboard",
       "pasteFromClipboardError": "Không dán được từ clipboard",
       "multiFieldSaveValidation": "Vui lòng hoàn tất cấu hình của tất cả các trường trước khi lưu",

@@ -14,7 +14,7 @@ const item = toRef(props, 'item')
   <NotificationItemWrapper :item="item" @click="navigateToProject({ baseId: item.body.base.id })">
     <div>
       <span class="font-semibold">{{ extractUserDisplayNameOrEmail(item.body.user) }}</span> has invited you to collaborate on
-      <span class="font-semibold">{{ item.body.base.title }}</span> base.
+      <span class="font-semibold">{{ item.body.base.title }}</span> project.
     </div>
   </NotificationItemWrapper>
 </template>

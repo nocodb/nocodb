@@ -71,6 +71,16 @@ const picker = ref<{ from: number; query: string; top: number; left: number } | 
 /** The picker was opened by focusing an empty field, so its `{{` is ours to remove. */
 const isAutoPicker = ref(false)
 
+/** Where the "Click to transform" hint sits over the hovered chip. */
+const chipHint = ref<{ top: number; left: number } | null>(null)
+
+/** The caret is inside an expression, which reads as code and offers `.` completions. */
+const isEditingExpression = ref(false)
+
+const CHIP_HINT_DELAY = 400
+
+let chipHintTimer: ReturnType<typeof setTimeout> | undefined
+
 /** The chip whose transform menu is open. */
 const transformTarget = ref<{
   from: number
@@ -331,6 +341,23 @@ function onPickerCommand(attrs: { expression: string }) {
   view.focus()
 }
 
+// ── Hint on a hovered chip ──
+
+function showChipHint(chip: HTMLElement) {
+  if (props.readOnly || transformTarget.value) return
+  clearTimeout(chipHintTimer)
+  chipHintTimer = setTimeout(() => {
+    if (!chip.isConnected || transformTarget.value) return
+    const rect = chip.getBoundingClientRect()
+    chipHint.value = { top: rect.top - POPOVER_GAP, left: rect.left + rect.width / 2 }
+  }, CHIP_HINT_DELAY)
+}
+
+function hideChipHint() {
+  clearTimeout(chipHintTimer)
+  chipHint.value = null
+}
+
 // ── Transform menu on a chip ──
 
 function openTransformMenu(editorView: EditorView, pos: number, chip: HTMLElement) {
@@ -401,6 +428,8 @@ const previewText = computed(() => {
     return t('labels.workflow.transforms.objectOf', { n: Object.keys(value).length }, Object.keys(value).length)
   return String(value)
 })
+
+const hasFieldPreview = computed(() => !!fieldPreview.value && (!!previewText.value || !!fieldPreview.value.error))
 
 function extensions(): Extension[] {
   return [
@@ -487,13 +516,31 @@ function extensions(): Extension[] {
       mousedown(event, editorView) {
         const chip = (event.target as HTMLElement | null)?.closest?.('.nc-workflow-expression') as HTMLElement | null
         if (!chip || props.readOnly) return false
+        hideChipHint()
         event.preventDefault()
         openTransformMenu(editorView, editorView.posAtDOM(chip), chip)
         return true
       },
+      mouseover(event) {
+        const chip = (event.target as HTMLElement | null)?.closest?.('.nc-workflow-expression') as HTMLElement | null
+        if (chip) showChipHint(chip)
+        else hideChipHint()
+        return false
+      },
+      mouseleave() {
+        hideChipHint()
+        return false
+      },
     }),
     EditorView.updateListener.of((update) => {
       if (update.focusChanged) isFocused.value = update.view.hasFocus
+      if (update.focusChanged || update.selectionSet || update.docChanged) {
+        const head = update.state.selection.main.head
+        isEditingExpression.value =
+          update.view.hasFocus &&
+          (openTokenStart(update.state, head) !== null ||
+            findWorkflowExpressionTokens(update.state.doc.toString()).some((token) => head > token.from && head < token.to))
+      }
       if (
         update.focusChanged &&
         update.view.hasFocus &&
@@ -616,6 +663,7 @@ useEventListener(
   ['scroll', 'resize'],
   (event: Event) => {
     const target = event.target as Node
+    hideChipHint()
     if (transformTarget.value && !transformMenuRef.value?.contains(target)) closeTransformMenu()
     if (picker.value && !(target instanceof Element && target.closest('.nc-workflow-code-picker'))) picker.value = null
   },
@@ -624,7 +672,10 @@ useEventListener(
 
 onMounted(createView)
 
-onBeforeUnmount(() => view?.destroy())
+onBeforeUnmount(() => {
+  clearTimeout(chipHintTimer)
+  view?.destroy()
+})
 </script>
 
 <template>
@@ -653,17 +704,36 @@ onBeforeUnmount(() => view?.destroy())
 
     <!-- What the field resolves to with the latest test data, while it is being edited. -->
     <div
-      v-if="fieldPreview && (previewText || fieldPreview.error)"
+      v-if="hasFieldPreview || (isEditingExpression && !readOnly)"
       class="nc-workflow-code-input-preview mt-1 px-1 text-captionSm truncate"
       data-testid="nc-workflow-code-input-preview"
     >
-      <span class="text-nc-content-gray-muted">=</span>
-      <span v-if="fieldPreview.error" class="ml-1 text-nc-content-red-dark">{{ fieldPreview.error }}</span>
-      <span v-else class="ml-1 text-nc-content-gray-subtle font-mono">{{ previewText }}</span>
+      <template v-if="hasFieldPreview">
+        <span class="text-nc-content-gray-muted">=</span>
+        <span v-if="fieldPreview?.error" class="ml-1 text-nc-content-red-dark">{{ fieldPreview.error }}</span>
+        <span v-else class="ml-1 text-nc-content-gray-subtle font-mono">{{ previewText }}</span>
+      </template>
+      <!-- `.` completions only show once typed, so say they exist while an expression is being edited. -->
+      <span
+        v-if="isEditingExpression && !readOnly"
+        class="text-nc-content-gray-muted"
+        data-testid="nc-workflow-code-input-dot-hint"
+      >
+        <template v-if="hasFieldPreview"> · </template>{{ $t('labels.workflow.transforms.dotHint') }}
+      </span>
     </div>
 
     <!-- `nc-dropdown`: the canvas keeps the step selected for clicks inside these. -->
     <Teleport to="body">
+      <div
+        v-if="chipHint"
+        class="nc-workflow-chip-hint fixed z-[10002] pointer-events-none -translate-x-1/2 -translate-y-full px-2 py-1 rounded-lg text-captionSm whitespace-nowrap"
+        :style="{ top: `${chipHint.top}px`, left: `${chipHint.left}px` }"
+        data-testid="nc-workflow-chip-hint"
+      >
+        {{ $t('labels.workflow.transforms.chipHint') }}
+      </div>
+
       <div
         v-if="picker"
         ref="pickerRootRef"
@@ -726,8 +796,36 @@ onBeforeUnmount(() => view?.destroy())
 
 :deep(.nc-workflow-expression) {
   @apply bg-nc-bg-brand text-nc-content-brand rounded px-1.5 mx-0.5 text-small cursor-pointer whitespace-nowrap;
-  @apply inline-flex items-center hover:bg-nc-brand-100 transition-colors;
+  @apply inline-flex items-center hover:bg-nc-brand-100 dark:hover:bg-nc-brand-20 transition-colors;
   line-height: 20px;
+
+  // A caret on hover says the chip opens a menu.
+  &::after {
+    content: '';
+    width: 0;
+    height: 4px;
+    border-color: currentColor;
+    border-style: solid;
+    border-width: 0;
+    opacity: 0;
+    transform: translateY(-1px) rotate(45deg);
+    transition: opacity 0.15s;
+  }
+
+  &:hover::after {
+    width: 4px;
+    margin-left: 5px;
+    border-width: 0 1.5px 1.5px 0;
+    opacity: 1;
+  }
+}
+
+.is-readonly :deep(.nc-workflow-expression) {
+  @apply cursor-default hover:bg-nc-bg-brand;
+
+  &:hover::after {
+    display: none;
+  }
 }
 
 // An expression being edited reads as code.
@@ -739,6 +837,15 @@ onBeforeUnmount(() => view?.destroy())
 </style>
 
 <style lang="scss">
+// Teleported, so styled here; matches NcTooltip's dark tooltip.
+.nc-workflow-chip-hint {
+  @apply bg-gray-800 text-white;
+}
+
+[theme='dark'] .nc-workflow-chip-hint {
+  background-color: var(--nc-bg-tooltip);
+}
+
 // Autocomplete renders on the page (see `tooltips`), so it is styled by its own class.
 .cm-tooltip.nc-workflow-cm-autocomplete {
   @apply rounded-xl bg-nc-bg-default border-0 overflow-hidden;

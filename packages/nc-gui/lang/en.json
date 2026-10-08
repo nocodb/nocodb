@@ -4739,6 +4739,8 @@
         "noneFit": "No transforms fit this value",
         "removeFrom": "Remove this and the steps after it",
         "editExpression": "Edit expression",
+        "chipHint": "Click to transform",
+        "dotHint": "Type . after a value for more options",
         "step": "Step",
         "stepOutput": "Output of a step",
         "kinds": {

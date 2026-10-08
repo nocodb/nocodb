@@ -12546,229 +12546,257 @@
           }
         },
       "ViewUpdate": {
-          "type": "object",
-          "allOf": [
-            {
-              "$ref": "#/components/schemas/ViewBaseInUpdate"
-            },
-            {
-              "oneOf": [
-                {
-                  "type": "object",
-                  "title": "grid",
-                  "properties": {
-                    "options": {
-                      "$ref": "#/components/schemas/ViewOptionsGrid"
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ViewBaseInUpdate"
+          },
+          {
+            "description": "The type-specific half of the body. `anyOf`, not `oneOf`: PATCH is partial, so a body that omits `type` constrains none of these branches.",
+            "anyOf": [
+              {
+                "type": "object",
+                "title": "grid",
+                "properties": {
+                  "type": {
+                    "const": "grid"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGrid"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
                     },
-                    "sorts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/SortCreate"
-                      },
-                      "description": "List of sorts to be applied to the view."
-                    },
-                    "filters": {
-                      "$ref": "#/components/schemas/FilterCreateUpdate"
-                    },
-                    "fields": {
-                      "$ref": "#/components/schemas/ViewFields"
-                    },
-                    "row_coloring": {
-                      "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the view."
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "title": "gallery",
-                  "properties": {
-                    "options": {
-                      "$ref": "#/components/schemas/ViewOptionsGallery"
-                    },
-                    "sorts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/SortCreate"
-                      },
-                      "description": "List of sorts to be applied to the view."
-                    },
-                    "filters": {
-                      "$ref": "#/components/schemas/FilterCreateUpdate"
-                    },
-                    "fields": {
-                      "$ref": "#/components/schemas/ViewFields"
-                    },
-                    "row_coloring": {
-                      "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the view."
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "title": "kanban",
-                  "properties": {
-                    "options": {
-                      "$ref": "#/components/schemas/ViewOptionsKanban"
-                    },
-                    "sorts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/SortCreate"
-                      },
-                      "description": "List of sorts to be applied to the view."
-                    },
-                    "filters": {
-                      "$ref": "#/components/schemas/FilterCreateUpdate"
-                    },
-                    "fields": {
-                      "$ref": "#/components/schemas/ViewFields"
-                    },
-                    "row_coloring": {
-                      "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the view."
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "title": "calendar",
-                  "properties": {
-                    "options": {
-                      "$ref": "#/components/schemas/ViewOptionsCalendar"
-                    },
-                    "sorts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/SortCreate"
-                      },
-                      "description": "List of sorts to be applied to the view."
-                    },
-                    "filters": {
-                      "$ref": "#/components/schemas/FilterCreateUpdate"
-                    },
-                    "fields": {
-                      "$ref": "#/components/schemas/ViewFields"
-                    },
-                    "row_coloring": {
-                      "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the view."
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "title": "timeline",
-                  "properties": {
-                    "options": {
-                      "$ref": "#/components/schemas/ViewOptionsTimeline"
-                    },
-                    "sorts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/SortCreate"
-                      },
-                      "description": "List of sorts to be applied to the view."
-                    },
-                    "filters": {
-                      "$ref": "#/components/schemas/FilterCreateUpdate"
-                    },
-                    "fields": {
-                      "$ref": "#/components/schemas/ViewFields"
-                    },
-                    "row_coloring": {
-                      "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the view."
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "title": "gantt",
-                  "properties": {
-                    "options": {
-                      "$ref": "#/components/schemas/ViewOptionsGantt"
-                    },
-                    "sorts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/SortCreate"
-                      },
-                      "description": "List of sorts to be applied to the view."
-                    },
-                    "filters": {
-                      "$ref": "#/components/schemas/FilterCreateUpdate"
-                    },
-                    "fields": {
-                      "$ref": "#/components/schemas/ViewFields"
-                    },
-                    "row_coloring": {
-                      "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the view."
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "title": "map",
-                  "properties": {
-                    "options": {
-                      "$ref": "#/components/schemas/ViewOptionsMap"
-                    },
-                    "sorts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/SortCreate"
-                      },
-                      "description": "List of sorts to be applied to the view."
-                    },
-                    "filters": {
-                      "$ref": "#/components/schemas/FilterCreateUpdate"
-                    },
-                    "fields": {
-                      "$ref": "#/components/schemas/ViewFields"
-                    },
-                    "row_coloring": {
-                      "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the view."
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "title": "form",
-                  "properties": {
-                    "options": {
-                      "$ref": "#/components/schemas/ViewOptionsForm"
-                    },
-                    "fields": {
-                      "$ref": "#/components/schemas/ViewFields"
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "title": "list",
-                  "properties": {
-                    "options": {
-                      "$ref": "#/components/schemas/ViewOptionsList"
-                    }
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the view."
                   }
                 }
-              ],
-              "discriminator": {
-                "propertyName": "type"
+              },
+              {
+                "type": "object",
+                "title": "gallery",
+                "properties": {
+                  "type": {
+                    "const": "gallery"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGallery"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "kanban",
+                "properties": {
+                  "type": {
+                    "const": "kanban"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsKanban"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "calendar",
+                "properties": {
+                  "type": {
+                    "const": "calendar"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsCalendar"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "timeline",
+                "properties": {
+                  "type": {
+                    "const": "timeline"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsTimeline"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "gantt",
+                "properties": {
+                  "type": {
+                    "const": "gantt"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGantt"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "map",
+                "properties": {
+                  "type": {
+                    "const": "map"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsMap"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "form",
+                "properties": {
+                  "type": {
+                    "const": "form"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsForm"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "list",
+                "properties": {
+                  "type": {
+                    "const": "list"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsList"
+                  }
+                }
               }
+            ],
+            "discriminator": {
+              "propertyName": "type"
             }
-          ],
-          "errorMessage": {
-            "oneOf": "Invalid view type or options. Ensure the view type is valid and its properties match the expected schema."
-          },
-          "discriminator": {
-            "propertyName": "type"
           }
+        ],
+        "errorMessage": {
+          "oneOf": "Invalid view type or options. Ensure the view type is valid and its properties match the expected schema."
         },
+        "discriminator": {
+          "propertyName": "type"
+        }
+      },
       "View": {
         "type": "object",
         "allOf": [
@@ -14682,7 +14710,8 @@
             "$ref": "#/components/schemas/FieldBase"
           },
           {
-            "oneOf": [
+            "description": "The type-specific half of the body. `anyOf`, not `oneOf`: PATCH is partial, so a body that omits `type` constrains none of these branches.",
+            "anyOf": [
               {
                 "$ref": "#/components/schemas/FieldOptions/SingleLineText"
               },
@@ -14909,11 +14938,104 @@
                     "$ref": "#/components/schemas/FieldOptions_LinkToAnotherRecord"
                   }
                 }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Rollup"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Rollup"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Button"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Button"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Attachment"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Attachment"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "QrCode"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_QrCode"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "CreatedTime",
+                      "LastModifiedTime"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_DateTime"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "CreatedBy"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_CreatedBy"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "LastModifiedBy"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_LastModifiedBy"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Geometry",
+                      "Year",
+                      "AutoNumber"
+                    ]
+                  }
+                }
               }
-            ],
-            "errorMessage": {
-              "oneOf": "Invalid field type or options. Ensure 'type' is a valid field type and 'options' matches the schema for that type."
-            }
+            ]
           }
         ],
         "minProperties": 1
@@ -17383,50 +17505,95 @@
       "WidgetCreateReq": {
         "description": "Widget create request body",
         "type": "object",
-        "required": ["title", "type"],
+        "required": [
+          "title",
+          "type"
+        ],
         "properties": {
           "title": {
             "type": "string",
             "description": "Title of the widget."
           },
           "description": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Description of the widget."
           },
           "type": {
             "type": "string",
-            "enum": ["chart", "metric", "text", "iframe"],
+            "enum": [
+              "chart",
+              "metric",
+              "text",
+              "iframe"
+            ],
             "description": "Type of the widget. `gauge`, `table` and `pivot` exist and are returned by read, but are not accepted here yet."
           },
           "options": {
-            "description": "Widget configuration. Structure depends on widget type.",
-            "oneOf": [
-              { "$ref": "#/components/schemas/WidgetOptionsMetric" },
-              { "$ref": "#/components/schemas/WidgetOptionsPieChart" },
-              { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
-              { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
-              { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
-              { "$ref": "#/components/schemas/WidgetOptionsScatter" },
-              { "$ref": "#/components/schemas/WidgetOptionsText" },
-              { "$ref": "#/components/schemas/WidgetOptionsIframe" }
+            "description": "Widget configuration. `anyOf`, not `oneOf`: the metric, text and iframe shapes constrain nothing, so they overlap every chart body by construction.",
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WidgetOptionsMetric"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsText"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsIframe"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsPieChart"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsDonutChart"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsBarChart"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsLineChart"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsScatter"
+              }
             ]
           },
           "position": {
             "type": "object",
             "description": "Position and size of the widget on the dashboard grid.",
             "properties": {
-              "x": { "type": "number", "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column." },
-              "y": { "type": "number", "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row." },
-              "w": { "type": "number", "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)." },
-              "h": { "type": "number", "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall." }
+              "x": {
+                "type": "number",
+                "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column."
+              },
+              "y": {
+                "type": "number",
+                "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row."
+              },
+              "w": {
+                "type": "number",
+                "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)."
+              },
+              "h": {
+                "type": "number",
+                "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall."
+              }
             }
           },
           "table_id": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Unique identifier for the associated table."
           },
           "view_id": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Unique identifier for the associated view."
           }
         }
@@ -17440,20 +17607,39 @@
             "description": "Title of the widget."
           },
           "description": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Description of the widget."
           },
           "options": {
-            "description": "Widget configuration. Structure depends on widget type.",
-            "oneOf": [
-              { "$ref": "#/components/schemas/WidgetOptionsMetric" },
-              { "$ref": "#/components/schemas/WidgetOptionsPieChart" },
-              { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
-              { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
-              { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
-              { "$ref": "#/components/schemas/WidgetOptionsScatter" },
-              { "$ref": "#/components/schemas/WidgetOptionsText" },
-              { "$ref": "#/components/schemas/WidgetOptionsIframe" }
+            "description": "Widget configuration. `anyOf`, not `oneOf`: the metric, text and iframe shapes constrain nothing, so they overlap every chart body by construction.",
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WidgetOptionsMetric"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsText"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsIframe"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsPieChart"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsDonutChart"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsBarChart"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsLineChart"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsScatter"
+              }
             ]
           },
           "order": {
@@ -17464,18 +17650,36 @@
             "type": "object",
             "description": "Position and size of the widget on the dashboard grid.",
             "properties": {
-              "x": { "type": "number", "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column." },
-              "y": { "type": "number", "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row." },
-              "w": { "type": "number", "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)." },
-              "h": { "type": "number", "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall." }
+              "x": {
+                "type": "number",
+                "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column."
+              },
+              "y": {
+                "type": "number",
+                "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row."
+              },
+              "w": {
+                "type": "number",
+                "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)."
+              },
+              "h": {
+                "type": "number",
+                "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall."
+              }
             }
           },
           "table_id": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Unique identifier for the associated table."
           },
           "view_id": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Unique identifier for the associated view."
           }
         }

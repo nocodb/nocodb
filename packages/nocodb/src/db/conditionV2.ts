@@ -21,6 +21,10 @@ import {
   getColumnName,
 } from '~/helpers/dbHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
+import {
+  isLinkedRecordColumn,
+  resolveLinkedRecordDynamicFilter,
+} from '~/db/linkedRecordDynamicFilter';
 import Filter from '~/models/Filter';
 import { getModelContext, setModelContext } from '~/helpers/modelContext';
 import { getAliasGenerator } from '~/utils';
@@ -916,7 +920,8 @@ const parseConditionV2 = async (
  *  - false: cannot resolve — caller should skip (empty clause)
  *  - FilterOperationResult: cross-table — caller returns this directly
  *
- * Virtual columns (Lookup, Rollup, Formula, etc.) are not supported.
+ * Link / Lookup-of-Link columns compare linked records; other virtual
+ * columns (Rollup, Formula, etc.) are not supported.
  */
 async function resolveDynamicFilterValue(
   context: NcContext,
@@ -932,6 +937,21 @@ async function resolveDynamicFilterValue(
   });
   if (!valueColumn) {
     return false;
+  }
+
+  // Link / Lookup-of-Link on both sides: match on the linked record itself.
+  if (isLinkedRecordColumn(valueColumn) && isLinkedRecordColumn(filterColumn)) {
+    if (!baseModelSqlv2 || !aliasCount) return false;
+    return resolveLinkedRecordDynamicFilter(
+      context,
+      knex,
+      filter,
+      filterColumn,
+      valueColumn,
+      alias,
+      baseModelSqlv2,
+      aliasCount,
+    );
   }
 
   // Virtual columns (Lookup, Rollup, Formula, etc.) don't have a physical

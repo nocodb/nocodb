@@ -490,10 +490,12 @@ const handleScrollIntoView = () => {
               <div v-if="limitRecToCond" class="overflow-auto nc-scrollbar-thin">
                 <LazySmartsheetToolbarColumnFilter
                   ref="filterRef"
-                  class="!pl-10 !p-0 max-w-620px"
+                  class="!pl-8 !p-0"
                   :auto-save="false"
                   :show-loading="false"
                   link
+                  flush
+                  hide-sole-where
                   :show-dynamic-condition="false"
                   :root-meta="meta"
                   :link-col-id="vModel.id"

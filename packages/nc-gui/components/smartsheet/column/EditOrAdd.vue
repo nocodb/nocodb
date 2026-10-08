@@ -848,8 +848,9 @@ const isLookupOrRollup = computed(() => {
   return formState.value.uidt === UITypes.Lookup || formState.value.uidt === UITypes.Rollup
 })
 
-const lookupRollupFilterEnabled = computed(() => {
-  return isLookupOrRollup.value && !!parseProp(formState.value?.meta)?.enableConditions
+// Limit-by-filter rows need the extra width to fit on one line
+const recordFilterEnabled = computed(() => {
+  return (isLookupOrRollup.value || isLinksOrLTAR(formState.value.uidt)) && !!parseProp(formState.value?.meta)?.enableConditions
 })
 
 const easterEggCount = ref(0)
@@ -878,7 +879,7 @@ const unique = computed({
       'bg-nc-bg-default max-h-[max(80vh,500px)]': !props.fromTableExplorer,
       'w-[416px]': !props.embedMode,
       '!w-[500px]': isLinksOrLTAR(formState.uidt),
-      '!min-w-[560px]': lookupRollupFilterEnabled,
+      '!min-w-[600px]': recordFilterEnabled,
       'min-w-[500px] !w-full': isLinksOrLTAR(formState.uidt) || isLookupOrRollup,
       'shadow-lg shadow-gray-300 dark:shadow-black/40 border-1 border-nc-border-gray-medium rounded-2xl p-5': !embedMode,
       'nc-ai-mode': isAiMode,
@@ -1921,6 +1922,16 @@ const unique = computed({
 
 :deep(.ant-select-selection-item) {
   @apply flex items-center;
+}
+
+// NcSelect is semibold by default; match the dialog's other selects
+:deep(.nc-filter-wrapper .ant-select-selection-item) {
+  font-weight: 400 !important;
+}
+
+// Lift the toolbar's 80px label cap; the select's own width truncates instead
+:deep(.nc-filter-field-select .ant-select-selector .field-selection-tooltip-wrapper) {
+  @apply !max-w-none;
 }
 
 :deep(.ant-form-item-explain) {

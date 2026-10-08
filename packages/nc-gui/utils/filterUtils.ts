@@ -11,6 +11,7 @@ import {
   isBtLikeV2Junction,
   isComparisonOpAllowed,
   isDateType,
+  isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
   parseProp,
@@ -174,6 +175,12 @@ export const isDynamicFilterAllowed = (filter: ColumnFilterType, column?: Column
   if (!['integer', 'float', 'text', 'string'].includes(abstractType)) return false
 
   return !filter.comparison_op || ['eq', 'lt', 'gt', 'lte', 'gte', 'like', 'nlike', 'neq'].includes(filter.comparison_op)
+}
+
+// Table whose records a Link column (or the Link leaf of a Lookup) points at
+export const getLinkedRecordTargetId = (column?: ColumnType) => {
+  if (!column || !isLinksOrLTAR(column)) return undefined
+  return (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
 }
 
 export const getDynamicColumns = (metaColumns: ColumnType[], column?: ColumnType, dbClientType?: ClientType) => {

@@ -382,11 +382,11 @@ defineExpose({
             :class="index === selectedNodeIndex ? 'text-nc-content-gray-emphasis' : 'text-nc-content-gray'"
             show-on-truncate-only
             placement="right"
+            overlay-class-name="!z-[10002]"
           >
             <template #title>{{ node.nodeTitle }}</template>
             {{ node.nodeTitle }}
           </NcTooltip>
-          <span class="flex-none text-captionSm text-nc-content-gray-muted tabular-nums">{{ node.variables.length }}</span>
         </button>
 
         <div v-if="nodeGroups.length === 0" class="px-2 py-6 text-center text-captionSm text-nc-content-gray-muted">

@@ -591,8 +591,7 @@ export class UsersService {
     this.validateEmailPattern(email);
 
     // Check for existing user by canonical email to prevent alias abuse
-    let user =
-      (await User.getByCanonicalEmail(email)) || (await User.getByEmail(email));
+    let user = await User.getByCanonicalEmail(email);
 
     if (user) {
       if (token) {
@@ -607,6 +606,9 @@ export class UsersService {
         // todo : opening up signup for timebeing
         // return next(new Error(`Email '${email}' already registered`));
       }
+    } else if (token) {
+      // e.g. an invite made out to an alias, which never resolves to this address
+      NcError.badRequest(`Invalid invite url`);
     }
 
     const salt = await promisify(bcrypt.genSalt)(10);
@@ -634,9 +636,7 @@ export class UsersService {
     } else {
       const { createdProject: _createdProject } = await withSignupClaim(
         email,
-        async () =>
-          (await User.getByCanonicalEmail(email)) ||
-          (await User.getByEmail(email)),
+        () => User.getByCanonicalEmail(email),
         () =>
           this.registerNewUserIfAllowed({
             email,

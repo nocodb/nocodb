@@ -322,7 +322,11 @@ export default class User implements UserType {
     // A cached soft-deleted row must not short-circuit the live lookup — see
     // getByEmail. Treat a cached soft-deleted hit as a miss and re-query.
     // Entries cached before alias rows were excluded may still hold one.
-    if (user && (user.is_deleted || isEmailAlias(user.email))) user = null;
+    // Drop the stale key so it heals even when no live sibling replaces it.
+    if (user && (user.is_deleted || isEmailAlias(user.email))) {
+      user = null;
+      await NocoCache.del('root', `${CacheScope.USER}:canonical:${canonical}`);
+    }
 
     if (!user && canonical) {
       // Resolve to a LIVE row, never a soft-deleted one — see getByEmail. A

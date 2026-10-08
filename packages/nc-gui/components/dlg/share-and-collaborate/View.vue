@@ -323,7 +323,13 @@ function openCompose() {
 
 function openLinks() {
   screen.value = 'links'
-  $e(isInterfaceContext.value ? 'c:interface:invite:link:list:open' : 'c:base:invite:link:list:open')
+  $e(
+    isInterfaceContext.value
+      ? 'c:interface:invite:link:list:open'
+      : isAppContext.value
+      ? 'c:app:invite:link:list:open'
+      : 'c:base:invite:link:list:open',
+  )
 }
 
 /** Back to the list when there is a list to go back to, otherwise the hub. */
@@ -332,7 +338,14 @@ function afterEditLink() {
 }
 
 function openEditLink(linkId: string, isNew = false) {
-  $e(isInterfaceContext.value ? 'c:interface:invite:link:settings:open' : 'c:base:invite:link:settings:open', { isNew })
+  $e(
+    isInterfaceContext.value
+      ? 'c:interface:invite:link:settings:open'
+      : isAppContext.value
+      ? 'c:app:invite:link:settings:open'
+      : 'c:base:invite:link:settings:open',
+    { isNew },
+  )
 
   editLinkId.value = linkId
   editLinkIsNew.value = isNew

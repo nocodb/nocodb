@@ -75,6 +75,8 @@ async function onRoleChange(next: string) {
       ? 'c:ws:invite:link:role:change'
       : isInterfaceInvite.value
       ? 'c:interface:invite:link:role:change'
+      : isAppInvite.value
+      ? 'c:app:invite:link:team:change'
       : 'c:base:invite:link:role:change',
     {
       scope: inviteTarget.value?.scope,
@@ -116,6 +118,8 @@ async function onCopy() {
             ? 'a:ws:invite:link:create'
             : isInterfaceInvite.value
             ? 'a:interface:invite:link:create'
+            : isAppInvite.value
+            ? 'a:app:invite:link:create'
             : 'a:base:invite:link:create',
           {
             scope: inviteTarget.value?.scope,
@@ -137,6 +141,8 @@ async function onCopy() {
         ? 'c:ws:invite:link:copy'
         : isInterfaceInvite.value
         ? 'c:interface:invite:link:copy'
+        : isAppInvite.value
+        ? 'c:app:invite:link:copy'
         : 'c:base:invite:link:copy',
       {
         scope: inviteTarget.value?.scope,

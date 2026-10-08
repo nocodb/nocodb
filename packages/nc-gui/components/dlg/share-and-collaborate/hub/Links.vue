@@ -91,6 +91,8 @@ async function copyRow(id: string) {
         ? 'c:ws:invite:link:copy'
         : isInterfaceInvite.value
         ? 'c:interface:invite:link:copy'
+        : isAppInvite.value
+        ? 'c:app:invite:link:copy'
         : 'c:base:invite:link:copy',
       {
         from: 'list',
@@ -188,6 +190,8 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
                 ? 'c:ws:invite:link:settings:open'
                 : isInterfaceInvite
                 ? 'c:interface:invite:link:settings:open'
+                : isAppInvite
+                ? 'c:app:invite:link:settings:open'
                 : 'c:base:invite:link:settings:open',
               { from: 'list' },
             ]"

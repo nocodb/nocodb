@@ -138,11 +138,15 @@ async function onSave() {
           ? 'a:ws:invite:link:create'
           : isInterfaceInvite.value
           ? 'a:interface:invite:link:create'
+          : isAppInvite.value
+          ? 'a:app:invite:link:create'
           : 'a:base:invite:link:create'
         : isWorkspaceInvite.value
         ? 'a:ws:invite:link:update'
         : isInterfaceInvite.value
         ? 'a:interface:invite:link:update'
+        : isAppInvite.value
+        ? 'a:app:invite:link:update'
         : 'a:base:invite:link:update',
       {
         role: draft.role,
@@ -168,6 +172,8 @@ async function onDelete() {
         ? 'a:ws:invite:link:revoke'
         : isInterfaceInvite.value
         ? 'a:interface:invite:link:revoke'
+        : isAppInvite.value
+        ? 'a:app:invite:link:revoke'
         : 'a:base:invite:link:revoke',
     )
 

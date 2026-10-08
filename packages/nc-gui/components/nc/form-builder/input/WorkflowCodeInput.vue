@@ -105,6 +105,9 @@ const TRANSFORM_MENU_SIZE = { width: 320, height: 440 }
 // Marks our own writes, so they neither echo back as user edits nor close the menu they came from.
 const programmatic = Annotation.define<boolean>()
 
+// Marks a value the parent set; flattening it for a single-line field isn't an edit to send back.
+const fromParent = Annotation.define<boolean>()
+
 // Chip labels depend on the variables; changing them redraws the chips.
 const refreshChips = StateEffect.define<null>()
 
@@ -468,6 +471,7 @@ function extensions(): Extension[] {
             // Keep the caret after inserted text and the annotations that tell user edits from parent writes.
             const userEvent = tr.annotation(Transaction.userEvent)
             const isProgrammatic = tr.annotation(programmatic)
+            const isFromParent = tr.annotation(fromParent)
             return {
               changes,
               selection: tr.startState.selection.map(changes, 1),
@@ -476,6 +480,7 @@ function extensions(): Extension[] {
               annotations: [
                 ...(userEvent ? [Transaction.userEvent.of(userEvent)] : []),
                 ...(isProgrammatic !== undefined ? [programmatic.of(isProgrammatic)] : []),
+                ...(isFromParent ? [fromParent.of(true)] : []),
               ],
             }
           }),
@@ -589,7 +594,8 @@ function extensions(): Extension[] {
       const value = update.state.doc.toString()
       const draft = pickerDraft(update.state)
       const nextValue = draft ? value.slice(0, draft.from) + value.slice(draft.to) : value
-      if (nextValue !== (props.modelValue ?? '')) emit('update:modelValue', nextValue)
+      const isParentWrite = update.transactions.every((tr) => tr.annotation(fromParent))
+      if (nextValue !== (props.modelValue ?? '') && !isParentWrite) emit('update:modelValue', nextValue)
       if (isOurs) return
 
       if (
@@ -652,7 +658,7 @@ watch(
     if (!view || (value ?? '') === view.state.doc.toString()) return
     view.dispatch({
       changes: { from: 0, to: view.state.doc.length, insert: value ?? '' },
-      annotations: programmatic.of(false),
+      annotations: [programmatic.of(false), fromParent.of(true)],
     })
   },
 )

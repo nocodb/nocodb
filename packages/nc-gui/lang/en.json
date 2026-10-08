@@ -4649,16 +4649,6 @@
       },
       "summary": {
         "conditions": "{n} condition | {n} conditions",
-        "ops": {
-          "eq": "=",
-          "neq": "≠",
-          "gt": ">",
-          "gte": "≥",
-          "lt": "<",
-          "lte": "≤",
-          "like": "contains",
-          "nlike": "does not contain"
-        },
         "waitFor": "Wait {duration} {unit}",
         "waitUntil": "Wait until {time}",
         "sendTo": "To {to}",

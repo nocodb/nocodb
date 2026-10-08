@@ -2196,7 +2196,6 @@ function interfaceTableSuffix(details: {
   return ` across ${count} tables`;
 }
 
-/** `page 'X' of ` — grants target either the whole interface or one page. */
 /** An interface link is recorded against its base; name the interface when there is one. */
 function inviteLinkTarget(details: { interface_title?: string }) {
   return details.interface_title
@@ -2204,6 +2203,7 @@ function inviteLinkTarget(details: { interface_title?: string }) {
     : 'base';
 }
 
+/** `page 'X' of ` — grants target either the whole interface or one page. */
 function interfaceGrantScope(details: {
   page_title?: string;
   page_id?: string;

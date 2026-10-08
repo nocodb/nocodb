@@ -20,6 +20,8 @@ import { WorkflowVariableInj } from '~/context'
 interface NodeGroup {
   nodeId: string
   nodeTitle: string
+  /** Real step title when `nodeTitle` is a display label. */
+  stepTitle?: string
   variables: VariableDefinition[]
 }
 
@@ -217,7 +219,7 @@ function stepCompletions(partial: string, from: number): CompletionResult {
       .filter((group) => group.nodeTitle.toLowerCase().includes(partial.toLowerCase()))
       .map((group) => ({
         label: group.nodeTitle,
-        apply: `$('${group.nodeTitle}')`,
+        apply: `$('${group.stepTitle ?? group.nodeTitle}')`,
         type: 'namespace',
         detail: t('labels.workflow.transforms.step'),
       })),
@@ -326,7 +328,7 @@ function onPickerCommand(attrs: { expression: string }) {
 // ── Transform menu on a chip ──
 
 function openTransformMenu(editorView: EditorView, pos: number, chip: HTMLElement) {
-  const token = findWorkflowExpressionTokens(editorView.state.doc.toString()).find((tk) => pos >= tk.from && pos <= tk.to)
+  const token = findWorkflowExpressionTokens(editorView.state.doc.toString()).find((tk) => pos >= tk.from && pos < tk.to)
   if (!token) return
   const { base, steps } = parseWorkflowExpressionTransforms(token.expression)
   transformTarget.value = {

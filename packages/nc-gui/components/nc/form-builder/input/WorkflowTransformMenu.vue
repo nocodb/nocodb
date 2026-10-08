@@ -135,7 +135,7 @@ onMounted(() => searchRef.value?.focus())
         <input
           ref="searchRef"
           v-model="search"
-          class="flex-1 min-w-0 bg-transparent outline-none text-caption text-nc-content-gray placeholder:text-nc-content-gray-muted"
+          class="flex-1 min-w-0 bg-transparent outline-none text-bodyDefaultSm text-nc-content-gray placeholder:text-nc-content-gray-muted"
           :placeholder="t('labels.workflow.transforms.search')"
           data-testid="nc-workflow-transform-search"
           @keydown="onSearchKeydown"
@@ -192,7 +192,7 @@ onMounted(() => searchRef.value?.focus())
           v-for="transform in group.transforms"
           :key="transform.id"
           type="button"
-          class="w-full flex items-center gap-2 px-3 h-8 text-left text-caption text-nc-content-gray transition-colors"
+          class="w-full flex items-center gap-2 px-3 h-8 text-left text-bodyDefaultSm text-nc-content-gray transition-colors"
           :class="flatOffered[activeIndex]?.id === transform.id ? 'bg-nc-bg-gray-light' : 'hover:bg-nc-bg-gray-light'"
           :data-testid="`nc-workflow-transform-${transform.id}`"
           @click="addStep(transform.id)"

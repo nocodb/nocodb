@@ -4321,7 +4321,9 @@
       "emptyBody": "Create a token to call this app's actions from a script, a service, or an MCP client."
     },
     "appShare": {
-      "customTeamDescription": "A team this app defines."
+      "customTeamDescription": "A team this app defines.",
+      "membersTeamDescription": "Uses the app.",
+      "adminTeamDescription": "Uses the app and manages its members."
     },
     "appAccess": {
       "allBaseMembers": "All project members",
@@ -6482,7 +6484,9 @@
       "publicLinkToNamed": "Public link to {name}",
       "readOnlyInviteInstead": "Read-only. Need them to edit or comment?",
       "appPublicInviteInstead": "Visitors reach only what is public. Need them signed in?",
+      "appShareNotDeployed": "Not deployed yet. People you invite can open the app once you deploy it.",
       "willJoinAsRole": "{count} person will join as {role} and can {can}. | {count} people will join as {role} and can {can}.",
+      "willJoinTeam": "{count} person will join {team}. | {count} people will join {team}.",
       "sharePublicLinkSubtitle": "Anyone with the link can open it. No account needed.",
       "shareLinksReadOnly": "Links are read-only. Want them to edit or comment?",
       "bulkUpdateConfirm": "The value of {fields} field will be applied to every selected record. | The values of {fields} fields will be applied to every selected record.",

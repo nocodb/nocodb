@@ -37,6 +37,9 @@ const isWorkspaceInvite = computed(() => inviteTarget.value?.scope === InviteLin
 
 const isInterfaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.INTERFACE)
 
+/** An app link names a team, not a permission. */
+const isAppInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.APP)
+
 const { $e } = useNuxtApp()
 
 const { t } = useI18n()
@@ -182,7 +185,9 @@ watch(link, resetDraft, { immediate: true })
     <div v-if="createdBy" class="text-bodyDefaultSm text-nc-content-gray-muted -mt-1">{{ createdBy }}</div>
 
     <div class="flex flex-col gap-1.5">
-      <div class="text-bodyDefaultSm font-semibold text-nc-content-gray-subtle2">{{ $t('labels.permission') }}</div>
+      <div class="text-bodyDefaultSm font-semibold text-nc-content-gray-subtle2">
+        {{ isAppInvite ? $t('objects.team') : $t('labels.permission') }}
+      </div>
       <RolesSelectorV2
         :on-role-change="onRoleChange"
         :role="draft.role"

@@ -10,6 +10,7 @@ export function useAppShareHub() {
     canCreateLink: computed(() => false),
     canManageMembers: computed(() => false),
     canSharePublic: computed(() => false),
+    isLive: computed(() => true),
     linkTarget: computed<InviteLinkTarget | null>(() => null),
     teams: computed<InviteLinkTeam[]>(() => []),
     members: ref<{ email: string }[]>([]),

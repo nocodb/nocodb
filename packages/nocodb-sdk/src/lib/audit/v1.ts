@@ -63,6 +63,7 @@ enum AuditV1OperationTypes {
   BASE_INVITE_LINK_CREATE = 'BASE_INVITE_LINK_CREATE',
   BASE_INVITE_LINK_UPDATE = 'BASE_INVITE_LINK_UPDATE',
   BASE_INVITE_LINK_REVOKE = 'BASE_INVITE_LINK_REVOKE',
+  APP_INVITE_LINK_ACCEPT = 'APP_INVITE_LINK_ACCEPT',
   BASE_TEAM_UPDATE = 'BASE_TEAM_UPDATE',
   BASE_TEAM_DELETE = 'BASE_TEAM_DELETE',
 
@@ -639,6 +640,13 @@ export interface InviteLinkPayload {
   workspace_title?: string;
   interface_title?: string;
   app_title?: string;
+  /** App links: the team the link adds people to. */
+  team_title?: string;
+}
+
+export interface AppInviteLinkAcceptPayload extends InviteLinkPayload {
+  user_email: string;
+  user_id: string;
 }
 
 export interface InviteLinkUpdatePayload
@@ -2271,6 +2279,14 @@ const descriptionTemplates = {
     audit.details?.via === 'invite_link'
       ? `User '${audit.details.user_email}' joined base via invite link`
       : `User '${audit.user}' invited '${audit.details.user_email}' to base`,
+  [AuditV1OperationTypes.APP_INVITE_LINK_ACCEPT]: (
+    audit: AuditV1<AppInviteLinkAcceptPayload>
+  ) =>
+    `User '${audit.details.user_email}' joined app '${
+      audit.details.app_title
+    }'${
+      audit.details.team_title ? ` in team '${audit.details.team_title}'` : ''
+    } via invite link`,
   [AuditV1OperationTypes.BASE_INVITE_LINK_CREATE]: (
     audit: AuditV1<InviteLinkPayload>
   ) =>

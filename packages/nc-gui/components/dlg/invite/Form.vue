@@ -357,6 +357,9 @@ const fieldHint = computed(() => {
   // is the overload that carries `role` and `can` through.
   const role = roleCopy(count)
 
+  // A team description is a sentence of its own, not a verb phrase.
+  if (props.type === 'app') return t('msg.info.willJoinTeam', { count, team: role.label }, count)
+
   return t('msg.info.willJoinAsRole', { count, role: role.label, can: role.can }, count)
 })
 

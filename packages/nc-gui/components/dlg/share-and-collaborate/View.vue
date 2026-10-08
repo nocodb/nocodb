@@ -424,6 +424,9 @@ watch(showShareModal, (val) => {
         resetInviteLinks()
       }
     } else if (isAppContext.value) {
+      // The link list is global; never show another target's links while the teams load.
+      resetInviteLinks()
+
       appShare.load().then(() => {
         loadMemberCount()
 
@@ -491,6 +494,14 @@ watch(showShareModal, (val) => {
             <template #tab>
               <span data-testid="nc-share-tab-invite">{{ $t('activity.inviteTeam') }}</span>
             </template>
+
+            <NcAlert
+              v-if="isAppContext && !appShare.isLive.value"
+              type="info"
+              class="nc-share-app-not-live mx-7 mt-5 !p-3"
+              :description="$t('msg.info.appShareNotDeployed')"
+              data-testid="nc-share-app-not-live"
+            />
 
             <DlgShareAndCollaborateHubMain
               :member-count="memberCount"

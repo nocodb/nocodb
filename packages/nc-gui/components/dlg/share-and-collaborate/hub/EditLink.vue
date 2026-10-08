@@ -2,9 +2,17 @@
 import { InviteLinkScope } from 'nocodb-sdk'
 
 /** `linkId` is empty while `isNew` — a new link is a draft until it is saved. */
-const props = withDefaults(defineProps<{ linkId?: string; isNew?: boolean }>(), { linkId: '', isNew: false })
+const props = withDefaults(
+  defineProps<{
+    linkId?: string
+    isNew?: boolean
+    /** Plan-gated: Delete stays available, Save asks for an upgrade. */
+    blocked?: boolean
+  }>(),
+  { linkId: '', isNew: false, blocked: false },
+)
 
-const emit = defineEmits(['done'])
+const emit = defineEmits(['done', 'blocked'])
 
 const {
   links,
@@ -97,6 +105,8 @@ function useDomainRestriction() {
 
 async function onSave() {
   if (!canSave.value) return
+
+  if (props.blocked) return emit('blocked')
 
   isSaving.value = true
 

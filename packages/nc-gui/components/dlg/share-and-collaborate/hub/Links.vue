@@ -1,7 +1,12 @@
 <script lang="ts" setup>
 import { InviteLinkScope, RoleLabels } from 'nocodb-sdk'
 
-const emit = defineEmits(['editLink'])
+const props = defineProps<{
+  /** Plan-gated: listing and revoking stay open; creating and copying ask for an upgrade. */
+  blocked?: boolean
+}>()
+
+const emit = defineEmits(['editLink', 'blocked'])
 
 const { t } = useI18n()
 
@@ -61,6 +66,8 @@ function unusableNote(reason?: string) {
 }
 
 async function copyRow(id: string) {
+  if (props.blocked) return emit('blocked')
+
   const link = links.value.find((l) => l.id === id)
   if (!link) return
 
@@ -90,6 +97,8 @@ async function copyRow(id: string) {
  * Delete while the link is new.
  */
 function onCreate() {
+  if (props.blocked) return emit('blocked')
+
   emit('editLink', '', true)
 }
 

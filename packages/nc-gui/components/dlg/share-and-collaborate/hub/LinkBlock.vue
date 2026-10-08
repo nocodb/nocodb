@@ -59,6 +59,8 @@ const hasLink = computed(() => !!primary.value)
 const ctaLabel = computed(() => (hasLink.value ? t('activity.copyInviteLink') : t('activity.createInviteLink')))
 
 async function onRoleChange(next: string) {
+  if (props.blocked) return emit('blocked')
+
   $e(isWorkspaceInvite.value ? 'c:ws:invite:link:role:change' : 'c:base:invite:link:role:change', {
     scope: inviteTarget.value?.scope,
     role: next,
@@ -139,7 +141,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
         v-if="links.length"
         class="nc-hub-manage-links flex-none text-bodySm text-nc-content-gray-muted hover:text-nc-content-gray"
         data-testid="nc-hub-all-links"
-        @click="emit(props.blocked ? 'blocked' : 'manage')"
+        @click="emit('manage')"
       >
         {{ $t('msg.info.inviteLinkCount', { count: links.length }, links.length) }}
       </button>

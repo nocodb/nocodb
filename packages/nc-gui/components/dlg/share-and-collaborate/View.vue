@@ -530,9 +530,21 @@ watch(showShareModal, (val) => {
           @sent="onInviteSent"
         />
 
-        <DlgShareAndCollaborateHubLinks v-else-if="screen === 'links'" @edit-link="openEditLink" />
+        <DlgShareAndCollaborateHubLinks
+          v-else-if="screen === 'links'"
+          :blocked="isInterfaceContext && interfaceShare.isBlocked.value"
+          @edit-link="openEditLink"
+          @blocked="interfaceShare.showUpgrade"
+        />
 
-        <DlgShareAndCollaborateHubEditLink v-else :link-id="editLinkId" :is-new="editLinkIsNew" @done="afterEditLink" />
+        <DlgShareAndCollaborateHubEditLink
+          v-else
+          :link-id="editLinkId"
+          :is-new="editLinkIsNew"
+          :blocked="isInterfaceContext && interfaceShare.isBlocked.value"
+          @done="afterEditLink"
+          @blocked="interfaceShare.showUpgrade"
+        />
       </template>
     </div>
   </a-modal>

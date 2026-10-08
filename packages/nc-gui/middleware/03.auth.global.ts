@@ -205,7 +205,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       // context resolves; a half-populated user.roles can otherwise bounce
       // the user to / and complete a redirect loop.
       if (state.user.value?.id && state.user.value.roles?.guest) {
-        message.error("You don't have enough permission to access the base.")
+        message.error("You don't have enough permission to access the project.")
 
         return navigateTo('/')
       }

@@ -428,7 +428,7 @@ onKeyStroke('Enter', () => {
 
       <template v-else-if="status === 'success'">
         <div class="text-nc-content-gray-emphasis my-5 font-medium">
-          Base <span class="font-bold leading-5">"{{ base.title }}"</span> has finished duplication.
+          Project <span class="font-bold leading-5">"{{ base.title }}"</span> has finished duplication.
         </div>
       </template>
 

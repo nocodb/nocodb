@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { VariableDefinition, WorkflowNodeCategory } from 'nocodb-sdk'
+import type { VariableDefinition, WorkflowNodeCategory, WorkflowValueKind } from 'nocodb-sdk'
 import { getWorkflowVariableKind } from 'nocodb-sdk'
 
 interface NodeGroup {
@@ -14,6 +14,8 @@ interface Props {
   groupedItems?: NodeGroup[]
   command: (attrs: { id: string; label: string; expression: string }) => void
   query?: string
+  /** Kinds the field takes; other values are shown disabled. Unset means anything. */
+  accepts?: WorkflowValueKind[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -154,8 +156,34 @@ const variableSections = computed(() =>
 // Keyboard moves through rows in the order they are shown.
 const orderedVariables = computed(() => variableSections.value.flatMap((section) => section.variables))
 
+const kindOf = (variable: VariableDefinition) => getWorkflowVariableKind(variable.type, variable.isArray)
+
+// Rows that open (Record, Table, User…) are groups, not a value of a kind, so only values and
+// lists are labelled.
 const kindLabel = (variable: VariableDefinition) =>
-  t(`labels.workflow.transforms.kinds.${getWorkflowVariableKind(variable.type, variable.isArray)}`)
+  variable.children?.length && kindOf(variable) !== 'list' ? '' : t(`labels.workflow.transforms.kinds.${kindOf(variable)}`)
+
+/** The field takes this value as it is. */
+const matchesAccepts = (variable: VariableDefinition) => !!props.accepts?.includes(kindOf(variable))
+
+// A value whose kind isn't known could be anything, so it is never blocked.
+const isAccepted = (variable: VariableDefinition) =>
+  !props.accepts?.length || kindOf(variable) === 'any' || matchesAccepts(variable)
+
+const hasAcceptedInside = (variable: VariableDefinition): boolean =>
+  !!variable.children?.some((child) => isAccepted(child) || hasAcceptedInside(child))
+
+/** Neither usable itself nor a way to reach something usable. */
+const isDisabled = (variable: VariableDefinition) =>
+  !!props.accepts?.length && !isAccepted(variable) && !hasAcceptedInside(variable)
+
+const hasAnyAccepted = computed(
+  () =>
+    !props.accepts?.length ||
+    nodeGroups.value.some((group) => group.variables.some((v) => isAccepted(v) || hasAcceptedInside(v))),
+)
+
+const acceptsLabel = computed(() => (props.accepts?.length ? t(`labels.workflow.transforms.kinds.${props.accepts[0]}`) : ''))
 
 const nodeTileClass = (node: NodeGroup) => getWorkflowNodeIconClass({ id: '', category: node.category })
 
@@ -226,20 +254,21 @@ const selectVariable = (variable: VariableDefinition) => {
 
 const rightHandler = () => {
   const variable = orderedVariables.value[selectedVariableIndex.value]
-  if (variable?.children && variable.children.length > 0) {
+  if (variable?.children && variable.children.length > 0 && !isDisabled(variable)) {
     navigateInto(variable)
   }
 }
 
+// A list the field takes is inserted whole even though it opens to its items; → still opens it.
+const activate = (variable: VariableDefinition) => {
+  if (isDisabled(variable)) return
+  if (variable.children?.length && !matchesAccepts(variable)) navigateInto(variable)
+  else selectVariable(variable)
+}
+
 const enterHandler = () => {
   const variable = orderedVariables.value[selectedVariableIndex.value]
-  if (variable) {
-    if (variable.children && variable.children.length > 0) {
-      navigateInto(variable)
-    } else {
-      selectVariable(variable)
-    }
-  }
+  if (variable) activate(variable)
 }
 
 const onKeyDown = ({ event }: { event: KeyboardEvent }) => {
@@ -407,38 +436,64 @@ defineExpose({
         </button>
 
         <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-1.5">
+          <!-- The field takes one kind and nothing upstream has it: say so instead of a page of disabled rows. -->
+          <div
+            v-if="!hasAnyAccepted && !searchQuery"
+            class="flex items-start gap-1.5 mx-1 mb-1.5 px-2.5 py-2 rounded-md bg-nc-bg-gray-extralight text-captionSm text-nc-content-gray-subtle"
+            data-testid="nc-workflow-variable-picker-none-accepted"
+          >
+            <GeneralIcon icon="ncInfo" class="!w-3.5 !h-3.5 flex-none mt-px" />
+            <span>{{
+              accepts?.length === 1 && accepts[0] === 'list'
+                ? t('labels.workflow.picker.noLists')
+                : t('labels.workflow.picker.noneAccepted', { kind: acceptsLabel })
+            }}</span>
+          </div>
           <template v-if="hasVariables">
             <template v-for="section in variableSections" :key="section.key">
               <div class="px-2 pt-1 pb-1.5 text-captionSm text-nc-content-gray-muted">{{ section.label }}</div>
-              <button
+              <NcTooltip
                 v-for="variable in section.variables"
                 :key="variable.key"
-                type="button"
-                class="nc-variable-item w-full flex items-center gap-2.5 min-h-8 px-2 py-1 rounded-md text-left transition-colors"
-                :class="{ 'is-selected bg-nc-bg-gray-light': orderedVariables.indexOf(variable) === selectedVariableIndex }"
-                data-testid="nc-workflow-variable-picker-item"
-                @mouseenter="selectedVariableIndex = orderedVariables.indexOf(variable)"
-                @click="variable.children?.length ? navigateInto(variable) : selectVariable(variable)"
+                :disabled="!isDisabled(variable)"
+                :title="t('labels.workflow.picker.needsKind', { kind: acceptsLabel })"
+                placement="left"
+                overlay-class-name="!z-[10002]"
               >
-                <GeneralIcon :icon="getVariableIcon(variable)" class="!w-3.5 !h-3.5 flex-none text-nc-content-gray-subtle" />
-                <div class="flex-1 min-w-0">
-                  <div class="text-caption text-nc-content-gray-emphasis truncate">{{ variable.name }}</div>
-                  <!-- Search results say where they came from. -->
-                  <div
-                    v-if="searchQuery && variable.extra?.description"
-                    class="text-captionSm text-nc-content-gray-muted truncate"
-                  >
-                    {{ variable.extra.description }}
+                <button
+                  type="button"
+                  class="nc-variable-item w-full flex items-center gap-2.5 min-h-8 px-2 py-1 rounded-md text-left transition-colors"
+                  :class="{
+                    'is-selected bg-nc-bg-gray-light': orderedVariables.indexOf(variable) === selectedVariableIndex,
+                    'opacity-50 cursor-not-allowed': isDisabled(variable),
+                  }"
+                  :aria-disabled="isDisabled(variable)"
+                  data-testid="nc-workflow-variable-picker-item"
+                  @mouseenter="selectedVariableIndex = orderedVariables.indexOf(variable)"
+                  @click="activate(variable)"
+                >
+                  <GeneralIcon :icon="getVariableIcon(variable)" class="!w-3.5 !h-3.5 flex-none text-nc-content-gray-subtle" />
+                  <div class="flex-1 min-w-0">
+                    <div class="text-caption text-nc-content-gray-emphasis truncate">{{ variable.name }}</div>
+                    <!-- Search results say where they came from. -->
+                    <div
+                      v-if="searchQuery && variable.extra?.description"
+                      class="text-captionSm text-nc-content-gray-muted truncate"
+                    >
+                      {{ variable.extra.description }}
+                    </div>
                   </div>
-                </div>
-                <span class="flex-none text-captionSm text-nc-content-gray-muted">{{ kindLabel(variable) }}</span>
-                <!-- Opens to its fields; Enter on a value inserts it. -->
-                <GeneralIcon
-                  v-if="variable.children?.length"
-                  icon="ncChevronRight"
-                  class="!w-3.5 !h-3.5 flex-none text-nc-content-gray-muted"
-                />
-              </button>
+                  <span v-if="kindLabel(variable)" class="flex-none text-captionSm text-nc-content-gray-muted">{{
+                    kindLabel(variable)
+                  }}</span>
+                  <!-- Opens to its fields; Enter on a value inserts it. -->
+                  <GeneralIcon
+                    v-if="variable.children?.length"
+                    icon="ncChevronRight"
+                    class="!w-3.5 !h-3.5 flex-none text-nc-content-gray-muted"
+                  />
+                </button>
+              </NcTooltip>
             </template>
           </template>
 

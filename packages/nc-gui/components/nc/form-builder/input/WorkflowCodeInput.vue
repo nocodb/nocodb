@@ -34,6 +34,8 @@ interface Props {
   multiline?: boolean
   /** Focusing the empty field opens the variable picker, for inputs that pick a field. */
   openPickerWhenEmpty?: boolean
+  /** Kinds of value the field takes; the picker disables the rest. */
+  accepts?: WorkflowValueKind[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -44,6 +46,7 @@ const props = withDefaults(defineProps<Props>(), {
   readOnly: false,
   multiline: false,
   openPickerWhenEmpty: false,
+  accepts: undefined,
 })
 
 const emit = defineEmits<{
@@ -747,6 +750,7 @@ onBeforeUnmount(() => {
           :items="variables"
           :grouped-items="groupedVariables"
           :query="picker.query"
+          :accepts="accepts"
           :command="onPickerCommand"
         />
       </div>

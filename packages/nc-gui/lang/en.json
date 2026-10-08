@@ -4590,6 +4590,11 @@
       "running": "Running...",
       "simulatedNote": "Checked without running it.",
       "stepRunAt": "Step run {time}",
+      "iterate": {
+        "listPlaceholder": "Select an array to iterate over",
+        "listHelp": "Select an array from a previous step. Each item will be processed sequentially.",
+        "notAList": "Needs a list of items, but this value is {kind}."
+      },
       "runConfirmTitle": "Run this step for real?",
       "runConfirmBody": "This does what the step does. It sends, writes or starts things outside this editor. Checking the step is usually enough to carry on building.",
       "status": {
@@ -4722,6 +4727,9 @@
         "noSteps": "Test an earlier step to use its data",
         "noMatches": "Nothing matches",
         "pickStep": "Pick a step",
+        "needsKind": "This field needs a {kind}",
+        "noLists": "No lists in earlier steps yet. Add a step like List records to get one.",
+        "noneAccepted": "Nothing in earlier steps is a {kind} yet.",
         "navigate": "navigate",
         "insert": "insert",
         "open": "open",

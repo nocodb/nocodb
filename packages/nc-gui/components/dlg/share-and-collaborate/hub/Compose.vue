@@ -8,6 +8,7 @@ const props = defineProps<{
   type?: 'base' | 'interface'
   roles?: string[]
   roleLabels?: Partial<Record<string, string>>
+  rolePhrase?: (role: string, count: number) => string | undefined
   inviteHandler?: (emails: string[], role: string) => Promise<void>
 }>()
 
@@ -67,6 +68,7 @@ const sendLabel = computed(() => {
       :users="props.users"
       :roles="props.roles"
       :role-labels="props.roleLabels"
+      :role-phrase="props.rolePhrase"
       :invite-handler="props.inviteHandler"
       layout="compose"
       :show-footer="false"

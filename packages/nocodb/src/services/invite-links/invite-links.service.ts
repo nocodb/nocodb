@@ -470,9 +470,14 @@ export class InviteLinksService {
       ),
     );
 
-    links = links.map((l, i) =>
-      reasons[i] ? { ...l, usable: false, unusable_reason: reasons[i] } : l,
-    );
+    links = links.map((l, i) => {
+      // Spent or expired outranks the rest: nothing else would bring it back.
+      const spent = this.invalidReason(l);
+      const reason =
+        spent === 'exhausted' || spent === 'expired' ? spent : reasons[i];
+
+      return reason ? { ...l, usable: false, unusable_reason: reason } : l;
+    });
 
     if (param.scope !== InviteLinkScope.BASE) return links;
 
@@ -681,7 +686,12 @@ export class InviteLinksService {
     }
   }
 
-  protected invalidReason(link: InviteLink | null) {
+  protected invalidReason(
+    link: Pick<
+      InviteLinkType,
+      'revoked_at' | 'expires_at' | 'max_uses' | 'used_count'
+    > | null,
+  ) {
     if (!link) return 'not_found' as const;
     if (link.revoked_at) return 'revoked' as const;
     if (link.expires_at && new Date(link.expires_at).getTime() < Date.now()) {

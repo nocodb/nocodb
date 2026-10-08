@@ -106,7 +106,11 @@ export type InviteLinkUnusableReason =
   /** The role is no longer one a link may grant (e.g. inherit). */
   | 'retired_role'
   /** The base is private, or gone, and the minter is not its owner. */
-  | 'private_base';
+  | 'private_base'
+  /** Every allowed use has been taken. */
+  | 'exhausted'
+  /** Past its expiry date. */
+  | 'expired';
 
 export interface InviteLinkType {
   id?: string;

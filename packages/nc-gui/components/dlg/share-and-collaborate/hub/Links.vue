@@ -21,8 +21,9 @@ let copiedTimer: ReturnType<typeof setTimeout>
 
 const rows = computed(() =>
   links.value.map((l) => {
+    const phrase = inviteLinkRolePhrase(inviteTarget.value?.scope, l.role)
     const override = l.role ? roleLabels.value?.[l.role] : undefined
-    const label = (override ?? t(`objects.roleType.${RoleLabels[l.role] ?? l.role}`)).toLowerCase()
+    const label = phrase ?? (override ?? t(`objects.roleType.${RoleLabels[l.role] ?? l.role}`)).toLowerCase()
 
     // Anyone from viewer up can mint a link, so a manager scanning the list
     // needs to know whose each one is before revoking it.
@@ -32,23 +33,32 @@ const rows = computed(() =>
     return {
       id: l.id,
       role: label,
-      // "access as read only", not "as a read only".
-      article: override ? '' : /^[aeiou]/.test(label) ? 'an' : 'a',
+      article: /^[aeiou]/.test(label) ? 'an' : 'a',
       domainNote: l.email_domain || '',
       uses: l.max_uses ? `${l.used_count ?? 0}/${l.max_uses}` : '',
       createdBy: isMine ? t('msg.info.linkCreatedByYou') : creator ? t('msg.info.linkCreatedBy', { name: creator }) : '',
       // Dormant, not gone: restore the minter's role or make the base public
       // again and this works, so it stays listed and stays revocable.
       usable: l.usable !== false,
-      unusableNote:
-        l.unusable_reason === 'minter_role'
-          ? t('msg.info.linkNotWorkingMinterRole')
-          : l.unusable_reason === 'retired_role'
-          ? t('msg.info.linkNotWorkingRetiredRole')
-          : t('msg.info.linkNotWorkingPrivateBase'),
+      unusableNote: unusableNote(l.unusable_reason),
     }
   }),
 )
+
+function unusableNote(reason?: string) {
+  switch (reason) {
+    case 'minter_role':
+      return t('msg.info.linkNotWorkingMinterRole')
+    case 'retired_role':
+      return t('msg.info.linkNotWorkingRetiredRole')
+    case 'exhausted':
+      return t('msg.info.linkNotWorkingExhausted')
+    case 'expired':
+      return t('msg.info.linkNotWorkingExpired')
+    default:
+      return t('msg.info.linkNotWorkingPrivateBase')
+  }
+}
 
 async function copyRow(id: string) {
   const link = links.value.find((l) => l.id === id)
@@ -117,7 +127,9 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
           <div class="text-bodyDefault text-nc-content-gray-subtle2">
             {{ $t('msg.info.anyoneCanAccessAs', { article: row.article, role: '' }) }}
             <b class="font-semibold text-nc-content-gray">{{ row.role }}</b>
-            <template v-if="row.domainNote"> · {{ $t('msg.info.domainOnlyNote', { domain: row.domainNote }) }}</template>
+            <template v-if="row.domainNote">
+              · <span class="whitespace-nowrap">{{ $t('msg.info.domainOnlyNote', { domain: row.domainNote }) }}</span>
+            </template>
             <template v-if="row.uses"> · {{ $t('msg.info.linkUsesCount', { uses: row.uses }) }}</template>
           </div>
 

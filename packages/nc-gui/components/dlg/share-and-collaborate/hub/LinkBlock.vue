@@ -37,7 +37,8 @@ const { copy } = useCopy()
 
 const { $e } = useNuxtApp()
 
-const primary = computed(() => links.value[0])
+// A spent or dormant link would only hand out a refusal; copy a working one, or mint one.
+const primary = computed(() => links.value.find((l) => l.usable !== false))
 
 const isBusy = ref(false)
 

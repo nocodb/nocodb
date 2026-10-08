@@ -215,6 +215,12 @@ const canManageMembers = computed(() => !isInterfaceContext.value || interfaceSh
 
 const composeRoleLabels = computed(() => (isInterfaceContext.value ? inviteLinkRoleLabels(InviteLinkScope.INTERFACE) : undefined))
 
+function composeRolePhrase(role: string, count: number) {
+  if (!isInterfaceContext.value) return undefined
+
+  return inviteLinkRolePhrase(InviteLinkScope.INTERFACE, role, { count, article: true })
+}
+
 const screenTitle = computed(() => {
   if (screen.value === 'links') return t('activity.inviteLinks')
   if (screen.value === 'edit') return t(editLinkIsNew.value ? 'activity.newInviteLink' : 'activity.editInviteLink')
@@ -387,9 +393,12 @@ watch(showShareModal, (val) => {
       <!-- Hub. Two tabs, and the screens push off it. -->
       <template v-if="screen === 'main'">
         <div class="flex items-center gap-2 px-7 pt-6">
-          <div class="text-heading3 !text-[18px] font-bold tracking-tight text-nc-content-gray-emphasis">
+          <NcTooltip
+            show-on-truncate-only
+            class="min-w-0 truncate text-heading3 !text-[18px] font-bold tracking-tight text-nc-content-gray-emphasis"
+          >
             {{ $t('labels.shareNamed', { name: shareTitle }) }}
-          </div>
+          </NcTooltip>
           <NcTooltip :title="shareHubTooltip" placement="top">
             <GeneralIcon icon="info" class="w-4.5 h-4.5 text-nc-content-gray-muted cursor-help" />
           </NcTooltip>
@@ -512,8 +521,10 @@ watch(showShareModal, (val) => {
           :active="showShareModal && screen === 'compose'"
           :base-id="base.id"
           :type="isInterfaceContext ? 'interface' : 'base'"
+          :users="isInterfaceContext ? interfaceShare.members.value : undefined"
           :roles="isInterfaceContext ? interfaceShare.inviteRoles.value : undefined"
           :role-labels="composeRoleLabels"
+          :role-phrase="composeRolePhrase"
           :invite-handler="isInterfaceContext ? interfaceShare.inviteByEmail : undefined"
           @back="goMain"
           @sent="onInviteSent"

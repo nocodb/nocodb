@@ -44,6 +44,24 @@ export function inviteLinkRoleLabels(scope?: InviteLinkScope | null): Partial<Re
   return { [ProjectRoles.VIEWER]: t('labels.readOnlyAccess') }
 }
 
+/**
+ * How a role reads inside a sentence ("join as a read-only member"), where
+ * the picker's "Read only" label would not. Undefined means use the label.
+ */
+export function inviteLinkRolePhrase(
+  scope: InviteLinkScope | null | undefined,
+  role: string | undefined,
+  { count = 1, article = false }: { count?: number; article?: boolean } = {},
+) {
+  if (scope !== InviteLinkScope.INTERFACE || role !== ProjectRoles.VIEWER) return undefined
+
+  const { t } = getI18n().global
+
+  if (count > 1) return t('labels.readOnlyMembers')
+
+  return article ? t('labels.aReadOnlyMember') : t('labels.readOnlyMember')
+}
+
 const isTargetComplete = (t: InviteLinkTarget) => {
   switch (t.scope) {
     case InviteLinkScope.WORKSPACE:

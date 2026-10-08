@@ -43,6 +43,8 @@ const props = withDefaults(
     roles?: string[]
     /** Per-role label overrides for the picker and the hint, e.g. an interface's "Read only". */
     roleLabels?: Partial<Record<string, string>>
+    /** How a role reads in the hint sentence, when its label would not ("a read-only member"). */
+    rolePhrase?: (role: string, count: number) => string | undefined
     /** Sends the invites instead of the built-in base/workspace calls. Throw to report a failure. */
     inviteHandler?: (emails: string[], role: string) => Promise<void>
   }>(),
@@ -325,8 +327,10 @@ const roleCopy = (count: number) => {
   const key = RoleLabels[inviteData.roles] ?? inviteData.roles
   const group = count > 1 ? 'roleTypePlural' : 'roleType'
 
+  const phrase = props.rolePhrase?.(inviteData.roles, count)
+
   return {
-    label: props.roleLabels?.[inviteData.roles] ?? t(`objects.${group}.${key}`, inviteData.roles),
+    label: phrase ?? props.roleLabels?.[inviteData.roles] ?? t(`objects.${group}.${key}`, inviteData.roles),
     can: t(`objects.roleDescription.${inviteData.roles}`).toLowerCase(),
   }
 }
@@ -487,7 +491,7 @@ const inviteCollaborator = async () => {
       const payloadData = recipients.join(',')
 
       for (const email of recipients) {
-        if (props.users?.some((u) => u.email === email.trim())) {
+        if (props.users?.some((u) => u.email?.toLowerCase() === email.trim().toLowerCase())) {
           let scopeLabel = 'objects.project'
 
           if (props.type === 'workspace') {

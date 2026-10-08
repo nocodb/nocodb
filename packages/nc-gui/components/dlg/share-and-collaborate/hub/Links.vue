@@ -159,14 +159,14 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
                 : $t('msg.info.anyoneCanAccessAs', { article: row.article, role: '' })
             }}
             <b class="font-semibold text-nc-content-gray">{{ row.role }}</b>
-            <template v-if="row.domainNote">
-              · <span class="whitespace-nowrap">{{ $t('msg.info.domainOnlyNote', { domain: row.domainNote }) }}</span>
-            </template>
             <template v-if="row.uses"> · {{ $t('msg.info.linkUsesCount', { uses: row.uses }) }}</template>
           </div>
 
-          <div v-if="row.createdBy" class="text-captionSm text-nc-content-gray-muted truncate">
+          <!-- Who made it and who it admits, as one quiet line under the sentence. -->
+          <div v-if="row.domainNote || row.createdBy" class="text-captionSm text-nc-content-gray-muted truncate">
             {{ row.createdBy }}
+            <template v-if="row.domainNote && row.createdBy"> · </template>
+            <template v-if="row.domainNote">{{ $t('msg.info.domainOnlyNote', { domain: row.domainNote }) }}</template>
           </div>
 
           <!-- Its own line: appended to the creator's it was the half that got

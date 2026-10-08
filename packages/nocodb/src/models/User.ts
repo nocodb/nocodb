@@ -362,6 +362,21 @@ export default class User implements UserType {
     return this.castType(user);
   }
 
+  public static async hasPendingInvite(
+    inviteToken: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    if (!inviteToken) return false;
+
+    return !!(await ncMeta
+      .knex(MetaTable.USERS)
+      .where({ invite_token: inviteToken })
+      .where(function () {
+        this.where('is_deleted', false).orWhereNull('is_deleted');
+      })
+      .first('id'));
+  }
+
   static async isFirst(ncMeta = Noco.ncMeta) {
     return !(await ncMeta.metaGet2(
       RootScopes.ROOT,

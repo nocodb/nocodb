@@ -606,7 +606,7 @@ export class UsersService {
         // todo : opening up signup for timebeing
         // return next(new Error(`Email '${email}' already registered`));
       }
-    } else if (token) {
+    } else if (await User.hasPendingInvite(token)) {
       // e.g. an invite made out to an alias, which never resolves to this address
       NcError.badRequest('This invite was sent to a different email address');
     }

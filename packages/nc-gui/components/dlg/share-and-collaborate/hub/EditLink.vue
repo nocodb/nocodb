@@ -22,6 +22,11 @@ const {
   disabledRoles,
   disabledRolesTooltip,
   roleLabels,
+  roleDescriptions,
+  roleIcons,
+  linkGrant,
+  grantOpensNothing,
+  grantBody,
   defaultRole,
   defaultEmailDomain,
   createLink,
@@ -32,6 +37,9 @@ const {
 const isWorkspaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.WORKSPACE)
 
 const isInterfaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.INTERFACE)
+
+/** An app link names a team, not a permission. */
+const isAppInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.APP)
 
 const { $e } = useNuxtApp()
 
@@ -87,7 +95,7 @@ function resetDraft() {
   const domain = props.isNew ? defaultEmailDomain.value : link.value?.email_domain
 
   Object.assign(draft, {
-    role: (props.isNew ? defaultRole.value : link.value?.role) ?? defaultRole.value,
+    role: (props.isNew ? defaultRole.value : linkGrant(link.value)) ?? defaultRole.value,
     anyEmail: !domain,
     domain: domain ?? '',
   })
@@ -113,7 +121,7 @@ async function onSave() {
   isSaving.value = true
 
   const body = {
-    role: draft.role,
+    ...grantBody(draft.role),
     email_domain: draft.anyEmail ? null : draft.domain.trim(),
   }
 
@@ -131,11 +139,15 @@ async function onSave() {
           ? 'a:ws:invite:link:create'
           : isInterfaceInvite.value
           ? 'a:interface:invite:link:create'
+          : isAppInvite.value
+          ? 'a:app:invite:link:create'
           : 'a:base:invite:link:create'
         : isWorkspaceInvite.value
         ? 'a:ws:invite:link:update'
         : isInterfaceInvite.value
         ? 'a:interface:invite:link:update'
+        : isAppInvite.value
+        ? 'a:app:invite:link:update'
         : 'a:base:invite:link:update',
       {
         role: draft.role,
@@ -161,6 +173,8 @@ async function onDelete() {
         ? 'a:ws:invite:link:revoke'
         : isInterfaceInvite.value
         ? 'a:interface:invite:link:revoke'
+        : isAppInvite.value
+        ? 'a:app:invite:link:revoke'
         : 'a:base:invite:link:revoke',
     )
 
@@ -178,7 +192,9 @@ watch(link, resetDraft, { immediate: true })
     <div v-if="createdBy" class="text-bodyDefaultSm text-nc-content-gray-muted -mt-1">{{ createdBy }}</div>
 
     <div class="flex flex-col gap-1.5">
-      <div class="text-bodyDefaultSm font-semibold text-nc-content-gray-subtle2">{{ $t('labels.permission') }}</div>
+      <div class="text-bodyDefaultSm font-semibold text-nc-content-gray-subtle2">
+        {{ isAppInvite ? $t('objects.team') : $t('labels.permission') }}
+      </div>
       <RolesSelectorV2
         :on-role-change="onRoleChange"
         :role="draft.role"
@@ -186,10 +202,19 @@ watch(link, resetDraft, { immediate: true })
         :disabled-roles="disabledRoles"
         :disabled-roles-tooltip="disabledRolesTooltip"
         :labels="roleLabels"
+        :descriptions="roleDescriptions"
+        :icons="roleIcons"
         trigger-variant="field"
         size="lg"
         placement="bottomLeft"
       />
+      <div
+        v-if="grantOpensNothing(draft.role)"
+        class="text-bodySm text-nc-content-orange-dark"
+        data-testid="nc-hub-team-no-access"
+      >
+        {{ $t('msg.info.appTeamOpensNothing', { team: roleLabels?.[draft.role] }) }}
+      </div>
     </div>
 
     <div class="flex flex-col">

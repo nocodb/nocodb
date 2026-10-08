@@ -1,14 +1,19 @@
 <script lang="ts" setup>
+import type { IconMapKey } from '#imports'
+
 /** The invite screen: one field, one role, one button. */
 const props = defineProps<{
   active: boolean
   baseId?: string
-  users?: Array<{ email?: string }>
-  /** Interface invites: its role list and its own send. */
-  type?: 'base' | 'interface'
+  users?: Array<{ email?: string; roles?: string[] }>
+  /** Interface and app invites: their role (or team) list and their own send. */
+  type?: 'base' | 'interface' | 'app'
   roles?: string[]
   roleLabels?: Partial<Record<string, string>>
+  roleDescriptions?: Partial<Record<string, string>>
+  roleIcons?: Partial<Record<string, IconMapKey>>
   rolePhrase?: (role: string, count: number) => string | undefined
+  noAccessRoles?: string[]
   inviteHandler?: (emails: string[], role: string) => Promise<void>
 }>()
 
@@ -68,7 +73,10 @@ const sendLabel = computed(() => {
       :users="props.users"
       :roles="props.roles"
       :role-labels="props.roleLabels"
+      :role-descriptions="props.roleDescriptions"
+      :role-icons="props.roleIcons"
       :role-phrase="props.rolePhrase"
+      :no-access-roles="props.noAccessRoles"
       :invite-handler="props.inviteHandler"
       layout="compose"
       :show-footer="false"

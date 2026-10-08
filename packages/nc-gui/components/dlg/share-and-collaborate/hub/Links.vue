@@ -10,7 +10,9 @@ const emit = defineEmits(['editLink', 'blocked'])
 
 const { t } = useI18n()
 
-const { links, target: inviteTarget, linkUrl, isLoading, isLoaded, roleLabels } = useInviteLinks()
+const { links, target: inviteTarget, linkUrl, isLoading, isLoaded, roleLabels, linkGrant } = useInviteLinks()
+
+const isAppInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.APP)
 
 const isWorkspaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.WORKSPACE)
 
@@ -28,9 +30,13 @@ let copiedTimer: ReturnType<typeof setTimeout>
 
 const rows = computed(() =>
   links.value.map((l) => {
-    const phrase = inviteLinkRolePhrase(inviteTarget.value?.scope, l.role)
-    const override = l.role ? roleLabels.value?.[l.role] : undefined
-    const label = phrase ?? (override ?? t(`objects.roleType.${RoleLabels[l.role] ?? l.role}`)).toLowerCase()
+    const grant = linkGrant(l)
+    const phrase = inviteLinkRolePhrase(inviteTarget.value?.scope, grant)
+    const override = grant ? roleLabels.value?.[grant] : undefined
+    // A team keeps its own name's case; a role reads as a word in the sentence.
+    const label = isAppInvite.value
+      ? override ?? ''
+      : phrase ?? (override ?? t(`objects.roleType.${RoleLabels[l.role] ?? l.role}`)).toLowerCase()
 
     // Anyone from viewer up can mint a link, so a manager scanning the list
     // needs to know whose each one is before revoking it.
@@ -62,6 +68,8 @@ function unusableNote(reason?: string) {
       return t('msg.info.linkNotWorkingExhausted')
     case 'expired':
       return t('msg.info.linkNotWorkingExpired')
+    case 'team_removed':
+      return t('msg.info.linkNotWorkingTeamRemoved')
     default:
       return t('msg.info.linkNotWorkingPrivateBase')
   }
@@ -83,6 +91,8 @@ async function copyRow(id: string) {
         ? 'c:ws:invite:link:copy'
         : isInterfaceInvite.value
         ? 'c:interface:invite:link:copy'
+        : isAppInvite.value
+        ? 'c:app:invite:link:copy'
         : 'c:base:invite:link:copy',
       {
         from: 'list',
@@ -143,16 +153,20 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
       >
         <div class="flex-1 min-w-0" :class="{ 'opacity-60': !row.usable }">
           <div class="text-bodyDefault text-nc-content-gray-subtle2">
-            {{ $t('msg.info.anyoneCanAccessAs', { article: row.article, role: '' }) }}
+            {{
+              isAppInvite
+                ? $t('msg.info.anyoneCanJoinTeam', { team: '' })
+                : $t('msg.info.anyoneCanAccessAs', { article: row.article, role: '' })
+            }}
             <b class="font-semibold text-nc-content-gray">{{ row.role }}</b>
-            <template v-if="row.domainNote">
-              · <span class="whitespace-nowrap">{{ $t('msg.info.domainOnlyNote', { domain: row.domainNote }) }}</span>
-            </template>
             <template v-if="row.uses"> · {{ $t('msg.info.linkUsesCount', { uses: row.uses }) }}</template>
           </div>
 
-          <div v-if="row.createdBy" class="text-captionSm text-nc-content-gray-muted truncate">
+          <!-- Who made it and who it admits, as one quiet line under the sentence. -->
+          <div v-if="row.domainNote || row.createdBy" class="text-captionSm text-nc-content-gray-muted truncate">
             {{ row.createdBy }}
+            <template v-if="row.domainNote && row.createdBy"> · </template>
+            <template v-if="row.domainNote">{{ $t('msg.info.domainOnlyNote', { domain: row.domainNote }) }}</template>
           </div>
 
           <!-- Its own line: appended to the creator's it was the half that got
@@ -176,6 +190,8 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
                 ? 'c:ws:invite:link:settings:open'
                 : isInterfaceInvite
                 ? 'c:interface:invite:link:settings:open'
+                : isAppInvite
+                ? 'c:app:invite:link:settings:open'
                 : 'c:base:invite:link:settings:open',
               { from: 'list' },
             ]"

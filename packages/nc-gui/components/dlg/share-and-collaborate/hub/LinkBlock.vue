@@ -25,6 +25,11 @@ const {
   disabledRoles,
   disabledRolesTooltip,
   roleLabels,
+  roleDescriptions,
+  roleIcons,
+  linkGrant,
+  grantOpensNothing,
+  grantBody,
   defaultRole,
   defaultEmailDomain,
   createLink,
@@ -34,6 +39,9 @@ const {
 const isWorkspaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.WORKSPACE)
 
 const isInterfaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.INTERFACE)
+
+/** An app link adds people to a team, so its sentence names the team rather than a role. */
+const isAppInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.APP)
 
 const { copy } = useCopy()
 
@@ -51,7 +59,7 @@ let copiedTimer: ReturnType<typeof setTimeout> | undefined
 /** Until a link exists these mirror what one would be created with. */
 const pendingRole = ref<string | null>(null)
 
-const role = computed(() => primary.value?.role ?? pendingRole.value ?? defaultRole.value)
+const role = computed(() => linkGrant(primary.value) ?? pendingRole.value ?? defaultRole.value)
 
 const domain = computed(() => (primary.value ? primary.value.email_domain : defaultEmailDomain.value))
 
@@ -68,6 +76,8 @@ async function onRoleChange(next: string) {
       ? 'c:ws:invite:link:role:change'
       : isInterfaceInvite.value
       ? 'c:interface:invite:link:role:change'
+      : isAppInvite.value
+      ? 'c:app:invite:link:team:change'
       : 'c:base:invite:link:role:change',
     {
       scope: inviteTarget.value?.scope,
@@ -81,7 +91,7 @@ async function onRoleChange(next: string) {
     return
   }
 
-  await saveLink(primary.value.id, { role: next })
+  await saveLink(primary.value.id, grantBody(next))
 }
 
 /**
@@ -101,7 +111,7 @@ async function onCopy() {
     const isFirst = !link
 
     if (!link) {
-      link = await createLink(pendingRole.value ? { role: pendingRole.value } : undefined)
+      link = await createLink(pendingRole.value ? grantBody(pendingRole.value) : undefined)
 
       if (link) {
         $e(
@@ -109,6 +119,8 @@ async function onCopy() {
             ? 'a:ws:invite:link:create'
             : isInterfaceInvite.value
             ? 'a:interface:invite:link:create'
+            : isAppInvite.value
+            ? 'a:app:invite:link:create'
             : 'a:base:invite:link:create',
           {
             scope: inviteTarget.value?.scope,
@@ -130,6 +142,8 @@ async function onCopy() {
         ? 'c:ws:invite:link:copy'
         : isInterfaceInvite.value
         ? 'c:interface:invite:link:copy'
+        : isAppInvite.value
+        ? 'c:app:invite:link:copy'
         : 'c:base:invite:link:copy',
       {
         scope: inviteTarget.value?.scope,
@@ -177,7 +191,19 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
            copy that explains it and translators can move it. Short enough to
            keep the role chip on the same line as the words it belongs to --
            the caution below carries what the sentence used to say. -->
-      <i18n-t v-else :keypath="domain ? 'msg.info.inviteLinkDomainSentence' : 'msg.info.inviteLinkOpenSentence'" tag="span">
+      <i18n-t
+        v-else
+        :keypath="
+          isAppInvite
+            ? domain
+              ? 'msg.info.inviteLinkDomainSentenceTeam'
+              : 'msg.info.inviteLinkOpenSentenceTeam'
+            : domain
+            ? 'msg.info.inviteLinkDomainSentence'
+            : 'msg.info.inviteLinkOpenSentence'
+        "
+        tag="span"
+      >
         <template #domain>
           <span class="nc-hub-domain-chip">{{ `@${domain}` }}</span>
         </template>
@@ -189,12 +215,22 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
             :disabled-roles="disabledRoles"
             :disabled-roles-tooltip="disabledRolesTooltip"
             :labels="roleLabels"
+            :descriptions="roleDescriptions"
+            :icons="roleIcons"
             trigger-variant="compact"
             size="sm"
             placement="bottomLeft"
           />
         </template>
       </i18n-t>
+    </div>
+
+    <div
+      v-if="isLoaded && grantOpensNothing(role)"
+      class="text-bodySm text-nc-content-orange-dark"
+      data-testid="nc-hub-team-no-access"
+    >
+      {{ $t('msg.info.appTeamOpensNothing', { team: roleLabels?.[role] }) }}
     </div>
 
     <!-- Only an unrestricted link needs the warning: a domain-restricted one

@@ -63,6 +63,7 @@ enum AuditV1OperationTypes {
   BASE_INVITE_LINK_CREATE = 'BASE_INVITE_LINK_CREATE',
   BASE_INVITE_LINK_UPDATE = 'BASE_INVITE_LINK_UPDATE',
   BASE_INVITE_LINK_REVOKE = 'BASE_INVITE_LINK_REVOKE',
+  APP_INVITE_LINK_ACCEPT = 'APP_INVITE_LINK_ACCEPT',
   BASE_TEAM_UPDATE = 'BASE_TEAM_UPDATE',
   BASE_TEAM_DELETE = 'BASE_TEAM_DELETE',
 
@@ -638,6 +639,14 @@ export interface InviteLinkPayload {
   base_title?: string;
   workspace_title?: string;
   interface_title?: string;
+  app_title?: string;
+  /** App links: the team the link adds people to. */
+  team_title?: string;
+}
+
+export interface AppInviteLinkAcceptPayload extends InviteLinkPayload {
+  user_email: string;
+  user_id: string;
 }
 
 export interface InviteLinkUpdatePayload
@@ -2197,8 +2206,12 @@ function interfaceTableSuffix(details: {
   return ` across ${count} tables`;
 }
 
-/** An interface link is recorded against its base; name the interface when there is one. */
-function inviteLinkTarget(details: { interface_title?: string }) {
+/** Interface and app links are recorded against their base; name the target when there is one. */
+function inviteLinkTarget(details: {
+  interface_title?: string;
+  app_title?: string;
+}) {
+  if (details.app_title) return `app '${details.app_title}'`;
   return details.interface_title
     ? `interface '${details.interface_title}'`
     : 'base';
@@ -2266,12 +2279,25 @@ const descriptionTemplates = {
     audit.details?.via === 'invite_link'
       ? `User '${audit.details.user_email}' joined base via invite link`
       : `User '${audit.user}' invited '${audit.details.user_email}' to base`,
+  [AuditV1OperationTypes.APP_INVITE_LINK_ACCEPT]: (
+    audit: AuditV1<AppInviteLinkAcceptPayload>
+  ) =>
+    `User '${audit.details.user_email}' joined app '${
+      audit.details.app_title
+    }'${
+      audit.details.team_title ? ` in team '${audit.details.team_title}'` : ''
+    } via invite link`,
   [AuditV1OperationTypes.BASE_INVITE_LINK_CREATE]: (
     audit: AuditV1<InviteLinkPayload>
   ) =>
-    `User '${audit.user}' created a ${
-      audit.details.role
-    } invite link for ${inviteLinkTarget(audit.details)}`,
+    // An app link's role is only the base standing; its team is what it grants.
+    audit.details.app_title
+      ? `User '${audit.user}' created an invite link for ${inviteLinkTarget(
+          audit.details
+        )}`
+      : `User '${audit.user}' created a ${
+          audit.details.role
+        } invite link for ${inviteLinkTarget(audit.details)}`,
   [AuditV1OperationTypes.BASE_INVITE_LINK_UPDATE]: (
     audit: AuditV1<InviteLinkUpdatePayload>
   ) =>

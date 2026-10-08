@@ -49,6 +49,11 @@ const interfaceShare = useInterfaceShareHub()
 
 const isInterfaceContext = computed(() => interfaceShare.isActive.value)
 
+/** Over an app the modal invites to its teams and shows its public access. EE; inert in CE. */
+const appShare = useAppShareHub()
+
+const isAppContext = computed(() => !isInterfaceContext.value && appShare.isActive.value)
+
 const { navigateToProjectPage } = baseStore
 
 /** Which tab is open. `object` is whichever of view/doc/dashboard/interface this modal was opened over. */
@@ -81,9 +86,10 @@ const membersLoaded = ref(false)
 async function loadMemberCount() {
   if (!base.value?.id) return
 
-  if (isInterfaceContext.value) {
+  if (isInterfaceContext.value || isAppContext.value) {
     try {
-      memberCount.value = (await interfaceShare.loadMemberCount()) ?? 0
+      const count = isAppContext.value ? await appShare.loadMemberCount() : await interfaceShare.loadMemberCount()
+      memberCount.value = count ?? 0
       membersLoaded.value = true
     } catch (e) {
       console.error(e)
@@ -132,6 +138,8 @@ const canInvite = computed(() => {
 
   if (isInterfaceContext.value) return interfaceShare.canInvite.value
 
+  if (isAppContext.value) return appShare.canInvite.value
+
   if (isPrivateBase.value) return !!baseRoles.value?.[ProjectRoles.OWNER]
 
   return isUIAllowed('userInvite') || isUIAllowed('baseInviteLinkCreate')
@@ -140,9 +148,10 @@ const canInvite = computed(() => {
 const shareViewSection = computed(() => isViewToolbar && !!activeView.value)
 
 /** The one contextual thing this modal was opened over, if any. */
-const objectTab = computed<'view' | 'doc' | 'dashboard' | 'interface' | null>(() => {
+const objectTab = computed<'view' | 'doc' | 'dashboard' | 'interface' | 'app' | null>(() => {
   // Interfaces are not shared to the web yet; the modal is invite-only there.
   if (isInterfaceContext.value) return null
+  if (isAppContext.value) return appShare.canSharePublic.value ? 'app' : null
   if (activeDocument.value) return 'doc'
   if (activeDashboard.value) return 'dashboard'
   if (shareViewSection.value) return 'view'
@@ -188,6 +197,8 @@ const objectNoun = computed(() => {
 const shareHubTooltip = computed(() => {
   if (isInterfaceContext.value) return t('msg.info.shareHubTooltipInterface')
 
+  if (isAppContext.value) return t('msg.info.shareHubTooltipApp')
+
   return objectTab.value ? t('msg.info.shareHubTooltip', { object: objectNoun.value }) : t('msg.info.shareHubTooltipInviteOnly')
 })
 
@@ -201,19 +212,67 @@ const canShareObject = computed(() => (objectTab.value === 'view' ? isUIAllowed(
 const defaultTab = computed<'invite' | 'object'>(() => (canInvite.value ? 'invite' : 'object'))
 
 /** What the modal is sharing: the interface over one, else the base. */
-const shareTitle = computed(() => (isInterfaceContext.value ? interfaceShare.title.value : base.value?.title))
-
-const canCreateInviteLink = computed(() =>
-  isInterfaceContext.value ? interfaceShare.canCreateLink.value : isUIAllowed('baseInviteLinkCreate'),
+const shareTitle = computed(() =>
+  isInterfaceContext.value ? interfaceShare.title.value : isAppContext.value ? appShare.title.value : base.value?.title,
 )
+
+const canCreateInviteLink = computed(() => {
+  if (isInterfaceContext.value) return interfaceShare.canCreateLink.value
+
+  if (!isAppContext.value) return isUIAllowed('baseInviteLinkCreate')
+
+  // Private base: only the owner may mint, as for base links.
+  if (isPrivateBase.value && !baseRoles.value?.[ProjectRoles.OWNER]) return false
+
+  return appShare.canCreateLink.value
+})
 
 const canInviteByEmail = computed(() =>
-  isInterfaceContext.value ? interfaceShare.canInviteByEmail.value : isUIAllowed('userInvite'),
+  isInterfaceContext.value
+    ? interfaceShare.canInviteByEmail.value
+    : isAppContext.value
+    ? appShare.canInviteByEmail.value
+    : isUIAllowed('userInvite'),
 )
 
-const canManageMembers = computed(() => !isInterfaceContext.value || interfaceShare.canManageMembers.value)
+const canManageMembers = computed(() => {
+  if (isInterfaceContext.value) return interfaceShare.canManageMembers.value
+  if (isAppContext.value) return appShare.canManageMembers.value
+  return true
+})
 
-const composeRoleLabels = computed(() => (isInterfaceContext.value ? inviteLinkRoleLabels(InviteLinkScope.INTERFACE) : undefined))
+/** An app invites to a team, so its picker lists teams by name. */
+const appTeamPicker = computed(() => {
+  const teams = appShare.teams.value
+
+  return {
+    roles: teams.map((t) => t.id),
+    labels: Object.fromEntries(teams.map((t) => [t.id, t.title])),
+    descriptions: Object.fromEntries(teams.map((t) => [t.id, t.description ?? ''])),
+    icons: Object.fromEntries(teams.filter((t) => t.icon).map((t) => [t.id, t.icon])),
+    noAccess: teams.filter((t) => t.noAccess).map((t) => t.id),
+  }
+})
+
+const composeRoleLabels = computed(() => {
+  if (isInterfaceContext.value) return inviteLinkRoleLabels(InviteLinkScope.INTERFACE)
+  if (isAppContext.value) return appTeamPicker.value.labels
+  return undefined
+})
+
+const composeType = computed(() => (isInterfaceContext.value ? 'interface' : isAppContext.value ? 'app' : 'base'))
+
+const composeRoles = computed(() =>
+  isInterfaceContext.value ? interfaceShare.inviteRoles.value : isAppContext.value ? appTeamPicker.value.roles : undefined,
+)
+
+const composeUsers = computed(() =>
+  isInterfaceContext.value ? interfaceShare.members.value : isAppContext.value ? appShare.members.value : undefined,
+)
+
+const composeInviteHandler = computed(() =>
+  isInterfaceContext.value ? interfaceShare.inviteByEmail : isAppContext.value ? appShare.inviteByEmail : undefined,
+)
 
 function composeRolePhrase(role: string, count: number) {
   if (!isInterfaceContext.value) return undefined
@@ -238,7 +297,7 @@ const MODAL_WIDTH = 560
  */
 function anchorToTrigger() {
   const trigger = document.querySelector(
-    '[data-testid="share-base-button"], [data-testid="nc-interface-share-btn"]',
+    '[data-testid="share-base-button"], [data-testid="nc-interface-share-btn"], [data-testid="nc-app-share-btn"]',
   ) as HTMLElement | null
   const root = document.documentElement
   const gutter = 12
@@ -265,7 +324,13 @@ function openCompose() {
 
 function openLinks() {
   screen.value = 'links'
-  $e(isInterfaceContext.value ? 'c:interface:invite:link:list:open' : 'c:base:invite:link:list:open')
+  $e(
+    isInterfaceContext.value
+      ? 'c:interface:invite:link:list:open'
+      : isAppContext.value
+      ? 'c:app:invite:link:list:open'
+      : 'c:base:invite:link:list:open',
+  )
 }
 
 /** Back to the list when there is a list to go back to, otherwise the hub. */
@@ -274,7 +339,14 @@ function afterEditLink() {
 }
 
 function openEditLink(linkId: string, isNew = false) {
-  $e(isInterfaceContext.value ? 'c:interface:invite:link:settings:open' : 'c:base:invite:link:settings:open', { isNew })
+  $e(
+    isInterfaceContext.value
+      ? 'c:interface:invite:link:settings:open'
+      : isAppContext.value
+      ? 'c:app:invite:link:settings:open'
+      : 'c:base:invite:link:settings:open',
+    { isNew },
+  )
 
   editLinkId.value = linkId
   editLinkIsNew.value = isNew
@@ -287,6 +359,7 @@ async function openManageAccess({ pages = false }: { pages?: boolean } = {}) {
 
   try {
     if (isInterfaceContext.value) await interfaceShare.openManageMembers({ pages })
+    else if (isAppContext.value) await appShare.openManageMembers()
     else await navigateToProjectPage({ page: 'collaborator' })
     showShareModal.value = false
   } catch (e) {
@@ -307,8 +380,8 @@ function goToInviteTab() {
 // Closing is the form's call, not ours: it keeps itself open when something is
 // still sitting in the box waiting to be corrected.
 function onInviteSent(emails: string[]) {
-  // An interface invite records its own event.
-  if (!isInterfaceContext.value) $e('a:base:invite:email:send', { count: emails.length })
+  // Interface and app invites record their own events.
+  if (!isInterfaceContext.value && !isAppContext.value) $e('a:base:invite:email:send', { count: emails.length })
   loadMemberCount()
 }
 
@@ -341,7 +414,8 @@ watch(showShareModal, (val) => {
     activeTab.value = defaultTab.value
     membersLoaded.value = false
     nextTick(anchorToTrigger)
-    loadMemberCount()
+    // An app's count and pickers both need its teams first.
+    if (!isAppContext.value) loadMemberCount()
     // Forced: the cached list is whatever this tab last saw, so a link created
     // or revoked anywhere else -- another tab, another person -- would still be
     // on screen, and its Copy button would hand out a dead token.
@@ -363,6 +437,18 @@ watch(showShareModal, (val) => {
         // The link list is global; never show another target's links here.
         resetInviteLinks()
       }
+    } else if (isAppContext.value) {
+      // The link list is global; never show another target's links while the teams load.
+      resetInviteLinks()
+
+      appShare.load().then(() => {
+        loadMemberCount()
+
+        const target = appShare.linkTarget.value
+
+        if (target && appShare.canCreateLink.value) loadInviteLinks(target, true)
+        else resetInviteLinks()
+      })
     } else if (base.value?.id && isUIAllowed('baseInviteLinkCreate')) {
       loadInviteLinks({ scope: InviteLinkScope.BASE, baseId: base.value.id }, true)
     }
@@ -422,6 +508,16 @@ watch(showShareModal, (val) => {
             <template #tab>
               <span data-testid="nc-share-tab-invite">{{ $t('activity.inviteTeam') }}</span>
             </template>
+
+            <!-- Gutter on a wrapper: NcAlert is full width, so a margin on it overflows. -->
+            <div v-if="isAppContext && !appShare.isLive.value" class="px-7 pt-5">
+              <NcAlert
+                type="info"
+                class="nc-share-app-not-live !p-3"
+                :description="$t('msg.info.appShareNotDeployed')"
+                data-testid="nc-share-app-not-live"
+              />
+            </div>
 
             <DlgShareAndCollaborateHubMain
               :member-count="memberCount"
@@ -494,10 +590,12 @@ watch(showShareModal, (val) => {
                 <DlgShareAndCollaborateShareDashboard />
               </div>
 
+              <DlgShareAndCollaborateShareApp v-else-if="objectTab === 'app'" />
+
               <DlgShareAndCollaborateShareInterface v-else />
 
               <div v-if="canInvite" class="text-bodySm text-nc-content-gray-muted">
-                {{ $t('msg.info.readOnlyInviteInstead') }}
+                {{ isAppContext ? $t('msg.info.appPublicInviteInstead') : $t('msg.info.readOnlyInviteInstead') }}
                 <button
                   class="nc-share-invite-instead font-semibold text-nc-content-brand hover:underline"
                   data-testid="nc-share-invite-instead"
@@ -526,12 +624,15 @@ watch(showShareModal, (val) => {
           v-if="screen === 'compose'"
           :active="showShareModal && screen === 'compose'"
           :base-id="base.id"
-          :type="isInterfaceContext ? 'interface' : 'base'"
-          :users="isInterfaceContext ? interfaceShare.members.value : undefined"
-          :roles="isInterfaceContext ? interfaceShare.inviteRoles.value : undefined"
+          :type="composeType"
+          :users="composeUsers"
+          :roles="composeRoles"
           :role-labels="composeRoleLabels"
+          :role-descriptions="isAppContext ? appTeamPicker.descriptions : undefined"
+          :role-icons="isAppContext ? appTeamPicker.icons : undefined"
+          :no-access-roles="isAppContext ? appTeamPicker.noAccess : undefined"
           :role-phrase="composeRolePhrase"
-          :invite-handler="isInterfaceContext ? interfaceShare.inviteByEmail : undefined"
+          :invite-handler="composeInviteHandler"
           @back="goMain"
           @sent="onInviteSent"
         />

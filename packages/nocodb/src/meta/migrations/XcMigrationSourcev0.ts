@@ -115,6 +115,7 @@ import * as nc_202610011000_automation_executions_run_control from './v0/nc_2026
 import * as nc_202610040132_normalize_datetime_field_meta_keys from './v0/nc_202610040132_normalize_datetime_field_meta_keys';
 import * as nc_202610071500_invite_links_interface from './v0/nc_202610071500_invite_links_interface';
 import * as nc_202610081200_users_recanonicalize_proton_emails from './v0/nc_202610081200_users_recanonicalize_proton_emails';
+import * as nc_202610081300_invite_links_app from './v0/nc_202610081300_invite_links_app';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -241,6 +242,7 @@ export default class XcMigrationSourcev0 {
       'nc_202610040132_normalize_datetime_field_meta_keys',
       'nc_202610071500_invite_links_interface',
       'nc_202610081200_users_recanonicalize_proton_emails',
+      'nc_202610081300_invite_links_app',
     ]);
   }
 
@@ -484,6 +486,8 @@ export default class XcMigrationSourcev0 {
         return nc_202610071500_invite_links_interface;
       case 'nc_202610081200_users_recanonicalize_proton_emails':
         return nc_202610081200_users_recanonicalize_proton_emails;
+      case 'nc_202610081300_invite_links_app':
+        return nc_202610081300_invite_links_app;
     }
   }
 }

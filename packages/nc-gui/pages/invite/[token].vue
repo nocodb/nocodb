@@ -34,6 +34,8 @@ const isWorkspaceInvite = computed(() => preview.value?.scope === InviteLinkScop
 
 const isInterfaceInvite = computed(() => preview.value?.scope === InviteLinkScope.INTERFACE)
 
+const isAppInvite = computed(() => preview.value?.scope === InviteLinkScope.APP)
+
 const isLoading = ref(true)
 
 /** Held true while the browser navigates away, so the card never flashes. */
@@ -92,11 +94,18 @@ function landingPath({
   base_id: baseId,
   workspace_id: workspaceId,
   interface_id: interfaceId,
+  app_id: appId,
 }: {
   base_id?: string | null
   workspace_id?: string | null
   interface_id?: string | null
+  app_id?: string | null
 }) {
+  // App members land in the running app, not its builder.
+  if (baseId && appId && workspaceId) {
+    return `/app-open?${new URLSearchParams({ app: appId, ws: workspaceId, base: baseId }).toString()}`
+  }
+
   if (baseId && interfaceId) return `/${workspaceId ?? 'nc'}/${baseId}/interfaces/${interfaceId}`
 
   return baseId ? `/${workspaceId ?? 'nc'}/${baseId}` : workspaceId ? `/${workspaceId}` : '/'
@@ -119,6 +128,8 @@ async function loadPreview() {
           ? 'c:ws:invite:link:view'
           : res.data.scope === InviteLinkScope.INTERFACE
           ? 'c:interface:invite:link:view'
+          : res.data.scope === InviteLinkScope.APP
+          ? 'c:app:invite:link:view'
           : 'c:base:invite:link:view',
         {
           scope: res.data.scope,
@@ -137,6 +148,8 @@ async function loadPreview() {
         ? 'c:ws:invite:link:view'
         : res.data?.scope === InviteLinkScope.INTERFACE
         ? 'c:interface:invite:link:view'
+        : res.data?.scope === InviteLinkScope.APP
+        ? 'c:app:invite:link:view'
         : 'c:base:invite:link:view',
       {
         scope: res.data?.scope,
@@ -162,11 +175,15 @@ function goSignIn(path: '/signin' | '/signup') {
         ? 'c:ws:invite:link:sign-up'
         : isInterfaceInvite.value
         ? 'c:interface:invite:link:sign-up'
+        : isAppInvite.value
+        ? 'c:app:invite:link:sign-up'
         : 'c:base:invite:link:sign-up'
       : isWorkspaceInvite.value
       ? 'c:ws:invite:link:sign-in'
       : isInterfaceInvite.value
       ? 'c:interface:invite:link:sign-in'
+      : isAppInvite.value
+      ? 'c:app:invite:link:sign-in'
       : 'c:base:invite:link:sign-in',
     { scope: preview.value?.scope },
   )
@@ -181,6 +198,8 @@ function switchAccount() {
       ? 'c:ws:invite:link:switch-account'
       : isInterfaceInvite.value
       ? 'c:interface:invite:link:switch-account'
+      : isAppInvite.value
+      ? 'c:app:invite:link:switch-account'
       : 'c:base:invite:link:switch-account',
     {
       scope: preview.value?.scope,
@@ -206,6 +225,8 @@ async function onJoin() {
         ? 'a:ws:invite:link:accept'
         : isInterfaceInvite.value
         ? 'a:interface:invite:link:accept'
+        : isAppInvite.value
+        ? 'a:app:invite:link:accept'
         : 'a:base:invite:link:accept',
       {
         scope: preview.value?.scope,
@@ -228,6 +249,8 @@ async function onJoin() {
         ? 'a:ws:invite:link:accept:refused'
         : isInterfaceInvite.value
         ? 'a:interface:invite:link:accept:refused'
+        : isAppInvite.value
+        ? 'a:app:invite:link:accept:refused'
         : 'a:base:invite:link:accept:refused',
       {
         scope: preview.value?.scope,
@@ -287,7 +310,11 @@ onMounted(() => {
           : $t('msg.info.invitedToBase', { name: preview.target_title })
       "
       :subtitle="
-        signedIn && wrongDomain
+        preview.scope === InviteLinkScope.APP
+          ? signedIn && wrongDomain
+            ? $t('msg.info.joinTeamWithDomainAccount', { team: preview.team_title, domain: preview.email_domain })
+            : $t('msg.info.youWillJoinTeam', { team: preview.team_title })
+          : signedIn && wrongDomain
           ? $t('msg.info.joinAsWithDomainAccount', { role: roleLabel, domain: preview.email_domain })
           : $t('msg.info.youWillJoinAs', { role: roleLabel })
       "

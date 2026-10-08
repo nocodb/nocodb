@@ -110,6 +110,9 @@ let isApplyingTransform = false
 const transformPreview = computed(() => {
   const target = transformTarget.value
   if (!target || !workflowVariables?.previewExpression) return null
+  // No test data for the value itself: nothing to preview, not a transform error.
+  const base = workflowVariables.previewExpression(target.base)
+  if (!base || (!base.error && base.value === undefined)) return null
   return workflowVariables.previewExpression(applyWorkflowExpressionTransforms(target.base, target.steps))
 })
 

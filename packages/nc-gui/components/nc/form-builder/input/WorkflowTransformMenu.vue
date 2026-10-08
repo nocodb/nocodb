@@ -235,10 +235,10 @@ onMounted(() => searchRef.value?.focus())
 
     <!-- Capped so a long value never pushes the transform list out of the menu. -->
     <div class="flex-none flex items-center gap-2 px-3 py-2 border-t-1 border-nc-border-gray-light min-w-0">
-      <div class="flex-1 min-w-0 text-captionSm line-clamp-2 break-all" data-testid="nc-workflow-transform-preview">
+      <div class="flex-1 min-w-0 text-captionSm line-clamp-2 break-words" data-testid="nc-workflow-transform-preview">
         <span class="text-nc-content-gray-muted">=</span>
         <span v-if="preview?.error" class="ml-1 text-nc-content-red-dark">{{ preview.error }}</span>
-        <span v-else-if="previewText" class="ml-1 text-nc-content-gray-emphasis font-mono">{{ previewText }}</span>
+        <span v-else-if="previewText" class="ml-1 text-nc-content-gray-emphasis font-mono break-all">{{ previewText }}</span>
         <span v-else class="ml-1 text-nc-content-gray-subtle">{{ t('labels.workflow.transforms.noPreview') }}</span>
       </div>
       <NcButton

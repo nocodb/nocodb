@@ -438,7 +438,7 @@ defineExpose({
         <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-1.5">
           <!-- The field takes one kind and nothing upstream has it: say so instead of a page of disabled rows. -->
           <div
-            v-if="!hasAnyAccepted && !searchQuery"
+            v-if="!hasAnyAccepted && !searchQuery && nodeGroups.length"
             class="flex items-start gap-1.5 mx-1 mb-1.5 px-2.5 py-2 rounded-md bg-nc-bg-gray-extralight text-captionSm text-nc-content-gray-subtle"
             data-testid="nc-workflow-variable-picker-none-accepted"
           >

@@ -71,8 +71,8 @@ const isFocused = ref(false)
 /** The `{{` the picker was opened by, and the text typed after it. */
 const picker = ref<{ from: number; query: string; top: number; left: number } | null>(null)
 
-/** The picker was opened by focusing an empty field, so its `{{` is ours to remove. */
-const isAutoPicker = ref(false)
+/** We inserted the picker's `{{`: it and the search text after it aren't part of the value until a pick. */
+const ownsPickerBraces = ref(false)
 
 /** Where the "Click to transform" hint sits over the hovered chip. */
 const chipHint = ref<{ top: number; left: number } | null>(null)
@@ -122,6 +122,13 @@ const allVariables = computed(() => {
 })
 
 const preview = (expression: string) => workflowVariables?.previewExpression?.(expression) ?? null
+
+// No test data for the value itself: nothing to preview, not a transform error.
+function transformPreview(base: string, steps: WorkflowTransformStep[]) {
+  const basePreview = preview(base)
+  if (!basePreview || (!basePreview.error && basePreview.value === undefined)) return null
+  return preview(applyWorkflowExpressionTransforms(base, steps))
+}
 
 const kindOf = (expression: string) => getWorkflowExpressionKind(expression, props.variables, preview(expression))
 
@@ -335,6 +342,7 @@ function onPickerCommand(attrs: { expression: string }) {
   const current = picker.value
   if (!view || !current) return
   const to = view.state.selection.main.head
+  ownsPickerBraces.value = false
   view.dispatch({
     changes: { from: current.from, to, insert: attrs.expression },
     selection: { anchor: current.from + attrs.expression.length },
@@ -555,7 +563,6 @@ function extensions(): Extension[] {
         // No dispatch inside an update; open once this one settles.
         queueMicrotask(() => {
           if (!view?.hasFocus || view.state.doc.length || picker.value) return
-          isAutoPicker.value = true
           insertVariable()
         })
       }
@@ -568,19 +575,28 @@ function extensions(): Extension[] {
       const isOurs = update.transactions.some((tr) => tr.annotation(programmatic) !== undefined)
       if (!update.transactions.some((tr) => tr.annotation(programmatic) === true)) closeTransformMenu()
 
-      const value = update.state.doc.toString()
-      // The `{{` opened by focusing an empty field is ours until the user types or picks.
-      const isAutoPickerPlaceholder = isAutoPicker.value && value === '{{'
-      if (value !== (props.modelValue ?? '') && !isAutoPickerPlaceholder) emit('update:modelValue', value)
-      if (isOurs) return
-
       const head = update.state.selection.main.head
-      if (picker.value) {
+      if (!isOurs && picker.value) {
         const query = update.state.doc.sliceString(picker.value.from + 2, head)
         // Typing code instead of searching hands over to autocomplete.
-        if (head < picker.value.from + 2 || /[}$().'"[]/.test(query)) picker.value = null
+        if (/[}$().'"[]/.test(query)) {
+          ownsPickerBraces.value = false
+          picker.value = null
+        } else if (head < picker.value.from + 2) picker.value = null
         else picker.value = { ...picker.value, query }
-      } else if (update.state.doc.sliceString(head - 2, head) === '{{' && openTokenStart(update.state, head - 2) === null) {
+      }
+
+      const value = update.state.doc.toString()
+      const draft = pickerDraft(update.state)
+      const nextValue = draft ? value.slice(0, draft.from) + value.slice(draft.to) : value
+      if (nextValue !== (props.modelValue ?? '')) emit('update:modelValue', nextValue)
+      if (isOurs) return
+
+      if (
+        !picker.value &&
+        update.state.doc.sliceString(head - 2, head) === '{{' &&
+        openTokenStart(update.state, head - 2) === null
+      ) {
         openPicker(update.view, head - 2)
       }
     }),
@@ -608,8 +624,18 @@ function insertVariable() {
   if (!view) return
   view.focus()
   const head = view.state.selection.main.head
-  view.dispatch({ changes: { from: head, insert: '{{' }, selection: { anchor: head + 2 }, annotations: programmatic.of(false) })
+  // Open first, so the `{{` below is already the picker's draft and never emitted.
+  ownsPickerBraces.value = true
   openPicker(view, head)
+  view.dispatch({ changes: { from: head, insert: '{{' }, selection: { anchor: head + 2 }, annotations: programmatic.of(false) })
+}
+
+/** The picker's own `{{` and search text, while it is open. */
+function pickerDraft(state: EditorState) {
+  if (!ownsPickerBraces.value || !picker.value) return null
+  const from = picker.value.from
+  if (state.doc.sliceString(from, from + 2) !== '{{') return null
+  return { from, to: Math.max(from + 2, state.selection.main.head) }
 }
 
 defineExpose({
@@ -636,13 +662,18 @@ watch(
   () => view?.dispatch({ effects: refreshChips.of(null) }),
 )
 
-watch(picker, (value) => {
-  if (value || !isAutoPicker.value) return
-  isAutoPicker.value = false
-  // Dismissed without a pick: don't leave the `{{` behind.
-  if (view?.state.doc.toString() === '{{') {
-    view.dispatch({ changes: { from: 0, to: 2, insert: '' }, annotations: programmatic.of(false) })
-  }
+// Dismissed without a pick: don't leave the `{{` we inserted, or the search text, behind.
+function dropPickerText(dismissed: { from: number; query: string } | null | undefined) {
+  const owned = ownsPickerBraces.value
+  ownsPickerBraces.value = false
+  if (!owned || !view || !dismissed) return
+  const to = dismissed.from + 2 + dismissed.query.length
+  if (view.state.doc.sliceString(dismissed.from, to) !== `{{${dismissed.query}`) return
+  view.dispatch({ changes: { from: dismissed.from, to, insert: '' }, annotations: programmatic.of(false) })
+}
+
+watch(picker, (value, previous) => {
+  if (!value) dropPickerText(previous)
 })
 
 watch(
@@ -769,7 +800,7 @@ onBeforeUnmount(() => {
           :label="transformTarget.label"
           :steps="transformTarget.steps"
           :kind="transformTarget.kind"
-          :preview="preview(applyWorkflowExpressionTransforms(transformTarget.base, transformTarget.steps))"
+          :preview="transformPreview(transformTarget.base, transformTarget.steps)"
           can-edit-expression
           @update:steps="updateTransformSteps"
           @edit-expression="editTransformTargetAsExpression"

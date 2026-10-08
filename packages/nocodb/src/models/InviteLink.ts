@@ -24,6 +24,7 @@ export default class InviteLink implements InviteLinkType {
   scope?: InviteLinkScope;
   base_id?: string | null;
   fk_workspace_id?: string | null;
+  fk_interface_id?: string | null;
   role?: InviteLinkRole;
   email_domain?: string | null;
   expires_at?: string | null;
@@ -72,6 +73,7 @@ export default class InviteLink implements InviteLinkType {
       scope: InviteLinkScope;
       base_id?: string | null;
       fk_workspace_id?: string | null;
+      fk_interface_id?: string | null;
       role: InviteLinkRole;
       email_domain?: string | null;
       expires_at?: Date | null;
@@ -94,6 +96,7 @@ export default class InviteLink implements InviteLinkType {
         scope: param.scope,
         base_id: param.base_id ?? null,
         fk_workspace_id: param.fk_workspace_id ?? null,
+        fk_interface_id: param.fk_interface_id ?? null,
         token_hash: hashToken(token),
         token,
         role: param.role,
@@ -144,12 +147,15 @@ export default class InviteLink implements InviteLinkType {
       scope: InviteLinkScope;
       base_id?: string | null;
       fk_workspace_id?: string | null;
+      fk_interface_id?: string | null;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<InviteLink[]> {
     const condition: Record<string, any> = { scope: param.scope };
 
     if (param.scope === InviteLinkScope.BASE) condition.base_id = param.base_id;
+    else if (param.scope === InviteLinkScope.INTERFACE)
+      condition.fk_interface_id = param.fk_interface_id;
     else condition.fk_workspace_id = param.fk_workspace_id;
 
     const rows = await ncMeta.metaList2(

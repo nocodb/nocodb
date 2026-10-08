@@ -22,7 +22,7 @@ const props = withDefaults(
      * off its own visibility flag.
      */
     active: boolean
-    type?: 'base' | 'workspace' | 'organization'
+    type?: 'base' | 'workspace' | 'organization' | 'interface'
     isTeam?: boolean
     baseId?: string
     emails?: string[]
@@ -39,6 +39,10 @@ const props = withDefaults(
     /** Hosts that draw their own footer pass false and drive it through `submit`. */
     showFooter?: boolean
     submitLabel?: string
+    /** Overrides the role list, e.g. an interface's editor/commenter/viewer. */
+    roles?: string[]
+    /** Sends the invites instead of the built-in base/workspace calls. Throw to report a failure. */
+    inviteHandler?: (emails: string[], role: string) => Promise<void>
   }>(),
   {
     layout: 'stacked',
@@ -68,8 +72,9 @@ const { inviteCollaborator: inviteWsCollaborator, workspaceTeamAdd } = workspace
 
 const { isTeamsEnabled } = storeToRefs(workspaceStore)
 
+// The org-user picker only knows base and workspace targets.
 const { fetchOrgUsers, resetOrgUsers, orgUsers } = useOrgUserInvitePicker({
-  type: props.type,
+  type: props.type === 'interface' ? undefined : props.type,
   workspaceId: props.workspaceId,
   baseId: props.baseId,
 })
@@ -79,7 +84,7 @@ const { isPaymentEnabled, showUserPlanLimitExceededModal, isPaidPlan, showUserMa
 const dialogShow = computed(() => props.active)
 
 const orderedRoles = computed(() => {
-  return props.type === 'base' ? ProjectRoles : WorkspaceUserRoles
+  return props.type === 'base' || props.type === 'interface' ? ProjectRoles : WorkspaceUserRoles
 })
 
 const userRoles = computed(() => {
@@ -163,7 +168,16 @@ const focusOnDiv = () => {
 watch(
   dialogShow,
   async (newVal) => {
-    if (newVal) {
+    if (newVal && props.roles) {
+      allowedRoles.value = [...props.roles] as []
+      disabledRoles.value = []
+
+      if (!props.roles.includes(inviteData.roles)) inviteData.roles = props.roles[0] as ProjectRoles
+
+      setTimeout(() => {
+        focusOnDiv()
+      }, 100)
+    } else if (newVal) {
       try {
         let rolesArr = Object.values(orderedRoles.value)
 
@@ -476,6 +490,8 @@ const inviteCollaborator = async () => {
 
           if (props.type === 'workspace') {
             scopeLabel = 'objects.workspace'
+          } else if (props.type === 'interface') {
+            scopeLabel = 'general.interface'
           } else if (props.type === 'organization') {
             scopeLabel = 'general.organization'
           }
@@ -485,7 +501,9 @@ const inviteCollaborator = async () => {
         }
       }
 
-      if (props.type === 'base' && props.baseId) {
+      if (props.inviteHandler) {
+        await props.inviteHandler(recipients, inviteData.roles)
+      } else if (props.type === 'base' && props.baseId) {
         await createProjectUser(props.baseId!, {
           email: payloadData,
           roles: inviteData.roles,

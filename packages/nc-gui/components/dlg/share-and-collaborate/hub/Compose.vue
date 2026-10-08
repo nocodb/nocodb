@@ -4,6 +4,10 @@ const props = defineProps<{
   active: boolean
   baseId?: string
   users?: Array<{ email?: string }>
+  /** Interface invites: its role list and its own send. */
+  type?: 'base' | 'interface'
+  roles?: string[]
+  inviteHandler?: (emails: string[], role: string) => Promise<void>
 }>()
 
 const emit = defineEmits(['back', 'sent'])
@@ -57,9 +61,11 @@ const sendLabel = computed(() => {
     <DlgInviteForm
       ref="formRef"
       :active="props.active"
-      type="base"
+      :type="props.type ?? 'base'"
       :base-id="props.baseId"
       :users="props.users"
+      :roles="props.roles"
+      :invite-handler="props.inviteHandler"
       layout="compose"
       :show-footer="false"
       @success="emit('sent', $event)"

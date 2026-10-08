@@ -16,8 +16,6 @@ const { isViewToolbar } = defineProps<{
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-const route = useRoute()
-
 const baseStore = useBase()
 const { base, isPrivateBase } = storeToRefs(baseStore)
 const { isUIAllowed, baseRoles } = useRoles()
@@ -44,7 +42,12 @@ if (isViewToolbar) {
 const { formStatus, showShareModal } = storeToRefs(useShare())
 const { resetData } = useShare()
 
-const { links: inviteLinks, load: loadInviteLinks } = useInviteLinks()
+const { links: inviteLinks, load: loadInviteLinks, reset: resetInviteLinks } = useInviteLinks()
+
+/** Over an interface the modal invites to that interface only. EE; inert in CE. */
+const interfaceShare = useInterfaceShareHub()
+
+const isInterfaceContext = computed(() => interfaceShare.isActive.value)
 
 const { navigateToProjectPage } = baseStore
 
@@ -78,6 +81,18 @@ const membersLoaded = ref(false)
 async function loadMemberCount() {
   if (!base.value?.id) return
 
+  if (isInterfaceContext.value) {
+    try {
+      memberCount.value = (await interfaceShare.loadMemberCount()) ?? 0
+      membersLoaded.value = true
+    } catch (e) {
+      console.error(e)
+      memberCount.value = 0
+    }
+
+    return
+  }
+
   try {
     const res: any = await $api.auth.baseUserList(base.value.id)
 
@@ -104,8 +119,6 @@ const isViewSharingRestricted = computed(() => {
   return isPrivateBase.value && view.value?.type !== ViewTypes.FORM
 })
 
-const isInterfaceContext = computed(() => !!route.params.interfaceId)
-
 // Anyone who can actually invite sees the tab. Since 2026-09-19 that is every
 // member from Viewer up, who may invite by email; minting a link is Editor and
 // above, and the link block gates itself on that.
@@ -117,6 +130,8 @@ const isInterfaceContext = computed(() => !!route.params.interfaceId)
 const canInvite = computed(() => {
   if (!base.value?.id) return false
 
+  if (isInterfaceContext.value) return interfaceShare.canInvite.value
+
   if (isPrivateBase.value) return !!baseRoles.value?.[ProjectRoles.OWNER]
 
   return isUIAllowed('userInvite') || isUIAllowed('baseInviteLinkCreate')
@@ -126,7 +141,8 @@ const shareViewSection = computed(() => isViewToolbar && !!activeView.value)
 
 /** The one contextual thing this modal was opened over, if any. */
 const objectTab = computed<'view' | 'doc' | 'dashboard' | 'interface' | null>(() => {
-  if (isInterfaceContext.value) return 'interface'
+  // Interfaces are not shared to the web yet; the modal is invite-only there.
+  if (isInterfaceContext.value) return null
   if (activeDocument.value) return 'doc'
   if (activeDashboard.value) return 'dashboard'
   if (shareViewSection.value) return 'view'
@@ -169,9 +185,11 @@ const objectNoun = computed(() => {
 /** Share-to-web for a whole base lives in the base menu now, so off a view the
  *  modal is invite-only and must not promise a web link. Where there is a web
  *  tab it publishes that one object, not the base, so the tooltip names it. */
-const shareHubTooltip = computed(() =>
-  objectTab.value ? t('msg.info.shareHubTooltip', { object: objectNoun.value }) : t('msg.info.shareHubTooltipInviteOnly'),
-)
+const shareHubTooltip = computed(() => {
+  if (isInterfaceContext.value) return t('msg.info.shareHubTooltipInterface')
+
+  return objectTab.value ? t('msg.info.shareHubTooltip', { object: objectNoun.value }) : t('msg.info.shareHubTooltipInviteOnly')
+})
 
 /**
  * Publishing a view is Editor and above; the other object kinds gate themselves
@@ -180,19 +198,26 @@ const shareHubTooltip = computed(() =>
  */
 const canShareObject = computed(() => (objectTab.value === 'view' ? isUIAllowed('viewShare') : !!objectTab.value))
 
-const defaultTab = computed<'invite' | 'object'>(() => {
-  // The interface editor's Share button is its own surface; leave it opening
-  // on the thing the user pressed it for. Everywhere else, invite comes first.
-  if (objectTab.value === 'interface') return 'object'
+const defaultTab = computed<'invite' | 'object'>(() => (canInvite.value ? 'invite' : 'object'))
 
-  return canInvite.value ? 'invite' : 'object'
-})
+/** What the modal is sharing: the interface over one, else the base. */
+const shareTitle = computed(() => (isInterfaceContext.value ? interfaceShare.title.value : base.value?.title))
+
+const canCreateInviteLink = computed(() =>
+  isInterfaceContext.value ? interfaceShare.canCreateLink.value : isUIAllowed('baseInviteLinkCreate'),
+)
+
+const canInviteByEmail = computed(() =>
+  isInterfaceContext.value ? interfaceShare.canInviteByEmail.value : isUIAllowed('userInvite'),
+)
+
+const canManageMembers = computed(() => !isInterfaceContext.value || interfaceShare.canManageMembers.value)
 
 const screenTitle = computed(() => {
   if (screen.value === 'links') return t('activity.inviteLinks')
   if (screen.value === 'edit') return t(editLinkIsNew.value ? 'activity.newInviteLink' : 'activity.editInviteLink')
 
-  return t('labels.shareNamed', { name: base.value?.title })
+  return t('labels.shareNamed', { name: shareTitle.value })
 })
 
 const MODAL_WIDTH = 560
@@ -204,7 +229,9 @@ const MODAL_WIDTH = 560
  * the trigger cannot be found (interface editor, keyboard shortcut).
  */
 function anchorToTrigger() {
-  const trigger = document.querySelector('[data-testid="share-base-button"]') as HTMLElement | null
+  const trigger = document.querySelector(
+    '[data-testid="share-base-button"], [data-testid="nc-interface-share-btn"]',
+  ) as HTMLElement | null
   const root = document.documentElement
   const gutter = 12
 
@@ -251,7 +278,8 @@ async function openManageAccess() {
   $e('c:share:members:open')
 
   try {
-    await navigateToProjectPage({ page: 'collaborator' })
+    if (isInterfaceContext.value) await interfaceShare.openManageMembers()
+    else await navigateToProjectPage({ page: 'collaborator' })
     showShareModal.value = false
   } catch (e) {
     console.error(e)
@@ -271,7 +299,8 @@ function goToInviteTab() {
 // Closing is the form's call, not ours: it keeps itself open when something is
 // still sitting in the box waiting to be corrected.
 function onInviteSent(emails: string[]) {
-  $e('a:base:invite:email:send', { count: emails.length })
+  // An interface invite records its own event.
+  if (!isInterfaceContext.value) $e('a:base:invite:email:send', { count: emails.length })
   loadMemberCount()
 }
 
@@ -316,7 +345,16 @@ watch(showShareModal, (val) => {
     // former, so guarding on the latter was false for everyone and left the
     // composable without a target -- which made Create an invite link do
     // nothing at all, silently.
-    if (base.value?.id && isUIAllowed('baseInviteLinkCreate')) {
+    if (isInterfaceContext.value) {
+      const target = interfaceShare.linkTarget.value
+
+      if (target && interfaceShare.canCreateLink.value && !interfaceShare.isBlocked.value) {
+        loadInviteLinks(target, true)
+      } else {
+        // The link list is global; never show another target's links here.
+        resetInviteLinks()
+      }
+    } else if (base.value?.id && isUIAllowed('baseInviteLinkCreate')) {
       loadInviteLinks({ scope: InviteLinkScope.BASE, baseId: base.value.id }, true)
     }
     $e('c:share:open', { tab: activeTab.value, object: objectTab.value })
@@ -347,7 +385,7 @@ watch(showShareModal, (val) => {
       <template v-if="screen === 'main'">
         <div class="flex items-center gap-2 px-7 pt-6">
           <div class="text-heading3 !text-[18px] font-bold tracking-tight text-nc-content-gray-emphasis">
-            {{ $t('labels.shareNamed', { name: base.title }) }}
+            {{ $t('labels.shareNamed', { name: shareTitle }) }}
           </div>
           <NcTooltip :title="shareHubTooltip" placement="top">
             <GeneralIcon icon="info" class="w-4.5 h-4.5 text-nc-content-gray-muted cursor-help" />
@@ -370,10 +408,16 @@ watch(showShareModal, (val) => {
             <DlgShareAndCollaborateHubMain
               :member-count="memberCount"
               :members-loaded="membersLoaded"
+              :can-create-invite-link="canCreateInviteLink"
+              :can-invite-by-email="canInviteByEmail"
+              :can-manage-members="canManageMembers"
+              :show-page-access="isInterfaceContext"
+              :blocked="isInterfaceContext && interfaceShare.isBlocked.value"
               @compose="openCompose"
               @links="openLinks"
               @edit-link="openEditLink"
               @manage-access="openManageAccess"
+              @blocked="interfaceShare.showUpgrade"
             />
           </a-tab-pane>
 
@@ -463,6 +507,9 @@ watch(showShareModal, (val) => {
           v-if="screen === 'compose'"
           :active="showShareModal && screen === 'compose'"
           :base-id="base.id"
+          :type="isInterfaceContext ? 'interface' : 'base'"
+          :roles="isInterfaceContext ? interfaceShare.inviteRoles.value : undefined"
+          :invite-handler="isInterfaceContext ? interfaceShare.inviteByEmail : undefined"
           @back="goMain"
           @sent="onInviteSent"
         />

@@ -83,7 +83,17 @@ const invalidCopy = computed(() => {
 })
 
 /** EE routes a base under its workspace; CE has no workspace and uses the `nc` placeholder. */
-function landingPath({ base_id: baseId, workspace_id: workspaceId }: { base_id?: string | null; workspace_id?: string | null }) {
+function landingPath({
+  base_id: baseId,
+  workspace_id: workspaceId,
+  interface_id: interfaceId,
+}: {
+  base_id?: string | null
+  workspace_id?: string | null
+  interface_id?: string | null
+}) {
+  if (baseId && interfaceId) return `/${workspaceId ?? 'nc'}/${baseId}/interfaces/${interfaceId}`
+
   return baseId ? `/${workspaceId ?? 'nc'}/${baseId}` : workspaceId ? `/${workspaceId}` : '/'
 }
 

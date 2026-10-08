@@ -6,7 +6,12 @@ import { InviteLinkScope } from 'nocodb-sdk'
  * detail of copying one, so it is minted on the first copy and never just
  * because a modal opened.
  */
-const emit = defineEmits(['manage'])
+const props = defineProps<{
+  /** Plan-gated: pressing the button asks for an upgrade instead. */
+  blocked?: boolean
+}>()
+
+const emit = defineEmits(['manage', 'blocked'])
 
 const { t } = useI18n()
 
@@ -53,6 +58,7 @@ const ctaLabel = computed(() => (hasLink.value ? t('activity.copyInviteLink') : 
 
 async function onRoleChange(next: string) {
   $e(isWorkspaceInvite.value ? 'c:ws:invite:link:role:change' : 'c:base:invite:link:role:change', {
+    scope: inviteTarget.value?.scope,
     role: next,
     existing: !!primary.value,
   })
@@ -71,6 +77,8 @@ async function onRoleChange(next: string) {
  * await where a link already exists.
  */
 async function onCopy() {
+  if (props.blocked) return emit('blocked')
+
   if (isBusy.value) return
 
   isBusy.value = true
@@ -84,6 +92,7 @@ async function onCopy() {
 
       if (link) {
         $e(isWorkspaceInvite.value ? 'a:ws:invite:link:create' : 'a:base:invite:link:create', {
+          scope: inviteTarget.value?.scope,
           role: link.role,
           restricted: !!link.email_domain,
         })
@@ -97,6 +106,7 @@ async function onCopy() {
     await copy(linkUrl(link))
 
     $e(isWorkspaceInvite.value ? 'c:ws:invite:link:copy' : 'c:base:invite:link:copy', {
+      scope: inviteTarget.value?.scope,
       created: isFirst,
       restricted: !!link.email_domain,
     })

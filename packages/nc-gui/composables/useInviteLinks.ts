@@ -12,7 +12,14 @@ import { getI18n } from '~/plugins/a.i18n'
 export interface InviteLinkTarget {
   scope: InviteLinkScope
   baseId?: string
+  /** Also required for an interface target: its ops are routed by workspace. */
   workspaceId?: string
+  interfaceId?: string
+  /**
+   * Interface targets only: the caller's role in the links' base-role
+   * vocabulary (`owner` for builders). Base and workspace read `useRoles`.
+   */
+  callerRole?: string | null
 }
 
 const basePath = (t: InviteLinkTarget) =>
@@ -21,13 +28,31 @@ const basePath = (t: InviteLinkTarget) =>
     : `/api/v2/meta/bases/${t.baseId}/invite-links`
 
 const sameTarget = (a: InviteLinkTarget | null, b: InviteLinkTarget) =>
-  !!a && a.scope === b.scope && a.baseId === b.baseId && a.workspaceId === b.workspaceId
+  !!a &&
+  a.scope === b.scope &&
+  a.baseId === b.baseId &&
+  a.workspaceId === b.workspaceId &&
+  a.interfaceId === b.interfaceId &&
+  a.callerRole === b.callerRole
+
+const isTargetComplete = (t: InviteLinkTarget) => {
+  switch (t.scope) {
+    case InviteLinkScope.WORKSPACE:
+      return !!t.workspaceId
+    case InviteLinkScope.INTERFACE:
+      return !!(t.workspaceId && t.baseId && t.interfaceId)
+    default:
+      return !!t.baseId
+  }
+}
 
 // createGlobalState, not createSharedComposable: the hub unmounts this screen
 // every time it pushes into compose/links/edit, and a shared composable disposes
 // with its last consumer — which reset the list mid-flow.
 export const useInviteLinks = createGlobalState(() => {
   const { $api } = useNuxtApp()
+
+  const { internalGet } = useInternalBatch()
 
   const { user } = useGlobal()
 
@@ -47,12 +72,22 @@ export const useInviteLinks = createGlobalState(() => {
 
   const isWorkspaceScope = computed(() => scope.value === InviteLinkScope.WORKSPACE)
 
+  const isInterfaceScope = computed(() => scope.value === InviteLinkScope.INTERFACE)
+
   /** Weakest first, so a higher index is more power. */
   const orderedRoles = computed(() => [...(isWorkspaceScope.value ? OrderedWorkspaceRoles : OrderedProjectRoles)].reverse())
 
   /** The highest-ranked role the user actually holds in this scope; -1 when none is known. */
   const power = computed(() => {
-    const held = isWorkspaceScope.value ? workspaceRoles.value : baseRoles.value
+    const callerRole = target.value?.callerRole
+
+    const held = isInterfaceScope.value
+      ? callerRole
+        ? { [callerRole]: true }
+        : null
+      : isWorkspaceScope.value
+      ? workspaceRoles.value
+      : baseRoles.value
 
     return Math.max(-1, ...Object.keys(held || {}).map((r) => (held?.[r] ? orderedRoles.value.indexOf(r as never) : -1)))
   })
@@ -79,7 +114,8 @@ export const useInviteLinks = createGlobalState(() => {
     const owner = isWorkspaceScope.value ? WorkspaceUserRoles.OWNER : ProjectRoles.OWNER
     const above = inviteLinkRolesFor(scope.value).filter((r) => !allowedRoles.value.includes(r))
 
-    return [owner, ...above] as (keyof typeof RoleLabels)[]
+    // An interface has no owner to withhold.
+    return (isInterfaceScope.value ? above : [owner, ...above]) as (keyof typeof RoleLabels)[]
   })
 
   const disabledRolesTooltip = computed(() => {
@@ -144,10 +180,35 @@ export const useInviteLinks = createGlobalState(() => {
     }
   }
 
+  /** Interface links ride the internal API, so an interface member with no base role can reach them. */
+  async function interfaceGet(t: InviteLinkTarget) {
+    return {
+      data: await internalGet(t.workspaceId!, t.baseId!, {
+        operation: 'interfaceInviteLinkList',
+        interfaceId: t.interfaceId,
+      }),
+    }
+  }
+
+  async function interfacePost(
+    t: InviteLinkTarget,
+    operation: 'interfaceInviteLinkCreate' | 'interfaceInviteLinkUpdate' | 'interfaceInviteLinkDelete',
+    payload: Record<string, any>,
+  ) {
+    return {
+      data: await $api.internal.postOperation(
+        t.workspaceId!,
+        t.baseId!,
+        { operation },
+        { interfaceId: t.interfaceId, ...payload },
+      ),
+    }
+  }
+
   async function load(next: InviteLinkTarget, force = false) {
     if (!force && isLoaded.value && sameTarget(target.value, next)) return
 
-    if (next.scope === InviteLinkScope.WORKSPACE ? !next.workspaceId : !next.baseId) return
+    if (!isTargetComplete(next)) return
 
     // Switching target must not leave the previous target's links on screen.
     if (!sameTarget(target.value, next)) {
@@ -158,7 +219,9 @@ export const useInviteLinks = createGlobalState(() => {
     target.value = next
     isLoading.value = true
 
-    const res = await request(() => $api.instance.get(basePath(next)))
+    const res = await request(() =>
+      next.scope === InviteLinkScope.INTERFACE ? interfaceGet(next) : $api.instance.get(basePath(next)),
+    )
 
     links.value = res?.data?.list ?? []
     isLoaded.value = true
@@ -168,13 +231,19 @@ export const useInviteLinks = createGlobalState(() => {
   async function createLink(body?: Partial<InviteLinkReqType>, opts?: { toast?: boolean }) {
     if (!target.value) return null
 
+    const t = target.value
+
+    const link = {
+      role: defaultRole.value,
+      email_domain: defaultEmailDomain.value,
+      ...body,
+    } as InviteLinkReqType
+
     const res = await request(
       () =>
-        $api.instance.post(basePath(target.value!), {
-          role: defaultRole.value,
-          email_domain: defaultEmailDomain.value,
-          ...body,
-        } as InviteLinkReqType),
+        t.scope === InviteLinkScope.INTERFACE
+          ? interfacePost(t, 'interfaceInviteLinkCreate', { link })
+          : $api.instance.post(basePath(t), link),
       opts,
     )
 
@@ -188,7 +257,15 @@ export const useInviteLinks = createGlobalState(() => {
   async function saveLink(id: string, patch: Partial<InviteLinkReqType>, opts?: { toast?: boolean }) {
     if (!target.value || !id) return null
 
-    const res = await request(() => $api.instance.patch(`${basePath(target.value!)}/${id}`, patch), opts)
+    const t = target.value
+
+    const res = await request(
+      () =>
+        t.scope === InviteLinkScope.INTERFACE
+          ? interfacePost(t, 'interfaceInviteLinkUpdate', { linkId: id, link: patch })
+          : $api.instance.patch(`${basePath(t)}/${id}`, patch),
+      opts,
+    )
 
     if (!res?.data) return null
 
@@ -202,7 +279,13 @@ export const useInviteLinks = createGlobalState(() => {
   async function deleteLink(id: string) {
     if (!target.value || !id) return false
 
-    const res = await request(() => $api.instance.delete(`${basePath(target.value!)}/${id}`))
+    const t = target.value
+
+    const res = await request(() =>
+      t.scope === InviteLinkScope.INTERFACE
+        ? interfacePost(t, 'interfaceInviteLinkDelete', { linkId: id })
+        : $api.instance.delete(`${basePath(t)}/${id}`),
+    )
 
     if (!res) return false
 

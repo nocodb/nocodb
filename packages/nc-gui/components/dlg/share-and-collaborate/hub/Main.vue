@@ -3,22 +3,32 @@
  * The hub's first screen: the link, the one email field that starts an invite,
  * and a line pointing at the members page.
  */
-/** Just the size of the base, for the footer line. */
-const props = withDefaults(defineProps<{ memberCount?: number; membersLoaded?: boolean }>(), {
-  memberCount: 0,
-})
+/** The host decides what this caller may do; the base and an interface answer differently. */
+const props = withDefaults(
+  defineProps<{
+    memberCount?: number
+    membersLoaded?: boolean
+    canCreateInviteLink?: boolean
+    canInviteByEmail?: boolean
+    canManageMembers?: boolean
+    /** Interface only: a pointer to per-page access, which lives on the members page. */
+    showPageAccess?: boolean
+    /** Plan-gated: the controls stay, but pressing them asks for an upgrade. */
+    blocked?: boolean
+  }>(),
+  {
+    memberCount: 0,
+    canManageMembers: true,
+  },
+)
 
-const emit = defineEmits(['compose', 'links', 'editLink', 'manageAccess'])
+const emit = defineEmits(['compose', 'links', 'editLink', 'manageAccess', 'blocked'])
 
 const { defaultEmailDomain } = useInviteLinks()
 
-const { isUIAllowed } = useRoles()
-
-/** Minting a link is editor+ (capped server-side at the caller's own role). */
-const canCreateInviteLink = computed(() => isUIAllowed('baseInviteLinkCreate'))
-
-/** Email invites are viewer+; minting a link is editor+. Both moved 2026-09-19. */
-const canInviteByEmail = computed(() => isUIAllowed('userInvite'))
+function onEmailFocus() {
+  emit(props.blocked ? 'blocked' : 'compose')
+}
 
 /** Their own domain makes the example read as their team, not a stock address. */
 const emailPlaceholder = computed(() =>
@@ -30,12 +40,12 @@ const emailPlaceholder = computed(() =>
 
 <template>
   <div class="flex flex-col gap-5 px-7 pt-5 pb-7">
-    <template v-if="canCreateInviteLink">
-      <DlgShareAndCollaborateHubLinkBlock @manage="emit('links')" />
+    <template v-if="props.canCreateInviteLink">
+      <DlgShareAndCollaborateHubLinkBlock :blocked="props.blocked" @manage="emit('links')" @blocked="emit('blocked')" />
       <div class="h-px bg-nc-border-gray-light" />
     </template>
 
-    <div v-if="canInviteByEmail" class="flex flex-col gap-2">
+    <div v-if="props.canInviteByEmail" class="flex flex-col gap-2">
       <div class="text-bodyDefault font-semibold text-nc-content-gray">{{ $t('labels.inviteSpecificPeople') }}</div>
 
       <!-- Focus rather than type: the real composing happens on its own screen, so
@@ -45,8 +55,8 @@ const emailPlaceholder = computed(() =>
         :placeholder="emailPlaceholder"
         data-testid="nc-hub-invite-by-email"
         readonly
-        @focus="emit('compose')"
-        @click="emit('compose')"
+        @focus="onEmailFocus"
+        @click="onEmailFocus"
       />
     </div>
     <div class="h-px bg-nc-border-gray-light" />
@@ -62,9 +72,19 @@ const emailPlaceholder = computed(() =>
       <!-- An interpolated space, not a margin: Vue condenses the whitespace-only
            text node here away entirely, and a margin would leave the copied and
            screen-reader text reading "access.Manage members". -->
+      <template v-if="props.canManageMembers">
+        {{ ' ' }}
+        <button class="nc-hub-manage-members" data-testid="nc-hub-people-with-access" @click="emit('manageAccess')">
+          {{ $t('labels.manageMembers') }}
+        </button>
+      </template>
+    </div>
+
+    <div v-if="props.showPageAccess && props.canManageMembers" class="-mt-3 text-bodySm text-nc-content-gray-muted">
+      {{ $t('msg.info.interfacePageAccessHint') }}
       {{ ' ' }}
-      <button class="nc-hub-manage-members" data-testid="nc-hub-people-with-access" @click="emit('manageAccess')">
-        {{ $t('labels.manageMembers') }}
+      <button class="nc-hub-manage-members" data-testid="nc-hub-page-access" @click="emit('manageAccess')">
+        {{ $t('labels.setPageAccess') }}
       </button>
     </div>
   </div>

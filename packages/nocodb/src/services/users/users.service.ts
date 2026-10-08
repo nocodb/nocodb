@@ -39,7 +39,11 @@ import { extractProps } from '~/helpers/extractProps';
 import deepClone from '~/helpers/deepClone';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
-import { sanitizeEmail } from '~/utils/emailUtils';
+import {
+  emailAliasNotAllowedMessage,
+  isEmailAlias,
+  sanitizeEmail,
+} from '~/utils/emailUtils';
 
 @Injectable()
 export class UsersService {
@@ -152,6 +156,7 @@ export class UsersService {
       meta,
       is_invite = false,
       workspace_invite = false,
+      allowEmailAlias = false,
     }: {
       email: string;
       salt: any;
@@ -163,10 +168,15 @@ export class UsersService {
       meta?: MetaType;
       is_invite?: boolean;
       workspace_invite?: boolean;
+      allowEmailAlias?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
     this.validateEmailPattern(email);
+
+    if (!allowEmailAlias && isEmailAlias(email)) {
+      NcError.badRequest(emailAliasNotAllowedMessage());
+    }
 
     let roles: string = OrgUserRoles.CREATOR;
 
@@ -571,9 +581,9 @@ export class UsersService {
       NcError.badRequest(`Invalid email`);
     }
 
-    // Reject plus addressing (always abusive)
-    if (_email.split('@')[0].includes('+')) {
-      NcError.badRequest('Email aliases with "+" are not allowed');
+    // Reject aliases (always abusive) — also refuses accepting an invite made out to one
+    if (isEmailAlias(_email)) {
+      NcError.badRequest(emailAliasNotAllowedMessage());
     }
 
     const email = _email.toLowerCase();

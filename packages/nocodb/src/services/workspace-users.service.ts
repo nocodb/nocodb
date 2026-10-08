@@ -7,6 +7,7 @@ import type { NcRequest } from '~/interface/config';
 import Noco from '~/Noco';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { NcError } from '~/helpers/catchError';
+import { aliasesWithoutAccount } from '~/helpers/emailAliasHelpers';
 import validateParams from '~/helpers/validateParams';
 import { User } from '~/models';
 import Workspace from '~/models/Workspace';
@@ -15,7 +16,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MailService } from '~/services/mail/mail.service';
 import { UsersService } from '~/services/users/users.service';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
-import { sanitizeEmail } from '~/utils/emailUtils';
+import { emailAliasNotAllowedMessage, sanitizeEmail } from '~/utils/emailUtils';
 import { MailEvent } from '~/interface/Mail';
 
 @Injectable()
@@ -183,6 +184,11 @@ export class WorkspaceUsersService {
     const invalidEmails = emails.filter((v) => !validator.isEmail(v));
     if (invalidEmails.length) {
       NcError.badRequest('Invalid email address : ' + invalidEmails.join(', '));
+    }
+
+    const aliasEmails = await aliasesWithoutAccount(emails, ncMeta);
+    if (aliasEmails.length) {
+      NcError.badRequest(emailAliasNotAllowedMessage(aliasEmails));
     }
 
     const error = [];

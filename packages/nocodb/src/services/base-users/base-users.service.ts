@@ -21,6 +21,7 @@ import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
+import { aliasesWithoutAccount } from '~/helpers/emailAliasHelpers';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { Base, BaseUser, PresignedUrl, User } from '~/models';
@@ -30,7 +31,7 @@ import { getProjectRole, getProjectRolePower } from '~/utils/roleHelper';
 import { MailService } from '~/services/mail/mail.service';
 import { ensureUserInDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
 import { MailEvent } from '~/interface/Mail';
-import { sanitizeEmail } from '~/utils/emailUtils';
+import { emailAliasNotAllowedMessage, sanitizeEmail } from '~/utils/emailUtils';
 
 @Injectable()
 export class BaseUsersService {
@@ -111,6 +112,11 @@ export class BaseUsersService {
       NcError.baseUserError(
         'Invalid email address : ' + invalidEmails.join(', '),
       );
+    }
+
+    const aliasEmails = await aliasesWithoutAccount(emails, ncMeta);
+    if (aliasEmails.length) {
+      NcError.baseUserError(emailAliasNotAllowedMessage(aliasEmails));
     }
 
     const error = [];

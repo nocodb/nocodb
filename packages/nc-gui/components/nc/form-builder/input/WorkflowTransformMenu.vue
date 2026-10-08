@@ -25,6 +25,8 @@ const { t } = useI18n()
 
 const CATEGORY_ORDER: WorkflowTransformCategory[] = ['text', 'number', 'list', 'date', 'any']
 
+const WHOLE_NUMBER_UNITS = ['months', 'years']
+
 const search = ref('')
 
 const activeIndex = ref(0)
@@ -84,10 +86,23 @@ function removeStep(index: number) {
   emit('update:steps', props.steps.slice(0, index))
 }
 
+// Months and years vary in length, so "Add time" takes whole numbers of them.
+function isWholeNumberStep(step: WorkflowTransformStep) {
+  return step.id === 'addTime' && WHOLE_NUMBER_UNITS.includes(String(step.args?.unit))
+}
+
 function updateArg(index: number, key: string, value: string | number) {
   emit(
     'update:steps',
-    props.steps.map((step, i) => (i === index ? { ...step, args: { ...step.args, [key]: value } } : step)),
+    props.steps.map((step, i) => {
+      if (i !== index) return step
+      const next = { ...step, args: { ...step.args, [key]: value } }
+      const amount = Number(next.args.amount)
+      if (isWholeNumberStep(next) && Number.isFinite(amount) && !Number.isInteger(amount)) {
+        next.args.amount = Math.round(amount)
+      }
+      return next
+    }),
   )
 }
 
@@ -159,6 +174,7 @@ onMounted(() => searchRef.value?.focus())
                 :value="step.args?.[arg.key] ?? arg.default"
                 size="small"
                 class="nc-select-shadow !w-24"
+                dropdown-class-name="!z-[10002]"
                 :options="
                   (arg.options ?? []).map((option) => ({ value: option, label: t(`labels.workflow.transforms.units.${option}`) }))
                 "
@@ -168,6 +184,7 @@ onMounted(() => searchRef.value?.focus())
                 v-else
                 :value="step.args?.[arg.key] ?? arg.default"
                 :type="arg.type === 'number' ? 'number' : 'text'"
+                :step="arg.type === 'number' ? (isWholeNumberStep(step) ? 1 : 'any') : undefined"
                 size="small"
                 class="nc-input-sm !rounded-md min-w-0"
                 :class="arg.type === 'number' ? '!w-16' : 'flex-1'"

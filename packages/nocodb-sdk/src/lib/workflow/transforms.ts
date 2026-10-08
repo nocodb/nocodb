@@ -162,6 +162,11 @@ const ifEmptyPattern = new RegExp(
   `^\\$ifEmpty\\(([\\s\\S]+),\\s*(${STRING_LITERAL})\\)$`
 );
 
+const toTextPattern = /^\$string\(\$ifEmpty\(([\s\S]+),\s*""\)\)$/;
+
+// Written before empty values were guarded.
+const legacyToTextPattern = /^\$string\(([\s\S]+)\)$/;
+
 const joinPattern = new RegExp(`^([\\s\\S]+)\\.join\\((${STRING_LITERAL})\\)$`);
 
 const dateAddPattern = new RegExp(
@@ -179,10 +184,21 @@ export const WORKFLOW_EXPRESSION_TRANSFORMS: WorkflowExpressionTransform[] = [
   methodTransform('uppercase', 'text', 'toUpperCase', TEXT_TO_TEXT),
   methodTransform('lowercase', 'text', 'toLowerCase', TEXT_TO_TEXT),
   methodTransform('trim', 'text', 'trim', TEXT_TO_TEXT),
-  builtinTransform('toText', 'any', 'string', {
+  {
+    id: 'toText',
+    category: 'any',
     accepts: ['any'],
     returns: 'text',
-  }),
+    // `$string(null)` is "null"; an empty value converts to empty text.
+    apply: (inner) => `$string($ifEmpty(${inner}, ""))`,
+    peel: (expression) => {
+      const match =
+        toTextPattern.exec(expression) ?? legacyToTextPattern.exec(expression);
+      return match && isBalanced(match[1])
+        ? { inner: match[1], args: {} }
+        : null;
+    },
+  },
   {
     id: 'defaultIfEmpty',
     category: 'any',

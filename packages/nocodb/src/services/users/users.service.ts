@@ -648,7 +648,8 @@ export class UsersService {
       );
       createdProject = _createdProject;
     }
-    user = await User.getByEmail(email);
+    // An accepted invite keeps the invited address, which may only match canonically
+    user = user ? await User.get(user.id) : await User.getByEmail(email);
 
     // TODO: Right now we are not actively enforcing email verification @pranavxc
     // so we are not sending email verification email

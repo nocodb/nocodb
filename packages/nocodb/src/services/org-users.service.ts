@@ -15,6 +15,7 @@ import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { MailService } from '~/services/mail/mail.service';
 import { validatePayload } from '~/helpers';
 import { NcBaseError, NcError } from '~/helpers/catchError';
+import { aliasesWithoutAccount } from '~/helpers/emailAliasHelpers';
 import { extractProps } from '~/helpers/extractProps';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import {
@@ -33,7 +34,7 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 import { MailEvent } from '~/interface/Mail';
 import { ensureUserInDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
 import { ensureUserInDefaultOrg } from '~/helpers/verifyDefaultOrg';
-import { sanitizeEmail } from '~/utils/emailUtils';
+import { emailAliasNotAllowedMessage, sanitizeEmail } from '~/utils/emailUtils';
 
 @Injectable()
 export class OrgUsersService {
@@ -250,6 +251,11 @@ export class OrgUsersService {
     }
     if (invalidEmails.length) {
       NcError.badRequest('Invalid email address : ' + invalidEmails.join(', '));
+    }
+
+    const aliasEmails = await aliasesWithoutAccount(emails);
+    if (aliasEmails.length) {
+      NcError.badRequest(emailAliasNotAllowedMessage(aliasEmails));
     }
 
     const error = [];

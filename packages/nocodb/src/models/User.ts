@@ -24,7 +24,11 @@ import {
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { Base, BaseUser, PresignedUrl, UserRefreshToken } from '~/models';
 import { sanitiseUserObj } from '~/utils';
-import { normalizeEmail, sanitizeEmail } from '~/utils/emailUtils';
+import {
+  isEmailAlias,
+  normalizeEmail,
+  sanitizeEmail,
+} from '~/utils/emailUtils';
 import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
 
 export default class User implements UserType {
@@ -111,6 +115,12 @@ export default class User implements UserType {
     );
 
     await NocoCache.del('root', CacheScope.INSTANCE_META);
+    if (insertObj.canonical_email) {
+      await NocoCache.del(
+        'root',
+        `${CacheScope.USER}:canonical:${insertObj.canonical_email}`,
+      );
+    }
 
     // clear all base user related cache for instance
     const bases = await Base.list(null, ncMeta);
@@ -287,14 +297,18 @@ export default class User implements UserType {
   }
 
   /**
-   * Look up a user by canonical (normalized) email.
-   * Normalizes the input so any alias variant finds the right user.
+   * Look up a user by email: the exact address first, then any non-alias
+   * account sharing its canonical (normalized) form.
    */
   public static async getByCanonicalEmail(
     _email: string,
     ncMeta = Noco.ncMeta,
   ) {
     if (!_email || _email === '') return null;
+
+    // The account registered under this exact address wins over an alias sharing its canonical form.
+    const exactUser = await this.getByEmail(_email, ncMeta);
+    if (exactUser) return exactUser;
 
     const canonical = normalizeEmail(_email);
     let user =
@@ -307,19 +321,29 @@ export default class User implements UserType {
 
     // A cached soft-deleted row must not short-circuit the live lookup — see
     // getByEmail. Treat a cached soft-deleted hit as a miss and re-query.
-    if (user && user.is_deleted) user = null;
+    // Entries cached before alias rows were excluded may still hold one.
+    // Drop the stale key so it heals even when no live sibling replaces it.
+    if (user && (user.is_deleted || isEmailAlias(user.email))) {
+      user = null;
+      await NocoCache.del('root', `${CacheScope.USER}:canonical:${canonical}`);
+    }
 
     if (!user && canonical) {
       // Resolve to a LIVE row, never a soft-deleted one — see getByEmail. A
       // soft-deleted duplicate that sorts ahead of live rows would otherwise make
       // this return null and cause callers to create endless duplicate accounts.
-      user = await ncMeta
+      const siblings = await ncMeta
         .knex(MetaTable.USERS)
         .where({ canonical_email: canonical })
         .where(function () {
           this.where('is_deleted', false).orWhereNull('is_deleted');
         })
-        .first();
+        .orderBy('created_at', 'asc')
+        .orderBy('id', 'asc');
+
+      // Alias accounts match only by exact address; otherwise prefer one with a password, then the oldest.
+      const candidates = siblings.filter((row) => !isEmailAlias(row.email));
+      user = candidates.find((row) => row.password) ?? candidates[0];
 
       if (user) {
         user.meta = parseMetaProp(user);
@@ -336,6 +360,21 @@ export default class User implements UserType {
     }
 
     return this.castType(user);
+  }
+
+  public static async hasPendingInvite(
+    inviteToken: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    if (!inviteToken) return false;
+
+    return !!(await ncMeta
+      .knex(MetaTable.USERS)
+      .where({ invite_token: inviteToken })
+      .where(function () {
+        this.where('is_deleted', false).orWhereNull('is_deleted');
+      })
+      .first('id'));
   }
 
   static async isFirst(ncMeta = Noco.ncMeta) {

@@ -5,6 +5,20 @@ import inflection from 'inflection';
  */
 const GMAIL_DOMAINS = ['gmail.com', 'googlemail.com'];
 
+// Proton treats `.`, `_` and `-` as transparent: no two accounts may differ only by them.
+const PROTON_DOMAINS = [
+  'proton.me',
+  'protonmail.com',
+  'protonmail.ch',
+  'pm.me',
+];
+
+// Yahoo Inc. mail domains. Yahoo Japan (yahoo.co.jp) is a separate service with its own ID rules.
+const YAHOO_DOMAIN =
+  /^(?:yahoo\.(?:[a-z]{2,3}|co\.(?!jp$)[a-z]{2}|com\.[a-z]{2})|ymail\.com|rocketmail\.com|myyahoo\.com)$/;
+
+const FASTMAIL_DOMAINS = ['fastmail.com', 'fastmail.fm'];
+
 /**
  * Strip Unicode format chars (Cf) and default-ignorable code points — these
  * pass `validator.isEmail()` and are not stripped by `String.prototype.trim()`,
@@ -40,6 +54,7 @@ export function sanitizeEmail(email: string): string {
  * - Strips plus addressing (`user+tag@` → `user@`) for all providers
  * - Removes dots from the local part for Gmail/Googlemail
  * - Normalizes `googlemail.com` → `gmail.com`
+ * - Removes `.`, `_` and `-` from the local part for Proton
  * - Lowercases the entire address
  */
 export function normalizeEmail(email: string): string {
@@ -63,7 +78,38 @@ export function normalizeEmail(email: string): string {
     domain = 'gmail.com';
   }
 
+  if (PROTON_DOMAINS.includes(domain)) {
+    localPart = localPart.replace(/[._-]/g, '');
+  }
+
   return `${localPart}@${domain}`;
+}
+
+// Tagged/disposable variants of another mailbox; real primaries like Gmail dots are folded by normalizeEmail instead.
+export function isEmailAlias(email: string): boolean {
+  if (!email) return false;
+
+  const address = sanitizeEmail(email).toLowerCase();
+  const atIndex = address.lastIndexOf('@');
+  if (atIndex === -1) return false;
+
+  const localPart = address.substring(0, atIndex);
+  const domain = address.substring(atIndex + 1);
+
+  // RFC 5233 subaddressing — every major provider delivers user+tag@ to user@.
+  if (localPart.includes('+')) return true;
+
+  // Yahoo disposable addresses are basename-keyword@; Yahoo IDs themselves cannot contain a hyphen.
+  if (localPart.includes('-') && YAHOO_DOMAIN.test(domain)) return true;
+
+  // Fastmail subdomain addressing: tag@user.fastmail.com.
+  return FASTMAIL_DOMAINS.some((d) => domain.endsWith(`.${d}`));
+}
+
+export function emailAliasNotAllowedMessage(aliases: string[] = []): string {
+  const message =
+    'Email aliases are not allowed. Please use your primary email address';
+  return aliases.length ? `${message} : ${aliases.join(', ')}` : `${message}.`;
 }
 
 // html encode string

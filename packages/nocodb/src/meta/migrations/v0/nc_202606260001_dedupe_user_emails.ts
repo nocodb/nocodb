@@ -1,9 +1,32 @@
 import { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
-import { normalizeEmail, sanitizeEmail } from '~/utils/emailUtils';
+import { sanitizeEmail } from '~/utils/emailUtils';
 
 const logger = new Logger('nc_202606260001_dedupe_user_emails');
+
+// normalizeEmail as this migration shipped; later rules must not widen its merge on upgrade.
+const normalizeEmail = (email: string): string => {
+  email = sanitizeEmail(email);
+
+  const atIndex = email.lastIndexOf('@');
+  if (atIndex === -1) return email.toLowerCase();
+
+  let localPart = email.substring(0, atIndex).toLowerCase();
+  let domain = email.substring(atIndex + 1).toLowerCase();
+
+  const plusIndex = localPart.indexOf('+');
+  if (plusIndex !== -1) {
+    localPart = localPart.substring(0, plusIndex);
+  }
+
+  if (domain === 'gmail.com' || domain === 'googlemail.com') {
+    localPart = localPart.replace(/\./g, '');
+    domain = 'gmail.com';
+  }
+
+  return `${localPart}@${domain}`;
+};
 
 const BATCH_SIZE = 2000;
 

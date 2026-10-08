@@ -220,7 +220,7 @@ export class PublicDatasService {
       count = await baseModel.count(listArgs);
     } catch (e) {
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
-      this.logger.error(e);
+      this.logger.error(e.message, e.stack);
       NcError.get(context).internalServerError(
         'Please check server log for more details',
       );
@@ -479,7 +479,7 @@ export class PublicDatasService {
       });
     } catch (e) {
       if (e instanceof NcBaseError) throw e;
-      this.logger.error(e);
+      this.logger.error(e.message, e.stack);
       NcError.internalServerError('Please check server log for more details');
     }
     return data;
@@ -676,7 +676,7 @@ export class PublicDatasService {
       // The shared-view column guard below throws a deliberate 4xx; the
       // catch-all would otherwise report it as a server error.
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
-      this.logger.error(e);
+      this.logger.error(e.message, e.stack);
       NcError.internalServerError('Please check server log for more details');
     }
   }
@@ -1063,7 +1063,7 @@ export class PublicDatasService {
       } as any);
     } catch (e) {
       if (e instanceof NcBaseError) throw e;
-      this.logger.error(e);
+      this.logger.error(e.message, e.stack);
       NcError.internalServerError('Please check server log for more details');
     }
 

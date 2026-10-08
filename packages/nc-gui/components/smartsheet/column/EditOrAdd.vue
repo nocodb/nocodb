@@ -1924,6 +1924,16 @@ const unique = computed({
   @apply flex items-center;
 }
 
+// NcSelect is semibold by default; match the dialog's other selects
+:deep(.nc-filter-wrapper .ant-select-selection-item) {
+  font-weight: 400 !important;
+}
+
+// Lift the toolbar's 80px label cap; the select's own width truncates instead
+:deep(.nc-filter-field-select .ant-select-selector .field-selection-tooltip-wrapper) {
+  @apply !max-w-none;
+}
+
 :deep(.ant-form-item-explain) {
   @apply !text-[10px] leading-normal;
 

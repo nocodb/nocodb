@@ -649,34 +649,16 @@ onMounted(() => {
       @apply bg-nc-bg-default;
     }
   }
-
-  :deep(.nc-workflow-input) {
-    .ProseMirror {
-      @apply !h-8 !min-h-8 border-none !py-1;
-    }
-  }
 }
 
-.nc-filter-value-input {
-  :deep(.nc-workflow-input) {
-    .ProseMirror {
-      @apply !h-8 !min-h-8 border-none !py-1 !pr-8;
-    }
-
-    .nc-workflow-input-insert-btn {
-      @apply !-top-0.5;
-    }
-  }
+// Property and value inputs sit inside the row's shared border, so they drop their own
+// box; the value preview would grow the row, so it is hidden here.
+:deep(.nc-workflow-code-input-field) {
+  @apply !h-8 !min-h-8 !border-none !rounded-none !shadow-none bg-transparent;
 }
 
-:deep(.nc-workflow-input) {
-  .ProseMirror {
-    @apply !h-8 !min-h-8 border-none !py-1;
-  }
-
-  .nc-workflow-input-insert-btn {
-    @apply !-top-0.5;
-  }
+:deep(.nc-workflow-code-input-preview) {
+  @apply hidden;
 }
 
 :deep(.ant-select-selector) {

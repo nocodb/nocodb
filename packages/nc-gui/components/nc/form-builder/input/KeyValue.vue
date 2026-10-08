@@ -146,16 +146,6 @@ watch(
 
 <style scoped lang="scss">
 .nc-key-value {
-  :deep(.nc-workflow-input) {
-    .ProseMirror {
-      @apply !h-8 !min-h-8 !py-1;
-    }
-
-    .nc-workflow-input-insert-btn {
-      @apply !-top-0.5;
-    }
-  }
-
   .nc-key-value-row {
     @apply flex items-start gap-2;
 

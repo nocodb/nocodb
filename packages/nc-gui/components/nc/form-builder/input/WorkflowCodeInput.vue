@@ -602,7 +602,13 @@ onBeforeUnmount(() => view?.destroy())
     <div class="nc-workflow-code-input-field" :class="{ 'is-focused': isFocused }">
       <div ref="hostRef" class="flex-1 min-w-0" data-testid="nc-workflow-code-input" />
 
-      <NcTooltip v-if="!readOnly" class="flex-none self-start" hide-on-click :title="$t('general.variable')">
+      <NcTooltip
+        v-if="!readOnly"
+        class="flex flex-none"
+        :class="multiline ? 'self-start' : 'self-center'"
+        hide-on-click
+        :title="$t('general.variable')"
+      >
         <NcButton
           size="xs"
           type="text"
@@ -618,7 +624,7 @@ onBeforeUnmount(() => view?.destroy())
     <!-- What the field resolves to with the latest test data, while it is being edited. -->
     <div
       v-if="fieldPreview && (previewText || fieldPreview.error)"
-      class="mt-1 px-1 text-captionSm truncate"
+      class="nc-workflow-code-input-preview mt-1 px-1 text-captionSm truncate"
       data-testid="nc-workflow-code-input-preview"
     >
       <span class="text-nc-content-gray-muted">=</span>

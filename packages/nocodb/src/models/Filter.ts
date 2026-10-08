@@ -171,7 +171,7 @@ export default class Filter implements FilterType {
 
   public static async insert(
     context: NcContext,
-    filter: Partial<FilterType & { meta?: any | string }>,
+    filter: Partial<FilterType & { meta?: any | string; fk_value_col_id?: string }>,
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(filter, [

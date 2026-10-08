@@ -10068,10 +10068,6 @@
           "meta": {
             "$ref": "#/components/schemas/TableMeta"
           },
-          "source_id": {
-            "type": "string",
-            "description": "Unique identifier for the data source. Include this information only if the table being created is part of a data source."
-          },
           "fields": {
             "type": "array",
             "items": {

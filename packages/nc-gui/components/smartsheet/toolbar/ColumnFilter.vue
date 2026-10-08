@@ -1087,6 +1087,9 @@ const sqlUi = computed(() => {
     : Object.values(sqlUis.value)[0]
 })
 
+// rootMeta column id -> table its Link / Lookup-of-Link column points at
+const rootLinkTargets = ref<Record<string, string>>({})
+
 // `allowComputed`: in slot mode (workflow `{{ }}` variable input) the value is a
 // literal supplied by the parent, not a column reference — so the field-to-field
 // constraints (physical/virtual column, abstract-type compatibility) don't apply.
@@ -1096,8 +1099,10 @@ const isDynamicFilterAllowed = (filter: FilterType, { allowComputed = false } = 
   const col = getColumn(filter)
   if (!col) return false
 
-  // Link / Lookup of a Link: compared by linked record
-  if (link.value && getLinkedRecordTargetId(col)) {
+  // Link / Lookup of a Link: compared by linked record, against a root column pointing at the same table
+  const linkTargetId = link.value ? getLinkedRecordTargetId(col) : undefined
+  if (linkTargetId) {
+    if (!Object.values(rootLinkTargets.value).includes(linkTargetId)) return false
     return !filter.comparison_op || ['eq', 'neq'].includes(filter.comparison_op)
   }
 
@@ -1132,9 +1137,6 @@ const isDynamicFilterAllowed = (filter: FilterType, { allowComputed = false } = 
   return !filter.comparison_op || ['eq', 'lt', 'gt', 'lte', 'gte', 'like', 'nlike', 'neq'].includes(filter.comparison_op)
 }
 
-// rootMeta column id -> table its Link / Lookup-of-Link column points at
-const rootLinkTargets = ref<Record<string, string>>({})
-
 async function loadRootLinkTargets() {
   if (!link.value || !props.rootMeta?.columns) return
   try {
@@ -1145,7 +1147,7 @@ async function loadRootLinkTargets() {
     }
     rootLinkTargets.value = targets
   } catch (e) {
-    console.error(e)
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 

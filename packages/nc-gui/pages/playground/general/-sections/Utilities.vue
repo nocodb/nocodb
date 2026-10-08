@@ -43,7 +43,7 @@ const badgeSizes = ['xs', 'sm', 'md', 'lg'] as const
           <GeneralTruncateText :length="10" placement="right">Ten chars max here</GeneralTruncateText>
         </div>
       </PgDemo>
-      <PgDemo label="Tooltip" hint="hover, or hold Shift while hovering">
+      <PgDemo :label="$t('labels.themeConfig.tooltip')" hint="hover, or hold Shift while hovering">
         <div class="flex items-center gap-3">
           <GeneralTooltip>
             <template #title>Plain hover tooltip</template>
@@ -63,11 +63,11 @@ const badgeSizes = ['xs', 'sm', 'md', 'lg'] as const
     </div>
     <PgDemo label="SourceRestrictionTooltip" hint="hover the disabled button">
       <div class="flex items-center gap-3">
-        <GeneralSourceRestrictionTooltip enabled message="This data source is read-only.">
+        <GeneralSourceRestrictionTooltip enabled :message="$t('tooltip.dataSourceReadOnly')">
           <NcButton size="small" type="secondary" disabled>Add field</NcButton>
         </GeneralSourceRestrictionTooltip>
         <GeneralSourceRestrictionTooltip enabled is-sql-view>
-          <NcButton size="small" type="secondary" disabled>Edit SQL view</NcButton>
+          <NcButton size="small" type="secondary" disabled>{{ $t('labels.editSqlView') }}</NcButton>
         </GeneralSourceRestrictionTooltip>
       </div>
     </PgDemo>

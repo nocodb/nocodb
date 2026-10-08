@@ -21,7 +21,7 @@ function simulateSave() {
 <template>
   <PgSection
     id="buttons"
-    title="Buttons"
+    :title="$t('labels.buttons')"
     source="NcButton"
     description="Every type across every size, plus the state and icon variants."
   >
@@ -52,7 +52,7 @@ function simulateSave() {
                     </template>
                   </NcButton>
                 </div>
-                <NcButton v-else :type="type" :size="size">Save changes</NcButton>
+                <NcButton v-else :type="type" :size="size">{{ $t('general.saveChanges') }}</NcButton>
               </td>
             </tr>
           </tbody>
@@ -65,21 +65,21 @@ function simulateSave() {
         <div v-for="type in TYPES" :key="type" class="flex items-start gap-3">
           <span class="w-20 flex-none h-8 flex items-center text-captionXs text-nc-content-gray-muted font-mono">{{ type }}</span>
           <div class="flex-1 min-w-0 flex flex-wrap items-center gap-3">
-            <NcButton :type="type" size="small">Default</NcButton>
-            <NcButton :type="type" size="small" disabled>Disabled</NcButton>
+            <NcButton :type="type" size="small">{{ $t('general.default') }}</NcButton>
+            <NcButton :type="type" size="small" disabled>{{ $t('general.disabled') }}</NcButton>
             <NcButton :type="type" size="small" show-as-disabled>Shown as disabled</NcButton>
             <NcButton :type="type" size="small" loading>Loading</NcButton>
             <NcButton :type="type" size="small">
               <template #icon>
                 <GeneralIcon icon="plus" />
               </template>
-              New record
+              {{ $t('activity.newRecord') }}
             </NcButton>
             <NcButton :type="type" size="small" icon-position="right">
               <template #icon>
                 <GeneralIcon icon="arrowRight" />
               </template>
-              Continue
+              {{ $t('general.continue') }}
             </NcButton>
             <NcButton :type="type" size="small" icon-only>
               <template #icon>
@@ -98,7 +98,7 @@ function simulateSave() {
           <div class="flex-1 min-w-0 flex flex-wrap items-center gap-3">
             <NcButton :theme="theme" size="small">Primary</NcButton>
             <NcButton :theme="theme" type="secondary" size="small">Secondary</NcButton>
-            <NcButton :theme="theme" type="text" size="small">Text</NcButton>
+            <NcButton :theme="theme" type="text" size="small">{{ $t('general.text') }}</NcButton>
           </div>
         </div>
         <div class="flex items-start gap-3">

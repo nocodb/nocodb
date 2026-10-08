@@ -382,7 +382,8 @@ export class InviteLinksService {
 
     if (
       param.scope === InviteLinkScope.BASE ||
-      param.scope === InviteLinkScope.INTERFACE
+      param.scope === InviteLinkScope.INTERFACE ||
+      param.scope === InviteLinkScope.APP
     ) {
       const base = await this.assertBaseShareable(
         context,
@@ -506,7 +507,8 @@ export class InviteLinksService {
 
     if (
       param.scope !== InviteLinkScope.BASE &&
-      param.scope !== InviteLinkScope.INTERFACE
+      param.scope !== InviteLinkScope.INTERFACE &&
+      param.scope !== InviteLinkScope.APP
     )
       return links;
 

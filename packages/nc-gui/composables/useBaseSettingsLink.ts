@@ -12,7 +12,7 @@ export function useBaseSettingsLink() {
 
   return function openBaseSettings(
     tabOrSlug: string,
-    { baseId, query }: { baseId?: string; query?: Record<string, string> } = {},
+    { baseId, query }: { baseId?: string; query?: Record<string, string | undefined> } = {},
   ) {
     const slug = baseSettingsTabToSlug[tabOrSlug] || tabOrSlug
 

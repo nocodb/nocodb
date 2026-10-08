@@ -1,13 +1,20 @@
 <script lang="ts" setup>
 import { InviteLinkScope, RoleLabels } from 'nocodb-sdk'
 
-const emit = defineEmits(['editLink'])
+const props = defineProps<{
+  /** Plan-gated: listing and revoking stay open; creating and copying ask for an upgrade. */
+  blocked?: boolean
+}>()
+
+const emit = defineEmits(['editLink', 'blocked'])
 
 const { t } = useI18n()
 
-const { links, target: inviteTarget, linkUrl, isLoading, isLoaded } = useInviteLinks()
+const { links, target: inviteTarget, linkUrl, isLoading, isLoaded, roleLabels } = useInviteLinks()
 
 const isWorkspaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.WORKSPACE)
+
+const isInterfaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.INTERFACE)
 
 const { user } = useGlobal()
 
@@ -21,7 +28,9 @@ let copiedTimer: ReturnType<typeof setTimeout>
 
 const rows = computed(() =>
   links.value.map((l) => {
-    const label = t(`objects.roleType.${RoleLabels[l.role] ?? l.role}`).toLowerCase()
+    const phrase = inviteLinkRolePhrase(inviteTarget.value?.scope, l.role)
+    const override = l.role ? roleLabels.value?.[l.role] : undefined
+    const label = phrase ?? (override ?? t(`objects.roleType.${RoleLabels[l.role] ?? l.role}`)).toLowerCase()
 
     // Anyone from viewer up can mint a link, so a manager scanning the list
     // needs to know whose each one is before revoking it.
@@ -38,17 +47,29 @@ const rows = computed(() =>
       // Dormant, not gone: restore the minter's role or make the base public
       // again and this works, so it stays listed and stays revocable.
       usable: l.usable !== false,
-      unusableNote:
-        l.unusable_reason === 'minter_role'
-          ? t('msg.info.linkNotWorkingMinterRole')
-          : l.unusable_reason === 'retired_role'
-          ? t('msg.info.linkNotWorkingRetiredRole')
-          : t('msg.info.linkNotWorkingPrivateBase'),
+      unusableNote: unusableNote(l.unusable_reason),
     }
   }),
 )
 
+function unusableNote(reason?: string) {
+  switch (reason) {
+    case 'minter_role':
+      return t('msg.info.linkNotWorkingMinterRole')
+    case 'retired_role':
+      return t('msg.info.linkNotWorkingRetiredRole')
+    case 'exhausted':
+      return t('msg.info.linkNotWorkingExhausted')
+    case 'expired':
+      return t('msg.info.linkNotWorkingExpired')
+    default:
+      return t('msg.info.linkNotWorkingPrivateBase')
+  }
+}
+
 async function copyRow(id: string) {
+  if (props.blocked) return emit('blocked')
+
   const link = links.value.find((l) => l.id === id)
   if (!link) return
 
@@ -57,10 +78,17 @@ async function copyRow(id: string) {
     // do nothing at all and look like a dead button. Same as LinkBlock.
     await copy(linkUrl(link))
 
-    $e(isWorkspaceInvite.value ? 'c:ws:invite:link:copy' : 'c:base:invite:link:copy', {
-      from: 'list',
-      restricted: !!link.email_domain,
-    })
+    $e(
+      isWorkspaceInvite.value
+        ? 'c:ws:invite:link:copy'
+        : isInterfaceInvite.value
+        ? 'c:interface:invite:link:copy'
+        : 'c:base:invite:link:copy',
+      {
+        from: 'list',
+        restricted: !!link.email_domain,
+      },
+    )
 
     copiedId.value = id
     // One shared timer: copying a second row must not let the first row's
@@ -78,6 +106,8 @@ async function copyRow(id: string) {
  * Delete while the link is new.
  */
 function onCreate() {
+  if (props.blocked) return emit('blocked')
+
   emit('editLink', '', true)
 }
 
@@ -115,7 +145,9 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
           <div class="text-bodyDefault text-nc-content-gray-subtle2">
             {{ $t('msg.info.anyoneCanAccessAs', { article: row.article, role: '' }) }}
             <b class="font-semibold text-nc-content-gray">{{ row.role }}</b>
-            <template v-if="row.domainNote"> · {{ $t('msg.info.domainOnlyNote', { domain: row.domainNote }) }}</template>
+            <template v-if="row.domainNote">
+              · <span class="whitespace-nowrap">{{ $t('msg.info.domainOnlyNote', { domain: row.domainNote }) }}</span>
+            </template>
             <template v-if="row.uses"> · {{ $t('msg.info.linkUsesCount', { uses: row.uses }) }}</template>
           </div>
 
@@ -139,7 +171,14 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
 
         <NcTooltip :title="$t('activity.linkSettings')">
           <NcButton
-            v-e="[isWorkspaceInvite ? 'c:ws:invite:link:settings:open' : 'c:base:invite:link:settings:open', { from: 'list' }]"
+            v-e="[
+              isWorkspaceInvite
+                ? 'c:ws:invite:link:settings:open'
+                : isInterfaceInvite
+                ? 'c:interface:invite:link:settings:open'
+                : 'c:base:invite:link:settings:open',
+              { from: 'list' },
+            ]"
             type="secondary"
             size="small"
             class="!px-0 !w-8"

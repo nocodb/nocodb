@@ -113,6 +113,7 @@ import * as nc_202609260900_interface_detail_default_config from './v0/nc_202609
 import * as nc_202609300900_vault_permissions from './v0/nc_202609300900_vault_permissions';
 import * as nc_202610011000_automation_executions_run_control from './v0/nc_202610011000_automation_executions_run_control';
 import * as nc_202610040132_normalize_datetime_field_meta_keys from './v0/nc_202610040132_normalize_datetime_field_meta_keys';
+import * as nc_202610071500_invite_links_interface from './v0/nc_202610071500_invite_links_interface';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -237,6 +238,7 @@ export default class XcMigrationSourcev0 {
       'nc_202609300900_vault_permissions',
       'nc_202610011000_automation_executions_run_control',
       'nc_202610040132_normalize_datetime_field_meta_keys',
+      'nc_202610071500_invite_links_interface',
     ]);
   }
 
@@ -476,6 +478,8 @@ export default class XcMigrationSourcev0 {
         return nc_202610011000_automation_executions_run_control;
       case 'nc_202610040132_normalize_datetime_field_meta_keys':
         return nc_202610040132_normalize_datetime_field_meta_keys;
+      case 'nc_202610071500_invite_links_interface':
+        return nc_202610071500_invite_links_interface;
     }
   }
 }

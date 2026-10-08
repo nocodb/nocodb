@@ -1,4 +1,4 @@
-// Shareable invite links, for a base or a whole workspace.
+// Shareable invite links, for a base, a whole workspace, or one interface.
 //
 // Unlike `invite_token` on a base/workspace user — minted per invited email,
 // 24h, consumed at signup — an invite link is a standing grant that anyone
@@ -14,6 +14,7 @@ import { ProjectRoles, WorkspaceUserRoles } from '~/lib/enums';
 export enum InviteLinkScope {
   BASE = 'base',
   WORKSPACE = 'workspace',
+  INTERFACE = 'interface',
 }
 
 /**
@@ -39,6 +40,17 @@ export const WORKSPACE_INVITE_LINK_ROLES = [
   WorkspaceUserRoles.VIEWER,
 ] as const;
 
+/**
+ * Interface links use the base-role vocabulary and are mapped to interface
+ * roles (ProjectRolesToInterfaceRoles) when redeemed, as the interface member
+ * UI does for display.
+ */
+export const INTERFACE_INVITE_LINK_ROLES = [
+  ProjectRoles.EDITOR,
+  ProjectRoles.COMMENTER,
+  ProjectRoles.VIEWER,
+] as const;
+
 export type BaseInviteLinkRole = (typeof BASE_INVITE_LINK_ROLES)[number];
 export type WorkspaceInviteLinkRole =
   (typeof WORKSPACE_INVITE_LINK_ROLES)[number];
@@ -46,10 +58,16 @@ export type InviteLinkRole = BaseInviteLinkRole | WorkspaceInviteLinkRole;
 
 export const inviteLinkRolesFor = (
   scope: InviteLinkScope
-): readonly InviteLinkRole[] =>
-  scope === InviteLinkScope.WORKSPACE
-    ? WORKSPACE_INVITE_LINK_ROLES
-    : BASE_INVITE_LINK_ROLES;
+): readonly InviteLinkRole[] => {
+  switch (scope) {
+    case InviteLinkScope.WORKSPACE:
+      return WORKSPACE_INVITE_LINK_ROLES;
+    case InviteLinkScope.INTERFACE:
+      return INTERFACE_INVITE_LINK_ROLES;
+    default:
+      return BASE_INVITE_LINK_ROLES;
+  }
+};
 
 export const isInviteLinkRole = (
   scope: InviteLinkScope,
@@ -88,13 +106,19 @@ export type InviteLinkUnusableReason =
   /** The role is no longer one a link may grant (e.g. inherit). */
   | 'retired_role'
   /** The base is private, or gone, and the minter is not its owner. */
-  | 'private_base';
+  | 'private_base'
+  /** Every allowed use has been taken. */
+  | 'exhausted'
+  /** Past its expiry date. */
+  | 'expired';
 
 export interface InviteLinkType {
   id?: string;
   scope?: InviteLinkScope;
   base_id?: string | null;
   fk_workspace_id?: string | null;
+  /** Set for interface links; `base_id` is then the interface's base. */
+  fk_interface_id?: string | null;
   role?: InviteLinkRole;
   /**
    * Restrict redemption to verified emails at this domain, e.g. `acme.io`.
@@ -155,7 +179,7 @@ export type InviteLinkInvalidReason =
 /** What a holder of the token is allowed to learn before redeeming it. */
 export interface InviteLinkPreviewType {
   scope?: InviteLinkScope;
-  /** Base title, or workspace title for a workspace link. */
+  /** Base, workspace or interface title, per scope. */
   target_title?: string;
   role?: InviteLinkRole;
   email_domain?: string | null;
@@ -169,4 +193,5 @@ export interface InviteLinkPreviewType {
   already_member?: boolean;
   base_id?: string | null;
   workspace_id?: string | null;
+  interface_id?: string | null;
 }

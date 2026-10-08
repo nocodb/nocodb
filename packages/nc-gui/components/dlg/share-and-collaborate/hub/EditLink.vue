@@ -2,9 +2,17 @@
 import { InviteLinkScope } from 'nocodb-sdk'
 
 /** `linkId` is empty while `isNew` — a new link is a draft until it is saved. */
-const props = withDefaults(defineProps<{ linkId?: string; isNew?: boolean }>(), { linkId: '', isNew: false })
+const props = withDefaults(
+  defineProps<{
+    linkId?: string
+    isNew?: boolean
+    /** Plan-gated: Delete stays available, Save asks for an upgrade. */
+    blocked?: boolean
+  }>(),
+  { linkId: '', isNew: false, blocked: false },
+)
 
-const emit = defineEmits(['done'])
+const emit = defineEmits(['done', 'blocked'])
 
 const {
   links,
@@ -13,6 +21,7 @@ const {
   allowedRoles,
   disabledRoles,
   disabledRolesTooltip,
+  roleLabels,
   defaultRole,
   defaultEmailDomain,
   createLink,
@@ -21,6 +30,8 @@ const {
 } = useInviteLinks()
 
 const isWorkspaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.WORKSPACE)
+
+const isInterfaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.INTERFACE)
 
 const { $e } = useNuxtApp()
 
@@ -97,6 +108,8 @@ function useDomainRestriction() {
 async function onSave() {
   if (!canSave.value) return
 
+  if (props.blocked) return emit('blocked')
+
   isSaving.value = true
 
   const body = {
@@ -116,9 +129,13 @@ async function onSave() {
       props.isNew
         ? isWorkspaceInvite.value
           ? 'a:ws:invite:link:create'
+          : isInterfaceInvite.value
+          ? 'a:interface:invite:link:create'
           : 'a:base:invite:link:create'
         : isWorkspaceInvite.value
         ? 'a:ws:invite:link:update'
+        : isInterfaceInvite.value
+        ? 'a:interface:invite:link:update'
         : 'a:base:invite:link:update',
       {
         role: draft.role,
@@ -139,7 +156,13 @@ async function onDelete() {
   isDeleting.value = false
 
   if (done) {
-    $e(isWorkspaceInvite.value ? 'a:ws:invite:link:revoke' : 'a:base:invite:link:revoke')
+    $e(
+      isWorkspaceInvite.value
+        ? 'a:ws:invite:link:revoke'
+        : isInterfaceInvite.value
+        ? 'a:interface:invite:link:revoke'
+        : 'a:base:invite:link:revoke',
+    )
 
     emit('done')
   }
@@ -162,6 +185,7 @@ watch(link, resetDraft, { immediate: true })
         :roles="allowedRoles"
         :disabled-roles="disabledRoles"
         :disabled-roles-tooltip="disabledRolesTooltip"
+        :labels="roleLabels"
         trigger-variant="field"
         size="lg"
         placement="bottomLeft"

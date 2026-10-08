@@ -6,7 +6,12 @@ import { InviteLinkScope } from 'nocodb-sdk'
  * detail of copying one, so it is minted on the first copy and never just
  * because a modal opened.
  */
-const emit = defineEmits(['manage'])
+const props = defineProps<{
+  /** Plan-gated: pressing the button asks for an upgrade instead. */
+  blocked?: boolean
+}>()
+
+const emit = defineEmits(['manage', 'blocked'])
 
 const { t } = useI18n()
 
@@ -19,6 +24,7 @@ const {
   allowedRoles,
   disabledRoles,
   disabledRolesTooltip,
+  roleLabels,
   defaultRole,
   defaultEmailDomain,
   createLink,
@@ -27,11 +33,14 @@ const {
 
 const isWorkspaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.WORKSPACE)
 
+const isInterfaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.INTERFACE)
+
 const { copy } = useCopy()
 
 const { $e } = useNuxtApp()
 
-const primary = computed(() => links.value[0])
+// A spent or dormant link would only hand out a refusal; copy a working one, or mint one.
+const primary = computed(() => links.value.find((l) => l.usable !== false))
 
 const isBusy = ref(false)
 
@@ -52,10 +61,20 @@ const hasLink = computed(() => !!primary.value)
 const ctaLabel = computed(() => (hasLink.value ? t('activity.copyInviteLink') : t('activity.createInviteLink')))
 
 async function onRoleChange(next: string) {
-  $e(isWorkspaceInvite.value ? 'c:ws:invite:link:role:change' : 'c:base:invite:link:role:change', {
-    role: next,
-    existing: !!primary.value,
-  })
+  if (props.blocked) return emit('blocked')
+
+  $e(
+    isWorkspaceInvite.value
+      ? 'c:ws:invite:link:role:change'
+      : isInterfaceInvite.value
+      ? 'c:interface:invite:link:role:change'
+      : 'c:base:invite:link:role:change',
+    {
+      scope: inviteTarget.value?.scope,
+      role: next,
+      existing: !!primary.value,
+    },
+  )
 
   if (!primary.value) {
     pendingRole.value = next
@@ -71,6 +90,8 @@ async function onRoleChange(next: string) {
  * await where a link already exists.
  */
 async function onCopy() {
+  if (props.blocked) return emit('blocked')
+
   if (isBusy.value) return
 
   isBusy.value = true
@@ -83,10 +104,18 @@ async function onCopy() {
       link = await createLink(pendingRole.value ? { role: pendingRole.value } : undefined)
 
       if (link) {
-        $e(isWorkspaceInvite.value ? 'a:ws:invite:link:create' : 'a:base:invite:link:create', {
-          role: link.role,
-          restricted: !!link.email_domain,
-        })
+        $e(
+          isWorkspaceInvite.value
+            ? 'a:ws:invite:link:create'
+            : isInterfaceInvite.value
+            ? 'a:interface:invite:link:create'
+            : 'a:base:invite:link:create',
+          {
+            scope: inviteTarget.value?.scope,
+            role: link.role,
+            restricted: !!link.email_domain,
+          },
+        )
       }
     }
 
@@ -96,10 +125,18 @@ async function onCopy() {
     // do nothing at all and look like a dead button.
     await copy(linkUrl(link))
 
-    $e(isWorkspaceInvite.value ? 'c:ws:invite:link:copy' : 'c:base:invite:link:copy', {
-      created: isFirst,
-      restricted: !!link.email_domain,
-    })
+    $e(
+      isWorkspaceInvite.value
+        ? 'c:ws:invite:link:copy'
+        : isInterfaceInvite.value
+        ? 'c:interface:invite:link:copy'
+        : 'c:base:invite:link:copy',
+      {
+        scope: inviteTarget.value?.scope,
+        created: isFirst,
+        restricted: !!link.email_domain,
+      },
+    )
 
     isCopied.value = true
     clearTimeout(copiedTimer)
@@ -151,6 +188,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
             :roles="allowedRoles"
             :disabled-roles="disabledRoles"
             :disabled-roles-tooltip="disabledRolesTooltip"
+            :labels="roleLabels"
             trigger-variant="compact"
             size="sm"
             placement="bottomLeft"

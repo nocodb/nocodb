@@ -24,6 +24,7 @@ const {
   allowedRoles,
   disabledRoles,
   disabledRolesTooltip,
+  roleLabels,
   defaultRole,
   defaultEmailDomain,
   createLink,
@@ -161,6 +162,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
             :roles="allowedRoles"
             :disabled-roles="disabledRoles"
             :disabled-roles-tooltip="disabledRolesTooltip"
+            :labels="roleLabels"
             trigger-variant="compact"
             size="sm"
             placement="bottomLeft"

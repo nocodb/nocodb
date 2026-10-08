@@ -22,6 +22,8 @@ const props = withDefaults(
     triggerVariant?: 'badge' | 'compact' | 'detail' | 'field'
     /** Passed to the badge trigger — see RolesBadge. */
     plain?: boolean
+    /** Per-role label overrides, e.g. an interface calls viewer "Read only". */
+    labels?: Partial<Record<string, string>>
   }>(),
   {
     border: true,
@@ -61,7 +63,7 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
   return (props.disabledRoles || []).concat(props.roles || []).map((role: keyof typeof RoleLabels): NcListItemType => {
     return {
       value: role,
-      label: t(`objects.roleType.${RoleLabels[role] ?? role}`, role),
+      label: props.labels?.[role] ?? t(`objects.roleType.${RoleLabels[role] ?? role}`, role),
       description: t(`objects.roleDescription.${role}`),
       icon: RoleIcons[role],
       color: RoleColors[role],
@@ -75,7 +77,7 @@ const activeRole = computed(() => {
   const key = (props.effectiveRole || props.role) as keyof typeof RoleLabels
 
   return {
-    label: t(`objects.roleType.${RoleLabels[key] ?? key}`, key),
+    label: props.labels?.[key] ?? t(`objects.roleType.${RoleLabels[key] ?? key}`, key),
     description: t(`objects.roleDescription.${key}`),
     icon: RoleIcons[key] as IconMapKey,
     color: RoleColors[key],

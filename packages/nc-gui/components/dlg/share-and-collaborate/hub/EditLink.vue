@@ -13,6 +13,7 @@ const {
   allowedRoles,
   disabledRoles,
   disabledRolesTooltip,
+  roleLabels,
   defaultRole,
   defaultEmailDomain,
   createLink,
@@ -162,6 +163,7 @@ watch(link, resetDraft, { immediate: true })
         :roles="allowedRoles"
         :disabled-roles="disabledRoles"
         :disabled-roles-tooltip="disabledRolesTooltip"
+        :labels="roleLabels"
         trigger-variant="field"
         size="lg"
         placement="bottomLeft"

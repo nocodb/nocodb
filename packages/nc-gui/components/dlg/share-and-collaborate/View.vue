@@ -213,6 +213,8 @@ const canInviteByEmail = computed(() =>
 
 const canManageMembers = computed(() => !isInterfaceContext.value || interfaceShare.canManageMembers.value)
 
+const composeRoleLabels = computed(() => (isInterfaceContext.value ? inviteLinkRoleLabels(InviteLinkScope.INTERFACE) : undefined))
+
 const screenTitle = computed(() => {
   if (screen.value === 'links') return t('activity.inviteLinks')
   if (screen.value === 'edit') return t(editLinkIsNew.value ? 'activity.newInviteLink' : 'activity.editInviteLink')
@@ -348,7 +350,8 @@ watch(showShareModal, (val) => {
     if (isInterfaceContext.value) {
       const target = interfaceShare.linkTarget.value
 
-      if (target && interfaceShare.canCreateLink.value && !interfaceShare.isBlocked.value) {
+      // Listing is not plan-gated, and loading sets the target the role picker reads.
+      if (target && interfaceShare.canCreateLink.value) {
         loadInviteLinks(target, true)
       } else {
         // The link list is global; never show another target's links here.
@@ -509,6 +512,7 @@ watch(showShareModal, (val) => {
           :base-id="base.id"
           :type="isInterfaceContext ? 'interface' : 'base'"
           :roles="isInterfaceContext ? interfaceShare.inviteRoles.value : undefined"
+          :role-labels="composeRoleLabels"
           :invite-handler="isInterfaceContext ? interfaceShare.inviteByEmail : undefined"
           @back="goMain"
           @sent="onInviteSent"

@@ -5,7 +5,7 @@ const emit = defineEmits(['editLink'])
 
 const { t } = useI18n()
 
-const { links, target: inviteTarget, linkUrl, isLoading, isLoaded } = useInviteLinks()
+const { links, target: inviteTarget, linkUrl, isLoading, isLoaded, roleLabels } = useInviteLinks()
 
 const isWorkspaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.WORKSPACE)
 
@@ -21,7 +21,8 @@ let copiedTimer: ReturnType<typeof setTimeout>
 
 const rows = computed(() =>
   links.value.map((l) => {
-    const label = t(`objects.roleType.${RoleLabels[l.role] ?? l.role}`).toLowerCase()
+    const override = l.role ? roleLabels.value?.[l.role] : undefined
+    const label = (override ?? t(`objects.roleType.${RoleLabels[l.role] ?? l.role}`)).toLowerCase()
 
     // Anyone from viewer up can mint a link, so a manager scanning the list
     // needs to know whose each one is before revoking it.
@@ -31,7 +32,8 @@ const rows = computed(() =>
     return {
       id: l.id,
       role: label,
-      article: /^[aeiou]/.test(label) ? 'an' : 'a',
+      // "access as read only", not "as a read only".
+      article: override ? '' : /^[aeiou]/.test(label) ? 'an' : 'a',
       domainNote: l.email_domain || '',
       uses: l.max_uses ? `${l.used_count ?? 0}/${l.max_uses}` : '',
       createdBy: isMine ? t('msg.info.linkCreatedByYou') : creator ? t('msg.info.linkCreatedBy', { name: creator }) : '',

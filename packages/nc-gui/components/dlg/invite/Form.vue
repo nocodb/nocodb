@@ -41,6 +41,8 @@ const props = withDefaults(
     submitLabel?: string
     /** Overrides the role list, e.g. an interface's editor/commenter/viewer. */
     roles?: string[]
+    /** Per-role label overrides for the picker and the hint, e.g. an interface's "Read only". */
+    roleLabels?: Partial<Record<string, string>>
     /** Sends the invites instead of the built-in base/workspace calls. Throw to report a failure. */
     inviteHandler?: (emails: string[], role: string) => Promise<void>
   }>(),
@@ -324,7 +326,7 @@ const roleCopy = (count: number) => {
   const group = count > 1 ? 'roleTypePlural' : 'roleType'
 
   return {
-    label: t(`objects.${group}.${key}`, inviteData.roles),
+    label: props.roleLabels?.[inviteData.roles] ?? t(`objects.${group}.${key}`, inviteData.roles),
     can: t(`objects.roleDescription.${inviteData.roles}`).toLowerCase(),
   }
 }
@@ -829,6 +831,7 @@ defineExpose({
               :disabled-roles="disabledRoles"
               :disabled-roles-tooltip="disabledRolesTooltip"
               :roles="allowedRoles"
+              :labels="props.roleLabels"
               :trigger-variant="isCompose ? 'field' : 'detail'"
               class="nc-invite-role-selector"
               :class="{ '-ml-1.5': !isCompose }"

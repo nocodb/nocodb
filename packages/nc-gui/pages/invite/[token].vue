@@ -63,7 +63,9 @@ const roleLabel = computed(() => {
   const role = preview.value?.role
   if (!role) return ''
 
-  return t(`objects.roleType.${RoleLabels[role] ?? role}`).toLowerCase()
+  const override = inviteLinkRoleLabels(preview.value?.scope)?.[role]
+
+  return (override ?? t(`objects.roleType.${RoleLabels[role] ?? role}`)).toLowerCase()
 })
 
 const invalidCopy = computed(() => {

@@ -7,6 +7,7 @@ const props = defineProps<{
   /** Interface invites: its role list and its own send. */
   type?: 'base' | 'interface'
   roles?: string[]
+  roleLabels?: Partial<Record<string, string>>
   inviteHandler?: (emails: string[], role: string) => Promise<void>
 }>()
 
@@ -65,6 +66,7 @@ const sendLabel = computed(() => {
       :base-id="props.baseId"
       :users="props.users"
       :roles="props.roles"
+      :role-labels="props.roleLabels"
       :invite-handler="props.inviteHandler"
       layout="compose"
       :show-footer="false"

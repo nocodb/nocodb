@@ -35,6 +35,15 @@ const sameTarget = (a: InviteLinkTarget | null, b: InviteLinkTarget) =>
   a.interfaceId === b.interfaceId &&
   a.callerRole === b.callerRole
 
+/** Role names that differ by scope: an interface calls viewer "Read only", as its members page does. */
+export function inviteLinkRoleLabels(scope?: InviteLinkScope | null): Partial<Record<string, string>> | undefined {
+  if (scope !== InviteLinkScope.INTERFACE) return undefined
+
+  const { t } = getI18n().global
+
+  return { [ProjectRoles.VIEWER]: t('labels.readOnlyAccess') }
+}
+
 const isTargetComplete = (t: InviteLinkTarget) => {
   switch (t.scope) {
     case InviteLinkScope.WORKSPACE:
@@ -73,6 +82,8 @@ export const useInviteLinks = createGlobalState(() => {
   const isWorkspaceScope = computed(() => scope.value === InviteLinkScope.WORKSPACE)
 
   const isInterfaceScope = computed(() => scope.value === InviteLinkScope.INTERFACE)
+
+  const roleLabels = computed(() => inviteLinkRoleLabels(scope.value))
 
   /** Weakest first, so a higher index is more power. */
   const orderedRoles = computed(() => [...(isWorkspaceScope.value ? OrderedWorkspaceRoles : OrderedProjectRoles)].reverse())
@@ -318,6 +329,7 @@ export const useInviteLinks = createGlobalState(() => {
     allowedRoles,
     disabledRoles,
     disabledRolesTooltip,
+    roleLabels,
     defaultRole,
     defaultEmailDomain,
     linkUrl,

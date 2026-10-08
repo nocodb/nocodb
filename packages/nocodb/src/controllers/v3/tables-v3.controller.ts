@@ -35,14 +35,12 @@ export class TablesV3Controller {
   async tableList(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
-    @Param('sourceId') sourceId: string,
     @Query('includeM2M') includeM2M: string,
     @Request() req,
   ) {
     return new PagedResponseImpl(
       await this.tablesV3Service.getAccessibleTables(context, {
         baseId,
-        sourceId,
         includeM2M: includeM2M === 'true',
         roles: extractRolesObj(req.user.base_roles),
         user: req.user,
@@ -57,13 +55,11 @@ export class TablesV3Controller {
   async tableCreate(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
-    @Param('sourceId') sourceId: string,
     @Body() body: TableCreateV3Type,
     @Request() req,
   ) {
     const result = await this.tablesV3Service.tableCreate(context, {
       baseId: baseId,
-      sourceId: sourceId,
       table: body,
       user: req.user,
       req,

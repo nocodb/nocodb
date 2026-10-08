@@ -6100,7 +6100,7 @@
             "name": "fieldId",
             "in": "path",
             "required": true,
-            "description": "**Field Identifier**."
+            "description": "**Field Identifier**. Must name an Attachment field; any other field type answers `422`."
           },
           {
             "required": true,
@@ -10067,10 +10067,6 @@
           },
           "meta": {
             "$ref": "#/components/schemas/TableMeta"
-          },
-          "source_id": {
-            "type": "string",
-            "description": "Unique identifier for the data source. Include this information only if the table being created is part of a data source."
           },
           "fields": {
             "type": "array",

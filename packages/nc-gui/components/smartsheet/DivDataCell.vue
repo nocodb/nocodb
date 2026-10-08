@@ -9,7 +9,7 @@ provide(CurrentCellInj, el)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const isForm = inject(IsFormInj)!
+const isForm = inject(IsFormInj, ref(false))
 
 const onTabPress = () => {
   if (!isExpandedFormOpen.value && !isForm.value) return

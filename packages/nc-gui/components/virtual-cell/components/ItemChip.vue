@@ -37,7 +37,7 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
 
-const isForm = inject(IsFormInj)!
+const isForm = inject(IsFormInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 

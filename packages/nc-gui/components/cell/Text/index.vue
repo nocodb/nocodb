@@ -23,7 +23,7 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const isForm = inject(IsFormInj)!
+const isForm = inject(IsFormInj, ref(false))
 
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()

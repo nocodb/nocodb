@@ -15,7 +15,7 @@ const readOnly = inject(ReadonlyInj, ref(false))
 const column = inject(ColumnInj)!
 const isEditColumn = inject(EditColumnInj, ref(false))
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
-const isForm = inject(IsFormInj)!
+const isForm = inject(IsFormInj, ref(false))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 

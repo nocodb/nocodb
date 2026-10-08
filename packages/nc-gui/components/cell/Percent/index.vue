@@ -30,7 +30,7 @@ const wrapperRef = ref<HTMLElement>()
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const isForm = inject(IsFormInj)!
+const isForm = inject(IsFormInj, ref(false))
 
 const isWorkflow = inject(isWorkflowInj, ref(false))!
 

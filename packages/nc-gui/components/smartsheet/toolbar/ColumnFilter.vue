@@ -201,7 +201,7 @@ const levelId = computed(() =>
     : undefined,
 )
 
-const { getMetaByKey } = useMetas()
+const { getMeta, getMetaByKey } = useMetas()
 
 const currentFilters = modelValue.value || (!link.value && !webHook.value && !workflow.value && nestedFilters.value) || []
 
@@ -752,6 +752,7 @@ onMounted(async () => {
         })
     })(),
     loadBtLookupTypes(),
+    loadRootLinkTargets(),
   ])
   isMounted.value = true
 })
@@ -1091,6 +1092,12 @@ const sqlUi = computed(() => {
 const isDynamicFilterAllowed = (filter: FilterType, { allowComputed = false } = {}) => {
   const col = getColumn(filter)
   if (!col) return false
+
+  // Link / Lookup of a Link: compared by linked record
+  if (link.value && getLinkedRecordTargetId(col)) {
+    return !filter.comparison_op || ['eq', 'neq'].includes(filter.comparison_op)
+  }
+
   // Field-to-field only: a virtual column has no physical value to compare.
   if (!allowComputed && isVirtualCol(col)) return false
 
@@ -1122,10 +1129,32 @@ const isDynamicFilterAllowed = (filter: FilterType, { allowComputed = false } = 
   return !filter.comparison_op || ['eq', 'lt', 'gt', 'lte', 'gte', 'like', 'nlike', 'neq'].includes(filter.comparison_op)
 }
 
+// rootMeta column id -> table its Link / Lookup-of-Link column points at
+const rootLinkTargets = ref<Record<string, string>>({})
+
+async function loadRootLinkTargets() {
+  if (!link.value || !props.rootMeta?.columns) return
+  try {
+    const targets: Record<string, string> = {}
+    for (const c of await composeColumnsForFilter({ rootMeta: props.rootMeta, getMeta })) {
+      const targetId = getLinkedRecordTargetId(c.btLookupColumn ?? c)
+      if (targetId) targets[c.id!] = targetId
+    }
+    rootLinkTargets.value = targets
+  } catch (e) {
+    console.error(e)
+  }
+}
+
 const dynamicColumns = (filter: FilterType) => {
   const filterCol = getColumn(filter)
 
   if (!filterCol) return []
+
+  const linkTargetId = link.value ? getLinkedRecordTargetId(filterCol) : undefined
+  if (linkTargetId) {
+    return props.rootMeta?.columns?.filter((c: ColumnType) => rootLinkTargets.value[c.id!] === linkTargetId)
+  }
 
   return props.rootMeta?.columns?.filter((c: ColumnType) => {
     if (excludedFilterColUidt.includes(c.uidt as UITypes) || isVirtualCol(c) || (isSystemColumn(c) && !c.pk)) {

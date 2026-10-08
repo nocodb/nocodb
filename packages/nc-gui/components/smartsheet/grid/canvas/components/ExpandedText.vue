@@ -96,7 +96,7 @@ watch(isVisible, (open) => {
 onClickOutside(inputWrapperRef, (e) => {
   const targetEl = e?.target as HTMLElement
 
-  if (isDragging.value || targetEl?.className.includes('nc-long-text-toggle-expand') || targetEl.tagName === 'CANVAS') return
+  if (isDragging.value || targetEl?.classList?.contains('nc-long-text-toggle-expand') || targetEl?.tagName === 'CANVAS') return
 
   if (
     targetEl?.closest(

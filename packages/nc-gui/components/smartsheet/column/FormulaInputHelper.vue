@@ -391,6 +391,7 @@ onMounted(async () => {
 })
 
 useResizeObserver(monacoRoot, (entries) => {
+  if (!editor) return
   const entry = entries[0]
   const { height } = entry.contentRect
   editor.layout({

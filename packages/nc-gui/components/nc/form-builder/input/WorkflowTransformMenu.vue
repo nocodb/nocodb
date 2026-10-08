@@ -96,12 +96,19 @@ function onSearchKeydown(event: KeyboardEvent) {
   if (!count) return
   if (event.key === 'ArrowDown') activeIndex.value = (activeIndex.value + 1) % count
   else if (event.key === 'ArrowUp') activeIndex.value = (activeIndex.value - 1 + count) % count
-  else if (event.key === 'Enter') addStep(flatOffered.value[activeIndex.value]!.id)
-  else return
+  else if (event.key === 'Enter') {
+    const transform = flatOffered.value[activeIndex.value]
+    if (transform) addStep(transform.id)
+  } else return
   event.preventDefault()
 }
 
-watch(search, () => (activeIndex.value = 0))
+// The list changes on search and after each added step (the value's kind can change),
+// so the highlight starts over whenever it does.
+watch(
+  () => flatOffered.value.map((transform) => transform.id).join(),
+  () => (activeIndex.value = 0),
+)
 
 onMounted(() => searchRef.value?.focus())
 </script>

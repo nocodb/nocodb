@@ -12545,228 +12545,248 @@
             "propertyName": "type"
           }
         },
-"ViewUpdate": {
+      "ViewUpdate": {
         "type": "object",
         "allOf": [
           {
             "$ref": "#/components/schemas/ViewBaseInUpdate"
           },
           {
-            "description": "The type-specific half of the body. PATCH is partial, so this applies only when `type` is sent; omitting it leaves the stored type and its options alone.",
-            "if": {
-              "required": [
-                "type"
-              ]
-            },
-            "then": {
-              "oneOf": [
-                {
-                  "type": "object",
-                  "title": "grid",
-                  "properties": {
-                    "options": {
-                      "$ref": "#/components/schemas/ViewOptionsGrid"
+            "description": "The type-specific half of the body. `anyOf`, not `oneOf`: PATCH is partial, so a body that omits `type` constrains none of these branches.",
+            "anyOf": [
+              {
+                "type": "object",
+                "title": "grid",
+                "properties": {
+                  "type": {
+                    "const": "grid"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGrid"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
                     },
-                    "sorts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/SortCreate"
-                      },
-                      "description": "List of sorts to be applied to the view."
-                    },
-                    "filters": {
-                      "$ref": "#/components/schemas/FilterCreateUpdate"
-                    },
-                    "fields": {
-                      "$ref": "#/components/schemas/ViewFields"
-                    },
-                    "row_coloring": {
-                      "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the view."
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "title": "gallery",
-                  "properties": {
-                    "options": {
-                      "$ref": "#/components/schemas/ViewOptionsGallery"
-                    },
-                    "sorts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/SortCreate"
-                      },
-                      "description": "List of sorts to be applied to the view."
-                    },
-                    "filters": {
-                      "$ref": "#/components/schemas/FilterCreateUpdate"
-                    },
-                    "fields": {
-                      "$ref": "#/components/schemas/ViewFields"
-                    },
-                    "row_coloring": {
-                      "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the view."
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "title": "kanban",
-                  "properties": {
-                    "options": {
-                      "$ref": "#/components/schemas/ViewOptionsKanban"
-                    },
-                    "sorts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/SortCreate"
-                      },
-                      "description": "List of sorts to be applied to the view."
-                    },
-                    "filters": {
-                      "$ref": "#/components/schemas/FilterCreateUpdate"
-                    },
-                    "fields": {
-                      "$ref": "#/components/schemas/ViewFields"
-                    },
-                    "row_coloring": {
-                      "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the view."
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "title": "calendar",
-                  "properties": {
-                    "options": {
-                      "$ref": "#/components/schemas/ViewOptionsCalendar"
-                    },
-                    "sorts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/SortCreate"
-                      },
-                      "description": "List of sorts to be applied to the view."
-                    },
-                    "filters": {
-                      "$ref": "#/components/schemas/FilterCreateUpdate"
-                    },
-                    "fields": {
-                      "$ref": "#/components/schemas/ViewFields"
-                    },
-                    "row_coloring": {
-                      "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the view."
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "title": "timeline",
-                  "properties": {
-                    "options": {
-                      "$ref": "#/components/schemas/ViewOptionsTimeline"
-                    },
-                    "sorts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/SortCreate"
-                      },
-                      "description": "List of sorts to be applied to the view."
-                    },
-                    "filters": {
-                      "$ref": "#/components/schemas/FilterCreateUpdate"
-                    },
-                    "fields": {
-                      "$ref": "#/components/schemas/ViewFields"
-                    },
-                    "row_coloring": {
-                      "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the view."
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "title": "gantt",
-                  "properties": {
-                    "options": {
-                      "$ref": "#/components/schemas/ViewOptionsGantt"
-                    },
-                    "sorts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/SortCreate"
-                      },
-                      "description": "List of sorts to be applied to the view."
-                    },
-                    "filters": {
-                      "$ref": "#/components/schemas/FilterCreateUpdate"
-                    },
-                    "fields": {
-                      "$ref": "#/components/schemas/ViewFields"
-                    },
-                    "row_coloring": {
-                      "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the view."
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "title": "map",
-                  "properties": {
-                    "options": {
-                      "$ref": "#/components/schemas/ViewOptionsMap"
-                    },
-                    "sorts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/SortCreate"
-                      },
-                      "description": "List of sorts to be applied to the view."
-                    },
-                    "filters": {
-                      "$ref": "#/components/schemas/FilterCreateUpdate"
-                    },
-                    "fields": {
-                      "$ref": "#/components/schemas/ViewFields"
-                    },
-                    "row_coloring": {
-                      "$ref": "#/components/schemas/ViewRowColour",
-                      "description": "Row colour configuration for the view."
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "title": "form",
-                  "properties": {
-                    "options": {
-                      "$ref": "#/components/schemas/ViewOptionsForm"
-                    },
-                    "fields": {
-                      "$ref": "#/components/schemas/ViewFields"
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "title": "list",
-                  "properties": {
-                    "options": {
-                      "$ref": "#/components/schemas/ViewOptionsList"
-                    }
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the view."
                   }
                 }
-              ],
-              "discriminator": {
-                "propertyName": "type"
+              },
+              {
+                "type": "object",
+                "title": "gallery",
+                "properties": {
+                  "type": {
+                    "const": "gallery"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGallery"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "kanban",
+                "properties": {
+                  "type": {
+                    "const": "kanban"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsKanban"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "calendar",
+                "properties": {
+                  "type": {
+                    "const": "calendar"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsCalendar"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "timeline",
+                "properties": {
+                  "type": {
+                    "const": "timeline"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsTimeline"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "gantt",
+                "properties": {
+                  "type": {
+                    "const": "gantt"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGantt"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "map",
+                "properties": {
+                  "type": {
+                    "const": "map"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsMap"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "form",
+                "properties": {
+                  "type": {
+                    "const": "form"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsForm"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "list",
+                "properties": {
+                  "type": {
+                    "const": "list"
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsList"
+                  }
+                }
               }
+            ],
+            "discriminator": {
+              "propertyName": "type"
             }
           }
         ],
@@ -14684,252 +14704,338 @@
         ],
         "additionalProperties": false
       },
-"FieldUpdate": {
+      "FieldUpdate": {
         "allOf": [
           {
             "$ref": "#/components/schemas/FieldBase"
           },
           {
-            "description": "The type-specific half of the body. PATCH is partial, so this applies only when `type` is sent; omitting it leaves the stored type and its options alone.",
-            "if": {
-              "required": [
-                "type"
-              ]
-            },
-            "then": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/FieldOptions/SingleLineText"
-                },
-                {
-                  "title": "LongText",
-                  "properties": {
-                    "type": {
-                      "enum": [
-                        "LongText"
-                      ]
-                    },
-                    "options": {
-                      "$ref": "#/components/schemas/FieldOptions_LongText"
-                    }
-                  }
-                },
-                {
-                  "title": "PhoneNumber",
-                  "properties": {
-                    "type": {
-                      "enum": [
-                        "PhoneNumber",
-                        "URL",
-                        "Email"
-                      ]
-                    },
-                    "options": {
-                      "$ref": "#/components/schemas/FieldOptions_PhoneNumber"
-                    }
-                  }
-                },
-                {
-                  "title": "Number / Decimal",
-                  "properties": {
-                    "type": {
-                      "enum": [
-                        "Number",
-                        "Decimal"
-                      ]
-                    },
-                    "options": {
-                      "$ref": "#/components/schemas/FieldOptions_Number"
-                    }
-                  }
-                },
-                {
-                  "title": "JSON",
-                  "properties": {
-                    "type": {
-                      "enum": [
-                        "JSON"
-                      ]
-                    }
-                  }
-                },
-                {
-                  "title": "Currency",
-                  "properties": {
-                    "type": {
-                      "enum": [
-                        "Currency"
-                      ]
-                    },
-                    "options": {
-                      "$ref": "#/components/schemas/FieldOptions_Currency"
-                    }
-                  }
-                },
-                {
-                  "title": "Percent",
-                  "properties": {
-                    "type": {
-                      "enum": [
-                        "Percent"
-                      ]
-                    },
-                    "options": {
-                      "$ref": "#/components/schemas/FieldOptions_Percent"
-                    }
-                  }
-                },
-                {
-                  "title": "Duration",
-                  "properties": {
-                    "type": {
-                      "enum": [
-                        "Duration"
-                      ]
-                    },
-                    "options": {
-                      "$ref": "#/components/schemas/FieldOptions_Duration"
-                    }
-                  }
-                },
-                {
-                  "title": "Date / DateTime",
-                  "properties": {
-                    "type": {
-                      "enum": [
-                        "Date",
-                        "DateTime",
-                        "Time"
-                      ]
-                    },
-                    "options": {
-                      "$ref": "#/components/schemas/FieldOptions_DateTime"
-                    }
-                  }
-                },
-                {
-                  "title": "Single / MultiSelect",
-                  "properties": {
-                    "type": {
-                      "enum": [
-                        "SingleSelect",
-                        "MultiSelect"
-                      ]
-                    },
-                    "options": {
-                      "$ref": "#/components/schemas/FieldOptions_Select"
-                    }
-                  }
-                },
-                {
-                  "title": "Checkbox",
-                  "properties": {
-                    "type": {
-                      "enum": [
-                        "Checkbox"
-                      ]
-                    },
-                    "options": {
-                      "$ref": "#/components/schemas/FieldOptions_Checkbox"
-                    }
-                  }
-                },
-                {
-                  "title": "Rating",
-                  "properties": {
-                    "type": {
-                      "enum": [
-                        "Rating"
-                      ]
-                    },
-                    "options": {
-                      "$ref": "#/components/schemas/FieldOptions_Rating"
-                    }
-                  }
-                },
-                {
-                  "title": "Barcode",
-                  "properties": {
-                    "type": {
-                      "enum": [
-                        "Barcode"
-                      ]
-                    },
-                    "options": {
-                      "$ref": "#/components/schemas/FieldOptions_Barcode"
-                    }
-                  }
-                },
-                {
-                  "title": "Formula",
-                  "properties": {
-                    "type": {
-                      "enum": [
-                        "Formula"
-                      ]
-                    },
-                    "options": {
-                      "$ref": "#/components/schemas/FieldOptions_Formula"
-                    }
-                  }
-                },
-                {
-                  "title": "User",
-                  "properties": {
-                    "type": {
-                      "enum": [
-                        "User"
-                      ]
-                    },
-                    "options": {
-                      "$ref": "#/components/schemas/FieldOptions_User"
-                    }
-                  }
-                },
-                {
-                  "title": "Lookup",
-                  "properties": {
-                    "type": {
-                      "enum": [
-                        "Lookup"
-                      ]
-                    },
-                    "options": {
-                      "$ref": "#/components/schemas/FieldOptions_Lookup"
-                    }
-                  }
-                },
-                {
-                  "title": "Links",
-                  "properties": {
-                    "type": {
-                      "enum": [
-                        "Links"
-                      ]
-                    },
-                    "options": {
-                      "$ref": "#/components/schemas/FieldOptions_Links"
-                    }
-                  }
-                },
-                {
-                  "title": "LinkToAnotherRecord",
-                  "properties": {
-                    "type": {
-                      "enum": [
-                        "LinkToAnotherRecord"
-                      ]
-                    },
-                    "options": {
-                      "$ref": "#/components/schemas/FieldOptions_LinkToAnotherRecord"
-                    }
+            "description": "The type-specific half of the body. `anyOf`, not `oneOf`: PATCH is partial, so a body that omits `type` constrains none of these branches.",
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FieldOptions/SingleLineText"
+              },
+              {
+                "title": "LongText",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "LongText"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_LongText"
                   }
                 }
-              ],
-              "errorMessage": {
-                "oneOf": "Invalid field type or options. Ensure 'type' is a valid field type and 'options' matches the schema for that type."
+              },
+              {
+                "title": "PhoneNumber",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "PhoneNumber",
+                      "URL",
+                      "Email"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_PhoneNumber"
+                  }
+                }
+              },
+              {
+                "title": "Number / Decimal",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Number",
+                      "Decimal"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Number"
+                  }
+                }
+              },
+              {
+                "title": "JSON",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "JSON"
+                    ]
+                  }
+                }
+              },
+              {
+                "title": "Currency",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Currency"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Currency"
+                  }
+                }
+              },
+              {
+                "title": "Percent",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Percent"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Percent"
+                  }
+                }
+              },
+              {
+                "title": "Duration",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Duration"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Duration"
+                  }
+                }
+              },
+              {
+                "title": "Date / DateTime",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Date",
+                      "DateTime",
+                      "Time"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_DateTime"
+                  }
+                }
+              },
+              {
+                "title": "Single / MultiSelect",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "SingleSelect",
+                      "MultiSelect"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Select"
+                  }
+                }
+              },
+              {
+                "title": "Checkbox",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Checkbox"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Checkbox"
+                  }
+                }
+              },
+              {
+                "title": "Rating",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Rating"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Rating"
+                  }
+                }
+              },
+              {
+                "title": "Barcode",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Barcode"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Barcode"
+                  }
+                }
+              },
+              {
+                "title": "Formula",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Formula"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Formula"
+                  }
+                }
+              },
+              {
+                "title": "User",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "User"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_User"
+                  }
+                }
+              },
+              {
+                "title": "Lookup",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Lookup"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Lookup"
+                  }
+                }
+              },
+              {
+                "title": "Links",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Links"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Links"
+                  }
+                }
+              },
+              {
+                "title": "LinkToAnotherRecord",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "LinkToAnotherRecord"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_LinkToAnotherRecord"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Rollup"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Rollup"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Button"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Button"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Attachment"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Attachment"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "QrCode"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_QrCode"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "CreatedTime",
+                      "LastModifiedTime"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_DateTime"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "CreatedBy"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_CreatedBy"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "LastModifiedBy"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_LastModifiedBy"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Geometry",
+                      "Year",
+                      "AutoNumber"
+                    ]
+                  }
+                }
               }
-            }
+            ]
           }
         ],
         "minProperties": 1
@@ -17396,7 +17502,7 @@
           }
         }
       },
-"WidgetCreateReq": {
+      "WidgetCreateReq": {
         "description": "Widget create request body",
         "type": "object",
         "required": [
@@ -17426,7 +17532,33 @@
             "description": "Type of the widget. `gauge`, `table` and `pivot` exist and are returned by read, but are not accepted here yet."
           },
           "options": {
-            "description": "Widget configuration. Structure depends on `type`."
+            "description": "Widget configuration. `anyOf`, not `oneOf`: the metric, text and iframe shapes constrain nothing, so they overlap every chart body by construction.",
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WidgetOptionsMetric"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsText"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsIframe"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsPieChart"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsDonutChart"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsBarChart"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsLineChart"
+              },
+              {
+                "$ref": "#/components/schemas/WidgetOptionsScatter"
+              }
+            ]
           },
           "position": {
             "type": "object",
@@ -17464,106 +17596,9 @@
             ],
             "description": "Unique identifier for the associated view."
           }
-        },
-        "allOf": [
-          {
-            "if": {
-              "required": [
-                "type"
-              ],
-              "properties": {
-                "type": {
-                  "const": "metric"
-                }
-              }
-            },
-            "then": {
-              "properties": {
-                "options": {
-                  "$ref": "#/components/schemas/WidgetOptionsMetric"
-                }
-              }
-            }
-          },
-          {
-            "if": {
-              "required": [
-                "type"
-              ],
-              "properties": {
-                "type": {
-                  "const": "text"
-                }
-              }
-            },
-            "then": {
-              "properties": {
-                "options": {
-                  "$ref": "#/components/schemas/WidgetOptionsText"
-                }
-              }
-            }
-          },
-          {
-            "if": {
-              "required": [
-                "type"
-              ],
-              "properties": {
-                "type": {
-                  "const": "iframe"
-                }
-              }
-            },
-            "then": {
-              "properties": {
-                "options": {
-                  "$ref": "#/components/schemas/WidgetOptionsIframe"
-                }
-              }
-            }
-          },
-          {
-            "if": {
-              "required": [
-                "type"
-              ],
-              "properties": {
-                "type": {
-                  "const": "chart"
-                }
-              }
-            },
-            "then": {
-              "properties": {
-                "options": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/WidgetOptionsPieChart"
-                    },
-                    {
-                      "$ref": "#/components/schemas/WidgetOptionsDonutChart"
-                    },
-                    {
-                      "$ref": "#/components/schemas/WidgetOptionsBarChart"
-                    },
-                    {
-                      "$ref": "#/components/schemas/WidgetOptionsLineChart"
-                    },
-                    {
-                      "$ref": "#/components/schemas/WidgetOptionsScatter"
-                    }
-                  ],
-                  "discriminator": {
-                    "propertyName": "chart_type"
-                  }
-                }
-              }
-            }
-          }
-        ]
+        }
       },
-"WidgetUpdateReq": {
+      "WidgetUpdateReq": {
         "description": "Widget update request body",
         "type": "object",
         "properties": {
@@ -17579,7 +17614,7 @@
             "description": "Description of the widget."
           },
           "options": {
-            "description": "Widget configuration. The update body carries no `type`, and the metric, text and iframe shapes share no distinguishing property, so the branches legitimately overlap — `anyOf`, not `oneOf`.",
+            "description": "Widget configuration. `anyOf`, not `oneOf`: the metric, text and iframe shapes constrain nothing, so they overlap every chart body by construction.",
             "anyOf": [
               {
                 "$ref": "#/components/schemas/WidgetOptionsMetric"

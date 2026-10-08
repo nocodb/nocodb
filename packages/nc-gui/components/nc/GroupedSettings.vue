@@ -39,6 +39,9 @@ const isOpen = ref(!props.defaultCollapsed)
 .grouped-settings-body {
   display: grid;
   grid-template-rows: 1fr;
+  // An auto column grows to its widest unbreakable content (a long select value) and
+  // pushes the panel sideways; cap it at the panel width.
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .grouped-settings-body-enter-active,

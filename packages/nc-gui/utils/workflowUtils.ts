@@ -10,6 +10,7 @@ import type {
 import { GeneralNodeID, INIT_WORKFLOW_NODES, WorkflowNodeCategory } from 'nocodb-sdk'
 import { generateRandomUUID } from '~/utils/generateName'
 import type { IconMapKey } from '~/utils/iconUtils'
+import { getI18n } from '~/plugins/a.i18n'
 
 /**
  * Filter nodes and edges based on edit permission
@@ -282,6 +283,29 @@ const updateVariableReferencesInObject = (obj: any, oldTitle: string, newTitle: 
   return obj
 }
 
+/**
+ * Steps saved without a title get their default one, and `$('<id>')` references to them follow.
+ * Runs look steps up by title, so an untitled step's outputs never resolve. Returns the same
+ * array when nothing needed a title, so callers can skip the write.
+ */
+function withRepairedNodeTitles(nodes: Node[], getNodeMeta: (type?: string) => UIWorkflowNodeDefinition | null) {
+  let repaired = nodes
+  for (const node of nodes) {
+    if (node.data?.title || node.type === GeneralNodeID.PLUS || node.type === GeneralNodeID.NOTE) continue
+    const meta = getNodeMeta(node.type)
+    if (!meta?.title) continue
+    const title = generateUniqueNodeTitle(meta, repaired)
+    repaired = repaired.map((n) =>
+      n.id === node.id
+        ? { ...n, data: { ...n.data, title } }
+        : n.data?.config
+        ? { ...n, data: { ...n.data, config: updateVariableReferencesInObject(n.data.config, node.id, title) } }
+        : n,
+    )
+  }
+  return repaired
+}
+
 // `label` / `tooltip` are i18n keys (filled from `labelParams`); `bg` fills the status dot,
 // `text` colours inline status text. `detail` is free text, e.g. an operator's suspension reason.
 interface WorkflowExecutionStatusDisplay {
@@ -411,6 +435,16 @@ function formatWorkflowResumeTime(value: number | string | Date) {
   return time.isSame(dayjs(), 'day') ? time.format('h:mm A') : time.format('MMM D, h:mm A')
 }
 
+function formatWorkflowDuration(ms?: number | null) {
+  if (ms === null || ms === undefined) return '-'
+  const { t } = getI18n().global
+  if (ms < 1000) return t('labels.workflow.duration.milliseconds', { n: Math.round(ms) })
+  if (ms < 59_950) return t('labels.workflow.duration.seconds', { n: (ms / 1000).toFixed(1) })
+  // Round to whole seconds first, so 119.7s reads "2m 0s" and not "1m 60s".
+  const totalSeconds = Math.round(ms / 1000)
+  return t('labels.workflow.duration.minutesSeconds', { m: Math.floor(totalSeconds / 60), s: totalSeconds % 60 })
+}
+
 /** Attempt numbers for a run waiting to retry a step; `total` is absent when the policy is unknown. */
 function getWorkflowPendingRetry(
   execution?: Pick<IWorkflowExecution, 'status' | 'execution_data' | 'workflow_data'> | null,
@@ -534,6 +568,7 @@ export {
   getWorkflowNodeIconClass,
   getWorkflowExecutionStatusDisplay,
   formatWorkflowResumeTime,
+  formatWorkflowDuration,
   filterNodesByPermission,
   getSourceNodesAndEdges,
   generateUniqueNodeId,
@@ -546,6 +581,7 @@ export {
   findIterateNodePortForPath,
   updateVariableReferences,
   updateVariableReferencesInObject,
+  withRepairedNodeTitles,
 }
 
 export type { UIWorkflowNodeDefinition, WorkflowLoop }

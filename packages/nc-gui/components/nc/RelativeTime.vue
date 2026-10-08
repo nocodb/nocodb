@@ -46,7 +46,15 @@ const rows = computed(() => {
 </script>
 
 <template>
-  <NcTooltip v-if="relative" color="light" placement="top" :arrow="false" overlay-class-name="nc-relative-time-card">
+  <!-- inline-flex: NcTooltip's wrapper is a block div, which would break a sentence around the time. -->
+  <NcTooltip
+    v-if="relative"
+    class="inline-flex"
+    color="light"
+    placement="top"
+    :arrow="false"
+    overlay-class-name="nc-relative-time-card"
+  >
     <template #title>
       <div class="flex flex-col gap-1.5 min-w-64" data-testid="nc-relative-time-card">
         <div class="text-captionBold text-nc-content-gray-emphasis mb-0.5">{{ relative }}</div>

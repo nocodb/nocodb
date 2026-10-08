@@ -1,5 +1,10 @@
 import type { VariableDefinition, WorkflowValueKind } from 'nocodb-sdk'
-import { getWorkflowValueKind, getWorkflowVariableKind, parseWorkflowExpressionTransforms } from 'nocodb-sdk'
+import {
+  getWorkflowKindAfter,
+  getWorkflowValueKind,
+  getWorkflowVariableKind,
+  parseWorkflowExpressionTransforms,
+} from 'nocodb-sdk'
 
 /** Matches one `{{ }}` token; braces can't nest inside, same as the engine. */
 const WORKFLOW_EXPRESSION_TOKEN = /\{\{([^{}]*)\}\}/g
@@ -41,8 +46,18 @@ function getWorkflowVariableChipMeta(expression: string, variables: VariableDefi
   const remainingPath = expression.slice(variable.key.length)
   if (!remainingPath) return { id: variable.key, label: variable.name }
 
+  // A nested field the picker lists has a display name ("ID", not the key "id").
+  const nested = findWorkflowVariable(expression, variable.children ?? [])
+  if (nested) return { id: variable.key, label: nested.name }
+
   const properties = [...remainingPath.matchAll(/\.(\w+)|\[['"]([^'"]+)['"]\]/g)].map((match) => match[1] || match[2])
   return { id: variable.key, label: properties.length ? properties[properties.length - 1]! : variable.name }
+}
+
+/** A transform's name for the kind of value it gets: "Count" counts a text's characters, a list's items. */
+function getWorkflowTransformLabel(id: string, inputKind: WorkflowValueKind, t: (key: string) => string) {
+  if (id === 'count' && inputKind === 'text') return t('labels.workflow.transforms.countCharacters')
+  return t(`labels.workflow.transforms.${id}`)
 }
 
 /** Chip label for a whole expression; transforms on it are named after the value: "Name · Uppercase". */
@@ -54,9 +69,13 @@ function getWorkflowExpressionChipMeta(
   const { base, steps } = parseWorkflowExpressionTransforms(expression)
   const meta = getWorkflowVariableChipMeta(base, variables)
   if (!steps.length) return meta
+  const baseKind = getWorkflowExpressionKind(base, variables)
   return {
     id: meta.id,
-    label: [meta.label, ...steps.map((step) => t(`labels.workflow.transforms.${step.id}`))].join(' · '),
+    label: [
+      meta.label,
+      ...steps.map((step, index) => getWorkflowTransformLabel(step.id, getWorkflowKindAfter(baseKind, steps.slice(0, index)), t)),
+    ].join(' · '),
   }
 }
 
@@ -79,5 +98,6 @@ export {
   findWorkflowVariable,
   getWorkflowExpressionChipMeta,
   getWorkflowExpressionKind,
+  getWorkflowTransformLabel,
   getWorkflowVariableChipMeta,
 }

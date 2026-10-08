@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { WorkflowExpressionTransform, WorkflowTransformCategory, WorkflowTransformStep, WorkflowValueKind } from 'nocodb-sdk'
 import { getWorkflowExpressionTransform, getWorkflowKindAfter, getWorkflowTransformsFor, getWorkflowValueKind } from 'nocodb-sdk'
+import { getWorkflowTransformLabel } from '~/utils/workflowExpressionUtils'
 
 interface Props {
   /** What the chip points at, e.g. "Name". */
@@ -25,6 +26,8 @@ const { t } = useI18n()
 
 const CATEGORY_ORDER: WorkflowTransformCategory[] = ['text', 'number', 'list', 'date', 'any']
 
+const WHOLE_NUMBER_UNITS = ['months', 'years']
+
 const search = ref('')
 
 const activeIndex = ref(0)
@@ -38,7 +41,12 @@ const currentKind = computed(() => {
   return getWorkflowKindAfter(props.kind, props.steps)
 })
 
-const transformLabel = (id: string) => t(`labels.workflow.transforms.${id}`)
+// Named for the value it gets, e.g. "Count characters" on text.
+const transformLabel = (id: string, inputKind: WorkflowValueKind = currentKind.value) =>
+  getWorkflowTransformLabel(id, inputKind, t)
+
+const stepLabel = (index: number) =>
+  transformLabel(props.steps[index]!.id, getWorkflowKindAfter(props.kind, props.steps.slice(0, index)))
 
 const kindLabel = (kind: WorkflowValueKind) => t(`labels.workflow.transforms.kinds.${kind}`)
 
@@ -84,10 +92,23 @@ function removeStep(index: number) {
   emit('update:steps', props.steps.slice(0, index))
 }
 
+// Months and years vary in length, so "Add time" takes whole numbers of them.
+function isWholeNumberStep(step: WorkflowTransformStep) {
+  return step.id === 'addTime' && WHOLE_NUMBER_UNITS.includes(String(step.args?.unit))
+}
+
 function updateArg(index: number, key: string, value: string | number) {
   emit(
     'update:steps',
-    props.steps.map((step, i) => (i === index ? { ...step, args: { ...step.args, [key]: value } } : step)),
+    props.steps.map((step, i) => {
+      if (i !== index) return step
+      const next = { ...step, args: { ...step.args, [key]: value } }
+      const amount = Number(next.args.amount)
+      if (isWholeNumberStep(next) && Number.isFinite(amount) && !Number.isInteger(amount)) {
+        next.args.amount = Math.round(amount)
+      }
+      return next
+    }),
   )
 }
 
@@ -96,12 +117,19 @@ function onSearchKeydown(event: KeyboardEvent) {
   if (!count) return
   if (event.key === 'ArrowDown') activeIndex.value = (activeIndex.value + 1) % count
   else if (event.key === 'ArrowUp') activeIndex.value = (activeIndex.value - 1 + count) % count
-  else if (event.key === 'Enter') addStep(flatOffered.value[activeIndex.value]!.id)
-  else return
+  else if (event.key === 'Enter') {
+    const transform = flatOffered.value[activeIndex.value]
+    if (transform) addStep(transform.id)
+  } else return
   event.preventDefault()
 }
 
-watch(search, () => (activeIndex.value = 0))
+// The list changes on search and after each added step (the value's kind can change),
+// so the highlight starts over whenever it does.
+watch(
+  () => flatOffered.value.map((transform) => transform.id).join(),
+  () => (activeIndex.value = 0),
+)
 
 onMounted(() => searchRef.value?.focus())
 </script>
@@ -114,7 +142,7 @@ onMounted(() => searchRef.value?.focus())
         <span class="nc-workflow-transform-pill nc-workflow-transform-pill-value">{{ label }}</span>
         <template v-for="(step, index) in steps" :key="`${step.id}-${index}`">
           <GeneralIcon icon="ncChevronRight" class="!w-3 !h-3 flex-none text-nc-content-gray-muted" />
-          <span class="nc-workflow-transform-pill">{{ transformLabel(step.id) }}</span>
+          <span class="nc-workflow-transform-pill">{{ stepLabel(index) }}</span>
         </template>
         <span class="ml-auto text-captionSm text-nc-content-gray-muted flex-none" data-testid="nc-workflow-transform-kind">
           {{ kindLabel(currentKind) }}
@@ -128,7 +156,7 @@ onMounted(() => searchRef.value?.focus())
         <input
           ref="searchRef"
           v-model="search"
-          class="flex-1 min-w-0 bg-transparent outline-none text-caption text-nc-content-gray placeholder:text-nc-content-gray-muted"
+          class="flex-1 min-w-0 bg-transparent outline-none text-bodyDefaultSm text-nc-content-gray placeholder:text-nc-content-gray-muted"
           :placeholder="t('labels.workflow.transforms.search')"
           data-testid="nc-workflow-transform-search"
           @keydown="onSearchKeydown"
@@ -144,7 +172,7 @@ onMounted(() => searchRef.value?.focus())
           :key="`${step.id}-${index}`"
           class="flex items-center gap-2 pl-2.5 pr-1 min-h-8 rounded-lg bg-nc-bg-gray-extralight"
         >
-          <span class="text-captionSm text-nc-content-gray flex-none">{{ transformLabel(step.id) }}</span>
+          <span class="text-captionSm text-nc-content-gray flex-none">{{ stepLabel(index) }}</span>
           <div class="flex-1 min-w-0 flex items-center gap-1">
             <template v-for="arg in getWorkflowExpressionTransform(step.id)?.args ?? []" :key="arg.key">
               <NcSelect
@@ -152,6 +180,7 @@ onMounted(() => searchRef.value?.focus())
                 :value="step.args?.[arg.key] ?? arg.default"
                 size="small"
                 class="nc-select-shadow !w-24"
+                dropdown-class-name="!z-[10002]"
                 :options="
                   (arg.options ?? []).map((option) => ({ value: option, label: t(`labels.workflow.transforms.units.${option}`) }))
                 "
@@ -161,6 +190,7 @@ onMounted(() => searchRef.value?.focus())
                 v-else
                 :value="step.args?.[arg.key] ?? arg.default"
                 :type="arg.type === 'number' ? 'number' : 'text'"
+                :step="arg.type === 'number' ? (isWholeNumberStep(step) ? 1 : 'any') : undefined"
                 size="small"
                 class="nc-input-sm !rounded-md min-w-0"
                 :class="arg.type === 'number' ? '!w-16' : 'flex-1'"
@@ -169,7 +199,7 @@ onMounted(() => searchRef.value?.focus())
               />
             </template>
           </div>
-          <NcTooltip :title="t('labels.workflow.transforms.removeFrom')">
+          <NcTooltip :title="t('labels.workflow.transforms.removeFrom')" overlay-class-name="!z-[10002]">
             <NcButton type="text" size="xxsmall" class="flex-none" @click="removeStep(index)">
               <GeneralIcon icon="close" class="!w-3.5 !h-3.5" />
             </NcButton>
@@ -185,7 +215,7 @@ onMounted(() => searchRef.value?.focus())
           v-for="transform in group.transforms"
           :key="transform.id"
           type="button"
-          class="w-full flex items-center gap-2 px-3 h-8 text-left text-caption text-nc-content-gray transition-colors"
+          class="w-full flex items-center gap-2 px-3 h-8 text-left text-bodyDefaultSm text-nc-content-gray transition-colors"
           :class="flatOffered[activeIndex]?.id === transform.id ? 'bg-nc-bg-gray-light' : 'hover:bg-nc-bg-gray-light'"
           :data-testid="`nc-workflow-transform-${transform.id}`"
           @click="addStep(transform.id)"
@@ -205,10 +235,10 @@ onMounted(() => searchRef.value?.focus())
 
     <!-- Capped so a long value never pushes the transform list out of the menu. -->
     <div class="flex-none flex items-center gap-2 px-3 py-2 border-t-1 border-nc-border-gray-light min-w-0">
-      <div class="flex-1 min-w-0 text-captionSm line-clamp-2 break-all" data-testid="nc-workflow-transform-preview">
+      <div class="flex-1 min-w-0 text-captionSm line-clamp-2 break-words" data-testid="nc-workflow-transform-preview">
         <span class="text-nc-content-gray-muted">=</span>
         <span v-if="preview?.error" class="ml-1 text-nc-content-red-dark">{{ preview.error }}</span>
-        <span v-else-if="previewText" class="ml-1 text-nc-content-gray-emphasis font-mono">{{ previewText }}</span>
+        <span v-else-if="previewText" class="ml-1 text-nc-content-gray-emphasis font-mono break-all">{{ previewText }}</span>
         <span v-else class="ml-1 text-nc-content-gray-subtle">{{ t('labels.workflow.transforms.noPreview') }}</span>
       </div>
       <NcButton

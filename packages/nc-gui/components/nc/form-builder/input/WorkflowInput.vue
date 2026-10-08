@@ -39,6 +39,10 @@ interface Props {
   groupedVariables?: NodeGroup[]
   readOnly?: boolean
   plugins?: Array<'multiline' | 'richText'>
+  /** Focusing the empty field opens the variable picker, for inputs that pick a field. */
+  openPickerWhenEmpty?: boolean
+  /** Kinds of value the field takes; the picker disables the rest. */
+  accepts?: WorkflowValueKind[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -47,6 +51,8 @@ const props = withDefaults(defineProps<Props>(), {
   variables: () => [],
   groupedVariables: () => [],
   readOnly: false,
+  openPickerWhenEmpty: false,
+  accepts: undefined,
 })
 
 const emit = defineEmits(['update:modelValue', 'enter'])
@@ -104,6 +110,9 @@ let isApplyingTransform = false
 const transformPreview = computed(() => {
   const target = transformTarget.value
   if (!target || !workflowVariables?.previewExpression) return null
+  // No test data for the value itself: nothing to preview, not a transform error.
+  const base = workflowVariables.previewExpression(target.base)
+  if (!base || (!base.error && base.value === undefined)) return null
   return workflowVariables.previewExpression(applyWorkflowExpressionTransforms(target.base, target.steps))
 })
 
@@ -1374,6 +1383,8 @@ watch(readOnly, (newValue) => {
       :grouped-variables="groupedVariables"
       :read-only="readOnly"
       :multiline="isMultiline"
+      :open-picker-when-empty="openPickerWhenEmpty"
+      :accepts="accepts"
       @enter="emit('enter')"
     />
   </div>

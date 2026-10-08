@@ -209,14 +209,6 @@ watch(currentModeIndex, () => {
 
     :deep(.nc-workflow-input) {
       @apply min-w-0;
-
-      .ProseMirror {
-        @apply !h-8 !min-h-8 !py-1 !pr-8;
-      }
-
-      .nc-workflow-insert-btn-tooltip {
-        @apply !top-0.5;
-      }
     }
 
     :deep(.nc-select) {

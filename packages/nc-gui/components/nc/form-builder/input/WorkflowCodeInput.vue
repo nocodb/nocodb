@@ -32,6 +32,10 @@ interface Props {
   groupedVariables?: NodeGroup[]
   readOnly?: boolean
   multiline?: boolean
+  /** Focusing the empty field opens the variable picker, for inputs that pick a field. */
+  openPickerWhenEmpty?: boolean
+  /** Kinds of value the field takes; the picker disables the rest. */
+  accepts?: WorkflowValueKind[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -41,6 +45,8 @@ const props = withDefaults(defineProps<Props>(), {
   groupedVariables: () => [],
   readOnly: false,
   multiline: false,
+  openPickerWhenEmpty: false,
+  accepts: undefined,
 })
 
 const emit = defineEmits<{
@@ -65,6 +71,19 @@ const isFocused = ref(false)
 /** The `{{` the picker was opened by, and the text typed after it. */
 const picker = ref<{ from: number; query: string; top: number; left: number } | null>(null)
 
+/** We inserted the picker's `{{`: it and the search text after it aren't part of the value until a pick. */
+const ownsPickerBraces = ref(false)
+
+/** Where the "Click to transform" hint sits over the hovered chip. */
+const chipHint = ref<{ top: number; left: number } | null>(null)
+
+/** The caret is inside an expression, which reads as code and offers `.` completions. */
+const isEditingExpression = ref(false)
+
+const CHIP_HINT_DELAY = 400
+
+let chipHintTimer: ReturnType<typeof setTimeout> | undefined
+
 /** The chip whose transform menu is open. */
 const transformTarget = ref<{
   from: number
@@ -86,6 +105,9 @@ const TRANSFORM_MENU_SIZE = { width: 320, height: 440 }
 // Marks our own writes, so they neither echo back as user edits nor close the menu they came from.
 const programmatic = Annotation.define<boolean>()
 
+// Marks a value the parent set; flattening it for a single-line field isn't an edit to send back.
+const fromParent = Annotation.define<boolean>()
+
 // Chip labels depend on the variables; changing them redraws the chips.
 const refreshChips = StateEffect.define<null>()
 
@@ -103,6 +125,13 @@ const allVariables = computed(() => {
 })
 
 const preview = (expression: string) => workflowVariables?.previewExpression?.(expression) ?? null
+
+// No test data for the value itself: nothing to preview, not a transform error.
+function transformPreview(base: string, steps: WorkflowTransformStep[]) {
+  const basePreview = preview(base)
+  if (!basePreview || (!basePreview.error && basePreview.value === undefined)) return null
+  return preview(applyWorkflowExpressionTransforms(base, steps))
+}
 
 const kindOf = (expression: string) => getWorkflowExpressionKind(expression, props.variables, preview(expression))
 
@@ -316,6 +345,7 @@ function onPickerCommand(attrs: { expression: string }) {
   const current = picker.value
   if (!view || !current) return
   const to = view.state.selection.main.head
+  ownsPickerBraces.value = false
   view.dispatch({
     changes: { from: current.from, to, insert: attrs.expression },
     selection: { anchor: current.from + attrs.expression.length },
@@ -323,6 +353,23 @@ function onPickerCommand(attrs: { expression: string }) {
   })
   picker.value = null
   view.focus()
+}
+
+// ── Hint on a hovered chip ──
+
+function showChipHint(chip: HTMLElement) {
+  if (props.readOnly || transformTarget.value) return
+  clearTimeout(chipHintTimer)
+  chipHintTimer = setTimeout(() => {
+    if (!chip.isConnected || transformTarget.value) return
+    const rect = chip.getBoundingClientRect()
+    chipHint.value = { top: rect.top - POPOVER_GAP, left: rect.left + rect.width / 2 }
+  }, CHIP_HINT_DELAY)
+}
+
+function hideChipHint() {
+  clearTimeout(chipHintTimer)
+  chipHint.value = null
 }
 
 // ── Transform menu on a chip ──
@@ -396,6 +443,8 @@ const previewText = computed(() => {
   return String(value)
 })
 
+const hasFieldPreview = computed(() => !!fieldPreview.value && (!!previewText.value || !!fieldPreview.value.error))
+
 function extensions(): Extension[] {
   return [
     history(),
@@ -422,6 +471,8 @@ function extensions(): Extension[] {
             // Keep the caret after inserted text and the annotations that tell user edits from parent writes.
             const userEvent = tr.annotation(Transaction.userEvent)
             const isProgrammatic = tr.annotation(programmatic)
+            const isFromParent = tr.annotation(fromParent)
+            const addToHistory = tr.annotation(Transaction.addToHistory)
             return {
               changes,
               selection: tr.startState.selection.map(changes, 1),
@@ -430,6 +481,8 @@ function extensions(): Extension[] {
               annotations: [
                 ...(userEvent ? [Transaction.userEvent.of(userEvent)] : []),
                 ...(isProgrammatic !== undefined ? [programmatic.of(isProgrammatic)] : []),
+                ...(isFromParent ? [fromParent.of(true)] : []),
+                ...(addToHistory !== undefined ? [Transaction.addToHistory.of(addToHistory)] : []),
               ],
             }
           }),
@@ -481,13 +534,45 @@ function extensions(): Extension[] {
       mousedown(event, editorView) {
         const chip = (event.target as HTMLElement | null)?.closest?.('.nc-workflow-expression') as HTMLElement | null
         if (!chip || props.readOnly) return false
+        hideChipHint()
         event.preventDefault()
         openTransformMenu(editorView, editorView.posAtDOM(chip), chip)
         return true
       },
+      mouseover(event) {
+        const chip = (event.target as HTMLElement | null)?.closest?.('.nc-workflow-expression') as HTMLElement | null
+        if (chip) showChipHint(chip)
+        else hideChipHint()
+        return false
+      },
+      mouseleave() {
+        hideChipHint()
+        return false
+      },
     }),
     EditorView.updateListener.of((update) => {
       if (update.focusChanged) isFocused.value = update.view.hasFocus
+      if (update.focusChanged || update.selectionSet || update.docChanged) {
+        const head = update.state.selection.main.head
+        isEditingExpression.value =
+          update.view.hasFocus &&
+          (openTokenStart(update.state, head) !== null ||
+            findWorkflowExpressionTokens(update.state.doc.toString()).some((token) => head > token.from && head < token.to))
+      }
+      if (
+        update.focusChanged &&
+        update.view.hasFocus &&
+        props.openPickerWhenEmpty &&
+        !props.readOnly &&
+        !update.state.doc.length &&
+        !picker.value
+      ) {
+        // No dispatch inside an update; open once this one settles.
+        queueMicrotask(() => {
+          if (!view?.hasFocus || view.state.doc.length || picker.value) return
+          insertVariable()
+        })
+      }
       if (!update.docChanged) {
         // Moving the caret off the `{{` that opened the picker closes it.
         if (picker.value && update.selectionSet && update.state.selection.main.head < picker.value.from + 2) picker.value = null
@@ -497,17 +582,29 @@ function extensions(): Extension[] {
       const isOurs = update.transactions.some((tr) => tr.annotation(programmatic) !== undefined)
       if (!update.transactions.some((tr) => tr.annotation(programmatic) === true)) closeTransformMenu()
 
-      const value = update.state.doc.toString()
-      if (value !== props.modelValue) emit('update:modelValue', value)
-      if (isOurs) return
-
       const head = update.state.selection.main.head
-      if (picker.value) {
+      if (!isOurs && picker.value) {
         const query = update.state.doc.sliceString(picker.value.from + 2, head)
         // Typing code instead of searching hands over to autocomplete.
-        if (head < picker.value.from + 2 || /[}$().'"[]/.test(query)) picker.value = null
+        if (/[}$().'"[]/.test(query)) {
+          ownsPickerBraces.value = false
+          picker.value = null
+        } else if (head < picker.value.from + 2) picker.value = null
         else picker.value = { ...picker.value, query }
-      } else if (update.state.doc.sliceString(head - 2, head) === '{{' && openTokenStart(update.state, head - 2) === null) {
+      }
+
+      const value = update.state.doc.toString()
+      const draft = pickerDraft(update.state)
+      const nextValue = draft ? value.slice(0, draft.from) + value.slice(draft.to) : value
+      const isParentWrite = update.transactions.every((tr) => tr.annotation(fromParent))
+      if (nextValue !== (props.modelValue ?? '') && !isParentWrite) emit('update:modelValue', nextValue)
+      if (isOurs) return
+
+      if (
+        !picker.value &&
+        update.state.doc.sliceString(head - 2, head) === '{{' &&
+        openTokenStart(update.state, head - 2) === null
+      ) {
         openPicker(update.view, head - 2)
       }
     }),
@@ -535,8 +632,18 @@ function insertVariable() {
   if (!view) return
   view.focus()
   const head = view.state.selection.main.head
-  view.dispatch({ changes: { from: head, insert: '{{' }, selection: { anchor: head + 2 }, annotations: programmatic.of(false) })
+  // Open first, so the `{{` below is already the picker's draft and never emitted.
+  ownsPickerBraces.value = true
   openPicker(view, head)
+  view.dispatch({ changes: { from: head, insert: '{{' }, selection: { anchor: head + 2 }, annotations: programmatic.of(false) })
+}
+
+/** The picker's own `{{` and search text, while it is open. */
+function pickerDraft(state: EditorState) {
+  if (!ownsPickerBraces.value || !picker.value) return null
+  const from = picker.value.from
+  if (state.doc.sliceString(from, from + 2) !== '{{') return null
+  return { from, to: Math.max(from + 2, state.selection.main.head) }
 }
 
 defineExpose({
@@ -553,7 +660,8 @@ watch(
     if (!view || (value ?? '') === view.state.doc.toString()) return
     view.dispatch({
       changes: { from: 0, to: view.state.doc.length, insert: value ?? '' },
-      annotations: programmatic.of(false),
+      // Undo must not bring back the value the parent replaced.
+      annotations: [programmatic.of(false), fromParent.of(true), Transaction.addToHistory.of(false)],
     })
   },
 )
@@ -562,6 +670,20 @@ watch(
   () => props.variables,
   () => view?.dispatch({ effects: refreshChips.of(null) }),
 )
+
+// Dismissed without a pick: don't leave the `{{` we inserted, or the search text, behind.
+function dropPickerText(dismissed: { from: number; query: string } | null | undefined) {
+  const owned = ownsPickerBraces.value
+  ownsPickerBraces.value = false
+  if (!owned || !view || !dismissed) return
+  const to = dismissed.from + 2 + dismissed.query.length
+  if (view.state.doc.sliceString(dismissed.from, to) !== `{{${dismissed.query}`) return
+  view.dispatch({ changes: { from: dismissed.from, to, insert: '' }, annotations: programmatic.of(false) })
+}
+
+watch(picker, (value, previous) => {
+  if (!value) dropPickerText(previous)
+})
 
 watch(
   () => [props.readOnly, props.multiline, props.placeholder],
@@ -586,6 +708,7 @@ useEventListener(
   ['scroll', 'resize'],
   (event: Event) => {
     const target = event.target as Node
+    hideChipHint()
     if (transformTarget.value && !transformMenuRef.value?.contains(target)) closeTransformMenu()
     if (picker.value && !(target instanceof Element && target.closest('.nc-workflow-code-picker'))) picker.value = null
   },
@@ -594,7 +717,10 @@ useEventListener(
 
 onMounted(createView)
 
-onBeforeUnmount(() => view?.destroy())
+onBeforeUnmount(() => {
+  clearTimeout(chipHintTimer)
+  view?.destroy()
+})
 </script>
 
 <template>
@@ -602,7 +728,13 @@ onBeforeUnmount(() => view?.destroy())
     <div class="nc-workflow-code-input-field" :class="{ 'is-focused': isFocused }">
       <div ref="hostRef" class="flex-1 min-w-0" data-testid="nc-workflow-code-input" />
 
-      <NcTooltip v-if="!readOnly" class="flex-none self-start" hide-on-click :title="$t('general.variable')">
+      <NcTooltip
+        v-if="!readOnly"
+        class="flex flex-none"
+        :class="multiline ? 'self-start' : 'self-center'"
+        hide-on-click
+        :title="$t('general.variable')"
+      >
         <NcButton
           size="xs"
           type="text"
@@ -617,17 +749,36 @@ onBeforeUnmount(() => view?.destroy())
 
     <!-- What the field resolves to with the latest test data, while it is being edited. -->
     <div
-      v-if="fieldPreview && (previewText || fieldPreview.error)"
-      class="mt-1 px-1 text-captionSm truncate"
+      v-if="hasFieldPreview || (isEditingExpression && !readOnly)"
+      class="nc-workflow-code-input-preview mt-1 px-1 text-captionSm truncate"
       data-testid="nc-workflow-code-input-preview"
     >
-      <span class="text-nc-content-gray-muted">=</span>
-      <span v-if="fieldPreview.error" class="ml-1 text-nc-content-red-dark">{{ fieldPreview.error }}</span>
-      <span v-else class="ml-1 text-nc-content-gray-subtle font-mono">{{ previewText }}</span>
+      <template v-if="hasFieldPreview">
+        <span class="text-nc-content-gray-muted">=</span>
+        <span v-if="fieldPreview?.error" class="ml-1 text-nc-content-red-dark">{{ fieldPreview.error }}</span>
+        <span v-else class="ml-1 text-nc-content-gray-subtle font-mono">{{ previewText }}</span>
+      </template>
+      <!-- `.` completions only show once typed, so say they exist while an expression is being edited. -->
+      <span
+        v-if="isEditingExpression && !readOnly"
+        class="text-nc-content-gray-muted"
+        data-testid="nc-workflow-code-input-dot-hint"
+      >
+        <template v-if="hasFieldPreview"> · </template>{{ $t('labels.workflow.transforms.dotHint') }}
+      </span>
     </div>
 
     <!-- `nc-dropdown`: the canvas keeps the step selected for clicks inside these. -->
     <Teleport to="body">
+      <div
+        v-if="chipHint"
+        class="nc-workflow-chip-hint fixed z-[10002] pointer-events-none -translate-x-1/2 -translate-y-full px-2 py-1 rounded-lg text-captionSm whitespace-nowrap"
+        :style="{ top: `${chipHint.top}px`, left: `${chipHint.left}px` }"
+        data-testid="nc-workflow-chip-hint"
+      >
+        {{ $t('labels.workflow.transforms.chipHint') }}
+      </div>
+
       <div
         v-if="picker"
         ref="pickerRootRef"
@@ -641,6 +792,7 @@ onBeforeUnmount(() => view?.destroy())
           :items="variables"
           :grouped-items="groupedVariables"
           :query="picker.query"
+          :accepts="accepts"
           :command="onPickerCommand"
         />
       </div>
@@ -657,7 +809,7 @@ onBeforeUnmount(() => view?.destroy())
           :label="transformTarget.label"
           :steps="transformTarget.steps"
           :kind="transformTarget.kind"
-          :preview="preview(applyWorkflowExpressionTransforms(transformTarget.base, transformTarget.steps))"
+          :preview="transformPreview(transformTarget.base, transformTarget.steps)"
           can-edit-expression
           @update:steps="updateTransformSteps"
           @edit-expression="editTransformTargetAsExpression"
@@ -690,8 +842,36 @@ onBeforeUnmount(() => view?.destroy())
 
 :deep(.nc-workflow-expression) {
   @apply bg-nc-bg-brand text-nc-content-brand rounded px-1.5 mx-0.5 text-small cursor-pointer whitespace-nowrap;
-  @apply inline-flex items-center hover:bg-nc-brand-100 transition-colors;
+  @apply inline-flex items-center hover:bg-nc-brand-100 dark:hover:bg-nc-brand-20 transition-colors;
   line-height: 20px;
+
+  // A caret on hover says the chip opens a menu.
+  &::after {
+    content: '';
+    width: 0;
+    height: 4px;
+    border-color: currentColor;
+    border-style: solid;
+    border-width: 0;
+    opacity: 0;
+    transform: translateY(-1px) rotate(45deg);
+    transition: opacity 0.15s;
+  }
+
+  &:hover::after {
+    width: 4px;
+    margin-left: 5px;
+    border-width: 0 1.5px 1.5px 0;
+    opacity: 1;
+  }
+}
+
+.is-readonly :deep(.nc-workflow-expression) {
+  @apply cursor-default hover:bg-nc-bg-brand;
+
+  &:hover::after {
+    display: none;
+  }
 }
 
 // An expression being edited reads as code.
@@ -703,6 +883,15 @@ onBeforeUnmount(() => view?.destroy())
 </style>
 
 <style lang="scss">
+// Teleported, so styled here; matches NcTooltip's dark tooltip.
+.nc-workflow-chip-hint {
+  @apply bg-gray-800 text-white;
+}
+
+[theme='dark'] .nc-workflow-chip-hint {
+  background-color: var(--nc-bg-tooltip);
+}
+
 // Autocomplete renders on the page (see `tooltips`), so it is styled by its own class.
 .cm-tooltip.nc-workflow-cm-autocomplete {
   @apply rounded-xl bg-nc-bg-default border-0 overflow-hidden;

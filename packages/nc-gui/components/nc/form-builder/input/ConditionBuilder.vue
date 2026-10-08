@@ -451,6 +451,7 @@ onMounted(() => {
                         :grouped-variables="groupedVariables"
                         :read-only="disabled"
                         class="nc-property-input flex-1 h-8"
+                        open-picker-when-empty
                         @update:model-value="updateCondition(index, 'leftValue', $event)"
                       />
                     </template>

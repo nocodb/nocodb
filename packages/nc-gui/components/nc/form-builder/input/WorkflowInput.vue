@@ -39,6 +39,8 @@ interface Props {
   groupedVariables?: NodeGroup[]
   readOnly?: boolean
   plugins?: Array<'multiline' | 'richText'>
+  /** Focusing the empty field opens the variable picker, for inputs that pick a field. */
+  openPickerWhenEmpty?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -47,6 +49,7 @@ const props = withDefaults(defineProps<Props>(), {
   variables: () => [],
   groupedVariables: () => [],
   readOnly: false,
+  openPickerWhenEmpty: false,
 })
 
 const emit = defineEmits(['update:modelValue', 'enter'])
@@ -1374,6 +1377,7 @@ watch(readOnly, (newValue) => {
       :grouped-variables="groupedVariables"
       :read-only="readOnly"
       :multiline="isMultiline"
+      :open-picker-when-empty="openPickerWhenEmpty"
       @enter="emit('enter')"
     />
   </div>

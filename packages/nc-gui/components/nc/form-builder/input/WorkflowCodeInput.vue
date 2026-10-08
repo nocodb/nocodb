@@ -32,6 +32,8 @@ interface Props {
   groupedVariables?: NodeGroup[]
   readOnly?: boolean
   multiline?: boolean
+  /** Focusing the empty field opens the variable picker, for inputs that pick a field. */
+  openPickerWhenEmpty?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -41,6 +43,7 @@ const props = withDefaults(defineProps<Props>(), {
   groupedVariables: () => [],
   readOnly: false,
   multiline: false,
+  openPickerWhenEmpty: false,
 })
 
 const emit = defineEmits<{
@@ -64,6 +67,9 @@ const isFocused = ref(false)
 
 /** The `{{` the picker was opened by, and the text typed after it. */
 const picker = ref<{ from: number; query: string; top: number; left: number } | null>(null)
+
+/** The picker was opened by focusing an empty field, so its `{{` is ours to remove. */
+const isAutoPicker = ref(false)
 
 /** The chip whose transform menu is open. */
 const transformTarget = ref<{
@@ -488,6 +494,21 @@ function extensions(): Extension[] {
     }),
     EditorView.updateListener.of((update) => {
       if (update.focusChanged) isFocused.value = update.view.hasFocus
+      if (
+        update.focusChanged &&
+        update.view.hasFocus &&
+        props.openPickerWhenEmpty &&
+        !props.readOnly &&
+        !update.state.doc.length &&
+        !picker.value
+      ) {
+        // No dispatch inside an update; open once this one settles.
+        queueMicrotask(() => {
+          if (!view?.hasFocus || view.state.doc.length || picker.value) return
+          isAutoPicker.value = true
+          insertVariable()
+        })
+      }
       if (!update.docChanged) {
         // Moving the caret off the `{{` that opened the picker closes it.
         if (picker.value && update.selectionSet && update.state.selection.main.head < picker.value.from + 2) picker.value = null
@@ -562,6 +583,15 @@ watch(
   () => props.variables,
   () => view?.dispatch({ effects: refreshChips.of(null) }),
 )
+
+watch(picker, (value) => {
+  if (value || !isAutoPicker.value) return
+  isAutoPicker.value = false
+  // Dismissed without a pick: don't leave the `{{` behind.
+  if (view?.state.doc.toString() === '{{') {
+    view.dispatch({ changes: { from: 0, to: 2, insert: '' }, annotations: programmatic.of(false) })
+  }
+})
 
 watch(
   () => [props.readOnly, props.multiline, props.placeholder],

@@ -1624,6 +1624,7 @@ export interface InterfaceUserInvitePayload extends InterfaceGrantContext {
 export interface InterfaceUserUpdatePayload extends InterfaceGrantContext {
   role: string;
   old_role?: string | null;
+  via?: 'invite_link';
 }
 
 export interface InterfaceUserDeletePayload extends InterfaceGrantContext {
@@ -2606,7 +2607,9 @@ const descriptionTemplates = {
       audit.details.interface_title
     }' has been changed${
       audit.details.old_role ? ` from '${audit.details.old_role}'` : ''
-    } to '${audit.details.role}'`,
+    } to '${audit.details.role}'${
+      audit.details.via === 'invite_link' ? ' via invite link' : ''
+    }`,
   [AuditV1OperationTypes.INTERFACE_USER_DELETE]: (
     audit: AuditV1<InterfaceUserDeletePayload>
   ) =>

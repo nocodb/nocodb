@@ -139,7 +139,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
         v-if="links.length"
         class="nc-hub-manage-links flex-none text-bodySm text-nc-content-gray-muted hover:text-nc-content-gray"
         data-testid="nc-hub-all-links"
-        @click="emit('manage')"
+        @click="emit(props.blocked ? 'blocked' : 'manage')"
       >
         {{ $t('msg.info.inviteLinkCount', { count: links.length }, links.length) }}
       </button>

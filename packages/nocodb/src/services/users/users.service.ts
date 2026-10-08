@@ -608,7 +608,7 @@ export class UsersService {
       }
     } else if (token) {
       // e.g. an invite made out to an alias, which never resolves to this address
-      NcError.badRequest(`Invalid invite url`);
+      NcError.badRequest('This invite was sent to a different email address');
     }
 
     const salt = await promisify(bcrypt.genSalt)(10);

@@ -45,7 +45,10 @@ const props = withDefaults(
     roleLabels?: Partial<Record<string, string>>
     /** How a role reads in the hint sentence, when its label would not ("a read-only member"). */
     rolePhrase?: (role: string, count: number) => string | undefined
-    /** Sends the invites instead of the built-in base/workspace calls. Throw to report a failure. */
+    /**
+     * Sends the invites instead of the built-in base/workspace calls. Throw to report a failure;
+     * set `invitedEmails` on the error to report the ones that did go through.
+     */
     inviteHandler?: (emails: string[], role: string) => Promise<void>
   }>(),
   {
@@ -559,6 +562,14 @@ const inviteCollaborator = async () => {
     emit('success', invited)
     emit('close')
   } catch (e: any) {
+    // A partial send: drop the addresses that went through, so a retry sends only the rest.
+    const partial: string[] = Array.isArray(e?.invitedEmails) ? e.invitedEmails : []
+    if (partial.length) {
+      emailBadges.value = emailBadges.value.filter((email) => !partial.includes(email))
+      if (partial.includes(inviteData.email.trim())) inviteData.email = ''
+      emit('success', partial)
+    }
+
     const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
     if (isPaymentEnabled.value && errorInfo.error === NcErrorType.ERR_PLAN_LIMIT_EXCEEDED) {

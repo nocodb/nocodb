@@ -113,6 +113,7 @@ async function loadPreview() {
     // name, a blank role and a live Join button for the whole navigation.
     if (res.data?.already_member) {
       $e(res.data.scope === InviteLinkScope.WORKSPACE ? 'c:ws:invite:link:view' : 'c:base:invite:link:view', {
+        scope: res.data.scope,
         state: 'already_member',
       })
       isRedirecting.value = true
@@ -123,6 +124,7 @@ async function loadPreview() {
     preview.value = res.data
 
     $e(res.data?.scope === InviteLinkScope.WORKSPACE ? 'c:ws:invite:link:view' : 'c:base:invite:link:view', {
+      scope: res.data?.scope,
       state: res.data?.invalid_reason ?? 'ok',
       restricted: !!res.data?.email_domain,
       signedIn: signedIn.value,
@@ -146,6 +148,7 @@ function goSignIn(path: '/signin' | '/signup') {
       : isWorkspaceInvite.value
       ? 'c:ws:invite:link:sign-in'
       : 'c:base:invite:link:sign-in',
+    { scope: preview.value?.scope },
   )
 
   return navigateTo({ path, query: { continueAfterSignIn: `/invite/${token.value}` } })
@@ -154,6 +157,7 @@ function goSignIn(path: '/signin' | '/signup') {
 /** Sign out, then come back here as someone else. */
 function switchAccount() {
   $e(isWorkspaceInvite.value ? 'c:ws:invite:link:switch-account' : 'c:base:invite:link:switch-account', {
+    scope: preview.value?.scope,
     reason: wrongDomain.value ? 'wrong_domain' : 'refused',
   })
 
@@ -171,6 +175,7 @@ async function onJoin() {
     const res = await $api.instance.post(`/api/v2/invite-links/${encodeURIComponent(token.value)}/accept`)
 
     $e(isWorkspaceInvite.value ? 'a:ws:invite:link:accept' : 'a:base:invite:link:accept', {
+      scope: preview.value?.scope,
       restricted: !!preview.value?.email_domain,
     })
 
@@ -185,6 +190,7 @@ async function onJoin() {
   } catch (e: any) {
     joinError.value = await extractSdkResponseErrorMsg(e)
     $e(isWorkspaceInvite.value ? 'a:ws:invite:link:accept:refused' : 'a:base:invite:link:accept:refused', {
+      scope: preview.value?.scope,
       status: e?.response?.status,
     })
     isJoining.value = false

@@ -212,7 +212,7 @@ watch(isVisible, (newVal, oldVal) => {
 })
 
 onClickOutside(inputWrapperRef, (e) => {
-  if ((e.target as HTMLElement)?.className.includes('nc-long-text-toggle-expand')) return
+  if ((e.target as Element)?.classList?.contains('nc-long-text-toggle-expand')) return
 
   const targetEl = e?.target as HTMLElement
 

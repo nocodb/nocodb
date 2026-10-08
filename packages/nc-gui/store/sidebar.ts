@@ -170,7 +170,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     if (isFullScreen.value) {
       isLeftSidebarOpen.value = true
       if (!ncIsIframe() && document?.exitFullscreen && document?.fullscreenElement) {
-        document.exitFullscreen().catch((err) => {
+        Promise.resolve(document.exitFullscreen()).catch((err) => {
           console.warn('Exit fullscreen failed:', err)
         })
       }
@@ -178,7 +178,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
       isLeftSidebarOpen.value = false
 
       if (!ncIsIframe() && document?.documentElement?.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch((err) => {
+        Promise.resolve(document.documentElement.requestFullscreen()).catch((err) => {
           console.warn('Request fullscreen failed:', err)
         })
       }

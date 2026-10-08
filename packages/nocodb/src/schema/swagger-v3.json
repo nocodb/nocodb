@@ -17658,6 +17658,7 @@
       },
       "DocumentCreate": {
         "type": "object",
+        "additionalProperties": false,
         "description": "Request body for creating a document.",
         "properties": {
           "title": {
@@ -17683,6 +17684,7 @@
       },
       "DocumentUpdate": {
         "type": "object",
+        "additionalProperties": false,
         "description": "Request body for updating a document.",
         "required": [
           "version"

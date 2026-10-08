@@ -1516,10 +1516,18 @@ defineExpose({
               class="flex flex-col gap-y-2 sm:gap-y-0 sm:flex-row gap-x-0 flex-1"
               :class="[
                 `nc-filter-wrapper-${filter.fk_column_id}`,
-                { 'nc-filter-disabled-row': isEeUI && filter.enabled === false, 'nc-filter-wrapper': !isMobileMode },
+                {
+                  'nc-filter-disabled-row': isEeUI && filter.enabled === false,
+                  'nc-filter-wrapper': !isMobileMode,
+                  'min-w-0': hideSoleWhere,
+                },
               ]"
             >
-              <NcWrap :wrap="!!isMobileMode" class="grid grid-cols-12 gap-x-0 flex-1 nc-filter-wrapper">
+              <NcWrap
+                :wrap="!!isMobileMode"
+                class="grid grid-cols-12 gap-x-0 flex-1 nc-filter-wrapper"
+                :class="{ 'min-w-0': hideSoleWhere }"
+              >
                 <div
                   v-if="!visibleFilters.indexOf(filter) && !(hideSoleWhere && visibleFilters.length === 1)"
                   class="xs:col-span-3 flex items-center sm:(!min-w-18 !max-w-18) pl-3 nc-filter-where-label"
@@ -1604,10 +1612,12 @@ defineExpose({
                   v-model:value="filter.comparison_op"
                   v-e="['c:filter:comparison-op:select', { link: !!link, webHook: !!webHook }]"
                   :dropdown-match-select-width="false"
-                  class="xs:(col-span-3 !min-w-0) caption nc-filter-operation-select !min-w-26.75 max-h-8"
+                  class="xs:(col-span-3 !min-w-0) caption nc-filter-operation-select max-h-8"
                   :placeholder="$t('labels.operation')"
                   :class="{
                     '!max-w-26.75': !webHook,
+                    '!min-w-26.75': !hideSoleWhere,
+                    '!min-w-20': hideSoleWhere,
                   }"
                   density="compact"
                   variant="solo"
@@ -1700,12 +1710,13 @@ defineExpose({
                       !(['blank', 'notblank'].includes(filter.comparison_op) || isDateType(types[filter.fk_column_id])),
                   }"
                 >
-                  <div v-if="link && (filter.dynamic || filter.fk_value_col_id)" class="flex-grow">
+                  <div v-if="link && (filter.dynamic || filter.fk_value_col_id)" class="flex-grow min-w-0">
                     <SmartsheetToolbarFieldListAutoCompleteDropdown
                       v-if="showFilterInput(filter)"
                       v-model="filter.fk_value_col_id"
                       :disable-smartsheet="!!widget"
-                      class="nc-filter-field-select min-w-32 w-full max-h-8"
+                      class="nc-filter-field-select w-full max-h-8"
+                      :class="hideSoleWhere ? 'min-w-24' : 'min-w-32'"
                       :columns="dynamicColumns(filter)"
                       :meta="rootMeta"
                       @change="saveOrUpdate(filter, getFilterIndex(filter))"
@@ -1733,6 +1744,7 @@ defineExpose({
                       class="nc-filter-value-select rounded-md min-w-34"
                       :class="{
                         '!w-full': webHook,
+                        '!min-w-24': hideSoleWhere,
                       }"
                       :column="{ ...getColumn(filter), uidt: types[filter.fk_column_id] }"
                       :filter="filter"

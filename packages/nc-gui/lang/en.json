@@ -4618,6 +4618,8 @@
       },
       "reason": "Reason",
       "stepResult": {
+        "previousItem": "Previous item",
+        "nextItem": "Next item",
         "notFinished": "Not finished",
         "running": "Running",
         "startedAt": "Started {time}",
@@ -4640,11 +4642,16 @@
       "originalRun": "the original run",
       "runDetails": "Run details",
       "stepsRun": "Steps",
+      "duration": {
+        "milliseconds": "{n}ms",
+        "seconds": "{n}s",
+        "minutesSeconds": "{m}m {s}s"
+      },
       "overview": {
         "lastRun": "Last run",
         "noRunsYet": "No runs yet",
         "runsToday": "{n} run today | {n} runs today",
-        "failedCount": "{n} failed | {n} failed",
+        "failedCount": "{n} failed",
         "trigger": "Trigger",
         "needsAttention": "Needs attention",
         "allTested": "All steps tested",
@@ -4653,7 +4660,26 @@
         "outOfDate": "Out of date",
         "updated": "Updated {time}"
       },
+      "test": {
+        "checkActionInfo": "Check this action to confirm it is configured correctly, using data from earlier steps. Checking does not send, write or start anything.",
+        "webhookUrlPending": "Webhook URL will be generated when the step is configured",
+        "webhookUrlUnavailable": "Webhook URL not available. Make sure the trigger is configured.",
+        "listening": "Listening…",
+        "webhookReceived": "Webhook received",
+        "listenForWebhook": "Listen for webhook",
+        "useSuggestedRecord": "Use suggested record to test",
+        "testTrigger": "Test this trigger",
+        "eventReceived": "Event received",
+        "listenForEvent": "Listen for event",
+        "testAgain": "Test again"
+      },
       "summary": {
+        "units": {
+          "seconds": "second | seconds",
+          "minutes": "minute | minutes",
+          "hours": "hour | hours",
+          "days": "day | days"
+        },
         "conditions": "{n} condition | {n} conditions",
         "ops": {
           "eq": "=",
@@ -4686,7 +4712,16 @@
         "deleteBranchesTitle": "Delete {title}?",
         "deleteBranchesBody": "The {n} step in its branches is deleted too. | The {n} steps in its branches are deleted too."
       },
+      "addStep": "Add a step",
+      "stepStatus": {
+        "testedSuccessfully": "Tested successfully",
+        "executedSuccessfully": "Executed successfully",
+        "executionFailed": "Execution failed",
+        "pending": "Pending",
+        "checkedNotRun": "Checked, not run"
+      },
       "nodePicker": {
+        "upgradeToUseStep": "Upgrade to the {plan} plan to use {step}",
         "search": "Search steps and apps",
         "searchTriggers": "Search, e.g. “new row”, “every Monday”",
         "searchIn": "Search {app}",
@@ -4741,8 +4776,6 @@
         }
       },
       "transforms": {
-        "title": "Transform {name}",
-        "preview": "Preview:",
         "noPreview": "Test earlier steps to see a preview",
         "search": "Search transforms",
         "noneFit": "No transforms fit this value",
@@ -4781,6 +4814,7 @@
         "roundUp": "Round up",
         "absolute": "Absolute value",
         "count": "Count items",
+        "countCharacters": "Count characters",
         "first": "First item",
         "last": "Last item",
         "join": "Join with",
@@ -4826,7 +4860,8 @@
         "succeededAfterTries": "Succeeded after {count} tries"
       },
       "runFilters": {
-        "more": "More",
+        "moreFilters": "More filters",
+        "from": "From",
         "anyStatus": "Any",
         "statusCount": "{count} selected",
         "retriesOnly": "Retries only",
@@ -5307,8 +5342,9 @@
     "fontSettings": "Font Settings",
     "fontWeight": "Weight",
     "fontLineHeight": "Line Height",
-    "workflowRunAs": "Run As",
-    "workflowChangeRunAs": "Change Run As",
+    "workflowRunAs": "Run as",
+    "workflowChangeRunAs": "Change run as",
+    "workflowServiceAccount": "Service account",
     "addNotificationUser": "Add User",
     "noUsersAvailable": "No users available",
     "copyId": "Copy Id",
@@ -5914,9 +5950,9 @@
     "copyImageUrl": "Copy image URL",
     "editImage": "Edit image",
     "removeImage": "Remove image",
-    "panMode": "Pan Mode",
-    "selectionMode": "Selection Mode",
-    "addNote": "Add Note",
+    "panMode": "Pan mode",
+    "selectionMode": "Selection mode",
+    "addNote": "Add note",
     "aiIntegrationForOperation": "Integration to use for this operation",
     "aiModelForOperation": "Model to use for this operation",
     "setupScriptSettingsFirstToExecute": "Setup script settings first to execute",
@@ -7063,8 +7099,8 @@
       "dashboardEmptyAskOwner": "Ask the owner to add widgets to this dashboard",
       "waitUntilTimezoneHint": "The timezone is used to determine when the workflow will resume.",
       "workflowRunAsHint": "Choose the identity context for data operations when this workflow runs.",
-      "workflowRunAsPrivilegeWarning": "The current \"Run As\" setting has a higher privilege than your role. Once changed, you won't be able to set it back.",
-      "workflowErrorNotificationsHint": "Users who will receive email notifications when this automation fails",
+      "workflowRunAsPrivilegeWarning": "The current \"Run as\" setting has a higher privilege than your role. Once changed, you won't be able to set it back.",
+      "workflowErrorNotificationsHint": "Users who will receive email notifications when this workflow fails",
       "workflowErrorNotificationsSelectUsers": "Select users who will receive email notifications when this automation fails.",
       "leaveWorkspaceWarning": "You will no longer have access to this workspace unless re-invited.",
       "deleteWorkspaceWarning": "This will permanently remove the workspace and all its contents. This action cannot be undone.",

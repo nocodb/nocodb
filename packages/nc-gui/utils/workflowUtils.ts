@@ -10,6 +10,7 @@ import type {
 import { GeneralNodeID, INIT_WORKFLOW_NODES, WorkflowNodeCategory } from 'nocodb-sdk'
 import { generateRandomUUID } from '~/utils/generateName'
 import type { IconMapKey } from '~/utils/iconUtils'
+import { getI18n } from '~/plugins/a.i18n'
 
 /**
  * Filter nodes and edges based on edit permission
@@ -434,6 +435,14 @@ function formatWorkflowResumeTime(value: number | string | Date) {
   return time.isSame(dayjs(), 'day') ? time.format('h:mm A') : time.format('MMM D, h:mm A')
 }
 
+function formatWorkflowDuration(ms?: number | null) {
+  if (ms === null || ms === undefined) return '-'
+  const { t } = getI18n().global
+  if (ms < 1000) return t('labels.workflow.duration.milliseconds', { n: Math.round(ms) })
+  if (ms < 60_000) return t('labels.workflow.duration.seconds', { n: (ms / 1000).toFixed(1) })
+  return t('labels.workflow.duration.minutesSeconds', { m: Math.floor(ms / 60_000), s: Math.round((ms % 60_000) / 1000) })
+}
+
 /** Attempt numbers for a run waiting to retry a step; `total` is absent when the policy is unknown. */
 function getWorkflowPendingRetry(
   execution?: Pick<IWorkflowExecution, 'status' | 'execution_data' | 'workflow_data'> | null,
@@ -557,6 +566,7 @@ export {
   getWorkflowNodeIconClass,
   getWorkflowExecutionStatusDisplay,
   formatWorkflowResumeTime,
+  formatWorkflowDuration,
   filterNodesByPermission,
   getSourceNodesAndEdges,
   generateUniqueNodeId,

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { WorkflowExpressionTransform, WorkflowTransformCategory, WorkflowTransformStep, WorkflowValueKind } from 'nocodb-sdk'
 import { getWorkflowExpressionTransform, getWorkflowKindAfter, getWorkflowTransformsFor, getWorkflowValueKind } from 'nocodb-sdk'
+import { getWorkflowTransformLabel } from '~/utils/workflowExpressionUtils'
 
 interface Props {
   /** What the chip points at, e.g. "Name". */
@@ -40,7 +41,12 @@ const currentKind = computed(() => {
   return getWorkflowKindAfter(props.kind, props.steps)
 })
 
-const transformLabel = (id: string) => t(`labels.workflow.transforms.${id}`)
+// Named for the value it gets, e.g. "Count characters" on text.
+const transformLabel = (id: string, inputKind: WorkflowValueKind = currentKind.value) =>
+  getWorkflowTransformLabel(id, inputKind, t)
+
+const stepLabel = (index: number) =>
+  transformLabel(props.steps[index]!.id, getWorkflowKindAfter(props.kind, props.steps.slice(0, index)))
 
 const kindLabel = (kind: WorkflowValueKind) => t(`labels.workflow.transforms.kinds.${kind}`)
 
@@ -136,7 +142,7 @@ onMounted(() => searchRef.value?.focus())
         <span class="nc-workflow-transform-pill nc-workflow-transform-pill-value">{{ label }}</span>
         <template v-for="(step, index) in steps" :key="`${step.id}-${index}`">
           <GeneralIcon icon="ncChevronRight" class="!w-3 !h-3 flex-none text-nc-content-gray-muted" />
-          <span class="nc-workflow-transform-pill">{{ transformLabel(step.id) }}</span>
+          <span class="nc-workflow-transform-pill">{{ stepLabel(index) }}</span>
         </template>
         <span class="ml-auto text-captionSm text-nc-content-gray-muted flex-none" data-testid="nc-workflow-transform-kind">
           {{ kindLabel(currentKind) }}
@@ -166,7 +172,7 @@ onMounted(() => searchRef.value?.focus())
           :key="`${step.id}-${index}`"
           class="flex items-center gap-2 pl-2.5 pr-1 min-h-8 rounded-lg bg-nc-bg-gray-extralight"
         >
-          <span class="text-captionSm text-nc-content-gray flex-none">{{ transformLabel(step.id) }}</span>
+          <span class="text-captionSm text-nc-content-gray flex-none">{{ stepLabel(index) }}</span>
           <div class="flex-1 min-w-0 flex items-center gap-1">
             <template v-for="arg in getWorkflowExpressionTransform(step.id)?.args ?? []" :key="arg.key">
               <NcSelect

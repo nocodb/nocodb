@@ -342,13 +342,22 @@ export class InviteLinksService {
   ) {
     if (!this.isPrivateBase(base)) return;
 
+    if (!(await this.isMintedByOwner(context, base, link, ncMeta))) {
+      NcError.forbidden('Invite links are not available for a private base');
+    }
+  }
+
+  protected async isMintedByOwner(
+    context: NcContext,
+    base: Base,
+    link: InviteLink,
+    ncMeta = Noco.ncMeta,
+  ) {
     const minter = link.created_by
       ? await BaseUser.get(context, base.id, link.created_by, ncMeta)
       : null;
 
-    if (minter?.roles !== ProjectRoles.OWNER) {
-      NcError.forbidden('Invite links are not available for a private base');
-    }
+    return minter?.roles === ProjectRoles.OWNER;
   }
 
   async create(
@@ -365,7 +374,10 @@ export class InviteLinksService {
   ) {
     this.assertRoleWithinCallerPower(param.scope, param.body.role, param.req);
 
-    if (param.scope === InviteLinkScope.BASE) {
+    if (
+      param.scope === InviteLinkScope.BASE ||
+      param.scope === InviteLinkScope.INTERFACE
+    ) {
       const base = await this.assertBaseShareable(
         context,
         param.baseId,
@@ -479,7 +491,11 @@ export class InviteLinksService {
       return reason ? { ...l, usable: false, unusable_reason: reason } : l;
     });
 
-    if (param.scope !== InviteLinkScope.BASE) return links;
+    if (
+      param.scope !== InviteLinkScope.BASE &&
+      param.scope !== InviteLinkScope.INTERFACE
+    )
+      return links;
 
     const baseContext = { ...context, base_id: param.baseId };
     const base = await Base.get(baseContext, param.baseId, ncMeta);

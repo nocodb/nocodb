@@ -203,9 +203,14 @@ const defaultTab = computed<'invite' | 'object'>(() => (canInvite.value ? 'invit
 /** What the modal is sharing: the interface over one, else the base. */
 const shareTitle = computed(() => (isInterfaceContext.value ? interfaceShare.title.value : base.value?.title))
 
-const canCreateInviteLink = computed(() =>
-  isInterfaceContext.value ? interfaceShare.canCreateLink.value : isUIAllowed('baseInviteLinkCreate'),
-)
+const canCreateInviteLink = computed(() => {
+  if (!isInterfaceContext.value) return isUIAllowed('baseInviteLinkCreate')
+
+  // Private base: only the owner may mint, as for base links.
+  if (isPrivateBase.value && !baseRoles.value?.[ProjectRoles.OWNER]) return false
+
+  return interfaceShare.canCreateLink.value
+})
 
 const canInviteByEmail = computed(() =>
   isInterfaceContext.value ? interfaceShare.canInviteByEmail.value : isUIAllowed('userInvite'),

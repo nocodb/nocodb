@@ -154,9 +154,11 @@ export default class InviteLink implements InviteLinkType {
     const condition: Record<string, any> = { scope: param.scope };
 
     if (param.scope === InviteLinkScope.BASE) condition.base_id = param.base_id;
-    else if (param.scope === InviteLinkScope.INTERFACE)
+    else if (param.scope === InviteLinkScope.INTERFACE) {
+      // Interface ids are unique only per base.
+      condition.base_id = param.base_id;
       condition.fk_interface_id = param.fk_interface_id;
-    else condition.fk_workspace_id = param.fk_workspace_id;
+    } else condition.fk_workspace_id = param.fk_workspace_id;
 
     const rows = await ncMeta.metaList2(
       RootScopes.ROOT,

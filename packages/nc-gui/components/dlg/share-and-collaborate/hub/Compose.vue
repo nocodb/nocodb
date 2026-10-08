@@ -5,7 +5,7 @@ import type { IconMapKey } from '#imports'
 const props = defineProps<{
   active: boolean
   baseId?: string
-  users?: Array<{ email?: string }>
+  users?: Array<{ email?: string; roles?: string[] }>
   /** Interface and app invites: their role (or team) list and their own send. */
   type?: 'base' | 'interface' | 'app'
   roles?: string[]
@@ -13,6 +13,7 @@ const props = defineProps<{
   roleDescriptions?: Partial<Record<string, string>>
   roleIcons?: Partial<Record<string, IconMapKey>>
   rolePhrase?: (role: string, count: number) => string | undefined
+  noAccessRoles?: string[]
   inviteHandler?: (emails: string[], role: string) => Promise<void>
 }>()
 
@@ -75,6 +76,7 @@ const sendLabel = computed(() => {
       :role-descriptions="props.roleDescriptions"
       :role-icons="props.roleIcons"
       :role-phrase="props.rolePhrase"
+      :no-access-roles="props.noAccessRoles"
       :invite-handler="props.inviteHandler"
       layout="compose"
       :show-footer="false"

@@ -28,7 +28,8 @@ const props = withDefaults(
     baseId?: string
     emails?: string[]
     workspaceId?: string
-    users?: Array<Pick<UserType, 'email'>>
+    /** `roles`, when set, are the only ones the user already holds; inviting them to another is allowed. */
+    users?: Array<Pick<UserType, 'email'> & { roles?: string[] }>
     teams?: Array<TeamV3V3Type>
     existingTeamIds?: string[]
     /**
@@ -49,6 +50,8 @@ const props = withDefaults(
     roleIcons?: Partial<Record<string, IconMapKey>>
     /** How a role reads in the hint sentence, when its label would not ("a read-only member"). */
     rolePhrase?: (role: string, count: number) => string | undefined
+    /** Roles that open nothing yet (an app team with no actions); the hint says so. */
+    noAccessRoles?: string[]
     /**
      * Sends the invites instead of the built-in base/workspace calls. Throw to report a failure;
      * set `invitedEmails` on the error to report the ones that did go through.
@@ -358,7 +361,11 @@ const fieldHint = computed(() => {
   const role = roleCopy(count)
 
   // A team description is a sentence of its own, not a verb phrase.
-  if (props.type === 'app') return t('msg.info.willJoinTeam', { count, team: role.label }, count)
+  if (props.type === 'app') {
+    const key = props.noAccessRoles?.includes(inviteData.roles) ? 'msg.info.willJoinTeamNoAccess' : 'msg.info.willJoinTeam'
+
+    return t(key, { count, team: role.label }, count)
+  }
 
   return t('msg.info.willJoinAsRole', { count, role: role.label, can: role.can }, count)
 })
@@ -503,7 +510,11 @@ const inviteCollaborator = async () => {
       const payloadData = recipients.join(',')
 
       for (const email of recipients) {
-        if (props.users?.some((u) => u.email?.toLowerCase() === email.trim().toLowerCase())) {
+        if (
+          props.users?.some(
+            (u) => u.email?.toLowerCase() === email.trim().toLowerCase() && (!u.roles || u.roles.includes(inviteData.roles)),
+          )
+        ) {
           let scopeLabel = 'objects.project'
 
           if (props.type === 'workspace') {

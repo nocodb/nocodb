@@ -25,6 +25,7 @@ const {
   roleDescriptions,
   roleIcons,
   linkGrant,
+  grantOpensNothing,
   grantBody,
   defaultRole,
   defaultEmailDomain,
@@ -207,6 +208,13 @@ watch(link, resetDraft, { immediate: true })
         size="lg"
         placement="bottomLeft"
       />
+      <div
+        v-if="grantOpensNothing(draft.role)"
+        class="text-bodySm text-nc-content-orange-dark"
+        data-testid="nc-hub-team-no-access"
+      >
+        {{ $t('msg.info.appTeamOpensNothing', { team: roleLabels?.[draft.role] }) }}
+      </div>
     </div>
 
     <div class="flex flex-col">

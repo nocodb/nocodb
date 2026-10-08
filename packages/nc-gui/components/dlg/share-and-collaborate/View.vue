@@ -250,6 +250,7 @@ const appTeamPicker = computed(() => {
     labels: Object.fromEntries(teams.map((t) => [t.id, t.title])),
     descriptions: Object.fromEntries(teams.map((t) => [t.id, t.description ?? ''])),
     icons: Object.fromEntries(teams.filter((t) => t.icon).map((t) => [t.id, t.icon])),
+    noAccess: teams.filter((t) => t.noAccess).map((t) => t.id),
   }
 })
 
@@ -629,6 +630,7 @@ watch(showShareModal, (val) => {
           :role-labels="composeRoleLabels"
           :role-descriptions="isAppContext ? appTeamPicker.descriptions : undefined"
           :role-icons="isAppContext ? appTeamPicker.icons : undefined"
+          :no-access-roles="isAppContext ? appTeamPicker.noAccess : undefined"
           :role-phrase="composeRolePhrase"
           :invite-handler="composeInviteHandler"
           @back="goMain"

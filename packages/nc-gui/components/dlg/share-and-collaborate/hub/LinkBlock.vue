@@ -28,6 +28,7 @@ const {
   roleDescriptions,
   roleIcons,
   linkGrant,
+  grantOpensNothing,
   grantBody,
   defaultRole,
   defaultEmailDomain,
@@ -222,6 +223,14 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
           />
         </template>
       </i18n-t>
+    </div>
+
+    <div
+      v-if="isLoaded && grantOpensNothing(role)"
+      class="text-bodySm text-nc-content-orange-dark"
+      data-testid="nc-hub-team-no-access"
+    >
+      {{ $t('msg.info.appTeamOpensNothing', { team: roleLabels?.[role] }) }}
     </div>
 
     <!-- Only an unrestricted link needs the warning: a domain-restricted one

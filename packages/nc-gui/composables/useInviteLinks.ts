@@ -34,6 +34,8 @@ export interface InviteLinkTeam {
   title: string
   description?: string
   icon?: IconMapKey
+  /** Holds no capabilities, so the people who join it cannot open the app. */
+  noAccess?: boolean
 }
 
 const basePath = (t: InviteLinkTarget) =>
@@ -142,6 +144,11 @@ export const useInviteLinks = createGlobalState(() => {
     if (!link) return undefined
 
     return isAppScope.value ? link.fk_app_team_id ?? undefined : link.role
+  }
+
+  /** App links: whether the team on offer opens nothing, so joining it is a dead end. */
+  function grantOpensNothing(value?: string | null) {
+    return isAppScope.value && !!teams.value.find((t) => t.id === value)?.noAccess
   }
 
   /** The request fields for a picker value. An app link always grants app-user standing; the team is the choice. */
@@ -437,6 +444,7 @@ export const useInviteLinks = createGlobalState(() => {
     roleDescriptions,
     roleIcons,
     linkGrant,
+    grantOpensNothing,
     grantBody,
     defaultRole,
     defaultEmailDomain,

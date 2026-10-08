@@ -13,7 +13,7 @@ export function useAppShareHub() {
     isLive: computed(() => true),
     linkTarget: computed<InviteLinkTarget | null>(() => null),
     teams: computed<InviteLinkTeam[]>(() => []),
-    members: ref<{ email: string }[]>([]),
+    members: ref<{ email: string; roles: string[] }[]>([]),
     load: async () => {},
     loadMemberCount: async (): Promise<number | null> => null,
     inviteByEmail: async (_emails: string[], _teamId: string) => {},

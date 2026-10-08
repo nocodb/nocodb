@@ -6463,6 +6463,7 @@
       "linkNotWorkingRetiredRole": "Not working: links can no longer grant this role",
       "domainNeedsVerifiedEmail": "Only people with an {'@'}{domain} address can join.",
       "signedInWrongDomain": "You're signed in as {email}. This link only accepts {'@'}{domain} addresses.",
+      "joinAsWithDomainAccount": "To join as {role}, sign in with an {'@'}{domain} account.",
       "signedInAs": "You're signed in as {email}.",
       "publicLinkToNamed": "Public link to {name}",
       "readOnlyInviteInstead": "Read-only. Need them to edit or comment?",

@@ -238,9 +238,17 @@ onMounted(() => {
           ? $t('msg.info.invitedToWorkspace', { name: preview.target_title })
           : $t('msg.info.invitedToBase', { name: preview.target_title })
       "
-      :subtitle="$t('msg.info.youWillJoinAs', { role: roleLabel })"
+      :subtitle="
+        signedIn && wrongDomain
+          ? $t('msg.info.joinAsWithDomainAccount', { role: roleLabel, domain: preview.email_domain })
+          : $t('msg.info.youWillJoinAs', { role: roleLabel })
+      "
     >
-      <div v-if="preview.email_domain" class="text-bodyDefaultSm text-nc-content-gray-muted -mt-4 mb-6">
+      <!-- Signed in with the wrong domain, the subtitle and the line below already say it. -->
+      <div
+        v-if="preview.email_domain && !(signedIn && wrongDomain)"
+        class="text-bodyDefaultSm text-nc-content-gray-muted -mt-4 mb-6"
+      >
         {{ $t('msg.info.domainNeedsVerifiedEmail', { domain: preview.email_domain }) }}
       </div>
 

@@ -637,6 +637,7 @@ export interface InviteLinkPayload {
   max_uses?: number | null;
   base_title?: string;
   workspace_title?: string;
+  interface_title?: string;
 }
 
 export interface InviteLinkUpdatePayload
@@ -1617,6 +1618,7 @@ export interface InterfaceGrantContext {
 
 export interface InterfaceUserInvitePayload extends InterfaceGrantContext {
   role: string;
+  via?: 'invite_link';
 }
 
 export interface InterfaceUserUpdatePayload extends InterfaceGrantContext {
@@ -2195,6 +2197,13 @@ function interfaceTableSuffix(details: {
 }
 
 /** `page 'X' of ` — grants target either the whole interface or one page. */
+/** An interface link is recorded against its base; name the interface when there is one. */
+function inviteLinkTarget(details: { interface_title?: string }) {
+  return details.interface_title
+    ? `interface '${details.interface_title}'`
+    : 'base';
+}
+
 function interfaceGrantScope(details: {
   page_title?: string;
   page_id?: string;
@@ -2259,13 +2268,21 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.BASE_INVITE_LINK_CREATE]: (
     audit: AuditV1<InviteLinkPayload>
   ) =>
-    `User '${audit.user}' created a ${audit.details.role} invite link for base`,
+    `User '${audit.user}' created a ${
+      audit.details.role
+    } invite link for ${inviteLinkTarget(audit.details)}`,
   [AuditV1OperationTypes.BASE_INVITE_LINK_UPDATE]: (
     audit: AuditV1<InviteLinkUpdatePayload>
-  ) => `User '${audit.user}' updated an invite link for base`,
+  ) =>
+    `User '${audit.user}' updated an invite link for ${inviteLinkTarget(
+      audit.details
+    )}`,
   [AuditV1OperationTypes.BASE_INVITE_LINK_REVOKE]: (
     audit: AuditV1<InviteLinkPayload>
-  ) => `User '${audit.user}' revoked an invite link for base`,
+  ) =>
+    `User '${audit.user}' revoked an invite link for ${inviteLinkTarget(
+      audit.details
+    )}`,
   [AuditV1OperationTypes.WORKSPACE_INVITE_LINK_CREATE]: (
     audit: AuditV1<InviteLinkPayload>
   ) =>
@@ -2573,11 +2590,13 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.INTERFACE_USER_INVITE]: (
     audit: AuditV1<InterfaceUserInvitePayload>
   ) =>
-    `${audit.details.principal_type === 'team' ? 'Team' : 'User'} '${
-      audit.details.principal_title
-    }' has been granted '${audit.details.role}' on ${interfaceGrantScope(
-      audit.details
-    )}interface '${audit.details.interface_title}'`,
+    audit.details.via === 'invite_link'
+      ? `User '${audit.details.principal_title}' joined interface '${audit.details.interface_title}' as '${audit.details.role}' via invite link`
+      : `${audit.details.principal_type === 'team' ? 'Team' : 'User'} '${
+          audit.details.principal_title
+        }' has been granted '${audit.details.role}' on ${interfaceGrantScope(
+          audit.details
+        )}interface '${audit.details.interface_title}'`,
   [AuditV1OperationTypes.INTERFACE_USER_UPDATE]: (
     audit: AuditV1<InterfaceUserUpdatePayload>
   ) =>

@@ -46,6 +46,7 @@ export interface InviteLinkEvent extends NcBaseEvent {
   link: InviteLinkType;
   base?: BaseType;
   workspace?: { id: string; title: string };
+  interface?: { id: string; title: string };
 }
 
 export interface InviteLinkUpdateEvent extends InviteLinkEvent {

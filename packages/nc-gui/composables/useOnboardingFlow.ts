@@ -758,7 +758,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
           },
           {
             value: 'Start from Scratch',
-            description: 'Begin with a blank canvas and build your base your way.',
+            description: 'Begin with a blank canvas and build your project your way.',
             icons: [
               {
                 icon: 'ncPlus',

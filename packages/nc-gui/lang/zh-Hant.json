@@ -6641,7 +6641,6 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "受支持的檔案類型包括 .xls、.xlsx、.xlsm、.ods 和 .ots",
       "duplicateParameterKeysAreNotAllowed": "不允許重複的參數鍵",
       "fieldRequired": "{value} 不能為空",
-      "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "複製到剪貼簿失敗",
       "pasteFromClipboardError": "從剪貼簿貼上失敗",
       "multiFieldSaveValidation": "在儲存之前，請完成所有欄位的配置",

@@ -266,7 +266,7 @@ onUnmounted(() => {
       <div class="text-nc-content-gray-subtle2 text-sm px-2">
         <p class="mb-2">{{ $t('msg.info.migrateBaseSteps') }}:</p>
         <ol class="list-decimal list-inside mt-2 pl-1">
-          <li>{{ $t('general.open') }} <strong>settings</strong> in your NocoDB base</li>
+          <li>{{ $t('general.open') }} <strong>settings</strong> in your NocoDB project</li>
           <li>
             Navigate to <strong>{{ $t('general.migrate') }}</strong> tab
           </li>
@@ -355,7 +355,7 @@ onUnmounted(() => {
           {{ $t('labels.retryImport') }}
         </NcButton>
         <NcButton v-else size="small" @click="goToBase">
-          {{ syncOptions.workspaceMode || syncOptions.newBase ? 'Go To Dashboard' : 'Go To Base' }}
+          {{ syncOptions.workspaceMode || syncOptions.newBase ? 'Go To Dashboard' : 'Go To Project' }}
         </NcButton>
       </div>
     </div>

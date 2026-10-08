@@ -31,10 +31,10 @@ const serverName = computed(() => {
     title = isScopedConnection.value
       ? `NocoDB - ${props.token.title}`
       : isEeUI
-      ? `NocoDB ${props.token.workspace?.title || 'Workspace'} - ${props.token.base?.title || 'Base'}`
-      : `NocoDB - ${props.token.base?.title || 'Base'}`
+      ? `NocoDB ${props.token.workspace?.title || 'Workspace'} - ${props.token.base?.title || 'Project'}`
+      : `NocoDB - ${props.token.base?.title || 'Project'}`
   } else {
-    title = `NocoDB Base - ${openedProject.value?.title}`
+    title = `NocoDB Project - ${openedProject.value?.title}`
   }
 
   if (activeTab.value === 'antigravity') {

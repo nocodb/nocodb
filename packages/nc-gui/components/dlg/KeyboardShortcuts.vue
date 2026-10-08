@@ -34,7 +34,7 @@ const shortcutList = [
       },
       {
         keys: [renderAltOrOptlKey(), 'D'],
-        behaviour: 'Create new base',
+        behaviour: 'Create new project',
       },
       {
         keys: [renderAltOrOptlKey(), 'T'],

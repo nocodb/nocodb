@@ -6641,7 +6641,6 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "نوع فایل های مورد قبول .xls, .xlsx, .xlm, .ods, .ots هستند",
       "duplicateParameterKeysAreNotAllowed": "کلید های پارامتر تکراری مجاز نیستند",
       "fieldRequired": "این فیلد نمی‌تواند خالی باشد.",
-      "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "کپی به کلیپ برد ناموفق",
       "pasteFromClipboardError": "در چسباندن از کلیپ‌برد ناموفق شد",
       "multiFieldSaveValidation": "لطفاً نصب همه فیلدها را قبل از ذخیره تکمیل کنید",

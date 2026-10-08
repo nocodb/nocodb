@@ -200,7 +200,7 @@ export const useMcpSettings = createSharedComposable(() => {
   }
 
   const addNewMcpToken = () => {
-    newMcpTokenTitle.value = `${openedProject.value?.title || 'Base'}(${activeWorkspace.value?.title}) : ${dayjs().format(
+    newMcpTokenTitle.value = `${openedProject.value?.title || 'Project'}(${activeWorkspace.value?.title}) : ${dayjs().format(
       'D MMMM YYYY, h:mm A',
     )}`
 

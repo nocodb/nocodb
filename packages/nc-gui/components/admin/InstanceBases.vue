@@ -104,7 +104,7 @@ onMounted(() => {
           <a-input
             v-model:value="searchInput"
             allow-clear
-            placeholder="Search for a base"
+            placeholder="Search for a project"
             class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
           >
             <template #prefix>

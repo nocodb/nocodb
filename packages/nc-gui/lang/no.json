@@ -6631,7 +6631,6 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "De aksepterte filtypene er .xls, .xlsx, .xlsm, .ods, .ots",
       "duplicateParameterKeysAreNotAllowed": "Duplikat parameter nøkler er ikke tillatt",
       "fieldRequired": "Dette feltet kan ikke være tomt.",
-      "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "Kopiering til utklippstavle mislyktes",
       "pasteFromClipboardError": "Kunne ikke lime inn fra utklippstavlen",
       "multiFieldSaveValidation": "Vennligst fullfør konfigurasjonen av alle feltene før du lagrer",

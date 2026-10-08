@@ -217,7 +217,7 @@ onMounted(() => {
       </div>
 
       <div v-if="!isSelectionValid && !loading" class="text-sm text-red-600 text-center mt-2">
-        {{ isEeUI ? 'Please select both a workspace and base to continue.' : 'Please select a base to continue.' }}
+        {{ isEeUI ? 'Please select both a workspace and project to continue.' : 'Please select a project to continue.' }}
       </div>
     </div>
   </div>

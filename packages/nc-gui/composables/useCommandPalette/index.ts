@@ -30,7 +30,7 @@ export const useCommandPalette = createSharedComposable(() => {
 
   const needRefresh = ref(true)
 
-  const cmdPlaceholder = ref('Search workspace, bases, tables, views & more...')
+  const cmdPlaceholder = ref('Search workspace, projects, tables, views & more...')
 
   const { token, user, signOut } = useGlobal()
 

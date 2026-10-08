@@ -52,7 +52,7 @@ onMounted(() => {
       :variant="variant"
       icon="plus"
       :label="$t('title.fromScratch')"
-      subtext="Start with an empty base"
+      subtext="Start with an empty project"
       @click="onClickOption(NcBaseCreateMode.FROM_SCRATCH)"
     />
 

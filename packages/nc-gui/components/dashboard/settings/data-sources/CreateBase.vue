@@ -243,7 +243,7 @@ const createSource = async () => {
             vOpen.value = false
             creatingSource.value = false
           } else if (data.status === JobStatus.FAILED) {
-            message.error(data?.data?.error?.message || 'Failed to create base')
+            message.error(data?.data?.error?.message || 'Failed to create project')
             creatingSource.value = false
           }
         }

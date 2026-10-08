@@ -1389,7 +1389,6 @@
     "erdView": "ERD Ikuspegia",
     "newProj": "Proiektu berria",
     "createBase": "Sortu proiektua",
-    "myProject": "My Projects",
     "formTitle": "Formularioaren Izenburua",
     "collaborative": "Elkartuta",
     "locked": "Blokeatuta",
@@ -5144,7 +5143,6 @@
     "copyUrl": "Kopiatu URLa",
     "moreColors": "Kolore Gehiago",
     "createProject": "Sortu proiektua",
-    "searchProject": "Search Project",
     "clearSearch": "Bilaketa garbi",
     "customizeSubmitButton": "Bidali botoia pertsonalizatu",
     "createProjectExtended": {
@@ -5157,8 +5155,7 @@
     },
     "translate": "Lagundu itzultzen",
     "account": {
-      "swagger": "Swagger: REST API-ak",
-      "projInfo": "Copy Project Info"
+      "swagger": "Swagger: REST API-ak"
     },
     "sort": "Ordenatu",
     "addSort": "Gehitu Ordenatzeko Aukera",
@@ -6638,7 +6635,6 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Onartutako fitxategi motak .xls, .xlsx, .xlsm, .ods, .ots dira",
       "duplicateParameterKeysAreNotAllowed": "Parametro gako bikoiztuak ez dira onartzen",
       "fieldRequired": "Eremu hau ezin da hutsik egon.",
-      "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "Huts egin da arbelean kopiatzean",
       "pasteFromClipboardError": "Akatsa, arbeletik itsatsi ezin izan da",
       "multiFieldSaveValidation": "Mesedez, osatu eremu guztien konfigurazioa gorde aurretik",

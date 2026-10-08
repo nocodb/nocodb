@@ -86,7 +86,7 @@ const columns = [
     title: tableHeaderRenderer(t('objects.user')),
     dataIndex: 'user',
     key: 'user',
-    customRender: (value: { text: string }) => h('div', {}, value.text || 'Shared base'),
+    customRender: (value: { text: string }) => h('div', {}, value.text || 'Shared project'),
     width: 200,
   },
   {

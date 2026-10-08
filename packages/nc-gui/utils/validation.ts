@@ -205,7 +205,7 @@ export const layoutTitleValidator = {
   },
 }
 
-export const baseTitleValidator = (entityName: string = 'Base name') => {
+export const baseTitleValidator = (entityName: string = 'Project name') => {
   return {
     validator: (_rule: any, value: any) => {
       return new Promise((resolve, reject) => {

@@ -222,7 +222,7 @@ export function useBaseSettingsNav() {
             icon: 'ncUserPlus',
             testId: 'base-collaborator',
             title: t('labels.baseNav.members'),
-            keywords: 'invite people users collaborators teams roles base access',
+            keywords: 'invite people users collaborators teams roles project base access',
           },
         ].filter(Boolean) as ShellRailGroup['items'],
       },
@@ -367,7 +367,7 @@ export function useBaseSettingsNav() {
             icon: 'ncBaseOutline',
             testId: 'base-access-tab',
             title: t('general.baseType'),
-            keywords: 'general base type private public default access',
+            keywords: 'general project base type private public default access',
           },
           canSeeDataDisplay.value && {
             slug: 'data-display',

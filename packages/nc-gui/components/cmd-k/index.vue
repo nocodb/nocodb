@@ -522,7 +522,7 @@ defineExpose({
                           height: `${ACTION_HEIGHT}px`,
                         }"
                       >
-                        {{ item.data.sectionTitle }}
+                        {{ item.data.sectionTitle === 'Bases' ? $t('objects.projects') : item.data.sectionTitle }}
                       </div>
                     </template>
                     <template v-else>

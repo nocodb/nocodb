@@ -5360,7 +5360,21 @@
     "licenseExpired": "License expired",
     "talkToSales": "Talk to sales",
     "paidAnnually": "Paid Annually",
-    "paidMonthly": "Paid Monthly"
+    "paidMonthly": "Paid Monthly",
+    "viewActions": "View actions",
+    "renameView": "Rename view",
+    "generateWithAi": "Generate with AI",
+    "deleteView": "Delete view",
+    "addToFavourites": "Add to favourites",
+    "contextMenu": "Context menu",
+    "editSqlView": "Edit SQL view",
+    "noWebhooksYet": "No webhooks yet",
+    "navigation": "Navigation",
+    "prompts": "Prompts",
+    "pagination": "Pagination",
+    "workspaceSettings": "Workspace settings",
+    "showRowNumbers": "Show row numbers",
+    "wrapLongText": "Wrap long text"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5899,7 +5913,9 @@
     "aiIntegrationForOperation": "Integration to use for this operation",
     "aiModelForOperation": "Model to use for this operation",
     "setupScriptSettingsFirstToExecute": "Setup script settings first to execute",
-    "selectTable": "Select table"
+    "selectTable": "Select table",
+    "copyViewId": "Copy view ID",
+    "dataSourceReadOnly": "This data source is read-only."
   },
   "placeholder": {
     "requestIntegration": "Provide integration name and your use-case.",
@@ -7053,7 +7069,8 @@
       "recreateDemoBaseTitle": "Recreate demo project?",
       "recreateDemoBaseConfirm": "This permanently deletes the \"{title}\" project and all its data, then creates a fresh one.",
       "deleteDemoBaseTitle": "Delete demo project?",
-      "deleteDemoBaseConfirm": "This permanently deletes the \"{title}\" project and all its data."
+      "deleteDemoBaseConfirm": "This permanently deletes the \"{title}\" project and all its data.",
+      "webhookEmptyStateSubtitle": "Trigger an HTTP request whenever a record is created, updated or deleted."
     },
     "error": {
       "inviteLinkInvalid": "This invite link isn't valid",

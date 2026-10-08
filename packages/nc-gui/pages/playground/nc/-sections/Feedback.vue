@@ -76,7 +76,7 @@ function showToastType() {
         <NcAlert type="toast" :show-icon="false" message="Toast-style alert" description="Used inside ncMessage.toast." />
         <NcAlert type="warning" align="center" message="Centre aligned, with action">
           <template #action>
-            <NcButton size="xsmall" type="secondary" class="!px-2">Upgrade</NcButton>
+            <NcButton size="xsmall" type="secondary" class="!px-2">{{ $t('general.upgrade') }}</NcButton>
           </template>
         </NcAlert>
       </div>
@@ -124,10 +124,7 @@ function showToastType() {
     </div>
 
     <PgDemo label="NcEmptyPlaceholder" stage="canvas">
-      <NcEmptyPlaceholder
-        title="No webhooks yet"
-        subtitle="Trigger an HTTP request whenever a record is created, updated or deleted."
-      >
+      <NcEmptyPlaceholder :title="$t('labels.noWebhooksYet')" :subtitle="$t('msg.info.webhookEmptyStateSubtitle')">
         <template #icon>
           <GeneralIcon icon="ncWebhook" class="w-10 h-10 text-nc-content-gray-muted" />
         </template>

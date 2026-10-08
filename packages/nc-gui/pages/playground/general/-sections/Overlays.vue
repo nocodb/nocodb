@@ -25,7 +25,7 @@ function openModal(size: 'small' | 'medium' | 'large') {
   <PgSection id="modals" title="Modals" source="GeneralDeleteModal · GeneralModal">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       <PgDemo label="DeleteModal" hint="simulated 800ms delete">
-        <NcButton size="small" type="danger" @click="isDeleteOpen = true">Delete table</NcButton>
+        <NcButton size="small" type="danger" @click="isDeleteOpen = true">{{ $t('labels.deleteTable') }}</NcButton>
         <GeneralDeleteModal v-model:visible="isDeleteOpen" entity-name="Table" :on-delete="fakeDelete">
           <template #entity-preview>
             <div class="flex items-center gap-2 px-3 py-2 bg-nc-bg-gray-extralight rounded-lg text-caption">
@@ -54,7 +54,7 @@ function openModal(size: 'small' | 'medium' | 'large') {
               Prefer NcModal for new work. This wrapper is kept for older dialogs.
             </p>
             <div class="flex justify-end">
-              <NcButton size="small" @click="isModalOpen = false">Close</NcButton>
+              <NcButton size="small" @click="isModalOpen = false">{{ $t('general.close') }}</NcButton>
             </div>
           </div>
         </GeneralModal>
@@ -78,7 +78,7 @@ function openModal(size: 'small' | 'medium' | 'large') {
         >
           <div class="flex flex-col items-center gap-3">
             <GeneralLoader size="xlarge" class="text-nc-content-brand" />
-            <NcButton size="small" type="secondary" @click="isOverlayOpen = false">Dismiss</NcButton>
+            <NcButton size="small" type="secondary" @click="isOverlayOpen = false">{{ $t('roadmap.intro.dismiss') }}</NcButton>
           </div>
         </GeneralOverlay>
       </div>
@@ -98,7 +98,7 @@ function openModal(size: 'small' | 'medium' | 'large') {
             <div
               class="h-full rounded-xl bg-nc-bg-purple-light flex items-center justify-center text-captionBold text-nc-content-purple-dark"
             >
-              Back
+              {{ $t('general.back') }}
             </div>
           </template>
         </GeneralFlippingCard>

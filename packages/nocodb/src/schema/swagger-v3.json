@@ -17659,7 +17659,7 @@
       "DocumentCreate": {
         "type": "object",
         "additionalProperties": false,
-        "description": "Request body for creating a document. Unknown properties are rejected: `order` and `has_children` are server-managed, and position is set with `PATCH /documents/{documentId}/reorder`.",
+        "description": "Request body for creating a document.",
         "properties": {
           "title": {
             "type": "string",
@@ -17685,7 +17685,7 @@
       "DocumentUpdate": {
         "type": "object",
         "additionalProperties": false,
-        "description": "Request body for updating a document. Unknown properties are rejected: move and reorder a document with `PATCH /documents/{documentId}/reorder`, which validates the target parent, rather than sending `parent_id` or `order` here.",
+        "description": "Request body for updating a document.",
         "required": [
           "version"
         ],

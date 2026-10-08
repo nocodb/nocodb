@@ -99,6 +99,8 @@ export default class Filter implements FilterType {
   // cross-table column. Carries the source/parent row PK so conditionV2 can
   // build an EXISTS subquery filtered to that specific row.
   _crossTableRowId?: string;
+  // Unsaved source row (no PK yet): its link values, sent by the picker.
+  _crossTableRowData?: Record<string, any>;
 
   comparison_op?: (typeof COMPARISON_OPS)[number];
   comparison_sub_op?: (typeof COMPARISON_SUB_OPS)[number];

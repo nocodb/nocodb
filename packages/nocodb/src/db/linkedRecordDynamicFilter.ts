@@ -179,9 +179,61 @@ async function buildLinkedRecordIdsQuery({
 }
 
 /**
+ * Unsaved source row: start from the records its first link points at
+ * (`rowData[<link title>]`, pk + display value only) and follow the rest.
+ */
+async function buildUnsavedRowIdsQuery(
+  context: NcContext,
+  knex: Knex,
+  baseModelSqlv2: IBaseModelSqlV2,
+  valuePath: Column[],
+  rowData: Record<string, any>,
+  aliasCount: { count: number },
+): Promise<{ qb: Knex.QueryBuilder; targetPkRef: string } | null> {
+  const [firstHop, ...rest] = valuePath;
+  const colOptions = await firstHop.getColOptions<LinkToAnotherRecordColumn>();
+  const firstModel = await colOptions?.getRelatedTable();
+  if (!firstModel) return null;
+  await firstModel.getColumns();
+  if (firstModel.primaryKeys?.length !== 1) return null;
+
+  const firstBaseModel = await Model.getBaseModelSQL(
+    { ...context, base_id: firstModel.base_id },
+    { model: firstModel, dbDriver: baseModelSqlv2.dbDriver },
+  );
+  const pk = firstModel.primaryKey;
+  const linked = ([] as any[]).concat(rowData?.[firstHop.title] ?? []);
+  const ids = linked
+    .map((r) => r?.[pk.title] ?? r?.[pk.column_name])
+    .filter((id) => id !== undefined && id !== null);
+
+  if (!rest.length) {
+    const alias = `__nc_lr${aliasCount.count++}`;
+    return {
+      qb: knex(firstBaseModel.getTnPath(firstModel.table_name, alias)).whereIn(
+        `${alias}.${pk.column_name}`,
+        ids,
+      ),
+      targetPkRef: `${alias}.${pk.column_name}`,
+    };
+  }
+
+  return buildLinkedRecordIdsQuery({
+    knex,
+    baseModel: firstBaseModel,
+    path: rest,
+    aliasCount,
+    restrict: (qb, rowAlias) => {
+      qb.whereIn(`${rowAlias}.${pk.column_name}`, ids);
+    },
+  });
+}
+
+/**
  * Dynamic filter where both sides are a Link field or a Lookup of a Link field:
  * matches when the record being filtered and the source row
- * (`filter._crossTableRowId`) link to at least one common record (`eq`), or to
+ * (`filter._crossTableRowId`, or `_crossTableRowData` when it is unsaved) link
+ * to at least one common record (`eq`), or to
  * none (`neq`). Records are matched by primary key, not display value.
  */
 export async function resolveLinkedRecordDynamicFilter(
@@ -195,7 +247,11 @@ export async function resolveLinkedRecordDynamicFilter(
   aliasCount: { count: number },
 ): Promise<false | FilterOperationResult> {
   const rowId = filter._crossTableRowId;
-  if (!rowId || !LINKED_RECORD_DYNAMIC_OPS.includes(filter.comparison_op)) {
+  const rowData = filter._crossTableRowData;
+  if (
+    (!rowId && !rowData) ||
+    !LINKED_RECORD_DYNAMIC_OPS.includes(filter.comparison_op)
+  ) {
     return false;
   }
 
@@ -220,27 +276,34 @@ export async function resolveLinkedRecordDynamicFilter(
     return false;
   }
 
-  const valueBaseModel = await Model.getBaseModelSQL(context, {
-    model: valueModel,
-    dbDriver: baseModelSqlv2.dbDriver,
-  });
-
-  const valueIds = await buildLinkedRecordIdsQuery({
-    knex,
-    baseModel: valueBaseModel,
-    path: valuePath,
-    aliasCount,
-    restrict: (qb, rowAlias) => {
-      const pkWhere = _wherePk(valueModel.primaryKeys, rowId);
-      if (typeof pkWhere === 'function') {
-        qb.where(pkWhere);
-      } else {
-        for (const [col, val] of Object.entries(pkWhere)) {
-          qb.where(`${rowAlias}.${col}`, val);
-        }
-      }
-    },
-  });
+  const valueIds = rowId
+    ? await buildLinkedRecordIdsQuery({
+        knex,
+        baseModel: await Model.getBaseModelSQL(context, {
+          model: valueModel,
+          dbDriver: baseModelSqlv2.dbDriver,
+        }),
+        path: valuePath,
+        aliasCount,
+        restrict: (qb, rowAlias) => {
+          const pkWhere = _wherePk(valueModel.primaryKeys, rowId);
+          if (typeof pkWhere === 'function') {
+            qb.where(pkWhere);
+          } else {
+            for (const [col, val] of Object.entries(pkWhere)) {
+              qb.where(`${rowAlias}.${col}`, val);
+            }
+          }
+        },
+      })
+    : await buildUnsavedRowIdsQuery(
+        context,
+        knex,
+        baseModelSqlv2,
+        valuePath,
+        rowData,
+        aliasCount,
+      );
 
   const sourceAlias = alias || baseModelSqlv2.getTnPath(filterModel.table_name);
 

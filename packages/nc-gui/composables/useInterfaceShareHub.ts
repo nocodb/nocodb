@@ -15,6 +15,6 @@ export function useInterfaceShareHub() {
     showUpgrade: () => {},
     loadMemberCount: async (): Promise<number | null> => null,
     inviteByEmail: async (_emails: string[], _role: string) => {},
-    openManageMembers: async () => {},
+    openManageMembers: async (_opts?: { pages?: boolean }) => {},
   }
 }

@@ -22,7 +22,7 @@ const props = withDefaults(
   },
 )
 
-const emit = defineEmits(['compose', 'links', 'editLink', 'manageAccess', 'blocked'])
+const emit = defineEmits(['compose', 'links', 'editLink', 'manageAccess', 'pageAccess', 'blocked'])
 
 const { defaultEmailDomain } = useInviteLinks()
 
@@ -83,7 +83,7 @@ const emailPlaceholder = computed(() =>
     <div v-if="props.showPageAccess && props.canManageMembers" class="-mt-3 text-bodySm text-nc-content-gray-muted">
       {{ $t('msg.info.interfacePageAccessHint') }}
       {{ ' ' }}
-      <button class="nc-hub-manage-members" data-testid="nc-hub-page-access" @click="emit('manageAccess')">
+      <button class="nc-hub-manage-members" data-testid="nc-hub-page-access" @click="emit('pageAccess')">
         {{ $t('labels.setPageAccess') }}
       </button>
     </div>

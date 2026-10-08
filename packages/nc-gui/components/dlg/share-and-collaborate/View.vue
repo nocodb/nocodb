@@ -276,11 +276,11 @@ function openEditLink(linkId: string, isNew = false) {
 }
 
 /** The hub's people row is a doorway to the real members page. */
-async function openManageAccess() {
-  $e('c:share:members:open')
+async function openManageAccess({ pages = false }: { pages?: boolean } = {}) {
+  $e('c:share:members:open', pages ? { target: 'pages' } : undefined)
 
   try {
-    if (isInterfaceContext.value) await interfaceShare.openManageMembers()
+    if (isInterfaceContext.value) await interfaceShare.openManageMembers({ pages })
     else await navigateToProjectPage({ page: 'collaborator' })
     showShareModal.value = false
   } catch (e) {
@@ -419,7 +419,8 @@ watch(showShareModal, (val) => {
               @compose="openCompose"
               @links="openLinks"
               @edit-link="openEditLink"
-              @manage-access="openManageAccess"
+              @manage-access="openManageAccess()"
+              @page-access="openManageAccess({ pages: true })"
               @blocked="interfaceShare.showUpgrade"
             />
           </a-tab-pane>

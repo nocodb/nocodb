@@ -31,6 +31,8 @@ const {
 
 const isWorkspaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.WORKSPACE)
 
+const isInterfaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.INTERFACE)
+
 const { $e } = useNuxtApp()
 
 const { t } = useI18n()
@@ -127,9 +129,13 @@ async function onSave() {
       props.isNew
         ? isWorkspaceInvite.value
           ? 'a:ws:invite:link:create'
+          : isInterfaceInvite.value
+          ? 'a:interface:invite:link:create'
           : 'a:base:invite:link:create'
         : isWorkspaceInvite.value
         ? 'a:ws:invite:link:update'
+        : isInterfaceInvite.value
+        ? 'a:interface:invite:link:update'
         : 'a:base:invite:link:update',
       {
         role: draft.role,
@@ -150,7 +156,13 @@ async function onDelete() {
   isDeleting.value = false
 
   if (done) {
-    $e(isWorkspaceInvite.value ? 'a:ws:invite:link:revoke' : 'a:base:invite:link:revoke')
+    $e(
+      isWorkspaceInvite.value
+        ? 'a:ws:invite:link:revoke'
+        : isInterfaceInvite.value
+        ? 'a:interface:invite:link:revoke'
+        : 'a:base:invite:link:revoke',
+    )
 
     emit('done')
   }

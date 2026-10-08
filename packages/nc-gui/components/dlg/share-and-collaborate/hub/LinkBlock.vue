@@ -33,6 +33,8 @@ const {
 
 const isWorkspaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.WORKSPACE)
 
+const isInterfaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.INTERFACE)
+
 const { copy } = useCopy()
 
 const { $e } = useNuxtApp()
@@ -61,11 +63,18 @@ const ctaLabel = computed(() => (hasLink.value ? t('activity.copyInviteLink') : 
 async function onRoleChange(next: string) {
   if (props.blocked) return emit('blocked')
 
-  $e(isWorkspaceInvite.value ? 'c:ws:invite:link:role:change' : 'c:base:invite:link:role:change', {
-    scope: inviteTarget.value?.scope,
-    role: next,
-    existing: !!primary.value,
-  })
+  $e(
+    isWorkspaceInvite.value
+      ? 'c:ws:invite:link:role:change'
+      : isInterfaceInvite.value
+      ? 'c:interface:invite:link:role:change'
+      : 'c:base:invite:link:role:change',
+    {
+      scope: inviteTarget.value?.scope,
+      role: next,
+      existing: !!primary.value,
+    },
+  )
 
   if (!primary.value) {
     pendingRole.value = next
@@ -95,11 +104,18 @@ async function onCopy() {
       link = await createLink(pendingRole.value ? { role: pendingRole.value } : undefined)
 
       if (link) {
-        $e(isWorkspaceInvite.value ? 'a:ws:invite:link:create' : 'a:base:invite:link:create', {
-          scope: inviteTarget.value?.scope,
-          role: link.role,
-          restricted: !!link.email_domain,
-        })
+        $e(
+          isWorkspaceInvite.value
+            ? 'a:ws:invite:link:create'
+            : isInterfaceInvite.value
+            ? 'a:interface:invite:link:create'
+            : 'a:base:invite:link:create',
+          {
+            scope: inviteTarget.value?.scope,
+            role: link.role,
+            restricted: !!link.email_domain,
+          },
+        )
       }
     }
 
@@ -109,11 +125,18 @@ async function onCopy() {
     // do nothing at all and look like a dead button.
     await copy(linkUrl(link))
 
-    $e(isWorkspaceInvite.value ? 'c:ws:invite:link:copy' : 'c:base:invite:link:copy', {
-      scope: inviteTarget.value?.scope,
-      created: isFirst,
-      restricted: !!link.email_domain,
-    })
+    $e(
+      isWorkspaceInvite.value
+        ? 'c:ws:invite:link:copy'
+        : isInterfaceInvite.value
+        ? 'c:interface:invite:link:copy'
+        : 'c:base:invite:link:copy',
+      {
+        scope: inviteTarget.value?.scope,
+        created: isFirst,
+        restricted: !!link.email_domain,
+      },
+    )
 
     isCopied.value = true
     clearTimeout(copiedTimer)

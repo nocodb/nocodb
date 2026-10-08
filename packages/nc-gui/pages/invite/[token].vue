@@ -92,11 +92,18 @@ function landingPath({
   base_id: baseId,
   workspace_id: workspaceId,
   interface_id: interfaceId,
+  app_id: appId,
 }: {
   base_id?: string | null
   workspace_id?: string | null
   interface_id?: string | null
+  app_id?: string | null
 }) {
+  // App members land in the running app, not its builder.
+  if (baseId && appId && workspaceId) {
+    return `/app-open?${new URLSearchParams({ app: appId, ws: workspaceId, base: baseId }).toString()}`
+  }
+
   if (baseId && interfaceId) return `/${workspaceId ?? 'nc'}/${baseId}/interfaces/${interfaceId}`
 
   return baseId ? `/${workspaceId ?? 'nc'}/${baseId}` : workspaceId ? `/${workspaceId}` : '/'
@@ -287,7 +294,11 @@ onMounted(() => {
           : $t('msg.info.invitedToBase', { name: preview.target_title })
       "
       :subtitle="
-        signedIn && wrongDomain
+        preview.scope === InviteLinkScope.APP
+          ? signedIn && wrongDomain
+            ? $t('msg.info.joinTeamWithDomainAccount', { team: preview.team_title, domain: preview.email_domain })
+            : $t('msg.info.youWillJoinTeam', { team: preview.team_title })
+          : signedIn && wrongDomain
           ? $t('msg.info.joinAsWithDomainAccount', { role: roleLabel, domain: preview.email_domain })
           : $t('msg.info.youWillJoinAs', { role: roleLabel })
       "

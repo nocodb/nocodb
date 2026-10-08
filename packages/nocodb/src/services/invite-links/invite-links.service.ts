@@ -36,6 +36,8 @@ type InviteLinkGrant = Pick<
   | 'base_id'
   | 'fk_workspace_id'
   | 'fk_interface_id'
+  | 'fk_app_id'
+  | 'fk_app_team_id'
   | 'created_by'
   | 'role'
 >;
@@ -45,6 +47,7 @@ export interface InviteLinkLanding {
   base_id?: string;
   workspace_id?: string;
   interface_id?: string;
+  app_id?: string;
 }
 
 /**
@@ -169,6 +172,8 @@ export class InviteLinksService {
         link.fk_workspace_id,
         link.base_id,
         link.fk_interface_id,
+        link.fk_app_id,
+        link.fk_app_team_id,
         link.created_by,
       ].join(':');
 
@@ -367,6 +372,7 @@ export class InviteLinksService {
       baseId?: string;
       workspaceId?: string;
       interfaceId?: string;
+      appId?: string;
       body: InviteLinkReqType;
       req: NcRequest;
     },
@@ -398,6 +404,11 @@ export class InviteLinksService {
             : context.workspace_id,
         fk_interface_id:
           param.scope === InviteLinkScope.INTERFACE ? param.interfaceId : null,
+        fk_app_id: param.scope === InviteLinkScope.APP ? param.appId : null,
+        fk_app_team_id:
+          param.scope === InviteLinkScope.APP
+            ? param.body.fk_app_team_id
+            : null,
         role: param.body.role,
         email_domain: this.normaliseDomain(param.body.email_domain),
         expires_at: this.expiryFromDays(param.body.expires_in_days),
@@ -428,6 +439,7 @@ export class InviteLinksService {
       baseId?: string;
       workspaceId?: string;
       interfaceId?: string;
+      appId?: string;
       req: NcRequest;
     },
     ncMeta = Noco.ncMeta,
@@ -438,6 +450,7 @@ export class InviteLinksService {
         base_id: param.baseId,
         fk_workspace_id: param.workspaceId,
         fk_interface_id: param.interfaceId,
+        fk_app_id: param.appId,
       },
       ncMeta,
     );
@@ -569,6 +582,7 @@ export class InviteLinksService {
       baseId?: string;
       workspaceId?: string;
       interfaceId?: string;
+      appId?: string;
       req?: NcRequest;
     },
     ncMeta = Noco.ncMeta,
@@ -589,6 +603,10 @@ export class InviteLinksService {
           owned =
             link.base_id === param.baseId &&
             link.fk_interface_id === param.interfaceId;
+          break;
+        case InviteLinkScope.APP:
+          owned =
+            link.base_id === param.baseId && link.fk_app_id === param.appId;
           break;
         default:
           owned = link.fk_workspace_id === param.workspaceId;
@@ -618,6 +636,7 @@ export class InviteLinksService {
       baseId?: string;
       workspaceId?: string;
       interfaceId?: string;
+      appId?: string;
       body: Partial<InviteLinkReqType>;
       req: NcRequest;
     },
@@ -633,6 +652,10 @@ export class InviteLinksService {
       param.linkId,
       {
         ...(param.body.role !== undefined ? { role: param.body.role } : {}),
+        ...(param.scope === InviteLinkScope.APP &&
+        param.body.fk_app_team_id !== undefined
+          ? { fk_app_team_id: param.body.fk_app_team_id }
+          : {}),
         ...(param.body.email_domain !== undefined
           ? { email_domain: this.normaliseDomain(param.body.email_domain) }
           : {}),
@@ -665,6 +688,7 @@ export class InviteLinksService {
       baseId?: string;
       workspaceId?: string;
       interfaceId?: string;
+      appId?: string;
       req: NcRequest;
     },
     ncMeta = Noco.ncMeta,
@@ -771,7 +795,17 @@ export class InviteLinksService {
       target_title: await this.resolveTargetTitle(context, link, ncMeta),
       role: link.role,
       email_domain: link.email_domain,
+      ...(await this.previewExtras(context, link, ncMeta)),
     };
+  }
+
+  /** Scope-specific preview fields. CE has none. */
+  protected async previewExtras(
+    _context: NcContext,
+    _link: InviteLink,
+    _ncMeta = Noco.ncMeta,
+  ): Promise<Partial<InviteLinkPreviewType>> {
+    return {};
   }
 
   /**

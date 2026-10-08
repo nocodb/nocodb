@@ -13,6 +13,7 @@ import {
 } from 'nocodb-sdk'
 
 import { extractEmail } from '../../../helpers/parsers/parserHelpers'
+import type { IconMapKey } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -22,7 +23,7 @@ const props = withDefaults(
      * off its own visibility flag.
      */
     active: boolean
-    type?: 'base' | 'workspace' | 'organization' | 'interface'
+    type?: 'base' | 'workspace' | 'organization' | 'interface' | 'app'
     isTeam?: boolean
     baseId?: string
     emails?: string[]
@@ -43,6 +44,9 @@ const props = withDefaults(
     roles?: string[]
     /** Per-role label overrides for the picker and the hint, e.g. an interface's "Read only". */
     roleLabels?: Partial<Record<string, string>>
+    /** Per-role description and icon overrides, e.g. an app's teams. */
+    roleDescriptions?: Partial<Record<string, string>>
+    roleIcons?: Partial<Record<string, IconMapKey>>
     /** How a role reads in the hint sentence, when its label would not ("a read-only member"). */
     rolePhrase?: (role: string, count: number) => string | undefined
     /**
@@ -81,7 +85,7 @@ const { isTeamsEnabled } = storeToRefs(workspaceStore)
 
 // The org-user picker only knows base and workspace targets.
 const { fetchOrgUsers, resetOrgUsers, orgUsers } = useOrgUserInvitePicker({
-  type: props.type === 'interface' ? undefined : props.type,
+  type: props.type === 'interface' || props.type === 'app' ? undefined : props.type,
   workspaceId: props.workspaceId,
   baseId: props.baseId,
 })
@@ -91,7 +95,7 @@ const { isPaymentEnabled, showUserPlanLimitExceededModal, isPaidPlan, showUserMa
 const dialogShow = computed(() => props.active)
 
 const orderedRoles = computed(() => {
-  return props.type === 'base' || props.type === 'interface' ? ProjectRoles : WorkspaceUserRoles
+  return props.type === 'base' || props.type === 'interface' || props.type === 'app' ? ProjectRoles : WorkspaceUserRoles
 })
 
 const userRoles = computed(() => {
@@ -334,7 +338,7 @@ const roleCopy = (count: number) => {
 
   return {
     label: phrase ?? props.roleLabels?.[inviteData.roles] ?? t(`objects.${group}.${key}`, inviteData.roles),
-    can: t(`objects.roleDescription.${inviteData.roles}`).toLowerCase(),
+    can: (props.roleDescriptions?.[inviteData.roles] ?? t(`objects.roleDescription.${inviteData.roles}`)).toLowerCase(),
   }
 }
 
@@ -362,6 +366,8 @@ const showUserWillChargedWarning = computed(() => {
     !appInfo.value?.isOnPrem &&
     isPaymentEnabled.value &&
     isPaidPlan.value &&
+    // App users take no seat, whichever team they join.
+    props.type !== 'app' &&
     !NON_SEAT_ROLES.includes(inviteData.roles) &&
     showUserMayChargeAlert.value &&
     !isInviteButtonDisabled.value &&
@@ -501,6 +507,8 @@ const inviteCollaborator = async () => {
             scopeLabel = 'objects.workspace'
           } else if (props.type === 'interface') {
             scopeLabel = 'general.interface'
+          } else if (props.type === 'app') {
+            scopeLabel = 'objects.app'
           } else if (props.type === 'organization') {
             scopeLabel = 'general.organization'
           }
@@ -847,6 +855,8 @@ defineExpose({
               :disabled-roles-tooltip="disabledRolesTooltip"
               :roles="allowedRoles"
               :labels="props.roleLabels"
+              :descriptions="props.roleDescriptions"
+              :icons="props.roleIcons"
               :trigger-variant="isCompose ? 'field' : 'detail'"
               class="nc-invite-role-selector"
               :class="{ '-ml-1.5': !isCompose }"

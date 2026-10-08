@@ -25,6 +25,8 @@ export default class InviteLink implements InviteLinkType {
   base_id?: string | null;
   fk_workspace_id?: string | null;
   fk_interface_id?: string | null;
+  fk_app_id?: string | null;
+  fk_app_team_id?: string | null;
   role?: InviteLinkRole;
   email_domain?: string | null;
   expires_at?: string | null;
@@ -74,6 +76,8 @@ export default class InviteLink implements InviteLinkType {
       base_id?: string | null;
       fk_workspace_id?: string | null;
       fk_interface_id?: string | null;
+      fk_app_id?: string | null;
+      fk_app_team_id?: string | null;
       role: InviteLinkRole;
       email_domain?: string | null;
       expires_at?: Date | null;
@@ -97,6 +101,8 @@ export default class InviteLink implements InviteLinkType {
         base_id: param.base_id ?? null,
         fk_workspace_id: param.fk_workspace_id ?? null,
         fk_interface_id: param.fk_interface_id ?? null,
+        fk_app_id: param.fk_app_id ?? null,
+        fk_app_team_id: param.fk_app_team_id ?? null,
         token_hash: hashToken(token),
         token,
         role: param.role,
@@ -148,6 +154,7 @@ export default class InviteLink implements InviteLinkType {
       base_id?: string | null;
       fk_workspace_id?: string | null;
       fk_interface_id?: string | null;
+      fk_app_id?: string | null;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<InviteLink[]> {
@@ -158,6 +165,9 @@ export default class InviteLink implements InviteLinkType {
       // Interface ids are unique only per base.
       condition.base_id = param.base_id;
       condition.fk_interface_id = param.fk_interface_id;
+    } else if (param.scope === InviteLinkScope.APP) {
+      condition.base_id = param.base_id;
+      condition.fk_app_id = param.fk_app_id;
     } else condition.fk_workspace_id = param.fk_workspace_id;
 
     const rows = await ncMeta.metaList2(
@@ -179,6 +189,7 @@ export default class InviteLink implements InviteLinkType {
     id: string,
     patch: {
       role?: InviteLinkRole;
+      fk_app_team_id?: string;
       email_domain?: string | null;
       expires_at?: Date | null;
       max_uses?: number | null;
@@ -201,6 +212,8 @@ export default class InviteLink implements InviteLinkType {
       updateObj.role = patch.role;
     }
 
+    if (patch.fk_app_team_id !== undefined)
+      updateObj.fk_app_team_id = patch.fk_app_team_id;
     if (patch.email_domain !== undefined)
       updateObj.email_domain = patch.email_domain;
     if (patch.expires_at !== undefined) updateObj.expires_at = patch.expires_at;

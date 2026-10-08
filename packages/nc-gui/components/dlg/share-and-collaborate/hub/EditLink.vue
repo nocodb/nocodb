@@ -22,6 +22,10 @@ const {
   disabledRoles,
   disabledRolesTooltip,
   roleLabels,
+  roleDescriptions,
+  roleIcons,
+  linkGrant,
+  grantBody,
   defaultRole,
   defaultEmailDomain,
   createLink,
@@ -87,7 +91,7 @@ function resetDraft() {
   const domain = props.isNew ? defaultEmailDomain.value : link.value?.email_domain
 
   Object.assign(draft, {
-    role: (props.isNew ? defaultRole.value : link.value?.role) ?? defaultRole.value,
+    role: (props.isNew ? defaultRole.value : linkGrant(link.value)) ?? defaultRole.value,
     anyEmail: !domain,
     domain: domain ?? '',
   })
@@ -113,7 +117,7 @@ async function onSave() {
   isSaving.value = true
 
   const body = {
-    role: draft.role,
+    ...grantBody(draft.role),
     email_domain: draft.anyEmail ? null : draft.domain.trim(),
   }
 
@@ -186,6 +190,8 @@ watch(link, resetDraft, { immediate: true })
         :disabled-roles="disabledRoles"
         :disabled-roles-tooltip="disabledRolesTooltip"
         :labels="roleLabels"
+        :descriptions="roleDescriptions"
+        :icons="roleIcons"
         trigger-variant="field"
         size="lg"
         placement="bottomLeft"

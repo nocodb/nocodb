@@ -638,6 +638,7 @@ export interface InviteLinkPayload {
   base_title?: string;
   workspace_title?: string;
   interface_title?: string;
+  app_title?: string;
 }
 
 export interface InviteLinkUpdatePayload
@@ -2197,8 +2198,12 @@ function interfaceTableSuffix(details: {
   return ` across ${count} tables`;
 }
 
-/** An interface link is recorded against its base; name the interface when there is one. */
-function inviteLinkTarget(details: { interface_title?: string }) {
+/** Interface and app links are recorded against their base; name the target when there is one. */
+function inviteLinkTarget(details: {
+  interface_title?: string;
+  app_title?: string;
+}) {
+  if (details.app_title) return `app '${details.app_title}'`;
   return details.interface_title
     ? `interface '${details.interface_title}'`
     : 'base';
@@ -2269,9 +2274,14 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.BASE_INVITE_LINK_CREATE]: (
     audit: AuditV1<InviteLinkPayload>
   ) =>
-    `User '${audit.user}' created a ${
-      audit.details.role
-    } invite link for ${inviteLinkTarget(audit.details)}`,
+    // An app link's role is only the base standing; its team is what it grants.
+    audit.details.app_title
+      ? `User '${audit.user}' created an invite link for ${inviteLinkTarget(
+          audit.details
+        )}`
+      : `User '${audit.user}' created a ${
+          audit.details.role
+        } invite link for ${inviteLinkTarget(audit.details)}`,
   [AuditV1OperationTypes.BASE_INVITE_LINK_UPDATE]: (
     audit: AuditV1<InviteLinkUpdatePayload>
   ) =>

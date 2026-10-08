@@ -25,6 +25,10 @@ const {
   disabledRoles,
   disabledRolesTooltip,
   roleLabels,
+  roleDescriptions,
+  roleIcons,
+  linkGrant,
+  grantBody,
   defaultRole,
   defaultEmailDomain,
   createLink,
@@ -34,6 +38,9 @@ const {
 const isWorkspaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.WORKSPACE)
 
 const isInterfaceInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.INTERFACE)
+
+/** An app link adds people to a team, so its sentence names the team rather than a role. */
+const isAppInvite = computed(() => inviteTarget.value?.scope === InviteLinkScope.APP)
 
 const { copy } = useCopy()
 
@@ -51,7 +58,7 @@ let copiedTimer: ReturnType<typeof setTimeout> | undefined
 /** Until a link exists these mirror what one would be created with. */
 const pendingRole = ref<string | null>(null)
 
-const role = computed(() => primary.value?.role ?? pendingRole.value ?? defaultRole.value)
+const role = computed(() => linkGrant(primary.value) ?? pendingRole.value ?? defaultRole.value)
 
 const domain = computed(() => (primary.value ? primary.value.email_domain : defaultEmailDomain.value))
 
@@ -81,7 +88,7 @@ async function onRoleChange(next: string) {
     return
   }
 
-  await saveLink(primary.value.id, { role: next })
+  await saveLink(primary.value.id, grantBody(next))
 }
 
 /**
@@ -101,7 +108,7 @@ async function onCopy() {
     const isFirst = !link
 
     if (!link) {
-      link = await createLink(pendingRole.value ? { role: pendingRole.value } : undefined)
+      link = await createLink(pendingRole.value ? grantBody(pendingRole.value) : undefined)
 
       if (link) {
         $e(
@@ -177,7 +184,19 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
            copy that explains it and translators can move it. Short enough to
            keep the role chip on the same line as the words it belongs to --
            the caution below carries what the sentence used to say. -->
-      <i18n-t v-else :keypath="domain ? 'msg.info.inviteLinkDomainSentence' : 'msg.info.inviteLinkOpenSentence'" tag="span">
+      <i18n-t
+        v-else
+        :keypath="
+          isAppInvite
+            ? domain
+              ? 'msg.info.inviteLinkDomainSentenceTeam'
+              : 'msg.info.inviteLinkOpenSentenceTeam'
+            : domain
+            ? 'msg.info.inviteLinkDomainSentence'
+            : 'msg.info.inviteLinkOpenSentence'
+        "
+        tag="span"
+      >
         <template #domain>
           <span class="nc-hub-domain-chip">{{ `@${domain}` }}</span>
         </template>
@@ -189,6 +208,8 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
             :disabled-roles="disabledRoles"
             :disabled-roles-tooltip="disabledRolesTooltip"
             :labels="roleLabels"
+            :descriptions="roleDescriptions"
+            :icons="roleIcons"
             trigger-variant="compact"
             size="sm"
             placement="bottomLeft"

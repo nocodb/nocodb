@@ -58,8 +58,6 @@ export class TablesV3Controller {
     @Body() body: TableCreateV3Type,
     @Request() req,
   ) {
-    // No `:sourceId` segment on the v3 routes — a table is created in the
-    // base's first source.
     const result = await this.tablesV3Service.tableCreate(context, {
       baseId: baseId,
       table: body,

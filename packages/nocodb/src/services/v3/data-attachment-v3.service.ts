@@ -8,6 +8,7 @@ import {
   EventType,
   ncIsNull,
   OperationSource,
+  UITypes,
 } from 'nocodb-sdk';
 import slash from 'slash';
 import { getBase64FileSize } from 'src/helpers/stringHelpers';
@@ -275,6 +276,21 @@ export class DataAttachmentV3Service {
     // Check if column exists in model
     if (!column) {
       NcError.get(context).fieldNotFound(columnId);
+    }
+
+    // Without this, an upload aimed at any other field type writes attachment
+    // JSON into that cell, or throws out of the JSON.parse below.
+    if (column.uidt !== UITypes.Attachment) {
+      const attachmentFields = baseModel.model.columns
+        .filter((c) => c.uidt === UITypes.Attachment)
+        .map((c) => `${c.title} (${c.id})`);
+
+      NcError.get(context).invalidValueForField(
+        `Field '${column.title}' is a ${column.uidt} field, not an Attachment field — only Attachment fields accept uploads. ` +
+          (attachmentFields.length
+            ? `Attachment fields on this table: ${attachmentFields.join(', ')}`
+            : 'This table has no Attachment field — create one first.'),
+      );
     }
 
     const pkWhere = _wherePk(baseModel.model.primaryKeys, recordId, true);

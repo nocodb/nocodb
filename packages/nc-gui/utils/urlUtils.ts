@@ -287,7 +287,7 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allow
     return
   }
 
-  // Same-origin covers a pre-rewritten /leaving href, which fails require_tld on a TLD-less host.
+  // Same-origin never leaves the app; skipping also keeps a TLD-less host (localhost) working.
   if (!isSameOriginUrl(url) && !isValidURL(url, { require_tld: !allowLocalUrl })) {
     console.warn('Invalid URL:', url)
     return

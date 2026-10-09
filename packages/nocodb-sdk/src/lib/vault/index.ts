@@ -68,14 +68,6 @@ export interface ParsedSecretRef {
   path: string[];
 }
 
-/** Whether a plain value contains the `{{ secrets… }}` brace syntax, parsed or not. */
-export const mentionsSecretsNamespace = (value: unknown): boolean => {
-  if (typeof value !== 'string') return false;
-
-  // Also catches `{{ secret.v.k }}` and an unclosed `{{ secrets.v.k`.
-  return value.includes('{') && /\bsecrets?\s*[.[]/.test(value);
-};
-
 /** The stored shape of a vault-backed field. */
 export interface VaultSecretRef {
   $vault: {

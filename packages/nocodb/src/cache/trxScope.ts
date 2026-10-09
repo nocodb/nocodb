@@ -10,6 +10,9 @@ const logger = new Logger('TrxScope');
  * overlay; locks, counters, rate limits, presence, job state and other runtime
  * keys always go straight to Redis. Plain strings so CE compiles without the
  * EE-only CacheScope members.
+ *
+ * Deliberately out: oAuthAuthCode (single-use, setExpiring only),
+ * usageStats/storageStats (runtime counters), templates (external API cache).
  */
 const META_SCOPES = new Set<string>([
   'base',
@@ -78,6 +81,21 @@ const META_SCOPES = new Set<string>([
   'apiToken',
   'apiTokenScope',
   'mcpToken',
+  'appToken',
+  'oAuthToken',
+  'ssoClient',
+  'ssoClientPublicList',
+  'store',
+  // Count aggregate over meta rows, like resourceStats.
+  'instanceMeta',
+  'installation',
+  'installationAlias',
+  'gcpMarketplaceAccount',
+  'gcpMarketplaceAccountAlias',
+  'gcpMarketplaceEntitlement',
+  'gcpMarketplaceEntitlementAlias',
+  'managedAppDeploymentLog',
+  'factoryRepo',
   'hook',
   'plugin',
   'bookmarkGroup',
@@ -193,6 +211,9 @@ const FENCED_SCOPES = new Set<string>([
   'apiToken',
   'apiTokenScope',
   'mcpToken',
+  'appToken',
+  'oAuthToken',
+  'ssoClient',
 ]);
 
 const FENCE_TTL_SECONDS = +(process.env.NC_TRX_CACHE_FENCE_TTL || 5);
@@ -277,6 +298,9 @@ export class TrxScope {
   private readonly effects: QueuedEffect[] = [];
   private readonly overlays = new WeakMap<IORedis, IORedis>();
   private writes: LoggedWrite[] = [];
+  // Fenced-scope keys whose existing value this transaction changed; plain
+  // cache fills stay out so a cold read doesn't fence a hot user key.
+  private readonly changed = new Set<string>();
   private dropped = false;
 
   constructor(public trx: unknown, readonly parent?: TrxScope) {}
@@ -316,6 +340,17 @@ export class TrxScope {
   /** Log a meta-key write for replay against Redis at commit. */
   record(cmd: WriteCmd, key: string, args: string[] = []) {
     if (!this.dropped) this.writes.push([cmd, key, args]);
+  }
+
+  markChanged(key: string) {
+    if (isFencedKey(key)) this.changed.add(key);
+  }
+
+  /** Mark a fenced key changed if a write is about to replace a cached value. */
+  async markIfCached(real: IORedis, key: string) {
+    if (!isFencedKey(key) || this.changed.has(key)) return;
+    const e = this.peek(key);
+    if (e ? e.kind !== 'tomb' : await real.exists(key)) this.changed.add(key);
   }
 
   /** Mark keys stale (e.g. an independent inner transaction committed them). */
@@ -392,6 +427,7 @@ export class TrxScope {
     this.state = outcome === 'commit' ? 'committed' : 'rolledBack';
 
     const keys = [...this.entries.keys()];
+    const fenced = [...this.changed];
     const patterns = [...this.clearedPatterns];
     const committed = outcome === 'commit';
     const plans = committed && !this.dropped ? planWrites(this.writes) : null;
@@ -401,11 +437,11 @@ export class TrxScope {
     this.loads.clear();
     this.clearedPatterns.length = 0;
     this.writes = [];
+    this.changed.clear();
     this.trx = null;
 
     // Rollback: Redis was never written, so it still holds committed state.
     if (committed) {
-      const fenced = keys.filter(isFencedKey);
       if (fenced.length && invalidator) {
         await invalidator
           .fenceKeys(fenced, FENCE_TTL_SECONDS)
@@ -710,6 +746,7 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
       if (!meta(key) || rest.some((r) => String(r).toUpperCase() === 'NX')) {
         return Reflect.apply(real.set, real, [key, value, ...rest]);
       }
+      await scope.markIfCached(real, key);
       scope.put(key, { kind: 'str', v: String(value) });
       scope.record('set', key, [String(value), ...flatten(rest)]);
       return 'OK';
@@ -720,6 +757,7 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
       const passthrough = keys.filter((k) => !meta(k));
       for (const k of keys) {
         if (!meta(k)) continue;
+        await scope.markIfCached(real, k);
         scope.put(k, TOMB);
         scope.record('del', k);
       }
@@ -736,6 +774,7 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
 
     async sadd(key: string, ...args: unknown[]) {
       if (!meta(key)) return Reflect.apply(real.sadd, real, [key, ...args]);
+      await scope.markIfCached(real, key);
       await scope.load(real, key, 'set');
       const e = scope.peek(key);
       const set = e?.kind === 'set' ? e.v : new Set<string>();
@@ -755,6 +794,7 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
 
     async srem(key: string, ...args: unknown[]) {
       if (!meta(key)) return Reflect.apply(real.srem, real, [key, ...args]);
+      await scope.markIfCached(real, key);
       await scope.load(real, key, 'set');
       const e = scope.peek(key);
       if (e?.kind !== 'set') return 0;
@@ -774,6 +814,7 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
 
     async hset(key: string, ...args: unknown[]) {
       if (!meta(key)) return Reflect.apply(real.hset, real, [key, ...args]);
+      await scope.markIfCached(real, key);
       await scope.load(real, key, 'hash');
       const e = scope.peek(key);
       const hash = e?.kind === 'hash' ? e.v : new Map<string, string>();
@@ -796,6 +837,7 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
 
     async hincrby(key: string, field: string, by: number | string) {
       if (!meta(key)) return real.hincrby(key, field, by);
+      await scope.markIfCached(real, key);
       await scope.load(real, key, 'hash');
       const e = scope.peek(key);
       const hash = e?.kind === 'hash' ? e.v : new Map<string, string>();
@@ -822,6 +864,7 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
 
     async hdel(key: string, ...fields: unknown[]) {
       if (!meta(key)) return Reflect.apply(real.hdel, real, [key, ...fields]);
+      await scope.markIfCached(real, key);
       await scope.load(real, key, 'hash');
       const e = scope.peek(key);
       if (e?.kind !== 'hash') return 0;

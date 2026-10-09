@@ -156,10 +156,25 @@ const META_SCOPES = new Set<string>([
 const OVERLAY_VALUE_LIMIT = +(process.env.NC_TRX_CACHE_OVERLAY_LIMIT || 20000);
 
 // Catches readers that loaded committed state just before commit and wrote it
-// back after the first invalidation.
+// back after the replay (or the first invalidation).
 const SECOND_INVALIDATION_MS = +(
   process.env.NC_TRX_CACHE_SECOND_INVALIDATION_MS || 2000
 );
+
+// SET unless Redis already holds a newer value; then DEL, since a miss is
+// always safe. Values end in `"timestamp":<ms>}` (CacheMgr.prepareValue).
+const REPLAY_SET_SCRIPT = `
+local cur = redis.call('GET', KEYS[1])
+if cur then
+  local ts = string.match(cur, '"timestamp":(%d+)}$')
+  if ts and tonumber(ts) > tonumber(ARGV[2]) then
+    redis.call('DEL', KEYS[1])
+    return 0
+  end
+end
+local unpackFn = table.unpack or unpack
+redis.call('SET', KEYS[1], ARGV[1], unpackFn(ARGV, 3))
+return 1`;
 
 const INVALIDATION_BATCH = 500;
 
@@ -204,6 +219,29 @@ type Entry =
 
 const TOMB: Entry = { kind: 'tomb' };
 
+type WriteCmd =
+  | 'set'
+  | 'del'
+  | 'sadd'
+  | 'srem'
+  | 'hset'
+  | 'hdel'
+  | 'hincrby'
+  | 'expire';
+type LoggedWrite = [cmd: WriteCmd, key: string, args: string[]];
+
+/** A key's net effect after folding the transaction's writes in order. */
+interface KeyPlan {
+  del: boolean;
+  set?: string[];
+  sadd: Set<string>;
+  srem: Set<string>;
+  hset: Map<string, string>;
+  hdel: Set<string>;
+  hincr: Map<string, number>;
+  expire?: string[];
+}
+
 export type TrxOutcome = 'commit' | 'rollback';
 
 interface QueuedEffect {
@@ -213,6 +251,7 @@ interface QueuedEffect {
 
 interface Invalidator {
   prefix: string;
+  raw: IORedis;
   delKeys(keys: string[]): Promise<void>;
   delPattern(pattern: string): Promise<void>;
   fenceKeys(keys: string[], ttlSeconds: number): Promise<void>;
@@ -237,6 +276,7 @@ export class TrxScope {
   private readonly clearedPatterns: string[] = [];
   private readonly effects: QueuedEffect[] = [];
   private readonly overlays = new WeakMap<IORedis, IORedis>();
+  private writes: LoggedWrite[] = [];
   private dropped = false;
 
   constructor(public trx: unknown, readonly parent?: TrxScope) {}
@@ -269,6 +309,13 @@ export class TrxScope {
     for (const key of this.entries.keys()) {
       if (key.startsWith(base)) this.entries.set(key, TOMB);
     }
+    // The pattern is cleared first on replay; earlier writes it covers are moot.
+    this.writes = this.writes.filter(([, key]) => !key.startsWith(base));
+  }
+
+  /** Log a meta-key write for replay against Redis at commit. */
+  record(cmd: WriteCmd, key: string, args: string[] = []) {
+    if (!this.dropped) this.writes.push([cmd, key, args]);
   }
 
   /** Mark keys stale (e.g. an independent inner transaction committed them). */
@@ -302,6 +349,7 @@ export class TrxScope {
     this.entries.set(key, entry);
     if (!this.dropped && this.entries.size > OVERLAY_VALUE_LIMIT) {
       this.dropped = true;
+      this.writes = [];
       for (const k of this.entries.keys()) this.entries.set(k, TOMB);
     }
   }
@@ -345,30 +393,44 @@ export class TrxScope {
 
     const keys = [...this.entries.keys()];
     const patterns = [...this.clearedPatterns];
+    const committed = outcome === 'commit';
+    const plans = committed && !this.dropped ? planWrites(this.writes) : null;
     // Async resources created inside the scope keep it reachable through the
     // AsyncLocalStorage store; drop the overlay state so they don't pin it.
     this.entries.clear();
     this.loads.clear();
     this.clearedPatterns.length = 0;
+    this.writes = [];
     this.trx = null;
 
-    const fenced = keys.filter(isFencedKey);
-    if (fenced.length && invalidator) {
-      await invalidator
-        .fenceKeys(fenced, FENCE_TTL_SECONDS)
-        .catch((e) => logger.error(`Cache fence failed: ${e?.message}`));
+    // Rollback: Redis was never written, so it still holds committed state.
+    if (committed) {
+      const fenced = keys.filter(isFencedKey);
+      if (fenced.length && invalidator) {
+        await invalidator
+          .fenceKeys(fenced, FENCE_TTL_SECONDS)
+          .catch((e) => logger.error(`Cache fence failed: ${e?.message}`));
+      }
+
+      if (plans) {
+        await replay(plans, patterns);
+        if (plans.size || patterns.length) {
+          setTimeout(() => {
+            verifyReplay(plans, patterns).catch(() => {});
+          }, SECOND_INVALIDATION_MS).unref?.();
+        }
+      } else {
+        // Past the overlay limit no values were kept to replay.
+        await invalidate(keys, patterns);
+        if (keys.length || patterns.length) {
+          setTimeout(() => {
+            invalidate(keys, patterns).catch(() => {});
+          }, SECOND_INVALIDATION_MS).unref?.();
+        }
+      }
     }
 
-    // Same-connection work inside the scope may have committed (autocommit
-    // calls, DDL) even on rollback, so invalidate on both outcomes.
-    await invalidate(keys, patterns);
-    if (keys.length || patterns.length) {
-      setTimeout(() => {
-        invalidate(keys, patterns).catch(() => {});
-      }, SECOND_INVALIDATION_MS).unref?.();
-    }
-
-    if (this.parent?.isOpen) {
+    if (committed && this.parent?.isOpen) {
       // The outer scope may hold copies of what this independent transaction
       // just changed.
       this.parent.tombstone(keys);
@@ -399,6 +461,164 @@ async function invalidate(keys: string[], patterns: string[]) {
   } catch (e) {
     logger.error(`Cache invalidation after transaction failed: ${e?.message}`);
   }
+}
+
+function planWrites(writes: LoggedWrite[]): Map<string, KeyPlan> {
+  const plans = new Map<string, KeyPlan>();
+  const reset = (key: string, del: boolean): KeyPlan => {
+    const plan: KeyPlan = {
+      del,
+      sadd: new Set(),
+      srem: new Set(),
+      hset: new Map(),
+      hdel: new Set(),
+      hincr: new Map(),
+    };
+    plans.set(key, plan);
+    return plan;
+  };
+  for (const [cmd, key, args] of writes) {
+    let plan = plans.get(key) ?? reset(key, false);
+    // A set/hash op after a plain SET replaces the key's type.
+    if (plan.set && cmd !== 'set' && cmd !== 'del' && cmd !== 'expire') {
+      plan = reset(key, true);
+    }
+    switch (cmd) {
+      case 'set':
+        reset(key, false).set = args;
+        break;
+      case 'del':
+        reset(key, true);
+        break;
+      case 'sadd':
+        for (const m of args) {
+          plan.srem.delete(m);
+          plan.sadd.add(m);
+        }
+        break;
+      case 'srem':
+        for (const m of args) {
+          plan.sadd.delete(m);
+          plan.srem.add(m);
+        }
+        break;
+      case 'hset':
+        for (let i = 0; i + 1 < args.length; i += 2) {
+          plan.hdel.delete(args[i]);
+          plan.hincr.delete(args[i]);
+          plan.hset.set(args[i], args[i + 1]);
+        }
+        break;
+      case 'hdel':
+        for (const f of args) {
+          plan.hset.delete(f);
+          plan.hincr.delete(f);
+          plan.hdel.add(f);
+        }
+        break;
+      case 'hincrby': {
+        const [field, by] = args;
+        if (plan.hset.has(field)) {
+          plan.hset.set(field, String(Number(plan.hset.get(field)) + +by));
+        } else {
+          plan.hdel.delete(field);
+          plan.hincr.set(field, (plan.hincr.get(field) ?? 0) + +by);
+        }
+        break;
+      }
+      case 'expire':
+        plan.expire = args;
+        break;
+    }
+  }
+  for (const plan of plans.values()) {
+    // A list the transaction dropped and rebuilt is replayed as a plain DEL:
+    // DEL + SADD would wipe members other requests appended meanwhile.
+    if (plan.del && (plan.sadd.size || plan.srem.size)) {
+      plan.sadd.clear();
+      plan.srem.clear();
+      plan.expire = undefined;
+    }
+  }
+  return plans;
+}
+
+/** Apply a committed transaction's cache writes to Redis. */
+async function replay(plans: Map<string, KeyPlan>, patterns: string[]) {
+  if (!invalidator) return;
+  const raw = invalidator.raw;
+  try {
+    for (const p of patterns) await invalidator.delPattern(p);
+
+    const entries = [...plans];
+    for (let i = 0; i < entries.length; i += INVALIDATION_BATCH) {
+      const batch = entries.slice(i, i + INVALIDATION_BATCH);
+      // EVAL runs outside the pipeline: ioredis-mock can't pipeline it.
+      await Promise.all(
+        batch
+          .filter(([, plan]) => plan.set)
+          .map(([key, plan]) => {
+            const [value, ...opts] = plan.set;
+            const ts = /"timestamp":(\d+)}$/.exec(value)?.[1];
+            return ts
+              ? raw.eval(REPLAY_SET_SCRIPT, 1, key, value, ts, ...opts)
+              : Reflect.apply(raw.set, raw, [key, value, ...opts]);
+          }),
+      );
+
+      const pipe = raw.pipeline();
+      for (const [key, plan] of batch) {
+        if (plan.del) pipe.del(key);
+        if (plan.sadd.size) pipe.sadd(key, ...plan.sadd);
+        if (plan.srem.size) pipe.srem(key, ...plan.srem);
+        if (plan.hset.size) pipe.hset(key, Object.fromEntries(plan.hset));
+        if (plan.hdel.size) pipe.hdel(key, ...plan.hdel);
+        for (const [field, by] of plan.hincr) pipe.hincrby(key, field, by);
+        if (
+          plan.expire &&
+          (plan.set || plan.sadd.size || plan.hset.size || plan.hincr.size)
+        ) {
+          Reflect.apply(pipe.expire, pipe, [key, ...plan.expire]);
+        }
+      }
+      await pipe.exec();
+    }
+  } catch (e) {
+    logger.error(`Cache replay after commit failed: ${e?.message}`);
+    // A partial replay leaves Redis inconsistent; a miss is always safe.
+    await invalidate([...plans.keys()], []);
+  }
+}
+
+/**
+ * A reader that loaded pre-commit rows may cache them after the replay. Drop
+ * any replayed key whose value no longer matches what the transaction wrote.
+ */
+async function verifyReplay(plans: Map<string, KeyPlan>, patterns: string[]) {
+  if (!invalidator) return;
+  const raw = invalidator.raw;
+  const stale: string[] = [];
+  for (const [key, plan] of plans) {
+    if (plan.set) {
+      if ((await raw.get(key)) !== plan.set[0]) stale.push(key);
+    } else if (plan.sadd.size || plan.srem.size) {
+      const members = new Set(await raw.smembers(key));
+      const drifted =
+        [...plan.sadd].some((m) => !members.has(m)) ||
+        [...plan.srem].some((m) => members.has(m)) ||
+        (plan.del && members.size > plan.sadd.size);
+      if (drifted) stale.push(key);
+    } else if (plan.hset.size || plan.hdel.size) {
+      const hash = await raw.hgetall(key);
+      const drifted =
+        [...plan.hset].some(([f, v]) => hash[f] !== v) ||
+        [...plan.hdel].some((f) => f in hash);
+      if (drifted) stale.push(key);
+    } else if (plan.del && (await raw.exists(key))) {
+      stale.push(key);
+    }
+  }
+  await invalidate(stale, patterns);
 }
 
 export function getTrxScope(): TrxScope | undefined {
@@ -491,13 +711,18 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
         return Reflect.apply(real.set, real, [key, value, ...rest]);
       }
       scope.put(key, { kind: 'str', v: String(value) });
+      scope.record('set', key, [String(value), ...flatten(rest)]);
       return 'OK';
     },
 
     async del(...args: unknown[]) {
       const keys = flatten(args);
       const passthrough = keys.filter((k) => !meta(k));
-      for (const k of keys) if (meta(k)) scope.put(k, TOMB);
+      for (const k of keys) {
+        if (!meta(k)) continue;
+        scope.put(k, TOMB);
+        scope.record('del', k);
+      }
       if (passthrough.length) await real.del(passthrough);
       return keys.length;
     },
@@ -514,15 +739,18 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
       await scope.load(real, key, 'set');
       const e = scope.peek(key);
       const set = e?.kind === 'set' ? e.v : new Set<string>();
-      let added = 0;
+      // Only new members: re-adding ones already held would resurrect members
+      // another request removed since the set was copied in.
+      const added: string[] = [];
       for (const m of flatten(args)) {
         if (!set.has(m)) {
           set.add(m);
-          added++;
+          added.push(m);
         }
       }
       scope.put(key, { kind: 'set', v: set });
-      return added;
+      if (added.length) scope.record('sadd', key, added);
+      return added.length;
     },
 
     async srem(key: string, ...args: unknown[]) {
@@ -530,14 +758,18 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
       await scope.load(real, key, 'set');
       const e = scope.peek(key);
       if (e?.kind !== 'set') return 0;
+      const members = flatten(args);
       let removed = 0;
-      for (const m of flatten(args)) if (e.v.delete(m)) removed++;
+      for (const m of members) if (e.v.delete(m)) removed++;
+      scope.record('srem', key, members);
       return removed;
     },
 
     async expire(key: string, ...rest: unknown[]) {
       if (!meta(key)) return Reflect.apply(real.expire, real, [key, ...rest]);
-      return scope.peek(key)?.kind === 'tomb' ? 0 : 1;
+      if (scope.peek(key)?.kind === 'tomb') return 0;
+      scope.record('expire', key, flatten(rest));
+      return 1;
     },
 
     async hset(key: string, ...args: unknown[]) {
@@ -558,7 +790,20 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
         hash.set(f, v);
       }
       scope.put(key, { kind: 'hash', v: hash });
+      scope.record('hset', key, pairs.flat());
       return added;
+    },
+
+    async hincrby(key: string, field: string, by: number | string) {
+      if (!meta(key)) return real.hincrby(key, field, by);
+      await scope.load(real, key, 'hash');
+      const e = scope.peek(key);
+      const hash = e?.kind === 'hash' ? e.v : new Map<string, string>();
+      const next = Number(hash.get(field) ?? 0) + Number(by);
+      hash.set(field, String(next));
+      scope.put(key, { kind: 'hash', v: hash });
+      scope.record('hincrby', key, [field, String(by)]);
+      return next;
     },
 
     async hget(key: string, field: string) {
@@ -580,8 +825,10 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
       await scope.load(real, key, 'hash');
       const e = scope.peek(key);
       if (e?.kind !== 'hash') return 0;
+      const names = flatten(fields);
       let removed = 0;
-      for (const f of flatten(fields)) if (e.v.delete(f)) removed++;
+      for (const f of names) if (e.v.delete(f)) removed++;
+      scope.record('hdel', key, names);
       return removed;
     },
 

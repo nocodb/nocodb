@@ -717,6 +717,9 @@ export default abstract class CacheMgr {
       o = { ...o, ...value };
       // set cache
       await this.set(key, o);
+    } else if (getOpenTrxScope()?.isMetaKey(key)) {
+      // A reader may cache the pre-commit row while the transaction is open.
+      await this.del(key);
     }
     return true;
   }

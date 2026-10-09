@@ -47,6 +47,7 @@ export default class NocoCache {
     const client = this.client;
     registerTrxScopeInvalidator({
       prefix: this.prefix,
+      raw: client.rawClient,
       delKeys: async (keys) => {
         await client.rawClient.del(keys);
       },

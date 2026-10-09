@@ -225,48 +225,53 @@ watch(
 </script>
 
 <template>
-  <NcDropdown
+  <NcDropDrawer
     v-model:visible="open"
     :trigger="['click']"
+    drawer-content-height
+    drawer-body-class-name="nc-dropdown-sort-menu nc-toolbar-dropdown !px-0"
     overlay-class-name="nc-dropdown-sort-menu nc-toolbar-dropdown overflow-hidden"
   >
-    <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode" :class="{ 'nc-active-btn': sorts?.length }">
-      <template #title>
-        {{ $t('activity.sort') }}
-      </template>
-      <NcButton
-        v-e="['c:sort']"
-        :class="{
-          '!border-1 !rounded-md': isCalendar,
-          '!border-0': !isCalendar,
-          [filteredOrSortedAppearanceConfig.SORTED.toolbarBgClass]: sorts?.length,
-        }"
-        class="nc-sort-menu-btn nc-toolbar-btn !h-7 group"
-        size="small"
-        type="secondary"
-        :show-as-disabled="isLocked"
-      >
-        <div class="flex items-center gap-1 min-h-5">
-          <div class="flex items-center gap-2">
-            <component :is="iconMap.sort" class="h-4 w-4 text-inherit" />
+    <template #default="{ onClick }">
+      <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode" :class="{ 'nc-active-btn': sorts?.length }">
+        <template #title>
+          {{ $t('activity.sort') }}
+        </template>
+        <NcButton
+          v-e="['c:sort']"
+          :class="{
+            '!border-1 !rounded-md': isCalendar,
+            '!border-0': !isCalendar,
+            [filteredOrSortedAppearanceConfig.SORTED.toolbarBgClass]: sorts?.length,
+          }"
+          class="nc-sort-menu-btn nc-toolbar-btn !h-7 group"
+          size="small"
+          type="secondary"
+          :show-as-disabled="isLocked"
+          @click="onClick"
+        >
+          <div class="flex items-center gap-1 min-h-5">
+            <div class="flex items-center gap-2">
+              <component :is="iconMap.sort" class="h-4 w-4 text-inherit" />
 
-            <!-- Sort -->
-            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
-              {{ $t('activity.sort') }}
-            </span>
+              <!-- Sort -->
+              <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
+                {{ $t('activity.sort') }}
+              </span>
+            </div>
+            <span
+              v-if="sorts?.length"
+              class="nc-toolbar-btn-chip"
+              :class="{
+                [filteredOrSortedAppearanceConfig.SORTED.toolbarChipBgClass]: true,
+                [filteredOrSortedAppearanceConfig.SORTED.toolbarTextClass]: true,
+              }"
+              >{{ sorts.length }}</span
+            >
           </div>
-          <span
-            v-if="sorts?.length"
-            class="nc-toolbar-btn-chip"
-            :class="{
-              [filteredOrSortedAppearanceConfig.SORTED.toolbarChipBgClass]: true,
-              [filteredOrSortedAppearanceConfig.SORTED.toolbarTextClass]: true,
-            }"
-            >{{ sorts.length }}</span
-          >
-        </div>
-      </NcButton>
-    </NcTooltip>
+        </NcButton>
+      </NcTooltip>
+    </template>
 
     <template #overlay>
       <div
@@ -392,7 +397,7 @@ watch(
         </div>
       </div>
     </template>
-  </NcDropdown>
+  </NcDropDrawer>
 </template>
 
 <style scoped lang="scss">

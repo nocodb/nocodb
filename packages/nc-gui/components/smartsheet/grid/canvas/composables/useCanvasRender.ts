@@ -1402,7 +1402,7 @@ export function useCanvasRender({
           placement: 'right',
         })
       }
-    } else if (row.rowMeta?.commentCount) {
+    } else if (row.rowMeta?.commentCount && !isMobileMode.value) {
       const reduceFontSize = row.rowMeta.commentCount > 99
       const commentCount = reduceFontSize ? '99+' : row.rowMeta.commentCount.toString()
 

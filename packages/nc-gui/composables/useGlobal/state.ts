@@ -3,6 +3,7 @@ import type { JwtPayload } from 'jwt-decode'
 import { MapProvider, NC_DEFAULT_ORG_ID } from 'nocodb-sdk'
 import type { AppInfo, State, StoredState } from './types'
 import { INITIAL_LEFT_SIDEBAR_WIDTH } from '~/lib/constants'
+import { isPhoneLandscapeViewport } from '~/utils/browserUtils'
 
 export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** get the preferred languages of a user, according to browser settings */
@@ -75,7 +76,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     isAddNewRecordGridMode: true,
     syncDataUpvotes: [],
     giftBannerDismissedCount: 0,
-    isLeftSidebarOpen: !isViewPortMobile(),
+    isLeftSidebarOpen: !isViewPortMobile() && !isPhoneLandscapeViewport(),
     lastUsedAuthMethod: null,
   }
 

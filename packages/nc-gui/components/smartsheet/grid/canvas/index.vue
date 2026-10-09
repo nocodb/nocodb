@@ -3829,7 +3829,7 @@ watch(
         >
           <canvas
             ref="canvasRef"
-            class="sticky top-0 left-0"
+            class="sticky top-0 left-0 touch-none"
             :height="`${height}px`"
             :width="`${width}px`"
             oncontextmenu="return false"

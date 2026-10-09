@@ -39,6 +39,7 @@ const SPRING_TENSION = 180
 const SPRING_FRICTION = 12
 const DECAY_FACTOR = 0.98
 const MIN_VELOCITY = 0.01
+const AXIS_LOCK_THRESHOLD = 8
 
 const scrollWidth = toRef(props, 'scrollWidth')
 
@@ -70,6 +71,12 @@ const scrollState = ref<ScrollState>({
   animation: null,
 })
 const isScrollbarVisible = ref(true)
+
+// Single-finger pan owned by the scroller; null while the touch belongs to the browser
+const touchPan = ref<{ axis: 'x' | 'y' | null } | null>(null)
+
+const isEditableTarget = (target: EventTarget | null) =>
+  !!(target as HTMLElement | null)?.closest?.('input, textarea, select, [contenteditable="true"]')
 
 const showScrollbars = () => {
   isScrollbarVisible.value = true
@@ -281,6 +288,12 @@ const calculateVelocity = () => {
 }
 
 const handleTouchStart = (event: TouchEvent) => {
+  touchPan.value = null
+
+  if (event.touches.length !== 1 || isEditableTarget(event.target)) return
+
+  touchPan.value = { axis: null }
+
   if (scrollState.value.animation) {
     cancelAnimationFrame(scrollState.value.animation)
     scrollState.value.animation = null
@@ -305,8 +318,25 @@ const handleTouchStart = (event: TouchEvent) => {
 }
 
 const handleTouchMove = (event: TouchEvent) => {
+  if (!touchPan.value) return
+
+  // A second finger turns the gesture into a pinch; stop panning and leave it alone
+  if (event.touches.length > 1) {
+    touchPan.value = null
+    return
+  }
+
+  if (event.cancelable) event.preventDefault()
+
   const touch = event.touches[0]
   const time = Date.now()
+
+  if (!touchPan.value.axis) {
+    const dx = Math.abs(touch.clientX - scrollState.value.startPosition.x)
+    const dy = Math.abs(touch.clientY - scrollState.value.startPosition.y)
+    if (Math.max(dx, dy) < AXIS_LOCK_THRESHOLD) return
+    touchPan.value.axis = dx > dy ? 'x' : 'y'
+  }
 
   scrollState.value.touchHistory.push({
     time,
@@ -322,7 +352,11 @@ const handleTouchMove = (event: TouchEvent) => {
 
   scrollState.value.currentPosition = { x: touch.clientX, y: touch.clientY }
 
-  updateScroll(scrollTop.value + deltaY, scrollLeft.value + deltaX)
+  if (touchPan.value.axis === 'x') {
+    updateScroll(undefined, scrollLeft.value + deltaX)
+  } else {
+    updateScroll(scrollTop.value + deltaY, undefined)
+  }
 }
 const springAnimation = (currentValue: number, targetValue: number, velocity: number): { position: number; velocity: number } => {
   const delta = targetValue - currentValue
@@ -400,7 +434,12 @@ const scrollBounds = computed(() => {
 })
 
 const handleTouchEnd = () => {
-  scrollState.value.velocity = calculateVelocity()
+  const axis = touchPan.value?.axis
+  touchPan.value = null
+  if (!axis) return
+
+  const velocity = calculateVelocity()
+  scrollState.value.velocity = axis === 'x' ? { x: velocity.x, y: 0 } : { x: 0, y: velocity.y }
   scrollState.value.animation = requestAnimationFrame(animateScroll)
 }
 
@@ -502,6 +541,7 @@ defineExpose({
   @apply relative h-full w-full;
   min-width: 100%;
   min-height: 100%;
+  overscroll-behavior: contain;
 }
 
 .custom-scrollbar-track {

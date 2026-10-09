@@ -97,6 +97,9 @@ const { isUIAllowed } = useRoles()
 
 const { appInfo, isMobileMode } = useGlobal()
 
+// Sortable cancels touchstart on filtered elements by default, which blocks native panning from there
+const isCoarsePointer = useMediaQuery('(pointer: coarse)')
+
 const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 const { withLoading } = useLoadingTrigger()
@@ -1829,6 +1832,7 @@ const cardFields = (record: RowType) => {
             draggable=".nc-kanban-stack"
             handle=".nc-kanban-stack-drag-handler"
             :filter="draggableStackFilter"
+            :prevent-on-filter="!isCoarsePointer"
             :move="onMoveCallback"
             @start="handleStackDragStart"
             @end="handleStackDragEnd"
@@ -1848,7 +1852,8 @@ const cardFields = (record: RowType) => {
                   'nc-kanban-stack-interface-collapsed': !!interfacePageDataApi && isStackCollapsed(stack),
                   'hidden':
                     (hideEmptyStack && !formattedData.get(stack.title)?.length) ||
-                    (isRequiredGroupingFieldColumn && stack.id === uncategorizedStackId),
+                    (isRequiredGroupingFieldColumn && stack.id === uncategorizedStackId) ||
+                    (isMobileMode && stack.id === uncategorizedStackId && !formattedData.get(stack.title)?.length),
                 }"
                 :data-testid="`nc-kanban-stack-${stack.title}`"
               >
@@ -2158,6 +2163,7 @@ const cardFields = (record: RowType) => {
                           }"
                           :disabled="isMobileMode"
                           :filter="draggableCardFilter"
+                          :prevent-on-filter="!isCoarsePointer"
                           :animation="interfacePageDataApi ? 150 : 0"
                           @start="handleCardDragStart"
                           @end="handleCardDragEnd"

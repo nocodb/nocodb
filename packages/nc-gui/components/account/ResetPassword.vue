@@ -73,7 +73,7 @@ const resetError = () => {
       </template>
     </NcPageHeader>
     <div class="nc-content-max-w p-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
-      <div class="flex flex-col gap-6 w-150 mx-auto">
+      <div class="flex flex-col gap-6 w-150 max-w-full mx-auto">
         <div class="mt-5 flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-y-2">
           <div class="relative flex flex-col justify-start gap-2 w-full">
             <a-form

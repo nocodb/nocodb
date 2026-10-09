@@ -106,6 +106,9 @@ const {
 
 const { isMobileMode } = useGlobal()
 
+// Touch has no hover-out, so a tap-simulated hover would leave the tooltip stuck open
+const isHoverless = useMediaQuery('(any-hover: none)')
+
 const group = inject(TooltipProviderInj, null)
 
 const el = ref()
@@ -114,7 +117,7 @@ const element = ref()
 
 const showTooltip = controlledRef(false, {
   onBeforeChange: (shouldShow) => {
-    if (shouldShow && (disabled.value || (disableInMobile.value && isMobileMode.value))) return false
+    if (shouldShow && (disabled.value || isHoverless.value || (disableInMobile.value && isMobileMode.value))) return false
   },
 })
 

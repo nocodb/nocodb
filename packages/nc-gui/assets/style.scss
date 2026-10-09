@@ -192,6 +192,29 @@ ant-form-item-explain-error {
   }
 }
 
+// iOS zooms the page when a field under 16px gets focus, and doesn't zoom back out.
+// Layered !important beats every unlayered !important, whatever its specificity.
+@mixin nc-touch-input-font {
+  input:not([type='checkbox']):not([type='radio']),
+  textarea,
+  select,
+  [contenteditable='true'] {
+    font-size: 16px !important;
+  }
+}
+
+@layer nc-touch-input {
+  .mobile {
+    @include nc-touch-input-font;
+  }
+
+  @media (pointer: coarse) {
+    .tablet {
+      @include nc-touch-input-font;
+    }
+  }
+}
+
 .nc-scrollbar-md {
   overflow-y: auto !important;
   overflow-x: hidden;

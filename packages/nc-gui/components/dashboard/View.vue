@@ -196,7 +196,7 @@ watch(route, () => {
 })
 
 watch(isMobileMode, () => {
-  isLeftSidebarOpen.value = !isMobileMode.value
+  isLeftSidebarOpen.value = !isMobileMode.value && !isPhoneLandscapeViewport()
 })
 
 watch(sidebarState, () => {

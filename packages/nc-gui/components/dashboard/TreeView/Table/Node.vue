@@ -229,7 +229,7 @@ const onOpenTable = async () => {
   try {
     await _openTable(table.value)
 
-    if (isMobileMode.value) {
+    if (isMobileMode.value || isPhoneLandscapeViewport()) {
       isLeftSidebarOpen.value = false
     }
   } catch (e: any) {

@@ -910,9 +910,10 @@ export default {
         </div>
       </div>
       <div
-        class="flex gap-2 min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header p-4 xs:(px-2 py-0 min-h-[48px]) border-b-1 border-nc-border-gray-medium"
+        class="flex gap-2 min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header p-4 xs:(px-2 py-0 min-h-[48px] flex-wrap) border-b-1 border-nc-border-gray-medium"
       >
-        <div class="flex gap-2 min-w-0 min-h-8">
+        <!-- Phones: the title drops to its own full-width line below the arrows and actions -->
+        <div class="flex gap-2 min-w-0 min-h-8 xs:contents">
           <div class="flex gap-2">
             <NcTooltip v-if="props.showNextPrevIcons" class="flex items-center">
               <template #title> {{ $t('labels.prevRow') }} {{ renderAltOrOptlKey() }} + ←</template>
@@ -941,10 +942,10 @@ export default {
               </NcButton>
             </NcTooltip>
           </div>
-          <div v-if="isLoading" class="flex items-center">
+          <div v-if="isLoading" class="flex items-center xs:(order-last basis-full pb-2)">
             <a-skeleton-input active class="!h-6 !sm:mr-14 !w-52 !rounded-md !overflow-hidden" size="small" />
           </div>
-          <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end) min-w-0">
+          <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end order-last basis-full pb-2) min-w-0">
             <!-- Table selector dropdown (template mode) -->
             <NcListTableSelector
               v-if="templateMode && !props.showNextPrevIcons && activeMeta?.base_id"
@@ -996,7 +997,7 @@ export default {
             </div>
             <div
               v-else-if="displayValue && !row?.rowMeta?.new"
-              class="flex items-center font-bold text-nc-content-gray text-2xl overflow-hidden"
+              class="flex items-center font-bold text-nc-content-gray text-2xl xs:text-xl overflow-hidden"
             >
               <span class="min-w-[120px] md:min-w-[300px]">
                 <SmartsheetPlainCell v-model="displayValue" :column="displayField" show-tooltip />

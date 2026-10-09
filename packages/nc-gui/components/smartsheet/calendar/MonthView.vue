@@ -1114,6 +1114,16 @@ const viewMore = (date: dayjs.Dayjs) => {
   showSideMenu.value = true
 }
 
+const isPhoneLandscape = useMediaQuery(PHONE_LANDSCAPE_MEDIA_QUERY)
+
+// Phones: a 7-column month with a record count per day; tapping a day lists its records
+const isPhoneMonth = computed(() => (isMobileMode.value || isPhoneLandscape.value) && !interfacePageDataApi)
+
+const dayRecordCount = (date: dayjs.Dayjs) => {
+  const day = recordsToDisplay.value.count[date.format('YYYY-MM-DD')]
+  return day ? day.count + day.overflowCount : 0
+}
+
 const isDateSelected = (date: dayjs.Dayjs) => {
   if (!selectedDate.value) return false
   return timezoneDayjs.dayjsTz(date).isSame(selectedDate.value, 'day')
@@ -1194,7 +1204,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
             }"
             class="text-right relative group last:border-r-0 bg-nc-bg-default transition text-sm h-full border-r-1 border-b-1 border-nc-border-gray-light font-medium hover:bg-nc-bg-gray-extralight text-nc-content-gray-default bg-nc-bg-default"
             data-testid="nc-calendar-month-day"
-            @click="selectDate(day.date)"
+            @click="isPhoneMonth ? viewMore(day.date) : selectDate(day.date)"
             @dblclick="addRecord(day.date)"
           >
             <div
@@ -1292,8 +1302,17 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
               </span>
             </div>
 
+            <div v-if="isPhoneMonth && dayRecordCount(day.date)" class="absolute inset-x-0 bottom-1 flex justify-center">
+              <span
+                class="nc-calendar-phone-day-count min-w-5 px-1 rounded-full bg-nc-bg-brand text-nc-content-brand text-xs leading-5 font-semibold text-center"
+              >
+                {{ dayRecordCount(day.date) }}
+              </span>
+            </div>
+
             <NcDropdown
               v-if="
+                !isPhoneMonth &&
                 recordsToDisplay.count[day.date.format('YYYY-MM-DD')] &&
                 recordsToDisplay.count[day.date.format('YYYY-MM-DD')]?.overflow &&
                 !draggingId
@@ -1364,7 +1383,11 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
         </template>
       </div>
     </div>
-    <div class="absolute inset-0 z-2 pointer-events-none mt-8 pb-7.5" data-testid="nc-calendar-month-record-container">
+    <div
+      v-if="!isPhoneMonth"
+      class="absolute inset-0 z-2 pointer-events-none mt-8 pb-7.5"
+      data-testid="nc-calendar-month-record-container"
+    >
       <template v-for="record in visibleRecords">
         <div
           v-if="record.rowMeta.style?.display !== 'none'"

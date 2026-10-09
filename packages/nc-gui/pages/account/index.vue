@@ -5,11 +5,14 @@ definePageMeta({
 
 const $route = useRoute()
 
-const { signedIn, signOut } = useGlobal()
+const { signedIn, signOut, isMobileMode } = useGlobal()
 
 const selectedKeys = computed(() => [$route.params.nestedPage ?? $route.params.page])
 
 const openKeys = ref([])
+
+// Phones show either the menu or the page, never both side by side
+const isMobileMenuOpen = ref(false)
 
 const backRoute = computed(() => ncBackRoute().get())
 
@@ -18,6 +21,13 @@ const logout = async () => {
     redirectToSignin: true,
   })
 }
+
+watch(
+  () => $route.fullPath,
+  () => {
+    isMobileMenuOpen.value = false
+  },
+)
 </script>
 
 <template>
@@ -27,13 +37,17 @@ const logout = async () => {
         <div class="h-full flex">
           <!-- Side tabs -->
 
-          <div class="h-full bg-nc-bg-gray-sidebar nc-user-sidebar overflow-y-auto nc-scrollbar-thin min-w-[312px]">
+          <div
+            v-show="!isMobileMode || isMobileMenuOpen"
+            class="h-full bg-nc-bg-gray-sidebar nc-user-sidebar overflow-y-auto nc-scrollbar-thin min-w-[312px] xs:(min-w-0 w-full)"
+          >
             <NcMenu
               v-model:open-keys="openKeys"
               v-model:selected-keys="selectedKeys"
               :inline-indent="16"
               class="tabs-menu h-full"
               mode="inline"
+              @click="isMobileMenuOpen = false"
             >
               <div class="h-[var(--topbar-height)] flex items-center children:flex-none">
                 <NcButton
@@ -115,9 +129,21 @@ const logout = async () => {
 
           <!-- Sub Tabs -->
 
-          <div class="h-full flex-1 flex flex-col overflow-y-auto nc-scrollbar-thin">
+          <div
+            v-show="!isMobileMode || !isMobileMenuOpen"
+            class="h-full flex-1 flex flex-col overflow-y-auto nc-scrollbar-thin min-w-0"
+          >
             <div class="flex flex-row pt-2 px-2 items-center">
-              <div class="flex-1">
+              <NcButton
+                v-if="isMobileMode"
+                class="nc-account-mobile-menu-btn mr-1"
+                type="text"
+                size="small"
+                @click="isMobileMenuOpen = true"
+              >
+                <GeneralIcon icon="menu" />
+              </NcButton>
+              <div class="flex-1 min-w-0">
                 <AccountBreadcrumb />
               </div>
 

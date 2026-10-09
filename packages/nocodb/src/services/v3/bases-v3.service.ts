@@ -15,6 +15,11 @@ import { RootScopes } from '~/utils/globals';
 import { validatePayload } from '~/helpers';
 import { baseBuilder, sourceBuilder } from '~/utils/builders/base';
 import { BaseMemberHelpers } from '~/services/v3/members/base-member-helpers';
+import {
+  compareBasesForPaging,
+  extractBaseListWindow,
+} from '~/helpers/baseListWindow';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
 
 @Injectable()
 export class BasesV3Service {
@@ -49,12 +54,20 @@ export class BasesV3Service {
       workspaceId: string;
       req?: NcRequest;
     },
-  ) {
+  ): Promise<PagedResponseImpl<BaseV3Type>> {
     const bases = await this.getBaseList(context, param);
+
+    bases.sort(compareBasesForPaging);
+
+    // Opt-in paging: a caller that asks for a window gets one, everyone else
+    // keeps the unbounded list they have today.
+    const { limit, offset } = extractBaseListWindow(param.query);
+    const page =
+      limit === undefined ? bases : bases.slice(offset, offset + limit);
 
     const formattedBases: BaseV3Type[] = [];
 
-    for (const base of bases) {
+    for (const base of page) {
       const sources = sourceBuilder().build(
         (await new Base(base as Partial<Base>).getSources()).filter(
           (s) => !new Source(s).isMeta(),
@@ -65,7 +78,24 @@ export class BasesV3Service {
         sources: sources.length ? sources : undefined,
       });
     }
-    return formattedBases;
+
+    // The same v1 envelope the v3 token list uses. `pageSize` is the size
+    // actually applied, which is how a caller sees that its own `limit` was
+    // capped — without it, paging on `offset += limit` would skip rows.
+    // `limitOverride` is what keeps PagedResponseImpl from clamping that size a
+    // second time and reporting a page the response does not hold.
+    const applied = limit ?? page.length;
+    const paged = new PagedResponseImpl<BaseV3Type>(formattedBases, {
+      limit: applied || 1,
+      offset,
+      count: bases.length,
+      limitOverride: applied || undefined,
+    });
+    // `limitOverride` is falsy-guarded, so an empty list would otherwise report
+    // the default page size.
+    paged.pageInfo.pageSize = applied;
+
+    return paged;
   }
 
   async getProject(context: NcContext, param: { baseId: string }) {

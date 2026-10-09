@@ -217,27 +217,6 @@ i = i + nRem + 1
 if ARGV[i] and ARGV[i] ~= '' then redis.call('EXPIRE', KEYS[1], ARGV[i]) end
 return 1`;
 
-// Hash delta: ARGV = nSet, f, v..., nDel, f..., nIncr, f, by..., expire|''.
-// Skipped when the hash is gone, so it is never recreated with partial fields.
-const REPLAY_HASH_SCRIPT = `
-if redis.call('EXISTS', KEYS[1]) == 0 then return 0 end
-local i = 1
-local nSet = tonumber(ARGV[i])
-for j = 0, nSet - 1 do
-  redis.call('HSET', KEYS[1], ARGV[i + 1 + 2 * j], ARGV[i + 2 + 2 * j])
-end
-i = i + 2 * nSet + 1
-local nDel = tonumber(ARGV[i])
-for j = 1, nDel do redis.call('HDEL', KEYS[1], ARGV[i + j]) end
-i = i + nDel + 1
-local nIncr = tonumber(ARGV[i])
-for j = 0, nIncr - 1 do
-  redis.call('HINCRBY', KEYS[1], ARGV[i + 1 + 2 * j], ARGV[i + 2 + 2 * j])
-end
-i = i + 2 * nIncr + 1
-if ARGV[i] and ARGV[i] ~= '' then redis.call('EXPIRE', KEYS[1], ARGV[i]) end
-return 1`;
-
 const INVALIDATION_BATCH = 500;
 
 // Access-control state: after a transaction touches these, cache writes to the
@@ -337,10 +316,6 @@ export function registerTrxScopeInvalidator(inv: Invalidator) {
       numberOfKeys: 1,
       lua: REPLAY_LIST_SCRIPT,
     });
-    inv.raw.defineCommand('ncReplayHash', {
-      numberOfKeys: 1,
-      lua: REPLAY_HASH_SCRIPT,
-    });
   }
 }
 
@@ -417,6 +392,18 @@ export class TrxScope {
     if (!isFencedKey(key) || this.changed.has(key)) return;
     const e = this.peek(key);
     if (e ? e.kind !== 'tomb' : await real.exists(key)) this.changed.add(key);
+  }
+
+  /**
+   * Drop cached keys found inconsistent while reading (a list with a missing
+   * child): deleted at commit like a DEL, but not fenced, since nothing changed.
+   */
+  dropStale(keys: Iterable<string>) {
+    for (const key of keys) {
+      if (!this.isMetaKey(key)) continue;
+      this.put(key, TOMB);
+      this.record('del', key);
+    }
   }
 
   /** Mark keys stale (e.g. an independent inner transaction committed them). */
@@ -675,9 +662,12 @@ function planWrites(writes: LoggedWrite[]): Map<string, KeyPlan> {
       plan.srem.clear();
       plan.expire = undefined;
     }
-    // Counters: a reader may rebuild the hash from the committed DB before
-    // replay, so adding the delta again would double-count. Drop instead.
-    if (plan.hincr.size) plans.set(key, emptyPlan(true));
+    // Hashes hold derived counts (resource stats): a reader may rebuild one
+    // from the committed DB before replay, so neither a delta nor a fill can
+    // be written over it safely. Drop instead; the next read recomputes.
+    if (plan.hset.size || plan.hdel.size || plan.hincr.size) {
+      plans.set(key, emptyPlan(true));
+    }
   }
   return plans;
 }
@@ -729,7 +719,7 @@ async function replay(plans: Map<string, KeyPlan>) {
       probes.forEach((m, j) => probed[j] && cached.add(m));
     }
 
-    // Pass 2: list and hash deltas. A list gaining a member whose value isn't
+    // Pass 2: list deltas. A list gaining a member whose value isn't
     // cached is dropped instead of pointing at a missing child.
     for (let i = 0; i < entries.length; i += INVALIDATION_BATCH) {
       const batch = entries.slice(i, i + INVALIDATION_BATCH);
@@ -750,19 +740,6 @@ async function replay(plans: Map<string, KeyPlan>) {
                 expire,
               );
             }
-          }
-          if (plan.hset.size || plan.hdel.size || plan.hincr.size) {
-            call(
-              'ncReplayHash',
-              key,
-              plan.hset.size,
-              ...[...plan.hset].flat(),
-              plan.hdel.size,
-              ...plan.hdel,
-              plan.hincr.size,
-              ...[...plan.hincr].flat(),
-              expire,
-            );
           }
         }
       });
@@ -789,7 +766,6 @@ async function verifyReplay(plans: Map<string, KeyPlan>) {
     for (const [key, plan] of batch) {
       if (plan.set) pipe.get(key);
       else if (plan.sadd.size || plan.srem.size) pipe.smembers(key);
-      else if (plan.hset.size || plan.hdel.size) pipe.hgetall(key);
       else pipe.exists(key);
     }
     const res = (await pipe.exec()) ?? [];
@@ -804,12 +780,6 @@ async function verifyReplay(plans: Map<string, KeyPlan>) {
           [...plan.sadd].some((m) => !members.has(m)) ||
           [...plan.srem].some((m) => members.has(m)) ||
           (plan.del && members.size > plan.sadd.size);
-        if (drifted) stale.push(key);
-      } else if (plan.hset.size || plan.hdel.size) {
-        const hash = r as Record<string, string>;
-        const drifted =
-          [...plan.hset].some(([f, v]) => hash[f] !== v) ||
-          [...plan.hdel].some((f) => f in hash);
         if (drifted) stale.push(key);
       } else if (plan.del && r) {
         stale.push(key);

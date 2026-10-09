@@ -463,11 +463,7 @@ export default abstract class CacheMgr {
       // remove duplicates
       const uniqueParents = [...new Set(allParents)];
       // delete all parents and children
-      await Promise.all(
-        uniqueParents.map(async (p) => {
-          await this.deepDel(p, CacheDelDirection.PARENT_TO_CHILD);
-        }),
-      );
+      await this.dropStaleLists(uniqueParents);
       return Promise.resolve({
         list: [],
         isNoneList,
@@ -626,6 +622,22 @@ export default abstract class CacheMgr {
     return this.set(listKey, listOfGetKeys, { skipFenceCheck: checkFence });
   }
 
+  // Tear down lists found with a missing child. Inside a transaction this is a
+  // read-path cleanup, not a change, so it is dropped without fencing.
+  private async dropStaleLists(listKeys: string[]) {
+    const trxScope = getOpenTrxScope();
+    await Promise.all(
+      listKeys.map(async (p) => {
+        if (!trxScope)
+          return this.deepDel(p, CacheDelDirection.PARENT_TO_CHILD);
+        const listKey = /:list$/.test(p) ? p : `${p}:list`;
+        const children =
+          (await this.get(listKey, CacheGetType.TYPE_ARRAY)) || [];
+        trxScope.dropStale([...children, listKey]);
+      }),
+    );
+  }
+
   async deepDel(key: string, direction: string): Promise<boolean> {
     log(`${this.context}::deepDel: choose direction ${direction}`);
     if (direction === CacheDelDirection.CHILD_TO_PARENT) {
@@ -701,11 +713,7 @@ export default abstract class CacheMgr {
       // remove duplicates
       const uniqueParents = [...new Set(allParents)];
       // delete all parents and children
-      await Promise.all(
-        uniqueParents.map(async (p) => {
-          await this.deepDel(p, CacheDelDirection.PARENT_TO_CHILD);
-        }),
-      );
+      await this.dropStaleLists(uniqueParents);
       return false;
     }
     // prepare Get Key

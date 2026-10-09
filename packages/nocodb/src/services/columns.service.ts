@@ -5758,7 +5758,7 @@ export class ColumnsService implements IColumnsService {
                           req: param.req,
                           context: refContext,
                           columnId: c.id,
-                          columns: await refTable.getCachedColumns(),
+                          columns: await refTable.getCachedColumns(ncMeta),
                         });
                       }
                       break;
@@ -5788,7 +5788,9 @@ export class ColumnsService implements IColumnsService {
                   req: param.req,
                   context: tblContext,
                   columnId: column.id,
-                  columns: await table.getCachedColumns(),
+                  // On ncMeta: a read off the global connection fills this
+                  // transaction's cache overlay with committed (stale) rows.
+                  columns: await table.getCachedColumns(ncMeta),
                 });
 
                 if (!custom) {

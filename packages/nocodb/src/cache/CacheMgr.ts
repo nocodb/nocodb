@@ -178,7 +178,10 @@ export default abstract class CacheMgr {
       !getOpenTrxScope() &&
       (await this.rawClient.exists(fenceKeyFor(key)))
     ) {
+      // The write may be a real update, not only a stale fill: drop the key
+      // so the next read reloads, rather than keep whatever is cached.
       log(`${this.context}::set: ${key} is fenced after a transaction`);
+      await this.rawClient.del(key);
       return true;
     }
 
@@ -559,7 +562,11 @@ export default abstract class CacheMgr {
     // list the transaction only read would stay uncacheable after commit.
     const trxScope = getOpenTrxScope();
     const coldFill = !!trxScope && !(await this.client.exists(listKey));
-    if (!coldFill) {
+    if (coldFill) {
+      // Replay as a rebuilt list (DEL), never merged into one another request
+      // cached meanwhile; recorded without fencing.
+      trxScope.record('del', listKey);
+    } else {
       await this.deepDel(listKey, CacheDelDirection.PARENT_TO_CHILD);
     }
     const listOfGetKeys = [];

@@ -2,7 +2,6 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import { Logger } from '@nestjs/common';
 import type IORedis from 'ioredis';
 import type { ChainableCommander } from 'ioredis';
-import type { MetaService } from '~/meta/meta.service';
 
 const logger = new Logger('TrxScope');
 
@@ -13,7 +12,8 @@ const logger = new Logger('TrxScope');
  * EE-only CacheScope members.
  *
  * Deliberately out: oAuthAuthCode (single-use, setExpiring only),
- * usageStats/storageStats (runtime counters), templates (external API cache).
+ * usageStats/storageStats/sqlExecutor (runtime counters), templates (external
+ * API cache).
  */
 const META_SCOPES = new Set<string>([
   'base',
@@ -117,6 +117,7 @@ const META_SCOPES = new Set<string>([
   'dataReflection',
   'customUrls',
   'scripts',
+  'baseSchema',
   'syncConfigs',
   'syncMappings',
   'tableSync',
@@ -203,6 +204,11 @@ const REPLAY_LIST_SCRIPT = `
 if redis.call('EXISTS', KEYS[1]) == 0 then return 0 end
 local i = 1
 local nAdd = tonumber(ARGV[i])
+-- An empty-list sentinel plus a member would read as empty: drop instead.
+if nAdd > 0 and redis.call('SISMEMBER', KEYS[1], 'NONE') == 1 then
+  redis.call('DEL', KEYS[1])
+  return -1
+end
 for j = 1, nAdd do redis.call('SADD', KEYS[1], ARGV[i + j]) end
 i = i + nAdd + 1
 local nRem = tonumber(ARGV[i])
@@ -357,12 +363,7 @@ export class TrxScope {
   private readonly fills = new Set<string>();
   private dropped = false;
 
-  constructor(
-    public trx: unknown,
-    readonly parent?: TrxScope,
-    // The transaction-bound service that global meta queries route to.
-    public meta: MetaService | null = null,
-  ) {}
+  constructor(public trx: unknown, readonly parent?: TrxScope) {}
 
   get isOpen() {
     return this.state === 'open';
@@ -466,13 +467,14 @@ export class TrxScope {
     if (!pending) {
       pending = (async () => {
         let entry: Entry;
+        // Redis has no empty sets/hashes: an empty read means absent, so keep
+        // it absent (a tombstone) rather than an empty entry exists() sees.
         if (kind === 'set') {
-          entry = { kind: 'set', v: new Set(await real.smembers(key)) };
+          const members = await real.smembers(key);
+          entry = members.length ? { kind: 'set', v: new Set(members) } : TOMB;
         } else if (kind === 'hash') {
-          entry = {
-            kind: 'hash',
-            v: new Map(Object.entries(await real.hgetall(key))),
-          };
+          const fields = Object.entries(await real.hgetall(key));
+          entry = fields.length ? { kind: 'hash', v: new Map(fields) } : TOMB;
         } else {
           const v = await real.get(key);
           entry = v === null ? TOMB : { kind: 'str', v };
@@ -514,19 +516,22 @@ export class TrxScope {
     this.changed.clear();
     this.fills.clear();
     this.trx = null;
-    this.meta = null;
 
     if (!committed) {
       // Redis was never written, but work on another connection (an explicit
       // .knex write, DDL) may have committed with its cache update held here.
       // Drop only the keys this transaction wrote to; a miss is always safe.
-      await invalidate(written, patterns);
-      if (written.length || patterns.length) {
+      // Cleared prefixes are left alone: the clear never ran, and a prefix
+      // sweep would also take non-meta keys (collab state, locks).
+      await invalidate(written, []);
+      if (written.length) {
         setTimeout(() => {
-          invalidate(written, patterns).catch(() => {});
+          invalidate(written, []).catch(() => {});
         }, SECOND_INVALIDATION_MS).unref?.();
       }
     } else {
+      // Prefix clears first, so they can't wipe the fences set next.
+      await invalidate([], patterns);
       if (fenced.length && invalidator) {
         await invalidator
           .fenceKeys(fenced, FENCE_TTL_SECONDS)
@@ -534,18 +539,24 @@ export class TrxScope {
       }
 
       if (plans) {
-        await replay(plans, patterns);
-        if (plans.size || patterns.length) {
+        // Access-control keys are dropped, never written through: a fill of
+        // a row read before another transaction's revoke could carry a newer
+        // timestamp than that revoke's cached value.
+        for (const key of plans.keys()) {
+          if (isFencedKey(key)) plans.set(key, emptyPlan(true));
+        }
+        await replay(plans);
+        if (plans.size) {
           setTimeout(() => {
-            verifyReplay(plans, patterns).catch(() => {});
+            verifyReplay(plans).catch(() => {});
           }, SECOND_INVALIDATION_MS).unref?.();
         }
       } else {
         // Past the overlay limit no values were kept to replay.
-        await invalidate(keys, patterns);
-        if (keys.length || patterns.length) {
+        await invalidate(keys, []);
+        if (keys.length) {
           setTimeout(() => {
-            invalidate(keys, patterns).catch(() => {});
+            invalidate(keys, []).catch(() => {});
           }, SECOND_INVALIDATION_MS).unref?.();
         }
       }
@@ -584,17 +595,21 @@ async function invalidate(keys: string[], patterns: string[]) {
   }
 }
 
+function emptyPlan(del: boolean): KeyPlan {
+  return {
+    del,
+    sadd: new Set(),
+    srem: new Set(),
+    hset: new Map(),
+    hdel: new Set(),
+    hincr: new Map(),
+  };
+}
+
 function planWrites(writes: LoggedWrite[]): Map<string, KeyPlan> {
   const plans = new Map<string, KeyPlan>();
   const reset = (key: string, del: boolean): KeyPlan => {
-    const plan: KeyPlan = {
-      del,
-      sadd: new Set(),
-      srem: new Set(),
-      hset: new Map(),
-      hdel: new Set(),
-      hincr: new Map(),
-    };
+    const plan = emptyPlan(del);
     plans.set(key, plan);
     return plan;
   };
@@ -652,7 +667,7 @@ function planWrites(writes: LoggedWrite[]): Map<string, KeyPlan> {
         break;
     }
   }
-  for (const plan of plans.values()) {
+  for (const [key, plan] of plans) {
     // A list the transaction dropped and rebuilt is replayed as a plain DEL:
     // DEL + SADD would wipe members other requests appended meanwhile.
     if (plan.del && (plan.sadd.size || plan.srem.size)) {
@@ -660,17 +675,18 @@ function planWrites(writes: LoggedWrite[]): Map<string, KeyPlan> {
       plan.srem.clear();
       plan.expire = undefined;
     }
+    // Counters: a reader may rebuild the hash from the committed DB before
+    // replay, so adding the delta again would double-count. Drop instead.
+    if (plan.hincr.size) plans.set(key, emptyPlan(true));
   }
   return plans;
 }
 
 /** Apply a committed transaction's cache writes to Redis. */
-async function replay(plans: Map<string, KeyPlan>, patterns: string[]) {
+async function replay(plans: Map<string, KeyPlan>) {
   if (!invalidator) return;
   const raw = invalidator.raw;
   try {
-    for (const p of patterns) await invalidator.delPattern(p);
-
     const entries = [...plans];
     // exec resolves with per-command errors instead of rejecting.
     const run = async (
@@ -762,31 +778,45 @@ async function replay(plans: Map<string, KeyPlan>, patterns: string[]) {
  * A reader that loaded pre-commit rows may cache them after the replay. Drop
  * any replayed key whose value no longer matches what the transaction wrote.
  */
-async function verifyReplay(plans: Map<string, KeyPlan>, patterns: string[]) {
+async function verifyReplay(plans: Map<string, KeyPlan>) {
   if (!invalidator) return;
   const raw = invalidator.raw;
   const stale: string[] = [];
-  for (const [key, plan] of plans) {
-    if (plan.set) {
-      if ((await raw.get(key)) !== plan.set[0]) stale.push(key);
-    } else if (plan.sadd.size || plan.srem.size) {
-      const members = new Set(await raw.smembers(key));
-      const drifted =
-        [...plan.sadd].some((m) => !members.has(m)) ||
-        [...plan.srem].some((m) => members.has(m)) ||
-        (plan.del && members.size > plan.sadd.size);
-      if (drifted) stale.push(key);
-    } else if (plan.hset.size || plan.hdel.size) {
-      const hash = await raw.hgetall(key);
-      const drifted =
-        [...plan.hset].some(([f, v]) => hash[f] !== v) ||
-        [...plan.hdel].some((f) => f in hash);
-      if (drifted) stale.push(key);
-    } else if (plan.del && (await raw.exists(key))) {
-      stale.push(key);
+  const entries = [...plans];
+  for (let i = 0; i < entries.length; i += INVALIDATION_BATCH) {
+    const batch = entries.slice(i, i + INVALIDATION_BATCH);
+    const pipe = raw.pipeline();
+    for (const [key, plan] of batch) {
+      if (plan.set) pipe.get(key);
+      else if (plan.sadd.size || plan.srem.size) pipe.smembers(key);
+      else if (plan.hset.size || plan.hdel.size) pipe.hgetall(key);
+      else pipe.exists(key);
     }
+    const res = (await pipe.exec()) ?? [];
+    batch.forEach(([key, plan], j) => {
+      const [err, r] = res[j] ?? [null, null];
+      if (err) return stale.push(key);
+      if (plan.set) {
+        if (r !== plan.set[0]) stale.push(key);
+      } else if (plan.sadd.size || plan.srem.size) {
+        const members = new Set(r as string[]);
+        const drifted =
+          [...plan.sadd].some((m) => !members.has(m)) ||
+          [...plan.srem].some((m) => members.has(m)) ||
+          (plan.del && members.size > plan.sadd.size);
+        if (drifted) stale.push(key);
+      } else if (plan.hset.size || plan.hdel.size) {
+        const hash = r as Record<string, string>;
+        const drifted =
+          [...plan.hset].some(([f, v]) => hash[f] !== v) ||
+          [...plan.hdel].some((f) => f in hash);
+        if (drifted) stale.push(key);
+      } else if (plan.del && r) {
+        stale.push(key);
+      }
+    });
   }
-  await invalidate(stale, patterns);
+  await invalidate(stale, []);
 }
 
 export function getTrxScope(): TrxScope | undefined {

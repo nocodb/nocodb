@@ -39,9 +39,6 @@ const nanoidWorkspace = customAlphabet(
   7,
 );
 
-let routedSavepointSeq = 0;
-const routedWriteQueue = new WeakMap<Knex.Transaction, Promise<unknown>>();
-
 @Injectable()
 export class MetaService {
   protected _knex: knex.Knex;
@@ -82,69 +79,16 @@ export class MetaService {
     return this._config;
   }
 
-  /**
-   * Meta queries on the global service inside an open meta transaction run on
-   * that transaction, so a call that didn't thread `ncMeta` can't commit behind
-   * it or cache pre-transaction rows. `exitTrxScope` opts out.
-   */
   public get connection() {
-    return this.trx ?? this.routedTrx() ?? this.knexInstance;
-  }
-
-  /** The open transaction this global service's queries route to, if any. */
-  private routedTrx(): Knex.Transaction | null {
-    if (this.trx) return null;
-    const scopeMeta = getOpenTrxScope()?.meta;
-    return scopeMeta?.trx &&
-      !scopeMeta.trx.isCompleted() &&
-      scopeMeta.knexInstance === this.knexInstance
-      ? scopeMeta.trx
-      : null;
-  }
-
-  /**
-   * Routed writes run in a savepoint: on PG a failed statement aborts the whole
-   * transaction, and callers that catch and continue (unique-violation retry,
-   * fallback reads) relied on running outside it.
-   */
-  private routedWrite<T>(fn: (ncMeta: MetaService) => Promise<T>) {
-    const trx = this.routedTrx();
-    if (!trx) return null;
-    const Ctor = this.constructor as typeof MetaService;
-    const ncMeta = new Ctor(this.config, trx, 1, this._knex);
-    // Only PG aborts the transaction on a failed statement. XKnex's nested
-    // transaction reuses the trx without a savepoint, so issue it directly.
-    if (this.knexInstance.clientType() !== 'pg') return fn(ncMeta);
-
-    // Serialized per transaction: interleaved savepoints would let one
-    // rollback undo a sibling's write.
-    const name = `nc_routed_${++routedSavepointSeq}`;
-    const prev = routedWriteQueue.get(trx) ?? Promise.resolve();
-    const run = prev
-      .catch(() => {})
-      .then(async () => {
-        await trx.raw(`SAVEPOINT ${name}`);
-        try {
-          const result = await fn(ncMeta);
-          await trx.raw(`RELEASE SAVEPOINT ${name}`);
-          return result;
-        } catch (e) {
-          await trx.raw(`ROLLBACK TO SAVEPOINT ${name}`).catch(() => {});
-          throw e;
-        }
-      });
-    routedWriteQueue.set(trx, run);
-    return run;
+    return this.trx ?? this.knexInstance;
   }
 
   get knexConnection() {
     return this.connection;
   }
 
-  // Not routed: data access on meta-backed sources (NcConnectionMgrv2), DDL
-  // and deliberately independent writes use this pool connection.
   public get knex(): any {
-    return this.trx ?? this.knexInstance;
+    return this.knexConnection;
   }
 
   /**
@@ -393,11 +337,6 @@ export class MetaService {
     data: any,
     ignoreIdGeneration?: boolean,
   ): Promise<any> {
-    const routed = this.routedWrite((m) =>
-      m.metaInsert2(workspace_id, base_id, target, data, ignoreIdGeneration),
-    );
-    if (routed) return routed;
-
     const insertObj = {
       ...data,
       ...(ignoreIdGeneration
@@ -471,11 +410,6 @@ export class MetaService {
     if (Array.isArray(data) ? !data.length : !data) {
       return [];
     }
-
-    const routed = this.routedWrite((m) =>
-      m.bulkMetaInsert(workspace_id, base_id, target, data, ignoreIdGeneration),
-    );
-    if (routed) return routed;
 
     const insertObj = [];
     const at = this.now();
@@ -565,11 +499,6 @@ export class MetaService {
 
     this.assertSatelliteNotInMetaTrx(target);
 
-    const routed = this.routedWrite((m) =>
-      m.bulkMetaUpdate(workspace_id, base_id, target, data, ids, condition),
-    );
-    if (routed) return routed;
-
     const query = this.knexConnection(target);
 
     const at = this.now();
@@ -650,18 +579,6 @@ export class MetaService {
     force = false,
   ): Promise<void> {
     this.assertSatelliteNotInMetaTrx(target);
-
-    const routed = this.routedWrite((m) =>
-      m.metaDelete(
-        workspace_id,
-        base_id,
-        target,
-        idOrCondition,
-        xcCondition,
-        force,
-      ),
-    );
-    if (routed) return routed;
 
     const query = this.knexConnection(target);
 
@@ -1024,21 +941,6 @@ export class MetaService {
   ): Promise<any> {
     this.assertSatelliteNotInMetaTrx(target);
 
-    const routed = this.routedWrite((m) =>
-      m.metaUpdate(
-        workspace_id,
-        base_id,
-        target,
-        data,
-        idOrCondition,
-        xcCondition,
-        skipUpdatedAt,
-        force,
-        allowCreatedAt,
-      ),
-    );
-    if (routed) return routed;
-
     const query = this.knexConnection(target);
 
     if (workspace_id === base_id) {
@@ -1203,10 +1105,8 @@ export class MetaService {
   ): Promise<T> {
     if (this.trx) return fn(this);
 
-    // On the global service this is an independent transaction, as before:
-    // callers like credit settle rely on their own locks and error handling.
     const ncMeta = await this.startTransaction();
-    const scope = new TrxScope(ncMeta.trx, getOpenTrxScope(), ncMeta);
+    const scope = new TrxScope(ncMeta.trx, getOpenTrxScope());
     let result: T;
     try {
       result = await runInTrxScope(scope, () => fn(ncMeta));
@@ -1223,10 +1123,9 @@ export class MetaService {
   }
 
   async startTransaction(): Promise<MetaService> {
-    // Not the routed connection: a new transaction on the global service is
-    // independent of any open one.
-    const conn = this.trx ?? this.knexInstance;
-    const trx = conn.isTransaction ? conn : await conn.transaction();
+    const trx = this.connection.isTransaction
+      ? this.connection
+      : await this.connection.transaction();
 
     // Instantiate via this.constructor so subclasses (e.g. EE MetaService)
     // returned from startTransaction keep their overridden methods.
@@ -1239,7 +1138,7 @@ export class MetaService {
       this.config,
       trx,
       // we need to keep track of the nested transaction level
-      conn.isTransaction ? this.nested + 1 : 0,
+      this.connection.isTransaction ? this.nested + 1 : 0,
       this._knex,
     );
   }

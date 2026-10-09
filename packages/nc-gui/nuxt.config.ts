@@ -149,8 +149,8 @@ export default defineNuxtConfig({
       ncBackendUrl: '',
       env: 'production',
       maxPageDesignerTableRows: 100,
-      // dev picker listener (scripts/dev-comments.mjs); nc-dev sets one per branch
-      devCommentsPort: 2902,
+      // dev picker listener (scripts/dev-comments.mjs): nc-dev sets one per instance; 0 = the page's port + 100
+      devCommentsPort: 0,
     },
   },
 

@@ -336,8 +336,7 @@ export const getDateTimeValue = (
       return dayjs(modelValue).format(dateTimeFormat);
     }
     return dayjs(
-      /^\d+$/.test(modelValue) ? +modelValue : modelValue,
-      dateTimeFormat
+      /^\d+$/.test(modelValue) ? +modelValue : modelValue
     ).format(dateTimeFormat);
   }
 

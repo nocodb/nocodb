@@ -251,8 +251,17 @@ export const getExternalLinkHref = (url?: string | null) => {
 
   const trimmed = url.trim()
 
-  // Relative to this page — adding a scheme would misread the path as a host.
-  if (/^[#?.]|^\/(?!\/)/.test(trimmed)) return url
+  // Relative to this page — adding a scheme would misread the path as a host. Judged on the
+  // resolved origin: browsers read `/\host` and `/\t/host` as protocol-relative.
+  if (!trimmed.startsWith('//') && /^[#?./\\]/.test(trimmed)) {
+    if (isSameOriginUrl(trimmed)) return url
+    try {
+      const resolved = new URL(trimmed, window.location.href).href
+      return isLeavingPageRequired(resolved) ? getLeavingPageUrl(resolved) : url
+    } catch {
+      return url
+    }
+  }
 
   const normalized = addMissingUrlSchma(trimmed.startsWith('//') ? `https:${trimmed}` : trimmed)
   return isLeavingPageRequired(normalized) ? getLeavingPageUrl(normalized) : url

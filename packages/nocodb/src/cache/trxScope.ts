@@ -179,19 +179,62 @@ const SECOND_INVALIDATION_MS = +(
   process.env.NC_TRX_CACHE_SECOND_INVALIDATION_MS || 2000
 );
 
-// SET unless Redis already holds a newer value; then DEL, since a miss is
-// always safe. Values end in `"timestamp":<ms>}` (CacheMgr.prepareValue).
+// Replay only updates keys that are still cached: an absent key may have been
+// invalidated by another writer since the transaction read it, and a miss is
+// always safe. A newer value (by `"timestamp":<ms>}`, CacheMgr.prepareValue)
+// wins and the key is dropped.
 const REPLAY_SET_SCRIPT = `
 local cur = redis.call('GET', KEYS[1])
-if cur then
-  local ts = string.match(cur, '"timestamp":(%d+)}$')
-  if ts and tonumber(ts) > tonumber(ARGV[2]) then
-    redis.call('DEL', KEYS[1])
-    return 0
-  end
+if not cur then return 0 end
+local ts = string.match(cur, '"timestamp":(%d+)}$')
+if ts and tonumber(ts) > tonumber(ARGV[2]) then
+  redis.call('DEL', KEYS[1])
+  return 0
 end
 local unpackFn = table.unpack or unpack
 redis.call('SET', KEYS[1], ARGV[1], unpackFn(ARGV, 3))
+return 1`;
+
+// List delta: ARGV = nAdd, adds..., nRem, rems..., expire|''. A list that is
+// gone stays gone (SADD would create a partial list readers trust as whole);
+// a new member whose value isn't cached drops the list instead.
+const REPLAY_LIST_SCRIPT = `
+if redis.call('EXISTS', KEYS[1]) == 0 then return 0 end
+local i = 1
+local nAdd = tonumber(ARGV[i])
+for j = 1, nAdd do
+  if redis.call('EXISTS', ARGV[i + j]) == 0 then
+    redis.call('DEL', KEYS[1])
+    return -1
+  end
+end
+for j = 1, nAdd do redis.call('SADD', KEYS[1], ARGV[i + j]) end
+i = i + nAdd + 1
+local nRem = tonumber(ARGV[i])
+for j = 1, nRem do redis.call('SREM', KEYS[1], ARGV[i + j]) end
+i = i + nRem + 1
+if ARGV[i] and ARGV[i] ~= '' then redis.call('EXPIRE', KEYS[1], ARGV[i]) end
+return 1`;
+
+// Hash delta: ARGV = nSet, f, v..., nDel, f..., nIncr, f, by..., expire|''.
+// Skipped when the hash is gone, so it is never recreated with partial fields.
+const REPLAY_HASH_SCRIPT = `
+if redis.call('EXISTS', KEYS[1]) == 0 then return 0 end
+local i = 1
+local nSet = tonumber(ARGV[i])
+for j = 0, nSet - 1 do
+  redis.call('HSET', KEYS[1], ARGV[i + 1 + 2 * j], ARGV[i + 2 + 2 * j])
+end
+i = i + 2 * nSet + 1
+local nDel = tonumber(ARGV[i])
+for j = 1, nDel do redis.call('HDEL', KEYS[1], ARGV[i + j]) end
+i = i + nDel + 1
+local nIncr = tonumber(ARGV[i])
+for j = 0, nIncr - 1 do
+  redis.call('HINCRBY', KEYS[1], ARGV[i + 1 + 2 * j], ARGV[i + 2 + 2 * j])
+end
+i = i + 2 * nIncr + 1
+if ARGV[i] and ARGV[i] ~= '' then redis.call('EXPIRE', KEYS[1], ARGV[i]) end
 return 1`;
 
 const INVALIDATION_BATCH = 500;
@@ -589,35 +632,60 @@ async function replay(plans: Map<string, KeyPlan>, patterns: string[]) {
     const entries = [...plans];
     for (let i = 0; i < entries.length; i += INVALIDATION_BATCH) {
       const batch = entries.slice(i, i + INVALIDATION_BATCH);
+
+      const pipe = raw.pipeline();
+      for (const [key, plan] of batch) if (plan.del) pipe.del(key);
+      await pipe.exec();
+
       // EVAL runs outside the pipeline: ioredis-mock can't pipeline it.
+      // Values first, so a list delta sees which new members got cached.
       await Promise.all(
         batch
           .filter(([, plan]) => plan.set)
           .map(([key, plan]) => {
             const [value, ...opts] = plan.set;
-            const ts = /"timestamp":(\d+)}$/.exec(value)?.[1];
-            return ts
-              ? raw.eval(REPLAY_SET_SCRIPT, 1, key, value, ts, ...opts)
-              : Reflect.apply(raw.set, raw, [key, value, ...opts]);
+            const ts = /"timestamp":(\d+)}$/.exec(value)?.[1] ?? '0';
+            return raw.eval(REPLAY_SET_SCRIPT, 1, key, value, ts, ...opts);
           }),
       );
 
-      const pipe = raw.pipeline();
-      for (const [key, plan] of batch) {
-        if (plan.del) pipe.del(key);
-        if (plan.sadd.size) pipe.sadd(key, ...plan.sadd);
-        if (plan.srem.size) pipe.srem(key, ...plan.srem);
-        if (plan.hset.size) pipe.hset(key, Object.fromEntries(plan.hset));
-        if (plan.hdel.size) pipe.hdel(key, ...plan.hdel);
-        for (const [field, by] of plan.hincr) pipe.hincrby(key, field, by);
-        if (
-          plan.expire &&
-          (plan.set || plan.sadd.size || plan.hset.size || plan.hincr.size)
-        ) {
-          Reflect.apply(pipe.expire, pipe, [key, ...plan.expire]);
-        }
-      }
-      await pipe.exec();
+      await Promise.all(
+        batch.flatMap(([key, plan]) => {
+          const expire = plan.expire?.[0] ?? '';
+          const calls: Promise<unknown>[] = [];
+          if (plan.sadd.size || plan.srem.size) {
+            calls.push(
+              raw.eval(
+                REPLAY_LIST_SCRIPT,
+                1,
+                key,
+                plan.sadd.size,
+                ...plan.sadd,
+                plan.srem.size,
+                ...plan.srem,
+                expire,
+              ),
+            );
+          }
+          if (plan.hset.size || plan.hdel.size || plan.hincr.size) {
+            calls.push(
+              raw.eval(
+                REPLAY_HASH_SCRIPT,
+                1,
+                key,
+                plan.hset.size,
+                ...[...plan.hset].flat(),
+                plan.hdel.size,
+                ...plan.hdel,
+                plan.hincr.size,
+                ...[...plan.hincr].flat(),
+                expire,
+              ),
+            );
+          }
+          return calls;
+        }),
+      );
     }
   } catch (e) {
     logger.error(`Cache replay after commit failed: ${e?.message}`);
@@ -757,7 +825,9 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
       const passthrough = keys.filter((k) => !meta(k));
       for (const k of keys) {
         if (!meta(k)) continue;
-        await scope.markIfCached(real, k);
+        // A DEL is never a read-through fill: fence it even if the key is cold,
+        // or a reader that loaded the old row before commit can write it back.
+        scope.markChanged(k);
         scope.put(k, TOMB);
         scope.record('del', k);
       }

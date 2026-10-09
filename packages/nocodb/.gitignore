@@ -1,5 +1,6 @@
 # compiled output
 /dist
+/dist-*
 /node_modules
 nc
 tsconfig.tsbuildinfo

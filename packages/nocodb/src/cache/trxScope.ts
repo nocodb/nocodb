@@ -494,6 +494,10 @@ export class TrxScope {
     const patterns = [...this.clearedPatterns];
     const committed = outcome === 'commit';
     const plans = committed && !this.dropped ? planWrites(this.writes) : null;
+    // Keys this transaction wrote to (past the limit: everything it touched).
+    const written = this.dropped
+      ? keys
+      : [...new Set(this.writes.map(([, key]) => key))];
     // Async resources created inside the scope keep it reachable through the
     // AsyncLocalStorage store; drop the overlay state so they don't pin it.
     this.entries.clear();
@@ -504,8 +508,17 @@ export class TrxScope {
     this.trx = null;
     this.meta = null;
 
-    // Rollback: Redis was never written, so it still holds committed state.
-    if (committed) {
+    if (!committed) {
+      // Redis was never written, but work on another connection (an explicit
+      // .knex write, DDL) may have committed with its cache update held here.
+      // Drop only the keys this transaction wrote to; a miss is always safe.
+      await invalidate(written, patterns);
+      if (written.length || patterns.length) {
+        setTimeout(() => {
+          invalidate(written, patterns).catch(() => {});
+        }, SECOND_INVALIDATION_MS).unref?.();
+      }
+    } else {
       if (fenced.length && invalidator) {
         await invalidator
           .fenceKeys(fenced, FENCE_TTL_SECONDS)

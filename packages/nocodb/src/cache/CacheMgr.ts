@@ -554,8 +554,11 @@ export default abstract class CacheMgr {
     // timestamp for list
     const timestamp = Date.now();
 
-    // remove existing list
-    await this.deepDel(listKey, CacheDelDirection.PARENT_TO_CHILD);
+    // remove existing list; inside a transaction skip it when there is nothing
+    // cached, or the no-op DEL would fence a list the transaction only read.
+    if (!getOpenTrxScope() || (await this.client.exists(listKey))) {
+      await this.deepDel(listKey, CacheDelDirection.PARENT_TO_CHILD);
+    }
     const listOfGetKeys = [];
 
     // e.g. nc:<orgs>:<scope>:<prop_value_1>:<prop_value_2>

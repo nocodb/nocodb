@@ -554,9 +554,12 @@ export default abstract class CacheMgr {
     // timestamp for list
     const timestamp = Date.now();
 
-    // remove existing list; inside a transaction skip it when there is nothing
-    // cached, or the no-op DEL would fence a list the transaction only read.
-    if (!getOpenTrxScope() || (await this.client.exists(listKey))) {
+    // remove existing list; inside a transaction a cold list is a plain fill:
+    // skip the no-op DEL and don't fence its (possibly cached) children, or a
+    // list the transaction only read would stay uncacheable after commit.
+    const trxScope = getOpenTrxScope();
+    const coldFill = !!trxScope && !(await this.client.exists(listKey));
+    if (!coldFill) {
       await this.deepDel(listKey, CacheDelDirection.PARENT_TO_CHILD);
     }
     const listOfGetKeys = [];
@@ -602,6 +605,7 @@ export default abstract class CacheMgr {
       }
       // set key
       log(`${this.context}::setList: setting key ${getKey}`);
+      if (coldFill) trxScope.markFill(getKey);
       await this.set(getKey, rawValue, {
         skipPrepare: true,
         timestamp,

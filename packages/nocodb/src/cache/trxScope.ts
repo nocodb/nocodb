@@ -354,6 +354,7 @@ export class TrxScope {
   // Fenced-scope keys whose existing value this transaction changed; plain
   // cache fills stay out so a cold read doesn't fence a hot user key.
   private readonly changed = new Set<string>();
+  private readonly fills = new Set<string>();
   private dropped = false;
 
   constructor(
@@ -405,7 +406,13 @@ export class TrxScope {
   }
 
   /** Mark a fenced key changed if a write is about to replace a cached value. */
+  /** The next write to `key` is a read-through fill: log it, don't fence it. */
+  markFill(key: string) {
+    this.fills.add(key);
+  }
+
   async markIfCached(real: IORedis, key: string) {
+    if (this.fills.delete(key)) return;
     if (!isFencedKey(key) || this.changed.has(key)) return;
     const e = this.peek(key);
     if (e ? e.kind !== 'tomb' : await real.exists(key)) this.changed.add(key);
@@ -505,6 +512,7 @@ export class TrxScope {
     this.clearedPatterns.length = 0;
     this.writes = [];
     this.changed.clear();
+    this.fills.clear();
     this.trx = null;
     this.meta = null;
 

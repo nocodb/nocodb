@@ -406,12 +406,12 @@ export class TrxScope {
     if (isFencedKey(key)) this.changed.add(key);
   }
 
-  /** Mark a fenced key changed if a write is about to replace a cached value. */
   /** The next write to `key` is a read-through fill: log it, don't fence it. */
   markFill(key: string) {
     this.fills.add(key);
   }
 
+  /** Mark a fenced key changed if a write is about to replace a cached value. */
   async markIfCached(real: IORedis, key: string) {
     if (this.fills.delete(key)) return;
     if (!isFencedKey(key) || this.changed.has(key)) return;

@@ -430,6 +430,26 @@
               "type": "string"
             },
             "description": "Unique identifier for the workspace."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Maximum number of bases to return. Omit it to receive every base, which is the default and what this endpoint has always done. Capped per deployment \u2014 when the cap applies, `pageInfo.pageSize` reports the size actually used."
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Number of bases to skip. Ignored unless `limit` is also supplied. An offset at or past the total row count is rejected."
           }
         ],
         "responses": {
@@ -446,6 +466,36 @@
                         "$ref": "#/components/schemas/Base"
                       },
                       "description": "List of bases."
+                    },
+                    "pageInfo": {
+                      "type": "object",
+                      "description": "Always present. Offset-based, the same envelope the v3 token list uses. `totalRows` counts every base visible to the caller, not only those in this response.",
+                      "properties": {
+                        "totalRows": {
+                          "type": "integer",
+                          "description": "Total number of bases visible to the caller in this workspace.",
+                          "example": 12
+                        },
+                        "page": {
+                          "type": "integer",
+                          "description": "Current page number, derived from `offset` and the effective page size.",
+                          "example": 1
+                        },
+                        "pageSize": {
+                          "type": "integer",
+                          "description": "The page size actually applied. When no `limit` is sent this is the size of the full list; when `limit` exceeds the per-deployment cap this is the cap. Page with this value, not with the `limit` you sent, or you will skip rows.",
+                          "example": 10
+                        },
+                        "isFirstPage": {
+                          "type": "boolean"
+                        },
+                        "isLastPage": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "totalRows"
+                      ]
                     }
                   }
                 },

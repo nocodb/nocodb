@@ -39,13 +39,12 @@ export class BasesV3Controller {
     @Req() req: NcRequest,
     @Param('workspaceId') workspaceId: string,
   ) {
-    const bases = await this.baseV3Service.baseList(context, {
+    return await this.baseV3Service.baseList(context, {
       user: req.user,
       query: queryParams,
       workspaceId,
       req,
     });
-    return { list: bases };
   }
 
   @Acl('baseGet')

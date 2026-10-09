@@ -8,7 +8,6 @@ import {
   isJsIdentifier,
   isSecretRef,
   isValidVaultAlias,
-  mentionsSecretsNamespace,
   parseSecretRef,
   parseSecretRefDraft,
   parseSecretRefText,
@@ -307,45 +306,6 @@ describe('isJsIdentifier', () => {
 
     for (const segment of ['', '1a', 'a-b', 'a b', 'a/b', 'a.b']) {
       expect(isJsIdentifier(segment)).toBe(false);
-    }
-  });
-});
-
-describe('mentionsSecretsNamespace', () => {
-  it('catches the removed brace syntax pasted into a plain field', () => {
-    for (const value of [
-      '{{ secrets.awsProd.password }}',
-      '{{secrets["awsProd"].password}}',
-      // singular — the typo that carries no `secrets`
-      '{{ secret.awsProd.password }}',
-      // never closed
-      '{{ secrets.awsProd.password',
-    ]) {
-      expect(mentionsSecretsNamespace(value)).toBe(true);
-    }
-  });
-
-  it('leaves an ordinary password alone', () => {
-    for (const value of [
-      'hunter2',
-      'p{assword}',
-      'secrets',
-      'secrets.awsProd.password',
-      'my{secret}value',
-    ]) {
-      expect(mentionsSecretsNamespace(value)).toBe(false);
-    }
-  });
-
-  it('is false for every non-string', () => {
-    for (const value of [
-      undefined,
-      null,
-      42,
-      { $vault: { alias: 'awsProd', secret: 'creds' } },
-      ['{{ secrets.a.b }}'],
-    ]) {
-      expect(mentionsSecretsNamespace(value)).toBe(false);
     }
   });
 });

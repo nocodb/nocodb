@@ -1,0 +1,69 @@
+/**
+ * Kanban Compact Mode — Global Overrides
+ *
+ * These rules kick in when .nc-kanban-card-compact is present.
+ * They ensure third-party cell renderers (e.g. chip tags, date pills)
+ * also shrink gracefully in compact mode.
+ */
+
+// ── Card ────────────────────────────────────────────────────────────────────
+.nc-kanban-card-compact {
+  // Remove internal cell padding that cell components add
+  .cell {
+    padding: 0 !important;
+    line-height: 1.3 !important;
+  }
+
+  // Chip / badge style tags (e.g. multi-select)
+  .nc-cell-field .chips-wrapper,
+  .nc-cell-field .nc-tags-wrapper {
+    flex-wrap: nowrap;
+    overflow: hidden;
+    gap: 2px;
+
+    .chip,
+    .nc-tag {
+      font-size: 10px !important;
+      padding: 1px 5px !important;
+      height: 16px !important;
+      line-height: 16px !important;
+    }
+  }
+
+  // Attachment thumbnails
+  .nc-attachment-cell {
+    .nc-attachment {
+      width: 20px !important;
+      height: 20px !important;
+    }
+  }
+
+  // Checkbox cells
+  .nc-cell-checkbox .nc-checkbox {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  // Date / datetime text
+  .nc-cell-date,
+  .nc-cell-datetime {
+    font-size: 11px !important;
+  }
+
+  // User / collaborator avatars
+  .nc-cell-user .nc-avatar {
+    width: 18px !important;
+    height: 18px !important;
+    font-size: 9px !important;
+  }
+}
+
+// ── Stack width transition ───────────────────────────────────────────────────
+.nc-kanban-stack {
+  transition: width 200ms ease, min-width 200ms ease, padding 200ms ease;
+}
+
+// ── Card gap transition ──────────────────────────────────────────────────────
+.nc-kanban-stack-cards {
+  transition: gap 200ms ease, padding 200ms ease;
+}

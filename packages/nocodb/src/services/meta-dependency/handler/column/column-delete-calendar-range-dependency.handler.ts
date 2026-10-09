@@ -10,6 +10,7 @@ import { CalendarRange, View } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
+import { deferUntilCommit } from '~/cache/trxScope';
 
 /**
  * Drop every CalendarRange row that referenced the deleted column as either
@@ -75,12 +76,14 @@ export class ColumnDeleteCalendarRangeDependencyHandler
       if (range.fk_view_id) affectedViewIds.add(range.fk_view_id);
     }
 
-    this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
-      this.logger.error(
-        `Failed to broadcast view_update events: ${e?.message}`,
-        e?.stack,
-      ),
-    );
+    const broadcast = () =>
+      this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
+        this.logger.error(
+          `Failed to broadcast view_update events: ${e?.message}`,
+          e?.stack,
+        ),
+      );
+    if (!deferUntilCommit(broadcast)) broadcast();
   }
 
   private async broadcastViewUpdates(

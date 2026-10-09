@@ -628,7 +628,7 @@ export default class User implements UserType {
       userId,
     );
 
-    await this.clearCache(userId, ncMeta);
+    await this.clearCache(userId, ncMeta, user);
   }
 
   // Called from auth-resolution paths only (not getWithRoles, whose callers
@@ -734,8 +734,13 @@ export default class User implements UserType {
     };
   }
 
-  protected static async clearCache(userId: string, ncMeta = Noco.ncMeta) {
-    const user = await this.get(userId, ncMeta);
+  protected static async clearCache(
+    userId: string,
+    ncMeta = Noco.ncMeta,
+    knownUser?: User,
+  ) {
+    // A soft-deleted user no longer reads back, so callers pass the row.
+    const user = knownUser ?? (await this.get(userId, ncMeta));
     if (!user) NcError.userNotFound(userId);
 
     // todo: skip base user cache delete based on flag

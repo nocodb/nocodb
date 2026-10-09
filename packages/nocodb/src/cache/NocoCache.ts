@@ -1,6 +1,11 @@
 import RedisCacheMgr from './RedisCacheMgr';
 import RedisMockCacheMgr from './RedisMockCacheMgr';
 import { isCacheBypassed } from './cacheBypassScope';
+import {
+  fenceKeyFor,
+  getOpenTrxScope,
+  registerTrxScopeInvalidator,
+} from './trxScope';
 import type { NcContext } from 'nocodb-sdk';
 import type CacheMgr from './CacheMgr';
 import { CACHE_PREFIX, CacheGetType } from '~/utils/globals';
@@ -38,6 +43,29 @@ export default class NocoCache {
     // TODO(cache): fetch orgs once it's implemented
     const orgs = 'noco';
     this.prefix = `${CACHE_PREFIX}:${orgs}`;
+
+    const client = this.client;
+    registerTrxScopeInvalidator({
+      prefix: this.prefix,
+      delKeys: async (keys) => {
+        await client.rawClient.del(keys);
+      },
+      fenceKeys: async (keys, ttlSeconds) => {
+        const pipeline = client.rawClient.pipeline();
+        for (const key of keys) {
+          pipeline.set(fenceKeyFor(key), '1', 'EX', ttlSeconds);
+        }
+        await pipeline.exec();
+      },
+      delPattern: (pattern) =>
+        client.processPattern(
+          pattern,
+          async (keys: string[]) => {
+            await client.rawClient.del(keys);
+          },
+          { count: 100, batch: true, raw: true },
+        ),
+    });
 
     // The boot flush must finish before anything reads the cache.
     await this.client.ready;
@@ -335,11 +363,12 @@ export default class NocoCache {
     if (Object.keys(hash).length === 0) {
       return;
     }
-    return !!this.client.setHash(
+    await this.client.setHash(
       `${this.prefix}:${cacheContext(context)}:${key}`,
       hash,
       options,
     );
+    return true;
   }
 
   public static async getHash(
@@ -447,8 +476,14 @@ export default class NocoCache {
 
   public static async clear(context: CacheContext): Promise<void> {
     if (this.cacheDisabled) return Promise.resolve();
+    const pattern = `${this.prefix}:${cacheContext(context)}:*`;
+    const scope = getOpenTrxScope();
+    if (scope) {
+      scope.clearPattern(pattern);
+      return;
+    }
     return this.client.processPattern(
-      `${this.prefix}:${cacheContext(context)}:*`,
+      pattern,
       async (keys: string[]) => {
         await this.client.del(keys);
       },

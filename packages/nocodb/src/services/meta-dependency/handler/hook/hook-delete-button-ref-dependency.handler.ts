@@ -10,6 +10,7 @@ import { ButtonColumn, Hook, Model, View } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
+import { deferUntilCommit } from '~/cache/trxScope';
 
 /**
  * When a webhook is deleted (trashed or hard-deleted), button columns that
@@ -80,18 +81,19 @@ export class HookDeleteButtonRefDependencyHandler implements MetaEventHandler {
     }
 
     // Realtime: notify clients showing the table that button columns changed.
-    // Fire-and-forget — runs after handle() returns and the trx commits, so
-    // we use Noco.ncMeta (not the trx-scoped ncMeta).
-    this.broadcastColumnUpdate(
-      context,
-      oldHook.fk_model_id,
-      buttonCols.map((b: any) => b.fk_column_id),
-    ).catch((e) =>
-      this.logger.error(
-        `Failed to broadcast column_update for hook delete: ${e?.message}`,
-        e?.stack,
-      ),
-    );
+    // Fire-and-forget after the trx commits, so it reads via Noco.ncMeta.
+    const broadcast = () =>
+      this.broadcastColumnUpdate(
+        context,
+        oldHook.fk_model_id,
+        buttonCols.map((b: any) => b.fk_column_id),
+      ).catch((e) =>
+        this.logger.error(
+          `Failed to broadcast column_update for hook delete: ${e?.message}`,
+          e?.stack,
+        ),
+      );
+    if (!deferUntilCommit(broadcast)) broadcast();
   }
 
   private async broadcastColumnUpdate(

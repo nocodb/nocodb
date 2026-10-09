@@ -10,6 +10,7 @@ import { type Column, View } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
+import { deferUntilCommit } from '~/cache/trxScope';
 import { ViewRowColorService } from '~/services/view-row-color.service';
 
 /**
@@ -114,12 +115,14 @@ export class ColumnDeleteRowColorDependencyHandler implements MetaEventHandler {
       });
     await applyRowColorInvolvement();
 
-    this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
-      this.logger.error(
-        `Failed to broadcast view_update events: ${e?.message}`,
-        e?.stack,
-      ),
-    );
+    const broadcast = () =>
+      this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
+        this.logger.error(
+          `Failed to broadcast view_update events: ${e?.message}`,
+          e?.stack,
+        ),
+      );
+    if (!deferUntilCommit(broadcast)) broadcast();
   }
 
   private async broadcastViewUpdates(

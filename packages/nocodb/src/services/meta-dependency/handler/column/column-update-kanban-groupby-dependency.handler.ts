@@ -11,6 +11,7 @@ import { MetaTable } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
 import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
+import { deferUntilCommit } from '~/cache/trxScope';
 
 const UNCATEGORIZED_STACK = {
   id: 'uncategorized',
@@ -184,12 +185,14 @@ export class ColumnUpdateKanbanGroupByDependencyHandler
       affectedViewIds.add(view.id);
     }
 
-    this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
-      this.logger.error(
-        `Failed to broadcast view_update events: ${e?.message}`,
-        e?.stack,
-      ),
-    );
+    const broadcast = () =>
+      this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
+        this.logger.error(
+          `Failed to broadcast view_update events: ${e?.message}`,
+          e?.stack,
+        ),
+      );
+    if (!deferUntilCommit(broadcast)) broadcast();
   }
 
   private async broadcastViewUpdates(

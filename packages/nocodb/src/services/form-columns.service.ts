@@ -244,9 +244,7 @@ export class FormColumnsService {
       }
     }
 
-    // Build the webhook manager before opening the transaction — its async
-    // builder chain can throw on transient DB errors, which would otherwise
-    // leak an open trx between startTransaction and the try block.
+    // Build the webhook manager before opening the transaction.
     const viewWebhookManager =
       param.viewWebhookManager ??
       (
@@ -259,42 +257,42 @@ export class FormColumnsService {
 
     // Wrap all writes in a transaction so a partial failure can't leave the
     // form view with mismatched row_ids / orders.
-    const ncMeta = await Noco.ncMeta.startTransaction();
-
     try {
+      const auditQueue = await Noco.ncMeta.runInTransaction(async (ncMeta) => {
+        const auditQueue: Array<{
+          oldFormViewColumn: FormViewColumn;
+          body: { row_id?: string | null; order?: number };
+        }> = [];
+
+        for (const u of param.updates) {
+          const body = extractProps(u, ['row_id', 'order']);
+          const oldFormViewColumn = existingById.get(u.id)!;
+
+          const rowIdChanged =
+            body.row_id !== undefined &&
+            (oldFormViewColumn.row_id ?? null) !== (body.row_id ?? null);
+          const orderChanged =
+            body.order !== undefined && oldFormViewColumn.order !== body.order;
+
+          await FormViewColumn.update(context, u.id, body, ncMeta);
+
+          if (rowIdChanged || orderChanged) {
+            auditQueue.push({ oldFormViewColumn, body });
+          }
+        }
+
+        return auditQueue;
+      });
+
       // Cache Column lookups so the audit payload per form-column update
       // doesn't re-hit the DB for each sibling in a drag reflow.
       const columnCache = new Map<string, Column>();
       const getUnderlyingColumn = async (colId: string) => {
         if (!columnCache.has(colId)) {
-          columnCache.set(colId, await Column.get(context, { colId }, ncMeta));
+          columnCache.set(colId, await Column.get(context, { colId }));
         }
         return columnCache.get(colId)!;
       };
-
-      const auditQueue: Array<{
-        oldFormViewColumn: FormViewColumn;
-        body: { row_id?: string | null; order?: number };
-      }> = [];
-
-      for (const u of param.updates) {
-        const body = extractProps(u, ['row_id', 'order']);
-        const oldFormViewColumn = existingById.get(u.id)!;
-
-        const rowIdChanged =
-          body.row_id !== undefined &&
-          (oldFormViewColumn.row_id ?? null) !== (body.row_id ?? null);
-        const orderChanged =
-          body.order !== undefined && oldFormViewColumn.order !== body.order;
-
-        await FormViewColumn.update(context, u.id, body, ncMeta);
-
-        if (rowIdChanged || orderChanged) {
-          auditQueue.push({ oldFormViewColumn, body });
-        }
-      }
-
-      await ncMeta.commit();
 
       // Emit audit events only after the transaction succeeds — otherwise
       // a rollback would leave audit entries for changes that didn't stick.
@@ -318,7 +316,6 @@ export class FormColumnsService {
 
       return { msg: 'Form columns updated' };
     } catch (e) {
-      await ncMeta.rollback();
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Error bulk updating form columns', e?.stack);
       NcError.get(context).badRequest('Failed to update form columns');

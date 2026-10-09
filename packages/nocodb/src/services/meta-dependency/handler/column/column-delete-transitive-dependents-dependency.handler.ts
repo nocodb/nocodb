@@ -19,6 +19,7 @@ import { CacheScope, MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
+import { deferUntilCommit } from '~/cache/trxScope';
 import { ColumnDeleteFilterDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-filter-dependency.handler';
 import { ColumnDeleteCoverImageDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-cover-image-dependency.handler';
 import { ColumnDeleteKanbanGroupByDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-kanban-groupby-dependency.handler';
@@ -374,12 +375,14 @@ export class ColumnDeleteTransitiveDependentsDependencyHandler
     // clients refresh field metadata for tables whose virtual columns got
     // error-marked. Outside the trx (uses Noco.ncMeta) — broadcast failures
     // are logged but don't fail the request.
-    this.broadcastColumnUpdates(affectedModelCtxMap).catch((e) =>
-      this.logger.error(
-        `Failed to broadcast column_update events: ${e?.message}`,
-        e?.stack,
-      ),
-    );
+    const broadcast = () =>
+      this.broadcastColumnUpdates(affectedModelCtxMap).catch((e) =>
+        this.logger.error(
+          `Failed to broadcast column_update events: ${e?.message}`,
+          e?.stack,
+        ),
+      );
+    if (!deferUntilCommit(broadcast)) broadcast();
   }
 
   private async broadcastColumnUpdates(

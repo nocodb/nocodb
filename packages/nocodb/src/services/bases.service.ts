@@ -211,15 +211,12 @@ export class BasesService {
       NcError.baseNotFound(param.baseId);
     }
 
-    const transaction = await ncMeta.startTransaction();
-
     try {
-      await IntegrationLink.deleteByBase(context, param.baseId, transaction);
-      await Base.softDelete(context, param.baseId, transaction);
-
-      await transaction.commit();
+      await ncMeta.runInTransaction(async (transaction) => {
+        await IntegrationLink.deleteByBase(context, param.baseId, transaction);
+        await Base.softDelete(context, param.baseId, transaction);
+      });
     } catch (e) {
-      await transaction.rollback();
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Error deleting base', e);
       NcError.get(context).internalServerError('Failed to delete base');

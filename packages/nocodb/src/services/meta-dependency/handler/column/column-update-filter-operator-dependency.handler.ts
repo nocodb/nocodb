@@ -10,6 +10,7 @@ import { Filter, Source } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
+import { deferUntilCommit } from '~/cache/trxScope';
 import { FiltersService } from '~/services/filters.service';
 
 /**
@@ -88,12 +89,14 @@ export class ColumnUpdateFilterOperatorDependencyHandler
       );
     }
 
-    this.broadcastFilterChanges(context, affectedFilters).catch((e) =>
-      this.logger.error(
-        `Failed to broadcast filter_update/filter_delete events: ${e?.message}`,
-        e?.stack,
-      ),
-    );
+    const broadcast = () =>
+      this.broadcastFilterChanges(context, affectedFilters).catch((e) =>
+        this.logger.error(
+          `Failed to broadcast filter_update/filter_delete events: ${e?.message}`,
+          e?.stack,
+        ),
+      );
+    if (!deferUntilCommit(broadcast)) broadcast();
   }
 
   private async broadcastFilterChanges(

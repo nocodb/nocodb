@@ -91,6 +91,7 @@ import type {
 } from '~/services/app-hooks/interfaces';
 
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
+import { deferUntilCommit } from '~/cache/trxScope';
 
 const ALL_EVENTS = '__nc_all_events__';
 
@@ -531,6 +532,16 @@ export class AppHooksService {
   ): void;
 
   emit(event, data): void {
+    // Inside a meta transaction, listeners run after commit. Record events
+    // describe data-DB writes outside that transaction, so they also run on
+    // rollback.
+    const isRecordEvent = /^(data|records|row)\./.test(String(event));
+    if (
+      deferUntilCommit(() => this.emit(event, data), {
+        onRollback: isRecordEvent ? 'run' : 'drop',
+      })
+    )
+      return;
     this.eventEmitter.emit(event, data);
     this.eventEmitter.emit(ALL_EVENTS, { event, data: data });
   }

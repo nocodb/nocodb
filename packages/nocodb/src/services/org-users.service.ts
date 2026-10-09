@@ -129,88 +129,90 @@ export class OrgUsersService {
   }
 
   async userDelete(param: { userId: string; req?: NcRequest }) {
-    const ncMeta = await Noco.ncMeta.startTransaction();
     try {
-      const user = await User.get(param.userId, ncMeta);
+      await Noco.ncMeta.runInTransaction(async (ncMeta) => {
+        const user = await User.get(param.userId, ncMeta);
 
-      if (extractRolesObj(user.roles)[OrgUserRoles.SUPER_ADMIN]) {
-        NcError.badRequest('Cannot delete super admin');
-      }
-
-      // Block deletion if user is SCIM-managed in any workspace
-      const hasScimColumn = await ncMeta
-        .knexConnection('nc_workspace_users')
-        .columnInfo()
-        .then((cols) => 'scim_managed' in cols)
-        .catch(() => false);
-
-      if (hasScimColumn) {
-        const scimCount = await ncMeta
-          .knexConnection('nc_workspace_users')
-          .where('fk_user_id', param.userId)
-          .where('scim_managed', true)
-          .where(function () {
-            this.where('deleted', false).orWhereNull('deleted');
-          })
-          .count('* as count')
-          .first();
-
-        if (scimCount && Number(scimCount.count) > 0) {
-          NcError.badRequest(
-            'This user is managed via SCIM in one or more workspaces. Removal must be done from the identity provider.',
-          );
+        if (extractRolesObj(user.roles)[OrgUserRoles.SUPER_ADMIN]) {
+          NcError.badRequest('Cannot delete super admin');
         }
-      }
 
-      // delete base user entry and assign to super admin
-      const baseUsers = await BaseUser.getProjectsIdList(param.userId, ncMeta);
+        // Block deletion if user is SCIM-managed in any workspace
+        const hasScimColumn = await ncMeta
+          .knexConnection('nc_workspace_users')
+          .columnInfo()
+          .then((cols) => 'scim_managed' in cols)
+          .catch(() => false);
 
-      // todo: clear cache
+        if (hasScimColumn) {
+          const scimCount = await ncMeta
+            .knexConnection('nc_workspace_users')
+            .where('fk_user_id', param.userId)
+            .where('scim_managed', true)
+            .where(function () {
+              this.where('deleted', false).orWhereNull('deleted');
+            })
+            .count('* as count')
+            .first();
 
-      // TODO: assign super admin as base owner
-      for (const baseUser of baseUsers) {
-        await BaseUser.delete(
-          {
-            workspace_id: baseUser.fk_workspace_id,
-            base_id: baseUser.base_id,
-          },
-          baseUser.base_id,
-          baseUser.fk_user_id,
+          if (scimCount && Number(scimCount.count) > 0) {
+            NcError.badRequest(
+              'This user is managed via SCIM in one or more workspaces. Removal must be done from the identity provider.',
+            );
+          }
+        }
+
+        // delete base user entry and assign to super admin
+        const baseUsers = await BaseUser.getProjectsIdList(
+          param.userId,
           ncMeta,
         );
-      }
 
-      // delete sync source entry
-      await SyncSource.deleteByUserId(param.userId, ncMeta);
+        // todo: clear cache
 
-      // delete workspace user entries (with cache invalidation)
-      await WorkspaceUser.softDeleteByUser(param.userId, ncMeta);
+        // TODO: assign super admin as base owner
+        for (const baseUser of baseUsers) {
+          await BaseUser.delete(
+            {
+              workspace_id: baseUser.fk_workspace_id,
+              base_id: baseUser.base_id,
+            },
+            baseUser.base_id,
+            baseUser.fk_user_id,
+            ncMeta,
+          );
+        }
 
-      // soft-delete from org_users
-      await ncMeta
-        .knexConnection(MetaTable.ORG_USERS)
-        .where('fk_user_id', param.userId)
-        .update({ deleted: true, deleted_at: new Date().toISOString() });
+        // delete sync source entry
+        await SyncSource.deleteByUserId(param.userId, ncMeta);
 
-      // delete refresh tokens
-      await UserRefreshToken.deleteAllUserToken(param.userId, ncMeta);
+        // delete workspace user entries (with cache invalidation)
+        await WorkspaceUser.softDeleteByUser(param.userId, ncMeta);
 
-      // delete api tokens (with cache invalidation)
-      await ApiToken.deleteByUser(param.userId, ncMeta);
+        // soft-delete from org_users
+        await ncMeta
+          .knexConnection(MetaTable.ORG_USERS)
+          .where('fk_user_id', param.userId)
+          .update({ deleted: true, deleted_at: new Date().toISOString() });
 
-      // BaseUser.delete only clears MCP tokens for the base it leaves.
-      await MCPToken.bulkDelete({ fk_user_id: param.userId }, ncMeta);
+        // delete refresh tokens
+        await UserRefreshToken.deleteAllUserToken(param.userId, ncMeta);
 
-      // soft-delete user (preserves record for audit/cell data)
-      await User.softDelete(param.userId, ncMeta);
-      await ncMeta.commit();
+        // delete api tokens (with cache invalidation)
+        await ApiToken.deleteByUser(param.userId, ncMeta);
+
+        // BaseUser.delete only clears MCP tokens for the base it leaves.
+        await MCPToken.bulkDelete({ fk_user_id: param.userId }, ncMeta);
+
+        // soft-delete user (preserves record for audit/cell data)
+        await User.softDelete(param.userId, ncMeta);
+      });
 
       this.appHooksService.emit(AppEvents.ORG_USER_DELETE, {
         userId: param.userId,
         req: param.req,
       });
     } catch (e) {
-      await ncMeta.rollback(e);
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Error deleting user', e);
       NcError.orgUserError('Bad Request');

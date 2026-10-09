@@ -205,46 +205,47 @@ export class BaseIntegrationsService {
       NcError.get(context).badRequest('Workspace ID is required');
     }
 
-    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
-
     try {
-      // Delegate to integrationsService.integrationCreate which handles:
-      // - validatePayload (swagger schema validation)
-      // - SQLite duplicate file check
-      // - Title trimming
-      // - AppEvents.INTEGRATION_CREATE (audit trail)
-      const integration = await this.integrationsService.integrationCreate(
-        context,
-        {
-          workspaceId,
-          integration: {
-            ...param.integration,
-            is_restricted: true,
-          },
-          req: param.req,
+      return await (Noco.ncMeta as MetaService).runInTransaction(
+        async (ncMeta) => {
+          // Delegate to integrationsService.integrationCreate which handles:
+          // - validatePayload (swagger schema validation)
+          // - SQLite duplicate file check
+          // - Title trimming
+          // - AppEvents.INTEGRATION_CREATE (audit trail)
+          // Auto-link to this base. From a sandbox this targets the production base
+          // so the link persists past sandbox teardown and production gets access.
+          const accessBaseId = await resolveAccessBaseId(context, param.baseId);
+
+          return this.integrationsService.integrationCreate(
+            context,
+            {
+              workspaceId,
+              integration: {
+                ...param.integration,
+                is_restricted: true,
+              },
+              req: param.req,
+              // Linked before the OAuth exchange, so a failed link doesn't
+              // consume the one-time authorization code.
+              afterCreate: async (integration) => {
+                await IntegrationLink.insert(
+                  context,
+                  {
+                    fk_integration_id: integration.id,
+                    base_id: accessBaseId,
+                    fk_workspace_id: workspaceId,
+                    created_by: userId,
+                  },
+                  ncMeta,
+                );
+              },
+            },
+            ncMeta,
+          );
         },
-        ncMeta,
       );
-
-      // Auto-link to this base. From a sandbox this targets the production base
-      // so the link persists past sandbox teardown and production gets access.
-      const accessBaseId = await resolveAccessBaseId(context, param.baseId);
-      await IntegrationLink.insert(
-        context,
-        {
-          fk_integration_id: integration.id,
-          base_id: accessBaseId,
-          fk_workspace_id: workspaceId,
-          created_by: userId,
-        },
-        ncMeta,
-      );
-
-      await ncMeta.commit();
-
-      return integration;
     } catch (e) {
-      await ncMeta.rollback(e);
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error(e.message, e.stack);
       NcError.get(context).internalServerError(
@@ -456,47 +457,46 @@ export class BaseIntegrationsService {
       );
     }
 
-    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
-
     try {
-      if (param.allBases) {
-        // Delete all links + set unrestricted
-        await IntegrationLink.deleteByIntegration(
-          context,
-          param.integrationId,
-          ncMeta,
-        );
-        await Integration.updateIntegration(
-          context,
-          param.integrationId,
-          { is_restricted: false },
-          ncMeta,
-        );
-        await ncMeta.commit();
-        return { all_bases: true };
-      }
+      return await (Noco.ncMeta as MetaService).runInTransaction(
+        async (ncMeta) => {
+          if (param.allBases) {
+            // Delete all links + set unrestricted
+            await IntegrationLink.deleteByIntegration(
+              context,
+              param.integrationId,
+              ncMeta,
+            );
+            await Integration.updateIntegration(
+              context,
+              param.integrationId,
+              { is_restricted: false },
+              ncMeta,
+            );
+            return { all_bases: true };
+          }
 
-      // Set restricted + replace links
-      await Integration.updateIntegration(
-        context,
-        param.integrationId,
-        { is_restricted: true },
-        ncMeta,
-      );
-      await IntegrationLink.replaceLinksForIntegration(
-        context,
-        {
-          integrationId: param.integrationId,
-          baseIds: param.baseIds,
-          workspaceId: integration.fk_workspace_id,
-          userId: param.userId,
+          // Set restricted + replace links
+          await Integration.updateIntegration(
+            context,
+            param.integrationId,
+            { is_restricted: true },
+            ncMeta,
+          );
+          await IntegrationLink.replaceLinksForIntegration(
+            context,
+            {
+              integrationId: param.integrationId,
+              baseIds: param.baseIds,
+              workspaceId: integration.fk_workspace_id,
+              userId: param.userId,
+            },
+            ncMeta,
+          );
+          return { all_bases: false, base_ids: param.baseIds };
         },
-        ncMeta,
       );
-      await ncMeta.commit();
-      return { all_bases: false, base_ids: param.baseIds };
     } catch (e) {
-      await ncMeta.rollback(e);
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error(e.message, e.stack);
       NcError.get(context).internalServerError('Failed to update linked bases');

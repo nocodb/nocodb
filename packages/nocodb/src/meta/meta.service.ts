@@ -22,6 +22,12 @@ import {
 } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 import { isWorker } from '~/utils';
+import {
+  getOpenTrxScope,
+  getTrxScope,
+  runInTrxScope,
+  TrxScope,
+} from '~/cache/trxScope';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -1079,9 +1085,41 @@ export class MetaService {
 
   async rollback(e?) {
     if (this.trx) {
+      // A rollback on any wrapper ends the whole shared transaction; make sure
+      // the owning runInTransaction doesn't try to commit afterwards.
+      const scope = getTrxScope();
+      if (scope?.trx === this.trx) scope.markAborted(e);
       await this.trx.rollback(e);
     }
     this.trx = null;
+  }
+
+  /**
+   * Run `fn` in a meta transaction whose cache writes stay private until it
+   * ends and whose side effects (sockets, app hooks, webhooks) run after
+   * commit. Joins the current transaction when called on a transaction-bound
+   * MetaService. `fn` must not commit or roll back itself.
+   */
+  async runInTransaction<T>(
+    fn: (ncMeta: MetaService) => Promise<T>,
+  ): Promise<T> {
+    if (this.trx) return fn(this);
+
+    const ncMeta = await this.startTransaction();
+    const scope = new TrxScope(ncMeta.trx, getOpenTrxScope());
+    let result: T;
+    try {
+      result = await runInTrxScope(scope, () => fn(ncMeta));
+      if (scope.aborted)
+        throw scope.abortError ?? new Error('Transaction rolled back');
+      await ncMeta.commit();
+    } catch (e) {
+      if (ncMeta.trx) await ncMeta.rollback(e).catch(() => {});
+      await scope.end('rollback');
+      throw e;
+    }
+    await scope.end('commit');
+    return result;
   }
 
   async startTransaction(): Promise<MetaService> {

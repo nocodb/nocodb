@@ -5,6 +5,12 @@ import type { ChainableCommander } from 'ioredis';
 import type IORedis from 'ioredis';
 import { CacheDelDirection, CacheGetType, CacheScope } from '~/utils/globals';
 import { NC_REDIS_GRACE_TTL, NC_REDIS_TTL } from '~/helpers/redisHelpers';
+import {
+  activeCacheClient,
+  fenceKeyFor,
+  getOpenTrxScope,
+  isFencedKey,
+} from '~/cache/trxScope';
 
 const log = debug('nc:cache');
 const logger = new Logger('CacheMgr');
@@ -27,7 +33,22 @@ const logger = new Logger('CacheMgr');
 const DURABLE_SCOPES = [CacheScope.COLLAB_STATE];
 
 export default abstract class CacheMgr {
-  client: IORedis;
+  private _client: IORedis;
+
+  // Inside an open meta transaction scope, meta keys go to that transaction's
+  // overlay instead of Redis (see trxScope.ts).
+  get client(): IORedis {
+    return activeCacheClient(this._client);
+  }
+
+  set client(client: IORedis) {
+    this._client = client;
+  }
+
+  get rawClient(): IORedis {
+    return this._client;
+  }
+
   prefix: string;
   context: string;
 
@@ -148,6 +169,15 @@ export default abstract class CacheMgr {
     },
   ): Promise<any> {
     const { skipPrepare, timestamp } = options;
+
+    if (
+      isFencedKey(key) &&
+      !getOpenTrxScope() &&
+      (await this.rawClient.exists(fenceKeyFor(key)))
+    ) {
+      log(`${this.context}::set: ${key} is fenced after a transaction`);
+      return true;
+    }
 
     if (typeof value !== 'undefined' && value) {
       log(
@@ -573,21 +603,10 @@ export default abstract class CacheMgr {
       // given a child key, delete all keys in corresponding parent lists
       const scopeList = this.getParents(childKey);
       for (const listKey of scopeList) {
-        // get target list
-        let list = (await this.get(listKey, CacheGetType.TYPE_ARRAY)) || [];
-        if (!list.length) {
-          continue;
-        }
-        // remove target Key
-        list = list.filter((k) => k !== key);
-        // delete list
-        log(`${this.context}::deepDel: remove listKey ${listKey}`);
-        await this.del(listKey);
-        if (list.length) {
-          // set target list
-          log(`${this.context}::deepDel: set key ${listKey}`);
-          await this.set(listKey, list);
-        }
+        // SREM, not read-filter-rewrite: a concurrent appendToList in between
+        // would otherwise be dropped from the list.
+        log(`${this.context}::deepDel: remove ${key} from ${listKey}`);
+        await this.client.srem(listKey, key);
       }
       log(`${this.context}::deepDel: remove key ${key}`);
       return await this.del(key);
@@ -718,6 +737,9 @@ export default abstract class CacheMgr {
   }
 
   async execRefreshTTL(keys: string, timestamp?: number): Promise<void> {
+    // A refresh rewrites whole lists; inside a transaction scope that would
+    // copy them all into the overlay for nothing.
+    if (getOpenTrxScope()) return;
     const p = await this.refreshTTL(this.client.pipeline(), keys, timestamp);
     await p.exec();
   }
@@ -797,12 +819,9 @@ export default abstract class CacheMgr {
   ) {
     log(`${this.context}::setHash: setting hash ${key}`);
     const { ttl } = options;
-    if (ttl) {
-      await this.client.hset(key, hash);
-      await this.client.expire(key, ttl);
-    }
-
-    return this.client.hset(key, hash);
+    const res = await this.client.hset(key, hash);
+    if (ttl) await this.client.expire(key, ttl);
+    return res;
   }
 
   async getHash(key: string): Promise<Record<string, string | number> | null> {
@@ -833,15 +852,11 @@ export default abstract class CacheMgr {
       `${this.context}::incrHashField: incrementing hash ${key} field ${field}`,
     );
 
-    return new Promise((resolve) => {
-      this.client.hincrby(key, field, value, (err, res) => {
-        if (err) {
-          resolve(0);
-        } else {
-          resolve(+Promise.resolve(res));
-        }
-      });
-    });
+    try {
+      return Number(await this.client.hincrby(key, field, value));
+    } catch {
+      return 0;
+    }
   }
 
   async delHashField(key: string, field: string): Promise<boolean> {
@@ -894,26 +909,32 @@ export default abstract class CacheMgr {
       type: options.type,
     });
 
+    // scanStream doesn't await `data` handlers, so track them and settle on end.
+    const pending: Promise<void>[] = [];
     return new Promise((resolve, reject) => {
-      stream.on('data', async (keys: string[]) => {
-        if (options.batch) {
-          await callback(
-            options.raw
-              ? keys
-              : keys.map((k) => k.replace(`${this.prefix}:`, '')),
-          );
-        } else {
-          for (const key of keys) {
-            logger.log(`Processing key: ${key}`);
-            await callback(
-              options.raw ? key : key.replace(`${this.prefix}:`, ''),
-            );
-          }
-        }
+      stream.on('data', (keys: string[]) => {
+        pending.push(
+          (async () => {
+            if (options.batch) {
+              await callback(
+                options.raw
+                  ? keys
+                  : keys.map((k) => k.replace(`${this.prefix}:`, '')),
+              );
+            } else {
+              for (const key of keys) {
+                logger.log(`Processing key: ${key}`);
+                await callback(
+                  options.raw ? key : key.replace(`${this.prefix}:`, ''),
+                );
+              }
+            }
+          })(),
+        );
       });
 
       stream.on('end', () => {
-        resolve();
+        Promise.all(pending).then(() => resolve(), reject);
       });
 
       stream.on('error', (err) => {

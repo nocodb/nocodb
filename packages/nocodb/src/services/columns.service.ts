@@ -143,6 +143,7 @@ import {
   convertValueToAIRecordType,
 } from '~/utils/dataConversion';
 import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
+import { exitTrxScope } from '~/cache/trxScope';
 import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
 import { DBErrorExtractor } from '~/helpers/db-error/extractor';
@@ -5718,12 +5719,15 @@ export class ColumnsService implements IColumnsService {
                       // Create placeholder text column with linked display values before deleting
                       if (!param.skipLinkPlaceholder) {
                         try {
-                          const placeholder =
-                            await this.linkPlaceholderService.createPlaceholder(
+                          // Autocommit on purpose (DDL + data UPDATE on another
+                          // pool would deadlock inside the meta transaction).
+                          const placeholder = await exitTrxScope(() =>
+                            this.linkPlaceholderService.createPlaceholder(
                               refContext,
                               c,
                               refTable,
-                            );
+                            ),
+                          );
                           if (placeholder) {
                             placeholderRefTables.set(refTable.id, refTable);
                           }
@@ -6177,12 +6181,14 @@ export class ColumnsService implements IColumnsService {
           // Create placeholder text column with linked display values before deleting
           if (!skipLinkPlaceholder && colInRefTable) {
             try {
-              const placeholder =
-                await this.linkPlaceholderService.createPlaceholder(
+              // Autocommit on purpose, as in the mm path above.
+              const placeholder = await exitTrxScope(() =>
+                this.linkPlaceholderService.createPlaceholder(
                   refContext,
                   colInRefTable,
                   refTable,
-                );
+                ),
+              );
               if (placeholder && affectedRefTables) {
                 affectedRefTables.set(refTable.id, refTable);
               }
@@ -6461,12 +6467,14 @@ export class ColumnsService implements IColumnsService {
           // Create placeholder text column with linked display values before deleting
           if (!skipLinkPlaceholder && colInRefTable) {
             try {
-              const placeholder =
-                await this.linkPlaceholderService.createPlaceholder(
+              // Autocommit on purpose, as in the mm path above.
+              const placeholder = await exitTrxScope(() =>
+                this.linkPlaceholderService.createPlaceholder(
                   refContext,
                   colInRefTable,
                   refTable,
-                );
+                ),
+              );
               if (placeholder && affectedRefTables) {
                 affectedRefTables.set(refTable.id, refTable);
               }

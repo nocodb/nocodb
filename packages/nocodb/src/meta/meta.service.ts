@@ -79,16 +79,32 @@ export class MetaService {
     return this._config;
   }
 
+  /**
+   * Meta queries on the global service inside an open meta transaction run on
+   * that transaction, so a call that didn't thread `ncMeta` can't commit behind
+   * it or cache pre-transaction rows. `exitTrxScope` opts out.
+   */
   public get connection() {
-    return this.trx ?? this.knexInstance;
+    if (this.trx) return this.trx;
+    const scopeMeta = getOpenTrxScope()?.meta;
+    if (
+      scopeMeta?.trx &&
+      !scopeMeta.trx.isCompleted() &&
+      scopeMeta.knexInstance === this.knexInstance
+    ) {
+      return scopeMeta.trx;
+    }
+    return this.knexInstance;
   }
 
   get knexConnection() {
     return this.connection;
   }
 
+  // Not routed: data access on meta-backed sources (NcConnectionMgrv2), DDL
+  // and deliberately independent writes use this pool connection.
   public get knex(): any {
-    return this.knexConnection;
+    return this.trx ?? this.knexInstance;
   }
 
   /**
@@ -1104,9 +1120,18 @@ export class MetaService {
     fn: (ncMeta: MetaService) => Promise<T>,
   ): Promise<T> {
     if (this.trx) return fn(this);
+    // The global service inside an open transaction joins it, like its queries.
+    const scopeMeta = getOpenTrxScope()?.meta;
+    if (
+      scopeMeta?.trx &&
+      !scopeMeta.trx.isCompleted() &&
+      scopeMeta.knexInstance === this.knexInstance
+    ) {
+      return fn(scopeMeta);
+    }
 
     const ncMeta = await this.startTransaction();
-    const scope = new TrxScope(ncMeta.trx, getOpenTrxScope());
+    const scope = new TrxScope(ncMeta.trx, getOpenTrxScope(), ncMeta);
     let result: T;
     try {
       result = await runInTrxScope(scope, () => fn(ncMeta));

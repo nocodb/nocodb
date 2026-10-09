@@ -2,6 +2,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import { Logger } from '@nestjs/common';
 import type IORedis from 'ioredis';
 import type { ChainableCommander } from 'ioredis';
+import type { MetaService } from '~/meta/meta.service';
 
 const logger = new Logger('TrxScope');
 
@@ -196,18 +197,12 @@ redis.call('SET', KEYS[1], ARGV[1], unpackFn(ARGV, 3))
 return 1`;
 
 // List delta: ARGV = nAdd, adds..., nRem, rems..., expire|''. A list that is
-// gone stays gone (SADD would create a partial list readers trust as whole);
-// a new member whose value isn't cached drops the list instead.
+// gone stays gone (SADD would create a partial list readers trust as whole).
+// Touches only KEYS[1]; whether new members are cached is checked beforehand.
 const REPLAY_LIST_SCRIPT = `
 if redis.call('EXISTS', KEYS[1]) == 0 then return 0 end
 local i = 1
 local nAdd = tonumber(ARGV[i])
-for j = 1, nAdd do
-  if redis.call('EXISTS', ARGV[i + j]) == 0 then
-    redis.call('DEL', KEYS[1])
-    return -1
-  end
-end
 for j = 1, nAdd do redis.call('SADD', KEYS[1], ARGV[i + j]) end
 i = i + nAdd + 1
 local nRem = tonumber(ARGV[i])
@@ -361,7 +356,12 @@ export class TrxScope {
   private readonly changed = new Set<string>();
   private dropped = false;
 
-  constructor(public trx: unknown, readonly parent?: TrxScope) {}
+  constructor(
+    public trx: unknown,
+    readonly parent?: TrxScope,
+    // The transaction-bound service that global meta queries route to.
+    public meta: MetaService | null = null,
+  ) {}
 
   get isOpen() {
     return this.state === 'open';
@@ -502,6 +502,7 @@ export class TrxScope {
     this.writes = [];
     this.changed.clear();
     this.trx = null;
+    this.meta = null;
 
     // Rollback: Redis was never written, so it still holds committed state.
     if (committed) {
@@ -650,52 +651,84 @@ async function replay(plans: Map<string, KeyPlan>, patterns: string[]) {
     for (const p of patterns) await invalidator.delPattern(p);
 
     const entries = [...plans];
+    // exec resolves with per-command errors instead of rejecting.
+    const run = async (
+      queue: (
+        pipe: ChainableCommander,
+        call: (cmd: string, ...args: (string | number)[]) => void,
+      ) => void,
+    ) => {
+      const pipe = raw.pipeline();
+      queue(pipe, (cmd, ...args) =>
+        Reflect.apply(Reflect.get(pipe, cmd), pipe, args),
+      );
+      const res = (await pipe.exec()) ?? [];
+      const failed = res.find(([err]) => err)?.[0];
+      if (failed) throw failed;
+      return res.map(([, r]) => r);
+    };
+
+    // Pass 1: deletes, values, and which new list members are cached.
+    const cached = new Set<string>();
     for (let i = 0; i < entries.length; i += INVALIDATION_BATCH) {
       const batch = entries.slice(i, i + INVALIDATION_BATCH);
-      const pipe = raw.pipeline();
-      const call = (cmd: string, ...args: (string | number)[]) =>
-        Reflect.apply(Reflect.get(pipe, cmd), pipe, args);
-
-      // In order: deletes, then values, then list/hash deltas, so a list
-      // delta sees which new members got cached.
-      for (const [key, plan] of batch) if (plan.del) pipe.del(key);
-      for (const [key, plan] of batch) {
-        if (!plan.set) continue;
-        const [value, ...opts] = plan.set;
-        const ts = /"timestamp":(\d+)}$/.exec(value)?.[1] ?? '0';
-        call('ncReplaySet', key, value, ts, ...opts);
-      }
-      for (const [key, plan] of batch) {
-        const expire = plan.expire?.[0] ?? '';
-        if (plan.sadd.size || plan.srem.size) {
-          call(
-            'ncReplayList',
-            key,
-            plan.sadd.size,
-            ...plan.sadd,
-            plan.srem.size,
-            ...plan.srem,
-            expire,
-          );
+      const probes: string[] = [];
+      const res = await run((pipe, call) => {
+        for (const [key, plan] of batch) if (plan.del) pipe.del(key);
+        for (const [key, plan] of batch) {
+          if (!plan.set) continue;
+          const [value, ...opts] = plan.set;
+          const ts = /"timestamp":(\d+)}$/.exec(value)?.[1] ?? '0';
+          call('ncReplaySet', key, value, ts, ...opts);
         }
-        if (plan.hset.size || plan.hdel.size || plan.hincr.size) {
-          call(
-            'ncReplayHash',
-            key,
-            plan.hset.size,
-            ...[...plan.hset].flat(),
-            plan.hdel.size,
-            ...plan.hdel,
-            plan.hincr.size,
-            ...[...plan.hincr].flat(),
-            expire,
-          );
+        for (const [, plan] of batch) {
+          for (const m of plan.sadd) {
+            pipe.exists(m);
+            probes.push(m);
+          }
         }
-      }
+      });
+      const probed = res.slice(res.length - probes.length);
+      probes.forEach((m, j) => probed[j] && cached.add(m));
+    }
 
-      // exec resolves with per-command errors instead of rejecting.
-      const failed = (await pipe.exec())?.find(([err]) => err)?.[0];
-      if (failed) throw failed;
+    // Pass 2: list and hash deltas. A list gaining a member whose value isn't
+    // cached is dropped instead of pointing at a missing child.
+    for (let i = 0; i < entries.length; i += INVALIDATION_BATCH) {
+      const batch = entries.slice(i, i + INVALIDATION_BATCH);
+      await run((pipe, call) => {
+        for (const [key, plan] of batch) {
+          const expire = plan.expire?.[0] ?? '';
+          if (plan.sadd.size || plan.srem.size) {
+            if ([...plan.sadd].some((m) => !cached.has(m))) {
+              pipe.del(key);
+            } else {
+              call(
+                'ncReplayList',
+                key,
+                plan.sadd.size,
+                ...plan.sadd,
+                plan.srem.size,
+                ...plan.srem,
+                expire,
+              );
+            }
+          }
+          if (plan.hset.size || plan.hdel.size || plan.hincr.size) {
+            call(
+              'ncReplayHash',
+              key,
+              plan.hset.size,
+              ...[...plan.hset].flat(),
+              plan.hdel.size,
+              ...plan.hdel,
+              plan.hincr.size,
+              ...[...plan.hincr].flat(),
+              expire,
+            );
+          }
+        }
+      });
     }
   } catch (e) {
     logger.error(`Cache replay after commit failed: ${e?.message}`);

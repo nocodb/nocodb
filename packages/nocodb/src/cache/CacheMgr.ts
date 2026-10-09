@@ -164,13 +164,16 @@ export default abstract class CacheMgr {
       skipPrepare?: boolean;
       // timestamp for the value, if not provided, it will be set to current time
       timestamp?: number;
+      // the caller already checked the write fence for this key
+      skipFenceCheck?: boolean;
     } = {
       skipPrepare: false,
     },
   ): Promise<any> {
-    const { skipPrepare, timestamp } = options;
+    const { skipPrepare, timestamp, skipFenceCheck } = options;
 
     if (
+      !skipFenceCheck &&
       isFencedKey(key) &&
       !getOpenTrxScope() &&
       (await this.rawClient.exists(fenceKeyFor(key)))
@@ -555,14 +558,26 @@ export default abstract class CacheMgr {
     await this.deepDel(listKey, CacheDelDirection.PARENT_TO_CHILD);
     const listOfGetKeys = [];
 
-    for (const o of list) {
-      // construct key for Get
-      let getKey = `${scope}:${o.id}`;
-      if (props.length) {
-        const propValues = props.map((p) => o[p]);
-        // e.g. nc:<orgs>:<scope>:<prop_value_1>:<prop_value_2>
-        getKey = `${scope}:${propValues.join(':')}`;
-      }
+    // e.g. nc:<orgs>:<scope>:<prop_value_1>:<prop_value_2>
+    const getKeys = list.map((o) =>
+      props.length
+        ? `${scope}:${props.map((p) => o[p]).join(':')}`
+        : `${scope}:${o.id}`,
+    );
+
+    // One EXISTS for the whole list. Caching a list whose fenced children are
+    // skipped would make every getList tear it down until the fence expires.
+    const checkFence = isFencedKey(listKey) && !getOpenTrxScope();
+    if (
+      checkFence &&
+      (await this.rawClient.exists(...[listKey, ...getKeys].map(fenceKeyFor)))
+    ) {
+      log(`${this.context}::setList: ${listKey} is fenced after a transaction`);
+      return true;
+    }
+
+    for (const [i, o] of list.entries()) {
+      const getKey = getKeys[i];
       log(`${this.context}::setList: get key ${getKey}`);
       // get key
       let rawValue = await this.getRaw(getKey, CacheGetType.TYPE_OBJECT);
@@ -587,13 +602,14 @@ export default abstract class CacheMgr {
       await this.set(getKey, rawValue, {
         skipPrepare: true,
         timestamp,
+        skipFenceCheck: checkFence,
       });
       // push key to list
       listOfGetKeys.push(getKey);
     }
     // set list
     log(`${this.context}::setList: setting list with key ${listKey}`);
-    return this.set(listKey, listOfGetKeys);
+    return this.set(listKey, listOfGetKeys, { skipFenceCheck: checkFence });
   }
 
   async deepDel(key: string, direction: string): Promise<boolean> {
@@ -637,6 +653,12 @@ export default abstract class CacheMgr {
         ? `${scope}:list`
         : `${scope}:${subListKeys.join(':')}:list`;
     log(`${this.context}::appendToList: append key ${key} to ${listKey}`);
+    const trxScope = getOpenTrxScope();
+    if (trxScope?.valuesDropped && trxScope.isMetaKey(listKey)) {
+      // The child just set reads back as missing, so drop the list instead.
+      await this.del(listKey);
+      return false;
+    }
     let list = await this.get(listKey, CacheGetType.TYPE_ARRAY);
 
     if (!list || !list.length) {

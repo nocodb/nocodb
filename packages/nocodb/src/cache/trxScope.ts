@@ -1,6 +1,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { Logger } from '@nestjs/common';
 import type IORedis from 'ioredis';
+import type { ChainableCommander } from 'ioredis';
 
 const logger = new Logger('TrxScope');
 
@@ -131,7 +132,6 @@ const META_SCOPES = new Set<string>([
   'managedAppTeam',
   'marketplacePublisher',
   'marketplaceCuration',
-  'marketplaceCatalog',
   'automationSubscriber',
   'automationSection',
   'baseSection',
@@ -235,12 +235,17 @@ export class TrxScope {
   private readonly clearedPatterns: string[] = [];
   private readonly effects: QueuedEffect[] = [];
   private readonly overlays = new WeakMap<IORedis, IORedis>();
-  private valuesDropped = false;
+  private dropped = false;
 
-  constructor(readonly trx: unknown, readonly parent?: TrxScope) {}
+  constructor(public trx: unknown, readonly parent?: TrxScope) {}
 
   get isOpen() {
     return this.state === 'open';
+  }
+
+  /** Past OVERLAY_VALUE_LIMIT keys, every meta write is kept as a tombstone. */
+  get valuesDropped() {
+    return this.dropped;
   }
 
   markAborted(e?: unknown) {
@@ -291,10 +296,10 @@ export class TrxScope {
   }
 
   put(key: string, entry: Entry) {
-    if (this.valuesDropped && entry.kind !== 'tomb') entry = TOMB;
+    if (this.dropped && entry.kind !== 'tomb') entry = TOMB;
     this.entries.set(key, entry);
-    if (!this.valuesDropped && this.entries.size > OVERLAY_VALUE_LIMIT) {
-      this.valuesDropped = true;
+    if (!this.dropped && this.entries.size > OVERLAY_VALUE_LIMIT) {
+      this.dropped = true;
       for (const k of this.entries.keys()) this.entries.set(k, TOMB);
     }
   }
@@ -338,6 +343,12 @@ export class TrxScope {
 
     const keys = [...this.entries.keys()];
     const patterns = [...this.clearedPatterns];
+    // Async resources created inside the scope keep it reachable through the
+    // AsyncLocalStorage store; drop the overlay state so they don't pin it.
+    this.entries.clear();
+    this.loads.clear();
+    this.clearedPatterns.length = 0;
+    this.trx = null;
 
     const fenced = keys.filter(isFencedKey);
     if (fenced.length && invalidator) {
@@ -425,14 +436,16 @@ export function activeCacheClient(real: IORedis): IORedis {
 
 // ── overlay client ───────────────────────────────────────────────
 
-function flatten(args: any[]): string[] {
+function flatten(args: unknown[]): string[] {
   return args.flat().map(String);
 }
 
 function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
   const meta = (key: string) => scope.isMetaKey(key);
 
-  const ops: Record<string, (...args: any[]) => any> = {
+  // Pass-throughs forward the caller's arguments untouched; Reflect.apply
+  // avoids re-resolving ioredis's overloads against a spread.
+  const ops: Record<string, (...args: never[]) => unknown> = {
     async get(key: string) {
       if (!meta(key)) return real.get(key);
       const e = scope.peek(key);
@@ -440,7 +453,7 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
       return e.kind === 'str' ? e.v : null;
     },
 
-    async mget(...args: any[]) {
+    async mget(...args: unknown[]) {
       const keys = flatten(args);
       const out: (string | null)[] = new Array(keys.length).fill(null);
       const missing: number[] = [];
@@ -456,7 +469,7 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
       return out;
     },
 
-    async exists(...args: any[]) {
+    async exists(...args: unknown[]) {
       let n = 0;
       for (const k of flatten(args)) {
         const e = meta(k) ? scope.peek(k) : undefined;
@@ -466,15 +479,15 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
       return n;
     },
 
-    async set(key: string, value: any, ...rest: any[]) {
+    async set(key: string, value: unknown, ...rest: unknown[]) {
       if (!meta(key) || rest.some((r) => String(r).toUpperCase() === 'NX')) {
-        return (real.set as any)(key, value, ...rest);
+        return Reflect.apply(real.set, real, [key, value, ...rest]);
       }
       scope.put(key, { kind: 'str', v: String(value) });
       return 'OK';
     },
 
-    async del(...args: any[]) {
+    async del(...args: unknown[]) {
       const keys = flatten(args);
       const passthrough = keys.filter((k) => !meta(k));
       for (const k of keys) if (meta(k)) scope.put(k, TOMB);
@@ -489,8 +502,8 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
       return e.kind === 'set' ? [...e.v] : [];
     },
 
-    async sadd(key: string, ...args: any[]) {
-      if (!meta(key)) return (real.sadd as any)(key, ...args);
+    async sadd(key: string, ...args: unknown[]) {
+      if (!meta(key)) return Reflect.apply(real.sadd, real, [key, ...args]);
       await scope.load(real, key, 'set');
       const e = scope.peek(key);
       const set = e?.kind === 'set' ? e.v : new Set<string>();
@@ -505,8 +518,8 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
       return added;
     },
 
-    async srem(key: string, ...args: any[]) {
-      if (!meta(key)) return (real.srem as any)(key, ...args);
+    async srem(key: string, ...args: unknown[]) {
+      if (!meta(key)) return Reflect.apply(real.srem, real, [key, ...args]);
       await scope.load(real, key, 'set');
       const e = scope.peek(key);
       if (e?.kind !== 'set') return 0;
@@ -515,23 +528,23 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
       return removed;
     },
 
-    async expire(key: string, ...rest: any[]) {
-      if (!meta(key)) return (real.expire as any)(key, ...rest);
+    async expire(key: string, ...rest: unknown[]) {
+      if (!meta(key)) return Reflect.apply(real.expire, real, [key, ...rest]);
       return scope.peek(key)?.kind === 'tomb' ? 0 : 1;
     },
 
-    async hset(key: string, ...args: any[]) {
-      if (!meta(key)) return (real.hset as any)(key, ...args);
+    async hset(key: string, ...args: unknown[]) {
+      if (!meta(key)) return Reflect.apply(real.hset, real, [key, ...args]);
       await scope.load(real, key, 'hash');
       const e = scope.peek(key);
       const hash = e?.kind === 'hash' ? e.v : new Map<string, string>();
       const pairs: [string, string][] =
-        args.length === 1 && typeof args[0] === 'object'
+        args.length === 1 && typeof args[0] === 'object' && args[0] !== null
           ? Object.entries(args[0]).map(([f, v]) => [f, String(v)])
-          : args.reduce((acc, cur, i, arr) => {
+          : args.reduce<[string, string][]>((acc, cur, i, arr) => {
               if (i % 2 === 0) acc.push([String(cur), String(arr[i + 1])]);
               return acc;
-            }, [] as [string, string][]);
+            }, []);
       let added = 0;
       for (const [f, v] of pairs) {
         if (!hash.has(f)) added++;
@@ -555,8 +568,8 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
       return e.kind === 'hash' ? Object.fromEntries(e.v) : {};
     },
 
-    async hdel(key: string, ...fields: any[]) {
-      if (!meta(key)) return (real.hdel as any)(key, ...fields);
+    async hdel(key: string, ...fields: unknown[]) {
+      if (!meta(key)) return Reflect.apply(real.hdel, real, [key, ...fields]);
       await scope.load(real, key, 'hash');
       const e = scope.peek(key);
       if (e?.kind !== 'hash') return 0;
@@ -566,37 +579,37 @@ function createOverlayClient(real: IORedis, scope: TrxScope): IORedis {
     },
 
     pipeline() {
-      const queued: [string, any[]][] = [];
-      const pipe: any = new Proxy(
-        {},
-        {
-          get(_t, prop: string) {
-            if (prop === 'exec') {
-              return async (cb?: (err: any, res: any) => void) => {
-                const results: [Error | null, any][] = [];
-                for (const [name, args] of queued) {
-                  try {
-                    results.push([null, await overlay[name](...args)]);
-                  } catch (e) {
-                    results.push([e, null]);
-                  }
+      const queued: [string | symbol, unknown[]][] = [];
+      const pipe = new Proxy<ChainableCommander>(Object.create(null), {
+        get(_t, prop) {
+          if (prop === 'exec') {
+            return async (
+              cb?: (err: Error | null, res: [Error | null, unknown][]) => void,
+            ) => {
+              const results: [Error | null, unknown][] = [];
+              for (const [name, args] of queued) {
+                try {
+                  const fn = Reflect.get(overlay, name);
+                  results.push([null, await Reflect.apply(fn, overlay, args)]);
+                } catch (e) {
+                  results.push([e, null]);
                 }
-                cb?.(null, results);
-                return results;
-              };
-            }
-            return (...args: any[]) => {
-              queued.push([prop, args]);
-              return pipe;
+              }
+              cb?.(null, results);
+              return results;
             };
-          },
+          }
+          return (...args: unknown[]) => {
+            queued.push([prop, args]);
+            return pipe;
+          };
         },
-      );
+      });
       return pipe;
     },
   };
 
-  const overlay: any = new Proxy(real, {
+  const overlay = new Proxy<IORedis>(real, {
     get(target, prop, receiver) {
       if (typeof prop === 'string' && prop in ops) return ops[prop];
       const v = Reflect.get(target, prop, receiver);

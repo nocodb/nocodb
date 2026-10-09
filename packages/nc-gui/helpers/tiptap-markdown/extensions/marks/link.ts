@@ -45,8 +45,11 @@ export const Link = TiptapLink.extend<LinkOptions>({
       return ['span', {}, 0]
     }
 
+    // Read-only editors render the shared-page /leaving href; editable ones keep the real one for editing.
+    const anchorAttr = this.editor?.options.editable === false ? withLeavingPageHref(attr) : attr
+
     if (isValidURL(attr.href)) {
-      return ['a', attr, 0]
+      return ['a', anchorAttr, 0]
     }
 
     // We use this as a workaround to show a tooltip on the content
@@ -55,7 +58,7 @@ export const Link = TiptapLink.extend<LinkOptions>({
     // and `.includes`/`.split` are string-only — guard the type to avoid
     // "includes is not a function".
     if (!ncIsString(attr.href) || !attr.href.includes('~~~###~~~')) {
-      return ['a', attr, 0]
+      return ['a', anchorAttr, 0]
     }
 
     // The class is used to identify the text that needs to show the tooltip

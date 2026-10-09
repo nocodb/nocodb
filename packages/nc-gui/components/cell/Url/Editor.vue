@@ -118,7 +118,7 @@ const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
     >
       <a
         class="truncate text-primary cursor-pointer pointer-events-auto no-user-select"
-        :href="url"
+        :href="getExternalLinkHref(url)"
         @click.prevent="confirmPageLeavingRedirect(url)"
       >
         {{ vModel }}

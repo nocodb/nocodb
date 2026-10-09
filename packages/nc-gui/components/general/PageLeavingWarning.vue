@@ -12,17 +12,28 @@ const brandIcon = computed(() => {
   return faviconUrl.value || (isDark.value ? logoDarkUrl.value || logoUrl.value : logoUrl.value)
 })
 
-// Both sinks (the <a :href> and window.location.href) must use the shared
-// guard — the previous bespoke isHttpUrl() was bypassed by scheme smuggling
-// (e.g. `j\tavascript:`, which browsers strip back to javascript:).
-const redirectUrl = computed(() => {
-  const url = (route.query.ncRedirectUrl as string) ?? ''
-  return isSafeRedirectUrl(url) ? url : ''
+// Absolute http(s) only, through the shared guard: `j\tavascript:` scheme smuggling beat the old bespoke check.
+const redirectTarget = computed(() => {
+  const raw = route.query.ncRedirectUrl
+  if (!ncIsString(raw) || !isHttpRedirectUri(raw)) return null
+
+  try {
+    const parsed = new URL(raw.trim())
+    // `https://nocodb.com@evil.com` would read as nocodb.com.
+    return parsed.username || parsed.password ? null : parsed
+  } catch {
+    return null
+  }
 })
 
+const redirectUrl = computed(() => redirectTarget.value?.href ?? '')
+
+// URL.hostname is punycode, so a look-alike Unicode host shows up as xn--…
+const redirectHost = computed(() => redirectTarget.value?.hostname ?? '')
+
 const backUrl = computed(() => {
-  const url = (route.query.ncBackUrl as string) ?? ''
-  return isSafeRedirectUrl(url) && isSameOriginUrl(url, true) ? url : ''
+  const url = route.query.ncBackUrl
+  return ncIsString(url) && isHttpRedirectUri(url) && isSameOriginUrl(url) ? url.trim() : ''
 })
 
 if (!redirectUrl.value || !backUrl.value) {
@@ -56,7 +67,12 @@ const handleRedirect = (proceedToLink = false) => {
     </div>
     <div class="text-xl font-bold text-nc-content-gray">{{ $t('title.youAreLeavingNocoDB') }}</div>
     <div class="text-sm font-weight-500 text-nc-content-gray-subtle2">{{ $t('title.onlyProceedIfYouTrustThisLink') }}</div>
-    <a class="text-sm font-weight-500 text-nc-content-gray-subtle" :href="redirectUrl">{{ redirectUrl }}</a>
+    <div class="w-full rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight px-3 py-2 text-left">
+      <div class="text-sm font-bold text-nc-content-gray break-all" data-testid="nc-leaving-host">{{ redirectHost }}</div>
+      <div class="text-xs text-nc-content-gray-subtle break-all max-h-24 overflow-y-auto" data-testid="nc-leaving-url">
+        {{ redirectUrl }}
+      </div>
+    </div>
     <div class="flex items-center gap-3 mt-3">
       <NcButton type="secondary" size="small" @click="handleRedirect(false)">
         {{ $t('general.back') }}

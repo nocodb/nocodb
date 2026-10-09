@@ -148,3 +148,4 @@ GUIDE.md
 
 # dev picker comments (scripts/dev-comments.mjs)
 .dev-comments.jsonl
+.dev-comments-threads.json

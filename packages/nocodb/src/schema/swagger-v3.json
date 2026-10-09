@@ -13633,7 +13633,22 @@
         "properties": {
           "duration_format": {
             "type": "string",
-            "description": "Duration format. Supported options are listed below\n- `h:mm`\n- `h:mm:ss`\n- `h:mm:ss.S`\n- `h:mm:ss.SS`\n- `h:mm:ss.SSS`"
+            "description": "Duration format.\n\n- `h:mm`\n- `h:mm:ss`\n- `h:mm:ss.s`\n- `h:mm:ss.ss`\n- `h:mm:ss.sss`\n- `d h`\n- `d h:mm`\n- `d h:mm:ss`\n- `d h m`\n- `d h m s`\n\n`h:mm:ss.S`, `h:mm:ss.SS` and `h:mm:ss.SSS` are accepted as aliases of the lowercase forms, which earlier revisions of this document named instead.",
+            "enum": [
+              "h:mm",
+              "h:mm:ss",
+              "h:mm:ss.s",
+              "h:mm:ss.ss",
+              "h:mm:ss.sss",
+              "d h",
+              "d h:mm",
+              "d h:mm:ss",
+              "d h m",
+              "d h m s",
+              "h:mm:ss.S",
+              "h:mm:ss.SS",
+              "h:mm:ss.SSS"
+            ]
           }
         },
         "additionalProperties": false

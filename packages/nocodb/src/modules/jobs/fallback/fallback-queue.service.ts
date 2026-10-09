@@ -5,6 +5,7 @@ import { CronExpressionParser } from 'cron-parser';
 import { JobsEventService } from '~/modules/jobs/jobs-event.service';
 import { JobStatus } from '~/interface/Jobs';
 import { JobsMap } from '~/modules/jobs/jobs-map.service';
+import { exitTrxScope } from '~/cache/trxScope';
 
 export interface Job {
   id: string;
@@ -93,21 +94,25 @@ export class QueueService {
     );
   }
 
-  async jobWrapper(job: Job) {
-    this.emitter.emit(JobStatus.ACTIVE, { job });
+  // p-queue starts a job in the async context of whoever enqueued it (or of
+  // the job that finished before it), which may be an open meta transaction.
+  jobWrapper(job: Job) {
+    return exitTrxScope(async () => {
+      this.emitter.emit(JobStatus.ACTIVE, { job });
 
-    try {
-      if (!this.jobsMap.jobs[job.name]) {
-        // job not found - skip
-        return;
+      try {
+        if (!this.jobsMap.jobs[job.name]) {
+          // job not found - skip
+          return;
+        }
+
+        const { this: processor, fn = 'job' } = this.jobsMap.jobs[job.name];
+        const result = await processor[fn](job);
+        this.emitter.emit(JobStatus.COMPLETED, { job, result });
+      } catch (error) {
+        this.emitter.emit(JobStatus.FAILED, { job, error });
       }
-
-      const { this: processor, fn = 'job' } = this.jobsMap.jobs[job.name];
-      const result = await processor[fn](job);
-      this.emitter.emit(JobStatus.COMPLETED, { job, result });
-    } catch (error) {
-      this.emitter.emit(JobStatus.FAILED, { job, error });
-    }
+    });
   }
 
   get emitter(): Emittery {

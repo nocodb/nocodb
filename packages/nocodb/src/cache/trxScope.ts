@@ -66,6 +66,8 @@ const META_SCOPES = new Set<string>([
   'baseUser',
   'workspace',
   'workspaceUser',
+  // Derived from meta rows: a pre-commit DEL would let readers re-cache stale counts.
+  'resourceStats',
   'org',
   'orgDomain',
   'orgWorkspace',
@@ -410,6 +412,11 @@ export function getOpenTrxScope(): TrxScope | undefined {
 
 export function runInTrxScope<T>(scope: TrxScope, fn: () => Promise<T>) {
   return storage.run(scope, fn);
+}
+
+/** Run `fn` outside any transaction scope, for work that outlives the caller. */
+export function exitTrxScope<T>(fn: () => T): T {
+  return storage.exit(fn);
 }
 
 /**

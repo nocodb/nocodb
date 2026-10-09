@@ -2,6 +2,7 @@ import { ProjectRoles } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
+import { deferUntilCommit } from '~/cache/trxScope';
 
 export async function getCommandPaletteForUserWorkspace(
   userId: string,
@@ -88,6 +89,10 @@ export async function getCommandPaletteForUserWorkspace(
 }
 
 export async function cleanCommandPaletteCache(_ws?: string) {
+  // Readers re-cache committed (stale) state while the transaction is open.
+  const later = () => cleanCommandPaletteCache(_ws);
+  if (deferUntilCommit(later, { onRollback: 'run' })) return;
+
   const keys = await NocoCache.get(
     'root',
     `${CacheScope.CMD_PALETTE}:ws`,
@@ -100,6 +105,10 @@ export async function cleanCommandPaletteCache(_ws?: string) {
 }
 
 export async function cleanCommandPaletteCacheForUser(userId: string) {
+  // Readers re-cache committed (stale) state while the transaction is open.
+  const later = () => cleanCommandPaletteCacheForUser(userId);
+  if (deferUntilCommit(later, { onRollback: 'run' })) return;
+
   const keys = await NocoCache.get(
     'root',
     `${CacheScope.CMD_PALETTE}:user:${userId}`,

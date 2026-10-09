@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   isLinksOrLTAR,
   NcBaseError,
@@ -118,6 +118,8 @@ export {
  */
 @Injectable()
 export class PublicDatasService {
+  protected logger = new Logger(PublicDatasService.name);
+
   constructor(
     protected datasService: DatasService,
     @Inject(forwardRef(() => 'JobsService'))
@@ -218,7 +220,7 @@ export class PublicDatasService {
       count = await baseModel.count(listArgs);
     } catch (e) {
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
-      console.log(e);
+      this.logger.error(e.message, e.stack);
       NcError.get(context).internalServerError(
         'Please check server log for more details',
       );
@@ -476,7 +478,8 @@ export class PublicDatasService {
         return item;
       });
     } catch (e) {
-      console.log(e);
+      if (e instanceof NcBaseError) throw e;
+      this.logger.error(e.message, e.stack);
       NcError.internalServerError('Please check server log for more details');
     }
     return data;
@@ -673,7 +676,7 @@ export class PublicDatasService {
       // The shared-view column guard below throws a deliberate 4xx; the
       // catch-all would otherwise report it as a server error.
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
-      console.log(e);
+      this.logger.error(e.message, e.stack);
       NcError.internalServerError('Please check server log for more details');
     }
   }
@@ -1059,7 +1062,8 @@ export class PublicDatasService {
         customConditions,
       } as any);
     } catch (e) {
-      console.log(e);
+      if (e instanceof NcBaseError) throw e;
+      this.logger.error(e.message, e.stack);
       NcError.internalServerError('Please check server log for more details');
     }
 

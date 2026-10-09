@@ -777,9 +777,9 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
     } else if (data.uidt === UITypes.Duration) {
       const { duration, duration_format } = meta as Record<string, any>;
       const durationFormat = duration ?? duration_format;
-      // extract option meta and include only label and color
+      // Case-insensitive: older docs spelled the sub-second formats .S/.SS/.SSS
       const durationIdx = durationOptions.findIndex(
-        (d) => d.title === durationFormat
+        (d) => d.title.toLowerCase() === String(durationFormat).toLowerCase()
       );
       if (durationIdx > -1) {
         meta.duration = durationIdx;

@@ -267,12 +267,12 @@ export const getExternalLinkHref = (url?: string | null) => {
   return isLeavingPageRequired(normalized) ? getLeavingPageUrl(normalized) : url
 }
 
-/** Anchor attrs with `href` pointed at /leaving when needed; the original goes to `data-nc-href`. */
+/** Anchor attrs with `href` pointed at /leaving when needed. */
 export const withLeavingPageHref = <T extends Record<string, unknown>>(attrs: T): T => {
   if (!ncIsString(attrs.href)) return attrs
 
   const href = getExternalLinkHref(attrs.href)
-  return href === attrs.href ? attrs : { ...attrs, 'href': href, 'data-nc-href': attrs.href }
+  return href === attrs.href ? attrs : { ...attrs, href }
 }
 
 export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allowLocalUrl?: boolean, userObj?: any) => {
@@ -317,8 +317,16 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allow
   }
 }
 
-/** The url an anchor stands for — its original target when `href` was pointed at /leaving. */
-export const getAnchorTargetUrl = (anchor: HTMLAnchorElement) => anchor.dataset.ncHref || anchor.href
+/** The url an anchor stands for — the /leaving target when `href` was pointed at /leaving. */
+export const getAnchorTargetUrl = (anchor: HTMLAnchorElement) => {
+  try {
+    const url = new URL(anchor.href)
+    if (url.pathname === '/leaving' && url.origin === window.location.origin) {
+      return url.searchParams.get('ncRedirectUrl') ?? anchor.href
+    }
+  } catch {}
+  return anchor.href
+}
 
 export const handleDompurifyLinkClick = (event: MouseEvent) => {
   const target = (event.target as HTMLElement)?.closest('a') as HTMLAnchorElement | null

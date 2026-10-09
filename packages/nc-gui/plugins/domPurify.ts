@@ -13,10 +13,7 @@ export default defineNuxtPlugin((nuxtApp) => {
         if (!href) return
 
         const leavingHref = getExternalLinkHref(href)
-        if (leavingHref === href) return
-
-        node.setAttribute('href', leavingHref)
-        node.setAttribute('data-nc-href', href)
+        if (leavingHref !== href) node.setAttribute('href', leavingHref)
       },
     },
   })

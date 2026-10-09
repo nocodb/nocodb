@@ -35,6 +35,8 @@ let pdfDoc: PDFDocumentProxy | null = null
 
 let loadingTask: PDFDocumentLoadingTask | null = null
 
+let abortController: AbortController | null = null
+
 let observer: IntersectionObserver | null = null
 
 let loadId = 0
@@ -132,6 +134,8 @@ function cleanup() {
   observer = null
   canvasRefs.forEach((_, index) => releasePage(index))
   visiblePages.clear()
+  abortController?.abort()
+  abortController = null
   loadingTask?.destroy()
   loadingTask = null
   pdfDoc = null
@@ -146,10 +150,21 @@ async function loadDocument() {
   pageSizes.value = []
 
   for (const url of props.src) {
-    const task = getDocument({ url, isEvalSupported: false })
-    loadingTask = task
+    let task: PDFDocumentLoadingTask | null = null
 
     try {
+      abortController = new AbortController()
+
+      // Bypass the HTTP cache: an earlier <img> load of the same signed URL caches a response without CORS headers
+      const res = await fetch(url, { cache: 'no-store', signal: abortController.signal })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+
+      const data = new Uint8Array(await res.arrayBuffer())
+      if (currentLoadId !== loadId) return
+
+      task = getDocument({ data, isEvalSupported: false })
+      loadingTask = task
+
       const doc = await task.promise
 
       const sizes: { width: number; height: number }[] = []
@@ -167,9 +182,10 @@ async function loadDocument() {
       await nextTick()
       observePages()
       return
-    } catch {
+    } catch (e) {
       if (currentLoadId !== loadId) return
-      task.destroy()
+      console.warn('PDF preview failed to load', e)
+      task?.destroy()
     }
   }
 

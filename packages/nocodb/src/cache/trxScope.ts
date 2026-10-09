@@ -326,6 +326,21 @@ let invalidator: Invalidator | null = null;
 /** Wired by NocoCache.init — the scope never touches Redis directly. */
 export function registerTrxScopeInvalidator(inv: Invalidator) {
   invalidator = inv;
+  // EVALSHA with automatic fallback, instead of shipping each script per key.
+  if (typeof Reflect.get(inv.raw, 'ncReplaySet') !== 'function') {
+    inv.raw.defineCommand('ncReplaySet', {
+      numberOfKeys: 1,
+      lua: REPLAY_SET_SCRIPT,
+    });
+    inv.raw.defineCommand('ncReplayList', {
+      numberOfKeys: 1,
+      lua: REPLAY_LIST_SCRIPT,
+    });
+    inv.raw.defineCommand('ncReplayHash', {
+      numberOfKeys: 1,
+      lua: REPLAY_HASH_SCRIPT,
+    });
+  }
 }
 
 const storage = new AsyncLocalStorage<TrxScope>();
@@ -398,7 +413,12 @@ export class TrxScope {
 
   /** Mark keys stale (e.g. an independent inner transaction committed them). */
   tombstone(keys: Iterable<string>) {
-    for (const key of keys) this.entries.set(key, TOMB);
+    const stale = new Set(keys);
+    for (const key of stale) this.entries.set(key, TOMB);
+    // Drop our earlier writes to them too, or our commit would replay a value
+    // older than the inner transaction's; a DEL can only produce a miss.
+    this.writes = this.writes.filter(([, key]) => !stale.has(key));
+    for (const key of stale) this.record('del', key);
   }
 
   overlayFor(real: IORedis): IORedis {
@@ -632,60 +652,50 @@ async function replay(plans: Map<string, KeyPlan>, patterns: string[]) {
     const entries = [...plans];
     for (let i = 0; i < entries.length; i += INVALIDATION_BATCH) {
       const batch = entries.slice(i, i + INVALIDATION_BATCH);
-
       const pipe = raw.pipeline();
+      const call = (cmd: string, ...args: (string | number)[]) =>
+        Reflect.apply(Reflect.get(pipe, cmd), pipe, args);
+
+      // In order: deletes, then values, then list/hash deltas, so a list
+      // delta sees which new members got cached.
       for (const [key, plan] of batch) if (plan.del) pipe.del(key);
-      await pipe.exec();
+      for (const [key, plan] of batch) {
+        if (!plan.set) continue;
+        const [value, ...opts] = plan.set;
+        const ts = /"timestamp":(\d+)}$/.exec(value)?.[1] ?? '0';
+        call('ncReplaySet', key, value, ts, ...opts);
+      }
+      for (const [key, plan] of batch) {
+        const expire = plan.expire?.[0] ?? '';
+        if (plan.sadd.size || plan.srem.size) {
+          call(
+            'ncReplayList',
+            key,
+            plan.sadd.size,
+            ...plan.sadd,
+            plan.srem.size,
+            ...plan.srem,
+            expire,
+          );
+        }
+        if (plan.hset.size || plan.hdel.size || plan.hincr.size) {
+          call(
+            'ncReplayHash',
+            key,
+            plan.hset.size,
+            ...[...plan.hset].flat(),
+            plan.hdel.size,
+            ...plan.hdel,
+            plan.hincr.size,
+            ...[...plan.hincr].flat(),
+            expire,
+          );
+        }
+      }
 
-      // EVAL runs outside the pipeline: ioredis-mock can't pipeline it.
-      // Values first, so a list delta sees which new members got cached.
-      await Promise.all(
-        batch
-          .filter(([, plan]) => plan.set)
-          .map(([key, plan]) => {
-            const [value, ...opts] = plan.set;
-            const ts = /"timestamp":(\d+)}$/.exec(value)?.[1] ?? '0';
-            return raw.eval(REPLAY_SET_SCRIPT, 1, key, value, ts, ...opts);
-          }),
-      );
-
-      await Promise.all(
-        batch.flatMap(([key, plan]) => {
-          const expire = plan.expire?.[0] ?? '';
-          const calls: Promise<unknown>[] = [];
-          if (plan.sadd.size || plan.srem.size) {
-            calls.push(
-              raw.eval(
-                REPLAY_LIST_SCRIPT,
-                1,
-                key,
-                plan.sadd.size,
-                ...plan.sadd,
-                plan.srem.size,
-                ...plan.srem,
-                expire,
-              ),
-            );
-          }
-          if (plan.hset.size || plan.hdel.size || plan.hincr.size) {
-            calls.push(
-              raw.eval(
-                REPLAY_HASH_SCRIPT,
-                1,
-                key,
-                plan.hset.size,
-                ...[...plan.hset].flat(),
-                plan.hdel.size,
-                ...plan.hdel,
-                plan.hincr.size,
-                ...[...plan.hincr].flat(),
-                expire,
-              ),
-            );
-          }
-          return calls;
-        }),
-      );
+      // exec resolves with per-command errors instead of rejecting.
+      const failed = (await pipe.exec())?.find(([err]) => err)?.[0];
+      if (failed) throw failed;
     }
   } catch (e) {
     logger.error(`Cache replay after commit failed: ${e?.message}`);

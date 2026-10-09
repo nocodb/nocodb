@@ -145,3 +145,6 @@ GUIDE.md
 /script.sh
 # One-off screenshot harness, machine-specific paths
 /.nc-shot.cjs
+
+# dev picker comments (scripts/dev-comments.mjs)
+.dev-comments.jsonl

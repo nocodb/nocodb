@@ -151,6 +151,8 @@ export default defineNuxtConfig({
       maxPageDesignerTableRows: 100,
       // dev picker listener (scripts/dev-comments.mjs): nc-dev sets one per instance; 0 = the page's port + 100
       devCommentsPort: 0,
+      // NC_CLAUDE_COMMENTS=false turns Claude comments off: no dock, no picks, no listener
+      claudeComments: process.env.NC_CLAUDE_COMMENTS !== 'false',
     },
   },
 

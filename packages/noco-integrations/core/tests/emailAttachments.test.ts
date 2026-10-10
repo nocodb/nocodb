@@ -132,6 +132,21 @@ describe('collectEmailAttachmentSources', () => {
     ).toThrow(/expected an attachment field/);
   });
 
+  it('never turns a url item into a stored-file reference', () => {
+    expect(() =>
+      collectEmailAttachmentSources({
+        type: 'url',
+        url: { path: 'download/noco/base/t/c/secret.pdf', title: 'a.pdf' },
+      }),
+    ).toThrow(/expected a URL/);
+    expect(
+      collectEmailAttachmentSources({
+        type: 'url',
+        url: [{ url: 'https://a.test/x.pdf', title: 'x.pdf', size: 1 }],
+      }),
+    ).toEqual([{ kind: 'url', url: 'https://a.test/x.pdf' }]);
+  });
+
   it('treats a bare { url } as an external link', () => {
     expect(collectEmailAttachmentSources({ url: 'https://a.test/x' })).toEqual([
       { kind: 'url', url: 'https://a.test/x' },

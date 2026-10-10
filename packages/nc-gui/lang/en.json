@@ -6904,6 +6904,7 @@
       "interfaceCsvExportAccess": "Owners and creators can always export. Members with access to the project can also export this table from the project.",
       "interfaceNoConfiguredUrl": "No configured URL",
       "interfaceNoUpdates": "No updates",
+      "interfaceLabelHiddenForRow": "Hidden for this row",
       "interfaceButtonConfirmUpdateRecord": "This will update the current record.",
       "interfaceRecordUpdated": "Record updated",
       "interfaceRecordLinkCopied": "Record link copied to clipboard",

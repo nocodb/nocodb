@@ -295,6 +295,7 @@ export class DuplicateProcessor {
           data: exportedWorkflows,
           req,
           idMap,
+          sourceBaseId: sourceBase.id,
         });
       }
 

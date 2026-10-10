@@ -546,7 +546,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       const attachment: Record<string, any> = {}
 
       /** find attachments in form data */
-      const formMeta = getMetaByKey(sharedView.value?.base_id, sharedView.value?.fk_model_id as string)
+      // Read the view's own model, not the meta store — a related table's trimmed copy of this
+      // model can land there, hiding attachment columns so files go out as base64 JSON (422).
+      const formMeta = meta.value ?? getMetaByKey(sharedView.value?.base_id, sharedView.value?.fk_model_id as string)
       for (const col of formMeta?.columns ?? []) {
         if (col.uidt === UITypes.Attachment) {
           if (col.title && data[col.title]) {

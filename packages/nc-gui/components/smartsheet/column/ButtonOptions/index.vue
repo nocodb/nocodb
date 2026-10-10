@@ -428,15 +428,15 @@ if (isEdit.value) {
                   color: getButtonColors(vModel.theme ?? 'solid', vModel.color ?? 'brand', false, false, getColor).text,
                 }"
                 :class="`${vModel.color ?? 'brand'} ${vModel.theme ?? 'solid'}`"
-                class="flex items-center justify-center nc-cell-button rounded-md h-6 w-6 gap-2"
+                class="flex items-center justify-center nc-cell-button rounded h-5 w-5 gap-2"
               >
-                <component :is="iconMap.cellText" class="w-4 h-4" />
+                <component :is="iconMap.cellText" class="w-3.5 h-3.5" />
               </div>
               <GeneralIcon icon="arrowDown" class="text-nc-content-gray-muted !w-4 !h-4" />
             </div>
             <template #overlay>
-              <div class="bg-nc-bg-default space-y-2 p-2 rounded-lg">
-                <div v-for="[type, colors] in Object.entries(buttonColorMap)" :key="type" class="flex gap-2">
+              <div class="bg-nc-bg-default space-y-1.5 p-2 rounded-lg">
+                <div v-for="[type, colors] in Object.entries(buttonColorMap)" :key="type" class="flex gap-1.5">
                   <div v-for="[name, color] in Object.entries(colors)" :key="name">
                     <button
                       :style="{
@@ -446,10 +446,10 @@ if (isEdit.value) {
                       :class="{
                         '!border-transparent': type !== 'text',
                       }"
-                      class="border-1 border-nc-border-gray-medium flex items-center justify-center rounded h-6 w-6"
+                      class="border-1 border-nc-border-gray-medium flex items-center justify-center rounded h-5 w-5"
                       @click="updateButtonTheme(type, name)"
                     >
-                      <component :is="iconMap.cellText" class="w-3.5 h-3.5" />
+                      <component :is="iconMap.cellText" class="w-3 h-3" />
                     </button>
                   </div>
                 </div>

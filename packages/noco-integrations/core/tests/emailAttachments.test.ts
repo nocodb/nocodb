@@ -93,6 +93,20 @@ describe('collectEmailAttachmentSources', () => {
     ]);
   });
 
+  it('keeps a comma inside a single URL and still splits comma-joined URL lists', () => {
+    expect(
+      collectEmailAttachmentSources('https://a.test/report?ids=1,2'),
+    ).toEqual([{ kind: 'url', url: 'https://a.test/report?ids=1,2' }]);
+    expect(
+      collectEmailAttachmentSources(
+        'https://a.test/x?ids=1,2,https://b.test/y',
+      ),
+    ).toEqual([
+      { kind: 'url', url: 'https://a.test/x?ids=1,2' },
+      { kind: 'url', url: 'https://b.test/y' },
+    ]);
+  });
+
   it('parses JSON strings and treats S3-style attachment objects as NocoDB files', () => {
     const s3 = {
       url: 'https://bucket.s3/nc/uploads/a.png',

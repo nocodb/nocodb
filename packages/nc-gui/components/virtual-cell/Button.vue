@@ -192,7 +192,7 @@ const componentProps = computed(() => {
       disabled:
         filterDisabled ||
         isPublic.value ||
-        isInterfaceUi.value ||
+        (isInterfaceUi.value && !interfaceDataApi?.triggerButtonWorkflow) ||
         !isUIAllowed('buttonRun') ||
         isLoading.value ||
         !column.value.colOptions.fk_workflow_id,
@@ -255,6 +255,8 @@ const triggerAction = async () => {
 
       if (colOptions.type === ButtonActionsType.Webhook && interfaceDataApi?.triggerButtonHook) {
         await interfaceDataApi.triggerButtonHook({ rowId: rowId!.value, columnId: column.value.id as string })
+      } else if (colOptions.type === ButtonActionsType.Workflow && interfaceDataApi?.triggerButtonWorkflow) {
+        await interfaceDataApi.triggerButtonWorkflow({ rowId: rowId!.value, columnId: column.value.id as string })
       } else {
         await $api.internal.postOperation(
           meta.value!.fk_workspace_id!,

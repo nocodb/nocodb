@@ -345,26 +345,29 @@ export class ActionManager {
         }
 
         case 'workflow': {
-          // Interfaces get their own run path in a later phase.
-          if (this.interfaceDataApi) return
           if (!colOptions.fk_workflow_id) throw new Error('No automation configured')
-          if (!this.baseInfo) {
+
+          const triggerButtonWorkflow = this.interfaceDataApi?.triggerButtonWorkflow
+          if (this.interfaceDataApi && !triggerButtonWorkflow) return
+          if (!triggerButtonWorkflow && !this.baseInfo) {
             throw new Error('Base information not available. Call setBaseInfo() first.')
           }
 
           for (const rowId of rowIds) {
             await this.executeAction(rowId, column.id, [], async () =>
-              this.api.internal.postOperation(
-                this.baseInfo!.workspaceId,
-                this.baseInfo!.baseId,
-                {
-                  operation: 'buttonRun',
-                },
-                {
-                  columnId: column.columnObj.id,
-                  rowId,
-                },
-              ),
+              triggerButtonWorkflow
+                ? triggerButtonWorkflow({ rowId, columnId: column.columnObj.id! })
+                : this.api.internal.postOperation(
+                    this.baseInfo!.workspaceId,
+                    this.baseInfo!.baseId,
+                    {
+                      operation: 'buttonRun',
+                    },
+                    {
+                      columnId: column.columnObj.id,
+                      rowId,
+                    },
+                  ),
             )
           }
           break

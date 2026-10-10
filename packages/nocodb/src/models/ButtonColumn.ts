@@ -225,6 +225,21 @@ export default class ButtonColumn {
     return this.parsed_tree;
   }
 
+  public static async workflowUsages(
+    context: NcContext,
+    workflowId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    return await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COL_BUTTON,
+      {
+        condition: { fk_workflow_id: workflowId },
+      },
+    );
+  }
+
   public static async buttonUsages(
     context: NcContext,
     scriptId: string,

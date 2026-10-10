@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { ButtonActionsType, UITypes, validateRowFilters } from 'nocodb-sdk';
+import {
+  ButtonActionsType,
+  isLinksOrLTAR,
+  UITypes,
+  validateRowFilters,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import type { ButtonColumn } from '~/models';
+import type { ButtonColumn, LinkToAnotherRecordColumn } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { Column, Model, Source } from '~/models';
 import { DatasService } from '~/services/datas.service';
@@ -109,7 +114,7 @@ export class ButtonsService {
       data: row,
       columns,
       client: source?.type,
-      metas: {},
+      metas: await this.relatedMetas(context, model),
       baseId: model.base_id,
       options: {
         currentUser: req.user?.id
@@ -119,7 +124,45 @@ export class ButtonsService {
     });
   }
 
+  /**
+   * Tables reachable through link fields (two hops: lookups of lookups) — what
+   * the grid has loaded when it resolves Lookup/Rollup conditions.
+   */
+  protected async relatedMetas(context: NcContext, model: Model) {
+    const metas: Record<string, Model> = {
+      [`${model.base_id}:${model.id}`]: model,
+    };
+    let frontier: Model[] = [model];
+
+    for (let depth = 0; depth < 2 && frontier.length; depth++) {
+      const next: Model[] = [];
+      for (const table of frontier) {
+        for (const column of await table.getColumns()) {
+          if (!isLinksOrLTAR(column)) continue;
+          const relation =
+            await column.getColOptions<LinkToAnotherRecordColumn>();
+          const relatedId = relation?.fk_related_model_id;
+          if (
+            !relatedId ||
+            Object.values(metas).some((m) => m.id === relatedId)
+          )
+            continue;
+
+          const related = await Model.get(context, relatedId);
+          if (!related) continue;
+          await related.getColumns();
+          metas[`${related.base_id}:${related.id}`] = related;
+          next.push(related);
+        }
+      }
+      frontier = next;
+    }
+
+    return metas;
+  }
+
+  // CE never offers conditions and the grid ignores saved ones — so does the server.
   protected async isVisibilityEnforced(_context: NcContext) {
-    return true;
+    return false;
   }
 }

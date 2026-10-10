@@ -475,7 +475,10 @@ const saveSubmitted = async () => {
   }
   saving.value = false
 
-  if (!saved) return
+  if (!saved) {
+    await fieldSaveHooks.value?.after?.(false)
+    return
+  }
 
   // add delay to complete minimize transition
   setTimeout(() => {
@@ -488,7 +491,7 @@ const saveSubmitted = async () => {
 
   emit('submit', savedColumn)
 
-  await fieldSaveHooks.value?.after?.()
+  await fieldSaveHooks.value?.after?.(true)
 
   if (isForm.value) {
     $e('a:form-view:add-new-field')

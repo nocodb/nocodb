@@ -53,6 +53,7 @@ import {
 import rfdc from 'rfdc';
 import { ClientType } from 'nocodb-sdk';
 import type {
+  ButtonActionConfig,
   ColumnReqType,
   LinkToAnotherColumnReqType,
   LinkToAnotherRecordType,
@@ -62,7 +63,7 @@ import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type CustomKnex from '~/db/CustomKnex';
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import type { NcRequest } from '~/interface/config';
-import type { Base, LinkToAnotherRecordColumn } from '~/models';
+import type { Base, ButtonColumn, LinkToAnotherRecordColumn } from '~/models';
 import type {
   IColumnsService,
   LtarSideEffectIds,
@@ -99,6 +100,7 @@ import {
 import { getReplay, setReplay } from '~/helpers/replayScope';
 import { OperationName } from '~/command-registry/op-names';
 import { NcError } from '~/helpers/catchError';
+import { normalizeButtonActionConfig } from '~/helpers/buttonActionConfig';
 import { extractProps } from '~/helpers/extractProps';
 import { pgQuoteLiteral } from '~/helpers/sqlSanitize';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
@@ -1473,6 +1475,8 @@ export class ColumnsService implements IColumnsService {
       fk_webhook_id?: string;
       type?: ButtonActionsType;
       fk_script_id?: string;
+      fk_workflow_id?: string;
+      action_config?: ButtonActionConfig;
       prompt?: string;
       prompt_raw?: string;
       fk_integration_id?: string;
@@ -1721,7 +1725,7 @@ export class ColumnsService implements IColumnsService {
             if (
               !hook ||
               !hook.active ||
-              (hook.version !== 'v3' && hook.event === 'manual') ||
+              hook.event !== 'manual' ||
               (hook.version === 'v3' && !hook.operation?.includes('trigger'))
             ) {
               NcError.get(context).badRequest('Webhook not found');
@@ -1757,6 +1761,20 @@ export class ColumnsService implements IColumnsService {
               );
             }
           }
+
+          const storedButton = await column.getColOptions<ButtonColumn>();
+          // Column.update rebuilds the button row from the body — fall back to the stored config.
+          colBody.action_config = normalizeButtonActionConfig(context, {
+            type: colBody.type,
+            actionConfig:
+              colBody.action_config ??
+              storedButton?.action_config ??
+              (colBody.type === ButtonActionsType.UpdateRecord
+                ? {}
+                : undefined),
+            columns: await table.getColumns(),
+            dropStaleUpdates: colBody.action_config === undefined,
+          });
 
           await Column.update(context, column.id, {
             // title: colBody.title,
@@ -4560,6 +4578,14 @@ export class ColumnsService implements IColumnsService {
             );
           }
         }
+
+        colBody.action_config = normalizeButtonActionConfig(context, {
+          type: colBody.type,
+          actionConfig:
+            colBody.action_config ??
+            (colBody.type === ButtonActionsType.UpdateRecord ? {} : undefined),
+          columns: await table.getColumns(),
+        });
 
         savedColumn = await Column.insert(context, {
           ...colBody,

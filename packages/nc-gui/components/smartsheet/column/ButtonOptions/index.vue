@@ -117,6 +117,16 @@ const buttonTypes = computed(() => [
           label: t('labels.runScript'),
           value: ButtonActionsType.Script,
         },
+        {
+          icon: 'ncAutomation',
+          label: t('labels.interfaceActionRunAutomation'),
+          value: ButtonActionsType.Workflow,
+        },
+        {
+          icon: 'ncEdit',
+          label: t('labels.interfaceActionUpdateRecord'),
+          value: ButtonActionsType.UpdateRecord,
+        },
       ]
     : []),
 ])
@@ -195,6 +205,31 @@ const validators = {
         return new Promise<void>((resolve, reject) => {
           if (vModel.value.type === ButtonActionsType.Script && !fk_script_id) {
             reject(new Error(t('general.required')))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
+  action_config: [
+    {
+      validator: (_: any, actionConfig: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (vModel.value.type === ButtonActionsType.UpdateRecord && !actionConfig?.updates?.length) {
+            reject(new Error(t('msg.info.interfaceNoUpdates')))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
+  fk_workflow_id: [
+    {
+      required: vModel.value.type === ButtonActionsType.Workflow,
+      validator: (_: any, fk_workflow_id: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (vModel.value.type === ButtonActionsType.Workflow && !fk_workflow_id) {
+            reject(new Error(t('labels.chooseAnAutomation')))
           }
           resolve()
         })
@@ -283,6 +318,8 @@ if (isEdit.value) {
   vModel.value.color = colOptions?.color
   vModel.value.fk_webhook_id = colOptions?.fk_webhook_id
   vModel.value.fk_script_id = colOptions?.fk_script_id
+  vModel.value.fk_workflow_id = colOptions?.fk_workflow_id
+  vModel.value.action_config = deepClone(colOptions?.action_config ?? {})
   vModel.value.icon = colOptions?.icon
   selectedWebhook.value = hooks.value.find((hook) => hook.id === vModel.value?.fk_webhook_id)
   selectedScript.value = activeBaseScripts.value.find((script) => script.id === vModel.value?.fk_script_id)
@@ -563,6 +600,20 @@ if (isEdit.value) {
       v-if="vModel?.type === buttonActionsType.Script && showEEFeatures"
       v-model:model-value="vModel"
       v-model:selected-script="selectedScript"
+    />
+    <SmartsheetColumnButtonOptionsWorkflow
+      v-if="vModel?.type === buttonActionsType.Workflow && showEEFeatures"
+      v-model:model-value="vModel"
+    />
+    <a-form-item
+      v-if="vModel?.type === buttonActionsType.UpdateRecord && showEEFeatures && meta"
+      v-bind="validateInfos.action_config"
+    >
+      <SmartsheetColumnButtonOptionsUpdateRecord v-model:model-value="vModel.action_config" :meta="meta" />
+    </a-form-item>
+    <SmartsheetColumnButtonOptionsConfirmation
+      v-if="vModel?.type && vModel.type !== buttonActionsType.Ai"
+      v-model:model-value="vModel.action_config"
     />
 
     <PaymentUpgradeBadgeProvider v-if="showEEFeatures" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY">

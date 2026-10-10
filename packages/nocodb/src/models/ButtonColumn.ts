@@ -1,4 +1,5 @@
 import { ButtonActionsType } from 'nocodb-sdk';
+import type { ButtonActionConfig } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -7,6 +8,12 @@ import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import { isEE } from '~/utils';
 import Filter from '~/models/Filter';
+
+// Meta row shape: `action_config` is written as JSON text.
+type ButtonColumnRow = Omit<Partial<ButtonColumn>, 'action_config'> & {
+  action_config?: ButtonActionConfig | string;
+  parsed_tree?: any;
+};
 
 export default class ButtonColumn {
   type: ButtonActionsType;
@@ -24,6 +31,8 @@ export default class ButtonColumn {
 
   fk_integration_id?: string;
   fk_script_id?: string;
+  fk_workflow_id?: string;
+  action_config?: ButtonActionConfig;
   model?: string;
   output_column_ids?: string;
   filters?: any[];
@@ -48,6 +57,8 @@ export default class ButtonColumn {
 
     const scriptProps = ['fk_script_id'];
 
+    const workflowProps = ['fk_workflow_id'];
+
     const aiProps = [
       'formula_raw',
       'formula',
@@ -57,7 +68,7 @@ export default class ButtonColumn {
       'output_column_ids',
     ];
 
-    const insertObj = extractProps(buttonColumn, [
+    const insertObj: ButtonColumnRow = extractProps(buttonColumn, [
       ...(buttonColumn.type === ButtonActionsType.Url
         ? urlProps
         : buttonColumn.type === ButtonActionsType.Webhook
@@ -66,6 +77,8 @@ export default class ButtonColumn {
         ? scriptProps
         : buttonColumn.type === ButtonActionsType.Ai
         ? aiProps
+        : buttonColumn.type === ButtonActionsType.Workflow && isEE
+        ? workflowProps
         : []),
       'theme',
       'color',
@@ -73,11 +86,15 @@ export default class ButtonColumn {
       'type',
       'icon',
       'fk_column_id',
+      'action_config',
     ]);
 
     if (buttonColumn.type === ButtonActionsType.Url) {
       insertObj.parsed_tree = stringifyMetaProp(insertObj, 'parsed_tree', null);
     }
+
+    if ('action_config' in insertObj)
+      insertObj.action_config = stringifyMetaProp(insertObj, 'action_config');
 
     await ncMeta.metaInsert2(
       context.workspace_id,
@@ -110,6 +127,7 @@ export default class ButtonColumn {
       );
       if (column) {
         column.parsed_tree = parseMetaProp(column, 'parsed_tree', null);
+        column.action_config = parseMetaProp(column, 'action_config', null);
         await NocoCache.set(
           context,
           `${CacheScope.COL_BUTTON}:${columnId}`,
@@ -123,6 +141,7 @@ export default class ButtonColumn {
       // rewrites them — `getRaw` refreshes the TTL on every read, so a hot one
       // never expires. Mirrors FormulaColumn.read().
       column.parsed_tree = parseMetaProp(column, 'parsed_tree', null);
+      column.action_config = parseMetaProp(column, 'action_config', null);
 
       column.filters = await Filter.allButtonFilterList(
         context,
@@ -146,6 +165,8 @@ export default class ButtonColumn {
 
     const scriptProps = ['fk_script_id'];
 
+    const workflowProps = ['fk_workflow_id'];
+
     const aiProps = [
       'formula_raw',
       'formula',
@@ -155,7 +176,7 @@ export default class ButtonColumn {
       'output_column_ids',
     ];
 
-    const updateObj = extractProps(button, [
+    const updateObj: ButtonColumnRow = extractProps(button, [
       ...(button.type === ButtonActionsType.Url
         ? urlProps
         : button.type === ButtonActionsType.Webhook
@@ -164,12 +185,15 @@ export default class ButtonColumn {
         ? scriptProps
         : button.type === ButtonActionsType.Ai
         ? aiProps
+        : button.type === ButtonActionsType.Workflow && isEE
+        ? workflowProps
         : []),
       'theme',
       'color',
       'type',
       'icon',
       'label',
+      'action_config',
       // type-independent: the two parsed_tree-only writers (the formula builder
       // caching a freshly built tree, Column.update invalidating it) have no
       // `type` to pass, and the Url branch above would drop it — leaving the
@@ -179,6 +203,9 @@ export default class ButtonColumn {
 
     if ('parsed_tree' in updateObj)
       updateObj.parsed_tree = stringifyMetaProp(updateObj, 'parsed_tree', null);
+
+    if ('action_config' in updateObj)
+      updateObj.action_config = stringifyMetaProp(updateObj, 'action_config');
 
     // set meta
     await ncMeta.metaUpdate(

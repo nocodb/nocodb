@@ -21,7 +21,12 @@ import {
 import { unparse } from 'papaparse';
 import ExcelJS from 'exceljs';
 import { elapsedTime, initTime } from '../../helpers';
-import type { LookupType, NcRequest, RollupType } from 'nocodb-sdk';
+import type {
+  ButtonActionConfig,
+  LookupType,
+  NcRequest,
+  RollupType,
+} from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
@@ -335,6 +340,19 @@ export class ExportService {
               case 'model':
                 column.colOptions[k] = v;
                 break;
+              case 'action_config': {
+                const config = v as ButtonActionConfig | null;
+                if (config?.updates) {
+                  column.colOptions[k] = {
+                    ...config,
+                    updates: config.updates.map((u) => ({
+                      ...u,
+                      fk_column_id: idMap.get(u.fk_column_id),
+                    })),
+                  };
+                }
+                break;
+              }
               case 'output_column_ids':
                 column.colOptions[k] = ((v as string)?.split(',') || [])
                   .map((id) => idMap.get(id))

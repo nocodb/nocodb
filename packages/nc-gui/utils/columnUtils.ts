@@ -1,5 +1,13 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
-import type { ButtonType, ColumnType, FormulaType, IntegrationType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import type {
+  ButtonActionConfig,
+  ButtonType,
+  ColumnType,
+  FormulaType,
+  IntegrationType,
+  LinkToAnotherRecordType,
+  TableType,
+} from 'nocodb-sdk'
 import {
   ButtonActionsType,
   FormulaDataTypes,
@@ -370,6 +378,20 @@ const isColumnInvalid = ({
           result.ignoreTooltip = true
         } else {
           result.isInvalid = !colOptions.fk_webhook_id
+        }
+      } else if (colOptions.type === ButtonActionsType.Workflow) {
+        if (isReadOnly || isInterfaceUi) {
+          result.isInvalid = true
+          result.ignoreTooltip = true
+        } else {
+          result.isInvalid = !colOptions.fk_workflow_id
+        }
+      } else if (colOptions.type === ButtonActionsType.UpdateRecord) {
+        if (isReadOnly || isInterfaceUi) {
+          result.isInvalid = true
+          result.ignoreTooltip = true
+        } else {
+          result.isInvalid = !(colOptions as ButtonType & { action_config?: ButtonActionConfig }).action_config?.updates?.length
         }
       } else if (colOptions.type === ButtonActionsType.Url) {
         result.isInvalid = !!colOptions.error

@@ -64,6 +64,13 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const isScriptCreateModalOpen = ref(false)
 
+    const isAutomationCreateModalOpen = ref(false)
+
+    // Registered by the field editor so a nested section can save the field (resolves true on success).
+    const fieldSaveHandler = shallowRef<(() => Promise<boolean>) | null>(null)
+
+    const requestFieldSave = async () => (fieldSaveHandler.value ? fieldSaveHandler.value() : false)
+
     const isAiButtonConfigModalOpen = ref(false)
 
     const isConvertLinkV2ModalOpen = ref(false)
@@ -614,6 +621,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       tableExplorerColumns,
       defaultFormState,
       isScriptCreateModalOpen,
+      isAutomationCreateModalOpen,
+      fieldSaveHandler,
+      requestFieldSave,
       isSaving,
       isSyncedField,
     }

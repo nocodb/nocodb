@@ -292,6 +292,7 @@ export const permissionScopes = {
     // Webhooks
 
     'hookTrigger',
+    'buttonRun',
 
     'userInvite',
 
@@ -607,6 +608,7 @@ const rolePermissions:
       // upload: true,
       // uploadViaURL: true,
       hookTrigger: true,
+      buttonRun: true,
 
       // AI
       aiUtils: true,
@@ -1101,6 +1103,7 @@ const permissionDescriptions: Record<string, string> = {
   jobList: 'view list of jobs',
 
   hookTrigger: 'trigger a webhook',
+  buttonRun: 'run a button field action',
 
   migrateBase: 'migrate a base to another instance',
 

@@ -90,8 +90,10 @@ const sqlite3 = {
   DATEADD: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
     let dateIN = (await fn(pt.arguments[1])).builder;
-    if (typeof dateIN === 'object' && dateIN.toQuery) {
-      dateIN = Number(dateIN.toQuery());
+    const isDynamicCount = typeof dateIN === 'object' && dateIN !== null && dateIN.toQuery;
+
+    if (!isDynamicCount) {
+      dateIN = Number(dateIN);
     }
 
     if (pt.arguments[2].type === 'Literal') {
@@ -100,8 +102,27 @@ const sqlite3 = {
         dateModifier = dateModifier.toQuery();
       }
       const unit = validateDateAddUnit(String(dateModifier));
-      const fullModifierRaw = `${dateIN > 0 ? '+' : ''}${dateIN} ${unit}`;
 
+      if (isDynamicCount) {
+        const signExpr = knex.raw(`CASE WHEN ? >= 0 THEN '+' ELSE '' END`, [dateIN]);
+        const modifier = knex.raw(
+          `? || CAST(ABS(COALESCE(CAST(? AS INTEGER), 0)) AS TEXT) || ' ${unit}'`,
+          [signExpr, dateIN],
+        );
+        return {
+          builder: knex.raw(
+            `CASE
+            WHEN ? LIKE '%:%' THEN
+              STRFTIME('%Y-%m-%dT%H:%M:%fZ', DATETIME(?, 'utc', ?))
+            ELSE
+              DATE(?, ?)
+            END`,
+            [source, source, modifier, source, modifier],
+          ),
+        };
+      }
+
+      const fullModifierRaw = `${dateIN > 0 ? '+' : ''}${dateIN} ${unit}`;
       return {
         builder: knex.raw(
           `CASE
@@ -122,6 +143,26 @@ const sqlite3 = {
     // with proper ? bindings so knex nests the Raw correctly
     const unitBuilder = (await fn(pt.arguments[2])).builder;
     const safeUnit = safeDateAddUnitSQL(knex, unitBuilder);
+
+    if (isDynamicCount) {
+      const signExpr = knex.raw(`CASE WHEN ? >= 0 THEN '+' ELSE '' END`, [dateIN]);
+      const modifier = knex.raw(
+        `? || CAST(ABS(COALESCE(CAST(? AS INTEGER), 0)) AS TEXT) || ' ' || ?`,
+        [signExpr, dateIN, safeUnit],
+      );
+      return {
+        builder: knex.raw(
+          `CASE
+          WHEN ? LIKE '%:%' THEN
+            STRFTIME('%Y-%m-%dT%H:%M:%fZ', DATETIME(?, 'utc', ?))
+          ELSE
+            DATE(?, ?)
+          END`,
+          [source, source, modifier, source, modifier],
+        ),
+      };
+    }
+
     const prefix = `${dateIN > 0 ? '+' : ''}${dateIN} `;
     const fullModifier = knex.raw(`'${prefix}' || ?`, [safeUnit]);
 

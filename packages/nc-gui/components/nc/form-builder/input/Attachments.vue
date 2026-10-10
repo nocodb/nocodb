@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { FormBuilderAttachmentItem, FormBuilderAttachmentsElement, VariableDefinition } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
+import { WorkflowComposeDropInj } from '~/context'
 import { WorkflowVariablePicker } from '~/helpers/tiptap-markdown/extensions'
 
 interface NodeGroup {
@@ -167,10 +168,11 @@ const triggerUpload = () => {
   fileInput.value?.click()
 }
 
-const onFilesSelected = async (event: Event) => {
-  const input = event.target as HTMLInputElement
-  const files = Array.from(input.files ?? []).slice(0, Math.max(0, maxItems.value - items.value.length))
-  input.value = ''
+const uploadFiles = async (selected: File[]) => {
+  if (props.disabled || !allowUpload.value || isUploading.value) return
+
+  const files = selected.slice(0, Math.max(0, maxItems.value - items.value.length))
+  if (files.length < selected.length) message.info(limitHint.value)
 
   if (!files.length) return
 
@@ -209,6 +211,24 @@ const onFilesSelected = async (event: Event) => {
   } finally {
     isUploading.value = false
   }
+}
+
+const onFilesSelected = (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const files = Array.from(input.files ?? [])
+  input.value = ''
+  uploadFiles(files)
+}
+
+const composeDrop = inject(WorkflowComposeDropInj, null)
+
+if (composeDrop) {
+  onMounted(() => {
+    composeDrop.value = uploadFiles
+  })
+  onBeforeUnmount(() => {
+    if (composeDrop.value === uploadFiles) composeDrop.value = null
+  })
 }
 
 // ── Open ───────────────────────────────────────────────────────────────────
@@ -318,7 +338,7 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
             <NcTooltip :disabled="!atLimit" placement="right">
               <template #title>{{ limitHint }}</template>
               <NcMenuItem :disabled="atLimit || !flatAttachmentVariables.length" @click="panel = 'picker'">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 text-[13px]">
                   <GeneralIcon icon="cellAttachment" class="w-4 h-4" />
                   <span>From attachment field</span>
                 </div>
@@ -327,7 +347,7 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
             <NcTooltip v-if="allowUpload" :disabled="!atLimit" placement="right">
               <template #title>{{ limitHint }}</template>
               <NcMenuItem :disabled="atLimit" @click="triggerUpload">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 text-[13px]">
                   <GeneralIcon icon="ncUpload" class="w-4 h-4" />
                   <span>Upload file</span>
                 </div>
@@ -336,7 +356,7 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
             <NcTooltip v-if="allowUrl" :disabled="!atLimit" placement="right">
               <template #title>{{ limitHint }}</template>
               <NcMenuItem :disabled="atLimit" @click="openUrlPopover">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 text-[13px]">
                   <GeneralIcon icon="ncLink" class="w-4 h-4" />
                   <span>From URL</span>
                 </div>

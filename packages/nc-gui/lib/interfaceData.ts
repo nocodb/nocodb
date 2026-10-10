@@ -475,7 +475,7 @@ export interface InterfacePageDataApi {
   frozenFieldCount?: Ref<number | undefined>
   /**
    * Persist the freeze-divider drag for this viz — writes viz
-   * `frozen_column_count` (1-3). Same builder-only / no-native-write contract
+   * `frozen_column_count`. Same builder-only / no-native-write contract
    * as `setFieldWidth`; absent = the divider is not adjustable.
    */
   setFrozenFieldCount?: (count: number) => void

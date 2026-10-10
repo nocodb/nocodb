@@ -1,6 +1,7 @@
 import type { NocoSDK } from '../sdk';
 import type {
   IAgentsService,
+  IAttachmentService,
   ICommentsService,
   IDataV3Service,
   IMailService,
@@ -31,6 +32,11 @@ export interface NocoDBContext {
   tablesService: ITablesService;
   user: NocoSDK.UserType;
   mailService: IMailService;
+  /**
+   * Attachment bytes for outgoing messages (email nodes). Ownership-checked
+   * and size-capped by the host.
+   */
+  attachmentService: IAttachmentService;
   getBaseSchema: () => Promise<any>;
   getAccessToken: () => string;
   /**

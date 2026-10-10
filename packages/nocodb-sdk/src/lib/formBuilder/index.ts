@@ -20,6 +20,7 @@ export enum FormBuilderInputType {
   KeyValue = 'key-value',
   EntitySelector = 'entity-selector',
   ConditionBuilder = 'condition-builder',
+  Attachments = 'attachments',
 }
 
 /**
@@ -685,6 +686,51 @@ export interface FormBuilderConditionBuilderElement
 }
 
 /**
+ * One entry of an Attachments element value.
+ *
+ * - `variable`: an Attachment-field reference (`{{ Trigger.record.fields.Photo }}`), resolved
+ *   at run time to that field's files. A list-node output flattens across all matched records.
+ * - `file`: a static file uploaded from the node panel, attached to every send.
+ * - `url`: a literal or templated URL, fetched at run time.
+ */
+export type FormBuilderAttachmentItem =
+  | {
+      type: 'variable';
+      expression: string;
+      /** Field name captured when picked, shown on the chip */
+      label: string;
+      icon?: string;
+    }
+  | {
+      type: 'file';
+      title: string;
+      mimetype: string;
+      size: number;
+      path?: string;
+      url?: string;
+    }
+  | {
+      type: 'url';
+      url: string;
+      filename?: string;
+    };
+
+/**
+ * Attachments element - chip list of files to send with a message
+ * (attachment-field variables, uploaded static files, URLs)
+ */
+export interface FormBuilderAttachmentsElement extends FormBuilderElementBase {
+  type: FormBuilderInputType.Attachments;
+  /** Allow uploading static files (default: true) */
+  allowUpload?: boolean;
+  /** Allow attaching by URL (default: true) */
+  allowUrl?: boolean;
+  /** Maximum number of entries */
+  maxItems?: number;
+  defaultValue?: FormBuilderAttachmentItem[] | null;
+}
+
+/**
  * Union type of all possible form builder elements
  */
 export type FormBuilderElement =
@@ -706,7 +752,8 @@ export type FormBuilderElement =
   | FormBuilderNumberInputElement
   | FormBuilderKeyValueElement
   | FormBuilderEntitySelectorElement
-  | FormBuilderConditionBuilderElement;
+  | FormBuilderConditionBuilderElement
+  | FormBuilderAttachmentsElement;
 
 /**
  * Complete form definition - array of form elements

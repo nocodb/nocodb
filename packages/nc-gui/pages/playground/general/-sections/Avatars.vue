@@ -115,7 +115,7 @@ function viewMeta(type: number, icon?: string) {
     </PgDemo>
   </PgSection>
 
-  <PgSection id="team" title="Teams" source="GeneralTeamIcon · GeneralTeamInfo">
+  <PgSection id="team" :title="$t('general.teams')" source="GeneralTeamIcon · GeneralTeamInfo">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       <PgDemo label="TeamIcon">
         <div class="flex flex-col gap-3">

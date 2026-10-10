@@ -145,7 +145,7 @@ const LOCKED_FEATURES = ['Data permissions', 'Audit logs', 'SSO / SAML']
 
 <template>
   <PgPage
-    title="Plans"
+    :title="$t('labels.plans')"
     description="Upgrade badges and the current-plan billing table for every Cloud and On-prem SKU. Switch the theme in the top bar to check dark mode."
     :sections="SECTIONS"
   >

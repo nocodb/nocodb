@@ -63,7 +63,7 @@ const suggestGroups = [
               <GeneralIcon icon="ncMail" class="w-4 h-4 text-nc-content-gray-muted" />
             </template>
           </a-input>
-          <a-input class="nc-input-sm nc-input-shadow" placeholder="Search tables">
+          <a-input class="nc-input-sm nc-input-shadow" :placeholder="$t('placeholder.searchProjectTree')">
             <template #prefix>
               <GeneralIcon icon="search" class="w-4 h-4 text-nc-content-gray-muted" />
             </template>
@@ -81,7 +81,12 @@ const suggestGroups = [
 
       <PgDemo label="Textareas">
         <div class="flex flex-col gap-3">
-          <a-textarea v-model:value="description" class="nc-input-sm nc-input-shadow" :rows="3" placeholder="Description" />
+          <a-textarea
+            v-model:value="description"
+            class="nc-input-sm nc-input-shadow"
+            :rows="3"
+            :placeholder="$t('general.description')"
+          />
           <a-textarea class="nc-input-sm nc-input-shadow" :rows="2" value="Disabled textarea" disabled />
           <NcAutoSizeTextarea v-model="notes" placeholder="Add notes" class="!rounded-lg px-3 py-1 text-sm" />
           <NcAutoSizeTextarea v-model="borderlessNotes" placeholder="Borderless — type here" :bordered="false" />
@@ -107,7 +112,7 @@ const suggestGroups = [
             <a-slider v-model:value="range" range class="flex-1" />
           </div>
           <div class="flex items-center gap-3">
-            <span class="w-36 text-caption">Disabled</span>
+            <span class="w-36 text-caption">{{ $t('general.disabled') }}</span>
             <a-slider :value="40" disabled class="flex-1" />
           </div>
         </div>

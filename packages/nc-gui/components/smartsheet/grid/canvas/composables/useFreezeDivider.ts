@@ -7,8 +7,8 @@ const HIT_ZONE_HALF_WIDTH = 5
 
 /**
  * Draggable freeze divider — the vertical boundary between frozen and
- * scrollable fields. Dragging snaps to field edges (1..MAX_FROZEN_FIELDS)
- * and persists `frozen_column_count` in the grid view meta.
+ * scrollable fields. Dragging snaps to field edges and persists
+ * `frozen_column_count` in the grid view meta.
  */
 export function useFreezeDivider({
   columns,
@@ -92,7 +92,7 @@ export function useFreezeDivider({
     const points: { count: number; x: number }[] = []
     let fieldWidthSum = 0
 
-    for (let count = 1; count <= Math.min(MAX_FROZEN_FIELDS, fieldCols.length); count++) {
+    for (let count = 1; count <= fieldCols.length; count++) {
       fieldWidthSum += parseCellWidth(fieldCols[count - 1]?.width)
       if (count > 1 && fieldWidthSum > maxFrozenWidth) break
       points.push({ count, x: parseCellWidth(rowNumberCol?.width) + fieldWidthSum })

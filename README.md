@@ -106,6 +106,12 @@ Auto-upstall does the following: 🕊
 
 > When running locally access nocodb by visiting: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
+## Managed hosting
+
+[![Deploy with Zenith](https://cdn.zenith.hosting/buttons/deploy-with-zenith.svg)](https://zenith.hosting/host/nocodb)
+
+One-click managed NocoDB: storage, backups, email and a free subdomain included. A share of every subscription goes back to NocoDB.
+
 For more installation methods, please refer to [our docs](https://nocodb.com/docs/self-hosting)
 
 # Screenshots

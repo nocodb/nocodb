@@ -82,10 +82,6 @@ const { aiLoading } = useNocoAi()
     }
   }
 
-  :deep(.ant-tabs-tab + .ant-tabs-tab) {
-    @apply ml-4;
-  }
-
   .tab-title {
     @apply text-xs leading-[24px] px-2 rounded hover:bg-nc-bg-gray-light transition-colors;
   }

@@ -18,7 +18,7 @@ export const usePredictFields = createSharedComposable(
 
     const { t } = useI18n()
 
-    const { aiLoading, aiError, predictNextFields: _predictNextFields, predictNextFormulas, predictNextButtons } = useNocoAi()
+    const { aiError, predictNextFields: _predictNextFields, predictNextFormulas, predictNextButtons } = useNocoAi()
 
     const { meta, view } = useSmartsheetStoreOrThrow()
 
@@ -45,12 +45,6 @@ export const usePredictFields = createSharedComposable(
     const aiModeStep = ref<AiStep | null>(null)
 
     const calledFunction = ref<string>('')
-
-    const prompt = ref<string>('')
-
-    const oldPrompt = ref<string>('')
-
-    const isPromtAlreadyGenerated = ref<boolean>(false)
 
     const activeAiTabLocal = ref<AiWizardTabsType>(AiWizardTabsType.AUTO_SUGGESTIONS)
 
@@ -89,10 +83,6 @@ export const usePredictFields = createSharedComposable(
 
     const activeTabSelectedFields = computed(() => {
       return predicted.value.filter((field) => !!field.selected && field.tab === activeAiTab.value)
-    })
-
-    const isPredictFromPromptLoading = computed(() => {
-      return aiLoading.value && calledFunction.value === 'predictFromPrompt'
     })
 
     const validators = computed(() => {
@@ -230,7 +220,7 @@ export const usePredictFields = createSharedComposable(
           meta.value?.id as string,
           fieldHistory,
           meta.value?.base_id,
-          activeAiTab.value === AiWizardTabsType.PROMPT ? prompt.value : undefined,
+          undefined,
           isForm.value ? formViewHiddenColTypes : [],
         )
       )
@@ -313,36 +303,6 @@ export const usePredictFields = createSharedComposable(
         message.info(`No auto suggestions were found for ${meta.value?.title || 'the current table'}`)
       }
       aiModeStep.value = AiStep.pick
-    }
-
-    const predictFromPrompt = async (callback?: (field?: PredictedFieldType | undefined) => void) => {
-      calledFunction.value = 'predictFromPrompt'
-
-      $e('a:column:ai:predict-from-prompt', {
-        prompt: prompt.value,
-      })
-
-      const predictions = await predictNextFields()
-
-      if (predictions.length) {
-        predicted.value = [
-          ...predicted.value.filter(
-            (t) => t.tab !== activeAiTab.value || (isFromTableExplorer?.value && t.tab === activeAiTab.value && !!t.selected),
-          ),
-          ...predictions,
-        ]
-        predictHistory.value.push(...predictions)
-
-        oldPrompt.value = prompt.value
-
-        if (ncIsFunction(callback)) {
-          callback()
-        }
-      } else if (!aiError.value) {
-        message.info('No suggestions were found with the given prompt. Try again after modifying the prompt.')
-      }
-      aiModeStep.value = AiStep.pick
-      isPromtAlreadyGenerated.value = true
     }
 
     // Todo: update logic
@@ -432,8 +392,6 @@ export const usePredictFields = createSharedComposable(
           return predictMore()
         case 'predictRefresh':
           return predictRefresh()
-        case 'predictFromPrompt':
-          return predictFromPrompt()
 
         default:
       }
@@ -538,9 +496,6 @@ export const usePredictFields = createSharedComposable(
       aiModeStep.value = AiStep.init
       predicted.value = []
       predictHistory.value = []
-      prompt.value = ''
-      oldPrompt.value = ''
-      isPromtAlreadyGenerated.value = false
 
       const predictions = await predictNextFields()
 
@@ -560,9 +515,6 @@ export const usePredictFields = createSharedComposable(
       predictHistory.value = []
       selected.value = []
       calledFunction.value = ''
-      prompt.value = ''
-      oldPrompt.value = ''
-      isPromtAlreadyGenerated.value = false
 
       activeAiTabLocal.value = AiWizardTabsType.AUTO_SUGGESTIONS
 
@@ -598,12 +550,8 @@ export const usePredictFields = createSharedComposable(
       selected,
       activeTabSelectedFields,
       calledFunction,
-      prompt,
-      oldPrompt,
-      isPromtAlreadyGenerated,
       maxSelectionCount,
       activeAiTab,
-      isPredictFromPromptLoading,
       isFormulaPredictionMode,
       fieldPredictionMode,
       failedToSaveFields,
@@ -612,7 +560,6 @@ export const usePredictFields = createSharedComposable(
       disableAiMode,
       predictMore,
       predictRefresh,
-      predictFromPrompt,
       onToggleTag,
       onSelectedTagClick,
       onSelectAll,

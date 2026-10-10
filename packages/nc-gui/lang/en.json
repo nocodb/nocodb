@@ -6479,6 +6479,7 @@
     "info": {
       "attachmentsLimit": "Up to {count} files per email.",
       "attachmentUploadInProgress": "Wait for the current upload to finish.",
+      "noAttachmentFieldsAvailable": "No attachment fields in earlier steps.",
       "attachmentUrlHint": "Public link to a file, or a template using variables. Downloaded when the email is sent.",
       "mcpExamplePrompt": "Use NocoDB MCP to work with my project \"{base}\". Explore the schema, then help me add tables, fields and workflows.",
       "connectYourAiDesc": "Let Claude, ChatGPT or Cursor build tables, workflows and interfaces in this project.",

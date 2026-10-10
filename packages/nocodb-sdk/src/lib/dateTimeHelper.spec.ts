@@ -1,4 +1,8 @@
-import { getUnpaddedDateFormat, parseDateWithFormat } from './dateTimeHelper';
+import {
+  getDateTimeValue,
+  getUnpaddedDateFormat,
+  parseDateWithFormat,
+} from './dateTimeHelper';
 
 describe('getUnpaddedDateFormat', () => {
   it('unpads numeric month/day/hour/minute/second tokens', () => {
@@ -26,9 +30,11 @@ describe('parseDateWithFormat', () => {
     expect(
       parseDateWithFormat('5/5/2026', 'MM/DD/YYYY').format('YYYY-MM-DD')
     ).toBe('2026-05-05');
+
     expect(
       parseDateWithFormat('6/2/2026', 'MM/DD/YYYY').format('YYYY-MM-DD')
     ).toBe('2026-06-02');
+
     expect(
       parseDateWithFormat('2026-5-5', 'YYYY-MM-DD').format('YYYY-MM-DD')
     ).toBe('2026-05-05');
@@ -36,5 +42,26 @@ describe('parseDateWithFormat', () => {
 
   it('returns an invalid dayjs for non-date input', () => {
     expect(parseDateWithFormat('hello', 'MM/DD/YYYY').isValid()).toBe(false);
+  });
+});
+
+describe('getDateTimeValue', () => {
+  it.each([
+    ['DD/MM/YYYY', '27/10/2023'],
+    ['MM/DD/YYYY', '10/27/2023'],
+    ['DD.MM.YYYY', '27.10.2023'],
+  ])('formats a raw timestamp using %s', (dateFormat, expectedDate) => {
+    const result = getDateTimeValue(
+      '2023-10-27 10:30:00+00:00',
+      {
+        meta: {
+          date_format: dateFormat,
+          time_format: 'HH:mm',
+        },
+      } as any
+    );
+
+    expect(result).not.toContain('Invalid Date');
+    expect(result).toContain(expectedDate);
   });
 });

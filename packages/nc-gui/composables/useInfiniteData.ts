@@ -1611,7 +1611,6 @@ export function useInfiniteData(args: {
           saving: false,
           isRlsHidden: !!insertedData?.__nc_rls_hidden,
           ...evaluateRowMeta({ ...insertedData, ...currentRow.row }),
-          buttonDisabled: evaluateButtonVisibility({ ...insertedData, ...currentRow.row }),
         },
       })
 
@@ -1732,7 +1731,6 @@ export function useInfiniteData(args: {
 
       Object.assign(toUpdate.oldRow, updatedRowData)
       Object.assign(toUpdate.rowMeta, evaluateRowMeta(toUpdate.row))
-      toUpdate.rowMeta.buttonDisabled = evaluateButtonVisibility(toUpdate.row)
 
       // Mark row as hidden if it moved out of user's RLS scope after update
       if (updatedRowData?.__nc_rls_hidden) {
@@ -2182,7 +2180,6 @@ export function useInfiniteData(args: {
 
     const updateRowColorInfo = (row: Row) => {
       Object.assign(row.rowMeta, evaluateRowMeta(row.row))
-      row.rowMeta.buttonDisabled = evaluateButtonVisibility(row.row)
     }
 
     // If it is group by, we need to update the rowMeta color info for each row in the group

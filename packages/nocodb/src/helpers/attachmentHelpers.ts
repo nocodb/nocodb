@@ -233,6 +233,11 @@ export function getPathFromUrl(url: string, removePrefix = false) {
   return decodeURI(`${pathName}${newUrl.search}${newUrl.hash}`);
 }
 
+// The adapters strip a leading `<bucket>/` (path-style S3, Backblaze, GCS) and GCS
+// decodes `%2F` before resolving a key, so those forms reach our storage too.
+const STORAGE_UPLOAD_KEY_RE =
+  /^(?:[^/]+?(?:\/|%2F))?nc(?:\/|%2F)uploads(?:\/|%2F)/i;
+
 /**
  * Whether a client-supplied attachment `path`/`url` resolves to an object in
  * OUR storage — and therefore must pass an ownership check before a data write
@@ -260,7 +265,7 @@ export function attachmentRefResolvesToStorage(ref?: string): boolean {
     return true;
   }
 
-  return /^nc\/uploads\//i.test(storageKey);
+  return STORAGE_UPLOAD_KEY_RE.test(storageKey);
 }
 
 export function resolveAttachmentFilePath(attachment: {

@@ -1617,6 +1617,13 @@
       "resetLinkInvalid": "This reset link is invalid or has expired. Request a new one.",
       "passwordResetDone": "Password updated. Sign in with your new password."
     },
+    "addAttachment": "Add attachment",
+    "fromAttachmentField": "From attachment field",
+    "uploadFile": "Upload file",
+    "fromUrl": "From URL",
+    "attachFromUrl": "Attach from URL",
+    "removeAttachment": "Remove attachment",
+    "attachmentFieldChip": "field",
     "baseOverview": {
       "copy": {
         "data": {
@@ -5975,6 +5982,7 @@
     "dataSourceReadOnly": "This data source is read-only."
   },
   "placeholder": {
+    "attachmentUrl": "https://example.com/report.pdf",
     "requestIntegration": "Provide integration name and your use-case.",
     "interfaceNocoAiPrompt": "Ask a question, or generate content based on this record.",
     "vaultName": "productionSecrets",
@@ -6469,6 +6477,10 @@
       "migrating": "Migrating..."
     },
     "info": {
+      "attachmentsLimit": "Up to {count} files per email.",
+      "attachmentUploadInProgress": "Wait for the current upload to finish.",
+      "noAttachmentFieldsAvailable": "No attachment fields in earlier steps.",
+      "attachmentUrlHint": "Public link to a file, or a template using variables. Downloaded when the email is sent.",
       "mcpExamplePrompt": "Use NocoDB MCP to work with my project \"{base}\". Explore the schema, then help me add tables, fields and workflows.",
       "connectYourAiDesc": "Let Claude, ChatGPT or Cursor build tables, workflows and interfaces in this project.",
       "auditLogsDisabled": "Audit logs are currently disabled by administrators.",
@@ -7149,6 +7161,11 @@
       "webhookEmptyStateSubtitle": "Trigger an HTTP request whenever a record is created, updated or deleted."
     },
     "error": {
+      "attachmentInvalidUrl": "Enter a URL starting with http:// or https://, or a template using variables",
+      "attachmentAlreadyAttached": "This file is already attached.",
+      "attachmentOpenWorkflowToUpload": "Open the workflow to upload files",
+      "attachmentNoLongerAvailable": "This file is no longer available",
+      "attachmentsTooLarge": "Files exceed the {size} limit per email",
       "inviteLinkInvalid": "This invite link isn't valid",
       "vaultUnreachable": "Could not reach the vault with these settings",
       "vaultAliasStart": "Name must start with a letter",

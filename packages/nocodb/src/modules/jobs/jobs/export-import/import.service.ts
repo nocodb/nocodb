@@ -166,6 +166,8 @@ export class ImportService {
       data: Array<any>;
       req: NcRequest;
       idMap: Map<string, string>;
+      /** Same-instance copy source; its uploaded workflow files are shared with the copy */
+      sourceBaseId?: string;
     },
   ) {
     return _param.idMap;

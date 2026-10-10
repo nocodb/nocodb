@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  assertPlatformMailerAttachments,
   collectEmailAttachmentSources,
   resolveEmailAttachments,
   summarizeEmailAttachments,
@@ -28,6 +29,7 @@ describe('collectEmailAttachmentSources', () => {
     expect(out).toEqual([
       {
         kind: 'nocodb',
+        origin: 'record',
         file: {
           path: photo.path,
           title: 'a.png',
@@ -70,6 +72,7 @@ describe('collectEmailAttachmentSources', () => {
     expect(out).toEqual([
       {
         kind: 'nocodb',
+        origin: 'upload',
         file: {
           path: 'download/noco/p1/workflows/w1/terms.pdf',
           title: 'terms.pdf',
@@ -115,7 +118,7 @@ describe('collectEmailAttachmentSources', () => {
       size: 3,
     };
     expect(collectEmailAttachmentSources([s3])).toEqual([
-      { kind: 'nocodb', file: s3 },
+      { kind: 'nocodb', origin: 'record', file: s3 },
     ]);
   });
 
@@ -212,5 +215,37 @@ describe('resolveEmailAttachments', () => {
         { type: 'url', url: 'https://a.test/x' },
       ]),
     ).rejects.toThrow(/not supported/);
+  });
+});
+
+describe('assertPlatformMailerAttachments', () => {
+  const file = (filename: string, contentType: string) => ({
+    filename,
+    contentType,
+    size: 1,
+    content: Buffer.from('x'),
+  });
+
+  it('allows documents and images', () => {
+    expect(() =>
+      assertPlatformMailerAttachments([
+        file('report.pdf', 'application/pdf'),
+        file('photo.PNG', 'image/png'),
+        file('notes', 'text/plain'),
+      ]),
+    ).not.toThrow();
+  });
+
+  it('refuses executables and web pages by extension or content type', () => {
+    for (const blocked of [
+      file('setup.EXE', 'application/octet-stream'),
+      file('invoice.html', 'application/octet-stream'),
+      file('logo.svg', 'image/svg+xml'),
+      file('page', 'Text/HTML; charset=utf-8'),
+    ]) {
+      expect(() => assertPlatformMailerAttachments([blocked])).toThrow(
+        /built-in mailer/,
+      );
+    }
   });
 });

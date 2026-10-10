@@ -8,10 +8,12 @@ import type {
 
 /**
  * Per-email caps. The host enforces them (bytes overridable via
- * NC_EMAIL_ATTACHMENT_MAX_SIZE); node forms quote them in help text.
+ * NC_EMAIL_ATTACHMENT_MAX_SIZE); node forms quote them in help text. Bytes are
+ * raw: base64 grows them by ~37%, and SMTP providers and MailerSend cap the
+ * encoded message at about 25 MB.
  */
 export const EMAIL_MAX_ATTACHMENTS = 10;
-export const EMAIL_MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024;
+export const EMAIL_MAX_ATTACHMENT_BYTES = 18 * 1024 * 1024;
 
 /**
  * Graph `sendMail` rejects requests over 4 MB, and `contentBytes` is base64 (4/3 of the raw
@@ -140,7 +142,7 @@ export function collectEmailAttachmentSources(
         walk(obj.expression);
         return;
       case 'file':
-        push({ kind: 'nocodb', file: toFileRef(obj) });
+        push({ kind: 'nocodb', origin: 'upload', file: toFileRef(obj) });
         return;
       case 'url': {
         const filename =
@@ -157,7 +159,7 @@ export function collectEmailAttachmentSources(
     }
 
     if (isAttachmentFile(obj)) {
-      push({ kind: 'nocodb', file: toFileRef(obj) });
+      push({ kind: 'nocodb', origin: 'record', file: toFileRef(obj) });
       return;
     }
 
@@ -192,6 +194,48 @@ export async function resolveEmailAttachments(
   }
 
   return nocodb.attachmentService.resolveEmailAttachments(sources, options);
+}
+
+// Executables SES refuses outright, plus web content that renders as a page.
+const PLATFORM_MAILER_BLOCKED_EXTENSIONS = new Set([
+  'ade', 'adp', 'app', 'apk', 'appx', 'asp', 'bas', 'bat', 'chm', 'cmd', 'com',
+  'cpl', 'dll', 'dmg', 'exe', 'gadget', 'hta', 'htm', 'html', 'inf', 'ins',
+  'iso', 'isp', 'jar', 'js', 'jse', 'lnk', 'mht', 'mhtml', 'msc', 'msi', 'msp',
+  'mst', 'pif', 'ps1', 'ps1xml', 'ps2', 'psc1', 'reg', 'scf', 'scr', 'sct',
+  'shb', 'shs', 'shtml', 'svg', 'svgz', 'vb', 'vbe', 'vbs', 'ws', 'wsc', 'wsf',
+  'wsh', 'xht', 'xhtml',
+]);
+
+const PLATFORM_MAILER_BLOCKED_TYPES = new Set([
+  'application/hta',
+  'application/javascript',
+  'application/x-msdownload',
+  'application/xhtml+xml',
+  'image/svg+xml',
+  'text/html',
+  'text/javascript',
+]);
+
+/**
+ * The platform mailer sends from NocoDB's own domain, so it refuses files that
+ * run or render as a page. Senders using their own account (SMTP, Gmail,
+ * Outlook) are not limited.
+ */
+export function assertPlatformMailerAttachments(
+  attachments: ResolvedEmailAttachment[],
+): void {
+  for (const attachment of attachments) {
+    const ext = /\.([^.]+)$/.exec(attachment.filename)?.[1]?.toLowerCase();
+    const type = attachment.contentType.split(';')[0].trim().toLowerCase();
+    if (
+      (ext && PLATFORM_MAILER_BLOCKED_EXTENSIONS.has(ext)) ||
+      PLATFORM_MAILER_BLOCKED_TYPES.has(type)
+    ) {
+      throw new Error(
+        `"${attachment.filename}" can't be sent by the built-in mailer: executable and web page files are blocked. Send it with an SMTP, Gmail or Outlook step instead.`,
+      );
+    }
+  }
 }
 
 /** nodemailer / platform-mailer attachment shape. */

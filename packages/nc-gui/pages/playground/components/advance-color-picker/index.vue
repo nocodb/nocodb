@@ -58,11 +58,11 @@ const managedApp = computed(() => (isManagedApp.value ? { managed_app_master: tr
         </div>
       </PgDemo>
 
-      <PgDemo label="Inline">
+      <PgDemo :label="$t('labels.inline')">
         <GeneralAdvanceColorPicker :key="inlinePickerKey" :model-value="color1" @input="(c: string) => (color1 = c)" />
       </PgDemo>
 
-      <PgDemo label="Dropdown" hint="default trigger and a custom trigger in the default slot">
+      <PgDemo :label="$t('general.dropdown')" hint="default trigger and a custom trigger in the default slot">
         <div class="flex items-center gap-4">
           <GeneralAdvanceColorPickerDropdown v-model="color1" @update:model-value="inlinePickerKey++" />
           <GeneralAdvanceColorPickerDropdown v-model="color1" @update:model-value="inlinePickerKey++">

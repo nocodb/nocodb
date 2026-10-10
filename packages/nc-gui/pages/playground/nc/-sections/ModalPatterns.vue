@@ -103,7 +103,9 @@ function createTable() {
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
       <PgDemo v-for="p in PATTERNS" :key="p.key" :label="p.title">
         <template #actions>
-          <NcButton size="xs" type="secondary" :data-testid="`pg-modal-pattern-${p.key}`" @click="open = p.key">Open</NcButton>
+          <NcButton size="xs" type="secondary" :data-testid="`pg-modal-pattern-${p.key}`" @click="open = p.key">{{
+            $t('general.open')
+          }}</NcButton>
         </template>
         <div class="flex flex-col gap-2">
           <code class="text-captionXs font-mono text-nc-content-gray bg-nc-bg-gray-extralight rounded-md px-2 py-1.5 break-words">
@@ -120,8 +122,8 @@ function createTable() {
         <div class="flex-none flex w-full items-center gap-3 px-4 py-3 border-b-1 border-nc-border-gray-medium">
           <GeneralIcon icon="integration" class="h-5 w-5 text-nc-content-gray-emphasis" />
           <span class="flex-1 text-subHeading1 text-nc-content-gray-emphasis truncate">PostgreSQL integration</span>
-          <NcButton size="small" type="secondary">Test connection</NcButton>
-          <NcButton size="small">Save</NcButton>
+          <NcButton size="small" type="secondary">{{ $t('labels.testConnection') }}</NcButton>
+          <NcButton size="small">{{ $t('general.save') }}</NcButton>
           <NcButton size="small" type="text" icon-only @click="open = null">
             <template #icon>
               <GeneralIcon icon="close" />
@@ -131,7 +133,7 @@ function createTable() {
         <div class="flex-1 min-h-0 flex">
           <div class="flex-1 min-w-0 overflow-y-auto nc-scrollbar-thin p-6">
             <div class="max-w-[760px] flex flex-col gap-4">
-              <div class="text-subHeading2 text-nc-content-gray-emphasis">Connection</div>
+              <div class="text-subHeading2 text-nc-content-gray-emphasis">{{ $t('general.connection') }}</div>
               <div v-for="label in ['Connection name', 'Host', 'Port', 'Database', 'Username', 'Password']" :key="label">
                 <div class="text-captionSm text-nc-content-gray-subtle mb-1.5">{{ label }}</div>
                 <a-input class="nc-input-sm nc-input-shadow" :placeholder="label" />
@@ -141,7 +143,7 @@ function createTable() {
           <div
             class="flex-none w-[320px] border-l-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight p-5 flex flex-col gap-2"
           >
-            <div class="text-captionBold text-nc-content-gray-emphasis">Help</div>
+            <div class="text-captionBold text-nc-content-gray-emphasis">{{ $t('general.help') }}</div>
             <div class="text-captionSm text-nc-content-gray-subtle">
               The right panel is a fixed 320px; the body fills the modal's fixed height and scrolls on its own.
             </div>
@@ -179,20 +181,20 @@ function createTable() {
       <div class="py-5 flex flex-col gap-5">
         <div class="px-5 flex items-center gap-x-2 text-base font-semibold text-nc-content-gray">
           <GeneralIcon icon="table" class="!text-nc-content-gray-subtle2 w-5 h-5" />
-          Create table
+          {{ $t('labels.createTable') }}
         </div>
         <div class="px-5">
           <a-input
             ref="tableNameInput"
             v-model:value="tableName"
             class="nc-input-sm nc-input-shadow"
-            placeholder="Enter table name"
+            :placeholder="$t('msg.info.enterTableName')"
             @keydown.enter="createTable"
           />
         </div>
         <div class="px-5 flex justify-end gap-2">
-          <NcButton size="small" type="secondary" @click="open = null">Cancel</NcButton>
-          <NcButton size="small" :disabled="!tableName.trim()" @click="createTable">Create table</NcButton>
+          <NcButton size="small" type="secondary" @click="open = null">{{ $t('general.cancel') }}</NcButton>
+          <NcButton size="small" :disabled="!tableName.trim()" @click="createTable">{{ $t('labels.createTable') }}</NcButton>
         </div>
       </div>
     </NcModal>

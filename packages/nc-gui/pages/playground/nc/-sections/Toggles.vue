@@ -77,7 +77,9 @@ function toggleAll(value: boolean) {
             <div class="pl-6 flex flex-col gap-2">
               <div><NcCheckbox v-model:checked="permissions.read">Read records</NcCheckbox></div>
               <div><NcCheckbox v-model:checked="permissions.write">Edit records</NcCheckbox></div>
-              <div><NcCheckbox v-model:checked="permissions.delete">Delete records</NcCheckbox></div>
+              <div>
+                <NcCheckbox v-model:checked="permissions.delete">{{ $t('activity.deleteRows') }}</NcCheckbox>
+              </div>
             </div>
           </div>
         </div>
@@ -85,9 +87,9 @@ function toggleAll(value: boolean) {
 
       <PgDemo label="Radio group" hint="a-radio-group">
         <a-radio-group v-model:value="role" class="!flex flex-col gap-2">
-          <a-radio value="owner">Owner</a-radio>
-          <a-radio value="editor">Editor</a-radio>
-          <a-radio value="viewer">Viewer</a-radio>
+          <a-radio value="owner">{{ $t('objects.owner') }}</a-radio>
+          <a-radio value="editor">{{ $t('objects.roleType.editor') }}</a-radio>
+          <a-radio value="viewer">{{ $t('objects.roleType.viewer') }}</a-radio>
           <a-radio value="guest" disabled>Guest (disabled)</a-radio>
         </a-radio-group>
       </PgDemo>

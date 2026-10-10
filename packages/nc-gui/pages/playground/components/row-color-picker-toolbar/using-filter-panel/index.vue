@@ -299,7 +299,7 @@ onMounted(async () => {
         <PgDemo label="Picker" :hint="`rowColoringMode: ${rowColoringMode ?? 'null'}`">
           <template #actions>
             <NcButton type="secondary" size="xsmall" :disabled="!rowColoringMode" class="!px-2" @click="rowColoringMode = null">
-              Reset
+              {{ $t('general.reset') }}
             </NcButton>
           </template>
           <SmartsheetToolbarRowColorFilterTypeOption v-model:row-coloring-mode="rowColoringMode" :columns="SELECT_COLUMNS">

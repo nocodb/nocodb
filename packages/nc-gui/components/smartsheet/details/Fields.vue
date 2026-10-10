@@ -17,7 +17,7 @@ import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
 import type { RouteLocationNormalizedLoadedGeneric } from 'vue-router'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
-import { AiWizardTabsType, type PredictedFieldType } from '#imports'
+import type { PredictedFieldType } from '#imports'
 
 interface TableExplorerColumn extends ColumnType {
   id?: string
@@ -213,12 +213,8 @@ const {
   activeTabSelectedFields,
   activeTabPredictHistory,
   calledFunction,
-  prompt,
-  oldPrompt,
-  isPromtAlreadyGenerated,
   maxSelectionCount,
   activeAiTab,
-  isPredictFromPromptLoading,
   isFormulaPredictionMode,
   fieldPredictionMode,
   onInit,
@@ -226,7 +222,6 @@ const {
   disableAiMode: _disableAiMode,
   predictMore,
   predictRefresh,
-  predictFromPrompt,
   handleRefreshOnError,
   onToggleTag: _onToggleTag,
 } = usePredictFields(ref(true), fields)
@@ -1595,16 +1590,6 @@ const disableAiMode = () => {
   })
 }
 
-const aiPromptInputRef = ref<HTMLElement>()
-
-watch(activeAiTab, (newValue) => {
-  if (newValue === AiWizardTabsType.PROMPT) {
-    nextTick(() => {
-      aiPromptInputRef.value?.focus()
-    })
-  }
-})
-
 const rightPanelRef = ref()
 
 const oldRightPanelWidth = ref()
@@ -2016,119 +2001,6 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
                         </GeneralLockedViewFooter>
                       </div>
                     </div>
-                  </div>
-                </template>
-                <template #PromptContent>
-                  <div class="px-5 pt-4 pb-5 flex flex-col gap-4">
-                    <div v-if="!aiIntegrationAvailable" class="flex items-center">
-                      <div class="flex-1 flex items-center gap-3">
-                        <GeneralIcon icon="alertTriangleSolid" class="!text-nc-content-orange-medium w-4 h-4" />
-                        <div class="text-sm text-nc-content-gray-subtle flex-1">{{ $t('title.noAiIntegrationAvailable') }}</div>
-                      </div>
-                      <NcButton type="text" size="small" @click.stop="handleNavigateToIntegrations">
-                        <template #icon>
-                          <GeneralIcon icon="plus" class="h-4 w-4" />
-                        </template>
-                        {{ $t('labels.addIntegration') }}
-                      </NcButton>
-                    </div>
-                    <template v-else>
-                      <div class="relative">
-                        <a-textarea
-                          ref="aiPromptInputRef"
-                          v-model:value="prompt"
-                          :disabled="loading"
-                          :placeholder="$t('placeholder.enterPromptForFieldSuggestions')"
-                          class="nc-ai-input nc-input-shadow !px-3 !pt-2 !pb-3 !text-sm !min-h-[68px] !rounded-lg"
-                          @keydown.enter.stop
-                        >
-                        </a-textarea>
-
-                        <NcButton
-                          size="xs"
-                          type="primary"
-                          theme="ai"
-                          class="!px-1 !absolute bottom-2 right-2"
-                          :disabled="
-                            !prompt.trim() ||
-                            isPredictFromPromptLoading ||
-                            (!!prompt.trim() && prompt.trim() === oldPrompt.trim()) ||
-                            loading
-                          "
-                          :loading="isPredictFromPromptLoading"
-                          icon-only
-                          @click="predictFromPrompt"
-                        >
-                          <template #loadingIcon>
-                            <GeneralLoader class="!text-nc-content-purple-dark" size="medium" />
-                          </template>
-                          <template #icon>
-                            <GeneralIcon icon="send" class="flex-none h-4 w-4" />
-                          </template>
-                        </NcButton>
-                      </div>
-
-                      <div v-if="aiError" class="w-full flex items-center gap-3">
-                        <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
-
-                        <NcTooltip class="truncate flex-1 text-sm text-nc-content-gray-subtle" show-on-truncate-only>
-                          <template #title>
-                            {{ aiError }}
-                          </template>
-                          {{ aiError }}
-                        </NcTooltip>
-
-                        <NcButton size="small" type="text" class="!text-nc-content-brand" @click.stop="handleRefreshOnError">
-                          {{ $t('general.refresh') }}
-                        </NcButton>
-                      </div>
-
-                      <div v-else-if="isPromtAlreadyGenerated" class="flex flex-col gap-3">
-                        <div class="text-nc-content-purple-dark font-semibold text-xs">{{ $t('labels.generatedFields') }}</div>
-                        <div class="flex gap-2 flex-wrap">
-                          <template v-if="activeTabNonSelectedFields.length">
-                            <template v-for="f of activeTabNonSelectedFields" :key="f.title">
-                              <NcTooltip :disabled="activeTabSelectedFields.length < maxSelectionCount || f.selected">
-                                <template #title>
-                                  <div class="w-[150px]">
-                                    {{ $t('msg.info.maxFieldSelectionAtATime', { maxSelectionCount }) }}
-                                  </div>
-                                </template>
-
-                                <a-tag
-                                  class="nc-ai-suggested-tag"
-                                  :class="{
-                                    'nc-disabled':
-                                      loading || (!f.selected && activeTabSelectedFields.length >= maxSelectionCount),
-                                    'nc-selected': f.selected,
-                                  }"
-                                  :disabled="activeTabSelectedFields.length >= maxSelectionCount"
-                                  @click="onToggleTag(f)"
-                                >
-                                  <div class="flex flex-row items-center gap-1.5 py-[3px] text-small leading-[18px]">
-                                    <component
-                                      :is="getUIDTIcon(isFormulaPredictionMode ? UITypes.Formula : f.type)"
-                                      v-if="isFormulaPredictionMode || f?.type"
-                                      class="flex-none w-3.5 h-3.5"
-                                      :class="{
-                                        'opacity-60':
-                                          loading || (!f.selected && activeTabSelectedFields.length >= maxSelectionCount),
-                                      }"
-                                    />
-
-                                    <div>{{ f.title }}</div>
-                                  </div>
-                                </a-tag>
-                              </NcTooltip>
-                            </template>
-                          </template>
-                          <div v-else-if="activeTabSelectedFields.length" class="text-nc-content-purple-light">
-                            {{ $t('msg.noSuggestionsRemainingPromptAgain') }}
-                          </div>
-                          <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
-                        </div>
-                      </div>
-                    </template>
                   </div>
                 </template>
               </AiWizardTabs>

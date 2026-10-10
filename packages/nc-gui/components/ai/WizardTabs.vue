@@ -60,18 +60,6 @@ const { aiLoading } = useNocoAi()
         <slot name="AutoSuggestedContent"></slot>
       </div>
     </a-tab-pane>
-
-    <a-tab-pane :key="AiWizardTabsType.PROMPT" class="w-full" disabled>
-      <template #tab>
-        <NcTooltip class="flex">
-          <template #title> {{ $t('msg.toast.futureRelease') }}</template>
-          <div class="tab-title">{{ $t('labels.usePrompt') }}</div>
-        </NcTooltip>
-      </template>
-      <div>
-        <slot name="PromptContent"></slot>
-      </div>
-    </a-tab-pane>
   </NcTabs>
 </template>
 
@@ -92,10 +80,6 @@ const { aiLoading } = useNocoAi()
     :deep(.ant-tabs-tab) {
       @apply !cursor-wait;
     }
-  }
-
-  :deep(.ant-tabs-tab + .ant-tabs-tab) {
-    @apply ml-4;
   }
 
   .tab-title {

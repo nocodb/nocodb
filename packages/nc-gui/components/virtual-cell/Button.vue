@@ -245,7 +245,8 @@ const triggerAction = async () => {
   const colOptions = column.value.colOptions
   afterActionStatus.value = null
 
-  if (!colOptions.type) return
+  // A disabled <a> still fires click, and an active cell can route the click here.
+  if (!colOptions.type || componentProps.value?.disabled) return
 
   if (colOptions.type === ButtonActionsType.Url) {
     confirmPageLeavingRedirect(buttonUrl.value, componentProps.value?.target, appInfo.value?.allowLocalUrl)

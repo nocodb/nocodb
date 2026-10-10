@@ -59,7 +59,15 @@ export class ButtonsService {
       button,
       rowId,
       req,
-    }: { model: Model; button: ButtonColumn; rowId: string; req: NcRequest },
+      page,
+    }: {
+      model: Model;
+      button: ButtonColumn;
+      rowId: string;
+      req: NcRequest;
+      /** Interface page the click came from — handed to a workflow trigger. */
+      page?: { id: string; title?: string | null };
+    },
   ) {
     const row = await this.dataService.dataRead(context, {
       baseName: model.base_id,
@@ -75,7 +83,14 @@ export class ButtonsService {
       );
     }
 
-    return await this.dispatch(context, { model, button, row, rowId, req });
+    return await this.dispatch(context, {
+      model,
+      button,
+      row,
+      rowId,
+      req,
+      page,
+    });
   }
 
   protected async dispatch(
@@ -86,6 +101,7 @@ export class ButtonsService {
       row: Record<string, any>;
       rowId: string;
       req: NcRequest;
+      page?: { id: string; title?: string | null };
     },
   ): Promise<unknown> {
     switch (param.button.type) {

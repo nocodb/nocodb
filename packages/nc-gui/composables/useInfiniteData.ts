@@ -229,6 +229,12 @@ export function useInfiniteData(args: {
     return Object.keys(result).length ? result : undefined
   }
 
+  /** Row colour + button visibility — re-evaluated whenever a row's data changes. */
+  const evaluateRowMeta = (row: Record<string, any>) => ({
+    ...getEvaluatedRowMetaRowColorInfo(row),
+    buttonDisabled: evaluateButtonVisibility(row),
+  })
+
   // Preload related table metas for LTAR columns used in active filters.
   // Without this, client-side validateRowFilters cannot resolve related table
   // columns (e.g. primary value) and incorrectly fails the filter check.
@@ -1604,7 +1610,7 @@ export function useInfiniteData(args: {
           new: false,
           saving: false,
           isRlsHidden: !!insertedData?.__nc_rls_hidden,
-          ...getEvaluatedRowMetaRowColorInfo({ ...insertedData, ...currentRow.row }),
+          ...evaluateRowMeta({ ...insertedData, ...currentRow.row }),
           buttonDisabled: evaluateButtonVisibility({ ...insertedData, ...currentRow.row }),
         },
       })
@@ -1725,7 +1731,7 @@ export function useInfiniteData(args: {
       )
 
       Object.assign(toUpdate.oldRow, updatedRowData)
-      Object.assign(toUpdate.rowMeta, getEvaluatedRowMetaRowColorInfo(toUpdate.row))
+      Object.assign(toUpdate.rowMeta, evaluateRowMeta(toUpdate.row))
       toUpdate.rowMeta.buttonDisabled = evaluateButtonVisibility(toUpdate.row)
 
       // Mark row as hidden if it moved out of user's RLS scope after update
@@ -2175,7 +2181,7 @@ export function useInfiniteData(args: {
     }
 
     const updateRowColorInfo = (row: Row) => {
-      Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+      Object.assign(row.rowMeta, evaluateRowMeta(row.row))
       row.rowMeta.buttonDisabled = evaluateButtonVisibility(row.row)
     }
 
@@ -2321,7 +2327,7 @@ export function useInfiniteData(args: {
           const newRow: Row = {
             row: payload,
             oldRow: {},
-            rowMeta: { new: false, rowIndex: insertIdx, path: matchedPath, ...getEvaluatedRowMetaRowColorInfo(payload) },
+            rowMeta: { new: false, rowIndex: insertIdx, path: matchedPath, ...evaluateRowMeta(payload) },
           }
           matchedCache.cachedRows.value.set(insertIdx, newRow)
           matchedCache.totalRows.value++
@@ -2367,7 +2373,7 @@ export function useInfiniteData(args: {
               dataCache.cachedRows.value.set(newRowIndex, {
                 row: payload,
                 oldRow: {},
-                rowMeta: { new: false, rowIndex: newRowIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
+                rowMeta: { new: false, rowIndex: newRowIndex, path: [], ...evaluateRowMeta(payload) },
               })
 
               dataCache.totalRows.value++
@@ -2412,7 +2418,7 @@ export function useInfiniteData(args: {
         const newRow: Row = {
           row: payload,
           oldRow: {},
-          rowMeta: { new: false, rowIndex: insertAtIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
+          rowMeta: { new: false, rowIndex: insertAtIndex, path: [], ...evaluateRowMeta(payload) },
         }
         dataCache.cachedRows.value.set(insertAtIndex, newRow)
         dataCache.totalRows.value++
@@ -2464,7 +2470,7 @@ export function useInfiniteData(args: {
 
         cachedRow.rowMeta.isValidationFailed = isValidationFailed
         cachedRow.rowMeta.changed = false
-        Object.assign(cachedRow.rowMeta, getEvaluatedRowMetaRowColorInfo(payload))
+        Object.assign(cachedRow.rowMeta, evaluateRowMeta(payload))
 
         callbacks?.syncVisibleData?.()
       } catch (e) {
@@ -2658,7 +2664,7 @@ export function useInfiniteData(args: {
         if (payload && typeof payload === 'object') {
           Object.assign(rowToMove.row, payload)
           Object.assign(rowToMove.oldRow, payload)
-          Object.assign(rowToMove.rowMeta, getEvaluatedRowMetaRowColorInfo(rowToMove.row))
+          Object.assign(rowToMove.rowMeta, evaluateRowMeta(rowToMove.row))
         }
         rowToMove.rowMeta.changed = false
 

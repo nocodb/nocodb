@@ -528,13 +528,17 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                   );
               }
             } else if (
-              [ButtonActionsType.Webhook, ButtonActionsType.Script].includes(
-                colOption.type,
-              )
+              [
+                ButtonActionsType.Webhook,
+                ButtonActionsType.Script,
+                ButtonActionsType.Workflow,
+              ].includes(colOption.type)
             ) {
               const key =
                 colOption.type === ButtonActionsType.Webhook
                   ? 'fk_webhook_id'
+                  : colOption.type === ButtonActionsType.Workflow
+                  ? 'fk_workflow_id'
                   : 'fk_script_id';
               switch (baseModel.dbDriver.clientType()) {
                 case 'mysql2':

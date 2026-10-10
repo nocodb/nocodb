@@ -1473,6 +1473,7 @@ export class ColumnsService implements IColumnsService {
       fk_webhook_id?: string;
       type?: ButtonActionsType;
       fk_script_id?: string;
+      fk_workflow_id?: string;
       prompt?: string;
       prompt_raw?: string;
       fk_integration_id?: string;
@@ -1721,7 +1722,7 @@ export class ColumnsService implements IColumnsService {
             if (
               !hook ||
               !hook.active ||
-              (hook.version !== 'v3' && hook.event === 'manual') ||
+              hook.event !== 'manual' ||
               (hook.version === 'v3' && !hook.operation?.includes('trigger'))
             ) {
               NcError.get(context).badRequest('Webhook not found');

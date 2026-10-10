@@ -257,7 +257,7 @@ export class ActionManager {
     this.rafId = requestAnimationFrame(animate)
   }
 
-  private handleUrl(colOptions: any, url: string, allowLocalUrl: boolean = false) {
+  private handleUrl(colOptions: any, url: string, allowLocalUrl = false) {
     if (!url) return
 
     try {
@@ -332,13 +332,43 @@ export class ActionManager {
                 this.baseInfo.workspaceId,
                 this.baseInfo.baseId,
                 {
-                  operation: 'hookTrigger',
-                  hookId: webhookId,
+                  operation: 'buttonRun',
+                },
+                {
+                  columnId: column.columnObj.id,
                   rowId,
                 },
-                {},
               )
             })
+          }
+          break
+        }
+
+        case 'workflow': {
+          if (!colOptions.fk_workflow_id) throw new Error('No automation configured')
+
+          const triggerButtonWorkflow = this.interfaceDataApi?.triggerButtonWorkflow
+          if (this.interfaceDataApi && !triggerButtonWorkflow) return
+          if (!triggerButtonWorkflow && !this.baseInfo) {
+            throw new Error('Base information not available. Call setBaseInfo() first.')
+          }
+
+          for (const rowId of rowIds) {
+            await this.executeAction(rowId, column.id, [], async () =>
+              triggerButtonWorkflow
+                ? triggerButtonWorkflow({ rowId, columnId: column.columnObj.id! })
+                : this.api.internal.postOperation(
+                    this.baseInfo!.workspaceId,
+                    this.baseInfo!.baseId,
+                    {
+                      operation: 'buttonRun',
+                    },
+                    {
+                      columnId: column.columnObj.id,
+                      rowId,
+                    },
+                  ),
+            )
           }
           break
         }

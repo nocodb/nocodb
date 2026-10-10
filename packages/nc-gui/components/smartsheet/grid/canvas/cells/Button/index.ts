@@ -182,7 +182,8 @@ export const ButtonCellRenderer: CellRenderer = {
 
     if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid || isLoading) return false
 
-    if (cellRenderStore?.filterDisabled) return false
+    // Read the row itself — the render-time store can belong to another render of this cell.
+    if (cellRenderStore?.filterDisabled || row.rowMeta?.buttonDisabled?.[column.id]) return false
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 
@@ -304,7 +305,7 @@ export const ButtonCellRenderer: CellRenderer = {
 
       if (column.readonly || column.columnObj?.readonly || isLoading) return false
 
-      if (cellRenderStore?.filterDisabled) return false
+      if (cellRenderStore?.filterDisabled || row?.rowMeta?.buttonDisabled?.[column.id!]) return false
 
       await actionManager.executeButtonAction([pk], column, { row: [row], path, allowLocalUrl })
       return true

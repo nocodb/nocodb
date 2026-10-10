@@ -33,6 +33,7 @@ import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { ExtensionsService } from '~/services/extensions.service';
 import { DataImportService } from '~/services/data-import.service';
+import { ButtonsService } from '~/services/buttons.service';
 
 @Injectable()
 export class UiPostOperations
@@ -62,6 +63,7 @@ export class UiPostOperations
     protected readonly nocoJobsService: NocoJobsService,
     protected extensionsService: ExtensionsService,
     protected dataImportService: DataImportService,
+    protected buttonsService: ButtonsService,
   ) {}
   operations = [
     'tableUpdate' as const,
@@ -104,6 +106,7 @@ export class UiPostOperations
     'hookDelete' as const,
     'hookTest' as const,
     'hookTrigger' as const,
+    'buttonRun' as const,
     'hookFilterCreate' as const,
     'buttonFilterCreate' as const,
     'gridViewCreate' as const,
@@ -435,6 +438,12 @@ export class UiPostOperations
         return await this.hooksService.hookTrigger(context, {
           hookId: req.query.hookId as string,
           rowId: req.query.rowId as string,
+          req,
+        });
+      case 'buttonRun':
+        return await this.buttonsService.buttonRun(context, {
+          columnId: payload?.columnId,
+          rowId: payload?.rowId,
           req,
         });
       case 'hookFilterCreate':

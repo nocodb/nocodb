@@ -24,6 +24,7 @@ export default class ButtonColumn {
 
   fk_integration_id?: string;
   fk_script_id?: string;
+  fk_workflow_id?: string;
   model?: string;
   output_column_ids?: string;
   filters?: any[];
@@ -48,6 +49,8 @@ export default class ButtonColumn {
 
     const scriptProps = ['fk_script_id'];
 
+    const workflowProps = ['fk_workflow_id'];
+
     const aiProps = [
       'formula_raw',
       'formula',
@@ -66,6 +69,8 @@ export default class ButtonColumn {
         ? scriptProps
         : buttonColumn.type === ButtonActionsType.Ai
         ? aiProps
+        : buttonColumn.type === ButtonActionsType.Workflow && isEE
+        ? workflowProps
         : []),
       'theme',
       'color',
@@ -146,6 +151,8 @@ export default class ButtonColumn {
 
     const scriptProps = ['fk_script_id'];
 
+    const workflowProps = ['fk_workflow_id'];
+
     const aiProps = [
       'formula_raw',
       'formula',
@@ -164,6 +171,8 @@ export default class ButtonColumn {
         ? scriptProps
         : button.type === ButtonActionsType.Ai
         ? aiProps
+        : button.type === ButtonActionsType.Workflow && isEE
+        ? workflowProps
         : []),
       'theme',
       'color',
@@ -214,6 +223,21 @@ export default class ButtonColumn {
 
   public getParsedTree() {
     return this.parsed_tree;
+  }
+
+  public static async workflowUsages(
+    context: NcContext,
+    workflowId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    return await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COL_BUTTON,
+      {
+        condition: { fk_workflow_id: workflowId },
+      },
+    );
   }
 
   public static async buttonUsages(

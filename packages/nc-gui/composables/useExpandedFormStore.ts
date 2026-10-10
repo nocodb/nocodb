@@ -893,7 +893,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
           activeDataListener.value = $ncSocket.onMessage(
             dataEventSubscriptionKey(newMeta, interfaceDataApi),
-            (data: DataPayload) => {
+            function onDataEvent(data: DataPayload) {
+              // Bulk writes (e.g. a workflow's Update record step) wrap per-row events.
+              if (data.action === 'bulk') {
+                if (Array.isArray(data.rows)) data.rows.forEach(onDataEvent)
+                return
+              }
+
               const { id, action, payload } = data
 
               const activePk = extractPkFromRow(row.value.row, meta.value?.columns as ColumnType[])

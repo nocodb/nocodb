@@ -141,6 +141,7 @@ export * from '~/lib/entityNameValidation';
 export * from '~/lib/smartText';
 export * from '~/lib/snapshotSchedule';
 export * from '~/lib/app';
+export * from '~/lib/button';
 export * from '~/lib/interface';
 export * from '~/lib/previewAs';
 export * from '~/lib/rls/rls-placeholders';

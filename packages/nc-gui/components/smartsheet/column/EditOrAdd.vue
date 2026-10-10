@@ -50,6 +50,7 @@ const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update'])
 const {
   formState,
   isWebhookCreateModalOpen,
+  fieldSaveHooks,
   isAiButtonConfigModalOpen,
   isConvertLinkV2ModalOpen,
   generateNewColumnMeta,
@@ -459,6 +460,11 @@ const saveSubmitted = async () => {
       onSelectedTagClick()
     }
   } else {
+    if (fieldSaveHooks.value?.before && !(await fieldSaveHooks.value.before())) {
+      saving.value = false
+      return
+    }
+
     saved = await addOrUpdate(async (col?: ColumnType) => {
       if (props.columnPosition) {
         savedColumn = col
@@ -469,7 +475,10 @@ const saveSubmitted = async () => {
   }
   saving.value = false
 
-  if (!saved) return
+  if (!saved) {
+    await fieldSaveHooks.value?.after?.(false)
+    return
+  }
 
   // add delay to complete minimize transition
   setTimeout(() => {
@@ -481,6 +490,8 @@ const saveSubmitted = async () => {
   }
 
   emit('submit', savedColumn)
+
+  await fieldSaveHooks.value?.after?.(true)
 
   if (isForm.value) {
     $e('a:form-view:add-new-field')

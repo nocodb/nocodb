@@ -579,7 +579,7 @@ if (isEdit.value) {
       <template #default="{ click }">
         <div class="nc-button-filter-section mt-2">
           <div
-            class="flex items-center gap-2 cursor-pointer py-1 text-nc-content-gray-subtle2 hover:text-nc-content-gray"
+            class="flex items-center gap-2 cursor-pointer py-1 text-nc-content-gray-subtle hover:text-nc-content-gray"
             @click="click(PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY, () => (isFilterSectionOpen = !isFilterSectionOpen))"
           >
             <GeneralIcon
@@ -587,7 +587,8 @@ if (isEdit.value) {
               class="transform transition-transform duration-150 !w-4 !h-4"
               :class="{ '-rotate-90': !isFilterSectionOpen }"
             />
-            <span class="text-small font-medium select-none">{{ $t('labels.visibilityCondition') }}</span>
+            <!-- Matches the "Add description" toggle below (small NcButton: 14px, medium). -->
+            <span class="text-sm font-medium select-none">{{ $t('labels.visibilityCondition') }}</span>
             <PaymentUpgradeBadge
               :plan-title="PlanTitles.BUSINESS"
               :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY"

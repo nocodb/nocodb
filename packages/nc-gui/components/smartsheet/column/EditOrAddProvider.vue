@@ -24,8 +24,7 @@ const { column, preload, tableExplorerColumns, fromTableExplorer, isColumnValid,
 
 const { isSaving } = useProvideColumnCreateStore(meta, column, tableExplorerColumns, fromTableExplorer, isColumnValid)
 
-const { isWebhookCreateModalOpen, isAutomationCreateModalOpen, isAiButtonConfigModalOpen, isConvertLinkV2ModalOpen } =
-  useColumnCreateStoreOrThrow()
+const { isWebhookCreateModalOpen, isAiButtonConfigModalOpen, isConvertLinkV2ModalOpen } = useColumnCreateStoreOrThrow()
 
 /**
  * Determines whether the root dropdown should remain open.
@@ -37,13 +36,7 @@ const { isWebhookCreateModalOpen, isAutomationCreateModalOpen, isAiButtonConfigM
  * @returns {boolean} - Returns `true` if any of the specified modals (e.g., Webhook Create Modal, AI Button Config Modal) are open, otherwise `false`.
  */
 const shouldKeepModalOpen = (): boolean => {
-  return (
-    isSaving.value ||
-    isWebhookCreateModalOpen.value ||
-    isAutomationCreateModalOpen.value ||
-    isAiButtonConfigModalOpen.value ||
-    isConvertLinkV2ModalOpen.value
-  )
+  return isSaving.value || isWebhookCreateModalOpen.value || isAiButtonConfigModalOpen.value || isConvertLinkV2ModalOpen.value
 }
 
 defineExpose({

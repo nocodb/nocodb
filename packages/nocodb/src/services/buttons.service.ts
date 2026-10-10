@@ -3,7 +3,6 @@ import { ButtonActionsType, UITypes, validateRowFilters } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ButtonColumn } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { isButtonAssignableColumn } from '~/helpers/buttonActionConfig';
 import { Column, Model, Source } from '~/models';
 import { DatasService } from '~/services/datas.service';
 import { HooksService } from '~/services/hooks.service';
@@ -84,47 +83,11 @@ export class ButtonsService {
           rowId: param.rowId,
           req: param.req,
         });
-      case ButtonActionsType.UpdateRecord:
-        return await this.updateRecord(context, param);
       default:
         NcError.get(context).badRequest(
           `Button type '${param.button.type}' cannot be run here`,
         );
     }
-  }
-
-  /** Writes the configured values as the clicker — same path and permissions as a cell edit. */
-  protected async updateRecord(
-    context: NcContext,
-    param: {
-      model: Model;
-      button: ButtonColumn;
-      rowId: string;
-      req: NcRequest;
-    },
-  ) {
-    const columns = await param.model.getColumns();
-    const body: Record<string, unknown> = {};
-    // Fields deleted since the button was saved are skipped.
-    for (const update of param.button.action_config?.updates ?? []) {
-      const column = columns.find((c) => c.id === update.fk_column_id);
-      if (column && isButtonAssignableColumn(column)) {
-        body[column.title] = update.value;
-      }
-    }
-    if (!Object.keys(body).length) {
-      NcError.get(context).invalidRequestBody(
-        'This button has no fields to update',
-      );
-    }
-
-    return await this.dataService.dataUpdate(context, {
-      baseName: param.model.base_id,
-      tableName: param.model.id,
-      rowId: param.rowId,
-      body,
-      cookie: param.req,
-    });
   }
 
   /** Evaluates the visibility condition the grid uses to disable the button. */

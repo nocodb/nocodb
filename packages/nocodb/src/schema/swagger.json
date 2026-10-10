@@ -24002,10 +24002,6 @@
             "$ref": "#/components/schemas/Id",
             "description": "Workflow ID"
           },
-          "action_config": {
-            "description": "Action config: confirmation, record updates, appearance after click",
-            "type": "object"
-          },
           "fk_column_id": {
             "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to Column"
@@ -31027,8 +31023,7 @@
           "url",
           "ai",
           "script",
-          "workflow",
-          "update_record"
+          "workflow"
         ]
       },
       "CustomUrl": {

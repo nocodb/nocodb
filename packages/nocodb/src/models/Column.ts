@@ -462,7 +462,6 @@ export default class Column<T = any> implements ColumnType {
           fk_webhook_id: column?.fk_webhook_id,
           fk_script_id: column?.fk_script_id,
           fk_workflow_id: column?.fk_workflow_id,
-          action_config: column?.action_config,
           label: column.label,
           fk_integration_id: column.fk_integration_id,
           model: column.model,

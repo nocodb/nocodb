@@ -98,7 +98,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { api, isLoading } = useApi()
 
-  const { setMeta, getMeta, getMetaByKey } = useMetas()
+  const { setMeta, getMeta } = useMetas()
 
   const { isDark, getColor } = useTheme()
 
@@ -546,10 +546,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       const attachment: Record<string, any> = {}
 
       /** find attachments in form data */
-      // Read the view's own model, not the meta store — a related table's trimmed copy of this
-      // model can land there, hiding attachment columns so files go out as base64 JSON (422).
-      const formMeta = meta.value ?? getMetaByKey(sharedView.value?.base_id, sharedView.value?.fk_model_id as string)
-      for (const col of formMeta?.columns ?? []) {
+      // Use the view's own model: the meta store may hold a trimmed copy of this table.
+      for (const col of meta.value?.columns ?? []) {
         if (col.uidt === UITypes.Attachment) {
           if (col.title && data[col.title]) {
             attachment[`_${col.title}`] = data[col.title].map((item: { file: File }) => item.file)

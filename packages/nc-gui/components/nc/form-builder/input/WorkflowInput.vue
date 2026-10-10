@@ -968,22 +968,7 @@ function removeLink() {
 }
 
 // The href split into text and {{ }} tokens, so the view bubble can show variables as pills.
-const linkViewSegments = computed(() => {
-  const segments: { text?: string; label?: string }[] = []
-  const regex = /\{\{([^}]+)}}/g
-  let lastIndex = 0
-  let match
-
-  // eslint-disable-next-line no-cond-assign
-  while ((match = regex.exec(linkViewHref.value)) !== null) {
-    if (match.index > lastIndex) segments.push({ text: linkViewHref.value.slice(lastIndex, match.index) })
-    segments.push({ label: deriveExpressionMeta(match[1].trim()).label })
-    lastIndex = match.index + match[0].length
-  }
-  if (lastIndex < linkViewHref.value.length) segments.push({ text: linkViewHref.value.slice(lastIndex) })
-
-  return segments
-})
+const linkViewSegments = computed(() => splitWorkflowTemplate(linkViewHref.value, props.variables, t))
 
 // A variable only resolves at send time, so there is nothing to open yet.
 const linkViewHasVariable = computed(() => linkViewSegments.value.some((segment) => segment.label))

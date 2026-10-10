@@ -1,11 +1,13 @@
 import path from 'path';
 import fs from 'fs';
+import { pipeline } from 'stream/promises';
 import mime from 'mime/lite';
 import slash from 'slash';
 import { PublicAttachmentScope } from 'nocodb-sdk';
 import { nanoid } from 'nanoid';
 import moment from 'dayjs';
 import hash from 'object-hash';
+import type { Readable } from 'stream';
 import type { Response } from 'express';
 import type { NcContext } from 'nocodb-sdk';
 import type { Column } from '~/models';
@@ -13,7 +15,6 @@ import type { AttachmentsService } from '~/services/attachments.service';
 import { getToolDir } from '~/utils/nc-config';
 import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { PresignedUrl } from '~/models';
 import { isSecureAttachmentEnabled } from '~/utils';
 
 export const imageMimeTypes = [
@@ -392,15 +393,14 @@ export function sanitizeAttachmentStoragePath(joined: string): string {
 }
 
 export interface ServeStoredAttachmentOptions {
-  // Caps how long a revoked share can still resolve the file once the
-  // signed URL has left the proxy. Defaults to 5 min.
-  signedUrlTtlSeconds?: number;
   cacheControl: string;
   attachmentsService: Pick<AttachmentsService, 'getFile'>;
 }
 
 // Shared between authed AttachmentProxy and anonymous PublicDocs share.
-// External storage (S3/GCS/…) → 302 to signed URL; local path → stream directly.
+// External storage (S3/GCS/…) → streamed through the server; local path → sent from disk.
+// Streamed, not 302'd: the client reads these with fetch(), which can't follow a
+// redirect to a bucket that has no CORS rules.
 // A local path means the file was stored on disk (attachment.path field in DB),
 // so it must be served locally even when an external storage adapter is active —
 // the file was never uploaded to S3.
@@ -415,18 +415,31 @@ export async function serveStoredAttachment(
   const isUrl = /^https?:\/\//i.test(fileUrl);
 
   if (isExternalStorage && isUrl) {
-    // File is stored on external storage (identified by a full HTTP URL in the
-    // attachment record) — redirect the client to a short-lived signed URL.
-    const signedUrl = await PresignedUrl.getSignedUrl({
-      pathOrUrl: fileUrl,
-      preview: true,
-      ...(opts.signedUrlTtlSeconds !== undefined && {
-        expireSeconds: opts.signedUrlTtlSeconds,
-      }),
-    });
+    const key = resolveAttachmentFilePath({ url: fileUrl });
 
+    let stream: Readable;
+    try {
+      stream = await storageAdapter.fileReadByStream(key);
+    } catch {
+      return res.status(404).send('Not found');
+    }
+
+    const mimetype = mime.getType(key) || 'application/octet-stream';
+    res.setHeader('Content-Type', mimetype);
     res.setHeader('Cache-Control', opts.cacheControl);
-    return res.redirect(302, signedUrl);
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader(
+      'Content-Disposition',
+      isPreviewAllowed({ mimetype }) ? 'inline' : 'attachment',
+    );
+
+    try {
+      await pipeline(stream, res);
+    } catch {
+      // Client went away or the storage read failed mid-stream.
+      res.destroy();
+    }
+    return;
   }
 
   // Local file (path-based, not a URL) — stream directly from disk.

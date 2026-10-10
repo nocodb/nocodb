@@ -37,16 +37,17 @@ const isStringDataType = computed(() => {
 })
 
 const openLongText = (event: MouseEvent) => {
-  if (!isStringDataType.value) return
-
+  // Links are intercepted for every result type; only string results open the long-text view.
   const target = event.target as HTMLElement
   const anchor = target.closest('a') as HTMLAnchorElement | null
   if (anchor?.href) {
     event.preventDefault()
     event.stopPropagation()
-    confirmPageLeavingRedirect(anchor.href, '_blank')
+    confirmPageLeavingRedirect(getAnchorTargetUrl(anchor), '_blank')
     return
   }
+
+  if (!isStringDataType.value) return
 
   openDetachedLongText({
     column: column.value,

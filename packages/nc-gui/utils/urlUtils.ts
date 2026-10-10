@@ -231,6 +231,50 @@ export const isTrustedLinkUrl = (url: string) => {
   }
 }
 
+/** Expects a url with its scheme already added. */
+const isLeavingPageRequired = (url: string) =>
+  /^https?:\/\//i.test(url) && ncIsSharedViewOrBase() && !isSameOriginUrl(url) && !isTrustedLinkUrl(url)
+
+export const getLeavingPageUrl = (url: string) => {
+  const leavingUrl = new URL(`${window.location.origin}/leaving`)
+  leavingUrl.searchParams.set('ncRedirectUrl', url)
+  leavingUrl.searchParams.set('ncBackUrl', window.location.href)
+  return leavingUrl.toString()
+}
+
+/**
+ * `href` to render for a user-supplied link. On shared pages an external link points at /leaving,
+ * so middle-click and "open in new tab" can't skip the interstitial.
+ */
+export const getExternalLinkHref = (url?: string | null) => {
+  if (!url) return url ?? ''
+
+  const trimmed = url.trim()
+
+  // Relative to this page — adding a scheme would misread the path as a host. Judged on the
+  // resolved origin: browsers read `/\host` and `/\t/host` as protocol-relative.
+  if (!trimmed.startsWith('//') && /^[#?./\\]/.test(trimmed)) {
+    if (isSameOriginUrl(trimmed)) return url
+    try {
+      const resolved = new URL(trimmed, window.location.href).href
+      return isLeavingPageRequired(resolved) ? getLeavingPageUrl(resolved) : url
+    } catch {
+      return url
+    }
+  }
+
+  const normalized = addMissingUrlSchma(trimmed.startsWith('//') ? `https:${trimmed}` : trimmed)
+  return isLeavingPageRequired(normalized) ? getLeavingPageUrl(normalized) : url
+}
+
+/** Anchor attrs with `href` pointed at /leaving when needed. */
+export const withLeavingPageHref = <T extends Record<string, unknown>>(attrs: T): T => {
+  if (!ncIsString(attrs.href)) return attrs
+
+  const href = getExternalLinkHref(attrs.href)
+  return href === attrs.href ? attrs : { ...attrs, href }
+}
+
 export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allowLocalUrl?: boolean, userObj?: any) => {
   url = addMissingUrlSchma(url)
 
@@ -252,21 +296,16 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allow
     return
   }
 
-  // Don't do anything if url is not valid, just warn in console for debugging purpose
-  if (!isValidURL(url, { require_tld: !allowLocalUrl })) {
+  // Same-origin never leaves the app; skipping also keeps a TLD-less host (localhost) working.
+  if (!isSameOriginUrl(url) && !isValidURL(url, { require_tld: !allowLocalUrl })) {
     console.warn('Invalid URL:', url)
     return
   }
 
-  // No need to navigate to leaving page for same-origin or trusted urls
-  if (isSameOriginUrl(url) || isTrustedLinkUrl(url) || !ncIsSharedViewOrBase()) {
+  if (!isLeavingPageRequired(url)) {
     window.open(url, target, target === '_blank' ? 'noopener,noreferrer' : undefined)
   } else {
-    const leavingUrl = new URL(`${window.location.origin}/leaving`)
-    leavingUrl.searchParams.set('ncRedirectUrl', url)
-    leavingUrl.searchParams.set('ncBackUrl', window.location.href)
-
-    navigateTo(leavingUrl.toString(), {
+    navigateTo(getLeavingPageUrl(url), {
       open: {
         target: '_blank',
         windowFeatures: {
@@ -278,13 +317,39 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allow
   }
 }
 
+/** The url an anchor stands for — the /leaving target when `href` was pointed at /leaving. */
+export const getAnchorTargetUrl = (anchor: HTMLAnchorElement) => {
+  try {
+    const url = new URL(anchor.href)
+    if (url.pathname === '/leaving' && url.origin === window.location.origin) {
+      return url.searchParams.get('ncRedirectUrl') ?? anchor.href
+    }
+  } catch {}
+  return anchor.href
+}
+
 export const handleDompurifyLinkClick = (event: MouseEvent) => {
   const target = (event.target as HTMLElement)?.closest('a') as HTMLAnchorElement | null
   if (!target?.href) return
 
   event.preventDefault()
   event.stopPropagation()
-  confirmPageLeavingRedirect(target.href, '_blank')
+  confirmPageLeavingRedirect(getAnchorTargetUrl(target), '_blank')
+}
+
+/** Navigate to an already-validated http(s) url, through /leaving on shared pages. */
+export const openExternalUrl = (url: string, newTab: boolean) => {
+  if (!isLeavingPageRequired(url)) {
+    if (newTab) window.open(url, '_blank', 'noopener,noreferrer')
+    else location.assign(url)
+    return
+  }
+
+  const leavingUrl = getLeavingPageUrl(url)
+
+  // /leaving is not allowed to render inside an iframe.
+  if (newTab || window.self !== window.top) window.open(leavingUrl, '_blank', 'noopener,noreferrer')
+  else location.assign(leavingUrl)
 }
 
 export const addConfirmPageLeavingRedirectToWindow = (remove = false) => {

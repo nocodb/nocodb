@@ -150,25 +150,29 @@ const filterDisabledTooltip = computed(() => {
   return t('msg.buttonConditionNotMet')
 })
 
+const buttonUrl = computed(() => {
+  const url = addMissingUrlSchma(cellValue.value?.url)
+
+  // if url params not encoded, encode them using encodeURI
+  try {
+    return decodeURI(url) === url ? encodeURI(url) : url
+  } catch {
+    return encodeURI(url)
+  }
+})
+
 const componentProps = computed(() => {
   const filterDisabled = !isFilterConditionMet.value
 
   if (column.value.colOptions.type === ButtonActionsType.Url) {
-    let url = addMissingUrlSchma(cellValue.value?.url)
-
-    // if url params not encoded, encode them using encodeURI
-    try {
-      url = decodeURI(url) === url ? encodeURI(url) : url
-    } catch {
-      url = encodeURI(url)
-    }
+    const url = buttonUrl.value
 
     const isValidUrl = isValidURL(url, { require_tld: !appInfo.value?.allowLocalUrl })
 
     invalidUrlTooltip.value = !isValidUrl ? t('msg.error.invalidURL') : ''
 
     return {
-      href: url,
+      href: getExternalLinkHref(url),
       target: '_blank',
       ...(column.value?.colOptions.error || !isValidUrl || filterDisabled ? { disabled: true } : {}),
     }
@@ -234,7 +238,7 @@ const triggerAction = async () => {
   if (!colOptions.type) return
 
   if (colOptions.type === ButtonActionsType.Url) {
-    confirmPageLeavingRedirect(componentProps.value?.href, componentProps.value?.target, appInfo.value?.allowLocalUrl)
+    confirmPageLeavingRedirect(buttonUrl.value, componentProps.value?.target, appInfo.value?.allowLocalUrl)
   } else if (colOptions.type === ButtonActionsType.Webhook) {
     try {
       isLoading.value = true

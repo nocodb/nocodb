@@ -9,7 +9,12 @@ const route = router.currentRoute
 
 // Shared/public pages route external link clicks through the /leaving interstitial.
 watch(
-  () => isSharedBaseOrErdOrViewRoute(route.value) || isSharedDashboardRoute(route.value) || isSharedInterfaceRoute(route.value),
+  () =>
+    isSharedBaseOrErdOrViewRoute(route.value) ||
+    isSharedDashboardRoute(route.value) ||
+    isSharedInterfaceRoute(route.value) ||
+    // Ambient embed is the builder preview on the user's own session, framed by the console.
+    (isInterfaceEmbedRoute(route.value) && route.value.query.ambient !== '1'),
   (isShared) => addConfirmPageLeavingRedirectToWindow(!isShared),
   { immediate: true },
 )

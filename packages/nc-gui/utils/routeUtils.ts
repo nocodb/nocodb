@@ -39,6 +39,13 @@ export const isSharedInterfaceRoute = (route: RouteLocationNormalizedLoadedGener
   return ((route.name as string) || '').startsWith('index-typeOrId-interface-uuid')
 }
 
+/** Published-app interface embed (`/interface-embed/:interfaceId/:pageId`), which may be served to anonymous viewers */
+export const isInterfaceEmbedRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
+  if (!route) return false
+
+  return ((route.name as string) || '').startsWith('interface-embed-interfaceId-pageId')
+}
+
 /**
  * Check if the route is a public route
  * @param route - The route to check

@@ -90,7 +90,7 @@
     "@vvo/tzdb": "^6.183.0",
     "ant-design-vue": "^3.2.20",
     "aws-amplify": "^5.3.27",
-    "axios": "^1.18.0",
+    "axios": "^1.20.0",
     "company-email-validator": "^1.1.0",
     "cron-parser": "^5.4.0",
     "cronstrue": "^3.9.0",

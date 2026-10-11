@@ -6912,6 +6912,7 @@
       "interfaceButtonConfirmRecordUrl": "You'll be directed to the link stored in this record",
       "interfaceRecordUrlEmpty": "This record has no link in that field",
       "interfaceRecordFormNoFields": "This form has no fields yet, so it cannot create records",
+      "interfaceRecordUpdateFormUnsupportedFields": "Linked record and computed fields can't be edited from an edit form. Use the record detail layout to link or unlink records.",
       "interfaceNoConfiguredAutomation": "Choose an automation",
       "interfaceAutomationNotDeployed": "Automation is not deployed.",
       "interfaceAutomationStarted": "Automation started",

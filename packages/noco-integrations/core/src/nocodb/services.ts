@@ -298,8 +298,18 @@ export interface EmailAttachmentFileRef {
   size?: number;
 }
 
+/**
+ * Where a stored file came from, which decides what may vouch for it: `upload`
+ * is a file uploaded to the node, `record` an attachment field's value.
+ */
+export type EmailAttachmentOrigin = 'upload' | 'record';
+
 export type EmailAttachmentSource =
-  | { kind: 'nocodb'; file: EmailAttachmentFileRef }
+  | {
+      kind: 'nocodb';
+      origin: EmailAttachmentOrigin;
+      file: EmailAttachmentFileRef;
+    }
   | { kind: 'url'; url: string; filename?: string };
 
 export interface ResolvedEmailAttachment {

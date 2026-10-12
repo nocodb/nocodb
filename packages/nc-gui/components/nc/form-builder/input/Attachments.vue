@@ -127,15 +127,17 @@ type Panel = 'menu' | 'picker' | 'url'
 
 const panel = ref<Panel | null>(null)
 
-// The URL field's variable picker renders on `body`, outside the dropdown; a click there must
-// not read as a click outside the URL popover.
+// The URL field's variable picker, transform menu and completions render on `body`, outside the
+// dropdown; a click there must not read as a click outside the URL popover.
+const URL_FIELD_FLOATING_UI = '.nc-workflow-code-picker, .nc-workflow-transform-menu, .cm-tooltip, .tippy-box'
+
 let pointerInVariablePicker = false
 
 useEventListener(
   document,
   'pointerdown',
   (event: PointerEvent) => {
-    pointerInVariablePicker = !!(event.target as HTMLElement | null)?.closest?.('.tippy-box')
+    pointerInVariablePicker = !!(event.target as HTMLElement | null)?.closest?.(URL_FIELD_FLOATING_UI)
   },
   { capture: true },
 )
@@ -512,7 +514,6 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
                   :placeholder="$t('placeholder.attachmentUrl')"
                   :variables="flatUrlVariables"
                   :grouped-variables="groupedUrlVariables"
-                  picker-placement="below"
                   @enter="addUrl"
                 />
               </div>

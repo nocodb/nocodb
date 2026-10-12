@@ -31,6 +31,8 @@ const route = useRoute()
 
 const { activeProjectId } = storeToRefs(useBases())
 
+const { openAttachment } = useAttachment()
+
 const workflowContext = inject(WorkflowVariableInj, null)
 
 const items = computed<FormBuilderAttachmentItem[]>(() => (Array.isArray(vModel.value) ? vModel.value : []))
@@ -41,7 +43,9 @@ const setItems = (next: FormBuilderAttachmentItem[]) => {
 
 const maxItems = computed(() => props.element.maxItems ?? 10)
 
-const canAdd = computed(() => !props.disabled && items.value.length < maxItems.value)
+const atLimit = computed(() => items.value.length >= maxItems.value)
+
+const limitHint = computed(() => `Up to ${maxItems.value} files per email.`)
 
 const allowUpload = computed(() => props.element.allowUpload !== false)
 
@@ -69,53 +73,97 @@ const groupedAttachmentVariables = computed<NodeGroup[]>(() => {
 
 const flatAttachmentVariables = computed(() => groupedAttachmentVariables.value.flatMap((group) => group.variables))
 
-const allVariables = computed(() => {
-  if (!selectedNodeId.value || !workflowContext?.getAvailableVariablesFlat) return []
-  return workflowContext.getAvailableVariablesFlat(selectedNodeId.value)
+// One dropdown anchored to the Add button; its overlay is whichever step is active.
+type Panel = 'menu' | 'picker' | 'url'
+
+const panel = ref<Panel | null>(null)
+
+const dropdownVisible = computed({
+  get: () => panel.value !== null,
+  set: (visible: boolean) => {
+    panel.value = visible ? panel.value ?? 'menu' : null
+  },
 })
 
-const allGroupedVariables = computed(() => {
-  if (!selectedNodeId.value || !workflowContext?.getAvailableVariables) return []
-  return workflowContext.getAvailableVariables(selectedNodeId.value)
-})
-
-const addMenuOpen = ref(false)
-
-const pickerOpen = ref(false)
-
-const openPicker = () => {
-  addMenuOpen.value = false
-  pickerOpen.value = true
+const closePanel = () => {
+  panel.value = null
 }
 
 const addVariable = ({ label, expression }: { id: string; label: string; expression: string }) => {
   setItems([...items.value, { type: 'variable', expression, label }])
-  pickerOpen.value = false
-}
-
-const addUrl = () => {
-  addMenuOpen.value = false
-  setItems([...items.value, { type: 'url', url: '' }])
-}
-
-const updateUrl = (index: number, url: string) => {
-  const next = [...items.value]
-  const current = next[index]
-  if (!current || current.type !== 'url') return
-  next[index] = { ...current, url }
-  setItems(next)
+  closePanel()
 }
 
 const removeItem = (index: number) => {
   setItems(items.value.filter((_, i) => i !== index))
 }
 
+// ── URL popover ────────────────────────────────────────────────────────────
+
+const urlInputRef = ref()
+
+const urlValue = ref('')
+
+const urlError = ref<string | null>(null)
+
+const parseHttpUrl = (value: string): URL | null => {
+  try {
+    const url = new URL(value.trim())
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url : null
+  } catch {
+    return null
+  }
+}
+
+const urlIsValid = computed(() => !!parseHttpUrl(urlValue.value))
+
+const openUrlPopover = () => {
+  urlValue.value = ''
+  urlError.value = null
+  panel.value = 'url'
+  nextTick(() => urlInputRef.value?.focus?.())
+}
+
+const addUrl = () => {
+  const url = parseHttpUrl(urlValue.value)
+  if (!url) {
+    urlError.value = 'Enter a valid URL starting with http:// or https://'
+    return
+  }
+  if (items.value.some((item) => item.type === 'url' && item.url === url.href)) {
+    urlError.value = 'This file is already attached.'
+    return
+  }
+  setItems([...items.value, { type: 'url', url: url.href }])
+  closePanel()
+}
+
+watch(urlValue, () => {
+  urlError.value = null
+})
+
+const urlFileName = (value: string) => {
+  const url = parseHttpUrl(value)
+  if (!url) return value
+  const last = url.pathname.split('/').filter(Boolean).pop()
+  if (!last) return url.hostname
+  try {
+    return decodeURIComponent(last)
+  } catch {
+    return last
+  }
+}
+
+const urlHost = (value: string) => parseHttpUrl(value)?.hostname ?? ''
+
+// ── Upload ─────────────────────────────────────────────────────────────────
+
 const fileInput = ref<HTMLInputElement>()
 
 const isUploading = ref(false)
 
 const triggerUpload = () => {
-  addMenuOpen.value = false
+  closePanel()
   fileInput.value?.click()
 }
 
@@ -163,89 +211,171 @@ const onFilesSelected = async (event: Event) => {
   }
 }
 
-const itemIcon = (item: FormBuilderAttachmentItem) => {
-  if (item.type === 'variable') return item.icon || 'cellAttachment'
+// ── Open ───────────────────────────────────────────────────────────────────
+
+const isOpenable = (item: FormBuilderAttachmentItem) => item.type === 'file' || item.type === 'url'
+
+// URLs open as-is; uploaded files are stored by path, so the backend signs a fresh link first.
+const openItem = async (item: FormBuilderAttachmentItem) => {
+  if (item.type === 'url') {
+    window.open(item.url, '_blank', 'noopener,noreferrer')
+    return
+  }
+  if (item.type !== 'file') return
+
+  const workflowId = route.params.workflowId as string | undefined
+  if (!activeProjectId.value || !workflowId) return
+
+  try {
+    const { data } = await $api.instance.post<Array<Record<string, any>>>(
+      `/api/v2/meta/bases/${activeProjectId.value}/workflows/${workflowId}/attachments/sign`,
+      { attachments: [{ path: item.path, url: item.url, title: item.title, mimetype: item.mimetype }] },
+    )
+    if (!data?.[0]) {
+      message.error('This file is no longer available')
+      return
+    }
+    await openAttachment(data[0])
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+// ── Chip presentation ──────────────────────────────────────────────────────
+
+const chipIcon = (item: FormBuilderAttachmentItem) => {
+  if (item.type === 'variable') return 'ncPaperclip'
   if (item.type === 'file') return getAttachmentIcon(item.title, item.mimetype)
   return 'ncLink'
+}
+
+const chipName = (item: FormBuilderAttachmentItem) => {
+  if (item.type === 'variable') return item.label
+  if (item.type === 'file') return item.title
+  return urlFileName(item.url)
+}
+
+const chipMeta = (item: FormBuilderAttachmentItem) => {
+  if (item.type === 'variable') return 'field'
+  if (item.type === 'file') return getReadableFileSize(item.size)
+  return urlHost(item.url)
+}
+
+const chipTooltip = (item: FormBuilderAttachmentItem) => {
+  if (item.type === 'variable') return item.expression
+  if (item.type === 'file') return item.title
+  return item.url
 }
 </script>
 
 <template>
   <div class="nc-form-builder-attachments flex flex-col gap-2">
-    <div v-for="(item, index) in items" :key="index" class="flex items-center gap-1 min-w-0">
-      <div v-if="item.type === 'url'" class="flex-1 min-w-0">
-        <NcFormBuilderInputWorkflowInput
-          :model-value="item.url"
-          placeholder="https://example.com/file.pdf"
-          :variables="allVariables"
-          :grouped-variables="allGroupedVariables"
-          :read-only="disabled"
-          @update:model-value="updateUrl(index, $event)"
-        />
-      </div>
-      <div
-        v-else
-        class="nc-attachment-chip flex items-center gap-2 h-8 px-2 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default min-w-0"
+    <div v-if="items.length" class="flex flex-wrap gap-2">
+      <NcTooltip
+        v-for="(item, index) in items"
+        :key="index"
+        placement="bottomLeft"
+        :show-on-truncate-only="item.type === 'file'"
+        truncate-selector=".nc-attachment-chip-name"
+        class="nc-attachment-chip group flex items-center gap-2 h-8 px-2.5 rounded-md border-1 border-nc-border-gray-medium bg-nc-bg-default hover:bg-nc-bg-gray-extralight min-w-0 max-w-[240px] text-[13px]"
+        :class="{ 'cursor-pointer': isOpenable(item) }"
+        @click="isOpenable(item) && openItem(item)"
       >
-        <GeneralIcon :icon="itemIcon(item)" class="w-4 h-4 flex-none text-nc-content-gray-subtle" />
-        <NcTooltip class="truncate text-small text-nc-content-gray-emphasis" show-on-truncate-only>
-          <template #title>{{ item.type === 'variable' ? item.expression : item.title }}</template>
-          {{ item.type === 'variable' ? item.label : item.title }}
-        </NcTooltip>
-        <span v-if="item.type === 'file'" class="text-xs text-nc-content-gray-muted flex-none">
-          {{ getReadableFileSize(item.size) }}
-        </span>
-      </div>
-      <NcButton v-if="!disabled" size="xs" type="text" class="flex-none" @click="removeItem(index)">
-        <GeneralIcon icon="close" class="w-3.5 h-3.5" />
-      </NcButton>
+        <template #title>
+          <span :class="{ 'font-mono text-xs break-all': item.type === 'url' }">{{ chipTooltip(item) }}</span>
+        </template>
+        <GeneralIcon
+          :icon="chipIcon(item)"
+          class="w-4 h-4 flex-none"
+          :class="item.type === 'file' ? 'text-nc-content-brand' : 'text-nc-content-gray-subtle'"
+        />
+        <span class="nc-attachment-chip-name truncate text-nc-content-gray-emphasis">{{ chipName(item) }}</span>
+        <span class="text-nc-content-gray-muted flex-none">{{ chipMeta(item) }}</span>
+        <button
+          v-if="!disabled"
+          type="button"
+          class="nc-attachment-chip-remove flex-none flex items-center justify-center w-3.5 h-3.5 -mr-1 rounded text-nc-content-gray-muted hover:text-nc-content-gray opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+          aria-label="Remove attachment"
+          @click.stop="removeItem(index)"
+        >
+          <GeneralIcon icon="close" class="w-3.5 h-3.5" />
+        </button>
+      </NcTooltip>
     </div>
 
     <div class="flex items-center gap-2">
-      <NcDropdown v-model:visible="pickerOpen" :trigger="[]" placement="bottomRight">
-        <NcDropdown v-model:visible="addMenuOpen" :trigger="['click']" :disabled="!canAdd" placement="bottomLeft">
-          <NcButton size="small" type="text" :disabled="!canAdd" :loading="isUploading" class="!px-2">
-            <div class="flex items-center gap-1">
-              <GeneralIcon icon="plus" class="w-4 h-4" />
-              <span>Add</span>
-            </div>
-          </NcButton>
-          <template #overlay>
-            <NcMenu>
-              <NcMenuItem :disabled="!flatAttachmentVariables.length" @click="openPicker">
+      <NcDropdown v-model:visible="dropdownVisible" :trigger="['click']" :disabled="disabled" placement="bottomLeft">
+        <NcButton type="text" size="small" :disabled="disabled" :loading="isUploading">
+          <div class="flex items-center gap-1">
+            <GeneralIcon icon="plus" />
+            <span>Add attachment</span>
+          </div>
+        </NcButton>
+
+        <template #overlay>
+          <NcMenu v-if="panel === 'menu'">
+            <NcTooltip :disabled="!atLimit" placement="right">
+              <template #title>{{ limitHint }}</template>
+              <NcMenuItem :disabled="atLimit || !flatAttachmentVariables.length" @click="panel = 'picker'">
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="cellAttachment" class="w-4 h-4" />
                   <span>From attachment field</span>
                 </div>
               </NcMenuItem>
-              <NcMenuItem v-if="allowUpload" @click="triggerUpload">
+            </NcTooltip>
+            <NcTooltip v-if="allowUpload" :disabled="!atLimit" placement="right">
+              <template #title>{{ limitHint }}</template>
+              <NcMenuItem :disabled="atLimit" @click="triggerUpload">
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="ncUpload" class="w-4 h-4" />
                   <span>Upload file</span>
                 </div>
               </NcMenuItem>
-              <NcMenuItem v-if="allowUrl" @click="addUrl">
+            </NcTooltip>
+            <NcTooltip v-if="allowUrl" :disabled="!atLimit" placement="right">
+              <template #title>{{ limitHint }}</template>
+              <NcMenuItem :disabled="atLimit" @click="openUrlPopover">
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="ncLink" class="w-4 h-4" />
                   <span>From URL</span>
                 </div>
               </NcMenuItem>
-            </NcMenu>
-          </template>
-        </NcDropdown>
-        <template #overlay>
-          <div @click.stop>
+            </NcTooltip>
+          </NcMenu>
+
+          <div v-else-if="panel === 'picker'" @click.stop>
             <WorkflowVariablePicker
               :items="flatAttachmentVariables"
               :grouped-items="groupedAttachmentVariables"
               :command="addVariable"
             />
           </div>
+
+          <div v-else-if="panel === 'url'" class="nc-attach-url-popover w-[420px] p-3.5 pb-3" @click.stop>
+            <div class="flex items-center gap-2 mb-2.5 text-[13px] font-semibold text-nc-content-gray-emphasis">
+              <GeneralIcon icon="ncLink" class="w-4 h-4 text-nc-content-gray-subtle" />
+              <span>Attach from URL</span>
+            </div>
+            <div class="flex gap-2">
+              <a-input
+                ref="urlInputRef"
+                v-model:value="urlValue"
+                class="nc-attach-url-input flex-1 !rounded-lg !h-8 !text-[13px]"
+                :class="{ '!border-nc-border-red': urlError }"
+                placeholder="https://example.com/report.pdf"
+                @press-enter="addUrl"
+                @keydown.esc.stop="closePanel"
+              />
+              <NcButton type="primary" size="small" :disabled="!urlIsValid" @click="addUrl">Add</NcButton>
+            </div>
+            <div class="mt-2 text-xs" :class="urlError ? 'text-nc-content-red-medium' : 'text-nc-content-gray-muted'">
+              {{ urlError || 'Public link to a file. Downloaded when the email is sent.' }}
+            </div>
+          </div>
         </template>
       </NcDropdown>
-      <span v-if="items.length >= maxItems" class="text-xs text-nc-content-gray-muted">Up to {{ maxItems }} files</span>
     </div>
 
-    <input ref="fileInput" type="file" multiple class="hidden" @change="onFilesSelected" />
+    <input ref="fileInput" type="file" multiple style="display: none" @change="onFilesSelected" />
   </div>
 </template>

@@ -427,11 +427,11 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
         />
         <span
           v-if="templateSegments(item)"
-          class="nc-attachment-chip-name nc-attachment-chip-template flex items-center min-w-0 text-nc-content-gray-emphasis"
+          class="nc-attachment-chip-name nc-attachment-chip-template flex items-center min-w-0 overflow-hidden text-nc-content-gray-emphasis"
         >
           <template v-for="(segment, segmentIndex) in templateSegments(item)" :key="segmentIndex">
             <span v-if="segment.label" class="nc-attachment-chip-variable">{{ segment.label }}</span>
-            <span v-else class="truncate min-w-0">{{ segment.text }}</span>
+            <span v-else class="nc-attachment-chip-text truncate min-w-0">{{ segment.text }}</span>
           </template>
         </span>
         <template v-else>
@@ -539,7 +539,11 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
 
 // Same look as the editor's expression chips.
 .nc-attachment-chip-variable {
-  // Pills are the part that changes per send: never the part that gets cut.
-  @apply flex-none bg-nc-bg-brand text-nc-content-brand rounded px-1.5 py-0.25 mx-0.5 text-small whitespace-nowrap;
+  // Pills are the part that changes per send: the text gives way first, pills only once it is gone.
+  @apply min-w-0 truncate bg-nc-bg-brand text-nc-content-brand rounded px-1.5 py-0.25 mx-0.5 text-small;
+}
+
+.nc-attachment-chip-text {
+  flex-shrink: 1000;
 }
 </style>

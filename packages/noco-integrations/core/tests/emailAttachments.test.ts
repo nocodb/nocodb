@@ -242,10 +242,20 @@ describe('assertPlatformMailerAttachments', () => {
       file('invoice.html', 'application/octet-stream'),
       file('logo.svg', 'image/svg+xml'),
       file('page', 'Text/HTML; charset=utf-8'),
+      file('cert.crt', 'application/octet-stream'),
+      file('data.mdb', 'application/octet-stream'),
     ]) {
       expect(() => assertPlatformMailerAttachments([blocked])).toThrow(
         /built-in mailer/,
       );
+    }
+  });
+
+  it('sees through trailing dots, spaces and control characters', () => {
+    for (const name of ['setup.exe.', 'invoice.html ', 'run.bat. . ', 'x.exe\u0000']) {
+      expect(() =>
+        assertPlatformMailerAttachments([file(name, 'application/octet-stream')]),
+      ).toThrow(/built-in mailer/);
     }
   });
 });

@@ -196,14 +196,20 @@ export async function resolveEmailAttachments(
   return nocodb.attachmentService.resolveEmailAttachments(sources, options);
 }
 
-// Executables SES refuses outright, plus web content that renders as a page.
+// Every extension SES refuses (https://docs.aws.amazon.com/ses/latest/dg/attachments.html#mime-types),
+// plus other executables and web content that renders as a page.
 const PLATFORM_MAILER_BLOCKED_EXTENSIONS = new Set([
-  'ade', 'adp', 'app', 'apk', 'appx', 'asp', 'bas', 'bat', 'chm', 'cmd', 'com',
-  'cpl', 'dll', 'dmg', 'exe', 'gadget', 'hta', 'htm', 'html', 'inf', 'ins',
-  'iso', 'isp', 'jar', 'js', 'jse', 'lnk', 'mht', 'mhtml', 'msc', 'msi', 'msp',
-  'mst', 'pif', 'ps1', 'ps1xml', 'ps2', 'psc1', 'reg', 'scf', 'scr', 'sct',
-  'shb', 'shs', 'shtml', 'svg', 'svgz', 'vb', 'vbe', 'vbs', 'ws', 'wsc', 'wsf',
-  'wsh', 'xht', 'xhtml',
+  'ade', 'adp', 'apk', 'app', 'appx', 'asp', 'bas', 'bat', 'cer', 'chm', 'cmd',
+  'com', 'cpl', 'crt', 'csh', 'der', 'dll', 'dmg', 'exe', 'fxp', 'gadget',
+  'hlp', 'hta', 'htm', 'html', 'inf', 'ins', 'iso', 'isp', 'its', 'jar', 'js',
+  'jse', 'ksh', 'lib', 'lnk', 'mad', 'maf', 'mag', 'mam', 'maq', 'mar', 'mas',
+  'mat', 'mau', 'mav', 'maw', 'mda', 'mdb', 'mde', 'mdt', 'mdw', 'mdz', 'mht',
+  'mhtml', 'msc', 'msh', 'msh1', 'msh1xml', 'msh2', 'msh2xml', 'mshxml', 'msi',
+  'msp', 'mst', 'ops', 'pcd', 'pif', 'plg', 'prf', 'prg', 'ps1', 'ps1xml',
+  'ps2', 'ps2xml', 'psc1', 'psc2', 'reg', 'scf', 'scr', 'sct', 'shb', 'shs',
+  'shtml', 'svg', 'svgz', 'sys', 'tmp', 'url', 'vb', 'vbe', 'vbs', 'vps',
+  'vsmacros', 'vss', 'vst', 'vsw', 'vxd', 'ws', 'wsc', 'wsf', 'wsh', 'xht',
+  'xhtml', 'xnk',
 ]);
 
 const PLATFORM_MAILER_BLOCKED_TYPES = new Set([
@@ -225,14 +231,16 @@ export function assertPlatformMailerAttachments(
   attachments: ResolvedEmailAttachment[],
 ): void {
   for (const attachment of attachments) {
-    const ext = /\.([^.]+)$/.exec(attachment.filename)?.[1]?.toLowerCase();
+    // Windows drops trailing dots and spaces, so `x.exe.` still opens as `x.exe`.
+    const name = attachment.filename.replace(/[\s.\p{Cc}]+$/u, '');
+    const ext = /\.([^.]+)$/.exec(name)?.[1]?.toLowerCase();
     const type = attachment.contentType.split(';')[0].trim().toLowerCase();
     if (
       (ext && PLATFORM_MAILER_BLOCKED_EXTENSIONS.has(ext)) ||
       PLATFORM_MAILER_BLOCKED_TYPES.has(type)
     ) {
       throw new Error(
-        `"${attachment.filename}" can't be sent by the built-in mailer: executable and web page files are blocked. Send it with an SMTP, Gmail or Outlook step instead.`,
+        `"${attachment.filename}" can't be sent by the built-in mailer, which blocks executables, web pages and other risky file types. Send it with an SMTP, Gmail or Outlook step instead.`,
       );
     }
   }

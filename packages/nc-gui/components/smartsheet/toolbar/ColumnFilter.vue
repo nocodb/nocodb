@@ -2,6 +2,7 @@
 import {
   type ColumnType,
   type FilterType,
+  type TableType,
   ViewSettingOverrideOptions,
   getRlsPlaceholdersForColumn,
   hasRlsPlaceholder,
@@ -1151,6 +1152,20 @@ async function loadRootLinkTargets() {
   }
 }
 
+const { baseTables } = storeToRefs(useTablesStore())
+
+// Why Dynamic is unavailable for a Link / Lookup-of-Link filter: no root field points at the same table
+const linkDynamicHint = (filter: FilterType) => {
+  const targetId = link.value ? getLinkedRecordTargetId(getColumn(filter)) : undefined
+  if (!targetId || Object.values(rootLinkTargets.value).includes(targetId)) return
+
+  const target =
+    baseTables.value.get(props.rootMeta?.base_id)?.find((tbl: TableType) => tbl.id === targetId)?.title ??
+    getMetaByKey(props.rootMeta?.base_id, targetId)?.title
+
+  return t('msg.info.linkDynamicFilterNoMatchingField', { table: props.rootMeta?.title, target })
+}
+
 const dynamicColumns = (filter: FilterType) => {
   const filterCol = getColumn(filter)
 
@@ -1850,30 +1865,33 @@ defineExpose({
                                 {{ $t('labels.filterBasedOnStaticValue') }}
                               </div>
                             </div>
-                            <div
-                              v-e="['c:filter:dynamic-filter']"
-                              class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-form group"
-                              :class="
-                                isDynamicFilterAllowed(filter) && showFilterInput(filter)
-                                  ? 'cursor-pointer'
-                                  : 'cursor-not-allowed'
-                              "
-                              @click="changeToDynamic(filter, getFilterIndex(filter))"
-                            >
-                              <div class="flex flex-row items-center justify-between w-full">
-                                <div class="flex flex-row items-center justify-start gap-x-2.5">
-                                  {{ $t('labels.dynamicCondition') }}
+                            <NcTooltip :disabled="!linkDynamicHint(filter)" placement="right">
+                              <template #title>{{ linkDynamicHint(filter) }}</template>
+                              <div
+                                v-e="['c:filter:dynamic-filter']"
+                                class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-form group"
+                                :class="
+                                  isDynamicFilterAllowed(filter) && showFilterInput(filter)
+                                    ? 'cursor-pointer'
+                                    : 'cursor-not-allowed'
+                                "
+                                @click="changeToDynamic(filter, getFilterIndex(filter))"
+                              >
+                                <div class="flex flex-row items-center justify-between w-full">
+                                  <div class="flex flex-row items-center justify-start gap-x-2.5">
+                                    {{ $t('labels.dynamicCondition') }}
+                                  </div>
+                                  <GeneralIcon
+                                    v-if="filter.dynamic || filter.fk_value_col_id"
+                                    icon="check"
+                                    class="w-4 h-4 text-primary"
+                                  />
                                 </div>
-                                <GeneralIcon
-                                  v-if="filter.dynamic || filter.fk_value_col_id"
-                                  icon="check"
-                                  class="w-4 h-4 text-primary"
-                                />
+                                <div class="flex flex-row text-xs text-nc-content-gray-disabled">
+                                  {{ $t('labels.filterBasedOnDynamicValue') }}
+                                </div>
                               </div>
-                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">
-                                {{ $t('labels.filterBasedOnDynamicValue') }}
-                              </div>
-                            </div>
+                            </NcTooltip>
                           </div>
                         </div>
                       </template>

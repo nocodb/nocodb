@@ -302,10 +302,16 @@ const stackSlice = reactive({
   end: 0,
 })
 
+// Refs stay null after unmount, so an unguarded retry below would loop forever.
+let isUnmounted = false
+onUnmounted(() => {
+  isUnmounted = true
+})
+
 // Calculate horizontal stack visibility
 const calculateStackSlice = () => {
   if (!kanbanContainerRef.value) {
-    setTimeout(calculateStackSlice, 50)
+    if (!isUnmounted) setTimeout(calculateStackSlice, 50)
     return
   }
 

@@ -575,9 +575,15 @@ const firstVisibleRow = computed(() => {
   return Math.min(lastRow, Math.floor(scrollTop.value / (cardHeight.value + 12)))
 })
 
+// Refs stay null after unmount, so an unguarded retry below would loop forever.
+let isUnmounted = false
+onUnmounted(() => {
+  isUnmounted = true
+})
+
 const calculateSlices = () => {
   if (!scrollContainer.value) {
-    setTimeout(calculateSlices, 50)
+    if (!isUnmounted) setTimeout(calculateSlices, 50)
     return
   }
 

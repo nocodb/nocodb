@@ -1215,6 +1215,12 @@ const rowSlice = ref({
 
 const VIRTUAL_MARGIN = 10
 
+// Refs stay null after unmount, so an unguarded retry below would loop forever.
+let isUnmounted = false
+onUnmounted(() => {
+  isUnmounted = true
+})
+
 const calculateSlices = () => {
   // if the grid is not rendered yet
   if (!scrollWrapper.value || !gridWrapper.value) {
@@ -1229,7 +1235,7 @@ const calculateSlices = () => {
     }
 
     // try again until the grid is rendered
-    setTimeout(calculateSlices, 100)
+    if (!isUnmounted) setTimeout(calculateSlices, 100)
     return
   }
 

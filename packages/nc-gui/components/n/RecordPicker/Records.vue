@@ -167,11 +167,17 @@ const updateVisibleRows = async () => {
   clearCache(Math.max(0, start - BUFFER_SIZE), Math.min(totalRows.value, end + BUFFER_SIZE))
 }
 
+// Refs stay null after unmount, so an unguarded retry below would loop forever.
+let isUnmounted = false
+onUnmounted(() => {
+  isUnmounted = true
+})
+
 const calculateSlices = () => {
   // if the scrollWrapper is not rendered yet
   if (!scrollWrapper.value) {
     // try again until the grid is rendered
-    setTimeout(calculateSlices, 50)
+    if (!isUnmounted) setTimeout(calculateSlices, 50)
     return
   }
 

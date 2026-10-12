@@ -1530,6 +1530,12 @@ const updateSliceIfNeeded = (newStart, newEnd, slice) => {
   return false
 }
 
+// Refs stay null after unmount, so an unguarded retry below would loop forever.
+let isUnmounted = false
+onUnmounted(() => {
+  isUnmounted = true
+})
+
 // Optimized calculateSlices function
 const calculateSlices = () => {
   // Skip calculation if the grid wrapper is not rendered yet
@@ -1540,7 +1546,7 @@ const calculateSlices = () => {
     })
 
     // Retry calculation after a short delay
-    setTimeout(calculateSlices, 50)
+    if (!isUnmounted) setTimeout(calculateSlices, 50)
     return
   }
 

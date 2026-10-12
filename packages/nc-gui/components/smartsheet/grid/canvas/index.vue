@@ -888,9 +888,15 @@ watch(vSelectedAllRecords, (val) => {
 
 const COLUMN_BUFFER_SIZE = 5
 
+// Refs stay null after unmount, so an unguarded retry below would loop forever.
+let isUnmounted = false
+onUnmounted(() => {
+  isUnmounted = true
+})
+
 const calculateSlices = () => {
   if (!containerRef.value?.clientWidth || !containerRef.value?.clientHeight) {
-    setTimeout(calculateSlices, 50)
+    if (!isUnmounted) setTimeout(calculateSlices, 50)
     return
   }
 

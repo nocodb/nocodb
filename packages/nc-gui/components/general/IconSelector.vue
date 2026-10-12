@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
-import { EmojiIndex, Picker } from 'emoji-mart-vue-fast/src'
-import data from 'emoji-mart-vue-fast/data/apple.json'
+import { Picker } from 'emoji-mart-vue-fast/src'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
 import { IconType } from 'nocodb-sdk'
 
@@ -100,16 +99,6 @@ const handleRemoveIcon = (closeDropdown = true) => {
     isOpen.value = false
   }
 }
-
-const emojiIndex = new EmojiIndex(data, {
-  emojisToShowFilter: (emoji: any) => {
-    if (Number(emoji.added_in) >= 14) {
-      return false
-    }
-
-    return true
-  },
-})
 
 function selectEmoji(_emoji: any) {
   vIcon.value = _emoji.native
@@ -412,7 +401,7 @@ watch(isOpen, (newValue) => {
 
               <div v-if="tabItem.value === IconType.EMOJI" class="h-full">
                 <Picker
-                  :data="emojiIndex"
+                  :data="getEmojiIndex()"
                   :native="true"
                   :show-preview="false"
                   color="#40444D"

@@ -2,6 +2,7 @@
 import {
   type ColumnType,
   type FilterType,
+  type LinkToAnotherRecordType,
   type TableType,
   ViewSettingOverrideOptions,
   getRlsPlaceholdersForColumn,
@@ -1156,12 +1157,17 @@ const { baseTables } = storeToRefs(useTablesStore())
 
 // Why Dynamic is unavailable for a Link / Lookup-of-Link filter: no root field points at the same table
 const linkDynamicHint = (filter: FilterType) => {
-  const targetId = link.value ? getLinkedRecordTargetId(getColumn(filter)) : undefined
+  const col = getColumn(filter)
+  const targetId = link.value ? getLinkedRecordTargetId(col) : undefined
   if (!targetId || Object.values(rootLinkTargets.value).includes(targetId)) return
 
+  // The link can point into another base
+  const targetBaseId = (col?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || props.rootMeta?.base_id
   const target =
-    baseTables.value.get(props.rootMeta?.base_id)?.find((tbl: TableType) => tbl.id === targetId)?.title ??
-    getMetaByKey(props.rootMeta?.base_id, targetId)?.title
+    baseTables.value.get(targetBaseId)?.find((tbl: TableType) => tbl.id === targetId)?.title ??
+    getMetaByKey(targetBaseId, targetId)?.title
+
+  if (!target) return t('msg.info.linkDynamicFilterNoMatchingFieldGeneric', { table: props.rootMeta?.title })
 
   return t('msg.info.linkDynamicFilterNoMatchingField', { table: props.rootMeta?.title, target })
 }

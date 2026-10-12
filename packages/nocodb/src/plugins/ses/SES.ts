@@ -40,13 +40,7 @@ export default class SES implements IEmailAdapter {
       const from = fromName
         ? { name: fromName, address: emailAddressOnly(this.input.from) }
         : this.input.from;
-      this.transporter.sendMail({ ...rest, from }, (err, info) => {
-        if (err) {
-          console.log(err);
-        } else {
-          console.log('Message sent: ' + info.response);
-        }
-      });
+      return await this.transporter.sendMail({ ...rest, from });
     }
   }
 

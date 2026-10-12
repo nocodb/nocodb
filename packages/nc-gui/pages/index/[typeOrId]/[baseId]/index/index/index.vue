@@ -5,6 +5,17 @@ import type { SourceType } from 'nocodb-sdk'
 const router = useRouter()
 const route = router.currentRoute
 
+// The HTML shell doesn't prefetch async chunks, so load the table screen once the browser is idle.
+onNuxtReady(() =>
+  preloadRouteComponents(
+    {
+      name: 'index-typeOrId-baseId-index-index-viewId-viewTitle',
+      params: { typeOrId: route.value.params.typeOrId, baseId: route.value.params.baseId, viewId: '_' },
+    },
+    router,
+  ),
+)
+
 const baseStore = useBase()
 const { base, sources, isSharedBase } = storeToRefs(baseStore)
 

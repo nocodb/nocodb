@@ -287,6 +287,44 @@ export interface IMailService {
   sendMailRaw(param: RawMailParams): Promise<boolean>;
 }
 
+/** A NocoDB attachment cell entry (record attachment or uploaded workflow asset). */
+export interface EmailAttachmentFileRef {
+  path?: string;
+  url?: string;
+  title?: string;
+  mimetype?: string;
+  size?: number;
+}
+
+export type EmailAttachmentSource =
+  | { kind: 'nocodb'; file: EmailAttachmentFileRef }
+  | { kind: 'url'; url: string; filename?: string };
+
+export interface ResolvedEmailAttachment {
+  filename: string;
+  contentType: string;
+  size: number;
+  content: Buffer;
+}
+
+export interface ResolveEmailAttachmentsOptions {
+  /** Provider ceiling; the host applies its own platform cap on top. */
+  maxTotalBytes?: number;
+  maxFiles?: number;
+}
+
+export interface IAttachmentService {
+  /**
+   * Load attachment bytes for an outgoing message. NocoDB files must belong to
+   * the executing base; URLs are fetched with SSRF protection. Throws when a
+   * file is inaccessible or the count / total-size caps are exceeded.
+   */
+  resolveEmailAttachments(
+    sources: EmailAttachmentSource[],
+    options?: ResolveEmailAttachmentsOptions,
+  ): Promise<ResolvedEmailAttachment[]>;
+}
+
 export interface CommentAuthor {
   id: string | null;
   name: string | null;

@@ -688,6 +688,14 @@ watch(
                       @update:model-value="setFormStateWithEmit(field.model, $event)"
                     />
                   </template>
+                  <template v-else-if="field.type === FormBuilderInputType.Attachments">
+                    <NcFormBuilderInputAttachments
+                      :model-value="deepReference(field.model)"
+                      :element="field"
+                      :disabled="disabled"
+                      @update:model-value="setFormStateWithEmit(field.model, $event)"
+                    />
+                  </template>
                   <template v-else-if="field.type === FormBuilderInputType.KeyValue">
                     <NcFormBuilderInputKeyValue
                       :model-value="deepReference(field.model)"

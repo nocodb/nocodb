@@ -2,6 +2,7 @@
 import type { FormBuilderAttachmentItem, FormBuilderAttachmentsElement, VariableDefinition } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import { WorkflowComposeDropInj } from '~/context'
+import { splitWorkflowTemplate } from '~/utils/workflowExpressionUtils'
 import { WorkflowVariablePicker } from '~/helpers/tiptap-markdown/extensions'
 
 interface NodeGroup {
@@ -101,14 +102,39 @@ const groupedAttachmentVariables = computed<NodeGroup[]>(() => {
 
 const flatAttachmentVariables = computed(() => groupedAttachmentVariables.value.flatMap((group) => group.variables))
 
+// Every variable, for building a URL from step outputs (a URL field, a record id…).
+const groupedUrlVariables = computed<NodeGroup[]>(() => {
+  if (!selectedNodeId.value || !workflowContext?.getAvailableVariables) return []
+  return workflowContext.getAvailableVariables(selectedNodeId.value)
+})
+
+const flatUrlVariables = computed<VariableDefinition[]>(() => {
+  if (!selectedNodeId.value || !workflowContext?.getAvailableVariablesFlat) return []
+  return workflowContext.getAvailableVariablesFlat(selectedNodeId.value)
+})
+
 // One dropdown anchored to the Add button; its overlay is whichever step is active.
 type Panel = 'menu' | 'picker' | 'url'
 
 const panel = ref<Panel | null>(null)
 
+// The URL field's variable picker renders on `body`, outside the dropdown; a click there must
+// not read as a click outside the URL popover.
+let pointerInVariablePicker = false
+
+useEventListener(
+  document,
+  'pointerdown',
+  (event: PointerEvent) => {
+    pointerInVariablePicker = !!(event.target as HTMLElement | null)?.closest?.('.tippy-box')
+  },
+  { capture: true },
+)
+
 const dropdownVisible = computed({
   get: () => panel.value !== null,
   set: (visible: boolean) => {
+    if (!visible && panel.value === 'url' && pointerInVariablePicker) return
     panel.value = visible ? panel.value ?? 'menu' : null
   },
 })
@@ -333,6 +359,10 @@ const chipIcon = (item: FormBuilderAttachmentItem) => {
   return 'ncLink'
 }
 
+// A templated URL reads as its variables (pills) rather than raw `{{ }}`; hover shows the text.
+const templateSegments = (item: FormBuilderAttachmentItem) =>
+  item.type === 'url' && isTemplatedUrl(item.url) ? splitWorkflowTemplate(item.url, flatUrlVariables.value, t) : null
+
 const chipName = (item: FormBuilderAttachmentItem) => {
   if (item.type === 'variable') return item.label
   if (item.type === 'file') return item.title
@@ -374,8 +404,19 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
           class="flex-none"
           :class="item.type === 'file' ? 'w-4 h-4 text-nc-content-brand' : 'w-3.5 h-3.5 text-nc-content-gray-subtle'"
         />
-        <span class="nc-attachment-chip-name truncate text-nc-content-gray-emphasis min-w-[4ch]">{{ chipName(item) }}</span>
-        <span class="text-nc-content-gray-muted flex-none truncate max-w-[55%]">{{ chipMeta(item) }}</span>
+        <span
+          v-if="templateSegments(item)"
+          class="nc-attachment-chip-name nc-attachment-chip-template truncate text-nc-content-gray-emphasis min-w-[4ch]"
+        >
+          <template v-for="(segment, segmentIndex) in templateSegments(item)" :key="segmentIndex">
+            <span v-if="segment.label" class="nc-attachment-chip-variable">{{ segment.label }}</span>
+            <template v-else>{{ segment.text }}</template>
+          </template>
+        </span>
+        <template v-else>
+          <span class="nc-attachment-chip-name truncate text-nc-content-gray-emphasis min-w-[4ch]">{{ chipName(item) }}</span>
+          <span class="text-nc-content-gray-muted flex-none truncate max-w-[55%]">{{ chipMeta(item) }}</span>
+        </template>
         <button
           v-if="!disabled"
           type="button"
@@ -441,17 +482,24 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
               <GeneralIcon icon="ncLink" class="w-4 h-4 text-nc-content-gray-subtle" />
               <span>{{ $t('labels.attachFromUrl') }}</span>
             </div>
-            <div class="flex gap-2">
-              <a-input
-                ref="urlInputRef"
-                v-model:value="urlValue"
-                class="nc-attach-url-input flex-1 !rounded-lg !h-8 !text-[13px]"
-                :class="{ '!border-nc-border-red': urlError }"
-                :placeholder="$t('placeholder.attachmentUrl')"
-                @press-enter="addUrl"
+            <div class="flex gap-2 items-stretch">
+              <div
+                class="nc-attach-url-input flex-1 min-w-0"
+                :class="{ 'nc-attach-url-input-error': urlError }"
                 @keydown.esc.stop="closePanel"
-              />
-              <NcButton type="primary" size="small" :disabled="!urlIsValid" @click="addUrl">{{ $t('general.add') }}</NcButton>
+              >
+                <NcFormBuilderInputWorkflowInput
+                  ref="urlInputRef"
+                  v-model="urlValue"
+                  :placeholder="$t('placeholder.attachmentUrl')"
+                  :variables="flatUrlVariables"
+                  :grouped-variables="groupedUrlVariables"
+                  @enter="addUrl"
+                />
+              </div>
+              <NcButton type="primary" size="small" class="!h-auto !px-4" :disabled="!urlIsValid" @click="addUrl">{{
+                $t('general.add')
+              }}</NcButton>
             </div>
             <div class="mt-2 text-xs" :class="urlError ? 'text-nc-content-red-medium' : 'text-nc-content-gray-muted'">
               {{ urlError || $t('msg.info.attachmentUrlHint') }}
@@ -464,3 +512,14 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
     <input ref="fileInput" type="file" multiple style="display: none" @change="onFilesSelected" />
   </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-attach-url-input-error :deep(.ProseMirror) {
+  @apply !border-nc-border-red;
+}
+
+// Same look as the editor's expression chips.
+.nc-attachment-chip-variable {
+  @apply bg-nc-bg-brand text-nc-content-brand rounded px-1.5 py-0.25 mx-0.5 text-small whitespace-nowrap;
+}
+</style>

@@ -515,6 +515,8 @@ watch(inviteDlg, (newVal) => {
   >
     <div ref="topSectionRef">
       <PaymentBanner v-if="!isSettingsSidebar" />
+      <!-- CE's stub is an empty div; skip it so the gutter padding adds no gap. -->
+      <PaymentBanner v-else-if="isEeUI" rounded class="nc-shell-gutter pt-3" />
     </div>
 
     <div

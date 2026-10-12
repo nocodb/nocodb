@@ -10,6 +10,7 @@ import type { Response } from 'express';
 import type { NcContext } from 'nocodb-sdk';
 import type { Column } from '~/models';
 import type { AttachmentsService } from '~/services/attachments.service';
+import type { MetaService } from '~/meta/meta.service';
 import { getToolDir } from '~/utils/nc-config';
 import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -278,14 +279,19 @@ export async function isAttachmentRefOwned(
   context: NcContext,
   attachment: { path?: string; url?: string },
   userId?: string,
+  ncMeta?: MetaService,
 ): Promise<boolean> {
   for (const ref of [attachment.path, attachment.url]) {
     if (!attachmentRefResolvesToStorage(ref)) continue;
     if (
-      !(await FileReference.isFileUrlAccessibleForWrite(context, {
-        fileUrl: ref,
-        userId,
-      }))
+      !(await FileReference.isFileUrlAccessibleForWrite(
+        context,
+        {
+          fileUrl: ref,
+          userId,
+        },
+        ncMeta,
+      ))
     ) {
       return false;
     }

@@ -388,7 +388,9 @@ const chipName = (item: FormBuilderAttachmentItem) => {
 }
 
 const chipMeta = (item: FormBuilderAttachmentItem) => {
-  if (item.type === 'variable') return t('labels.attachmentFieldChip')
+  // The step name tells two picks of the same field apart (a trigger's vs a list's).
+  if (item.type === 'variable')
+    return /\$\(\s*['"]([^'"]+)['"]\s*\)/.exec(item.expression)?.[1] ?? t('labels.attachmentFieldChip')
   if (item.type === 'file') return getReadableFileSize(item.size)
   return urlHost(item.url)
 }
@@ -410,7 +412,7 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
         placement="bottomLeft"
         :show-on-truncate-only="item.type === 'file'"
         truncate-selector=".nc-attachment-chip-name"
-        class="nc-attachment-chip group flex items-center gap-2 h-8 px-2.5 rounded-md border-1 border-nc-border-gray-medium bg-nc-bg-default hover:bg-nc-bg-gray-extralight min-w-0 max-w-[240px] text-[13px]"
+        class="nc-attachment-chip group flex items-center gap-2 h-8 px-2.5 rounded-md border-1 border-nc-border-gray-medium bg-nc-bg-default hover:bg-nc-bg-gray-extralight min-w-0 max-w-full text-[13px]"
         :class="{ 'cursor-pointer': isOpenable(item) }"
         @click="isOpenable(item) && openItem(item)"
       >
@@ -425,11 +427,11 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
         />
         <span
           v-if="templateSegments(item)"
-          class="nc-attachment-chip-name nc-attachment-chip-template truncate text-nc-content-gray-emphasis min-w-[4ch]"
+          class="nc-attachment-chip-name nc-attachment-chip-template flex items-center min-w-0 text-nc-content-gray-emphasis"
         >
           <template v-for="(segment, segmentIndex) in templateSegments(item)" :key="segmentIndex">
             <span v-if="segment.label" class="nc-attachment-chip-variable">{{ segment.label }}</span>
-            <template v-else>{{ segment.text }}</template>
+            <span v-else class="truncate min-w-0">{{ segment.text }}</span>
           </template>
         </span>
         <template v-else>
@@ -498,11 +500,11 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
               <GeneralIcon icon="ncLink" class="w-4 h-4 text-nc-content-gray-subtle" />
               <span>{{ $t('labels.attachFromUrl') }}</span>
             </div>
-            <div class="flex gap-2 items-stretch">
+            <div class="flex gap-2 items-start">
               <div
                 class="nc-attach-url-input flex-1 min-w-0"
                 :class="{ 'nc-attach-url-input-error': urlError }"
-                @keydown.esc.stop="closePanel"
+                @keydown.esc.stop="(e: KeyboardEvent) => !e.defaultPrevented && closePanel()"
               >
                 <NcFormBuilderInputWorkflowInput
                   ref="urlInputRef"
@@ -514,7 +516,7 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
                   @enter="addUrl"
                 />
               </div>
-              <NcButton type="primary" size="small" class="!h-auto !px-4" :disabled="!urlIsValid" @click="addUrl">{{
+              <NcButton type="primary" size="small" class="!h-[38px] !px-4" :disabled="!urlIsValid" @click="addUrl">{{
                 $t('general.add')
               }}</NcButton>
             </div>
@@ -531,12 +533,13 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
 </template>
 
 <style lang="scss" scoped>
-.nc-attach-url-input-error :deep(.ProseMirror) {
+.nc-attach-url-input-error :deep(.nc-workflow-code-input-field) {
   @apply !border-nc-border-red;
 }
 
 // Same look as the editor's expression chips.
 .nc-attachment-chip-variable {
-  @apply bg-nc-bg-brand text-nc-content-brand rounded px-1.5 py-0.25 mx-0.5 text-small whitespace-nowrap;
+  // Pills are the part that changes per send: never the part that gets cut.
+  @apply flex-none bg-nc-bg-brand text-nc-content-brand rounded px-1.5 py-0.25 mx-0.5 text-small whitespace-nowrap;
 }
 </style>

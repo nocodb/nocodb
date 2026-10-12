@@ -216,37 +216,6 @@ export default class FileReference {
     await this.updateWorkspaceCache(context, fileReferencesSize, true);
   }
 
-  /**
-   * Release uploaded workflow attachments the workflow no longer refers to:
-   * every live reference under `…/workflows/<workflowId>/…` in this base that
-   * is not in `keepFileUrls` is marked deleted for the clean-up job. Covers
-   * chips removed from a node and uploads that were never saved into one.
-   */
-  public static async releaseWorkflowAttachments(
-    context: NcContext,
-    workflowId: string,
-    keepFileUrls: string[],
-    ncMeta = Noco.ncMeta,
-  ) {
-    if (!context.base_id || !workflowId) return;
-
-    const qb = ncMeta
-      .knexConnection(MetaTable.FILE_REFERENCES)
-      .select('id')
-      .where({ base_id: context.base_id, deleted: false })
-      .where('file_url', 'like', `%/workflows/${workflowId}/%`);
-
-    if (keepFileUrls.length) qb.whereNotIn('file_url', keepFileUrls);
-
-    const rows: Array<{ id: string }> = await qb;
-
-    await this.delete(
-      context,
-      rows.map((row) => row.id),
-      ncMeta,
-    );
-  }
-
   public static async bulkDelete(
     context: NcContext,
     condition: {

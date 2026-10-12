@@ -13,9 +13,22 @@ import type {
 export const EMAIL_MAX_ATTACHMENTS = 10;
 export const EMAIL_MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024;
 
-export const EMAIL_ATTACHMENTS_HELP_TEXT = `Files from attachment fields, uploaded files or URLs. Up to ${EMAIL_MAX_ATTACHMENTS} files and ${formatByteSize(
-  EMAIL_MAX_ATTACHMENT_BYTES,
-)} per email.`;
+/**
+ * Graph `sendMail` rejects requests over 4 MB, and `contentBytes` is base64 (4/3 of the raw
+ * size). 2.75 MB raw leaves ~330 KB for the body, recipients and JSON envelope.
+ */
+export const OUTLOOK_MAX_REQUEST_BYTES = 4 * 1024 * 1024;
+export const OUTLOOK_MAX_ATTACHMENT_BYTES = 2.75 * 1024 * 1024;
+
+export function emailAttachmentsHelpText(
+  maxTotalBytes = EMAIL_MAX_ATTACHMENT_BYTES,
+): string {
+  return `Files from attachment fields, uploaded files or URLs. Up to ${EMAIL_MAX_ATTACHMENTS} files and ${formatByteSize(
+    maxTotalBytes,
+  )} per email.`;
+}
+
+export const EMAIL_ATTACHMENTS_HELP_TEXT = emailAttachmentsHelpText();
 
 const HTTP_URL_RE = /^https?:\/\/\S+$/i;
 
@@ -28,6 +41,7 @@ function isAttachmentFile(value: Record<string, unknown>): boolean {
 
 function toFileRef(value: Record<string, unknown>): EmailAttachmentFileRef {
   return {
+    ...(typeof value.id === 'string' ? { id: value.id } : {}),
     ...(typeof value.path === 'string' ? { path: value.path } : {}),
     ...(typeof value.url === 'string' ? { url: value.url } : {}),
     ...(typeof value.title === 'string' ? { title: value.title } : {}),
@@ -36,24 +50,14 @@ function toFileRef(value: Record<string, unknown>): EmailAttachmentFileRef {
   };
 }
 
+// Text never becomes a stored-file reference: only `file` items and real attachment values
+// (objects from an Attachment field) do, so typed JSON can't name another file.
 function collectString(
   value: string,
   filename?: string,
 ): EmailAttachmentSource[] {
   const trimmed = value.trim();
   if (!trimmed) return [];
-
-  if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(trimmed);
-    } catch {
-      throw new Error(
-        'Invalid attachment value: expected an attachment field, a file or a URL',
-      );
-    }
-    return collectEmailAttachmentSources(parsed);
-  }
 
   // `.map(item => item.url).join(', ')` style variables arrive comma-joined. Split only
   // where the next URL starts, so a comma inside a single URL's query survives.
@@ -81,7 +85,7 @@ function collectString(
  *
  * Accepts the editor's typed items (`variable` / `file` / `url`), raw NocoDB
  * attachment arrays (a `variable` item's expression resolves to one), nested
- * arrays from list-node outputs, JSON strings and comma-joined URLs.
+ * arrays from list-node outputs and comma-joined URLs.
  * Duplicates (same path / url) are dropped.
  */
 export function collectEmailAttachmentSources(
@@ -204,7 +208,10 @@ export function summarizeEmailAttachments(
 }
 
 export function formatByteSize(bytes: number): string {
-  if (bytes >= 1024 * 1024) return `${Math.round(bytes / (1024 * 1024))} MB`;
+  if (bytes >= 1024 * 1024) {
+    const mb = bytes / (1024 * 1024);
+    return `${mb < 10 ? +mb.toFixed(1) : Math.round(mb)} MB`;
+  }
   if (bytes >= 1024) return `${Math.round(bytes / 1024)} KB`;
   return `${bytes} B`;
 }

@@ -289,6 +289,8 @@ export interface IMailService {
 
 /** A NocoDB attachment cell entry (record attachment or uploaded workflow asset). */
 export interface EmailAttachmentFileRef {
+  /** FileReference id, when the source carries one (record attachments, uploads) */
+  id?: string;
   path?: string;
   url?: string;
   title?: string;
@@ -311,6 +313,8 @@ export interface ResolveEmailAttachmentsOptions {
   /** Provider ceiling; the host applies its own platform cap on top. */
   maxTotalBytes?: number;
   maxFiles?: number;
+  /** The run's cancel signal; URL downloads stop when it fires. */
+  signal?: AbortSignal;
 }
 
 export interface IAttachmentService {

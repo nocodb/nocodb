@@ -34,7 +34,11 @@ const { activeProjectId } = storeToRefs(useBases())
 
 const { openAttachment } = useAttachment()
 
+const { t } = useI18n()
+
 const workflowContext = inject(WorkflowVariableInj, null)
+
+const composeDrop = inject(WorkflowComposeDropInj, null)
 
 const items = computed<FormBuilderAttachmentItem[]>(() => (Array.isArray(vModel.value) ? vModel.value : []))
 
@@ -46,7 +50,7 @@ const maxItems = computed(() => props.element.maxItems ?? 10)
 
 const atLimit = computed(() => items.value.length >= maxItems.value)
 
-const limitHint = computed(() => `Up to ${maxItems.value} files per email.`)
+const limitHint = computed(() => t('msg.info.attachmentsLimit', { count: maxItems.value }))
 
 const allowUpload = computed(() => props.element.allowUpload !== false)
 
@@ -54,15 +58,38 @@ const allowUrl = computed(() => props.element.allowUrl !== false)
 
 const selectedNodeId = computed(() => workflowContext?.selectedNodeId?.value ?? null)
 
+const canDropFiles = computed(() => !props.disabled && allowUpload.value)
+
+// Lookups carry the type they resolve to; a Lookup of an Attachment field holds files too.
+function isAttachmentVariable(variable: VariableDefinition) {
+  const extra = variable.extra
+  return extra?.uiType === UITypes.Attachment || (extra?.uiType === UITypes.Lookup && extra?.lookupUiType === UITypes.Attachment)
+}
+
+// A list output describes its items in `itemSchema` (keys relative to one item). Expose them as
+// children whose expression maps over the list, so a pick attaches the files of every item.
+function itemSchemaChildren(variable: VariableDefinition): VariableDefinition[] {
+  const schema = variable.extra?.itemSchema
+  if (!schema?.length) return []
+  const mapped = (child: VariableDefinition): VariableDefinition => ({
+    ...child,
+    key: `${variable.key}.map(item => item.${child.key})`,
+    children: child.children?.map(mapped),
+  })
+  return schema.filter((child) => child.key).map(mapped)
+}
+
 // Attachment-typed variables only, kept in their node groups. A parent survives when a descendant
 // qualifies (a linked record → its attachment fields); a matching field drops its children so a
 // click picks the whole file list instead of drilling into `.length` and friends.
-const pickAttachmentVariables = (variables: VariableDefinition[]): VariableDefinition[] =>
-  variables.flatMap((variable) => {
-    if (variable.extra?.uiType === UITypes.Attachment) return [{ ...variable, children: undefined }]
-    const children = variable.children?.length ? pickAttachmentVariables(variable.children) : []
+function pickAttachmentVariables(variables: VariableDefinition[]): VariableDefinition[] {
+  return variables.flatMap((variable) => {
+    if (isAttachmentVariable(variable)) return [{ ...variable, children: undefined }]
+    const nested = [...(variable.children ?? []), ...itemSchemaChildren(variable)]
+    const children = nested.length ? pickAttachmentVariables(nested) : []
     return children.length ? [{ ...variable, children }] : []
   })
+}
 
 const groupedAttachmentVariables = computed<NodeGroup[]>(() => {
   if (!selectedNodeId.value || !workflowContext?.getAvailableVariables) return []
@@ -116,7 +143,21 @@ const parseHttpUrl = (value: string): URL | null => {
   }
 }
 
-const urlIsValid = computed(() => !!parseHttpUrl(urlValue.value))
+const isTemplatedUrl = (value: string) => value.includes('{{')
+
+// A templated URL is stored as typed (encoding would break the `{{ }}`); only a literal
+// prefix before the first template must already look like http(s).
+const normaliseUrl = (value: string): string | null => {
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  if (isTemplatedUrl(trimmed)) {
+    const prefix = trimmed.slice(0, trimmed.indexOf('{{'))
+    return !prefix || /^https?:\/\//i.test(prefix) ? trimmed : null
+  }
+  return parseHttpUrl(trimmed)?.href ?? null
+}
+
+const urlIsValid = computed(() => !!normaliseUrl(urlValue.value))
 
 const openUrlPopover = () => {
   urlValue.value = ''
@@ -126,16 +167,16 @@ const openUrlPopover = () => {
 }
 
 const addUrl = () => {
-  const url = parseHttpUrl(urlValue.value)
+  const url = normaliseUrl(urlValue.value)
   if (!url) {
-    urlError.value = 'Enter a valid URL starting with http:// or https://'
+    urlError.value = t('msg.error.attachmentInvalidUrl')
     return
   }
-  if (items.value.some((item) => item.type === 'url' && item.url === url.href)) {
-    urlError.value = 'This file is already attached.'
+  if (items.value.some((item) => item.type === 'url' && item.url === url)) {
+    urlError.value = t('msg.error.attachmentAlreadyAttached')
     return
   }
-  setItems([...items.value, { type: 'url', url: url.href }])
+  setItems([...items.value, { type: 'url', url }])
   closePanel()
 }
 
@@ -169,17 +210,33 @@ const triggerUpload = () => {
 }
 
 const uploadFiles = async (selected: File[]) => {
-  if (props.disabled || !allowUpload.value || isUploading.value) return
+  if (!canDropFiles.value) return
+
+  if (isUploading.value) {
+    message.info(t('msg.info.attachmentUploadInProgress'))
+    return
+  }
 
   const files = selected.slice(0, Math.max(0, maxItems.value - items.value.length))
   if (files.length < selected.length) message.info(limitHint.value)
 
   if (!files.length) return
 
+  // Uploaded files are known up front; block a set this node's provider could never send.
+  const maxTotalBytes = props.element.maxTotalBytes
+  if (maxTotalBytes) {
+    const uploaded = items.value.reduce((sum, item) => sum + (item.type === 'file' ? item.size ?? 0 : 0), 0)
+    const adding = files.reduce((sum, file) => sum + file.size, 0)
+    if (uploaded + adding > maxTotalBytes) {
+      message.error(t('msg.error.attachmentsTooLarge', { size: getReadableFileSize(maxTotalBytes) }))
+      return
+    }
+  }
+
   const workflowId = route.params.workflowId as string | undefined
 
   if (!activeProjectId.value || !workflowId) {
-    message.error('Open the workflow to upload files')
+    message.error(t('msg.error.attachmentOpenWorkflowToUpload'))
     return
   }
 
@@ -190,7 +247,7 @@ const uploadFiles = async (selected: File[]) => {
     for (const file of files) formData.append('files', file)
 
     const { data } = await $api.instance.post<
-      Array<{ title: string; mimetype: string; size: number; path?: string; url?: string }>
+      Array<{ id?: string; title: string; mimetype: string; size: number; path?: string; url?: string }>
     >(`/api/v2/meta/bases/${activeProjectId.value}/workflows/${workflowId}/attachments`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
@@ -199,6 +256,7 @@ const uploadFiles = async (selected: File[]) => {
       ...items.value,
       ...data.map<FormBuilderAttachmentItem>((attachment) => ({
         type: 'file',
+        ...(attachment.id ? { id: attachment.id } : {}),
         title: attachment.title,
         mimetype: attachment.mimetype,
         size: attachment.size,
@@ -220,12 +278,16 @@ const onFilesSelected = (event: Event) => {
   uploadFiles(files)
 }
 
-const composeDrop = inject(WorkflowComposeDropInj, null)
-
+// The compose modal shows its drop target only while an editable, upload-enabled input is mounted.
 if (composeDrop) {
-  onMounted(() => {
-    composeDrop.value = uploadFiles
-  })
+  watch(
+    canDropFiles,
+    (canDrop) => {
+      if (canDrop) composeDrop.value = uploadFiles
+      else if (composeDrop.value === uploadFiles) composeDrop.value = null
+    },
+    { immediate: true },
+  )
   onBeforeUnmount(() => {
     if (composeDrop.value === uploadFiles) composeDrop.value = null
   })
@@ -233,12 +295,14 @@ if (composeDrop) {
 
 // ── Open ───────────────────────────────────────────────────────────────────
 
-const isOpenable = (item: FormBuilderAttachmentItem) => item.type === 'file' || item.type === 'url'
+const isOpenable = (item: FormBuilderAttachmentItem) =>
+  item.type === 'file' || (item.type === 'url' && !isTemplatedUrl(item.url) && !!parseHttpUrl(item.url))
 
 // URLs open as-is; uploaded files are stored by path, so the backend signs a fresh link first.
 const openItem = async (item: FormBuilderAttachmentItem) => {
   if (item.type === 'url') {
-    window.open(item.url, '_blank', 'noopener,noreferrer')
+    const url = parseHttpUrl(item.url)
+    if (url) window.open(url.href, '_blank', 'noopener,noreferrer')
     return
   }
   if (item.type !== 'file') return
@@ -252,7 +316,7 @@ const openItem = async (item: FormBuilderAttachmentItem) => {
       { attachments: [{ path: item.path, url: item.url, title: item.title, mimetype: item.mimetype }] },
     )
     if (!data?.[0]) {
-      message.error('This file is no longer available')
+      message.error(t('msg.error.attachmentNoLongerAvailable'))
       return
     }
     await openAttachment(data[0])
@@ -276,7 +340,7 @@ const chipName = (item: FormBuilderAttachmentItem) => {
 }
 
 const chipMeta = (item: FormBuilderAttachmentItem) => {
-  if (item.type === 'variable') return 'field'
+  if (item.type === 'variable') return t('labels.attachmentFieldChip')
   if (item.type === 'file') return getReadableFileSize(item.size)
   return urlHost(item.url)
 }
@@ -316,7 +380,7 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
           v-if="!disabled"
           type="button"
           class="nc-attachment-chip-remove flex-none flex items-center justify-center w-3.5 h-3.5 -mr-1 rounded text-nc-content-gray-muted hover:text-nc-content-gray opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
-          aria-label="Remove attachment"
+          :aria-label="$t('labels.removeAttachment')"
           @click.stop="removeItem(index)"
         >
           <GeneralIcon icon="close" class="w-3.5 h-3.5" />
@@ -329,7 +393,7 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
         <NcButton type="text" size="small" :disabled="disabled" :loading="isUploading">
           <div class="flex items-center gap-1">
             <GeneralIcon icon="plus" />
-            <span>Add attachment</span>
+            <span>{{ $t('labels.addAttachment') }}</span>
           </div>
         </NcButton>
 
@@ -340,7 +404,7 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
               <NcMenuItem :disabled="atLimit || !flatAttachmentVariables.length" @click="panel = 'picker'">
                 <div class="flex items-center gap-2 text-[13px]">
                   <GeneralIcon icon="cellAttachment" class="w-4 h-4" />
-                  <span>From attachment field</span>
+                  <span>{{ $t('labels.fromAttachmentField') }}</span>
                 </div>
               </NcMenuItem>
             </NcTooltip>
@@ -349,7 +413,7 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
               <NcMenuItem :disabled="atLimit" @click="triggerUpload">
                 <div class="flex items-center gap-2 text-[13px]">
                   <GeneralIcon icon="ncUpload" class="w-4 h-4" />
-                  <span>Upload file</span>
+                  <span>{{ $t('labels.uploadFile') }}</span>
                 </div>
               </NcMenuItem>
             </NcTooltip>
@@ -358,7 +422,7 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
               <NcMenuItem :disabled="atLimit" @click="openUrlPopover">
                 <div class="flex items-center gap-2 text-[13px]">
                   <GeneralIcon icon="ncLink" class="w-4 h-4" />
-                  <span>From URL</span>
+                  <span>{{ $t('labels.fromUrl') }}</span>
                 </div>
               </NcMenuItem>
             </NcTooltip>
@@ -375,7 +439,7 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
           <div v-else-if="panel === 'url'" class="nc-attach-url-popover w-[420px] p-3.5 pb-3" @click.stop>
             <div class="flex items-center gap-2 mb-2.5 text-[13px] font-semibold text-nc-content-gray-emphasis">
               <GeneralIcon icon="ncLink" class="w-4 h-4 text-nc-content-gray-subtle" />
-              <span>Attach from URL</span>
+              <span>{{ $t('labels.attachFromUrl') }}</span>
             </div>
             <div class="flex gap-2">
               <a-input
@@ -383,14 +447,14 @@ const chipTooltip = (item: FormBuilderAttachmentItem) => {
                 v-model:value="urlValue"
                 class="nc-attach-url-input flex-1 !rounded-lg !h-8 !text-[13px]"
                 :class="{ '!border-nc-border-red': urlError }"
-                placeholder="https://example.com/report.pdf"
+                :placeholder="$t('placeholder.attachmentUrl')"
                 @press-enter="addUrl"
                 @keydown.esc.stop="closePanel"
               />
-              <NcButton type="primary" size="small" :disabled="!urlIsValid" @click="addUrl">Add</NcButton>
+              <NcButton type="primary" size="small" :disabled="!urlIsValid" @click="addUrl">{{ $t('general.add') }}</NcButton>
             </div>
             <div class="mt-2 text-xs" :class="urlError ? 'text-nc-content-red-medium' : 'text-nc-content-gray-muted'">
-              {{ urlError || 'Public link to a file. Downloaded when the email is sent.' }}
+              {{ urlError || $t('msg.info.attachmentUrlHint') }}
             </div>
           </div>
         </template>

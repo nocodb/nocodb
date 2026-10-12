@@ -107,16 +107,29 @@ describe('collectEmailAttachmentSources', () => {
     ]);
   });
 
-  it('parses JSON strings and treats S3-style attachment objects as NocoDB files', () => {
+  it('treats S3-style attachment objects as NocoDB files', () => {
     const s3 = {
       url: 'https://bucket.s3/nc/uploads/a.png',
       title: 'a.png',
       mimetype: 'image/png',
       size: 3,
     };
-    expect(collectEmailAttachmentSources(JSON.stringify([s3]))).toEqual([
+    expect(collectEmailAttachmentSources([s3])).toEqual([
       { kind: 'nocodb', file: s3 },
     ]);
+  });
+
+  it('never turns text into a stored-file reference', () => {
+    const typed = JSON.stringify({
+      path: 'download/noco/base/t/c/secret.pdf',
+      title: 'a.pdf',
+    });
+    expect(() => collectEmailAttachmentSources(typed)).toThrow(
+      /expected an attachment field/,
+    );
+    expect(() =>
+      collectEmailAttachmentSources({ type: 'url', url: typed }),
+    ).toThrow(/expected an attachment field/);
   });
 
   it('treats a bare { url } as an external link', () => {

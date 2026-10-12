@@ -104,11 +104,12 @@ export function collectEmailAttachmentSources(
     out.push(source);
   };
 
-  const walk = (v: unknown): void => {
+  // `urlsOnly`: inside a `url` item, where an interpolated object must not become a stored-file read.
+  const walk = (v: unknown, urlsOnly = false): void => {
     if (v === null || v === undefined || v === '') return;
 
     if (Array.isArray(v)) {
-      v.forEach(walk);
+      v.forEach((item) => walk(item, urlsOnly));
       return;
     }
 
@@ -124,6 +125,14 @@ export function collectEmailAttachmentSources(
     }
 
     const obj = v as Record<string, unknown>;
+
+    if (urlsOnly) {
+      if (typeof obj.url === 'string' && HTTP_URL_RE.test(obj.url.trim())) {
+        push({ kind: 'url', url: obj.url.trim() });
+        return;
+      }
+      throw new Error('Invalid attachment value: expected a URL');
+    }
 
     switch (obj.type) {
       case 'variable':
@@ -141,7 +150,7 @@ export function collectEmailAttachmentSources(
         if (typeof obj.url === 'string') {
           collectString(obj.url, filename).forEach(push);
         } else {
-          walk(obj.url);
+          walk(obj.url, true);
         }
         return;
       }

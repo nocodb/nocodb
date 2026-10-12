@@ -13,7 +13,7 @@ import type { AttachmentsService } from '~/services/attachments.service';
 import { getToolDir } from '~/utils/nc-config';
 import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { PresignedUrl } from '~/models';
+import { FileReference, PresignedUrl } from '~/models';
 import { isSecureAttachmentEnabled } from '~/utils';
 
 export const imageMimeTypes = [
@@ -266,6 +266,41 @@ export function attachmentRefResolvesToStorage(ref?: string): boolean {
   }
 
   return STORAGE_UPLOAD_KEY_RE.test(storageKey);
+}
+
+/**
+ * Whether a caller may store this client-supplied attachment: an external link,
+ * or a file in our storage they uploaded or this base already holds. Any write
+ * that keeps a `path`/`url` from a request must pass this first, since the
+ * attachment proxies later serve whatever key the stored row names.
+ */
+export async function isAttachmentRefOwned(
+  context: NcContext,
+  attachment: { path?: string; url?: string },
+  userId?: string,
+): Promise<boolean> {
+  for (const ref of [attachment.path, attachment.url]) {
+    if (!attachmentRefResolvesToStorage(ref)) continue;
+    if (
+      !(await FileReference.isFileUrlAccessibleForWrite(context, {
+        fileUrl: ref,
+        userId,
+      }))
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export async function assertAttachmentRefOwned(
+  context: NcContext,
+  attachment: { path?: string; url?: string },
+  userId?: string,
+) {
+  if (!(await isAttachmentRefOwned(context, attachment, userId))) {
+    NcError.get(context).unprocessableEntity('Invalid attachment reference');
+  }
 }
 
 export function resolveAttachmentFilePath(attachment: {

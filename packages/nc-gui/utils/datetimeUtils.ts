@@ -82,8 +82,10 @@ export function parseFlexibleDate(dateString: string) {
   }
 }
 
-const timezones = getTimeZones({ includeUtc: true })
+let timezones: ReturnType<typeof getTimeZones> | undefined
 export function getTimeZoneFromName(name: string = Intl.DateTimeFormat().resolvedOptions().timeZone) {
+  // Built on first use: ~50ms, and most screens never need it.
+  timezones ??= getTimeZones({ includeUtc: true })
   let timezone = timezones.find((k) => isSameTimezone(k.name, name))
 
   if (!timezone) {

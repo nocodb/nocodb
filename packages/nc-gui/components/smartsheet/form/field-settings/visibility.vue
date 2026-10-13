@@ -139,21 +139,21 @@ const filterOption = (column: ColumnType) => {
                       :parent-col-id="activeField.fk_column_id"
                       :filter-option="filterOption"
                       :visibility-error="visibilityError"
-                      :disable-add-new-filter="isFirstField"
+                      :disable-add-new-filter="isFirstField || !isFeatureEnabled"
                     />
                   </div>
                 </template>
               </NcDropdown>
             </div>
           </div>
+          <div>
+            <div class="text-sm text-nc-content-gray-muted">{{ $t('labels.showFieldOnConditionsMet') }}</div>
+            <div v-if="hasvisibilityError" class="mt-2 visibility-condition-input-error text-nc-content-red-medium">
+              {{ $t('msg.error.errorConditionsIgnoredForVisibility') }}
+            </div>
+          </div>
         </template>
       </PaymentUpgradeBadgeProvider>
-      <div>
-        <div class="text-sm text-nc-content-gray-muted">{{ $t('labels.showFieldOnConditionsMet') }}</div>
-        <div v-if="hasvisibilityError" class="mt-2 visibility-condition-input-error text-nc-content-red-medium">
-          {{ $t('msg.error.errorConditionsIgnoredForVisibility') }}
-        </div>
-      </div>
     </div>
   </div>
 </template>

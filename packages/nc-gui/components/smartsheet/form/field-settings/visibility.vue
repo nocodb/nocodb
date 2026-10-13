@@ -61,12 +61,13 @@ const filterOption = (column: ColumnType) => {
   <div v-if="activeField" class="flex flex-col">
     <div class="flex flex-col gap-3">
       <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION">
-        <template #default="{ click, isFeatureEnabled }">
+        <template #default="{ isFeatureEnabled }">
           <div class="flex items-center justify-between">
-            <div class="text-nc-content-gray font-medium flex items-center gap-2">
-              {{ $t('labels.showOnConditions') }}
+            <div class="text-nc-content-gray font-medium">{{ $t('labels.showOnConditions') }}</div>
+
+            <div class="flex flex-col">
               <LazyPaymentUpgradeBadge
-                class="-my-1"
+                v-if="!isFeatureEnabled && !visibilityFilters?.length"
                 :feature="PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION"
                 :content="
                   $t('upgrade.upgradeToShowFieldOnConditionsSubtitle', {
@@ -74,14 +75,12 @@ const filterOption = (column: ColumnType) => {
                   })
                 "
               />
-            </div>
 
-            <div class="flex flex-col">
               <NcDropdown
-                v-if="visibilityFilters"
+                v-else-if="visibilityFilters"
                 v-model:visible="isOpen"
                 placement="bottomLeft"
-                :disabled="!visibilityFilters.length && !isOpen && (isFirstField || !isFeatureEnabled)"
+                :disabled="isFirstField && !visibilityFilters.length && !isOpen"
                 overlay-class-name="nc-form-field-visibility-dropdown"
               >
                 <NcTooltip placement="left" :disabled="!isFirstField">
@@ -95,7 +94,6 @@ const filterOption = (column: ColumnType) => {
                       'opacity-70 cursor-default nc-disabled': isFirstField && !visibilityFilters.length,
                     }"
                     data-testid="nc-form-field-visibility-btn"
-                    @click="!isFirstField && !visibilityFilters.length && click(PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION)"
                   >
                     <div
                       class="nc-form-field-visibility-conditions-count flex-1"

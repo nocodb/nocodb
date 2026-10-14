@@ -24,6 +24,7 @@ import {
   mssqlTableHasTriggers,
 } from '~/db/BaseModelSqlv2/mssql-insert-sql';
 import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
+import { handleNotNullConstraintError } from '~/helpers/notNullConstraintErrorHandler';
 import getAst from '~/helpers/getAst';
 import { nocoExecute } from '~/utils';
 import { captureForTrace } from '~/decorators/trace-command.decorator';
@@ -240,6 +241,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         insertData: insertObj || data,
       });
       await baseModel.errorInsert(e, data, request);
+      await handleNotNullConstraintError({ error: e, baseModel });
       throw e;
     }
   };
@@ -732,6 +734,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         baseModel: baseModel,
         insertData: datas?.[0],
       });
+      await handleNotNullConstraintError({ error: e, baseModel });
       // await baseModel.errorInsertb(e, data, null);
       throw e;
     }

@@ -215,6 +215,9 @@ export const FormBuilderGroupLabelsInj: InjectionKey<Ref<Record<string, string>>
 /** True inside the compose modal, where the body editor shows its full toolbar. */
 export const WorkflowComposeModeInj: InjectionKey<Ref<boolean>> = Symbol('workflow-compose-mode')
 
+/** Compose-modal drop target; the attachments input registers its upload here while mounted. */
+export const WorkflowComposeDropInj: InjectionKey<Ref<((files: File[]) => void) | null>> = Symbol('workflow-compose-drop')
+
 export const WorkflowVariableInj: InjectionKey<{
   selectedNodeId: Ref<string | null>
   getAvailableVariablesFlat: (nodeId: string) => any[]

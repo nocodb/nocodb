@@ -1,8 +1,9 @@
 import { OperationSource } from 'nocodb-sdk';
 import {
+  globalHttpAgent,
+  globalHttpsAgent,
   type RequestFilteringHttpAgent,
   type RequestFilteringHttpsAgent,
-  useAgent,
 } from 'request-filtering-agent';
 import { isCloud } from '~/utils/constants';
 
@@ -55,17 +56,17 @@ export function isSsrfProtectionEnabled({
   return true;
 }
 
-function buildAgents(url: string): FilteredAgents {
-  return { httpAgent: useAgent(url), httpsAgent: useAgent(url) };
+// One agent per protocol: redirects can switch scheme (http → https).
+function buildAgents(): FilteredAgents {
+  return { httpAgent: globalHttpAgent, httpsAgent: globalHttpsAgent };
 }
 
 export function getFilteredAgents({
-  url,
   source,
 }: {
   url: string;
   source?: OperationSource;
 }): FilteredAgents {
   if (!isSsrfProtectionEnabled({ source })) return {};
-  return buildAgents(url);
+  return buildAgents();
 }

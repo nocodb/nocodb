@@ -93,6 +93,23 @@ function getWorkflowExpressionKind(
   return variable ? getWorkflowVariableKind(variable.type, variable.isArray) : 'any'
 }
 
+/** A template split into literal text and `{{ }}` tokens, so it can render variables as pills. */
+function splitWorkflowTemplate(
+  template: string,
+  variables: VariableDefinition[],
+  t: (key: string) => string,
+): { text?: string; label?: string; expression?: string }[] {
+  const segments: { text?: string; label?: string; expression?: string }[] = []
+  let lastIndex = 0
+  for (const token of findWorkflowExpressionTokens(template)) {
+    if (token.from > lastIndex) segments.push({ text: template.slice(lastIndex, token.from) })
+    segments.push({ label: getWorkflowExpressionChipMeta(token.expression, variables, t).label, expression: token.expression })
+    lastIndex = token.to
+  }
+  if (lastIndex < template.length) segments.push({ text: template.slice(lastIndex) })
+  return segments
+}
+
 export {
   findWorkflowExpressionTokens,
   findWorkflowVariable,
@@ -100,4 +117,5 @@ export {
   getWorkflowExpressionKind,
   getWorkflowTransformLabel,
   getWorkflowVariableChipMeta,
+  splitWorkflowTemplate,
 }

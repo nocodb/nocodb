@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType } from 'nocodb-sdk';
 import { Base, Model } from '../models';
 import type {
+  AttachmentType,
   CommentReqType,
   CommentUpdateReqType,
   UserType,
@@ -9,12 +10,33 @@ import type {
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
+import { assertAttachmentRefOwned } from '~/helpers/attachmentHelpers';
 import { sanitizeCommentBody } from '~/helpers/sanitizeCommentBody';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import Comment from '~/models/Comment';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 import NocoSocket from '~/socket/NocoSocket';
+
+// Comment files are served by the row each attachment creates, so a new one
+// must name a file the author uploaded or this base already holds. Files the
+// comment already had were checked when they were added.
+async function assertCommentAttachmentsOwned(
+  context: NcContext,
+  attachments: AttachmentType[] | undefined,
+  userId: string | undefined,
+  kept: AttachmentType[] = [],
+) {
+  if (!Array.isArray(attachments)) return;
+  for (const att of attachments) {
+    if (!att) continue;
+    const isKept = kept.some(
+      (k) =>
+        k?.id && k.id === att.id && k.path === att.path && k.url === att.url,
+    );
+    if (!isKept) await assertAttachmentRefOwned(context, att, userId);
+  }
+}
 
 @Injectable()
 export class CommentsService {
@@ -36,6 +58,27 @@ export class CommentsService {
     validatePayload('swagger.json#/components/schemas/CommentReq', param.body);
 
     const sanitizedComment = sanitizeCommentBody(param.body.comment);
+    assertCommentNotEmpty(context, sanitizedComment, param.body.attachments);
+    await assertCommentAttachmentsOwned(
+      context,
+      param.body.attachments,
+      param.user?.id,
+    );
+
+    const model = await Model.getByIdOrName(context, {
+      id: param.body.fk_model_id,
+    });
+    if (!model) NcError.get(context).tableNotFound(param.body.fk_model_id);
+
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+    if (!(await baseModel.exist(param.body.row_id))) {
+      NcError.get(context).recordNotFound(param.body.row_id);
+    }
 
     const res = await Comment.insert(context, {
       ...param.body,
@@ -199,6 +242,13 @@ export class CommentsService {
     }
 
     const sanitizedComment = sanitizeCommentBody(param.body.comment);
+
+    await assertCommentAttachmentsOwned(
+      context,
+      param.body.attachments,
+      param.user.id,
+      comment.attachments,
+    );
 
     const res = await Comment.update(context, param.commentId, {
       comment: sanitizedComment,

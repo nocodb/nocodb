@@ -435,6 +435,9 @@ export default class FileReference {
    * one uploaded by the caller (the normal upload → store flow leaves a root
    * reference with the uploader's id) or one already stored in the current base
    * (same-base copy/paste, including files uploaded by a collaborator).
+   *
+   * Only the root row proves an upload. A base row carrying the caller's id may
+   * name a path the caller typed, so in another base it vouches for nothing.
    */
   public static async isFileUrlAccessibleForWrite(
     context: NcContext,
@@ -459,7 +462,14 @@ export default class FileReference {
       .where('file_url', fileUrl)
       .where((builder) => {
         if (context.base_id) builder.orWhere('base_id', context.base_id);
-        if (userId) builder.orWhere('fk_user_id', userId);
+        if (userId) {
+          builder.orWhere((rootUpload) =>
+            rootUpload
+              .where('fk_user_id', userId)
+              .whereNull('base_id')
+              .whereNull('fk_workspace_id'),
+          );
+        }
       });
 
     const row = await qb.first();

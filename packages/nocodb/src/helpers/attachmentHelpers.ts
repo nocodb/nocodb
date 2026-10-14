@@ -10,10 +10,11 @@ import type { Response } from 'express';
 import type { NcContext } from 'nocodb-sdk';
 import type { Column } from '~/models';
 import type { AttachmentsService } from '~/services/attachments.service';
+import type { MetaService } from '~/meta/meta.service';
 import { getToolDir } from '~/utils/nc-config';
 import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { PresignedUrl } from '~/models';
+import { FileReference, PresignedUrl } from '~/models';
 import { isSecureAttachmentEnabled } from '~/utils';
 
 export const imageMimeTypes = [
@@ -233,6 +234,11 @@ export function getPathFromUrl(url: string, removePrefix = false) {
   return decodeURI(`${pathName}${newUrl.search}${newUrl.hash}`);
 }
 
+// The adapters strip a leading `<bucket>/` (path-style S3, Backblaze, GCS) and GCS
+// decodes `%2F` before resolving a key, so those forms reach our storage too.
+const STORAGE_UPLOAD_KEY_RE =
+  /^(?:[^/]+?(?:\/|%2F))?nc(?:\/|%2F)uploads(?:\/|%2F)/i;
+
 /**
  * Whether a client-supplied attachment `path`/`url` resolves to an object in
  * OUR storage — and therefore must pass an ownership check before a data write
@@ -260,7 +266,47 @@ export function attachmentRefResolvesToStorage(ref?: string): boolean {
     return true;
   }
 
-  return /^nc\/uploads\//i.test(storageKey);
+  return STORAGE_UPLOAD_KEY_RE.test(storageKey);
+}
+
+/**
+ * Whether a caller may store this client-supplied attachment: an external link,
+ * or a file in our storage they uploaded or this base already holds. Any write
+ * that keeps a `path`/`url` from a request must pass this first, since the
+ * attachment proxies later serve whatever key the stored row names.
+ */
+export async function isAttachmentRefOwned(
+  context: NcContext,
+  attachment: { path?: string; url?: string },
+  userId?: string,
+  ncMeta?: MetaService,
+): Promise<boolean> {
+  for (const ref of [attachment.path, attachment.url]) {
+    if (!attachmentRefResolvesToStorage(ref)) continue;
+    if (
+      !(await FileReference.isFileUrlAccessibleForWrite(
+        context,
+        {
+          fileUrl: ref,
+          userId,
+        },
+        ncMeta,
+      ))
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export async function assertAttachmentRefOwned(
+  context: NcContext,
+  attachment: { path?: string; url?: string },
+  userId?: string,
+) {
+  if (!(await isAttachmentRefOwned(context, attachment, userId))) {
+    NcError.get(context).unprocessableEntity('Invalid attachment reference');
+  }
 }
 
 export function resolveAttachmentFilePath(attachment: {

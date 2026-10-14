@@ -170,9 +170,8 @@ interface SendRecordPayload {
   req: NcRequest;
 }
 
-interface AbuseReportPayload {
-  to: string;
-  // Defanged, truncated display strings; see AbuseReportsService.
+/** Defanged, truncated display strings; see AbuseReportsService. */
+export interface AbuseReportSummary {
   subjectTitle: string;
   resourceType: string;
   resourceTitle: string;
@@ -183,6 +182,10 @@ interface AbuseReportPayload {
   description: string;
   reportedAt: string;
   ids: string;
+}
+
+interface AbuseReportPayload extends AbuseReportSummary {
+  to: string;
 }
 
 type MailParams =

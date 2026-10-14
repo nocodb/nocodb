@@ -6,6 +6,7 @@ import type {
   NcContext,
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import type { AbuseReportSummary } from '~/interface/Mail';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import {
@@ -217,48 +218,68 @@ export class AbuseReportsService {
       return;
     }
 
-    const to = [...new Set(await this.recipients())].filter(Boolean);
+    // Only a delivered notification starts the cooldown.
+    if (await this.deliver(report, resource)) {
+      await AbuseReport.markNotified(report.id);
+    }
+  }
+
+  /** Sends the report to admins. True when at least one channel delivered it. */
+  protected async deliver(
+    report: AbuseReport,
+    resource: ReportedResource,
+  ): Promise<boolean> {
+    const to = await this.recipients();
     if (!to.length) {
       this.logger.warn(
         `Abuse report ${report.id} stored; no recipients configured`,
       );
-      return;
+      return false;
     }
+    return this.sendEmail(this.summary(report, resource), to);
+  }
 
+  protected async sendEmail(summary: AbuseReportSummary, to: string[]) {
+    const recipients = [...new Set(to)].filter(Boolean);
+    if (!recipients.length) return false;
+    return this.mailService.sendMail({
+      mailEvent: MailEvent.ABUSE_REPORT,
+      payload: { to: recipients.join(','), ...summary },
+    });
+  }
+
+  /** Report fields for a notification, truncated and defanged. */
+  protected summary(
+    report: AbuseReport,
+    resource: ReportedResource,
+  ): AbuseReportSummary {
     const workspace = report.workspace_title
       ? `${report.workspace_title} (${report.fk_workspace_id})`
       : report.fk_workspace_id;
 
-    const sent = await this.mailService.sendMail({
-      mailEvent: MailEvent.ABUSE_REPORT,
-      payload: {
-        to: to.join(','),
-        subjectTitle: defang(truncate(report.resource_title, 64)) || 'A page',
-        resourceType: resource.noun,
-        resourceTitle: defang(truncate(report.resource_title, 200)),
-        workspace: defang(truncate(workspace, 200)),
-        publicUrl: defang(report.public_url),
-        reason: ABUSE_REASON_LABELS[report.reason] ?? report.reason,
-        reporter: defang(
-          `${truncate(report.reporter_name, 64)} <${truncate(
-            report.reporter_email,
-            128,
-          )}>`,
-        ),
-        description: defang(report.description),
-        reportedAt:
-          new Date().toISOString().replace('T', ' ').slice(0, 16) + ' UTC',
-        ids: [
-          `Report ${report.id}`,
-          `Resource ${report.resource_id}`,
-          report.base_id && `Base ${report.base_id}`,
-        ]
-          .filter(Boolean)
-          .join(' · '),
-      },
-    });
-
-    // Only a delivered notification starts the cooldown.
-    if (sent) await AbuseReport.markNotified(report.id);
+    return {
+      subjectTitle: defang(truncate(report.resource_title, 64)) || 'A page',
+      resourceType: resource.noun,
+      resourceTitle: defang(truncate(report.resource_title, 200)),
+      workspace: defang(truncate(workspace, 200)),
+      publicUrl: defang(report.public_url),
+      reason: ABUSE_REASON_LABELS[report.reason] ?? report.reason,
+      reporter: defang(
+        `${truncate(report.reporter_name, 64)} <${truncate(
+          report.reporter_email,
+          128,
+        )}>`,
+      ),
+      description: defang(report.description),
+      reportedAt:
+        new Date().toISOString().replace('T', ' ').slice(0, 16) + ' UTC',
+      ids: [
+        `Report ${report.id}`,
+        `Resource ${report.resource_id}`,
+        report.base_id && `Base ${report.base_id}`,
+      ]
+        .filter(Boolean)
+        .join(' · '),
+    };
   }
 }

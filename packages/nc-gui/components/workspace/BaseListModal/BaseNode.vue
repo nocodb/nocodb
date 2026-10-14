@@ -68,6 +68,12 @@ const updateTitle = () => {
   tempTitle.value = ''
 }
 
+/** Ignore the Enter that confirms an IME candidate; only commit once composition is done */
+const onTitleKeyEnter = (event: KeyboardEvent) => {
+  if (isComposingKeyEvent(event)) return
+  updateTitle()
+}
+
 const handleDuplicate = () => {
   onDuplicate(props.base)
   isMenuOpen.value = false
@@ -138,7 +144,7 @@ const onMenuClick = (e: Event) => {
         v-model:value="tempTitle"
         class="!bg-transparent !text-sm !font-medium !rounded-md !px-1 !h-7 !-ml-1.2"
         @click.stop
-        @keyup.enter="updateTitle"
+        @keydown.enter.stop.prevent="onTitleKeyEnter"
         @keyup.esc="updateTitle"
         @blur="updateTitle"
         @keydown.stop

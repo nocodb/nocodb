@@ -188,36 +188,30 @@ export class AbuseReportsService {
     }
 
     // Only a delivered notification starts the cooldown.
-    if (await this.deliver(report, resource)) {
+    if (await this.deliver(report.id, this.summary(report, resource))) {
       await AbuseReport.markNotified(report.id);
     }
   }
 
-  /** Sends the report to admins. True when at least one channel delivered it. */
+  /**
+   * Self-hosted: emails the configured abuse contact, else every super admin.
+   * True when the notification was delivered.
+   */
   protected async deliver(
-    report: AbuseReport,
-    resource: ReportedResource,
+    reportId: string,
+    summary: AbuseReportSummary,
   ): Promise<boolean> {
-    // Self-hosted: the configured abuse contact, else every super admin.
     const settings = await Noco.getAppSettings();
     const to = settings.abuse_contact_email
       ? [settings.abuse_contact_email]
       : await User.superAdminEmails();
     if (!to.length) {
-      this.logger.warn(
-        `Abuse report ${report.id} stored; no recipients configured`,
-      );
+      this.logger.warn(`Abuse report ${reportId} stored; no recipients`);
       return false;
     }
-    return this.sendEmail(this.summary(report, resource), to);
-  }
-
-  protected async sendEmail(summary: AbuseReportSummary, to: string[]) {
-    const recipients = [...new Set(to)].filter(Boolean);
-    if (!recipients.length) return false;
     return this.mailService.sendMail({
       mailEvent: MailEvent.ABUSE_REPORT,
-      payload: { to: recipients.join(','), ...summary },
+      payload: { to: to.join(','), ...summary },
     });
   }
 

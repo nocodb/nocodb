@@ -267,6 +267,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const loadSharedView = async () => {
     passwordError.value = null
+    abuseReportTarget.value = undefined
 
     try {
       const viewMeta = await api.public.sharedViewMetaGet(sharedViewId, {

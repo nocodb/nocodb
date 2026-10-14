@@ -136,7 +136,12 @@ export class AbuseReportsService {
   }
 
   async create(param: { body: AbuseReportReqType; req: NcRequest }) {
-    const { body, req } = param;
+    const { req } = param;
+    // Trim before validating, so whitespace can't satisfy the length minimums.
+    const body = { ...param.body };
+    for (const key of ['identifier', 'name', 'email', 'description'] as const) {
+      if (typeof body[key] === 'string') body[key] = body[key].trim();
+    }
 
     const settings = await Noco.getAppSettings();
     if (settings.allow_reporting_abuse === false) {
@@ -155,7 +160,7 @@ export class AbuseReportsService {
     const resolver = this.resolvers()[resourceType];
     if (!resolver) NcError.get().badRequest('Unsupported resource type');
 
-    const resource = await resolver(body.identifier.trim(), req);
+    const resource = await resolver(body.identifier, req);
 
     // Per IP *and* page: behind a proxy without NC_TRUST_PROXY every visitor
     // shares one IP, and a flood on one page must not block reports on others.
@@ -186,9 +191,9 @@ export class AbuseReportsService {
       base_id: resource.baseId,
       public_url: this.publicUrl(resource.path),
       reason,
-      description: body.description.trim(),
-      reporter_name: body.name.trim(),
-      reporter_email: body.email.trim(),
+      description: body.description,
+      reporter_name: body.name,
+      reporter_email: body.email,
       ip,
       user_agent: req.headers?.['user-agent'] as string,
     });

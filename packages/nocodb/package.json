@@ -138,7 +138,7 @@
     "jsonwebtoken": "^9.0.2",
     "knex": "3.1.0",
     "list-github-dir-content": "^3.0.0",
-    "lodash": "^4.17.23",
+    "lodash": "^4.18.1",
     "mailersend": "^1.5.0",
     "marked": "^4.3.0",
     "mime": "3.0.0",

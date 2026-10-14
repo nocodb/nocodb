@@ -1000,6 +1000,16 @@
                       "type": "boolean",
                       "description": "Show the email/password sign-in form alongside SSO (self-hosted only)",
                       "example": false
+                    },
+                    "allow_reporting_abuse": {
+                      "type": "boolean",
+                      "description": "Let visitors of public shares report them for abuse",
+                      "example": true
+                    },
+                    "abuse_contact_email": {
+                      "type": "string",
+                      "description": "Email that receives abuse reports (self-hosted only). Empty means all super admins",
+                      "example": "abuse@example.com"
                     }
                   }
                 },
@@ -1086,6 +1096,16 @@
                     "type": "boolean",
                     "description": "Show the email/password sign-in form alongside SSO (self-hosted only)",
                     "example": false
+                  },
+                  "allow_reporting_abuse": {
+                    "type": "boolean",
+                    "description": "Let visitors of public shares report them for abuse",
+                    "example": true
+                  },
+                  "abuse_contact_email": {
+                    "type": "string",
+                    "description": "Email that receives abuse reports (self-hosted only). Empty means all super admins",
+                    "example": "abuse@example.com"
                   }
                 }
               },

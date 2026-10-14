@@ -117,6 +117,9 @@ import * as nc_202610071500_invite_links_interface from './v0/nc_202610071500_in
 import * as nc_202610081200_users_recanonicalize_proton_emails from './v0/nc_202610081200_users_recanonicalize_proton_emails';
 import * as nc_202610081300_invite_links_app from './v0/nc_202610081300_invite_links_app';
 import * as nc_202610081400_col_button_workflow_meta from './v0/nc_202610081400_col_button_workflow_meta';
+import * as nc_202610121136_file_references_url_index from './v0/nc_202610121136_file_references_url_index';
+import * as nc_202610131500_factory_machines from './v0/nc_202610131500_factory_machines';
+import * as nc_202610081326_abuse_reports from './v0/nc_202610081326_abuse_reports';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -245,6 +248,9 @@ export default class XcMigrationSourcev0 {
       'nc_202610081200_users_recanonicalize_proton_emails',
       'nc_202610081300_invite_links_app',
       'nc_202610081400_col_button_workflow_meta',
+      'nc_202610121136_file_references_url_index',
+      'nc_202610131500_factory_machines',
+      'nc_202610081326_abuse_reports',
     ]);
   }
 
@@ -492,6 +498,12 @@ export default class XcMigrationSourcev0 {
         return nc_202610081300_invite_links_app;
       case 'nc_202610081400_col_button_workflow_meta':
         return nc_202610081400_col_button_workflow_meta;
+      case 'nc_202610121136_file_references_url_index':
+        return nc_202610121136_file_references_url_index;
+      case 'nc_202610131500_factory_machines':
+        return nc_202610131500_factory_machines;
+      case 'nc_202610081326_abuse_reports':
+        return nc_202610081326_abuse_reports;
     }
   }
 }

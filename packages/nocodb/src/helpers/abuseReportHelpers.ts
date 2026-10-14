@@ -18,5 +18,13 @@ export const truncate = (value: string | undefined, max: number) => {
 /** Makes URLs and domains non-clickable for mail clients: `hxxps://evil[.]com`. */
 export const defang = (value: string | undefined) =>
   (value ?? '')
+    // Invisible characters can split a domain without breaking it.
+    .replace(/[\u00AD\u200B-\u200D\u2060\uFEFF]/g, '')
+    // Full stops browsers accept as a domain dot.
+    .replace(/[\u3002\uFF0E\uFF61]/g, '.')
     .replace(/\bhttp(s?):\/\//gi, 'hxxp$1://')
-    .replace(/\b([a-z0-9-]+)\.(?=[a-z0-9-]+\b)/gi, '$1[.]');
+    // Labels in any script, so IDN domains are defanged too.
+    .replace(
+      /(?<![\p{L}\p{N}_-])([\p{L}\p{N}_-]+)\.(?=[\p{L}\p{N}_-])/gu,
+      '$1[.]',
+    );

@@ -15,7 +15,7 @@ import {
   truncate,
 } from '~/helpers/abuseReportHelpers';
 import { MailEvent } from '~/interface/Mail';
-import { Base, Model, View } from '~/models';
+import { Base, Model, User, View } from '~/models';
 import AbuseReport from '~/models/AbuseReport';
 import Noco from '~/Noco';
 import { MailService } from '~/services/mail/mail.service';
@@ -31,12 +31,14 @@ export interface ReportedResource {
   path: string;
   /** Noun used in the email, e.g. "form". */
   noun: string;
+  workspaceTitle?: string;
 }
 
-export type AbuseReportResolver = (
-  identifier: string,
-  req: NcRequest,
-) => Promise<ReportedResource>;
+/** Share uuids are unique across workspaces, so lookups skip tenant scoping. */
+export const BYPASS_CONTEXT: NcContext = {
+  workspace_id: RootScopes.BYPASS,
+  base_id: RootScopes.BYPASS,
+};
 
 const RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
 
@@ -44,9 +46,6 @@ const envInt = (name: string, fallback: number) => {
   const value = parseInt(process.env[name], 10);
   return Number.isFinite(value) && value >= 0 ? value : fallback;
 };
-
-const viewNoun = (view: View) =>
-  view.type === ViewTypes.FORM ? 'form' : 'view';
 
 @Injectable()
 export class AbuseReportsService {
@@ -57,29 +56,26 @@ export class AbuseReportsService {
     protected readonly publicMetasService: PublicMetasService,
   ) {}
 
-  /** Resource types this edition can resolve. EE adds its own surfaces. */
-  protected resolvers(): Partial<
-    Record<AbuseReportResourceType, AbuseReportResolver>
-  > {
-    return {
-      [AbuseReportResourceType.SHARED_VIEW]: (identifier, req) =>
-        this.resolveSharedView(identifier, req),
-    };
-  }
-
-  /** Lookup context for share uuids, which are unique across workspaces. */
-  protected bypassContext(): NcContext {
-    return {
-      workspace_id: RootScopes.BYPASS,
-      base_id: RootScopes.BYPASS,
-    };
+  /**
+   * Finds the shared resource with the same checks as its public meta route.
+   * EE adds interfaces, dashboards and artifacts.
+   */
+  protected async resolve(
+    type: AbuseReportResourceType,
+    identifier: string,
+    req: NcRequest,
+  ): Promise<ReportedResource> {
+    if (type !== AbuseReportResourceType.SHARED_VIEW) {
+      NcError.get().badRequest('Unsupported resource type');
+    }
+    return this.resolveSharedView(identifier, req);
   }
 
   protected async resolveSharedView(
     identifier: string,
     req: NcRequest,
   ): Promise<ReportedResource> {
-    const view = await View.getByUUID(this.bypassContext(), identifier);
+    const view = await View.getByUUID(BYPASS_CONTEXT, identifier);
     if (!view) NcError.viewNotFound(identifier);
 
     const context: NcContext = {
@@ -109,31 +105,8 @@ export class AbuseReportsService {
       workspaceId: view.fk_workspace_id,
       baseId: view.base_id,
       path,
-      noun: viewNoun(view),
+      noun: view.type === ViewTypes.FORM ? 'form' : 'view',
     };
-  }
-
-  /** Workspace label for the email. CE has no workspaces. */
-  protected async workspaceTitle(
-    _workspaceId: string | undefined,
-  ): Promise<string | undefined> {
-    return undefined;
-  }
-
-  /** Self-hosted: the configured abuse contact, else every super admin. */
-  protected async recipients(): Promise<string[]> {
-    const settings = await Noco.getAppSettings();
-    if (settings.abuse_contact_email) return [settings.abuse_contact_email];
-    return AbuseReport.superAdminEmails();
-  }
-
-  /**
-   * Public URL from the configured site URL only — the Host header is
-   * attacker-controlled and this lands in admin emails.
-   */
-  protected publicUrl(path: string) {
-    const siteUrl = Noco.config?.ncSiteUrl?.replace(/\/+$/, '');
-    return siteUrl ? `${siteUrl}${path}` : path;
   }
 
   async create(param: { body: AbuseReportReqType; req: NcRequest }) {
@@ -158,10 +131,7 @@ export class AbuseReportsService {
     const resourceType = body.resource_type as AbuseReportResourceType;
     const reason = body.reason as AbuseReportReason;
 
-    const resolver = this.resolvers()[resourceType];
-    if (!resolver) NcError.get().badRequest('Unsupported resource type');
-
-    const resource = await resolver(body.identifier, req);
+    const resource = await this.resolve(resourceType, body.identifier, req);
 
     // Per IP *and* page: behind a proxy without NC_TRUST_PROXY every visitor
     // shares one IP, and a flood on one page must not block reports on others.
@@ -180,17 +150,16 @@ export class AbuseReportsService {
       );
     }
 
+    const siteUrl = Noco.config?.ncSiteUrl?.replace(/\/+$/, '') ?? '';
     const report = await AbuseReport.insert({
       resource_type: resourceType,
       resource_id: resource.resourceId,
       resource_title: truncate(resource.title, 255),
       fk_workspace_id: resource.workspaceId,
-      workspace_title: truncate(
-        await this.workspaceTitle(resource.workspaceId),
-        255,
-      ),
+      workspace_title: truncate(resource.workspaceTitle, 255),
       base_id: resource.baseId,
-      public_url: this.publicUrl(resource.path),
+      // From the configured site URL only: the Host header is attacker-controlled.
+      public_url: `${siteUrl}${resource.path}`,
       reason,
       description: body.description,
       reporter_name: body.name,
@@ -229,7 +198,11 @@ export class AbuseReportsService {
     report: AbuseReport,
     resource: ReportedResource,
   ): Promise<boolean> {
-    const to = await this.recipients();
+    // Self-hosted: the configured abuse contact, else every super admin.
+    const settings = await Noco.getAppSettings();
+    const to = settings.abuse_contact_email
+      ? [settings.abuse_contact_email]
+      : await User.superAdminEmails();
     if (!to.length) {
       this.logger.warn(
         `Abuse report ${report.id} stored; no recipients configured`,

@@ -1,9 +1,10 @@
-import { AbuseReportStatus, extractRolesObj, OrgUserRoles } from 'nocodb-sdk';
+import { AbuseReportStatus } from 'nocodb-sdk';
 import type {
   AbuseReportReason,
   AbuseReportResourceType,
   AbuseReportType,
 } from 'nocodb-sdk';
+import { extractProps } from '~/helpers/extractProps';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 
@@ -47,19 +48,21 @@ export default class AbuseReport implements AbuseReportType {
       RootScopes.ROOT,
       MetaTable.ABUSE_REPORTS,
       {
-        resource_type: report.resource_type,
-        resource_id: report.resource_id,
-        resource_title: report.resource_title ?? null,
-        fk_workspace_id: report.fk_workspace_id ?? null,
-        workspace_title: report.workspace_title ?? null,
-        base_id: report.base_id ?? null,
-        public_url: report.public_url,
-        reason: report.reason,
-        description: report.description,
-        reporter_name: report.reporter_name,
-        reporter_email: report.reporter_email,
-        ip: report.ip ?? null,
-        user_agent: report.user_agent?.slice(0, 512) ?? null,
+        ...extractProps(report, [
+          'resource_type',
+          'resource_id',
+          'resource_title',
+          'fk_workspace_id',
+          'workspace_title',
+          'base_id',
+          'public_url',
+          'reason',
+          'description',
+          'reporter_name',
+          'reporter_email',
+          'ip',
+        ]),
+        user_agent: report.user_agent?.slice(0, 512),
         admins_notified: false,
         status: AbuseReportStatus.OPEN,
       },
@@ -83,13 +86,17 @@ export default class AbuseReport implements AbuseReportType {
     windowSeconds: number,
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
-    const row = await ncMeta
-      .knexConnection(MetaTable.ABUSE_REPORTS)
-      .where(params)
-      .where('created_at', '>=', sinceSeconds(windowSeconds, ncMeta))
-      .count('id', { as: 'count' })
-      .first();
-    return Number(row?.count ?? 0);
+    return ncMeta.metaCount(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.ABUSE_REPORTS,
+      {
+        condition: params,
+        xcCondition: {
+          created_at: { ge: sinceSeconds(windowSeconds, ncMeta) },
+        },
+      },
+    );
   }
 
   /**
@@ -105,17 +112,23 @@ export default class AbuseReport implements AbuseReportType {
     windowSeconds: number,
     ncMeta = Noco.ncMeta,
   ): Promise<boolean> {
-    const row = await ncMeta
-      .knexConnection(MetaTable.ABUSE_REPORTS)
-      .where({
-        resource_type: params.resource_type,
-        resource_id: params.resource_id,
-        public_url: params.public_url,
-        admins_notified: true,
-      })
-      .where('created_at', '>=', sinceSeconds(windowSeconds, ncMeta))
-      .first('id');
-    return !!row;
+    const count = await ncMeta.metaCount(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.ABUSE_REPORTS,
+      {
+        condition: {
+          resource_type: params.resource_type,
+          resource_id: params.resource_id,
+          public_url: params.public_url,
+          admins_notified: true,
+        },
+        xcCondition: {
+          created_at: { ge: sinceSeconds(windowSeconds, ncMeta) },
+        },
+      },
+    );
+    return count > 0;
   }
 
   static async markNotified(id: string, ncMeta = Noco.ncMeta) {
@@ -126,23 +139,5 @@ export default class AbuseReport implements AbuseReportType {
       { admins_notified: true },
       id,
     );
-  }
-
-  /** Active super admins' emails — default recipients on self-hosted. */
-  static async superAdminEmails(ncMeta = Noco.ncMeta): Promise<string[]> {
-    const users = await ncMeta
-      .knexConnection(MetaTable.USERS)
-      .select('email', 'roles', 'blocked', 'is_deleted')
-      .where('roles', 'like', `%${OrgUserRoles.SUPER_ADMIN}%`);
-
-    return users
-      .filter(
-        (u) =>
-          u.email &&
-          !u.blocked &&
-          !u.is_deleted &&
-          extractRolesObj(u.roles)?.[OrgUserRoles.SUPER_ADMIN],
-      )
-      .map((u) => u.email);
   }
 }

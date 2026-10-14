@@ -670,6 +670,11 @@ export const presetErrorCodexMap: Partial<
       'This operation is locked while the base is open in an environment. Make the change there instead.',
     code: 403,
   },
+  [NcErrorType.ERR_ABUSE_REPORTING_DISABLED]: {
+    message: (message: string) =>
+      message || 'Reporting abuse is disabled on this instance.',
+    code: 403,
+  },
   [NcErrorType.ERR_SNAPSHOT_BLOCKED]: {
     message: (message: string) =>
       message ||

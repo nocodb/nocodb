@@ -341,8 +341,11 @@ export class MailService {
     const { payload, mailEvent } = params;
 
     // Validate NC_SITE_URL is configured for events that generate URLs
-    // FORM_SUBMISSION is exempt — it has no req and builds no links
-    if (mailEvent !== MailEvent.FORM_SUBMISSION) {
+    // FORM_SUBMISSION and ABUSE_REPORT are exempt — they build no links
+    if (
+      mailEvent !== MailEvent.FORM_SUBMISSION &&
+      mailEvent !== MailEvent.ABUSE_REPORT
+    ) {
       if (!(await this.ensurePublicUrl(ncMeta))) return false;
     }
 
@@ -579,6 +582,21 @@ export class MailService {
             ),
           });
 
+          break;
+        }
+        case MailEvent.ABUSE_REPORT: {
+          const { to, subjectTitle, ...props } = payload;
+
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: mailEvent,
+            to,
+            subject: this.resolveSubject(
+              (productName) =>
+                `${productName}: "${subjectTitle}" was reported for abuse`,
+              branding,
+            ),
+            html: await this.renderMail('AbuseReport', props, branding),
+          });
           break;
         }
       }

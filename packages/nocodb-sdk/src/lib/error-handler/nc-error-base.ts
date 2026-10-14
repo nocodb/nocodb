@@ -220,7 +220,7 @@ export class NcErrorBase {
       {
         params: id,
         ...args,
-      },
+      }
     );
   }
 
@@ -243,21 +243,21 @@ export class NcErrorBase {
       {
         params: id,
         ...args,
-      },
+      }
     );
   }
 
   /** No published release exists for the managed app — keyed by app, not version. */
   publishedManagedAppVersionNotFound(
     managedAppId: string,
-    args?: NcErrorArgs,
+    args?: NcErrorArgs
   ): never {
     throw this.errorCodex.generateError(
       NcErrorType.ERR_PUBLISHED_MANAGED_APP_VERSION_NOT_FOUND,
       {
         params: managedAppId,
         ...args,
-      },
+      }
     );
   }
 
@@ -267,7 +267,7 @@ export class NcErrorBase {
       {
         params: handle,
         ...args,
-      },
+      }
     );
   }
 
@@ -284,7 +284,7 @@ export class NcErrorBase {
       {
         params: id,
         ...args,
-      },
+      }
     );
   }
 
@@ -317,7 +317,7 @@ export class NcErrorBase {
       {
         params: repo,
         ...args,
-      },
+      }
     );
   }
 
@@ -369,10 +369,13 @@ export class NcErrorBase {
   }
 
   agentSectionNotFound(id: string, args?: NcErrorArgs): never {
-    throw this.errorCodex.generateError(NcErrorType.ERR_AGENT_SECTION_NOT_FOUND, {
-      params: id,
-      ...args,
-    });
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_AGENT_SECTION_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
   }
 
   apiClientNotFound(id: string, args?: NcErrorArgs): never {
@@ -630,7 +633,7 @@ export class NcErrorBase {
 
   contextAlreadySet(modelName: string): never {
     return this.internalServerError(
-      `${modelName} instance already has context — setModelContext called twice`,
+      `${modelName} instance already has context — setModelContext called twice`
     );
   }
 
@@ -728,7 +731,7 @@ export class NcErrorBase {
       sub_type?: string;
       environmentId?: string;
     },
-    args?: NcErrorArgs,
+    args?: NcErrorArgs
   ): never {
     throw this.errorCodex.generateError(
       NcErrorType.ERR_INTEGRATION_USER_CREDENTIAL_REQUIRED,
@@ -758,7 +761,7 @@ export class NcErrorBase {
       sub_type?: string;
       consumer: 'sync' | 'workflows';
     },
-    args?: NcErrorArgs,
+    args?: NcErrorArgs
   ): never {
     const consumerPhrase =
       param.consumer === 'sync' ? 'for sync' : 'in workflows';
@@ -1457,7 +1460,7 @@ export class NcErrorBase {
   licenseRequired(
     operation?: string,
     reason?: LicenseInactiveReason,
-    args?: NcErrorArgs,
+    args?: NcErrorArgs
   ): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_LICENSE_REQUIRED, {
       params: [operation || '', reason || ''],
@@ -1497,5 +1500,12 @@ export class NcErrorBase {
       params: message || '',
       ...args,
     });
+  }
+
+  abuseReportingDisabled(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_ABUSE_REPORTING_DISABLED,
+      { params: '', ...args }
+    );
   }
 }

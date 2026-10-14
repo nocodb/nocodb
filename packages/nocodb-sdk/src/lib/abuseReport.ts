@@ -29,17 +29,7 @@ export const ABUSE_REPORT_EMAIL_MAX_LENGTH = 254;
 export const ABUSE_REPORT_DESCRIPTION_MIN_LENGTH = 100;
 export const ABUSE_REPORT_DESCRIPTION_MAX_LENGTH = 1000;
 
-export interface AbuseReportReqType {
-  resource_type: AbuseReportResourceType;
-  /** Public share id of the resource, e.g. a shared view's uuid. */
-  identifier: string;
-  reason: AbuseReportReason;
-  name: string;
-  email: string;
-  description: string;
-  /** Honeypot. Left empty by people, filled by bots. */
-  website?: string;
-}
+// Request body type `AbuseReportReqType` is generated from swagger (Api.ts).
 
 export interface AbuseReportType {
   id: string;

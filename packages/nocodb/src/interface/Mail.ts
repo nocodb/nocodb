@@ -25,6 +25,7 @@ enum MailEvent {
   APP_INVITE = 'APP_INVITE',
   WELCOME = 'WELCOME',
   FORM_SUBMISSION = 'FORM_SUBMISSION',
+  ABUSE_REPORT = 'ABUSE_REPORT',
   RESET_PASSWORD = 'RESET_PASSWORD', //OSS
   VERIFY_EMAIL = 'VERIFY_EMAIL', // OSS
   ORGANIZATION_INVITE = 'ORGANIZATION_INVITE', // OSS
@@ -169,6 +170,21 @@ interface SendRecordPayload {
   req: NcRequest;
 }
 
+interface AbuseReportPayload {
+  to: string;
+  // Defanged, truncated display strings; see AbuseReportsService.
+  subjectTitle: string;
+  resourceType: string;
+  resourceTitle: string;
+  workspace: string;
+  publicUrl: string;
+  reason: string;
+  reporter: string;
+  description: string;
+  reportedAt: string;
+  ids: string;
+}
+
 type MailParams =
   | {
       mailEvent: MailEvent.COMMENT_CREATE | MailEvent.COMMENT_UPDATE;
@@ -217,6 +233,10 @@ type MailParams =
   | {
       mailEvent: MailEvent.SEND_RECORD;
       payload: SendRecordPayload;
+    }
+  | {
+      mailEvent: MailEvent.ABUSE_REPORT;
+      payload: AbuseReportPayload;
     };
 
 interface RawMailParams {
@@ -253,6 +273,7 @@ export {
   MailParams,
   FormSubmissionPayload,
   SendRecordPayload,
+  AbuseReportPayload,
   RawMailParams,
   SKIP_STORING_MAIL_EVENTS,
 };

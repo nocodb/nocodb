@@ -26,6 +26,8 @@ const { productName } = useBranding()
 
 const formRef = ref()
 
+const nameInputRef = ref()
+
 const isSubmitting = ref(false)
 
 const isSubmitted = ref(false)
@@ -35,7 +37,7 @@ const submitError = ref('')
 const form = reactive({
   name: '',
   email: '',
-  reason: AbuseReportReason.PHISHING,
+  reason: undefined as AbuseReportReason | undefined,
   description: '',
   // Honeypot, visually hidden. People leave it empty.
   website: '',
@@ -50,6 +52,7 @@ const reasonOptions = computed(() =>
 
 const rules = computed(() => ({
   name: [{ required: true, whitespace: true, message: t('general.required') }, { max: ABUSE_REPORT_NAME_MAX_LENGTH }],
+  reason: [{ required: true, message: t('general.required') }],
   email: [
     { required: true, message: t('general.required') },
     { type: 'email', message: t('msg.error.invalidEmail') },
@@ -81,7 +84,7 @@ async function submit() {
       {
         resource_type: props.target.resourceType,
         identifier: props.target.identifier,
-        reason: form.reason,
+        reason: form.reason!,
         name: form.name.trim(),
         email: form.email.trim(),
         description: form.description.trim(),
@@ -101,17 +104,29 @@ async function submit() {
 }
 
 watch(vVisible, (visible) => {
-  if (visible) return
+  if (visible) {
+    nextTick(() => nameInputRef.value?.focus())
+    return
+  }
 
-  isSubmitted.value = false
   submitError.value = ''
-  form.description = ''
   form.website = ''
+  // Keep a typed draft across an accidental close; only a sent report clears it.
+  if (isSubmitted.value) {
+    form.reason = undefined
+    form.description = ''
+  }
+  isSubmitted.value = false
 })
 </script>
 
 <template>
-  <NcModal v-model:visible="vVisible" size="sm" height="auto" wrap-class-name="nc-report-abuse-modal-wrapper">
+  <NcModal
+    v-model:visible="vVisible"
+    width="min(calc(100vw - 32px), 480px)"
+    height="auto"
+    wrap-class-name="nc-report-abuse-modal-wrapper"
+  >
     <div class="flex flex-col gap-4 max-h-[80vh] overflow-y-auto nc-scrollbar-thin" data-testid="nc-report-abuse-modal">
       <div class="flex items-center justify-between gap-2">
         <div class="text-base font-bold text-nc-content-gray-emphasis">{{ $t('labels.reportAbuse') }}</div>
@@ -142,6 +157,7 @@ watch(vVisible, (visible) => {
         <a-form ref="formRef" :model="form" :rules="rules" layout="vertical" class="nc-report-abuse-form" no-style>
           <a-form-item :label="$t('labels.abuseReport.yourName')" name="name">
             <a-input
+              ref="nameInputRef"
               v-model:value="form.name"
               class="nc-input-sm nc-input-shadow"
               :maxlength="ABUSE_REPORT_NAME_MAX_LENGTH"
@@ -164,6 +180,7 @@ watch(vVisible, (visible) => {
           <a-form-item :label="$t('labels.abuseReport.reason')" name="reason">
             <NcSelect
               v-model:value="form.reason"
+              :placeholder="$t('labels.abuseReport.reasonPlaceholder')"
               :options="reasonOptions"
               class="nc-select-shadow"
               data-testid="nc-report-abuse-reason"
@@ -173,7 +190,8 @@ watch(vVisible, (visible) => {
           <a-form-item :label="$t('labels.abuseReport.details')" name="description">
             <a-textarea
               v-model:value="form.description"
-              class="!rounded-lg !text-sm nc-input-shadow !min-h-[120px] nc-scrollbar-thin"
+              class="!rounded-lg !text-sm nc-input-shadow nc-scrollbar-thin"
+              :auto-size="{ minRows: 5, maxRows: 10 }"
               :placeholder="$t('placeholder.abuseReportDetails')"
               :maxlength="ABUSE_REPORT_DESCRIPTION_MAX_LENGTH"
               show-count
@@ -185,7 +203,7 @@ watch(vVisible, (visible) => {
             v-model="form.website"
             class="nc-report-abuse-hp"
             type="text"
-            name="website"
+            name="nc_hp_contact_url"
             tabindex="-1"
             autocomplete="off"
             aria-hidden="true"

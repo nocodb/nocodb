@@ -36,8 +36,8 @@ const up = async (knex: Knex) => {
       ['resource_type', 'resource_id', 'created_at'],
       'nc_abuse_reports_resource_idx',
     );
-    // Per-IP rate limit lookup.
-    table.index(['ip', 'created_at'], 'nc_abuse_reports_ip_idx');
+    // Rate limit lookup (per IP and resource).
+    table.index(['ip', 'resource_id', 'created_at'], 'nc_abuse_reports_ip_idx');
   });
 };
 

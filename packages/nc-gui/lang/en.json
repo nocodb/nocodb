@@ -2422,6 +2422,7 @@
       "yourName": "Your name",
       "yourEmail": "Your email",
       "reason": "Reason",
+      "reasonPlaceholder": "Select a reason",
       "details": "Why are you reporting this page?",
       "submit": "Submit report",
       "reasons": {
@@ -6855,7 +6856,7 @@
         "description": "Do you believe this page is being used for phishing, impersonation, scams or other abusive purposes? Let the administrators of this {productName} instance know.",
         "detailsMin": "Please describe the problem in at least {min} characters.",
         "thanksTitle": "Thank you for your report",
-        "thanksDescription": "The administrators of this {productName} instance have been notified.",
+        "thanksDescription": "Your report has been received. The administrators of this {productName} instance will review it.",
         "contactEmailHint": "Reports from public views, forms, interfaces and dashboards are emailed here. Leave empty to email all super admins."
       },
       "regenerateArtifactLinkHint": "Creates a new link and breaks the old one",

@@ -148,19 +148,6 @@ export class AbuseReportsService {
     // Honeypot: pretend success so bots learn nothing.
     if (body.website) return;
 
-    const ip = req.clientIp ?? req.ip;
-    const limit = envInt('NC_ABUSE_REPORT_RATE_LIMIT', 5);
-    if (
-      ip &&
-      limit > 0 &&
-      (await AbuseReport.countRecentByIp(ip, RATE_LIMIT_WINDOW_SECONDS)) >=
-        limit
-    ) {
-      NcError.get().tooManyRequests(
-        'Too many reports from this network. Please try again later.',
-      );
-    }
-
     // Validated against the swagger enums above.
     const resourceType = body.resource_type as AbuseReportResourceType;
     const reason = body.reason as AbuseReportReason;
@@ -169,6 +156,23 @@ export class AbuseReportsService {
     if (!resolver) NcError.get().badRequest('Unsupported resource type');
 
     const resource = await resolver(body.identifier.trim(), req);
+
+    // Per IP *and* page: behind a proxy without NC_TRUST_PROXY every visitor
+    // shares one IP, and a flood on one page must not block reports on others.
+    const ip = req.clientIp ?? req.ip;
+    const limit = envInt('NC_ABUSE_REPORT_RATE_LIMIT', 5);
+    if (
+      ip &&
+      limit > 0 &&
+      (await AbuseReport.countRecent(
+        { ip, resource_type: resourceType, resource_id: resource.resourceId },
+        RATE_LIMIT_WINDOW_SECONDS,
+      )) >= limit
+    ) {
+      NcError.get().tooManyRequests(
+        'Too many reports for this page from your network. Please try again later.',
+      );
+    }
 
     const report = await AbuseReport.insert({
       resource_type: resourceType,

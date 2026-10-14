@@ -78,14 +78,14 @@ export default class AbuseReport implements AbuseReportType {
     return row && new AbuseReport(row);
   }
 
-  static async countRecentByIp(
-    ip: string,
+  static async countRecent(
+    params: { ip: string; resource_type: string; resource_id: string },
     windowSeconds: number,
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
     const row = await ncMeta
       .knexConnection(MetaTable.ABUSE_REPORTS)
-      .where('ip', ip)
+      .where(params)
       .where('created_at', '>=', sinceSeconds(windowSeconds, ncMeta))
       .count('id', { as: 'count' })
       .first();

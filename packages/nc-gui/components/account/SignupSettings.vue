@@ -19,8 +19,8 @@ const settings = ref<{
   abuse_contact_email: '',
 })
 
-// Cloud routes reports to NocoDB, so the contact email only applies self-hosted.
-const showAbuseContactEmail = computed(() => !appInfo.value.isCloud || appInfo.value.isOnPrem)
+// Cloud reports always go to NocoDB and cloud has no app-settings endpoint.
+const isSelfHosted = computed(() => !appInfo.value.isCloud || appInfo.value.isOnPrem)
 
 const savedAbuseContactEmail = ref('')
 
@@ -36,12 +36,17 @@ const loadSettings = async () => {
   }
 }
 
-const saveSettings = async () => {
+type Settings = typeof settings.value
+
+// Send only the changed keys, so an unsaved draft in another field is never posted.
+const saveSettings = async (patch: Settings) => {
   try {
-    await api.orgAppSettings.set(settings.value)
+    await api.orgAppSettings.set(patch)
     message.success(t('msg.success.settingsSaved'))
+    return true
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+    return false
   }
 }
 
@@ -51,12 +56,16 @@ const onRestrictWorkspaceCreationChange = () => {
   if (settings.value.restrict_workspace_creation) {
     settings.value.invite_only_signup = true
   }
-  saveSettings()
+  saveSettings({
+    restrict_workspace_creation: settings.value.restrict_workspace_creation,
+    invite_only_signup: settings.value.invite_only_signup,
+  })
 }
 
 const onAllowReportingAbuseChange = async () => {
-  await saveSettings()
-  appInfo.value.allowReportingAbuse = settings.value.allow_reporting_abuse !== false
+  if (await saveSettings({ allow_reporting_abuse: settings.value.allow_reporting_abuse })) {
+    appInfo.value.allowReportingAbuse = settings.value.allow_reporting_abuse !== false
+  }
 }
 
 const saveAbuseContactEmail = async () => {
@@ -71,7 +80,7 @@ const saveAbuseContactEmail = async () => {
     return
   }
 
-  await saveSettings()
+  if (!(await saveSettings({ abuse_contact_email: email }))) return
   savedAbuseContactEmail.value = email
   $e('c:account:abuse-contact:save', { cleared: !email })
 }
@@ -102,7 +111,7 @@ loadSettings()
               v-model:checked="settings.invite_only_signup"
               v-e="['c:account:enable-signup']"
               :disabled="settings.restrict_workspace_creation"
-              @change="saveSettings"
+              @change="saveSettings({ invite_only_signup: settings.invite_only_signup })"
             />
             <span data-rec="true" :class="{ 'text-nc-content-gray-muted': settings.restrict_workspace_creation }">
               {{ $t('labels.inviteOnlySignup') }}
@@ -120,37 +129,39 @@ loadSettings()
           </label>
         </div>
 
-        <span class="font-bold text-xl" data-rec="true">{{ $t('labels.security') }}</span>
-        <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-y-4">
-          <label class="flex items-center gap-3 cursor-pointer">
-            <NcCheckbox
-              v-model:checked="settings.allow_reporting_abuse"
-              v-e="['c:account:abuse-report:toggle', { enabled: settings.allow_reporting_abuse }]"
-              data-testid="nc-allow-reporting-abuse"
-              @change="onAllowReportingAbuseChange"
-            />
-            <span data-rec="true">
-              {{ $t('labels.allowReportingAbuse') }}
-            </span>
-          </label>
-          <div v-if="showAbuseContactEmail" class="flex flex-col gap-2">
-            <span class="text-sm font-semibold text-nc-content-gray" data-rec="true">
-              {{ $t('labels.abuseContactEmail') }}
-            </span>
-            <a-input
-              v-model:value="settings.abuse_contact_email"
-              class="nc-input-sm nc-input-shadow !max-w-100"
-              type="email"
-              placeholder="abuse@example.com"
-              :disabled="settings.allow_reporting_abuse === false"
-              data-testid="nc-abuse-contact-email"
-              @blur="saveAbuseContactEmail"
-              @press-enter="saveAbuseContactEmail"
-            />
-            <span v-if="abuseContactEmailError" class="text-xs text-nc-content-red-dark">{{ abuseContactEmailError }}</span>
-            <span v-else class="text-xs text-nc-content-gray-muted">{{ $t('msg.info.abuseReport.contactEmailHint') }}</span>
+        <template v-if="isSelfHosted">
+          <span class="font-bold text-xl" data-rec="true">{{ $t('labels.security') }}</span>
+          <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-y-4">
+            <label class="flex items-center gap-3 cursor-pointer">
+              <NcCheckbox
+                v-model:checked="settings.allow_reporting_abuse"
+                v-e="['c:account:abuse-report:toggle', { enabled: settings.allow_reporting_abuse }]"
+                data-testid="nc-allow-reporting-abuse"
+                @change="onAllowReportingAbuseChange"
+              />
+              <span data-rec="true">
+                {{ $t('labels.allowReportingAbuse') }}
+              </span>
+            </label>
+            <div class="flex flex-col gap-2">
+              <span class="text-sm font-semibold text-nc-content-gray" data-rec="true">
+                {{ $t('labels.abuseContactEmail') }}
+              </span>
+              <a-input
+                v-model:value="settings.abuse_contact_email"
+                class="nc-input-sm nc-input-shadow !max-w-100"
+                type="email"
+                placeholder="abuse@example.com"
+                :disabled="settings.allow_reporting_abuse === false"
+                data-testid="nc-abuse-contact-email"
+                @blur="saveAbuseContactEmail"
+                @press-enter="saveAbuseContactEmail"
+              />
+              <span v-if="abuseContactEmailError" class="text-xs text-nc-content-red-dark">{{ abuseContactEmailError }}</span>
+              <span v-else class="text-xs text-nc-content-gray-muted">{{ $t('msg.info.abuseReport.contactEmailHint') }}</span>
+            </div>
           </div>
-        </div>
+        </template>
       </div>
     </div>
   </div>

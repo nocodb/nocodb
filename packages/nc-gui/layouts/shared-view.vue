@@ -134,7 +134,7 @@ export default {
               data-testid="nc-shared-page-notice"
             >
               <span v-if="sharedPageTitle?.notice" class="hidden lg:inline">{{ sharedPageTitle.notice }}</span>
-              <GeneralReportAbuseLink class="!text-nc-content-gray-subtle hover:!text-nc-content-brand" />
+              <GeneralReportAbuseLink icon-only-mobile class="!text-nc-content-gray-subtle hover:!text-nc-content-brand" />
             </div>
 
             <DashboardMiniSidebarTheme placement="bottom" render-as-btn />

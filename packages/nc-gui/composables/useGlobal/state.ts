@@ -14,10 +14,6 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** reactive timestamp to check token expiry against */
   const timestamp = useTimestamp({ immediate: true, interval: 100 })
 
-  const {
-    vueApp: { i18n },
-  } = useNuxtApp()
-
   const router = useRouter()
 
   const isSharedBaseOrErdOrView = computed(() => isSharedBaseOrErdOrViewRoute(router.currentRoute.value))
@@ -25,27 +21,43 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /**
    * Set initial language based on browser settings.
    * If the user has not set a preferred language, we fall back to 'en'.
-   * If the user has set a preferred language, we try to find a matching locale in the available locales.
+   * If the user has set a preferred language, we try to find a matching supported locale.
+   *
+   * Note: we match against the full list of supported locales (`Language` enum)
+   * instead of `i18n.global.availableLocales`, because locale messages are loaded
+   * lazily — at this point only `en` is usually loaded, so matching against
+   * `availableLocales` would always fall back to `en`.
    */
-  const preferredLanguage = preferredLanguages.value.reduce<keyof typeof Language>((locale, language) => {
-    /** split language to language and code, e.g. en-GB -> [en, GB] */
+  const supportedLocales = Object.keys(Language) as (keyof typeof Language)[]
+  const languageAliases = LanguageAlias as Record<string, keyof typeof Language>
+
+  const matchPreferredLocale = (language: string): keyof typeof Language | undefined => {
+    /** split language to language and code, e.g. en-GB -> [en, GB], zh-CN -> [zh, CN] */
     const [lang, code] = language.split(/[_-]/)
 
-    /** find all locales that match the language */
-    let availableLocales = i18n.global.availableLocales.filter((locale) => locale.startsWith(lang))
+    /** 1. alias match, e.g. zh-CN/zh_CN -> zh-Hans, zh-TW/zh_TW -> zh-Hant */
+    const aliasKey = language.replace(/-/g, '_')
+    if (languageAliases[aliasKey]) return languageAliases[aliasKey]
 
-    /** If we can match more than one locale, we check if the code of the language matches as well */
-    if (availableLocales.length > 1) {
-      availableLocales = availableLocales.filter((locale) => locale.endsWith(code))
+    /** 2. exact (case-insensitive) match against a supported locale, e.g. zh-Hans */
+    const exact = supportedLocales.find((l) => l.toLowerCase() === language.toLowerCase())
+    if (exact) return exact
+
+    /** 3. match by language part; if multiple, try to narrow down by region code */
+    let matches = supportedLocales.filter((l) => l.toLowerCase().startsWith(lang.toLowerCase()))
+    if (matches.length > 1 && code) {
+      const withCode = matches.filter((l) => l.toLowerCase().endsWith(code.toLowerCase()))
+      if (withCode.length) matches = withCode
     }
 
-    /** if there are still multiple locales, pick the first one */
-    const availableLocale = availableLocales[0]
+    return matches[0]
+  }
 
-    /** if we found a matching locale, return it */
-    if (availableLocale) locale = availableLocale as keyof typeof Language
+  const preferredLanguage = preferredLanguages.value.reduce<keyof typeof Language>((locale, language) => {
+    /** keep the first (highest priority) match from the browser's language list */
+    if (locale !== 'en') return locale
 
-    return locale
+    return matchPreferredLocale(language) ?? locale
   }, 'en' /** fallback locale */)
 
   const { width } = useWindowSize()

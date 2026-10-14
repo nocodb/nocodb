@@ -259,21 +259,27 @@ const rightHandler = () => {
   }
 }
 
-// A row that opens (Record, a list) is inserted whole unless the field takes other kinds;
-// → and the chevron still open it.
+// A list the field takes is inserted whole even though it opens to its items; → still opens it.
 const activate = (variable: VariableDefinition) => {
   if (isDisabled(variable)) return
-  if (variable.children?.length && props.accepts?.length && !matchesAccepts(variable)) navigateInto(variable)
+  if (variable.children?.length && !matchesAccepts(variable)) navigateInto(variable)
   else selectVariable(variable)
 }
 
-const openVariable = (variable: VariableDefinition) => {
-  if (!isDisabled(variable)) navigateInto(variable)
-}
+// A row that opens can still be inserted whole (a Record into a script input) with Insert or ⇧↵.
+const canInsertWhole = (variable: VariableDefinition) =>
+  !!variable.children?.length && !matchesAccepts(variable) && isAccepted(variable)
 
-const enterHandler = () => {
+const selectedCanInsertWhole = computed(() => {
   const variable = orderedVariables.value[selectedVariableIndex.value]
-  if (variable) activate(variable)
+  return !!variable && canInsertWhole(variable)
+})
+
+const enterHandler = (insertWhole = false) => {
+  const variable = orderedVariables.value[selectedVariableIndex.value]
+  if (!variable) return
+  if (insertWhole && canInsertWhole(variable)) selectVariable(variable)
+  else activate(variable)
 }
 
 const onKeyDown = ({ event }: { event: KeyboardEvent }) => {
@@ -299,7 +305,7 @@ const onKeyDown = ({ event }: { event: KeyboardEvent }) => {
 
   if (event.key === 'Enter') {
     event.stopPropagation()
-    enterHandler()
+    enterHandler(event.shiftKey)
     return true
   }
 
@@ -465,44 +471,51 @@ defineExpose({
                 placement="left"
                 overlay-class-name="!z-[10002]"
               >
-                <button
-                  type="button"
-                  class="nc-variable-item w-full flex items-center gap-2.5 min-h-8 px-2 py-1 rounded-md text-left transition-colors"
-                  :class="{
-                    'is-selected bg-nc-bg-gray-light': orderedVariables.indexOf(variable) === selectedVariableIndex,
-                    'opacity-50 cursor-not-allowed': isDisabled(variable),
-                  }"
-                  :aria-disabled="isDisabled(variable)"
-                  data-testid="nc-workflow-variable-picker-item"
-                  @mouseenter="selectedVariableIndex = orderedVariables.indexOf(variable)"
-                  @click="activate(variable)"
-                >
-                  <GeneralIcon :icon="getVariableIcon(variable)" class="!w-3.5 !h-3.5 flex-none text-nc-content-gray-subtle" />
-                  <div class="flex-1 min-w-0">
-                    <div class="text-caption text-nc-content-gray-emphasis truncate">{{ variable.name }}</div>
-                    <!-- Search results say where they came from. -->
-                    <div
-                      v-if="searchQuery && variable.extra?.description"
-                      class="text-captionSm text-nc-content-gray-muted truncate"
-                    >
-                      {{ variable.extra.description }}
-                    </div>
-                  </div>
-                  <span v-if="kindLabel(variable)" class="flex-none text-captionSm text-nc-content-gray-muted">{{
-                    kindLabel(variable)
-                  }}</span>
-                  <!-- Opens to its fields; clicking the row inserts it. -->
-                  <span
-                    v-if="variable.children?.length"
-                    role="button"
-                    :aria-label="t('labels.workflow.picker.open')"
-                    class="nc-variable-open flex-none flex items-center justify-center w-5 h-5 -mr-1 rounded text-nc-content-gray-muted hover:bg-nc-bg-gray-medium hover:text-nc-content-gray-emphasis"
-                    data-testid="nc-workflow-variable-picker-open"
-                    @click.stop="openVariable(variable)"
+                <div class="relative">
+                  <button
+                    type="button"
+                    class="nc-variable-item w-full flex items-center gap-2.5 min-h-8 px-2 py-1 rounded-md text-left transition-colors"
+                    :class="{
+                      'is-selected bg-nc-bg-gray-light': orderedVariables.indexOf(variable) === selectedVariableIndex,
+                      'opacity-50 cursor-not-allowed': isDisabled(variable),
+                    }"
+                    :aria-disabled="isDisabled(variable)"
+                    data-testid="nc-workflow-variable-picker-item"
+                    @mouseenter="selectedVariableIndex = orderedVariables.indexOf(variable)"
+                    @click="activate(variable)"
                   >
-                    <GeneralIcon icon="ncChevronRight" class="!w-3.5 !h-3.5" />
-                  </span>
-                </button>
+                    <GeneralIcon :icon="getVariableIcon(variable)" class="!w-3.5 !h-3.5 flex-none text-nc-content-gray-subtle" />
+                    <div class="flex-1 min-w-0">
+                      <div class="text-caption text-nc-content-gray-emphasis truncate">{{ variable.name }}</div>
+                      <!-- Search results say where they came from. -->
+                      <div
+                        v-if="searchQuery && variable.extra?.description"
+                        class="text-captionSm text-nc-content-gray-muted truncate"
+                      >
+                        {{ variable.extra.description }}
+                      </div>
+                    </div>
+                    <span v-if="kindLabel(variable)" class="flex-none text-captionSm text-nc-content-gray-muted">{{
+                      kindLabel(variable)
+                    }}</span>
+                    <!-- Opens to its fields; Enter on a value inserts it. -->
+                    <GeneralIcon
+                      v-if="variable.children?.length"
+                      icon="ncChevronRight"
+                      class="!w-3.5 !h-3.5 flex-none text-nc-content-gray-muted"
+                    />
+                  </button>
+                  <!-- Beside the row, not in it: a button can't hold another. -->
+                  <button
+                    v-if="canInsertWhole(variable) && orderedVariables.indexOf(variable) === selectedVariableIndex"
+                    type="button"
+                    class="nc-variable-insert absolute right-7 top-1/2 -translate-y-1/2 h-6 px-2 rounded text-captionSm text-nc-content-gray-subtle bg-nc-bg-default border-1 border-nc-border-gray-medium hover:bg-nc-bg-gray-extralight hover:text-nc-content-gray-emphasis"
+                    data-testid="nc-workflow-variable-picker-insert"
+                    @click="selectVariable(variable)"
+                  >
+                    {{ t('labels.workflow.picker.insertButton') }}
+                  </button>
+                </div>
               </NcTooltip>
             </template>
           </template>
@@ -520,6 +533,7 @@ defineExpose({
       <span><kbd>↑</kbd><kbd>↓</kbd> {{ t('labels.workflow.picker.navigate') }}</span>
       <span><kbd>↵</kbd> {{ t('labels.workflow.picker.insert') }}</span>
       <span><kbd>→</kbd> {{ t('labels.workflow.picker.open') }}</span>
+      <span v-if="selectedCanInsertWhole"><kbd>⇧↵</kbd> {{ t('labels.workflow.picker.insertWhole') }}</span>
     </div>
   </div>
 </template>

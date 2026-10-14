@@ -512,6 +512,12 @@ function extensions(): Extension[] {
           },
         })),
         {
+          key: 'Shift-Enter',
+          run: () =>
+            !!picker.value &&
+            (pickerRef.value?.onKeyDown({ event: new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true }) }) ?? false),
+        },
+        {
           key: 'Enter',
           run: (editorView) => {
             if (props.multiline || completionStatus(editorView.state) === 'active') return false

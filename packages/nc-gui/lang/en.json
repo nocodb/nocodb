@@ -4769,6 +4769,8 @@
         "navigate": "navigate",
         "insert": "insert",
         "open": "open",
+        "insertWhole": "insert whole",
+        "insertButton": "Insert",
         "groups": {
           "iteration": "Current loop item",
           "fields": "Fields",

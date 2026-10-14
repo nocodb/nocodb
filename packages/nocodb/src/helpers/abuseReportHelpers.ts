@@ -25,6 +25,6 @@ export const defang = (value: string | undefined) =>
     .replace(/\bhttp(s?):\/\//gi, 'hxxp$1://')
     // Labels in any script, so IDN domains are defanged too.
     .replace(
-      /(?<![\p{L}\p{N}_-])([\p{L}\p{N}_-]+)\.(?=[\p{L}\p{N}_-])/gu,
+      /(?<![\p{L}\p{M}\p{N}_-])([\p{L}\p{M}\p{N}_-]+)\.(?=[\p{L}\p{M}\p{N}_-])/gu,
       '$1[.]',
     );

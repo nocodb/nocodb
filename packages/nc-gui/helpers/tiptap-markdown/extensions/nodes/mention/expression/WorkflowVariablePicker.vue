@@ -259,11 +259,16 @@ const rightHandler = () => {
   }
 }
 
-// A list the field takes is inserted whole even though it opens to its items; → still opens it.
+// A row that opens (Record, a list) is inserted whole unless the field takes other kinds;
+// → and the chevron still open it.
 const activate = (variable: VariableDefinition) => {
   if (isDisabled(variable)) return
-  if (variable.children?.length && !matchesAccepts(variable)) navigateInto(variable)
+  if (variable.children?.length && props.accepts?.length && !matchesAccepts(variable)) navigateInto(variable)
   else selectVariable(variable)
+}
+
+const openVariable = (variable: VariableDefinition) => {
+  if (!isDisabled(variable)) navigateInto(variable)
 }
 
 const enterHandler = () => {
@@ -486,12 +491,17 @@ defineExpose({
                   <span v-if="kindLabel(variable)" class="flex-none text-captionSm text-nc-content-gray-muted">{{
                     kindLabel(variable)
                   }}</span>
-                  <!-- Opens to its fields; Enter on a value inserts it. -->
-                  <GeneralIcon
+                  <!-- Opens to its fields; clicking the row inserts it. -->
+                  <span
                     v-if="variable.children?.length"
-                    icon="ncChevronRight"
-                    class="!w-3.5 !h-3.5 flex-none text-nc-content-gray-muted"
-                  />
+                    role="button"
+                    :aria-label="t('labels.workflow.picker.open')"
+                    class="nc-variable-open flex-none flex items-center justify-center w-5 h-5 -mr-1 rounded text-nc-content-gray-muted hover:bg-nc-bg-gray-medium hover:text-nc-content-gray-emphasis"
+                    data-testid="nc-workflow-variable-picker-open"
+                    @click.stop="openVariable(variable)"
+                  >
+                    <GeneralIcon icon="ncChevronRight" class="!w-3.5 !h-3.5" />
+                  </span>
                 </button>
               </NcTooltip>
             </template>

@@ -224,14 +224,8 @@ export default class GenericS3 implements IStorageAdapterV2 {
 
       const { Body } = await this.s3Client.send(command);
 
-      const stream = Body as Readable;
-
-      // Handle any stream errors that occur during reading
-      stream.on('error', (error) => {
-        NcError._.storageFileStreamError(error.message);
-      });
-
-      return stream;
+      // Callers handle stream errors; throwing from an 'error' listener is an uncaught exception.
+      return Body as Readable;
     } catch (error) {
       NcError._.storageFileStreamError(error.message);
     }

@@ -63,6 +63,7 @@ const rolePermissions = {
       baseMove: true,
       baseDuplicate: true,
       newUser: true,
+      baseReorder: true,
     },
   },
   [WorkspaceUserRoles.EDITOR]: {

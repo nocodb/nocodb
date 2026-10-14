@@ -6420,8 +6420,6 @@
       "seeChangesToRecord": "Zobacz zmiany w tym rekordzie",
       "revisionHistoryUpgrade": "Masz {limit} historii wersji. Przejdź na wyższy plan, aby zobaczyć pełną historię.",
       "scriptRequiresInputNoBulk": "Ten skrypt wymaga danych od użytkownika i nie może zostać uruchomiony jako operacja zbiorcza. Uruchom go zamiast tego z pojedynczych rekordów.",
-      "reportAbuseSubject": "Zgłoś nadużycie: {name}",
-      "reportAbuseBodyPrompt": "Opisz problem:",
       "regenerateArtifactLinkHint": "Tworzy nowy link i unieważnia stary",
       "useRecordIdInRedirectUrl": "Użyj {'{'}record_id{'}'}, aby uzyskać ID nowo utworzonego rekordu.",
       "recordsMovedToUncategorizedStack": "Rekordy zostaną przeniesione do stosu Bez kategorii.",

@@ -6420,8 +6420,6 @@
       "seeChangesToRecord": "Bu kaydın değişikliklerini gör",
       "revisionHistoryUpgrade": "{limit} düzeltme geçmişiniz var. Tüm geçmişi görmek için yükseltin.",
       "scriptRequiresInputNoBulk": "Bu betik kullanıcıdan girdi ister ve toplu işlem olarak çalıştırılamaz. Bunun yerine tek tek kayıtlardan çalıştırın.",
-      "reportAbuseSubject": "Kötüye kullanımı bildir: {name}",
-      "reportAbuseBodyPrompt": "Lütfen sorunu açıklayın:",
       "regenerateArtifactLinkHint": "Yeni bir bağlantı oluşturur ve eskisini geçersiz kılar",
       "useRecordIdInRedirectUrl": "Yeni oluşturulan kaydın kimliğini almak için {'{'}record_id{'}'} kullanın.",
       "recordsMovedToUncategorizedStack": "Kayıtlar Kategorisiz yığınına taşınacak.",

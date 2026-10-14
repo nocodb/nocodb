@@ -6420,8 +6420,6 @@
       "seeChangesToRecord": "Zobraziť zmeny tohto záznamu",
       "revisionHistoryUpgrade": "Máte {limit} histórie revízií. Ak chcete zobraziť celú históriu, prejdite na vyšší plán.",
       "scriptRequiresInputNoBulk": "Tento skript vyžaduje vstup od používateľa a nedá sa spustiť ako hromadná akcia. Spustite ho radšej z jednotlivých záznamov.",
-      "reportAbuseSubject": "Nahlásiť zneužitie: {name}",
-      "reportAbuseBodyPrompt": "Opíšte prosím problém:",
       "regenerateArtifactLinkHint": "Vytvorí nový odkaz a zneplatní ten starý",
       "useRecordIdInRedirectUrl": "Pomocou {'{'}record_id{'}'} získate ID práve vytvoreného záznamu.",
       "recordsMovedToUncategorizedStack": "Záznamy sa presunú do stĺpca Nezaradené.",

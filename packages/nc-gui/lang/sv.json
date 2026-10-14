@@ -6415,8 +6415,6 @@
       "seeChangesToRecord": "Se ändringar i den här posten",
       "revisionHistoryUpgrade": "Du har {limit} revisionshistorik. Uppgradera för att se hela historiken.",
       "scriptRequiresInputNoBulk": "Det här skriptet kräver indata från användaren och kan inte köras som massåtgärd. Kör det i stället från enskilda poster.",
-      "reportAbuseSubject": "Anmäl missbruk: {name}",
-      "reportAbuseBodyPrompt": "Beskriv problemet:",
       "regenerateArtifactLinkHint": "Skapar en ny länk och bryter den gamla",
       "useRecordIdInRedirectUrl": "Använd {'{'}record_id{'}'} för att hämta ID:t för den nyss skapade posten.",
       "recordsMovedToUncategorizedStack": "Poster flyttas till stapeln Okategoriserat.",

@@ -6376,8 +6376,6 @@
       "seeChangesToRecord": "Voir les modifications de cet enregistrement",
       "revisionHistoryUpgrade": "Vous disposez de {limit} d'historique des révisions. Passez à une offre supérieure pour voir l'historique complet.",
       "scriptRequiresInputNoBulk": "Ce script demande une saisie de l'utilisateur et ne peut pas être exécuté en action groupée. Exécutez-le plutôt depuis des enregistrements individuels.",
-      "reportAbuseSubject": "Signaler un abus : {name}",
-      "reportAbuseBodyPrompt": "Veuillez décrire le problème :",
       "regenerateArtifactLinkHint": "Crée un nouveau lien et rompt l'ancien",
       "useRecordIdInRedirectUrl": "Utilisez {'{'}record_id{'}'} pour obtenir l'ID de l'enregistrement qui vient d'être créé.",
       "recordsMovedToUncategorizedStack": "Les enregistrements seront déplacés vers la pile Non catégorisé.",

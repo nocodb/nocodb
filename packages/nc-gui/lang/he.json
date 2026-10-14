@@ -6425,8 +6425,6 @@
       "seeChangesToRecord": "צפייה בשינויים ברשומה הזו",
       "revisionHistoryUpgrade": "יש לך {limit} של היסטוריית גרסאות. שדרגו כדי לראות את ההיסטוריה המלאה.",
       "scriptRequiresInputNoBulk": "הסקריפט הזה דורש קלט מהמשתמש ואי אפשר להריץ אותו כפעולה קבוצתית. הריצו אותו במקום זאת מרשומות בודדות.",
-      "reportAbuseSubject": "דיווח על שימוש לרעה: {name}",
-      "reportAbuseBodyPrompt": "נא לתאר את הבעיה:",
       "regenerateArtifactLinkHint": "יוצר קישור חדש ומבטל את הישן",
       "useRecordIdInRedirectUrl": "השתמשו ב־{'{'}record_id{'}'} כדי לקבל את המזהה של הרשומה שזה עתה נוצרה.",
       "recordsMovedToUncategorizedStack": "הרשומות יועברו לערימה «לא מסווג».",

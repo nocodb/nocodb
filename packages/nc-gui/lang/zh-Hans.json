@@ -6424,8 +6424,6 @@
       "seeChangesToRecord": "查看此记录的更改",
       "revisionHistoryUpgrade": "你拥有 {limit} 的修订历史。升级后可查看完整历史。",
       "scriptRequiresInputNoBulk": "此脚本需要用户输入，无法作为批量操作运行。请改从单条记录执行。",
-      "reportAbuseSubject": "举报滥用：{name}",
-      "reportAbuseBodyPrompt": "请描述该问题：",
       "regenerateArtifactLinkHint": "创建新链接并使旧链接失效",
       "useRecordIdInRedirectUrl": "使用 {'{'}record_id{'}'} 获取新建记录的 ID。",
       "recordsMovedToUncategorizedStack": "记录将被移至“未分类”堆。",

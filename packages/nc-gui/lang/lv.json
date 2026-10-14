@@ -6418,8 +6418,6 @@
       "seeChangesToRecord": "Skatīt šī ieraksta izmaiņas",
       "revisionHistoryUpgrade": "Jums ir {limit} versiju vēstures. Pārejiet uz augstāku plānu, lai redzētu visu vēsturi.",
       "scriptRequiresInputNoBulk": "Šis skripts prasa lietotāja ievadi, un to nevar izpildīt kā masveida darbību. Palaidiet to no atsevišķiem ierakstiem.",
-      "reportAbuseSubject": "Ziņot par pārkāpumu: {name}",
-      "reportAbuseBodyPrompt": "Lūdzu, aprakstiet problēmu:",
       "regenerateArtifactLinkHint": "Izveido jaunu saiti un padara veco nederīgu",
       "useRecordIdInRedirectUrl": "Izmantojiet {'{'}record_id{'}'}, lai iegūtu tikko izveidotā ieraksta ID.",
       "recordsMovedToUncategorizedStack": "Ieraksti tiks pārvietoti uz kaudzi Nekategorizēts.",

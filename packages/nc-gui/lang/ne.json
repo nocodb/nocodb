@@ -6424,8 +6424,6 @@
       "seeChangesToRecord": "यो रेकर्डका परिवर्तनहरू हेर्नुहोस्",
       "revisionHistoryUpgrade": "तपाईंसँग {limit} संशोधन इतिहास छ। पूरा इतिहास हेर्न अपग्रेड गर्नुहोस्।",
       "scriptRequiresInputNoBulk": "यो स्क्रिप्टलाई प्रयोगकर्ताको इनपुट चाहिन्छ र यसलाई सामूहिक कार्यका रूपमा चलाउन सकिँदैन। बरु छुट्टाछुट्टै रेकर्डबाट चलाउनुहोस्।",
-      "reportAbuseSubject": "दुरुपयोगको उजुरी: {name}",
-      "reportAbuseBodyPrompt": "कृपया समस्याको वर्णन गर्नुहोस्:",
       "regenerateArtifactLinkHint": "नयाँ लिंक बनाउँछ र पुरानोलाई निष्क्रिय पार्छ",
       "useRecordIdInRedirectUrl": "भर्खरै बनेको रेकर्डको ID पाउन {'{'}record_id{'}'} प्रयोग गर्नुहोस्।",
       "recordsMovedToUncategorizedStack": "रेकर्डहरू «वर्गीकरण नगरिएको» थाकमा सारिनेछन्।",

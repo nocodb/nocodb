@@ -6424,8 +6424,6 @@
       "seeChangesToRecord": "このレコードの変更履歴を見る",
       "revisionHistoryUpgrade": "利用できる変更履歴は {limit} です。すべての履歴を見るにはアップグレードしてください。",
       "scriptRequiresInputNoBulk": "このスクリプトはユーザーの入力を必要とするため、一括操作としては実行できません。個々のレコードから実行してください。",
-      "reportAbuseSubject": "不正利用を報告: {name}",
-      "reportAbuseBodyPrompt": "問題の内容をご記入ください:",
       "regenerateArtifactLinkHint": "新しいリンクを作成し、古いリンクを無効にします",
       "useRecordIdInRedirectUrl": "{'{'}record_id{'}'} を使うと、作成されたばかりのレコードの ID を取得できます。",
       "recordsMovedToUncategorizedStack": "レコードは「未分類」スタックに移動されます。",

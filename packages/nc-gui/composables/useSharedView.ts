@@ -1,4 +1,5 @@
 import {
+  AbuseReportResourceType,
   type BaseType,
   type CalendarType,
   ExportTypes,
@@ -45,6 +46,8 @@ export function useSharedView() {
   )
 
   const sharedPageTitle = useState<SharedPageTitle | undefined>('sharedPageTitle', () => undefined)
+
+  const abuseReportTarget = useAbuseReportTarget()
 
   const sorts = ref<SortType[]>([])
 
@@ -96,6 +99,12 @@ export function useSharedView() {
 
     if (localPassword) password.value = localPassword
     sharedView.value = { title: '', ...viewMeta } as ViewType
+
+    abuseReportTarget.value = {
+      resourceType: AbuseReportResourceType.SHARED_VIEW,
+      identifier: viewId,
+      password: password.value,
+    }
     meta.value = { ...viewMeta.model }
 
     if (parseProp(viewMeta.meta)?.language) {

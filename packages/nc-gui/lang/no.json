@@ -6415,8 +6415,6 @@
       "seeChangesToRecord": "Se endringer i denne posten",
       "revisionHistoryUpgrade": "Du har {limit} med revisjonshistorikk. Oppgrader for å se hele historikken.",
       "scriptRequiresInputNoBulk": "Dette skriptet krever inndata fra brukeren og kan ikke kjøres som masseoperasjon. Kjør det i stedet fra enkeltposter.",
-      "reportAbuseSubject": "Rapporter misbruk: {name}",
-      "reportAbuseBodyPrompt": "Beskriv problemet:",
       "regenerateArtifactLinkHint": "Oppretter en ny lenke og bryter den gamle",
       "useRecordIdInRedirectUrl": "Bruk {'{'}record_id{'}'} for å hente ID-en til posten som nettopp ble opprettet.",
       "recordsMovedToUncategorizedStack": "Poster flyttes til stabelen Ikke kategorisert.",

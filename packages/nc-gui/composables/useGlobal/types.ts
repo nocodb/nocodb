@@ -50,6 +50,7 @@ export interface AppInfo {
   inviteOnlySignup: boolean
   restrictWorkspaceCreation: boolean
   allowEmailSigninWithSso: boolean
+  allowReportingAbuse?: boolean
   samlAuthEnabled: boolean
   samlProviderName: string | null
   giftUrl: string

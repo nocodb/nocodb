@@ -6401,8 +6401,6 @@
       "seeChangesToRecord": "Vezi modificările acestei înregistrări",
       "revisionHistoryUpgrade": "Ai {limit} de istoric al reviziilor. Treci la un plan superior pentru a vedea istoricul complet.",
       "scriptRequiresInputNoBulk": "Acest script cere date de la utilizator și nu poate fi rulat ca acțiune în masă. Rulează-l mai degrabă din înregistrări individuale.",
-      "reportAbuseSubject": "Raportează abuz: {name}",
-      "reportAbuseBodyPrompt": "Te rugăm să descrii problema:",
       "regenerateArtifactLinkHint": "Creează un link nou și îl invalidează pe cel vechi",
       "useRecordIdInRedirectUrl": "Folosește {'{'}record_id{'}'} pentru a obține ID-ul înregistrării tocmai create.",
       "recordsMovedToUncategorizedStack": "Înregistrările vor fi mutate în stiva Necategorizat.",

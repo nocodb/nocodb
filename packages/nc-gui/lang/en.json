@@ -2418,6 +2418,24 @@
     "onlyYou": "Only you",
     "regenerateLink": "Regenerate link",
     "reportAbuse": "Report abuse",
+    "abuseReport": {
+      "yourName": "Your name",
+      "yourEmail": "Your email",
+      "reason": "Reason",
+      "details": "Why are you reporting this page?",
+      "submit": "Submit report",
+      "reasons": {
+        "phishing": "Phishing or credential harvesting",
+        "scam": "Scam or fraud",
+        "impersonation": "Impersonation",
+        "malware": "Malware or harmful links",
+        "illegal_content": "Illegal content",
+        "spam": "Spam",
+        "other": "Other"
+      }
+    },
+    "allowReportingAbuse": "Allow visitors to report public pages for abuse",
+    "abuseContactEmail": "Abuse contact email",
     "previous7Days": "Previous 7 days",
     "older": "Older",
     "closeSidebar": "Close sidebar",
@@ -6201,7 +6219,8 @@
     "searchExtension": "Search Extension",
     "scriptVariableValue": "Variable value",
     "selectTable": "-- Select table --",
-    "typeSomething": "Type something..."
+    "typeSomething": "Type something...",
+    "abuseReportDetails": "For example: this page pretends to be another company's login page and asks visitors for their password."
   },
   "msg": {
     "agentSkillsSubtitle": "Reusable instructions this agent can load when relevant.",
@@ -6832,8 +6851,13 @@
       "onlyYouCanOpenArtifact": "No one else can open it",
       "artifactMembersHint": "Signed-in project members",
       "artifactUserGeneratedNotice": "Content is user-generated and unverified.",
-      "reportAbuseSubject": "Report abuse: {name}",
-      "reportAbuseBodyPrompt": "Please describe the issue:",
+      "abuseReport": {
+        "description": "Do you believe this page is being used for phishing, impersonation, scams or other abusive purposes? Let the administrators of this {productName} instance know.",
+        "detailsMin": "Please describe the problem in at least {min} characters.",
+        "thanksTitle": "Thank you for your report",
+        "thanksDescription": "The administrators of this {productName} instance have been notified.",
+        "contactEmailHint": "Reports from public views, forms, interfaces and dashboards are emailed here. Leave empty to email all super admins."
+      },
       "regenerateArtifactLinkHint": "Creates a new link and breaks the old one",
       "noAccessToAutomation": "You don't have access to this automation",
       "noAccessToScript": "You don't have access to this script",

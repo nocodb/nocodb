@@ -6424,8 +6424,6 @@
       "seeChangesToRecord": "檢視此記錄的變更",
       "revisionHistoryUpgrade": "您擁有 {limit} 的修訂記錄。升級後可檢視完整記錄。",
       "scriptRequiresInputNoBulk": "此指令碼需要使用者輸入，無法作為批次操作執行。請改從個別記錄執行。",
-      "reportAbuseSubject": "檢舉濫用：{name}",
-      "reportAbuseBodyPrompt": "請描述問題：",
       "regenerateArtifactLinkHint": "建立新連結並使舊連結失效",
       "useRecordIdInRedirectUrl": "使用 {'{'}record_id{'}'} 取得新建記錄的 ID。",
       "recordsMovedToUncategorizedStack": "記錄將移至「未分類」堆疊。",

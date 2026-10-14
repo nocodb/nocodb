@@ -6420,8 +6420,6 @@
       "seeChangesToRecord": "A rekord változásainak megtekintése",
       "revisionHistoryUpgrade": "{limit} változástörténet áll rendelkezésére. A teljes előzmény megtekintéséhez váltson magasabb csomagra.",
       "scriptRequiresInputNoBulk": "Ez a szkript felhasználói bevitelt igényel, ezért nem futtatható tömeges műveletként. Indítsa inkább az egyes rekordokból.",
-      "reportAbuseSubject": "Visszaélés bejelentése: {name}",
-      "reportAbuseBodyPrompt": "Kérjük, írja le a problémát:",
       "regenerateArtifactLinkHint": "Új hivatkozást hoz létre, a régit pedig érvényteleníti",
       "useRecordIdInRedirectUrl": "A {'{'}record_id{'}'} használatával kérheti le az újonnan létrehozott rekord azonosítóját.",
       "recordsMovedToUncategorizedStack": "A rekordok a Kategorizálatlan oszlopba kerülnek.",

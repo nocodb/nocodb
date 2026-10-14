@@ -6425,8 +6425,6 @@
       "seeChangesToRecord": "Посмотреть изменения этой записи",
       "revisionHistoryUpgrade": "У вас {limit} истории изменений. Перейдите на тариф выше, чтобы видеть всю историю.",
       "scriptRequiresInputNoBulk": "Этот скрипт требует ввода от пользователя и не может выполняться как массовое действие. Запустите его из отдельных записей.",
-      "reportAbuseSubject": "Пожаловаться на нарушение: {name}",
-      "reportAbuseBodyPrompt": "Опишите проблему:",
       "regenerateArtifactLinkHint": "Создаёт новую ссылку и делает старую недействительной",
       "useRecordIdInRedirectUrl": "Используйте {'{'}record_id{'}'}, чтобы получить ID только что созданной записи.",
       "recordsMovedToUncategorizedStack": "Записи будут перемещены в стопку «Без категории».",

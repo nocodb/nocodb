@@ -2,6 +2,7 @@ import type { CSSProperties } from '@vue/runtime-dom'
 import type { Ref } from 'vue'
 
 import {
+  type AbuseReportResourceType,
   type BaseType,
   type BaseVersion,
   type ColumnType,
@@ -817,8 +818,14 @@ interface SharedPageTitle {
   badge?: string
   /** Standing caveat about the page's content, shown on the right of the topbar. */
   notice?: string
-  /** Link beside the notice — `href` is used verbatim, so encode it at the source. */
-  report?: { label: string; href: string }
+}
+
+/** The public page an anonymous visitor can report — see `useAbuseReportTarget`. */
+interface AbuseReportTarget {
+  resourceType: AbuseReportResourceType
+  identifier: string
+  /** Share password the visitor already entered; the report endpoint needs it too. */
+  password?: string | null
 }
 
 interface PermissionConfig {
@@ -1299,6 +1306,7 @@ export type {
   CloudFeaturesType,
   CanvasScrollToCellFn,
   SharedPageTitle,
+  AbuseReportTarget,
   PermissionConfig,
   PermissionSelectorUser,
   PermissionPoolUser,

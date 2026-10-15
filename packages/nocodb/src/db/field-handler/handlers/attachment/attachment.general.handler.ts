@@ -142,6 +142,11 @@ export class AttachmentGeneralHandler extends ComputedFieldHandler {
     const ownStorageIds = new Set<string>();
     // Confirm that all urls are valid urls
     for (const attachment of value ?? []) {
+      // Only the server sets these: a client-sent status would skip the
+      // ownership check in prepareNocoData. Stored items get theirs back below.
+      delete attachment.status;
+      delete attachment.error;
+
       if (attachment.id) {
         const oldAttachmentRow = oldValueMap.get(attachment.id);
         if (!oldAttachmentRow) {

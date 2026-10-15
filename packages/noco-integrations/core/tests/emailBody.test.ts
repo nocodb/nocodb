@@ -331,9 +331,24 @@ describe('stored body images', () => {
     expect(r.inlineImages).toEqual([]);
   });
 
+  it('rejects an oversized body before scanning it for images', () => {
+    const hostile = '<img '.repeat(200_000);
+    const started = Date.now();
+    expect(() => prepareEmailBody(hostile, { isHtml: true })).toThrow(/KB limit/);
+    expect(Date.now() - started).toBeLessThan(500);
+  });
+
+  it('stays fast at the markup cap', () => {
+    const atCap = '<img '.repeat(19_000);
+    const started = Date.now();
+    prepareEmailBody(atCap, { isHtml: true });
+    expect(Date.now() - started).toBeLessThan(2000);
+  });
+
   it('types files by extension and skips the rest', () => {
     expect(emailImageTypeForFile('a/b/logo.JPG')).toBe('image/jpeg');
     expect(emailImageTypeForFile('https://s3.test/a.webp?sig=1')).toBe('image/webp');
+    expect(emailImageTypeForFile('a/b/photo_ab12c.jfif')).toBe('image/jpeg');
     expect(emailImageTypeForFile('a/b/logo.svg')).toBeUndefined();
   });
 });

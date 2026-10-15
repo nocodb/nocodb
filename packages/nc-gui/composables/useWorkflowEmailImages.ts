@@ -56,13 +56,14 @@ export function useWorkflowEmailImages() {
             attachments: [/^https?:\/\//i.test(fileUrl) ? { url: fileUrl } : { path: fileUrl }],
           })
           .then(({ data }) => (data?.[0] ? getPossibleAttachmentSrc(data[0])[0] : undefined))
-          .catch(() => {
-            signedSrcCache.delete(src)
-            return undefined
-          })
+          .catch(() => undefined)
       : Promise.resolve(undefined)
 
+    // Only a resolved link is kept: a miss (route not ready yet, file gone) is asked again next time.
     signedSrcCache.set(src, { at: Date.now(), src: pending })
+    pending.then((url) => {
+      if (!url && signedSrcCache.get(src)?.src === pending) signedSrcCache.delete(src)
+    })
     return pending
   }
 

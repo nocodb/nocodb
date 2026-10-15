@@ -27,6 +27,7 @@ import { Highlight } from '~/helpers/tiptap-markdown/extensions/marks/highlight'
 import { TextAlign } from '~/helpers/tiptap-markdown/extensions/textAlign'
 import { TextColor } from '~/helpers/tiptap-markdown/extensions/marks/textColor'
 import {
+  EMAIL_IMAGE_EXTENSIONS,
   EMAIL_IMAGE_MAX_COUNT,
   EMAIL_IMAGE_MAX_SIZE,
   EMAIL_IMAGE_MAX_TOTAL_SIZE,
@@ -38,6 +39,7 @@ import {
   canAddEmailImage,
   emailImageUsage,
   filterImages,
+  isEmailImageFile,
 } from '~/helpers/tiptap-markdown/extensions/emailImage'
 import { EmailTextStyle } from '~/helpers/tiptap-markdown/extensions/marks/textStyle'
 
@@ -943,7 +945,7 @@ async function onImagePicked(event: Event) {
   input.value = ''
   if (!file || !editor.value) return
 
-  if (!EMAIL_IMAGE_TYPES.includes(file.type)) {
+  if (!isEmailImageFile(file)) {
     message.error(t('msg.error.emailImageType'))
     return
   }
@@ -1554,7 +1556,7 @@ watch(readOnly, (newValue) => {
           ref="imageInputRef"
           type="file"
           class="!hidden"
-          :accept="EMAIL_IMAGE_TYPES.join(',')"
+          :accept="[...EMAIL_IMAGE_TYPES, ...EMAIL_IMAGE_EXTENSIONS.map((ext) => `.${ext}`)].join(',')"
           data-testid="nc-workflow-richtext-image-input"
           @change="onImagePicked"
         />

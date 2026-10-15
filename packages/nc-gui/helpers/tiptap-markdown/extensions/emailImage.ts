@@ -5,6 +5,14 @@ import type { Node as PMNode } from '@tiptap/pm/model'
 /** Types the send path turns into Content-ID parts; SVG is excluded there as a script-capable document. */
 export const EMAIL_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
 
+/** The send path types a stored image by its file extension (emailBody.ts), so the picker checks it too. */
+export const EMAIL_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'jpe', 'jfif', 'gif', 'webp']
+
+export function isEmailImageFile(file: { name: string; type: string }): boolean {
+  const ext = /\.([a-z0-9]+)$/i.exec(file.name)?.[1]?.toLowerCase()
+  return EMAIL_IMAGE_TYPES.includes(file.type) && !!ext && EMAIL_IMAGE_EXTENSIONS.includes(ext)
+}
+
 /** Per image. */
 export const EMAIL_IMAGE_MAX_SIZE = 512 * 1024
 

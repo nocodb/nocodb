@@ -277,7 +277,7 @@ describe('resolveEmailBodyImages', () => {
     expect(resolve).not.toHaveBeenCalled();
   });
 
-  it('loads each supported image once, under the inline caps', async () => {
+  it('loads each supported image once, one file per call', async () => {
     const content = Buffer.from('png');
     const resolve = vi.fn().mockResolvedValue([
       { filename: 'logo.png', contentType: 'application/octet-stream', size: 3, content },
@@ -287,14 +287,38 @@ describe('resolveEmailBodyImages', () => {
       body,
     );
     // SVG is skipped before the host is asked; the duplicate is asked for once.
+    expect(resolve).toHaveBeenCalledTimes(1);
     expect(resolve).toHaveBeenCalledWith(
       [{ kind: 'nocodb', origin: 'upload', file: { path: 'download/noco/b1/workflows/w1/logo_ab12c.png' } }],
-      { maxFiles: 10, maxTotalBytes: 2 * 1024 * 1024 },
+      { maxFiles: 1, maxTotalBytes: 2 * 1024 * 1024 },
     );
     expect(map.get('download/noco/b1/workflows/w1/logo_ab12c.png')).toEqual({
       content,
       contentType: 'image/png',
     });
+  });
+
+  it('leaves out an image it cannot load and reports it, keeping the rest', async () => {
+    const content = Buffer.from('png');
+    const resolve = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('not accessible from this base'))
+      .mockResolvedValueOnce([{ filename: 'b.png', contentType: 'x', size: 3, content }]);
+    const onSkip = vi.fn();
+    const map = await resolveEmailBodyImages(
+      { attachmentService: { resolveEmailAttachments: resolve } } as any,
+      '<img src="nc-file:download/w/a/gone.png"><img src="nc-file:download/w/b/b.png">',
+      { onSkip },
+    );
+    expect([...map.keys()]).toEqual(['download/w/b/b.png']);
+    expect(onSkip).toHaveBeenCalledWith('gone.png', 'not accessible from this base');
+  });
+
+  it('rejects bodies with more images than an email may carry', async () => {
+    const many = Array.from({ length: 11 }, (_, i) => `<img src="nc-file:a/${i}.png">`).join('');
+    await expect(
+      resolveEmailBodyImages({ attachmentService: { resolveEmailAttachments: vi.fn() } } as any, many),
+    ).rejects.toThrow(/more than 10 images/);
   });
 
   it('fails loudly where no attachment service exists', async () => {

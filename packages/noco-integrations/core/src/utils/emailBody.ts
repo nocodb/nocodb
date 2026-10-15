@@ -312,18 +312,26 @@ const INLINE_IMAGE_TYPES: Record<string, string> = {
   'image/webp': 'webp',
 };
 
+// The attribute run before `src` is bounded: an unbounded lazy `[^>]*?` goes quadratic on a body
+// full of unclosed `<img` tags, and these run before the markup length cap.
 const DATA_IMAGE_SRC =
-  /(<img\b[^>]*?\bsrc\s*=\s*)(["'])data:(image\/[a-z+.-]+);base64,([A-Za-z0-9+/=\s]*)\2/gi;
+  /(<img\b[^>]{0,2000}?\bsrc\s*=\s*)(["'])data:(image\/[a-z+.-]+);base64,([A-Za-z0-9+/=\s]*)\2/gi;
+
+// A `data:` image's payload, for measuring a body without its bytes. Linear: no lazy prefix.
+const DATA_IMAGE_PAYLOAD = /data:image\/[a-z+.-]+;base64,[A-Za-z0-9+/=\s]*/gi;
 
 /** Scheme of body images stored as NocoDB files: `src="nc-file:<file_url>"`. */
 export const EMAIL_FILE_IMAGE_SCHEME = 'nc-file:';
 
-const FILE_IMAGE_SRC = /(<img\b[^>]*?\bsrc\s*=\s*)(["'])nc-file:([^"']+)\2/gi;
+const FILE_IMAGE_SRC = /(<img\b[^>]{0,2000}?\bsrc\s*=\s*)(["'])nc-file:([^"']+)\2/gi;
 
+/** Extensions a stored body image may have; the editor only accepts files with one of these. */
 const IMAGE_TYPE_BY_EXT: Record<string, string> = {
   png: 'image/png',
   jpg: 'image/jpeg',
   jpeg: 'image/jpeg',
+  jpe: 'image/jpeg',
+  jfif: 'image/jpeg',
   gif: 'image/gif',
   webp: 'image/webp',
 };
@@ -618,14 +626,15 @@ export function prepareEmailBody(
     return { isHtml: false, text: body };
   }
 
-  // Image bytes have their own cap; the length limit is about markup the parser must walk.
-  const extracted = extractInlineImages(body, opts.images);
-
-  if (extracted.html.length > MAX_EMAIL_HTML_BODY_LENGTH) {
+  // The length limit is about markup the parser must walk; image bytes have their own cap. It
+  // runs before extraction, whose regexes scan every `<img`, so their input stays bounded too.
+  if (body.replace(DATA_IMAGE_PAYLOAD, '').length > MAX_EMAIL_HTML_BODY_LENGTH) {
     throw new Error(
       `Email body exceeds the ${Math.floor(MAX_EMAIL_HTML_BODY_LENGTH / 1000)} KB limit for rich-text content`,
     );
   }
+
+  const extracted = extractInlineImages(body, opts.images);
 
   const sanitized = sanitizeEmailHtml(extracted.html, {
     baseStyles: true,

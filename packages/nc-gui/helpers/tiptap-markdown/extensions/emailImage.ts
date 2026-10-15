@@ -37,16 +37,8 @@ function swallowNextClick() {
   setTimeout(() => window.removeEventListener('click', swallow, { capture: true }))
 }
 
-const DATA_IMAGE_SRC = /^data:(image\/[a-z+.-]+);base64,([A-Za-z0-9+/=\s]*)$/i
-
-/** Decoded size of a `data:` image the send path accepts, or null for any other source. */
-export function emailImageBytes(src: string | null | undefined): number | null {
-  const match = DATA_IMAGE_SRC.exec(src ?? '')
-  if (!match || !EMAIL_IMAGE_TYPES.includes(match[1].toLowerCase())) return null
-  const base64 = match[2].replace(/\s+/g, '')
-  const padding = base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0
-  return Math.floor((base64.length * 3) / 4) - padding
-}
+/** Body images are workflow uploads, stored in the body as `src="nc-file:<file_url>"`. */
+export const EMAIL_FILE_IMAGE_SCHEME = 'nc-file:'
 
 export interface EmailImageUsage {
   srcs: Set<string>
@@ -57,16 +49,20 @@ export function emailImageUsage(content: { descendants: (f: (node: PMNode) => bo
   const usage: EmailImageUsage = { srcs: new Set(), bytes: 0 }
   content.descendants((node) => {
     if (node.type.name !== 'image') return
-    addEmailImage(usage, node.attrs.src)
+    addEmailImage(usage, node.attrs.src, Number(node.attrs.size) || 0)
   })
   return usage
 }
 
+/** Whether one more image of `bytes` still fits the body's limits. */
+export function canAddEmailImage(usage: EmailImageUsage, bytes: number): boolean {
+  return usage.srcs.size < EMAIL_IMAGE_MAX_COUNT && usage.bytes + bytes <= EMAIL_IMAGE_MAX_TOTAL_SIZE
+}
+
 /** Counts `src` into `usage`; false when that would break the body's limits (usage is then untouched). */
-export function addEmailImage(usage: EmailImageUsage, src: string): boolean {
+export function addEmailImage(usage: EmailImageUsage, src: string, bytes: number): boolean {
   if (usage.srcs.has(src)) return true
-  const bytes = emailImageBytes(src) ?? 0
-  if (usage.srcs.size >= EMAIL_IMAGE_MAX_COUNT || usage.bytes + bytes > EMAIL_IMAGE_MAX_TOTAL_SIZE) return false
+  if (!canAddEmailImage(usage, bytes)) return false
   usage.srcs.add(src)
   usage.bytes += bytes
   return true
@@ -85,22 +81,33 @@ export function filterImages(fragment: Fragment, keep: (node: PMNode) => boolean
   return Fragment.from(nodes)
 }
 
+export interface EmailImageOptions {
+  inline: boolean
+  allowBase64: boolean
+  HTMLAttributes: Record<string, any>
+  /** Displayable URL for a stored `nc-file:` src; stored sources are not loadable as-is. */
+  resolveSrc?: (src: string) => Promise<string | undefined>
+}
+
 /**
- * Body images are stored as `data:` URIs and sent as inline Content-ID parts. Remote sources are
- * not parsed: the sender drops them (clients block them, and they track the recipient), so a
- * pasted remote image would otherwise show here and silently vanish from the email.
+ * Body images are workflow uploads referenced as `nc-file:` and sent as inline Content-ID parts;
+ * the bytes are loaded only at send time. Other sources are not parsed: the sender drops remote
+ * ones (clients block them, and they track the recipient) and the body no longer carries data
+ * URIs, so a pasted image of either kind would otherwise show here and vanish from the email.
  */
-export const EmailImage = TiptapImage.extend({
+export const EmailImage = TiptapImage.extend<EmailImageOptions>({
+  addOptions() {
+    return {
+      ...(this.parent?.() ?? { inline: false, allowBase64: false, HTMLAttributes: {} }),
+      resolveSrc: undefined,
+    }
+  },
+
   parseHTML() {
-    // Type and size are checked here, not just in the picker, so pasted or AI-returned images
-    // the sender would drop or reject never enter the body.
     return [
       {
-        tag: 'img[src^="data:image/"]',
-        getAttrs: (el: HTMLElement) => {
-          const bytes = emailImageBytes(el.getAttribute('src'))
-          return bytes !== null && bytes <= EMAIL_IMAGE_MAX_SIZE ? null : false
-        },
+        tag: `img[src^="${EMAIL_FILE_IMAGE_SCHEME}"]`,
+        getAttrs: (el: HTMLElement) => (Number(el.getAttribute('data-nc-size')) <= EMAIL_IMAGE_MAX_SIZE ? null : false),
       },
     ]
   },
@@ -109,8 +116,11 @@ export const EmailImage = TiptapImage.extend({
   // Resizing drags an outline (the frame) and leaves the image alone until release, as mail
   // composers do; the image menu is hidden meanwhile so it does not sit over the outline.
   addNodeView() {
+    const { resolveSrc } = this.options
+
     return ({ node, editor, getPos }) => {
       let current = node
+      let shownSrc: string | undefined
 
       const dom = document.createElement('span')
       dom.className = 'nc-email-image'
@@ -119,8 +129,21 @@ export const EmailImage = TiptapImage.extend({
       frame.className = 'nc-email-image-frame'
       dom.append(img, frame)
 
+      function showSrc(src: string) {
+        if (src === shownSrc) return
+        shownSrc = src
+        if (!src.startsWith(EMAIL_FILE_IMAGE_SCHEME)) {
+          img.src = src
+          return
+        }
+        img.removeAttribute('src')
+        resolveSrc?.(src).then((url) => {
+          if (url && shownSrc === src) img.src = url
+        })
+      }
+
       function apply(n: PMNode) {
-        img.src = n.attrs.src
+        showSrc(n.attrs.src)
         for (const attr of ['alt', 'title', 'width'] as const) {
           if (n.attrs[attr]) img.setAttribute(attr, String(n.attrs[attr]))
           else img.removeAttribute(attr)
@@ -232,6 +255,12 @@ export const EmailImage = TiptapImage.extend({
         parseHTML: (el: HTMLElement) => el.getAttribute('width'),
         renderHTML: (attrs: Record<string, any>) => (attrs.width ? { width: attrs.width } : {}),
       },
+      // Bytes, so the editor can hold the body to the send path's total cap without the file.
+      size: {
+        default: null,
+        parseHTML: (el: HTMLElement) => Number(el.getAttribute('data-nc-size')) || null,
+        renderHTML: (attrs: Record<string, any>) => (attrs.size ? { 'data-nc-size': attrs.size } : {}),
+      },
     }
   },
-}).configure({ inline: true, allowBase64: true })
+}).configure({ inline: true })

@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
+  collectEmailBodyImageRefs,
   EMAIL_BASE_STYLES,
   EMAIL_BODY_STYLE,
+  emailImageTypeForFile,
   extractInlineImages,
   htmlToPlainText,
   isLikelyHtml,
@@ -298,5 +300,40 @@ describe('inline images', () => {
     expect(() => extractInlineImages(`<p><img src="data:image/png;base64,${huge}"></p>`)).toThrow(
       /exceed the 2 MB limit\. Use smaller images/,
     );
+  });
+});
+
+describe('stored body images', () => {
+  const ref = 'download/noco/b1/workflows/w1/logo_ab12c.png';
+  const html = `<p>Hi</p><p><img src="nc-file:${ref}" alt="Logo" width="120"><img src="nc-file:${ref}"></p>`;
+
+  it('lists each referenced file once', () => {
+    expect(collectEmailBodyImageRefs(html)).toEqual([ref]);
+    expect(collectEmailBodyImageRefs('<p>no images</p>')).toEqual([]);
+  });
+
+  it('turns resolved files into one shared cid part', () => {
+    const content = Buffer.from('png');
+    const r = prepareEmailBody(html, {
+      isHtml: true,
+      images: new Map([[ref, { content, contentType: 'image/png' }]]),
+    });
+    expect(r.html).not.toContain('nc-file:');
+    expect(r.html!.match(/src="cid:image1@nocodb"/g)).toHaveLength(2);
+    expect(r.inlineImages).toEqual([
+      { cid: 'image1@nocodb', filename: 'image1.png', contentType: 'image/png', content },
+    ]);
+  });
+
+  it('drops images whose bytes were not loaded', () => {
+    const r = prepareEmailBody(html, { isHtml: true });
+    expect(r.html).not.toContain('<img');
+    expect(r.inlineImages).toEqual([]);
+  });
+
+  it('types files by extension and skips the rest', () => {
+    expect(emailImageTypeForFile('a/b/logo.JPG')).toBe('image/jpeg');
+    expect(emailImageTypeForFile('https://s3.test/a.webp?sig=1')).toBe('image/webp');
+    expect(emailImageTypeForFile('a/b/logo.svg')).toBeUndefined();
   });
 });

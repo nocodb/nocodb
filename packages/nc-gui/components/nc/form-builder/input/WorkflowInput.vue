@@ -35,6 +35,7 @@ import {
   EMAIL_IMAGE_TYPES,
   EmailImage,
   addEmailImage,
+  canAddEmailImage,
   emailImageUsage,
   filterImages,
 } from '~/helpers/tiptap-markdown/extensions/emailImage'
@@ -75,6 +76,8 @@ const emit = defineEmits(['update:modelValue', 'enter'])
 const { t } = useI18n()
 
 const { $e } = useNuxtApp()
+
+const { uploadImage, resolveImageSrc } = useWorkflowEmailImages()
 
 const vModel = computed({
   get: () => {
@@ -348,7 +351,7 @@ const editor = useEditor({
           FontFamily,
           FontSize,
           TextAlign,
-          EmailImage,
+          EmailImage.configure({ resolveSrc: resolveImageSrc }),
           Link.configure({
             openOnClick: false,
             autolink: false,
@@ -441,7 +444,7 @@ const editor = useEditor({
       const usage = emailImageUsage(view.state.doc)
       let rejected = false
       const content = filterImages(slice.content, (node) => {
-        if (addEmailImage(usage, node.attrs.src)) return true
+        if (addEmailImage(usage, node.attrs.src, Number(node.attrs.size) || 0)) return true
         rejected = true
         return false
       })
@@ -924,15 +927,6 @@ function openImagePicker() {
   imageInputRef.value?.click()
 }
 
-function readAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = () => reject(reader.error)
-    reader.readAsDataURL(file)
-  })
-}
-
 function naturalWidth(src: string): Promise<number> {
   return new Promise((resolve) => {
     const img = new window.Image()
@@ -959,28 +953,33 @@ async function onImagePicked(event: Event) {
     return
   }
 
+  const usage = emailImageUsage(editor.value.state.doc)
+  if (!canAddEmailImage(usage, file.size)) {
+    showImageLimitError(usage.srcs.size)
+    return
+  }
+
+  const preview = URL.createObjectURL(file)
   try {
-    const src = await readAsDataUrl(file)
-    const usage = emailImageUsage(editor.value.state.doc)
-    if (!addEmailImage(usage, src)) {
-      showImageLimitError(usage.srcs.size)
-      return
-    }
-    const width = await naturalWidth(src)
+    const width = await naturalWidth(preview)
+    const src = await uploadImage(file)
     editor.value
-      .chain()
+      ?.chain()
       .focus()
       .insertContent({
         type: 'image',
         attrs: {
           src,
+          size: file.size,
           alt: file.name.replace(/\.[^.]+$/, ''),
           width: width > EMAIL_IMAGE_MAX_WIDTH ? EMAIL_IMAGE_MAX_WIDTH : null,
         },
       })
       .run()
-  } catch {
-    message.error(t('msg.error.emailImageType'))
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    URL.revokeObjectURL(preview)
   }
 }
 

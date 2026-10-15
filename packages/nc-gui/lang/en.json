@@ -7368,6 +7368,8 @@
       "emailImageType": "Use a PNG, JPEG, GIF or WebP image",
       "emailImageCount": "An email body can hold up to {count} images",
       "emailImageTotalSize": "Images in an email body must total under {size}",
+      "emailImageNoWorkflow": "Open the workflow to add images",
+      "emailImageUploadFailed": "Couldn't upload the image",
       "publisherLogoUploadFailed": "Couldn't upload the logo",
       "marketplaceHandleTaken": "This handle is already taken",
       "marketplaceHandleReserved": "This handle is reserved",

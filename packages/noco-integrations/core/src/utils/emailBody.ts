@@ -315,61 +315,119 @@ const INLINE_IMAGE_TYPES: Record<string, string> = {
 const DATA_IMAGE_SRC =
   /(<img\b[^>]*?\bsrc\s*=\s*)(["'])data:(image\/[a-z+.-]+);base64,([A-Za-z0-9+/=\s]*)\2/gi;
 
+/** Scheme of body images stored as NocoDB files: `src="nc-file:<file_url>"`. */
+export const EMAIL_FILE_IMAGE_SCHEME = 'nc-file:';
+
+const FILE_IMAGE_SRC = /(<img\b[^>]*?\bsrc\s*=\s*)(["'])nc-file:([^"']+)\2/gi;
+
+const IMAGE_TYPE_BY_EXT: Record<string, string> = {
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  gif: 'image/gif',
+  webp: 'image/webp',
+};
+
+/** Bytes of a stored body image, loaded by the node before the body is prepared. */
+export interface EmailBodyImageFile {
+  content: Buffer;
+  contentType: string;
+}
+
+function decodeAttr(value: string): string {
+  return value
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
+}
+
+/** Image type for a stored file, from its extension; undefined when it is not one we send inline. */
+export function emailImageTypeForFile(fileUrl: string): string | undefined {
+  const ext = /\.([a-z0-9]+)(?:[?#].*)?$/i.exec(fileUrl)?.[1]?.toLowerCase();
+  return ext ? IMAGE_TYPE_BY_EXT[ext] : undefined;
+}
+
+/** `file_url`s of the stored images a body references, deduplicated. */
+export function collectEmailBodyImageRefs(body: unknown): string[] {
+  if (typeof body !== 'string' || !body.includes(EMAIL_FILE_IMAGE_SCHEME)) {
+    return [];
+  }
+  const refs = new Set<string>();
+  for (const match of body.matchAll(FILE_IMAGE_SRC)) {
+    refs.add(decodeAttr(match[3]));
+  }
+  return [...refs];
+}
+
 /**
- * The editor stores images as `data:` URIs. Mail clients block those (and remote images) by
- * default, so each one becomes a Content-ID part and the `img` points at `cid:` instead.
- * Identical images share one part.
+ * Mail clients block remote images by default, so each body image becomes a Content-ID part and
+ * the `img` points at `cid:` instead. Stored images (`nc-file:`) take their bytes from `files`;
+ * `data:` URIs carry their own. Identical images share one part. A source with no usable bytes
+ * is left as-is, and the sanitizer drops it with its `img`.
  */
-export function extractInlineImages(html: string): {
+export function extractInlineImages(
+  html: string,
+  files: Map<string, EmailBodyImageFile> = new Map(),
+): {
   html: string;
   images: EmailInlineImage[];
 } {
   const images: EmailInlineImage[] = [];
-  const byData = new Map<string, string>();
+  const byKey = new Map<string, string>();
   let size = 0;
 
-  const out = html.replace(
-    DATA_IMAGE_SRC,
-    (match, prefix: string, quote: string, type: string, data: string) => {
-      const contentType = type.toLowerCase();
-      const ext = INLINE_IMAGE_TYPES[contentType];
-      // Left as-is; the sanitizer drops the unsupported source and the image with it.
-      if (!ext) return match;
+  const addImage = (key: string, contentType: string, content: Buffer) => {
+    const existing = byKey.get(key);
+    if (existing) return existing;
 
-      const base64 = data.replace(/\s+/g, '');
-      const key = `${contentType};${base64}`;
-      let cid = byData.get(key);
+    if (images.length >= MAX_EMAIL_INLINE_IMAGES) {
+      throw new Error(
+        `Email body has more than ${MAX_EMAIL_INLINE_IMAGES} images. Remove some images from the body.`,
+      );
+    }
 
-      if (!cid) {
+    size += content.length;
+    if (size > MAX_EMAIL_INLINE_IMAGES_SIZE) {
+      throw new Error(
+        `Images in the email body exceed the ${formatMb(MAX_EMAIL_INLINE_IMAGES_SIZE)} limit. Use smaller images — a logo is usually well under 100 KB.`,
+      );
+    }
+
+    const cid = `image${images.length + 1}@nocodb`;
+    byKey.set(key, cid);
+    images.push({
+      cid,
+      filename: `image${images.length + 1}.${INLINE_IMAGE_TYPES[contentType]}`,
+      contentType,
+      content,
+    });
+    return cid;
+  };
+
+  const out = html
+    .replace(
+      DATA_IMAGE_SRC,
+      (match, prefix: string, quote: string, type: string, data: string) => {
+        const contentType = type.toLowerCase();
+        if (!INLINE_IMAGE_TYPES[contentType]) return match;
+        const base64 = data.replace(/\s+/g, '');
         const content = Buffer.from(base64, 'base64');
         if (!content.length) return match;
-
-        if (images.length >= MAX_EMAIL_INLINE_IMAGES) {
-          throw new Error(
-            `Email body has more than ${MAX_EMAIL_INLINE_IMAGES} images. Remove some images from the body.`,
-          );
-        }
-
-        size += content.length;
-        if (size > MAX_EMAIL_INLINE_IMAGES_SIZE) {
-          throw new Error(
-            `Images in the email body exceed the ${formatMb(MAX_EMAIL_INLINE_IMAGES_SIZE)} limit. Use smaller images — a logo is usually well under 100 KB.`,
-          );
-        }
-
-        cid = `image${images.length + 1}@nocodb`;
-        byData.set(key, cid);
-        images.push({
-          cid,
-          filename: `image${images.length + 1}.${ext}`,
-          contentType,
-          content,
-        });
+        const cid = addImage(`data:${contentType};${base64}`, contentType, content);
+        return `${prefix}${quote}cid:${cid}${quote}`;
+      },
+    )
+    .replace(FILE_IMAGE_SRC, (match, prefix: string, quote: string, ref: string) => {
+      const fileUrl = decodeAttr(ref);
+      const file = files.get(fileUrl);
+      if (!file?.content.length || !INLINE_IMAGE_TYPES[file.contentType]) {
+        return match;
       }
-
+      const cid = addImage(`file:${fileUrl}`, file.contentType, file.content);
       return `${prefix}${quote}cid:${cid}${quote}`;
-    },
-  );
+    });
 
   return { html: out, images };
 }
@@ -538,7 +596,11 @@ export const MAX_EMAIL_HTML_BODY_LENGTH = 100_000;
 
 export function prepareEmailBody(
   rawBody: unknown,
-  opts: { isHtml: boolean },
+  opts: {
+    isHtml: boolean;
+    /** Bytes for the body's stored images, keyed by `file_url` (see `resolveEmailBodyImages`). */
+    images?: Map<string, EmailBodyImageFile>;
+  },
 ): PreparedEmailBody {
   const body =
     typeof rawBody === 'string'
@@ -557,7 +619,7 @@ export function prepareEmailBody(
   }
 
   // Image bytes have their own cap; the length limit is about markup the parser must walk.
-  const extracted = extractInlineImages(body);
+  const extracted = extractInlineImages(body, opts.images);
 
   if (extracted.html.length > MAX_EMAIL_HTML_BODY_LENGTH) {
     throw new Error(

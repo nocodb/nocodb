@@ -2,9 +2,12 @@ import { describe, it, expect } from 'vitest';
 import {
   EMAIL_BASE_STYLES,
   EMAIL_BODY_STYLE,
+  extractInlineImages,
   htmlToPlainText,
   isLikelyHtml,
   MAX_EMAIL_HTML_BODY_LENGTH,
+  MAX_EMAIL_INLINE_IMAGES,
+  MAX_EMAIL_INLINE_IMAGES_SIZE,
   prepareEmailBody,
   sanitizeEmailHtml,
   sanitizeInlineStyle,
@@ -230,5 +233,70 @@ describe('body size cap', () => {
   it('leaves oversized plain text alone', () => {
     const text = 'x'.repeat(MAX_EMAIL_HTML_BODY_LENGTH + 1);
     expect(prepareEmailBody(text, { isHtml: false })).toEqual({ isHtml: false, text });
+  });
+});
+
+describe('inline images', () => {
+  const PNG = Buffer.from('fake-png-bytes').toString('base64');
+  const logo = (alt = 'Acme') => `<img src="data:image/png;base64,${PNG}" alt="${alt}" width="120">`;
+
+  it('turns data: images into cid parts the html references', () => {
+    const r = prepareEmailBody(`<p>Thanks</p><p>${logo()}</p>`, { isHtml: true });
+    expect(r.inlineImages).toHaveLength(1);
+    const [image] = r.inlineImages!;
+    expect(image).toMatchObject({ cid: 'image1@nocodb', filename: 'image1.png', contentType: 'image/png' });
+    expect(image.content.toString()).toBe('fake-png-bytes');
+    expect(r.html).toContain('<img src="cid:image1@nocodb" alt="Acme" width="120">');
+    expect(r.html).not.toContain('data:');
+  });
+
+  it('keeps the plain-text part free of image artefacts', () => {
+    const r = prepareEmailBody(`<p>Jane Doe</p><p>${logo()}</p><p>Acme Inc.</p>`, { isHtml: true });
+    expect(r.text).toBe('Jane Doe\n\nAcme Inc.');
+  });
+
+  it('shares one part between identical images', () => {
+    const r = prepareEmailBody(`<p>${logo()}${logo('again')}</p>`, { isHtml: true });
+    expect(r.inlineImages).toHaveLength(1);
+    expect(r.html!.match(/cid:image1@nocodb/g)).toHaveLength(2);
+  });
+
+  it('drops remote, data: svg and unknown cid sources with their img', () => {
+    expect(sanitizeEmailHtml('<p>a<img src="https://t.example/p.gif">b</p>')).toBe('<p>ab</p>');
+    expect(sanitizeEmailHtml('<p><img src="cid:forged@x"></p>')).toBe('<p></p>');
+    expect(sanitizeEmailHtml('<p><img src="data:image/png;base64,AAAA"></p>')).toBe('<p></p>');
+    const svg = `<p><img src="data:image/svg+xml;base64,${PNG}"></p>`;
+    const r = prepareEmailBody(svg, { isHtml: true });
+    expect(r.inlineImages).toEqual([]);
+    expect(r.html).not.toContain('<img');
+  });
+
+  it('never allows a cid: link', () => {
+    expect(sanitizeEmailHtml('<a href="cid:x">x</a>', { inlineCids: ['x'] })).toBe('<a>x</a>');
+  });
+
+  it('leaves bodies without images unchanged', () => {
+    const r = prepareEmailBody('<p>Hi</p>', { isHtml: true });
+    expect(r.inlineImages).toEqual([]);
+    expect(r.html).toBe(`<div style="${EMAIL_BODY_STYLE}"><p style="${EMAIL_BASE_STYLES.p}">Hi</p></div>`);
+  });
+
+  it('does not count image bytes against the markup limit', () => {
+    const big = Buffer.alloc(200_000, 1).toString('base64');
+    const r = prepareEmailBody(`<p><img src="data:image/jpeg;base64,${big}"></p>`, { isHtml: true });
+    expect(r.inlineImages![0].content.length).toBe(200_000);
+  });
+
+  it('rejects too many or too large images with an actionable error', () => {
+    const many = Array.from(
+      { length: MAX_EMAIL_INLINE_IMAGES + 1 },
+      (_, i) => `<img src="data:image/png;base64,${Buffer.from(`img-${i}`).toString('base64')}">`,
+    ).join('');
+    expect(() => extractInlineImages(`<p>${many}</p>`)).toThrow(/more than 10 images/);
+
+    const huge = Buffer.alloc(MAX_EMAIL_INLINE_IMAGES_SIZE + 1, 1).toString('base64');
+    expect(() => extractInlineImages(`<p><img src="data:image/png;base64,${huge}"></p>`)).toThrow(
+      /exceed the 2 MB limit\. Use smaller images/,
+    );
   });
 });

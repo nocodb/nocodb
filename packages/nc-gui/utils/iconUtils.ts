@@ -489,6 +489,7 @@ import NcLucideLink from '~icons/nc-icons-v2/lucide-link.svg'
 import NcLucideAtSign from '~icons/nc-icons-v2/lucide-at-sign.svg'
 import NcLucidePaperclip from '~icons/nc-icons-v2/lucide-paperclip.svg'
 import LcBraces from '~icons/lucide/braces'
+import LcImage from '~icons/lucide/image'
 import LcUndo2 from '~icons/lucide/undo-2'
 import LcRedo2 from '~icons/lucide/redo-2'
 import LcRemoveFormatting from '~icons/lucide/remove-formatting'
@@ -1641,6 +1642,7 @@ export const iconMap = {
   'ncPaperclip': NcPaperclipIcon,
   'lucideBold': NcLucideBold,
   'lucideBraces': LcBraces,
+  'lucideImage': LcImage,
   'lucideUndo2': LcUndo2,
   'lucideRedo2': LcRedo2,
   'lucideRemoveFormatting': LcRemoveFormatting,

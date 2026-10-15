@@ -3,6 +3,9 @@ import { getMarkRange } from '@tiptap/core'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import Underline from '@tiptap/extension-underline'
+import { Slice } from '@tiptap/pm/model'
+import { NodeSelection } from '@tiptap/pm/state'
+import type { EditorState } from '@tiptap/pm/state'
 import StarterKit from '@tiptap/starter-kit'
 import { BubbleMenu, EditorContent, VueRenderer, useEditor } from '@tiptap/vue-3'
 import type { VariableDefinition, WorkflowTransformStep, WorkflowValueKind } from 'nocodb-sdk'
@@ -23,6 +26,18 @@ import { FontSize } from '~/helpers/tiptap-markdown/extensions/marks/fontSize'
 import { Highlight } from '~/helpers/tiptap-markdown/extensions/marks/highlight'
 import { TextAlign } from '~/helpers/tiptap-markdown/extensions/textAlign'
 import { TextColor } from '~/helpers/tiptap-markdown/extensions/marks/textColor'
+import {
+  EMAIL_IMAGE_MAX_COUNT,
+  EMAIL_IMAGE_MAX_SIZE,
+  EMAIL_IMAGE_MAX_TOTAL_SIZE,
+  EMAIL_IMAGE_MAX_WIDTH,
+  EMAIL_IMAGE_SMALL_WIDTH,
+  EMAIL_IMAGE_TYPES,
+  EmailImage,
+  addEmailImage,
+  emailImageUsage,
+  filterImages,
+} from '~/helpers/tiptap-markdown/extensions/emailImage'
 import { EmailTextStyle } from '~/helpers/tiptap-markdown/extensions/marks/textStyle'
 
 interface NodeGroup {
@@ -58,6 +73,8 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(['update:modelValue', 'enter'])
 
 const { t } = useI18n()
+
+const { $e } = useNuxtApp()
 
 const vModel = computed({
   get: () => {
@@ -331,6 +348,7 @@ const editor = useEditor({
           FontFamily,
           FontSize,
           TextAlign,
+          EmailImage,
           Link.configure({
             openOnClick: false,
             autolink: false,
@@ -416,6 +434,20 @@ const editor = useEditor({
       if (!(dom instanceof HTMLElement)) return false
       openTransformMenu(nodePos, String(node.attrs.expression ?? ''), dom)
       return true
+    },
+    // Pasted images past the body's count or size cap are dropped here rather than failing every run.
+    transformPasted(slice, view) {
+      if (!isRichText.value) return slice
+      const usage = emailImageUsage(view.state.doc)
+      let rejected = false
+      const content = filterImages(slice.content, (node) => {
+        if (addEmailImage(usage, node.attrs.src)) return true
+        rejected = true
+        return false
+      })
+      if (!rejected) return slice
+      showImageLimitError(usage.srcs.size)
+      return new Slice(content, slice.openStart, slice.openEnd)
     },
     // `openOnClick: false` keeps the click from navigating; it lands here instead and
     // raises the view bubble. Returns false so the caret still moves where it was clicked.
@@ -799,16 +831,33 @@ const formatGroups = computed<WorkflowInputTool[][]>(() => {
   return groups
 })
 
+const imageTool: WorkflowInputTool = { key: 'image', icon: 'lucideImage', label: 'labels.insertImage', action: openImagePicker }
+
 // Undo/redo earn a slot only on the persistent toolbar; the bubble is for the selection.
+// Inserting an image would replace that selection, so it stays off the bubble too.
 const toolbarGroups = computed<WorkflowInputTool[][]>(() => [
   [
     { key: 'undo', icon: 'lucideUndo2', label: 'general.undo', action: () => editor.value?.chain().focus().undo().run() },
     { key: 'redo', icon: 'lucideRedo2', label: 'general.redo', action: () => editor.value?.chain().focus().redo().run() },
   ],
-  ...formatGroups.value,
+  ...formatGroups.value.map((group) => group.flatMap((tool) => (tool.key === 'link' ? [tool, imageTool] : [tool]))),
 ])
 
 const bubbleEl = ref<HTMLElement>()
+
+const imageInputRef = ref<HTMLInputElement>()
+
+const imageBubbleEl = ref<HTMLElement>()
+
+const altEditing = ref(false)
+
+const altDraft = ref('')
+
+const altInputRef = ref<HTMLInputElement>()
+
+function isImageSelection(state: EditorState) {
+  return state.selection instanceof NodeSelection && state.selection.node.type.name === 'image'
+}
 
 // Supplying shouldShow replaces the plugin's default, which is where the focus test lives.
 // Without it the menu re-shows on document.body after the editor blurs with a live selection.
@@ -816,7 +865,7 @@ const shouldShowBubble = ({
   editor: e,
   view,
 }: {
-  editor: { state: { selection: { empty: boolean } }; isEditable: boolean }
+  editor: { state: EditorState; isEditable: boolean }
   view: { hasFocus: () => boolean }
 }) =>
   !readOnly.value &&
@@ -825,7 +874,32 @@ const shouldShowBubble = ({
   !expanded.value &&
   e.isEditable &&
   !e.state.selection.empty &&
+  // A selected image gets its own menu.
+  !isImageSelection(e.state) &&
   (view.hasFocus() || !!bubbleEl.value?.contains(document.activeElement))
+
+// Unlike the format bubble this one shows in the compose modal too: the toolbar has no image controls.
+const shouldShowImageBubble = ({
+  editor: e,
+  view,
+}: {
+  editor: { state: EditorState; isEditable: boolean }
+  view: { hasFocus: () => boolean }
+}) =>
+  !readOnly.value &&
+  e.isEditable &&
+  isImageSelection(e.state) &&
+  (view.hasFocus() || !!imageBubbleEl.value?.contains(document.activeElement))
+
+const imageBubbleTippyOptions = {
+  duration: 100,
+  maxWidth: 'none' as const,
+  placement: 'bottom-start' as const,
+  appendTo: () => document.body,
+  onHidden: () => {
+    altEditing.value = false
+  },
+}
 
 // No max width: the full tool set is wider than tippy's default cap and would clip.
 const bubbleTippyOptions = { duration: 100, maxWidth: 'none' as const, placement: 'top' as const, appendTo: () => document.body }
@@ -843,6 +917,115 @@ function applyAiResult({ html, mode }: { html: string; mode: 'write' | 'rewrite'
 
 function clearFormatting() {
   editor.value?.chain().focus().unsetAllMarks().clearNodes().run()
+}
+
+function openImagePicker() {
+  $e('c:workflow:email:image:insert')
+  imageInputRef.value?.click()
+}
+
+function readAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+}
+
+function naturalWidth(src: string): Promise<number> {
+  return new Promise((resolve) => {
+    const img = new window.Image()
+    img.onload = () => resolve(img.naturalWidth)
+    img.onerror = () => resolve(0)
+    img.src = src
+  })
+}
+
+async function onImagePicked(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  // Reset so picking the same file again still fires change.
+  input.value = ''
+  if (!file || !editor.value) return
+
+  if (!EMAIL_IMAGE_TYPES.includes(file.type)) {
+    message.error(t('msg.error.emailImageType'))
+    return
+  }
+
+  if (file.size > EMAIL_IMAGE_MAX_SIZE) {
+    message.error(t('msg.error.emailImageSize', { size: `${EMAIL_IMAGE_MAX_SIZE / 1024} KB` }))
+    return
+  }
+
+  try {
+    const src = await readAsDataUrl(file)
+    const usage = emailImageUsage(editor.value.state.doc)
+    if (!addEmailImage(usage, src)) {
+      showImageLimitError(usage.srcs.size)
+      return
+    }
+    const width = await naturalWidth(src)
+    editor.value
+      .chain()
+      .focus()
+      .insertContent({
+        type: 'image',
+        attrs: {
+          src,
+          alt: file.name.replace(/\.[^.]+$/, ''),
+          width: width > EMAIL_IMAGE_MAX_WIDTH ? EMAIL_IMAGE_MAX_WIDTH : null,
+        },
+      })
+      .run()
+  } catch {
+    message.error(t('msg.error.emailImageType'))
+  }
+}
+
+function showImageLimitError(imageCount: number) {
+  if (imageCount >= EMAIL_IMAGE_MAX_COUNT) message.error(t('msg.error.emailImageCount', { count: EMAIL_IMAGE_MAX_COUNT }))
+  else message.error(t('msg.error.emailImageTotalSize', { size: `${EMAIL_IMAGE_MAX_TOTAL_SIZE / (1024 * 1024)} MB` }))
+}
+
+/** Small and Best fit cap the width but never upscale; Original size drops the cap. */
+function setImageSize(size: 'small' | 'fit' | 'original') {
+  const e = editor.value
+  if (!e || !isImageSelection(e.state)) return
+  const pos = e.state.selection.from
+  const natural = (e.view.nodeDOM(pos) as HTMLElement | null)?.querySelector('img')?.naturalWidth || 0
+  const cap = size === 'small' ? EMAIL_IMAGE_SMALL_WIDTH : EMAIL_IMAGE_MAX_WIDTH
+  const width = size === 'original' || (natural && natural <= cap) ? null : cap
+  // Re-select: replacing the node's markup can drop the node selection, which would close the menu.
+  e.chain().focus().updateAttributes('image', { width }).setNodeSelection(pos).run()
+}
+
+function startAltEdit() {
+  altDraft.value = editor.value?.getAttributes('image').alt ?? ''
+  altEditing.value = true
+  nextTick(() => altInputRef.value?.focus())
+}
+
+function saveAlt() {
+  const e = editor.value
+  altEditing.value = false
+  if (!e || !isImageSelection(e.state)) return
+  const pos = e.state.selection.from
+  e.chain()
+    .focus()
+    .updateAttributes('image', { alt: altDraft.value.trim() || null })
+    .setNodeSelection(pos)
+    .run()
+}
+
+function cancelAltEdit() {
+  altEditing.value = false
+  editor.value?.commands.focus()
+}
+
+function removeImage() {
+  editor.value?.chain().focus().deleteSelection().run()
 }
 
 function toggleBulletList() {
@@ -1181,6 +1364,18 @@ watch(readOnly, (newValue) => {
           </div>
           <div class="flex-1" />
           <template v-if="!readOnly">
+            <NcTooltip :title="$t('labels.insertImage')">
+              <NcButton
+                size="xs"
+                type="text"
+                class="nc-workflow-format-btn"
+                data-testid="nc-workflow-richtext-image-btn"
+                @mousedown.prevent
+                @click.stop="openImagePicker"
+              >
+                <GeneralIcon icon="lucideImage" class="w-4 h-4" />
+              </NcButton>
+            </NcTooltip>
             <NcTooltip :title="$t('general.insert')">
               <button
                 class="nc-email-var-btn"
@@ -1354,6 +1549,16 @@ watch(readOnly, (newValue) => {
           />
         </div>
 
+        <input
+          v-if="!readOnly"
+          ref="imageInputRef"
+          type="file"
+          class="!hidden"
+          :accept="EMAIL_IMAGE_TYPES.join(',')"
+          data-testid="nc-workflow-richtext-image-input"
+          @change="onImagePicked"
+        />
+
         <BubbleMenu
           v-if="editor"
           :editor="editor"
@@ -1368,6 +1573,91 @@ watch(readOnly, (newValue) => {
               :variables="variables"
               @ai-result="applyAiResult"
             />
+          </div>
+        </BubbleMenu>
+
+        <BubbleMenu
+          v-if="editor && !readOnly"
+          :editor="editor"
+          plugin-key="emailImageBubble"
+          :should-show="shouldShowImageBubble"
+          :tippy-options="imageBubbleTippyOptions"
+        >
+          <div ref="imageBubbleEl" class="nc-email-bubble nc-email-image-bubble" data-testid="nc-workflow-richtext-image-bubble">
+            <template v-if="altEditing">
+              <input
+                ref="altInputRef"
+                v-model="altDraft"
+                class="nc-email-image-alt-input"
+                :placeholder="$t('labels.altText')"
+                data-testid="nc-workflow-richtext-image-alt-input"
+                @keydown.enter.stop.prevent="saveAlt"
+                @keydown.esc.stop.prevent="cancelAltEdit"
+              />
+              <NcButton
+                size="xs"
+                type="primary"
+                data-testid="nc-workflow-richtext-image-alt-save"
+                @mousedown.prevent
+                @click.stop="saveAlt"
+              >
+                {{ $t('general.save') }}
+              </NcButton>
+            </template>
+            <template v-else>
+              <NcButton
+                v-e="['c:workflow:email:image:resize', { size: 'small' }]"
+                size="xs"
+                type="text"
+                data-testid="nc-workflow-richtext-image-small"
+                @mousedown.prevent
+                @click.stop="setImageSize('small')"
+              >
+                {{ $t('general.small') }}
+              </NcButton>
+              <NcButton
+                v-e="['c:workflow:email:image:resize', { size: 'fit' }]"
+                size="xs"
+                type="text"
+                data-testid="nc-workflow-richtext-image-fit"
+                @mousedown.prevent
+                @click.stop="setImageSize('fit')"
+              >
+                {{ $t('labels.imageBestFit') }}
+              </NcButton>
+              <NcButton
+                v-e="['c:workflow:email:image:resize', { size: 'original' }]"
+                size="xs"
+                type="text"
+                data-testid="nc-workflow-richtext-image-original"
+                @mousedown.prevent
+                @click.stop="setImageSize('original')"
+              >
+                {{ $t('labels.imageOriginalSize') }}
+              </NcButton>
+              <div class="nc-email-format-divider" />
+              <NcButton
+                v-e="['c:workflow:email:image:alt:edit']"
+                size="xs"
+                type="text"
+                data-testid="nc-workflow-richtext-image-alt"
+                @mousedown.prevent
+                @click.stop="startAltEdit"
+              >
+                {{ $t('labels.editAltText') }}
+              </NcButton>
+              <div class="nc-email-format-divider" />
+              <NcButton
+                v-e="['c:workflow:email:image:remove']"
+                size="xs"
+                type="text"
+                data-testid="nc-workflow-richtext-image-remove"
+                @mousedown.prevent
+                @click.stop="removeImage"
+              >
+                {{ $t('general.remove') }}
+              </NcButton>
+            </template>
           </div>
         </BubbleMenu>
       </div>
@@ -1503,6 +1793,19 @@ watch(readOnly, (newValue) => {
   box-shadow: 0 8px 24px rgba(16, 16, 21, 0.12);
 }
 
+// Hidden, not unmounted: the menu returns where the resized image now ends.
+.nc-email-image-resizing .nc-email-image-bubble {
+  visibility: hidden;
+}
+
+.nc-email-image-alt-input {
+  @apply w-56 h-7 px-2 text-small rounded-md bg-transparent border-1 border-nc-border-gray-medium outline-none;
+
+  &:focus {
+    @apply border-nc-border-brand;
+  }
+}
+
 .nc-email-head,
 .nc-email-toolbar,
 .nc-email-bubble {
@@ -1612,6 +1915,56 @@ watch(readOnly, (newValue) => {
 
     a {
       @apply text-nc-content-brand underline cursor-pointer;
+    }
+
+    .nc-email-image {
+      @apply relative inline-block max-w-full align-bottom;
+      line-height: 0;
+
+      img {
+        @apply max-w-full h-auto;
+      }
+    }
+
+    // Outline + handles. Sized to the image, or to the drag while resizing.
+    .nc-email-image-frame {
+      @apply absolute hidden inset-0 pointer-events-none;
+      border: 1px solid var(--nc-border-brand);
+    }
+
+    .nc-email-image.ProseMirror-selectednode .nc-email-image-frame,
+    .nc-email-image.is-resizing .nc-email-image-frame {
+      @apply block;
+    }
+
+    .nc-email-image-handle {
+      @apply absolute w-2.5 h-2.5 rounded-sm bg-nc-fill-primary pointer-events-auto;
+      border: 1px solid var(--nc-bg-default);
+      touch-action: none;
+
+      &.is-nw {
+        @apply -top-1.5 -left-1.5;
+        cursor: nwse-resize;
+      }
+
+      &.is-ne {
+        @apply -top-1.5 -right-1.5;
+        cursor: nesw-resize;
+      }
+
+      &.is-sw {
+        @apply -bottom-1.5 -left-1.5;
+        cursor: nesw-resize;
+      }
+
+      &.is-se {
+        @apply -bottom-1.5 -right-1.5;
+        cursor: nwse-resize;
+      }
+    }
+
+    &:not([contenteditable='true']) .nc-email-image-handle {
+      @apply hidden;
     }
 
     strong {

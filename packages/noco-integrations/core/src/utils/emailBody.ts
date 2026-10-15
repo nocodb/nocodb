@@ -35,8 +35,21 @@ export const EMAIL_HTML_SANITIZE_CONFIG = {
     'h4',
     'h5',
     'h6',
+    // Only ever with a `cid:` src that names an image extracted from this body — see
+    // extractInlineImages. Remote and data: sources are dropped.
+    'img',
   ],
-  ALLOWED_ATTR: ['href', 'target', 'rel', 'style', 'align'],
+  ALLOWED_ATTR: [
+    'href',
+    'target',
+    'rel',
+    'style',
+    'align',
+    'src',
+    'alt',
+    'width',
+    'height',
+  ],
   // Editor marks carry data-* mirrors of their styles; recipients never need them.
   ALLOW_DATA_ATTR: false,
   FORBID_TAGS: [
@@ -56,9 +69,10 @@ export const EMAIL_HTML_SANITIZE_CONFIG = {
     'math',
     'base',
   ],
-  ALLOWED_URI_REGEXP: /^(?:https?|mailto):/i,
+  // `cid:` is narrowed to img src by the attribute hook.
+  ALLOWED_URI_REGEXP: /^(?:https?|mailto|cid):/i,
   // A custom URI regexp is applied to every non-URI-safe attribute, which would eat target/rel.
-  ADD_URI_SAFE_ATTR: ['target', 'rel', 'align'],
+  ADD_URI_SAFE_ATTR: ['target', 'rel', 'align', 'width', 'height'],
 };
 
 /**
@@ -84,6 +98,10 @@ export const EMAIL_ALLOWED_CSS_PROPS = new Set([
   'padding-left',
   'border-left',
   'border-radius',
+  'width',
+  'height',
+  'max-width',
+  'vertical-align',
 ]);
 
 /**
@@ -129,6 +147,7 @@ export function sanitizeInlineStyle(style: string): string {
 // (comments, table names…), so both hooks only act while an email sanitize is running.
 let emailSanitizeActive = false;
 let applyBaseStyles = false;
+let allowedInlineCids: ReadonlySet<string> = new Set();
 
 DOMPurify.addHook('uponSanitizeElement', (node, data) => {
   if (!emailSanitizeActive || !applyBaseStyles) return;
@@ -148,16 +167,63 @@ DOMPurify.addHook('uponSanitizeElement', (node, data) => {
   el.setAttribute('style', own ? `${base}; ${own}` : base);
 });
 
-DOMPurify.addHook('uponSanitizeAttribute', (_node, data) => {
-  if (!emailSanitizeActive) return;
-  if (data.attrName === 'href') {
-    data.attrValue = normalizeEmailHref(data.attrValue);
-    return;
-  }
-  if (data.attrName !== 'style') return;
-  data.attrValue = sanitizeInlineStyle(data.attrValue);
-  if (!data.attrValue) data.keepAttr = false;
-});
+// isomorphic-dompurify loads jsdom (~13 MB heap), so it is required on first use, and the
+// hooks are installed once, then.
+function getPurify(): typeof DOMPurifyType {
+  if (purify) return purify;
+  purify = require('isomorphic-dompurify') as typeof DOMPurifyType;
+
+  purify.addHook('uponSanitizeElement', (node, data) => {
+    if (!emailSanitizeActive || !applyBaseStyles) return;
+    if (node.nodeType !== 1) return;
+    const el = node as Element;
+    const own = el.getAttribute('style');
+    // Outlook's Word engine ignores text-align on blocks but honours the align attribute.
+    const align = own && /text-align:\s*(center|right|justify)/i.exec(own)?.[1];
+    if (align) el.setAttribute('align', align.toLowerCase());
+    // The editor renders `li > p` inline, so a paragraph margin there would add gaps the
+    // author never saw.
+    const isListParagraph =
+      data.tagName === 'p' && el.parentElement?.tagName?.toLowerCase() === 'li';
+    const base = isListParagraph ? undefined : EMAIL_BASE_STYLES[data.tagName];
+    if (!base) return;
+    // Base first so the author's own declarations win.
+    el.setAttribute('style', own ? `${base}; ${own}` : base);
+  });
+
+  purify.addHook('uponSanitizeAttribute', (node, data) => {
+    if (!emailSanitizeActive) return;
+    if (data.attrName === 'href') {
+      data.attrValue = normalizeEmailHref(data.attrValue);
+      if (/^cid:/i.test(data.attrValue)) data.keepAttr = false;
+      return;
+    }
+    if (data.attrName === 'src') {
+      const cid = /^cid:(.+)$/i.exec(data.attrValue.trim())?.[1];
+      if (
+        node.nodeName !== 'IMG' ||
+        !cid ||
+        !allowedInlineCids.has(cid.toLowerCase())
+      ) {
+        data.keepAttr = false;
+      }
+      return;
+    }
+    if (data.attrName !== 'style') return;
+    data.attrValue = sanitizeInlineStyle(data.attrValue);
+    if (!data.attrValue) data.keepAttr = false;
+  });
+
+  // An image whose source was rejected would render as a broken-image box.
+  purify.addHook('afterSanitizeAttributes', (node) => {
+    if (!emailSanitizeActive) return;
+    if (node.nodeName === 'IMG' && !(node as Element).getAttribute('src')) {
+      node.parentNode?.removeChild(node);
+    }
+  });
+
+  return purify;
+}
 
 /**
  * A link URL that is a variable (`{{ record.Website }}`) only resolves here, and record values
@@ -196,17 +262,120 @@ export function isLikelyHtml(value: string): boolean {
  */
 export function sanitizeEmailHtml(
   input: unknown,
-  options: { baseStyles?: boolean } = {},
+  options: { baseStyles?: boolean; inlineCids?: Iterable<string> } = {},
 ): string {
   if (input == null) return '';
   emailSanitizeActive = true;
   applyBaseStyles = !!options.baseStyles;
+  allowedInlineCids = new Set(
+    [...(options.inlineCids ?? [])].map((cid) => cid.toLowerCase()),
+  );
   try {
     return DOMPurify.sanitize(String(input), EMAIL_HTML_SANITIZE_CONFIG);
   } finally {
     emailSanitizeActive = false;
     applyBaseStyles = false;
+    allowedInlineCids = new Set();
   }
+}
+
+/** An image embedded in the HTML part and referenced from it by Content-ID. */
+export interface EmailInlineImage {
+  cid: string;
+  filename: string;
+  contentType: string;
+  content: Buffer;
+}
+
+/** Inline images as nodemailer attachments (SMTP and the core mailer). */
+export function toNodemailerInlineAttachments(images: EmailInlineImage[]) {
+  return images.map((image) => ({
+    filename: image.filename,
+    content: image.content,
+    contentType: image.contentType,
+    cid: image.cid,
+    contentDisposition: 'inline' as const,
+  }));
+}
+
+export const MAX_EMAIL_INLINE_IMAGES = 10;
+
+/** Decoded bytes across all inline images; Outlook (Graph) rejects inline parts past ~3 MB. */
+export const MAX_EMAIL_INLINE_IMAGES_SIZE = 2 * 1024 * 1024;
+
+// SVG is excluded: it is a script-capable document, not a picture.
+const INLINE_IMAGE_TYPES: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/gif': 'gif',
+  'image/webp': 'webp',
+};
+
+const DATA_IMAGE_SRC =
+  /(<img\b[^>]*?\bsrc\s*=\s*)(["'])data:(image\/[a-z+.-]+);base64,([A-Za-z0-9+/=\s]*)\2/gi;
+
+/**
+ * The editor stores images as `data:` URIs. Mail clients block those (and remote images) by
+ * default, so each one becomes a Content-ID part and the `img` points at `cid:` instead.
+ * Identical images share one part.
+ */
+export function extractInlineImages(html: string): {
+  html: string;
+  images: EmailInlineImage[];
+} {
+  const images: EmailInlineImage[] = [];
+  const byData = new Map<string, string>();
+  let size = 0;
+
+  const out = html.replace(
+    DATA_IMAGE_SRC,
+    (match, prefix: string, quote: string, type: string, data: string) => {
+      const contentType = type.toLowerCase();
+      const ext = INLINE_IMAGE_TYPES[contentType];
+      // Left as-is; the sanitizer drops the unsupported source and the image with it.
+      if (!ext) return match;
+
+      const base64 = data.replace(/\s+/g, '');
+      const key = `${contentType};${base64}`;
+      let cid = byData.get(key);
+
+      if (!cid) {
+        const content = Buffer.from(base64, 'base64');
+        if (!content.length) return match;
+
+        if (images.length >= MAX_EMAIL_INLINE_IMAGES) {
+          throw new Error(
+            `Email body has more than ${MAX_EMAIL_INLINE_IMAGES} images. Remove some images from the body.`,
+          );
+        }
+
+        size += content.length;
+        if (size > MAX_EMAIL_INLINE_IMAGES_SIZE) {
+          throw new Error(
+            `Images in the email body exceed the ${formatMb(MAX_EMAIL_INLINE_IMAGES_SIZE)} limit. Use smaller images — a logo is usually well under 100 KB.`,
+          );
+        }
+
+        cid = `image${images.length + 1}@nocodb`;
+        byData.set(key, cid);
+        images.push({
+          cid,
+          filename: `image${images.length + 1}.${ext}`,
+          contentType,
+          content,
+        });
+      }
+
+      return `${prefix}${quote}cid:${cid}${quote}`;
+    },
+  );
+
+  return { html: out, images };
+}
+
+function formatMb(bytes: number): string {
+  return `${Math.round((bytes / (1024 * 1024)) * 10) / 10} MB`;
 }
 
 const PLAIN_TEXT_BLOCK_TAGS = new Set([
@@ -230,6 +399,9 @@ function inlineToText(node: Node): string {
   const el = node as Element;
 
   if (el.tagName === 'BR') return '\n';
+
+  // A `cid:` reference means nothing in plain text.
+  if (el.tagName === 'IMG') return '';
 
   if (el.tagName === 'A') {
     const label = childrenToText(el).trim();
@@ -348,6 +520,8 @@ export interface PreparedEmailBody {
   html?: string;
   /** Plain-text content — the body itself when plain, or a derived fallback when HTML */
   text: string;
+  /** Images the HTML references by `cid:`; each must be sent as an inline part */
+  inlineImages?: EmailInlineImage[];
 }
 
 /**
@@ -382,13 +556,28 @@ export function prepareEmailBody(
     return { isHtml: false, text: body };
   }
 
-  if (body.length > MAX_EMAIL_HTML_BODY_LENGTH) {
+  // Image bytes have their own cap; the length limit is about markup the parser must walk.
+  const extracted = extractInlineImages(body);
+
+  if (extracted.html.length > MAX_EMAIL_HTML_BODY_LENGTH) {
     throw new Error(
       `Email body exceeds the ${Math.floor(MAX_EMAIL_HTML_BODY_LENGTH / 1000)} KB limit for rich-text content`,
     );
   }
 
-  const sanitized = sanitizeEmailHtml(body, { baseStyles: true });
+  const sanitized = sanitizeEmailHtml(extracted.html, {
+    baseStyles: true,
+    inlineCids: extracted.images.map((image) => image.cid),
+  });
   const html = `<div style="${EMAIL_BODY_STYLE}">${sanitized}</div>`;
-  return { isHtml: true, html, text: htmlToPlainText(sanitized) };
+  // An image the sanitizer removed (e.g. inside a stripped element) must not ride along.
+  const inlineImages = extracted.images.filter((image) =>
+    sanitized.includes(`cid:${image.cid}`),
+  );
+  return {
+    isHtml: true,
+    html,
+    text: htmlToPlainText(sanitized),
+    inlineImages,
+  };
 }

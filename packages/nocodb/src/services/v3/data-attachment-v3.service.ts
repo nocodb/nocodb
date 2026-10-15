@@ -161,7 +161,7 @@ export class DataAttachmentV3Service {
           id: attachment.id,
           url: attachment.url,
           status: 'failed',
-          error: 'Failed to store the downloaded file',
+          error: 'Could not be saved to storage',
         });
       }
     }

@@ -8,7 +8,7 @@ export function parseInertHtml(html: string): HTMLElement {
 
 const IMAGE_PLACEHOLDER_ATTR = 'data-nc-image'
 
-/** Swap body images for numbered placeholders, so AI calls never carry their data URIs. */
+/** Swap body images for numbered placeholders, so AI calls never carry (or rewrite) their sources. */
 export function stashImages(html: string): { html: string; images: string[] } {
   const container = parseInertHtml(html)
   const images: string[] = []

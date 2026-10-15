@@ -32,7 +32,10 @@ const PREVIEW_TAGS = [
   'img',
 ]
 
-const PREVIEW_ATTRS = ['href', 'style', 'align', 'alt', 'width', 'height', 'data-nc-file']
+const PREVIEW_ATTRS = ['href', 'src', 'style', 'align', 'alt', 'width', 'height', 'data-nc-file']
+
+// `data:` images the send path inlines as Content-ID parts; SVG never.
+const SENDABLE_DATA_IMAGE = /^data:image\/(?:png|jpe?g|gif|webp);base64,/i
 
 const PREVIEW_CSS_PROPS = new Set([
   'color',
@@ -79,13 +82,14 @@ function sanitizeStyle(style: string): string {
 
 /**
  * A run's rich-text value (untrusted: record data is interpolated in) made safe to render. Only
- * stored images survive, with their `nc-file:` src moved to `data-nc-file` for the caller to sign;
- * nothing in the result loads a remote resource.
+ * images the email carries survive: stored ones, with their `nc-file:` src moved to `data-nc-file`
+ * for the caller to sign, and sendable `data:` ones. Nothing in the result loads a remote resource.
  */
 export function sanitizeEmailPreviewHtml(html: string): string {
   const container = parseInertHtml(html)
   container.querySelectorAll('img').forEach((img) => {
     const src = img.getAttribute('src') ?? ''
+    if (SENDABLE_DATA_IMAGE.test(src)) return
     if (!src.startsWith(EMAIL_FILE_IMAGE_SCHEME)) {
       img.remove()
       return
@@ -105,6 +109,10 @@ export function sanitizeEmailPreviewHtml(html: string): string {
       ADD_URI_SAFE_ATTR: ['data-nc-file', 'align', 'width', 'height'],
     }),
   )
+  // Only inline `data:` bytes may keep a src.
+  clean.querySelectorAll('img[src]').forEach((img) => {
+    if (!SENDABLE_DATA_IMAGE.test(img.getAttribute('src') ?? '')) img.remove()
+  })
   clean.querySelectorAll<HTMLElement>('[style]').forEach((el) => {
     const style = sanitizeStyle(el.getAttribute('style') ?? '')
     if (style) el.setAttribute('style', style)

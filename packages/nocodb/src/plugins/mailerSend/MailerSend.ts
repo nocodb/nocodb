@@ -17,7 +17,7 @@ export default class Mailer implements IEmailAdapter {
   }
 
   public async mailSend(mail: XcEmail): Promise<any> {
-    const recipients = [new Recipient(mail.to)];
+    const recipients = toRecipients(mail.to);
 
     const emailParams = new EmailParams()
       .setFrom(this.input.from)
@@ -27,6 +27,8 @@ export default class Mailer implements IEmailAdapter {
       .setSubject(mail.subject)
       .setHtml(mail.html)
       .setText(mail.text);
+    if (mail.cc) emailParams.setCc(toRecipients(mail.cc));
+    if (mail.bcc) emailParams.setBcc(toRecipients(mail.bcc));
 
     // The SDK predates inline parts; the API reads `id` as the Content-ID for `cid:` references.
     const attachments = (mail.attachments ?? []).map((attachment) => {
@@ -75,6 +77,15 @@ export default class Mailer implements IEmailAdapter {
       NcError._.pluginTestError(e?.message);
     }
   }
+}
+
+// Workflow emails pass comma-separated address lists; the API wants one Recipient each.
+function toRecipients(addresses: string): Recipient[] {
+  return String(addresses)
+    .split(',')
+    .map((address) => address.trim())
+    .filter(Boolean)
+    .map((address) => new Recipient(address));
 }
 
 async function errorMessage(res: {

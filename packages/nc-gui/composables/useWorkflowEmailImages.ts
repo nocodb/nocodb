@@ -43,27 +43,34 @@ export function useWorkflowEmailImages() {
     return `${EMAIL_FILE_IMAGE_SCHEME}${fileUrl}`
   }
 
-  /** A displayable URL for a stored image `src`, or undefined when the file is gone. */
+  /**
+   * A displayable URL for a stored image `src`, or undefined when the file is gone (or the route
+   * isn't ready). Rejects when the request itself fails, which says nothing about the file.
+   */
   function resolveImageSrc(src: string): Promise<string | undefined> {
-    const cached = signedSrcCache.get(src)
+    const url = endpoint('/sign')
+    // Per endpoint: signing is scoped to the base, so another base's answer must not carry over.
+    const key = `${url}|${src}`
+    const cached = signedSrcCache.get(key)
     if (cached && Date.now() - cached.at < SIGNED_SRC_TTL_MS) return cached.src
 
     const fileUrl = src.slice(EMAIL_FILE_IMAGE_SCHEME.length)
-    const url = endpoint('/sign')
     const pending = url
       ? $api.instance
           .post<Array<Record<string, any>>>(url, {
             attachments: [/^https?:\/\//i.test(fileUrl) ? { url: fileUrl } : { path: fileUrl }],
           })
           .then(({ data }) => (data?.[0] ? getPossibleAttachmentSrc(data[0])[0] : undefined))
-          .catch(() => undefined)
       : Promise.resolve(undefined)
 
-    // Only a resolved link is kept: a miss (route not ready yet, file gone) is asked again next time.
-    signedSrcCache.set(src, { at: Date.now(), src: pending })
-    pending.then((url) => {
-      if (!url && signedSrcCache.get(src)?.src === pending) signedSrcCache.delete(src)
-    })
+    // Only a resolved link is kept: a miss or a failed request is asked again next time.
+    signedSrcCache.set(key, { at: Date.now(), src: pending })
+    const forget = () => {
+      if (signedSrcCache.get(key)?.src === pending) signedSrcCache.delete(key)
+    }
+    pending.then((resolved) => {
+      if (!resolved) forget()
+    }, forget)
     return pending
   }
 

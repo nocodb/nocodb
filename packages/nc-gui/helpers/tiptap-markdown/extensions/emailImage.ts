@@ -168,16 +168,22 @@ export const EmailImage = TiptapImage.extend<EmailImageOptions>({
           return
         }
         img.removeAttribute('src')
-        resolveSrc?.(src).then((url) => {
-          if (shownSrc !== src) return
-          if (url) {
-            img.src = url
-            return
-          }
-          // The file is gone (removed, or another workflow's upload), so the send will leave it out.
-          dom.classList.add('is-missing')
-          if (missingLabel) dom.title = missingLabel
-        })
+        resolveSrc?.(src).then(
+          (url) => {
+            if (shownSrc !== src) return
+            if (url) {
+              img.src = url
+              return
+            }
+            // The file is gone (removed, or another workflow's upload), so the send will leave it out.
+            dom.classList.add('is-missing')
+            if (missingLabel) dom.title = missingLabel
+          },
+          () => {
+            // A failed request says nothing about the file; the next update asks again.
+            if (shownSrc === src) shownSrc = undefined
+          },
+        )
       }
 
       function apply(n: PMNode) {

@@ -5,7 +5,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import Underline from '@tiptap/extension-underline'
 import { Slice } from '@tiptap/pm/model'
 import { NodeSelection } from '@tiptap/pm/state'
-import type { EditorState } from '@tiptap/pm/state'
+import type { EditorState, Transaction } from '@tiptap/pm/state'
 import StarterKit from '@tiptap/starter-kit'
 import { BubbleMenu, EditorContent, VueRenderer, useEditor } from '@tiptap/vue-3'
 import type { VariableDefinition, WorkflowTransformStep, WorkflowValueKind } from 'nocodb-sdk'
@@ -990,8 +990,15 @@ async function insertImageFile(file: File, pos?: number) {
   try {
     const width = await naturalWidth(preview)
     const src = await uploadImage(file)
-    const chain = editor.value?.chain().focus()
-    if (!chain) return
+    const e = editor.value
+    if (!e || e.isDestroyed) return
+    // Re-check against the live body: another pick or drop may have landed during the upload.
+    const usage = emailImageUsage(e.state.doc)
+    if (!canAddEmailImage(usage, file.size)) {
+      showImageLimitError(usage.srcs.size)
+      return
+    }
+    const chain = e.chain().focus()
     const image = {
       type: 'image',
       attrs: {
@@ -1034,11 +1041,20 @@ function takeDroppedImages(files: File[], point: { x: number; y: number }): File
 
   const target = document.elementFromPoint(point.x, point.y)
   let pos = target && view.dom.contains(target) ? view.posAtCoords({ left: point.x, top: point.y })?.pos : undefined
+  // Edits made while the uploads run, and each insert, move the drop point; map it through them.
+  const track = ({ transaction }: { transaction: Transaction }) => {
+    if (pos !== undefined) pos = transaction.mapping.map(pos)
+  }
+  const e = editor.value
+  if (pos !== undefined) e?.on('transaction', track)
   ;(async () => {
-    // One at a time, in drop order; each insert moves the next position past the image.
-    for (const file of inline) {
-      await insertImageFile(file, pos === undefined ? undefined : Math.min(pos, view.state.doc.content.size))
-      if (pos !== undefined) pos += 1
+    try {
+      // One at a time, in drop order.
+      for (const file of inline) {
+        await insertImageFile(file, pos === undefined ? undefined : Math.min(pos, view.state.doc.content.size))
+      }
+    } finally {
+      e?.off('transaction', track)
     }
   })()
   return rest

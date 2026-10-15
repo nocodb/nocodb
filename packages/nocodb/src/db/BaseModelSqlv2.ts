@@ -8259,7 +8259,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return thumbnails;
     }
 
-    if ('status' in attachment && attachment.status === 'uploading') {
+    if (
+      'status' in attachment &&
+      ['uploading', 'failed'].includes(attachment.status)
+    ) {
       return thumbnails;
     }
 
@@ -9272,6 +9275,42 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return false;
   }
 
+  // A `path`, or a `url` on our own storage host, must be one the caller owns
+  // (uploaded or already stored in this base). A foreign url is an external
+  // link and is never signed or read.
+  protected async insertAttachmentFileReference(
+    column: Column,
+    attachment: { url?: string; path?: string; size?: number },
+    userId?: string,
+    skipOwnershipCheck?: boolean,
+  ): Promise<string> {
+    if (!skipOwnershipCheck) {
+      for (const ref of [attachment.path, attachment.url]) {
+        if (!(await needsAttachmentOwnership(ref))) continue;
+        const accessible = await FileReference.isFileUrlAccessibleForWrite(
+          this.context,
+          { fileUrl: ref, userId },
+        );
+        if (!accessible) {
+          NcError.get(this.context).unprocessableEntity(
+            'Invalid attachment reference',
+          );
+        }
+      }
+    }
+
+    const source = await this.getSource();
+    return FileReference.insert(this.context, {
+      file_url: attachment.url ?? attachment.path,
+      file_size: attachment.size,
+      fk_user_id: userId ?? 'anonymous',
+      source_id: source.id,
+      fk_model_id: this.model.id,
+      fk_column_id: column.id,
+      is_external: !source.isMeta(),
+    });
+  }
+
   async prepareNocoData(
     data,
     isInsertData = false,
@@ -9448,6 +9487,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         this.context.api_version === NcApiVersion.V3
       ) {
         if (column.column_name in data) {
+          if (Array.isArray(data[column.column_name])) {
+            for (const attachment of data[column.column_name]) {
+              // a temp_ id without `uploading` status is an own-storage file
+              if (!attachment?.id?.startsWith?.('temp_') || attachment.status) {
+                continue;
+              }
+              attachment.id = await this.insertAttachmentFileReference(
+                column,
+                attachment,
+                cookie?.user?.id,
+                extra?.skipAttachmentOwnershipCheck,
+              );
+            }
+          }
           if (
             data &&
             data[column.column_name] &&
@@ -9600,58 +9653,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 !sanitizedAttachment.id ||
                 regenerateIds.includes(sanitizedAttachment.id)
               ) {
-                // A client-supplied `path` — or a `url` that resolves to our
-                // own object storage rather than a genuinely external file — is
-                // a disk-resolvable reference. Accepting an arbitrary one lets a
-                // caller embed another base's attachment and later have it
-                // signed & served (cross-tenant disclosure). `insert` below
-                // persists `file_url: url ?? path`, and read-time signing
-                // (`getSignedUrl`) reduces even an http(s) `url` to its pathname
-                // and, on external storage, signs THAT as a storage key — so a
-                // crafted `https://anything/nc/uploads/<victim>/secret.pdf`
-                // discloses another tenant's object. We therefore check any
-                // reference whose resolved storage key lives under `nc/uploads/`
-                // (using the same `getPathFromUrl` normalisation `getSignedUrl`
-                // applies, so URL-encoding can't slip past this), plus any
-                // non-http(s) `url` (an opaque local path). Only a reference the
-                // caller already owns — one they uploaded, or already stored in
-                // this base — is accepted.
-                const diskResolvableRefs = extra?.skipAttachmentOwnershipCheck
-                  ? []
-                  : [sanitizedAttachment.path, sanitizedAttachment.url].filter(
-                      (ref) => attachmentRefResolvesToStorage(ref),
-                    );
-
-                for (const ref of diskResolvableRefs) {
-                  const accessible =
-                    await FileReference.isFileUrlAccessibleForWrite(
-                      this.context,
-                      {
-                        fileUrl: ref,
-                        userId: cookie?.user?.id,
-                      },
-                    );
-                  if (!accessible) {
-                    NcError.get(this.context).unprocessableEntity(
-                      'Invalid attachment reference',
-                    );
-                  }
-                }
-
-                const source = await this.getSource();
-                sanitizedAttachment.id = await FileReference.insert(
-                  this.context,
-                  {
-                    file_url:
-                      sanitizedAttachment.url ?? sanitizedAttachment.path,
-                    file_size: sanitizedAttachment.size,
-                    fk_user_id: cookie?.user?.id ?? 'anonymous',
-                    source_id: source.id,
-                    fk_model_id: this.model.id,
-                    fk_column_id: column.id,
-                    is_external: !source.isMeta(),
-                  },
-                );
+                sanitizedAttachment.id =
+                  await this.insertAttachmentFileReference(
+                    column,
+                    sanitizedAttachment,
+                    cookie?.user?.id,
+                    extra?.skipAttachmentOwnershipCheck,
+                  );
               }
 
               sanitizedAttachments.push(sanitizedAttachment);

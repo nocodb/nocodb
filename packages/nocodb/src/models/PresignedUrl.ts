@@ -297,7 +297,11 @@ export default class PresignedUrl {
         },
         ncMeta,
       );
-    } else if (attachment?.url && attachment.status !== 'uploading') {
+    } else if (
+      attachment?.url &&
+      attachment.status !== 'uploading' &&
+      attachment.status !== 'failed'
+    ) {
       nestedObj.signedUrl = await PresignedUrl.getSignedUrl(
         {
           pathOrUrl: attachment.url,

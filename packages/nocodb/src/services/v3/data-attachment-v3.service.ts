@@ -136,13 +136,20 @@ export class DataAttachmentV3Service {
           }
         }
       } catch (error) {
-        // The attachment is dropped from the cell rather than left half-written.
-        // Log enough to trace it back — a silent drop here is indistinguishable
-        // from the user never sending the file.
         this.logger.error(
           `Failed to fetch attachment from url for ${modelId}.${column.id} record ${recordId}: ${error?.message}`,
           error?.stack,
         );
+        // Keep the item, marked, so the caller can see the file was not stored.
+        // Its FileReference stays `deleted` as inserted by the preparator.
+        processedAttachments.push({
+          id: attachment.id,
+          url: attachment.url,
+          status: 'failed',
+          error: error?.response?.status
+            ? `Download failed with HTTP ${error.response.status}`
+            : 'Download failed',
+        });
       }
     }
     const pkWhere = _wherePk(baseModel.model.primaryKeys, recordId, true);
@@ -486,6 +493,8 @@ export class DataAttachmentV3Service {
       method: 'GET',
       url: url,
       responseType: 'stream',
+      // some hosts (e.g. Wikimedia) refuse axios's default User-Agent
+      headers: { 'User-Agent': 'NocoDB' },
       maxRedirects: NC_ATTACHMENT_URL_MAX_REDIRECT,
       maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
       ...getFilteredAgents({ url, source: OperationSource.ATTACHMENTS }),

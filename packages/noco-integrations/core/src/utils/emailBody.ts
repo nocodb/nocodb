@@ -321,8 +321,19 @@ const DATA_IMAGE_SRC =
 // The payload of an `<img>` source the send path turns into a part, for measuring a body without
 // those bytes. Anything else counts as markup: a base64 run elsewhere (record values can't form
 // `<img`), an unclosed quote, or a type that is never sent. So the cap bounds what gets sanitized.
+// Anchored on `src=` so the scan stays linear: it runs on every workflow save, before any cap.
+// Whether the `src` belongs to an `<img>` is checked separately (`isInsideImgTag`).
 const DATA_IMAGE_SRC_PAYLOAD =
-  /(<img\b[^>]{0,512}?\bsrc\s{0,16}=\s{0,16})(["'])data:image\/(?:png|jpe?g|gif|webp);base64,[A-Za-z0-9+/=\s]*\2/gi;
+  /(\bsrc\s{0,16}=\s{0,16})(["'])data:image\/(?:png|jpe?g|gif|webp);base64,[A-Za-z0-9+/=\s]*\2/gi;
+
+const IMG_TAG_OPENING = /^<img\b[^>]*$/i;
+
+/** Whether `offset` sits inside an `<img` tag, looking back no more than 512 chars. */
+function isInsideImgTag(body: string, offset: number): boolean {
+  const window = body.slice(Math.max(0, offset - 512), offset);
+  const tagStart = window.lastIndexOf('<');
+  return tagStart !== -1 && IMG_TAG_OPENING.test(window.slice(tagStart));
+}
 
 // Base64 of the inline image cap, with room for line breaks inside the payloads.
 const MAX_EMAIL_IMAGE_PAYLOAD_LENGTH =
@@ -333,7 +344,8 @@ function measureEmailBody(body: string): { markup: number; payload: number } {
   let payload = 0;
   const markup = body.replace(
     DATA_IMAGE_SRC_PAYLOAD,
-    (match, prefix: string, quote: string) => {
+    (match, prefix: string, quote: string, offset: number) => {
+      if (!isInsideImgTag(body, offset)) return match;
       const kept = `${prefix}${quote}${quote}`;
       payload += match.length - kept.length;
       return kept;

@@ -373,6 +373,30 @@ describe('stored body images', () => {
     }
   });
 
+  it('measures bodies in linear time, even far past the cap', () => {
+    const cases = [
+      '<img '.repeat(1_000_000),
+      '<p>' + '<img '.repeat(400) + ' src="data:image/png;base64,' + 'A'.repeat(1_000_000),
+      ('<p src="data:image/png;base64,' + 'A'.repeat(64) + '">').repeat(20_000),
+    ];
+    for (const body of cases) {
+      const started = Date.now();
+      collectEmailBodyImageRefs(`nc-file:${body}`);
+      expect(() => prepareEmailBody(body, { isHtml: true })).toThrow(/KB limit/);
+      expect(Date.now() - started).toBeLessThan(500);
+    }
+  });
+
+  it('only discounts data: payloads inside an <img> tag', () => {
+    const payload = 'A'.repeat(200_000);
+    expect(() =>
+      prepareEmailBody(`<p><img alt="x" src="data:image/png;base64,${payload}"></p>`, { isHtml: true }),
+    ).not.toThrow(/KB limit/);
+    expect(() =>
+      prepareEmailBody(`<p><a src="data:image/png;base64,${payload}">x</a></p>`, { isHtml: true }),
+    ).toThrow(/KB limit/);
+  });
+
   it('counts an unclosed data: src as markup, so the cap stops it before extraction', () => {
     const unclosed = '<p>' + '<img '.repeat(400) + ' src="data:image/png;base64,' + 'A'.repeat(1_000_000);
     const started = Date.now();

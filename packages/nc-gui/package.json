@@ -218,7 +218,7 @@
     "@types/validator": "^13.12.2",
     "@types/vue-barcode-reader": "^0.0.3",
     "@vitest/ui": "^4.1.1",
-    "@vue/compiler-sfc": "^3.5.13",
+    "@vue/compiler-sfc": "^3.5.43",
     "@vue/test-utils": "^2.4.6",
     "@julr/unocss-preset-forms": "^2.0.0",
     "@unocss/nuxt": "^66.7.5",

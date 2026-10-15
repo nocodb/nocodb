@@ -15,6 +15,7 @@ import type { MetaService } from '~/meta/meta.service';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
+import { assertFiltersReadable } from '~/helpers/filterVerify';
 import { Column, Filter, Hook, View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
@@ -47,7 +48,7 @@ export class FiltersV3Service {
       req: NcRequest;
     } & { viewId: string }, // | { hookId: string } | { linkColumnId: string }),
   ) {
-    // if root group creation then check existing root group
+    await this.assertViewFiltersReadable(context, param.viewId, param.filter);
 
     const insertedFilters: Filter[] = [];
 
@@ -88,6 +89,31 @@ export class FiltersV3Service {
     const list = this.filterList(context, param);
 
     return list;
+  }
+
+  /**
+   * Refuse conditions the read path would refuse (unknown field, operator the
+   * field does not support): stored, they break every read of the view.
+   */
+  protected async assertViewFiltersReadable(
+    context: NcContext,
+    viewId: string,
+    tree: FilterCreateV3Type | FilterCreateUpdateV3Type,
+  ) {
+    const view = await View.get(context, viewId);
+    if (!view) NcError.get(context).viewNotFound(viewId);
+
+    const leaves: Partial<FilterType>[] = [];
+    const collect = (node: any) => {
+      if (!node) return;
+      if (Array.isArray(node.filters)) node.filters.forEach(collect);
+      else if (node.field_id) {
+        leaves.push(filterRevBuilder().build(node) as FilterType);
+      }
+    };
+    collect(tree);
+
+    await assertFiltersReadable(context, view.fk_model_id, leaves);
   }
 
   async insertFilterGroup({
@@ -484,6 +510,22 @@ export class FiltersV3Service {
         param.filter as FilterGroupV3Type | FilterV3Type,
       ) as FilterType;
       delete remappedFilter.logical_op;
+
+      const view = await View.get(context, param.viewId);
+      await assertFiltersReadable(context, view.fk_model_id, [
+        {
+          fk_column_id: remappedFilter.fk_column_id ?? filter.fk_column_id,
+          comparison_op: remappedFilter.comparison_op ?? filter.comparison_op,
+          comparison_sub_op:
+            remappedFilter.comparison_sub_op !== undefined
+              ? remappedFilter.comparison_sub_op
+              : filter.comparison_sub_op,
+          value:
+            remappedFilter.value !== undefined
+              ? remappedFilter.value
+              : filter.value,
+        },
+      ]);
       await this.filtersService.filterUpdate(context, {
         filterId: param.filterId,
         filter: remappedFilter as FilterReqType,
@@ -615,6 +657,7 @@ export class FiltersV3Service {
       true,
       context,
     );
+    await this.assertViewFiltersReadable(context, param.viewId, param.filter);
 
     // delete existing filters
     await Filter.deleteAll(context, param.viewId);

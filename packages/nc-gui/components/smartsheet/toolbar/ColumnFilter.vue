@@ -253,6 +253,8 @@ const fieldsToFilter = computed(() =>
     }),
 )
 
+const { dateDisplayLinkFields } = useDateDisplayLinkFields(fieldsToFilter, workflow)
+
 const {
   filters,
   lastFilters,
@@ -578,7 +580,7 @@ const selectFilterField = (filter: Filter, index: number) => {
   // hence, get the first option of the supported operators of the new field
   filter.comparison_op = getDefaultComparisonOp(
     comparisonOpList(types.value[col.id] as UITypes, col?.meta?.date_format),
-    (compOp) => isComparisonOpAllowed(filter, compOp),
+    (compOp) => isComparisonOpAllowed(filter, compOp) && !isOpHiddenForDateDisplayLink(filter, compOp.value),
     types.value[col.id] as UITypes,
   ) as FilterType['comparison_op']
 
@@ -1139,6 +1141,12 @@ const isDynamicFilterAllowed = (filter: FilterType, { allowComputed = false } = 
   return !filter.comparison_op || ['eq', 'lt', 'gt', 'lte', 'gte', 'like', 'nlike', 'neq'].includes(filter.comparison_op)
 }
 
+// A link whose display value is a date compares against that date: `like`
+// can't match it, and workflows reject it.
+function isOpHiddenForDateDisplayLink(filter: ColumnFilterType, op: string) {
+  return !!filter.fk_column_id && !!dateDisplayLinkFields.value[filter.fk_column_id] && ['like', 'nlike'].includes(op)
+}
+
 async function loadRootLinkTargets() {
   if (!link.value || !props.rootMeta?.columns) return
   try {
@@ -1653,7 +1661,10 @@ defineExpose({
                     v-for="compOp of comparisonOpList(types[filter.fk_column_id], getColumn(filter)?.meta?.date_format)"
                     :key="compOp.value"
                   >
-                    <a-select-option v-if="isComparisonOpAllowed(filter, compOp)" :value="compOp.value">
+                    <a-select-option
+                      v-if="isComparisonOpAllowed(filter, compOp) && !isOpHiddenForDateDisplayLink(filter, compOp.value)"
+                      :value="compOp.value"
+                    >
                       <div class="flex items-center w-full justify-between w-full gap-2">
                         <div class="truncate flex-1">{{ getFilterOpLabel(compOp.i18nKey, compOp.text) }}</div>
                         <component
@@ -1996,6 +2007,16 @@ defineExpose({
             <div v-if="isMobileMode && mobileActionMenuItems(filter).length" class="h-8 flex items-center">
               <SmartsheetToolbarColumnFilterMobileActionMenu :items="mobileActionMenuItems(filter)" />
             </div>
+          </div>
+          <div
+            v-if="filter.fk_column_id && dateDisplayLinkFields[filter.fk_column_id]"
+            class="nc-filter-link-date-hint flex items-center gap-1 mt-1 pl-3 text-captionSm text-nc-content-gray-muted"
+            data-testid="nc-filter-link-date-hint"
+          >
+            <GeneralIcon icon="info" class="flex-none w-3.5 h-3.5" />
+            <span>
+              {{ $t('msg.info.linkFilterByDateDisplay', { field: dateDisplayLinkFields[filter.fk_column_id].title }) }}
+            </span>
           </div>
         </div>
       </template>

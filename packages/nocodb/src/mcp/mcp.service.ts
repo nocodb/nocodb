@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { z } from 'zod';
+import { Injectable, Logger } from '@nestjs/common';
+import { createMcpHandler, McpServer } from '@modelcontextprotocol/server';
+import { toNodeHandler } from '@modelcontextprotocol/node';
+import { z } from 'zod-v4';
 import { extractRolesObj, NcApiVersion } from 'nocodb-sdk';
+import type { FetchLikeMcpHandler } from '@modelcontextprotocol/node';
 import type { NcContext, NcRequest, UserType } from 'nocodb-sdk';
 import type { Request, Response } from 'express';
 import type { McpToolRegisterCtx } from '~/mcp/tools/tool-helpers';
@@ -12,9 +13,8 @@ import type {
   DataUpdateRequest,
 } from '~/services/v3/data-v3.types';
 import { NcError } from '~/helpers/catchError';
-import { resolveAttachmentFilePath } from '~/helpers/attachmentHelpers';
-import Noco from '~/Noco';
-import { MetaTable } from '~/utils/globals';
+import PresignedUrl from '~/models/PresignedUrl';
+import { resolveReadableAttachmentPath } from '~/mcp/attachment-read';
 import { MCP_DATA_PAYLOAD_LIMIT, V3_DATA_PAYLOAD_LIMIT } from '~/constants';
 import { unitsForBulk } from '~/mcp/tools/tool-units';
 import { BasesV3Service } from '~/services/v3/bases-v3.service';
@@ -32,10 +32,16 @@ import {
 } from '~/mcp/descriptions';
 import {
   fieldsSchema,
+  recordIdSchema,
   serializeSort,
   sortSchema,
   viewIdSchema,
 } from '~/mcp/data-schemas';
+import {
+  checkRecordFields,
+  pickReturnFields,
+  resolveReturnFields,
+} from '~/mcp/tools/record-fields';
 import { strictRegistrar } from '~/mcp/tools/strict-schema';
 import {
   callScopedRegistrar,
@@ -44,18 +50,59 @@ import {
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import {
   getRoleFlags,
+  mcpContentResult,
+  pageFromV3Url,
   resolveLinkField,
   runBaseTool,
 } from '~/mcp/tools/tool-helpers';
 import { baseIdInput, McpFixedBaseScope } from '~/mcp/tools/tool-scope';
+import { withTypedFieldDefaults } from '~/mcp/tools/field-defaults';
 import {
   filterInputDescription,
   filterInputSchema,
   resolveWhere,
 } from '~/mcp/tools/filter-input';
 
+// Image types MCP clients render inline. Anything else binary is linked, not sent.
+const INLINE_IMAGE_MIME_TYPES = [
+  'image/png',
+  'image/jpeg',
+  'image/gif',
+  'image/webp',
+];
+const MAX_INLINE_IMAGE_BYTES = 5 * 1024 * 1024;
+
+// Null once the stream passes `maxBytes`; the stream is destroyed then.
+async function streamToBuffer(
+  stream: unknown,
+  maxBytes: number,
+): Promise<Buffer | null> {
+  const chunks: Buffer[] = [];
+  let total = 0;
+  for await (const chunk of stream as AsyncIterable<Buffer | string>) {
+    const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    total += buf.length;
+    if (total > maxBytes) {
+      (stream as { destroy?: () => void }).destroy?.();
+      return null;
+    }
+    chunks.push(buf);
+  }
+  return Buffer.concat(chunks);
+}
+
+// Binary bytes decoded as UTF-8 come out as NULs and U+FFFD. The stored
+// mimetype is client-supplied, so the decoded text is what decides.
+function looksBinary(text: string) {
+  if (text.includes('\u0000')) return true;
+  const replacements = text.match(/�/g)?.length ?? 0;
+  return replacements > 0 && replacements / text.length > 0.01;
+}
+
 @Injectable()
 export class McpService {
+  protected readonly logger = new Logger(McpService.name);
+
   constructor(
     protected readonly baseV3Service: BasesV3Service,
     protected readonly tablesV3Service: TablesV3Service,
@@ -109,17 +156,29 @@ export class McpService {
     );
   }
 
+  // Stateless, one server per request; serves 2025-11-25 and 2026-07-28 clients.
   protected async serve(server: McpServer, req: NcRequest, res: Response) {
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: undefined,
-    });
+    const handler = createMcpHandler(() => server);
 
     res.on('close', () => {
-      transport.close();
-      server.close();
+      void handler.close();
+      void server.close();
     });
-    await server.connect(transport);
-    await transport.handleRequest(req as Request, res, req.body);
+
+    await toNodeHandler({ fetch: this.observeFetch(handler.fetch, req, res) })(
+      req as Request,
+      res,
+      req.body,
+    );
+  }
+
+  // EE hooks per-call access logging here.
+  protected observeFetch(
+    fetch: FetchLikeMcpHandler['fetch'],
+    _req: NcRequest,
+    _res: Response,
+  ): FetchLikeMcpHandler['fetch'] {
+    return fetch;
   }
 
   protected async registerTools({
@@ -242,11 +301,13 @@ export class McpService {
           ctx,
           { op: 'tableGet', scope: 'base' },
           { baseId, tableId },
-          (target) =>
-            this.tablesV3Service.getTableWithAccessibleViews(target.context, {
-              tableId,
-              user: target.user,
-            }),
+          async (target) =>
+            withTypedFieldDefaults(
+              await this.tablesV3Service.getTableWithAccessibleViews(
+                target.context,
+                { tableId, user: target.user },
+              ),
+            ),
         ),
     );
 
@@ -261,16 +322,22 @@ export class McpService {
           tableId: z.string().describe('Table ID'),
           pageSize: z
             .number()
+            .int()
+            .min(1)
             .optional()
             .describe(
-              'Number of records to fetch (default: 50). Capped at 200 here, ' +
+              'Number of records to fetch (default: 50, minimum 1). Capped at 200 here, ' +
                 'and further by the deployment limit — the response reports ' +
                 'the `page_size` actually applied.',
             ),
           page: z
             .number()
+            .int()
+            .min(1)
             .optional()
-            .describe('Page number for pagination (default: 1)'),
+            .describe(
+              'Page number for pagination (default: 1). Use `next_page` / `prev_page` from the response. A page past the end returns an empty `records` list whose `prev_page` is the last page with records (1 if there are none).',
+            ),
           filter: filterInputSchema.optional().describe(filterInputDescription),
           where: z.string().optional().describe(whereDescription),
           sort: sortSchema.optional(),
@@ -302,7 +369,7 @@ export class McpService {
           async (target) => {
             const requestedPageSize = pageSize;
             const params: any = {
-              pageSize: Math.max(1, Math.min(pageSize || 25, 200)),
+              pageSize: Math.min(pageSize, 200),
               page,
             };
             const resolvedWhere = await resolveWhere(target.context, tableId, {
@@ -316,14 +383,6 @@ export class McpService {
             // reads — otherwise `next`/`prev` come back without the view.
             if (viewId) params.viewId = viewId;
 
-            const records = await this.datasV3Service.dataList(target.context, {
-              baseId: target.context.base_id,
-              modelId: tableId,
-              viewId,
-              query: params,
-              req: target.req,
-            });
-
             // The deployment clamps the limit again via NC_DB_QUERY_LIMIT_MAX
             // (1000 by default, 100 on shared/cloud), and `pageInfo` carries
             // only next/prev URLs — which echo the *requested* size. A caller
@@ -333,9 +392,7 @@ export class McpService {
               params.pageSize,
               defaultLimitConfig.limitMax,
             );
-
-            return {
-              ...records,
+            const pageInfo = {
               page,
               page_size: effectivePageSize,
               ...(effectivePageSize < requestedPageSize
@@ -346,6 +403,27 @@ export class McpService {
                       `offsets follow the clamped size.`,
                   }
                 : {}),
+            };
+
+            const records = await this.datasV3Service.dataList(
+              target.context,
+              {
+                baseId: target.context.base_id,
+                modelId: tableId,
+                viewId,
+                query: params,
+                req: target.req,
+              },
+              true,
+            );
+
+            return {
+              ...records,
+              ...pageInfo,
+              // Page numbers to pass back as `page`; `next`/`prev` are the REST
+              // URLs, which an MCP client cannot call.
+              next_page: pageFromV3Url(records.next)?.page ?? null,
+              prev_page: pageFromV3Url(records.prev)?.page ?? null,
             };
           },
         ),
@@ -362,7 +440,7 @@ export class McpService {
         inputSchema: {
           ...inBase,
           tableId: z.string().describe('Table ID'),
-          recordId: z.string().describe('Record ID or primary key value'),
+          recordId: recordIdSchema.describe('Record ID or primary key value'),
           fields: fieldsSchema.optional(),
           viewId: viewIdSchema,
         },
@@ -378,7 +456,7 @@ export class McpService {
           ctx,
           { op: 'dataRead', scope: 'base' },
           { baseId, tableId },
-          (target) =>
+          async (target) =>
             this.datasV3Service.dataRead(target.context, {
               modelId: tableId,
               rowId: recordId,
@@ -435,56 +513,40 @@ export class McpService {
       {
         title: 'Read Attachments',
         description:
-          'Read the content of attachment objects returned by getRecord or queryRecords from an Attachment field',
+          'Read the content of attachment objects returned by getRecord or queryRecords from an Attachment field. ' +
+          'Text is returned as text, PNG/JPEG/GIF/WEBP as image content; other binary files are not returned, and the response gives a download URL.',
         inputSchema: {
           ...inBase,
           files: z
             .array(
+              // Takes an attachment object exactly as records tools return it.
               z
                 .object({
-                  title: z.string().nullable().describe('Attachment title'),
+                  title: z.string().nullish().describe('Attachment title'),
+                  mimetype: z
+                    .string()
+                    .nullish()
+                    .describe('Attachment mime type, as stored'),
                   mimeType: z
                     .string()
-                    .nullable()
-                    .describe('Attachment mime type'),
-                  size: z.number().nullable().describe('Attachment size'),
+                    .nullish()
+                    .describe('Alias of `mimetype`'),
+                  size: z.number().nullish().describe('Attachment size'),
+                  url: z
+                    .string()
+                    .nullish()
+                    .describe('Attachment URL. Required if `path` is not set.'),
+                  signedUrl: z.string().nullish(),
+                  path: z
+                    .string()
+                    .nullish()
+                    .describe('Attachment path. Required if `url` is not set.'),
+                  signedPath: z.string().nullish(),
                 })
-                .and(
-                  z.union([
-                    z.object({
-                      url: z
-                        .string()
-                        .nullable()
-                        .describe(
-                          'Attachment URL. Required if `path` is not provided.',
-                        ),
-                      signedUrl: z
-                        .string()
-                        .nullable()
-                        .describe(
-                          'Attachment signed URL. Required if `path` is not provided.',
-                        ),
-                      path: z.null(),
-                      signedPath: z.null(),
-                    }),
-                    z.object({
-                      path: z
-                        .string()
-                        .nullable()
-                        .describe(
-                          'Attachment path. Required if `url` is not provided.',
-                        ),
-                      signedPath: z
-                        .string()
-                        .nullable()
-                        .describe(
-                          'Attachment signed Path. Required if `url` is not provided.',
-                        ),
-                      url: z.null(),
-                      signedUrl: z.null(),
-                    }),
-                  ]),
-                ),
+                .passthrough()
+                .refine((f) => !!(f.url || f.path), {
+                  message: 'An attachment needs a `url` or a `path`',
+                }),
             )
             .describe('Array of attachment objects from NocoDB'),
         },
@@ -507,44 +569,94 @@ export class McpService {
 
             const storageAdapter = await NcPluginMgrv2.storageAdapter();
 
+            // Signed here: client-supplied signed links expire, and only
+            // signed paths are served with secure attachments on.
+            const siteUrl = target.context.nc_site_url ?? target.req.ncSiteUrl;
+            const downloadUrl = async (
+              source: { path?: string; url?: string },
+              title: string | null | undefined,
+              mimetype: string,
+            ) => {
+              const attachment: {
+                url?: string;
+                path?: string;
+                mimetype: string;
+                signedUrl?: string;
+                signedPath?: string;
+              } = { ...source, mimetype };
+              try {
+                await PresignedUrl.signAttachment({
+                  attachment,
+                  filename: title ?? undefined,
+                });
+              } catch (e) {
+                this.logger.error(e.message, e.stack);
+              }
+              if (attachment.signedUrl) return attachment.signedUrl;
+              return siteUrl && attachment.signedPath
+                ? `${siteUrl}/${attachment.signedPath}`
+                : 'its attachment URL';
+            };
+
             const results = await Promise.all(
               files.map(async (file) => {
                 try {
-                  let relativePath;
-
-                  // Determine the relative path from attachment
-                  if (file.path || file.url) {
-                    relativePath = resolveAttachmentFilePath(file);
-                  } else {
+                  if (!file.path && !file.url) {
                     return {
                       title: file.title || 'Unknown file',
                       error: 'No path or URL available for this attachment',
                     };
                   }
 
-                  // Only allow paths recorded as an attachment in the
-                  // caller's current base.
-                  const fileUrlCandidates = [
-                    file.path,
-                    file.url,
-                    file.path ? file.path.replace(/^download[/\\]/i, '') : null,
-                  ].filter(Boolean) as string[];
+                  // Read and sign only the value checked below: `path` wins
+                  // when present, so an unrecorded path can't ride on a
+                  // recorded url.
+                  const source: { path?: string; url?: string } = file.path
+                    ? { path: file.path }
+                    : { url: file.url ?? undefined };
 
-                  const fileRef = await Noco.ncMeta
-                    .knex(MetaTable.FILE_REFERENCES)
-                    .where({
-                      base_id: target.context.base_id,
-                      deleted: false,
-                    })
-                    .whereIn('file_url', fileUrlCandidates)
-                    .first();
+                  const relativePath = await resolveReadableAttachmentPath(
+                    target.context,
+                    source,
+                    storageAdapter,
+                  );
 
-                  if (!fileRef) {
+                  if (!relativePath) {
                     return {
                       title: file.title || 'Unknown file',
                       error:
                         'Attachment is not accessible from this MCP context',
                     };
+                  }
+
+                  const mimeType =
+                    file.mimeType ||
+                    file.mimetype ||
+                    'application/octet-stream';
+
+                  const isInlineImage =
+                    INLINE_IMAGE_MIME_TYPES.includes(mimeType);
+
+                  const imageTooLarge = async () => ({
+                    title: file.title || 'Unknown file',
+                    mimeType,
+                    size: file.size,
+                    error:
+                      `Image is larger than ${
+                        MAX_INLINE_IMAGE_BYTES / (1024 * 1024)
+                      } MB and is not returned inline. ` +
+                      `Download it from: ${await downloadUrl(
+                        source,
+                        file.title,
+                        mimeType,
+                      )}`,
+                  });
+
+                  if (
+                    isInlineImage &&
+                    Number(file.size) > MAX_INLINE_IMAGE_BYTES
+                  ) {
+                    return imageTooLarge();
                   }
 
                   const stream = await storageAdapter.fileReadByStream(
@@ -557,7 +669,23 @@ export class McpService {
                     };
                   }
 
-                  const mimeType = file.mimeType || 'application/octet-stream';
+                  // Images go back as image content. Serialized as text they
+                  // come out as garbled UTF-8.
+                  if (isInlineImage) {
+                    // `size` is client-supplied, so cap the read as well.
+                    const bytes = await streamToBuffer(
+                      stream,
+                      MAX_INLINE_IMAGE_BYTES,
+                    );
+                    if (!bytes) return imageTooLarge();
+                    return {
+                      title: file.title || 'Unknown file',
+                      mimeType,
+                      size: file.size,
+                      image: bytes.toString('base64'),
+                      error: null,
+                    };
+                  }
 
                   const serialized = await serialize(
                     mimeType,
@@ -567,7 +695,8 @@ export class McpService {
 
                   const hasContent =
                     serialized.text &&
-                    serialized.text !== '@file_not_supported';
+                    serialized.text !== '@file_not_supported' &&
+                    !looksBinary(serialized.text);
 
                   return {
                     title: file.title || 'Unknown file',
@@ -577,7 +706,12 @@ export class McpService {
                     images: serialized.images,
                     error: hasContent
                       ? null
-                      : 'Could not extract text from this file type',
+                      : `Could not extract text from this ${mimeType} file (binary content is not returned). ` +
+                        `Download it from: ${await downloadUrl(
+                          source,
+                          file.title,
+                          mimeType,
+                        )}`,
                   };
                 } catch (error) {
                   return {
@@ -590,10 +724,19 @@ export class McpService {
 
             // Compile all content into one response
             const successfulResults = results.filter((r) => r.content);
+            const imageResults = results.filter((r) => r.image);
             const failedResults = results.filter((r) => r.error);
 
             // Format content for the response
             let responseText = '';
+
+            if (imageResults.length > 0) {
+              responseText += '## Images\n\n';
+              for (const result of imageResults) {
+                responseText += `### ${result.title}\n`;
+                responseText += `**Type:** ${result.mimeType}\n\n`;
+              }
+            }
 
             if (successfulResults.length > 0) {
               responseText += '## Successfully Processed Files\n\n';
@@ -619,7 +762,18 @@ export class McpService {
               }
             }
 
-            return responseText.trim();
+            if (imageResults.length === 0) {
+              return responseText.trim();
+            }
+
+            return mcpContentResult([
+              { type: 'text', text: responseText.trim() },
+              ...imageResults.map((result) => ({
+                type: 'image' as const,
+                data: result.image as string,
+                mimeType: result.mimeType as string,
+              })),
+            ]);
           },
         ),
     );
@@ -739,9 +893,14 @@ export class McpService {
             .describe(
               `Array of records with fields as key-value pairs. At most ${MCP_DATA_PAYLOAD_LIMIT} per call — a longer array is rejected outright, so split larger writes into batches.`,
             ),
+          returnFields: fieldsSchema
+            .optional()
+            .describe(
+              'Fields to return for each record — an array of field names or ids, or a comma-separated list. Omit to get every field; pass only what you need to keep large writes readable.',
+            ),
         },
       },
-      async ({ baseId, tableId, records }) =>
+      async ({ baseId, tableId, records, returnFields }) =>
         runBaseTool(
           ctx,
           { op: 'dataInsert', scope: 'base' },
@@ -756,16 +915,39 @@ export class McpService {
               V3_DATA_PAYLOAD_LIMIT,
             ),
           },
-          (target) =>
-            this.datasV3Service.dataInsert(target.context, {
-              modelId: tableId,
-              baseId: target.context.base_id,
-              body: (Array.isArray(records)
-                ? records
-                : [records]) as DataInsertRequest[],
-              cookie: target.req,
-              maxPayloadOverride: MCP_DATA_PAYLOAD_LIMIT,
-            }),
+          async (target) => {
+            const body = Array.isArray(records) ? records : [records];
+            const { warnings, ignored_fields } = await checkRecordFields(
+              target.context,
+              tableId,
+              body,
+            );
+            const returnTitles = await resolveReturnFields(
+              target.context,
+              tableId,
+              returnFields,
+            );
+            const inserted = await this.datasV3Service.dataInsert(
+              target.context,
+              {
+                modelId: tableId,
+                baseId: target.context.base_id,
+                body: body as DataInsertRequest[],
+                cookie: target.req,
+                maxPayloadOverride: MCP_DATA_PAYLOAD_LIMIT,
+                tolerateReadbackFailure: true,
+              },
+            );
+            const result = pickReturnFields(inserted, returnTitles);
+            const allWarnings = [...warnings, ...(result.warnings ?? [])];
+            return allWarnings.length
+              ? {
+                  ...result,
+                  warnings: allWarnings,
+                  ...(ignored_fields.length ? { ignored_fields } : {}),
+                }
+              : result;
+          },
         ),
     );
 
@@ -779,7 +961,9 @@ export class McpService {
           'A link field is replaced, not appended to: pass the complete list of ' +
           'linked records you want, and `[]` to clear it. `null` is not a link ' +
           'value and is ignored. To add or remove individual links without ' +
-          'restating the set, use linkRecords / unlinkRecords.',
+          'restating the set, use linkRecords / unlinkRecords. Computed fields ' +
+          'and the primary key are not written; they are listed in ' +
+          '`ignored_fields`.',
         inputSchema: {
           ...inBase,
           tableId: z.string().describe('Table ID'),
@@ -797,6 +981,11 @@ export class McpService {
             .describe(
               `Array of records with ID and fields to update. At most ${MCP_DATA_PAYLOAD_LIMIT} per call — a longer array is rejected outright, so split larger writes into batches.`,
             ),
+          returnFields: fieldsSchema
+            .optional()
+            .describe(
+              'Fields to return for each record — an array of field names or ids, or a comma-separated list. Omit to get every field; pass only what you need to keep large writes readable.',
+            ),
         },
         annotations: {
           title: 'Update Records',
@@ -805,7 +994,7 @@ export class McpService {
           openWorldHint: false,
         },
       },
-      async ({ baseId, tableId, records }) =>
+      async ({ baseId, tableId, records, returnFields }) =>
         runBaseTool(
           ctx,
           { op: 'dataUpdate', scope: 'base' },
@@ -820,16 +1009,32 @@ export class McpService {
               V3_DATA_PAYLOAD_LIMIT,
             ),
           },
-          (target) =>
-            this.datasV3Service.dataUpdate(target.context, {
-              modelId: tableId,
-              baseId: target.context.base_id,
-              body: (Array.isArray(records)
-                ? records
-                : [records]) as DataUpdateRequest[],
-              cookie: target.req,
-              maxPayloadOverride: MCP_DATA_PAYLOAD_LIMIT,
-            }),
+          async (target) => {
+            const body = Array.isArray(records) ? records : [records];
+            const { warnings, ignored_fields } = await checkRecordFields(
+              target.context,
+              tableId,
+              body,
+            );
+            const returnTitles = await resolveReturnFields(
+              target.context,
+              tableId,
+              returnFields,
+            );
+            const result = pickReturnFields(
+              await this.datasV3Service.dataUpdate(target.context, {
+                modelId: tableId,
+                baseId: target.context.base_id,
+                body: body as DataUpdateRequest[],
+                cookie: target.req,
+                maxPayloadOverride: MCP_DATA_PAYLOAD_LIMIT,
+              }),
+              returnTitles,
+            );
+            return warnings.length
+              ? { ...result, warnings, ignored_fields }
+              : result;
+          },
         ),
     );
 
@@ -919,7 +1124,11 @@ export class McpService {
       let failed = 0;
 
       for (let i = 0; i < records.length; i++) {
-        const { id, links } = records[i];
+        const { id } = records[i];
+        // Duplicate ids in one entry link once; the count reports what was sent.
+        const links = [
+          ...new Map(records[i].links.map((l) => [String(l.id), l])).values(),
+        ];
         try {
           await apply({
             columnId: column.id,
@@ -988,8 +1197,11 @@ export class McpService {
         title: 'Link Records',
         description:
           'Add links from records in this table to records in the linked ' +
-          'table through a link field. Existing links are kept; use ' +
-          'updateRecords to replace a whole set, unlinkRecords to remove. ' +
+          'table through a link field. On a many-to-many or has-many field ' +
+          'existing links are kept; use updateRecords to replace a whole ' +
+          'set, unlinkRecords to remove. A many-to-one, belongs-to or ' +
+          'one-to-one field takes one target per record; more is refused, ' +
+          'and one target replaces any existing link on that record. ' +
           'Reports per-record ok/error — one bad record does not fail the rest.',
         annotations: {
           title: 'Link Records',

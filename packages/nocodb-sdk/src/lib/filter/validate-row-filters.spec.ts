@@ -1965,6 +1965,46 @@ describe('validateRowFilters — User / LTAR / nested resolution', () => {
         })
       ).toBe(true);
     });
+
+    it('resolves a cross-base link against the related base meta', () => {
+      const columns = [
+        {
+          id: 'xb',
+          title: 'Remote',
+          uidt: UITypes.LinkToAnotherRecord,
+          colOptions: {
+            fk_related_model_id: 'remoteModel',
+            fk_related_base_id: 'baseB',
+          },
+        },
+      ] as ColumnType[];
+      const metas = {
+        'baseB:remoteModel': {
+          id: 'remoteModel',
+          base_id: 'baseB',
+          columns: [
+            {
+              id: 'rpv',
+              title: 'Name',
+              uidt: UITypes.SingleLineText,
+              pv: true,
+            },
+          ],
+        },
+      };
+      const run = (data: any) =>
+        validateRowFilters({
+          filters: [{ fk_column_id: 'xb', comparison_op: 'eq', value: 'X' }],
+          data,
+          columns,
+          client: mockClient,
+          metas,
+          baseId: 'baseA',
+        });
+
+      expect(run({ Remote: [{ Name: 'X' }] })).toBe(true);
+      expect(run({ Remote: [{ Name: 'Y' }] })).toBe(false);
+    });
   });
 
   describe('Formula→boolean, lookup→user, nested lookup', () => {

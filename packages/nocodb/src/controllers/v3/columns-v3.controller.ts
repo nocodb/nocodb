@@ -57,7 +57,7 @@ export class ColumnsV3Controller {
     @Body() body: FieldUpdateV3Type,
     @Req() req: NcRequest,
   ) {
-    return await this.columnsV3Service.columnUpdate(context, {
+    return await this.columnsV3Service.columnUpdateWithReport(context, {
       columnId: columnId,
       column: body,
       req,

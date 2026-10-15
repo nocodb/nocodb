@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   enumColors,
   isLinksOrLTAR,
   LinksVersion,
   NcApiVersion,
+  parseProp,
   UITypes,
   WebhookActions,
 } from 'nocodb-sdk';
@@ -23,8 +24,10 @@ import {
   ColumnWebhookManagerBuilder,
 } from '~/utils/column-webhook-manager';
 import { ColumnsService } from '~/services/columns.service';
+import { DataTableService } from '~/services/data-table.service';
 import { Column, Model } from '~/models';
 import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
 import {
   columnBuilder,
   columnV3ToV2Builder,
@@ -39,6 +42,21 @@ type ColumnReqWithMeta = ColumnReqType & {
 };
 
 type SelectChoiceV3 = { id?: string; title: string; color?: string };
+
+// Types whose cells are computed or linked, so a before/after count of
+// non-empty cells says nothing about data loss.
+const NO_CELL_VALUES = new Set<string>([
+  UITypes.Lookup,
+  UITypes.Rollup,
+  UITypes.Formula,
+  UITypes.Button,
+  UITypes.QrCode,
+  UITypes.Barcode,
+]);
+
+function holdsCells(uidt: string): boolean {
+  return !isLinksOrLTAR(uidt) && !NO_CELL_VALUES.has(uidt);
+}
 
 // `FieldV3Type`/`FieldUpdateV3Type` are discriminated unions, so `options` is
 // not uniformly indexable — this is the shape both collapse to here.
@@ -58,6 +76,29 @@ function optionsBranchFor(schema: any, optionsType: unknown): any {
   );
 }
 
+/**
+ * A choice sent without an `id` takes the id and colour of the stored choice
+ * with its title, so a rewrite keeps the cell values and colours it leaves alone.
+ */
+export function carrySelectChoiceIdentity(
+  incoming: SelectChoiceV3[],
+  stored: SelectChoiceV3[],
+): SelectChoiceV3[] {
+  // An id sent explicitly is not also handed to a title match.
+  const claimed = new Set(incoming.map((c) => c.id).filter(Boolean));
+  return incoming.map((choice, index) => {
+    const match =
+      (choice.id && stored.find((s) => s.id === choice.id)) ||
+      stored.find((s) => s.title === choice.title && !claimed.has(s.id));
+
+    return {
+      ...(match?.id ? { id: match.id } : {}),
+      title: choice.title,
+      color: choice.color || match?.color || enumColors.get('light', index),
+    };
+  });
+}
+
 // The v3 read builder emits a webhook button's hook as `webhook_id`; older
 // callers (and the pre-deprecation schema) send `button_hook_id`. The v3->v2
 // write builder already maps both to `fk_webhook_id`, so only validation needs
@@ -75,7 +116,188 @@ function withCanonicalOptionAliases<T>(payload: T): T {
 
 @Injectable()
 export class ColumnsV3Service {
-  constructor(protected readonly columnsService: ColumnsService) {}
+  protected readonly logger = new Logger(ColumnsV3Service.name);
+
+  constructor(
+    protected readonly columnsService: ColumnsService,
+    protected readonly dataTableService: DataTableService,
+  ) {}
+
+  /**
+   * columnUpdate, plus what it destroyed: cells cleared by a type conversion
+   * or a removed choice, and, when a link is converted away, its new field id
+   * and the lookups/rollups left broken. Counted before the write, since the
+   * rows no longer show what was lost afterwards.
+   */
+  async columnUpdateWithReport(
+    context: NcContext,
+    param: {
+      req: any;
+      columnId: string;
+      column: FieldUpdateV3Type;
+      user: UserType;
+    },
+  ) {
+    const before = await Column.get(context, { colId: param.columnId });
+    const newType = (param.column as { type?: string }).type;
+    const typeChanges = !!before && !!newType && newType !== before.uidt;
+    const fromLink = typeChanges && isLinksOrLTAR(before);
+
+    const dependents = fromLink
+      ? await this.linkDependents(context, param.columnId)
+      : [];
+    const choiceCounts = await this.countRemovedChoices(
+      context,
+      before,
+      typeChanges
+        ? undefined
+        : (param.column as FieldOptionsRecord).options?.choices,
+    );
+    // System and pk fields can't change type; leave the rejection to columnUpdate.
+    const nonEmptyBefore =
+      typeChanges && holdsCells(before.uidt) && !before.system && !before.pk
+        ? await this.countCells(context, before.fk_model_id, param.columnId)
+        : undefined;
+
+    const updated = (await this.columnUpdate(context, param)) as FieldV3Type;
+
+    const warnings: string[] = [];
+    let conversion: Record<string, number> | undefined;
+
+    if (nonEmptyBefore !== undefined && holdsCells(updated.type)) {
+      // The field is already converted, so a failed count must not fail the request.
+      let nonEmptyAfter: number | undefined;
+      try {
+        nonEmptyAfter = await this.countCells(
+          context,
+          before.fk_model_id,
+          updated.id,
+        );
+      } catch (e) {
+        this.logger.error(
+          `Counting cells after converting field ${updated.id} failed: ${e?.message}`,
+          e?.stack,
+        );
+        warnings.push(
+          'The field was converted, but the cells left empty by the conversion could not be counted.',
+        );
+      }
+      if (nonEmptyAfter !== undefined) {
+        const cleared = Math.max(0, nonEmptyBefore - nonEmptyAfter);
+        conversion = {
+          non_empty_before: nonEmptyBefore,
+          non_empty_after: nonEmptyAfter,
+          cleared_rows: cleared,
+        };
+        if (cleared) {
+          warnings.push(
+            `${cleared} cell value(s) became empty in this conversion and cannot be recovered. ` +
+              'Values that were rounded or reformatted are not counted.',
+          );
+        }
+      }
+    }
+
+    if (fromLink) {
+      if (updated.id !== param.columnId) {
+        warnings.push(
+          `The link was replaced by a new field with id ${updated.id}. ` +
+            `Field ${param.columnId} no longer exists.`,
+        );
+      }
+      if (dependents.length) {
+        warnings.push(
+          `${dependents.length} lookup/rollup field(s) read through the removed link and now show errors: ` +
+            dependents.map((d) => `${d.title} (${d.id})`).join(', ') +
+            '. Delete or repoint them.',
+        );
+      }
+    }
+
+    const clearedRows = choiceCounts.cleared + (conversion?.cleared_rows ?? 0);
+
+    return {
+      ...updated,
+      ...(clearedRows
+        ? {
+            cleared_rows: clearedRows,
+            ...(choiceCounts.cleared
+              ? { cleared_by_choice: choiceCounts.byChoice }
+              : {}),
+          }
+        : {}),
+      ...(conversion ? { conversion } : {}),
+      ...(dependents.length ? { dependents } : {}),
+      ...(warnings.length ? { warnings } : {}),
+    };
+  }
+
+  // A filter object, not the `where` grammar: a choice title such as
+  // "Done (archived)" does not parse there.
+  private async countWhere(
+    context: NcContext,
+    modelId: string,
+    filter: { fk_column_id: string; comparison_op: string; value?: string },
+  ): Promise<number> {
+    const { count } = await this.dataTableService.dataCount(context, {
+      modelId,
+      query: { filterArrJson: JSON.stringify([filter]) },
+    });
+    return Number(count) || 0;
+  }
+
+  private countCells(context: NcContext, modelId: string, columnId: string) {
+    return this.countWhere(context, modelId, {
+      fk_column_id: columnId,
+      comparison_op: 'notblank',
+    });
+  }
+
+  /**
+   * Cells a select rewrite will clear: a stored choice that no incoming choice
+   * keeps (by id, or by title when the id is omitted) is nulled out of its rows.
+   */
+  private async countRemovedChoices(
+    context: NcContext,
+    column: Column | undefined,
+    incoming: unknown,
+  ): Promise<{ cleared: number; byChoice: Record<string, number> }> {
+    const byChoice: Record<string, number> = {};
+    if (
+      !column ||
+      !Array.isArray(incoming) ||
+      ![UITypes.SingleSelect, UITypes.MultiSelect].includes(
+        column.uidt as UITypes,
+      )
+    ) {
+      return { cleared: 0, byChoice };
+    }
+
+    const kept = new Set(
+      carrySelectChoiceIdentity(
+        incoming as SelectChoiceV3[],
+        this.storedChoices(column),
+      ).map((choice) => choice.id),
+    );
+    // MultiSelect stores a comma-joined list, so `eq` would only match one choice.
+    const operator = column.uidt === UITypes.MultiSelect ? 'anyof' : 'eq';
+
+    for (const choice of this.storedChoices(column).filter(
+      (c) => !kept.has(c.id),
+    )) {
+      const count = await this.countWhere(context, column.fk_model_id, {
+        fk_column_id: column.id,
+        comparison_op: operator,
+        value: choice.title,
+      });
+      if (count) byChoice[choice.title] = count;
+    }
+
+    return {
+      cleared: Object.values(byChoice).reduce((sum, n) => sum + n, 0),
+      byChoice,
+    };
+  }
 
   async columnUpdate(
     context: NcContext,
@@ -113,6 +335,9 @@ export class ColumnsV3Service {
       ? resolveFieldOptionsSchema(optionsType)
       : null;
 
+    const isTypeChange =
+      !!param.column.type && param.column.type !== column.uidt;
+
     if (optionsSchema) {
       param.column = withCanonicalOptionAliases(param.column);
 
@@ -124,15 +349,25 @@ export class ColumnsV3Service {
       // caller didn't resend. Skipped on a type change — the stored options
       // belong to the old type.
       const incomingOptions = (param.column as FieldOptionsRecord).options;
-      const isTypeChange =
-        !!param.column.type && param.column.type !== column.uidt;
 
       if (incomingOptions && !isTypeChange) {
-        (param.column as FieldOptionsRecord).options = this.mergeStoredOptions(
+        const merged = this.mergeStoredOptions(
           optionsSchema.schema,
           incomingOptions,
           column,
         );
+        if (
+          [UITypes.SingleSelect, UITypes.MultiSelect].includes(
+            optionsType as UITypes,
+          ) &&
+          Array.isArray(merged.choices)
+        ) {
+          merged.choices = carrySelectChoiceIdentity(
+            merged.choices as SelectChoiceV3[],
+            this.storedChoices(column),
+          );
+        }
+        (param.column as FieldOptionsRecord).options = merged;
       }
 
       validatePayload(optionsSchema.ref, param.column, true, context);
@@ -184,9 +419,16 @@ export class ColumnsV3Service {
           ?.map((o: any) => `'${o.value}'`)
           .join('');
       }
+
+      // Without `options` the builder emits an empty `meta`, which replaces the
+      // stored one and drops Currency code, Rating max, date format, etc.
+      if (!(param.column as FieldOptionsRecord).options && !isTypeChange) {
+        processedColumnReq.meta = parseProp(column.meta);
+      }
     }
 
     // in payload id is required in existing implementation
+    const { title: previousTitle, fk_model_id: tableId } = column;
     column.id = param.columnId;
     await this.columnsService.columnUpdate(
       context,
@@ -201,6 +443,19 @@ export class ColumnsV3Service {
     );
 
     column = await Column.get(context, { colId: param.columnId });
+
+    // Link → text replaces the link with a new column and id. Follow it by
+    // title, since the old id no longer resolves.
+    if (!column) {
+      const replacement = (
+        await Column.list(context, { fk_model_id: tableId })
+      ).find(
+        (c) => c.title === previousTitle && c.uidt === UITypes.SingleLineText,
+      );
+      if (!replacement) NcError.get(context).fieldNotFound(param.columnId);
+      column = replacement;
+      columnWebhookManager.followReplacedColumn(param.columnId, column.id);
+    }
 
     // do tranformation
     const v3Response = columnBuilder().build(column);
@@ -359,6 +614,58 @@ export class ColumnsV3Service {
     await this.columnsService.columnDelete(context, param, ncMeta);
 
     return {};
+  }
+
+  storedChoices(column: Column): SelectChoiceV3[] {
+    const current = columnBuilder().build(column) as {
+      options?: { choices?: SelectChoiceV3[] };
+    };
+    return current.options?.choices ?? [];
+  }
+
+  /** Lookups and rollups that read through a link column. */
+  async linkDependents(
+    context: NcContext,
+    columnId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<{ id: string; title: string; table_id: string; uidt: string }[]> {
+    const rows = [
+      ...(await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_LOOKUP,
+        { condition: { fk_relation_column_id: columnId } },
+      )),
+      ...(await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_ROLLUP,
+        { condition: { fk_relation_column_id: columnId } },
+      )),
+    ];
+
+    const dependents: {
+      id: string;
+      title: string;
+      table_id: string;
+      uidt: string;
+    }[] = [];
+    for (const row of rows) {
+      const col = await Column.get(
+        context,
+        { colId: row.fk_column_id },
+        ncMeta,
+      );
+      if (col) {
+        dependents.push({
+          id: col.id,
+          title: col.title,
+          table_id: col.fk_model_id,
+          uidt: col.uidt,
+        });
+      }
+    }
+    return dependents;
   }
 
   // Read the current select choices from the v3 read representation so they

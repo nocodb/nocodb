@@ -64,4 +64,9 @@ export class RedisVersionTracker {
     await NocoCache.set('root', this.redisKey(id), ver);
     this.localVersions.set(id, ver);
   }
+
+  /** Drop the local version of a key that no longer exists. */
+  forget(id: string): void {
+    this.localVersions.delete(id);
+  }
 }

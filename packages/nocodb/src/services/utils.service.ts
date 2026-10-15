@@ -500,6 +500,7 @@ export class UtilsService {
       inviteOnlySignup: settings.invite_only_signup,
       restrictWorkspaceCreation: settings.restrict_workspace_creation,
       allowEmailSigninWithSso: settings.allow_email_signin_with_sso,
+      allowReportingAbuse: settings.allow_reporting_abuse,
       samlProviderName,
       samlAuthEnabled,
       giftUrl,

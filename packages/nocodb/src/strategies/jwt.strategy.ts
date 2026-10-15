@@ -16,6 +16,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(req, jwtPayload) {
+    // OAuth access tokens share the console secret; only OAuthTokenStrategy's
+    // principal (checked against the DB row) carries oauth_token_id.
+    if (jwtPayload?.is_oauth_token && !jwtPayload?.oauth_token_id) {
+      NcError.get().unauthorized('Invalid token');
+    }
+
     // Principals that are not console sessions and never came off the wire.
     // GlobalGuard.authenticate() calls this method directly with a payload IT
     // built — the anonymous guest, and the shared-base pseudo-user — and

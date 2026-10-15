@@ -18,7 +18,10 @@ import {
   IdentifierNode,
   ParsedFormulaNode,
 } from '~/lib/formula/types';
-import { handleFormulaError } from '~/lib/formula/handle-formula-error';
+import {
+  appendEqualsHint,
+  handleFormulaError,
+} from '~/lib/formula/handle-formula-error';
 import { formulas } from '~/lib/formula/formulas';
 import { formulaJsep, formulaJsepWithIndex } from '~/lib/formula/jsepInstances';
 import { ClientTypeOrSqlUI } from '~/lib/formula/types';
@@ -1218,6 +1221,6 @@ export async function validateFormulaAndExtractTreeWithType({
     if (trackPosition) {
       handleFormulaError({ formula, error: ex });
     }
-    throw ex;
+    throw appendEqualsHint(formula, ex);
   }
 }

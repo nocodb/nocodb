@@ -1,6 +1,8 @@
 import { NotFoundException } from '@nestjs/common';
+import { ThrottlerException } from '@nestjs/throttler';
 import {
   NcApiVersion,
+  NcErrorType,
   NcSDKError,
   NcSDKErrorV2,
   BadRequest as SdkBadRequest,
@@ -13,6 +15,7 @@ import {
   Forbidden,
   NcBaseError,
   NcBaseErrorv2,
+  NcError,
   NotFound,
   OptionsNotExistsError,
   TestConnectionError,
@@ -192,10 +195,28 @@ export function mapExceptionToResponse(
     };
   }
 
+  if (
+    apiVersion === NcApiVersion.V3 &&
+    exception instanceof ThrottlerException
+  ) {
+    return mapExceptionToResponse(
+      NcError._.errorCodex.generateError(NcErrorType.ERR_TOO_MANY_REQUESTS),
+      apiVersion,
+    );
+  }
+
   // Generic NestJS HttpException / ThrottlerException etc. carrying their
   // own status. Trust the underlying class to have a sane response shape.
   if (exception.getStatus?.()) {
-    return { status: exception.getStatus(), body: exception.getResponse() };
+    const response = exception.getResponse();
+    // V3 needs an object body; some HttpExceptions respond with a plain string.
+    if (apiVersion === NcApiVersion.V3 && typeof response !== 'object') {
+      return {
+        status: exception.getStatus(),
+        body: { message: String(response) },
+      };
+    }
+    return { status: exception.getStatus(), body: response };
   }
 
   // Default 500 — sanitized message. Caller decides on Sentry capture and

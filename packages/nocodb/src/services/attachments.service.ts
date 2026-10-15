@@ -14,18 +14,29 @@ import { imageSize } from 'image-size';
 import { imageSizeFromFile } from 'image-size/fromFile';
 import type { AttachmentReqType, FileType, NcContext } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { getFilteredAgents } from '~/utils/ssrf';
+import { getFilteredAgents, isInternalUrl } from '~/utils/ssrf';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { DataTableService } from '~/services/data-table.service';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { mimeIcons } from '~/utils/mimeTypes';
 import { Column, FileReference, PresignedUrl } from '~/models';
 import { utf8ify } from '~/helpers/stringHelpers';
-import { NcBaseError, NcError } from '~/helpers/catchError';
+import {
+  BadRequest,
+  Forbidden,
+  NcBaseError,
+  NcBaseErrorv2,
+  NcError,
+  NotFound,
+  UnprocessableEntity,
+} from '~/helpers/catchError';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
 import { RootScopes } from '~/utils/globals';
 import {
+  attachmentStorageRefs,
+  isAttachmentField,
+  isSignedStorageAttachment,
   normalizeFilename,
   validateAndNormaliseLocalPath,
 } from '~/helpers/attachmentHelpers';
@@ -312,6 +323,10 @@ export class AttachmentsService {
           let base64Buffer: Buffer;
 
           if (!url.startsWith('data:')) {
+            if (await isInternalUrl(url, OperationSource.ATTACHMENTS)) {
+              NcError.badRequest('URL not allowed: private/link-local address');
+            }
+
             if (!param.skipHead) {
               response = await axios.head(url, {
                 maxRedirects: 5,
@@ -476,9 +491,19 @@ export class AttachmentsService {
     if (errors.length) {
       errors.forEach((error) => this.logger.error(error));
 
-      const firstError = errors[0].error;
+      const firstError = errors[0];
 
-      if (firstError instanceof NcError || firstError instanceof NcBaseError) {
+      // only client errors reach the caller; storage/agent errors can carry
+      // internal addresses or bucket details
+      const isClientError =
+        firstError instanceof NcBaseErrorv2
+          ? firstError.code < 500
+          : firstError instanceof BadRequest ||
+            firstError instanceof UnprocessableEntity ||
+            firstError instanceof NotFound ||
+            firstError instanceof Forbidden;
+
+      if (isClientError) {
         throw firstError;
       }
 
@@ -559,10 +584,14 @@ export class AttachmentsService {
 
   async getAttachmentFromRecord(param: {
     record: any;
-    column: { title: string };
+    column: Column;
     urlOrPath: string;
   }) {
     const { record, column, urlOrPath } = param;
+
+    if (!(await isAttachmentField(column))) {
+      NcError.genericNotFound('Attachment', urlOrPath);
+    }
 
     const attachment = record[column.title];
 
@@ -590,7 +619,11 @@ export class AttachmentsService {
       (a) => a.url === urlOrPath || a.path === urlOrPath,
     );
 
-    if (!fileObject) {
+    if (
+      !fileObject ||
+      (attachmentStorageRefs(fileObject).length &&
+        !isSignedStorageAttachment(fileObject))
+    ) {
       NcError.genericNotFound('Attachment', urlOrPath);
     }
 

@@ -89,7 +89,7 @@ const options = computed<SelectProps['options']>(() =>
         return false
       } else if (isSort) {
         /** ignore hasmany and manytomany relations if it's using within sort menu */
-        return !(isLinksOrLTAR(c) && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO)
+        return !(isLinksOrLTAR(c) && (c.colOptions as LinkToAnotherRecordType)?.type !== RelationTypes.BELONGS_TO)
         /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
       } else {
         const isVirtualSystemField = c.colOptions && c.system

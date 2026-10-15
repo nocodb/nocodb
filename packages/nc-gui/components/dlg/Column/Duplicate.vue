@@ -15,6 +15,8 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { $e, $poller } = useNuxtApp()
 
+const { t } = useI18n()
+
 const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
 const reloadDataHook = inject(ReloadViewDataHookInj)
@@ -68,6 +70,9 @@ const _duplicate = async () => {
         if (data.status !== 'close') {
           if (data.status === JobStatus.COMPLETED) {
             reloadTable()
+            if (data.data?.result?.droppedAttachments) {
+              message.warning(t('msg.warning.attachmentsNotCopied', { count: data.data.result.droppedAttachments }))
+            }
             isLoading.value = false
             dialogShow.value = false
           } else if (data.status === JobStatus.FAILED) {

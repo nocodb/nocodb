@@ -1,6 +1,7 @@
 import type { NocoSDK } from '../sdk';
 import type {
   IAgentsService,
+  IAttachmentService,
   ICommentsService,
   IDataV3Service,
   IMailService,
@@ -31,6 +32,11 @@ export interface NocoDBContext {
   tablesService: ITablesService;
   user: NocoSDK.UserType;
   mailService: IMailService;
+  /**
+   * Attachment bytes for outgoing messages (email nodes). Ownership-checked
+   * and size-capped by the host.
+   */
+  attachmentService: IAttachmentService;
   getBaseSchema: () => Promise<any>;
   getAccessToken: () => string;
   /**
@@ -136,7 +142,9 @@ export interface IComputeInstance {
 
   runCommand(
     command: string,
-    opts?: { background?: boolean },
+    /** `timeoutMs` 0 lifts the provider's default command timeout (60s on E2B),
+     *  which also applies to background commands. */
+    opts?: { background?: boolean; timeoutMs?: number },
   ): Promise<IComputeRunCommandResult>;
 
   getHost(port: number): Promise<string>;

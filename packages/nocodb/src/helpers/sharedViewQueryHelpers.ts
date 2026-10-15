@@ -9,6 +9,7 @@ import {
   stripHiddenColumnFilters,
 } from '~/helpers/nestedLinkQueryHelpers';
 import { isSharedViewAccess } from '~/helpers/accessSource';
+import { isExposedGroupByRef } from '~/helpers/sharedViewGroupByRef';
 import {
   LIST_ARG_ALIAS_KEYS,
   LIST_ARG_ALIASES,
@@ -287,9 +288,13 @@ export async function restrictSharedViewColumnReferences(
   };
 
   // `column_name` carries a column TITLE on this route despite the name — the
-  // public group-by controller forwards the query verbatim.
+  // public group-by controller forwards the query verbatim. The value may name
+  // several comma-joined columns; see `isExposedGroupByRef`.
   for (const key of GROUP_BY_QUERY_KEYS) {
-    if (query[key] && !isExposed(query[key])) {
+    if (
+      query[key] &&
+      !isExposedGroupByRef(query[key], { isExposed })
+    ) {
       rejected.push(query[key]);
       delete query[key];
     }

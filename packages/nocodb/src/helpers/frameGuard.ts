@@ -54,7 +54,7 @@ function isPublicShareApi(path: string): boolean {
 // path, and the HTML response carries its own `sandbox` CSP (opaque origin),
 // so framing it never exposes the console session.
 function isAppPreviewServe(path: string): boolean {
-  return path.startsWith('/api/internal/app-preview/');
+  return path.startsWith('/api/v1/app-preview/');
 }
 
 function isWebArtifactServeRoute(path: string): boolean {

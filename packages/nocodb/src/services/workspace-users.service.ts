@@ -35,6 +35,10 @@ export class WorkspaceUsersService {
       ncMeta,
     );
 
+    // A pending invite's token is a credential and must not travel in a roster
+    // the Viewer role can read.
+    for (const user of users) delete user.invite_token;
+
     return new PagedResponseImpl(users, {
       count: users.length,
     });

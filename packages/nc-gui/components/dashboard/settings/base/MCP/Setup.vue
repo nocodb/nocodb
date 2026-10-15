@@ -19,7 +19,9 @@ const { appInfo } = useGlobal()
 
 const { openedProject } = storeToRefs(useBases())
 
-const activeTab = ref<'claude' | 'cursor' | 'windsurf' | 'antigravity' | 'codex'>('claude')
+type McpClient = 'claude' | 'claudeCode' | 'cursor' | 'windsurf' | 'antigravity' | 'codex'
+
+const activeTab = ref<McpClient>('claudeCode')
 
 /** A connection whose authority is its scopes names no base, so it is named after itself. */
 const isScopedConnection = computed(() => !props.token.base)
@@ -44,39 +46,61 @@ const serverName = computed(() => {
   return title
 })
 
-// Codex reads TOML, and a table key has to be a bare key.
-const codexServerName = computed(() => serverName.value.replace(/[^A-Za-z0-9_-]+/g, '_'))
+// Codex reads TOML (a table key has to be a bare key), and Claude Code accepts only these characters.
+const bareServerName = computed(() => serverName.value.replace(/[^A-Za-z0-9_-]+/g, '_'))
 
 const secret = computed(() => props.token.token ?? 'xxxxxxxxxxxxxxxxxxxxxxxxxxx')
 
-const code = computed(
-  () => `
-{
-  "mcpServers": {
-    "${serverName.value}": {
-      "command": "npx",
-      "args": [
-        "mcp-remote",
-        "${appInfo.value.ncSiteUrl}/mcp/${props.token.id}",
-        "--header",
-        "x-api-key: ${secret.value}"
-      ]
-    }
-  }
-}
+const mcpUrl = computed(() => `${appInfo.value.ncSiteUrl}/mcp/${props.token.id}`)
+
+const toJson = (server: Record<string, unknown>) => JSON.stringify({ mcpServers: { [serverName.value]: server } }, null, 2)
+
+// Claude Desktop and AntiGravity only launch stdio servers, so they still need the
+// `mcp-remote` bridge; every other client connects over HTTP and skips npx's startup.
+// `http-only` because the endpoint 405s the SSE fallback.
+const bridgeCode = computed(() =>
+  toJson({
+    command: 'npx',
+    args: ['-y', 'mcp-remote', mcpUrl.value, '--transport', 'http-only', '--header', `x-api-key:${secret.value}`],
+  }),
+)
+
+const cursorCode = computed(() => toJson({ url: mcpUrl.value, headers: { 'x-api-key': secret.value } }))
+
+const windsurfCode = computed(() => toJson({ serverUrl: mcpUrl.value, headers: { 'x-api-key': secret.value } }))
+
+const claudeCodeCode = computed(
+  () => `claude mcp add --transport http --scope user ${bareServerName.value} \\
+  ${mcpUrl.value} \\
+  --header "x-api-key: ${secret.value}"
 `,
 )
 
-// Codex talks to the MCP endpoint over HTTP directly, so it needs no `mcp-remote` bridge.
 const codexCode = computed(
-  () => `[mcp_servers.${codexServerName.value}]
-url = "${appInfo.value.ncSiteUrl}/mcp/${props.token.id}"
+  () => `[mcp_servers.${bareServerName.value}]
+url = "${mcpUrl.value}"
 http_headers = { "x-api-key" = "${secret.value}" }
 `,
 )
 
+const snippet = computed<{ code: string; lang: string }>(() => {
+  switch (activeTab.value) {
+    case 'claudeCode':
+      return { code: claudeCodeCode.value, lang: 'shell' }
+    case 'codex':
+      return { code: codexCode.value, lang: 'ini' }
+    case 'cursor':
+      return { code: cursorCode.value, lang: 'json' }
+    case 'windsurf':
+      return { code: windsurfCode.value, lang: 'json' }
+    default:
+      return { code: bridgeCode.value, lang: 'json' }
+  }
+})
+
 const clients = [
-  { key: 'claude', label: 'Claude', icon: 'ncLogoClaude' },
+  { key: 'claudeCode', label: 'Claude Code', icon: 'ncLogoClaude' },
+  { key: 'claude', label: 'Claude Desktop', icon: 'ncLogoClaude' },
   { key: 'codex', label: 'Codex', icon: 'ncLogoOpenAiColored' },
   { key: 'antigravity', label: 'AntiGravity', icon: 'ncLogoGeminiAiColored' },
   { key: 'cursor', label: 'Cursor', icon: 'ncCode' },
@@ -110,6 +134,15 @@ const clients = [
             <li>{{ $t('msg.info.mcpSetupClaudeStep1') }}</li>
             <li>{{ $t('msg.info.mcpSetupClaudeStep2') }}</li>
             <li>{{ $t('msg.info.mcpSetupClaudeStep3') }}</li>
+          </ol>
+        </template>
+
+        <template v-else-if="client.key === 'claudeCode'">
+          {{ $t('msg.info.mcpSetupIntroClaudeCode') }}
+
+          <ol class="list-decimal pl-5">
+            <li>{{ $t('msg.info.mcpSetupClaudeCodeStep1') }}</li>
+            <li>Run <code>claude mcp list</code> to confirm the server is connected.</li>
           </ol>
         </template>
 
@@ -166,8 +199,7 @@ const clients = [
           {{ $t('labels.regenerateToken') }}
         </NcButton>
 
-        <DashboardSettingsBaseMCPCode v-if="client.key === 'codex'" :key="codexCode" :code="codexCode" lang="ini" />
-        <DashboardSettingsBaseMCPCode v-else :key="code" :code="code" />
+        <DashboardSettingsBaseMCPCode :key="snippet.code" :code="snippet.code" :lang="snippet.lang" />
       </div>
     </a-tab-pane>
   </NcTabs>

@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc.js';
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import {
   getNodejsTimezone,
   isDateTimeStringHasTimezone,
@@ -28,8 +29,48 @@ import { lmtFieldQueryBuilder } from '~/db/formulav2/lmtFieldQueryBuilder';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+dayjs.extend(customParseFormat);
 
 const dateTimeHandlerDebug = debug('nc:DateTimeGeneralHandler');
+
+/**
+ * Why a raw DateTime/Date input cannot be read, or null when it can.
+ * dayjs rolls an out-of-range clock ("25:00:00") into the next day instead of
+ * failing, and a number is read as epoch seconds, so epoch milliseconds land
+ * far outside the calendar.
+ */
+export const dateTimeInputProblem = (value: unknown): string | null => {
+  if (typeof value === 'number') {
+    const year = dayjs.unix(value).utc().year();
+    return year < 1000 || year > 9999
+      ? 'numbers are read as epoch seconds; send an ISO date-time string'
+      : null;
+  }
+  if (typeof value === 'string') {
+    const clock = value.match(/(?:^|[T\s])(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    if (
+      clock &&
+      (+clock[1] > 23 ||
+        +clock[2] > 59 ||
+        (clock[3] !== undefined && +clock[3] > 59))
+    ) {
+      return 'the time is out of range';
+    }
+  }
+  return null;
+};
+
+/** A string in the field's own `date_format`, as ISO, or null if it does not match. */
+export const dateTimeFromFormat = (
+  value: unknown,
+  format: unknown,
+): string | null => {
+  if (typeof value !== 'string' || typeof format !== 'string' || !format) {
+    return null;
+  }
+  const parsed = dayjs.utc(value, format, true);
+  return parsed.isValid() ? parsed.format('YYYY-MM-DD HH:mm:ssZ') : null;
+};
 
 export class DateTimeGeneralHandler extends GenericFieldHandler {
   dateValueFormat = 'YYYY-MM-DD HH:mm:ss';
@@ -127,6 +168,16 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
       return { value: null };
     }
 
+    const problem = dateTimeInputProblem(params.value);
+    if (problem) {
+      NcError.invalidValueForField({
+        value: params.value,
+        column: params.column.title,
+        type: params.column.uidt,
+        reason: problem,
+      });
+    }
+
     let dayjsUtcValue: dayjs.Dayjs;
     if (
       params.value instanceof Date ||
@@ -137,6 +188,15 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
         dayjsUtcValue = dayjs(params.value).utc();
       } else if (typeof params.value === 'string') {
         let strVal: any = params.value;
+        const dateFormat = params.column.meta?.date_format;
+        // A known format wins over the default guess: "10/03/2026" is Oct 3
+        // to dayjs, but 10 Mar under DD/MM/YYYY.
+        const byFormat = dateFormat
+          ? dayjs.utc(params.value, dateFormat, true)
+          : null;
+        if (byFormat?.isValid()) {
+          return { value: byFormat };
+        }
         if (
           strVal.indexOf('-') < 0 &&
           strVal.indexOf('+') < 0 &&
@@ -147,8 +207,8 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
           strVal += '+00:00';
         }
         dayjsUtcValue = dayjs(strVal).utc();
-        if (!dayjsUtcValue.isValid() && params.column.meta?.date_format) {
-          dayjsUtcValue = dayjs(strVal, params.column.meta?.date_format).utc();
+        if (!dayjsUtcValue.isValid() && dateFormat) {
+          dayjsUtcValue = dayjs(strVal, dateFormat).utc();
         }
       } else if (typeof params.value === 'number') {
         dayjsUtcValue = dayjs.unix(params.value).utc();

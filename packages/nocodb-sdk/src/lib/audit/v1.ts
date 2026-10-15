@@ -363,6 +363,13 @@ enum AuditV1OperationTypes {
   FACTORY_SESSION_DELETE = 'FACTORY_SESSION_DELETE',
   FACTORY_REPO_ENABLE = 'FACTORY_REPO_ENABLE',
   FACTORY_REPO_DISABLE = 'FACTORY_REPO_DISABLE',
+  FACTORY_MACHINE_CREATE = 'FACTORY_MACHINE_CREATE',
+  FACTORY_MACHINE_RENAME = 'FACTORY_MACHINE_RENAME',
+  FACTORY_MACHINE_SET_DEFAULT = 'FACTORY_MACHINE_SET_DEFAULT',
+  FACTORY_MACHINE_DELETE = 'FACTORY_MACHINE_DELETE',
+  FACTORY_MACHINE_BUILD = 'FACTORY_MACHINE_BUILD',
+  FACTORY_MACHINE_BUILD_CANCEL = 'FACTORY_MACHINE_BUILD_CANCEL',
+  FACTORY_MACHINE_ACTIVATE = 'FACTORY_MACHINE_ACTIVATE',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -1733,6 +1740,9 @@ export interface FactorySessionPayload {
   /** `prompt` | `branch` | `pr` | `issue`, and the ref it named. */
   source_kind?: string;
   source_ref?: string;
+  /** Create only: the machine it started on; unset for the stock one. */
+  machine_id?: string;
+  machine_title?: string;
 }
 
 /** A repository added to or removed from a workspace's factory. */
@@ -1740,6 +1750,23 @@ export interface FactoryRepoPayload {
   repo_id: string;
   repo: string;
   integration_id?: string;
+}
+
+/** A code project's machine, or one version of it. */
+export interface FactoryMachinePayload {
+  machine_id: string;
+  machine_title?: string;
+  /** Set on a rename only: what the machine was called before. */
+  old_machine_title?: string;
+  /** Build, cancel and activate: the version they act on. */
+  version_id?: string;
+  version?: number;
+  /** Build: what the version installs, e.g. `Node.js 24, Postgres 17, jq`. */
+  packages?: string;
+  /** Build: a rebuild that skipped every cache. */
+  refresh?: boolean;
+  /** Build: an identical finished version of this machine was reused. */
+  reused?: boolean;
 }
 
 export interface SkillPayload {
@@ -3015,7 +3042,12 @@ const descriptionTemplates = {
     }`,
   [AuditV1OperationTypes.FACTORY_SESSION_CREATE]: (
     audit: AuditV1<FactorySessionPayload>
-  ) => `App Factory session started on ${audit.details.repo ?? 'a repository'}`,
+  ) =>
+    `App Factory session started on ${audit.details.repo ?? 'a repository'}${
+      audit.details.machine_title
+        ? ` with machine '${audit.details.machine_title}'`
+        : ''
+    }`,
   [AuditV1OperationTypes.FACTORY_SESSION_STOP]: (
     audit: AuditV1<FactorySessionPayload>
   ) => `App Factory session '${audit.details.session_title ?? ''}' was stopped`,
@@ -3043,6 +3075,47 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.FACTORY_REPO_DISABLE]: (
     audit: AuditV1<FactoryRepoPayload>
   ) => `Repository '${audit.details.repo}' was removed from App Factory`,
+  [AuditV1OperationTypes.FACTORY_MACHINE_CREATE]: (
+    audit: AuditV1<FactoryMachinePayload>
+  ) => `Machine '${audit.details.machine_title ?? ''}' was created`,
+  [AuditV1OperationTypes.FACTORY_MACHINE_RENAME]: (
+    audit: AuditV1<FactoryMachinePayload>
+  ) =>
+    `Machine '${audit.details.old_machine_title ?? ''}' was renamed to '${
+      audit.details.machine_title ?? ''
+    }'`,
+  [AuditV1OperationTypes.FACTORY_MACHINE_SET_DEFAULT]: (
+    audit: AuditV1<FactoryMachinePayload>
+  ) =>
+    `Machine '${
+      audit.details.machine_title ?? ''
+    }' is now the default for new sessions`,
+  [AuditV1OperationTypes.FACTORY_MACHINE_DELETE]: (
+    audit: AuditV1<FactoryMachinePayload>
+  ) =>
+    `Machine '${
+      audit.details.machine_title ?? ''
+    }' and its versions were deleted`,
+  [AuditV1OperationTypes.FACTORY_MACHINE_BUILD]: (
+    audit: AuditV1<FactoryMachinePayload>
+  ) =>
+    `${audit.details.refresh ? 'Rebuild' : 'Build'} of machine '${
+      audit.details.machine_title ?? ''
+    }' v${audit.details.version ?? ''} ${
+      audit.details.reused ? 'reused an identical version' : 'started'
+    }${audit.details.packages ? `: ${audit.details.packages}` : ''}`,
+  [AuditV1OperationTypes.FACTORY_MACHINE_BUILD_CANCEL]: (
+    audit: AuditV1<FactoryMachinePayload>
+  ) =>
+    `Build of machine '${audit.details.machine_title ?? ''}' v${
+      audit.details.version ?? ''
+    } was cancelled`,
+  [AuditV1OperationTypes.FACTORY_MACHINE_ACTIVATE]: (
+    audit: AuditV1<FactoryMachinePayload>
+  ) =>
+    `Machine '${audit.details.machine_title ?? ''}' now starts sessions on v${
+      audit.details.version ?? ''
+    }`,
   [AuditV1OperationTypes.SKILL_POLICY_UPDATE]: (
     audit: AuditV1<SkillPolicyUpdatePayload>
   ) =>

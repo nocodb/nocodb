@@ -4,6 +4,7 @@ import {
   EventType,
   MetaEventType,
   NcBaseError,
+  OperationSource,
   WebhookEvents,
 } from 'nocodb-sdk';
 import View from '../models/View';
@@ -28,6 +29,7 @@ import {
   populateSamplePayloadView,
 } from '~/helpers/populateSamplePayload';
 import { invokeWebhook } from '~/helpers/webhookHelpers';
+import { isInternalUrl } from '~/utils/ssrf';
 import { isEE } from '~/utils';
 import { ButtonColumn, Filter, Hook, HookLog, Model } from '~/models';
 import { DatasService } from '~/services/datas.service';
@@ -58,14 +60,30 @@ export class HooksService {
     }
   }
 
-  validateHookPayload(notificationJsonOrObject: string | Record<string, any>) {
-    let notification: { type?: string } = {};
+  private parseNotification(
+    notificationJsonOrObject: string | Record<string, any>,
+  ): { type?: string; payload?: { path?: unknown } } {
     try {
-      notification =
-        typeof notificationJsonOrObject === 'string'
+      return (
+        (typeof notificationJsonOrObject === 'string'
           ? JSON.parse(notificationJsonOrObject)
-          : notificationJsonOrObject;
-    } catch {}
+          : notificationJsonOrObject) ?? {}
+      );
+    } catch {
+      return {};
+    }
+  }
+
+  /**
+   * `skipTargetCheck` skips the SSRF check: copies of stored hooks
+   * (duplicate/import/replay) and updates that keep the url. Sends are still
+   * blocked by the filtering agent.
+   */
+  async validateHookPayload(
+    notificationJsonOrObject: string | Record<string, any>,
+    { skipTargetCheck = false }: { skipTargetCheck?: boolean } = {},
+  ) {
+    const notification = this.parseNotification(notificationJsonOrObject);
 
     if (
       notification.type !== 'URL' &&
@@ -73,6 +91,16 @@ export class HooksService {
       process.env.NC_CLOUD === 'true'
     ) {
       NcError.badRequest('Only URL and Script notifications are supported');
+    }
+
+    const target = notification.payload?.path;
+    if (
+      !skipTargetCheck &&
+      notification.type === 'URL' &&
+      typeof target === 'string' &&
+      (await isInternalUrl(target, OperationSource.HOOKS))
+    ) {
+      NcError.badRequest('URL not allowed: private/link-local address');
     }
   }
 
@@ -131,7 +159,9 @@ export class HooksService {
       validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
     }
     this.validateCommentEvent(context, param.hook);
-    this.validateHookPayload(param.hook.notification);
+    await this.validateHookPayload(param.hook.notification, {
+      skipTargetCheck: !!option?.isTableDuplicate || isReplay(),
+    });
 
     // if version is not in SUPPORTED_HOOK_VERSION, that means it's a duplicate table activity
     // then we use v2 insert
@@ -281,7 +311,12 @@ export class HooksService {
     }
 
     this.validateCommentEvent(context, param.hook);
-    this.validateHookPayload(param.hook.notification);
+    await this.validateHookPayload(param.hook.notification, {
+      skipTargetCheck:
+        isReplay() ||
+        this.parseNotification(param.hook.notification).payload?.path ===
+          this.parseNotification(hook.notification).payload?.path,
+    });
 
     // If the webhook is being changed to manual trigger, set it to active
     if (param.hook.event === 'manual') {
@@ -431,7 +466,7 @@ export class HooksService {
       param.hookTest,
     );
 
-    this.validateHookPayload(param.hookTest.hook?.notification);
+    await this.validateHookPayload(param.hookTest.hook?.notification);
 
     const model = await Model.getByIdOrName(context, { id: param.tableId });
 

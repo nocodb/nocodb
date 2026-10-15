@@ -3,6 +3,7 @@ import type { Api } from 'nocodb-sdk'
 import { NcErrorType } from 'nocodb-sdk'
 import type { UseGlobalReturn } from '../composables/useGlobal/types'
 import type { Actions } from '~/composables/useGlobal/types'
+import { PICK_APP_BASE_PARAM } from '~/utils/buildIntentUtils'
 
 /**
  * Safely persist to localStorage. In some embedded webviews and privacy
@@ -123,12 +124,15 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   const hasPaymentRedirectParams =
     to.query.upgrade || to.query.pricing || to.query.afterPayment || to.query.afterManage || to.query.afterUpgrade
 
+  /** So is a broadcast link asking to pick a base for an app (/?pickAppBase=1) */
+  const hasRootRedirectParams = hasPaymentRedirectParams || to.query[PICK_APP_BASE_PARAM]
+
   /** if auth is required or unspecified (same `as required) and user is not signed in, redirect to signin page */
   if ((to.meta.requiresAuth || typeof to.meta.requiresAuth === 'undefined') && !state.signedIn.value) {
     /** If this is the first usern navigate to signup page directly */
     if (state.appInfo.value.firstUser) {
       const continuePath =
-        to.fullPath !== '/' && (to.fullPath.match(/^\/(?!\?)/) || hasPaymentRedirectParams)
+        to.fullPath !== '/' && (to.fullPath.match(/^\/(?!\?)/) || hasRootRedirectParams)
           ? stripContinueParam(to.fullPath)
           : undefined
       const query = continuePath ? { continueAfterSignIn: continuePath } : {}
@@ -162,7 +166,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     /** if user is still not signed in, redirect to signin page */
     if (!state.signedIn.value) {
       const signinContinuePath =
-        to.fullPath !== '/' && (to.fullPath.match(/^\/(?!\?)/) || hasPaymentRedirectParams)
+        to.fullPath !== '/' && (to.fullPath.match(/^\/(?!\?)/) || hasRootRedirectParams)
           ? stripContinueParam(to.fullPath)
           : undefined
       if (signinContinuePath) {

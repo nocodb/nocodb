@@ -166,6 +166,26 @@ export class NcErrorBase {
     );
   }
 
+  factoryMachineNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_FACTORY_MACHINE_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
+  }
+
+  factoryMachineVersionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_FACTORY_MACHINE_VERSION_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
+  }
+
   chatMessageNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.ERR_CHAT_MESSAGE_NOT_FOUND,
@@ -1497,5 +1517,12 @@ export class NcErrorBase {
       params: message || '',
       ...args,
     });
+  }
+
+  abuseReportingDisabled(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_ABUSE_REPORTING_DISABLED,
+      { params: '', ...args }
+    );
   }
 }

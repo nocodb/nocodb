@@ -12,6 +12,7 @@ import type {
   TableType,
 } from 'nocodb-sdk'
 import {
+  AbuseReportResourceType,
   PermissionEntity,
   PermissionKey,
   RelationTypes,
@@ -40,6 +41,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const password = ref<string | null>(null)
   const passwordError = ref<string | null>(null)
   const secondsRemain = ref(0)
+
+  const abuseReportTarget = useAbuseReportTarget()
 
   const { sharedView } = storeToRefs(useViewsStore())
 
@@ -264,6 +267,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const loadSharedView = async () => {
     passwordError.value = null
+    abuseReportTarget.value = undefined
 
     try {
       const viewMeta = await api.public.sharedViewMetaGet(sharedViewId, {
@@ -278,6 +282,12 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       }
 
       passwordDlg.value = false
+
+      abuseReportTarget.value = {
+        resourceType: AbuseReportResourceType.SHARED_VIEW,
+        identifier: sharedViewId,
+        password: password.value,
+      }
 
       sharedView.value = viewMeta
       sharedFormView.value = viewMeta.view

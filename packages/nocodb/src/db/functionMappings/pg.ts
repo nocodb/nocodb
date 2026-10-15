@@ -3,6 +3,7 @@ import { customAlphabet } from 'nanoid';
 import { ClientType, FormulaDataTypes, JSEPNode, UITypes } from 'nocodb-sdk';
 import { sanitize } from 'src/helpers/sqlSanitize';
 import commonFns, {
+  escapePlaceholders,
   extractDatetimeFormat,
   safeDateAddUnitSQL,
   validateDateAddUnit,
@@ -348,9 +349,8 @@ const pg = {
     const dateExpr = (await fn(pt?.arguments[0])).builder;
     return {
       builder: knex.raw(
-        `${getDatetimeFormatHandler(ClientType.PG).build(
-          `${dateExpr}`,
-          format,
+        `${escapePlaceholders(
+          getDatetimeFormatHandler(ClientType.PG).build(`${dateExpr}`, format),
         )}::text`,
       ),
     };

@@ -4,6 +4,7 @@ import {
   NcBaseError,
   type NcContext,
   type NcRequest,
+  UITypes,
 } from 'nocodb-sdk';
 import { generateUpdateAuditV1Payload } from 'src/utils';
 import type {
@@ -29,6 +30,7 @@ import { MysqlDataMigration } from '~/services/formula-column-type-changer/mysql
 import { OracleDataMigration } from '~/services/formula-column-type-changer/oracle-data-migration';
 import { PgDataMigration } from '~/services/formula-column-type-changer/pg-data-migration';
 import { SqliteDataMigration } from '~/services/formula-column-type-changer/sqlite-data-migration';
+import { finishAttachmentConversion } from '~/utils/dataConversion';
 
 export const DEFAULT_BATCH_LIMIT = 100000;
 
@@ -103,11 +105,23 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
       });
 
       try {
+        // Formula output is unchecked text, so the new field reads like any converted one until it is cleaned.
+        if (newColumn.uidt === UITypes.Attachment) {
+          await Column.setAttachmentCleanupPending(context, {
+            colId: newColumn.id,
+            pending: true,
+          });
+        }
         await this.startMigrateData(context, {
           formulaColumn: params.formulaColumn,
           destinationColumn: newColumn,
           baseModel,
           req: params.req,
+        });
+        await finishAttachmentConversion(context, {
+          columnId: newColumn.id,
+          userId: params.user?.id,
+          baseModel,
         });
       } catch (ex) {
         await this.columnsService.columnDelete(context, {

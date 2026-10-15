@@ -5,6 +5,7 @@ import type CustomKnex from '~/db/CustomKnex';
 import type { Knex } from '~/db/CustomKnex';
 import type {
   FilterOptions,
+  FilterVerificationResult,
   SortOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
@@ -24,6 +25,17 @@ export class LinksGeneralHandler extends GenericFieldHandler {
 
     // V2 OM/MM and V1: filter by count (rollup)
     return new RollupGeneralHandler().filter(knex, filter, column, options);
+  }
+
+  override async verifyFilter(
+    filter: Filter,
+    column: Column,
+    options: FilterOptions = {},
+  ): Promise<FilterVerificationResult> {
+    if (isBtLikeV2Junction(column)) {
+      return new LtarGeneralHandler().verifyFilter(filter, column, options);
+    }
+    return super.verifyFilter(filter, column);
   }
 
   override async applySort(

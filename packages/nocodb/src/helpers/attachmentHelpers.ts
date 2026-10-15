@@ -2,19 +2,28 @@ import path from 'path';
 import fs from 'fs';
 import mime from 'mime/lite';
 import slash from 'slash';
-import { PublicAttachmentScope } from 'nocodb-sdk';
+import {
+  IconType,
+  ncIsObject,
+  parseProp,
+  PublicAttachmentScope,
+  UITypes,
+} from 'nocodb-sdk';
 import { nanoid } from 'nanoid';
 import moment from 'dayjs';
 import hash from 'object-hash';
 import type { Response } from 'express';
 import type { NcContext } from 'nocodb-sdk';
-import type { Column } from '~/models';
+import type { Column, FormulaColumn, LookupColumn } from '~/models';
 import type { AttachmentsService } from '~/services/attachments.service';
+import type { MetaService } from '~/meta/meta.service';
+import type { IStorageAdapterV2 } from '~/types/nc-plugin';
 import { getToolDir } from '~/utils/nc-config';
 import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { PresignedUrl } from '~/models';
-import { isSecureAttachmentEnabled } from '~/utils';
+import { FileReference, PresignedUrl, Source } from '~/models';
+import { isSecureAttachmentEnabled, ncSiteUrl } from '~/utils';
+import { isReplay } from '~/helpers/replayScope';
 
 export const imageMimeTypes = [
   'image/aces',
@@ -233,6 +242,12 @@ export function getPathFromUrl(url: string, removePrefix = false) {
   return decodeURI(`${pathName}${newUrl.search}${newUrl.hash}`);
 }
 
+// The adapters strip a leading `<bucket>/` (path-style S3, Backblaze, GCS) or
+// `<region>.digitaloceanspaces.com/<bucket>/` (Spaces), and GCS decodes `%2F`
+// before resolving a key, so those forms reach our storage too.
+// Every key NocoDB writes lives under `nc/` (uploads, thumbnails, app builds).
+const STORAGE_KEY_RE = /^(?:[^/]+?(?:\/|%2F)){0,2}nc(?:\/|%2F)/i;
+
 /**
  * Whether a client-supplied attachment `path`/`url` resolves to an object in
  * OUR storage — and therefore must pass an ownership check before a data write
@@ -242,8 +257,9 @@ export function getPathFromUrl(url: string, removePrefix = false) {
  * via `getPathFromUrl` and, on external storage, that pathname is signed as a
  * storage key. So a crafted `https://anything/nc/uploads/<victim>/secret.pdf`
  * would resolve to another tenant's object regardless of its host. We gate on
- * the resolved key living under the `nc/uploads/` record-attachment root, using
- * the SAME normalisation `getSignedUrl` applies so URL-encoding can't slip past.
+ * the resolved key living under `nc/`, using the SAME normalisation
+ * `getSignedUrl` applies, plus the extra decode GCS (`decodeURIComponent`) and
+ * R2 (`decodeURI`) run in `patchKey`, so URL-encoding can't slip past.
  * A non-http(s) value is always an opaque local storage path.
  */
 export function attachmentRefResolvesToStorage(ref?: string): boolean {
@@ -260,7 +276,339 @@ export function attachmentRefResolvesToStorage(ref?: string): boolean {
     return true;
   }
 
-  return /^nc\/uploads\//i.test(storageKey);
+  const adapterDecodes = [(key: string) => key, decodeURI, decodeURIComponent];
+  return adapterDecodes.some((decode) => {
+    try {
+      return STORAGE_KEY_RE.test(decode(storageKey));
+    } catch {
+      // the adapter's decode throws too, so it never signs this key
+      return false;
+    }
+  });
+}
+
+/** Probe key used to learn the host an adapter signs its objects on. */
+const STORAGE_HOST_PROBE_KEY = 'nc/uploads/.host-probe';
+const storageHostsMemo = new WeakMap<object, Promise<string[]>>();
+
+/**
+ * Hosts serving OUR objects: the active adapter's signing and public url hosts,
+ * plus the NC origin (legacy urls). Memoised per adapter instance, which is
+ * rebuilt on every plugin reconfiguration.
+ */
+async function ownStorageHosts(
+  storageAdapter: IStorageAdapterV2,
+): Promise<string[]> {
+  const hosts: string[] = [];
+
+  if (ncSiteUrl) {
+    try {
+      hosts.push(new URL(ncSiteUrl).host.toLowerCase());
+    } catch {
+      // malformed NC_SITE_URL: ignore
+    }
+  }
+
+  if (typeof (storageAdapter as any).getSignedUrl !== 'function') {
+    return hosts;
+  }
+
+  let memo = storageHostsMemo.get(storageAdapter);
+  if (!memo) {
+    memo = (async () => {
+      const signed = await (storageAdapter as any).getSignedUrl(
+        STORAGE_HOST_PROBE_KEY,
+        60,
+      );
+      const publicUrl = storageAdapter.getUploadedPath(
+        STORAGE_HOST_PROBE_KEY,
+      )?.url;
+      return [
+        new URL(signed).host.toLowerCase(),
+        ...(publicUrl ? [new URL(publicUrl).host.toLowerCase()] : []),
+      ];
+    })();
+    storageHostsMemo.set(storageAdapter, memo);
+    memo.catch(() => storageHostsMemo.delete(storageAdapter));
+  }
+
+  return [...hosts, ...(await memo)];
+}
+
+const ACTIVE_STORAGE_HOSTS_TTL_MS = 30_000;
+let activeStorageHostsMemo: {
+  expiresAt: number;
+  hosts: Promise<string[]>;
+} | null = null;
+
+/**
+ * Own hosts of the active adapter, cached process-wide for a short TTL so the
+ * per-attachment sign path does not read the plugin row on every call.
+ */
+function activeStorageHosts(): Promise<string[]> {
+  if (
+    !activeStorageHostsMemo ||
+    activeStorageHostsMemo.expiresAt < Date.now()
+  ) {
+    const hosts = NcPluginMgrv2.storageAdapter().then(ownStorageHosts);
+    activeStorageHostsMemo = {
+      expiresAt: Date.now() + ACTIVE_STORAGE_HOSTS_TTL_MS,
+      hosts,
+    };
+    hosts.catch(() => {
+      if (activeStorageHostsMemo?.hosts === hosts)
+        activeStorageHostsMemo = null;
+    });
+  }
+  return activeStorageHostsMemo.hosts;
+}
+
+/** Whether an http(s) url is served by our storage. Throws if the host is undeterminable. */
+async function isOwnStorageUrl(
+  url: string,
+  storageAdapter?: IStorageAdapterV2,
+): Promise<boolean> {
+  const host = new URL(url).host.toLowerCase();
+  const hosts = storageAdapter
+    ? await ownStorageHosts(storageAdapter)
+    : await activeStorageHosts();
+  return hosts.includes(host);
+}
+
+/**
+ * Whether an attachment `path`/`url` names an object in OUR storage, not an
+ * external link. Only these are resolved to a storage key (signed, read,
+ * thumbnailed, deleted). A foreign http(s) url is never a storage key, whatever
+ * its pathname, and neither is one whose host cannot be determined.
+ */
+export async function isStorageAttachmentRef(
+  ref?: string,
+  storageAdapter?: IStorageAdapterV2,
+): Promise<boolean> {
+  if (!ref || typeof ref !== 'string') return false;
+
+  // a non-http(s) url/path is always an opaque storage path
+  if (!/^https?:\/\//i.test(ref)) return true;
+
+  return isOwnStorageUrl(ref, storageAdapter).catch(() => false);
+}
+
+/**
+ * Whether a client-supplied `path`/`url` must pass an ownership check before a
+ * data write accepts it: a path, a url whose pathname resolves to a storage key,
+ * or an own-host url. Fails closed: an undeterminable url is checked too.
+ */
+export async function needsAttachmentOwnership(
+  ref?: string,
+  storageAdapter?: IStorageAdapterV2,
+): Promise<boolean> {
+  if (!ref || typeof ref !== 'string') return false;
+
+  if (attachmentRefResolvesToStorage(ref)) return true;
+
+  return isOwnStorageUrl(ref, storageAdapter).catch(() => true);
+}
+
+export const attachmentStorageRefs = (attachment: any): string[] =>
+  [attachment?.path, attachment?.url].filter((ref) =>
+    attachmentRefResolvesToStorage(ref),
+  );
+
+// A read leaves a storage file unsigned when the row's base doesn't hold it.
+export const isSignedStorageAttachment = (attachment: any): boolean =>
+  attachmentStorageRefs(attachment).length > 0 &&
+  !!(attachment?.signedPath || attachment?.signedUrl);
+
+// The writer sets a cell's JSON, so a signature in it is forged until a read signs the file.
+export const dropAttachmentSignatures = (value: any): void => {
+  if (Array.isArray(value)) return value.forEach(dropAttachmentSignatures);
+  if (value && typeof value === 'object') {
+    delete value.signedPath;
+    delete value.signedUrl;
+    Object.values(value.thumbnails ?? {}).forEach(dropAttachmentSignatures);
+  }
+};
+
+// Other fields can hold attachment-shaped JSON that no write vetted.
+export async function isAttachmentField(column: Column): Promise<boolean> {
+  // Reads sign a formula that only references an Attachment field, on PG only.
+  if (column?.uidt === UITypes.Formula) {
+    const formula = await column.getColOptions<FormulaColumn>();
+    if (
+      formula?.getParsedTree()?.referencedColumn?.uidt !== UITypes.Attachment
+    ) {
+      return false;
+    }
+    const source = await Source.get(column.context, column.source_id);
+    return source?.type === 'pg';
+  }
+  let target = column;
+  while (target?.uidt === UITypes.Lookup) {
+    const lookup = await target.getColOptions<LookupColumn>();
+    target = await lookup?.getLookupColumn();
+  }
+  return target?.uidt === UITypes.Attachment;
+}
+
+// External-source cells can be written straight into the database, so reads sign only held files; undefined signs all.
+export async function signableAttachmentFilter(
+  context: NcContext,
+  param: { source?: Source; values: unknown[]; requireHeld?: boolean },
+): Promise<((attachment: unknown) => boolean) | undefined> {
+  // Meta-source writes passed the check; a converted field's old text didn't until its cleanup ends.
+  if (param.source?.isMeta() && !param.requireHeld) return undefined;
+
+  const refs = collectAttachmentStorageRefs(param.values);
+  if (!refs.length) return undefined;
+
+  const held = await FileReference.listHeldFileUrls(
+    {
+      baseId: context.base_id,
+      sourceIds: await sourcesSharingConnection(context, param.source),
+    },
+    refs,
+  );
+  return (attachment) =>
+    collectAttachmentStorageRefs(attachment).every((ref) => held.has(ref));
+}
+
+// One external database can be connected in several bases; a file stored through any of them is held.
+export async function sourcesSharingConnection(
+  context: NcContext,
+  source?: Source,
+): Promise<string[]> {
+  if (!source?.fk_integration_id) return [];
+  const sources = await Source.listByIntegration(
+    context,
+    source.fk_integration_id,
+  );
+  return sources.map((shared) => shared.id);
+}
+
+// Every storage ref a read would sign in a cell value, JSON strings and nested lists included.
+export function collectAttachmentStorageRefs(value: unknown): string[] {
+  if (typeof value === 'string') {
+    try {
+      value = JSON.parse(value);
+    } catch {
+      return [];
+    }
+  }
+  if (Array.isArray(value)) return value.flatMap(collectAttachmentStorageRefs);
+  return value && typeof value === 'object' ? attachmentStorageRefs(value) : [];
+}
+
+/**
+ * Whether a caller may store this client-supplied attachment: an external link,
+ * or a file in our storage they uploaded or this base already holds. Any write
+ * that keeps a `path`/`url` from a request must pass this first, since the
+ * attachment proxies later serve whatever key the stored row names.
+ */
+export async function isAttachmentRefOwned(
+  context: NcContext,
+  attachment: { path?: string; url?: string },
+  userId?: string,
+  ncMeta?: MetaService,
+): Promise<boolean> {
+  for (const ref of [attachment?.path, attachment?.url]) {
+    if (!(await needsAttachmentOwnership(ref))) continue;
+    if (
+      !(await FileReference.isFileUrlAccessibleForWrite(
+        context,
+        {
+          fileUrl: ref,
+          userId,
+        },
+        ncMeta,
+      ))
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export async function assertAttachmentRefOwned(
+  context: NcContext,
+  attachment: { path?: string; url?: string },
+  userId?: string,
+) {
+  if (!(await isAttachmentRefOwned(context, attachment, userId))) {
+    NcError.get(context).unprocessableEntity('Invalid attachment reference');
+  }
+}
+
+// Stored images may arrive as JSON strings, which reads parse before signing.
+const refsOf = (value: unknown): string[] => {
+  const ref: { path?: unknown; url?: unknown } = parseProp(value);
+  return ncIsObject(ref)
+    ? [ref.path, ref.url].filter(
+        (key): key is string => typeof key === 'string' && !!key,
+      )
+    : [];
+};
+
+// Clients resend an icon, logo or banner on every save, so only a ref not already stored is checked.
+export async function assertNewAttachmentRefsOwned(
+  context: NcContext,
+  param: { value: unknown; previous?: unknown; userId?: string },
+): Promise<string[]> {
+  const kept = refsOf(param.previous);
+  const checked: string[] = [];
+  for (const ref of refsOf(param.value)) {
+    if (kept.includes(ref) || !(await needsAttachmentOwnership(ref))) continue;
+    // Undo and promote re-apply a write checked where it was made, maybe by another user or base.
+    if (
+      !isReplay() &&
+      !(await FileReference.isFileUrlAccessibleForWrite(context, {
+        fileUrl: ref,
+        userId: param.userId,
+      }))
+    ) {
+      NcError.get(context).unprocessableEntity('Invalid attachment reference');
+    }
+    checked.push(ref);
+  }
+  return checked;
+}
+
+// The image icon of a user, workspace or org `meta`, which reads sign.
+export async function assertMetaIconOwned(
+  context: NcContext,
+  param: { meta: unknown; previousMeta?: unknown; userId?: string },
+) {
+  // Only an IMAGE icon is signed, so one kept from a non-image meta was never checked.
+  const imageIcon = (meta: unknown) => {
+    const parsed = parseProp(meta);
+    return parsed?.iconType === IconType.IMAGE ? parsed.icon : undefined;
+  };
+  await assertNewAttachmentRefsOwned(context, {
+    value: imageIcon(param.meta),
+    previous: imageIcon(param.previousMeta),
+    userId: param.userId,
+  });
+}
+
+// Base-scoped refs let other base members set an image again, e.g. on undo.
+export async function holdAttachmentRefsInBase(
+  context: NcContext,
+  param: { refs: string[]; userId?: string },
+) {
+  let storage: string | undefined;
+  for (const fileUrl of new Set(param.refs)) {
+    const inBase = await FileReference.isFileUrlAccessibleForWrite(context, {
+      fileUrl,
+    });
+    if (inBase) continue;
+
+    storage ??= (await NcPluginMgrv2.storageAdapter()).name;
+    await FileReference.insert(context, {
+      storage,
+      file_url: fileUrl,
+      file_size: 0,
+      fk_user_id: param.userId ?? 'anonymous',
+    });
+  }
 }
 
 export function resolveAttachmentFilePath(attachment: {

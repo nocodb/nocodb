@@ -13,8 +13,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { customAlphabet } from 'nanoid';
 import type { OnModuleDestroy } from '@nestjs/common';
 import type { Response } from 'express';
-import { JobStatus } from '~/interface/Jobs';
-import { JobEvents } from '~/interface/Jobs';
+import { JobEvents, JobStatus, UNPOLLED_JOB_TYPES } from '~/interface/Jobs';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope, RootScopes } from '~/utils/globals';
@@ -27,6 +26,8 @@ import { NcRequest } from '~/interface/config';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const POLLING_INTERVAL = 30000;
+// How long a finished job stays answerable to late polls.
+const CLOSED_JOB_RETENTION = POLLING_INTERVAL * 2;
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -36,6 +37,7 @@ export class JobsController implements OnModuleDestroy {
   ) {}
 
   onModuleDestroy() {
+    clearInterval(this.sweepTimer);
     Object.keys(this.jobRooms).forEach((jobId) => {
       const room = this.jobRooms[jobId];
       room.listeners.forEach((res: Response & { resId?: string }) => {
@@ -50,7 +52,39 @@ export class JobsController implements OnModuleDestroy {
 
   private jobRooms = {};
   private localJobs = {};
-  private closedJobs = [];
+  // jobId → when it starts answering `close`, and when its state is dropped
+  private closedJobs = new Map<string, { from: number; until: number }>();
+
+  private sweepTimer = setInterval(
+    () => this.sweepClosedJobs(),
+    POLLING_INTERVAL,
+  ).unref();
+
+  private markClosed(jobId: string, delay = 0) {
+    const now = Date.now();
+    // the worker and the Redis relay can both close it in one process
+    const prev = this.closedJobs.get(jobId);
+    this.closedJobs.set(jobId, {
+      from: Math.min(prev?.from ?? Infinity, now + delay),
+      until: prev?.until ?? now + CLOSED_JOB_RETENTION,
+    });
+  }
+
+  private sweepClosedJobs() {
+    const now = Date.now();
+    for (const [jobId, { until }] of this.closedJobs) {
+      if (until > now) continue;
+      this.closedJobs.delete(jobId);
+      delete this.jobRooms[jobId];
+      if (this.localJobs[jobId]) {
+        delete this.localJobs[jobId];
+        NocoCache.del(
+          'root',
+          `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
+        ).catch(() => {});
+      }
+    }
+  }
 
   /**
    * `GlobalGuard` falls back to a guest user instead of rejecting, so this route
@@ -118,7 +152,7 @@ export class JobsController implements OnModuleDestroy {
       return;
     }
 
-    if (this.closedJobs.includes(jobId)) {
+    if ((this.closedJobs.get(jobId)?.from ?? Infinity) <= Date.now()) {
       res.send({
         status: 'close',
       });
@@ -155,16 +189,8 @@ export class JobsController implements OnModuleDestroy {
                 ) {
                   await unsubscribeCallback();
                   delete this.jobRooms[jobId];
-                  // close the job after 1 second (to allow the update of messages)
-                  setTimeout(() => {
-                    this.closedJobs.push(jobId);
-                  }, 1000).unref();
-                  // remove the job after polling interval * 2
-                  setTimeout(() => {
-                    this.closedJobs = this.closedJobs.filter(
-                      (j) => j !== jobId,
-                    );
-                  }, POLLING_INTERVAL * 2).unref();
+                  // close after 1s so the final messages land first
+                  this.markClosed(jobId, 1000);
                 }
                 break;
             }
@@ -191,11 +217,17 @@ export class JobsController implements OnModuleDestroy {
   }
 
   @OnEvent(JobEvents.STATUS)
-  async sendJobStatus(data: {
+  async sendJobStatus({
+    jobName,
+    ...data
+  }: {
     id: string;
+    jobName?: string;
     status: JobStatus;
     data?: any;
   }): Promise<void> {
+    if (UNPOLLED_JOB_TYPES.has(jobName)) return;
+
     let response;
 
     const jobId = data.id;
@@ -299,28 +331,24 @@ export class JobsController implements OnModuleDestroy {
           `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
         ).catch(() => {});
       } else if (isTerminal) {
-        this.closedJobs.push(jobId);
-        setTimeout(() => {
-          this.closedJobs = this.closedJobs.filter((j) => j !== jobId);
-        }, POLLING_INTERVAL * 2).unref();
-
-        setTimeout(() => {
-          delete this.jobRooms[jobId];
-          delete this.localJobs[jobId];
-          NocoCache.del(
-            'root',
-            `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
-          ).catch(() => {});
-        }, POLLING_INTERVAL * 2).unref();
+        // jobRooms, localJobs and the cached messages go with it in the sweep
+        this.markClosed(jobId);
       }
     }
   }
 
   @OnEvent(JobEvents.LOG)
-  async sendJobLog(data: {
+  async sendJobLog({
+    jobName,
+    ...data
+  }: {
     id: string;
+    jobName?: string;
     data: { message: string };
   }): Promise<void> {
+    // no terminal status reaches markClosed for these, so localJobs would never be swept
+    if (UNPOLLED_JOB_TYPES.has(jobName)) return;
+
     let response;
 
     const jobId = data.id;

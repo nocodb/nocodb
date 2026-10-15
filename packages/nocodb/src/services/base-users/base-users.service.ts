@@ -51,6 +51,10 @@ export class BaseUsersService {
       mode: param.mode,
     });
 
+    // Signup with a matching token resets the password, and SSO accounts keep
+    // a stale token with no password, so no token may reach the roster.
+    for (const baseUser of baseUsers) delete baseUser.invite_token;
+
     await PresignedUrl.signMetaIconImage(baseUsers);
 
     return new PagedResponseImpl(baseUsers, {
@@ -879,14 +883,16 @@ export class BaseUsersService {
       return NcError.baseNotFound(param.baseId);
     }
 
-    const invite_token = uuidv4();
-
-    await User.update(user.id, {
-      invite_token,
-      invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    });
-
+    // `userId` is looked up instance-wide, so check membership before minting
+    // anything. `BaseUser.get` returns a row for any user (workspace member in
+    // EE), so only `is_mapped` proves an explicit base membership.
     const baseUser = await BaseUser.get(context, param.baseId, user.id);
+
+    if (!baseUser?.is_mapped) {
+      NcError.baseUserError(
+        `User with id '${param.userId}' is not invited to this base`,
+      );
+    }
 
     const pluginData = await Noco.ncMeta.metaGet2(
       RootScopes.ROOT,
@@ -902,6 +908,19 @@ export class BaseUsersService {
       NcError.baseUserError(
         `No Email Plugin is found. Please go to App Store to configure first or copy the invitation URL to users instead.`,
       );
+    }
+
+    // Signup clears the token, so only a pending invite still holds one. A
+    // token minted for a finished account would let its holder reset the
+    // password through signup.
+    const needsSignupLink = !!user.invite_token;
+    const invite_token = needsSignupLink ? uuidv4() : null;
+
+    if (needsSignupLink) {
+      await User.update(user.id, {
+        invite_token,
+        invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      });
     }
 
     await this.mailService.sendMail({

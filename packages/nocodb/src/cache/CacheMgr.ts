@@ -24,7 +24,7 @@ const logger = new Logger('CacheMgr');
  * Cache scopes that a boot-time flush must leave alone. Everything else cached
  * is re-derivable from the meta DB; these are not.
  */
-const DURABLE_SCOPES = [CacheScope.COLLAB_STATE];
+const DURABLE_SCOPES = [CacheScope.COLLAB_STATE, CacheScope.LICENSE_ACTIVITY];
 
 export default abstract class CacheMgr {
   client: IORedis;
@@ -333,6 +333,10 @@ export default abstract class CacheMgr {
 
   async smembers(key: string): Promise<string[]> {
     return this.client.smembers(key);
+  }
+
+  async sunion(keys: string[]): Promise<string[]> {
+    return this.client.sunion(...keys);
   }
 
   /**

@@ -10,7 +10,9 @@ import {
 } from 'nocodb-sdk';
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import type { MappedExceptionResponse } from '~/filters/global-exception/exception-mapper';
 import { throttlerLogger } from '~/helpers/throttlerLogger';
+import { isMcpEndpoint, JSON_RPC_PARSE_ERROR } from '~/mcp/mcp-http';
 import { DBErrorKind } from '~/helpers/db-error/utils';
 import { mapExceptionToResponse } from '~/filters/global-exception/exception-mapper';
 import {
@@ -38,6 +40,11 @@ const SERVER_SIDE_NC_ERROR_TYPES = [
   NcErrorType.ERR_UNKNOWN,
 ];
 
+// Nest rethrows body-parser's SyntaxError as a BadRequestException carrying
+// V8's JSON.parse message, whose wording changes across Node versions.
+const JSON_PARSE_ERROR_RE =
+  /\bJSON at position \d+|is not valid JSON|^Unexpected end of JSON input/;
+
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   constructor() {}
@@ -54,13 +61,17 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (
       exception.name === 'BadRequestException' &&
       exception.status === 400 &&
-      /^Unexpected token .*? (?:in JSON|is not valid JSON)/.test(
-        exception.message,
-      )
+      JSON_PARSE_ERROR_RE.test(exception.message)
     ) {
       exception = NcError._.errorCodex.generateError(
         NcErrorType.ERR_INVALID_JSON,
       );
+
+      // the MCP transport answers malformed bodies in JSON-RPC, not the platform shape
+      if (isMcpEndpoint(request.path)) {
+        response.status(400).json(JSON_RPC_PARSE_ERROR);
+        return;
+      }
     }
 
     // try to extract db error for unknown errors — kept here (in addition
@@ -155,8 +166,25 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       };
     }
 
+    // Decoration is best-effort metadata; a throw here must not escape the filter.
+    try {
+      this.decorateErrorResponse(mapped, request, response, apiVersion);
+    } catch (e) {
+      this.logger.error(
+        `Failed to decorate error response: ${e?.message}`,
+        e?.stack,
+      );
+    }
+
     return response.status(mapped.status).json(mapped.body);
   }
+
+  protected decorateErrorResponse(
+    _mapped: MappedExceptionResponse,
+    _request: Request,
+    _response: Response,
+    _apiVersion?: NcApiVersion,
+  ) {}
 
   protected captureException(exception: any, _request: any) {
     Sentry.captureException(exception);

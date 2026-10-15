@@ -118,7 +118,8 @@
         "Dashboards",
         "Documents",
         "Hooks",
-        "Comments"
+        "Comments",
+        "Feedback"
       ]
     },
     {
@@ -2541,11 +2542,74 @@
         },
         "responses": {
           "200": {
-            "description": "Field was updated.",
+            "description": "Field was updated. When the update destroyed data, the response also reports it.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreateField"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/CreateField"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "cleared_rows": {
+                          "type": "integer",
+                          "description": "Cells that became empty through a type conversion or a removed choice. Absent when none."
+                        },
+                        "cleared_by_choice": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "integer"
+                          },
+                          "description": "Cleared cells per removed select choice, keyed by choice title."
+                        },
+                        "conversion": {
+                          "type": "object",
+                          "description": "Non-empty cell counts around a type conversion. Values that were rounded or reformatted are not counted.",
+                          "properties": {
+                            "non_empty_before": {
+                              "type": "integer"
+                            },
+                            "non_empty_after": {
+                              "type": "integer"
+                            },
+                            "cleared_rows": {
+                              "type": "integer"
+                            }
+                          }
+                        },
+                        "dependents": {
+                          "type": "array",
+                          "description": "Lookups and rollups that read through a link converted to another type, and now show errors.",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "table_id": {
+                                "type": "string"
+                              },
+                              "uidt": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "warnings": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "What the update destroyed or replaced, e.g. a link converted to text gets a new field id."
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -5407,7 +5471,7 @@
             },
             "in": "query",
             "name": "page",
-            "description": "Page of records to return, 1 by default.\n\nA page past the end of the result set is rejected with `422 ERR_INVALID_OFFSET_VALUE` rather than returning an empty page — including `page=2` on a table with no records.\n\nExample: `page=2` returns the second page."
+            "description": "Page of records to return, 1 by default.\n\nA page past the end of the result set returns an empty `records` list with no `next`; its `prev` points at the last page that has records, or page 1 when there are none. A `page` below 1 is rejected with `422 ERR_INVALID_OFFSET_VALUE`.\n\nExample: `page=2` returns the second page."
           },
           {
             "schema": {
@@ -5554,7 +5618,7 @@
             "$ref": "#/components/responses/BadRequest"
           },
           "422": {
-            "description": "Unprocessable Entity — an unknown field in `fields` or `sort` (`ERR_FIELD_NOT_FOUND`), or a `page` past the end of the result set (`ERR_INVALID_OFFSET_VALUE`)."
+            "description": "Unprocessable Entity — an unknown field in `fields` or `sort` (`ERR_FIELD_NOT_FOUND`), or a `page` below 1 (`ERR_INVALID_OFFSET_VALUE`)."
           }
         }
       },
@@ -6521,7 +6585,7 @@
             },
             "in": "query",
             "name": "page",
-            "description": "Enables you to control the pagination of your API response by specifying the page number you want to retrieve. By default, the first page is returned. If you want to retrieve the next page, you can increment the page number by one.\n\nExample: `page=2` will return the second page of linked records in the dataset."
+            "description": "Page of linked records to return, 1 by default.\n\nA page past the end returns an empty `records` list with no `next`; its `prev` points at the last page that has records, or page 1 when there are none. A `page` below 1 is rejected with `422 ERR_INVALID_OFFSET_VALUE`.\n\nExample: `page=2` returns the second page of linked records."
           },
           {
             "schema": {
@@ -8211,6 +8275,74 @@
         }
       }
     },
+    "/api/v3/meta/feedback": {
+      "post": {
+        "summary": "Submit feedback",
+        "description": "Report a NocoDB bug, missing capability, confusing behavior or docs gap. Meant for agents after a failed call (pass the failed response's `requestId` as `evidence.requestId`) or when the user asks to send feedback.\n\nIt changes no data and fixes nothing. Delivery is best effort: the response is always `received` once the payload is valid, even if the report is later dropped. Do not retry.\n\nCalls to this endpoint do not count toward plan API limits.",
+        "operationId": "feedback-submit",
+        "tags": [
+          "Feedback"
+        ],
+        "security": [
+          {
+            "xc-token": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackSubmit"
+              },
+              "examples": {
+                "agent_observed": {
+                  "value": {
+                    "source": {
+                      "origin": "agent_observed",
+                      "agent": {
+                        "name": "my-agent",
+                        "model": "claude"
+                      }
+                    },
+                    "type": "bug",
+                    "summary": "updateField rejects a valid currency precision",
+                    "intent": "Change a Currency field to 3 decimal places",
+                    "details": "updateField returned 400 for precision 3; the UI accepts it.",
+                    "evidence": {
+                      "toolName": "updateField",
+                      "requestId": "0192f0c4-8a3b-7c1d-9e2f-3a4b5c6d7e8f",
+                      "errorMessage": "Invalid precision"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Feedback received. Nothing was fixed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "429": {
+            "description": "Feedback rate limit reached. Tell the user the report was not sent."
+          }
+        }
+      }
+    },
     "/api/v3/meta/tokens": {
       "get": {
         "operationId": "tokens-list",
@@ -9724,10 +9856,12 @@
             "type": "string",
             "enum": [
               "bug",
+              "silent_bug",
               "missing_capability",
               "confusing_behavior",
               "docs_gap"
-            ]
+            ],
+            "description": "`bug`: the call failed or errored wrongly. `silent_bug`: the call reported success but did the wrong thing."
           },
           "summary": {
             "type": "string",
@@ -9784,6 +9918,36 @@
             "type": "string",
             "maxLength": 2000,
             "description": "The user's own words (`user_request` only)."
+          },
+          "area": {
+            "type": "string",
+            "enum": [
+              "account",
+              "records",
+              "schema",
+              "views",
+              "automation",
+              "interfaces",
+              "access",
+              "platform",
+              "other"
+            ],
+            "description": "The section the issue falls under."
+          },
+          "feature": {
+            "type": "string",
+            "maxLength": 50,
+            "description": "The MCP tool family, e.g. `fields`, `filters`, `links`; `other` if none fits. An unrecognised value is stored as `other`."
+          },
+          "workspaceId": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "The workspace the issue happened in. Kept only if you can access it."
+          },
+          "baseId": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "The base the issue happened in. Kept only if you can access it."
           }
         }
       },
@@ -9872,6 +10036,20 @@
           "records": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/DataUpsertRecordResponse" }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Present when part of the write was not applied, e.g. computed fields named in the payload."
+          },
+          "ignored_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Titles of computed fields (Formula, Lookup, Rollup, ...) named in the payload. Their values are calculated, so they were not written."
           }
         }
       },
@@ -10512,7 +10690,14 @@
               ]
             },
             "options": {
-              "$ref": "#/components/schemas/FieldOptions_Barcode"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/FieldOptions_Barcode"
+                }
+              ],
+              "required": [
+                "barcode_value_field_id"
+              ]
             }
           }
         },
@@ -10945,9 +11130,19 @@
             "format": "email",
             "description": "Email address of the user."
           },
-          "user_name": {
+          "display_name": {
             "type": "string",
             "description": "Display name of the user."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the user was added to the base."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the membership was last updated."
           },
           "base_role": {
             "$ref": "#/components/schemas/BaseRolesResponse"
@@ -10973,9 +11168,19 @@
             "format": "email",
             "description": "Email address of the user."
           },
-          "user_name": {
+          "display_name": {
             "type": "string",
             "description": "Display name of the user."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the user was added to the base."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the membership was last updated."
           },
           "base_role": {
             "$ref": "#/components/schemas/BaseRolesResponse"
@@ -13465,7 +13670,7 @@
           },
           "currency_code": {
             "type": "string",
-            "description": "Currency code. Refer https://simplelocalize.io/data/locales/",
+            "description": "Currency code (ISO 4217). Refer https://simplelocalize.io/data/locales/. Withdrawn codes such as BYR or GHC are still accepted so existing columns keep validating.",
             "enum": [
               "AED",
               "AFN",
@@ -13491,6 +13696,7 @@
               "BSD",
               "BTN",
               "BWP",
+              "BYN",
               "BYR",
               "BZD",
               "CAD",
@@ -13504,6 +13710,7 @@
               "COP",
               "COU",
               "CRC",
+              "CUC",
               "CUP",
               "CVE",
               "CYP",
@@ -13522,6 +13729,7 @@
               "GBP",
               "GEL",
               "GHC",
+              "GHS",
               "GIP",
               "GMD",
               "GNF",
@@ -13566,6 +13774,7 @@
               "MNT",
               "MOP",
               "MRO",
+              "MRU",
               "MTL",
               "MUR",
               "MVR",
@@ -13598,20 +13807,26 @@
               "SBD",
               "SCR",
               "SDD",
+              "SDG",
               "SEK",
               "SGD",
               "SHP",
               "SIT",
               "SKK",
+              "SLE",
               "SLL",
               "SOS",
               "SRD",
+              "SSP",
               "STD",
+              "STN",
+              "SVC",
               "SYP",
               "SZL",
               "THB",
               "TJS",
               "TMM",
+              "TMT",
               "TND",
               "TOP",
               "TRY",
@@ -13623,9 +13838,13 @@
               "USD",
               "USN",
               "USS",
+              "UYI",
               "UYU",
+              "UYW",
               "UZS",
               "VEB",
+              "VED",
+              "VES",
               "VND",
               "VUV",
               "WST",
@@ -13644,12 +13863,17 @@
               "XPD",
               "XPF",
               "XPT",
+              "XSU",
               "XTS",
+              "XUA",
               "XXX",
               "YER",
               "ZAR",
               "ZMK",
-              "ZWD"
+              "ZMW",
+              "ZWD",
+              "ZWG",
+              "ZWL"
             ]
           }
         },
@@ -13777,7 +14001,7 @@
                 "color": {
                   "type": "string",
                   "description": "Specifies the tile color for the choice using a hexadecimal color code (e.g., `#36BFFF`).",
-                  "pattern": "^#[0-9A-Fa-f]{6}$"
+                  "pattern": "^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$"
                 }
               },
               "required": [
@@ -14770,7 +14994,7 @@
           "color": {
             "type": "string",
             "description": "Tile color for the choice as a hex code (e.g. `#36BFFF`). Defaults to a palette color when omitted.",
-            "pattern": "^#[0-9A-Fa-f]{6}$"
+            "pattern": "^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$"
           }
         },
         "required": [
@@ -15437,6 +15661,13 @@
             "type": "object",
             "description": "Record fields data, excluding the primary key. Always present; an empty object when the record has no other fields.",
             "additionalProperties": true
+          },
+          "field_errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Fields whose value could not be computed because the field is broken (e.g. a lookup through a deleted link). Their value in `fields` is null."
           }
         },
         "required": [
@@ -15579,6 +15810,20 @@
               "$ref": "#/components/schemas/DataRecordV3"
             },
             "description": "Array of created records"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Present when part of the write was not applied, e.g. computed fields named in the payload."
+          },
+          "ignored_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Titles of computed fields (Formula, Lookup, Rollup, ...) named in the payload. Their values are calculated, so they were not written."
           }
         },
         "required": [
@@ -15619,6 +15864,20 @@
               ]
             },
             "description": "Array of updated record identifiers"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Present when part of the write was not applied, e.g. computed fields named in the payload."
+          },
+          "ignored_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Titles of computed fields (Formula, Lookup, Rollup, ...) named in the payload. Their values are calculated, so they were not written."
           }
         },
         "required": [
@@ -17152,8 +17411,26 @@
         "properties": {
           "widgets": {
             "type": "object",
-            "additionalProperties": true,
-            "description": "Map of widget IDs to their data."
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "description": "The widget's data."
+                },
+                {
+                  "type": "object",
+                  "description": "The widget failed to load; the other widgets are still returned.",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "description": "Why the widget's data could not be loaded."
+                    }
+                  },
+                  "required": ["error"]
+                }
+              ]
+            },
+            "description": "Map of widget IDs to their data. A widget that fails to load maps to `{ error }` instead of failing the request."
           }
         },
         "required": ["widgets"]
@@ -19552,12 +19829,15 @@
         }
       },
       "TooManyRequestsV3": {
-        "description": "Rate limit exceeded. The token is blocked for a further cool-down period. Note that a throttled response body is a bare JSON string today, not the standard error object.",
+        "description": "Rate limit exceeded. The token is blocked for a further cool-down period.",
         "content": {
           "application/json": {
             "schema": {
-              "type": "string",
-              "example": "ThrottlerException: Too Many Requests"
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": "ERR_TOO_MANY_REQUESTS",
+              "message": "Too many requests. Please try again later."
             }
           }
         },

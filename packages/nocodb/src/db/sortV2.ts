@@ -68,7 +68,12 @@ export default async function sortV2(
 
     const direction: 'asc' | 'desc' =
       sort.direction === 'desc' ? 'desc' : 'asc';
-    const nulls = sort.direction === 'desc' ? 'LAST' : 'FIRST';
+    // Only the PK surely holds no NULLs; NULLS on it defeats pg's btree order.
+    const nulls = column.pk
+      ? undefined
+      : sort.direction === 'desc'
+      ? 'LAST'
+      : 'FIRST';
 
     if (
       baseModelSqlv2.isMssql &&
@@ -92,9 +97,12 @@ export default async function sortV2(
     ) {
       qb.orderByRaw(
         sanitize(
-          knex.raw(`DBMS_LOB.SUBSTR(??, 2000, 1) ${direction} NULLS ${nulls}`, [
-            column.column_name,
-          ]),
+          knex.raw(
+            `DBMS_LOB.SUBSTR(??, 2000, 1) ${direction}${
+              nulls ? ` NULLS ${nulls}` : ''
+            }`,
+            [column.column_name],
+          ),
         ),
       );
       continue;

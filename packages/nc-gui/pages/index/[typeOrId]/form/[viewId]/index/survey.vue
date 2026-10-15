@@ -523,6 +523,12 @@ const { message: templatedMessage } = useTemplatedMessage(
       </div>
       <div class="lg:(absolute bottom-0 right-0 px-4 pb-4) lg:px-10 lg:pb-10">
         <div class="flex justify-end items-center gap-4 nc-survey-form-branding">
+          <GeneralReportAbuseLink
+            class="text-bodySm opacity-70 hover:opacity-100"
+            :style="{
+              color: backgroundAndTextColor.textColor,
+            }"
+          />
           <div class="flex justify-center">
             <GeneralFormBranding
               class="inline-flex mx-auto"

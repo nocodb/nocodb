@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc.js';
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import { type NcContext, ncIsUndefined } from 'nocodb-sdk';
 import debug from 'debug';
 import type CustomKnex from '~/db/CustomKnex';
@@ -9,11 +10,15 @@ import type { FilterOptions } from '~/db/field-handler/field-handler.interface';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { MetaService } from '~/meta/meta.service';
 import type { Column, Filter } from '~/models';
-import { DateTimeGeneralHandler } from '~/db/field-handler/handlers/date-time/date-time.general.handler';
+import {
+  DateTimeGeneralHandler,
+  dateTimeInputProblem,
+} from '~/db/field-handler/handlers/date-time/date-time.general.handler';
 import { NcError } from '~/helpers/catchError';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+dayjs.extend(customParseFormat);
 
 const dateHandlerDebug = debug('nc:DateGeneralHandler');
 
@@ -37,6 +42,26 @@ export class DateGeneralHandler extends DateTimeGeneralHandler {
       return { value: params.value };
     }
 
+    const problem = dateTimeInputProblem(params.value);
+    if (problem) {
+      NcError.invalidValueForField({
+        value: params.value,
+        column: params.column.title,
+        type: params.column.uidt,
+        reason: problem,
+      });
+    }
+
+    const dateFormat = params.column.meta?.date_format;
+    if (typeof params.value === 'string' && dateFormat) {
+      // A known format wins over the default guess: "10/03/2026" is Oct 3
+      // to dayjs, but 10 Mar under DD/MM/YYYY.
+      const byFormat = dayjs.utc(params.value, dateFormat, true);
+      if (byFormat.isValid()) {
+        return { value: byFormat.format('YYYY-MM-DD') };
+      }
+    }
+
     let dayjsUtcValue: dayjs.Dayjs;
     if (
       params.value instanceof Date ||
@@ -47,11 +72,8 @@ export class DateGeneralHandler extends DateTimeGeneralHandler {
         dayjsUtcValue = dayjs(params.value).utc();
       } else if (typeof params.value === 'string') {
         dayjsUtcValue = dayjs(params.value).utc();
-        if (!dayjsUtcValue.isValid() && params.column.meta?.date_format) {
-          dayjsUtcValue = dayjs(
-            params.value,
-            params.column.meta?.date_format,
-          ).utc();
+        if (!dayjsUtcValue.isValid() && dateFormat) {
+          dayjsUtcValue = dayjs(params.value, dateFormat).utc();
         }
       } else if (typeof params.value === 'number') {
         dayjsUtcValue = dayjs.unix(params.value).utc();

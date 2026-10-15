@@ -68,7 +68,10 @@ export class MysqlDatetimeFormatHandler extends PatternDatetimeFormatHandler {
   }
 
   protected escapeLiteral(value: string): string {
-    return value.replace(/%/g, '%%');
+    // `\` first: MySQL's default sql_mode treats it as a string escape, so an
+    // unescaped one would consume the quote `wrap()` doubles and end the
+    // literal. `%` is DATE_FORMAT's own specifier char.
+    return value.replace(/\\/g, '\\\\').replace(/%/g, '%%');
   }
 
   protected wrap(dateExpr: string, pattern: string): string {

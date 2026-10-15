@@ -9,6 +9,8 @@ const { isMobileMode } = storeToRefs(useConfigStore())
 
 const { sharedView, sharedPageTitle, allowCSVDownload } = useSharedView()
 
+const abuseReportTarget = useAbuseReportTarget()
+
 const { productName, logoUrl, logoDarkUrl, isWhiteLabelled, config } = useBranding()
 
 const { isFullScreen } = storeToRefs(useSidebarStore())
@@ -127,20 +129,12 @@ export default {
 
           <div class="flex items-center gap-3 flex-none">
             <div
-              v-if="sharedPageTitle?.notice || sharedPageTitle?.report"
+              v-if="sharedPageTitle?.notice || abuseReportTarget"
               class="flex items-center gap-2 flex-none whitespace-nowrap text-bodySm text-nc-content-gray-muted"
               data-testid="nc-shared-page-notice"
             >
               <span v-if="sharedPageTitle?.notice" class="hidden lg:inline">{{ sharedPageTitle.notice }}</span>
-              <a
-                v-if="sharedPageTitle?.report"
-                :href="sharedPageTitle.report.href"
-                class="!text-nc-content-gray-subtle underline hover:!text-nc-content-brand"
-                data-testid="nc-shared-page-report"
-                rel="noopener noreferrer"
-              >
-                {{ sharedPageTitle.report.label }}
-              </a>
+              <GeneralReportAbuseLink icon-only-mobile class="!text-nc-content-gray-subtle hover:!text-nc-content-brand" />
             </div>
 
             <DashboardMiniSidebarTheme placement="bottom" render-as-btn />

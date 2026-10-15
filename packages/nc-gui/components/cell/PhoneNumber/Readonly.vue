@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import isMobilePhone from 'validator/lib/isMobilePhone'
+import { isValidPhoneNumber } from 'nocodb-sdk'
 
 interface Props {
   modelValue: string | null | number | undefined
@@ -11,7 +11,7 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
-const validPhoneNumber = computed(() => props.modelValue && isMobilePhone(props.modelValue))
+const validPhoneNumber = computed(() => props.modelValue && isValidPhoneNumber(props.modelValue))
 </script>
 
 <template>

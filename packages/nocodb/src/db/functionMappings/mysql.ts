@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import { ClientType, JSEPNode } from 'nocodb-sdk';
 import commonFns, {
   ALLOWED_DATEADD_UNITS,
+  escapePlaceholders,
   extractDatetimeFormat,
   validateDateAddUnit,
 } from './commonFns';
@@ -132,7 +133,12 @@ const mysql2 = {
     const dateExpr = (await fn(pt?.arguments[0])).builder;
     return {
       builder: knex.raw(
-        getDatetimeFormatHandler(ClientType.MYSQL).build(`${dateExpr}`, format),
+        escapePlaceholders(
+          getDatetimeFormatHandler(ClientType.MYSQL).build(
+            `${dateExpr}`,
+            format,
+          ),
+        ),
       ),
     };
   },

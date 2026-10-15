@@ -14,7 +14,6 @@ process.env.NC_VERSION = '0009044';
 dns.setDefaultResultOrder('ipv4first');
 
 const server = express();
-server.enable('trust proxy');
 server.disable('etag');
 server.disable('x-powered-by');
 server.use(

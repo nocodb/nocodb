@@ -1,7 +1,7 @@
 import { IoAdapter } from '@nestjs/platform-socket.io';
-import { createAdapter } from '@socket.io/redis-adapter';
 import { Redis } from 'ioredis';
 import RedisMock from 'ioredis-mock';
+import type { createAdapter } from '@socket.io/redis-adapter';
 import type { ServerOptions } from 'socket.io';
 import { getRedisURL } from '~/helpers/redisHelpers';
 
@@ -20,6 +20,11 @@ export class RedisIoAdapter extends IoAdapter {
     }
 
     const subClient = pubClient.duplicate();
+
+    // notepack (the adapter's encoder) reads this on load. Each cached key pins an 8 KB
+    // pool slab, and broadcast keys are mostly ids, so its 1024 default holds ~8 MB.
+    process.env.NOTEPACK_ENCODE_CACHE_MAX_SIZE ??= '128';
+    const { createAdapter } = await import('@socket.io/redis-adapter');
 
     this.adapterConstructor = createAdapter(pubClient, subClient);
   }

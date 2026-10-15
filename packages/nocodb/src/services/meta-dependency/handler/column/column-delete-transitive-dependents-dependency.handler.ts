@@ -290,6 +290,11 @@ export class ColumnDeleteTransitiveDependentsDependencyHandler
         { error },
         ncMeta,
       );
+      param.markedDependents?.push({
+        id: affected.fk_column_id,
+        type: affected.type,
+        base_id: ctx.base_id,
+      });
 
       // Replay each per-concern delete handler's `handle()` for the dep.
       // Synthetic param carries just the column id — that's all the bodies

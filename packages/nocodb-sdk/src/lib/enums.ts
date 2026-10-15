@@ -489,6 +489,7 @@ export enum AppEvents {
   APP_UPDATE = 'app.update',
   APP_DELETE = 'app.delete',
   APP_PUBLISH = 'app.publish',
+  APP_BUILD_FIRST_TURN = 'app.build.first_turn',
   APP_ROLLBACK = 'app.rollback',
   APP_TOKEN_CREATE = 'app.token.create',
   APP_TOKEN_UPDATE = 'app.token.update',
@@ -519,7 +520,22 @@ export enum AppEvents {
   FACTORY_SESSION_DELETE = 'factory.session.delete',
   FACTORY_REPO_ENABLE = 'factory.repo.enable',
   FACTORY_REPO_DISABLE = 'factory.repo.disable',
+  FACTORY_MACHINE_CREATE = 'factory.machine.create',
+  FACTORY_MACHINE_RENAME = 'factory.machine.rename',
+  FACTORY_MACHINE_SET_DEFAULT = 'factory.machine.set_default',
+  FACTORY_MACHINE_DELETE = 'factory.machine.delete',
+  FACTORY_MACHINE_BUILD = 'factory.machine.build',
+  FACTORY_MACHINE_BUILD_CANCEL = 'factory.machine.build_cancel',
+  FACTORY_MACHINE_ACTIVATE = 'factory.machine.activate',
   SKILL_POLICY_UPDATE = 'skill.policy.update',
+
+  ROADMAP_ITEM_SUBMITTED = 'roadmap.item.submitted',
+  ROADMAP_ITEM_UPDATED = 'roadmap.item.updated',
+  ROADMAP_ITEM_APPROVED = 'roadmap.item.approved',
+  ROADMAP_ITEM_STATUS_CHANGED = 'roadmap.item.status_changed',
+  ROADMAP_ITEM_MERGED = 'roadmap.item.merged',
+  ROADMAP_ITEM_ASSIGNED = 'roadmap.item.assigned',
+  ROADMAP_COMMENT_CREATED = 'roadmap.comment.created',
 }
 
 export enum ClickhouseTables {

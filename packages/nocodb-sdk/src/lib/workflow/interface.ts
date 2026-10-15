@@ -48,6 +48,9 @@ interface VariableDefinition {
     // UIType for fields
     uiType?: string;
 
+    // For Lookup fields: UIType of the field the lookup finally resolves to
+    lookupUiType?: string;
+
     // Available options for SingleSelect / MultiSelect fields, so condition
     // builders can offer the actual options as coloured chips instead of free
     // text. `color` is omitted when the column has colour coding turned off.

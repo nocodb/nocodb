@@ -5,6 +5,7 @@ import Noco from '~/Noco';
 import { CacheScope, MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
+import { chunkArray } from '~/utils/tsUtils';
 
 const logger = new Logger('FileReference');
 
@@ -435,6 +436,9 @@ export default class FileReference {
    * one uploaded by the caller (the normal upload → store flow leaves a root
    * reference with the uploader's id) or one already stored in the current base
    * (same-base copy/paste, including files uploaded by a collaborator).
+   *
+   * Only the root row proves an upload. A base row carrying the caller's id may
+   * name a path the caller typed, so in another base it vouches for nothing.
    */
   public static async isFileUrlAccessibleForWrite(
     context: NcContext,
@@ -447,7 +451,8 @@ export default class FileReference {
     },
     ncMeta = Noco.ncMeta,
   ): Promise<boolean> {
-    if (!fileUrl) return false;
+    // No stored ref holds a NUL byte, and Postgres rejects one in a bound parameter.
+    if (!fileUrl || fileUrl.includes('\0')) return false;
 
     // Fail closed when there is nothing to scope ownership by. With neither a
     // base context nor a user, the sub-query below would be an empty group and
@@ -459,11 +464,55 @@ export default class FileReference {
       .where('file_url', fileUrl)
       .where((builder) => {
         if (context.base_id) builder.orWhere('base_id', context.base_id);
-        if (userId) builder.orWhere('fk_user_id', userId);
+        if (userId) {
+          // Not `fk_workspace_id` too: nc_098 stamped it on older on-prem uploads.
+          builder.orWhere((rootUpload) =>
+            rootUpload.where('fk_user_id', userId).whereNull('base_id'),
+          );
+        }
       });
 
     const row = await qb.first();
     return !!row;
+  }
+
+  // The file urls among `fileUrls` that a base, sources, or a user's own uploads have a reference to.
+  public static async listHeldFileUrls(
+    holder: { baseId?: string; sourceIds?: string[]; userId?: string },
+    fileUrls: string[],
+    ncMeta = Noco.ncMeta,
+  ): Promise<Set<string>> {
+    const held = new Set<string>();
+    if (!holder.baseId && !holder.sourceIds?.length && !holder.userId) {
+      return held;
+    }
+
+    // A NUL byte would fail the whole query on Postgres, so a planted one could stall a cleanup.
+    const queryable = [...new Set(fileUrls)].filter(
+      (fileUrl) => !fileUrl.includes('\0'),
+    );
+    for (const batch of chunkArray(queryable, 500)) {
+      const rows: string[] = await ncMeta
+        .knexConnection(MetaTable.FILE_REFERENCES)
+        .whereIn('file_url', batch)
+        .where((qb) => {
+          if (holder.baseId) qb.orWhere('base_id', holder.baseId);
+          if (holder.sourceIds?.length) {
+            qb.orWhereIn('source_id', holder.sourceIds);
+          }
+          if (holder.userId) {
+            qb.orWhere((rootUpload) =>
+              rootUpload
+                .where('fk_user_id', holder.userId)
+                .whereNull('base_id'),
+            );
+          }
+        })
+        .distinct()
+        .pluck('file_url');
+      rows.forEach((fileUrl) => held.add(fileUrl));
+    }
+    return held;
   }
 
   public static async updateWorkspaceCache(

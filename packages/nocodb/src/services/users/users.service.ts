@@ -32,6 +32,7 @@ import Noco from '~/Noco';
 import { OAuthToken, PresignedUrl, User, UserRefreshToken } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
+import { assertMetaIconOwned } from '~/helpers/attachmentHelpers';
 import { isTokenExpired } from '~/helpers/isTokenExpired';
 import { withSignupClaim } from '~/helpers/signupClaim';
 import { BasesService } from '~/services/bases.service';
@@ -122,6 +123,15 @@ export class UsersService {
       'is_new_user',
       'meta',
     ]);
+
+    await assertMetaIconOwned(
+      { workspace_id: RootScopes.ROOT, base_id: RootScopes.ROOT },
+      {
+        meta: updateObj.meta,
+        previousMeta: oldUser?.meta,
+        userId: req?.user?.id ?? id,
+      },
+    );
 
     const user = await User.update(id, updateObj);
 

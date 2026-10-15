@@ -717,3 +717,6 @@ export const isChargeableStripeCustomer = (
   stripeCustomerId?: string | null
 ): boolean =>
   !!stripeCustomerId && stripeCustomerId !== INTERNAL_STRIPE_CUSTOMER_ID;
+
+// Last, so CJS builds define the enums above before licenseTelemetry (which imports them) runs.
+export * from './licenseTelemetry';

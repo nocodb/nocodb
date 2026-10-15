@@ -369,8 +369,8 @@ export interface BasePublishResult {
   /** Set only by a press that carried `list`; null on every ordinary publish. */
   listing: StoreListingResult | null;
   /**
-   * Where the work moves to. Null when the press served nothing — a base with
-   * no app has nothing live to protect.
+   * Where the work moves to. Null unless the press lists the app or it is
+   * already listed — a plain deploy opens no lane.
    */
   lane: StoreLaneResult | null;
   /** The facts as READ, before the press changed any of them. */

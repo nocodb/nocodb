@@ -33,7 +33,7 @@ const isFreePlan = computed(
 
 const { navGroups, paneMeta, availableTabs, firstAvailableTab, isWsAuditEnabled, blockWorkspaceSso } = useWorkspaceSettingsNav()
 
-const { hasSaveBar } = useProvideShell()
+const { hasSaveBar, goBack } = useProvideShell()
 
 // Panes read this to shed the page chrome they carry on their old routes.
 provide(IsSettingsSidebarInj, ref(true))
@@ -77,6 +77,9 @@ function goToTab(tab: string) {
   navigateTo(wsSettingsPath(workspaceId.value, tab as WsSettingsSlug))
 }
 
+// The middleware records the origin before this page mounts, and leaving unmounts it.
+const backLabel = useBackLabel(ncWsSettingsBackRoute().get())
+
 function onBack() {
   const backRoute = ncWsSettingsBackRoute().get()
 
@@ -86,6 +89,27 @@ function onBack() {
 
   navigateTo(isSameWorkspace ? backRoute : `/${workspaceId.value}`)
 }
+
+// Escape unwinds a pane's drill-in first, then leaves like Back.
+useEventListener(document, 'keydown', (e: KeyboardEvent) => {
+  // A held key would unwind every level at once.
+  if (e.key !== 'Escape' || e.defaultPrevented || e.repeat) return
+
+  if (isDrawerOrModalExist() || isNcDropdownOpen() || isActiveInputElementExist(e) || cmdKActive() || isCmdJActive()) return
+
+  // A popup closes itself on this press; the shell takes the next one.
+  if (isPortalledOverlayActive() || isGeneralOverlayActive()) return
+
+  if (goBack()) return
+
+  // On a phone, stepping out of a pane lands on the rail rather than leaving.
+  if (isMobileMode.value && !isRailOnlyOnMobile.value) {
+    isRailOnlyOnMobile.value = true
+    return
+  }
+
+  onBack()
+})
 
 watch(
   [() => props.tab, isRolesLoaded, availableTabsKey, workspaceId],
@@ -141,15 +165,15 @@ watch(
           </template>
         </div>
 
-        <div class="flex-none px-2 pt-2">
-          <NcButton type="text" size="small" data-testid="nc-ws-settings-back-btn" @click="onBack">
-            <div class="flex items-center gap-2">
-              <div class="flex items-center justify-center h-6 w-6 rounded-md bg-nc-bg-brand text-nc-content-brand">
-                <GeneralIcon icon="ncArrowLeft" />
-              </div>
-              <span class="text-small leading-[18px] font-semibold">{{ $t('labels.back') }}</span>
-            </div>
-          </NcButton>
+        <div class="flex-none px-3 pt-2">
+          <button type="button" class="nc-ws-settings-back-row" data-testid="nc-ws-settings-back-btn" @click="onBack">
+            <GeneralIcon icon="ncArrowLeft" class="!h-4 !w-4 flex-none text-nc-content-gray-subtle2" />
+            <NcTooltip show-on-truncate-only class="truncate flex-1 text-left">
+              <template #title>{{ backLabel }}</template>
+              {{ backLabel }}
+            </NcTooltip>
+            <kbd v-if="!isMobileMode" class="nc-ws-settings-kbd">Esc</kbd>
+          </button>
         </div>
       </template>
     </ShellRail>
@@ -224,6 +248,15 @@ watch(
 <style lang="scss" scoped>
 .nc-ws-settings-topbar {
   @apply h-[var(--topbar-height)] flex-none flex items-center border-b-1 border-nc-border-gray-medium;
+}
+
+// Sized like the rail's own rows, so the way out reads as one of them.
+.nc-ws-settings-back-row {
+  @apply w-full flex items-center gap-2.5 px-2.5 h-[34px] rounded-lg text-bodyDefaultSm text-nc-content-gray-emphasis outline-none hover:bg-nc-bg-gray-light focus-visible:shadow-focus;
+}
+
+.nc-ws-settings-kbd {
+  @apply inline-flex items-center h-4.5 px-1 text-[10px] font-medium leading-none text-nc-content-gray-muted bg-nc-bg-gray-light border-1 border-nc-border-gray-medium rounded;
 }
 
 :deep(.nc-shell-header-actions) {

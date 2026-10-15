@@ -4,7 +4,6 @@ import {
   isMMOrMMLike,
   isRollupAggregatableColumn,
   NC_ERROR_SENTINEL,
-  NcDataErrorCodes,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
@@ -529,17 +528,15 @@ export default async function genRollupSelectv2(param: {
     case RelationTypes.MANY_TO_MANY: {
       profiler.log('Relation: ' + relationColumnOption.type);
       const mmModel = await relationColumnOption.getMMModel();
+      if (!mmModel) {
+        return errorSentinel();
+      }
       const mmChildCol = await relationColumnOption.getMMChildColumn();
       const mmParentCol = await relationColumnOption.getMMParentColumn();
       const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
         id: mmModel.id,
         dbDriver: knex,
       });
-      if (!mmModel) {
-        return this.dbDriver.raw(`?`, [
-          NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
-        ]);
-      }
 
       const qb = knex(
         dbQueryClient.tableAlias(

@@ -1,6 +1,6 @@
 import { extractFilterFromXwhere } from 'nocodb-sdk';
-import type { FilterType, NcContext } from 'nocodb-sdk';
-import { compileFilterTree } from '~/mcp/tools/filter-compile';
+import type { FilterType, NcContext, UITypes } from 'nocodb-sdk';
+import { compileFilterTree, COMPUTED_TYPES } from '~/mcp/tools/filter-compile';
 import { Model } from '~/models';
 import { NcError } from '~/helpers/catchError';
 
@@ -18,7 +18,22 @@ export async function compileFilterInput(
     NcError.get(context).tableNotFound(tableId);
   }
 
-  return compileFilterTree(context, await model.getColumns(), filter);
+  const columns = await model.getColumns();
+  const filterColumns = await Promise.all(
+    columns.map(async (c) => ({
+      id: c.id,
+      title: c.title,
+      column_name: c.column_name,
+      uidt: c.uidt,
+      error: COMPUTED_TYPES.includes(c.uidt as UITypes)
+        ? (
+            await c.getColOptions<{ error?: string | null }>()
+          )?.error
+        : null,
+    })),
+  );
+
+  return compileFilterTree(context, filterColumns, filter);
 }
 
 /**
@@ -41,7 +56,69 @@ export async function resolveWhere(
     return compileFilterInput(context, tableId, args.filter);
   }
 
-  return args.where;
+  if (!args.where) return args.where;
+
+  const where = normalizeWhere(args.where);
+  await assertWhereParses(context, tableId, where);
+  return where;
+}
+
+// `) and (`, `) ~and (`, `)~AND(` — only between two conditions (the next
+// group holds a comma), so a value containing the word is left alone.
+const LOOSE_JOIN = /\)\s*~?\s*(and|or)\s*(~?\s*not\s*)?\((?=[^()]*,)/gi;
+// Whitespace around the field and operator, and before the value. Only where a
+// condition can start (string start, a group, or after a join), so a value
+// holding `(x, y)` is left alone.
+const LOOSE_CONDITION =
+  /(?<=^\s*@?|\(|~(?:and|or|not))\(\s*([^,()~]+?)\s*,\s*([A-Za-z]+)\s*(?:(,)\s*|(\)))/g;
+
+/**
+ * The join syntax the parser expects. Anything else parses as one condition
+ * whose value swallows the rest of the string, and quietly matches nothing.
+ */
+export function normalizeWhere(where: string): string {
+  return where
+    .replace(
+      LOOSE_JOIN,
+      (_, op: string, not?: string) =>
+        `)~${op.toLowerCase()}${not ? '~not' : ''}(`,
+    )
+    .replace(
+      LOOSE_CONDITION,
+      (_, field: string, op: string, comma?: string, close?: string) =>
+        `(${field},${op}${comma ?? close}`,
+    );
+}
+
+/**
+ * Some data-layer readers parse `where` non-strictly and run unfiltered on a
+ * parse error, so refuse it before it gets there.
+ */
+async function assertWhereParses(
+  context: NcContext,
+  tableId: string,
+  where: string,
+): Promise<void> {
+  const model = await Model.get(context, tableId);
+
+  if (!model) {
+    NcError.get(context).tableNotFound(tableId);
+  }
+
+  try {
+    extractFilterFromXwhere(
+      context,
+      where,
+      await model.getAliasColObjMap(await model.getColumns()),
+      true,
+    );
+  } catch (e) {
+    NcError.get(context).badRequest(
+      `Invalid \`where\`: ${e?.message ?? e}. Expected ` +
+        '`(field,op,value)` joined by `~and` / `~or`, e.g. ' +
+        '`(Status,eq,Done)~and(Priority,gt,2)`.',
+    );
+  }
 }
 
 function countConditions(filters: FilterType[] = []): number {

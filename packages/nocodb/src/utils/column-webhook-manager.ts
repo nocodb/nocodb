@@ -108,6 +108,9 @@ export class ColumnWebhookManager {
   async populateNewColumns() {
     return this;
   }
+  followReplacedColumn(_oldColumnId: string, _newColumnId: string) {
+    return this;
+  }
   async addOldColumnById(_param: {
     columnId: string;
     action?: WebhookActions;

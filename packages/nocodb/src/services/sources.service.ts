@@ -115,8 +115,10 @@ export class SourcesService {
     param: { sourceId: string; req: any },
     ncMeta = Noco.ncMeta,
   ) {
+    const source = await Source.get(context, param.sourceId, true, ncMeta);
+    if (!source) NcError.get(context).sourceNotFound(param.sourceId);
+
     try {
-      const source = await Source.get(context, param.sourceId, true, ncMeta);
       const integration = await Integration.get(
         context,
         source.fk_integration_id,
@@ -145,8 +147,10 @@ export class SourcesService {
     param: { sourceId: string },
     ncMeta = Noco.ncMeta,
   ) {
+    const source = await Source.get(context, param.sourceId, false, ncMeta);
+    if (!source) NcError.get(context).sourceNotFound(param.sourceId);
+
     try {
-      const source = await Source.get(context, param.sourceId, false, ncMeta);
       await source.softDelete(ncMeta);
 
       source.config = undefined;

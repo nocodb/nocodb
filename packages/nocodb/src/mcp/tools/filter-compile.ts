@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod-v4';
 import {
   canEncodeQueryFilterToken,
   encodeQueryFilterToken,
@@ -90,6 +90,15 @@ const DATE_TYPES = [
   UITypes.LastModifiedTime,
 ];
 
+// The backend refuses btw/nbtw on these; two bounds work on all of them.
+
+// Computed fields that can be broken (colOptions.error) and that the filter
+// path types by their result, not by uidt.
+export const COMPUTED_TYPES = [UITypes.Lookup, UITypes.Rollup, UITypes.Formula];
+
+// Rollups and lookups take a date comparison's value plainly, with no sub_operator.
+const PLAIN_DATE_TYPES = [UITypes.Lookup, UITypes.Rollup];
+
 const MAX_CONDITIONS = 50;
 const MAX_DEPTH = 5;
 
@@ -118,7 +127,8 @@ const leafSchema = z.object({
     ])
     .optional()
     .describe(
-      'Scalar for most operators. Array for in/allof/anyof/nallof/nanyof, and exactly two entries for btw/nbtw. ' +
+      'Scalar for most operators. Array for in/allof/anyof/nallof/nanyof, and exactly two entries [from, to] for btw/nbtw. ' +
+        'btw/nbtw work on numeric fields (sent as gte+lte, or lt+gt for nbtw); on a Date field use two conditions with gte and lte. ' +
         'Omit for blank/notblank/null/notnull/empty/notempty/checked/notchecked.',
     ),
 });
@@ -149,6 +159,8 @@ export interface FilterColumn {
   title?: string;
   column_name?: string;
   uidt?: string;
+  /** Set on a computed field whose definition is broken. */
+  error?: string | null;
 }
 
 type FilterLeaf = z.infer<typeof leafSchema>;
@@ -177,22 +189,59 @@ function isGroup(node: unknown): node is {
  * Takes the column list rather than a table id so the rules can be tested
  * without loading the model graph.
  */
+/**
+ * The field a caller means by `ref`: its id, else its current title. Column
+ * names are never matched — a renamed field keeps its old column name, so
+ * accepting it would resolve to the wrong field.
+ */
+export function matchFieldRef<T extends FilterColumn>(
+  columns: T[],
+  ref: string,
+): T[] {
+  const byId = columns.find((c) => c.id === ref);
+  if (byId) return [byId];
+
+  const exact = columns.filter((c) => c.title === ref);
+  if (exact.length) return exact;
+
+  return columns.filter((c) => c.title?.toLowerCase() === ref.toLowerCase());
+}
+
+export function resolveFieldRef(
+  context: NcContext,
+  columns: FilterColumn[],
+  ref: string,
+): FilterColumn {
+  const matches = matchFieldRef(columns, ref);
+
+  if (matches.length === 1) return matches[0];
+
+  if (matches.length > 1) {
+    NcError.get(context).badRequest(
+      `Field name '${ref}' matches ${matches.length} fields (${matches
+        .map((c) => c.id)
+        .join(', ')}). Pass the field id instead.`,
+    );
+  }
+
+  NcError.get(context).badRequest(
+    `Unknown filter field '${ref}'. Use a field title or ID from getTableSchema.`,
+  );
+}
+
 export function compileFilterTree(
   context: NcContext,
   columns: FilterColumn[],
   filter: unknown,
 ): string {
-  const byKey = new Map<string, FilterColumn>();
-  for (const column of columns) {
-    if (column.id) byKey.set(column.id, column);
-    if (column.title) byKey.set(column.title.toLowerCase(), column);
-    if (column.column_name) {
-      byKey.set(column.column_name.toLowerCase(), column);
-    }
-  }
-
   const state = { count: 0 };
-  const compiled = compileNode(context, filter as FilterNode, byKey, state, 0);
+  const compiled = compileNode(
+    context,
+    filter as FilterNode,
+    columns,
+    state,
+    0,
+  );
 
   // `@` opts the string into the grammar this compiler targets. Without it the
   // dispatch in `extractFilterFromXwhere` falls back to the legacy regex parser
@@ -205,7 +254,7 @@ export function compileFilterTree(
 function compileNode(
   context: NcContext,
   node: FilterNode,
-  byKey: Map<string, FilterColumn>,
+  columns: FilterColumn[],
   state: { count: number },
   depth: number,
 ): string {
@@ -215,7 +264,8 @@ function compileNode(
         `A filter may hold at most ${MAX_CONDITIONS} conditions`,
       );
     }
-    return compileLeaf(context, node as FilterLeaf, byKey);
+
+    return compileLeaf(context, node as FilterLeaf, columns);
   }
 
   if (depth >= MAX_DEPTH) {
@@ -250,7 +300,7 @@ function compileNode(
       const compiled = compileNode(
         context,
         child as FilterNode,
-        byKey,
+        columns,
         state,
         depth + 1,
       );
@@ -264,7 +314,7 @@ function compileNode(
 function compileLeaf(
   context: NcContext,
   leaf: FilterLeaf,
-  byKey: Map<string, FilterColumn>,
+  columns: FilterColumn[],
 ): string {
   const ncError = NcError.get(context);
 
@@ -274,12 +324,13 @@ function compileLeaf(
     );
   }
 
-  const column =
-    byKey.get(leaf.field) ?? byKey.get(String(leaf.field).toLowerCase());
+  const column = resolveFieldRef(context, columns, String(leaf.field));
 
-  if (!column) {
+  // A broken lookup/rollup/formula matches nothing useful and the backend
+  // drops the condition, so a read would return every row. Refuse instead.
+  if (column.error) {
     ncError.badRequest(
-      `Unknown filter field '${leaf.field}'. Use a field title or ID from getTableSchema.`,
+      `Field '${column.title}' is broken (${column.error}), so a filter on it cannot run. Repair the field or remove the condition.`,
     );
   }
 
@@ -288,8 +339,11 @@ function compileLeaf(
   const values = normalizeValues(context, leaf, op, isDate);
 
   if (leaf.sub_operator && !isDate) {
+    const plain = PLAIN_DATE_TYPES.includes(column.uidt as UITypes)
+      ? ` Pass the date as the value instead, with no sub_operator: (${column.title},gt,2026-03-01).`
+      : '';
     ncError.badRequest(
-      `sub_operator applies to Date fields only, and '${column.title}' is ${column.uidt}`,
+      `sub_operator applies to Date fields only, and '${column.title}' is ${column.uidt}.${plain}`,
     );
   }
 

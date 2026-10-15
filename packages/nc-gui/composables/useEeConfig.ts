@@ -19,6 +19,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const activePlan = computed(() => undefined)
 
+  const isPlanResolved = computed(() => true)
+
   const activePlanTitle = computed(() => undefined)
 
   const isHigherActivePlan = computed(() => false)
@@ -28,6 +30,12 @@ export const useEeConfig = createSharedComposable(() => {
   const isLoyaltyDiscountAvailable = computed(() => false)
 
   const isPaymentEnabled = computed(() => false)
+
+  const isOnPrem = computed(() => false)
+
+  const isSuperAdmin = computed(() => false)
+
+  const showOnPremLimitExceeded = (..._args: any[]) => {}
 
   const blockAddNewRecord = computed(() => false)
 
@@ -507,6 +515,7 @@ export const useEeConfig = createSharedComposable(() => {
     getFeatureForPlanTitle,
     isPaidPlan,
     activePlan,
+    isPlanResolved,
     activePlanTitle,
     activeSubscription,
     getHigherPlan,
@@ -514,6 +523,9 @@ export const useEeConfig = createSharedComposable(() => {
     handleUpgradePlan,
     handleRequestUpgrade,
     isPaymentEnabled,
+    isOnPrem,
+    isSuperAdmin,
+    showOnPremLimitExceeded,
     showUserPlanLimitExceededModal,
     isRecordLimitReached,
     gracePeriodActive,

@@ -233,6 +233,14 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Chat message '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_FACTORY_MACHINE_NOT_FOUND]: {
+    message: (id: string) => `Machine '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_FACTORY_MACHINE_VERSION_NOT_FOUND]: {
+    message: (id: string) => `Machine version '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_CHAT_ARTIFACT_NOT_FOUND]: {
     message: (id: string) => `Web artifact '${id}' not found`,
     code: 404,
@@ -668,6 +676,11 @@ export const presetErrorCodexMap: Partial<
     message: (message: string) =>
       message ||
       'This operation is locked while the base is open in an environment. Make the change there instead.',
+    code: 403,
+  },
+  [NcErrorType.ERR_ABUSE_REPORTING_DISABLED]: {
+    message: (message: string) =>
+      message || 'Reporting abuse is disabled on this instance.',
     code: 403,
   },
   [NcErrorType.ERR_SNAPSHOT_BLOCKED]: {

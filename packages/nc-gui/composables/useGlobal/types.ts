@@ -2,7 +2,7 @@ import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
 import type { AxiosInstance } from 'axios'
-import type { MapProvider, WhiteLabelConfig } from 'nocodb-sdk'
+import type { MapProvider, RoadmapHqMode, WhiteLabelConfig } from 'nocodb-sdk'
 import type { NcBreakpoint } from '~/lib/constants'
 
 export interface AppInfo {
@@ -50,6 +50,7 @@ export interface AppInfo {
   inviteOnlySignup: boolean
   restrictWorkspaceCreation: boolean
   allowEmailSigninWithSso: boolean
+  allowReportingAbuse?: boolean
   samlAuthEnabled: boolean
   samlProviderName: string | null
   giftUrl: string
@@ -81,6 +82,10 @@ export interface AppInfo {
   defaultOrgId?: string
   /** Sanitized white-label config — null when disabled or not licensed */
   whiteLabel?: WhiteLabelConfig | null
+  /** Cloud HQ roadmap rollout: off, staff only, or everyone. */
+  hqRoadmap?: RoadmapHqMode
+  /** USD value of the HQ roadmap gift card. */
+  hqRoadmapRewardAmount?: number
 }
 
 export interface StoredState {

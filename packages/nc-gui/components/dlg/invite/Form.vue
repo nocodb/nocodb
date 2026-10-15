@@ -93,7 +93,14 @@ const { fetchOrgUsers, resetOrgUsers, orgUsers } = useOrgUserInvitePicker({
   baseId: props.baseId,
 })
 
-const { isPaymentEnabled, showUserPlanLimitExceededModal, isPaidPlan, showUserMayChargeAlert } = useEeConfig()
+const {
+  isPaymentEnabled,
+  isOnPrem,
+  showUserPlanLimitExceededModal,
+  showOnPremLimitExceeded,
+  isPaidPlan,
+  showUserMayChargeAlert,
+} = useEeConfig()
 
 const dialogShow = computed(() => props.active)
 
@@ -616,6 +623,8 @@ const inviteCollaborator = async () => {
         workspaceId: errorWsId,
         isAdminPanel: props.type === 'organization',
       })
+    } else if (isOnPrem.value && errorInfo.error === NcErrorType.ERR_PLAN_LIMIT_EXCEEDED) {
+      showOnPremLimitExceeded(errorInfo.details as PlanLimitExceededDetailsType, 'invite-seat-limit')
     } else {
       if (errorInfo.error === NcErrorType.ERR_UNKNOWN) {
         errorInfo.message = await extractSdkResponseErrorMsg(e)

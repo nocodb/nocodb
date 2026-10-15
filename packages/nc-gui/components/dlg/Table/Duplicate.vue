@@ -204,6 +204,9 @@ const _duplicate = async () => {
             } catch (_e: any) {
               // ignore
             }
+            if (data.data?.result?.droppedAttachments) {
+              message.warning(t('msg.warning.attachmentsNotCopied', { count: data.data.result.droppedAttachments }))
+            }
             isLoading.value = false
             dialogShow.value = false
           } else if (data.status === JobStatus.FAILED) {

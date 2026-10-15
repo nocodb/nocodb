@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import DOMPurify from 'isomorphic-dompurify';
 import {
   AppEvents,
   EventType,
@@ -29,6 +28,7 @@ import type {
 import type { MetaService } from '~/meta/meta.service';
 import type { LinkToAnotherRecordColumn, User } from '~/models';
 import type { NcRequest } from '~/interface/config';
+import { getDOMPurify } from '~/helpers/domPurify';
 import { NcContext } from '~/interface/config';
 import { ColumnsService } from '~/services/columns.service';
 import { LinkPlaceholderService } from '~/services/link-placeholder.service';
@@ -159,7 +159,7 @@ export class TablesService {
       }
     }
 
-    param.table.table_name = DOMPurify.sanitize(param.table.table_name);
+    param.table.table_name = getDOMPurify().sanitize(param.table.table_name);
 
     // validate table name
     if (/^\s+|\s+$/.test(param.table.table_name)) {
@@ -189,6 +189,7 @@ export class TablesService {
         table_name: param.table.table_name,
         base_id: base.id,
         source_id: source.id,
+        exclude_id: model.id,
       }))
     ) {
       NcError.get(context).duplicateAlias({
@@ -212,6 +213,7 @@ export class TablesService {
         title: param.table.title,
         base_id: base.id,
         source_id: source.id,
+        exclude_id: model.id,
       }))
     ) {
       NcError.get(context).duplicateAlias({
@@ -260,12 +262,14 @@ export class TablesService {
       );
     }
 
-    await sqlMgr.sqlOpPlus(source, 'tableRename', {
-      ...param.table,
-      tn: param.table.table_name,
-      tn_old: model.table_name,
-      schema: source.getConfig()?.schema,
-    });
+    if (param.table.table_name !== model.table_name) {
+      await sqlMgr.sqlOpPlus(source, 'tableRename', {
+        ...param.table,
+        tn: param.table.table_name,
+        tn_old: model.table_name,
+        schema: source.getConfig()?.schema,
+      });
+    }
 
     await Model.updateAliasAndTableName(
       context,
@@ -473,14 +477,20 @@ export class TablesService {
           },
         );
 
-        if (relations.length) {
-          const relCol = await Column.get(
+        let relCol: Column;
+        for (const relation of relations) {
+          relCol = await Column.get(
             context,
-            {
-              colId: relations[0].fk_column_id,
-            },
+            { colId: relation.fk_column_id, includeDeleted: true },
             ncMeta,
           );
+          if (relCol) break;
+          this.logger.warn(
+            `Relation ${relation.id} has no link column — not blocking delete of table ${table.id}`,
+          );
+        }
+
+        if (relCol) {
           const relTable = await Model.get(
             context,
             relCol.fk_model_id,
@@ -960,6 +970,14 @@ export class TablesService {
       );
     }
 
+    // A physical name equal to the title (what the UI sends) wasn't chosen by
+    // the caller, so a clash with another table's physical name is suffixed
+    // below instead of rejected; the title is what has to be unique.
+    // nocohub#10873
+    const isTableNameExplicit =
+      !!tableCreatePayLoad.table_name &&
+      tableCreatePayLoad.table_name !== tableCreatePayLoad.title;
+
     if (!tableCreatePayLoad.table_name) {
       tableCreatePayLoad.table_name = tableCreatePayLoad.title;
     }
@@ -990,7 +1008,7 @@ export class TablesService {
       }
     }
 
-    tableCreatePayLoad.table_name = DOMPurify.sanitize(
+    tableCreatePayLoad.table_name = getDOMPurify().sanitize(
       tableCreatePayLoad.table_name,
     );
     // validate table name
@@ -1019,6 +1037,7 @@ export class TablesService {
     }
 
     if (
+      isTableNameExplicit &&
       !(await Model.checkTitleAvailable(context, {
         table_name: tableCreatePayLoad.table_name,
         base_id: base.id,
@@ -1033,10 +1052,9 @@ export class TablesService {
       });
     }
 
-    // Soft-deleted tables keep their physical DB tables until permanent delete.
-    // If a trashed row shares the requested table_name, the CREATE TABLE DDL
-    // will collide — uniquify the new name to dodge that. Live collisions have
-    // already been rejected above.
+    // Soft-deleted tables keep their physical DB tables until permanent delete,
+    // and a renamed table can hold a suffixed physical name. Uniquify against
+    // both so the CREATE TABLE DDL doesn't collide.
     tableCreatePayLoad.table_name = await this.resolveFreePhysicalTableName(
       context,
       {

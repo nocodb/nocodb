@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import isMobilePhone from 'validator/lib/isMobilePhone'
+import { isValidPhoneNumber } from 'nocodb-sdk'
 
 interface Props {
   modelValue: string | null | number | undefined
@@ -27,7 +27,13 @@ const vModel = computed({
   get: () => props.modelValue,
   set: (val) => {
     localState.value = val
-    if (!parseProp(column.value.meta)?.validate || (val && isMobilePhone(val)) || !val || isForm.value || isEditColumn.value) {
+    if (
+      !parseProp(column.value.meta)?.validate ||
+      (val && isValidPhoneNumber(val)) ||
+      !val ||
+      isForm.value ||
+      isEditColumn.value
+    ) {
       emit('update:modelValue', val)
     }
   },
@@ -42,7 +48,7 @@ const focus: VNodeRef = (el) => {
 }
 
 onBeforeUnmount(() => {
-  if (parseProp(column.value.meta)?.validate && localState.value && !isMobilePhone(localState.value.toString())) {
+  if (parseProp(column.value.meta)?.validate && localState.value && !isValidPhoneNumber(localState.value.toString())) {
     if (!isEditColumn.value) {
       message.error(t('msg.invalidPhoneNumber'))
     }
@@ -64,7 +70,7 @@ const onBlur = () => {
   isFocused.value = false
 }
 
-const validPhoneNumber = computed(() => vModel.value && isMobilePhone(vModel.value.toString()))
+const validPhoneNumber = computed(() => vModel.value && isValidPhoneNumber(vModel.value.toString()))
 
 const showClicableLink = computed(() => {
   return (isExpandedFormOpen.value || isForm.value) && !isFocused.value && validPhoneNumber.value

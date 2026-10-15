@@ -523,6 +523,12 @@ export async function validateLookupPayload(
     );
   }
 
+  if (!isLinksOrLTAR(column)) {
+    NcError.get(context).badRequest(
+      `Lookup relation field '${column.title}' must be a Link field, but it is ${column.uidt}`,
+    );
+  }
+
   const relation = await column.getColOptions<LinkToAnotherRecordColumn>();
   const { refContext } = relation.getRelContext();
 
@@ -938,6 +944,8 @@ export const deleteColumnSystemPropsFromRequest = (
 
   delete col.dt;
   delete col.dtx;
+  // Reads sign an Attachment default, which no write ever checks.
+  if (col.uidt === UITypes.Attachment) delete col.cdf;
   switch (opts?.operationSource) {
     case OperationSource.AT_IMPORT: {
       const isNcRecordColumn =

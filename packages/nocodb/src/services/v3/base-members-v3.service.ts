@@ -39,11 +39,12 @@ export class BaseMembersV3Service {
         id: 'user_id',
         roles: 'base_role',
         workspace_roles: 'workspace_role',
-        display_name: 'name',
       },
       transformFn(data) {
-        if (!data.name) {
-          data.name = undefined;
+        // Every other member surface, and the spec, call this `display_name`;
+        // this builder alone renamed it to `name`.
+        if (!data.display_name) {
+          data.display_name = undefined;
         }
         return data;
       },

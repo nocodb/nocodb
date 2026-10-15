@@ -59,6 +59,13 @@ export class IntegrationsService {
     );
     const oldIntegration = await Integration.get(context, param.integrationId);
 
+    this.assertIntegrationWritable(
+      context,
+      oldIntegration,
+      param.integrationId,
+      param.req,
+    );
+
     const integrationBody = param.integration;
     integrationBody.title = integrationBody.title?.trim();
 
@@ -125,9 +132,12 @@ export class IntegrationsService {
         ncMeta,
       );
 
-      if (!integration) {
-        NcError.get(context).integrationNotFound(param.integrationId);
-      }
+      this.assertIntegrationWritable(
+        context,
+        integration,
+        param.integrationId,
+        param.req,
+      );
 
       // get linked sources
       const sourceListQb = ncMeta
@@ -198,9 +208,12 @@ export class IntegrationsService {
   ) {
     try {
       const integration = await Integration.get(context, param.integrationId);
-      if (!integration) {
-        NcError.get(context).integrationNotFound(param.integrationId);
-      }
+      this.assertIntegrationWritable(
+        context,
+        integration,
+        param.integrationId,
+        param.req,
+      );
 
       const ncMeta = await Noco.ncMeta.startTransaction();
       try {
@@ -522,6 +535,27 @@ export class IntegrationsService {
     }
 
     return wrapper[params.endpoint](params.payload);
+  }
+
+  // Not-found, not forbidden: the read paths hide a private integration from
+  // non-creators, so a write must not confirm the id exists.
+  protected assertIntegrationWritable(
+    context: Omit<NcContext, 'base_id'>,
+    integration: Integration | null | undefined,
+    integrationId: string,
+    req: NcRequest | undefined,
+  ): asserts integration is Integration {
+    if (
+      !integration ||
+      isPrivateIntegrationForbidden(
+        // `BoolType` (0/1 off SQLite/MySQL), not a plain boolean.
+        !!integration.is_private,
+        integration.created_by,
+        req?.user?.id,
+      )
+    ) {
+      NcError.get(context).integrationNotFound(integrationId);
+    }
   }
 
   protected async bindIntegrationEndpointUser(

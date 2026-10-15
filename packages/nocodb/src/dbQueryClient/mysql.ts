@@ -2,6 +2,7 @@ import { ClientType } from 'nocodb-sdk';
 import type { DBQueryClient } from '~/dbQueryClient/types';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { XKnex } from '~/db/CustomKnex';
 import { GenericDBQueryClient } from '~/dbQueryClient/generic';
 
 export class MySqlDBQueryClient
@@ -23,6 +24,33 @@ export class MySqlDBQueryClient
   simpleCast(field: string, asType: string) {
     const useAsType = asType.toUpperCase() === 'TEXT' ? 'CHAR' : asType;
     return `CAST(${field} as ${useAsType})`;
+  }
+
+  // MySQL has no bare `(VALUES (…))` table (8.0.19+ needs `VALUES ROW(…)`), so
+  // the generic form is a parse error; UNION ALL works on every MySQL/MariaDB.
+  temporaryTableRaw({
+    knex,
+    data,
+    fields,
+    alias,
+  }: {
+    data: Record<string, any>[];
+    fields: string[];
+    alias: string;
+    knex: XKnex;
+  }) {
+    const firstRow = `SELECT ${fields.map(() => '? AS ??').join(', ')}`;
+    const restRow = `SELECT ${fields.map(() => '?').join(', ')}`;
+    const sql = data.map((_, i) => (i === 0 ? firstRow : restRow));
+    const bindings: any[] = [];
+    data.forEach((row, rowIndex) => {
+      for (const field of fields) {
+        bindings.push(row[field]);
+        if (rowIndex === 0) bindings.push(field);
+      }
+    });
+    bindings.push(alias);
+    return knex.raw(`(${sql.join(' UNION ALL ')}) AS ??`, bindings);
   }
 
   bulkAggregateRowSelector(

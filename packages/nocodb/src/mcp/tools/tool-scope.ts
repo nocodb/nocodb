@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod-v4';
 import type { NcContext, NcRequest, PlanFeatureTypes } from 'nocodb-sdk';
 import type { McpToolUser } from '~/mcp/tools/tool-helpers';
 

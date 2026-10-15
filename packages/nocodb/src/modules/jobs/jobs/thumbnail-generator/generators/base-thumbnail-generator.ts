@@ -28,6 +28,17 @@ const MAX_INPUT_PIXELS_SHRINKABLE =
 const MAX_INPUT_PIXELS_FULL_DECODE =
   +process.env.NC_THUMBNAIL_MAX_INPUT_PIXELS || 24 * 1000 * 1000;
 
+export const MAX_INPUT_PIXELS = Math.max(
+  MAX_INPUT_PIXELS_SHRINKABLE,
+  MAX_INPUT_PIXELS_FULL_DECODE,
+);
+
+export function maxInputPixelsFor(format: string | undefined): number {
+  return SHRINK_ON_LOAD_FORMATS.has(format)
+    ? MAX_INPUT_PIXELS_SHRINKABLE
+    : MAX_INPUT_PIXELS_FULL_DECODE;
+}
+
 export abstract class BaseThumbnailGenerator {
   protected logger = new Logger(this.constructor.name);
 
@@ -78,9 +89,7 @@ export abstract class BaseThumbnailGenerator {
       }
 
       const inputPixels = (metadata.width ?? 0) * (metadata.height ?? 0);
-      const maxInputPixels = SHRINK_ON_LOAD_FORMATS.has(metadata.format)
-        ? MAX_INPUT_PIXELS_SHRINKABLE
-        : MAX_INPUT_PIXELS_FULL_DECODE;
+      const maxInputPixels = maxInputPixelsFor(metadata.format);
       if (inputPixels > maxInputPixels) {
         this.logger.warn({
           message: `Skipping thumbnails: image ${metadata.width}x${metadata.height} (${inputPixels}px, ${metadata.format}) exceeds cap ${maxInputPixels}px`,

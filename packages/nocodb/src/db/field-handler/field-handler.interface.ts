@@ -29,6 +29,9 @@ export interface FilterOptions {
   depth?: { count: number }; // required by formula and lookup for alias
   customWhereClause?: Knex.QueryBuilder | string; // used by rollup and formula since their source is computed
   conditionParser?: ConditionParser; // backward compatibility aimed to conditionV2.parseConditionV2
+  // Verify a link filter against the linked display field instead of accepting
+  // any value. Off for view filters: they are saved while the value is typed.
+  strictLinkFilters?: boolean;
 }
 
 export type FilterOperationResult = {

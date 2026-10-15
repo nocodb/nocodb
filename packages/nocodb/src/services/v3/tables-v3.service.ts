@@ -270,7 +270,7 @@ export class TablesV3Service {
         }
         if (col.uidt === UITypes.MultiSelect && title.includes(',')) {
           NcError.get(context).invalidRequestBody(
-            "Illegal char(',') for MultiSelect",
+            `Illegal char(',') in choice "${title}" of MultiSelect field "${col.title}". Choices cannot contain commas.`,
           );
         }
         return `'${title.replace(/'/gi, "''")}'`;

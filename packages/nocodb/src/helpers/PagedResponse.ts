@@ -56,6 +56,8 @@ export class PagedResponseImpl<T> {
       o?: number;
       limitOverride?: number;
       page?: number;
+      /** Return an empty page past the end instead of throwing. */
+      allowPastEnd?: boolean;
     } = {},
     additionalProps?: Record<string, any>,
   ) {
@@ -82,8 +84,11 @@ export class PagedResponseImpl<T> {
         delete this.pageInfo.page;
       }
 
-      if (offset && offset >= +count) {
-        NcError.invalidOffsetValue(offset);
+      if (offset && offset >= +count && !args.allowPastEnd) {
+        // `details` lets a caller rebuild this page (see `allowPastEnd`).
+        NcError.invalidOffsetValue(offset, {
+          details: { offset, limit, totalRows: +count },
+        });
       }
     }
 
@@ -93,6 +98,26 @@ export class PagedResponseImpl<T> {
   list: Array<T>;
   pageInfo: PaginatedType;
   errors?: any[];
+}
+
+// With `excludeCount` the list carries no pageInfo: take the page from the
+// request, and assume a next page only when a full page came back.
+function countlessPageInfo(
+  list: unknown[],
+  queryParams: Record<string, any> = {},
+): PaginatedType {
+  const { limit, offset } = extractLimitAndOffset({
+    limit: +queryParams.limit || +queryParams.pageSize,
+    offset: queryParams.offset,
+    page: queryParams.page,
+  });
+  const page = offset / limit + 1;
+  return {
+    page: page % 1 === 0 ? page : undefined,
+    pageSize: limit,
+    isFirstPage: offset === 0,
+    isLastPage: (list?.length ?? 0) < limit,
+  };
 }
 
 export class PagedResponseV3Impl<T> {
@@ -128,6 +153,9 @@ export class PagedResponseV3Impl<T> {
   ) {
     this.list = pagedResponse.list;
     const pageInfo: PaginatedV3Type = {};
+    const info =
+      pagedResponse.pageInfo ??
+      countlessPageInfo(pagedResponse.list, queryParams);
 
     const commonProps = {
       baseUrl,
@@ -143,6 +171,7 @@ export class PagedResponseV3Impl<T> {
       'fields',
       'nestedPage',
       'linksAsLtar',
+      'excludeCount',
     ]);
 
     // The page numbers below are derived from the page size the request
@@ -152,26 +181,31 @@ export class PagedResponseV3Impl<T> {
     // the way in and `limit` wins, so emit the single resolved size instead of
     // echoing back whichever name the caller happened to use.
     const resolvedPageSize =
-      pagedResponse.pageInfo?.pageSize ??
+      info.pageSize ??
       (+queryParams?.limit || +queryParams?.pageSize || undefined);
 
-    if (!pagedResponse.pageInfo.isFirstPage && pagedResponse.pageInfo.page) {
+    if (!info.isFirstPage && info.page) {
+      // Past the end, `prev` is the last page that has records (1 if none).
+      const lastPage =
+        info.totalRows !== undefined && info.pageSize
+          ? Math.max(Math.ceil(info.totalRows / info.pageSize), 1)
+          : Infinity;
       pageInfo.prev = constructUrl({
         ...commonProps,
         query: {
           ...commonQueryParams,
-          page: pagedResponse.pageInfo.page - 1,
+          page: Math.min(info.page - 1, lastPage),
           pageSize: resolvedPageSize,
         },
       });
     }
 
-    if (!pagedResponse.pageInfo.isLastPage && pagedResponse.pageInfo.page) {
+    if (!info.isLastPage && info.page) {
       pageInfo.next = constructUrl({
         ...commonProps,
         query: {
           ...commonQueryParams,
-          page: pagedResponse.pageInfo.page + 1,
+          page: info.page + 1,
           pageSize: resolvedPageSize,
         },
       });
@@ -184,7 +218,7 @@ export class PagedResponseV3Impl<T> {
         ...commonProps,
         query: {
           ...commonQueryParams,
-          page: pagedResponse.pageInfo.page,
+          page: info.page,
           pageSize: resolvedPageSize,
           nestedPage: nestedPage + 1,
         },
@@ -196,7 +230,7 @@ export class PagedResponseV3Impl<T> {
         ...commonProps,
         query: {
           ...commonQueryParams,
-          page: pagedResponse.pageInfo.page,
+          page: info.page,
           pageSize: resolvedPageSize,
           nestedPage: nestedPage - 1,
         },

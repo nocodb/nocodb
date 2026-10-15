@@ -25,6 +25,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const viewsStore = useViewsStore()
   const { activeViewTitleOrId } = storeToRefs(viewsStore)
 
+  const BASE_OVERVIEW_ROUTE = 'index-typeOrId-baseId-index-index'
+
   const allowHideLeftSidebarForCurrentRoute = computed(() => {
     return (
       [
@@ -114,6 +116,9 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const activeSidebarTab = ref<SidebarTab>('data')
 
+  /** The tabs that render the base's own sidebar, and so can host the base overview. */
+  const BASE_SIDEBAR_TABS: SidebarTab[] = ['data', 'workflows', 'interfaces', 'agents']
+
   /** Derive the correct sidebar tab from the current route name. */
   const routeDerivedTab = computed<SidebarTab | null>(() => {
     const name = route.value.name?.toString() ?? ''
@@ -155,10 +160,16 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   })
 
   watch(
-    routeDerivedTab,
-    (newTab) => {
-      if (newTab !== null && activeSidebarTab.value !== newTab) {
-        activeSidebarTab.value = newTab
+    [routeDerivedTab, () => route.value.params.baseId],
+    ([newTab, baseId], previous) => {
+      // Arriving at another base's overview, or from a tab with no base sidebar, has no tab to keep.
+      const isOverviewWithoutTab =
+        route.value.name === BASE_OVERVIEW_ROUTE &&
+        (baseId !== previous?.[1] || !BASE_SIDEBAR_TABS.includes(activeSidebarTab.value))
+      const tab = newTab ?? (isOverviewWithoutTab ? 'data' : null)
+
+      if (tab !== null && activeSidebarTab.value !== tab) {
+        activeSidebarTab.value = tab
       }
     },
     {

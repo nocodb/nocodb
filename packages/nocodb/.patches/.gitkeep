@@ -1,0 +1,4 @@
+# Keep this directory in git even when no patches are active.
+# Dockerfile-on-prem:34 and Dockerfile-cloud:18 both do
+#   COPY ./.patches/ ./.patches/
+# which fails the image build if the directory is absent.

@@ -28,7 +28,14 @@ export const BUILD_INTENT_PROMPT_MAX_LENGTH = 2000
 /** Query param carrying the picked build target. */
 export const BUILD_SCOPE_PARAM = 'buildScope'
 
+/** Query param that asks an existing user to pick a base and opens its app to build in. */
+export const PICK_APP_BASE_PARAM = 'pickAppBase'
+
 const toScope = (raw: unknown): BuildScope => (isBuildScope(raw) ? raw : 'app')
+
+/** `website` runs the app pipeline too, so both fall back to tables while Apps is off. */
+export const buildScopeWithApps = (scope: BuildScope, appsEnabled: boolean): BuildScope =>
+  !appsEnabled && (scope === 'app' || scope === 'website') ? 'table' : scope
 
 /**
  * Parse a hand-off query string. Returns null unless the search carries both a

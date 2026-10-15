@@ -1,9 +1,11 @@
-import { isMMOrMMLike, RelationTypes } from 'nocodb-sdk';
+import { isDateType, isMMOrMMLike, RelationTypes } from 'nocodb-sdk';
 import { LookupGeneralHandler } from '../lookup/lookup.general.handler';
+import type { UITypes } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type {
   FilterOptions,
+  FilterVerificationResult,
   SortOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { Knex } from '~/db/CustomKnex';
@@ -15,6 +17,19 @@ import {
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { getRefTableColumnForFilter } from '~/db/generateLookupSelectQuery';
+
+// Answered by the link itself (has linked records or not), never by the
+// display field.
+const LINK_EMPTINESS_OPS = [
+  'blank',
+  'notblank',
+  'empty',
+  'notempty',
+  'null',
+  'notnull',
+  'checked',
+  'notchecked',
+];
 
 export class LtarGeneralHandler extends GenericFieldHandler {
   /**
@@ -29,6 +44,48 @@ export class LtarGeneralHandler extends GenericFieldHandler {
     options: SortOptions,
   ): Promise<void> {
     return new LookupGeneralHandler().applySort(qb, column, direction, options);
+  }
+
+  /**
+   * A link filter compares against the linked record's display value. In
+   * strict mode a Date display value is checked like a Date filter, so text the
+   * link displays (or `like`) is rejected instead of matching nothing.
+   */
+  override async verifyFilter(
+    filter: Filter,
+    column: Column,
+    options: FilterOptions = {},
+  ): Promise<FilterVerificationResult> {
+    if (
+      !options.strictLinkFilters ||
+      LINK_EMPTINESS_OPS.includes(filter.comparison_op)
+    ) {
+      return { isValid: true };
+    }
+
+    const displayColumn = await getRefTableColumnForFilter(
+      options.context,
+      column,
+      filter.meta?.ltarSubField,
+    );
+    if (!displayColumn || !isDateType(displayColumn.uidt as UITypes)) {
+      return { isValid: true };
+    }
+
+    const result = await options.fieldHandler.verifyFilter(
+      new Filter({ ...filter, fk_column_id: displayColumn.id }),
+      displayColumn,
+      options,
+    );
+    if (result.isValid) return result;
+
+    return {
+      isValid: false,
+      errors: (result.errors ?? []).map(
+        (error) =>
+          `${column.title} filters by its linked ${displayColumn.uidt} field ${displayColumn.title}: ${error}`,
+      ),
+    };
   }
 
   override async filter(

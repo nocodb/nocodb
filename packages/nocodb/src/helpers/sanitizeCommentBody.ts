@@ -1,4 +1,4 @@
-import DOMPurify from 'isomorphic-dompurify';
+import { getDOMPurify } from '~/helpers/domPurify';
 
 /**
  * Allowlist of tags / attributes permitted in row + document comments.
@@ -52,5 +52,5 @@ export const COMMENT_SANITIZE_CONFIG = {
 
 export function sanitizeCommentBody(input: unknown): string {
   if (input == null) return '';
-  return DOMPurify.sanitize(String(input), COMMENT_SANITIZE_CONFIG);
+  return getDOMPurify().sanitize(String(input), COMMENT_SANITIZE_CONFIG);
 }

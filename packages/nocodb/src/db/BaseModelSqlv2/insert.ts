@@ -23,7 +23,9 @@ import {
   mssqlNeedsIdentityInsert,
   mssqlTableHasTriggers,
 } from '~/db/BaseModelSqlv2/mssql-insert-sql';
+import { withRecordIndex } from '~/db/BaseModelSqlv2/with-record-index';
 import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
+import { handleNotNullConstraintError } from '~/helpers/notNullConstraintErrorHandler';
 import getAst from '~/helpers/getAst';
 import { nocoExecute } from '~/utils';
 import { captureForTrace } from '~/decorators/trace-command.decorator';
@@ -240,6 +242,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         insertData: insertObj || data,
       });
       await baseModel.errorInsert(e, data, request);
+      await handleNotNullConstraintError({ error: e, baseModel });
       throw e;
     }
   };
@@ -330,23 +333,31 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         const attachmentCols = columns.filter((c) => isAttachment(c));
 
         for (const [index, d] of datas.entries()) {
-          const insertObj = await baseModel.handleValidateBulkInsert(
-            d,
-            columns,
-            {
-              allowSystemColumn,
-              undo,
-              typecast,
+          const insertObj = await withRecordIndex(
+            baseModel.context,
+            index,
+            datas.length,
+            async () => {
+              const insertObj = await baseModel.handleValidateBulkInsert(
+                d,
+                columns,
+                {
+                  allowSystemColumn,
+                  undo,
+                  typecast,
+                },
+              );
+
+              await baseModel.prepareNocoData(insertObj, true, cookie, null, {
+                ncOrder: order?.plus(index),
+                undo,
+                allowSystemColumn,
+                skipPermissionCheck,
+                skipAttachmentOwnershipCheck,
+              });
+              return insertObj;
             },
           );
-
-          await baseModel.prepareNocoData(insertObj, true, cookie, null, {
-            ncOrder: order?.plus(index),
-            undo,
-            allowSystemColumn,
-            skipPermissionCheck,
-            skipAttachmentOwnershipCheck,
-          });
 
           // prepare nested link data for insert only if it is single record insertion
           if (isSingleRecordInsertion || apiVersion === NcApiVersion.V3) {
@@ -732,6 +743,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         baseModel: baseModel,
         insertData: datas?.[0],
       });
+      await handleNotNullConstraintError({ error: e, baseModel });
       // await baseModel.errorInsertb(e, data, null);
       throw e;
     }

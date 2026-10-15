@@ -363,7 +363,6 @@ export default defineNuxtConfig({
         'v3-infinite-loading',
         'validator',
         'validator/es/lib/isEmail',
-        'validator/lib/isMobilePhone',
         'vue-advanced-cropper',
         'vue-barcode-reader',
         'vuedraggable',

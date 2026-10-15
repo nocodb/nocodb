@@ -86,6 +86,10 @@ export interface ChatSessionMetaType {
   }>;
   /** The session's paused compute instance, resumed by the next turn. */
   computeId?: string;
+  /** App Factory: the machine the session runs on, picked when it starts; absent on the stock machine. */
+  factoryMachineId?: string;
+  /** App Factory: the machine version `computeId` was started from; absent on the stock machine. */
+  factoryMachineVersion?: number;
   /**
    * The app-build sandbox running RIGHT NOW, so a Stop on any instance can kill
    * it by id. Separate from `computeId`, which is the chat analyst's PAUSED
@@ -571,7 +575,8 @@ export const BUILD_SCOPES = [
 export type BuildScope = (typeof BUILD_SCOPES)[number];
 
 export const isBuildScope = (value: unknown): value is BuildScope =>
-  typeof value === 'string' && (BUILD_SCOPES as readonly string[]).includes(value);
+  typeof value === 'string' &&
+  (BUILD_SCOPES as readonly string[]).includes(value);
 
 /** UI navigation context sent with each chat message. */
 export interface ChatUIContext {
@@ -584,10 +589,15 @@ export interface ChatUIContext {
   /** The app whose canvas the user is currently viewing — biases build-turn routing. */
   appId?: string;
   appTitle?: string;
+  /** The interface open in the UI, and the page of it the user is on. */
+  interfaceId?: string;
+  interfacePageId?: string;
   /** First-run onboarding turn — the agent should perform a complete one-shot build. */
   onboarding?: boolean;
   /** What that build should produce. Absent means a full app. */
   buildScope?: BuildScope;
+  /** Agents is on for this user — its experimental flag lives in the browser, so only the client knows. */
+  agentsEnabled?: boolean;
 }
 
 /**

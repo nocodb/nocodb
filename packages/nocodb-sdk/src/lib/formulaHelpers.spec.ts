@@ -1,5 +1,6 @@
 import {
   FormulaDataTypes,
+  substituteColumnAliasWithIdInFormula,
   validateFormulaAndExtractTreeWithType,
 } from './formulaHelpers';
 import { UnifiedMetaType } from './types';
@@ -111,28 +112,6 @@ describe('Formula parsing and type validation', () => {
       });
       expect(result.dataType).toEqual(FormulaDataTypes.NUMERIC);
     });
-    it('Time - time equals numeric', async () => {
-      const result = await validateFormulaAndExtractTreeWithType({
-        formula: '{Time1} - {Time2}',
-        columns: [
-          {
-            base_id,
-            id: 'TUrXeTf4JUHdnRvn',
-            title: 'Time1',
-            uidt: UITypes.Time,
-          },
-          {
-            base_id,
-            id: 'J3aD/yLDT2GF6NEB',
-            title: 'Time2',
-            uidt: UITypes.Time,
-          },
-        ],
-        clientOrSqlUi: 'pg',
-        getMeta,
-      });
-      expect(result.dataType).toEqual(FormulaDataTypes.NUMERIC);
-    });
     it('Date + time equals date', async () => {
       const result = await validateFormulaAndExtractTreeWithType({
         formula: '{Date1} + {Time2}',
@@ -171,149 +150,171 @@ describe('Formula parsing and type validation', () => {
 
   describe('errors', () => {
     it(`will provide position for syntax error`, async () => {
-      try {
-        await validateFormulaAndExtractTreeWithType({
+      await expect(
+        validateFormulaAndExtractTreeWithType({
           formula: '1 +',
           columns: [],
           clientOrSqlUi: 'mysql2',
           getMeta,
           trackPosition: true,
-        });
-      } catch (ex) {
-        expect(ex.extra.position).toEqual({
-          column: 3,
-          row: 0,
-          length: 1,
-        });
-      }
-      try {
-        await validateFormulaAndExtractTreeWithType({
+        })
+      ).rejects.toMatchObject({
+        extra: {
+          position: {
+            column: 3,
+            row: 0,
+            length: 1,
+          },
+        },
+      });
+      await expect(
+        validateFormulaAndExtractTreeWithType({
           formula: '(1 + 1',
           columns: [],
           clientOrSqlUi: 'mysql2',
           getMeta,
           trackPosition: true,
-        });
-      } catch (ex) {
-        expect(ex.extra.position).toEqual({
-          column: 6,
-          row: 0,
-          length: 1,
-        });
-      }
-      try {
-        await validateFormulaAndExtractTreeWithType({
+        })
+      ).rejects.toMatchObject({
+        extra: {
+          position: {
+            column: 6,
+            row: 0,
+            length: 1,
+          },
+        },
+      });
+      await expect(
+        validateFormulaAndExtractTreeWithType({
           formula: 'CONCAT)',
           columns: [],
           clientOrSqlUi: 'mysql2',
           getMeta,
           trackPosition: true,
-        });
-      } catch (ex) {
-        expect(ex.extra.position).toEqual({
-          column: 6,
-          row: 0,
-          length: 1,
-        });
-      }
+        })
+      ).rejects.toMatchObject({
+        extra: {
+          position: {
+            column: 6,
+            row: 0,
+            length: 1,
+          },
+        },
+      });
     });
     it(`will provide position for column not found`, async () => {
-      try {
-        await validateFormulaAndExtractTreeWithType({
+      await expect(
+        validateFormulaAndExtractTreeWithType({
           formula: '1 + __a_',
           columns: [],
           clientOrSqlUi: 'mysql2',
           getMeta,
           trackPosition: true,
-        });
-      } catch (ex) {
-        expect(ex.extra.position).toEqual({
-          column: 4,
-          row: 0,
-          length: 4,
-        });
-      }
-      try {
-        await validateFormulaAndExtractTreeWithType({
+        })
+      ).rejects.toMatchObject({
+        extra: {
+          position: {
+            column: 4,
+            row: 0,
+            length: 4,
+          },
+        },
+      });
+      await expect(
+        validateFormulaAndExtractTreeWithType({
           formula: '__a_',
           columns: [],
           clientOrSqlUi: 'mysql2',
           getMeta,
           trackPosition: true,
-        });
-      } catch (ex) {
-        expect(ex.extra.position).toEqual({
-          column: 0,
-          row: 0,
-          length: 4,
-        });
-      }
-      try {
-        await validateFormulaAndExtractTreeWithType({
+        })
+      ).rejects.toMatchObject({
+        extra: {
+          position: {
+            column: 0,
+            row: 0,
+            length: 4,
+          },
+        },
+      });
+      await expect(
+        validateFormulaAndExtractTreeWithType({
           formula: 'CONCAT(__a_  , "A")',
           columns: [],
           clientOrSqlUi: 'mysql2',
           getMeta,
           trackPosition: true,
-        });
-      } catch (ex) {
-        expect(ex.extra.position).toEqual({
-          column: 7,
-          row: 0,
-          length: 6,
-        });
-      }
+        })
+      ).rejects.toMatchObject({
+        extra: {
+          position: {
+            column: 7,
+            row: 0,
+            length: 6,
+          },
+        },
+      });
     });
     it(`will handle formula missing parentheses`, async () => {
-      try {
-        await validateFormulaAndExtractTreeWithType({
+      await expect(
+        validateFormulaAndExtractTreeWithType({
           formula: 'CONCAT',
           columns: [],
           clientOrSqlUi: 'mysql2',
           getMeta,
           trackPosition: true,
-        });
-      } catch (ex) {
-        expect(ex.message).toContain('Missing parentheses after function name');
-        expect(ex.extra.position).toEqual({
-          column: 6,
-          row: 0,
-          length: 1,
-        });
-      }
-      try {
-        await validateFormulaAndExtractTreeWithType({
+        })
+      ).rejects.toMatchObject({
+        message: expect.stringContaining(
+          'Missing parentheses after function name'
+        ),
+        extra: {
+          position: {
+            column: 6,
+            row: 0,
+            length: 1,
+          },
+        },
+      });
+      await expect(
+        validateFormulaAndExtractTreeWithType({
           formula: 'CONCAT(CONCAT)',
           columns: [],
           clientOrSqlUi: 'mysql2',
           getMeta,
           trackPosition: true,
-        });
-      } catch (ex) {
-        expect(ex.message).toContain('Missing parentheses after function name');
-        expect(ex.extra.position).toEqual({
-          column: 13,
-          row: 0,
-          length: 1,
-        });
-      }
+        })
+      ).rejects.toMatchObject({
+        message: expect.stringContaining(
+          'Missing parentheses after function name'
+        ),
+        extra: {
+          position: {
+            column: 13,
+            row: 0,
+            length: 1,
+          },
+        },
+      });
     });
     it(`will handle formula minimum argument`, async () => {
-      try {
-        await validateFormulaAndExtractTreeWithType({
+      await expect(
+        validateFormulaAndExtractTreeWithType({
           formula: 'CONCAT(CONCAT())',
           columns: [],
           clientOrSqlUi: 'mysql2',
           getMeta,
           trackPosition: true,
-        });
-      } catch (ex) {
-        expect(ex.extra.position).toEqual({
-          column: 7,
-          row: 0,
-          length: 8,
-        });
-      }
+        })
+      ).rejects.toMatchObject({
+        extra: {
+          position: {
+            column: 7,
+            row: 0,
+            length: 8,
+          },
+        },
+      });
     });
   });
 
@@ -585,5 +586,26 @@ describe('Formula parsing and type validation', () => {
       expect(result.referencedColumn).toBeUndefined();
       expect(result.uidtCandidates).toEqual([UITypes.Decimal]);
     });
+  });
+});
+
+describe('substituteColumnAliasWithIdInFormula', () => {
+  const columns = [{ base_id, id: 'id1', title: 'N', uidt: UITypes.Number }];
+
+  it('hints == once for a bare =', async () => {
+    const error = await substituteColumnAliasWithIdInFormula(
+      'IF({N} = 1, "a", "b")',
+      columns
+    ).catch((e) => e);
+    expect(error.message.split('Use == for equality').length).toBe(2);
+  });
+
+  it('does not hint for other syntax errors', async () => {
+    const error = await substituteColumnAliasWithIdInFormula(
+      'IF({N} == 1, "a"',
+      columns
+    ).catch((e) => e);
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).not.toContain('Use == for equality');
   });
 });

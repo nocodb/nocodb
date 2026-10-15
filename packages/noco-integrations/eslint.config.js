@@ -57,6 +57,24 @@ export default [
         },
       ],
       '@typescript-eslint/consistent-type-imports': 'warn',
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'googleapis',
+              message:
+                "~58 MB of heap at boot; use `await import('googleapis')` where it is needed.",
+              allowTypeImports: true,
+            },
+            {
+              name: 'isomorphic-dompurify',
+              message: 'Loads jsdom at boot; require it on first use.',
+              allowTypeImports: true,
+            },
+          ],
+        },
+      ],
     },
   },
   {

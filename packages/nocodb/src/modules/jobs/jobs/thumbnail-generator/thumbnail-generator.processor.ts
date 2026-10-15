@@ -5,7 +5,10 @@ import type { Job } from 'bull';
 import type { AttachmentResType, PublicAttachmentScope } from 'nocodb-sdk';
 import type { ThumbnailGeneratorJobData } from '~/interface/Jobs';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { getPathFromUrl } from '~/helpers/attachmentHelpers';
+import {
+  getPathFromUrl,
+  isStorageAttachmentRef,
+} from '~/helpers/attachmentHelpers';
 import { ImageThumbnailGenerator } from '~/modules/jobs/jobs/thumbnail-generator/generators/image-thumbnail-generator';
 import Noco from '~/Noco';
 
@@ -55,6 +58,13 @@ export class ThumbnailGeneratorProcessor {
 
     try {
       const storageAdapter = await NcPluginMgrv2.storageAdapter();
+      // an external url is not a storage object: never read a key from it
+      if (
+        !attachment.path &&
+        !(await isStorageAttachmentRef(attachment.url, storageAdapter))
+      ) {
+        return null;
+      }
       const { file, relativePath } = await this.getFileData(
         attachment,
         storageAdapter,

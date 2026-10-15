@@ -22,6 +22,10 @@ import PQueue from 'p-queue';
 import { JobsLogService } from '../jobs-log.service';
 import FetchAT from './helpers/fetchAT';
 import { importData } from './helpers/readAndProcessData';
+import {
+  buildSharedViewImport,
+  isSharedViewPayload,
+} from './helpers/sharedView';
 import EntityMap from './helpers/EntityMap';
 import { ATImportEngine } from './engine';
 import type {
@@ -36,6 +40,7 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { AtImportJobData } from '~/interface/Jobs';
+import type { SharedViewImport } from './helpers/sharedView';
 import {
   extractNonSystemProps,
   generateAuditV1Payload,
@@ -234,6 +239,8 @@ export class AtImportProcessor {
     };
 
     let atBase, atBaseId;
+    // set when the link is a shared view rather than a shared base
+    let sharedView: SharedViewImport | undefined;
     const start = Date.now();
     const enableErrorLogs = false;
     const generate_migrationStats = true;
@@ -417,7 +424,7 @@ export class AtImportProcessor {
       if (!sDB.shareId)
         throw {
           message:
-            'Invalid Shared Base ID :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://dub.sh/import-airtable-to-nocodb for details',
+            'Invalid Airtable link :: Use a shared base or shared view link (airtable.com/app.../shr...). Refer https://dub.sh/import-airtable-to-nocodb for details',
         };
 
       if (sDB.shareId.startsWith('exp')) {
@@ -434,16 +441,37 @@ export class AtImportProcessor {
       if (!ft.baseId) {
         throw {
           message:
-            'Invalid Shared Base ID :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://dub.sh/import-airtable-to-nocodb for details',
+            'Invalid Airtable link :: Use a shared base or shared view link (airtable.com/app.../shr...). Refer https://dub.sh/import-airtable-to-nocodb for details',
+        };
+      }
+
+      atBaseId = ft.baseId;
+
+      if (isSharedViewPayload(ft.schema)) {
+        sharedView = buildSharedViewImport(ft.schema);
+        atBase = sharedView.atBase;
+        g_aTblSchema = sharedView.tableSchemas;
+        logBasic(
+          `Shared view :: '${sharedView.tableSchemas[0].name}' / '${sharedView.view.name}' (${sharedView.rowCount} records)`,
+        );
+        return { tableSchemas: sharedView.tableSchemas };
+      }
+
+      if (!sDB.apiKey && sDB.options.syncData) {
+        throw {
+          message:
+            'A personal access token is required to import records from a shared base. Shared view links do not need one.',
         };
       }
 
       const file = ft.schema;
-      atBaseId = ft.baseId;
-      atBase = ATImportEngine.get().atBase({
-        apiKey: sDB.apiKey,
-        baseId: atBaseId,
-      });
+      // the Airtable SDK throws without a token, and only records need it
+      if (sDB.options.syncData) {
+        atBase = ATImportEngine.get().atBase({
+          apiKey: sDB.apiKey,
+          baseId: atBaseId,
+        });
+      }
       // store copy of airtable schema globally
       g_aTblSchema = file.tableSchemas;
 
@@ -451,6 +479,9 @@ export class AtImportProcessor {
     };
 
     const getViewData = async (viewId) => {
+      // a shared view carries its own config; readData is not allowed for it
+      if (sharedView) return sharedView.view;
+
       const start = Date.now();
       const ft = await FetchAT.readView(viewId);
       const duration = Date.now() - start;
@@ -779,7 +810,12 @@ export class AtImportProcessor {
             table.table_name,
           );
 
-          addFieldAlias(table.title, col.name, ncName.title);
+          // keyed the way lookups normalize the Airtable name
+          addFieldAlias(
+            table.title,
+            col.name.trim().replace(/\./g, '_'),
+            ncName.title,
+          );
 
           const ncCol: any = {
             // Enable to use aTbl identifiers as is: id: col.id,
@@ -953,13 +989,6 @@ export class AtImportProcessor {
 
         updateNcTblSchema(table);
 
-        // Register table's default grid view in tracking map
-        const viewNames = getViewNames(table.id);
-        const defaultView = table.views?.[0]; // First view is default grid
-        if (defaultView?.title) {
-          viewNames.push(defaultView.title);
-        }
-
         // update mapping table
         await sMap.addToMappingTbl(aTblSchema[idx].id, table.id, table.title);
         for (let colIdx = 0; colIdx < table.columns.length; colIdx++) {
@@ -1006,6 +1035,9 @@ export class AtImportProcessor {
           req,
         });
         recordPerfStats(_perfStart, 'dbView.update');
+
+        // tracked under its final title: the pre-rename one is the table's
+        getViewNames(table.id).push(aTbl_grid.name);
 
         await updateNcTblSchemaById(table.id);
 
@@ -1438,6 +1470,27 @@ export class AtImportProcessor {
         reason,
         { category },
       );
+    };
+
+    // What a shared view import could only bring across as values.
+    const reportSharedViewApproximations = (tableName: string) => {
+      for (const a of sharedView.approximations) {
+        recordIssue({
+          kind: AirtableImportIssueKind.APPROXIMATED,
+          table: tableName,
+          ...a,
+        });
+      }
+      if (sharedView.missingRowCount) {
+        recordIssue({
+          kind: AirtableImportIssueKind.SKIPPED,
+          category: AirtableImportIssueCategory.DATA,
+          table: tableName,
+          reason: `Airtable sent ${sharedView.rowCount} of ${
+            sharedView.rowCount + sharedView.missingRowCount
+          } records in the shared view`,
+        });
+      }
     };
 
     // Fields an import option switched off still belong in the report.
@@ -2105,8 +2158,9 @@ export class AtImportProcessor {
         const dt = table.columns.find((x) => x.title === key)?.uidt;
 
         // always process LTAR, Lookup, Formula and Rollup columns as we delete the key after processing
+        // 0 and false are values, not blanks
         if (
-          !value &&
+          (value === null || value === undefined || value === '') &&
           !isLinksOrLTAR(dt) &&
           dt !== UITypes.Lookup &&
           dt !== UITypes.Rollup &&
@@ -2145,16 +2199,20 @@ export class AtImportProcessor {
             delete rec[key];
             break;
 
-          case UITypes.Collaborator:
+          case UITypes.Collaborator: {
+            // a shared view may not expose emails
+            const label = (u) =>
+              u?.email ? `${u?.name} <${u.email}>` : u?.name;
             // in case of multi-collaborator, this will be an array
             if (Array.isArray(value)) {
               let collaborators = '';
               for (let i = 0; i < value.length; i++) {
-                collaborators += `${value[i]?.name} <${value[i]?.email}>, `;
+                collaborators += `${label(value[i])}, `;
                 rec[key] = collaborators;
               }
-            } else rec[key] = `${value?.name} <${value?.email}>`;
+            } else rec[key] = label(value);
             break;
+          }
 
           case UITypes.Button:
             rec[key] = `${value?.label} <${value?.url}>`;
@@ -2163,7 +2221,7 @@ export class AtImportProcessor {
           case UITypes.DateTime:
           case UITypes.CreatedTime:
           case UITypes.LastModifiedTime:
-            rec[key] = dayjs(value).format('YYYY-MM-DD HH:mm');
+            rec[key] = dayjs(value).format('YYYY-MM-DD HH:mm:ss');
             break;
 
           case UITypes.Date:
@@ -2523,13 +2581,17 @@ export class AtImportProcessor {
       // retrieve view name & associated NC-ID
       const aView = aTblSchema[idx].views.find((x) => x.id === gridViews[i].id);
 
+      // the first grid view is the table's default view, already renamed
       const viewNames = getViewNames(tblId);
-      const viewName = generateUniqueCopyName(
-        aView?.name || 'Grid',
-        viewNames,
-        { prefix: null, separator: '_', counterFormat: '{counter}' },
-      );
-      viewNames.push(viewName); // Add to tracking
+      const viewName =
+        i === 0
+          ? aView?.name || 'Grid'
+          : generateUniqueCopyName(aView?.name || 'Grid', viewNames, {
+              prefix: null,
+              separator: '_',
+              counterFormat: '{counter}',
+            });
+      if (i > 0) viewNames.push(viewName);
       const viewDescription = aView?.description;
 
       const _perfStart = recordPerfStart();
@@ -2546,7 +2608,9 @@ export class AtImportProcessor {
       });
       recordPerfStats(_perfStart, 'dbView.list');
 
-      let ncViewId = viewList?.list?.find((x) => x.tn === viewName)?.id;
+      let ncViewId =
+        (i === 0 && (await sMap.getNcIdFromAtId(gridViews[i].id))) ||
+        viewList?.list?.find((x) => x.tn === viewName)?.id;
 
       logBasic(
         `:: [${viewCnt + i + 1}/${rtc.view.total}] Grid : ${
@@ -3595,6 +3659,8 @@ export class AtImportProcessor {
       await nocoCreateBaseSchema(aTblSchema);
       logDetailed('Table creation completed');
 
+      if (sharedView) reportSharedViewApproximations(aTblSchema[0].name);
+
       logDetailed('Configuring Links');
       // add LTAR
       await nocoCreateLinkToAnotherRecord(aTblSchema);
@@ -3747,7 +3813,9 @@ export class AtImportProcessor {
           }
         } catch (error) {
           logBasic(
-            `There was an error while migrating data! Please make sure your API key is correct.`,
+            sharedView
+              ? 'There was an error while migrating data!'
+              : 'There was an error while migrating data! Please make sure your API key is correct.',
           );
           logBasic(`Data migration failed: ${error}`);
           recordIssue({

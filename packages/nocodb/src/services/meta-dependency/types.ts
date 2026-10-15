@@ -12,10 +12,19 @@ export interface AffectedDependencyResult {
   sorts?: any[];
 }
 
+export interface MarkedDependent {
+  id: string;
+  type: 'lookup' | 'rollup' | 'qrcode' | 'barcode';
+  base_id: string;
+}
+
 export interface MetaDependencyEventRequest {
   eventType: MetaEventType;
   oldEntity?: any;
   newEntity?: any;
+  // Filled by handlers with every column they error-mark, so callers (trash)
+  // can clear the exact same set later.
+  markedDependents?: MarkedDependent[];
 }
 
 export interface MetaEventHandler {

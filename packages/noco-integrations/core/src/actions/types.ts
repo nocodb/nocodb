@@ -121,6 +121,8 @@ export interface Capability {
    * to check a step rather than only to perform one. Provider-agnostic on
    * purpose: an HTTP package derives it from the verb, a client-based package
    * declares it. Absent means not read-only, which is the safe default.
+   * It also admits the call under read-only access, so a GET with side effects
+   * must set it to false.
    */
   readOnly?: boolean;
 

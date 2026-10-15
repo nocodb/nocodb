@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { IntegrationsType, type SourceType, validateAndExtractSSLProp } from 'nocodb-sdk'
+import { IntegrationsType, type SourceType, sslModeFromConfig, validateAndExtractSSLProp } from 'nocodb-sdk'
 import { Form } from 'ant-design-vue'
 import {
   ClientType,
@@ -129,15 +129,7 @@ const { validate, validateInfos } = useForm(formState, validators)
 const updateSSLUse = () => {
   if (formState.value.dataSource.client !== ClientType.SQLITE) {
     const connection = formState.value.dataSource.connection as DefaultConnection
-    if (connection.ssl) {
-      if (typeof connection.ssl === 'string') {
-        formState.value.sslUse = SSLUsage.Allowed
-      } else {
-        formState.value.sslUse = SSLUsage.Preferred
-      }
-    } else {
-      formState.value.sslUse = SSLUsage.No
-    }
+    formState.value.sslUse = sslModeFromConfig(connection.ssl)
   }
 }
 

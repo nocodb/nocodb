@@ -8833,6 +8833,12 @@
     "othersLabel": "Others",
     "claude": {
       "subtitle": "Set it up once on claude.ai. It then works in the desktop and mobile apps too.",
+    "directorySubtitle": "NocoDB is in Claude’s connector directory. Connect once on claude.ai and it works in the desktop and mobile apps too.",
+    "directoryTitle": "Connect NocoDB in Claude",
+    "directoryBody": "Select Connect, choose the bases Claude can use, then select Allow.",
+    "directoryButton": "Open NocoDB in Claude",
+    "directoryTeamNote": "On a Team or Enterprise plan, an Owner may need to allow the NocoDB connector first.",
+    "directoryHelp": "Claude: connectors directory",
       "addTitle": "Add NocoDB to Claude",
       "addBody": "Select Add custom connector, name it NocoDB, paste the URL, then select Add.",
       "identityNote": "If Claude asks how NocoDB should identify it, choose Register automatically.",

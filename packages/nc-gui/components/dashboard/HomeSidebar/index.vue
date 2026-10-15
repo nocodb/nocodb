@@ -134,11 +134,20 @@ function onNavClick(item: NavItem) {
           >
             <GeneralUserIcon :user="user" size="medium" :initials-length="1" class="flex-none" />
             <div class="flex-1 min-w-0">
-              <NcTooltip show-on-truncate-only class="truncate text-bodyDefaultSm text-nc-content-gray block">
+              <NcTooltip
+                :disabled="isUserMenuOpen"
+                show-on-truncate-only
+                class="truncate text-bodyDefaultSm text-nc-content-gray block"
+              >
                 <template #title>{{ name || user?.email }}</template>
                 {{ name || user?.email }}
               </NcTooltip>
-              <NcTooltip v-if="name" show-on-truncate-only class="truncate text-captionSm text-nc-content-gray-muted block">
+              <NcTooltip
+                v-if="name"
+                :disabled="isUserMenuOpen"
+                show-on-truncate-only
+                class="truncate text-captionSm text-nc-content-gray-muted block"
+              >
                 <template #title>{{ user?.email }}</template>
                 {{ user?.email }}
               </NcTooltip>

@@ -1363,7 +1363,8 @@ watch(readOnly, (newValue) => {
           </div>
           <div class="flex-1" />
           <template v-if="!readOnly">
-            <NcTooltip :title="$t('labels.insertImage')">
+            <!-- Images go in from the compose modal's toolbar; here only where there is no modal. -->
+            <NcTooltip v-if="!compose" :title="$t('labels.insertImage')">
               <NcButton
                 size="xs"
                 type="text"

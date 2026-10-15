@@ -346,3 +346,29 @@ export const getFileTypeLabel = (fileName: string, mimeType?: string): string =>
   if (mimeType === 'text/plain' || fileName.endsWith('.txt')) return 'Text'
   return 'File'
 }
+
+interface AttachmentItemLike {
+  title?: string
+  url?: string
+  path?: string
+  status?: string
+  error?: string
+}
+
+/** A url attachment the backend could not download: `{ id, url, status: 'failed', error }`. */
+export const isAttachmentDownloadFailed = (item?: AttachmentItemLike | null) => item?.status === 'failed'
+
+/** The title, or for an item stored without one, the file name in its url. */
+export const getAttachmentDisplayTitle = (item?: AttachmentItemLike | null): string => {
+  if (item?.title) return item.title
+
+  const ref = item?.url || item?.path
+  if (!ref) return ''
+
+  try {
+    const name = new URL(ref, window.location.origin).pathname.split('/').filter(Boolean).pop()
+    return name ? decodeURIComponent(name) : ref
+  } catch {
+    return ref
+  }
+}

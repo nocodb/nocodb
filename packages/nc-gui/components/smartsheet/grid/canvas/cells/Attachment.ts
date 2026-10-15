@@ -1,13 +1,27 @@
 import { isBoxHovered, renderIconButton, roundedRect } from '../utils/canvas'
 import { pxToRowHeight } from '../../../../../utils/cell'
 import type { RenderRectangleProps } from '../utils/types'
-import { isAudio, isExcel, isPdf, isPresentation, isVideo, isWord, isZip } from '../../../../../utils/fileUtils'
+import {
+  getAttachmentDisplayTitle,
+  isAttachmentDownloadFailed,
+  isAudio,
+  isExcel,
+  isPdf,
+  isPresentation,
+  isVideo,
+  isWord,
+  isZip,
+} from '../../../../../utils/fileUtils'
 import useAttachment from '../../../../../composables/useAttachment'
 
 interface Attachment {
   mimetype?: string
   type?: string
   title?: string
+  url?: string
+  size?: number
+  status?: string
+  error?: string
 }
 
 function getAttachmentIcon(title?: string, mimetype?: string): string {
@@ -94,6 +108,39 @@ function renderFallback(
     y: itemY,
     size: itemSize,
     color: getColor(themeV4Colors.gray['500']),
+  })
+}
+
+function renderFailed({
+  itemX,
+  itemY,
+  itemSize,
+  spriteLoader,
+  ctx,
+  getColor,
+}: {
+  itemX: number
+  itemY: number
+  itemSize: number
+  spriteLoader: any
+  ctx: CanvasRenderingContext2D
+  getColor: GetColorType
+}) {
+  ctx.beginPath()
+  ctx.roundRect(itemX, itemY, itemSize, itemSize, 4)
+  ctx.fillStyle = getColor(themeV4Colors.red['50'])
+  ctx.fill()
+  ctx.strokeStyle = getColor(themeV4Colors.red['500'])
+  ctx.lineWidth = 1
+  ctx.stroke()
+
+  const iconSize = Math.round(itemSize * 0.6)
+  spriteLoader.renderIcon(ctx, {
+    icon: 'alertTriangle',
+    x: itemX + (itemSize - iconSize) / 2,
+    y: itemY + (itemSize - iconSize) / 2,
+    size: iconSize,
+    color: getColor(themeV4Colors.red['500']),
   })
 }
 
@@ -207,7 +254,8 @@ export const AttachmentCellRenderer: CellRenderer = {
       const itemY = y + verticalPadding + row * (itemSize + gap)
 
       const size = getAttachmentSize(rowHeight!)
-      const thumbnailUrls = getPossibleAttachmentSrc(item, size)
+      const isFailed = isAttachmentDownloadFailed(item)
+      const thumbnailUrls = isFailed ? [] : getPossibleAttachmentSrc(item, size)
 
       let thumbnailLoaded = false
 
@@ -237,7 +285,9 @@ export const AttachmentCellRenderer: CellRenderer = {
       }
 
       // If no thumbnail loaded, show appropriate file type icon
-      if (!thumbnailLoaded) {
+      if (isFailed) {
+        renderFailed({ itemX, itemY, itemSize, spriteLoader, ctx, getColor })
+      } else if (!thumbnailLoaded) {
         renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx, getColor })
       }
 
@@ -377,7 +427,7 @@ export const AttachmentCellRenderer: CellRenderer = {
     const maxRows = Math.floor((height - verticalPadding * 2 + gap) / (itemSize + gap))
     const maxVisibleItems = maxRows * itemsPerRow
 
-    const imageBoxes: (RenderRectangleProps & { title: string; size?: number; mimetype?: string })[] = []
+    const imageBoxes: (RenderRectangleProps & { title: string; size?: number; mimetype?: string; failed?: boolean })[] = []
 
     attachments.slice(0, maxVisibleItems).forEach((item, index) => {
       if (!item) return
@@ -394,7 +444,16 @@ export const AttachmentCellRenderer: CellRenderer = {
       const itemX = rowStartX + col * (itemSize + gap)
       const itemY = y + verticalPadding + row * (itemSize + gap)
 
-      if (isImage(item.title, item.mimetype || item.type)) {
+      if (isAttachmentDownloadFailed(item)) {
+        imageBoxes.push({
+          x: itemX,
+          y: itemY,
+          width: itemSize,
+          height: itemSize,
+          title: getAttachmentDisplayTitle(item),
+          failed: true,
+        })
+      } else if (isImage(item.title, item.mimetype || item.type)) {
         const size = getAttachmentSize(rowHeight)
         const url = getPossibleAttachmentSrc(item, size)?.[0]
 
@@ -433,10 +492,12 @@ export const AttachmentCellRenderer: CellRenderer = {
       rect: hoveredPreview,
       text: h('div', [
         hoveredPreview?.title ?? '',
-        h('div', { class: 'flex items-center justify-between mt-2 text-tiny text-gray-200' }, [
-          h('div', getReadableFileType(hoveredPreview?.mimetype)),
-          h('div', formatFileSize(hoveredPreview?.size)),
-        ]),
+        hoveredPreview?.failed
+          ? h('div', { class: 'mt-2 text-tiny text-gray-200' }, t('msg.error.attachmentUrlDownloadFailed'))
+          : h('div', { class: 'flex items-center justify-between mt-2 text-tiny text-gray-200' }, [
+              h('div', getReadableFileType(hoveredPreview?.mimetype)),
+              h('div', formatFileSize(hoveredPreview?.size)),
+            ]),
       ]),
       mousePosition,
     })
@@ -512,7 +573,15 @@ export const AttachmentCellRenderer: CellRenderer = {
       const itemX = rowStartX + col * (itemSize + gap)
       const itemY = y + verticalPadding + row * (itemSize + gap)
 
-      if (isImage(item.title, item.mimetype || item.type)) {
+      if (isAttachmentDownloadFailed(item)) {
+        imageBoxes.push({
+          x: itemX,
+          y: itemY,
+          width: itemSize,
+          height: itemSize,
+          title: getAttachmentDisplayTitle(item),
+        })
+      } else if (isImage(item.title, item.mimetype || item.type)) {
         const size = getAttachmentSize(rowHeight)
         const url = getPossibleAttachmentSrc(item, size)?.[0]
 

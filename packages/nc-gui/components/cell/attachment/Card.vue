@@ -41,6 +41,10 @@ const isDragging = useVModel(props, 'dragging', emits)
 
 const { downloadAttachment, renameFileInline, renameFile, removeFile, isEditAllowed } = useAttachmentCell()!
 
+const isFailed = computed(() => isAttachmentDownloadFailed(props.attachment))
+
+const displayTitle = computed(() => getAttachmentDisplayTitle(props.attachment))
+
 const isRenamingFile = ref(false)
 const renameTitle = ref('')
 
@@ -91,7 +95,10 @@ const handleFileDeleteStart = () => {
 </script>
 
 <template>
-  <div class="nc-attachment-item group gap-1 flex border-1 rounded-md border-nc-border-gray-medium flex-col relative">
+  <div
+    class="nc-attachment-item group gap-1 flex border-1 rounded-md flex-col relative"
+    :class="isFailed ? 'nc-attachment-item-failed !border-nc-border-red' : 'border-nc-border-gray-medium'"
+  >
     <NcCheckbox
       v-if="allowSelection"
       v-model:checked="isSelected"
@@ -117,7 +124,20 @@ const handleFileDeleteStart = () => {
       class="nc-attachment h-full flex justify-center items-center overflow-hidden"
       @click.stop="emits('clicked')"
     >
+      <NcTooltip v-if="isFailed" class="h-full w-full" placement="top">
+        <template #title>
+          <div>{{ $t('msg.error.attachmentUrlDownloadFailed') }}</div>
+          <div v-if="attachment.error" class="mt-1 text-nc-content-gray-muted">{{ attachment.error }}</div>
+        </template>
+        <div class="h-full w-full flex flex-col items-center justify-center gap-1 px-2 bg-nc-bg-red-light rounded-t-[5px]">
+          <GeneralIcon icon="alertTriangle" class="text-nc-content-red-medium w-6 h-6 flex-none" />
+          <div class="text-[11px] text-nc-content-red-dark text-center line-clamp-2">
+            {{ $t('labels.attachmentDownloadFailed') }}
+          </div>
+        </div>
+      </NcTooltip>
       <LazyCellAttachmentPreviewThumbnail
+        v-else
         :attachment="attachment"
         thumbnail="card_cover"
         :class="previewClassOverride ? `${previewClassOverride}` : ''"
@@ -128,17 +148,17 @@ const handleFileDeleteStart = () => {
       />
     </div>
 
-    <div class="relative px-1 pb-1 items-center flex" :title="attachment.title">
+    <div class="relative px-1 pb-1 items-center flex" :title="displayTitle">
       <div
         class="nc-attachment-card-title flex w-full text-[12px] items-center text-nc-content-gray-subtle cursor-default h-5"
         :class="{ truncate: !isRenamingFile }"
-        @dblclick.stop="allowRename && isEditAllowed && handleFileRenameStart()"
+        @dblclick.stop="allowRename && isEditAllowed && !isFailed && handleFileRenameStart()"
       >
         <NcTooltip v-if="!isRenamingFile" class="truncate h-5 flex items-center" show-on-truncate-only>
-          {{ attachment.title }}
+          {{ displayTitle }}
 
           <template #title>
-            {{ attachment.title }}
+            {{ displayTitle }}
           </template>
         </NcTooltip>
         <a-input
@@ -156,7 +176,7 @@ const handleFileDeleteStart = () => {
         class="nc-attachment-card-actions flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 flex items-center bg-nc-bg-default"
         :class="{ '!h-auto !w-auto !overflow-visible !whitespace-normal': isRenamingFile }"
       >
-        <NcTooltip placement="bottom">
+        <NcTooltip v-if="!isFailed" placement="bottom">
           <template #title> {{ $t('title.downloadFile') }} </template>
           <NcButton
             class="!p-0 !w-5 !h-5 !text-nc-content-gray-muted !min-w-[fit-content]"
@@ -168,7 +188,7 @@ const handleFileDeleteStart = () => {
           </NcButton>
         </NcTooltip>
 
-        <NcTooltip v-if="allowRename && isEditAllowed" placement="bottom">
+        <NcTooltip v-if="allowRename && isEditAllowed && !isFailed" placement="bottom">
           <template #title> {{ $t('title.renameFile') }} </template>
           <NcButton
             size="xsmall"

@@ -2,7 +2,14 @@
 import { Form } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import { diff } from 'deep-object-diff'
-import { IntegrationsType, isSecretRef, isVaultReferenceablePath, validateAndExtractSSLProp } from 'nocodb-sdk'
+import {
+  IntegrationsType,
+  buildSqlAuthSsl,
+  isSecretRef,
+  isVaultReferenceablePath,
+  sslModeFromConfig,
+  validateAndExtractSSLProp,
+} from 'nocodb-sdk'
 import { defineAsyncComponent } from 'vue'
 import {
   type CertTypes,
@@ -224,39 +231,47 @@ const onClientChange = () => {
   formState.value.dataSource = { ..._getDefaultConnectionConfig(formState.value.dataSource.client) }
 }
 
+// Only the modes that resolve to a distinct connection. `Allowed` is the same
+// connection as `Preferred` (pg has no fallback-to-plaintext), and
+// `Required-Identity` cannot be told apart from `Required` in a stored config
+// — verify-ca and verify-full differ only by `checkServerIdentity`, a function.
+const sslModes = [SSLUsage.No, SSLUsage.Preferred, SSLUsage.Required, SSLUsage.RequiredWithCa]
+
 const onSSLModeChange = ((mode: SSLUsage) => {
   if (formState.value.dataSource.client !== ClientType.SQLITE) {
     const connection = formState.value.dataSource.connection as DefaultConnection
-    switch (mode) {
-      case SSLUsage.No:
-        connection.ssl = undefined
-        break
-      case SSLUsage.Allowed:
-        connection.ssl = 'true'
-        break
-      default:
-        connection.ssl = {
-          ca: '',
-          cert: '',
-          key: '',
-        }
-        break
+    const previous: Record<string, any> = (typeof connection.ssl === 'object' && connection.ssl) || {}
+    const base = buildSqlAuthSsl({ sslMode: mode })
+
+    if (!base) {
+      connection.ssl = undefined
+      return
     }
+
+    // Carry the existing material over verbatim rather than through
+    // `buildSqlAuthSsl`'s PEM arguments: `ca`/`cert`/`key` may hold a vault
+    // reference, and `*FilePath` is resolved server-side at connect time.
+    // Neither survives a round trip through plain strings.
+    const next: Record<string, any> = { ...previous, ...base }
+
+    // Picking a non-verifying mode is an explicit request not to verify, so a
+    // CA left over from a stricter mode must not force verification back on.
+    if (mode === SSLUsage.Preferred || mode === SSLUsage.Allowed) {
+      delete next.ca
+      delete next.caFilePath
+    }
+
+    connection.ssl = next
   }
 }) as SelectHandler
 
 const updateSSLUse = (updateActiveIntegrationFormState = false) => {
   if (formState.value.dataSource.client !== ClientType.SQLITE) {
     const connection = formState.value.dataSource.connection as DefaultConnection
-    if (connection.ssl) {
-      if (typeof connection.ssl === 'string') {
-        formState.value.sslUse = SSLUsage.Allowed
-      } else {
-        formState.value.sslUse = SSLUsage.Preferred
-      }
-    } else {
-      formState.value.sslUse = SSLUsage.No
-    }
+    // Derived from the stored config rather than persisted: every mode maps to
+    // a distinct `connection.ssl` shape, so the dropdown always shows what the
+    // connection actually does.
+    formState.value.sslUse = sslModeFromConfig(connection.ssl)
 
     if (updateActiveIntegrationFormState) {
       activeIntegrationformState.value.sslUse = toRaw(formState.value.sslUse)
@@ -290,9 +305,13 @@ const onFileSelect = (key: CertTypes, el?: HTMLInputElement) => {
   })
 }
 
-const sslFilesRequired = computed(
-  () => !!formState.value.sslUse && formState.value.sslUse !== SSLUsage.No && formState.value.sslUse !== SSLUsage.Allowed,
-)
+// Client certificates authenticate US to the server (mutual TLS), so they
+// apply whenever TLS is on — including against an unverified self-signed
+// server, a common mTLS setup.
+const sslFilesRequired = computed(() => !!formState.value.sslUse && formState.value.sslUse !== SSLUsage.No)
+
+// A server CA only means something once the server is actually being verified.
+const sslCaAllowed = computed(() => [SSLUsage.Required, SSLUsage.RequiredWithCa].includes(formState.value.sslUse as SSLUsage))
 
 function getConnectionConfig() {
   const extraParameters = Object.fromEntries(
@@ -387,6 +406,11 @@ function applyConfigFix(fix: any) {
       ...fix.connection,
     },
   }
+
+  // The self-signed fallback rewrites `connection.ssl` to stop verifying the
+  // server. Re-derive the mode so a downgraded connection can't be saved while
+  // the dropdown still claims verification.
+  updateSSLUse()
 }
 
 const testConnectionError = ref()
@@ -1113,7 +1137,7 @@ watch(
                               dropdown-class-name="nc-dropdown-ssl-mode"
                               @select="onSSLModeChange"
                             >
-                              <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">
+                              <a-select-option v-for="opt in sslModes" :key="opt" :value="opt">
                                 <div class="w-full flex gap-2 items-center">
                                   <div class="flex-1">
                                     {{ opt }}
@@ -1134,11 +1158,7 @@ watch(
 
                       <a-row :gutter="24">
                         <a-col :span="24">
-                          <a-form-item
-                            v-if="formState.sslUse && ![SSLUsage.No, SSLUsage.Allowed].includes(formState.sslUse)"
-                            :label="$t('labels.sslKeys')"
-                            class="!mt-3"
-                          >
+                          <a-form-item v-if="sslFilesRequired" :label="$t('labels.sslKeys')" class="!mt-3">
                             <div class="flex gap-2 w-full">
                               <NcTooltip placement="top">
                                 <!-- Select .cert file -->
@@ -1182,7 +1202,7 @@ watch(
                                 <NcButton
                                   size="small"
                                   type="secondary"
-                                  :disabled="!sslFilesRequired"
+                                  :disabled="!sslCaAllowed"
                                   class="shadow !w-[90px]"
                                   @click="caFileInput?.click()"
                                 >

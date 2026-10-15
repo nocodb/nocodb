@@ -41,7 +41,7 @@ onMounted(() => {
         overlay-class-name="!min-w-44 md:!min-w-64 nc-user-menu-dropdown"
         :align="{ offset: [12, 3] }"
       >
-        <NcTooltip :disabled="isMobileMode" placement="right" hide-on-click :arrow="false">
+        <NcTooltip :disabled="isMobileMode || isMenuOpen" placement="right" hide-on-click :arrow="false">
           <template #title>
             <div>
               <div v-if="name">{{ name }}</div>

@@ -4616,8 +4616,6 @@
     "byUser": "{user} द्वारा",
     "requestIntegration": "एकीकरण का अनुरोध करें",
     "browseIntegrations": "एकीकरण ब्राउज़ करें",
-    "examplePrompt": "उदाहरण प्रॉम्प्ट",
-    "connectYourAi": "अपना एआई जोड़ें",
     "connectAVault": "एक वॉल्ट जोड़ें",
     "manageVaults": "वॉल्ट प्रबंधित करें",
     "baseRelations": "प्रोजेक्ट संबंध",

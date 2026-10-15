@@ -4612,8 +4612,6 @@
     "byUser": "{user} által",
     "requestIntegration": "Integráció kérése",
     "browseIntegrations": "Integrációk böngészése",
-    "examplePrompt": "Példa promptra",
-    "connectYourAi": "Csatlakoztassa a saját MI-jét",
     "connectAVault": "Széf csatlakoztatása",
     "manageVaults": "Széfek kezelése",
     "baseRelations": "A projekt kapcsolatai",

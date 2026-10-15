@@ -4616,8 +4616,6 @@
     "byUser": "{user} ಅವರಿಂದ",
     "requestIntegration": "ಸಂಯೋಜನೆಯನ್ನು ಕೋರಿ",
     "browseIntegrations": "ಸಂಯೋಜನೆಗಳನ್ನು ವೀಕ್ಷಿಸಿ",
-    "examplePrompt": "ಉದಾಹರಣೆ ಪ್ರಾಂಪ್ಟ್",
-    "connectYourAi": "ನಿಮ್ಮ ಎಐ ಸಂಪರ್ಕಿಸಿ",
     "connectAVault": "ಒಂದು ವಾಲ್ಟ್ ಸಂಪರ್ಕಿಸಿ",
     "manageVaults": "ವಾಲ್ಟ್‌ಗಳನ್ನು ನಿರ್ವಹಿಸಿ",
     "baseRelations": "ಯೋಜನೆಯ ಸಂಬಂಧಗಳು",

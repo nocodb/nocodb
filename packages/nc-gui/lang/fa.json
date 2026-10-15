@@ -4616,8 +4616,6 @@
     "byUser": "توسط {user}",
     "requestIntegration": "درخواست یکپارچه‌سازی",
     "browseIntegrations": "مرور یکپارچه‌سازی‌ها",
-    "examplePrompt": "نمونه دستور",
-    "connectYourAi": "هوش مصنوعی خود را متصل کنید",
     "connectAVault": "اتصال یک گاوصندوق",
     "manageVaults": "مدیریت گاوصندوق‌ها",
     "baseRelations": "روابط پروژه",

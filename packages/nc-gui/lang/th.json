@@ -4617,8 +4617,6 @@
     "byUser": "โดย {user}",
     "requestIntegration": "ขอการเชื่อมต่อ",
     "browseIntegrations": "เรียกดูการเชื่อมต่อ",
-    "examplePrompt": "ตัวอย่างพรอมต์",
-    "connectYourAi": "เชื่อมต่อ AI ของคุณ",
     "connectAVault": "เชื่อมต่อวอลต์",
     "manageVaults": "จัดการวอลต์",
     "baseRelations": "ความสัมพันธ์ของโปรเจกต์",

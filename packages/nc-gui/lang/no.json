@@ -4606,8 +4606,6 @@
     "byUser": "av {user}",
     "requestIntegration": "Be om integrasjon",
     "browseIntegrations": "Bla gjennom integrasjoner",
-    "examplePrompt": "Eksempel på prompt",
-    "connectYourAi": "Koble til din AI",
     "connectAVault": "Koble til et hvelv",
     "manageVaults": "Administrer hvelv",
     "baseRelations": "Prosjektrelasjoner",

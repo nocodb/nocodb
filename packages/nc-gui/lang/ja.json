@@ -4616,8 +4616,6 @@
     "byUser": "{user} による",
     "requestIntegration": "インテグレーションをリクエスト",
     "browseIntegrations": "インテグレーションを見る",
-    "examplePrompt": "プロンプトの例",
-    "connectYourAi": "AI を接続する",
     "connectAVault": "ボールトを接続",
     "manageVaults": "ボールトを管理",
     "baseRelations": "プロジェクトのリレーション",

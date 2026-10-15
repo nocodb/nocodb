@@ -4607,8 +4607,6 @@
     "byUser": "av {user}",
     "requestIntegration": "Begär integration",
     "browseIntegrations": "Bläddra bland integrationer",
-    "examplePrompt": "Exempel på prompt",
-    "connectYourAi": "Anslut din AI",
     "connectAVault": "Anslut ett valv",
     "manageVaults": "Hantera valv",
     "baseRelations": "Projektrelationer",

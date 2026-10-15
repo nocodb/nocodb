@@ -4614,8 +4614,6 @@
     "byUser": "przez {user}",
     "requestIntegration": "Poproś o integrację",
     "browseIntegrations": "Przeglądaj integracje",
-    "examplePrompt": "Przykładowy prompt",
-    "connectYourAi": "Podłącz swoją AI",
     "connectAVault": "Podłącz sejf",
     "manageVaults": "Zarządzaj sejfami",
     "baseRelations": "Relacje projektu",

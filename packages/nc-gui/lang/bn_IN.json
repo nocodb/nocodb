@@ -4616,8 +4616,6 @@
     "byUser": "{user} দ্বারা",
     "requestIntegration": "ইন্টিগ্রেশনের অনুরোধ করুন",
     "browseIntegrations": "ইন্টিগ্রেশন ব্রাউজ করুন",
-    "examplePrompt": "উদাহরণ প্রম্পট",
-    "connectYourAi": "আপনার এআই যুক্ত করুন",
     "connectAVault": "একটি ভল্ট যুক্ত করুন",
     "manageVaults": "ভল্ট পরিচালনা করুন",
     "baseRelations": "প্রকল্পের সম্পর্ক",

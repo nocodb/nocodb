@@ -4593,8 +4593,6 @@
     "byUser": "ដោយ {user}",
     "requestIntegration": "ស្នើសុំការរួមបញ្ចូល",
     "browseIntegrations": "រកមើលការរួមបញ្ចូល",
-    "examplePrompt": "ឧទាហរណ៍នៃការណែនាំ",
-    "connectYourAi": "ភ្ជាប់ AI របស់អ្នក",
     "connectAVault": "ភ្ជាប់ទូសុវត្ថិភាព",
     "manageVaults": "គ្រប់គ្រងទូសុវត្ថិភាព",
     "baseRelations": "ទំនាក់ទំនងរបស់គម្រោង",

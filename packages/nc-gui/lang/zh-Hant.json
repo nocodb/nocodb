@@ -4616,8 +4616,6 @@
     "byUser": "由 {user} 完成",
     "requestIntegration": "申請整合",
     "browseIntegrations": "瀏覽整合",
-    "examplePrompt": "提示詞範例",
-    "connectYourAi": "連接你的 AI",
     "connectAVault": "連接金鑰庫",
     "manageVaults": "管理金鑰庫",
     "baseRelations": "專案關聯",

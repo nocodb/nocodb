@@ -4575,8 +4575,6 @@
     "byUser": "par {user}",
     "requestIntegration": "Demander une intégration",
     "browseIntegrations": "Parcourir les intégrations",
-    "examplePrompt": "Exemple de prompt",
-    "connectYourAi": "Connectez votre IA",
     "connectAVault": "Connecter un coffre-fort",
     "manageVaults": "Gérer les coffres-forts",
     "baseRelations": "Relations du projet",

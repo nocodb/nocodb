@@ -4613,8 +4613,6 @@
     "byUser": "od {user}",
     "requestIntegration": "Zatraži integraciju",
     "browseIntegrations": "Pregledaj integracije",
-    "examplePrompt": "Primjer upita",
-    "connectYourAi": "Povežite svoju umjetnu inteligenciju",
     "connectAVault": "Poveži trezor",
     "manageVaults": "Upravljaj trezorima",
     "baseRelations": "Odnosi projekta",

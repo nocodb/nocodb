@@ -4617,8 +4617,6 @@
     "byUser": "от {user}",
     "requestIntegration": "Запросить интеграцию",
     "browseIntegrations": "Просмотреть интеграции",
-    "examplePrompt": "Пример промпта",
-    "connectYourAi": "Подключите свой ИИ",
     "connectAVault": "Подключить хранилище",
     "manageVaults": "Управление хранилищами",
     "baseRelations": "Связи проекта",

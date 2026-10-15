@@ -4617,8 +4617,6 @@
     "byUser": "מאת {user}",
     "requestIntegration": "בקשת אינטגרציה",
     "browseIntegrations": "עיון באינטגרציות",
-    "examplePrompt": "דוגמה להנחיה",
-    "connectYourAi": "חברו את הבינה המלאכותית שלכם",
     "connectAVault": "חיבור כספת",
     "manageVaults": "ניהול כספות",
     "baseRelations": "קשרים בפרויקט",

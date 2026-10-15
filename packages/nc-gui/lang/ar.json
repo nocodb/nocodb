@@ -4617,8 +4617,6 @@
     "byUser": "بواسطة {user}",
     "requestIntegration": "طلب تكامل",
     "browseIntegrations": "تصفح عمليات التكامل",
-    "examplePrompt": "مثال على الموجّه",
-    "connectYourAi": "اربط الذكاء الاصطناعي الخاص بك",
     "connectAVault": "ربط خزنة",
     "manageVaults": "إدارة الخزائن",
     "baseRelations": "علاقات المشروع",

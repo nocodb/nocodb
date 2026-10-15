@@ -8857,7 +8857,7 @@
       "addBody": "Name it NocoDB and paste the MCP server URL, then select Add.",
       "tip": "If Claude asks how NocoDB should identify it, choose Register automatically.",
       "approveBody": "Select Connect next to NocoDB. NocoDB opens in a new tab: choose the bases Claude can reach and what it can do, then select Allow.",
-      "tryBody": "Start a new chat and paste the prompt. You can turn NocoDB off for a chat from the + menu.",
+      "tryBody": "Open Claude with this prompt filled in, or copy it into a new chat. You can turn NocoDB off for a chat from the + menu.",
       "open": "Open Claude",
       "help": "Claude: custom connectors"
     },

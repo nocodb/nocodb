@@ -17,7 +17,7 @@ import WorkflowInputAiEmptyState from './WorkflowInputAiEmptyState.vue'
 import WorkflowTransformMenu from './WorkflowTransformMenu.vue'
 import WorkflowCodeInput from './WorkflowCodeInput.vue'
 import { expressionSpansToTokens, parseInertHtml } from '~/helpers/workflowExpressionHtml'
-import { WorkflowComposeInj, WorkflowComposeModeInj, WorkflowVariableInj } from '~/context'
+import { WorkflowComposeImageDropInj, WorkflowComposeInj, WorkflowComposeModeInj, WorkflowVariableInj } from '~/context'
 import { useWorkflowEmailAi } from '#imports'
 import { WorkflowExpression, WorkflowVariablePicker } from '~/helpers/tiptap-markdown/extensions'
 import { Markdown } from '~/helpers/tiptap-markdown'
@@ -143,6 +143,8 @@ const transformPreview = computed(() => {
 const compose = inject(WorkflowComposeInj, null)
 
 const expanded = inject(WorkflowComposeModeInj, ref(false))
+
+const composeImageDrop = inject(WorkflowComposeImageDropInj, null)
 
 const { available: aiAvailable } = useWorkflowEmailAi()
 
@@ -608,6 +610,16 @@ function focusAiPrompt() {
 
 onMounted(loadContent)
 
+// Only the modal's body editor takes drops; the sidebar twin shares the same form state.
+if (composeImageDrop) {
+  onMounted(() => {
+    if (isRichText.value && expanded.value) composeImageDrop.value = takeDroppedImages
+  })
+  onBeforeUnmount(() => {
+    if (composeImageDrop.value === takeDroppedImages) composeImageDrop.value = null
+  })
+}
+
 watch(
   () => props.modelValue,
   () => {
@@ -961,28 +973,67 @@ async function onImagePicked(event: Event) {
     return
   }
 
+  await insertImageFile(file)
+}
+
+/** Uploads `file` and inserts it at `pos`, or at the selection. Type, size and limits are the caller's. */
+async function insertImageFile(file: File, pos?: number) {
   const preview = URL.createObjectURL(file)
   try {
     const width = await naturalWidth(preview)
     const src = await uploadImage(file)
-    editor.value
-      ?.chain()
-      .focus()
-      .insertContent({
-        type: 'image',
-        attrs: {
-          src,
-          size: file.size,
-          alt: file.name.replace(/\.[^.]+$/, ''),
-          width: width > EMAIL_IMAGE_MAX_WIDTH ? EMAIL_IMAGE_MAX_WIDTH : null,
-        },
-      })
-      .run()
+    const chain = editor.value?.chain().focus()
+    if (!chain) return
+    const image = {
+      type: 'image',
+      attrs: {
+        src,
+        size: file.size,
+        alt: file.name.replace(/\.[^.]+$/, ''),
+        width: width > EMAIL_IMAGE_MAX_WIDTH ? EMAIL_IMAGE_MAX_WIDTH : null,
+      },
+    }
+    ;(pos === undefined ? chain.insertContent(image) : chain.insertContentAt(pos, image)).run()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     URL.revokeObjectURL(preview)
   }
+}
+
+/**
+ * Compose-modal drop: images the body can carry inline (type, size and the body's limits) are
+ * uploaded into it — at the drop point when dropped on the body, else at the cursor — and the
+ * rest are handed back for the attachments input.
+ */
+function takeDroppedImages(files: File[], point: { x: number; y: number }): File[] {
+  const view = editor.value?.view
+  if (!view || readOnly.value) return files
+
+  const usage = emailImageUsage(view.state.doc)
+  const inline: File[] = []
+  const rest: File[] = []
+  for (const file of files) {
+    if (isEmailImageFile(file) && file.size <= EMAIL_IMAGE_MAX_SIZE && canAddEmailImage(usage, file.size)) {
+      inline.push(file)
+      usage.srcs.add(`pending:${inline.length}`)
+      usage.bytes += file.size
+    } else {
+      rest.push(file)
+    }
+  }
+  if (!inline.length) return rest
+
+  const target = document.elementFromPoint(point.x, point.y)
+  let pos = target && view.dom.contains(target) ? view.posAtCoords({ left: point.x, top: point.y })?.pos : undefined
+  ;(async () => {
+    // One at a time, in drop order; each insert moves the next position past the image.
+    for (const file of inline) {
+      await insertImageFile(file, pos === undefined ? undefined : Math.min(pos, view.state.doc.content.size))
+      if (pos !== undefined) pos += 1
+    }
+  })()
+  return rest
 }
 
 function showImageLimitError(imageCount: number) {

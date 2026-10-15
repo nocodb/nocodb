@@ -345,6 +345,19 @@ describe('stored body images', () => {
     expect(() => prepareEmailBody(image, { isHtml: true })).not.toThrow(/KB limit/);
   });
 
+  it('counts a src= payload outside an img, or of a type never sent, as markup', () => {
+    // Record values can't form `<img`, but they may carry `src='data:…'` as text.
+    const fromRecord = `<p>x src='data:image/png;base64,${'A'.repeat(200_000)}'</p>`;
+    expect(() => prepareEmailBody(fromRecord, { isHtml: true })).toThrow(/KB limit/);
+    const bmp = `<p><img src="data:image/bmp;base64,${'A'.repeat(200_000)}"></p>`;
+    expect(() => prepareEmailBody(bmp, { isHtml: true })).toThrow(/KB limit/);
+  });
+
+  it('caps image payloads that decode to nothing too', () => {
+    const empty = `<p><img src="data:image/png;base64,${'='.repeat(3_000_000)}"></p>`;
+    expect(() => prepareEmailBody(empty, { isHtml: true })).toThrow(/exceed the 2 MB limit/);
+  });
+
   it('scans hostile bodies for references in bounded time', () => {
     // Under the markup cap, so the scan really runs and only the regex bounds keep it cheap.
     const cases = [

@@ -34,8 +34,9 @@ const PREVIEW_TAGS = [
 
 const PREVIEW_ATTRS = ['href', 'src', 'style', 'align', 'alt', 'width', 'height', 'data-nc-file']
 
-// `data:` images the send path inlines as Content-ID parts; SVG never.
-const SENDABLE_DATA_IMAGE = /^data:image\/(?:png|jpe?g|gif|webp);base64,/i
+// `data:` images the send path inlines as Content-ID parts; SVG never. Stored run results drop
+// their bytes, and an image without bytes is not shown.
+const SENDABLE_DATA_IMAGE = /^data:image\/(?:png|jpe?g|gif|webp);base64,[A-Za-z0-9+/]/i
 
 const PREVIEW_CSS_PROPS = new Set([
   'color',

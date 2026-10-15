@@ -6,6 +6,7 @@ import Underline from '@tiptap/extension-underline'
 import { Slice } from '@tiptap/pm/model'
 import { NodeSelection } from '@tiptap/pm/state'
 import type { EditorState, Transaction } from '@tiptap/pm/state'
+import type { EditorView } from '@tiptap/pm/view'
 import StarterKit from '@tiptap/starter-kit'
 import { BubbleMenu, EditorContent, VueRenderer, useEditor } from '@tiptap/vue-3'
 import type { VariableDefinition, WorkflowTransformStep, WorkflowValueKind } from 'nocodb-sdk'
@@ -330,6 +331,9 @@ let lastEmitted: string | undefined
 
 let lastLoaded: string | undefined
 
+// Image sources last copied or cut from this body: pasted back, they are its own, not foreign.
+let copiedImageSrcs = new Set<string>()
+
 const editor = useEditor({
   content: '',
   extensions: [
@@ -444,14 +448,17 @@ const editor = useEditor({
       return true
     },
     // Pasted images past the body's count or size cap are dropped here rather than failing every run,
-    // as are pasted data: images: they come from outside, and the editor only creates uploads.
+    // as are pasted data: images: they come from outside, and the editor only creates uploads. The
+    // body's own images (an API-written body may carry data: ones) survive a move or cut and paste.
     transformPasted(slice, view) {
       if (!isRichText.value) return slice
+      if (view.dragging?.move) return slice
       const usage = emailImageUsage(view.state.doc)
       let dropped = false
       let overLimit = false
       const content = filterImages(slice.content, (node) => {
-        if (isForeignImageSrc(node.attrs.src)) {
+        const src = node.attrs.src
+        if (isForeignImageSrc(src) && !usage.srcs.has(src) && !copiedImageSrcs.has(src)) {
           dropped = true
           return false
         }
@@ -463,6 +470,10 @@ const editor = useEditor({
       if (!dropped) return slice
       if (overLimit) showImageLimitError(usage.srcs.size)
       return new Slice(content, slice.openStart, slice.openEnd)
+    },
+    handleDOMEvents: {
+      copy: rememberCopiedImages,
+      cut: rememberCopiedImages,
     },
     // `openOnClick: false` keeps the click from navigating; it lands here instead and
     // raises the view bubble. Returns false so the caret still moves where it was clicked.
@@ -984,34 +995,52 @@ async function onImagePicked(event: Event) {
   await insertImageFile(file)
 }
 
-/** Uploads `file` and inserts it at `pos`, or at the selection. Type, size and limits are the caller's. */
-async function insertImageFile(file: File, pos?: number) {
+/**
+ * Uploads `file` and inserts it at `at`, or after the selection. Returns where the next image goes.
+ * Type, size and limits are the caller's.
+ */
+async function insertImageFile(file: File, at?: number): Promise<number | undefined> {
+  const e = editor.value
+  if (!e || e.isDestroyed) return at
+  // Edits made during the upload move the insertion point, so it is mapped through them; the image
+  // lands there, never over what is selected by then.
+  let pos = Math.min(at ?? e.state.selection.to, e.state.doc.content.size)
+  const track = ({ transaction }: { transaction: Transaction }) => {
+    pos = transaction.mapping.map(pos)
+  }
+  e.on('transaction', track)
   const preview = URL.createObjectURL(file)
   try {
     const width = await naturalWidth(preview)
     const src = await uploadImage(file)
-    const e = editor.value
-    if (!e || e.isDestroyed) return
+    if (e.isDestroyed) return
     // Re-check against the live body: another pick or drop may have landed during the upload.
     const usage = emailImageUsage(e.state.doc)
     if (!canAddEmailImage(usage, file.size)) {
       showImageLimitError(usage.srcs.size)
-      return
+      return pos
     }
-    const chain = e.chain().focus()
     const image = {
       type: 'image',
       attrs: {
         src,
         size: file.size,
-        alt: file.name.replace(/\.[^.]+$/, ''),
+        // Strings are interpolated at send time, so `{{ }}` in a file name must not survive.
+        alt: file.name.replace(/\.[^.]+$/, '').replace(/([{}])\1+/g, '$1'),
         width: width > EMAIL_IMAGE_MAX_WIDTH ? EMAIL_IMAGE_MAX_WIDTH : null,
       },
     }
-    ;(pos === undefined ? chain.insertContent(image) : chain.insertContentAt(pos, image)).run()
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
+    // Focus moves to the image only when nothing else took it (e.g. Subject) during the upload.
+    const active = document.activeElement
+    const refocus = !active || active === document.body || active === imageInputRef.value
+    const chain = e.chain().insertContentAt(pos, image, { updateSelection: refocus })
+    ;(refocus ? chain.focus() : chain).run()
+    return pos
+  } catch (err: any) {
+    message.error(await extractSdkResponseErrorMsg(err))
+    return pos
   } finally {
+    e.off('transaction', track)
     URL.revokeObjectURL(preview)
   }
 }
@@ -1041,23 +1070,20 @@ function takeDroppedImages(files: File[], point: { x: number; y: number }): File
 
   const target = document.elementFromPoint(point.x, point.y)
   let pos = target && view.dom.contains(target) ? view.posAtCoords({ left: point.x, top: point.y })?.pos : undefined
-  // Edits made while the uploads run, and each insert, move the drop point; map it through them.
-  const track = ({ transaction }: { transaction: Transaction }) => {
-    if (pos !== undefined) pos = transaction.mapping.map(pos)
-  }
-  const e = editor.value
-  if (pos !== undefined) e?.on('transaction', track)
   ;(async () => {
-    try {
-      // One at a time, in drop order.
-      for (const file of inline) {
-        await insertImageFile(file, pos === undefined ? undefined : Math.min(pos, view.state.doc.content.size))
-      }
-    } finally {
-      e?.off('transaction', track)
-    }
+    // One at a time, in drop order, each after the last.
+    for (const file of inline) pos = await insertImageFile(file, pos)
   })()
   return rest
+}
+
+function rememberCopiedImages(view: EditorView) {
+  const srcs = new Set<string>()
+  view.state.selection.content().content.descendants((node) => {
+    if (node.type.name === 'image') srcs.add(node.attrs.src)
+  })
+  copiedImageSrcs = srcs
+  return false
 }
 
 function showImageLimitError(imageCount: number) {

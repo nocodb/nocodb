@@ -129,6 +129,11 @@ export const EmailImage = TiptapImage.extend<EmailImageOptions>({
     }
   },
 
+  // TiptapImage turns typed `![alt](url)` into an image; a body image is always an upload.
+  addInputRules() {
+    return []
+  },
+
   parseHTML() {
     // No per-image size check on load: the picker enforces 512 KB, while the send path takes any
     // image within the body's 2 MB, and dropping one here would strip it on the next autosave.

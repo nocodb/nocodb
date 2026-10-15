@@ -318,15 +318,34 @@ const INLINE_IMAGE_TYPES: Record<string, string> = {
 const DATA_IMAGE_SRC =
   /(<img\b[^>]{0,512}?\bsrc\s{0,16}=\s{0,16})(["'])data:(image\/[a-z+.-]+);base64,([A-Za-z0-9+/=\s]*)\2/gi;
 
-// An image source's `data:` payload, for measuring a body without its bytes. Anchored on `src=` and
-// closed by the matching quote, so a base64 run anywhere else, or an unclosed one, counts as markup
-// and the cap bounds what DATA_IMAGE_SRC later scans.
+// The payload of an `<img>` source the send path turns into a part, for measuring a body without
+// those bytes. Anything else counts as markup: a base64 run elsewhere (record values can't form
+// `<img`), an unclosed quote, or a type that is never sent. So the cap bounds what gets sanitized.
 const DATA_IMAGE_SRC_PAYLOAD =
-  /(\bsrc\s{0,16}=\s{0,16})(["'])data:image\/[a-z+.-]+;base64,[A-Za-z0-9+/=\s]*\2/gi;
+  /(<img\b[^>]{0,512}?\bsrc\s{0,16}=\s{0,16})(["'])data:image\/(?:png|jpe?g|gif|webp);base64,[A-Za-z0-9+/=\s]*\2/gi;
 
-/** Body length the markup cap applies to: everything except image source payloads. */
-function emailMarkupLength(body: string): number {
-  return body.replace(DATA_IMAGE_SRC_PAYLOAD, '$1$2$2').length;
+// Base64 of the inline image cap, with room for line breaks inside the payloads.
+const MAX_EMAIL_IMAGE_PAYLOAD_LENGTH =
+  Math.ceil((MAX_EMAIL_INLINE_IMAGES_SIZE * 4) / 3) + 64 * 1024;
+
+/** A body's length without its image payloads (what the markup cap applies to), and theirs. */
+function measureEmailBody(body: string): { markup: number; payload: number } {
+  let payload = 0;
+  const markup = body.replace(
+    DATA_IMAGE_SRC_PAYLOAD,
+    (match, prefix: string, quote: string) => {
+      const kept = `${prefix}${quote}${quote}`;
+      payload += match.length - kept.length;
+      return kept;
+    },
+  ).length;
+  return { markup, payload };
+}
+
+function inlineImagesTooLargeError(): Error {
+  return new Error(
+    `Images in the email body exceed the ${formatMb(MAX_EMAIL_INLINE_IMAGES_SIZE)} limit. Use smaller images — a logo is usually well under 100 KB.`,
+  );
 }
 
 /** Scheme of body images stored as NocoDB files: `src="nc-file:<file_url>"`. */
@@ -374,7 +393,7 @@ export function collectEmailBodyImageRefs(body: unknown): string[] {
   }
   // A body past the markup cap can't be sent, so its references never matter; skipping it keeps
   // the scan bounded wherever it runs (workflow saves included).
-  if (emailMarkupLength(body) > MAX_EMAIL_HTML_BODY_LENGTH) return [];
+  if (measureEmailBody(body).markup > MAX_EMAIL_HTML_BODY_LENGTH) return [];
   const refs = new Set<string>();
   for (const match of body.matchAll(FILE_IMAGE_SRC)) {
     refs.add(decodeAttr(match[3]));
@@ -411,9 +430,7 @@ export function extractInlineImages(
 
     size += content.length;
     if (size > MAX_EMAIL_INLINE_IMAGES_SIZE) {
-      throw new Error(
-        `Images in the email body exceed the ${formatMb(MAX_EMAIL_INLINE_IMAGES_SIZE)} limit. Use smaller images — a logo is usually well under 100 KB.`,
-      );
+      throw inlineImagesTooLargeError();
     }
 
     const cid = `image${images.length + 1}@nocodb`;
@@ -639,12 +656,16 @@ export function prepareEmailBody(
     return { isHtml: false, text: body };
   }
 
-  // The length limit is about markup the parser must walk; image bytes have their own cap. It
-  // runs before extraction, whose regexes scan every `<img`, so their input stays bounded too.
-  if (emailMarkupLength(body) > MAX_EMAIL_HTML_BODY_LENGTH) {
+  // The length limit is about markup the parser must walk; image bytes have their own cap. Both
+  // run before extraction, whose regexes scan every `<img`, so their input stays bounded too.
+  const size = measureEmailBody(body);
+  if (size.markup > MAX_EMAIL_HTML_BODY_LENGTH) {
     throw new Error(
       `Email body exceeds the ${Math.floor(MAX_EMAIL_HTML_BODY_LENGTH / 1000)} KB limit for rich-text content`,
     );
+  }
+  if (size.payload > MAX_EMAIL_IMAGE_PAYLOAD_LENGTH) {
+    throw inlineImagesTooLargeError();
   }
 
   const extracted = extractInlineImages(body, opts.images);

@@ -8804,6 +8804,7 @@
     "description": "Work with your NocoDB bases, tables, workflows and interfaces directly from Claude, ChatGPT and other MCP clients.",
     "pickTitle": "Which tool do you use?",
     "serverUrlLabel": "Already know MCP? Use this server URL",
+    "serverUrl": "Server URL",
     "allTools": "All tools",
     "nocodbGuide": "NocoDB setup guide",
     "opensInNewTab": "(opens in a new tab)",
@@ -8874,9 +8875,11 @@
     },
     "others": {
       "subtitle": "Works with any tool that supports remote MCP servers with sign-in (OAuth).",
-      "addBody": "In your tool’s settings, look for Add MCP server or Connectors and paste the URL below. If it asks for a transport, choose Streamable HTTP.",
-      "authBody": "Your tool opens NocoDB to sign in. Choose what it can access and which tools it can use, then select Authorize.",
-      "tryBody": "Ask your tool “List my NocoDB tools”.",
+      "findTitle": "Find the MCP settings",
+      "findBody": "In your AI tool’s settings, look for MCP, Connectors, Integrations, Apps or Tools.",
+      "addBody": "Add a custom or remote MCP server, then paste the URL below. If it asks for a transport, choose Streamable HTTP.",
+      "authBody": "If your tool asks for an authentication method, choose OAuth. Sign in to NocoDB when prompted, choose what it can access and which tools it can use, then select Authorize.",
+      "tryBody": "Start a new chat and ask “List my NocoDB tools”.",
       "tokenText": "Tool only accepts a token?",
       "tokenButton": "Create an MCP token"
     }

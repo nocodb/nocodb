@@ -72,12 +72,12 @@ describe('validateAndExtractSSLProp', () => {
     // so normalising must not turn TLS off or stop verification.
     expect(
       validateAndExtractSSLProp({ ssl: { ca: '', cert: '', key: '' } })
-    ).toEqual({ rejectUnauthorized: true });
-    // Same for the all-null variant, which previously normalised to `undefined`
-    // and silently dropped TLS on the next save.
+    ).toEqual({ ca: '', cert: '', key: '', rejectUnauthorized: true });
+    // Same for the all-null variant, which previously normalised to
+    // `undefined` and silently dropped TLS on the next save.
     expect(
       validateAndExtractSSLProp({ ssl: { ca: null, cert: null, key: null } })
-    ).toEqual({ rejectUnauthorized: true });
+    ).toEqual({ ca: null, cert: null, key: null, rejectUnauthorized: true });
   });
 
   it('preserves a custom CA and client certificates', () => {
@@ -86,11 +86,54 @@ describe('validateAndExtractSSLProp', () => {
     ).toEqual({ ca: 'ca-pem', cert: 'c', key: 'k', rejectUnauthorized: true });
   });
 
+  it('preserves fields this module does not know about', () => {
+    // `ssl` carries more than three PEM strings: vault references stand in for
+    // the certs, `*FilePath` is resolved server-side at connect time, and the
+    // custom-JSON editor can set any TLS option. Normalising must not drop any
+    // of it.
+    const vaultRef = { $vault: { alias: 'v', secret: 's', path: [] } };
+    expect(
+      validateAndExtractSSLProp({ ssl: { ca: vaultRef, key: vaultRef } })
+    ).toEqual({ ca: vaultRef, key: vaultRef, rejectUnauthorized: true });
+
+    expect(
+      validateAndExtractSSLProp({
+        ssl: { caFilePath: '/etc/ssl/ca.pem', certFilePath: '/etc/ssl/c.pem' },
+      })
+    ).toEqual({
+      caFilePath: '/etc/ssl/ca.pem',
+      certFilePath: '/etc/ssl/c.pem',
+      rejectUnauthorized: true,
+    });
+
+    expect(
+      validateAndExtractSSLProp({
+        ssl: { pfx: 'p', passphrase: 'secret', servername: 'db.internal' },
+      })
+    ).toEqual({
+      pfx: 'p',
+      passphrase: 'secret',
+      servername: 'db.internal',
+      rejectUnauthorized: true,
+    });
+  });
+
+  it('never flips an explicit rejectUnauthorized', () => {
+    // A CA alongside `rejectUnauthorized: false` is a connection that does not
+    // verify today. Saving or testing it must not start verifying.
+    const ssl = { ca: 'ca-pem', rejectUnauthorized: false };
+    expect(validateAndExtractSSLProp({ ssl })).toEqual(ssl);
+  });
+
   it('is idempotent', () => {
     for (const ssl of [
       { rejectUnauthorized: false },
       { rejectUnauthorized: true },
       { ca: 'ca-pem', rejectUnauthorized: true },
+      { ca: 'ca-pem', rejectUnauthorized: false },
+      { caFilePath: '/etc/ssl/ca.pem' },
+      { ca: { $vault: { alias: 'v', secret: 's', path: [] } } },
+      { ca: '', cert: '', key: '' },
     ]) {
       const once = validateAndExtractSSLProp({ ssl });
       expect(validateAndExtractSSLProp({ ssl: once })).toEqual(once);

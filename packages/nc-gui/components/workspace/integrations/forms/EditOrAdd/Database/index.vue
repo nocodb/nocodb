@@ -241,15 +241,27 @@ const onSSLModeChange = ((mode: SSLUsage) => {
   if (formState.value.dataSource.client !== ClientType.SQLITE) {
     const connection = formState.value.dataSource.connection as DefaultConnection
     const previous: Record<string, any> = (typeof connection.ssl === 'object' && connection.ssl) || {}
+    const base = buildSqlAuthSsl({ sslMode: mode })
 
-    connection.ssl = buildSqlAuthSsl({
-      sslMode: mode,
-      // A CA left over from a stricter mode would force verification back on,
-      // and picking `Preferred` is an explicit request not to verify.
-      sslCa: mode === SSLUsage.Preferred || mode === SSLUsage.Allowed ? undefined : previous.ca,
-      sslCert: previous.cert,
-      sslKey: previous.key,
-    })
+    if (!base) {
+      connection.ssl = undefined
+      return
+    }
+
+    // Carry the existing material over verbatim rather than through
+    // `buildSqlAuthSsl`'s PEM arguments: `ca`/`cert`/`key` may hold a vault
+    // reference, and `*FilePath` is resolved server-side at connect time.
+    // Neither survives a round trip through plain strings.
+    const next: Record<string, any> = { ...previous, ...base }
+
+    // Picking a non-verifying mode is an explicit request not to verify, so a
+    // CA left over from a stricter mode must not force verification back on.
+    if (mode === SSLUsage.Preferred || mode === SSLUsage.Allowed) {
+      delete next.ca
+      delete next.caFilePath
+    }
+
+    connection.ssl = next
   }
 }) as SelectHandler
 
@@ -293,8 +305,13 @@ const onFileSelect = (key: CertTypes, el?: HTMLInputElement) => {
   })
 }
 
-// Certificates only mean something once the server is being verified.
-const sslFilesRequired = computed(() => [SSLUsage.Required, SSLUsage.RequiredWithCa].includes(formState.value.sslUse as SSLUsage))
+// Client certificates authenticate US to the server (mutual TLS), so they
+// apply whenever TLS is on — including against an unverified self-signed
+// server, a common mTLS setup.
+const sslFilesRequired = computed(() => !!formState.value.sslUse && formState.value.sslUse !== SSLUsage.No)
+
+// A server CA only means something once the server is actually being verified.
+const sslCaAllowed = computed(() => [SSLUsage.Required, SSLUsage.RequiredWithCa].includes(formState.value.sslUse as SSLUsage))
 
 function getConnectionConfig() {
   const extraParameters = Object.fromEntries(
@@ -1185,7 +1202,7 @@ watch(
                                 <NcButton
                                   size="small"
                                   type="secondary"
-                                  :disabled="!sslFilesRequired"
+                                  :disabled="!sslCaAllowed"
                                   class="shadow !w-[90px]"
                                   @click="caFileInput?.click()"
                                 >

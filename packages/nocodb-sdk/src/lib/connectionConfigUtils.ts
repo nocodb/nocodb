@@ -123,24 +123,37 @@ export function sslModeFromConfig(ssl: unknown): SSLUsage {
 
   if (config.rejectUnauthorized === false) return SSLUsage.Preferred;
 
-  if (typeof config.ca === 'string' && config.ca.trim())
-    return SSLUsage.RequiredWithCa;
+  // A CA may be a PEM string, a `{ $vault }` reference, or a `caFilePath`
+  // resolved at connect time — all three mean "verify against this CA".
+  const ca = config.ca ?? config.caFilePath;
+  if (typeof ca === 'string' ? ca.trim() : !!ca) return SSLUsage.RequiredWithCa;
 
   return SSLUsage.Required;
 }
 
 /**
- * Normalise whatever a form posted into the canonical `connection.ssl` shape.
+ * Normalise whatever a form posted into a usable `connection.ssl`.
  *
- * Never returns a boolean or a string: mysql2 rejects both before opening a
- * socket, and the explicit `rejectUnauthorized` is what lets the mode be
- * recovered later by `sslModeFromConfig`.
+ * Deliberately conservative: an object is passed through with its fields
+ * intact, because `ssl` carries more than the three PEM strings this module
+ * knows about — vault references (`{ $vault }`) in place of `ca`/`cert`/`key`,
+ * the `caFilePath` / `certFilePath` / `keyFilePath` indirection resolved later
+ * by `resolveSslFileConfig`, and `passphrase` / `pfx` / `servername` / TLS
+ * options set through the custom-JSON editor or the API. Rebuilding the object
+ * from a derived mode would silently drop all of those.
+ *
+ * The only rewrites are the ones a driver or the mode derivation needs:
+ *   - a boolean / string becomes an object (mysql2 throws on both, before it
+ *     opens a socket)
+ *   - a missing `rejectUnauthorized` is made explicit, so `sslModeFromConfig`
+ *     can tell "verify" from "do not verify". An existing value is never
+ *     touched: flipping it would change whether a live connection verifies.
  */
 export const validateAndExtractSSLProp = (
   connectionConfig: any,
   sslUse?: SSLUsage,
   _client?: string
-): KnexSqlSslValue => {
+): any => {
   // An explicit "off" wins over a stale ssl blob left behind in form state.
   if (sslUse === SSLUsage.No) return undefined;
 
@@ -153,12 +166,15 @@ export const validateAndExtractSSLProp = (
       : undefined;
   }
 
-  return buildSqlAuthSsl({
-    sslMode: sslModeFromConfig(ssl),
-    sslCa: ssl.ca,
-    sslCert: ssl.cert,
-    sslKey: ssl.key,
-  });
+  // Verification was never stated. Every shape that reaches here with TLS on
+  // verified at runtime — Node ignores empty-string certs and falls back to
+  // the public CA bundle — so `true` preserves the current behaviour, and
+  // saying it out loud is what stops the next save from guessing differently.
+  if (ssl.rejectUnauthorized === undefined) {
+    return { ...ssl, rejectUnauthorized: true };
+  }
+
+  return ssl;
 };
 
 /** Credential fields of a DB connection config. Read by masking, the vault write guard and the form. */

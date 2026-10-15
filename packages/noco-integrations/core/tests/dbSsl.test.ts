@@ -144,4 +144,23 @@ describe('sslModeFromConfig', () => {
       expect(sslModeFromConfig(ssl)).not.toBe(SSLUsage.No);
     }
   });
+
+  it('reads a CA held as a vault reference or a file path', () => {
+    // Neither is a PEM string, but both mean "verify against this CA".
+    expect(
+      sslModeFromConfig({
+        ca: { $vault: { alias: 'v', secret: 's', path: [] } },
+      }),
+    ).toBe(SSLUsage.RequiredWithCa);
+    expect(sslModeFromConfig({ caFilePath: '/etc/ssl/ca.pem' })).toBe(
+      SSLUsage.RequiredWithCa,
+    );
+    // Verification explicitly off still wins — a CA does not override it.
+    expect(
+      sslModeFromConfig({
+        caFilePath: '/etc/ssl/ca.pem',
+        rejectUnauthorized: false,
+      }),
+    ).toBe(SSLUsage.Preferred);
+  });
 });

@@ -7370,6 +7370,7 @@
       "emailImageTotalSize": "Images in an email body must total under {size}",
       "emailImageNoWorkflow": "Open the workflow to add images",
       "emailImageUploadFailed": "Couldn't upload the image",
+      "emailImageMissing": "This image is no longer available and will be left out of the email. Remove it and insert it again.",
       "publisherLogoUploadFailed": "Couldn't upload the logo",
       "marketplaceHandleTaken": "This handle is already taken",
       "marketplaceHandleReserved": "This handle is reserved",

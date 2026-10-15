@@ -40,6 +40,7 @@ import {
   emailImageUsage,
   filterImages,
   isEmailImageFile,
+  isForeignImageSrc,
 } from '~/helpers/tiptap-markdown/extensions/emailImage'
 import { EmailTextStyle } from '~/helpers/tiptap-markdown/extensions/marks/textStyle'
 
@@ -355,7 +356,7 @@ const editor = useEditor({
           FontFamily,
           FontSize,
           TextAlign,
-          EmailImage.configure({ resolveSrc: resolveImageSrc }),
+          EmailImage.configure({ resolveSrc: resolveImageSrc, missingLabel: t('msg.error.emailImageMissing') }),
           Link.configure({
             openOnClick: false,
             autolink: false,
@@ -442,18 +443,25 @@ const editor = useEditor({
       openTransformMenu(nodePos, String(node.attrs.expression ?? ''), dom)
       return true
     },
-    // Pasted images past the body's count or size cap are dropped here rather than failing every run.
+    // Pasted images past the body's count or size cap are dropped here rather than failing every run,
+    // as are pasted data: images: they come from outside, and the editor only creates uploads.
     transformPasted(slice, view) {
       if (!isRichText.value) return slice
       const usage = emailImageUsage(view.state.doc)
-      let rejected = false
+      let dropped = false
+      let overLimit = false
       const content = filterImages(slice.content, (node) => {
+        if (isForeignImageSrc(node.attrs.src)) {
+          dropped = true
+          return false
+        }
         if (addEmailImage(usage, node.attrs.src, Number(node.attrs.size) || 0)) return true
-        rejected = true
+        dropped = true
+        overLimit = true
         return false
       })
-      if (!rejected) return slice
-      showImageLimitError(usage.srcs.size)
+      if (!dropped) return slice
+      if (overLimit) showImageLimitError(usage.srcs.size)
       return new Slice(content, slice.openStart, slice.openEnd)
     },
     // `openOnClick: false` keeps the click from navigating; it lands here instead and
@@ -1976,6 +1984,15 @@ watch(readOnly, (newValue) => {
 
       img {
         @apply max-w-full h-auto;
+      }
+
+      // A stored image whose file is gone: a dashed box in its place, so the builder sees it.
+      &.is-missing {
+        @apply w-30 h-12 rounded-md border-1 border-dashed border-nc-border-red bg-nc-bg-red-light;
+
+        img {
+          @apply hidden;
+        }
       }
     }
 

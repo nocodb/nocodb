@@ -48,6 +48,21 @@ function swallowNextClick() {
 /** Body images are workflow uploads, stored in the body as `src="nc-file:<file_url>"`. */
 export const EMAIL_FILE_IMAGE_SCHEME = 'nc-file:'
 
+// `data:` images the send path still accepts. The editor never creates them, but bodies written
+// through the API or MCP may carry them, and a load must not strip what would have been sent.
+const SENDABLE_DATA_IMAGE = /^data:image\/(?:png|jpe?g|gif|webp);base64,/i
+
+/** Decoded bytes of a `data:` image src, for the body's size cap. */
+function dataImageBytes(src: string): number {
+  const base64 = src.slice(src.indexOf(',') + 1).replace(/\s+/g, '')
+  return Math.floor((base64.length * 3) / 4)
+}
+
+/** Whether `src` came from outside this editor (a pasted `data:` image), not one it can keep. */
+export function isForeignImageSrc(src: string): boolean {
+  return !src.startsWith(EMAIL_FILE_IMAGE_SCHEME)
+}
+
 export interface EmailImageUsage {
   srcs: Set<string>
   bytes: number
@@ -95,27 +110,33 @@ export interface EmailImageOptions {
   HTMLAttributes: Record<string, any>
   /** Displayable URL for a stored `nc-file:` src; stored sources are not loadable as-is. */
   resolveSrc?: (src: string) => Promise<string | undefined>
+  /** Tooltip on a stored image whose file can no longer be loaded. */
+  missingLabel?: string
 }
 
 /**
  * Body images are workflow uploads referenced as `nc-file:` and sent as inline Content-ID parts;
- * the bytes are loaded only at send time. Other sources are not parsed: the sender drops remote
- * ones (clients block them, and they track the recipient) and the body no longer carries data
- * URIs, so a pasted image of either kind would otherwise show here and vanish from the email.
+ * the bytes are loaded only at send time. Remote sources are not parsed: the sender drops them
+ * (clients block them, and they track the recipient). Sendable `data:` images are kept when a body
+ * loads, so an API-authored body survives being opened; pastes drop them (see transformPasted).
  */
 export const EmailImage = TiptapImage.extend<EmailImageOptions>({
   addOptions() {
     return {
       ...(this.parent?.() ?? { inline: false, allowBase64: false, HTMLAttributes: {} }),
       resolveSrc: undefined,
+      missingLabel: undefined,
     }
   },
 
   parseHTML() {
+    // No per-image size check on load: the picker enforces 512 KB, while the send path takes any
+    // image within the body's 2 MB, and dropping one here would strip it on the next autosave.
     return [
+      { tag: `img[src^="${EMAIL_FILE_IMAGE_SCHEME}"]` },
       {
-        tag: `img[src^="${EMAIL_FILE_IMAGE_SCHEME}"]`,
-        getAttrs: (el: HTMLElement) => (Number(el.getAttribute('data-nc-size')) <= EMAIL_IMAGE_MAX_SIZE ? null : false),
+        tag: 'img[src^="data:"]',
+        getAttrs: (el: HTMLElement) => (SENDABLE_DATA_IMAGE.test(el.getAttribute('src') ?? '') ? null : false),
       },
     ]
   },
@@ -124,7 +145,7 @@ export const EmailImage = TiptapImage.extend<EmailImageOptions>({
   // Resizing drags an outline (the frame) and leaves the image alone until release, as mail
   // composers do; the image menu is hidden meanwhile so it does not sit over the outline.
   addNodeView() {
-    const { resolveSrc } = this.options
+    const { resolveSrc, missingLabel } = this.options
 
     return ({ node, editor, getPos }) => {
       let current = node
@@ -140,13 +161,22 @@ export const EmailImage = TiptapImage.extend<EmailImageOptions>({
       function showSrc(src: string) {
         if (src === shownSrc) return
         shownSrc = src
+        dom.classList.remove('is-missing')
+        dom.removeAttribute('title')
         if (!src.startsWith(EMAIL_FILE_IMAGE_SCHEME)) {
           img.src = src
           return
         }
         img.removeAttribute('src')
         resolveSrc?.(src).then((url) => {
-          if (url && shownSrc === src) img.src = url
+          if (shownSrc !== src) return
+          if (url) {
+            img.src = url
+            return
+          }
+          // The file is gone (removed, or another workflow's upload), so the send will leave it out.
+          dom.classList.add('is-missing')
+          if (missingLabel) dom.title = missingLabel
         })
       }
 
@@ -266,7 +296,10 @@ export const EmailImage = TiptapImage.extend<EmailImageOptions>({
       // Bytes, so the editor can hold the body to the send path's total cap without the file.
       size: {
         default: null,
-        parseHTML: (el: HTMLElement) => Number(el.getAttribute('data-nc-size')) || null,
+        parseHTML: (el: HTMLElement) => {
+          const src = el.getAttribute('src') ?? ''
+          return Number(el.getAttribute('data-nc-size')) || (src.startsWith('data:') ? dataImageBytes(src) : null)
+        },
         renderHTML: (attrs: Record<string, any>) => (attrs.size ? { 'data-nc-size': attrs.size } : {}),
       },
     }

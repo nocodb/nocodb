@@ -312,18 +312,27 @@ const INLINE_IMAGE_TYPES: Record<string, string> = {
   'image/webp': 'webp',
 };
 
-// The attribute run before `src` is bounded: an unbounded lazy `[^>]*?` goes quadratic on a body
-// full of unclosed `<img` tags, and these run before the markup length cap.
+// Every run before the quote is bounded — the attributes ahead of `src` and the whitespace around
+// `=`. Unbounded, a hostile body (many `<img`, or a huge whitespace run after `src=`) backtracks
+// quadratically, and the reference scan runs on every workflow save, inside the API process.
 const DATA_IMAGE_SRC =
-  /(<img\b[^>]{0,2000}?\bsrc\s*=\s*)(["'])data:(image\/[a-z+.-]+);base64,([A-Za-z0-9+/=\s]*)\2/gi;
+  /(<img\b[^>]{0,512}?\bsrc\s{0,16}=\s{0,16})(["'])data:(image\/[a-z+.-]+);base64,([A-Za-z0-9+/=\s]*)\2/gi;
 
-// A `data:` image's payload, for measuring a body without its bytes. Linear: no lazy prefix.
-const DATA_IMAGE_PAYLOAD = /data:image\/[a-z+.-]+;base64,[A-Za-z0-9+/=\s]*/gi;
+// An image source's `data:` payload, for measuring a body without its bytes. Anchored on `src=` so
+// a base64 run elsewhere (e.g. interpolated record text) still counts as markup.
+const DATA_IMAGE_SRC_PAYLOAD =
+  /(\bsrc\s{0,16}=\s{0,16}["'])data:image\/[a-z+.-]+;base64,[A-Za-z0-9+/=\s]*/gi;
+
+/** Body length the markup cap applies to: everything except image source payloads. */
+function emailMarkupLength(body: string): number {
+  return body.replace(DATA_IMAGE_SRC_PAYLOAD, '$1').length;
+}
 
 /** Scheme of body images stored as NocoDB files: `src="nc-file:<file_url>"`. */
 export const EMAIL_FILE_IMAGE_SCHEME = 'nc-file:';
 
-const FILE_IMAGE_SRC = /(<img\b[^>]{0,2000}?\bsrc\s*=\s*)(["'])nc-file:([^"']+)\2/gi;
+const FILE_IMAGE_SRC =
+  /(<img\b[^>]{0,512}?\bsrc\s{0,16}=\s{0,16})(["'])nc-file:([^"']{1,2048})\2/gi;
 
 /** Extensions a stored body image may have; the editor only accepts files with one of these. */
 const IMAGE_TYPE_BY_EXT: Record<string, string> = {
@@ -362,6 +371,9 @@ export function collectEmailBodyImageRefs(body: unknown): string[] {
   if (typeof body !== 'string' || !body.includes(EMAIL_FILE_IMAGE_SCHEME)) {
     return [];
   }
+  // A body past the markup cap can't be sent, so its references never matter; skipping it keeps
+  // the scan bounded wherever it runs (workflow saves included).
+  if (emailMarkupLength(body) > MAX_EMAIL_HTML_BODY_LENGTH) return [];
   const refs = new Set<string>();
   for (const match of body.matchAll(FILE_IMAGE_SRC)) {
     refs.add(decodeAttr(match[3]));
@@ -628,7 +640,7 @@ export function prepareEmailBody(
 
   // The length limit is about markup the parser must walk; image bytes have their own cap. It
   // runs before extraction, whose regexes scan every `<img`, so their input stays bounded too.
-  if (body.replace(DATA_IMAGE_PAYLOAD, '').length > MAX_EMAIL_HTML_BODY_LENGTH) {
+  if (emailMarkupLength(body) > MAX_EMAIL_HTML_BODY_LENGTH) {
     throw new Error(
       `Email body exceeds the ${Math.floor(MAX_EMAIL_HTML_BODY_LENGTH / 1000)} KB limit for rich-text content`,
     );

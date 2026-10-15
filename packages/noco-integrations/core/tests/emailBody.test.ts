@@ -338,6 +338,26 @@ describe('stored body images', () => {
     expect(Date.now() - started).toBeLessThan(500);
   });
 
+  it('counts a base64 run outside an image source as markup', () => {
+    const run = `<p>data:image/png;base64,${'A'.repeat(200_000)}</p>`;
+    expect(() => prepareEmailBody(run, { isHtml: true })).toThrow(/KB limit/);
+    const image = `<p><img src="data:image/png;base64,${'A'.repeat(200_000)}"></p>`;
+    expect(() => prepareEmailBody(image, { isHtml: true })).not.toThrow(/KB limit/);
+  });
+
+  it('scans hostile bodies for references in bounded time', () => {
+    const cases = [
+      'nc-file:' + '<img '.repeat(400) + ' src=' + ' '.repeat(1_000_000),
+      'nc-file:' + '<img '.repeat(200_000),
+      '<img src="nc-file:a.png">' + ' '.repeat(90_000) + '<img src=' + ' '.repeat(5_000),
+    ];
+    for (const body of cases) {
+      const started = Date.now();
+      collectEmailBodyImageRefs(body);
+      expect(Date.now() - started).toBeLessThan(500);
+    }
+  });
+
   it('stays fast at the markup cap', () => {
     const atCap = '<img '.repeat(19_000);
     const started = Date.now();

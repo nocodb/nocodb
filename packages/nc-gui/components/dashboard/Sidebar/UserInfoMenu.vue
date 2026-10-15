@@ -163,6 +163,8 @@ const openKeyboardShortcutDialog = () => {
         </NcMenuItem>
       </nuxt-link>
 
+      <DashboardSidebarConnectAiMenuOption @close-menu="emits('closeMenu')" />
+
       <NcDivider />
 
       <!-- Language -->

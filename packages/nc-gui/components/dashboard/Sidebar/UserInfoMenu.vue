@@ -107,24 +107,96 @@ const openKeyboardShortcutDialog = () => {
 
 <template>
   <NcMenu variant="medium">
-    <!-- Desktop menu -->
+    <!-- Desktop menu: account, connect, preferences, then log out -->
     <template v-if="!isMobileMode">
-      <!-- Log Out -->
-      <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
-        <div v-e="['c:user:logout']" class="flex gap-2 items-center min-w-40 md:min-w-70">
-          <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
-          <GeneralIcon v-else icon="signout" class="menu-icon" />
-          <span class="menu-btn">{{ $t('general.logout') }}</span>
-        </div>
-      </NcMenuItem>
+      <!-- Account Settings -->
+      <nuxt-link
+        v-e="['c:user:settings']"
+        class="!no-underline"
+        :to="accountUrl"
+        @click="
+          () => {
+            saveBackRoute()
+            auditsStore.handleReset()
+          }
+        "
+      >
+        <NcMenuItem>
+          <GeneralIcon icon="ncSettings" class="menu-icon" />
+          <div class="flex-1 flex flex-col">
+            <div>{{ $t('title.accountSettings') }}</div>
+            <NcTooltip show-on-truncate-only class="truncate text-bodySm text-nc-content-gray-muted max-w-68">
+              <template #title>{{ user?.email }}</template>
+              {{ user?.email }}
+            </NcTooltip>
+          </div>
+        </NcMenuItem>
+      </nuxt-link>
+
+      <!-- Admin Panel (EE) -->
+      <DashboardSidebarEEMenuOption v-if="isEeUI" />
 
       <NcDivider />
 
-      <!-- Experimental Features -->
-      <NcMenuItem @click="openExperimentationMenu">
-        <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
-        <span class="menu-btn">{{ $t('general.featurePreview') }}</span>
+      <!-- Use NocoDB from AI tools -->
+      <DashboardSidebarConnectAiMenuOption @close-menu="emits('closeMenu')" />
+
+      <!-- API Tokens -->
+      <nuxt-link v-e="['c:user:api-tokens']" class="!no-underline" to="/account/tokens" @click="saveBackRoute">
+        <NcMenuItem>
+          <GeneralIcon icon="ncKey2" class="menu-icon mt-0.5" />
+          <span class="menu-btn">{{ $t('title.apiTokens') }}</span>
+        </NcMenuItem>
+      </nuxt-link>
+
+      <NcDivider />
+
+      <!-- Theme -->
+      <NcMenuItem
+        v-if="isThemeEnabled"
+        v-e="['c:nocodb:theme']"
+        inner-class="w-full"
+        data-testid="nc-sidebar-user-theme"
+        @click="toggleTheme"
+      >
+        <GeneralIcon :icon="themeIcon" class="menu-icon" />
+        <span class="menu-btn">{{ $t('general.appearance') }}</span>
+        <span class="text-nc-content-gray-muted text-xs ml-auto">{{ themeLabel }}</span>
       </NcMenuItem>
+
+      <!-- Theme settings -->
+      <NcMenuItem
+        v-if="isThemeConfigEnabled"
+        v-e="['c:theme:config-open']"
+        data-testid="nc-sidebar-user-theme-config"
+        @click="openThemeConfig"
+      >
+        <GeneralIcon icon="palette" class="menu-icon" />
+        <span class="menu-btn">{{ $t('title.themeSettings') }}</span>
+        <NcBadgeBeta />
+      </NcMenuItem>
+
+      <!-- Language -->
+      <a-popover
+        key="language"
+        class="lang-menu !py-1.5"
+        placement="rightBottom"
+        overlay-class-name="nc-lang-menu-overlay !z-1050"
+      >
+        <NcMenuItem inner-class="w-full">
+          <div v-e="['c:translate:open']" class="flex gap-2 items-center w-full">
+            <GeneralIcon icon="translate" class="nc-language ml-0.25 menu-icon" />
+            {{ $t('labels.changeLanguage') }}
+            <div class="flex-1" />
+            <GeneralIcon icon="ncChevronRight" class="flex-none !text-nc-content-gray-muted" />
+          </div>
+        </NcMenuItem>
+        <template #content>
+          <div class="bg-nc-bg-default max-h-50vh min-w-64 mb-1 nc-scrollbar-thin -mr-1.5 pr-1.5">
+            <LazyGeneralLanguageMenu />
+          </div>
+        </template>
+      </a-popover>
 
       <!-- Keyboard Shortcuts -->
       <NcMenuItem
@@ -152,110 +224,45 @@ const openKeyboardShortcutDialog = () => {
         <TourLauncherMenu @close-menu="emits('closeMenu')" />
       </NcSubMenu>
 
-      <!-- Admin Panel (EE) -->
-      <DashboardSidebarEEMenuOption v-if="isEeUI" />
-
-      <!-- API Tokens -->
-      <nuxt-link v-e="['c:user:api-tokens']" class="!no-underline" to="/account/tokens" @click="saveBackRoute">
-        <NcMenuItem>
-          <GeneralIcon icon="ncKey2" class="menu-icon mt-0.5" />
-          <span class="menu-btn">{{ $t('title.apiTokens') }}</span>
-        </NcMenuItem>
-      </nuxt-link>
-
-      <DashboardSidebarConnectAiMenuOption @close-menu="emits('closeMenu')" />
-
-      <NcDivider />
-
-      <!-- Language -->
-      <a-popover
-        key="language"
-        class="lang-menu !py-1.5"
-        placement="rightBottom"
-        overlay-class-name="nc-lang-menu-overlay !z-1050"
-      >
-        <NcMenuItem inner-class="w-full">
-          <div v-e="['c:translate:open']" class="flex gap-2 items-center w-full">
-            <GeneralIcon icon="translate" class="nc-language ml-0.25 menu-icon" />
-            {{ $t('labels.changeLanguage') }}
-            <div class="flex-1" />
-            <GeneralIcon icon="ncChevronRight" class="flex-none !text-nc-content-gray-muted" />
-          </div>
-        </NcMenuItem>
-        <template #content>
-          <div class="bg-nc-bg-default max-h-50vh min-w-64 mb-1 nc-scrollbar-thin -mr-1.5 pr-1.5">
-            <LazyGeneralLanguageMenu />
-          </div>
-        </template>
-      </a-popover>
-
-      <!-- Theme -->
-      <NcMenuItem v-if="isThemeEnabled" v-e="['c:nocodb:theme']" data-testid="nc-sidebar-user-theme" @click="toggleTheme">
-        <GeneralIcon :icon="themeIcon" class="menu-icon" />
-        <span class="menu-btn">{{ themeLabel }}</span>
-        <span class="text-nc-content-gray-muted text-xs ml-auto">{{ $t('general.appearance') }}</span>
-      </NcMenuItem>
-
-      <!-- Theme settings -->
-      <NcMenuItem
-        v-if="isThemeConfigEnabled"
-        v-e="['c:theme:config-open']"
-        data-testid="nc-sidebar-user-theme-config"
-        @click="openThemeConfig"
-      >
-        <GeneralIcon icon="palette" class="menu-icon" />
-        <span class="menu-btn">{{ $t('title.themeSettings') }}</span>
-        <NcBadgeBeta />
-      </NcMenuItem>
-
-      <!-- Account Settings -->
-      <nuxt-link
-        v-e="['c:user:settings']"
-        class="!no-underline"
-        :to="accountUrl"
-        @click="
-          () => {
-            saveBackRoute()
-            auditsStore.handleReset()
-          }
-        "
-      >
-        <NcMenuItem>
-          <GeneralIcon icon="ncSettings" class="menu-icon" />
-          <div class="flex-1 flex flex-col">
-            <div>{{ $t('title.accountSettings') }}</div>
-            <NcTooltip show-on-truncate-only class="truncate text-bodySm text-nc-content-gray-muted max-w-68">
-              <template #title>{{ user?.email }}</template>
-              {{ user?.email }}
-            </NcTooltip>
-          </div>
-        </NcMenuItem>
-      </nuxt-link>
-    </template>
-
-    <!-- Mobile menu (mini-sidebar) -->
-    <template v-else>
-      <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
-        <div v-e="['c:user:logout']" class="flex gap-2 items-center min-w-40">
-          <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
-          <GeneralIcon v-else icon="signout" class="menu-icon" />
-          <span class="menu-btn">{{ $t('general.logout') }}</span>
-        </div>
-      </NcMenuItem>
-
-      <NcDivider />
-
+      <!-- Experimental Features -->
       <NcMenuItem @click="openExperimentationMenu">
         <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
         <span class="menu-btn">{{ $t('general.featurePreview') }}</span>
       </NcMenuItem>
 
+      <NcDivider />
+
+      <!-- Log Out -->
+      <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
+        <div v-e="['c:user:logout']" class="flex gap-2 items-center min-w-40 md:min-w-70">
+          <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
+          <GeneralIcon v-else icon="signout" class="menu-icon" />
+          <span class="menu-btn">{{ $t('general.logout') }}</span>
+        </div>
+      </NcMenuItem>
+    </template>
+
+    <!-- Mobile menu (mini-sidebar) -->
+    <template v-else>
+      <NcMenuItemLabel>
+        <span class="normal-case">{{ $t('labels.accountEmailID') }}</span>
+      </NcMenuItemLabel>
+      <NcMenuItem inner-class="w-full" @click="copyEmail">
+        <GeneralIcon icon="ncMail" class="h-4 w-4" />
+        <NcTooltip show-on-truncate-only class="flex-1 truncate max-w-68">
+          <template #title>{{ user?.email }}</template>
+          {{ user?.email }}
+        </NcTooltip>
+        <GeneralCopyButton v-if="user?.email" ref="copyBtnRef" type="secondary" :content="user?.email" :show-toast="false" />
+      </NcMenuItem>
+
+      <NcDivider />
+
       <template v-if="isThemeEnabled">
-        <NcDivider />
-        <NcMenuItem v-e="['c:nocodb:theme']" data-testid="nc-sidebar-user-theme" @click="toggleTheme">
+        <NcMenuItem v-e="['c:nocodb:theme']" inner-class="w-full" data-testid="nc-sidebar-user-theme" @click="toggleTheme">
           <GeneralIcon :icon="themeIcon" class="menu-icon" />
-          <span class="menu-btn">{{ themeLabel }}</span>
-          <span class="text-nc-content-gray-muted text-xs ml-auto">{{ $t('general.appearance') }}</span>
+          <span class="menu-btn">{{ $t('general.appearance') }}</span>
+          <span class="text-nc-content-gray-muted text-xs ml-auto">{{ themeLabel }}</span>
         </NcMenuItem>
         <NcMenuItem
           v-if="isThemeConfigEnabled"
@@ -268,18 +275,19 @@ const openKeyboardShortcutDialog = () => {
         </NcMenuItem>
       </template>
 
+      <NcMenuItem @click="openExperimentationMenu">
+        <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
+        <span class="menu-btn">{{ $t('general.featurePreview') }}</span>
+      </NcMenuItem>
+
       <NcDivider />
 
-      <NcMenuItemLabel>
-        <span class="normal-case">{{ $t('labels.accountEmailID') }}</span>
-      </NcMenuItemLabel>
-      <NcMenuItem inner-class="w-full" @click="copyEmail">
-        <GeneralIcon icon="ncMail" class="h-4 w-4" />
-        <NcTooltip show-on-truncate-only class="flex-1 truncate max-w-68">
-          <template #title>{{ user?.email }}</template>
-          {{ user?.email }}
-        </NcTooltip>
-        <GeneralCopyButton v-if="user?.email" ref="copyBtnRef" type="secondary" :content="user?.email" :show-toast="false" />
+      <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
+        <div v-e="['c:user:logout']" class="flex gap-2 items-center min-w-40">
+          <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
+          <GeneralIcon v-else icon="signout" class="menu-icon" />
+          <span class="menu-btn">{{ $t('general.logout') }}</span>
+        </div>
       </NcMenuItem>
     </template>
   </NcMenu>

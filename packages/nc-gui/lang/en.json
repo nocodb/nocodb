@@ -8795,7 +8795,7 @@
     "submittedBy": "submitted by {name}"
   },
   "connectAi": {
-    "menuLabel": "Use NocoDB from",
+    "menuLabel": "Use NocoDB From",
     "title": "Connect your AI tools to NocoDB MCP",
     "description": "Work with your NocoDB bases, tables, workflows and interfaces directly from Claude, ChatGPT and other MCP clients.",
     "pickTitle": "Which tool do you use?",

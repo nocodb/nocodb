@@ -1,0 +1,14 @@
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g>
+<path d="M11.925 24l10.425-6-10.425-6L1.5 18l10.425 6z" fill="url(#nc-cursor-mono-fill-0)"/>
+<path d="M22.35 18V6L11.925 0v12l10.425 6z" fill="url(#nc-cursor-mono-fill-1)"/>
+<path d="M11.925 0L1.5 6v12l10.425-6V0z" fill="url(#nc-cursor-mono-fill-2)"/>
+<path d="M22.35 6L11.925 24V12L22.35 6z" fill="currentColor" fill-opacity=".7"/>
+<path d="M22.35 6l-10.425 6L1.5 6h20.85z" fill="currentColor"/>
+</g>
+<defs>
+<linearGradient id="nc-cursor-mono-fill-0" x1="11.925" y1="12" x2="11.925" y2="24" gradientUnits="userSpaceOnUse"><stop offset=".16" stop-color="currentColor" stop-opacity=".39"/><stop offset=".658" stop-color="currentColor" stop-opacity=".8"/></linearGradient>
+<linearGradient id="nc-cursor-mono-fill-1" x1="22.35" y1="6.037" x2="11.925" y2="12.15" gradientUnits="userSpaceOnUse"><stop offset=".182" stop-color="currentColor" stop-opacity=".31"/><stop offset=".715" stop-color="currentColor" stop-opacity="0"/></linearGradient>
+<linearGradient id="nc-cursor-mono-fill-2" x1="11.925" y1="0" x2="1.5" y2="18" gradientUnits="userSpaceOnUse"><stop stop-color="currentColor" stop-opacity=".6"/><stop offset=".667" stop-color="currentColor" stop-opacity=".22"/></linearGradient>
+</defs>
+</svg>

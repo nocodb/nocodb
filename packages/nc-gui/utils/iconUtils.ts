@@ -793,6 +793,7 @@ import NcLogoOllamaColored from '~icons/nc-icons-v2/ollama-colored.svg'
 import NcLogoOllama from '~icons/nc-icons-v2/ollama.svg'
 import NcLogoOpenAiColored from '~icons/nc-icons-v2/open-ai-colored.svg'
 import NcLogoCursorColored from '~icons/nc-icons-v2/cursor-logo-colored.svg'
+import NcLogoCursor from '~icons/nc-icons-v2/cursor-logo.svg'
 import NcLogoClaudeCodeColored from '~icons/nc-icons-v2/claude-code-logo-colored.svg'
 import NcLogoOpenAi from '~icons/nc-icons-v2/open-ai.svg'
 import NcLogoOutlookColored from '~icons/nc-icons-v2/outlook-colored.svg'
@@ -1920,6 +1921,7 @@ export const iconMap = {
   'ncLogoOllama': h(NcLogoOllama, { stroke: 'transparent' }),
   'ncLogoOpenAiColored': h(NcLogoOpenAiColored, { stroke: 'transparent' }),
   'ncLogoCursorColored': h(NcLogoCursorColored, { stroke: 'transparent' }),
+  'ncLogoCursor': h(NcLogoCursor, { stroke: 'transparent' }),
   'ncLogoClaudeCodeColored': h(NcLogoClaudeCodeColored, { stroke: 'transparent' }),
   'ncLogoOpenAi': h(NcLogoOpenAi, { stroke: 'transparent' }),
   'ncLogoOutlookColored': h(NcLogoOutlookColored, { stroke: 'transparent' }),

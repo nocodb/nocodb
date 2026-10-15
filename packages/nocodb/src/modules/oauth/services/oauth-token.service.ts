@@ -246,7 +246,8 @@ export class OauthTokenService {
       expires_in: this.ACCESS_TOKEN_EXPIRES_IN,
       refresh_token: refreshToken,
       refresh_expires_in: this.REFRESH_TOKEN_EXPIRES_IN,
-      scope: authCode.scope,
+      // Optional per RFC 6749 §5.1; clients reject null.
+      ...(authCode.scope ? { scope: authCode.scope } : {}),
       resource: authCode.resource,
     };
   }
@@ -345,7 +346,7 @@ export class OauthTokenService {
       expires_in: this.ACCESS_TOKEN_EXPIRES_IN,
       refresh_token: newRefreshToken,
       refresh_expires_in: this.REFRESH_TOKEN_EXPIRES_IN,
-      scope: tokenRecord.scope,
+      ...(tokenRecord.scope ? { scope: tokenRecord.scope } : {}),
     };
   }
 

@@ -1,10 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import {
+  collectEmailBodyImageRefs,
   EMAIL_BASE_STYLES,
   EMAIL_BODY_STYLE,
+  emailImageTypeForFile,
+  extractInlineImages,
   htmlToPlainText,
   isLikelyHtml,
   MAX_EMAIL_HTML_BODY_LENGTH,
+  MAX_EMAIL_INLINE_IMAGES,
+  MAX_EMAIL_INLINE_IMAGES_SIZE,
   prepareEmailBody,
   sanitizeEmailHtml,
   sanitizeInlineStyle,
@@ -230,5 +235,189 @@ describe('body size cap', () => {
   it('leaves oversized plain text alone', () => {
     const text = 'x'.repeat(MAX_EMAIL_HTML_BODY_LENGTH + 1);
     expect(prepareEmailBody(text, { isHtml: false })).toEqual({ isHtml: false, text });
+  });
+});
+
+describe('inline images', () => {
+  const PNG = Buffer.from('fake-png-bytes').toString('base64');
+  const logo = (alt = 'Acme') => `<img src="data:image/png;base64,${PNG}" alt="${alt}" width="120">`;
+
+  it('turns data: images into cid parts the html references', () => {
+    const r = prepareEmailBody(`<p>Thanks</p><p>${logo()}</p>`, { isHtml: true });
+    expect(r.inlineImages).toHaveLength(1);
+    const [image] = r.inlineImages!;
+    expect(image).toMatchObject({ cid: 'image1@nocodb', filename: 'image1.png', contentType: 'image/png' });
+    expect(image.content.toString()).toBe('fake-png-bytes');
+    expect(r.html).toContain('<img src="cid:image1@nocodb" alt="Acme" width="120">');
+    expect(r.html).not.toContain('data:');
+  });
+
+  it('keeps the plain-text part free of image artefacts', () => {
+    const r = prepareEmailBody(`<p>Jane Doe</p><p>${logo()}</p><p>Acme Inc.</p>`, { isHtml: true });
+    expect(r.text).toBe('Jane Doe\n\nAcme Inc.');
+  });
+
+  it('shares one part between identical images', () => {
+    const r = prepareEmailBody(`<p>${logo()}${logo('again')}</p>`, { isHtml: true });
+    expect(r.inlineImages).toHaveLength(1);
+    expect(r.html!.match(/cid:image1@nocodb/g)).toHaveLength(2);
+  });
+
+  it('drops remote, data: svg and unknown cid sources with their img', () => {
+    expect(sanitizeEmailHtml('<p>a<img src="https://t.example/p.gif">b</p>')).toBe('<p>ab</p>');
+    expect(sanitizeEmailHtml('<p><img src="cid:forged@x"></p>')).toBe('<p></p>');
+    expect(sanitizeEmailHtml('<p><img src="data:image/png;base64,AAAA"></p>')).toBe('<p></p>');
+    const svg = `<p><img src="data:image/svg+xml;base64,${PNG}"></p>`;
+    const r = prepareEmailBody(svg, { isHtml: true });
+    expect(r.inlineImages).toEqual([]);
+    expect(r.html).not.toContain('<img');
+  });
+
+  it('never allows a cid: link', () => {
+    expect(sanitizeEmailHtml('<a href="cid:x">x</a>', { inlineCids: ['x'] })).toBe('<a>x</a>');
+  });
+
+  it('leaves bodies without images unchanged', () => {
+    const r = prepareEmailBody('<p>Hi</p>', { isHtml: true });
+    expect(r.inlineImages).toEqual([]);
+    expect(r.html).toBe(`<div style="${EMAIL_BODY_STYLE}"><p style="${EMAIL_BASE_STYLES.p}">Hi</p></div>`);
+  });
+
+  it('does not count image bytes against the markup limit', () => {
+    const big = Buffer.alloc(200_000, 1).toString('base64');
+    const r = prepareEmailBody(`<p><img src="data:image/jpeg;base64,${big}"></p>`, { isHtml: true });
+    expect(r.inlineImages![0].content.length).toBe(200_000);
+  });
+
+  it('rejects too many or too large images with an actionable error', () => {
+    const many = Array.from(
+      { length: MAX_EMAIL_INLINE_IMAGES + 1 },
+      (_, i) => `<img src="data:image/png;base64,${Buffer.from(`img-${i}`).toString('base64')}">`,
+    ).join('');
+    expect(() => extractInlineImages(`<p>${many}</p>`)).toThrow(/more than 10 images/);
+
+    const huge = Buffer.alloc(MAX_EMAIL_INLINE_IMAGES_SIZE + 1, 1).toString('base64');
+    expect(() => extractInlineImages(`<p><img src="data:image/png;base64,${huge}"></p>`)).toThrow(
+      /exceed the 2 MB limit\. Use smaller images/,
+    );
+  });
+});
+
+describe('stored body images', () => {
+  const ref = 'download/noco/b1/workflows/w1/logo_ab12c.png';
+  const html = `<p>Hi</p><p><img src="nc-file:${ref}" alt="Logo" width="120"><img src="nc-file:${ref}"></p>`;
+
+  it('lists each referenced file once', () => {
+    expect(collectEmailBodyImageRefs(html)).toEqual([ref]);
+    expect(collectEmailBodyImageRefs('<p>no images</p>')).toEqual([]);
+  });
+
+  it('turns resolved files into one shared cid part', () => {
+    const content = Buffer.from('png');
+    const r = prepareEmailBody(html, {
+      isHtml: true,
+      images: new Map([[ref, { content, contentType: 'image/png' }]]),
+    });
+    expect(r.html).not.toContain('nc-file:');
+    expect(r.html!.match(/src="cid:image1@nocodb"/g)).toHaveLength(2);
+    expect(r.inlineImages).toEqual([
+      { cid: 'image1@nocodb', filename: 'image1.png', contentType: 'image/png', content },
+    ]);
+  });
+
+  it('drops images whose bytes were not loaded', () => {
+    const r = prepareEmailBody(html, { isHtml: true });
+    expect(r.html).not.toContain('<img');
+    expect(r.inlineImages).toEqual([]);
+  });
+
+  it('rejects an oversized body before scanning it for images', () => {
+    const hostile = '<img '.repeat(200_000);
+    const started = Date.now();
+    expect(() => prepareEmailBody(hostile, { isHtml: true })).toThrow(/KB limit/);
+    expect(Date.now() - started).toBeLessThan(500);
+  });
+
+  it('counts a base64 run outside an image source as markup', () => {
+    const run = `<p>data:image/png;base64,${'A'.repeat(200_000)}</p>`;
+    expect(() => prepareEmailBody(run, { isHtml: true })).toThrow(/KB limit/);
+    const image = `<p><img src="data:image/png;base64,${'A'.repeat(200_000)}"></p>`;
+    expect(() => prepareEmailBody(image, { isHtml: true })).not.toThrow(/KB limit/);
+  });
+
+  it('counts a src= payload outside an img, or of a type never sent, as markup', () => {
+    // Record values can't form `<img`, but they may carry `src='data:…'` as text.
+    const fromRecord = `<p>x src='data:image/png;base64,${'A'.repeat(200_000)}'</p>`;
+    expect(() => prepareEmailBody(fromRecord, { isHtml: true })).toThrow(/KB limit/);
+    const bmp = `<p><img src="data:image/bmp;base64,${'A'.repeat(200_000)}"></p>`;
+    expect(() => prepareEmailBody(bmp, { isHtml: true })).toThrow(/KB limit/);
+  });
+
+  it('caps image payloads that decode to nothing too', () => {
+    const empty = `<p><img src="data:image/png;base64,${'='.repeat(3_000_000)}"></p>`;
+    expect(() => prepareEmailBody(empty, { isHtml: true })).toThrow(/exceed the 2 MB limit/);
+  });
+
+  it('scans hostile bodies for references in bounded time', () => {
+    // Under the markup cap, so the scan really runs and only the regex bounds keep it cheap.
+    const cases = [
+      'nc-file:' + '<img '.repeat(400) + ' src=' + ' '.repeat(95_000),
+      'nc-file:' + '<img '.repeat(19_000),
+      'nc-file:' + '<img '.repeat(400) + ' src="nc-file:' + 'a'.repeat(90_000),
+    ];
+    for (const body of cases) {
+      expect(body.length).toBeLessThan(MAX_EMAIL_HTML_BODY_LENGTH);
+      const started = Date.now();
+      collectEmailBodyImageRefs(body);
+      expect(Date.now() - started).toBeLessThan(500);
+    }
+  });
+
+  it('measures bodies in linear time, even far past the cap', () => {
+    const cases = [
+      '<img '.repeat(1_000_000),
+      '<p>' + '<img '.repeat(400) + ' src="data:image/png;base64,' + 'A'.repeat(1_000_000),
+      ('<p src="data:image/png;base64,' + 'A'.repeat(64) + '">').repeat(20_000),
+    ];
+    for (const body of cases) {
+      const started = Date.now();
+      collectEmailBodyImageRefs(`nc-file:${body}`);
+      expect(() => prepareEmailBody(body, { isHtml: true })).toThrow(/KB limit/);
+      expect(Date.now() - started).toBeLessThan(500);
+    }
+  });
+
+  it('only discounts data: payloads inside an <img> tag', () => {
+    const payload = 'A'.repeat(200_000);
+    expect(() =>
+      prepareEmailBody(`<p><img alt="x" src="data:image/png;base64,${payload}"></p>`, { isHtml: true }),
+    ).not.toThrow(/KB limit/);
+    expect(() =>
+      prepareEmailBody(`<p><a src="data:image/png;base64,${payload}">x</a></p>`, { isHtml: true }),
+    ).toThrow(/KB limit/);
+  });
+
+  it('counts an unclosed data: src as markup, so the cap stops it before extraction', () => {
+    const unclosed = '<p>' + '<img '.repeat(400) + ' src="data:image/png;base64,' + 'A'.repeat(1_000_000);
+    const started = Date.now();
+    expect(() => prepareEmailBody(unclosed, { isHtml: true })).toThrow(/KB limit/);
+    expect(Date.now() - started).toBeLessThan(500);
+
+    const closed = `<p><img src="data:image/png;base64,${'A'.repeat(200_000)}"></p>`;
+    expect(() => prepareEmailBody(closed, { isHtml: true })).not.toThrow(/KB limit/);
+  });
+
+  it('stays fast at the markup cap', () => {
+    const atCap = '<img '.repeat(19_000);
+    const started = Date.now();
+    prepareEmailBody(atCap, { isHtml: true });
+    expect(Date.now() - started).toBeLessThan(2000);
+  });
+
+  it('types files by extension and skips the rest', () => {
+    expect(emailImageTypeForFile('a/b/logo.JPG')).toBe('image/jpeg');
+    expect(emailImageTypeForFile('https://s3.test/a.webp?sig=1')).toBe('image/webp');
+    expect(emailImageTypeForFile('a/b/photo_ab12c.jfif')).toBe('image/jpeg');
+    expect(emailImageTypeForFile('a/b/logo.svg')).toBeUndefined();
   });
 });

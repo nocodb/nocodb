@@ -9567,21 +9567,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
 
           const regenerateIds = [];
+          const oldAttachmentMap = new Map<
+            string,
+            { url?: string; path?: string; status?: string; error?: string }
+          >(
+            !isInsertData &&
+            oldData &&
+            oldData[column.title] &&
+            Array.isArray(oldData[column.title])
+              ? oldData[column.title]
+                  .filter((att) => att.id)
+                  .map((att) => [att.id, att])
+              : [],
+          );
 
           if (!isInsertData) {
-            const oldAttachmentMap = new Map<
-              string,
-              { url?: string; path?: string }
-            >(
-              oldData &&
-              oldData[column.title] &&
-              Array.isArray(oldData[column.title])
-                ? oldData[column.title]
-                    .filter((att) => att.id)
-                    .map((att) => [att.id, att])
-                : [],
-            );
-
             const newAttachmentMap = new Map<
               string,
               { url?: string; path?: string }
@@ -9660,6 +9660,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     cookie?.user?.id,
                     extra?.skipAttachmentOwnershipCheck,
                   );
+              } else if (
+                oldAttachmentMap.get(sanitizedAttachment.id)?.status ===
+                'failed'
+              ) {
+                // a failed url download keeps its marker, taken from the
+                // stored item so a client can't set it
+                const { status, error } = oldAttachmentMap.get(
+                  sanitizedAttachment.id,
+                );
+                Object.assign(sanitizedAttachment, { status, error });
               }
 
               sanitizedAttachments.push(sanitizedAttachment);

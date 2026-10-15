@@ -86,7 +86,24 @@ export class DataAttachmentV3Service {
               url: attachment.url,
               scope,
             },
-          );
+          ).catch((error) => {
+            this.logger.error(
+              `Failed to fetch attachment from url for ${modelId}.${column.id} record ${recordId}: ${error?.message}`,
+              error?.stack,
+            );
+            // Keep the item, marked, so the caller can see the file was not stored.
+            // Its FileReference stays `deleted` as inserted by the preparator.
+            processedAttachments.push({
+              id: attachment.id,
+              url: attachment.url,
+              status: 'failed',
+              error: error?.response?.status
+                ? `Download failed with HTTP ${error.response.status}`
+                : 'Download failed',
+            });
+            return null;
+          });
+          if (!downloadedAttachment) continue;
 
           // Step 1: Create FileReference without workspace info and mark as deleted
           await FileReference.insert(
@@ -137,18 +154,14 @@ export class DataAttachmentV3Service {
         }
       } catch (error) {
         this.logger.error(
-          `Failed to fetch attachment from url for ${modelId}.${column.id} record ${recordId}: ${error?.message}`,
+          `Failed to store attachment from url for ${modelId}.${column.id} record ${recordId}: ${error?.message}`,
           error?.stack,
         );
-        // Keep the item, marked, so the caller can see the file was not stored.
-        // Its FileReference stays `deleted` as inserted by the preparator.
         processedAttachments.push({
           id: attachment.id,
           url: attachment.url,
           status: 'failed',
-          error: error?.response?.status
-            ? `Download failed with HTTP ${error.response.status}`
-            : 'Download failed',
+          error: 'Failed to store the downloaded file',
         });
       }
     }

@@ -314,6 +314,24 @@ describe('resolveEmailBodyImages', () => {
     expect(onSkip).toHaveBeenCalledWith('gone.png', 'not accessible from this base');
   });
 
+  it('passes the run signal on, and stops on cancel instead of skipping images', async () => {
+    const controller = new AbortController();
+    const resolve = vi.fn().mockImplementation(async () => {
+      controller.abort();
+      throw new Error('Execution cancelled');
+    });
+    const onSkip = vi.fn();
+    await expect(
+      resolveEmailBodyImages(
+        { attachmentService: { resolveEmailAttachments: resolve } } as any,
+        '<img src="nc-file:download/w/a/a.png"><img src="nc-file:download/w/b/b.png">',
+        { onSkip, signal: controller.signal },
+      ),
+    ).rejects.toThrow(/cancelled/);
+    expect(resolve.mock.calls[0][1].signal).toBe(controller.signal);
+    expect(onSkip).not.toHaveBeenCalled();
+  });
+
   it('rejects bodies with more images than an email may carry', async () => {
     const many = Array.from({ length: 11 }, (_, i) => `<img src="nc-file:a/${i}.png">`).join('');
     await expect(

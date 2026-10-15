@@ -158,8 +158,17 @@ export const EmailImage = TiptapImage.extend<EmailImageOptions>({
       frame.className = 'nc-email-image-frame'
       dom.append(img, frame)
 
+      let retryTimer: ReturnType<typeof setTimeout> | undefined
+      let retries = 0
+      let retrySrc: string | undefined
+
       function showSrc(src: string) {
         if (src === shownSrc) return
+        if (src !== retrySrc) {
+          retrySrc = src
+          retries = 0
+        }
+        clearTimeout(retryTimer)
         shownSrc = src
         dom.classList.remove('is-missing')
         dom.removeAttribute('title')
@@ -172,6 +181,7 @@ export const EmailImage = TiptapImage.extend<EmailImageOptions>({
           (url) => {
             if (shownSrc !== src) return
             if (url) {
+              retries = 0
               img.src = url
               return
             }
@@ -180,8 +190,14 @@ export const EmailImage = TiptapImage.extend<EmailImageOptions>({
             if (missingLabel) dom.title = missingLabel
           },
           () => {
-            // A failed request says nothing about the file; the next update asks again.
-            if (shownSrc === src) shownSrc = undefined
+            // Couldn't ask (route not ready, request failed): that says nothing about the file, so
+            // stay blank and ask again a few times, backing off.
+            if (shownSrc !== src) return
+            shownSrc = undefined
+            if (retries >= 4) return
+            retryTimer = setTimeout(() => {
+              if (dom.isConnected && current.attrs.src === src) showSrc(src)
+            }, 1000 * 2 ** retries++)
           },
         )
       }
@@ -285,6 +301,7 @@ export const EmailImage = TiptapImage.extend<EmailImageOptions>({
           return true
         },
         destroy() {
+          clearTimeout(retryTimer)
           resetFrame()
         },
       }

@@ -265,7 +265,11 @@ export function assertPlatformMailerAttachments(
 export async function resolveEmailBodyImages(
   nocodb: Pick<NocoDBContext, 'attachmentService'>,
   body: unknown,
-  options: { onSkip?: (fileName: string, reason: string) => void } = {},
+  options: {
+    onSkip?: (fileName: string, reason: string) => void;
+    /** The run's cancel signal; a cancelled run stops here instead of sending without images. */
+    signal?: AbortSignal;
+  } = {},
 ): Promise<Map<string, EmailBodyImageFile>> {
   const refs = collectEmailBodyImageRefs(body).filter((ref) =>
     emailImageTypeForFile(ref),
@@ -296,10 +300,17 @@ export async function resolveEmailBodyImages(
             file: /^https?:\/\//i.test(ref) ? { url: ref } : { path: ref },
           },
         ],
-        { maxFiles: 1, maxTotalBytes: MAX_EMAIL_INLINE_IMAGES_SIZE },
+        {
+          maxFiles: 1,
+          maxTotalBytes: MAX_EMAIL_INLINE_IMAGES_SIZE,
+          signal: options.signal,
+        },
       ),
     ),
   );
+
+  // A cancellation rejects every pending image; it is not a skipped image, so stop the send.
+  if (options.signal?.aborted) throw new Error('Execution cancelled');
 
   const images = new Map<string, EmailBodyImageFile>();
   results.forEach((result, i) => {

@@ -318,14 +318,15 @@ const INLINE_IMAGE_TYPES: Record<string, string> = {
 const DATA_IMAGE_SRC =
   /(<img\b[^>]{0,512}?\bsrc\s{0,16}=\s{0,16})(["'])data:(image\/[a-z+.-]+);base64,([A-Za-z0-9+/=\s]*)\2/gi;
 
-// An image source's `data:` payload, for measuring a body without its bytes. Anchored on `src=` so
-// a base64 run elsewhere (e.g. interpolated record text) still counts as markup.
+// An image source's `data:` payload, for measuring a body without its bytes. Anchored on `src=` and
+// closed by the matching quote, so a base64 run anywhere else, or an unclosed one, counts as markup
+// and the cap bounds what DATA_IMAGE_SRC later scans.
 const DATA_IMAGE_SRC_PAYLOAD =
-  /(\bsrc\s{0,16}=\s{0,16}["'])data:image\/[a-z+.-]+;base64,[A-Za-z0-9+/=\s]*/gi;
+  /(\bsrc\s{0,16}=\s{0,16})(["'])data:image\/[a-z+.-]+;base64,[A-Za-z0-9+/=\s]*\2/gi;
 
 /** Body length the markup cap applies to: everything except image source payloads. */
 function emailMarkupLength(body: string): number {
-  return body.replace(DATA_IMAGE_SRC_PAYLOAD, '$1').length;
+  return body.replace(DATA_IMAGE_SRC_PAYLOAD, '$1$2$2').length;
 }
 
 /** Scheme of body images stored as NocoDB files: `src="nc-file:<file_url>"`. */

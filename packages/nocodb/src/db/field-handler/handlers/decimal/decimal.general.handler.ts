@@ -37,6 +37,8 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
       'notempty',
       'null',
       'notnull',
+      'btw',
+      'nbtw',
     ];
     if (!supportedOperations.includes(filter.comparison_op)) {
       return {
@@ -54,6 +56,28 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
       return {
         isValid: true,
       } as FilterVerificationResult;
+    }
+
+    // `btw`/`nbtw` take "lower,upper" (or the parsed [lower, upper]).
+    if (['btw', 'nbtw'].includes(filter.comparison_op)) {
+      const bounds = Array.isArray(filter.value)
+        ? filter.value
+        : String(filter.value ?? '').split(',');
+      const valid =
+        bounds.length === 2 &&
+        bounds.every(
+          (b) => b !== null && String(b).trim() !== '' && ncIsNumber(Number(b)),
+        );
+      return (
+        valid
+          ? { isValid: true }
+          : {
+              isValid: false,
+              errors: [
+                `Operation ${filter.comparison_op} on column ${column.title} takes two numbers: lower,upper`,
+              ],
+            }
+      ) as FilterVerificationResult;
     }
 
     if (
@@ -88,6 +112,8 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
       metaService?: MetaService;
     };
   }): Promise<{ value: any }> {
+    // Number('') is 0, which would store a zero for a cleared cell.
+    if (params.value === '') return { value: null };
     if (!ncIsUndefined(params.value) && !ncIsNull(params.value)) {
       const numberValue = Number(params.value);
       if (!ncIsNumber(numberValue)) {

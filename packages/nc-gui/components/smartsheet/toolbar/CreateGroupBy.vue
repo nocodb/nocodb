@@ -43,7 +43,7 @@ const options = computed<ColumnType[]>(
           return !(
             isLinksOrLTAR(c) &&
             ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE, RelationTypes.MANY_TO_ONE].includes(
-              (c.colOptions as LinkToAnotherRecordType).type as RelationTypes,
+              (c.colOptions as LinkToAnotherRecordType)?.type as RelationTypes,
             )
           )
         }

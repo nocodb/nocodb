@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AppEvents } from 'nocodb-sdk'
+import { AppEvents, ROADMAP_NOTIFICATION_TYPE } from 'nocodb-sdk'
 import type { NotificationType } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -35,6 +35,7 @@ function onItemClick() {
     <NotificationItemWorkspaceTeamInvite v-else-if="item.type === AppEvents.WORKSPACE_TEAM_INVITE" :item="item" />
     <NotificationItemProjectTeamInvite v-else-if="item.type === AppEvents.PROJECT_TEAM_INVITE" :item="item" />
     <NotificationItemTeamMemberInvite v-else-if="item.type === AppEvents.TEAM_MEMBER_ADD" :item="item" />
+    <NotificationItemRoadmapEvent v-else-if="item.type === ROADMAP_NOTIFICATION_TYPE" :item="item" />
     <span v-else />
   </div>
 </template>

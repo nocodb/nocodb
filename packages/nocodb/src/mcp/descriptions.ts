@@ -21,12 +21,11 @@ OPERATORS:
     gte       Greater than or equal (>=)  (rating,gte,4)
     lte       Less than or equal (<=)     (age,lte,65)
 
-  Range: btw/nbtw are REJECTED on Number, Decimal, Currency, Percent, Rating,
-  Duration, Date/DateTime and Checkbox with "Operation btw is not supported for
-  type <T>". Only Time and text fields accept them. Two bounds work on every type,
-  so always express a range that way:
-    Between (inclusive)        (price,gte,10)~and(price,lte,100)
-    Not between                (score,lt,0)~or(score,gt,50)
+  Range: btw/nbtw take two bounds on Number, Decimal, Currency, Percent, Rating,
+  Duration, Time and text fields. They are REJECTED on Date/DateTime and Checkbox;
+  use two bounds there.
+    Between (inclusive)        (price,btw,10,100)
+    Not between                (score,nbtw,0,50)
 
   Null/Empty (no value needed):
     blank     Is blank (null or empty)    (notes,blank)

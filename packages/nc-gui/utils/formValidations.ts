@@ -1,6 +1,5 @@
 import type { RuleObject } from 'ant-design-vue/es/form'
-import isMobilePhone from 'validator/lib/isMobilePhone'
-import { StringValidationType, UITypes } from 'nocodb-sdk'
+import { StringValidationType, UITypes, isValidPhoneNumber } from 'nocodb-sdk'
 import type { ColumnType, Validation } from 'nocodb-sdk'
 import { getI18n } from '../plugins/a.i18n'
 
@@ -42,7 +41,7 @@ export const formPhoneNumberValidator = (val: Validation) => {
       return new Promise((resolve, reject) => {
         const { t } = getI18n().global
 
-        if (value && !isMobilePhone(value)) {
+        if (value && !isValidPhoneNumber(value)) {
           return reject(val.message || t('msg.invalidPhoneNumber'))
         }
         return resolve(true)

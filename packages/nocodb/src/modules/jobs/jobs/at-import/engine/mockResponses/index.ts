@@ -5,6 +5,7 @@ export {
 export { responseData as readResponse } from './read';
 export { responseData as displayValueReadResponse } from './readDisplayValue';
 export { responseData as multiLinkReadResponse } from './readMultiLink';
+export { responseData as sharedViewReadResponse } from './readSharedView';
 import readView_viw5f7BhLA3OkthNv from './readView_viw5f7BhLA3OkthNv.json';
 import readView_viw9HVTL3HmZ3NCDd from './readView_viw9HVTL3HmZ3NCDd.json';
 import readView_viwsF12Zep2IrUQ4L from './readView_viwsF12Zep2IrUQ4L.json';

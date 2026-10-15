@@ -486,6 +486,17 @@ export abstract class AiIntegration<
   }
 
   /**
+   * Anthropic's own Messages endpoint for the model `args` resolves to, for a
+   * caller that must forward the wire format unchanged. `null` unless the
+   * provider IS that API — a translated or re-hosted endpoint is not one.
+   */
+  public getAnthropicMessagesTarget(
+    _args?: AiGetModelArgs,
+  ): AnthropicMessagesTarget | null {
+    return null;
+  }
+
+  /**
    * Get the underlying language model, with reasoning effort baked in when requested.
    *
    * Reasoning is applied as a model-level default via `defaultSettingsMiddleware`, so
@@ -732,6 +743,16 @@ export interface AiGetModelArgs {
    * returned model as a default. Omit for the provider's own default behaviour.
    */
   reasoningEffort?: AiReasoningEffort;
+}
+
+export interface AnthropicMessagesTarget {
+  /** Up to and including `/v1`. */
+  baseURL: string;
+  /** Credential headers — never shown to the caller's client. */
+  headers: Record<string, string>;
+  /** Betas the credential itself requires, merged into `anthropic-beta`. */
+  betas?: string[];
+  modelId: string;
 }
 
 export interface AiGenerateImageArgs {

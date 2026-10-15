@@ -4,7 +4,10 @@ import type { Job } from 'bull';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { getPathFromUrl } from '~/helpers/attachmentHelpers';
+import {
+  getPathFromUrl,
+  isStorageAttachmentRef,
+} from '~/helpers/attachmentHelpers';
 
 const retentionDays = process.env.NC_ATTACHMENT_RETENTION_DAYS || 10;
 
@@ -59,6 +62,19 @@ export class AttachmentCleanUpProcessor {
         if (file.storage !== storageAdapterName) {
           continue;
         }
+      }
+
+      if (!(await isStorageAttachmentRef(file.file_url, storageAdapter))) {
+        // our adapter's object on an unrecognised host (old bucket/endpoint):
+        // keep the reference rather than orphan the object
+        if (rootKey) continue;
+
+        // an external link is not in our storage: drop its reference only
+        await ncMeta
+          .knexConnection(MetaTable.FILE_REFERENCES)
+          .where('file_url', file.file_url)
+          .del();
+        continue;
       }
 
       if (storageAdapterName === 'Local') {

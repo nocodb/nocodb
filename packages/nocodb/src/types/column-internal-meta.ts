@@ -22,6 +22,45 @@ export interface ColumnInternalMeta {
    * it — we cannot assume the source's configured schema.
    */
   pg_enum_schema_name?: string;
+
+  /**
+   * Set while a field converted to Attachment still holds text that no write
+   * checked: reads sign only held files until the cleanup clears it.
+   */
+  attachment_cleanup_pending?: boolean;
+}
+
+// Only Column.setAttachmentCleanupPending changes the mark, so a client, a copy or a stale column object can't.
+export function withAttachmentCleanupMark(
+  internalMeta: string,
+  pending: boolean | undefined,
+): string;
+export function withAttachmentCleanupMark(
+  internalMeta: ColumnInternalMeta | null | undefined,
+  pending: boolean | undefined,
+): ColumnInternalMeta;
+export function withAttachmentCleanupMark(
+  internalMeta: ColumnInternalMeta | string | null | undefined,
+  pending: boolean | undefined,
+): ColumnInternalMeta | string;
+export function withAttachmentCleanupMark(
+  internalMeta: ColumnInternalMeta | string | null | undefined,
+  pending: boolean | undefined,
+): ColumnInternalMeta | string {
+  let parsed: unknown = internalMeta;
+  if (typeof internalMeta === 'string') {
+    try {
+      parsed = JSON.parse(internalMeta);
+    } catch {
+      parsed = {};
+    }
+  }
+  const marked: ColumnInternalMeta = {
+    ...(parsed && typeof parsed === 'object' ? parsed : {}),
+  };
+  delete marked.attachment_cleanup_pending;
+  if (pending) marked.attachment_cleanup_pending = true;
+  return typeof internalMeta === 'string' ? JSON.stringify(marked) : marked;
 }
 
 /**
@@ -45,6 +84,7 @@ export function validateColumnInternalMeta(
     'unique_constraint_name',
     'pg_enum_type_name',
     'pg_enum_schema_name',
+    'attachment_cleanup_pending',
   ];
   const keys = Object.keys(value);
   for (const key of keys) {
@@ -85,6 +125,13 @@ export function validateColumnInternalMeta(
     if (value.pg_enum_schema_name.trim() === '') {
       throw new Error('pg_enum_schema_name cannot be empty');
     }
+  }
+
+  if (
+    value.attachment_cleanup_pending !== undefined &&
+    typeof value.attachment_cleanup_pending !== 'boolean'
+  ) {
+    throw new Error('attachment_cleanup_pending must be a boolean');
   }
 
   // pg_enum_type_name and pg_enum_schema_name must be set together — an

@@ -423,6 +423,19 @@ export class OrgUsersService {
   }
 
   async appSettingsSet(param: { settings: any }) {
+    const abuseEmail = param.settings?.abuse_contact_email;
+    if (abuseEmail !== undefined) {
+      if (typeof abuseEmail !== 'string') {
+        NcError.badRequest('Invalid abuse contact email');
+      }
+      param.settings.abuse_contact_email = abuseEmail.trim();
+      if (
+        param.settings.abuse_contact_email &&
+        !validator.isEmail(param.settings.abuse_contact_email)
+      ) {
+        NcError.badRequest('Invalid abuse contact email');
+      }
+    }
     await Noco.updateAppSettings(param.settings);
     return true;
   }

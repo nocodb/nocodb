@@ -7,6 +7,7 @@ import OrganizationRoleUpdate from '~/services/mail/templates/org-role-update';
 import BaseRoleUpdate from '~/services/mail/templates/base-role-update';
 import FormSubmission from '~/services/mail/templates/form-submission';
 import WorkspaceInvite from '~/services/mail/templates/workspace-invite';
+import AbuseReport from '~/services/mail/templates/abuse-report';
 
 export {
   Welcome,
@@ -18,4 +19,5 @@ export {
   OrganizationRoleUpdate,
   FormSubmission,
   WorkspaceInvite,
+  AbuseReport,
 };

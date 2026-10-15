@@ -1,4 +1,4 @@
-import DOMPurify from 'isomorphic-dompurify';
+import type DOMPurifyType from 'isomorphic-dompurify';
 
 /**
  * Allowlist of tags / attributes permitted in workflow email bodies.
@@ -130,34 +130,45 @@ export function sanitizeInlineStyle(style: string): string {
 let emailSanitizeActive = false;
 let applyBaseStyles = false;
 
-DOMPurify.addHook('uponSanitizeElement', (node, data) => {
-  if (!emailSanitizeActive || !applyBaseStyles) return;
-  if (node.nodeType !== 1) return;
-  const el = node as Element;
-  const own = el.getAttribute('style');
-  // Outlook's Word engine ignores text-align on blocks but honours the align attribute.
-  const align = own && /text-align:\s*(center|right|justify)/i.exec(own)?.[1];
-  if (align) el.setAttribute('align', align.toLowerCase());
-  // The editor renders `li > p` inline, so a paragraph margin there would add gaps the
-  // author never saw.
-  const isListParagraph =
-    data.tagName === 'p' && el.parentElement?.tagName?.toLowerCase() === 'li';
-  const base = isListParagraph ? undefined : EMAIL_BASE_STYLES[data.tagName];
-  if (!base) return;
-  // Base first so the author's own declarations win.
-  el.setAttribute('style', own ? `${base}; ${own}` : base);
-});
+let purify: typeof DOMPurifyType | undefined;
 
-DOMPurify.addHook('uponSanitizeAttribute', (_node, data) => {
-  if (!emailSanitizeActive) return;
-  if (data.attrName === 'href') {
-    data.attrValue = normalizeEmailHref(data.attrValue);
-    return;
-  }
-  if (data.attrName !== 'style') return;
-  data.attrValue = sanitizeInlineStyle(data.attrValue);
-  if (!data.attrValue) data.keepAttr = false;
-});
+// isomorphic-dompurify loads jsdom (~13 MB heap), so it is required on first use, and the
+// hooks are installed once, then.
+function getPurify(): typeof DOMPurifyType {
+  if (purify) return purify;
+  purify = require('isomorphic-dompurify') as typeof DOMPurifyType;
+
+  purify.addHook('uponSanitizeElement', (node, data) => {
+    if (!emailSanitizeActive || !applyBaseStyles) return;
+    if (node.nodeType !== 1) return;
+    const el = node as Element;
+    const own = el.getAttribute('style');
+    // Outlook's Word engine ignores text-align on blocks but honours the align attribute.
+    const align = own && /text-align:\s*(center|right|justify)/i.exec(own)?.[1];
+    if (align) el.setAttribute('align', align.toLowerCase());
+    // The editor renders `li > p` inline, so a paragraph margin there would add gaps the
+    // author never saw.
+    const isListParagraph =
+      data.tagName === 'p' && el.parentElement?.tagName?.toLowerCase() === 'li';
+    const base = isListParagraph ? undefined : EMAIL_BASE_STYLES[data.tagName];
+    if (!base) return;
+    // Base first so the author's own declarations win.
+    el.setAttribute('style', own ? `${base}; ${own}` : base);
+  });
+
+  purify.addHook('uponSanitizeAttribute', (_node, data) => {
+    if (!emailSanitizeActive) return;
+    if (data.attrName === 'href') {
+      data.attrValue = normalizeEmailHref(data.attrValue);
+      return;
+    }
+    if (data.attrName !== 'style') return;
+    data.attrValue = sanitizeInlineStyle(data.attrValue);
+    if (!data.attrValue) data.keepAttr = false;
+  });
+
+  return purify;
+}
 
 /**
  * A link URL that is a variable (`{{ record.Website }}`) only resolves here, and record values
@@ -202,7 +213,7 @@ export function sanitizeEmailHtml(
   emailSanitizeActive = true;
   applyBaseStyles = !!options.baseStyles;
   try {
-    return DOMPurify.sanitize(String(input), EMAIL_HTML_SANITIZE_CONFIG);
+    return getPurify().sanitize(String(input), EMAIL_HTML_SANITIZE_CONFIG);
   } finally {
     emailSanitizeActive = false;
     applyBaseStyles = false;
@@ -328,7 +339,7 @@ export function htmlToPlainText(html: string): string {
 
   // Walk the markup rather than rewriting it: nesting is structural, and the DOM decodes
   // entities on the way. Callers pass already-sanitized HTML, so this parse is idempotent.
-  const root = DOMPurify.sanitize(html, {
+  const root = getPurify().sanitize(html, {
     ...EMAIL_HTML_SANITIZE_CONFIG,
     RETURN_DOM: true,
   }) as unknown as HTMLElement;

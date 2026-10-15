@@ -12,7 +12,7 @@ import {
   ServiceUserType,
   UITypes,
 } from 'nocodb-sdk';
-import { Injectable, NotImplementedException } from '@nestjs/common';
+import { Injectable, Logger, NotImplementedException } from '@nestjs/common';
 import { Job } from 'bull';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
@@ -25,8 +25,11 @@ import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
 import { Base, Column, Model, Source } from '~/models';
 import { BasesService } from '~/services/bases.service';
 import {
+  DroppedAttachments,
   findWithIdentifier,
   generateUniqueName,
+  holdCopiedSmartTextImages,
+  sourceAttachmentHolder,
 } from '~/helpers/exportImportHelpers';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { ColumnsService } from '~/services/columns.service';
@@ -47,6 +50,7 @@ import { Untraced } from '~/decorators/trace-command.decorator';
 @Injectable()
 export class DuplicateProcessor {
   protected readonly debugLog = debug('nc:jobs:duplicate');
+  protected readonly logger = new Logger(DuplicateProcessor.name);
 
   constructor(
     protected readonly exportService: ExportService,
@@ -90,6 +94,7 @@ export class DuplicateProcessor {
     options,
     operation,
     targetContext: _targetContext,
+    droppedAttachments = new DroppedAttachments(),
   }: {
     sourceBase: Base; // Base to duplicate
     targetBase: Base; // Base to duplicate to
@@ -111,6 +116,8 @@ export class DuplicateProcessor {
       excludePermissions?: boolean;
     };
     operation: JobTypes;
+    // Files an external source's rows name that its base doesn't hold are left out and counted here.
+    droppedAttachments?: DroppedAttachments;
   }) {
     const hrTime = initTime();
 
@@ -258,6 +265,7 @@ export class DuplicateProcessor {
         data: exportedModels,
         req: req,
         isDuplicateOperation: true,
+        attachmentHolder: null,
       });
 
       if (exportedScripts) {
@@ -295,6 +303,7 @@ export class DuplicateProcessor {
           data: exportedWorkflows,
           req,
           idMap,
+          sourceBaseId: sourceBase.id,
         });
       }
 
@@ -304,6 +313,7 @@ export class DuplicateProcessor {
           data: exportedInterfaces,
           req,
           idMap,
+          attachmentHolder: null,
         });
       }
 
@@ -323,6 +333,7 @@ export class DuplicateProcessor {
           options,
           hrTime,
           req,
+          droppedAttachments,
         });
       }
 
@@ -413,6 +424,7 @@ export class DuplicateProcessor {
       dupProjectId,
     );
     const source = await Source.get(context, sourceId);
+    const droppedAttachments = new DroppedAttachments();
 
     await this.duplicateBaseJob({
       sourceBase: base,
@@ -436,9 +448,13 @@ export class DuplicateProcessor {
         excludeWorkflows,
       },
       operation: JobTypes.DuplicateBase,
+      droppedAttachments,
     });
 
-    return { id: dupProject.id };
+    return {
+      id: dupProject.id,
+      droppedAttachments: droppedAttachments.count || undefined,
+    };
   }
 
   @Untraced()
@@ -446,6 +462,7 @@ export class DuplicateProcessor {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateModel})`);
 
     const hrTime = initTime();
+    const droppedAttachments = new DroppedAttachments();
 
     const {
       context,
@@ -538,6 +555,7 @@ export class DuplicateProcessor {
         data: [exportedModel],
         user,
         req,
+        attachmentHolder: null,
         externalModels: relatedModels,
         columnWebhookManager,
         isDuplicateOperation: true,
@@ -582,6 +600,7 @@ export class DuplicateProcessor {
           modelFieldIds: fields,
           externalModels: relatedModels,
           req,
+          droppedAttachments,
         });
 
         elapsedTime(hrTime, 'import model data', 'duplicateModel');
@@ -589,7 +608,10 @@ export class DuplicateProcessor {
 
       this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateModel})`);
 
-      const res = { id: findWithIdentifier(idMap, sourceModel.id) };
+      const res = {
+        id: findWithIdentifier(idMap, sourceModel.id),
+        droppedAttachments: droppedAttachments.count || undefined,
+      };
 
       this.appHooksService.emit(AppEvents.TABLE_DUPLICATE_COMPLETE, {
         sourceTable: sourceModel,
@@ -611,9 +633,13 @@ export class DuplicateProcessor {
 
       if (createdModels.length > 0) {
         for (const modelId of createdModels) {
+          await this.hardDeleteLinkColumns(context, modelId, req);
+          // rollback: no trash entry or link placeholders for the copy
           await this.tablesService.tableDelete(context, {
             tableId: modelId,
             forceDeleteRelations: true,
+            skipLinkPlaceholder: true,
+            skipTrash: true,
             req,
           });
         }
@@ -641,6 +667,7 @@ export class DuplicateProcessor {
   async duplicateColumn(job: Job<DuplicateColumnJobData>) {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateColumn})`);
     const hrTime = initTime();
+    const droppedAttachments = new DroppedAttachments();
 
     const { context, sourceId, columnId, extra, req, options } = job.data;
 
@@ -708,6 +735,7 @@ export class DuplicateProcessor {
         sourceColumn.fk_model_id,
       )
     ).forCreate();
+    let idMap: Map<string, string>;
     try {
       // save old default value
       const oldCdf = replacedColumn.cdf;
@@ -730,12 +758,13 @@ export class DuplicateProcessor {
 
       Object.assign(replacedColumn, extra);
 
-      const idMap = await this.importService.importModels(context, {
+      idMap = await this.importService.importModels(context, {
         baseId,
         sourceId: source.id,
         data: [exportedModel],
         user,
         req,
+        attachmentHolder: null,
         externalModels: relatedModels,
         existingModel: sourceModel,
         importColumnIds: [columnId],
@@ -796,6 +825,7 @@ export class DuplicateProcessor {
             ...relatedModels.filter((m) => m.id !== sourceModel.id),
           ],
           req,
+          droppedAttachments,
         });
 
         elapsedTime(hrTime, 'import model data', 'duplicateColumn');
@@ -830,7 +860,10 @@ export class DuplicateProcessor {
         `job completed for ${job.id} (${JobTypes.DuplicateColumn})`,
       );
 
-      const res = { id: findWithIdentifier(idMap, sourceColumn.id) };
+      const res = {
+        id: findWithIdentifier(idMap, sourceColumn.id),
+        droppedAttachments: droppedAttachments.count || undefined,
+      };
       this.appHooksService.emit(AppEvents.COLUMN_DUPLICATE_COMPLETE, {
         table: sourceModel,
         sourceColumn,
@@ -853,7 +886,62 @@ export class DuplicateProcessor {
         context,
         error: e.message,
       });
+
+      // drop the half-filled column created by this job; reuse the
+      // never-emitted create manager so no field-deleted webhook fires
+      const newColumnId = idMap && findWithIdentifier(idMap, sourceColumn.id);
+      if (newColumnId) {
+        try {
+          await this.columnsService.columnDelete(context, {
+            columnId: newColumnId,
+            req,
+            skipTrash: true,
+            columnWebhookManager,
+          });
+        } catch (cleanupErr) {
+          this.logger.error(
+            `Failed to remove duplicated column ${newColumnId}: ${cleanupErr.message}`,
+            cleanupErr.stack,
+          );
+        }
+      }
       throw e;
+    }
+  }
+
+  // tableDelete doesn't forward skipTrash to its link-column deletes, so on EE
+  // they'd be trashed and leave the reverse links on the related tables.
+  protected async hardDeleteLinkColumns(
+    context: NcContext,
+    modelId: string,
+    req: NcRequest,
+  ) {
+    const model = await Model.get(context, modelId);
+    if (!model) return;
+
+    const columnWebhookManager = (
+      await new ColumnWebhookManagerBuilder(context).withModelId(modelId)
+    ).forDelete();
+
+    for (const column of await model.getColumns()) {
+      if (!isLinksOrLTAR(column) || column.system) continue;
+      // a self-ref link's inverse was already removed with its pair
+      if (!(await Column.get(context, { colId: column.id }))) continue;
+      try {
+        await this.columnsService.columnDelete(context, {
+          columnId: column.id,
+          req,
+          forceDeleteSystem: true,
+          skipLinkPlaceholder: true,
+          skipTrash: true,
+          columnWebhookManager,
+        });
+      } catch (cleanupErr) {
+        this.logger.error(
+          `Failed to remove link column ${column.id} of ${modelId}: ${cleanupErr.message}`,
+          cleanupErr.stack,
+        );
+      }
     }
   }
 
@@ -881,6 +969,7 @@ export class DuplicateProcessor {
        */
       handledLinks?: string[];
       req: any;
+      droppedAttachments: DroppedAttachments;
     },
   ) {
     const {
@@ -965,6 +1054,16 @@ export class DuplicateProcessor {
         destBase,
         destModel: model,
         req,
+        attachmentHolder: await sourceAttachmentHolder(
+          sourceContext,
+          sourceModel,
+          param.droppedAttachments,
+        ),
+      });
+      await holdCopiedSmartTextImages(targetContext, {
+        sourceModel,
+        targetModel: model,
+        userId: req?.user?.id,
       });
 
       handledLinks = await this.importService.importLinkFromCsvStream(
@@ -1010,6 +1109,7 @@ export class DuplicateProcessor {
         excludeUsers?: boolean;
       };
       req: any;
+      droppedAttachments: DroppedAttachments;
     },
   ) {
     const {
@@ -1070,6 +1170,16 @@ export class DuplicateProcessor {
         destBase,
         destModel: model,
         req,
+        attachmentHolder: await sourceAttachmentHolder(
+          sourceContext,
+          sourceModel,
+          param.droppedAttachments,
+        ),
+      });
+      await holdCopiedSmartTextImages(targetContext, {
+        sourceModel,
+        targetModel: model,
+        userId: req?.user?.id,
       });
 
       handledLinks = await this.importService.importLinkFromCsvStream(
@@ -1195,7 +1305,7 @@ export class DuplicateProcessor {
                     try {
                       // remove empty rows (only pk is present)
                       chunk = chunk.filter((r) => Object.keys(r).length > 1);
-                      if (chunk.length > 0) {
+                      if (!error && chunk.length > 0) {
                         await this.bulkDataService.bulkDataUpdate(
                           targetContext,
                           {
@@ -1209,7 +1319,11 @@ export class DuplicateProcessor {
                         );
                       }
                     } catch (e) {
-                      this.debugLog(e);
+                      this.logger.error(
+                        `Data back-fill failed for ${model.id}: ${e.message}`,
+                        e.stack,
+                      );
+                      error = error ?? e;
                     }
                     chunk = [];
                     parser.resume();
@@ -1218,7 +1332,7 @@ export class DuplicateProcessor {
               }
             },
             complete: async () => {
-              if (chunk.length > 0) {
+              if (!error && chunk.length > 0) {
                 try {
                   // remove empty rows (only pk is present)
                   chunk = chunk.filter((r) => Object.keys(r).length > 1);
@@ -1233,7 +1347,11 @@ export class DuplicateProcessor {
                     });
                   }
                 } catch (e) {
-                  this.debugLog(e);
+                  this.logger.error(
+                    `Data back-fill failed for ${model.id}: ${e.message}`,
+                    e.stack,
+                  );
+                  error = error ?? e;
                 }
                 chunk = [];
               }

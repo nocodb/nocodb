@@ -316,7 +316,7 @@ export default class Source implements SourceType {
   }
 
   @NcCache({
-    key: (args) => args[1],
+    key: (args) => `${args[1]}:${args[2] ? 'f' : ''}`,
   })
   static async get(
     context: NcContext,
@@ -356,6 +356,8 @@ export default class Source implements SourceType {
 
       await NocoCache.set(context, `${CacheScope.SOURCE}:${id}`, sourceData);
     }
+    // A `force` lookup caches a soft-deleted row under the same key.
+    if (sourceData?.deleted && !force) return null;
     return this.castType(sourceData, context);
   }
 
@@ -510,10 +512,12 @@ export default class Source implements SourceType {
   }
 
   async sourceCleanup(_ncMeta = Noco.ncMeta) {
-    await NcConnectionMgrv2.deleteAwait(this);
-
-    // Bump Redis version so all servers invalidate on next read
-    await NcConnectionMgrv2.bumpSourceVersion(this);
+    await NcConnectionMgrv2.releaseSource(this);
+    // Not a static import: ProjectMgrv2 → KnexMigratorv2 → Base cycles back into the models.
+    const { default: ProjectMgrv2 } = await import(
+      '~/db/sql-mgr/v2/ProjectMgrv2'
+    );
+    ProjectMgrv2.evict(this.base_id);
   }
 
   /**
@@ -768,6 +772,7 @@ export default class Source implements SourceType {
       .select(`${MetaTable.PROJECT}.title as project_title`)
       .select(`${MetaTable.SOURCES}.base_id`)
       .select(`${MetaTable.SOURCES}.fk_workspace_id`)
+      .select(`${MetaTable.SOURCES}.deleted`)
       .innerJoin(
         MetaTable.PROJECT,
         `${MetaTable.SOURCES}.base_id`,

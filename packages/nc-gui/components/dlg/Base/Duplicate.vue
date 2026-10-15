@@ -21,6 +21,8 @@ const { api } = useApi()
 
 const { $e, $poller } = useNuxtApp()
 
+const { t } = useI18n()
+
 const basesStore = useBases()
 
 const { workspacesList, activeWorkspace } = useWorkspace()
@@ -147,6 +149,9 @@ const _duplicate = async () => {
 
             status.value = 'success'
             refreshCommandPalette()
+            if (data.data?.result?.droppedAttachments) {
+              message.warning(t('msg.warning.attachmentsNotCopied', { count: data.data.result.droppedAttachments }))
+            }
           } else if (data.status === JobStatus.FAILED) {
             status.value = 'error'
             errorMessage.value = data?.data?.error?.message || 'Some error occurred'

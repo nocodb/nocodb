@@ -63,6 +63,7 @@ import { OrgTokensController } from '~/controllers/org-tokens.controller';
 import { OrgUsersController } from '~/controllers/org-users.controller';
 import { PluginsController } from '~/controllers/plugins.controller';
 import { PublicMetasController } from '~/controllers/public-metas.controller';
+import { AbuseReportsController } from '~/controllers/abuse-reports.controller';
 import { SharedBasesController } from '~/controllers/shared-bases.controller';
 import { SortsController } from '~/controllers/sorts.controller';
 import { SourcesController } from '~/controllers/sources.controller';
@@ -109,6 +110,7 @@ import { OrgTokensService } from '~/services/org-tokens.service';
 import { OrgUsersService } from '~/services/org-users.service';
 import { PluginsService } from '~/services/plugins.service';
 import { PublicMetasService } from '~/services/public-metas.service';
+import { AbuseReportsService } from '~/services/abuse-reports.service';
 import { SharedBasesService } from '~/services/shared-bases.service';
 import { SortsService } from '~/services/sorts.service';
 import { SourcesService } from '~/services/sources.service';
@@ -233,6 +235,7 @@ export const nocoModuleMetadata = {
           BaseUsersController,
           BasesController,
           PublicMetasController,
+          AbuseReportsController,
           ViewsController,
           ViewColumnsController,
           UtilsController,
@@ -324,6 +327,7 @@ export const nocoModuleMetadata = {
     BaseMembersV3Service,
     BasesService,
     PublicMetasService,
+    AbuseReportsService,
     ViewsService,
     ViewColumnsService,
     UtilsService,

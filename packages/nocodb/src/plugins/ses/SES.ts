@@ -29,6 +29,9 @@ export default class SES implements IEmailAdapter {
         sesClient,
         SendEmailCommand,
       },
+      // Message fields can come from scripts and workflows: never read a local file or URL.
+      disableFileAccess: true,
+      disableUrlAccess: true,
     });
   }
 
@@ -40,13 +43,7 @@ export default class SES implements IEmailAdapter {
       const from = fromName
         ? { name: fromName, address: emailAddressOnly(this.input.from) }
         : this.input.from;
-      this.transporter.sendMail({ ...rest, from }, (err, info) => {
-        if (err) {
-          console.log(err);
-        } else {
-          console.log('Message sent: ' + info.response);
-        }
-      });
+      await this.transporter.sendMail({ ...rest, from });
     }
   }
 

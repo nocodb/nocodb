@@ -896,9 +896,9 @@ export const relationDataFetcher = (param: {
       // const cn = (await relColOptions.getChildColumn()).title;
       const mmTable = await relColOptions.getMMModel();
 
-      // if mm table is not present then return
+      // One entry per id: batch loaders reject a missing result.
       if (!mmTable) {
-        return;
+        return _parentIds.map(() => []);
       }
 
       const vcn = (await relColOptions.getMMChildColumn()).column_name;

@@ -217,11 +217,10 @@ export default class Noco {
     // connection about to expire is cut off mid-headers.
     httpServer.headersTimeout = httpServer.keepAliveTimeout + 10_000;
 
-    // Constrain proxy trust to an explicitly-configured topology (default off).
-    // The bootstrap entry files historically call `server.enable('trust proxy')`
-    // unconditionally; override that here so `req.ip` cannot be spoofed via
-    // client-supplied X-Forwarded-* headers unless an operator opts in with
-    // NC_TRUST_PROXY (CWE-346).
+    // Constrain proxy trust to an explicitly-configured topology (default off),
+    // so `req.ip` cannot be spoofed via client-supplied X-Forwarded-* headers
+    // unless an operator opts in with NC_TRUST_PROXY (CWE-346). The only place
+    // trust proxy is set — bootstrap entry files must not enable it themselves.
     const trustProxy = getTrustProxyConfig();
     const expressInstance: Express = nestApp.getHttpAdapter().getInstance();
     expressInstance.set('trust proxy', trustProxy);
@@ -250,7 +249,9 @@ export default class Noco {
     await nestApp.init();
     NcDebug.log('Nest app initialized');
 
-    await nestApp.enableShutdownHooks();
+    // Not the default (every signal): V8 aborts via SIGTRAP/SIGILL, and a JS
+    // listener on those keeps the crashed process alive and serving nothing.
+    await nestApp.enableShutdownHooks(['SIGTERM', 'SIGINT']);
     NcDebug.log('Shutdown hooks enabled');
 
     const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/';

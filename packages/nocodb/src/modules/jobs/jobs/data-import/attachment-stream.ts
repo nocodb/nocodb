@@ -3,7 +3,8 @@ import type { AttachmentReqType, FileImportType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type IStorageAdapterV2 from '~/types/nc-plugin/lib/IStorageAdapterV2';
 import {
-  attachmentRefResolvesToStorage,
+  isStorageAttachmentRef,
+  needsAttachmentOwnership,
   resolveAttachmentFilePath,
 } from '~/helpers/attachmentHelpers';
 import { NcError } from '~/helpers/catchError';
@@ -26,9 +27,19 @@ export async function assertImportAttachmentOwned(
   attachment: Pick<AttachmentReqType, 'path' | 'url'>,
   owner: ImportAttachmentOwner,
 ) {
-  const diskResolvableRefs = [attachment.path, attachment.url].filter((ref) =>
-    attachmentRefResolvesToStorage(ref),
-  );
+  // a url without a path is read as a storage key, so a foreign url is refused
+  if (!attachment.path && !(await isStorageAttachmentRef(attachment.url))) {
+    NcError.get(owner.context).unprocessableEntity(
+      'Invalid attachment reference',
+    );
+  }
+
+  const diskResolvableRefs: string[] = [];
+  for (const ref of [attachment.path, attachment.url]) {
+    if (await needsAttachmentOwnership(ref)) {
+      diskResolvableRefs.push(ref);
+    }
+  }
 
   for (const ref of diskResolvableRefs) {
     const accessible = await FileReference.isFileUrlAccessibleForWrite(

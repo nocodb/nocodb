@@ -9,4 +9,5 @@ export type NotificationKind =
   | AppEvents
   | 'mention'
   | 'comment'
-  | 'doc_mention';
+  | 'doc_mention'
+  | 'roadmap_update';

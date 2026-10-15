@@ -111,9 +111,10 @@ export class AttachmentsController {
     @Query('filename') queryFilename?: string,
   ) {
     try {
-      const file = await this.attachmentsService.getFile({
-        path: path.join('nc', 'uploads', filename),
-      });
+      const filePath = joinUnder(path.join('nc', 'uploads'), filename);
+      if (!filePath) return res.status(404).send('Not found');
+
+      const file = await this.attachmentsService.getFile({ path: filePath });
 
       if (!(await localFileExists(file.path))) {
         return res.status(404).send('File not found');
@@ -147,15 +148,13 @@ export class AttachmentsController {
     @Query('filename') queryFilename?: string,
   ) {
     try {
-      const file = await this.attachmentsService.getFile({
-        path: path.join(
-          'nc',
-          param1,
-          param2,
-          'uploads',
-          ...filename.split('/'),
-        ),
-      });
+      const filePath = joinUnder(
+        path.join('nc', param1, param2, 'uploads'),
+        ...filename.split('/'),
+      );
+      if (!filePath) return res.status(404).send('Not found');
+
+      const file = await this.attachmentsService.getFile({ path: filePath });
 
       if (!(await localFileExists(file.path))) {
         return res.status(404).send('File not found');
@@ -258,4 +257,11 @@ export class AttachmentsController {
       urlOrPath,
     });
   }
+}
+
+// Route params arrive URL-decoded, so `..%2F` survives as `../` and path.join
+// would climb out of the route's root into the rest of `nc/`.
+function joinUnder(root: string, ...segments: string[]): string | null {
+  const joined = path.join(root, ...segments);
+  return joined.startsWith(root + path.sep) ? joined : null;
 }

@@ -13,7 +13,6 @@ import {
   AuditOperationSubTypes,
   AuditV1OperationTypes,
   ClientType,
-  convertDurationToSeconds,
   CURRENT_USER_TOKEN,
   EventType,
   extractFilterFromXwhere,
@@ -30,6 +29,7 @@ import {
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
+  NC_ERROR_SENTINEL,
   NcApiVersion,
   NcErrorType,
   ncIsNull,
@@ -106,6 +106,7 @@ import { RelationManager } from '~/db/relation-manager';
 import sortV2 from '~/db/sortV2';
 import { customValidators } from '~/db/util/customValidators';
 import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
+import { handleNotNullConstraintError } from '~/helpers/notNullConstraintErrorHandler';
 import {
   _wherePk,
   applyPaginate,
@@ -134,7 +135,11 @@ import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import { extractProps } from '~/helpers/extractProps';
 import { mapNonFiniteToString } from '~/helpers/formulaNonFinite';
 import { isNonFiniteFormulaHandlingEnabled } from '~/db/formulav2/pg-ieee';
-import { attachmentRefResolvesToStorage } from '~/helpers/attachmentHelpers';
+import {
+  dropAttachmentSignatures,
+  needsAttachmentOwnership,
+  signableAttachmentFilter,
+} from '~/helpers/attachmentHelpers';
 import { extractDisplayNameFromEmail } from '~/utils/emailUtils';
 import getAst from '~/helpers/getAst';
 import { setModelContext } from '~/helpers/modelContext';
@@ -1748,9 +1753,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             {
               // @ts-ignore
               const colOptions: LookupColumn = await column.getColOptions();
-              // Skip registering lookup alias if column has an error — sentinel value
-              // is already selected in selectObject
-              if (colOptions?.error) break;
+              // A broken lookup reads as the error sentinel, as on the EE query
+              // clients. A value selectObject selected shadows this resolver.
+              const brokenLookup = () => {
+                proto[column.title] = () => NC_ERROR_SENTINEL;
+              };
+              if (colOptions?.error) {
+                brokenLookup();
+                break;
+              }
               const relCol = await Column.get(this.context, {
                 colId: colOptions.fk_relation_column_id,
               });
@@ -1771,15 +1782,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   : relCol.title;
               const { refContext: lookupRefContext } =
                 relColOptions.getRelContext();
+              const lookupCol = await Column.get(lookupRefContext, {
+                colId: colOptions.fk_lookup_column_id,
+              });
+              if (!lookupCol) {
+                brokenLookup();
+                break;
+              }
               proto.__columnAliases[column.title] = {
-                path: [
-                  relColTitle,
-                  (
-                    await Column.get(lookupRefContext, {
-                      colId: colOptions.fk_lookup_column_id,
-                    })
-                  )?.title,
-                ],
+                path: [relColTitle, lookupCol.title],
               };
             }
             break;
@@ -2308,8 +2319,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       for (const column of this.model.columns) {
         if (!isLinksOrLTAR(column)) continue;
 
-        const colOptions =
-          await column.getColOptions<LinkToAnotherRecordColumn>();
+        const colOptions = await this.getLinkOptionsForDelete(
+          column,
+          'delByPk',
+        );
+        if (!colOptions) continue;
 
         const { mmContext, refContext, parentContext } =
           await colOptions.getParentChildContext();
@@ -2656,6 +2670,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     for (const column of LTARColumns) {
       const colOptions =
         (await column.getColOptions()) as LinkToAnotherRecordColumn;
+      if (!colOptions) continue;
 
       const { childContext, mmContext } =
         await colOptions.getParentChildContext();
@@ -2873,6 +2888,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return newData;
     } catch (e) {
       await this.errorUpdate(e, data, cookie);
+      await handleNotNullConstraintError({ error: e, baseModel: this });
       throw e;
     }
   }
@@ -3009,14 +3025,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       let rowId = null;
 
       const nestedCols = columns.filter((c) => isLinksOrLTAR(c));
-      let {
+      const {
         postInsertOps,
         preInsertOps,
-        // eslint-disable-next-line prefer-const
+
         postInsertAuditEntries,
-        // eslint-disable-next-line prefer-const
+
         postInsertLastModifiedEntries,
-        // eslint-disable-next-line prefer-const
+
         displacedRecords,
       } = await this.prepareNestedLinkQb({
         nestedCols,
@@ -3415,6 +3431,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       return response;
     } catch (e) {
+      await handleNotNullConstraintError({ error: e, baseModel: this });
       throw e;
     }
   }
@@ -3519,6 +3536,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         });
       }
     });
+
+    // Trashed rows must not match
+    const softDeleteFilter = await this.getSoftDeleteFilter();
+    if (softDeleteFilter) qb.where(softDeleteFilter);
 
     // Only select PKs + merge columns (minimal data needed)
     const selectCols = [
@@ -4124,6 +4145,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return [...updatedDataList, ...insertedDataList];
     } catch (e) {
       await trx?.rollback();
+      await handleNotNullConstraintError({ error: e, baseModel: this });
       throw e;
     }
   }
@@ -4267,14 +4289,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
           if (col.uidt === UITypes.DateTime && dayjs(val).isValid()) {
             val = this.formatDate(val, col);
-          }
-          if (col.uidt === UITypes.Duration) {
-            if (col.meta?.duration !== undefined) {
-              const duration = convertDurationToSeconds(val, col.meta.duration);
-              if (duration._isValid) {
-                val = duration._sec;
-              }
-            }
           }
           insertObj[sanitize(col.column_name)] = val;
         } else if (val !== undefined) {
@@ -4647,6 +4661,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return newData;
     } catch (e) {
       if (transaction) await transaction.rollback();
+      await handleNotNullConstraintError({ error: e, baseModel: this });
       throw e;
     }
   }
@@ -5158,8 +5173,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         for (const column of this.model.columns) {
           if (!isLinksOrLTAR(column)) continue;
 
-          const colOptions =
-            await column.getColOptions<LinkToAnotherRecordColumn>();
+          const colOptions = await this.getLinkOptionsForDelete(
+            column,
+            'bulkDelete',
+          );
+          if (!colOptions) continue;
           const { mmContext, refContext, childContext, parentContext } =
             await colOptions.getParentChildContext();
 
@@ -6336,6 +6354,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             column,
             ex.options,
           );
+          // The request's meta cache still holds the options from before the append.
+          this.context.cacheMap?.clear();
           column.colOptions = { options };
           const UpdatedColumn = await Column.get(this.context, {
             colId: column.id,
@@ -8152,6 +8172,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   protected async _convertAttachmentType(
     attachmentColumns: Record<string, any>[],
     d: Record<string, any>,
+    signFilters?: Map<string, (attachment: unknown) => boolean>,
   ) {
     try {
       if (!d || !attachmentColumns.length) {
@@ -8174,6 +8195,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
         }
 
+        const isSignable = signFilters?.get(col.id);
+        if (isSignable) dropAttachmentSignatures(d[col.id]);
         if (!Array.isArray(d[col.id]) || !d[col.id].length) continue;
 
         // Process each attachment instance individually
@@ -8194,6 +8217,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           for (const lookedUpAttachment of Array.isArray(attachment)
             ? attachment
             : [attachment]) {
+            if (isSignable && !isSignable(lookedUpAttachment)) {
+              dropAttachmentSignatures(lookedUpAttachment);
+              continue;
+            }
             const thumbnails =
               this.prepareAttachmentForSigning(lookedUpAttachment);
             if (
@@ -8260,6 +8287,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     if ('status' in attachment && attachment.status === 'uploading') {
+      return thumbnails;
+    }
+
+    // thumbnails only exist for our uploads; don't derive urls on external links
+    if (!attachment.path && !/\/nc\/uploads\//i.test(attachment.url)) {
       return thumbnails;
     }
 
@@ -8499,6 +8531,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const directAttachmentColumns = [];
     const lookupColumns = [];
     const formulaColumns = [];
+    // The Attachment column a lookup's or formula's files come from; null when it can't be found.
+    const fileOrigins = new Map<string, Column | null>();
 
     for (const col of columns) {
       if (col.uidt === UITypes.Attachment) {
@@ -8514,6 +8548,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const parsedTree: ParsedFormulaNode = colOptions.getParsedTree();
         if (parsedTree?.referencedColumn?.uidt === UITypes.Attachment) {
           formulaColumns.push(col);
+          // Through a lookup, `id` is the remote field and `intermediaryId` the lookup.
+          const { id, intermediaryId } = parsedTree.referencedColumn;
+          const lookup =
+            intermediaryId &&
+            columns.find((column) => column.id === intermediaryId);
+          const referenced = lookup
+            ? await this.getNestedColumn(lookup).catch(() => null)
+            : columns.find((column) => column.id === id);
+          fileOrigins.set(
+            col.id,
+            referenced instanceof Column &&
+              referenced.uidt === UITypes.Attachment
+              ? referenced
+              : null,
+          );
         }
       }
     }
@@ -8525,7 +8574,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             lookupColumns.map(async (col) => {
               try {
                 const nestedCol = await this.getNestedColumn(col);
-                return nestedCol?.uidt === UITypes.Attachment ? col : null;
+                if (nestedCol?.uidt !== UITypes.Attachment) return null;
+                if (nestedCol instanceof Column) {
+                  fileOrigins.set(col.id, nestedCol);
+                }
+                return col;
               } catch (error) {
                 // Log error but continue processing
                 console.warn(
@@ -8548,13 +8601,74 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return data;
     }
 
+    const signFilters = await this.attachmentSignFilters(
+      allAttachmentColumns,
+      fileOrigins,
+      Array.isArray(data) ? data : [data],
+    );
+
     if (Array.isArray(data)) {
       return Promise.all(
-        data.map((d) => this._convertAttachmentType(allAttachmentColumns, d)),
+        data.map((d) =>
+          this._convertAttachmentType(allAttachmentColumns, d, signFilters),
+        ),
       );
     } else {
-      return this._convertAttachmentType(allAttachmentColumns, data);
+      return this._convertAttachmentType(
+        allAttachmentColumns,
+        data,
+        signFilters,
+      );
     }
+  }
+
+  // A lookup's files come from the looked-up table, whose source decides what a read signs.
+  private async attachmentSignFilters(
+    columns: Column[],
+    fileOrigins: Map<string, Column | null>,
+    rows: Record<string, any>[],
+  ) {
+    const groups = new Map<
+      string,
+      { origin?: Column; cleanupPending: boolean; columnIds: string[] }
+    >();
+    for (const column of columns) {
+      const fileOrigin = fileOrigins.get(column.id);
+      const origin =
+        fileOrigin && fileOrigin.source_id !== this.model.source_id
+          ? fileOrigin
+          : undefined;
+      const cleanupPending =
+        fileOrigin === null ||
+        !!(fileOrigin ?? column).internal_meta?.attachment_cleanup_pending;
+      const key = `${
+        origin ? `${origin.base_id}/${origin.source_id}` : ''
+      }:${cleanupPending}`;
+      if (!groups.has(key)) {
+        groups.set(key, { origin, cleanupPending, columnIds: [] });
+      }
+      groups.get(key).columnIds.push(column.id);
+    }
+
+    const filters = new Map<string, (attachment: unknown) => boolean>();
+    for (const { origin, cleanupPending, columnIds } of groups.values()) {
+      const context = origin
+        ? {
+            ...this.context,
+            workspace_id: origin.fk_workspace_id ?? this.context.workspace_id,
+            base_id: origin.base_id,
+          }
+        : this.context;
+      const isSignable = await signableAttachmentFilter(context, {
+        source: origin
+          ? await Source.get(context, origin.source_id)
+          : await this.getSource(),
+        values: rows.flatMap((d) => columnIds.map((id) => d?.[id])),
+        requireHeld: cleanupPending,
+      });
+      if (isSignable) columnIds.forEach((id) => filters.set(id, isSignable));
+    }
+    return filters;
   }
 
   // TODO(timezone): retrieve the format from the corresponding column meta
@@ -9360,9 +9474,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         );
       }
 
+      // Postgres rejects '' for numeric. Only that case is handled here: the
+      // Decimal handler casts through Number(), which would cost v1/v2 string
+      // values their precision.
+      if (
+        this.context.api_version !== NcApiVersion.V3 &&
+        column.uidt === UITypes.Decimal &&
+        data[column.column_name] === ''
+      ) {
+        data[column.column_name] = null;
+      }
+
       if (
         !ncIsUndefined(data[column.column_name]) &&
         !ncIsNull(data[column.column_name]) &&
+        // Trusted copies (duplicate / import) keep stored URLs as they are.
+        !(column.uidt === UITypes.URL && extra?.skipPermissionCheck) &&
         (this.context.api_version === NcApiVersion.V3 ||
           // partially open the parseUserInput to several UITypes
           [
@@ -9370,9 +9497,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             UITypes.SingleLineText,
             UITypes.PhoneNumber,
             UITypes.Email,
+            // Refuses javascript:/data:/vbscript: URLs.
+            UITypes.URL,
             UITypes.JSON,
             UITypes.Currency,
             UITypes.Checkbox,
+            // Number-like types: the handler rejects fractions, out-of-range
+            // years and malformed durations with a named column.
+            UITypes.Number,
+            UITypes.Percent,
+            UITypes.Year,
+            UITypes.Duration,
+            UITypes.Date,
           ].includes(column.uidt as UITypes) ||
           // Oracle/mssql pin a session time format that rejects the `+00:00`
           // offset carried by raw V1/V2 Time payloads (ORA-01830 / mssql
@@ -9600,27 +9736,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 !sanitizedAttachment.id ||
                 regenerateIds.includes(sanitizedAttachment.id)
               ) {
-                // A client-supplied `path` — or a `url` that resolves to our
-                // own object storage rather than a genuinely external file — is
-                // a disk-resolvable reference. Accepting an arbitrary one lets a
-                // caller embed another base's attachment and later have it
-                // signed & served (cross-tenant disclosure). `insert` below
-                // persists `file_url: url ?? path`, and read-time signing
-                // (`getSignedUrl`) reduces even an http(s) `url` to its pathname
-                // and, on external storage, signs THAT as a storage key — so a
-                // crafted `https://anything/nc/uploads/<victim>/secret.pdf`
-                // discloses another tenant's object. We therefore check any
-                // reference whose resolved storage key lives under `nc/uploads/`
-                // (using the same `getPathFromUrl` normalisation `getSignedUrl`
-                // applies, so URL-encoding can't slip past this), plus any
-                // non-http(s) `url` (an opaque local path). Only a reference the
-                // caller already owns — one they uploaded, or already stored in
-                // this base — is accepted.
-                const diskResolvableRefs = extra?.skipAttachmentOwnershipCheck
-                  ? []
-                  : [sanitizedAttachment.path, sanitizedAttachment.url].filter(
-                      (ref) => attachmentRefResolvesToStorage(ref),
-                    );
+                // A `path`, or a `url` on our own storage host, must be one the
+                // caller owns (uploaded or already stored in this base). A
+                // foreign url is an external link and is never signed or read.
+                const diskResolvableRefs: string[] = [];
+                if (!extra?.skipAttachmentOwnershipCheck) {
+                  for (const ref of [
+                    sanitizedAttachment.path,
+                    sanitizedAttachment.url,
+                  ]) {
+                    if (await needsAttachmentOwnership(ref)) {
+                      diskResolvableRefs.push(ref);
+                    }
+                  }
+                }
 
                 for (const ref of diskResolvableRefs) {
                   const accessible =
@@ -10095,6 +10224,27 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
   }
 
+  // A link can outlive its relation row or the tables it points at.
+  protected async getLinkOptionsForDelete(
+    column: Column,
+    caller: string,
+  ): Promise<LinkToAnotherRecordColumn | null> {
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+    const missing = !colOptions
+      ? 'relation options'
+      : !(await colOptions.getRelatedTable())
+      ? `related table ${colOptions.fk_related_model_id}`
+      : isMMOrMMLike(column) && !(await colOptions.getMMModel())
+      ? `junction table ${colOptions.fk_mm_model_id}`
+      : null;
+    if (!missing) return colOptions;
+
+    this.logger.warn(
+      `${caller}: skipping link cleanup for column ${column.id} on table ${this.model.id} — missing ${missing} (orphaned link)`,
+    );
+    return null;
+  }
+
   /**
    * After soft-deleting or hard-deleting records, update LMT and broadcast
    * for linked records (HM children, MM targets) so their UI reflects the
@@ -10133,8 +10283,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     for (const column of columns) {
       if (!isLinksOrLTAR(column)) continue;
 
-      const colOptions =
-        await column.getColOptions<LinkToAnotherRecordColumn>();
+      const colOptions = await this.getLinkOptionsForDelete(
+        column,
+        'collectLinkedRecordNotifications',
+      );
+      if (!colOptions) continue;
 
       try {
         const { mmContext, parentContext, childContext } =
@@ -10292,8 +10445,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     for (const column of columns) {
       if (!isLinksOrLTAR(column)) continue;
 
-      const colOptions =
-        await column.getColOptions<LinkToAnotherRecordColumn>();
+      const colOptions = await this.getLinkOptionsForDelete(
+        column,
+        'updateLinkedRecordsOnDelete',
+      );
+      if (!colOptions) continue;
 
       try {
         const { mmContext, parentContext, childContext } =

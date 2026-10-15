@@ -23,6 +23,19 @@ export interface AppSettings {
    * @default false
    */
   allow_email_signin_with_sso?: boolean;
+
+  /**
+   * Lets anonymous visitors of public shares report them for abuse.
+   * @default true
+   */
+  allow_reporting_abuse?: boolean;
+
+  /**
+   * Where abuse reports are emailed on self-hosted instances. Empty means
+   * all super admins. Cloud ignores it and uses NC_ABUSE_REPORT_EMAIL.
+   * @default ''
+   */
+  abuse_contact_email?: string;
 }
 
 /**
@@ -32,4 +45,6 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   invite_only_signup: false,
   restrict_workspace_creation: false,
   allow_email_signin_with_sso: false,
+  allow_reporting_abuse: true,
+  abuse_contact_email: '',
 };

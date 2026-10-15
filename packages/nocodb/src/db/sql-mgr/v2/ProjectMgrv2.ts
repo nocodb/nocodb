@@ -26,6 +26,10 @@ export default class ProjectMgrv2 {
     return mgr;
   }
 
+  public static evict(baseId: string) {
+    this.sqlMgrMap.delete(baseId);
+  }
+
   public static async getSqlMgrTrans(
     context: NcContext,
     base: { id: string },

@@ -29,7 +29,10 @@ import type {
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/ncError';
-import { notDeletedXcCondition } from '~/utils/trashUtils';
+import {
+  notDeletedKnexCondition,
+  notDeletedXcCondition,
+} from '~/utils/trashUtils';
 import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import Model from '~/models/Model';
 import FormView from '~/models/FormView';
@@ -1562,6 +1565,8 @@ export default class View implements ViewType {
                 qb.andWhere((subQb) => {
                   subQb.where('system', false).orWhereNull('system');
                 });
+                // Column.get rejects deleted rows, so never pick one here.
+                qb.andWhere(notDeletedKnexCondition);
               },
               orderBy: { order: 'asc' },
             },
@@ -2725,7 +2730,7 @@ export default class View implements ViewType {
     }
 
     // Every singleQuery plan for a (model, view) is a FIELD of a single
-    // `singleQuery_v4:{modelId}:{viewIdOrDefault}` HASH, so one `del` wipes
+    // `singleQuery_v5:{modelId}:{viewIdOrDefault}` HASH, so one `del` wipes
     // every variant for the view (`:queries`, `:count`, `:read:N`, `:ltar`,
     // `:deleted`, `:primaries`, `:rls:*`, `:dvc:*`, and any combination)
     // atomically. There is no separate index to expire or race against, so an

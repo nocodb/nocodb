@@ -7,6 +7,8 @@ interface NavItem {
   label: string
   disabled?: boolean
   active?: boolean
+  /** Classes for a status dot on the icon; none drawn when unset. */
+  dot?: string
   onClick?: () => void
 }
 
@@ -130,7 +132,7 @@ const hasAvailableBases = computed(() => !!basesList.value?.length)
 
 const { isActiveBaseAppOnlyInstall } = useManagedAppInstalls()
 
-const { isActiveBaseCodeProject, isCodeProjectRoute } = useCodeProjects()
+const { isActiveBaseCodeProject, isCodeProjectRoute, isCodeProjectMachinesRoute, machinesStatus } = useCodeProjects()
 
 // Templates are browsed before a project exists: the project's own navigation
 // there points at whichever project was open last, which is not what is on screen.
@@ -267,6 +269,21 @@ const mainItems = computed<NavItem[]>(() =>
             navigateTo(`${getBasePath()}/factory`)
           },
         },
+        {
+          key: 'machines',
+          icon: 'ncServer',
+          label: t('labels.factoryMachines'),
+          active: isCodeProjectMachinesRoute(route.value),
+          dot: {
+            building: 'bg-nc-fill-primary animate-pulse',
+            failed: 'bg-nc-fill-red-medium',
+            ready: undefined,
+          }[machinesStatus.value ?? 'ready'],
+          onClick: () => {
+            activeSidebarTab.value = 'data'
+            navigateTo(`${getBasePath()}/machines`)
+          },
+        },
       ]
     : [
         {
@@ -387,7 +404,14 @@ const isSettingsActive = computed(() => isBaseSettingsOpen.value || !!wsSettings
       :active="item.active ?? (activeSidebarTab === item.key && !isChatFullScreen && !isBaseSettingsOpen)"
       :disabled="item.disabled"
       @click="item.onClick?.()"
-    />
+    >
+      <template v-if="item.dot" #icon>
+        <span class="relative flex">
+          <GeneralIcon :icon="(item.icon as any)" class="nc-rail-item-icon" />
+          <span class="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full ring-2 ring-nc-bg-default" :class="item.dot" />
+        </span>
+      </template>
+    </DashboardMiniSidebarV2RailItem>
 
     <DashboardMiniSidebarV2AppTiles v-if="showAppTile && !isAppFirst" variant="rail" />
 
@@ -403,6 +427,8 @@ const isSettingsActive = computed(() => isBaseSettingsOpen.value || !!wsSettings
 
     <!-- Bottom group -->
     <div class="nc-rail-bottom-group">
+      <DashboardRoadmapRailItem />
+
       <!-- Help -->
       <DashboardMiniSidebarHelp>
         <DashboardMiniSidebarV2RailItem icon="ncHelp" :label="$t('general.help')" panel-key="help" is-dropdown />

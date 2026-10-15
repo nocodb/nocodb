@@ -51,6 +51,12 @@ const isTooltipDisabled = computed(() => {
 
   return showRailLabels && !!(props.label || slots.label)
 })
+
+// A real click, so a wrapping dropdown trigger opens too.
+function onActivateKey(e: KeyboardEvent) {
+  if (props.disabled) return
+  ;(e.currentTarget as HTMLElement).click()
+}
 </script>
 
 <template>
@@ -61,7 +67,13 @@ const isTooltipDisabled = computed(() => {
       class="nc-rail-item"
       :class="{ active, disabled, 'is-dropdown': isDropdown, 'plain-active': plainActive }"
       :data-panel="panelKey"
+      role="button"
+      :tabindex="disabled ? -1 : 0"
+      :aria-label="tooltipText || undefined"
+      :aria-disabled="disabled || undefined"
       @click="!disabled && emits('click')"
+      @keydown.enter.prevent="onActivateKey"
+      @keydown.space.prevent="onActivateKey"
     >
       <!-- Active indicator bar -->
       <span v-if="!plainActive" class="nc-rail-item-indicator" />
@@ -85,7 +97,12 @@ const isTooltipDisabled = computed(() => {
 
 <style lang="scss" scoped>
 .nc-rail-item {
-  @apply flex flex-col items-center justify-center cursor-pointer transition-all duration-150;
+  @apply flex flex-col items-center justify-center cursor-pointer transition-all duration-150 outline-none;
+
+  &:focus-visible .nc-rail-item-chip {
+    @apply shadow-focus;
+  }
+
   width: 40px;
   height: auto;
 

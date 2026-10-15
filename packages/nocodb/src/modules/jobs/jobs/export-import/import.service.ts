@@ -30,14 +30,19 @@ import { sanitizeColumnName } from '~/helpers';
 import { sanitizeCommentBody } from '~/helpers/sanitizeCommentBody';
 import { NcError } from '~/helpers/catchError';
 import {
+  copyFormImages,
+  DroppedAttachments,
+  dropUnheldAttachments,
   findWithIdentifier,
   generateUniqueName,
   getEntityIdentifier,
   getParentIdentifier,
+  keepHeldAttachments,
   reverseGet,
   withoutId,
   withoutNull,
 } from '~/helpers/exportImportHelpers';
+import type { AttachmentHolder } from '~/helpers/exportImportHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import {
   Base,
@@ -152,6 +157,7 @@ export class ImportService {
       data: Array<any>;
       req: NcRequest;
       idMap: Map<string, string>;
+      attachmentHolder: AttachmentHolder | null;
     },
   ) {
     return _param.idMap;
@@ -166,6 +172,8 @@ export class ImportService {
       data: Array<any>;
       req: NcRequest;
       idMap: Map<string, string>;
+      /** Same-instance copy source; its uploaded workflow files are shared with the copy */
+      sourceBaseId?: string;
     },
   ) {
     return _param.idMap;
@@ -220,6 +228,8 @@ export class ImportService {
       importColumnIds?: string[];
       columnWebhookManager?: ColumnWebhookManager;
       isDuplicateOperation?: boolean;
+      // Set when the payload isn't read from a base on this server; null trusts it.
+      attachmentHolder: AttachmentHolder | null;
     },
   ) {
     const targetContext = param.targetContext ?? context;
@@ -443,10 +453,26 @@ export class ImportService {
       const table = tableReferences.get(modelData.id);
 
       for (const commentD of commentsData) {
+        let attachments = commentD.attachments;
+        if (param.attachmentHolder && attachments) {
+          const list = parseProp(attachments);
+          const files = Array.isArray(list) ? list : [];
+          attachments = await keepHeldAttachments(
+            files,
+            param.attachmentHolder,
+          );
+          param.attachmentHolder.dropped.add(
+            'comment file',
+            files.length - attachments.length,
+            table.title,
+          );
+        }
+
         const comment = await Comment.insert(
           targetContext,
           withoutId({
             ...commentD,
+            attachments,
             comment: sanitizeCommentBody(commentD.comment),
             fk_model_id: table.id,
             parent_comment_id: idMap.get(commentD.parent_comment_id),
@@ -1836,6 +1862,12 @@ export class ImportService {
               } as any,
             }),
           });
+          if (viewData.type === ViewTypes.FORM && viewData.view) {
+            viewData.view = await copyFormImages(targetContext, viewData.view, {
+              holder: param.attachmentHolder,
+              userId: param.user?.id,
+            });
+          }
 
           const vw = await this.createView(
             targetContext,
@@ -2309,12 +2341,14 @@ export class ImportService {
           // store fk_mm_model_id (mm) to link once
           let handledLinks = [];
 
+          const dropped = new DroppedAttachments();
           const idMap = await this.importModels(context, {
             user,
             baseId,
             sourceId,
             data: schema,
             req,
+            attachmentHolder: { baseId, userId: user?.id, dropped },
           });
 
           elapsedTime(hrTime, 'import models schema', 'importBase');
@@ -2350,6 +2384,11 @@ export class ImportService {
                 destBase,
                 destModel: model,
                 req,
+                attachmentHolder: {
+                  baseId: destProject.id,
+                  userId: req?.user?.id,
+                  dropped,
+                },
               });
 
               elapsedTime(
@@ -2378,6 +2417,10 @@ export class ImportService {
             });
 
             elapsedTime(hrTime, `import links`, 'importBase');
+          }
+
+          if (dropped.count) {
+            this.logger.warn(`Not imported into base ${baseId}: ${dropped}`);
           }
         } catch (e) {
           if (e instanceof NcError || e instanceof NcBaseError) throw e;
@@ -2460,6 +2503,8 @@ export class ImportService {
       destModel: Model;
       req: any;
       skipDuplicates?: boolean;
+      // Rows skip the write-time check, so each attachment must already be held here; null trusts them.
+      attachmentHolder: AttachmentHolder | null;
     },
   ): Promise<void> {
     const {
@@ -2475,6 +2520,38 @@ export class ImportService {
     const dataHashSet: Set<string> = new Set();
     const headers: string[] = [];
     let chunk = [];
+
+    let attachmentColumns: string[] | undefined;
+    const dropAttachments = async (rows: Record<string, unknown>[]) => {
+      if (!param.attachmentHolder) return;
+      if (!attachmentColumns) {
+        const checkedIds = param.attachmentHolder.columnIds?.map((id) =>
+          findWithIdentifier(idMap, id),
+        );
+        attachmentColumns = (await destModel.getColumns())
+          .filter(
+            (column) =>
+              column.uidt === UITypes.Attachment &&
+              (!checkedIds || checkedIds.includes(column.id)),
+          )
+          .map((column) => column.column_name);
+      }
+      const dropped = await dropUnheldAttachments(
+        rows,
+        attachmentColumns,
+        param.attachmentHolder,
+      );
+      if (dropped) {
+        this.logger.warn(
+          `Dropped ${dropped} attachment(s) not held by base ${param.attachmentHolder.baseId} importing ${destModel.id}`,
+        );
+        param.attachmentHolder.dropped.add(
+          'attachment',
+          dropped,
+          destModel.title,
+        );
+      }
+    };
 
     return new Promise((resolve, reject) => {
       papaparse.parse(dataStream, {
@@ -2549,6 +2626,7 @@ export class ImportService {
               if (chunk.length >= IMPORT_BATCH_SIZE) {
                 parser.pause();
                 try {
+                  await dropAttachments(chunk);
                   await this.bulkDataService.bulkDataInsert(context, {
                     baseName: destProject.id,
                     tableName: destModel.id,
@@ -2567,13 +2645,7 @@ export class ImportService {
                     // attachments are carried over from the source base, so
                     // they belong to neither the destination base nor (in
                     // general) the acting user — the ownership check can never
-                    // pass here
-                    // TODO: this also relaxes the guard for cross-instance
-                    // remote import, whose refs arrive in the request body
-                    // rather than from an ACL-checked base. Thread the flag
-                    // per-caller once remote import transfers attachment files
-                    // instead of passing refs through verbatim.
-                    // github.com/nocodb/nocohub/pull/10063#discussion_r3773398681
+                    // pass here; dropAttachments checks them against the holder
                     skipAttachmentOwnershipCheck: true,
                     skipPayloadLimit: true,
                   });
@@ -2592,6 +2664,7 @@ export class ImportService {
         complete: async () => {
           if (chunk.length > 0) {
             try {
+              await dropAttachments(chunk);
               await this.bulkDataService.bulkDataInsert(context, {
                 baseName: destProject.id,
                 tableName: destModel.id,

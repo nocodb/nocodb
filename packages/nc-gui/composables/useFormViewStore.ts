@@ -194,7 +194,7 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       { maxWait: 2000 },
     )
 
-    const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
+    const saveColMeta = async (col: Record<string, any>) => {
       if (col?.id && isEditable) {
         validateActiveField(col)
 
@@ -209,7 +209,20 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
           message.error(await extractSdkResponseErrorMsg(e))
         }
       }
-    }, 250)
+    }
+
+    // Debounced per column: a shared debounce let an edit on the next field drop this one's pending save.
+    const colMetaSavers = new Map<string, typeof saveColMeta>()
+
+    const updateColMeta = (col: Record<string, any>) => {
+      if (!col?.id) return
+      let save = colMetaSavers.get(col.id)
+      if (!save) {
+        save = useDebounceFn(saveColMeta, 250)
+        colMetaSavers.set(col.id, save)
+      }
+      return save(col)
+    }
 
     /**
      * Atomically re-layout multiple form columns after a drag-drop reflow.

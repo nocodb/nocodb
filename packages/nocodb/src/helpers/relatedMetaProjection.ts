@@ -184,14 +184,19 @@ const RELATED_PROJECTION_MAX_PASSES = 6;
  * base-only pass would trim `C` to pk+pv and strip the chain's terminal column.
  * Hence: re-collect from every KEPT related column until nothing new appears.
  *
+ * `extraNeededColIds` keeps related-table columns the consumer renders directly
+ * (e.g. a List view level's visible fields).
+ *
  * Mutates the map (the caller owns it); the Models inside are cache-shared, so
  * they are replaced, never edited in place.
  */
 export function projectRelatedMetas(
   relatedMetas: Record<string, Model>,
   baseColumns: Model['columns'],
+  extraNeededColIds: Iterable<string> = [],
 ): void {
   const neededColIds = collectRelatedNeededColumnIds(baseColumns);
+  for (const id of extraNeededColIds) neededColIds.add(id);
   const unprojected = { ...relatedMetas };
 
   for (let pass = 0; pass < RELATED_PROJECTION_MAX_PASSES; pass++) {

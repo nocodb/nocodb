@@ -688,6 +688,14 @@ watch(
                       @update:model-value="setFormStateWithEmit(field.model, $event)"
                     />
                   </template>
+                  <template v-else-if="field.type === FormBuilderInputType.Attachments">
+                    <NcFormBuilderInputAttachments
+                      :model-value="deepReference(field.model)"
+                      :element="field"
+                      :disabled="disabled"
+                      @update:model-value="setFormStateWithEmit(field.model, $event)"
+                    />
+                  </template>
                   <template v-else-if="field.type === FormBuilderInputType.KeyValue">
                     <NcFormBuilderInputKeyValue
                       :model-value="deepReference(field.model)"
@@ -717,6 +725,7 @@ watch(
                   <div
                     v-if="field.helpText && field.type !== FormBuilderInputType.Switch && !field.showHintAsTooltip"
                     class="w-full mt-1"
+                    :class="{ 'pl-1.75': field.type === FormBuilderInputType.Attachments }"
                   >
                     <div class="text-xs text-nc-content-gray-muted">{{ field.helpText }}</div>
                   </div>

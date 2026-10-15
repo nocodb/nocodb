@@ -60,6 +60,7 @@ import Up from '~icons/material-symbols/keyboard-arrow-up-rounded'
 import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
 import PhTriangleFill from '~icons/ph/triangle-fill'
 import LcSend from '~icons/lucide/send'
+import LcMap from '~icons/lucide/map'
 import MdiPuzzle from '~icons/mdi/puzzle'
 import MaterialSymbolsArrowDropUp from '~icons/material-symbols/arrow-drop-up'
 import MaterialSymbolsArrowDropDown from '~icons/material-symbols/arrow-drop-down'
@@ -345,6 +346,11 @@ import NcUserIcon from '~icons/nc-icons-v2/user.svg'
 import NcFileMinusIcon from '~icons/nc-icons-v2/file-minus.svg'
 import NcXCircleIcon from '~icons/nc-icons-v2/x-circle.svg'
 import NcCircleIcon from '~icons/nc-icons-v2/circle.svg'
+import NcCircleDottedIcon from '~icons/nc-icons-v2/circle-dotted.svg'
+import NcCircleDashedIcon from '~icons/nc-icons-v2/circle-dashed.svg'
+import NcCircleHalfIcon from '~icons/nc-icons-v2/circle-half.svg'
+import NcCircleThreeQuarterIcon from '~icons/nc-icons-v2/circle-three-quarter.svg'
+import NcCircleSlashIcon from '~icons/nc-icons-v2/circle-slash.svg'
 import NcPhoneMissedIcon from '~icons/nc-icons-v2/phone-missed.svg'
 import NcEdit2Icon from '~icons/nc-icons-v2/edit-2.svg'
 import NcCornerLeftUpIcon from '~icons/nc-icons-v2/corner-left-up.svg'
@@ -1254,6 +1260,7 @@ export const iconMap = {
   'email': h('span', { class: 'material-symbols' }, 'email'),
   'sendEmail': h('span', { class: 'material-symbols' }, 'email'),
   'send': LcSend,
+  'ncRoadmap': LcMap,
   'dataSource': NcAddDataSource,
   'currency': h('span', { class: 'material-symbols' }, 'attach_money'),
   'percent': h('span', { class: 'material-symbols' }, 'percent'),
@@ -1504,6 +1511,11 @@ export const iconMap = {
   'ncFileMinus': NcFileMinusIcon,
   'ncXCircle': NcXCircleIcon,
   'ncCircle': NcCircleIcon,
+  'ncCircleDotted': NcCircleDottedIcon,
+  'ncCircleDashed': NcCircleDashedIcon,
+  'ncCircleHalf': NcCircleHalfIcon,
+  'ncCircleThreeQuarter': NcCircleThreeQuarterIcon,
+  'ncCircleSlash': NcCircleSlashIcon,
   'ncPhoneMissed': NcPhoneMissedIcon,
   'ncEdit2': NcEdit2Icon,
   'ncCornerLeftUp': NcCornerLeftUpIcon,

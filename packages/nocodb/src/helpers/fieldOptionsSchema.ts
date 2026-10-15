@@ -21,8 +21,12 @@ export function resolveFieldOptionsSchema(type: string): {
   if (!schemas.FieldOptions?.[type]) return null;
 
   const options = schemas.FieldOptions[type].properties?.options;
+  // A ref wrapped in `allOf` so the entry can add its own `required`.
+  const refHolder = options?.$ref ? options : options?.allOf?.[0];
   const ref =
-    typeof options?.$ref === 'string' ? options.$ref.split('/').pop() : null;
+    typeof refHolder?.$ref === 'string'
+      ? refHolder.$ref.split('/').pop()
+      : null;
 
   return {
     ref: `swagger-v3.json#/components/schemas/FieldOptions/${type}`,

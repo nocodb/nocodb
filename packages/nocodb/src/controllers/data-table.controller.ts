@@ -83,6 +83,7 @@ export class DataTableController {
     @Body() body: any,
     @Query('undo') undo: any,
   ) {
+    context.cache = true;
     return await this.dataTableService.dataInsert(context, {
       modelId: modelId,
       body: body,
@@ -102,6 +103,7 @@ export class DataTableController {
     @Query('viewId') viewId: string,
     @Param('rowId') _rowId: string,
   ) {
+    context.cache = true;
     return await this.dataTableService.dataUpdate(context, {
       modelId: modelId,
       body: req.body,
@@ -120,6 +122,7 @@ export class DataTableController {
     @Query('viewId') viewId: string,
     @Param('rowId') _rowId: string,
   ) {
+    context.cache = true;
     return await this.dataTableService.dataDelete(context, {
       modelId: modelId,
       cookie: req,
@@ -154,6 +157,7 @@ export class DataTableController {
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
   ) {
+    context.cache = true;
     return await this.dataTableService.bulkDataList(context, {
       query: req.query,
       modelId,
@@ -239,6 +243,7 @@ export class DataTableController {
       | Record<string, any>
       | Record<string, any>[],
   ) {
+    context.cache = true;
     return await this.dataTableService.nestedLink(context, {
       modelId,
       rowId: rowId,
@@ -270,6 +275,7 @@ export class DataTableController {
     @Body()
     refRowIds: string | string[] | number | number[] | Record<string, any>,
   ) {
+    context.cache = true;
     return await this.dataTableService.nestedUnlink(context, {
       modelId,
       rowId: rowId,

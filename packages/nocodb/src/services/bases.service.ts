@@ -1,6 +1,5 @@
 import { promisify } from 'util';
 import { Injectable, Logger } from '@nestjs/common';
-import DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
@@ -22,6 +21,7 @@ import type {
 } from 'nocodb-sdk';
 import type { Request } from 'express';
 import type { NcContext, NcRequest } from '~/interface/config';
+import { getDOMPurify } from '~/helpers/domPurify';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -297,7 +297,7 @@ export class BasesService {
           await promisify(fs.mkdir)(`${toolDir}/nc_minimal_dbs`);
         }
         const dbId = nanoidv2();
-        const baseTitle = DOMPurify.sanitize(baseBody.title);
+        const baseTitle = getDOMPurify().sanitize(baseBody.title);
         // Restrict path component to safe characters so a title cannot
         // escape the nc_minimal_dbs/ directory via traversal sequences.
         const filenameSlug =
@@ -376,7 +376,7 @@ export class BasesService {
       NcError.badRequest(nameValidation.error);
     }
 
-    baseBody.title = DOMPurify.sanitize(baseBody.title);
+    baseBody.title = getDOMPurify().sanitize(baseBody.title);
     baseBody.slug = baseBody.title;
     // TODO: set default version to V3 after beta of v3 is over
     baseBody.version = param.base.version || BaseVersion.V2;

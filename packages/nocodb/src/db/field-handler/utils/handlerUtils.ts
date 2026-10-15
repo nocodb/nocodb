@@ -82,7 +82,8 @@ export function ncLikePatternForRef(knex: CustomKnex, ref: Knex.Raw): Knex.Raw {
     return knex.raw("CONCAT('%', ?, '%')", [ref]);
   }
   if (client === 'mssql') {
-    return knex.raw("('%' + ? + '%')", [ref]);
+    // cast so a numeric operand doesn't make T-SQL convert '%' to int
+    return knex.raw("('%' + CAST(? AS NVARCHAR(MAX)) + '%')", [ref]);
   }
   // pg, sqlite3, oracledb, databricks and default support `||` concatenation
   return knex.raw("('%' || ? || '%')", [ref]);

@@ -47,6 +47,9 @@ export interface DataListParams {
   viewId?: string;
   ignorePagination?: boolean;
   req: NcRequest;
+  // Reject a link filter its linked display field can't match (a non-date on a
+  // Date display value) instead of returning no rows. Not settable over HTTP.
+  strictLinkFilters?: boolean;
 }
 
 export interface DataInsertParams {
@@ -56,6 +59,8 @@ export interface DataInsertParams {
   body: DataInsertRequest | DataInsertRequest[];
   cookie: any;
   maxPayloadOverride?: number;
+  /** Report the inserted ids with a warning instead of failing when the read-back fails. */
+  tolerateReadbackFailure?: boolean;
 }
 
 export interface DataUpdateParams {

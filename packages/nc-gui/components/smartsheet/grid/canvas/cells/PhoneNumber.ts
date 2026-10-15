@@ -1,4 +1,4 @@
-import isMobilePhone from 'validator/lib/isMobilePhone'
+import { isValidPhoneNumber } from 'nocodb-sdk'
 import { defaultOffscreen2DContext, isBoxHovered, renderMultiLineText, renderTagLabel } from '../utils/canvas'
 
 export const PhoneNumberCellRenderer: CellRenderer = {
@@ -26,7 +26,7 @@ export const PhoneNumberCellRenderer: CellRenderer = {
       }
     }
 
-    const isValid = text && isMobilePhone(text)
+    const isValid = text && isValidPhoneNumber(text)
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
@@ -79,7 +79,7 @@ export const PhoneNumberCellRenderer: CellRenderer = {
 
     const text = value?.toString() ?? ''
 
-    const isValid = text && isMobilePhone(text)
+    const isValid = text && isValidPhoneNumber(text)
     if (!isValid) return false
 
     const pv = column.pv

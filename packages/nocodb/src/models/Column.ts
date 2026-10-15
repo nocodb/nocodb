@@ -49,7 +49,10 @@ import {
   clearSingleQueryCacheForRenamedColumnReferences,
 } from '~/helpers/singleQueryCacheInvalidator';
 import { NcCache } from '~/decorators/nc-cache.decorator';
-import { validateColumnInternalMeta } from '~/types/column-internal-meta';
+import {
+  validateColumnInternalMeta,
+  withAttachmentCleanupMark,
+} from '~/types/column-internal-meta';
 import { getReplay, isReplay } from '~/helpers/replayScope';
 import {
   getModelContext,
@@ -217,6 +220,13 @@ export default class Column<T = any> implements ColumnType {
 
     if (insertObj.meta && typeof insertObj.meta === 'object') {
       insertObj.meta = JSON.stringify(insertObj.meta);
+    }
+
+    if (insertObj.internal_meta) {
+      insertObj.internal_meta = withAttachmentCleanupMark(
+        insertObj.internal_meta,
+        false,
+      );
     }
 
     if (
@@ -928,6 +938,13 @@ export default class Column<T = any> implements ColumnType {
 
     // if column is not found, return
     if (!col) {
+      // A trashed column keeps its options for restore.
+      if (
+        includeDeleted ||
+        !(await this.get(context, { colId: id, includeDeleted: true }, ncMeta))
+      ) {
+        await this.deleteOptionsOfMissingColumn(context, id, ncMeta);
+      }
       return;
     }
     // If the column is one of CreatedBy, LastModifiedBy, CreatedAt, or LastModifiedAt
@@ -1160,20 +1177,6 @@ export default class Column<T = any> implements ColumnType {
 
     if (colOptionTableName && cacheScopeName) {
       await beforeRelatedColumnDelete?.(context, col.id);
-      await ncMeta.metaDelete(
-        context.workspace_id,
-        context.base_id,
-        colOptionTableName,
-        {
-          fk_column_id: col.id,
-        },
-      );
-      await afterRelatedColumnDelete?.(context, col.id);
-      await NocoCache.deepDel(
-        context,
-        `${cacheScopeName}:${col.id}`,
-        CacheDelDirection.CHILD_TO_PARENT,
-      );
     }
 
     // Delete from all view columns.
@@ -1297,6 +1300,25 @@ export default class Column<T = any> implements ColumnType {
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
+    // Column row first: these writes are not atomic, and an interruption must
+    // not leave a live column whose colOptions is null.
+    if (colOptionTableName && cacheScopeName) {
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        colOptionTableName,
+        {
+          fk_column_id: col.id,
+        },
+      );
+      await afterRelatedColumnDelete?.(context, col.id);
+      await NocoCache.deepDel(
+        context,
+        `${cacheScopeName}:${col.id}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+    }
+
     // on column delete, delete any optimised single query cache
     {
       await View.clearSingleQueryCache(context, col.fk_model_id, null, ncMeta);
@@ -1305,6 +1327,37 @@ export default class Column<T = any> implements ColumnType {
     cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
       logger.error('Failed to clean base schema cache');
     });
+  }
+
+  // Option rows an interrupted delete left behind after removing the column row.
+  private static async deleteOptionsOfMissingColumn(
+    context: NcContext,
+    columnId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    for (const [colOptionTableName, cacheScopeName] of [
+      [MetaTable.COL_ROLLUP, CacheScope.COL_ROLLUP],
+      [MetaTable.COL_LOOKUP, CacheScope.COL_LOOKUP],
+      [MetaTable.COL_RELATIONS, CacheScope.COL_RELATION],
+      [MetaTable.COL_SELECT_OPTIONS, CacheScope.COL_SELECT_OPTION],
+      [MetaTable.COL_FORMULA, CacheScope.COL_FORMULA],
+      [MetaTable.COL_BUTTON, CacheScope.COL_BUTTON],
+      [MetaTable.COL_QRCODE, CacheScope.COL_QRCODE],
+      [MetaTable.COL_BARCODE, CacheScope.COL_BARCODE],
+      [MetaTable.COL_LONG_TEXT, CacheScope.COL_LONG_TEXT],
+    ]) {
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        colOptionTableName,
+        { fk_column_id: columnId },
+      );
+      await NocoCache.deepDel(
+        context,
+        `${cacheScopeName}:${columnId}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+    }
   }
 
   static async update(
@@ -1335,6 +1388,9 @@ export default class Column<T = any> implements ColumnType {
 
     // Simple update path: only title/description — persist and clear cache
     if (param.isSimpleUpdate) {
+      const oldCol = await Column.get(context, { colId }, ncMeta);
+      if (!oldCol) NcError.get(context).fieldNotFound(colId);
+
       const updateObj = extractProps(column, [
         'title',
         'description',
@@ -1356,7 +1412,6 @@ export default class Column<T = any> implements ColumnType {
       );
 
       // clear single query cache for the column's model
-      const oldCol = await Column.get(context, { colId }, ncMeta);
       await View.clearSingleQueryCache(
         context,
         oldCol.fk_model_id,
@@ -1373,6 +1428,9 @@ export default class Column<T = any> implements ColumnType {
     }
 
     const oldCol = await Column.get(context, { colId }, ncMeta);
+
+    // Column.get returns null for a missing or soft-deleted column.
+    if (!oldCol) NcError.get(context).fieldNotFound(colId);
 
     // insertColOption() dispatches on the incoming uidt, so without one the
     // delete below would drop colOptions it can never rebuild. Same `||`
@@ -1647,6 +1705,13 @@ export default class Column<T = any> implements ColumnType {
           ncMeta,
         );
       }
+    }
+
+    if (updateObj.internal_meta !== undefined) {
+      updateObj.internal_meta = withAttachmentCleanupMark(
+        updateObj.internal_meta,
+        oldCol.internal_meta?.attachment_cleanup_pending,
+      );
     }
 
     // Validate internal_meta if present
@@ -2000,6 +2065,32 @@ export default class Column<T = any> implements ColumnType {
     });
   }
 
+  static async setAttachmentCleanupPending(
+    context: NcContext,
+    { colId, pending }: { colId: string; pending: boolean },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const column = await Column.get(context, { colId }, ncMeta);
+    if (!column) NcError.get(context).fieldNotFound(colId);
+
+    const internal_meta = withAttachmentCleanupMark(
+      column.internal_meta,
+      pending,
+    );
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COLUMNS,
+      prepareForDb({ internal_meta }, 'internal_meta'),
+      colId,
+    );
+    await NocoCache.update(
+      context,
+      `${CacheScope.COLUMN}:${colId}`,
+      prepareForResponse({ internal_meta }, 'internal_meta'),
+    );
+  }
+
   static async updateValidation(
     context: NcContext,
     { colId, validate }: { colId: string; validate: any },
@@ -2169,6 +2260,13 @@ export default class Column<T = any> implements ColumnType {
 
       if (column.meta && typeof column.meta === 'object') {
         insertObj.meta = JSON.stringify(column.meta);
+      }
+
+      if (insertObj.internal_meta) {
+        insertObj.internal_meta = withAttachmentCleanupMark(
+          insertObj.internal_meta,
+          false,
+        );
       }
 
       if (

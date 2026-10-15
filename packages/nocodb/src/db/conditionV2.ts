@@ -120,6 +120,34 @@ function oracleNarrowFormulaClobForCompare(
   return expr;
 }
 
+// like / nlike for a computed column — Formula, Rollup or Links, which re-enter
+// parseConditionV2 with their compiled expression as customWhereClause and the
+// search operand as a knex Raw: `knex.raw('?', [literal])` for a static filter,
+// the column reference itself for a dynamic (field-to-field) one.
+//
+// Concatenating the wildcards in SQL covers both — a literal renders inline, and
+// a reference stays a reference instead of being stringified into the literal
+// `%"Needle"%`, which matched nothing (and on Rollup nlike reached
+// `val.startsWith` and threw a 500). The expression is parenthesised because a
+// Rollup's is a bare subquery builder that `??` splices in unwrapped, producing
+// invalid SQL.
+function computedLikeClause(
+  knex: any,
+  expr: any,
+  operand: Knex.Raw,
+  negate = false,
+): Knex.Raw {
+  const pattern = ncLikePatternForRef(knex, operand);
+  const not = negate ? 'not ' : '';
+  if (knex.clientType() === 'pg') {
+    return knex.raw(`(?)::text ${not}ilike ?`, [expr, pattern]);
+  }
+  if (knex.clientType() === 'oracledb') {
+    return knex.raw(`UPPER((?)) ${not}like UPPER(?)`, [expr, pattern]);
+  }
+  return knex.raw(`(?) ${not}like ?`, [expr, pattern]);
+}
+
 function getLogicalOpMethod(filter: Filter) {
   switch (filter.logical_op?.toLowerCase()) {
     case 'or':
@@ -547,13 +575,16 @@ const parseConditionV2 = async (
               }
               break;
             case 'like':
-              // JSON / Attachment route to FieldHandler above.
-              // `!customWhereClause` — on the computed-column (Formula/Rollup)
-              // pass `val` holds the compiled expression, not a dynamic
-              // field-to-field reference. Without this guard the dynamic branch
-              // shadows the Formula operand swap below and inverts the
-              // comparison into `'<term>' like '%<formula>%'`.
-              if (!customWhereClause && ncIsKnexRawOrRef(val)) {
+              // JSON / Attachment route to FieldHandler above. The two operand
+              // layouts are handled separately: on the computed-column pass
+              // (Formula/Rollup/Links) `val` is the compiled expression, while on
+              // a plain column it is the search term. Sharing one branch made the
+              // computed pass compare backwards — see computedLikeClause.
+              if (customWhereClause && ncIsKnexRawOrRef(filter.value)) {
+                qb = qb.where(
+                  computedLikeClause(knex, val, filter.value as any),
+                );
+              } else if (!customWhereClause && ncIsKnexRawOrRef(val)) {
                 // Dynamic field-to-field: val is a column reference. Concatenate
                 // the wildcards in SQL so the reference isn't stringified into a
                 // literal (which would never match).
@@ -572,15 +603,10 @@ const parseConditionV2 = async (
                 qb.where(field, '');
                 qb.orWhereNotNull(field);
               } else {
-                if (column.uidt === UITypes.Formula) {
-                  [field, val] = [val, field];
-                  val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
-                } else {
-                  val =
-                    (val + '').startsWith('%') || (val + '').endsWith('%')
-                      ? val
-                      : `%${val}%`;
-                }
+                val =
+                  (val + '').startsWith('%') || (val + '').endsWith('%')
+                    ? val
+                    : `%${val}%`;
                 if (knex.clientType() === 'pg') {
                   qb = qb.where(knex.raw('??::text ilike ?', [field, val]));
                 } else if (knex.clientType() === 'oracledb') {
@@ -594,8 +620,23 @@ const parseConditionV2 = async (
               break;
             case 'nlike':
               // JSON / Attachment route to FieldHandler above.
-              // See the `like` branch for why customWhereClause is excluded.
-              if (!customWhereClause && ncIsKnexRawOrRef(val)) {
+              // Same two operand layouts as `like` above.
+              if (customWhereClause && ncIsKnexRawOrRef(filter.value)) {
+                // Computed column — mirror of `like` above.
+                qb.where((nestedQb) => {
+                  nestedQb.where(
+                    computedLikeClause(knex, val, filter.value as any, true),
+                  );
+                  // a non-matching filter should still surface empty/null
+                  // expressions; both terms cast so a numeric Rollup doesn't
+                  // hit a type error comparing to ''
+                  nestedQb.orWhereRaw('? = ?', [
+                    formulaToTextCast(knex, val),
+                    '',
+                  ]);
+                  nestedQb.orWhereRaw('(?) is null', [val]);
+                });
+              } else if (!customWhereClause && ncIsKnexRawOrRef(val)) {
                 // Dynamic field-to-field: val is a column reference. Concatenate
                 // the wildcards in SQL so the reference isn't stringified into a
                 // literal (which would never match).
@@ -622,13 +663,10 @@ const parseConditionV2 = async (
                 qb.whereNot(field, '');
                 qb.orWhereNull(field);
               } else {
-                if (column.uidt === UITypes.Formula) {
-                  [field, val] = [val, field];
-                  val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
-                } else {
-                  val =
-                    val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
-                }
+                val =
+                  (val + '').startsWith('%') || (val + '').endsWith('%')
+                    ? val
+                    : `%${val}%`;
                 qb.where((nestedQb) => {
                   if (knex.clientType() === 'pg') {
                     nestedQb.where(

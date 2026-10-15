@@ -6,6 +6,10 @@ const NC_DATA_REFLECTION_SETTINGS = {
     process.env.NC_DATA_REFLECTION_HOST ||
     ncSiteUrl?.replace(/(^\w+:|^)\/\//, '').replace(/\/$/, ''),
   port: +process.env.NC_DATA_REFLECTION_PORT || 5433,
+  maxConnections: Math.floor(
+    +process.env.NC_DATA_REFLECTION_MAX_CONNECTIONS || 10,
+  ),
+  statementTimeout: +process.env.NC_DATA_REFLECTION_STATEMENT_TIMEOUT || 30_000,
 };
 
 const genSuffix = customAlphabet('1234567890abcdef', 6);
@@ -90,14 +94,15 @@ const createDatabaseUser = async (knex, username, password, database) => {
   // Same shape as the original — knex's named binding renders identifiers via
   // :name: and values via :name. We rely on callers having already dropped any
   // pre-existing role with the same name (refreshAccess does this).
+  const { maxConnections, statementTimeout } = NC_DATA_REFLECTION_SETTINGS;
   const query = `
-    CREATE USER :username: WITH PASSWORD :password;
+    CREATE USER :username: WITH PASSWORD :password CONNECTION LIMIT ${maxConnections};
     REVOKE ALL ON SCHEMA public FROM :username:;
     REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM :username:;
     REVOKE TEMPORARY ON DATABASE :database: FROM :username:;
     GRANT CONNECT ON DATABASE :database: TO :username:;
-    ALTER ROLE :username: SET statement_timeout = '60s';
-    ALTER ROLE :username: SET idle_in_transaction_session_timeout = '60s';
+    ALTER ROLE :username: SET statement_timeout = '${statementTimeout}ms';
+    ALTER ROLE :username: SET idle_in_transaction_session_timeout = '${statementTimeout}ms';
   `;
   const preparedQuery = knex
     .raw(query, { username, password, database })

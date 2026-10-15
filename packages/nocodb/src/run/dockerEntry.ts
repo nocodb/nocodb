@@ -9,7 +9,6 @@ handleUncaughtErrors(process);
 dns.setDefaultResultOrder('ipv4first');
 
 const server = express();
-server.enable('trust proxy');
 server.use(cors());
 
 server.set('view engine', 'ejs');

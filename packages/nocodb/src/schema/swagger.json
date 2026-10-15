@@ -1000,6 +1000,16 @@
                       "type": "boolean",
                       "description": "Show the email/password sign-in form alongside SSO (self-hosted only)",
                       "example": false
+                    },
+                    "allow_reporting_abuse": {
+                      "type": "boolean",
+                      "description": "Let visitors of public shares report them for abuse",
+                      "example": true
+                    },
+                    "abuse_contact_email": {
+                      "type": "string",
+                      "description": "Email that receives abuse reports (self-hosted only). Empty means all super admins",
+                      "example": "abuse@example.com"
                     }
                   }
                 },
@@ -1086,6 +1096,16 @@
                     "type": "boolean",
                     "description": "Show the email/password sign-in form alongside SSO (self-hosted only)",
                     "example": false
+                  },
+                  "allow_reporting_abuse": {
+                    "type": "boolean",
+                    "description": "Let visitors of public shares report them for abuse",
+                    "example": true
+                  },
+                  "abuse_contact_email": {
+                    "type": "string",
+                    "description": "Email that receives abuse reports (self-hosted only). Empty means all super admins",
+                    "example": "abuse@example.com"
                   }
                 }
               },
@@ -13208,6 +13228,43 @@
         "description": "Get the table rows but exculding the current record's children and parent"
       }
     },
+    "/api/v2/public/abuse-reports": {
+      "post": {
+        "summary": "Report a public share for abuse",
+        "operationId": "public-abuse-report-create",
+        "description": "Reports a publicly shared view, form, interface, dashboard or artifact for abuse. Callable anonymously.",
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "xc-password",
+            "description": "Password of a password-protected share"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AbuseReportReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Report received"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
     "/api/v2/public/shared-view/{sharedViewUuid}/count": {
       "parameters": [
         {
@@ -21315,6 +21372,67 @@
         },
         "x-stoplight": {
           "id": "c7i7cfci4kobt"
+        }
+      },
+      "AbuseReportReq": {
+        "title": "Abuse Report Request Model",
+        "type": "object",
+        "required": [
+          "resource_type",
+          "identifier",
+          "reason",
+          "name",
+          "email",
+          "description"
+        ],
+        "properties": {
+          "resource_type": {
+            "type": "string",
+            "enum": [
+              "shared_view",
+              "interface",
+              "dashboard",
+              "artifact"
+            ]
+          },
+          "identifier": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Public share id of the resource"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "phishing",
+              "scam",
+              "impersonation",
+              "malware",
+              "illegal_content",
+              "spam",
+              "other"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "description": {
+            "type": "string",
+            "minLength": 100,
+            "maxLength": 1000
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Honeypot. Must be empty."
+          }
         }
       },
       "ApiTokenReq": {

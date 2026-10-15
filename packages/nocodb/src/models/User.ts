@@ -631,6 +631,24 @@ export default class User implements UserType {
     await this.clearCache(userId, ncMeta);
   }
 
+  /** Emails of active super admins. */
+  static async superAdminEmails(ncMeta = Noco.ncMeta): Promise<string[]> {
+    const users = await ncMeta
+      .knexConnection(MetaTable.USERS)
+      .select('email', 'roles', 'blocked', 'is_deleted')
+      .where('roles', 'like', `%${OrgUserRoles.SUPER_ADMIN}%`);
+
+    return users
+      .filter(
+        (u) =>
+          u.email &&
+          !u.blocked &&
+          !u.is_deleted &&
+          extractRolesObj(u.roles)?.[OrgUserRoles.SUPER_ADMIN],
+      )
+      .map((u) => u.email);
+  }
+
   // Called from auth-resolution paths only (not getWithRoles, whose callers
   // resolve target users). Never echoes blocked_reason to the subject.
   static assertNotBlocked(user: { blocked?: boolean }): void {

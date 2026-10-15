@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod-v4';
 import isEqual from 'fast-deep-equal';
 import type { NcContext } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';

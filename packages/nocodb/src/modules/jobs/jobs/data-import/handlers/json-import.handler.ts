@@ -155,6 +155,8 @@ function wrapAsArray(readStream: Readable): Readable {
     },
   });
 
+  // pipe() doesn't forward errors, so a failed read would never end the wrapper.
+  readStream.on('error', (error) => wrapper.destroy(error));
   readStream.pipe(wrapper);
   return wrapper;
 }

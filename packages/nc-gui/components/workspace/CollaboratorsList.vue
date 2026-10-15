@@ -420,12 +420,26 @@ const customRow = (_record: Record<string, any>, recordIndex: number) => ({
 
 const isScimManaged = (record: any) => !!record?.scim_managed
 
+// Org-billed workspaces carry the org's plan, whose billing owner is managed on the org.
+const workspaceSubscription = computed(() => {
+  const sub = currentWorkspace.value?.payment?.subscription
+  return sub?.fk_workspace_id ? sub : undefined
+})
+
+const isBillingOwner = (record: any) =>
+  !record?.isTeam && !!workspaceSubscription.value?.fk_user_id && record?.id === workspaceSubscription.value.fk_user_id
+
+// A plan set to cancel no longer holds its billing owner.
+const isBillingOwnerLocked = (record: any) => isBillingOwner(record) && !workspaceSubscription.value?.canceled_at
+
 const isRoleUpdateAllowed = (user) => {
+  // The server only refuses demoting the billing owner from owner.
+  if (isBillingOwnerLocked(user) && user.roles === WorkspaceUserRoles.OWNER) return false
   return !(isOnlyOneOwner.value && user.roles === WorkspaceUserRoles.OWNER)
 }
 
 const isDeleteAllowed = (user) => {
-  if (isScimManaged(user)) return false
+  if (isScimManaged(user) || isBillingOwnerLocked(user)) return false
   return !(isOnlyOneOwner.value && user.roles === WorkspaceUserRoles.OWNER)
 }
 
@@ -758,6 +772,23 @@ watch(inviteDlg, (newVal) => {
                       {{ $t('labels.scimManaged') }}
                     </NcBadge>
                   </NcTooltip>
+                  <NcTooltip
+                    v-if="isBillingOwner(record)"
+                    :title="$t('labels.billingOwnerTooltip')"
+                    class="flex items-center"
+                    :tooltip-style="{ width: '260px' }"
+                    :overlay-inner-style="{ width: '260px' }"
+                  >
+                    <NcBadge
+                      :border="false"
+                      color="blue"
+                      size="xs"
+                      class="flex-none whitespace-nowrap text-bodySm"
+                      data-testid="nc-billing-owner-badge"
+                    >
+                      {{ $t('labels.billingOwner') }}
+                    </NcBadge>
+                  </NcTooltip>
                 </div>
                 <NcTooltip class="truncate max-w-full text-bodySm text-nc-content-gray-subtle2" show-on-truncate-only>
                   <template #title>
@@ -899,10 +930,20 @@ watch(inviteDlg, (newVal) => {
                       </template>
 
                       <NcTooltip
-                        :disabled="(!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER) && !isScimManaged(record)"
+                        :disabled="
+                          (!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER) &&
+                          !isScimManaged(record) &&
+                          !isBillingOwnerLocked(record)
+                        "
                       >
                         <template #title>
-                          {{ isScimManaged(record) ? $t('labels.scimManagedRemovalTooltip') : $t('tooltip.leaveWorkspace') }}
+                          {{
+                            isBillingOwnerLocked(record)
+                              ? $t('labels.billingOwnerTooltip')
+                              : isScimManaged(record)
+                              ? $t('labels.scimManagedRemovalTooltip')
+                              : $t('tooltip.leaveWorkspace')
+                          }}
                         </template>
                         <NcMenuItem
                           :disabled="!isDeleteAllowed(record) || (record.isTeam && !isOwnerOrCreator)"

@@ -78,6 +78,21 @@ export function getCompositePkValue(
 // ─── Shared helpers ─────────────────────────────────────────────────
 
 /**
+ * Projection for a linked record: the parent's `requestedFields` must not
+ * reach it, or the display value is dropped whenever the parent narrows.
+ */
+function nestedRequestedFields(
+  requestedFields: string[] | undefined,
+  related: ModelMeta | undefined
+): string[] | undefined {
+  if (!requestedFields || !related) return requestedFields;
+  return related.columns
+    .filter((c) => c.pv)
+    .flatMap((c) => [c.id, c.title])
+    .filter((k): k is string => !!k);
+}
+
+/**
  * Resolve a column's related model from the two-map structure.
  * Works for LTAR, Links, Lookup, and Rollup columns.
  */
@@ -218,6 +233,10 @@ export function recordV2ToV3(
                 ...options,
                 primaryKeys: related.primaryKeys,
                 columns: related.columns,
+                requestedFields: nestedRequestedFields(
+                  requestedFields,
+                  related
+                ),
                 depth: depth + 1,
               })
             );
@@ -228,6 +247,7 @@ export function recordV2ToV3(
             ...options,
             primaryKeys: related.primaryKeys,
             columns: related.columns,
+            requestedFields: nestedRequestedFields(requestedFields, related),
             depth: depth + 1,
           });
         } else if (value == null) {

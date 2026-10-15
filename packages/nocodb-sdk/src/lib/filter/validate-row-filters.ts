@@ -284,9 +284,10 @@ export class RowFilterValidator {
 
           const relatedModelId = colOptions?.fk_related_model_id;
 
+          // A cross-base link's related table lives under its own base.
           const relatedMeta = getMetaWithCompositeKey(
             metas,
-            baseId,
+            colOptions?.fk_related_base_id || baseId,
             relatedModelId
           );
 

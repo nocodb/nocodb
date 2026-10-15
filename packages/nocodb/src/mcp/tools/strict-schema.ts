@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod-v4';
 
 export function isZodSchema(value: unknown): value is z.ZodTypeAny {
   return typeof (value as any)?.safeParseAsync === 'function';

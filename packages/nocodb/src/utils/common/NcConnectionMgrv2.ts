@@ -80,6 +80,17 @@ export default class NcConnectionMgrv2 {
   }
 
   /**
+   * For a deleted source: invalidate other servers, then drop this server's
+   * connection and version entry instead of leaving them to age out.
+   */
+  public static async releaseSource(source: SourceIdentity): Promise<void> {
+    const key = this.connectionKey(source);
+    await this.deleteConnectionRef(source);
+    await this.sourceVersionTracker.bump(key);
+    this.sourceVersionTracker.forget(key);
+  }
+
+  /**
    * Check if a source's connection is stale (another server bumped the
    * version via resetSource). If stale, destroy the local connection.
    */

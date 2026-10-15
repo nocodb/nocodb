@@ -1,5 +1,6 @@
 import type { AttachmentUrlUploadParam } from '~/types/data-columns/attachment';
 import type {
+  AppEvents,
   AttachmentReqType,
   AttachmentResType,
   ChatMentionRef,
@@ -9,6 +10,8 @@ import type {
   FileImportSheet,
   FileImportType,
   PublicAttachmentScope,
+  RoadmapPublicStatus,
+  RoadmapStatus,
   SnapshotType,
   SupportedExportCharset,
   SyncTrigger,
@@ -100,6 +103,9 @@ export enum JobTypes {
   CreditReaper = 'credit-reaper',
   CreditMeteringAudit = 'credit-metering-audit',
   AppRuntimePoolRefill = 'app-runtime-pool-refill',
+  HqRoadmapNotify = 'hq-roadmap-notify',
+  HqRoadmapImpactRefresh = 'hq-roadmap-impact-refresh',
+  FactoryMachineImageDelete = 'factory-machine-image-delete',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -134,7 +140,20 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.MailOutboxRecovery,
   JobTypes.MailScanner,
   JobTypes.TableSyncRun,
+  JobTypes.HqRoadmapNotify,
+  JobTypes.HqRoadmapImpactRefresh,
+  JobTypes.FactoryMachineImageDelete,
 ];
+
+// No client is handed these job ids, so nothing polls them on /jobs/listen.
+export const UNPOLLED_JOB_TYPES: ReadonlySet<string> = new Set([
+  JobTypes.HealthCheck,
+  JobTypes.ThumbnailGenerator,
+  JobTypes.HandleWebhook,
+  JobTypes.HookErrorNotification,
+  JobTypes.UpdateWsStat,
+  JobTypes.UpdateUsageStats,
+]);
 
 export enum JobStatus {
   COMPLETED = 'completed',
@@ -522,6 +541,34 @@ export interface ChatApprovalJobData extends JobData {
 
 export interface MailDispatchJobData extends JobData {
   mailSendId: string;
+}
+
+export interface HqRoadmapNotifyJobData extends JobData {
+  event: AppEvents;
+  itemId: string;
+  actorId: string | null;
+  commentId?: string;
+  from?: RoadmapStatus;
+  to?: RoadmapStatus;
+  publicFrom?: RoadmapPublicStatus;
+  publicTo?: RoadmapPublicStatus;
+  assigneeId?: string;
+  targetId?: string;
+  notifyVoters?: boolean;
+}
+
+/** Without an itemId, the nightly run recomputes every item with votes. */
+export interface HqRoadmapImpactRefreshJobData extends JobData {
+  itemId?: string;
+}
+
+/** A deleted machine's provider image, removed once nothing can still use it. */
+export interface FactoryMachineImageDeleteJobData extends JobData {
+  machineId: string;
+  imageId: string;
+  /** What the provider must hold the image under for it to be deleted. */
+  name: string;
+  deferrals?: number;
 }
 
 export interface DataImportJobData extends JobData {

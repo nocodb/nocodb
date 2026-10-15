@@ -7,18 +7,19 @@ const props = defineProps<Props>()
 
 const { toggleFeature, features, isEngineeringModeOn, isAdvancedModeOn } = useBetaFeatureToggle()
 
-const { isRtl } = useRtl()
-
 const value = useVModel(props, 'value')
 
-const { appInfo, isMobileMode } = useGlobal()
+const { appInfo } = useGlobal()
 
 const { showEEFeatures, isEEFeatureBlocked } = useEeConfig()
 
-const selectedFeatures = ref<Record<string, boolean>>({})
-
-// Add search functionality
 const searchQuery = ref('')
+
+const selectedIndex = ref(0)
+
+const inputRef = ref<HTMLInputElement>()
+
+const listRef = ref<HTMLElement>()
 
 const isEnabledForPlatform = (feature: BetaFeatureType) => {
   if (appInfo.value.isOnPrem && feature.isOnPrem === false) return false
@@ -39,260 +40,308 @@ const isFeatureVisible = (feature: BetaFeatureType) => {
   )
 }
 
+const visibleFeatures = computed(() => features.value.filter(isFeatureVisible))
+
+/** Word-start match, then title over description — a bare substring would let "ai" hit "email". */
 const filteredFeatures = computed(() => {
-  if (!searchQuery.value) return features.value
+  const query = searchQuery.value.trim().toLowerCase()
 
-  const query = searchQuery.value.toLowerCase()
+  if (!query) return visibleFeatures.value
 
-  // Helper function to calculate match score
-  const getMatchScore = (feature: BetaFeatureType) => {
+  const wordStart = new RegExp(`(^|[^a-z0-9])${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)
+
+  const score = (feature: BetaFeatureType) => {
     const title = feature.title.toLowerCase()
     const description = feature.description.toLowerCase()
 
-    // Exact prefix match in title (highest priority)
     if (title.startsWith(query)) return 4
-    // Contains exact match in title
-    if (title.includes(query)) return 3
-    // Exact prefix match in description
+    if (wordStart.test(title)) return 3
     if (description.startsWith(query)) return 2
-    // Contains exact match in description
-    if (description.includes(query)) return 1
-    // No match
+    if (wordStart.test(description)) return 1
+
     return 0
   }
 
-  return features.value
-    .filter((feature) => {
-      if (!isFeatureVisible(feature)) return false
-
-      const title = feature.title.toLowerCase()
-      const description = feature.description.toLowerCase()
-      return title.includes(query) || description.includes(query)
-    })
-    .sort((a, b) => {
-      const scoreA = getMatchScore(a)
-      const scoreB = getMatchScore(b)
-      return scoreB - scoreA
-    })
+  return visibleFeatures.value.filter((feature) => score(feature) > 0).sort((a, b) => score(b) - score(a))
 })
 
-const isAllFeaturesEnabled = computed({
-  get: () => {
-    return features.value.every((feature) => {
-      return !isFeatureVisible(feature) || selectedFeatures.value[feature.id]
-    })
-  },
-  set: (value: boolean) => {
-    features.value.forEach((feature) => {
-      if (isFeatureVisible(feature) && feature.enabled !== value) {
-        if (toggleFeature(feature.id, value)) {
-          selectedFeatures.value[feature.id] = value
-        }
-      }
-    })
-  },
-})
+const enabledCount = computed(() => visibleFeatures.value.filter((feature) => feature.enabled).length)
 
-const saveExperimentalFeatures = () => {
-  features.value.forEach((feature) => {
-    if (selectedFeatures.value[feature.id] !== feature.enabled) {
-      toggleFeature(feature.id)
-    }
+const isAllEnabled = computed(() => visibleFeatures.value.length > 0 && enabledCount.value === visibleFeatures.value.length)
+
+function toggle(feature: BetaFeatureType) {
+  toggleFeature(feature.id)
+}
+
+function toggleAll() {
+  const next = !isAllEnabled.value
+
+  for (const feature of visibleFeatures.value) {
+    if (feature.enabled !== next) toggleFeature(feature.id, next)
+  }
+}
+
+function close() {
+  value.value = false
+}
+
+/** Keeps the highlighted row in view when arrowing past the fold. */
+function scrollSelectedIntoView() {
+  nextTick(() => {
+    listRef.value?.querySelector('.nc-exp-row.selected')?.scrollIntoView({ block: 'nearest' })
   })
 }
 
-onMounted(() => {
-  selectedFeatures.value = Object.fromEntries(features.value.map((feature) => [feature.id, feature.enabled]))
+function move(delta: number) {
+  const total = filteredFeatures.value.length
+  if (!total) return
+
+  selectedIndex.value = (selectedIndex.value + delta + total) % total
+  scrollSelectedIntoView()
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    move(1)
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    move(-1)
+  } else if (e.key === 'Enter') {
+    e.preventDefault()
+    const feature = filteredFeatures.value[selectedIndex.value]
+    if (feature) toggle(feature)
+  } else if (e.key === 'Escape') {
+    e.preventDefault()
+    close()
+  }
+}
+
+watch(searchQuery, () => {
+  selectedIndex.value = 0
 })
 
-watch(value, (val) => {
-  if (val) {
-    selectedFeatures.value = Object.fromEntries(features.value.map((feature) => [feature.id, feature.enabled]))
-  }
+watch(value, (open) => {
+  if (!open) return
+
+  searchQuery.value = ''
+  selectedIndex.value = 0
+
+  nextTick(() => inputRef.value?.focus())
 })
 
-const clickCount = ref(0)
-const clickTimer = ref<NodeJS.Timeout | undefined>(undefined)
-const handleClick = () => {
-  clickCount.value++
+// ─── Easter eggs ─────────────────────────────────────────────────────────────
 
-  if (clickCount.value === 1) {
-    if (clickTimer.value) clearTimeout(clickTimer.value)
-    clickTimer.value = setTimeout(() => {
-      clickCount.value = 0
-    }, 3000)
-  }
+/** Triple-click the bulb / the hint row — the original two eggs, kept as they were. */
+function useTripleClick(onTriggered: () => void) {
+  const count = ref(0)
+  const timer = ref<NodeJS.Timeout>()
 
-  if (clickCount.value >= 3) {
-    isEngineeringModeOn.value = !isEngineeringModeOn.value
-    clickCount.value = 0
-    if (clickTimer.value) {
-      clearTimeout(clickTimer.value)
-      clickTimer.value = undefined
+  onUnmounted(() => timer.value && clearTimeout(timer.value))
+
+  return () => {
+    count.value++
+
+    if (count.value === 1) {
+      if (timer.value) clearTimeout(timer.value)
+      timer.value = setTimeout(() => (count.value = 0), 3000)
+    }
+
+    if (count.value >= 3) {
+      onTriggered()
+      count.value = 0
+      if (timer.value) clearTimeout(timer.value)
+      timer.value = undefined
     }
   }
 }
 
-const advancedClickCount = ref(0)
-const advancedClickTimer = ref<NodeJS.Timeout | undefined>(undefined)
-const handleAdvancedClick = () => {
-  advancedClickCount.value++
-  if (advancedClickCount.value === 1) {
-    if (advancedClickTimer.value) clearTimeout(advancedClickTimer.value)
-    advancedClickTimer.value = setTimeout(() => {
-      advancedClickCount.value = 0
-    }, 3000)
-  }
-  if (advancedClickCount.value >= 3) {
-    isAdvancedModeOn.value = !isAdvancedModeOn.value
-    advancedClickCount.value = 0
-    if (advancedClickTimer.value) {
-      clearTimeout(advancedClickTimer.value)
-      advancedClickTimer.value = undefined
-    }
-  }
+const handleClick = useTripleClick(() => (isEngineeringModeOn.value = !isEngineeringModeOn.value))
+
+const handleAdvancedClick = useTripleClick(() => (isAdvancedModeOn.value = !isAdvancedModeOn.value))
+
+const SHIFT_TAP_WINDOW = 600
+
+const shiftTaps = ref(0)
+
+const shiftTimer = ref<NodeJS.Timeout>()
+
+function resetShiftTaps() {
+  shiftTaps.value = 0
+  if (shiftTimer.value) clearTimeout(shiftTimer.value)
+  shiftTimer.value = undefined
 }
 
 useEventListener('keydown', (e: KeyboardEvent) => {
+  // The input handles its own Esc; this covers focus having left it (e.g. after a row click).
+  if (value.value && e.key === 'Escape' && e.target !== inputRef.value) {
+    close()
+    return
+  }
+
   if (isActiveInputElementExist()) return
+
   if (e.shiftKey && e.altKey && e.code === 'KeyE') {
     value.value = !value.value
+    return
+  }
+
+  // Secret: Shift Shift Shift opens the palette with every egg already cracked.
+  // Any other key resets the run, so typing a capital can never accumulate taps.
+  if (e.key !== 'Shift') {
+    resetShiftTaps()
+    return
+  }
+
+  if (e.repeat) return
+
+  shiftTaps.value++
+
+  if (shiftTimer.value) clearTimeout(shiftTimer.value)
+  shiftTimer.value = setTimeout(resetShiftTaps, SHIFT_TAP_WINDOW)
+
+  if (shiftTaps.value >= 3) {
+    resetShiftTaps()
+
+    // Toggles: tap again to put the eggs away. Either way the palette opens, so
+    // the row count visibly confirms which way it went.
+    const next = !(isEngineeringModeOn.value && isAdvancedModeOn.value)
+
+    isEngineeringModeOn.value = next
+    isAdvancedModeOn.value = next
+    value.value = true
   }
 })
 
-onUnmounted(() => {
-  if (clickTimer.value) clearTimeout(clickTimer.value)
-})
+// Shift+click (grid range selection) must not count as a tap.
+useEventListener('pointerdown', resetShiftTaps, { capture: true })
+
+onUnmounted(resetShiftTaps)
 </script>
 
 <template>
-  <a-drawer
-    v-model:visible="value"
-    class="nc-features-drawer"
-    :mask-style="{ background: 'transparent' }"
-    :width="isMobileMode ? 'min(95vw, 458px)' : 'min(32vw, 458px)'"
-    :placement="isRtl ? 'left' : 'right'"
-    :closable="false"
-  >
-    <div class="flex flex-col h-full">
-      <div
-        class="flex items-center gap-3 px-2 !pl-4 rtl:(!pr-4 !pl-2) border-b-1 h-[var(--toolbar-height)] flex-none border-nc-border-gray-medium"
-      >
-        <component :is="iconMap.bulb" class="text-nc-content-inverted-secondary opacity-85 h-5 w-5" @click="handleClick" />
-        <h1 class="text-base !text-nc-content-inverted-secondary font-weight-700 p-0 m-0">
-          {{ $t('general.featurePreview') }}
-        </h1>
-        <nc-button type="text" class="!w-8 !h-8 !min-w-0 ml-auto rtl:(ml-0 mr-auto)" @click="value = false">
-          <GeneralIcon icon="close" class="!text-nc-content-inverted-secondary" />
-        </nc-button>
-      </div>
+  <div v-if="value" class="nc-exp-palette" data-testid="nc-exp-palette" @click.self="close">
+    <div class="nc-exp-modal">
+      <div class="nc-exp-head">
+        <component :is="iconMap.bulb" class="h-4 w-4 flex-none text-nc-content-gray-muted cursor-pointer" @click="handleClick" />
 
-      <div
-        class="text-sm font-weight-500 text-nc-content-gray-subtle2 leading-5 m-4 mb-0 flex items-center justify-between gap-3 pr-3"
-        @click="handleAdvancedClick"
-      >
-        <span>
-          {{ $t('labels.toggleExperimentalFeature') }}
-        </span>
-        <NcTooltip
-          :title="
-            isAllFeaturesEnabled
-              ? `${$t('general.disable')} ${$t('general.all')}`
-              : `${$t('general.enable')} ${$t('general.all')}`
-          "
-          class="flex"
-        >
-          <NcSwitch v-model:checked="isAllFeaturesEnabled" />
-        </NcTooltip>
-      </div>
-
-      <div class="p-4">
-        <a-input v-model:value="searchQuery" type="text" placeholder="Search features..." class="nc-input-sm nc-input-shadow">
-          <template #prefix>
-            <GeneralIcon
-              :class="{
-                'text-nc-content-brand': searchQuery?.length,
-              }"
-              icon="search"
-              class="nc-search-icon h-3.5 w-3.5 mr-1"
-            />
-          </template>
-        </a-input>
-      </div>
-
-      <div
-        v-if="filteredFeatures?.length"
-        class="border-1 !border-nc-border-gray-medium !rounded-lg overflow-y-auto nc-scrollbar-thin flex-1 mx-4 mb-4"
-      >
-        <div class="flex flex-col">
-          <template v-for="feature in filteredFeatures" :key="feature.id">
-            <div
-              v-if="isFeatureVisible(feature)"
-              class="border-b-1 px-3 flex gap-2 flex-col py-2 !border-nc-border-gray-medium last:border-b-0"
-            >
-              <div class="flex items-center justify-between">
-                <div class="text-sm text-nc-content-gray !font-weight-600">
-                  {{ feature.title }}
-                </div>
-                <NcSwitch v-model:checked="selectedFeatures[feature.id]" @change="saveExperimentalFeatures" />
-              </div>
-
-              <div class="text-nc-content-gray-muted leading-4 text-[13px] font-weight-500">
-                {{ feature.description }}
-              </div>
-            </div>
-          </template>
-        </div>
-      </div>
-      <div v-else class="px-2 py-6 text-center text-nc-content-gray-muted flex flex-col items-center gap-6">
-        <img
-          src="~assets/img/placeholder/no-search-result-found.png"
-          class="!w-[164px] flex-none"
-          alt="No search results found"
+        <input
+          ref="inputRef"
+          v-model="searchQuery"
+          class="nc-exp-input"
+          :placeholder="$t('general.featurePreview')"
+          data-testid="nc-exp-palette-input"
+          @keydown="onKeydown"
         />
 
-        {{ features?.length ? $t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
+        <span v-if="isEngineeringModeOn" class="nc-exp-badge egg">eng</span>
+        <span v-if="isAdvancedModeOn" class="nc-exp-badge egg">adv</span>
+      </div>
+
+      <div v-if="filteredFeatures.length" ref="listRef" class="nc-exp-list nc-scrollbar-thin">
+        <div
+          v-for="(feature, i) in filteredFeatures"
+          :key="feature.id"
+          class="nc-exp-row"
+          :class="{ selected: i === selectedIndex }"
+          :data-testid="`nc-exp-row-${feature.id}`"
+          @mouseenter="selectedIndex = i"
+          @click="toggle(feature)"
+        >
+          <div class="flex flex-col min-w-0 flex-1">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-bodyDefaultSm text-nc-content-gray truncate">{{ feature.title }}</span>
+              <span v-if="feature.isEngineering" class="nc-exp-badge">eng</span>
+              <span v-if="feature.isAdvanced" class="nc-exp-badge">adv</span>
+            </div>
+            <span class="text-captionSm text-nc-content-gray-muted truncate">{{ feature.description }}</span>
+          </div>
+
+          <NcSwitch :checked="feature.enabled" size="small" class="flex-none pointer-events-none" />
+        </div>
+      </div>
+
+      <div v-else class="nc-exp-empty">
+        {{ visibleFeatures.length ? $t('title.noResultsMatchedYourSearch') : $t('labels.noExperimentalFeatures') }}
+      </div>
+
+      <div class="nc-exp-foot" @click="handleAdvancedClick">
+        <span class="flex-1 truncate">{{ enabledCount }}/{{ visibleFeatures.length }} {{ $t('general.enabled') }}</span>
+
+        <button type="button" class="nc-exp-link" data-testid="nc-exp-toggle-all" @click.stop="toggleAll">
+          {{ isAllEnabled ? $t('general.disable') : $t('general.enable') }} {{ $t('general.all') }}
+        </button>
+
+        <span class="nc-exp-keys"><kbd>↑</kbd><kbd>↓</kbd> {{ $t('labels.navigate') }}</span>
+        <span class="nc-exp-keys"><kbd>↵</kbd> {{ $t('general.toggle') }}</span>
+        <span class="nc-exp-keys"><kbd>esc</kbd> {{ $t('general.close') }}</span>
       </div>
     </div>
-  </a-drawer>
+  </div>
 </template>
 
-<style lang="scss">
-.nc-features-drawer {
-  .ant-drawer-content-wrapper {
-    @apply !rounded-l-xl overflow-hidden mt-[48px] h-[calc(100vh_-_48px)] border-1 border-r-0 border-nc-border-gray-medium;
+<style lang="scss" scoped>
+.nc-exp-palette {
+  @apply fixed inset-0 z-1000 flex items-start justify-center pt-[12vh] px-4;
+  background: rgba(0, 0, 0, 0.5);
+}
 
-    @supports (height: 100dvh) {
-      @apply h-[calc(100dvh_-_48px)];
-    }
+.nc-exp-modal {
+  @apply flex flex-col w-full max-w-[640px] max-h-[60vh] rounded-xl overflow-hidden border-1 border-nc-border-gray-medium;
+  background: var(--nc-bg-default);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
 
-    @supports (height: 100svh) {
-      @apply h-[calc(100svh_-_48px)];
-    }
+.nc-exp-head {
+  @apply flex items-center gap-2 px-4 h-12 flex-none border-b-1 border-nc-border-gray-medium;
+}
 
-    .ant-drawer-body {
-      @apply p-0;
-    }
+.nc-exp-input {
+  @apply flex-1 min-w-0 bg-transparent text-bodyDefaultSm text-nc-content-gray placeholder:text-nc-content-gray-muted;
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.nc-exp-list {
+  @apply flex-1 overflow-y-auto py-1;
+}
+
+.nc-exp-row {
+  @apply flex items-center gap-3 px-4 py-2 cursor-pointer;
+
+  &.selected {
+    background: var(--nc-bg-gray-extralight);
   }
 }
 
-.rtl .nc-features-drawer {
-  .ant-drawer-content-wrapper {
-    @apply !rounded-l-none !rounded-r-xl !border-l-0 !border-r-1;
+.nc-exp-badge {
+  @apply flex-none px-1.5 rounded text-captionSm leading-4 text-nc-content-gray-muted border-1 border-nc-border-gray-medium;
+
+  &.egg {
+    @apply text-nc-content-brand border-nc-border-brand;
   }
 }
 
-:deep(.field-list-with-search) {
-  .nc-divider {
-    display: none !important;
-  }
+.nc-exp-empty {
+  @apply flex-1 flex items-center justify-center py-10 text-bodyDefaultSm text-nc-content-gray-muted;
+}
 
-  .nc-toolbar-dropdown-search-field-input {
-    @apply rounded-lg;
-  }
+.nc-exp-foot {
+  @apply flex items-center gap-3 px-4 h-9 flex-none border-t-1 border-nc-border-gray-medium text-captionSm text-nc-content-gray-muted;
+}
 
-  .nc-list-item {
-    @apply h-8 hover:bg-nc-bg-gray-light gap-x-1.5;
+.nc-exp-link {
+  @apply flex-none cursor-pointer bg-transparent border-0 text-captionSm text-nc-content-gray-subtle2 hover:text-nc-content-gray;
+  font-family: inherit;
+}
+
+.nc-exp-keys {
+  @apply flex-none hidden sm:flex items-center gap-1;
+
+  kbd {
+    @apply inline-flex items-center justify-center min-w-4 h-4 px-1 rounded border-1 border-nc-border-gray-medium text-captionSm;
+    background: var(--nc-bg-gray-extralight);
   }
 }
 </style>

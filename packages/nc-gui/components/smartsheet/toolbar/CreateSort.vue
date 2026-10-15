@@ -61,7 +61,7 @@ const options = computed<ColumnType[]>(() =>
           return !(
             isLinksOrLTAR(c) &&
             ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
-              (c.colOptions as LinkToAnotherRecordType).type as RelationTypes,
+              (c.colOptions as LinkToAnotherRecordType)?.type as RelationTypes,
             )
           )
           /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */

@@ -8,7 +8,11 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
-import { getPathFromUrl, isPreviewAllowed } from '~/helpers/attachmentHelpers';
+import {
+  getPathFromUrl,
+  isPreviewAllowed,
+  isStorageAttachmentRef,
+} from '~/helpers/attachmentHelpers';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { processConcurrently } from '~/utils/dataUtils';
 
@@ -123,6 +127,13 @@ export default class PresignedUrl {
     ncMeta = Noco.ncMeta,
   ) {
     const isUrl = /^https?:\/\//i.test(param.pathOrUrl);
+
+    // An external link is never reduced to a storage key. Checked before the
+    // cache, which is keyed by pathname and could hold our object's signature.
+    // Uses the process-cached own-host list, so no plugin-row read per sign.
+    if (isUrl && !(await isStorageAttachmentRef(param.pathOrUrl))) {
+      return param.pathOrUrl;
+    }
 
     let path = (
       isUrl ? getPathFromUrl(param.pathOrUrl) : param.pathOrUrl

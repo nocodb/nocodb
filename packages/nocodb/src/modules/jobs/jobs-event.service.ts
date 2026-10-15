@@ -37,6 +37,7 @@ export class JobsEventService {
     const emitActive = () =>
       this.eventEmitter.emit(JobEvents.STATUS, {
         id: job.id.toString(),
+        jobName: job.data.jobName,
         status: JobStatus.ACTIVE,
       });
 
@@ -81,6 +82,7 @@ export class JobsEventService {
     const emitFailed = () =>
       this.eventEmitter.emit(JobEvents.STATUS, {
         id: job.id.toString(),
+        jobName: job.data.jobName,
         status: JobStatus.FAILED,
         data: {
           error: {
@@ -129,6 +131,7 @@ export class JobsEventService {
     if (data === JobStatus.REQUEUED) {
       this.eventEmitter.emit(JobEvents.STATUS, {
         id: job.id.toString(),
+        jobName: job.data.jobName,
         status: JobStatus.REQUEUED,
       });
       return;
@@ -137,6 +140,7 @@ export class JobsEventService {
     const emitCompleted = () =>
       this.eventEmitter.emit(JobEvents.STATUS, {
         id: job.id.toString(),
+        jobName: job.data.jobName,
         status: JobStatus.COMPLETED,
         data: {
           result: data,

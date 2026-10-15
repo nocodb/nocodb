@@ -35,10 +35,6 @@ describe('isValidURL', () => {
     expect(isValidURL('file://www.google.com')).toBe(true);
   });
 
-  it('should return true for a valid URL with an invalid protocol', () => {
-    expect(isValidURL('file://www.google.com')).toBe(true);
-  });
-
   it('should return false for an invalid URL', () => {
     expect(isValidURL('invalid-url')).toBe(false);
   });

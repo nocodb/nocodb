@@ -105,7 +105,7 @@ export default class MCPToken implements MCPTokenType {
     const mcpToken = await this.get(context, id, ncMeta);
 
     if (!mcpToken || token !== mcpToken.token) {
-      NcError.notFound('MCP Token not found');
+      NcError.unauthorized('Invalid MCP token');
     }
 
     return mcpToken;

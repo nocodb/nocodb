@@ -8,7 +8,6 @@ import { ncStaticCompression, ncStaticOptions } from '~/helpers/staticAssets';
 handleUncaughtErrors(process);
 
 const server = express();
-server.enable('trust proxy');
 server.use(cors());
 server.use(
   process.env.NC_DASHBOARD_URL ?? '/',

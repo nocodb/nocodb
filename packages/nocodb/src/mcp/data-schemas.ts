@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod-v4';
 
 export const sortSchema = z
   .array(
@@ -40,3 +40,8 @@ export const viewIdSchema = z
     'Optional view ID to use view-specific configurations — the view filters, ' +
       'sorts and field visibility are applied. Obtain one from getTableSchema.',
   );
+
+// Records tools report numeric primary keys as numbers.
+export const recordIdSchema = z
+  .union([z.string(), z.number()])
+  .transform(String);

@@ -88,6 +88,7 @@ import { JsonPgHandler } from '~/db/field-handler/handlers/json/json.pg.handler'
 import { JsonMssqlHandler } from '~/db/field-handler/handlers/json/json.mssql.handler';
 import { DecimalPgHandler } from '~/db/field-handler/handlers/decimal/decimal.pg.handler';
 import { EmailGeneralHandler } from '~/db/field-handler/handlers/email/email.general.handler';
+import { UrlGeneralHandler } from '~/db/field-handler/handlers/url/url.general.handler';
 import { AttachmentGeneralHandler } from '~/db/field-handler/handlers/attachment/attachment.general.handler';
 import { TimeGeneralHandler } from '~/db/field-handler/handlers/time/time.general.handler';
 import { TimeMysqlHandler } from '~/db/field-handler/handlers/time/time.mysql.handler';
@@ -175,7 +176,7 @@ const HANDLER_REGISTRY: Partial<
     [CLIENT_DEFAULT]: EmailGeneralHandler,
   },
   [UITypes.URL]: {
-    [CLIENT_DEFAULT]: GenericFieldHandler,
+    [CLIENT_DEFAULT]: UrlGeneralHandler,
   },
   [UITypes.UUID]: {
     [CLIENT_DEFAULT]: GenericFieldHandler,

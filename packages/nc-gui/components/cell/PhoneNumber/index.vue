@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import isMobilePhone from 'validator/lib/isMobilePhone'
+import { isValidPhoneNumber } from 'nocodb-sdk'
 
 interface Props {
   modelValue: string | null | number | undefined
@@ -33,13 +33,13 @@ const vModel = computed({
   get: () => value,
   set: (val) => {
     localState.value = val
-    if (!parseProp(column.value.meta)?.validate || (val && isMobilePhone(val)) || !val || isForm.value) {
+    if (!parseProp(column.value.meta)?.validate || (val && isValidPhoneNumber(val)) || !val || isForm.value) {
       emit('update:modelValue', val)
     }
   },
 })
 
-const validPhoneNumber = computed(() => vModel.value && isMobilePhone(vModel.value))
+const validPhoneNumber = computed(() => vModel.value && isValidPhoneNumber(vModel.value))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -50,7 +50,10 @@ watch(
   () => editEnabled.value,
   () => {
     if (
-      (parseProp(column.value.meta)?.validate && !editEnabled.value && localState.value && !isMobilePhone(localState.value)) ||
+      (parseProp(column.value.meta)?.validate &&
+        !editEnabled.value &&
+        localState.value &&
+        !isValidPhoneNumber(localState.value)) ||
       isEditColumn.value
     ) {
       if (!isEditColumn.value) {

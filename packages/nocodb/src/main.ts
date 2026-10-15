@@ -3,7 +3,6 @@ import express from 'express';
 import Noco from '~/Noco';
 
 const server = express();
-server.enable('trust proxy');
 server.disable('etag');
 server.disable('x-powered-by');
 server.use(

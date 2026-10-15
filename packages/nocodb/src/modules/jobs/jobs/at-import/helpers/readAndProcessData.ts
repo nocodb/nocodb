@@ -13,6 +13,19 @@ import type { NcContext } from '~/interface/config';
 
 const logger = new Logger('at-import:readAndProcessData');
 
+// What the import reads records through: the Airtable SDK base, or a stand-in
+// serving rows from another source (shared-view payload, mock engine).
+export type AtRecordSource =
+  | AirtableBase
+  | ((tableName: string) => {
+      select(params?: unknown): {
+        eachPage(
+          page: (records: any[], fetchNextPage: () => void) => unknown,
+          done: (err?: unknown) => unknown,
+        ): void;
+      };
+    });
+
 const BULK_DATA_BATCH_COUNT =
   +process.env.AT_IMPORT_BULK_DATA_BATCH_COUNT || 10; // check size for every N records
 const BULK_DATA_BATCH_SIZE =
@@ -41,7 +54,7 @@ async function readAllData({
 }: {
   table: { title?: string };
   fields?;
-  atBase: AirtableBase;
+  atBase: AtRecordSource;
   dataStream: Readable;
   counter?: { streamingCounter: number };
   logBasic?: (string) => void;
@@ -133,7 +146,7 @@ export async function importData(
     baseName: string;
     table: { title?: string; id?: string };
     fields?;
-    atBase: AirtableBase;
+    atBase: AtRecordSource;
     source: Source;
     logBasic: (string) => void;
     logDetailed: (string) => void;

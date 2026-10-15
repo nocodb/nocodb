@@ -300,7 +300,9 @@ export class DatasService {
     listArgs.customConditions = param.customConditions;
 
     const [count, data] = await Promise.all([
-      baseModel.count(listArgs, false, param.throwErrorIfInvalidParams),
+      apiVersion === NcApiVersion.V3 && query.excludeCount === true
+        ? undefined
+        : baseModel.count(listArgs, false, param.throwErrorIfInvalidParams),
       (async () => {
         let data = [];
         try {

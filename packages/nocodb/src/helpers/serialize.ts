@@ -1,5 +1,5 @@
 import { type Readable } from 'stream';
-import pdf from 'pdf-parse';
+import { extractPdfText } from '~/helpers/pdfText';
 
 const serializers = {
   'application/pdf': async (
@@ -13,10 +13,8 @@ const serializers = {
   }> => {
     const data = await getDataFromStream(stream);
 
-    const pdfData = await pdf(data);
-
     return {
-      text: pdfData.text,
+      text: await extractPdfText(data),
       images: [],
     };
   },

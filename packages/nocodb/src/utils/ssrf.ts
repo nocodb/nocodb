@@ -1,10 +1,14 @@
+import dns from 'dns/promises';
+import { isIP } from 'net';
 import { OperationSource } from 'nocodb-sdk';
 import {
+  globalHttpAgent,
+  globalHttpsAgent,
   type RequestFilteringHttpAgent,
   type RequestFilteringHttpsAgent,
-  useAgent,
 } from 'request-filtering-agent';
 import { isCloud } from '~/utils/constants';
+import { isBlockedIp } from '~/helpers/dbSsrfLookup';
 
 export type FilteredAgents = {
   httpAgent?: RequestFilteringHttpAgent | RequestFilteringHttpsAgent;
@@ -55,17 +59,48 @@ export function isSsrfProtectionEnabled({
   return true;
 }
 
-function buildAgents(url: string): FilteredAgents {
-  return { httpAgent: useAgent(url), httpsAgent: useAgent(url) };
+// One agent per protocol: redirects can switch scheme (http → https).
+function buildAgents(): FilteredAgents {
+  return { httpAgent: globalHttpAgent, httpsAgent: globalHttpsAgent };
+}
+
+/**
+ * Create-time form of the outbound check: true when the url's host is, or
+ * resolves to, a blocked internal address. The agent still enforces on send.
+ * Unparseable urls are not judged here.
+ */
+export async function isInternalUrl(
+  url: string,
+  source?: OperationSource,
+): Promise<boolean> {
+  if (!isSsrfProtectionEnabled({ source })) return false;
+
+  let host: string;
+  try {
+    // `hostname` keeps the brackets around an IPv6 literal
+    host = new URL(url).hostname.replace(/^\[|\]$/g, '');
+  } catch {
+    return false;
+  }
+
+  if (!host) return false;
+  if (isIP(host)) return isBlockedIp(host);
+  if (host === 'localhost' || host.endsWith('.localhost')) return true;
+
+  try {
+    const records = await dns.lookup(host, { all: true });
+    return records.some((record) => isBlockedIp(record.address));
+  } catch {
+    return false;
+  }
 }
 
 export function getFilteredAgents({
-  url,
   source,
 }: {
   url: string;
   source?: OperationSource;
 }): FilteredAgents {
   if (!isSsrfProtectionEnabled({ source })) return {};
-  return buildAgents(url);
+  return buildAgents();
 }

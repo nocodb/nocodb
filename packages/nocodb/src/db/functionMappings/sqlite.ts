@@ -6,6 +6,7 @@ import {
   JSEPNode,
 } from 'nocodb-sdk';
 import commonFns, {
+  escapePlaceholders,
   extractDatetimeFormat,
   safeDateAddUnitSQL,
   validateDateAddUnit,
@@ -216,9 +217,11 @@ const sqlite3 = {
     const dateExpr = (await fn(pt?.arguments[0])).builder;
     return {
       builder: knex.raw(
-        getDatetimeFormatHandler(ClientType.SQLITE).build(
-          `(${dateExpr})`,
-          format,
+        escapePlaceholders(
+          getDatetimeFormatHandler(ClientType.SQLITE).build(
+            `(${dateExpr})`,
+            format,
+          ),
         ),
       ),
     };

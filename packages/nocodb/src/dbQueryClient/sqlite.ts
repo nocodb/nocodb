@@ -2,6 +2,7 @@ import { ClientType } from 'nocodb-sdk';
 import type { DBQueryClient } from '~/dbQueryClient/types';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
+import type { XKnex } from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { GenericDBQueryClient } from '~/dbQueryClient/generic';
 
@@ -17,6 +18,30 @@ export class SqliteDBQueryClient
   }
   simpleCast(field: string, asType: string) {
     return `CAST(${field} as ${asType})`;
+  }
+
+  // SQLite rejects the generic `AS alias (cols)` column list; a bare VALUES
+  // names its columns column1…N, so rename them in an outer SELECT. VALUES is
+  // not bound by the 500-term compound-SELECT limit a UNION ALL chain hits.
+  temporaryTableRaw({
+    knex,
+    data,
+    fields,
+    alias,
+  }: {
+    data: Record<string, any>[];
+    fields: string[];
+    alias: string;
+    knex: XKnex;
+  }) {
+    const columns = fields.map((_, i) => `column${i + 1} AS ??`).join(', ');
+    const row = `(${fields.map(() => '?').join(', ')})`;
+    const values = data.map(() => row).join(', ');
+    return knex.raw(`(SELECT ${columns} FROM (VALUES ${values})) AS ??`, [
+      ...fields,
+      ...data.flatMap((r) => fields.map((field) => r[field])),
+      alias,
+    ]);
   }
 
   bulkAggregateRowSelector(

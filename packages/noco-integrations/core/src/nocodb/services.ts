@@ -46,6 +46,9 @@ export interface DataListParams {
   viewId?: string;
   ignorePagination?: boolean;
   req: NocoSDK.NcRequest;
+  // Reject a link filter its linked display field can't match (a non-date on a
+  // Date display value) instead of returning no rows. Not settable over HTTP.
+  strictLinkFilters?: boolean;
 }
 
 export interface DataInsertParams {
@@ -285,6 +288,58 @@ interface RawMailParams {
 
 export interface IMailService {
   sendMailRaw(param: RawMailParams): Promise<boolean>;
+}
+
+/** A NocoDB attachment cell entry (record attachment or uploaded workflow asset). */
+export interface EmailAttachmentFileRef {
+  /** FileReference id, when the source carries one (record attachments, uploads) */
+  id?: string;
+  path?: string;
+  url?: string;
+  title?: string;
+  mimetype?: string;
+  size?: number;
+}
+
+/**
+ * Where a stored file came from, which decides what may vouch for it: `upload`
+ * is a file uploaded to the node, `record` an attachment field's value.
+ */
+export type EmailAttachmentOrigin = 'upload' | 'record';
+
+export type EmailAttachmentSource =
+  | {
+      kind: 'nocodb';
+      origin: EmailAttachmentOrigin;
+      file: EmailAttachmentFileRef;
+    }
+  | { kind: 'url'; url: string; filename?: string };
+
+export interface ResolvedEmailAttachment {
+  filename: string;
+  contentType: string;
+  size: number;
+  content: Buffer;
+}
+
+export interface ResolveEmailAttachmentsOptions {
+  /** Provider ceiling; the host applies its own platform cap on top. */
+  maxTotalBytes?: number;
+  maxFiles?: number;
+  /** The run's cancel signal; URL downloads stop when it fires. */
+  signal?: AbortSignal;
+}
+
+export interface IAttachmentService {
+  /**
+   * Load attachment bytes for an outgoing message. NocoDB files must belong to
+   * the executing base; URLs are fetched with SSRF protection. Throws when a
+   * file is inaccessible or the count / total-size caps are exceeded.
+   */
+  resolveEmailAttachments(
+    sources: EmailAttachmentSource[],
+    options?: ResolveEmailAttachmentsOptions,
+  ): Promise<ResolvedEmailAttachment[]>;
 }
 
 export interface CommentAuthor {

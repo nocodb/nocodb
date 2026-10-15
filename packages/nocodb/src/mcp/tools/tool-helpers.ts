@@ -1,5 +1,5 @@
 import { isLinksOrLTAR, ProjectRoles } from 'nocodb-sdk';
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { McpServer } from '@modelcontextprotocol/server';
 import type { NcContext, NcRequest, UserType } from 'nocodb-sdk';
 import type {
   McpToolAcl,
@@ -198,16 +198,35 @@ export async function runTableTool(
 // handling so every tool returns a consistent text payload. `compact` drops the
 // pretty-printing for large payloads (e.g. generated JSON Schemas) that would
 // otherwise blow past client result-size limits.
+export type McpContentBlock =
+  | { type: 'text'; text: string }
+  | { type: 'image'; data: string; mimeType: string };
+
+const MCP_CONTENT_BLOCKS = Symbol('mcpContentBlocks');
+
+/** A tool result that is already MCP content (text and images), not JSON. */
+export function mcpContentResult(content: McpContentBlock[]) {
+  return { [MCP_CONTENT_BLOCKS]: content };
+}
+
 export async function runTool(
   fn: () => Promise<unknown>,
   opts?: { compact?: boolean },
-): Promise<{ content: { type: 'text'; text: string }[]; isError?: boolean }> {
+): Promise<{ content: McpContentBlock[]; isError?: boolean }> {
   try {
     // A write that returns 200 plus the full object encodes "applied",
     // "dropped" and "stored but inert" identically. Anything the services
     // flagged is surfaced alongside the payload so the caller does not have
     // to diff a re-read to find out which one happened.
     const [result, warnings] = await collectV3Warnings(fn);
+
+    if (result && typeof result === 'object' && MCP_CONTENT_BLOCKS in result) {
+      return {
+        content: (result as Record<symbol, McpContentBlock[]>)[
+          MCP_CONTENT_BLOCKS
+        ],
+      };
+    }
 
     // spreading an array here would turn it into an object of numeric keys
     const payload =
@@ -253,6 +272,17 @@ export function deletionReceipt(
   collateral?: Record<string, unknown>,
 ) {
   return { deleted: true, resource, id, ...(collateral ?? {}) };
+}
+
+/** The `page` / `pageSize` a v3 `next` / `prev` URL points at, or null. */
+export function pageFromV3Url(
+  url: string | null | undefined,
+): { page: number; pageSize: number } | null {
+  if (!url) return null;
+  const params = new URL(url, 'http://localhost').searchParams;
+  const page = +params.get('page');
+  if (!Number.isInteger(page) || page < 1) return null;
+  return { page, pageSize: +params.get('pageSize') };
 }
 
 /**

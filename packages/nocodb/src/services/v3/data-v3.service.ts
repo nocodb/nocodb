@@ -1,6 +1,8 @@
 import {
   isLinksOrLTAR,
+  isVirtualCol,
   NcApiVersion,
+  NcErrorType,
   recordsV2ToV3,
   recordV2ToV3,
   RelationTypes,
@@ -25,15 +27,20 @@ import type {
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { ReusableParams } from '~/utils';
-import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import {
   getLtarDisplayValueContext,
   resolveLtarDisplayValuesToPks,
 } from '~/helpers/ltarDisplayValueResolver';
 import { NcError } from '~/helpers/catchError';
-import { Column, Model, Source } from '~/models';
-import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
+import { markErrorSentinels } from '~/helpers/errorSentinel';
+import { Column, Filter, Model, Source } from '~/models';
+import { FieldHandler } from '~/db/field-handler';
+import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
+import {
+  PagedResponseImpl,
+  PagedResponseV3Impl,
+} from '~/helpers/PagedResponse';
 import { DataTableService } from '~/services/data-table.service';
 import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -77,6 +84,31 @@ const UPSERT_DISALLOWED_UITYPES = new Set([
   UITypes.QrCode,
   UITypes.Button,
 ]);
+
+/**
+ * A page past the end is an empty page, not an error; its `prev` points at
+ * the last page with records. Every other error is rethrown.
+ */
+function pastEndPage(e: unknown): PagedResponseImpl<Record<string, any>> {
+  const err = e as {
+    error?: string;
+    details?: { offset?: number; limit?: number; totalRows?: number };
+  };
+  if (
+    err?.error !== NcErrorType.ERR_INVALID_OFFSET_VALUE ||
+    err.details?.totalRows === undefined
+  ) {
+    throw e;
+  }
+  const { limit, offset, totalRows } = err.details;
+  return new PagedResponseImpl([], {
+    count: totalRows,
+    limit,
+    // On a page boundary, so `prev` gets a page number for any offset.
+    offset: Math.ceil(offset / limit) * limit,
+    allowPastEnd: true,
+  });
+}
 
 @Injectable()
 export class DataV3Service {
@@ -425,6 +457,30 @@ export class DataV3Service {
     }
   }
 
+  private async verifyStrictLinkFilters(
+    context: NcContext,
+    model: Model,
+    filterArrJson: string | Filter[] | undefined,
+  ) {
+    let filters = parseFilterArrJson(context, filterArrJson);
+    if (!filters?.length) return;
+
+    // Disabled filters never reach the query, so they must not fail it.
+    if (await Filter.supportToggle(context)) {
+      filters = dropDisabledFilters(filters);
+    }
+
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+    await FieldHandler.fromBaseModel(baseModel).verifyFilters(filters, {
+      strictLinkFilters: true,
+    });
+  }
+
   async dataList<T extends boolean>(
     context: NcContext,
     param: DataListParams,
@@ -433,15 +489,28 @@ export class DataV3Service {
     const modelInfo = await this.getModelInfo(context, param.modelId);
     const { primaryKey, primaryKeys, columns } = modelInfo;
     await this.validateDataListQueryParams(context, { ...param, modelInfo });
+    if (param.strictLinkFilters) {
+      await this.verifyStrictLinkFilters(
+        context,
+        modelInfo.model,
+        param.query?.filterArrJson,
+      );
+    }
 
-    const pagedData = await this.dataTableService.dataList(context, {
-      ...(param as Omit<DataListParams, 'req'>),
-      query: {
-        ...param.query,
-        limit: +param.query?.limit || +param.query?.pageSize,
-      },
-      apiVersion: NcApiVersion.V3,
-    });
+    const pagedData = await this.dataTableService
+      .dataList(context, {
+        ...(param as Omit<DataListParams, 'req'>),
+        query: {
+          ...param.query,
+          limit: +param.query?.limit || +param.query?.pageSize,
+          // Any value reaching the list is truthy, so pass only a real `true`.
+          excludeCount: ['true', true].includes(param.query?.excludeCount)
+            ? true
+            : undefined,
+        },
+        apiVersion: NcApiVersion.V3,
+      })
+      .catch(pastEndPage);
 
     // Extract requested fields from query parameters
     const requestedFields = this.getRequestedFields(param.query);
@@ -465,20 +534,22 @@ export class DataV3Service {
     const linksAsLtar = param.query[QUERY_STRING_LINKS_AS_LTAR] === 'true';
 
     // Transform records with LTAR handling
-    const transformedRecords = await this.transformRecordsToV3Format({
-      context: context,
-      records: pagedResponse.list,
-      primaryKey: primaryKey,
-      primaryKeys: primaryKeys,
-      requestedFields: requestedFields,
-      columns: columns,
-      nestedLimit: nestedLimit,
-      skipSubstitutingColumnIds:
-        param.query[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
-      reuse: {}, // Create reuse cache for this data list operation
-      depth: 0, // Start at depth 0 for main records
-      linksAsLtar,
-    });
+    const transformedRecords = markErrorSentinels(
+      await this.transformRecordsToV3Format({
+        context: context,
+        records: pagedResponse.list,
+        primaryKey: primaryKey,
+        primaryKeys: primaryKeys,
+        requestedFields: requestedFields,
+        columns: columns,
+        nestedLimit: nestedLimit,
+        skipSubstitutingColumnIds:
+          param.query[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+        reuse: {}, // Create reuse cache for this data list operation
+        depth: 0, // Start at depth 0 for main records
+        linksAsLtar,
+      }),
+    );
 
     if (!pagination) {
       return transformedRecords as T extends true
@@ -637,11 +708,16 @@ export class DataV3Service {
 
         // Handle v3 format consistently for all relation types
         if (Array.isArray(fieldValue)) {
-          // Array of records - each should have id property
+          // Array of records - each an {id} object or a bare id
           transformedFields[key] = fieldValue.map((nestedRecord) =>
             this.convertRecordIdToInternal(
               context,
-              nestedRecord,
+              this.toLinkedRecordRef(
+                context,
+                nestedRecord,
+                column,
+                relatedPrimaryKeys,
+              ),
               relatedPrimaryKey,
               relatedPrimaryKeys,
               getPrimaryKey,
@@ -665,6 +741,34 @@ export class DataV3Service {
     }
 
     return transformedFields;
+  }
+
+  /**
+   * One entry of a link-field array as `{ id }`. Bare ids and the related
+   * primary key's own name are accepted, matching the single-value path.
+   */
+  private toLinkedRecordRef(
+    context: NcContext,
+    entry: any,
+    column: Column,
+    relatedPrimaryKeys: Column[],
+  ): { id: string | number } {
+    if (typeof entry === 'string' || typeof entry === 'number') {
+      return { id: entry };
+    }
+    if (entry && typeof entry === 'object') {
+      if (entry.id !== undefined && entry.id !== null) return entry;
+
+      const [pk] = relatedPrimaryKeys;
+      const pkValue =
+        relatedPrimaryKeys.length === 1
+          ? entry[pk.title] ?? entry[pk.column_name]
+          : undefined;
+      if (pkValue !== undefined && pkValue !== null) return { id: pkValue };
+    }
+    NcError.get(context).unprocessableEntity(
+      `Link field '${column.title}': each linked record must be a record id or {"id": <record id>}`,
+    );
   }
 
   /**
@@ -731,7 +835,11 @@ export class DataV3Service {
   async dataInsert(
     context: NcContext,
     param: DataInsertParams,
-  ): Promise<{ records: DataRecord[] }> {
+  ): Promise<{
+    records: DataRecord[];
+    warnings?: string[];
+    ignored_fields?: string[];
+  }> {
     // validate insert
     this.validateRequestFormat(context, {
       body: param.body,
@@ -751,7 +859,7 @@ export class DataV3Service {
           param.body.map(async (record) =>
             this.transformLTARFieldsToInternal(
               context,
-              record.fields,
+              rekeyAmbiguousFields(record.fields, columns),
               ltarColumns,
             ),
           ),
@@ -759,7 +867,7 @@ export class DataV3Service {
       : [
           await this.transformLTARFieldsToInternal(
             context,
-            param.body.fields,
+            rekeyAmbiguousFields(param.body.fields, columns),
             ltarColumns,
           ),
         ];
@@ -807,6 +915,49 @@ export class DataV3Service {
       return { records: [] };
     }
 
+    const ignored = computedFieldsIn(param.body, columns);
+    try {
+      return withIgnoredFields(
+        await this.readBackInserted(
+          context,
+          param,
+          { model, primaryKey, primaryKeys, columns },
+          baseModel,
+          insertedPks,
+        ),
+        ignored,
+      );
+    } catch (e) {
+      // The rows are committed; a failed read-back must not look like a failed
+      // insert, or a retry duplicates them.
+      if (!param.tolerateReadbackFailure) throw e;
+
+      this.logger.error(
+        `Inserted ${insertedPks.length} record(s) but the read-back failed: ${e?.message}`,
+        e?.stack,
+      );
+      const ids = insertedPks.map((pk) => String(pk)).join(', ');
+      return withIgnoredFields(
+        {
+          records: insertedPks.map((pk) => ({ id: String(pk), fields: {} })),
+          warnings: [
+            `${insertedPks.length} record(s) were inserted (id ${ids}), ` +
+              'but reading them back failed, so their values are not shown. ' +
+              'Read them with queryRecords or getRecord.',
+          ],
+        },
+        ignored,
+      );
+    }
+  }
+
+  private async readBackInserted(
+    context: NcContext,
+    param: DataInsertParams,
+    { primaryKey, primaryKeys, columns }: ModelInfo,
+    baseModel: BaseModelSqlv2,
+    insertedPks: (string | number)[],
+  ): Promise<{ records: DataRecord[] }> {
     const linksAsLtar =
       param.cookie.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
 
@@ -845,27 +996,33 @@ export class DataV3Service {
 
     // Transform and return full records in V3 format
     return {
-      records: await this.transformRecordsToV3Format({
-        context: context,
-        records: orderedRecords,
-        primaryKey: primaryKey,
-        primaryKeys: primaryKeys,
-        requestedFields: undefined,
-        columns: columns,
-        nestedLimit: undefined,
-        skipSubstitutingColumnIds:
-          param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
-        reuse: {}, // Create reuse cache for this data insert operation
-        depth: 0, // Start at depth 0 for main records
-        linksAsLtar,
-      }),
+      records: markErrorSentinels(
+        await this.transformRecordsToV3Format({
+          context: context,
+          records: orderedRecords,
+          primaryKey: primaryKey,
+          primaryKeys: primaryKeys,
+          requestedFields: undefined,
+          columns: columns,
+          nestedLimit: undefined,
+          skipSubstitutingColumnIds:
+            param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+          reuse: {}, // Create reuse cache for this data insert operation
+          depth: 0, // Start at depth 0 for main records
+          linksAsLtar,
+        }),
+      ),
     };
   }
 
   async dataUpsert(
     context: NcContext,
     param: DataUpsertParams,
-  ): Promise<{ records: DataUpsertRecordResponse[] }> {
+  ): Promise<{
+    records: DataUpsertRecordResponse[];
+    warnings?: string[];
+    ignored_fields?: string[];
+  }> {
     const { body } = param;
 
     // 1. Validate top-level request structure
@@ -988,7 +1145,11 @@ export class DataV3Service {
 
     const transformedBody = await Promise.all(
       records.map(async (record) =>
-        this.transformLTARFieldsToInternal(context, record.fields, ltarColumns),
+        this.transformLTARFieldsToInternal(
+          context,
+          rekeyAmbiguousFields(record.fields, columns),
+          ltarColumns,
+        ),
       ),
     );
 
@@ -1043,12 +1204,17 @@ export class DataV3Service {
     });
 
     // 9. Attach status to each record
-    const result: DataUpsertRecordResponse[] = v3Records.map((record) => ({
+    const result: DataUpsertRecordResponse[] = markErrorSentinels(
+      v3Records,
+    ).map((record) => ({
       ...record,
       status: statusMap.get(String(record.id)) ?? 'inserted',
     }));
 
-    return { records: result };
+    return withIgnoredFields(
+      { records: result },
+      computedFieldsIn(records, columns),
+    );
   }
 
   /**
@@ -1080,9 +1246,7 @@ export class DataV3Service {
       );
     }
 
-    return Object.fromEntries(
-      primaryKeys.map((pk, i) => [pk.title, parts[i]]),
-    );
+    return Object.fromEntries(primaryKeys.map((pk, i) => [pk.title, parts[i]]));
   }
 
   async dataDelete(
@@ -1138,7 +1302,11 @@ export class DataV3Service {
   async dataUpdate(
     context: NcContext,
     param: DataUpdateParams,
-  ): Promise<{ records: DataRecord[] }> {
+  ): Promise<{
+    records: DataRecord[];
+    warnings?: string[];
+    ignored_fields?: string[];
+  }> {
     // validate update
     this.validateRequestFormat(context, {
       body: param.body,
@@ -1161,7 +1329,7 @@ export class DataV3Service {
             ...this.buildPkLookup(context, primaryKeys, record.id),
             ...(await this.transformLTARFieldsToInternal(
               context,
-              record.fields,
+              rekeyAmbiguousFields(record.fields, columns),
               ltarColumns,
             )),
           })),
@@ -1171,7 +1339,7 @@ export class DataV3Service {
             ...this.buildPkLookup(context, primaryKeys, param.body.id),
             ...(await this.transformLTARFieldsToInternal(
               context,
-              param.body.fields,
+              rekeyAmbiguousFields(param.body.fields, columns),
               ltarColumns,
             )),
           },
@@ -1271,9 +1439,10 @@ export class DataV3Service {
     profiler.end();
 
     // Transform and return full records in V3 format
-    return {
-      records: resultRecords,
-    };
+    return withIgnoredFields(
+      { records: markErrorSentinels(resultRecords) },
+      computedFieldsIn(param.body, columns),
+    );
   }
 
   validateRequestFormat(
@@ -1350,14 +1519,16 @@ export class DataV3Service {
     context: NcContext,
     param: NestedDataListParams,
   ): Promise<DataListResponse> {
-    const response = await this.dataTableService.nestedDataList(context, {
-      ...(param as Omit<NestedDataListParams, 'req'>),
-      query: {
-        ...param.query,
-        limit: +param.query?.limit || +param.query?.pageSize,
-      },
-      apiVersion: NcApiVersion.V3,
-    });
+    const response = await this.dataTableService
+      .nestedDataList(context, {
+        ...(param as Omit<NestedDataListParams, 'req'>),
+        query: {
+          ...param.query,
+          limit: +param.query?.limit || +param.query?.pageSize,
+        },
+        apiVersion: NcApiVersion.V3,
+      })
+      .catch(pastEndPage);
 
     const column = await Column.get(context, { colId: param.columnId });
     const relatedModelInfo = await this.getRelatedModelInfo(context, column);
@@ -1473,20 +1644,22 @@ export class DataV3Service {
 
     const linksAsLtar = param.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
 
-    const transformedRecords = await this.transformRecordsToV3Format({
-      context: context,
-      records: pagedResponse.list,
-      primaryKey: relatedPrimaryKey,
-      primaryKeys: relatedPrimaryKeys,
-      requestedFields: requestedFields,
-      columns: relatedColumns,
-      nestedLimit: nestedLimit,
-      skipSubstitutingColumnIds:
-        param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
-      reuse: {}, // Create reuse cache for this nested data list operation
-      depth: 0, // Start at depth 0 for main records
-      linksAsLtar,
-    });
+    const transformedRecords = markErrorSentinels(
+      await this.transformRecordsToV3Format({
+        context: context,
+        records: pagedResponse.list,
+        primaryKey: relatedPrimaryKey,
+        primaryKeys: relatedPrimaryKeys,
+        requestedFields: requestedFields,
+        columns: relatedColumns,
+        nestedLimit: nestedLimit,
+        skipSubstitutingColumnIds:
+          param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+        reuse: {}, // Create reuse cache for this nested data list operation
+        depth: 0, // Start at depth 0 for main records
+        linksAsLtar,
+      }),
+    );
 
     // Check if any LTAR fields were truncated
     const hasNextPage = transformedRecords.some((record) =>
@@ -1550,20 +1723,22 @@ export class DataV3Service {
     const linksAsLtar = param.query[QUERY_STRING_LINKS_AS_LTAR] === 'true';
 
     return hasPrimaryKey(result)
-      ? await this.transformRecordToV3Format({
-          context: context,
-          record: result,
-          primaryKey: primaryKey,
-          primaryKeys: primaryKeys,
-          requestedFields: requestedFields,
-          columns: columns,
-          nestedLimit: undefined,
-          skipSubstitutingColumnIds:
-            param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
-          reuse: {}, // Create reuse cache for this data read operation
-          depth: 0, // Start at depth 0 for main records
-          linksAsLtar,
-        })
+      ? markErrorSentinels(
+          await this.transformRecordToV3Format({
+            context: context,
+            record: result,
+            primaryKey: primaryKey,
+            primaryKeys: primaryKeys,
+            requestedFields: requestedFields,
+            columns: columns,
+            nestedLimit: undefined,
+            skipSubstitutingColumnIds:
+              param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+            reuse: {}, // Create reuse cache for this data read operation
+            depth: 0, // Start at depth 0 for main records
+            linksAsLtar,
+          }),
+        )
       : { id: '', fields: {} };
   }
 
@@ -1643,6 +1818,25 @@ export class DataV3Service {
 
     const column = await this.dataTableService.getColumn(context, param);
 
+    // A many-to-one / belongs-to / one-to-one field holds one record; a second
+    // target would silently replace the first.
+    const targetCount = new Set(normalizedRefRowIds).size;
+    if (
+      targetCount > 1 &&
+      [
+        RelationTypes.BELONGS_TO,
+        RelationTypes.MANY_TO_ONE,
+        RelationTypes.ONE_TO_ONE,
+      ].includes(
+        (await column.getColOptions<LinkToAnotherRecordColumn>())
+          ?.type as RelationTypes,
+      )
+    ) {
+      NcError.get(context).unprocessableEntity(
+        `Field "${column.title}" links at most one record, but ${targetCount} were given.`,
+      );
+    }
+
     await baseModel.model.getColumns();
 
     await LTARColsUpdater({
@@ -1700,4 +1894,88 @@ export class DataV3Service {
 
     return { success: true };
   }
+}
+
+/**
+ * Computed fields named in a write payload. The data layer skips them without
+ * a word, so the response names them.
+ */
+function computedFieldsIn(records: unknown, columns: Column[]): string[] {
+  const titles = new Set<string>();
+  for (const record of Array.isArray(records) ? records : [records]) {
+    const fields = (record as { fields?: Record<string, unknown> })?.fields;
+    if (!fields || typeof fields !== 'object') continue;
+    for (const key of Object.keys(fields)) {
+      const column =
+        columns.find((c) => c.id === key) ??
+        columns.find((c) => c.title === key) ??
+        columns.find((c) => c.column_name === key);
+      if (column && isVirtualCol(column) && !isLinksOrLTAR(column)) {
+        titles.add(column.title);
+      }
+    }
+  }
+  return [...titles];
+}
+
+function withIgnoredFields<T extends { records: unknown[] }>(
+  result: T & { warnings?: string[] },
+  ignored: string[],
+): T & { warnings?: string[]; ignored_fields?: string[] } {
+  if (!ignored.length) return result;
+  return {
+    ...result,
+    ignored_fields: ignored,
+    warnings: [
+      ...(result.warnings ?? []),
+      `Computed fields were not written: ${ignored.join(', ')}. ` +
+        'NocoDB calculates their values.',
+    ],
+  };
+}
+
+/**
+ * The data layer matches each column by column_name, then title, then id, one
+ * column at a time, so a key that is one field's title (or id) and another
+ * field's column_name writes both. Re-key such a key to the id of the field it
+ * names.
+ */
+function rekeyAmbiguousFields(
+  fields: Record<string, unknown>,
+  columns: Column[],
+): Record<string, unknown> {
+  if (!fields || typeof fields !== 'object' || Array.isArray(fields)) {
+    return fields;
+  }
+  let rekeyed = fields;
+  for (const key of Object.keys(fields)) {
+    const named =
+      columns.find((c) => c.id === key) ?? columns.find((c) => c.title === key);
+    if (
+      !named ||
+      named.id === key ||
+      !columns.some((c) => c !== named && c.column_name === key)
+    ) {
+      continue;
+    }
+    if (rekeyed === fields) rekeyed = { ...fields };
+    rekeyed[named.id] = rekeyed[key];
+    delete rekeyed[key];
+  }
+  return rekeyed;
+}
+
+function dropDisabledFilters(filters: Filter[]): Filter[] {
+  return filters
+    .filter(
+      (filter) => filter && filter.enabled !== false && filter.enabled !== 0,
+    )
+    .map((filter) =>
+      filter.is_group
+        ? ({
+            ...filter,
+            children: dropDisabledFilters(filter.children ?? []),
+          } as Filter)
+        : filter,
+    );
 }

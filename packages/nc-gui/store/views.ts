@@ -37,6 +37,8 @@ interface RecentView {
   tableName: string
   workspaceId: string
   baseId: string
+  /** ISO time the view was last opened in this session. */
+  viewedAt?: string
 }
 
 export const useViewsStore = defineStore('viewsStore', () => {
@@ -1466,6 +1468,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
         managed_app_master: base?.managed_app_master,
         managed_app_id: base?.managed_app_id,
         iconColor: parseProp(base?.meta).iconColor,
+        isDefault: !!view.is_default,
+        viewedAt: new Date().toISOString(),
       },
       ...allRecentViews.value.filter((f) => f.viewId !== view.id || f.tableID !== view.fk_model_id),
     ]

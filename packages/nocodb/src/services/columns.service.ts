@@ -141,6 +141,7 @@ import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
 import {
   convertAIRecordTypeToValue,
   convertValueToAIRecordType,
+  finishAttachmentConversion,
 } from '~/utils/dataConversion';
 import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
@@ -785,6 +786,22 @@ export class ColumnsService implements IColumnsService {
     const storedMode = parseProp(column.meta)?.fields_mode;
     if (!storedMode) return incomingMeta;
     return { ...(incoming ?? {}), fields_mode: storedMode };
+  }
+
+  /**
+   * A meta that keeps an already-`specific` column specific without sending
+   * `tracked_field_ids` (a V3/MCP rename resends the stored meta) leaves the
+   * stored set untouched, and that set may legitimately be empty, so there is
+   * nothing to validate.
+   */
+  private shouldValidateLmtTrackedSet(
+    column: Column,
+    colBody: { tracked_field_ids?: unknown },
+  ) {
+    return (
+      Array.isArray(colBody.tracked_field_ids) ||
+      parseProp(column.meta)?.fields_mode !== 'specific'
+    );
   }
 
   private async persistLmtTrackedSet(
@@ -1613,6 +1630,13 @@ export class ColumnsService implements IColumnsService {
               (c) => !c.colOptions?.error,
             );
 
+            // No formula in the payload (e.g. a rename): keep the stored one
+            if (!colBody.formula_raw && !colBody.formula) {
+              const stored = await column.getColOptions<FormulaColumn>(ncMeta);
+              colBody.formula_raw = stored?.formula_raw;
+              colBody.formula = stored?.formula;
+            }
+
             colBody.formula = await substituteColumnAliasWithIdInFormula(
               colBody.formula_raw || colBody.formula,
               table.columns,
@@ -1781,18 +1805,20 @@ export class ColumnsService implements IColumnsService {
             ].includes(column.uidt) ||
               isMetaOnlyUpdateAllowed)
           ) {
-            validateLmtTrackedFields(context, {
-              columnBody: {
-                uidt: column.uidt,
-                meta: colBody.meta,
-                tracked_field_ids: colBody.tracked_field_ids,
-              },
-              columns: await table.getColumns(),
-              existingTrackedIds: await LmtTrackedField.getTrackedFieldIds(
-                context,
-                param.columnId,
-              ),
-            });
+            if (this.shouldValidateLmtTrackedSet(column, colBody)) {
+              validateLmtTrackedFields(context, {
+                columnBody: {
+                  uidt: column.uidt,
+                  meta: colBody.meta,
+                  tracked_field_ids: colBody.tracked_field_ids,
+                },
+                columns: await table.getColumns(),
+                existingTrackedIds: await LmtTrackedField.getTrackedFieldIds(
+                  context,
+                  param.columnId,
+                ),
+              });
+            }
 
             await Column.updateMeta(context, {
               colId: param.columnId,
@@ -2092,7 +2118,7 @@ export class ColumnsService implements IColumnsService {
       ].includes(colBody.uidt)
     ) {
       NcError.get(context).notImplemented(
-        `Updating ${colBody.uidt} => ${colBody.uidt}`,
+        `Updating ${column.uidt} => ${colBody.uidt}`,
       );
     } else if (
       [
@@ -2110,7 +2136,10 @@ export class ColumnsService implements IColumnsService {
         );
       }
 
-      if ('meta' in colBody) {
+      if (
+        'meta' in colBody &&
+        this.shouldValidateLmtTrackedSet(column, colBody)
+      ) {
         validateLmtTrackedFields(context, {
           columnBody: {
             uidt: colBody.uidt,
@@ -2534,7 +2563,7 @@ export class ColumnsService implements IColumnsService {
                 .map((o) => {
                   if (o.title.includes(',')) {
                     NcError.get(context).badRequest(
-                      "Illegal char(',') for MultiSelect",
+                      `Illegal char(',') in choice "${o.title}" of MultiSelect field "${colBody.title}". Choices cannot contain commas.`,
                     );
                   }
                   return `'${o.title.replace(/'/gi, "''")}'`;
@@ -2882,7 +2911,7 @@ export class ColumnsService implements IColumnsService {
                       .map((o) => {
                         if (o.title.includes(',')) {
                           NcError.get(context).badRequest(
-                            "Illegal char(',') for MultiSelect",
+                            `Illegal char(',') in choice "${o.title}" of MultiSelect field "${column.title}". Choices cannot contain commas.`,
                           );
                         }
                         return `'${o.title.replace(/'/gi, "''")}'`;
@@ -3799,6 +3828,8 @@ export class ColumnsService implements IColumnsService {
         }
       };
       setPropsFromRequest('cdf');
+      // Reads sign an Attachment default, which no write ever checks.
+      if (colBody.uidt === UITypes.Attachment) colBody.cdf = null;
 
       // Nullability is system-owned, never client-settable — columnAdd strips
       // `rqd` via deleteColumnSystemPropsFromRequest, so accepting it here let
@@ -3806,6 +3837,23 @@ export class ColumnsService implements IColumnsService {
       // Deleting it makes updateMetaAndDatabase fall back to the stored value,
       // preserving whatever the physical schema already has.
       delete colBody.rqd;
+
+      // External sources are covered at read time, by signableAttachmentFilter.
+      const cleansConvertedAttachments =
+        colBody.uidt === UITypes.Attachment &&
+        source.isMeta() &&
+        (column.uidt !== UITypes.Attachment ||
+          !!column.internal_meta?.attachment_cleanup_pending);
+      // Marked before the type changes, so no read signs the old text before the cleanup ends, and a failed one is retried.
+      if (
+        cleansConvertedAttachments &&
+        !column.internal_meta?.attachment_cleanup_pending
+      ) {
+        await Column.setAttachmentCleanupPending(context, {
+          colId: column.id,
+          pending: true,
+        });
+      }
 
       await this.updateMetaAndDatabase(context, {
         table,
@@ -3828,6 +3876,21 @@ export class ColumnsService implements IColumnsService {
       ) {
         const savedCol = await Column.get(context, { colId: column.id });
         await backfillAutoNumber(context, table, savedCol, source);
+      }
+
+      if (cleansConvertedAttachments) {
+        await finishAttachmentConversion(context, {
+          columnId: column.id,
+          userId: param.user?.id,
+          baseModel: await reuseOrSave('baseModel', reuse, async () =>
+            Model.getBaseModelSQL(context, {
+              id: table.id,
+              dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+                NcConnectionMgrv2.get(source),
+              ),
+            }),
+          ),
+        });
       }
     }
 
@@ -4876,7 +4939,7 @@ export class ColumnsService implements IColumnsService {
                     .map((o) => {
                       if (o.title.includes(',')) {
                         NcError.get(context).invalidRequestBody(
-                          "Illegal char(',') for MultiSelect",
+                          `Illegal char(',') in choice "${o.title}" of MultiSelect field "${colBody.title}". Choices cannot contain commas.`,
                         );
                       }
                       return `'${o.title.replace(/'/gi, "''")}'`;
@@ -5252,7 +5315,15 @@ export class ColumnsService implements IColumnsService {
       NcError.get(context).fieldNotFound(param.columnId);
     }
 
-    if ((column.system || isSystemColumn(column)) && !param.forceDeleteSystem) {
+    // A link field whose relation row is gone (e.g. a leftover `_nc_m2m_*`
+    // system link) can only be cleaned up by deleting it, so allow that.
+    const isOrphanLink = isLinksOrLTAR(column) && !column.colOptions;
+
+    if (
+      (column.system || isSystemColumn(column)) &&
+      !param.forceDeleteSystem &&
+      !isOrphanLink
+    ) {
       NcError.get(context).invalidRequestBody(
         `The column '${
           column.title || column.column_name
@@ -5320,7 +5391,7 @@ export class ColumnsService implements IColumnsService {
     if (!isVirtualCol(column)) {
       const columns = await table.getColumns(ncMeta);
 
-      let link = columns.find((c) => {
+      let linkCol = columns.find((c) => {
         return (
           isLinksOrLTAR(c.uidt) &&
           ((c.colOptions as LinkToAnotherRecordColumn)?.fk_child_column_id ===
@@ -5332,39 +5403,47 @@ export class ColumnsService implements IColumnsService {
             (c.colOptions as LinkToAnotherRecordColumn)
               ?.fk_mm_parent_column_id === param.columnId)
         );
-      })?.colOptions as LinkToAnotherRecordColumn;
-      if (!link) {
-        link = await ncMeta.metaGet2(
+      });
+      if (!linkCol) {
+        const relations = await ncMeta.metaList2(
           table.fk_workspace_id,
           table.base_id,
           MetaTable.COL_RELATIONS,
-          {},
-          null,
           {
-            _or: [
-              { fk_child_column_id: { eq: param.columnId } },
-              { fk_parent_column_id: { eq: param.columnId } },
-              { fk_mm_child_column_id: { eq: param.columnId } },
-              { fk_mm_parent_column_id: { eq: param.columnId } },
-            ],
+            xcCondition: {
+              _or: [
+                { fk_child_column_id: { eq: param.columnId } },
+                { fk_parent_column_id: { eq: param.columnId } },
+                { fk_mm_child_column_id: { eq: param.columnId } },
+                { fk_mm_parent_column_id: { eq: param.columnId } },
+              ],
+            },
           },
         );
+        for (const relation of relations) {
+          linkCol = await Column.get(
+            context,
+            { colId: relation.fk_column_id, includeDeleted: true },
+            ncMeta,
+          );
+          if (linkCol) break;
+          this.logger.warn(
+            `Relation ${relation.id} has no link column — not blocking delete of column ${param.columnId}`,
+          );
+        }
       }
 
       // if relation found then throw error
-      if (link) {
-        const linkCol = await Column.get(
-          context,
-          { colId: link.fk_column_id },
-          ncMeta,
-        );
+      if (linkCol) {
         const table = await linkCol.getModel(ncMeta);
         NcError.get(context).columnAssociatedWithLink(column.id, {
           customMessage: `Column is associated with Link column '${
             linkCol.title || linkCol.column_name
-          }' (${
-            table.title || table.table_name
-          }). Please delete the link column first.`,
+          }' (${table?.title || table?.table_name}). ${
+            linkCol.deleted
+              ? 'The link column is in the trash. Permanently delete it from the trash first.'
+              : 'Please delete the link column first.'
+          }`,
         });
       }
     }
@@ -5706,6 +5785,13 @@ export class ColumnsService implements IColumnsService {
                     if (!isLinksOrLTAR(c.uidt)) continue;
                     const colOpt =
                       await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+                    // relation row missing (orphaned link) — not part of this relation
+                    if (!colOpt) {
+                      this.logger.warn(
+                        `Orphaned LTAR column ${c.id} on table ${c.fk_model_id} — no relation metadata, skipped`,
+                      );
+                      continue;
+                    }
                     if (
                       isMMOrMMLike(c) &&
                       colOpt.fk_parent_column_id === childColumn.id &&
@@ -5802,7 +5888,13 @@ export class ColumnsService implements IColumnsService {
                         await c.getColOptions<LinkToAnotherRecordColumn>(
                           ncMeta,
                         );
-                      if (colOpt.type === 'bt') {
+                      if (!colOpt) {
+                        this.logger.warn(
+                          `Orphaned LTAR column ${c.id} on junction ${mmTable.id} — no relation metadata`,
+                        );
+                      }
+                      // an orphan on a NocoDB-made junction can only be one of its own bt links
+                      if (colOpt ? colOpt.type === 'bt' : mmTable.mm) {
                         await Column.delete2(
                           mmContext,
                           {
@@ -5823,6 +5915,12 @@ export class ColumnsService implements IColumnsService {
                     if (!isLinksOrLTAR(c.uidt)) continue;
                     const colOpt =
                       await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+                    if (!colOpt) {
+                      this.logger.warn(
+                        `Orphaned LTAR column ${c.id} on table ${c.fk_model_id} — no relation metadata, skipped`,
+                      );
+                      continue;
+                    }
                     if (
                       colOpt.fk_related_model_id ===
                       relationColOpt.fk_mm_model_id
@@ -5844,6 +5942,12 @@ export class ColumnsService implements IColumnsService {
                     if (!isLinksOrLTAR(c.uidt)) continue;
                     const colOpt =
                       await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+                    if (!colOpt) {
+                      this.logger.warn(
+                        `Orphaned LTAR column ${c.id} on table ${c.fk_model_id} — no relation metadata, skipped`,
+                      );
+                      continue;
+                    }
                     if (
                       colOpt.fk_related_model_id ===
                       relationColOpt.fk_mm_model_id
@@ -6115,14 +6219,14 @@ export class ColumnsService implements IColumnsService {
                 if (col.uidt === UITypes.LinkToAnotherRecord) {
                   const colOptions =
                     await col.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
-                  if (colOptions.fk_related_model_id === parentTable.id) {
+                  if (colOptions?.fk_related_model_id === parentTable.id) {
                     return { colOptions };
                   }
                 }
               }
             })
           )?.colOptions as LinkToAnotherRecordType
-        ).fk_index_name;
+        )?.fk_index_name;
       } else {
         foreignKeyName = relationColOpt.fk_index_name;
       }
@@ -6162,6 +6266,12 @@ export class ColumnsService implements IColumnsService {
       for (const c of columnsInRelatedTable) {
         if (!isLinksOrLTAR(c.uidt)) continue;
         const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+        if (!colOpt) {
+          this.logger.warn(
+            `Orphaned LTAR column ${c.id} on table ${c.fk_model_id} — no relation metadata, skipped`,
+          );
+          continue;
+        }
         if (
           colOpt.fk_parent_column_id === parentColumn.id &&
           colOpt.fk_child_column_id === childColumn.id &&
@@ -6401,14 +6511,14 @@ export class ColumnsService implements IColumnsService {
                       await col.getColOptions<LinkToAnotherRecordColumn>(
                         ncMeta,
                       );
-                    if (colOptions.fk_related_model_id === parentTable.id) {
+                    if (colOptions?.fk_related_model_id === parentTable.id) {
                       return { colOptions };
                     }
                   }
                 }
               })
             )?.colOptions as LinkToAnotherRecordType
-          ).fk_index_name;
+          )?.fk_index_name;
         } else {
           foreignKeyName = relationColOpt.fk_index_name;
         }
@@ -6446,6 +6556,12 @@ export class ColumnsService implements IColumnsService {
       for (const c of columnsInRelatedTable) {
         if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
         const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+        if (!colOpt) {
+          this.logger.warn(
+            `Orphaned LTAR column ${c.id} on table ${c.fk_model_id} — no relation metadata, skipped`,
+          );
+          continue;
+        }
         if (
           colOpt.fk_parent_column_id === parentColumn.id &&
           colOpt.fk_child_column_id === childColumn.id &&

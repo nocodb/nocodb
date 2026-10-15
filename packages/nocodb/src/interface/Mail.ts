@@ -25,6 +25,7 @@ enum MailEvent {
   APP_INVITE = 'APP_INVITE',
   WELCOME = 'WELCOME',
   FORM_SUBMISSION = 'FORM_SUBMISSION',
+  ABUSE_REPORT = 'ABUSE_REPORT',
   RESET_PASSWORD = 'RESET_PASSWORD', //OSS
   VERIFY_EMAIL = 'VERIFY_EMAIL', // OSS
   ORGANIZATION_INVITE = 'ORGANIZATION_INVITE', // OSS
@@ -70,6 +71,8 @@ enum MailEvent {
   ON_PREM_PLAN_CHANGED = 'ON_PREM_PLAN_CHANGED',
   ON_PREM_PLAN_CHANGE_SCHEDULED = 'ON_PREM_PLAN_CHANGE_SCHEDULED',
   ON_PREM_SUBSCRIPTION_CANCELED = 'ON_PREM_SUBSCRIPTION_CANCELED',
+  // HQ roadmap (cloud): status changes, merges, replies and assignments on a followed request.
+  ROADMAP_UPDATE = 'ROADMAP_UPDATE',
 }
 
 interface CommentPayload {
@@ -169,6 +172,24 @@ interface SendRecordPayload {
   req: NcRequest;
 }
 
+/** Defanged, truncated display strings; see AbuseReportsService. */
+export interface AbuseReportSummary {
+  subjectTitle: string;
+  resourceType: string;
+  resourceTitle: string;
+  workspace: string;
+  publicUrl: string;
+  reason: string;
+  reporter: string;
+  description: string;
+  reportedAt: string;
+  ids: string;
+}
+
+interface AbuseReportPayload extends AbuseReportSummary {
+  to: string;
+}
+
 type MailParams =
   | {
       mailEvent: MailEvent.COMMENT_CREATE | MailEvent.COMMENT_UPDATE;
@@ -217,6 +238,10 @@ type MailParams =
   | {
       mailEvent: MailEvent.SEND_RECORD;
       payload: SendRecordPayload;
+    }
+  | {
+      mailEvent: MailEvent.ABUSE_REPORT;
+      payload: AbuseReportPayload;
     };
 
 interface RawMailParams {
@@ -253,6 +278,7 @@ export {
   MailParams,
   FormSubmissionPayload,
   SendRecordPayload,
+  AbuseReportPayload,
   RawMailParams,
   SKIP_STORING_MAIL_EVENTS,
 };

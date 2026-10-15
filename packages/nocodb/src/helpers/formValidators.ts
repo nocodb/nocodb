@@ -1,9 +1,9 @@
 import dayjs from 'dayjs';
-import isMobilePhone from 'validator/lib/isMobilePhone';
 import {
   AttachmentValidationType,
   DateValidationType,
   isLink,
+  isValidPhoneNumber,
   isValidURL,
   NumberValidationType,
   SelectValidationType,
@@ -228,9 +228,7 @@ function evaluateRule(
         ? fail('Invalid email address')
         : null;
     case StringValidationType.PhoneNumber:
-      return !isMobilePhone(String(value))
-        ? fail('Invalid phone number')
-        : null;
+      return !isValidPhoneNumber(value) ? fail('Invalid phone number') : null;
     case StringValidationType.Url:
       return !isValidURL(String(value)) ? fail('Invalid URL') : null;
 

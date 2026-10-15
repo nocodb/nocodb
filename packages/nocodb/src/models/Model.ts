@@ -568,9 +568,11 @@ export default class Model implements TableType {
     {
       table_name,
       id,
+      includeDeleted = false,
     }: {
       table_name?: string;
       id?: string;
+      includeDeleted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
@@ -590,7 +592,9 @@ export default class Model implements TableType {
           table_name,
         },
         undefined,
-        tableBackedModelNotDeletedXcCondition,
+        includeDeleted
+          ? tableBackedModelXcCondition
+          : tableBackedModelNotDeletedXcCondition,
       );
       if (modelData) {
         modelData.meta = parseMetaProp(modelData);
@@ -605,7 +609,8 @@ export default class Model implements TableType {
       // });
       // modelData.sorts = await Sort.list({ modelId: modelData.id });
     }
-    if (modelData) {
+    // softDelete keeps the cache entry with deleted=true; match the DB path.
+    if (modelData && (!modelData.deleted || includeDeleted)) {
       const m = this.castType(modelData, context);
 
       await m.getViews(false, ncMeta);

@@ -17,7 +17,12 @@ export class NumberGeneralHandler extends DecimalGeneralHandler {
     };
   }): Promise<{ value: any }> {
     const value = (await super.parseUserInput(params))?.value;
-    if (typeof value === 'number' && Math.floor(value) !== Math.ceil(value)) {
+    // Fractions are for Decimal; past 2^53 the value is not exact and the
+    // database rejects it without naming the column.
+    if (
+      typeof value === 'number' &&
+      (!Number.isSafeInteger(value) || Math.floor(value) !== Math.ceil(value))
+    ) {
       NcError.invalidValueForField({
         value: params.value,
         column: params.column.title,

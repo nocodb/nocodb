@@ -17,10 +17,12 @@ export interface WorkflowExecutionGetResponseV3Type {
   id: string;
   /** Unique identifier for the workflow */
   workflow_id: string;
-  /** Execution status */
+  /** Execution status. A new execution starts as `queued`; `completed`, `error`, `cancelled` and `skipped` are terminal. */
   status:
+    | 'queued'
     | 'running'
     | 'waiting'
+    | 'paused'
     | 'completed'
     | 'error'
     | 'cancelled'
@@ -50,10 +52,12 @@ export interface WorkflowExecutionListV3Type {
     id: string;
     /** Unique identifier for the workflow */
     workflow_id: string;
-    /** Execution status */
+    /** Execution status. A new execution starts as `queued`; `completed`, `error`, `cancelled` and `skipped` are terminal. */
     status:
+      | 'queued'
       | 'running'
       | 'waiting'
+      | 'paused'
       | 'completed'
       | 'error'
       | 'cancelled'
@@ -309,10 +313,12 @@ export interface WorkflowExecutionDataV3Type {
   id: string;
   /** ID of the workflow being executed */
   workflowId: string;
-  /** Overall execution status */
+  /** Execution status. A new execution starts as `queued`; `completed`, `error`, `cancelled` and `skipped` are terminal. */
   status:
+    | 'queued'
     | 'running'
     | 'waiting'
+    | 'paused'
     | 'completed'
     | 'error'
     | 'cancelled'
@@ -570,26 +576,61 @@ export interface WorkflowListV3Type {
 }
 
 /**
- * Validator configuration for a form field.
- */
+* One validation rule on a form field. The renderer matches on `type` with no fallback branch, so a type outside this enum is dropped silently — the enum is kept in sync with `nocodb-sdk`'s validation type unions (`src/lib/form.ts`).
+
+Note `required` is NOT a validator type: use the sibling `required` boolean on the field config. Option limiting is not a validator either: use `is_limit_option`.
+
+Custom validators are evaluated by the Enterprise form renderer only.
+*/
 export interface FormFieldValidatorV3Type {
-  /** Type of validation to apply. */
-  type?:
-    | 'required'
-    | 'regex'
-    | 'minValue'
-    | 'maxValue'
+  /**
+   * Type of validation to apply. Applicable field types:
+   * - text: `minLength`, `maxLength`, `startsWith`, `endsWith`, `includes`, `notIncludes`, `regex`
+   * - Email / PhoneNumber / URL: `email`, `businessEmail`, `phoneNumber`, `url`
+   * - numeric: `min`, `max`
+   * - Date / DateTime: `minDate`, `maxDate`
+   * - Time: `minTime`, `maxTime`
+   * - Year: `minYear`, `maxYear`
+   * - MultiSelect / User: `minSelected`, `maxSelected`
+   * - Attachment: `fileTypes`, `fileSize`, `fileCount`
+   */
+  type:
     | 'minLength'
     | 'maxLength'
+    | 'startsWith'
+    | 'endsWith'
+    | 'includes'
+    | 'notIncludes'
+    | 'regex'
     | 'email'
+    | 'businessEmail'
+    | 'phoneNumber'
     | 'url'
-    | 'custom';
-  /** Validator parameter value (e.g., min/max number, pattern string). */
-  value?: string | number | null;
-  /** Custom error message for validation failure. */
+    | 'min'
+    | 'max'
+    | 'minDate'
+    | 'maxDate'
+    | 'minTime'
+    | 'maxTime'
+    | 'minYear'
+    | 'maxYear'
+    | 'minSelected'
+    | 'maxSelected'
+    | 'fileTypes'
+    | 'fileSize'
+    | 'fileCount';
+  /**
+   * Validator parameter. Number for `minLength`, `maxLength`, `min`, `max`, `minYear`, `maxYear`, `minSelected`, `maxSelected`, `fileCount`, `fileSize` (kilobytes, whatever `unit` says). String for `startsWith`, `endsWith`, `includes`, `notIncludes`, `minDate`, `maxDate`, `minTime`, `maxTime`. Array of MIME patterns (`image/*`, `application/pdf`) for `fileTypes`. Omitted for `email`, `businessEmail`, `phoneNumber`, `url`, which are presence toggles, and for `regex`, which reads `regex` instead.
+   *
+   * An empty string or explicit null disables the rule.
+   */
+  value?: string | number | any[] | null;
+  /** Error message shown when the rule fails. Falls back to a generated message. */
   message?: string;
-  /** Regular expression pattern (for regex validator type). */
+  /** Regular expression pattern. Required when `type` is `regex`, ignored otherwise. Evaluated by the form renderer in the browser only — the submit endpoint does not re-check it, because an author-supplied backtracking pattern would stall the server. */
   regex?: string;
+  /** `fileSize` only — the unit the limit was authored in. `value` is stored in kilobytes either way; this only controls how the limit is displayed. */
+  unit?: 'KB' | 'MB';
 }
 
 /**
@@ -608,8 +649,33 @@ export interface FormFieldConfigV3Type {
   is_list?: boolean;
   /** Whether to limit selectable options. */
   is_limit_option?: boolean;
-  /** List of validators for the field. */
+  /** List of validators for the field. Evaluated by the Enterprise form renderer only; the community edition ignores them. */
   validators?: FormFieldValidatorV3Type[];
+}
+
+/**
+ * An image attached to a form (banner or logo).
+ */
+export interface FormImageV3Type {
+  /**
+   * Publicly reachable image URL.
+   * @format uri
+   */
+  url?: string;
+  /** Storage path, for images already uploaded to this instance. */
+  path?: string;
+  /** Display title. */
+  title?: string;
+  /** MIME type of the image. */
+  mimetype?: string;
+  /** Size in bytes. */
+  size?: number;
+  /** Icon name shown in place of a thumbnail. */
+  icon?: string;
+  /** Read-only. Signed URL generated on read; ignored on write. */
+  signedUrl?: string;
+  /** Read-only. Signed path generated on read; ignored on write. */
+  signedPath?: string;
 }
 
 /**
@@ -732,7 +798,7 @@ export interface DocumentV3Type {
   base_id: string;
   /** Document title. */
   title: string;
-  /** rich-text JSON document content. */
+  /** Document body as a ProseMirror / TipTap JSON node tree. */
   content: object;
   /** Document metadata (icon, cover, lock, settings). */
   meta?: object;
@@ -778,11 +844,11 @@ export interface DocumentReorderV3Type {
 export interface DocumentUpdateV3Type {
   /** Updated title. */
   title?: string;
-  /** Updated rich-text JSON document content. */
+  /** Replacement document body, as a ProseMirror / TipTap JSON node tree. Markdown and HTML strings are not parsed. */
   content?: object;
   /** Updated metadata. */
   meta?: object;
-  /** Current document version for optimistic concurrency control. Must match the server's version. */
+  /** Current document version, for optimistic concurrency control. Always required by request validation. The server only compares it against the stored version when the body also carries `title` or `content`; a metadata-only update is last-write-wins and the value is ignored. */
   version: number;
 }
 
@@ -792,7 +858,7 @@ export interface DocumentUpdateV3Type {
 export interface DocumentCreateV3Type {
   /** Title of the document. Defaults to 'Untitled' if omitted. */
   title?: string;
-  /** rich-text JSON document content. */
+  /** Document body as a ProseMirror / TipTap JSON node tree. Markdown and HTML strings are not parsed. Defaults to an empty document when omitted. */
   content?: object;
   /** Arbitrary metadata (icon, cover image, settings, etc.). */
   meta?: object;
@@ -800,10 +866,76 @@ export interface DocumentCreateV3Type {
   parent_id?: string | null;
 }
 
+/**
+ * One access scope on a fine-grained API token: the resource it reaches and what it may do there. A token may carry at most 100 scopes. The minting user must already have access to every base or workspace named, or the request is rejected with `400`.
+ */
+export interface ApiTokenScopeV3Type {
+  /** Scope identifier. Returned on reads; ignored on writes. */
+  id?: string;
+  /**
+   * What the scope names. `all` is account-wide: every resource the token's user can reach, present or future.
+   * @example base
+   */
+  resource_type: 'base' | 'workspace' | 'all';
+  /**
+   * ID of the base or workspace the scope grants access to. Use `*` when `resource_type` is `all`.
+   * @example p_abc123def456
+   */
+  resource_id: string;
+  /** Permission level per resource category. A category that is omitted is treated as `none`. An unknown category key is rejected with `400`. */
+  permissions?: ApiTokenPermissionsV3Type;
+}
+
+/**
+ * Permission level per resource category. A category that is omitted is treated as `none`. An unknown category key is rejected with `400`.
+ */
+export interface ApiTokenPermissionsV3Type {
+  /** Permission level for one resource category. `delete` is the top of the ladder and includes everything `write` allows. */
+  records?: ApiTokenPermissionLevelV3Type;
+  /** Permission level for one resource category. `delete` is the top of the ladder and includes everything `write` allows. */
+  tables?: ApiTokenPermissionLevelV3Type;
+  /** Permission level for one resource category. `delete` is the top of the ladder and includes everything `write` allows. */
+  fields?: ApiTokenPermissionLevelV3Type;
+  /** Permission level for one resource category. `delete` is the top of the ladder and includes everything `write` allows. */
+  views?: ApiTokenPermissionLevelV3Type;
+  /** Permission level for one resource category. `delete` is the top of the ladder and includes everything `write` allows. */
+  base?: ApiTokenPermissionLevelV3Type;
+  /** Permission level for one resource category. `delete` is the top of the ladder and includes everything `write` allows. */
+  comments?: ApiTokenPermissionLevelV3Type;
+  /** Permission level for one resource category. `delete` is the top of the ladder and includes everything `write` allows. */
+  webhooks?: ApiTokenPermissionLevelV3Type;
+  /** Permission level for one resource category. `delete` is the top of the ladder and includes everything `write` allows. */
+  users?: ApiTokenPermissionLevelV3Type;
+  /** Permission level for one resource category. `delete` is the top of the ladder and includes everything `write` allows. */
+  workflows?: ApiTokenPermissionLevelV3Type;
+  /** Permission level for one resource category. `delete` is the top of the ladder and includes everything `write` allows. */
+  agents?: ApiTokenPermissionLevelV3Type;
+  /** Permission level for one resource category. `delete` is the top of the ladder and includes everything `write` allows. */
+  scripts?: ApiTokenPermissionLevelV3Type;
+  /** Permission level for one resource category. `delete` is the top of the ladder and includes everything `write` allows. */
+  integrations?: ApiTokenPermissionLevelV3Type;
+  /** Permission level for one resource category. `delete` is the top of the ladder and includes everything `write` allows. */
+  environments?: ApiTokenPermissionLevelV3Type;
+  /** Permission level for one resource category. `delete` is the top of the ladder and includes everything `write` allows. */
+  apps?: ApiTokenPermissionLevelV3Type;
+  /** Permission level for one resource category. `delete` is the top of the ladder and includes everything `write` allows. */
+  workspaces?: ApiTokenPermissionLevelV3Type;
+}
+
+/**
+ * Permission level for one resource category. `delete` is the top of the ladder and includes everything `write` allows.
+ */
+export enum ApiTokenPermissionLevelV3Type {
+  None = 'none',
+  Read = 'read',
+  Write = 'write',
+  Delete = 'delete',
+}
+
 export type ApiTokenWithTokenV3V3Type = ApiTokenV3V3Type & {
   /**
-   * The actual API token value (only returned on creation)
-   * @example wxAFzFO2wwOf9ozVRjragBJ7KPWMaW2OGpklGqHh
+   * The actual API token value. Returned only on creation — it is stored hashed and cannot be retrieved again. Fine-grained tokens are prefixed `nc_pat_`.
+   * @example nc_pat_wxAFzFO2wwOf9ozVRjragBJ7KPWMaW2OGpklGqHh
    */
   token: string;
 };
@@ -831,6 +963,30 @@ export interface ApiTokenV3V3Type {
    * @example 2025-12-30 15:17:24+00:00
    */
   updated_at: string;
+  /** Access scopes attached to the token. Present on fine-grained tokens, which is every token minted through this API on Cloud and licensed self-hosted deployments. */
+  scopes?: ApiTokenScopeV3Type[];
+  /**
+   * First 12 characters of the token value, kept for display. Fine-grained tokens only — the value itself is stored hashed and is never returned again after creation.
+   * @example nc_pat_wxAFz
+   */
+  token_prefix?: string;
+  /**
+   * Expiry timestamp, or null for a token that never expires. Always null outside Cloud and licensed self-hosted deployments.
+   * @format date-time
+   * @example 2026-12-30 15:17:24+00:00
+   */
+  expiry?: string | null;
+  /**
+   * Whether the token is currently accepted. Fine-grained tokens only.
+   * @example true
+   */
+  enabled?: boolean;
+  /**
+   * When the token was last used. Absent until the token has been used; updated on a 5-second batched flush, so it lags slightly behind live use.
+   * @format date-time
+   * @example 2025-12-31 09:02:11+00:00
+   */
+  last_used_at?: string;
 }
 
 /**
@@ -841,16 +997,24 @@ export interface WidgetUpdateReqV3Type {
   title?: string;
   /** Description of the widget. */
   description?: string | null;
-  /** Widget configuration. Structure depends on widget type. */
+  /** Widget configuration. `anyOf`, not `oneOf`: the metric, text and iframe shapes constrain nothing, so they overlap every chart body by construction. */
   options?:
     | WidgetOptionsMetricV3Type
+    | WidgetOptionsTextV3Type
+    | WidgetOptionsIframeV3Type
     | WidgetOptionsPieChartV3Type
     | WidgetOptionsDonutChartV3Type
     | WidgetOptionsBarChartV3Type
     | WidgetOptionsLineChartV3Type
     | WidgetOptionsScatterV3Type
-    | WidgetOptionsTextV3Type
-    | WidgetOptionsIframeV3Type;
+    | (WidgetOptionsMetricV3Type &
+        WidgetOptionsTextV3Type &
+        WidgetOptionsIframeV3Type &
+        WidgetOptionsPieChartV3Type &
+        WidgetOptionsDonutChartV3Type &
+        WidgetOptionsBarChartV3Type &
+        WidgetOptionsLineChartV3Type &
+        WidgetOptionsScatterV3Type);
   /** Display order of the widget. */
   order?: number;
   /** Position and size of the widget on the dashboard grid. */
@@ -878,18 +1042,26 @@ export interface WidgetCreateReqV3Type {
   title: string;
   /** Description of the widget. */
   description?: string | null;
-  /** Type of the widget. */
+  /** Type of the widget. `gauge`, `table` and `pivot` exist and are returned by read, but are not accepted here yet. */
   type: 'chart' | 'metric' | 'text' | 'iframe';
-  /** Widget configuration. Structure depends on widget type. */
+  /** Widget configuration. `anyOf`, not `oneOf`: the metric, text and iframe shapes constrain nothing, so they overlap every chart body by construction. */
   options?:
     | WidgetOptionsMetricV3Type
+    | WidgetOptionsTextV3Type
+    | WidgetOptionsIframeV3Type
     | WidgetOptionsPieChartV3Type
     | WidgetOptionsDonutChartV3Type
     | WidgetOptionsBarChartV3Type
     | WidgetOptionsLineChartV3Type
     | WidgetOptionsScatterV3Type
-    | WidgetOptionsTextV3Type
-    | WidgetOptionsIframeV3Type;
+    | (WidgetOptionsMetricV3Type &
+        WidgetOptionsTextV3Type &
+        WidgetOptionsIframeV3Type &
+        WidgetOptionsPieChartV3Type &
+        WidgetOptionsDonutChartV3Type &
+        WidgetOptionsBarChartV3Type &
+        WidgetOptionsLineChartV3Type &
+        WidgetOptionsScatterV3Type);
   /** Position and size of the widget on the dashboard grid. */
   position?: {
     /** Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column. */
@@ -940,9 +1112,9 @@ export interface WidgetReadV3Type {
   description?: string | null;
   /** Unique identifier for the parent dashboard. */
   dashboard_id: string;
-  /** Type of the widget. */
-  type: 'chart' | 'metric' | 'text' | 'iframe';
-  /** Widget configuration. Structure depends on widget type. See WidgetOptions* schemas. */
+  /** Type of the widget. `gauge`, `table` and `pivot` widgets are returned here but cannot yet be created or updated through this API — create them in the dashboard editor. */
+  type: 'chart' | 'metric' | 'gauge' | 'table' | 'pivot' | 'text' | 'iframe';
+  /** Widget configuration. Structure depends on widget type. The branches below cover `metric`, `text`, `iframe` and `chart` with `chart_type` pie, donut, bar, line or scatter. A `gauge`, `table` or `pivot` widget, or a chart with `chart_type: treemap`, is returned with an options shape that is not modelled here yet and matches the open branch instead. */
   options?:
     | WidgetOptionsMetricV3Type
     | WidgetOptionsPieChartV3Type
@@ -951,7 +1123,17 @@ export interface WidgetReadV3Type {
     | WidgetOptionsLineChartV3Type
     | WidgetOptionsScatterV3Type
     | WidgetOptionsTextV3Type
-    | WidgetOptionsIframeV3Type;
+    | WidgetOptionsIframeV3Type
+    | object
+    | (WidgetOptionsMetricV3Type &
+        WidgetOptionsPieChartV3Type &
+        WidgetOptionsDonutChartV3Type &
+        WidgetOptionsBarChartV3Type &
+        WidgetOptionsLineChartV3Type &
+        WidgetOptionsScatterV3Type &
+        WidgetOptionsTextV3Type &
+        WidgetOptionsIframeV3Type &
+        object);
   /** Display order of the widget. */
   order?: number | null;
   /** Position and size of the widget on the dashboard grid. */
@@ -1274,12 +1456,23 @@ export interface WidgetOptionsMetricV3Type {
 }
 
 export interface DashboardDataResponseV3Type {
-  /** Map of widget IDs to their data. */
-  widgets: Record<string, any>;
+  /** Map of widget IDs to their data. A widget that fails to load maps to `{ error }` instead of failing the request. */
+  widgets: Record<
+    string,
+    | object
+    | {
+        /** Why the widget's data could not be loaded. */
+        error: string;
+      }
+    | (object & {
+        /** Why the widget's data could not be loaded. */
+        error: string;
+      })
+  >;
 }
 
 export type DashboardGetResponseV3Type = DashboardListItemV3Type & {
-  /** List of widgets. Only included when `includeWidgets=true`. */
+  /** List of widgets. Only included when the request passes `include=widgets`. */
   widgets?: WidgetReadV3Type[];
 };
 
@@ -1544,7 +1737,20 @@ export interface WorkspaceTeamCreateV3Type {
 }
 
 /**
- * Workspace roles for the user.
+ * Workspace role as reported on a member read. A superset of `WorkspaceRoles`: `workspace-level-inherit` means the role is inherited from the organization rather than set on the workspace. It cannot be assigned — it is never valid in a request body.
+ */
+export enum WorkspaceRolesResponseV3Type {
+  WorkspaceLevelOwner = 'workspace-level-owner',
+  WorkspaceLevelCreator = 'workspace-level-creator',
+  WorkspaceLevelEditor = 'workspace-level-editor',
+  WorkspaceLevelViewer = 'workspace-level-viewer',
+  WorkspaceLevelCommenter = 'workspace-level-commenter',
+  WorkspaceLevelNoAccess = 'workspace-level-no-access',
+  WorkspaceLevelInherit = 'workspace-level-inherit',
+}
+
+/**
+ * Workspace roles for the user. These are the values accepted when granting a role.
  */
 export enum WorkspaceRolesV3Type {
   WorkspaceLevelOwner = 'workspace-level-owner',
@@ -1739,7 +1945,7 @@ export interface EnvironmentUpdateV3ReqV3Type {
    */
   color?: string;
   /**
-   * Display position among environments
+   * Display position among environments. Write-only — it is persisted but is not returned on any environment response.
    * @example 1
    */
   order?: number;
@@ -1765,7 +1971,7 @@ export interface EnvironmentCreateV3ReqV3Type {
    */
   color?: string;
   /**
-   * Display position among environments; defaults to the end of the list
+   * Display position among environments; defaults to the end of the list. Write-only — it is persisted but is not returned on any environment response.
    * @example 1
    */
   order?: number;
@@ -1960,6 +2166,8 @@ export interface TeamV3V3Type {
   path?: string;
   /** Whether the requesting user is a member of this team. */
   is_member?: boolean;
+  /** Whether the team is provisioned by SCIM from an identity provider. */
+  scim_managed?: boolean;
   /** List of user IDs who are owners/managers of this team. */
   managers?: string[];
 }
@@ -2025,7 +2233,7 @@ export interface WorkspaceUserV3Type {
    */
   updated_at: string;
   /** Role assigned to the user in the workspace */
-  workspace_role: WorkspaceRolesV3Type;
+  workspace_role: WorkspaceRolesResponseV3Type;
 }
 
 /**
@@ -2050,7 +2258,7 @@ export interface WorkspaceMemberV3Type {
    */
   updated_at: string;
   /** Role assigned to the user in the workspace */
-  workspace_role: WorkspaceRolesV3Type;
+  workspace_role: WorkspaceRolesResponseV3Type;
 }
 
 /**
@@ -2132,7 +2340,21 @@ export interface WorkspaceV3Type {
 }
 
 /**
- * Base roles for the user.
+ * Base role as reported on a member read. A superset of `BaseRoles`: `inherit` means the role comes from the workspace rather than the base, and `app-user` is an external app-only collaborator with no ambient base access. Neither can be assigned — they are never valid in a request body.
+ */
+export enum BaseRolesResponseV3Type {
+  Owner = 'owner',
+  Creator = 'creator',
+  Editor = 'editor',
+  Viewer = 'viewer',
+  Commenter = 'commenter',
+  NoAccess = 'no-access',
+  Inherit = 'inherit',
+  AppUser = 'app-user',
+}
+
+/**
+ * Base roles for the user. These are the values accepted when granting a role.
  */
 export enum BaseRolesV3Type {
   Owner = 'owner',
@@ -2155,6 +2377,10 @@ export interface DataNestedListResponseV3V3Type {
   next?: string | null;
   /** Pagination token for previous page */
   prev?: string | null;
+  /** Nested pagination token for next page */
+  nestedNext?: string | null;
+  /** Nested pagination token for previous page */
+  nestedPrev?: string | null;
 }
 
 /**
@@ -2178,9 +2404,13 @@ export interface DataUpdateResponseV3V3Type {
   records: {
     /** Updated record identifier */
     id: string | number;
-    /** Record fields data (excluding primary key). Undefined when empty. */
+    /** Record fields data, excluding the primary key. Always present; an empty object when the record has no other fields. */
     fields?: Record<string, any>;
   }[];
+  /** Present when part of the write was not applied, e.g. computed fields named in the payload. */
+  warnings?: string[];
+  /** Titles of computed fields (Formula, Lookup, Rollup, ...) named in the payload. Their values are calculated, so they were not written. */
+  ignored_fields?: string[];
 }
 
 /**
@@ -2189,6 +2419,10 @@ export interface DataUpdateResponseV3V3Type {
 export interface DataInsertResponseV3V3Type {
   /** Array of created records */
   records: DataRecordV3V3Type[];
+  /** Present when part of the write was not applied, e.g. computed fields named in the payload. */
+  warnings?: string[];
+  /** Titles of computed fields (Formula, Lookup, Rollup, ...) named in the payload. Their values are calculated, so they were not written. */
+  ignored_fields?: string[];
 }
 
 /**
@@ -2246,8 +2480,10 @@ export interface DataRecordV3V3Type {
   id: string | number;
   /** Individual primary key field values as object */
   id_fields?: Record<string, any>;
-  /** Record fields data (excluding primary key). Undefined when empty. */
+  /** Record fields data, excluding the primary key. Always present; an empty object when the record has no other fields. */
   fields?: Record<string, any>;
+  /** Fields whose value could not be computed because the field is broken (e.g. a lookup through a deleted link). Their value in `fields` is null. */
+  field_errors?: string[];
 }
 
 export interface SortListResponseV3Type {
@@ -2298,7 +2534,7 @@ export interface FilterGroupLevel3V3Type {
 }
 
 export interface FilterListResponseV3Type {
-  /** List of filter groups. Initial set of filters are mapped to a default group with group-id set to **root**. */
+  /** List of filter groups. Initial set of filters are mapped to a default group with group-id set to **root**. A view with no filters still returns that root group, with an empty `filters` array and `group_operator` set to `null`. */
   list: FilterGroupV3Type[];
 }
 
@@ -2317,6 +2553,9 @@ export interface FilterV3Type {
   value?: string | number | boolean | null;
 }
 
+/**
+ * The type-specific half of the body. `anyOf`, not `oneOf`: PATCH is partial, so a body that omits `type` constrains none of these branches.
+ */
 export type FieldUpdateV3Type = FieldBaseV3Type &
   (
     | {
@@ -2336,7 +2575,7 @@ export type FieldUpdateV3Type = FieldBaseV3Type &
       }
     | {
         type?: 'Currency';
-        /** Currency settings for this column. Locale defaults to `en-US` and currency code defaults to `USD` */
+        /** Currency settings for this column. `currency_locale` defaults to `en-US` and `currency_code` defaults to `USD` */
         options?: FieldOptionsCurrencyV3Type;
       }
     | {
@@ -2381,12 +2620,122 @@ export type FieldUpdateV3Type = FieldBaseV3Type &
       }
     | {
         type?: 'Links';
+        /** Creates a relation between two tables, stored with field type `Links`. `LinkToAnotherRecord` accepts the same options and creates the same kind of relation; for `relation_type: oo` the choice decides the underlying implementation (`Links` the foreign-key form, `LinkToAnotherRecord` the junction-table form). Neither type is deprecated. */
         options?: FieldOptionsLinksV3Type;
       }
     | {
         type?: 'LinkToAnotherRecord';
+        /** Creates a relation between two tables, stored with field type `LinkToAnotherRecord`. `Links` accepts the same options and creates the same kind of relation; for `relation_type: oo` the choice decides the underlying implementation (`Links` the foreign-key form, `LinkToAnotherRecord` the junction-table form). Neither type is deprecated. */
         options?: FieldOptionsLinkToAnotherRecordV3Type;
       }
+    | {
+        type?: 'Rollup';
+        options?: FieldOptionsRollupV3Type;
+      }
+    | {
+        type?: 'Button';
+        options?: FieldOptionsButtonV3Type;
+      }
+    | {
+        type?: 'Attachment';
+        options?: FieldOptionsAttachmentV3Type;
+      }
+    | {
+        type?: 'QrCode';
+        options?: FieldOptionsQrCodeV3Type;
+      }
+    | {
+        type?: 'CreatedTime' | 'LastModifiedTime';
+        options?: FieldOptionsDateTimeV3Type;
+      }
+    | {
+        type?: 'CreatedBy';
+        options?: FieldOptionsCreatedByV3Type;
+      }
+    | {
+        type?: 'LastModifiedBy';
+        options?: FieldOptionsLastModifiedByV3Type;
+      }
+    | {
+        type?: 'Geometry' | 'Year' | 'AutoNumber';
+      }
+    | ({
+        type?: 'LongText';
+        options?: FieldOptionsLongTextV3Type;
+      } & {
+        type?: 'PhoneNumber' | 'URL' | 'Email';
+        options?: FieldOptionsPhoneNumberV3Type;
+      } & {
+        type?: 'Number' | 'Decimal';
+        options?: FieldOptionsNumberV3Type;
+      } & {
+        type?: 'JSON';
+      } & {
+        type?: 'Currency';
+        /** Currency settings for this column. `currency_locale` defaults to `en-US` and `currency_code` defaults to `USD` */
+        options?: FieldOptionsCurrencyV3Type;
+      } & {
+        type?: 'Percent';
+        options?: FieldOptionsPercentV3Type;
+      } & {
+        type?: 'Duration';
+        options?: FieldOptionsDurationV3Type;
+      } & {
+        type?: 'Date' | 'DateTime' | 'Time';
+        options?: FieldOptionsDateTimeV3Type;
+      } & {
+        type?: 'SingleSelect' | 'MultiSelect';
+        options?: FieldOptionsSelectV3Type;
+      } & {
+        type?: 'Checkbox';
+        options?: FieldOptionsCheckboxV3Type;
+      } & {
+        type?: 'Rating';
+        options?: FieldOptionsRatingV3Type;
+      } & {
+        type?: 'Barcode';
+        options?: FieldOptionsBarcodeV3Type;
+      } & {
+        type?: 'Formula';
+        options?: FieldOptionsFormulaV3Type;
+      } & {
+        type?: 'User';
+        options?: FieldOptionsUserV3Type;
+      } & {
+        type?: 'Lookup';
+        options?: FieldOptionsLookupV3Type;
+      } & {
+        type?: 'Links';
+        /** Creates a relation between two tables, stored with field type `Links`. `LinkToAnotherRecord` accepts the same options and creates the same kind of relation; for `relation_type: oo` the choice decides the underlying implementation (`Links` the foreign-key form, `LinkToAnotherRecord` the junction-table form). Neither type is deprecated. */
+        options?: FieldOptionsLinksV3Type;
+      } & {
+        type?: 'LinkToAnotherRecord';
+        /** Creates a relation between two tables, stored with field type `LinkToAnotherRecord`. `Links` accepts the same options and creates the same kind of relation; for `relation_type: oo` the choice decides the underlying implementation (`Links` the foreign-key form, `LinkToAnotherRecord` the junction-table form). Neither type is deprecated. */
+        options?: FieldOptionsLinkToAnotherRecordV3Type;
+      } & {
+        type?: 'Rollup';
+        options?: FieldOptionsRollupV3Type;
+      } & {
+        type?: 'Button';
+        options?: FieldOptionsButtonV3Type;
+      } & {
+        type?: 'Attachment';
+        options?: FieldOptionsAttachmentV3Type;
+      } & {
+        type?: 'QrCode';
+        options?: FieldOptionsQrCodeV3Type;
+      } & {
+        type?: 'CreatedTime' | 'LastModifiedTime';
+        options?: FieldOptionsDateTimeV3Type;
+      } & {
+        type?: 'CreatedBy';
+        options?: FieldOptionsCreatedByV3Type;
+      } & {
+        type?: 'LastModifiedBy';
+        options?: FieldOptionsLastModifiedByV3Type;
+      } & {
+        type?: 'Geometry' | 'Year' | 'AutoNumber';
+      })
   );
 
 /**
@@ -2413,7 +2762,7 @@ export interface FieldOptionAddItemV3Type {
   title: string;
   /**
    * Tile color for the choice as a hex code (e.g. `#36BFFF`). Defaults to a palette color when omitted.
-   * @pattern ^#[0-9A-Fa-f]{6}$
+   * @pattern ^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$
    */
   color?: string;
 }
@@ -2442,7 +2791,7 @@ export type FieldV3Type = FieldBaseV3Type &
       }
     | {
         type?: 'Currency';
-        /** Currency settings for this column. Locale defaults to `en-US` and currency code defaults to `USD` */
+        /** Currency settings for this column. `currency_locale` defaults to `en-US` and `currency_code` defaults to `USD` */
         options?: FieldOptionsCurrencyV3Type;
       }
     | {
@@ -2462,8 +2811,12 @@ export type FieldV3Type = FieldBaseV3Type &
         options?: FieldOptionsSelectV3Type;
       }
     | {
-        type?: 'Rating' | 'Checkbox';
+        type?: 'Rating';
         options?: FieldOptionsRatingV3Type;
+      }
+    | {
+        type?: 'Checkbox';
+        options?: FieldOptionsCheckboxV3Type;
       }
     | {
         type?: 'Barcode';
@@ -2483,42 +2836,77 @@ export type FieldV3Type = FieldBaseV3Type &
       }
     | {
         type?: 'Links';
+        /** Creates a relation between two tables, stored with field type `Links`. `LinkToAnotherRecord` accepts the same options and creates the same kind of relation; for `relation_type: oo` the choice decides the underlying implementation (`Links` the foreign-key form, `LinkToAnotherRecord` the junction-table form). Neither type is deprecated. */
         options?: FieldOptionsLinksV3Type;
       }
     | {
         type?: 'LinkToAnotherRecord';
+        /** Creates a relation between two tables, stored with field type `LinkToAnotherRecord`. `Links` accepts the same options and creates the same kind of relation; for `relation_type: oo` the choice decides the underlying implementation (`Links` the foreign-key form, `LinkToAnotherRecord` the junction-table form). Neither type is deprecated. */
         options?: FieldOptionsLinkToAnotherRecordV3Type;
+      }
+    | {
+        type?: 'Rollup';
+        options?: FieldOptionsRollupV3Type;
+      }
+    | {
+        type?: 'Button';
+        options?: FieldOptionsButtonV3Type;
+      }
+    | {
+        type?: 'Attachment';
+        options?: FieldOptionsAttachmentV3Type;
+      }
+    | {
+        type?: 'QrCode';
+        options?: FieldOptionsQrCodeV3Type;
+      }
+    | {
+        type?: 'CreatedTime' | 'LastModifiedTime';
+        options?: FieldOptionsDateTimeV3Type;
+      }
+    | {
+        type?: 'CreatedBy';
+        options?: FieldOptionsCreatedByV3Type;
+      }
+    | {
+        type?: 'LastModifiedBy';
+        options?: FieldOptionsLastModifiedByV3Type;
+      }
+    | {
+        type?: 'Geometry' | 'Year' | 'AutoNumber';
       }
   );
 
+/**
+ * Creates a relation between two tables, stored with field type `LinkToAnotherRecord`. `Links` accepts the same options and creates the same kind of relation; for `relation_type: oo` the choice decides the underlying implementation (`Links` the foreign-key form, `LinkToAnotherRecord` the junction-table form). Neither type is deprecated.
+ */
 export interface FieldOptionsLinkToAnotherRecordV3Type {
   /**
-   * Type of relationship.
+   * Type of relationship: `om` one-to-many, `mo` many-to-one, `mm` many-to-many, `oo` one-to-one, `hm` has-many, `bt` belongs-to.
    *
-   * Supported options are listed below
-   * - `om` one-to-many
-   * - `mo` many-to-one
-   * - `mm` many-to-many
-   * - `oo` one-to-one
+   * Normalised on create: when the link is backed by a junction table `hm` is stored as `om` and `bt` as `mo`, and `oo` is always stored as a `LinkToAnotherRecord` field, so a read may report a different field type than the one requested.
    */
-  relation_type: string;
+  relation_type: 'om' | 'mo' | 'mm' | 'oo' | 'hm' | 'bt';
   /** Identifier of the linked table. */
   related_table_id: string;
+  /** Apply the link's configured filters when resolving linked records. */
+  enable_conditions?: boolean;
 }
 
+/**
+ * Creates a relation between two tables, stored with field type `Links`. `LinkToAnotherRecord` accepts the same options and creates the same kind of relation; for `relation_type: oo` the choice decides the underlying implementation (`Links` the foreign-key form, `LinkToAnotherRecord` the junction-table form). Neither type is deprecated.
+ */
 export interface FieldOptionsLinksV3Type {
   /**
-   * Type of relationship.
+   * Type of relationship: `om` one-to-many, `mo` many-to-one, `mm` many-to-many, `oo` one-to-one, `hm` has-many, `bt` belongs-to.
    *
-   * Supported options are listed below
-   * - `om` one-to-many
-   * - `mo` many-to-one
-   * - `mm` many-to-many
-   * - `oo` one-to-one
+   * Normalised on create: when the link is backed by a junction table `hm` is stored as `om` and `bt` as `mo`, and `oo` is always stored as a `LinkToAnotherRecord` field, so a read may report a different field type than the one requested.
    */
-  relation_type: string;
+  relation_type: 'om' | 'mo' | 'mm' | 'oo' | 'hm' | 'bt';
   /** Identifier of the linked table. */
   related_table_id: string;
+  /** Apply the link's configured filters when resolving linked records. */
+  enable_conditions?: boolean;
 }
 
 export type FieldOptionsButtonV3Type =
@@ -2550,7 +2938,12 @@ export type FieldOptionsButtonV3Type =
       /** Button type: webhook */
       type: 'webhook';
       /** ID of the webhook to trigger */
-      button_hook_id: string;
+      webhook_id: string;
+      /**
+       * Deprecated alias of `webhook_id`, accepted on write and normalised to it. Responses always use `webhook_id`.
+       * @deprecated
+       */
+      button_hook_id?: string;
       /** Label of the button */
       label?: string;
       /** Icon of the button */
@@ -2621,6 +3014,30 @@ export type FieldOptionsButtonV3Type =
         | 'gray';
       /** Theme of the button */
       theme?: 'solid' | 'light' | 'text';
+    }
+  | {
+      /** Button type: url */
+      type: 'url';
+      /** Formula that produces the URL to open */
+      formula: string;
+      /** Label of the button */
+      label?: string;
+      /** Icon of the button */
+      icon?: string;
+      /** Color of the button */
+      color?:
+        | 'brand'
+        | 'red'
+        | 'green'
+        | 'maroon'
+        | 'blue'
+        | 'orange'
+        | 'pink'
+        | 'purple'
+        | 'yellow'
+        | 'gray';
+      /** Theme of the button */
+      theme?: 'solid' | 'light' | 'text';
     };
 
 export interface FieldOptionsRollupV3Type {
@@ -2628,7 +3045,7 @@ export interface FieldOptionsRollupV3Type {
   related_field_id: string;
   /** Rollup field ID in the linked table. */
   related_table_rollup_field_id: string;
-  /** Rollup function. */
+  /** Rollup function. The accepted set depends on the target field's type — date-like targets take only `count`, `min`, `max` and `countDistinct`, numeric targets additionally take `sum`, `avg`, `sumDistinct` and `avgDistinct`. A function outside the target's set is rejected with `400`. */
   rollup_function:
     | 'count'
     | 'min'
@@ -2638,8 +3055,16 @@ export interface FieldOptionsRollupV3Type {
     | 'countDistinct'
     | 'sumDistinct'
     | 'avgDistinct';
-  /** Error message when dependent field is deleted */
+  /** Error message recorded by the server when a field this one depends on is deleted. Server-maintained and never returned by v3 reads. */
   error?: string;
+  /**
+   * Number of decimal places for numeric rollups. Defaults to 0.
+   * @min 0
+   * @max 5
+   */
+  precision?: number;
+  /** Apply the linked field's filters when computing the rollup. */
+  enable_conditions?: boolean;
   /** Thousand/decimal separator style for numeric rollups. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping. */
   separator?:
     | 'locale'
@@ -2656,18 +3081,63 @@ export interface FieldOptionsLookupV3Type {
   related_field_id: string;
   /** Lookup field ID in the linked table. */
   related_table_lookup_field_id: string;
-  /** Error message when dependent field is deleted */
+  /** Error message recorded by the server when a field this one depends on is deleted. Server-maintained and never returned by v3 reads. */
   error?: string;
+  /** Apply the linked field's filters when resolving the lookup. */
+  enable_conditions?: boolean;
+  /** Maximum number of linked records to resolve. */
+  lookup_limit?: number;
+  /** Resolve lookups of lookups recursively. */
+  use_recursive_evaluation?: boolean;
+  /** Field type the looked-up value is rendered as. Null renders the raw value. */
+  display_type?: string | null;
+  /** Field options applied to the rendered value, shaped like the `display_type` field's own options. */
+  display_column_meta?: object;
 }
 
 export interface FieldOptionsUserV3Type {
   /** Allow selecting multiple users. */
   allow_multiple_users?: boolean;
+  /** Notify the user when they are assigned to a record. */
+  notify?: boolean;
+}
+
+export interface FieldOptionsLastModifiedByV3Type {
+  /** Allow selecting multiple users. */
+  allow_multiple_users?: boolean;
+  /** Notify the user when they are assigned to a record. */
+  notify?: boolean;
+}
+
+export interface FieldOptionsCreatedByV3Type {
+  /** Allow selecting multiple users. */
+  allow_multiple_users?: boolean;
+  /** Notify the user when they are assigned to a record. */
+  notify?: boolean;
+}
+
+export interface FieldOptionsAttachmentV3Type {
+  /**
+   * Maximum number of files per cell.
+   * @min 1
+   */
+  max_number_of_attachments?: number;
+  /**
+   * Maximum size per file, in megabytes.
+   * @min 1
+   */
+  max_attachment_size?: number;
+  /** Allowed MIME types. `*` allows everything. */
+  supported_attachment_mime_types?: string[];
 }
 
 export interface FieldOptionsFormulaV3Type {
   /** Formula expression. */
   formula?: string;
+  /** Field type the formula result is rendered as. Null renders the raw result. */
+  display_type?: string | null;
+  /** Field options applied to the rendered result, shaped like the `display_type` field's own options. */
+  display_column_meta?: object;
 }
 
 export interface FieldOptionsQrCodeV3Type {
@@ -2677,7 +3147,7 @@ export interface FieldOptionsQrCodeV3Type {
 
 export interface FieldOptionsBarcodeV3Type {
   /** Barcode format (e.g., CODE128). */
-  format?: string;
+  barcode_format?: string;
   /** Field ID that contains the value. */
   barcode_value_field_id?: string;
 }
@@ -2702,8 +3172,8 @@ export interface FieldOptionsCheckboxV3Type {
     | 'thumbs-up'
     | 'flag';
   /**
-   * Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`).
-   * @pattern ^#[0-9A-Fa-f]{6}$
+   * Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`). 3-, 6- and 8-digit (with alpha) forms are accepted.
+   * @pattern ^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$
    */
   color?: string;
 }
@@ -2725,19 +3195,21 @@ export interface FieldOptionsRatingV3Type {
    */
   max_value?: number;
   /**
-   * Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`).
-   * @pattern ^#[0-9A-Fa-f]{6}$
+   * Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`). 3-, 6- and 8-digit (with alpha) forms are accepted.
+   * @pattern ^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$
    */
   color?: string;
 }
 
 export interface FieldOptionsSelectV3Type {
   choices?: {
+    /** Stable identifier for the choice. Returned on reads; pass it back unchanged on update so the choice and the records referencing it are preserved. */
+    id?: string;
     /** Choice title. */
     title: string;
     /**
      * Specifies the tile color for the choice using a hexadecimal color code (e.g., `#36BFFF`).
-     * @pattern ^#[0-9A-Fa-f]{6}$
+     * @pattern ^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$
      */
     color?: string;
   }[];
@@ -2813,14 +3285,34 @@ export interface FieldOptionsDateTimeV3Type {
 
 export interface FieldOptionsDurationV3Type {
   /**
-   * Duration format. Supported options are listed below
+   * Duration format.
+   *
    * - `h:mm`
    * - `h:mm:ss`
-   * - `h:mm:ss.S`
-   * - `h:mm:ss.SS`
-   * - `h:mm:ss.SSS`
+   * - `h:mm:ss.s`
+   * - `h:mm:ss.ss`
+   * - `h:mm:ss.sss`
+   * - `d h`
+   * - `d h:mm`
+   * - `d h:mm:ss`
+   * - `d h m`
+   * - `d h m s`
+   * `h:mm:ss.S`, `h:mm:ss.SS` and `h:mm:ss.SSS` are accepted as aliases of the lowercase forms, which earlier revisions of this document named instead.
    */
-  duration_format?: string;
+  duration_format?:
+    | 'h:mm'
+    | 'h:mm:ss'
+    | 'h:mm:ss.s'
+    | 'h:mm:ss.ss'
+    | 'h:mm:ss.sss'
+    | 'd h'
+    | 'd h:mm'
+    | 'd h:mm:ss'
+    | 'd h m'
+    | 'd h m s'
+    | 'h:mm:ss.S'
+    | 'h:mm:ss.SS'
+    | 'h:mm:ss.SSS';
 }
 
 export interface FieldOptionsPercentV3Type {
@@ -2832,16 +3324,28 @@ export interface FieldOptionsPercentV3Type {
    * - `circle`
    */
   shape?: 'bar' | 'circle';
+  /**
+   * Number of decimal places. Defaults to 2.
+   * @min 0
+   * @max 5
+   */
+  precision?: number;
 }
 
 /**
- * Currency settings for this column. Locale defaults to `en-US` and currency code defaults to `USD`
+ * Currency settings for this column. `currency_locale` defaults to `en-US` and `currency_code` defaults to `USD`
  */
 export interface FieldOptionsCurrencyV3Type {
   /** Locale for currency formatting. Refer https://simplelocalize.io/data/locales/ */
-  locale?: string;
-  /** Currency code. Refer https://simplelocalize.io/data/locales/ */
-  code?:
+  currency_locale?: string;
+  /**
+   * Number of decimal places. Defaults to 2.
+   * @min 0
+   * @max 5
+   */
+  precision?: number;
+  /** Currency code (ISO 4217). Refer https://simplelocalize.io/data/locales/. Withdrawn codes such as BYR or GHC are still accepted so existing columns keep validating. */
+  currency_code?:
     | 'AED'
     | 'AFN'
     | 'ALL'
@@ -2866,6 +3370,7 @@ export interface FieldOptionsCurrencyV3Type {
     | 'BSD'
     | 'BTN'
     | 'BWP'
+    | 'BYN'
     | 'BYR'
     | 'BZD'
     | 'CAD'
@@ -2879,6 +3384,7 @@ export interface FieldOptionsCurrencyV3Type {
     | 'COP'
     | 'COU'
     | 'CRC'
+    | 'CUC'
     | 'CUP'
     | 'CVE'
     | 'CYP'
@@ -2897,6 +3403,7 @@ export interface FieldOptionsCurrencyV3Type {
     | 'GBP'
     | 'GEL'
     | 'GHC'
+    | 'GHS'
     | 'GIP'
     | 'GMD'
     | 'GNF'
@@ -2941,6 +3448,7 @@ export interface FieldOptionsCurrencyV3Type {
     | 'MNT'
     | 'MOP'
     | 'MRO'
+    | 'MRU'
     | 'MTL'
     | 'MUR'
     | 'MVR'
@@ -2973,20 +3481,26 @@ export interface FieldOptionsCurrencyV3Type {
     | 'SBD'
     | 'SCR'
     | 'SDD'
+    | 'SDG'
     | 'SEK'
     | 'SGD'
     | 'SHP'
     | 'SIT'
     | 'SKK'
+    | 'SLE'
     | 'SLL'
     | 'SOS'
     | 'SRD'
+    | 'SSP'
     | 'STD'
+    | 'STN'
+    | 'SVC'
     | 'SYP'
     | 'SZL'
     | 'THB'
     | 'TJS'
     | 'TMM'
+    | 'TMT'
     | 'TND'
     | 'TOP'
     | 'TRY'
@@ -2998,9 +3512,13 @@ export interface FieldOptionsCurrencyV3Type {
     | 'USD'
     | 'USN'
     | 'USS'
+    | 'UYI'
     | 'UYU'
+    | 'UYW'
     | 'UZS'
     | 'VEB'
+    | 'VED'
+    | 'VES'
     | 'VND'
     | 'VUV'
     | 'WST'
@@ -3019,12 +3537,17 @@ export interface FieldOptionsCurrencyV3Type {
     | 'XPD'
     | 'XPF'
     | 'XPT'
+    | 'XSU'
     | 'XTS'
+    | 'XUA'
     | 'XXX'
     | 'YER'
     | 'ZAR'
     | 'ZMK'
-    | 'ZWD';
+    | 'ZMW'
+    | 'ZWD'
+    | 'ZWG'
+    | 'ZWL';
 }
 
 export interface FieldOptionsDecimalV3Type {
@@ -3059,17 +3582,17 @@ export interface FieldOptionsNumberV3Type {
 
 export interface FieldOptionsEmailV3Type {
   /** Enable validation for Email. */
-  validation?: boolean;
+  validate?: boolean;
 }
 
 export interface FieldOptionsURLV3Type {
   /** Enable validation for URL. */
-  validation?: boolean;
+  validate?: boolean;
 }
 
 export interface FieldOptionsPhoneNumberV3Type {
   /** Enable validation for phone numbers. */
-  validation?: boolean;
+  validate?: boolean;
 }
 
 export interface FieldOptionsLongTextV3Type {
@@ -3077,6 +3600,8 @@ export interface FieldOptionsLongTextV3Type {
   rich_text?: boolean;
   /** Enable text generation for this field using NocoAI. */
   generate_text_using_ai?: boolean;
+  /** Enable smart text mode. */
+  smart_mode?: boolean;
 }
 
 export type TableFieldBaseCreateV3Type = FieldBaseV3Type & {
@@ -3122,7 +3647,7 @@ export interface FieldBaseV3Type {
   id?: string;
   /** Title of the field. */
   title?: string;
-  /** Field data type. */
+  /** Field data type. Read responses additionally return `ID` for a table's auto-generated primary-key field; `ID` cannot be used when creating or updating a field. */
   type?:
     | 'SingleLineText'
     | 'LongText'
@@ -3161,7 +3686,7 @@ export interface FieldBaseV3Type {
     | 'AutoNumber';
   /** Description of the field. */
   description?: string | null;
-  /** Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields. */
+  /** Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields. A MultiSelect default holding several choices is given as a single comma-separated string of choice titles. */
   default_value?: string | boolean | number;
   /** Enable unique constraint for the field. When enabled, the field will only accept unique values (no duplicates allowed). Note: Unique constraint is only supported for NC-DB (not external databases) and is mutually exclusive with default values. Supported field types: SingleLineText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Date, DateTime and Time */
   unique?: boolean;
@@ -3203,7 +3728,7 @@ export type ViewV3Type = {
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
@@ -3221,7 +3746,7 @@ export type ViewV3Type = {
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
@@ -3239,7 +3764,7 @@ export type ViewV3Type = {
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
@@ -3257,7 +3782,7 @@ export type ViewV3Type = {
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
@@ -3276,7 +3801,7 @@ export type ViewV3Type = {
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
@@ -3295,7 +3820,7 @@ export type ViewV3Type = {
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
@@ -3313,7 +3838,7 @@ export type ViewV3Type = {
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
@@ -3323,9 +3848,13 @@ export type ViewV3Type = {
       }
   );
 
+/**
+ * The type-specific half of the body. `anyOf`, not `oneOf`: PATCH is partial, so a body that omits `type` constrains none of these branches.
+ */
 export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
   (
     | {
+        type?: any;
         options?: ViewOptionsGridV3Type;
         /** List of sorts to be applied to the view. */
         sorts?: SortCreateV3Type[];
@@ -3339,10 +3868,11 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
+        type?: any;
         options?: ViewOptionsGalleryV3Type;
         /** List of sorts to be applied to the view. */
         sorts?: SortCreateV3Type[];
@@ -3356,10 +3886,11 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
+        type?: any;
         options?: ViewOptionsKanbanV3Type;
         /** List of sorts to be applied to the view. */
         sorts?: SortCreateV3Type[];
@@ -3373,10 +3904,11 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
+        type?: any;
         options?: ViewOptionsCalendarV3Type;
         /** List of sorts to be applied to the view. */
         sorts?: SortCreateV3Type[];
@@ -3390,10 +3922,11 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
+        type?: any;
         /** Timeline view configuration. A timeline may have multiple date ranges (e.g. "planned" vs "actual"); each range has a required start field and an optional end field. */
         options?: ViewOptionsTimelineV3Type;
         /** List of sorts to be applied to the view. */
@@ -3408,10 +3941,11 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
+        type?: any;
         /** Gantt view configuration. Bundles the per-view DateDependency rule with presentation settings stored on the view's meta JSON. */
         options?: ViewOptionsGanttV3Type;
         /** List of sorts to be applied to the view. */
@@ -3426,10 +3960,11 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
+        type?: any;
         options?: ViewOptionsMapV3Type;
         /** List of sorts to be applied to the view. */
         sorts?: SortCreateV3Type[];
@@ -3443,10 +3978,11 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
+        type?: any;
         options?: ViewOptionsFormV3Type;
         /**
          * List of fields to be displayed in the view.
@@ -3459,9 +3995,148 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
         fields?: ViewFieldsV3Type;
       }
     | {
+        type?: any;
         /** List view configuration. Records are organised into a hierarchy of levels; each level is a table linked to its parent through a link field. */
         options?: ViewOptionsListV3Type;
       }
+    | ({
+        type?: any;
+        options?: ViewOptionsGridV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         * - A `field_id` that does not exist on the table is rejected with `404`.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the view. */
+        row_coloring?: ViewRowColourV3Type;
+      } & {
+        type?: any;
+        options?: ViewOptionsGalleryV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         * - A `field_id` that does not exist on the table is rejected with `404`.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the view. */
+        row_coloring?: ViewRowColourV3Type;
+      } & {
+        type?: any;
+        options?: ViewOptionsKanbanV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         * - A `field_id` that does not exist on the table is rejected with `404`.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the view. */
+        row_coloring?: ViewRowColourV3Type;
+      } & {
+        type?: any;
+        options?: ViewOptionsCalendarV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         * - A `field_id` that does not exist on the table is rejected with `404`.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the view. */
+        row_coloring?: ViewRowColourV3Type;
+      } & {
+        type?: any;
+        /** Timeline view configuration. A timeline may have multiple date ranges (e.g. "planned" vs "actual"); each range has a required start field and an optional end field. */
+        options?: ViewOptionsTimelineV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         * - A `field_id` that does not exist on the table is rejected with `404`.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the view. */
+        row_coloring?: ViewRowColourV3Type;
+      } & {
+        type?: any;
+        /** Gantt view configuration. Bundles the per-view DateDependency rule with presentation settings stored on the view's meta JSON. */
+        options?: ViewOptionsGanttV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         * - A `field_id` that does not exist on the table is rejected with `404`.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the view. */
+        row_coloring?: ViewRowColourV3Type;
+      } & {
+        type?: any;
+        options?: ViewOptionsMapV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         * - A `field_id` that does not exist on the table is rejected with `404`.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the view. */
+        row_coloring?: ViewRowColourV3Type;
+      } & {
+        type?: any;
+        options?: ViewOptionsFormV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         * - A `field_id` that does not exist on the table is rejected with `404`.
+         */
+        fields?: ViewFieldsV3Type;
+      } & {
+        type?: any;
+        /** List view configuration. Records are organised into a hierarchy of levels; each level is a table linked to its parent through a link field. */
+        options?: ViewOptionsListV3Type;
+      })
   );
 
 export type ViewCreateV3Type = ViewBaseV3Type &
@@ -3481,7 +4156,7 @@ export type ViewCreateV3Type = ViewBaseV3Type &
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
@@ -3499,7 +4174,7 @@ export type ViewCreateV3Type = ViewBaseV3Type &
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
@@ -3517,7 +4192,7 @@ export type ViewCreateV3Type = ViewBaseV3Type &
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
@@ -3535,7 +4210,7 @@ export type ViewCreateV3Type = ViewBaseV3Type &
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
@@ -3554,7 +4229,7 @@ export type ViewCreateV3Type = ViewBaseV3Type &
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
@@ -3573,7 +4248,7 @@ export type ViewCreateV3Type = ViewBaseV3Type &
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
@@ -3591,7 +4266,7 @@ export type ViewCreateV3Type = ViewBaseV3Type &
          * - A `field_id` that does not exist on the table is rejected with `404`.
          */
         fields?: ViewFieldsV3Type;
-        /** Row colour configuration for the the view. */
+        /** Row colour configuration for the view. */
         row_coloring?: ViewRowColourV3Type;
       }
     | {
@@ -3631,19 +4306,13 @@ export interface ViewOptionsFormV3Type {
   form_hide_banner?: boolean;
   /** Whether to hide branding on the form. */
   form_hide_branding?: boolean;
+  /** Banner image for the form. A bare URL string is accepted and normalized into an attachment object. */
+  banner?: string | FormImageV3Type | null;
+  /** Logo for the form. A bare URL string is accepted and normalized into an attachment object. */
+  logo?: string | FormImageV3Type | null;
   /**
-   * URL of the banner image for the form.
-   * @format uri
-   */
-  banner?: string;
-  /**
-   * URL of the logo for the form.
-   * @format uri
-   */
-  logo?: string;
-  /**
-   * Background color for the form.
-   * @pattern ^#[0-9A-Fa-f]{6}$
+   * Background color for the form. 3-, 6- and 8-digit (with alpha) forms are accepted.
+   * @pattern ^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$
    */
   form_background_color?: string;
   /**
@@ -3784,7 +4453,7 @@ export interface ViewOptionsKanbanV3Type {
 }
 
 export interface ViewOptionsGridV3Type {
-  /** List of groups to be applied on the grid view. */
+  /** List of groups to be applied on the grid view. At most five grouping levels are supported. */
   groups?: {
     /** Identifier for the field being sorted. */
     field_id: string;
@@ -4179,13 +4848,15 @@ export interface SortV3Type {
   field_id: string;
   /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
   direction: 'asc' | 'desc';
+  /** Whether this sort is enabled. Disabled sorts are skipped during evaluation. */
+  enabled?: boolean | null;
 }
 
 export type TableUpdateV3Type = {
   /** New title of the table. */
   title?: string;
-  /** Description of the table. */
-  description?: string;
+  /** Description of the table. Send `null` to clear it. */
+  description?: string | null;
   /** Unique identifier for the display field of the table. The type of the field should be one of the allowed types for display field. */
   display_field_id?: string;
   /** Icon prefix to the table name that needs to be displayed in-lieu of the default table icon. */
@@ -4208,7 +4879,7 @@ export type BaseMemberDeleteV3Type = {
 export type BaseMemberUpdateV3Type = {
   /** Unique user identifier for the member. */
   user_id: string;
-  /** Base roles for the user. */
+  /** Base roles for the user. These are the values accepted when granting a role. */
   base_role: BaseRolesV3Type;
 }[];
 
@@ -4232,12 +4903,12 @@ export type BaseMemberCreateV3Type = ((
       user_name?: string;
     }
 ) & {
-  /** Base roles for the user. */
+  /** Base roles for the user. These are the values accepted when granting a role. */
   base_role: BaseRolesV3Type;
 })[];
 
 export interface BaseMemberListV3Type {
-  list?: BaseMemberV3Type[];
+  list: BaseMemberV3Type[];
 }
 
 export type BaseUserDeleteRequestV3Type = any;
@@ -4251,11 +4922,21 @@ export interface BaseMemberWithWorkspaceRoleV3Type {
    */
   email: string;
   /** Display name of the user. */
-  user_name?: string;
-  /** Base roles for the user. */
-  base_role: BaseRolesV3Type;
+  display_name?: string;
+  /**
+   * Timestamp of when the user was added to the base.
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp of when the membership was last updated.
+   * @format date-time
+   */
+  updated_at: string;
+  /** Base role as reported on a member read. A superset of `BaseRoles`: `inherit` means the role comes from the workspace rather than the base, and `app-user` is an external app-only collaborator with no ambient base access. Neither can be assigned — they are never valid in a request body. */
+  base_role: BaseRolesResponseV3Type;
   /** Role assigned to the user in the workspace */
-  workspace_role?: WorkspaceRolesV3Type;
+  workspace_role?: WorkspaceRolesResponseV3Type;
 }
 
 export interface BaseMemberV3Type {
@@ -4267,9 +4948,19 @@ export interface BaseMemberV3Type {
    */
   email: string;
   /** Display name of the user. */
-  user_name?: string;
-  /** Base roles for the user. */
-  base_role: BaseRolesV3Type;
+  display_name?: string;
+  /**
+   * Timestamp of when the user was added to the base.
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp of when the membership was last updated.
+   * @format date-time
+   */
+  updated_at: string;
+  /** Base role as reported on a member read. A superset of `BaseRoles`: `inherit` means the role comes from the workspace rather than the base, and `app-user` is an external app-only collaborator with no ambient base access. Neither can be assigned — they are never valid in a request body. */
+  base_role: BaseRolesResponseV3Type;
 }
 
 export interface TableV3Type {
@@ -4288,11 +4979,14 @@ export interface TableV3Type {
   /** Unique identifier for the workspace to which this base belongs to. */
   workspace_id: string;
   /** List of fields associated with this table. */
-  fields: CreateFieldV3Type[];
+  fields: FieldV3Type[];
   /** List of views associated with this table. */
   views: ViewSummaryV3Type[];
 }
 
+/**
+ * A field declared inline while creating a table. Lookup, Rollup, Barcode and QrCode are not accepted here because each one points at another field by id, and those ids do not exist until the table has been created — add such a field afterwards with the create-field endpoint.
+ */
 export type TableCreateFieldV3Type = TableFieldBaseCreateV3Type;
 
 export type CreateFieldV3Type = FieldBaseCreateV3Type;
@@ -4305,8 +4999,6 @@ export interface TableCreateV3Type {
   /** Description of the table. */
   description?: string | null;
   meta?: TableMetaV3Type;
-  /** Unique identifier for the data source. Include this information only if the table being created is part of a data source. */
-  source_id?: string;
   fields?: TableCreateFieldV3Type[];
 }
 
@@ -4441,6 +5133,10 @@ export interface BaseV3Type {
 
 export interface DataUpsertResponseV3Type {
   records?: DataUpsertRecordResponseV3Type[];
+  /** Present when part of the write was not applied, e.g. computed fields named in the payload. */
+  warnings?: string[];
+  /** Titles of computed fields (Formula, Lookup, Rollup, ...) named in the payload. Their values are calculated, so they were not written. */
+  ignored_fields?: string[];
 }
 
 export interface DataUpsertRecordResponseV3Type {
@@ -4466,6 +5162,84 @@ export interface DataUpsertRecordRequestV3Type {
   fields: object;
 }
 
+export interface FeedbackResponseV3Type {
+  /** Receipt id for the report. */
+  feedbackId: string;
+  status: 'received';
+  /** Earlier report this one matched, when known. */
+  duplicateOf?: string;
+}
+
+export interface FeedbackSubmitV3Type {
+  source: {
+    /** `user_request`: the user asked to send it. `agent_observed`: the agent noticed it (requires `evidence`). */
+    origin: 'user_request' | 'agent_observed';
+    /** Informational only. */
+    agent?: {
+      name?: string;
+      model?: string;
+    };
+  };
+  /** `bug`: the call failed or errored wrongly. `silent_bug`: the call reported success but did the wrong thing. */
+  type:
+    | 'bug'
+    | 'silent_bug'
+    | 'missing_capability'
+    | 'confusing_behavior'
+    | 'docs_gap';
+  /** One line. */
+  summary: string;
+  /** What the caller was trying to accomplish. */
+  intent: string;
+  /** What happened vs what was expected. */
+  details?: string;
+  /** Proposed fix or API shape. */
+  suggestion?: string;
+  /** The failed call. Required when `source.origin` is `agent_observed`. */
+  evidence?: {
+    /** MCP tool name. */
+    toolName?: string;
+    /** REST method. */
+    method?: string;
+    /** REST path. */
+    path?: string;
+    /** `requestId` from the failed call's error response. */
+    requestId?: string;
+    errorMessage?: string;
+  };
+  /** The user's own words (`user_request` only). */
+  userQuote?: string;
+  /** The section the issue falls under. */
+  area?:
+    | 'account'
+    | 'records'
+    | 'schema'
+    | 'views'
+    | 'automation'
+    | 'interfaces'
+    | 'access'
+    | 'platform'
+    | 'other';
+  /** The MCP tool family, e.g. `fields`, `filters`, `links`; `other` if none fits. An unrecognised value is stored as `other`. */
+  feature?: string;
+  /** The workspace the issue happened in. Kept only if you can access it. */
+  workspaceId?: string;
+  /** The base the issue happened in. Kept only if you can access it. */
+  baseId?: string;
+}
+
+export interface ErrorV3Type {
+  /**
+   * Stable machine-readable error code, for example `ERR_TABLE_NOT_FOUND`. Match on this rather than on the message. Absent on an unhandled server error.
+   * @example ERR_TABLE_NOT_FOUND
+   */
+  error?: string;
+  /** Human-readable description of what went wrong. Wording is not stable across releases. */
+  message?: string;
+  /** Extra context carried by some errors — the failing validation entries for an invalid request body, or the plan, limit and current count for a plan-limit refusal. Omitted when the error carries none. */
+  details?: any;
+}
+
 /**
  * Model for API Token
  */
@@ -4484,6 +5258,26 @@ export interface ApiTokenType {
    * @example DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2
    */
   token?: string;
+}
+
+export interface AbuseReportReqType {
+  resource_type: 'shared_view' | 'interface' | 'dashboard' | 'artifact';
+  /** Public share id of the resource */
+  identifier: string;
+  reason:
+    | 'phishing'
+    | 'scam'
+    | 'impersonation'
+    | 'malware'
+    | 'illegal_content'
+    | 'spam'
+    | 'other';
+  name: string;
+  /** @format email */
+  email: string;
+  description: string;
+  /** Honeypot. Must be empty. */
+  website?: string;
 }
 
 /**
@@ -5464,7 +6258,7 @@ export interface FilterReqType {
   /** Is this filter grouped? */
   is_group?: BoolType;
   /** Logical Operator */
-  logical_op?: 'and' | 'not' | 'or';
+  logical_op?: 'and' | 'not' | 'or' | null | ('and' | 'not' | ('or' & null));
   /** The filter value. Can be NULL for some operators. */
   value?: any;
   /** Whether this filter is enabled. Disabled filters are skipped during evaluation. */
@@ -5712,6 +6506,8 @@ export interface ButtonType {
   fk_webhook_id?: IdType;
   /** Script ID */
   fk_script_id?: IdType;
+  /** Workflow ID */
+  fk_workflow_id?: IdType;
   /** Foreign Key to Column */
   fk_column_id?: IdType;
   /** Comma separated column ids to be updated with the generated value */
@@ -7025,7 +7821,7 @@ export interface BaseType {
    * @example nc_vm5q__
    */
   prefix?: string;
-  type?: 'database' | 'documentation' | 'dashboard';
+  type?: 'database' | 'documentation' | 'dashboard' | 'code';
   /** List of linked Database Projects that this base has access to (only used in Dashboard bases so far) */
   linked_db_projects?: BaseType[];
   status?: string;
@@ -8287,6 +9083,7 @@ export enum ButtonActionsType {
   Url = 'url',
   Ai = 'ai',
   Script = 'script',
+  Workflow = 'workflow',
 }
 
 /**
@@ -9562,6 +10359,16 @@ export class Api<
    * @example false
    *\
   allow_email_signin_with_sso?: boolean,
+  \**
+   * Let visitors of public shares report them for abuse
+   * @example true
+   *\
+  allow_reporting_abuse?: boolean,
+  \**
+   * Email that receives abuse reports (self-hosted only). Empty means all super admins
+   * @example abuse@example.com
+   *\
+  abuse_contact_email?: string,
 
 }` OK
  * @response `400` `{
@@ -9588,6 +10395,16 @@ export class Api<
            * @example false
            */
           allow_email_signin_with_sso?: boolean;
+          /**
+           * Let visitors of public shares report them for abuse
+           * @example true
+           */
+          allow_reporting_abuse?: boolean;
+          /**
+           * Email that receives abuse reports (self-hosted only). Empty means all super admins
+           * @example abuse@example.com
+           */
+          abuse_contact_email?: string;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
@@ -9635,6 +10452,16 @@ export class Api<
          * @example false
          */
         allow_email_signin_with_sso?: boolean;
+        /**
+         * Let visitors of public shares report them for abuse
+         * @example true
+         */
+        allow_reporting_abuse?: boolean;
+        /**
+         * Email that receives abuse reports (self-hosted only). Empty means all super admins
+         * @example abuse@example.com
+         */
+        abuse_contact_email?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -14996,6 +15823,35 @@ export class Api<
       }),
 
     /**
+ * @description Reports a publicly shared view, form, interface, dashboard or artifact for abuse. Callable anonymously.
+ * 
+ * @tags Public
+ * @name AbuseReportCreate
+ * @summary Report a public share for abuse
+ * @request POST:/api/v2/public/abuse-reports
+ * @response `204` `void` Report received
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    abuseReportCreate: (data: AbuseReportReqType, params: RequestParams = {}) =>
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/public/abuse-reports`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
  * @description Count how many rows in the given Table View
  * 
  * @tags Public
@@ -15909,6 +16765,43 @@ export class Api<
          * @example S256
          */
         code_challenge_method?: 'S256' | 'plain';
+        /**
+         * Space-delimited capability scopes the client is requesting, each '<category>:<level>' with level read, write or delete (e.g. records:read). When present the consent is locked to exactly these permissions and records no tools. EE only.
+         * @example records:read tables:read
+         */
+        scope?: string;
+        /**
+         * Workspace the consent is limited to. EE only.
+         * @example w1a2b3c4
+         */
+        workspace_id?: string;
+        /**
+         * Base the consent is pinned to, granting the user's full authority over it. Mutually exclusive with scopes.
+         * @example p1a2b3c4d5e6f7g
+         */
+        base_id?: string;
+        /**
+         * RFC 8707 resource indicator, echoed back on the issued token.
+         * @example https://app.nocodb.com/mcp
+         */
+        resource?: string;
+        /** Resources this authorization may reach. Mutually exclusive with base_id. EE only; ignored on CE, where no scope model exists. */
+        scopes?: {
+          /** Kind of resource this scope names */
+          resource_type: 'base' | 'workspace' | 'all';
+          /**
+           * Id of the resource, or '*' for an 'all' scope
+           * @example p1a2b3c4d5e6f7g
+           */
+          resource_id: string;
+          /** Permission categories granted on this resource. Omitted means every category the resource type allows. */
+          permissions?: Record<string, any>;
+        }[];
+        /**
+         * MCP tool allowlist for this authorization. Every name must exist in the server's tool catalog. Only meaningful alongside scopes.
+         * @example ["listTables","listRecords"]
+         */
+        tools?: string[];
       },
       params: RequestParams = {}
     ) =>

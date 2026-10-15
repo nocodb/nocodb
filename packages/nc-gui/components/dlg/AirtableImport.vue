@@ -146,8 +146,8 @@ const onStatus = async (status: JobStatus, data?: any) => {
   }
 }
 
+// the token is only needed for shared bases; the backend rejects a base link without one
 const validators = computed(() => ({
-  'details.apiKey': [fieldRequiredValidator()],
   'details.syncSourceUrlOrId': [fieldRequiredValidator()],
 }))
 
@@ -161,10 +161,7 @@ const useForm = Form.useForm
 const { validateInfos } = useForm(syncSource, validators)
 
 const disableImportButton = computed(
-  () =>
-    !syncSource.value.details.apiKey ||
-    !syncSource.value.details.syncSourceUrlOrId ||
-    sourceSelectorRef.value?.selectedSource?.ncItemDisabled,
+  () => !syncSource.value.details.syncSourceUrlOrId || sourceSelectorRef.value?.selectedSource?.ncItemDisabled,
 )
 
 const isLoading = ref(false)
@@ -436,10 +433,11 @@ const collapseKey = ref('')
               <GeneralIcon :icon="!isVisible ? 'ncEye' : 'ncEyeOff'" />
             </template>
           </a-input-password>
+          <div class="text-nc-content-gray-muted text-xs mt-1">{{ $t('labels.airtableTokenViewHint') }}</div>
         </a-form-item>
 
         <a-form-item v-bind="validateInfos['details.syncSourceUrlOrId']" class="!my-5">
-          <label class="text-nc-content-gray text-sm"> {{ `${$t('labels.sharedBase')} ID/URL` }} </label>
+          <label class="text-nc-content-gray text-sm"> {{ $t('labels.airtableSharedLink') }} </label>
           <a-input
             v-model:value="syncSource.details.syncSourceUrlOrId"
             :placeholder="$t('placeholder.airtableBaseUrlOrId')"

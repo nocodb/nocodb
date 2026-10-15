@@ -3,6 +3,7 @@ import { promisify } from 'util';
 import { Readable } from 'stream';
 import path from 'path';
 import axios from 'axios';
+import { Logger } from '@nestjs/common';
 import { OperationSource } from 'nocodb-sdk';
 import {
   GetObjectCommand,
@@ -17,6 +18,8 @@ import { getFilteredAgents } from '~/utils/ssrf';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
 import { NcError } from '~/helpers/ncError';
 import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
+
+const logger = new Logger('GenericS3');
 
 interface GenericObjectStorageInput {
   bucket: string;
@@ -97,11 +100,8 @@ export default class GenericS3 implements IStorageAdapterV2 {
 
   async fileCreate(key: string, file: XcFile): Promise<any> {
     try {
+      // fileCreateByStream rejects on a stream error.
       const fileStream = fs.createReadStream(file.path);
-
-      fileStream.on('error', (err) => {
-        NcError._.storageFileCreateError(err.message);
-      });
 
       return await this.fileCreateByStream(key, fileStream, {
         mimetype: file?.mimetype,
@@ -226,9 +226,9 @@ export default class GenericS3 implements IStorageAdapterV2 {
 
       const stream = Body as Readable;
 
-      // Handle any stream errors that occur during reading
+      // Readers get the error from the stream; throwing in a listener would crash the process.
       stream.on('error', (error) => {
-        NcError._.storageFileStreamError(error.message);
+        logger.warn(`Storage read stream failed: ${error.message}`);
       });
 
       return stream;

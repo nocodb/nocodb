@@ -417,7 +417,10 @@ const isSyncedReadonlyField = computed(() => {
 })
 
 const isDeleteAllowed = computed(() => {
-  return column?.value && !isSystemColumn(column.value) && !isSyncedReadonlyField.value
+  // an orphan link (no relation meta, e.g. a leftover `_nc_m2m_*` system link) can only be cleaned up by deleting it
+  if (!column?.value) return false
+  const isOrphanLink = isLinksOrLTAR(column.value) && !column.value.colOptions
+  return (!isSystemColumn(column.value) || isOrphanLink) && !isSyncedReadonlyField.value
 })
 const isDuplicateAllowed = computed(() => {
   return (
@@ -818,9 +821,9 @@ const onDeleteColumn = () => {
     </NcTooltip>
 
     <template v-if="!isExpandedForm">
-      <NcDivider v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO" />
+      <NcDivider v-if="!isLinksOrLTAR(column) || column.colOptions?.type !== RelationTypes.BELONGS_TO" />
 
-      <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
+      <template v-if="!isLinksOrLTAR(column) || column.colOptions?.type !== RelationTypes.BELONGS_TO">
         <NcTooltip :disabled="isSortSupported">
           <template #title>
             {{ !isSortSupported ? $t('tooltip.thisFieldTypeDoesNotSupportSorting') : '' }}

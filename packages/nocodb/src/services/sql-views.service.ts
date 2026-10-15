@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ModelTypes } from 'nocodb-sdk';
-import DOMPurify from 'isomorphic-dompurify';
 import type { UserType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import { getDOMPurify } from '~/helpers/domPurify';
 import { NcError } from '~/helpers/catchError';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -50,7 +50,7 @@ export class SqlViewsService {
       }
     }
 
-    body.view_name = DOMPurify.sanitize(body.view_name);
+    body.view_name = getDOMPurify().sanitize(body.view_name);
 
     // validate table name
     if (/^\s+|\s+$/.test(body.view_name)) {

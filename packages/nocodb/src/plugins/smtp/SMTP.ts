@@ -40,6 +40,9 @@ export default class SMTP implements IEmailAdapter {
             },
           }
         : {}),
+      // Message fields can come from scripts and workflows: never read a local file or URL.
+      disableFileAccess: true,
+      disableUrlAccess: true,
     };
 
     this.transporter = nodemailer.createTransport(config);

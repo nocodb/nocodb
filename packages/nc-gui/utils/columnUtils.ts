@@ -14,13 +14,13 @@ import {
   isNumericCol,
   isRollupAggregatableColumn,
   isSystemColumn,
+  isValidPhoneNumber,
   isValidURL,
   isVirtualCol,
   ratingIconList,
   substituteColumnIdWithAliasInPrompt,
   validateEmail,
 } from 'nocodb-sdk'
-import isMobilePhone from 'validator/lib/isMobilePhone'
 
 export interface UiTypesType {
   name: UITypes | string
@@ -527,7 +527,7 @@ const getColumnValidationError = (column: ColumnType, value?: any) => {
       return 'msg.error.invalidEmail'
     }
     case UITypes.PhoneNumber: {
-      if (!cdfValue || isMobilePhone(cdfValue)) return ''
+      if (!cdfValue || isValidPhoneNumber(cdfValue)) return ''
 
       return 'msg.invalidPhoneNumber'
     }

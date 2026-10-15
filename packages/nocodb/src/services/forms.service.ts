@@ -17,6 +17,11 @@ import { validatePayload } from '~/helpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
 import { assertNotLaneInstance } from '~/helpers/environmentGuards';
 import { NcError } from '~/helpers/catchError';
+import {
+  assertNewAttachmentRefsOwned,
+  holdAttachmentRefsInBase,
+} from '~/helpers/attachmentHelpers';
+import { extractProps } from '~/helpers/extractProps';
 import { claimObjectTitle } from '~/helpers/customObjects';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
@@ -24,6 +29,26 @@ import { FormView, Model, Source, User, View } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
+
+const FORM_IMAGE_KEYS = ['banner_image_url', 'logo_url'] as const;
+
+// Reads sign the banner and logo, so a newly set one must be the caller's upload or in this base.
+async function assertFormImagesOwned(
+  context: NcContext,
+  param: { form: object; previous?: object; userId?: string },
+) {
+  const checked: string[] = [];
+  for (const key of FORM_IMAGE_KEYS) {
+    checked.push(
+      ...(await assertNewAttachmentRefsOwned(context, {
+        value: param.form?.[key],
+        previous: param.previous?.[key],
+        userId: param.userId,
+      })),
+    );
+  }
+  return checked;
+}
 
 @Injectable()
 export class FormsService {
@@ -117,6 +142,15 @@ export class FormsService {
           param.tableId,
         )
       ).forCreate();
+
+    const imageRefs = await assertFormImagesOwned(context, {
+      form: extractProps(param.body, [...FORM_IMAGE_KEYS]),
+      previous: param.body.copy_from_id
+        ? await FormView.get(context, param.body.copy_from_id, ncMeta)
+        : undefined,
+      userId: param.user?.id,
+    });
+
     const { id } = await View.insertMetaOnly(
       context,
       {
@@ -135,6 +169,11 @@ export class FormsService {
       },
       ncMeta,
     );
+
+    await holdAttachmentRefsInBase(context, {
+      refs: imageRefs,
+      userId: param.user?.id,
+    });
 
     // populate  cache and add to list since the list cache already exist
     const view = await View.get(context, id, false, ncMeta);
@@ -213,7 +252,18 @@ export class FormsService {
 
     const oldFormView = await FormView.get(context, param.formViewId, ncMeta);
 
+    const imageRefs = await assertFormImagesOwned(context, {
+      form: param.form,
+      previous: oldFormView,
+      userId: param.req.user?.id,
+    });
+
     await FormView.update(context, param.formViewId, param.form, ncMeta);
+
+    await holdAttachmentRefsInBase(context, {
+      refs: imageRefs,
+      userId: param.req.user?.id,
+    });
 
     let owner = param.req.user;
 

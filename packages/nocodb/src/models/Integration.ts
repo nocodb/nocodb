@@ -673,6 +673,7 @@ export default class Integration implements IntegrationType {
     );
 
     for (const source of sources) {
+      if (source.deleted) continue;
       await source.softDelete(ncMeta);
     }
 

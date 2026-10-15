@@ -10,6 +10,14 @@ import {
 } from '~/modules/oauth/dto';
 import { OAuthAuthorizationCode, OAuthClient, OAuthToken } from '~/models';
 import { NcError } from '~/helpers/ncError';
+import { assertNewAttachmentRefsOwned } from '~/helpers/attachmentHelpers';
+import { RootScopes } from '~/utils/globals';
+
+// The logo is served unauthenticated: only the caller's own upload may be set.
+const LOGO_CONTEXT = {
+  workspace_id: RootScopes.ROOT,
+  base_id: RootScopes.ROOT,
+};
 
 @Injectable()
 export class OauthClientService {
@@ -66,6 +74,11 @@ export class OauthClientService {
 
     body.fk_user_id = req.user.id;
 
+    await assertNewAttachmentRefsOwned(LOGO_CONTEXT, {
+      value: body.logo_uri,
+      userId: req.user.id,
+    });
+
     return await OAuthClient.insert(body);
   }
 
@@ -95,6 +108,12 @@ export class OauthClientService {
     if (!client || client.fk_user_id !== req.user.id) {
       NcError.get(context).apiClientNotFound(clientId);
     }
+
+    await assertNewAttachmentRefsOwned(LOGO_CONTEXT, {
+      value: body.logo_uri,
+      previous: client.logo_uri,
+      userId: req.user.id,
+    });
 
     return await OAuthClient.update(clientId, body);
   }

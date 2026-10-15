@@ -10,6 +10,7 @@ export class JobsLogService {
   sendLog(job: Partial<Job>, data: { message: string }) {
     this.eventEmitter.emit(JobEvents.LOG, {
       id: job.id.toString(),
+      jobName: job.data?.jobName,
       data,
     });
   }

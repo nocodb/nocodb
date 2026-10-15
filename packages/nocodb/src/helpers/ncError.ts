@@ -83,6 +83,14 @@ export class NcError {
     return NcError._.chatSessionNotFound(id, args);
   }
 
+  static factoryMachineNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.factoryMachineNotFound(id, args);
+  }
+
+  static factoryMachineVersionNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.factoryMachineVersionNotFound(id, args);
+  }
+
   static chatMessageNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.chatMessageNotFound(id, args);
   }

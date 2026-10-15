@@ -312,6 +312,19 @@ export class MailService {
       return false;
     }
 
+    // nodemailer reads an object body or an attachment `path`/`href` from disk or the network.
+    if (
+      [params.html, params.text].some(
+        (body) => body != null && typeof body !== 'string',
+      ) ||
+      params.attachments?.some(
+        (a) => typeof a?.content !== 'string' && !Buffer.isBuffer(a?.content),
+      )
+    ) {
+      this.logger.error('Unsupported email body or attachment');
+      return false;
+    }
+
     try {
       const fromName = await this.getEmailSenderName();
       await mailerAdapter.mailSend({
@@ -321,7 +334,17 @@ export class MailService {
         html: params.html,
         cc: ncIsArray(params.cc) ? params?.cc?.join(',') : params?.cc,
         bcc: ncIsArray(params.bcc) ? params?.bcc?.join(',') : params?.bcc,
-        attachments: params.attachments,
+        attachments: params.attachments?.map(
+          ({ filename, content, contentType, cid, contentDisposition }) => ({
+            filename,
+            content,
+            contentType,
+            ...(typeof cid === 'string' ? { cid } : {}),
+            ...(typeof contentDisposition === 'string'
+              ? { contentDisposition }
+              : {}),
+          }),
+        ),
         ...(fromName ? { fromName } : {}),
       });
     } catch (e) {
@@ -341,8 +364,11 @@ export class MailService {
     const { payload, mailEvent } = params;
 
     // Validate NC_SITE_URL is configured for events that generate URLs
-    // FORM_SUBMISSION is exempt — it has no req and builds no links
-    if (mailEvent !== MailEvent.FORM_SUBMISSION) {
+    // FORM_SUBMISSION and ABUSE_REPORT are exempt — they build no links
+    if (
+      mailEvent !== MailEvent.FORM_SUBMISSION &&
+      mailEvent !== MailEvent.ABUSE_REPORT
+    ) {
       if (!(await this.ensurePublicUrl(ncMeta))) return false;
     }
 
@@ -579,6 +605,21 @@ export class MailService {
             ),
           });
 
+          break;
+        }
+        case MailEvent.ABUSE_REPORT: {
+          const { to, subjectTitle, ...props } = payload;
+
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: mailEvent,
+            to,
+            subject: this.resolveSubject(
+              (productName) =>
+                `${productName}: "${subjectTitle}" was reported for abuse`,
+              branding,
+            ),
+            html: await this.renderMail('AbuseReport', props, branding),
+          });
           break;
         }
       }

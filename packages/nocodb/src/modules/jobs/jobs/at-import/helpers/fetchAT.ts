@@ -53,6 +53,44 @@ const info: any = {
   initialized: false,
 };
 
+export function prepareReadLink(link: string) {
+  // a base read only needs the schema, but a view read's rows are the payload
+  const exclude = !link.includes('/readSharedViewData');
+  return (
+    link
+      .replace(
+        `%22mayExcludeCellDataForLargeViews%22%3A${!exclude}`,
+        `%22mayExcludeCellDataForLargeViews%22%3A${exclude}`,
+      )
+      // Airtable now defaults to MessagePack responses — force JSON
+      .replace(
+        '%22allowMsgpackOfResult%22%3Atrue',
+        '%22allowMsgpackOfResult%22%3Afalse',
+      )
+  );
+}
+
+// JSON params are merged in; a shared view's access policy has `=` inside
+// its values, so they are not split by hand
+export function parseReadLinkParams(link: string) {
+  const result: Record<string, any> = {};
+  const params = new URLSearchParams(link.split('?')[1] ?? '');
+  for (const [key, value] of params) {
+    let parsed;
+    try {
+      parsed = JSON.parse(value);
+    } catch {
+      parsed = undefined;
+    }
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      Object.assign(result, parsed);
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
 async function initialize(shareId, appId?: string) {
   info.cookie = '';
 
@@ -75,7 +113,7 @@ async function initialize(shareId, appId?: string) {
     if (!headers || !link) {
       throw {
         message:
-          'Please ensure www.airtable.com/<SharedBaseID> is available for public access. Refer https://dub.sh/import-airtable-to-nocodb for details',
+          'This Airtable link is not publicly accessible. Use a shared base or shared view link without a password or sign-in restriction. Refer https://dub.sh/import-airtable-to-nocodb for details',
       };
     }
 
@@ -87,40 +125,23 @@ async function initialize(shareId, appId?: string) {
       data.match(/(?<=fetch\(")(\\.*)(?=")/g)[0].trim(),
     );
 
-    info.link = info.link.replace(
-      '%22mayExcludeCellDataForLargeViews%22%3Afalse',
-      '%22mayExcludeCellDataForLargeViews%22%3Atrue',
-    );
-
-    // Airtable now defaults to MessagePack responses — force JSON
-    info.link = info.link.replace(
-      '%22allowMsgpackOfResult%22%3Atrue',
-      '%22allowMsgpackOfResult%22%3Afalse',
-    );
-
-    info.baseInfo = decodeURIComponent(info.link)
-      .match(/{(.*)}/g)[0]
-      .split('&')
-      .reduce((result, el) => {
-        try {
-          return Object.assign(
-            result,
-            JSON.parse(el.includes('=') ? el.split('=')[1] : el),
-          );
-        } catch (e) {
-          if (el.includes('=')) {
-            return Object.assign(result, {
-              [el.split('=')[0]]: el.split('=')[1],
-            });
-          }
-        }
-      }, {});
+    info.link = prepareReadLink(info.link);
+    info.baseInfo = parseReadLinkParams(info.link);
     info.baseId = info.baseInfo.applicationId;
     info.initialized = true;
   } catch (e) {
     logger.log(e);
     info.initialized = false;
-    if (e.message) {
+    if (e?.response?.status === 404) {
+      throw {
+        message:
+          'Airtable link not found :: Check the link, and that sharing is still turned on for the base or view',
+      };
+    } else if (e?.response?.status) {
+      throw {
+        message: `Airtable link could not be opened (HTTP ${e.response.status}). Refer https://dub.sh/import-airtable-to-nocodb for details`,
+      };
+    } else if (e.message) {
       throw e;
     } else {
       throw {

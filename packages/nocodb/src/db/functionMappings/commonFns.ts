@@ -5,6 +5,13 @@ import { concatKnexRaw } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
 import { DEFAULT_DATETIME_FORMAT } from '~/db/datetime-format';
 
+// For SQL assembled by hand into a bindingless `knex.raw`: an outer `toQuery()`
+// fills every `?` with the next binding, even inside a string literal, so a
+// user-supplied `?` would pull a later bound value out of its quotes.
+export function escapePlaceholders(sql: string): string {
+  return sql.replace(/\?/g, '\\?');
+}
+
 // Reads the (optional) format argument of DATETIME_FORMAT. The format must be a
 // constant string literal so it can be translated to a SQL pattern at build
 // time; a missing argument falls back to the default format.

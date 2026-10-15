@@ -311,8 +311,11 @@ const { message: templatedMessage } = useTemplatedMessage(
           </div>
           <div>
             <a-divider class="!my-6 !md:my-8" />
-            <div class="inline-block">
-              <GeneralFormBranding />
+            <div class="flex items-center justify-between gap-4">
+              <div class="inline-block">
+                <GeneralFormBranding />
+              </div>
+              <GeneralReportAbuseLink class="text-bodySm text-nc-content-gray-muted hover:!text-nc-content-gray-subtle" />
             </div>
           </div>
         </template>

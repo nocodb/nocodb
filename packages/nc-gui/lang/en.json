@@ -8805,7 +8805,6 @@
     "pickTitle": "Which tool do you use?",
     "serverUrlLabel": "Already know MCP? Use this server URL",
     "allTools": "All tools",
-    "stuck": "Stuck?",
     "nocodbGuide": "NocoDB setup guide",
     "opensInNewTab": "(opens in a new tab)",
     "copyAndOpen": "Copy URL and open {client}",
@@ -8832,22 +8831,19 @@
       "subtitle": "Set it up once on claude.ai. It then works in the desktop and mobile apps too.",
       "directorySubtitle": "NocoDB is in Claude’s connector directory. Connect once on claude.ai and it works in the desktop and mobile apps too.",
       "addTitle": "Add NocoDB as a connector",
-      "directoryBody": "Open NocoDB in Claude’s connector directory, then select Connect to Claude.",
+      "directoryBody": "Open the {link} in Claude, then select Connect to Claude.",
+      "directoryLink": "NocoDB connector",
       "directoryImageAlt": "The NocoDB page in Claude’s connector directory, with the Connect to Claude button",
-      "directoryButton": "Open NocoDB in Claude",
-      "directoryHelp": "Claude: connectors directory",
       "addBody": "Select Add custom connector, name it NocoDB, paste the URL, then select Add.",
       "identityNote": "If Claude asks how NocoDB should identify it, choose Register automatically.",
       "teamNote": "On a Team or Enterprise plan, an Owner adds NocoDB first in",
       "teamLink": "Organization settings",
       "authTitle": "Authorize your NocoDB account",
       "authorizeImageAlt": "NocoDB’s screen asking you to authorize Claude to access your account",
-      "directoryAuthBody": "Sign in to NocoDB when prompted, choose the bases Claude can use, then select Allow.",
-      "authBody": "Select Connect next to NocoDB, sign in, choose the bases Claude can use, then select Allow.",
+      "directoryAuthBody": "Sign in to NocoDB when prompted, choose what Claude can access and which tools it can use, then select Authorize.",
+      "authBody": "Select Connect next to NocoDB and sign in. Choose what Claude can access and which tools it can use, then select Authorize.",
       "tryTitle": "Try it out",
-      "tryBody": "Start a new chat in Claude and ask “List my NocoDB tools”.",
-      "open": "Open Claude",
-      "help": "Claude: custom connectors"
+      "tryBody": "Start a new chat in {link} and ask “List my NocoDB tools”."
     },
     "chatgpt": {
       "subtitle": "Set it up once on chatgpt.com.",
@@ -8855,10 +8851,9 @@
       "addBody": "Select + then Add custom MCP server. Name it NocoDB, paste the URL, set Authentication to OAuth, then select Create as a plugin.",
       "workspaceNote": "In a workspace, an admin may need to allow custom MCP servers first.",
       "approveTitle": "Install and approve",
-      "approveBody": "Install the NocoDB plugin, choose the bases ChatGPT can use, then select Allow.",
+      "approveBody": "Install the NocoDB plugin and sign in. Choose what ChatGPT can access and which tools it can use, then select Authorize.",
       "tryBody": "In a new chat, type {'@'}, pick NocoDB, then ask something like:",
-      "open": "Open ChatGPT",
-      "help": "ChatGPT: connect an MCP server"
+      "open": "Open ChatGPT"
     },
     "cursor": {
       "subtitle": "For the Cursor desktop app.",
@@ -8869,9 +8864,8 @@
       "download": "Download Cursor",
       "manualToggle": "Add it by hand instead",
       "manualLabel": "Add this to ~/.cursor/mcp.json:",
-      "approveBody": "In Cursor Settings › MCP, select Needs login next to NocoDB, choose the bases Cursor can use, then select Allow.",
-      "tryBody": "Ask in the Agent chat:",
-      "help": "Cursor: MCP servers"
+      "approveBody": "In Cursor Settings › MCP, select Needs login next to NocoDB. Choose what Cursor can access and which tools it can use, then select Authorize.",
+      "tryBody": "Ask in the Agent chat:"
     },
     "claudeCode": {
       "subtitle": "Add it once and it works in every project.",
@@ -8879,15 +8873,14 @@
       "addBody": "Run this in your terminal:",
       "installNote": "Don’t have Claude Code yet?",
       "install": "Install Claude Code",
-      "approveBody": "In Claude Code, run /mcp, pick nocodb and choose Authenticate. Then select Allow in the browser.",
-      "tryBody": "Ask Claude Code:",
-      "help": "Claude Code: MCP"
+      "approveBody": "In Claude Code, run /mcp, pick nocodb and choose Authenticate. In the browser, choose what it can access and which tools it can use, then select Authorize.",
+      "tryBody": "Ask Claude Code:"
     },
     "others": {
       "subtitle": "Works with any tool that supports remote MCP servers with sign-in (OAuth).",
       "addTitle": "Add NocoDB as a remote MCP server",
       "addBody": "In your tool’s settings, look for Add MCP server or Connectors and paste this URL. If it asks for a transport, choose Streamable HTTP.",
-      "approveBody": "Your tool opens NocoDB to sign in. Choose the bases it can use, then select Allow.",
+      "approveBody": "Your tool opens NocoDB to sign in. Choose what it can access and which tools it can use, then select Authorize.",
       "tokenText": "Tool only accepts a token?",
       "tokenButton": "Create an MCP token"
     }

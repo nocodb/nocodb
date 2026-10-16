@@ -1,6 +1,6 @@
-import { z } from 'zod-v4';
+import { z } from 'zod';
 
-export function isZodSchema(value: unknown): value is z.ZodTypeAny {
+export function isZodSchema(value: unknown): value is z.ZodType {
   return typeof (value as any)?.safeParseAsync === 'function';
 }
 
@@ -25,8 +25,8 @@ export function isZodSchema(value: unknown): value is z.ZodTypeAny {
  * is no misspelled parameter to catch where no parameter exists.
  */
 export function toStrictInputSchema(
-  inputSchema: Record<string, z.ZodTypeAny> | z.ZodTypeAny | undefined,
-): Record<string, z.ZodTypeAny> | z.ZodTypeAny | undefined {
+  inputSchema: Record<string, z.ZodType> | z.ZodType | undefined,
+): Record<string, z.ZodType> | z.ZodType | undefined {
   if (!inputSchema) return undefined;
 
   if (isZodSchema(inputSchema)) {
@@ -36,7 +36,7 @@ export function toStrictInputSchema(
       : inputSchema;
   }
 
-  const shape = inputSchema as Record<string, z.ZodTypeAny>;
+  const shape = inputSchema as Record<string, z.ZodType>;
 
   if (!Object.keys(shape).length) return shape;
 

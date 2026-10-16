@@ -1,7 +1,7 @@
 import type { CommandHandler, OperationContract } from './types';
 
 // CE no-op stub. EE overrides with the real Map-backed singleton.
-// `OperationContract<any>` (not the default `OperationContract<ZodTypeAny>`)
+// `OperationContract<any>` (not the default `OperationContract<ZodType>`)
 // avoids a variance error: zod schema fields propagate `S` into function-type
 // positions (`EntityRefFn<S>`), and a specific `OperationContract<typeof
 // mySchema>` would otherwise be rejected as not assignable to the parameter.

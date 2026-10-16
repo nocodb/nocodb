@@ -10,21 +10,15 @@ export const CreateOAuthClientSchema = z.object({
     .trim(),
 
   client_type: z
-    .nativeEnum(OAuthClientType, {
-      errorMap: () => ({
-        message: 'Client type must be either "confidential" or "public"',
-      }),
+    .enum(OAuthClientType, {
+      error: 'Client type must be either "confidential" or "public"',
     })
     .default(OAuthClientType.PUBLIC)
     .optional(),
 
   fk_user_id: z.string().optional(),
 
-  client_uri: z
-    .string()
-    .url('Invalid client URI format')
-    .optional()
-    .or(z.literal('')),
+  client_uri: z.url('Invalid client URI format').optional().or(z.literal('')),
 
   client_description: z
     .string()
@@ -36,7 +30,6 @@ export const CreateOAuthClientSchema = z.object({
   redirect_uris: z
     .array(
       z
-        .string()
         .url('Each redirect URI must be a valid URL')
         // `z.string().url()` alone accepts javascript:/data:/vbscript:/file:.
         .refine(isHttpRedirectUri, {
@@ -48,7 +41,7 @@ export const CreateOAuthClientSchema = z.object({
   allowed_grant_types: z
     .array(
       z.enum(['authorization_code', 'refresh_token'], {
-        errorMap: () => ({ message: 'Invalid grant type' }),
+        error: 'Invalid grant type',
       }),
     )
     .default(['authorization_code', 'refresh_token'])
@@ -57,7 +50,7 @@ export const CreateOAuthClientSchema = z.object({
   response_types: z
     .array(
       z.enum(['code', 'token', 'id_token'], {
-        errorMap: () => ({ message: 'Invalid response type' }),
+        error: 'Invalid response type',
       }),
     )
     .optional(),
@@ -65,7 +58,6 @@ export const CreateOAuthClientSchema = z.object({
   allowed_scopes: z.string().max(1000, 'Scopes string too long').optional(),
 
   registration_client_uri: z
-    .string()
     .url('Invalid registration client URI format')
     .optional(),
 
@@ -96,7 +88,6 @@ export const UpdateOAuthClientSchema = z.object({
   redirect_uris: z
     .array(
       z
-        .string()
         .url('Each redirect URI must be a valid URL')
         // Must match create, or a client can be edited into an XSS sink.
         .refine(isHttpRedirectUri, {
@@ -122,7 +113,6 @@ export const UpdateOAuthClientSchema = z.object({
   allowed_scopes: z.string().max(1000, 'Scopes string too long').optional(),
 
   registration_client_uri: z
-    .string()
     .url('Invalid registration client URI format')
     .optional(),
 

@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { createMcpHandler, McpServer } from '@modelcontextprotocol/server';
 import { toNodeHandler } from '@modelcontextprotocol/node';
-import { z } from 'zod-v4';
-import { extractRolesObj, NcApiVersion } from 'nocodb-sdk';
+import { z } from 'zod';
+import { extractRolesObj, NcApiVersion, UITypes } from 'nocodb-sdk';
 import type { FetchLikeMcpHandler } from '@modelcontextprotocol/node';
 import type { NcContext, NcRequest, UserType } from 'nocodb-sdk';
 import type { Request, Response } from 'express';
@@ -543,7 +543,7 @@ export class McpService {
                     .describe('Attachment path. Required if `url` is not set.'),
                   signedPath: z.string().nullish(),
                 })
-                .passthrough()
+                .loose()
                 .refine((f) => !!(f.url || f.path), {
                   message: 'An attachment needs a `url` or a `path`',
                 }),

@@ -5182,7 +5182,61 @@
     "navigation": "Navigointi",
     "prompts": "Kehotteet",
     "pagination": "Sivutus",
-    "showRowNumbers": "Näytä rivinumerot"
+    "showRowNumbers": "Näytä rivinumerot",
+    "blocked": "Estetty",
+    "abuseReport": {
+      "reportedItem": "Ilmoitettu kohde",
+      "reporter": "Ilmoittaja",
+      "received": "Vastaanotettu",
+      "reportDetails": "Tiedot",
+      "publicLink": "Julkinen linkki",
+      "linkLive": "Käytössä",
+      "linkDisabled": "Pois käytöstä",
+      "accounts": "Tilit",
+      "disableLink": "Poista linkki käytöstä",
+      "dismiss": "Hylkää",
+      "markResolved": "Merkitse ratkaistuksi",
+      "reopen": "Avaa uudelleen",
+      "statuses": {
+        "open": "Avoin",
+        "resolved": "Ratkaistu",
+        "dismissed": "Hylätty"
+      },
+      "resourceTypes": {
+        "shared_view": "Jaettu näkymä",
+        "interface": "Käyttöliittymä",
+        "dashboard": "Koontinäyttö",
+        "artifact": "Artefakti"
+      },
+      "candidateRoles": {
+        "owner": "Omistaja",
+        "creator": "Luoja",
+        "base_owner": "Kannan omistaja"
+      },
+      "yourName": "Nimesi",
+      "yourEmail": "Sähköpostiosoitteesi",
+      "reason": "Syy",
+      "reasonPlaceholder": "Valitse syy",
+      "details": "Miksi ilmoitat tästä sivusta?",
+      "submit": "Lähetä ilmoitus",
+      "reasons": {
+        "phishing": "Tietojenkalastelu tai tunnusten urkinta",
+        "scam": "Huijaus tai petos",
+        "impersonation": "Toisena esiintyminen",
+        "malware": "Haittaohjelma tai haitalliset linkit",
+        "illegal_content": "Laiton sisältö",
+        "spam": "Roskaposti",
+        "other": "Muu"
+      }
+    },
+    "allowReportingAbuse": "Salli vierailijoiden ilmoittaa julkisista sivuista väärinkäytöksen vuoksi",
+    "abuseContactEmail": "Väärinkäytösten yhteyssähköposti",
+    "editAltText": "Muokkaa vaihtoehtoista tekstiä",
+    "attachmentDownloadFailed": "Tätä tiedostoa ei voitu ladata",
+    "factoryMachine": "Kone",
+    "factoryMachineAlsoIncluded": "Aina mukana: git, GitHub CLI, ripgrep, Chrome ja työpöytä.",
+    "factoryMachineApplyFix": "Ota käyttöön ja rakenna uudelleen",
+    "factoryMachineAllVersions": "Kaikki versiot"
   },
   "activity": {
     "useTemplate": "Käytä mallia",
@@ -5487,7 +5541,9 @@
     "deleteLink": "Poista linkki",
     "linkSettings": "Linkin asetukset",
     "invitePeopleCount": "Kutsu {count} henkilö | Kutsu {count} henkilöä",
-    "inviteThemInstead": "Kutsu heidät sen sijaan"
+    "inviteThemInstead": "Kutsu heidät sen sijaan",
+    "blockUser": "Estä käyttäjä",
+    "unblockUser": "Poista käyttäjän esto"
   },
   "tooltip": {
     "shiftClickWeekStep": "Pidä siirrä vaiheeseen 1 viikko",
@@ -7445,6 +7501,92 @@
         "title": "Tili ja asetukset",
         "description": "Profiili, teema, pikanäppäimet ja tilin asetukset löytyvät kaikki avatarisi takaa."
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "Käytä NocoDB:tä sovelluksesta",
+    "title": "Yhdistä tekoälytyökalusi NocoDB MCP:hen",
+    "description": "Työskentele NocoDB-kantojesi, -taulukoidesi, -työnkulkujesi ja -käyttöliittymiesi parissa suoraan Claudesta, ChatGPT:stä ja muista MCP-asiakkaista.",
+    "pickTitle": "Mitä työkalua käytät?",
+    "serverUrlLabel": "Tunnetko MCP:n jo? Käytä tätä palvelimen URL-osoitetta",
+    "serverUrl": "Palvelimen URL",
+    "allTools": "Kaikki työkalut",
+    "nocodbGuide": "NocoDB:n käyttöönotto-opas",
+    "opensInNewTab": "(avautuu uuteen välilehteen)",
+    "urlCopied": "MCP-palvelimen URL kopioitu",
+    "copied": "Kopioitu",
+    "copyUrl": "Kopioi MCP-palvelimen URL",
+    "copyCommand": "Kopioi komento",
+    "copyConfig": "Kopioi määritykset",
+    "connected": "Yhdistetty",
+    "connectedTo": "Yhdistetty. {client} voi nyt käyttää NocoDB:tä.",
+    "step": "Vaihe {n}:",
+    "stepDone": "Vaihe {n}, valmis:",
+    "addAsServer": "Lisää NocoDB MCP-palvelimeksi",
+    "authTitle": "Valtuuta NocoDB-tilisi",
+    "tryTitle": "Kokeile",
+    "setupIn": "Määritä NocoDB sovelluksessa {client}",
+    "setupInOther": "Määritä NocoDB toisessa työkalussa",
+    "tileAria": "Määritä NocoDB sovelluksessa {client}",
+    "tileAriaConnected": "Määritä NocoDB sovelluksessa {client}, yhdistetty",
+    "othersLabel": "Muut",
+    "claude": {
+      "subtitle": "Määritä kerran osoitteessa claude.ai. Sen jälkeen se toimii myös työpöytä- ja mobiilisovelluksissa.",
+      "directorySubtitle": "NocoDB on Clauden liitinhakemistossa. Yhdistä kerran osoitteessa claude.ai, niin se toimii myös työpöytä- ja mobiilisovelluksissa.",
+      "addTitle": "Lisää NocoDB liittimeksi",
+      "directoryBody": "Avaa {link} Claudessa ja valitse sitten Connect to Claude.",
+      "directoryLink": "NocoDB-liitin",
+      "directoryImageAlt": "NocoDB-sivu Clauden liitinhakemistossa, jossa on Connect to Claude -painike",
+      "addBody": "Avaa {link} Claudessa ja valitse Add custom connector. Anna sille nimeksi NocoDB, liitä alla oleva URL ja valitse sitten Add.",
+      "addLink": "Liittimet",
+      "identityNote": "Jos Claude kysyy, miten NocoDB:n pitäisi tunnistaa se, valitse Register automatically.",
+      "teamNote": "Team- tai Enterprise-tilauksessa Owner lisää NocoDB:n ensin kohtaan",
+      "teamLink": "Organisaation asetukset",
+      "authorizeImageAlt": "NocoDB:n näkymä, jossa pyydetään valtuuttamaan Claude käyttämään tiliäsi",
+      "directoryAuthBody": "Kirjaudu NocoDB:hen pyydettäessä, valitse mihin Claude pääsee käsiksi ja mitä työkaluja se voi käyttää, ja valitse sitten Authorize.",
+      "authBody": "Valitse Connect NocoDB:n vierestä ja kirjaudu sisään. Valitse mihin Claude pääsee käsiksi ja mitä työkaluja se voi käyttää, ja valitse sitten Authorize.",
+      "tryBody": "Aloita uusi keskustelu palvelussa {link} ja kysy «List my NocoDB tools»."
+    },
+    "chatgpt": {
+      "subtitle": "Määritä kerran osoitteessa chatgpt.com.",
+      "openTitle": "Avaa mukautetun MCP-palvelimen lomake",
+      "openBody": "Avaa {link} ChatGPT:ssä, valitse Add ja sitten Add custom MCP server.",
+      "openLink": "Laajennukset",
+      "openImageAlt": "ChatGPT:n Plugins-sivu, jossa Add-valikko on auki kohdassa Add custom MCP server",
+      "addTitle": "Lisää NocoDB laajennukseksi",
+      "addBody": "Anna sille nimeksi NocoDB, liitä alla oleva URL kenttään Server URL, jätä Authentication arvoon OAuth ja luo se.",
+      "addImageAlt": "ChatGPT:n lomake «Add custom MCP server», jossa on kentät Name, Server URL ja Authentication",
+      "authBody": "Kirjaudu NocoDB:hen pyydettäessä, valitse mihin ChatGPT pääsee käsiksi ja mitä työkaluja se voi käyttää, ja valitse sitten Authorize.",
+      "tryBody": "Aloita uusi keskustelu palvelussa {link}, kirjoita {'@'}, valitse NocoDB ja kysy «List my NocoDB tools»."
+    },
+    "cursor": {
+      "subtitle": "Cursorin työpöytäsovellukselle.",
+      "addBody": "Valitse {link} ja vahvista, kun Cursor avautuu.",
+      "addLink": "Lisää Cursoriin",
+      "downloadNote": "Eikö sinulla ole vielä Cursoria?",
+      "download": "Lataa Cursor",
+      "manualToggle": "Lisää se sen sijaan käsin",
+      "manualLabel": "Lisää tämä tiedostoon ~/.cursor/mcp.json:",
+      "authBody": "Valitse Cursorissa kohdassa Settings › MCP vaihtoehto Needs login NocoDB:n vierestä. Valitse mihin Cursor pääsee käsiksi ja mitä työkaluja se voi käyttää, ja valitse sitten Authorize.",
+      "tryBody": "Avaa Agent-keskustelu Cursorissa ja kysy «List my NocoDB tools»."
+    },
+    "claudeCode": {
+      "subtitle": "Lisää se kerran, niin se toimii kaikissa projekteissa.",
+      "addBody": "Suorita tämä päätteessä:",
+      "installNote": "Eikö sinulla ole vielä Claude Codea?",
+      "install": "Asenna Claude Code",
+      "authBody": "Suorita Claude Codessa /mcp, valitse nocodb ja valitse Authenticate. Valitse selaimessa mihin se pääsee käsiksi ja mitä työkaluja se voi käyttää, ja valitse sitten Authorize.",
+      "tryBody": "Käynnistä Claude Code ja kysy «List my NocoDB tools»."
+    },
+    "others": {
+      "subtitle": "Toimii kaikkien työkalujen kanssa, jotka tukevat etä-MCP-palvelimia kirjautumisella (OAuth).",
+      "findTitle": "Etsi MCP-asetukset",
+      "findBody": "Etsi tekoälytyökalusi asetuksista kohtaa MCP, Connectors, Integrations, Apps tai Tools.",
+      "addBody": "Lisää mukautettu tai etä-MCP-palvelin ja liitä sitten alla oleva URL. Jos siirtotapaa kysytään, valitse Streamable HTTP.",
+      "authBody": "Jos työkalusi kysyy todennustapaa, valitse OAuth. Kirjaudu NocoDB:hen pyydettäessä, valitse mihin se pääsee käsiksi ja mitä työkaluja se voi käyttää, ja valitse sitten Authorize.",
+      "tryBody": "Aloita uusi keskustelu ja kysy «List my NocoDB tools».",
+      "tokenText": "Hyväksyykö työkalusi vain tunnuksen?",
+      "tokenButton": "Luo MCP-tunnus"
     }
   }
 }

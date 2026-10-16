@@ -5179,7 +5179,61 @@
     "navigation": "Gezinme",
     "prompts": "İstemler",
     "pagination": "Sayfalama",
-    "showRowNumbers": "Satır numaralarını göster"
+    "showRowNumbers": "Satır numaralarını göster",
+    "blocked": "Engellendi",
+    "abuseReport": {
+      "reportedItem": "Bildirilen öğe",
+      "reporter": "Bildiren",
+      "received": "Alındı",
+      "reportDetails": "Ayrıntılar",
+      "publicLink": "Herkese açık bağlantı",
+      "linkLive": "Etkin",
+      "linkDisabled": "Devre dışı",
+      "accounts": "Hesaplar",
+      "disableLink": "Bağlantıyı devre dışı bırak",
+      "dismiss": "Yoksay",
+      "markResolved": "Çözüldü olarak işaretle",
+      "reopen": "Yeniden aç",
+      "statuses": {
+        "open": "Açık",
+        "resolved": "Çözüldü",
+        "dismissed": "Yoksayıldı"
+      },
+      "resourceTypes": {
+        "shared_view": "Paylaşılan görünüm",
+        "interface": "Arayüz",
+        "dashboard": "Pano",
+        "artifact": "Artefakt"
+      },
+      "candidateRoles": {
+        "owner": "Sahip",
+        "creator": "Oluşturan",
+        "base_owner": "Taban sahibi"
+      },
+      "yourName": "Adınız",
+      "yourEmail": "E-posta adresiniz",
+      "reason": "Neden",
+      "reasonPlaceholder": "Bir neden seçin",
+      "details": "Bu sayfayı neden bildiriyorsunuz?",
+      "submit": "Bildirimi gönder",
+      "reasons": {
+        "phishing": "Kimlik avı veya kimlik bilgisi toplama",
+        "scam": "Dolandırıcılık veya sahtekârlık",
+        "impersonation": "Kimliğe bürünme",
+        "malware": "Kötü amaçlı yazılım veya zararlı bağlantılar",
+        "illegal_content": "Yasa dışı içerik",
+        "spam": "İstenmeyen içerik",
+        "other": "Diğer"
+      }
+    },
+    "allowReportingAbuse": "Ziyaretçilerin herkese açık sayfaları kötüye kullanım nedeniyle bildirmesine izin ver",
+    "abuseContactEmail": "Kötüye kullanım iletişim e-postası",
+    "editAltText": "Alternatif metni düzenle",
+    "attachmentDownloadFailed": "Bu dosya indirilemedi",
+    "factoryMachine": "Makine",
+    "factoryMachineAlsoIncluded": "Her zaman dahil: git, GitHub CLI, ripgrep, Chrome ve masaüstü.",
+    "factoryMachineApplyFix": "Uygula ve yeniden derle",
+    "factoryMachineAllVersions": "Tüm sürümler"
   },
   "activity": {
     "useTemplate": "Şablon kullan",
@@ -5484,7 +5538,9 @@
     "deleteLink": "Bağlantıyı sil",
     "linkSettings": "Bağlantı ayarları",
     "invitePeopleCount": "{count} kişiyi davet et | {count} kişiyi davet et",
-    "inviteThemInstead": "Bunun yerine onları davet et"
+    "inviteThemInstead": "Bunun yerine onları davet et",
+    "blockUser": "Kullanıcıyı engelle",
+    "unblockUser": "Kullanıcının engelini kaldır"
   },
   "tooltip": {
     "shiftClickWeekStep": "1 hafta ilerlemek için Shift tuşunu basılı tutun",
@@ -7442,6 +7498,92 @@
         "title": "Hesap ve ayarlar",
         "description": "Profil, tema, klavye kısayolları ve hesap ayarlarının tümü avatarınızın arkasında."
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "NocoDB'yi şuradan kullan:",
+    "title": "Yapay zekâ araçlarınızı NocoDB MCP'ye bağlayın",
+    "description": "NocoDB tabanlarınız, tablolarınız, iş akışlarınız ve arayüzlerinizle doğrudan Claude, ChatGPT ve diğer MCP istemcilerinden çalışın.",
+    "pickTitle": "Hangi aracı kullanıyorsunuz?",
+    "serverUrlLabel": "MCP'yi zaten biliyor musunuz? Bu sunucu URL'sini kullanın",
+    "serverUrl": "Sunucu URL'si",
+    "allTools": "Tüm araçlar",
+    "nocodbGuide": "NocoDB kurulum kılavuzu",
+    "opensInNewTab": "(yeni bir sekmede açılır)",
+    "urlCopied": "MCP sunucusu URL'si kopyalandı",
+    "copied": "Kopyalandı",
+    "copyUrl": "MCP sunucusu URL'sini kopyala",
+    "copyCommand": "Komutu kopyala",
+    "copyConfig": "Yapılandırmayı kopyala",
+    "connected": "Bağlandı",
+    "connectedTo": "Bağlandı. {client} artık NocoDB'yi kullanabilir.",
+    "step": "Adım {n}:",
+    "stepDone": "Adım {n}, tamamlandı:",
+    "addAsServer": "NocoDB'yi MCP sunucusu olarak ekle",
+    "authTitle": "NocoDB hesabınızı yetkilendirin",
+    "tryTitle": "Deneyin",
+    "setupIn": "NocoDB'yi {client} içinde kur",
+    "setupInOther": "NocoDB'yi başka bir araçta kur",
+    "tileAria": "NocoDB'yi {client} içinde kur",
+    "tileAriaConnected": "NocoDB'yi {client} içinde kur, bağlandı",
+    "othersLabel": "Diğerleri",
+    "claude": {
+      "subtitle": "claude.ai üzerinde bir kez kurun. Ardından masaüstü ve mobil uygulamalarda da çalışır.",
+      "directorySubtitle": "NocoDB, Claude'un bağlayıcı dizininde yer alır. claude.ai üzerinde bir kez bağlayın; masaüstü ve mobil uygulamalarda da çalışır.",
+      "addTitle": "NocoDB'yi bağlayıcı olarak ekle",
+      "directoryBody": "Claude'da {link} sayfasını açın, ardından Connect to Claude seçeneğini belirleyin.",
+      "directoryLink": "NocoDB bağlayıcısı",
+      "directoryImageAlt": "Claude'un bağlayıcı dizinindeki NocoDB sayfası, Connect to Claude düğmesiyle",
+      "addBody": "Claude'da {link} sayfasını açın ve Add custom connector seçeneğini belirleyin. Adını NocoDB koyun, aşağıdaki URL'yi yapıştırın ve ardından Add seçeneğini belirleyin.",
+      "addLink": "Bağlayıcılar",
+      "identityNote": "Claude, NocoDB'nin onu nasıl tanımlaması gerektiğini sorarsa Register automatically seçeneğini belirleyin.",
+      "teamNote": "Team veya Enterprise planında NocoDB'yi önce bir Owner şuraya ekler:",
+      "teamLink": "Kuruluş ayarları",
+      "authorizeImageAlt": "Claude'un hesabınıza erişmesini yetkilendirmenizi isteyen NocoDB ekranı",
+      "directoryAuthBody": "İstendiğinde NocoDB'de oturum açın, Claude'un nelere erişebileceğini ve hangi araçları kullanabileceğini seçin, ardından Authorize seçeneğini belirleyin.",
+      "authBody": "NocoDB'nin yanındaki Connect seçeneğini belirleyin ve oturum açın. Claude'un nelere erişebileceğini ve hangi araçları kullanabileceğini seçin, ardından Authorize seçeneğini belirleyin.",
+      "tryBody": "{link} içinde yeni bir sohbet başlatın ve «List my NocoDB tools» diye sorun."
+    },
+    "chatgpt": {
+      "subtitle": "chatgpt.com üzerinde bir kez kurun.",
+      "openTitle": "Özel MCP sunucusu formunu açın",
+      "openBody": "ChatGPT'de {link} sayfasını açın, Add ve ardından Add custom MCP server seçeneğini belirleyin.",
+      "openLink": "Eklentiler",
+      "openImageAlt": "ChatGPT'nin Plugins sayfası, Add menüsü Add custom MCP server üzerinde açık",
+      "addTitle": "NocoDB'yi eklenti olarak ekle",
+      "addBody": "Adını NocoDB koyun, aşağıdaki URL'yi Server URL olarak yapıştırın, Authentication ayarını OAuth olarak bırakın ve ardından oluşturun.",
+      "addImageAlt": "ChatGPT'nin Name, Server URL ve Authentication alanlarını içeren «Add custom MCP server» formu",
+      "authBody": "İstendiğinde NocoDB'de oturum açın, ChatGPT'nin nelere erişebileceğini ve hangi araçları kullanabileceğini seçin, ardından Authorize seçeneğini belirleyin.",
+      "tryBody": "{link} içinde yeni bir sohbet başlatın, {'@'} yazın, NocoDB'yi seçin ve «List my NocoDB tools» diye sorun."
+    },
+    "cursor": {
+      "subtitle": "Cursor masaüstü uygulaması için.",
+      "addBody": "{link} seçeneğini belirleyin, ardından Cursor açıldığında onaylayın.",
+      "addLink": "Cursor'a ekle",
+      "downloadNote": "Henüz Cursor yok mu?",
+      "download": "Cursor'ı indir",
+      "manualToggle": "Bunun yerine elle ekle",
+      "manualLabel": "Bunu ~/.cursor/mcp.json dosyasına ekleyin:",
+      "authBody": "Cursor'da Settings › MCP altında NocoDB'nin yanındaki Needs login seçeneğini belirleyin. Cursor'un nelere erişebileceğini ve hangi araçları kullanabileceğini seçin, ardından Authorize seçeneğini belirleyin.",
+      "tryBody": "Cursor'da Agent sohbetini açın ve «List my NocoDB tools» diye sorun."
+    },
+    "claudeCode": {
+      "subtitle": "Bir kez ekleyin, her projede çalışsın.",
+      "addBody": "Bunu terminalinizde çalıştırın:",
+      "installNote": "Henüz Claude Code yok mu?",
+      "install": "Claude Code'u yükle",
+      "authBody": "Claude Code'da /mcp komutunu çalıştırın, nocodb öğesini seçin ve Authenticate seçeneğini belirleyin. Tarayıcıda nelere erişebileceğini ve hangi araçları kullanabileceğini seçin, ardından Authorize seçeneğini belirleyin.",
+      "tryBody": "Claude Code'u başlatın ve «List my NocoDB tools» diye sorun."
+    },
+    "others": {
+      "subtitle": "Oturum açmalı (OAuth) uzak MCP sunucularını destekleyen her araçla çalışır.",
+      "findTitle": "MCP ayarlarını bulun",
+      "findBody": "Yapay zekâ aracınızın ayarlarında MCP, Connectors, Integrations, Apps veya Tools bölümünü arayın.",
+      "addBody": "Özel veya uzak bir MCP sunucusu ekleyin, ardından aşağıdaki URL'yi yapıştırın. Taşıma yöntemi sorulursa Streamable HTTP seçin.",
+      "authBody": "Aracınız bir kimlik doğrulama yöntemi isterse OAuth seçin. İstendiğinde NocoDB'de oturum açın, nelere erişebileceğini ve hangi araçları kullanabileceğini seçin, ardından Authorize seçeneğini belirleyin.",
+      "tryBody": "Yeni bir sohbet başlatın ve «List my NocoDB tools» diye sorun.",
+      "tokenText": "Aracınız yalnızca belirteç mi kabul ediyor?",
+      "tokenButton": "MCP belirteci oluştur"
     }
   }
 }

@@ -5163,7 +5163,60 @@
     "navigation": "Navigare",
     "prompts": "Prompturi",
     "pagination": "Paginare",
-    "showRowNumbers": "Afișează numerele rândurilor"
+    "showRowNumbers": "Afișează numerele rândurilor",
+    "blocked": "Blocat",
+    "abuseReport": {
+      "reportedItem": "Element raportat",
+      "reporter": "Raportor",
+      "received": "Primit",
+      "reportDetails": "Detalii",
+      "publicLink": "Link public",
+      "linkLive": "Activ",
+      "linkDisabled": "Dezactivat",
+      "accounts": "Conturi",
+      "disableLink": "Dezactivează linkul",
+      "dismiss": "Respinge",
+      "markResolved": "Marchează ca rezolvat",
+      "reopen": "Redeschide",
+      "statuses": {
+        "open": "Deschis",
+        "resolved": "Rezolvat",
+        "dismissed": "Respins"
+      },
+      "resourceTypes": {
+        "shared_view": "Vizualizare partajată",
+        "interface": "Interfață",
+        "dashboard": "Tablou de bord",
+        "artifact": "Artefact"
+      },
+      "candidateRoles": {
+        "owner": "Proprietar",
+        "creator": "Autor",
+        "base_owner": "Proprietarul bazei"
+      },
+      "yourName": "Numele dvs.",
+      "yourEmail": "E-mailul dvs.",
+      "reason": "Motiv",
+      "reasonPlaceholder": "Selectați un motiv",
+      "details": "De ce raportați această pagină?",
+      "submit": "Trimite raportarea",
+      "reasons": {
+        "phishing": "Phishing sau colectare de credențiale",
+        "scam": "Înșelătorie sau fraudă",
+        "impersonation": "Uzurpare de identitate",
+        "malware": "Programe malițioase sau linkuri dăunătoare",
+        "illegal_content": "Conținut ilegal",
+        "other": "Altul"
+      }
+    },
+    "allowReportingAbuse": "Permite vizitatorilor să raporteze paginile publice pentru abuz",
+    "abuseContactEmail": "E-mail de contact pentru abuzuri",
+    "editAltText": "Editează textul alternativ",
+    "attachmentDownloadFailed": "Acest fișier nu a putut fi descărcat",
+    "factoryMachine": "Mașină",
+    "factoryMachineAlsoIncluded": "Întotdeauna incluse: git, GitHub CLI, ripgrep, Chrome și desktopul.",
+    "factoryMachineApplyFix": "Aplică și reconstruiește",
+    "factoryMachineAllVersions": "Toate versiunile"
   },
   "activity": {
     "useTemplate": "Folosește șablon",
@@ -5465,7 +5518,9 @@
     "deleteLink": "Șterge legătura",
     "linkSettings": "Setările legăturii",
     "invitePeopleCount": "Invită {count} persoană | Invită {count} persoane",
-    "inviteThemInstead": "Invită-i pe ei în schimb"
+    "inviteThemInstead": "Invită-i pe ei în schimb",
+    "blockUser": "Blochează utilizatorul",
+    "unblockUser": "Deblochează utilizatorul"
   },
   "tooltip": {
     "shiftClickWeekStep": "Țineți treapta la pas cu 1 săptămână",
@@ -7423,6 +7478,92 @@
         "title": "Cont și setări",
         "description": "Profilul, tema, scurtăturile de tastatură și setările contului se află toate în spatele avatarului tău."
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "Folosește NocoDB din",
+    "title": "Conectați-vă instrumentele de IA la NocoDB MCP",
+    "description": "Lucrați cu bazele, tabelele, fluxurile de lucru și interfețele dvs. NocoDB direct din Claude, ChatGPT și alți clienți MCP.",
+    "pickTitle": "Ce instrument folosiți?",
+    "serverUrlLabel": "Cunoașteți deja MCP? Folosiți acest URL de server",
+    "serverUrl": "URL-ul serverului",
+    "allTools": "Toate instrumentele",
+    "nocodbGuide": "Ghid de configurare NocoDB",
+    "opensInNewTab": "(se deschide într-o filă nouă)",
+    "urlCopied": "URL-ul serverului MCP a fost copiat",
+    "copied": "Copiat",
+    "copyUrl": "Copiază URL-ul serverului MCP",
+    "copyCommand": "Copiază comanda",
+    "copyConfig": "Copiază configurația",
+    "connected": "Conectat",
+    "connectedTo": "Conectat. {client} poate folosi acum NocoDB.",
+    "step": "Pasul {n}:",
+    "stepDone": "Pasul {n}, finalizat:",
+    "addAsServer": "Adaugă NocoDB ca server MCP",
+    "authTitle": "Autorizați-vă contul NocoDB",
+    "tryTitle": "Încercați",
+    "setupIn": "Configurează NocoDB în {client}",
+    "setupInOther": "Configurează NocoDB în alt instrument",
+    "tileAria": "Configurează NocoDB în {client}",
+    "tileAriaConnected": "Configurează NocoDB în {client}, conectat",
+    "othersLabel": "Altele",
+    "claude": {
+      "subtitle": "Configurați o singură dată pe claude.ai. Apoi funcționează și în aplicațiile desktop și mobile.",
+      "directorySubtitle": "NocoDB se află în directorul de conectori al Claude. Conectați-l o dată pe claude.ai și funcționează și în aplicațiile desktop și mobile.",
+      "addTitle": "Adaugă NocoDB ca conector",
+      "directoryBody": "Deschideți {link} în Claude, apoi selectați Connect to Claude.",
+      "directoryLink": "Conector NocoDB",
+      "directoryImageAlt": "Pagina NocoDB din directorul de conectori al Claude, cu butonul Connect to Claude",
+      "addBody": "Deschideți {link} în Claude și selectați Add custom connector. Denumiți-l NocoDB, lipiți URL-ul de mai jos, apoi selectați Add.",
+      "addLink": "Conectori",
+      "identityNote": "Dacă Claude întreabă cum ar trebui să îl identifice NocoDB, alegeți Register automatically.",
+      "teamNote": "La un plan Team sau Enterprise, mai întâi un Owner adaugă NocoDB în",
+      "teamLink": "Setările organizației",
+      "authorizeImageAlt": "Ecranul NocoDB care vă cere să autorizați accesul Claude la contul dvs.",
+      "directoryAuthBody": "Conectați-vă la NocoDB când vi se solicită, alegeți la ce poate accesa Claude și ce instrumente poate folosi, apoi selectați Authorize.",
+      "authBody": "Selectați Connect lângă NocoDB și conectați-vă. Alegeți la ce poate accesa Claude și ce instrumente poate folosi, apoi selectați Authorize.",
+      "tryBody": "Începeți o conversație nouă în {link} și întrebați «List my NocoDB tools»."
+    },
+    "chatgpt": {
+      "subtitle": "Configurați o singură dată pe chatgpt.com.",
+      "openTitle": "Deschideți formularul serverului MCP personalizat",
+      "openBody": "Deschideți {link} în ChatGPT, selectați Add, apoi Add custom MCP server.",
+      "openLink": "Extensii",
+      "openImageAlt": "Pagina Plugins din ChatGPT cu meniul Add deschis la Add custom MCP server",
+      "addTitle": "Adaugă NocoDB ca extensie",
+      "addBody": "Denumiți-l NocoDB, lipiți URL-ul de mai jos în câmpul Server URL, lăsați Authentication pe OAuth, apoi creați-l.",
+      "addImageAlt": "Formularul «Add custom MCP server» din ChatGPT, cu câmpurile Name, Server URL și Authentication",
+      "authBody": "Conectați-vă la NocoDB când vi se solicită, alegeți la ce poate accesa ChatGPT și ce instrumente poate folosi, apoi selectați Authorize.",
+      "tryBody": "Începeți o conversație nouă în {link}, tastați {'@'}, alegeți NocoDB și întrebați «List my NocoDB tools»."
+    },
+    "cursor": {
+      "subtitle": "Pentru aplicația desktop Cursor.",
+      "addBody": "Selectați {link}, apoi confirmați când se deschide Cursor.",
+      "addLink": "Adaugă în Cursor",
+      "downloadNote": "Nu aveți încă Cursor?",
+      "download": "Descarcă Cursor",
+      "manualToggle": "Adaugă manual în schimb",
+      "manualLabel": "Adăugați aceasta în ~/.cursor/mcp.json:",
+      "authBody": "În Cursor, la Settings › MCP, selectați Needs login lângă NocoDB. Alegeți la ce poate accesa Cursor și ce instrumente poate folosi, apoi selectați Authorize.",
+      "tryBody": "Deschideți conversația Agent în Cursor și întrebați «List my NocoDB tools»."
+    },
+    "claudeCode": {
+      "subtitle": "Adăugați-l o dată și funcționează în orice proiect.",
+      "addBody": "Rulați aceasta în terminal:",
+      "installNote": "Nu aveți încă Claude Code?",
+      "install": "Instalează Claude Code",
+      "authBody": "În Claude Code rulați /mcp, alegeți nocodb și selectați Authenticate. În browser alegeți la ce poate accesa și ce instrumente poate folosi, apoi selectați Authorize.",
+      "tryBody": "Porniți Claude Code și întrebați «List my NocoDB tools»."
+    },
+    "others": {
+      "subtitle": "Funcționează cu orice instrument care acceptă servere MCP la distanță cu autentificare (OAuth).",
+      "findTitle": "Găsiți setările MCP",
+      "findBody": "În setările instrumentului dvs. de IA, căutați MCP, Connectors, Integrations, Apps sau Tools.",
+      "addBody": "Adăugați un server MCP personalizat sau la distanță, apoi lipiți URL-ul de mai jos. Dacă vi se cere un transport, alegeți Streamable HTTP.",
+      "authBody": "Dacă instrumentul dvs. cere o metodă de autentificare, alegeți OAuth. Conectați-vă la NocoDB când vi se solicită, alegeți la ce poate accesa și ce instrumente poate folosi, apoi selectați Authorize.",
+      "tryBody": "Începeți o conversație nouă și întrebați «List my NocoDB tools».",
+      "tokenText": "Instrumentul dvs. acceptă doar un token?",
+      "tokenButton": "Creează un token MCP"
     }
   }
 }

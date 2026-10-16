@@ -5169,7 +5169,60 @@
     "navigation": "Navigasi",
     "prompts": "Prompt",
     "pagination": "Penomoran halaman",
-    "showRowNumbers": "Tampilkan nomor baris"
+    "showRowNumbers": "Tampilkan nomor baris",
+    "blocked": "Diblokir",
+    "abuseReport": {
+      "reportedItem": "Item yang dilaporkan",
+      "reporter": "Pelapor",
+      "received": "Diterima",
+      "reportDetails": "Detail",
+      "publicLink": "Tautan publik",
+      "linkLive": "Aktif",
+      "linkDisabled": "Nonaktif",
+      "accounts": "Akun",
+      "disableLink": "Nonaktifkan tautan",
+      "dismiss": "Abaikan",
+      "markResolved": "Tandai sebagai selesai",
+      "reopen": "Buka kembali",
+      "statuses": {
+        "open": "Terbuka",
+        "resolved": "Selesai",
+        "dismissed": "Diabaikan"
+      },
+      "resourceTypes": {
+        "shared_view": "Tampilan bersama",
+        "interface": "Antarmuka",
+        "dashboard": "Dasbor",
+        "artifact": "Artefak"
+      },
+      "candidateRoles": {
+        "owner": "Pemilik",
+        "creator": "Pembuat",
+        "base_owner": "Pemilik basis"
+      },
+      "yourName": "Nama Anda",
+      "yourEmail": "Email Anda",
+      "reason": "Alasan",
+      "reasonPlaceholder": "Pilih alasan",
+      "details": "Mengapa Anda melaporkan halaman ini?",
+      "submit": "Kirim laporan",
+      "reasons": {
+        "phishing": "Phishing atau pencurian kredensial",
+        "scam": "Penipuan atau kecurangan",
+        "impersonation": "Peniruan identitas",
+        "malware": "Malware atau tautan berbahaya",
+        "illegal_content": "Konten ilegal",
+        "other": "Lainnya"
+      }
+    },
+    "allowReportingAbuse": "Izinkan pengunjung melaporkan halaman publik atas penyalahgunaan",
+    "abuseContactEmail": "Email kontak penyalahgunaan",
+    "editAltText": "Edit teks alternatif",
+    "attachmentDownloadFailed": "Tidak dapat mengunduh berkas ini",
+    "factoryMachine": "Mesin",
+    "factoryMachineAlsoIncluded": "Selalu disertakan: git, GitHub CLI, ripgrep, Chrome, dan desktop.",
+    "factoryMachineApplyFix": "Terapkan dan bangun ulang",
+    "factoryMachineAllVersions": "Semua versi"
   },
   "activity": {
     "useTemplate": "Gunakan templat",
@@ -5474,7 +5527,9 @@
     "deleteLink": "Hapus tautan",
     "linkSettings": "Pengaturan tautan",
     "invitePeopleCount": "Undang {count} orang | Undang {count} orang",
-    "inviteThemInstead": "Undang mereka saja"
+    "inviteThemInstead": "Undang mereka saja",
+    "blockUser": "Blokir pengguna",
+    "unblockUser": "Buka blokir pengguna"
   },
   "tooltip": {
     "shiftClickWeekStep": "Tahan Shift untuk melangkah sejauh 1 minggu",
@@ -7432,6 +7487,92 @@
         "title": "Akun dan pengaturan",
         "description": "Profil, tema, pintasan papan ketik, dan pengaturan akun semuanya ada di balik avatar Anda."
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "Gunakan NocoDB dari",
+    "title": "Hubungkan alat AI Anda ke NocoDB MCP",
+    "description": "Kerjakan basis, tabel, alur kerja, dan antarmuka NocoDB Anda langsung dari Claude, ChatGPT, dan klien MCP lainnya.",
+    "pickTitle": "Alat mana yang Anda gunakan?",
+    "serverUrlLabel": "Sudah tahu MCP? Gunakan URL server ini",
+    "serverUrl": "URL server",
+    "allTools": "Semua alat",
+    "nocodbGuide": "Panduan penyiapan NocoDB",
+    "opensInNewTab": "(terbuka di tab baru)",
+    "urlCopied": "URL server MCP disalin",
+    "copied": "Disalin",
+    "copyUrl": "Salin URL server MCP",
+    "copyCommand": "Salin perintah",
+    "copyConfig": "Salin konfigurasi",
+    "connected": "Terhubung",
+    "connectedTo": "Terhubung. {client} kini dapat menggunakan NocoDB.",
+    "step": "Langkah {n}:",
+    "stepDone": "Langkah {n}, selesai:",
+    "addAsServer": "Tambahkan NocoDB sebagai server MCP",
+    "authTitle": "Otorisasi akun NocoDB Anda",
+    "tryTitle": "Coba sekarang",
+    "setupIn": "Siapkan NocoDB di {client}",
+    "setupInOther": "Siapkan NocoDB di alat lain",
+    "tileAria": "Siapkan NocoDB di {client}",
+    "tileAriaConnected": "Siapkan NocoDB di {client}, terhubung",
+    "othersLabel": "Lainnya",
+    "claude": {
+      "subtitle": "Siapkan sekali di claude.ai. Setelah itu juga berfungsi di aplikasi desktop serta seluler.",
+      "directorySubtitle": "NocoDB tersedia di direktori konektor Claude. Hubungkan sekali di claude.ai dan juga berfungsi di aplikasi desktop serta seluler.",
+      "addTitle": "Tambahkan NocoDB sebagai konektor",
+      "directoryBody": "Buka {link} di Claude, lalu pilih Connect to Claude.",
+      "directoryLink": "Konektor NocoDB",
+      "directoryImageAlt": "Halaman NocoDB di direktori konektor Claude, dengan tombol Connect to Claude",
+      "addBody": "Buka {link} di Claude lalu pilih Add custom connector. Beri nama NocoDB, tempelkan URL di bawah, lalu pilih Add.",
+      "addLink": "Konektor",
+      "identityNote": "Jika Claude menanyakan bagaimana NocoDB harus mengidentifikasinya, pilih Register automatically.",
+      "teamNote": "Pada paket Team atau Enterprise, Owner menambahkan NocoDB terlebih dahulu di",
+      "teamLink": "Pengaturan organisasi",
+      "authorizeImageAlt": "Layar NocoDB yang meminta Anda mengizinkan Claude mengakses akun Anda",
+      "directoryAuthBody": "Masuk ke NocoDB saat diminta, pilih apa yang dapat diakses Claude dan alat mana yang dapat digunakannya, lalu pilih Authorize.",
+      "authBody": "Pilih Connect di sebelah NocoDB lalu masuk. Pilih apa yang dapat diakses Claude dan alat mana yang dapat digunakannya, lalu pilih Authorize.",
+      "tryBody": "Mulai obrolan baru di {link} dan tanyakan «List my NocoDB tools»."
+    },
+    "chatgpt": {
+      "subtitle": "Siapkan sekali di chatgpt.com.",
+      "openTitle": "Buka formulir server MCP kustom",
+      "openBody": "Buka {link} di ChatGPT, pilih Add, lalu Add custom MCP server.",
+      "openLink": "Plugin",
+      "openImageAlt": "Halaman Plugins ChatGPT dengan menu Add terbuka pada Add custom MCP server",
+      "addTitle": "Tambahkan NocoDB sebagai plugin",
+      "addBody": "Beri nama NocoDB, tempelkan URL di bawah sebagai Server URL, biarkan Authentication pada OAuth, lalu buat.",
+      "addImageAlt": "Formulir «Add custom MCP server» ChatGPT, dengan kolom Name, Server URL, dan Authentication",
+      "authBody": "Masuk ke NocoDB saat diminta, pilih apa yang dapat diakses ChatGPT dan alat mana yang dapat digunakannya, lalu pilih Authorize.",
+      "tryBody": "Mulai obrolan baru di {link}, ketik {'@'}, pilih NocoDB, dan tanyakan «List my NocoDB tools»."
+    },
+    "cursor": {
+      "subtitle": "Untuk aplikasi desktop Cursor.",
+      "addBody": "Pilih {link}, lalu konfirmasi saat Cursor terbuka.",
+      "addLink": "Tambahkan ke Cursor",
+      "downloadNote": "Belum punya Cursor?",
+      "download": "Unduh Cursor",
+      "manualToggle": "Tambahkan secara manual saja",
+      "manualLabel": "Tambahkan ini ke ~/.cursor/mcp.json:",
+      "authBody": "Di Cursor pada Settings › MCP, pilih Needs login di sebelah NocoDB. Pilih apa yang dapat diakses Cursor dan alat mana yang dapat digunakannya, lalu pilih Authorize.",
+      "tryBody": "Buka obrolan Agent di Cursor dan tanyakan «List my NocoDB tools»."
+    },
+    "claudeCode": {
+      "subtitle": "Tambahkan sekali dan berfungsi di setiap proyek.",
+      "addBody": "Jalankan ini di terminal Anda:",
+      "installNote": "Belum punya Claude Code?",
+      "install": "Pasang Claude Code",
+      "authBody": "Di Claude Code, jalankan /mcp, pilih nocodb, lalu pilih Authenticate. Di peramban, pilih apa yang dapat diaksesnya dan alat mana yang dapat digunakannya, lalu pilih Authorize.",
+      "tryBody": "Jalankan Claude Code dan tanyakan «List my NocoDB tools»."
+    },
+    "others": {
+      "subtitle": "Berfungsi dengan alat apa pun yang mendukung server MCP jarak jauh dengan proses masuk (OAuth).",
+      "findTitle": "Temukan pengaturan MCP",
+      "findBody": "Di pengaturan alat AI Anda, cari MCP, Connectors, Integrations, Apps, atau Tools.",
+      "addBody": "Tambahkan server MCP kustom atau jarak jauh, lalu tempelkan URL di bawah. Jika diminta memilih transport, pilih Streamable HTTP.",
+      "authBody": "Jika alat Anda meminta metode autentikasi, pilih OAuth. Masuk ke NocoDB saat diminta, pilih apa yang dapat diaksesnya dan alat mana yang dapat digunakannya, lalu pilih Authorize.",
+      "tryBody": "Mulai obrolan baru dan tanyakan «List my NocoDB tools».",
+      "tokenText": "Alat Anda hanya menerima token?",
+      "tokenButton": "Buat token MCP"
     }
   }
 }

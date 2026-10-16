@@ -5180,7 +5180,61 @@
     "navigation": "Điều hướng",
     "prompts": "Prompt",
     "pagination": "Phân trang",
-    "showRowNumbers": "Hiện số thứ tự hàng"
+    "showRowNumbers": "Hiện số thứ tự hàng",
+    "blocked": "Đã chặn",
+    "abuseReport": {
+      "reportedItem": "Mục bị báo cáo",
+      "reporter": "Người báo cáo",
+      "received": "Đã nhận",
+      "reportDetails": "Chi tiết",
+      "publicLink": "Liên kết công khai",
+      "linkLive": "Đang hoạt động",
+      "linkDisabled": "Đã vô hiệu hóa",
+      "accounts": "Tài khoản",
+      "disableLink": "Vô hiệu hóa liên kết",
+      "dismiss": "Bỏ qua",
+      "markResolved": "Đánh dấu đã giải quyết",
+      "reopen": "Mở lại",
+      "statuses": {
+        "open": "Đang mở",
+        "resolved": "Đã giải quyết",
+        "dismissed": "Đã bỏ qua"
+      },
+      "resourceTypes": {
+        "shared_view": "Chế độ xem được chia sẻ",
+        "interface": "Giao diện",
+        "dashboard": "Bảng điều khiển",
+        "artifact": "Tạo phẩm"
+      },
+      "candidateRoles": {
+        "owner": "Chủ sở hữu",
+        "creator": "Người tạo",
+        "base_owner": "Chủ sở hữu cơ sở"
+      },
+      "yourName": "Tên của bạn",
+      "yourEmail": "Email của bạn",
+      "reason": "Lý do",
+      "reasonPlaceholder": "Chọn một lý do",
+      "details": "Vì sao bạn báo cáo trang này?",
+      "submit": "Gửi báo cáo",
+      "reasons": {
+        "phishing": "Lừa đảo hoặc thu thập thông tin đăng nhập",
+        "scam": "Lừa gạt hoặc gian lận",
+        "impersonation": "Mạo danh",
+        "malware": "Phần mềm độc hại hoặc liên kết gây hại",
+        "illegal_content": "Nội dung bất hợp pháp",
+        "spam": "Thư rác",
+        "other": "Khác"
+      }
+    },
+    "allowReportingAbuse": "Cho phép khách truy cập báo cáo trang công khai vì lạm dụng",
+    "abuseContactEmail": "Email liên hệ về lạm dụng",
+    "editAltText": "Chỉnh sửa văn bản thay thế",
+    "attachmentDownloadFailed": "Không thể tải xuống tệp này",
+    "factoryMachine": "Máy",
+    "factoryMachineAlsoIncluded": "Luôn bao gồm: git, GitHub CLI, ripgrep, Chrome và màn hình nền.",
+    "factoryMachineApplyFix": "Áp dụng và dựng lại",
+    "factoryMachineAllVersions": "Tất cả phiên bản"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5485,7 +5539,9 @@
     "deleteLink": "Xóa liên kết",
     "linkSettings": "Cài đặt liên kết",
     "invitePeopleCount": "Mời {count} người | Mời {count} người",
-    "inviteThemInstead": "Mời họ thay thế"
+    "inviteThemInstead": "Mời họ thay thế",
+    "blockUser": "Chặn người dùng",
+    "unblockUser": "Bỏ chặn người dùng"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -7443,6 +7499,92 @@
         "title": "Tài khoản và cài đặt",
         "description": "Hồ sơ, giao diện, phím tắt và cài đặt tài khoản đều nằm sau ảnh đại diện của bạn."
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "Dùng NocoDB từ",
+    "title": "Kết nối các công cụ AI của bạn với NocoDB MCP",
+    "description": "Làm việc với các cơ sở, bảng, quy trình và giao diện NocoDB của bạn ngay trong Claude, ChatGPT và các ứng dụng MCP khác.",
+    "pickTitle": "Bạn dùng công cụ nào?",
+    "serverUrlLabel": "Đã biết MCP? Hãy dùng URL máy chủ này",
+    "serverUrl": "URL máy chủ",
+    "allTools": "Tất cả công cụ",
+    "nocodbGuide": "Hướng dẫn thiết lập NocoDB",
+    "opensInNewTab": "(mở trong tab mới)",
+    "urlCopied": "Đã sao chép URL máy chủ MCP",
+    "copied": "Đã sao chép",
+    "copyUrl": "Sao chép URL máy chủ MCP",
+    "copyCommand": "Sao chép lệnh",
+    "copyConfig": "Sao chép cấu hình",
+    "connected": "Đã kết nối",
+    "connectedTo": "Đã kết nối. {client} giờ có thể dùng NocoDB.",
+    "step": "Bước {n}:",
+    "stepDone": "Bước {n}, đã xong:",
+    "addAsServer": "Thêm NocoDB làm máy chủ MCP",
+    "authTitle": "Cấp quyền cho tài khoản NocoDB của bạn",
+    "tryTitle": "Dùng thử",
+    "setupIn": "Thiết lập NocoDB trong {client}",
+    "setupInOther": "Thiết lập NocoDB trong công cụ khác",
+    "tileAria": "Thiết lập NocoDB trong {client}",
+    "tileAriaConnected": "Thiết lập NocoDB trong {client}, đã kết nối",
+    "othersLabel": "Khác",
+    "claude": {
+      "subtitle": "Chỉ cần thiết lập một lần trên claude.ai. Sau đó dùng được cả trên ứng dụng máy tính và di động.",
+      "directorySubtitle": "NocoDB có trong thư mục trình kết nối của Claude. Kết nối một lần trên claude.ai là dùng được cả trên ứng dụng máy tính và di động.",
+      "addTitle": "Thêm NocoDB làm trình kết nối",
+      "directoryBody": "Mở {link} trong Claude, rồi chọn Connect to Claude.",
+      "directoryLink": "Trình kết nối NocoDB",
+      "directoryImageAlt": "Trang NocoDB trong thư mục trình kết nối của Claude, có nút Connect to Claude",
+      "addBody": "Mở {link} trong Claude và chọn Add custom connector. Đặt tên là NocoDB, dán URL bên dưới, rồi chọn Add.",
+      "addLink": "Trình kết nối",
+      "identityNote": "Nếu Claude hỏi NocoDB nên nhận dạng nó như thế nào, hãy chọn Register automatically.",
+      "teamNote": "Với gói Team hoặc Enterprise, trước tiên một Owner cần thêm NocoDB trong",
+      "teamLink": "Cài đặt tổ chức",
+      "authorizeImageAlt": "Màn hình NocoDB yêu cầu bạn cho phép Claude truy cập tài khoản của bạn",
+      "directoryAuthBody": "Đăng nhập NocoDB khi được nhắc, chọn những gì Claude có thể truy cập và các công cụ nó có thể dùng, rồi chọn Authorize.",
+      "authBody": "Chọn Connect bên cạnh NocoDB và đăng nhập. Chọn những gì Claude có thể truy cập và các công cụ nó có thể dùng, rồi chọn Authorize.",
+      "tryBody": "Bắt đầu cuộc trò chuyện mới trong {link} và hỏi «List my NocoDB tools»."
+    },
+    "chatgpt": {
+      "subtitle": "Chỉ cần thiết lập một lần trên chatgpt.com.",
+      "openTitle": "Mở biểu mẫu máy chủ MCP tùy chỉnh",
+      "openBody": "Mở {link} trong ChatGPT, chọn Add, rồi chọn Add custom MCP server.",
+      "openLink": "Tiện ích",
+      "openImageAlt": "Trang Plugins của ChatGPT với menu Add đang mở ở Add custom MCP server",
+      "addTitle": "Thêm NocoDB làm tiện ích",
+      "addBody": "Đặt tên là NocoDB, dán URL bên dưới vào Server URL, giữ Authentication ở OAuth, rồi tạo.",
+      "addImageAlt": "Biểu mẫu «Add custom MCP server» của ChatGPT, với các trường Name, Server URL và Authentication",
+      "authBody": "Đăng nhập NocoDB khi được nhắc, chọn những gì ChatGPT có thể truy cập và các công cụ nó có thể dùng, rồi chọn Authorize.",
+      "tryBody": "Bắt đầu cuộc trò chuyện mới trong {link}, gõ {'@'}, chọn NocoDB và hỏi «List my NocoDB tools»."
+    },
+    "cursor": {
+      "subtitle": "Dành cho ứng dụng máy tính Cursor.",
+      "addBody": "Chọn {link}, rồi xác nhận khi Cursor mở ra.",
+      "addLink": "Thêm vào Cursor",
+      "downloadNote": "Chưa có Cursor?",
+      "download": "Tải Cursor",
+      "manualToggle": "Thêm thủ công thay vì vậy",
+      "manualLabel": "Thêm nội dung này vào ~/.cursor/mcp.json:",
+      "authBody": "Trong Cursor, tại Settings › MCP, chọn Needs login bên cạnh NocoDB. Chọn những gì Cursor có thể truy cập và các công cụ nó có thể dùng, rồi chọn Authorize.",
+      "tryBody": "Mở cuộc trò chuyện Agent trong Cursor và hỏi «List my NocoDB tools»."
+    },
+    "claudeCode": {
+      "subtitle": "Thêm một lần và dùng được trong mọi dự án.",
+      "addBody": "Chạy lệnh này trong terminal:",
+      "installNote": "Chưa có Claude Code?",
+      "install": "Cài đặt Claude Code",
+      "authBody": "Trong Claude Code, chạy /mcp, chọn nocodb rồi chọn Authenticate. Trong trình duyệt, chọn những gì nó có thể truy cập và các công cụ nó có thể dùng, rồi chọn Authorize.",
+      "tryBody": "Khởi động Claude Code và hỏi «List my NocoDB tools»."
+    },
+    "others": {
+      "subtitle": "Hoạt động với mọi công cụ hỗ trợ máy chủ MCP từ xa có đăng nhập (OAuth).",
+      "findTitle": "Tìm cài đặt MCP",
+      "findBody": "Trong cài đặt công cụ AI của bạn, hãy tìm MCP, Connectors, Integrations, Apps hoặc Tools.",
+      "addBody": "Thêm máy chủ MCP tùy chỉnh hoặc từ xa, rồi dán URL bên dưới. Nếu được hỏi về phương thức truyền, hãy chọn Streamable HTTP.",
+      "authBody": "Nếu công cụ của bạn hỏi phương thức xác thực, hãy chọn OAuth. Đăng nhập NocoDB khi được nhắc, chọn những gì nó có thể truy cập và các công cụ nó có thể dùng, rồi chọn Authorize.",
+      "tryBody": "Bắt đầu cuộc trò chuyện mới và hỏi «List my NocoDB tools».",
+      "tokenText": "Công cụ của bạn chỉ chấp nhận mã thông báo?",
+      "tokenButton": "Tạo mã thông báo MCP"
     }
   }
 }

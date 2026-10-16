@@ -5183,7 +5183,61 @@
     "navigation": "നാവിഗേഷൻ",
     "prompts": "പ്രോംപ്റ്റുകൾ",
     "pagination": "പേജിനേഷൻ",
-    "showRowNumbers": "വരി നമ്പറുകൾ കാണിക്കുക"
+    "showRowNumbers": "വരി നമ്പറുകൾ കാണിക്കുക",
+    "blocked": "ബ്ലോക്ക് ചെയ്തു",
+    "abuseReport": {
+      "reportedItem": "റിപ്പോർട്ട് ചെയ്ത ഇനം",
+      "reporter": "റിപ്പോർട്ട് ചെയ്തയാൾ",
+      "received": "ലഭിച്ചു",
+      "reportDetails": "വിശദാംശങ്ങൾ",
+      "publicLink": "പൊതു ലിങ്ക്",
+      "linkLive": "സജീവം",
+      "linkDisabled": "പ്രവർത്തനരഹിതം",
+      "accounts": "അക്കൗണ്ടുകൾ",
+      "disableLink": "ലിങ്ക് പ്രവർത്തനരഹിതമാക്കുക",
+      "dismiss": "നിരസിക്കുക",
+      "markResolved": "പരിഹരിച്ചതായി അടയാളപ്പെടുത്തുക",
+      "reopen": "വീണ്ടും തുറക്കുക",
+      "statuses": {
+        "open": "തുറന്നത്",
+        "resolved": "പരിഹരിച്ചു",
+        "dismissed": "നിരസിച്ചു"
+      },
+      "resourceTypes": {
+        "shared_view": "പങ്കിട്ട കാഴ്ച",
+        "interface": "ഇന്റർഫേസ്",
+        "dashboard": "ഡാഷ്ബോർഡ്",
+        "artifact": "ആർട്ടിഫാക്റ്റ്"
+      },
+      "candidateRoles": {
+        "owner": "ഉടമ",
+        "creator": "സൃഷ്ടിച്ചയാൾ",
+        "base_owner": "ബേസിന്റെ ഉടമ"
+      },
+      "yourName": "നിങ്ങളുടെ പേര്",
+      "yourEmail": "നിങ്ങളുടെ ഇമെയിൽ",
+      "reason": "കാരണം",
+      "reasonPlaceholder": "ഒരു കാരണം തിരഞ്ഞെടുക്കുക",
+      "details": "നിങ്ങൾ എന്തുകൊണ്ടാണ് ഈ പേജ് റിപ്പോർട്ട് ചെയ്യുന്നത്?",
+      "submit": "റിപ്പോർട്ട് സമർപ്പിക്കുക",
+      "reasons": {
+        "phishing": "ഫിഷിംഗ് അല്ലെങ്കിൽ ക്രെഡൻഷ്യൽ ശേഖരണം",
+        "scam": "തട്ടിപ്പ് അല്ലെങ്കിൽ വഞ്ചന",
+        "impersonation": "ആൾമാറാട്ടം",
+        "malware": "മാൽവെയർ അല്ലെങ്കിൽ ദോഷകരമായ ലിങ്കുകൾ",
+        "illegal_content": "നിയമവിരുദ്ധ ഉള്ളടക്കം",
+        "spam": "സ്പാം",
+        "other": "മറ്റുള്ളവ"
+      }
+    },
+    "allowReportingAbuse": "പൊതു പേജുകൾ ദുരുപയോഗത്തിന് റിപ്പോർട്ട് ചെയ്യാൻ സന്ദർശകരെ അനുവദിക്കുക",
+    "abuseContactEmail": "ദുരുപയോഗ ബന്ധപ്പെടൽ ഇമെയിൽ",
+    "editAltText": "ഇതര വാചകം എഡിറ്റ് ചെയ്യുക",
+    "attachmentDownloadFailed": "ഈ ഫയൽ ഡൗൺലോഡ് ചെയ്യാൻ കഴിഞ്ഞില്ല",
+    "factoryMachine": "മെഷീൻ",
+    "factoryMachineAlsoIncluded": "എപ്പോഴും ഉൾപ്പെടുന്നു: git, GitHub CLI, ripgrep, Chrome, ഡെസ്ക്ടോപ്പ്.",
+    "factoryMachineApplyFix": "പ്രയോഗിച്ച് വീണ്ടും നിർമ്മിക്കുക",
+    "factoryMachineAllVersions": "എല്ലാ പതിപ്പുകളും"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5487,7 +5541,9 @@
     "deleteLink": "ലിങ്ക് ഇല്ലാതാക്കുക",
     "linkSettings": "ലിങ്ക് ക്രമീകരണങ്ങൾ",
     "invitePeopleCount": "{count} ആളെ ക്ഷണിക്കുക | {count} ആളുകളെ ക്ഷണിക്കുക",
-    "inviteThemInstead": "പകരം അവരെ ക്ഷണിക്കുക"
+    "inviteThemInstead": "പകരം അവരെ ക്ഷണിക്കുക",
+    "blockUser": "ഉപയോക്താവിനെ ബ്ലോക്ക് ചെയ്യുക",
+    "unblockUser": "ഉപയോക്താവിന്റെ ബ്ലോക്ക് നീക്കുക"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -7445,6 +7501,92 @@
         "title": "അക്കൗണ്ടും ക്രമീകരണങ്ങളും",
         "description": "പ്രൊഫൈൽ, തീം, കീബോർഡ് കുറുക്കുവഴികൾ, അക്കൗണ്ട് ക്രമീകരണങ്ങൾ എന്നിവയെല്ലാം നിങ്ങളുടെ അവതാരത്തിനു പിന്നിലാണ്."
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "ഇവിടെ നിന്ന് NocoDB ഉപയോഗിക്കുക",
+    "title": "നിങ്ങളുടെ AI ടൂളുകൾ NocoDB MCP യുമായി ബന്ധിപ്പിക്കുക",
+    "description": "Claude, ChatGPT, മറ്റ് MCP ക്ലയന്റുകൾ എന്നിവയിൽ നിന്ന് നേരിട്ട് നിങ്ങളുടെ NocoDB ബേസുകൾ, പട്ടികകൾ, വർക്ക്ഫ്ലോകൾ, ഇന്റർഫേസുകൾ എന്നിവയിൽ പ്രവർത്തിക്കുക.",
+    "pickTitle": "നിങ്ങൾ ഏത് ടൂൾ ഉപയോഗിക്കുന്നു?",
+    "serverUrlLabel": "MCP നേരത്തെ അറിയാമോ? ഈ സെർവർ URL ഉപയോഗിക്കുക",
+    "serverUrl": "സെർവർ URL",
+    "allTools": "എല്ലാ ടൂളുകളും",
+    "nocodbGuide": "NocoDB സജ്ജീകരണ ഗൈഡ്",
+    "opensInNewTab": "(പുതിയ ടാബിൽ തുറക്കുന്നു)",
+    "urlCopied": "MCP സെർവർ URL പകർത്തി",
+    "copied": "പകർത്തി",
+    "copyUrl": "MCP സെർവർ URL പകർത്തുക",
+    "copyCommand": "കമാൻഡ് പകർത്തുക",
+    "copyConfig": "കോൺഫിഗറേഷൻ പകർത്തുക",
+    "connected": "കണക്റ്റ് ചെയ്തു",
+    "connectedTo": "കണക്റ്റ് ചെയ്തു. {client} ന് ഇപ്പോൾ NocoDB ഉപയോഗിക്കാം.",
+    "step": "ഘട്ടം {n}:",
+    "stepDone": "ഘട്ടം {n}, പൂർത്തിയായി:",
+    "addAsServer": "NocoDB MCP സെർവറായി ചേർക്കുക",
+    "authTitle": "നിങ്ങളുടെ NocoDB അക്കൗണ്ട് അംഗീകരിക്കുക",
+    "tryTitle": "പരീക്ഷിച്ചു നോക്കുക",
+    "setupIn": "{client} ൽ NocoDB സജ്ജീകരിക്കുക",
+    "setupInOther": "മറ്റൊരു ടൂളിൽ NocoDB സജ്ജീകരിക്കുക",
+    "tileAria": "{client} ൽ NocoDB സജ്ജീകരിക്കുക",
+    "tileAriaConnected": "{client} ൽ NocoDB സജ്ജീകരിക്കുക, കണക്റ്റ് ചെയ്തു",
+    "othersLabel": "മറ്റുള്ളവ",
+    "claude": {
+      "subtitle": "claude.ai ൽ ഒരിക്കൽ സജ്ജീകരിക്കുക. പിന്നീട് ഡെസ്ക്ടോപ്പ്, മൊബൈൽ ആപ്പുകളിലും പ്രവർത്തിക്കും.",
+      "directorySubtitle": "NocoDB Claude ന്റെ കണക്ടർ ഡയറക്ടറിയിൽ ഉണ്ട്. claude.ai ൽ ഒരിക്കൽ കണക്ട് ചെയ്താൽ ഡെസ്ക്ടോപ്പ്, മൊബൈൽ ആപ്പുകളിലും പ്രവർത്തിക്കും.",
+      "addTitle": "NocoDB കണക്ടറായി ചേർക്കുക",
+      "directoryBody": "Claude ൽ {link} തുറക്കുക, തുടർന്ന് Connect to Claude തിരഞ്ഞെടുക്കുക.",
+      "directoryLink": "NocoDB കണക്ടർ",
+      "directoryImageAlt": "Connect to Claude ബട്ടണോടുകൂടി, Claude ന്റെ കണക്ടർ ഡയറക്ടറിയിലെ NocoDB പേജ്",
+      "addBody": "Claude ൽ {link} തുറന്ന് Add custom connector തിരഞ്ഞെടുക്കുക. അതിന് NocoDB എന്ന് പേരിടുക, താഴെയുള്ള URL ഒട്ടിക്കുക, തുടർന്ന് Add തിരഞ്ഞെടുക്കുക.",
+      "addLink": "കണക്ടറുകൾ",
+      "identityNote": "NocoDB അതിനെ എങ്ങനെ തിരിച്ചറിയണമെന്ന് Claude ചോദിച്ചാൽ, Register automatically തിരഞ്ഞെടുക്കുക.",
+      "teamNote": "Team അല്ലെങ്കിൽ Enterprise പ്ലാനിൽ, ആദ്യം ഒരു Owner ഇവിടെ NocoDB ചേർക്കണം:",
+      "teamLink": "സ്ഥാപന ക്രമീകരണങ്ങൾ",
+      "authorizeImageAlt": "നിങ്ങളുടെ അക്കൗണ്ട് ആക്സസ് ചെയ്യാൻ Claude ന് അനുമതി നൽകാൻ ആവശ്യപ്പെടുന്ന NocoDB സ്ക്രീൻ",
+      "directoryAuthBody": "ആവശ്യപ്പെടുമ്പോൾ NocoDB യിൽ സൈൻ ഇൻ ചെയ്യുക, Claude ന് എന്തെല്ലാം ആക്സസ് ചെയ്യാമെന്നും ഏതൊക്കെ ടൂളുകൾ ഉപയോഗിക്കാമെന്നും തിരഞ്ഞെടുക്കുക, തുടർന്ന് Authorize തിരഞ്ഞെടുക്കുക.",
+      "authBody": "NocoDB ന് അരികിലുള്ള Connect തിരഞ്ഞെടുത്ത് സൈൻ ഇൻ ചെയ്യുക. Claude ന് എന്തെല്ലാം ആക്സസ് ചെയ്യാമെന്നും ഏതൊക്കെ ടൂളുകൾ ഉപയോഗിക്കാമെന്നും തിരഞ്ഞെടുക്കുക, തുടർന്ന് Authorize തിരഞ്ഞെടുക്കുക.",
+      "tryBody": "{link} ൽ പുതിയ ചാറ്റ് ആരംഭിച്ച് «List my NocoDB tools» എന്ന് ചോദിക്കുക."
+    },
+    "chatgpt": {
+      "subtitle": "chatgpt.com ൽ ഒരിക്കൽ സജ്ജീകരിക്കുക.",
+      "openTitle": "ഇഷ്ടാനുസൃത MCP സെർവർ ഫോം തുറക്കുക",
+      "openBody": "ChatGPT യിൽ {link} തുറക്കുക, Add തിരഞ്ഞെടുക്കുക, തുടർന്ന് Add custom MCP server തിരഞ്ഞെടുക്കുക.",
+      "openLink": "പ്ലഗിനുകൾ",
+      "openImageAlt": "Add മെനു Add custom MCP server ൽ തുറന്നിരിക്കുന്ന ChatGPT യുടെ Plugins പേജ്",
+      "addTitle": "NocoDB പ്ലഗിൻ ആയി ചേർക്കുക",
+      "addBody": "അതിന് NocoDB എന്ന് പേരിടുക, താഴെയുള്ള URL Server URL ഫീൽഡിൽ ഒട്ടിക്കുക, Authentication OAuth ആയിത്തന്നെ വയ്ക്കുക, തുടർന്ന് അത് സൃഷ്ടിക്കുക.",
+      "addImageAlt": "ChatGPT യുടെ «Add custom MCP server» ഫോം, Name, Server URL, Authentication ഫീൽഡുകളോടെ",
+      "authBody": "ആവശ്യപ്പെടുമ്പോൾ NocoDB യിൽ സൈൻ ഇൻ ചെയ്യുക, ChatGPT ന് എന്തെല്ലാം ആക്സസ് ചെയ്യാമെന്നും ഏതൊക്കെ ടൂളുകൾ ഉപയോഗിക്കാമെന്നും തിരഞ്ഞെടുക്കുക, തുടർന്ന് Authorize തിരഞ്ഞെടുക്കുക.",
+      "tryBody": "{link} ൽ പുതിയ ചാറ്റ് ആരംഭിക്കുക, {'@'} ടൈപ്പ് ചെയ്യുക, NocoDB തിരഞ്ഞെടുത്ത് «List my NocoDB tools» എന്ന് ചോദിക്കുക."
+    },
+    "cursor": {
+      "subtitle": "Cursor ഡെസ്ക്ടോപ്പ് ആപ്പിനായി.",
+      "addBody": "{link} തിരഞ്ഞെടുക്കുക, തുടർന്ന് Cursor തുറക്കുമ്പോൾ സ്ഥിരീകരിക്കുക.",
+      "addLink": "Cursor ലേക്ക് ചേർക്കുക",
+      "downloadNote": "ഇതുവരെ Cursor ഇല്ലേ?",
+      "download": "Cursor ഡൗൺലോഡ് ചെയ്യുക",
+      "manualToggle": "പകരം സ്വയം ചേർക്കുക",
+      "manualLabel": "ഇത് ~/.cursor/mcp.json ൽ ചേർക്കുക:",
+      "authBody": "Cursor ൽ Settings › MCP ൽ NocoDB ന് അരികിലുള്ള Needs login തിരഞ്ഞെടുക്കുക. Cursor ന് എന്തെല്ലാം ആക്സസ് ചെയ്യാമെന്നും ഏതൊക്കെ ടൂളുകൾ ഉപയോഗിക്കാമെന്നും തിരഞ്ഞെടുക്കുക, തുടർന്ന് Authorize തിരഞ്ഞെടുക്കുക.",
+      "tryBody": "Cursor ൽ Agent ചാറ്റ് തുറന്ന് «List my NocoDB tools» എന്ന് ചോദിക്കുക."
+    },
+    "claudeCode": {
+      "subtitle": "ഒരിക്കൽ ചേർത്താൽ എല്ലാ പ്രോജക്റ്റിലും പ്രവർത്തിക്കും.",
+      "addBody": "ഇത് നിങ്ങളുടെ ടെർമിനലിൽ പ്രവർത്തിപ്പിക്കുക:",
+      "installNote": "ഇതുവരെ Claude Code ഇല്ലേ?",
+      "install": "Claude Code ഇൻസ്റ്റാൾ ചെയ്യുക",
+      "authBody": "Claude Code ൽ /mcp പ്രവർത്തിപ്പിക്കുക, nocodb തിരഞ്ഞെടുത്ത് Authenticate തിരഞ്ഞെടുക്കുക. ബ്രൗസറിൽ അതിന് എന്തെല്ലാം ആക്സസ് ചെയ്യാമെന്നും ഏതൊക്കെ ടൂളുകൾ ഉപയോഗിക്കാമെന്നും തിരഞ്ഞെടുക്കുക, തുടർന്ന് Authorize തിരഞ്ഞെടുക്കുക.",
+      "tryBody": "Claude Code ആരംഭിച്ച് «List my NocoDB tools» എന്ന് ചോദിക്കുക."
+    },
+    "others": {
+      "subtitle": "സൈൻ ഇൻ (OAuth) ഉള്ള റിമോട്ട് MCP സെർവറുകളെ പിന്തുണയ്ക്കുന്ന ഏത് ടൂളിലും പ്രവർത്തിക്കും.",
+      "findTitle": "MCP ക്രമീകരണങ്ങൾ കണ്ടെത്തുക",
+      "findBody": "നിങ്ങളുടെ AI ടൂളിന്റെ ക്രമീകരണങ്ങളിൽ MCP, Connectors, Integrations, Apps അല്ലെങ്കിൽ Tools തിരയുക.",
+      "addBody": "ഇഷ്ടാനുസൃതമോ റിമോട്ടോ ആയ MCP സെർവർ ചേർക്കുക, തുടർന്ന് താഴെയുള്ള URL ഒട്ടിക്കുക. ട്രാൻസ്പോർട്ട് ചോദിച്ചാൽ Streamable HTTP തിരഞ്ഞെടുക്കുക.",
+      "authBody": "നിങ്ങളുടെ ടൂൾ ഒരു പ്രാമാണീകരണ രീതി ചോദിച്ചാൽ OAuth തിരഞ്ഞെടുക്കുക. ആവശ്യപ്പെടുമ്പോൾ NocoDB യിൽ സൈൻ ഇൻ ചെയ്യുക, അതിന് എന്തെല്ലാം ആക്സസ് ചെയ്യാമെന്നും ഏതൊക്കെ ടൂളുകൾ ഉപയോഗിക്കാമെന്നും തിരഞ്ഞെടുക്കുക, തുടർന്ന് Authorize തിരഞ്ഞെടുക്കുക.",
+      "tryBody": "പുതിയ ചാറ്റ് ആരംഭിച്ച് «List my NocoDB tools» എന്ന് ചോദിക്കുക.",
+      "tokenText": "നിങ്ങളുടെ ടൂൾ ടോക്കൺ മാത്രമേ സ്വീകരിക്കൂ?",
+      "tokenButton": "MCP ടോക്കൺ സൃഷ്ടിക്കുക"
     }
   }
 }

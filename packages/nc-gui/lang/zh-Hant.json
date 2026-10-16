@@ -5184,7 +5184,61 @@
     "navigation": "導覽",
     "prompts": "提示詞",
     "pagination": "分頁",
-    "showRowNumbers": "顯示列號"
+    "showRowNumbers": "顯示列號",
+    "blocked": "已封鎖",
+    "abuseReport": {
+      "reportedItem": "被檢舉的項目",
+      "reporter": "檢舉人",
+      "received": "已收到",
+      "reportDetails": "詳細資訊",
+      "publicLink": "公開連結",
+      "linkLive": "有效",
+      "linkDisabled": "已停用",
+      "accounts": "帳戶",
+      "disableLink": "停用連結",
+      "dismiss": "忽略",
+      "markResolved": "標記為已解決",
+      "reopen": "重新開啟",
+      "statuses": {
+        "open": "待處理",
+        "resolved": "已解決",
+        "dismissed": "已忽略"
+      },
+      "resourceTypes": {
+        "shared_view": "共用檢視",
+        "interface": "介面",
+        "dashboard": "儀表板",
+        "artifact": "構件"
+      },
+      "candidateRoles": {
+        "owner": "擁有者",
+        "creator": "建立者",
+        "base_owner": "資料庫擁有者"
+      },
+      "yourName": "你的姓名",
+      "yourEmail": "你的電子郵件",
+      "reason": "原因",
+      "reasonPlaceholder": "請選擇原因",
+      "details": "你為什麼要檢舉此頁面？",
+      "submit": "提交檢舉",
+      "reasons": {
+        "phishing": "網路釣魚或竊取憑證",
+        "scam": "詐騙或詐欺",
+        "impersonation": "冒充他人",
+        "malware": "惡意軟體或有害連結",
+        "illegal_content": "非法內容",
+        "spam": "垃圾訊息",
+        "other": "其他"
+      }
+    },
+    "allowReportingAbuse": "允許訪客檢舉公開頁面的濫用行為",
+    "abuseContactEmail": "濫用檢舉聯絡信箱",
+    "editAltText": "編輯替代文字",
+    "attachmentDownloadFailed": "無法下載此檔案",
+    "factoryMachine": "機器",
+    "factoryMachineAlsoIncluded": "一律包含：git、GitHub CLI、ripgrep、Chrome 和桌面。",
+    "factoryMachineApplyFix": "套用並重新建置",
+    "factoryMachineAllVersions": "所有版本"
   },
   "activity": {
     "useTemplate": "使用範本",
@@ -5488,7 +5542,9 @@
     "deleteLink": "刪除連結",
     "linkSettings": "連結設定",
     "invitePeopleCount": "邀請 {count} 人 | 邀請 {count} 人",
-    "inviteThemInstead": "改為邀請他們"
+    "inviteThemInstead": "改為邀請他們",
+    "blockUser": "封鎖使用者",
+    "unblockUser": "解除封鎖使用者"
   },
   "tooltip": {
     "shiftClickWeekStep": "按住 Shift 鍵向前移動 1 周",
@@ -7446,6 +7502,92 @@
         "title": "這就是完整的流程",
         "description": "觸發程序、動作、發布、啟用、執行、記錄檔。你之後打造的每個工作流程都是同樣的結構。"
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "從以下應用程式使用 NocoDB",
+    "title": "將你的 AI 工具連接到 NocoDB MCP",
+    "description": "直接在 Claude、ChatGPT 和其他 MCP 用戶端中處理你的 NocoDB 資料庫、表格、工作流程和介面。",
+    "pickTitle": "你使用哪個工具？",
+    "serverUrlLabel": "已經了解 MCP？使用此伺服器 URL",
+    "serverUrl": "伺服器 URL",
+    "allTools": "所有工具",
+    "nocodbGuide": "NocoDB 設定指南",
+    "opensInNewTab": "（在新分頁中開啟）",
+    "urlCopied": "已複製 MCP 伺服器 URL",
+    "copied": "已複製",
+    "copyUrl": "複製 MCP 伺服器 URL",
+    "copyCommand": "複製命令",
+    "copyConfig": "複製設定",
+    "connected": "已連接",
+    "connectedTo": "已連接。{client} 現在可以使用 NocoDB 了。",
+    "step": "第 {n} 步：",
+    "stepDone": "第 {n} 步，已完成：",
+    "addAsServer": "將 NocoDB 新增為 MCP 伺服器",
+    "authTitle": "授權你的 NocoDB 帳戶",
+    "tryTitle": "試試看",
+    "setupIn": "在 {client} 中設定 NocoDB",
+    "setupInOther": "在其他工具中設定 NocoDB",
+    "tileAria": "在 {client} 中設定 NocoDB",
+    "tileAriaConnected": "在 {client} 中設定 NocoDB，已連接",
+    "othersLabel": "其他",
+    "claude": {
+      "subtitle": "在 claude.ai 上設定一次即可。之後在桌面和行動應用程式中也能使用。",
+      "directorySubtitle": "NocoDB 已收錄於 Claude 的連接器目錄。在 claude.ai 上連接一次，桌面和行動應用程式中也能使用。",
+      "addTitle": "將 NocoDB 新增為連接器",
+      "directoryBody": "在 Claude 中開啟 {link}，然後選擇 Connect to Claude。",
+      "directoryLink": "NocoDB 連接器",
+      "directoryImageAlt": "Claude 連接器目錄中的 NocoDB 頁面，附有 Connect to Claude 按鈕",
+      "addBody": "在 Claude 中開啟 {link} 並選擇 Add custom connector。將其命名為 NocoDB，貼上下方的 URL，然後選擇 Add。",
+      "addLink": "連接器",
+      "identityNote": "如果 Claude 詢問 NocoDB 應如何識別它，請選擇 Register automatically。",
+      "teamNote": "在 Team 或 Enterprise 方案中，需先由 Owner 在以下位置新增 NocoDB：",
+      "teamLink": "組織設定",
+      "authorizeImageAlt": "NocoDB 要求你授權 Claude 存取帳戶的畫面",
+      "directoryAuthBody": "出現提示時登入 NocoDB，選擇 Claude 可以存取的內容和可以使用的工具，然後選擇 Authorize。",
+      "authBody": "選擇 NocoDB 旁邊的 Connect 並登入。選擇 Claude 可以存取的內容和可以使用的工具，然後選擇 Authorize。",
+      "tryBody": "在 {link} 中開始新對話並詢問「List my NocoDB tools」。"
+    },
+    "chatgpt": {
+      "subtitle": "在 chatgpt.com 上設定一次即可。",
+      "openTitle": "開啟自訂 MCP 伺服器表單",
+      "openBody": "在 ChatGPT 中開啟 {link}，依序選擇 Add 和 Add custom MCP server。",
+      "openLink": "外掛程式",
+      "openImageAlt": "ChatGPT 的 Plugins 頁面，Add 選單已展開至 Add custom MCP server",
+      "addTitle": "將 NocoDB 新增為外掛程式",
+      "addBody": "將其命名為 NocoDB，把下方的 URL 貼到 Server URL，將 Authentication 保持為 OAuth，然後建立。",
+      "addImageAlt": "ChatGPT 的「Add custom MCP server」表單，包含 Name、Server URL 和 Authentication 欄位",
+      "authBody": "出現提示時登入 NocoDB，選擇 ChatGPT 可以存取的內容和可以使用的工具，然後選擇 Authorize。",
+      "tryBody": "在 {link} 中開始新對話，輸入 {'@'}，選擇 NocoDB 並詢問「List my NocoDB tools」。"
+    },
+    "cursor": {
+      "subtitle": "適用於 Cursor 桌面應用程式。",
+      "addBody": "選擇 {link}，然後在 Cursor 開啟時確認。",
+      "addLink": "新增至 Cursor",
+      "downloadNote": "還沒有 Cursor？",
+      "download": "下載 Cursor",
+      "manualToggle": "改為手動新增",
+      "manualLabel": "將以下內容新增至 ~/.cursor/mcp.json：",
+      "authBody": "在 Cursor 的 Settings › MCP 中，選擇 NocoDB 旁邊的 Needs login。選擇 Cursor 可以存取的內容和可以使用的工具，然後選擇 Authorize。",
+      "tryBody": "在 Cursor 中開啟 Agent 聊天並詢問「List my NocoDB tools」。"
+    },
+    "claudeCode": {
+      "subtitle": "新增一次，所有專案都能使用。",
+      "addBody": "在終端機中執行以下命令：",
+      "installNote": "還沒有 Claude Code？",
+      "install": "安裝 Claude Code",
+      "authBody": "在 Claude Code 中執行 /mcp，選擇 nocodb，然後選擇 Authenticate。在瀏覽器中選擇它可以存取的內容和可以使用的工具，然後選擇 Authorize。",
+      "tryBody": "啟動 Claude Code 並詢問「List my NocoDB tools」。"
+    },
+    "others": {
+      "subtitle": "適用於任何支援須登入（OAuth）的遠端 MCP 伺服器的工具。",
+      "findTitle": "尋找 MCP 設定",
+      "findBody": "在 AI 工具的設定中尋找 MCP、Connectors、Integrations、Apps 或 Tools。",
+      "addBody": "新增自訂或遠端 MCP 伺服器，然後貼上下方的 URL。如果要求選擇傳輸方式，請選擇 Streamable HTTP。",
+      "authBody": "如果你的工具詢問驗證方式，請選擇 OAuth。出現提示時登入 NocoDB，選擇它可以存取的內容和可以使用的工具，然後選擇 Authorize。",
+      "tryBody": "開始新對話並詢問「List my NocoDB tools」。",
+      "tokenText": "你的工具只接受權杖？",
+      "tokenButton": "建立 MCP 權杖"
     }
   }
 }

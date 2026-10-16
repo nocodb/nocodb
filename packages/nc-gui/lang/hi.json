@@ -5183,7 +5183,61 @@
     "navigation": "नेविगेशन",
     "prompts": "प्रॉम्प्ट",
     "pagination": "पेजिनेशन",
-    "showRowNumbers": "पंक्ति संख्या दिखाएँ"
+    "showRowNumbers": "पंक्ति संख्या दिखाएँ",
+    "blocked": "ब्लॉक किया गया",
+    "abuseReport": {
+      "reportedItem": "रिपोर्ट की गई वस्तु",
+      "reporter": "रिपोर्ट करने वाला",
+      "received": "प्राप्त",
+      "reportDetails": "विवरण",
+      "publicLink": "सार्वजनिक लिंक",
+      "linkLive": "सक्रिय",
+      "linkDisabled": "अक्षम",
+      "accounts": "खाते",
+      "disableLink": "लिंक अक्षम करें",
+      "dismiss": "खारिज करें",
+      "markResolved": "हल किया गया चिह्नित करें",
+      "reopen": "फिर से खोलें",
+      "statuses": {
+        "open": "खुला",
+        "resolved": "हल किया गया",
+        "dismissed": "खारिज किया गया"
+      },
+      "resourceTypes": {
+        "shared_view": "साझा किया गया व्यू",
+        "interface": "इंटरफ़ेस",
+        "dashboard": "डैशबोर्ड",
+        "artifact": "आर्टिफ़ैक्ट"
+      },
+      "candidateRoles": {
+        "owner": "स्वामी",
+        "creator": "निर्माता",
+        "base_owner": "बेस का स्वामी"
+      },
+      "yourName": "आपका नाम",
+      "yourEmail": "आपका ईमेल",
+      "reason": "कारण",
+      "reasonPlaceholder": "कोई कारण चुनें",
+      "details": "आप इस पेज की रिपोर्ट क्यों कर रहे हैं?",
+      "submit": "रिपोर्ट भेजें",
+      "reasons": {
+        "phishing": "फ़िशिंग या लॉगिन जानकारी जुटाना",
+        "scam": "धोखाधड़ी या ठगी",
+        "impersonation": "किसी और का रूप धारण करना",
+        "malware": "मैलवेयर या हानिकारक लिंक",
+        "illegal_content": "अवैध सामग्री",
+        "spam": "स्पैम",
+        "other": "अन्य"
+      }
+    },
+    "allowReportingAbuse": "विज़िटर को सार्वजनिक पेजों की दुरुपयोग के लिए रिपोर्ट करने दें",
+    "abuseContactEmail": "दुरुपयोग संपर्क ईमेल",
+    "editAltText": "वैकल्पिक टेक्स्ट संपादित करें",
+    "attachmentDownloadFailed": "यह फ़ाइल डाउनलोड नहीं हो सकी",
+    "factoryMachine": "मशीन",
+    "factoryMachineAlsoIncluded": "हमेशा शामिल: git, GitHub CLI, ripgrep, Chrome और डेस्कटॉप।",
+    "factoryMachineApplyFix": "लागू करें और फिर से बनाएँ",
+    "factoryMachineAllVersions": "सभी संस्करण"
   },
   "activity": {
     "useTemplate": "टेम्पलेट का उपयोग करें",
@@ -5487,7 +5541,9 @@
     "deleteLink": "लिंक हटाएँ",
     "linkSettings": "लिंक सेटिंग्स",
     "invitePeopleCount": "{count} व्यक्ति को आमंत्रित करें | {count} लोगों को आमंत्रित करें",
-    "inviteThemInstead": "इसके बजाय उन्हें आमंत्रित करें"
+    "inviteThemInstead": "इसके बजाय उन्हें आमंत्रित करें",
+    "blockUser": "उपयोगकर्ता को ब्लॉक करें",
+    "unblockUser": "उपयोगकर्ता का ब्लॉक हटाएँ"
   },
   "tooltip": {
     "shiftClickWeekStep": "1 सप्ताह की छलांग लगाने के लिए Shift दबाए रखें।",
@@ -7445,6 +7501,92 @@
         "title": "खाता और सेटिंग्स",
         "description": "प्रोफ़ाइल, थीम, कीबोर्ड शॉर्टकट और खाता सेटिंग्स — सब कुछ आपके अवतार के पीछे है।"
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "NocoDB यहाँ से उपयोग करें",
+    "title": "अपने AI टूल को NocoDB MCP से कनेक्ट करें",
+    "description": "Claude, ChatGPT और अन्य MCP क्लाइंट से सीधे अपने NocoDB बेस, टेबल, वर्कफ़्लो और इंटरफ़ेस पर काम करें।",
+    "pickTitle": "आप कौन-सा टूल उपयोग करते हैं?",
+    "serverUrlLabel": "MCP पहले से जानते हैं? यह सर्वर URL उपयोग करें",
+    "serverUrl": "सर्वर URL",
+    "allTools": "सभी टूल",
+    "nocodbGuide": "NocoDB सेटअप गाइड",
+    "opensInNewTab": "(नए टैब में खुलता है)",
+    "urlCopied": "MCP सर्वर URL कॉपी हो गया",
+    "copied": "कॉपी हो गया",
+    "copyUrl": "MCP सर्वर URL कॉपी करें",
+    "copyCommand": "कमांड कॉपी करें",
+    "copyConfig": "कॉन्फ़िगरेशन कॉपी करें",
+    "connected": "कनेक्ट है",
+    "connectedTo": "कनेक्ट हो गया। अब {client} NocoDB का उपयोग कर सकता है।",
+    "step": "चरण {n}:",
+    "stepDone": "चरण {n}, पूर्ण:",
+    "addAsServer": "NocoDB को MCP सर्वर के रूप में जोड़ें",
+    "authTitle": "अपना NocoDB खाता अधिकृत करें",
+    "tryTitle": "आज़माकर देखें",
+    "setupIn": "{client} में NocoDB सेट करें",
+    "setupInOther": "किसी अन्य टूल में NocoDB सेट करें",
+    "tileAria": "{client} में NocoDB सेट करें",
+    "tileAriaConnected": "{client} में NocoDB सेट करें, कनेक्ट है",
+    "othersLabel": "अन्य",
+    "claude": {
+      "subtitle": "claude.ai पर एक बार सेट करें। इसके बाद यह डेस्कटॉप तथा मोबाइल ऐप में भी काम करेगा।",
+      "directorySubtitle": "NocoDB, Claude की कनेक्टर निर्देशिका में उपलब्ध है। claude.ai पर एक बार कनेक्ट करें और यह डेस्कटॉप तथा मोबाइल ऐप में भी काम करेगा।",
+      "addTitle": "NocoDB को कनेक्टर के रूप में जोड़ें",
+      "directoryBody": "Claude में {link} खोलें, फिर Connect to Claude चुनें।",
+      "directoryLink": "NocoDB कनेक्टर",
+      "directoryImageAlt": "Claude की कनेक्टर निर्देशिका में NocoDB पेज, जिसमें Connect to Claude बटन है",
+      "addBody": "Claude में {link} खोलें और Add custom connector चुनें। इसका नाम NocoDB रखें, नीचे दिया गया URL चिपकाएँ, फिर Add चुनें।",
+      "addLink": "कनेक्टर",
+      "identityNote": "अगर Claude पूछे कि NocoDB उसे कैसे पहचाने, तो Register automatically चुनें।",
+      "teamNote": "Team या Enterprise प्लान में पहले किसी Owner को NocoDB यहाँ जोड़ना होगा:",
+      "teamLink": "संगठन सेटिंग",
+      "authorizeImageAlt": "NocoDB की वह स्क्रीन जो आपसे Claude को आपके खाते तक पहुँच देने के लिए कहती है",
+      "directoryAuthBody": "संकेत मिलने पर NocoDB में साइन इन करें, चुनें कि Claude किन चीज़ों तक पहुँच सकता है और किन टूल का उपयोग कर सकता है, फिर Authorize चुनें।",
+      "authBody": "NocoDB के बगल में Connect चुनें और साइन इन करें। चुनें कि Claude किन चीज़ों तक पहुँच सकता है और किन टूल का उपयोग कर सकता है, फिर Authorize चुनें।",
+      "tryBody": "{link} में नई चैट शुरू करें और पूछें «List my NocoDB tools»।"
+    },
+    "chatgpt": {
+      "subtitle": "chatgpt.com पर एक बार सेट करें।",
+      "openTitle": "कस्टम MCP सर्वर फ़ॉर्म खोलें",
+      "openBody": "ChatGPT में {link} खोलें, Add चुनें, फिर Add custom MCP server चुनें।",
+      "openLink": "प्लगइन",
+      "openImageAlt": "ChatGPT का Plugins पेज, जिसमें Add मेन्यू Add custom MCP server पर खुला है",
+      "addTitle": "NocoDB को प्लगइन के रूप में जोड़ें",
+      "addBody": "इसका नाम NocoDB रखें, नीचे दिया गया URL Server URL में चिपकाएँ, Authentication को OAuth पर ही रहने दें, फिर इसे बनाएँ।",
+      "addImageAlt": "ChatGPT का «Add custom MCP server» फ़ॉर्म, जिसमें Name, Server URL और Authentication फ़ील्ड हैं",
+      "authBody": "संकेत मिलने पर NocoDB में साइन इन करें, चुनें कि ChatGPT किन चीज़ों तक पहुँच सकता है और किन टूल का उपयोग कर सकता है, फिर Authorize चुनें।",
+      "tryBody": "{link} में नई चैट शुरू करें, {'@'} टाइप करें, NocoDB चुनें और पूछें «List my NocoDB tools»।"
+    },
+    "cursor": {
+      "subtitle": "Cursor डेस्कटॉप ऐप के लिए।",
+      "addBody": "{link} चुनें, फिर Cursor खुलने पर पुष्टि करें।",
+      "addLink": "Cursor में जोड़ें",
+      "downloadNote": "अभी तक Cursor नहीं है?",
+      "download": "Cursor डाउनलोड करें",
+      "manualToggle": "इसके बजाय मैन्युअल रूप से जोड़ें",
+      "manualLabel": "इसे ~/.cursor/mcp.json में जोड़ें:",
+      "authBody": "Cursor में Settings › MCP के अंतर्गत NocoDB के बगल में Needs login चुनें। चुनें कि Cursor किन चीज़ों तक पहुँच सकता है और किन टूल का उपयोग कर सकता है, फिर Authorize चुनें।",
+      "tryBody": "Cursor में Agent चैट खोलें और पूछें «List my NocoDB tools»।"
+    },
+    "claudeCode": {
+      "subtitle": "एक बार जोड़ें और यह हर प्रोजेक्ट में काम करेगा।",
+      "addBody": "इसे अपने टर्मिनल में चलाएँ:",
+      "installNote": "अभी तक Claude Code नहीं है?",
+      "install": "Claude Code इंस्टॉल करें",
+      "authBody": "Claude Code में /mcp चलाएँ, nocodb चुनें और Authenticate चुनें। ब्राउज़र में चुनें कि वह किन चीज़ों तक पहुँच सकता है और किन टूल का उपयोग कर सकता है, फिर Authorize चुनें।",
+      "tryBody": "Claude Code शुरू करें और पूछें «List my NocoDB tools»।"
+    },
+    "others": {
+      "subtitle": "साइन इन (OAuth) वाले रिमोट MCP सर्वर का समर्थन करने वाले किसी भी टूल के साथ काम करता है।",
+      "findTitle": "MCP सेटिंग खोजें",
+      "findBody": "अपने AI टूल की सेटिंग में MCP, Connectors, Integrations, Apps या Tools खोजें।",
+      "addBody": "कस्टम या रिमोट MCP सर्वर जोड़ें, फिर नीचे दिया गया URL चिपकाएँ। अगर ट्रांसपोर्ट पूछा जाए, तो Streamable HTTP चुनें।",
+      "authBody": "अगर आपका टूल प्रमाणीकरण विधि पूछे, तो OAuth चुनें। संकेत मिलने पर NocoDB में साइन इन करें, चुनें कि वह किन चीज़ों तक पहुँच सकता है और किन टूल का उपयोग कर सकता है, फिर Authorize चुनें।",
+      "tryBody": "नई चैट शुरू करें और पूछें «List my NocoDB tools»।",
+      "tokenText": "आपका टूल सिर्फ़ टोकन स्वीकार करता है?",
+      "tokenButton": "MCP टोकन बनाएँ"
     }
   }
 }

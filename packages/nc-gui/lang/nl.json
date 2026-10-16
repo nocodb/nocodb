@@ -5154,7 +5154,58 @@
     "navigation": "Navigatie",
     "prompts": "Prompts",
     "pagination": "Paginering",
-    "showRowNumbers": "Rijnummers tonen"
+    "showRowNumbers": "Rijnummers tonen",
+    "blocked": "Geblokkeerd",
+    "abuseReport": {
+      "reportedItem": "Gemeld item",
+      "reporter": "Melder",
+      "received": "Ontvangen",
+      "reportDetails": "Toelichting",
+      "publicLink": "Openbare link",
+      "linkLive": "Actief",
+      "linkDisabled": "Uitgeschakeld",
+      "disableLink": "Link uitschakelen",
+      "dismiss": "Negeren",
+      "markResolved": "Markeren als opgelost",
+      "reopen": "Opnieuw openen",
+      "statuses": {
+        "open": "Openstaand",
+        "resolved": "Opgelost",
+        "dismissed": "Genegeerd"
+      },
+      "resourceTypes": {
+        "shared_view": "Gedeelde weergave",
+        "interface": "Interface",
+        "dashboard": "Dashboard",
+        "artifact": "Artefact"
+      },
+      "candidateRoles": {
+        "owner": "Eigenaar",
+        "creator": "Maker",
+        "base_owner": "Base-eigenaar"
+      },
+      "yourName": "Uw naam",
+      "yourEmail": "Uw e-mailadres",
+      "reason": "Reden",
+      "reasonPlaceholder": "Selecteer een reden",
+      "details": "Waarom meldt u deze pagina?",
+      "submit": "Melding verzenden",
+      "reasons": {
+        "phishing": "Phishing of het verzamelen van inloggegevens",
+        "scam": "Oplichting of fraude",
+        "impersonation": "Identiteitsmisbruik",
+        "malware": "Malware of schadelijke links",
+        "illegal_content": "Illegale inhoud",
+        "other": "Overig"
+      }
+    },
+    "allowReportingAbuse": "Bezoekers toestaan openbare pagina's te melden wegens misbruik",
+    "abuseContactEmail": "E-mailadres voor misbruikmeldingen",
+    "editAltText": "Alt-tekst bewerken",
+    "attachmentDownloadFailed": "Kan dit bestand niet downloaden",
+    "factoryMachineAlsoIncluded": "Altijd inbegrepen: git, GitHub CLI, ripgrep, Chrome en de desktop.",
+    "factoryMachineApplyFix": "Toepassen en opnieuw bouwen",
+    "factoryMachineAllVersions": "Alle versies"
   },
   "activity": {
     "useTemplate": "Sjabloon gebruiken",
@@ -5456,7 +5507,9 @@
     "deleteLink": "Link verwijderen",
     "linkSettings": "Linkinstellingen",
     "invitePeopleCount": "{count} persoon uitnodigen | {count} personen uitnodigen",
-    "inviteThemInstead": "Nodig hen in plaats daarvan uit"
+    "inviteThemInstead": "Nodig hen in plaats daarvan uit",
+    "blockUser": "Gebruiker blokkeren",
+    "unblockUser": "Gebruiker deblokkeren"
   },
   "tooltip": {
     "shiftClickWeekStep": "Houd Shift voor stap 1 week",
@@ -7414,6 +7467,92 @@
         "title": "Dat is de hele cyclus",
         "description": "Trigger, acties, publiceren, inschakelen, uitvoeren, logboeken. Elke Workflow die je hierna bouwt volgt dezelfde vorm."
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "NocoDB gebruiken vanuit",
+    "title": "Verbind uw AI-tools met NocoDB MCP",
+    "description": "Werk rechtstreeks vanuit Claude, ChatGPT en andere MCP-clients met uw NocoDB-bases, -tabellen, -workflows en -interfaces.",
+    "pickTitle": "Welke tool gebruikt u?",
+    "serverUrlLabel": "Kent u MCP al? Gebruik deze server-URL",
+    "serverUrl": "Server-URL",
+    "allTools": "Alle tools",
+    "nocodbGuide": "NocoDB-installatiegids",
+    "opensInNewTab": "(wordt geopend op een nieuw tabblad)",
+    "urlCopied": "MCP-server-URL gekopieerd",
+    "copied": "Gekopieerd",
+    "copyUrl": "MCP-server-URL kopiëren",
+    "copyCommand": "Opdracht kopiëren",
+    "copyConfig": "Configuratie kopiëren",
+    "connected": "Verbonden",
+    "connectedTo": "Verbonden. {client} kan NocoDB nu gebruiken.",
+    "step": "Stap {n}:",
+    "stepDone": "Stap {n}, voltooid:",
+    "addAsServer": "NocoDB als MCP-server toevoegen",
+    "authTitle": "Autoriseer uw NocoDB-account",
+    "tryTitle": "Probeer het uit",
+    "setupIn": "NocoDB instellen in {client}",
+    "setupInOther": "NocoDB instellen in een andere tool",
+    "tileAria": "NocoDB instellen in {client}",
+    "tileAriaConnected": "NocoDB instellen in {client}, verbonden",
+    "othersLabel": "Overige",
+    "claude": {
+      "subtitle": "Eenmalig instellen op claude.ai. Daarna werkt het ook in de desktop- en mobiele apps.",
+      "directorySubtitle": "NocoDB staat in de connectorenmap van Claude. Eenmaal verbinden op claude.ai en het werkt ook in de desktop- en mobiele apps.",
+      "addTitle": "NocoDB als connector toevoegen",
+      "directoryBody": "Open de {link} in Claude en selecteer daarna Connect to Claude.",
+      "directoryLink": "NocoDB-connector",
+      "directoryImageAlt": "De NocoDB-pagina in de connectorenmap van Claude, met de knop Connect to Claude",
+      "addBody": "Open {link} in Claude en selecteer Add custom connector. Noem het NocoDB, plak de onderstaande URL en selecteer daarna Add.",
+      "addLink": "Connectoren",
+      "identityNote": "Als Claude vraagt hoe NocoDB het moet identificeren, kiest u Register automatically.",
+      "teamNote": "Bij een Team- of Enterprise-abonnement voegt eerst een Owner NocoDB toe in",
+      "teamLink": "Organisatie-instellingen",
+      "authorizeImageAlt": "Het NocoDB-scherm waarin u Claude toegang tot uw account moet geven",
+      "directoryAuthBody": "Meld u aan bij NocoDB wanneer daarom wordt gevraagd, kies waartoe Claude toegang heeft en welke tools het mag gebruiken en selecteer vervolgens Authorize.",
+      "authBody": "Selecteer Connect naast NocoDB en meld u aan. Kies waartoe Claude toegang heeft en welke tools het mag gebruiken en selecteer vervolgens Authorize.",
+      "tryBody": "Start een nieuwe chat in {link} en vraag «List my NocoDB tools»."
+    },
+    "chatgpt": {
+      "subtitle": "Eenmalig instellen op chatgpt.com.",
+      "openTitle": "Het formulier voor de aangepaste MCP-server openen",
+      "openBody": "Open {link} in ChatGPT, selecteer Add en daarna Add custom MCP server.",
+      "openLink": "Plug-ins",
+      "openImageAlt": "De pagina Plugins van ChatGPT met het menu Add geopend op Add custom MCP server",
+      "addTitle": "NocoDB als plug-in toevoegen",
+      "addBody": "Noem het NocoDB, plak de onderstaande URL als Server URL, laat Authentication op OAuth staan en maak het aan.",
+      "addImageAlt": "Het formulier «Add custom MCP server» van ChatGPT, met de velden Name, Server URL en Authentication",
+      "authBody": "Meld u aan bij NocoDB wanneer daarom wordt gevraagd, kies waartoe ChatGPT toegang heeft en welke tools het mag gebruiken en selecteer vervolgens Authorize.",
+      "tryBody": "Start een nieuwe chat in {link}, typ {'@'}, kies NocoDB en vraag «List my NocoDB tools»."
+    },
+    "cursor": {
+      "subtitle": "Voor de Cursor-desktopapp.",
+      "addBody": "Selecteer {link} en bevestig zodra Cursor opent.",
+      "addLink": "Toevoegen aan Cursor",
+      "downloadNote": "Hebt u Cursor nog niet?",
+      "download": "Cursor downloaden",
+      "manualToggle": "Het in plaats daarvan handmatig toevoegen",
+      "manualLabel": "Voeg dit toe aan ~/.cursor/mcp.json:",
+      "authBody": "Selecteer in Cursor onder Settings › MCP de optie Needs login naast NocoDB. Kies waartoe Cursor toegang heeft en welke tools het mag gebruiken en selecteer vervolgens Authorize.",
+      "tryBody": "Open de Agent-chat in Cursor en vraag «List my NocoDB tools»."
+    },
+    "claudeCode": {
+      "subtitle": "Eenmaal toevoegen en het werkt in elk project.",
+      "addBody": "Voer dit uit in uw terminal:",
+      "installNote": "Hebt u Claude Code nog niet?",
+      "install": "Claude Code installeren",
+      "authBody": "Voer in Claude Code /mcp uit, kies nocodb en selecteer Authenticate. Kies in de browser waartoe het toegang heeft en welke tools het mag gebruiken en selecteer vervolgens Authorize.",
+      "tryBody": "Start Claude Code en vraag «List my NocoDB tools»."
+    },
+    "others": {
+      "subtitle": "Werkt met elke tool die externe MCP-servers met aanmelding (OAuth) ondersteunt.",
+      "findTitle": "De MCP-instellingen vinden",
+      "findBody": "Zoek in de instellingen van uw AI-tool naar MCP, Connectors, Integrations, Apps of Tools.",
+      "addBody": "Voeg een aangepaste of externe MCP-server toe en plak vervolgens de onderstaande URL. Als om een transport wordt gevraagd, kiest u Streamable HTTP.",
+      "authBody": "Als uw tool om een authenticatiemethode vraagt, kiest u OAuth. Meld u aan bij NocoDB wanneer daarom wordt gevraagd, kies waartoe het toegang heeft en welke tools het mag gebruiken en selecteer vervolgens Authorize.",
+      "tryBody": "Start een nieuwe chat en vraag «List my NocoDB tools».",
+      "tokenText": "Accepteert uw tool alleen een token?",
+      "tokenButton": "Een MCP-token maken"
     }
   }
 }

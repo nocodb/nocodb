@@ -5185,7 +5185,61 @@
     "navigation": "التنقل",
     "prompts": "المطالبات",
     "pagination": "ترقيم الصفحات",
-    "showRowNumbers": "إظهار أرقام الصفوف"
+    "showRowNumbers": "إظهار أرقام الصفوف",
+    "blocked": "محظور",
+    "abuseReport": {
+      "reportedItem": "العنصر المُبلَّغ عنه",
+      "reporter": "المُبلِّغ",
+      "received": "تم الاستلام",
+      "reportDetails": "التفاصيل",
+      "publicLink": "رابط عام",
+      "linkLive": "نشط",
+      "linkDisabled": "معطّل",
+      "accounts": "الحسابات",
+      "disableLink": "تعطيل الرابط",
+      "dismiss": "تجاهل",
+      "markResolved": "وضع علامة كمحلول",
+      "reopen": "إعادة الفتح",
+      "statuses": {
+        "open": "مفتوح",
+        "resolved": "تم الحل",
+        "dismissed": "تم التجاهل"
+      },
+      "resourceTypes": {
+        "shared_view": "طريقة عرض مشتركة",
+        "interface": "الواجهة",
+        "dashboard": "لوحة التحكم",
+        "artifact": "ناتج"
+      },
+      "candidateRoles": {
+        "owner": "المالك",
+        "creator": "المنشئ",
+        "base_owner": "مالك القاعدة"
+      },
+      "yourName": "اسمك",
+      "yourEmail": "بريدك الإلكتروني",
+      "reason": "السبب",
+      "reasonPlaceholder": "اختر سببًا",
+      "details": "لماذا تبلّغ عن هذه الصفحة؟",
+      "submit": "إرسال البلاغ",
+      "reasons": {
+        "phishing": "تصيّد احتيالي أو جمع بيانات اعتماد",
+        "scam": "احتيال أو نصب",
+        "impersonation": "انتحال الهوية",
+        "malware": "برامج ضارة أو روابط مؤذية",
+        "illegal_content": "محتوى غير قانوني",
+        "spam": "بريد عشوائي",
+        "other": "أخرى"
+      }
+    },
+    "allowReportingAbuse": "السماح للزوار بالإبلاغ عن الصفحات العامة بسبب إساءة الاستخدام",
+    "abuseContactEmail": "البريد الإلكتروني للتواصل بشأن إساءة الاستخدام",
+    "editAltText": "تحرير النص البديل",
+    "attachmentDownloadFailed": "تعذّر تنزيل هذا الملف",
+    "factoryMachine": "جهاز",
+    "factoryMachineAlsoIncluded": "مُضمَّن دائمًا: git و GitHub CLI و ripgrep و Chrome وسطح المكتب.",
+    "factoryMachineApplyFix": "تطبيق وإعادة البناء",
+    "factoryMachineAllVersions": "جميع الإصدارات"
   },
   "activity": {
     "useTemplate": "استخدام القالب",
@@ -5489,7 +5543,9 @@
     "deleteLink": "حذف الرابط",
     "linkSettings": "إعدادات الرابط",
     "invitePeopleCount": "دعوة {count} شخص | دعوة {count} أشخاص",
-    "inviteThemInstead": "ادعُهم بدلاً من ذلك"
+    "inviteThemInstead": "ادعُهم بدلاً من ذلك",
+    "blockUser": "حظر المستخدم",
+    "unblockUser": "إلغاء حظر المستخدم"
   },
   "tooltip": {
     "shiftClickWeekStep": "اضغط على التحويل لخطوة قبل 1 أسبوع",
@@ -7447,6 +7503,92 @@
         "title": "الحساب والإعدادات",
         "description": "الملف الشخصي والمظهر واختصارات لوحة المفاتيح وإعدادات الحساب، كلها خلف صورتك الرمزية."
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "استخدام NocoDB من",
+    "title": "اربط أدوات الذكاء الاصطناعي لديك بـ NocoDB MCP",
+    "description": "اعمل على قواعد NocoDB وجداولها وسير العمل والواجهات مباشرةً من Claude و ChatGPT وعملاء MCP الآخرين.",
+    "pickTitle": "ما الأداة التي تستخدمها؟",
+    "serverUrlLabel": "تعرف MCP بالفعل؟ استخدم عنوان URL هذا للخادم",
+    "serverUrl": "عنوان URL للخادم",
+    "allTools": "جميع الأدوات",
+    "nocodbGuide": "دليل إعداد NocoDB",
+    "opensInNewTab": "(يُفتح في علامة تبويب جديدة)",
+    "urlCopied": "تم نسخ عنوان URL لخادم MCP",
+    "copied": "تم النسخ",
+    "copyUrl": "نسخ عنوان URL لخادم MCP",
+    "copyCommand": "نسخ الأمر",
+    "copyConfig": "نسخ الإعدادات",
+    "connected": "متصل",
+    "connectedTo": "تم الاتصال. يمكن لـ {client} الآن استخدام NocoDB.",
+    "step": "الخطوة {n}:",
+    "stepDone": "الخطوة {n}، اكتملت:",
+    "addAsServer": "إضافة NocoDB كخادم MCP",
+    "authTitle": "تفويض حساب NocoDB الخاص بك",
+    "tryTitle": "جرّبه",
+    "setupIn": "إعداد NocoDB في {client}",
+    "setupInOther": "إعداد NocoDB في أداة أخرى",
+    "tileAria": "إعداد NocoDB في {client}",
+    "tileAriaConnected": "إعداد NocoDB في {client}، متصل",
+    "othersLabel": "أخرى",
+    "claude": {
+      "subtitle": "اضبطه مرة واحدة على claude.ai. بعد ذلك سيعمل أيضًا في تطبيقات سطح المكتب والهاتف.",
+      "directorySubtitle": "يتوفر NocoDB في دليل موصّلات Claude. اتصل مرة واحدة على claude.ai وسيعمل أيضًا في تطبيقات سطح المكتب والهاتف.",
+      "addTitle": "إضافة NocoDB كموصّل",
+      "directoryBody": "افتح {link} في Claude، ثم اختر Connect to Claude.",
+      "directoryLink": "موصّل NocoDB",
+      "directoryImageAlt": "صفحة NocoDB في دليل موصّلات Claude، مع زر Connect to Claude",
+      "addBody": "افتح {link} في Claude واختر Add custom connector. سمِّه NocoDB، والصق عنوان URL أدناه، ثم اختر Add.",
+      "addLink": "الموصّلات",
+      "identityNote": "إذا سأل Claude عن كيفية تعريف NocoDB له، فاختر Register automatically.",
+      "teamNote": "في خطة Team أو Enterprise، يضيف Owner خدمة NocoDB أولًا في",
+      "teamLink": "إعدادات المؤسسة",
+      "authorizeImageAlt": "شاشة NocoDB التي تطلب منك تفويض Claude للوصول إلى حسابك",
+      "directoryAuthBody": "سجّل الدخول إلى NocoDB عند الطلب، واختر ما يمكن أن يصل إليه Claude والأدوات التي يمكنه استخدامها، ثم اختر Authorize.",
+      "authBody": "اختر Connect بجوار NocoDB وسجّل الدخول. اختر ما يمكن أن يصل إليه Claude والأدوات التي يمكنه استخدامها، ثم اختر Authorize.",
+      "tryBody": "ابدأ محادثة جديدة في {link} واسأل «List my NocoDB tools»."
+    },
+    "chatgpt": {
+      "subtitle": "اضبطه مرة واحدة على chatgpt.com.",
+      "openTitle": "فتح نموذج خادم MCP المخصص",
+      "openBody": "افتح {link} في ChatGPT، واختر Add، ثم Add custom MCP server.",
+      "openLink": "الإضافات",
+      "openImageAlt": "صفحة Plugins في ChatGPT مع قائمة Add مفتوحة على Add custom MCP server",
+      "addTitle": "إضافة NocoDB كمكوّن إضافي",
+      "addBody": "سمِّه NocoDB، والصق عنوان URL أدناه في حقل Server URL، واترك Authentication على OAuth، ثم أنشئه.",
+      "addImageAlt": "نموذج «Add custom MCP server» في ChatGPT، مع حقول Name و Server URL و Authentication",
+      "authBody": "سجّل الدخول إلى NocoDB عند الطلب، واختر ما يمكن أن يصل إليه ChatGPT والأدوات التي يمكنه استخدامها، ثم اختر Authorize.",
+      "tryBody": "ابدأ محادثة جديدة في {link}، واكتب {'@'}، واختر NocoDB واسأل «List my NocoDB tools»."
+    },
+    "cursor": {
+      "subtitle": "لتطبيق Cursor على سطح المكتب.",
+      "addBody": "اختر {link}، ثم أكِّد عند فتح Cursor.",
+      "addLink": "إضافة إلى Cursor",
+      "downloadNote": "ليس لديك Cursor بعد؟",
+      "download": "تنزيل Cursor",
+      "manualToggle": "إضافته يدويًا بدلًا من ذلك",
+      "manualLabel": "أضف هذا إلى ~/.cursor/mcp.json:",
+      "authBody": "في Cursor ضمن Settings › MCP، اختر Needs login بجوار NocoDB. اختر ما يمكن أن يصل إليه Cursor والأدوات التي يمكنه استخدامها، ثم اختر Authorize.",
+      "tryBody": "افتح محادثة Agent في Cursor واسأل «List my NocoDB tools»."
+    },
+    "claudeCode": {
+      "subtitle": "أضفه مرة واحدة ليعمل في كل مشروع.",
+      "addBody": "نفّذ هذا في الطرفية:",
+      "installNote": "ليس لديك Claude Code بعد؟",
+      "install": "تثبيت Claude Code",
+      "authBody": "في Claude Code، نفّذ /mcp، واختر nocodb ثم اختر Authenticate. في المتصفح، اختر ما يمكنه الوصول إليه والأدوات التي يمكنه استخدامها، ثم اختر Authorize.",
+      "tryBody": "شغّل Claude Code واسأل «List my NocoDB tools»."
+    },
+    "others": {
+      "subtitle": "يعمل مع أي أداة تدعم خوادم MCP البعيدة مع تسجيل الدخول (OAuth).",
+      "findTitle": "العثور على إعدادات MCP",
+      "findBody": "في إعدادات أداة الذكاء الاصطناعي لديك، ابحث عن MCP أو Connectors أو Integrations أو Apps أو Tools.",
+      "addBody": "أضف خادم MCP مخصصًا أو بعيدًا، ثم الصق عنوان URL أدناه. إذا طُلب منك اختيار وسيلة نقل، فاختر Streamable HTTP.",
+      "authBody": "إذا طلبت أداتك طريقة مصادقة، فاختر OAuth. سجّل الدخول إلى NocoDB عند الطلب، واختر ما يمكنه الوصول إليه والأدوات التي يمكنه استخدامها، ثم اختر Authorize.",
+      "tryBody": "ابدأ محادثة جديدة واسأل «List my NocoDB tools».",
+      "tokenText": "أداتك تقبل رمزًا فقط؟",
+      "tokenButton": "إنشاء رمز MCP"
     }
   }
 }

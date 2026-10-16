@@ -5173,7 +5173,61 @@
     "navigation": "Navigering",
     "prompts": "Prompts",
     "pagination": "Paginering",
-    "showRowNumbers": "Visa radnummer"
+    "showRowNumbers": "Visa radnummer",
+    "blocked": "Blockerad",
+    "abuseReport": {
+      "reportedItem": "Anmält objekt",
+      "reporter": "Anmälare",
+      "received": "Mottagen",
+      "reportDetails": "Detaljer",
+      "publicLink": "Offentlig länk",
+      "linkLive": "Aktiv",
+      "linkDisabled": "Inaktiverad",
+      "accounts": "Konton",
+      "disableLink": "Inaktivera länk",
+      "dismiss": "Avfärda",
+      "markResolved": "Markera som löst",
+      "reopen": "Öppna igen",
+      "statuses": {
+        "open": "Öppen",
+        "resolved": "Löst",
+        "dismissed": "Avfärdad"
+      },
+      "resourceTypes": {
+        "shared_view": "Delad vy",
+        "interface": "Gränssnitt",
+        "dashboard": "Dashboard",
+        "artifact": "Artefakt"
+      },
+      "candidateRoles": {
+        "owner": "Ägare",
+        "creator": "Skapare",
+        "base_owner": "Basägare"
+      },
+      "yourName": "Ditt namn",
+      "yourEmail": "Din e-postadress",
+      "reason": "Orsak",
+      "reasonPlaceholder": "Välj en orsak",
+      "details": "Varför anmäler du den här sidan?",
+      "submit": "Skicka anmälan",
+      "reasons": {
+        "phishing": "Nätfiske eller insamling av inloggningsuppgifter",
+        "scam": "Bedrägeri eller svindel",
+        "impersonation": "Identitetsstöld",
+        "malware": "Skadlig kod eller skadliga länkar",
+        "illegal_content": "Olagligt innehåll",
+        "spam": "Skräppost",
+        "other": "Övrigt"
+      }
+    },
+    "allowReportingAbuse": "Tillåt besökare att anmäla offentliga sidor för missbruk",
+    "abuseContactEmail": "Kontakt-e-post för missbruk",
+    "editAltText": "Redigera alternativtext",
+    "attachmentDownloadFailed": "Det gick inte att ladda ned den här filen",
+    "factoryMachine": "Maskin",
+    "factoryMachineAlsoIncluded": "Alltid inkluderat: git, GitHub CLI, ripgrep, Chrome och skrivbordet.",
+    "factoryMachineApplyFix": "Tillämpa och bygg om",
+    "factoryMachineAllVersions": "Alla versioner"
   },
   "activity": {
     "useTemplate": "Använd mall",
@@ -5478,7 +5532,9 @@
     "deleteLink": "Ta bort länk",
     "linkSettings": "Länkinställningar",
     "invitePeopleCount": "Bjud in {count} person | Bjud in {count} personer",
-    "inviteThemInstead": "Bjud in dem i stället"
+    "inviteThemInstead": "Bjud in dem i stället",
+    "blockUser": "Blockera användare",
+    "unblockUser": "Avblockera användare"
   },
   "tooltip": {
     "shiftClickWeekStep": "Håll Skift för att steg med 1 vecka",
@@ -7436,6 +7492,92 @@
         "title": "Konto och inställningar",
         "description": "Profil, tema, kortkommandon och kontoinställningar ligger alla bakom din avatar."
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "Använd NocoDB från",
+    "title": "Anslut dina AI-verktyg till NocoDB MCP",
+    "description": "Arbeta med dina NocoDB-baser, -tabeller, -arbetsflöden och -gränssnitt direkt från Claude, ChatGPT och andra MCP-klienter.",
+    "pickTitle": "Vilket verktyg använder du?",
+    "serverUrlLabel": "Känner du redan till MCP? Använd den här server-URL:en",
+    "serverUrl": "Server-URL",
+    "allTools": "Alla verktyg",
+    "nocodbGuide": "Installationsguide för NocoDB",
+    "opensInNewTab": "(öppnas på en ny flik)",
+    "urlCopied": "MCP-serverns URL har kopierats",
+    "copied": "Kopierat",
+    "copyUrl": "Kopiera MCP-serverns URL",
+    "copyCommand": "Kopiera kommando",
+    "copyConfig": "Kopiera konfiguration",
+    "connected": "Ansluten",
+    "connectedTo": "Ansluten. {client} kan nu använda NocoDB.",
+    "step": "Steg {n}:",
+    "stepDone": "Steg {n}, klart:",
+    "addAsServer": "Lägg till NocoDB som MCP-server",
+    "authTitle": "Auktorisera ditt NocoDB-konto",
+    "tryTitle": "Prova det",
+    "setupIn": "Konfigurera NocoDB i {client}",
+    "setupInOther": "Konfigurera NocoDB i ett annat verktyg",
+    "tileAria": "Konfigurera NocoDB i {client}",
+    "tileAriaConnected": "Konfigurera NocoDB i {client}, ansluten",
+    "othersLabel": "Övriga",
+    "claude": {
+      "subtitle": "Ställ in det en gång på claude.ai. Sedan fungerar det även i dator- och mobilapparna.",
+      "directorySubtitle": "NocoDB finns i Claudes kopplingskatalog. Anslut en gång på claude.ai så fungerar det även i dator- och mobilapparna.",
+      "addTitle": "Lägg till NocoDB som koppling",
+      "directoryBody": "Öppna {link} i Claude och välj sedan Connect to Claude.",
+      "directoryLink": "NocoDB-koppling",
+      "directoryImageAlt": "NocoDB-sidan i Claudes kopplingskatalog, med knappen Connect to Claude",
+      "addBody": "Öppna {link} i Claude och välj Add custom connector. Döp den till NocoDB, klistra in URL:en nedan och välj sedan Add.",
+      "addLink": "Kopplingar",
+      "identityNote": "Om Claude frågar hur NocoDB ska identifiera den väljer du Register automatically.",
+      "teamNote": "Med ett Team- eller Enterprise-abonnemang måste en Owner först lägga till NocoDB under",
+      "teamLink": "Organisationsinställningar",
+      "authorizeImageAlt": "NocoDB-skärmen som ber dig godkänna att Claude får åtkomst till ditt konto",
+      "directoryAuthBody": "Logga in på NocoDB när du uppmanas till det, välj vad Claude får komma åt och vilka verktyg den får använda och välj sedan Authorize.",
+      "authBody": "Välj Connect bredvid NocoDB och logga in. Välj vad Claude får komma åt och vilka verktyg den får använda och välj sedan Authorize.",
+      "tryBody": "Starta en ny chatt i {link} och fråga «List my NocoDB tools»."
+    },
+    "chatgpt": {
+      "subtitle": "Ställ in det en gång på chatgpt.com.",
+      "openTitle": "Öppna formuläret för den anpassade MCP-servern",
+      "openBody": "Öppna {link} i ChatGPT, välj Add och sedan Add custom MCP server.",
+      "openLink": "Tillägg",
+      "openImageAlt": "ChatGPT:s Plugins-sida med Add-menyn öppen på Add custom MCP server",
+      "addTitle": "Lägg till NocoDB som tillägg",
+      "addBody": "Döp den till NocoDB, klistra in URL:en nedan som Server URL, låt Authentication stå på OAuth och skapa den.",
+      "addImageAlt": "ChatGPT:s formulär «Add custom MCP server» med fälten Name, Server URL och Authentication",
+      "authBody": "Logga in på NocoDB när du uppmanas till det, välj vad ChatGPT får komma åt och vilka verktyg den får använda och välj sedan Authorize.",
+      "tryBody": "Starta en ny chatt i {link}, skriv {'@'}, välj NocoDB och fråga «List my NocoDB tools»."
+    },
+    "cursor": {
+      "subtitle": "För datorappen Cursor.",
+      "addBody": "Välj {link} och bekräfta när Cursor öppnas.",
+      "addLink": "Lägg till i Cursor",
+      "downloadNote": "Har du inte Cursor än?",
+      "download": "Ladda ned Cursor",
+      "manualToggle": "Lägg till det manuellt i stället",
+      "manualLabel": "Lägg till det här i ~/.cursor/mcp.json:",
+      "authBody": "I Cursor under Settings › MCP väljer du Needs login bredvid NocoDB. Välj vad Cursor får komma åt och vilka verktyg den får använda och välj sedan Authorize.",
+      "tryBody": "Öppna Agent-chatten i Cursor och fråga «List my NocoDB tools»."
+    },
+    "claudeCode": {
+      "subtitle": "Lägg till det en gång så fungerar det i alla projekt.",
+      "addBody": "Kör det här i terminalen:",
+      "installNote": "Har du inte Claude Code än?",
+      "install": "Installera Claude Code",
+      "authBody": "I Claude Code kör du /mcp, väljer nocodb och väljer Authenticate. I webbläsaren väljer du vad den får komma åt och vilka verktyg den får använda och väljer sedan Authorize.",
+      "tryBody": "Starta Claude Code och fråga «List my NocoDB tools»."
+    },
+    "others": {
+      "subtitle": "Fungerar med alla verktyg som stöder externa MCP-servrar med inloggning (OAuth).",
+      "findTitle": "Hitta MCP-inställningarna",
+      "findBody": "Leta efter MCP, Connectors, Integrations, Apps eller Tools i inställningarna för ditt AI-verktyg.",
+      "addBody": "Lägg till en anpassad eller extern MCP-server och klistra sedan in URL:en nedan. Om du ombeds välja transport väljer du Streamable HTTP.",
+      "authBody": "Om ditt verktyg ber om en autentiseringsmetod väljer du OAuth. Logga in på NocoDB när du uppmanas till det, välj vad det får komma åt och vilka verktyg det får använda och välj sedan Authorize.",
+      "tryBody": "Starta en ny chatt och fråga «List my NocoDB tools».",
+      "tokenText": "Accepterar ditt verktyg bara en token?",
+      "tokenButton": "Skapa en MCP-token"
     }
   }
 }

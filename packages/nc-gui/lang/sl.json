@@ -5177,7 +5177,61 @@
     "navigation": "Navigacija",
     "prompts": "Pozivi",
     "pagination": "Oštevilčenje strani",
-    "showRowNumbers": "Pokaži številke vrstic"
+    "showRowNumbers": "Pokaži številke vrstic",
+    "blocked": "Blokirano",
+    "abuseReport": {
+      "reportedItem": "Prijavljen element",
+      "reporter": "Prijavitelj",
+      "received": "Prejeto",
+      "reportDetails": "Podrobnosti",
+      "publicLink": "Javna povezava",
+      "linkLive": "Aktivna",
+      "linkDisabled": "Onemogočeno",
+      "accounts": "Računi",
+      "disableLink": "Onemogoči povezavo",
+      "dismiss": "Opusti",
+      "markResolved": "Označi kot rešeno",
+      "reopen": "Znova odpri",
+      "statuses": {
+        "open": "Odprto",
+        "resolved": "Rešeno",
+        "dismissed": "Opuščeno"
+      },
+      "resourceTypes": {
+        "shared_view": "Deljen pogled",
+        "interface": "Vmesnik",
+        "dashboard": "Nadzorna plošča",
+        "artifact": "Artefakt"
+      },
+      "candidateRoles": {
+        "owner": "Lastnik",
+        "creator": "Ustvarjalec",
+        "base_owner": "Lastnik baze"
+      },
+      "yourName": "Vaše ime",
+      "yourEmail": "Vaša e-pošta",
+      "reason": "Razlog",
+      "reasonPlaceholder": "Izberite razlog",
+      "details": "Zakaj prijavljate to stran?",
+      "submit": "Pošlji prijavo",
+      "reasons": {
+        "phishing": "Ribarjenje ali zbiranje poverilnic",
+        "scam": "Prevara ali goljufija",
+        "impersonation": "Lažno predstavljanje",
+        "malware": "Zlonamerna programska oprema ali škodljive povezave",
+        "illegal_content": "Nezakonita vsebina",
+        "spam": "Neželena pošta",
+        "other": "Drugo"
+      }
+    },
+    "allowReportingAbuse": "Dovoli obiskovalcem prijavo zlorabe na javnih straneh",
+    "abuseContactEmail": "E-pošta za prijavo zlorabe",
+    "editAltText": "Uredi nadomestno besedilo",
+    "attachmentDownloadFailed": "Te datoteke ni bilo mogoče prenesti",
+    "factoryMachine": "Stroj",
+    "factoryMachineAlsoIncluded": "Vedno vključeno: git, GitHub CLI, ripgrep, Chrome in namizje.",
+    "factoryMachineApplyFix": "Uporabi in znova zgradi",
+    "factoryMachineAllVersions": "Vse različice"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5482,7 +5536,9 @@
     "deleteLink": "Izbriši povezavo",
     "linkSettings": "Nastavitve povezave",
     "invitePeopleCount": "Povabi {count} osebo | Povabi {count} oseb",
-    "inviteThemInstead": "Namesto tega povabi njih"
+    "inviteThemInstead": "Namesto tega povabi njih",
+    "blockUser": "Blokiraj uporabnika",
+    "unblockUser": "Odblokiraj uporabnika"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -7440,6 +7496,92 @@
         "title": "Račun in nastavitve",
         "description": "Profil, tema, tipkovne bližnjice in nastavitve računa so vse skrite za vašim avatarjem."
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "Uporabi NocoDB iz",
+    "title": "Povežite svoja orodja UI z NocoDB MCP",
+    "description": "Delajte s svojimi bazami, tabelami, delovnimi tokovi in vmesniki NocoDB neposredno iz Clauda, ChatGPT-ja in drugih odjemalcev MCP.",
+    "pickTitle": "Katero orodje uporabljate?",
+    "serverUrlLabel": "Že poznate MCP? Uporabite ta URL strežnika",
+    "serverUrl": "URL strežnika",
+    "allTools": "Vsa orodja",
+    "nocodbGuide": "Vodnik za nastavitev NocoDB",
+    "opensInNewTab": "(odpre se v novem zavihku)",
+    "urlCopied": "URL strežnika MCP kopiran",
+    "copied": "Kopirano",
+    "copyUrl": "Kopiraj URL strežnika MCP",
+    "copyCommand": "Kopiraj ukaz",
+    "copyConfig": "Kopiraj konfiguracijo",
+    "connected": "Povezano",
+    "connectedTo": "Povezano. {client} lahko zdaj uporablja NocoDB.",
+    "step": "Korak {n}:",
+    "stepDone": "Korak {n}, končano:",
+    "addAsServer": "Dodaj NocoDB kot strežnik MCP",
+    "authTitle": "Avtorizirajte svoj račun NocoDB",
+    "tryTitle": "Preizkusite",
+    "setupIn": "Nastavi NocoDB v {client}",
+    "setupInOther": "Nastavi NocoDB v drugem orodju",
+    "tileAria": "Nastavi NocoDB v {client}",
+    "tileAriaConnected": "Nastavi NocoDB v {client}, povezano",
+    "othersLabel": "Drugo",
+    "claude": {
+      "subtitle": "Nastavite enkrat na claude.ai. Nato deluje tudi v namizni in mobilni aplikaciji.",
+      "directorySubtitle": "NocoDB je v Claudovem imeniku konektorjev. Povežite ga enkrat na claude.ai in deluje tudi v namizni in mobilni aplikaciji.",
+      "addTitle": "Dodaj NocoDB kot konektor",
+      "directoryBody": "Odprite {link} v Claudu in nato izberite Connect to Claude.",
+      "directoryLink": "Konektor NocoDB",
+      "directoryImageAlt": "Stran NocoDB v Claudovem imeniku konektorjev z gumbom Connect to Claude",
+      "addBody": "Odprite {link} v Claudu in izberite Add custom connector. Poimenujte ga NocoDB, prilepite spodnji URL in nato izberite Add.",
+      "addLink": "Konektorji",
+      "identityNote": "Če Claude vpraša, kako naj ga NocoDB identificira, izberite Register automatically.",
+      "teamNote": "Pri paketu Team ali Enterprise mora NocoDB najprej dodati Owner v",
+      "teamLink": "Nastavitve organizacije",
+      "authorizeImageAlt": "Zaslon NocoDB, ki vas prosi, da Claudu dovolite dostop do svojega računa",
+      "directoryAuthBody": "Ko ste pozvani, se prijavite v NocoDB, izberite, do česa lahko Claude dostopa in katera orodja lahko uporablja, nato izberite Authorize.",
+      "authBody": "Izberite Connect poleg NocoDB in se prijavite. Izberite, do česa lahko Claude dostopa in katera orodja lahko uporablja, nato izberite Authorize.",
+      "tryBody": "Začnite nov klepet v {link} in vprašajte «List my NocoDB tools»."
+    },
+    "chatgpt": {
+      "subtitle": "Nastavite enkrat na chatgpt.com.",
+      "openTitle": "Odprite obrazec za MCP strežnik po meri",
+      "openBody": "Odprite {link} v ChatGPT-ju, izberite Add in nato Add custom MCP server.",
+      "openLink": "Vtičniki",
+      "openImageAlt": "Stran Plugins v ChatGPT-ju z odprtim menijem Add na možnosti Add custom MCP server",
+      "addTitle": "Dodaj NocoDB kot vtičnik",
+      "addBody": "Poimenujte ga NocoDB, prilepite spodnji URL v polje Server URL, pustite Authentication na OAuth in ga ustvarite.",
+      "addImageAlt": "ChatGPT-jev obrazec «Add custom MCP server» s polji Name, Server URL in Authentication",
+      "authBody": "Ko ste pozvani, se prijavite v NocoDB, izberite, do česa lahko ChatGPT dostopa in katera orodja lahko uporablja, nato izberite Authorize.",
+      "tryBody": "Začnite nov klepet v {link}, vnesite {'@'}, izberite NocoDB in vprašajte «List my NocoDB tools»."
+    },
+    "cursor": {
+      "subtitle": "Za namizno aplikacijo Cursor.",
+      "addBody": "Izberite {link} in potrdite, ko se Cursor odpre.",
+      "addLink": "Dodaj v Cursor",
+      "downloadNote": "Še nimate Cursorja?",
+      "download": "Prenesi Cursor",
+      "manualToggle": "Dodaj ročno",
+      "manualLabel": "Dodajte to v ~/.cursor/mcp.json:",
+      "authBody": "V Cursorju pod Settings › MCP izberite Needs login poleg NocoDB. Izberite, do česa lahko Cursor dostopa in katera orodja lahko uporablja, nato izberite Authorize.",
+      "tryBody": "Odprite klepet Agent v Cursorju in vprašajte «List my NocoDB tools»."
+    },
+    "claudeCode": {
+      "subtitle": "Dodajte ga enkrat in deluje v vsakem projektu.",
+      "addBody": "Zaženite to v terminalu:",
+      "installNote": "Še nimate Claude Code?",
+      "install": "Namesti Claude Code",
+      "authBody": "V Claude Code zaženite /mcp, izberite nocodb in izberite Authenticate. V brskalniku izberite, do česa lahko dostopa in katera orodja lahko uporablja, nato izberite Authorize.",
+      "tryBody": "Zaženite Claude Code in vprašajte «List my NocoDB tools»."
+    },
+    "others": {
+      "subtitle": "Deluje z vsakim orodjem, ki podpira oddaljene strežnike MCP s prijavo (OAuth).",
+      "findTitle": "Poiščite nastavitve MCP",
+      "findBody": "V nastavitvah svojega orodja UI poiščite MCP, Connectors, Integrations, Apps ali Tools.",
+      "addBody": "Dodajte MCP strežnik po meri ali oddaljeni strežnik in nato prilepite spodnji URL. Če vpraša po transportu, izberite Streamable HTTP.",
+      "authBody": "Če vaše orodje vpraša po načinu preverjanja pristnosti, izberite OAuth. Ko ste pozvani, se prijavite v NocoDB, izberite, do česa lahko dostopa in katera orodja lahko uporablja, nato izberite Authorize.",
+      "tryBody": "Začnite nov klepet in vprašajte «List my NocoDB tools».",
+      "tokenText": "Ali vaše orodje sprejema samo žeton?",
+      "tokenButton": "Ustvari žeton MCP"
     }
   }
 }

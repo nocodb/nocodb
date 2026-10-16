@@ -5179,7 +5179,61 @@
     "navigation": "Navigáció",
     "prompts": "Promptok",
     "pagination": "Lapozás",
-    "showRowNumbers": "Sorszámok megjelenítése"
+    "showRowNumbers": "Sorszámok megjelenítése",
+    "blocked": "Blokkolva",
+    "abuseReport": {
+      "reportedItem": "Bejelentett elem",
+      "reporter": "Bejelentő",
+      "received": "Beérkezett",
+      "reportDetails": "Részletek",
+      "publicLink": "Nyilvános hivatkozás",
+      "linkLive": "Aktív",
+      "linkDisabled": "Letiltva",
+      "accounts": "Fiókok",
+      "disableLink": "Hivatkozás letiltása",
+      "dismiss": "Elvetés",
+      "markResolved": "Megjelölés megoldottként",
+      "reopen": "Újranyitás",
+      "statuses": {
+        "open": "Nyitott",
+        "resolved": "Megoldva",
+        "dismissed": "Elvetve"
+      },
+      "resourceTypes": {
+        "shared_view": "Megosztott nézet",
+        "interface": "Felület",
+        "dashboard": "Irányítópult",
+        "artifact": "Artefakt"
+      },
+      "candidateRoles": {
+        "owner": "Tulajdonos",
+        "creator": "Létrehozó",
+        "base_owner": "Bázis tulajdonosa"
+      },
+      "yourName": "Az Ön neve",
+      "yourEmail": "Az Ön e-mail-címe",
+      "reason": "Indok",
+      "reasonPlaceholder": "Válasszon indokot",
+      "details": "Miért jelenti be ezt az oldalt?",
+      "submit": "Bejelentés elküldése",
+      "reasons": {
+        "phishing": "Adathalászat vagy bejelentkezési adatok gyűjtése",
+        "scam": "Átverés vagy csalás",
+        "impersonation": "Személyazonosság-hamisítás",
+        "malware": "Kártevő vagy káros hivatkozások",
+        "illegal_content": "Illegális tartalom",
+        "spam": "Kéretlen tartalom",
+        "other": "Egyéb"
+      }
+    },
+    "allowReportingAbuse": "A látogatók bejelenthetik a nyilvános oldalakat visszaélés miatt",
+    "abuseContactEmail": "Visszaélés bejelentési e-mail-cím",
+    "editAltText": "Alternatív szöveg szerkesztése",
+    "attachmentDownloadFailed": "Nem sikerült letölteni ezt a fájlt",
+    "factoryMachine": "Gép",
+    "factoryMachineAlsoIncluded": "Mindig tartalmazza: git, GitHub CLI, ripgrep, Chrome és az asztal.",
+    "factoryMachineApplyFix": "Alkalmazás és újraépítés",
+    "factoryMachineAllVersions": "Összes verzió"
   },
   "activity": {
     "useTemplate": "Sablon használata",
@@ -5484,7 +5538,9 @@
     "deleteLink": "Hivatkozás törlése",
     "linkSettings": "Hivatkozás beállításai",
     "invitePeopleCount": "{count} személy meghívása | {count} személy meghívása",
-    "inviteThemInstead": "Inkább őket hívd meg"
+    "inviteThemInstead": "Inkább őket hívd meg",
+    "blockUser": "Felhasználó letiltása",
+    "unblockUser": "Felhasználó letiltásának feloldása"
   },
   "tooltip": {
     "shiftClickWeekStep": "Tartsa a Shiftet 1 héttel a lépcsőzéshez",
@@ -7442,6 +7498,92 @@
         "title": "Fiók és beállítások",
         "description": "A profil, a téma, a billentyűparancsok és a fiókbeállítások mind az avatarod mögött találhatók."
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "NocoDB használata innen:",
+    "title": "Csatlakoztassa AI-eszközeit a NocoDB MCP-hez",
+    "description": "Dolgozzon NocoDB-bázisaival, tábláival, munkafolyamataival és felületeivel közvetlenül a Claude-ból, a ChatGPT-ből és más MCP-kliensekből.",
+    "pickTitle": "Melyik eszközt használja?",
+    "serverUrlLabel": "Már ismeri az MCP-t? Használja ezt a kiszolgáló-URL-t",
+    "serverUrl": "Kiszolgáló URL-címe",
+    "allTools": "Összes eszköz",
+    "nocodbGuide": "NocoDB beállítási útmutató",
+    "opensInNewTab": "(új lapon nyílik meg)",
+    "urlCopied": "Az MCP-kiszolgáló URL-je másolva",
+    "copied": "Másolva",
+    "copyUrl": "MCP-kiszolgáló URL-jének másolása",
+    "copyCommand": "Parancs másolása",
+    "copyConfig": "Konfiguráció másolása",
+    "connected": "Csatlakoztatva",
+    "connectedTo": "Csatlakoztatva. A(z) {client} mostantól használhatja a NocoDB-t.",
+    "step": "{n}. lépés:",
+    "stepDone": "{n}. lépés kész:",
+    "addAsServer": "NocoDB hozzáadása MCP-kiszolgálóként",
+    "authTitle": "Engedélyezze NocoDB-fiókját",
+    "tryTitle": "Próbálja ki",
+    "setupIn": "NocoDB beállítása itt: {client}",
+    "setupInOther": "NocoDB beállítása másik eszközben",
+    "tileAria": "NocoDB beállítása itt: {client}",
+    "tileAriaConnected": "NocoDB beállítása itt: {client}, csatlakoztatva",
+    "othersLabel": "Egyebek",
+    "claude": {
+      "subtitle": "Egyszer kell beállítani a claude.ai oldalon. Utána az asztali és a mobilalkalmazásban is működik.",
+      "directorySubtitle": "A NocoDB megtalálható a Claude összekötő-katalógusában. Csatlakoztassa egyszer a claude.ai oldalon, és az asztali, valamint a mobilalkalmazásban is működik.",
+      "addTitle": "NocoDB hozzáadása összekötőként",
+      "directoryBody": "Nyissa meg a(z) {link} oldalt a Claude-ban, majd válassza a Connect to Claude lehetőséget.",
+      "directoryLink": "NocoDB-összekötő",
+      "directoryImageAlt": "A NocoDB oldala a Claude összekötő-katalógusában, a Connect to Claude gombbal",
+      "addBody": "Nyissa meg a(z) {link} oldalt a Claude-ban, és válassza az Add custom connector lehetőséget. Nevezze el NocoDB-nek, illessze be az alábbi URL-t, majd válassza az Add lehetőséget.",
+      "addLink": "Összekötők",
+      "identityNote": "Ha a Claude megkérdezi, hogyan azonosítsa a NocoDB, válassza a Register automatically lehetőséget.",
+      "teamNote": "Team vagy Enterprise csomag esetén először egy Owner adja hozzá a NocoDB-t itt:",
+      "teamLink": "Szervezeti beállítások",
+      "authorizeImageAlt": "A NocoDB képernyője, amely a Claude fiókhozzáférésének engedélyezését kéri",
+      "directoryAuthBody": "Jelentkezzen be a NocoDB-be, amikor a rendszer kéri, válassza ki, mihez férhet hozzá a Claude és mely eszközöket használhatja, majd válassza az Authorize lehetőséget.",
+      "authBody": "Válassza a NocoDB melletti Connect lehetőséget, és jelentkezzen be. Válassza ki, mihez férhet hozzá a Claude és mely eszközöket használhatja, majd válassza az Authorize lehetőséget.",
+      "tryBody": "Indítson új beszélgetést itt: {link}, és kérdezze meg: «List my NocoDB tools»."
+    },
+    "chatgpt": {
+      "subtitle": "Egyszer kell beállítani a chatgpt.com oldalon.",
+      "openTitle": "Az egyéni MCP-kiszolgáló űrlapjának megnyitása",
+      "openBody": "Nyissa meg a(z) {link} oldalt a ChatGPT-ben, válassza az Add, majd az Add custom MCP server lehetőséget.",
+      "openLink": "Bővítmények",
+      "openImageAlt": "A ChatGPT Plugins oldala a megnyitott Add menüvel az Add custom MCP server elemnél",
+      "addTitle": "NocoDB hozzáadása bővítményként",
+      "addBody": "Nevezze el NocoDB-nek, illessze be az alábbi URL-t a Server URL mezőbe, hagyja az Authentication beállítást OAuth értéken, majd hozza létre.",
+      "addImageAlt": "A ChatGPT «Add custom MCP server» űrlapja a Name, Server URL és Authentication mezőkkel",
+      "authBody": "Jelentkezzen be a NocoDB-be, amikor a rendszer kéri, válassza ki, mihez férhet hozzá a ChatGPT és mely eszközöket használhatja, majd válassza az Authorize lehetőséget.",
+      "tryBody": "Indítson új beszélgetést itt: {link}, írja be: {'@'}, válassza a NocoDB-t, és kérdezze meg: «List my NocoDB tools»."
+    },
+    "cursor": {
+      "subtitle": "A Cursor asztali alkalmazáshoz.",
+      "addBody": "Válassza a(z) {link} lehetőséget, majd erősítse meg, amikor a Cursor megnyílik.",
+      "addLink": "Hozzáadás a Cursorhoz",
+      "downloadNote": "Még nincs meg a Cursor?",
+      "download": "Cursor letöltése",
+      "manualToggle": "Hozzáadás kézzel helyette",
+      "manualLabel": "Adja hozzá ezt a ~/.cursor/mcp.json fájlhoz:",
+      "authBody": "A Cursorban a Settings › MCP alatt válassza a NocoDB melletti Needs login lehetőséget. Válassza ki, mihez férhet hozzá a Cursor és mely eszközöket használhatja, majd válassza az Authorize lehetőséget.",
+      "tryBody": "Nyissa meg az Agent csevegést a Cursorban, és kérdezze meg: «List my NocoDB tools»."
+    },
+    "claudeCode": {
+      "subtitle": "Adja hozzá egyszer, és minden projektben működik.",
+      "addBody": "Futtassa ezt a terminálban:",
+      "installNote": "Még nincs meg a Claude Code?",
+      "install": "Claude Code telepítése",
+      "authBody": "A Claude Code-ban futtassa a /mcp parancsot, válassza a nocodb elemet, majd az Authenticate lehetőséget. A böngészőben válassza ki, mihez férhet hozzá és mely eszközöket használhatja, majd válassza az Authorize lehetőséget.",
+      "tryBody": "Indítsa el a Claude Code-ot, és kérdezze meg: «List my NocoDB tools»."
+    },
+    "others": {
+      "subtitle": "Minden olyan eszközzel működik, amely támogatja a bejelentkezéssel (OAuth) elérhető távoli MCP-kiszolgálókat.",
+      "findTitle": "Az MCP-beállítások megkeresése",
+      "findBody": "Az AI-eszköz beállításaiban keresse az MCP, Connectors, Integrations, Apps vagy Tools elemet.",
+      "addBody": "Adjon hozzá egyéni vagy távoli MCP-kiszolgálót, majd illessze be az alábbi URL-t. Ha átvitelt kér, válassza a Streamable HTTP lehetőséget.",
+      "authBody": "Ha az eszköz hitelesítési módszert kér, válassza az OAuth lehetőséget. Jelentkezzen be a NocoDB-be, amikor a rendszer kéri, válassza ki, mihez férhet hozzá és mely eszközöket használhatja, majd válassza az Authorize lehetőséget.",
+      "tryBody": "Indítson új beszélgetést, és kérdezze meg: «List my NocoDB tools».",
+      "tokenText": "Az eszköze csak tokent fogad el?",
+      "tokenButton": "MCP-token létrehozása"
     }
   }
 }

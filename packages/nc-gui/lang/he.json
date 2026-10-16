@@ -5185,7 +5185,61 @@
     "navigation": "ניווט",
     "prompts": "הנחיות",
     "pagination": "עימוד",
-    "showRowNumbers": "הצגת מספרי שורות"
+    "showRowNumbers": "הצגת מספרי שורות",
+    "blocked": "חסום",
+    "abuseReport": {
+      "reportedItem": "הפריט שדווח",
+      "reporter": "המדווח",
+      "received": "התקבל",
+      "reportDetails": "פרטים",
+      "publicLink": "קישור ציבורי",
+      "linkLive": "פעיל",
+      "linkDisabled": "מושבת",
+      "accounts": "חשבונות",
+      "disableLink": "השבת קישור",
+      "dismiss": "התעלם",
+      "markResolved": "סמן כנפתר",
+      "reopen": "פתח מחדש",
+      "statuses": {
+        "open": "פתוח",
+        "resolved": "נפתר",
+        "dismissed": "בוטל"
+      },
+      "resourceTypes": {
+        "shared_view": "תצוגה משותפת",
+        "interface": "ממשק",
+        "dashboard": "לוח בקרה",
+        "artifact": "ארטיפקט"
+      },
+      "candidateRoles": {
+        "owner": "בעלים",
+        "creator": "יוצר",
+        "base_owner": "בעלים של הבסיס"
+      },
+      "yourName": "השם שלך",
+      "yourEmail": "האימייל שלך",
+      "reason": "סיבה",
+      "reasonPlaceholder": "בחר סיבה",
+      "details": "מדוע אתה מדווח על דף זה?",
+      "submit": "שלח דיווח",
+      "reasons": {
+        "phishing": "פישינג או איסוף פרטי התחברות",
+        "scam": "הונאה או רמאות",
+        "impersonation": "התחזות",
+        "malware": "תוכנה זדונית או קישורים מזיקים",
+        "illegal_content": "תוכן לא חוקי",
+        "spam": "דואר זבל",
+        "other": "אחר"
+      }
+    },
+    "allowReportingAbuse": "אפשר למבקרים לדווח על דפים ציבוריים בשל שימוש לרעה",
+    "abuseContactEmail": "כתובת אימייל לדיווח על שימוש לרעה",
+    "editAltText": "ערוך טקסט חלופי",
+    "attachmentDownloadFailed": "לא ניתן להוריד קובץ זה",
+    "factoryMachine": "מכונה",
+    "factoryMachineAlsoIncluded": "תמיד כלול: git, GitHub CLI, ripgrep, Chrome ושולחן העבודה.",
+    "factoryMachineApplyFix": "החל ובנה מחדש",
+    "factoryMachineAllVersions": "כל הגרסאות"
   },
   "activity": {
     "useTemplate": "השתמש בתבנית",
@@ -5489,7 +5543,9 @@
     "deleteLink": "מחק קישור",
     "linkSettings": "הגדרות הקישור",
     "invitePeopleCount": "הזמן {count} אדם | הזמן {count} אנשים",
-    "inviteThemInstead": "הזמן אותם במקום זאת"
+    "inviteThemInstead": "הזמן אותם במקום זאת",
+    "blockUser": "חסום משתמש",
+    "unblockUser": "בטל חסימת משתמש"
   },
   "tooltip": {
     "shiftClickWeekStep": "החזק את מקש Shift כדי לעבור שבוע אחר שבוע",
@@ -7447,6 +7503,92 @@
         "title": "חשבון והגדרות",
         "description": "פרופיל, ערכת נושא, קיצורי מקלדת והגדרות חשבון — הכול נמצא מאחורי תמונת הפרופיל שלכם."
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "השתמש ב-NocoDB מתוך",
+    "title": "חבר את כלי ה-AI שלך ל-NocoDB MCP",
+    "description": "עבוד עם הבסיסים, הטבלאות, תהליכי העבודה והממשקים שלך ב-NocoDB ישירות מ-Claude, מ-ChatGPT ומלקוחות MCP אחרים.",
+    "pickTitle": "באיזה כלי אתה משתמש?",
+    "serverUrlLabel": "כבר מכיר את MCP? השתמש בכתובת URL זו של השרת",
+    "serverUrl": "כתובת URL של השרת",
+    "allTools": "כל הכלים",
+    "nocodbGuide": "מדריך ההגדרה של NocoDB",
+    "opensInNewTab": "(נפתח בכרטיסייה חדשה)",
+    "urlCopied": "כתובת ה-URL של שרת MCP הועתקה",
+    "copied": "הועתק",
+    "copyUrl": "העתק את כתובת ה-URL של שרת MCP",
+    "copyCommand": "העתק פקודה",
+    "copyConfig": "העתק הגדרות",
+    "connected": "מחובר",
+    "connectedTo": "מחובר. {client} יכול כעת להשתמש ב-NocoDB.",
+    "step": "שלב {n}:",
+    "stepDone": "שלב {n}, הושלם:",
+    "addAsServer": "הוסף את NocoDB כשרת MCP",
+    "authTitle": "אשר את חשבון NocoDB שלך",
+    "tryTitle": "נסה את זה",
+    "setupIn": "הגדר את NocoDB ב-{client}",
+    "setupInOther": "הגדר את NocoDB בכלי אחר",
+    "tileAria": "הגדר את NocoDB ב-{client}",
+    "tileAriaConnected": "הגדר את NocoDB ב-{client}, מחובר",
+    "othersLabel": "אחרים",
+    "claude": {
+      "subtitle": "הגדר פעם אחת ב-claude.ai. לאחר מכן זה יעבוד גם באפליקציות למחשב ולנייד.",
+      "directorySubtitle": "NocoDB נמצא בספריית המחברים של Claude. התחבר פעם אחת ב-claude.ai וזה יעבוד גם באפליקציות למחשב ולנייד.",
+      "addTitle": "הוסף את NocoDB כמחבר",
+      "directoryBody": "פתח את {link} ב-Claude ואז בחר Connect to Claude.",
+      "directoryLink": "מחבר NocoDB",
+      "directoryImageAlt": "דף NocoDB בספריית המחברים של Claude, עם הכפתור Connect to Claude",
+      "addBody": "פתח את {link} ב-Claude ובחר Add custom connector. קרא לו NocoDB, הדבק את כתובת ה-URL שלהלן ואז בחר Add.",
+      "addLink": "מחברים",
+      "identityNote": "אם Claude שואל כיצד NocoDB אמור לזהות אותו, בחר Register automatically.",
+      "teamNote": "בתוכנית Team או Enterprise, בעל הרשאת Owner מוסיף תחילה את NocoDB תחת",
+      "teamLink": "הגדרות הארגון",
+      "authorizeImageAlt": "מסך NocoDB שמבקש ממך לאשר ל-Claude גישה לחשבון שלך",
+      "directoryAuthBody": "התחבר ל-NocoDB כשתתבקש, בחר למה Claude יכול לגשת ובאילו כלים הוא יכול להשתמש, ואז בחר Authorize.",
+      "authBody": "בחר Connect ליד NocoDB והתחבר. בחר למה Claude יכול לגשת ובאילו כלים הוא יכול להשתמש, ואז בחר Authorize.",
+      "tryBody": "התחל שיחה חדשה ב-{link} ושאל «List my NocoDB tools»."
+    },
+    "chatgpt": {
+      "subtitle": "הגדר פעם אחת ב-chatgpt.com.",
+      "openTitle": "פתח את טופס שרת ה-MCP המותאם",
+      "openBody": "פתח את {link} ב-ChatGPT, בחר Add ואז Add custom MCP server.",
+      "openLink": "תוספים",
+      "openImageAlt": "דף Plugins של ChatGPT עם תפריט Add פתוח על Add custom MCP server",
+      "addTitle": "הוסף את NocoDB כתוסף",
+      "addBody": "קרא לו NocoDB, הדבק את כתובת ה-URL שלהלן בשדה Server URL, השאר את Authentication על OAuth ואז צור אותו.",
+      "addImageAlt": "טופס «Add custom MCP server» של ChatGPT, עם השדות Name, Server URL ו-Authentication",
+      "authBody": "התחבר ל-NocoDB כשתתבקש, בחר למה ChatGPT יכול לגשת ובאילו כלים הוא יכול להשתמש, ואז בחר Authorize.",
+      "tryBody": "התחל שיחה חדשה ב-{link}, הקלד {'@'}, בחר NocoDB ושאל «List my NocoDB tools»."
+    },
+    "cursor": {
+      "subtitle": "עבור אפליקציית שולחן העבודה Cursor.",
+      "addBody": "בחר {link} ואז אשר כאשר Cursor נפתח.",
+      "addLink": "הוסף ל-Cursor",
+      "downloadNote": "עדיין אין לך Cursor?",
+      "download": "הורד את Cursor",
+      "manualToggle": "הוסף ידנית במקום זאת",
+      "manualLabel": "הוסף את זה לקובץ ~/.cursor/mcp.json:",
+      "authBody": "ב-Cursor תחת Settings › MCP, בחר Needs login ליד NocoDB. בחר למה Cursor יכול לגשת ובאילו כלים הוא יכול להשתמש, ואז בחר Authorize.",
+      "tryBody": "פתח את צ'אט Agent ב-Cursor ושאל «List my NocoDB tools»."
+    },
+    "claudeCode": {
+      "subtitle": "הוסף פעם אחת וזה יעבוד בכל פרויקט.",
+      "addBody": "הרץ את זה בטרמינל:",
+      "installNote": "עדיין אין לך Claude Code?",
+      "install": "התקן את Claude Code",
+      "authBody": "ב-Claude Code הרץ /mcp, בחר nocodb ובחר Authenticate. בדפדפן בחר למה הוא יכול לגשת ובאילו כלים הוא יכול להשתמש, ואז בחר Authorize.",
+      "tryBody": "הפעל את Claude Code ושאל «List my NocoDB tools»."
+    },
+    "others": {
+      "subtitle": "עובד עם כל כלי שתומך בשרתי MCP מרוחקים עם התחברות (OAuth).",
+      "findTitle": "מצא את הגדרות MCP",
+      "findBody": "בהגדרות כלי ה-AI שלך חפש MCP, Connectors, Integrations, Apps או Tools.",
+      "addBody": "הוסף שרת MCP מותאם או מרוחק ואז הדבק את כתובת ה-URL שלהלן. אם נדרשת שיטת העברה, בחר Streamable HTTP.",
+      "authBody": "אם הכלי שלך מבקש שיטת אימות, בחר OAuth. התחבר ל-NocoDB כשתתבקש, בחר למה הוא יכול לגשת ובאילו כלים הוא יכול להשתמש, ואז בחר Authorize.",
+      "tryBody": "התחל שיחה חדשה ושאל «List my NocoDB tools».",
+      "tokenText": "הכלי שלך מקבל רק אסימון?",
+      "tokenButton": "צור אסימון MCP"
     }
   }
 }

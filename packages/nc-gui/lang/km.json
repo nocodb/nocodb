@@ -5152,7 +5152,61 @@
     "noWebhooksYet": "មិនទាន់មាន webhook ទេ",
     "navigation": "ការរុករក",
     "pagination": "ការបែងចែកទំព័រ",
-    "showRowNumbers": "បង្ហាញលេខជួរដេក"
+    "showRowNumbers": "បង្ហាញលេខជួរដេក",
+    "blocked": "បានទប់ស្កាត់",
+    "abuseReport": {
+      "reportedItem": "ធាតុដែលបានរាយការណ៍",
+      "reporter": "អ្នករាយការណ៍",
+      "received": "បានទទួល",
+      "reportDetails": "ព័ត៌មានលម្អិត",
+      "publicLink": "តំណសាធារណៈ",
+      "linkLive": "សកម្ម",
+      "linkDisabled": "បានបិទ",
+      "accounts": "គណនី",
+      "disableLink": "បិទតំណ",
+      "dismiss": "បដិសេធ",
+      "markResolved": "សម្គាល់ថាបានដោះស្រាយ",
+      "reopen": "បើកឡើងវិញ",
+      "statuses": {
+        "open": "បើក",
+        "resolved": "បានដោះស្រាយ",
+        "dismissed": "បានបដិសេធ"
+      },
+      "resourceTypes": {
+        "shared_view": "ទិដ្ឋភាពដែលបានចែករំលែក",
+        "interface": "ចំណុចប្រទាក់",
+        "dashboard": "ផ្ទាំងគ្រប់គ្រង",
+        "artifact": "អាទីហ្វាក់"
+      },
+      "candidateRoles": {
+        "owner": "ម្ចាស់",
+        "creator": "អ្នកបង្កើត",
+        "base_owner": "ម្ចាស់មូលដ្ឋាន"
+      },
+      "yourName": "ឈ្មោះរបស់អ្នក",
+      "yourEmail": "អ៊ីមែលរបស់អ្នក",
+      "reason": "មូលហេតុ",
+      "reasonPlaceholder": "ជ្រើសរើសមូលហេតុ",
+      "details": "ហេតុអ្វីបានជាអ្នករាយការណ៍ទំព័រនេះ?",
+      "submit": "ដាក់ស្នើរបាយការណ៍",
+      "reasons": {
+        "phishing": "ការបន្លំយកព័ត៌មាន ឬការប្រមូលព័ត៌មានសម្ងាត់",
+        "scam": "ការបោកប្រាស់ ឬក្លែងបន្លំ",
+        "impersonation": "ការក្លែងបន្លំអត្តសញ្ញាណ",
+        "malware": "មេរោគ ឬតំណដែលបង្កគ្រោះថ្នាក់",
+        "illegal_content": "ខ្លឹមសារខុសច្បាប់",
+        "spam": "សារឥតបានការ",
+        "other": "ផ្សេងទៀត"
+      }
+    },
+    "allowReportingAbuse": "អនុញ្ញាតឱ្យអ្នកទស្សនារាយការណ៍ទំព័រសាធារណៈអំពីការរំលោភបំពាន",
+    "abuseContactEmail": "អ៊ីមែលទំនាក់ទំនងអំពីការរំលោភបំពាន",
+    "editAltText": "កែអត្ថបទជំនួស",
+    "attachmentDownloadFailed": "មិនអាចទាញយកឯកសារនេះបានទេ",
+    "factoryMachine": "ម៉ាស៊ីន",
+    "factoryMachineAlsoIncluded": "រួមបញ្ចូលជានិច្ច៖ git, GitHub CLI, ripgrep, Chrome និងផ្ទៃតុ។",
+    "factoryMachineApplyFix": "អនុវត្ត និងបង្កើតឡើងវិញ",
+    "factoryMachineAllVersions": "កំណែទាំងអស់"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5456,7 +5510,9 @@
     "deleteLink": "លុបតំណ",
     "linkSettings": "ការកំណត់តំណ",
     "invitePeopleCount": "អញ្ជើញ {count} នាក់ | អញ្ជើញ {count} នាក់",
-    "inviteThemInstead": "អញ្ជើញពួកគេជំនួសវិញ"
+    "inviteThemInstead": "អញ្ជើញពួកគេជំនួសវិញ",
+    "blockUser": "ទប់ស្កាត់អ្នកប្រើប្រាស់",
+    "unblockUser": "ដកការទប់ស្កាត់អ្នកប្រើប្រាស់"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -7411,6 +7467,92 @@
         "title": "គណនី និងការកំណត់",
         "description": "ប្រវត្តិរូប ស្បែក ផ្លូវកាត់ក្តារចុច និងការកំណត់គណនី សុទ្ធតែនៅពីក្រោយរូបតំណាងរបស់អ្នក។"
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "ប្រើ NocoDB ពី",
+    "title": "ភ្ជាប់ឧបករណ៍ AI របស់អ្នកទៅ NocoDB MCP",
+    "description": "ធ្វើការជាមួយមូលដ្ឋាន តារាង លំហូរការងារ និងចំណុចប្រទាក់ NocoDB របស់អ្នកដោយផ្ទាល់ពី Claude, ChatGPT និងកម្មវិធី MCP ផ្សេងទៀត។",
+    "pickTitle": "អ្នកប្រើឧបករណ៍ណា?",
+    "serverUrlLabel": "ស្គាល់ MCP រួចហើយមែនទេ? ប្រើ URL ម៉ាស៊ីនមេនេះ",
+    "serverUrl": "URL ម៉ាស៊ីនមេ",
+    "allTools": "ឧបករណ៍ទាំងអស់",
+    "nocodbGuide": "មគ្គុទ្ទេសក៍រៀបចំ NocoDB",
+    "opensInNewTab": "(បើកក្នុងផ្ទាំងថ្មី)",
+    "urlCopied": "បានចម្លង URL ម៉ាស៊ីនមេ MCP",
+    "copied": "បានចម្លង",
+    "copyUrl": "ចម្លង URL ម៉ាស៊ីនមេ MCP",
+    "copyCommand": "ចម្លងពាក្យបញ្ជា",
+    "copyConfig": "ចម្លងការកំណត់រចនាសម្ព័ន្ធ",
+    "connected": "បានភ្ជាប់",
+    "connectedTo": "បានភ្ជាប់។ ឥឡូវ {client} អាចប្រើ NocoDB បានហើយ។",
+    "step": "ជំហានទី {n}៖",
+    "stepDone": "ជំហានទី {n} បានរួចរាល់៖",
+    "addAsServer": "បញ្ចូល NocoDB ជាម៉ាស៊ីនមេ MCP",
+    "authTitle": "អនុញ្ញាតគណនី NocoDB របស់អ្នក",
+    "tryTitle": "សាកល្បងមើល",
+    "setupIn": "រៀបចំ NocoDB នៅក្នុង {client}",
+    "setupInOther": "រៀបចំ NocoDB នៅក្នុងឧបករណ៍ផ្សេង",
+    "tileAria": "រៀបចំ NocoDB នៅក្នុង {client}",
+    "tileAriaConnected": "រៀបចំ NocoDB នៅក្នុង {client} បានភ្ជាប់",
+    "othersLabel": "ផ្សេងទៀត",
+    "claude": {
+      "subtitle": "រៀបចំតែម្តងនៅ claude.ai។ បន្ទាប់មកវាដំណើរការក្នុងកម្មវិធីកុំព្យូទ័រ និងទូរសព្ទផងដែរ។",
+      "directorySubtitle": "NocoDB មាននៅក្នុងបញ្ជីឧបករណ៍ភ្ជាប់របស់ Claude។ ភ្ជាប់តែម្តងនៅ claude.ai នោះវាដំណើរការក្នុងកម្មវិធីកុំព្យូទ័រ និងទូរសព្ទផងដែរ។",
+      "addTitle": "បញ្ចូល NocoDB ជាឧបករណ៍ភ្ជាប់",
+      "directoryBody": "បើក {link} នៅក្នុង Claude រួចជ្រើសរើស Connect to Claude។",
+      "directoryLink": "ឧបករណ៍ភ្ជាប់ NocoDB",
+      "directoryImageAlt": "ទំព័រ NocoDB នៅក្នុងបញ្ជីឧបករណ៍ភ្ជាប់របស់ Claude ជាមួយប៊ូតុង Connect to Claude",
+      "addBody": "បើក {link} នៅក្នុង Claude រួចជ្រើសរើស Add custom connector។ ដាក់ឈ្មោះវាថា NocoDB បិទភ្ជាប់ URL ខាងក្រោម រួចជ្រើសរើស Add។",
+      "addLink": "ឧបករណ៍ភ្ជាប់",
+      "identityNote": "ប្រសិនបើ Claude សួរថា NocoDB គួរកំណត់អត្តសញ្ញាណវាយ៉ាងដូចម្តេច សូមជ្រើសរើស Register automatically។",
+      "teamNote": "នៅក្នុងគម្រោង Team ឬ Enterprise ត្រូវឱ្យ Owner បញ្ចូល NocoDB ជាមុនសិននៅ",
+      "teamLink": "ការកំណត់អង្គភាព",
+      "authorizeImageAlt": "អេក្រង់ NocoDB ដែលស្នើឱ្យអ្នកអនុញ្ញាតឱ្យ Claude ចូលប្រើគណនីរបស់អ្នក",
+      "directoryAuthBody": "ចូលគណនី NocoDB នៅពេលស្នើសុំ ជ្រើសរើសអ្វីដែល Claude អាចចូលប្រើ និងឧបករណ៍ណាដែលវាអាចប្រើបាន រួចជ្រើសរើស Authorize។",
+      "authBody": "ជ្រើសរើស Connect នៅក្បែរ NocoDB រួចចូលគណនី។ ជ្រើសរើសអ្វីដែល Claude អាចចូលប្រើ និងឧបករណ៍ណាដែលវាអាចប្រើបាន រួចជ្រើសរើស Authorize។",
+      "tryBody": "ចាប់ផ្តើមការជជែកថ្មីនៅ {link} រួចសួរថា «List my NocoDB tools»។"
+    },
+    "chatgpt": {
+      "subtitle": "រៀបចំតែម្តងនៅ chatgpt.com។",
+      "openTitle": "បើកទម្រង់ម៉ាស៊ីនមេ MCP ផ្ទាល់ខ្លួន",
+      "openBody": "បើក {link} នៅក្នុង ChatGPT ជ្រើសរើស Add រួចជ្រើសរើស Add custom MCP server។",
+      "openLink": "កម្មវិធីជំនួយ",
+      "openImageAlt": "ទំព័រ Plugins របស់ ChatGPT ដែលម៉ឺនុយ Add បើកនៅ Add custom MCP server",
+      "addTitle": "បញ្ចូល NocoDB ជាកម្មវិធីជំនួយ",
+      "addBody": "ដាក់ឈ្មោះវាថា NocoDB បិទភ្ជាប់ URL ខាងក្រោមទៅក្នុង Server URL ទុក Authentication នៅ OAuth ដដែល រួចបង្កើតវា។",
+      "addImageAlt": "ទម្រង់ «Add custom MCP server» របស់ ChatGPT ដែលមានវាល Name, Server URL និង Authentication",
+      "authBody": "ចូលគណនី NocoDB នៅពេលស្នើសុំ ជ្រើសរើសអ្វីដែល ChatGPT អាចចូលប្រើ និងឧបករណ៍ណាដែលវាអាចប្រើបាន រួចជ្រើសរើស Authorize។",
+      "tryBody": "ចាប់ផ្តើមការជជែកថ្មីនៅ {link} វាយ {'@'} ជ្រើសរើស NocoDB រួចសួរថា «List my NocoDB tools»។"
+    },
+    "cursor": {
+      "subtitle": "សម្រាប់កម្មវិធីកុំព្យូទ័រ Cursor។",
+      "addBody": "ជ្រើសរើស {link} រួចបញ្ជាក់នៅពេល Cursor បើក។",
+      "addLink": "បញ្ចូលទៅ Cursor",
+      "downloadNote": "មិនទាន់មាន Cursor មែនទេ?",
+      "download": "ទាញយក Cursor",
+      "manualToggle": "បញ្ចូលដោយដៃជំនួសវិញ",
+      "manualLabel": "បញ្ចូលវានេះទៅក្នុង ~/.cursor/mcp.json៖",
+      "authBody": "នៅក្នុង Cursor ត្រង់ Settings › MCP ជ្រើសរើស Needs login នៅក្បែរ NocoDB។ ជ្រើសរើសអ្វីដែល Cursor អាចចូលប្រើ និងឧបករណ៍ណាដែលវាអាចប្រើបាន រួចជ្រើសរើស Authorize។",
+      "tryBody": "បើកការជជែក Agent នៅក្នុង Cursor រួចសួរថា «List my NocoDB tools»។"
+    },
+    "claudeCode": {
+      "subtitle": "បញ្ចូលតែម្តង នោះវាដំណើរការក្នុងគ្រប់គម្រោង។",
+      "addBody": "ដំណើរការពាក្យបញ្ជានេះក្នុងស្ថានីយ៖",
+      "installNote": "មិនទាន់មាន Claude Code មែនទេ?",
+      "install": "ដំឡើង Claude Code",
+      "authBody": "នៅក្នុង Claude Code ដំណើរការ /mcp ជ្រើសរើស nocodb រួចជ្រើសរើស Authenticate។ នៅក្នុងកម្មវិធីរុករក ជ្រើសរើសអ្វីដែលវាអាចចូលប្រើ និងឧបករណ៍ណាដែលវាអាចប្រើបាន រួចជ្រើសរើស Authorize។",
+      "tryBody": "បើក Claude Code រួចសួរថា «List my NocoDB tools»។"
+    },
+    "others": {
+      "subtitle": "ដំណើរការជាមួយឧបករណ៍ណាក៏ដោយដែលគាំទ្រម៉ាស៊ីនមេ MCP ពីចម្ងាយជាមួយការចូលគណនី (OAuth)។",
+      "findTitle": "រកការកំណត់ MCP",
+      "findBody": "នៅក្នុងការកំណត់ឧបករណ៍ AI របស់អ្នក សូមរកមើល MCP, Connectors, Integrations, Apps ឬ Tools។",
+      "addBody": "បញ្ចូលម៉ាស៊ីនមេ MCP ផ្ទាល់ខ្លួន ឬពីចម្ងាយ រួចបិទភ្ជាប់ URL ខាងក្រោម។ ប្រសិនបើសួរអំពីវិធីបញ្ជូន សូមជ្រើសរើស Streamable HTTP។",
+      "authBody": "ប្រសិនបើឧបករណ៍របស់អ្នកសួរអំពីវិធីផ្ទៀងផ្ទាត់ សូមជ្រើសរើស OAuth។ ចូលគណនី NocoDB នៅពេលស្នើសុំ ជ្រើសរើសអ្វីដែលវាអាចចូលប្រើ និងឧបករណ៍ណាដែលវាអាចប្រើបាន រួចជ្រើសរើស Authorize។",
+      "tryBody": "ចាប់ផ្តើមការជជែកថ្មី រួចសួរថា «List my NocoDB tools»។",
+      "tokenText": "ឧបករណ៍របស់អ្នកទទួលយកតែថូខឹនមែនទេ?",
+      "tokenButton": "បង្កើតថូខឹន MCP"
     }
   }
 }

@@ -5174,7 +5174,60 @@
     "navigation": "Navegação",
     "prompts": "Prompts",
     "pagination": "Paginação",
-    "showRowNumbers": "Mostrar números das linhas"
+    "showRowNumbers": "Mostrar números das linhas",
+    "blocked": "Bloqueado",
+    "abuseReport": {
+      "reportedItem": "Item denunciado",
+      "reporter": "Denunciante",
+      "received": "Recebido",
+      "reportDetails": "Detalhes",
+      "publicLink": "Link público",
+      "linkLive": "Ativo",
+      "linkDisabled": "Desativado",
+      "accounts": "Contas",
+      "disableLink": "Desativar link",
+      "dismiss": "Dispensar",
+      "markResolved": "Marcar como resolvido",
+      "reopen": "Reabrir",
+      "statuses": {
+        "open": "Aberto",
+        "resolved": "Resolvido",
+        "dismissed": "Dispensado"
+      },
+      "resourceTypes": {
+        "shared_view": "Visualização compartilhada",
+        "interface": "Interface",
+        "dashboard": "Painel",
+        "artifact": "Artefato"
+      },
+      "candidateRoles": {
+        "owner": "Proprietário",
+        "creator": "Criador",
+        "base_owner": "Proprietário da base"
+      },
+      "yourName": "Seu nome",
+      "yourEmail": "Seu e-mail",
+      "reason": "Motivo",
+      "reasonPlaceholder": "Selecione um motivo",
+      "details": "Por que você está denunciando esta página?",
+      "submit": "Enviar denúncia",
+      "reasons": {
+        "phishing": "Phishing ou roubo de credenciais",
+        "scam": "Golpe ou fraude",
+        "impersonation": "Falsa identidade",
+        "malware": "Malware ou links nocivos",
+        "illegal_content": "Conteúdo ilegal",
+        "other": "Outro"
+      }
+    },
+    "allowReportingAbuse": "Permitir que visitantes denunciem páginas públicas por abuso",
+    "abuseContactEmail": "E-mail de contato para abusos",
+    "editAltText": "Editar texto alternativo",
+    "attachmentDownloadFailed": "Não foi possível baixar este arquivo",
+    "factoryMachine": "Máquina",
+    "factoryMachineAlsoIncluded": "Sempre incluído: git, GitHub CLI, ripgrep, Chrome e o desktop.",
+    "factoryMachineApplyFix": "Aplicar e recompilar",
+    "factoryMachineAllVersions": "Todas as versões"
   },
   "activity": {
     "useTemplate": "Usar modelo",
@@ -5479,7 +5532,9 @@
     "deleteLink": "Excluir o link",
     "linkSettings": "Configurações do link",
     "invitePeopleCount": "Convidar {count} pessoa | Convidar {count} pessoas",
-    "inviteThemInstead": "Convidá-las em vez disso"
+    "inviteThemInstead": "Convidá-las em vez disso",
+    "blockUser": "Bloquear usuário",
+    "unblockUser": "Desbloquear usuário"
   },
   "tooltip": {
     "shiftClickWeekStep": "Segure Shift para passo em 1 semana",
@@ -7437,6 +7492,91 @@
         "title": "Esse é o ciclo completo",
         "description": "Gatilho, ações, publicar, ativar, executar, logs. Todo Workflow que você criar daqui em diante segue o mesmo formato."
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "Usar o NocoDB em",
+    "title": "Conecte suas ferramentas de IA ao NocoDB MCP",
+    "description": "Trabalhe com suas bases, tabelas, workflows e interfaces do NocoDB diretamente do Claude, do ChatGPT e de outros clientes MCP.",
+    "pickTitle": "Qual ferramenta você usa?",
+    "serverUrlLabel": "Já conhece o MCP? Use esta URL de servidor",
+    "serverUrl": "URL do servidor",
+    "allTools": "Todas as ferramentas",
+    "nocodbGuide": "Guia de configuração do NocoDB",
+    "opensInNewTab": "(abre em uma nova aba)",
+    "urlCopied": "URL do servidor MCP copiada",
+    "copied": "Copiado",
+    "copyUrl": "Copiar a URL do servidor MCP",
+    "copyCommand": "Copiar comando",
+    "copyConfig": "Copiar configuração",
+    "connected": "Conectado",
+    "connectedTo": "Conectado. {client} já pode usar o NocoDB.",
+    "step": "Etapa {n}:",
+    "stepDone": "Etapa {n}, concluída:",
+    "addAsServer": "Adicionar o NocoDB como servidor MCP",
+    "authTitle": "Autorize sua conta NocoDB",
+    "tryTitle": "Experimente",
+    "setupIn": "Configurar o NocoDB no {client}",
+    "setupInOther": "Configurar o NocoDB em outra ferramenta",
+    "tileAria": "Configurar o NocoDB no {client}",
+    "tileAriaConnected": "Configurar o NocoDB no {client}, conectado",
+    "othersLabel": "Outros",
+    "claude": {
+      "subtitle": "Configure uma vez em claude.ai. Depois ele funciona também nos aplicativos para desktop e celular.",
+      "directorySubtitle": "O NocoDB está no diretório de conectores do Claude. Conecte uma vez em claude.ai e ele funciona também nos aplicativos para desktop e celular.",
+      "addTitle": "Adicionar o NocoDB como conector",
+      "directoryBody": "Abra o {link} no Claude e depois selecione Connect to Claude.",
+      "directoryLink": "Conector NocoDB",
+      "directoryImageAlt": "A página do NocoDB no diretório de conectores do Claude, com o botão Connect to Claude",
+      "addBody": "Abra {link} no Claude e selecione Add custom connector. Dê a ele o nome NocoDB, cole a URL abaixo e selecione Add.",
+      "addLink": "Conectores",
+      "identityNote": "Se o Claude perguntar como o NocoDB deve identificá-lo, escolha Register automatically.",
+      "teamNote": "Em um plano Team ou Enterprise, primeiro um Owner precisa adicionar o NocoDB em",
+      "teamLink": "Configurações da organização",
+      "authorizeImageAlt": "A tela do NocoDB pedindo que você autorize o Claude a acessar sua conta",
+      "directoryAuthBody": "Faça login no NocoDB quando solicitado, escolha o que o Claude pode acessar e quais ferramentas pode usar e selecione Authorize.",
+      "authBody": "Selecione Connect ao lado de NocoDB e faça login. Escolha o que o Claude pode acessar e quais ferramentas pode usar e selecione Authorize.",
+      "tryBody": "Inicie um novo chat em {link} e peça «List my NocoDB tools»."
+    },
+    "chatgpt": {
+      "subtitle": "Configure uma vez em chatgpt.com.",
+      "openTitle": "Abrir o formulário de servidor MCP personalizado",
+      "openBody": "Abra {link} no ChatGPT, selecione Add e depois Add custom MCP server.",
+      "openImageAlt": "A página Plugins do ChatGPT com o menu Add aberto em Add custom MCP server",
+      "addTitle": "Adicionar o NocoDB como plugin",
+      "addBody": "Dê a ele o nome NocoDB, cole a URL abaixo em Server URL, mantenha Authentication em OAuth e crie.",
+      "addImageAlt": "O formulário «Add custom MCP server» do ChatGPT, com os campos Name, Server URL e Authentication",
+      "authBody": "Faça login no NocoDB quando solicitado, escolha o que o ChatGPT pode acessar e quais ferramentas pode usar e selecione Authorize.",
+      "tryBody": "Inicie um novo chat em {link}, digite {'@'}, escolha NocoDB e peça «List my NocoDB tools»."
+    },
+    "cursor": {
+      "subtitle": "Para o aplicativo Cursor para desktop.",
+      "addBody": "Selecione {link} e confirme quando o Cursor abrir.",
+      "addLink": "Adicionar ao Cursor",
+      "downloadNote": "Ainda não tem o Cursor?",
+      "download": "Baixar o Cursor",
+      "manualToggle": "Adicionar manualmente",
+      "manualLabel": "Adicione isto a ~/.cursor/mcp.json:",
+      "authBody": "No Cursor, em Settings › MCP, selecione Needs login ao lado de NocoDB. Escolha o que o Cursor pode acessar e quais ferramentas pode usar e selecione Authorize.",
+      "tryBody": "Abra o chat do Agent no Cursor e peça «List my NocoDB tools»."
+    },
+    "claudeCode": {
+      "subtitle": "Adicione uma vez e ele funciona em todos os projetos.",
+      "addBody": "Execute isto no seu terminal:",
+      "installNote": "Ainda não tem o Claude Code?",
+      "install": "Instalar o Claude Code",
+      "authBody": "No Claude Code, execute /mcp, escolha nocodb e selecione Authenticate. No navegador, escolha o que ele pode acessar e quais ferramentas pode usar e selecione Authorize.",
+      "tryBody": "Inicie o Claude Code e peça «List my NocoDB tools»."
+    },
+    "others": {
+      "subtitle": "Funciona com qualquer ferramenta que suporte servidores MCP remotos com login (OAuth).",
+      "findTitle": "Encontrar as configurações de MCP",
+      "findBody": "Nas configurações da sua ferramenta de IA, procure MCP, Connectors, Integrations, Apps ou Tools.",
+      "addBody": "Adicione um servidor MCP personalizado ou remoto e cole a URL abaixo. Se pedir um transporte, escolha Streamable HTTP.",
+      "authBody": "Se a sua ferramenta pedir um método de autenticação, escolha OAuth. Faça login no NocoDB quando solicitado, escolha o que ela pode acessar e quais ferramentas pode usar e selecione Authorize.",
+      "tryBody": "Inicie um novo chat e peça «List my NocoDB tools».",
+      "tokenText": "Sua ferramenta só aceita um token?",
+      "tokenButton": "Criar um token MCP"
     }
   }
 }

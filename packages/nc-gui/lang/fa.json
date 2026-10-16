@@ -5184,7 +5184,61 @@
     "navigation": "ناوبری",
     "prompts": "پرامپت‌ها",
     "pagination": "صفحه‌بندی",
-    "showRowNumbers": "نمایش شماره ردیف‌ها"
+    "showRowNumbers": "نمایش شماره ردیف‌ها",
+    "blocked": "مسدود",
+    "abuseReport": {
+      "reportedItem": "مورد گزارش‌شده",
+      "reporter": "گزارش‌دهنده",
+      "received": "دریافت شد",
+      "reportDetails": "جزئیات",
+      "publicLink": "پیوند عمومی",
+      "linkLive": "فعال",
+      "linkDisabled": "غیرفعال",
+      "accounts": "حساب‌ها",
+      "disableLink": "غیرفعال کردن پیوند",
+      "dismiss": "نادیده گرفتن",
+      "markResolved": "علامت‌گذاری به‌عنوان حل‌شده",
+      "reopen": "بازگشایی",
+      "statuses": {
+        "open": "باز",
+        "resolved": "حل شد",
+        "dismissed": "نادیده گرفته شد"
+      },
+      "resourceTypes": {
+        "shared_view": "نمای اشتراکی",
+        "interface": "رابط",
+        "dashboard": "داشبورد",
+        "artifact": "آرتیفکت"
+      },
+      "candidateRoles": {
+        "owner": "مالک",
+        "creator": "سازنده",
+        "base_owner": "مالک پایگاه"
+      },
+      "yourName": "نام شما",
+      "yourEmail": "رایانامهٔ شما",
+      "reason": "دلیل",
+      "reasonPlaceholder": "دلیلی را انتخاب کنید",
+      "details": "چرا این صفحه را گزارش می‌کنید؟",
+      "submit": "ارسال گزارش",
+      "reasons": {
+        "phishing": "فیشینگ یا جمع‌آوری اطلاعات ورود",
+        "scam": "کلاهبرداری یا تقلب",
+        "impersonation": "جعل هویت",
+        "malware": "بدافزار یا پیوندهای مضر",
+        "illegal_content": "محتوای غیرقانونی",
+        "spam": "هرزنامه",
+        "other": "سایر"
+      }
+    },
+    "allowReportingAbuse": "اجازه دادن به بازدیدکنندگان برای گزارش سوءاستفاده در صفحه‌های عمومی",
+    "abuseContactEmail": "رایانامهٔ تماس برای سوءاستفاده",
+    "editAltText": "ویرایش متن جایگزین",
+    "attachmentDownloadFailed": "دانلود این فایل ممکن نشد",
+    "factoryMachine": "ماشین",
+    "factoryMachineAlsoIncluded": "همیشه شامل: git، GitHub CLI، ripgrep، Chrome و دسکتاپ.",
+    "factoryMachineApplyFix": "اعمال و ساخت دوباره",
+    "factoryMachineAllVersions": "همهٔ نسخه‌ها"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5488,7 +5542,9 @@
     "deleteLink": "حذف لینک",
     "linkSettings": "تنظیمات لینک",
     "invitePeopleCount": "دعوت از {count} نفر | دعوت از {count} نفر",
-    "inviteThemInstead": "در عوض آن‌ها را دعوت کنید"
+    "inviteThemInstead": "در عوض آن‌ها را دعوت کنید",
+    "blockUser": "مسدود کردن کاربر",
+    "unblockUser": "رفع مسدودیت کاربر"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -7446,6 +7502,92 @@
         "title": "حساب و تنظیمات",
         "description": "نمایه، پوسته، میان‌برهای صفحه‌کلید و تنظیمات حساب، همه پشت تصویر نمایه شما هستند."
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "استفاده از NocoDB در",
+    "title": "ابزارهای هوش مصنوعی خود را به NocoDB MCP متصل کنید",
+    "description": "با پایگاه‌ها، جدول‌ها، گردش‌کارها و رابط‌های NocoDB خود مستقیماً از Claude، ChatGPT و دیگر کلاینت‌های MCP کار کنید.",
+    "pickTitle": "از کدام ابزار استفاده می‌کنید؟",
+    "serverUrlLabel": "با MCP آشنا هستید؟ از این نشانی URL سرور استفاده کنید",
+    "serverUrl": "نشانی URL سرور",
+    "allTools": "همه ابزارها",
+    "nocodbGuide": "راهنمای راه‌اندازی NocoDB",
+    "opensInNewTab": "(در زبانهٔ جدید باز می‌شود)",
+    "urlCopied": "نشانی URL سرور MCP کپی شد",
+    "copied": "کپی شد",
+    "copyUrl": "کپی نشانی URL سرور MCP",
+    "copyCommand": "کپی فرمان",
+    "copyConfig": "کپی پیکربندی",
+    "connected": "متصل",
+    "connectedTo": "متصل شد. اکنون {client} می‌تواند از NocoDB استفاده کند.",
+    "step": "مرحلهٔ {n}:",
+    "stepDone": "مرحلهٔ {n}، انجام شد:",
+    "addAsServer": "افزودن NocoDB به‌عنوان سرور MCP",
+    "authTitle": "حساب NocoDB خود را مجاز کنید",
+    "tryTitle": "امتحانش کنید",
+    "setupIn": "راه‌اندازی NocoDB در {client}",
+    "setupInOther": "راه‌اندازی NocoDB در ابزاری دیگر",
+    "tileAria": "راه‌اندازی NocoDB در {client}",
+    "tileAriaConnected": "راه‌اندازی NocoDB در {client}، متصل",
+    "othersLabel": "سایر",
+    "claude": {
+      "subtitle": "یک بار در claude.ai تنظیم کنید. پس از آن در برنامه‌های رایانه و موبایل هم کار می‌کند.",
+      "directorySubtitle": "NocoDB در فهرست کانکتورهای Claude موجود است. یک بار در claude.ai متصل شوید تا در برنامه‌های رایانه و موبایل هم کار کند.",
+      "addTitle": "افزودن NocoDB به‌عنوان کانکتور",
+      "directoryBody": "در Claude صفحهٔ {link} را باز کنید، سپس Connect to Claude را انتخاب کنید.",
+      "directoryLink": "کانکتور NocoDB",
+      "directoryImageAlt": "صفحهٔ NocoDB در فهرست کانکتورهای Claude، همراه با دکمهٔ Connect to Claude",
+      "addBody": "در Claude صفحهٔ {link} را باز کنید و Add custom connector را انتخاب کنید. نام آن را NocoDB بگذارید، نشانی URL زیر را جای‌گذاری کنید و سپس Add را انتخاب کنید.",
+      "addLink": "کانکتورها",
+      "identityNote": "اگر Claude بپرسد NocoDB چگونه باید آن را شناسایی کند، Register automatically را انتخاب کنید.",
+      "teamNote": "در طرح Team یا Enterprise، ابتدا یک Owner باید NocoDB را در این بخش اضافه کند:",
+      "teamLink": "تنظیمات سازمان",
+      "authorizeImageAlt": "صفحهٔ NocoDB که از شما می‌خواهد به Claude اجازهٔ دسترسی به حسابتان را بدهید",
+      "directoryAuthBody": "در صورت درخواست وارد NocoDB شوید، انتخاب کنید Claude به چه چیزهایی دسترسی دارد و از کدام ابزارها می‌تواند استفاده کند، سپس Authorize را انتخاب کنید.",
+      "authBody": "گزینهٔ Connect کنار NocoDB را انتخاب کنید و وارد شوید. انتخاب کنید Claude به چه چیزهایی دسترسی دارد و از کدام ابزارها می‌تواند استفاده کند، سپس Authorize را انتخاب کنید.",
+      "tryBody": "در {link} گفتگوی تازه‌ای آغاز کنید و بپرسید «List my NocoDB tools»."
+    },
+    "chatgpt": {
+      "subtitle": "یک بار در chatgpt.com تنظیم کنید.",
+      "openTitle": "باز کردن فرم سرور MCP سفارشی",
+      "openBody": "در ChatGPT صفحهٔ {link} را باز کنید، Add و سپس Add custom MCP server را انتخاب کنید.",
+      "openLink": "افزونه‌ها",
+      "openImageAlt": "صفحهٔ Plugins در ChatGPT با منوی Add باز روی Add custom MCP server",
+      "addTitle": "افزودن NocoDB به‌عنوان افزونه",
+      "addBody": "نام آن را NocoDB بگذارید، نشانی URL زیر را در Server URL جای‌گذاری کنید، Authentication را روی OAuth بگذارید و سپس آن را بسازید.",
+      "addImageAlt": "فرم «Add custom MCP server» در ChatGPT، با فیلدهای Name و Server URL و Authentication",
+      "authBody": "در صورت درخواست وارد NocoDB شوید، انتخاب کنید ChatGPT به چه چیزهایی دسترسی دارد و از کدام ابزارها می‌تواند استفاده کند، سپس Authorize را انتخاب کنید.",
+      "tryBody": "در {link} گفتگوی تازه‌ای آغاز کنید، {'@'} را تایپ کنید، NocoDB را انتخاب کنید و بپرسید «List my NocoDB tools»."
+    },
+    "cursor": {
+      "subtitle": "برای برنامهٔ رایانهٔ Cursor.",
+      "addBody": "گزینهٔ {link} را انتخاب کنید، سپس هنگام باز شدن Cursor تأیید کنید.",
+      "addLink": "افزودن به Cursor",
+      "downloadNote": "هنوز Cursor ندارید؟",
+      "download": "دانلود Cursor",
+      "manualToggle": "به‌جای آن دستی اضافه کنید",
+      "manualLabel": "این را به ~/.cursor/mcp.json اضافه کنید:",
+      "authBody": "در Cursor در بخش Settings › MCP گزینهٔ Needs login کنار NocoDB را انتخاب کنید. انتخاب کنید Cursor به چه چیزهایی دسترسی دارد و از کدام ابزارها می‌تواند استفاده کند، سپس Authorize را انتخاب کنید.",
+      "tryBody": "گفتگوی Agent را در Cursor باز کنید و بپرسید «List my NocoDB tools»."
+    },
+    "claudeCode": {
+      "subtitle": "یک بار اضافه کنید تا در هر پروژه‌ای کار کند.",
+      "addBody": "این را در پایانه اجرا کنید:",
+      "installNote": "هنوز Claude Code ندارید؟",
+      "install": "نصب Claude Code",
+      "authBody": "در Claude Code دستور /mcp را اجرا کنید، nocodb را انتخاب و سپس Authenticate را انتخاب کنید. در مرورگر انتخاب کنید به چه چیزهایی دسترسی دارد و از کدام ابزارها می‌تواند استفاده کند، سپس Authorize را انتخاب کنید.",
+      "tryBody": "Claude Code را اجرا کنید و بپرسید «List my NocoDB tools»."
+    },
+    "others": {
+      "subtitle": "با هر ابزاری که از سرورهای MCP راه دور با ورود (OAuth) پشتیبانی می‌کند کار می‌کند.",
+      "findTitle": "یافتن تنظیمات MCP",
+      "findBody": "در تنظیمات ابزار هوش مصنوعی خود به دنبال MCP، Connectors، Integrations، Apps یا Tools بگردید.",
+      "addBody": "یک سرور MCP سفارشی یا راه دور اضافه کنید، سپس نشانی URL زیر را جای‌گذاری کنید. اگر روش انتقال پرسیده شد، Streamable HTTP را انتخاب کنید.",
+      "authBody": "اگر ابزار شما روش احراز هویت را می‌پرسد، OAuth را انتخاب کنید. در صورت درخواست وارد NocoDB شوید، انتخاب کنید به چه چیزهایی دسترسی دارد و از کدام ابزارها می‌تواند استفاده کند، سپس Authorize را انتخاب کنید.",
+      "tryBody": "گفتگوی تازه‌ای آغاز کنید و بپرسید «List my NocoDB tools».",
+      "tokenText": "ابزار شما فقط توکن می‌پذیرد؟",
+      "tokenButton": "ایجاد توکن MCP"
     }
   }
 }

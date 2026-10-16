@@ -5185,7 +5185,61 @@
     "navigation": "การนำทาง",
     "prompts": "พรอมต์",
     "pagination": "การแบ่งหน้า",
-    "showRowNumbers": "แสดงหมายเลขแถว"
+    "showRowNumbers": "แสดงหมายเลขแถว",
+    "blocked": "ถูกบล็อก",
+    "abuseReport": {
+      "reportedItem": "รายการที่ถูกรายงาน",
+      "reporter": "ผู้รายงาน",
+      "received": "ได้รับแล้ว",
+      "reportDetails": "รายละเอียด",
+      "publicLink": "ลิงก์สาธารณะ",
+      "linkLive": "ใช้งานอยู่",
+      "linkDisabled": "ปิดใช้งานแล้ว",
+      "accounts": "บัญชี",
+      "disableLink": "ปิดใช้งานลิงก์",
+      "dismiss": "ปฏิเสธ",
+      "markResolved": "ทำเครื่องหมายว่าแก้ไขแล้ว",
+      "reopen": "เปิดใหม่",
+      "statuses": {
+        "open": "เปิดอยู่",
+        "resolved": "แก้ไขแล้ว",
+        "dismissed": "ถูกปฏิเสธ"
+      },
+      "resourceTypes": {
+        "shared_view": "มุมมองที่แชร์",
+        "interface": "อินเทอร์เฟซ",
+        "dashboard": "แดชบอร์ด",
+        "artifact": "อาร์ทิแฟกต์"
+      },
+      "candidateRoles": {
+        "owner": "เจ้าของ",
+        "creator": "ผู้สร้าง",
+        "base_owner": "เจ้าของเบส"
+      },
+      "yourName": "ชื่อของคุณ",
+      "yourEmail": "อีเมลของคุณ",
+      "reason": "เหตุผล",
+      "reasonPlaceholder": "เลือกเหตุผล",
+      "details": "เหตุใดคุณจึงรายงานหน้านี้",
+      "submit": "ส่งรายงาน",
+      "reasons": {
+        "phishing": "ฟิชชิงหรือการเก็บข้อมูลรับรอง",
+        "scam": "การหลอกลวงหรือฉ้อโกง",
+        "impersonation": "การแอบอ้างเป็นบุคคลอื่น",
+        "malware": "มัลแวร์หรือลิงก์ที่เป็นอันตราย",
+        "illegal_content": "เนื้อหาผิดกฎหมาย",
+        "spam": "สแปม",
+        "other": "อื่น ๆ"
+      }
+    },
+    "allowReportingAbuse": "อนุญาตให้ผู้เข้าชมรายงานหน้าสาธารณะเรื่องการละเมิด",
+    "abuseContactEmail": "อีเมลติดต่อเรื่องการละเมิด",
+    "editAltText": "แก้ไขข้อความแสดงแทน",
+    "attachmentDownloadFailed": "ดาวน์โหลดไฟล์นี้ไม่สำเร็จ",
+    "factoryMachine": "เครื่อง",
+    "factoryMachineAlsoIncluded": "มีให้เสมอ: git, GitHub CLI, ripgrep, Chrome และเดสก์ท็อป",
+    "factoryMachineApplyFix": "ใช้งานและสร้างใหม่",
+    "factoryMachineAllVersions": "ทุกเวอร์ชัน"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5489,7 +5543,9 @@
     "deleteLink": "ลบลิงก์",
     "linkSettings": "การตั้งค่าลิงก์",
     "invitePeopleCount": "เชิญ {count} คน | เชิญ {count} คน",
-    "inviteThemInstead": "เชิญพวกเขาแทน"
+    "inviteThemInstead": "เชิญพวกเขาแทน",
+    "blockUser": "บล็อกผู้ใช้",
+    "unblockUser": "เลิกบล็อกผู้ใช้"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -7447,6 +7503,92 @@
         "title": "บัญชีและการตั้งค่า",
         "description": "โปรไฟล์ ธีม แป้นพิมพ์ลัด และการตั้งค่าบัญชี ทั้งหมดอยู่หลังรูปโปรไฟล์ของคุณ"
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "ใช้ NocoDB จาก",
+    "title": "เชื่อมต่อเครื่องมือ AI ของคุณกับ NocoDB MCP",
+    "description": "ทำงานกับเบส ตาราง เวิร์กโฟลว์ และอินเทอร์เฟซ NocoDB ของคุณได้โดยตรงจาก Claude, ChatGPT และไคลเอ็นต์ MCP อื่น ๆ",
+    "pickTitle": "คุณใช้เครื่องมือใด",
+    "serverUrlLabel": "รู้จัก MCP อยู่แล้วใช่ไหม ใช้ URL เซิร์ฟเวอร์นี้",
+    "serverUrl": "URL เซิร์ฟเวอร์",
+    "allTools": "เครื่องมือทั้งหมด",
+    "nocodbGuide": "คู่มือการตั้งค่า NocoDB",
+    "opensInNewTab": "(เปิดในแท็บใหม่)",
+    "urlCopied": "คัดลอก URL เซิร์ฟเวอร์ MCP แล้ว",
+    "copied": "คัดลอกแล้ว",
+    "copyUrl": "คัดลอก URL เซิร์ฟเวอร์ MCP",
+    "copyCommand": "คัดลอกคำสั่ง",
+    "copyConfig": "คัดลอกการตั้งค่า",
+    "connected": "เชื่อมต่อแล้ว",
+    "connectedTo": "เชื่อมต่อแล้ว {client} ใช้งาน NocoDB ได้แล้ว",
+    "step": "ขั้นตอนที่ {n}:",
+    "stepDone": "ขั้นตอนที่ {n} เสร็จแล้ว:",
+    "addAsServer": "เพิ่ม NocoDB เป็นเซิร์ฟเวอร์ MCP",
+    "authTitle": "อนุญาตบัญชี NocoDB ของคุณ",
+    "tryTitle": "ลองใช้ดู",
+    "setupIn": "ตั้งค่า NocoDB ใน {client}",
+    "setupInOther": "ตั้งค่า NocoDB ในเครื่องมืออื่น",
+    "tileAria": "ตั้งค่า NocoDB ใน {client}",
+    "tileAriaConnected": "ตั้งค่า NocoDB ใน {client} เชื่อมต่อแล้ว",
+    "othersLabel": "อื่น ๆ",
+    "claude": {
+      "subtitle": "ตั้งค่าเพียงครั้งเดียวที่ claude.ai จากนั้นใช้งานได้ทั้งในแอปเดสก์ท็อปและมือถือ",
+      "directorySubtitle": "NocoDB อยู่ในไดเรกทอรีตัวเชื่อมต่อของ Claude เชื่อมต่อครั้งเดียวที่ claude.ai แล้วใช้งานได้ทั้งในแอปเดสก์ท็อปและมือถือ",
+      "addTitle": "เพิ่ม NocoDB เป็นตัวเชื่อมต่อ",
+      "directoryBody": "เปิด {link} ใน Claude แล้วเลือก Connect to Claude",
+      "directoryLink": "ตัวเชื่อมต่อ NocoDB",
+      "directoryImageAlt": "หน้า NocoDB ในไดเรกทอรีตัวเชื่อมต่อของ Claude พร้อมปุ่ม Connect to Claude",
+      "addBody": "เปิด {link} ใน Claude แล้วเลือก Add custom connector ตั้งชื่อว่า NocoDB วาง URL ด้านล่าง แล้วเลือก Add",
+      "addLink": "ตัวเชื่อมต่อ",
+      "identityNote": "หาก Claude ถามว่า NocoDB ควรระบุตัวตนอย่างไร ให้เลือก Register automatically",
+      "teamNote": "ในแพ็กเกจ Team หรือ Enterprise ต้องให้ Owner เพิ่ม NocoDB ก่อนที่",
+      "teamLink": "การตั้งค่าองค์กร",
+      "authorizeImageAlt": "หน้าจอ NocoDB ที่ขอให้คุณอนุญาตให้ Claude เข้าถึงบัญชีของคุณ",
+      "directoryAuthBody": "ลงชื่อเข้าใช้ NocoDB เมื่อระบบแจ้ง เลือกสิ่งที่ Claude เข้าถึงได้และเครื่องมือที่ใช้ได้ แล้วเลือก Authorize",
+      "authBody": "เลือก Connect ข้าง NocoDB แล้วลงชื่อเข้าใช้ เลือกสิ่งที่ Claude เข้าถึงได้และเครื่องมือที่ใช้ได้ แล้วเลือก Authorize",
+      "tryBody": "เริ่มแชทใหม่ใน {link} แล้วถามว่า «List my NocoDB tools»"
+    },
+    "chatgpt": {
+      "subtitle": "ตั้งค่าเพียงครั้งเดียวที่ chatgpt.com",
+      "openTitle": "เปิดฟอร์มเซิร์ฟเวอร์ MCP แบบกำหนดเอง",
+      "openBody": "เปิด {link} ใน ChatGPT เลือก Add แล้วเลือก Add custom MCP server",
+      "openLink": "ปลั๊กอิน",
+      "openImageAlt": "หน้า Plugins ของ ChatGPT โดยเมนู Add เปิดอยู่ที่ Add custom MCP server",
+      "addTitle": "เพิ่ม NocoDB เป็นปลั๊กอิน",
+      "addBody": "ตั้งชื่อว่า NocoDB วาง URL ด้านล่างในช่อง Server URL ปล่อย Authentication ไว้ที่ OAuth แล้วสร้าง",
+      "addImageAlt": "ฟอร์ม «Add custom MCP server» ของ ChatGPT พร้อมช่อง Name, Server URL และ Authentication",
+      "authBody": "ลงชื่อเข้าใช้ NocoDB เมื่อระบบแจ้ง เลือกสิ่งที่ ChatGPT เข้าถึงได้และเครื่องมือที่ใช้ได้ แล้วเลือก Authorize",
+      "tryBody": "เริ่มแชทใหม่ใน {link} พิมพ์ {'@'} เลือก NocoDB แล้วถามว่า «List my NocoDB tools»"
+    },
+    "cursor": {
+      "subtitle": "สำหรับแอปเดสก์ท็อป Cursor",
+      "addBody": "เลือก {link} แล้วยืนยันเมื่อ Cursor เปิดขึ้น",
+      "addLink": "เพิ่มลงใน Cursor",
+      "downloadNote": "ยังไม่มี Cursor ใช่ไหม",
+      "download": "ดาวน์โหลด Cursor",
+      "manualToggle": "เพิ่มเองแทน",
+      "manualLabel": "เพิ่มสิ่งนี้ลงใน ~/.cursor/mcp.json:",
+      "authBody": "ใน Cursor ที่ Settings › MCP ให้เลือก Needs login ข้าง NocoDB เลือกสิ่งที่ Cursor เข้าถึงได้และเครื่องมือที่ใช้ได้ แล้วเลือก Authorize",
+      "tryBody": "เปิดแชท Agent ใน Cursor แล้วถามว่า «List my NocoDB tools»"
+    },
+    "claudeCode": {
+      "subtitle": "เพิ่มครั้งเดียวแล้วใช้ได้ในทุกโปรเจกต์",
+      "addBody": "เรียกใช้คำสั่งนี้ในเทอร์มินัล:",
+      "installNote": "ยังไม่มี Claude Code ใช่ไหม",
+      "install": "ติดตั้ง Claude Code",
+      "authBody": "ใน Claude Code ให้เรียกใช้ /mcp เลือก nocodb แล้วเลือก Authenticate ในเบราว์เซอร์ให้เลือกสิ่งที่เข้าถึงได้และเครื่องมือที่ใช้ได้ แล้วเลือก Authorize",
+      "tryBody": "เปิด Claude Code แล้วถามว่า «List my NocoDB tools»"
+    },
+    "others": {
+      "subtitle": "ใช้ได้กับเครื่องมือใดก็ตามที่รองรับเซิร์ฟเวอร์ MCP ระยะไกลพร้อมการลงชื่อเข้าใช้ (OAuth)",
+      "findTitle": "ค้นหาการตั้งค่า MCP",
+      "findBody": "ในการตั้งค่าเครื่องมือ AI ของคุณ ให้มองหา MCP, Connectors, Integrations, Apps หรือ Tools",
+      "addBody": "เพิ่มเซิร์ฟเวอร์ MCP แบบกำหนดเองหรือแบบระยะไกล แล้ววาง URL ด้านล่าง หากถามถึงรูปแบบการส่งข้อมูล ให้เลือก Streamable HTTP",
+      "authBody": "หากเครื่องมือของคุณถามวิธียืนยันตัวตน ให้เลือก OAuth ลงชื่อเข้าใช้ NocoDB เมื่อระบบแจ้ง เลือกสิ่งที่เข้าถึงได้และเครื่องมือที่ใช้ได้ แล้วเลือก Authorize",
+      "tryBody": "เริ่มแชทใหม่แล้วถามว่า «List my NocoDB tools»",
+      "tokenText": "เครื่องมือของคุณรับเฉพาะโทเค็นใช่ไหม",
+      "tokenButton": "สร้างโทเค็น MCP"
     }
   }
 }

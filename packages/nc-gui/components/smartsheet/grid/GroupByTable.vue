@@ -48,6 +48,8 @@ const { showUpgradeToSeeMoreRecordsModal } = useEeConfig()
 
 const { user } = useGlobal()
 
+const { metas } = useMetas()
+
 const { withLoading } = useLoadingTrigger()
 
 const route = router.currentRoute
@@ -319,7 +321,9 @@ async function deleteSelectedRowsWrapper() {
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
-const smartsheetEvents = (event: string) => {
+const smartsheetEvents = (event: string, payload?: { tableId?: string }) => {
+  if (!isTableEventForMeta(payload, meta.value, metas.value)) return
+
   if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }

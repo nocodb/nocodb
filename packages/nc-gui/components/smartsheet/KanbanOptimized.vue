@@ -95,6 +95,8 @@ const { isViewDataLoading, isActiveViewFieldHeaderVisible: storeFieldHeaderVisib
 
 const { isUIAllowed } = useRoles()
 
+const { metas } = useMetas()
+
 const { appInfo, isMobileMode } = useGlobal()
 
 const { showRecordPlanLimitExceededModal } = useEeConfig()
@@ -496,7 +498,9 @@ const reloadViewDataListener = withLoading(async () => {
 
 reloadViewDataHook?.on(reloadViewDataListener)
 
-const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
+const smartsheetEventHandler = (event: SmartsheetStoreEvents, payload?: { tableId?: string }) => {
+  if (!isTableEventForMeta(payload, meta.value, metas.value)) return
+
   if (event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }

@@ -20,7 +20,11 @@ const showTitle = computed(() => isSharedBase.value)
 <template>
   <div
     class="rounded-lg h-8 px-2 flex items-center gap-1 min-w-0 cursor-pointer select-none font-weight-500 text-nc-content-gray-subtle hover:(bg-nc-bg-gray-light text-nc-content-gray-emphasis)"
-    :class="{ 'bg-nc-bg-gray-light !text-nc-content-gray-emphasis': isOpen }"
+    :class="{
+      'bg-nc-bg-gray-light !text-nc-content-gray-emphasis': isOpen,
+      // Icon and caret only: shrinking would push them over the next crumb.
+      'flex-none': !showTitle,
+    }"
     data-testid="nc-topbar-base-crumb"
   >
     <NcTooltip :disabled="showTitle || isOpen">

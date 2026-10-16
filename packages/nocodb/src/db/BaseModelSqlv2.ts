@@ -6372,6 +6372,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               payload: {
                 table,
                 column: UpdatedColumn,
+                // Appending options leaves every existing row as it was.
+                skipDataReload: true,
               },
             },
           });

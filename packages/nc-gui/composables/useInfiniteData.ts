@@ -1282,7 +1282,7 @@ export function useInfiniteData(args: {
     const dataCache = getDataCache(path)
 
     // Sorts the sort columns by the order property
-    const orderedSorts = sorts.value.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    const orderedSorts = [...sorts.value].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
     const inputRows = Array.isArray(rows) ? rows : [rows]
 
@@ -2460,6 +2460,12 @@ export function useInfiniteData(args: {
           }
         }
 
+        const changedFields = Object.keys(payload ?? {}).filter((title) => {
+          const prev = cachedRow.row[title]
+          const next = payload[title]
+          return prev !== next && JSON.stringify(prev) !== JSON.stringify(next)
+        })
+
         Object.assign(cachedRow.row, payload)
         Object.assign(cachedRow.oldRow, payload)
 
@@ -2468,6 +2474,16 @@ export function useInfiniteData(args: {
         cachedRow.rowMeta.isValidationFailed = isValidationFailed
         cachedRow.rowMeta.changed = false
         Object.assign(cachedRow.rowMeta, evaluateRowMeta(payload))
+
+        // Flag a peer's edit to a sorted field like a local one: the grid moves the row on the
+        // next active-cell change, never under a viewer's cursor or open editor.
+        if (isSortRelevantChange(changedFields, sorts.value, columnsById.value)) {
+          cachedRow.rowMeta.isRowOrderUpdated = willSortOrderChange({
+            row: cachedRow,
+            newData: payload,
+            path: isGroupBy.value ? cachedRow.rowMeta.path ?? [] : [],
+          })
+        }
 
         callbacks?.syncVisibleData?.()
       } catch (e) {
@@ -2726,6 +2742,15 @@ export function useInfiniteData(args: {
     },
     { immediate: true },
   )
+
+  // A listener outliving its grid keeps handling events against emptied caches, and a grouped one
+  // then emits GROUP_BY_RELOAD on the shared bus, reloading whichever grid is open now.
+  onBeforeUnmount(() => {
+    if (activeDataListener.value) $ncSocket.offMessage(activeDataListener.value)
+    if (activeCommentListener.value) $ncSocket.offMessage(activeCommentListener.value)
+    activeDataListener.value = null
+    activeCommentListener.value = null
+  })
 
   // Reset the selectedAllRecordsSkipPks when the selectedAllRecords is false
   watch(

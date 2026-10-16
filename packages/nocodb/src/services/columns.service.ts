@@ -100,6 +100,7 @@ import { getReplay, setReplay } from '~/helpers/replayScope';
 import { OperationName } from '~/command-registry/op-names';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
+import { isRowDataUnchanged } from '~/helpers/isRowDataUnchanged';
 import { pgQuoteLiteral } from '~/helpers/sqlSanitize';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import {
@@ -3938,6 +3939,7 @@ export class ColumnsService implements IColumnsService {
           payload: {
             table,
             column: updatedColumn,
+            skipDataReload: isRowDataUnchanged(oldColumn, updatedColumn),
           },
         },
       },

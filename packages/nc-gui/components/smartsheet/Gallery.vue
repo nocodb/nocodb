@@ -28,6 +28,7 @@ const { isViewDataLoading, isActiveViewFieldHeaderVisible: storeFieldHeaderVisib
 const { isSqlView, xWhere, isExternalSource, isSyncedTable, allFilters, validFiltersFromUrlParams, eventBus } =
   useSmartsheetStoreOrThrow()
 const { isUIAllowed } = useRoles()
+const { metas } = useMetas()
 const route = useRoute()
 const router = useRouter()
 
@@ -709,7 +710,9 @@ const reloadViewDataListener = withLoading(async () => {
 
 reloadViewDataHook?.on(reloadViewDataListener)
 
-const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
+const smartsheetEventHandler = (event: SmartsheetStoreEvents, payload?: { tableId?: string }) => {
+  if (!isTableEventForMeta(payload, meta.value, metas.value)) return
+
   if (event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }

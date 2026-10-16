@@ -1,6 +1,8 @@
-import { EventType } from 'nocodb-sdk'
-import type { FilterType, InterfaceFilterNode } from 'nocodb-sdk'
+import { EventType, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import type { FilterType, InterfaceFilterNode, LinkToAnotherRecordType, LookupType, RollupType, TableType } from 'nocodb-sdk'
 import { interfaceDataEventSuffix } from '~/lib/interfaceData'
+
+const COMPUTED_DISPLAY_VALUE_TYPES = new Set<UITypes>([UITypes.Formula, UITypes.Lookup, UITypes.Rollup])
 
 /**
  * The full DATA_EVENT subscription key for a table — plain on the data tab
@@ -34,4 +36,78 @@ export function flattenFiltersForEval(roots: Array<FilterType | InterfaceFilterN
   }
   for (const r of roots) walk(r, null)
   return out
+}
+
+/**
+ * Whether a table-scoped smartsheet event (`{ tableId }` payload) concerns a view of `meta`:
+ * its own table, or one it reaches through links (lookups, rollups and link display values
+ * read it). Links are followed past the first hop only when a lookup or rollup goes through
+ * them; linked metas come from the metas cache, and an uncached one counts as a match.
+ * Events without a `tableId` apply to every view.
+ */
+export function isTableEventForMeta(
+  payload: { tableId?: string } | undefined,
+  meta?: TableType | null,
+  metas?: Record<string, TableType | undefined>,
+): boolean {
+  if (!payload?.tableId || !meta?.id) return true
+
+  const targetId = payload.tableId
+  const visited = new Set<string>()
+
+  const reaches = (table: TableType): boolean => {
+    if (table.id === targetId) return true
+    visited.add(table.id!)
+
+    const columns = table.columns ?? []
+    // Link columns some lookup or rollup reads through.
+    const relationIds = new Set<string>()
+    for (const col of columns) {
+      if (col.uidt === UITypes.Lookup || col.uidt === UITypes.Rollup) {
+        const relationId = (col.colOptions as LookupType | RollupType | undefined)?.fk_relation_column_id
+        if (relationId) relationIds.add(relationId)
+      }
+    }
+
+    for (const col of columns) {
+      if (!isLinksOrLTAR(col)) continue
+      const options = col.colOptions as LinkToAnotherRecordType | undefined
+      const relatedId = options?.fk_related_model_id
+      if (!relatedId) continue
+      if (relatedId === targetId) return true
+      if (visited.has(relatedId)) continue
+
+      const related = metas?.[`${options?.fk_related_base_id || table.base_id}:${relatedId}`]
+
+      if (relationIds.has(col.id!)) {
+        if (!related?.columns || reaches(related)) return true
+        continue
+      }
+
+      // A plain link still shows the related record's display value, which can be
+      // computed (e.g. a formula over a lookup) and so read further tables.
+      const displayValue = related?.columns?.find((c) => c.pv)
+      if (displayValue && COMPUTED_DISPLAY_VALUE_TYPES.has(displayValue.uidt as UITypes) && reaches(related!)) return true
+    }
+
+    return false
+  }
+
+  return reaches(meta)
+}
+
+// Realtime payloads carry the whole view-column row, so compare values, not key presence.
+export function isGroupByChanged(col: Record<string, any>, payload: Record<string, any>) {
+  if (!col.group_by && !payload.group_by) return false
+
+  const normalize = (key: string, value: unknown) => {
+    if (key === 'group_by') return !!value
+    if (key === 'group_by_enabled') return value !== false && value !== 0
+    if (key === 'group_by_sort') return value || 'asc'
+    return value ?? null
+  }
+
+  return ['group_by', 'group_by_sort', 'group_by_order', 'group_by_enabled'].some(
+    (key) => key in payload && normalize(key, payload[key]) !== normalize(key, col[key]),
+  )
 }

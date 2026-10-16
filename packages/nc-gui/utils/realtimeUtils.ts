@@ -1,5 +1,5 @@
-import { EventType } from 'nocodb-sdk'
-import type { FilterType, InterfaceFilterNode } from 'nocodb-sdk'
+import { EventType, isLinksOrLTAR } from 'nocodb-sdk'
+import type { ColumnType, FilterType, InterfaceFilterNode, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { interfaceDataEventSuffix } from '~/lib/interfaceData'
 
 /**
@@ -34,4 +34,19 @@ export function flattenFiltersForEval(roots: Array<FilterType | InterfaceFilterN
   }
   for (const r of roots) walk(r, null)
   return out
+}
+
+/**
+ * Whether a table-scoped smartsheet event (`{ tableId }` payload) concerns a view of `meta`:
+ * its own table, or one it links to (lookups, rollups and link display values read it).
+ * Events without a `tableId` apply to every view.
+ */
+export function isTableEventForMeta(payload: { tableId?: string } | undefined, meta?: TableType | null): boolean {
+  if (!payload?.tableId || !meta?.id) return true
+  if (payload.tableId === meta.id) return true
+
+  return !!meta.columns?.some(
+    (col: ColumnType) =>
+      isLinksOrLTAR(col) && (col.colOptions as LinkToAnotherRecordType | undefined)?.fk_related_model_id === payload.tableId,
+  )
 }

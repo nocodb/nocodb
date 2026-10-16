@@ -1355,8 +1355,9 @@ tryOnScopeDispose(() => {
   isHandlerDisposed = true
 })
 
-const onRealtimeFieldReload = async (event?: SmartsheetStoreEvents) => {
+const onRealtimeFieldReload = async (event?: SmartsheetStoreEvents, payload?: { tableId?: string }) => {
   if (event !== SmartsheetStoreEvents.FIELD_RELOAD) return
+  if (payload?.tableId && payload.tableId !== meta.value?.id) return
   if (isHandlerDisposed) return
   if (!meta.value?.id || !meta.value.base_id || !meta.value.fk_workspace_id) return
   const isSelfEvent = loading.value || isUndoRedoInFlight.value

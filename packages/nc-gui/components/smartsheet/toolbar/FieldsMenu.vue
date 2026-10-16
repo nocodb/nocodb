@@ -80,6 +80,8 @@ const loadViewColumnsDebounced = useDebounceFn(loadViewColumns, 50)
 
 const eventBusHandler = async (event: SmartsheetStoreEvents, payload?: any) => {
   if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
+    if (payload?.tableId && payload.tableId !== meta.value?.id) return
+
     try {
       await loadViewColumnsDebounced()
     } finally {

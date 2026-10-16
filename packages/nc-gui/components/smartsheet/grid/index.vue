@@ -536,7 +536,9 @@ const { windowSize, leftSidebarWidth } = toRefs(sidebarStore)
 
 const viewWidth = ref(0)
 
-const smartsheetEvents = (event: SmartsheetStoreEvents) => {
+const smartsheetEvents = (event: SmartsheetStoreEvents, payload?: { tableId?: string }) => {
+  if (!isTableEventForMeta(payload, meta.value)) return
+
   if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }

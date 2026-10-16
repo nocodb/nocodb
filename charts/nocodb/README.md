@@ -210,6 +210,11 @@ Create one Secret and reference it from each `*.existingSecret`:
 | `ingress.annotations` | Ingress annotations (cert-manager cluster-issuer here) | `{}` |
 | `ingress.hosts` | Ingress hosts | See values.yaml |
 | `ingress.tls` | Ingress TLS entries | `[]` |
+| `httproute.enabled` | Create a Gateway API HTTPRoute (alternative to Ingress; needs the Gateway API CRDs and a Gateway) | `false` |
+| `httproute.annotations` | HTTPRoute annotations | `{}` |
+| `httproute.parentRefs` | Gateways this route attaches to (each entry: name, and optional namespace/sectionName/port) | `[]` |
+| `httproute.hostnames` | Hostnames matched by this route | `[]` |
+| `httproute.rules` | Custom routing rules; when set, replaces the default "/ -> service" rule (tpl-rendered) | `[]` |
 | `networkPolicy.enabled` | Create a NetworkPolicy | `false` |
 | `networkPolicy.allowExternal` | Allow ingress from anywhere | `true` |
 | `networkPolicy.extraIngress` | Extra ingress rules | `[]` |

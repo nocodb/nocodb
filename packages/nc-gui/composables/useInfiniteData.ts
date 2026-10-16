@@ -1282,7 +1282,7 @@ export function useInfiniteData(args: {
     const dataCache = getDataCache(path)
 
     // Sorts the sort columns by the order property
-    const orderedSorts = sorts.value.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    const orderedSorts = [...sorts.value].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
     const inputRows = Array.isArray(rows) ? rows : [rows]
 
@@ -2460,6 +2460,12 @@ export function useInfiniteData(args: {
           }
         }
 
+        const changedFields = Object.keys(payload ?? {}).filter((title) => {
+          const prev = cachedRow.row[title]
+          const next = payload[title]
+          return prev !== next && JSON.stringify(prev) !== JSON.stringify(next)
+        })
+
         Object.assign(cachedRow.row, payload)
         Object.assign(cachedRow.oldRow, payload)
 
@@ -2468,6 +2474,11 @@ export function useInfiniteData(args: {
         cachedRow.rowMeta.isValidationFailed = isValidationFailed
         cachedRow.rowMeta.changed = false
         Object.assign(cachedRow.rowMeta, evaluateRowMeta(payload))
+
+        // A peer's edit to a sorted field moves the row, as the editor's own grid does.
+        if (isSortRelevantChange(changedFields, sorts.value, columnsById.value)) {
+          applySorting(cachedRow, isGroupBy.value ? cachedRow.rowMeta.path ?? [] : [])
+        }
 
         callbacks?.syncVisibleData?.()
       } catch (e) {

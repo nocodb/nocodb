@@ -4611,8 +4611,6 @@
     "byUser": "da {user}",
     "requestIntegration": "Richiedi un'integrazione",
     "browseIntegrations": "Sfoglia le integrazioni",
-    "examplePrompt": "Esempio di prompt",
-    "connectYourAi": "Collega la tua IA",
     "connectAVault": "Collega una cassaforte",
     "manageVaults": "Gestisci le casseforti",
     "baseRelations": "Relazioni del progetto",

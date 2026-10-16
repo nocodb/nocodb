@@ -4613,8 +4613,6 @@
     "byUser": "bởi {user}",
     "requestIntegration": "Yêu cầu tích hợp",
     "browseIntegrations": "Duyệt các tích hợp",
-    "examplePrompt": "Ví dụ về lời nhắc",
-    "connectYourAi": "Kết nối AI của bạn",
     "connectAVault": "Kết nối một kho khóa",
     "manageVaults": "Quản lý kho khóa",
     "baseRelations": "Quan hệ của dự án",

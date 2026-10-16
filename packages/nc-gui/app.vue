@@ -179,4 +179,6 @@ const _ = (window as any).ResizeObserver
   <LazyChatPanel />
   <LazyChatFab />
   <LazyTourHost />
+  <!-- `?mcp` opens the AI setup dialog over any page (EE). -->
+  <LazyConnectAiHost />
 </template>

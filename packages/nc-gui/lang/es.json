@@ -4602,8 +4602,6 @@
     "byUser": "por {user}",
     "requestIntegration": "Solicitar integración",
     "browseIntegrations": "Explorar integraciones",
-    "examplePrompt": "Ejemplo de prompt",
-    "connectYourAi": "Conecta tu IA",
     "connectAVault": "Conectar una bóveda",
     "manageVaults": "Gestionar bóvedas",
     "baseRelations": "Relaciones del proyecto",

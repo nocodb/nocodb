@@ -4614,8 +4614,6 @@
     "byUser": "käyttäjältä {user}",
     "requestIntegration": "Pyydä integraatiota",
     "browseIntegrations": "Selaa integraatioita",
-    "examplePrompt": "Esimerkkikehote",
-    "connectYourAi": "Yhdistä tekoälysi",
     "connectAVault": "Yhdistä holvi",
     "manageVaults": "Hallitse holveja",
     "baseRelations": "Projektin suhteet",

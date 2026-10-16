@@ -4614,8 +4614,6 @@
     "byUser": "od {user}",
     "requestIntegration": "Vyžiadať integráciu",
     "browseIntegrations": "Prehliadať integrácie",
-    "examplePrompt": "Ukážkový prompt",
-    "connectYourAi": "Pripojte svoju AI",
     "connectAVault": "Pripojiť trezor",
     "manageVaults": "Spravovať trezory",
     "baseRelations": "Vzťahy projektu",

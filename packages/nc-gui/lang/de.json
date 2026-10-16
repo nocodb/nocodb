@@ -4614,8 +4614,6 @@
     "byUser": "von {user}",
     "requestIntegration": "Integration anfragen",
     "browseIntegrations": "Integrationen durchsuchen",
-    "examplePrompt": "Beispiel-Prompt",
-    "connectYourAi": "Verbinden Sie Ihre KI",
     "connectAVault": "Vault verbinden",
     "manageVaults": "Vaults verwalten",
     "baseRelations": "Projektbeziehungen",

@@ -4616,8 +4616,6 @@
     "byUser": "{user} ചെയ്തത്",
     "requestIntegration": "സംയോജനം അഭ്യർത്ഥിക്കുക",
     "browseIntegrations": "സംയോജനങ്ങൾ പരിശോധിക്കുക",
-    "examplePrompt": "ഉദാഹരണ പ്രോംപ്റ്റ്",
-    "connectYourAi": "നിങ്ങളുടെ എഐ ബന്ധിപ്പിക്കുക",
     "connectAVault": "ഒരു വോൾട്ട് ബന്ധിപ്പിക്കുക",
     "manageVaults": "വോൾട്ടുകൾ കൈകാര്യം ചെയ്യുക",
     "baseRelations": "പ്രോജക്ടിന്റെ ബന്ധങ്ങൾ",

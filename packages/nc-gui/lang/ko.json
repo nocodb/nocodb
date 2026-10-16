@@ -4616,8 +4616,6 @@
     "byUser": "{user} 님이 작성",
     "requestIntegration": "통합 요청",
     "browseIntegrations": "통합 둘러보기",
-    "examplePrompt": "프롬프트 예시",
-    "connectYourAi": "AI 를 연결하세요",
     "connectAVault": "볼트 연결",
     "manageVaults": "볼트 관리",
     "baseRelations": "프로젝트 관계",

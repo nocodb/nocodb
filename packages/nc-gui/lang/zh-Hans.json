@@ -4616,8 +4616,6 @@
     "byUser": "由 {user} 完成",
     "requestIntegration": "申请集成",
     "browseIntegrations": "浏览集成",
-    "examplePrompt": "提示词示例",
-    "connectYourAi": "连接你的 AI",
     "connectAVault": "连接密钥库",
     "manageVaults": "管理密钥库",
     "baseRelations": "项目关系",

@@ -1,0 +1,15 @@
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="24" height="24" rx="3" fill="white"/>
+<g transform="translate(1.86 1.8) scale(0.85)">
+<path d="M11.925 24l10.425-6-10.425-6L1.5 18l10.425 6z" fill="url(#nc-cursor-fill-0)"/>
+<path d="M22.35 18V6L11.925 0v12l10.425 6z" fill="url(#nc-cursor-fill-1)"/>
+<path d="M11.925 0L1.5 6v12l10.425-6V0z" fill="url(#nc-cursor-fill-2)"/>
+<path d="M22.35 6L11.925 24V12L22.35 6z" fill="#555555"/>
+<path d="M22.35 6l-10.425 6L1.5 6h20.85z" fill="#000000"/>
+</g>
+<defs>
+<linearGradient id="nc-cursor-fill-0" x1="11.925" y1="12" x2="11.925" y2="24" gradientUnits="userSpaceOnUse"><stop offset=".16" stop-color="#000000" stop-opacity=".39"/><stop offset=".658" stop-color="#000000" stop-opacity=".8"/></linearGradient>
+<linearGradient id="nc-cursor-fill-1" x1="22.35" y1="6.037" x2="11.925" y2="12.15" gradientUnits="userSpaceOnUse"><stop offset=".182" stop-color="#000000" stop-opacity=".31"/><stop offset=".715" stop-color="#000000" stop-opacity="0"/></linearGradient>
+<linearGradient id="nc-cursor-fill-2" x1="11.925" y1="0" x2="1.5" y2="18" gradientUnits="userSpaceOnUse"><stop stop-color="#000000" stop-opacity=".6"/><stop offset=".667" stop-color="#000000" stop-opacity=".22"/></linearGradient>
+</defs>
+</svg>

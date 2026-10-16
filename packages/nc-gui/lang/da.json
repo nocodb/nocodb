@@ -4601,8 +4601,6 @@
     "byUser": "af {user}",
     "requestIntegration": "Anmod om integration",
     "browseIntegrations": "Gennemse integrationer",
-    "examplePrompt": "Eksempel på prompt",
-    "connectYourAi": "Forbind din AI",
     "connectAVault": "Forbind et pengeskab",
     "manageVaults": "Administrér pengeskabe",
     "baseRelations": "Projektrelationer",

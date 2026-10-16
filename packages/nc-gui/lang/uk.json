@@ -4617,8 +4617,6 @@
     "byUser": "від {user}",
     "requestIntegration": "Запросити інтеграцію",
     "browseIntegrations": "Переглянути інтеграції",
-    "examplePrompt": "Приклад промпту",
-    "connectYourAi": "Підключіть свій ШІ",
     "connectAVault": "Підключити сховище",
     "manageVaults": "Керувати сховищами",
     "baseRelations": "Зв'язки проєкту",

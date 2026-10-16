@@ -960,19 +960,3 @@ export function useViewColumnsOrThrow() {
   if (viewColumns == null) throw new Error('Please call `useProvideViewColumns` on the appropriate parent component')
   return viewColumns
 }
-
-// Realtime payloads carry the whole view-column row, so compare values, not key presence.
-function isGroupByChanged(col: Record<string, any>, payload: Record<string, any>) {
-  if (!col.group_by && !payload.group_by) return false
-
-  const normalize = (key: string, value: unknown) => {
-    if (key === 'group_by') return !!value
-    if (key === 'group_by_enabled') return value !== false && value !== 0
-    if (key === 'group_by_sort') return value || 'asc'
-    return value ?? null
-  }
-
-  return ['group_by', 'group_by_sort', 'group_by_order', 'group_by_enabled'].some(
-    (key) => key in payload && normalize(key, payload[key]) !== normalize(key, col[key]),
-  )
-}

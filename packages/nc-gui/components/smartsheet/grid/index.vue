@@ -22,6 +22,8 @@ const { t } = useI18n()
 
 const { isMobileMode } = useGlobal()
 
+const { metas } = useMetas()
+
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
@@ -537,7 +539,7 @@ const { windowSize, leftSidebarWidth } = toRefs(sidebarStore)
 const viewWidth = ref(0)
 
 const smartsheetEvents = (event: SmartsheetStoreEvents, payload?: { tableId?: string }) => {
-  if (!isTableEventForMeta(payload, meta.value)) return
+  if (!isTableEventForMeta(payload, meta.value, metas.value)) return
 
   if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()

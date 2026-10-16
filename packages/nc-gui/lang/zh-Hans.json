@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "升级以添加更多文档页面",
     "upgradeToAddMoreWorkflows": "升级获取更多跟功能",
     "upgradeToAddMoreScriptsSubtitle": "您当前使用的免费套餐仅允许创建一个脚本，升级套餐可以去除脚本数量限制。",
-    "upgradeToAddMoreWorkflowsSubtitle": "您当前使用的是 {activePlan} 方案，每个项目允许 {limit} 个工作流。升级到 {plan} 可获得更多。",
+    "upgradeToAddMoreWorkflowsSubtitle": "你当前使用的是 {activePlan} 方案，每个项目允许 {limit} 个工作流。升级到 {plan} 可获得更多。",
     "upgradeToAddMoreDashboardsSubtitle": "您当前的免费套餐仅允许创建一个仪表板，升级套餐可解锁仪表板数量限制。",
-    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan} 计划每个基数最多允许 {limit} 文档页。升级到 {plan} 计划可增加更多页数。",
+    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan} 方案每个项目最多允许 {limit} 个文档页面。升级到 {plan} 方案可添加更多。",
     "upgradeToUseBookmarks": "升级以使用书签",
-    "upgradeToUseBookmarksSubtitle": "升级到 {plan} 计划，可将数据库、表格、视图等加入书签，以便快速访问。",
+    "upgradeToUseBookmarksSubtitle": "升级到 {plan} 方案，即可收藏项目、数据表、视图等以便快速访问。",
     "upgradeToUseDocsExportPdf": "升级为 PDF 导出文档",
     "upgradeToUseDocsExportPdfSubtitle": "升级至 {plan} 计划，将文档导出为 PDF 文件。",
     "upgradeToUseDocsInlineComments": "升级以使用内联评论",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "当前 {activePlan} 套餐最多支持 {limit} 个 Webhook。升级到 {plan} 套餐即可无限制使用 Webhook。",
     "upgradeToAccessWebhookLogsSubtitle": "将工作区升级到 {plan} 套餐即可访问 Webhook 日志。",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "升级方案即可在不同项目之间复制数据表。",
     "formOwnerNotified": "已通知表单所有者",
     "formOwnerNotifiedSubtitle": "我们已就您的提交请求通知表单所有者。",
     "WorkspaceOwnerNotified": "已通知工作区所有者",
@@ -177,14 +177,14 @@
     "upgradeToUseWorkflows": "升级使用工作流程",
     "upgradeToUseWorkflowsSubtitle": "升级到 {plan} 计划，使用工作流自动执行任务和流程。",
     "upgradeToUsePrivateBases": "升级以解锁私有项目",
-    "upgradeToUsePrivateBasesSubtitle": "私人项目仅在 {plan} 计划中提供。立即升级即可使用。",
+    "upgradeToUsePrivateBasesSubtitle": "私有项目在 {plan} 方案中提供。立即升级即可开始使用。",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "您最多只能向该单元上传 {limit} {filePlural} 。升级到 {plan} 计划可添加更多文件。",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "升级以使用 AI 聊天",
-    "upgradeToUseAiChatSubtitle": "升级至 {plan} 计划，即可使用 AI Chat 以自然语言管理您的基地。",
+    "upgradeToUseAiChatSubtitle": "升级到 {plan} 方案，即可使用 AI 聊天以自然语言管理项目。",
     "upgradeToUseMfa": "升级以启用两步验证",
     "upgradeToUseMfaSubtitle": "升级到 {plan} 计划，为账户启用多因素身份验证。",
     "upgradeToRequireTwoFactor": "升级到需要双重身份验证",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "升级以使用团队结构",
     "upgradeToUseTeamHierarchySubtitle": "升级到 {plan} 计划，以嵌套层级组织团队，并继承成员资格。",
     "upgradeToUseTeams": "升级为使用团队",
-    "upgradeToUseTeamsSubtitle": "升级到 {plan} 计划，使用团队对用户进行分组，并管理他们对工作空间和基地的访问。",
+    "upgradeToUseTeamsSubtitle": "升级到 {plan} 方案，即可使用团队来分组用户并管理他们对工作区和项目的访问权限。",
     "upgradeToAddMoreTeams": "升级以添加更多团队",
     "upgradeToAddMoreTeamsSubtitle": "升级至 {plan} 计划，为您的工作空间添加更多团队。",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "升级至 {plan} 计划，以隐藏图库和看板视图中的字段标题。",
     "upgradeToUseFormScheduling": "升级以使用表单计划",
     "upgradeToUseFormSchedulingSubtitle": "升级到 {plan} 计划，即可安排有开始日期和到期日期的表格可用性。",
-    "upgradeToUseBaseVariables": "升级以使用基本变量",
-    "upgradeToUseBaseVariablesSubtitle": "升级到 {plan} 计划，以定义可重复使用的变量，并将其范围扩展到一个基础。",
+    "upgradeToUseBaseVariables": "升级以使用项目变量",
+    "upgradeToUseBaseVariablesSubtitle": "升级到 {plan} 方案，即可定义项目范围内可复用的变量。",
     "upgradeToUseSync": "升级使用同步",
     "upgradeToUseSyncSubtitle": "升级至 {plan} 计划，以便与内部或外部来源同步数据。",
     "upgradeToUseTableSync": "升级以使用表同步",
@@ -3112,7 +3112,11 @@
       "upgradeRequestSent": "请求已发送",
       "upgradeDescRls": "限制每个人可以查看和编辑的记录。",
       "upgradeDescRecordTemplates": "基于已保存的预填模板创建新记录。",
-      "upgradeDescDateDependency": "移动记录时自动调整关联日期。"
+      "upgradeDescDateDependency": "移动记录时自动调整关联日期。",
+      "concernProject": "项目",
+      "concernInterfaces": "界面",
+      "concernApps": "应用",
+      "concernTabs": "设置分区"
     },
     "categories": "分类",
     "blockquote": "引用",
@@ -4402,7 +4406,106 @@
         "repeatWarning": "此步骤可能会发送或更改数据。重试可能会重复执行 — 仅在可接受时开启。",
         "retries": "重试次数",
         "earlierTries": "先前的尝试",
-        "noErrorMessage": "没有错误信息"
+        "noErrorMessage": "没有错误信息",
+        "title": "失败时",
+        "retryIfFails": "此步骤失败时重试",
+        "retrySafeHint": "当服务暂时不可用时自动重试",
+        "waitBeforeRetry": "重试前等待",
+        "seconds": "秒",
+        "waitLonger": "每次等待更久",
+        "waitLongerHint": "每次尝试后等待时间翻倍，最长 1 小时",
+        "retryOn": "重试条件",
+        "retryOnTemporary": "仅限临时问题（超时、限流、服务器错误）",
+        "retryOnAny": "任何错误",
+        "triedTimes": "已尝试 {count} 次",
+        "tryNumber": "第 {n} 次尝试",
+        "succeededAfterTries": "重试 {count} 次后成功"
+      },
+      "iterate": {
+        "listPlaceholder": "选择要遍历的数组",
+        "listHelp": "从上一步中选择一个数组。每个条目将按顺序处理。",
+        "notAList": "需要一个条目列表，但此值为 {kind}。"
+      },
+      "originalRun": "原始运行",
+      "duration": {
+        "milliseconds": "{n} 毫秒",
+        "seconds": "{n} 秒",
+        "minutesSeconds": "{m} 分 {s} 秒"
+      },
+      "overview": {
+        "lastRun": "上次运行",
+        "failedCount": "{n} 个失败",
+        "allTested": "所有步骤均已测试"
+      },
+      "addStep": "添加步骤",
+      "nodePicker": {
+        "upgradeToUseStep": "升级到 {plan} 方案即可使用 {step}",
+        "search": "搜索步骤和应用",
+        "searchTriggers": "搜索，例如“新建行”“每周一”",
+        "searchIn": "搜索 {app}",
+        "apps": "应用",
+        "integrations": "集成",
+        "popular": "热门",
+        "chooseTrigger": "选择触发器",
+        "chooseTriggerHint": "每个工作流都以触发器开始：即启动它的事件。",
+        "noMatches": "没有匹配的步骤",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "记录{bold}",
+            "bold": "被创建"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "记录{bold}",
+            "bold": "被更新"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "记录{bold}",
+            "bold": "被删除"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "记录{bold}",
+            "bold": "进入视图"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "记录{bold}",
+            "bold": "符合条件"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "提交表单"
+          },
+          "core_trigger_button": {
+            "text": "在记录上{bold}",
+            "bold": "点击按钮"
+          },
+          "nocodb_trigger_comment": {
+            "text": "在记录上{bold}",
+            "bold": "评论"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "按计划"
+          },
+          "core_trigger_webhook": {
+            "text": "当{bold}时",
+            "bold": "收到 Webhook"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "手动"
+          }
+        },
+        "groups": {
+          "recordEvents": "当",
+          "userActions": "当用户",
+          "runs": "运行",
+          "records": "记录",
+          "logic": "逻辑",
+          "ai": "人工智能",
+          "messages": "消息",
+          "developer": "开发者",
+          "other": "其他"
+        }
       }
     },
     "xAxis": "X 轴",
@@ -5051,7 +5154,37 @@
     "licenseExpired": "许可证已过期",
     "talkToSales": "联系销售",
     "paidAnnually": "按年付费",
-    "paidMonthly": "按月付费"
+    "paidMonthly": "按月付费",
+    "addAttachment": "添加附件",
+    "fromAttachmentField": "来自附件字段",
+    "uploadFile": "上传文件",
+    "fromUrl": "来自 URL",
+    "attachFromUrl": "从 URL 添加附件",
+    "removeAttachment": "移除附件",
+    "attachmentFieldChip": "字段",
+    "setPageAccess": "设置页面访问权限",
+    "readOnlyMember": "只读成员",
+    "aReadOnlyMember": "一位只读成员",
+    "readOnlyMembers": "只读成员",
+    "backToData": "返回数据",
+    "appShare": {
+      "customTeamDescription": "由该应用定义的团队。",
+      "membersTeamDescription": "使用该应用。",
+      "adminTeamDescription": "使用该应用并管理其成员。",
+      "noAccessTeamDescription": "尚未授予任何操作，因此其成员无法打开该应用。"
+    },
+    "viewActions": "视图操作",
+    "renameView": "重命名视图",
+    "generateWithAi": "使用 AI 生成",
+    "deleteView": "删除视图",
+    "addToFavourites": "添加到收藏",
+    "contextMenu": "右键菜单",
+    "editSqlView": "编辑 SQL 视图",
+    "noWebhooksYet": "暂无 Webhook",
+    "navigation": "导航",
+    "prompts": "提示词",
+    "pagination": "分页",
+    "showRowNumbers": "显示行号"
   },
   "activity": {
     "useTemplate": "使用模板",
@@ -5367,7 +5500,7 @@
     "notAvailableForNewRecord": "创建新记录时不可用",
     "conditionallyVisibleField": "有条件可见字段",
     "bookmarks": "书签",
-    "variableInheritance": "决定将此项目作为应用安装的人可以对该变量执行的操作：“固定”保留并隐藏您的值，“可编辑”以您的值作为起点，“必填”要求对方自行提供值。",
+    "variableInheritance": "决定将此项目安装为应用的人可以对该变量做什么：固定会保留并隐藏你的值，可编辑会把你的值作为起点，必填则要求他们自行提供。",
     "inheritedMembersInfo": "这些成员属于父团队，继承分配给该团队的资源。",
     "teamScopeThisOnly": "仅此团队。点击可包含子团队",
     "teamScopeIncludesSubTeams": "包含子团队。点击可仅匹配此团队",
@@ -5395,7 +5528,7 @@
     "dataWriteOptionDisabled": "数据编辑只有在“模式编辑”也被禁用时才能被禁用。",
     "allowMetaWrite": "此选项允许修改数据库架构，包括添加、更改或删除表和列。请谨慎使用，因为更改可能会影响数据库的结构完整性。",
     "allowDataWrite": "此选项允许在数据库表中创建、更新或删除记录。适用于需要直接更改数据的管理用户。",
-    "reachedSourceLimit": "暂时只限于一个数据源",
+    "reachedSourceLimit": "每个项目最多 10 个数据源",
     "saveChanges": "保存更改",
     "clientKey": "选择 .key 文件",
     "clientCert": "选择 .cert 文件",
@@ -5421,7 +5554,7 @@
     "selectAllMappedFields": "选择所有已映射字段",
     "copyErrorMessage": "复制错误信息",
     "copyErrorCode": "复制错误代码",
-    "paidUserBadgeTooltip": "占用一个付费席位。在工作区级别、某个数据库中或某个界面上具有编辑者及以上角色。",
+    "paidUserBadgeTooltip": "占用一个付费席位。在工作区级别、项目中或界面上拥有编辑者及以上角色。",
     "approachingLimit": "接近限制",
     "exceedingLimit": "超出限制",
     "filteredByCurrentUser": "按当前用户筛选",
@@ -5465,8 +5598,8 @@
     "onlyViewOwnerCanCopyViewConfig": "只有视图所有者才能复制视图配置",
     "onlyViewOwnerCanModifyPersonalView": "只有视图所有者可以修改此个人视图",
     "onlyViewOwnerCanDeletePersonalView": "只有视图所有者可以删除此个人视图",
-    "onlyCreatorsCanLockView": "只有基础创建者或所有者可以锁定视图",
-    "onlyCreatorsCanUnlockView": "只有基础创建者或所有者才能解锁视图",
+    "onlyCreatorsCanLockView": "只有项目的创建者或所有者才能锁定视图",
+    "onlyCreatorsCanUnlockView": "只有项目的创建者或所有者才能解锁视图",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "要复制配置，至少需要一个现有视图。要启用此选项，请先创建一个视图。",
     "youDoNotHaveSufficientPermissionToAddExtension": "您没有足够的权限添加扩展名",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "您没有足够的权限配置此扩展名",
@@ -5493,7 +5626,7 @@
     "interfaceMixedRoles": "不同界面或页面的角色各不相同。展开即可查看",
     "chatQueueAttachmentUnavailable": "如果你将消息加入队列，此附件将不会发送。请先移除它",
     "lockedViewDisabledOnProduction": "锁定视图只能在环境副本中创建",
-    "personalViewDisabledOnEnvironment": "个人视图只能在生产 Base 上创建",
+    "personalViewDisabledOnEnvironment": "个人视图只能在生产项目中创建",
     "seeNComments": "查看 {n} 条评论 | 查看 {n} 条评论",
     "collapsibleGroups": "允许折叠带标题的分组",
     "nestedRecordsRequireSelfLink": "需要在此表格中有一个指回同一表格的链接字段。",
@@ -5510,10 +5643,10 @@
     "youDontHaveAccessToCreateNewInterface": "你没有创建新 Interface 的权限",
     "displayValueFieldCannotBeReordered": "显示值字段无法重新排序",
     "interfaceLastVizRequired": "页面至少需要一个可视化",
-    "onlyCreatorsCanManageViewFolders": "只有 Base 的创建者或所有者才能管理视图文件夹",
-    "onlyCreatorsCanManageFolders": "只有 Base 的创建者或所有者才能管理文件夹",
+    "onlyCreatorsCanManageViewFolders": "只有项目的创建者或所有者才能管理视图文件夹",
+    "onlyCreatorsCanManageFolders": "只有项目的创建者或所有者才能管理文件夹",
     "organizeViewsIntoFolders": "将视图整理到可折叠的文件夹中",
-    "productionLockedByEnvironment": "此数据库已在某个环境中打开。请在那里进行架构更改。",
+    "productionLockedByEnvironment": "此项目已在某个环境中打开。请在该环境中修改结构。",
     "managedByPublisher": "此 App 的结构由其发布者管理。你的文档和文件夹可以自行添加。",
     "featureOnProductionOnly": "此操作在生产项目中管理，而不是在环境副本中。",
     "clickToEdit": "点击编辑",
@@ -5569,8 +5702,8 @@
     "showAllFields": "显示所有字段",
     "inviteLinkCannotGrantOwner": "邀请链接无法授予所有者角色",
     "inviteLinkRoleAboveYours": "你只能授予不高于自己的角色",
-    "noDefaultSourceForFolders": "此数据库没有默认数据源。请改从某个数据源自身的菜单创建文件夹",
-    "noDefaultSourceForSync": "此数据库没有默认数据源。同步需要一个数据源来存放其表"
+    "noDefaultSourceForFolders": "此项目没有默认数据源。请从各数据源自己的菜单中创建文件夹",
+    "noDefaultSourceForSync": "此项目没有默认数据源。同步需要一个数据源来存放其数据表"
   },
   "placeholder": {
     "enterVerificationCode": "输入 6 位数字代码",
@@ -7235,8 +7368,8 @@
         "description": "快速浏览一遍你的工作区。你随时可以退出，点击跳过即可。"
       },
       "createBase": {
-        "title": "从一个 Base 开始",
-        "description": "Base 里存放着你的表格、视图和自动化。大部分工作都从这里开始。"
+        "title": "从一个项目开始",
+        "description": "项目包含你的数据表、视图和自动化。大部分工作都从这里开始。"
       },
       "switchWorkspaces": {
         "title": "切换工作区",

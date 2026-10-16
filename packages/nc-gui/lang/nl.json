@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Upgrade om meer documentpagina's toe te voegen",
     "upgradeToAddMoreWorkflows": "Upgrade om meer workflows toe te voegen",
     "upgradeToAddMoreScriptsSubtitle": "Je zit momenteel in het gratis abonnement, waarmee slechts één script per werkruimte is toegestaan. Upgrade om onbeperkt scripts te ontgrendelen.",
-    "upgradeToAddMoreWorkflowsSubtitle": "Je zit nu op het {activePlan}-abonnement, dat {limit} workflows per base toestaat. Upgrade naar {plan} voor meer.",
+    "upgradeToAddMoreWorkflowsSubtitle": "Je gebruikt momenteel het {activePlan}-abonnement, dat {limit} workflows per project toestaat. Upgrade naar {plan} voor meer.",
     "upgradeToAddMoreDashboardsSubtitle": "Je zit momenteel in het gratis abonnement, waarmee slechts één dashboard per werkruimte is toegestaan. Upgrade om onbeperkt dashboards te ontgrendelen.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "Het {activePlan} abonnement staat maximaal {limit} documentpagina's per basis toe. Upgrade naar het {plan} plan om meer toe te voegen.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "Het {activePlan}-abonnement staat tot {limit} documentpagina's per project toe. Upgrade naar het {plan}-abonnement om er meer toe te voegen.",
     "upgradeToUseBookmarks": "Upgrade om bladwijzers te gebruiken",
-    "upgradeToUseBookmarksSubtitle": "Upgrade naar het {plan} plan om bases, tabellen, weergaven en meer te reserveren voor snelle toegang.",
+    "upgradeToUseBookmarksSubtitle": "Upgrade naar het {plan}-abonnement om projecten, tabellen, weergaven en meer als bladwijzer op te slaan voor snelle toegang.",
     "upgradeToUseDocsExportPdf": "Upgrade om documenten als PDF te exporteren",
     "upgradeToUseDocsExportPdfSubtitle": "Upgrade naar het {plan} abonnement om uw documenten als PDF-bestanden te exporteren.",
     "upgradeToUseDocsInlineComments": "Upgrade om inline reacties te gebruiken",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "Het {activePlan}-abonnement ondersteunt maximaal {limit} webhooks. Upgrade naar het {plan}-abonnement voor onbeperkte webhooks.",
     "upgradeToAccessWebhookLogsSubtitle": "Krijg toegang tot webhooklogboeken door uw werkruimte te upgraden naar het {plan}-abonnement.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade je abonnement om tabellen naar andere projecten te dupliceren.",
     "formOwnerNotified": "Formuliereigenaar geïnformeerd",
     "formOwnerNotifiedSubtitle": "We hebben de formuliereigenaar op de hoogte gebracht van uw verzoek om in te dienen.",
     "WorkspaceOwnerNotified": "Werkruimte-eigenaar geïnformeerd",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Upgrade naar het {plan} plan om te bepalen wie individuele pagina's in uw documenten kan bekijken en bewerken.",
     "upgradeToUseWorkflows": "Upgrade om workflows te gebruiken",
     "upgradeToUseWorkflowsSubtitle": "Upgrade naar het {plan} plan om workflows te gebruiken om taken en processen te automatiseren.",
-    "upgradeToUsePrivateBases": "Upgrade om privé-bases te ontgrendelen",
-    "upgradeToUsePrivateBasesSubtitle": "Privé-bases zijn beschikbaar op het {plan}-abonnement. Upgrade nu om ermee te starten.",
+    "upgradeToUsePrivateBases": "Upgrade om privéprojecten te ontgrendelen",
+    "upgradeToUsePrivateBasesSubtitle": "Privéprojecten zijn beschikbaar in het {plan}-abonnement. Upgrade nu om ze te gebruiken.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Je kunt maximaal {limit} {filePlural} uploaden naar deze cel. Upgrade naar het {plan}-abonnement om meer bestanden toe te voegen.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Upgrade om AI Chat te gebruiken",
-    "upgradeToUseAiChatSubtitle": "Upgrade naar het {plan} plan om AI Chat te gebruiken om uw basis met een natuurlijke taal te beheren.",
+    "upgradeToUseAiChatSubtitle": "Upgrade naar het {plan}-abonnement om AI-chat te gebruiken en je project met natuurlijke taal te beheren.",
     "upgradeToUseMfa": "Upgrade om tweestapsverificatie in te schakelen",
     "upgradeToUseMfaSubtitle": "Upgrade naar het {plan} abonnement om multi-factor authenticatie voor uw account in te schakelen.",
     "upgradeToRequireTwoFactor": "Upgrade om tweestapsverificatie te vereisen",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Upgrade om teamhiërarchie te gebruiken",
     "upgradeToUseTeamHierarchySubtitle": "Upgrade naar het {plan} plan om teams in geneste hiërarchieën met geërfde lidmaatschap te organiseren.",
     "upgradeToUseTeams": "Upgrade om teams te gebruiken",
-    "upgradeToUseTeamsSubtitle": "Upgrade naar het {plan} plan om teams te gebruiken om gebruikers te groeperen en hun toegang tot werkruimten en bases te beheren.",
+    "upgradeToUseTeamsSubtitle": "Upgrade naar het {plan}-abonnement om teams te gebruiken, gebruikers te groeperen en hun toegang tot werkruimten en projecten te beheren.",
     "upgradeToAddMoreTeams": "Upgrade om meer teams toe te voegen",
     "upgradeToAddMoreTeamsSubtitle": "Upgrade naar het {plan} plan om meer teams aan uw werkruimte toe te voegen.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade naar het plan {plan} om veldkoppen te verbergen in Galerij- en Kanban-weergaven.",
     "upgradeToUseFormScheduling": "Upgraden om formulierplanning te gebruiken",
     "upgradeToUseFormSchedulingSubtitle": "Upgrade naar het {plan} plan om de beschikbaarheid van de formulieren met begin- en vervaldatum te plannen.",
-    "upgradeToUseBaseVariables": "Upgrade om basisvariabelen te gebruiken",
-    "upgradeToUseBaseVariablesSubtitle": "Upgrade naar het {plan} plan om herbruikbare variabelen te definiëren naar een basis.",
+    "upgradeToUseBaseVariables": "Upgrade om projectvariabelen te gebruiken",
+    "upgradeToUseBaseVariablesSubtitle": "Upgrade naar het {plan}-abonnement om herbruikbare variabelen op projectniveau te definiëren.",
     "upgradeToUseSync": "Upgrade om sync te gebruiken",
     "upgradeToUseSyncSubtitle": "Upgrade naar het {plan} plan om gegevens met interne of externe bronnen te synchroniseren.",
     "upgradeToUseTableSync": "Upgrade om tabelsynchronisatie te gebruiken",
@@ -3103,7 +3103,11 @@
       "upgradeRequestSent": "Verzoek verzonden",
       "upgradeDescRls": "Beperk welke records iedere persoon mag zien en bewerken.",
       "upgradeDescRecordTemplates": "Maak nieuwe records op basis van opgeslagen, vooraf ingevulde sjablonen.",
-      "upgradeDescDateDependency": "Verschuif afhankelijke datums automatisch wanneer een record verplaatst wordt."
+      "upgradeDescDateDependency": "Verschuif afhankelijke datums automatisch wanneer een record verplaatst wordt.",
+      "concernProject": "Project",
+      "concernInterfaces": "Interfaces",
+      "concernApps": "App",
+      "concernTabs": "Instellingensecties"
     },
     "categories": "Categorieën",
     "blockquote": "Citaat",
@@ -4386,7 +4390,104 @@
         "repeatWarning": "Deze stap kan gegevens verzenden of wijzigen. Opnieuw proberen kan dit herhalen — schakel dit alleen in als dat geen probleem is.",
         "retries": "Aantal nieuwe pogingen",
         "earlierTries": "Eerdere pogingen",
-        "noErrorMessage": "Geen foutmelding"
+        "noErrorMessage": "Geen foutmelding",
+        "title": "Bij mislukking",
+        "retryIfFails": "Opnieuw proberen als deze stap mislukt",
+        "retrySafeHint": "Probeert automatisch opnieuw wanneer een dienst tijdelijk niet beschikbaar is",
+        "waitBeforeRetry": "Wachten voor opnieuw proberen",
+        "seconds": "seconden",
+        "waitLonger": "Elke keer langer wachten",
+        "waitLongerHint": "Verdubbelt de wachttijd na elke poging, tot 1 uur",
+        "retryOn": "Opnieuw proberen bij",
+        "retryOnTemporary": "Alleen tijdelijke problemen (time-outs, snelheidslimieten, serverfouten)",
+        "retryOnAny": "Elke fout",
+        "triedTimes": "{count} pogingen gedaan",
+        "tryNumber": "Poging {n}",
+        "succeededAfterTries": "Geslaagd na {count} pogingen"
+      },
+      "iterate": {
+        "listPlaceholder": "Selecteer een array om te doorlopen",
+        "listHelp": "Selecteer een array uit een vorige stap. Elk item wordt achter elkaar verwerkt.",
+        "notAList": "Heeft een lijst met items nodig, maar deze waarde is {kind}."
+      },
+      "originalRun": "de oorspronkelijke uitvoering",
+      "duration": {
+        "milliseconds": "{n} ms",
+        "seconds": "{n} s",
+        "minutesSeconds": "{m} min {s} s"
+      },
+      "overview": {
+        "lastRun": "Laatste uitvoering",
+        "failedCount": "{n} mislukt",
+        "allTested": "Alle stappen getest"
+      },
+      "addStep": "Een stap toevoegen",
+      "nodePicker": {
+        "upgradeToUseStep": "Upgrade naar het {plan}-abonnement om {step} te gebruiken",
+        "search": "Zoek stappen en apps",
+        "searchTriggers": "Zoek, bijv. “nieuwe rij”, “elke maandag”",
+        "searchIn": "Zoeken in {app}",
+        "apps": "Apps",
+        "integrations": "Integraties",
+        "popular": "Populair",
+        "chooseTrigger": "Kies een trigger",
+        "chooseTriggerHint": "Elke workflow begint met een trigger: de gebeurtenis die hem start.",
+        "noMatches": "Geen overeenkomende stappen",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "Record wordt {bold}",
+            "bold": "aangemaakt"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "Record wordt {bold}",
+            "bold": "bijgewerkt"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "Record wordt {bold}",
+            "bold": "verwijderd"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "Het record {bold}",
+            "bold": "komt in een weergave"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "Het record {bold}",
+            "bold": "voldoet aan voorwaarden"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "Verstuurt een formulier"
+          },
+          "core_trigger_button": {
+            "text": "{bold} bij een record",
+            "bold": "Klikt op een knop"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} op een record",
+            "bold": "Reageert"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "Volgens een schema"
+          },
+          "core_trigger_webhook": {
+            "text": "Wanneer {bold}",
+            "bold": "webhook ontvangen"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "Handmatig"
+          }
+        },
+        "groups": {
+          "recordEvents": "Wanneer",
+          "userActions": "Wanneer gebruiker",
+          "runs": "Uitvoeringen",
+          "logic": "Logica",
+          "messages": "Berichten",
+          "developer": "Ontwikkelaar",
+          "other": "Overig"
+        }
       }
     },
     "xAxis": "X-as",
@@ -5023,7 +5124,37 @@
     "talkToSales": "Neem contact op met verkoop",
     "paidAnnually": "Jaarlijks betaald",
     "paidMonthly": "Maandelijks betaald",
-    "skillScopeBase": "Project"
+    "skillScopeBase": "Project",
+    "addAttachment": "Bijlage toevoegen",
+    "fromAttachmentField": "Uit bijlageveld",
+    "uploadFile": "Bestand uploaden",
+    "fromUrl": "Vanaf URL",
+    "attachFromUrl": "Bijvoegen vanaf URL",
+    "removeAttachment": "Bijlage verwijderen",
+    "attachmentFieldChip": "veld",
+    "setPageAccess": "Paginatoegang instellen",
+    "readOnlyMember": "lid met alleen-lezenrechten",
+    "aReadOnlyMember": "een lid met alleen-lezenrechten",
+    "readOnlyMembers": "leden met alleen-lezenrechten",
+    "backToData": "Terug naar gegevens",
+    "appShare": {
+      "customTeamDescription": "Een team dat deze app definieert.",
+      "membersTeamDescription": "Gebruikt de app.",
+      "adminTeamDescription": "Gebruikt de app en beheert de leden ervan.",
+      "noAccessTeamDescription": "Nog geen acties toegekend, dus de leden kunnen de app niet openen."
+    },
+    "viewActions": "Weergaveacties",
+    "renameView": "Weergave hernoemen",
+    "generateWithAi": "Genereren met AI",
+    "deleteView": "Weergave verwijderen",
+    "addToFavourites": "Toevoegen aan favorieten",
+    "contextMenu": "Contextmenu",
+    "editSqlView": "SQL-weergave bewerken",
+    "noWebhooksYet": "Nog geen webhooks",
+    "navigation": "Navigatie",
+    "prompts": "Prompts",
+    "pagination": "Paginering",
+    "showRowNumbers": "Rijnummers tonen"
   },
   "activity": {
     "useTemplate": "Sjabloon gebruiken",
@@ -5364,7 +5495,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "Deze optie staat wijzigingen in het databaseschema toe, waaronder het toevoegen, wijzigen of verwijderen van tabellen en kolommen. Gebruik met voorzichtigheid, aangezien wijzigingen de structurele integriteit van uw database kunnen beïnvloeden.",
     "allowDataWrite": "Deze optie maakt het mogelijk om records binnen databasetabellen te maken, bij te werken of te verwijderen. Ideaal voor administratieve gebruikers die direct gegevens willen wijzigen.",
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Beperkt tot 10 gegevensbronnen per project",
     "saveChanges": "Wijzigingen opslaan",
     "clientKey": "Selecteer .key-bestand",
     "clientCert": "Selecteer .cert-bestand",
@@ -5390,7 +5521,7 @@
     "selectAllMappedFields": "Alle gekoppelde velden selecteren",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Foutcode kopiëren",
-    "paidUserBadgeTooltip": "Verbruikt een betaalde zetel. Rol editor of hoger op werkruimteniveau, in een base of op een interface.",
+    "paidUserBadgeTooltip": "Neemt een betaalde plaats in beslag. Rol Bewerker of hoger op werkruimteniveau, in een project of op een interface.",
     "approachingLimit": "Nadert limiet",
     "exceedingLimit": "Limiet overschreden",
     "filteredByCurrentUser": "Gefilterd op huidige gebruiker",
@@ -5434,8 +5565,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Alleen view-eigenaar kan view-configuratie kopiëren",
     "onlyViewOwnerCanModifyPersonalView": "Alleen de eigenaar van de weergave kan deze persoonlijke weergave wijzigen",
     "onlyViewOwnerCanDeletePersonalView": "Alleen de eigenaar van de weergave kan deze persoonlijke weergave verwijderen",
-    "onlyCreatorsCanLockView": "Alleen basismakers of eigenaren kunnen een beeld vergrendelen",
-    "onlyCreatorsCanUnlockView": "Alleen de basismakers of eigenaren kunnen een weergave ontgrendelen",
+    "onlyCreatorsCanLockView": "Alleen makers of eigenaren van het project kunnen een weergave vergrendelen",
+    "onlyCreatorsCanUnlockView": "Alleen makers of eigenaren van het project kunnen een weergave ontgrendelen",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "U hebt minstens één bestaande weergave nodig om configuraties te kopiëren. Maak eerst een weergave om deze optie in te schakelen.",
     "youDoNotHaveSufficientPermissionToAddExtension": "U hebt niet voldoende rechten om een extensie toe te voegen",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "U hebt onvoldoende rechten om deze extensie te configureren",
@@ -5451,7 +5582,7 @@
     "sortingNotSupportedForFieldsWithErrors": "Sorteren wordt niet ondersteund voor velden met fouten",
     "sortingNotSupportedForField": "Sorteren wordt niet ondersteund voor {type} veld",
     "groupingNotSupportedForFieldsWithErrors": "Groepering wordt niet ondersteund voor velden met fouten",
-    "variableInheritance": "Bepaalt wat mensen die deze base als app installeren met deze variabele kunnen doen: Vast behoudt jouw waarde en verbergt die, Bewerkbaar biedt jouw waarde als startpunt, Vereist vraagt hen een eigen waarde op te geven.",
+    "variableInheritance": "Bepaalt wat mensen die dit project als app installeren met deze variabele kunnen doen: Vast behoudt jouw waarde en verbergt die, Bewerkbaar biedt jouw waarde als startpunt, Vereist vraagt hen een eigen waarde op te geven.",
     "workflowButtonTriggerSourceReadOnly": "De brontabel die aan deze knop is gekoppeld, kan alleen via Interfaces worden gewijzigd",
     "workflowButtonTriggerInterfaceReadOnly": "De Interface-pagina met deze knop kan alleen via Interfaces worden gewijzigd",
     "chartIncludeOthers": "Categorieën boven de limiet samenvoegen tot één categorie 'Overige' in plaats van ze weg te laten.",
@@ -5463,7 +5594,7 @@
     "interfaceMixedRoles": "De rollen verschillen per interface of pagina. Klap uit om ze te bekijken",
     "chatQueueAttachmentUnavailable": "Deze bijlage wordt niet verzonden als je je bericht in de wachtrij zet. Verwijder die eerst",
     "lockedViewDisabledOnProduction": "Vergrendelde weergaven kunnen alleen in de omgevingskopie worden gemaakt",
-    "personalViewDisabledOnEnvironment": "Persoonlijke weergaven kunnen alleen op de productie-Base worden gemaakt",
+    "personalViewDisabledOnEnvironment": "Persoonlijke weergaven kunnen alleen in het productieproject worden gemaakt",
     "seeNComments": "{n} reactie bekijken | {n} reacties bekijken",
     "collapsibleGroups": "Groepen met een titel kunnen worden ingeklapt",
     "nestedRecordsRequireSelfLink": "Vereist een koppelingsveld in deze tabel dat terugverwijst naar dezelfde tabel.",
@@ -5480,10 +5611,10 @@
     "youDontHaveAccessToCreateNewInterface": "Je hebt geen rechten om een nieuwe Interface te maken",
     "displayValueFieldCannotBeReordered": "Het veld met de weergavewaarde kan niet worden herschikt",
     "interfaceLastVizRequired": "Een pagina heeft minstens één visualisatie nodig",
-    "onlyCreatorsCanManageViewFolders": "Alleen makers of eigenaren van de Base kunnen weergavemappen beheren",
-    "onlyCreatorsCanManageFolders": "Alleen makers of eigenaren van de Base kunnen mappen beheren",
+    "onlyCreatorsCanManageViewFolders": "Alleen makers of eigenaren van het project kunnen weergavemappen beheren",
+    "onlyCreatorsCanManageFolders": "Alleen makers of eigenaren van het project kunnen mappen beheren",
     "organizeViewsIntoFolders": "Weergaven ordenen in inklapbare mappen",
-    "productionLockedByEnvironment": "Deze base is geopend in een omgeving. Breng schemawijzigingen daar aan.",
+    "productionLockedByEnvironment": "Dit project is geopend in een omgeving. Breng schemawijzigingen daar aan.",
     "managedByPublisher": "De structuur van deze App wordt beheerd door de uitgever. Je documenten en mappen voeg je zelf toe.",
     "featureOnProductionOnly": "Deze actie wordt beheerd in het productieproject, niet in een omgevingskopie.",
     "clickToEdit": "Klik om te bewerken",
@@ -5539,8 +5670,8 @@
     "showAllFields": "Alle velden tonen",
     "inviteLinkCannotGrantOwner": "Een uitnodigingslink kan de rol Eigenaar niet toekennen",
     "inviteLinkRoleAboveYours": "Je kunt alleen rollen tot en met je eigen rol aanbieden",
-    "noDefaultSourceForFolders": "Deze base heeft geen standaardbron. Maak mappen in plaats daarvan via het eigen menu van een bron",
-    "noDefaultSourceForSync": "Deze base heeft geen standaardbron. Een synchronisatie heeft er een nodig om de tabellen op te slaan"
+    "noDefaultSourceForFolders": "Dit project heeft geen standaardbron. Maak mappen aan vanuit het menu van de bron zelf",
+    "noDefaultSourceForSync": "Dit project heeft geen standaardbron. Een synchronisatie heeft er een nodig om haar tabellen op te slaan"
   },
   "placeholder": {
     "enterVerificationCode": "6-cijferige code invoeren",
@@ -7205,8 +7336,8 @@
         "description": "Een korte rondleiding door je werkruimte. Je kunt op elk moment stoppen: klik op Overslaan."
       },
       "createBase": {
-        "title": "Begin met een Base",
-        "description": "Een Base bevat je tabellen, weergaven en automatiseringen. Hier begint het meeste werk."
+        "title": "Begin met een project",
+        "description": "Een project bevat je tabellen, weergaven en automatiseringen. Hier begint het meeste werk."
       },
       "switchWorkspaces": {
         "title": "Van werkruimte wisselen",

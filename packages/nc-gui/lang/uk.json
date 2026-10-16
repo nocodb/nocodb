@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Оновіть, щоб додати більше сторінок документів",
     "upgradeToAddMoreWorkflows": "Upgrade to add more workflows",
     "upgradeToAddMoreScriptsSubtitle": "Ви зараз на безкоштовному плані, який дозволяє лише один скрипт на робочий простір. Оновіть тариф, щоб розблокувати необмежену кількість скриптів.",
-    "upgradeToAddMoreWorkflowsSubtitle": "Зараз у вас тариф {activePlan}, який дозволяє {limit} робочих процесів на базу. Перейдіть на {plan}, щоб мати більше.",
+    "upgradeToAddMoreWorkflowsSubtitle": "Зараз у вас тариф {activePlan}, який дозволяє {limit} робочих процесів на проєкт. Перейдіть на {plan}, щоб отримати більше.",
     "upgradeToAddMoreDashboardsSubtitle": "Ви зараз на безкоштовному тарифі, який дозволяє лише одну панель керування на робочий простір. Оновіть тариф, щоб розблокувати необмежену кількість панелей керування.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "Тарифний план {activePlan} дозволяє додавати сторінки документів від {limit} в одній основі. Оновіться до плану {plan} , щоб додати більше.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "Тариф {activePlan} дозволяє до {limit} сторінок документа на проєкт. Перейдіть на тариф {plan}, щоб додати більше.",
     "upgradeToUseBookmarks": "Оновити до використання закладок",
-    "upgradeToUseBookmarksSubtitle": "Перейдіть на план {plan} , щоб додати до бази закладок, таблиць, переглядів та багато для швидкого доступу.",
+    "upgradeToUseBookmarksSubtitle": "Перейдіть на тариф {plan}, щоб додавати проєкти, таблиці, вигляди та інше до закладок для швидкого доступу.",
     "upgradeToUseDocsExportPdf": "Оновіться до експорту документів в PDF",
     "upgradeToUseDocsExportPdfSubtitle": "Оновіться до плану {plan} , щоб експортувати ваші документи у вигляді PDF-файлів.",
     "upgradeToUseDocsInlineComments": "Оновіть, щоб використовувати вбудовані коментарі",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "Тариф {activePlan} дозволяє до {limit} вебхуків. Перейдіть на тариф {plan}, щоб отримати необмежену кількість вебхуків.",
     "upgradeToAccessWebhookLogsSubtitle": "Отримайте доступ до журналів вебхуків, оновивши робочий простір до тарифу {plan}.",
     "upgradeToDuplicateTableToOtherWs": "Оновіть свій план, щоб дублювати таблиці між різними робочими просторами.",
-    "upgradeToDuplicateTableToOtherBase": "Оновіть свій план, щоб дублювати таблиці між різними базами.",
+    "upgradeToDuplicateTableToOtherBase": "Підвищте тариф, щоб дублювати таблиці між різними проєктами.",
     "formOwnerNotified": "Власника форми повідомлено",
     "formOwnerNotifiedSubtitle": "Ми повідомили власника форми про ваш запит на надсилання.",
     "WorkspaceOwnerNotified": "Власника робочого простору повідомлено",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Оновіть план {plan} , щоб контролювати, хто може переглядати та редагувати окремі сторінки в документації.",
     "upgradeToUseWorkflows": "Upgrade to use workflows",
     "upgradeToUseWorkflowsSubtitle": "Upgrade to the {plan} plan to use workflows to automate tasks and processes.",
-    "upgradeToUsePrivateBases": "Оновіть тариф для розблокування приватних баз",
-    "upgradeToUsePrivateBasesSubtitle": "Приватні бази доступні у плані {plan}. Оновіть тариф, щоб почати користуватись ними.",
+    "upgradeToUsePrivateBases": "Підвищте тариф, щоб відкрити приватні проєкти",
+    "upgradeToUsePrivateBasesSubtitle": "Приватні проєкти доступні на тарифі {plan}. Підвищте тариф зараз, щоб почати ними користуватися.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Ви можете завантажити не більше {limit} {filePlural} у цю клітинку. Оновіть до тарифу {plan}, щоб додавати більше файлів.",
     "upgradeToUseAiTextField": "Оновіться, щоб використовувати ШІ текстові поля",
     "upgradeToUseAiTextFieldSubtitle": "Оновіться до {plan} плану аби використовувати ШІ текстові поля для генерації текст на основі вашого запиту.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Оновити, щоб використовувати AI Chat",
-    "upgradeToUseAiChatSubtitle": "Оновіть до плану {plan} , щоб використовувати AI Chat для керування вашою базою з природною мовою.",
+    "upgradeToUseAiChatSubtitle": "Перейдіть на тариф {plan}, щоб користуватися ШІ-чатом і керувати проєктом природною мовою.",
     "upgradeToUseMfa": "Оновити, щоб увімкнути двофакторну автентифікацію",
     "upgradeToUseMfaSubtitle": "Перейдіть на план {plan} , щоб активувати багатофакторну автентифікацію для вашого облікового запису.",
     "upgradeToRequireTwoFactor": "Оновити, щоб вимагати двофакторної аутентифікації",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Оновіться до використання ієрархії команд",
     "upgradeToUseTeamHierarchySubtitle": "Оновіться до плану {plan} , щоб організувати команди в вкладених ієрархіях, із успадкованим членством.",
     "upgradeToUseTeams": "Upgrade to use teams",
-    "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases.",
+    "upgradeToUseTeamsSubtitle": "Перейдіть на тариф {plan}, щоб за допомогою команд групувати користувачів і керувати їхнім доступом до робочих областей і проєктів.",
     "upgradeToAddMoreTeams": "Upgrade to add more teams",
     "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views.",
     "upgradeToUseFormScheduling": "Оновіть щоб використовувати планування форм",
     "upgradeToUseFormSchedulingSubtitle": "Оновіть план {plan} , щоб запланувати доступність форми з початком і строком придатності.",
-    "upgradeToUseBaseVariables": "Оновіться для використання базових змінних",
-    "upgradeToUseBaseVariablesSubtitle": "Оновіться до плану {plan} , щоб визначити повторювані змінні видимі для основи.",
+    "upgradeToUseBaseVariables": "Підвищте тариф, щоб користуватися змінними проєкту",
+    "upgradeToUseBaseVariablesSubtitle": "Перейдіть на тариф {plan}, щоб задавати багаторазові змінні в межах проєкту.",
     "upgradeToUseSync": "Upgrade to use sync",
     "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources.",
     "upgradeToUseTableSync": "Оновіть, щоб використовувати синхронізацію таблиць",
@@ -3112,7 +3112,11 @@
       "upgradeRequestSent": "Запит надіслано",
       "upgradeDescRls": "Обмежте, які записи кожна людина може бачити та редагувати.",
       "upgradeDescRecordTemplates": "Створюйте нові записи зі збережених, попередньо заповнених шаблонів.",
-      "upgradeDescDateDependency": "Автоматично зсуває залежні дати під час переміщення запису."
+      "upgradeDescDateDependency": "Автоматично зсуває залежні дати під час переміщення запису.",
+      "concernProject": "Проєкт",
+      "concernInterfaces": "Інтерфейси",
+      "concernApps": "Застосунок",
+      "concernTabs": "Розділи налаштувань"
     },
     "categories": "Категорії",
     "blockquote": "Цитата",
@@ -4402,7 +4406,106 @@
         "repeatWarning": "Цей крок може надсилати або змінювати дані. Повтор може продублювати його — вмикайте лише якщо це прийнятно.",
         "retries": "Кількість повторних спроб",
         "earlierTries": "Попередні спроби",
-        "noErrorMessage": "Немає повідомлення про помилку"
+        "noErrorMessage": "Немає повідомлення про помилку",
+        "title": "У разі збою",
+        "retryIfFails": "Повторювати, якщо цей крок не вдався",
+        "retrySafeHint": "Автоматично повторює, коли сервіс тимчасово недоступний",
+        "waitBeforeRetry": "Зачекати перед повтором",
+        "seconds": "секунд",
+        "waitLonger": "Щоразу чекати довше",
+        "waitLongerHint": "Подвоює очікування після кожної спроби, до 1 години",
+        "retryOn": "Повторювати за",
+        "retryOnTemporary": "Лише тимчасові проблеми (тайм-аути, обмеження частоти запитів, помилки сервера)",
+        "retryOnAny": "Будь-якої помилки",
+        "triedTimes": "Спроб: {count}",
+        "tryNumber": "Спроба {n}",
+        "succeededAfterTries": "Успішно після {count} спроб"
+      },
+      "iterate": {
+        "listPlaceholder": "Виберіть масив для перебору",
+        "listHelp": "Виберіть масив із попереднього кроку. Кожен елемент буде оброблено по черзі.",
+        "notAList": "Потрібен список елементів, але це значення — {kind}."
+      },
+      "originalRun": "початковий запуск",
+      "duration": {
+        "milliseconds": "{n} мс",
+        "seconds": "{n} с",
+        "minutesSeconds": "{m} хв {s} с"
+      },
+      "overview": {
+        "lastRun": "Останній запуск",
+        "failedCount": "{n} з помилкою",
+        "allTested": "Усі кроки протестовано"
+      },
+      "addStep": "Додати крок",
+      "nodePicker": {
+        "upgradeToUseStep": "Перейдіть на тариф {plan}, щоб використовувати {step}",
+        "search": "Пошук кроків і застосунків",
+        "searchTriggers": "Шукайте, наприклад «новий рядок», «щопонеділка»",
+        "searchIn": "Пошук у {app}",
+        "apps": "Застосунки",
+        "integrations": "Інтеграції",
+        "popular": "Популярні",
+        "chooseTrigger": "Виберіть тригер",
+        "chooseTriggerHint": "Будь-який робочий процес починається з тригера — події, яка його запускає.",
+        "noMatches": "Немає відповідних кроків",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "Запис {bold}",
+            "bold": "створено"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "Запис {bold}",
+            "bold": "оновлено"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "Запис {bold}",
+            "bold": "видалено"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "Запис {bold}",
+            "bold": "потрапляє у вигляд"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "Запис {bold}",
+            "bold": "відповідає умовам"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "Надсилає форму"
+          },
+          "core_trigger_button": {
+            "text": "{bold} у записі",
+            "bold": "Натискає кнопку"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} запис",
+            "bold": "Коментує"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "За розкладом"
+          },
+          "core_trigger_webhook": {
+            "text": "Коли {bold}",
+            "bold": "отримано вебхук"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "Вручну"
+          }
+        },
+        "groups": {
+          "recordEvents": "Коли",
+          "userActions": "Коли користувач",
+          "runs": "Запуски",
+          "records": "Записи",
+          "logic": "Логіка",
+          "ai": "ШІ",
+          "messages": "Повідомлення",
+          "developer": "Розробник",
+          "other": "Інше"
+        }
       }
     },
     "xAxis": "Вісь X",
@@ -5052,7 +5155,37 @@
     "licenseExpired": "Термін дії ліцензії минув",
     "talkToSales": "Поговорити з відділом продажів",
     "paidAnnually": "Оплата щороку",
-    "paidMonthly": "Оплата щомісяця"
+    "paidMonthly": "Оплата щомісяця",
+    "addAttachment": "Додати вкладення",
+    "fromAttachmentField": "З поля вкладення",
+    "uploadFile": "Завантажити файл",
+    "fromUrl": "За URL",
+    "attachFromUrl": "Прикріпити за URL",
+    "removeAttachment": "Видалити вкладення",
+    "attachmentFieldChip": "поле",
+    "setPageAccess": "Налаштувати доступ до сторінки",
+    "readOnlyMember": "учасник лише для читання",
+    "aReadOnlyMember": "учасник лише для читання",
+    "readOnlyMembers": "учасники лише для читання",
+    "backToData": "Назад до даних",
+    "appShare": {
+      "customTeamDescription": "Команда, яку визначає цей застосунок.",
+      "membersTeamDescription": "Використовує застосунок.",
+      "adminTeamDescription": "Використовує застосунок і керує його учасниками.",
+      "noAccessTeamDescription": "Дії ще не надано, тому її учасники не можуть відкрити застосунок."
+    },
+    "viewActions": "Дії вигляду",
+    "renameView": "Перейменувати вигляд",
+    "generateWithAi": "Створити за допомогою ШІ",
+    "deleteView": "Видалити вигляд",
+    "addToFavourites": "Додати до обраного",
+    "contextMenu": "Контекстне меню",
+    "editSqlView": "Редагувати SQL-вигляд",
+    "noWebhooksYet": "Ще немає вебхуків",
+    "navigation": "Навігація",
+    "prompts": "Промпти",
+    "pagination": "Розбиття на сторінки",
+    "showRowNumbers": "Показувати номери рядків"
   },
   "activity": {
     "useTemplate": "Використовувати шаблон",
@@ -5368,7 +5501,7 @@
     "notAvailableForNewRecord": "Не доступно під час створення нового запису",
     "conditionallyVisibleField": "Поле з умовою видимості",
     "bookmarks": "Закладки",
-    "variableInheritance": "Визначає, що зможуть зробити з цією змінною ті, хто встановить цю базу як застосунок: «Фіксована» зберігає ваше значення та приховує його, «Редагована» пропонує ваше значення як відправну точку, «Обов'язкова» вимагає вказати власне.",
+    "variableInheritance": "Визначає, що зможуть робити з цією змінною люди, які встановлять цей проєкт як застосунок: «Фіксована» зберігає ваше значення та приховує його, «Редагована» пропонує ваше значення як відправну точку, «Обов’язкова» просить вказати власне.",
     "inheritedMembersInfo": "Ці члени належать до батьківської команди та успадковують доступ до ресурсів, призначених цій команді.",
     "teamScopeThisOnly": "Лише ця команда. Натисніть, щоб включити підкоманди",
     "teamScopeIncludesSubTeams": "Включає підкоманди. Натисніть, щоб обмежитися лише цією командою",
@@ -5396,7 +5529,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "Цей параметр дозволяє змінювати схему бази даних, включаючи додавання, зміну або видалення таблиць та стовпців. Використовуйте з обережністю, оскільки зміни можуть вплинути на структурну цілісність вашої бази даних.",
     "allowDataWrite": "Цей параметр дозволяє створювати, оновлювати чи видаляти записи в таблицях бази даних. Ідеально для адміністративних користувачів, які потребують можливості безпосередньо змінювати дані.",
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Не більше 10 джерел даних на проєкт",
     "saveChanges": "Зберегти зміни",
     "clientKey": "Виберіть .key файл",
     "clientCert": "Виберіть .cert файл",
@@ -5422,7 +5555,7 @@
     "selectAllMappedFields": "Вибрати всі зіставлені поля",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Скопіювати код помилки",
-    "paidUserBadgeTooltip": "Займає платне місце. Роль «Редактор» або вище на рівні робочого простору, у базі чи в інтерфейсі.",
+    "paidUserBadgeTooltip": "Займає платне місце. Роль «Редактор» або вища на рівні робочої області, у проєкті або в інтерфейсі.",
     "approachingLimit": "Наближається до ліміту",
     "exceedingLimit": "Перевищує ліміт",
     "filteredByCurrentUser": "Відфільтровано за поточним користувачем",
@@ -5466,8 +5599,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
     "onlyViewOwnerCanModifyPersonalView": "Тільки власник перегляду може змінити цей персональний вигляд",
     "onlyViewOwnerCanDeletePersonalView": "Тільки власник перегляду може видалити цей персональний вигляд",
-    "onlyCreatorsCanLockView": "Лише базові творці чи власники можуть блокувати вигляд",
-    "onlyCreatorsCanUnlockView": "Лише базові автори чи власники можуть розблокувати перегляд",
+    "onlyCreatorsCanLockView": "Блокувати вигляд можуть лише творці або власники проєкту",
+    "onlyCreatorsCanUnlockView": "Розблоковувати вигляд можуть лише творці або власники проєкту",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
     "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
@@ -5494,7 +5627,7 @@
     "interfaceMixedRoles": "Ролі відрізняються в різних інтерфейсах або на різних сторінках. Розгорніть, щоб переглянути",
     "chatQueueAttachmentUnavailable": "Це вкладення не буде надіслано, якщо поставити повідомлення в чергу. Спочатку вилучіть його",
     "lockedViewDisabledOnProduction": "Заблоковані вигляди можна створювати лише в копії середовища",
-    "personalViewDisabledOnEnvironment": "Особисті вигляди можна створювати лише в робочій Базі",
+    "personalViewDisabledOnEnvironment": "Особисті вигляди можна створювати лише у продакшен-проєкті",
     "seeNComments": "Переглянути {n} коментар | Переглянути {n} коментарів",
     "collapsibleGroups": "Дозволити згортати групи із заголовками",
     "nestedRecordsRequireSelfLink": "Потрібне поле зв'язку в цій таблиці, яке посилається на цю саму таблицю.",
@@ -5511,10 +5644,10 @@
     "youDontHaveAccessToCreateNewInterface": "У вас немає прав створювати новий Interface",
     "displayValueFieldCannotBeReordered": "Поле відображуваного значення не можна перемістити",
     "interfaceLastVizRequired": "Сторінці потрібна щонайменше одна візуалізація",
-    "onlyCreatorsCanManageViewFolders": "Керувати теками виглядів можуть лише творці або власники Бази",
-    "onlyCreatorsCanManageFolders": "Керувати теками можуть лише творці або власники Бази",
+    "onlyCreatorsCanManageViewFolders": "Керувати теками виглядів можуть лише творці або власники проєкту",
+    "onlyCreatorsCanManageFolders": "Керувати теками можуть лише творці або власники проєкту",
     "organizeViewsIntoFolders": "Упорядкувати вигляди у згортані теки",
-    "productionLockedByEnvironment": "Ця база відкрита в середовищі. Вносьте зміни схеми там.",
+    "productionLockedByEnvironment": "Цей проєкт відкрито в середовищі. Змінюйте схему там.",
     "managedByPublisher": "Структурою цього App керує його видавець. Свої документи й теки ви додаєте самі.",
     "featureOnProductionOnly": "Ця дія керується в продакшен-проєкті, а не в копії середовища.",
     "clickToEdit": "Натисніть, щоб редагувати",
@@ -5570,8 +5703,8 @@
     "showAllFields": "Показати всі поля",
     "inviteLinkCannotGrantOwner": "Посилання-запрошення не може надати роль власника",
     "inviteLinkRoleAboveYours": "Ви можете пропонувати ролі не вище за власну",
-    "noDefaultSourceForFolders": "У цієї бази немає джерела за замовчуванням. Натомість створюйте теки з власного меню джерела",
-    "noDefaultSourceForSync": "У цієї бази немає джерела за замовчуванням. Синхронізації воно потрібне для зберігання її таблиць"
+    "noDefaultSourceForFolders": "У цьому проєкті немає джерела за замовчуванням. Створюйте теки з меню самого джерела",
+    "noDefaultSourceForSync": "У цьому проєкті немає джерела за замовчуванням. Синхронізації воно потрібне для зберігання її таблиць"
   },
   "placeholder": {
     "enterVerificationCode": "Введіть 6-значний код",
@@ -7236,8 +7369,8 @@
         "description": "Швидка екскурсія вашою робочою областю. Вийти можна будь-коли: натисніть «Пропустити»."
       },
       "createBase": {
-        "title": "Почніть із Бази",
-        "description": "У Базі зберігаються ваші таблиці, вигляди й автоматизації. Саме звідси починається більшість роботи."
+        "title": "Почніть із проєкту",
+        "description": "Проєкт містить ваші таблиці, вигляди та автоматизації. Саме тут починається більша частина роботи."
       },
       "switchWorkspaces": {
         "title": "Перемикайте робочі області",

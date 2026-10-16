@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Upgrade to add more document pages",
     "upgradeToAddMoreWorkflows": "Upgrade to add more workflows",
     "upgradeToAddMoreScriptsSubtitle": "നിങ്ങൾ ഇപ്പോൾ ഫ്രീ പ്ലാനിലാണ്, ഓരോ വർക്ക്സ്പേസിലും ഒരു സ്ക്രിപ്റ്റ് മാത്രമേ അനുവദിക്കൂ. പരിധിയില്ലാത്ത സ്ക്രിപ്റ്റുകൾൺ ലോക്ക് ചെയ്യാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക.",
-    "upgradeToAddMoreWorkflowsSubtitle": "നിങ്ങൾ ഇപ്പോൾ {activePlan} പ്ലാനിലാണ്, ഇത് ഓരോ ബേസിനും {limit} വർക്ക്ഫ്ലോകൾ അനുവദിക്കുന്നു. കൂടുതലിനായി {plan} ലേക്ക് അപ്ഗ്രേഡ് ചെയ്യുക.",
+    "upgradeToAddMoreWorkflowsSubtitle": "നിങ്ങൾ ഇപ്പോൾ {activePlan} പ്ലാനിലാണ്, ഇത് ഓരോ പ്രോജക്ടിനും {limit} വർക്ക്ഫ്ലോകൾ അനുവദിക്കുന്നു. കൂടുതലിന് {plan} ലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
     "upgradeToAddMoreDashboardsSubtitle": "നിങ്ങൾ ഇപ്പോൾ ഫ്രീ പ്ലാനിലാണ്, ഓരോ വർക്ക്സ്പേസിലും ഒരു ഡാഷ്ബോർഡ് മാത്രമേ അനുവദിക്കൂ. പരിധിയില്ലാത്ത ഡാഷ്ബോർഡുകൾൺ ലോക്ക് ചെയ്യാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "The {activePlan} plan allows up to {limit} document pages per base. Upgrade to the {plan} plan to add more.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan} പ്ലാൻ ഓരോ പ്രോജക്ടിനും പരമാവധി {limit} ഡോക്യുമെന്റ് പേജുകൾ അനുവദിക്കുന്നു. കൂടുതൽ ചേർക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
     "upgradeToUseBookmarks": "Upgrade to use bookmarks",
-    "upgradeToUseBookmarksSubtitle": "Upgrade to the {plan} plan to bookmark bases, tables, views, and more for quick access.",
+    "upgradeToUseBookmarksSubtitle": "വേഗത്തിലുള്ള ആക്സസിനായി പ്രോജക്ടുകൾ, പട്ടികകൾ, കാഴ്ചകൾ എന്നിവയും മറ്റും ബുക്ക്മാർക്ക് ചെയ്യാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
     "upgradeToUseDocsExportPdf": "Upgrade to export documents as PDF",
     "upgradeToUseDocsExportPdfSubtitle": "Upgrade to the {plan} plan to export your documents as PDF files.",
     "upgradeToUseDocsInlineComments": "Upgrade to use inline comments",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "{activePlan} പ്ലാന്‍ പരമാവധി {limit} വെബ്‌ഹുക്കുകൾ മാത്രമേ അനുവദിക്കൂ. പരിമിതിയില്ലാത്ത വെബ്‌ഹുക്കുകൾക്കായി {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
     "upgradeToAccessWebhookLogsSubtitle": "വർക്ക്സ്പേസ് {plan} പ്ലാൻ അപ്‌ഗ്രേഡ് ചെയ്ത് വെബ്‌ഹുക്ക് ലോഗുകൾ ആക്സസ് ചെയ്യുക.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "വ്യത്യസ്ത പ്രോജക്ടുകൾക്കിടയിൽ പട്ടികകൾ പകർത്താൻ നിങ്ങളുടെ പ്ലാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക.",
     "formOwnerNotified": "ഫോം ഉടമയെ അറിയിച്ചു",
     "formOwnerNotifiedSubtitle": "നിങ്ങളുടെ സമർപ്പണ അഭ്യർത്ഥനയെക്കുറിച്ച് ഫോം ഉടമയെ ഞങ്ങൾ അറിയിച്ചു.",
     "WorkspaceOwnerNotified": "വർക്ക്സ്പേസ് ഉടമയെ അറിയിച്ചു",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Upgrade to the {plan} plan to control who can view and edit individual pages in your docs.",
     "upgradeToUseWorkflows": "Upgrade to use workflows",
     "upgradeToUseWorkflowsSubtitle": "Upgrade to the {plan} plan to use workflows to automate tasks and processes.",
-    "upgradeToUsePrivateBases": "സ്വകാര്യ ബേസുകൾന്‍ ലോക്ക് തുറക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
-    "upgradeToUsePrivateBasesSubtitle": "സ്വകാര്യ ബേസുകൾ {plan} പ്ലാനിൽ ലഭ്യമാണ്. ഇപ്പോൾ അപ്‌ഗ്രേഡ് ചെയ്ത് ഉപയോഗിച്ചു തുടങ്ങൂ.",
+    "upgradeToUsePrivateBases": "സ്വകാര്യ പ്രോജക്ടുകൾ അൺലോക്ക് ചെയ്യാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
+    "upgradeToUsePrivateBasesSubtitle": "സ്വകാര്യ പ്രോജക്ടുകൾ {plan} പ്ലാനിൽ ലഭ്യമാണ്. ഉപയോഗിച്ചു തുടങ്ങാൻ ഇപ്പോൾ അപ്‌ഗ്രേഡ് ചെയ്യുക.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "ഈ സെല്ലിലേക്ക് പരമാവധി {limit} {filePlural} മാത്രമേ അപ്‌ലോഡ് ചെയ്യാൻ കഴിയൂ. കൂടുതൽ ഫയലുകൾ ചേർക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Upgrade to use AI Chat",
-    "upgradeToUseAiChatSubtitle": "Upgrade to the {plan} plan to use AI Chat to manage your base with natural language.",
+    "upgradeToUseAiChatSubtitle": "സ്വാഭാവിക ഭാഷയിൽ നിങ്ങളുടെ പ്രോജക്ട് കൈകാര്യം ചെയ്യാൻ AI ചാറ്റ് ഉപയോഗിക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
     "upgradeToUseMfa": "Upgrade to enable two-factor authentication",
     "upgradeToUseMfaSubtitle": "Upgrade to the {plan} plan to enable multi-factor authentication for your account.",
     "upgradeToRequireTwoFactor": "Upgrade to require two-factor authentication",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Upgrade to use team hierarchy",
     "upgradeToUseTeamHierarchySubtitle": "Upgrade to the {plan} plan to organize teams in nested hierarchies with inherited membership.",
     "upgradeToUseTeams": "Upgrade to use teams",
-    "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases.",
+    "upgradeToUseTeamsSubtitle": "ഉപയോക്താക്കളെ ഗ്രൂപ്പാക്കാനും വർക്ക്‌സ്പേസുകളിലേക്കും പ്രോജക്ടുകളിലേക്കുമുള്ള അവരുടെ ആക്സസ് കൈകാര്യം ചെയ്യാനും ടീമുകൾ ഉപയോഗിക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
     "upgradeToAddMoreTeams": "Upgrade to add more teams",
     "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views.",
     "upgradeToUseFormScheduling": "Upgrade to use form scheduling",
     "upgradeToUseFormSchedulingSubtitle": "Upgrade to the {plan} plan to schedule form availability with start and expiration dates.",
-    "upgradeToUseBaseVariables": "Upgrade to use base variables",
-    "upgradeToUseBaseVariablesSubtitle": "Upgrade to the {plan} plan to define reusable variables scoped to a base.",
+    "upgradeToUseBaseVariables": "പ്രോജക്ട് വേരിയബിളുകൾ ഉപയോഗിക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
+    "upgradeToUseBaseVariablesSubtitle": "ഒരു പ്രോജക്ടിന്റെ പരിധിയിൽ വീണ്ടും ഉപയോഗിക്കാവുന്ന വേരിയബിളുകൾ നിർവചിക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
     "upgradeToUseSync": "Upgrade to use sync",
     "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources.",
     "upgradeToUseTableSync": "Upgrade to use table sync",
@@ -3112,7 +3112,11 @@
       "upgradeRequestSent": "അപേക്ഷ അയച്ചു",
       "upgradeDescRls": "ഓരോ വ്യക്തിക്കും ഏതൊക്കെ റെക്കോർഡുകൾ കാണാനും തിരുത്താനും കഴിയുമെന്ന് പരിമിതപ്പെടുത്തുക.",
       "upgradeDescRecordTemplates": "സംരക്ഷിച്ച, മുൻകൂട്ടി പൂരിപ്പിച്ച ടെംപ്ലേറ്റുകളിൽ നിന്ന് പുതിയ റെക്കോർഡുകൾ ഉണ്ടാക്കുക.",
-      "upgradeDescDateDependency": "ഒരു റെക്കോർഡ് നീക്കുമ്പോൾ ആശ്രിത തീയതികൾ സ്വയമേവ നീക്കുന്നു."
+      "upgradeDescDateDependency": "ഒരു റെക്കോർഡ് നീക്കുമ്പോൾ ആശ്രിത തീയതികൾ സ്വയമേവ നീക്കുന്നു.",
+      "concernProject": "പ്രോജക്ട്",
+      "concernInterfaces": "ഇന്റർഫേസുകൾ",
+      "concernApps": "ആപ്പ്",
+      "concernTabs": "ക്രമീകരണ വിഭാഗങ്ങൾ"
     },
     "categories": "വിഭാഗങ്ങൾ",
     "blockquote": "ഉദ്ധരണി",
@@ -4402,7 +4406,105 @@
         "repeatWarning": "ഈ ഘട്ടം ഡാറ്റ അയയ്ക്കുകയോ മാറ്റുകയോ ചെയ്യാം. വീണ്ടും ശ്രമിച്ചാൽ അത് ആവർത്തിക്കാം — കുഴപ്പമില്ലെങ്കിൽ മാത്രം ഇത് ഓൺ ചെയ്യുക.",
         "retries": "വീണ്ടും ശ്രമിക്കുന്നതിന്റെ എണ്ണം",
         "earlierTries": "മുൻ ശ്രമങ്ങൾ",
-        "noErrorMessage": "പിശക് സന്ദേശമൊന്നുമില്ല"
+        "noErrorMessage": "പിശക് സന്ദേശമൊന്നുമില്ല",
+        "title": "പരാജയപ്പെടുമ്പോൾ",
+        "retryIfFails": "ഈ ഘട്ടം പരാജയപ്പെട്ടാൽ വീണ്ടും ശ്രമിക്കുക",
+        "retrySafeHint": "ഒരു സേവനം താൽക്കാലികമായി ലഭ്യമല്ലാത്തപ്പോൾ സ്വയമേവ വീണ്ടും ശ്രമിക്കുന്നു",
+        "waitBeforeRetry": "വീണ്ടും ശ്രമിക്കുന്നതിന് മുമ്പ് കാത്തിരിക്കുക",
+        "seconds": "സെക്കൻഡുകൾ",
+        "waitLonger": "ഓരോ തവണയും കൂടുതൽ കാത്തിരിക്കുക",
+        "waitLongerHint": "ഓരോ ശ്രമത്തിനു ശേഷവും കാത്തിരിപ്പ് ഇരട്ടിയാക്കുന്നു, പരമാവധി 1 മണിക്കൂർ",
+        "retryOn": "ഇതിൽ വീണ്ടും ശ്രമിക്കുക",
+        "retryOnTemporary": "താൽക്കാലിക പ്രശ്നങ്ങൾ മാത്രം (സമയപരിധി കഴിയൽ, നിരക്ക് പരിധികൾ, സെർവർ പിശകുകൾ)",
+        "retryOnAny": "ഏത് പിശകും",
+        "triedTimes": "{count} തവണ ശ്രമിച്ചു",
+        "tryNumber": "ശ്രമം {n}",
+        "succeededAfterTries": "{count} ശ്രമങ്ങൾക്ക് ശേഷം വിജയിച്ചു"
+      },
+      "iterate": {
+        "listPlaceholder": "ആവർത്തിക്കാൻ ഒരു അറേ തിരഞ്ഞെടുക്കുക",
+        "listHelp": "മുൻ ഘട്ടത്തിൽ നിന്ന് ഒരു അറേ തിരഞ്ഞെടുക്കുക. ഓരോ ഇനവും ക്രമത്തിൽ പ്രോസസ് ചെയ്യപ്പെടും.",
+        "notAList": "ഇനങ്ങളുടെ പട്ടിക ആവശ്യമാണ്, പക്ഷേ ഈ മൂല്യം {kind} ആണ്."
+      },
+      "originalRun": "യഥാർത്ഥ റൺ",
+      "duration": {
+        "milliseconds": "{n} മില്ലിസെക്കൻഡ്",
+        "seconds": "{n} സെ",
+        "minutesSeconds": "{m} മി {s} സെ"
+      },
+      "overview": {
+        "lastRun": "അവസാന റൺ",
+        "failedCount": "{n} പരാജയപ്പെട്ടു",
+        "allTested": "എല്ലാ ഘട്ടങ്ങളും പരിശോധിച്ചു"
+      },
+      "addStep": "ഒരു ഘട്ടം ചേർക്കുക",
+      "nodePicker": {
+        "upgradeToUseStep": "{step} ഉപയോഗിക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക",
+        "search": "ഘട്ടങ്ങളും ആപ്പുകളും തിരയുക",
+        "searchTriggers": "തിരയുക, ഉദാ. “പുതിയ വരി”, “എല്ലാ തിങ്കളാഴ്ചയും”",
+        "searchIn": "{app} ൽ തിരയുക",
+        "apps": "ആപ്പുകൾ",
+        "integrations": "സംയോജനങ്ങൾ",
+        "popular": "ജനപ്രിയം",
+        "chooseTrigger": "ഒരു ട്രിഗർ തിരഞ്ഞെടുക്കുക",
+        "chooseTriggerHint": "എല്ലാ വർക്ക്ഫ്ലോയും ഒരു ട്രിഗറിൽ തുടങ്ങുന്നു: അതിനെ ആരംഭിക്കുന്ന ഇവന്റ്.",
+        "noMatches": "ഒരു ഘട്ടവും പൊരുത്തപ്പെടുന്നില്ല",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "റെക്കോർഡ് {bold}",
+            "bold": "സൃഷ്ടിക്കപ്പെടുന്നു"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "റെക്കോർഡ് {bold}",
+            "bold": "അപ്ഡേറ്റ് ചെയ്യപ്പെടുന്നു"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "റെക്കോർഡ് {bold}",
+            "bold": "ഇല്ലാതാക്കപ്പെടുന്നു"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "റെക്കോർഡ് {bold}",
+            "bold": "ഒരു കാഴ്ചയിലേക്ക് വരുന്നു"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "റെക്കോർഡ് {bold}",
+            "bold": "വ്യവസ്ഥകളുമായി പൊരുത്തപ്പെടുന്നു"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "ഒരു ഫോം സമർപ്പിക്കുന്നു"
+          },
+          "core_trigger_button": {
+            "text": "ഒരു റെക്കോർഡിൽ {bold}",
+            "bold": "ഒരു ബട്ടൺ ക്ലിക്ക് ചെയ്യുന്നു"
+          },
+          "nocodb_trigger_comment": {
+            "text": "ഒരു റെക്കോർഡിൽ {bold}",
+            "bold": "കമന്റ് ചെയ്യുന്നു"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "ഒരു ഷെഡ്യൂൾ അനുസരിച്ച്"
+          },
+          "core_trigger_webhook": {
+            "text": "{bold}",
+            "bold": "webhook ലഭിക്കുമ്പോൾ"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "മാനുവലായി"
+          }
+        },
+        "groups": {
+          "recordEvents": "എപ്പോൾ",
+          "userActions": "ഉപയോക്താവ് എപ്പോൾ",
+          "runs": "റണ്ണുകൾ",
+          "records": "റെക്കോർഡുകൾ",
+          "logic": "ലോജിക്",
+          "messages": "സന്ദേശങ്ങൾ",
+          "developer": "ഡെവലപ്പർ",
+          "other": "മറ്റുള്ളവ"
+        }
       }
     },
     "xAxis": "X അക്ഷം",
@@ -5051,7 +5153,37 @@
     "licenseExpired": "ലൈസൻസ് കാലഹരണപ്പെട്ടു",
     "talkToSales": "വിൽപ്പന ടീമുമായി സംസാരിക്കുക",
     "paidAnnually": "വാർഷിക പേയ്‌മെന്റ്",
-    "paidMonthly": "പ്രതിമാസ പേയ്‌മെന്റ്"
+    "paidMonthly": "പ്രതിമാസ പേയ്‌മെന്റ്",
+    "addAttachment": "അറ്റാച്ച്മെന്റ് ചേർക്കുക",
+    "fromAttachmentField": "അറ്റാച്ച്മെന്റ് ഫീൽഡിൽ നിന്ന്",
+    "uploadFile": "ഫയൽ അപ്‌ലോഡ് ചെയ്യുക",
+    "fromUrl": "URL ൽ നിന്ന്",
+    "attachFromUrl": "URL ൽ നിന്ന് അറ്റാച്ച് ചെയ്യുക",
+    "removeAttachment": "അറ്റാച്ച്മെന്റ് നീക്കം ചെയ്യുക",
+    "attachmentFieldChip": "ഫീൽഡ്",
+    "setPageAccess": "പേജ് ആക്സസ് സജ്ജമാക്കുക",
+    "readOnlyMember": "വായിക്കാൻ മാത്രം അനുമതിയുള്ള അംഗം",
+    "aReadOnlyMember": "വായിക്കാൻ മാത്രം അനുമതിയുള്ള ഒരു അംഗം",
+    "readOnlyMembers": "വായിക്കാൻ മാത്രം അനുമതിയുള്ള അംഗങ്ങൾ",
+    "backToData": "ഡാറ്റയിലേക്ക് മടങ്ങുക",
+    "appShare": {
+      "customTeamDescription": "ഈ ആപ്പ് നിർവചിക്കുന്ന ഒരു ടീം.",
+      "membersTeamDescription": "ആപ്പ് ഉപയോഗിക്കുന്നു.",
+      "adminTeamDescription": "ആപ്പ് ഉപയോഗിക്കുകയും അതിന്റെ അംഗങ്ങളെ കൈകാര്യം ചെയ്യുകയും ചെയ്യുന്നു.",
+      "noAccessTeamDescription": "ഇതുവരെ പ്രവർത്തനങ്ങളൊന്നും നൽകിയിട്ടില്ല, അതിനാൽ അതിന്റെ അംഗങ്ങൾക്ക് ആപ്പ് തുറക്കാനാകില്ല."
+    },
+    "viewActions": "കാഴ്ചയുടെ പ്രവർത്തനങ്ങൾ",
+    "renameView": "കാഴ്ചയുടെ പേര് മാറ്റുക",
+    "generateWithAi": "AI ഉപയോഗിച്ച് സൃഷ്ടിക്കുക",
+    "deleteView": "കാഴ്ച ഇല്ലാതാക്കുക",
+    "addToFavourites": "പ്രിയപ്പെട്ടവയിലേക്ക് ചേർക്കുക",
+    "contextMenu": "സന്ദർഭ മെനു",
+    "editSqlView": "SQL കാഴ്ച എഡിറ്റ് ചെയ്യുക",
+    "noWebhooksYet": "ഇതുവരെ webhook ഇല്ല",
+    "navigation": "നാവിഗേഷൻ",
+    "prompts": "പ്രോംപ്റ്റുകൾ",
+    "pagination": "പേജിനേഷൻ",
+    "showRowNumbers": "വരി നമ്പറുകൾ കാണിക്കുക"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5394,7 +5526,7 @@
     "dataWriteOptionDisabled": "‘സ്കീമ എഡിറ്റ്’ പ്രവർത്തനരഹിതമാക്കുമ്പോൾ മാത്രമേ ഡാറ്റ എഡിറ്റിംഗ് പ്രവർത്തനരഹിതമാക്കാൻ കഴിയുകയുള്ളൂ, അല്ലെങ്കിൽ പ്രവര്‍ത്തനക്ഷമമാക്കുന്നു",
     "allowMetaWrite": "ഈ ഓപ്ഷൻ ഡാറ്റാബേസ് സ്ക്കീമയുടെ മാറ്റം അനുവദിക്കുന്നു. കാർമികമായി ഉപയോഗിക്കുക, കാരണം മാറ്റങ്ങൾ നിങ്ങളുടെ ഡാറ്റബേസിന്റെ ഘടനാ സമഗ്രതയെ ബാധിച്ചേക്കാം.",
     "allowDataWrite": "ഈ ഓപ്ഷൻ ഡാറ്റാബേസ് ടേബിളുകളിൽ റെക്കോഡുകൾ സൃഷ്ടിക്കാനും, അപ്‌ഡേറ്റ് ചെയ്യാനും, അല്ലെങ്കിൽ ഇല്ലാതാക്കാനും അനുവദിക്കുന്നു. ഡാറ്റ നേരിട്ട് മാറ്റേണ്ടതായ കച്ചവട ഉപയോക്താക്കൾക്ക് ഇത് അനുയോജ്യമാണ്.",
-    "reachedSourceLimit": "ഓരോ ബേസിലും 10 ഡാറ്റാ സ്രോതസ്സുകൾക്ക് പരിമിതപ്പെടുത്തിയിരിക്കുന്നു",
+    "reachedSourceLimit": "ഓരോ പ്രോജക്ടിനും പരമാവധി 10 ഡാറ്റ ഉറവിടങ്ങൾ",
     "saveChanges": "മാറ്റങ്ങൾ ലയിപ്പിക്കുക",
     "clientKey": ".key ഫയൽ തിരഞ്ഞെടുക്കുക",
     "clientCert": ".cert ഫയൽ തിരഞ്ഞെടുക്കുക",
@@ -5420,7 +5552,7 @@
     "selectAllMappedFields": "മാപ്പ് ചെയ്ത എല്ലാ ഫീല്‍ഡുകളും തിരഞ്ഞെടുക്കുക",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "പിശക് കോഡ് പകർത്തുക",
-    "paidUserBadgeTooltip": "ഒരു പണമടച്ച സീറ്റ് ഉപയോഗിക്കുന്നു. വർക്ക്സ്പേസ് തലത്തിൽ, ഒരു ബേസിൽ, അല്ലെങ്കിൽ ഒരു ഇന്റർഫേസിൽ എഡിറ്റർ അല്ലെങ്കിൽ അതിനു മുകളിലുള്ള റോൾ.",
+    "paidUserBadgeTooltip": "ഒരു പണമടച്ച സീറ്റ് ഉപയോഗിക്കുന്നു. വർക്ക്‌സ്പേസ് തലത്തിലോ ഒരു പ്രോജക്ടിലോ ഒരു ഇന്റർഫേസിലോ എഡിറ്റർ അല്ലെങ്കിൽ അതിലും ഉയർന്ന റോൾ.",
     "approachingLimit": "പരിധിയിലേക്ക് അടുത്തു",
     "exceedingLimit": "പരിധി മറികടക്കുന്നു",
     "filteredByCurrentUser": "ഇപ്പോഴത്തെ ഉപയോക്താവ് വഴി ഫിൽറ്റർ ചെയ്‌തിരിക്കുന്നു",
@@ -5464,8 +5596,8 @@
     "onlyViewOwnerCanCopyViewConfig": "വ്യൂ ഉടമയ്ക്ക് മാത്രമേ വ്യൂ കോൺഫിഗറേഷൻ പകർത്താൻ കഴിയൂ.",
     "onlyViewOwnerCanModifyPersonalView": "Only the view owner can modify this personal view",
     "onlyViewOwnerCanDeletePersonalView": "Only the view owner can delete this personal view",
-    "onlyCreatorsCanLockView": "Only base creators or owners can lock a view",
-    "onlyCreatorsCanUnlockView": "Only base creators or owners can unlock a view",
+    "onlyCreatorsCanLockView": "പ്രോജക്ടിന്റെ സ്രഷ്ടാക്കൾക്കോ ഉടമകൾക്കോ മാത്രമേ ഒരു കാഴ്ച ലോക്ക് ചെയ്യാനാകൂ",
+    "onlyCreatorsCanUnlockView": "പ്രോജക്ടിന്റെ സ്രഷ്ടാക്കൾക്കോ ഉടമകൾക്കോ മാത്രമേ ഒരു കാഴ്ചയുടെ ലോക്ക് നീക്കാനാകൂ",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "കോൺഫിഗറേഷനുകൾ പകർത്തുന്നതിന് നിങ്ങൾക്ക് നിലവിലുള്ള ഒരു വ്യൂവ് വേണം. ഈ ഓപ്ഷൻ പ്രവർത്തനക്ഷമമാക്കാൻ ആദ്യം ഒരു വ്യൂവ് ഉണ്ടാക്കുക.",
     "youDoNotHaveSufficientPermissionToAddExtension": "എക്സ്റ്റൻഷൻ ചേർക്കാൻ നിങ്ങൾക്ക് ആവശ്യമായ അനുമതിയില്ല.",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "ഈ എക്സ്റ്റൻഷൻ കോൺഫിഗർ ചെയ്യാൻ നിങ്ങൾക്ക് ആവശ്യമായ അനുമതിയില്ല.",
@@ -5481,7 +5613,7 @@
     "sortingNotSupportedForFieldsWithErrors": "Sorting is not supported for fields with errors",
     "sortingNotSupportedForField": "Sorting is not supported for {type} field",
     "groupingNotSupportedForFieldsWithErrors": "Grouping is not supported for fields with errors",
-    "variableInheritance": "ഈ ബേസ് ആപ്പായി ഇൻസ്റ്റാൾ ചെയ്യുന്നവർക്ക് ഈ വേരിയബിൾ ഉപയോഗിച്ച് എന്തു ചെയ്യാമെന്ന് നിർണയിക്കുന്നു: സ്ഥിരം നിങ്ങളുടെ മൂല്യം നിലനിർത്തി മറയ്ക്കുന്നു, തിരുത്താവുന്നത് നിങ്ങളുടെ മൂല്യം തുടക്കബിന്ദുവായി നൽകുന്നു, നിർബന്ധം അവരുടെ സ്വന്തം മൂല്യം നൽകാൻ ആവശ്യപ്പെടുന്നു.",
+    "variableInheritance": "ഈ പ്രോജക്ട് ആപ്പായി ഇൻസ്റ്റാൾ ചെയ്യുന്നവർക്ക് ഈ വേരിയബിൾ ഉപയോഗിച്ച് എന്തു ചെയ്യാമെന്ന് നിർണ്ണയിക്കുന്നു: സ്ഥിരം നിങ്ങളുടെ മൂല്യം നിലനിർത്തി മറയ്ക്കുന്നു, എഡിറ്റ് ചെയ്യാവുന്നത് നിങ്ങളുടെ മൂല്യം തുടക്കബിന്ദുവായി നൽകുന്നു, നിർബന്ധം അവരുടെ സ്വന്തം മൂല്യം നൽകാൻ ആവശ്യപ്പെടുന്നു.",
     "workflowButtonTriggerSourceReadOnly": "ഈ ബട്ടണുമായി ബന്ധിപ്പിച്ച ഉറവിട പട്ടിക ഇന്റർഫേസുകൾ വഴി മാത്രമേ മാറ്റാനാകൂ",
     "workflowButtonTriggerInterfaceReadOnly": "ഈ ബട്ടൺ ഉള്ള ഇന്റർഫേസ് പേജ് ഇന്റർഫേസുകൾ വഴി മാത്രമേ മാറ്റാനാകൂ",
     "chartIncludeOthers": "പരിധിക്കപ്പുറമുള്ള വിഭാഗങ്ങൾ ഒഴിവാക്കുന്നതിനു പകരം ഒരൊറ്റ മറ്റുള്ളവ വിഭാഗത്തിൽ ചേർക്കുന്നു.",
@@ -5493,7 +5625,7 @@
     "interfaceMixedRoles": "ഇന്റർഫേസുകൾക്കോ പേജുകൾക്കോ അനുസരിച്ച് റോളുകൾ വ്യത്യാസപ്പെടുന്നു. കാണാൻ വികസിപ്പിക്കുക",
     "chatQueueAttachmentUnavailable": "നിങ്ങൾ സന്ദേശം ക്യൂവിൽ ഇട്ടാൽ ഈ അറ്റാച്ച്മെന്റ് അയയ്ക്കില്ല. ആദ്യം അത് നീക്കുക",
     "lockedViewDisabledOnProduction": "പൂട്ടിയ കാഴ്ചകൾ പരിസര പകർപ്പിൽ മാത്രമേ സൃഷ്ടിക്കാനാകൂ",
-    "personalViewDisabledOnEnvironment": "വ്യക്തിഗത കാഴ്ചകൾ ഉൽപ്പാദന മേൽസ്ഥലത്ത് മാത്രമേ സൃഷ്ടിക്കാനാകൂ",
+    "personalViewDisabledOnEnvironment": "വ്യക്തിഗത കാഴ്ചകൾ പ്രൊഡക്ഷൻ പ്രോജക്ടിൽ മാത്രമേ ഉണ്ടാക്കാനാകൂ",
     "seeNComments": "{n} അഭിപ്രായം കാണുക | {n} അഭിപ്രായങ്ങൾ കാണുക",
     "collapsibleGroups": "തലക്കെട്ടുള്ള ഗ്രൂപ്പുകൾ ചുരുക്കാൻ അനുവദിക്കുക",
     "nestedRecordsRequireSelfLink": "ഇതേ പട്ടികയിലേക്ക് തിരികെ ചൂണ്ടുന്ന ഒരു കണ്ണി വിഭാഗം ഈ പട്ടികയിൽ വേണം.",
@@ -5510,10 +5642,10 @@
     "youDontHaveAccessToCreateNewInterface": "പുതിയ ഇന്റർഫേസ് സൃഷ്ടിക്കാൻ നിങ്ങൾക്ക് അനുമതിയില്ല",
     "displayValueFieldCannotBeReordered": "പ്രദർശന മൂല്യത്തിന്റെ വിഭാഗം ക്രമം മാറ്റാനാവില്ല",
     "interfaceLastVizRequired": "ഒരു പേജിന് കുറഞ്ഞത് ഒരു ദൃശ്യാവിഷ്കാരം വേണം",
-    "onlyCreatorsCanManageViewFolders": "കാഴ്ചാ ഫോൾഡറുകൾ മേൽസ്ഥലത്തിന്റെ സ്രഷ്ടാക്കൾക്കോ ഉടമകൾക്കോ മാത്രമേ കൈകാര്യം ചെയ്യാനാകൂ",
-    "onlyCreatorsCanManageFolders": "ഫോൾഡറുകൾ മേൽസ്ഥലത്തിന്റെ സ്രഷ്ടാക്കൾക്കോ ഉടമകൾക്കോ മാത്രമേ കൈകാര്യം ചെയ്യാനാകൂ",
+    "onlyCreatorsCanManageViewFolders": "പ്രോജക്ടിന്റെ സ്രഷ്ടാക്കൾക്കോ ഉടമകൾക്കോ മാത്രമേ കാഴ്ച ഫോൾഡറുകൾ കൈകാര്യം ചെയ്യാനാകൂ",
+    "onlyCreatorsCanManageFolders": "പ്രോജക്ടിന്റെ സ്രഷ്ടാക്കൾക്കോ ഉടമകൾക്കോ മാത്രമേ ഫോൾഡറുകൾ കൈകാര്യം ചെയ്യാനാകൂ",
     "organizeViewsIntoFolders": "കാഴ്ചകൾ ചുരുക്കാവുന്ന ഫോൾഡറുകളിൽ ക്രമീകരിക്കുക",
-    "productionLockedByEnvironment": "ഈ ബേസ് ഒരു എൻവയോൺമെന്റിൽ തുറന്നിരിക്കുന്നു. സ്കീമ മാറ്റങ്ങൾ അവിടെ വരുത്തുക.",
+    "productionLockedByEnvironment": "ഈ പ്രോജക്ട് ഒരു എൻവയോൺമെന്റിൽ തുറന്നിരിക്കുന്നു. സ്കീമ മാറ്റങ്ങൾ അവിടെ വരുത്തുക.",
     "managedByPublisher": "ഈ ആപ്പിന്റെ ഘടന അതിന്റെ പ്രസാധകൻ കൈകാര്യം ചെയ്യുന്നു. നിങ്ങളുടെ രേഖകളും ഫോൾഡറുകളും നിങ്ങളുടേത് തന്നെ.",
     "featureOnProductionOnly": "ഈ പ്രവർത്തനം എൻവയോൺമെന്റ് പകർപ്പിലല്ല, പ്രൊഡക്ഷൻ പ്രോജക്ടിലാണ് കൈകാര്യം ചെയ്യുന്നത്.",
     "clickToEdit": "എഡിറ്റ് ചെയ്യാൻ ക്ലിക്ക് ചെയ്യുക",
@@ -5569,8 +5701,8 @@
     "showAllFields": "എല്ലാ ഫീൽഡുകളും കാണിക്കുക",
     "inviteLinkCannotGrantOwner": "ക്ഷണ ലിങ്കിന് ഉടമ റോൾ നൽകാനാവില്ല",
     "inviteLinkRoleAboveYours": "നിങ്ങളുടെ റോൾ വരെയുള്ള റോളുകൾ മാത്രമേ നൽകാനാകൂ",
-    "noDefaultSourceForFolders": "ഈ ബേസിന് സ്ഥിരസ്ഥിതി ഉറവിടമില്ല. പകരം ഓരോ ഉറവിടത്തിന്റെയും സ്വന്തം മെനുവിൽ നിന്ന് ഫോൾഡറുകൾ സൃഷ്ടിക്കുക",
-    "noDefaultSourceForSync": "ഈ ബേസിന് സ്ഥിരസ്ഥിതി ഉറവിടമില്ല. സമന്വയത്തിന് അതിന്റെ പട്ടികകൾ സൂക്ഷിക്കാൻ ഒരു ഉറവിടം വേണം"
+    "noDefaultSourceForFolders": "ഈ പ്രോജക്ടിന് സ്ഥിരസ്ഥിതി ഉറവിടം ഇല്ല. പകരം ഓരോ ഉറവിടത്തിന്റെയും സ്വന്തം മെനുവിൽ നിന്ന് ഫോൾഡറുകൾ ഉണ്ടാക്കുക",
+    "noDefaultSourceForSync": "ഈ പ്രോജക്ടിന് സ്ഥിരസ്ഥിതി ഉറവിടം ഇല്ല. സമന്വയത്തിന് അതിന്റെ പട്ടികകൾ സൂക്ഷിക്കാൻ ഒരു ഉറവിടം ആവശ്യമാണ്"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -7298,8 +7430,8 @@
         "description": "നിങ്ങളുടെ പ്രവർത്തനസ്ഥലത്തിലൂടെ ഒരു വേഗത്തിലുള്ള ചുറ്റിക്കറക്കം. എപ്പോൾ വേണമെങ്കിലും പുറത്തുകടക്കാം: വിട്ടുക അമർത്തുക."
       },
       "createBase": {
-        "title": "ഒരു മേൽസ്ഥലത്തിൽ നിന്ന് തുടങ്ങുക",
-        "description": "ഒരു മേൽസ്ഥലത്തിൽ നിങ്ങളുടെ പട്ടികകളും കാഴ്ചകളും സ്വയംപ്രവർത്തനങ്ങളും ഉൾക്കൊള്ളുന്നു. മിക്ക ജോലിയും തുടങ്ങുന്നത് ഇവിടെ നിന്നാണ്."
+        "title": "ഒരു പ്രോജക്ടിൽ തുടങ്ങുക",
+        "description": "ഒരു പ്രോജക്ടിൽ നിങ്ങളുടെ പട്ടികകളും കാഴ്ചകളും ഓട്ടോമേഷനുകളും ഉൾപ്പെടുന്നു. മിക്ക ജോലികളും ഇവിടെയാണ് തുടങ്ങുന്നത്."
       },
       "switchWorkspaces": {
         "title": "പണിയിടം മാറുക",

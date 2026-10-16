@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "ترقية لإضافة المزيد من صفحات المستندات",
     "upgradeToAddMoreWorkflows": "الترقية لإضافة المزيد من سير العمل",
     "upgradeToAddMoreScriptsSubtitle": "أنت حالياً على الخطة المجانية والتي تتيح سكريبت واحد فقط لكل مساحة عمل. قم بالترقية لفتح عدد غير محدود من السكريبتات.",
-    "upgradeToAddMoreWorkflowsSubtitle": "أنت حاليًا على خطة {activePlan} التي تتيح {limit} سير عمل لكل قاعدة. قم بالترقية إلى {plan} للمزيد.",
+    "upgradeToAddMoreWorkflowsSubtitle": "أنت حاليًا على خطة {activePlan} التي تتيح {limit} سير عمل لكل مشروع. قم بالترقية إلى {plan} للمزيد.",
     "upgradeToAddMoreDashboardsSubtitle": "أنت حالياً على الخطة المجانية والتي تتيح لوحة تحكم واحدة فقط في كل مساحة عمل. قم بالترقية لفتح لوحات تحكم غير محدودة.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "خطة {activePlan} تسمح بما يصل إلى صفحات المستند {limit} لكل قاعدة. قم بالترقية إلى خطة {plan} لإضافة المزيد.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "تتيح خطة {activePlan} ما يصل إلى {limit} صفحة مستند لكل مشروع. قم بالترقية إلى خطة {plan} لإضافة المزيد.",
     "upgradeToUseBookmarks": "الترقية لاستخدام الإشارات المرجعية",
-    "upgradeToUseBookmarksSubtitle": "الترقية إلى خطة {plan} إلى القواعد المرجعية والجداول ووجهات النظر والمزيد للوصول السريع.",
+    "upgradeToUseBookmarksSubtitle": "قم بالترقية إلى خطة {plan} لإضافة المشاريع والجداول وطرق العرض والمزيد إلى المفضلة للوصول السريع.",
     "upgradeToUseDocsExportPdf": "الترقية لتصدير المستندات بصيغة PDF",
     "upgradeToUseDocsExportPdfSubtitle": "قم بالترقية إلى خطة {plan} لتصدير مستنداتك كملفات PDF.",
     "upgradeToUseDocsInlineComments": "الترقية لاستخدام التعليقات الواردة",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "تسمح خطة {activePlan} بما يصل إلى {limit} Webhook. قم بالترقية إلى خطة {plan} للحصول على Webhooks غير محدودة.",
     "upgradeToAccessWebhookLogsSubtitle": "يمكنك الوصول إلى سجلات الـ Webhook بترقية مساحة العمل إلى خطة {plan}.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "قم بترقية خطتك لنسخ الجداول بين مشاريع مختلفة.",
     "formOwnerNotified": "تم إعلام مالك النموذج",
     "formOwnerNotifiedSubtitle": "لقد قمنا بإخطار مالك النموذج بطلب الإرسال الخاص بك.",
     "WorkspaceOwnerNotified": "تم إعلام مالك مساحة العمل",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "الترقية إلى خطة {plan} للتحكم في من يمكنه عرض وتحرير الصفحات الفردية في المستندات الخاصة بك.",
     "upgradeToUseWorkflows": "الترقية لاستخدام سير العمل",
     "upgradeToUseWorkflowsSubtitle": "الترقية إلى خطة {plan} لاستخدام سير العمل لأتمتة المهام والعمليات.",
-    "upgradeToUsePrivateBases": "الترقية لفتح القواعد الخاصة",
-    "upgradeToUsePrivateBasesSubtitle": "القواعد الخاصة متوفرة في خطة {plan}. قم بالترقية الآن للبدء في استخدامها.",
+    "upgradeToUsePrivateBases": "قم بالترقية لفتح المشاريع الخاصة",
+    "upgradeToUsePrivateBasesSubtitle": "المشاريع الخاصة متوفرة في خطة {plan}. قم بالترقية الآن لبدء استخدامها.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "يمكنك رفع {limit} {filePlural} بحد أقصى إلى هذه الخلية. قم بالترقية إلى خطة {plan} لإضافة المزيد من الملفات.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "الترقية لاستخدام دردشة الذكاء الاصطناعي",
-    "upgradeToUseAiChatSubtitle": "الترقية إلى خطة {plan} لاستخدام دردشة AI لإدارة قاعدتك مع اللغة الطبيعية.",
+    "upgradeToUseAiChatSubtitle": "قم بالترقية إلى خطة {plan} لاستخدام دردشة الذكاء الاصطناعي وإدارة مشروعك باللغة الطبيعية.",
     "upgradeToUseMfa": "ترقية لتفعيل المصادقة الثنائية",
     "upgradeToUseMfaSubtitle": "الترقية إلى خطة {plan} لتمكين المصادقة المتعددة العوامل لحسابك.",
     "upgradeToRequireTwoFactor": "ترقية لطلب المصادقة ذات عاملين",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "الترقية لاستخدام التسلسل الهرمي للفريق",
     "upgradeToUseTeamHierarchySubtitle": "الترقية إلى خطة {plan} لتنظيم الفرق في تسلسل هرمي متداخل مع العضوية الموروثة.",
     "upgradeToUseTeams": "الترقية لاستخدام الفرق",
-    "upgradeToUseTeamsSubtitle": "الترقية إلى خطة {plan} لاستخدام الفرق لتجميع المستخدمين وإدارة وصولهم إلى أماكن العمل والقواعد.",
+    "upgradeToUseTeamsSubtitle": "قم بالترقية إلى خطة {plan} لاستخدام الفرق لتجميع المستخدمين وإدارة وصولهم إلى مساحات العمل والمشاريع.",
     "upgradeToAddMoreTeams": "الترقية لإضافة المزيد من الفرق",
     "upgradeToAddMoreTeamsSubtitle": "الترقية إلى خطة {plan} لإضافة المزيد من الفرق إلى مساحة العمل الخاصة بك.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "الترقية إلى خطة {plan} لإخفاء رؤوس الحقول في المعرض ومشاهدة كانبان.",
     "upgradeToUseFormScheduling": "الترقية لاستخدام جدولة النموذج",
     "upgradeToUseFormSchedulingSubtitle": "الترقية إلى خطة {plan} لجدولة توفر النموذج مع تواريخ البدء وانتهاء صلاحيته.",
-    "upgradeToUseBaseVariables": "الترقية لاستخدام المتغيرات الأساسية",
-    "upgradeToUseBaseVariablesSubtitle": "الترقية إلى خطة {plan} لتحديد المتغيرات القابلة لإعادة الاستخدام التي تم نطاقها إلى القاعدة.",
+    "upgradeToUseBaseVariables": "قم بالترقية لاستخدام متغيرات المشروع",
+    "upgradeToUseBaseVariablesSubtitle": "قم بالترقية إلى خطة {plan} لتعريف متغيرات قابلة لإعادة الاستخدام على نطاق المشروع.",
     "upgradeToUseSync": "ترقية لاستخدام المزامنة",
     "upgradeToUseSyncSubtitle": "الترقية إلى خطة {plan} لمزامنة البيانات مع المصادر الداخلية أو الخارجية.",
     "upgradeToUseTableSync": "ترقية لاستخدام مزامنة الجدول",
@@ -3112,7 +3112,11 @@
       "upgradeRequestSent": "تم إرسال الطلب",
       "upgradeDescRls": "حدّد السجلات التي يمكن لكل شخص عرضها وتحريرها.",
       "upgradeDescRecordTemplates": "أنشئ سجلات جديدة من قوالب محفوظة ومعبأة مسبقًا.",
-      "upgradeDescDateDependency": "إزاحة التواريخ المرتبطة تلقائيًا عند نقل سجل."
+      "upgradeDescDateDependency": "إزاحة التواريخ المرتبطة تلقائيًا عند نقل سجل.",
+      "concernProject": "مشروع",
+      "concernInterfaces": "الواجهات",
+      "concernApps": "تطبيق",
+      "concernTabs": "أقسام الإعدادات"
     },
     "categories": "الفئات",
     "blockquote": "اقتباس",
@@ -4402,7 +4406,106 @@
         "repeatWarning": "قد ترسل هذه الخطوة بيانات أو تغيّرها. قد تؤدي إعادة المحاولة إلى تكرارها — لا تفعّل هذا إلا إذا كان ذلك مقبولاً.",
         "retries": "عدد المحاولات",
         "earlierTries": "المحاولات السابقة",
-        "noErrorMessage": "لا توجد رسالة خطأ"
+        "noErrorMessage": "لا توجد رسالة خطأ",
+        "title": "عند الفشل",
+        "retryIfFails": "إعادة المحاولة إذا فشلت هذه الخطوة",
+        "retrySafeHint": "يعيد المحاولة تلقائيًا عندما تكون الخدمة غير متاحة مؤقتًا",
+        "waitBeforeRetry": "الانتظار قبل إعادة المحاولة",
+        "seconds": "ثوانٍ",
+        "waitLonger": "الانتظار لفترة أطول في كل مرة",
+        "waitLongerHint": "يضاعف مدة الانتظار بعد كل محاولة، حتى ساعة واحدة",
+        "retryOn": "إعادة المحاولة عند",
+        "retryOnTemporary": "المشكلات المؤقتة فقط (انتهاء المهلات، حدود المعدل، أخطاء الخادم)",
+        "retryOnAny": "أي خطأ",
+        "triedTimes": "تمت المحاولة {count} مرة",
+        "tryNumber": "المحاولة {n}",
+        "succeededAfterTries": "نجح بعد {count} محاولة"
+      },
+      "iterate": {
+        "listPlaceholder": "اختر مصفوفة للتكرار عليها",
+        "listHelp": "اختر مصفوفة من خطوة سابقة. ستتم معالجة كل عنصر بالتتابع.",
+        "notAList": "يحتاج إلى قائمة عناصر، لكن هذه القيمة هي {kind}."
+      },
+      "originalRun": "التشغيل الأصلي",
+      "duration": {
+        "milliseconds": "{n} مللي ثانية",
+        "seconds": "{n} ث",
+        "minutesSeconds": "{m} د {s} ث"
+      },
+      "overview": {
+        "lastRun": "آخر تشغيل",
+        "failedCount": "{n} فشل",
+        "allTested": "تم اختبار جميع الخطوات"
+      },
+      "addStep": "إضافة خطوة",
+      "nodePicker": {
+        "upgradeToUseStep": "قم بالترقية إلى خطة {plan} لاستخدام {step}",
+        "search": "ابحث في الخطوات والتطبيقات",
+        "searchTriggers": "ابحث، مثل «صف جديد» أو «كل يوم اثنين»",
+        "searchIn": "ابحث في {app}",
+        "apps": "التطبيقات",
+        "integrations": "التكاملات",
+        "popular": "شائع",
+        "chooseTrigger": "اختر مشغلًا",
+        "chooseTriggerHint": "يبدأ كل سير عمل بمشغل: الحدث الذي يطلقه.",
+        "noMatches": "لا توجد خطوات مطابقة",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "تم {bold} السجل",
+            "bold": "إنشاء"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "تم {bold} السجل",
+            "bold": "تحديث"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "تم {bold} السجل",
+            "bold": "حذف"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "السجل {bold}",
+            "bold": "يدخل في طريقة عرض"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "السجل {bold}",
+            "bold": "يطابق الشروط"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "يرسل نموذجًا"
+          },
+          "core_trigger_button": {
+            "text": "{bold} في سجل",
+            "bold": "ينقر على زر"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} على سجل",
+            "bold": "يعلّق"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "وفق جدول زمني"
+          },
+          "core_trigger_webhook": {
+            "text": "عند {bold}",
+            "bold": "استلام خطاف ويب"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "يدويًا"
+          }
+        },
+        "groups": {
+          "recordEvents": "عندما",
+          "userActions": "عندما يقوم المستخدم",
+          "runs": "عمليات التشغيل",
+          "records": "السجلات",
+          "logic": "منطق",
+          "ai": "الذكاء الاصطناعي",
+          "messages": "رسائل",
+          "developer": "مطوّر",
+          "other": "أخرى"
+        }
       }
     },
     "xAxis": "المحور السيني",
@@ -5052,7 +5155,37 @@
     "licenseExpired": "انتهت صلاحية الترخيص",
     "talkToSales": "تحدث إلى المبيعات",
     "paidAnnually": "الدفع سنويًا",
-    "paidMonthly": "الدفع شهريًا"
+    "paidMonthly": "الدفع شهريًا",
+    "addAttachment": "إضافة مرفق",
+    "fromAttachmentField": "من حقل المرفقات",
+    "uploadFile": "رفع ملف",
+    "fromUrl": "من URL",
+    "attachFromUrl": "إرفاق من URL",
+    "removeAttachment": "إزالة المرفق",
+    "attachmentFieldChip": "حقل",
+    "setPageAccess": "تعيين صلاحية الوصول إلى الصفحة",
+    "readOnlyMember": "عضو للقراءة فقط",
+    "aReadOnlyMember": "عضو للقراءة فقط",
+    "readOnlyMembers": "أعضاء للقراءة فقط",
+    "backToData": "العودة إلى البيانات",
+    "appShare": {
+      "customTeamDescription": "فريق يحدده هذا التطبيق.",
+      "membersTeamDescription": "يستخدم التطبيق.",
+      "adminTeamDescription": "يستخدم التطبيق ويدير أعضاءه.",
+      "noAccessTeamDescription": "لم تُمنح أي إجراءات بعد، لذا لا يمكن لأعضائه فتح التطبيق."
+    },
+    "viewActions": "إجراءات طريقة العرض",
+    "renameView": "إعادة تسمية طريقة العرض",
+    "generateWithAi": "إنشاء بالذكاء الاصطناعي",
+    "deleteView": "حذف طريقة العرض",
+    "addToFavourites": "إضافة إلى المفضلة",
+    "contextMenu": "قائمة السياق",
+    "editSqlView": "تحرير طريقة عرض SQL",
+    "noWebhooksYet": "لا توجد خطافات ويب بعد",
+    "navigation": "التنقل",
+    "prompts": "المطالبات",
+    "pagination": "ترقيم الصفحات",
+    "showRowNumbers": "إظهار أرقام الصفوف"
   },
   "activity": {
     "useTemplate": "استخدام القالب",
@@ -5368,7 +5501,7 @@
     "notAvailableForNewRecord": "غير متوفر أثناء إنشاء سجل جديد",
     "conditionallyVisibleField": "حقل مرئي مشروط",
     "bookmarks": "المفضلة",
-    "variableInheritance": "يحدد ما يمكن للأشخاص الذين يثبّتون هذه القاعدة كتطبيق فعله بهذا المتغير: «ثابت» يحتفظ بقيمتك ويخفيها، و«قابل للتحرير» يقدّم قيمتك كنقطة بداية، و«مطلوب» يطلب منهم إدخال قيمتهم الخاصة.",
+    "variableInheritance": "يحدد ما يمكن للأشخاص الذين يثبّتون هذا المشروع كتطبيق فعله بهذا المتغير: «ثابت» يحتفظ بقيمتك ويخفيها، و«قابل للتحرير» يقدّم قيمتك كنقطة بداية، و«مطلوب» يطلب منهم إدخال قيمتهم الخاصة.",
     "inheritedMembersInfo": "وينتمي هؤلاء الأعضاء إلى فريق أصلي ويورثون الوصول إلى الموارد المخصصة لهذا الفريق.",
     "teamScopeThisOnly": "هذا الفريق فقط. انقر لتضمين الفرق الفرعية",
     "teamScopeIncludesSubTeams": "يشمل الفرق الفرعية. انقر لمطابقة هذا الفريق فقط",
@@ -5396,7 +5529,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "يتيح هذا الخيار تعديل هيكل قاعدة البيانات، بما في ذلك إضافة أو تعديل أو حذف الجداول والأعمدة. استخدم بحذر، لأن التغييرات قد تؤثر على السلامة الهيكلية لقاعدة البيانات الخاصة بك.",
     "allowDataWrite": "تسمح هذه الخيارات بإنشاء أو تحديث أو حذف السجلات داخل جداول قاعدة البيانات. مثالية للمستخدمين الإداريين الذين يحتاجون لتغيير البيانات مباشرة.",
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "بحد أقصى 10 مصادر بيانات لكل مشروع",
     "saveChanges": "حفظ التغييرات",
     "clientKey": "اختر .الملف الرئيسي",
     "clientCert": "اختر .ملف الشهادة",
@@ -5422,7 +5555,7 @@
     "selectAllMappedFields": "تحديد جميع الحقول المطابَقة",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "نسخ رمز الخطأ",
-    "paidUserBadgeTooltip": "يستهلك مقعدًا مدفوعًا. دور محرر أو أعلى على مستوى مساحة العمل أو داخل قاعدة أو على واجهة.",
+    "paidUserBadgeTooltip": "يستهلك مقعدًا مدفوعًا. دور محرر أو أعلى على مستوى مساحة العمل أو داخل مشروع أو على واجهة.",
     "approachingLimit": "يقترب من الحد",
     "exceedingLimit": "تجاوز الحد",
     "filteredByCurrentUser": "تم التصفية بواسطة المستخدم الحالي",
@@ -5466,8 +5599,8 @@
     "onlyViewOwnerCanCopyViewConfig": "عرض المالك فقط يمكنه نسخ اعدادات العرض",
     "onlyViewOwnerCanModifyPersonalView": "يمكن لمالك العرض فقط تعديل هذا العرض الشخصي",
     "onlyViewOwnerCanDeletePersonalView": "يمكن لمالك العرض فقط حذف هذا العرض الشخصي",
-    "onlyCreatorsCanLockView": "فقط منشئ القاعدة أو المالكين يمكنهم قفل طريقة العرض",
-    "onlyCreatorsCanUnlockView": "فقط منشئ القاعدة أو المالكين يمكنهم فتح طريقة العرض",
+    "onlyCreatorsCanLockView": "يمكن لمنشئي المشروع أو مالكيه فقط قفل طريقة العرض",
+    "onlyCreatorsCanUnlockView": "يمكن لمنشئي المشروع أو مالكيه فقط إلغاء قفل طريقة العرض",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "تحتاج إلى عرض واحد على الأقل موجود لنسخ الإعدادات. قم بإنشاء عرض أولاً لتمكين هذا الخيار.",
     "youDoNotHaveSufficientPermissionToAddExtension": "ليس لديك الصلاحية الكافية لإضافة ملحق",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "ليس لديك الصلاحية الكافية لتكوين هذا الملحق",
@@ -5494,7 +5627,7 @@
     "interfaceMixedRoles": "تختلف الأدوار بين الواجهات أو الصفحات. وسّع لعرضها",
     "chatQueueAttachmentUnavailable": "لن يُرسل هذا المرفق إذا وضعت رسالتك في قائمة الانتظار. أزله أولًا",
     "lockedViewDisabledOnProduction": "لا يمكن إنشاء المشاهدات المقفلة إلا في نسخة البيئة",
-    "personalViewDisabledOnEnvironment": "لا يمكن إنشاء المشاهدات الشخصية إلا في مشروع الإنتاج",
+    "personalViewDisabledOnEnvironment": "لا يمكن إنشاء طرق العرض الشخصية إلا في مشروع الإنتاج",
     "seeNComments": "عرض تعليق {n} | عرض {n} تعليقات",
     "collapsibleGroups": "السماح بطيّ المجموعات التي لها عناوين",
     "nestedRecordsRequireSelfLink": "يتطلب حقل رابط في هذا الجدول يشير إلى الجدول نفسه.",
@@ -5511,10 +5644,10 @@
     "youDontHaveAccessToCreateNewInterface": "ليست لديك صلاحية إنشاء واجهة جديدة",
     "displayValueFieldCannotBeReordered": "لا يمكن إعادة ترتيب حقل القيمة المعروضة",
     "interfaceLastVizRequired": "تحتاج الصفحة إلى عرض مرئي واحد على الأقل",
-    "onlyCreatorsCanManageViewFolders": "لا يمكن إدارة مجلدات المشاهدات إلا لمنشئي المشروع أو مالكيه",
-    "onlyCreatorsCanManageFolders": "لا يمكن إدارة المجلدات إلا لمنشئي المشروع أو مالكيه",
+    "onlyCreatorsCanManageViewFolders": "يمكن لمنشئي المشروع أو مالكيه فقط إدارة مجلدات طرق العرض",
+    "onlyCreatorsCanManageFolders": "يمكن لمنشئي المشروع أو مالكيه فقط إدارة المجلدات",
     "organizeViewsIntoFolders": "نظّم المشاهدات في مجلدات قابلة للطي",
-    "productionLockedByEnvironment": "هذه القاعدة مفتوحة في بيئة. أجرِ تغييرات المخطط هناك.",
+    "productionLockedByEnvironment": "هذا المشروع مفتوح في بيئة. أجرِ تغييرات المخطط هناك.",
     "managedByPublisher": "بنية هذا التطبيق يديرها ناشره. أما مستنداتك ومجلداتك فتضيفها أنت.",
     "featureOnProductionOnly": "تُدار هذه العملية في مشروع الإنتاج، وليس في نسخة بيئة.",
     "clickToEdit": "انقر للتحرير",
@@ -5570,8 +5703,8 @@
     "showAllFields": "إظهار جميع الحقول",
     "inviteLinkCannotGrantOwner": "لا يمكن لرابط الدعوة منح دور المالك",
     "inviteLinkRoleAboveYours": "يمكنك منح الأدوار حتى مستوى دورك فقط",
-    "noDefaultSourceForFolders": "لا يوجد لهذه القاعدة مصدر افتراضي. أنشئ المجلدات من قائمة المصدر نفسه بدلًا من ذلك",
-    "noDefaultSourceForSync": "لا يوجد لهذه القاعدة مصدر افتراضي. تحتاج المزامنة إلى مصدر لتخزين جداولها"
+    "noDefaultSourceForFolders": "لا يوجد لهذا المشروع مصدر افتراضي. أنشئ المجلدات من قائمة المصدر نفسه بدلًا من ذلك",
+    "noDefaultSourceForSync": "لا يوجد لهذا المشروع مصدر افتراضي. تحتاج المزامنة إلى مصدر لتخزين جداولها"
   },
   "placeholder": {
     "enterVerificationCode": "أدخل الرمز المكون من 6 أرقام",
@@ -7299,8 +7432,8 @@
         "description": "جولة سريعة في مساحة عملك. يمكنك الخروج في أي وقت: اضغط على تخطي."
       },
       "createBase": {
-        "title": "ابدأ بقاعدة",
-        "description": "تضم القاعدة جداولك وعروضك وأتمتاتك. ومن هنا يبدأ معظم العمل."
+        "title": "ابدأ بمشروع",
+        "description": "يضم المشروع جداولك وطرق العرض والأتمتة. ومن هنا يبدأ معظم العمل."
       },
       "switchWorkspaces": {
         "title": "بدّل بين مساحات العمل",

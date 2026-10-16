@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Tingkatkan untuk menambahkan lebih banyak halaman dokumen",
     "upgradeToAddMoreWorkflows": "Tingkatkan untuk menambahkan lebih banyak alur kerja",
     "upgradeToAddMoreScriptsSubtitle": "Anda saat ini berada di paket Gratis, yang hanya mengizinkan satu skrip per workspace. Tingkatkan untuk membuka jumlah skrip tanpa batas.",
-    "upgradeToAddMoreWorkflowsSubtitle": "Anda saat ini menggunakan paket {activePlan}, yang memungkinkan {limit} alur kerja per base. Tingkatkan ke {plan} untuk lebih banyak.",
+    "upgradeToAddMoreWorkflowsSubtitle": "Anda saat ini menggunakan paket {activePlan}, yang mengizinkan {limit} alur kerja per proyek. Tingkatkan ke {plan} untuk lebih banyak.",
     "upgradeToAddMoreDashboardsSubtitle": "Anda saat ini berada di paket Gratis, yang hanya mengizinkan satu dasbor per workspace. Tingkatkan untuk membuka jumlah dasbor tanpa batas.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "Paket {activePlan} memungkinkan hingga {limit} halaman dokumen per basis. Tingkatkan ke paket {plan} untuk menambahkan lebih banyak.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "Paket {activePlan} mengizinkan hingga {limit} halaman dokumen per proyek. Tingkatkan ke paket {plan} untuk menambah lagi.",
     "upgradeToUseBookmarks": "Tingkatkan untuk menggunakan penanda",
-    "upgradeToUseBookmarksSubtitle": "Tingkatkan ke paket {plan} untuk menandai basis data, tabel, tampilan, dan lainnya untuk akses cepat.",
+    "upgradeToUseBookmarksSubtitle": "Tingkatkan ke paket {plan} untuk menandai proyek, tabel, tampilan, dan lainnya demi akses cepat.",
     "upgradeToUseDocsExportPdf": "Tingkatkan untuk mengekspor dokumen sebagai PDF",
     "upgradeToUseDocsExportPdfSubtitle": "Tingkatkan ke paket {plan} untuk mengekspor dokumen Anda sebagai file PDF.",
     "upgradeToUseDocsInlineComments": "Tingkatkan untuk menggunakan komentar sebaris",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "Paket {activePlan} memungkinkan hingga {limit} webhook. Tingkatkan ke paket {plan} untuk mendapatkan akses ke webhook tak terbatas.",
     "upgradeToAccessWebhookLogsSubtitle": "Akses log webhook dengan meningkatkan ruang kerja Anda ke paket {plan}.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "Tingkatkan paket Anda untuk menduplikasi tabel antar proyek berbeda.",
     "formOwnerNotified": "Pemilik formulir telah diberitahu",
     "formOwnerNotifiedSubtitle": "Kami telah memberi tahu pemilik formulir tentang permintaan pengiriman Anda.",
     "WorkspaceOwnerNotified": "Pemilik ruang kerja telah diberitahu",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Tingkatkan ke paket {plan} untuk mengontrol siapa saja yang dapat melihat dan mengedit setiap halaman dalam dokumen Anda.",
     "upgradeToUseWorkflows": "Tingkatkan untuk menggunakan alur kerja",
     "upgradeToUseWorkflowsSubtitle": "Tingkatkan ke paket {plan} untuk menggunakan alur kerja untuk mengotomatiskan tugas dan proses.",
-    "upgradeToUsePrivateBases": "Tingkatkan untuk membuka base privat",
-    "upgradeToUsePrivateBasesSubtitle": "Base privat tersedia di paket {plan}. Tingkatkan sekarang untuk mulai menggunakannya.",
+    "upgradeToUsePrivateBases": "Tingkatkan untuk membuka proyek privat",
+    "upgradeToUsePrivateBasesSubtitle": "Proyek privat tersedia di paket {plan}. Tingkatkan sekarang untuk mulai menggunakannya.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Anda hanya dapat mengunggah maksimal {limit} {filePlural} ke sel ini. Tingkatkan ke paket {plan} untuk menambah lebih banyak file.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Tingkatkan untuk menggunakan Obrolan AI",
-    "upgradeToUseAiChatSubtitle": "Tingkatkan ke paket {plan} untuk menggunakan AI Chat untuk mengelola basis Anda dengan bahasa alami.",
+    "upgradeToUseAiChatSubtitle": "Tingkatkan ke paket {plan} untuk menggunakan Obrolan AI dan mengelola proyek Anda dengan bahasa alami.",
     "upgradeToUseMfa": "Tingkatkan untuk mengaktifkan autentikasi dua faktor",
     "upgradeToUseMfaSubtitle": "Tingkatkan ke paket {plan} untuk mengaktifkan autentikasi multi-faktor untuk akun Anda.",
     "upgradeToRequireTwoFactor": "Tingkatkan untuk memerlukan autentikasi dua faktor",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Tingkatkan untuk menggunakan hierarki tim",
     "upgradeToUseTeamHierarchySubtitle": "Tingkatkan ke paket {plan} untuk mengatur tim dalam hierarki bersarang dengan keanggotaan yang diwariskan.",
     "upgradeToUseTeams": "Tingkatkan untuk menggunakan tim",
-    "upgradeToUseTeamsSubtitle": "Tingkatkan ke paket {plan} untuk menggunakan tim guna mengelompokkan pengguna dan mengelola akses mereka ke ruang kerja dan pangkalan.",
+    "upgradeToUseTeamsSubtitle": "Tingkatkan ke paket {plan} untuk menggunakan tim guna mengelompokkan pengguna dan mengatur akses mereka ke ruang kerja dan proyek.",
     "upgradeToAddMoreTeams": "Tingkatkan untuk menambahkan lebih banyak tim",
     "upgradeToAddMoreTeamsSubtitle": "Tingkatkan ke paket {plan} untuk menambahkan lebih banyak tim ke ruang kerja Anda.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Tingkatkan ke paket {plan} untuk menyembunyikan tajuk bidang di tampilan Galeri dan Kanban.",
     "upgradeToUseFormScheduling": "Tingkatkan untuk menggunakan penjadwalan formulir",
     "upgradeToUseFormSchedulingSubtitle": "Tingkatkan ke paket {plan} untuk menjadwalkan ketersediaan formulir dengan tanggal mulai dan berakhir.",
-    "upgradeToUseBaseVariables": "Tingkatkan untuk menggunakan variabel dasar",
-    "upgradeToUseBaseVariablesSubtitle": "Tingkatkan ke paket {plan} untuk mendefinisikan variabel yang dapat digunakan kembali yang dicakup dalam sebuah basis.",
+    "upgradeToUseBaseVariables": "Tingkatkan untuk menggunakan variabel proyek",
+    "upgradeToUseBaseVariablesSubtitle": "Tingkatkan ke paket {plan} untuk menentukan variabel yang dapat dipakai ulang dalam lingkup proyek.",
     "upgradeToUseSync": "Tingkatkan untuk menggunakan sinkronisasi",
     "upgradeToUseSyncSubtitle": "Tingkatkan ke paket {plan} untuk menyinkronkan data dengan sumber internal atau eksternal.",
     "upgradeToUseTableSync": "Tingkatkan untuk menggunakan sinkronisasi tabel",
@@ -3110,7 +3110,11 @@
       "upgradeRequestSent": "Permintaan terkirim",
       "upgradeDescRls": "Batasi catatan mana yang dapat dilihat dan diedit setiap orang.",
       "upgradeDescRecordTemplates": "Buat catatan baru dari templat tersimpan yang sudah terisi.",
-      "upgradeDescDateDependency": "Menggeser tanggal terkait secara otomatis saat sebuah catatan dipindahkan."
+      "upgradeDescDateDependency": "Menggeser tanggal terkait secara otomatis saat sebuah catatan dipindahkan.",
+      "concernProject": "Proyek",
+      "concernInterfaces": "Antarmuka",
+      "concernApps": "Aplikasi",
+      "concernTabs": "Bagian pengaturan"
     },
     "categories": "Kategori",
     "blockquote": "Kutipan",
@@ -4396,7 +4400,105 @@
         "repeatWarning": "Langkah ini dapat mengirim atau mengubah data. Mencoba lagi dapat mengulanginya — aktifkan hanya jika itu tidak masalah.",
         "retries": "Jumlah percobaan ulang",
         "earlierTries": "Percobaan sebelumnya",
-        "noErrorMessage": "Tidak ada pesan kesalahan"
+        "noErrorMessage": "Tidak ada pesan kesalahan",
+        "title": "Saat gagal",
+        "retryIfFails": "Coba lagi jika langkah ini gagal",
+        "retrySafeHint": "Otomatis mencoba lagi saat sebuah layanan sementara tidak tersedia",
+        "waitBeforeRetry": "Tunggu sebelum mencoba lagi",
+        "seconds": "detik",
+        "waitLonger": "Tunggu lebih lama setiap kali",
+        "waitLongerHint": "Menggandakan waktu tunggu setelah setiap percobaan, hingga 1 jam",
+        "retryOn": "Coba lagi saat",
+        "retryOnTemporary": "Hanya masalah sementara (waktu habis, batas laju, kesalahan server)",
+        "retryOnAny": "Kesalahan apa pun",
+        "triedTimes": "Dicoba {count} kali",
+        "tryNumber": "Percobaan {n}",
+        "succeededAfterTries": "Berhasil setelah {count} percobaan"
+      },
+      "iterate": {
+        "listPlaceholder": "Pilih array untuk diiterasi",
+        "listHelp": "Pilih sebuah array dari langkah sebelumnya. Setiap item akan diproses secara berurutan.",
+        "notAList": "Memerlukan daftar item, tetapi nilai ini adalah {kind}."
+      },
+      "originalRun": "eksekusi asli",
+      "duration": {
+        "milliseconds": "{n} ms",
+        "seconds": "{n} dtk",
+        "minutesSeconds": "{m} mnt {s} dtk"
+      },
+      "overview": {
+        "lastRun": "Eksekusi terakhir",
+        "failedCount": "{n} gagal",
+        "allTested": "Semua langkah telah diuji"
+      },
+      "addStep": "Tambahkan langkah",
+      "nodePicker": {
+        "upgradeToUseStep": "Tingkatkan ke paket {plan} untuk menggunakan {step}",
+        "search": "Cari langkah dan aplikasi",
+        "searchTriggers": "Cari, mis. “baris baru”, “setiap Senin”",
+        "searchIn": "Cari di {app}",
+        "apps": "Aplikasi",
+        "integrations": "Integrasi",
+        "popular": "Populer",
+        "chooseTrigger": "Pilih pemicu",
+        "chooseTriggerHint": "Setiap alur kerja dimulai dengan pemicu: peristiwa yang menjalankannya.",
+        "noMatches": "Tidak ada langkah yang cocok",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "Catatan {bold}",
+            "bold": "dibuat"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "Catatan {bold}",
+            "bold": "diperbarui"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "Catatan {bold}",
+            "bold": "dihapus"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "Catatan {bold}",
+            "bold": "masuk ke sebuah tampilan"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "Catatan {bold}",
+            "bold": "memenuhi kondisi"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "Mengirim formulir"
+          },
+          "core_trigger_button": {
+            "text": "{bold} pada sebuah catatan",
+            "bold": "Mengklik tombol"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} sebuah catatan",
+            "bold": "Mengomentari"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "Sesuai jadwal"
+          },
+          "core_trigger_webhook": {
+            "text": "Ketika {bold}",
+            "bold": "webhook diterima"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "Secara manual"
+          }
+        },
+        "groups": {
+          "recordEvents": "Ketika",
+          "userActions": "Ketika pengguna",
+          "runs": "Eksekusi",
+          "records": "Catatan",
+          "logic": "Logika",
+          "messages": "Pesan",
+          "developer": "Pengembang",
+          "other": "Lainnya"
+        }
       }
     },
     "xAxis": "Sumbu X",
@@ -5037,7 +5139,37 @@
     "talkToSales": "Bicara dengan tim penjualan",
     "paidAnnually": "Dibayar Tahunan",
     "paidMonthly": "Dibayar Bulanan",
-    "skillScopeBase": "Proyek"
+    "skillScopeBase": "Proyek",
+    "addAttachment": "Tambah lampiran",
+    "fromAttachmentField": "Dari bidang lampiran",
+    "uploadFile": "Unggah berkas",
+    "fromUrl": "Dari URL",
+    "attachFromUrl": "Lampirkan dari URL",
+    "removeAttachment": "Hapus lampiran",
+    "attachmentFieldChip": "bidang",
+    "setPageAccess": "Atur akses halaman",
+    "readOnlyMember": "anggota baca-saja",
+    "aReadOnlyMember": "anggota baca-saja",
+    "readOnlyMembers": "anggota baca-saja",
+    "backToData": "Kembali ke data",
+    "appShare": {
+      "customTeamDescription": "Tim yang ditentukan oleh aplikasi ini.",
+      "membersTeamDescription": "Menggunakan aplikasi.",
+      "adminTeamDescription": "Menggunakan aplikasi dan mengelola anggotanya.",
+      "noAccessTeamDescription": "Belum ada tindakan yang diberikan, sehingga anggotanya tidak dapat membuka aplikasi."
+    },
+    "viewActions": "Tindakan tampilan",
+    "renameView": "Ganti nama tampilan",
+    "generateWithAi": "Hasilkan dengan AI",
+    "deleteView": "Hapus tampilan",
+    "addToFavourites": "Tambahkan ke favorit",
+    "contextMenu": "Menu konteks",
+    "editSqlView": "Edit tampilan SQL",
+    "noWebhooksYet": "Belum ada webhook",
+    "navigation": "Navigasi",
+    "prompts": "Prompt",
+    "pagination": "Penomoran halaman",
+    "showRowNumbers": "Tampilkan nomor baris"
   },
   "activity": {
     "useTemplate": "Gunakan templat",
@@ -5354,7 +5486,7 @@
     "notAvailableForNewRecord": "Tidak tersedia saat membuat catatan baru",
     "conditionallyVisibleField": "Bidang yang terlihat secara kondisional",
     "bookmarks": "Penanda",
-    "variableInheritance": "Menentukan apa yang dapat dilakukan orang yang memasang base ini sebagai aplikasi terhadap variabel ini: Tetap mempertahankan nilai Anda dan menyembunyikannya, Dapat diedit menawarkan nilai Anda sebagai titik awal, Wajib meminta mereka mengisi nilainya sendiri.",
+    "variableInheritance": "Menentukan apa yang dapat dilakukan orang yang memasang proyek ini sebagai aplikasi terhadap variabel ini: Tetap mempertahankan nilai Anda dan menyembunyikannya, Dapat diedit menawarkan nilai Anda sebagai titik awal, Wajib meminta mereka memberikan nilai sendiri.",
     "inheritedMembersInfo": "Anggota ini merupakan bagian dari tim induk dan mewarisi akses ke sumber daya yang ditugaskan ke tim ini.",
     "teamScopeThisOnly": "Tim ini saja. Klik untuk menyertakan subtim",
     "teamScopeIncludesSubTeams": "Termasuk subtim. Klik untuk mencocokkan tim ini saja",
@@ -5382,7 +5514,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "Opsi ini memungkinkan modifikasi skema database, termasuk menambah, mengubah, atau menghapus tabel dan kolom. Gunakan dengan hati-hati, karena perubahan dapat mempengaruhi integritas struktural database Anda.",
     "allowDataWrite": "Opsi ini memungkinkan membuat, memperbarui, atau menghapus catatan dalam tabel database. Ideal untuk pengguna administratif yang perlu mengubah data secara langsung.",
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Dibatasi 10 sumber data per proyek",
     "saveChanges": "Simpan perubahan",
     "clientKey": "Pilih .Key File.",
     "clientCert": "Pilih file .cert.",
@@ -5408,7 +5540,7 @@
     "selectAllMappedFields": "Pilih semua kolom yang dipetakan",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Salin kode kesalahan",
-    "paidUserBadgeTooltip": "Memakai satu kursi berbayar. Peran editor atau lebih tinggi di tingkat ruang kerja, dalam basis, atau pada antarmuka.",
+    "paidUserBadgeTooltip": "Memakai satu kursi berbayar. Peran Editor atau lebih tinggi di tingkat ruang kerja, dalam proyek, atau pada antarmuka.",
     "approachingLimit": "Mendekati batas",
     "exceedingLimit": "Melebihi batas",
     "filteredByCurrentUser": "Difilter menurut pengguna saat ini",
@@ -5452,8 +5584,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Hanya pemilik tampilan yang dapat menyalin konfigurasi tampilan",
     "onlyViewOwnerCanModifyPersonalView": "Hanya pemilik tampilan yang dapat memodifikasi tampilan pribadi ini",
     "onlyViewOwnerCanDeletePersonalView": "Hanya pemilik tampilan yang dapat menghapus tampilan pribadi ini",
-    "onlyCreatorsCanLockView": "Hanya pembuat atau pemilik basis yang dapat mengunci tampilan",
-    "onlyCreatorsCanUnlockView": "Hanya pembuat atau pemilik basis yang dapat membuka kunci tampilan",
+    "onlyCreatorsCanLockView": "Hanya pembuat atau pemilik proyek yang dapat mengunci tampilan",
+    "onlyCreatorsCanUnlockView": "Hanya pembuat atau pemilik proyek yang dapat membuka kunci tampilan",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "Anda memerlukan setidaknya satu tampilan yang sudah ada untuk menyalin konfigurasi. Buat tampilan terlebih dahulu untuk mengaktifkan opsi ini.",
     "youDoNotHaveSufficientPermissionToAddExtension": "Anda tidak memiliki izin yang cukup untuk menambahkan ekstensi",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "Anda tidak memiliki izin yang cukup untuk mengonfigurasi ekstensi ini",
@@ -5500,7 +5632,7 @@
     "onlyCreatorsCanManageViewFolders": "Hanya pembuat atau pemilik proyek yang dapat mengelola folder tampilan",
     "onlyCreatorsCanManageFolders": "Hanya pembuat atau pemilik proyek yang dapat mengelola folder",
     "organizeViewsIntoFolders": "Atur tampilan dalam folder yang bisa diciutkan",
-    "productionLockedByEnvironment": "Basis ini terbuka di sebuah lingkungan. Lakukan perubahan skema di sana.",
+    "productionLockedByEnvironment": "Proyek ini terbuka di sebuah lingkungan. Lakukan perubahan skema di sana.",
     "managedByPublisher": "Struktur aplikasi ini dikelola oleh penerbitnya. Dokumen dan folder Anda tetap milik Anda untuk ditambahkan.",
     "featureOnProductionOnly": "Tindakan ini dikelola di proyek produksi, bukan di salinan environment.",
     "clickToEdit": "Klik untuk menyunting",
@@ -5556,8 +5688,8 @@
     "showAllFields": "Tampilkan semua bidang",
     "inviteLinkCannotGrantOwner": "Tautan undangan tidak dapat memberikan peran Pemilik",
     "inviteLinkRoleAboveYours": "Anda hanya dapat menawarkan peran hingga setara peran Anda sendiri",
-    "noDefaultSourceForFolders": "Basis ini tidak memiliki sumber bawaan. Buat folder dari menu sumber itu sendiri",
-    "noDefaultSourceForSync": "Basis ini tidak memiliki sumber bawaan. Sinkronisasi memerlukannya untuk menyimpan tabel-tabelnya"
+    "noDefaultSourceForFolders": "Proyek ini tidak memiliki sumber default. Buat folder dari menu sumber itu sendiri",
+    "noDefaultSourceForSync": "Proyek ini tidak memiliki sumber default. Sinkronisasi membutuhkannya untuk menyimpan tabelnya"
   },
   "placeholder": {
     "enterVerificationCode": "Masukkan kode 6 digit",
@@ -7285,8 +7417,8 @@
         "description": "Tur singkat di ruang kerja Anda. Anda dapat keluar kapan saja: tekan Lewati."
       },
       "createBase": {
-        "title": "Mulai dengan sebuah Base",
-        "description": "Sebuah Base menampung tabel, tampilan, dan otomatisasi Anda. Di sinilah sebagian besar pekerjaan dimulai."
+        "title": "Mulai dengan sebuah proyek",
+        "description": "Sebuah proyek memuat tabel, tampilan, dan otomatisasi Anda. Di sinilah sebagian besar pekerjaan dimulai."
       },
       "switchWorkspaces": {
         "title": "Beralih ruang kerja",

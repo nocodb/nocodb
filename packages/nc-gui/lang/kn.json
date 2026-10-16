@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Upgrade to add more document pages",
     "upgradeToAddMoreWorkflows": "Upgrade to add more workflows",
     "upgradeToAddMoreScriptsSubtitle": "ನೀವು ಪ್ರಸ್ತುತ ಉಚಿತ ಯೋಜನೆಯಲ್ಲಿ ಇದ್ದೀರಿ, ಇದು ಪ್ರತಿವರ್ಕ್‌ಸ್ಪೇಸ್‌ಗೆ ಒಂದೇ ಸ್ಕ್ರಿಪ್ಟ್ ಅನ್ನು ಅನುವುಮಾಡುತ್ತದೆ. ಅಸೀಮಿತ ಸ್ಕ್ರಿಪ್ಟ್‌ಗಳನ್ನು ಅನ್ಲಾಕ್ ಮಾಡಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
-    "upgradeToAddMoreWorkflowsSubtitle": "ನೀವು ಪ್ರಸ್ತುತ {activePlan} ಪ್ಲ್ಯಾನ್‌ನಲ್ಲಿದ್ದೀರಿ, ಇದು ಪ್ರತಿ ಬೇಸ್‌ಗೆ {limit} ವರ್ಕ್‌ಫ್ಲೋಗಳನ್ನು ಅನುಮತಿಸುತ್ತದೆ. ಹೆಚ್ಚಿನದಕ್ಕಾಗಿ {plan} ಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
+    "upgradeToAddMoreWorkflowsSubtitle": "ನೀವು ಈಗ {activePlan} ಪ್ಲ್ಯಾನ್‌ನಲ್ಲಿದ್ದೀರಿ, ಇದು ಪ್ರತಿ ಪ್ರಾಜೆಕ್ಟ್‌ಗೆ {limit} ವರ್ಕ್‌ಫ್ಲೋಗಳನ್ನು ಅನುಮತಿಸುತ್ತದೆ. ಇನ್ನಷ್ಟಕ್ಕೆ {plan} ಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
     "upgradeToAddMoreDashboardsSubtitle": "ನೀವು ಪ್ರಸ್ತುತ ಉಚಿತ ಯೋಜನೆಯಲ್ಲಿ ಇದ್ದೀರಿ, ಇದು ಪ್ರತಿವರ್ಕ್‌ಸ್ಪೇಸ್‌ಗೆ ಒಂದೇ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಅನ್ನು ಅನುವು ಮಾಡುತ್ತದೆ. ಅಸೀಮಿತ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗಳನ್ನು ಅನ್ಲಾಕ್ ಮಾಡಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "The {activePlan} plan allows up to {limit} document pages per base. Upgrade to the {plan} plan to add more.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan} ಪ್ಲ್ಯಾನ್ ಪ್ರತಿ ಪ್ರಾಜೆಕ್ಟ್‌ಗೆ ಗರಿಷ್ಠ {limit} ಡಾಕ್ಯುಮೆಂಟ್ ಪುಟಗಳನ್ನು ಅನುಮತಿಸುತ್ತದೆ. ಇನ್ನಷ್ಟು ಸೇರಿಸಲು {plan} ಪ್ಲ್ಯಾನ್‌ಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
     "upgradeToUseBookmarks": "Upgrade to use bookmarks",
-    "upgradeToUseBookmarksSubtitle": "Upgrade to the {plan} plan to bookmark bases, tables, views, and more for quick access.",
+    "upgradeToUseBookmarksSubtitle": "ತ್ವರಿತ ಪ್ರವೇಶಕ್ಕಾಗಿ ಪ್ರಾಜೆಕ್ಟ್‌ಗಳು, ಕೋಷ್ಟಕಗಳು, ವೀಕ್ಷಣೆಗಳು ಮತ್ತು ಇನ್ನಷ್ಟನ್ನು ಬುಕ್‌ಮಾರ್ಕ್ ಮಾಡಲು {plan} ಪ್ಲ್ಯಾನ್‌ಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
     "upgradeToUseDocsExportPdf": "Upgrade to export documents as PDF",
     "upgradeToUseDocsExportPdfSubtitle": "Upgrade to the {plan} plan to export your documents as PDF files.",
     "upgradeToUseDocsInlineComments": "Upgrade to use inline comments",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "{activePlan} ಯೋಜನೆ {limit} ವೆಬ್\r\u000bಹುಕ್\r\u000bಗಳವರೆಗೆ ಅನುಮತಿಸುತ್ತದೆ. ಅನಿಯಮಿತ ವೆಬ್\r\u000bಹುಕ್\r\u000bಗಳಿಗೆ ಪ್ರವೇಶ ಪಡೆಯಲು {plan} ಯೋಜನೆಗೆ ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿ.",
     "upgradeToAccessWebhookLogsSubtitle": "ನಿಮ್ಮ ಕಾರ್ಯಕ್ಷೇತ್ರವನ್ನು {plan} ಯೋಜನೆಗೆ ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡುವ ಮೂಲಕ ವೆಬ್\r\u000bಹುಕ್ ಲಾಗ್\r\u000bಗಳಿಗೆ ಪ್ರವೇಶ ಪಡೆಯಿರಿ.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "ಬೇರೆ ಬೇರೆ ಪ್ರಾಜೆಕ್ಟ್‌ಗಳ ನಡುವೆ ಕೋಷ್ಟಕಗಳನ್ನು ನಕಲಿಸಲು ನಿಮ್ಮ ಪ್ಲ್ಯಾನ್ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
     "formOwnerNotified": "ಫಾರ್ಮ್ ಮಾಲೀಕಿಗೆ ತಿಳಿಸಲಾಗಿದೆ",
     "formOwnerNotifiedSubtitle": "ನಾವು ನಿಮ್ಮ ಸಲ್ಲಿಕೆ ವಿನಂತಿಯನ್ನು ಫಾರ್ಮ್ ಮಾಲೀಕಿಗೆ ತಿಳಿಸಿದ್ದೇವೆ.",
     "WorkspaceOwnerNotified": "ಕಾರ್ಯಕ್ಷೇತ್ರ ಮಾಲೀಕಿಗೆ ತಿಳಿಸಲಾಗಿದೆ",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Upgrade to the {plan} plan to control who can view and edit individual pages in your docs.",
     "upgradeToUseWorkflows": "Upgrade to use workflows",
     "upgradeToUseWorkflowsSubtitle": "Upgrade to the {plan} plan to use workflows to automate tasks and processes.",
-    "upgradeToUsePrivateBases": "ಪ್ರೈವೇಟ್ ಬೇಸ್‌ಗಳನ್ನು ಬಳಸಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ",
-    "upgradeToUsePrivateBasesSubtitle": "ಪ್ರೈವೇಟ್ ಬೇಸ್‌ಗಳು {plan} ಯೋಜನೆಗೆ ಲಭ್ಯವಿವೆ. ಅವುಗಳನ್ನು ಬಳಸಲು ಈಗ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
+    "upgradeToUsePrivateBases": "ಖಾಸಗಿ ಪ್ರಾಜೆಕ್ಟ್‌ಗಳನ್ನು ಅನ್‌ಲಾಕ್ ಮಾಡಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ",
+    "upgradeToUsePrivateBasesSubtitle": "ಖಾಸಗಿ ಪ್ರಾಜೆಕ್ಟ್‌ಗಳು {plan} ಪ್ಲ್ಯಾನ್‌ನಲ್ಲಿ ಲಭ್ಯವಿವೆ. ಬಳಸಲು ಈಗಲೇ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "ಈ ಸೆಲ್‌ಗೆ ಗರಿಷ್ಠ {limit} {filePlural} ಅಗತ್ಯವಿದೆ. ಹೆಚ್ಚಿನ ಕಡತಗಳನ್ನು ಸೇರಿಸಲು {plan} ಯೋಜನೆಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Upgrade to use AI Chat",
-    "upgradeToUseAiChatSubtitle": "Upgrade to the {plan} plan to use AI Chat to manage your base with natural language.",
+    "upgradeToUseAiChatSubtitle": "ನೈಸರ್ಗಿಕ ಭಾಷೆಯಲ್ಲಿ ನಿಮ್ಮ ಪ್ರಾಜೆಕ್ಟ್ ನಿರ್ವಹಿಸಲು AI ಚಾಟ್ ಬಳಸಲು {plan} ಪ್ಲ್ಯಾನ್‌ಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
     "upgradeToUseMfa": "Upgrade to enable two-factor authentication",
     "upgradeToUseMfaSubtitle": "Upgrade to the {plan} plan to enable multi-factor authentication for your account.",
     "upgradeToRequireTwoFactor": "Upgrade to require two-factor authentication",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Upgrade to use team hierarchy",
     "upgradeToUseTeamHierarchySubtitle": "Upgrade to the {plan} plan to organize teams in nested hierarchies with inherited membership.",
     "upgradeToUseTeams": "Upgrade to use teams",
-    "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases.",
+    "upgradeToUseTeamsSubtitle": "ಬಳಕೆದಾರರನ್ನು ಗುಂಪು ಮಾಡಲು ಮತ್ತು ಕಾರ್ಯಕ್ಷೇತ್ರ ಹಾಗೂ ಪ್ರಾಜೆಕ್ಟ್‌ಗಳಿಗೆ ಅವರ ಪ್ರವೇಶವನ್ನು ನಿರ್ವಹಿಸಲು ತಂಡಗಳನ್ನು ಬಳಸಲು {plan} ಪ್ಲ್ಯಾನ್‌ಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
     "upgradeToAddMoreTeams": "Upgrade to add more teams",
     "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views.",
     "upgradeToUseFormScheduling": "Upgrade to use form scheduling",
     "upgradeToUseFormSchedulingSubtitle": "Upgrade to the {plan} plan to schedule form availability with start and expiration dates.",
-    "upgradeToUseBaseVariables": "Upgrade to use base variables",
-    "upgradeToUseBaseVariablesSubtitle": "Upgrade to the {plan} plan to define reusable variables scoped to a base.",
+    "upgradeToUseBaseVariables": "ಪ್ರಾಜೆಕ್ಟ್ ವೇರಿಯೇಬಲ್‌ಗಳನ್ನು ಬಳಸಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ",
+    "upgradeToUseBaseVariablesSubtitle": "ಪ್ರಾಜೆಕ್ಟ್‌ನ ವ್ಯಾಪ್ತಿಯಲ್ಲಿ ಮರುಬಳಕೆ ಮಾಡಬಹುದಾದ ವೇರಿಯೇಬಲ್‌ಗಳನ್ನು ವ್ಯಾಖ್ಯಾನಿಸಲು {plan} ಪ್ಲ್ಯಾನ್‌ಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
     "upgradeToUseSync": "Upgrade to use sync",
     "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources.",
     "upgradeToUseTableSync": "Upgrade to use table sync",
@@ -3112,7 +3112,11 @@
       "upgradeRequestSent": "ಕೋರಿಕೆ ಕಳುಹಿಸಲಾಗಿದೆ",
       "upgradeDescRls": "ಪ್ರತಿಯೊಬ್ಬರೂ ಯಾವ ದಾಖಲೆಗಳನ್ನು ನೋಡಬಹುದು ಮತ್ತು ಸಂಪಾದಿಸಬಹುದು ಎಂಬುದನ್ನು ಮಿತಿಗೊಳಿಸಿ.",
       "upgradeDescRecordTemplates": "ಉಳಿಸಿದ, ಮೊದಲೇ ತುಂಬಿದ ಟೆಂಪ್ಲೇಟ್‌ಗಳಿಂದ ಹೊಸ ದಾಖಲೆಗಳನ್ನು ರಚಿಸಿ.",
-      "upgradeDescDateDependency": "ದಾಖಲೆ ಸ್ಥಳಾಂತರಗೊಂಡಾಗ ಅವಲಂಬಿತ ದಿನಾಂಕಗಳನ್ನು ತಾನಾಗಿಯೇ ಸರಿಸುತ್ತದೆ."
+      "upgradeDescDateDependency": "ದಾಖಲೆ ಸ್ಥಳಾಂತರಗೊಂಡಾಗ ಅವಲಂಬಿತ ದಿನಾಂಕಗಳನ್ನು ತಾನಾಗಿಯೇ ಸರಿಸುತ್ತದೆ.",
+      "concernProject": "ಪ್ರಾಜೆಕ್ಟ್",
+      "concernInterfaces": "ಇಂಟರ್‌ಫೇಸ್‌ಗಳು",
+      "concernApps": "ಅಪ್ಲಿಕೇಶನ್",
+      "concernTabs": "ಸೆಟ್ಟಿಂಗ್ಸ್ ವಿಭಾಗಗಳು"
     },
     "categories": "ವರ್ಗಗಳು",
     "blockquote": "ಉದ್ಧರಣ",
@@ -4402,7 +4406,105 @@
         "repeatWarning": "ಈ ಹಂತವು ಡೇಟಾ ಕಳುಹಿಸಬಹುದು ಅಥವಾ ಬದಲಾಯಿಸಬಹುದು. ಮರುಪ್ರಯತ್ನವು ಅದನ್ನು ಪುನರಾವರ್ತಿಸಬಹುದು — ಅದು ಸರಿ ಎನಿಸಿದರೆ ಮಾತ್ರ ಇದನ್ನು ಆನ್ ಮಾಡಿ.",
         "retries": "ಮರುಪ್ರಯತ್ನಗಳ ಸಂಖ್ಯೆ",
         "earlierTries": "ಹಿಂದಿನ ಪ್ರಯತ್ನಗಳು",
-        "noErrorMessage": "ಯಾವುದೇ ದೋಷ ಸಂದೇಶವಿಲ್ಲ"
+        "noErrorMessage": "ಯಾವುದೇ ದೋಷ ಸಂದೇಶವಿಲ್ಲ",
+        "title": "ವಿಫಲವಾದಾಗ",
+        "retryIfFails": "ಈ ಹಂತ ವಿಫಲವಾದರೆ ಮರುಪ್ರಯತ್ನಿಸಿ",
+        "retrySafeHint": "ಸೇವೆ ತಾತ್ಕಾಲಿಕವಾಗಿ ಲಭ್ಯವಿಲ್ಲದಿದ್ದಾಗ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಮರುಪ್ರಯತ್ನಿಸುತ್ತದೆ",
+        "waitBeforeRetry": "ಮರುಪ್ರಯತ್ನಿಸುವ ಮೊದಲು ಕಾಯಿರಿ",
+        "seconds": "ಸೆಕೆಂಡುಗಳು",
+        "waitLonger": "ಪ್ರತಿ ಬಾರಿ ಹೆಚ್ಚು ಕಾಯಿರಿ",
+        "waitLongerHint": "ಪ್ರತಿ ಪ್ರಯತ್ನದ ನಂತರ ಕಾಯುವ ಸಮಯವನ್ನು ದ್ವಿಗುಣಗೊಳಿಸುತ್ತದೆ, ಗರಿಷ್ಠ 1 ಗಂಟೆ",
+        "retryOn": "ಇದರಲ್ಲಿ ಮರುಪ್ರಯತ್ನಿಸಿ",
+        "retryOnTemporary": "ತಾತ್ಕಾಲಿಕ ಸಮಸ್ಯೆಗಳು ಮಾತ್ರ (ಸಮಯ ಮೀರುವಿಕೆ, ದರ ಮಿತಿಗಳು, ಸರ್ವರ್ ದೋಷಗಳು)",
+        "retryOnAny": "ಯಾವುದೇ ದೋಷ",
+        "triedTimes": "{count} ಬಾರಿ ಪ್ರಯತ್ನಿಸಲಾಗಿದೆ",
+        "tryNumber": "ಪ್ರಯತ್ನ {n}",
+        "succeededAfterTries": "{count} ಪ್ರಯತ್ನಗಳ ನಂತರ ಯಶಸ್ವಿಯಾಗಿದೆ"
+      },
+      "iterate": {
+        "listPlaceholder": "ಪುನರಾವರ್ತಿಸಲು ಒಂದು ಅರೇ ಆಯ್ಕೆಮಾಡಿ",
+        "listHelp": "ಹಿಂದಿನ ಹಂತದಿಂದ ಒಂದು ಅರೇ ಆಯ್ಕೆಮಾಡಿ. ಪ್ರತಿ ಐಟಂ ಅನ್ನು ಕ್ರಮವಾಗಿ ಪ್ರಕ್ರಿಯೆಗೊಳಿಸಲಾಗುತ್ತದೆ.",
+        "notAList": "ಐಟಂಗಳ ಪಟ್ಟಿ ಬೇಕು, ಆದರೆ ಈ ಮೌಲ್ಯ {kind} ಆಗಿದೆ."
+      },
+      "originalRun": "ಮೂಲ ರನ್",
+      "duration": {
+        "milliseconds": "{n} ಮಿಲಿಸೆಕೆಂಡ್",
+        "seconds": "{n} ಸೆ",
+        "minutesSeconds": "{m} ನಿ {s} ಸೆ"
+      },
+      "overview": {
+        "lastRun": "ಕೊನೆಯ ರನ್",
+        "failedCount": "{n} ವಿಫಲ",
+        "allTested": "ಎಲ್ಲಾ ಹಂತಗಳನ್ನು ಪರೀಕ್ಷಿಸಲಾಗಿದೆ"
+      },
+      "addStep": "ಒಂದು ಹಂತ ಸೇರಿಸಿ",
+      "nodePicker": {
+        "upgradeToUseStep": "{step} ಬಳಸಲು {plan} ಪ್ಲ್ಯಾನ್‌ಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ",
+        "search": "ಹಂತಗಳು ಮತ್ತು ಅಪ್ಲಿಕೇಶನ್‌ಗಳನ್ನು ಹುಡುಕಿ",
+        "searchTriggers": "ಹುಡುಕಿ, ಉದಾ. “ಹೊಸ ಸಾಲು”, “ಪ್ರತಿ ಸೋಮವಾರ”",
+        "searchIn": "{app} ನಲ್ಲಿ ಹುಡುಕಿ",
+        "apps": "ಅಪ್ಲಿಕೇಶನ್‌ಗಳು",
+        "integrations": "ಏಕೀಕರಣಗಳು",
+        "popular": "ಜನಪ್ರಿಯ",
+        "chooseTrigger": "ಒಂದು ಟ್ರಿಗರ್ ಆಯ್ಕೆಮಾಡಿ",
+        "chooseTriggerHint": "ಪ್ರತಿ ವರ್ಕ್‌ಫ್ಲೋ ಟ್ರಿಗರ್‌ನಿಂದ ಆರಂಭವಾಗುತ್ತದೆ: ಅದನ್ನು ಪ್ರಾರಂಭಿಸುವ ಘಟನೆ.",
+        "noMatches": "ಯಾವುದೇ ಹಂತ ಹೊಂದಿಕೆಯಾಗಿಲ್ಲ",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "ದಾಖಲೆ {bold}",
+            "bold": "ರಚಿಸಲಾಗಿದೆ"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "ದಾಖಲೆ {bold}",
+            "bold": "ನವೀಕರಿಸಲಾಗಿದೆ"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "ದಾಖಲೆ {bold}",
+            "bold": "ಅಳಿಸಲಾಗಿದೆ"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "ದಾಖಲೆ {bold}",
+            "bold": "ವೀಕ್ಷಣೆಗೆ ಪ್ರವೇಶಿಸುತ್ತದೆ"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "ದಾಖಲೆ {bold}",
+            "bold": "ಷರತ್ತುಗಳಿಗೆ ಹೊಂದಿಕೆಯಾಗುತ್ತದೆ"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "ಫಾರ್ಮ್ ಸಲ್ಲಿಸುತ್ತಾರೆ"
+          },
+          "core_trigger_button": {
+            "text": "ದಾಖಲೆಯಲ್ಲಿ {bold}",
+            "bold": "ಬಟನ್ ಕ್ಲಿಕ್ ಮಾಡುತ್ತಾರೆ"
+          },
+          "nocodb_trigger_comment": {
+            "text": "ದಾಖಲೆಯಲ್ಲಿ {bold}",
+            "bold": "ಕಾಮೆಂಟ್ ಮಾಡುತ್ತಾರೆ"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "ವೇಳಾಪಟ್ಟಿಯ ಪ್ರಕಾರ"
+          },
+          "core_trigger_webhook": {
+            "text": "{bold}",
+            "bold": "webhook ಸ್ವೀಕರಿಸಿದಾಗ"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "ಕೈಯಾರೆ"
+          }
+        },
+        "groups": {
+          "recordEvents": "ಯಾವಾಗ",
+          "userActions": "ಬಳಕೆದಾರರು ಯಾವಾಗ",
+          "runs": "ರನ್‌ಗಳು",
+          "records": "ದಾಖಲೆಗಳು",
+          "logic": "ತರ್ಕ",
+          "messages": "ಸಂದೇಶಗಳು",
+          "developer": "ಡೆವಲಪರ್",
+          "other": "ಇತರೆ"
+        }
       }
     },
     "xAxis": "X ಅಕ್ಷ",
@@ -5051,7 +5153,37 @@
     "licenseExpired": "ಪರವಾನಗಿ ಅವಧಿ ಮುಗಿದಿದೆ",
     "talkToSales": "ಮಾರಾಟ ತಂಡದೊಂದಿಗೆ ಮಾತನಾಡಿ",
     "paidAnnually": "ವಾರ್ಷಿಕ ಪಾವತಿ",
-    "paidMonthly": "ಮಾಸಿಕ ಪಾವತಿ"
+    "paidMonthly": "ಮಾಸಿಕ ಪಾವತಿ",
+    "addAttachment": "ಲಗತ್ತು ಸೇರಿಸಿ",
+    "fromAttachmentField": "ಲಗತ್ತು ಕ್ಷೇತ್ರದಿಂದ",
+    "uploadFile": "ಫೈಲ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+    "fromUrl": "URL ನಿಂದ",
+    "attachFromUrl": "URL ನಿಂದ ಲಗತ್ತಿಸಿ",
+    "removeAttachment": "ಲಗತ್ತು ತೆಗೆದುಹಾಕಿ",
+    "attachmentFieldChip": "ಕ್ಷೇತ್ರ",
+    "setPageAccess": "ಪುಟದ ಪ್ರವೇಶ ಹೊಂದಿಸಿ",
+    "readOnlyMember": "ಓದಲು-ಮಾತ್ರ ಸದಸ್ಯ",
+    "aReadOnlyMember": "ಓದಲು-ಮಾತ್ರ ಸದಸ್ಯ",
+    "readOnlyMembers": "ಓದಲು-ಮಾತ್ರ ಸದಸ್ಯರು",
+    "backToData": "ಡೇಟಾಗೆ ಹಿಂತಿರುಗಿ",
+    "appShare": {
+      "customTeamDescription": "ಈ ಅಪ್ಲಿಕೇಶನ್ ವ್ಯಾಖ್ಯಾನಿಸುವ ತಂಡ.",
+      "membersTeamDescription": "ಅಪ್ಲಿಕೇಶನ್ ಬಳಸುತ್ತದೆ.",
+      "adminTeamDescription": "ಅಪ್ಲಿಕೇಶನ್ ಬಳಸುತ್ತದೆ ಮತ್ತು ಅದರ ಸದಸ್ಯರನ್ನು ನಿರ್ವಹಿಸುತ್ತದೆ.",
+      "noAccessTeamDescription": "ಇನ್ನೂ ಯಾವುದೇ ಕ್ರಿಯೆಗಳನ್ನು ನೀಡಿಲ್ಲ, ಆದ್ದರಿಂದ ಅದರ ಸದಸ್ಯರು ಅಪ್ಲಿಕೇಶನ್ ತೆರೆಯಲು ಸಾಧ್ಯವಿಲ್ಲ."
+    },
+    "viewActions": "ವೀಕ್ಷಣೆ ಕ್ರಿಯೆಗಳು",
+    "renameView": "ವೀಕ್ಷಣೆಯ ಹೆಸರು ಬದಲಿಸಿ",
+    "generateWithAi": "AI ಬಳಸಿ ರಚಿಸಿ",
+    "deleteView": "ವೀಕ್ಷಣೆ ಅಳಿಸಿ",
+    "addToFavourites": "ಮೆಚ್ಚಿನವುಗಳಿಗೆ ಸೇರಿಸಿ",
+    "contextMenu": "ಸಂದರ್ಭ ಮೆನು",
+    "editSqlView": "SQL ವೀಕ್ಷಣೆ ಸಂಪಾದಿಸಿ",
+    "noWebhooksYet": "ಇನ್ನೂ webhook ಇಲ್ಲ",
+    "navigation": "ನ್ಯಾವಿಗೇಶನ್",
+    "prompts": "ಪ್ರಾಂಪ್ಟ್‌ಗಳು",
+    "pagination": "ಪುಟ ವಿಭಜನೆ",
+    "showRowNumbers": "ಸಾಲಿನ ಸಂಖ್ಯೆಗಳನ್ನು ತೋರಿಸಿ"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5394,7 +5526,7 @@
     "dataWriteOptionDisabled": "'ಸ್ಕಿಮ್ ನುಡಿಕೆ' ನಿಲ್ಲಿಸಿದ್ದಾಗ ಮಾತ್ರ ಡೇಟಾ ಸಂಪಾದನೆ ನಿಲ್ಲಿಸಿದಾಗ ಸಾಧ್ಯವಾಗುತ್ತದೆ ಮತ್ತು ಬೆನ್ನಿಂತು ಸಕ್ರಿಯವಾಗುತ್ತದೆ",
     "allowMetaWrite": "ಈ ಆಯ್ಕೆಯನ್ನು ಯಾವ ಸಂಖ್ಯೆಗಳು ಬಿಡಬಹುದು ಪರಿಕಲ್ಪನಾางวัลವನ್ನು ಪರಿಗಣಿಸುತ್ತವೆ, ುದ್ದющего ಮಿತ್ರತ್ಸತರು ಕರಣಕ್ಕಾಗಿ ಸಂದರ್ಭದಲ್ಲಿ, ಅವಳಂದಾಗಿ ಕೊಡುಗೆ.",
     "allowDataWrite": "ಈ ಆಯ್ಕೆ ಡೇಟಾಬೇಸ್ ಟೇಬಲ್ಗಳಲ್ಲಿ ದಾಖಲಿಗಳನ್ನು ರಚಿಸಲು, ಅಪ್ಡೇಟ್ ಮಾಡಲು ಅಥವಾ ಅಳಿಸಲು ಅನುಮತಿಸುತ್ತದೆ. ಮುಖ್ಯವಾಗಿ ನಿರ್ವಾಹಕ ಬಳಕೆದಾರರು ಡೇಟಾವನ್ನು ನೇರವಾಗಿ ಬದಲಾಯಿಸಲು ಅಗತ್ಯವಿದೆ.",
-    "reachedSourceLimit": "ಪ್ರತಿ ಮೂಲಕ್ಕೆ 10 ಡೇಟಾ ಮೂಲಗಳಿಗೆ ಸೀಮಿತವಾಗಿದೆ",
+    "reachedSourceLimit": "ಪ್ರತಿ ಪ್ರಾಜೆಕ್ಟ್‌ಗೆ ಗರಿಷ್ಠ 10 ಡೇಟಾ ಮೂಲಗಳು",
     "saveChanges": "ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿ",
     "clientKey": ".key ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ",
     "clientCert": ".cert ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ",
@@ -5420,7 +5552,7 @@
     "selectAllMappedFields": "ನಕ್ಷೆ ಮಾಡಿದ ಎಲ್ಲಾ ಫೀಲ್ಡ್‌ಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "ದೋಷ ಕೋಡ್ ಅನ್ನು ಪ್ರತಿಕರಿಸಿ",
-    "paidUserBadgeTooltip": "ಒಂದು ಪಾವತಿಸಿದ ಸೀಟನ್ನು ಬಳಸುತ್ತದೆ. ಕಾರ್ಯಕ್ಷೇತ್ರ ಮಟ್ಟದಲ್ಲಿ, ಬೇಸ್‌ನಲ್ಲಿ, ಅಥವಾ ಇಂಟರ್ಫೇಸ್‌ನಲ್ಲಿ ಸಂಪಾದಕ ಅಥವಾ ಅದಕ್ಕಿಂತ ಮೇಲಿನ ಪಾತ್ರ.",
+    "paidUserBadgeTooltip": "ಒಂದು ಪಾವತಿಸಿದ ಸೀಟ್ ಬಳಸುತ್ತದೆ. ಕಾರ್ಯಕ್ಷೇತ್ರ ಮಟ್ಟದಲ್ಲಿ, ಪ್ರಾಜೆಕ್ಟ್‌ನಲ್ಲಿ ಅಥವಾ ಇಂಟರ್‌ಫೇಸ್‌ನಲ್ಲಿ ಸಂಪಾದಕ ಅಥವಾ ಅದಕ್ಕಿಂತ ಹೆಚ್ಚಿನ ಪಾತ್ರ.",
     "approachingLimit": "ಮಿತಿ ಸಮೀಪಿಸುತ್ತಿದೆ",
     "exceedingLimit": "ಮಿತಿಯನ್ನು ಮೀರುತ್ತಿದೆ",
     "filteredByCurrentUser": "ಪ್ರಸ್ತುತ ಬಳಕೆದಾರರಿಂದ ಫಿಲ್ಟರ್ ಮಾಡಲಾಗಿದೆ",
@@ -5464,8 +5596,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
     "onlyViewOwnerCanModifyPersonalView": "Only the view owner can modify this personal view",
     "onlyViewOwnerCanDeletePersonalView": "Only the view owner can delete this personal view",
-    "onlyCreatorsCanLockView": "Only base creators or owners can lock a view",
-    "onlyCreatorsCanUnlockView": "Only base creators or owners can unlock a view",
+    "onlyCreatorsCanLockView": "ಪ್ರಾಜೆಕ್ಟ್‌ನ ರಚನೆಕಾರರು ಅಥವಾ ಮಾಲೀಕರು ಮಾತ್ರ ವೀಕ್ಷಣೆಯನ್ನು ಲಾಕ್ ಮಾಡಬಹುದು",
+    "onlyCreatorsCanUnlockView": "ಪ್ರಾಜೆಕ್ಟ್‌ನ ರಚನೆಕಾರರು ಅಥವಾ ಮಾಲೀಕರು ಮಾತ್ರ ವೀಕ್ಷಣೆಯನ್ನು ಅನ್‌ಲಾಕ್ ಮಾಡಬಹುದು",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
     "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
@@ -5481,7 +5613,7 @@
     "sortingNotSupportedForFieldsWithErrors": "Sorting is not supported for fields with errors",
     "sortingNotSupportedForField": "Sorting is not supported for {type} field",
     "groupingNotSupportedForFieldsWithErrors": "Grouping is not supported for fields with errors",
-    "variableInheritance": "ಈ ಬೇಸ್ ಅನ್ನು ಅಪ್ಲಿಕೇಶನ್ ಆಗಿ ಸ್ಥಾಪಿಸುವವರು ಈ ವೇರಿಯಬಲ್ ಜೊತೆ ಏನು ಮಾಡಬಹುದು ಎಂಬುದನ್ನು ನಿರ್ಧರಿಸುತ್ತದೆ: ಸ್ಥಿರ ನಿಮ್ಮ ಮೌಲ್ಯವನ್ನು ಉಳಿಸಿ ಮರೆಮಾಡುತ್ತದೆ, ಸಂಪಾದಿಸಬಹುದಾದ ನಿಮ್ಮ ಮೌಲ್ಯವನ್ನು ಆರಂಭಿಕ ಬಿಂದುವಾಗಿ ನೀಡುತ್ತದೆ, ಅಗತ್ಯ ಅವರಿಂದ ತಮ್ಮದೇ ಮೌಲ್ಯವನ್ನು ಕೇಳುತ್ತದೆ.",
+    "variableInheritance": "ಈ ಪ್ರಾಜೆಕ್ಟ್ ಅನ್ನು ಅಪ್ಲಿಕೇಶನ್ ಆಗಿ ಸ್ಥಾಪಿಸುವವರು ಈ ವೇರಿಯೇಬಲ್‌ನೊಂದಿಗೆ ಏನು ಮಾಡಬಹುದು ಎಂಬುದನ್ನು ನಿರ್ಧರಿಸುತ್ತದೆ: ಸ್ಥಿರ ನಿಮ್ಮ ಮೌಲ್ಯವನ್ನು ಉಳಿಸಿ ಮರೆಮಾಡುತ್ತದೆ, ಸಂಪಾದಿಸಬಹುದಾದ ನಿಮ್ಮ ಮೌಲ್ಯವನ್ನು ಆರಂಭಿಕ ಬಿಂದುವಾಗಿ ನೀಡುತ್ತದೆ, ಅಗತ್ಯ ಅವರಿಂದ ಸ್ವಂತ ಮೌಲ್ಯವನ್ನು ಕೇಳುತ್ತದೆ.",
     "workflowButtonTriggerSourceReadOnly": "ಈ ಬಟನ್‌ಗೆ ಜೋಡಿಸಿದ ಮೂಲ ಕೋಷ್ಟಕವನ್ನು ಇಂಟರ್ಫೇಸ್‌ಗಳ ಮೂಲಕ ಮಾತ್ರ ಬದಲಿಸಬಹುದು",
     "workflowButtonTriggerInterfaceReadOnly": "ಈ ಬಟನ್ ಇರುವ ಇಂಟರ್ಫೇಸ್ ಪುಟವನ್ನು ಇಂಟರ್ಫೇಸ್‌ಗಳ ಮೂಲಕ ಮಾತ್ರ ಬದಲಿಸಬಹುದು",
     "chartIncludeOthers": "ಮಿತಿ ಮೀರಿದ ವರ್ಗಗಳನ್ನು ಬಿಡುವ ಬದಲು ಒಂದೇ ಇತರೆ ವರ್ಗದಲ್ಲಿ ಸೇರಿಸುತ್ತದೆ.",
@@ -5493,7 +5625,7 @@
     "interfaceMixedRoles": "ಇಂಟರ್ಫೇಸ್ ಅಥವಾ ಪುಟಗಳ ನಡುವೆ ಪಾತ್ರಗಳು ಭಿನ್ನವಾಗಿವೆ. ನೋಡಲು ವಿಸ್ತರಿಸಿ",
     "chatQueueAttachmentUnavailable": "ನೀವು ಸಂದೇಶವನ್ನು ಸರತಿಯಲ್ಲಿ ಇಟ್ಟರೆ ಈ ಲಗತ್ತು ಕಳುಹಿಸಲಾಗುವುದಿಲ್ಲ. ಮೊದಲು ಅದನ್ನು ತೆಗೆದುಹಾಕಿ",
     "lockedViewDisabledOnProduction": "ಲಾಕ್ ಆದ ವೀಕ್ಷಣೆಗಳನ್ನು ಪರಿಸರದ ಪ್ರತಿಯಲ್ಲಿ ಮಾತ್ರ ರಚಿಸಬಹುದು",
-    "personalViewDisabledOnEnvironment": "ವೈಯಕ್ತಿಕ ವೀಕ್ಷಣೆಗಳನ್ನು ಉತ್ಪಾದನಾ ಆಧಾರದಲ್ಲಿ ಮಾತ್ರ ರಚಿಸಬಹುದು",
+    "personalViewDisabledOnEnvironment": "ವೈಯಕ್ತಿಕ ವೀಕ್ಷಣೆಗಳನ್ನು ಪ್ರೊಡಕ್ಷನ್ ಪ್ರಾಜೆಕ್ಟ್‌ನಲ್ಲಿ ಮಾತ್ರ ರಚಿಸಬಹುದು",
     "seeNComments": "{n} ಕಾಮೆಂಟ್ ನೋಡಿ | {n} ಕಾಮೆಂಟ್‌ಗಳನ್ನು ನೋಡಿ",
     "collapsibleGroups": "ಶೀರ್ಷಿಕೆ ಇರುವ ಗುಂಪುಗಳನ್ನು ಮಡಚಲು ಅನುಮತಿಸಿ",
     "nestedRecordsRequireSelfLink": "ಇದೇ ಕೋಷ್ಟಕಕ್ಕೆ ಮರಳಿ ಸೂಚಿಸುವ ಲಿಂಕ್ ಕ್ಷೇತ್ರ ಈ ಕೋಷ್ಟಕದಲ್ಲಿ ಬೇಕು.",
@@ -5510,10 +5642,10 @@
     "youDontHaveAccessToCreateNewInterface": "ಹೊಸ ಇಂಟರ್ಫೇಸ್ ರಚಿಸಲು ನಿಮಗೆ ಅನುಮತಿ ಇಲ್ಲ",
     "displayValueFieldCannotBeReordered": "ಪ್ರದರ್ಶಿತ ಮೌಲ್ಯದ ಕ್ಷೇತ್ರವನ್ನು ಮರುಜೋಡಿಸಲಾಗದು",
     "interfaceLastVizRequired": "ಒಂದು ಪುಟಕ್ಕೆ ಕನಿಷ್ಠ ಒಂದು ದೃಶ್ಯೀಕರಣ ಬೇಕು",
-    "onlyCreatorsCanManageViewFolders": "ವೀಕ್ಷಣಾ ಫೋಲ್ಡರ್‌ಗಳನ್ನು ಆಧಾರದ ಸೃಷ್ಟಿಕರ್ತರು ಅಥವಾ ಮಾಲೀಕರು ಮಾತ್ರ ನಿರ್ವಹಿಸಬಹುದು",
-    "onlyCreatorsCanManageFolders": "ಫೋಲ್ಡರ್‌ಗಳನ್ನು ಆಧಾರದ ಸೃಷ್ಟಿಕರ್ತರು ಅಥವಾ ಮಾಲೀಕರು ಮಾತ್ರ ನಿರ್ವಹಿಸಬಹುದು",
+    "onlyCreatorsCanManageViewFolders": "ಪ್ರಾಜೆಕ್ಟ್‌ನ ರಚನೆಕಾರರು ಅಥವಾ ಮಾಲೀಕರು ಮಾತ್ರ ವೀಕ್ಷಣೆ ಫೋಲ್ಡರ್‌ಗಳನ್ನು ನಿರ್ವಹಿಸಬಹುದು",
+    "onlyCreatorsCanManageFolders": "ಪ್ರಾಜೆಕ್ಟ್‌ನ ರಚನೆಕಾರರು ಅಥವಾ ಮಾಲೀಕರು ಮಾತ್ರ ಫೋಲ್ಡರ್‌ಗಳನ್ನು ನಿರ್ವಹಿಸಬಹುದು",
     "organizeViewsIntoFolders": "ವೀಕ್ಷಣೆಗಳನ್ನು ಮಡಚಬಹುದಾದ ಫೋಲ್ಡರ್‌ಗಳಲ್ಲಿ ಜೋಡಿಸಿ",
-    "productionLockedByEnvironment": "ಈ ಬೇಸ್ ಒಂದು ಪರಿಸರದಲ್ಲಿ ತೆರೆದಿದೆ. ಸ್ಕೀಮಾ ಬದಲಾವಣೆಗಳನ್ನು ಅಲ್ಲಿಯೇ ಮಾಡಿ.",
+    "productionLockedByEnvironment": "ಈ ಪ್ರಾಜೆಕ್ಟ್ ಒಂದು ಪರಿಸರದಲ್ಲಿ ತೆರೆದಿದೆ. ಸ್ಕೀಮಾ ಬದಲಾವಣೆಗಳನ್ನು ಅಲ್ಲಿಯೇ ಮಾಡಿ.",
     "managedByPublisher": "ಈ ಆ್ಯಪ್‌ನ ರಚನೆಯನ್ನು ಅದರ ಪ್ರಕಾಶಕರು ನಿರ್ವಹಿಸುತ್ತಾರೆ. ನಿಮ್ಮ ದಾಖಲೆಗಳು ಮತ್ತು ಫೋಲ್ಡರ್‌ಗಳು ನಿಮ್ಮದೇ ಆಗಿರುತ್ತವೆ.",
     "featureOnProductionOnly": "ಈ ಕ್ರಿಯೆಯನ್ನು ಉತ್ಪಾದನಾ ಯೋಜನೆಯಲ್ಲಿ ನಿರ್ವಹಿಸಲಾಗುತ್ತದೆ, ಪರಿಸರ ಪ್ರತಿಯಲ್ಲಿ ಅಲ್ಲ.",
     "clickToEdit": "ಸಂಪಾದಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
@@ -5569,8 +5701,8 @@
     "showAllFields": "ಎಲ್ಲಾ ಕ್ಷೇತ್ರಗಳನ್ನು ತೋರಿಸಿ",
     "inviteLinkCannotGrantOwner": "ಆಹ್ವಾನ ಲಿಂಕ್ ಮಾಲೀಕರ ಪಾತ್ರವನ್ನು ನೀಡಲಾಗದು",
     "inviteLinkRoleAboveYours": "ನಿಮ್ಮ ಪಾತ್ರದವರೆಗಿನ ಪಾತ್ರಗಳನ್ನು ಮಾತ್ರ ನೀವು ನೀಡಬಹುದು",
-    "noDefaultSourceForFolders": "ಈ ಬೇಸ್‌ಗೆ ಡೀಫಾಲ್ಟ್ ಆಕರವಿಲ್ಲ. ಬದಲಿಗೆ ಯಾವುದೇ ಆಕರದ ಸ್ವಂತ ಮೆನುವಿನಿಂದ ಫೋಲ್ಡರ್‌ಗಳನ್ನು ರಚಿಸಿ",
-    "noDefaultSourceForSync": "ಈ ಬೇಸ್‌ಗೆ ಡೀಫಾಲ್ಟ್ ಆಕರವಿಲ್ಲ. ಸಿಂಕ್‌ಗೆ ತನ್ನ ಕೋಷ್ಟಕಗಳನ್ನು ಸಂಗ್ರಹಿಸಲು ಒಂದು ಆಕರ ಬೇಕು"
+    "noDefaultSourceForFolders": "ಈ ಪ್ರಾಜೆಕ್ಟ್‌ಗೆ ಡೀಫಾಲ್ಟ್ ಮೂಲ ಇಲ್ಲ. ಬದಲಾಗಿ ಆಯಾ ಮೂಲದ ಸ್ವಂತ ಮೆನುವಿನಿಂದ ಫೋಲ್ಡರ್‌ಗಳನ್ನು ರಚಿಸಿ",
+    "noDefaultSourceForSync": "ಈ ಪ್ರಾಜೆಕ್ಟ್‌ಗೆ ಡೀಫಾಲ್ಟ್ ಮೂಲ ಇಲ್ಲ. ಸಿಂಕ್‌ಗೆ ತನ್ನ ಕೋಷ್ಟಕಗಳನ್ನು ಸಂಗ್ರಹಿಸಲು ಒಂದು ಮೂಲ ಬೇಕು"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -7298,8 +7430,8 @@
         "description": "ನಿಮ್ಮ ಕಾರ್ಯದ್ವಾರದ ಸುತ್ತ ಒಂದು ಸಣ್ಣ ಸುತ್ತು. ಯಾವಾಗ ಬೇಕಾದರೂ ಹೊರನಡೆಯಬಹುದು: ಬಿಟ್ಟುಬಿಡಿ ಒತ್ತಿ."
       },
       "createBase": {
-        "title": "ಒಂದು ಆಧಾರದಿಂದ ಆರಂಭಿಸಿ",
-        "description": "ಒಂದು ಆಧಾರವು ನಿಮ್ಮ ಕೋಷ್ಟಕಗಳು, ನೋಟಗಳು ಮತ್ತು ಸ್ವಯಂಚಾಲನೆಗಳನ್ನು ಹೊಂದಿರುತ್ತದೆ. ಹೆಚ್ಚಿನ ಕೆಲಸ ಆರಂಭವಾಗುವುದು ಇಲ್ಲಿಂದಲೇ."
+        "title": "ಪ್ರಾಜೆಕ್ಟ್‌ನಿಂದ ಆರಂಭಿಸಿ",
+        "description": "ಪ್ರಾಜೆಕ್ಟ್‌ನಲ್ಲಿ ನಿಮ್ಮ ಕೋಷ್ಟಕಗಳು, ವೀಕ್ಷಣೆಗಳು ಮತ್ತು ಸ್ವಯಂಚಾಲನೆಗಳು ಇರುತ್ತವೆ. ಹೆಚ್ಚಿನ ಕೆಲಸ ಇಲ್ಲಿಂದಲೇ ಶುರುವಾಗುತ್ತದೆ."
       },
       "switchWorkspaces": {
         "title": "ಕಾರ್ಯಕ್ಷೇತ್ರ ಬದಲಾಯಿಸಿ",

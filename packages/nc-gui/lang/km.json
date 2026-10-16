@@ -106,11 +106,11 @@
     "upgradeToAddMoreDocumentPages": "Upgrade to add more document pages",
     "upgradeToAddMoreWorkflows": "Upgrade to add more workflows",
     "upgradeToAddMoreScriptsSubtitle": "អ្នកកំពុងនៅលើផែនការឥតគិតថ្លៃដែលអនុញ្ញាតតែស្គ្រីបម្ដងមួយក្នុង workspace។ ធ្វើបច្ចុប្បន្នភាពដើម្បីដោះសោស្គ្រីបគ្មានកំណត់។",
-    "upgradeToAddMoreWorkflowsSubtitle": "បច្ចុប្បន្នអ្នកកំពុងប្រើគម្រោង {activePlan} ដែលអនុញ្ញាត {limit} លំហូរការងារក្នុងមួយមូលដ្ឋាន។ ដំឡើងទៅ {plan} ដើម្បីទទួលបានបន្ថែម។",
+    "upgradeToAddMoreWorkflowsSubtitle": "បច្ចុប្បន្នអ្នកកំពុងប្រើផែនការ {activePlan} ដែលអនុញ្ញាត {limit} លំហូរការងារក្នុងមួយគម្រោង។ ដំឡើងទៅ {plan} ដើម្បីទទួលបានច្រើនជាងនេះ។",
     "upgradeToAddMoreDashboardsSubtitle": "អ្នកកំពុងនៅលើផែនការឥតគិតថ្លៃដែលអនុញ្ញាតតែក្នុងមួយផ្ទាំងគ្រប់គ្រងក្នុង workspace។ ធ្វើបច្ចុប្បន្នភាពដើម្បីដោះសោផ្ទាំងគ្រប់គ្រងគ្មានកំណត់។",
-    "upgradeToAddMoreDocumentPagesSubtitle": "The {activePlan} plan allows up to {limit} document pages per base. Upgrade to the {plan} plan to add more.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "ផែនការ {activePlan} អនុញ្ញាតរហូតដល់ {limit} ទំព័រឯកសារក្នុងមួយគម្រោង។ ដំឡើងទៅផែនការ {plan} ដើម្បីបន្ថែមទៀត។",
     "upgradeToUseBookmarks": "Upgrade to use bookmarks",
-    "upgradeToUseBookmarksSubtitle": "Upgrade to the {plan} plan to bookmark bases, tables, views, and more for quick access.",
+    "upgradeToUseBookmarksSubtitle": "ដំឡើងទៅផែនការ {plan} ដើម្បីរក្សាទុកគម្រោង តារាង ទិដ្ឋភាព និងច្រើនទៀតជាចំណាំសម្រាប់ចូលមើលរហ័ស។",
     "upgradeToUseDocsExportPdf": "Upgrade to export documents as PDF",
     "upgradeToUseDocsExportPdfSubtitle": "Upgrade to the {plan} plan to export your documents as PDF files.",
     "upgradeToUseDocsInlineComments": "Upgrade to use inline comments",
@@ -132,7 +132,7 @@
     "upgradeToAddWebhookSubtitle": "គម្រោង {activePlan} អនុញ្ញាតបានត្រឹម {limit} Webhook ប៉ុណ្ណោះ។ សូមធ្វើបច្ចុប្បន្នភាពទៅគម្រោង {plan} ដើម្បីចូលប្រើ Webhook ដោយគ្មានកំណត់។",
     "upgradeToAccessWebhookLogsSubtitle": "ចូលប្រើកំណត់ត្រា Webhook ដោយធ្វើបច្ចុប្បន្នភាព Workspace របស់អ្នកទៅគម្រោង {plan}។",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "ដំឡើងផែនការរបស់អ្នកដើម្បីចម្លងតារាងរវាងគម្រោងផ្សេងៗ។",
     "formOwnerNotified": "បានជូនដំណឹងដល់ម្ចាស់សំណុំបែបបទ",
     "formOwnerNotifiedSubtitle": "យើងបានជួយដំណឹងដល់ម្ចាស់សំណុំបែបបទអំពីសំណើដាក់ស្នើរបស់អ្នក។",
     "WorkspaceOwnerNotified": "បានជូនដំណឹងដល់ម្ចាស់ Workspace",
@@ -175,15 +175,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Upgrade to the {plan} plan to control who can view and edit individual pages in your docs.",
     "upgradeToUseWorkflows": "Upgrade to use workflows",
     "upgradeToUseWorkflowsSubtitle": "Upgrade to the {plan} plan to use workflows to automate tasks and processes.",
-    "upgradeToUsePrivateBases": "ធ្វើបច្ចុប្បន្នភាពដើម្បីដោះសោ base ឯកជន",
-    "upgradeToUsePrivateBasesSubtitle": "base ឯកជនមានសម្រាប់ផែនការ {plan}។ ធ្វើបច្ចុប្បន្នភាពឥឡូវនេះដើម្បីចាប់ផ្តើមប្រើ។",
+    "upgradeToUsePrivateBases": "ដំឡើងដើម្បីដោះសោគម្រោងឯកជន",
+    "upgradeToUsePrivateBasesSubtitle": "គម្រោងឯកជនមាននៅក្នុងផែនការ {plan}។ ដំឡើងឥឡូវនេះដើម្បីចាប់ផ្ដើមប្រើ។",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "អ្នកអាចផ្ទុក {limit} {filePlural} ច្រើនបំផុតទៅក្នុងក្រឡាចត្រង្គនេះ។ ធ្វើបច្ចុប្បន្នភាពទៅផែនការ {plan} ដើម្បីបន្ថែមឯកសារច្រើន។",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Upgrade to use AI Chat",
-    "upgradeToUseAiChatSubtitle": "Upgrade to the {plan} plan to use AI Chat to manage your base with natural language.",
+    "upgradeToUseAiChatSubtitle": "ដំឡើងទៅផែនការ {plan} ដើម្បីប្រើជជែក AI គ្រប់គ្រងគម្រោងរបស់អ្នកដោយភាសាធម្មជាតិ។",
     "upgradeToUseMfa": "Upgrade to enable two-factor authentication",
     "upgradeToUseMfaSubtitle": "Upgrade to the {plan} plan to enable multi-factor authentication for your account.",
     "upgradeToRequireTwoFactor": "Upgrade to require two-factor authentication",
@@ -202,14 +202,14 @@
     "upgradeToUseTeamHierarchy": "Upgrade to use team hierarchy",
     "upgradeToUseTeamHierarchySubtitle": "Upgrade to the {plan} plan to organize teams in nested hierarchies with inherited membership.",
     "upgradeToUseTeams": "Upgrade to use teams",
-    "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases.",
+    "upgradeToUseTeamsSubtitle": "ដំឡើងទៅផែនការ {plan} ដើម្បីប្រើក្រុមក្នុងការដាក់ជាក្រុមអ្នកប្រើប្រាស់ និងគ្រប់គ្រងសិទ្ធិចូលប្រើកន្លែងធ្វើការ និងគម្រោង។",
     "upgradeToAddMoreTeams": "Upgrade to add more teams",
     "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views.",
     "upgradeToUseFormScheduling": "Upgrade to use form scheduling",
     "upgradeToUseFormSchedulingSubtitle": "Upgrade to the {plan} plan to schedule form availability with start and expiration dates.",
-    "upgradeToUseBaseVariables": "Upgrade to use base variables",
-    "upgradeToUseBaseVariablesSubtitle": "Upgrade to the {plan} plan to define reusable variables scoped to a base.",
+    "upgradeToUseBaseVariables": "ដំឡើងដើម្បីប្រើអថេរគម្រោង",
+    "upgradeToUseBaseVariablesSubtitle": "ដំឡើងទៅផែនការ {plan} ដើម្បីកំណត់អថេរដែលអាចប្រើឡើងវិញក្នុងវិសាលភាពគម្រោង។",
     "upgradeToUseSync": "Upgrade to use sync",
     "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources.",
     "upgradeToUseTableSync": "Upgrade to use table sync",
@@ -3107,7 +3107,11 @@
       "upgradeRequestSent": "បានផ្ញើសំណើ",
       "upgradeDescRls": "កំណត់ថាតើមនុស្សម្នាក់ៗអាចមើល និងកែសម្រួលកំណត់ត្រាណាខ្លះ។",
       "upgradeDescRecordTemplates": "បង្កើតកំណត់ត្រាថ្មីពីគំរូដែលបានរក្សាទុក និងបំពេញជាមុន។",
-      "upgradeDescDateDependency": "ផ្លាស់ប្តូរកាលបរិច្ឆេទពាក់ព័ន្ធដោយស្វ័យប្រវត្តិនៅពេលកំណត់ត្រាត្រូវបានផ្លាស់ទី។"
+      "upgradeDescDateDependency": "ផ្លាស់ប្តូរកាលបរិច្ឆេទពាក់ព័ន្ធដោយស្វ័យប្រវត្តិនៅពេលកំណត់ត្រាត្រូវបានផ្លាស់ទី។",
+      "concernProject": "គម្រោង",
+      "concernInterfaces": "ចំណុចប្រទាក់",
+      "concernApps": "កម្មវិធី",
+      "concernTabs": "ផ្នែកការកំណត់"
     },
     "categories": "ប្រភេទ",
     "blockquote": "សម្រង់",
@@ -4380,7 +4384,105 @@
         "repeatWarning": "ជំហាននេះអាចផ្ញើ ឬផ្លាស់ប្តូរទិន្នន័យ។ ការព្យាយាមម្តងទៀតអាចធ្វើវាឡើងវិញ — បើកវាតែនៅពេលដែលវាមិនមានបញ្ហា។",
         "retries": "ចំនួនព្យាយាមឡើងវិញ",
         "earlierTries": "ការព្យាយាមមុនៗ",
-        "noErrorMessage": "គ្មានសារកំហុស"
+        "noErrorMessage": "គ្មានសារកំហុស",
+        "title": "នៅពេលបរាជ័យ",
+        "retryIfFails": "ព្យាយាមម្ដងទៀតប្រសិនបើជំហាននេះបរាជ័យ",
+        "retrySafeHint": "ព្យាយាមម្ដងទៀតដោយស្វ័យប្រវត្តិនៅពេលសេវាកម្មមិនអាចប្រើបានបណ្ដោះអាសន្ន",
+        "waitBeforeRetry": "រង់ចាំមុនពេលព្យាយាមម្ដងទៀត",
+        "seconds": "វិនាទី",
+        "waitLonger": "រង់ចាំយូរជាងមុនរាល់ដង",
+        "waitLongerHint": "បង្កើនរយៈពេលរង់ចាំទ្វេដងបន្ទាប់ពីការព្យាយាមនីមួយៗ រហូតដល់ 1 ម៉ោង",
+        "retryOn": "ព្យាយាមម្ដងទៀតនៅពេល",
+        "retryOnTemporary": "តែបញ្ហាបណ្ដោះអាសន្នប៉ុណ្ណោះ (អស់ពេល ដែនកំណត់អត្រា កំហុសម៉ាស៊ីនបម្រើ)",
+        "retryOnAny": "កំហុសណាមួយ",
+        "triedTimes": "បានព្យាយាម {count} ដង",
+        "tryNumber": "ការព្យាយាមទី {n}",
+        "succeededAfterTries": "ជោគជ័យបន្ទាប់ពីព្យាយាម {count} ដង"
+      },
+      "iterate": {
+        "listPlaceholder": "ជ្រើសរើសអារេដើម្បីធ្វើឡើងវិញ",
+        "listHelp": "ជ្រើសរើសអារេពីជំហានមុន។ ធាតុនីមួយៗនឹងត្រូវដំណើរការតាមលំដាប់។",
+        "notAList": "ត្រូវការបញ្ជីធាតុ ប៉ុន្តែតម្លៃនេះគឺ {kind}។"
+      },
+      "originalRun": "ការដំណើរការដើម",
+      "duration": {
+        "milliseconds": "{n} មិល្លីវិនាទី",
+        "seconds": "{n} វិនាទី",
+        "minutesSeconds": "{m} នាទី {s} វិនាទី"
+      },
+      "overview": {
+        "lastRun": "ការដំណើរការចុងក្រោយ",
+        "failedCount": "{n} បរាជ័យ",
+        "allTested": "បានសាកល្បងគ្រប់ជំហាន"
+      },
+      "addStep": "បន្ថែមជំហានមួយ",
+      "nodePicker": {
+        "upgradeToUseStep": "ដំឡើងទៅផែនការ {plan} ដើម្បីប្រើ {step}",
+        "search": "ស្វែងរកជំហាន និងកម្មវិធី",
+        "searchTriggers": "ស្វែងរក ឧ. «ជួរដេកថ្មី», «រៀងរាល់ថ្ងៃច័ន្ទ»",
+        "searchIn": "ស្វែងរកក្នុង {app}",
+        "apps": "កម្មវិធី",
+        "integrations": "ការរួមបញ្ចូល",
+        "popular": "ពេញនិយម",
+        "chooseTrigger": "ជ្រើសរើសកត្តាជំរុញ",
+        "chooseTriggerHint": "រាល់លំហូរការងារចាប់ផ្ដើមដោយកត្តាជំរុញ៖ ព្រឹត្តិការណ៍ដែលធ្វើឱ្យវាដំណើរការ។",
+        "noMatches": "គ្មានជំហានត្រូវគ្នា",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "កំណត់ត្រា {bold}",
+            "bold": "ត្រូវបានបង្កើត"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "កំណត់ត្រា {bold}",
+            "bold": "ត្រូវបានធ្វើបច្ចុប្បន្នភាព"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "កំណត់ត្រា {bold}",
+            "bold": "ត្រូវបានលុប"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "កំណត់ត្រា {bold}",
+            "bold": "ចូលក្នុងទិដ្ឋភាព"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "កំណត់ត្រា {bold}",
+            "bold": "ត្រូវនឹងលក្ខខណ្ឌ"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "ដាក់ស្នើទម្រង់"
+          },
+          "core_trigger_button": {
+            "text": "{bold} លើកំណត់ត្រា",
+            "bold": "ចុចប៊ូតុង"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} លើកំណត់ត្រា",
+            "bold": "បញ្ចេញមតិ"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "តាមកាលវិភាគ"
+          },
+          "core_trigger_webhook": {
+            "text": "នៅពេល {bold}",
+            "bold": "ទទួលបាន webhook"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "ដោយដៃ"
+          }
+        },
+        "groups": {
+          "recordEvents": "នៅពេល",
+          "userActions": "នៅពេលអ្នកប្រើប្រាស់",
+          "runs": "ដំណើរការ",
+          "records": "កំណត់ត្រា",
+          "logic": "តក្កវិជ្ជា",
+          "messages": "សារ",
+          "developer": "អ្នកអភិវឌ្ឍន៍",
+          "other": "ផ្សេងទៀត"
+        }
       }
     },
     "xAxis": "អ័ក្ស X",
@@ -5021,7 +5123,36 @@
     "licenseExpired": "អាជ្ញាបណ្ណផុតកំណត់",
     "talkToSales": "និយាយជាមួយក្រុមលក់",
     "paidAnnually": "បង់ប្រចាំឆ្នាំ",
-    "paidMonthly": "បង់ប្រចាំខែ"
+    "paidMonthly": "បង់ប្រចាំខែ",
+    "addAttachment": "បន្ថែមឯកសារភ្ជាប់",
+    "fromAttachmentField": "ពីវាលឯកសារភ្ជាប់",
+    "uploadFile": "បង្ហោះឯកសារ",
+    "fromUrl": "ពី URL",
+    "attachFromUrl": "ភ្ជាប់ពី URL",
+    "removeAttachment": "លុបឯកសារភ្ជាប់",
+    "attachmentFieldChip": "វាល",
+    "setPageAccess": "កំណត់សិទ្ធិចូលមើលទំព័រ",
+    "readOnlyMember": "សមាជិកអានតែប៉ុណ្ណោះ",
+    "aReadOnlyMember": "សមាជិកអានតែប៉ុណ្ណោះ",
+    "readOnlyMembers": "សមាជិកអានតែប៉ុណ្ណោះ",
+    "backToData": "ត្រឡប់ទៅទិន្នន័យ",
+    "appShare": {
+      "customTeamDescription": "ក្រុមដែលកម្មវិធីនេះកំណត់។",
+      "membersTeamDescription": "ប្រើកម្មវិធី។",
+      "adminTeamDescription": "ប្រើកម្មវិធី និងគ្រប់គ្រងសមាជិករបស់វា។",
+      "noAccessTeamDescription": "មិនទាន់បានផ្ដល់សកម្មភាពណាមួយនៅឡើយទេ ដូច្នេះសមាជិករបស់វាមិនអាចបើកកម្មវិធីបានទេ។"
+    },
+    "viewActions": "សកម្មភាពទិដ្ឋភាព",
+    "renameView": "ប្ដូរឈ្មោះទិដ្ឋភាព",
+    "generateWithAi": "បង្កើតដោយ AI",
+    "deleteView": "លុបទិដ្ឋភាព",
+    "addToFavourites": "បន្ថែមទៅសំណព្វ",
+    "contextMenu": "ម៉ឺនុយបរិបទ",
+    "editSqlView": "កែសម្រួលទិដ្ឋភាព SQL",
+    "noWebhooksYet": "មិនទាន់មាន webhook ទេ",
+    "navigation": "ការរុករក",
+    "pagination": "ការបែងចែកទំព័រ",
+    "showRowNumbers": "បង្ហាញលេខជួរដេក"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5364,7 +5495,7 @@
     "dataWriteOptionDisabled": "ការកែសម្រួលទិន្នន័យអាចបិទបានពេល 'កែសម្រួលផ្លូតស្ថាបរិមា' ត្រូវបានបិទ និងក្លាយជាមិនបិទ​នៅភាព​វិញ.",
     "allowMetaWrite": "ជម្រើស​នេះ​អនុញ្ញាត​ការកែសម្រួល​ផ្នែក​ស្ថានទិន្ន័យ​ប្រតេយ្យ ចូល​ក្នុងន័យបន្ថែម, កែប្រែ, ឬ​លុប तालិកានិងជួរ។ ប្រើប្រាស់​ដោយប្រយុទ្ធណាស់, ព្រោះការផ្លាស់ប្តូរអាចប្រឈមគ្រោះអោយទៅការបើកលេខនៃប្រតិទិនរបស់អ្នក។",
     "allowDataWrite": "ជម្រើសនេះអនុញ្ញាតឱ្យបង្កើត, បន្ថែមទិន្នន័យឬលុបកំណត់ត្រាជាមួយតារាងបញ្ជីទិន្នន័យ។ ជាមូលដ្ឋានសម្រាប់អ្នកគ្រប់គ្រងដែលមានតម្រូវការផ្លាស់ប្តូរទិន្នន័យដោយផ្ទាល់។",
-    "reachedSourceLimit": "កម្រិត​ដល់ ១០ ប្រភព​ទិន្នន័យ​ក្នុង​មូលដ្ឋាន​មួយ",
+    "reachedSourceLimit": "កំណត់ត្រឹម 10 ប្រភពទិន្នន័យក្នុងមួយគម្រោង",
     "saveChanges": "រក្សាទុកការផ្លាស់ប្តូរ",
     "clientKey": "ជ្រើសរើស .key file",
     "clientCert": "ជ្រើសរើស .cert file",
@@ -5390,7 +5521,7 @@
     "selectAllMappedFields": "ជ្រើសវាលបានផ្គូផ្គងទាំងអស់",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "ចម្លងកូដកំហុស",
-    "paidUserBadgeTooltip": "ប្រើកៅអីបង់ប្រាក់មួយ។ តួនាទីអ្នកកែសម្រួលឬខ្ពស់ជាងនៅកម្រិតកន្លែងធ្វើការ ក្នុងមូលដ្ឋាន ឬលើចំណុចប្រទាក់។",
+    "paidUserBadgeTooltip": "ប្រើកៅអីបង់ប្រាក់មួយ។ តួនាទីអ្នកកែសម្រួល ឬខ្ពស់ជាងនេះនៅកម្រិតកន្លែងធ្វើការ ក្នុងគម្រោង ឬលើចំណុចប្រទាក់។",
     "approachingLimit": "កំពុងជិតដល់កំណត់",
     "exceedingLimit": "លើសកំណត់",
     "filteredByCurrentUser": "បានត្រងតាមអ្នកប្រើប្រាស់បច្ចុប្បន្ន",
@@ -5434,8 +5565,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
     "onlyViewOwnerCanModifyPersonalView": "Only the view owner can modify this personal view",
     "onlyViewOwnerCanDeletePersonalView": "Only the view owner can delete this personal view",
-    "onlyCreatorsCanLockView": "Only base creators or owners can lock a view",
-    "onlyCreatorsCanUnlockView": "Only base creators or owners can unlock a view",
+    "onlyCreatorsCanLockView": "មានតែអ្នកបង្កើត ឬម្ចាស់គម្រោងប៉ុណ្ណោះដែលអាចចាក់សោទិដ្ឋភាពបាន",
+    "onlyCreatorsCanUnlockView": "មានតែអ្នកបង្កើត ឬម្ចាស់គម្រោងប៉ុណ្ណោះដែលអាចដោះសោទិដ្ឋភាពបាន",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
     "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
@@ -5462,7 +5593,7 @@
     "interfaceMixedRoles": "តួនាទីខុសគ្នារវាងចំណុចប្រទាក់ឬទំព័រ។ ពង្រីកដើម្បីមើលពួកវា",
     "chatQueueAttachmentUnavailable": "ឯកសារភ្ជាប់នេះនឹងមិនត្រូវបានផ្ញើទេ ប្រសិនបើអ្នកដាក់សាររបស់អ្នកក្នុងជួរ។ សូមដកវាចេញជាមុនសិន",
     "lockedViewDisabledOnProduction": "ទិដ្ឋភាពដែលចាក់សោអាចបង្កើតបានតែក្នុងច្បាប់ចម្លងបរិស្ថាន",
-    "personalViewDisabledOnEnvironment": "ទិដ្ឋភាពផ្ទាល់ខ្លួនអាចបង្កើតបានតែនៅមូលដ្ឋានផលិតកម្ម",
+    "personalViewDisabledOnEnvironment": "ទិដ្ឋភាពផ្ទាល់ខ្លួនអាចបង្កើតបានតែក្នុងគម្រោងផលិតកម្មប៉ុណ្ណោះ",
     "seeNComments": "មើលមតិយោបល់ {n} | មើលមតិយោបល់ {n}",
     "collapsibleGroups": "អនុញ្ញាតឱ្យបង្រួមក្រុមដែលមានចំណងជើង",
     "nestedRecordsRequireSelfLink": "ត្រូវការវាលតំណនៅតារាងនេះ ដែលភ្ជាប់ត្រឡប់ទៅតារាងដដែល។",
@@ -5479,10 +5610,10 @@
     "youDontHaveAccessToCreateNewInterface": "អ្នកគ្មានសិទ្ធិបង្កើតចំណុចប្រទាក់ថ្មីទេ",
     "displayValueFieldCannotBeReordered": "វាលតម្លៃបង្ហាញមិនអាចរៀបលំដាប់ឡើងវិញបានទេ",
     "interfaceLastVizRequired": "ទំព័រមួយត្រូវការការបង្ហាញជារូបភាពយ៉ាងតិចមួយ",
-    "onlyCreatorsCanManageViewFolders": "មានតែអ្នកបង្កើត ឬម្ចាស់មូលដ្ឋានប៉ុណ្ណោះដែលអាចគ្រប់គ្រងថតទិដ្ឋភាពបាន",
-    "onlyCreatorsCanManageFolders": "មានតែអ្នកបង្កើត ឬម្ចាស់មូលដ្ឋានប៉ុណ្ណោះដែលអាចគ្រប់គ្រងថតបាន",
+    "onlyCreatorsCanManageViewFolders": "មានតែអ្នកបង្កើត ឬម្ចាស់គម្រោងប៉ុណ្ណោះដែលអាចគ្រប់គ្រងថតទិដ្ឋភាពបាន",
+    "onlyCreatorsCanManageFolders": "មានតែអ្នកបង្កើត ឬម្ចាស់គម្រោងប៉ុណ្ណោះដែលអាចគ្រប់គ្រងថតបាន",
     "organizeViewsIntoFolders": "រៀបចំទិដ្ឋភាពក្នុងថតដែលអាចបង្រួមបាន",
-    "productionLockedByEnvironment": "មូលដ្ឋាននេះបើកនៅក្នុងបរិស្ថានមួយ។ សូមធ្វើការផ្លាស់ប្តូរគ្រោងនៅទីនោះ។",
+    "productionLockedByEnvironment": "គម្រោងនេះកំពុងបើកក្នុងបរិស្ថានមួយ។ សូមធ្វើការផ្លាស់ប្ដូរគ្រោងនៅទីនោះ។",
     "managedByPublisher": "រចនាសម្ព័ន្ធនៃកម្មវិធីនេះត្រូវបានគ្រប់គ្រងដោយអ្នកបោះពុម្ពផ្សាយ។ ឯកសារ និងថតរបស់អ្នកនៅតែជារបស់អ្នក។",
     "featureOnProductionOnly": "សកម្មភាពនេះត្រូវបានគ្រប់គ្រងនៅលើគម្រោងផលិតកម្ម មិនមែននៅក្នុងច្បាប់ចម្លងបរិស្ថានទេ។",
     "clickToEdit": "ចុចដើម្បីកែសម្រួល",
@@ -5538,8 +5669,9 @@
     "showAllFields": "បង្ហាញវាលទាំងអស់",
     "inviteLinkCannotGrantOwner": "តំណអញ្ជើញមិនអាចផ្តល់តួនាទីជាម្ចាស់បានទេ",
     "inviteLinkRoleAboveYours": "អ្នកអាចផ្តល់បានតែតួនាទីរហូតដល់តួនាទីរបស់អ្នកប៉ុណ្ណោះ",
-    "noDefaultSourceForFolders": "មូលដ្ឋាននេះគ្មានប្រភពលំនាំដើមទេ។ សូមបង្កើតថតពីម៉ឺនុយរបស់ប្រភពនីមួយៗជំនួសវិញ",
-    "noDefaultSourceForSync": "មូលដ្ឋាននេះគ្មានប្រភពលំនាំដើមទេ។ សមកាលកម្មត្រូវការប្រភពមួយដើម្បីរក្សាទុកតារាងរបស់វា"
+    "noDefaultSourceForFolders": "គម្រោងនេះមិនមានប្រភពលំនាំដើមទេ។ សូមបង្កើតថតពីម៉ឺនុយរបស់ប្រភពនីមួយៗជំនួសវិញ",
+    "noDefaultSourceForSync": "គម្រោងនេះមិនមានប្រភពលំនាំដើមទេ។ ការធ្វើសមកាលកម្មត្រូវការប្រភពមួយដើម្បីរក្សាទុកតារាងរបស់វា",
+    "variableInheritance": "កំណត់ថាអ្នកដែលដំឡើងគម្រោងនេះជាកម្មវិធីអាចធ្វើអ្វីខ្លះជាមួយអថេរនេះ៖ ថេរ រក្សាតម្លៃរបស់អ្នក និងលាក់វា, កែបាន ផ្ដល់តម្លៃរបស់អ្នកជាចំណុចចាប់ផ្ដើម, ទាមទារ ស្នើឱ្យពួកគេបញ្ចូលតម្លៃផ្ទាល់ខ្លួន។"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -7264,8 +7396,8 @@
         "description": "ដំណើរកម្សាន្តខ្លីមួយជុំវិញកន្លែងធ្វើការរបស់អ្នក។ អ្នកអាចចាកចេញបានគ្រប់ពេល៖ ចុច រំលង។"
       },
       "createBase": {
-        "title": "ចាប់ផ្តើមដោយមូលដ្ឋានមួយ",
-        "description": "មូលដ្ឋានមួយផ្ទុកតារាង ទិដ្ឋភាព និងស្វ័យប្រវត្តិកម្មរបស់អ្នក។ ការងារភាគច្រើនចាប់ផ្តើមនៅទីនេះ។"
+        "title": "ចាប់ផ្ដើមដោយគម្រោងមួយ",
+        "description": "គម្រោងមួយមានតារាង ទិដ្ឋភាព និងស្វ័យប្រវត្តិកម្មរបស់អ្នក។ ការងារភាគច្រើនចាប់ផ្ដើមនៅទីនេះ។"
       },
       "switchWorkspaces": {
         "title": "ប្តូរកន្លែងធ្វើការ",

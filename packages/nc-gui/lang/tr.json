@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Daha fazla belge sayfası eklemek için yükseltin",
     "upgradeToAddMoreWorkflows": "Daha fazla iş akışı eklemek için yükseltin",
     "upgradeToAddMoreScriptsSubtitle": "Şu anda Ücretsiz plandasınız ve her çalışma alanı için yalnızca bir script kullanabilirsiniz. Sınırsız scriptin kilidini açmak için yükseltin.",
-    "upgradeToAddMoreWorkflowsSubtitle": "Şu anda {activePlan} planındasınız; bu plan taban başına {limit} iş akışına izin veriyor. Daha fazlası için {plan} planına yükseltin.",
+    "upgradeToAddMoreWorkflowsSubtitle": "Şu anda proje başına {limit} iş akışına izin veren {activePlan} planındasınız. Daha fazlası için {plan} planına yükseltin.",
     "upgradeToAddMoreDashboardsSubtitle": "Şu anda Ücretsiz plandasınız ve her çalışma alanı için yalnızca bir panel kullanabilirsiniz. Sınırsız panelin kilidini açmak için yükseltin.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan} planı, temel başına en fazla {limit} belge sayfasına izin verir. Daha fazla eklemek için {plan} planına yükseltin.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan} planı proje başına en fazla {limit} belge sayfasına izin verir. Daha fazlasını eklemek için {plan} planına yükseltin.",
     "upgradeToUseBookmarks": "Yer imlerini kullanmak için yükseltin",
-    "upgradeToUseBookmarksSubtitle": "Hızlı erişim için projeleri, tabloları, görünümleri ve daha fazlasını yer imi olarak eklemek için {plan} planına yükseltin.",
+    "upgradeToUseBookmarksSubtitle": "Projeleri, tabloları, görünümleri ve daha fazlasını hızlı erişim için yer imlerine eklemek üzere {plan} planına yükseltin.",
     "upgradeToUseDocsExportPdf": "Belgeleri PDF olarak dışa aktarmak için yükseltin",
     "upgradeToUseDocsExportPdfSubtitle": "Belgelerinizi PDF dosyaları olarak dışa aktarmak için {plan} planına yükseltin.",
     "upgradeToUseDocsInlineComments": "Satır içi yorumları kullanmak için yükseltin",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "{activePlan} planı en fazla {limit} webhook'a izin verir. Sınırsız webhook erişimi için {plan} planına yükseltin.",
     "upgradeToAccessWebhookLogsSubtitle": "Çalışma alanınızı {plan} planına yükselterek webhook günlüklerine erişin.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "Tabloları farklı projeler arasında çoğaltmak için planınızı yükseltin.",
     "formOwnerNotified": "Form sahibi bilgilendirildi",
     "formOwnerNotifiedSubtitle": "Gönderim talebiniz hakkında form sahibini bilgilendirdik.",
     "WorkspaceOwnerNotified": "Çalışma alanı sahibi bilgilendirildi",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Belgelerde tek tek sayfalara kimlerin görüntüleyip düzenleyebileceğini kontrol etmek için {plan} planına yükseltin.",
     "upgradeToUseWorkflows": "İş akışlarını kullanmak için yükseltin",
     "upgradeToUseWorkflowsSubtitle": "Görevleri ve süreçleri otomatikleştirmek için {plan} planına yükselterek iş akışlarını kullanın.",
-    "upgradeToUsePrivateBases": "Özel tabanların kilidini açmak için yükseltin",
-    "upgradeToUsePrivateBasesSubtitle": "Özel tabanlar {plan} planında mevcuttur. Onları kullanmak için şimdi yükseltin.",
+    "upgradeToUsePrivateBases": "Özel projelerin kilidini açmak için yükseltin",
+    "upgradeToUsePrivateBasesSubtitle": "Özel projeler {plan} planında kullanılabilir. Kullanmaya başlamak için şimdi yükseltin.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Bu hücreye en fazla {limit} {filePlural} yükleyebilirsiniz. Daha fazla dosya eklemek için {plan} planına yükseltin.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "AI Sohbeti kullanmak için yükseltin",
-    "upgradeToUseAiChatSubtitle": "Ana diliyle projelerinizi yönetmek için AI Chat kullanmak amacıyla {plan} planına yükseltin.",
+    "upgradeToUseAiChatSubtitle": "Projenizi doğal dille yönetmek üzere yapay zekâ sohbetini kullanmak için {plan} planına yükseltin.",
     "upgradeToUseMfa": "İki faktörlü doğrulamayı etkinleştirmek için yükseltin",
     "upgradeToUseMfaSubtitle": "Hesabınız için çok faktörlü kimlik doğrulamasını etkinleştirmek için {plan} planına yükseltin.",
     "upgradeToRequireTwoFactor": "Tüm çalışma alanı üyeleri için iki faktörlü doğrulama zorunlu yapmak için yükseltin",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Ekip hiyerarşisini kullanmak için yükseltin",
     "upgradeToUseTeamHierarchySubtitle": "Ekipleri iç içe geçmiş hiyerarşilerde organize etmek ve üyelik devriyle birlikte yönetmek için {plan} planına yükseltin.",
     "upgradeToUseTeams": "Ekipleri kullanmak için yükseltin",
-    "upgradeToUseTeamsSubtitle": "Kullanıcıları gruplamak ve bunların çalışma alanlarına ve projelere erişimini yönetmek için ekipler özelliğini {plan} planına yükselterek kullanın.",
+    "upgradeToUseTeamsSubtitle": "Kullanıcıları gruplamak ve çalışma alanlarına ve projelere erişimlerini yönetmek üzere takımları kullanmak için {plan} planına yükseltin.",
     "upgradeToAddMoreTeams": "Daha fazla ekip eklemek için yükseltin",
     "upgradeToAddMoreTeamsSubtitle": "Çalışma alanınıza daha fazla ekip eklemek için {plan} planına yükseltin.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Galeri ve Kanban görünümlerinde sütun başlıklarını gizlemek için {plan} planına yükseltin.",
     "upgradeToUseFormScheduling": "Form zamanlaması kullanmak için yükseltin",
     "upgradeToUseFormSchedulingSubtitle": "Başlangıç ve bitiş tarihleriyle form kullanılabilirliğini planlamak için {plan} planına yükseltin.",
     "upgradeToUseBaseVariables": "Proje değişkenlerini kullanmak için yükseltin",
-    "upgradeToUseBaseVariablesSubtitle": "Projeye özel yeniden kullanılabilir değişkenler tanımlamak için {plan} planına yükseltin.",
+    "upgradeToUseBaseVariablesSubtitle": "Bir proje kapsamında yeniden kullanılabilir değişkenler tanımlamak için {plan} planına yükseltin.",
     "upgradeToUseSync": "Senkronizasyonu kullanmak için yükseltin",
     "upgradeToUseSyncSubtitle": "Dahili veya harici kaynaklarla veri senkronizasyonu için {plan} planına yükseltin.",
     "upgradeToUseTableSync": "Tablo senkronizasyonu kullanmak için yükseltin",
@@ -3112,7 +3112,11 @@
       "upgradeRequestSent": "İstek gönderildi",
       "upgradeDescRls": "Her kişinin hangi kayıtları görebileceğini ve düzenleyebileceğini sınırlayın.",
       "upgradeDescRecordTemplates": "Kaydedilmiş, önceden doldurulmuş şablonlardan yeni kayıtlar oluşturun.",
-      "upgradeDescDateDependency": "Bir kayıt taşındığında bağımlı tarihleri otomatik olarak kaydırır."
+      "upgradeDescDateDependency": "Bir kayıt taşındığında bağımlı tarihleri otomatik olarak kaydırır.",
+      "concernProject": "Proje",
+      "concernInterfaces": "Arayüzler",
+      "concernApps": "Uygulama",
+      "concernTabs": "Ayar bölümleri"
     },
     "categories": "Kategoriler",
     "blockquote": "Alıntı",
@@ -4402,7 +4406,106 @@
         "repeatWarning": "Bu adım veri gönderebilir veya değiştirebilir. Yeniden denemek bunu tekrarlayabilir — yalnızca sakıncası yoksa açın.",
         "retries": "Yeniden deneme sayısı",
         "earlierTries": "Önceki denemeler",
-        "noErrorMessage": "Hata mesajı yok"
+        "noErrorMessage": "Hata mesajı yok",
+        "title": "Başarısızlık durumunda",
+        "retryIfFails": "Bu adım başarısız olursa yeniden dene",
+        "retrySafeHint": "Bir hizmet geçici olarak kullanılamadığında otomatik olarak yeniden dener",
+        "waitBeforeRetry": "Yeniden denemeden önce bekle",
+        "seconds": "saniye",
+        "waitLonger": "Her seferinde daha uzun bekle",
+        "waitLongerHint": "Her denemeden sonra bekleme süresini iki katına çıkarır, en fazla 1 saat",
+        "retryOn": "Şu durumda yeniden dene",
+        "retryOnTemporary": "Yalnızca geçici sorunlar (zaman aşımları, hız sınırları, sunucu hataları)",
+        "retryOnAny": "Herhangi bir hata",
+        "triedTimes": "{count} kez denendi",
+        "tryNumber": "Deneme {n}",
+        "succeededAfterTries": "{count} denemeden sonra başarılı oldu"
+      },
+      "iterate": {
+        "listPlaceholder": "Üzerinde yinelenecek bir dizi seçin",
+        "listHelp": "Önceki bir adımdan bir dizi seçin. Her öğe sırayla işlenecek.",
+        "notAList": "Öğelerden oluşan bir liste gerekiyor, ancak bu değer {kind}."
+      },
+      "originalRun": "özgün çalıştırma",
+      "duration": {
+        "milliseconds": "{n} ms",
+        "seconds": "{n} sn",
+        "minutesSeconds": "{m} dk {s} sn"
+      },
+      "overview": {
+        "lastRun": "Son çalıştırma",
+        "failedCount": "{n} başarısız",
+        "allTested": "Tüm adımlar test edildi"
+      },
+      "addStep": "Bir adım ekle",
+      "nodePicker": {
+        "upgradeToUseStep": "{step} kullanmak için {plan} planına yükseltin",
+        "search": "Adım ve uygulama ara",
+        "searchTriggers": "Arayın, ör. “yeni satır”, “her pazartesi”",
+        "searchIn": "{app} içinde ara",
+        "apps": "Uygulamalar",
+        "integrations": "Entegrasyonlar",
+        "popular": "Popüler",
+        "chooseTrigger": "Bir tetikleyici seçin",
+        "chooseTriggerHint": "Her iş akışı bir tetikleyiciyle başlar: onu başlatan olay.",
+        "noMatches": "Eşleşen adım yok",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "Kayıt {bold}",
+            "bold": "oluşturulduğunda"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "Kayıt {bold}",
+            "bold": "güncellendiğinde"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "Kayıt {bold}",
+            "bold": "silindiğinde"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "Kayıt {bold}",
+            "bold": "bir görünüme girdiğinde"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "Kayıt {bold}",
+            "bold": "koşullarla eşleştiğinde"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "Form gönderir"
+          },
+          "core_trigger_button": {
+            "text": "Bir kayıtta {bold}",
+            "bold": "Bir düğmeye tıklar"
+          },
+          "nocodb_trigger_comment": {
+            "text": "Bir kayıtta {bold}",
+            "bold": "Yorum yapar"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "Belirli bir zamanlamayla"
+          },
+          "core_trigger_webhook": {
+            "text": "{bold}",
+            "bold": "webhook alındığında"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "Elle"
+          }
+        },
+        "groups": {
+          "recordEvents": "Şu olduğunda",
+          "userActions": "Kullanıcı şunu yaptığında",
+          "runs": "Çalıştırmalar",
+          "records": "Kayıtlar",
+          "logic": "Mantık",
+          "ai": "Yapay zekâ",
+          "messages": "Mesajlar",
+          "developer": "Geliştirici",
+          "other": "Diğer"
+        }
       }
     },
     "xAxis": "X ekseni",
@@ -5046,7 +5149,37 @@
     "licenseExpired": "Lisans süresi doldu",
     "talkToSales": "Satış ekibiyle görüşün",
     "paidAnnually": "Yıllık Ödenir",
-    "paidMonthly": "Aylık Ödenir"
+    "paidMonthly": "Aylık Ödenir",
+    "addAttachment": "Ek ekle",
+    "fromAttachmentField": "Ek alanından",
+    "uploadFile": "Dosya yükle",
+    "fromUrl": "URL'den",
+    "attachFromUrl": "URL'den ekle",
+    "removeAttachment": "Eki kaldır",
+    "attachmentFieldChip": "alan",
+    "setPageAccess": "Sayfa erişimini ayarla",
+    "readOnlyMember": "salt okunur üye",
+    "aReadOnlyMember": "salt okunur bir üye",
+    "readOnlyMembers": "salt okunur üyeler",
+    "backToData": "Verilere dön",
+    "appShare": {
+      "customTeamDescription": "Bu uygulamanın tanımladığı bir takım.",
+      "membersTeamDescription": "Uygulamayı kullanır.",
+      "adminTeamDescription": "Uygulamayı kullanır ve üyelerini yönetir.",
+      "noAccessTeamDescription": "Henüz hiçbir işlem verilmedi, bu nedenle üyeleri uygulamayı açamaz."
+    },
+    "viewActions": "Görünüm işlemleri",
+    "renameView": "Görünümü yeniden adlandır",
+    "generateWithAi": "Yapay zekâ ile oluştur",
+    "deleteView": "Görünümü sil",
+    "addToFavourites": "Favorilere ekle",
+    "contextMenu": "Bağlam menüsü",
+    "editSqlView": "SQL görünümünü düzenle",
+    "noWebhooksYet": "Henüz webhook yok",
+    "navigation": "Gezinme",
+    "prompts": "İstemler",
+    "pagination": "Sayfalama",
+    "showRowNumbers": "Satır numaralarını göster"
   },
   "activity": {
     "useTemplate": "Şablon kullan",
@@ -5390,7 +5523,7 @@
     "dataWriteOptionDisabled": "Veri düzenleme, yalnızca 'Şema düzenleme' devre dışı bırakıldığında devre dışı hale gelebilir ve aksi halde etkin olur",
     "allowMetaWrite": "Bu seçenek, veritabanı şemasının değiştirilmesine, tablo ve sütun ekleme, değiştirme veya silmeye olanak tanır. Dikkatli kullanın çünkü değişiklikler veritabanınızın yapısal bütünlüğünü etkileyebilir.",
     "allowDataWrite": "Bu seçenek, veritabanı tablolarında kayıt oluşturma, güncelleme veya silme işlemlerine olanak tanır. Verileri doğrudan değiştirmesi gereken idari kullanıcılar için idealdir.",
-    "reachedSourceLimit": "Temel başına 10 veri kaynağı ile sınırlıdır",
+    "reachedSourceLimit": "Proje başına 10 veri kaynağıyla sınırlıdır",
     "saveChanges": "Değişiklikleri Kaydet",
     "clientKey": ".key dosyasını seçin",
     "clientCert": ".cert dosyasını seçin",
@@ -5416,7 +5549,7 @@
     "selectAllMappedFields": "Eşlenen tüm alanları seç",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Hata kodunu kopyala",
-    "paidUserBadgeTooltip": "Ücretli bir koltuk tüketir. Çalışma alanı düzeyinde, bir bazda veya bir arayüzde düzenleyici ya da daha yüksek rol.",
+    "paidUserBadgeTooltip": "Ücretli bir koltuk kullanır. Çalışma alanı düzeyinde, bir projede veya bir arayüzde Düzenleyici ya da üstü rol.",
     "approachingLimit": "Sınıra yaklaşılıyor",
     "exceedingLimit": "Sınır aşıldı",
     "filteredByCurrentUser": "Mevcut kullanıcıya göre filtrelendi",
@@ -5460,8 +5593,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Yalnızca görünüm sahibi, görünüm yapılandırmasını kopyalayabilir",
     "onlyViewOwnerCanModifyPersonalView": "Yalnızca görünüm sahibi bu kişisel görünümü değiştirebilir",
     "onlyViewOwnerCanDeletePersonalView": "Yalnızca görünüm sahibi bu kişisel görünümü silebilir",
-    "onlyCreatorsCanLockView": "Yalnızca taban oluşturucuları veya sahipleri bir görünümü kilitleyebilir",
-    "onlyCreatorsCanUnlockView": "Yalnızca taban oluşturucuları veya sahipleri bir görünümün kilidini açabilir",
+    "onlyCreatorsCanLockView": "Bir görünümü yalnızca proje oluşturucuları veya sahipleri kilitleyebilir",
+    "onlyCreatorsCanUnlockView": "Bir görünümün kilidini yalnızca proje oluşturucuları veya sahipleri açabilir",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "Yapılandırmaları kopyalamak için en az bir mevcut görünüme ihtiyacınız var. Bu seçeneği etkinleştirmek için önce bir görünüm oluşturun.",
     "youDoNotHaveSufficientPermissionToAddExtension": "Eklenti eklemek için yeterli izniniz yok",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "Bu eklentiyi yapılandırmak için yeterli izniniz yok",
@@ -5477,7 +5610,7 @@
     "sortingNotSupportedForFieldsWithErrors": "Hatalı alanlar için sıralama desteklenmiyor",
     "sortingNotSupportedForField": "{type} alanı için sıralama desteklenmiyor",
     "groupingNotSupportedForFieldsWithErrors": "Hatalı alanlar için gruplama desteklenmiyor",
-    "variableInheritance": "Bu tabanı uygulama olarak kuran kişilerin bu değişkenle ne yapabileceğini belirler: Sabit değerinizi korur ve gizler, Düzenlenebilir değerinizi başlangıç noktası olarak sunar, Zorunlu ise kendi değerlerini girmelerini ister.",
+    "variableInheritance": "Bu projeyi uygulama olarak kuran kişilerin bu değişkenle ne yapabileceğini belirler: Sabit değerinizi korur ve gizler, Düzenlenebilir değerinizi başlangıç noktası olarak sunar, Zorunlu ise kendi değerlerini girmelerini ister.",
     "workflowButtonTriggerSourceReadOnly": "Bu düğmeye bağlı kaynak tablo yalnızca Arayüzler üzerinden değiştirilebilir",
     "workflowButtonTriggerInterfaceReadOnly": "Bu düğmeyi içeren arayüz sayfası yalnızca Arayüzler üzerinden değiştirilebilir",
     "chartIncludeOthers": "Sınırın ötesindeki kategorileri atmak yerine tek bir Diğer kategorisinde birleştirir.",
@@ -5506,10 +5639,10 @@
     "youDontHaveAccessToCreateNewInterface": "Yeni arayüz oluşturma yetkiniz yok",
     "displayValueFieldCannotBeReordered": "Görüntülenen değer alanının sırası değiştirilemez",
     "interfaceLastVizRequired": "Bir sayfanın en az bir görselleştirmesi olmalı",
-    "onlyCreatorsCanManageViewFolders": "Görünüm klasörlerini yalnızca projenin oluşturucuları veya sahipleri yönetebilir",
-    "onlyCreatorsCanManageFolders": "Klasörleri yalnızca projenin oluşturucuları veya sahipleri yönetebilir",
+    "onlyCreatorsCanManageViewFolders": "Görünüm klasörlerini yalnızca proje oluşturucuları veya sahipleri yönetebilir",
+    "onlyCreatorsCanManageFolders": "Klasörleri yalnızca proje oluşturucuları veya sahipleri yönetebilir",
     "organizeViewsIntoFolders": "Görünümleri daraltılabilir klasörlerde düzenleyin",
-    "productionLockedByEnvironment": "Bu baz bir ortamda açık. Şema değişikliklerini orada yapın.",
+    "productionLockedByEnvironment": "Bu proje bir ortamda açık. Şema değişikliklerini orada yapın.",
     "managedByPublisher": "Bu uygulamanın yapısı yayıncısı tarafından yönetilir. Kendi belgelerinizi ve klasörlerinizi siz eklersiniz.",
     "featureOnProductionOnly": "Bu işlem ortam kopyasında değil, üretim projesinde yönetilir.",
     "clickToEdit": "Düzenlemek için tıklayın",
@@ -5565,8 +5698,8 @@
     "showAllFields": "Tüm alanları göster",
     "inviteLinkCannotGrantOwner": "Davet bağlantısı Sahip rolünü veremez",
     "inviteLinkRoleAboveYours": "Yalnızca kendi rolünüze kadar olan rolleri sunabilirsiniz",
-    "noDefaultSourceForFolders": "Bu bazın varsayılan kaynağı yok. Klasörleri bunun yerine bir kaynağın kendi menüsünden oluşturun",
-    "noDefaultSourceForSync": "Bu bazın varsayılan kaynağı yok. Bir senkronizasyonun tablolarını saklamak için bir tane gerekir"
+    "noDefaultSourceForFolders": "Bu projenin varsayılan kaynağı yok. Klasörleri bunun yerine kaynağın kendi menüsünden oluşturun",
+    "noDefaultSourceForSync": "Bu projenin varsayılan kaynağı yok. Bir eşitlemenin tablolarını saklamak için buna ihtiyacı var"
   },
   "placeholder": {
     "enterVerificationCode": "6 haneli kodu girin",
@@ -7294,8 +7427,8 @@
         "description": "Çalışma alanınızda kısa bir tur. İstediğiniz zaman çıkabilirsiniz: Atla'ya basın."
       },
       "createBase": {
-        "title": "Bir Base ile başlayın",
-        "description": "Bir Base; tablolarınızı, görünümlerinizi ve otomasyonlarınızı barındırır. İşlerin çoğu burada başlar."
+        "title": "Bir projeyle başlayın",
+        "description": "Bir proje tablolarınızı, görünümlerinizi ve otomasyonlarınızı barındırır. İşlerin çoğu burada başlar."
       },
       "switchWorkspaces": {
         "title": "Çalışma alanları arasında geçiş yapın",

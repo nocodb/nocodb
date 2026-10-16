@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Ulepsz, aby dodać więcej stron dokumentów",
     "upgradeToAddMoreWorkflows": "Upgrade to add more workflows",
     "upgradeToAddMoreScriptsSubtitle": "Obecnie korzystasz z planu Free, który pozwala na tylko jeden skrypt na przestrzeń roboczą. Uaktualnij, aby odblokować nieograniczone skrypty.",
-    "upgradeToAddMoreWorkflowsSubtitle": "Korzystasz obecnie z planu {activePlan}, który pozwala na {limit} przepływów pracy na bazę. Przejdź na plan {plan}, aby mieć ich więcej.",
+    "upgradeToAddMoreWorkflowsSubtitle": "Korzystasz obecnie z planu {activePlan}, który pozwala na {limit} przepływów pracy na projekt. Przejdź na {plan}, aby mieć więcej.",
     "upgradeToAddMoreDashboardsSubtitle": "Obecnie korzystasz z planu Free, który pozwala na tylko jeden pulpit na przestrzeń roboczą. Uaktualnij, aby odblokować nieograniczone pulpity.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "Plan {activePlan} pozwala na dostęp do stron dokumentów {limit} na bazę. Ulepsz do planu {plan} , aby dodać więcej.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "Plan {activePlan} pozwala na maksymalnie {limit} stron dokumentu na projekt. Przejdź na plan {plan}, aby dodać więcej.",
     "upgradeToUseBookmarks": "Ulepsz, aby używać zakładek",
-    "upgradeToUseBookmarksSubtitle": "Ulepsz do planu {plan} aby dodać zakładki, tabele, widoki i więcej do szybkiego dostępu.",
+    "upgradeToUseBookmarksSubtitle": "Przejdź na plan {plan}, aby dodawać projekty, tabele, widoki i więcej do zakładek i mieć do nich szybki dostęp.",
     "upgradeToUseDocsExportPdf": "Ulepsz, aby eksportować dokumenty jako PDF",
     "upgradeToUseDocsExportPdfSubtitle": "Uaktualnij do planu {plan} , aby eksportować dokumenty jako pliki PDF.",
     "upgradeToUseDocsInlineComments": "Uaktualnij aby użyć wbudowanych komentarzy",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "Plan {activePlan} pozwala na maksymalnie {limit} webhooków. Uaktualnij do planu {plan}, aby uzyskać dostęp do nieograniczonej liczby webhooków.",
     "upgradeToAccessWebhookLogsSubtitle": "Uzyskaj dostęp do logów webhooków, uaktualniając przestrzeń roboczą do planu {plan}.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "Podnieś plan, aby duplikować tabele między różnymi projektami.",
     "formOwnerNotified": "Właściciel formularza powiadomiony",
     "formOwnerNotifiedSubtitle": "Powiadomiliśmy właściciela formularza o Twojej prośbie o przesłanie.",
     "WorkspaceOwnerNotified": "Właściciel przestrzeni roboczej powiadomiony",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Uaktualnij do planu {plan} , aby kontrolować, kto może przeglądać i edytować poszczególne strony w Twoich dokumentach.",
     "upgradeToUseWorkflows": "Upgrade to use workflows",
     "upgradeToUseWorkflowsSubtitle": "Upgrade to the {plan} plan to use workflows to automate tasks and processes.",
-    "upgradeToUsePrivateBases": "Uaktualnij, aby odblokować prywatne bazy",
-    "upgradeToUsePrivateBasesSubtitle": "Prywatne bazy są dostępne w ramach planu {plan}. Uaktualnij, aby zacząć z nich korzystać.",
+    "upgradeToUsePrivateBases": "Podnieś plan, aby odblokować projekty prywatne",
+    "upgradeToUsePrivateBasesSubtitle": "Projekty prywatne są dostępne w planie {plan}. Podnieś plan już teraz, aby zacząć z nich korzystać.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Możesz przesłać maksymalnie {limit} {filePlural} do tej komórki. Uaktualnij do planu {plan}, aby dodać więcej plików.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Ulepsz, aby używać czatu AI",
-    "upgradeToUseAiChatSubtitle": "Ulepsz do planu {plan} , aby używać czatu AI do zarządzania twoją bazą w języku naturalnym.",
+    "upgradeToUseAiChatSubtitle": "Przejdź na plan {plan}, aby korzystać z czatu AI i zarządzać projektem w języku naturalnym.",
     "upgradeToUseMfa": "Uaktualnij aby włączyć uwierzytelnianie dwuskładnikowe",
     "upgradeToUseMfaSubtitle": "Uaktualnij do planu {plan} , aby włączyć uwierzytelnianie wieloetapowe dla Twojego konta.",
     "upgradeToRequireTwoFactor": "Uaktualnij aby wymagać uwierzytelniania dwuskładnikowego",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Ulepsz, aby korzystać z hierarchii drużyny",
     "upgradeToUseTeamHierarchySubtitle": "Ulepsz do planu {plan} aby zorganizować drużyny w zagnieżdżonych hierarchii z dziedziczonym członkostwem.",
     "upgradeToUseTeams": "Upgrade to use teams",
-    "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases.",
+    "upgradeToUseTeamsSubtitle": "Przejdź na plan {plan}, aby używać zespołów do grupowania użytkowników i zarządzania ich dostępem do obszarów roboczych i projektów.",
     "upgradeToAddMoreTeams": "Upgrade to add more teams",
     "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views.",
     "upgradeToUseFormScheduling": "Uaktualnij aby użyć formularza harmonogramu",
     "upgradeToUseFormSchedulingSubtitle": "Uaktualnij do planu {plan} , aby zaplanować dostępność formularza z datami rozpoczęcia i wygaśnięcia.",
-    "upgradeToUseBaseVariables": "Ulepsz, aby użyć zmiennych podstawowych",
-    "upgradeToUseBaseVariablesSubtitle": "Ulepsz do planu {plan} , aby zdefiniować zmienne wielokrotnego użytku, które można wykorzystać do bazy danych.",
+    "upgradeToUseBaseVariables": "Podnieś plan, aby używać zmiennych projektu",
+    "upgradeToUseBaseVariablesSubtitle": "Przejdź na plan {plan}, aby definiować zmienne wielokrotnego użytku w zakresie projektu.",
     "upgradeToUseSync": "Upgrade to use sync",
     "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources.",
     "upgradeToUseTableSync": "Uaktualnij aby użyć synchronizacji tabeli",
@@ -3111,7 +3111,11 @@
       "upgradeRequestSent": "Prośba wysłana",
       "upgradeDescRls": "Ogranicz, które rekordy każda osoba może widzieć i edytować.",
       "upgradeDescRecordTemplates": "Twórz nowe rekordy na podstawie zapisanych, wstępnie wypełnionych szablonów.",
-      "upgradeDescDateDependency": "Automatycznie przesuwa zależne daty, gdy rekord zostaje przeniesiony."
+      "upgradeDescDateDependency": "Automatycznie przesuwa zależne daty, gdy rekord zostaje przeniesiony.",
+      "concernProject": "Projekt",
+      "concernInterfaces": "Interfejsy",
+      "concernApps": "Aplikacja",
+      "concernTabs": "Sekcje ustawień"
     },
     "categories": "Kategorie",
     "blockquote": "Cytat blokowy",
@@ -4400,7 +4404,105 @@
         "repeatWarning": "Ten krok może wysyłać lub zmieniać dane. Ponowna próba może go powtórzyć — włącz to tylko, jeśli to nie problem.",
         "retries": "Liczba ponownych prób",
         "earlierTries": "Wcześniejsze próby",
-        "noErrorMessage": "Brak komunikatu o błędzie"
+        "noErrorMessage": "Brak komunikatu o błędzie",
+        "title": "W razie niepowodzenia",
+        "retryIfFails": "Ponów, jeśli ten krok się nie powiedzie",
+        "retrySafeHint": "Ponawia automatycznie, gdy usługa jest chwilowo niedostępna",
+        "waitBeforeRetry": "Odczekaj przed ponowieniem",
+        "seconds": "sekundy",
+        "waitLonger": "Czekaj dłużej za każdym razem",
+        "waitLongerHint": "Podwaja czas oczekiwania po każdej próbie, do 1 godziny",
+        "retryOn": "Ponawiaj przy",
+        "retryOnTemporary": "Tylko problemy tymczasowe (przekroczenia czasu, limity zapytań, błędy serwera)",
+        "retryOnAny": "Dowolnym błędzie",
+        "triedTimes": "Liczba prób: {count}",
+        "tryNumber": "Próba {n}",
+        "succeededAfterTries": "Powodzenie po {count} próbach"
+      },
+      "iterate": {
+        "listPlaceholder": "Wybierz tablicę do przejścia",
+        "listHelp": "Wybierz tablicę z poprzedniego kroku. Każdy element zostanie przetworzony po kolei.",
+        "notAList": "Wymaga listy elementów, ale ta wartość to {kind}."
+      },
+      "originalRun": "pierwotne uruchomienie",
+      "duration": {
+        "milliseconds": "{n} ms",
+        "seconds": "{n} s",
+        "minutesSeconds": "{m} min {s} s"
+      },
+      "overview": {
+        "lastRun": "Ostatnie uruchomienie",
+        "failedCount": "{n} nieudanych",
+        "allTested": "Wszystkie kroki przetestowane"
+      },
+      "addStep": "Dodaj krok",
+      "nodePicker": {
+        "upgradeToUseStep": "Przejdź na plan {plan}, aby używać {step}",
+        "search": "Szukaj kroków i aplikacji",
+        "searchTriggers": "Szukaj, np. „nowy wiersz”, „w każdy poniedziałek”",
+        "searchIn": "Szukaj w {app}",
+        "apps": "Aplikacje",
+        "integrations": "Integracje",
+        "popular": "Popularne",
+        "chooseTrigger": "Wybierz wyzwalacz",
+        "chooseTriggerHint": "Każdy przepływ pracy zaczyna się od wyzwalacza: zdarzenia, które go uruchamia.",
+        "noMatches": "Brak pasujących kroków",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "Rekord zostaje {bold}",
+            "bold": "utworzony"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "Rekord zostaje {bold}",
+            "bold": "zaktualizowany"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "Rekord zostaje {bold}",
+            "bold": "usunięty"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "Rekord {bold}",
+            "bold": "trafia do widoku"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "Rekord {bold}",
+            "bold": "spełnia warunki"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "Wyśle formularz"
+          },
+          "core_trigger_button": {
+            "text": "{bold} w rekordzie",
+            "bold": "Kliknie przycisk"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} rekord",
+            "bold": "Skomentuje"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "Według harmonogramu"
+          },
+          "core_trigger_webhook": {
+            "text": "Gdy {bold}",
+            "bold": "webhook zostanie odebrany"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "Ręcznie"
+          }
+        },
+        "groups": {
+          "recordEvents": "Kiedy",
+          "userActions": "Kiedy użytkownik",
+          "runs": "Uruchomienia",
+          "records": "Rekordy",
+          "logic": "Logika",
+          "messages": "Wiadomości",
+          "developer": "Deweloper",
+          "other": "Inne"
+        }
       }
     },
     "xAxis": "Oś X",
@@ -5046,7 +5148,37 @@
     "licenseExpired": "Licencja wygasła",
     "talkToSales": "Porozmawiaj z działem sprzedaży",
     "paidAnnually": "Płatne rocznie",
-    "paidMonthly": "Płatne miesięcznie"
+    "paidMonthly": "Płatne miesięcznie",
+    "addAttachment": "Dodaj załącznik",
+    "fromAttachmentField": "Z pola załącznika",
+    "uploadFile": "Prześlij plik",
+    "fromUrl": "Z adresu URL",
+    "attachFromUrl": "Załącz z adresu URL",
+    "removeAttachment": "Usuń załącznik",
+    "attachmentFieldChip": "pole",
+    "setPageAccess": "Ustaw dostęp do strony",
+    "readOnlyMember": "członek tylko do odczytu",
+    "aReadOnlyMember": "członek z dostępem tylko do odczytu",
+    "readOnlyMembers": "członkowie tylko do odczytu",
+    "backToData": "Powrót do danych",
+    "appShare": {
+      "customTeamDescription": "Zespół zdefiniowany przez tę aplikację.",
+      "membersTeamDescription": "Korzysta z aplikacji.",
+      "adminTeamDescription": "Korzysta z aplikacji i zarządza jej członkami.",
+      "noAccessTeamDescription": "Nie przyznano jeszcze żadnych działań, więc jej członkowie nie mogą otworzyć aplikacji."
+    },
+    "viewActions": "Akcje widoku",
+    "renameView": "Zmień nazwę widoku",
+    "generateWithAi": "Wygeneruj z AI",
+    "deleteView": "Usuń widok",
+    "addToFavourites": "Dodaj do ulubionych",
+    "contextMenu": "Menu kontekstowe",
+    "editSqlView": "Edytuj widok SQL",
+    "noWebhooksYet": "Brak webhooków",
+    "navigation": "Nawigacja",
+    "prompts": "Prompty",
+    "pagination": "Paginacja",
+    "showRowNumbers": "Pokaż numery wierszy"
   },
   "activity": {
     "useTemplate": "Użyj szablonu",
@@ -5363,7 +5495,7 @@
     "notAvailableForNewRecord": "Niedostępne podczas tworzenia nowego rekordu",
     "conditionallyVisibleField": "Warunkowo widoczne pole",
     "bookmarks": "Zakładki",
-    "variableInheritance": "Określa, co osoby instalujące tę bazę jako aplikację mogą zrobić z tą zmienną: Stała zachowuje Twoją wartość i ją ukrywa, Edytowalna proponuje Twoją wartość jako punkt wyjścia, Wymagana prosi je o podanie własnej.",
+    "variableInheritance": "Określa, co osoby instalujące ten projekt jako aplikację mogą zrobić z tą zmienną: Stała zachowuje Twoją wartość i ją ukrywa, Edytowalna proponuje Twoją wartość jako punkt wyjścia, Wymagana prosi o podanie własnej.",
     "inheritedMembersInfo": "Ci członkowie należą do zespołu nadrzędnego i dziedziczą dostęp do zasobów przypisanych do tego zespołu.",
     "teamScopeThisOnly": "Tylko ten zespół. Kliknij, aby uwzględnić podzespoły",
     "teamScopeIncludesSubTeams": "Obejmuje podzespoły. Kliknij, aby dopasować tylko ten zespół",
@@ -5391,7 +5523,7 @@
     "dataWriteOptionDisabled": "Modyfikacja danych może być wyłączona tylko wtedy, gdy 'modyfikacja schematu' jest wyłączona",
     "allowMetaWrite": "Ta opcja umożliwia modyfikację schematu bazy danych, w tym dodawanie, zmienianie lub usuwanie tabel i kolumn. Używaj z ostrożnością, ponieważ zmiany mogą wpłynąć na integralność strukturalną bazy danych.",
     "allowDataWrite": "Ta opcja pozwala na tworzenie, aktualizowanie lub usuwanie rekordów w tabelach bazy danych. Idealna dla użytkowników administracyjnych wymagających bezpośredniej zmiany danych.",
-    "reachedSourceLimit": "Ograniczenie do jednego źródła danych w tej chwili",
+    "reachedSourceLimit": "Ograniczone do 10 źródeł danych na projekt",
     "saveChanges": "Zapisz zmiany",
     "clientKey": "Wybierz plik .key.",
     "clientCert": "Wybierz plik .Cert.",
@@ -5417,7 +5549,7 @@
     "selectAllMappedFields": "Zaznacz wszystkie zmapowane pola",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Skopiuj kod błędu",
-    "paidUserBadgeTooltip": "Zajmuje płatne miejsce. Rola edytora lub wyższa na poziomie obszaru roboczego, w bazie lub w interfejsie.",
+    "paidUserBadgeTooltip": "Zajmuje płatne miejsce. Rola Edytor lub wyższa na poziomie obszaru roboczego, w projekcie lub w interfejsie.",
     "approachingLimit": "Zbliżasz się do limitu",
     "exceedingLimit": "Przekroczono limit",
     "filteredByCurrentUser": "Filtrowane według bieżącego użytkownika",
@@ -5461,8 +5593,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
     "onlyViewOwnerCanModifyPersonalView": "Tylko właściciel widoku może modyfikować ten widok osobisty",
     "onlyViewOwnerCanDeletePersonalView": "Tylko właściciel widoku może usunąć ten widok osobisty",
-    "onlyCreatorsCanLockView": "Tylko podstawowi twórcy lub właściciele mogą zablokować widok",
-    "onlyCreatorsCanUnlockView": "Tylko podstawowi twórcy lub właściciele mogą odblokować widok",
+    "onlyCreatorsCanLockView": "Tylko twórcy lub właściciele projektu mogą zablokować widok",
+    "onlyCreatorsCanUnlockView": "Tylko twórcy lub właściciele projektu mogą odblokować widok",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
     "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
@@ -5489,7 +5621,7 @@
     "interfaceMixedRoles": "Role różnią się między interfejsami lub stronami. Rozwiń, aby je zobaczyć",
     "chatQueueAttachmentUnavailable": "Ten załącznik nie zostanie wysłany, jeśli ustawisz wiadomość w kolejce. Najpierw go usuń",
     "lockedViewDisabledOnProduction": "Zablokowane widoki można tworzyć tylko w kopii środowiska",
-    "personalViewDisabledOnEnvironment": "Widoki osobiste można tworzyć tylko w produkcyjnej Bazie",
+    "personalViewDisabledOnEnvironment": "Widoki osobiste można tworzyć tylko w projekcie produkcyjnym",
     "seeNComments": "Zobacz {n} komentarz | Zobacz {n} komentarzy",
     "collapsibleGroups": "Pozwól zwijać grupy z tytułami",
     "nestedRecordsRequireSelfLink": "Wymaga w tej tabeli pola powiązania wskazującego z powrotem na tę samą tabelę.",
@@ -5506,10 +5638,10 @@
     "youDontHaveAccessToCreateNewInterface": "Nie masz uprawnień do tworzenia nowego Interface",
     "displayValueFieldCannotBeReordered": "Pola wartości wyświetlanej nie można przestawić",
     "interfaceLastVizRequired": "Strona wymaga co najmniej jednej wizualizacji",
-    "onlyCreatorsCanManageViewFolders": "Folderami widoków mogą zarządzać tylko twórcy lub właściciele Bazy",
-    "onlyCreatorsCanManageFolders": "Folderami mogą zarządzać tylko twórcy lub właściciele Bazy",
+    "onlyCreatorsCanManageViewFolders": "Tylko twórcy lub właściciele projektu mogą zarządzać folderami widoków",
+    "onlyCreatorsCanManageFolders": "Tylko twórcy lub właściciele projektu mogą zarządzać folderami",
     "organizeViewsIntoFolders": "Uporządkuj widoki w zwijanych folderach",
-    "productionLockedByEnvironment": "Ta baza jest otwarta w środowisku. Zmiany schematu wprowadzaj tam.",
+    "productionLockedByEnvironment": "Ten projekt jest otwarty w środowisku. Zmiany schematu wprowadzaj tam.",
     "managedByPublisher": "Strukturą tej App zarządza jej wydawca. Własne dokumenty i foldery dodajesz sam.",
     "featureOnProductionOnly": "Tą akcją zarządza się w projekcie produkcyjnym, a nie w kopii środowiska.",
     "clickToEdit": "Kliknij, aby edytować",
@@ -5565,8 +5697,8 @@
     "showAllFields": "Pokaż wszystkie pola",
     "inviteLinkCannotGrantOwner": "Link zapraszający nie może przyznać roli właściciela",
     "inviteLinkRoleAboveYours": "Możesz oferować tylko role do poziomu swojej własnej",
-    "noDefaultSourceForFolders": "Ta baza nie ma źródła domyślnego. Twórz foldery z własnego menu danego źródła",
-    "noDefaultSourceForSync": "Ta baza nie ma źródła domyślnego. Synchronizacja potrzebuje go do przechowywania swoich tabel"
+    "noDefaultSourceForFolders": "Ten projekt nie ma domyślnego źródła. Twórz foldery z menu samego źródła",
+    "noDefaultSourceForSync": "Ten projekt nie ma domyślnego źródła. Synchronizacja potrzebuje go do przechowywania swoich tabel"
   },
   "placeholder": {
     "enterVerificationCode": "Wprowadź 6-cyfrowy kod",
@@ -7231,8 +7363,8 @@
         "description": "Szybka wycieczka po Twoim obszarze roboczym. Możesz wyjść w każdej chwili: kliknij Pomiń."
       },
       "createBase": {
-        "title": "Zacznij od Bazy",
-        "description": "Baza mieści Twoje tabele, widoki i automatyzacje. Tu zaczyna się większość pracy."
+        "title": "Zacznij od projektu",
+        "description": "Projekt zawiera Twoje tabele, widoki i automatyzacje. To tutaj zaczyna się większość pracy."
       },
       "switchWorkspaces": {
         "title": "Przełączaj obszary robocze",

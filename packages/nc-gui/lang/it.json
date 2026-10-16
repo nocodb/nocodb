@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Aggiorna per aggiungere più pagine del documento",
     "upgradeToAddMoreWorkflows": "Aggiornamento per aggiungere altri flussi di lavoro",
     "upgradeToAddMoreScriptsSubtitle": "Al momento sei sul piano Free, che consente solo uno script per workspace. Esegui l'upgrade per sbloccare script illimitati.",
-    "upgradeToAddMoreWorkflowsSubtitle": "Al momento hai il piano {activePlan}, che consente {limit} workflow per base. Passa a {plan} per averne di più.",
+    "upgradeToAddMoreWorkflowsSubtitle": "Al momento hai il piano {activePlan}, che consente {limit} workflow per progetto. Passa a {plan} per averne di più.",
     "upgradeToAddMoreDashboardsSubtitle": "Al momento sei sul piano Free, che consente solo una dashboard per workspace. Esegui l'upgrade per sbloccare dashboard illimitate.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "Il piano {activePlan} permette fino a pagine del documento {limit} per base. Aggiorna al piano {plan} per aggiungerne di più.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "Il piano {activePlan} consente fino a {limit} pagine di documento per progetto. Passa al piano {plan} per aggiungerne altre.",
     "upgradeToUseBookmarks": "Aggiorna per utilizzare i segnalibri",
-    "upgradeToUseBookmarksSubtitle": "Passa al piano {plan} per segnare basi, tabelle, viste e molto altro per un accesso rapido.",
+    "upgradeToUseBookmarksSubtitle": "Passa al piano {plan} per aggiungere ai preferiti progetti, tabelle, viste e altro ancora e accedervi rapidamente.",
     "upgradeToUseDocsExportPdf": "Aggiorna per esportare documenti in PDF",
     "upgradeToUseDocsExportPdfSubtitle": "Aggiorna al piano {plan} per esportare i tuoi documenti come file PDF.",
     "upgradeToUseDocsInlineComments": "Aggiorna per utilizzare i commenti in linea",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "Il piano {activePlan} consente fino a {limit} webhook. Passa al piano {plan} per ottenere webhook illimitati.",
     "upgradeToAccessWebhookLogsSubtitle": "Accedi ai log dei webhook eseguendo l'upgrade del workspace al piano {plan}.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "Aggiorna il piano per duplicare le tabelle tra progetti diversi.",
     "formOwnerNotified": "Proprietario del modulo avvisato",
     "formOwnerNotifiedSubtitle": "Abbiamo informato il proprietario del modulo della tua richiesta di invio.",
     "WorkspaceOwnerNotified": "Proprietario del workspace avvisato",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Aggiorna al piano {plan} per controllare chi può visualizzare e modificare singole pagine nei tuoi documenti.",
     "upgradeToUseWorkflows": "Aggiornamento per l'utilizzo dei flussi di lavoro",
     "upgradeToUseWorkflowsSubtitle": "Si aggiorni al piano {plan} per utilizzare i flussi di lavoro per automatizzare attività e processi.",
-    "upgradeToUsePrivateBases": "Aggiorna per sbloccare basi private",
-    "upgradeToUsePrivateBasesSubtitle": "Le basi private sono disponibili con il piano {plan}. Aggiorna ora per iniziare a usarle.",
+    "upgradeToUsePrivateBases": "Aggiorna il piano per sbloccare i progetti privati",
+    "upgradeToUsePrivateBasesSubtitle": "I progetti privati sono disponibili con il piano {plan}. Aggiorna ora per iniziare a usarli.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Puoi caricare al massimo {limit} {filePlural} in questa cella. Esegui l'upgrade al piano {plan} per aggiungere più file.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Aggiorna per utilizzare la chat AI",
-    "upgradeToUseAiChatSubtitle": "Passa al piano {plan} di utilizzare la chat AI per gestire la tua base con il linguaggio naturale.",
+    "upgradeToUseAiChatSubtitle": "Passa al piano {plan} per usare la chat IA e gestire il tuo progetto in linguaggio naturale.",
     "upgradeToUseMfa": "Aggiorna per abilitare l'autenticazione a due fattori",
     "upgradeToUseMfaSubtitle": "Aggiorna al piano {plan} per abilitare l'autenticazione multi-fattore per il tuo account.",
     "upgradeToRequireTwoFactor": "Aggiorna per richiedere l'autenticazione a due fattori",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Aggiorna per usare la gerarchia del team",
     "upgradeToUseTeamHierarchySubtitle": "Aggiorna al piano {plan} per organizzare squadre in gerarchie nidificate con appartenenza ereditata.",
     "upgradeToUseTeams": "Aggiornamento per l'utilizzo dei team",
-    "upgradeToUseTeamsSubtitle": "Si aggiorni al piano {plan} per utilizzare i team per raggruppare gli utenti e gestire il loro accesso agli spazi di lavoro e alle basi.",
+    "upgradeToUseTeamsSubtitle": "Passa al piano {plan} per usare i team, raggruppare gli utenti e gestire il loro accesso a spazi di lavoro e progetti.",
     "upgradeToAddMoreTeams": "Aggiornamento per aggiungere altri team",
     "upgradeToAddMoreTeamsSubtitle": "Passa al piano {plan} per aggiungere altri team al suo spazio di lavoro.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Passa al piano {plan} per nascondere le intestazioni dei campi nelle viste Galleria e Kanban.",
     "upgradeToUseFormScheduling": "Aggiorna per utilizzare la pianificazione del modulo",
     "upgradeToUseFormSchedulingSubtitle": "Aggiorna al piano {plan} per pianificare la disponibilità del modulo con le date di inizio e di scadenza.",
-    "upgradeToUseBaseVariables": "Aggiorna per usare le variabili base",
-    "upgradeToUseBaseVariablesSubtitle": "Aggiorna al piano {plan} per definire le variabili riutilizzabili a una base.",
+    "upgradeToUseBaseVariables": "Aggiorna il piano per usare le variabili di progetto",
+    "upgradeToUseBaseVariablesSubtitle": "Passa al piano {plan} per definire variabili riutilizzabili a livello di progetto.",
     "upgradeToUseSync": "Aggiornamento per utilizzare la sincronizzazione",
     "upgradeToUseSyncSubtitle": "Effettui l'upgrade al piano {plan} per sincronizzare i dati con fonti interne o esterne.",
     "upgradeToUseTableSync": "Aggiorna per utilizzare la sincronizzazione della tabella",
@@ -3111,7 +3111,11 @@
       "upgradeRequestSent": "Richiesta inviata",
       "upgradeDescRls": "Limita quali record ogni persona può vedere e modificare.",
       "upgradeDescRecordTemplates": "Crea nuovi record da modelli salvati e precompilati.",
-      "upgradeDescDateDependency": "Sposta automaticamente le date dipendenti quando un record viene spostato."
+      "upgradeDescDateDependency": "Sposta automaticamente le date dipendenti quando un record viene spostato.",
+      "concernProject": "Progetto",
+      "concernInterfaces": "Interfacce",
+      "concernApps": "App",
+      "concernTabs": "Sezioni delle impostazioni"
     },
     "categories": "Categorie",
     "blockquote": "Citazione",
@@ -4398,7 +4402,106 @@
         "repeatWarning": "Questo passaggio può inviare o modificare dati. Riprovarlo può ripeterlo: attivalo solo se va bene.",
         "retries": "Numero di tentativi",
         "earlierTries": "Tentativi precedenti",
-        "noErrorMessage": "Nessun messaggio di errore"
+        "noErrorMessage": "Nessun messaggio di errore",
+        "title": "In caso di errore",
+        "retryIfFails": "Riprova se questo passaggio non riesce",
+        "retrySafeHint": "Riprova automaticamente quando un servizio non è temporaneamente disponibile",
+        "waitBeforeRetry": "Attendi prima di riprovare",
+        "seconds": "secondi",
+        "waitLonger": "Attendi più a lungo ogni volta",
+        "waitLongerHint": "Raddoppia l'attesa dopo ogni tentativo, fino a 1 ora",
+        "retryOn": "Riprova in caso di",
+        "retryOnTemporary": "Solo problemi temporanei (timeout, limiti di frequenza, errori del server)",
+        "retryOnAny": "Qualsiasi errore",
+        "triedTimes": "{count} tentativi effettuati",
+        "tryNumber": "Tentativo {n}",
+        "succeededAfterTries": "Riuscito dopo {count} tentativi"
+      },
+      "iterate": {
+        "listPlaceholder": "Seleziona un array da scorrere",
+        "listHelp": "Seleziona un array da un passaggio precedente. Ogni elemento verrà elaborato in sequenza.",
+        "notAList": "Richiede un elenco di elementi, ma questo valore è {kind}."
+      },
+      "originalRun": "l'esecuzione originale",
+      "duration": {
+        "milliseconds": "{n} ms",
+        "seconds": "{n} s",
+        "minutesSeconds": "{m} min {s} s"
+      },
+      "overview": {
+        "lastRun": "Ultima esecuzione",
+        "failedCount": "{n} non riusciti",
+        "allTested": "Tutti i passaggi testati"
+      },
+      "addStep": "Aggiungi un passaggio",
+      "nodePicker": {
+        "upgradeToUseStep": "Passa al piano {plan} per usare {step}",
+        "search": "Cerca passaggi e app",
+        "searchTriggers": "Cerca, ad es. «nuova riga», «ogni lunedì»",
+        "searchIn": "Cerca in {app}",
+        "apps": "App",
+        "integrations": "Integrazioni",
+        "popular": "Popolari",
+        "chooseTrigger": "Scegli un trigger",
+        "chooseTriggerHint": "Ogni workflow inizia con un trigger: l'evento che lo avvia.",
+        "noMatches": "Nessun passaggio corrispondente",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "Il record viene {bold}",
+            "bold": "creato"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "Il record viene {bold}",
+            "bold": "aggiornato"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "Il record viene {bold}",
+            "bold": "eliminato"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "Il record {bold}",
+            "bold": "entra in una vista"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "Il record {bold}",
+            "bold": "soddisfa le condizioni"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "Invia un modulo"
+          },
+          "core_trigger_button": {
+            "text": "{bold} su un record",
+            "bold": "Fa clic su un pulsante"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} un record",
+            "bold": "Commenta"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "In base a una pianificazione"
+          },
+          "core_trigger_webhook": {
+            "text": "Quando {bold}",
+            "bold": "viene ricevuto un webhook"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "Manualmente"
+          }
+        },
+        "groups": {
+          "recordEvents": "Quando",
+          "userActions": "Quando l'utente",
+          "runs": "Esecuzioni",
+          "records": "Record",
+          "logic": "Logica",
+          "ai": "IA",
+          "messages": "Messaggi",
+          "developer": "Sviluppatore",
+          "other": "Altro"
+        }
       }
     },
     "xAxis": "Asse X",
@@ -5041,7 +5144,37 @@
     "talkToSales": "Parla con il team vendite",
     "paidAnnually": "Pagamento annuale",
     "paidMonthly": "Pagamento mensile",
-    "skillScopeBase": "Progetto"
+    "skillScopeBase": "Progetto",
+    "addAttachment": "Aggiungi allegato",
+    "fromAttachmentField": "Da un campo allegato",
+    "uploadFile": "Carica file",
+    "fromUrl": "Da URL",
+    "attachFromUrl": "Allega da URL",
+    "removeAttachment": "Rimuovi allegato",
+    "attachmentFieldChip": "campo",
+    "setPageAccess": "Imposta l'accesso alla pagina",
+    "readOnlyMember": "membro in sola lettura",
+    "aReadOnlyMember": "un membro in sola lettura",
+    "readOnlyMembers": "membri in sola lettura",
+    "backToData": "Torna ai dati",
+    "appShare": {
+      "customTeamDescription": "Un team definito da questa app.",
+      "membersTeamDescription": "Usa l'app.",
+      "adminTeamDescription": "Usa l'app e ne gestisce i membri.",
+      "noAccessTeamDescription": "Nessuna azione ancora concessa, quindi i suoi membri non possono aprire l'app."
+    },
+    "viewActions": "Azioni della vista",
+    "renameView": "Rinomina vista",
+    "generateWithAi": "Genera con l'IA",
+    "deleteView": "Elimina vista",
+    "addToFavourites": "Aggiungi ai preferiti",
+    "contextMenu": "Menu contestuale",
+    "editSqlView": "Modifica vista SQL",
+    "noWebhooksYet": "Ancora nessun webhook",
+    "navigation": "Navigazione",
+    "prompts": "Prompt",
+    "pagination": "Impaginazione",
+    "showRowNumbers": "Mostra i numeri di riga"
   },
   "activity": {
     "useTemplate": "Usa modello",
@@ -5385,7 +5518,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "Questa opzione consente la modifica dello schema del database, tra cui l'aggiunta, la modifica o l'eliminazione di tabelle e colonne. Usare con cautela, poiché le modifiche possono influire sull'integrità strutturale del database.",
     "allowDataWrite": "Questa opzione permette di creare, aggiornare o eliminare i record all'interno delle tabelle del database. Ideale per gli utenti amministrativi che necessitano di cambiare direttamente i dati.",
-    "reachedSourceLimit": "Limitato a una sola sorgente dati per il momento",
+    "reachedSourceLimit": "Limitato a 10 origini dati per progetto",
     "saveChanges": "Salva le modifiche",
     "clientKey": "Seleziona file .key",
     "clientCert": "Seleziona file .cert",
@@ -5411,7 +5544,7 @@
     "selectAllMappedFields": "Seleziona tutti i campi mappati",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Copia codice errore",
-    "paidUserBadgeTooltip": "Consuma una postazione a pagamento. Ruolo editor o superiore a livello di spazio di lavoro, in una base o su un'interfaccia.",
+    "paidUserBadgeTooltip": "Occupa un posto a pagamento. Ruolo Editor o superiore a livello di spazio di lavoro, in un progetto o su un'interfaccia.",
     "approachingLimit": "Limite in avvicinamento",
     "exceedingLimit": "Limite superato",
     "filteredByCurrentUser": "Filtrato per utente corrente",
@@ -5455,8 +5588,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Solo il proprietario della vista può copiare la configurazione della vista",
     "onlyViewOwnerCanModifyPersonalView": "Solo il proprietario della vista può modificare questa vista personale",
     "onlyViewOwnerCanDeletePersonalView": "Solo il proprietario della vista può eliminare questa vista personale",
-    "onlyCreatorsCanLockView": "Solo i creatori di base o i proprietari possono bloccare una vista",
-    "onlyCreatorsCanUnlockView": "Solo i creatori di base o i proprietari possono sbloccare una vista",
+    "onlyCreatorsCanLockView": "Solo i creatori o i proprietari del progetto possono bloccare una vista",
+    "onlyCreatorsCanUnlockView": "Solo i creatori o i proprietari del progetto possono sbloccare una vista",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "Per copiare le configurazioni è necessaria almeno una vista esistente. Crei prima una vista per attivare questa opzione.",
     "youDoNotHaveSufficientPermissionToAddExtension": "Non ha l'autorizzazione sufficiente per aggiungere l'estensione",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "Non ha il permesso sufficiente per configurare questa estensione.",
@@ -5472,7 +5605,7 @@
     "sortingNotSupportedForFieldsWithErrors": "L'ordinamento non è supportato per campi con errori",
     "sortingNotSupportedForField": "L'ordinamento non è supportato per il campo {type}",
     "groupingNotSupportedForFieldsWithErrors": "Il raggruppamento non è supportato per campi con errori",
-    "variableInheritance": "Determina cosa possono fare con questa variabile le persone che installano questa base come app: Fisso mantiene il tuo valore e lo nasconde, Modificabile propone il tuo valore come punto di partenza, Obbligatorio chiede loro di fornirne uno.",
+    "variableInheritance": "Determina cosa possono fare con questa variabile le persone che installano questo progetto come app: Fissa mantiene il tuo valore e lo nasconde, Modificabile propone il tuo valore come punto di partenza, Obbligatoria chiede loro di fornire il proprio.",
     "workflowButtonTriggerSourceReadOnly": "La tabella di origine collegata a questo pulsante può essere modificata solo da Interfaces",
     "workflowButtonTriggerInterfaceReadOnly": "La pagina Interface che contiene questo pulsante può essere modificata solo da Interfaces",
     "chartIncludeOthers": "Raggruppa le categorie oltre il limite in un'unica categoria «Altri» invece di scartarle.",
@@ -5484,7 +5617,7 @@
     "interfaceMixedRoles": "I ruoli differiscono tra interfacce o pagine. Espandi per visualizzarli",
     "chatQueueAttachmentUnavailable": "Questo allegato non verrà inviato se metti il messaggio in coda. Rimuovilo prima",
     "lockedViewDisabledOnProduction": "Le viste bloccate possono essere create solo nella copia di ambiente",
-    "personalViewDisabledOnEnvironment": "Le viste personali possono essere create solo sulla Base di produzione",
+    "personalViewDisabledOnEnvironment": "Le viste personali possono essere create solo nel progetto di produzione",
     "seeNComments": "Vedi {n} commento | Vedi {n} commenti",
     "collapsibleGroups": "Consenti di comprimere i gruppi dotati di titolo",
     "nestedRecordsRequireSelfLink": "Richiede in questa tabella un campo di collegamento che rimandi alla stessa tabella.",
@@ -5501,10 +5634,10 @@
     "youDontHaveAccessToCreateNewInterface": "Non hai i permessi per creare una nuova Interface",
     "displayValueFieldCannotBeReordered": "Il campo del valore visualizzato non può essere riordinato",
     "interfaceLastVizRequired": "Una pagina necessita di almeno una visualizzazione",
-    "onlyCreatorsCanManageViewFolders": "Solo i creatori o i proprietari della Base possono gestire le cartelle delle viste",
-    "onlyCreatorsCanManageFolders": "Solo i creatori o i proprietari della Base possono gestire le cartelle",
+    "onlyCreatorsCanManageViewFolders": "Solo i creatori o i proprietari del progetto possono gestire le cartelle delle viste",
+    "onlyCreatorsCanManageFolders": "Solo i creatori o i proprietari del progetto possono gestire le cartelle",
     "organizeViewsIntoFolders": "Organizza le viste in cartelle comprimibili",
-    "productionLockedByEnvironment": "Questa base è aperta in un ambiente. Apporta lì le modifiche allo schema.",
+    "productionLockedByEnvironment": "Questo progetto è aperto in un ambiente. Apporta lì le modifiche allo schema.",
     "managedByPublisher": "La struttura di questa App è gestita dal suo editore. I tuoi documenti e le tue cartelle puoi aggiungerli tu.",
     "featureOnProductionOnly": "Questa azione si gestisce nel progetto di produzione, non in una copia di ambiente.",
     "clickToEdit": "Fai clic per modificare",
@@ -5560,8 +5693,8 @@
     "showAllFields": "Mostra tutti i campi",
     "inviteLinkCannotGrantOwner": "Un link di invito non può concedere il ruolo Proprietario",
     "inviteLinkRoleAboveYours": "Puoi offrire solo ruoli fino al tuo",
-    "noDefaultSourceForFolders": "Questa base non ha un'origine predefinita. Crea invece le cartelle dal menu della singola origine",
-    "noDefaultSourceForSync": "Questa base non ha un'origine predefinita. Una sincronizzazione ne ha bisogno di una per memorizzare le sue tabelle"
+    "noDefaultSourceForFolders": "Questo progetto non ha un'origine predefinita. Crea le cartelle dal menu della singola origine",
+    "noDefaultSourceForSync": "Questo progetto non ha un'origine predefinita. Una sincronizzazione ne richiede una per archiviare le sue tabelle"
   },
   "placeholder": {
     "enterVerificationCode": "Inserisci il codice a 6 cifre",
@@ -7226,8 +7359,8 @@
         "description": "Un rapido giro nel tuo spazio di lavoro. Puoi uscire quando vuoi: premi Salta."
       },
       "createBase": {
-        "title": "Inizia da una Base",
-        "description": "Una Base contiene le tue tabelle, viste e automazioni. È qui che inizia la maggior parte del lavoro."
+        "title": "Inizia con un progetto",
+        "description": "Un progetto contiene le tue tabelle, viste e automazioni. È qui che inizia la maggior parte del lavoro."
       },
       "switchWorkspaces": {
         "title": "Cambia spazio di lavoro",

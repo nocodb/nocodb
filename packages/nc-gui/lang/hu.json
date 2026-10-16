@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Frissítés további dokumentumoldalak hozzáadásához",
     "upgradeToAddMoreWorkflows": "Frissítés további munkafolyamatok hozzáadásához",
     "upgradeToAddMoreScriptsSubtitle": "Jelenleg ingyenes csomagot használ, amely csak egy szkriptet engedélyez munkaterületenként. A korlátlan szkriptek feloldásához frissítsen.",
-    "upgradeToAddMoreWorkflowsSubtitle": "Jelenleg a(z) {activePlan} csomagot használja, amely {limit} munkafolyamatot tesz lehetővé bázisonként. Váltson a(z) {plan} csomagra a bővítéshez.",
+    "upgradeToAddMoreWorkflowsSubtitle": "Jelenleg a(z) {activePlan} csomagot használja, amely projektenként {limit} munkafolyamatot tesz lehetővé. Váltson a(z) {plan} csomagra a többért.",
     "upgradeToAddMoreDashboardsSubtitle": "Jelenleg ingyenes csomagot használ, amely csak egy irányítópultot engedélyez munkaterületenként. A korlátlan irányítópultok feloldásához frissítsen.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "A {activePlan} csomag legfeljebb {limit} dokumentumoldalakat tesz lehetővé bázisonként. A {plan} csomagra való frissítéssel több oldal adható hozzá.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "A(z) {activePlan} csomag projektenként legfeljebb {limit} dokumentumoldalt tesz lehetővé. Váltson a(z) {plan} csomagra továbbiak hozzáadásához.",
     "upgradeToUseBookmarks": "Frissítés a könyvjelzők használatához",
-    "upgradeToUseBookmarksSubtitle": "A {plan} csomagra való frissítéssel könyvjelzőket helyezhet el az adatbázisokban, táblázatokban, nézetekben és egyéb elemekben a gyors hozzáférés érdekében.",
+    "upgradeToUseBookmarksSubtitle": "Váltson a(z) {plan} csomagra, hogy projekteket, táblákat, nézeteket és továbbiakat könyvjelzőzhessen a gyors eléréshez.",
     "upgradeToUseDocsExportPdf": "Frissítés a dokumentumok PDF-ként történő exportálásához",
     "upgradeToUseDocsExportPdfSubtitle": "A {plan} csomagra való frissítéssel PDF-fájlokként exportálhatja dokumentumait.",
     "upgradeToUseDocsInlineComments": "Frissítés a soron belüli megjegyzések használatához",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "A(z) {activePlan} csomag legfeljebb {limit} webhookot támogat. Frissítsen a(z) {plan} csomagra a korlátlan webhookokért.",
     "upgradeToAccessWebhookLogsSubtitle": "A webhook naplók eléréséhez frissítse a munkateret a(z) {plan} csomagra.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "Váltson magasabb csomagra, hogy táblákat másolhasson különböző projektek között.",
     "formOwnerNotified": "Űrlaptulajdonos értesítve",
     "formOwnerNotifiedSubtitle": "Értesítettük az űrlap tulajdonosát a beküldési kéréséről.",
     "WorkspaceOwnerNotified": "Munkatér tulajdonos értesítve",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "A {plan} csomagra való frissítéssel szabályozhatja, hogy ki tekintheti meg és szerkesztheti az egyes oldalakat a dokumentumaiban.",
     "upgradeToUseWorkflows": "Frissítés a munkafolyamatok használatához",
     "upgradeToUseWorkflowsSubtitle": "Frissítse a {plan} tervre, hogy munkafolyamatokat használhasson a feladatok és folyamatok automatizálására.",
-    "upgradeToUsePrivateBases": "Frissítés privát bázisok feloldásához",
-    "upgradeToUsePrivateBasesSubtitle": "A privát bázisok a(z) {plan} csomagban érhetők el. Frissítsen most a használatukhoz.",
+    "upgradeToUsePrivateBases": "Váltson magasabb csomagra a privát projektek feloldásához",
+    "upgradeToUsePrivateBasesSubtitle": "A privát projektek a(z) {plan} csomagban érhetők el. Váltson most, hogy használhassa őket.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Legfeljebb {limit} {filePlural} tölthet fel ebbe a cellába. További fájlok hozzáadásához frissítsen a(z) {plan} csomagra.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Frissítés az AI Chat használatához",
-    "upgradeToUseAiChatSubtitle": "A {plan} csomagra való frissítéssel az AI Chat segítségével természetes nyelven kezelheti a bázisát.",
+    "upgradeToUseAiChatSubtitle": "Váltson a(z) {plan} csomagra, hogy az MI-csevegéssel természetes nyelven kezelhesse a projektjét.",
     "upgradeToUseMfa": "Frissítés a kétfaktoros hitelesítés engedélyezéséhez",
     "upgradeToUseMfaSubtitle": "Frissítsen a {plan} csomagra, hogy engedélyezze a többfaktoros hitelesítést a fiókjában.",
     "upgradeToRequireTwoFactor": "Frissítés kétfaktoros hitelesítés megkövetelésére",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Frissítés a csapathierarchia használatához",
     "upgradeToUseTeamHierarchySubtitle": "A {plan} tervre való frissítéssel a csapatokat egymásba ágyazott hierarchiákba szervezheti, öröklődő tagsággal.",
     "upgradeToUseTeams": "Frissítés a csapatok használatához",
-    "upgradeToUseTeamsSubtitle": "Frissítsen a {plan} tervre, hogy a csapatokat használhassa a felhasználók csoportosítására és a munkaterületekhez és bázisokhoz való hozzáférésük kezelésére.",
+    "upgradeToUseTeamsSubtitle": "Váltson a(z) {plan} csomagra, hogy csapatokkal csoportosíthassa a felhasználókat, és kezelhesse a munkaterületekhez és projektekhez való hozzáférésüket.",
     "upgradeToAddMoreTeams": "Frissítés további csapatok hozzáadásához",
     "upgradeToAddMoreTeamsSubtitle": "A {plan} csomagra való frissítéssel több csapatot adhatsz hozzá a munkaterületedhez.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Frissítsen a {plan} tervre, hogy elrejtse a mezőfejléceket a Galéria és Kanban nézetekben.",
     "upgradeToUseFormScheduling": "Frissítés az űrlap ütemezés használatához",
     "upgradeToUseFormSchedulingSubtitle": "A {plan} tervre való frissítéssel ütemezheti az űrlapok elérhetőségét kezdő- és lejárati dátummal.",
-    "upgradeToUseBaseVariables": "Frissítés az alapváltozók használatához",
-    "upgradeToUseBaseVariablesSubtitle": "Frissítse a {plan} tervet, hogy újrafelhasználható változókat definiálhasson egy alapra korlátozva.",
+    "upgradeToUseBaseVariables": "Váltson magasabb csomagra a projektváltozók használatához",
+    "upgradeToUseBaseVariablesSubtitle": "Váltson a(z) {plan} csomagra, hogy újrafelhasználható, projektszintű változókat határozhasson meg.",
     "upgradeToUseSync": "Frissítés a szinkronizálás használatához",
     "upgradeToUseSyncSubtitle": "Frissítsen a {plan} csomagra, hogy szinkronizálhassa az adatokat belső vagy külső forrásokkal.",
     "upgradeToUseTableSync": "Frissítés a táblázatszinkronizálás használatához",
@@ -3112,7 +3112,11 @@
       "upgradeRequestSent": "Kérés elküldve",
       "upgradeDescRls": "Korlátozza, hogy ki mely rekordokat láthatja és szerkesztheti.",
       "upgradeDescRecordTemplates": "Hozzon létre új rekordokat mentett, előre kitöltött sablonokból.",
-      "upgradeDescDateDependency": "Automatikusan eltolja a függő dátumokat, amikor egy rekord áthelyeződik."
+      "upgradeDescDateDependency": "Automatikusan eltolja a függő dátumokat, amikor egy rekord áthelyeződik.",
+      "concernProject": "Projekt",
+      "concernInterfaces": "Interfészek",
+      "concernApps": "Alkalmazás",
+      "concernTabs": "Beállítási szakaszok"
     },
     "categories": "Kategóriák",
     "blockquote": "Idézet",
@@ -4402,7 +4406,106 @@
         "repeatWarning": "Ez a lépés adatokat küldhet vagy módosíthat. Az újrapróbálkozás megismételheti — csak akkor kapcsolja be, ha ez rendben van.",
         "retries": "Újrapróbálkozások száma",
         "earlierTries": "Korábbi próbálkozások",
-        "noErrorMessage": "Nincs hibaüzenet"
+        "noErrorMessage": "Nincs hibaüzenet",
+        "title": "Hiba esetén",
+        "retryIfFails": "Újrapróbálkozás, ha ez a lépés sikertelen",
+        "retrySafeHint": "Automatikusan újrapróbálkozik, ha egy szolgáltatás átmenetileg nem érhető el",
+        "waitBeforeRetry": "Várakozás az újrapróbálkozás előtt",
+        "seconds": "másodperc",
+        "waitLonger": "Minden alkalommal hosszabb várakozás",
+        "waitLongerHint": "Minden próbálkozás után megduplázza a várakozást, legfeljebb 1 óráig",
+        "retryOn": "Újrapróbálkozás erre",
+        "retryOnTemporary": "Csak átmeneti problémák (időtúllépések, sebességkorlátok, kiszolgálóhibák)",
+        "retryOnAny": "Bármilyen hiba",
+        "triedTimes": "{count} próbálkozás történt",
+        "tryNumber": "{n}. próbálkozás",
+        "succeededAfterTries": "Sikerült {count} próbálkozás után"
+      },
+      "iterate": {
+        "listPlaceholder": "Válasszon egy tömböt a bejáráshoz",
+        "listHelp": "Válasszon egy tömböt egy korábbi lépésből. Minden elem egymás után kerül feldolgozásra.",
+        "notAList": "Elemek listájára van szükség, de ez az érték: {kind}."
+      },
+      "originalRun": "az eredeti futtatás",
+      "duration": {
+        "milliseconds": "{n} ms",
+        "seconds": "{n} mp",
+        "minutesSeconds": "{m} p {s} mp"
+      },
+      "overview": {
+        "lastRun": "Utolsó futtatás",
+        "failedCount": "{n} sikertelen",
+        "allTested": "Minden lépés tesztelve"
+      },
+      "addStep": "Lépés hozzáadása",
+      "nodePicker": {
+        "upgradeToUseStep": "Váltson a(z) {plan} csomagra a(z) {step} használatához",
+        "search": "Lépések és alkalmazások keresése",
+        "searchTriggers": "Keressen, pl. „új sor”, „minden hétfőn”",
+        "searchIn": "Keresés itt: {app}",
+        "apps": "Alkalmazások",
+        "integrations": "Integrációk",
+        "popular": "Népszerű",
+        "chooseTrigger": "Válasszon triggert",
+        "chooseTriggerHint": "Minden munkafolyamat triggerrel indul: az eseménnyel, amely elindítja.",
+        "noMatches": "Nincs találat a lépések között",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "A rekord {bold}",
+            "bold": "létrejön"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "A rekord {bold}",
+            "bold": "frissül"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "A rekord {bold}",
+            "bold": "törlődik"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "A rekord {bold}",
+            "bold": "bekerül egy nézetbe"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "A rekord {bold}",
+            "bold": "megfelel a feltételeknek"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "Űrlapot küld be"
+          },
+          "core_trigger_button": {
+            "text": "{bold} egy rekordon",
+            "bold": "Gombra kattint"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} egy rekordhoz",
+            "bold": "Hozzászól"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "Ütemezés szerint"
+          },
+          "core_trigger_webhook": {
+            "text": "Amikor {bold}",
+            "bold": "webhook érkezik"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "Manuálisan"
+          }
+        },
+        "groups": {
+          "recordEvents": "Amikor",
+          "userActions": "Amikor a felhasználó",
+          "runs": "Futtatások",
+          "records": "Rekordok",
+          "logic": "Logika",
+          "ai": "MI",
+          "messages": "Üzenetek",
+          "developer": "Fejlesztő",
+          "other": "Egyéb"
+        }
       }
     },
     "xAxis": "X tengely",
@@ -5046,7 +5149,37 @@
     "licenseExpired": "A licenc lejárt",
     "talkToSales": "Beszéljen az értékesítéssel",
     "paidAnnually": "Éves fizetés",
-    "paidMonthly": "Havi fizetés"
+    "paidMonthly": "Havi fizetés",
+    "addAttachment": "Melléklet hozzáadása",
+    "fromAttachmentField": "Melléklet mezőből",
+    "uploadFile": "Fájl feltöltése",
+    "fromUrl": "URL-címről",
+    "attachFromUrl": "Csatolás URL-címről",
+    "removeAttachment": "Melléklet eltávolítása",
+    "attachmentFieldChip": "mező",
+    "setPageAccess": "Oldal-hozzáférés beállítása",
+    "readOnlyMember": "csak olvasási jogú tag",
+    "aReadOnlyMember": "csak olvasási jogú tag",
+    "readOnlyMembers": "csak olvasási jogú tagok",
+    "backToData": "Vissza az adatokhoz",
+    "appShare": {
+      "customTeamDescription": "Egy csapat, amelyet ez az alkalmazás határoz meg.",
+      "membersTeamDescription": "Használja az alkalmazást.",
+      "adminTeamDescription": "Használja az alkalmazást, és kezeli a tagjait.",
+      "noAccessTeamDescription": "Még nincsenek megadva műveletek, így a tagjai nem tudják megnyitni az alkalmazást."
+    },
+    "viewActions": "Nézetműveletek",
+    "renameView": "Nézet átnevezése",
+    "generateWithAi": "Generálás MI-vel",
+    "deleteView": "Nézet törlése",
+    "addToFavourites": "Hozzáadás a kedvencekhez",
+    "contextMenu": "Helyi menü",
+    "editSqlView": "SQL-nézet szerkesztése",
+    "noWebhooksYet": "Még nincsenek webhookok",
+    "navigation": "Navigáció",
+    "prompts": "Promptok",
+    "pagination": "Lapozás",
+    "showRowNumbers": "Sorszámok megjelenítése"
   },
   "activity": {
     "useTemplate": "Sablon használata",
@@ -5390,7 +5523,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "Enable this option to allow modifications to the database schema, including adding, altering, or deleting tables and columns. Use with caution, as changes may affect application functionality.",
     "allowDataWrite": "Ez az opció lehetővé teszi, hogy rekordokat hozzon létre, frissítsen vagy töröljön az adatbázis táblákon belül. Ideális az adminisztratív felhasználóknak, akiknek közvetlenül kell adatokat módosítaniuk.",
-    "reachedSourceLimit": "Az adattípusok száma 10-re korlátozva bázisonként",
+    "reachedSourceLimit": "Projektenként legfeljebb 10 adatforrás",
     "saveChanges": "Változtatások mentése",
     "clientKey": ".key fájl kiválasztása",
     "clientCert": ".cert fájl kiválasztása",
@@ -5416,7 +5549,7 @@
     "selectAllMappedFields": "Összes leképezett mező kijelölése",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Hibakód másolása",
-    "paidUserBadgeTooltip": "Egy fizetős helyet foglal. Szerkesztő vagy magasabb szerepkör munkaterület szintjén, egy bázisban vagy egy felületen.",
+    "paidUserBadgeTooltip": "Fizetős helyet foglal. Szerkesztő vagy magasabb szerepkör a munkaterület szintjén, egy projektben vagy egy interfészen.",
     "approachingLimit": "Közel a határhoz",
     "exceedingLimit": "Túllépi a határt",
     "filteredByCurrentUser": "Szűrés aktuális felhasználó szerint",
@@ -5460,8 +5593,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Csak a nézet tulajdonosa másolhatja a nézet konfigurációját",
     "onlyViewOwnerCanModifyPersonalView": "Csak a nézet tulajdonosa módosíthatja ezt a személyes nézetet.",
     "onlyViewOwnerCanDeletePersonalView": "Csak a nézet tulajdonosa törölheti ezt a személyes nézetet",
-    "onlyCreatorsCanLockView": "Csak a bázis létrehozói vagy tulajdonosai zárolhatnak egy nézetet.",
-    "onlyCreatorsCanUnlockView": "Csak a bázis létrehozói vagy tulajdonosai oldhatják fel a nézetet",
+    "onlyCreatorsCanLockView": "Nézetet csak a projekt létrehozói vagy tulajdonosai zárolhatnak",
+    "onlyCreatorsCanUnlockView": "Nézet zárolását csak a projekt létrehozói vagy tulajdonosai oldhatják fel",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "A konfigurációk másolásához legalább egy meglévő nézetre van szükség. Először hozzon létre egy nézetet, hogy engedélyezze ezt a lehetőséget.",
     "youDoNotHaveSufficientPermissionToAddExtension": "Nincs elegendő jogosultsága a kiterjesztés hozzáadásához",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "Nincs elegendő jogosultsága a bővítmény konfigurálásához",
@@ -5477,7 +5610,7 @@
     "sortingNotSupportedForFieldsWithErrors": "A rendezés nem támogatott a hibás mezők esetében",
     "sortingNotSupportedForField": "A rendezés nem támogatott a {type} mező esetében",
     "groupingNotSupportedForFieldsWithErrors": "A csoportosítás nem támogatott a hibás mezők esetében",
-    "variableInheritance": "Meghatározza, hogy mit tehetnek ezzel a változóval azok, akik ezt a bázist alkalmazásként telepítik: a Rögzített megtartja és elrejti az Ön értékét, a Szerkeszthető kiindulópontként ajánlja fel az értékét, a Kötelező pedig saját érték megadását kéri tőlük.",
+    "variableInheritance": "Meghatározza, hogy mit tehetnek ezzel a változóval azok, akik alkalmazásként telepítik ezt a projektet: a Rögzített megtartja és elrejti az értékét, a Szerkeszthető kiindulópontként kínálja fel az értékét, a Kötelező pedig saját érték megadását kéri tőlük.",
     "workflowButtonTriggerSourceReadOnly": "A gombhoz kapcsolt forrástábla csak a Felületek részen módosítható",
     "workflowButtonTriggerInterfaceReadOnly": "Az ezt a gombot tartalmazó felületoldal csak a Felületek részen módosítható",
     "chartIncludeOthers": "A korláton túli kategóriákat egyetlen Egyéb kategóriába vonja össze ahelyett, hogy elhagyná őket.",
@@ -5489,7 +5622,7 @@
     "interfaceMixedRoles": "A szerepkörök felületenként vagy oldalanként eltérnek. Bontsa ki a megtekintésükhöz",
     "chatQueueAttachmentUnavailable": "Ez a melléklet nem lesz elküldve, ha sorba állítja az üzenetét. Előbb távolítsa el",
     "lockedViewDisabledOnProduction": "Zárolt nézetek csak a környezeti másolatban hozhatók létre",
-    "personalViewDisabledOnEnvironment": "Személyes nézetek csak az éles bázison hozhatók létre",
+    "personalViewDisabledOnEnvironment": "Személyes nézeteket csak az éles projektben lehet létrehozni",
     "seeNComments": "{n} hozzászólás megtekintése | {n} hozzászólás megtekintése",
     "collapsibleGroups": "Engedélyezze a címmel rendelkező csoportok összecsukását",
     "nestedRecordsRequireSelfLink": "Olyan hivatkozásmezőt igényel ezen a táblán, amely ugyanerre a táblára mutat vissza.",
@@ -5506,10 +5639,10 @@
     "youDontHaveAccessToCreateNewInterface": "Nincs jogosultsága új felület létrehozásához",
     "displayValueFieldCannotBeReordered": "A megjelenített érték mezője nem helyezhető át",
     "interfaceLastVizRequired": "Egy oldalhoz legalább egy vizualizáció kell",
-    "onlyCreatorsCanManageViewFolders": "A nézetmappákat csak a bázis létrehozói vagy tulajdonosai kezelhetik",
-    "onlyCreatorsCanManageFolders": "A mappákat csak a bázis létrehozói vagy tulajdonosai kezelhetik",
+    "onlyCreatorsCanManageViewFolders": "Nézetmappákat csak a projekt létrehozói vagy tulajdonosai kezelhetnek",
+    "onlyCreatorsCanManageFolders": "Mappákat csak a projekt létrehozói vagy tulajdonosai kezelhetnek",
     "organizeViewsIntoFolders": "Rendezze a nézeteket összecsukható mappákba",
-    "productionLockedByEnvironment": "Ez a bázis meg van nyitva egy környezetben. A sémaváltoztatásokat ott végezze.",
+    "productionLockedByEnvironment": "Ez a projekt egy környezetben van megnyitva. A sémamódosításokat ott végezze.",
     "managedByPublisher": "Ennek az alkalmazásnak a szerkezetét a közzétevője kezeli. A saját dokumentumait és mappáit Ön adja hozzá.",
     "featureOnProductionOnly": "Ezt a műveletet az éles projektben kell kezelni, nem környezeti másolatban.",
     "clickToEdit": "Kattintson a szerkesztéshez",
@@ -5565,8 +5698,8 @@
     "showAllFields": "Összes mező megjelenítése",
     "inviteLinkCannotGrantOwner": "Meghívó hivatkozás nem adhat Tulajdonos szerepkört",
     "inviteLinkRoleAboveYours": "Csak a sajátjáig terjedő szerepköröket ajánlhat fel",
-    "noDefaultSourceForFolders": "Ennek a bázisnak nincs alapértelmezett forrása. A mappákat inkább az egyes források saját menüjéből hozza létre",
-    "noDefaultSourceForSync": "Ennek a bázisnak nincs alapértelmezett forrása. A szinkronizálásnak szüksége van egyre a táblái tárolásához"
+    "noDefaultSourceForFolders": "Ennek a projektnek nincs alapértelmezett forrása. A mappákat az adott forrás saját menüjéből hozza létre",
+    "noDefaultSourceForSync": "Ennek a projektnek nincs alapértelmezett forrása. A szinkronizálásnak szüksége van egyre a táblái tárolásához"
   },
   "placeholder": {
     "enterVerificationCode": "Adja meg a 6 számjegyű kódot",
@@ -7294,8 +7427,8 @@
         "description": "Egy gyors kör a munkaterületén. Bármikor kiléphet: nyomja meg az Átugrás gombot."
       },
       "createBase": {
-        "title": "Kezdd egy Bázissal",
-        "description": "A Bázis tartalmazza a tábláidat, nézeteidet és automatizálásaidat. A munka java része innen indul."
+        "title": "Kezdje egy projekttel",
+        "description": "Egy projekt tartalmazza a tábláit, nézeteit és automatizálásait. A munka nagy része itt kezdődik."
       },
       "switchWorkspaces": {
         "title": "Válts munkaterületet",

@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Upgrade to add more document pages",
     "upgradeToAddMoreWorkflows": "Upgrade to add more workflows",
     "upgradeToAddMoreScriptsSubtitle": "คุณอยู่ในแผนฟรีซึ่งอนุญาตให้มีสคริปต์เดียวต่อ workspace เท่านั้น อัปเกรดเพื่อปลดล็อกสคริปต์ไม่จำกัด",
-    "upgradeToAddMoreWorkflowsSubtitle": "ขณะนี้คุณใช้แผน {activePlan} ซึ่งอนุญาต {limit} เวิร์กโฟลว์ต่อเบส อัปเกรดเป็น {plan} เพื่อเพิ่มจำนวน",
+    "upgradeToAddMoreWorkflowsSubtitle": "ขณะนี้คุณใช้แผน {activePlan} ซึ่งอนุญาต {limit} เวิร์กโฟลว์ต่อโปรเจกต์ อัปเกรดเป็น {plan} เพื่อเพิ่มอีก",
     "upgradeToAddMoreDashboardsSubtitle": "คุณอยู่ในแผนฟรีซึ่งอนุญาตให้มีแดชบอร์ดเดียวต่อ workspace เท่านั้น อัปเกรดเพื่อปลดล็อกแดชบอร์ดไม่จำกัด",
-    "upgradeToAddMoreDocumentPagesSubtitle": "The {activePlan} plan allows up to {limit} document pages per base. Upgrade to the {plan} plan to add more.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "แผน {activePlan} อนุญาตสูงสุด {limit} หน้าเอกสารต่อโปรเจกต์ อัปเกรดเป็นแผน {plan} เพื่อเพิ่มอีก",
     "upgradeToUseBookmarks": "Upgrade to use bookmarks",
-    "upgradeToUseBookmarksSubtitle": "Upgrade to the {plan} plan to bookmark bases, tables, views, and more for quick access.",
+    "upgradeToUseBookmarksSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อบุ๊กมาร์กโปรเจกต์ ตาราง มุมมอง และอื่น ๆ ไว้เข้าถึงอย่างรวดเร็ว",
     "upgradeToUseDocsExportPdf": "Upgrade to export documents as PDF",
     "upgradeToUseDocsExportPdfSubtitle": "Upgrade to the {plan} plan to export your documents as PDF files.",
     "upgradeToUseDocsInlineComments": "Upgrade to use inline comments",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "แผน {activePlan} ใช้เว็บฮุคได้สูงสุด {limit} อัปเกรดเป็นแผน {plan} เพื่อใช้งานเว็บฮุคได้ไม่จำกัด",
     "upgradeToAccessWebhookLogsSubtitle": "เข้าถึงบันทึกเว็บฮุคได้โดยอัปเกรดเวิร์กสเปซของคุณเป็นแผน {plan}",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "อัปเกรดแผนของคุณเพื่อทำสำเนาตารางข้ามโปรเจกต์",
     "formOwnerNotified": "แจ้งเจ้าของฟอร์มแล้ว",
     "formOwnerNotifiedSubtitle": "เราได้แจ้งเจ้าของฟอร์มเกี่ยวกับคำขอส่งข้อมูลของคุณแล้ว",
     "WorkspaceOwnerNotified": "แจ้งเจ้าของเวิร์กสเปซแล้ว",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Upgrade to the {plan} plan to control who can view and edit individual pages in your docs.",
     "upgradeToUseWorkflows": "Upgrade to use workflows",
     "upgradeToUseWorkflowsSubtitle": "Upgrade to the {plan} plan to use workflows to automate tasks and processes.",
-    "upgradeToUsePrivateBases": "อัปเกรดเพื่อปลดล็อกฐานข้อมูลส่วนตัว",
-    "upgradeToUsePrivateBasesSubtitle": "ฐานข้อมูลส่วนตัวมีให้ใช้ในแผน {plan} อัปเกรดตอนนี้เพื่อเริ่มใช้งาน",
+    "upgradeToUsePrivateBases": "อัปเกรดเพื่อปลดล็อกโปรเจกต์ส่วนตัว",
+    "upgradeToUsePrivateBasesSubtitle": "โปรเจกต์ส่วนตัวมีให้ในแผน {plan} อัปเกรดตอนนี้เพื่อเริ่มใช้งาน",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "คุณสามารถอัปโหลดได้สูงสุด {limit} {filePlural} ในเซลล์นี้ อัปเกรดเป็นแผน {plan} เพื่อเพิ่มไฟล์ได้มากขึ้น",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Upgrade to use AI Chat",
-    "upgradeToUseAiChatSubtitle": "Upgrade to the {plan} plan to use AI Chat to manage your base with natural language.",
+    "upgradeToUseAiChatSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อใช้แชต AI จัดการโปรเจกต์ด้วยภาษาธรรมชาติ",
     "upgradeToUseMfa": "Upgrade to enable two-factor authentication",
     "upgradeToUseMfaSubtitle": "Upgrade to the {plan} plan to enable multi-factor authentication for your account.",
     "upgradeToRequireTwoFactor": "Upgrade to require two-factor authentication",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Upgrade to use team hierarchy",
     "upgradeToUseTeamHierarchySubtitle": "Upgrade to the {plan} plan to organize teams in nested hierarchies with inherited membership.",
     "upgradeToUseTeams": "Upgrade to use teams",
-    "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases.",
+    "upgradeToUseTeamsSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อใช้ทีมในการจัดกลุ่มผู้ใช้และจัดการสิทธิ์เข้าถึงพื้นที่ทำงานและโปรเจกต์",
     "upgradeToAddMoreTeams": "Upgrade to add more teams",
     "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views.",
     "upgradeToUseFormScheduling": "Upgrade to use form scheduling",
     "upgradeToUseFormSchedulingSubtitle": "Upgrade to the {plan} plan to schedule form availability with start and expiration dates.",
-    "upgradeToUseBaseVariables": "Upgrade to use base variables",
-    "upgradeToUseBaseVariablesSubtitle": "Upgrade to the {plan} plan to define reusable variables scoped to a base.",
+    "upgradeToUseBaseVariables": "อัปเกรดเพื่อใช้ตัวแปรของโปรเจกต์",
+    "upgradeToUseBaseVariablesSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อกำหนดตัวแปรที่ใช้ซ้ำได้ในขอบเขตของโปรเจกต์",
     "upgradeToUseSync": "Upgrade to use sync",
     "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources.",
     "upgradeToUseTableSync": "Upgrade to use table sync",
@@ -3112,7 +3112,11 @@
       "upgradeRequestSent": "ส่งคำขอแล้ว",
       "upgradeDescRls": "จำกัดว่าแต่ละคนสามารถดูและแก้ไขระเบียนใดได้บ้าง",
       "upgradeDescRecordTemplates": "สร้างระเบียนใหม่จากเทมเพลตที่บันทึกไว้และกรอกข้อมูลไว้ล่วงหน้า",
-      "upgradeDescDateDependency": "เลื่อนวันที่ที่เกี่ยวข้องโดยอัตโนมัติเมื่อมีการย้ายระเบียน"
+      "upgradeDescDateDependency": "เลื่อนวันที่ที่เกี่ยวข้องโดยอัตโนมัติเมื่อมีการย้ายระเบียน",
+      "concernProject": "โปรเจกต์",
+      "concernInterfaces": "อินเทอร์เฟซ",
+      "concernApps": "แอป",
+      "concernTabs": "ส่วนการตั้งค่า"
     },
     "categories": "หมวดหมู่",
     "blockquote": "ข้อความอ้างอิง",
@@ -4402,7 +4406,106 @@
         "repeatWarning": "ขั้นตอนนี้อาจส่งหรือเปลี่ยนแปลงข้อมูล การลองใหม่อาจทำซ้ำได้ — เปิดใช้เฉพาะเมื่อยอมรับได้เท่านั้น",
         "retries": "จำนวนครั้งที่ลองใหม่",
         "earlierTries": "ความพยายามก่อนหน้า",
-        "noErrorMessage": "ไม่มีข้อความแสดงข้อผิดพลาด"
+        "noErrorMessage": "ไม่มีข้อความแสดงข้อผิดพลาด",
+        "title": "เมื่อล้มเหลว",
+        "retryIfFails": "ลองใหม่หากขั้นตอนนี้ล้มเหลว",
+        "retrySafeHint": "ลองใหม่โดยอัตโนมัติเมื่อบริการไม่พร้อมใช้งานชั่วคราว",
+        "waitBeforeRetry": "รอก่อนลองใหม่",
+        "seconds": "วินาที",
+        "waitLonger": "รอนานขึ้นทุกครั้ง",
+        "waitLongerHint": "เพิ่มเวลารอเป็นสองเท่าหลังแต่ละครั้ง สูงสุด 1 ชั่วโมง",
+        "retryOn": "ลองใหม่เมื่อ",
+        "retryOnTemporary": "เฉพาะปัญหาชั่วคราว (หมดเวลา, ขีดจำกัดอัตรา, ข้อผิดพลาดของเซิร์ฟเวอร์)",
+        "retryOnAny": "ข้อผิดพลาดใด ๆ",
+        "triedTimes": "ลองแล้ว {count} ครั้ง",
+        "tryNumber": "ครั้งที่ {n}",
+        "succeededAfterTries": "สำเร็จหลังจากลอง {count} ครั้ง"
+      },
+      "iterate": {
+        "listPlaceholder": "เลือกอาร์เรย์ที่จะวนซ้ำ",
+        "listHelp": "เลือกอาร์เรย์จากขั้นตอนก่อนหน้า แต่ละรายการจะถูกประมวลผลตามลำดับ",
+        "notAList": "ต้องใช้รายการของไอเทม แต่ค่านี้เป็น {kind}"
+      },
+      "originalRun": "การรันเดิม",
+      "duration": {
+        "milliseconds": "{n} มิลลิวินาที",
+        "seconds": "{n} วินาที",
+        "minutesSeconds": "{m} นาที {s} วินาที"
+      },
+      "overview": {
+        "lastRun": "การรันล่าสุด",
+        "failedCount": "{n} ล้มเหลว",
+        "allTested": "ทดสอบทุกขั้นตอนแล้ว"
+      },
+      "addStep": "เพิ่มขั้นตอน",
+      "nodePicker": {
+        "upgradeToUseStep": "อัปเกรดเป็นแผน {plan} เพื่อใช้ {step}",
+        "search": "ค้นหาขั้นตอนและแอป",
+        "searchTriggers": "ค้นหา เช่น “แถวใหม่”, “ทุกวันจันทร์”",
+        "searchIn": "ค้นหาใน {app}",
+        "apps": "แอป",
+        "integrations": "การผสานการทำงาน",
+        "popular": "ยอดนิยม",
+        "chooseTrigger": "เลือกทริกเกอร์",
+        "chooseTriggerHint": "ทุกเวิร์กโฟลว์เริ่มต้นด้วยทริกเกอร์ นั่นคือเหตุการณ์ที่ทำให้มันเริ่มทำงาน",
+        "noMatches": "ไม่มีขั้นตอนที่ตรงกัน",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "ระเบียน{bold}",
+            "bold": "ถูกสร้าง"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "ระเบียน{bold}",
+            "bold": "ถูกอัปเดต"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "ระเบียน{bold}",
+            "bold": "ถูกลบ"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "ระเบียน{bold}",
+            "bold": "เข้าสู่มุมมอง"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "ระเบียน{bold}",
+            "bold": "ตรงกับเงื่อนไข"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "ส่งฟอร์ม"
+          },
+          "core_trigger_button": {
+            "text": "{bold} บนระเบียน",
+            "bold": "คลิกปุ่ม"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} บนระเบียน",
+            "bold": "แสดงความคิดเห็น"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "ตามกำหนดเวลา"
+          },
+          "core_trigger_webhook": {
+            "text": "เมื่อ {bold}",
+            "bold": "ได้รับ webhook"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "ด้วยตนเอง"
+          }
+        },
+        "groups": {
+          "recordEvents": "เมื่อ",
+          "userActions": "เมื่อผู้ใช้",
+          "runs": "การรัน",
+          "records": "ระเบียน",
+          "logic": "ตรรกะ",
+          "ai": "ปัญญาประดิษฐ์",
+          "messages": "ข้อความ",
+          "developer": "นักพัฒนา",
+          "other": "อื่น ๆ"
+        }
       }
     },
     "xAxis": "แกน X",
@@ -5052,7 +5155,37 @@
     "licenseExpired": "ใบอนุญาตหมดอายุ",
     "talkToSales": "พูดคุยกับฝ่ายขาย",
     "paidAnnually": "ชำระรายปี",
-    "paidMonthly": "ชำระรายเดือน"
+    "paidMonthly": "ชำระรายเดือน",
+    "addAttachment": "เพิ่มไฟล์แนบ",
+    "fromAttachmentField": "จากฟิลด์ไฟล์แนบ",
+    "uploadFile": "อัปโหลดไฟล์",
+    "fromUrl": "จาก URL",
+    "attachFromUrl": "แนบจาก URL",
+    "removeAttachment": "ลบไฟล์แนบ",
+    "attachmentFieldChip": "ฟิลด์",
+    "setPageAccess": "ตั้งค่าสิทธิ์เข้าถึงหน้า",
+    "readOnlyMember": "สมาชิกแบบอ่านอย่างเดียว",
+    "aReadOnlyMember": "สมาชิกแบบอ่านอย่างเดียว",
+    "readOnlyMembers": "สมาชิกแบบอ่านอย่างเดียว",
+    "backToData": "กลับไปที่ข้อมูล",
+    "appShare": {
+      "customTeamDescription": "ทีมที่แอปนี้กำหนดไว้",
+      "membersTeamDescription": "ใช้แอป",
+      "adminTeamDescription": "ใช้แอปและจัดการสมาชิกของแอป",
+      "noAccessTeamDescription": "ยังไม่ได้ให้สิทธิ์การทำงานใด ๆ สมาชิกจึงเปิดแอปไม่ได้"
+    },
+    "viewActions": "การดำเนินการของมุมมอง",
+    "renameView": "เปลี่ยนชื่อมุมมอง",
+    "generateWithAi": "สร้างด้วย AI",
+    "deleteView": "ลบมุมมอง",
+    "addToFavourites": "เพิ่มในรายการโปรด",
+    "contextMenu": "เมนูบริบท",
+    "editSqlView": "แก้ไขมุมมอง SQL",
+    "noWebhooksYet": "ยังไม่มี webhook",
+    "navigation": "การนำทาง",
+    "prompts": "พรอมต์",
+    "pagination": "การแบ่งหน้า",
+    "showRowNumbers": "แสดงหมายเลขแถว"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5395,7 +5528,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "ตัวเลือกนี้อนุญาตให้มีการแก้ไขสคีมาฐานข้อมูล รวมถึงการเพิ่ม แก้ไข หรือลบตารางและคอลัมน์ ใช้ด้วยความระมัดระวังเนื่องจากการเปลี่ยนแปลงอาจมีผลกระทบต่อความสมบูรณ์ของโครงสร้างฐานข้อมูลของคุณ",
     "allowDataWrite": "ตัวเลือกนี้ช่วยให้สร้าง อัปเดต หรือลบข้อมูลในตารางฐานข้อมูล เหมาะสำหรับผู้ดูแลระบบที่ต้องการเปลี่ยนแปลงข้อมูลโดยตรง.",
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "จำกัดที่ 10 แหล่งข้อมูลต่อโปรเจกต์",
     "saveChanges": "บันทึกการเปลี่ยนแปลง",
     "clientKey": "เลือก. ไฟล์. คีย์",
     "clientCert": "เลือกไฟล์ .cert",
@@ -5421,7 +5554,7 @@
     "selectAllMappedFields": "เลือกทุกฟิลด์ที่จับคู่แล้ว",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "คัดลอกรหัสข้อผิดพลาด",
-    "paidUserBadgeTooltip": "ใช้ที่นั่งแบบเสียเงินหนึ่งที่ บทบาทผู้แก้ไขขึ้นไปในระดับพื้นที่ทำงาน ในเบส หรือบนอินเทอร์เฟซ",
+    "paidUserBadgeTooltip": "ใช้ที่นั่งแบบเสียเงินหนึ่งที่ ต้องมีบทบาทผู้แก้ไขขึ้นไปในระดับพื้นที่ทำงาน ในโปรเจกต์ หรือบนอินเทอร์เฟซ",
     "approachingLimit": "ใกล้ถึงขีดจำกัด",
     "exceedingLimit": "เกินขีดจำกัด",
     "filteredByCurrentUser": "กรองตามผู้ใช้ปัจจุบัน",
@@ -5465,8 +5598,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
     "onlyViewOwnerCanModifyPersonalView": "Only the view owner can modify this personal view",
     "onlyViewOwnerCanDeletePersonalView": "Only the view owner can delete this personal view",
-    "onlyCreatorsCanLockView": "Only base creators or owners can lock a view",
-    "onlyCreatorsCanUnlockView": "Only base creators or owners can unlock a view",
+    "onlyCreatorsCanLockView": "เฉพาะผู้สร้างหรือเจ้าของโปรเจกต์เท่านั้นที่ล็อกมุมมองได้",
+    "onlyCreatorsCanUnlockView": "เฉพาะผู้สร้างหรือเจ้าของโปรเจกต์เท่านั้นที่ปลดล็อกมุมมองได้",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
     "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
@@ -5482,7 +5615,7 @@
     "sortingNotSupportedForFieldsWithErrors": "Sorting is not supported for fields with errors",
     "sortingNotSupportedForField": "Sorting is not supported for {type} field",
     "groupingNotSupportedForFieldsWithErrors": "Grouping is not supported for fields with errors",
-    "variableInheritance": "กำหนดสิ่งที่ผู้ติดตั้งเบสนี้เป็นแอปทำกับตัวแปรนี้ได้: แบบคงที่จะเก็บค่าของคุณไว้และซ่อนไว้ แบบแก้ไขได้จะเสนอค่าของคุณเป็นจุดเริ่มต้น และแบบจำเป็นจะขอให้ผู้ติดตั้งระบุค่าเอง",
+    "variableInheritance": "กำหนดว่าผู้ที่ติดตั้งโปรเจกต์นี้เป็นแอปจะทำอะไรกับตัวแปรนี้ได้บ้าง: คงที่ จะเก็บค่าของคุณไว้และซ่อนไว้ แก้ไขได้ จะเสนอค่าของคุณเป็นจุดเริ่มต้น และ จำเป็น จะขอให้พวกเขากรอกค่าของตนเอง",
     "workflowButtonTriggerSourceReadOnly": "ตารางต้นทางที่เชื่อมกับปุ่มนี้เปลี่ยนได้ผ่านอินเทอร์เฟซเท่านั้น",
     "workflowButtonTriggerInterfaceReadOnly": "หน้าอินเทอร์เฟซที่มีปุ่มนี้เปลี่ยนได้ผ่านอินเทอร์เฟซเท่านั้น",
     "chartIncludeOthers": "รวมหมวดที่เกินขีดจำกัดไว้ในหมวดอื่น ๆ หมวดเดียว แทนที่จะตัดทิ้ง",
@@ -5494,7 +5627,7 @@
     "interfaceMixedRoles": "บทบาทแตกต่างกันในแต่ละอินเทอร์เฟซหรือหน้า ขยายเพื่อดู",
     "chatQueueAttachmentUnavailable": "ไฟล์แนบนี้จะไม่ถูกส่งหากคุณจัดข้อความเข้าคิว นำออกก่อน",
     "lockedViewDisabledOnProduction": "มุมมองที่ล็อกสร้างได้เฉพาะในสำเนาสภาพแวดล้อม",
-    "personalViewDisabledOnEnvironment": "มุมมองส่วนตัวสร้างได้เฉพาะในโครงการใช้งานจริง",
+    "personalViewDisabledOnEnvironment": "สร้างมุมมองส่วนตัวได้เฉพาะในโปรเจกต์โปรดักชันเท่านั้น",
     "seeNComments": "ดู {n} ความคิดเห็น | ดู {n} ความคิดเห็น",
     "collapsibleGroups": "อนุญาตให้ยุบกลุ่มที่มีชื่อได้",
     "nestedRecordsRequireSelfLink": "ต้องมีฟิลด์ลิงก์ในตารางนี้ที่ชี้กลับมาที่ตารางเดียวกัน",
@@ -5511,10 +5644,10 @@
     "youDontHaveAccessToCreateNewInterface": "คุณไม่มีสิทธิ์สร้างอินเทอร์เฟซใหม่",
     "displayValueFieldCannotBeReordered": "ฟิลด์ค่าที่แสดงไม่สามารถจัดลำดับใหม่ได้",
     "interfaceLastVizRequired": "หน้าหนึ่งต้องมีการแสดงผลอย่างน้อยหนึ่งรายการ",
-    "onlyCreatorsCanManageViewFolders": "เฉพาะผู้สร้างหรือเจ้าของโครงการเท่านั้นที่จัดการโฟลเดอร์มุมมองได้",
-    "onlyCreatorsCanManageFolders": "เฉพาะผู้สร้างหรือเจ้าของโครงการเท่านั้นที่จัดการโฟลเดอร์ได้",
+    "onlyCreatorsCanManageViewFolders": "เฉพาะผู้สร้างหรือเจ้าของโปรเจกต์เท่านั้นที่จัดการโฟลเดอร์มุมมองได้",
+    "onlyCreatorsCanManageFolders": "เฉพาะผู้สร้างหรือเจ้าของโปรเจกต์เท่านั้นที่จัดการโฟลเดอร์ได้",
     "organizeViewsIntoFolders": "จัดมุมมองไว้ในโฟลเดอร์ที่ยุบได้",
-    "productionLockedByEnvironment": "เบสนี้เปิดอยู่ในสภาพแวดล้อมหนึ่ง ให้แก้ไขสคีมาที่นั่น",
+    "productionLockedByEnvironment": "โปรเจกต์นี้เปิดอยู่ในสภาพแวดล้อมหนึ่ง กรุณาแก้ไขสคีมาที่นั่น",
     "managedByPublisher": "โครงสร้างของแอปนี้ดูแลโดยผู้เผยแพร่ เอกสารและโฟลเดอร์ของคุณยังคงเป็นของคุณที่จะเพิ่มเอง",
     "featureOnProductionOnly": "การดำเนินการนี้จัดการที่โปรเจกต์โปรดักชัน ไม่ใช่ในสำเนาสภาพแวดล้อม",
     "clickToEdit": "คลิกเพื่อแก้ไข",
@@ -5570,8 +5703,8 @@
     "showAllFields": "แสดงฟิลด์ทั้งหมด",
     "inviteLinkCannotGrantOwner": "ลิงก์เชิญไม่สามารถให้บทบาทเจ้าของได้",
     "inviteLinkRoleAboveYours": "คุณให้ได้เฉพาะบทบาทที่ไม่สูงกว่าบทบาทของคุณเอง",
-    "noDefaultSourceForFolders": "เบสนี้ไม่มีแหล่งข้อมูลเริ่มต้น ให้สร้างโฟลเดอร์จากเมนูของแหล่งข้อมูลนั้นแทน",
-    "noDefaultSourceForSync": "เบสนี้ไม่มีแหล่งข้อมูลเริ่มต้น การซิงค์ต้องมีแหล่งข้อมูลเพื่อเก็บตารางของมัน"
+    "noDefaultSourceForFolders": "โปรเจกต์นี้ไม่มีแหล่งข้อมูลเริ่มต้น ให้สร้างโฟลเดอร์จากเมนูของแหล่งข้อมูลนั้นแทน",
+    "noDefaultSourceForSync": "โปรเจกต์นี้ไม่มีแหล่งข้อมูลเริ่มต้น การซิงค์ต้องใช้แหล่งข้อมูลเพื่อเก็บตารางของมัน"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -7299,8 +7432,8 @@
         "description": "พาชมพื้นที่ทำงานของคุณอย่างรวดเร็ว คุณออกได้ทุกเมื่อ เพียงกด ข้าม"
       },
       "createBase": {
-        "title": "เริ่มต้นด้วย Base",
-        "description": "Base เก็บตาราง มุมมอง และระบบอัตโนมัติของคุณไว้ งานส่วนใหญ่เริ่มต้นที่นี่"
+        "title": "เริ่มด้วยโปรเจกต์",
+        "description": "โปรเจกต์เก็บตาราง มุมมอง และระบบอัตโนมัติของคุณ งานส่วนใหญ่เริ่มต้นที่นี่"
       },
       "switchWorkspaces": {
         "title": "สลับพื้นที่ทำงาน",

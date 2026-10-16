@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Upgradează pentru a adăuga mai multe pagini document",
     "upgradeToAddMoreWorkflows": "Upgrade to add more workflows",
     "upgradeToAddMoreScriptsSubtitle": "În prezent, ești pe planul gratuit, care permite doar un singur script per spațiu de lucru. Fă upgrade pentru a debloca scripturi nelimitate.",
-    "upgradeToAddMoreWorkflowsSubtitle": "În prezent aveți planul {activePlan}, care permite {limit} fluxuri de lucru per bază. Treceți la {plan} pentru mai multe.",
+    "upgradeToAddMoreWorkflowsSubtitle": "În prezent ai planul {activePlan}, care permite {limit} fluxuri de lucru per proiect. Treci la {plan} pentru mai multe.",
     "upgradeToAddMoreDashboardsSubtitle": "În prezent, ești pe planul gratuit, care permite doar un singur tablou de bord per spațiu de lucru. Fă upgrade pentru a debloca tablouri de bord nelimitate.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "Planul {activePlan} permite până la {limit} pagini document per bază. Treceți la planul {plan} pentru a adăuga mai multe.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "Planul {activePlan} permite până la {limit} pagini de document per proiect. Treci la planul {plan} pentru a adăuga mai multe.",
     "upgradeToUseBookmarks": "Actualizați pentru a utiliza marcajele",
-    "upgradeToUseBookmarksSubtitle": "Upgrade la planul {plan} pentru a marca bazele, tabelele, vizualizările și multe altele pentru acces rapid.",
+    "upgradeToUseBookmarksSubtitle": "Treci la planul {plan} pentru a marca proiecte, tabele, vizualizări și altele la favorite, pentru acces rapid.",
     "upgradeToUseDocsExportPdf": "Actualizează la exportul documentelor ca PDF",
     "upgradeToUseDocsExportPdfSubtitle": "Actualizați planul {plan} pentru a exporta documentele dumneavoastră ca fișiere PDF.",
     "upgradeToUseDocsInlineComments": "Actualizați pentru a utiliza comentariile integrate",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "Planul {activePlan} permite până la {limit} webhook-uri. Fă upgrade la planul {plan} pentru a avea acces la webhook-uri nelimitate.",
     "upgradeToAccessWebhookLogsSubtitle": "Accesează jurnalele webhook-urilor făcând upgrade spațiului de lucru la planul {plan}.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "Treci la un plan superior pentru a duplica tabele între proiecte diferite.",
     "formOwnerNotified": "Proprietarul formularului a fost notificat",
     "formOwnerNotifiedSubtitle": "L-am notificat pe proprietarul formularului despre cererea ta de trimitere.",
     "WorkspaceOwnerNotified": "Proprietarul spațiului de lucru a fost notificat",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Actualizați planul {plan} pentru a controla cine poate vizualiza și edita paginile individuale din documente.",
     "upgradeToUseWorkflows": "Upgrade to use workflows",
     "upgradeToUseWorkflowsSubtitle": "Upgrade to the {plan} plan to use workflows to automate tasks and processes.",
-    "upgradeToUsePrivateBases": "Fă upgrade pentru a debloca baze private",
-    "upgradeToUsePrivateBasesSubtitle": "Bazele private sunt disponibile pe planul {plan}. Fă upgrade acum pentru a le folosi.",
+    "upgradeToUsePrivateBases": "Treci la un plan superior pentru a debloca proiectele private",
+    "upgradeToUsePrivateBasesSubtitle": "Proiectele private sunt disponibile în planul {plan}. Treci acum la un plan superior pentru a le folosi.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Poți încărca maximum {limit} {filePlural} în această celulă. Fă upgrade la planul {plan} pentru a adăuga mai multe fișiere.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Upgrade pentru a folosi AI Chat",
-    "upgradeToUseAiChatSubtitle": "Faceți upgrade la planul {plan} pentru a utiliza AI Chat pentru a gestiona baza cu limbajul natural.",
+    "upgradeToUseAiChatSubtitle": "Treci la planul {plan} pentru a folosi chatul IA și a-ți gestiona proiectul în limbaj natural.",
     "upgradeToUseMfa": "Actualizează pentru a activa autentificarea doi factori",
     "upgradeToUseMfaSubtitle": "Faceți upgrade la planul {plan} pentru a activa autentificarea multi-factor pentru contul dvs.",
     "upgradeToRequireTwoFactor": "Actualizează pentru a solicita autentificarea doi factori",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Upgradează pentru a utiliza ierarhia echipei",
     "upgradeToUseTeamHierarchySubtitle": "Treci la planul {plan} pentru a organiza echipe în ierarhii imbricate cu statutul de membru moștenit.",
     "upgradeToUseTeams": "Upgrade to use teams",
-    "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases.",
+    "upgradeToUseTeamsSubtitle": "Treci la planul {plan} pentru a folosi echipe prin care grupezi utilizatorii și le gestionezi accesul la spații de lucru și proiecte.",
     "upgradeToAddMoreTeams": "Upgrade to add more teams",
     "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views.",
     "upgradeToUseFormScheduling": "Upgradează pentru a utiliza programarea formularelor",
     "upgradeToUseFormSchedulingSubtitle": "Actualizați planul {plan} pentru a planifica disponibilitatea formularului cu datele de început și de expirare.",
-    "upgradeToUseBaseVariables": "Upgradează pentru a utiliza variabilele de bază",
-    "upgradeToUseBaseVariablesSubtitle": "Faceți upgrade la planul {plan} pentru a defini variabilele reutilizabile marcate la o bază.",
+    "upgradeToUseBaseVariables": "Treci la un plan superior pentru a folosi variabile de proiect",
+    "upgradeToUseBaseVariablesSubtitle": "Treci la planul {plan} pentru a defini variabile reutilizabile la nivel de proiect.",
     "upgradeToUseSync": "Upgrade to use sync",
     "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources.",
     "upgradeToUseTableSync": "Upgrade pentru a utiliza sincronizarea tabelelor",
@@ -3109,7 +3109,11 @@
       "upgradeRequestSent": "Cerere trimisă",
       "upgradeDescRls": "Limitați ce înregistrări poate vedea și edita fiecare persoană.",
       "upgradeDescRecordTemplates": "Creați înregistrări noi din șabloane salvate și precompletate.",
-      "upgradeDescDateDependency": "Deplasează automat datele dependente atunci când o înregistrare este mutată."
+      "upgradeDescDateDependency": "Deplasează automat datele dependente atunci când o înregistrare este mutată.",
+      "concernProject": "Proiect",
+      "concernInterfaces": "Interfețe",
+      "concernApps": "Aplicație",
+      "concernTabs": "Secțiuni de setări"
     },
     "categories": "Categorii",
     "blockquote": "Citat",
@@ -4389,7 +4393,106 @@
         "repeatWarning": "Acest pas poate trimite sau modifica date. Reîncercarea îl poate repeta — activează doar dacă este în regulă.",
         "retries": "Numărul de reîncercări",
         "earlierTries": "Încercări anterioare",
-        "noErrorMessage": "Niciun mesaj de eroare"
+        "noErrorMessage": "Niciun mesaj de eroare",
+        "title": "La eșec",
+        "retryIfFails": "Reîncearcă dacă acest pas eșuează",
+        "retrySafeHint": "Reîncearcă automat când un serviciu este temporar indisponibil",
+        "waitBeforeRetry": "Așteaptă înainte de reîncercare",
+        "seconds": "secunde",
+        "waitLonger": "Așteaptă mai mult de fiecare dată",
+        "waitLongerHint": "Dublează așteptarea după fiecare încercare, până la 1 oră",
+        "retryOn": "Reîncearcă la",
+        "retryOnTemporary": "Doar probleme temporare (expirări, limite de rată, erori de server)",
+        "retryOnAny": "Orice eroare",
+        "triedTimes": "{count} încercări efectuate",
+        "tryNumber": "Încercarea {n}",
+        "succeededAfterTries": "Reușit după {count} încercări"
+      },
+      "iterate": {
+        "listPlaceholder": "Selectează un tablou de parcurs",
+        "listHelp": "Selectează un tablou dintr-un pas anterior. Fiecare element va fi procesat pe rând.",
+        "notAList": "Are nevoie de o listă de elemente, dar această valoare este {kind}."
+      },
+      "originalRun": "rularea originală",
+      "duration": {
+        "milliseconds": "{n} ms",
+        "seconds": "{n} s",
+        "minutesSeconds": "{m} min {s} s"
+      },
+      "overview": {
+        "lastRun": "Ultima rulare",
+        "failedCount": "{n} eșuate",
+        "allTested": "Toți pașii testați"
+      },
+      "addStep": "Adaugă un pas",
+      "nodePicker": {
+        "upgradeToUseStep": "Treci la planul {plan} pentru a folosi {step}",
+        "search": "Caută pași și aplicații",
+        "searchTriggers": "Caută, de ex. „rând nou”, „în fiecare luni”",
+        "searchIn": "Caută în {app}",
+        "apps": "Aplicații",
+        "integrations": "Integrări",
+        "popular": "Populare",
+        "chooseTrigger": "Alege un declanșator",
+        "chooseTriggerHint": "Orice flux de lucru începe cu un declanșator: evenimentul care îl pornește.",
+        "noMatches": "Niciun pas nu se potrivește",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "Înregistrarea este {bold}",
+            "bold": "creată"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "Înregistrarea este {bold}",
+            "bold": "actualizată"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "Înregistrarea este {bold}",
+            "bold": "ștearsă"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "Înregistrarea {bold}",
+            "bold": "intră într-o vizualizare"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "Înregistrarea {bold}",
+            "bold": "îndeplinește condițiile"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "Trimite un formular"
+          },
+          "core_trigger_button": {
+            "text": "{bold} pe o înregistrare",
+            "bold": "Apasă un buton"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} o înregistrare",
+            "bold": "Comentează"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "După un program"
+          },
+          "core_trigger_webhook": {
+            "text": "Când {bold}",
+            "bold": "se primește un webhook"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "Manual"
+          }
+        },
+        "groups": {
+          "recordEvents": "Când",
+          "userActions": "Când utilizatorul",
+          "runs": "Rulări",
+          "records": "Înregistrări",
+          "logic": "Logică",
+          "ai": "IA",
+          "messages": "Mesaje",
+          "developer": "Dezvoltator",
+          "other": "Altele"
+        }
       }
     },
     "xAxis": "Axa X",
@@ -5030,7 +5133,37 @@
     "licenseExpired": "Licență expirată",
     "talkToSales": "Discută cu echipa de vânzări",
     "paidAnnually": "Plătit anual",
-    "paidMonthly": "Plătit lunar"
+    "paidMonthly": "Plătit lunar",
+    "addAttachment": "Adaugă atașament",
+    "fromAttachmentField": "Dintr-un câmp de atașament",
+    "uploadFile": "Încarcă fișier",
+    "fromUrl": "Din URL",
+    "attachFromUrl": "Atașează din URL",
+    "removeAttachment": "Elimină atașamentul",
+    "attachmentFieldChip": "câmp",
+    "setPageAccess": "Setează accesul la pagină",
+    "readOnlyMember": "membru doar cu drept de citire",
+    "aReadOnlyMember": "un membru doar cu drept de citire",
+    "readOnlyMembers": "membri doar cu drept de citire",
+    "backToData": "Înapoi la date",
+    "appShare": {
+      "customTeamDescription": "O echipă definită de această aplicație.",
+      "membersTeamDescription": "Folosește aplicația.",
+      "adminTeamDescription": "Folosește aplicația și îi gestionează membrii.",
+      "noAccessTeamDescription": "Nicio acțiune acordată încă, așa că membrii ei nu pot deschide aplicația."
+    },
+    "viewActions": "Acțiuni ale vizualizării",
+    "renameView": "Redenumește vizualizarea",
+    "generateWithAi": "Generează cu IA",
+    "deleteView": "Șterge vizualizarea",
+    "addToFavourites": "Adaugă la favorite",
+    "contextMenu": "Meniu contextual",
+    "editSqlView": "Editează vizualizarea SQL",
+    "noWebhooksYet": "Încă niciun webhook",
+    "navigation": "Navigare",
+    "prompts": "Prompturi",
+    "pagination": "Paginare",
+    "showRowNumbers": "Afișează numerele rândurilor"
   },
   "activity": {
     "useTemplate": "Folosește șablon",
@@ -5371,7 +5504,7 @@
     "dataWriteOptionDisabled": "Editarea datelor se poate dezactiva doar când ‘Editarea schemei’ este dezactivată și devine activă altfel",
     "allowMetaWrite": "Această opțiune permite modificarea schemei bazei de date, inclusiv adăugarea, modificarea sau ștergerea tabelelor și coloanelor. Utilizați cu precauție, deoarece modificările pot afecta integritatea structurală a bazei de date.",
     "allowDataWrite": "Această opțiune permite crearea, actualizarea sau ștergerea înregistrărilor în cadrul tabelelor bazelor de date. Ideală pentru utilizatorii administratori care trebuie să modifice direct datele.",
-    "reachedSourceLimit": "Limitat la 10 surse de date pe bază",
+    "reachedSourceLimit": "Limitat la 10 surse de date per proiect",
     "saveChanges": "Salvează modificările",
     "clientKey": "Selectează fișierul .key",
     "clientCert": "Selectează fișierul .cert",
@@ -5397,7 +5530,7 @@
     "selectAllMappedFields": "Selectează toate câmpurile mapate",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Copiază codul de eroare",
-    "paidUserBadgeTooltip": "Consumă un loc plătit. Rol de editor sau superior la nivel de spațiu de lucru, într-o bază sau pe o interfață.",
+    "paidUserBadgeTooltip": "Consumă un loc plătit. Rolul Editor sau superior la nivel de spațiu de lucru, într-un proiect sau pe o interfață.",
     "approachingLimit": "Aproape de limită",
     "exceedingLimit": "Depășește limita",
     "filteredByCurrentUser": "Filtrat după utilizatorul curent",
@@ -5441,8 +5574,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
     "onlyViewOwnerCanModifyPersonalView": "Numai proprietarul vizualizării poate modifica această vizualizare personală",
     "onlyViewOwnerCanDeletePersonalView": "Numai proprietarul de vizualizare poate șterge această vizualizare personală",
-    "onlyCreatorsCanLockView": "Doar creatorii de bază sau proprietarii pot bloca o vedere",
-    "onlyCreatorsCanUnlockView": "Doar creatorii de bază sau proprietarii pot debloca o vizualizare",
+    "onlyCreatorsCanLockView": "Doar creatorii sau proprietarii proiectului pot bloca o vizualizare",
+    "onlyCreatorsCanUnlockView": "Doar creatorii sau proprietarii proiectului pot debloca o vizualizare",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
     "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
@@ -5458,7 +5591,7 @@
     "sortingNotSupportedForFieldsWithErrors": "Sortarea nu este acceptată pentru câmpurile cu erori",
     "sortingNotSupportedForField": "Sortarea nu este acceptată pentru câmpul {type}",
     "groupingNotSupportedForFieldsWithErrors": "Gruparea nu este acceptată pentru câmpuri cu erori",
-    "variableInheritance": "Stabilește ce pot face cu această variabilă cei care instalează această bază ca aplicație: Fix păstrează valoarea dumneavoastră și o ascunde, Editabil oferă valoarea ca punct de plecare, Obligatoriu le cere să furnizeze propria valoare.",
+    "variableInheritance": "Stabilește ce pot face cu această variabilă persoanele care instalează acest proiect ca aplicație: Fixă păstrează valoarea ta și o ascunde, Editabilă oferă valoarea ta ca punct de pornire, Obligatorie le cere să o furnizeze pe a lor.",
     "workflowButtonTriggerSourceReadOnly": "Tabelul sursă conectat la acest buton poate fi modificat doar din Interfețe",
     "workflowButtonTriggerInterfaceReadOnly": "Pagina de interfață care conține acest buton poate fi modificată doar din Interfețe",
     "chartIncludeOthers": "Combină categoriile care depășesc limita într-o singură categorie Altele în loc să le elimine.",
@@ -5470,7 +5603,7 @@
     "interfaceMixedRoles": "Rolurile diferă între interfețe sau pagini. Extindeți pentru a le vedea",
     "chatQueueAttachmentUnavailable": "Acest atașament nu va fi trimis dacă puneți mesajul la coadă. Eliminați-l mai întâi",
     "lockedViewDisabledOnProduction": "Vizualizările blocate pot fi create doar în copia de mediu",
-    "personalViewDisabledOnEnvironment": "Vizualizările personale pot fi create doar pe baza de producție",
+    "personalViewDisabledOnEnvironment": "Vizualizările personale pot fi create doar în proiectul de producție",
     "seeNComments": "Vezi {n} comentariu | Vezi {n} comentarii",
     "collapsibleGroups": "Permite restrângerea grupurilor care au titlu",
     "nestedRecordsRequireSelfLink": "Necesită un câmp de legătură pe acest tabel care trimite înapoi la același tabel.",
@@ -5487,10 +5620,10 @@
     "youDontHaveAccessToCreateNewInterface": "Nu ai dreptul să creezi o interfață nouă",
     "displayValueFieldCannotBeReordered": "Câmpul cu valoarea afișată nu poate fi reordonat",
     "interfaceLastVizRequired": "O pagină are nevoie de cel puțin o vizualizare",
-    "onlyCreatorsCanManageViewFolders": "Doar creatorii sau proprietarii bazei pot gestiona dosarele de vizualizări",
-    "onlyCreatorsCanManageFolders": "Doar creatorii sau proprietarii bazei pot gestiona dosarele",
+    "onlyCreatorsCanManageViewFolders": "Doar creatorii sau proprietarii proiectului pot gestiona folderele de vizualizări",
+    "onlyCreatorsCanManageFolders": "Doar creatorii sau proprietarii proiectului pot gestiona folderele",
     "organizeViewsIntoFolders": "Organizează vizualizările în dosare pliabile",
-    "productionLockedByEnvironment": "Această bază este deschisă într-un mediu. Faceți modificările de schemă acolo.",
+    "productionLockedByEnvironment": "Acest proiect este deschis într-un mediu. Fă modificările de schemă acolo.",
     "managedByPublisher": "Structura acestei aplicații este gestionată de editorul ei. Documentele și dosarele tale rămân ale tale.",
     "featureOnProductionOnly": "Această acțiune se gestionează în proiectul de producție, nu într-o copie de mediu.",
     "clickToEdit": "Dă clic pentru a edita",
@@ -5546,8 +5679,8 @@
     "showAllFields": "Afișează toate câmpurile",
     "inviteLinkCannotGrantOwner": "Un link de invitație nu poate acorda rolul de Proprietar",
     "inviteLinkRoleAboveYours": "Poți oferi doar roluri până la nivelul tău",
-    "noDefaultSourceForFolders": "Această bază nu are sursă implicită. Creați dosare din meniul propriu al unei surse",
-    "noDefaultSourceForSync": "Această bază nu are sursă implicită. O sincronizare are nevoie de una pentru a-și stoca tabelele"
+    "noDefaultSourceForFolders": "Acest proiect nu are o sursă implicită. Creează folderele din meniul propriu al unei surse",
+    "noDefaultSourceForSync": "Acest proiect nu are o sursă implicită. O sincronizare are nevoie de una pentru a-și stoca tabelele"
   },
   "placeholder": {
     "enterVerificationCode": "Introdu codul din 6 cifre",
@@ -7275,8 +7408,8 @@
         "description": "Un tur rapid prin spațiul dumneavoastră de lucru. Puteți ieși oricând: apăsați Săriți."
       },
       "createBase": {
-        "title": "Începe cu o Bază",
-        "description": "O Bază îți ține tabelele, vizualizările și automatizările. De aici începe cea mai mare parte a muncii."
+        "title": "Începe cu un proiect",
+        "description": "Un proiect conține tabelele, vizualizările și automatizările tale. Aici începe cea mai mare parte a muncii."
       },
       "switchWorkspaces": {
         "title": "Schimbă spațiul de lucru",

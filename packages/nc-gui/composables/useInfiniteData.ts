@@ -2727,6 +2727,15 @@ export function useInfiniteData(args: {
     { immediate: true },
   )
 
+  // A listener outliving its grid keeps handling events against emptied caches, and a grouped one
+  // then emits GROUP_BY_RELOAD on the shared bus, reloading whichever grid is open now.
+  onBeforeUnmount(() => {
+    if (activeDataListener.value) $ncSocket.offMessage(activeDataListener.value)
+    if (activeCommentListener.value) $ncSocket.offMessage(activeCommentListener.value)
+    activeDataListener.value = null
+    activeCommentListener.value = null
+  })
+
   // Reset the selectedAllRecordsSkipPks when the selectedAllRecords is false
   watch(
     selectedAllRecords,

@@ -2475,9 +2475,14 @@ export function useInfiniteData(args: {
         cachedRow.rowMeta.changed = false
         Object.assign(cachedRow.rowMeta, evaluateRowMeta(payload))
 
-        // A peer's edit to a sorted field moves the row, as the editor's own grid does.
+        // Flag a peer's edit to a sorted field like a local one: the grid moves the row on the
+        // next active-cell change, never under a viewer's cursor or open editor.
         if (isSortRelevantChange(changedFields, sorts.value, columnsById.value)) {
-          applySorting(cachedRow, isGroupBy.value ? cachedRow.rowMeta.path ?? [] : [])
+          cachedRow.rowMeta.isRowOrderUpdated = willSortOrderChange({
+            row: cachedRow,
+            newData: payload,
+            path: isGroupBy.value ? cachedRow.rowMeta.path ?? [] : [],
+          })
         }
 
         callbacks?.syncVisibleData?.()

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ColumnHelper, type ProgressBarShape, UITypes, progressBarShapes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import { ColumnHelper, type ProgressBarShape, UITypes, progressBarShapes, isFormatEditableOnReadonlySource } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -45,7 +45,7 @@ const { isMetaReadOnly } = useRoles()
 const { formState } = useColumnCreateStoreOrThrow()
 
 const disableConfiguration = computed(
-  () => Boolean(isMetaReadOnly.value) && !readonlyMetaAllowedTypes.includes(formState.value.uidt),
+  () => Boolean(isMetaReadOnly.value) && !isFormatEditableOnReadonlySource(formState.value.uidt),
 )
 </script>
 

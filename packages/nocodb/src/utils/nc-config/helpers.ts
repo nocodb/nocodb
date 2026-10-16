@@ -35,7 +35,7 @@ export function getToolDir() {
 
 export function jdbcToXcConfig(url: string): DbConfig {
   // drop the jdbc prefix
-  url.replace(/^jdbc:/, '');
+  url = url.replace(/^jdbc:/, '');
 
   const config = parseDbUrl(url);
 
@@ -81,7 +81,7 @@ export function jdbcToXcConfig(url: string): DbConfig {
 
 export function jdbcToXcUrl(url: string): string {
   // drop the jdbc prefix
-  url.replace(/^jdbc:/, '');
+  url = url.replace(/^jdbc:/, '');
 
   const config = parseDbUrl(url);
 

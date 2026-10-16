@@ -2,6 +2,8 @@ import { EventType, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { FilterType, InterfaceFilterNode, LinkToAnotherRecordType, LookupType, RollupType, TableType } from 'nocodb-sdk'
 import { interfaceDataEventSuffix } from '~/lib/interfaceData'
 
+const COMPUTED_DISPLAY_VALUE_TYPES = new Set<UITypes>([UITypes.Formula, UITypes.Lookup, UITypes.Rollup])
+
 /**
  * The full DATA_EVENT subscription key for a table — plain on the data tab
  * (views), page-scoped under an interface page (the api's realtime scope
@@ -73,10 +75,19 @@ export function isTableEventForMeta(
       const relatedId = options?.fk_related_model_id
       if (!relatedId) continue
       if (relatedId === targetId) return true
-      if (!relationIds.has(col.id!) || visited.has(relatedId)) continue
+      if (visited.has(relatedId)) continue
 
       const related = metas?.[`${options?.fk_related_base_id || table.base_id}:${relatedId}`]
-      if (!related?.columns || reaches(related)) return true
+
+      if (relationIds.has(col.id!)) {
+        if (!related?.columns || reaches(related)) return true
+        continue
+      }
+
+      // A plain link still shows the related record's display value, which can be
+      // computed (e.g. a formula over a lookup) and so read further tables.
+      const displayValue = related?.columns?.find((c) => c.pv)
+      if (displayValue && COMPUTED_DISPLAY_VALUE_TYPES.has(displayValue.uidt as UITypes) && reaches(related!)) return true
     }
 
     return false

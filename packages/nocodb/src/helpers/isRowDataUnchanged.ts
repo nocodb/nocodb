@@ -3,8 +3,8 @@ import type { Column } from '~/models';
 
 // Meta keys that only change how stored values are shown. Any other meta change
 // (e.g. User `is_multi`, LongText `ai`) may rewrite cells, so clients refetch rows.
+// `date_format` is left out: formulas that concatenate a Date format it in SQL.
 const DISPLAY_ONLY_META_KEYS = new Set([
-  'date_format',
   'time_format',
   'is12hrFormat',
   'timezone',

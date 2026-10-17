@@ -105,7 +105,7 @@ const columns = [
 <template>
   <div class="h-full flex flex-col gap-4 w-full">
     <div v-if="!appInfo.auditEnabled" class="text-nc-content-red-medium">
-      Audit logs are currently disabled by administrators.
+      {{ $t('msg.info.auditLogsDisabled') }}
     </div>
     <div class="flex flex-row justify-between items-center">
       <h6 class="mb-4 first-letter:capital font-bold">Audit : {{ base.title }}</h6>

@@ -3,7 +3,7 @@
     <div class="h-full flex items-center gap-2 px-2">
       <GeneralIcon icon="megaPhone" class="text-nc-content-brand h-4 w-4" />
 
-      <span class="font-bold text-sm text-nc-content-gray"> What’s New! </span>
+      <span class="font-bold text-sm text-nc-content-gray"> {{ $t('labels.feedWhatsNew') }} </span>
     </div>
   </div>
 </template>

@@ -934,7 +934,7 @@ defineExpose({
                     }"
                     class="!rounded-lg !h-8 !ring-0 !placeholder:text-nc-content-gray-muted !border-nc-border-gray-medium !px-4"
                     data-testid="nc-ws-search"
-                    placeholder="Search workspace"
+                    :placeholder="$t('placeholder.searchWorkspace')"
                   >
                     <template #prefix>
                       <component :is="iconMap.search" class="h-4 w-4 mr-1 text-nc-content-gray-muted" />

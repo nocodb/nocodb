@@ -5663,7 +5663,15 @@
     "recordId": "Record ID",
     "performedBy": "Performed by",
     "openWithGoogleDocs": "Open with Google Docs",
-    "mcpConfiguration": "MCP Configuration"
+    "mcpConfiguration": "MCP Configuration",
+    "duplicateField": "Duplicate Field",
+    "extensionError": "Extension Error",
+    "clearData": "Clear data",
+    "popularExtensions": "Popular Extensions",
+    "feedWhatsNew": "What’s New!",
+    "stayTuned": "Stay tuned",
+    "resetIcon": "Reset Icon",
+    "copyProject": "Copy Project"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6441,7 +6449,11 @@
     "abuseReportDetails": "For example: this page pretends to be another company's login page and asks visitors for their password.",
     "recordId": "Enter the record ID",
     "searchForAProject": "Search for a project",
-    "searchForAWorkspace": "Search for a workspace"
+    "searchForAWorkspace": "Search for a workspace",
+    "quickSearch": "Quick search...",
+    "pasteFileLink": "Paste file link here...",
+    "searchUserToAssign": "Search User to assign...",
+    "selectWorkspace": "Select workspace"
   },
   "msg": {
     "agentSkillsSubtitle": "Reusable instructions this agent can load when relevant.",
@@ -7406,7 +7418,9 @@
       "deleteDemoBaseTitle": "Delete demo project?",
       "deleteDemoBaseConfirm": "This permanently deletes the \"{title}\" project and all its data.",
       "webhookEmptyStateSubtitle": "Trigger an HTTP request whenever a record is created, updated or deleted.",
-      "resetWillEraseConfiguration": "Resetting will erase your current configuration."
+      "resetWillEraseConfiguration": "Resetting will erase your current configuration.",
+      "atLeastOneEnabledSource": "There should be at least one enabled source!",
+      "controlViewVisibility": "Control view visibility for different roles to manage access efficiently."
     },
     "error": {
       "attachmentInvalidUrl": "Enter a URL starting with http:// or https://, or a template using variables",
@@ -7645,7 +7659,9 @@
       "noWorkspaceAvailable": "No workspace available",
       "invalidJson": "Invalid JSON",
       "invalidTokensJson": "Not a token export. Expected keys like light, dark, font or radiusScale.",
-      "renameFileFailed": "Error while renaming file"
+      "renameFileFailed": "Error while renaming file",
+      "failedToLoadMetadataDiff": "Failed to load metadata diff",
+      "failedToLoadMonacoEditor": "Failed to load Monaco Editor"
     },
     "toast": {
       "changesSaved": "Changes saved",
@@ -7768,7 +7784,9 @@
       "jsonCopied": "JSON copied",
       "copiedValue": "Copied {value}",
       "demoBaseDeleted": "Demo project deleted",
-      "tokensImported": "Tokens imported"
+      "tokensImported": "Tokens imported",
+      "accessRevoked": "Access revoked successfully",
+      "oauthClientDeleted": "OAuth client deleted successfully!"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

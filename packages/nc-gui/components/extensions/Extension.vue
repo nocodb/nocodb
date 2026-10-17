@@ -168,7 +168,7 @@ watch(
             fullscreen,
           }"
         >
-          <a-result status="error" title="Extension Error" class="nc-extension-error">
+          <a-result status="error" :title="$t('labels.extensionError')" class="nc-extension-error">
             <template #subTitle>
               <span class="text-nc-content-gray-muted">
                 {{ activeError }}

@@ -769,7 +769,7 @@ watch(
                     <a-input
                       v-model:value="importState.url"
                       class="!rounded-md"
-                      placeholder="Paste file link here..."
+                      :placeholder="$t('placeholder.pasteFileLink')"
                       :disabled="preImportLoading"
                     />
                   </a-form-item>

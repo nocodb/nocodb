@@ -681,6 +681,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
                 </NcButton>
               </template>
             </PermissionsTooltip>
+            <LazyVirtualCellComponentsLinkRecordCreateButton @opened="vModel = false" />
           </div>
         </div>
       </div>
@@ -714,6 +715,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
               </NcButton>
             </template>
           </PermissionsTooltip>
+          <LazyVirtualCellComponentsLinkRecordCreateButton @opened="vModel = false" />
         </div>
         <div v-if="excludedTotalRows > 0" class="text-nc-content-gray-muted text-small">
           {{ excludedTotalRows }} {{ excludedTotalRows === 1 ? 'record' : 'records' }}

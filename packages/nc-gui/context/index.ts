@@ -339,6 +339,25 @@ export interface LinkRecordExpandApi {
 export const LinkRecordExpandInj: InjectionKey<Ref<LinkRecordExpandApi | null>> = Symbol('link-record-expand')
 
 /**
+ * Link picker "New record" — the field's "Add records through a form". Provided
+ * by the interface hosts (EE), which resolve the bound create form; absent =
+ * no affordance (the CE default, where the picker's own expanded-form create applies).
+ */
+export interface LinkRecordCreateApi {
+  /** See `LinkRecordExpandApi.isEnabled` for `elementId`. */
+  isEnabled: (column: ColumnType, elementId?: string) => boolean
+  /** Open the bound create form; its submit creates the record and links it to `rowId`. */
+  create: (params: {
+    column: ColumnType
+    rowId: string
+    elementId?: string
+    onCreated?: (row: Record<string, any>) => void
+  }) => void
+}
+
+export const LinkRecordCreateInj: InjectionKey<Ref<LinkRecordCreateApi | null>> = Symbol('link-record-create')
+
+/**
  * Element addressing for LTAR picker calls made from inside a record-form
  * FIELD — an overlay record sheet fetches through its ORIGIN viz's adapter,
  * so an unaddressed picker call resolves against that viz and inherits its

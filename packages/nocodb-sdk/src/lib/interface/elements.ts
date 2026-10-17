@@ -367,6 +367,10 @@ export interface InterfaceFieldElementConfig {
    * Absent = DISABLED (the block is a read-only display).
    */
   allow_link_unlink?: boolean;
+  /** Links/LTAR, inline-editable only: the picker's "New record" opens `fk_add_form_page_id` — absent = DISABLED. */
+  allow_add_record_via_form?: boolean;
+  /** RECORD_DETAIL layout of the LINKED table, opened as a create form. */
+  fk_add_form_page_id?: string | null;
   /**
    * Link-picker candidate scope — 'all' (default) offers every related
    * record; 'specific' constrains candidates to `filters` over the LINKED

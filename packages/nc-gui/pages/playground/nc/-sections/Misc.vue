@@ -101,7 +101,7 @@ function viewOf(type: ViewTypes) {
             :class="{ 'border-nc-border-brand shadow-selected': isColorPanelOpen }"
           >
             <span class="w-4 h-4 rounded" :style="{ background: color }" />
-            <span class="flex-1 text-caption text-nc-content-gray">{{ $t('labels.planStatusInProgress') }}</span>
+            <span class="flex-1 text-caption text-nc-content-gray">In progress</span>
             <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle h-4 w-4" />
           </div>
           <template #overlay>
@@ -155,13 +155,13 @@ function viewOf(type: ViewTypes) {
               {{ t.title }}
             </div>
             <div class="flex items-center gap-1.5 text-captionSm">
-              <NcIconDashboard :dashboard="{ id: 'd1', title: 'KPIs' }" /> {{ $t('general.dashboard') }}
+              <NcIconDashboard :dashboard="{ id: 'd1', title: 'KPIs' }" /> Dashboard
             </div>
             <div class="flex items-center gap-1.5 text-captionSm">
-              <NcIconScript :script="{ id: 's1', title: 'Cleanup' }" /> {{ $t('general.script') }}
+              <NcIconScript :script="{ id: 's1', title: 'Cleanup' }" /> Script
             </div>
             <div class="flex items-center gap-1.5 text-captionSm">
-              <NcIconWorkflow :workflow="{ id: 'w1', title: 'Onboarding' }" /> {{ $t('general.workflow') }}
+              <NcIconWorkflow :workflow="{ id: 'w1', title: 'Onboarding' }" /> Workflow
             </div>
           </div>
         </div>

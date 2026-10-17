@@ -162,7 +162,7 @@ onMounted(() => {
           :disabled="!overrides.light['--nc-brand-accent']"
           @click="clearRamp('brand')"
         >
-          <span class="text-captionXs">{{ $t('general.reset') }}</span>
+          <span class="text-captionXs">Reset</span>
         </NcButton>
       </div>
       <div class="text-captionXs text-nc-content-gray-muted mt-1.5">Rebuilds the whole brand ramp, buttons and focus rings.</div>
@@ -187,7 +187,7 @@ onMounted(() => {
 
   <section class="p-4 flex flex-col gap-3 border-b-1 border-nc-border-gray-medium">
     <div>
-      <div class="text-captionSmBold text-nc-content-gray-subtle">{{ $t('labels.palette') }}</div>
+      <div class="text-captionSmBold text-nc-content-gray-subtle">Palette</div>
       <div class="text-captionXs text-nc-content-gray-muted mt-0.5">
         Every utility class paints from these stops. Click a stop to edit it, or the dot to regenerate the whole ramp.
       </div>
@@ -210,7 +210,7 @@ onMounted(() => {
           </label>
         </NcTooltip>
         <NcButton v-if="rampChanged(ramp.hue)" class="!ml-auto !px-2" size="xxsmall" type="text" @click="clearRamp(ramp.hue)">
-          <span class="text-captionXs">{{ $t('general.reset') }}</span>
+          <span class="text-captionXs">Reset</span>
         </NcButton>
       </div>
       <div class="flex gap-0.5">

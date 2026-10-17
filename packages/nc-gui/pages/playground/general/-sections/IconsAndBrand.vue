@@ -74,12 +74,7 @@ function iconExists(icon: string) {
 </script>
 
 <template>
-  <PgSection
-    id="icons"
-    :title="$t('labels.icon')"
-    source="GeneralIcon"
-    description="Pass any iconMap key. Colour follows currentColor."
-  >
+  <PgSection id="icons" title="Icon" source="GeneralIcon" description="Pass any iconMap key. Colour follows currentColor.">
     <PgDemo label="Outline icons">
       <div class="grid grid-cols-8 md:grid-cols-12 gap-3">
         <NcTooltip v-for="icon in sampleIcons.filter(iconExists)" :key="icon" :title="icon" :arrow="false">

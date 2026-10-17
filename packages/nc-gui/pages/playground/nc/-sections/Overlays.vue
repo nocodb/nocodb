@@ -136,7 +136,7 @@ function openComposableModal(type: ConfirmType) {
             <div class="p-4 flex flex-col gap-2">
               <div class="text-captionBold">Invite teammates</div>
               <div class="text-captionSm text-nc-content-gray-subtle">They'll get editor access to this base.</div>
-              <NcButton size="small" @click="close">{{ $t('general.gotIt') }}</NcButton>
+              <NcButton size="small" @click="close">Got it</NcButton>
             </div>
           </template>
         </NcPopover>
@@ -147,16 +147,16 @@ function openComposableModal(type: ConfirmType) {
       <template #header>
         <div class="flex items-center gap-2 w-full">
           <GeneralIcon icon="table" class="w-5 h-5" />
-          <span class="text-subHeading2">{{ $t('labels.createTable') }}</span>
+          <span class="text-subHeading2">Create table</span>
           <code class="ml-auto text-captionXs text-nc-content-gray-muted">size="{{ activeModalSize }}"</code>
         </div>
       </template>
       <div class="flex flex-col gap-3 py-4">
-        <a-input class="nc-input-sm nc-input-shadow" :placeholder="$t('labels.tableName')" />
-        <a-textarea class="nc-input-sm nc-input-shadow" :rows="3" :placeholder="$t('roadmap.labels.descriptionOptional')" />
+        <a-input class="nc-input-sm nc-input-shadow" placeholder="Table name" />
+        <a-textarea class="nc-input-sm nc-input-shadow" :rows="3" placeholder="Description (optional)" />
         <div class="flex justify-end gap-2">
-          <NcButton size="small" type="secondary" @click="isModalOpen = false">{{ $t('general.cancel') }}</NcButton>
-          <NcButton size="small" @click="isModalOpen = false">{{ $t('labels.createTable') }}</NcButton>
+          <NcButton size="small" type="secondary" @click="isModalOpen = false">Cancel</NcButton>
+          <NcButton size="small" @click="isModalOpen = false">Create table</NcButton>
         </div>
       </div>
     </NcModal>
@@ -180,7 +180,7 @@ function openComposableModal(type: ConfirmType) {
       <div class="pt-2 flex flex-col gap-3">
         <div class="text-caption text-nc-content-gray-subtle">{{ activeDrawer.label }}</div>
         <a-input class="nc-input-sm nc-input-shadow" value="Spring launch campaign" />
-        <NcButton size="small" @click="isDrawerOpen = false">{{ $t('general.close') }}</NcButton>
+        <NcButton size="small" @click="isDrawerOpen = false">Close</NcButton>
       </div>
     </NcDrawer>
   </PgSection>

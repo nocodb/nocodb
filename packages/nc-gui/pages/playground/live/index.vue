@@ -387,7 +387,7 @@ onMounted(async () => {
               data-testid="nc-playground-live-delete-demo"
               @click="confirmDeleteDemo"
             >
-              {{ $t('general.delete') }}
+              Delete
             </NcButton>
             <NcButton
               size="small"
@@ -459,7 +459,7 @@ onMounted(async () => {
         </NcSelect>
       </div>
       <div class="flex items-center gap-2">
-        <span class="text-captionSm text-nc-content-gray-muted">{{ $t('objects.table') }}</span>
+        <span class="text-captionSm text-nc-content-gray-muted">Table</span>
         <NcSelect
           :value="selectedTableId"
           class="w-44"
@@ -505,7 +505,7 @@ onMounted(async () => {
       <!-- NcSwitch renders sibling roots; keep the label on the switch's row -->
       <div class="flex-none flex items-center whitespace-nowrap">
         <NcSwitch v-model:checked="isSplit" size="small">
-          <span class="text-captionSm">{{ $t('labels.factoryDiffSideBySide') }}</span>
+          <span class="text-captionSm">Side by side</span>
         </NcSwitch>
       </div>
 
@@ -537,7 +537,7 @@ onMounted(async () => {
           <NcButton class="!px-2 !ml-auto" size="xsmall" type="text" @click="openInNewTab(page.path)">
             <div class="flex items-center gap-1">
               <GeneralIcon icon="ncExternalLink" class="w-3.5 h-3.5" />
-              {{ $t('general.open') }}
+              Open
             </div>
           </NcButton>
         </div>

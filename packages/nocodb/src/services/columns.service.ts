@@ -37,7 +37,6 @@ import {
   ProjectRoles,
   readonlyMetaAllowedTypes,
   RelationTypes,
-  ROLLUP_FORMULA_FUNCTION,
   SqlUiFactory,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
@@ -58,8 +57,6 @@ import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
   LinkToAnotherRecordType,
-  ParsedFormulaNode,
-  RollupColumnReqType,
   UserType,
 } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
@@ -157,8 +154,6 @@ import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 import { validateColumnInternalMeta } from '~/types/column-internal-meta';
 import { backfillAutoNumber } from '~/helpers/autonumberHelpers';
 import { getModelContext, setModelContext } from '~/helpers/modelContext';
-import { clearSingleQueryCacheForColumnReferences } from '~/helpers/singleQueryCacheInvalidator';
-import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 
 export type {
   LtarSideEffectIds,
@@ -659,92 +654,6 @@ export class ColumnsService implements IColumnsService {
     }
   }
 
-  /**
-   * A formula rollup stores its result type; re-validate the ones reading a
-   * field whose type changed, or mark them errored when the formula no longer
-   * fits (e.g. SUM over what is now text).
-   */
-  async retypeRollupFormulas(
-    targetColumnId: string,
-    visited = new Set<string>(),
-  ) {
-    if (visited.has(targetColumnId)) return;
-    visited.add(targetColumnId);
-
-    // lookups of the field pass its type on: follow them
-    const lookups = await Noco.ncMeta
-      .knex(MetaTable.COL_LOOKUP)
-      .where({ fk_lookup_column_id: targetColumnId })
-      .select('fk_column_id');
-    for (const lookup of lookups) {
-      await this.retypeRollupFormulas(lookup.fk_column_id, visited);
-    }
-
-    const rollups = await Noco.ncMeta.knex(MetaTable.COL_ROLLUP).where({
-      fk_rollup_column_id: targetColumnId,
-      rollup_function: ROLLUP_FORMULA_FUNCTION,
-    });
-    for (const rollup of rollups) {
-      const rollupContext = {
-        workspace_id: rollup.fk_workspace_id,
-        base_id: rollup.base_id,
-      } as NcContext;
-      const column = await Column.get(rollupContext, {
-        colId: rollup.fk_column_id,
-      });
-      if (!column) continue;
-      const payload: RollupColumnReqType & {
-        title: string;
-        parsed_tree?: ParsedFormulaNode;
-      } = {
-        title: column.title,
-        uidt: UITypes.Rollup,
-        fk_relation_column_id: rollup.fk_relation_column_id,
-        fk_rollup_column_id: rollup.fk_rollup_column_id,
-        rollup_function: rollup.rollup_function,
-        rollup_formula: rollup.rollup_formula,
-      };
-      let error: string | null = null;
-      try {
-        await validateRollupPayload(rollupContext, payload);
-      } catch (e) {
-        error = e.message;
-      }
-      // runs on every column update: only write when something changed
-      const parsedTree = error
-        ? undefined
-        : JSON.stringify(payload.parsed_tree);
-      if (
-        (rollup.error ?? null) === error &&
-        (error || parsedTree === rollup.parsed_tree)
-      ) {
-        continue;
-      }
-      await RollupColumn.update(
-        rollupContext,
-        column.id,
-        error ? { error } : { parsed_tree: payload.parsed_tree, error: null },
-      );
-      // formulas over this rollup typed it by its old result: re-parse them
-      for (const formula of await getFormulasReferredTheColumn(rollupContext, {
-        column,
-        columns: await Column.list(rollupContext, {
-          fk_model_id: column.fk_model_id,
-        }),
-      })) {
-        if (formula.uidt !== UITypes.Formula) continue;
-        await FormulaColumn.update(rollupContext, formula.id, {
-          parsed_tree: null,
-        });
-      }
-      await View.clearSingleQueryCache(rollupContext, column.fk_model_id);
-      // lookups of this rollup embed its SQL in their own models' queries
-      await clearSingleQueryCacheForColumnReferences(rollupContext, column);
-      // rollups over this rollup (or lookups of it) typed it by its old result
-      await this.retypeRollupFormulas(column.id, visited);
-    }
-  }
-
   private async updateMetaAndDatabase(
     context: NcContext,
     args: {
@@ -1091,7 +1000,7 @@ export class ColumnsService implements IColumnsService {
     }
 
     try {
-      const result = await this._runColumnUpdate(
+      return await this._runColumnUpdate(
         context,
         param,
         column,
@@ -1099,17 +1008,6 @@ export class ColumnsService implements IColumnsService {
         reuse,
         ncMeta,
       );
-      // any edit can change what rollups over this field read (a type, a
-      // formula, a lookup); best effort, the update itself is already saved
-      try {
-        await this.retypeRollupFormulas(oldColumn.id);
-      } catch (e) {
-        this.logger.error(
-          `Re-typing rollups over ${oldColumn.id} failed: ${e.message}`,
-          e.stack,
-        );
-      }
-      return result;
     } catch (err) {
       if (createdBackup) {
         try {
@@ -4102,23 +4000,13 @@ export class ColumnsService implements IColumnsService {
       oldColumn.id,
     );
 
-    // a link reads as its records' display value: re-type rollups over links here
-    try {
-      const links = await Noco.ncMeta
-        .knex(MetaTable.COL_RELATIONS)
-        .where({ fk_related_model_id: oldColumn.fk_model_id })
-        .select('fk_column_id');
-      for (const link of links) {
-        await this.retypeRollupFormulas(link.fk_column_id);
-      }
-    } catch (e) {
-      this.logger.error(
-        `Re-typing rollups over links to ${oldColumn.fk_model_id} failed: ${e.message}`,
-        e.stack,
-      );
-    }
-
     const column = await Column.get(context, { colId: param.columnId });
+
+    await this.metaDependencyEventHandler.handleEvent(context, {
+      eventType: MetaEventType.COLUMN_PRIMARY_UPDATED,
+      oldEntity: oldPrimaryColumn,
+      newEntity: column,
+    });
 
     // to reflect column properly on realtime and getWithInfo we will get default view column order and visibility in col meta
     const table = await Model.getWithInfo(context, { id: column.fk_model_id });

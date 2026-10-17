@@ -30,6 +30,7 @@ export class MetaDependencyEventHandler implements OnModuleInit {
     COLUMN_ADDED: [],
     COLUMN_DELETED: [],
     COLUMN_UPDATED: [],
+    COLUMN_PRIMARY_UPDATED: [],
     HOOK_DELETED: [],
     FILTER_CREATED: [],
     FILTER_UPDATED: [],

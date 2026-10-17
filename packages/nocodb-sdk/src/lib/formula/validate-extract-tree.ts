@@ -43,8 +43,8 @@ import {
   MAX_ROLLUP_AGGREGATES,
   ROLLUP_VALUES_KEYWORD,
   RollupAggregate,
-  RollupModifier,
   rollupFormulaResultUidt,
+  RollupModifier,
 } from '~/lib/formula/rollupFormula';
 
 // Where a node sits in a rollup formula: outside aggregates, as the value set
@@ -1578,16 +1578,17 @@ export async function validateFormulaAndExtractTreeWithType({
     }
     return result;
   } catch (ex) {
-    if (ex instanceof RangeError) {
-      ex = new FormulaError(
-        FormulaErrorType.INVALID_SYNTAX,
-        {},
-        'The formula is too long or too deeply nested'
-      );
-    }
+    const error =
+      ex instanceof RangeError
+        ? new FormulaError(
+            FormulaErrorType.INVALID_SYNTAX,
+            {},
+            'The formula is too long or too deeply nested'
+          )
+        : ex;
     if (trackPosition) {
-      handleFormulaError({ formula, error: ex });
+      handleFormulaError({ formula, error });
     }
-    throw appendEqualsHint(formula, ex);
+    throw appendEqualsHint(formula, error);
   }
 }

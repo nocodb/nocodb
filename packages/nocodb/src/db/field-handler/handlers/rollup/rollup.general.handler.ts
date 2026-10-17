@@ -1,4 +1,9 @@
-import { getRollupResultUidt, isBtLikeV2Junction, UITypes } from 'nocodb-sdk';
+import {
+  getRollupResultUidt,
+  isBtLikeV2Junction,
+  NC_ERROR_SENTINEL,
+  UITypes,
+} from 'nocodb-sdk';
 import { ComputedFieldHandler } from '../computed';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Knex } from '~/db/CustomKnex';
@@ -72,11 +77,14 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
     });
 
     // an errored rollup reads as the error sentinel text: no typed comparison
-    // fits it, and an error is never blank or equal to a value
+    // fits it, and an error is never blank or equal to a value — except the
+    // sentinel itself, which a group-by expand filters on
     if (isError) {
-      const matchesAll = ['neq', 'not', 'notblank', 'notempty'].includes(
-        filter.comparison_op,
-      );
+      const matchesAll =
+        filter.value === NC_ERROR_SENTINEL ||
+        ['neq', 'not', 'notblank', 'notempty', 'nlike', 'notchecked'].includes(
+          filter.comparison_op,
+        );
       return {
         clause: (qb: Knex.QueryBuilder) => {
           qb.whereRaw(matchesAll ? '1 = 1' : '1 = 0');
@@ -171,7 +179,7 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
     // a subquery for (pg: syntax error on neq, type mismatch on blank)
     if (
       column.uidt === UITypes.Rollup &&
-      !isRollupFormula(rollupOptions) &&
+      !resultUidt &&
       !['min', 'max'].includes(rollupOptions.rollup_function) &&
       ['neq', 'not', 'blank', 'notblank', 'empty', 'notempty'].includes(
         filter.comparison_op,

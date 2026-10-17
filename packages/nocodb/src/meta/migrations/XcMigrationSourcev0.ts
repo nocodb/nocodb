@@ -122,7 +122,7 @@ import * as nc_202610121136_file_references_url_index from './v0/nc_202610121136
 import * as nc_202610131500_factory_machines from './v0/nc_202610131500_factory_machines';
 import * as nc_202610141200_abuse_reports from './v0/nc_202610141200_abuse_reports';
 import * as nc_202610141300_abuse_reports_moderation from './v0/nc_202610141300_abuse_reports_moderation';
-import * as nc_202610141216_col_rollup_rollup_formula from './v0/nc_202610141216_col_rollup_rollup_formula';
+import * as nc_202610171200_col_rollup_rollup_formula from './v0/nc_202610171200_col_rollup_rollup_formula';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -256,7 +256,7 @@ export default class XcMigrationSourcev0 {
       'nc_202610131500_factory_machines',
       'nc_202610141200_abuse_reports',
       'nc_202610141300_abuse_reports_moderation',
-      'nc_202610141216_col_rollup_rollup_formula',
+      'nc_202610171200_col_rollup_rollup_formula',
     ]);
   }
 
@@ -514,8 +514,8 @@ export default class XcMigrationSourcev0 {
         return nc_202610141200_abuse_reports;
       case 'nc_202610141300_abuse_reports_moderation':
         return nc_202610141300_abuse_reports_moderation;
-      case 'nc_202610141216_col_rollup_rollup_formula':
-        return nc_202610141216_col_rollup_rollup_formula;
+      case 'nc_202610171200_col_rollup_rollup_formula':
+        return nc_202610171200_col_rollup_rollup_formula;
     }
   }
 }

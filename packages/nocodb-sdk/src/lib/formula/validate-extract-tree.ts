@@ -38,12 +38,12 @@ import {
   extractRollupAggregates,
   getRollupAggregate,
   getRollupModifier,
+  getRollupResultUidt,
   hasFreeRollupValues,
   isRollupFormula,
   MAX_ROLLUP_AGGREGATES,
   ROLLUP_VALUES_KEYWORD,
   RollupAggregate,
-  rollupFormulaResultUidt,
   RollupModifier,
 } from '~/lib/formula/rollupFormula';
 
@@ -206,7 +206,10 @@ export async function extractColumnIdentifierType({
             rollupOptions.parsed_tree?.dataType ?? FormulaDataTypes.UNKNOWN;
           // a date-only result stays date-only for MIN/MAX one level up
           if (
-            rollupFormulaResultUidt(rollupOptions.parsed_tree) === UITypes.Date
+            getRollupResultUidt({
+              uidt: col.uidt,
+              colOptions: rollupOptions,
+            }) === UITypes.Date
           ) {
             res.referencedColumn = { id: col.id, uidt: UITypes.Date };
           }

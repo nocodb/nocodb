@@ -1,4 +1,9 @@
-import { getRollupResultUidt, ncIsString, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  getRollupResultUidt,
+  ncIsString,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import type {
   LinkToAnotherRecordColumn,

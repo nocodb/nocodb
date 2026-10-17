@@ -321,8 +321,7 @@ function handleDataTypes(
       UITypes.CreatedTime,
       UITypes.LastModifiedTime,
     ].includes(
-      (getRollupWhereUidt(column, filterType.value) ??
-        column.uidt) as UITypes
+      (getRollupWhereUidt(column, filterType.value) ?? column.uidt) as UITypes
     ) &&
     filterType.value
   ) {

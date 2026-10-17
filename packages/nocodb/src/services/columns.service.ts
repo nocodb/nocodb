@@ -664,7 +664,22 @@ export class ColumnsService implements IColumnsService {
    * field whose type changed, or mark them errored when the formula no longer
    * fits (e.g. SUM over what is now text).
    */
-  async retypeRollupFormulas(targetColumnId: string) {
+  async retypeRollupFormulas(
+    targetColumnId: string,
+    visited = new Set<string>(),
+  ) {
+    if (visited.has(targetColumnId)) return;
+    visited.add(targetColumnId);
+
+    // lookups of the field pass its type on: follow them
+    const lookups = await Noco.ncMeta
+      .knex(MetaTable.COL_LOOKUP)
+      .where({ fk_lookup_column_id: targetColumnId })
+      .select('fk_column_id');
+    for (const lookup of lookups) {
+      await this.retypeRollupFormulas(lookup.fk_column_id, visited);
+    }
+
     const rollups = await Noco.ncMeta.knex(MetaTable.COL_ROLLUP).where({
       fk_rollup_column_id: targetColumnId,
       rollup_function: ROLLUP_FORMULA_FUNCTION,
@@ -689,17 +704,27 @@ export class ColumnsService implements IColumnsService {
         rollup_function: rollup.rollup_function,
         rollup_formula: rollup.rollup_formula,
       };
+      let error: string | null = null;
       try {
         await validateRollupPayload(rollupContext, payload);
-        await RollupColumn.update(rollupContext, column.id, {
-          parsed_tree: payload.parsed_tree,
-          error: null,
-        });
       } catch (e) {
-        await RollupColumn.update(rollupContext, column.id, {
-          error: e.message,
-        });
+        error = e.message;
       }
+      // runs on every column update: only write when something changed
+      const parsedTree = error
+        ? undefined
+        : JSON.stringify(payload.parsed_tree);
+      if (
+        (rollup.error ?? null) === error &&
+        (error || parsedTree === rollup.parsed_tree)
+      ) {
+        continue;
+      }
+      await RollupColumn.update(
+        rollupContext,
+        column.id,
+        error ? { error } : { parsed_tree: payload.parsed_tree, error: null },
+      );
       // formulas over this rollup typed it by its old result: re-parse them
       for (const formula of await getFormulasReferredTheColumn(rollupContext, {
         column,
@@ -715,6 +740,8 @@ export class ColumnsService implements IColumnsService {
       await View.clearSingleQueryCache(rollupContext, column.fk_model_id);
       // lookups of this rollup embed its SQL in their own models' queries
       await clearSingleQueryCacheForColumnReferences(rollupContext, column);
+      // rollups over this rollup (or lookups of it) typed it by its old result
+      await this.retypeRollupFormulas(column.id, visited);
     }
   }
 
@@ -1072,9 +1099,15 @@ export class ColumnsService implements IColumnsService {
         reuse,
         ncMeta,
       );
-      // every update path, not only those that rewrite formulas
-      if (param.column.uidt && param.column.uidt !== oldColumn.uidt) {
+      // any edit can change what rollups over this field read (a type, a
+      // formula, a lookup); best effort, the update itself is already saved
+      try {
         await this.retypeRollupFormulas(oldColumn.id);
+      } catch (e) {
+        this.logger.error(
+          `Re-typing rollups over ${oldColumn.id} failed: ${e.message}`,
+          e.stack,
+        );
       }
       return result;
     } catch (err) {
@@ -4068,6 +4101,22 @@ export class ColumnsService implements IColumnsService {
       oldColumn.fk_model_id,
       oldColumn.id,
     );
+
+    // a link reads as its records' display value: re-type rollups over links here
+    try {
+      const links = await Noco.ncMeta
+        .knex(MetaTable.COL_RELATIONS)
+        .where({ fk_related_model_id: oldColumn.fk_model_id })
+        .select('fk_column_id');
+      for (const link of links) {
+        await this.retypeRollupFormulas(link.fk_column_id);
+      }
+    } catch (e) {
+      this.logger.error(
+        `Re-typing rollups over links to ${oldColumn.fk_model_id} failed: ${e.message}`,
+        e.stack,
+      );
+    }
 
     const column = await Column.get(context, { colId: param.columnId });
 

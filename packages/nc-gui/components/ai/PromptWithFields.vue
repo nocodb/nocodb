@@ -273,7 +273,7 @@ useEventListener(el, 'focusPromptWithFields', () => {
     <NcTooltip
       hide-on-click
       :disabled="!showPlusIconTooltip || readOnly"
-      title="Mention fields"
+      :title="$t('tooltip.mentionFields')"
       class="nc-prompt-with-field-suggestion-btn-wrapper flex"
     >
       <NcButton

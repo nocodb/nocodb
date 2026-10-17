@@ -110,7 +110,7 @@ watch(stepIndex, (newIndex, oldIndex, cleanup) => {
             }"
           >
             <NcTooltip v-if="stepIndex === 0" :disabled="!isDisabledSkipButton">
-              <template #title> Will be enabled after 2 seconds </template>
+              <template #title> {{ $t('tooltip.skipEnabledAfterDelay') }} </template>
               <NcButton
                 type="text"
                 size="small"

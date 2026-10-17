@@ -1250,17 +1250,18 @@ const mobileActionMenuItems = (filter: FilterType) => {
   if (filter.value?.readOnly || props.readOnly) return []
 
   return [
-    appInfo.value.ee && {
-      title: t('general.copy'),
-      onClick: () => {
-        $e('c:filter:copy', {
-          link: !!link.value,
-          webHook: !!webHook.value,
-        })
+    appInfo.value.ee &&
+      !props.disableAddNewFilter && {
+        title: t('general.copy'),
+        onClick: () => {
+          $e('c:filter:copy', {
+            link: !!link.value,
+            webHook: !!webHook.value,
+          })
 
-        copyFilter(filter)
+          copyFilter(filter)
+        },
       },
-    },
     {
       title: t('general.delete'),
       onClick: () => {
@@ -1510,7 +1511,7 @@ defineExpose({
                         v-e="['c:filter:copy', { link: !!link, webHook: !!webHook }]"
                         type="text"
                         size="small"
-                        :disabled="isLockedView"
+                        :disabled="disableAddNewFilter || isLockedView"
                         class="nc-filter-item-copy-btn"
                         @click.stop="copyFilter(filter, true)"
                       >
@@ -1940,7 +1941,7 @@ defineExpose({
                   v-e="['c:filter:copy', { link: !!link, webHook: !!webHook }]"
                   type="text"
                   size="small"
-                  :disabled="isLockedView"
+                  :disabled="disableAddNewFilter || isLockedView"
                   class="nc-filter-item-copy-btn self-center"
                   @click.stop="copyFilter(filter)"
                 >

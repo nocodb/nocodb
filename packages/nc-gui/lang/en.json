@@ -136,6 +136,7 @@
     "upgradeToCreateMoreRecordsForm": "This form is currently not accepting submissions",
     "upgradeToCreateMoreRecordsFormSubtitle": "The owner may need to upgrade their workspace plan before this form can accept additional submissions.",
     "upgradeToAccessFieldValidationSubtitle": "Add field validations by upgrading your workspace to the {plan} plan.",
+    "upgradeToShowFieldOnConditionsSubtitle": "Show fields based on conditions by upgrading your workspace to the {plan} plan.",
     "upgradeToAddExternalSource": "Upgrade to connect more external sources",
     "upgradeToAddExternalSourceSubtitle": "Your current {activePlan} plan supports only {limit} external source. Upgrade to the {plan} plan to connect multiple external sources.",
     "upgradeToAddWebhook": "Upgrade to add unlimited webhooks",

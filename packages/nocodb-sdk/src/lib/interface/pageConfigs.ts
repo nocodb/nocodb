@@ -49,14 +49,9 @@ export interface InterfaceVizFieldConfig {
   click_into_details?: boolean;
   /** Record-detail page (layout = RECORD_DETAIL) of the LINKED table. */
   fk_detail_page_id?: string | null;
-  /**
-   * Links/LTAR, inline-editable only: the link picker offers "New record",
-   * which opens this create form of the LINKED table and links the
-   * submitted record. Absent = DISABLED.
-   */
+  /** Links/LTAR, inline-editable only: the picker's "New record" opens `fk_add_form_page_id` — absent = DISABLED. */
   allow_add_record_via_form?: boolean;
-  /** Create form of the LINKED table — a RECORD_DETAIL layout opened as a
-   *  create form, like the "Add record through form" button's target. */
+  /** RECORD_DETAIL layout of the LINKED table, opened as a create form. */
   fk_add_form_page_id?: string | null;
   /**
    * Links/LTAR columns only: "Limit record selection" — constrain the inline

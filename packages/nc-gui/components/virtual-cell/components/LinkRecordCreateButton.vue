@@ -1,9 +1,5 @@
 <script setup lang="ts">
-/**
- * "+ New record" for an interface link field's "Add records through a form" —
- * renders only when an interface host provides `LinkRecordCreateInj` and the
- * field has the option on. The classic expanded-form create stays separate.
- */
+// "+ New record" for an interface link field's "Add record through form" — only where a host provides LinkRecordCreateInj.
 const emit = defineEmits<{ opened: [] }>()
 
 const { isMobileMode } = useGlobal()

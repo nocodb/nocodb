@@ -1,6 +1,7 @@
 import {
   FormulaDataTypes,
   getAvailableRollupForUiType,
+  getRollupResultUidt,
   isBtLikeV2Junction,
   isMMOrMMLike,
   isRollupAggregatableColumn,
@@ -673,8 +674,11 @@ export default async function genRollupSelectv2(param: {
       )?.getParsedTree?.()?.dataType;
     } else if (rollupColumn.uidt === UITypes.Rollup) {
       const inner = await rollupColumn.getColOptions<RollupColumn>();
+      // outside a formula, the only resolved type is a min/max date
       resultType = isRollupFormula(inner)
         ? inner.parsed_tree?.dataType
+        : getRollupResultUidt({ uidt: rollupColumn.uidt, colOptions: inner })
+        ? FormulaDataTypes.DATE
         : undefined;
     }
     const numeric =

@@ -1,5 +1,8 @@
 import UITypes from './UITypes';
-import { isRollupAggregatableColumn } from './helperFunctions';
+import {
+  getAvailableRollupForColumn,
+  isRollupAggregatableColumn,
+} from './helperFunctions';
 
 describe('isRollupAggregatableColumn', () => {
   it('accepts physical columns', () => {
@@ -43,5 +46,25 @@ describe('isRollupAggregatableColumn', () => {
   it('accepts a bare UIType as well as a column', () => {
     expect(isRollupAggregatableColumn(UITypes.Number)).toBe(true);
     expect(isRollupAggregatableColumn(UITypes.Lookup)).toBe(false);
+  });
+});
+
+describe('getAvailableRollupForColumn', () => {
+  it('offers the date functions for a min/max date rollup', () => {
+    expect(
+      getAvailableRollupForColumn({
+        uidt: UITypes.Rollup,
+        colOptions: { rollup_function: 'max', result_uidt: UITypes.Date },
+      })
+    ).toEqual(['count', 'countAll', 'min', 'max', 'countDistinct']);
+  });
+
+  it('offers the numeric functions for any other plain rollup', () => {
+    expect(
+      getAvailableRollupForColumn({
+        uidt: UITypes.Rollup,
+        colOptions: { rollup_function: 'count' },
+      })
+    ).toContain('sum');
   });
 });

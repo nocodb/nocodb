@@ -121,7 +121,7 @@ function onDelete(event: { filter: ColumnFilterType; index: number }) {
       </PgSection>
 
       <PgSection id="demos" title="Demos">
-        <PgDemo label="Default">
+        <PgDemo :label="$t('general.default')">
           <SmartsheetToolbarFilterRow
             :model-value="filter"
             :index="options.index"
@@ -170,7 +170,7 @@ function onDelete(event: { filter: ColumnFilterType; index: number }) {
           <template #actions>
             <label class="flex items-center gap-2 cursor-pointer">
               <NcSwitch v-model:checked="isFieldInaccessible" size="small" />
-              <span class="text-captionSm text-nc-content-gray">Field inaccessible</span>
+              <span class="text-captionSm text-nc-content-gray">{{ $t('title.fieldInaccessible') }}</span>
             </label>
           </template>
           <SmartsheetToolbarFilterRow

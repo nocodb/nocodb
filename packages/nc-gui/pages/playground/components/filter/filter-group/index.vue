@@ -165,7 +165,7 @@ onMounted(async () => {
 <template>
   <MockInjection>
     <PgPage
-      title="Filters"
+      :title="$t('activity.filters')"
       description="SmartsheetToolbarFilterGroup on mock table metadata. The knobs below drive all three demos, which share one filter list."
       :sections="SECTIONS"
     >
@@ -223,7 +223,7 @@ onMounted(async () => {
       </PgSection>
 
       <PgSection id="demos" title="Demos">
-        <PgDemo label="Simple" hint="v-model only, no handler">
+        <PgDemo :label="$t('activity.galleryThemeSimple')" hint="v-model only, no handler">
           <SmartsheetToolbarFilterGroup
             v-model="filters"
             :index="options1.index"

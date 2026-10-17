@@ -1368,6 +1368,33 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       $e('a:links:link')
     }
 
+    /**
+     * A record the server already created AND linked (an interface field's
+     * "Add records through a form") — mirror `link()`'s optimistic cell write
+     * and row refresh, without another link call.
+     */
+    const onRecordCreatedAndLinked = (row: Record<string, any>) => {
+      if (!isSingleTargetRelation.value) childrenListCount.value = childrenListCount.value + 1
+
+      if (rowStoreCurrentRow) {
+        const colTitle = column.value.title!
+        rowStoreCurrentRow.value.row[colTitle] = applyLtarCellOp({
+          op: 'link',
+          shape: ltarCellShape.value,
+          current: rowStoreCurrentRow.value.row[colTitle],
+          snapshot: rowStoreCurrentRow.value.row[colTitle],
+          relatedRow: row,
+          getRelatedRowId: getRelatedTableRowId,
+        })
+      }
+
+      if (interfaceDataApi) {
+        eventBus.emit(SmartsheetStoreEvents.INTERFACE_ROW_REFRESH, { rowId: rowId.value })
+      }
+
+      _reloadData?.({ shouldShowLoading: false, path: path.value })
+    }
+
     // --- Chunk-based fetch and cache eviction for virtual scroll ---
 
     const _fetchExcludedChunkData = async (offset: number, limit: number) => {
@@ -1783,6 +1810,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       attachmentCol,
       fields,
       refreshCurrentRow,
+      onRecordCreatedAndLinked,
       externalBaseUserRoles,
       showExtraFields,
       // Chunked cache for virtual scroll

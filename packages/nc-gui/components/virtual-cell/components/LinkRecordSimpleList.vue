@@ -63,7 +63,9 @@ const {
   link,
   unlink,
   row,
+  rowId,
   refreshCurrentRow,
+  onRecordCreatedAndLinked,
   CHUNK_SIZE,
 } = useLTARStoreOrThrow()
 
@@ -76,6 +78,9 @@ const saveRow = inject(SaveRowInj, () => {})
 // Per-column "Click into record details" — provided by the interface viz
 // hosts (EE) when the LTAR column has it configured; null everywhere else.
 const linkRecordExpand = inject(LinkRecordExpandInj, ref(null))
+
+// The column's "Add records through a form" — interface hosts (EE) only.
+const linkRecordCreate = inject(LinkRecordCreateInj, ref(null))
 
 const filterQueryRef = ref<HTMLInputElement>()
 
@@ -391,6 +396,27 @@ async function clearSelection() {
   sessionClearedRows.value = [...sessionClearedRows.value, cleared]
 }
 
+const canCreateLinkedRecord = computed(
+  () =>
+    !props.readonly &&
+    !isNew.value &&
+    !!rowId.value &&
+    !!ltarColumn?.value &&
+    !!linkRecordCreate.value?.isEnabled(ltarColumn.value),
+)
+
+function createLinkedRecord() {
+  const parentRowId = rowId.value
+  if (!canCreateLinkedRecord.value || !ltarColumn?.value || !parentRowId) return
+
+  vModel.value = false
+  linkRecordCreate.value?.create({
+    column: ltarColumn.value,
+    rowId: parentRowId,
+    onCreated: (created) => onRecordCreatedAndLinked(created),
+  })
+}
+
 function onFilterChange() {
   // Store watchers on the two queries reset their caches and debounce-reload;
   // session pinning resets too — after the reload the server already reflects
@@ -514,6 +540,20 @@ onUnmounted(() => {
           <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-nc-content-gray-muted" />
         </template>
       </a-input>
+
+      <NcTooltip v-if="canCreateLinkedRecord" :title="$t('activity.newRecord')" placement="top" :arrow="false" class="flex-none">
+        <NcButton
+          type="text"
+          size="xxsmall"
+          class="!text-nc-content-gray-subtle hover:!text-nc-content-gray"
+          data-testid="nc-simple-link-new-record"
+          @click="createLinkedRecord"
+        >
+          <template #icon>
+            <GeneralIcon icon="plus" class="w-4 h-4" />
+          </template>
+        </NcButton>
+      </NcTooltip>
     </div>
 
     <div

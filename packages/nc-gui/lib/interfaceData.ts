@@ -371,6 +371,15 @@ export interface InterfacePageDataApi {
     fieldElementId?: string
     fieldPageId?: string
   }): Promise<boolean>
+  /** Create through the field's bound create form and link the record to `rowId`. */
+  createLinkedRecord?(params: {
+    rowId: string
+    columnId: string
+    formPageId: string
+    data: Record<string, any>
+    fieldElementId?: string
+    fieldPageId?: string
+  }): Promise<Record<string, any>>
   /** Unlink records from an LTAR cell — same gating as `nestedLink`. */
   nestedUnlink?(params: {
     rowId: string

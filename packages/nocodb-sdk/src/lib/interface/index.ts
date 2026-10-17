@@ -156,6 +156,8 @@ export interface InterfacePageType<
    * builders (owner/creator), who have full access.
    */
   effective_role?: InterfaceRoles;
+  /** An editor binds this layout as a link field's add form — the requester may create through that link. */
+  add_form_create?: boolean;
 }
 
 export type AnyInterfacePageType = InterfacePageType<InterfacePageLayoutTypes>;

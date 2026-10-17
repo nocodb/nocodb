@@ -3850,6 +3850,7 @@
     "showResolvedComments": "Show resolved comments",
     "noCommentsMatchFilter": "No comments match this filter",
     "createNewForm": "Create new form",
+    "createAndLink": "Create & link",
     "duplicateCurrentForm": "Duplicate current form",
     "editRecord": "Edit record",
     "backToPage": "Back to {page}",

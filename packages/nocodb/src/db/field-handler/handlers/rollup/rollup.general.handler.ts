@@ -136,6 +136,13 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
           const blank = ['blank', 'empty'].includes(filter.comparison_op);
           return {
             clause: (qb: Knex.QueryBuilder) => {
+              // Oracle stores '' as NULL: `<> ''` is never true there
+              if (baseModelSqlv2.isOracle) {
+                qb.whereRaw(blank ? `? IS NULL` : `? IS NOT NULL`, [
+                  expression,
+                ]);
+                return;
+              }
               qb.whereRaw(
                 blank ? `(? IS NULL OR ? = '')` : `(? IS NOT NULL AND ? <> '')`,
                 [expression, expression],

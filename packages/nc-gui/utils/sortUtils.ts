@@ -82,8 +82,12 @@ export const sortByUIType = ({
     case UITypes.Rating:
     case UITypes.Duration:
     case UITypes.ID:
-    case UITypes.Rollup:
       result = Number(a) - Number(b)
+      break
+
+    // a formula rollup can also yield text or dates
+    case UITypes.Rollup:
+      result = isNaN(Number(a)) || isNaN(Number(b)) ? String(a).localeCompare(String(b)) : Number(a) - Number(b)
       break
 
     case UITypes.Links: {

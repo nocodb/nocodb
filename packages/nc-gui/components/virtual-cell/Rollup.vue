@@ -4,8 +4,10 @@ import {
   getEffectiveDisplayColumn,
   getRenderAsTextFunForUiType,
   getRollupColumnMeta,
+  getRollupFormulaDisplayColumn,
   integerPreservingRollupFunctions,
   integerRollupFunctions,
+  isRollupFormula,
 } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, RollupType } from 'nocodb-sdk'
 
@@ -59,11 +61,14 @@ watch(
 const colOptions = computed(() => column.value?.colOptions)
 
 const childColumn = computed(() => {
-  if (!relatedTableMeta.value?.columns || !isRollup(column.value)) return ''
+  if (!isRollup(column.value)) return ''
 
-  const col = relatedTableMeta.value?.columns.find(
+  const col = relatedTableMeta.value?.columns?.find(
     (c: ColumnType) => c.id === (colOptions.value as RollupType).fk_rollup_column_id,
   )
+
+  // a formula rollup renders as its result type
+  if (isRollupFormula(colOptions.value as RollupType)) return getRollupFormulaDisplayColumn(column.value, col)
 
   if (!col) return ''
 

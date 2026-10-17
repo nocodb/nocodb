@@ -23,6 +23,7 @@ import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { Readable } from 'stream';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { CalendarView, LinksColumn, User } from '~/models';
+import type { AttachmentHolder } from '~/helpers/exportImportHelpers';
 import { getCustomLinkParam } from '~/helpers/linkHelpers';
 import { validateImportSchema } from '~/utils/modelUtils';
 import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
@@ -42,7 +43,6 @@ import {
   withoutId,
   withoutNull,
 } from '~/helpers/exportImportHelpers';
-import type { AttachmentHolder } from '~/helpers/exportImportHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import {
   Base,
@@ -1539,8 +1539,10 @@ export class ImportService {
         }
       } else if (col.uidt === UITypes.Rollup) {
         // Skip if relation column or rollup column can't be mapped (e.g., cross-base rollups)
-        // but preserve error columns even if references can't be mapped
+        // but preserve error columns even if references can't be mapped.
+        // An errored formula rollup can map yet fail validation — copy it as is.
         if (
+          colOptions.error ||
           !getIdOrExternalId(colOptions.fk_relation_column_id) ||
           !getIdOrExternalId(colOptions.fk_rollup_column_id)
         ) {
@@ -1557,6 +1559,8 @@ export class ImportService {
                 colOptions.fk_rollup_column_id,
               ),
               rollup_function: colOptions.rollup_function,
+              rollup_formula: colOptions.rollup_formula,
+              parsed_tree: colOptions.parsed_tree,
               error: colOptions.error,
             });
 
@@ -1578,6 +1582,7 @@ export class ImportService {
                 colOptions.fk_relation_column_id,
               ),
               rollup_function: colOptions.rollup_function,
+              rollup_formula: colOptions.rollup_formula,
             },
           }) as any,
           req: param.req,

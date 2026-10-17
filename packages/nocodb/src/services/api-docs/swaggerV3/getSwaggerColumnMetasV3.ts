@@ -1,5 +1,9 @@
 import { ButtonActionsType, RelationTypes, UITypes } from 'nocodb-sdk';
-import { FormulaDataTypes } from 'nocodb-sdk';
+import {
+  FormulaDataTypes,
+  isRollupFormula,
+  rollupFormulaResultUidt,
+} from 'nocodb-sdk';
 import type { SourcesMap } from '~/services/api-docs/types';
 import type {
   Column,
@@ -270,7 +274,32 @@ async function processColumnToSwaggerField(
       break;
     case UITypes.Rollup: {
       const colOptions = await column.getColOptions<RollupColumn>(ncMeta);
-      if (!['max', 'min'].includes(colOptions.rollup_function.toLowerCase())) {
+      if (isRollupFormula(colOptions)) {
+        // typed by the formula's result
+        switch (colOptions.parsed_tree?.dataType) {
+          case FormulaDataTypes.NUMERIC:
+            field.type = ['number', 'null'];
+            break;
+          case FormulaDataTypes.STRING:
+            field.type = ['string', 'null'];
+            break;
+          case FormulaDataTypes.DATE:
+            field.type = ['string', 'null'];
+            field.format =
+              rollupFormulaResultUidt(colOptions.parsed_tree) === UITypes.Date
+                ? 'date'
+                : 'date-time';
+            break;
+          case FormulaDataTypes.BOOLEAN:
+          case FormulaDataTypes.COND_EXP:
+            field.type = ['boolean', 'null'];
+            break;
+          default:
+            setAsAnyType(field);
+        }
+      } else if (
+        !['max', 'min'].includes(colOptions.rollup_function.toLowerCase())
+      ) {
         field.type = 'number';
       } else {
         // if min or max, let it be any

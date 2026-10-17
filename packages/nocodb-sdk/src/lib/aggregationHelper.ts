@@ -1,4 +1,5 @@
 import UITypes from './UITypes';
+import { getRollupResultUidt } from '~/lib/formula/rollupFormula';
 import { FormulaDataTypes } from '~/lib/formula/enums';
 import type { ColumnType } from '~/lib/Api';
 import { getDateTimeValue, getDateValue } from '~/lib/dateTimeHelper';
@@ -58,8 +59,38 @@ const AllAggregations = {
 
 type AggregationValue = (typeof AllAggregations)[keyof typeof AllAggregations];
 
-const getAvailableAggregations = (type: string, parsed_tree?): string[] => {
+// a date rollup offered the numeric list before its result type was resolved;
+// saved views can still hold these, and each has a date aggregation with the same SQL
+const LegacyDateRollupAggregations: Record<string, DateAggregations> = {
+  [NumericalAggregations.Min]: DateAggregations.EarliestDate,
+  [NumericalAggregations.Max]: DateAggregations.LatestDate,
+  [NumericalAggregations.Range]: DateAggregations.DateRange,
+};
+
+/** The date aggregation a saved numeric one on a date rollup runs as. */
+const getLegacyDateRollupAggregation = (
+  column: Pick<ColumnType, 'uidt' | 'colOptions'>,
+  aggregation: string
+): DateAggregations | undefined => {
+  const resultUidt = getRollupResultUidt(column);
+  return resultUidt === UITypes.Date || resultUidt === UITypes.DateTime
+    ? LegacyDateRollupAggregations[aggregation]
+    : undefined;
+};
+
+/**
+ * `rollupResultUidt` is a rollup's result type (`getRollupResultUidt`); a
+ * rollup takes that type's aggregations instead of the numeric ones.
+ */
+const getAvailableAggregations = (
+  type: string,
+  parsed_tree?,
+  rollupResultUidt?: string
+): string[] => {
   let returnAggregations = [];
+  if (type === UITypes.Rollup && rollupResultUidt) {
+    type = rollupResultUidt;
+  }
   if (type === UITypes.Formula && parsed_tree?.dataType) {
     switch (parsed_tree.dataType) {
       case FormulaDataTypes.BOOLEAN:
@@ -85,6 +116,7 @@ const getAvailableAggregations = (type: string, parsed_tree?): string[] => {
         returnAggregations = [...Object.values(CommonAggregations)];
         break;
     }
+    return returnAggregations;
   }
 
   switch (type) {

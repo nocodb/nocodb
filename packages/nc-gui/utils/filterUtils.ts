@@ -222,6 +222,10 @@ export const getFilterUidt = (col: ColumnTypeForFilter): UITypes => {
 
     return (formulaUIType || col.uidt) as UITypes
   }
+  // a rollup filters as its result type
+  else if (col.uidt === UITypes.Rollup) {
+    return getRollupResultUidt(col) ?? (col.uidt as UITypes)
+  }
   // if column is a lookup column, then use the lookup type extracted from the column
   else if (col.btLookupColumn) {
     return col.btLookupColumn.uidt as UITypes

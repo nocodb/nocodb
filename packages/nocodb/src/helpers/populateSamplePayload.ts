@@ -1,4 +1,4 @@
-import { ncIsString, RelationTypes, UITypes } from 'nocodb-sdk';
+import { getRollupResultUidt, ncIsString, RelationTypes, UITypes } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import type {
   LinkToAnotherRecordColumn,
@@ -361,6 +361,14 @@ async function getSampleColumnValue(
       break;
     case UITypes.Rollup:
       {
+        // a rollup samples as its result type
+        const resultUidt = getRollupResultUidt(column);
+        if (resultUidt) {
+          return getSampleColumnValue(
+            context,
+            new Column({ ...column, uidt: resultUidt } as Column),
+          );
+        }
         return 1;
       }
       break;

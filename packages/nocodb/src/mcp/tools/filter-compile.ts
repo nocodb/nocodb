@@ -161,6 +161,8 @@ export interface FilterColumn {
   uidt?: string;
   /** Set on a computed field whose definition is broken. */
   error?: string | null;
+  /** A rollup's result type (`getRollupResultUidt`). */
+  result_uidt?: string | null;
 }
 
 type FilterLeaf = z.infer<typeof leafSchema>;

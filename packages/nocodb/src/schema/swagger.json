@@ -27884,8 +27884,17 @@
               "sum",
               "countDistinct",
               "sumDistinct",
-              "avgDistinct"
+              "avgDistinct",
+              "formula"
             ]
+          },
+          "rollup_formula": {
+            "type": "string",
+            "description": "Formula over `values` (the linked records' values) when rollup_function is `formula`",
+            "example": "SUM(values) * 1.1"
+          },
+          "parsed_tree": {
+            "description": "Typed parse tree of rollup_formula"
           },
           "error": {
             "description": "Error Message",
@@ -27932,10 +27941,16 @@
               "max",
               "min",
               "sum",
-              "sumDistinct"
+              "sumDistinct",
+              "formula"
             ],
             "type": "string",
             "description": "Rollup Function"
+          },
+          "rollup_formula": {
+            "type": "string",
+            "description": "Formula over `values` (the linked records' values), required when rollup_function is `formula`",
+            "example": "SUM(values) * 1.1"
           },
           "uidt": {
             "enum": [

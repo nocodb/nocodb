@@ -209,6 +209,10 @@ export function useViewFilters(
 
         obj[col.id] = formulaUIType || col.uidt
       }
+      // a rollup filters as its result type
+      else if (col.uidt === UITypes.Rollup) {
+        obj[col.id] = getRollupResultUidt(col) ?? col.uidt
+      }
       // if column is a lookup column, then use the lookup type extracted from the column
       else if (btLookupTypesMap.value[col.id]) {
         obj[col.id] = btLookupTypesMap.value[col.id].uidt

@@ -1,6 +1,7 @@
 import {
   FormulaDataTypes,
   getEquivalentUIType,
+  getRollupResultUidt,
   isNumericCol,
   isVirtualCol,
   UITypes,
@@ -454,6 +455,39 @@ const parseConditionV2 = async (
           customWhereClause,
         },
       );
+    }
+
+    // a rollup returning a date compares as one
+    if (column.uidt === UITypes.Rollup && customWhereClause) {
+      const rollupResultUidt = getRollupResultUidt({
+        uidt: column.uidt,
+        colOptions: await column.getColOptions<RollupColumn>(),
+      });
+      if (
+        rollupResultUidt === UITypes.Date ||
+        rollupResultUidt === UITypes.DateTime
+      ) {
+        return FieldHandler.fromBaseModel(baseModelSqlv2).applyFilter(
+          filter,
+          setModelContext(
+            new Column({
+              ...column,
+              uidt: rollupResultUidt,
+            }),
+            context,
+          ),
+          {
+            alias,
+            conditionParser: parseConditionV2,
+            depth: aliasCount,
+            context,
+            throwErrorIfInvalid,
+            // the date handlers bind it with `??`, which leaves a subquery
+            // unparenthesised
+            customWhereClause: knex.raw('?', [customWhereClause]),
+          },
+        );
+      }
     }
 
     {

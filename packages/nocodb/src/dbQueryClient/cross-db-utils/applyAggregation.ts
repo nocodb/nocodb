@@ -102,6 +102,14 @@ async function resolveAggregationParams({
     })
   ).builder;
 
+  // a rollup is a subquery; handlers that bind it bare (`MIN(??)`, `?? = 1`)
+  // need it parenthesised
+  if (column.uidt === UITypes.Rollup && typeof column_name_query !== 'string') {
+    column_name_query = baseModelSqlv2.dbDriver.raw('(??)', [
+      column_name_query,
+    ]);
+  }
+
   const parsedFormulaType = column.colOptions?.parsed_tree?.dataType;
 
   // A pg numeric formula resolves to the IEEE value the cell shows, and a

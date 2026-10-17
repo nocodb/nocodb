@@ -1,9 +1,13 @@
 import {
   FormulaDataTypes,
+  getAvailableRollupForUiType,
   isBtLikeV2Junction,
   isMMOrMMLike,
   isRollupAggregatableColumn,
+  isRollupFormula,
+  isRollupFormulaTargetColumn,
   NC_ERROR_SENTINEL,
+  NcErrorType,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
@@ -20,9 +24,11 @@ import type {
 } from '~/models';
 import type { XKnex } from '~/db/CustomKnex';
 import { NcError } from '~/helpers/ncError';
+import { NcBaseErrorv2 } from '~/helpers/catchError';
 import { RelationManager } from '~/db/relation-manager';
 import { Column, Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import genRollupFormulaSelect from '~/db/genRollupFormulaSelect';
 import { excludeNonFiniteSql, isPgIeeeEnabled } from '~/db/formulav2/pg-ieee';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
@@ -56,6 +62,8 @@ export default async function genRollupSelectv2(param: {
   columnOptions: RollupColumn | LinksColumn;
   parentColumns?: CircularRefContext;
   nestedLevel?: number;
+  // saving a formula rollup reports its errors; reads show the cell as an error
+  throwOnFormulaError?: boolean;
 }): Promise<{ builder: Knex.QueryBuilder | any }> {
   const { baseModelSqlv2, knex, alias, columnOptions, nestedLevel = 0 } = param;
   let { parentColumns } = param;
@@ -137,7 +145,11 @@ export default async function genRollupSelectv2(param: {
   // `column_name` and fail the whole read, not just this cell. Signal only —
   // `colOptions.error` means "dependency deleted" (cleared on restore), so this
   // partial check must never write to it.
-  if (!isRollupAggregatableColumn(rollupColumn)) {
+  if (
+    isRollupFormula(columnOptions as RollupColumn)
+      ? !isRollupFormulaTargetColumn(rollupColumn)
+      : !isRollupAggregatableColumn(rollupColumn)
+  ) {
     return errorSentinel();
   }
 
@@ -436,170 +448,221 @@ export default async function genRollupSelectv2(param: {
     ? RelationTypes.MANY_TO_MANY
     : relationColumnOption.type;
 
-  switch (relationType) {
-    case RelationTypes.HAS_MANY: {
-      profiler.log('Relation: ' + relationColumnOption.type);
-      const queryBuilder: any = knex(
-        dbQueryClient.tableAlias(
-          knex,
-          childBaseModel.getTnPath(childModel),
-          refTableAlias,
-        ),
-      ).where(
-        knex.ref(
-          `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
-            parentCol.column_name
-          }`,
-        ),
-        '=',
-        knex.ref(`${refTableAlias}.${childCol.column_name}`),
-      );
-
-      // Exclude soft-deleted child records from HM rollup
-      const hmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
-        childBaseModel,
-        refTableAlias,
-      );
-      if (hmSoftDeleteFilter) {
-        queryBuilder.where(hmSoftDeleteFilter);
-      }
-
-      await applyFunction(queryBuilder);
-
-      if (column) {
-        await extractLinkRelFiltersAndApply({
-          qb: queryBuilder,
-          column,
-          alias: refTableAlias,
-          table: childBaseModel.model,
-          baseModel: childBaseModel,
-          context: childBaseModel.context,
-        });
-      }
-      profiler.end();
-      return {
-        builder: wrapMssqlNestedAgg(queryBuilder),
-      };
-    }
-
-    case RelationTypes.ONE_TO_ONE: {
-      profiler.log('Relation: ' + relationColumnOption.type);
-      const qb = knex(
-        dbQueryClient.tableAlias(
-          knex,
-          childBaseModel.getTnPath(childModel?.table_name),
-          refTableAlias,
-        ),
-      ).where(
-        knex.ref(
-          `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
-            parentCol.column_name
-          }`,
-        ),
-        '=',
-        knex.ref(`${refTableAlias}.${childCol.column_name}`),
-      );
-
-      // Exclude soft-deleted child records from OO rollup
-      const ooSoftDeleteFilter = await getAliasedSoftDeleteFilter(
-        childBaseModel,
-        refTableAlias,
-      );
-      if (ooSoftDeleteFilter) {
-        qb.where(ooSoftDeleteFilter);
-      }
-
-      await extractLinkRelFiltersAndApply({
-        qb,
-        column,
-        alias: refTableAlias,
-        table: childBaseModel.model,
-        baseModel: childBaseModel,
-        context: childBaseModel.context,
-      });
-
-      await applyFunction(qb);
-      profiler.end();
-      return {
-        builder: wrapMssqlNestedAgg(qb),
-      };
-    }
-
-    case RelationTypes.MANY_TO_MANY: {
-      profiler.log('Relation: ' + relationColumnOption.type);
-      const mmModel = await relationColumnOption.getMMModel();
-      if (!mmModel) {
-        return errorSentinel();
-      }
-      const mmChildCol = await relationColumnOption.getMMChildColumn();
-      const mmParentCol = await relationColumnOption.getMMParentColumn();
-      const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
-        id: mmModel.id,
-        dbDriver: knex,
-      });
-
-      const qb = knex(
-        dbQueryClient.tableAlias(
-          knex,
-          parentBaseModel.getTnPath(parentModel?.table_name),
-          refTableAlias,
-        ),
-      )
-        .innerJoin(
-          assocBaseModel.getTnPath(mmModel.table_name) as any,
+  // The linked records of the current row, before any aggregate is selected.
+  // Built once for a plain rollup, once per aggregate for a formula rollup.
+  // Wrapped: an awaited query builder is a thenable and would execute.
+  const buildScope = async (): Promise<{ qb: Knex.QueryBuilder } | null> => {
+    switch (relationType) {
+      case RelationTypes.HAS_MANY:
+      case RelationTypes.ONE_TO_ONE: {
+        profiler.log('Relation: ' + relationColumnOption.type);
+        const qb = knex(
+          dbQueryClient.tableAlias(
+            knex,
+            childBaseModel.getTnPath(childModel),
+            refTableAlias,
+          ),
+        ).where(
           knex.ref(
-            `${assocBaseModel.getTnPath(mmModel.table_name)}.${
-              mmParentCol.column_name
-            }`,
-          ) as any,
-          '=',
-          knex.ref(`${refTableAlias}.${parentCol.column_name}`) as any,
-        )
-        .where(
-          knex.ref(
-            `${assocBaseModel.getTnPath(mmModel.table_name)}.${
-              mmChildCol.column_name
+            `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
+              parentCol.column_name
             }`,
           ),
           '=',
-          knex.ref(
-            `${alias || childBaseModel.getTnPath(childModel.table_name)}.${
-              childCol.column_name
-            }`,
-          ),
+          knex.ref(`${refTableAlias}.${childCol.column_name}`),
         );
 
-      // Exclude soft-deleted parent records from MM rollup
-      const mmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
-        parentBaseModel,
-        refTableAlias,
-      );
-      if (mmSoftDeleteFilter) {
-        qb.where(mmSoftDeleteFilter);
+        // Exclude soft-deleted child records
+        const softDeleteFilter = await getAliasedSoftDeleteFilter(
+          childBaseModel,
+          refTableAlias,
+        );
+        if (softDeleteFilter) {
+          qb.where(softDeleteFilter);
+        }
+
+        if (column) {
+          await extractLinkRelFiltersAndApply({
+            qb,
+            column,
+            alias: refTableAlias,
+            table: childBaseModel.model,
+            baseModel: childBaseModel,
+            context: childBaseModel.context,
+          });
+        }
+        return { qb };
       }
 
-      await extractLinkRelFiltersAndApply({
-        qb: qb,
-        column,
-        alias: refTableAlias,
-        table: parentBaseModel.model,
-        baseModel: parentBaseModel,
-        context: parentBaseModel.context,
-      });
+      case RelationTypes.MANY_TO_MANY: {
+        profiler.log('Relation: ' + relationColumnOption.type);
+        const mmModel = await relationColumnOption.getMMModel();
+        if (!mmModel) {
+          return null;
+        }
+        const mmChildCol = await relationColumnOption.getMMChildColumn();
+        const mmParentCol = await relationColumnOption.getMMParentColumn();
+        const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+          id: mmModel.id,
+          dbDriver: knex,
+        });
 
-      // V2 MO/OO: single-record semantics — limit to 1 row
-      if (isBtLikeV2Junction(relationColumn)) {
-        qb.limit(1);
+        const qb = knex(
+          dbQueryClient.tableAlias(
+            knex,
+            parentBaseModel.getTnPath(parentModel?.table_name),
+            refTableAlias,
+          ),
+        )
+          .innerJoin(
+            assocBaseModel.getTnPath(mmModel.table_name) as any,
+            knex.ref(
+              `${assocBaseModel.getTnPath(mmModel.table_name)}.${
+                mmParentCol.column_name
+              }`,
+            ) as any,
+            '=',
+            knex.ref(`${refTableAlias}.${parentCol.column_name}`) as any,
+          )
+          .where(
+            knex.ref(
+              `${assocBaseModel.getTnPath(mmModel.table_name)}.${
+                mmChildCol.column_name
+              }`,
+            ),
+            '=',
+            knex.ref(
+              `${alias || childBaseModel.getTnPath(childModel.table_name)}.${
+                childCol.column_name
+              }`,
+            ),
+          );
+
+        // Exclude soft-deleted parent records from MM rollup
+        const mmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+          parentBaseModel,
+          refTableAlias,
+        );
+        if (mmSoftDeleteFilter) {
+          qb.where(mmSoftDeleteFilter);
+        }
+
+        // no column yet while a new rollup is dry-run
+        if (column) {
+          await extractLinkRelFiltersAndApply({
+            qb: qb,
+            column,
+            alias: refTableAlias,
+            table: parentBaseModel.model,
+            baseModel: parentBaseModel,
+            context: parentBaseModel.context,
+          });
+        }
+
+        // V2 MO/OO: single-record semantics — limit to 1 row
+        if (isBtLikeV2Junction(relationColumn)) {
+          qb.limit(1);
+        }
+        return { qb };
       }
 
-      await applyFunction(qb);
-      profiler.end();
-      return {
-        builder: wrapMssqlNestedAgg(qb),
-      };
+      default:
+        NcError.get(context).unSupportedRelation(relationColumnOption.type);
     }
+  };
 
-    default:
-      NcError.get(context).unSupportedRelation(relationColumnOption.type);
+  if (isRollupFormula(columnOptions as RollupColumn)) {
+    // many-to-many values follow the order of the links in the cell
+    let linkOrderRef: string | undefined;
+    if (relationType === RelationTypes.MANY_TO_MANY) {
+      const mmModel = await relationColumnOption.getMMModel();
+      const orderCol = (await mmModel?.getColumns())?.find(
+        (c) => c.uidt === UITypes.Order,
+      );
+      if (orderCol) {
+        const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+          id: mmModel.id,
+          dbDriver: knex,
+        });
+        linkOrderRef = knex
+          .raw('??.??', [
+            assocBaseModel.getTnPath(mmModel.table_name),
+            orderCol.column_name,
+          ])
+          .toQuery();
+      }
+    }
+    let formulaBuilder: Awaited<ReturnType<typeof genRollupFormulaSelect>>;
+    try {
+      formulaBuilder = await genRollupFormulaSelect({
+        linkOrderRef,
+        baseModelSqlv2,
+        knex,
+        columnOptions: columnOptions as RollupColumn,
+        refBaseModel,
+        refModel:
+          rollupColumn.fk_model_id === childModel.id ? childModel : parentModel,
+        rollupColumn,
+        refTableAlias,
+        parentColumns,
+        buildScope,
+      });
+    } catch (e) {
+      // a formula broken by a later schema change marks its cells, not the read
+      if (
+        param.throwOnFormulaError ||
+        !(e instanceof NcBaseErrorv2 && e.error === NcErrorType.ERR_FORMULA)
+      ) {
+        throw e;
+      }
+      formulaBuilder = null;
+    }
+    profiler.end();
+    return formulaBuilder ?? errorSentinel();
   }
+
+  // sum / avg over a field that is no longer numeric (its type changed after
+  // the rollup was saved) shows as an error in the cell, not a failed read
+  if (
+    ['sum', 'sumDistinct', 'avg', 'avgDistinct'].includes(
+      columnOptions.rollup_function,
+    )
+  ) {
+    let resultType: string | undefined;
+    if (rollupColumn.uidt === UITypes.Formula) {
+      resultType = (
+        await rollupColumn.getColOptions<FormulaColumn>()
+      )?.getParsedTree?.()?.dataType;
+    } else if (rollupColumn.uidt === UITypes.Rollup) {
+      const inner = await rollupColumn.getColOptions<RollupColumn>();
+      resultType = isRollupFormula(inner)
+        ? inner.parsed_tree?.dataType
+        : undefined;
+    }
+    const numeric =
+      resultType !== undefined
+        ? [
+            FormulaDataTypes.NUMERIC,
+            FormulaDataTypes.BOOLEAN,
+            FormulaDataTypes.UNKNOWN,
+          ].includes(resultType as FormulaDataTypes)
+        : [UITypes.Formula, UITypes.Rollup].includes(rollupColumn.uidt) ||
+          getAvailableRollupForUiType(rollupColumn.uidt).includes(
+            columnOptions.rollup_function,
+          );
+    if (!numeric) {
+      return errorSentinel();
+    }
+  }
+
+  const scope = await buildScope();
+  if (!scope) {
+    return errorSentinel();
+  }
+  const { qb } = scope;
+  await applyFunction(qb);
+  profiler.end();
+  return {
+    builder: wrapMssqlNestedAgg(qb),
+  };
 }

@@ -12,6 +12,7 @@ export * from './formula/types';
 export * from './formula/validate-extract-tree';
 export * from './formula/jsepInstances';
 export * from './formula/non-finite';
+export * from './formula/rollupFormula';
 
 export async function substituteColumnAliasWithIdInFormula(
   formula,

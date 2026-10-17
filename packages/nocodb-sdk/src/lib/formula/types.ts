@@ -42,6 +42,9 @@ export interface CallExpressionNode extends BaseFormulaNode {
     type?: string;
     name: string;
   };
+  // rollup formulas only: canonical name of a call that aggregates over / modifies `values`
+  rollupAggregate?: string;
+  rollupModifier?: string;
 }
 
 export interface IdentifierNode extends BaseFormulaNode {

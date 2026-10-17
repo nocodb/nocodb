@@ -16,6 +16,7 @@ import {
   CURRENT_USER_TOKEN,
   EventType,
   extractFilterFromXwhere,
+  getRollupResultUidt,
   isAIPromptCol,
   isAttachment,
   isBtLikeV2Junction,
@@ -8694,7 +8695,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     for (const col of dateTimeColumns) {
       if (!d[col.id]) continue;
-      if (col.uidt === UITypes.Formula) {
+      // a date-time rollup result can still be a date-only value (MIN of a
+      // date rollup): only rewrite the date-time parts, as for formulas
+      if (
+        col.uidt === UITypes.Formula ||
+        getRollupResultUidt(col) === UITypes.DateTime
+      ) {
         if (!d[col.id] || typeof d[col.id] !== 'string') {
           continue;
         }
@@ -8757,7 +8763,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         continue;
       }
 
-      if (col.uidt === UITypes.Date) {
+      if ((getRollupResultUidt(col) ?? col.uidt) === UITypes.Date) {
         d[col.id] = dayjs(d[col.id]).format('YYYY-MM-DD');
         continue;
       }
@@ -8845,7 +8851,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           c.uidt === UITypes.DateTime ||
           c.uidt === UITypes.Date ||
           isCreatedOrLastModifiedTimeCol(c) ||
-          c.uidt === UITypes.Formula,
+          c.uidt === UITypes.Formula ||
+          // a rollup with a date result comes back in the dialect's raw shape
+          [UITypes.Date, UITypes.DateTime].includes(getRollupResultUidt(c)),
       );
       if (dateTimeColumns.length) {
         if (Array.isArray(data)) {

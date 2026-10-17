@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, UITypes, isColumnInError, isHiddenCol } from 'nocodb-sdk'
+import { type ColumnType, ROLLUP_VALUES_KEYWORD, UITypes, isColumnInError, isHiddenCol, rollupFormulaFunctions } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue/lib/list'
 import {
@@ -24,12 +24,17 @@ interface Props {
   suggestionHeight?: 'small' | 'medium' | 'large'
   disableSuggestionHeaders?: boolean
   disabledFormulas: string[]
+  // rollup formula mode: the rolled-up field, offered as the `values` variable
+  rollupValuesColumn?: ColumnType
+  // validateInfos key the editor reports errors on
+  validateKey?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   suggestionHeight: 'large',
   disableSuggestionHeaders: false,
   disabledFormulas: () => [],
+  validateKey: 'formula_raw',
 })
 
 const emits = defineEmits(['update:value'])
@@ -50,23 +55,28 @@ const { isAiModeFieldModal } = usePredictFields()
 
 const meta = inject(MetaInj, ref())
 
-const supportedColumns = computed(
-  () =>
-    meta?.value?.columns?.filter((col) => {
-      if (uiTypesNotSupportedInFormulas.includes(col.uidt as UITypes)) {
-        return false
-      }
+const isRollupMode = computed(() => !!props.rollupValuesColumn)
 
-      if (isColumnInError(col)) {
-        return false
-      }
+const fieldValidateInfo = computed(() => validateInfos[props.validateKey])
 
-      if (isHiddenCol(col, meta.value)) {
-        return false
-      }
+const supportedColumns = computed(() =>
+  props.rollupValuesColumn
+    ? [{ ...props.rollupValuesColumn, title: ROLLUP_VALUES_KEYWORD }]
+    : meta?.value?.columns?.filter((col) => {
+        if (uiTypesNotSupportedInFormulas.includes(col.uidt as UITypes)) {
+          return false
+        }
 
-      return true
-    }) || [],
+        if (isColumnInError(col)) {
+          return false
+        }
+
+        if (isHiddenCol(col, meta.value)) {
+          return false
+        }
+
+        return true
+      }) || [],
 )
 
 const suggestionPreviewed = ref<Record<any, string> | undefined>()
@@ -76,7 +86,16 @@ const priority = ref(0)
 
 const showFunctionList = ref<boolean>(true)
 
-const availableFunctions = formulaList
+// a rollup formula offers its aggregates first, then the scalar functions that wrap them
+const rollupFunctionNames = Object.keys(rollupFormulaFunctions)
+
+const availableFunctions = computed(() =>
+  isRollupMode.value ? [...rollupFunctionNames, ...formulaList.filter((fn) => !rollupFunctionNames.includes(fn))] : formulaList,
+)
+
+function getFunctionMeta(fn: string) {
+  return (isRollupMode.value && rollupFormulaFunctions[fn as keyof typeof rollupFormulaFunctions]) || formulas[fn]
+}
 
 const availableBinOps = ['+', '-', '*', '/', '>', '<', '==', '<=', '>=', '!=', '&']
 
@@ -105,13 +124,13 @@ const suggestionsList = computed(() => {
   const unsupportedFnList = sqlUi.value?.getUnsupportedFnList() || []
   return (
     [
-      ...availableFunctions.map((fn: string) => ({
+      ...availableFunctions.value.map((fn: string) => ({
         text: `${fn}()`,
         type: 'function',
-        description: formulas[fn].description,
-        syntax: formulas[fn].syntax,
-        examples: formulas[fn].examples,
-        docsUrl: formulas[fn].docsUrl,
+        description: getFunctionMeta(fn).description,
+        syntax: getFunctionMeta(fn).syntax,
+        examples: getFunctionMeta(fn).examples,
+        docsUrl: getFunctionMeta(fn).docsUrl,
         unsupported: unsupportedFnList.includes(fn),
       })),
       ...supportedColumns.value
@@ -452,7 +471,7 @@ function appendText(item: Record<string, any>) {
   if (item.type === 'function') {
     insertStringAtPosition(editor, text)
   } else if (item.type === 'column') {
-    insertStringAtPosition(editor, `{${text}}`, true)
+    insertStringAtPosition(editor, isRollupMode.value ? text : `{${text}}`, true)
   } else {
     insertStringAtPosition(editor, text, true)
   }
@@ -504,9 +523,9 @@ function handleInput() {
 
   if (text.length === 0) {
     // clear error if formula is empty
-    if (validateInfos.formula_raw?.validateStatus === 'error') {
-      validateInfos.formula_raw.validateStatus = 'success'
-      validateInfos.formula_raw.help = []
+    if (fieldValidateInfo.value?.validateStatus === 'error') {
+      fieldValidateInfo.value.validateStatus = 'success'
+      fieldValidateInfo.value.help = []
     }
   }
 
@@ -691,7 +710,7 @@ const repairFormulaAI = async () => {
 
   $e(`a:column:ai:formula:repair`)
 
-  const formula = await repairFormula(value.value, meta.value?.id, validateInfos?.formula_raw?.help.join(' | '))
+  const formula = await repairFormula(value.value, meta.value?.id, fieldValidateInfo.value?.help.join(' | '))
 
   if (formula) {
     editor.setValue(formula)
@@ -701,7 +720,7 @@ const repairFormulaAI = async () => {
 const enableAI = async () => {
   $e(`c:column:ai:formula:enable`)
 
-  if (validateInfos?.formula_raw?.validateStatus === 'error') {
+  if (fieldValidateInfo.value?.validateStatus === 'error') {
     await repairFormulaAI()
   } else {
     aiMode.value = AI_MODE.PROMPT
@@ -729,7 +748,7 @@ watch(
   },
 )
 const validationErrorDisplay = computed(() => {
-  return props.editorError?.isError ? { validateStatus: 'success' } : validateInfos.formula_raw
+  return props.editorError?.isError ? { validateStatus: 'success' } : fieldValidateInfo.value
 })
 </script>
 
@@ -801,7 +820,7 @@ const validationErrorDisplay = computed(() => {
       @keydown.stop="handleKeydown"
     ></div>
   </a-form-item>
-  <template v-if="isAiFeaturesEnabled">
+  <template v-if="isAiFeaturesEnabled && !isRollupMode">
     <div v-if="aiMode === AI_MODE.NONE" class="w-full flex justify-end mt-2">
       <NcButton size="small" type="text" :loading="aiLoading" @click="enableAI">
         <template #icon>
@@ -811,7 +830,7 @@ const validationErrorDisplay = computed(() => {
           <GeneralLoader class="!text-nc-content-purple-medium" size="regular" />
         </template>
         <div class="flex gap-2 items-center">
-          <span v-if="validateInfos?.formula_raw?.validateStatus === 'error'" class="text-[13px] font-semibold">{{
+          <span v-if="fieldValidateInfo?.validateStatus === 'error'" class="text-[13px] font-semibold">{{
             $t('labels.fixFormula')
           }}</span>
           <span v-else class="text-[13px] font-semibold">{{ $t('labels.formulaHelper') }}</span>
@@ -831,7 +850,7 @@ const validationErrorDisplay = computed(() => {
             <div class="flex-1 text-small leading-[18px] font-bold text-nc-content-gray-subtle2">{{ $t('labels.prompt') }}</div>
             <div class="flex items-center gap-2">
               <NcButton
-                v-if="validateInfos?.formula_raw?.validateStatus === 'error'"
+                v-if="fieldValidateInfo?.validateStatus === 'error'"
                 type="secondary"
                 size="xs"
                 theme="ai"

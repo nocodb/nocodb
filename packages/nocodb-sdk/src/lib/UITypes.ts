@@ -365,6 +365,21 @@ export function isNumericCol(
     | ColumnReqType
     | ColumnType
 ) {
+  // a formula rollup is numeric only when its result is
+  const colOptions =
+    typeof col === 'object'
+      ? ((col as ColumnType)?.colOptions as {
+          rollup_function?: string;
+          parsed_tree?: { dataType?: FormulaDataTypes };
+        })
+      : undefined;
+  if (
+    typeof col === 'object' &&
+    col?.uidt === UITypes.Rollup &&
+    colOptions?.rollup_function === 'formula'
+  ) {
+    return colOptions.parsed_tree?.dataType === FormulaDataTypes.NUMERIC;
+  }
   return numericUITypes.includes(
     <UITypes>(typeof col === 'object' ? col?.uidt : col)
   );
@@ -711,6 +726,26 @@ export const getEquivalentUIType = ({
     case FormulaDataTypes.BOOLEAN:
       return UITypes.Checkbox;
   }
+};
+
+/**
+ * The date type a rollup returns: `min`/`max` over a date field gives that
+ * date. Undefined for every other rollup, which stays numeric.
+ */
+export const resolveRollupResultUidt = (
+  rollupFunction: RollupType['rollup_function'] | string,
+  targetUidt: UITypes | string
+): UITypes.Date | UITypes.DateTime | undefined => {
+  if (rollupFunction !== 'min' && rollupFunction !== 'max') return undefined;
+  switch (targetUidt) {
+    case UITypes.Date:
+      return UITypes.Date;
+    case UITypes.DateTime:
+    case UITypes.CreatedTime:
+    case UITypes.LastModifiedTime:
+      return UITypes.DateTime;
+  }
+  return undefined;
 };
 
 export const isSelectTypeCol = (

@@ -270,8 +270,13 @@
               "sum",
               "countDistinct",
               "sumDistinct",
-              "avgDistinct"
+              "avgDistinct",
+              "formula"
             ]
+          },
+          "formula": {
+            "type": "string",
+            "description": "Expression over `values` when `rollup_function` is `formula`."
           },
           "error": {
             "type": "string",
@@ -282,6 +287,17 @@
             "description": "Number of decimal places for numeric rollups. Defaults to 0.",
             "minimum": 0,
             "maximum": 5
+          },
+          "display_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Formula rollups only: field type the result is rendered as. Null renders the raw result."
+          },
+          "display_column_meta": {
+            "type": "object",
+            "description": "Formula rollups only: field options applied to the rendered result."
           },
           "enable_conditions": {
             "type": "boolean",

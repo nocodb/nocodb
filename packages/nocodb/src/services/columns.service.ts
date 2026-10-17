@@ -15,6 +15,7 @@ import {
   isFieldTrackingLmtCol,
   isLinksOrLTAR,
   isMMOrMMLike,
+  isRollupFormula,
   isServiceUser,
   isSupportedDisplayValueColumn,
   isSystemColumn,
@@ -36,6 +37,7 @@ import {
   ProjectRoles,
   readonlyMetaAllowedTypes,
   RelationTypes,
+  ROLLUP_FORMULA_FUNCTION,
   SqlUiFactory,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
@@ -56,6 +58,8 @@ import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
   LinkToAnotherRecordType,
+  ParsedFormulaNode,
+  RollupColumnReqType,
   UserType,
 } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
@@ -153,6 +157,8 @@ import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 import { validateColumnInternalMeta } from '~/types/column-internal-meta';
 import { backfillAutoNumber } from '~/helpers/autonumberHelpers';
 import { getModelContext, setModelContext } from '~/helpers/modelContext';
+import { clearSingleQueryCacheForColumnReferences } from '~/helpers/singleQueryCacheInvalidator';
+import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 
 export type {
   LtarSideEffectIds,
@@ -653,6 +659,65 @@ export class ColumnsService implements IColumnsService {
     }
   }
 
+  /**
+   * A formula rollup stores its result type; re-validate the ones reading a
+   * field whose type changed, or mark them errored when the formula no longer
+   * fits (e.g. SUM over what is now text).
+   */
+  async retypeRollupFormulas(targetColumnId: string) {
+    const rollups = await Noco.ncMeta.knex(MetaTable.COL_ROLLUP).where({
+      fk_rollup_column_id: targetColumnId,
+      rollup_function: ROLLUP_FORMULA_FUNCTION,
+    });
+    for (const rollup of rollups) {
+      const rollupContext = {
+        workspace_id: rollup.fk_workspace_id,
+        base_id: rollup.base_id,
+      } as NcContext;
+      const column = await Column.get(rollupContext, {
+        colId: rollup.fk_column_id,
+      });
+      if (!column) continue;
+      const payload: RollupColumnReqType & {
+        title: string;
+        parsed_tree?: ParsedFormulaNode;
+      } = {
+        title: column.title,
+        uidt: UITypes.Rollup,
+        fk_relation_column_id: rollup.fk_relation_column_id,
+        fk_rollup_column_id: rollup.fk_rollup_column_id,
+        rollup_function: rollup.rollup_function,
+        rollup_formula: rollup.rollup_formula,
+      };
+      try {
+        await validateRollupPayload(rollupContext, payload);
+        await RollupColumn.update(rollupContext, column.id, {
+          parsed_tree: payload.parsed_tree,
+          error: null,
+        });
+      } catch (e) {
+        await RollupColumn.update(rollupContext, column.id, {
+          error: e.message,
+        });
+      }
+      // formulas over this rollup typed it by its old result: re-parse them
+      for (const formula of await getFormulasReferredTheColumn(rollupContext, {
+        column,
+        columns: await Column.list(rollupContext, {
+          fk_model_id: column.fk_model_id,
+        }),
+      })) {
+        if (formula.uidt !== UITypes.Formula) continue;
+        await FormulaColumn.update(rollupContext, formula.id, {
+          parsed_tree: null,
+        });
+      }
+      await View.clearSingleQueryCache(rollupContext, column.fk_model_id);
+      // lookups of this rollup embed its SQL in their own models' queries
+      await clearSingleQueryCacheForColumnReferences(rollupContext, column);
+    }
+  }
+
   private async updateMetaAndDatabase(
     context: NcContext,
     args: {
@@ -999,7 +1064,7 @@ export class ColumnsService implements IColumnsService {
     }
 
     try {
-      return await this._runColumnUpdate(
+      const result = await this._runColumnUpdate(
         context,
         param,
         column,
@@ -1007,6 +1072,11 @@ export class ColumnsService implements IColumnsService {
         reuse,
         ncMeta,
       );
+      // every update path, not only those that rewrite formulas
+      if (param.column.uidt && param.column.uidt !== oldColumn.uidt) {
+        await this.retypeRollupFormulas(oldColumn.id);
+      }
+      return result;
     } catch (err) {
       if (createdBackup) {
         try {
@@ -4308,6 +4378,9 @@ export class ColumnsService implements IColumnsService {
       case UITypes.Rollup:
         {
           await validateRollupPayload(context, param.column);
+          if (isRollupFormula(colBody)) {
+            await this.dryRunRollup(context, table.id, colBody);
+          }
 
           savedColumn = await Column.insert(context, {
             ...colBody,
@@ -7831,23 +7904,62 @@ export class ColumnsService implements IColumnsService {
         'rollup_function',
       ])
     ) {
+      // a payload that omits the formula (e.g. a rename) keeps the saved one
+      if (
+        isRollupFormula(colBody) &&
+        colBody.rollup_formula === undefined &&
+        isRollupFormula(column.colOptions)
+      ) {
+        colBody.rollup_formula = column.colOptions.rollup_formula;
+      }
       // Perform additional validation for rollup payload
       await validateRollupPayload(context, colBody);
-      const baseModel = await getBaseModelSqlFromModelId({
-        modelId: column.fk_model_id,
-        context,
-      });
-      await genRollupSelectv2({
-        baseModelSqlv2: baseModel,
-        knex: baseModel.dbDriver,
-        columnOptions: {
-          // colBody do not have fk_column_id
-          // fk_column_id is required to detect circular ref
-          fk_column_id: column.colOptions.fk_column_id,
-          ...colBody,
-        },
+      await this.dryRunRollup(context, column.fk_model_id, {
+        // colBody do not have fk_column_id
+        // fk_column_id is required to detect circular ref
+        fk_column_id: column.colOptions.fk_column_id,
+        ...colBody,
       });
       await Column.update(context, column.id, { ...colBody, error: null });
+    }
+  }
+
+  /**
+   * Build the rollup's SQL (catches circular references) and, for a formula
+   * rollup, run it on one row so a formula the database rejects fails the
+   * save rather than every later read.
+   */
+  async dryRunRollup(
+    context: NcContext,
+    modelId: string,
+    columnOptions: Partial<RollupColumn>,
+  ) {
+    const baseModel = await getBaseModelSqlFromModelId({ modelId, context });
+    const { builder } = await genRollupSelectv2({
+      baseModelSqlv2: baseModel,
+      knex: baseModel.dbDriver,
+      throwOnFormulaError: true,
+      columnOptions: columnOptions as RollupColumn,
+    });
+    if (!isRollupFormula(columnOptions)) return;
+
+    const knex = baseModel.dbDriver;
+    try {
+      await baseModel.execAndParse(
+        knex(baseModel.getTnPath(baseModel.model))
+          .select(knex.raw('(??) as ??', [builder, '__nc_dry_run']))
+          .limit(1, { skipBinding: true }),
+        null,
+        { raw: true },
+      );
+    } catch (e) {
+      const dbError = DBErrorExtractor.get().extractDbError(e, {
+        clientType: baseModel.clientType as ClientType,
+        ignoreDefault: true,
+      });
+      NcError.get(context).formulaError(
+        dbError?.message ?? 'The rollup formula could not be evaluated',
+      );
     }
   }
 

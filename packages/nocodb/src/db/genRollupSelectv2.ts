@@ -64,7 +64,7 @@ export default async function genRollupSelectv2(param: {
   nestedLevel?: number;
   // saving a formula rollup reports its errors; reads show the cell as an error
   throwOnFormulaError?: boolean;
-}): Promise<{ builder: Knex.QueryBuilder | any }> {
+}): Promise<{ builder: Knex.QueryBuilder | any; isError?: boolean }> {
   const { baseModelSqlv2, knex, alias, columnOptions, nestedLevel = 0 } = param;
   let { parentColumns } = param;
 
@@ -75,6 +75,7 @@ export default async function genRollupSelectv2(param: {
     const qb = knex.select(knex.raw(`?`, [NC_ERROR_SENTINEL]));
     return {
       builder: baseModelSqlv2.isOracle ? qb.from(knex.raw('dual')) : qb,
+      isError: true,
     };
   };
 
@@ -149,6 +150,15 @@ export default async function genRollupSelectv2(param: {
     isRollupFormula(columnOptions as RollupColumn)
       ? !isRollupFormulaTargetColumn(rollupColumn)
       : !isRollupAggregatableColumn(rollupColumn)
+  ) {
+    return errorSentinel();
+  }
+
+  // an errored rollup / lookup target reads as the error sentinel text, which
+  // a SUM / filter can't take: the whole read would fail, not this cell
+  if (
+    [UITypes.Rollup, UITypes.Lookup].includes(rollupColumn.uidt) &&
+    (await rollupColumn.getColOptions<{ error?: string }>())?.error
   ) {
     return errorSentinel();
   }
@@ -456,6 +466,33 @@ export default async function genRollupSelectv2(param: {
       case RelationTypes.HAS_MANY:
       case RelationTypes.ONE_TO_ONE: {
         profiler.log('Relation: ' + relationColumnOption.type);
+        // a one-to-one seen from the side holding the key: the linked record
+        // is the parent this row points at
+        if (relationColumn.meta?.bt) {
+          const qb = knex(
+            dbQueryClient.tableAlias(
+              knex,
+              parentBaseModel.getTnPath(parentModel),
+              refTableAlias,
+            ),
+          ).where(
+            knex.ref(`${refTableAlias}.${parentCol.column_name}`),
+            '=',
+            knex.ref(
+              `${alias || childBaseModel.getTnPath(childModel.table_name)}.${
+                childCol.column_name
+              }`,
+            ),
+          );
+          const softDeleteFilter = await getAliasedSoftDeleteFilter(
+            parentBaseModel,
+            refTableAlias,
+          );
+          if (softDeleteFilter) {
+            qb.where(softDeleteFilter);
+          }
+          return { qb };
+        }
         const qb = knex(
           dbQueryClient.tableAlias(
             knex,
@@ -576,10 +613,9 @@ export default async function genRollupSelectv2(param: {
     let linkOrderRef: string | undefined;
     if (relationType === RelationTypes.MANY_TO_MANY) {
       const mmModel = await relationColumnOption.getMMModel();
-      const orderCol = (await mmModel?.getColumns())?.find(
-        (c) => c.uidt === UITypes.Order,
-      );
-      if (orderCol) {
+      // the junction has an order column per side; this one orders this record's links
+      const orderCol = await relationColumnOption.getMMChildOrderColumn();
+      if (mmModel && orderCol) {
         const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
           id: mmModel.id,
           dbDriver: knex,
@@ -646,7 +682,10 @@ export default async function genRollupSelectv2(param: {
             FormulaDataTypes.BOOLEAN,
             FormulaDataTypes.UNKNOWN,
           ].includes(resultType as FormulaDataTypes)
-        : [UITypes.Formula, UITypes.Rollup].includes(rollupColumn.uidt) ||
+        : // checkbox sums / averages through bool casts
+          [UITypes.Formula, UITypes.Rollup, UITypes.Checkbox].includes(
+            rollupColumn.uidt,
+          ) ||
           getAvailableRollupForUiType(rollupColumn.uidt).includes(
             columnOptions.rollup_function,
           );

@@ -3,6 +3,7 @@ import {
   extractColumnIdentifierType,
   extractRollupAggregates,
   FormulaDataTypes,
+  FormulaError,
   getRollupAggregate,
   getRollupModifier,
   isMMOrMMLike,
@@ -72,7 +73,7 @@ function storedValuesType(node: ParsedFormulaNode): FormulaDataTypes {
 function attachmentTextSql(knex: XKnex, col: string): string | null {
   switch (knex.clientType()) {
     case 'pg':
-      return `(SELECT STRING_AGG(COALESCE(e->>'title', '') || COALESCE(' (' || COALESCE(e->>'url', e->>'path') || ')', ''), ', ' ORDER BY i) FROM jsonb_array_elements(CASE WHEN jsonb_typeof(NULLIF(${col}::text, '')::jsonb) = 'array' THEN ${col}::jsonb ELSE '[]'::jsonb END) WITH ORDINALITY AS a(e, i))`;
+      return `(SELECT STRING_AGG(COALESCE(e->>'title', '') || COALESCE(' (' || COALESCE(e->>'url', e->>'path') || ')', ''), ', ' ORDER BY i) FROM jsonb_array_elements(CASE WHEN ${col}::text ~ '^\\s*\\[' THEN ${col}::jsonb ELSE '[]'::jsonb END) WITH ORDINALITY AS a(e, i))`;
     case 'mysql':
     case 'mysql2':
       return `(SELECT GROUP_CONCAT(CONCAT(COALESCE(j.title, ''), COALESCE(CONCAT(' (', COALESCE(j.url, j.path), ')'), '')) ORDER BY j.i SEPARATOR ', ') FROM JSON_TABLE(IF(JSON_VALID(${col}), ${col}, '[]'), '$[*]' COLUMNS (i FOR ORDINALITY, title TEXT PATH '$.title', url TEXT PATH '$.url', path TEXT PATH '$.path')) j)`;
@@ -159,18 +160,26 @@ export default async function genRollupFormulaSelect(params: {
   ).dataType;
   let parsedTree = columnOptions.parsed_tree;
   if (!parsedTree || storedValuesType(parsedTree) !== currentValuesType) {
-    parsedTree = await validateFormulaAndExtractTreeWithType({
-      formula: columnOptions.rollup_formula,
-      columns: [],
-      clientOrSqlUi: refBaseModel.clientType as ClientTypeOrSqlUI,
-      getMeta,
-      rollup: { valuesColumn: rollupColumn, valuesColumns: refModel.columns },
-    }).catch((e) =>
+    try {
+      parsedTree = await validateFormulaAndExtractTreeWithType({
+        formula: columnOptions.rollup_formula,
+        columns: [],
+        clientOrSqlUi: refBaseModel.clientType as ClientTypeOrSqlUI,
+        getMeta,
+        rollup: {
+          valuesColumn: rollupColumn,
+          valuesColumns: refModel.columns,
+        },
+      });
+    } catch (e) {
+      // only a formula that no longer fits is a cell error; meta / infra
+      // failures surface
+      if (!(e instanceof FormulaError)) throw e;
       NcError.get(context).formulaError(
         `Rollup formula no longer fits its field: ${e.message}`,
-      ),
-    );
-    // in memory only: saves re-type the stored tree (retypeRollupFormulas)
+      );
+    }
+    // in memory only: saves re-type the stored tree (meta-dependency handler)
   }
 
   // the formula builder rewrites trees in place
@@ -234,10 +243,9 @@ export default async function genRollupFormulaSelect(params: {
       model,
       dbDriver: knex,
     });
+    // the junction has an order column per side; this one orders each record's links
     const junctionOrderCol = isMMOrMMLike(relationColumn)
-      ? (await (await relation.getMMModel())?.getColumns())?.find(
-          (c) => c.uidt === UITypes.Order,
-        )?.column_name
+      ? (await relation.getMMChildOrderColumn())?.column_name
       : undefined;
     hops.push({
       relationColumn,

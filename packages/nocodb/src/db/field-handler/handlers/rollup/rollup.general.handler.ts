@@ -64,14 +64,25 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
     } = options;
 
     const rollupOptions = await column.getColOptions<RollupColumn>();
-    const builder = (
-      await genRollupSelectv2({
-        baseModelSqlv2,
-        knex,
-        alias,
-        columnOptions: rollupOptions,
-      })
-    ).builder;
+    const { builder, isError } = await genRollupSelectv2({
+      baseModelSqlv2,
+      knex,
+      alias,
+      columnOptions: rollupOptions,
+    });
+
+    // an errored rollup reads as the error sentinel text: no typed comparison
+    // fits it, and an error is never blank or equal to a value
+    if (isError) {
+      const matchesAll = ['neq', 'not', 'notblank', 'notempty'].includes(
+        filter.comparison_op,
+      );
+      return {
+        clause: (qb: Knex.QueryBuilder) => {
+          qb.whereRaw(matchesAll ? '1 = 1' : '1 = 0');
+        },
+      };
+    }
 
     // a rollup with a resolved result type filters as that type
     const resultUidt = getRollupResultUidt({
@@ -88,6 +99,7 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
           UITypes.Checkbox,
           UITypes.Number,
           UITypes.Decimal,
+          UITypes.Time,
         ].includes(resultUidt)
       ) {
         // a computed expression has no column affinity: SQLite compares a
@@ -114,6 +126,23 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
         );
       }
       if (resultUidt === UITypes.SingleLineText) {
+        // '' is blank, as for text fields (a Rollup column is not text-typed,
+        // so the generic path skips that arm)
+        if (
+          ['blank', 'empty', 'notblank', 'notempty'].includes(
+            filter.comparison_op,
+          )
+        ) {
+          const blank = ['blank', 'empty'].includes(filter.comparison_op);
+          return {
+            clause: (qb: Knex.QueryBuilder) => {
+              qb.whereRaw(
+                blank ? `(? IS NULL OR ? = '')` : `(? IS NOT NULL AND ? <> '')`,
+                [expression, expression],
+              );
+            },
+          };
+        }
         return parseConditionV2(
           baseModelSqlv2,
           new Filter({
@@ -135,6 +164,7 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
     // a subquery for (pg: syntax error on neq, type mismatch on blank)
     if (
       column.uidt === UITypes.Rollup &&
+      !isRollupFormula(rollupOptions) &&
       !['min', 'max'].includes(rollupOptions.rollup_function) &&
       ['neq', 'not', 'blank', 'notblank', 'empty', 'notempty'].includes(
         filter.comparison_op,

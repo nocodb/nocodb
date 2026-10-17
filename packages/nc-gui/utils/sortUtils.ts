@@ -1,4 +1,13 @@
-import { type ColumnType, type SortType, UITypes, getEquivalentUIType } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type ParsedFormulaNode,
+  type RollupType,
+  type SortType,
+  UITypes,
+  getEquivalentUIType,
+  isRollupFormula,
+  rollupFormulaResultUidt,
+} from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
 export const getSortDirectionOptions = (uidt: UITypes | string, isGroupBy?: boolean) => {
@@ -252,6 +261,12 @@ export const getColumnUidtByID = (key?: string, columns?: ColumnType[] | Record<
       getEquivalentUIType({
         formulaColumn: column,
       }) || uidt
+  }
+
+  // a formula rollup sorts as its result type
+  const rollupOptions = column.colOptions as RollupType | undefined
+  if (column.uidt === UITypes.Rollup && isRollupFormula(rollupOptions)) {
+    uidt = rollupFormulaResultUidt(rollupOptions?.parsed_tree as ParsedFormulaNode)
   }
 
   return uidt || ''

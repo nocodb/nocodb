@@ -10,7 +10,10 @@ export function markErrorSentinels<T>(payload: T): T {
 }
 
 function clean(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(clean);
+  // a lookup of an errored field carries the sentinel inside its array
+  if (Array.isArray(value)) {
+    return value.map((v) => (v === NC_ERROR_SENTINEL ? null : clean(v)));
+  }
   if (!value || typeof value !== 'object') return value;
 
   const obj = value as Record<string, unknown>;

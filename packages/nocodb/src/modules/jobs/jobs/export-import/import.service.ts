@@ -4,6 +4,7 @@ import {
   isAIPromptCol,
   isLinksOrLTAR,
   isLinkV2,
+  isRollupFormula,
   isVirtualCol,
   NcApiVersion,
   NcBaseError,
@@ -1542,7 +1543,8 @@ export class ImportService {
         // but preserve error columns even if references can't be mapped.
         // An errored formula rollup can map yet fail validation — copy it as is.
         if (
-          colOptions.error ||
+          // a plain rollup is re-validated through columnAdd, as before
+          (colOptions.error && isRollupFormula(colOptions)) ||
           !getIdOrExternalId(colOptions.fk_relation_column_id) ||
           !getIdOrExternalId(colOptions.fk_rollup_column_id)
         ) {

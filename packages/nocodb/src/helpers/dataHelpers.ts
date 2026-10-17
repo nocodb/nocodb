@@ -91,6 +91,9 @@ export async function getViewAndModelByAliasOrId(
   return { model, view };
 }
 
+// a formula rollup's export column (null for plain rollups), per column object
+const rollupDisplayColumns = new WeakMap<Column, Column | null>();
+
 export async function serializeCellValue(
   context: NcContext,
   {
@@ -119,17 +122,27 @@ export async function serializeCellValue(
     case UITypes.Rollup: {
       // the grid shows an errored cell as ERR!
       if (value === NC_ERROR_SENTINEL) return 'ERR!';
-      const rollupOptions = await column.getColOptions<RollupColumn>();
+      // an export serializes every row of the same column object: resolve once
+      if (!rollupDisplayColumns.has(column)) {
+        const rollupOptions =
+          (column.colOptions as RollupColumn) ??
+          (await column.getColOptions<RollupColumn>());
+        rollupDisplayColumns.set(
+          column,
+          isRollupFormula(rollupOptions)
+            ? (getRollupFormulaDisplayColumn(
+                column,
+                (await rollupOptions.getRollupColumn()) as ColumnType,
+              ) as Column)
+            : null,
+        );
+      }
+      const displayColumn = rollupDisplayColumns.get(column);
       // a formula rollup exports as its result type / picked format
-      if (!isRollupFormula(rollupOptions)) return value;
+      if (!displayColumn) return value;
       return serializeCellValue(context, {
         value,
-        column: getRollupFormulaDisplayColumn(
-          column,
-          (await rollupOptions.getRollupColumn().catch(() => undefined)) as
-            | ColumnType
-            | undefined,
-        ) as Column,
+        column: displayColumn,
         siteUrl,
         locale,
         rawNumeric,

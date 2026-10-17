@@ -184,19 +184,14 @@ watch(
   { deep: true },
 )
 
-const getNextColumnId = () => {
-  const usedLookupColumnIds = (meta.value?.columns || [])
-    .filter((c) => c.uidt === UITypes.Rollup)
-    .map((c) => (c.colOptions as RollupType)?.fk_rollup_column_id)
-
-  return columns.value.find((c) => !usedLookupColumnIds.includes(c.id))?.id
-}
-
 const onRelationColChange = async () => {
   if (selectedTable.value) {
     await getMeta(selectedTable.value.base_id, selectedTable.value.id)
   }
-  vModel.value.fk_rollup_column_id = getNextColumnId() || columns.value?.[0]?.id
+  const usedTargetIds = (meta.value?.columns || [])
+    .filter((c) => c.uidt === UITypes.Rollup)
+    .map((c) => (c.colOptions as RollupType)?.fk_rollup_column_id)
+  vModel.value.fk_rollup_column_id = pickDefaultRollupTargetId(columns.value || [], usedTargetIds, getValidRollupColumn)
   onDataTypeChange()
 }
 
@@ -228,32 +223,41 @@ const relatedTableColumns = computed<ColumnType[]>(() => {
   return getMetaByKey(selectedTable.value.base_id, selectedTable.value.id)?.columns || []
 })
 
+function extractRollupFormulaTree(formula: string) {
+  return validateFormulaAndExtractTreeWithType({
+    formula,
+    // gives the validator a base/table to resolve metas from
+    column: rollupTargetColumn.value as UnifiedMetaType.IColumn,
+    columns: [],
+    clientOrSqlUi: sqlUi.value,
+    getMeta: validateFormulaGetMeta(getMeta),
+    trackPosition: true,
+    rollup: {
+      valuesColumn: rollupTargetColumn.value as UnifiedMetaType.IColumn,
+      valuesColumns: relatedTableColumns.value as UnifiedMetaType.IColumn[],
+    },
+  })
+}
+
+const validationTracker = createLatestCallTracker()
+
+// the form rule: reports the error; the typed tree comes from `deriveFormulaTree`
 async function validateRollupFormula(formula?: string) {
   if (!isFormulaMode.value) return
   if (!formula?.trim()) throw new Error(t('general.required'))
   if (!rollupTargetColumn.value) return
+  const token = validationTracker.start()
   try {
-    formulaParsedTree.value = await validateFormulaAndExtractTreeWithType({
-      formula,
-      // gives the validator a base/table to resolve metas from
-      column: rollupTargetColumn.value as UnifiedMetaType.IColumn,
-      columns: [],
-      clientOrSqlUi: sqlUi.value,
-      getMeta: validateFormulaGetMeta(getMeta),
-      trackPosition: true,
-      rollup: {
-        valuesColumn: rollupTargetColumn.value as UnifiedMetaType.IColumn,
-        valuesColumns: relatedTableColumns.value as UnifiedMetaType.IColumn[],
-      },
-    })
-    editorError.value = { ...defaultEditorError }
+    await extractRollupFormulaTree(formula)
+    if (validationTracker.isLatest(token)) editorError.value = { ...defaultEditorError }
   } catch (e: any) {
-    formulaParsedTree.value = undefined
     const errorMessage = e instanceof FormulaError && e.extra?.key ? t(e.extra.key, e.extra) : e.message
-    editorError.value =
-      e instanceof FormulaError && e.extra?.position
-        ? { isError: true, message: errorMessage, position: e.extra.position }
-        : { ...defaultEditorError }
+    if (validationTracker.isLatest(token)) {
+      editorError.value =
+        e instanceof FormulaError && e.extra?.position
+          ? { isError: true, message: errorMessage, position: e.extra.position }
+          : { ...defaultEditorError }
+    }
     throw new Error(errorMessage)
   }
 }
@@ -261,6 +265,23 @@ async function validateRollupFormula(formula?: string) {
 setAdditionalValidations({
   rollup_formula: [{ validator: (_: any, formula: string) => validateRollupFormula(formula) }],
 })
+
+const treeTracker = createLatestCallTracker()
+
+// as FormulaOptions: debounced, and only the latest result types the formula
+const deriveFormulaTree = useDebounceFn(async () => {
+  const formula = vModel.value.rollup_formula
+  if (!isFormulaMode.value || !formula?.trim() || !rollupTargetColumn.value) return
+  const token = treeTracker.start()
+  try {
+    const tree = await extractRollupFormulaTree(formula)
+    if (treeTracker.isLatest(token)) formulaParsedTree.value = tree
+  } catch {
+    if (treeTracker.isLatest(token)) formulaParsedTree.value = undefined
+  }
+}, 300)
+
+watch([() => vModel.value.rollup_formula, () => vModel.value.fk_rollup_column_id, isFormulaMode], () => deriveFormulaTree())
 
 // a numeric field starts from SUM, anything else from a joined list
 function defaultRollupFormula() {
@@ -426,22 +447,37 @@ watch(
   { immediate: true },
 )
 
-// a new formula rollup shows two decimals; saved columns keep their precision
+// a new formula rollup shows two decimals unless a precision was picked;
+// saved columns keep theirs
 watch(isFormulaMode, (formulaMode) => {
   if (isEdit.value) return
   vModel.value.meta = {
     ...vModel.value.meta,
-    precision: formulaMode ? 2 : ColumnHelper.getColumnDefaultMeta(UITypes.Rollup).precision,
+    precision: nextRollupModePrecision(
+      vModel.value.meta?.precision,
+      formulaMode,
+      ColumnHelper.getColumnDefaultMeta(UITypes.Rollup).precision,
+    ),
   }
 })
 
-// a format that no longer fits the result type (or a plain rollup) is dropped
+// the user's format, kept while a typed-in formula briefly yields another type
+const pickedDisplayType = ref<string | null | undefined>(vModel.value.meta?.display_type)
+
+function onDisplayTypePick(displayType?: string | null) {
+  pickedDisplayType.value = displayType
+}
+
+// a format that no longer fits the result type is put aside, and comes back when it fits again
 watch(rollupFormulaFormats, (formats) => {
-  const displayType = vModel.value.meta?.display_type
-  // in formula mode an empty list only means the formula isn't checked yet
-  if (!displayType || (isFormulaMode.value && !formats.length)) return
-  if (!formats.some((f) => f.value === displayType)) {
-    vModel.value.meta = { ...vModel.value.meta, display_type: null }
+  const displayType = nextRollupDisplayType({
+    isFormulaMode: isFormulaMode.value,
+    formats: formats.map((f) => f.value),
+    current: vModel.value.meta?.display_type,
+    picked: pickedDisplayType.value,
+  })
+  if (displayType !== undefined) {
+    vModel.value.meta = { ...vModel.value.meta, display_type: displayType }
   }
 })
 
@@ -602,6 +638,7 @@ const handleScrollIntoView = () => {
           :placeholder="$t('labels.selectAFormatType')"
           allow-clear
           data-testid="nc-rollup-formula-format"
+          @change="onDisplayTypePick"
         >
           <a-select-option v-for="option in rollupFormulaFormats" :key="option.value" :value="option.value">
             <div class="flex w-full items-center gap-2 justify-between">

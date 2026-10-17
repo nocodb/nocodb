@@ -413,6 +413,7 @@ export async function createOOColumn(
 export async function validateRollupPayload(
   context: NcContext,
   payload: ColumnReqType | Column,
+  ncMeta = Noco.ncMeta,
 ) {
   validateParams(
     [
@@ -425,9 +426,11 @@ export async function validateRollupPayload(
     context,
   );
 
-  const column = await Column.get(context, {
-    colId: (payload as RollupColumnReqType).fk_relation_column_id,
-  });
+  const column = await Column.get(
+    context,
+    { colId: (payload as RollupColumnReqType).fk_relation_column_id },
+    ncMeta,
+  );
 
   if (!column) {
     NcError.get(context).relationFieldNotFound(
@@ -441,7 +444,16 @@ export async function validateRollupPayload(
     );
   }
 
-  const relation = await column.getColOptions<LinkToAnotherRecordColumn>();
+  // e.g. the hidden links of a many-to-many junction
+  if (column.system) {
+    NcError.get(context).badRequest(
+      `"${column.title}" is a system link field and can't be rolled up.`,
+    );
+  }
+
+  const relation = await column.getColOptions<LinkToAnotherRecordColumn>(
+    ncMeta,
+  );
 
   if (!relation) {
     NcError.get(context).relationFieldNotFound(
@@ -455,23 +467,44 @@ export async function validateRollupPayload(
   const relationType = isMMOrMMLike(column) ? 'mm' : relation.type;
   switch (relationType) {
     case 'hm':
-    case 'oo':
-      relatedColumn = await Column.get(refContext, {
-        colId: relation.fk_child_column_id,
-      });
+      relatedColumn = await Column.get(
+        refContext,
+        { colId: relation.fk_child_column_id },
+        ncMeta,
+      );
       break;
     case 'mm':
     case 'bt':
-      relatedColumn = await Column.get(refContext, {
-        colId: relation.fk_parent_column_id,
-      });
+      relatedColumn = await Column.get(
+        refContext,
+        { colId: relation.fk_parent_column_id },
+        ncMeta,
+      );
+      break;
+    case 'oo':
+      relatedColumn = await Column.get(
+        refContext,
+        {
+          colId: column.meta?.bt
+            ? relation.fk_parent_column_id
+            : relation.fk_child_column_id,
+        },
+        ncMeta,
+      );
       break;
     default:
       NcError.get(context).unSupportedRelation(relationType);
   }
 
-  const relatedTable = await relatedColumn.getModel();
-  const relatedTableColumns = await relatedTable.getColumns();
+  // e.g. a hidden junction link, whose far side isn't a table of its own
+  if (!relatedColumn) {
+    NcError.get(context).badRequest(
+      `"${column.title}" can't be rolled up: its linked table could not be resolved.`,
+    );
+  }
+
+  const relatedTable = await relatedColumn.getModel(ncMeta);
+  const relatedTableColumns = await relatedTable.getColumns(ncMeta);
 
   const rollupColumn = relatedTableColumns.find(
     (c) => c.id === (payload as RollupColumnReqType).fk_rollup_column_id,
@@ -518,8 +551,17 @@ export async function validateRollupPayload(
         'A formula rollup needs a formula over `values`, e.g. SUM(values)',
       );
     }
-    const relatedModels = await getRelatedModelMap(refContext, relatedTable);
-    const source = await Source.get(refContext, relatedTable.source_id);
+    const relatedModels = await getRelatedModelMap(
+      refContext,
+      relatedTable,
+      ncMeta,
+    );
+    const source = await Source.get(
+      refContext,
+      relatedTable.source_id,
+      false,
+      ncMeta,
+    );
     try {
       rollupPayload.parsed_tree = await validateFormulaAndExtractTreeWithType({
         formula: rollupPayload.rollup_formula,
@@ -544,7 +586,7 @@ export async function validateRollupPayload(
   // a formula rollup target aggregates as its result type (sum of a text result
   // would fail every read)
   if (rollupColumn.uidt === UITypes.Rollup) {
-    await rollupColumn.getColOptions();
+    await rollupColumn.getColOptions(ncMeta);
   }
   const availableFunctions = isRollupFormula(
     rollupColumn.colOptions as RollupColumn,

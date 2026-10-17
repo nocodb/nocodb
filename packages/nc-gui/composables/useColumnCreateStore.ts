@@ -474,12 +474,14 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             eventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
             eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
           } catch (e: any) {
-            if (!validateInfos.formula_raw) validateInfos.formula_raw = {}
-            validateInfos.formula_raw!.validateStatus = 'error'
-            if (!validateInfos.formula_raw?.help) {
-              validateInfos.formula_raw!.help = []
+            // a formula rollup reports on its own formula input
+            const errorField = getColumnUpdateErrorField(formState.value)
+            if (!validateInfos[errorField]) validateInfos[errorField] = {}
+            validateInfos[errorField]!.validateStatus = 'error'
+            if (!validateInfos[errorField]?.help) {
+              validateInfos[errorField]!.help = []
             }
-            validateInfos.formula_raw?.help.push(await extractSdkResponseErrorMsg(e))
+            validateInfos[errorField]?.help.push(await extractSdkResponseErrorMsg(e))
             message.error(await extractSdkResponseErrorMsg(e))
             return
           }

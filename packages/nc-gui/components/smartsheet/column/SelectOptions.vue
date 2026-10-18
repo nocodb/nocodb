@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { v4 as uuidv4 } from 'uuid'
 import Draggable from 'vuedraggable'
 import { type SelectOptionsType, UITypes } from 'nocodb-sdk'
 
@@ -234,8 +235,13 @@ const syncOptions = (saveChanges = false, submit = false, payload?: Option) => {
     })
     .map((op) => {
       const { status: _s, ...rest } = op
-      // display-format options are stored as-is in column meta: keep only title and color
-      if (isDisplayFormat.value) return { title: rest.title, color: rest.color }
+      // Display-format options live in column meta, so they carry no server id. Mint one
+      // and keep it on the source option: the fallback is stored by id, so it survives a
+      // rename, a reorder and an edit to any other option.
+      if (isDisplayFormat.value) {
+        if (!op.id) op.id = uuidv4()
+        return { id: op.id, title: rest.title, color: rest.color }
+      }
       return rest
     })
 

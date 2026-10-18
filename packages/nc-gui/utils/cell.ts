@@ -239,18 +239,21 @@ export const formatPercentage = (n: number, precision = 2) => {
 
 /**
  * Value a formula with the Single select display format shows: a result matching no
- * option is replaced by the configured `fallbackOption`, if any.
+ * option is replaced by the configured fallback option, if any.
+ *
+ * `meta.fallbackOption` holds the option's id, not its title, so a rename never moves the
+ * fallback and a deleted option simply stops applying.
  */
 export const getFormulaSelectDisplayValue = (value: unknown, displayColumn: Partial<ColumnType>) => {
-  const fallbackOption = parseProp(displayColumn.meta)?.fallbackOption
+  const fallbackOptionId = parseProp(displayColumn.meta)?.fallbackOption
   const text = value === null || value === undefined ? '' : String(value).trim()
 
-  if (!fallbackOption || !text) return value
+  if (!fallbackOptionId || !text) return value
 
-  const options = (displayColumn.colOptions as { options?: { title?: string }[] })?.options ?? []
+  const options = (displayColumn.colOptions as { options?: { id?: string; title?: string }[] })?.options ?? []
 
-  // A fallback whose option was renamed or removed no longer applies
-  if (!options.some((op) => op.title === fallbackOption)) return value
+  const fallbackTitle = options.find((op) => op.id === fallbackOptionId)?.title
+  if (!fallbackTitle) return value
 
-  return options.some((op) => op.title === text) ? value : fallbackOption
+  return options.some((op) => op.title === text) ? value : fallbackTitle
 }

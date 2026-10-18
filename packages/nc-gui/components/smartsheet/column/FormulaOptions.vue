@@ -238,49 +238,18 @@ const isDisplaySelectColorCoded = computed(
   () => parseProp(vModel.value.meta.display_column_meta?.meta)?.isColorCodeEnabled !== false,
 )
 
-// '' = show the result as is; antd renders a null value as the placeholder
+// The fallback is stored as an option id, so renaming or reordering options never moves
+// it. '' = show the result as is; antd renders a null value as the placeholder.
 const displaySelectFallback = computed({
   get: () => {
     const fallback = vModel.value.meta.display_column_meta?.meta?.fallbackOption
-    return displaySelectOptions.value.some((op) => op.title === fallback) ? fallback : ''
+    return displaySelectOptions.value.some((op) => op.id === fallback) ? fallback : ''
   },
   set: (val: string) => {
     const displayColumnMeta = vModel.value.meta.display_column_meta
     displayColumnMeta.meta = { ...(displayColumnMeta.meta ?? {}), fallbackOption: val || null }
   },
 })
-
-// All option titles, including the blank ones `displaySelectOptions` hides, so positions
-// stay put while one is being retyped.
-const displayOptionTitles = computed<string[]>(() =>
-  (vModel.value.meta.display_column_meta?.colOptions?.options ?? []).map((op: SelectOptionType) => op.title ?? ''),
-)
-
-// Last list with every option named. Renaming clears the input for a keystroke, and
-// comparing against that half-typed state is what used to drop the fallback.
-const namedOptionTitles = ref<string[]>([])
-
-// Keep the fallback on its option across a rename; clear it when the option is removed
-watch(
-  displayOptionTitles,
-  (titles) => {
-    // mid-rename: wait until every option has a name again
-    if (titles.some((title) => !title)) return
-
-    const previous = namedOptionTitles.value
-    namedOptionTitles.value = [...titles]
-
-    const fallback = vModel.value.meta.display_column_meta?.meta?.fallbackOption
-    if (!fallback || titles.includes(fallback)) return
-
-    const index = previous.indexOf(fallback)
-    if (index === -1) return
-
-    // same count means the option at that position was renamed; otherwise it was removed
-    displaySelectFallback.value = titles.length === previous.length ? titles[index] ?? '' : ''
-  },
-  { immediate: true },
-)
 
 watch(
   () => vModel.value.meta?.display_type,
@@ -410,7 +379,7 @@ watch(
                       />
                     </div>
                   </a-select-option>
-                  <a-select-option v-for="(option, i) in displaySelectOptions" :key="i" :value="option.title">
+                  <a-select-option v-for="option in displaySelectOptions" :key="option.id" :value="option.id">
                     <div class="flex w-full items-center gap-2 justify-between">
                       <a-tag
                         class="rounded-tag max-w-full"
@@ -439,7 +408,7 @@ watch(
                       </a-tag>
                       <component
                         :is="iconMap.check"
-                        v-if="option.title === displaySelectFallback"
+                        v-if="option.id === displaySelectFallback"
                         id="nc-selected-item-icon"
                         class="text-nc-content-brand w-4 h-4"
                       />

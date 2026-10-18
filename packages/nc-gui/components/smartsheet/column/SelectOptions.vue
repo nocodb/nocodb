@@ -86,6 +86,10 @@ const isColorCodeEnabled = computed({
 
 const isAlphabetized = computed({
   get: () => {
+    // a display format has no cell picker, so option order only drives the fallback
+    // dropdown: the toggle is hidden there, and stale saved state must not lock dragging
+    if (isDisplayFormat.value) return false
+
     const metaObj = parseProp(vModel.value.meta)
     return metaObj.isAlphabetized === true
   },
@@ -602,10 +606,11 @@ defineExpose({
 
       <div class="flex items-center">
         <NcSwitch
+          v-if="!isDisplayFormat"
           v-model:checked="isAlphabetized"
           size="xsmall"
           :disabled="isSyncedField"
-          @change="(v) => !isDisplayFormat && $e('c:field:select:alphabetize:toggle', { enabled: v })"
+          @change="(v) => $e('c:field:select:alphabetize:toggle', { enabled: v })"
         >
           {{ $t('labels.alphabetize') }}
         </NcSwitch>

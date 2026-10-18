@@ -250,16 +250,36 @@ const displaySelectFallback = computed({
   },
 })
 
+// All option titles, including the blank ones `displaySelectOptions` hides, so positions
+// stay put while one is being retyped.
+const displayOptionTitles = computed<string[]>(() =>
+  (vModel.value.meta.display_column_meta?.colOptions?.options ?? []).map((op: SelectOptionType) => op.title ?? ''),
+)
+
+// Last list with every option named. Renaming clears the input for a keystroke, and
+// comparing against that half-typed state is what used to drop the fallback.
+const namedOptionTitles = ref<string[]>([])
+
 // Keep the fallback on its option across a rename; clear it when the option is removed
 watch(
-  () => displaySelectOptions.value.map((op) => op.title),
-  (titles, oldTitles) => {
+  displayOptionTitles,
+  (titles) => {
+    // mid-rename: wait until every option has a name again
+    if (titles.some((title) => !title)) return
+
+    const previous = namedOptionTitles.value
+    namedOptionTitles.value = [...titles]
+
     const fallback = vModel.value.meta.display_column_meta?.meta?.fallbackOption
     if (!fallback || titles.includes(fallback)) return
 
-    const index = oldTitles?.indexOf(fallback) ?? -1
-    displaySelectFallback.value = index !== -1 && titles.length === oldTitles?.length ? titles[index] : ''
+    const index = previous.indexOf(fallback)
+    if (index === -1) return
+
+    // same count means the option at that position was renamed; otherwise it was removed
+    displaySelectFallback.value = titles.length === previous.length ? titles[index] ?? '' : ''
   },
+  { immediate: true },
 )
 
 watch(

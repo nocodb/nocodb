@@ -1,5 +1,5 @@
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, ncIsNaN, roundUpToPrecision } from 'nocodb-sdk'
+import { UITypes, ncIsNaN, parseProp, roundUpToPrecision } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import type { HTMLAttributes } from 'vue'
 
@@ -235,4 +235,25 @@ export const formatPercentage = (n: number, precision = 2) => {
   if (ncIsNaN(n)) return '0%'
 
   return n % 1 === 0 ? `${n}%` : `${roundUpToPrecision(n, precision)}%`
+}
+
+/**
+ * Value a formula with the Single select display format shows: a result matching no
+ * option is replaced by the configured fallback option, if any.
+ *
+ * `meta.fallbackOption` holds the option's id, not its title, so a rename never moves the
+ * fallback and a deleted option simply stops applying.
+ */
+export const getFormulaSelectDisplayValue = (value: unknown, displayColumn: Partial<ColumnType>) => {
+  const fallbackOptionId = parseProp(displayColumn.meta)?.fallbackOption
+  const text = value === null || value === undefined ? '' : String(value).trim()
+
+  if (!fallbackOptionId || !text) return value
+
+  const options = (displayColumn.colOptions as { options?: { id?: string; title?: string }[] })?.options ?? []
+
+  const fallbackTitle = options.find((op) => op.id === fallbackOptionId)?.title
+  if (!fallbackTitle) return value
+
+  return options.some((op) => op.title === text) ? value : fallbackTitle
 }

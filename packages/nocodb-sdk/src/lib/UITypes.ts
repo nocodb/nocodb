@@ -784,7 +784,12 @@ export const getUITypesForFormulaDataType = (
     case FormulaDataTypes.COND_EXP:
       return [UITypes.Checkbox];
     case FormulaDataTypes.STRING:
-      return [UITypes.Email, UITypes.URL, UITypes.PhoneNumber];
+      return [
+        UITypes.Email,
+        UITypes.URL,
+        UITypes.PhoneNumber,
+        UITypes.SingleSelect,
+      ];
     default:
       return [];
   }

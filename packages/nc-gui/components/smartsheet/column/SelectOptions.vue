@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { v4 as uuidv4 } from 'uuid'
 import Draggable from 'vuedraggable'
 import { type SelectOptionsType, UITypes } from 'nocodb-sdk'
 
@@ -18,19 +19,30 @@ const props = defineProps<{
   isKanbanStack?: boolean
   optionId?: string
   isNewStack?: boolean
+  // Options of a formula's Single select display format: no column validations, default value or AI suggest
+  isDisplayFormat?: boolean
 }>()
 
 const emit = defineEmits(['update:value', 'saveChanges'])
 
 const vModel = useVModel(props, 'value', emit)
 
-const { isKanbanStack, optionId, isNewStack } = toRefs(props)
+const { isKanbanStack, optionId, isNewStack, isDisplayFormat } = toRefs(props)
 
 const { $e } = useNuxtApp()
 
 const { isDark, getColor } = useTheme()
 
-const { setAdditionalValidations, validateInfos, column, isSyncedField } = useColumnCreateStoreOrThrow()
+const {
+  setAdditionalValidations,
+  validateInfos: columnValidateInfos,
+  column,
+  isSyncedField: isColumnSynced,
+} = useColumnCreateStoreOrThrow()
+
+const isSyncedField = computed(() => !isDisplayFormat.value && isColumnSynced.value)
+
+const validateInfos = computed(() => (isDisplayFormat.value ? {} : columnValidateInfos))
 
 // const { base } = storeToRefs(useBase())
 
@@ -75,6 +87,10 @@ const isColorCodeEnabled = computed({
 
 const isAlphabetized = computed({
   get: () => {
+    // a display format has no cell picker, so option order only drives the fallback
+    // dropdown: the toggle is hidden there, and stale saved state must not lock dragging
+    if (isDisplayFormat.value) return false
+
     const metaObj = parseProp(vModel.value.meta)
     return metaObj.isAlphabetized === true
   },
@@ -124,9 +140,20 @@ const validators = {
 }
 
 // we use a correct syntax from async-validator but causes a type mismatch on antdv so we cast any
-setAdditionalValidations({
-  ...validators,
-} as any)
+if (!isDisplayFormat.value) {
+  setAdditionalValidations({
+    ...validators,
+  } as any)
+}
+
+// Display-format options skip the form validators; flag duplicates inline instead
+const displayFormatError = computed(() => {
+  if (!isDisplayFormat.value) return ''
+
+  const titles = options.value.filter((op) => op.status !== 'remove' && op.title?.trim()).map((op) => op.title.trim())
+
+  return new Set(titles).size !== titles.length ? t('msg.selectOption.cantHaveDuplicates') : ''
+})
 
 const kanbanStackOption = computed(() => {
   if (isNewStack.value) {
@@ -208,6 +235,13 @@ const syncOptions = (saveChanges = false, submit = false, payload?: Option) => {
     })
     .map((op) => {
       const { status: _s, ...rest } = op
+      // Display-format options live in column meta, so they carry no server id. Mint one
+      // and keep it on the source option: the fallback is stored by id, so it survives a
+      // rename, a reorder and an edit to any other option.
+      if (isDisplayFormat.value) {
+        if (!op.id) op.id = uuidv4()
+        return { id: op.id, title: rest.title, color: rest.color }
+      }
       return rest
     })
 
@@ -343,6 +377,8 @@ const onDragReorder = () => {
 
 // Removes the Select Option from cdf if the option is removed
 watch(vModel, (next) => {
+  if (isDisplayFormat.value) return
+
   const cdfs = (next.cdf ?? '').toString().split(',')
 
   const valuesMap = (next.colOptions?.options ?? []).reduce((acc, c) => {
@@ -503,6 +539,9 @@ watch(
 onMounted(() => {
   seedOptionsFromModel()
 
+  // seeding tags the bound options with `index`; rewrite them clean
+  if (isDisplayFormat.value) syncOptions()
+
   if (isKanbanStack.value && isNewStack.value) {
     addNewOption()
   } else if (isKanbanStack.value) {
@@ -573,6 +612,7 @@ defineExpose({
 
       <div class="flex items-center">
         <NcSwitch
+          v-if="!isDisplayFormat"
           v-model:checked="isAlphabetized"
           size="xsmall"
           :disabled="isSyncedField"
@@ -805,13 +845,13 @@ defineExpose({
     </div>
 
     <div
-      v-if="validateInfos?.colOptions?.help?.[0]?.[0]"
+      v-if="validateInfos?.colOptions?.help?.[0]?.[0] || displayFormatError"
       class="text-error text-[10px] mb-1 mt-2"
       :class="{
         'pl-1': isKanbanStack,
       }"
     >
-      {{ validateInfos.colOptions.help[0][0] }}
+      {{ displayFormatError || validateInfos.colOptions.help[0][0] }}
     </div>
     <div
       v-if="!isKanbanStack && !isSyncedField"
@@ -834,7 +874,7 @@ defineExpose({
 
         {{ $t('labels.addOption') }}
       </NcButton>
-      <NcTooltip v-if="isAiFeaturesEnabled && aiIntegrationAvailable" class="w-1/2">
+      <NcTooltip v-if="isAiFeaturesEnabled && aiIntegrationAvailable && !isDisplayFormat" class="w-1/2">
         <template #title>
           {{
             !vModel.title?.trim() ? $t('tooltip.fieldNameIsRequriedToAutoSuggestOptions') : $t('tooltip.autoSuggestSelectOptions')

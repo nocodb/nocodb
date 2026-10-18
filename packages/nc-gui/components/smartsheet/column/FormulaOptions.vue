@@ -250,6 +250,18 @@ const displaySelectFallback = computed({
   },
 })
 
+// Keep the fallback on its option across a rename; clear it when the option is removed
+watch(
+  () => displaySelectOptions.value.map((op) => op.title),
+  (titles, oldTitles) => {
+    const fallback = vModel.value.meta.display_column_meta?.meta?.fallbackOption
+    if (!fallback || titles.includes(fallback)) return
+
+    const index = oldTitles?.indexOf(fallback) ?? -1
+    displaySelectFallback.value = index !== -1 && titles.length === oldTitles?.length ? titles[index] : ''
+  },
+)
+
 watch(
   () => vModel.value.meta?.display_type,
   (value, oldValue) => {
@@ -367,33 +379,51 @@ watch(
                   class="w-full nc-select-shadow nc-formula-select-fallback"
                   data-testid="nc-formula-select-fallback"
                 >
-                  <a-select-option value="">{{ $t('labels.formulaSelectFallbackResult') }}</a-select-option>
-                  <a-select-option v-for="option in displaySelectOptions" :key="option.title" :value="option.title">
-                    <a-tag
-                      class="rounded-tag max-w-full"
-                      :color="
-                        getSelectTypeFieldOptionBgColor({
-                          color: option.color,
-                          isDark,
-                          getColor,
-                          isColorCodeEnabled: isDisplaySelectColorCoded,
-                        })
-                      "
-                    >
-                      <span
-                        class="text-small truncate"
-                        :style="{
-                          color: getSelectTypeFieldOptionTextColor({
+                  <a-select-option value="">
+                    <div class="flex w-full items-center gap-2 justify-between">
+                      <span>{{ $t('labels.formulaSelectFallbackResult') }}</span>
+                      <component
+                        :is="iconMap.check"
+                        v-if="!displaySelectFallback"
+                        id="nc-selected-item-icon"
+                        class="text-nc-content-brand w-4 h-4"
+                      />
+                    </div>
+                  </a-select-option>
+                  <a-select-option v-for="(option, i) in displaySelectOptions" :key="i" :value="option.title">
+                    <div class="flex w-full items-center gap-2 justify-between">
+                      <a-tag
+                        class="rounded-tag max-w-full"
+                        :color="
+                          getSelectTypeFieldOptionBgColor({
                             color: option.color,
                             isDark,
                             getColor,
                             isColorCodeEnabled: isDisplaySelectColorCoded,
-                          }),
-                        }"
+                          })
+                        "
                       >
-                        {{ option.title }}
-                      </span>
-                    </a-tag>
+                        <span
+                          class="text-small truncate"
+                          :style="{
+                            color: getSelectTypeFieldOptionTextColor({
+                              color: option.color,
+                              isDark,
+                              getColor,
+                              isColorCodeEnabled: isDisplaySelectColorCoded,
+                            }),
+                          }"
+                        >
+                          {{ option.title }}
+                        </span>
+                      </a-tag>
+                      <component
+                        :is="iconMap.check"
+                        v-if="option.title === displaySelectFallback"
+                        id="nc-selected-item-icon"
+                        class="text-nc-content-brand w-4 h-4"
+                      />
+                    </div>
                   </a-select-option>
                 </NcSelect>
               </a-form-item>

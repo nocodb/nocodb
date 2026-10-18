@@ -141,6 +141,15 @@ if (!isDisplayFormat.value) {
   } as any)
 }
 
+// Display-format options skip the form validators; flag duplicates inline instead
+const displayFormatError = computed(() => {
+  if (!isDisplayFormat.value) return ''
+
+  const titles = options.value.filter((op) => op.status !== 'remove' && op.title?.trim()).map((op) => op.title.trim())
+
+  return new Set(titles).size !== titles.length ? t('msg.selectOption.cantHaveDuplicates') : ''
+})
+
 const kanbanStackOption = computed(() => {
   if (isNewStack.value) {
     return renderedOptions.value[renderedOptions.value.length - 1]
@@ -221,6 +230,8 @@ const syncOptions = (saveChanges = false, submit = false, payload?: Option) => {
     })
     .map((op) => {
       const { status: _s, ...rest } = op
+      // display-format options are stored as-is in column meta: keep only title and color
+      if (isDisplayFormat.value) return { title: rest.title, color: rest.color }
       return rest
     })
 
@@ -518,6 +529,9 @@ watch(
 onMounted(() => {
   seedOptionsFromModel()
 
+  // seeding tags the bound options with `index`; rewrite them clean
+  if (isDisplayFormat.value) syncOptions()
+
   if (isKanbanStack.value && isNewStack.value) {
     addNewOption()
   } else if (isKanbanStack.value) {
@@ -591,7 +605,7 @@ defineExpose({
           v-model:checked="isAlphabetized"
           size="xsmall"
           :disabled="isSyncedField"
-          @change="(v) => $e('c:field:select:alphabetize:toggle', { enabled: v })"
+          @change="(v) => !isDisplayFormat && $e('c:field:select:alphabetize:toggle', { enabled: v })"
         >
           {{ $t('labels.alphabetize') }}
         </NcSwitch>
@@ -820,13 +834,13 @@ defineExpose({
     </div>
 
     <div
-      v-if="validateInfos?.colOptions?.help?.[0]?.[0]"
+      v-if="validateInfos?.colOptions?.help?.[0]?.[0] || displayFormatError"
       class="text-error text-[10px] mb-1 mt-2"
       :class="{
         'pl-1': isKanbanStack,
       }"
     >
-      {{ validateInfos.colOptions.help[0][0] }}
+      {{ displayFormatError || validateInfos.colOptions.help[0][0] }}
     </div>
     <div
       v-if="!isKanbanStack && !isSyncedField"

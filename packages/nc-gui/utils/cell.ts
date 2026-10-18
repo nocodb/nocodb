@@ -249,5 +249,8 @@ export const getFormulaSelectDisplayValue = (value: unknown, displayColumn: Part
 
   const options = (displayColumn.colOptions as { options?: { title?: string }[] })?.options ?? []
 
+  // A fallback whose option was renamed or removed no longer applies
+  if (!options.some((op) => op.title === fallbackOption)) return value
+
   return options.some((op) => op.title === text) ? value : fallbackOption
 }

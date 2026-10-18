@@ -114,7 +114,13 @@ provide(ColumnInj, column)
     <CellDateReadonly v-else-if="isDate(column, '')" :model-value="cellValue" />
     <CellDateTimeReadonly v-else-if="isDateTime(column, '')" :model-value="cellValue" />
     <CellTime v-else-if="isTime(column, '')" :model-value="cellValue" />
-    <CellSingleSelectReadonly v-else-if="isSelectDisplay" :model-value="selectDisplayValue" :options="selectDisplayOptions" />
+    <!-- the wrapper already pads the cell -->
+    <CellSingleSelectReadonly
+      v-else-if="isSelectDisplay"
+      class="!px-0"
+      :model-value="selectDisplayValue"
+      :options="selectDisplayOptions"
+    />
     <CellEmail v-else-if="isEmail(column)" :model-value="cellValue" />
     <CellUrl v-else-if="isURL(column)" :model-value="cellValue" />
     <CellPhoneNumber v-else-if="isPhoneNumber(column)" :model-value="cellValue" />

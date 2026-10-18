@@ -1,6 +1,7 @@
 import {
   type ColumnType,
   FormulaDataTypes,
+  type SelectOptionsType,
   UITypes,
   getEffectiveDisplayColumn,
   handleTZ,
@@ -79,7 +80,10 @@ function getDisplaySelectColumn(displayColumn: ColumnType): ColumnType {
   const cacheKey = displayColumn.colOptions as object
   let extra = displaySelectExtraCache.get(cacheKey)
   if (!extra || extra.isColorCodeEnabled !== (parseProp(displayColumn.meta)?.isColorCodeEnabled !== false)) {
-    extra = getSingleMultiselectColOptions(displayColumn)
+    // copy: the helper writes `value` and normalises titles on the options it is given,
+    // and these are the column's stored display options
+    const options = (displayColumn.colOptions as SelectOptionsType).options ?? []
+    extra = getSingleMultiselectColOptions({ ...displayColumn, colOptions: { options: options.map((op) => ({ ...op })) } })
     displaySelectExtraCache.set(cacheKey, extra)
   }
 

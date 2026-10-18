@@ -10,7 +10,7 @@ import {
   substituteColumnIdWithAliasInFormula,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk'
-import type { ColumnType, FormulaType, UnifiedMetaType } from 'nocodb-sdk'
+import type { ColumnType, FormulaType, SelectOptionType, UnifiedMetaType } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -220,6 +220,36 @@ const supportedFormulaAlias = computed(() => {
   }
 })
 
+const onDisplayTypeChange = (value: UITypes | undefined) => {
+  savedDisplayType.value = value
+  // select options only apply to the Single select format
+  if (value !== UITypes.SingleSelect && vModel.value.meta.display_column_meta?.colOptions) {
+    delete vModel.value.meta.display_column_meta.colOptions
+  }
+}
+
+const displaySelectOptions = computed<SelectOptionType[]>(() =>
+  (vModel.value.meta.display_column_meta?.colOptions?.options ?? []).filter((op: SelectOptionType) => op.title),
+)
+
+const { isDark, getColor } = useTheme()
+
+const isDisplaySelectColorCoded = computed(
+  () => parseProp(vModel.value.meta.display_column_meta?.meta)?.isColorCodeEnabled !== false,
+)
+
+// '' = show the result as is; antd renders a null value as the placeholder
+const displaySelectFallback = computed({
+  get: () => {
+    const fallback = vModel.value.meta.display_column_meta?.meta?.fallbackOption
+    return displaySelectOptions.value.some((op) => op.title === fallback) ? fallback : ''
+  },
+  set: (val: string) => {
+    const displayColumnMeta = vModel.value.meta.display_column_meta
+    displayColumnMeta.meta = { ...(displayColumnMeta.meta ?? {}), fallbackOption: val || null }
+  },
+})
+
 watch(
   () => vModel.value.meta?.display_type,
   (value, oldValue) => {
@@ -267,11 +297,7 @@ watch(
               class="w-full nc-select-shadow"
               :placeholder="$t('labels.selectAFormatType')"
               allow-clear
-              @change="
-                (v) => {
-                  savedDisplayType = v
-                }
-              "
+              @change="onDisplayTypeChange"
             >
               <a-select-option v-for="option in supportedFormulaAlias" :key="option.value" :value="option.value">
                 <div class="flex w-full items-center gap-2 justify-between">
@@ -333,6 +359,45 @@ watch(
               v-else-if="vModel.meta.display_type === UITypes.Checkbox"
               :value="vModel.meta.display_column_meta"
             />
+            <template v-else-if="vModel.meta.display_type === UITypes.SingleSelect">
+              <SmartsheetColumnSelectOptions :value="vModel.meta.display_column_meta" is-display-format />
+              <a-form-item :label="$t('labels.formulaSelectFallback')">
+                <NcSelect
+                  v-model:value="displaySelectFallback"
+                  class="w-full nc-select-shadow nc-formula-select-fallback"
+                  data-testid="nc-formula-select-fallback"
+                >
+                  <a-select-option value="">{{ $t('labels.formulaSelectFallbackResult') }}</a-select-option>
+                  <a-select-option v-for="option in displaySelectOptions" :key="option.title" :value="option.title">
+                    <a-tag
+                      class="rounded-tag max-w-full"
+                      :color="
+                        getSelectTypeFieldOptionBgColor({
+                          color: option.color,
+                          isDark,
+                          getColor,
+                          isColorCodeEnabled: isDisplaySelectColorCoded,
+                        })
+                      "
+                    >
+                      <span
+                        class="text-small truncate"
+                        :style="{
+                          color: getSelectTypeFieldOptionTextColor({
+                            color: option.color,
+                            isDark,
+                            getColor,
+                            isColorCodeEnabled: isDisplaySelectColorCoded,
+                          }),
+                        }"
+                      >
+                        {{ option.title }}
+                      </span>
+                    </a-tag>
+                  </a-select-option>
+                </NcSelect>
+              </a-form-item>
+            </template>
           </template>
         </div>
       </a-tab-pane>
@@ -363,6 +428,10 @@ watch(
 
 :deep(.ant-tabs-tab-btn) {
   @apply !mb-1;
+}
+
+.rounded-tag {
+  @apply py-[1px] px-2 rounded-[12px];
 }
 
 .mono-font {

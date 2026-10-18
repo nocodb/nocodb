@@ -1,5 +1,5 @@
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, ncIsNaN, roundUpToPrecision } from 'nocodb-sdk'
+import { UITypes, ncIsNaN, parseProp, roundUpToPrecision } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import type { HTMLAttributes } from 'vue'
 
@@ -235,4 +235,19 @@ export const formatPercentage = (n: number, precision = 2) => {
   if (ncIsNaN(n)) return '0%'
 
   return n % 1 === 0 ? `${n}%` : `${roundUpToPrecision(n, precision)}%`
+}
+
+/**
+ * Value a formula with the Single select display format shows: a result matching no
+ * option is replaced by the configured `fallbackOption`, if any.
+ */
+export const getFormulaSelectDisplayValue = (value: unknown, displayColumn: Partial<ColumnType>) => {
+  const fallbackOption = parseProp(displayColumn.meta)?.fallbackOption
+  const text = value === null || value === undefined ? '' : String(value).trim()
+
+  if (!fallbackOption || !text) return value
+
+  const options = (displayColumn.colOptions as { options?: { title?: string }[] })?.options ?? []
+
+  return options.some((op) => op.title === text) ? value : fallbackOption
 }

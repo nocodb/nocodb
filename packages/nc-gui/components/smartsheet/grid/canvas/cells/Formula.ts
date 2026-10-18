@@ -1,4 +1,11 @@
-import { type ColumnType, FormulaDataTypes, getEffectiveDisplayColumn, handleTZ, isFormulaNonFiniteValue } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  FormulaDataTypes,
+  UITypes,
+  getEffectiveDisplayColumn,
+  handleTZ,
+  isFormulaNonFiniteValue,
+} from 'nocodb-sdk'
 import {
   defaultOffscreen2DContext,
   isBoxHovered,
@@ -6,7 +13,7 @@ import {
   renderIconButton,
   renderSingleLineText,
 } from '../utils/canvas'
-import { showFieldEditWarning } from '../utils/cell'
+import { getSingleMultiselectColOptions, showFieldEditWarning } from '../utils/cell'
 import { CheckboxCellRenderer } from './Checkbox'
 import { CurrencyRenderer } from './Currency'
 import { DateCellRenderer } from './Date'
@@ -60,6 +67,23 @@ function getDisplayValueCellRenderer(column: ColumnType) {
   // else if (isLTAR(modifiedColumn.uidt, modifiedColumn.colOptions)) return LtarCellRenderer
   else if (isMultiSelect(modifiedColumn)) return MultiSelectCellRenderer
   else return SingleLineTextCellRenderer
+}
+
+// Select options map per display options object, so it is built once rather than per cell
+const displaySelectExtraCache = new WeakMap<object, ReturnType<typeof getSingleMultiselectColOptions>>()
+
+function getDisplaySelectColumn(displayColumn: ColumnType): ColumnType {
+  // A formula referencing a select field already carries that field's extra
+  if ((displayColumn.extra as any)?.optionsMap || !displayColumn.colOptions) return displayColumn
+
+  const cacheKey = displayColumn.colOptions as object
+  let extra = displaySelectExtraCache.get(cacheKey)
+  if (!extra || extra.isColorCodeEnabled !== (parseProp(displayColumn.meta)?.isColorCodeEnabled !== false)) {
+    extra = getSingleMultiselectColOptions(displayColumn)
+    displaySelectExtraCache.set(cacheKey, extra)
+  }
+
+  return { ...displayColumn, extra }
 }
 
 export const FormulaCellRenderer: CellRenderer = {
@@ -119,9 +143,18 @@ export const FormulaCellRenderer: CellRenderer = {
 
     // If Custom Formatting is applied to the column, render the cell using the display type cell renderer
     if (colExtra?.display_type) {
+      let displayColumn = getEffectiveDisplayColumn(colExtra, column)
+      let displayValue = value
+
+      if (colExtra.display_type === UITypes.SingleSelect) {
+        displayColumn = getDisplaySelectColumn(displayColumn)
+        displayValue = getFormulaSelectDisplayValue(value, displayColumn)
+      }
+
       getDisplayValueCellRenderer(column).render(ctx, {
         ...props,
-        column: getEffectiveDisplayColumn(colExtra, column),
+        value: displayValue,
+        column: displayColumn,
         readonly: true,
         formula: true,
       })
@@ -307,11 +340,15 @@ export const FormulaCellRenderer: CellRenderer = {
     hideTooltip()
 
     if (colMeta?.display_type) {
+      const displayColumn = getEffectiveDisplayColumn(colMeta, colObj)
+
       return getDisplayValueCellRenderer(colObj)?.handleHover?.({
         ...props,
+        value:
+          colMeta.display_type === UITypes.SingleSelect ? getFormulaSelectDisplayValue(props.value, displayColumn) : props.value,
         column: {
           ...column,
-          columnObj: getEffectiveDisplayColumn(colMeta, colObj),
+          columnObj: displayColumn,
         },
       })
     }

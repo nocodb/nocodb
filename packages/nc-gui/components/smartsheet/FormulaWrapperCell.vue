@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { FormulaDataTypes, UITypes, isFormulaNonFiniteValue } from 'nocodb-sdk'
+import { type LocalSelectOptionType, getOptions } from '../cell/SingleSelect/utils'
 import { defaultOffscreen2DContext } from './grid/canvas/utils/canvas'
 
 interface Props {
@@ -48,6 +49,37 @@ const showAsLongText = computed(() => {
   )
 })
 
+const { isDark, getColor } = useTheme()
+
+// Single select display format (a formula referencing a select field carries no options here)
+const isSelectDisplay = computed(() => isSingleSelect(column.value) && ncIsArray(column.value.colOptions?.options))
+
+const selectDisplayValue = computed(() => {
+  if (!isSelectDisplay.value) return undefined
+  const value = getFormulaSelectDisplayValue(cellValue?.value, column.value)
+  return ncIsNullOrUndefined(value) ? undefined : String(value)
+})
+
+const selectDisplayOptions = computed<LocalSelectOptionType[]>(() => {
+  if (!isSelectDisplay.value) return []
+
+  const options = getOptions(column.value, false, false, isDark.value, getColor)
+  const text = selectDisplayValue.value?.trim()
+
+  if (!text || options.some((op) => op.value === text)) return options
+
+  // A result matching no option shows as a gray chip
+  return [
+    ...options,
+    {
+      title: text,
+      value: text,
+      bgColor: getSelectTypeFieldOptionBgColor({ color: '#e7e7e9', isDark: isDark.value, getColor }),
+      textColor: getSelectTypeFieldOptionTextColor({ color: '#e7e7e9', isDark: isDark.value, getColor }),
+    },
+  ]
+})
+
 const referencedColumnUidt = computed(() => {
   return column.value.colOptions?.parsed_tree?.referencedColumn?.uidt
 })
@@ -82,6 +114,7 @@ provide(ColumnInj, column)
     <CellDateReadonly v-else-if="isDate(column, '')" :model-value="cellValue" />
     <CellDateTimeReadonly v-else-if="isDateTime(column, '')" :model-value="cellValue" />
     <CellTime v-else-if="isTime(column, '')" :model-value="cellValue" />
+    <CellSingleSelectReadonly v-else-if="isSelectDisplay" :model-value="selectDisplayValue" :options="selectDisplayOptions" />
     <CellEmail v-else-if="isEmail(column)" :model-value="cellValue" />
     <CellUrl v-else-if="isURL(column)" :model-value="cellValue" />
     <CellPhoneNumber v-else-if="isPhoneNumber(column)" :model-value="cellValue" />

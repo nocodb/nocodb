@@ -18,19 +18,30 @@ const props = defineProps<{
   isKanbanStack?: boolean
   optionId?: string
   isNewStack?: boolean
+  // Options of a formula's Single select display format: no column validations, default value or AI suggest
+  isDisplayFormat?: boolean
 }>()
 
 const emit = defineEmits(['update:value', 'saveChanges'])
 
 const vModel = useVModel(props, 'value', emit)
 
-const { isKanbanStack, optionId, isNewStack } = toRefs(props)
+const { isKanbanStack, optionId, isNewStack, isDisplayFormat } = toRefs(props)
 
 const { $e } = useNuxtApp()
 
 const { isDark, getColor } = useTheme()
 
-const { setAdditionalValidations, validateInfos, column, isSyncedField } = useColumnCreateStoreOrThrow()
+const {
+  setAdditionalValidations,
+  validateInfos: columnValidateInfos,
+  column,
+  isSyncedField: isColumnSynced,
+} = useColumnCreateStoreOrThrow()
+
+const isSyncedField = computed(() => !isDisplayFormat.value && isColumnSynced.value)
+
+const validateInfos = computed(() => (isDisplayFormat.value ? {} : columnValidateInfos))
 
 // const { base } = storeToRefs(useBase())
 
@@ -124,9 +135,11 @@ const validators = {
 }
 
 // we use a correct syntax from async-validator but causes a type mismatch on antdv so we cast any
-setAdditionalValidations({
-  ...validators,
-} as any)
+if (!isDisplayFormat.value) {
+  setAdditionalValidations({
+    ...validators,
+  } as any)
+}
 
 const kanbanStackOption = computed(() => {
   if (isNewStack.value) {
@@ -343,6 +356,8 @@ const onDragReorder = () => {
 
 // Removes the Select Option from cdf if the option is removed
 watch(vModel, (next) => {
+  if (isDisplayFormat.value) return
+
   const cdfs = (next.cdf ?? '').toString().split(',')
 
   const valuesMap = (next.colOptions?.options ?? []).reduce((acc, c) => {
@@ -834,7 +849,7 @@ defineExpose({
 
         {{ $t('labels.addOption') }}
       </NcButton>
-      <NcTooltip v-if="isAiFeaturesEnabled && aiIntegrationAvailable" class="w-1/2">
+      <NcTooltip v-if="isAiFeaturesEnabled && aiIntegrationAvailable && !isDisplayFormat" class="w-1/2">
         <template #title>
           {{
             !vModel.title?.trim() ? $t('tooltip.fieldNameIsRequriedToAutoSuggestOptions') : $t('tooltip.autoSuggestSelectOptions')

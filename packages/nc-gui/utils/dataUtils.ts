@@ -206,7 +206,16 @@ export async function populateInsertObject({
       missingRequiredColumns.add(col.title)
     }
 
-    if (!col.ai && (row?.[col.title as string] !== null || allowNullFieldIds.includes(col.id as string))) {
+    // System columns are server-managed. In particular, a raw FK column has no
+    // value on a duplicated row (getDuplicateRowData drops it) and is populated
+    // from its link column above. Writing the missing value here would overwrite
+    // that mapped FK with `undefined` — which the insert then turns into NULL
+    // (#14844).
+    if (
+      !col.ai &&
+      !isSystemColumn(col) &&
+      (row?.[col.title as string] !== null || allowNullFieldIds.includes(col.id as string))
+    ) {
       o[col.title as string] = row?.[col.title as string]
     }
 

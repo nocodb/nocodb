@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Upgrade um weitere Dokumentseiten hinzuzufügen",
     "upgradeToAddMoreWorkflows": "Upgrade für weitere Arbeitsabläufe",
     "upgradeToAddMoreScriptsSubtitle": "Sie nutzen aktuell den kostenlosen Tarif, der nur ein Skript pro Workspace erlaubt. Upgrade für unbegrenzte Skripte.",
-    "upgradeToAddMoreWorkflowsSubtitle": "Sie nutzen derzeit den Tarif {activePlan}, der {limit} Workflows pro Base erlaubt. Führen Sie ein Upgrade auf {plan} durch, um mehr zu erhalten.",
+    "upgradeToAddMoreWorkflowsSubtitle": "Sie nutzen derzeit den Tarif {activePlan}, der {limit} Workflows pro Projekt erlaubt. Führen Sie ein Upgrade auf {plan} durch, um mehr zu erhalten.",
     "upgradeToAddMoreDashboardsSubtitle": "Sie nutzen aktuell den kostenlosen Tarif, der nur ein Dashboard pro Workspace erlaubt. Upgrade für unbegrenzte Dashboards.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "Der {activePlan} Plan erlaubt bis zu {limit} Dokumentenseiten pro Basis. Upgrade auf den {plan} Plan, um mehr hinzuzufügen.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "Der Tarif {activePlan} erlaubt bis zu {limit} Dokumentseiten pro Projekt. Führen Sie ein Upgrade auf den Tarif {plan} durch, um weitere hinzuzufügen.",
     "upgradeToUseBookmarks": "Upgrade auf Lesezeichen",
-    "upgradeToUseBookmarksSubtitle": "Aktualisieren Sie auf den {plan} Plan, um Basen, Tabellen, Ansichten und vieles mehr für einen schnellen Zugriff zu markieren.",
+    "upgradeToUseBookmarksSubtitle": "Führen Sie ein Upgrade auf den Tarif {plan} durch, um Projekte, Tabellen, Ansichten und mehr für den schnellen Zugriff zu den Lesezeichen hinzuzufügen.",
     "upgradeToUseDocsExportPdf": "Upgrade auf den Export von Dokumenten als PDF",
     "upgradeToUseDocsExportPdfSubtitle": "Aktualisieren Sie auf den {plan} Plan, um Ihre Dokumente als PDF-Dateien zu exportieren.",
     "upgradeToUseDocsInlineComments": "Upgrade um Inline-Kommentare zu verwenden",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "Der {activePlan}-Tarif erlaubt bis zu {limit} Webhooks. Aktualisieren Sie auf den {plan}-Tarif, um unbegrenzte Webhooks zu erhalten.",
     "upgradeToAccessWebhookLogsSubtitle": "Greifen Sie auf Webhook-Protokolle zu, indem Sie Ihren Workspace auf den {plan}-Tarif hochstufen.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "Führen Sie ein Upgrade durch, um Tabellen in andere Projekte zu duplizieren.",
     "formOwnerNotified": "Formularbesitzer benachrichtigt",
     "formOwnerNotifiedSubtitle": "Wir haben den Formularbesitzer über Ihre Einreichungsanfrage informiert.",
     "WorkspaceOwnerNotified": "Workspace-Besitzer benachrichtigt",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Aktualisieren Sie auf den {plan} Plan um zu kontrollieren, wer einzelne Seiten in Ihren Docs ansehen und bearbeiten kann.",
     "upgradeToUseWorkflows": "Upgrade zur Verwendung von Workflows",
     "upgradeToUseWorkflowsSubtitle": "Aktualisieren Sie auf den Plan {plan} und nutzen Sie Workflows zur Automatisierung von Aufgaben und Prozessen.",
-    "upgradeToUsePrivateBases": "Upgrade, um private Datenbanken freizuschalten",
-    "upgradeToUsePrivateBasesSubtitle": "Private Datenbanken sind im {plan}-Tarif verfügbar. Jetzt upgraden, um sie zu nutzen.",
+    "upgradeToUsePrivateBases": "Upgrade zum Freischalten privater Projekte",
+    "upgradeToUsePrivateBasesSubtitle": "Private Projekte sind im Tarif {plan} verfügbar. Führen Sie jetzt ein Upgrade durch, um sie zu nutzen.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Sie können maximal {limit} {filePlural} in diese Zelle hochladen. Upgraden Sie auf den {plan}-Tarif, um weitere Dateien hinzuzufügen.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Upgrade um den KI-Chat zu nutzen",
-    "upgradeToUseAiChatSubtitle": "Upgraden Sie auf den {plan} Plan, um den KI-Chat zu nutzen, um Ihre Basis mit natürlicher Sprache zu verwalten.",
+    "upgradeToUseAiChatSubtitle": "Führen Sie ein Upgrade auf den Tarif {plan} durch, um den KI-Chat zu nutzen und Ihr Projekt per natürlicher Sprache zu verwalten.",
     "upgradeToUseMfa": "Upgrade um die Zwei-Faktor-Authentifizierung zu aktivieren",
     "upgradeToUseMfaSubtitle": "Aktualisieren Sie auf den {plan} Plan, um die Multi-Faktor-Authentifizierung für Ihr Konto zu aktivieren.",
     "upgradeToRequireTwoFactor": "Upgrade um Zwei-Faktor-Authentifizierung zu benötigen",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Upgrade auf Teamhierarchie",
     "upgradeToUseTeamHierarchySubtitle": "Upgrade auf den {plan} Plan, um Teams in verschachtelten Hierarchien mit geerbter Mitgliedschaft zu organisieren.",
     "upgradeToUseTeams": "Upgrade zur Verwendung von Teams",
-    "upgradeToUseTeamsSubtitle": "Aktualisieren Sie auf den Plan {plan} , um Teams zur Gruppierung von Benutzern und zur Verwaltung ihres Zugriffs auf Arbeitsbereiche und Basen zu verwenden.",
+    "upgradeToUseTeamsSubtitle": "Führen Sie ein Upgrade auf den Tarif {plan} durch, um mit Teams Benutzer zu gruppieren und deren Zugriff auf Arbeitsbereiche und Projekte zu verwalten.",
     "upgradeToAddMoreTeams": "Upgrade zum Hinzufügen weiterer Teams",
     "upgradeToAddMoreTeamsSubtitle": "Erwerben Sie ein Upgrade auf den {plan} Plan, um mehr Teams zu Ihrem Arbeitsbereich hinzuzufügen.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Aktualisieren Sie auf den Plan {plan} , um Feldüberschriften in den Ansichten Galerie und Kanban auszublenden.",
     "upgradeToUseFormScheduling": "Upgrade um Formularplanung zu verwenden",
     "upgradeToUseFormSchedulingSubtitle": "Upgrade auf den {plan} Plan, um die Verfügbarkeit des Formulars mit Start- und Ablaufdatum zu planen.",
-    "upgradeToUseBaseVariables": "Upgrade um Basisvariablen zu verwenden",
-    "upgradeToUseBaseVariablesSubtitle": "Aktualisieren Sie auf den {plan} Plan, um wiederverwendbare Variablen zu definieren, die auf eine Basis gespeichert sind.",
+    "upgradeToUseBaseVariables": "Upgrade für Projektvariablen",
+    "upgradeToUseBaseVariablesSubtitle": "Führen Sie ein Upgrade auf den Tarif {plan} durch, um wiederverwendbare Variablen auf Projektebene zu definieren.",
     "upgradeToUseSync": "Upgrade zur Verwendung von Sync",
     "upgradeToUseSyncSubtitle": "Aktualisieren Sie auf den {plan} Plan, um Daten mit internen oder externen Quellen zu synchronisieren.",
     "upgradeToUseTableSync": "Upgrade um Tabellensynchronisation zu verwenden",
@@ -3143,7 +3143,11 @@
       "upgradeRequestSent": "Anfrage gesendet",
       "upgradeDescRls": "Einschränken, welche Einträge jede Person sehen und bearbeiten kann.",
       "upgradeDescRecordTemplates": "Neue Einträge aus gespeicherten, vorausgefüllten Vorlagen erstellen.",
-      "upgradeDescDateDependency": "Abhängige Termine automatisch verschieben, wenn ein Eintrag verschoben wird."
+      "upgradeDescDateDependency": "Abhängige Termine automatisch verschieben, wenn ein Eintrag verschoben wird.",
+      "concernProject": "Projekt",
+      "concernInterfaces": "Interfaces",
+      "concernApps": "App",
+      "concernTabs": "Einstellungsbereiche"
     },
     "compactNumbers": "Kompakte Zahlen",
     "content": "Inhalt",
@@ -4383,7 +4387,106 @@
         "repeatWarning": "Dieser Schritt kann Daten senden oder ändern. Ein erneuter Versuch kann das wiederholen — aktivieren Sie dies nur, wenn das in Ordnung ist.",
         "retries": "Anzahl der Wiederholungen",
         "earlierTries": "Frühere Versuche",
-        "noErrorMessage": "Keine Fehlermeldung"
+        "noErrorMessage": "Keine Fehlermeldung",
+        "title": "Bei Fehlschlag",
+        "retryIfFails": "Wiederholen, wenn dieser Schritt fehlschlägt",
+        "retrySafeHint": "Wiederholt automatisch, wenn ein Dienst vorübergehend nicht verfügbar ist",
+        "waitBeforeRetry": "Vor dem Wiederholen warten",
+        "seconds": "Sekunden",
+        "waitLonger": "Jedes Mal länger warten",
+        "waitLongerHint": "Verdoppelt die Wartezeit nach jedem Versuch, bis zu 1 Stunde",
+        "retryOn": "Wiederholen bei",
+        "retryOnTemporary": "Nur bei vorübergehenden Problemen (Zeitüberschreitungen, Ratenbegrenzungen, Serverfehler)",
+        "retryOnAny": "Jedem Fehler",
+        "triedTimes": "{count} Versuche",
+        "tryNumber": "Versuch {n}",
+        "succeededAfterTries": "Nach {count} Versuchen erfolgreich"
+      },
+      "iterate": {
+        "listPlaceholder": "Array zum Durchlaufen auswählen",
+        "listHelp": "Wählen Sie ein Array aus einem vorherigen Schritt. Jedes Element wird nacheinander verarbeitet.",
+        "notAList": "Benötigt eine Liste von Elementen, dieser Wert ist jedoch {kind}."
+      },
+      "originalRun": "der ursprüngliche Lauf",
+      "duration": {
+        "milliseconds": "{n} ms",
+        "seconds": "{n} s",
+        "minutesSeconds": "{m} Min. {s} Sek."
+      },
+      "overview": {
+        "lastRun": "Letzte Ausführung",
+        "failedCount": "{n} fehlgeschlagen",
+        "allTested": "Alle Schritte getestet"
+      },
+      "addStep": "Schritt hinzufügen",
+      "nodePicker": {
+        "upgradeToUseStep": "Führen Sie ein Upgrade auf den Tarif {plan} durch, um {step} zu nutzen",
+        "search": "Schritte und Apps suchen",
+        "searchTriggers": "Suchen, z. B. „neue Zeile“, „jeden Montag“",
+        "searchIn": "{app} durchsuchen",
+        "apps": "Apps",
+        "integrations": "Integrationen",
+        "popular": "Beliebt",
+        "chooseTrigger": "Auslöser wählen",
+        "chooseTriggerHint": "Jeder Workflow beginnt mit einem Auslöser: dem Ereignis, das ihn startet.",
+        "noMatches": "Keine passenden Schritte",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "Eintrag wird {bold}",
+            "bold": "erstellt"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "Eintrag wird {bold}",
+            "bold": "aktualisiert"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "Eintrag wird {bold}",
+            "bold": "gelöscht"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "Eintrag {bold}",
+            "bold": "gelangt in eine Ansicht"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "Eintrag {bold}",
+            "bold": "erfüllt Bedingungen"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "Sendet ein Formular ab"
+          },
+          "core_trigger_button": {
+            "text": "{bold} in einem Eintrag",
+            "bold": "Klickt auf eine Schaltfläche"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} einen Eintrag",
+            "bold": "Kommentiert"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "Nach Zeitplan"
+          },
+          "core_trigger_webhook": {
+            "text": "Wenn {bold}",
+            "bold": "Webhook empfangen"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "Manuell"
+          }
+        },
+        "groups": {
+          "recordEvents": "Wenn",
+          "userActions": "Wenn Benutzer",
+          "runs": "Ausführungen",
+          "records": "Einträge",
+          "logic": "Logik",
+          "ai": "KI",
+          "messages": "Nachrichten",
+          "developer": "Entwickler",
+          "other": "Sonstiges"
+        }
       }
     },
     "storeName": "Store-Name",
@@ -5047,7 +5150,36 @@
     "talkToSales": "Mit dem Vertrieb sprechen",
     "paidAnnually": "Jährlich bezahlt",
     "paidMonthly": "Monatlich bezahlt",
-    "skillScopeBase": "Projekt"
+    "skillScopeBase": "Projekt",
+    "addAttachment": "Anhang hinzufügen",
+    "fromAttachmentField": "Aus Anhangsfeld",
+    "uploadFile": "Datei hochladen",
+    "fromUrl": "Von URL",
+    "attachFromUrl": "Von URL anhängen",
+    "removeAttachment": "Anhang entfernen",
+    "attachmentFieldChip": "Feld",
+    "setPageAccess": "Seitenzugriff festlegen",
+    "readOnlyMember": "Mitglied mit Lesezugriff",
+    "aReadOnlyMember": "ein Mitglied mit Lesezugriff",
+    "readOnlyMembers": "Mitglieder mit Lesezugriff",
+    "backToData": "Zurück zu den Daten",
+    "appShare": {
+      "customTeamDescription": "Ein von dieser App definiertes Team.",
+      "membersTeamDescription": "Nutzt die App.",
+      "adminTeamDescription": "Nutzt die App und verwaltet ihre Mitglieder.",
+      "noAccessTeamDescription": "Noch keine Aktionen gewährt, daher können ihre Mitglieder die App nicht öffnen."
+    },
+    "viewActions": "Ansichtsaktionen",
+    "renameView": "Ansicht umbenennen",
+    "generateWithAi": "Mit KI generieren",
+    "deleteView": "Ansicht löschen",
+    "addToFavourites": "Zu Favoriten hinzufügen",
+    "contextMenu": "Kontextmenü",
+    "editSqlView": "SQL-Ansicht bearbeiten",
+    "noWebhooksYet": "Noch keine Webhooks",
+    "prompts": "Prompts",
+    "pagination": "Paginierung",
+    "showRowNumbers": "Zeilennummern anzeigen"
   },
   "activity": {
     "useTemplate": "Vorlage verwenden",
@@ -5364,7 +5496,7 @@
     "notAvailableForNewRecord": "Beim Erstellen eines neuen Datensatzes nicht verfügbar",
     "conditionallyVisibleField": "Bedingt sichtbares Feld",
     "bookmarks": "Lesezeichen",
-    "variableInheritance": "Legt fest, was Personen, die diese Base als App installieren, mit dieser Variable tun können: Fest behält Ihren Wert bei und blendet ihn aus, Bearbeitbar bietet Ihren Wert als Ausgangspunkt an, Erforderlich verlangt einen eigenen Wert.",
+    "variableInheritance": "Legt fest, was Personen, die dieses Projekt als App installieren, mit dieser Variable tun können: Fest behält Ihren Wert bei und blendet ihn aus, Bearbeitbar bietet Ihren Wert als Ausgangspunkt an, Erforderlich verlangt einen eigenen Wert.",
     "inheritedMembersInfo": "Diese Mitglieder gehören einem Eltern-Team an und erben Zugriff auf Ressourcen, die diesem Team zugewiesen sind.",
     "teamScopeThisOnly": "Nur dieses Team. Klicken, um Unterteams einzuschließen",
     "teamScopeIncludesSubTeams": "Schließt Unterteams ein. Klicken, um nur dieses Team zu treffen",
@@ -5392,7 +5524,7 @@
     "dataWriteOptionDisabled": "Die Datenbearbeitung lässt sich nur deaktivieren, wenn auch die Schema-Bearbeitung deaktiviert ist.",
     "allowMetaWrite": "Mit dieser Option kann das Datenbankschema geändert werden, einschließlich Hinzufügen, Ändern oder Löschen von Tabellen und Spalten. Mit Vorsicht verwenden, da Änderungen die strukturelle Integrität Ihrer Datenbank beeinträchtigen können.",
     "allowDataWrite": "Diese Option ermöglicht das Erstellen, Aktualisieren oder Löschen von Datensätzen innerhalb von Datenbanktabellen. Ideal für administrative Nutzer, die Daten direkt ändern müssen.",
-    "reachedSourceLimit": "Begrenzt auf zehn Datenquellen pro Projekt",
+    "reachedSourceLimit": "Auf 10 Datenquellen pro Projekt begrenzt",
     "saveChanges": "Änderungen speichern",
     "clientKey": ".key-Datei auswählen",
     "clientCert": ".cert-Datei auswählen",
@@ -5418,7 +5550,7 @@
     "selectAllMappedFields": "Alle zugeordneten Felder auswählen",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Fehlercode kopieren",
-    "paidUserBadgeTooltip": "Verbraucht einen kostenpflichtigen Platz. Rolle „Bearbeiter“ oder höher auf Arbeitsbereichsebene, in einer Basis oder in einem Interface.",
+    "paidUserBadgeTooltip": "Verbraucht einen kostenpflichtigen Platz. Rolle Bearbeiter oder höher auf Arbeitsbereichsebene, in einem Projekt oder in einem Interface.",
     "approachingLimit": "Grenzwert nähert sich",
     "exceedingLimit": "Grenzwert überschritten",
     "filteredByCurrentUser": "Gefiltert nach aktuellem Benutzer",
@@ -5462,8 +5594,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Nur der Eigentümer der Ansicht kann die Konfiguration der Ansicht kopieren",
     "onlyViewOwnerCanModifyPersonalView": "Nur der Viewbesitzer kann diese persönliche Ansicht ändern",
     "onlyViewOwnerCanDeletePersonalView": "Nur der Viewbesitzer kann diese persönliche Ansicht löschen",
-    "onlyCreatorsCanLockView": "Nur Basis-Ersteller oder Besitzer können eine Ansicht sperren",
-    "onlyCreatorsCanUnlockView": "Nur Basis-Ersteller oder Besitzer können eine Ansicht entsperren",
+    "onlyCreatorsCanLockView": "Nur Projektersteller oder -eigentümer können eine Ansicht sperren",
+    "onlyCreatorsCanUnlockView": "Nur Projektersteller oder -eigentümer können eine Ansicht entsperren",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "Sie benötigen mindestens eine bestehende Ansicht, um Konfigurationen zu kopieren. Erstellen Sie zunächst eine Ansicht, um diese Option zu aktivieren.",
     "youDoNotHaveSufficientPermissionToAddExtension": "Sie haben keine ausreichende Berechtigung zum Hinzufügen der Erweiterung",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "Sie haben nicht genügend Rechte, um diese Erweiterung zu konfigurieren",
@@ -5497,7 +5629,7 @@
     "interfaceMixedRoles": "Die Rollen unterscheiden sich zwischen Interfaces oder Seiten. Erweitern, um sie anzuzeigen",
     "chatQueueAttachmentUnavailable": "Dieser Anhang wird nicht gesendet, wenn Sie Ihre Nachricht in die Warteschlange stellen. Entfernen Sie ihn zuerst",
     "lockedViewDisabledOnProduction": "Gesperrte Ansichten können nur in der Umgebungskopie erstellt werden",
-    "personalViewDisabledOnEnvironment": "Persönliche Ansichten können nur auf der Produktions-Base erstellt werden",
+    "personalViewDisabledOnEnvironment": "Persönliche Ansichten können nur im Produktionsprojekt erstellt werden",
     "seeNComments": "{n} Kommentar ansehen | {n} Kommentare ansehen",
     "collapsibleGroups": "Gruppen mit Titeln können eingeklappt werden",
     "nestedRecordsRequireSelfLink": "Erfordert ein Verknüpfungsfeld in dieser Tabelle, das auf dieselbe Tabelle zurückverweist.",
@@ -5513,10 +5645,10 @@
     "youDontHaveAccessToCreateNewInterface": "Sie haben keinen Zugriff, um ein neues Interface zu erstellen",
     "displayValueFieldCannotBeReordered": "Das Anzeigewert-Feld kann nicht umsortiert werden",
     "interfaceLastVizRequired": "Eine Seite braucht mindestens eine Visualisierung",
-    "onlyCreatorsCanManageViewFolders": "Nur Base-Ersteller oder -Eigentümer können Ansichtsordner verwalten",
-    "onlyCreatorsCanManageFolders": "Nur Base-Ersteller oder -Eigentümer können Ordner verwalten",
+    "onlyCreatorsCanManageViewFolders": "Nur Projektersteller oder -eigentümer können Ansichtsordner verwalten",
+    "onlyCreatorsCanManageFolders": "Nur Projektersteller oder -eigentümer können Ordner verwalten",
     "organizeViewsIntoFolders": "Ansichten in einklappbaren Ordnern organisieren",
-    "productionLockedByEnvironment": "Diese Basis ist in einer Umgebung geöffnet. Nehmen Sie Schemaänderungen dort vor.",
+    "productionLockedByEnvironment": "Dieses Projekt ist in einer Umgebung geöffnet. Nehmen Sie Schemaänderungen dort vor.",
     "managedByPublisher": "Die Struktur dieser App wird von ihrer Herausgeberin bzw. ihrem Herausgeber verwaltet. Ihre Dokumente und Ordner können Sie selbst hinzufügen.",
     "featureOnProductionOnly": "Diese Aktion wird im Produktionsprojekt verwaltet, nicht in einer Umgebungskopie.",
     "clickToEdit": "Zum Bearbeiten klicken",
@@ -5566,8 +5698,8 @@
     "showAllFields": "Alle Felder anzeigen",
     "inviteLinkCannotGrantOwner": "Ein Einladungslink kann die Rolle Eigentümer nicht vergeben",
     "inviteLinkRoleAboveYours": "Sie können nur Rollen bis zu Ihrer eigenen vergeben",
-    "noDefaultSourceForFolders": "Diese Basis hat keine Standardquelle. Erstellen Sie Ordner stattdessen über das eigene Menü einer Quelle",
-    "noDefaultSourceForSync": "Diese Basis hat keine Standardquelle. Eine Synchronisierung benötigt eine, um ihre Tabellen zu speichern"
+    "noDefaultSourceForFolders": "Dieses Projekt hat keine Standardquelle. Erstellen Sie Ordner stattdessen über das Menü der jeweiligen Quelle",
+    "noDefaultSourceForSync": "Dieses Projekt hat keine Standardquelle. Eine Synchronisierung benötigt eine, um ihre Tabellen zu speichern"
   },
   "placeholder": {
     "enterVerificationCode": "6-stelligen Code eingeben",
@@ -7232,8 +7364,8 @@
         "description": "Eine kurze Runde durch Ihren Arbeitsbereich. Sie können jederzeit aussteigen – klicken Sie auf Überspringen."
       },
       "createBase": {
-        "title": "Mit einer Base beginnen",
-        "description": "Eine Base enthält Ihre Tabellen, Ansichten und Automatisierungen. Hier beginnt die meiste Arbeit."
+        "title": "Mit einem Projekt beginnen",
+        "description": "Ein Projekt enthält Ihre Tabellen, Ansichten und Automatisierungen. Hier beginnt die meiste Arbeit."
       },
       "switchWorkspaces": {
         "title": "Arbeitsbereich wechseln",

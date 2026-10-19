@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "अधिक दस्तावेज़ पृष्ठ जोड़ने के लिए अपग्रेड करें",
     "upgradeToAddMoreWorkflows": "अधिक वर्कफ़्लो जोड़ने के लिए अपग्रेड करें",
     "upgradeToAddMoreScriptsSubtitle": "आप अभी फ्री प्लान पर हैं, जिसमें प्रति कार्यक्षेत्र केवल एक स्क्रिप्ट की अनुमति है। असीमित स्क्रिप्ट्स अनलॉक करने के लिए अपग्रेड करें।",
-    "upgradeToAddMoreWorkflowsSubtitle": "आप अभी {activePlan} प्लान पर हैं, जो प्रति बेस {limit} वर्कफ़्लो की अनुमति देता है। और के लिए {plan} पर अपग्रेड करें।",
+    "upgradeToAddMoreWorkflowsSubtitle": "आप इस समय {activePlan} योजना पर हैं, जो प्रति प्रोजेक्ट {limit} वर्कफ़्लो की अनुमति देती है। अधिक के लिए {plan} में अपग्रेड करें।",
     "upgradeToAddMoreDashboardsSubtitle": "आप अभी फ्री प्लान पर हैं, जिसमें प्रति कार्यक्षेत्र केवल एक डैशबोर्ड की अनुमति है। असीमित डैशबोर्ड्स अनलॉक करने के लिए अपग्रेड करें।",
-    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan} योजना प्रति बेस अधिकतम {limit} दस्तावेज़ पृष्ठों की अनुमति देती है। अधिक जोड़ने के लिए {plan} योजना में अपग्रेड करें।",
+    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan} योजना प्रति प्रोजेक्ट अधिकतम {limit} दस्तावेज़ पेज की अनुमति देती है। और जोड़ने के लिए {plan} योजना में अपग्रेड करें।",
     "upgradeToUseBookmarks": "बुकमार्क का उपयोग करने के लिए अपग्रेड करें",
-    "upgradeToUseBookmarksSubtitle": "त्वरित पहुँच के लिए बेस, टेबल, व्यू और अन्य को बुकमार्क करने हेतु {plan} योजना में अपग्रेड करें।",
+    "upgradeToUseBookmarksSubtitle": "त्वरित पहुँच के लिए प्रोजेक्ट, तालिकाएँ, व्यू और बहुत कुछ बुकमार्क करने हेतु {plan} योजना में अपग्रेड करें।",
     "upgradeToUseDocsExportPdf": "PDF के रूप में दस्तावेज़ निर्यात करने के लिए अपग्रेड करें",
     "upgradeToUseDocsExportPdfSubtitle": "अपने दस्तावेज़ों को PDF फ़ाइलों के रूप में निर्यात करने के लिए {plan} योजना में अपग्रेड करें।",
     "upgradeToUseDocsInlineComments": "इनलाइन टिप्पणियों का उपयोग करने के लिए अपग्रेड करें",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "{activePlan} प्लान में अधिकतम {limit} वेबहुक्स की अनुमति है। अनलिमिटेड वेबहुक्स पाने के लिए {plan} प्लान में अपग्रेड करें।",
     "upgradeToAccessWebhookLogsSubtitle": "{plan} प्लान में वर्कस्पेस को अपग्रेड करके वेबहुक लॉग्स तक पहुँचें।",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "अलग-अलग प्रोजेक्ट के बीच तालिकाएँ डुप्लिकेट करने के लिए अपनी योजना अपग्रेड करें।",
     "formOwnerNotified": "फ़ॉर्म मालिक को सूचित किया गया",
     "formOwnerNotifiedSubtitle": "आपके सबमिशन अनुरोध के बारे में हमने फ़ॉर्म मालिक को सूचित कर दिया है।",
     "WorkspaceOwnerNotified": "वर्कस्पेस मालिक को सूचित किया गया",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "अपने दस्तावेज़ों में व्यक्तिगत पृष्ठों को कौन देख और संपादित कर सकता है, इसे नियंत्रित करने के लिए {plan} योजना में अपग्रेड करें।",
     "upgradeToUseWorkflows": "वर्कफ़्लो का उपयोग करने के लिए अपग्रेड करें",
     "upgradeToUseWorkflowsSubtitle": "कार्यप्रवाहों का उपयोग करके कार्यों और प्रक्रियाओं को स्वचालित करने के लिए {plan} योजना में अपग्रेड करें।",
-    "upgradeToUsePrivateBases": "प्राइवेट बेस अनलॉक करने हेतु अपग्रेड करें",
-    "upgradeToUsePrivateBasesSubtitle": "प्राइवेट बेस {plan} प्लान में उपलब्ध हैं। उनका उपयोग प्रारंभ करने के लिए अभी अपग्रेड करें।",
+    "upgradeToUsePrivateBases": "निजी प्रोजेक्ट अनलॉक करने के लिए अपग्रेड करें",
+    "upgradeToUsePrivateBasesSubtitle": "निजी प्रोजेक्ट {plan} योजना में उपलब्ध हैं। उपयोग शुरू करने के लिए अभी अपग्रेड करें।",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "आप इस सेल में अधिकतम {limit} {filePlural} ही अपलोड कर सकते हैं। अधिक फ़ाइल जोड़ने हेतु {plan} प्लान में अपग्रेड करें।",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "AI चैट का उपयोग करने के लिए अपग्रेड करें",
-    "upgradeToUseAiChatSubtitle": "प्राकृतिक भाषा के साथ अपने बेस का प्रबंधन करने के लिए AI चैट का उपयोग करने हेतु {plan} योजना में अपग्रेड करें।",
+    "upgradeToUseAiChatSubtitle": "AI चैट से अपने प्रोजेक्ट को प्राकृतिक भाषा में प्रबंधित करने के लिए {plan} योजना में अपग्रेड करें।",
     "upgradeToUseMfa": "दो-कारक प्रमाणीकरण सक्षम करने के लिए अपग्रेड करें",
     "upgradeToUseMfaSubtitle": "अपने खाते के लिए बहु-कारक प्रमाणीकरण सक्षम करने हेतु {plan} योजना में अपग्रेड करें।",
     "upgradeToRequireTwoFactor": "दो-कारक प्रमाणीकरण आवश्यक करने के लिए अपग्रेड करें",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "टीम पदानुक्रम का उपयोग करने के लिए अपग्रेड करें",
     "upgradeToUseTeamHierarchySubtitle": "उत्तराधिकारित सदस्यता के साथ टीमों को नेस्टेड पदानुक्रमों में व्यवस्थित करने के लिए {plan} योजना में अपग्रेड करें।",
     "upgradeToUseTeams": "टीम्स का उपयोग करने के लिए अपग्रेड करें",
-    "upgradeToUseTeamsSubtitle": "उपयोगकर्ताओं को समूहों में बाँटने और वर्कस्पेस तथा बेस तक उनकी पहुँच प्रबंधित करने के लिए टीम्स का उपयोग करने हेतु {plan} योजना में अपग्रेड करें।",
+    "upgradeToUseTeamsSubtitle": "उपयोगकर्ताओं को समूहबद्ध करने और वर्कस्पेस व प्रोजेक्ट तक उनकी पहुँच प्रबंधित करने हेतु टीमों का उपयोग करने के लिए {plan} योजना में अपग्रेड करें।",
     "upgradeToAddMoreTeams": "अधिक टीमें जोड़ने के लिए अपग्रेड करें",
     "upgradeToAddMoreTeamsSubtitle": "अपने वर्कस्पेस में और टीमें जोड़ने के लिए {plan} प्लान में अपग्रेड करें।",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "गैलरी और कैनबन व्यू में फ़ील्ड हेडर छिपाने के लिए {plan} प्लान में अपग्रेड करें।",
     "upgradeToUseFormScheduling": "फ़ॉर्म शेड्यूलिंग का उपयोग करने के लिए अपग्रेड करें",
     "upgradeToUseFormSchedulingSubtitle": "{plan} योजना में अपग्रेड करें ताकि प्रारंभ और समाप्ति तिथियों के साथ फॉर्म की उपलब्धता निर्धारित की जा सके।",
-    "upgradeToUseBaseVariables": "बेस वेरिएबल्स का उपयोग करने के लिए अपग्रेड करें",
-    "upgradeToUseBaseVariablesSubtitle": "{plan} योजना में अपग्रेड करें ताकि बेस तक सीमित पुन: प्रयोज्य चर परिभाषित किए जा सकें।",
+    "upgradeToUseBaseVariables": "प्रोजेक्ट वैरिएबल इस्तेमाल करने के लिए अपग्रेड करें",
+    "upgradeToUseBaseVariablesSubtitle": "किसी प्रोजेक्ट के दायरे में पुन: प्रयोज्य वैरिएबल परिभाषित करने के लिए {plan} योजना में अपग्रेड करें।",
     "upgradeToUseSync": "सिंक का उपयोग करने के लिए अपग्रेड करें",
     "upgradeToUseSyncSubtitle": "आंतरिक या बाहरी स्रोतों के साथ डेटा सिंक करने के लिए {plan} योजना में अपग्रेड करें।",
     "upgradeToUseTableSync": "टेबल सिंक का उपयोग करने के लिए अपग्रेड करें",
@@ -3112,7 +3112,11 @@
       "upgradeRequestSent": "अनुरोध भेजा गया",
       "upgradeDescRls": "सीमित करें कि हर व्यक्ति कौन-से अभिलेख देख और संपादित कर सकता है.",
       "upgradeDescRecordTemplates": "सहेजे गए, पहले से भरे टेम्पलेट से नए अभिलेख बनाएँ.",
-      "upgradeDescDateDependency": "जब कोई अभिलेख खिसकता है तो आश्रित तिथियाँ अपने आप खिसका देता है."
+      "upgradeDescDateDependency": "जब कोई अभिलेख खिसकता है तो आश्रित तिथियाँ अपने आप खिसका देता है.",
+      "concernProject": "प्रोजेक्ट",
+      "concernInterfaces": "इंटरफ़ेस",
+      "concernApps": "ऐप",
+      "concernTabs": "सेटिंग अनुभाग"
     },
     "categories": "श्रेणियाँ",
     "blockquote": "उद्धरण",
@@ -4402,7 +4406,105 @@
         "repeatWarning": "यह चरण डेटा भेज सकता है या बदल सकता है। पुनः प्रयास करने पर यह दोहराया जा सकता है — इसे तभी चालू करें जब यह ठीक हो।",
         "retries": "पुनः प्रयासों की संख्या",
         "earlierTries": "पिछले प्रयास",
-        "noErrorMessage": "कोई त्रुटि संदेश नहीं"
+        "noErrorMessage": "कोई त्रुटि संदेश नहीं",
+        "title": "विफलता पर",
+        "retryIfFails": "यह चरण विफल होने पर पुनः प्रयास करें",
+        "retrySafeHint": "सेवा अस्थायी रूप से अनुपलब्ध होने पर स्वतः पुनः प्रयास करता है",
+        "waitBeforeRetry": "पुनः प्रयास से पहले प्रतीक्षा करें",
+        "seconds": "सेकंड",
+        "waitLonger": "हर बार अधिक प्रतीक्षा करें",
+        "waitLongerHint": "हर प्रयास के बाद प्रतीक्षा दोगुनी करता है, अधिकतम 1 घंटा",
+        "retryOn": "इस पर पुनः प्रयास करें",
+        "retryOnTemporary": "केवल अस्थायी समस्याएँ (टाइमआउट, दर सीमाएँ, सर्वर त्रुटियाँ)",
+        "retryOnAny": "कोई भी त्रुटि",
+        "triedTimes": "{count} बार प्रयास किया",
+        "tryNumber": "प्रयास {n}",
+        "succeededAfterTries": "{count} प्रयासों के बाद सफल"
+      },
+      "iterate": {
+        "listPlaceholder": "दोहराने के लिए एक ऐरे चुनें",
+        "listHelp": "पिछले चरण से एक ऐरे चुनें। हर आइटम क्रम से प्रोसेस होगा।",
+        "notAList": "आइटमों की सूची चाहिए, लेकिन यह मान {kind} है।"
+      },
+      "originalRun": "मूल रन",
+      "duration": {
+        "milliseconds": "{n} मि.से.",
+        "seconds": "{n} से",
+        "minutesSeconds": "{m} मि {s} से"
+      },
+      "overview": {
+        "lastRun": "अंतिम रन",
+        "failedCount": "{n} विफल",
+        "allTested": "सभी चरण परखे गए"
+      },
+      "addStep": "एक चरण जोड़ें",
+      "nodePicker": {
+        "upgradeToUseStep": "{step} इस्तेमाल करने के लिए {plan} योजना में अपग्रेड करें",
+        "search": "चरण और ऐप्स खोजें",
+        "searchTriggers": "खोजें, जैसे “नई पंक्ति”, “हर सोमवार”",
+        "searchIn": "{app} में खोजें",
+        "apps": "ऐप्स",
+        "integrations": "इंटीग्रेशन",
+        "popular": "लोकप्रिय",
+        "chooseTrigger": "एक ट्रिगर चुनें",
+        "chooseTriggerHint": "हर वर्कफ़्लो एक ट्रिगर से शुरू होता है: वह घटना जो उसे चालू करती है।",
+        "noMatches": "कोई चरण मेल नहीं खाता",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "रिकॉर्ड {bold}",
+            "bold": "बनाया जाता है"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "रिकॉर्ड {bold}",
+            "bold": "अपडेट किया जाता है"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "रिकॉर्ड {bold}",
+            "bold": "हटाया जाता है"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "रिकॉर्ड {bold}",
+            "bold": "किसी व्यू में आता है"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "रिकॉर्ड {bold}",
+            "bold": "शर्तों से मेल खाता है"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "फ़ॉर्म सबमिट करता है"
+          },
+          "core_trigger_button": {
+            "text": "किसी रिकॉर्ड पर {bold}",
+            "bold": "बटन पर क्लिक करता है"
+          },
+          "nocodb_trigger_comment": {
+            "text": "किसी रिकॉर्ड पर {bold}",
+            "bold": "टिप्पणी करता है"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "निर्धारित समय पर"
+          },
+          "core_trigger_webhook": {
+            "text": "जब {bold}",
+            "bold": "webhook प्राप्त होता है"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "मैन्युअल रूप से"
+          }
+        },
+        "groups": {
+          "recordEvents": "जब",
+          "userActions": "जब उपयोगकर्ता",
+          "runs": "रन",
+          "records": "रिकॉर्ड",
+          "logic": "लॉजिक",
+          "messages": "संदेश",
+          "developer": "डेवलपर",
+          "other": "अन्य"
+        }
       }
     },
     "xAxis": "X-अक्ष",
@@ -5051,7 +5153,37 @@
     "licenseExpired": "लाइसेंस समाप्त हो गया",
     "talkToSales": "बिक्री टीम से बात करें",
     "paidAnnually": "वार्षिक भुगतान",
-    "paidMonthly": "मासिक भुगतान"
+    "paidMonthly": "मासिक भुगतान",
+    "addAttachment": "अटैचमेंट जोड़ें",
+    "fromAttachmentField": "अटैचमेंट फ़ील्ड से",
+    "uploadFile": "फ़ाइल अपलोड करें",
+    "fromUrl": "URL से",
+    "attachFromUrl": "URL से अटैच करें",
+    "removeAttachment": "अटैचमेंट हटाएँ",
+    "attachmentFieldChip": "फ़ील्ड",
+    "setPageAccess": "पेज की पहुँच सेट करें",
+    "readOnlyMember": "केवल-पढ़ने वाला सदस्य",
+    "aReadOnlyMember": "केवल-पढ़ने वाला सदस्य",
+    "readOnlyMembers": "केवल-पढ़ने वाले सदस्य",
+    "backToData": "डेटा पर वापस जाएँ",
+    "appShare": {
+      "customTeamDescription": "एक टीम जिसे यह ऐप परिभाषित करता है।",
+      "membersTeamDescription": "ऐप का उपयोग करता है।",
+      "adminTeamDescription": "ऐप का उपयोग करता है और उसके सदस्यों को प्रबंधित करता है।",
+      "noAccessTeamDescription": "अभी तक कोई कार्रवाई नहीं दी गई, इसलिए इसके सदस्य ऐप नहीं खोल सकते।"
+    },
+    "viewActions": "व्यू कार्रवाइयाँ",
+    "renameView": "व्यू का नाम बदलें",
+    "generateWithAi": "AI से जनरेट करें",
+    "deleteView": "व्यू हटाएँ",
+    "addToFavourites": "पसंदीदा में जोड़ें",
+    "contextMenu": "कॉन्टेक्स्ट मेनू",
+    "editSqlView": "SQL व्यू संपादित करें",
+    "noWebhooksYet": "अभी तक कोई webhook नहीं",
+    "navigation": "नेविगेशन",
+    "prompts": "प्रॉम्प्ट",
+    "pagination": "पेजिनेशन",
+    "showRowNumbers": "पंक्ति संख्या दिखाएँ"
   },
   "activity": {
     "useTemplate": "टेम्पलेट का उपयोग करें",
@@ -5367,7 +5499,7 @@
     "notAvailableForNewRecord": "नया रिकॉर्ड बनाते समय उपलब्ध नहीं है",
     "conditionallyVisibleField": "शर्त के अनुसार दिखाई देने वाला क्षेत्र",
     "bookmarks": "बुकमार्क",
-    "variableInheritance": "तय करता है कि इस बेस को ऐप के रूप में इंस्टॉल करने वाले लोग इस वेरिएबल के साथ क्या कर सकते हैं: स्थिर आपका मान रखता है और छिपा देता है, संपादन योग्य आपका मान शुरुआती बिंदु के रूप में देता है, और आवश्यक उनसे अपना मान देने को कहता है।",
+    "variableInheritance": "तय करता है कि इस प्रोजेक्ट को ऐप के रूप में इंस्टॉल करने वाले लोग इस वैरिएबल के साथ क्या कर सकते हैं: स्थिर आपका मान रखता है और छिपा देता है, संपादन-योग्य आपका मान शुरुआती बिंदु के रूप में देता है, और आवश्यक उनसे अपना मान देने को कहता है।",
     "inheritedMembersInfo": "ये सदस्य एक मूल टीम से संबंधित हैं और इस टीम को आवंटित संसाधनों तक पहुँच विरासत में प्राप्त करते हैं।",
     "teamScopeThisOnly": "केवल यही टीम। उप-टीमें शामिल करने के लिए क्लिक करें",
     "teamScopeIncludesSubTeams": "उप-टीमें शामिल हैं। केवल इसी टीम से मिलान के लिए क्लिक करें",
@@ -5395,7 +5527,7 @@
     "dataWriteOptionDisabled": "डेटा संपादन को केवल तभी अक्षम किया जा सकता है जब 'योजना संपादन' भी अक्षम है",
     "allowMetaWrite": "यह विकल्प डेटाबेस स्कीमा के संशोधन की अनुमति देता है, जिसमें तालिकाओं और कॉलमों को जोड़ना, बदलना, या हटाना शामिल है। सावधानी से उपयोग करें, क्योंकि परिवर्तन आपके डेटाबेस की संरचनात्मक अखंडता को प्रभावित कर सकते हैं।",
     "allowDataWrite": "यह विकल्प डेटाबेस तालिकाओं के भीतर अभिलेख बनाने, अपडेट या हटाने की अनुमति देता है। प्रत्यक्ष रूप से डेटा बदलने की आवश्यकता वाले प्रशासनिक उपयोगकर्ताओं के लिए आदर्श।",
-    "reachedSourceLimit": "प्रति आधार 10 डेटा स्रोतों तक सीमित",
+    "reachedSourceLimit": "प्रति प्रोजेक्ट अधिकतम 10 डेटा स्रोत",
     "saveChanges": "परिवर्तनों को सुरक्षित करें",
     "clientKey": "Select .key file",
     "clientCert": "Select .cert file",
@@ -5421,7 +5553,7 @@
     "selectAllMappedFields": "सभी मैप किए गए फ़ील्ड्स चुनें",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "त्रुटि कोड कॉपी करें",
-    "paidUserBadgeTooltip": "एक सशुल्क सीट लेता है। वर्कस्पेस स्तर पर, किसी बेस में, या किसी इंटरफ़ेस पर संपादक या उससे ऊपर की भूमिका।",
+    "paidUserBadgeTooltip": "एक सशुल्क सीट लेता है। वर्कस्पेस स्तर पर, किसी प्रोजेक्ट में, या किसी इंटरफ़ेस पर एडिटर या उससे ऊपर की भूमिका।",
     "approachingLimit": "सीमा के करीब",
     "exceedingLimit": "सीमा पार",
     "filteredByCurrentUser": "वर्तमान उपयोगकर्ता द्वारा फ़िल्टर किया गया",
@@ -5465,8 +5597,8 @@
     "onlyViewOwnerCanCopyViewConfig": "केवल व्यू के मालिक ही व्यू कॉन्फ़िगरेशन की प्रतिलिपि बना सकते हैं।",
     "onlyViewOwnerCanModifyPersonalView": "केवल व्यू के मालिक ही इस व्यक्तिगत व्यू को संशोधित कर सकते हैं।",
     "onlyViewOwnerCanDeletePersonalView": "केवल व्यू के मालिक ही इस व्यक्तिगत व्यू को हटा सकते हैं।",
-    "onlyCreatorsCanLockView": "केवल बेस निर्माता या मालिक ही एक दृश्य को लॉक कर सकते हैं।",
-    "onlyCreatorsCanUnlockView": "केवल बेस निर्माता या मालिक ही एक दृश्य अनलॉक कर सकते हैं।",
+    "onlyCreatorsCanLockView": "केवल प्रोजेक्ट के निर्माता या स्वामी ही किसी व्यू को लॉक कर सकते हैं",
+    "onlyCreatorsCanUnlockView": "केवल प्रोजेक्ट के निर्माता या स्वामी ही किसी व्यू को अनलॉक कर सकते हैं",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "कॉन्फ़िगरेशन कॉपी करने के लिए आपके पास कम से कम एक मौजूदा व्यू होना चाहिए।  इस विकल्प को सक्षम करने के लिए पहले एक व्यू बनाएँ।",
     "youDoNotHaveSufficientPermissionToAddExtension": "आपके पास एक्सटेंशन जोड़ने की पर्याप्त अनुमति नहीं है।",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "आपके पास इस एक्सटेंशन को कॉन्फ़िगर करने के लिए पर्याप्त अनुमति नहीं है।",
@@ -5493,7 +5625,7 @@
     "interfaceMixedRoles": "इंटरफ़ेस या पेज के अनुसार भूमिकाएँ अलग-अलग हैं। देखने के लिए विस्तृत करें",
     "chatQueueAttachmentUnavailable": "यदि आप अपना संदेश कतार में डालते हैं तो यह अनुलग्नक नहीं भेजा जाएगा। पहले इसे हटाएँ",
     "lockedViewDisabledOnProduction": "लॉक किए गए दृश्य केवल वातावरण प्रति में बनाए जा सकते हैं",
-    "personalViewDisabledOnEnvironment": "निजी दृश्य केवल उत्पादन परियोजना पर बनाए जा सकते हैं",
+    "personalViewDisabledOnEnvironment": "व्यक्तिगत व्यू केवल प्रोडक्शन प्रोजेक्ट में ही बनाए जा सकते हैं",
     "seeNComments": "{n} टिप्पणी देखें | {n} टिप्पणियाँ देखें",
     "collapsibleGroups": "शीर्षक वाले समूहों को समेटने दें",
     "nestedRecordsRequireSelfLink": "इस तालिका में ऐसा लिंक फ़ील्ड चाहिए जो उसी तालिका पर वापस जाता हो।",
@@ -5510,10 +5642,10 @@
     "youDontHaveAccessToCreateNewInterface": "आपके पास नया इंटरफ़ेस बनाने की अनुमति नहीं है",
     "displayValueFieldCannotBeReordered": "प्रदर्शित मान वाले फ़ील्ड का क्रम नहीं बदला जा सकता",
     "interfaceLastVizRequired": "एक पृष्ठ में कम से कम एक विज़ुअलाइज़ेशन चाहिए",
-    "onlyCreatorsCanManageViewFolders": "दृश्य फ़ोल्डर केवल परियोजना के निर्माता या स्वामी ही प्रबंधित कर सकते हैं",
-    "onlyCreatorsCanManageFolders": "फ़ोल्डर केवल परियोजना के निर्माता या स्वामी ही प्रबंधित कर सकते हैं",
+    "onlyCreatorsCanManageViewFolders": "केवल प्रोजेक्ट के निर्माता या स्वामी ही व्यू फ़ोल्डर प्रबंधित कर सकते हैं",
+    "onlyCreatorsCanManageFolders": "केवल प्रोजेक्ट के निर्माता या स्वामी ही फ़ोल्डर प्रबंधित कर सकते हैं",
     "organizeViewsIntoFolders": "दृश्यों को समेटे जा सकने वाले फ़ोल्डरों में व्यवस्थित करें",
-    "productionLockedByEnvironment": "यह बेस किसी एनवायरनमेंट में खुला है। स्कीमा बदलाव वहीं करें।",
+    "productionLockedByEnvironment": "यह प्रोजेक्ट किसी एनवायरनमेंट में खुला है। स्कीमा में बदलाव वहीं करें।",
     "managedByPublisher": "इस ऐप की संरचना इसका प्रकाशक संभालता है। आपके दस्तावेज़ और फ़ोल्डर आपके अपने रहते हैं।",
     "featureOnProductionOnly": "यह क्रिया प्रोडक्शन प्रोजेक्ट पर प्रबंधित होती है, एनवायरनमेंट कॉपी में नहीं।",
     "clickToEdit": "संपादित करने के लिए क्लिक करें",
@@ -5569,8 +5701,8 @@
     "showAllFields": "सभी फ़ील्ड दिखाएँ",
     "inviteLinkCannotGrantOwner": "आमंत्रण लिंक स्वामी की भूमिका नहीं दे सकता",
     "inviteLinkRoleAboveYours": "आप केवल अपनी भूमिका तक की भूमिकाएँ दे सकते हैं",
-    "noDefaultSourceForFolders": "इस बेस का कोई डिफ़ॉल्ट स्रोत नहीं है। इसके बजाय फ़ोल्डर किसी स्रोत के अपने मेन्यू से बनाएँ",
-    "noDefaultSourceForSync": "इस बेस का कोई डिफ़ॉल्ट स्रोत नहीं है। सिंक को अपनी टेबल रखने के लिए एक स्रोत चाहिए"
+    "noDefaultSourceForFolders": "इस प्रोजेक्ट का कोई डिफ़ॉल्ट स्रोत नहीं है। इसके बजाय फ़ोल्डर उसी स्रोत के अपने मेनू से बनाएँ",
+    "noDefaultSourceForSync": "इस प्रोजेक्ट का कोई डिफ़ॉल्ट स्रोत नहीं है। सिंक को अपनी तालिकाएँ संग्रहित करने के लिए एक स्रोत चाहिए"
   },
   "placeholder": {
     "enterVerificationCode": "6-अंकीय कोड दर्ज करें",
@@ -7298,8 +7430,8 @@
         "description": "आपके कार्यस्थान का एक त्वरित चक्कर. आप कभी भी बाहर निकल सकते हैं: छोड़ें दबाएँ."
       },
       "createBase": {
-        "title": "एक बेस से शुरू करें",
-        "description": "एक बेस में आपकी तालिकाएँ, दृश्य और स्वचालन रहते हैं। अधिकांश काम यहीं से शुरू होता है।"
+        "title": "एक प्रोजेक्ट से शुरू करें",
+        "description": "एक प्रोजेक्ट में आपकी तालिकाएँ, व्यू और ऑटोमेशन होते हैं। अधिकांश काम यहीं से शुरू होता है।"
       },
       "switchWorkspaces": {
         "title": "कार्यस्थान बदलें",

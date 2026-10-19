@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "আরও ডকুমেন্ট পেজ যোগ করতে আপগ্রেড করুন",
     "upgradeToAddMoreWorkflows": "আরও ওয়ার্কফ্লো যোগ করতে আপগ্রেড করুন",
     "upgradeToAddMoreScriptsSubtitle": "আপনি বর্তমানে ফ্রি প্ল্যানে আছেন, যেখানে প্রতি ওয়ার্কস্পেসে কেবল একটি স্ক্রিপ্ট অনুমোদিত। সীমাহীন স্ক্রিপ্ট আনলক করতে আপগ্রেড করুন।",
-    "upgradeToAddMoreWorkflowsSubtitle": "আপনি বর্তমানে {activePlan} প্ল্যানে আছেন, যেখানে প্রতি বেসে {limit}টি ওয়ার্কফ্লো অনুমোদিত। আরও পেতে {plan}-এ আপগ্রেড করুন।",
+    "upgradeToAddMoreWorkflowsSubtitle": "আপনি এখন {activePlan} প্ল্যানে আছেন, যেখানে প্রতি প্রকল্পে {limit}টি ওয়ার্কফ্লো অনুমোদিত। আরও পেতে {plan}-এ আপগ্রেড করুন।",
     "upgradeToAddMoreDashboardsSubtitle": "আপনি বর্তমানে ফ্রি প্ল্যানে আছেন, যেখানে প্রতি ওয়ার্কস্পেসে কেবল একটি ড্যাশবোর্ড অনুমোদিত। সীমাহীন ড্যাশবোর্ড আনলক করতে আপগ্রেড করুন।",
-    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan} প্ল্যানে প্রতি বেসে সর্বোচ্চ {limit} টি ডকুমেন্ট পেজ অনুমোদিত। আরও যোগ করতে {plan} প্ল্যানে আপগ্রেড করুন।",
+    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan} প্ল্যানে প্রতি প্রকল্পে সর্বাধিক {limit}টি নথির পৃষ্ঠা অনুমোদিত। আরও যোগ করতে {plan} প্ল্যানে আপগ্রেড করুন।",
     "upgradeToUseBookmarks": "বুকমার্ক ব্যবহারের জন্য আপগ্রেড করুন",
-    "upgradeToUseBookmarksSubtitle": "বেস, টেবিল, ভিউ ও আরও অনেক কিছু দ্রুত প্রবেশের জন্য বুকমার্ক করতে {plan} প্ল্যানে আপগ্রেড করুন।",
+    "upgradeToUseBookmarksSubtitle": "দ্রুত অ্যাক্সেসের জন্য প্রকল্প, টেবিল, ভিউ ও আরও অনেক কিছু বুকমার্ক করতে {plan} প্ল্যানে আপগ্রেড করুন।",
     "upgradeToUseDocsExportPdf": "ডকুমেন্ট পিডিএফ ফরম্যাটে এক্সপোর্ট করতে আপগ্রেড করুন",
     "upgradeToUseDocsExportPdfSubtitle": "আপনার ডকুমেন্টসমূহ PDF ফাইলে এক্সপোর্ট করতে {plan} প্ল্যানে আপগ্রেড করুন।",
     "upgradeToUseDocsInlineComments": "ইনলাইন কমেন্ট ব্যবহারের জন্য আপগ্রেড করুন",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "{activePlan} প্ল্যানে সর্বোচ্চ {limit}টি ওয়েবহুক অনুমোদিত। আনলিমিটেড ওয়েবহুকের জন্য {plan} প্ল্যানে আপগ্রেড করুন।",
     "upgradeToAccessWebhookLogsSubtitle": "আপনার ওয়ার্কস্পেসকে {plan} প্ল্যানে আপগ্রেড করে ওয়েবহুক লগ অ্যাক্সেস করুন।",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "বিভিন্ন প্রকল্পের মধ্যে টেবিল নকল করতে আপনার প্ল্যান আপগ্রেড করুন।",
     "formOwnerNotified": "ফর্মের মালিককে জানানো হয়েছে",
     "formOwnerNotifiedSubtitle": "আপনার জমা অনুরোধ সম্পর্কে ফর্মের মালিককে জানানো হয়েছে।",
     "WorkspaceOwnerNotified": "ওয়ার্কস্পেস মালিককে জানানো হয়েছে",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "আপনার ডক্সে নির্দিষ্ট পেজের দেখা ও সম্পাদনা কারা করতে পারবে তা নিয়ন্ত্রণ করতে {plan} প্ল্যানে আপগ্রেড করুন।",
     "upgradeToUseWorkflows": "ওয়ার্কফ্লো ব্যবহারের জন্য আপগ্রেড করুন",
     "upgradeToUseWorkflowsSubtitle": "স্বয়ংক্রিয়ভাবে টাস্ক ও প্রসেস ব্যবস্থাপনার জন্য ওয়ার্কফ্লো ব্যবহারে {plan} প্ল্যানে আপগ্রেড করুন।",
-    "upgradeToUsePrivateBases": "প্রাইভেট বেস আনলক করতে আপগ্রেড করুন",
-    "upgradeToUsePrivateBasesSubtitle": "{plan} প্ল্যানে প্রাইভেট বেস উপলব্ধ। এখনই আপগ্রেড করুন এবং ব্যবহার শুরু করুন।",
+    "upgradeToUsePrivateBases": "ব্যক্তিগত প্রকল্প আনলক করতে আপগ্রেড করুন",
+    "upgradeToUsePrivateBasesSubtitle": "ব্যক্তিগত প্রকল্প {plan} প্ল্যানে পাওয়া যায়। ব্যবহার শুরু করতে এখনই আপগ্রেড করুন।",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "আপনি এই সেলে সর্বাধিক {limit}টি {filePlural} আপলোড করতে পারবেন। আরও ফাইল যোগ করতে {plan} প্ল্যানে আপগ্রেড করুন।",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "এআই চ্যাট ব্যবহারের জন্য আপগ্রেড করুন",
-    "upgradeToUseAiChatSubtitle": "প্রাকৃতিক ভাষায় আপনার বেস ম্যানেজ করতে AI চ্যাট ব্যবহারের জন্য {plan} প্ল্যানে আপগ্রেড করুন।",
+    "upgradeToUseAiChatSubtitle": "প্রাকৃতিক ভাষায় আপনার প্রকল্প পরিচালনা করতে AI চ্যাট ব্যবহারের জন্য {plan} প্ল্যানে আপগ্রেড করুন।",
     "upgradeToUseMfa": "দুই-স্তরের অথেন্টিকেশন সক্রিয় করতে আপগ্রেড করুন",
     "upgradeToUseMfaSubtitle": "আপনার একাউন্টে বহুস্বরক অথেন্টিকেশন সক্রিয় করতে {plan} প্ল্যানে আপগ্রেড করুন।",
     "upgradeToRequireTwoFactor": "দুই-স্তরের অথেন্টিকেশন বাধ্যতামূলক করতে আপগ্রেড করুন",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "টিম হায়ারার্কি ব্যবহারের জন্য আপগ্রেড করুন",
     "upgradeToUseTeamHierarchySubtitle": "নেস্টেড হায়ারার্কি ও ইনহেরিটেড মেম্বারশিপসহ টিম সংগঠিত করতে {plan} প্ল্যানে আপগ্রেড করুন।",
     "upgradeToUseTeams": "টিম ব্যবহারের জন্য আপগ্রেড করুন",
-    "upgradeToUseTeamsSubtitle": "ইউজারদের গ্রুপ হিসাবে গঠন করতে এবং তাদের অ্যাক্সেস ওয়ার্কস্পেস ও বেস-এ নিয়ন্ত্রণ করতে {plan} প্ল্যানে আপগ্রেড করুন।",
+    "upgradeToUseTeamsSubtitle": "ব্যবহারকারীদের দলবদ্ধ করতে ও ওয়ার্কস্পেস এবং প্রকল্পে তাঁদের অ্যাক্সেস পরিচালনা করতে টিম ব্যবহারের জন্য {plan} প্ল্যানে আপগ্রেড করুন।",
     "upgradeToAddMoreTeams": "আরও টিম যোগ করতে আপগ্রেড করুন",
     "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views.",
     "upgradeToUseFormScheduling": "ফর্ম সময়সূচী ব্যবহারের জন্য আপগ্রেড করুন",
     "upgradeToUseFormSchedulingSubtitle": "শুরু এবং মেয়াদ শেষের তারিখ সহ ফর্মের প্রাপ্যতা নির্ধারণ করতে {plan} প্ল্যানে আপগ্রেড করুন।",
-    "upgradeToUseBaseVariables": "বেস ভেরিয়েবল ব্যবহারের জন্য আপগ্রেড করুন",
-    "upgradeToUseBaseVariablesSubtitle": "একটি বেজের স্কোপে পুনঃব্যবহারযোগ্য ভেরিয়েবল নির্ধারণ করতে {plan} প্ল্যানে আপগ্রেড করুন।",
+    "upgradeToUseBaseVariables": "প্রকল্প ভেরিয়েবল ব্যবহার করতে আপগ্রেড করুন",
+    "upgradeToUseBaseVariablesSubtitle": "কোনও প্রকল্পের পরিসরে পুনর্ব্যবহারযোগ্য ভেরিয়েবল নির্ধারণ করতে {plan} প্ল্যানে আপগ্রেড করুন।",
     "upgradeToUseSync": "Upgrade to use sync",
     "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources.",
     "upgradeToUseTableSync": "টেবিল সিঙ্ক ব্যবহারের জন্য আপগ্রেড করুন",
@@ -3112,7 +3112,11 @@
       "upgradeRequestSent": "অনুরোধ পাঠানো হয়েছে",
       "upgradeDescRls": "কে কোন রেকর্ড দেখতে ও সম্পাদনা করতে পারবে তা সীমিত করুন।",
       "upgradeDescRecordTemplates": "সংরক্ষিত, আগে থেকে পূরণ করা টেমপ্লেট থেকে নতুন রেকর্ড তৈরি করুন।",
-      "upgradeDescDateDependency": "কোনো রেকর্ড সরালে নির্ভরশীল তারিখগুলি স্বয়ংক্রিয়ভাবে সরিয়ে দেয়।"
+      "upgradeDescDateDependency": "কোনো রেকর্ড সরালে নির্ভরশীল তারিখগুলি স্বয়ংক্রিয়ভাবে সরিয়ে দেয়।",
+      "concernProject": "প্রকল্প",
+      "concernInterfaces": "ইন্টারফেস",
+      "concernApps": "অ্যাপ",
+      "concernTabs": "সেটিংস বিভাগ"
     },
     "categories": "বিভাগ",
     "blockquote": "উদ্ধৃতি",
@@ -4402,7 +4406,105 @@
         "repeatWarning": "এই ধাপটি ডেটা পাঠাতে বা পরিবর্তন করতে পারে। পুনরায় চেষ্টা করলে তা আবার ঘটতে পারে — ঠিক থাকলে তবেই এটি চালু করুন।",
         "retries": "পুনঃচেষ্টার সংখ্যা",
         "earlierTries": "আগের চেষ্টাগুলি",
-        "noErrorMessage": "কোনও ত্রুটির বার্তা নেই"
+        "noErrorMessage": "কোনও ত্রুটির বার্তা নেই",
+        "title": "ব্যর্থ হলে",
+        "retryIfFails": "এই ধাপ ব্যর্থ হলে আবার চেষ্টা করুন",
+        "retrySafeHint": "কোনও পরিষেবা সাময়িকভাবে অনুপলব্ধ হলে স্বয়ংক্রিয়ভাবে আবার চেষ্টা করে",
+        "waitBeforeRetry": "আবার চেষ্টার আগে অপেক্ষা করুন",
+        "seconds": "সেকেন্ড",
+        "waitLonger": "প্রতিবার বেশি অপেক্ষা করুন",
+        "waitLongerHint": "প্রতিটি চেষ্টার পর অপেক্ষার সময় দ্বিগুণ করে, সর্বাধিক 1 ঘণ্টা",
+        "retryOn": "যখন আবার চেষ্টা করবে",
+        "retryOnTemporary": "শুধুমাত্র সাময়িক সমস্যা (টাইমআউট, রেট লিমিট, সার্ভার ত্রুটি)",
+        "retryOnAny": "যেকোনও ত্রুটি",
+        "triedTimes": "{count} বার চেষ্টা করা হয়েছে",
+        "tryNumber": "চেষ্টা {n}",
+        "succeededAfterTries": "{count} বার চেষ্টার পর সফল"
+      },
+      "iterate": {
+        "listPlaceholder": "পুনরাবৃত্তি করার জন্য একটি অ্যারে বেছে নিন",
+        "listHelp": "আগের কোনও ধাপ থেকে একটি অ্যারে বেছে নিন। প্রতিটি আইটেম পর্যায়ক্রমে প্রক্রিয়া করা হবে।",
+        "notAList": "আইটেমের একটি তালিকা দরকার, কিন্তু এই মানটি {kind}।"
+      },
+      "originalRun": "মূল রান",
+      "duration": {
+        "milliseconds": "{n} মিলিসেকেন্ড",
+        "seconds": "{n} সেকেন্ড",
+        "minutesSeconds": "{m} মিন {s} সেকেন্ড"
+      },
+      "overview": {
+        "lastRun": "সর্বশেষ রান",
+        "failedCount": "{n}টি ব্যর্থ",
+        "allTested": "সব ধাপ পরীক্ষা করা হয়েছে"
+      },
+      "addStep": "একটি ধাপ যোগ করুন",
+      "nodePicker": {
+        "upgradeToUseStep": "{step} ব্যবহার করতে {plan} প্ল্যানে আপগ্রেড করুন",
+        "search": "ধাপ ও অ্যাপ খুঁজুন",
+        "searchTriggers": "খুঁজুন, যেমন “নতুন সারি”, “প্রতি সোমবার”",
+        "searchIn": "{app}-এ খুঁজুন",
+        "apps": "অ্যাপ",
+        "integrations": "ইন্টিগ্রেশন",
+        "popular": "জনপ্রিয়",
+        "chooseTrigger": "একটি ট্রিগার বেছে নিন",
+        "chooseTriggerHint": "প্রতিটি ওয়ার্কফ্লো একটি ট্রিগার দিয়ে শুরু হয়: যে ঘটনাটি সেটি চালু করে।",
+        "noMatches": "কোনও ধাপ মেলে না",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "রেকর্ড {bold}",
+            "bold": "তৈরি করা হয়"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "রেকর্ড {bold}",
+            "bold": "হালনাগাদ করা হয়"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "রেকর্ড {bold}",
+            "bold": "মুছে ফেলা হয়"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "রেকর্ড {bold}",
+            "bold": "কোনও ভিউতে আসে"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "রেকর্ড {bold}",
+            "bold": "শর্তের সঙ্গে মেলে"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "একটি ফর্ম জমা দেন"
+          },
+          "core_trigger_button": {
+            "text": "কোনও রেকর্ডে {bold}",
+            "bold": "একটি বোতামে ক্লিক করেন"
+          },
+          "nocodb_trigger_comment": {
+            "text": "কোনও রেকর্ডে {bold}",
+            "bold": "মন্তব্য করেন"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "নির্ধারিত সময় অনুযায়ী"
+          },
+          "core_trigger_webhook": {
+            "text": "যখন {bold}",
+            "bold": "webhook পাওয়া যায়"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "ম্যানুয়ালি"
+          }
+        },
+        "groups": {
+          "recordEvents": "যখন",
+          "userActions": "যখন ব্যবহারকারী",
+          "runs": "রান",
+          "records": "রেকর্ড",
+          "logic": "লজিক",
+          "messages": "বার্তা",
+          "developer": "ডেভেলপার",
+          "other": "অন্যান্য"
+        }
       }
     },
     "xAxis": "X-অক্ষ",
@@ -5051,7 +5153,37 @@
     "licenseExpired": "লাইসেন্সের মেয়াদ শেষ",
     "talkToSales": "বিক্রয় দলের সঙ্গে কথা বলুন",
     "paidAnnually": "বার্ষিক পরিশোধ",
-    "paidMonthly": "মাসিক পরিশোধ"
+    "paidMonthly": "মাসিক পরিশোধ",
+    "addAttachment": "সংযুক্তি যোগ করুন",
+    "fromAttachmentField": "সংযুক্তি ক্ষেত্র থেকে",
+    "uploadFile": "ফাইল আপলোড করুন",
+    "fromUrl": "URL থেকে",
+    "attachFromUrl": "URL থেকে সংযুক্ত করুন",
+    "removeAttachment": "সংযুক্তি সরান",
+    "attachmentFieldChip": "ক্ষেত্র",
+    "setPageAccess": "পৃষ্ঠার অ্যাক্সেস নির্ধারণ করুন",
+    "readOnlyMember": "শুধু-পঠনযোগ্য সদস্য",
+    "aReadOnlyMember": "একজন শুধু-পঠনযোগ্য সদস্য",
+    "readOnlyMembers": "শুধু-পঠনযোগ্য সদস্যরা",
+    "backToData": "ডেটায় ফিরে যান",
+    "appShare": {
+      "customTeamDescription": "এই অ্যাপ যে টিম নির্ধারণ করে।",
+      "membersTeamDescription": "অ্যাপটি ব্যবহার করে।",
+      "adminTeamDescription": "অ্যাপটি ব্যবহার করে এবং এর সদস্যদের পরিচালনা করে।",
+      "noAccessTeamDescription": "এখনও কোনও কাজের অনুমতি দেওয়া হয়নি, তাই এর সদস্যেরা অ্যাপটি খুলতে পারবেন না।"
+    },
+    "viewActions": "ভিউ অ্যাকশন",
+    "renameView": "ভিউয়ের নাম বদলান",
+    "generateWithAi": "AI দিয়ে তৈরি করুন",
+    "deleteView": "ভিউ মুছুন",
+    "addToFavourites": "পছন্দের তালিকায় যোগ করুন",
+    "contextMenu": "কনটেক্সট মেনু",
+    "editSqlView": "SQL ভিউ সম্পাদনা করুন",
+    "noWebhooksYet": "এখনও কোনও webhook নেই",
+    "navigation": "নেভিগেশন",
+    "prompts": "প্রম্পট",
+    "pagination": "পেজিনেশন",
+    "showRowNumbers": "সারির নম্বর দেখান"
   },
   "activity": {
     "useTemplate": "টেমপ্লেট ব্যবহার করুন",
@@ -5367,7 +5499,7 @@
     "notAvailableForNewRecord": "নতুন রেকর্ড তৈরি করার সময় উপলব্ধ নয়",
     "conditionallyVisibleField": "শর্তসাপেক্ষে দৃশ্যমান ফিল্ড",
     "bookmarks": "বুকমার্কসমূহ",
-    "variableInheritance": "এই বেসটি অ্যাপ হিসেবে ইনস্টল করা ব্যক্তিরা এই ভেরিয়েবল নিয়ে কী করতে পারবেন তা ঠিক করে: ফিক্সড আপনার মান রেখে দেয় ও আড়াল করে, এডিটেবল আপনার মান শুরুর বিন্দু হিসেবে দেয়, আর রিকোয়ার্ড তাঁদের নিজের মান দিতে বলে।",
+    "variableInheritance": "এই প্রকল্পটি অ্যাপ হিসেবে ইনস্টল করা ব্যক্তিরা এই ভেরিয়েবল দিয়ে কী করতে পারবেন তা ঠিক করে: স্থির আপনার মান রাখে ও লুকিয়ে ফেলে, সম্পাদনযোগ্য আপনার মান শুরুর বিন্দু হিসেবে দেয়, আর আবশ্যক তাঁদের নিজের মান দিতে বলে।",
     "inheritedMembersInfo": "এই সদস্যরা একটি প্যারেন্ট টিমের অন্তর্ভুক্ত এবং এই টিমের রিসোর্সের অ্যাক্সেস উত্তরাধিকারসূত্রে পেয়েছে।",
     "teamScopeThisOnly": "কেবল এই দল। উপ-দল অন্তর্ভুক্ত করতে ক্লিক করুন",
     "teamScopeIncludesSubTeams": "উপ-দল অন্তর্ভুক্ত। কেবল এই দলের সঙ্গে মেলাতে ক্লিক করুন",
@@ -5395,7 +5527,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "এই বিকল্পটি ডাটাবেস স্কিমার পরিবর্তনযোগ্যতা প্রদান করে, যার মধ্যে টেবিল এবং কলাম যোগ করা, পরিবর্তন করা বা মুছে ফেলা অন্তর্ভুক্ত। সতর্কতার সাথে ব্যবহার করুন, যেহেতু পরিবর্তনগুলি আপনার ডাটাবেসের গঠনগত অখণ্ডতা প্রভাবিত করতে পারে।",
     "allowDataWrite": "এই বিকল্পটি ডেটাবেস টেবিলের মধ্যে রেকর্ড তৈরি, আপডেট বা মুছে ফেলতে দেয়। ডেটা সরাসরি পরিবর্তন করতে চাওয়া প্রশাসনিক ব্যবহারকারীদের জন্য আদর্শ।",
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "প্রতি প্রকল্পে সর্বাধিক 10টি ডেটা উৎস",
     "saveChanges": "परिवर्तनों को सुरक्षित करें",
     "clientKey": ".key ফাইল নির্বাচন করুন",
     "clientCert": ".cert ফাইল নির্বাচন করুন",
@@ -5421,7 +5553,7 @@
     "selectAllMappedFields": "সমস্ত ম্যাপ করা ফিল্ড নির্বাচন করুন",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "ত্রুটি কোড কপি করুন",
-    "paidUserBadgeTooltip": "একটি সবেতন আসন নেয়। ওয়ার্কস্পেস স্তরে, কোনও বেসে, বা কোনও ইন্টারফেসে সম্পাদক বা তার বেশি ভূমিকা।",
+    "paidUserBadgeTooltip": "একটি পেইড সিট ব্যবহার করে। ওয়ার্কস্পেস স্তরে, কোনও প্রকল্পে, বা কোনও ইন্টারফেসে এডিটর বা তার উপরের ভূমিকা।",
     "approachingLimit": "সীমার কাছাকাছি",
     "exceedingLimit": "সীমা অতিক্রম করেছে",
     "filteredByCurrentUser": "বর্তমান ব্যবহারকারী দ্বারা ফিল্টার করা হয়েছে",
@@ -5465,8 +5597,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
     "onlyViewOwnerCanModifyPersonalView": "শুধুমাত্র ভিউ মালিক তার ব্যক্তিগত ভিউ পরিবর্তন করতে পারবেন",
     "onlyViewOwnerCanDeletePersonalView": "শুধুমাত্র ভিউ মালিক তার ব্যক্তিগত ভিউ মুছে ফেলতে পারবেন",
-    "onlyCreatorsCanLockView": "শুধুমাত্র বেস নির্মাতা বা মালিকরা ভিউ লক করতে পারবেন",
-    "onlyCreatorsCanUnlockView": "শুধুমাত্র বেস নির্মাতা বা মালিকরা ভিউ আনলক করতে পারবেন",
+    "onlyCreatorsCanLockView": "শুধুমাত্র প্রকল্পের নির্মাতা বা মালিকেরা কোনও ভিউ লক করতে পারেন",
+    "onlyCreatorsCanUnlockView": "শুধুমাত্র প্রকল্পের নির্মাতা বা মালিকেরা কোনও ভিউ আনলক করতে পারেন",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
     "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
@@ -5493,7 +5625,7 @@
     "interfaceMixedRoles": "ইন্টারফেস বা পৃষ্ঠাভেদে ভূমিকা আলাদা। দেখতে প্রসারিত করুন",
     "chatQueueAttachmentUnavailable": "আপনি বার্তাটি সারিতে রাখলে এই সংযুক্তিটি পাঠানো হবে না। আগে এটি সরিয়ে দিন",
     "lockedViewDisabledOnProduction": "লক করা ভিউ কেবল পরিবেশের অনুলিপিতে তৈরি করা যায়",
-    "personalViewDisabledOnEnvironment": "ব্যক্তিগত ভিউ কেবল উৎপাদন প্রকল্পে তৈরি করা যায়",
+    "personalViewDisabledOnEnvironment": "ব্যক্তিগত ভিউ শুধুমাত্র প্রোডাকশন প্রকল্পেই তৈরি করা যায়",
     "seeNComments": "{n}টি মন্তব্য দেখুন | {n}টি মন্তব্য দেখুন",
     "collapsibleGroups": "শিরোনামযুক্ত গোষ্ঠীগুলো গুটিয়ে রাখার সুযোগ দিন",
     "nestedRecordsRequireSelfLink": "এই টেবিলে এমন একটি লিঙ্ক ফিল্ড দরকার যা একই টেবিলে ফিরে যায়।",
@@ -5510,10 +5642,10 @@
     "youDontHaveAccessToCreateNewInterface": "নতুন ইন্টারফেস তৈরির অনুমতি আপনার নেই",
     "displayValueFieldCannotBeReordered": "প্রদর্শিত মানের ফিল্ডের ক্রম বদলানো যায় না",
     "interfaceLastVizRequired": "একটি পৃষ্ঠায় অন্তত একটি ভিজ্যুয়ালাইজেশন দরকার",
-    "onlyCreatorsCanManageViewFolders": "ভিউ ফোল্ডার কেবল প্রকল্পের নির্মাতা বা মালিকেরাই পরিচালনা করতে পারেন",
-    "onlyCreatorsCanManageFolders": "ফোল্ডার কেবল প্রকল্পের নির্মাতা বা মালিকেরাই পরিচালনা করতে পারেন",
+    "onlyCreatorsCanManageViewFolders": "শুধুমাত্র প্রকল্পের নির্মাতা বা মালিকেরা ভিউ ফোল্ডার পরিচালনা করতে পারেন",
+    "onlyCreatorsCanManageFolders": "শুধুমাত্র প্রকল্পের নির্মাতা বা মালিকেরা ফোল্ডার পরিচালনা করতে পারেন",
     "organizeViewsIntoFolders": "ভিউগুলো গুটিয়ে রাখার উপযোগী ফোল্ডারে সাজান",
-    "productionLockedByEnvironment": "এই বেসটি একটি এনভায়রনমেন্টে খোলা আছে। স্কিমার পরিবর্তন সেখানেই করুন।",
+    "productionLockedByEnvironment": "এই প্রকল্পটি একটি এনভায়রনমেন্টে খোলা আছে। স্কিমার পরিবর্তন সেখানেই করুন।",
     "managedByPublisher": "এই অ্যাপের কাঠামো এর প্রকাশক পরিচালনা করেন। আপনার নথি ও ফোল্ডার আপনারই থাকে।",
     "featureOnProductionOnly": "এই কাজটি প্রোডাকশন প্রকল্পে পরিচালিত হয়, কোনো এনভায়রনমেন্ট কপিতে নয়।",
     "clickToEdit": "সম্পাদনা করতে ক্লিক করুন",
@@ -5569,8 +5701,8 @@
     "showAllFields": "সব ফিল্ড দেখান",
     "inviteLinkCannotGrantOwner": "আমন্ত্রণ লিঙ্ক মালিকের ভূমিকা দিতে পারে না",
     "inviteLinkRoleAboveYours": "আপনি কেবল নিজের ভূমিকা পর্যন্ত ভূমিকা দিতে পারেন",
-    "noDefaultSourceForFolders": "এই বেসের কোনও ডিফল্ট উৎস নেই। এর বদলে কোনও উৎসের নিজস্ব মেনু থেকে ফোল্ডার তৈরি করুন",
-    "noDefaultSourceForSync": "এই বেসের কোনও ডিফল্ট উৎস নেই। সিঙ্কের টেবিল রাখতে একটি উৎস দরকার"
+    "noDefaultSourceForFolders": "এই প্রকল্পের কোনও ডিফল্ট উৎস নেই। বরং প্রতিটি উৎসের নিজস্ব মেনু থেকে ফোল্ডার তৈরি করুন",
+    "noDefaultSourceForSync": "এই প্রকল্পের কোনও ডিফল্ট উৎস নেই। সিঙ্কের টেবিল সংরক্ষণ করতে একটি উৎস দরকার"
   },
   "placeholder": {
     "enterVerificationCode": "৬-সংখ্যার কোড লিখুন",
@@ -7298,8 +7430,8 @@
         "description": "আপনার ওয়ার্কস্পেসে একটি দ্রুত ঘোরাঘুরি। যেকোনো সময় বেরিয়ে যেতে পারেন: এড়িয়ে যান চাপুন।"
       },
       "createBase": {
-        "title": "একটি বেস দিয়ে শুরু করুন",
-        "description": "একটি বেসে আপনার টেবিল, ভিউ আর অটোমেশন থাকে। বেশিরভাগ কাজ এখান থেকেই শুরু হয়।"
+        "title": "একটি প্রকল্প দিয়ে শুরু করুন",
+        "description": "একটি প্রকল্পে আপনার টেবিল, ভিউ ও অটোমেশন থাকে। বেশিরভাগ কাজ এখান থেকেই শুরু হয়।"
       },
       "switchWorkspaces": {
         "title": "ওয়ার্কস্পেস বদলান",

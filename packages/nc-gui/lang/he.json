@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "שדרג כדי להוסיף דפים נוספים למסמך",
     "upgradeToAddMoreWorkflows": "שדרג כדי להוסיף עוד תהליכי עבודה",
     "upgradeToAddMoreScriptsSubtitle": "נכון לעכשיו אתה בתוכנית החינמית שמאפשרת סקריפט אחד בלבד לכל סביבת עבודה. שדרג כדי לפתוח סקריפטים ללא הגבלה.",
-    "upgradeToAddMoreWorkflowsSubtitle": "אתם כרגע בתוכנית {activePlan}, שמאפשרת {limit} תהליכי עבודה לכל בסיס. שדרגו ל-{plan} כדי לקבל יותר.",
+    "upgradeToAddMoreWorkflowsSubtitle": "אתם כרגע בתוכנית {activePlan}, שמאפשרת {limit} תהליכי עבודה לכל פרויקט. שדרגו ל-{plan} כדי לקבל יותר.",
     "upgradeToAddMoreDashboardsSubtitle": "נכון לעכשיו אתה בתוכנית החינמית שמאפשרת לוח בקרה אחד בלבד לכל סביבת עבודה. שדרג כדי לפתוח לוחות בקרה ללא הגבלה.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "תוכנית {activePlan} מאפשרת עד {limit} דפי מסמכים לכל בסיס. שדרגו לתוכנית {plan} כדי להוסיף עוד.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "תוכנית {activePlan} מאפשרת עד {limit} עמודי מסמך לכל פרויקט. שדרגו לתוכנית {plan} כדי להוסיף עוד.",
     "upgradeToUseBookmarks": "שדרג כדי להשתמש בסימניות",
-    "upgradeToUseBookmarksSubtitle": "שדרג לתוכנית {plan} כדי להוסיף בסיסים, טבלאות, תצוגות ועוד לסימניות, לצורך גישה מהירה.",
+    "upgradeToUseBookmarksSubtitle": "שדרגו לתוכנית {plan} כדי לסמן פרויקטים, טבלאות, תצוגות ועוד לגישה מהירה.",
     "upgradeToUseDocsExportPdf": "שדרג כדי לייצא מסמכים כקובצי PDF",
     "upgradeToUseDocsExportPdfSubtitle": "שדרג לתוכנית {plan} כדי לייצא את המסמכים שלך כקובצי PDF.",
     "upgradeToUseDocsInlineComments": "שדרג כדי להשתמש בהערות מוטמעות",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "תוכנית {activePlan} מאפשרת עד ‎{limit}‎ Webhooks. שדרג לתוכנית {plan} כדי לקבל Webhooks ללא הגבלה.",
     "upgradeToAccessWebhookLogsSubtitle": "קבל גישה ליומני Webhook על-ידי שדרוג סביבת העבודה לתוכנית {plan}.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "שדרגו את התוכנית כדי לשכפל טבלאות בין פרויקטים שונים.",
     "formOwnerNotified": "בעל הטופס קיבל הודעה",
     "formOwnerNotifiedSubtitle": "הודענו לבעל הטופס על בקשת ההגשה שלך.",
     "WorkspaceOwnerNotified": "בעל סביבת העבודה קיבל הודעה",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "שדרג לתוכנית {plan} כדי לשלוט במי יכול להציג ולערוך דפים בודדים במסמכים שלך.",
     "upgradeToUseWorkflows": "שדרג כדי להשתמש בתהליכי עבודה",
     "upgradeToUseWorkflowsSubtitle": "שדרגו לתוכנית {plan} כדי להשתמש בזרימות עבודה לאוטומציה של משימות ותהליכים.",
-    "upgradeToUsePrivateBases": "שדרג כדי לפתוח בסיסים פרטיים",
-    "upgradeToUsePrivateBasesSubtitle": "בסיסים פרטיים זמינים בתוכנית {plan}. שדרג כעת כדי להתחיל להשתמש.",
+    "upgradeToUsePrivateBases": "שדרגו כדי לפתוח פרויקטים פרטיים",
+    "upgradeToUsePrivateBasesSubtitle": "פרויקטים פרטיים זמינים בתוכנית {plan}. שדרגו עכשיו כדי להתחיל להשתמש בהם.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "תוכל להעלות עד {limit} {filePlural} לתא זה. שדרג לתוכנית {plan} כדי להוסיף עוד קבצים.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "שדרג כדי להשתמש בצ'אט מבוסס בינה מלאכותית",
-    "upgradeToUseAiChatSubtitle": "שדרג לתוכנית {plan} כדי להשתמש בצ'אט מבוסס בינה מלאכותית לניהול הבסיס שלך בשפה טבעית.",
+    "upgradeToUseAiChatSubtitle": "שדרגו לתוכנית {plan} כדי להשתמש בצ׳אט בינה מלאכותית ולנהל את הפרויקט בשפה טבעית.",
     "upgradeToUseMfa": "שדרג כדי להפעיל אימות דו-שלבי",
     "upgradeToUseMfaSubtitle": "שדרג לתוכנית \" {plan} \" כדי להפעיל אימות רב-גורמי בחשבונך.",
     "upgradeToRequireTwoFactor": "שדרג כדי לדרוש אימות דו-שלבי",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "שדרג כדי להשתמש בהיררכיה של צוותים",
     "upgradeToUseTeamHierarchySubtitle": "שדרגו לתוכנית {plan} כדי לארגן צוותים בהיררכיות מקוננות עם חברות מועברת.",
     "upgradeToUseTeams": "שדרג כדי להשתמש ב-Teams",
-    "upgradeToUseTeamsSubtitle": "שדרגו לתוכנית {plan} כדי להשתמש ב-Teams לקיבוץ משתמשים ולניהול הגישה שלהם לסביבות העבודה ולמאגרי המידע.",
+    "upgradeToUseTeamsSubtitle": "שדרגו לתוכנית {plan} כדי להשתמש בצוותים לקיבוץ משתמשים ולניהול הגישה שלהם למרחבי עבודה ולפרויקטים.",
     "upgradeToAddMoreTeams": "שדרג כדי להוסיף עוד קבוצות",
     "upgradeToAddMoreTeamsSubtitle": "שדרג לתוכנית {plan} כדי להוסיף צוותים נוספים לסביבת העבודה שלך.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "שדרג לתוכנית {plan} כדי להסתיר כותרות שדות בתצוגות 'גלריה' ו'קנבן'.",
     "upgradeToUseFormScheduling": "שדרג כדי להשתמש בתזמון הטפסים",
     "upgradeToUseFormSchedulingSubtitle": "שדרג לתוכנית \" {plan} \" כדי לקבוע את זמינות הטופס באמצעות תאריכי התחלה ותפוגה.",
-    "upgradeToUseBaseVariables": "שדרג כדי להשתמש במשתני בסיס",
-    "upgradeToUseBaseVariablesSubtitle": "שדרג לתוכנית {plan} כדי להגדיר משתנים הניתנים לשימוש חוזר, שהיקפם מוגבל לבסיס.",
+    "upgradeToUseBaseVariables": "שדרגו כדי להשתמש במשתני פרויקט",
+    "upgradeToUseBaseVariablesSubtitle": "שדרגו לתוכנית {plan} כדי להגדיר משתנים לשימוש חוזר ברמת הפרויקט.",
     "upgradeToUseSync": "שדרג כדי להשתמש בסנכרון",
     "upgradeToUseSyncSubtitle": "שדרג לתוכנית {plan} כדי לסנכרן נתונים עם מקורות פנימיים או חיצוניים.",
     "upgradeToUseTableSync": "שדרג כדי להשתמש בסנכרון טבלאות",
@@ -3112,7 +3112,11 @@
       "upgradeRequestSent": "הבקשה נשלחה",
       "upgradeDescRls": "הגבילו אילו רשומות כל אדם יכול לראות ולערוך.",
       "upgradeDescRecordTemplates": "צרו רשומות חדשות מתבניות שמורות וממולאות מראש.",
-      "upgradeDescDateDependency": "הזזת תאריכים תלויים באופן אוטומטי כאשר רשומה זזה."
+      "upgradeDescDateDependency": "הזזת תאריכים תלויים באופן אוטומטי כאשר רשומה זזה.",
+      "concernProject": "פרויקט",
+      "concernInterfaces": "ממשקים",
+      "concernApps": "אפליקציה",
+      "concernTabs": "מקטעי הגדרות"
     },
     "categories": "קטגוריות",
     "blockquote": "ציטוט",
@@ -4402,7 +4406,106 @@
         "repeatWarning": "שלב זה עשוי לשלוח או לשנות נתונים. ניסיון חוזר עלול לחזור עליו — הפעילו זאת רק אם זה בסדר.",
         "retries": "מספר ניסיונות חוזרים",
         "earlierTries": "ניסיונות קודמים",
-        "noErrorMessage": "אין הודעת שגיאה"
+        "noErrorMessage": "אין הודעת שגיאה",
+        "title": "במקרה של כשל",
+        "retryIfFails": "ניסיון חוזר אם השלב הזה נכשל",
+        "retrySafeHint": "מנסה שוב אוטומטית כששירות אינו זמין זמנית",
+        "waitBeforeRetry": "המתנה לפני ניסיון חוזר",
+        "seconds": "שניות",
+        "waitLonger": "להמתין יותר בכל פעם",
+        "waitLongerHint": "מכפיל את ההמתנה אחרי כל ניסיון, עד שעה אחת",
+        "retryOn": "ניסיון חוזר במקרה של",
+        "retryOnTemporary": "בעיות זמניות בלבד (פסקי זמן, מגבלות קצב, שגיאות שרת)",
+        "retryOnAny": "כל שגיאה",
+        "triedTimes": "בוצעו {count} ניסיונות",
+        "tryNumber": "ניסיון {n}",
+        "succeededAfterTries": "הצליח אחרי {count} ניסיונות"
+      },
+      "iterate": {
+        "listPlaceholder": "בחרו מערך לעבור עליו",
+        "listHelp": "בחרו מערך משלב קודם. כל פריט יעובד בזה אחר זה.",
+        "notAList": "נדרשת רשימת פריטים, אבל הערך הזה הוא {kind}."
+      },
+      "originalRun": "ההרצה המקורית",
+      "duration": {
+        "milliseconds": "{n} מילישניות",
+        "seconds": "{n} שנ׳",
+        "minutesSeconds": "{m} דק׳ {s} שנ׳"
+      },
+      "overview": {
+        "lastRun": "הרצה אחרונה",
+        "failedCount": "{n} נכשלו",
+        "allTested": "כל השלבים נבדקו"
+      },
+      "addStep": "הוספת שלב",
+      "nodePicker": {
+        "upgradeToUseStep": "שדרגו לתוכנית {plan} כדי להשתמש ב-{step}",
+        "search": "חיפוש שלבים ואפליקציות",
+        "searchTriggers": "חפשו, למשל ״שורה חדשה״, ״כל יום שני״",
+        "searchIn": "חיפוש ב-{app}",
+        "apps": "אפליקציות",
+        "integrations": "אינטגרציות",
+        "popular": "פופולרי",
+        "chooseTrigger": "בחרו טריגר",
+        "chooseTriggerHint": "כל תהליך עבודה מתחיל בטריגר: האירוע שמפעיל אותו.",
+        "noMatches": "אין שלבים תואמים",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "רשומה {bold}",
+            "bold": "נוצרת"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "רשומה {bold}",
+            "bold": "מתעדכנת"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "רשומה {bold}",
+            "bold": "נמחקת"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "רשומה {bold}",
+            "bold": "נכנסת לתצוגה"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "רשומה {bold}",
+            "bold": "עומדת בתנאים"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "שולח טופס"
+          },
+          "core_trigger_button": {
+            "text": "{bold} ברשומה",
+            "bold": "לוחץ על כפתור"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} על רשומה",
+            "bold": "מגיב"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "לפי לוח זמנים"
+          },
+          "core_trigger_webhook": {
+            "text": "כאשר {bold}",
+            "bold": "מתקבל webhook"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "ידנית"
+          }
+        },
+        "groups": {
+          "recordEvents": "כאשר",
+          "userActions": "כאשר המשתמש",
+          "runs": "הרצות",
+          "records": "רשומות",
+          "logic": "לוגיקה",
+          "ai": "בינה מלאכותית",
+          "messages": "הודעות",
+          "developer": "מפתח",
+          "other": "אחר"
+        }
       }
     },
     "xAxis": "ציר X",
@@ -5052,7 +5155,37 @@
     "licenseExpired": "הרישיון פג",
     "talkToSales": "שוחחו עם המכירות",
     "paidAnnually": "תשלום שנתי",
-    "paidMonthly": "תשלום חודשי"
+    "paidMonthly": "תשלום חודשי",
+    "addAttachment": "הוספת קובץ מצורף",
+    "fromAttachmentField": "משדה קובץ מצורף",
+    "uploadFile": "העלאת קובץ",
+    "fromUrl": "מכתובת URL",
+    "attachFromUrl": "צירוף מכתובת URL",
+    "removeAttachment": "הסרת הקובץ המצורף",
+    "attachmentFieldChip": "שדה",
+    "setPageAccess": "הגדרת גישה לעמוד",
+    "readOnlyMember": "חבר לקריאה בלבד",
+    "aReadOnlyMember": "חבר לקריאה בלבד",
+    "readOnlyMembers": "חברים לקריאה בלבד",
+    "backToData": "חזרה לנתונים",
+    "appShare": {
+      "customTeamDescription": "צוות שהאפליקציה הזו מגדירה.",
+      "membersTeamDescription": "משתמש באפליקציה.",
+      "adminTeamDescription": "משתמש באפליקציה ומנהל את חבריה.",
+      "noAccessTeamDescription": "עדיין לא הוענקו פעולות, ולכן חבריה אינם יכולים לפתוח את האפליקציה."
+    },
+    "viewActions": "פעולות תצוגה",
+    "renameView": "שינוי שם התצוגה",
+    "generateWithAi": "יצירה באמצעות בינה מלאכותית",
+    "deleteView": "מחיקת תצוגה",
+    "addToFavourites": "הוספה למועדפים",
+    "contextMenu": "תפריט הקשר",
+    "editSqlView": "עריכת תצוגת SQL",
+    "noWebhooksYet": "עדיין אין webhooks",
+    "navigation": "ניווט",
+    "prompts": "הנחיות",
+    "pagination": "עימוד",
+    "showRowNumbers": "הצגת מספרי שורות"
   },
   "activity": {
     "useTemplate": "השתמש בתבנית",
@@ -5368,7 +5501,7 @@
     "notAvailableForNewRecord": "לא זמין בעת יצירת רשומה חדשה",
     "conditionallyVisibleField": "שדה הנראה בתנאים מסוימים",
     "bookmarks": "סימניות",
-    "variableInheritance": "קובע מה יוכלו לעשות עם המשתנה הזה מי שמתקינים את הבסיס הזה כיישום: קבוע שומר את הערך שלכם ומסתיר אותו, ניתן לעריכה מציע את הערך שלכם כנקודת פתיחה, ונדרש מבקש מהם להזין ערך משלהם.",
+    "variableInheritance": "קובע מה אנשים שמתקינים את הפרויקט הזה כאפליקציה יכולים לעשות עם המשתנה: קבוע שומר את הערך שלכם ומסתיר אותו, ניתן לעריכה מציע את הערך שלכם כנקודת פתיחה, וחובה מבקש מהם להזין ערך משלהם.",
     "inheritedMembersInfo": "חברים אלה משתייכים לצוות-אב ומקבלים גישה למשאבים שהוקצו לצוות זה.",
     "teamScopeThisOnly": "הצוות הזה בלבד. לחץ כדי לכלול תתי-צוותים",
     "teamScopeIncludesSubTeams": "כולל תתי-צוותים. לחץ כדי להתאים רק לצוות הזה",
@@ -5396,7 +5529,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "אפשרות זו מאפשרת שינוי של מבנה בסיס הנתונים, כולל הוספה, שינוי או מחיקה של טבלאות ועמודות. השתמש בזהירות, שכן שינויים עשויים להשפיע על שלמות המבנה של בסיס הנתונים שלך.",
     "allowDataWrite": "אפשרות זו מאפשרת יצירה, עדכון או מחיקה של רשומות במסד נתונים. אידאלי למשתמשים ניהוליים שצריכים לשנות נתונים ישירות.",
-    "reachedSourceLimit": "מוגבל כרגע למקור נתונים אחד בלבד",
+    "reachedSourceLimit": "מוגבל ל-10 מקורות נתונים לכל פרויקט",
     "saveChanges": "שמור שינויים",
     "clientKey": "בחר קובץ .key.",
     "clientCert": "בחר קובץ .cert.",
@@ -5422,7 +5555,7 @@
     "selectAllMappedFields": "בחר את כל השדות הממופים",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "העתק קוד שגיאה",
-    "paidUserBadgeTooltip": "צורך מושב בתשלום. תפקיד עורך או גבוה יותר ברמת מרחב העבודה, בתוך בסיס, או בממשק.",
+    "paidUserBadgeTooltip": "צורך מושב בתשלום. תפקיד עורך או גבוה יותר ברמת מרחב העבודה, בפרויקט או בממשק.",
     "approachingLimit": "מתקרב למגבלה",
     "exceedingLimit": "חורג מהמגבלה",
     "filteredByCurrentUser": "מסונן לפי משתמש נוכחי",
@@ -5466,8 +5599,8 @@
     "onlyViewOwnerCanCopyViewConfig": "רק בעל התצוגה יכול להעתיק את תצורת התצוגה",
     "onlyViewOwnerCanModifyPersonalView": "רק בעל התצוגה יכול לשנות תצוגה אישית זו",
     "onlyViewOwnerCanDeletePersonalView": "רק בעל התצוגה יכול למחוק תצוגה אישית זו",
-    "onlyCreatorsCanLockView": "רק יוצרי בסיס או בעלי בסיס יכולים לנעול תצוגה",
-    "onlyCreatorsCanUnlockView": "רק יוצרי בסיס או בעלי בסיס יכולים לפתוח תצוגה",
+    "onlyCreatorsCanLockView": "רק יוצרי הפרויקט או בעליו יכולים לנעול תצוגה",
+    "onlyCreatorsCanUnlockView": "רק יוצרי הפרויקט או בעליו יכולים לבטל נעילת תצוגה",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "כדי להעתיק תצורות, עליך להחזיק לפחות תצוגה אחת קיימת. צור תחילה תצוגה כדי להפעיל אפשרות זו.",
     "youDoNotHaveSufficientPermissionToAddExtension": "אין לך הרשאות מספיקות כדי להוסיף תוסף",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "אין לך הרשאות מספיקות כדי להגדיר תוסף זה",
@@ -5514,7 +5647,7 @@
     "onlyCreatorsCanManageViewFolders": "רק יוצרי הפרויקט או בעליו יכולים לנהל תיקיות תצוגות",
     "onlyCreatorsCanManageFolders": "רק יוצרי הפרויקט או בעליו יכולים לנהל תיקיות",
     "organizeViewsIntoFolders": "ארגנו תצוגות בתיקיות שניתן לכווץ",
-    "productionLockedByEnvironment": "הבסיס הזה פתוח בסביבה. בצע שינויי סכמה שם.",
+    "productionLockedByEnvironment": "הפרויקט הזה פתוח בסביבה. בצעו שם את שינויי הסכמה.",
     "managedByPublisher": "המבנה של האפליקציה הזו מנוהל על ידי המפרסם שלה. המסמכים והתיקיות שלכם נשארים שלכם להוסיף.",
     "featureOnProductionOnly": "הפעולה הזו מנוהלת בפרויקט הייצור, ולא בעותק סביבה.",
     "clickToEdit": "לחצו כדי לערוך",
@@ -5570,8 +5703,8 @@
     "showAllFields": "הצג את כל השדות",
     "inviteLinkCannotGrantOwner": "קישור הזמנה אינו יכול להעניק תפקיד בעלים",
     "inviteLinkRoleAboveYours": "אפשר להציע רק תפקידים עד לרמת התפקיד שלכם",
-    "noDefaultSourceForFolders": "לבסיס הזה אין מקור ברירת מחדל. צור תיקיות מתוך התפריט של המקור עצמו במקום זאת",
-    "noDefaultSourceForSync": "לבסיס הזה אין מקור ברירת מחדל. סנכרון זקוק לאחד כדי לאחסן את הטבלאות שלו"
+    "noDefaultSourceForFolders": "לפרויקט הזה אין מקור ברירת מחדל. צרו תיקיות מהתפריט של המקור עצמו",
+    "noDefaultSourceForSync": "לפרויקט הזה אין מקור ברירת מחדל. סנכרון זקוק למקור כדי לאחסן את הטבלאות שלו"
   },
   "placeholder": {
     "enterVerificationCode": "הזן קוד בן 6 ספרות",
@@ -7299,8 +7432,8 @@
         "description": "סיבוב מהיר במרחב העבודה שלכם. אפשר לצאת בכל רגע: הקישו על דלג."
       },
       "createBase": {
-        "title": "התחילו עם בסיס",
-        "description": "בסיס מכיל את הטבלאות, התצוגות והאוטומציות שלכם. כאן מתחילה רוב העבודה."
+        "title": "התחילו עם פרויקט",
+        "description": "פרויקט מכיל את הטבלאות, התצוגות והאוטומציות שלכם. כאן מתחילה רוב העבודה."
       },
       "switchWorkspaces": {
         "title": "החליפו מרחב עבודה",

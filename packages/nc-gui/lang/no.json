@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Oppgrader for å legge til flere dokumentsider",
     "upgradeToAddMoreWorkflows": "Upgrade to add more workflows",
     "upgradeToAddMoreScriptsSubtitle": "Du er for øyeblikket på gratisplanen, som kun tillater ett skript per arbeidsområde. Oppgrader for å låse opp et ubegrenset antall skript.",
-    "upgradeToAddMoreWorkflowsSubtitle": "Du har for øyeblikket {activePlan}-abonnementet, som tillater {limit} arbeidsflyter per base. Oppgrader til {plan} for å få flere.",
+    "upgradeToAddMoreWorkflowsSubtitle": "Du bruker for øyeblikket {activePlan}-abonnementet, som tillater {limit} arbeidsflyter per prosjekt. Oppgrader til {plan} for å få flere.",
     "upgradeToAddMoreDashboardsSubtitle": "Du er for øyeblikket på gratisplanen, som kun tillater ett dashbord per arbeidsområde. Oppgrader for å låse opp et ubegrenset antall dashbord.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan} planen tillater opp til {limit} dokumentsider per base. Oppgrader til {plan} planen for å legge til flere.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan}-abonnementet tillater opptil {limit} dokumentsider per prosjekt. Oppgrader til {plan}-abonnementet for å legge til flere.",
     "upgradeToUseBookmarks": "Oppgrader for å bruke bokmerker",
-    "upgradeToUseBookmarksSubtitle": "Oppgrader til {plan} planen for å legge til baser, tabeller, visninger og mer for rask tilgang.",
+    "upgradeToUseBookmarksSubtitle": "Oppgrader til {plan}-abonnementet for å bokmerke prosjekter, tabeller, visninger og mer for rask tilgang.",
     "upgradeToUseDocsExportPdf": "Oppgrader for å eksportere dokumenter som PDF",
     "upgradeToUseDocsExportPdfSubtitle": "Oppgrader til {plan} planen for å eksportere dine dokumenter som PDF-filer.",
     "upgradeToUseDocsInlineComments": "Oppgrader for å bruke integrerte kommentarer",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "Planen {activePlan} tillater opptil {limit} webhooks. Oppgrader til {plan}-planen for å få tilgang til ubegrensede webhooks.",
     "upgradeToAccessWebhookLogsSubtitle": "Få tilgang til webhook-loggene ved å oppgradere arbeidsområdet ditt til {plan}-planen.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "Oppgrader abonnementet for å duplisere tabeller til andre prosjekter.",
     "formOwnerNotified": "Skjemaeier varslet",
     "formOwnerNotifiedSubtitle": "Vi har varslet skjemaeieren om innsendingen din.",
     "WorkspaceOwnerNotified": "Arbeidsområdeeier varslet",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Oppgrader til {plan} -planen for å kontrollere hvem som kan se og redigere individuelle sider i dokumentene.",
     "upgradeToUseWorkflows": "Upgrade to use workflows",
     "upgradeToUseWorkflowsSubtitle": "Upgrade to the {plan} plan to use workflows to automate tasks and processes.",
-    "upgradeToUsePrivateBases": "Oppgrader for å låse opp private baser",
-    "upgradeToUsePrivateBasesSubtitle": "Private baser er tilgjengelig på {plan}-planen. Oppgrader nå for å begynne å bruke dem.",
+    "upgradeToUsePrivateBases": "Oppgrader for å låse opp private prosjekter",
+    "upgradeToUsePrivateBasesSubtitle": "Private prosjekter er tilgjengelige i {plan}-abonnementet. Oppgrader nå for å ta dem i bruk.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Du kan maksimalt laste opp {limit} {filePlural} til denne cellen. Oppgrader til {plan}-planen for å legge til flere filer.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Oppgrader for å bruke AI Chat",
-    "upgradeToUseAiChatSubtitle": "Oppgrader til {plan} planen for å bruke AI Chat for å administrere basen din med naturlig språk.",
+    "upgradeToUseAiChatSubtitle": "Oppgrader til {plan}-abonnementet for å bruke AI-chat og styre prosjektet ditt med naturlig språk.",
     "upgradeToUseMfa": "Oppgrader for å aktivere to-faktor autentisering",
     "upgradeToUseMfaSubtitle": "Oppgrader til {plan} planen for å aktivere multifaktor autentisering for din konto.",
     "upgradeToRequireTwoFactor": "Oppgradering for å kreve to-faktor autentisering",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Oppgrader for å bruke teamhierarkiet",
     "upgradeToUseTeamHierarchySubtitle": "Oppgrader til {plan} -planen for å organisere lag i nestede hierarkier med arvet medlemskap.",
     "upgradeToUseTeams": "Upgrade to use teams",
-    "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases.",
+    "upgradeToUseTeamsSubtitle": "Oppgrader til {plan}-abonnementet for å bruke team til å gruppere brukere og styre tilgangen deres til arbeidsområder og prosjekter.",
     "upgradeToAddMoreTeams": "Upgrade to add more teams",
     "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views.",
     "upgradeToUseFormScheduling": "Oppgrader for å bruke skjemaplanlegging",
     "upgradeToUseFormSchedulingSubtitle": "Oppgrader til {plan} planen for å planlegge tilgjengelighet med start- og utløpsdato.",
-    "upgradeToUseBaseVariables": "Oppgrader for å bruke grunnvariabler",
-    "upgradeToUseBaseVariablesSubtitle": "Oppgrader til {plan} planen for å definere gjenbrukbare variabler som er virkelige til en base.",
+    "upgradeToUseBaseVariables": "Oppgrader for å bruke prosjektvariabler",
+    "upgradeToUseBaseVariablesSubtitle": "Oppgrader til {plan}-abonnementet for å definere gjenbrukbare variabler på prosjektnivå.",
     "upgradeToUseSync": "Upgrade to use sync",
     "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources.",
     "upgradeToUseTableSync": "Oppgrader for å bruke tabell synkronisering",
@@ -3110,7 +3110,11 @@
       "upgradeRequestSent": "Forespørsel sendt",
       "upgradeDescRls": "Begrens hvilke poster hver enkelt kan se og redigere.",
       "upgradeDescRecordTemplates": "Opprett nye poster fra lagrede, forhåndsutfylte maler.",
-      "upgradeDescDateDependency": "Flytt avhengige datoer automatisk når en post flyttes."
+      "upgradeDescDateDependency": "Flytt avhengige datoer automatisk når en post flyttes.",
+      "concernProject": "Prosjekt",
+      "concernInterfaces": "Interfaces",
+      "concernApps": "App",
+      "concernTabs": "Innstillingsseksjoner"
     },
     "categories": "Kategorier",
     "blockquote": "Sitat",
@@ -4396,7 +4400,105 @@
         "repeatWarning": "Dette trinnet kan sende eller endre data. Et nytt forsøk kan gjenta det — slå dette på bare hvis det er greit.",
         "retries": "Antall nye forsøk",
         "earlierTries": "Tidligere forsøk",
-        "noErrorMessage": "Ingen feilmelding"
+        "noErrorMessage": "Ingen feilmelding",
+        "title": "Ved feil",
+        "retryIfFails": "Prøv på nytt hvis dette trinnet mislykkes",
+        "retrySafeHint": "Prøver automatisk på nytt når en tjeneste er midlertidig utilgjengelig",
+        "waitBeforeRetry": "Vent før nytt forsøk",
+        "seconds": "sekunder",
+        "waitLonger": "Vent lenger hver gang",
+        "waitLongerHint": "Dobler ventetiden etter hvert forsøk, opptil 1 time",
+        "retryOn": "Prøv på nytt ved",
+        "retryOnTemporary": "Bare midlertidige problemer (tidsavbrudd, hastighetsgrenser, serverfeil)",
+        "retryOnAny": "Enhver feil",
+        "triedTimes": "Forsøkt {count} ganger",
+        "tryNumber": "Forsøk {n}",
+        "succeededAfterTries": "Vellykket etter {count} forsøk"
+      },
+      "iterate": {
+        "listPlaceholder": "Velg et array å gå gjennom",
+        "listHelp": "Velg et array fra et tidligere trinn. Hvert element behandles etter tur.",
+        "notAList": "Trenger en liste med elementer, men denne verdien er {kind}."
+      },
+      "originalRun": "den opprinnelige kjøringen",
+      "duration": {
+        "milliseconds": "{n} ms",
+        "seconds": "{n} s",
+        "minutesSeconds": "{m} min {s} s"
+      },
+      "overview": {
+        "lastRun": "Siste kjøring",
+        "failedCount": "{n} mislyktes",
+        "allTested": "Alle trinn testet"
+      },
+      "addStep": "Legg til et trinn",
+      "nodePicker": {
+        "upgradeToUseStep": "Oppgrader til {plan}-abonnementet for å bruke {step}",
+        "search": "Søk etter trinn og apper",
+        "searchTriggers": "Søk, f.eks. «ny rad», «hver mandag»",
+        "searchIn": "Søk i {app}",
+        "apps": "Apper",
+        "integrations": "Integrasjoner",
+        "popular": "Populære",
+        "chooseTrigger": "Velg en utløser",
+        "chooseTriggerHint": "Enhver arbeidsflyt starter med en utløser: hendelsen som setter den i gang.",
+        "noMatches": "Ingen trinn samsvarer",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "Posten blir {bold}",
+            "bold": "opprettet"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "Posten blir {bold}",
+            "bold": "oppdatert"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "Posten blir {bold}",
+            "bold": "slettet"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "Posten {bold}",
+            "bold": "kommer inn i en visning"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "Posten {bold}",
+            "bold": "oppfyller betingelser"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "Sender inn et skjema"
+          },
+          "core_trigger_button": {
+            "text": "{bold} på en post",
+            "bold": "Klikker på en knapp"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} på en post",
+            "bold": "Kommenterer"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "Etter en tidsplan"
+          },
+          "core_trigger_webhook": {
+            "text": "Når {bold}",
+            "bold": "webhook mottas"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "Manuelt"
+          }
+        },
+        "groups": {
+          "recordEvents": "Når",
+          "userActions": "Når bruker",
+          "runs": "Kjøringer",
+          "records": "Poster",
+          "logic": "Logikk",
+          "messages": "Meldinger",
+          "developer": "Utvikler",
+          "other": "Annet"
+        }
       }
     },
     "xAxis": "X-akse",
@@ -5041,7 +5143,37 @@
     "talkToSales": "Snakk med salg",
     "paidAnnually": "Betalt årlig",
     "paidMonthly": "Betalt månedlig",
-    "skillScopeBase": "Prosjekt"
+    "skillScopeBase": "Prosjekt",
+    "addAttachment": "Legg til vedlegg",
+    "fromAttachmentField": "Fra vedleggsfelt",
+    "uploadFile": "Last opp fil",
+    "fromUrl": "Fra URL",
+    "attachFromUrl": "Legg ved fra URL",
+    "removeAttachment": "Fjern vedlegg",
+    "attachmentFieldChip": "felt",
+    "setPageAccess": "Angi sidetilgang",
+    "readOnlyMember": "medlem med lesetilgang",
+    "aReadOnlyMember": "et medlem med lesetilgang",
+    "readOnlyMembers": "medlemmer med lesetilgang",
+    "backToData": "Tilbake til data",
+    "appShare": {
+      "customTeamDescription": "Et team som denne appen definerer.",
+      "membersTeamDescription": "Bruker appen.",
+      "adminTeamDescription": "Bruker appen og administrerer medlemmene.",
+      "noAccessTeamDescription": "Ingen handlinger er gitt ennå, så medlemmene kan ikke åpne appen."
+    },
+    "viewActions": "Visningshandlinger",
+    "renameView": "Gi visningen nytt navn",
+    "generateWithAi": "Generer med AI",
+    "deleteView": "Slett visning",
+    "addToFavourites": "Legg til i favoritter",
+    "contextMenu": "Kontekstmeny",
+    "editSqlView": "Rediger SQL-visning",
+    "noWebhooksYet": "Ingen webhooks ennå",
+    "navigation": "Navigasjon",
+    "prompts": "Prompts",
+    "pagination": "Paginering",
+    "showRowNumbers": "Vis radnumre"
   },
   "activity": {
     "useTemplate": "Bruk mal",
@@ -5358,7 +5490,7 @@
     "notAvailableForNewRecord": "Ikke tilgjengelig under oppretting av ny post",
     "conditionallyVisibleField": "Tilstand eller synlig felt",
     "bookmarks": "Bokmerker",
-    "variableInheritance": "Bestemmer hva personer som installerer denne basen som app kan gjøre med denne variabelen: Fast beholder verdien din og skjuler den, Redigerbar tilbyr verdien din som utgangspunkt, Påkrevd ber dem oppgi sin egen.",
+    "variableInheritance": "Bestemmer hva de som installerer dette prosjektet som app kan gjøre med denne variabelen: Fast beholder verdien din og skjuler den, Redigerbar tilbyr verdien din som utgangspunkt, Påkrevd ber dem oppgi sin egen.",
     "inheritedMembersInfo": "Disse medlemmene tilhører et overordnet team og arver tilgang til ressurser tildelt dette teamet.",
     "teamScopeThisOnly": "Bare dette teamet. Klikk for å inkludere underteam",
     "teamScopeIncludesSubTeams": "Inkluderer underteam. Klikk for å treffe bare dette teamet",
@@ -5386,7 +5518,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "Dette alternativet tillater endring av databasens skjema, inkludert å legge til, endre eller slette tabeller og kolonner. Bruk med forsiktighet, da endringer kan påvirke din databasens strukturelle integritet.",
     "allowDataWrite": "Dette alternativet gjør det mulig å opprette, oppdatere eller slette oppføringer i databasetabeller. Ideelt for administrative brukere som trenger å endre data direkte.",
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Begrenset til 10 datakilder per prosjekt",
     "saveChanges": "Lagre endringer",
     "clientKey": "Velg .KEY-fil",
     "clientCert": "Velg .CERT-fil",
@@ -5412,7 +5544,7 @@
     "selectAllMappedFields": "Velg alle tilordnede felt",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopier feilkode",
-    "paidUserBadgeTooltip": "Bruker en betalt plass. Rollen redaktør eller høyere på arbeidsområdenivå, i en base eller på et grensesnitt.",
+    "paidUserBadgeTooltip": "Bruker en betalt plass. Rollen Redaktør eller høyere på arbeidsområdenivå, i et prosjekt eller på et interface.",
     "approachingLimit": "Nærmer seg grensen",
     "exceedingLimit": "Overskrider grensen",
     "filteredByCurrentUser": "Filtrert etter nåværende bruker",
@@ -5456,8 +5588,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
     "onlyViewOwnerCanModifyPersonalView": "Bare visningseieren kan endre denne personlige visningen",
     "onlyViewOwnerCanDeletePersonalView": "Bare eieren av visningen kan slette denne personlige visningen",
-    "onlyCreatorsCanLockView": "Bare base skapere eller eiere kan låse en visning",
-    "onlyCreatorsCanUnlockView": "Bare base skapere eller eiere kan låse opp en visning",
+    "onlyCreatorsCanLockView": "Bare prosjektets opprettere eller eiere kan låse en visning",
+    "onlyCreatorsCanUnlockView": "Bare prosjektets opprettere eller eiere kan låse opp en visning",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
     "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
@@ -5484,7 +5616,7 @@
     "interfaceMixedRoles": "Rollene er forskjellige på tvers av grensesnitt eller sider. Utvid for å se dem",
     "chatQueueAttachmentUnavailable": "Dette vedlegget blir ikke sendt hvis du setter meldingen i kø. Fjern det først",
     "lockedViewDisabledOnProduction": "Låste visninger kan bare opprettes i miljøkopien",
-    "personalViewDisabledOnEnvironment": "Personlige visninger kan bare opprettes på produksjonsprosjektet",
+    "personalViewDisabledOnEnvironment": "Personlige visninger kan bare opprettes i produksjonsprosjektet",
     "seeNComments": "Se {n} kommentar | Se {n} kommentarer",
     "collapsibleGroups": "Tillat at grupper med titler kan slås sammen",
     "nestedRecordsRequireSelfLink": "Krever et lenkefelt på denne tabellen som peker tilbake til den samme tabellen.",
@@ -5501,10 +5633,10 @@
     "youDontHaveAccessToCreateNewInterface": "Du har ikke tilgang til å opprette et nytt grensesnitt",
     "displayValueFieldCannotBeReordered": "Feltet med visningsverdien kan ikke flyttes",
     "interfaceLastVizRequired": "En side trenger minst én visualisering",
-    "onlyCreatorsCanManageViewFolders": "Bare prosjektets skapere eller eiere kan administrere visningsmapper",
-    "onlyCreatorsCanManageFolders": "Bare prosjektets skapere eller eiere kan administrere mapper",
+    "onlyCreatorsCanManageViewFolders": "Bare prosjektets opprettere eller eiere kan administrere visningsmapper",
+    "onlyCreatorsCanManageFolders": "Bare prosjektets opprettere eller eiere kan administrere mapper",
     "organizeViewsIntoFolders": "Organiser visninger i mapper som kan slås sammen",
-    "productionLockedByEnvironment": "Denne basen er åpen i et miljø. Gjør skjemaendringer der.",
+    "productionLockedByEnvironment": "Dette prosjektet er åpnet i et miljø. Gjør skjemaendringer der.",
     "managedByPublisher": "Strukturen i denne appen styres av utgiveren. Dine egne dokumenter og mapper er dine å legge til.",
     "featureOnProductionOnly": "Denne handlingen administreres i produksjonsprosjektet, ikke i en miljøkopi.",
     "clickToEdit": "Klikk for å redigere",
@@ -5560,8 +5692,8 @@
     "showAllFields": "Vis alle felter",
     "inviteLinkCannotGrantOwner": "En invitasjonslenke kan ikke gi rollen Eier",
     "inviteLinkRoleAboveYours": "Du kan bare tilby roller opp til din egen",
-    "noDefaultSourceForFolders": "Denne basen har ingen standardkilde. Opprett mapper fra den enkelte kildens egen meny i stedet",
-    "noDefaultSourceForSync": "Denne basen har ingen standardkilde. En synkronisering trenger en for å lagre tabellene sine"
+    "noDefaultSourceForFolders": "Dette prosjektet har ingen standardkilde. Opprett mapper fra kildens egen meny i stedet",
+    "noDefaultSourceForSync": "Dette prosjektet har ingen standardkilde. En synkronisering trenger en for å lagre tabellene sine"
   },
   "placeholder": {
     "enterVerificationCode": "Angi 6-sifret kode",
@@ -7289,8 +7421,8 @@
         "description": "En rask runde i arbeidsområdet ditt. Du kan avslutte når som helst: trykk Hopp over."
       },
       "createBase": {
-        "title": "Start med en Base",
-        "description": "En Base rommer tabellene, visningene og automatiseringene dine. Det er her det meste av arbeidet starter."
+        "title": "Start med et prosjekt",
+        "description": "Et prosjekt inneholder tabellene, visningene og automatiseringene dine. Det er her det meste av arbeidet begynner."
       },
       "switchWorkspaces": {
         "title": "Bytt arbeidsområde",

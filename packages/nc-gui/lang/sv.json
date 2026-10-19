@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Uppgradera för att lägga till fler dokumentsidor",
     "upgradeToAddMoreWorkflows": "Upgrade to add more workflows",
     "upgradeToAddMoreScriptsSubtitle": "Du har för närvarande gratisplanen, som endast tillåter ett skript per arbetsyta. Uppgradera för att låsa upp obegränsat antal skript.",
-    "upgradeToAddMoreWorkflowsSubtitle": "Du har för närvarande {activePlan}-planen, som tillåter {limit} arbetsflöden per bas. Uppgradera till {plan} för fler.",
+    "upgradeToAddMoreWorkflowsSubtitle": "Du har för närvarande {activePlan}-abonnemanget, som tillåter {limit} arbetsflöden per projekt. Uppgradera till {plan} för fler.",
     "upgradeToAddMoreDashboardsSubtitle": "Du har för närvarande gratisplanen, som endast tillåter en dashboard per arbetsyta. Uppgradera för att låsa upp obegränsat antal dashboards.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan} planen tillåter upp till {limit} dokumentsidor per bas. Uppgradera till {plan} planen för att lägga till mer.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan}-abonnemanget tillåter upp till {limit} dokumentsidor per projekt. Uppgradera till {plan}-abonnemanget för att lägga till fler.",
     "upgradeToUseBookmarks": "Uppgradera för att använda bokmärken",
-    "upgradeToUseBookmarksSubtitle": "Uppgradera till {plan} planen till bokmärkesdatabaser, tabeller, vyer och mer för snabb åtkomst.",
+    "upgradeToUseBookmarksSubtitle": "Uppgradera till {plan}-abonnemanget för att bokmärka projekt, tabeller, vyer och mycket mer för snabb åtkomst.",
     "upgradeToUseDocsExportPdf": "Uppgradera för att exportera dokument som PDF",
     "upgradeToUseDocsExportPdfSubtitle": "Uppgradera till {plan} planen att exportera dina dokument som PDF-filer.",
     "upgradeToUseDocsInlineComments": "Uppgradera för att använda inline-kommentarer",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "Planen {activePlan} tillåter upp till {limit} webhooks. Uppgradera till {plan}-planen för att få tillgång till obegränsade webhooks.",
     "upgradeToAccessWebhookLogsSubtitle": "Få åtkomst till webhook-loggar genom att uppgradera ditt arbetsutrymme till {plan}-planen.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "Uppgradera abonnemanget för att duplicera tabeller mellan olika projekt.",
     "formOwnerNotified": "Formulärägaren har meddelats",
     "formOwnerNotifiedSubtitle": "Vi har meddelat formulärägaren om din begäran om inlämning.",
     "WorkspaceOwnerNotified": "Arbetsutrymmesägaren har meddelats",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Uppgradera till {plan} planen för att kontrollera vem som kan visa och redigera enskilda sidor i dina dokument.",
     "upgradeToUseWorkflows": "Upgrade to use workflows",
     "upgradeToUseWorkflowsSubtitle": "Upgrade to the {plan} plan to use workflows to automate tasks and processes.",
-    "upgradeToUsePrivateBases": "Uppgradera för att låsa upp privata baser",
-    "upgradeToUsePrivateBasesSubtitle": "Privata baser är tillgängliga på {plan}-nivån. Uppgradera nu för att börja använda dem.",
+    "upgradeToUsePrivateBases": "Uppgradera för att låsa upp privata projekt",
+    "upgradeToUsePrivateBasesSubtitle": "Privata projekt är tillgängliga i {plan}-abonnemanget. Uppgradera nu för att börja använda dem.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Du kan bara ladda upp högst {limit} {filePlural} till denna cell. Uppgradera till {plan}-nivån för att lägga till fler filer.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Uppgradera för att använda AI Chatt",
-    "upgradeToUseAiChatSubtitle": "Uppgradera till {plan} planen att använda AI Chat för att hantera din bas med naturligt språk.",
+    "upgradeToUseAiChatSubtitle": "Uppgradera till {plan}-abonnemanget för att använda AI-chatt och hantera ditt projekt med naturligt språk.",
     "upgradeToUseMfa": "Uppgradera för att aktivera tvåfaktorsautentisering",
     "upgradeToUseMfaSubtitle": "Uppgradera till {plan} planen för att aktivera multi-factor autentisering för ditt konto.",
     "upgradeToRequireTwoFactor": "Uppgradera för att kräva tvåfaktorsautentisering",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Uppgradera för att använda teamets hierarki",
     "upgradeToUseTeamHierarchySubtitle": "Uppgradera till {plan} planen att organisera lag i nästlade hierarkier med ärftligt medlemskap.",
     "upgradeToUseTeams": "Upgrade to use teams",
-    "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases.",
+    "upgradeToUseTeamsSubtitle": "Uppgradera till {plan}-abonnemanget för att använda team, gruppera användare och hantera deras åtkomst till arbetsytor och projekt.",
     "upgradeToAddMoreTeams": "Upgrade to add more teams",
     "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views.",
     "upgradeToUseFormScheduling": "Uppgradera för att använda formulärschemaläggning",
     "upgradeToUseFormSchedulingSubtitle": "Uppgradera till {plan} planen att schemalägga formuläret tillgänglighet med start- och utgångsdatum.",
-    "upgradeToUseBaseVariables": "Uppgradera för att använda basvariabler",
-    "upgradeToUseBaseVariablesSubtitle": "Uppgradera till {plan} planen att definiera återanvändbara variabler som omfattades till en bas.",
+    "upgradeToUseBaseVariables": "Uppgradera för att använda projektvariabler",
+    "upgradeToUseBaseVariablesSubtitle": "Uppgradera till {plan}-abonnemanget för att definiera återanvändbara variabler på projektnivå.",
     "upgradeToUseSync": "Upgrade to use sync",
     "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources.",
     "upgradeToUseTableSync": "Uppgradera för att använda tabellsynkronisering",
@@ -3111,7 +3111,11 @@
       "upgradeRequestSent": "Förfrågan skickad",
       "upgradeDescRls": "Begränsa vilka poster varje person kan se och redigera.",
       "upgradeDescRecordTemplates": "Skapa nya poster utifrån sparade, förifyllda mallar.",
-      "upgradeDescDateDependency": "Flytta beroende datum automatiskt när en post flyttas."
+      "upgradeDescDateDependency": "Flytta beroende datum automatiskt när en post flyttas.",
+      "concernProject": "Projekt",
+      "concernInterfaces": "Interfaces",
+      "concernApps": "App",
+      "concernTabs": "Inställningsavsnitt"
     },
     "categories": "Kategorier",
     "blockquote": "Citat",
@@ -4396,7 +4400,105 @@
         "repeatWarning": "Det här steget kan skicka eller ändra data. Ett nytt försök kan upprepa det — slå bara på det här om det är okej.",
         "retries": "Antal försök",
         "earlierTries": "Tidigare försök",
-        "noErrorMessage": "Inget felmeddelande"
+        "noErrorMessage": "Inget felmeddelande",
+        "title": "Vid fel",
+        "retryIfFails": "Försök igen om det här steget misslyckas",
+        "retrySafeHint": "Försöker automatiskt igen när en tjänst tillfälligt är otillgänglig",
+        "waitBeforeRetry": "Vänta innan nytt försök",
+        "seconds": "sekunder",
+        "waitLonger": "Vänta längre varje gång",
+        "waitLongerHint": "Fördubblar väntetiden efter varje försök, upp till 1 timme",
+        "retryOn": "Försök igen vid",
+        "retryOnTemporary": "Endast tillfälliga problem (tidsgränser, hastighetsgränser, serverfel)",
+        "retryOnAny": "Alla fel",
+        "triedTimes": "Försökte {count} gånger",
+        "tryNumber": "Försök {n}",
+        "succeededAfterTries": "Lyckades efter {count} försök"
+      },
+      "iterate": {
+        "listPlaceholder": "Välj en array att gå igenom",
+        "listHelp": "Välj en array från ett tidigare steg. Varje objekt bearbetas i tur och ordning.",
+        "notAList": "Behöver en lista med objekt, men det här värdet är {kind}."
+      },
+      "originalRun": "den ursprungliga körningen",
+      "duration": {
+        "milliseconds": "{n} ms",
+        "seconds": "{n} s",
+        "minutesSeconds": "{m} min {s} s"
+      },
+      "overview": {
+        "lastRun": "Senaste körning",
+        "failedCount": "{n} misslyckades",
+        "allTested": "Alla steg testade"
+      },
+      "addStep": "Lägg till ett steg",
+      "nodePicker": {
+        "upgradeToUseStep": "Uppgradera till {plan}-abonnemanget för att använda {step}",
+        "search": "Sök steg och appar",
+        "searchTriggers": "Sök, t.ex. ”ny rad”, ”varje måndag”",
+        "searchIn": "Sök i {app}",
+        "apps": "Appar",
+        "integrations": "Integrationer",
+        "popular": "Populära",
+        "chooseTrigger": "Välj en utlösare",
+        "chooseTriggerHint": "Varje arbetsflöde börjar med en utlösare: händelsen som sätter igång det.",
+        "noMatches": "Inga steg matchar",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "Posten {bold}",
+            "bold": "skapas"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "Posten {bold}",
+            "bold": "uppdateras"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "Posten {bold}",
+            "bold": "tas bort"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "Posten {bold}",
+            "bold": "kommer in i en vy"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "Posten {bold}",
+            "bold": "uppfyller villkor"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "Skickar ett formulär"
+          },
+          "core_trigger_button": {
+            "text": "{bold} på en post",
+            "bold": "Klickar på en knapp"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} på en post",
+            "bold": "Kommenterar"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "Enligt ett schema"
+          },
+          "core_trigger_webhook": {
+            "text": "När {bold}",
+            "bold": "webhook tas emot"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "Manuellt"
+          }
+        },
+        "groups": {
+          "recordEvents": "När",
+          "userActions": "När användare",
+          "runs": "Körningar",
+          "records": "Poster",
+          "logic": "Logik",
+          "messages": "Meddelanden",
+          "developer": "Utvecklare",
+          "other": "Övrigt"
+        }
       }
     },
     "xAxis": "X-axel",
@@ -5041,7 +5143,37 @@
     "licenseExpired": "Licensen har gått ut",
     "talkToSales": "Prata med säljteamet",
     "paidAnnually": "Betalas årsvis",
-    "paidMonthly": "Betalas månadsvis"
+    "paidMonthly": "Betalas månadsvis",
+    "addAttachment": "Lägg till bilaga",
+    "fromAttachmentField": "Från bilagefält",
+    "uploadFile": "Ladda upp fil",
+    "fromUrl": "Från URL",
+    "attachFromUrl": "Bifoga från URL",
+    "removeAttachment": "Ta bort bilaga",
+    "attachmentFieldChip": "fält",
+    "setPageAccess": "Ange sidåtkomst",
+    "readOnlyMember": "medlem med skrivskyddad åtkomst",
+    "aReadOnlyMember": "en medlem med skrivskyddad åtkomst",
+    "readOnlyMembers": "medlemmar med skrivskyddad åtkomst",
+    "backToData": "Tillbaka till data",
+    "appShare": {
+      "customTeamDescription": "Ett team som den här appen definierar.",
+      "membersTeamDescription": "Använder appen.",
+      "adminTeamDescription": "Använder appen och hanterar dess medlemmar.",
+      "noAccessTeamDescription": "Inga åtgärder har beviljats ännu, så medlemmarna kan inte öppna appen."
+    },
+    "viewActions": "Vyåtgärder",
+    "renameView": "Byt namn på vy",
+    "generateWithAi": "Generera med AI",
+    "deleteView": "Ta bort vy",
+    "addToFavourites": "Lägg till i favoriter",
+    "contextMenu": "Snabbmeny",
+    "editSqlView": "Redigera SQL-vy",
+    "noWebhooksYet": "Inga webhooks ännu",
+    "navigation": "Navigering",
+    "prompts": "Prompts",
+    "pagination": "Paginering",
+    "showRowNumbers": "Visa radnummer"
   },
   "activity": {
     "useTemplate": "Använd mall",
@@ -5358,7 +5490,7 @@
     "notAvailableForNewRecord": "Inte tillgänglig när du skapar en ny post",
     "conditionallyVisibleField": "Skickligt synligt fält",
     "bookmarks": "Bokmärken",
-    "variableInheritance": "Avgör vad personer som installerar den här basen som app kan göra med variabeln: Fast behåller ditt värde och döljer det, Redigerbar erbjuder ditt värde som utgångspunkt, Obligatorisk ber dem ange ett eget.",
+    "variableInheritance": "Avgör vad de som installerar det här projektet som app kan göra med den här variabeln: Fast behåller ditt värde och döljer det, Redigerbar erbjuder ditt värde som utgångspunkt, Obligatorisk ber dem ange ett eget.",
     "inheritedMembersInfo": "Dessa medlemmar tillhör ett föräldralag och ärver tillgång till resurser som tilldelats detta team.",
     "teamScopeThisOnly": "Endast det här teamet. Klicka för att inkludera underteam",
     "teamScopeIncludesSubTeams": "Inkluderar underteam. Klicka för att matcha endast det här teamet",
@@ -5386,7 +5518,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "Detta alternativ gör det möjligt att ändra databasens schema, inklusive att lägga till, ändra eller ta bort tabeller och kolumner. Används med försiktighet, eftersom ändringar kan påverka databasen strukturella integritet.",
     "allowDataWrite": "Detta alternativ tillåter att skapa, uppdatera eller ta bort poster inom databastabeller. Perfekt för administrativa användare som behöver ändra data direkt.",
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Begränsat till 10 datakällor per projekt",
     "saveChanges": "Spara ändringar",
     "clientKey": "Välj. Key-filen",
     "clientCert": "Välj .cert-fil",
@@ -5412,7 +5544,7 @@
     "selectAllMappedFields": "Markera alla mappade fält",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopiera felkod",
-    "paidUserBadgeTooltip": "Förbrukar en betald plats. Rollen redigerare eller högre på arbetsytenivå, i en bas eller på ett gränssnitt.",
+    "paidUserBadgeTooltip": "Tar en betald plats i anspråk. Rollen Redigerare eller högre på arbetsytenivå, i ett projekt eller på ett interface.",
     "approachingLimit": "Närmar sig gränsen",
     "exceedingLimit": "Överskrider gränsen",
     "filteredByCurrentUser": "Filtrerat av aktuell användare",
@@ -5456,8 +5588,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
     "onlyViewOwnerCanModifyPersonalView": "Endast vyägaren kan ändra denna personliga vy",
     "onlyViewOwnerCanDeletePersonalView": "Endast vyägaren kan ta bort denna personliga vy",
-    "onlyCreatorsCanLockView": "Endast bas-skapare eller ägare kan låsa en vy",
-    "onlyCreatorsCanUnlockView": "Endast bas-skapare eller ägare kan låsa upp en vy",
+    "onlyCreatorsCanLockView": "Endast projektets skapare eller ägare kan låsa en vy",
+    "onlyCreatorsCanUnlockView": "Endast projektets skapare eller ägare kan låsa upp en vy",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
     "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
@@ -5484,7 +5616,7 @@
     "interfaceMixedRoles": "Rollerna skiljer sig mellan gränssnitt eller sidor. Expandera för att se dem",
     "chatQueueAttachmentUnavailable": "Den här bilagan skickas inte om du köar ditt meddelande. Ta bort den först",
     "lockedViewDisabledOnProduction": "Låsta vyer kan bara skapas i miljökopian",
-    "personalViewDisabledOnEnvironment": "Personliga vyer kan bara skapas på produktionsprojektet",
+    "personalViewDisabledOnEnvironment": "Personliga vyer kan bara skapas i produktionsprojektet",
     "seeNComments": "Se {n} kommentar | Se {n} kommentarer",
     "collapsibleGroups": "Tillåt att grupper med rubriker fälls ihop",
     "nestedRecordsRequireSelfLink": "Kräver ett länkfält i den här tabellen som pekar tillbaka till samma tabell.",
@@ -5501,10 +5633,10 @@
     "youDontHaveAccessToCreateNewInterface": "Du har inte behörighet att skapa ett nytt gränssnitt",
     "displayValueFieldCannotBeReordered": "Fältet med visningsvärdet kan inte flyttas",
     "interfaceLastVizRequired": "En sida behöver minst en visualisering",
-    "onlyCreatorsCanManageViewFolders": "Bara projektets skapare eller ägare kan hantera vymappar",
-    "onlyCreatorsCanManageFolders": "Bara projektets skapare eller ägare kan hantera mappar",
+    "onlyCreatorsCanManageViewFolders": "Endast projektets skapare eller ägare kan hantera vymappar",
+    "onlyCreatorsCanManageFolders": "Endast projektets skapare eller ägare kan hantera mappar",
     "organizeViewsIntoFolders": "Ordna vyer i mappar som går att fälla ihop",
-    "productionLockedByEnvironment": "Den här basen är öppen i en miljö. Gör schemaändringar där.",
+    "productionLockedByEnvironment": "Det här projektet är öppet i en miljö. Gör schemaändringar där.",
     "managedByPublisher": "Strukturen i den här appen sköts av utgivaren. Dina egna dokument och mappar är dina att lägga till.",
     "featureOnProductionOnly": "Den här åtgärden hanteras i produktionsprojektet, inte i en miljökopia.",
     "clickToEdit": "Klicka för att redigera",
@@ -5560,8 +5692,8 @@
     "showAllFields": "Visa alla fält",
     "inviteLinkCannotGrantOwner": "En inbjudningslänk kan inte ge rollen Ägare",
     "inviteLinkRoleAboveYours": "Du kan bara erbjuda roller upp till din egen",
-    "noDefaultSourceForFolders": "Den här basen har ingen standardkälla. Skapa mappar från en källas egen meny i stället",
-    "noDefaultSourceForSync": "Den här basen har ingen standardkälla. En synkning behöver en för att lagra sina tabeller"
+    "noDefaultSourceForFolders": "Det här projektet har ingen standardkälla. Skapa mappar från källans egen meny i stället",
+    "noDefaultSourceForSync": "Det här projektet har ingen standardkälla. En synkronisering behöver en för att lagra sina tabeller"
   },
   "placeholder": {
     "enterVerificationCode": "Ange 6-siffrig kod",
@@ -7289,8 +7421,8 @@
         "description": "Ett snabbt varv i din arbetsyta. Du kan avsluta när som helst: tryck på Hoppa över."
       },
       "createBase": {
-        "title": "Börja med en Base",
-        "description": "En Base rymmer dina tabeller, vyer och automatiseringar. Det är här det mesta arbetet börjar."
+        "title": "Börja med ett projekt",
+        "description": "Ett projekt innehåller dina tabeller, vyer och automatiseringar. Det är här det mesta arbetet börjar."
       },
       "switchWorkspaces": {
         "title": "Byt arbetsyta",

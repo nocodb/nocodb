@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Upgrade to add more document pages",
     "upgradeToAddMoreWorkflows": "Upgrade to add more workflows",
     "upgradeToAddMoreScriptsSubtitle": "Jūs pašlaik izmantojat Bezmaksas plānu, kas ļauj tikai vienu skriptu uz darba telpu. Jauniniet, lai atbloķētu neierobežotu skriptu skaitu.",
-    "upgradeToAddMoreWorkflowsSubtitle": "Pašlaik jums ir {activePlan} plāns, kas atļauj {limit} darbplūsmas katrā bāzē. Jauniniet uz {plan}, lai iegūtu vairāk.",
+    "upgradeToAddMoreWorkflowsSubtitle": "Pašlaik jums ir plāns {activePlan}, kas atļauj {limit} darbplūsmas uz projektu. Pārejiet uz {plan}, lai iegūtu vairāk.",
     "upgradeToAddMoreDashboardsSubtitle": "Jūs pašlaik izmantojat Bezmaksas plānu, kas ļauj tikai vienu informācijas paneli darba telpā. Jauniniet, lai atbloķētu neierobežotu paneļu skaitu.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "The {activePlan} plan allows up to {limit} document pages per base. Upgrade to the {plan} plan to add more.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "Plāns {activePlan} atļauj līdz {limit} dokumenta lapām uz projektu. Pārejiet uz plānu {plan}, lai pievienotu vairāk.",
     "upgradeToUseBookmarks": "Upgrade to use bookmarks",
-    "upgradeToUseBookmarksSubtitle": "Upgrade to the {plan} plan to bookmark bases, tables, views, and more for quick access.",
+    "upgradeToUseBookmarksSubtitle": "Pārejiet uz plānu {plan}, lai ātrai piekļuvei pievienotu grāmatzīmēm projektus, tabulas, skatījumus un citu.",
     "upgradeToUseDocsExportPdf": "Upgrade to export documents as PDF",
     "upgradeToUseDocsExportPdfSubtitle": "Upgrade to the {plan} plan to export your documents as PDF files.",
     "upgradeToUseDocsInlineComments": "Upgrade to use inline comments",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "Plāns {activePlan} atļauj līdz {limit} tīmekļa āķiem. Jauniniet uz plānu {plan}, lai iegūtu piekļuvi neierobežotiem tīmekļa āķiem.",
     "upgradeToAccessWebhookLogsSubtitle": "Piekļūstiet tīmekļa āķu žurnāliem, jauninot savu darba telpu uz plānu {plan}.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "Jauniniet plānu, lai dublētu tabulas starp dažādiem projektiem.",
     "formOwnerNotified": "Veidlapas īpašnieks informēts",
     "formOwnerNotifiedSubtitle": "Mēs esam informējuši veidlapas īpašnieku par Jūsu iesnieguma pieprasījumu.",
     "WorkspaceOwnerNotified": "Darba telpas īpašnieks informēts",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Upgrade to the {plan} plan to control who can view and edit individual pages in your docs.",
     "upgradeToUseWorkflows": "Upgrade to use workflows",
     "upgradeToUseWorkflowsSubtitle": "Upgrade to the {plan} plan to use workflows to automate tasks and processes.",
-    "upgradeToUsePrivateBases": "Jauniniet, lai atbloķētu privātās bāzes",
-    "upgradeToUsePrivateBasesSubtitle": "Privātās bāzes ir pieejamas plānā {plan}. Jauniniet tūlīt, lai sāktu tās izmantot.",
+    "upgradeToUsePrivateBases": "Jauniniet, lai atbloķētu privātos projektus",
+    "upgradeToUsePrivateBasesSubtitle": "Privātie projekti ir pieejami plānā {plan}. Jauniniet tagad, lai sāktu tos lietot.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Jūs varat augšupielādēt ne vairāk kā {limit} {filePlural} šajā šūnā. Jauniniet uz {plan} plānu, lai pievienotu vairāk failu.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Upgrade to use AI Chat",
-    "upgradeToUseAiChatSubtitle": "Upgrade to the {plan} plan to use AI Chat to manage your base with natural language.",
+    "upgradeToUseAiChatSubtitle": "Pārejiet uz plānu {plan}, lai izmantotu MI tērzēšanu un pārvaldītu projektu dabiskā valodā.",
     "upgradeToUseMfa": "Upgrade to enable two-factor authentication",
     "upgradeToUseMfaSubtitle": "Upgrade to the {plan} plan to enable multi-factor authentication for your account.",
     "upgradeToRequireTwoFactor": "Upgrade to require two-factor authentication",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Upgrade to use team hierarchy",
     "upgradeToUseTeamHierarchySubtitle": "Upgrade to the {plan} plan to organize teams in nested hierarchies with inherited membership.",
     "upgradeToUseTeams": "Upgrade to use teams",
-    "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases.",
+    "upgradeToUseTeamsSubtitle": "Pārejiet uz plānu {plan}, lai ar komandām grupētu lietotājus un pārvaldītu viņu piekļuvi darbtelpām un projektiem.",
     "upgradeToAddMoreTeams": "Upgrade to add more teams",
     "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views.",
     "upgradeToUseFormScheduling": "Upgrade to use form scheduling",
     "upgradeToUseFormSchedulingSubtitle": "Upgrade to the {plan} plan to schedule form availability with start and expiration dates.",
-    "upgradeToUseBaseVariables": "Upgrade to use base variables",
-    "upgradeToUseBaseVariablesSubtitle": "Upgrade to the {plan} plan to define reusable variables scoped to a base.",
+    "upgradeToUseBaseVariables": "Jauniniet, lai izmantotu projekta mainīgos",
+    "upgradeToUseBaseVariablesSubtitle": "Pārejiet uz plānu {plan}, lai definētu atkārtoti izmantojamus mainīgos projekta līmenī.",
     "upgradeToUseSync": "Upgrade to use sync",
     "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources.",
     "upgradeToUseTableSync": "Upgrade to use table sync",
@@ -3110,7 +3110,11 @@
       "upgradeRequestSent": "Pieprasījums nosūtīts",
       "upgradeDescRls": "Ierobežojiet, kurus ierakstus katra persona var skatīt un rediģēt.",
       "upgradeDescRecordTemplates": "Veidojiet jaunus ierakstus no saglabātām, iepriekš aizpildītām veidnēm.",
-      "upgradeDescDateDependency": "Automātiski pārbīda atkarīgos datumus, kad ieraksts tiek pārvietots."
+      "upgradeDescDateDependency": "Automātiski pārbīda atkarīgos datumus, kad ieraksts tiek pārvietots.",
+      "concernProject": "Projekts",
+      "concernInterfaces": "Saskarnes",
+      "concernApps": "Lietotne",
+      "concernTabs": "Iestatījumu sadaļas"
     },
     "categories": "Kategorijas",
     "blockquote": "Citāts",
@@ -4398,7 +4402,106 @@
         "repeatWarning": "Šis solis var nosūtīt vai mainīt datus. Atkārtots mēģinājums to var atkārtot — ieslēdziet to tikai tad, ja tas ir pieņemami.",
         "retries": "Atkārtojumu skaits",
         "earlierTries": "Iepriekšējie mēģinājumi",
-        "noErrorMessage": "Nav kļūdas ziņojuma"
+        "noErrorMessage": "Nav kļūdas ziņojuma",
+        "title": "Neizdošanās gadījumā",
+        "retryIfFails": "Mēģināt vēlreiz, ja šis solis neizdodas",
+        "retrySafeHint": "Automātiski mēģina vēlreiz, kad pakalpojums īslaicīgi nav pieejams",
+        "waitBeforeRetry": "Gaidīt pirms atkārtota mēģinājuma",
+        "seconds": "sekundes",
+        "waitLonger": "Katru reizi gaidīt ilgāk",
+        "waitLongerHint": "Pēc katra mēģinājuma dubulto gaidīšanu, līdz 1 stundai",
+        "retryOn": "Mēģināt vēlreiz, ja",
+        "retryOnTemporary": "Tikai īslaicīgas problēmas (noildzes, pieprasījumu ierobežojumi, servera kļūdas)",
+        "retryOnAny": "Jebkura kļūda",
+        "triedTimes": "Mēģinājumu skaits: {count}",
+        "tryNumber": "Mēģinājums {n}",
+        "succeededAfterTries": "Izdevās pēc {count} mēģinājumiem"
+      },
+      "iterate": {
+        "listPlaceholder": "Atlasiet masīvu, ko pārlūkot",
+        "listHelp": "Atlasiet masīvu no iepriekšēja soļa. Katrs vienums tiks apstrādāts pēc kārtas.",
+        "notAList": "Nepieciešams vienumu saraksts, bet šī vērtība ir {kind}."
+      },
+      "originalRun": "sākotnējā izpilde",
+      "duration": {
+        "milliseconds": "{n} ms",
+        "seconds": "{n} s",
+        "minutesSeconds": "{m} min {s} s"
+      },
+      "overview": {
+        "lastRun": "Pēdējā izpilde",
+        "failedCount": "{n} neizdevās",
+        "allTested": "Visi soļi pārbaudīti"
+      },
+      "addStep": "Pievienot soli",
+      "nodePicker": {
+        "upgradeToUseStep": "Pārejiet uz plānu {plan}, lai izmantotu {step}",
+        "search": "Meklēt soļus un lietotnes",
+        "searchTriggers": "Meklējiet, piem., “jauna rinda”, “katru pirmdienu”",
+        "searchIn": "Meklēt {app}",
+        "apps": "Lietotnes",
+        "integrations": "Integrācijas",
+        "popular": "Populāri",
+        "chooseTrigger": "Izvēlieties izraisītāju",
+        "chooseTriggerHint": "Katra darbplūsma sākas ar izraisītāju — notikumu, kas to iedarbina.",
+        "noMatches": "Nav atbilstošu soļu",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "Ieraksts ir {bold}",
+            "bold": "izveidots"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "Ieraksts ir {bold}",
+            "bold": "atjaunināts"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "Ieraksts ir {bold}",
+            "bold": "dzēsts"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "Ieraksts {bold}",
+            "bold": "nonāk skatījumā"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "Ieraksts {bold}",
+            "bold": "atbilst nosacījumiem"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "Iesniedz veidlapu"
+          },
+          "core_trigger_button": {
+            "text": "{bold} ierakstā",
+            "bold": "Noklikšķina uz pogas"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} ierakstā",
+            "bold": "Komentē"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "Pēc grafika"
+          },
+          "core_trigger_webhook": {
+            "text": "Kad {bold}",
+            "bold": "saņemts webhook"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "Manuāli"
+          }
+        },
+        "groups": {
+          "recordEvents": "Kad",
+          "userActions": "Kad lietotājs",
+          "runs": "Izpildes",
+          "records": "Ieraksti",
+          "logic": "Loģika",
+          "ai": "MI",
+          "messages": "Ziņojumi",
+          "developer": "Izstrādātājs",
+          "other": "Cits"
+        }
       }
     },
     "xAxis": "X ass",
@@ -5044,7 +5147,37 @@
     "licenseExpired": "Licences derīgums beidzies",
     "talkToSales": "Sazinieties ar pārdošanas komandu",
     "paidAnnually": "Maksā reizi gadā",
-    "paidMonthly": "Maksā reizi mēnesī"
+    "paidMonthly": "Maksā reizi mēnesī",
+    "addAttachment": "Pievienot pielikumu",
+    "fromAttachmentField": "No pielikuma lauka",
+    "uploadFile": "Augšupielādēt failu",
+    "fromUrl": "No URL",
+    "attachFromUrl": "Pievienot no URL",
+    "removeAttachment": "Noņemt pielikumu",
+    "attachmentFieldChip": "lauks",
+    "setPageAccess": "Iestatīt lapas piekļuvi",
+    "readOnlyMember": "dalībnieks tikai ar lasīšanas tiesībām",
+    "aReadOnlyMember": "dalībnieks tikai ar lasīšanas tiesībām",
+    "readOnlyMembers": "dalībnieki tikai ar lasīšanas tiesībām",
+    "backToData": "Atpakaļ uz datiem",
+    "appShare": {
+      "customTeamDescription": "Komanda, ko nosaka šī lietotne.",
+      "membersTeamDescription": "Lieto lietotni.",
+      "adminTeamDescription": "Lieto lietotni un pārvalda tās dalībniekus.",
+      "noAccessTeamDescription": "Darbības vēl nav piešķirtas, tāpēc tās dalībnieki nevar atvērt lietotni."
+    },
+    "viewActions": "Skatījuma darbības",
+    "renameView": "Pārdēvēt skatījumu",
+    "generateWithAi": "Ģenerēt ar MI",
+    "deleteView": "Dzēst skatījumu",
+    "addToFavourites": "Pievienot izlasei",
+    "contextMenu": "Konteksta izvēlne",
+    "editSqlView": "Rediģēt SQL skatījumu",
+    "noWebhooksYet": "Vēl nav neviena webhook",
+    "navigation": "Navigācija",
+    "prompts": "Uzvednes",
+    "pagination": "Lappušu dalīšana",
+    "showRowNumbers": "Rādīt rindu numurus"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5388,7 +5521,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "Šī opcija ļauj modificēt datubāzes shēmu, ieskaitot tabulu un kolonnu pievienošanu, pārveidošanu vai dzēšanu. Izmantojiet piesardzīgi, jo izmaiņas var ietekmēt jūsu datubāzes strukturālo integritāti.",
     "allowDataWrite": "Šī opcija ļauj izveidot, atjaunināt vai dzēst ierakstus datubāzu tabulās. Ideāli piemērots administratīviem lietotājiem, kuriem nepieciešams tieši mainīt datus.",
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Ne vairāk kā 10 datu avoti uz projektu",
     "saveChanges": "Saglabāt izmaiņas",
     "clientKey": "Izvēlēties .key datni",
     "clientCert": "Izvēlēties .cert datni",
@@ -5414,7 +5547,7 @@
     "selectAllMappedFields": "Atlasīt visus sasaistītos laukus",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopēt kļūdas kodu",
-    "paidUserBadgeTooltip": "Patērē maksas vietu. Redaktora vai augstāka loma darbtelpas līmenī, bāzē vai saskarnē.",
+    "paidUserBadgeTooltip": "Aizņem maksas vietu. Redaktora vai augstāka loma darbtelpas līmenī, projektā vai saskarnē.",
     "approachingLimit": "Tuvoties limitam",
     "exceedingLimit": "Pārsniedz limitu",
     "filteredByCurrentUser": "Filtrēts pēc pašreizējā lietotāja",
@@ -5458,8 +5591,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
     "onlyViewOwnerCanModifyPersonalView": "Only the view owner can modify this personal view",
     "onlyViewOwnerCanDeletePersonalView": "Only the view owner can delete this personal view",
-    "onlyCreatorsCanLockView": "Only base creators or owners can lock a view",
-    "onlyCreatorsCanUnlockView": "Only base creators or owners can unlock a view",
+    "onlyCreatorsCanLockView": "Skatījumu var bloķēt tikai projekta izveidotāji vai īpašnieki",
+    "onlyCreatorsCanUnlockView": "Skatījuma bloķēšanu var atcelt tikai projekta izveidotāji vai īpašnieki",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
     "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
@@ -5475,7 +5608,7 @@
     "sortingNotSupportedForFieldsWithErrors": "Sorting is not supported for fields with errors",
     "sortingNotSupportedForField": "Sorting is not supported for {type} field",
     "groupingNotSupportedForFieldsWithErrors": "Grouping is not supported for fields with errors",
-    "variableInheritance": "Nosaka, ko ar šo mainīgo var darīt tie, kas šo bāzi instalē kā lietotni: Fiksēts saglabā jūsu vērtību un paslēpj to, Rediģējams piedāvā jūsu vērtību kā sākumpunktu, bet Obligāts pieprasa norādīt savu.",
+    "variableInheritance": "Nosaka, ko ar šo mainīgo var darīt cilvēki, kuri instalē šo projektu kā lietotni: Fiksēts saglabā jūsu vērtību un paslēpj to, Rediģējams piedāvā jūsu vērtību kā sākumpunktu, Obligāts lūdz viņiem norādīt savu.",
     "workflowButtonTriggerSourceReadOnly": "Avota tabulu, kas pievienota šai pogai, var mainīt tikai sadaļā Saskarnes",
     "workflowButtonTriggerInterfaceReadOnly": "Saskarnes lapu ar šo pogu var mainīt tikai sadaļā Saskarnes",
     "chartIncludeOthers": "Apvieno kategorijas, kas pārsniedz ierobežojumu, vienā kategorijā Citi, nevis tās izlaiž.",
@@ -5487,7 +5620,7 @@
     "interfaceMixedRoles": "Lomas atšķiras dažādās saskarnēs vai lapās. Izvērsiet, lai tās apskatītu",
     "chatQueueAttachmentUnavailable": "Šis pielikums netiks nosūtīts, ja ievietosiet ziņojumu rindā. Vispirms noņemiet to",
     "lockedViewDisabledOnProduction": "Slēgtus skatījumus var izveidot tikai vides kopijā",
-    "personalViewDisabledOnEnvironment": "Personiskos skatījumus var izveidot tikai produkcijas projektā",
+    "personalViewDisabledOnEnvironment": "Personīgos skatījumus var izveidot tikai ražošanas projektā",
     "seeNComments": "Skatīt {n} komentāru | Skatīt {n} komentārus",
     "collapsibleGroups": "Atļaut sakļaut grupas, kurām ir nosaukums",
     "nestedRecordsRequireSelfLink": "Nepieciešams saites lauks šajā tabulā, kas norāda atpakaļ uz to pašu tabulu.",
@@ -5504,10 +5637,10 @@
     "youDontHaveAccessToCreateNewInterface": "Jums nav tiesību izveidot jaunu saskarni",
     "displayValueFieldCannotBeReordered": "Attēlojamās vērtības lauku nevar pārvietot",
     "interfaceLastVizRequired": "Lapai nepieciešama vismaz viena vizualizācija",
-    "onlyCreatorsCanManageViewFolders": "Skatījumu mapes var pārvaldīt tikai projekta veidotāji vai īpašnieki",
-    "onlyCreatorsCanManageFolders": "Mapes var pārvaldīt tikai projekta veidotāji vai īpašnieki",
+    "onlyCreatorsCanManageViewFolders": "Skatījumu mapes var pārvaldīt tikai projekta izveidotāji vai īpašnieki",
+    "onlyCreatorsCanManageFolders": "Mapes var pārvaldīt tikai projekta izveidotāji vai īpašnieki",
     "organizeViewsIntoFolders": "Sakārtojiet skatījumus sakļaujamās mapēs",
-    "productionLockedByEnvironment": "Šī bāze ir atvērta vidē. Shēmas izmaiņas veiciet tur.",
+    "productionLockedByEnvironment": "Šis projekts ir atvērts vidē. Shēmas izmaiņas veiciet tur.",
     "managedByPublisher": "Šīs lietotnes struktūru pārvalda tās izdevējs. Savus dokumentus un mapes pievienojat jūs pats.",
     "featureOnProductionOnly": "Šī darbība tiek pārvaldīta ražošanas projektā, nevis vides kopijā.",
     "clickToEdit": "Noklikšķiniet, lai rediģētu",
@@ -5563,8 +5696,8 @@
     "showAllFields": "Rādīt visus laukus",
     "inviteLinkCannotGrantOwner": "Ielūguma saite nevar piešķirt īpašnieka lomu",
     "inviteLinkRoleAboveYours": "Varat piedāvāt tikai lomas līdz savai",
-    "noDefaultSourceForFolders": "Šai bāzei nav noklusējuma avota. Mapes tā vietā veidojiet no attiecīgā avota izvēlnes",
-    "noDefaultSourceForSync": "Šai bāzei nav noklusējuma avota. Sinhronizācijai tas ir vajadzīgs, lai glabātu savas tabulas"
+    "noDefaultSourceForFolders": "Šim projektam nav noklusējuma avota. Mapes veidojiet no paša avota izvēlnes",
+    "noDefaultSourceForSync": "Šim projektam nav noklusējuma avota. Sinhronizācijai tas nepieciešams savu tabulu glabāšanai"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -7292,8 +7425,8 @@
         "description": "Īss aplis pa jūsu darbtelpu. Varat pārtraukt jebkurā brīdī: nospiediet Izlaist."
       },
       "createBase": {
-        "title": "Sāciet ar Bāzi",
-        "description": "Bāze satur jūsu tabulas, skatījumus un automatizācijas. Šeit sākas lielākā daļa darba."
+        "title": "Sāciet ar projektu",
+        "description": "Projektā ir jūsu tabulas, skatījumi un automatizācijas. Šeit sākas lielākā daļa darba."
       },
       "switchWorkspaces": {
         "title": "Pārslēdziet darbtelpas",

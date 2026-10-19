@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "さらにドキュメントページを追加するにはアップグレードしてください",
     "upgradeToAddMoreWorkflows": "ワークフローを追加するためにアップグレードしてください。",
     "upgradeToAddMoreScriptsSubtitle": "現在はフリープランのため、ワークスペースにつき1つのスクリプトのみ作成できます。アップグレードで無制限のスクリプトが利用可能です。",
-    "upgradeToAddMoreWorkflowsSubtitle": "現在 {activePlan} プランをご利用です。このプランではベースごとに {limit} 件のワークフローを作成できます。さらに必要な場合は {plan} にアップグレードしてください。",
+    "upgradeToAddMoreWorkflowsSubtitle": "現在は{activePlan}プランをご利用中で、プロジェクトごとに{limit}件のワークフローを作成できます。さらに増やすには{plan}にアップグレードしてください。",
     "upgradeToAddMoreDashboardsSubtitle": "現在はフリープランのため、ワークスペースにつき1つのダッシュボードのみ作成できます。アップグレードで無制限のダッシュボードが利用可能です。",
-    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan} プランでは、ベースごとに最大 {limit} ドキュメントページが利用できます。 {plan} プランにアップグレードすると、さらに追加できます。",
+    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan}プランでは、プロジェクトごとに最大{limit}ページのドキュメントを作成できます。さらに追加するには{plan}プランにアップグレードしてください。",
     "upgradeToUseBookmarks": "ブックマークを使用するにはアップグレードしてください",
-    "upgradeToUseBookmarksSubtitle": "ベース、テーブル、ビューなどをブックマークするには、 {plan} プランにアップグレードしてください。",
+    "upgradeToUseBookmarksSubtitle": "{plan}プランにアップグレードすると、プロジェクト、テーブル、ビューなどをブックマークしてすばやくアクセスできます。",
     "upgradeToUseDocsExportPdf": "ドキュメントを PDF としてエクスポートするにはアップグレードしてください",
     "upgradeToUseDocsExportPdfSubtitle": "ドキュメントを PDF ファイルとしてエクスポートするには、 {plan} プランにアップグレードしてください。",
     "upgradeToUseDocsInlineComments": "インラインコメントを使用するにはアップグレードしてください",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "{activePlan}プランではWebhookは{limit}件までです。{plan}プランへアップグレードして無制限に利用しましょう。",
     "upgradeToAccessWebhookLogsSubtitle": "ワークスペースを{plan}プランへアップグレードしてWebhookログにアクセスしましょう。",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "プランをアップグレードすると、異なるプロジェクト間でテーブルを複製できます。",
     "formOwnerNotified": "フォーム所有者に通知しました",
     "formOwnerNotifiedSubtitle": "送信リクエストについてフォーム所有者へ通知しました。",
     "WorkspaceOwnerNotified": "ワークスペース所有者に通知しました",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "{plan} プランにアップグレードすると、ドキュメント内の個々のページを誰が閲覧、編集できるかを制御できます。",
     "upgradeToUseWorkflows": "ワークフローを利用するにはアップグレードしてください。",
     "upgradeToUseWorkflowsSubtitle": "{plan} プランにアップグレードし、ワークフローを使用してタスクとプロセスを自動化します。",
-    "upgradeToUsePrivateBases": "プライベートベースを利用するにはアップグレードが必要です",
-    "upgradeToUsePrivateBasesSubtitle": "プライベートベースは{plan}プランで利用可能です。今すぐアップグレードしてご利用ください。",
+    "upgradeToUsePrivateBases": "アップグレードしてプライベートプロジェクトを利用",
+    "upgradeToUsePrivateBasesSubtitle": "プライベートプロジェクトは{plan}プランでご利用いただけます。今すぐアップグレードして使い始めましょう。",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "このセルには最大で{limit}件の{filePlural}のみアップロードできます。さらにファイルを追加するには{plan}プランにアップグレードしてください。",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "アップグレードしてAIチャットを使用する",
-    "upgradeToUseAiChatSubtitle": "{plan} プランにアップグレードして、AI チャットを使用して自然言語でベースを管理しましょう。",
+    "upgradeToUseAiChatSubtitle": "{plan}プランにアップグレードすると、AIチャットで自然言語を使ってプロジェクトを管理できます。",
     "upgradeToUseMfa": "アップグレードして二要素認証を有効にする",
     "upgradeToUseMfaSubtitle": "アカウントの多要素認証を有効にするには、 {plan} プランにアップグレードしてください。",
     "upgradeToRequireTwoFactor": "2要素認証が必要な場合はアップグレードしてください",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "チーム階層を使用するためにアップグレードする",
     "upgradeToUseTeamHierarchySubtitle": "{plan} プランにアップグレードして、継承されたメンバーシップでネストされた階層のチームを整理しましょう。",
     "upgradeToUseTeams": "チーム使用のアップグレード",
-    "upgradeToUseTeamsSubtitle": "{plan} プランにアップグレードすると、チームを使用してユーザーをグループ化し、ワークスペースや拠点へのアクセスを管理できます。",
+    "upgradeToUseTeamsSubtitle": "{plan}プランにアップグレードすると、チームでユーザーをまとめ、ワークスペースやプロジェクトへのアクセスを管理できます。",
     "upgradeToAddMoreTeams": "アップグレードしてチームを増やす",
     "upgradeToAddMoreTeamsSubtitle": "ワークスペースにさらにチームを追加するには、 {plan} プランにアップグレードしてください。",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "{plan} プランにアップグレードすると、ギャラリービューとカンバンビューのフィールドヘッダーが非表示になります。",
     "upgradeToUseFormScheduling": "フォームスケジューリングを使用するにはアップグレードしてください",
     "upgradeToUseFormSchedulingSubtitle": "開始日と有効期限のあるフォームの可用性をスケジュールするには、 {plan} プランにアップグレードしてください。",
-    "upgradeToUseBaseVariables": "基本変数を使用するにはアップグレードしてください",
-    "upgradeToUseBaseVariablesSubtitle": "ベースにスコープされた再利用可能な変数を定義するには、 {plan} プランにアップグレードしてください。",
+    "upgradeToUseBaseVariables": "アップグレードしてプロジェクト変数を利用",
+    "upgradeToUseBaseVariablesSubtitle": "{plan}プランにアップグレードすると、プロジェクト単位で再利用できる変数を定義できます。",
     "upgradeToUseSync": "アップグレードして同期を使用する",
     "upgradeToUseSyncSubtitle": "内部または外部ソースとデータを同期するには、 {plan} プランにアップグレードしてください。",
     "upgradeToUseTableSync": "テーブル同期を使用するにはアップグレードしてください",
@@ -3112,7 +3112,11 @@
       "upgradeRequestSent": "リクエストを送信しました",
       "upgradeDescRls": "各ユーザーが閲覧・編集できるレコードを制限します。",
       "upgradeDescRecordTemplates": "保存済みの入力済みテンプレートから新しいレコードを作成します。",
-      "upgradeDescDateDependency": "レコードを移動したときに、連動する日付を自動的にずらします。"
+      "upgradeDescDateDependency": "レコードを移動したときに、連動する日付を自動的にずらします。",
+      "concernProject": "プロジェクト",
+      "concernInterfaces": "インターフェース",
+      "concernApps": "アプリ",
+      "concernTabs": "設定セクション"
     },
     "categories": "カテゴリ",
     "blockquote": "引用",
@@ -4402,7 +4406,105 @@
         "repeatWarning": "このステップはデータを送信または変更する可能性があります。再試行すると繰り返される場合があります。問題ない場合のみ有効にしてください。",
         "retries": "再試行回数",
         "earlierTries": "以前の試行",
-        "noErrorMessage": "エラーメッセージなし"
+        "noErrorMessage": "エラーメッセージなし",
+        "title": "失敗時",
+        "retryIfFails": "このステップが失敗したら再試行する",
+        "retrySafeHint": "サービスが一時的に利用できないときに自動で再試行します",
+        "waitBeforeRetry": "再試行までの待機時間",
+        "seconds": "秒",
+        "waitLonger": "毎回待機時間を長くする",
+        "waitLongerHint": "試行のたびに待機時間を2倍にします（最大1時間）",
+        "retryOn": "再試行する条件",
+        "retryOnTemporary": "一時的な問題のみ（タイムアウト、レート制限、サーバーエラー）",
+        "retryOnAny": "すべてのエラー",
+        "triedTimes": "{count}回試行しました",
+        "tryNumber": "{n}回目の試行",
+        "succeededAfterTries": "{count}回の試行で成功"
+      },
+      "iterate": {
+        "listPlaceholder": "繰り返す配列を選択",
+        "listHelp": "前のステップから配列を選択してください。各項目が順番に処理されます。",
+        "notAList": "項目のリストが必要ですが、この値は{kind}です。"
+      },
+      "originalRun": "元の実行",
+      "duration": {
+        "milliseconds": "{n}ミリ秒",
+        "seconds": "{n}秒",
+        "minutesSeconds": "{m}分{s}秒"
+      },
+      "overview": {
+        "lastRun": "最終実行",
+        "failedCount": "{n}件失敗",
+        "allTested": "すべてのステップをテスト済み"
+      },
+      "addStep": "ステップを追加",
+      "nodePicker": {
+        "upgradeToUseStep": "{plan}プランにアップグレードすると{step}を使用できます",
+        "search": "ステップやアプリを検索",
+        "searchTriggers": "検索（例：「新しい行」「毎週月曜日」）",
+        "searchIn": "{app}を検索",
+        "apps": "アプリ",
+        "integrations": "連携",
+        "popular": "人気",
+        "chooseTrigger": "トリガーを選択",
+        "chooseTriggerHint": "すべてのワークフローはトリガー、つまりそれを開始するイベントから始まります。",
+        "noMatches": "一致するステップがありません",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "レコードが{bold}された",
+            "bold": "作成"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "レコードが{bold}された",
+            "bold": "更新"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "レコードが{bold}された",
+            "bold": "削除"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "レコードが{bold}",
+            "bold": "ビューに入った"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "レコードが{bold}",
+            "bold": "条件に一致した"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "フォームを送信"
+          },
+          "core_trigger_button": {
+            "text": "レコードで{bold}",
+            "bold": "ボタンをクリック"
+          },
+          "nocodb_trigger_comment": {
+            "text": "レコードに{bold}",
+            "bold": "コメント"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "スケジュールで実行"
+          },
+          "core_trigger_webhook": {
+            "text": "{bold}したとき",
+            "bold": "Webhookを受信"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "手動で"
+          }
+        },
+        "groups": {
+          "recordEvents": "〜のとき",
+          "userActions": "ユーザーが〜したとき",
+          "runs": "実行",
+          "records": "レコード",
+          "logic": "ロジック",
+          "messages": "メッセージ",
+          "developer": "開発者",
+          "other": "その他"
+        }
       }
     },
     "xAxis": "X軸",
@@ -5051,7 +5153,37 @@
     "licenseExpired": "ライセンスの有効期限が切れました",
     "talkToSales": "営業に相談する",
     "paidAnnually": "年払い",
-    "paidMonthly": "月払い"
+    "paidMonthly": "月払い",
+    "addAttachment": "添付ファイルを追加",
+    "fromAttachmentField": "添付ファイルフィールドから",
+    "uploadFile": "ファイルをアップロード",
+    "fromUrl": "URL から",
+    "attachFromUrl": "URL から添付",
+    "removeAttachment": "添付ファイルを削除",
+    "attachmentFieldChip": "フィールド",
+    "setPageAccess": "ページのアクセス権を設定",
+    "readOnlyMember": "閲覧のみのメンバー",
+    "aReadOnlyMember": "閲覧のみのメンバー",
+    "readOnlyMembers": "閲覧のみのメンバー",
+    "backToData": "データに戻る",
+    "appShare": {
+      "customTeamDescription": "このアプリが定義するチームです。",
+      "membersTeamDescription": "アプリを使用します。",
+      "adminTeamDescription": "アプリを使用し、メンバーを管理します。",
+      "noAccessTeamDescription": "まだ操作が許可されていないため、メンバーはアプリを開けません。"
+    },
+    "viewActions": "ビューの操作",
+    "renameView": "ビューの名前を変更",
+    "generateWithAi": "AIで生成",
+    "deleteView": "ビューを削除",
+    "addToFavourites": "お気に入りに追加",
+    "contextMenu": "コンテキストメニュー",
+    "editSqlView": "SQL ビューを編集",
+    "noWebhooksYet": "Webhookはまだありません",
+    "navigation": "ナビゲーション",
+    "prompts": "プロンプト",
+    "pagination": "ページネーション",
+    "showRowNumbers": "行番号を表示"
   },
   "activity": {
     "useTemplate": "テンプレートを使用",
@@ -5367,7 +5499,7 @@
     "notAvailableForNewRecord": "新しいレコードの作成中は利用できません",
     "conditionallyVisibleField": "条件付きで表示するフィールド",
     "bookmarks": "ブックマーク",
-    "variableInheritance": "このベースをアプリとしてインストールした人がこの変数に対してできることを決めます。「固定」は値を保持して非表示にし、「編集可能」は値を初期値として提示し、「必須」は各自で値を入力してもらいます。",
+    "variableInheritance": "このプロジェクトをアプリとしてインストールした人がこの変数に対してできることを決めます。固定は値を保持して非表示にし、編集可能は値を出発点として提示し、必須は各自の値の入力を求めます。",
     "inheritedMembersInfo": "これらのメンバーは親チームに属し、このチームに割り当てられたリソースへのアクセスを継承します。",
     "teamScopeThisOnly": "このチームのみ。クリックするとサブチームを含めます",
     "teamScopeIncludesSubTeams": "サブチームを含みます。クリックするとこのチームのみに絞り込みます",
@@ -5395,7 +5527,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "このオプションではテーブルや列の追加、変更、削除を含むデータベーススキーマの変更が許可されます。慎重に使用してください。変更はデータベースの構造的整合性に影響を与える可能性があります。",
     "allowDataWrite": "このオプションでは、データベーステーブル内のレコードを作成、更新、または削除することができます。データを直接変更する必要のある管理ユーザーに最適です。",
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "データソースはプロジェクトごとに10個までです",
     "saveChanges": "変更を保存",
     "clientKey": ".key ファイルを選択してください",
     "clientCert": ".cert ファイルを選択してください",
@@ -5421,7 +5553,7 @@
     "selectAllMappedFields": "マッピングされたすべてのフィールドを選択",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "エラーコードをコピー",
-    "paidUserBadgeTooltip": "有料シートを 1 つ消費します。ワークスペースレベル、ベース内、またはインターフェース上での編集者以上のロールです。",
+    "paidUserBadgeTooltip": "有料シートを消費します。ワークスペースレベル、プロジェクト内、またはインターフェース上での編集者以上のロール。",
     "approachingLimit": "上限に近づいています",
     "exceedingLimit": "上限を超えています",
     "filteredByCurrentUser": "現在のユーザーでフィルター",
@@ -5465,8 +5597,8 @@
     "onlyViewOwnerCanCopyViewConfig": "ビューの設定をコピーできるのは、ビューの所有者のみです。",
     "onlyViewOwnerCanModifyPersonalView": "ビューの所有者のみがこの個人的なビューを変更できます",
     "onlyViewOwnerCanDeletePersonalView": "ビューの所有者のみがこの個人的なビューを削除できます",
-    "onlyCreatorsCanLockView": "ベース・クリエイターまたはオーナーのみがビューをロックできます",
-    "onlyCreatorsCanUnlockView": "ベース・クリエイターまたはオーナーのみビューをアンロックできます",
+    "onlyCreatorsCanLockView": "ビューをロックできるのはプロジェクトの作成者またはオーナーのみです",
+    "onlyCreatorsCanUnlockView": "ビューのロックを解除できるのはプロジェクトの作成者またはオーナーのみです",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "構成をコピーするには、少なくとも1つの既存のビューが必要です。このオプションを有効にするには、まずビューを作成してください。",
     "youDoNotHaveSufficientPermissionToAddExtension": "拡張機能を追加するための十分な権限がありません。",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "この拡張機能を設定するための十分な権限がありません。",
@@ -5493,7 +5625,7 @@
     "interfaceMixedRoles": "インターフェースやページによってロールが異なります。展開して確認してください",
     "chatQueueAttachmentUnavailable": "メッセージをキューに入れると、この添付ファイルは送信されません。先に削除してください",
     "lockedViewDisabledOnProduction": "ロックされたビューは環境のコピーでのみ作成できます",
-    "personalViewDisabledOnEnvironment": "個人用ビューは本番ベースでのみ作成できます",
+    "personalViewDisabledOnEnvironment": "パーソナルビューは本番プロジェクトでのみ作成できます",
     "seeNComments": "{n} 件のコメントを見る | {n} 件のコメントを見る",
     "collapsibleGroups": "タイトルのあるグループを折りたためるようにします",
     "nestedRecordsRequireSelfLink": "同じテーブルに戻るリンクフィールドがこのテーブルに必要です。",
@@ -5510,10 +5642,10 @@
     "youDontHaveAccessToCreateNewInterface": "新しい Interface を作成する権限がありません",
     "displayValueFieldCannotBeReordered": "表示値フィールドは並べ替えできません",
     "interfaceLastVizRequired": "ページには少なくとも 1 つの可視化が必要です",
-    "onlyCreatorsCanManageViewFolders": "ビューフォルダーを管理できるのはベースの作成者または所有者のみです",
-    "onlyCreatorsCanManageFolders": "フォルダーを管理できるのはベースの作成者または所有者のみです",
+    "onlyCreatorsCanManageViewFolders": "ビューフォルダーを管理できるのはプロジェクトの作成者またはオーナーのみです",
+    "onlyCreatorsCanManageFolders": "フォルダーを管理できるのはプロジェクトの作成者またはオーナーのみです",
     "organizeViewsIntoFolders": "ビューを折りたたみ可能なフォルダーに整理します",
-    "productionLockedByEnvironment": "このベースは環境で開かれています。スキーマの変更はそちらで行ってください。",
+    "productionLockedByEnvironment": "このプロジェクトは環境で開かれています。スキーマの変更はそちらで行ってください。",
     "managedByPublisher": "この App の構成は発行元が管理します。ドキュメントやフォルダーはご自身で追加できます。",
     "featureOnProductionOnly": "この操作は環境コピーではなく、本番プロジェクトで管理されます。",
     "clickToEdit": "クリックして編集",
@@ -5569,8 +5701,8 @@
     "showAllFields": "すべてのフィールドを表示",
     "inviteLinkCannotGrantOwner": "招待リンクでは所有者権限を付与できません",
     "inviteLinkRoleAboveYours": "付与できるのは自分と同じかそれ以下のロールのみです",
-    "noDefaultSourceForFolders": "このベースには既定のソースがありません。代わりに各ソースのメニューからフォルダーを作成してください",
-    "noDefaultSourceForSync": "このベースには既定のソースがありません。同期にはテーブルを保存するためのソースが必要です"
+    "noDefaultSourceForFolders": "このプロジェクトにはデフォルトのソースがありません。フォルダーは各ソースのメニューから作成してください",
+    "noDefaultSourceForSync": "このプロジェクトにはデフォルトのソースがありません。同期にはテーブルを保存するためのソースが必要です"
   },
   "placeholder": {
     "enterVerificationCode": "6桁のコードを入力してください",
@@ -7235,8 +7367,8 @@
         "description": "ワークスペースをざっと一周します。いつでも終了できます。スキップを押してください。"
       },
       "createBase": {
-        "title": "ベースから始めましょう",
-        "description": "ベースにはテーブル、ビュー、自動化がまとまっています。ほとんどの作業はここから始まります。"
+        "title": "プロジェクトから始めましょう",
+        "description": "プロジェクトにはテーブル、ビュー、オートメーションが含まれます。ほとんどの作業はここから始まります。"
       },
       "switchWorkspaces": {
         "title": "ワークスペースを切り替える",

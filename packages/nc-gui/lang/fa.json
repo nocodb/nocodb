@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Upgrade to add more document pages",
     "upgradeToAddMoreWorkflows": "Upgrade to add more workflows",
     "upgradeToAddMoreScriptsSubtitle": "در حال حاضر روی پلن رایگان هستید که فقط اجازه یک اسکریپت در هر ورک‌اسپیس را می‌دهد. برای باز کردن اسکریپت‌های نامحدود ارتقاء دهید.",
-    "upgradeToAddMoreWorkflowsSubtitle": "در حال حاضر روی پلن {activePlan} هستید که {limit} گردش کار برای هر بیس اجازه می‌دهد. برای بیشتر، به {plan} ارتقا دهید.",
+    "upgradeToAddMoreWorkflowsSubtitle": "در حال حاضر روی طرح {activePlan} هستید که {limit} گردش کار برای هر پروژه اجازه می‌دهد. برای بیشتر، به {plan} ارتقا دهید.",
     "upgradeToAddMoreDashboardsSubtitle": "در حال حاضر روی پلن رایگان هستید که فقط اجازه یک داشبورد در هر ورک‌اسپیس را می‌دهد. برای باز کردن داشبوردهای نامحدود ارتقاء دهید.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "The {activePlan} plan allows up to {limit} document pages per base. Upgrade to the {plan} plan to add more.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "طرح {activePlan} تا {limit} صفحهٔ سند برای هر پروژه اجازه می‌دهد. برای افزودن بیشتر به طرح {plan} ارتقا دهید.",
     "upgradeToUseBookmarks": "Upgrade to use bookmarks",
-    "upgradeToUseBookmarksSubtitle": "Upgrade to the {plan} plan to bookmark bases, tables, views, and more for quick access.",
+    "upgradeToUseBookmarksSubtitle": "برای نشان‌گذاری پروژه‌ها، جدول‌ها، نماها و موارد دیگر جهت دسترسی سریع، به طرح {plan} ارتقا دهید.",
     "upgradeToUseDocsExportPdf": "Upgrade to export documents as PDF",
     "upgradeToUseDocsExportPdfSubtitle": "Upgrade to the {plan} plan to export your documents as PDF files.",
     "upgradeToUseDocsInlineComments": "Upgrade to use inline comments",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "پلن {activePlan} حداکثر {limit} وبهوک را پشتیبانی می‌کند. با ارتقاء به پلن {plan} به وبهوک‌های نامحدود دسترسی پیدا کنید.",
     "upgradeToAccessWebhookLogsSubtitle": "با ارتقاء ورک‌اسپیس به پلن {plan}، به لاگ‌های وبهوک دسترسی پیدا کنید.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "برای تکثیر جدول‌ها میان پروژه‌های مختلف، طرح خود را ارتقا دهید.",
     "formOwnerNotified": "به مالک فرم اطلاع داده شد",
     "formOwnerNotifiedSubtitle": "ما مالک فرم را دربارهٔ درخواست ارسال شما مطلع کردیم.",
     "WorkspaceOwnerNotified": "به مالک ورک‌اسپیس اطلاع داده شد",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Upgrade to the {plan} plan to control who can view and edit individual pages in your docs.",
     "upgradeToUseWorkflows": "Upgrade to use workflows",
     "upgradeToUseWorkflowsSubtitle": "Upgrade to the {plan} plan to use workflows to automate tasks and processes.",
-    "upgradeToUsePrivateBases": "ارتقاء برای دسترسی به پایگاه‌های خصوصی",
-    "upgradeToUsePrivateBasesSubtitle": "پایگاه‌های خصوصی فقط در پلن {plan} موجود هستند. اکنون ارتقاء دهید تا از آن‌ها استفاده کنید.",
+    "upgradeToUsePrivateBases": "برای باز کردن پروژه‌های خصوصی ارتقا دهید",
+    "upgradeToUsePrivateBasesSubtitle": "پروژه‌های خصوصی در طرح {plan} در دسترس هستند. همین حالا ارتقا دهید تا از آن‌ها استفاده کنید.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "شما فقط می‌توانید حداکثر {limit} {filePlural} در این سلول بارگذاری کنید. برای افزودن فایل بیشتر به پلن {plan} ارتقاء دهید.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Upgrade to use AI Chat",
-    "upgradeToUseAiChatSubtitle": "Upgrade to the {plan} plan to use AI Chat to manage your base with natural language.",
+    "upgradeToUseAiChatSubtitle": "برای استفاده از گفت‌وگوی هوش مصنوعی و مدیریت پروژه با زبان طبیعی، به طرح {plan} ارتقا دهید.",
     "upgradeToUseMfa": "Upgrade to enable two-factor authentication",
     "upgradeToUseMfaSubtitle": "Upgrade to the {plan} plan to enable multi-factor authentication for your account.",
     "upgradeToRequireTwoFactor": "Upgrade to require two-factor authentication",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Upgrade to use team hierarchy",
     "upgradeToUseTeamHierarchySubtitle": "Upgrade to the {plan} plan to organize teams in nested hierarchies with inherited membership.",
     "upgradeToUseTeams": "Upgrade to use teams",
-    "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases.",
+    "upgradeToUseTeamsSubtitle": "برای استفاده از تیم‌ها جهت گروه‌بندی کاربران و مدیریت دسترسی آن‌ها به فضاهای کاری و پروژه‌ها، به طرح {plan} ارتقا دهید.",
     "upgradeToAddMoreTeams": "Upgrade to add more teams",
     "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views.",
     "upgradeToUseFormScheduling": "Upgrade to use form scheduling",
     "upgradeToUseFormSchedulingSubtitle": "Upgrade to the {plan} plan to schedule form availability with start and expiration dates.",
-    "upgradeToUseBaseVariables": "Upgrade to use base variables",
-    "upgradeToUseBaseVariablesSubtitle": "Upgrade to the {plan} plan to define reusable variables scoped to a base.",
+    "upgradeToUseBaseVariables": "برای استفاده از متغیرهای پروژه ارتقا دهید",
+    "upgradeToUseBaseVariablesSubtitle": "برای تعریف متغیرهای قابل استفادهٔ مجدد در محدودهٔ یک پروژه، به طرح {plan} ارتقا دهید.",
     "upgradeToUseSync": "Upgrade to use sync",
     "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources.",
     "upgradeToUseTableSync": "Upgrade to use table sync",
@@ -3112,7 +3112,11 @@
       "upgradeRequestSent": "درخواست ارسال شد",
       "upgradeDescRls": "محدود کنید هر فرد کدام رکوردها را ببیند و ویرایش کند.",
       "upgradeDescRecordTemplates": "رکوردهای جدید را از قالب‌های ذخیره‌شده و از پیش پرشده بسازید.",
-      "upgradeDescDateDependency": "هنگام جابه‌جایی یک رکورد، تاریخ‌های وابسته را به‌طور خودکار جابه‌جا می‌کند."
+      "upgradeDescDateDependency": "هنگام جابه‌جایی یک رکورد، تاریخ‌های وابسته را به‌طور خودکار جابه‌جا می‌کند.",
+      "concernProject": "پروژه",
+      "concernInterfaces": "رابط‌ها",
+      "concernApps": "اپ",
+      "concernTabs": "بخش‌های تنظیمات"
     },
     "categories": "دسته‌ها",
     "blockquote": "نقل‌قول",
@@ -4402,7 +4406,106 @@
         "repeatWarning": "این گام ممکن است داده بفرستد یا تغییر دهد. تلاش دوباره ممکن است آن را تکرار کند — فقط در صورتی روشن کنید که ایرادی ندارد.",
         "retries": "تعداد تلاش‌های دوباره",
         "earlierTries": "تلاش‌های پیشین",
-        "noErrorMessage": "پیام خطایی وجود ندارد"
+        "noErrorMessage": "پیام خطایی وجود ندارد",
+        "title": "در صورت شکست",
+        "retryIfFails": "اگر این گام ناموفق بود دوباره تلاش کن",
+        "retrySafeHint": "وقتی سرویسی موقتاً در دسترس نیست به‌طور خودکار دوباره تلاش می‌کند",
+        "waitBeforeRetry": "صبر پیش از تلاش مجدد",
+        "seconds": "ثانیه",
+        "waitLonger": "هر بار بیشتر صبر کن",
+        "waitLongerHint": "پس از هر تلاش زمان انتظار را دو برابر می‌کند، تا 1 ساعت",
+        "retryOn": "تلاش مجدد در",
+        "retryOnTemporary": "فقط مشکلات موقت (اتمام مهلت، محدودیت نرخ، خطاهای سرور)",
+        "retryOnAny": "هر خطایی",
+        "triedTimes": "{count} بار تلاش شد",
+        "tryNumber": "تلاش {n}",
+        "succeededAfterTries": "پس از {count} تلاش موفق شد"
+      },
+      "iterate": {
+        "listPlaceholder": "یک آرایه برای پیمایش انتخاب کنید",
+        "listHelp": "یک آرایه از گام قبلی انتخاب کنید. هر مورد به‌ترتیب پردازش می‌شود.",
+        "notAList": "به فهرستی از موارد نیاز دارد، اما این مقدار {kind} است."
+      },
+      "originalRun": "اجرای اصلی",
+      "duration": {
+        "milliseconds": "{n} میلی‌ثانیه",
+        "seconds": "{n} ثانیه",
+        "minutesSeconds": "{m} دقیقه {s} ثانیه"
+      },
+      "overview": {
+        "lastRun": "آخرین اجرا",
+        "failedCount": "{n} ناموفق",
+        "allTested": "همهٔ گام‌ها آزمایش شدند"
+      },
+      "addStep": "افزودن یک گام",
+      "nodePicker": {
+        "upgradeToUseStep": "برای استفاده از {step} به طرح {plan} ارتقا دهید",
+        "search": "جست‌وجوی گام‌ها و اپ‌ها",
+        "searchTriggers": "جست‌وجو کنید، مثلاً «ردیف جدید»، «هر دوشنبه»",
+        "searchIn": "جست‌وجو در {app}",
+        "apps": "اپ‌ها",
+        "integrations": "یکپارچه‌سازی‌ها",
+        "popular": "پرطرفدار",
+        "chooseTrigger": "یک تریگر انتخاب کنید",
+        "chooseTriggerHint": "هر گردش کاری با یک تریگر آغاز می‌شود: رویدادی که آن را به راه می‌اندازد.",
+        "noMatches": "گامی مطابقت ندارد",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "رکورد {bold} می‌شود",
+            "bold": "ایجاد"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "رکورد {bold} می‌شود",
+            "bold": "به‌روزرسانی"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "رکورد {bold} می‌شود",
+            "bold": "حذف"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "رکورد {bold}",
+            "bold": "وارد یک نما می‌شود"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "رکورد {bold}",
+            "bold": "با شرایط مطابقت دارد"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "فرمی ارسال می‌کند"
+          },
+          "core_trigger_button": {
+            "text": "{bold} روی یک رکورد",
+            "bold": "روی دکمه‌ای کلیک می‌کند"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} روی یک رکورد",
+            "bold": "نظر می‌دهد"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "طبق زمان‌بندی"
+          },
+          "core_trigger_webhook": {
+            "text": "وقتی {bold}",
+            "bold": "وب‌هوک دریافت می‌شود"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "دستی"
+          }
+        },
+        "groups": {
+          "recordEvents": "وقتی",
+          "userActions": "وقتی کاربر",
+          "runs": "اجراها",
+          "records": "رکوردها",
+          "logic": "منطق",
+          "ai": "هوش مصنوعی",
+          "messages": "پیام‌ها",
+          "developer": "توسعه‌دهنده",
+          "other": "سایر"
+        }
       }
     },
     "xAxis": "محور X",
@@ -5051,7 +5154,37 @@
     "licenseExpired": "مجوز منقضی شده است",
     "talkToSales": "گفت‌وگو با بخش فروش",
     "paidAnnually": "پرداخت سالانه",
-    "paidMonthly": "پرداخت ماهانه"
+    "paidMonthly": "پرداخت ماهانه",
+    "addAttachment": "افزودن پیوست",
+    "fromAttachmentField": "از فیلد پیوست",
+    "uploadFile": "بارگذاری فایل",
+    "fromUrl": "از URL",
+    "attachFromUrl": "پیوست از URL",
+    "removeAttachment": "حذف پیوست",
+    "attachmentFieldChip": "فیلد",
+    "setPageAccess": "تنظیم دسترسی صفحه",
+    "readOnlyMember": "عضو فقط‌خواندنی",
+    "aReadOnlyMember": "یک عضو فقط‌خواندنی",
+    "readOnlyMembers": "اعضای فقط‌خواندنی",
+    "backToData": "بازگشت به داده‌ها",
+    "appShare": {
+      "customTeamDescription": "تیمی که این اپ تعریف می‌کند.",
+      "membersTeamDescription": "از اپ استفاده می‌کند.",
+      "adminTeamDescription": "از اپ استفاده می‌کند و اعضای آن را مدیریت می‌کند.",
+      "noAccessTeamDescription": "هنوز هیچ اقدامی داده نشده است، بنابراین اعضای آن نمی‌توانند اپ را باز کنند."
+    },
+    "viewActions": "اقدامات نما",
+    "renameView": "تغییر نام نما",
+    "generateWithAi": "ساخت با هوش مصنوعی",
+    "deleteView": "حذف نما",
+    "addToFavourites": "افزودن به علاقه‌مندی‌ها",
+    "contextMenu": "منوی زمینه",
+    "editSqlView": "ویرایش نمای SQL",
+    "noWebhooksYet": "هنوز وب‌هوکی وجود ندارد",
+    "navigation": "ناوبری",
+    "prompts": "پرامپت‌ها",
+    "pagination": "صفحه‌بندی",
+    "showRowNumbers": "نمایش شماره ردیف‌ها"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5394,7 +5527,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "این گزینه اجازه اصلاح ساختار دیتابیس، شامل اضافه کردن، تغییر یا حذف جداول و ستون‌ها را می‌دهد. به دقت استفاده کنید، زیرا تغییرات می‌توانند بر یکپارچگی ساختاری دیتابیس شما تأثیر بگذارند.",
     "allowDataWrite": "این گزینه اجازه می‌دهد تا رکوردها را در جداول داده‌ها ایجاد، به‌روزرسانی یا حذف کنید. ایده‌آل برای کاربران مدیریتی که نیاز به تغییر مستقیم داده‌ها دارند.",
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "محدود به 10 منبع داده برای هر پروژه",
     "saveChanges": "ذخیره تغییرات",
     "clientKey": "انتخاب فایل key.",
     "clientCert": "انتخاب فایل cert.",
@@ -5420,7 +5553,7 @@
     "selectAllMappedFields": "انتخاب همه فیلدهای نگاشت‌شده",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "کپی کد خطا",
-    "paidUserBadgeTooltip": "یک صندلی پولی مصرف می‌کند. نقش ویرایشگر یا بالاتر در سطح فضای کاری، در یک بیس یا روی یک رابط.",
+    "paidUserBadgeTooltip": "یک صندلی پولی مصرف می‌کند. نقش ویرایشگر یا بالاتر در سطح فضای کاری، در یک پروژه یا روی یک رابط.",
     "approachingLimit": "نزدیک به حد مجاز",
     "exceedingLimit": "فراتر از حد",
     "filteredByCurrentUser": "فیلتر بر اساس کاربر فعلی",
@@ -5464,8 +5597,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
     "onlyViewOwnerCanModifyPersonalView": "Only the view owner can modify this personal view",
     "onlyViewOwnerCanDeletePersonalView": "Only the view owner can delete this personal view",
-    "onlyCreatorsCanLockView": "Only base creators or owners can lock a view",
-    "onlyCreatorsCanUnlockView": "Only base creators or owners can unlock a view",
+    "onlyCreatorsCanLockView": "فقط سازندگان یا مالکان پروژه می‌توانند یک نما را قفل کنند",
+    "onlyCreatorsCanUnlockView": "فقط سازندگان یا مالکان پروژه می‌توانند قفل یک نما را باز کنند",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
     "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
@@ -5481,7 +5614,7 @@
     "sortingNotSupportedForFieldsWithErrors": "Sorting is not supported for fields with errors",
     "sortingNotSupportedForField": "Sorting is not supported for {type} field",
     "groupingNotSupportedForFieldsWithErrors": "Grouping is not supported for fields with errors",
-    "variableInheritance": "تعیین می‌کند کسانی که این بیس را به‌عنوان برنامه نصب می‌کنند با این متغیر چه کاری می‌توانند بکنند: ثابت مقدار شما را نگه می‌دارد و پنهان می‌کند، قابل ویرایش مقدار شما را به‌عنوان نقطه شروع پیشنهاد می‌دهد، و الزامی از آن‌ها می‌خواهد مقدار خودشان را وارد کنند.",
+    "variableInheritance": "تعیین می‌کند افرادی که این پروژه را به‌عنوان اپ نصب می‌کنند با این متغیر چه می‌توانند بکنند: «ثابت» مقدار شما را نگه می‌دارد و پنهان می‌کند، «قابل ویرایش» مقدار شما را به‌عنوان نقطهٔ شروع پیشنهاد می‌دهد و «الزامی» از آن‌ها می‌خواهد مقدار خودشان را وارد کنند.",
     "workflowButtonTriggerSourceReadOnly": "جدول منبعِ متصل به این دکمه تنها از بخش رابط‌ها تغییر می‌کند",
     "workflowButtonTriggerInterfaceReadOnly": "صفحهٔ رابطی که این دکمه در آن است تنها از بخش رابط‌ها تغییر می‌کند",
     "chartIncludeOthers": "دسته‌های فراتر از حد را به‌جای حذف، در یک دستهٔ «سایر» گرد می‌آورد.",
@@ -5493,7 +5626,7 @@
     "interfaceMixedRoles": "نقش‌ها در رابط‌ها یا صفحه‌های مختلف فرق می‌کنند. برای دیدن آنها باز کنید",
     "chatQueueAttachmentUnavailable": "اگر پیام خود را در صف قرار دهید، این پیوست ارسال نخواهد شد. ابتدا آن را حذف کنید",
     "lockedViewDisabledOnProduction": "نماهای قفل‌شده تنها در نسخهٔ محیط ساخته می‌شوند",
-    "personalViewDisabledOnEnvironment": "نماهای شخصی تنها در پروژهٔ تولید ساخته می‌شوند",
+    "personalViewDisabledOnEnvironment": "نماهای شخصی فقط در پروژهٔ تولید قابل ایجاد هستند",
     "seeNComments": "دیدن {n} دیدگاه | دیدن {n} دیدگاه",
     "collapsibleGroups": "اجازه دهید گروه‌های دارای عنوان جمع شوند",
     "nestedRecordsRequireSelfLink": "به فیلد پیوندی در همین جدول نیاز دارد که به خود جدول بازگردد.",
@@ -5510,10 +5643,10 @@
     "youDontHaveAccessToCreateNewInterface": "اجازهٔ ساخت رابط تازه را ندارید",
     "displayValueFieldCannotBeReordered": "فیلد مقدار نمایشی را نمی‌توان جابه‌جا کرد",
     "interfaceLastVizRequired": "هر صفحه دست‌کم به یک نمایش تصویری نیاز دارد",
-    "onlyCreatorsCanManageViewFolders": "تنها سازندگان یا مالکان پروژه می‌توانند پوشه‌های نما را مدیریت کنند",
-    "onlyCreatorsCanManageFolders": "تنها سازندگان یا مالکان پروژه می‌توانند پوشه‌ها را مدیریت کنند",
+    "onlyCreatorsCanManageViewFolders": "فقط سازندگان یا مالکان پروژه می‌توانند پوشه‌های نما را مدیریت کنند",
+    "onlyCreatorsCanManageFolders": "فقط سازندگان یا مالکان پروژه می‌توانند پوشه‌ها را مدیریت کنند",
     "organizeViewsIntoFolders": "نماها را در پوشه‌های جمع‌شدنی سامان دهید",
-    "productionLockedByEnvironment": "این بیس در یک محیط باز است. تغییرات ساختار را آنجا انجام دهید.",
+    "productionLockedByEnvironment": "این پروژه در یک محیط باز است. تغییرات شِما را همان‌جا انجام دهید.",
     "managedByPublisher": "ساختار این برنامه را ناشرش مدیریت می‌کند. سندها و پوشه‌های شما از آنِ خودتان است.",
     "featureOnProductionOnly": "این عملیات در پروژهٔ تولید مدیریت می‌شود، نه در نسخهٔ محیط.",
     "clickToEdit": "برای ویرایش کلیک کنید",
@@ -5569,8 +5702,8 @@
     "showAllFields": "نمایش همه فیلدها",
     "inviteLinkCannotGrantOwner": "پیوند دعوت نمی‌تواند نقش مالک را اعطا کند",
     "inviteLinkRoleAboveYours": "فقط می‌توانید نقش‌هایی تا سطح نقش خودتان را پیشنهاد دهید",
-    "noDefaultSourceForFolders": "این بیس منبع پیش‌فرض ندارد. به‌جای آن پوشه‌ها را از منوی خود هر منبع بسازید",
-    "noDefaultSourceForSync": "این بیس منبع پیش‌فرض ندارد. یک همگام‌سازی برای ذخیره جدول‌هایش به یک منبع نیاز دارد"
+    "noDefaultSourceForFolders": "این پروژه منبع پیش‌فرض ندارد. پوشه‌ها را به جای آن از منوی خود هر منبع بسازید",
+    "noDefaultSourceForSync": "این پروژه منبع پیش‌فرض ندارد. همگام‌سازی برای ذخیرهٔ جدول‌هایش به یک منبع نیاز دارد"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -7298,8 +7431,8 @@
         "description": "یک دور سریع در فضای کاری شما. هر زمان بخواهید می‌توانید خارج شوید: روی رد کردن بزنید."
       },
       "createBase": {
-        "title": "با یک پایگاه شروع کنید",
-        "description": "یک پایگاه، جدول‌ها، نماها و خودکارسازی‌های شما را در خود دارد. بیشتر کارها از همین‌جا شروع می‌شود."
+        "title": "با یک پروژه شروع کنید",
+        "description": "یک پروژه جدول‌ها، نماها و خودکارسازی‌های شما را در خود دارد. بیشتر کارها از همین‌جا شروع می‌شود."
       },
       "switchWorkspaces": {
         "title": "فضای کاری را عوض کنید",

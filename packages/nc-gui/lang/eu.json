@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Dokumentu-orriak gehiago gehitzeko eguneratu",
     "upgradeToAddMoreWorkflows": "Lan-fluxu gehiago gehitzeko eguneratu",
     "upgradeToAddMoreScriptsSubtitle": "Orain Free planean zaude eta script batek baino ez du lan-espazioan onartzen. Igo zaitez script mugagabeak izateko.",
-    "upgradeToAddMoreWorkflowsSubtitle": "Une honetan {activePlan} planean zaude, eta base bakoitzeko {limit} lan-fluxu onartzen ditu. Gehiago izateko, pasa {plan} planera.",
+    "upgradeToAddMoreWorkflowsSubtitle": "Une honetan {activePlan} planean zaude, eta {limit} lan-fluxu onartzen ditu proiektuko. Hobetu {plan} planera gehiago izateko.",
     "upgradeToAddMoreDashboardsSubtitle": "Orain Free planean zaude eta arbela batek baino ez du lan-espazioan onartzen. Igo zaitez arbel mugagabeak izateko.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan} planak oinarrizko dokumentu-orriak gehienez {limit} arte onartzen ditu. Gehigarri gehiago gehitzeko, {plan} planera igotzea gomendatzen da.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan} planak gehienez {limit} dokumentu-orri onartzen ditu proiektuko. Hobetu {plan} planera gehiago gehitzeko.",
     "upgradeToUseBookmarks": "Erabiltzeko eguneratu liburu-markak",
-    "upgradeToUseBookmarksSubtitle": "{plan} planera igotzeko eguneratu oinarriak, taulak, ikuspegiak eta gehiago azkar sartzeko markatzeko.",
+    "upgradeToUseBookmarksSubtitle": "Hobetu {plan} planera proiektuak, taulak, bistak eta gehiago laster-markatzeko eta azkar atzitzeko.",
     "upgradeToUseDocsExportPdf": "Egoera hobetzea dokumentuak PDF gisa esportatzeko",
     "upgradeToUseDocsExportPdfSubtitle": "Eguneratu {plan} planera zure dokumentuak PDF fitxategi gisa esportatzeko.",
     "upgradeToUseDocsInlineComments": "Barneko iruzkinak erabiltzeko eguneratu",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "{activePlan} planak gehienez {limit} webhook baimentzen ditu. {plan} planera igota, webhook mugagabeak izango dituzu.",
     "upgradeToAccessWebhookLogsSubtitle": "Webhook erregistroetara sartzeko, igo zure lan-espazioa {plan} planeraino.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "Hobetu zure plana taulak proiektu desberdinen artean bikoizteko.",
     "formOwnerNotified": "Inprimakiaren jabea jakinarazita",
     "formOwnerNotifiedSubtitle": "Zure bidalketa-eskaeraren berri eman diogu inprimakiaren jabeari.",
     "WorkspaceOwnerNotified": "Lan-espazioko jabea jakinarazita",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "{plan} planera igotzea zure dokumentuetako orrialde banakak nor ikusi eta edita ditzakeen kontrolatzeko.",
     "upgradeToUseWorkflows": "Eguneratu lan-fluxuak erabiltzeko",
     "upgradeToUseWorkflowsSubtitle": "{plan} planera igotzea, lan-fluxuak erabiliz zereginak eta prozesuak automatizatzeko.",
-    "upgradeToUsePrivateBases": "Igo zaitez oinarri pribatuak erabiltzeko",
-    "upgradeToUsePrivateBasesSubtitle": "Oinarri pribatuak {plan} planean eskuragarri daude. Igo zaitez eta hasi erabiltzen.",
+    "upgradeToUsePrivateBases": "Hobetu plana proiektu pribatuak desblokeatzeko",
+    "upgradeToUsePrivateBasesSubtitle": "Proiektu pribatuak {plan} planean daude eskuragarri. Hobetu orain erabiltzen hasteko.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Gehienez {limit} {filePlural} fitxategi igo ditzakezu gelaxka honetara. Igo zaitez {plan} planera fitxategi gehiago gehitzeko.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "AI Txat-a erabiltzeko eguneratu",
-    "upgradeToUseAiChatSubtitle": "{plan} planera igotzeko, AI Chat erabil dezakezu zure oinarria hizkera naturalean kudeatzeko.",
+    "upgradeToUseAiChatSubtitle": "Hobetu {plan} planera AI txata erabiltzeko eta zure proiektua hizkuntza naturalarekin kudeatzeko.",
     "upgradeToUseMfa": "Bi faktoreko autentifikazioa gaitzeko eguneratu",
     "upgradeToUseMfaSubtitle": "{plan} -planera igotzea zure konturako autentifikazio anitza gaitzeko.",
     "upgradeToRequireTwoFactor": "Bi faktoreko autentifikazioa eskatzen duen moduan eguneratu",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Taldearen hierarkia erabiltzeko eguneratu",
     "upgradeToUseTeamHierarchySubtitle": "{plan} planera igotzeko, taldeak hierarkia anitzetan antolatu eta kidego heredatua izan dezaten.",
     "upgradeToUseTeams": "Taldeak erabiltzeko eguneratu",
-    "upgradeToUseTeamsSubtitle": "{plan} planera igotzeko, taldeak erabili behar dituzu erabiltzaileak taldean antolatzeko eta lan-espazioetara eta oinarrietara duten sarbidea kudeatzeko.",
+    "upgradeToUseTeamsSubtitle": "Hobetu {plan} planera taldeak erabiltzeko, erabiltzaileak multzokatzeko eta lan-espazio eta proiektuetarako sarbidea kudeatzeko.",
     "upgradeToAddMoreTeams": "Talde gehiago gehitzeko eguneratu",
     "upgradeToAddMoreTeamsSubtitle": "{plan} -planera igotzeko, zure lan-espazioan talde gehiago gehitu ahal izango dituzu.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "{plan} planera igotzeko, ezkutatu eremu-izenburuak Gallery eta Kanban ikuspegietan.",
     "upgradeToUseFormScheduling": "Formulario-ordutegia erabiltzeko eguneratu",
     "upgradeToUseFormSchedulingSubtitle": "{plan} planera igotzea, hasiera- eta iraungitze-datak dituzten inprimakiak eskuragarri egoteko ordutegia ezartzeko.",
-    "upgradeToUseBaseVariables": "Erabili oinarrizko aldagaiak erabiltzeko eguneraketa",
-    "upgradeToUseBaseVariablesSubtitle": "{plan} planera igotzea, oinarrian definitutako berrerabilgarriak diren aldagaiak zehazteko.",
+    "upgradeToUseBaseVariables": "Hobetu plana proiektuko aldagaiak erabiltzeko",
+    "upgradeToUseBaseVariablesSubtitle": "Hobetu {plan} planera proiektu baten barruan berrerabil daitezkeen aldagaiak zehazteko.",
     "upgradeToUseSync": "Sinkronizazioa erabiltzeko eguneratu",
     "upgradeToUseSyncSubtitle": "Barneko edo kanpoko iturrietako datuak sinkronizatzeko, {plan} planera igotzea gomendatzen da.",
     "upgradeToUseTableSync": "Taularen sinkronizazioa erabiltzeko eguneratu",
@@ -3112,7 +3112,11 @@
       "upgradeRequestSent": "Eskaera bidalita",
       "upgradeDescRls": "Mugatu pertsona bakoitzak zein erregistro ikus eta edita ditzakeen.",
       "upgradeDescRecordTemplates": "Sortu erregistro berriak gordetako txantiloi aurrez betetakoetatik.",
-      "upgradeDescDateDependency": "Mendeko datak automatikoki lekualdatzen ditu erregistro bat mugitzean."
+      "upgradeDescDateDependency": "Mendeko datak automatikoki lekualdatzen ditu erregistro bat mugitzean.",
+      "concernProject": "Proiektua",
+      "concernInterfaces": "Interfazeak",
+      "concernApps": "Aplikazioa",
+      "concernTabs": "Ezarpen-atalak"
     },
     "categories": "Kategoriak",
     "blockquote": "Aipua",
@@ -4401,7 +4405,105 @@
         "repeatWarning": "Urrats honek datuak bidal edo alda ditzake. Berriro saiatzeak errepika dezake — aktibatu hori ondo badago bakarrik.",
         "retries": "Saiakera kopurua",
         "earlierTries": "Aurreko saiakerak",
-        "noErrorMessage": "Errore-mezurik ez"
+        "noErrorMessage": "Errore-mezurik ez",
+        "title": "Huts eginez gero",
+        "retryIfFails": "Saiatu berriro urrats honek huts egiten badu",
+        "retrySafeHint": "Automatikoki saiatzen da berriro zerbitzu bat aldi baterako eskuragarri ez dagoenean",
+        "waitBeforeRetry": "Itxaron berriro saiatu aurretik",
+        "seconds": "segundo",
+        "waitLonger": "Itxaron gehiago aldi bakoitzean",
+        "waitLongerHint": "Saiakera bakoitzaren ondoren itxaronaldia bikoizten du, gehienez ordubete",
+        "retryOn": "Saiatu berriro honakoan",
+        "retryOnTemporary": "Aldi baterako arazoak soilik (denbora-mugak, eskaera-mugak, zerbitzari-erroreak)",
+        "retryOnAny": "Edozein errore",
+        "triedTimes": "{count} saiakera egin dira",
+        "tryNumber": "{n}. saiakera",
+        "succeededAfterTries": "{count} saiakeraren ondoren lortu da"
+      },
+      "iterate": {
+        "listPlaceholder": "Hautatu zeharkatzeko array bat",
+        "listHelp": "Hautatu array bat aurreko urrats batetik. Elementu bakoitza hurrenez hurren prozesatuko da.",
+        "notAList": "Elementu-zerrenda bat behar du, baina balio hau {kind} da."
+      },
+      "originalRun": "jatorrizko exekuzioa",
+      "duration": {
+        "milliseconds": "{n} ms",
+        "seconds": "{n} s",
+        "minutesSeconds": "{m} min {s} s"
+      },
+      "overview": {
+        "lastRun": "Azken exekuzioa",
+        "failedCount": "{n} huts egin dute",
+        "allTested": "Urrats guztiak probatuta"
+      },
+      "addStep": "Gehitu urrats bat",
+      "nodePicker": {
+        "upgradeToUseStep": "Hobetu {plan} planera {step} erabiltzeko",
+        "search": "Bilatu urratsak eta aplikazioak",
+        "searchTriggers": "Bilatu, adib. “errenkada berria”, “astelehenero”",
+        "searchIn": "Bilatu {app} aplikazioan",
+        "apps": "Aplikazioak",
+        "integrations": "Integrazioak",
+        "popular": "Ezagunak",
+        "chooseTrigger": "Aukeratu abiarazle bat",
+        "chooseTriggerHint": "Lan-fluxu oro abiarazle batekin hasten da: abian jartzen duen gertaerarekin.",
+        "noMatches": "Ez dago bat datorren urratsik",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "Erregistroa {bold} da",
+            "bold": "sortzen"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "Erregistroa {bold} da",
+            "bold": "eguneratzen"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "Erregistroa {bold} da",
+            "bold": "ezabatzen"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "Erregistroa {bold}",
+            "bold": "bista batean sartzen da"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "Erregistroa {bold}",
+            "bold": "baldintzak betetzen ditu"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "Inprimaki bat bidaltzen du"
+          },
+          "core_trigger_button": {
+            "text": "{bold} erregistro batean",
+            "bold": "Botoi bat sakatzen du"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} erregistro batean",
+            "bold": "Iruzkintzen du"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "Ordutegi baten arabera"
+          },
+          "core_trigger_webhook": {
+            "text": "Noiz {bold}",
+            "bold": "webhook bat jasotzen da"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "Eskuz"
+          }
+        },
+        "groups": {
+          "recordEvents": "Noiz",
+          "userActions": "Erabiltzaileak noiz",
+          "runs": "Exekuzioak",
+          "records": "Erregistroak",
+          "logic": "Logika",
+          "messages": "Mezuak",
+          "developer": "Garatzailea",
+          "other": "Bestelakoak"
+        }
       }
     },
     "xAxis": "X ardatza",
@@ -5047,7 +5149,37 @@
     "licenseExpired": "Lizentzia iraungita",
     "talkToSales": "Hitz egin salmenta-taldearekin",
     "paidAnnually": "Urtero ordainduta",
-    "paidMonthly": "Hilero ordainduta"
+    "paidMonthly": "Hilero ordainduta",
+    "addAttachment": "Gehitu eranskina",
+    "fromAttachmentField": "Eranskin-eremutik",
+    "uploadFile": "Igo fitxategia",
+    "fromUrl": "URL helbidetik",
+    "attachFromUrl": "Erantsi URL helbidetik",
+    "removeAttachment": "Kendu eranskina",
+    "attachmentFieldChip": "eremua",
+    "setPageAccess": "Ezarri orriaren sarbidea",
+    "readOnlyMember": "irakurtzeko soilik den kidea",
+    "aReadOnlyMember": "irakurtzeko soilik den kide bat",
+    "readOnlyMembers": "irakurtzeko soilik diren kideak",
+    "backToData": "Itzuli datuetara",
+    "appShare": {
+      "customTeamDescription": "Aplikazio honek definitzen duen taldea.",
+      "membersTeamDescription": "Aplikazioa erabiltzen du.",
+      "adminTeamDescription": "Aplikazioa erabiltzen du eta bere kideak kudeatzen ditu.",
+      "noAccessTeamDescription": "Oraindik ez zaio ekintzarik eman, beraz, bere kideek ezin dute aplikazioa ireki."
+    },
+    "viewActions": "Bistaren ekintzak",
+    "renameView": "Aldatu bistaren izena",
+    "generateWithAi": "Sortu AI erabiliz",
+    "deleteView": "Ezabatu bista",
+    "addToFavourites": "Gehitu gogokoetara",
+    "contextMenu": "Testuinguru-menua",
+    "editSqlView": "Editatu SQL bista",
+    "noWebhooksYet": "Oraindik ez dago webhook-ik",
+    "navigation": "Nabigazioa",
+    "prompts": "Prompt-ak",
+    "pagination": "Orrikatzea",
+    "showRowNumbers": "Erakutsi errenkada-zenbakiak"
   },
   "activity": {
     "useTemplate": "Erabili txantiloia",
@@ -5391,7 +5523,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "Aukera honek datu-basearen eskema aldatzea ahalbidetzen du, taulak eta zutabeak gehitzea, aldatzea edo ezabatzea barne. Erabil ezazu kontu handiz, aldaketek zure datu-basearen osotasun estrukturalean eragina izan dezaketelako.",
     "allowDataWrite": "Aukera honek datubaseko taulen erregistroak sortzea, eguneratzea edo ezabatzea ahalbidetzen du. Ideala datuetan zuzenean aldaketak behar dituzten erabiltzaile administratiboentzat.",
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Gehienez 10 datu-iturburu proiektuko",
     "saveChanges": "Gorde aldaketak",
     "clientKey": "Hautatu .key fitxategia",
     "clientCert": "Hautatu .cert fitxategia",
@@ -5417,7 +5549,7 @@
     "selectAllMappedFields": "Hautatu mapatutako eremu guztiak",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopiatu errore kodea",
-    "paidUserBadgeTooltip": "Ordaindutako eserleku bat kontsumitzen du. Editore rola edo handiagoa lan-espazio mailan, base batean edo interfaze batean.",
+    "paidUserBadgeTooltip": "Ordainpeko eserleku bat erabiltzen du. Editore edo goragoko rola lan-espazio mailan, proiektu batean edo interfaze batean.",
     "approachingLimit": "Mugara hurbiltzen",
     "exceedingLimit": "Muga gaindituta",
     "filteredByCurrentUser": "Uneko erabiltzailearen arabera filtratua",
@@ -5461,8 +5593,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Ikuspegiaren jabe bakarrak ikuspegiaren konfigurazioa kopiatu dezake.",
     "onlyViewOwnerCanModifyPersonalView": "Ikuspegiaren jabeak bakarrik alda dezake ikuspegi pertsonal hau.",
     "onlyViewOwnerCanDeletePersonalView": "Ikuspegi honen jabeak bakarrik dezake ikuspegi pertsonal hau ezabatu.",
-    "onlyCreatorsCanLockView": "Ikuspegia soilik sortzaileek edo jabeek blokeatu dezakete.",
-    "onlyCreatorsCanUnlockView": "Ikuspegia bakarrik sortzaileek edo jabeek desblokeatu dezakete.",
+    "onlyCreatorsCanLockView": "Proiektuaren sortzaileek edo jabeek soilik blokea dezakete bista bat",
+    "onlyCreatorsCanUnlockView": "Proiektuaren sortzaileek edo jabeek soilik desblokea dezakete bista bat",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "Konfigurazioak kopiatzeko, gutxienez ikuspegi bat izan behar duzu. Lehenik ikuspegi bat sortu aukera hau gaitzeko.",
     "youDoNotHaveSufficientPermissionToAddExtension": "Ez duzu nahikoa baimen luzapena gehitzeko.",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "Ez duzu nahikoa baimen luzapen hau konfiguratzeko.",
@@ -5478,7 +5610,7 @@
     "sortingNotSupportedForFieldsWithErrors": "Akatsak dituzten eremuetarako sailkapena ez dago onartuta.",
     "sortingNotSupportedForField": "{type} -eremuaren sailkapena ez dago onartuta.",
     "groupingNotSupportedForFieldsWithErrors": "Akatsak dituzten eremuetarako taldekatzea ez dago onartuta.",
-    "variableInheritance": "Base hau aplikazio gisa instalatzen dutenek aldagai honekin zer egin dezaketen zehazten du: Finkoak zure balioa gordetzen eta ezkutatzen du, Editagarriak zure balioa abiapuntu gisa eskaintzen du, eta Beharrezkoak berea emateko eskatzen die.",
+    "variableInheritance": "Proiektu hau aplikazio gisa instalatzen dutenek aldagai honekin zer egin dezaketen zehazten du: Finkoak zure balioa gordetzen du eta ezkutatzen, Editagarriak zure balioa abiapuntu gisa eskaintzen du, eta Beharrezkoak berea emateko eskatzen die.",
     "workflowButtonTriggerSourceReadOnly": "Botoi honi lotutako iturburu-taula Interfazeak atalean bakarrik alda daiteke",
     "workflowButtonTriggerInterfaceReadOnly": "Botoi hau duen interfaze-orria Interfazeak atalean bakarrik alda daiteke",
     "chartIncludeOthers": "Mugatik gorako kategoriak Beste bat kategoria bakarrean biltzen ditu, baztertu beharrean.",
@@ -5490,7 +5622,7 @@
     "interfaceMixedRoles": "Rolak desberdinak dira interfazeen edo orrien artean. Zabaldu ikusteko",
     "chatQueueAttachmentUnavailable": "Eranskin hau ez da bidaliko mezua ilaran jartzen baduzu. Kendu lehenik",
     "lockedViewDisabledOnProduction": "Blokeatutako ikuspegiak ingurune-kopian bakarrik sor daitezke",
-    "personalViewDisabledOnEnvironment": "Ikuspegi pertsonalak produkzioko proiektuan bakarrik sor daitezke",
+    "personalViewDisabledOnEnvironment": "Bista pertsonalak ekoizpen-proiektuan soilik sor daitezke",
     "seeNComments": "Ikusi iruzkin {n} | Ikusi {n} iruzkin",
     "collapsibleGroups": "Utzi izenburua duten taldeak tolesten",
     "nestedRecordsRequireSelfLink": "Taula honetan esteka-eremu bat behar du, taula berera itzultzen dena.",
@@ -5507,10 +5639,10 @@
     "youDontHaveAccessToCreateNewInterface": "Ez duzu interfaze berri bat sortzeko baimenik",
     "displayValueFieldCannotBeReordered": "Bistaratze-balioaren eremua ezin da lekuz aldatu",
     "interfaceLastVizRequired": "Orri batek gutxienez bistaratze bat behar du",
-    "onlyCreatorsCanManageViewFolders": "Proiektuaren sortzaileek edo jabeek soilik kudea ditzakete ikuspegien karpetak",
+    "onlyCreatorsCanManageViewFolders": "Proiektuaren sortzaileek edo jabeek soilik kudea ditzakete bista-karpetak",
     "onlyCreatorsCanManageFolders": "Proiektuaren sortzaileek edo jabeek soilik kudea ditzakete karpetak",
     "organizeViewsIntoFolders": "Antolatu ikuspegiak toles daitezkeen karpetetan",
-    "productionLockedByEnvironment": "Base hau ingurune batean irekita dago. Egin eskema-aldaketak han.",
+    "productionLockedByEnvironment": "Proiektu hau ingurune batean irekita dago. Egin eskema-aldaketak han.",
     "managedByPublisher": "Aplikazio honen egitura bere argitaratzaileak kudeatzen du. Zure dokumentuak eta karpetak zuk gehitzen dituzu.",
     "featureOnProductionOnly": "Ekintza hau ekoizpeneko proiektuan kudeatzen da, ez ingurune-kopia batean.",
     "clickToEdit": "Egin klik editatzeko",
@@ -5566,8 +5698,8 @@
     "showAllFields": "Erakutsi eremu guztiak",
     "inviteLinkCannotGrantOwner": "Gonbidapen-esteka batek ezin du Jabe rola eman",
     "inviteLinkRoleAboveYours": "Zeure rolera arteko rolak soilik eskain ditzakezu",
-    "noDefaultSourceForFolders": "Base honek ez du iturburu lehenetsirik. Sortu karpetak iturburu bakoitzaren menutik horren ordez",
-    "noDefaultSourceForSync": "Base honek ez du iturburu lehenetsirik. Sinkronizazio batek bat behar du bere taulak gordetzeko"
+    "noDefaultSourceForFolders": "Proiektu honek ez du iturburu lehenetsirik. Sortu karpetak iturburu bakoitzaren menutik",
+    "noDefaultSourceForSync": "Proiektu honek ez du iturburu lehenetsirik. Sinkronizazioak iturburu bat behar du bere taulak gordetzeko"
   },
   "placeholder": {
     "enterVerificationCode": "Sartu sei digitu kodea",
@@ -7296,7 +7428,7 @@
       },
       "createBase": {
         "title": "Hasi proiektu batekin",
-        "description": "Proiektu batek zure taulak, ikuspegiak eta automatizazioak biltzen ditu. Hemen hasten da lan gehiena."
+        "description": "Proiektu batek zure taulak, bistak eta automatizazioak biltzen ditu. Hemen hasten da lanaren zatirik handiena."
       },
       "switchWorkspaces": {
         "title": "Aldatu laneko esparruz",

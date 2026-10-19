@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Upgrade to add more document pages",
     "upgradeToAddMoreWorkflows": "Upgrade to add more workflows",
     "upgradeToAddMoreScriptsSubtitle": "Bạn hiện đang dùng gói Miễn phí, chỉ cho phép một kịch bản trên mỗi workspace. Nâng cấp để không giới hạn số lượng kịch bản.",
-    "upgradeToAddMoreWorkflowsSubtitle": "Bạn đang dùng gói {activePlan}, cho phép {limit} quy trình làm việc mỗi base. Nâng cấp lên {plan} để có thêm.",
+    "upgradeToAddMoreWorkflowsSubtitle": "Bạn đang dùng gói {activePlan}, cho phép {limit} quy trình làm việc cho mỗi dự án. Hãy nâng cấp lên {plan} để có thêm.",
     "upgradeToAddMoreDashboardsSubtitle": "Bạn hiện đang dùng gói Miễn phí, chỉ cho phép một bảng điều khiển trên mỗi workspace. Nâng cấp để không giới hạn số lượng bảng điều khiển.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "The {activePlan} plan allows up to {limit} document pages per base. Upgrade to the {plan} plan to add more.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "Gói {activePlan} cho phép tối đa {limit} trang tài liệu cho mỗi dự án. Hãy nâng cấp lên gói {plan} để thêm nữa.",
     "upgradeToUseBookmarks": "Upgrade to use bookmarks",
-    "upgradeToUseBookmarksSubtitle": "Upgrade to the {plan} plan to bookmark bases, tables, views, and more for quick access.",
+    "upgradeToUseBookmarksSubtitle": "Nâng cấp lên gói {plan} để đánh dấu dự án, bảng, chế độ xem và nhiều thứ khác nhằm truy cập nhanh.",
     "upgradeToUseDocsExportPdf": "Upgrade to export documents as PDF",
     "upgradeToUseDocsExportPdfSubtitle": "Upgrade to the {plan} plan to export your documents as PDF files.",
     "upgradeToUseDocsInlineComments": "Upgrade to use inline comments",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "Gói {activePlan} chỉ cho phép tối đa {limit} webhook. Nâng cấp lên gói {plan} để sử dụng không giới hạn.",
     "upgradeToAccessWebhookLogsSubtitle": "Truy cập nhật ký webhook bằng cách nâng cấp workspace của bạn lên gói {plan}.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "Nâng cấp gói để nhân bản bảng sang các dự án khác.",
     "formOwnerNotified": "Chủ biểu mẫu đã được thông báo",
     "formOwnerNotifiedSubtitle": "Chúng tôi đã thông báo cho chủ biểu mẫu về yêu cầu gửi của bạn.",
     "WorkspaceOwnerNotified": "Chủ workspace đã được thông báo",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Upgrade to the {plan} plan to control who can view and edit individual pages in your docs.",
     "upgradeToUseWorkflows": "Upgrade to use workflows",
     "upgradeToUseWorkflowsSubtitle": "Upgrade to the {plan} plan to use workflows to automate tasks and processes.",
-    "upgradeToUsePrivateBases": "Nâng cấp để mở khóa cơ sở riêng tư",
-    "upgradeToUsePrivateBasesSubtitle": "Cơ sở riêng tư có sẵn trên gói {plan}. Nâng cấp ngay để sử dụng.",
+    "upgradeToUsePrivateBases": "Nâng cấp để mở khóa dự án riêng tư",
+    "upgradeToUsePrivateBasesSubtitle": "Dự án riêng tư có trong gói {plan}. Hãy nâng cấp ngay để bắt đầu sử dụng.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Bạn chỉ có thể tải lên tối đa {limit} {filePlural} vào ô này. Nâng cấp lên gói {plan} để thêm nhiều tệp hơn.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Upgrade to use AI Chat",
-    "upgradeToUseAiChatSubtitle": "Upgrade to the {plan} plan to use AI Chat to manage your base with natural language.",
+    "upgradeToUseAiChatSubtitle": "Nâng cấp lên gói {plan} để dùng Trò chuyện AI và quản lý dự án bằng ngôn ngữ tự nhiên.",
     "upgradeToUseMfa": "Upgrade to enable two-factor authentication",
     "upgradeToUseMfaSubtitle": "Upgrade to the {plan} plan to enable multi-factor authentication for your account.",
     "upgradeToRequireTwoFactor": "Upgrade to require two-factor authentication",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Upgrade to use team hierarchy",
     "upgradeToUseTeamHierarchySubtitle": "Upgrade to the {plan} plan to organize teams in nested hierarchies with inherited membership.",
     "upgradeToUseTeams": "Upgrade to use teams",
-    "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases.",
+    "upgradeToUseTeamsSubtitle": "Nâng cấp lên gói {plan} để dùng nhóm nhằm gom người dùng và quản lý quyền truy cập của họ vào không gian làm việc và dự án.",
     "upgradeToAddMoreTeams": "Upgrade to add more teams",
     "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views.",
     "upgradeToUseFormScheduling": "Upgrade to use form scheduling",
     "upgradeToUseFormSchedulingSubtitle": "Upgrade to the {plan} plan to schedule form availability with start and expiration dates.",
-    "upgradeToUseBaseVariables": "Upgrade to use base variables",
-    "upgradeToUseBaseVariablesSubtitle": "Upgrade to the {plan} plan to define reusable variables scoped to a base.",
+    "upgradeToUseBaseVariables": "Nâng cấp để dùng biến dự án",
+    "upgradeToUseBaseVariablesSubtitle": "Nâng cấp lên gói {plan} để định nghĩa các biến dùng lại trong phạm vi một dự án.",
     "upgradeToUseSync": "Upgrade to use sync",
     "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources.",
     "upgradeToUseTableSync": "Upgrade to use table sync",
@@ -3112,7 +3112,11 @@
       "upgradeRequestSent": "Đã gửi yêu cầu",
       "upgradeDescRls": "Giới hạn những bản ghi mà mỗi người có thể xem và chỉnh sửa.",
       "upgradeDescRecordTemplates": "Tạo bản ghi mới từ các mẫu đã lưu và điền sẵn.",
-      "upgradeDescDateDependency": "Tự động dời các ngày phụ thuộc khi một bản ghi được di chuyển."
+      "upgradeDescDateDependency": "Tự động dời các ngày phụ thuộc khi một bản ghi được di chuyển.",
+      "concernProject": "Dự án",
+      "concernInterfaces": "Giao diện",
+      "concernApps": "Ứng dụng",
+      "concernTabs": "Các mục cài đặt"
     },
     "categories": "Danh mục",
     "blockquote": "Trích dẫn",
@@ -4402,7 +4406,104 @@
         "repeatWarning": "Bước này có thể gửi hoặc thay đổi dữ liệu. Thử lại có thể lặp lại điều đó — chỉ bật nếu điều đó không sao.",
         "retries": "Số lần thử lại",
         "earlierTries": "Những lần thử trước",
-        "noErrorMessage": "Không có thông báo lỗi"
+        "noErrorMessage": "Không có thông báo lỗi",
+        "title": "Khi thất bại",
+        "retryIfFails": "Thử lại nếu bước này thất bại",
+        "retrySafeHint": "Tự động thử lại khi một dịch vụ tạm thời không khả dụng",
+        "waitBeforeRetry": "Chờ trước khi thử lại",
+        "seconds": "giây",
+        "waitLonger": "Mỗi lần chờ lâu hơn",
+        "waitLongerHint": "Nhân đôi thời gian chờ sau mỗi lần thử, tối đa 1 giờ",
+        "retryOn": "Thử lại khi",
+        "retryOnTemporary": "Chỉ các sự cố tạm thời (hết thời gian chờ, giới hạn tần suất, lỗi máy chủ)",
+        "retryOnAny": "Bất kỳ lỗi nào",
+        "triedTimes": "Đã thử {count} lần",
+        "tryNumber": "Lần thử {n}",
+        "succeededAfterTries": "Thành công sau {count} lần thử"
+      },
+      "iterate": {
+        "listPlaceholder": "Chọn một mảng để duyệt",
+        "listHelp": "Chọn một mảng từ bước trước. Mỗi mục sẽ được xử lý lần lượt.",
+        "notAList": "Cần một danh sách các mục, nhưng giá trị này là {kind}."
+      },
+      "originalRun": "lần chạy gốc",
+      "duration": {
+        "milliseconds": "{n} mili giây",
+        "seconds": "{n} giây",
+        "minutesSeconds": "{m} phút {s} giây"
+      },
+      "overview": {
+        "lastRun": "Lần chạy gần nhất",
+        "failedCount": "{n} thất bại",
+        "allTested": "Đã kiểm thử tất cả các bước"
+      },
+      "addStep": "Thêm một bước",
+      "nodePicker": {
+        "upgradeToUseStep": "Nâng cấp lên gói {plan} để dùng {step}",
+        "search": "Tìm bước và ứng dụng",
+        "searchTriggers": "Tìm kiếm, ví dụ “hàng mới”, “mỗi thứ Hai”",
+        "searchIn": "Tìm trong {app}",
+        "apps": "Ứng dụng",
+        "integrations": "Tích hợp",
+        "popular": "Phổ biến",
+        "chooseTrigger": "Chọn một trình kích hoạt",
+        "chooseTriggerHint": "Mọi quy trình làm việc đều bắt đầu bằng một trình kích hoạt: sự kiện khởi động nó.",
+        "noMatches": "Không có bước nào khớp",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "Bản ghi {bold}",
+            "bold": "được tạo"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "Bản ghi {bold}",
+            "bold": "được cập nhật"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "Bản ghi {bold}",
+            "bold": "bị xóa"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "Bản ghi {bold}",
+            "bold": "vào một chế độ xem"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "Bản ghi {bold}",
+            "bold": "khớp điều kiện"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "Gửi biểu mẫu"
+          },
+          "core_trigger_button": {
+            "text": "{bold} trên một bản ghi",
+            "bold": "Nhấp một nút"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} trên một bản ghi",
+            "bold": "Bình luận"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "Theo lịch"
+          },
+          "core_trigger_webhook": {
+            "text": "Khi {bold}",
+            "bold": "nhận được webhook"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "Thủ công"
+          }
+        },
+        "groups": {
+          "recordEvents": "Khi",
+          "userActions": "Khi người dùng",
+          "runs": "Lượt chạy",
+          "records": "Bản ghi",
+          "messages": "Tin nhắn",
+          "developer": "Nhà phát triển",
+          "other": "Khác"
+        }
       }
     },
     "xAxis": "Trục X",
@@ -5049,7 +5150,37 @@
     "talkToSales": "Trao đổi với bộ phận kinh doanh",
     "paidAnnually": "Thanh toán hằng năm",
     "paidMonthly": "Thanh toán hằng tháng",
-    "skillScopeBase": "Dự án"
+    "skillScopeBase": "Dự án",
+    "addAttachment": "Thêm tệp đính kèm",
+    "fromAttachmentField": "Từ trường đính kèm",
+    "uploadFile": "Tải tệp lên",
+    "fromUrl": "Từ URL",
+    "attachFromUrl": "Đính kèm từ URL",
+    "removeAttachment": "Xóa tệp đính kèm",
+    "attachmentFieldChip": "trường",
+    "setPageAccess": "Đặt quyền truy cập trang",
+    "readOnlyMember": "thành viên chỉ đọc",
+    "aReadOnlyMember": "một thành viên chỉ đọc",
+    "readOnlyMembers": "thành viên chỉ đọc",
+    "backToData": "Quay lại dữ liệu",
+    "appShare": {
+      "customTeamDescription": "Một nhóm do ứng dụng này định nghĩa.",
+      "membersTeamDescription": "Sử dụng ứng dụng.",
+      "adminTeamDescription": "Sử dụng ứng dụng và quản lý thành viên của ứng dụng.",
+      "noAccessTeamDescription": "Chưa cấp hành động nào nên các thành viên không thể mở ứng dụng."
+    },
+    "viewActions": "Thao tác chế độ xem",
+    "renameView": "Đổi tên chế độ xem",
+    "generateWithAi": "Tạo bằng AI",
+    "deleteView": "Xóa chế độ xem",
+    "addToFavourites": "Thêm vào mục yêu thích",
+    "contextMenu": "Menu ngữ cảnh",
+    "editSqlView": "Sửa chế độ xem SQL",
+    "noWebhooksYet": "Chưa có webhook nào",
+    "navigation": "Điều hướng",
+    "prompts": "Prompt",
+    "pagination": "Phân trang",
+    "showRowNumbers": "Hiện số thứ tự hàng"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5393,7 +5524,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "Tùy chọn này cho phép sửa đổi lược đồ cơ sở dữ liệu, bao gồm thêm, thay đổi hoặc xóa bảng và cột. Sử dụng cẩn thận, vì các thay đổi có thể ảnh hưởng đến tính toàn vẹn cấu trúc của cơ sở dữ liệu của bạn.",
     "allowDataWrite": "Tùy chọn này cho phép tạo, cập nhật hoặc xóa bản ghi trong các bảng cơ sở dữ liệu. Lý tưởng cho người dùng quản trị cần thay đổi dữ liệu trực tiếp.",
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Giới hạn 10 nguồn dữ liệu cho mỗi dự án",
     "saveChanges": "Lưu thay đổi",
     "clientKey": "Chọn tệp .key.",
     "clientCert": "Chọn tệp .cert",
@@ -5419,7 +5550,7 @@
     "selectAllMappedFields": "Chọn tất cả trường đã ánh xạ",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Sao chép mã lỗi",
-    "paidUserBadgeTooltip": "Chiếm một ghế trả phí. Vai trò người chỉnh sửa trở lên ở cấp không gian làm việc, trong một base, hoặc trên một giao diện.",
+    "paidUserBadgeTooltip": "Chiếm một chỗ trả phí. Vai trò Biên tập viên trở lên ở cấp không gian làm việc, trong một dự án hoặc trên một giao diện.",
     "approachingLimit": "Sắp đạt giới hạn",
     "exceedingLimit": "Vượt quá giới hạn",
     "filteredByCurrentUser": "Được lọc theo người dùng hiện tại",
@@ -5463,8 +5594,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
     "onlyViewOwnerCanModifyPersonalView": "Only the view owner can modify this personal view",
     "onlyViewOwnerCanDeletePersonalView": "Only the view owner can delete this personal view",
-    "onlyCreatorsCanLockView": "Only base creators or owners can lock a view",
-    "onlyCreatorsCanUnlockView": "Only base creators or owners can unlock a view",
+    "onlyCreatorsCanLockView": "Chỉ người tạo hoặc chủ sở hữu dự án mới có thể khóa một chế độ xem",
+    "onlyCreatorsCanUnlockView": "Chỉ người tạo hoặc chủ sở hữu dự án mới có thể mở khóa một chế độ xem",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
     "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
@@ -5480,7 +5611,7 @@
     "sortingNotSupportedForFieldsWithErrors": "Sorting is not supported for fields with errors",
     "sortingNotSupportedForField": "Sorting is not supported for {type} field",
     "groupingNotSupportedForFieldsWithErrors": "Grouping is not supported for fields with errors",
-    "variableInheritance": "Quyết định những gì người cài đặt base này dưới dạng ứng dụng có thể làm với biến này: Cố định giữ giá trị của bạn và ẩn đi, Có thể chỉnh sửa đưa giá trị của bạn làm điểm khởi đầu, Bắt buộc yêu cầu họ tự cung cấp giá trị.",
+    "variableInheritance": "Quyết định những gì người cài đặt dự án này dưới dạng ứng dụng có thể làm với biến này: Cố định giữ nguyên giá trị của bạn và ẩn đi, Có thể chỉnh sửa đưa ra giá trị của bạn làm điểm khởi đầu, Bắt buộc yêu cầu họ tự nhập giá trị.",
     "workflowButtonTriggerSourceReadOnly": "Bảng nguồn kết nối với nút này chỉ có thể thay đổi qua Giao diện",
     "workflowButtonTriggerInterfaceReadOnly": "Trang giao diện chứa nút này chỉ có thể thay đổi qua Giao diện",
     "chartIncludeOthers": "Gộp các danh mục vượt giới hạn vào một danh mục Khác thay vì loại bỏ chúng.",
@@ -5492,7 +5623,7 @@
     "interfaceMixedRoles": "Vai trò khác nhau giữa các giao diện hoặc trang. Mở rộng để xem",
     "chatQueueAttachmentUnavailable": "Tệp đính kèm này sẽ không được gửi nếu bạn xếp tin nhắn vào hàng đợi. Hãy gỡ nó trước",
     "lockedViewDisabledOnProduction": "Dạng xem bị khóa chỉ có thể tạo trong bản sao môi trường",
-    "personalViewDisabledOnEnvironment": "Dạng xem cá nhân chỉ có thể tạo trên dự án chính thức",
+    "personalViewDisabledOnEnvironment": "Chế độ xem cá nhân chỉ có thể được tạo trong dự án production",
     "seeNComments": "Xem {n} bình luận | Xem {n} bình luận",
     "collapsibleGroups": "Cho phép thu gọn các nhóm có tiêu đề",
     "nestedRecordsRequireSelfLink": "Cần một trường liên kết trên bảng này trỏ ngược về chính bảng đó.",
@@ -5509,10 +5640,10 @@
     "youDontHaveAccessToCreateNewInterface": "Bạn không có quyền tạo giao diện mới",
     "displayValueFieldCannotBeReordered": "Không thể sắp xếp lại trường giá trị hiển thị",
     "interfaceLastVizRequired": "Một trang cần ít nhất một biểu đồ",
-    "onlyCreatorsCanManageViewFolders": "Chỉ người tạo hoặc chủ sở hữu dự án mới quản lý được thư mục dạng xem",
-    "onlyCreatorsCanManageFolders": "Chỉ người tạo hoặc chủ sở hữu dự án mới quản lý được thư mục",
+    "onlyCreatorsCanManageViewFolders": "Chỉ người tạo hoặc chủ sở hữu dự án mới có thể quản lý thư mục chế độ xem",
+    "onlyCreatorsCanManageFolders": "Chỉ người tạo hoặc chủ sở hữu dự án mới có thể quản lý thư mục",
     "organizeViewsIntoFolders": "Sắp xếp các dạng xem vào thư mục có thể thu gọn",
-    "productionLockedByEnvironment": "Base này đang mở trong một môi trường. Hãy thực hiện thay đổi lược đồ ở đó.",
+    "productionLockedByEnvironment": "Dự án này đang mở trong một môi trường. Hãy thực hiện thay đổi lược đồ ở đó.",
     "managedByPublisher": "Cấu trúc của ứng dụng này do nhà phát hành quản lý. Tài liệu và thư mục của bạn vẫn do bạn tự thêm.",
     "featureOnProductionOnly": "Hành động này được quản lý trên dự án production, không phải trong bản sao môi trường.",
     "clickToEdit": "Nhấp để chỉnh sửa",
@@ -5568,8 +5699,8 @@
     "showAllFields": "Hiển thị tất cả các trường",
     "inviteLinkCannotGrantOwner": "Liên kết mời không thể cấp vai trò Chủ sở hữu",
     "inviteLinkRoleAboveYours": "Bạn chỉ có thể cấp các vai trò không cao hơn vai trò của mình",
-    "noDefaultSourceForFolders": "Base này không có nguồn mặc định. Hãy tạo thư mục từ menu riêng của từng nguồn",
-    "noDefaultSourceForSync": "Base này không có nguồn mặc định. Một đồng bộ cần một nguồn để lưu các bảng của nó"
+    "noDefaultSourceForFolders": "Dự án này chưa có nguồn mặc định. Hãy tạo thư mục từ menu riêng của từng nguồn",
+    "noDefaultSourceForSync": "Dự án này chưa có nguồn mặc định. Việc đồng bộ cần một nguồn để lưu các bảng của nó"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -7297,8 +7428,8 @@
         "description": "Một vòng nhanh quanh không gian làm việc của bạn. Bạn có thể thoát bất cứ lúc nào: nhấn Bỏ qua."
       },
       "createBase": {
-        "title": "Bắt đầu với một Base",
-        "description": "Một Base chứa các bảng, chế độ xem và tự động hóa của bạn. Phần lớn công việc bắt đầu từ đây."
+        "title": "Bắt đầu với một dự án",
+        "description": "Một dự án chứa các bảng, chế độ xem và tự động hóa của bạn. Phần lớn công việc bắt đầu từ đây."
       },
       "switchWorkspaces": {
         "title": "Chuyển không gian làm việc",

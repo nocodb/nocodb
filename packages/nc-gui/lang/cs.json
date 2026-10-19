@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Upgradujte pro přidání dalších dokumentů",
     "upgradeToAddMoreWorkflows": "Upgrade pro přidání dalších pracovních postupů",
     "upgradeToAddMoreScriptsSubtitle": "Aktuálně jste na bezplatném tarifu, který umožňuje pouze jeden skript na pracovní prostor. Upgradujte pro neomezené skripty.",
-    "upgradeToAddMoreWorkflowsSubtitle": "Momentálně máte tarif {activePlan}, který umožňuje {limit} pracovních postupů na bázi. Přejděte na {plan} pro více.",
+    "upgradeToAddMoreWorkflowsSubtitle": "Právě máte tarif {activePlan}, který umožňuje {limit} pracovních postupů na projekt. Přejděte na {plan} a získejte více.",
     "upgradeToAddMoreDashboardsSubtitle": "Aktuálně jste na bezplatném tarifu, který umožňuje pouze jeden přehled na pracovní prostor. Upgradujte pro neomezené přehledy.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "Plán {activePlan} umožňuje až {limit} stránek dokumentů na základnu. Pro přidání dalších možností přejděte na plán {plan}.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "Tarif {activePlan} umožňuje až {limit} stránek dokumentu na projekt. Přejděte na tarif {plan} a přidejte další.",
     "upgradeToUseBookmarks": "Upgradujte pro použití záložek",
-    "upgradeToUseBookmarksSubtitle": "Upgradujte na plán {plan} pro záložky, tabulky, zobrazení a další pro rychlý přístup.",
+    "upgradeToUseBookmarksSubtitle": "Přejděte na tarif {plan} a přidávejte projekty, tabulky, pohledy a další do záložek pro rychlý přístup.",
     "upgradeToUseDocsExportPdf": "Upgradovat pro export dokumentů jako PDF",
     "upgradeToUseDocsExportPdfSubtitle": "Upgradujte na plán {plan} a exportujte dokumenty jako PDF soubory.",
     "upgradeToUseDocsInlineComments": "Upgradujte pro použití inline komentářů",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "Tarif {activePlan} umožňuje maximálně {limit} webhooků. Přejděte na tarif {plan} a získejte neomezený počet webhooků.",
     "upgradeToAccessWebhookLogsSubtitle": "Přístup k protokolům webhooků získáte upgradem pracovního prostoru na tarif {plan}.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "Přejděte na vyšší tarif a duplikujte tabulky mezi různými projekty.",
     "formOwnerNotified": "Vlastník formuláře byl upozorněn",
     "formOwnerNotifiedSubtitle": "O vašem požadavku na odeslání jsme informovali vlastníka formuláře.",
     "WorkspaceOwnerNotified": "Vlastník pracovního prostoru byl upozorněn",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Upgradujte na plán {plan} pro kontrolu, kdo může zobrazit a upravit jednotlivé stránky ve vašich dokumentech.",
     "upgradeToUseWorkflows": "Upgrade na používání pracovních postupů",
     "upgradeToUseWorkflowsSubtitle": "Upgradujte na plán {plan} a používejte pracovní postupy k automatizaci úloh a procesů.",
-    "upgradeToUsePrivateBases": "Upgradujte pro odemknutí soukromých databází",
-    "upgradeToUsePrivateBasesSubtitle": "Soukromé databáze jsou dostupné na tarifu {plan}. Upgradujte nyní a začněte je používat.",
+    "upgradeToUsePrivateBases": "Přejděte na vyšší tarif a odemkněte soukromé projekty",
+    "upgradeToUsePrivateBasesSubtitle": "Soukromé projekty jsou dostupné v tarifu {plan}. Přejděte na vyšší tarif a začněte je používat.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Do této buňky můžete nahrát maximálně {limit} {filePlural}. Pro nahrání více souborů upgradujte na tarif {plan}.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Upgradujte pro použití AI Chat",
-    "upgradeToUseAiChatSubtitle": "Upgradujte na plán {plan} a používejte AI Chat pro správu vaší základny s přirozeným jazykem.",
+    "upgradeToUseAiChatSubtitle": "Přejděte na tarif {plan} a používejte AI chat ke správě projektu přirozeným jazykem.",
     "upgradeToUseMfa": "Upgradujte pro povolení dvoufaktorového ověření",
     "upgradeToUseMfaSubtitle": "Upgradujte na plán {plan} pro povolení vícefázového ověření vašeho účtu.",
     "upgradeToRequireTwoFactor": "Upgradujte pro vyžadování dvoufaktorového ověření",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Upgradujte pro použití týmové hierarchie",
     "upgradeToUseTeamHierarchySubtitle": "Upgradujte na plán {plan} pro organizaci týmů ve vnořených hierarchiích s zděděným členstvím.",
     "upgradeToUseTeams": "Upgrade na používání týmů",
-    "upgradeToUseTeamsSubtitle": "Upgradujte na plán {plan} a používejte týmy ke sdružování uživatelů a správě jejich přístupu k pracovním prostorům a základnám.",
+    "upgradeToUseTeamsSubtitle": "Přejděte na tarif {plan} a používejte týmy k seskupení uživatelů a správě jejich přístupu k pracovním prostorům a projektům.",
     "upgradeToAddMoreTeams": "Upgrade pro přidání dalších týmů",
     "upgradeToAddMoreTeamsSubtitle": "Chcete-li do svého pracovního prostoru přidat další týmy, přejděte na tarif {plan}.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade na plán {plan} pro skrytí záhlaví polí v zobrazeních Galerie a Kanban.",
     "upgradeToUseFormScheduling": "Upgradujte pro použití plánování formulářů",
     "upgradeToUseFormSchedulingSubtitle": "Upgradujte na plán {plan} pro naplánování dostupnosti formuláře s datem začátku a vypršení platnosti.",
-    "upgradeToUseBaseVariables": "Upgradujte pro použití základních proměnných",
-    "upgradeToUseBaseVariablesSubtitle": "Upgradujte na plán {plan} pro definování opakovaně použitelných proměnných dosažených na základnu.",
+    "upgradeToUseBaseVariables": "Přejděte na vyšší tarif a používejte proměnné projektu",
+    "upgradeToUseBaseVariablesSubtitle": "Přejděte na tarif {plan} a definujte znovupoužitelné proměnné v rámci projektu.",
     "upgradeToUseSync": "Upgrade na používání synchronizace",
     "upgradeToUseSyncSubtitle": "Chcete-li synchronizovat data s interními nebo externími zdroji, upgradujte na plán {plan}.",
     "upgradeToUseTableSync": "Upgradujte pro použití synchronizace tabulky",
@@ -3111,7 +3111,11 @@
       "upgradeRequestSent": "Požadavek odeslán",
       "upgradeDescRls": "Omezte, které záznamy může každá osoba vidět a upravovat.",
       "upgradeDescRecordTemplates": "Vytvářejte nové záznamy z uložených, předvyplněných šablon.",
-      "upgradeDescDateDependency": "Automaticky posune závislá data, když se záznam přesune."
+      "upgradeDescDateDependency": "Automaticky posune závislá data, když se záznam přesune.",
+      "concernProject": "Projekt",
+      "concernInterfaces": "Rozhraní",
+      "concernApps": "Aplikace",
+      "concernTabs": "Sekce nastavení"
     },
     "categories": "Kategorie",
     "blockquote": "Citace",
@@ -4398,7 +4402,105 @@
         "repeatWarning": "Tento krok může odesílat nebo měnit data. Opakování jej může zopakovat — zapněte to jen tehdy, pokud to nevadí.",
         "retries": "Počet opakování",
         "earlierTries": "Dřívější pokusy",
-        "noErrorMessage": "Žádná chybová zpráva"
+        "noErrorMessage": "Žádná chybová zpráva",
+        "title": "Při selhání",
+        "retryIfFails": "Opakovat, pokud tento krok selže",
+        "retrySafeHint": "Automaticky opakuje, když je služba dočasně nedostupná",
+        "waitBeforeRetry": "Počkat před opakováním",
+        "seconds": "sekund",
+        "waitLonger": "Čekat pokaždé déle",
+        "waitLongerHint": "Zdvojnásobí čekání po každém pokusu, až na 1 hodinu",
+        "retryOn": "Opakovat při",
+        "retryOnTemporary": "Pouze dočasné problémy (vypršení časového limitu, limity požadavků, chyby serveru)",
+        "retryOnAny": "Jakékoli chybě",
+        "triedTimes": "Počet pokusů: {count}",
+        "tryNumber": "Pokus {n}",
+        "succeededAfterTries": "Úspěch po {count} pokusech"
+      },
+      "iterate": {
+        "listPlaceholder": "Vyberte pole, které se má procházet",
+        "listHelp": "Vyberte pole z předchozího kroku. Každá položka se zpracuje postupně.",
+        "notAList": "Vyžaduje seznam položek, ale tato hodnota je {kind}."
+      },
+      "originalRun": "původní běh",
+      "duration": {
+        "milliseconds": "{n} ms",
+        "seconds": "{n} s",
+        "minutesSeconds": "{m} min {s} s"
+      },
+      "overview": {
+        "lastRun": "Poslední běh",
+        "failedCount": "{n} selhalo",
+        "allTested": "Všechny kroky otestovány"
+      },
+      "addStep": "Přidat krok",
+      "nodePicker": {
+        "upgradeToUseStep": "Přejděte na tarif {plan} a používejte {step}",
+        "search": "Hledat kroky a aplikace",
+        "searchTriggers": "Hledejte, např. „nový řádek“, „každé pondělí“",
+        "searchIn": "Hledat v {app}",
+        "apps": "Aplikace",
+        "integrations": "Integrace",
+        "popular": "Oblíbené",
+        "chooseTrigger": "Zvolte spouštěč",
+        "chooseTriggerHint": "Každý pracovní postup začíná spouštěčem: událostí, která ho spustí.",
+        "noMatches": "Žádné odpovídající kroky",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "Záznam je {bold}",
+            "bold": "vytvořen"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "Záznam je {bold}",
+            "bold": "aktualizován"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "Záznam je {bold}",
+            "bold": "smazán"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "Záznam {bold}",
+            "bold": "vstoupí do pohledu"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "Záznam {bold}",
+            "bold": "splňuje podmínky"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "Odešle formulář"
+          },
+          "core_trigger_button": {
+            "text": "{bold} u záznamu",
+            "bold": "Klikne na tlačítko"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} záznam",
+            "bold": "Okomentuje"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "Podle plánu"
+          },
+          "core_trigger_webhook": {
+            "text": "Když {bold}",
+            "bold": "je přijat webhook"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "Ručně"
+          }
+        },
+        "groups": {
+          "recordEvents": "Když",
+          "userActions": "Když uživatel",
+          "runs": "Běhy",
+          "records": "Záznamy",
+          "logic": "Logika",
+          "messages": "Zprávy",
+          "developer": "Vývojář",
+          "other": "Ostatní"
+        }
       }
     },
     "xAxis": "Osa X",
@@ -5042,7 +5144,37 @@
     "licenseExpired": "Licence vypršela",
     "talkToSales": "Promluvit s obchodem",
     "paidAnnually": "Placeno ročně",
-    "paidMonthly": "Placeno měsíčně"
+    "paidMonthly": "Placeno měsíčně",
+    "addAttachment": "Přidat přílohu",
+    "fromAttachmentField": "Z pole s přílohou",
+    "uploadFile": "Nahrát soubor",
+    "fromUrl": "Z adresy URL",
+    "attachFromUrl": "Připojit z adresy URL",
+    "removeAttachment": "Odebrat přílohu",
+    "attachmentFieldChip": "pole",
+    "setPageAccess": "Nastavit přístup ke stránce",
+    "readOnlyMember": "člen jen pro čtení",
+    "aReadOnlyMember": "člen jen pro čtení",
+    "readOnlyMembers": "členové jen pro čtení",
+    "backToData": "Zpět na data",
+    "appShare": {
+      "customTeamDescription": "Tým, který definuje tato aplikace.",
+      "membersTeamDescription": "Používá aplikaci.",
+      "adminTeamDescription": "Používá aplikaci a spravuje její členy.",
+      "noAccessTeamDescription": "Zatím nebyly uděleny žádné akce, takže její členové nemohou aplikaci otevřít."
+    },
+    "viewActions": "Akce pohledu",
+    "renameView": "Přejmenovat pohled",
+    "generateWithAi": "Vygenerovat pomocí AI",
+    "deleteView": "Smazat pohled",
+    "addToFavourites": "Přidat do oblíbených",
+    "contextMenu": "Kontextová nabídka",
+    "editSqlView": "Upravit SQL pohled",
+    "noWebhooksYet": "Zatím žádné webhooky",
+    "navigation": "Navigace",
+    "prompts": "Prompty",
+    "pagination": "Stránkování",
+    "showRowNumbers": "Zobrazit čísla řádků"
   },
   "activity": {
     "useTemplate": "Použít šablonu",
@@ -5359,7 +5491,7 @@
     "notAvailableForNewRecord": "Není k dispozici při vytváření nového záznamu",
     "conditionallyVisibleField": "Podmíněné viditelné pole",
     "bookmarks": "Záložky",
-    "variableInheritance": "Určuje, co mohou s touto proměnnou dělat lidé, kteří si tuto bázi nainstalují jako aplikaci: Pevná zachová vaši hodnotu a skryje ji, Upravitelná nabídne vaši hodnotu jako výchozí bod, Povinná je vyzve k zadání vlastní.",
+    "variableInheritance": "Určuje, co mohou s touto proměnnou dělat lidé, kteří si tento projekt nainstalují jako aplikaci: Pevná zachová vaši hodnotu a skryje ji, Upravitelná nabídne vaši hodnotu jako výchozí bod, Povinná je vyzve k zadání vlastní.",
     "inheritedMembersInfo": "Tito členové patří nadřazenému týmu a zdědí přístup ke zdrojům přiděleným tomuto týmu.",
     "teamScopeThisOnly": "Jen tento tým. Kliknutím zahrnete podtýmy",
     "teamScopeIncludesSubTeams": "Zahrnuje podtýmy. Kliknutím omezíte jen na tento tým",
@@ -5387,7 +5519,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "Tato volba umožňuje modifikaci schématu databáze, včetně přidávání, změny nebo mazání tabulek a sloupců. Používejte s opatrností, protože změny mohou ovlivnit strukturální integritu vaší databáze.",
     "allowDataWrite": "Tato možnost umožňuje vytváření, aktualizaci nebo mazání záznamů v tabulkách databáze. Ideální pro administrativní uživatele, kteří potřebují přímo měnit data.",
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Omezeno na 10 zdrojů dat na projekt",
     "saveChanges": "Uložit změny",
     "clientKey": "Vyberte soubor .key",
     "clientCert": "Vyberte soubor .cert",
@@ -5413,7 +5545,7 @@
     "selectAllMappedFields": "Vybrat všechna namapovaná pole",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Zkopírovat chybový kód",
-    "paidUserBadgeTooltip": "Zabírá placené místo. Role editor nebo vyšší na úrovni pracovního prostoru, v bázi nebo v rozhraní.",
+    "paidUserBadgeTooltip": "Zabírá placené místo. Role Editor nebo vyšší na úrovni pracovního prostoru, v projektu nebo v rozhraní.",
     "approachingLimit": "Blíží se limit",
     "exceedingLimit": "Překročen limit",
     "filteredByCurrentUser": "Filtrované podle aktuálního uživatele",
@@ -5457,8 +5589,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Konfiguraci zobrazení může kopírovat pouze vlastník zobrazení",
     "onlyViewOwnerCanModifyPersonalView": "Pouze vlastník zobrazení může upravit toto osobní zobrazení",
     "onlyViewOwnerCanDeletePersonalView": "Pouze vlastník zobrazení může smazat toto osobní zobrazení",
-    "onlyCreatorsCanLockView": "Pouze tvůrci nebo vlastníci základny mohou uzamknout zobrazení",
-    "onlyCreatorsCanUnlockView": "Pouze tvůrci nebo vlastníci základny mohou odemknout zobrazení",
+    "onlyCreatorsCanLockView": "Pohled může uzamknout pouze tvůrce nebo vlastník projektu",
+    "onlyCreatorsCanUnlockView": "Pohled může odemknout pouze tvůrce nebo vlastník projektu",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "Ke kopírování konfigurací je třeba alespoň jedno existující zobrazení. Chcete-li tuto možnost povolit, vytvořte nejprve pohled.",
     "youDoNotHaveSufficientPermissionToAddExtension": "Nemáte dostatečné oprávnění k přidání rozšíření",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "Nemáte dostatečné oprávnění ke konfiguraci tohoto rozšíření.",
@@ -5485,7 +5617,7 @@
     "interfaceMixedRoles": "Role se mezi rozhraními nebo stránkami liší. Rozbalte pro zobrazení",
     "chatQueueAttachmentUnavailable": "Tato příloha nebude odeslána, pokud zprávu zařadíte do fronty. Nejprve ji odeberte",
     "lockedViewDisabledOnProduction": "Uzamčené pohledy lze vytvořit jen v kopii prostředí",
-    "personalViewDisabledOnEnvironment": "Osobní pohledy lze vytvořit jen v produkční databázi",
+    "personalViewDisabledOnEnvironment": "Osobní pohledy lze vytvářet pouze v produkčním projektu",
     "seeNComments": "Zobrazit {n} komentář | Zobrazit {n} komentářů",
     "collapsibleGroups": "Umožnit sbalení skupin, které mají název",
     "nestedRecordsRequireSelfLink": "Vyžaduje v této tabulce propojovací pole, které odkazuje zpět na stejnou tabulku.",
@@ -5502,10 +5634,10 @@
     "youDontHaveAccessToCreateNewInterface": "Nemáte oprávnění vytvořit nové rozhraní",
     "displayValueFieldCannotBeReordered": "Pole se zobrazovanou hodnotou nelze přesouvat",
     "interfaceLastVizRequired": "Stránka potřebuje alespoň jednu vizualizaci",
-    "onlyCreatorsCanManageViewFolders": "Složky pohledů mohou spravovat jen tvůrci nebo vlastníci databáze",
-    "onlyCreatorsCanManageFolders": "Složky mohou spravovat jen tvůrci nebo vlastníci databáze",
+    "onlyCreatorsCanManageViewFolders": "Složky pohledů mohou spravovat pouze tvůrci nebo vlastníci projektu",
+    "onlyCreatorsCanManageFolders": "Složky mohou spravovat pouze tvůrci nebo vlastníci projektu",
     "organizeViewsIntoFolders": "Uspořádejte pohledy do sbalitelných složek",
-    "productionLockedByEnvironment": "Tato báze je otevřená v prostředí. Změny schématu provádějte tam.",
+    "productionLockedByEnvironment": "Tento projekt je otevřený v prostředí. Změny schématu provádějte tam.",
     "managedByPublisher": "Strukturu této aplikace spravuje její vydavatel. Vaše dokumenty a složky si přidáváte sami.",
     "featureOnProductionOnly": "Tato akce se spravuje v produkčním projektu, ne v kopii prostředí.",
     "clickToEdit": "Kliknutím upravíte",
@@ -5561,8 +5693,8 @@
     "showAllFields": "Zobrazit všechna pole",
     "inviteLinkCannotGrantOwner": "Odkaz s pozvánkou nemůže udělit roli vlastníka",
     "inviteLinkRoleAboveYours": "Můžete nabízet pouze role až po svou vlastní",
-    "noDefaultSourceForFolders": "Tato báze nemá výchozí zdroj. Složky místo toho vytvářejte z vlastní nabídky daného zdroje",
-    "noDefaultSourceForSync": "Tato báze nemá výchozí zdroj. Synchronizace jej potřebuje k uložení svých tabulek"
+    "noDefaultSourceForFolders": "Tento projekt nemá výchozí zdroj. Složky vytvářejte z nabídky konkrétního zdroje",
+    "noDefaultSourceForSync": "Tento projekt nemá výchozí zdroj. Synchronizace jej potřebuje k uložení svých tabulek"
   },
   "placeholder": {
     "enterVerificationCode": "Zadejte 6místný kód",
@@ -7290,8 +7422,8 @@
         "description": "Rychlá prohlídka vašeho pracovního prostoru. Kdykoli můžete skončit: klikněte na Přeskočit."
       },
       "createBase": {
-        "title": "Začněte Databází",
-        "description": "Databáze obsahuje vaše tabulky, pohledy a automatizace. Tady začíná většina práce."
+        "title": "Začněte projektem",
+        "description": "Projekt obsahuje vaše tabulky, pohledy a automatizace. Právě tady začíná většina práce."
       },
       "switchWorkspaces": {
         "title": "Přepínejte pracovní prostory",

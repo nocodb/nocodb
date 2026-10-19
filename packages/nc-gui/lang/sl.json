@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Upgrade to add more document pages",
     "upgradeToAddMoreWorkflows": "Upgrade to add more workflows",
     "upgradeToAddMoreScriptsSubtitle": "Trenutno si na brezplačnem paketu, ki dovoljuje le eno skripto na delovni prostor. Nadgradi za neomejeno število skript.",
-    "upgradeToAddMoreWorkflowsSubtitle": "Trenutno uporabljate paket {activePlan}, ki dovoljuje {limit} delovnih tokov na bazo. Nadgradite na {plan} za več.",
+    "upgradeToAddMoreWorkflowsSubtitle": "Trenutno uporabljate paket {activePlan}, ki dovoljuje {limit} delovnih tokov na projekt. Nadgradite na {plan} za več.",
     "upgradeToAddMoreDashboardsSubtitle": "Trenutno si na brezplačnem paketu, ki dovoljuje le eno nadzorno ploščo na delovni prostor. Nadgradi za neomejeno število nadzornih plošč.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "The {activePlan} plan allows up to {limit} document pages per base. Upgrade to the {plan} plan to add more.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "Paket {activePlan} dovoljuje do {limit} strani dokumenta na projekt. Nadgradite na paket {plan} in dodajte več.",
     "upgradeToUseBookmarks": "Upgrade to use bookmarks",
-    "upgradeToUseBookmarksSubtitle": "Upgrade to the {plan} plan to bookmark bases, tables, views, and more for quick access.",
+    "upgradeToUseBookmarksSubtitle": "Nadgradite na paket {plan} za dodajanje projektov, tabel, pogledov in drugega med zaznamke za hiter dostop.",
     "upgradeToUseDocsExportPdf": "Upgrade to export documents as PDF",
     "upgradeToUseDocsExportPdfSubtitle": "Upgrade to the {plan} plan to export your documents as PDF files.",
     "upgradeToUseDocsInlineComments": "Upgrade to use inline comments",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "Načrt {activePlan} omogoča do {limit} webhookov. Nadgradite na načrt {plan} za neomejene webhooke.",
     "upgradeToAccessWebhookLogsSubtitle": "Dostopajte do dnevnikov webhookov tako, da delovni prostor nadgradite na načrt {plan}.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "Nadgradite paket za podvajanje tabel med različnimi projekti.",
     "formOwnerNotified": "Lastnik obrazca obveščen",
     "formOwnerNotifiedSubtitle": "Lastnika obrazca smo obvestili o vaši zahtevi za oddajo.",
     "WorkspaceOwnerNotified": "Lastnik delovnega prostora obveščen",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Upgrade to the {plan} plan to control who can view and edit individual pages in your docs.",
     "upgradeToUseWorkflows": "Upgrade to use workflows",
     "upgradeToUseWorkflowsSubtitle": "Upgrade to the {plan} plan to use workflows to automate tasks and processes.",
-    "upgradeToUsePrivateBases": "Nadgradi za odklenitev zasebnih baz",
-    "upgradeToUsePrivateBasesSubtitle": "Zasebne baze so na voljo v paketu {plan}. Nadgradi zdaj in jih začni uporabljati.",
+    "upgradeToUsePrivateBases": "Nadgradite za odklep zasebnih projektov",
+    "upgradeToUsePrivateBasesSubtitle": "Zasebni projekti so na voljo v paketu {plan}. Nadgradite zdaj in jih začnite uporabljati.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "V to celico lahko naložiš največ {limit} {filePlural}. Nadgradi na paket {plan}, da dodaš več datotek.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Upgrade to use AI Chat",
-    "upgradeToUseAiChatSubtitle": "Upgrade to the {plan} plan to use AI Chat to manage your base with natural language.",
+    "upgradeToUseAiChatSubtitle": "Nadgradite na paket {plan} za uporabo klepeta AI in upravljanje projekta z naravnim jezikom.",
     "upgradeToUseMfa": "Upgrade to enable two-factor authentication",
     "upgradeToUseMfaSubtitle": "Upgrade to the {plan} plan to enable multi-factor authentication for your account.",
     "upgradeToRequireTwoFactor": "Upgrade to require two-factor authentication",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Upgrade to use team hierarchy",
     "upgradeToUseTeamHierarchySubtitle": "Upgrade to the {plan} plan to organize teams in nested hierarchies with inherited membership.",
     "upgradeToUseTeams": "Upgrade to use teams",
-    "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases.",
+    "upgradeToUseTeamsSubtitle": "Nadgradite na paket {plan} za uporabo ekip, združevanje uporabnikov in upravljanje njihovega dostopa do delovnih prostorov in projektov.",
     "upgradeToAddMoreTeams": "Upgrade to add more teams",
     "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views.",
     "upgradeToUseFormScheduling": "Upgrade to use form scheduling",
     "upgradeToUseFormSchedulingSubtitle": "Upgrade to the {plan} plan to schedule form availability with start and expiration dates.",
-    "upgradeToUseBaseVariables": "Upgrade to use base variables",
-    "upgradeToUseBaseVariablesSubtitle": "Upgrade to the {plan} plan to define reusable variables scoped to a base.",
+    "upgradeToUseBaseVariables": "Nadgradite za uporabo projektnih spremenljivk",
+    "upgradeToUseBaseVariablesSubtitle": "Nadgradite na paket {plan} za določanje večkrat uporabnih spremenljivk na ravni projekta.",
     "upgradeToUseSync": "Upgrade to use sync",
     "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources.",
     "upgradeToUseTableSync": "Upgrade to use table sync",
@@ -3111,7 +3111,11 @@
       "upgradeRequestSent": "Zahteva poslana",
       "upgradeDescRls": "Omejite, katere zapise lahko posamezna oseba vidi in ureja.",
       "upgradeDescRecordTemplates": "Ustvarjajte nove zapise iz shranjenih, vnaprej izpolnjenih predlog.",
-      "upgradeDescDateDependency": "Samodejno zamakne odvisne datume, ko se zapis premakne."
+      "upgradeDescDateDependency": "Samodejno zamakne odvisne datume, ko se zapis premakne.",
+      "concernProject": "Projekt",
+      "concernInterfaces": "Vmesniki",
+      "concernApps": "Aplikacija",
+      "concernTabs": "Razdelki nastavitev"
     },
     "categories": "Kategorije",
     "blockquote": "Citat",
@@ -4400,7 +4404,105 @@
         "repeatWarning": "Ta korak lahko pošlje ali spremeni podatke. Ponovni poskus ga lahko ponovi — vklopite to samo, če je to v redu.",
         "retries": "Število ponovnih poskusov",
         "earlierTries": "Prejšnji poskusi",
-        "noErrorMessage": "Ni sporočila o napaki"
+        "noErrorMessage": "Ni sporočila o napaki",
+        "title": "Ob neuspehu",
+        "retryIfFails": "Poskusi znova, če ta korak ne uspe",
+        "retrySafeHint": "Samodejno poskusi znova, ko storitev začasno ni na voljo",
+        "waitBeforeRetry": "Počakaj pred ponovnim poskusom",
+        "seconds": "sekund",
+        "waitLonger": "Vsakič počakaj dlje",
+        "waitLongerHint": "Podvoji čakanje po vsakem poskusu, do 1 ure",
+        "retryOn": "Poskusi znova ob",
+        "retryOnTemporary": "Samo začasne težave (časovne omejitve, omejitve zahtev, napake strežnika)",
+        "retryOnAny": "Katerikoli napaki",
+        "triedTimes": "Število poskusov: {count}",
+        "tryNumber": "Poskus {n}",
+        "succeededAfterTries": "Uspelo po {count} poskusih"
+      },
+      "iterate": {
+        "listPlaceholder": "Izberite polje za prehod",
+        "listHelp": "Izberite polje iz prejšnjega koraka. Vsak element bo obdelan zaporedoma.",
+        "notAList": "Potrebuje seznam elementov, ta vrednost pa je {kind}."
+      },
+      "originalRun": "izvirna izvedba",
+      "duration": {
+        "milliseconds": "{n} ms",
+        "seconds": "{n} s",
+        "minutesSeconds": "{m} min {s} s"
+      },
+      "overview": {
+        "lastRun": "Zadnja izvedba",
+        "failedCount": "{n} neuspešnih",
+        "allTested": "Vsi koraki preizkušeni"
+      },
+      "addStep": "Dodaj korak",
+      "nodePicker": {
+        "upgradeToUseStep": "Nadgradite na paket {plan} za uporabo {step}",
+        "search": "Iskanje korakov in aplikacij",
+        "searchTriggers": "Iščite, npr. »nova vrstica«, »vsak ponedeljek«",
+        "searchIn": "Iskanje v {app}",
+        "apps": "Aplikacije",
+        "integrations": "Integracije",
+        "popular": "Priljubljeno",
+        "chooseTrigger": "Izberite sprožilec",
+        "chooseTriggerHint": "Vsak delovni tok se začne s sprožilcem: dogodkom, ki ga zažene.",
+        "noMatches": "Noben korak se ne ujema",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "Zapis je {bold}",
+            "bold": "ustvarjen"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "Zapis je {bold}",
+            "bold": "posodobljen"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "Zapis je {bold}",
+            "bold": "izbrisan"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "Zapis {bold}",
+            "bold": "vstopi v pogled"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "Zapis {bold}",
+            "bold": "izpolnjuje pogoje"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "Odda obrazec"
+          },
+          "core_trigger_button": {
+            "text": "{bold} pri zapisu",
+            "bold": "Klikne gumb"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} zapis",
+            "bold": "Komentira"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "Po urniku"
+          },
+          "core_trigger_webhook": {
+            "text": "Ko {bold}",
+            "bold": "je prejet webhook"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "Ročno"
+          }
+        },
+        "groups": {
+          "recordEvents": "Ko",
+          "userActions": "Ko uporabnik",
+          "runs": "Izvedbe",
+          "records": "Zapisi",
+          "logic": "Logika",
+          "messages": "Sporočila",
+          "developer": "Razvijalec",
+          "other": "Drugo"
+        }
       }
     },
     "xAxis": "Os X",
@@ -5045,7 +5147,37 @@
     "licenseExpired": "Licenca je potekla",
     "talkToSales": "Pogovorite se s prodajo",
     "paidAnnually": "Plačano letno",
-    "paidMonthly": "Plačano mesečno"
+    "paidMonthly": "Plačano mesečno",
+    "addAttachment": "Dodaj prilogo",
+    "fromAttachmentField": "Iz polja s prilogo",
+    "uploadFile": "Naloži datoteko",
+    "fromUrl": "Z naslova URL",
+    "attachFromUrl": "Priloži z naslova URL",
+    "removeAttachment": "Odstrani prilogo",
+    "attachmentFieldChip": "polje",
+    "setPageAccess": "Nastavi dostop do strani",
+    "readOnlyMember": "član samo za branje",
+    "aReadOnlyMember": "član samo za branje",
+    "readOnlyMembers": "člani samo za branje",
+    "backToData": "Nazaj na podatke",
+    "appShare": {
+      "customTeamDescription": "Ekipa, ki jo določa ta aplikacija.",
+      "membersTeamDescription": "Uporablja aplikacijo.",
+      "adminTeamDescription": "Uporablja aplikacijo in upravlja njene člane.",
+      "noAccessTeamDescription": "Dejanja še niso dodeljena, zato njeni člani ne morejo odpreti aplikacije."
+    },
+    "viewActions": "Dejanja pogleda",
+    "renameView": "Preimenuj pogled",
+    "generateWithAi": "Ustvari z AI",
+    "deleteView": "Izbriši pogled",
+    "addToFavourites": "Dodaj med priljubljene",
+    "contextMenu": "Kontekstni meni",
+    "editSqlView": "Uredi pogled SQL",
+    "noWebhooksYet": "Še ni webhookov",
+    "navigation": "Navigacija",
+    "prompts": "Pozivi",
+    "pagination": "Oštevilčenje strani",
+    "showRowNumbers": "Pokaži številke vrstic"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5389,7 +5521,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "Ta možnost omogoča spreminjanje sheme baze podatkov, vključno z dodajanjem, spreminjanjem ali brisanjem tabel in stolpcev. Uporabite previdno, saj lahko spremembe vplivajo na strukturno celovitost vaše baze podatkov.",
     "allowDataWrite": "Ta možnost omogoča ustvarjanje, posodabljanje ali brisanje zapisov znotraj tabel v podatkovni bazi. Idealno za administrativne uporabnike, ki morajo neposredno spreminjati podatke.",
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Omejeno na 10 podatkovnih virov na projekt",
     "saveChanges": "Shrani spremembe",
     "clientKey": "Izberi .key datoteko",
     "clientCert": "Izberi .cert datoteko",
@@ -5415,7 +5547,7 @@
     "selectAllMappedFields": "Izberi vsa preslikana polja",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopiraj kodo napake",
-    "paidUserBadgeTooltip": "Porabi plačan sedež. Vloga urejevalec ali višja na ravni delovnega prostora, v bazi ali na vmesniku.",
+    "paidUserBadgeTooltip": "Zasede plačljivo mesto. Vloga Urejevalec ali višja na ravni delovnega prostora, v projektu ali na vmesniku.",
     "approachingLimit": "Blizu omejitve",
     "exceedingLimit": "Prekoračena omejitev",
     "filteredByCurrentUser": "Filtrirano po trenutnem uporabniku",
@@ -5459,8 +5591,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
     "onlyViewOwnerCanModifyPersonalView": "Only the view owner can modify this personal view",
     "onlyViewOwnerCanDeletePersonalView": "Only the view owner can delete this personal view",
-    "onlyCreatorsCanLockView": "Only base creators or owners can lock a view",
-    "onlyCreatorsCanUnlockView": "Only base creators or owners can unlock a view",
+    "onlyCreatorsCanLockView": "Pogled lahko zaklenejo samo ustvarjalci ali lastniki projekta",
+    "onlyCreatorsCanUnlockView": "Pogled lahko odklenejo samo ustvarjalci ali lastniki projekta",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
     "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
@@ -5476,7 +5608,7 @@
     "sortingNotSupportedForFieldsWithErrors": "Sorting is not supported for fields with errors",
     "sortingNotSupportedForField": "Sorting is not supported for {type} field",
     "groupingNotSupportedForFieldsWithErrors": "Grouping is not supported for fields with errors",
-    "variableInheritance": "Določa, kaj lahko s to spremenljivko naredijo tisti, ki to bazo namestijo kot aplikacijo: Fiksna ohrani vašo vrednost in jo skrije, Uredljiva ponudi vašo vrednost kot izhodišče, Obvezna od njih zahteva lastno vrednost.",
+    "variableInheritance": "Določa, kaj lahko s to spremenljivko počnejo ljudje, ki ta projekt namestijo kot aplikacijo: Fiksna ohrani vašo vrednost in jo skrije, Uredljiva ponudi vašo vrednost kot izhodišče, Obvezna od njih zahteva lastno vrednost.",
     "workflowButtonTriggerSourceReadOnly": "Izvorno tabelo, povezano s tem gumbom, je mogoče spremeniti samo prek Vmesnikov",
     "workflowButtonTriggerInterfaceReadOnly": "Stran vmesnika s tem gumbom je mogoče spremeniti samo prek Vmesnikov",
     "chartIncludeOthers": "Kategorije nad omejitvijo združi v eno kategorijo Drugo, namesto da jih izpusti.",
@@ -5508,7 +5640,7 @@
     "onlyCreatorsCanManageViewFolders": "Mape pogledov lahko upravljajo samo ustvarjalci ali lastniki projekta",
     "onlyCreatorsCanManageFolders": "Mape lahko upravljajo samo ustvarjalci ali lastniki projekta",
     "organizeViewsIntoFolders": "Uredite poglede v mape, ki jih je mogoče strniti",
-    "productionLockedByEnvironment": "Ta baza je odprta v okolju. Spremembe sheme naredite tam.",
+    "productionLockedByEnvironment": "Ta projekt je odprt v okolju. Spremembe sheme opravite tam.",
     "managedByPublisher": "Strukturo te aplikacije upravlja njen založnik. Svoje dokumente in mape dodajate sami.",
     "featureOnProductionOnly": "To dejanje se upravlja v produkcijskem projektu, ne v kopiji okolja.",
     "clickToEdit": "Kliknite za urejanje",
@@ -5564,8 +5696,8 @@
     "showAllFields": "Prikaži vsa polja",
     "inviteLinkCannotGrantOwner": "Povezava za povabilo ne more dodeliti vloge lastnika",
     "inviteLinkRoleAboveYours": "Ponudite lahko samo vloge do svoje lastne",
-    "noDefaultSourceForFolders": "Ta baza nima privzetega vira. Mape namesto tega ustvarite iz menija posameznega vira",
-    "noDefaultSourceForSync": "Ta baza nima privzetega vira. Sinhronizacija ga potrebuje za shranjevanje svojih tabel"
+    "noDefaultSourceForFolders": "Ta projekt nima privzetega vira. Mape ustvarite iz menija posameznega vira",
+    "noDefaultSourceForSync": "Ta projekt nima privzetega vira. Sinhronizacija ga potrebuje za shranjevanje svojih tabel"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -7293,8 +7425,8 @@
         "description": "Hiter krog po vašem delovnem prostoru. Kadar koli lahko odidete: pritisnite Preskoči."
       },
       "createBase": {
-        "title": "Začnite z Bazo",
-        "description": "Baza vsebuje vaše tabele, poglede in avtomatizacije. Tu se začne večina dela."
+        "title": "Začnite s projektom",
+        "description": "Projekt vsebuje vaše tabele, poglede in avtomatizacije. Tu se začne večina dela."
       },
       "switchWorkspaces": {
         "title": "Preklopite delovni prostor",

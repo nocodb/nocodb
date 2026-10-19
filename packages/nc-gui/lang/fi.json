@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "Päivitä lisätäksesi lisää asiakirjasivuja",
     "upgradeToAddMoreWorkflows": "Päivitä lisätäksesi lisää työnkulkuja",
     "upgradeToAddMoreScriptsSubtitle": "Olet tällä hetkellä Free-paketissa, joka sallii vain yhden skriptin työtilaa kohden. Päivitä avataksesi rajoittamattomat skriptit.",
-    "upgradeToAddMoreWorkflowsSubtitle": "Käytössäsi on tällä hetkellä {activePlan}-paketti, joka sallii {limit} työnkulkua per base. Päivitä pakettiin {plan} saadaksesi lisää.",
+    "upgradeToAddMoreWorkflowsSubtitle": "Käytössäsi on tällä hetkellä {activePlan}-paketti, joka sallii {limit} työnkulkua projektia kohden. Päivitä {plan}-pakettiin saadaksesi lisää.",
     "upgradeToAddMoreDashboardsSubtitle": "Olet tällä hetkellä Free-paketissa, joka sallii vain yhden koontinäytön työtilaa kohden. Päivitä avataksesi rajoittamattomat koontinäytöt.",
-    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan} -suunnitelma sallii enintään {limit} asiakirjasivua per tukikohta. Päivitä {plan} -suunnitelmaan, jos haluat lisätä enemmän.",
+    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan}-paketti sallii enintään {limit} dokumenttisivua projektia kohden. Päivitä {plan}-pakettiin lisätäksesi enemmän.",
     "upgradeToUseBookmarks": "Päivitä käyttääksesi kirjanmerkkejä",
-    "upgradeToUseBookmarksSubtitle": "Päivitä {plan} tilaukseen kirjanmerkki emäkset, pöydät, näkymät, ja paljon muuta saadaksesi nopean käyttöoikeuden.",
+    "upgradeToUseBookmarksSubtitle": "Päivitä {plan}-pakettiin lisätäksesi projekteja, tauluja, näkymiä ja muuta kirjanmerkkeihin nopeaa käyttöä varten.",
     "upgradeToUseDocsExportPdf": "Päivitä viemään asiakirjoja PDF-tiedostona",
     "upgradeToUseDocsExportPdfSubtitle": "Päivitä {plan} suunnitelmaan viedäksesi asiakirjojasi PDF-tiedostoina.",
     "upgradeToUseDocsInlineComments": "Päivitä käyttääksesi inline kommentteja",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "{activePlan}-paketti sallii enintään {limit} webhookia. Päivitä {plan}-pakettiin saadaksesi rajattomasti webhookkeja.",
     "upgradeToAccessWebhookLogsSubtitle": "Saat webhook-lokit käyttöön päivittämällä työtilasi {plan}-pakettiin.",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "Päivitä pakettiasi, jos haluat monistaa tauluja eri projektien välillä.",
     "formOwnerNotified": "Lomakkeen omistajalle ilmoitettu",
     "formOwnerNotifiedSubtitle": "Ilmoitimme lomakkeen omistajalle lähetyspyynnöstäsi.",
     "WorkspaceOwnerNotified": "Työtilan omistajalle ilmoitettu",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "Päivitä {plan} tilaukseen ja tarkista, kuka voi tarkastella ja muokata yksittäisiä sivuja dokumenteissa.",
     "upgradeToUseWorkflows": "Päivitys työnkulkujen käyttöön",
     "upgradeToUseWorkflowsSubtitle": "Päivitä {plan} -suunnitelmaan, jotta voit käyttää työnkulkuja tehtävien ja prosessien automatisointiin.",
-    "upgradeToUsePrivateBases": "Päivitä avataksesi yksityiset pohjat",
-    "upgradeToUsePrivateBasesSubtitle": "Yksityiset pohjat ovat käytettävissä {plan}-paketissa. Päivitä nyt päästäksesi käyttämään niitä.",
+    "upgradeToUsePrivateBases": "Päivitä avataksesi yksityiset projektit",
+    "upgradeToUsePrivateBasesSubtitle": "Yksityiset projektit ovat käytettävissä {plan}-paketissa. Päivitä nyt ja ota ne käyttöön.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Voit ladata enintään {limit} {filePlural} tähän soluun. Päivitä {plan}-pakettiin lisätäksesi enemmän tiedostoja.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "Päivitä käyttääksesi AI Chat",
-    "upgradeToUseAiChatSubtitle": "Päivitä {plan} tilaukseen käyttääksesi tekoälykeskustelua, jotta voit hallita pohjaa luonnollisella kielellä.",
+    "upgradeToUseAiChatSubtitle": "Päivitä {plan}-pakettiin, jos haluat käyttää tekoälychattia ja hallita projektiasi luonnollisella kielellä.",
     "upgradeToUseMfa": "Päivitä ottaaksesi kaksivaiheinen todennus käyttöön",
     "upgradeToUseMfaSubtitle": "Päivitä {plan} tilaukseen ottaaksesi käyttöön monivaiheisen todennuksen tilillesi.",
     "upgradeToRequireTwoFactor": "Päivitä vaatiaksesi kaksivaiheisen todennuksen",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "Päivitä käyttääksesi joukkuehierarkiaa",
     "upgradeToUseTeamHierarchySubtitle": "Päivitä {plan} suunnitelmaan järjestääksesi tiimit sisäkkäisissä hierarkioissa, joissa on perinnöllinen jäsenyys.",
     "upgradeToUseTeams": "Päivitys tiimien käyttöön",
-    "upgradeToUseTeamsSubtitle": "Päivitä {plan} -suunnitelmaan, jotta voit ryhmitellä käyttäjiä tiimeihin ja hallinnoida heidän työtilojen ja tukikohtien käyttöoikeuksiaan.",
+    "upgradeToUseTeamsSubtitle": "Päivitä {plan}-pakettiin käyttääksesi tiimejä käyttäjien ryhmittelyyn ja heidän työtiloihin ja projekteihin pääsynsä hallintaan.",
     "upgradeToAddMoreTeams": "Päivitä lisätäksesi lisää joukkueita",
     "upgradeToAddMoreTeamsSubtitle": "Päivitä {plan} -pakettiin, jos haluat lisätä lisää tiimejä työtilaasi.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Päivitä {plan} -pakettiin piilottaaksesi kenttäotsikot Galleria- ja Kanban-näkymissä.",
     "upgradeToUseFormScheduling": "Päivitä käyttääksesi lomakkeen aikataulutusta",
     "upgradeToUseFormSchedulingSubtitle": "Päivitä {plan} suunnitelmaan ajoittaaksesi saatavuuden lomakkeen aloitus- ja päättymispäivät.",
-    "upgradeToUseBaseVariables": "Päivitä käyttääksesi perusmuuttujia",
-    "upgradeToUseBaseVariablesSubtitle": "Päivitä {plan} suunnitelmaan määrittääksesi uudelleen käytettäviä muuttujia, jotka ovat pohjaan ulottuvilla.",
+    "upgradeToUseBaseVariables": "Päivitä käyttääksesi projektimuuttujia",
+    "upgradeToUseBaseVariablesSubtitle": "Päivitä {plan}-pakettiin määrittääksesi uudelleenkäytettäviä muuttujia projektin tasolla.",
     "upgradeToUseSync": "Päivitä käyttämään synkronointia",
     "upgradeToUseSyncSubtitle": "Päivitä {plan} -pakettiin synkronoidaksesi tiedot sisäisten tai ulkoisten lähteiden kanssa.",
     "upgradeToUseTableSync": "Päivitä käyttääksesi taulun synkronointia",
@@ -3112,7 +3112,11 @@
       "upgradeRequestSent": "Pyyntö lähetetty",
       "upgradeDescRls": "Rajaa, mitä tietueita kukin henkilö voi nähdä ja muokata.",
       "upgradeDescRecordTemplates": "Luo uusia tietueita tallennetuista, esitäytetyistä malleista.",
-      "upgradeDescDateDependency": "Siirrä riippuvaiset päivämäärät automaattisesti, kun tietue siirtyy."
+      "upgradeDescDateDependency": "Siirrä riippuvaiset päivämäärät automaattisesti, kun tietue siirtyy.",
+      "concernProject": "Projekti",
+      "concernInterfaces": "Käyttöliittymät",
+      "concernApps": "Sovellus",
+      "concernTabs": "Asetusosiot"
     },
     "categories": "Kategoriat",
     "blockquote": "Lainaus",
@@ -4402,7 +4406,106 @@
         "repeatWarning": "Tämä vaihe voi lähettää tai muuttaa tietoja. Uudelleenyritys voi toistaa sen — ota tämä käyttöön vain, jos se sopii.",
         "retries": "Yritysten määrä",
         "earlierTries": "Aiemmat yritykset",
-        "noErrorMessage": "Ei virheilmoitusta"
+        "noErrorMessage": "Ei virheilmoitusta",
+        "title": "Epäonnistuessa",
+        "retryIfFails": "Yritä uudelleen, jos tämä vaihe epäonnistuu",
+        "retrySafeHint": "Yrittää automaattisesti uudelleen, kun palvelu on tilapäisesti pois käytöstä",
+        "waitBeforeRetry": "Odota ennen uutta yritystä",
+        "seconds": "sekuntia",
+        "waitLonger": "Odota joka kerta pidempään",
+        "waitLongerHint": "Kaksinkertaistaa odotuksen jokaisen yrityksen jälkeen, enintään 1 tuntiin",
+        "retryOn": "Yritä uudelleen, kun",
+        "retryOnTemporary": "Vain tilapäiset ongelmat (aikakatkaisut, pyyntörajat, palvelinvirheet)",
+        "retryOnAny": "Mikä tahansa virhe",
+        "triedTimes": "Yritetty {count} kertaa",
+        "tryNumber": "Yritys {n}",
+        "succeededAfterTries": "Onnistui {count} yrityksen jälkeen"
+      },
+      "iterate": {
+        "listPlaceholder": "Valitse läpikäytävä taulukko",
+        "listHelp": "Valitse taulukko aiemmasta vaiheesta. Jokainen kohde käsitellään järjestyksessä.",
+        "notAList": "Tarvitsee luettelon kohteista, mutta tämä arvo on {kind}."
+      },
+      "originalRun": "alkuperäinen suoritus",
+      "duration": {
+        "milliseconds": "{n} ms",
+        "seconds": "{n} s",
+        "minutesSeconds": "{m} min {s} s"
+      },
+      "overview": {
+        "lastRun": "Viimeisin suoritus",
+        "failedCount": "{n} epäonnistui",
+        "allTested": "Kaikki vaiheet testattu"
+      },
+      "addStep": "Lisää vaihe",
+      "nodePicker": {
+        "upgradeToUseStep": "Päivitä {plan}-pakettiin käyttääksesi {step}",
+        "search": "Hae vaiheita ja sovelluksia",
+        "searchTriggers": "Hae, esim. ”uusi rivi”, ”joka maanantai”",
+        "searchIn": "Hae kohteesta {app}",
+        "apps": "Sovellukset",
+        "integrations": "Integraatiot",
+        "popular": "Suositut",
+        "chooseTrigger": "Valitse laukaisin",
+        "chooseTriggerHint": "Jokainen työnkulku alkaa laukaisimesta: tapahtumasta, joka käynnistää sen.",
+        "noMatches": "Ei osumia vaiheisiin",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "Tietue {bold}",
+            "bold": "luodaan"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "Tietue {bold}",
+            "bold": "päivitetään"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "Tietue {bold}",
+            "bold": "poistetaan"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "Tietue {bold}",
+            "bold": "siirtyy näkymään"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "Tietue {bold}",
+            "bold": "täyttää ehdot"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "Lähettää lomakkeen"
+          },
+          "core_trigger_button": {
+            "text": "{bold} tietueessa",
+            "bold": "Napsauttaa painiketta"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} tietuetta",
+            "bold": "Kommentoi"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "Aikataulun mukaan"
+          },
+          "core_trigger_webhook": {
+            "text": "Kun {bold}",
+            "bold": "webhook vastaanotetaan"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "Manuaalisesti"
+          }
+        },
+        "groups": {
+          "recordEvents": "Kun",
+          "userActions": "Kun käyttäjä",
+          "runs": "Suoritukset",
+          "records": "Tietueet",
+          "logic": "Logiikka",
+          "ai": "Tekoäly",
+          "messages": "Viestit",
+          "developer": "Kehittäjä",
+          "other": "Muu"
+        }
       }
     },
     "xAxis": "X-akseli",
@@ -5049,7 +5152,37 @@
     "licenseExpired": "Lisenssi vanhentunut",
     "talkToSales": "Keskustele myynnin kanssa",
     "paidAnnually": "Maksetaan vuosittain",
-    "paidMonthly": "Maksetaan kuukausittain"
+    "paidMonthly": "Maksetaan kuukausittain",
+    "addAttachment": "Lisää liite",
+    "fromAttachmentField": "Liitekentästä",
+    "uploadFile": "Lataa tiedosto",
+    "fromUrl": "URL-osoitteesta",
+    "attachFromUrl": "Liitä URL-osoitteesta",
+    "removeAttachment": "Poista liite",
+    "attachmentFieldChip": "kenttä",
+    "setPageAccess": "Aseta sivun käyttöoikeus",
+    "readOnlyMember": "vain luku -oikeuden jäsen",
+    "aReadOnlyMember": "vain luku -oikeuden jäsen",
+    "readOnlyMembers": "vain luku -oikeuden jäsenet",
+    "backToData": "Takaisin tietoihin",
+    "appShare": {
+      "customTeamDescription": "Tiimi, jonka tämä sovellus määrittää.",
+      "membersTeamDescription": "Käyttää sovellusta.",
+      "adminTeamDescription": "Käyttää sovellusta ja hallitsee sen jäseniä.",
+      "noAccessTeamDescription": "Toimintoja ei ole vielä myönnetty, joten sen jäsenet eivät voi avata sovellusta."
+    },
+    "viewActions": "Näkymän toiminnot",
+    "renameView": "Nimeä näkymä uudelleen",
+    "generateWithAi": "Luo tekoälyllä",
+    "deleteView": "Poista näkymä",
+    "addToFavourites": "Lisää suosikkeihin",
+    "contextMenu": "Pikavalikko",
+    "editSqlView": "Muokkaa SQL-näkymää",
+    "noWebhooksYet": "Ei vielä webhookeja",
+    "navigation": "Navigointi",
+    "prompts": "Kehotteet",
+    "pagination": "Sivutus",
+    "showRowNumbers": "Näytä rivinumerot"
   },
   "activity": {
     "useTemplate": "Käytä mallia",
@@ -5366,7 +5499,7 @@
     "notAvailableForNewRecord": "Ei käytettävissä luotaessa uutta tietuetta",
     "conditionallyVisibleField": "Ehdollisesti näkyvä kenttä",
     "bookmarks": "Kirjanmerkit",
-    "variableInheritance": "Määrittää, mitä tämän basen sovelluksena asentavat voivat tehdä tällä muuttujalla: Kiinteä säilyttää arvosi ja piilottaa sen, Muokattava tarjoaa arvosi lähtökohdaksi, Pakollinen pyytää heitä antamaan oman arvonsa.",
+    "variableInheritance": "Määrittää, mitä tämän projektin sovelluksena asentavat voivat tehdä tällä muuttujalla: Kiinteä säilyttää arvosi ja piilottaa sen, Muokattava tarjoaa arvoasi lähtökohdaksi, Pakollinen pyytää heitä antamaan oman.",
     "inheritedMembersInfo": "Nämä jäsenet kuuluvat vanhemman tiimiin ja perivät pääsyn tähän tiimiin osoitettuihin resursseihin.",
     "teamScopeThisOnly": "Vain tämä tiimi. Napsauta sisällyttääksesi alitiimit",
     "teamScopeIncludesSubTeams": "Sisältää alitiimit. Napsauta kohdistaaksesi vain tähän tiimiin",
@@ -5394,7 +5527,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "Tämä vaihtoehto sallii tietokannan skeeman muuttamisen, mukaan lukien taulukoiden ja sarakkeiden lisäämisen, muuttamisen tai poistamisen. Käytä varovaisesti, sillä muutokset voivat vaikuttaa tietokannan rakenteelliseen eheyteen.",
     "allowDataWrite": "Tämä vaihtoehto mahdollistaa tietueiden luomisen, päivittämisen tai poistamisen tietokantatauluissa. Ihanteellinen hallinnollisille käyttäjille, jotka tarvitsevat muuttaa tietoja suoraan.",
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "Enintään 10 tietolähdettä projektia kohden",
     "saveChanges": "Tallenna muutokset",
     "clientKey": "Valitse .key-tiedosto",
     "clientCert": "Valitse .cert-tiedosto",
@@ -5420,7 +5553,7 @@
     "selectAllMappedFields": "Valitse kaikki mapatut kentät",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopioi virhekoodi",
-    "paidUserBadgeTooltip": "Kuluttaa maksullisen paikan. Muokkaaja-rooli tai korkeampi työtilan tasolla, kannassa tai käyttöliittymässä.",
+    "paidUserBadgeTooltip": "Kuluttaa maksullisen paikan. Muokkaaja-rooli tai korkeampi työtilan tasolla, projektissa tai käyttöliittymässä.",
     "approachingLimit": "Lähellä rajaa",
     "exceedingLimit": "Ylittää rajan",
     "filteredByCurrentUser": "Suodatettu nykyisen käyttäjän mukaan",
@@ -5464,8 +5597,8 @@
     "onlyViewOwnerCanCopyViewConfig": "Vain näkymän omistaja voi kopioida näkymän kokoonpanon",
     "onlyViewOwnerCanModifyPersonalView": "Vain näkymän omistaja voi muokata tätä henkilökohtaista näkymää",
     "onlyViewOwnerCanDeletePersonalView": "Vain näkymän omistaja voi poistaa tämän henkilökohtaisen näkymän",
-    "onlyCreatorsCanLockView": "Vain perustajat tai omistajat voivat lukita näkymän",
-    "onlyCreatorsCanUnlockView": "Vain perustajat tai omistajat voivat avata näkymän",
+    "onlyCreatorsCanLockView": "Vain projektin luojat tai omistajat voivat lukita näkymän",
+    "onlyCreatorsCanUnlockView": "Vain projektin luojat tai omistajat voivat avata näkymän lukituksen",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "Tarvitset vähintään yhden olemassa olevan näkymän, jotta voit kopioida kokoonpanoja. Luo ensin näkymä, jotta voit ottaa tämän vaihtoehdon käyttöön.",
     "youDoNotHaveSufficientPermissionToAddExtension": "Sinulla ei ole riittäviä oikeuksia laajennusosan lisäämiseen",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "Sinulla ei ole riittäviä oikeuksia tämän laajennuksen määrittämiseen.",
@@ -5492,7 +5625,7 @@
     "interfaceMixedRoles": "Roolit vaihtelevat käyttöliittymien tai sivujen välillä. Laajenna nähdäksesi ne",
     "chatQueueAttachmentUnavailable": "Tätä liitettä ei lähetetä, jos asetat viestin jonoon. Poista se ensin",
     "lockedViewDisabledOnProduction": "Lukittuja näkymiä voi luoda vain ympäristökopiossa",
-    "personalViewDisabledOnEnvironment": "Henkilökohtaisia näkymiä voi luoda vain tuotantohankkeessa",
+    "personalViewDisabledOnEnvironment": "Henkilökohtaisia näkymiä voi luoda vain tuotantoprojektissa",
     "seeNComments": "Katso {n} kommentti | Katso {n} kommenttia",
     "collapsibleGroups": "Salli otsikoitujen ryhmien tiivistäminen",
     "nestedRecordsRequireSelfLink": "Edellyttää tässä taulussa linkkikenttää, joka viittaa takaisin samaan tauluun.",
@@ -5509,10 +5642,10 @@
     "youDontHaveAccessToCreateNewInterface": "Sinulla ei ole oikeutta luoda uutta käyttöliittymää",
     "displayValueFieldCannotBeReordered": "Näyttöarvon kenttää ei voi siirtää",
     "interfaceLastVizRequired": "Sivu tarvitsee vähintään yhden visualisoinnin",
-    "onlyCreatorsCanManageViewFolders": "Vain hankkeen luojat tai omistajat voivat hallita näkymäkansioita",
-    "onlyCreatorsCanManageFolders": "Vain hankkeen luojat tai omistajat voivat hallita kansioita",
+    "onlyCreatorsCanManageViewFolders": "Vain projektin luojat tai omistajat voivat hallita näkymäkansioita",
+    "onlyCreatorsCanManageFolders": "Vain projektin luojat tai omistajat voivat hallita kansioita",
     "organizeViewsIntoFolders": "Järjestä näkymät tiivistettäviin kansioihin",
-    "productionLockedByEnvironment": "Tämä kanta on avattuna ympäristössä. Tee skeemamuutokset siellä.",
+    "productionLockedByEnvironment": "Tämä projekti on avattu ympäristössä. Tee skeemamuutokset siellä.",
     "managedByPublisher": "Tämän sovelluksen rakennetta hallitsee sen julkaisija. Omat asiakirjasi ja kansiosi ovat sinun lisättävissäsi.",
     "featureOnProductionOnly": "Tätä toimintoa hallitaan tuotantoprojektissa, ei ympäristökopiossa.",
     "clickToEdit": "Muokkaa napsauttamalla",
@@ -5568,8 +5701,8 @@
     "showAllFields": "Näytä kaikki kentät",
     "inviteLinkCannotGrantOwner": "Kutsulinkki ei voi myöntää omistajan roolia",
     "inviteLinkRoleAboveYours": "Voit tarjota vain rooleja omaan rooliisi asti",
-    "noDefaultSourceForFolders": "Tällä kannalla ei ole oletuslähdettä. Luo kansiot sen sijaan kunkin lähteen omasta valikosta",
-    "noDefaultSourceForSync": "Tällä kannalla ei ole oletuslähdettä. Synkronointi tarvitsee sellaisen taulukoidensa tallentamiseen"
+    "noDefaultSourceForFolders": "Tällä projektilla ei ole oletuslähdettä. Luo kansiot sen sijaan lähteen omasta valikosta",
+    "noDefaultSourceForSync": "Tällä projektilla ei ole oletuslähdettä. Synkronointi tarvitsee sellaisen taulujensa tallentamiseen"
   },
   "placeholder": {
     "enterVerificationCode": "Syötä 6-numeroinen koodi",
@@ -7297,8 +7430,8 @@
         "description": "Nopea kierros työtilassasi. Voit poistua milloin tahansa: paina Ohita."
       },
       "createBase": {
-        "title": "Aloita Basesta",
-        "description": "Base sisältää taulukkosi, näkymäsi ja automaatiosi. Täältä suurin osa työstä alkaa."
+        "title": "Aloita projektista",
+        "description": "Projekti sisältää taulusi, näkymäsi ja automaatiosi. Täältä suurin osa työstä alkaa."
       },
       "switchWorkspaces": {
         "title": "Vaihda työtilaa",

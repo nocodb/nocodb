@@ -107,11 +107,11 @@
     "upgradeToAddMoreDocumentPages": "升級以增加更多的文件頁面",
     "upgradeToAddMoreWorkflows": "升級以增加更多工作流程",
     "upgradeToAddMoreScriptsSubtitle": "您目前使用的是免費方案，每個工作區僅允許建立一個腳本。升級即可解鎖無限制腳本功能。",
-    "upgradeToAddMoreWorkflowsSubtitle": "您目前使用的是 {activePlan} 方案，每個項目允許 {limit} 個工作流程。升級至 {plan} 可獲得更多。",
+    "upgradeToAddMoreWorkflowsSubtitle": "你目前使用 {activePlan} 方案，每個專案允許 {limit} 個工作流程。升級至 {plan} 可取得更多。",
     "upgradeToAddMoreDashboardsSubtitle": "您目前使用的是免費方案，每個工作區僅允許建立一個儀表板。升級即可解鎖無限制儀表板功能。",
-    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan} 計劃每個基座最多允許 {limit} 文件頁。升級至 {plan} 計劃可增加更多。",
+    "upgradeToAddMoreDocumentPagesSubtitle": "{activePlan} 方案每個專案最多允許 {limit} 個文件頁面。升級至 {plan} 方案即可新增更多。",
     "upgradeToUseBookmarks": "升級使用書籤",
-    "upgradeToUseBookmarksSubtitle": "升級至 {plan} 計劃，可將資料庫、表格、檢視等加入書籤，以便快速存取。",
+    "upgradeToUseBookmarksSubtitle": "升級至 {plan} 方案，即可將專案、資料表、檢視等加入書籤以便快速存取。",
     "upgradeToUseDocsExportPdf": "升級以 PDF 格式匯出文件",
     "upgradeToUseDocsExportPdfSubtitle": "升級至 {plan} 計劃，將您的文件匯出為 PDF 檔案。",
     "upgradeToUseDocsInlineComments": "升級為使用內嵌式註解",
@@ -133,7 +133,7 @@
     "upgradeToAddWebhookSubtitle": "{activePlan} 方案僅支援 {limit} 個 Webhook。升級至 {plan} 方案可使用無限 Webhook。",
     "upgradeToAccessWebhookLogsSubtitle": "將工作區升級至 {plan} 方案即可存取 Webhook 日誌。",
     "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherBase": "升級方案即可在不同專案之間複製資料表。",
     "formOwnerNotified": "已通知表單擁有者",
     "formOwnerNotifiedSubtitle": "我們已就您的提交請求通知表單擁有者。",
     "WorkspaceOwnerNotified": "已通知工作區擁有者",
@@ -176,15 +176,15 @@
     "upgradeToUseDocumentPermissionsSubtitle": "升級至 {plan} 計劃，以控制誰可以檢視和編輯您文件中的個別頁面。",
     "upgradeToUseWorkflows": "升級使用工作流程",
     "upgradeToUseWorkflowsSubtitle": "升級至 {plan} 計劃，使用工作流程自動執行任務和流程。",
-    "upgradeToUsePrivateBases": "升級以解鎖私人 Base",
-    "upgradeToUsePrivateBasesSubtitle": "私人 Base 可在 {plan} 方案中使用。立即升級即可開始使用。",
+    "upgradeToUsePrivateBases": "升級以解鎖私人專案",
+    "upgradeToUsePrivateBasesSubtitle": "私人專案於 {plan} 方案提供。立即升級即可開始使用。",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "您最多只能在此欄格上傳 {limit} 個{filePlural}。升級到 {plan} 方案即可新增更多檔案。",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseAiChat": "升級使用 AI 聊天",
-    "upgradeToUseAiChatSubtitle": "升級至 {plan} 計劃，即可使用 AI Chat 以自然語言管理您的基地。",
+    "upgradeToUseAiChatSubtitle": "升級至 {plan} 方案，即可使用 AI 聊天以自然語言管理專案。",
     "upgradeToUseMfa": "升級以啟用雙重認證",
     "upgradeToUseMfaSubtitle": "升級至 {plan} 計劃，以啟用帳戶的多因素驗證。",
     "upgradeToRequireTwoFactor": "升級為需要雙因素認證",
@@ -203,14 +203,14 @@
     "upgradeToUseTeamHierarchy": "升級為使用團隊層級",
     "upgradeToUseTeamHierarchySubtitle": "升級至 {plan} 計劃，以具有繼承會員資格的嵌套層級組織團隊。",
     "upgradeToUseTeams": "升級使用團隊",
-    "upgradeToUseTeamsSubtitle": "升級至 {plan} 計劃，使用團隊來分組使用者，並管理他們對工作空間和基地的存取。",
+    "upgradeToUseTeamsSubtitle": "升級至 {plan} 方案，即可使用團隊將使用者分組並管理他們對工作區與專案的存取權。",
     "upgradeToAddMoreTeams": "升級以加入更多隊伍",
     "upgradeToAddMoreTeamsSubtitle": "升級至 {plan} 計劃，可將更多小組加入您的工作空間。",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "升級至 {plan} 計劃，以隱藏 Gallery 和 Kanban 檢視中的欄位標頭。",
     "upgradeToUseFormScheduling": "升級使用表單排程",
     "upgradeToUseFormSchedulingSubtitle": "升級至 {plan} 計劃，可排定有開始和到期日期的表單可用性。",
-    "upgradeToUseBaseVariables": "升級使用基本變數",
-    "upgradeToUseBaseVariablesSubtitle": "升級至 {plan} 計劃，以定義可重用的變數範圍至基底。",
+    "upgradeToUseBaseVariables": "升級以使用專案變數",
+    "upgradeToUseBaseVariablesSubtitle": "升級至 {plan} 方案，即可定義專案範圍內可重複使用的變數。",
     "upgradeToUseSync": "升級使用同步",
     "upgradeToUseSyncSubtitle": "升級至 {plan} 計劃，以便與內部或外部來源同步資料。",
     "upgradeToUseTableSync": "升級為使用資料表同步",
@@ -3112,7 +3112,11 @@
       "upgradeRequestSent": "請求已送出",
       "upgradeDescRls": "限制每個人可以檢視與編輯的記錄。",
       "upgradeDescRecordTemplates": "依據已儲存的預填範本建立新記錄。",
-      "upgradeDescDateDependency": "移動記錄時自動調整相依的日期。"
+      "upgradeDescDateDependency": "移動記錄時自動調整相依的日期。",
+      "concernProject": "專案",
+      "concernInterfaces": "介面",
+      "concernApps": "應用程式",
+      "concernTabs": "設定區段"
     },
     "categories": "分類",
     "blockquote": "引用",
@@ -4402,7 +4406,106 @@
         "repeatWarning": "此步驟可能會傳送或變更資料。重試可能會重複執行 — 僅在可接受時開啟。",
         "retries": "重試次數",
         "earlierTries": "先前的嘗試",
-        "noErrorMessage": "沒有錯誤訊息"
+        "noErrorMessage": "沒有錯誤訊息",
+        "title": "失敗時",
+        "retryIfFails": "此步驟失敗時重試",
+        "retrySafeHint": "當服務暫時無法使用時自動重試",
+        "waitBeforeRetry": "重試前等待",
+        "seconds": "秒",
+        "waitLonger": "每次等待更久",
+        "waitLongerHint": "每次嘗試後等待時間加倍，最長 1 小時",
+        "retryOn": "重試條件",
+        "retryOnTemporary": "僅限暫時性問題（逾時、速率限制、伺服器錯誤）",
+        "retryOnAny": "任何錯誤",
+        "triedTimes": "已嘗試 {count} 次",
+        "tryNumber": "第 {n} 次嘗試",
+        "succeededAfterTries": "重試 {count} 次後成功"
+      },
+      "iterate": {
+        "listPlaceholder": "選擇要逐一處理的陣列",
+        "listHelp": "從上一個步驟選擇一個陣列。每個項目將依序處理。",
+        "notAList": "需要項目清單，但此值為 {kind}。"
+      },
+      "originalRun": "原始執行",
+      "duration": {
+        "milliseconds": "{n} 毫秒",
+        "seconds": "{n} 秒",
+        "minutesSeconds": "{m} 分 {s} 秒"
+      },
+      "overview": {
+        "lastRun": "上次執行",
+        "failedCount": "{n} 個失敗",
+        "allTested": "所有步驟皆已測試"
+      },
+      "addStep": "新增步驟",
+      "nodePicker": {
+        "upgradeToUseStep": "升級至 {plan} 方案即可使用 {step}",
+        "search": "搜尋步驟與應用程式",
+        "searchTriggers": "搜尋，例如「新增列」「每週一」",
+        "searchIn": "搜尋 {app}",
+        "apps": "應用程式",
+        "integrations": "整合",
+        "popular": "熱門",
+        "chooseTrigger": "選擇觸發條件",
+        "chooseTriggerHint": "每個工作流程都以觸發條件開始：也就是啟動它的事件。",
+        "noMatches": "沒有符合的步驟",
+        "triggers": {
+          "nocodb_trigger_after_insert": {
+            "text": "記錄{bold}",
+            "bold": "被建立"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "記錄{bold}",
+            "bold": "被更新"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "記錄{bold}",
+            "bold": "被刪除"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "記錄{bold}",
+            "bold": "進入檢視"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "記錄{bold}",
+            "bold": "符合條件"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "送出表單"
+          },
+          "core_trigger_button": {
+            "text": "在記錄上{bold}",
+            "bold": "點擊按鈕"
+          },
+          "nocodb_trigger_comment": {
+            "text": "在記錄上{bold}",
+            "bold": "留言"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "依排程"
+          },
+          "core_trigger_webhook": {
+            "text": "當{bold}時",
+            "bold": "收到 Webhook"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "手動"
+          }
+        },
+        "groups": {
+          "recordEvents": "當",
+          "userActions": "當使用者",
+          "runs": "執行",
+          "records": "記錄",
+          "logic": "邏輯",
+          "ai": "人工智慧",
+          "messages": "訊息",
+          "developer": "開發者",
+          "other": "其他"
+        }
       }
     },
     "xAxis": "X 軸",
@@ -5051,7 +5154,37 @@
     "licenseExpired": "授權已過期",
     "talkToSales": "聯絡銷售團隊",
     "paidAnnually": "按年付費",
-    "paidMonthly": "按月付費"
+    "paidMonthly": "按月付費",
+    "addAttachment": "新增附件",
+    "fromAttachmentField": "來自附件欄位",
+    "uploadFile": "上傳檔案",
+    "fromUrl": "來自 URL",
+    "attachFromUrl": "從 URL 附加",
+    "removeAttachment": "移除附件",
+    "attachmentFieldChip": "欄位",
+    "setPageAccess": "設定頁面存取權",
+    "readOnlyMember": "唯讀成員",
+    "aReadOnlyMember": "一位唯讀成員",
+    "readOnlyMembers": "唯讀成員",
+    "backToData": "返回資料",
+    "appShare": {
+      "customTeamDescription": "由此應用程式定義的團隊。",
+      "membersTeamDescription": "使用此應用程式。",
+      "adminTeamDescription": "使用此應用程式並管理其成員。",
+      "noAccessTeamDescription": "尚未授予任何操作，因此其成員無法開啟應用程式。"
+    },
+    "viewActions": "檢視操作",
+    "renameView": "重新命名檢視",
+    "generateWithAi": "使用 AI 產生",
+    "deleteView": "刪除檢視",
+    "addToFavourites": "加入我的最愛",
+    "contextMenu": "快顯選單",
+    "editSqlView": "編輯 SQL 檢視",
+    "noWebhooksYet": "尚無 Webhook",
+    "navigation": "導覽",
+    "prompts": "提示詞",
+    "pagination": "分頁",
+    "showRowNumbers": "顯示列號"
   },
   "activity": {
     "useTemplate": "使用範本",
@@ -5367,7 +5500,7 @@
     "notAvailableForNewRecord": "建立新記錄時不可用",
     "conditionallyVisibleField": "有條件可見欄位",
     "bookmarks": "書籤",
-    "variableInheritance": "決定將此項目作為應用程式安裝的人可以對此變數執行的操作：「固定」保留並隱藏您的值，「可編輯」以您的值作為起點，「必填」要求對方自行提供值。",
+    "variableInheritance": "決定將此專案安裝為應用程式的人可以如何使用這個變數：固定會保留並隱藏你的值，可編輯會將你的值作為起點，必填則要求他們自行提供。",
     "inheritedMembersInfo": "這些成員屬於父團隊，並繼承指派給此團隊的資源存取權。",
     "teamScopeThisOnly": "僅此團隊。按一下可包含子團隊",
     "teamScopeIncludesSubTeams": "包含子團隊。按一下可僅比對此團隊",
@@ -5395,7 +5528,7 @@
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "此選項允許修改數據庫架構，包括添加、修改或刪除表和欄。使用時請謹慎，因為更改可能會影響數據庫的結構完整性。",
     "allowDataWrite": "此選項允許在數據庫表中創建、更新或刪除記錄。非常適合需要直接更改數據的管理用戶。",
-    "reachedSourceLimit": "Limited to only one data source for the moment",
+    "reachedSourceLimit": "每個專案最多 10 個資料來源",
     "saveChanges": "儲存更動",
     "clientKey": "選擇 .key 檔案",
     "clientCert": "選擇 .cert 檔案",
@@ -5421,7 +5554,7 @@
     "selectAllMappedFields": "選取所有已對應欄位",
     "copyErrorMessage": "Copy error message",
     "copyErrorCode": "複製錯誤代碼",
-    "paidUserBadgeTooltip": "佔用一個付費席次。在工作區層級、某個資料庫中或某個介面上具有編輯者以上角色。",
+    "paidUserBadgeTooltip": "佔用一個付費席次。在工作區層級、專案中或介面上具有編輯者以上的角色。",
     "approachingLimit": "接近限制",
     "exceedingLimit": "超出限制",
     "filteredByCurrentUser": "依當前用戶過濾",
@@ -5465,8 +5598,8 @@
     "onlyViewOwnerCanCopyViewConfig": "只有檢視擁有者可以複製檢視組態",
     "onlyViewOwnerCanModifyPersonalView": "只有檢視擁有者可以修改此個人檢視",
     "onlyViewOwnerCanDeletePersonalView": "只有檢視擁有者可以刪除此個人檢視",
-    "onlyCreatorsCanLockView": "只有基地建立者或所有者才能鎖定檢視",
-    "onlyCreatorsCanUnlockView": "只有基地建立者或所有者才能解鎖檢視",
+    "onlyCreatorsCanLockView": "只有專案的建立者或擁有者可以鎖定檢視",
+    "onlyCreatorsCanUnlockView": "只有專案的建立者或擁有者可以解除檢視鎖定",
     "youNeedAtLeastOneExistingViewToCopyConfigurations": "您至少需要一個現有檢視才能複製組態。先建立一個檢視，才能啟用此選項。",
     "youDoNotHaveSufficientPermissionToAddExtension": "您沒有足夠的權限來新增擴充套件",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "您沒有足夠的權限設定此擴充套件",
@@ -5493,7 +5626,7 @@
     "interfaceMixedRoles": "不同介面或頁面的角色各不相同。展開即可查看",
     "chatQueueAttachmentUnavailable": "如果你將訊息加入佇列，此附件將不會傳送。請先移除它",
     "lockedViewDisabledOnProduction": "鎖定檢視只能在環境副本中建立",
-    "personalViewDisabledOnEnvironment": "個人檢視只能在正式 Base 上建立",
+    "personalViewDisabledOnEnvironment": "個人檢視只能在正式環境專案中建立",
     "seeNComments": "查看 {n} 則留言 | 查看 {n} 則留言",
     "collapsibleGroups": "允許收合帶有標題的群組",
     "nestedRecordsRequireSelfLink": "需要在這個表格中有一個指回同一表格的連結欄位。",
@@ -5510,10 +5643,10 @@
     "youDontHaveAccessToCreateNewInterface": "你沒有建立新 Interface 的權限",
     "displayValueFieldCannotBeReordered": "顯示值欄位無法重新排序",
     "interfaceLastVizRequired": "頁面至少需要一個視覺化",
-    "onlyCreatorsCanManageViewFolders": "只有 Base 的建立者或擁有者才能管理檢視資料夾",
-    "onlyCreatorsCanManageFolders": "只有 Base 的建立者或擁有者才能管理資料夾",
+    "onlyCreatorsCanManageViewFolders": "只有專案的建立者或擁有者可以管理檢視資料夾",
+    "onlyCreatorsCanManageFolders": "只有專案的建立者或擁有者可以管理資料夾",
     "organizeViewsIntoFolders": "將檢視整理到可收合的資料夾中",
-    "productionLockedByEnvironment": "此資料庫已在某個環境中開啟。請在那裡進行結構描述變更。",
+    "productionLockedByEnvironment": "此專案已在某個環境中開啟。請在該環境中變更結構。",
     "managedByPublisher": "這個 App 的結構由其發布者管理。你的文件和資料夾可以自行新增。",
     "featureOnProductionOnly": "此動作在正式專案中管理，而非在環境複本中。",
     "clickToEdit": "點擊以編輯",
@@ -5569,8 +5702,8 @@
     "showAllFields": "顯示所有欄位",
     "inviteLinkCannotGrantOwner": "邀請連結無法授予擁有者角色",
     "inviteLinkRoleAboveYours": "你只能授予不高於自己的角色",
-    "noDefaultSourceForFolders": "此資料庫沒有預設來源。請改從各個來源自身的選單建立資料夾",
-    "noDefaultSourceForSync": "此資料庫沒有預設來源。同步需要一個來源來存放其表格"
+    "noDefaultSourceForFolders": "此專案沒有預設資料來源。請改從各資料來源自己的選單建立資料夾",
+    "noDefaultSourceForSync": "此專案沒有預設資料來源。同步需要一個資料來源來存放其資料表"
   },
   "placeholder": {
     "enterVerificationCode": "輸入 6 位數碼",
@@ -7235,8 +7368,8 @@
         "description": "快速瀏覽一遍你的工作區。你隨時可以離開，點擊跳過即可。"
       },
       "createBase": {
-        "title": "從一個 Base 開始",
-        "description": "Base 裡存放著你的表格、檢視和自動化。大部分工作都從這裡開始。"
+        "title": "從一個專案開始",
+        "description": "專案包含你的資料表、檢視與自動化。大部分工作都從這裡開始。"
       },
       "switchWorkspaces": {
         "title": "切換工作區",

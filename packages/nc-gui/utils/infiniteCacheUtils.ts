@@ -100,3 +100,26 @@ export const invalidateChunksAt = <T>(
     if (!writtenChunks.includes(chunk)) chunkStates[chunk] = undefined
   }
 }
+
+/**
+ * The chunks an in-place refresh refetches: those loaded, plus any still holding cached rows
+ * though unloaded (a peer delete shifts the rows and unloads their chunk, but they stay on
+ * screen). A chunk mid-fetch is left to that fetch. Chunk 0 always counts, so an empty view clears.
+ */
+export const chunksToRefresh = (
+  chunkStates: Array<string | undefined>,
+  cachedIndices: Iterable<number>,
+  total: number,
+  chunkSize: number,
+): number[] => {
+  const limit = Math.max(total, 1)
+  const chunks = new Set<number>()
+  chunkStates.forEach((state, chunkId) => {
+    if (state === 'loaded' && chunkId * chunkSize < limit) chunks.add(chunkId)
+  })
+  for (const index of cachedIndices) {
+    const chunkId = Math.floor(index / chunkSize)
+    if (chunkId * chunkSize < limit && chunkStates[chunkId] !== 'loading') chunks.add(chunkId)
+  }
+  return [...chunks].sort((a, b) => a - b)
+}

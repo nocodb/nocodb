@@ -849,9 +849,7 @@ export function useInfiniteData(args: {
     if (!path.length) await syncCount(path, false, false)
 
     const total = nextTotal ?? dataCache.totalRows.value
-    const loadedChunks = dataCache.chunkStates.value.flatMap((state, chunkId) =>
-      state === 'loaded' && chunkId * CHUNK_SIZE < Math.max(total, 1) ? [chunkId] : [],
-    )
+    const loadedChunks = chunksToRefresh(dataCache.chunkStates.value, dataCache.cachedRows.value.keys(), total, CHUNK_SIZE)
 
     try {
       await Promise.all(loadedChunks.map((chunkId) => fetchChunk(chunkId, path, true)))

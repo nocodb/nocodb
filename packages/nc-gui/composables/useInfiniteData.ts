@@ -2491,8 +2491,7 @@ export function useInfiniteData(args: {
                 ? groupBy.value.map((g) => g.column?.title).filter((title): title is string => !!title)
                 : [],
           })
-          if (outcome === 'enter') handleDataEvent({ ...data, action: 'add', before: undefined })
-          else if (outcome === 'aggregates') callbacks?.refreshGroupAggregations?.(data.changedFields)
+          if (outcome === 'aggregates') callbacks?.refreshGroupAggregations?.(data.changedFields)
           else if (outcome === 'refresh') requestInPlaceRefresh()
           return
         }

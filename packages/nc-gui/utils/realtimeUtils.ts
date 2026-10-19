@@ -120,10 +120,10 @@ export function viewMembership(matchedViewIds: string[] | undefined, viewId: str
 }
 
 /**
- * What a grid does with a peer's update to a row it hasn't loaded: `ignore` it, insert it
- * because it just started matching (`enter`, flat grids only), reload only the group header
- * aggregations (`aggregates`: the row stayed in its group), or `refresh` in place because the
- * view's or a group's row count may have changed.
+ * What a grid does with a peer's update to a row it hasn't loaded: `ignore` it, reload only the
+ * group header aggregations (`aggregates`: the row stayed in its group), or `refresh` in place
+ * because the view's or a group's rows changed. A row that starts matching is refreshed rather
+ * than inserted: the update carries no order value, so a local insert can only append it.
  */
 export function classifyUnloadedRowUpdate({
   wasIn,
@@ -135,7 +135,7 @@ export function classifyUnloadedRowUpdate({
   isIn: ViewMembership
   changedFields?: string[]
   groupByTitles: string[]
-}): 'ignore' | 'enter' | 'aggregates' | 'refresh' {
+}): 'ignore' | 'aggregates' | 'refresh' {
   const isGrouped = groupByTitles.length > 0
 
   if (wasIn === 'out' && isIn === 'out') return 'ignore'
@@ -148,8 +148,7 @@ export function classifyUnloadedRowUpdate({
 
   // Without both images a flat grid keeps its count: refreshing on every such event costs more than a stale count.
   if (!isGrouped) {
-    if (wasIn === 'out' && isIn === 'in') return 'enter'
-    if (wasIn === 'in' && isIn === 'out') return 'refresh'
+    if (wasIn !== isIn && wasIn !== 'unknown' && isIn !== 'unknown') return 'refresh'
     return 'ignore'
   }
 

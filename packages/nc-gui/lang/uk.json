@@ -5185,7 +5185,61 @@
     "navigation": "Навігація",
     "prompts": "Промпти",
     "pagination": "Розбиття на сторінки",
-    "showRowNumbers": "Показувати номери рядків"
+    "showRowNumbers": "Показувати номери рядків",
+    "blocked": "Заблоковано",
+    "abuseReport": {
+      "reportedItem": "Об'єкт скарги",
+      "reporter": "Автор скарги",
+      "received": "Отримано",
+      "reportDetails": "Подробиці",
+      "publicLink": "Публічне посилання",
+      "linkLive": "Активне",
+      "linkDisabled": "Вимкнено",
+      "accounts": "Облікові записи",
+      "disableLink": "Вимкнути посилання",
+      "dismiss": "Відхилити",
+      "markResolved": "Позначити як вирішене",
+      "reopen": "Відкрити повторно",
+      "statuses": {
+        "open": "Відкрито",
+        "resolved": "Вирішено",
+        "dismissed": "Відхилено"
+      },
+      "resourceTypes": {
+        "shared_view": "Спільне подання",
+        "interface": "Інтерфейс",
+        "dashboard": "Панель керування",
+        "artifact": "Артефакт"
+      },
+      "candidateRoles": {
+        "owner": "Власник",
+        "creator": "Створювач",
+        "base_owner": "Власник бази"
+      },
+      "yourName": "Ваше ім'я",
+      "yourEmail": "Ваша ел. пошта",
+      "reason": "Причина",
+      "reasonPlaceholder": "Виберіть причину",
+      "details": "Чому ви скаржитеся на цю сторінку?",
+      "submit": "Надіслати скаргу",
+      "reasons": {
+        "phishing": "Фішинг або збирання облікових даних",
+        "scam": "Шахрайство або обман",
+        "impersonation": "Видавання себе за іншу особу",
+        "malware": "Шкідливе ПЗ або шкідливі посилання",
+        "illegal_content": "Незаконний вміст",
+        "spam": "Спам",
+        "other": "Інше"
+      }
+    },
+    "allowReportingAbuse": "Дозволити відвідувачам скаржитися на зловживання на публічних сторінках",
+    "abuseContactEmail": "Ел. пошта для скарг на зловживання",
+    "editAltText": "Змінити альтернативний текст",
+    "attachmentDownloadFailed": "Не вдалося завантажити цей файл",
+    "factoryMachine": "Машина",
+    "factoryMachineAlsoIncluded": "Завжди включено: git, GitHub CLI, ripgrep, Chrome і робочий стіл.",
+    "factoryMachineApplyFix": "Застосувати та перезібрати",
+    "factoryMachineAllVersions": "Усі версії"
   },
   "activity": {
     "useTemplate": "Використовувати шаблон",
@@ -5489,7 +5543,9 @@
     "deleteLink": "Видалити посилання",
     "linkSettings": "Налаштування посилання",
     "invitePeopleCount": "Запросити {count} особу | Запросити {count} осіб",
-    "inviteThemInstead": "Запросити їх натомість"
+    "inviteThemInstead": "Запросити їх натомість",
+    "blockUser": "Заблокувати користувача",
+    "unblockUser": "Розблокувати користувача"
   },
   "tooltip": {
     "shiftClickWeekStep": "Утримуйте Shift для кроку на 1 тиждень",
@@ -7447,6 +7503,92 @@
         "title": "Ось і весь цикл",
         "description": "Тригер, дії, публікація, увімкнення, запуск, журнали. Кожен робочий процес, який ви створите далі, влаштовано так само."
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "Використовувати NocoDB з",
+    "title": "Підключіть свої ШІ-інструменти до NocoDB MCP",
+    "description": "Працюйте зі своїми базами, таблицями, робочими процесами та інтерфейсами NocoDB просто з Claude, ChatGPT та інших клієнтів MCP.",
+    "pickTitle": "Який інструмент ви використовуєте?",
+    "serverUrlLabel": "Уже знайомі з MCP? Використайте цю URL сервера",
+    "serverUrl": "URL сервера",
+    "allTools": "Усі інструменти",
+    "nocodbGuide": "Посібник з налаштування NocoDB",
+    "opensInNewTab": "(відкриється в новій вкладці)",
+    "urlCopied": "URL сервера MCP скопійовано",
+    "copied": "Скопійовано",
+    "copyUrl": "Копіювати URL сервера MCP",
+    "copyCommand": "Копіювати команду",
+    "copyConfig": "Копіювати конфігурацію",
+    "connected": "Підключено",
+    "connectedTo": "Підключено. {client} тепер може використовувати NocoDB.",
+    "step": "Крок {n}:",
+    "stepDone": "Крок {n}, готово:",
+    "addAsServer": "Додати NocoDB як сервер MCP",
+    "authTitle": "Авторизуйте свій обліковий запис NocoDB",
+    "tryTitle": "Спробуйте",
+    "setupIn": "Налаштувати NocoDB у {client}",
+    "setupInOther": "Налаштувати NocoDB в іншому інструменті",
+    "tileAria": "Налаштувати NocoDB у {client}",
+    "tileAriaConnected": "Налаштувати NocoDB у {client}, підключено",
+    "othersLabel": "Інші",
+    "claude": {
+      "subtitle": "Налаштуйте один раз на claude.ai. Після цього він працює також у застосунках для комп'ютера та телефона.",
+      "directorySubtitle": "NocoDB є в каталозі конекторів Claude. Підключіть його один раз на claude.ai — і він працює також у застосунках для комп'ютера та телефона.",
+      "addTitle": "Додати NocoDB як конектор",
+      "directoryBody": "Відкрийте {link} у Claude, а потім виберіть Connect to Claude.",
+      "directoryLink": "Конектор NocoDB",
+      "directoryImageAlt": "Сторінка NocoDB у каталозі конекторів Claude з кнопкою Connect to Claude",
+      "addBody": "Відкрийте {link} у Claude і виберіть Add custom connector. Назвіть його NocoDB, вставте наведену нижче URL, а потім виберіть Add.",
+      "addLink": "Конектори",
+      "identityNote": "Якщо Claude запитає, як NocoDB має його ідентифікувати, виберіть Register automatically.",
+      "teamNote": "У тарифі Team або Enterprise спершу NocoDB має додати Owner у розділі",
+      "teamLink": "Налаштування організації",
+      "authorizeImageAlt": "Екран NocoDB із проханням дозволити Claude доступ до вашого облікового запису",
+      "directoryAuthBody": "Увійдіть у NocoDB за запитом, виберіть, до чого може звертатися Claude і які інструменти він може використовувати, а потім натисніть Authorize.",
+      "authBody": "Виберіть Connect поруч із NocoDB і увійдіть. Виберіть, до чого може звертатися Claude і які інструменти він може використовувати, а потім натисніть Authorize.",
+      "tryBody": "Почніть новий чат у {link} і запитайте «List my NocoDB tools»."
+    },
+    "chatgpt": {
+      "subtitle": "Налаштуйте один раз на chatgpt.com.",
+      "openTitle": "Відкрити форму власного сервера MCP",
+      "openBody": "Відкрийте {link} у ChatGPT, виберіть Add, а потім Add custom MCP server.",
+      "openLink": "Плагіни",
+      "openImageAlt": "Сторінка Plugins у ChatGPT з відкритим меню Add на пункті Add custom MCP server",
+      "addTitle": "Додати NocoDB як плагін",
+      "addBody": "Назвіть його NocoDB, вставте наведену нижче URL у поле Server URL, залиште Authentication на OAuth і створіть його.",
+      "addImageAlt": "Форма «Add custom MCP server» у ChatGPT з полями Name, Server URL і Authentication",
+      "authBody": "Увійдіть у NocoDB за запитом, виберіть, до чого може звертатися ChatGPT і які інструменти він може використовувати, а потім натисніть Authorize.",
+      "tryBody": "Почніть новий чат у {link}, введіть {'@'}, виберіть NocoDB і запитайте «List my NocoDB tools»."
+    },
+    "cursor": {
+      "subtitle": "Для настільного застосунку Cursor.",
+      "addBody": "Виберіть {link}, а потім підтвердіть, коли відкриється Cursor.",
+      "addLink": "Додати до Cursor",
+      "downloadNote": "Ще немає Cursor?",
+      "download": "Завантажити Cursor",
+      "manualToggle": "Додати вручну",
+      "manualLabel": "Додайте це до ~/.cursor/mcp.json:",
+      "authBody": "У Cursor у розділі Settings › MCP виберіть Needs login поруч із NocoDB. Виберіть, до чого може звертатися Cursor і які інструменти він може використовувати, а потім натисніть Authorize.",
+      "tryBody": "Відкрийте чат Agent у Cursor і запитайте «List my NocoDB tools»."
+    },
+    "claudeCode": {
+      "subtitle": "Додайте один раз — і це працює в будь-якому проєкті.",
+      "addBody": "Виконайте це в терміналі:",
+      "installNote": "Ще немає Claude Code?",
+      "install": "Встановити Claude Code",
+      "authBody": "У Claude Code виконайте /mcp, виберіть nocodb і натисніть Authenticate. У браузері виберіть, до чого він може звертатися і які інструменти може використовувати, а потім натисніть Authorize.",
+      "tryBody": "Запустіть Claude Code і запитайте «List my NocoDB tools»."
+    },
+    "others": {
+      "subtitle": "Працює з будь-яким інструментом, що підтримує віддалені сервери MCP із входом (OAuth).",
+      "findTitle": "Знайти налаштування MCP",
+      "findBody": "У налаштуваннях свого ШІ-інструмента знайдіть MCP, Connectors, Integrations, Apps або Tools.",
+      "addBody": "Додайте власний або віддалений сервер MCP, а потім вставте наведену нижче URL. Якщо запитується транспорт, виберіть Streamable HTTP.",
+      "authBody": "Якщо інструмент запитує спосіб автентифікації, виберіть OAuth. Увійдіть у NocoDB за запитом, виберіть, до чого він може звертатися і які інструменти може використовувати, а потім натисніть Authorize.",
+      "tryBody": "Почніть новий чат і запитайте «List my NocoDB tools».",
+      "tokenText": "Ваш інструмент приймає лише токен?",
+      "tokenButton": "Створити токен MCP"
     }
   }
 }

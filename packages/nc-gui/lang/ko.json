@@ -5183,7 +5183,61 @@
     "navigation": "탐색",
     "prompts": "프롬프트",
     "pagination": "페이지 매김",
-    "showRowNumbers": "행 번호 표시"
+    "showRowNumbers": "행 번호 표시",
+    "blocked": "차단됨",
+    "abuseReport": {
+      "reportedItem": "신고된 항목",
+      "reporter": "신고자",
+      "received": "접수됨",
+      "reportDetails": "세부 정보",
+      "publicLink": "공개 링크",
+      "linkLive": "활성",
+      "linkDisabled": "비활성화됨",
+      "accounts": "계정",
+      "disableLink": "링크 비활성화",
+      "dismiss": "무시",
+      "markResolved": "해결됨으로 표시",
+      "reopen": "다시 열기",
+      "statuses": {
+        "open": "열림",
+        "resolved": "해결됨",
+        "dismissed": "무시됨"
+      },
+      "resourceTypes": {
+        "shared_view": "공유 뷰",
+        "interface": "인터페이스",
+        "dashboard": "대시보드",
+        "artifact": "아티팩트"
+      },
+      "candidateRoles": {
+        "owner": "소유자",
+        "creator": "생성자",
+        "base_owner": "베이스 소유자"
+      },
+      "yourName": "귀하의 이름",
+      "yourEmail": "귀하의 이메일",
+      "reason": "사유",
+      "reasonPlaceholder": "사유를 선택하세요",
+      "details": "이 페이지를 신고하는 이유는 무엇인가요?",
+      "submit": "신고 제출",
+      "reasons": {
+        "phishing": "피싱 또는 자격 증명 수집",
+        "scam": "사기 또는 기만",
+        "impersonation": "사칭",
+        "malware": "맬웨어 또는 유해한 링크",
+        "illegal_content": "불법 콘텐츠",
+        "spam": "스팸",
+        "other": "기타"
+      }
+    },
+    "allowReportingAbuse": "방문자가 공개 페이지를 악용으로 신고할 수 있도록 허용",
+    "abuseContactEmail": "악용 신고 연락 이메일",
+    "editAltText": "대체 텍스트 편집",
+    "attachmentDownloadFailed": "이 파일을 다운로드할 수 없습니다",
+    "factoryMachine": "머신",
+    "factoryMachineAlsoIncluded": "항상 포함: git, GitHub CLI, ripgrep, Chrome 및 데스크톱.",
+    "factoryMachineApplyFix": "적용 후 다시 빌드",
+    "factoryMachineAllVersions": "모든 버전"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5487,7 +5541,9 @@
     "deleteLink": "링크 삭제",
     "linkSettings": "링크 설정",
     "invitePeopleCount": "{count}명 초대 | {count}명 초대",
-    "inviteThemInstead": "대신 초대하기"
+    "inviteThemInstead": "대신 초대하기",
+    "blockUser": "사용자 차단",
+    "unblockUser": "사용자 차단 해제"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -7445,6 +7501,92 @@
         "title": "이것이 전체 흐름입니다",
         "description": "트리거, 작업, 게시, 사용 설정, 실행, 로그. 앞으로 만드는 모든 워크플로도 같은 흐름을 따릅니다."
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "NocoDB 사용 앱",
+    "title": "AI 도구를 NocoDB MCP에 연결하세요",
+    "description": "Claude, ChatGPT 및 기타 MCP 클라이언트에서 NocoDB 베이스, 테이블, 워크플로, 인터페이스를 직접 다루세요.",
+    "pickTitle": "어떤 도구를 사용하시나요?",
+    "serverUrlLabel": "이미 MCP를 알고 계신가요? 이 서버 URL 주소를 사용하세요",
+    "serverUrl": "서버 URL",
+    "allTools": "모든 도구",
+    "nocodbGuide": "NocoDB 설정 가이드",
+    "opensInNewTab": "(새 탭에서 열림)",
+    "urlCopied": "MCP 서버 URL 주소를 복사했습니다",
+    "copied": "복사됨",
+    "copyUrl": "MCP 서버 URL 복사",
+    "copyCommand": "명령 복사",
+    "copyConfig": "구성 복사",
+    "connected": "연결됨",
+    "connectedTo": "연결되었습니다. 이제 {client}에서 NocoDB 사용이 가능합니다.",
+    "step": "{n}단계:",
+    "stepDone": "{n}단계 완료:",
+    "addAsServer": "MCP 서버로 NocoDB 추가",
+    "authTitle": "NocoDB 계정 승인",
+    "tryTitle": "사용해 보기",
+    "setupIn": "{client}에서 NocoDB 설정",
+    "setupInOther": "다른 도구에서 NocoDB 설정",
+    "tileAria": "{client}에서 NocoDB 설정",
+    "tileAriaConnected": "{client}에서 NocoDB 설정, 연결됨",
+    "othersLabel": "기타",
+    "claude": {
+      "subtitle": "claude.ai에서 한 번만 설정하세요. 그러면 데스크톱 및 모바일 앱에서도 사용할 수 있습니다.",
+      "directorySubtitle": "NocoDB 커넥터는 Claude 커넥터 디렉터리에 등록되어 있습니다. claude.ai에서 한 번 연결하면 데스크톱 및 모바일 앱에서도 사용할 수 있습니다.",
+      "addTitle": "커넥터로 NocoDB 추가",
+      "directoryBody": "Claude에서 {link}을(를) 연 다음 Connect to Claude를 선택하세요.",
+      "directoryLink": "NocoDB 커넥터",
+      "directoryImageAlt": "Connect to Claude 버튼이 있는 Claude 커넥터 디렉터리의 NocoDB 페이지",
+      "addBody": "Claude에서 {link}을(를) 열고 Add custom connector를 선택하세요. 이름에는 NocoDB, 주소에는 아래 URL 주소를 붙여넣은 다음 Add를 선택하세요.",
+      "addLink": "커넥터",
+      "identityNote": "Claude가 NocoDB 쪽 식별 방법을 물으면 Register automatically를 선택하세요.",
+      "teamNote": "Team 또는 Enterprise 요금제에서는 먼저 Owner가 다음 위치에 NocoDB 커넥터를 추가합니다:",
+      "teamLink": "조직 설정",
+      "authorizeImageAlt": "Claude의 계정 액세스를 승인하도록 요청하는 NocoDB 화면",
+      "directoryAuthBody": "메시지가 표시되면 NocoDB 계정으로 로그인하고, Claude가 액세스할 수 있는 항목과 사용할 수 있는 도구를 선택한 다음 Authorize를 선택하세요.",
+      "authBody": "NocoDB 옆의 Connect를 선택하고 로그인하세요. Claude가 액세스할 수 있는 항목과 사용할 수 있는 도구를 선택한 다음 Authorize를 선택하세요.",
+      "tryBody": "{link}에서 새 채팅을 시작하고 「List my NocoDB tools」라고 물어보세요."
+    },
+    "chatgpt": {
+      "subtitle": "chatgpt.com에서 한 번만 설정하세요.",
+      "openTitle": "사용자 지정 MCP 서버 양식 열기",
+      "openBody": "ChatGPT에서 {link}을(를) 열고 Add, 그다음 Add custom MCP server를 선택하세요.",
+      "openLink": "플러그인",
+      "openImageAlt": "Add 메뉴가 Add custom MCP server에 열려 있는 ChatGPT의 Plugins 페이지",
+      "addTitle": "플러그인으로 NocoDB 추가",
+      "addBody": "이름 칸에 NocoDB, Server URL 칸에 아래 URL 주소를 입력하고, Authentication은 OAuth 그대로 둔 다음 생성하세요.",
+      "addImageAlt": "Name, Server URL, Authentication 필드가 있는 ChatGPT의 「Add custom MCP server」 양식",
+      "authBody": "메시지가 표시되면 NocoDB 계정으로 로그인하고, ChatGPT가 액세스할 수 있는 항목과 사용할 수 있는 도구를 선택한 다음 Authorize를 선택하세요.",
+      "tryBody": "{link}에서 새 채팅을 시작하고 {'@'}을(를) 입력한 뒤 NocoDB를 선택하여 「List my NocoDB tools」라고 물어보세요."
+    },
+    "cursor": {
+      "subtitle": "Cursor 데스크톱 앱용.",
+      "addBody": "{link}을(를) 선택한 다음 Cursor가 열리면 확인하세요.",
+      "addLink": "Cursor에 추가",
+      "downloadNote": "아직 Cursor가 없으신가요?",
+      "download": "Cursor 다운로드",
+      "manualToggle": "대신 직접 추가하기",
+      "manualLabel": "다음을 ~/.cursor/mcp.json에 추가하세요:",
+      "authBody": "Cursor의 Settings › MCP에서 NocoDB 옆의 Needs login을 선택하세요. Cursor가 액세스할 수 있는 항목과 사용할 수 있는 도구를 선택한 다음 Authorize를 선택하세요.",
+      "tryBody": "Cursor에서 Agent 채팅을 열고 「List my NocoDB tools」라고 물어보세요."
+    },
+    "claudeCode": {
+      "subtitle": "한 번 추가하면 모든 프로젝트에서 사용할 수 있습니다.",
+      "addBody": "터미널에서 다음을 실행하세요:",
+      "installNote": "아직 Claude Code가 없으신가요?",
+      "install": "Claude Code 설치",
+      "authBody": "Claude Code에서 /mcp를 실행하고 nocodb를 선택한 다음 Authenticate를 선택하세요. 브라우저에서 액세스할 수 있는 항목과 사용할 수 있는 도구를 선택한 다음 Authorize를 선택하세요.",
+      "tryBody": "Claude Code를 실행하고 「List my NocoDB tools」라고 물어보세요."
+    },
+    "others": {
+      "subtitle": "로그인(OAuth)이 가능한 원격 MCP 서버를 지원하는 모든 도구에서 작동합니다.",
+      "findTitle": "MCP 설정 찾기",
+      "findBody": "AI 도구 설정에서 MCP, Connectors, Integrations, Apps 또는 Tools를 찾아보세요.",
+      "addBody": "사용자 지정 또는 원격 MCP 서버를 추가한 다음 아래 URL 주소를 붙여넣으세요. 전송 방식을 묻는다면 Streamable HTTP 방식을 선택하세요.",
+      "authBody": "도구가 인증 방법을 묻는다면 OAuth 방식을 선택하세요. 메시지가 표시되면 NocoDB 계정으로 로그인하고, 액세스할 수 있는 항목과 사용할 수 있는 도구를 선택한 다음 Authorize를 선택하세요.",
+      "tryBody": "새 채팅을 시작하고 「List my NocoDB tools」라고 물어보세요.",
+      "tokenText": "도구가 토큰만 허용하나요?",
+      "tokenButton": "MCP 토큰 만들기"
     }
   }
 }

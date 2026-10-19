@@ -5177,7 +5177,61 @@
     "navigation": "Navigācija",
     "prompts": "Uzvednes",
     "pagination": "Lappušu dalīšana",
-    "showRowNumbers": "Rādīt rindu numurus"
+    "showRowNumbers": "Rādīt rindu numurus",
+    "blocked": "Bloķēts",
+    "abuseReport": {
+      "reportedItem": "Ziņotais vienums",
+      "reporter": "Ziņotājs",
+      "received": "Saņemts",
+      "reportDetails": "Detaļas",
+      "publicLink": "Publiska saite",
+      "linkLive": "Aktīva",
+      "linkDisabled": "Atspējota",
+      "accounts": "Konti",
+      "disableLink": "Atspējot saiti",
+      "dismiss": "Noraidīt",
+      "markResolved": "Atzīmēt kā atrisinātu",
+      "reopen": "Atvērt atkārtoti",
+      "statuses": {
+        "open": "Atvērts",
+        "resolved": "Atrisināts",
+        "dismissed": "Noraidīts"
+      },
+      "resourceTypes": {
+        "shared_view": "Koplietots skats",
+        "interface": "Saskarne",
+        "dashboard": "Panelis",
+        "artifact": "Artefakts"
+      },
+      "candidateRoles": {
+        "owner": "Īpašnieks",
+        "creator": "Autors",
+        "base_owner": "Bāzes īpašnieks"
+      },
+      "yourName": "Jūsu vārds",
+      "yourEmail": "Jūsu e-pasts",
+      "reason": "Iemesls",
+      "reasonPlaceholder": "Izvēlieties iemeslu",
+      "details": "Kāpēc jūs ziņojat par šo lapu?",
+      "submit": "Nosūtīt ziņojumu",
+      "reasons": {
+        "phishing": "Pikšķerēšana vai akreditācijas datu vākšana",
+        "scam": "Krāpšana vai viltus",
+        "impersonation": "Uzdošanās par citu personu",
+        "malware": "Ļaunprātīga programmatūra vai kaitīgas saites",
+        "illegal_content": "Nelikumīgs saturs",
+        "spam": "Mēstules",
+        "other": "Cits"
+      }
+    },
+    "allowReportingAbuse": "Atļaut apmeklētājiem ziņot par ļaunprātīgu izmantošanu publiskajās lapās",
+    "abuseContactEmail": "Saziņas e-pasts ļaunprātīgas izmantošanas gadījumā",
+    "editAltText": "Rediģēt alternatīvo tekstu",
+    "attachmentDownloadFailed": "Šo failu neizdevās lejupielādēt",
+    "factoryMachine": "Mašīna",
+    "factoryMachineAlsoIncluded": "Vienmēr iekļauts: git, GitHub CLI, ripgrep, Chrome un darbvirsma.",
+    "factoryMachineApplyFix": "Lietot un pārbūvēt",
+    "factoryMachineAllVersions": "Visas versijas"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5482,7 +5536,9 @@
     "deleteLink": "Dzēst saiti",
     "linkSettings": "Saites iestatījumi",
     "invitePeopleCount": "Uzaicināt {count} personu | Uzaicināt {count} personas",
-    "inviteThemInstead": "Tā vietā uzaicināt viņus"
+    "inviteThemInstead": "Tā vietā uzaicināt viņus",
+    "blockUser": "Bloķēt lietotāju",
+    "unblockUser": "Atbloķēt lietotāju"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -7440,6 +7496,92 @@
         "title": "Konts un iestatījumi",
         "description": "Profils, motīvs, tastatūras saīsnes un konta iestatījumi — tas viss ir aiz jūsu avatara."
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "Izmantot NocoDB no",
+    "title": "Savienojiet savus MI rīkus ar NocoDB MCP",
+    "description": "Strādājiet ar savām NocoDB bāzēm, tabulām, darbplūsmām un saskarnēm tieši no Claude, ChatGPT un citiem MCP klientiem.",
+    "pickTitle": "Kuru rīku jūs izmantojat?",
+    "serverUrlLabel": "Vai jau pazīstat MCP? Izmantojiet šo servera URL",
+    "serverUrl": "Servera URL",
+    "allTools": "Visi rīki",
+    "nocodbGuide": "NocoDB iestatīšanas rokasgrāmata",
+    "opensInNewTab": "(atveras jaunā cilnē)",
+    "urlCopied": "MCP servera URL nokopēts",
+    "copied": "Nokopēts",
+    "copyUrl": "Kopēt MCP servera URL",
+    "copyCommand": "Kopēt komandu",
+    "copyConfig": "Kopēt konfigurāciju",
+    "connected": "Savienots",
+    "connectedTo": "Savienots. {client} tagad var izmantot NocoDB.",
+    "step": "{n}. solis:",
+    "stepDone": "{n}. solis, pabeigts:",
+    "addAsServer": "Pievienot NocoDB kā MCP serveri",
+    "authTitle": "Autorizējiet savu NocoDB kontu",
+    "tryTitle": "Izmēģiniet",
+    "setupIn": "Iestatīt NocoDB programmā {client}",
+    "setupInOther": "Iestatīt NocoDB citā rīkā",
+    "tileAria": "Iestatīt NocoDB programmā {client}",
+    "tileAriaConnected": "Iestatīt NocoDB programmā {client}, savienots",
+    "othersLabel": "Citi",
+    "claude": {
+      "subtitle": "Iestatiet vienu reizi vietnē claude.ai. Pēc tam tas darbojas arī datora un mobilajās lietotnēs.",
+      "directorySubtitle": "NocoDB ir pieejams Claude savienotāju katalogā. Savienojiet vienu reizi vietnē claude.ai, un tas darbojas arī datora un mobilajās lietotnēs.",
+      "addTitle": "Pievienot NocoDB kā savienotāju",
+      "directoryBody": "Atveriet {link} programmā Claude un pēc tam atlasiet Connect to Claude.",
+      "directoryLink": "NocoDB savienotājs",
+      "directoryImageAlt": "NocoDB lapa Claude savienotāju katalogā ar pogu Connect to Claude",
+      "addBody": "Atveriet {link} programmā Claude un atlasiet Add custom connector. Nosauciet to par NocoDB, ielīmējiet zemāk norādīto URL un pēc tam atlasiet Add.",
+      "addLink": "Savienotāji",
+      "identityNote": "Ja Claude jautā, kā NocoDB to identificēt, izvēlieties Register automatically.",
+      "teamNote": "Team vai Enterprise plānā NocoDB vispirms jāpievieno Owner sadaļā",
+      "teamLink": "Organizācijas iestatījumi",
+      "authorizeImageAlt": "NocoDB ekrāns, kurā tiek lūgts autorizēt Claude piekļuvi jūsu kontam",
+      "directoryAuthBody": "Kad tiek prasīts, piesakieties NocoDB, izvēlieties, kam Claude var piekļūt un kurus rīkus tas var izmantot, pēc tam atlasiet Authorize.",
+      "authBody": "Atlasiet Connect blakus NocoDB un piesakieties. Izvēlieties, kam Claude var piekļūt un kurus rīkus tas var izmantot, pēc tam atlasiet Authorize.",
+      "tryBody": "Sāciet jaunu tērzēšanu vietnē {link} un pajautājiet «List my NocoDB tools»."
+    },
+    "chatgpt": {
+      "subtitle": "Iestatiet vienu reizi vietnē chatgpt.com.",
+      "openTitle": "Atvērt pielāgotā MCP servera veidlapu",
+      "openBody": "Atveriet {link} programmā ChatGPT, atlasiet Add un pēc tam Add custom MCP server.",
+      "openLink": "Spraudņi",
+      "openImageAlt": "ChatGPT lapa Plugins ar atvērtu izvēlni Add uz Add custom MCP server",
+      "addTitle": "Pievienot NocoDB kā spraudni",
+      "addBody": "Nosauciet to par NocoDB, ielīmējiet zemāk norādīto URL laukā Server URL, atstājiet Authentication uz OAuth un izveidojiet to.",
+      "addImageAlt": "ChatGPT veidlapa «Add custom MCP server» ar laukiem Name, Server URL un Authentication",
+      "authBody": "Kad tiek prasīts, piesakieties NocoDB, izvēlieties, kam ChatGPT var piekļūt un kurus rīkus tas var izmantot, pēc tam atlasiet Authorize.",
+      "tryBody": "Sāciet jaunu tērzēšanu vietnē {link}, ierakstiet {'@'}, izvēlieties NocoDB un pajautājiet «List my NocoDB tools»."
+    },
+    "cursor": {
+      "subtitle": "Cursor datora lietotnei.",
+      "addBody": "Atlasiet {link} un pēc tam apstipriniet, kad atveras Cursor.",
+      "addLink": "Pievienot Cursor",
+      "downloadNote": "Vēl nav Cursor?",
+      "download": "Lejupielādēt Cursor",
+      "manualToggle": "Pievienot manuāli",
+      "manualLabel": "Pievienojiet šo failam ~/.cursor/mcp.json:",
+      "authBody": "Programmā Cursor sadaļā Settings › MCP atlasiet Needs login blakus NocoDB. Izvēlieties, kam Cursor var piekļūt un kurus rīkus tas var izmantot, pēc tam atlasiet Authorize.",
+      "tryBody": "Atveriet Agent tērzēšanu programmā Cursor un pajautājiet «List my NocoDB tools»."
+    },
+    "claudeCode": {
+      "subtitle": "Pievienojiet vienu reizi, un tas darbojas katrā projektā.",
+      "addBody": "Palaidiet šo terminālī:",
+      "installNote": "Vēl nav Claude Code?",
+      "install": "Instalēt Claude Code",
+      "authBody": "Programmā Claude Code palaidiet /mcp, izvēlieties nocodb un atlasiet Authenticate. Pārlūkprogrammā izvēlieties, kam tas var piekļūt un kurus rīkus tas var izmantot, pēc tam atlasiet Authorize.",
+      "tryBody": "Palaidiet Claude Code un pajautājiet «List my NocoDB tools»."
+    },
+    "others": {
+      "subtitle": "Darbojas ar jebkuru rīku, kas atbalsta attālus MCP serverus ar pieteikšanos (OAuth).",
+      "findTitle": "Atrast MCP iestatījumus",
+      "findBody": "Sava MI rīka iestatījumos meklējiet MCP, Connectors, Integrations, Apps vai Tools.",
+      "addBody": "Pievienojiet pielāgotu vai attālu MCP serveri un pēc tam ielīmējiet zemāk norādīto URL. Ja tiek prasīts transports, izvēlieties Streamable HTTP.",
+      "authBody": "Ja jūsu rīks prasa autentifikācijas metodi, izvēlieties OAuth. Kad tiek prasīts, piesakieties NocoDB, izvēlieties, kam tas var piekļūt un kurus rīkus tas var izmantot, pēc tam atlasiet Authorize.",
+      "tryBody": "Sāciet jaunu tērzēšanu un pajautājiet «List my NocoDB tools».",
+      "tokenText": "Vai jūsu rīks pieņem tikai pilnvaru?",
+      "tokenButton": "Izveidot MCP pilnvaru"
     }
   }
 }

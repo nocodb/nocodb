@@ -5178,7 +5178,60 @@
     "navigation": "Navigácia",
     "prompts": "Prompty",
     "pagination": "Stránkovanie",
-    "showRowNumbers": "Zobraziť čísla riadkov"
+    "showRowNumbers": "Zobraziť čísla riadkov",
+    "blocked": "Zablokované",
+    "abuseReport": {
+      "reportedItem": "Nahlásená položka",
+      "reporter": "Nahlasovateľ",
+      "received": "Prijaté",
+      "reportDetails": "Podrobnosti",
+      "publicLink": "Verejný odkaz",
+      "linkLive": "Aktívny",
+      "linkDisabled": "Zakázané",
+      "accounts": "Účty",
+      "disableLink": "Zakázať odkaz",
+      "dismiss": "Zamietnuť",
+      "markResolved": "Označiť ako vyriešené",
+      "reopen": "Znovu otvoriť",
+      "statuses": {
+        "open": "Otvorené",
+        "resolved": "Vyriešené",
+        "dismissed": "Zamietnuté"
+      },
+      "resourceTypes": {
+        "shared_view": "Zdieľané zobrazenie",
+        "interface": "Rozhranie",
+        "dashboard": "Prehľad",
+        "artifact": "Artefakt"
+      },
+      "candidateRoles": {
+        "owner": "Vlastník",
+        "creator": "Autor",
+        "base_owner": "Vlastník bázy"
+      },
+      "yourName": "Vaše meno",
+      "yourEmail": "Váš e-mail",
+      "reason": "Dôvod",
+      "reasonPlaceholder": "Vyberte dôvod",
+      "details": "Prečo nahlasujete túto stránku?",
+      "submit": "Odoslať hlásenie",
+      "reasons": {
+        "phishing": "Phishing alebo získavanie prihlasovacích údajov",
+        "scam": "Podvod alebo klamstvo",
+        "impersonation": "Vydávanie sa za iného",
+        "malware": "Malvér alebo škodlivé odkazy",
+        "illegal_content": "Nelegálny obsah",
+        "other": "Iné"
+      }
+    },
+    "allowReportingAbuse": "Povoliť návštevníkom nahlasovať verejné stránky pre zneužitie",
+    "abuseContactEmail": "Kontaktný e-mail pre zneužitie",
+    "editAltText": "Upraviť alternatívny text",
+    "attachmentDownloadFailed": "Tento súbor sa nepodarilo stiahnuť",
+    "factoryMachine": "Stroj",
+    "factoryMachineAlsoIncluded": "Vždy zahrnuté: git, GitHub CLI, ripgrep, Chrome a desktop.",
+    "factoryMachineApplyFix": "Použiť a znovu zostaviť",
+    "factoryMachineAllVersions": "Všetky verzie"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -5483,7 +5536,9 @@
     "deleteLink": "Odstrániť odkaz",
     "linkSettings": "Nastavenia odkazu",
     "invitePeopleCount": "Pozvať {count} osobu | Pozvať {count} osôb",
-    "inviteThemInstead": "Pozvať ich namiesto toho"
+    "inviteThemInstead": "Pozvať ich namiesto toho",
+    "blockUser": "Zablokovať používateľa",
+    "unblockUser": "Odblokovať používateľa"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -7441,6 +7496,92 @@
         "title": "Účet a nastavenia",
         "description": "Profil, vzhľad, klávesové skratky aj nastavenia účtu nájdete pod svojím avatarom."
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "Používať NocoDB z",
+    "title": "Pripojte svoje nástroje AI k NocoDB MCP",
+    "description": "Pracujte so svojimi bázami, tabuľkami, pracovnými postupmi a rozhraniami NocoDB priamo z Claude, ChatGPT a ďalších klientov MCP.",
+    "pickTitle": "Aký nástroj používate?",
+    "serverUrlLabel": "Poznáte už MCP? Použite túto URL servera",
+    "serverUrl": "URL servera",
+    "allTools": "Všetky nástroje",
+    "nocodbGuide": "Sprievodca nastavením NocoDB",
+    "opensInNewTab": "(otvorí sa na novej karte)",
+    "urlCopied": "URL servera MCP skopírovaná",
+    "copied": "Skopírované",
+    "copyUrl": "Kopírovať URL servera MCP",
+    "copyCommand": "Kopírovať príkaz",
+    "copyConfig": "Kopírovať konfiguráciu",
+    "connected": "Pripojené",
+    "connectedTo": "Pripojené. {client} teraz môže používať NocoDB.",
+    "step": "Krok {n}:",
+    "stepDone": "Krok {n}, hotovo:",
+    "addAsServer": "Pridať NocoDB ako server MCP",
+    "authTitle": "Autorizujte svoj účet NocoDB",
+    "tryTitle": "Vyskúšajte to",
+    "setupIn": "Nastaviť NocoDB v {client}",
+    "setupInOther": "Nastaviť NocoDB v inom nástroji",
+    "tileAria": "Nastaviť NocoDB v {client}",
+    "tileAriaConnected": "Nastaviť NocoDB v {client}, pripojené",
+    "othersLabel": "Ostatné",
+    "claude": {
+      "subtitle": "Nastavte raz na claude.ai. Potom funguje aj v desktopovej a mobilnej aplikácii.",
+      "directorySubtitle": "NocoDB je v adresári konektorov Claude. Pripojte ho raz na claude.ai a funguje aj v desktopovej a mobilnej aplikácii.",
+      "addTitle": "Pridať NocoDB ako konektor",
+      "directoryBody": "Otvorte {link} v Claude a potom vyberte Connect to Claude.",
+      "directoryLink": "Konektor NocoDB",
+      "directoryImageAlt": "Stránka NocoDB v adresári konektorov Claude s tlačidlom Connect to Claude",
+      "addBody": "Otvorte {link} v Claude a vyberte Add custom connector. Pomenujte ho NocoDB, vložte nižšie uvedenú URL a potom vyberte Add.",
+      "addLink": "Konektory",
+      "identityNote": "Ak sa Claude opýta, ako ho má NocoDB identifikovať, vyberte Register automatically.",
+      "teamNote": "V pláne Team alebo Enterprise musí NocoDB najprv pridať Owner v",
+      "teamLink": "Nastavenia organizácie",
+      "authorizeImageAlt": "Obrazovka NocoDB, ktorá vás žiada o autorizáciu prístupu Claude k vášmu účtu",
+      "directoryAuthBody": "Po výzve sa prihláste do NocoDB, vyberte, k čomu môže Claude pristupovať a ktoré nástroje môže používať, a potom vyberte Authorize.",
+      "authBody": "Vyberte Connect vedľa NocoDB a prihláste sa. Vyberte, k čomu môže Claude pristupovať a ktoré nástroje môže používať, a potom vyberte Authorize.",
+      "tryBody": "Spustite nový chat v {link} a opýtajte sa «List my NocoDB tools»."
+    },
+    "chatgpt": {
+      "subtitle": "Nastavte raz na chatgpt.com.",
+      "openTitle": "Otvoriť formulár vlastného servera MCP",
+      "openBody": "Otvorte {link} v ChatGPT, vyberte Add a potom Add custom MCP server.",
+      "openLink": "Zásuvné moduly",
+      "openImageAlt": "Stránka Plugins v ChatGPT s otvorenou ponukou Add na položke Add custom MCP server",
+      "addTitle": "Pridať NocoDB ako zásuvný modul",
+      "addBody": "Pomenujte ho NocoDB, vložte nižšie uvedenú URL do poľa Server URL, ponechajte Authentication na OAuth a vytvorte ho.",
+      "addImageAlt": "Formulár «Add custom MCP server» v ChatGPT s poliami Name, Server URL a Authentication",
+      "authBody": "Po výzve sa prihláste do NocoDB, vyberte, k čomu môže ChatGPT pristupovať a ktoré nástroje môže používať, a potom vyberte Authorize.",
+      "tryBody": "Spustite nový chat v {link}, napíšte {'@'}, vyberte NocoDB a opýtajte sa «List my NocoDB tools»."
+    },
+    "cursor": {
+      "subtitle": "Pre desktopovú aplikáciu Cursor.",
+      "addBody": "Vyberte {link} a potvrďte, keď sa Cursor otvorí.",
+      "addLink": "Pridať do Cursora",
+      "downloadNote": "Ešte nemáte Cursor?",
+      "download": "Stiahnuť Cursor",
+      "manualToggle": "Pridať ručne",
+      "manualLabel": "Pridajte toto do ~/.cursor/mcp.json:",
+      "authBody": "V Cursore v Settings › MCP vyberte Needs login vedľa NocoDB. Vyberte, k čomu môže Cursor pristupovať a ktoré nástroje môže používať, a potom vyberte Authorize.",
+      "tryBody": "Otvorte chat Agent v Cursore a opýtajte sa «List my NocoDB tools»."
+    },
+    "claudeCode": {
+      "subtitle": "Pridajte ho raz a funguje v každom projekte.",
+      "addBody": "Spustite toto v termináli:",
+      "installNote": "Ešte nemáte Claude Code?",
+      "install": "Nainštalovať Claude Code",
+      "authBody": "V Claude Code spustite /mcp, vyberte nocodb a zvoľte Authenticate. V prehliadači vyberte, k čomu môže pristupovať a ktoré nástroje môže používať, a potom vyberte Authorize.",
+      "tryBody": "Spustite Claude Code a opýtajte sa «List my NocoDB tools»."
+    },
+    "others": {
+      "subtitle": "Funguje s každým nástrojom, ktorý podporuje vzdialené servery MCP s prihlásením (OAuth).",
+      "findTitle": "Nájsť nastavenia MCP",
+      "findBody": "V nastaveniach svojho nástroja AI hľadajte MCP, Connectors, Integrations, Apps alebo Tools.",
+      "addBody": "Pridajte vlastný alebo vzdialený server MCP a potom vložte nižšie uvedenú URL. Ak sa opýta na transport, vyberte Streamable HTTP.",
+      "authBody": "Ak váš nástroj žiada metódu overenia, vyberte OAuth. Po výzve sa prihláste do NocoDB, vyberte, k čomu môže pristupovať a ktoré nástroje môže používať, a potom vyberte Authorize.",
+      "tryBody": "Spustite nový chat a opýtajte sa «List my NocoDB tools».",
+      "tokenText": "Váš nástroj prijíma iba token?",
+      "tokenButton": "Vytvoriť token MCP"
     }
   }
 }

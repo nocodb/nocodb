@@ -5179,7 +5179,61 @@
     "navigation": "Nabigazioa",
     "prompts": "Prompt-ak",
     "pagination": "Orrikatzea",
-    "showRowNumbers": "Erakutsi errenkada-zenbakiak"
+    "showRowNumbers": "Erakutsi errenkada-zenbakiak",
+    "blocked": "Blokeatuta",
+    "abuseReport": {
+      "reportedItem": "Salatutako elementua",
+      "reporter": "Salatzailea",
+      "received": "Jasota",
+      "reportDetails": "Xehetasunak",
+      "publicLink": "Esteka publikoa",
+      "linkLive": "Aktibo",
+      "linkDisabled": "Desgaituta",
+      "accounts": "Kontuak",
+      "disableLink": "Desgaitu esteka",
+      "dismiss": "Baztertu",
+      "markResolved": "Markatu konpondu gisa",
+      "reopen": "Ireki berriro",
+      "statuses": {
+        "open": "Irekita",
+        "resolved": "Konponduta",
+        "dismissed": "Baztertuta"
+      },
+      "resourceTypes": {
+        "shared_view": "Partekatutako ikuspegia",
+        "interface": "Interfazea",
+        "dashboard": "Arbela",
+        "artifact": "Artefaktua"
+      },
+      "candidateRoles": {
+        "owner": "Jabea",
+        "creator": "Sortzailea",
+        "base_owner": "Basearen jabea"
+      },
+      "yourName": "Zure izena",
+      "yourEmail": "Zure helbide elektronikoa",
+      "reason": "Arrazoia",
+      "reasonPlaceholder": "Hautatu arrazoi bat",
+      "details": "Zergatik salatzen duzu orri hau?",
+      "submit": "Bidali salaketa",
+      "reasons": {
+        "phishing": "Phishing edo kredentzialen bilketa",
+        "scam": "Iruzurra edo amarrua",
+        "impersonation": "Nortasun-iruzurra",
+        "malware": "Malware edo esteka kaltegarriak",
+        "illegal_content": "Eduki legez kanpokoa",
+        "spam": "Spama",
+        "other": "Bestelakoa"
+      }
+    },
+    "allowReportingAbuse": "Baimendu bisitariei orri publikoak gehiegikeriagatik salatzea",
+    "abuseContactEmail": "Gehiegikeriak jakinarazteko helbide elektronikoa",
+    "editAltText": "Editatu testu alternatiboa",
+    "attachmentDownloadFailed": "Ezin izan da fitxategi hau deskargatu",
+    "factoryMachine": "Makina",
+    "factoryMachineAlsoIncluded": "Beti barne: git, GitHub CLI, ripgrep, Chrome eta mahaigaina.",
+    "factoryMachineApplyFix": "Aplikatu eta berreraiki",
+    "factoryMachineAllVersions": "Bertsio guztiak"
   },
   "activity": {
     "useTemplate": "Erabili txantiloia",
@@ -5484,7 +5538,9 @@
     "linkSettings": "Estekaren ezarpenak",
     "invitePeopleCount": "Gonbidatu pertsona {count} | Gonbidatu {count} pertsona",
     "inviteThemInstead": "Gonbidatu haiek horren ordez",
-    "searchProject": "Bilatu proiektua"
+    "searchProject": "Bilatu proiektua",
+    "blockUser": "Blokeatu erabiltzailea",
+    "unblockUser": "Desblokeatu erabiltzailea"
   },
   "tooltip": {
     "shiftClickWeekStep": "H eutsi Shift sakatuta astebetez aurrera egiteko",
@@ -7442,6 +7498,92 @@
         "title": "Kontua eta ezarpenak",
         "description": "Profila, gaia, teklatuko lasterbideak eta kontuaren ezarpenak zure abatarraren atzean daude denak."
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "Erabili NocoDB hemendik",
+    "title": "Konektatu zure AA tresnak NocoDB MCP-ra",
+    "description": "Lan egin zure NocoDB baseekin, taulekin, lan-fluxuekin eta interfazeekin zuzenean Claude, ChatGPT eta beste MCP bezeroetatik.",
+    "pickTitle": "Zein tresna erabiltzen duzu?",
+    "serverUrlLabel": "MCP ezagutzen duzu jada? Erabili zerbitzariaren URL hau",
+    "serverUrl": "Zerbitzariaren URL helbidea",
+    "allTools": "Tresna guztiak",
+    "nocodbGuide": "NocoDB konfiguratzeko gida",
+    "opensInNewTab": "(fitxa berri batean irekitzen da)",
+    "urlCopied": "MCP zerbitzariaren URL helbidea kopiatu da",
+    "copied": "Kopiatuta",
+    "copyUrl": "Kopiatu MCP zerbitzariaren URL helbidea",
+    "copyCommand": "Kopiatu komandoa",
+    "copyConfig": "Kopiatu konfigurazioa",
+    "connected": "Konektatuta",
+    "connectedTo": "Konektatuta. {client} orain NocoDB erabil dezake.",
+    "step": "{n}. urratsa:",
+    "stepDone": "{n}. urratsa, eginda:",
+    "addAsServer": "Gehitu NocoDB MCP zerbitzari gisa",
+    "authTitle": "Baimendu zure NocoDB kontua",
+    "tryTitle": "Probatu",
+    "setupIn": "Konfiguratu NocoDB {client} aplikazioan",
+    "setupInOther": "Konfiguratu NocoDB beste tresna batean",
+    "tileAria": "Konfiguratu NocoDB {client} aplikazioan",
+    "tileAriaConnected": "Konfiguratu NocoDB {client} aplikazioan, konektatuta",
+    "othersLabel": "Besteak",
+    "claude": {
+      "subtitle": "Behin konfiguratu claude.ai gunean. Ondoren mahaigaineko eta mugikorreko aplikazioetan ere funtzionatzen du.",
+      "directorySubtitle": "NocoDB Claude-ren konektore-direktorioan dago. Konektatu behin claude.ai gunean eta mahaigaineko eta mugikorreko aplikazioetan ere funtzionatuko du.",
+      "addTitle": "Gehitu NocoDB konektore gisa",
+      "directoryBody": "Ireki {link} Claude-n eta gero hautatu Connect to Claude.",
+      "directoryLink": "NocoDB konektorea",
+      "directoryImageAlt": "NocoDB orria Claude-ren konektore-direktorioan, Connect to Claude botoiarekin",
+      "addBody": "Ireki {link} Claude-n eta hautatu Add custom connector. Eman NocoDB izena, itsatsi beheko URL helbidea eta gero hautatu Add.",
+      "addLink": "Konektoreak",
+      "identityNote": "Claude-k NocoDB-k nola identifikatu behar duen galdetzen badu, hautatu Register automatically.",
+      "teamNote": "Team edo Enterprise planean, Owner batek gehitu behar du NocoDB lehenik hemen:",
+      "teamLink": "Erakundearen ezarpenak",
+      "authorizeImageAlt": "NocoDB-ren pantaila, Claude-ri zure kontua atzitzeko baimena emateko eskatzen duena",
+      "directoryAuthBody": "Hasi saioa NocoDB-n eskatzen zaizunean, aukeratu Claude-k zer atzi dezakeen eta zein tresna erabil ditzakeen, eta ondoren hautatu Authorize.",
+      "authBody": "Hautatu NocoDB ondoko Connect eta hasi saioa. Aukeratu Claude-k zer atzi dezakeen eta zein tresna erabil ditzakeen, eta ondoren hautatu Authorize.",
+      "tryBody": "Hasi berriketa berri bat hemen: {link} eta galdetu «List my NocoDB tools»."
+    },
+    "chatgpt": {
+      "subtitle": "Behin konfiguratu chatgpt.com gunean.",
+      "openTitle": "Ireki MCP zerbitzari pertsonalizatuaren inprimakia",
+      "openBody": "Ireki {link} ChatGPT-n, hautatu Add eta gero Add custom MCP server.",
+      "openLink": "Pluginak",
+      "openImageAlt": "ChatGPT-ren Plugins orria, Add menua Add custom MCP server aukeran irekita",
+      "addTitle": "Gehitu NocoDB plugin gisa",
+      "addBody": "Eman NocoDB izena, itsatsi beheko URL helbidea Server URL eremuan, utzi Authentication OAuth balioarekin eta sortu ezazu.",
+      "addImageAlt": "ChatGPT-ren «Add custom MCP server» inprimakia, Name, Server URL eta Authentication eremuekin",
+      "authBody": "Hasi saioa NocoDB-n eskatzen zaizunean, aukeratu ChatGPT-k zer atzi dezakeen eta zein tresna erabil ditzakeen, eta ondoren hautatu Authorize.",
+      "tryBody": "Hasi berriketa berri bat hemen: {link}, idatzi {'@'}, hautatu NocoDB eta galdetu «List my NocoDB tools»."
+    },
+    "cursor": {
+      "subtitle": "Cursor mahaigaineko aplikaziorako.",
+      "addBody": "Hautatu {link} eta berretsi Cursor irekitzean.",
+      "addLink": "Gehitu Cursor-era",
+      "downloadNote": "Ez duzu oraindik Cursor?",
+      "download": "Deskargatu Cursor",
+      "manualToggle": "Gehitu eskuz horren ordez",
+      "manualLabel": "Gehitu hau ~/.cursor/mcp.json fitxategian:",
+      "authBody": "Cursor-en Settings › MCP atalean, hautatu NocoDB ondoko Needs login. Aukeratu Cursor-ek zer atzi dezakeen eta zein tresna erabil ditzakeen, eta ondoren hautatu Authorize.",
+      "tryBody": "Ireki Agent berriketa Cursor-en eta galdetu «List my NocoDB tools»."
+    },
+    "claudeCode": {
+      "subtitle": "Gehitu behin eta proiektu guztietan funtzionatuko du.",
+      "addBody": "Exekutatu hau terminalean:",
+      "installNote": "Ez duzu oraindik Claude Code?",
+      "install": "Instalatu Claude Code",
+      "authBody": "Claude Code-n exekutatu /mcp, hautatu nocodb eta hautatu Authenticate. Nabigatzailean aukeratu zer atzi dezakeen eta zein tresna erabil ditzakeen, eta ondoren hautatu Authorize.",
+      "tryBody": "Abiarazi Claude Code eta galdetu «List my NocoDB tools»."
+    },
+    "others": {
+      "subtitle": "Saio-hasiera (OAuth) duten urruneko MCP zerbitzariak onartzen dituen edozein tresnarekin funtzionatzen du.",
+      "findTitle": "Aurkitu MCP ezarpenak",
+      "findBody": "Zure AA tresnaren ezarpenetan, bilatu MCP, Connectors, Integrations, Apps edo Tools.",
+      "addBody": "Gehitu MCP zerbitzari pertsonalizatu edo urruneko bat eta itsatsi beheko URL helbidea. Garraioa eskatzen badizu, hautatu Streamable HTTP.",
+      "authBody": "Zure tresnak autentifikazio-metodoa eskatzen badizu, hautatu OAuth. Hasi saioa NocoDB-n eskatzen zaizunean, aukeratu zer atzi dezakeen eta zein tresna erabil ditzakeen, eta ondoren hautatu Authorize.",
+      "tryBody": "Hasi berriketa berri bat eta galdetu «List my NocoDB tools».",
+      "tokenText": "Zure tresnak token bat besterik ez du onartzen?",
+      "tokenButton": "Sortu MCP token bat"
     }
   }
 }

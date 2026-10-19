@@ -5184,7 +5184,61 @@
     "navigation": "导航",
     "prompts": "提示词",
     "pagination": "分页",
-    "showRowNumbers": "显示行号"
+    "showRowNumbers": "显示行号",
+    "blocked": "已屏蔽",
+    "abuseReport": {
+      "reportedItem": "被举报的项目",
+      "reporter": "举报人",
+      "received": "已收到",
+      "reportDetails": "详细信息",
+      "publicLink": "公开链接",
+      "linkLive": "有效",
+      "linkDisabled": "已停用",
+      "accounts": "账户",
+      "disableLink": "停用链接",
+      "dismiss": "忽略",
+      "markResolved": "标记为已解决",
+      "reopen": "重新打开",
+      "statuses": {
+        "open": "待处理",
+        "resolved": "已解决",
+        "dismissed": "已忽略"
+      },
+      "resourceTypes": {
+        "shared_view": "共享视图",
+        "interface": "界面",
+        "dashboard": "仪表板",
+        "artifact": "工件"
+      },
+      "candidateRoles": {
+        "owner": "所有者",
+        "creator": "创建者",
+        "base_owner": "数据库所有者"
+      },
+      "yourName": "你的姓名",
+      "yourEmail": "你的邮箱",
+      "reason": "原因",
+      "reasonPlaceholder": "请选择原因",
+      "details": "你为什么要举报此页面？",
+      "submit": "提交举报",
+      "reasons": {
+        "phishing": "钓鱼或窃取凭据",
+        "scam": "诈骗或欺诈",
+        "impersonation": "冒充他人",
+        "malware": "恶意软件或有害链接",
+        "illegal_content": "非法内容",
+        "spam": "垃圾信息",
+        "other": "其他"
+      }
+    },
+    "allowReportingAbuse": "允许访问者举报公开页面的滥用行为",
+    "abuseContactEmail": "滥用举报联系邮箱",
+    "editAltText": "编辑替代文本",
+    "attachmentDownloadFailed": "无法下载此文件",
+    "factoryMachine": "机器",
+    "factoryMachineAlsoIncluded": "始终包含：git、GitHub CLI、ripgrep、Chrome 和桌面。",
+    "factoryMachineApplyFix": "应用并重新构建",
+    "factoryMachineAllVersions": "所有版本"
   },
   "activity": {
     "useTemplate": "使用模板",
@@ -5488,7 +5542,9 @@
     "deleteLink": "删除链接",
     "linkSettings": "链接设置",
     "invitePeopleCount": "邀请 {count} 人 | 邀请 {count} 人",
-    "inviteThemInstead": "改为邀请他们"
+    "inviteThemInstead": "改为邀请他们",
+    "blockUser": "屏蔽用户",
+    "unblockUser": "解除屏蔽用户"
   },
   "tooltip": {
     "shiftClickWeekStep": "按住 Shift 步进1 周",
@@ -7446,6 +7502,92 @@
         "title": "这就是完整的流程",
         "description": "触发器、动作、发布、启用、运行、日志。你之后搭建的每个工作流程都是同样的结构。"
       }
+    }
+  },
+  "connectAi": {
+    "menuLabel": "从以下应用使用 NocoDB",
+    "title": "将你的 AI 工具连接到 NocoDB MCP",
+    "description": "直接在 Claude、ChatGPT 和其他 MCP 客户端中处理你的 NocoDB 数据库、表、工作流和界面。",
+    "pickTitle": "你使用哪个工具？",
+    "serverUrlLabel": "已经了解 MCP？使用此服务器 URL",
+    "serverUrl": "服务器 URL",
+    "allTools": "所有工具",
+    "nocodbGuide": "NocoDB 设置指南",
+    "opensInNewTab": "（在新标签页中打开）",
+    "urlCopied": "已复制 MCP 服务器 URL",
+    "copied": "已复制",
+    "copyUrl": "复制 MCP 服务器 URL",
+    "copyCommand": "复制命令",
+    "copyConfig": "复制配置",
+    "connected": "已连接",
+    "connectedTo": "已连接。{client} 现在可以使用 NocoDB 了。",
+    "step": "第 {n} 步：",
+    "stepDone": "第 {n} 步，已完成：",
+    "addAsServer": "将 NocoDB 添加为 MCP 服务器",
+    "authTitle": "授权你的 NocoDB 账户",
+    "tryTitle": "试一试",
+    "setupIn": "在 {client} 中设置 NocoDB",
+    "setupInOther": "在其他工具中设置 NocoDB",
+    "tileAria": "在 {client} 中设置 NocoDB",
+    "tileAriaConnected": "在 {client} 中设置 NocoDB，已连接",
+    "othersLabel": "其他",
+    "claude": {
+      "subtitle": "在 claude.ai 上设置一次即可。之后在桌面和移动应用中也能使用。",
+      "directorySubtitle": "NocoDB 已收录在 Claude 的连接器目录中。在 claude.ai 上连接一次，桌面和移动应用中也能使用。",
+      "addTitle": "将 NocoDB 添加为连接器",
+      "directoryBody": "在 Claude 中打开 {link}，然后选择 Connect to Claude。",
+      "directoryLink": "NocoDB 连接器",
+      "directoryImageAlt": "Claude 连接器目录中的 NocoDB 页面，带有 Connect to Claude 按钮",
+      "addBody": "在 Claude 中打开 {link} 并选择 Add custom connector。将其命名为 NocoDB，粘贴下面的 URL，然后选择 Add。",
+      "addLink": "连接器",
+      "identityNote": "如果 Claude 询问 NocoDB 应如何识别它，请选择 Register automatically。",
+      "teamNote": "在 Team 或 Enterprise 套餐中，需先由 Owner 在以下位置添加 NocoDB：",
+      "teamLink": "组织设置",
+      "authorizeImageAlt": "NocoDB 请求你授权 Claude 访问账户的页面",
+      "directoryAuthBody": "出现提示时登录 NocoDB，选择 Claude 可以访问的内容和可以使用的工具，然后选择 Authorize。",
+      "authBody": "选择 NocoDB 旁边的 Connect 并登录。选择 Claude 可以访问的内容和可以使用的工具，然后选择 Authorize。",
+      "tryBody": "在 {link} 中开始新对话并询问「List my NocoDB tools」。"
+    },
+    "chatgpt": {
+      "subtitle": "在 chatgpt.com 上设置一次即可。",
+      "openTitle": "打开自定义 MCP 服务器表单",
+      "openBody": "在 ChatGPT 中打开 {link}，依次选择 Add 和 Add custom MCP server。",
+      "openLink": "插件",
+      "openImageAlt": "ChatGPT 的 Plugins 页面，Add 菜单已展开到 Add custom MCP server",
+      "addTitle": "将 NocoDB 添加为插件",
+      "addBody": "将其命名为 NocoDB，把下面的 URL 粘贴到 Server URL，将 Authentication 保持为 OAuth，然后创建。",
+      "addImageAlt": "ChatGPT 的「Add custom MCP server」表单，包含 Name、Server URL 和 Authentication 字段",
+      "authBody": "出现提示时登录 NocoDB，选择 ChatGPT 可以访问的内容和可以使用的工具，然后选择 Authorize。",
+      "tryBody": "在 {link} 中开始新对话，输入 {'@'}，选择 NocoDB 并询问「List my NocoDB tools」。"
+    },
+    "cursor": {
+      "subtitle": "适用于 Cursor 桌面应用。",
+      "addBody": "选择 {link}，然后在 Cursor 打开时确认。",
+      "addLink": "添加到 Cursor",
+      "downloadNote": "还没有 Cursor？",
+      "download": "下载 Cursor",
+      "manualToggle": "改为手动添加",
+      "manualLabel": "将以下内容添加到 ~/.cursor/mcp.json：",
+      "authBody": "在 Cursor 的 Settings › MCP 中，选择 NocoDB 旁边的 Needs login。选择 Cursor 可以访问的内容和可以使用的工具，然后选择 Authorize。",
+      "tryBody": "在 Cursor 中打开 Agent 聊天并询问「List my NocoDB tools」。"
+    },
+    "claudeCode": {
+      "subtitle": "添加一次，所有项目均可使用。",
+      "addBody": "在终端中运行以下命令：",
+      "installNote": "还没有 Claude Code？",
+      "install": "安装 Claude Code",
+      "authBody": "在 Claude Code 中运行 /mcp，选择 nocodb，然后选择 Authenticate。在浏览器中选择它可以访问的内容和可以使用的工具，然后选择 Authorize。",
+      "tryBody": "启动 Claude Code 并询问「List my NocoDB tools」。"
+    },
+    "others": {
+      "subtitle": "适用于任何支持带登录（OAuth）的远程 MCP 服务器的工具。",
+      "findTitle": "查找 MCP 设置",
+      "findBody": "在 AI 工具的设置中查找 MCP、Connectors、Integrations、Apps 或 Tools。",
+      "addBody": "添加自定义或远程 MCP 服务器，然后粘贴下面的 URL。如果要求选择传输方式，请选择 Streamable HTTP。",
+      "authBody": "如果你的工具询问身份验证方式，请选择 OAuth。出现提示时登录 NocoDB，选择它可以访问的内容和可以使用的工具，然后选择 Authorize。",
+      "tryBody": "开始新对话并询问「List my NocoDB tools」。",
+      "tokenText": "你的工具只接受令牌？",
+      "tokenButton": "创建 MCP 令牌"
     }
   }
 }

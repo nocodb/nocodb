@@ -9,6 +9,7 @@ import {
   type ViewType,
 } from 'nocodb-sdk'
 import { createGroupUniqueIdentifier, generateGroupPath } from '../components/smartsheet/grid/canvas/utils/groupby'
+import { mergeRefetchedGroups } from '../components/smartsheet/grid/canvas/utils/groupRefresh'
 import { GROUP_CHUNK_SIZE } from '../components/smartsheet/grid/canvas/utils/constants'
 import type { CanvasGroup } from '#imports'
 import { groupKeysManager } from '#imports'
@@ -93,6 +94,9 @@ export const useInfiniteGroups = (
   // GROUPBY_MAX_RETRIES + 1 times — so total backend hits is bounded by
   // CANVAS_MAX_CHUNK_FETCH_ATTEMPTS * (GROUPBY_MAX_RETRIES + 1).
   const CANVAS_MAX_CHUNK_FETCH_ATTEMPTS = 3
+  // Bumped by a full reset (a reload for a filter, sort or group-by change): group data fetched
+  // before it belongs to the old grid and must not be written into the new one.
+  let groupsGeneration = 0
   const GROUPBY_MAX_RETRIES = 3
   const GROUPBY_RETRY_DELAY_MS = 50
   const chunkFailureCounts = new Map<string, number>()
@@ -168,6 +172,7 @@ export const useInfiniteGroups = (
 
     targetChunkStates[chunkId] = 'loading'
     const settleInFlight = markChunkInFlight(chunkKey)
+    const generation = groupsGeneration
 
     try {
       const nestedGrpWhereArr = buildNestedFilterArr(parentGroup) ?? []
@@ -228,6 +233,7 @@ export const useInfiniteGroups = (
         }
       }
       if (!response) throw new Error('groupBy: empty response after retries')
+      if (generation !== groupsGeneration) return
 
       const groups: CanvasGroup[] = []
       for (const item of response.list) {
@@ -364,6 +370,9 @@ export const useInfiniteGroups = (
         if (level === groupByColumns.value.length - 1) {
           group.path = groupPath
         }
+
+        // Link and lookup groups await their related meta above.
+        if (generation !== groupsGeneration) return
 
         if (parentGroup) {
           parentGroup.groups.set(groupIndex, group)
@@ -540,6 +549,7 @@ export const useInfiniteGroups = (
 
   const clearGroupCache = (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => {
     if (startIndex === Number.NEGATIVE_INFINITY && endIndex === Number.POSITIVE_INFINITY) {
+      groupsGeneration++
       cachedGroups.value = new Map()
       chunkStates.value = []
       // Reload-style full reset: any chunk we wipe must also have its failure
@@ -904,6 +914,84 @@ export const useInfiniteGroups = (
     callbacks?.syncVisibleData()
   }
 
+  /**
+   * Refetch the loaded group chunks under `parentGroup` (root when omitted) without clearing
+   * them, recursing into expanded kept groups — see mergeRefetchedGroups.
+   */
+  async function refreshLoadedGroups(parentGroup?: CanvasGroup): Promise<{
+    stalePaths: Array<Array<number>>
+    keptLeafGroups: CanvasGroup[]
+    countUpdates: Array<{ group: CanvasGroup; count: number }>
+    // A reload replaced the groups mid-refresh: nothing here applies to the new grid.
+    aborted?: boolean
+  }> {
+    const states = parentGroup ? parentGroup.chunkStates : chunkStates.value
+    const loadedChunks = states.flatMap((state, chunkId) => (state === 'loaded' ? [chunkId] : []))
+    if (!loadedChunks.length) return { stalePaths: [], keptLeafGroups: [], countUpdates: [] }
+
+    const generation = groupsGeneration
+    const rootGroups = cachedGroups.value
+    const groupsBefore = new Map(parentGroup ? parentGroup.groups : rootGroups)
+
+    await Promise.all(loadedChunks.map((chunkId) => fetchGroupChunk(chunkId, parentGroup, true)))
+
+    if (generation !== groupsGeneration || cachedGroups.value !== rootGroups) {
+      return { stalePaths: [], keptLeafGroups: [], countUpdates: [], aborted: true }
+    }
+
+    const isLeafLevel = (parentGroup ? findGroupLevel(parentGroup) : 0) === groupByColumns.value.length - 1
+    const total = parentGroup ? parentGroup.groupCount : totalGroups.value
+    const { stalePaths, expandedKept, countUpdates } = mergeRefetchedGroups({
+      groupsBefore,
+      groupMap: parentGroup ? parentGroup.groups : cachedGroups.value,
+      total,
+      isLeafLevel,
+    })
+
+    // The total arrives with the refetch, so a chunk past it was fetched anyway; it holds nothing now.
+    const refreshedStates = parentGroup ? parentGroup.chunkStates : chunkStates.value
+    for (let chunkId = 0; chunkId < refreshedStates.length; chunkId++) {
+      if (chunkId * GROUP_CHUNK_SIZE >= total) refreshedStates[chunkId] = undefined
+    }
+
+    if (isLeafLevel) return { stalePaths, keptLeafGroups: expandedKept, countUpdates }
+
+    const keptLeafGroups: CanvasGroup[] = []
+    for (const group of expandedKept) {
+      const nested = await refreshLoadedGroups(group)
+      if (nested.aborted) return nested
+      stalePaths.push(...nested.stalePaths)
+      keptLeafGroups.push(...nested.keptLeafGroups)
+      countUpdates.push(...nested.countUpdates)
+    }
+
+    return { stalePaths, keptLeafGroups, countUpdates }
+  }
+
+  /**
+   * After a peer's edit that kept every group's rows, clear the loaded group aggregations if a
+   * changed field is aggregated (unknown fields count as aggregated), so the viewport loader
+   * refetches them. Returns whether anything was cleared.
+   */
+  function invalidateGroupAggregations(changedFields?: string[]) {
+    if (!hasAggregations.value) return false
+
+    const isAggregated = (title: string) => {
+      const aggregation = gridViewColByTitle.value[title]?.aggregation
+      return !!aggregation && aggregation !== CommonAggregations.None
+    }
+    if (changedFields && !changedFields.some(isAggregated)) return false
+
+    const clear = (groups: Map<number, CanvasGroup>) => {
+      for (const group of groups.values()) {
+        group.aggregationState = undefined
+        if (group.groups?.size) clear(group.groups)
+      }
+    }
+    clear(cachedGroups.value)
+    return true
+  }
+
   const isGroupBy = computed(() => !!groupByColumns.value.length)
 
   return {
@@ -914,6 +1002,8 @@ export const useInfiniteGroups = (
     chunkStates,
     syncCount,
     fetchMissingGroupChunks,
+    refreshLoadedGroups,
+    invalidateGroupAggregations,
     clearGroupCache,
     toggleExpand,
     GROUP_CHUNK_SIZE,

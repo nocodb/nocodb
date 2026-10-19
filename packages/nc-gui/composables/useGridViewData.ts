@@ -3,6 +3,7 @@ import type { ComputedRef, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import { findGroupByPath } from '../components/smartsheet/grid/canvas/utils/groupby'
 import type { CanvasGroup } from '../lib/types'
+import { isGridCacheInUse } from '../components/smartsheet/grid/canvas/utils/groupRefresh'
 import { useInfiniteGroups } from './useInfiniteGroups'
 import { type CellRange, type Row } from '#imports'
 
@@ -52,7 +53,10 @@ export function useGridViewData(
     buildNestedFilterArr,
     clearGroupCache,
     syncCount: groupSyncCount,
+    chunkStates: groupChunkStates,
     fetchMissingGroupChunks,
+    refreshLoadedGroups,
+    invalidateGroupAggregations,
     updateGroupAggregations,
     fetchMissingGroupAggregations,
     toggleExpandAll,
@@ -95,6 +99,7 @@ export function useGridViewData(
     getRows,
     getDataCache,
     groupDataCache,
+    refreshLoadedRows,
   } = useInfiniteData({
     meta,
     viewMeta,
@@ -106,6 +111,15 @@ export function useGridViewData(
       reloadAggregate: triggerAggregateReload,
       findGroupByPath: (path?: Array<number>) => {
         return findGroupByPath(cachedGroups.value, path)
+      },
+      refreshInPlace: () => refreshInPlace(),
+      refreshGroupAggregations: (changedFields?: string[]) => {
+        // The non-canvas group-by grid keeps its rows outside these caches: let it reload.
+        if (!isGridCacheInUse(groupChunkStates.value)) {
+          refreshInPlace()
+          return
+        }
+        if (invalidateGroupAggregations(changedFields)) syncVisibleData()
       },
     },
     groupByColumns,
@@ -183,10 +197,10 @@ export function useGridViewData(
   // data event is missed — peers moving records between groups, deletes, updates —
   // so group counts and cached rows go stale and moved-out records linger as loading
   // placeholders. A page reload fixes it; so does resyncing the view on reconnect.
-  // Only on an actual reconnect, not the first handshake (data is already fresh then).
-  const offSocketReady = $ncSocket.onReady(({ reconnected }) => {
-    if (!reconnected) return
-    reloadViewDataHook?.trigger()
+  // Not on the first handshake (data is already fresh then). onReconnect, unlike onReady's
+  // `reconnected`, also covers a socket rebuilt on token refresh, which drops events too.
+  const offSocketReady = $ncSocket.onReconnect(() => {
+    refreshInPlace()
     // Footer/column aggregations aren't re-fetched by the data reload above (group
     // aggregations reload with their chunks, but the view-level footer only reloads
     // on view switch), so refresh them too or they'd stay stale after reconnect.
@@ -273,6 +287,80 @@ export function useGridViewData(
 
   function syncVisibleData() {
     reloadVisibleDataHook?.trigger()
+  }
+
+  let isRefreshingInPlace = false
+  let isRefreshInPlaceQueued = false
+
+  /**
+   * Resync after peers' changes without the loader or clearing the grid: refetch the loaded
+   * groups and rows over what's on screen. Groups whose value or index changed drop their rows,
+   * which the next render refetches. Calls during a run coalesce into one more run.
+   */
+  async function refreshInPlace() {
+    // Before the cache check: a run in flight has its chunks marked `loading`.
+    if (isRefreshingInPlace) {
+      isRefreshInPlaceQueued = true
+      return
+    }
+
+    // Nothing in these caches: the paginated table or the non-canvas group-by renders this view.
+    if (!isGridCacheInUse(isGroupBy.value ? groupChunkStates.value : chunkStates.value)) {
+      reloadViewDataHook?.trigger()
+      return
+    }
+    isRefreshingInPlace = true
+
+    try {
+      if (isGroupBy.value) await refreshGroupsInPlace()
+      else await refreshLoadedRows()
+    } catch (e) {
+      console.error('Failed to refresh grid in place', e)
+    } finally {
+      isRefreshingInPlace = false
+      syncVisibleData()
+    }
+
+    if (isRefreshInPlaceQueued) {
+      isRefreshInPlaceQueued = false
+      await refreshInPlace()
+    }
+  }
+
+  async function refreshGroupsInPlace() {
+    const { stalePaths, keptLeafGroups, countUpdates, aborted } = await refreshLoadedGroups()
+    // A reload replaced the groups meanwhile: their row caches belong to the new grid.
+    if (aborted) return
+
+    // Dropped rather than cleared, so a chunk request in flight for the old group is discarded.
+    const staleKeys = stalePaths.map((path) => path.join('-'))
+    for (const key of [...groupDataCache.value.keys()]) {
+      if (staleKeys.some((staleKey) => key === staleKey || key.startsWith(`${staleKey}-`))) {
+        groupDataCache.value.delete(key)
+      }
+    }
+
+    // A kept group's new count lands with its rows, not before: otherwise a moved row stays
+    // listed under the new count, and the group's last row drops off, until the rows arrive.
+    const nextCount = new Map(countUpdates.map(({ group, count }) => [group, count]))
+    const applyCount = (group: CanvasGroup) => {
+      if (!nextCount.has(group)) return
+      group.count = nextCount.get(group)!
+      nextCount.delete(group)
+    }
+
+    try {
+      await Promise.all(
+        keptLeafGroups
+          .filter((group) => group.path?.length)
+          .map((group) =>
+            refreshLoadedRows(group.path!, { total: nextCount.get(group) ?? group.count, applyTotal: () => applyCount(group) }),
+          ),
+      )
+    } finally {
+      // Groups with no rows on screen (collapsed, or parents) take theirs once the rows are in.
+      for (const [group, count] of nextCount) group.count = count
+    }
   }
 
   async function deleteSelectedRows(path: Array<number> = []): Promise<void> {
@@ -818,6 +906,7 @@ export function useGridViewData(
   return {
     cachedRows,
     loadData,
+    refreshInPlace,
     insertRow,
     updateRowProperty,
     addEmptyRow,

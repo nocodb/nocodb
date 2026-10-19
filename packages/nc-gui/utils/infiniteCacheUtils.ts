@@ -23,6 +23,9 @@
  * Removing a duplicate leaves a hole in its chunk, so the removed indices are returned —
  * callers must mark those chunks unloaded or the hole renders as a permanent placeholder.
  *
+ * A refetch over a row already cached at the same index updates that Row in place, so an
+ * open editor or the selection keeps pointing at it; a row with an unsaved local edit is kept.
+ *
  * @param cachedRows  the index -> Row cache to mutate in place
  * @param newItems    rows just fetched/formatted from the server
  * @param getPk       extracts a stable primary key from a row's data (null when absent)
@@ -59,7 +62,24 @@ export const upsertCachedRows = (
   }
 
   for (const item of newItems) {
-    cachedRows.set(item.rowMeta.rowIndex!, item)
+    const index = item.rowMeta.rowIndex!
+    const existing = cachedRows.get(index)
+    const pk = getPk(item.row)
+
+    if (existing && pk !== null && pk !== '' && getPk(existing.row) === pk) {
+      if (existing.rowMeta?.new || existing.rowMeta?.saving || existing.rowMeta?.changed) continue
+      Object.assign(existing.row, item.row)
+      existing.oldRow = { ...item.oldRow }
+      // Comment counts load after the rows, so the fresh row has none yet.
+      existing.rowMeta = {
+        ...item.rowMeta,
+        selected: existing.rowMeta?.selected,
+        commentCount: item.rowMeta.commentCount ?? existing.rowMeta?.commentCount,
+      }
+      continue
+    }
+
+    cachedRows.set(index, item)
   }
 
   return removedIndices
@@ -79,4 +99,27 @@ export const invalidateChunksAt = <T>(
     const chunk = Math.floor(index / chunkSize)
     if (!writtenChunks.includes(chunk)) chunkStates[chunk] = undefined
   }
+}
+
+/**
+ * The chunks an in-place refresh refetches: those loaded, plus any still holding cached rows
+ * though unloaded (a peer delete shifts the rows and unloads their chunk, but they stay on
+ * screen). A chunk mid-fetch is left to that fetch. Chunk 0 always counts, so an empty view clears.
+ */
+export const chunksToRefresh = (
+  chunkStates: Array<string | undefined>,
+  cachedIndices: Iterable<number>,
+  total: number,
+  chunkSize: number,
+): number[] => {
+  const limit = Math.max(total, 1)
+  const chunks = new Set<number>()
+  chunkStates.forEach((state, chunkId) => {
+    if (state === 'loaded' && chunkId * chunkSize < limit) chunks.add(chunkId)
+  })
+  for (const index of cachedIndices) {
+    const chunkId = Math.floor(index / chunkSize)
+    if (chunkId * chunkSize < limit && chunkStates[chunkId] !== 'loading') chunks.add(chunkId)
+  }
+  return [...chunks].sort((a, b) => a - b)
 }

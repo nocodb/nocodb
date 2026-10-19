@@ -1,4 +1,4 @@
-import { EventType, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN, EventType, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { FilterType, InterfaceFilterNode, LinkToAnotherRecordType, LookupType, RollupType, TableType } from 'nocodb-sdk'
 import { interfaceDataEventSuffix } from '~/lib/interfaceData'
 
@@ -110,4 +110,59 @@ export function isGroupByChanged(col: Record<string, any>, payload: Record<strin
   return ['group_by', 'group_by_sort', 'group_by_order', 'group_by_enabled'].some(
     (key) => key in payload && normalize(key, payload[key]) !== normalize(key, col[key]),
   )
+}
+
+export type ViewMembership = 'in' | 'out' | 'unknown'
+
+export function viewMembership(matchedViewIds: string[] | undefined, viewId: string | undefined): ViewMembership {
+  if (!viewId || !Array.isArray(matchedViewIds)) return 'unknown'
+  return matchedViewIds.includes(viewId) ? 'in' : 'out'
+}
+
+/**
+ * What a grid does with a peer's update to a row it hasn't loaded: `ignore` it, reload only the
+ * group header aggregations (`aggregates`: the row stayed in its group), or `refresh` in place
+ * because the view's or a group's rows changed. A row that starts matching is refreshed rather
+ * than inserted: the update carries no order value, so a local insert can only append it.
+ */
+export function classifyUnloadedRowUpdate({
+  wasIn,
+  isIn,
+  changedFields,
+  groupByTitles,
+  sortTitles = [],
+}: {
+  wasIn: ViewMembership
+  isIn: ViewMembership
+  changedFields?: string[]
+  groupByTitles: string[]
+  sortTitles?: string[]
+}): 'ignore' | 'aggregates' | 'refresh' {
+  const isGrouped = groupByTitles.length > 0
+
+  if (wasIn === 'out' && isIn === 'out') return 'ignore'
+
+  if (wasIn === 'in' && isIn === 'in') {
+    // A sorted field can move the row into (or out of) a loaded chunk.
+    if (changedFields && sortTitles.some((title) => changedFields.includes(title))) return 'refresh'
+    if (!isGrouped) return 'ignore'
+    if (changedFields && !groupByTitles.some((title) => changedFields.includes(title))) return 'aggregates'
+    return 'refresh'
+  }
+
+  // Without both images a flat grid keeps its count: refreshing on every such event costs more than a stale count.
+  if (!isGrouped) {
+    if (wasIn !== isIn && wasIn !== 'unknown' && isIn !== 'unknown') return 'refresh'
+    return 'ignore'
+  }
+
+  return 'refresh'
+}
+
+/**
+ * Whether a view's filters compare against the viewer (`@me`). The server matches rows to views
+ * without a viewer, so its matched-view lists never include such a view: membership is unknown.
+ */
+export function hasViewerScopedFilter(filters: Array<{ value?: unknown }>): boolean {
+  return filters.some((filter) => `${filter.value ?? ''}`.split(',').some((value) => value.trim() === CURRENT_USER_TOKEN))
 }

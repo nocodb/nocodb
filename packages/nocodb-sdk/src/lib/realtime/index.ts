@@ -164,6 +164,10 @@ export interface DataPayload extends BaseSocketPayload {
   payload: Record<string, any>;
   before?: string;
   matchedViewIds?: string[];
+  /** update only: views the row matched before the write (absent = unknown). */
+  prevMatchedViewIds?: string[];
+  /** update only: titles of the fields whose value changed (absent = unknown). */
+  changedFields?: string[];
   rows?: DataPayload[];
 }
 

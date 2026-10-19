@@ -24,7 +24,8 @@ import axios from 'axios'
 import type { CanvasGroup } from '../lib/types'
 import type { InterfacePageDataApi } from '../lib/interfaceData'
 import { isInterfaceSyntheticViewId } from '../lib/interfaceData'
-import { dataEventSubscriptionKey, flattenFiltersForEval } from '~/utils/realtimeUtils'
+import { classifyUnloadedRowUpdate, dataEventSubscriptionKey, flattenFiltersForEval, viewMembership } from '~/utils/realtimeUtils'
+import type { ViewMembership } from '~/utils/realtimeUtils'
 import type { Row } from '#imports'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { NavigateDir } from '~/lib/enums'
@@ -108,6 +109,10 @@ export function useInfiniteData(args: {
       path: Array<number>
     }) => void
     findGroupByPath?: (path?: Array<number>) => CanvasGroup | null
+    // Resync counts and loaded rows without clearing what's on screen.
+    refreshInPlace?: () => void
+    // A peer's edit kept every group's rows; reload group aggregations a changed field feeds.
+    refreshGroupAggregations?: (changedFields?: string[]) => void
   }
   where?: ComputedRef<string | undefined>
   disableSmartsheet?: boolean
@@ -157,6 +162,9 @@ export function useInfiniteData(args: {
     isAlreadyShownUpgradeModal,
     validFiltersFromUrlParams,
     rowMatchesSearchAndUrl,
+    hasClientSideRowFilters,
+    isViewerScopedView,
+    rowMatchesViewerScopedFilters,
     totalRowsWithSearchQuery,
     totalRowsWithoutSearchQuery,
     fetchTotalRowsWithSearchQuery,
@@ -171,6 +179,9 @@ export function useInfiniteData(args: {
         isExternalSource: computed(() => false),
         isAlreadyShownUpgradeModal: ref(false),
         rowMatchesSearchAndUrl: () => true,
+        hasClientSideRowFilters: computed(() => false),
+        isViewerScopedView: computed(() => false),
+        rowMatchesViewerScopedFilters: () => true,
         totalRowsWithSearchQuery: ref(0),
         totalRowsWithoutSearchQuery: ref(0),
         fetchTotalRowsWithSearchQuery: computed(() => false),
@@ -455,14 +466,14 @@ export function useInfiniteData(args: {
     if (allFormattedRows.length === 0) return
 
     const allIds: string[] = []
-    const rowIdToRowMap = new Map<string, Row>()
+    const rowIdToRowMap = new Map<string, { row: Row; path: Array<number> }>()
 
-    for (const { rows } of allFormattedRows) {
+    for (const { rows, path } of allFormattedRows) {
       for (const row of rows) {
         const id = extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])
         if (id) {
           allIds.push(id)
-          rowIdToRowMap.set(id, row)
+          rowIdToRowMap.set(id, { row, path })
         }
       }
     }
@@ -479,10 +490,15 @@ export function useInfiniteData(args: {
           })
 
       aggCommentCount?.forEach((commentData: Record<string, any>) => {
-        const row = rowIdToRowMap.get(commentData.row_id)
-        if (row) {
-          row.rowMeta.commentCount = +commentData.count || 0
-        }
+        const entry = rowIdToRowMap.get(commentData.row_id)
+        if (!entry) return
+        // A refetch over a cached row merges into that row and drops the fresh object.
+        const cached = getDataCache(entry.path).cachedRows.value.get(entry.row.rowMeta.rowIndex!)
+        const target =
+          cached && `${extractPkFromRow(cached.row, meta?.value?.columns as ColumnType[])}` === `${commentData.row_id}`
+            ? cached
+            : entry.row
+        target.rowMeta.commentCount = +commentData.count || 0
       })
 
       eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
@@ -818,6 +834,35 @@ export function useInfiniteData(args: {
     dataCache.chunkStates.value = dataCache.chunkStates.value.map((state, chunkIndex) =>
       (chunkIndex >= safeStartChunk && chunkIndex <= safeEndChunk) || importantChunks.has(chunkIndex) ? state : undefined,
     )
+  }
+
+  /**
+   * Resync the count and refetch the loaded chunks over the rows on screen, never clearing them.
+   * A group's new count can be passed as `total`; `applyTotal` then sets it together with the
+   * fetched rows, so the count never shows ahead of them.
+   */
+  async function refreshLoadedRows(
+    path: Array<number> = [],
+    { total: nextTotal, applyTotal }: { total?: number; applyTotal?: () => void } = {},
+  ) {
+    const dataCache = getDataCache(path)
+    if (!path.length) await syncCount(path, false, false)
+
+    const total = nextTotal ?? dataCache.totalRows.value
+    const loadedChunks = chunksToRefresh(dataCache.chunkStates.value, dataCache.cachedRows.value.keys(), total, CHUNK_SIZE)
+
+    try {
+      await Promise.all(loadedChunks.map((chunkId) => fetchChunk(chunkId, path, true)))
+    } finally {
+      // Same tick as the rows landing: nothing renders in between.
+      applyTotal?.()
+      for (const [index, row] of [...dataCache.cachedRows.value]) {
+        if (index >= total && !row.rowMeta?.new) dataCache.cachedRows.value.delete(index)
+      }
+      dataCache.chunkStates.value = dataCache.chunkStates.value.map((state, chunkId) =>
+        chunkId * CHUNK_SIZE < Math.max(total, 1) ? state : undefined,
+      )
+    }
   }
 
   async function loadAggCommentsCount(formattedData: Array<Row>, path: Array<number> = []) {
@@ -1172,6 +1217,9 @@ export function useInfiniteData(args: {
     callbacks?.reloadAggregate?.({ path })
   }
 
+  // Client-side placement only; requests send every sort and the server skips the disabled ones.
+  const activeSorts = computed(() => getActiveSorts(sorts.value))
+
   const willSortOrderChange = ({
     row,
     newData,
@@ -1181,7 +1229,7 @@ export function useInfiniteData(args: {
     newData: Record<string, any>
     path: Array<number>
   }): boolean => {
-    if (!sorts.value.length) return false
+    if (!activeSorts.value.length) return false
 
     const currentIndex = row.rowMeta.rowIndex!
     if (currentIndex === undefined) return true
@@ -1205,7 +1253,7 @@ export function useInfiniteData(args: {
       let shouldBeBefore = false
       let isDifferent = false
 
-      for (const sort of sorts.value) {
+      for (const sort of activeSorts.value) {
         const column = columnsById.value[sort.fk_column_id!]
         if (!column?.title) continue
 
@@ -1231,7 +1279,7 @@ export function useInfiniteData(args: {
       let shouldBeAfter = false
       let isDifferent = false
 
-      for (const sort of sorts.value) {
+      for (const sort of activeSorts.value) {
         const column = columnsById.value[sort.fk_column_id!]
         if (!column?.title) continue
 
@@ -1277,12 +1325,12 @@ export function useInfiniteData(args: {
 
   const applySorting = (rows: Row | Row[], path: Array<number> = []) => {
     // If there aren't any active sorting criteria, stop
-    if (!sorts.value.length) return
+    if (!activeSorts.value.length) return
 
     const dataCache = getDataCache(path)
 
     // Sorts the sort columns by the order property
-    const orderedSorts = [...sorts.value].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    const orderedSorts = [...activeSorts.value].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
     const inputRows = Array.isArray(rows) ? rows : [rows]
 
@@ -1906,11 +1954,11 @@ export function useInfiniteData(args: {
         .map((c) => c.title!) || []),
     )
 
-    if (isSortRelevantChange(changedFields, sorts.value, columnsById.value) || row.rowMeta.new) {
+    if (isSortRelevantChange(changedFields, activeSorts.value, columnsById.value) || row.rowMeta.new) {
       const needsResorting = willSortOrderChange({
         row,
         newData: data,
-        sorts: sorts.value,
+        sorts: activeSorts.value,
         path,
       })
 
@@ -2264,8 +2312,11 @@ export function useInfiniteData(args: {
   // Saved view filters → trust the server's matchedViewIds. Ad-hoc URL `where` + toolbar search
   // → server can't know them, so AND them in client-side via rowMatchesSearchAndUrl.
   const recordPassesViewFilter = (data: DataPayload) => {
+    // An `@me` view: the server's list never includes it, so evaluate its filters here.
+    if (isViewerScopedView.value && !rowMatchesViewerScopedFilters(data.payload)) return false
     if (
       !isInterfaceSyntheticViewId(viewMeta.value?.id) &&
+      !isViewerScopedView.value &&
       Array.isArray(data.matchedViewIds) &&
       !data.matchedViewIds.includes(viewMeta.value?.id as string)
     ) {
@@ -2274,8 +2325,25 @@ export function useInfiniteData(args: {
     return rowMatchesSearchAndUrl(data.payload)
   }
 
-  // Coalesces the per-row reloads a bulk event would fire into one.
-  const requestGroupReload = useDebounceFn(() => eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD), 300)
+  // Interface rooms only deliver in-scope updates, so a synthetic view's row is in it.
+  const currentMembership = (data: DataPayload): ViewMembership => {
+    if (!rowMatchesSearchAndUrl(data.payload)) return 'out'
+    if (isInterfaceSyntheticViewId(viewMeta.value?.id)) return 'in'
+    if (isViewerScopedView.value) return rowMatchesViewerScopedFilters(data.payload) ? 'in' : 'out'
+    return viewMembership(data.matchedViewIds, viewMeta.value?.id)
+  }
+
+  // An `@me` view's previous membership would need the row's old values, which the event omits.
+  const previousMembership = (data: DataPayload): ViewMembership => {
+    if (isViewerScopedView.value) return 'unknown'
+    const membership = viewMembership(data.prevMatchedViewIds, viewMeta.value?.id)
+    return membership === 'in' && hasClientSideRowFilters.value ? 'unknown' : membership
+  }
+
+  // Coalesces the per-row refreshes a bulk event would fire into one. Only the grid that owns
+  // the caches refreshes: another instance on the same view (e.g. the page designer) shares its
+  // group-by but not its groups, and must not reload that grid.
+  const requestInPlaceRefresh = useDebounceFn(() => callbacks?.refreshInPlace?.(), 300)
 
   const handleDataEvent = (data: DataPayload) => {
     const { id, action, payload, before } = data
@@ -2316,7 +2384,7 @@ export function useInfiniteData(args: {
           }
 
           if (!matchedCache) {
-            requestGroupReload()
+            requestInPlaceRefresh()
             return
           }
 
@@ -2330,14 +2398,16 @@ export function useInfiniteData(args: {
           matchedCache.totalRows.value++
           matchedCache.actualTotalRows.value = Math.max(matchedCache.actualTotalRows.value || 0, matchedCache.totalRows.value)
 
-          if (sorts.value.length) {
+          if (activeSorts.value.length) {
             applySorting(newRow, matchedPath)
           }
 
+          // The group gained a row, so its header totals changed.
+          callbacks?.refreshGroupAggregations?.()
           callbacks?.syncVisibleData?.()
         } catch (e) {
           console.error('Failed to add cached row on socket event (grouped)', e)
-          requestGroupReload()
+          requestInPlaceRefresh()
         }
         return
       }
@@ -2387,7 +2457,7 @@ export function useInfiniteData(args: {
         const orderField = orderCol?.title || orderCol?.column_name
         let insertAtIndex = dataCache.totalRows.value
 
-        if (!sorts.value.length && orderField && payload[orderField] != null) {
+        if (!activeSorts.value.length && orderField && payload[orderField] != null) {
           // Default sort by nc_order — find the right position
           const payloadOrder = Number(payload[orderField])
           const entries = Array.from(dataCache.cachedRows.value.entries()).sort((a, b) => a[0] - b[0])
@@ -2422,7 +2492,7 @@ export function useInfiniteData(args: {
         dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
 
         // If explicit sorts exist, apply them (nc_order handled above)
-        if (sorts.value.length) {
+        if (activeSorts.value.length) {
           applySorting(newRow)
         }
 
@@ -2438,24 +2508,34 @@ export function useInfiniteData(args: {
         const found = findCachedRowByPk(dataCaches, id)
 
         if (!found) {
-          // The event carries no before-image, so an unloaded row's old group is unknown —
-          // it may have left one group's count (placeholder) and joined another's (missing row).
-          if (isGroupBy.value && groupBy.value.length) requestGroupReload()
+          const outcome = classifyUnloadedRowUpdate({
+            wasIn: previousMembership(data),
+            isIn: currentMembership(data),
+            changedFields: data.changedFields,
+            groupByTitles:
+              isGroupBy.value && groupBy.value.length
+                ? groupBy.value.map((g) => g.column?.title).filter((title): title is string => !!title)
+                : [],
+            sortTitles: activeSorts.value
+              .map((sort) => columnsById.value[sort.fk_column_id!]?.title)
+              .filter((title): title is string => !!title),
+          })
+          if (outcome === 'aggregates') callbacks?.refreshGroupAggregations?.(data.changedFields)
+          else if (outcome === 'refresh') requestInPlaceRefresh()
           return
         }
 
         const { cachedRow } = found
 
-        // If the update changes any group-by column value, the row needs to
-        // move between groups (or into a new group). We can't do that in
-        // place; trigger a full group reload instead.
+        // A changed group-by value moves the row between groups (or into a new one), which
+        // changes group counts and indices — refresh the groups rather than patch them.
         if (isGroupBy.value && groupBy.value.length) {
           const groupColumnChanged = groupBy.value.some((g) => {
             const title = g.column?.title
             return title && title in (payload ?? {}) && !isGroupByValueEqual(payload[title], cachedRow.row[title])
           })
           if (groupColumnChanged) {
-            requestGroupReload()
+            requestInPlaceRefresh()
             return
           }
         }
@@ -2477,12 +2557,16 @@ export function useInfiniteData(args: {
 
         // Flag a peer's edit to a sorted field like a local one: the grid moves the row on the
         // next active-cell change, never under a viewer's cursor or open editor.
-        if (isSortRelevantChange(changedFields, sorts.value, columnsById.value)) {
+        if (isSortRelevantChange(changedFields, activeSorts.value, columnsById.value)) {
           cachedRow.rowMeta.isRowOrderUpdated = willSortOrderChange({
             row: cachedRow,
             newData: payload,
             path: isGroupBy.value ? cachedRow.rowMeta.path ?? [] : [],
           })
+        }
+
+        if (isGroupBy.value && groupBy.value.length && changedFields.length) {
+          callbacks?.refreshGroupAggregations?.(changedFields)
         }
 
         callbacks?.syncVisibleData?.()
@@ -2517,9 +2601,11 @@ export function useInfiniteData(args: {
 
           dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
           dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
+          // The group lost a row, so its header totals changed.
+          if (isGroupBy.value && groupBy.value.length) callbacks?.refreshGroupAggregations?.()
         } else if (isGroupBy.value && groupBy.value.length) {
           // Unloaded row — its group's count would otherwise keep a trailing placeholder.
-          requestGroupReload()
+          requestInPlaceRefresh()
         }
 
         callbacks?.syncVisibleData?.()
@@ -2765,6 +2851,7 @@ export function useInfiniteData(args: {
 
   return {
     getDataCache,
+    refreshLoadedRows,
     insertRow,
     updateRowProperty,
     addEmptyRow,

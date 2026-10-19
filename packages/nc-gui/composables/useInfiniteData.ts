@@ -2389,6 +2389,8 @@ export function useInfiniteData(args: {
             applySorting(newRow, matchedPath)
           }
 
+          // The group gained a row, so its header totals changed.
+          callbacks?.refreshGroupAggregations?.()
           callbacks?.syncVisibleData?.()
         } catch (e) {
           console.error('Failed to add cached row on socket event (grouped)', e)
@@ -2583,6 +2585,8 @@ export function useInfiniteData(args: {
 
           dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
           dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
+          // The group lost a row, so its header totals changed.
+          if (isGroupBy.value && groupBy.value.length) callbacks?.refreshGroupAggregations?.()
         } else if (isGroupBy.value && groupBy.value.length) {
           // Unloaded row — its group's count would otherwise keep a trailing placeholder.
           requestInPlaceRefresh()

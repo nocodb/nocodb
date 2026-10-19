@@ -51,10 +51,9 @@ export function mergeRefetchedGroups({
       continue
     }
 
-    if (before.count !== after.count) {
-      before.aggregationState = undefined
-      countUpdates.push({ group: before, count: after.count })
-    }
+    // Refetched because rows moved: the same count can hide a row that left and one that joined.
+    before.aggregationState = undefined
+    if (before.count !== after.count) countUpdates.push({ group: before, count: after.count })
     before.groupCount = after.groupCount
     groupMap.set(index, before)
 
@@ -71,4 +70,14 @@ export function mergeRefetchedGroups({
   }
 
   return { stalePaths, expandedKept, countUpdates }
+}
+
+/**
+ * Whether the grid renders from these caches. A chunk being fetched (`loading`) counts: a refresh
+ * in flight marks its chunk so, and a second refresh then must queue rather than fall back to the
+ * full reload, which is only for renderers that never use the caches (paginated table, legacy
+ * group-by).
+ */
+export function isGridCacheInUse(chunkStates: Array<string | undefined>): boolean {
+  return chunkStates.some((state) => state === 'loaded' || state === 'loading')
 }

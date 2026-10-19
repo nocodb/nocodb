@@ -3,6 +3,7 @@ import type { ComputedRef, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import { findGroupByPath } from '../components/smartsheet/grid/canvas/utils/groupby'
 import type { CanvasGroup } from '../lib/types'
+import { isGridCacheInUse } from '../components/smartsheet/grid/canvas/utils/groupRefresh'
 import { useInfiniteGroups } from './useInfiniteGroups'
 import { type CellRange, type Row } from '#imports'
 
@@ -292,15 +293,15 @@ export function useGridViewData(
    * which the next render refetches. Calls during a run coalesce into one more run.
    */
   async function refreshInPlace() {
-    // Nothing in these caches: the paginated table or the non-canvas group-by renders this view.
-    const loadedStates = isGroupBy.value ? groupChunkStates.value : chunkStates.value
-    if (!loadedStates.includes('loaded')) {
-      reloadViewDataHook?.trigger()
+    // Before the cache check: a run in flight has its chunks marked `loading`.
+    if (isRefreshingInPlace) {
+      isRefreshInPlaceQueued = true
       return
     }
 
-    if (isRefreshingInPlace) {
-      isRefreshInPlaceQueued = true
+    // Nothing in these caches: the paginated table or the non-canvas group-by renders this view.
+    if (!isGridCacheInUse(isGroupBy.value ? groupChunkStates.value : chunkStates.value)) {
+      reloadViewDataHook?.trigger()
       return
     }
     isRefreshingInPlace = true

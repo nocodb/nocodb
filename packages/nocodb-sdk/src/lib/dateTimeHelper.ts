@@ -328,16 +328,13 @@ export const getDateTimeValue = (
   const dateTimeFormat = `${dateFormat} ${timeFormat}`;
 
   if (!isXcdbBase) {
-    // For a Jalali date_format the stored value is Gregorian and cannot be
-    // parsed with the Jalali format as a mask (customParseFormat has no
-    // `j`-token support -> "Invalid Date"). Parse the raw value and let the
-    // dayjs Jalali plugin render it via .format().
+    // Parse the raw value without passing dateTimeFormat as a parse mask,
+    // so non-YYYY-first and Jalali formats do not fail parsing against ISO/DB timestamps.
     if (isJalaliFormat(dateFormat)) {
       return dayjs(modelValue).format(dateTimeFormat);
     }
     return dayjs(
-      /^\d+$/.test(modelValue) ? +modelValue : modelValue,
-      dateTimeFormat
+      /^\d+$/.test(modelValue) ? +modelValue : modelValue
     ).format(dateTimeFormat);
   }
 

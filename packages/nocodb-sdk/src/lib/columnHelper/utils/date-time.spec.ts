@@ -253,4 +253,14 @@ describe('jalali interop (paste / fill / aggregation)', () => {
       '01 فروردین 1403 14:30'
     );
   });
+
+  it('getDateTimeValue renders non-YYYY-first date formats instead of "Invalid Date"', () => {
+    const col = {
+      uidt: UITypes.DateTime,
+      meta: { date_format: 'DD/MM/YYYY', time_format: 'HH:mm' },
+    };
+    expect(getDateTimeValue('2023-10-27 10:30:00', col as any)).toBe(
+      '27/10/2023 10:30'
+    );
+  });
 });

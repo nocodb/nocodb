@@ -144,7 +144,7 @@ provide(
 useExpandedFormDetachedProvider()
 UseDetachedLongTextProvider()
 
-useProvideViewColumns(activeView, meta, () => reloadViewDataEventHook?.trigger())
+useProvideViewColumns(activeView, meta, (params) => reloadViewDataEventHook?.trigger(params))
 
 useProvideViewGroupBy(activeView, meta, xWhere)
 

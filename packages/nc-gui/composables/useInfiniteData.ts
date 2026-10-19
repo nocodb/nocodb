@@ -2313,12 +2313,10 @@ export function useInfiniteData(args: {
     return membership === 'in' && hasClientSideRowFilters.value ? 'unknown' : membership
   }
 
-  // Coalesces the per-row refreshes a bulk event would fire into one. Without the owning
-  // grid's in-place refresh, a grouped grid falls back to a full group reload.
-  const requestInPlaceRefresh = useDebounceFn(() => {
-    if (callbacks?.refreshInPlace) return callbacks.refreshInPlace()
-    if (isGroupBy.value && groupBy.value.length) eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
-  }, 300)
+  // Coalesces the per-row refreshes a bulk event would fire into one. Only the grid that owns
+  // the caches refreshes: another instance on the same view (e.g. the page designer) shares its
+  // group-by but not its groups, and must not reload that grid.
+  const requestInPlaceRefresh = useDebounceFn(() => callbacks?.refreshInPlace?.(), 300)
 
   const handleDataEvent = (data: DataPayload) => {
     const { id, action, payload, before } = data

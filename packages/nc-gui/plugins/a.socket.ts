@@ -8,6 +8,9 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       onReady:
         (..._args: any[]) =>
         () => {},
+      onReconnect:
+        (..._args: any[]) =>
+        () => {},
       on:
         (..._args: any[]) =>
         () => {},

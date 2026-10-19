@@ -10,12 +10,13 @@ const renderedValue = computed(() => {
 </script>
 
 <template>
-  <div v-if="!props.lines || props.lines === 1" class="text-ellipsis overflow-hidden">
+  <div v-if="!props.lines || props.lines === 1" class="nc-clamped-text text-ellipsis overflow-hidden">
     <span :style="{ 'word-break': 'keep-all', 'white-space': 'nowrap' }">{{ renderedValue ?? '' }}</span>
   </div>
 
   <div
     v-else
+    class="nc-clamped-text"
     :style="{
       'display': '-webkit-box',
       'max-width': '100%',

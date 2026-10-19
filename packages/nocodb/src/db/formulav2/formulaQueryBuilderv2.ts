@@ -750,6 +750,7 @@ export default async function formulaQueryBuilderv2({
   columnIdToUidt = {},
   tableAlias,
   validateFormula = false,
+  persistError = true,
   dryRunLimit,
   parsedTree,
   baseUsers,
@@ -764,6 +765,12 @@ export default async function formulaQueryBuilderv2({
   columnIdToUidt?: Record<string, UITypes>;
   tableAlias?: string;
   validateFormula?: boolean;
+  /**
+   * Store a validation failure on `column`. Off when validating a candidate
+   * formula for an existing column: a rejected edit must not flag the
+   * formula that stays saved.
+   */
+  persistError?: boolean;
   /**
    * Bound the validation dry-run to this many rows. Set (to 1) ONLY by the
    * read-path self-heal probe, where "does this expression compile and
@@ -955,7 +962,7 @@ export default async function formulaQueryBuilderv2({
     ) {
       console.error(e);
 
-      if (column) {
+      if (column && persistError) {
         // show the error in the UI, and keep it for later reads
         await persistFormulaColumnError(context, column, e.message);
       }

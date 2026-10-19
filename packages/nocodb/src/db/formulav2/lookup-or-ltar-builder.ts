@@ -66,6 +66,8 @@ export const lookupOrLtarBuilder =
 
     let selectQb;
     let isArray = false;
+    // limit(1) only once no hop yields many rows, or it truncates the aggregate
+    let singleTargetHop = false;
     const alias = `__nc_formula${getAliasCount()}`;
     const lookup =
       column.uidt === UITypes.Lookup
@@ -232,9 +234,7 @@ export const lookupOrLtarBuilder =
                 ]),
               );
 
-            if (isSingleTargetV2) {
-              selectQb.limit(1);
-            }
+            singleTargetHop = isSingleTargetV2;
 
             // Per-link ordering (PG only): stash the junction Order column ref
             // (current side) on the row query so the aggregate (getAggregateFn →
@@ -312,12 +312,25 @@ export const lookupOrLtarBuilder =
         }
       }
 
-      while (lookupColumn.uidt === UITypes.Lookup) {
+      // A terminal LTAR is one more hop to its display value, which may itself
+      // be virtual (Formula, Rollup, ...) and is resolved by the switch below.
+      while (
+        lookupColumn.uidt === UITypes.Lookup ||
+        lookupColumn.uidt === UITypes.LinkToAnotherRecord
+      ) {
         // overwrite lookupContext from previous iteration
         const context = lookupContext;
         const nestedAlias = `__nc_formula${getAliasCount()}`;
-        const nestedLookup = await lookupColumn.getColOptions<LookupColumn>();
-        const relationCol = await nestedLookup.getRelationColumn();
+        const nestedLookup =
+          lookupColumn.uidt === UITypes.Lookup
+            ? await lookupColumn.getColOptions<LookupColumn>()
+            : null;
+        if (nestedLookup?.error) {
+          return { builder: knex.raw('?', [null]) };
+        }
+        const relationCol = nestedLookup
+          ? await nestedLookup.getRelationColumn()
+          : lookupColumn;
         const relation =
           await relationCol.getColOptions<LinkToAnotherRecordColumn>();
         // if any of the relation in nested lookup is
@@ -409,7 +422,7 @@ export const lookupOrLtarBuilder =
             break;
           case RelationTypes.HAS_MANY:
             {
-              isArray = relation.type !== RelationTypes.ONE_TO_ONE;
+              isArray = isArray || relation.type !== RelationTypes.ONE_TO_ONE;
               selectQb.join(
                 dbQueryClient.tableAlias(
                   knex,
@@ -461,7 +474,8 @@ export const lookupOrLtarBuilder =
             break;
           case RelationTypes.MANY_TO_MANY: {
             const nestedIsSingleTargetV2 = isBtLikeV2Junction(relationCol);
-            isArray = !nestedIsSingleTargetV2;
+            isArray = isArray || !nestedIsSingleTargetV2;
+            singleTargetHop = singleTargetHop || nestedIsSingleTargetV2;
             const mmModel = await relation.getMMModel();
             const mmParentColumn = await relation.getMMParentColumn();
             const mmChildColumn = await relation.getMMChildColumn();
@@ -520,8 +534,17 @@ export const lookupOrLtarBuilder =
 `${prevAlias}.${childColumn.title}`
 );*/
 
-        lookupColumn = await nestedLookup.getLookupColumn();
+        lookupColumn = nestedLookup
+          ? await nestedLookup.getLookupColumn()
+          : await getDisplayValueOfRefTable(lookupContext, relationCol);
+        if (!lookupColumn) {
+          return { builder: knex.raw('?', [null]) };
+        }
         prevAlias = nestedAlias;
+      }
+
+      if (singleTargetHop && !isArray) {
+        selectQb.limit(1);
       }
 
       switch (lookupColumn.uidt) {
@@ -554,150 +577,6 @@ export const lookupOrLtarBuilder =
                   .wrap('(', ')');
             } else {
               selectQb.select(knex.raw(builder).wrap('(', ')'));
-            }
-          }
-          break;
-        case UITypes.LinkToAnotherRecord:
-          {
-            const nestedAlias = `__nc_formula${getAliasCount()}`;
-            const isMMLike = isMMOrMMLike(lookupColumn);
-            const relation =
-              await lookupColumn.getColOptions<LinkToAnotherRecordColumn>();
-
-            const { parentContext, childContext, mmContext } =
-              await relation.getParentChildContext();
-
-            const colOptions =
-              (await lookupColumn.getColOptions()) as LinkToAnotherRecordColumn;
-            const childColumn = await colOptions.getChildColumn();
-            const parentColumn = await colOptions.getParentColumn();
-            const childModel = await childColumn.getModel();
-            await childModel.getColumns();
-            const parentModel = await parentColumn.getModel();
-            await parentModel.getColumns();
-
-            const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
-              model: parentModel,
-              dbDriver: baseModelSqlv2.dbDriver,
-            });
-            const childBaseModel = await Model.getBaseModelSQL(childContext, {
-              model: childModel,
-              dbDriver: baseModelSqlv2.dbDriver,
-            });
-
-            let cn;
-
-            let relationType = isMMLike
-              ? RelationTypes.MANY_TO_MANY
-              : relation.type;
-
-            if (relationType === RelationTypes.ONE_TO_ONE) {
-              // direction comes from the terminal LTAR being resolved, not
-              // the first-hop relation column
-              relationType = lookupColumn.meta?.bt
-                ? RelationTypes.BELONGS_TO
-                : RelationTypes.HAS_MANY;
-            }
-
-            // Resolve display column once — honors fk_display_value_column_id.
-            // Must be resolved from the terminal LTAR (lookupColumn), whose
-            // related table the joins below read from — resolving from the
-            // first-hop relationCol picked a column of the wrong table.
-            const nestedDisplayCol = await getDisplayValueOfRefTable(
-              context,
-              lookupColumn,
-            );
-
-            switch (relationType) {
-              case RelationTypes.BELONGS_TO:
-                {
-                  selectQb.join(
-                    dbQueryClient.tableAlias(
-                      knex,
-                      parentBaseModel.getTnPath(parentModel.table_name),
-                      nestedAlias,
-                    ),
-                    `${alias}.${childColumn.column_name}`,
-                    `${nestedAlias}.${parentColumn.column_name}`,
-                  );
-                  cn = knex.raw('??.??', [
-                    nestedAlias,
-                    nestedDisplayCol?.column_name,
-                  ]);
-                }
-                break;
-              case RelationTypes.HAS_MANY:
-                {
-                  isArray = relation.type !== RelationTypes.ONE_TO_ONE;
-                  selectQb.join(
-                    dbQueryClient.tableAlias(
-                      knex,
-                      childBaseModel.getTnPath(childModel.table_name),
-                      nestedAlias,
-                    ),
-                    `${alias}.${parentColumn.column_name}`,
-                    `${nestedAlias}.${childColumn.column_name}`,
-                  );
-                  cn = knex.raw('??.??', [
-                    nestedAlias,
-                    nestedDisplayCol?.column_name,
-                  ]);
-                }
-                break;
-              case RelationTypes.MANY_TO_MANY:
-                {
-                  isArray = true;
-                  const mmModel = await relation.getMMModel();
-                  const mmParentColumn = await relation.getMMParentColumn();
-                  const mmChildColumn = await relation.getMMChildColumn();
-
-                  const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
-                    model: mmModel,
-                    dbDriver: baseModelSqlv2.dbDriver,
-                  });
-
-                  const assocAlias = `__nc${getAliasCount()}`;
-
-                  selectQb
-                    .join(
-                      dbQueryClient.tableAlias(
-                        knex,
-                        mmBaseModel.getTnPath(mmModel.table_name),
-                        assocAlias,
-                      ),
-                      `${assocAlias}.${mmChildColumn.column_name}`,
-                      `${alias}.${childColumn.column_name}`,
-                    )
-                    .join(
-                      dbQueryClient.tableAlias(
-                        knex,
-                        parentBaseModel.getTnPath(parentModel.table_name),
-                        nestedAlias,
-                      ),
-                      `${nestedAlias}.${parentColumn.column_name}`,
-                      `${assocAlias}.${mmParentColumn.column_name}`,
-                    );
-                }
-                cn = knex.raw('??.??', [
-                  nestedAlias,
-                  nestedDisplayCol?.column_name,
-                ]);
-            }
-
-            if (isArray) {
-              const qb = selectQb;
-              selectQb = (fn) =>
-                knex
-                  .raw(
-                    getAggregateFn(fn)({
-                      qb,
-                      knex,
-                      cn: cn ?? lookupColumn.column_name,
-                    }),
-                  )
-                  .wrap('(', ')');
-            } else {
-              selectQb.select(`${prevAlias}.${cn}`);
             }
           }
           break;
@@ -834,7 +713,6 @@ export const lookupOrLtarBuilder =
               const qb = selectQb;
               const cn = `${prevAlias}.${lookupColumn.column_name}`;
               selectQb = (fn) => {
-                console.log('fn', fn, knex.clientType());
                 if (
                   knex.clientType() === ClientType.PG &&
                   (!fn || fn.toLowerCase?.() === 'concat')

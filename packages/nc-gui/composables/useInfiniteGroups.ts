@@ -94,6 +94,9 @@ export const useInfiniteGroups = (
   // GROUPBY_MAX_RETRIES + 1 times — so total backend hits is bounded by
   // CANVAS_MAX_CHUNK_FETCH_ATTEMPTS * (GROUPBY_MAX_RETRIES + 1).
   const CANVAS_MAX_CHUNK_FETCH_ATTEMPTS = 3
+  // Bumped by a full reset (a reload for a filter, sort or group-by change): group data fetched
+  // before it belongs to the old grid and must not be written into the new one.
+  let groupsGeneration = 0
   const GROUPBY_MAX_RETRIES = 3
   const GROUPBY_RETRY_DELAY_MS = 50
   const chunkFailureCounts = new Map<string, number>()
@@ -169,6 +172,7 @@ export const useInfiniteGroups = (
 
     targetChunkStates[chunkId] = 'loading'
     const settleInFlight = markChunkInFlight(chunkKey)
+    const generation = groupsGeneration
 
     try {
       const nestedGrpWhereArr = buildNestedFilterArr(parentGroup) ?? []
@@ -229,6 +233,7 @@ export const useInfiniteGroups = (
         }
       }
       if (!response) throw new Error('groupBy: empty response after retries')
+      if (generation !== groupsGeneration) return
 
       const groups: CanvasGroup[] = []
       for (const item of response.list) {
@@ -365,6 +370,9 @@ export const useInfiniteGroups = (
         if (level === groupByColumns.value.length - 1) {
           group.path = groupPath
         }
+
+        // Link and lookup groups await their related meta above.
+        if (generation !== groupsGeneration) return
 
         if (parentGroup) {
           parentGroup.groups.set(groupIndex, group)
@@ -541,6 +549,7 @@ export const useInfiniteGroups = (
 
   const clearGroupCache = (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => {
     if (startIndex === Number.NEGATIVE_INFINITY && endIndex === Number.POSITIVE_INFINITY) {
+      groupsGeneration++
       cachedGroups.value = new Map()
       chunkStates.value = []
       // Reload-style full reset: any chunk we wipe must also have its failure
@@ -913,14 +922,22 @@ export const useInfiniteGroups = (
     stalePaths: Array<Array<number>>
     keptLeafGroups: CanvasGroup[]
     countUpdates: Array<{ group: CanvasGroup; count: number }>
+    // A reload replaced the groups mid-refresh: nothing here applies to the new grid.
+    aborted?: boolean
   }> {
     const states = parentGroup ? parentGroup.chunkStates : chunkStates.value
     const loadedChunks = states.flatMap((state, chunkId) => (state === 'loaded' ? [chunkId] : []))
     if (!loadedChunks.length) return { stalePaths: [], keptLeafGroups: [], countUpdates: [] }
 
-    const groupsBefore = new Map(parentGroup ? parentGroup.groups : cachedGroups.value)
+    const generation = groupsGeneration
+    const rootGroups = cachedGroups.value
+    const groupsBefore = new Map(parentGroup ? parentGroup.groups : rootGroups)
 
     await Promise.all(loadedChunks.map((chunkId) => fetchGroupChunk(chunkId, parentGroup, true)))
+
+    if (generation !== groupsGeneration || cachedGroups.value !== rootGroups) {
+      return { stalePaths: [], keptLeafGroups: [], countUpdates: [], aborted: true }
+    }
 
     const isLeafLevel = (parentGroup ? findGroupLevel(parentGroup) : 0) === groupByColumns.value.length - 1
     const total = parentGroup ? parentGroup.groupCount : totalGroups.value
@@ -942,6 +959,7 @@ export const useInfiniteGroups = (
     const keptLeafGroups: CanvasGroup[] = []
     for (const group of expandedKept) {
       const nested = await refreshLoadedGroups(group)
+      if (nested.aborted) return nested
       stalePaths.push(...nested.stalePaths)
       keptLeafGroups.push(...nested.keptLeafGroups)
       countUpdates.push(...nested.countUpdates)

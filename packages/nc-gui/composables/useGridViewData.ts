@@ -114,6 +114,11 @@ export function useGridViewData(
       },
       refreshInPlace: () => refreshInPlace(),
       refreshGroupAggregations: (changedFields?: string[]) => {
+        // The non-canvas group-by grid keeps its rows outside these caches: let it reload.
+        if (!isGridCacheInUse(groupChunkStates.value)) {
+          refreshInPlace()
+          return
+        }
         if (invalidateGroupAggregations(changedFields)) syncVisibleData()
       },
     },
@@ -323,7 +328,9 @@ export function useGridViewData(
   }
 
   async function refreshGroupsInPlace() {
-    const { stalePaths, keptLeafGroups, countUpdates } = await refreshLoadedGroups()
+    const { stalePaths, keptLeafGroups, countUpdates, aborted } = await refreshLoadedGroups()
+    // A reload replaced the groups meanwhile: their row caches belong to the new grid.
+    if (aborted) return
 
     // Dropped rather than cleared, so a chunk request in flight for the old group is discarded.
     const staleKeys = stalePaths.map((path) => path.join('-'))

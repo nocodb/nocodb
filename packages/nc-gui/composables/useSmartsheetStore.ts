@@ -3,6 +3,7 @@ import { NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere, getFirs
 import type { Ref } from 'vue'
 import type { CanvasEditEnabledType } from '~/lib/types'
 import { validateRowFilters } from '~/utils/dataUtils'
+import { isInterfaceSyntheticViewId } from '~/lib/interfaceData'
 import { flattenFiltersForEval, hasViewerScopedFilter } from '~/utils/realtimeUtils'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
@@ -297,11 +298,43 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     // The server matches rows to views without a viewer, so a saved filter on `@me` never matches
     // there. Such a view is evaluated here instead, where the viewer is known.
-    const isViewerScopedView = computed(() => hasViewerScopedFilter(allFilters.value))
+    // `allFilters` is filled by the toolbar's filter menu, which mounts only for roles that can
+    // change view settings; below Editor the saved filters are loaded here for the `@me` check.
+    const savedFiltersForViewer = ref<FilterType[]>([])
+
+    const loadSavedFiltersForViewer = useDebounceFn(async () => {
+      savedFiltersForViewer.value = []
+      const viewValue = view.value
+      if (!viewValue?.id || isViewOperationsAllowed.value || isInterfaceSyntheticViewId(viewValue.id)) return
+      if (!viewValue.fk_workspace_id || !viewValue.base_id) return
+      try {
+        const { list } = await internalGet(viewValue.fk_workspace_id, viewValue.base_id, {
+          operation: 'filterList',
+          viewId: viewValue.id,
+          includeAllFilters: 'true',
+        })
+        if (view.value?.id === viewValue.id) savedFiltersForViewer.value = (list ?? []) as FilterType[]
+      } catch {
+        // Without them the view falls back to the server's lists, as before.
+      }
+    }, 100)
+
+    watch([() => view.value?.id, isViewOperationsAllowed], () => loadSavedFiltersForViewer(), { immediate: true })
+
+    const viewerFilterEventListener = (evt: string, payload: { fk_view_id?: string } | undefined) => {
+      if (!evt.startsWith('filter_') || payload?.fk_view_id !== view.value?.id) return
+      if (!isViewOperationsAllowed.value) loadSavedFiltersForViewer()
+    }
+    $eventBus.realtimeViewMetaEventBus.on(viewerFilterEventListener)
+    onScopeDispose(() => $eventBus.realtimeViewMetaEventBus.off(viewerFilterEventListener))
+
+    const savedViewFilters = computed(() => (allFilters.value.length ? allFilters.value : savedFiltersForViewer.value))
+
+    const isViewerScopedView = computed(() => hasViewerScopedFilter(savedViewFilters.value))
 
     const rowMatchesViewerScopedFilters = (rowPayload: Record<string, any>) =>
       validateRowFilters(
-        allFilters.value,
+        savedViewFilters.value,
         rowPayload,
         (meta.value as TableType)?.columns as ColumnType[],
         getBaseType((meta.value as TableType)?.source_id),

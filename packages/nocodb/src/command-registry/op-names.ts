@@ -153,6 +153,8 @@ export const OperationName = {
   interfaceRecordLinkSwap: 'interfaceRecordLinkSwap',
   interfaceRecordLinkSwapBulk: 'interfaceRecordLinkSwapBulk',
   interfaceRecordLinkByDisplay: 'interfaceRecordLinkByDisplay',
+  // A link field's "Add record through form" — create through the bound form, then link.
+  interfaceLinkedRecordCreate: 'interfaceLinkedRecordCreate',
 
   // View sections
   viewSectionCreate: 'viewSectionCreate',

@@ -775,6 +775,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
               </NcButton>
             </template>
           </PermissionsTooltip>
+          <LazyVirtualCellComponentsLinkRecordCreateButton v-if="!readOnly" @opened="vModel = false" />
           <NcButton
             v-if="
               !readOnly &&

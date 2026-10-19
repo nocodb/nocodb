@@ -6,11 +6,13 @@ const groupPath = (group: CanvasGroup) => group.nestedIn.map((n) => n.groupIndex
 
 /**
  * After the loaded group chunks of one level were refetched into `groupMap`, put back each
- * group that kept its index and value, with the fresh counts, so its expanded state, sub-groups
- * and loaded rows stay. A collapsed kept group drops its sub-groups so expanding refetches them.
+ * group that kept its index and value, so its expanded state, sub-groups and loaded rows stay.
+ * A collapsed kept group drops its sub-groups so expanding refetches them.
  *
- * Returns the paths whose rows are stale (group changed, went away or is collapsed), and the
- * expanded kept groups, to refresh their rows or recurse into their sub-groups.
+ * Returns the paths whose rows are stale (group changed, went away or is collapsed), the
+ * expanded kept groups, to refresh their rows or recurse into their sub-groups, and the kept
+ * groups' fresh row counts. Those are not applied here: the caller applies them with the
+ * refetched rows, or the header would show the new count over the old rows meanwhile.
  */
 export function mergeRefetchedGroups({
   groupsBefore,
@@ -22,9 +24,14 @@ export function mergeRefetchedGroups({
   groupMap: Map<number, CanvasGroup>
   total: number
   isLeafLevel: boolean
-}): { stalePaths: Array<Array<number>>; expandedKept: CanvasGroup[] } {
+}): {
+  stalePaths: Array<Array<number>>
+  expandedKept: CanvasGroup[]
+  countUpdates: Array<{ group: CanvasGroup; count: number }>
+} {
   const stalePaths: Array<Array<number>> = []
   const expandedKept: CanvasGroup[] = []
+  const countUpdates: Array<{ group: CanvasGroup; count: number }> = []
 
   for (const [index, before] of groupsBefore) {
     // Before the identity check: a refetch writes only the indices it returns, so a group past
@@ -44,8 +51,10 @@ export function mergeRefetchedGroups({
       continue
     }
 
-    if (before.count !== after.count) before.aggregationState = undefined
-    before.count = after.count
+    if (before.count !== after.count) {
+      before.aggregationState = undefined
+      countUpdates.push({ group: before, count: after.count })
+    }
     before.groupCount = after.groupCount
     groupMap.set(index, before)
 
@@ -61,5 +70,5 @@ export function mergeRefetchedGroups({
     stalePaths.push(groupPath(before))
   }
 
-  return { stalePaths, expandedKept }
+  return { stalePaths, expandedKept, countUpdates }
 }

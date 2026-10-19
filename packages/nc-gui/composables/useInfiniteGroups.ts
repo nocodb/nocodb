@@ -909,12 +909,14 @@ export const useInfiniteGroups = (
    * Refetch the loaded group chunks under `parentGroup` (root when omitted) without clearing
    * them, recursing into expanded kept groups — see mergeRefetchedGroups.
    */
-  async function refreshLoadedGroups(
-    parentGroup?: CanvasGroup,
-  ): Promise<{ stalePaths: Array<Array<number>>; keptLeafGroups: CanvasGroup[] }> {
+  async function refreshLoadedGroups(parentGroup?: CanvasGroup): Promise<{
+    stalePaths: Array<Array<number>>
+    keptLeafGroups: CanvasGroup[]
+    countUpdates: Array<{ group: CanvasGroup; count: number }>
+  }> {
     const states = parentGroup ? parentGroup.chunkStates : chunkStates.value
     const loadedChunks = states.flatMap((state, chunkId) => (state === 'loaded' ? [chunkId] : []))
-    if (!loadedChunks.length) return { stalePaths: [], keptLeafGroups: [] }
+    if (!loadedChunks.length) return { stalePaths: [], keptLeafGroups: [], countUpdates: [] }
 
     const groupsBefore = new Map(parentGroup ? parentGroup.groups : cachedGroups.value)
 
@@ -922,7 +924,7 @@ export const useInfiniteGroups = (
 
     const isLeafLevel = (parentGroup ? findGroupLevel(parentGroup) : 0) === groupByColumns.value.length - 1
     const total = parentGroup ? parentGroup.groupCount : totalGroups.value
-    const { stalePaths, expandedKept } = mergeRefetchedGroups({
+    const { stalePaths, expandedKept, countUpdates } = mergeRefetchedGroups({
       groupsBefore,
       groupMap: parentGroup ? parentGroup.groups : cachedGroups.value,
       total,
@@ -935,16 +937,17 @@ export const useInfiniteGroups = (
       if (chunkId * GROUP_CHUNK_SIZE >= total) refreshedStates[chunkId] = undefined
     }
 
-    if (isLeafLevel) return { stalePaths, keptLeafGroups: expandedKept }
+    if (isLeafLevel) return { stalePaths, keptLeafGroups: expandedKept, countUpdates }
 
     const keptLeafGroups: CanvasGroup[] = []
     for (const group of expandedKept) {
       const nested = await refreshLoadedGroups(group)
       stalePaths.push(...nested.stalePaths)
       keptLeafGroups.push(...nested.keptLeafGroups)
+      countUpdates.push(...nested.countUpdates)
     }
 
-    return { stalePaths, keptLeafGroups }
+    return { stalePaths, keptLeafGroups, countUpdates }
   }
 
   /**

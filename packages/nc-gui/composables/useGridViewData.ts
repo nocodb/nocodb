@@ -322,7 +322,7 @@ export function useGridViewData(
   }
 
   async function refreshGroupsInPlace() {
-    const { stalePaths, keptLeafGroups } = await refreshLoadedGroups()
+    const { stalePaths, keptLeafGroups, countUpdates } = await refreshLoadedGroups()
 
     // Dropped rather than cleared, so a chunk request in flight for the old group is discarded.
     const staleKeys = stalePaths.map((path) => path.join('-'))
@@ -332,7 +332,27 @@ export function useGridViewData(
       }
     }
 
-    await Promise.all(keptLeafGroups.filter((group) => group.path?.length).map((group) => refreshLoadedRows(group.path!)))
+    // A kept group's new count lands with its rows, not before: otherwise a moved row stays
+    // listed under the new count, and the group's last row drops off, until the rows arrive.
+    const nextCount = new Map(countUpdates.map(({ group, count }) => [group, count]))
+    const applyCount = (group: CanvasGroup) => {
+      if (!nextCount.has(group)) return
+      group.count = nextCount.get(group)!
+      nextCount.delete(group)
+    }
+
+    try {
+      await Promise.all(
+        keptLeafGroups
+          .filter((group) => group.path?.length)
+          .map((group) =>
+            refreshLoadedRows(group.path!, { total: nextCount.get(group) ?? group.count, applyTotal: () => applyCount(group) }),
+          ),
+      )
+    } finally {
+      // Groups with no rows on screen (collapsed, or parents) take theirs once the rows are in.
+      for (const [group, count] of nextCount) group.count = count
+    }
   }
 
   async function deleteSelectedRows(path: Array<number> = []): Promise<void> {

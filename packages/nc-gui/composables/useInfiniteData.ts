@@ -827,24 +827,35 @@ export function useInfiniteData(args: {
     )
   }
 
-  // Resync the count and refetch the loaded chunks over the rows on screen, never clearing them.
-  async function refreshLoadedRows(path: Array<number> = []) {
+  /**
+   * Resync the count and refetch the loaded chunks over the rows on screen, never clearing them.
+   * A group's new count can be passed as `total`; `applyTotal` then sets it together with the
+   * fetched rows, so the count never shows ahead of them.
+   */
+  async function refreshLoadedRows(
+    path: Array<number> = [],
+    { total: nextTotal, applyTotal }: { total?: number; applyTotal?: () => void } = {},
+  ) {
     const dataCache = getDataCache(path)
     if (!path.length) await syncCount(path, false, false)
 
-    const total = dataCache.totalRows.value
-    for (const [index, row] of [...dataCache.cachedRows.value]) {
-      if (index >= total && !row.rowMeta?.new) dataCache.cachedRows.value.delete(index)
-    }
-
+    const total = nextTotal ?? dataCache.totalRows.value
     const loadedChunks = dataCache.chunkStates.value.flatMap((state, chunkId) =>
       state === 'loaded' && chunkId * CHUNK_SIZE < Math.max(total, 1) ? [chunkId] : [],
     )
-    dataCache.chunkStates.value = dataCache.chunkStates.value.map((state, chunkId) =>
-      chunkId * CHUNK_SIZE < Math.max(total, 1) ? state : undefined,
-    )
 
-    await Promise.all(loadedChunks.map((chunkId) => fetchChunk(chunkId, path, true)))
+    try {
+      await Promise.all(loadedChunks.map((chunkId) => fetchChunk(chunkId, path, true)))
+    } finally {
+      // Same tick as the rows landing: nothing renders in between.
+      applyTotal?.()
+      for (const [index, row] of [...dataCache.cachedRows.value]) {
+        if (index >= total && !row.rowMeta?.new) dataCache.cachedRows.value.delete(index)
+      }
+      dataCache.chunkStates.value = dataCache.chunkStates.value.map((state, chunkId) =>
+        chunkId * CHUNK_SIZE < Math.max(total, 1) ? state : undefined,
+      )
+    }
   }
 
   async function loadAggCommentsCount(formattedData: Array<Row>, path: Array<number> = []) {

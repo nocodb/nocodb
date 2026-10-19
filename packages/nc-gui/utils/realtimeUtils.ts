@@ -1,4 +1,4 @@
-import { EventType, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN, EventType, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { FilterType, InterfaceFilterNode, LinkToAnotherRecordType, LookupType, RollupType, TableType } from 'nocodb-sdk'
 import { interfaceDataEventSuffix } from '~/lib/interfaceData'
 
@@ -130,17 +130,21 @@ export function classifyUnloadedRowUpdate({
   isIn,
   changedFields,
   groupByTitles,
+  sortTitles = [],
 }: {
   wasIn: ViewMembership
   isIn: ViewMembership
   changedFields?: string[]
   groupByTitles: string[]
+  sortTitles?: string[]
 }): 'ignore' | 'aggregates' | 'refresh' {
   const isGrouped = groupByTitles.length > 0
 
   if (wasIn === 'out' && isIn === 'out') return 'ignore'
 
   if (wasIn === 'in' && isIn === 'in') {
+    // A sorted field can move the row into (or out of) a loaded chunk.
+    if (changedFields && sortTitles.some((title) => changedFields.includes(title))) return 'refresh'
     if (!isGrouped) return 'ignore'
     if (changedFields && !groupByTitles.some((title) => changedFields.includes(title))) return 'aggregates'
     return 'refresh'
@@ -153,4 +157,12 @@ export function classifyUnloadedRowUpdate({
   }
 
   return 'refresh'
+}
+
+/**
+ * Whether a view's filters compare against the viewer (`@me`). The server matches rows to views
+ * without a viewer, so its matched-view lists never include such a view: membership is unknown.
+ */
+export function hasViewerScopedFilter(filters: Array<{ value?: unknown }>): boolean {
+  return filters.some((filter) => `${filter.value ?? ''}`.split(',').some((value) => value.trim() === CURRENT_USER_TOKEN))
 }

@@ -24,7 +24,13 @@ import axios from 'axios'
 import type { CanvasGroup } from '../lib/types'
 import type { InterfacePageDataApi } from '../lib/interfaceData'
 import { isInterfaceSyntheticViewId } from '../lib/interfaceData'
-import { classifyUnloadedRowUpdate, dataEventSubscriptionKey, flattenFiltersForEval, viewMembership } from '~/utils/realtimeUtils'
+import {
+  classifyUnloadedRowUpdate,
+  dataEventSubscriptionKey,
+  flattenFiltersForEval,
+  hasViewerScopedFilter,
+  viewMembership,
+} from '~/utils/realtimeUtils'
 import type { ViewMembership } from '~/utils/realtimeUtils'
 import type { Row } from '#imports'
 import { validateRowFilters } from '~/utils/dataUtils'
@@ -462,14 +468,14 @@ export function useInfiniteData(args: {
     if (allFormattedRows.length === 0) return
 
     const allIds: string[] = []
-    const rowIdToRowMap = new Map<string, Row>()
+    const rowIdToRowMap = new Map<string, { row: Row; path: Array<number> }>()
 
-    for (const { rows } of allFormattedRows) {
+    for (const { rows, path } of allFormattedRows) {
       for (const row of rows) {
         const id = extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])
         if (id) {
           allIds.push(id)
-          rowIdToRowMap.set(id, row)
+          rowIdToRowMap.set(id, { row, path })
         }
       }
     }
@@ -486,10 +492,15 @@ export function useInfiniteData(args: {
           })
 
       aggCommentCount?.forEach((commentData: Record<string, any>) => {
-        const row = rowIdToRowMap.get(commentData.row_id)
-        if (row) {
-          row.rowMeta.commentCount = +commentData.count || 0
-        }
+        const entry = rowIdToRowMap.get(commentData.row_id)
+        if (!entry) return
+        // A refetch over a cached row merges into that row and drops the fresh object.
+        const cached = getDataCache(entry.path).cachedRows.value.get(entry.row.rowMeta.rowIndex!)
+        const target =
+          cached && `${extractPkFromRow(cached.row, meta?.value?.columns as ColumnType[])}` === `${commentData.row_id}`
+            ? cached
+            : entry.row
+        target.rowMeta.commentCount = +commentData.count || 0
       })
 
       eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
@@ -2304,9 +2315,13 @@ export function useInfiniteData(args: {
 
   // Saved view filters → trust the server's matchedViewIds. Ad-hoc URL `where` + toolbar search
   // → server can't know them, so AND them in client-side via rowMatchesSearchAndUrl.
+  // The server matches rows to views without a viewer, so it never places a row in an `@me` view.
+  const isViewerScopedView = computed(() => hasViewerScopedFilter(allFilters.value))
+
   const recordPassesViewFilter = (data: DataPayload) => {
     if (
       !isInterfaceSyntheticViewId(viewMeta.value?.id) &&
+      !isViewerScopedView.value &&
       Array.isArray(data.matchedViewIds) &&
       !data.matchedViewIds.includes(viewMeta.value?.id as string)
     ) {
@@ -2319,10 +2334,12 @@ export function useInfiniteData(args: {
   const currentMembership = (data: DataPayload): ViewMembership => {
     if (!rowMatchesSearchAndUrl(data.payload)) return 'out'
     if (isInterfaceSyntheticViewId(viewMeta.value?.id)) return 'in'
+    if (isViewerScopedView.value) return 'unknown'
     return viewMembership(data.matchedViewIds, viewMeta.value?.id)
   }
 
   const previousMembership = (data: DataPayload): ViewMembership => {
+    if (isViewerScopedView.value) return 'unknown'
     const membership = viewMembership(data.prevMatchedViewIds, viewMeta.value?.id)
     return membership === 'in' && hasClientSideRowFilters.value ? 'unknown' : membership
   }
@@ -2343,6 +2360,12 @@ export function useInfiniteData(args: {
     }
 
     if (action === 'add') {
+      // Whether the new row is in an `@me` view only the server can tell: let it place the row.
+      if (isViewerScopedView.value) {
+        if (callbacks?.refreshInPlace && rowMatchesSearchAndUrl(payload)) requestInPlaceRefresh()
+        return
+      }
+
       if (isGroupBy.value && groupBy.value.length) {
         try {
           // Group counts are fetched under the same filters, so a filtered-out row
@@ -2503,6 +2526,9 @@ export function useInfiniteData(args: {
               isGroupBy.value && groupBy.value.length
                 ? groupBy.value.map((g) => g.column?.title).filter((title): title is string => !!title)
                 : [],
+            sortTitles: activeSorts.value
+              .map((sort) => columnsById.value[sort.fk_column_id!]?.title)
+              .filter((title): title is string => !!title),
           })
           if (outcome === 'aggregates') callbacks?.refreshGroupAggregations?.(data.changedFields)
           else if (outcome === 'refresh') requestInPlaceRefresh()

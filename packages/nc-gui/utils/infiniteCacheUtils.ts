@@ -70,7 +70,12 @@ export const upsertCachedRows = (
       if (existing.rowMeta?.new || existing.rowMeta?.saving || existing.rowMeta?.changed) continue
       Object.assign(existing.row, item.row)
       existing.oldRow = { ...item.oldRow }
-      existing.rowMeta = { ...item.rowMeta, selected: existing.rowMeta?.selected }
+      // Comment counts load after the rows, so the fresh row has none yet.
+      existing.rowMeta = {
+        ...item.rowMeta,
+        selected: existing.rowMeta?.selected,
+        commentCount: item.rowMeta.commentCount ?? existing.rowMeta?.commentCount,
+      }
       continue
     }
 

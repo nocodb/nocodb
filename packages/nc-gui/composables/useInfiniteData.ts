@@ -24,7 +24,8 @@ import axios from 'axios'
 import type { CanvasGroup } from '../lib/types'
 import type { InterfacePageDataApi } from '../lib/interfaceData'
 import { isInterfaceSyntheticViewId } from '../lib/interfaceData'
-import { dataEventSubscriptionKey, flattenFiltersForEval } from '~/utils/realtimeUtils'
+import { classifyUnloadedRowUpdate, dataEventSubscriptionKey, flattenFiltersForEval, viewMembership } from '~/utils/realtimeUtils'
+import type { ViewMembership } from '~/utils/realtimeUtils'
 import type { Row } from '#imports'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { NavigateDir } from '~/lib/enums'
@@ -108,6 +109,8 @@ export function useInfiniteData(args: {
       path: Array<number>
     }) => void
     findGroupByPath?: (path?: Array<number>) => CanvasGroup | null
+    // Resync counts and loaded rows without clearing what's on screen.
+    refreshInPlace?: () => void
   }
   where?: ComputedRef<string | undefined>
   disableSmartsheet?: boolean
@@ -157,6 +160,7 @@ export function useInfiniteData(args: {
     isAlreadyShownUpgradeModal,
     validFiltersFromUrlParams,
     rowMatchesSearchAndUrl,
+    hasClientSideRowFilters,
     totalRowsWithSearchQuery,
     totalRowsWithoutSearchQuery,
     fetchTotalRowsWithSearchQuery,
@@ -171,6 +175,7 @@ export function useInfiniteData(args: {
         isExternalSource: computed(() => false),
         isAlreadyShownUpgradeModal: ref(false),
         rowMatchesSearchAndUrl: () => true,
+        hasClientSideRowFilters: computed(() => false),
         totalRowsWithSearchQuery: ref(0),
         totalRowsWithoutSearchQuery: ref(0),
         fetchTotalRowsWithSearchQuery: computed(() => false),
@@ -818,6 +823,26 @@ export function useInfiniteData(args: {
     dataCache.chunkStates.value = dataCache.chunkStates.value.map((state, chunkIndex) =>
       (chunkIndex >= safeStartChunk && chunkIndex <= safeEndChunk) || importantChunks.has(chunkIndex) ? state : undefined,
     )
+  }
+
+  // Resync the count and refetch the loaded chunks over the rows on screen, never clearing them.
+  async function refreshLoadedRows(path: Array<number> = []) {
+    const dataCache = getDataCache(path)
+    if (!path.length) await syncCount(path, false, false)
+
+    const total = dataCache.totalRows.value
+    for (const [index, row] of [...dataCache.cachedRows.value]) {
+      if (index >= total && !row.rowMeta?.new) dataCache.cachedRows.value.delete(index)
+    }
+
+    const loadedChunks = dataCache.chunkStates.value.flatMap((state, chunkId) =>
+      state === 'loaded' && chunkId * CHUNK_SIZE < Math.max(total, 1) ? [chunkId] : [],
+    )
+    dataCache.chunkStates.value = dataCache.chunkStates.value.map((state, chunkId) =>
+      chunkId * CHUNK_SIZE < Math.max(total, 1) ? state : undefined,
+    )
+
+    await Promise.all(loadedChunks.map((chunkId) => fetchChunk(chunkId, path, true)))
   }
 
   async function loadAggCommentsCount(formattedData: Array<Row>, path: Array<number> = []) {
@@ -2274,8 +2299,24 @@ export function useInfiniteData(args: {
     return rowMatchesSearchAndUrl(data.payload)
   }
 
-  // Coalesces the per-row reloads a bulk event would fire into one.
-  const requestGroupReload = useDebounceFn(() => eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD), 300)
+  // Interface rooms only deliver in-scope updates, so a synthetic view's row is in it.
+  const currentMembership = (data: DataPayload): ViewMembership => {
+    if (!rowMatchesSearchAndUrl(data.payload)) return 'out'
+    if (isInterfaceSyntheticViewId(viewMeta.value?.id)) return 'in'
+    return viewMembership(data.matchedViewIds, viewMeta.value?.id)
+  }
+
+  const previousMembership = (data: DataPayload): ViewMembership => {
+    const membership = viewMembership(data.prevMatchedViewIds, viewMeta.value?.id)
+    return membership === 'in' && hasClientSideRowFilters.value ? 'unknown' : membership
+  }
+
+  // Coalesces the per-row refreshes a bulk event would fire into one. Without the owning
+  // grid's in-place refresh, a grouped grid falls back to a full group reload.
+  const requestInPlaceRefresh = useDebounceFn(() => {
+    if (callbacks?.refreshInPlace) return callbacks.refreshInPlace()
+    if (isGroupBy.value && groupBy.value.length) eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
+  }, 300)
 
   const handleDataEvent = (data: DataPayload) => {
     const { id, action, payload, before } = data
@@ -2316,7 +2357,7 @@ export function useInfiniteData(args: {
           }
 
           if (!matchedCache) {
-            requestGroupReload()
+            requestInPlaceRefresh()
             return
           }
 
@@ -2337,7 +2378,7 @@ export function useInfiniteData(args: {
           callbacks?.syncVisibleData?.()
         } catch (e) {
           console.error('Failed to add cached row on socket event (grouped)', e)
-          requestGroupReload()
+          requestInPlaceRefresh()
         }
         return
       }
@@ -2438,24 +2479,31 @@ export function useInfiniteData(args: {
         const found = findCachedRowByPk(dataCaches, id)
 
         if (!found) {
-          // The event carries no before-image, so an unloaded row's old group is unknown —
-          // it may have left one group's count (placeholder) and joined another's (missing row).
-          if (isGroupBy.value && groupBy.value.length) requestGroupReload()
+          const outcome = classifyUnloadedRowUpdate({
+            wasIn: previousMembership(data),
+            isIn: currentMembership(data),
+            changedFields: data.changedFields,
+            groupByTitles:
+              isGroupBy.value && groupBy.value.length
+                ? groupBy.value.map((g) => g.column?.title).filter((title): title is string => !!title)
+                : [],
+          })
+          if (outcome === 'enter') handleDataEvent({ ...data, action: 'add', before: undefined })
+          else if (outcome === 'refresh') requestInPlaceRefresh()
           return
         }
 
         const { cachedRow } = found
 
-        // If the update changes any group-by column value, the row needs to
-        // move between groups (or into a new group). We can't do that in
-        // place; trigger a full group reload instead.
+        // A changed group-by value moves the row between groups (or into a new one), which
+        // changes group counts and indices — refresh the groups rather than patch them.
         if (isGroupBy.value && groupBy.value.length) {
           const groupColumnChanged = groupBy.value.some((g) => {
             const title = g.column?.title
             return title && title in (payload ?? {}) && !isGroupByValueEqual(payload[title], cachedRow.row[title])
           })
           if (groupColumnChanged) {
-            requestGroupReload()
+            requestInPlaceRefresh()
             return
           }
         }
@@ -2519,7 +2567,7 @@ export function useInfiniteData(args: {
           dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
         } else if (isGroupBy.value && groupBy.value.length) {
           // Unloaded row — its group's count would otherwise keep a trailing placeholder.
-          requestGroupReload()
+          requestInPlaceRefresh()
         }
 
         callbacks?.syncVisibleData?.()
@@ -2765,6 +2813,7 @@ export function useInfiniteData(args: {
 
   return {
     getDataCache,
+    refreshLoadedRows,
     insertRow,
     updateRowProperty,
     addEmptyRow,

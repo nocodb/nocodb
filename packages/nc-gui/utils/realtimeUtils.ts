@@ -111,3 +111,46 @@ export function isGroupByChanged(col: Record<string, any>, payload: Record<strin
     (key) => key in payload && normalize(key, payload[key]) !== normalize(key, col[key]),
   )
 }
+
+export type ViewMembership = 'in' | 'out' | 'unknown'
+
+export function viewMembership(matchedViewIds: string[] | undefined, viewId: string | undefined): ViewMembership {
+  if (!viewId || !Array.isArray(matchedViewIds)) return 'unknown'
+  return matchedViewIds.includes(viewId) ? 'in' : 'out'
+}
+
+/**
+ * What a grid does with a peer's update to a row it hasn't loaded: `ignore` it, insert it
+ * because it just started matching (`enter`, flat grids only), or `refresh` in place because
+ * the view's or a group's row count may have changed.
+ */
+export function classifyUnloadedRowUpdate({
+  wasIn,
+  isIn,
+  changedFields,
+  groupByTitles,
+}: {
+  wasIn: ViewMembership
+  isIn: ViewMembership
+  changedFields?: string[]
+  groupByTitles: string[]
+}): 'ignore' | 'enter' | 'refresh' {
+  const isGrouped = groupByTitles.length > 0
+
+  if (wasIn === 'out' && isIn === 'out') return 'ignore'
+
+  if (wasIn === 'in' && isIn === 'in') {
+    if (!isGrouped) return 'ignore'
+    if (changedFields && !groupByTitles.some((title) => changedFields.includes(title))) return 'ignore'
+    return 'refresh'
+  }
+
+  // Without both images a flat grid keeps its count: refreshing on every such event costs more than a stale count.
+  if (!isGrouped) {
+    if (wasIn === 'out' && isIn === 'in') return 'enter'
+    if (wasIn === 'in' && isIn === 'out') return 'refresh'
+    return 'ignore'
+  }
+
+  return 'refresh'
+}

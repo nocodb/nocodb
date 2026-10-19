@@ -9,6 +9,7 @@ import {
   type ViewType,
 } from 'nocodb-sdk'
 import { createGroupUniqueIdentifier, generateGroupPath } from '../components/smartsheet/grid/canvas/utils/groupby'
+import { mergeRefetchedGroups } from '../components/smartsheet/grid/canvas/utils/groupRefresh'
 import { GROUP_CHUNK_SIZE } from '../components/smartsheet/grid/canvas/utils/constants'
 import type { CanvasGroup } from '#imports'
 import { groupKeysManager } from '#imports'
@@ -904,6 +905,41 @@ export const useInfiniteGroups = (
     callbacks?.syncVisibleData()
   }
 
+  /**
+   * Refetch the loaded group chunks under `parentGroup` (root when omitted) without clearing
+   * them, recursing into expanded kept groups — see mergeRefetchedGroups.
+   */
+  async function refreshLoadedGroups(
+    parentGroup?: CanvasGroup,
+  ): Promise<{ stalePaths: Array<Array<number>>; keptLeafGroups: CanvasGroup[] }> {
+    const states = parentGroup ? parentGroup.chunkStates : chunkStates.value
+    const loadedChunks = states.flatMap((state, chunkId) => (state === 'loaded' ? [chunkId] : []))
+    if (!loadedChunks.length) return { stalePaths: [], keptLeafGroups: [] }
+
+    const groupsBefore = new Map(parentGroup ? parentGroup.groups : cachedGroups.value)
+
+    await Promise.all(loadedChunks.map((chunkId) => fetchGroupChunk(chunkId, parentGroup, true)))
+
+    const isLeafLevel = (parentGroup ? findGroupLevel(parentGroup) : 0) === groupByColumns.value.length - 1
+    const { stalePaths, expandedKept } = mergeRefetchedGroups({
+      groupsBefore,
+      groupMap: parentGroup ? parentGroup.groups : cachedGroups.value,
+      total: parentGroup ? parentGroup.groupCount : totalGroups.value,
+      isLeafLevel,
+    })
+
+    if (isLeafLevel) return { stalePaths, keptLeafGroups: expandedKept }
+
+    const keptLeafGroups: CanvasGroup[] = []
+    for (const group of expandedKept) {
+      const nested = await refreshLoadedGroups(group)
+      stalePaths.push(...nested.stalePaths)
+      keptLeafGroups.push(...nested.keptLeafGroups)
+    }
+
+    return { stalePaths, keptLeafGroups }
+  }
+
   const isGroupBy = computed(() => !!groupByColumns.value.length)
 
   return {
@@ -914,6 +950,7 @@ export const useInfiniteGroups = (
     chunkStates,
     syncCount,
     fetchMissingGroupChunks,
+    refreshLoadedGroups,
     clearGroupCache,
     toggleExpand,
     GROUP_CHUNK_SIZE,

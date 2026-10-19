@@ -52,7 +52,9 @@ export function useGridViewData(
     buildNestedFilterArr,
     clearGroupCache,
     syncCount: groupSyncCount,
+    chunkStates: groupChunkStates,
     fetchMissingGroupChunks,
+    refreshLoadedGroups,
     updateGroupAggregations,
     fetchMissingGroupAggregations,
     toggleExpandAll,
@@ -95,6 +97,7 @@ export function useGridViewData(
     getRows,
     getDataCache,
     groupDataCache,
+    refreshLoadedRows,
   } = useInfiniteData({
     meta,
     viewMeta,
@@ -107,6 +110,7 @@ export function useGridViewData(
       findGroupByPath: (path?: Array<number>) => {
         return findGroupByPath(cachedGroups.value, path)
       },
+      refreshInPlace: () => refreshInPlace(),
     },
     groupByColumns,
     where,
@@ -186,7 +190,7 @@ export function useGridViewData(
   // Only on an actual reconnect, not the first handshake (data is already fresh then).
   const offSocketReady = $ncSocket.onReady(({ reconnected }) => {
     if (!reconnected) return
-    reloadViewDataHook?.trigger()
+    refreshInPlace()
     // Footer/column aggregations aren't re-fetched by the data reload above (group
     // aggregations reload with their chunks, but the view-level footer only reloads
     // on view switch), so refresh them too or they'd stay stale after reconnect.
@@ -273,6 +277,58 @@ export function useGridViewData(
 
   function syncVisibleData() {
     reloadVisibleDataHook?.trigger()
+  }
+
+  let isRefreshingInPlace = false
+  let isRefreshInPlaceQueued = false
+
+  /**
+   * Resync after peers' changes without the loader or clearing the grid: refetch the loaded
+   * groups and rows over what's on screen. Groups whose value or index changed drop their rows,
+   * which the next render refetches. Calls during a run coalesce into one more run.
+   */
+  async function refreshInPlace() {
+    // Nothing in these caches: the paginated table or the non-canvas group-by renders this view.
+    const loadedStates = isGroupBy.value ? groupChunkStates.value : chunkStates.value
+    if (!loadedStates.includes('loaded')) {
+      reloadViewDataHook?.trigger()
+      return
+    }
+
+    if (isRefreshingInPlace) {
+      isRefreshInPlaceQueued = true
+      return
+    }
+    isRefreshingInPlace = true
+
+    try {
+      if (isGroupBy.value) await refreshGroupsInPlace()
+      else await refreshLoadedRows()
+    } catch (e) {
+      console.error('Failed to refresh grid in place', e)
+    } finally {
+      isRefreshingInPlace = false
+      syncVisibleData()
+    }
+
+    if (isRefreshInPlaceQueued) {
+      isRefreshInPlaceQueued = false
+      await refreshInPlace()
+    }
+  }
+
+  async function refreshGroupsInPlace() {
+    const { stalePaths, keptLeafGroups } = await refreshLoadedGroups()
+
+    // Dropped rather than cleared, so a chunk request in flight for the old group is discarded.
+    const staleKeys = stalePaths.map((path) => path.join('-'))
+    for (const key of [...groupDataCache.value.keys()]) {
+      if (staleKeys.some((staleKey) => key === staleKey || key.startsWith(`${staleKey}-`))) {
+        groupDataCache.value.delete(key)
+      }
+    }
+
+    await Promise.all(keptLeafGroups.filter((group) => group.path?.length).map((group) => refreshLoadedRows(group.path!)))
   }
 
   async function deleteSelectedRows(path: Array<number> = []): Promise<void> {

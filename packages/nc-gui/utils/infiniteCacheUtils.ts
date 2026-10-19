@@ -23,6 +23,9 @@
  * Removing a duplicate leaves a hole in its chunk, so the removed indices are returned —
  * callers must mark those chunks unloaded or the hole renders as a permanent placeholder.
  *
+ * A refetch over a row already cached at the same index updates that Row in place, so an
+ * open editor or the selection keeps pointing at it; a row with an unsaved local edit is kept.
+ *
  * @param cachedRows  the index -> Row cache to mutate in place
  * @param newItems    rows just fetched/formatted from the server
  * @param getPk       extracts a stable primary key from a row's data (null when absent)
@@ -59,7 +62,19 @@ export const upsertCachedRows = (
   }
 
   for (const item of newItems) {
-    cachedRows.set(item.rowMeta.rowIndex!, item)
+    const index = item.rowMeta.rowIndex!
+    const existing = cachedRows.get(index)
+    const pk = getPk(item.row)
+
+    if (existing && pk !== null && pk !== '' && getPk(existing.row) === pk) {
+      if (existing.rowMeta?.new || existing.rowMeta?.saving || existing.rowMeta?.changed) continue
+      Object.assign(existing.row, item.row)
+      existing.oldRow = { ...item.oldRow }
+      existing.rowMeta = { ...item.rowMeta, selected: existing.rowMeta?.selected }
+      continue
+    }
+
+    cachedRows.set(index, item)
   }
 
   return removedIndices

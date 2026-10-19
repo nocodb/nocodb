@@ -272,6 +272,10 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
         : [],
     )
 
+    // A realtime update's prevMatchedViewIds covers saved filters only, so with these
+    // active the row's previous membership is unknown.
+    const hasClientSideRowFilters = computed(() => !!(xWhereFilters.value.length || interfaceViewerFilters.value.length))
+
     const rowMatchesSearchAndUrl = (rowPayload: Record<string, any>) => {
       const allFilters = [...xWhereFilters.value, ...interfaceViewerFilters.value]
       if (!allFilters.length) return true
@@ -385,6 +389,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       whereQueryFromUrl,
       validFiltersFromUrlParams,
       rowMatchesSearchAndUrl,
+      hasClientSideRowFilters,
       isSyncedTable,
       totalRowsWithSearchQuery,
       totalRowsWithoutSearchQuery,

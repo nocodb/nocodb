@@ -27,13 +27,19 @@ export function mergeRefetchedGroups({
   const expandedKept: CanvasGroup[] = []
 
   for (const [index, before] of groupsBefore) {
+    // Before the identity check: a refetch writes only the indices it returns, so a group past
+    // the new total is still the same object.
+    if (index >= total) {
+      groupMap.delete(index)
+      stalePaths.push(groupPath(before))
+      continue
+    }
+
     const after = groupMap.get(index)
     // Outside the refetched chunks.
     if (after === before) continue
 
-    if (index >= total) groupMap.delete(index)
-
-    if (!after || index >= total || groupIdentity(after) !== groupIdentity(before)) {
+    if (!after || groupIdentity(after) !== groupIdentity(before)) {
       stalePaths.push(groupPath(before))
       continue
     }

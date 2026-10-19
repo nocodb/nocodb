@@ -121,8 +121,9 @@ export function viewMembership(matchedViewIds: string[] | undefined, viewId: str
 
 /**
  * What a grid does with a peer's update to a row it hasn't loaded: `ignore` it, insert it
- * because it just started matching (`enter`, flat grids only), or `refresh` in place because
- * the view's or a group's row count may have changed.
+ * because it just started matching (`enter`, flat grids only), reload only the group header
+ * aggregations (`aggregates`: the row stayed in its group), or `refresh` in place because the
+ * view's or a group's row count may have changed.
  */
 export function classifyUnloadedRowUpdate({
   wasIn,
@@ -134,14 +135,14 @@ export function classifyUnloadedRowUpdate({
   isIn: ViewMembership
   changedFields?: string[]
   groupByTitles: string[]
-}): 'ignore' | 'enter' | 'refresh' {
+}): 'ignore' | 'enter' | 'aggregates' | 'refresh' {
   const isGrouped = groupByTitles.length > 0
 
   if (wasIn === 'out' && isIn === 'out') return 'ignore'
 
   if (wasIn === 'in' && isIn === 'in') {
     if (!isGrouped) return 'ignore'
-    if (changedFields && !groupByTitles.some((title) => changedFields.includes(title))) return 'ignore'
+    if (changedFields && !groupByTitles.some((title) => changedFields.includes(title))) return 'aggregates'
     return 'refresh'
   }
 

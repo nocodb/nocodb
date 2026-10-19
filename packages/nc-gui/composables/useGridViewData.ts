@@ -55,6 +55,7 @@ export function useGridViewData(
     chunkStates: groupChunkStates,
     fetchMissingGroupChunks,
     refreshLoadedGroups,
+    invalidateGroupAggregations,
     updateGroupAggregations,
     fetchMissingGroupAggregations,
     toggleExpandAll,
@@ -111,6 +112,9 @@ export function useGridViewData(
         return findGroupByPath(cachedGroups.value, path)
       },
       refreshInPlace: () => refreshInPlace(),
+      refreshGroupAggregations: (changedFields?: string[]) => {
+        if (invalidateGroupAggregations(changedFields)) syncVisibleData()
+      },
     },
     groupByColumns,
     where,

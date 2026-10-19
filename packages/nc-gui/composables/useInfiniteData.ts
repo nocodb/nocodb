@@ -111,6 +111,8 @@ export function useInfiniteData(args: {
     findGroupByPath?: (path?: Array<number>) => CanvasGroup | null
     // Resync counts and loaded rows without clearing what's on screen.
     refreshInPlace?: () => void
+    // A peer's edit kept every group's rows; reload group aggregations a changed field feeds.
+    refreshGroupAggregations?: (changedFields?: string[]) => void
   }
   where?: ComputedRef<string | undefined>
   disableSmartsheet?: boolean
@@ -2489,6 +2491,7 @@ export function useInfiniteData(args: {
                 : [],
           })
           if (outcome === 'enter') handleDataEvent({ ...data, action: 'add', before: undefined })
+          else if (outcome === 'aggregates') callbacks?.refreshGroupAggregations?.(data.changedFields)
           else if (outcome === 'refresh') requestInPlaceRefresh()
           return
         }
@@ -2531,6 +2534,10 @@ export function useInfiniteData(args: {
             newData: payload,
             path: isGroupBy.value ? cachedRow.rowMeta.path ?? [] : [],
           })
+        }
+
+        if (isGroupBy.value && groupBy.value.length && changedFields.length) {
+          callbacks?.refreshGroupAggregations?.(changedFields)
         }
 
         callbacks?.syncVisibleData?.()

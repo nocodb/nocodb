@@ -921,12 +921,19 @@ export const useInfiniteGroups = (
     await Promise.all(loadedChunks.map((chunkId) => fetchGroupChunk(chunkId, parentGroup, true)))
 
     const isLeafLevel = (parentGroup ? findGroupLevel(parentGroup) : 0) === groupByColumns.value.length - 1
+    const total = parentGroup ? parentGroup.groupCount : totalGroups.value
     const { stalePaths, expandedKept } = mergeRefetchedGroups({
       groupsBefore,
       groupMap: parentGroup ? parentGroup.groups : cachedGroups.value,
-      total: parentGroup ? parentGroup.groupCount : totalGroups.value,
+      total,
       isLeafLevel,
     })
+
+    // The total arrives with the refetch, so a chunk past it was fetched anyway; it holds nothing now.
+    const refreshedStates = parentGroup ? parentGroup.chunkStates : chunkStates.value
+    for (let chunkId = 0; chunkId < refreshedStates.length; chunkId++) {
+      if (chunkId * GROUP_CHUNK_SIZE >= total) refreshedStates[chunkId] = undefined
+    }
 
     if (isLeafLevel) return { stalePaths, keptLeafGroups: expandedKept }
 
@@ -940,6 +947,30 @@ export const useInfiniteGroups = (
     return { stalePaths, keptLeafGroups }
   }
 
+  /**
+   * After a peer's edit that kept every group's rows, clear the loaded group aggregations if a
+   * changed field is aggregated (unknown fields count as aggregated), so the viewport loader
+   * refetches them. Returns whether anything was cleared.
+   */
+  function invalidateGroupAggregations(changedFields?: string[]) {
+    if (!hasAggregations.value) return false
+
+    const isAggregated = (title: string) => {
+      const aggregation = gridViewColByTitle.value[title]?.aggregation
+      return !!aggregation && aggregation !== CommonAggregations.None
+    }
+    if (changedFields && !changedFields.some(isAggregated)) return false
+
+    const clear = (groups: Map<number, CanvasGroup>) => {
+      for (const group of groups.values()) {
+        group.aggregationState = undefined
+        if (group.groups?.size) clear(group.groups)
+      }
+    }
+    clear(cachedGroups.value)
+    return true
+  }
+
   const isGroupBy = computed(() => !!groupByColumns.value.length)
 
   return {
@@ -951,6 +982,7 @@ export const useInfiniteGroups = (
     syncCount,
     fetchMissingGroupChunks,
     refreshLoadedGroups,
+    invalidateGroupAggregations,
     clearGroupCache,
     toggleExpand,
     GROUP_CHUNK_SIZE,

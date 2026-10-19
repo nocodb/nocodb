@@ -3,7 +3,7 @@ import { NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere, getFirs
 import type { Ref } from 'vue'
 import type { CanvasEditEnabledType } from '~/lib/types'
 import { validateRowFilters } from '~/utils/dataUtils'
-import { flattenFiltersForEval } from '~/utils/realtimeUtils'
+import { flattenFiltersForEval, hasViewerScopedFilter } from '~/utils/realtimeUtils'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   (
@@ -295,6 +295,24 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const allFilters = ref<FilterType[]>([])
 
+    // The server matches rows to views without a viewer, so a saved filter on `@me` never matches
+    // there. Such a view is evaluated here instead, where the viewer is known.
+    const isViewerScopedView = computed(() => hasViewerScopedFilter(allFilters.value))
+
+    const rowMatchesViewerScopedFilters = (rowPayload: Record<string, any>) =>
+      validateRowFilters(
+        allFilters.value,
+        rowPayload,
+        (meta.value as TableType)?.columns as ColumnType[],
+        getBaseType((meta.value as TableType)?.source_id),
+        metas.value,
+        (meta.value as TableType)?.base_id,
+        {
+          currentUser: user.value,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      )
+
     watch(
       sorts,
       () => {
@@ -390,6 +408,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       validFiltersFromUrlParams,
       rowMatchesSearchAndUrl,
       hasClientSideRowFilters,
+      isViewerScopedView,
+      rowMatchesViewerScopedFilters,
       isSyncedTable,
       totalRowsWithSearchQuery,
       totalRowsWithoutSearchQuery,

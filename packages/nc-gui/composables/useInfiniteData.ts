@@ -24,13 +24,7 @@ import axios from 'axios'
 import type { CanvasGroup } from '../lib/types'
 import type { InterfacePageDataApi } from '../lib/interfaceData'
 import { isInterfaceSyntheticViewId } from '../lib/interfaceData'
-import {
-  classifyUnloadedRowUpdate,
-  dataEventSubscriptionKey,
-  flattenFiltersForEval,
-  hasViewerScopedFilter,
-  viewMembership,
-} from '~/utils/realtimeUtils'
+import { classifyUnloadedRowUpdate, dataEventSubscriptionKey, flattenFiltersForEval, viewMembership } from '~/utils/realtimeUtils'
 import type { ViewMembership } from '~/utils/realtimeUtils'
 import type { Row } from '#imports'
 import { validateRowFilters } from '~/utils/dataUtils'
@@ -169,6 +163,8 @@ export function useInfiniteData(args: {
     validFiltersFromUrlParams,
     rowMatchesSearchAndUrl,
     hasClientSideRowFilters,
+    isViewerScopedView,
+    rowMatchesViewerScopedFilters,
     totalRowsWithSearchQuery,
     totalRowsWithoutSearchQuery,
     fetchTotalRowsWithSearchQuery,
@@ -184,6 +180,8 @@ export function useInfiniteData(args: {
         isAlreadyShownUpgradeModal: ref(false),
         rowMatchesSearchAndUrl: () => true,
         hasClientSideRowFilters: computed(() => false),
+        isViewerScopedView: computed(() => false),
+        rowMatchesViewerScopedFilters: () => true,
         totalRowsWithSearchQuery: ref(0),
         totalRowsWithoutSearchQuery: ref(0),
         fetchTotalRowsWithSearchQuery: computed(() => false),
@@ -2315,10 +2313,9 @@ export function useInfiniteData(args: {
 
   // Saved view filters → trust the server's matchedViewIds. Ad-hoc URL `where` + toolbar search
   // → server can't know them, so AND them in client-side via rowMatchesSearchAndUrl.
-  // The server matches rows to views without a viewer, so it never places a row in an `@me` view.
-  const isViewerScopedView = computed(() => hasViewerScopedFilter(allFilters.value))
-
   const recordPassesViewFilter = (data: DataPayload) => {
+    // An `@me` view: the server's list never includes it, so evaluate its filters here.
+    if (isViewerScopedView.value && !rowMatchesViewerScopedFilters(data.payload)) return false
     if (
       !isInterfaceSyntheticViewId(viewMeta.value?.id) &&
       !isViewerScopedView.value &&
@@ -2334,10 +2331,11 @@ export function useInfiniteData(args: {
   const currentMembership = (data: DataPayload): ViewMembership => {
     if (!rowMatchesSearchAndUrl(data.payload)) return 'out'
     if (isInterfaceSyntheticViewId(viewMeta.value?.id)) return 'in'
-    if (isViewerScopedView.value) return 'unknown'
+    if (isViewerScopedView.value) return rowMatchesViewerScopedFilters(data.payload) ? 'in' : 'out'
     return viewMembership(data.matchedViewIds, viewMeta.value?.id)
   }
 
+  // An `@me` view's previous membership would need the row's old values, which the event omits.
   const previousMembership = (data: DataPayload): ViewMembership => {
     if (isViewerScopedView.value) return 'unknown'
     const membership = viewMembership(data.prevMatchedViewIds, viewMeta.value?.id)
@@ -2360,12 +2358,6 @@ export function useInfiniteData(args: {
     }
 
     if (action === 'add') {
-      // Whether the new row is in an `@me` view only the server can tell: let it place the row.
-      if (isViewerScopedView.value) {
-        if (callbacks?.refreshInPlace && rowMatchesSearchAndUrl(payload)) requestInPlaceRefresh()
-        return
-      }
-
       if (isGroupBy.value && groupBy.value.length) {
         try {
           // Group counts are fetched under the same filters, so a filtered-out row

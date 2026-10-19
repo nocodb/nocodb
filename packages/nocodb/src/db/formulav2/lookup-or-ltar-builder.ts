@@ -537,6 +537,9 @@ export const lookupOrLtarBuilder =
         lookupColumn = nestedLookup
           ? await nestedLookup.getLookupColumn()
           : await getDisplayValueOfRefTable(lookupContext, relationCol);
+        if (!lookupColumn) {
+          return { builder: knex.raw('?', [null]) };
+        }
         prevAlias = nestedAlias;
       }
 
@@ -710,7 +713,6 @@ export const lookupOrLtarBuilder =
               const qb = selectQb;
               const cn = `${prevAlias}.${lookupColumn.column_name}`;
               selectQb = (fn) => {
-                console.log('fn', fn, knex.clientType());
                 if (
                   knex.clientType() === ClientType.PG &&
                   (!fn || fn.toLowerCase?.() === 'concat')

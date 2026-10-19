@@ -533,8 +533,17 @@ const _timezoneAliases = {
 } as Record<string, string>;
 
 // reverse mapping
+// A canonical zone can have multiple legacy aliases. Keep them all so we can
+// pick one that Node actually accepts instead of letting the last alias win.
+const _aliasesOf: Record<string, string[]> = {};
+
 for (const [key, value] of Object.entries(_timezoneAliases)) {
-  _timezoneAliases[value] = key;
+  (_aliasesOf[value] ??= []).push(key);
+}
+
+for (const [canonical, aliases] of Object.entries(_aliasesOf)) {
+  _timezoneAliases[canonical] =
+    aliases.find((alias) => nodejsTimezones.has(alias)) ?? aliases[0];
 }
 
 export const timezoneAliases = _timezoneAliases;

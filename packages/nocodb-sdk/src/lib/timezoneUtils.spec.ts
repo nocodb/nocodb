@@ -10,6 +10,16 @@ describe('timezoneUtils', () => {
         'Asia/Calcutta'
       );
     });
+
+    it('will get a Node supported alias for canonical zones with several aliases', () => {
+      expect(getNodejsTimezone('Pacific/Chuuk')).toBe('Pacific/Truk');
+      expect(getNodejsTimezone('America/Indiana/Indianapolis')).toBe(
+        'America/Indianapolis'
+      );
+      expect(getNodejsTimezone('America/Argentina/Cordoba')).toBe(
+        'America/Cordoba'
+      );
+    });
   });
   describe('isDateTimeStringHasTimezone', () => {
     it('will evaluate some test cases', () => {

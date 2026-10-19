@@ -214,12 +214,21 @@ export const sortByUIType = ({
   return direction === 'desc' ? -result : result
 }
 
+// The server skips a disabled sort (sortV2), so client-side ordering must too. `0` comes from
+// dialects without a boolean type.
+export const getActiveSorts = <T extends SortType>(sorts: T[]): T[] =>
+  sorts.filter((sort) => sort.enabled !== false && `${sort.enabled}` !== '0')
+
 export const isSortRelevantChange = (
   changedFields: string[],
   sorts: SortType[],
   columnsById: Record<string, ColumnType>,
 ): boolean => {
-  const sortColumnTitles = new Set(sorts.map((sort) => columnsById[sort.fk_column_id!]?.title).filter(Boolean))
+  const sortColumnTitles = new Set(
+    getActiveSorts(sorts)
+      .map((sort) => columnsById[sort.fk_column_id!]?.title)
+      .filter(Boolean),
+  )
 
   return changedFields.some((field) => sortColumnTitles.has(field))
 }

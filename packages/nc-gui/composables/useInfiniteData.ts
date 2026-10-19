@@ -1199,6 +1199,9 @@ export function useInfiniteData(args: {
     callbacks?.reloadAggregate?.({ path })
   }
 
+  // Client-side placement only; requests send every sort and the server skips the disabled ones.
+  const activeSorts = computed(() => getActiveSorts(sorts.value))
+
   const willSortOrderChange = ({
     row,
     newData,
@@ -1208,7 +1211,7 @@ export function useInfiniteData(args: {
     newData: Record<string, any>
     path: Array<number>
   }): boolean => {
-    if (!sorts.value.length) return false
+    if (!activeSorts.value.length) return false
 
     const currentIndex = row.rowMeta.rowIndex!
     if (currentIndex === undefined) return true
@@ -1232,7 +1235,7 @@ export function useInfiniteData(args: {
       let shouldBeBefore = false
       let isDifferent = false
 
-      for (const sort of sorts.value) {
+      for (const sort of activeSorts.value) {
         const column = columnsById.value[sort.fk_column_id!]
         if (!column?.title) continue
 
@@ -1258,7 +1261,7 @@ export function useInfiniteData(args: {
       let shouldBeAfter = false
       let isDifferent = false
 
-      for (const sort of sorts.value) {
+      for (const sort of activeSorts.value) {
         const column = columnsById.value[sort.fk_column_id!]
         if (!column?.title) continue
 
@@ -1304,12 +1307,12 @@ export function useInfiniteData(args: {
 
   const applySorting = (rows: Row | Row[], path: Array<number> = []) => {
     // If there aren't any active sorting criteria, stop
-    if (!sorts.value.length) return
+    if (!activeSorts.value.length) return
 
     const dataCache = getDataCache(path)
 
     // Sorts the sort columns by the order property
-    const orderedSorts = [...sorts.value].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    const orderedSorts = [...activeSorts.value].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
     const inputRows = Array.isArray(rows) ? rows : [rows]
 
@@ -1933,11 +1936,11 @@ export function useInfiniteData(args: {
         .map((c) => c.title!) || []),
     )
 
-    if (isSortRelevantChange(changedFields, sorts.value, columnsById.value) || row.rowMeta.new) {
+    if (isSortRelevantChange(changedFields, activeSorts.value, columnsById.value) || row.rowMeta.new) {
       const needsResorting = willSortOrderChange({
         row,
         newData: data,
-        sorts: sorts.value,
+        sorts: activeSorts.value,
         path,
       })
 
@@ -2371,7 +2374,7 @@ export function useInfiniteData(args: {
           matchedCache.totalRows.value++
           matchedCache.actualTotalRows.value = Math.max(matchedCache.actualTotalRows.value || 0, matchedCache.totalRows.value)
 
-          if (sorts.value.length) {
+          if (activeSorts.value.length) {
             applySorting(newRow, matchedPath)
           }
 
@@ -2428,7 +2431,7 @@ export function useInfiniteData(args: {
         const orderField = orderCol?.title || orderCol?.column_name
         let insertAtIndex = dataCache.totalRows.value
 
-        if (!sorts.value.length && orderField && payload[orderField] != null) {
+        if (!activeSorts.value.length && orderField && payload[orderField] != null) {
           // Default sort by nc_order — find the right position
           const payloadOrder = Number(payload[orderField])
           const entries = Array.from(dataCache.cachedRows.value.entries()).sort((a, b) => a[0] - b[0])
@@ -2463,7 +2466,7 @@ export function useInfiniteData(args: {
         dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
 
         // If explicit sorts exist, apply them (nc_order handled above)
-        if (sorts.value.length) {
+        if (activeSorts.value.length) {
           applySorting(newRow)
         }
 
@@ -2526,7 +2529,7 @@ export function useInfiniteData(args: {
 
         // Flag a peer's edit to a sorted field like a local one: the grid moves the row on the
         // next active-cell change, never under a viewer's cursor or open editor.
-        if (isSortRelevantChange(changedFields, sorts.value, columnsById.value)) {
+        if (isSortRelevantChange(changedFields, activeSorts.value, columnsById.value)) {
           cachedRow.rowMeta.isRowOrderUpdated = willSortOrderChange({
             row: cachedRow,
             newData: payload,

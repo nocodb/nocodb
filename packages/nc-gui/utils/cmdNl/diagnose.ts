@@ -99,6 +99,29 @@ const CMP_WORD: Partial<Record<CmdNlCmp, string>> = {
   nlike: "doesn't contain",
 }
 
+/** Runs of words nothing reads (no field, value or vocabulary word covers them): values to look up on the server. */
+export function cmdNlUnknownWords(query: string, schema: CmdNlSchema, opts: CmdNlDiagnoseOptions = {}): string[] {
+  const text = query.trim()
+  if (!text) return []
+  const lex = buildCmdNlLexicon(schema, opts.rows)
+  const tokens = tokenizeCmdNl(text, cmdNlLiteralGuard(lex))
+  const { edges, skippable } = buildCmdNlLattice({ tokens, lex, schema, now: opts.now ?? dayjs() })
+  const read = new Set(
+    edges.filter((e) => e.cat !== 'TEXTW').flatMap((e) => Array.from({ length: e.end - e.start }, (_, k) => e.start + k)),
+  )
+  const runs: string[] = []
+  let from = -1
+  for (let i = 0; i <= tokens.length; i++) {
+    const unknown = i < tokens.length && !read.has(i) && !skippable(i) && /\p{L}/u.test(tokens[i]!.text)
+    if (unknown && from < 0) from = i
+    if (!unknown && from >= 0) {
+      runs.push(text.slice(tokens[from]!.start, tokens[i - 1]!.end))
+      from = -1
+    }
+  }
+  return runs
+}
+
 export function cmdNlDiagnose(query: string, schema: CmdNlSchema, opts: CmdNlDiagnoseOptions = {}): CmdNlDiagnosis[] {
   const text = query.trim()
   if (!text) return []
@@ -118,7 +141,7 @@ export function cmdNlDiagnose(query: string, schema: CmdNlSchema, opts: CmdNlDia
   const lex = buildCmdNlLexicon(schema, opts.rows)
   const tokens = tokenizeCmdNl(text, cmdNlLiteralGuard(lex))
   if (!tokens.length) return []
-  const ctx: CmdNlCtx = { tokens, lex, schema, now: opts.now ?? dayjs(), rows: opts.rows }
+  const ctx: CmdNlCtx = { tokens, lex, schema, now: opts.now ?? dayjs() }
   const words = cmdNlWordList(tokens)
   const { edges, skippable } = buildCmdNlLattice(ctx)
   const at = (i: number, cat: string) => edges.filter((e) => e.start === i && e.cat === cat)

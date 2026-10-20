@@ -215,10 +215,21 @@ export function cmdNlLiteralGuard(lex: CmdNlLexicon, onUnanchored?: () => void):
   }
 }
 
-const cache = new WeakMap<CmdNlSchema, { rows?: unknown; lexicon: CmdNlLexicon }>()
+/** Per schema, keyed by the anchors: an anchored re-parse doesn't evict the plain lexicon. */
+const cache = new WeakMap<CmdNlSchema, Map<string, { rows?: unknown; lexicon: CmdNlLexicon }>>()
 
-export function buildCmdNlLexicon(schema: CmdNlSchema, rows?: Record<string, unknown>[]): CmdNlLexicon {
-  const hit = cache.get(schema)
+const LEXICON_VARIANTS = 4
+
+/** `anchors`: text values found on the server by field id, taken even where loaded rows give no vocabulary. */
+export function buildCmdNlLexicon(
+  schema: CmdNlSchema,
+  rows?: Record<string, unknown>[],
+  anchors?: Record<string, string[]>,
+): CmdNlLexicon {
+  const anchorKey = anchors && Object.keys(anchors).length ? JSON.stringify(anchors) : ''
+  let variants = cache.get(schema)
+  if (!variants) cache.set(schema, (variants = new Map()))
+  const hit = variants.get(anchorKey)
   if (hit && hit.rows === rows) return hit.lexicon
 
   const root = node()
@@ -315,7 +326,10 @@ export function buildCmdNlLexicon(schema: CmdNlSchema, rows?: Record<string, unk
         if (parts.length > 1) insert(root, { kind: 'member', fieldId: field.id, value: member.id, words: parts, quality: 0.85 })
       }
     }
-    for (const value of valueAnchors(field, rows ?? [])) {
+    const found = field.kind === 'text' ? anchors?.[field.id] ?? [] : []
+    const loaded = valueAnchors(field, rows ?? [])
+    const known = new Set(loaded.map((v) => v.toLowerCase()))
+    for (const value of [...loaded, ...found.filter((v) => !known.has(v.toLowerCase()))]) {
       const vw = cmdNlWords(value)
       if (!vw.length) continue
       insert(root, { kind: 'value', fieldId: field.id, value, words: vw, quality: 0.95 })
@@ -343,7 +357,8 @@ export function buildCmdNlLexicon(schema: CmdNlSchema, rows?: Record<string, unk
   }
 
   const lexicon = { schema, root, tableNouns, literals }
-  cache.set(schema, { rows, lexicon })
+  variants.set(anchorKey, { rows, lexicon })
+  if (variants.size > LEXICON_VARIANTS) variants.delete([...variants.keys()].find((k) => k !== '')!)
   return lexicon
 }
 

@@ -36,6 +36,8 @@ export interface CmdNlParseOptions {
   now?: dayjs.Dayjs
   /** Loaded rows, for value anchors ("austin deals"). */
   rows?: Record<string, unknown>[]
+  /** Text values found on the server, by field id; anchored like values in loaded rows. */
+  anchors?: Record<string, string[]>
   /** Skip the legacy parsers (for comparing readers on their own). */
   legacy?: boolean
 }
@@ -55,8 +57,6 @@ export interface CmdNlCtx {
   lex: CmdNlLexicon
   schema: CmdNlSchema
   now: dayjs.Dayjs
-  /** Loaded rows, for data-relative assumptions ("big deals" → the top quarter of amounts). */
-  rows?: Record<string, unknown>[]
 }
 
 type Ctx = CmdNlCtx
@@ -1027,7 +1027,7 @@ export function parseCmdNlProcedural(query: string, schema: CmdNlSchema, opts: C
   const text = query.trim()
   if (!text) return []
   const now = opts.now ?? dayjs()
-  const lex = buildCmdNlLexicon(schema, opts.rows)
+  const lex = buildCmdNlLexicon(schema, opts.rows, opts.anchors)
   const ctx: Ctx = { tokens: tokenizeCmdNl(text, cmdNlLiteralGuard(lex)), lex, schema, now }
   if (!ctx.tokens.length) return []
 

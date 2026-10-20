@@ -1,7 +1,7 @@
 import type { CmdFillType } from '../commandPaletteRelativeEdit'
 import { cmdFillAccepts } from '../commandPaletteRelativeEdit'
 import type { Agg, CmdIR, CmdNlCmp, CmdNlEdit, CmdNlKind, Cond, Scalar } from './ir'
-import { CMD_NL_RATIO, CMD_NL_SHARE, isCondLeaf } from './ir'
+import { CMD_NL_RATIO, CMD_NL_SHARE, isCmdNlPercentile, isCondLeaf } from './ir'
 import type { CmdNlField, CmdNlSchema } from './schema'
 import { cmdNlField } from './schema'
 
@@ -37,6 +37,11 @@ function checkScalar(field: CmdNlField, cmp: CmdNlCmp, value: Scalar, errors: st
   const where = `${field.title} ${cmp}`
   switch (field.kind) {
     case 'number':
+      if (isCmdNlPercentile(value)) {
+        const p = value.percentile
+        if (!(p > 0 && p <= 1) || (cmp !== 'gte' && cmp !== 'lte')) errors.push(`${where}: invalid percentile bound`)
+        return
+      }
       if (typeof value !== 'number' || !Number.isFinite(value)) errors.push(`${where}: “${String(value)}” is not a number`)
       return
     case 'date':

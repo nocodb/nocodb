@@ -43,6 +43,8 @@ export type Scalar =
   | { relative: CmdNlRelativeDate; n?: number }
   | { member: string }
   | { me: true }
+  /** "big deals": the field's value at this fraction of the records, ascending; the palette resolves it before running. */
+  | { percentile: number }
 
 export type CmdNlCmp =
   | 'eq'
@@ -191,6 +193,54 @@ export function condLeaves(cond: Cond | undefined): CondLeaf[] {
   if (isCondLeaf(cond)) return [cond]
   if (cond.op === 'not') return condLeaves(cond.arg)
   return cond.args.flatMap(condLeaves)
+}
+
+export function isCmdNlPercentile(value: unknown): value is { percentile: number } {
+  return typeof value === 'object' && value !== null && 'percentile' in value
+}
+
+/** "top 25%" for ≥ the 0.75 percentile, "bottom 10%" for ≤ the 0.1 one. */
+export function cmdNlPercentileText(cmp: CmdNlCmp, p: number): string {
+  return cmp === 'lte' || cmp === 'lt' ? `bottom ${Math.round(p * 100)}%` : `top ${Math.round((1 - p) * 100)}%`
+}
+
+function mapPercentiles(cond: Cond, bound: (leaf: CondLeaf, p: number) => number | undefined): Cond | undefined {
+  if (isCondLeaf(cond)) {
+    if (!isCmdNlPercentile(cond.value)) return cond
+    const value = bound(cond, cond.value.percentile)
+    return value === undefined ? undefined : { ...cond, value }
+  }
+  if (cond.op === 'not') {
+    const arg = mapPercentiles(cond.arg, bound)
+    return arg && { op: 'not', arg }
+  }
+  const args = cond.args.map((arg) => mapPercentiles(arg, bound))
+  return args.every((arg): arg is Cond => !!arg) ? { op: cond.op, args } : undefined
+}
+
+/** Leaves with a percentile bound, in the condition and a ratio's two sides. */
+export function cmdNlPercentileLeaves(ir: Pick<CmdIR, 'where' | 'aggs'>): CondLeaf[] {
+  const conds = [ir.where, ...(ir.aggs ?? []).flatMap((agg) => [agg.num, agg.den])]
+  return conds.flatMap(condLeaves).filter((leaf) => isCmdNlPercentile(leaf.value))
+}
+
+/** `ir` with each percentile replaced by the number `bound` gives; undefined while one is unknown. */
+export function cmdNlResolvePercentiles<T extends Pick<CmdIR, 'where' | 'aggs'>>(
+  ir: T,
+  bound: (leaf: CondLeaf, p: number) => number | undefined,
+): T | undefined {
+  if (!cmdNlPercentileLeaves(ir).length) return ir
+  const map = (cond: Cond | undefined) => (cond ? mapPercentiles(cond, bound) : undefined)
+  const where = map(ir.where)
+  if (ir.where && !where) return
+  const aggs: Agg[] = []
+  for (const agg of ir.aggs ?? []) {
+    const num = map(agg.num)
+    const den = map(agg.den)
+    if ((agg.num && !num) || (agg.den && !den)) return
+    aggs.push({ ...agg, ...(num ? { num } : {}), ...(den ? { den } : {}) })
+  }
+  return { ...ir, where, ...(ir.aggs ? { aggs } : {}) }
 }
 
 /** `and` of the given conditions, flattened; undefined for none. */

@@ -226,6 +226,11 @@ export interface FormBuilderOAuthMeta {
   codeKey?: string;
   /** Other callback params passed through next to the code (e.g. a GitHub App `installation_id`) */
   forwardKeys?: string[];
+  /**
+   * When the redirect brings the forwarded params but no code (a GitHub App
+   * already installed: GitHub sends `setup_action=update`), the popup goes on here for the code.
+   */
+  authorizeUri?: string;
 }
 
 /**

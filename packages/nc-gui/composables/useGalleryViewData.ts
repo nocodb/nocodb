@@ -31,6 +31,7 @@ export function useGalleryViewData(
     chunkStates,
     isFirstRow,
     isLastRow,
+    updateOrSaveRow,
   } = useInfiniteData({
     meta,
     viewMeta,
@@ -55,5 +56,6 @@ export function useGalleryViewData(
     fetchChunk,
     isFirstRow,
     isLastRow,
+    updateOrSaveRow,
   }
 }

@@ -81,6 +81,32 @@ const onTabClick = (item: ItemType) => {
   modelValue.value = item.value
 }
 
+// Cmd+K: the same tabs, with their upgrade path when locked.
+useCommandProvider(`record-view-mode:${useId()}`, 'record', () => {
+  if (!isViewModeEnabled.value || items.value.length < 2) return { commands: [] }
+  return {
+    commands: [
+      {
+        id: 'record:view-mode',
+        priority: CMD_PRIORITY.low,
+        title: t('labels.commandPalette.recordViewMode'),
+        section: t('labels.commandPalette.sections.record'),
+        icon: { type: 'icon', name: 'menu' },
+        keywords: ['fields', 'files', 'attachments', 'discussion', 'tab'],
+        searchChildren: true,
+        children: () =>
+          items.value.map((item) => ({
+            id: `record:view-mode:${item.value}`,
+            title: item.tooltip ?? item.value,
+            icon: { type: 'icon', name: item.icon },
+            checked: modelValue.value === item.value && !item.locked,
+            run: () => onTabClick(item),
+          })),
+      },
+    ],
+  }
+})
+
 onMounted(() => {
   if (!isViewModeEnabled.value && modelValue.value !== ExpandedFormMode.FIELD) {
     modelValue.value = ExpandedFormMode.FIELD

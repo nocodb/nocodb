@@ -8,6 +8,8 @@ const props = withDefaults(
     sourceId: string
     baseId: string
     showSourceSelector?: boolean
+    /** Prefills the name, e.g. from Cmd+K's "Create table “…”". */
+    title?: string
   }>(),
   {
     showSourceSelector: true,
@@ -338,6 +340,7 @@ const toggleDescription = () => {
 
 onMounted(() => {
   generateUniqueTitle()
+  if (props.title) table.title = props.title
 
   nextTick(() => {
     inputEl.value?.focus()

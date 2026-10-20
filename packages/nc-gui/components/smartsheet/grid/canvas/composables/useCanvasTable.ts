@@ -790,29 +790,25 @@ export function useCanvasTable({
   // selected cells (per-field), via SDK's computeAggregation. Fields outside
   // the selection scope blank out so the footer reflects only what's selected.
   // Single-cell active is NOT a selection (cellCount === 1 → leaves footer alone).
-  const selectionAggregations = computed<{
-    active: boolean
-    values: Record<string, any>
-    scopedTitles: Set<string>
-  }>(() => {
+  /**
+   * The rows and fields a selection covers — checked rows (every field) or a multi-cell range
+   * (its fields). Null when there is no selection to summarise, or it can't be read reliably.
+   */
+  function getSelectionScope(): { kind: 'rows' | 'range'; rows: Row[]; columns: ColumnType[] } | null {
     // "Select all records" via the header checkbox sets vSelectedAllRecords
     // true, but the actual selectedRows array only reflects rows currently
     // loaded into the virtualized cache. Computing client-side over that
     // partial set yields a sum that drifts as the user scrolls. The SQL
     // footer already shows the correct total for the all-rows case, so
     // deactivating selection-mode here lets it pass through unchanged.
-    if (vSelectedAllRecords.value) {
-      return { active: false, values: {}, scopedTitles: new Set<string>() }
-    }
+    if (vSelectedAllRecords.value) return null
 
     const range = selectionForAgg.value
     const hasRange = !range.isEmpty() && range.cellCount > 1
 
     // Above this size we'd rather let the SQL footer stand than recompute over
     // tens of thousands of cells on every mousemove during a drag-select.
-    if (hasRange && range.cellCount > MAX_SELECTION_CELLS_FOR_AGG) {
-      return { active: false, values: {}, scopedTitles: new Set<string>() }
-    }
+    if (hasRange && range.cellCount > MAX_SELECTION_CELLS_FOR_AGG) return null
 
     const topLevelCheckboxRows = selectedRows.value || []
 
@@ -829,69 +825,81 @@ export function useCanvasTable({
     }
 
     const hasCheckbox = topLevelCheckboxRows.length > 0 || groupCheckboxRows.length > 0
-    if (!hasCheckbox && !hasRange) {
-      return { active: false, values: {}, scopedTitles: new Set<string>() }
-    }
-
-    const values: Record<string, any> = {}
-    const scopedTitles = new Set<string>()
-
-    const computeFor = (col: ColumnType, rows: Row[]) => {
-      if (!col?.id || !col?.title) return
-      scopedTitles.add(col.title)
-      const aggType = gridViewCols.value[col.id]?.aggregation
-      if (!aggType || aggType === CommonAggregations.None) return
-      const cellValues = rows.map((r) => r?.row?.[col.title!])
-      try {
-        values[col.title] = computeAggregation({
-          aggregation: aggType,
-          values: cellValues,
-          column: col,
-          parsedFormulaType: (col.colOptions as any)?.parsed_tree?.dataType,
-        })
-      } catch {
-        // swallow — leaving the field unscored is safer than crashing render
-      }
-    }
+    if (!hasCheckbox && !hasRange) return null
 
     if (hasCheckbox) {
       const checkboxRows = topLevelCheckboxRows.length ? topLevelCheckboxRows : groupCheckboxRows
-      for (const f of fields.value) computeFor(f, checkboxRows)
-    } else if (isGroupBy.value && activeCell.value?.path) {
-      // Grouped cell-range: read from the active cell's group cache.
-      const dataCache = getDataCache(activeCell.value.path as number[])
-      const rangeRows: Row[] = []
-      for (let r = range.start.row; r <= range.end.row; r++) {
-        const row = dataCache.cachedRows.value.get(r)
-        if (row) rangeRows.push(row)
-      }
-      // Bail if the range overlaps unloaded rows — better to keep the SQL
-      // footer than display a misleading partial-set sum.
-      if (rangeRows.length === 0) {
-        return { active: false, values: {}, scopedTitles: new Set<string>() }
-      }
-      const baseCols = _columnsBase.value
-      for (let c = range.start.col; c <= range.end.col; c++) {
-        const colObj = baseCols[c]
-        if (!colObj || colObj.id === 'row_number' || !colObj.columnObj) continue
-        computeFor(colObj.columnObj, rangeRows)
-      }
-    } else {
-      // Non-grouped cell-range.
-      const rangeRows: Row[] = []
-      for (let r = range.start.row; r <= range.end.row; r++) {
-        const row = cachedRows.value.get(r)
-        if (row) rangeRows.push(row)
-      }
-      if (rangeRows.length === 0) {
-        return { active: false, values: {}, scopedTitles: new Set<string>() }
-      }
-      const baseCols = _columnsBase.value
-      for (let c = range.start.col; c <= range.end.col; c++) {
-        const colObj = baseCols[c]
-        if (!colObj || colObj.id === 'row_number' || !colObj.columnObj) continue
-        computeFor(colObj.columnObj, rangeRows)
-      }
+      return { kind: 'rows', rows: checkboxRows, columns: fields.value }
+    }
+
+    // Grouped cell-range reads the active cell's group cache; otherwise the root cache.
+    const rowCache =
+      isGroupBy.value && activeCell.value?.path
+        ? getDataCache(activeCell.value.path as number[]).cachedRows.value
+        : cachedRows.value
+
+    const rangeRows: Row[] = []
+    for (let r = range.start.row; r <= range.end.row; r++) {
+      const row = rowCache.get(r)
+      if (row) rangeRows.push(row)
+    }
+    // Bail if the range overlaps unloaded rows — better to keep the SQL
+    // footer than display a misleading partial-set sum.
+    if (rangeRows.length === 0) return null
+
+    const rangeColumns: ColumnType[] = []
+    const baseCols = _columnsBase.value
+    for (let c = range.start.col; c <= range.end.col; c++) {
+      const colObj = baseCols[c]
+      if (!colObj || colObj.id === 'row_number' || !colObj.columnObj) continue
+      rangeColumns.push(colObj.columnObj)
+    }
+    return { kind: 'range', rows: rangeRows, columns: rangeColumns }
+  }
+
+  /** `aggregation` over a column's values in `rows`; undefined when it can't be computed. */
+  function computeSelectionAggregation(aggregation: string, col: ColumnType, rows: Row[]) {
+    try {
+      return computeAggregation({
+        aggregation,
+        values: rows.map((r) => r?.row?.[col.title!]),
+        column: col,
+        parsedFormulaType: (col.colOptions as any)?.parsed_tree?.dataType,
+      })
+    } catch {
+      // swallow — leaving the field unscored is safer than crashing render
+      return undefined
+    }
+  }
+
+  /** A raw aggregation value as the footer displays it. */
+  function formatAggregationValue(aggregation: string, rawValue: unknown, col: ColumnType): string | undefined {
+    return getFormattedAggrationValue(aggregation, rawValue, col, [], {
+      col,
+      meta: meta.value as TableType,
+      metas: metas.value,
+      isMysql,
+      isPg,
+    })
+  }
+
+  const selectionAggregations = computed<{
+    active: boolean
+    values: Record<string, any>
+    scopedTitles: Set<string>
+  }>(() => {
+    const scope = getSelectionScope()
+    if (!scope) return { active: false, values: {}, scopedTitles: new Set<string>() }
+
+    const values: Record<string, any> = {}
+    const scopedTitles = new Set<string>()
+    for (const col of scope.columns) {
+      if (!col?.id || !col?.title) continue
+      scopedTitles.add(col.title)
+      const aggType = gridViewCols.value[col.id]?.aggregation
+      if (!aggType || aggType === CommonAggregations.None) continue
+      const value = computeSelectionAggregation(aggType, col, scope.rows)
+      if (value !== undefined) values[col.title] = value
     }
 
     return { active: true, values, scopedTitles }
@@ -1582,7 +1590,7 @@ export function useCanvasTable({
     tableColumns: computed(() => (meta.value?.columns ?? []) as ColumnType[]),
   })
 
-  const { clearCell, copyValue, isPasteable, handleAttachmentCellDrop } = useCopyPaste({
+  const { clearCell, copyValue, copyTable, isPasteable, handleAttachmentCellDrop } = useCopyPaste({
     hostEl: canvasRef,
     activeCell,
     selection,
@@ -1837,7 +1845,7 @@ export function useCanvasTable({
     maxSelectionLimit,
   })
 
-  async function clearSelectedRangeOfCells(path?: Array<number>) {
+  async function clearSelectedRangeOfCells(path?: Array<number>, { notify = true } = {}) {
     if (!isDataEditAllowed.value || isDataReadOnly.value) return
 
     const start = selection.value.start
@@ -1905,6 +1913,7 @@ export function useCanvasTable({
         for (const op of bulkLtarDeleteOps) {
           op.rowRef.row[op.columnTitle] = op.oldValue
         }
+        if (!notify) throw new Error(t('msg.error.failedToDeleteLinkedRecords'))
         message.error({
           title: t('msg.error.failedToDeleteLinkedRecords'),
           content: await extractSdkResponseErrorMsg(e),
@@ -1929,6 +1938,7 @@ export function useCanvasTable({
 
     if (props.length === 0) {
       if (!bulkLtarDeleteOps.length) {
+        if (!notify) throw new Error(t('msg.info.noEditableCellsToClear'))
         message.info(t('msg.info.noEditableCellsToClear'))
       }
       return
@@ -2259,6 +2269,9 @@ export function useCanvasTable({
   )
 
   return {
+    getSelectionScope,
+    computeSelectionAggregation,
+    formatAggregationValue,
     rowSlice,
     colSlice,
     activeCell,
@@ -2354,6 +2367,7 @@ export function useCanvasTable({
     // Context Actions
     clearCell,
     copyValue,
+    copyTable,
     clearSelectedRangeOfCells,
 
     // attachment cell drop handler

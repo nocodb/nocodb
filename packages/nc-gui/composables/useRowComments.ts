@@ -196,6 +196,8 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     attachments?: AttachmentType[],
     commentMeta?: CommentType['meta'],
     parentCommentId?: string,
+    // false: throw the failure (for an inline error) instead of toasting it.
+    { notify = true }: { notify?: boolean } = {},
   ) => {
     try {
       if (!row.value || (!comment && !attachments?.length)) {
@@ -247,13 +249,13 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
       loadCommentNotificationPreference().catch(() => undefined)
     } catch (e: any) {
       comments.value = comments.value.filter((c) => !(c.id ?? '').startsWith('temp-'))
-      message.error(
-        await extractSdkResponseErrorMsg(
-          e as Error & {
-            response: any
-          },
-        ),
+      const errorMessage = await extractSdkResponseErrorMsg(
+        e as Error & {
+          response: any
+        },
       )
+      if (!notify) throw new Error(errorMessage)
+      message.error(errorMessage)
     }
 
     $e('a:row-expand:comment')

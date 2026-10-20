@@ -401,6 +401,8 @@ export function useInfiniteData(args: {
       syncCount(path)
     }
     groupDataCache.value.set(key, newCache)
+    // Deferred: this runs from render paths. Lets readers that iterate the Map pick up new groups.
+    nextTick(() => triggerRef(groupDataCache))
     return newCache
   }
 
@@ -1493,7 +1495,7 @@ export function useInfiniteData(args: {
     return newRow
   }
 
-  async function deleteRow(rowIndex: number, path: Array<number> = []) {
+  async function deleteRow(rowIndex: number, path: Array<number> = [], { notify = true }: { notify?: boolean } = {}) {
     const dataCache = getDataCache(path)
     try {
       const row = dataCache.cachedRows.value.get(rowIndex)
@@ -1521,7 +1523,7 @@ export function useInfiniteData(args: {
               },
             )
 
-        const deleted = await deleteRowById(id as string, undefined, path)
+        const deleted = await deleteRowById(id as string, { notify }, path)
         if (!deleted) {
           return
         }
@@ -1551,6 +1553,7 @@ export function useInfiniteData(args: {
       await syncCount(path, true, false)
       callbacks?.syncVisibleData?.()
     } catch (e: any) {
+      if (!notify) throw new Error(await extractSdkResponseErrorMsg(e))
       console.error(e)
 
       message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
@@ -1995,9 +1998,12 @@ export function useInfiniteData(args: {
     {
       metaValue = meta.value,
       viewMetaValue = viewMeta.value,
+      notify = true,
     }: {
       metaValue?: TableType
       viewMetaValue?: ViewType
+      // false: throw the failure (for an inline error) instead of toasting it.
+      notify?: boolean
     } = {},
     path: Array<number> = [],
   ): Promise<boolean> {
@@ -2022,6 +2028,7 @@ export function useInfiniteData(args: {
         const errorMessage = `Unable to delete record with ID ${id} because of the following:\n${res.message.join(
           '\n',
         )}.\nClear the data first & try again`
+        if (!notify) throw new Error(errorMessage)
         message.info(`Record delete failed: ${errorMessage}`)
         return false
       }
@@ -2029,6 +2036,7 @@ export function useInfiniteData(args: {
       return true
     } catch (error: any) {
       const errorMessage = await extractSdkResponseErrorMsg(error)
+      if (!notify) throw new Error(`${t('msg.error.deleteRowFailed')}: ${errorMessage}`)
       message.error(`${t('msg.error.deleteRowFailed')}: ${errorMessage}`)
       return false
     }

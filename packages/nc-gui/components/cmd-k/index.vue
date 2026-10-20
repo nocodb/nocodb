@@ -1,837 +1,623 @@
 <script lang="ts" setup>
-import { useMagicKeys, whenever } from '@vueuse/core'
-import { commandScore } from './command-score'
-import type { CommandPaletteType } from '#imports'
+import type { CmdCommand, CmdLevel, CommandPaletteType } from '~/lib/types'
+import { cmdRowDomId, isCmdNaturalLanguage } from '~/utils/commandPaletteUtils'
 
-interface CmdAction {
-  id: string
-  title: string
-  hotkey?: string
-  parent?: string
-  handler?: Function
-  scopePayload?: any
-  icon?: VNode | string | Record<string, any>
-  iconType?: string
-  synced?: boolean
-  keywords?: string[]
-  section?: string
-  iconColor?: string
-  managed_app_master?: boolean
-  managed_app_id?: string
-}
+type CmdRow = { kind: 'section'; title: string } | { kind: 'command'; command: CmdCommand }
 
 const props = defineProps<{
   open: boolean
-  data: CmdAction[]
-  scope?: string
-  hotkey?: string
-  loadTemporaryScope?: (scope: { scope: string; data: any }) => void
   setActiveCmdView: (cmd: CommandPaletteType) => void
 }>()
 
-const emits = defineEmits(['update:open', 'scope'])
+const emits = defineEmits(['update:open'])
 
 const vOpen = useVModel(props, 'open', emits)
 
-const router = useRouter()
-
-const route = router.currentRoute
-
-const activeScope = ref('root')
-
-const modalEl = ref<HTMLElement>()
-
-const cmdInputEl = ref<HTMLInputElement>()
-
-const cmdInput = ref('')
-
-const debouncedCmdInput = ref('')
+const { $e } = useNuxtApp()
 
 const { user } = useGlobal()
 
-const { t } = useI18n()
+const { activeScope, loadScope, cmdLoading } = useCommandPalette()
 
-const selected = ref<string>()
+const { providers: registeredProviders } = useCommandRegistry()
 
-const cmdkActionsRef = ref<HTMLElement>()
+const { isAiAvailable, askAi, aiFallback } = useGlobalCommands()
 
-const cmdkActionSelectedRef = ref<HTMLElement>()
+const { commandUsage, recordCommandUse } = useCommand()
 
-const ACTION_HEIGHT = 48
+const ROW_HEIGHT = 36
 
-const WRAPPER_HEIGHT = 300
+const inputEl = ref<HTMLInputElement | HTMLTextAreaElement>()
 
-const SCROLL_MARGIN = ACTION_HEIGHT / 2
+const query = ref('')
 
-const { cmdPlaceholder, loadScope, cmdLoading } = useCommandPalette()
+/** Lags `query` by 60ms; Enter flushes it so a fast type-and-Enter never runs a stale row. */
+const debouncedQuery = ref('')
 
-// The backend still names the base section 'Bases'.
-function sectionLabel(section?: string) {
-  return section === 'Bases' ? t('objects.projects') : section
-}
+watchDebounced(query, (value) => (debouncedQuery.value = value), { debounce: 60 })
 
-const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(() => {
-  const rt: (CmdAction & { weight: number })[] = []
-  for (const el of props.data) {
-    rt.push({
-      ...el,
-      title: el.title,
-      icon: el.icon,
-      synced: el.synced,
-      parent: el.parent || 'root',
-      weight: commandScore(`${sectionLabel(el.section)}${el.title}${el.keywords?.join()}`, debouncedCmdInput.value),
-    })
+/** Set once the user moves the selection; until then the first row stays selected as rows arrive. */
+const navigated = ref(false)
+
+/** How many context chips Backspace has removed, most specific first. */
+const dismissedLevels = ref(0)
+
+/** Commands whose children are being browsed, outermost first. */
+const pages = ref<CmdCommand[]>([])
+
+const selectedId = ref<string>()
+
+/** The command whose value is being edited in place of the search input. */
+const editing = ref<CmdCommand>()
+
+const editValue = ref('')
+
+const editError = ref<string>()
+
+const isSaving = ref(false)
+
+const isSaved = ref(false)
+
+/** Which way the body slides: into a submenu or editor, or back out of one. */
+const navDirection = ref<'forward' | 'back'>('forward')
+
+/** In-place result of a command with `feedback`, shown on its own row instead of a toast. */
+const rowStatus = ref<{ id: string; kind: 'pending' | 'success' | 'error'; text?: string }>()
+
+/** How long a confirmation stays on screen before the palette closes. */
+const FEEDBACK_MS = 800
+
+let closeTimer: ReturnType<typeof setTimeout> | undefined
+
+// Closed, no provider is read: the palette stays mounted and would rebuild on every cell click.
+const providers = computed(() => (vOpen.value ? registeredProviders.value : []))
+
+const contextLevels = computed(() => getCmdContextLevels(providers.value))
+
+const activeContext = computed(() => contextLevels.value[dismissedLevels.value])
+
+const activeLevel = computed<CmdLevel>(() => activeContext.value?.level ?? 'global')
+
+const activePage = computed(() => pages.value[pages.value.length - 1])
+
+const isSearching = computed(() => !!debouncedQuery.value.trim())
+
+const breadcrumbs = computed(() => [...pages.value, ...(editing.value ? [editing.value] : [])])
+
+/** "Create “name”", docs search and the like: they echo the query, so they are not ranked by use. */
+const fallbacks = computed<CmdCommand[]>(() =>
+  activePage.value || !isSearching.value
+    ? []
+    : providers.value.flatMap((provider) => provider.fallbacks?.(debouncedQuery.value.trim()) ?? []),
+)
+
+const aiRow = computed(() => (activePage.value || !isSearching.value ? undefined : aiFallback(debouncedQuery.value.trim())))
+
+const results = computed<CmdCommand[]>(() => {
+  if (activePage.value) {
+    const children = (activePage.value.children?.() ?? []).map((child) => ({ ...child, searchOnly: false }))
+    return searchCmdCommands(children, debouncedQuery.value)
   }
-  return rt
+
+  const scoped = getCmdScopedCommands(providers.value, activeLevel.value, isSearching.value, commandUsage.value)
+  const contextIds = new Set(
+    providers.value.filter((p) => p.level !== 'global').flatMap((p) => p.commands.map((command) => command.id)),
+  )
+  const matches = searchCmdCommands(scoped, debouncedQuery.value, contextIds, commandUsage.value)
+  if (!isSearching.value) return matches
+
+  // A request leads with "Ask NocoAI"; a command-like query keeps its matches and echo rows first.
+  const ai = aiRow.value
+  if (!ai) return [...matches, ...fallbacks.value]
+  // "create workflow Foo" asks for the named create, not the AI.
+  const namedCreate = /^\s*(create|new)\s/i.test(debouncedQuery.value)
+    ? fallbacks.value.find((command) => command.id.endsWith(':create-named'))
+    : undefined
+  return isCmdNaturalLanguage(debouncedQuery.value, matches.length > 0 || !!namedCreate, matches[0]?.title)
+    ? [ai, ...matches, ...fallbacks.value]
+    : [...matches, ...fallbacks.value, ai]
 })
 
-const nestedScope = computed(() => {
-  const rt = []
-  let parent = activeScope.value
-  while (parent !== 'root') {
-    const parentId = parent.startsWith('ws-') ? `ws-nav-${parent.split('-')[1]}` : parent
-    const parentEl = formattedData.value.find((el) => el.id === parentId)
-    rt.push({
-      id: parent,
-      label: parentEl?.title,
-      icon: parentEl?.icon,
-      synced: parentEl?.synced,
-      section: parentEl?.section,
-      iconType: parentEl?.iconType,
-      iconColor: parent.startsWith('ws-') ? parentEl?.iconColor : null,
-      managed_app_master: !!parentEl?.managed_app_master,
-      managed_app_id: parentEl?.managed_app_id || '',
-    })
-    parent = parentEl?.parent || 'root'
-  }
-  return rt.reverse()
-})
+const rows = computed<CmdRow[]>(() =>
+  groupCmdCommands(results.value).flatMap(({ section, commands }) => [
+    ...(section && (!activePage.value || activePage.value.groupChildren) ? [{ kind: 'section' as const, title: section }] : []),
+    ...commands.map((command) => ({ kind: 'command' as const, command })),
+  ]),
+)
 
-const isThereAnyActionInScope = (sc: string): boolean => {
-  return formattedData.value.some((el) => {
-    if (el.parent === sc) {
-      if (!el.handler) {
-        return isThereAnyActionInScope(el.id)
-      }
-      return true
-    }
-    return false
-  })
+const selectableIds = computed(() =>
+  rows.value.flatMap((row) => (row.kind === 'command' && !row.command.disabled ? [row.command.id] : [])),
+)
+
+/** A submenu opens on its current value (e.g. the active theme), else on the first row. */
+function defaultSelectedId() {
+  const current = activePage.value && !debouncedQuery.value ? results.value.find((c) => c.checked && !c.disabled) : undefined
+  return current?.id ?? selectableIds.value[0]
 }
 
-const getAvailableScopes = (sc: string) => {
-  const tempChildScopes = formattedData.value.filter((el) => el.parent === sc && !el.handler).map((el) => el.id)
-  for (const el of tempChildScopes) {
-    tempChildScopes.push(...getAvailableScopes(el))
-  }
-  return tempChildScopes
+const { list, containerProps, wrapperProps } = useVirtualList(rows, { itemHeight: ROW_HEIGHT })
+
+function focusInput() {
+  nextTick(() => inputEl.value?.focus())
 }
 
-const activeScopes = computed(() => {
-  return getAvailableScopes(activeScope.value)
-})
-
-const actionList = computed(() => {
-  const sections = formattedData.value.filter((el) => el.section).map((el) => el.section)
-  formattedData.value.sort((a, b) => {
-    if (a.section && b.section) {
-      if (sections.indexOf(a.section) < sections.indexOf(b.section)) return -1
-      if (sections.indexOf(a.section) > sections.indexOf(b.section)) return 1
-      return 0
-    }
-    if (a.section) return 1
-    if (b.section) return -1
-    return 0
-  })
-  return formattedData.value.filter((el) => {
-    if (debouncedCmdInput.value === '') {
-      if (el.parent === activeScope.value) {
-        if (!el.handler) {
-          return isThereAnyActionInScope(el.id)
-        }
-        return true
-      }
-      return false
-    } else {
-      if (el.parent === activeScope.value || activeScopes.value.includes(el.parent || 'root')) {
-        if (!el.handler) {
-          return isThereAnyActionInScope(el.id)
-        }
-        return true
-      }
-      return false
-    }
-  })
-})
-
-const searchedActionList = computed(() => {
-  if (debouncedCmdInput.value === '') return actionList.value
-  actionList.value.sort((a, b) => {
-    if (a.weight > b.weight) return -1
-    if (a.weight < b.weight) return 1
-    return 0
-  })
-  return actionList.value
-    .filter((el) => el.weight > 0)
-    .sort((a, b) => b.section?.toLowerCase().localeCompare(a.section?.toLowerCase() as string) || 0)
-})
-
-const visibleSections = computed(() => {
-  const sections: string[] = []
-  searchedActionList.value.forEach((el) => {
-    if (el.section && !sections.includes(el.section)) {
-      sections.push(el.section)
-    }
-  })
-  return sections
-})
-
-const actionListNormalized = computed(() => {
-  const rt: (CmdAction | { sectionTitle: string })[] = []
-  visibleSections.value.forEach((el) => {
-    rt.push({ sectionTitle: el || 'default' })
-    rt.push(...searchedActionList.value.filter((el2) => el2.section === el))
-  })
-  return rt
-})
-
-const { list, containerProps, wrapperProps } = useVirtualList(actionListNormalized, {
-  itemHeight: ACTION_HEIGHT,
-})
-
-const keys = useMagicKeys()
-
-const shiftModifier = keys.shift
-
-const setAction = (action: string) => {
-  const oldActionIndex = searchedActionList.value.findIndex((el) => el.id === selected.value)
-  selected.value = action
-  nextTick(() => {
-    const actionIndex = searchedActionList.value.findIndex((el) => el.id === action)
-    if (actionIndex === -1) return
-
-    if (actionIndex === 0) {
-      containerProps.ref.value?.scrollTo({ top: 0, behavior: 'smooth' })
-      return
-    } else if (actionIndex === searchedActionList.value.length - 1) {
-      containerProps.ref.value?.scrollTo({
-        top: actionIndex * ACTION_HEIGHT,
-        behavior: 'smooth',
-      })
-      return
-    }
-
-    // check if selected action rendered
-    const actionEl = Array.isArray(cmdkActionSelectedRef.value) ? cmdkActionSelectedRef.value[0] : cmdkActionSelectedRef.value
-
-    if (!actionEl || !actionEl.classList?.contains('selected')) {
-      // if above the old selected action
-      if (actionIndex < oldActionIndex) {
-        containerProps.ref.value?.scrollTo({ top: (actionIndex + 1) * ACTION_HEIGHT - SCROLL_MARGIN, behavior: 'smooth' })
-      } else {
-        containerProps.ref.value?.scrollTo({
-          top: (actionIndex + 2) * ACTION_HEIGHT - WRAPPER_HEIGHT + SCROLL_MARGIN,
-          behavior: 'smooth',
-        })
-      }
-      return
-    }
-
-    // count sections before the selected action
-    const sectionBefore = visibleSections.value.findIndex((el) => el === searchedActionList.value[actionIndex].section) + 1
-
-    // check if selected action is visible in the list
-    const actionRect = actionEl?.getBoundingClientRect()
-    const listRect = cmdkActionsRef.value?.getBoundingClientRect()
-    if (actionRect && listRect) {
-      if (actionRect.top < listRect.top || actionRect.bottom > listRect.bottom) {
-        // if above the old selected action
-        if (actionIndex < oldActionIndex) {
-          containerProps.ref.value?.scrollTo({
-            top: (actionIndex + sectionBefore) * ACTION_HEIGHT - SCROLL_MARGIN,
-            behavior: 'smooth',
-          })
-        } else {
-          containerProps.ref.value?.scrollTo({
-            top: (actionIndex + 1 + sectionBefore) * ACTION_HEIGHT - WRAPPER_HEIGHT + SCROLL_MARGIN,
-            behavior: 'smooth',
-          })
-        }
-      }
-    }
-  })
-}
-
-const setScope = (scope: string) => {
-  activeScope.value = scope
-
-  emits('scope', scope)
-
-  nextTick(() => {
-    cmdInputEl.value?.focus()
-  })
-}
-
-const determineInitialScope = (): string => {
-  if (route.value.params.viewId) return `tbl-${route.value.params.viewId}`
-  if (route.value.params.baseId) return `p-${route.value.params.baseId}`
-
-  return props.scope || 'root'
-}
-const show = () => {
-  if (!user.value) return
-  if (props.scope === 'disabled') return
-
-  loadScope()
-
+function show() {
+  if (!user.value || activeScope.value.scope === 'disabled') return
   vOpen.value = true
-  cmdInput.value = ''
-  nextTick(() => {
-    setScope(determineInitialScope())
-  })
 }
 
-const hide = () => {
+function hide() {
+  clearTimeout(closeTimer)
   vOpen.value = false
 }
 
-const fireAction = (action: CmdAction, preview = false) => {
-  if (preview) {
-    if (action?.scopePayload) {
-      setScope(action.scopePayload.scope)
-      if (action.scopePayload.data) {
-        props.loadTemporaryScope?.(action.scopePayload)
-      }
-      return
-    }
-  }
-  if (action?.handler) {
-    action.handler()
-    hide()
-  } else {
-    setScope(action.id)
+function closeSoon() {
+  clearTimeout(closeTimer)
+  closeTimer = setTimeout(hide, FEEDBACK_MS)
+}
+
+async function runWithFeedback(command: CmdCommand) {
+  rowStatus.value = { id: command.id, kind: 'pending' }
+  try {
+    await command.run?.()
+    rowStatus.value = { id: command.id, kind: 'success', text: command.feedback }
+    closeSoon()
+  } catch (e: unknown) {
+    rowStatus.value = { id: command.id, kind: 'error', text: await extractSdkResponseErrorMsg(e as Error) }
   }
 }
 
-const updateDebouncedInput = useDebounceFn(() => {
-  debouncedCmdInput.value = cmdInput.value
+/** Actions only: a submenu pick counts for its menu; navigation rows and fallbacks are skipped. */
+function recordUse(command: CmdCommand) {
+  if (pages.value[0]) return recordCommandUse(pages.value[0].id)
+  if ((command.searchOnly && !command.id.includes('>')) || fallbacks.value.includes(command) || command === aiRow.value) return
+  recordCommandUse(command.id.split('>')[0]!)
+}
 
+function telemetryId(command: CmdCommand) {
+  if (pages.value[0]) return `${pages.value[0].id}:pick`
+  if (command.searchOnly && !command.id.includes('>')) return 'navigate'
+  return command.id.split('>')[0]
+}
+
+function startEdit(command: CmdCommand) {
+  navDirection.value = 'forward'
+  editing.value = command
+  editValue.value = command.edit!.value
+  editError.value = undefined
   nextTick(() => {
-    cmdInputEl.value?.focus()
+    inputEl.value?.focus()
+    inputEl.value?.select()
   })
-}, 100)
+}
 
-watch(cmdInput, () => {
-  if (cmdInput.value === '') {
-    debouncedCmdInput.value = ''
-  } else {
-    updateDebouncedInput()
+// The compose textarea mounts after the page transition, later than startEdit's nextTick.
+watch(inputEl, (el) => {
+  if (el instanceof HTMLTextAreaElement && editing.value?.edit?.multiline) {
+    el.focus()
+    el.select()
   }
 })
 
-whenever(keys.Escape, () => {
-  if (vOpen.value) hide()
-})
+function cancelEdit() {
+  navDirection.value = 'back'
+  editing.value = undefined
+  editError.value = undefined
+  focusInput()
+}
 
-whenever(keys.ctrl_l, () => {
-  if (vOpen.value) hide()
-})
+async function saveEdit() {
+  const edit = editing.value?.edit
+  if (!edit || isSaving.value) return
 
-whenever(keys.meta_l, () => {
-  if (vOpen.value) hide()
-})
+  const value = edit.multiline ? editValue.value : editValue.value.trim()
+  editError.value = edit.validate?.(value)
+  if (editError.value) return
 
-whenever(keys.ctrl_j, () => {
-  if (vOpen.value) hide()
-})
+  $e('c:command-palette:command:run', { command: telemetryId(editing.value!), level: activeLevel.value })
 
-whenever(keys.meta_j, () => {
-  if (vOpen.value) hide()
-})
+  if (value === edit.value) {
+    hide()
+    return
+  }
 
-whenever(keys.arrowup, () => {
-  if (vOpen.value) {
-    const idx = searchedActionList.value.findIndex((el) => el.id === selected.value)
-    if (idx > 0) {
-      setAction(searchedActionList.value[idx - 1].id)
-    } else if (idx === 0) {
-      setAction(searchedActionList.value[searchedActionList.value.length - 1].id)
+  isSaving.value = true
+  try {
+    await edit.submit(value)
+    recordUse(editing.value!)
+    isSaved.value = true
+    closeSoon()
+  } catch (e: unknown) {
+    editError.value = await extractSdkResponseErrorMsg(e as Error)
+  } finally {
+    isSaving.value = false
+  }
+
+  // The input was disabled while saving, which dropped focus; give it back so Esc and a retry work.
+  if (!isSaved.value) nextTick(() => inputEl.value?.focus())
+}
+
+function execute(command: CmdCommand) {
+  if (command.disabled) return
+
+  if (command.children) {
+    navDirection.value = 'forward'
+    pages.value = [...pages.value, command]
+    query.value = ''
+    focusInput()
+    return
+  }
+
+  if (command.edit && !command.upgradeFeature) {
+    startEdit(command)
+    return
+  }
+
+  $e('c:command-palette:command:run', { command: telemetryId(command), level: activeLevel.value })
+  recordUse(command)
+
+  if (command.feedback) {
+    runWithFeedback(command)
+    return
+  }
+
+  hide()
+  command.run?.()
+}
+
+function ensureVisible(id: string) {
+  const container = containerProps.ref.value
+  const rowIndex = rows.value.findIndex((row) => row.kind === 'command' && row.command.id === id)
+  if (!container || rowIndex === -1) return
+
+  // Keep the section header above the first row in view.
+  const top = (rowIndex > 0 && rows.value[rowIndex - 1].kind === 'section' ? rowIndex - 1 : rowIndex) * ROW_HEIGHT
+  const bottom = (rowIndex + 1) * ROW_HEIGHT
+  if (top < container.scrollTop) container.scrollTop = top
+  else if (bottom > container.scrollTop + container.clientHeight) container.scrollTop = bottom - container.clientHeight
+}
+
+function moveSelection(step: number) {
+  const ids = selectableIds.value
+  if (!ids.length) return
+
+  const index = selectedId.value ? ids.indexOf(selectedId.value) : -1
+  navigated.value = true
+  selectedId.value = ids[(index + step + ids.length) % ids.length]
+  ensureVisible(selectedId.value)
+}
+
+function hoverRow(id: string) {
+  navigated.value = true
+  selectedId.value = id
+}
+
+function goBack() {
+  navDirection.value = 'back'
+  if (pages.value.length) {
+    pages.value = pages.value.slice(0, -1)
+  } else if (activeContext.value) {
+    dismissedLevels.value++
+  }
+}
+
+function onEditKeydown(e: KeyboardEvent) {
+  if (e.isComposing) return
+
+  if (e.key === 'Escape') {
+    e.preventDefault()
+    e.stopPropagation()
+    cancelEdit()
+  } else if (e.key === 'Enter' && !(editing.value?.edit?.multiline && e.shiftKey)) {
+    e.preventDefault()
+    saveEdit()
+  }
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.isComposing) return
+
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+
+  switch (e.key) {
+    case 'ArrowDown':
+      e.preventDefault()
+      moveSelection(1)
+      return
+    case 'ArrowUp':
+      e.preventDefault()
+      moveSelection(-1)
+      return
+    case 'Enter': {
+      e.preventDefault()
+      // A dialog the command opens (GeneralDeleteModal confirms on window Enter) must not get this key.
+      e.stopPropagation()
+      // Typed faster than the debounce: rank the current query now and take its first row.
+      if (debouncedQuery.value !== query.value) {
+        debouncedQuery.value = query.value
+        navigated.value = false
+        selectedId.value = defaultSelectedId()
+      }
+      const command = results.value.find((c) => c.id === selectedId.value)
+      if (command) execute(command)
+      return
+    }
+    case 'Escape':
+      e.preventDefault()
+      // Closing the palette must not also close what's under it (an expanded form closes on Esc).
+      e.stopPropagation()
+      hide()
+      return
+    case 'Backspace':
+      if (query.value) return
+      e.preventDefault()
+      goBack()
+      return
+    case 'Tab':
+      e.preventDefault()
+      if (activePage.value) return
+      // A plan without AI chat: Tab opens the same upgrade prompt as the fallback row.
+      if (aiRow.value?.upgradeFeature) {
+        hide()
+        aiRow.value.run?.()
+        return
+      }
+      if (!isAiAvailable.value) return
+      $e('c:command-palette:ai:ask', { level: activeLevel.value })
+      hide()
+      askAi(query.value)
+      return
+  }
+
+  // Cmd+L / Cmd+J open the other palettes from their own window listeners.
+  if (cmdOrCtrl && ['l', 'j'].includes(e.key.toLowerCase())) {
+    hide()
+    return
+  }
+
+  if (activePage.value && !query.value && /^[1-9]$/.test(e.key) && !cmdOrCtrl && !e.altKey) {
+    const command = results.value[Number(e.key) - 1]
+    if (command) {
+      e.preventDefault()
+      execute(command)
     }
   }
+}
+
+function shortcutIndex(command: CmdCommand) {
+  if (!activePage.value) return
+  const index = results.value.indexOf(command)
+  return index >= 0 && index < 9 ? String(index + 1) : undefined
+}
+
+function statusOf(command: CmdCommand) {
+  return rowStatus.value?.id === command.id ? rowStatus.value : undefined
+}
+
+// Also opened by `setActiveCmdView`, which sets the v-model directly.
+watch(vOpen, (isOpen) => {
+  if (!isOpen) {
+    clearTimeout(closeTimer)
+    return
+  }
+  if (!user.value || activeScope.value.scope === 'disabled') {
+    vOpen.value = false
+    return
+  }
+
+  loadScope()
+  query.value = ''
+  debouncedQuery.value = ''
+  navigated.value = false
+  selectedId.value = undefined
+  pages.value = []
+  dismissedLevels.value = 0
+  editing.value = undefined
+  isSaved.value = false
+  rowStatus.value = undefined
+  focusInput()
 })
 
-whenever(keys.arrowdown, () => {
-  if (vOpen.value) {
-    const idx = searchedActionList.value.findIndex((el) => el.id === selected.value)
-
-    if (idx === -1 || searchedActionList.value.length === 0) return
-
-    if (idx < searchedActionList.value.length - 1) {
-      setAction(searchedActionList.value[idx + 1].id)
-    } else if (idx === searchedActionList.value.length - 1) {
-      setAction(searchedActionList.value[0].id)
-    }
+// Typing or moving on clears a stale result; a pending one stays until it settles.
+watch([query, selectedId], () => {
+  if (rowStatus.value && rowStatus.value.kind !== 'pending' && rowStatus.value.id !== selectedId.value) {
+    rowStatus.value = undefined
   }
 })
 
-whenever(keys.Enter, () => {
-  if (vOpen.value) {
-    const selectedEl = formattedData.value.find((el) => el.id === selected.value)
-    cmdInput.value = ''
-    if (selectedEl) {
-      fireAction(selectedEl, shiftModifier.value)
-    }
-  }
+watch([debouncedQuery, () => pages.value.length, activeLevel], () => {
+  if (!vOpen.value) return
+  navigated.value = false
+  selectedId.value = defaultSelectedId()
+  containerProps.ref.value?.scrollTo({ top: 0 })
+  if (selectedId.value) nextTick(() => ensureVisible(selectedId.value!))
 })
 
-whenever(keys.Backspace, () => {
-  if (vOpen.value && cmdInput.value === '' && activeScope.value !== 'root') {
-    const activeEl = formattedData.value.find((el) => el.id === activeScope.value)
-    setScope(activeEl?.parent || 'root')
-  }
+// Providers that mount late (toolbar, submenus loading) keep the first row selected until the user navigates.
+watch(selectableIds, (ids) => {
+  if (!vOpen.value) return
+  if (!navigated.value || !selectedId.value || !ids.includes(selectedId.value)) selectedId.value = defaultSelectedId()
 })
 
-onClickOutside(modalEl, () => {
-  if (vOpen.value) hide()
-})
-
-watch(searchedActionList, () => {
-  if (searchedActionList.value.length > 0) {
-    setAction(searchedActionList.value[0].id)
-  }
+watch(editValue, () => {
+  editError.value = undefined
 })
 
 defineExpose({
   open: show,
   close: hide,
-  setScope,
 })
 </script>
 
 <template>
-  <div v-show="vOpen" class="cmdk-modal" :class="{ 'cmdk-modal-active': vOpen }">
-    <div ref="modalEl" class="cmdk-modal-content h-[25.25rem]">
-      <div class="cmdk-header border-b-1 border-nc-border-gray-medium">
-        <div class="cmdk-input-wrapper">
-          <GeneralIcon class="h-4 w-4 text-nc-content-gray-muted" icon="search" />
+  <CmdKShell v-model:open="vOpen" active-cmd="cmd-k" :set-active-cmd-view="setActiveCmdView">
+    <template #header>
+      <div v-if="activeContext || breadcrumbs.length" class="flex items-center gap-1.5 px-4 pt-3 min-w-0">
+        <Transition name="nc-cmdk-pop" mode="out-in">
           <div
-            v-for="el of nestedScope"
-            :key="`cmdk-breadcrumb-${el.id}`"
-            v-e="['a:cmdk:setScope']"
-            class="flex items-center"
-            @click="setScope(el.id)"
+            v-if="activeContext"
+            :key="activeContext.level"
+            class="nc-cmdk-context-chip flex items-center gap-1.5 h-6 pl-2 pr-1 rounded-md border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight text-bodySm text-nc-content-gray-subtle min-w-0"
+            data-testid="nc-cmdk-context-chip"
           >
-            <div
-              class="text-nc-content-gray-subtle2 text-sm cursor-pointer flex gap-2 px-2 py-1 items-center justify-center font-medium capitalize"
-            >
-              <GeneralLoader v-if="cmdLoading && !el.label" />
-              <template v-else>
-                <GeneralWorkspaceIcon
-                  v-if="el.icon && el.id.startsWith('ws')"
-                  :workspace="{
-                    title: el.label,
-                    id: el.id.split('-')[1],
-                    meta: {
-                      color: el.iconColor,
-                      icon: el.icon,
-                      iconType: el.iconType,
-                    },
-                  }"
-                  size="medium"
-                />
-
-                <template v-else-if="el.section === 'Bases' || el.icon === 'project'">
-                  <GeneralBaseIconColorPicker
-                    :key="`${el.iconColor}-${el.managed_app_id}-${el.managed_app_master}`"
-                    :model-value="el.iconColor"
-                    type="database"
-                    :managed-app="{
-                      managed_app_master: el.managed_app_master,
-                      managed_app_id: el.managed_app_id,
-                    }"
-                    readonly
-                    class="cmdk-action-icon !w-5"
-                  >
-                  </GeneralBaseIconColorPicker>
-                </template>
-
-                <template v-else-if="el.section === 'Tables' || el.icon === 'table'">
-                  <GeneralTableIcon
-                    size="xsmall"
-                    :meta="{
-                      meta: {
-                        icon: el.icon !== 'table' ? el.icon : '',
-                      },
-                      synced: el.synced,
-                    }"
-                    class="cmdk-action-icon !h-4 !w-4"
-                  />
-                </template>
-
-                <component
-                  :is="(iconMap as any)[el.icon]"
-                  v-else-if="el.icon && typeof el.icon === 'string' && (iconMap as any)[el.icon]"
-                  :class="{
-                    '!text-[var(--color-view-icon-grid)]': el.icon === 'grid',
-                    '!text-[var(--color-view-icon-form)]': el.icon === 'form',
-                    '!text-[var(--color-view-icon-kanban)]': el.icon === 'kanban',
-                    '!text-[var(--color-view-icon-gallery)]': el.icon === 'gallery',
-                    '!text-[var(--color-view-icon-calendar)]': el.icon === 'calendar',
-                  }"
-                  class="cmdk-action-icon"
-                />
-                <div v-else-if="el.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
-                  <LazyGeneralEmojiPicker :emoji="el.icon" class="!text-sm !h-4 !w-4" readonly size="small" />
-                </div>
-                <span
-                  class="text-ellipsis truncate capitalize max-w-16"
-                  style="word-break: keep-all; white-space: nowrap; display: inline"
-                >
-                  <NcTooltip show-on-truncate-only class="truncate" :tooltip-style="{ zIndex: 1100 }">
-                    <template #title>
-                      {{ el.label }}
-                    </template>
-                    <span class="text-ellipsis max-w-16">
-                      {{ el.label }}
-                    </span>
-                  </NcTooltip>
-                </span>
-              </template>
-            </div>
-
-            <span class="text-nc-content-gray-subtle text-sm pl-1 font-medium">/</span>
+            <CmdKItemIcon v-if="activeContext.context.icon" :icon="activeContext.context.icon" class="flex-none" />
+            <span v-if="activeContext.context.prefix" class="text-nc-content-gray-muted truncate max-w-32 flex-none">
+              {{ activeContext.context.prefix }}
+            </span>
+            <GeneralIcon
+              v-if="activeContext.context.prefix"
+              icon="ncChevronRight"
+              class="h-3 w-3 text-nc-content-gray-muted flex-none"
+            />
+            <NcTooltip show-on-truncate-only class="truncate max-w-64" :tooltip-style="{ zIndex: 1100 }">
+              <template #title>{{ activeContext.context.label }}</template>
+              {{ activeContext.context.label }}
+            </NcTooltip>
+            <NcTooltip :title="$t('labels.commandPalette.removeContext')" :tooltip-style="{ zIndex: 1100 }">
+              <div
+                class="flex items-center justify-center h-4 w-4 rounded cursor-pointer text-nc-content-gray-muted hover:(bg-nc-bg-gray-medium text-nc-content-gray)"
+                @click="goBack()"
+              >
+                <GeneralIcon icon="ncX" class="h-3 w-3" />
+              </div>
+            </NcTooltip>
           </div>
-          <input ref="cmdInputEl" v-model="cmdInput" class="cmdk-input" type="text" :placeholder="cmdPlaceholder" />
+        </Transition>
+        <template v-for="crumb of breadcrumbs" :key="crumb.id">
+          <GeneralIcon icon="ncChevronRight" class="h-3.5 w-3.5 text-nc-content-gray-muted flex-none" />
+          <span class="text-bodySm text-nc-content-gray-subtle truncate">{{ crumb.title.replace(/…$/, '') }}</span>
+        </template>
+      </div>
+
+      <!-- Multiline edits are a compose area in the body; the header keeps only the chip row. -->
+      <div v-if="editing?.edit?.multiline" class="pb-3" />
+      <div v-else-if="editing?.edit" class="nc-cmdk-input-row">
+        <GeneralIcon icon="ncEdit" class="nc-cmdk-input-icon" />
+        <input
+          ref="inputEl"
+          v-model="editValue"
+          class="cmdk-input"
+          type="text"
+          data-testid="nc-cmdk-edit-input"
+          :placeholder="editing.edit.placeholder || editing.title.replace(/…$/, '')"
+          :aria-label="editing.title.replace(/…$/, '')"
+          :disabled="isSaving"
+          @keydown="onEditKeydown"
+        />
+        <GeneralLoader v-if="isSaving" />
+      </div>
+      <div v-else class="nc-cmdk-input-row">
+        <GeneralIcon class="nc-cmdk-input-icon" icon="search" />
+        <input
+          ref="inputEl"
+          v-model="query"
+          class="cmdk-input"
+          type="text"
+          data-testid="nc-cmdk-input"
+          :placeholder="activePage ? activePage.title : $t('labels.commandPalette.placeholder')"
+          role="combobox"
+          aria-autocomplete="list"
+          :aria-expanded="!!rows.length"
+          aria-controls="nc-cmdk-listbox"
+          :aria-activedescendant="selectedId ? cmdRowDomId(selectedId) : undefined"
+          @keydown="onKeydown"
+        />
+        <GeneralLoader v-if="cmdLoading && isSearching" />
+        <div
+          v-if="isAiAvailable && !activePage"
+          class="flex items-center gap-1.5 text-bodySm text-nc-content-gray-muted flex-none cursor-pointer hover:text-nc-content-gray"
+          @click="askAi(query)"
+        >
+          <GeneralIcon icon="ncAutoAwesome" class="h-3.5 w-3.5" />
+          {{ $t('labels.commandPalette.askAi') }}
+          <GeneralShortcutLabel :keys="['Tab']" />
         </div>
       </div>
-      <div class="cmdk-body">
-        <div ref="cmdkActionsRef" class="cmdk-actions nc-scrollbar-md">
-          <div v-if="searchedActionList.length === 0 && cmdLoading" class="w-full h-[250px] flex justify-center items-center">
-            <GeneralLoader :size="30" />
+    </template>
+
+    <Transition :name="`nc-cmdk-slide-${navDirection}`" mode="out-in">
+      <div
+        v-if="editing?.edit"
+        key="edit"
+        class="nc-cmdk-edit-body"
+        :class="{ 'nc-cmdk-edit-body--multiline': editing.edit.multiline }"
+      >
+        <div v-if="editing.edit.multiline" class="nc-cmdk-compose">
+          <textarea
+            ref="inputEl"
+            v-model="editValue"
+            class="cmdk-input nc-cmdk-textarea nc-scrollbar-thin"
+            data-testid="nc-cmdk-edit-input"
+            :placeholder="editing.edit.placeholder || editing.title.replace(/…$/, '')"
+            :aria-label="editing.title.replace(/…$/, '')"
+            :disabled="isSaving"
+            @keydown="onEditKeydown"
+          />
+          <GeneralLoader v-if="isSaving" class="flex-none" />
+        </div>
+        <Transition name="nc-cmdk-pop">
+          <div v-if="isSaved" class="flex items-center gap-2 text-bodySm text-nc-content-brand" data-testid="nc-cmdk-edit-saved">
+            <GeneralIcon icon="ncCheck" class="h-4 w-4 flex-none" />
+            {{ editing.feedback ?? $t('labels.commandPalette.saved') }}
           </div>
-          <div v-else-if="searchedActionList.length === 0" class="flex flex-col p-4 gap-4 items-center justify-center text-sm">
-            <img
-              src="~assets/img/placeholder/no-search-result-found.png"
-              class="!w-[240px] flex-none"
-              :alt="$t('placeholder.noResultsFoundForYourSearch')"
-            />
-            <div class="text-nc-content-gray-muted">{{ $t('placeholder.noResultsFoundForYourSearch') }}</div>
-          </div>
+        </Transition>
+        <div v-if="!isSaved && editError" class="flex items-center gap-2 text-bodySm text-nc-content-red-medium">
+          <GeneralIcon icon="ncAlertCircle" class="h-4 w-4 flex-none" />
+          {{ editError }}
+        </div>
+        <div v-if="!isSaved" class="flex items-center gap-3 text-bodySm text-nc-content-gray-muted">
+          <span class="flex items-center gap-1">
+            <GeneralShortcutLabel :keys="['Enter']" />
+            {{ $t('general.save') }}
+          </span>
+          <span v-if="editing.edit.multiline" class="flex items-center gap-1">
+            <GeneralShortcutLabel :keys="['Shift', 'Enter']" />
+            {{ $t('labels.commandPalette.newLine') }}
+          </span>
+          <span class="flex items-center gap-1">
+            <GeneralShortcutLabel :keys="['Esc']" />
+            {{ $t('general.cancel') }}
+          </span>
+        </div>
+      </div>
+
+      <div v-else :key="`page-${pages.length}`" class="cmdk-body">
+        <div v-if="!rows.length" class="nc-cmdk-empty">
+          <GeneralLoader v-if="cmdLoading" :size="24" />
           <template v-else>
-            <div class="cmdk-action-list">
-              <div v-bind="containerProps" :style="`height: ${WRAPPER_HEIGHT}px`">
-                <div v-bind="wrapperProps">
-                  <div v-for="item in list" :key="item.index" :style="`height: ${ACTION_HEIGHT}px`">
-                    <template v-if="'sectionTitle' in item.data">
-                      <div
-                        class="cmdk-action-section-header capitalize"
-                        :style="{
-                          height: `${ACTION_HEIGHT}px`,
-                        }"
-                      >
-                        {{ sectionLabel(item.data.sectionTitle) }}
-                      </div>
-                    </template>
-                    <template v-else>
-                      <div
-                        :ref="item.data.id === selected ? 'cmdkActionSelectedRef' : undefined"
-                        :key="`${item.data.id}-${item.data.id === selected}`"
-                        v-e="['a:cmdk:action']"
-                        class="cmdk-action group flex items-center"
-                        :style="{
-                          height: `${ACTION_HEIGHT}px`,
-                        }"
-                        :class="{ selected: selected === item.data.id }"
-                        @mouseenter="setAction(item.data.id)"
-                        @click="fireAction(item.data)"
-                      >
-                        <div class="cmdk-action-content w-full">
-                          <GeneralWorkspaceIcon
-                            v-if="item.data.icon && item.data.id.startsWith('ws')"
-                            :workspace="{
-                              title: item.data.title,
-                              id: item.data.id.split('-')[2],
-                              meta: {
-                                color: item.data?.iconColor,
-                                icon: item.data?.icon,
-                                iconType: item.data?.iconType,
-                              },
-                            }"
-                            class="mr-2"
-                            size="medium"
-                          />
-                          <template v-else-if="item.data.section === 'Bases' || item.data.icon === 'project'">
-                            <GeneralBaseIconColorPicker
-                              :key="`${item.data.iconColor}-${item.data.managed_app_id}-${item.data.managed_app_master}`"
-                              :model-value="item.data.iconColor"
-                              type="database"
-                              readonly
-                              :managed-app="{
-                                managed_app_master: item.data.managed_app_master,
-                                managed_app_id: item.data.managed_app_id,
-                              }"
-                            >
-                            </GeneralBaseIconColorPicker>
-                          </template>
-                          <template v-else-if="item.data.section === 'Tables' || item.data.icon === 'table'">
-                            <GeneralTableIcon
-                              size="xsmall"
-                              :meta="{
-                                meta: {
-                                  icon: item.data.icon !== 'table' ? item.data.icon : '',
-                                },
-                                synced: item.data.synced,
-                              }"
-                              class="cmdk-action-icon !h-4 !w-4"
-                            />
-                          </template>
-                          <template v-else>
-                            <component
-                              :is="(iconMap as any)[item.data.icon]"
-                              v-if="item.data.icon && typeof item.data.icon === 'string' && (iconMap as any)[item.data.icon]"
-                              :class="{
-                                '!text-[var(--color-view-icon-grid)]': item.data.icon === 'grid',
-                                '!text-[var(--color-view-icon-form)]': item.data.icon === 'form',
-                                '!text-[var(--color-view-icon-kanban)]': item.data.icon === 'kanban',
-                                '!text-[var(--color-view-icon-gallery)]': item.data.icon === 'gallery',
-                                '!text-[var(--color-view-icon-calendar)]': item.data.icon === 'calendar',
-                              }"
-                              class="cmdk-action-icon"
-                            />
-                            <div v-else-if="item.data.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
-                              <LazyGeneralEmojiPicker class="!text-sm !h-4 !w-4" size="small" :emoji="item.data.icon" readonly />
-                            </div>
-                          </template>
-                          <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg" :tooltip-style="{ zIndex: 1100 }">
-                            <template #title>
-                              {{ item.data.title }}
-                            </template>
-                            <span class="truncate capitalize mr-4 py-0.5">
-                              {{ item.data.title }}
-                            </span>
-                          </a-tooltip>
-                          <div
-                            class="bg-nc-bg-gray-medium text-nc-content-gray-subtle2 cmdk-keyboard hidden text-xs gap-2 p-0.5 items-center justify-center rounded-md ml-auto pl-2"
-                          >
-                            {{ $t('general.enter') }}
-                            <div
-                              class="bg-nc-bg-default border-1 items-center flex justify-center border-nc-border-gray-dark text-nc-content-gray-subtle rounded h-5 w-5 px-0.25"
-                            >
-                              ↩
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </template>
-                  </div>
-                </div>
-              </div>
+            <GeneralIcon icon="search" class="h-6 w-6 text-nc-content-gray-muted" />
+            <div class="text-body text-nc-content-gray">{{ $t('placeholder.noResultsFoundForYourSearch') }}</div>
+            <div v-if="isAiAvailable && query" class="flex items-center gap-1.5 text-bodySm text-nc-content-gray-muted">
+              {{ $t('labels.commandPalette.askAi') }}
+              <GeneralShortcutLabel :keys="['Tab']" />
             </div>
           </template>
         </div>
+        <div v-else v-bind="containerProps" class="cmdk-actions nc-scrollbar-thin">
+          <div id="nc-cmdk-listbox" v-bind="wrapperProps" role="listbox">
+            <template v-for="item in list" :key="item.index">
+              <div
+                v-if="item.data.kind === 'section'"
+                class="nc-cmdk-section"
+                role="presentation"
+                :style="{ height: `${ROW_HEIGHT}px` }"
+              >
+                {{ item.data.title }}
+              </div>
+              <CmdKRow
+                v-else
+                :command="item.data.command"
+                :selected="selectedId === item.data.command.id"
+                :height="ROW_HEIGHT"
+                :status="statusOf(item.data.command)"
+                :index-key="shortcutIndex(item.data.command)"
+                @hover="hoverRow(item.data.command.id)"
+                @select="execute(item.data.command)"
+              />
+            </template>
+          </div>
+        </div>
       </div>
-      <CmdFooter active-cmd="cmd-k" :set-active-cmd-view="setActiveCmdView" />
-    </div>
-  </div>
+    </Transition>
+  </CmdKShell>
 </template>
-
-<style lang="scss">
-/* TODO Move styles to Windi Classes */
-:root {
-  --cmdk-secondary-background-color: rgb(230, 230, 230);
-  --cmdk-secondary-text-color: rgb(101, 105, 111);
-  --cmdk-selected-background: rgb(245, 245, 245);
-
-  --cmdk-icon-color: var(--cmdk-secondary-text-color);
-  --cmdk-icon-size: 1.2em;
-
-  --cmdk-modal-background: var(--nc-bg-elevated);
-}
-
-.dark .cmdk-modal {
-  color: var(--nc-content-gray-subtle);
-}
-
-.cmdk-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1100;
-
-  color: rgb(60, 65, 73);
-  font-size: 16px;
-
-  .cmdk-key {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: auto;
-    height: 1em;
-    font-size: 1.25em;
-    border-radius: 0.25em;
-    background: var(--cmdk-secondary-background-color);
-    color: var(--cmdk-secondary-text-color);
-    margin-right: 0.2em;
-  }
-
-  .cmdk-modal-content {
-    @apply dark:(border-1 border-nc-border-gray-medium);
-
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 1;
-    -webkit-box-flex: 1;
-    flex-grow: 1;
-    padding: 0;
-    overflow: hidden;
-    margin: auto;
-    box-shadow: rgb(0 0 0 / 50%) 0px 16px 70px;
-    top: 20%;
-    border-radius: 16px;
-    max-width: 640px;
-    background: var(--cmdk-modal-background);
-  }
-
-  .cmdk-input-wrapper {
-    @apply py-2 px-4 gap-1 flex items-center;
-  }
-
-  .cmdk-input {
-    @apply text-sm pl-2;
-    flex-grow: 1;
-    flex-shrink: 0;
-    margin: 0;
-    border: none;
-    appearance: none;
-    background: transparent;
-    outline: none;
-    box-shadow: var(--un-ring-inset) 0 0 0 calc(0px + var(--un-ring-offset-width)) var(--un-ring-color) !important;
-
-    caret-color: var(--nc-brand-accent);
-    color: rgb(60, 65, 73);
-  }
-
-  .cmdk-input::placeholder {
-    color: rgb(165, 165, 165);
-    opacity: 1;
-  }
-
-  .cmdk-input:-ms-input-placeholder {
-    color: rgb(165, 165, 165);
-  }
-
-  .cmdk-input::-ms-input-placeholder {
-    color: rgb(165, 165, 165);
-  }
-
-  .cmdk-actions {
-    max-height: 310px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    scroll-behavior: smooth;
-    overflow: auto;
-    position: relative;
-
-    --scrollbar-track: initial;
-    --scrollbar-thumb: initial;
-    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-    overflow: overlay;
-    scrollbar-width: auto;
-    scrollbar-width: thin;
-    --scrollbar-thumb: #e1e3e6;
-    --scrollbar-track: #fff;
-
-    .cmdk-action {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      justify-content: center;
-      outline: none;
-      transition: color 0s ease 0s;
-      width: 100%;
-      font-size: 0.9em;
-      border-left: 4px solid transparent;
-
-      .cmdk-keyboard {
-        display: none;
-      }
-
-      &.selected {
-        cursor: pointer;
-        background-color: var(--color-gray-100);
-        border-left: 4px solid var(--color-brand-400);
-        outline: none;
-
-        .cmdk-keyboard {
-          display: flex;
-        }
-      }
-
-      .cmdk-action-content {
-        display: flex;
-        align-items: center;
-        flex-shrink: 0.01;
-        flex-grow: 1;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        padding: 0.75em 1em;
-        width: 100%;
-      }
-
-      .cmdk-action-icon {
-        margin-right: 0.4em;
-      }
-    }
-
-    .cmdk-action-list {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-
-      .cmdk-action-section-header {
-        display: flex;
-        align-items: center;
-        padding: 8px 16px;
-        font-size: 14px;
-        color: var(--nc-content-gray-muted);
-      }
-    }
-  }
-
-  .cmdk-footer {
-    @apply dark:!text-nc-content-gray-subtle2;
-
-    display: flex;
-    border-top: 1px solid var(--nc-border-gray-medium);
-    background: rgba(242, 242, 242, 0.4);
-    font-size: 0.8em;
-    padding: 0 0.6em;
-    color: var(--cmdk-secondary-text-color);
-    .cmdk-footer-left {
-      display: flex;
-      flex-grow: 1;
-      align-items: center;
-      .cmdk-key-helper {
-        display: flex;
-        align-items: center;
-        margin-right: 1.5em;
-      }
-    }
-    .cmdk-footer-right {
-      display: flex;
-      flex-grow: 1;
-      justify-content: flex-end;
-      align-items: center;
-      .nc-brand-icon {
-        margin-left: 0.5em;
-      }
-    }
-  }
-}
-</style>

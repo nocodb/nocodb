@@ -13,6 +13,7 @@ import {
   type PaginatedType,
   type PermissionEntity,
   type PermissionKey,
+  type PlanFeatureTypes,
   type ProjectRoles,
   type PublicAttachmentScope,
   type Roles,
@@ -367,6 +368,116 @@ interface UsersSortType {
 }
 
 type CommandPaletteType = 'cmd-k' | 'cmd-j' | 'cmd-l'
+
+/** Most specific first: the chip shows the first level that has a context. */
+type CmdLevel = 'record' | 'field' | 'selection' | 'view' | 'base' | 'global'
+
+type CmdIcon =
+  | { type: 'icon'; name: string; class?: string }
+  | { type: 'emoji'; emoji: string }
+  | { type: 'workspace'; id: string; title: string; color?: string; icon?: string | Record<string, unknown>; iconType?: string }
+  | { type: 'base'; color?: string; managedAppMaster?: boolean; managedAppId?: string }
+  | { type: 'table'; icon?: string; synced?: boolean }
+  | { type: 'view'; viewType?: number; icon?: string }
+  /** Field-type icon, as in the toolbar's field lists. */
+  | { type: 'field'; column: ColumnType }
+  /** Select-option dot; `color` is the option's stored colour. */
+  | { type: 'color'; color?: string }
+
+interface CmdCommand {
+  id: string
+  title: string
+  section?: string
+  icon?: CmdIcon
+  keywords?: string[]
+  /** Secondary text on the right, e.g. the base a table belongs to. */
+  hint?: string
+  /** A figure aligned to the row's right edge (a summary value); tabular digits. */
+  value?: string
+  /** Keys for `GeneralShortcutLabel`; only for shortcuts that are actually bound. */
+  shortcut?: string[]
+  checked?: boolean
+  /** Sorts last within its level unless `priority` says otherwise. */
+  danger?: boolean
+  /** `CMD_PRIORITY` value; higher sorts first within its level and wins search ties. */
+  priority?: number
+  /** Only listed when the query is non-empty. */
+  searchOnly?: boolean
+  /** A status row (loading, load error): shown but not selectable or runnable. */
+  disabled?: boolean
+  /** Spinner in place of the icon; used with `disabled` for rows still loading. */
+  loading?: boolean
+  /** Red text, e.g. a row explaining why a list could not load. */
+  error?: boolean
+  run?: () => unknown
+  /**
+   * Confirms on the row itself (e.g. "Copied") instead of a toast: the palette awaits `run`,
+   * shows this text in place, then closes. A thrown error shows in the same spot.
+   * On an `edit` command it replaces "Saved".
+   */
+  feedback?: string
+  /** Opens a sub page; the command title becomes the placeholder. */
+  children?: () => CmdCommand[]
+  /** Lists children in search results as `Title › Child`. */
+  searchChildren?: boolean
+  /** Children fetch data when listed; search never expands them (only opening the submenu does). */
+  lazyChildren?: boolean
+  /** The sub page shows its children's `section` headers. */
+  groupChildren?: boolean
+  /** Edits a value in place: the input turns into an editor prefilled with `value`. */
+  edit?: CmdEdit
+  /**
+   * Shows the plan badge when the plan lacks this feature. The command stays listed and its
+   * `run` is expected to open the upgrade flow while blocked.
+   */
+  upgradeFeature?: PlanFeatureTypes
+}
+
+interface CmdEdit {
+  value: string
+  placeholder?: string
+  multiline?: boolean
+  /** Returns an error message to keep the editor open. */
+  validate?: (value: string) => string | undefined
+  submit: (value: string) => unknown
+}
+
+interface CmdContext {
+  label: string
+  prefix?: string
+  icon?: CmdIcon
+}
+
+interface CmdProviderState {
+  context?: CmdContext | null
+  commands: CmdCommand[]
+  /** Rows appended under every non-empty query, e.g. "Search records in …". */
+  fallbacks?: (query: string) => CmdCommand[]
+}
+
+type RecentItemKind = 'dashboard' | 'script' | 'workflow' | 'agent' | 'doc' | 'interface' | 'app'
+
+/** A recently opened non-view object, listed by Cmd+L next to recent views. */
+interface RecentItem {
+  kind: RecentItemKind
+  /** Unique within its kind (an interface page uses `interfaceId:pageId`). */
+  id: string
+  title: string
+  /** Shown in the hint before the title, e.g. the interface a page belongs to. */
+  parentTitle?: string
+  workspaceId: string
+  baseId: string
+  baseTitle?: string
+  /** Route path to reopen it with. */
+  path: string
+  icon?: CmdIcon
+  viewedAt: string
+}
+
+interface CmdProvider extends CmdProviderState {
+  id: string
+  level: CmdLevel
+}
 
 interface FormFieldsLimitOptionsType {
   id: string
@@ -1278,6 +1389,15 @@ export type {
   SidebarTableNode,
   UsersSortType,
   CommandPaletteType,
+  CmdLevel,
+  CmdIcon,
+  CmdCommand,
+  CmdEdit,
+  CmdContext,
+  CmdProviderState,
+  CmdProvider,
+  RecentItemKind,
+  RecentItem,
   CalendarRangeType,
   FormFieldsLimitOptionsType,
   ImageCropperConfig,

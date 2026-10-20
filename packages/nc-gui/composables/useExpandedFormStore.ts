@@ -59,6 +59,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const commentsDrawer = ref(true)
 
+    // Cmd+K asks the sidebar to switch feeds; the sidebar applies it and resets it.
+    const requestedSidebarFeed = ref<'comments' | 'audits' | null>(null)
+
     const saveRowAndStay = ref(0)
 
     const isSaving = ref(false)
@@ -1002,6 +1005,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       resolveComment,
       isCommentsLoading,
       saveComment,
+      requestedSidebarFeed,
       isYou,
       commentsDrawer,
       row,

@@ -4,6 +4,7 @@ import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 import type { SelectProps } from 'ant-design-vue'
+import type { CmdCommand } from '~/lib/types'
 
 const activeView = inject(ActiveViewInj, ref())
 
@@ -560,6 +561,87 @@ const onAddColumnDropdownVisibilityChange = () => {
     addColumnDropdown.value = false
   }
 }
+
+useCommandProvider(
+  () => `view-toolbar:fields:${activeView.value?.id}`,
+  'view',
+  () => {
+    if (isPublic.value) return { commands: [] }
+
+    const commands: CmdCommand[] = []
+
+    if (isAddingColumnAllowed.value && !isLocalMode.value) {
+      commands.push({
+        id: 'view:field:add',
+        priority: CMD_PRIORITY.high,
+        title: t('labels.commandPalette.addField'),
+        section: t('labels.commandPalette.sections.table'),
+        icon: { type: 'icon', name: 'plus' },
+        keywords: ['column', 'new', 'create'],
+        run: async () => {
+          open.value = true
+          await nextTick()
+          addColumnDropdown.value = true
+        },
+      })
+    }
+
+    if (!isFieldsMenuReadOnly.value) {
+      commands.push(
+        {
+          id: 'view:field:toggle',
+          priority: CMD_PRIORITY.high,
+          title: t('labels.commandPalette.toggleField'),
+          section: t('labels.commandPalette.sections.fields'),
+          icon: { type: 'icon', name: 'eye' },
+          keywords: ['hide', 'show', 'column', 'visibility'],
+          children: () =>
+            visibleFields.value.map((field) => ({
+              id: `view:field:toggle:${field.fk_column_id}`,
+              title: field.title,
+              icon: metaColumnById.value[field.fk_column_id!]
+                ? { type: 'field', column: metaColumnById.value[field.fk_column_id!] }
+                : undefined,
+              checked: !!field.show,
+              run: () => conditionalToggleFieldVisibility(field),
+            })),
+        },
+        // Search-only: "hide city" / "show city" act on that field through the same toggle.
+        ...visibleFields.value.map(
+          (field): CmdCommand => ({
+            id: `view:field:${field.show ? 'hide' : 'show'}:${field.fk_column_id}`,
+            title: t(field.show ? 'labels.commandPalette.hideFieldNamed' : 'labels.commandPalette.showFieldNamed', {
+              field: field.title,
+            }),
+            section: t('labels.commandPalette.sections.fields'),
+            icon: { type: 'icon', name: field.show ? 'eyeSlash' : 'eye' },
+            keywords: ['column', 'visibility'],
+            searchOnly: true,
+            run: () => conditionalToggleFieldVisibility(field),
+          }),
+        ),
+        {
+          id: 'view:field:show-all',
+          priority: CMD_PRIORITY.normal,
+          title: t('labels.commandPalette.showAllFields'),
+          section: t('labels.commandPalette.sections.fields'),
+          icon: { type: 'icon', name: 'eye' },
+          run: onShowAll,
+        },
+        {
+          id: 'view:field:hide-all',
+          priority: CMD_PRIORITY.normal,
+          title: t('labels.commandPalette.hideAllFields'),
+          section: t('labels.commandPalette.sections.fields'),
+          icon: { type: 'icon', name: 'eyeSlash' },
+          run: onHideAll,
+        },
+      )
+    }
+
+    return { commands }
+  },
+)
 </script>
 
 <template>

@@ -1475,6 +1475,35 @@ export const useViewsStore = defineStore('viewsStore', () => {
     ]
   })
 
+  // Recent views survive reloads (Cmd+L), stored per user and workspace; loading merges so
+  // views opened this session stay on top.
+  watch(
+    () => [user.value?.id, activeWorkspaceId.value] as const,
+    ([userId, workspaceId]) => {
+      if (!userId || !workspaceId) return
+      const saved: RecentView[] = userLocalStorageInfoManager.get(userId, workspaceId, 'recentViews') ?? []
+      const seen = new Set(allRecentViews.value.map((v) => `${v.tableID}:${v.viewId}`))
+      allRecentViews.value = [...allRecentViews.value, ...saved.filter((v) => !seen.has(`${v.tableID}:${v.viewId}`))]
+    },
+    { immediate: true },
+  )
+
+  watch(
+    allRecentViews,
+    (views) => {
+      const userId = user.value?.id
+      const workspaceId = activeWorkspaceId.value
+      if (!userId || !workspaceId) return
+      userLocalStorageInfoManager.set(
+        userId,
+        workspaceId,
+        'recentViews',
+        views.filter((v) => v.workspaceId === workspaceId).slice(0, 20),
+      )
+    },
+    { deep: true },
+  )
+
   watch(
     () => [activeView.value?.title, activeView.value?.id],
     () => {

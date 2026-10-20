@@ -6,11 +6,11 @@ import { UITypes, isLinksOrLTAR, isSmartText } from 'nocodb-sdk'
 import { UseDetachedLongTextProvider } from '../smartsheet/grid/canvas/composables/useDetachedLongText'
 import DetachedExpandedText from '../smartsheet/grid/canvas/components/DetachedExpandedText.vue'
 
-const { t } = useI18n()
-
 const props = defineProps<{
   activeTab: TabItem
 }>()
+
+const { t } = useI18n()
 
 const activeTab = toRef(props, 'activeTab')
 
@@ -412,6 +412,7 @@ watch(isViewsLoading, async () => {
 
       <!-- Table Tools shell — a route-driven modal over the view (open while the slug names a tool). -->
       <LazySmartsheetDetails />
+      <SmartsheetCommandProvider v-if="activeView && meta" />
     </div>
     <LazySmartsheetExpandedFormDetached />
     <DetachedExpandedText />

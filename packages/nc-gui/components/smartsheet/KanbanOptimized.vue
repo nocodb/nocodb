@@ -2,7 +2,15 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
-import { type ColumnType, type InterfaceKanbanVizTheme, PermissionEntity, PermissionKey, UITypes, isVirtualCol } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type InterfaceKanbanVizTheme,
+  PermissionEntity,
+  PermissionKey,
+  type SelectOptionsType,
+  UITypes,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
 
 interface Attachment {
@@ -73,6 +81,7 @@ const {
   kanbanMetaData,
   formattedData,
   updateOrSaveRow,
+  updateRowProperty,
   updateRecordOrder,
   addEmptyRow,
   groupingFieldColOptions,
@@ -671,6 +680,41 @@ async function interfaceCopyRecordUrl() {
   await copy(`${origin}#${hashPath}?${params.toString()}`)
   message.toast(t('msg.info.copiedToClipboard'))
 }
+
+const { cmdK } = useCommand()
+
+const { isAllowed: isPermissionAllowed } = usePermissions()
+
+const { dashboardUrl } = useDashboard()
+
+// Cmd+K acts on the card under the pointer; kept while the palette covers it.
+const cmdkCard = ref<RowType | null>(null)
+
+// mousemove too: a pointer already resting on a card (page load, palette just closed) fires no mouseenter.
+function onCardMouseEnter(record: RowType) {
+  if (!cmdK.value && cmdkCard.value !== record) cmdkCard.value = record
+}
+
+function onCardMouseLeave(record: RowType) {
+  if (!cmdK.value && cmdkCard.value === record) cmdkCard.value = null
+}
+
+// The stack under the pointer gets direct Cmd+K commands, tracked the same way as the card.
+const cmdkStackId = ref<string | null>(null)
+
+function onStackMouseEnter(stackId: string) {
+  if (!cmdK.value && cmdkStackId.value !== stackId) cmdkStackId.value = stackId
+}
+
+function onStackMouseLeave(stackId: string) {
+  if (!cmdK.value && cmdkStackId.value === stackId) cmdkStackId.value = null
+}
+
+watch(cmdK, (open) => {
+  if (open) return
+  cmdkCard.value = null
+  cmdkStackId.value = null
+})
 
 const expandedFormOnRowIdDlg = computed({
   get() {
@@ -1803,6 +1847,438 @@ const cardFields = (record: RowType) => {
 
   return fieldsWithoutDisplay.value.filter((col) => !isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col))
 }
+
+const setFieldCommands = useSetFieldCommands()
+
+const { $api } = useNuxtApp()
+
+const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
+const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+
+async function moveCardToStack(record: RowType, toKey: string | null) {
+  const fromKey = record.row[groupingField.value] ?? null
+  record.row[groupingField.value] = toKey
+  try {
+    // Cmd+K only: the error shows inline, so skip the store's toast.
+    await updateRowProperty(record, groupingField.value, { notify: false })
+  } catch (e) {
+    record.row[groupingField.value] = fromKey
+    throw e
+  }
+  await loadVisibleStacks()
+  reconcileCardMove({ row: record, fromKey, toKey })
+}
+
+const { getMeta } = useMetas()
+
+// Same path as the stack editor (EditOrAddStack): update the field's option, reload meta, then the stack meta.
+async function saveStackOption(stackId: string, patch: { title?: string; color?: string }) {
+  const column = groupingFieldColumn.value
+  const stackIdx = groupingFieldColOptions.value.findIndex((s) => s.id === stackId)
+  const stack = groupingFieldColOptions.value[stackIdx]
+  if (!column?.id || !stack || !meta.value?.base_id) return
+
+  const colOptions = column.colOptions as SelectOptionsType
+  const options = (colOptions?.options ?? []).map((o) => (o.id === stackId ? { ...o, ...patch } : o))
+  // A renamed default option keeps being the default, as the options editor does.
+  const cdf = patch.title !== undefined && column.cdf === stack.title ? patch.title : column.cdf
+
+  try {
+    await $api.internal.postOperation(
+      meta.value.fk_workspace_id!,
+      meta.value.base_id,
+      { operation: 'columnUpdate', columnId: column.id },
+      { ...column, cdf, colOptions: { ...colOptions, options } },
+    )
+  } catch (e: unknown) {
+    throw new Error(await extractSdkResponseErrorMsg(e as Error & { response?: unknown }))
+  }
+
+  await getMeta(meta.value.base_id, meta.value.id as string, true)
+  await updateStackProperty(stackIdx, { title: patch.title ?? stack.title, color: patch.color ?? stack.color })
+}
+
+/** One stack's commands; `named` puts the stack's name in titles for the hovered-stack shortcuts. */
+function stackCommands(stackId: string, idPrefix: string, named: boolean): CmdCommand[] {
+  const stack = groupingFieldColOptions.value.find((s) => s.id === stackId)
+  if (!stack || stack.id === addNewStackId) return []
+
+  const name = stack.title ?? t('labels.uncategorized')
+  const label = (key: string) =>
+    named ? t(`labels.commandPalette.kanban.${key}Named`, { stack: name }) : t(`labels.commandPalette.kanban.${key}`)
+  // Same gates as the stack header menu's rename / delete.
+  const canEdit = stack.title !== null && isUIAllowed('fieldAdd') && hasEditPermission.value && !isPublic.value && !isLocked.value
+  const collapsed = !!stack.collapsed
+  const commands: CmdCommand[] = []
+
+  if (canEdit) {
+    commands.push(
+      {
+        id: `${idPrefix}:rename`,
+        priority: CMD_PRIORITY.normal,
+        title: label('renameStack'),
+        icon: { type: 'icon', name: 'ncEdit' },
+        keywords: ['stack', 'title', 'option'],
+        feedback: t('labels.commandPalette.saved'),
+        edit: {
+          value: stack.title ?? '',
+          validate: (value) => {
+            if (!value.trim()) return t('labels.commandPalette.kanban.stackNameRequired')
+            if (groupingFieldColOptions.value.some((s) => s.id !== stack.id && s.title === value.trim()))
+              return t('labels.commandPalette.kanban.stackNameTaken')
+          },
+          submit: (value) => saveStackOption(stack.id!, { title: value.trim() }),
+        },
+      },
+      {
+        id: `${idPrefix}:color`,
+        priority: CMD_PRIORITY.normal,
+        title: label('changeStackColour'),
+        icon: { type: 'color', color: stack.color },
+        keywords: ['stack', 'colour', 'color'],
+        searchChildren: true,
+        // The chip palette's wash row, the swatches stack chips use; the full picker stays in the stack editor.
+        children: () => [
+          ...DEFAULT_PALETTE_HUES.map((hue, i) => {
+            const color = chipPaletteColors[0]![i]!
+            return {
+              id: `${idPrefix}:color:${hue}`,
+              title: t(`labels.commandPalette.colors.${hue}`),
+              icon: { type: 'color' as const, color },
+              checked: stack.color?.toLowerCase() === color.toLowerCase(),
+              feedback: t('labels.commandPalette.saved'),
+              run: () => saveStackOption(stack.id!, { color }),
+            }
+          }),
+          {
+            id: `${idPrefix}:color:more`,
+            title: t('labels.commandPalette.kanban.moreColours'),
+            icon: { type: 'icon', name: 'ncPalette' },
+            run: () => {
+              isRenameOrNewStack.value = stack
+            },
+          },
+        ],
+      },
+    )
+  }
+
+  commands.push({
+    id: `${idPrefix}:collapse`,
+    priority: CMD_PRIORITY.normal,
+    title: label(collapsed ? 'expandStack' : 'collapseStack'),
+    icon: { type: 'icon', name: collapsed ? 'maximize' : 'minimize' },
+    keywords: ['stack', 'fold', 'hide', 'show'],
+    run: () => {
+      const idx = groupingFieldColOptions.value.findIndex((s) => s.id === stack.id)
+      if (idx !== -1) return handleCollapseStack(idx)
+    },
+  })
+
+  if (canEdit) {
+    commands.push({
+      id: `${idPrefix}:delete`,
+      title: label('deleteStack'),
+      icon: { type: 'icon', name: 'delete' },
+      keywords: ['stack', 'remove', 'option'],
+      danger: true,
+      // Opens the board's own confirmation, as the stack menu does.
+      run: () =>
+        handleDeleteStackClick(
+          stack.title!,
+          groupingFieldColOptions.value.findIndex((s) => s.id === stack.id),
+        ),
+    })
+  }
+
+  return commands
+}
+
+useCommandProvider(
+  () => `kanban-card:${view.value?.id}`,
+  'record',
+  () => {
+    const record = cmdkCard.value
+    if (!record || record.rowMeta?.new || expandedFormDlg.value || expandedFormOnRowIdDlg.value) return { commands: [] }
+
+    const section = t('labels.commandPalette.sections.record')
+    const rowId = extractPkFromRow(record.row, meta.value?.columns as ColumnType[])
+    const commands: CmdCommand[] = []
+
+    if (interfaceClickIntoDetails.value) {
+      commands.push({
+        id: 'record:expand',
+        priority: CMD_PRIORITY.primary,
+        title: t('labels.commandPalette.record.expand'),
+        section,
+        icon: { type: 'icon', name: 'ncMaximize2' },
+        keywords: ['open'],
+        run: () => expandForm(record),
+      })
+    }
+
+    // Moving is a drag in the UI; same gates as a draggable card.
+    if (hasEditPermission.value && !isPublic.value && !isLocked.value) {
+      const currentKey = record.row[groupingField.value] ?? null
+      commands.push({
+        id: 'record:move-to-stack',
+        priority: CMD_PRIORITY.high,
+        title: t('labels.commandPalette.kanban.moveToStack'),
+        section,
+        icon: { type: 'icon', name: 'ncArrowRight' },
+        keywords: ['stack', 'status', 'column'],
+        searchChildren: true,
+        // Uncategorized (null) as a drag allows it, unless the grouping field is required.
+        children: () =>
+          groupingFieldColOptions.value
+            .filter((stack) => stack.id !== addNewStackId && (stack.title !== null || !groupingFieldColumn.value?.rqd))
+            .map((stack) => ({
+              id: `record:move-to-stack:${stack.id}`,
+              title: stack.title ?? t('labels.uncategorized'),
+              icon: { type: 'color', color: stack.title === null ? undefined : stack.color },
+              checked: stack.title === currentKey,
+              run: () => moveCardToStack(record, stack.title ?? null),
+            })),
+      })
+    }
+
+    if (rowId && !isPublic.value) {
+      commands.push({
+        id: 'record:copy-url',
+        priority: CMD_PRIORITY.normal,
+        title: t('labels.commandPalette.copyRecordUrl'),
+        section,
+        icon: { type: 'icon', name: 'ncLink' },
+        keywords: ['link'],
+        feedback: t('labels.commandPalette.copied'),
+        run: () => {
+          if (!interfacePageDataApi) {
+            const { typeOrId, baseId } = route.value.params
+            return copy(
+              encodeURI(`${dashboardUrl.value}/${typeOrId}/${baseId}/${meta.value?.id}/${view.value?.id}?rowId=${rowId}`),
+            )
+          }
+          const [origin, hash = ''] = window.location.href.split('#')
+          const [hashPath, hashQuery = ''] = hash.split('?')
+          const params = new URLSearchParams(hashQuery)
+          params.set('rowId', rowId)
+          return copy(`${origin}#${hashPath}?${params.toString()}`)
+        },
+      })
+    }
+
+    if (rowId && !isPublic.value && appInfo.value.ee && !interfacePageDataApi) {
+      commands.push({
+        id: 'record:send',
+        priority: CMD_PRIORITY.normal,
+        title: t('activity.sendRecord'),
+        section,
+        icon: { type: 'icon', name: 'mail' },
+        keywords: ['email'],
+        run: () => {
+          contextMenuTarget.value = record
+          showSendRecordModal.value = true
+        },
+      })
+    }
+
+    // Same gate and call as the grid record chip's comment commands.
+    if (rowId && !interfacePageDataApi && !isPublic.value && isUIAllowed('commentEdit') && !isMobileMode.value) {
+      commands.push(
+        {
+          id: 'record:add-comment',
+          priority: CMD_PRIORITY.normal,
+          title: t('labels.commandPalette.addComment'),
+          section,
+          icon: { type: 'icon', name: 'ncMessageCircle' },
+          keywords: ['comment', 'note', 'discuss'],
+          feedback: t('labels.commandPalette.commentAdded'),
+          edit: {
+            value: '',
+            multiline: true,
+            placeholder: t('labels.commandPalette.commentPlaceholder'),
+            validate: (value) => (value.trim() ? undefined : t('labels.commandPalette.commentRequired')),
+            submit: async (value) => {
+              try {
+                await $api.internal.postOperation(
+                  activeWorkspaceId.value!,
+                  meta.value!.base_id!,
+                  { operation: 'commentRow' },
+                  { fk_model_id: meta.value!.id!, row_id: rowId, comment: value.trim().replace(/\n/g, '<br />') },
+                )
+              } catch (e: unknown) {
+                throw new Error(await extractSdkResponseErrorMsg(e as Error & { response?: unknown }))
+              }
+              record.rowMeta.commentCount = (record.rowMeta.commentCount ?? 0) + 1
+            },
+          },
+        },
+        {
+          id: 'record:open-comments',
+          priority: CMD_PRIORITY.normal,
+          title: t('labels.commandPalette.openComments'),
+          section,
+          icon: { type: 'icon', name: 'ncMessageCircle' },
+          run: () => {
+            isExpandedFormCommentMode.value = true
+            expandForm(record)
+          },
+        },
+      )
+    }
+
+    if (
+      !isLocked.value &&
+      hasEditPermission.value &&
+      canAddDeleteRows.value &&
+      (!meta.value?.id || isPermissionAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_DELETE))
+    ) {
+      commands.push({
+        id: 'record:delete',
+        title: t('labels.commandPalette.deleteRecord'),
+        section,
+        icon: { type: 'icon', name: 'delete' },
+        danger: true,
+        run: () => deleteRow(record),
+      })
+    }
+
+    if (hasEditPermission.value && !isPublic.value && !isLocked.value) {
+      const visibleIds = new Set(fields.value.map((f) => f.id))
+      commands.push(
+        ...setFieldCommands({
+          meta: meta.value,
+          columns: [
+            ...fields.value.map((column) => ({ column })),
+            ...((meta.value?.columns ?? []) as ColumnType[])
+              .filter((c) => !visibleIds.has(c.id))
+              .map((column) => ({ column, hidden: true })),
+          ],
+          values: (column) => [record.row[column.title!]],
+          row: record.row,
+          section,
+          save: async (column, next) => {
+            const value = next(record.row[column.title!])
+            // The stack field moves the card, exactly as a drag does.
+            if (column.title === groupingField.value) return moveCardToStack(record, value as string)
+
+            record.row[column.title!] = value
+            await updateRowProperty(record, column.title!, { notify: false })
+          },
+        }),
+      )
+    }
+
+    return {
+      context: {
+        prefix: meta.value?.title,
+        label: (displayField.value && String(record.row[displayField.value.title!] ?? '')) || String(rowId ?? ''),
+        icon: { type: 'table', icon: parseProp(meta.value?.meta).icon },
+      },
+      commands,
+    }
+  },
+)
+
+useCommandProvider(
+  () => `kanban-view:${view.value?.id}`,
+  'view',
+  () => {
+    if (isPublic.value) return { commands: [] }
+
+    const section = t('labels.commandPalette.sections.view')
+    const commands: CmdCommand[] = []
+
+    if (
+      hasEditPermission.value &&
+      !isSyncedTable.value &&
+      canAddDeleteRows.value &&
+      (!meta.value?.id || isPermissionAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD))
+    ) {
+      commands.push({
+        id: 'kanban:add-record-to-stack',
+        priority: CMD_PRIORITY.primary,
+        title: t('labels.commandPalette.kanban.addRecordToStack'),
+        section,
+        icon: { type: 'icon', name: 'ncPlus' },
+        keywords: ['new', 'create', 'card'],
+        children: () =>
+          groupingFieldColOptions.value
+            .filter((stack) => stack.id !== addNewStackId)
+            .map((stack) => ({
+              id: `kanban:add-record-to-stack:${stack.id}`,
+              title: stack.title ?? t('labels.uncategorized'),
+              icon: { type: 'icon', name: 'ncCircle' },
+              run: () => handleOpenNewRecordForm(stack.title ?? undefined),
+            })),
+      })
+    }
+
+    if (isUIAllowed('fieldAdd') && hasEditPermission.value && !isLocked.value && groupingFieldColumn.value?.id) {
+      commands.push({
+        id: 'kanban:add-stack',
+        priority: CMD_PRIORITY.normal,
+        title: t('labels.commandPalette.kanban.newStack'),
+        section,
+        icon: { type: 'icon', name: 'ncPlus' },
+        keywords: ['column', 'option', 'add'],
+        run: () => {
+          isRenameOrNewStack.value = addNewStackObj
+        },
+      })
+    }
+
+    commands.push(
+      {
+        id: 'kanban:collapse-all',
+        priority: CMD_PRIORITY.low,
+        title: t('labels.commandPalette.kanban.collapseAllStacks'),
+        section,
+        icon: { type: 'icon', name: 'minimizeAll' },
+        keywords: ['hide'],
+        run: handleCollapseAllStack,
+      },
+      {
+        id: 'kanban:expand-all',
+        priority: CMD_PRIORITY.low,
+        title: t('labels.commandPalette.kanban.expandAllStacks'),
+        section,
+        icon: { type: 'icon', name: 'maximizeAll' },
+        keywords: ['show'],
+        run: handleExpandAllStack,
+      },
+    )
+
+    // The hovered stack's own actions lead; every stack is also reachable through "Edit stack…".
+    const hovered = cmdkStackId.value ? stackCommands(cmdkStackId.value, 'kanban:hovered-stack', true) : []
+    commands.push(
+      ...hovered.map((command) => ({ ...command, section, priority: command.danger ? command.priority : CMD_PRIORITY.high })),
+    )
+
+    const stacks = groupingFieldColOptions.value.filter((stack) => stack.id !== addNewStackId)
+    if (stacks.length) {
+      commands.push({
+        id: 'kanban:edit-stack',
+        priority: CMD_PRIORITY.normal,
+        title: t('labels.commandPalette.kanban.editStack'),
+        section,
+        icon: { type: 'icon', name: 'ncEdit' },
+        keywords: ['stack', 'rename', 'colour', 'color', 'collapse', 'delete'],
+        searchChildren: true,
+        children: () =>
+          stacks.map((stack) => ({
+            id: `kanban:edit-stack:${stack.id}`,
+            title: stack.title ?? t('labels.uncategorized'),
+            icon: { type: 'color' as const, color: stack.title === null ? undefined : stack.color },
+            children: () => stackCommands(stack.id!, `kanban:edit-stack:${stack.id}`, false),
+          })),
+      })
+    }
+
+    return { commands }
+  },
+)
 </script>
 
 <template>
@@ -1861,6 +2337,9 @@ const cardFields = (record: RowType) => {
                     (isRequiredGroupingFieldColumn && stack.id === uncategorizedStackId),
                 }"
                 :data-testid="`nc-kanban-stack-${stack.title}`"
+                @mouseenter="onStackMouseEnter(stack.id)"
+                @mousemove="onStackMouseEnter(stack.id)"
+                @mouseleave="onStackMouseLeave(stack.id)"
               >
                 <!-- Non Collapsed Stacks -->
                 <a-card
@@ -2194,6 +2673,9 @@ const cardFields = (record: RowType) => {
                                   :style="getCardColorStyle(record)"
                                   @click="expandFormClick($event, record)"
                                   @contextmenu="showContextMenu($event, record)"
+                                  @mouseenter="onCardMouseEnter(record)"
+                                  @mousemove="onCardMouseEnter(record)"
+                                  @mouseleave="onCardMouseLeave(record)"
                                 >
                                   <SmartsheetRecordPresenceBadge
                                     v-if="isEeUI"

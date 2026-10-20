@@ -101,6 +101,16 @@ watch(tab, (newValue) => {
   }
 })
 
+watch(
+  expandedFormStore.requestedSidebarFeed,
+  (feed) => {
+    if (!feed) return
+    if (feed === 'comments' ? showCommentFilters.value : showAudits.value) setFeed(feed)
+    expandedFormStore.requestedSidebarFeed.value = null
+  },
+  { immediate: true },
+)
+
 // Options come and go with the host presentor (Fields) and the row's context
 // (SQL view, shared base) — never leave the panel on a feed that's gone.
 watch(

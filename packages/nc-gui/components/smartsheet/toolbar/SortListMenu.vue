@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { type ColumnType, type LinkToAnotherRecordType, UITypesName, ViewLockType, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isColumnInError, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import type { CmdCommand } from '~/lib/types'
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
@@ -137,10 +138,11 @@ const open = ref(false)
 
 useMenuCloseOnEsc(open)
 
-const addSort = (column: ColumnType) => {
+const addSort = (column: ColumnType, direction?: 'asc' | 'desc') => {
   _addSort(column)
 
   const createdSort = sorts.value[sorts.value.length - 1]
+  if (direction) createdSort.direction = direction
 
   if (isList.value && listViewStore?.selectedLevelId.value) {
     createdSort.fk_level_id = listViewStore.selectedLevelId.value
@@ -221,6 +223,64 @@ watch(
     }
   },
   { immediate: true },
+)
+
+// Cmd+K: a field, then its direction (labelled as the sort menu does); "sort score desc" finds it directly.
+function sortDirectionCommands(column: ColumnType): CmdCommand[] {
+  return getSortDirectionOptions(column.uidt as UITypes)
+    .filter((option) => option.value === 'asc' || option.value === 'desc')
+    .map((option) => ({
+      id: `${column.id}:${option.value}`,
+      title: `${t(option.value === 'asc' ? 'general.ascending' : 'general.descending')} (${option.text})`,
+      icon: { type: 'icon', name: option.value === 'asc' ? 'ncArrowUp' : 'ncArrowDown' },
+      keywords: option.value === 'asc' ? ['asc', 'up'] : ['desc', 'down', 'reverse'],
+      run: () => {
+        addSort(column, option.value as 'asc' | 'desc')
+        open.value = true
+      },
+    }))
+}
+
+useCommandProvider(
+  () => `view-toolbar:sort:${view.value?.id}`,
+  'view',
+  () => {
+    if (isPublic.value || isRestrictedEditor.value || !availableColumns.value.length) return { commands: [] }
+
+    const section = t('labels.commandPalette.sections.view')
+    return {
+      commands: [
+        {
+          id: 'view:sort:add',
+          priority: CMD_PRIORITY.high,
+          title: t('labels.commandPalette.addSort'),
+          section,
+          icon: { type: 'icon', name: 'sort' },
+          keywords: ['order'],
+          children: () =>
+            availableColumns.value.map((column) => ({
+              id: `view:sort:add:${column.id}`,
+              title: column.title!,
+              icon: { type: 'field', column },
+              searchChildren: true,
+              children: () => sortDirectionCommands(column),
+            })),
+        },
+        ...availableColumns.value.map(
+          (column): CmdCommand => ({
+            id: `view:sort:by:${column.id}`,
+            title: t('labels.commandPalette.sortByField', { field: column.title }),
+            section,
+            icon: { type: 'field', column },
+            keywords: ['order'],
+            searchOnly: true,
+            searchChildren: true,
+            children: () => sortDirectionCommands(column),
+          }),
+        ),
+      ],
+    }
+  },
 )
 </script>
 

@@ -4844,16 +4844,36 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             )
           : updateData;
 
+        // Matched PKs, read once and shared by the undo and hook snapshots.
+        const captureUndoPrev =
+          isTraceActive() &&
+          this.model.primaryKeys?.length > 0 &&
+          Number(count) <= BULK_UPDATE_ALL_PREV_SNAPSHOT_LIMIT;
+        const affectedPks = captureUndoPrev
+          ? await this.collectAffectedPks(qb.clone())
+          : undefined;
+
         // Undo snapshot: the changed fields of every matched row, read before the
         // UPDATE. Past the cap nothing is captured, so the op isn't recorded.
-        if (
-          isTraceActive() &&
-          this.model.primaryKeys?.length &&
-          Number(count) <= BULK_UPDATE_ALL_PREV_SNAPSHOT_LIMIT
-        ) {
+        if (captureUndoPrev) {
+          const aliasColMap = await this.model.getAliasColObjMap(columns);
+          const changedColIds = Object.keys(data)
+            .map(
+              (k) =>
+                aliasColMap[k] ??
+                columns.find((c) => c.column_name === k || c.id === k),
+            )
+            .filter((c) => c && !isLinksOrLTAR(c))
+            .map((c) => c.id);
           const prevRows = await this.chunkList({
-            pks: await this.collectAffectedPks(qb.clone()),
-            args: { ignoreViewFilterAndSort: true },
+            pks: affectedPks,
+            args: {
+              ignoreViewFilterAndSort: true,
+              fields: [
+                ...this.model.primaryKeys.map((pk) => pk.id),
+                ...changedColIds,
+              ],
+            },
           });
           captureForTrace(
             'recordPrev',
@@ -4877,7 +4897,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           // Webhook bookkeeping must never fail the update itself, same as
           // bulkAudit.
           try {
-            bulkUpdateHookPks = await this.collectAffectedPks(qb.clone());
+            bulkUpdateHookPks =
+              affectedPks ?? (await this.collectAffectedPks(qb.clone()));
 
             // The prev snapshot has to be read before the UPDATE, so unlike the
             // emission below it can't be streamed — it would hold the whole

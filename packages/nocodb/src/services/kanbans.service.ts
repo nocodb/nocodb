@@ -281,7 +281,7 @@ export class KanbansService {
       context,
     });
 
-    await view.getView<ViewTypes.KANBAN>();
+    await view.getView<ViewTypes.KANBAN>(ncMeta);
 
     // Strip the stored bcrypt password hash from every outbound payload.
     const safeView = View.maskPasswordForResponse(view);
@@ -329,16 +329,22 @@ export class KanbansService {
 
     // Update groupingFieldColumn in view meta
     const viewMeta = parseProp(view?.meta) || {};
-    await View.update(context, view.id, {
-      ...view,
-      meta: {
-        ...viewMeta,
-        groupingFieldColumn: column,
+    await View.update(
+      context,
+      view.id,
+      {
+        ...view,
+        meta: {
+          ...viewMeta,
+          groupingFieldColumn: column,
+        },
       },
-    });
+      false,
+      ncMeta,
+    );
 
     // Update kanban stack meta
-    const colOptions = await column.getColOptions();
+    const colOptions = await column.getColOptions(ncMeta);
     if (colOptions?.options) {
       const stackMetaObj = parseProp(kanbanView.meta) || {};
 
@@ -397,9 +403,14 @@ export class KanbansService {
 
       // Update kanban view meta
       stackMetaObj[column.id] = newStackMeta;
-      await KanbanView.update(context, kanbanView.fk_view_id, {
-        meta: stackMetaObj,
-      });
+      await KanbanView.update(
+        context,
+        kanbanView.fk_view_id,
+        {
+          meta: stackMetaObj,
+        },
+        ncMeta,
+      );
     }
   }
 

@@ -413,7 +413,7 @@ onUnmounted(() => {
         :rename-inline="false"
         :confirm-to-delete="true"
         @clicked="onFileClick(item)"
-        @on-delete="onRemoveFileClick(item.title, i)"
+        @on-delete="onRemoveFileClick(getAttachmentDisplayTitle(item), i)"
       />
     </div>
     <div v-if="!attachmentDisplay?.showAll && visibleItems.length > maxVisibleCards" class="mb-2">
@@ -600,7 +600,10 @@ onUnmounted(() => {
       >
         <NcTooltip v-for="(item, i) of visibleItems" :key="item.url || item.title" placement="bottom" class="nc-attachment-item">
           <template #title>
-            <div class="text-center w-full">{{ item.title }}</div>
+            <div class="text-center w-full">{{ getAttachmentDisplayTitle(item) }}</div>
+            <div v-if="isAttachmentDownloadFailed(item)" class="text-center w-full mt-1">
+              {{ $t('msg.error.attachmentUrlDownloadFailed') }}
+            </div>
           </template>
           <div
             class="aspect-square"

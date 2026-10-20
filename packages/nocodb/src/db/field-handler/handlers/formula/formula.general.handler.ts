@@ -67,17 +67,24 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
       })
     ).builder;
 
+    // knex drops `nulls` for a raw expression, so pg/Oracle would fall back to
+    // nulls-last on asc. Spell the clause out to match physical columns; the
+    // other dialects already put NULL first on asc.
+    const orderBy = (expr: Knex.Raw) => {
+      if (nulls && (baseModelSqlv2.isPg || baseModelSqlv2.isOracle)) {
+        qb.orderByRaw(`?? ${direction} NULLS ${nulls}`, [expr]);
+      } else {
+        qb.orderBy(expr as any, direction, nulls);
+      }
+    };
+
     if (isIeeeCapable) {
       // pg orders NaN above every number, including Infinity. Rank it below
       // -Infinity instead: the flag is false only for NaN, so ascending puts
       // that block first and descending puts it last.
-      qb.orderBy(
-        knex.raw(`(?? <> 'NaN'::double precision)`, [builder]) as any,
-        direction,
-        nulls,
-      );
+      orderBy(knex.raw(`(?? <> 'NaN'::double precision)`, [builder]));
     }
-    qb.orderBy(builder, direction, nulls);
+    orderBy(builder);
   }
 
   override async filter(
@@ -123,6 +130,18 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
           knex.raw('?::double precision', [filter.value])
         : parsedTree?.dataType === FormulaDataTypes.DATE
         ? filter.value
+        : filter.comparison_op === 'in'
+        ? // numbers, not strings: SQLite never matches a numeric formula to '2'
+          (Array.isArray(filter.value)
+            ? filter.value
+            : `${filter.value ?? ''}`.split(',')
+          ).map((v) =>
+            parsedTree?.dataType === FormulaDataTypes.NUMERIC &&
+            v !== '' &&
+            !isNaN(+v)
+              ? +v
+              : v,
+          )
         : knex.raw('?', [
             // convert value to number if formulaDataType if numeric
             parsedTree?.dataType === FormulaDataTypes.NUMERIC &&

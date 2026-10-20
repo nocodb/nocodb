@@ -390,7 +390,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     async function bulkDownloadAttachments() {
       const items: AttachmentType[] = selectedVisibleItems.value
         .map((v, i) => (v ? visibleItems.value[i] : undefined))
-        .filter(Boolean)
+        .filter((item) => item && !isAttachmentDownloadFailed(item))
 
       if (items.length === 0) return
       if (items.length === 1) {
@@ -539,6 +539,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     /** download a file */
     async function downloadAttachment(item: AttachmentType) {
+      if (isAttachmentDownloadFailed(item)) return
+
       const dlCtx = lookupAttachmentDownloadCtx.value
       if (!dlCtx && (!meta.value || !column.value)) return
 

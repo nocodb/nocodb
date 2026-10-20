@@ -140,6 +140,8 @@ const _duplicate = async () => {
       }) => {
         if (data.status !== 'close') {
           if (data.status === JobStatus.COMPLETED) {
+            $e('a:base:create:success', { source: 'duplicate', kind: 'database' })
+
             try {
               const resBases = await loadProjects('workspace', targetWorkspace?.value?.id)
               targetBase.value = resBases.find((b) => b.id === jobData.base_id)

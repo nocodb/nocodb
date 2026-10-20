@@ -141,6 +141,7 @@ export class RollupHelper extends AbstractColumnHelper {
 
 export const rollupAllFunctions = [
   { text: 'datatype.Count', value: 'count' },
+  { text: 'general.countAll', value: 'countAll' },
   { text: 'general.min', value: 'min' },
   { text: 'general.max', value: 'max' },
   { text: 'general.avg', value: 'avg' },

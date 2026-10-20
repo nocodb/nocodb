@@ -118,11 +118,12 @@ export interface InterfacePageDataApi {
    * Per-model row counts + flattened total for a LIST viz's levels — powers the
    * canvas list's virtual-scroll height math. `counts` is keyed by model id.
    */
-  fetchLeveledCount(params: {
-    where?: string
-    filtersArr?: FilterType[]
-    collapsed?: string
-  }): Promise<{ totalRows: number; counts: Record<string, number> }>
+  fetchLeveledCount(params: { where?: string; filtersArr?: FilterType[]; collapsed?: string }): Promise<{
+    totalRows: number
+    counts: Record<string, number>
+    collapsedCounts?: Record<string, number>
+    emptyCounts?: Record<string, number>
+  }>
   fetchCount(params: {
     where?: string
     filtersArr?: FilterType[]

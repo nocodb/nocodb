@@ -13,6 +13,7 @@ import {
 } from 'nocodb-sdk';
 import { getColumnName } from 'src/helpers/dbHelpers';
 import { DBErrorExtractor } from 'src/helpers/db-error/extractor';
+import { stripQueryFromDbMessage } from 'src/helpers/db-error/utils';
 import genRollupSelectv2 from '../genRollupSelectv2';
 import { assertParsedTreeFunctions } from './assertParsedTreeFunctions';
 import { getLmtSyntheticFormula } from './lmtSyntheticFormula';
@@ -62,6 +63,20 @@ const logger = new Logger('FormulaQueryBuilderv2');
 // instance when an external source is unreachable.
 export const FORMULA_DRY_RUN_SKIPPED_MESSAGE =
   'Skipping formula dry-run: a previous validation already failed';
+
+const DRY_RUN_ALIAS = '__dry_run_alias';
+
+// The dry-run query from its alias on (`__dry_run_alias" from "t" limit 1`):
+// no formula SQL in it, so it appears verbatim in knex's error prefix.
+function dryRunSqlEnd(dryRunQb?: Knex.QueryBuilder): string | undefined {
+  try {
+    const sql = dryRunQb?.toQuery();
+    const at = sql?.lastIndexOf(DRY_RUN_ALIAS) ?? -1;
+    return at >= 0 ? sql.slice(at) : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
   const {
@@ -802,6 +817,7 @@ export default async function formulaQueryBuilderv2({
   const formulaBuilderCache = new Map<string, Knex.Raw>();
 
   let qb;
+  let dryRunQb: Knex.QueryBuilder | undefined;
   try {
     parentColumns = parentColumns ?? CircularRefContext.make();
     if (column) {
@@ -900,8 +916,8 @@ export default async function formulaQueryBuilderv2({
     // shifts positional interpolation onto them (see the mssql client's
     // `TOP (?)` note) — CI hit `limit ?` reaching SQLite unbound
     // (SQLITE_MISMATCH) when this was a plain `.limit(1)`.
-    const dryRunQb = knex(baseModelSqlv2.getTnPath(model, tableAlias)).select(
-      knex.raw(`?? as ??`, [qb.builder, '__dry_run_alias']),
+    dryRunQb = knex(baseModelSqlv2.getTnPath(model, tableAlias)).select(
+      knex.raw(`?? as ??`, [qb.builder, DRY_RUN_ALIAS]),
     );
     if (dryRunLimit) dryRunQb.limit(dryRunLimit, { skipBinding: true });
     await baseModelSqlv2.execAndParse(dryRunQb.as('dry-run-only'), null, {
@@ -960,12 +976,31 @@ export default async function formulaQueryBuilderv2({
           e instanceof NcBaseErrorv2 &&
           e.error === NcErrorType.ERR_CIRCULAR_REF_IN_FORMULA))
     ) {
-      console.error(e);
+      logger.error(e?.message, e?.stack);
+
+      // the client and the stored column error get the server's reason, never
+      // the knex-prefixed SQL (the full error is in the log above)
+      let message = e?.message;
+      if (!(e instanceof NcBaseErrorv2)) {
+        const dbError = DBErrorExtractor.get().extractDbError(e, {
+          clientType: baseModelSqlv2.clientType as ClientType,
+          ignoreDefault: true,
+        });
+        message =
+          dbError?.message ??
+          stripQueryFromDbMessage(e?.message, dryRunSqlEnd(dryRunQb));
+      }
 
       if (column && persistError) {
         // show the error in the UI, and keep it for later reads
-        await persistFormulaColumnError(context, column, e.message);
+        await persistFormulaColumnError(context, column, message);
       }
+
+      // if it's a formula error, throw it
+      if (e instanceof NcBaseErrorv2) {
+        throw e;
+      }
+      NcError.get(context).formulaError(message);
     } else {
       // Mark dry-run as failed so subsequent formula validations on the same
       // base model short-circuit instead of hammering an unreachable source
@@ -974,17 +1009,6 @@ export default async function formulaQueryBuilderv2({
       }
       throw e;
     }
-
-    // if it's a formula error, throw it
-    if (e instanceof NcBaseErrorv2) {
-      throw e;
-    }
-
-    const dbError = DBErrorExtractor.get().extractDbError(e, {
-      clientType: baseModelSqlv2.clientType as ClientType,
-      ignoreDefault: true,
-    });
-    NcError.get(context).formulaError(dbError?.message ?? e.message);
   }
   return qb;
 }

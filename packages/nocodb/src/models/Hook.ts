@@ -227,7 +227,8 @@ export default class Hook implements HookType {
         hooks = hooks.filter((hook) => {
           return (
             !hook.trigger_field ||
-            !param.affectedColumns ||
+            // `undefined` = diff unknown; `[]` = nothing changed, so skip.
+            param.affectedColumns === undefined ||
             hook.trigger_fields?.some((field) =>
               param.affectedColumns?.includes(field),
             )

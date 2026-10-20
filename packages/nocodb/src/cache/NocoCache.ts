@@ -457,13 +457,19 @@ export default class NocoCache {
 
   public static async clear(context: CacheContext): Promise<void> {
     if (this.cacheDisabled) return Promise.resolve();
-    return this.client.processPattern(
+    // Delete only after the scan: ioredis-mock's cursor is an array index, so
+    // deleting mid-scan shifts later keys past it and they survive.
+    const doomed: string[] = [];
+    await this.client.processPattern(
       `${this.prefix}:${cacheContext(context)}:*`,
       async (keys: string[]) => {
-        await this.client.del(keys);
+        doomed.push(...keys);
       },
       { count: 100, batch: true, raw: true },
     );
+    for (let i = 0; i < doomed.length; i += 1000) {
+      await this.client.del(doomed.slice(i, i + 1000));
+    }
   }
 
   public static async destroy(): Promise<boolean> {

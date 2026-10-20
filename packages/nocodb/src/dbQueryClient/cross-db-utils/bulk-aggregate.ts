@@ -390,11 +390,17 @@ export const bulkAggregate =
 
           // PG ignores `baseQuery`, so one expression set serves every bucket.
           const expressions: Record<string, string> = {};
-          for (const { col, aggregation: agg, resultKey } of aggregateColumns) {
+          for (const {
+            col,
+            aggregation: agg,
+            resultKey,
+            fromSavedView,
+          } of aggregateColumns) {
             const aggSql = await applyAggregation({
               baseModelSqlv2: baseModel,
               aggregation: agg,
               column: col,
+              skipStaleRollup: fromSavedView,
             });
             if (aggSql) expressions[resultKey] = aggSql;
           }
@@ -597,12 +603,18 @@ export const bulkAggregate =
         // Per-filter-set expressions. baseQuery=tQb so median/attachment-size
         // materialize over the filtered rows (Phase 2 correctness invariant).
         const expressions: Record<string, string> = {};
-        for (const { col, aggregation: agg, resultKey } of aggregateColumns) {
+        for (const {
+          col,
+          aggregation: agg,
+          resultKey,
+          fromSavedView,
+        } of aggregateColumns) {
           const aggSql = await applyAggregation({
             baseModelSqlv2: baseModel,
             aggregation: agg,
             column: col,
             baseQuery: tQb,
+            skipStaleRollup: fromSavedView,
           });
           if (aggSql) expressions[resultKey] = aggSql;
         }

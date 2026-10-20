@@ -6,6 +6,9 @@ import type {
   FactoryStreamState,
 } from 'nocodb-sdk';
 import type {
+  AbuseReportDetailType,
+  AbuseReportListType,
+  AbuseReportType,
   BaseVariableType,
   DependencyTableType,
   McpToolCatalogEntry,
@@ -38,6 +41,8 @@ import type {
 
 export type InternalGETResponseType = Promise<
   | void
+  | AbuseReportListType
+  | AbuseReportDetailType
   | RowColoringInfo
   | null
   | DataReflection
@@ -102,6 +107,8 @@ export type InternalGETResponseType = Promise<
 
 export type InternalPOSTResponseType = Promise<
   | void
+  | AbuseReportType
+  | { id: string; blocked: boolean }
   | boolean
   | Document
   | MCPToken

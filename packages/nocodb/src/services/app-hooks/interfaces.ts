@@ -1,5 +1,6 @@
 import type { SyncSource } from '~/models';
 import type {
+  AbuseReportType,
   BaseType,
   ColumnType,
   CommentType,
@@ -345,6 +346,18 @@ export interface OrgUserUpdateEvent extends Omit<NcBaseEvent, 'context'> {
   orgId: string;
   oldRole?: string;
   newRole: string;
+  context?: NcContext;
+}
+
+export interface OrgUserBlockEvent extends Omit<NcBaseEvent, 'context'> {
+  userId: string;
+  email: string;
+  reason?: string;
+  context?: NcContext;
+}
+
+export interface AbuseReportAdminEvent extends Omit<NcBaseEvent, 'context'> {
+  report: AbuseReportType;
   context?: NcContext;
 }
 

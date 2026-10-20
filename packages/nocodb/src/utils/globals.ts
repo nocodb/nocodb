@@ -719,6 +719,7 @@ export enum CacheScope {
   MARKETPLACE_PUBLISHER = 'marketplacePublisher',
   MARKETPLACE_CURATION = 'marketplaceCuration',
   MARKETPLACE_CATALOG = 'marketplaceCatalog',
+  WORKSPACE_APPS = 'workspaceApps',
   APP_TEAM = 'appTeam',
   APP_TEAM_MEMBER = 'appTeamMember',
   SUBSCRIPTIONS_ALIAS = 'subscriptionsAlias',

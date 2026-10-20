@@ -432,6 +432,10 @@ export const columnBuilder = builderGenerator<ColumnType, FieldV3Type>({
       'defaultViewColVisibility',
       'singular',
       'plural',
+      // Written by earlier v3 writes and ignored by the backend; it would
+      // shadow the camelCase keys the backend reads.
+      'enable_conditions',
+      'use_recursive_evaluation',
     ],
     skipTransformFor: [
       'currency_locale',
@@ -705,6 +709,10 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
       show_as_progress: 'is_progress',
       max_value: 'max',
 
+      // Lookup/Rollup/Links read these camelCase keys
+      enable_conditions: 'enableConditions',
+      use_recursive_evaluation: 'useRecursiveEvaluation',
+
       // duration_format: 'duration',
     },
     skipfn: (data) => columnsWithOptions.includes(data.uidt || data.type),
@@ -726,6 +734,28 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
   transformFn: (data) => {
     const meta: Record<string, any> = data.meta || {};
     let colOptions: any;
+
+    // Display options are stored as `display_column_meta: { meta, custom }`
+    // with v2 keys of the display type; a flat object would be ignored by the UI.
+    const displayColumnMeta = meta.display_column_meta;
+    if (
+      [UITypes.Formula, UITypes.Lookup].includes(data.uidt) &&
+      displayColumnMeta &&
+      typeof displayColumnMeta === 'object' &&
+      !('meta' in displayColumnMeta)
+    ) {
+      const { custom, ...flat } = displayColumnMeta;
+      const displayMeta = meta.display_type
+        ? columnV3ToV2Builder().build({
+            type: meta.display_type,
+            options: flat,
+          } as FieldV3Type).meta
+        : flat;
+      meta.display_column_meta = {
+        meta: displayMeta ?? {},
+        custom: custom ?? {},
+      };
+    }
 
     switch (data.uidt) {
       case UITypes.SingleSelect:

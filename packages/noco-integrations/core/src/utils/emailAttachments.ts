@@ -1,3 +1,10 @@
+import {
+  collectEmailBodyImageRefs,
+  emailImageTypeForFile,
+  MAX_EMAIL_INLINE_IMAGES,
+  MAX_EMAIL_INLINE_IMAGES_SIZE,
+} from './emailBody';
+import type { EmailBodyImageFile } from './emailBody';
 import type {
   EmailAttachmentFileRef,
   EmailAttachmentSource,
@@ -229,6 +236,7 @@ const PLATFORM_MAILER_BLOCKED_TYPES = new Set([
  */
 export function assertPlatformMailerAttachments(
   attachments: ResolvedEmailAttachment[],
+  hint?: string,
 ): void {
   for (const attachment of attachments) {
     // Windows drops trailing dots and spaces, so `x.exe.` still opens as `x.exe`.
@@ -240,10 +248,87 @@ export function assertPlatformMailerAttachments(
       PLATFORM_MAILER_BLOCKED_TYPES.has(type)
     ) {
       throw new Error(
-        `"${attachment.filename}" can't be sent by the built-in mailer, which blocks executables, web pages and other risky file types. Send it with an SMTP, Gmail or Outlook step instead.`,
+        `"${attachment.filename}" can't be sent by the built-in mailer, which blocks executables, web pages and other risky file types.${hint ? ` ${hint}` : ''}`,
       );
     }
   }
+}
+
+/**
+ * Loads the stored images an email body references (`src="nc-file:…"`) via the host, which
+ * applies the same base-ownership check as attachments. Returns an empty map without touching
+ * the host when the body has none. Feed the result to `prepareEmailBody({ images })`.
+ *
+ * An image that can't be loaded (its file was removed, or it belongs to another workflow that
+ * released it) is left out of the email and reported through `onSkip`, rather than failing the
+ * send: the sanitizer drops an `img` without bytes.
+ */
+export async function resolveEmailBodyImages(
+  nocodb: Pick<NocoDBContext, 'attachmentService'>,
+  body: unknown,
+  options: {
+    onSkip?: (fileName: string, reason: string) => void;
+    /** The run's cancel signal; a cancelled run stops here instead of sending without images. */
+    signal?: AbortSignal;
+  } = {},
+): Promise<Map<string, EmailBodyImageFile>> {
+  const refs = collectEmailBodyImageRefs(body).filter((ref) =>
+    emailImageTypeForFile(ref),
+  );
+  if (!refs.length) return new Map();
+
+  if (refs.length > MAX_EMAIL_INLINE_IMAGES) {
+    throw new Error(
+      `Email body has more than ${MAX_EMAIL_INLINE_IMAGES} images. Remove some images from the body.`,
+    );
+  }
+
+  if (!nocodb?.attachmentService) {
+    throw new Error('Images in the email body are not supported in this environment');
+  }
+  const service = nocodb.attachmentService;
+
+  // One file per call, so a single missing image can't take the others down with it. The
+  // body-wide size cap is enforced afterwards by extractInlineImages.
+  const results = await Promise.allSettled(
+    refs.map((ref) =>
+      service.resolveEmailAttachments(
+        [
+          {
+            kind: 'nocodb',
+            // Body images are workflow uploads; only upload rows vouch for them.
+            origin: 'upload',
+            file: /^https?:\/\//i.test(ref) ? { url: ref } : { path: ref },
+          },
+        ],
+        {
+          maxFiles: 1,
+          maxTotalBytes: MAX_EMAIL_INLINE_IMAGES_SIZE,
+          signal: options.signal,
+        },
+      ),
+    ),
+  );
+
+  // A cancellation rejects every pending image; it is not a skipped image, so stop the send.
+  if (options.signal?.aborted) throw new Error('Execution cancelled');
+
+  const images = new Map<string, EmailBodyImageFile>();
+  results.forEach((result, i) => {
+    const ref = refs[i];
+    const file = result.status === 'fulfilled' ? result.value[0] : undefined;
+    const contentType = emailImageTypeForFile(ref);
+    if (file?.content?.length && contentType) {
+      images.set(ref, { content: file.content, contentType });
+      return;
+    }
+    const reason =
+      result.status === 'rejected'
+        ? String(result.reason?.message ?? result.reason)
+        : 'the file is empty';
+    options.onSkip?.(ref.split(/[\\/]/).pop()?.split('?')[0] || ref, reason);
+  });
+  return images;
 }
 
 /** nodemailer / platform-mailer attachment shape. */

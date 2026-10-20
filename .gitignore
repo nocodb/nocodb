@@ -134,6 +134,8 @@ antd.variable.css
 scripts/.payment-dev-secrets.env
 scripts/.onprem-dev-secrets.env
 scripts/.onprem-dev-keys/
+# gateway-e2e harness: license-server key pair, secrets, minted license, logs
+scripts/.gateway-e2e/
 # Northwind runbook demo receiver log
 .demo-receiver.jsonl
 # SDD execution scratch (ledger, briefs, review packages) — never commit
@@ -150,3 +152,6 @@ GUIDE.md
 .dev-comments.jsonl
 .dev-comments-threads.json
 .dev-comments.log
+
+# brainstorming working notes, never committed
+docs/superpowers

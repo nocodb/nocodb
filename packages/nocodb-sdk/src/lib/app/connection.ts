@@ -50,6 +50,10 @@ export interface AppConnectionCatalogEntry {
   /** True when this plan can run none of them — declarable, but not runnable. */
   locked: boolean;
   perUserCapable: boolean;
+  /** The tier per-user credentials need, when the provider allows them and this plan does not. */
+  perUserRequiredPlan?: PlanTitles;
+  /** A backend the customer brings (database, keyspace, raw HTTP API), sold apart from apps. */
+  externalData: boolean;
   connected: number;
 }
 

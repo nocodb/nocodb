@@ -430,20 +430,20 @@ export class SqliteAggregationHandler extends GenericAggregationHandler {
 
     switch (aggregation) {
       case DateAggregations.EarliestDate:
-        aggregationSql = knex.raw(`MIN(??)`, [column_query]);
+        aggregationSql = knex.raw(`MIN((??))`, [column_query]);
         break;
       case DateAggregations.LatestDate:
-        aggregationSql = knex.raw(`MAX(??)`, [column_query]);
+        aggregationSql = knex.raw(`MAX((??))`, [column_query]);
         break;
       case DateAggregations.DateRange:
         aggregationSql = knex.raw(
-          `CAST(JULIANDAY(MAX(??)) - JULIANDAY(MIN(??)) AS INTEGER)`,
+          `CAST(JULIANDAY(MAX((??))) - JULIANDAY(MIN((??))) AS INTEGER)`,
           [column_query, column_query],
         );
         break;
       case DateAggregations.MonthRange:
         aggregationSql = knex.raw(
-          `((strftime('%Y', MAX(??)) * 12 + strftime('%m', MAX(??))) - (strftime('%Y', MIN(??)) * 12 + strftime('%m', MIN(??))))`,
+          `((strftime('%Y', MAX((??))) * 12 + strftime('%m', MAX((??)))) - (strftime('%Y', MIN((??))) * 12 + strftime('%m', MIN((??)))))`,
           [column_query, column_query, column_query, column_query],
         );
         break;

@@ -97,6 +97,7 @@ export class BulkDataAliasService {
       raw?: boolean;
       allowSystemColumn?: boolean;
       apiVersion?: NcApiVersion;
+      skipPermissionCheck?: boolean;
       // Internal jobs batch on their own; the cap guards client requests.
       skipPayloadLimit?: boolean;
     },
@@ -114,6 +115,7 @@ export class BulkDataAliasService {
           allowSystemColumn: param.allowSystemColumn,
           apiVersion: param.apiVersion,
           typecast: (param.cookie?.query?.typecast ?? '') === 'true',
+          skipPermissionCheck: param.skipPermissionCheck,
         },
       ],
     });

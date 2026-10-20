@@ -9,7 +9,10 @@ import { NcError } from '~/helpers/catchError';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import { extractProps } from '~/helpers/extractProps';
 import { type Column, FileReference, type Filter } from '~/models';
-import { validateNumberOfFilesInCell } from '~/helpers/attachmentHelpers';
+import {
+  needsAttachmentOwnership,
+  validateNumberOfFilesInCell,
+} from '~/helpers/attachmentHelpers';
 
 export class AttachmentGeneralHandler extends ComputedFieldHandler {
   override async filterBlank(
@@ -136,8 +139,14 @@ export class AttachmentGeneralHandler extends ComputedFieldHandler {
     }
 
     let tempIndex = 1;
+    const ownStorageIds = new Set<string>();
     // Confirm that all urls are valid urls
     for (const attachment of value ?? []) {
+      // Only the server sets these: a client-sent status would skip the
+      // ownership check in prepareNocoData. Stored items get theirs back below.
+      delete attachment.status;
+      delete attachment.error;
+
       if (attachment.id) {
         const oldAttachmentRow = oldValueMap.get(attachment.id);
         if (!oldAttachmentRow) {
@@ -146,10 +155,19 @@ export class AttachmentGeneralHandler extends ComputedFieldHandler {
         // if id exists, persist old value
         Object.assign(attachment, oldAttachmentRow);
       } else {
-        if (!attachment.url) {
-          throwError('New attachment must include a url');
+        if (!attachment.url && !attachment.path) {
+          throwError('New attachment must include a url or path');
         }
         attachment.id = 'temp_' + tempIndex++;
+        // Own-storage files keep their props and are stored as is after
+        // prepareNocoData's ownership check; only foreign urls get the
+        // `uploading` placeholder the url-upload job downloads.
+        for (const ref of [attachment.path, attachment.url]) {
+          if (await needsAttachmentOwnership(ref)) {
+            ownStorageIds.add(attachment.id);
+            break;
+          }
+        }
       }
     }
     const { removed } = arrDetailedDiff(
@@ -167,7 +185,7 @@ export class AttachmentGeneralHandler extends ComputedFieldHandler {
 
     return {
       value: value.map((attr) => {
-        return attr.id.startsWith('temp_')
+        return attr.id.startsWith('temp_') && !ownStorageIds.has(attr.id)
           ? {
               id: attr.id,
               url: attr.url,
@@ -183,6 +201,8 @@ export class AttachmentGeneralHandler extends ComputedFieldHandler {
               'icon',
               'width',
               'height',
+              // a failed url download keeps its marker across later writes
+              ...(attr.status === 'failed' ? ['status', 'error'] : []),
             ]);
       }),
     };

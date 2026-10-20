@@ -24,6 +24,8 @@ import {
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { Base, BaseUser, PresignedUrl, UserRefreshToken } from '~/models';
 import { sanitiseUserObj } from '~/utils';
+import { randomTokenString } from '~/helpers/stringHelpers';
+import NocoSocket from '~/socket/NocoSocket';
 import {
   isEmailAlias,
   normalizeEmail,
@@ -551,6 +553,7 @@ export default class User implements UserType {
         `${MetaTable.USERS}.display_name`,
         `${MetaTable.USERS}.is_new_user`,
         `${MetaTable.USERS}.meta`,
+        `${MetaTable.USERS}.blocked`,
       )
       .select(
         ncMeta
@@ -647,6 +650,25 @@ export default class User implements UserType {
           extractRolesObj(u.roles)?.[OrgUserRoles.SUPER_ADMIN],
       )
       .map((u) => u.email);
+  }
+
+  /** Blocks sign-in and every token type, and ends live sessions now. */
+  static async block(userId: string, reason?: string, ncMeta = Noco.ncMeta) {
+    await this.update(
+      userId,
+      {
+        blocked: true,
+        blocked_reason: reason ?? null,
+        token_version: randomTokenString(),
+      },
+      ncMeta,
+    );
+    await UserRefreshToken.deleteAllUserToken(userId, ncMeta);
+    await NocoSocket.disconnectUsers([userId]);
+  }
+
+  static async unblock(userId: string, ncMeta = Noco.ncMeta) {
+    await this.update(userId, { blocked: false, blocked_reason: null }, ncMeta);
   }
 
   // Called from auth-resolution paths only (not getWithRoles, whose callers

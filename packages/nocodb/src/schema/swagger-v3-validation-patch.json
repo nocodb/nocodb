@@ -261,9 +261,10 @@
           },
           "rollup_function": {
             "type": "string",
-            "description": "Rollup function.",
+            "description": "Rollup function. `count` counts linked records whose target value is not empty; `countAll` counts every linked record. With no linked records (or only empty values), `sum` and the count functions return `0`, while `avg`, `min` and `max` return `null`.",
             "enum": [
               "count",
+              "countAll",
               "min",
               "max",
               "avg",
@@ -279,7 +280,7 @@
           },
           "precision": {
             "type": "number",
-            "description": "Number of decimal places for numeric rollups. Defaults to 0.",
+            "description": "Number of decimal places for numeric rollups. Defaults to 0. Display-only: the API returns the unrounded value.",
             "minimum": 0,
             "maximum": 5
           },

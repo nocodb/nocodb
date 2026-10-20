@@ -67,6 +67,17 @@ function logicalScalarSql(knex: MapFnArgs['knex'], predicates: string): string {
     : `(${predicates})`;
 }
 
+// T-SQL and pre-23ai Oracle have no boolean type: a bare predicate can't be
+// selected or tested with `IS NOT NULL AND … != 0`, so materialize it to 1/0.
+function predicateScalarSql(
+  knex: MapFnArgs['knex'],
+  predicate: string,
+): string {
+  return ['mssql', 'oracledb'].includes(knex.clientType())
+    ? `(CASE WHEN ${predicate} THEN 1 ELSE 0 END)`
+    : predicate;
+}
+
 // Oracle: CONCAT / REPEAT lower a string to CLOB while literals and most scalar
 // string ops stay VARCHAR2. A CASE (IF / SWITCH) can't mix the two in its result
 // branches — ORA-00932 ("expression is of data type CLOB, which is incompatible
@@ -88,7 +99,7 @@ function unifyOracleClobCaseBranches(
   );
 }
 
-async function treatArgAsConditionalExp(
+export async function treatArgAsConditionalExp(
   args: MapFnArgs,
   argument = args.pt?.arguments?.[0],
 ) {
@@ -562,7 +573,7 @@ export default {
     });
 
     return {
-      builder: knex.raw(`(? IS NULL OR ? = '')`, [
+      builder: knex.raw(predicateScalarSql(knex, `(? IS NULL OR ? = '')`), [
         valueBuilder,
         stringValueBuilder,
       ]),
@@ -572,7 +583,9 @@ export default {
     const { builder: valueBuilder } = await fn(pt.arguments[0]);
 
     return {
-      builder: knex.raw(`(? IS NULL)`, [valueBuilder]),
+      builder: knex.raw(predicateScalarSql(knex, `(? IS NULL)`), [
+        valueBuilder,
+      ]),
     };
   },
   ISNOTBLANK: async ({ fn, knex, pt }: MapFnArgs) => {
@@ -587,7 +600,10 @@ export default {
     });
     return {
       builder: knex.raw(
-        `(${valueBuilder} IS NOT NULL AND ${stringValueBuilder} != '')`,
+        predicateScalarSql(
+          knex,
+          `(${valueBuilder} IS NOT NULL AND ${stringValueBuilder} != '')`,
+        ),
       ),
     };
   },
@@ -595,7 +611,9 @@ export default {
     const { builder: valueBuilder } = await fn(pt.arguments[0]);
 
     return {
-      builder: knex.raw(`(${valueBuilder} IS NOT NULL)`),
+      builder: knex.raw(
+        predicateScalarSql(knex, `(${valueBuilder} IS NOT NULL)`),
+      ),
     };
   },
   URLENCODE: async ({ fn, knex, pt }: MapFnArgs) => {

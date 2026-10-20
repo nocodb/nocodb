@@ -6,6 +6,7 @@ import commonFns, {
   escapePlaceholders,
   extractDatetimeFormat,
   safeDateAddUnitSQL,
+  treatArgAsConditionalExp,
   validateDateAddUnit,
 } from './commonFns';
 import type { CallExpressionNode } from 'nocodb-sdk';
@@ -396,9 +397,11 @@ const pg = {
       ' AND ',
     );
 
+    // Per-type truthiness, same as the other dialects; a DATE/NUMBER/TEXT
+    // operand is not a boolean on pg.
     const parsedArguments = await Promise.all(
       args.pt.arguments.map(async (ar) => {
-        const argsStr = (await args.fn(ar, '', 'AND')).builder;
+        const argsStr = (await treatArgAsConditionalExp(args, ar)).builder;
         return { builder: argsStr };
       }),
     );
@@ -420,7 +423,7 @@ const pg = {
 
     const parsedArguments = await Promise.all(
       args.pt.arguments.map(async (ar) => {
-        const argsStr = (await args.fn(ar, '', 'AND')).builder;
+        const argsStr = (await treatArgAsConditionalExp(args, ar)).builder;
         return { builder: argsStr };
       }),
     );
@@ -521,21 +524,20 @@ const pg = {
       ]),
     };
   },
-  XOR: async ({ fn, knex, pt }: MapFnArgs) => {
-    const predicates = (pt.arguments.map(() => '?') as string[]).join(' # ');
+  XOR: async (args: MapFnArgs) => {
+    const predicates = (args.pt.arguments.map(() => '?') as string[]).join(
+      ' # ',
+    );
     const parsedArguments = await Promise.all(
-      pt.arguments.map(async (arg) => {
-        const query = (await fn(arg)).builder;
+      args.pt.arguments.map(async (arg) => {
+        const cond = (await treatArgAsConditionalExp(args, arg)).builder;
         return {
-          builder: knex.raw(
-            `CASE WHEN :query IS NOT NULL AND :query::boolean = true THEN 1 ELSE 0 END`,
-            { query },
-          ),
+          builder: args.knex.raw(`CASE WHEN ? THEN 1 ELSE 0 END`, [cond]),
         };
       }),
     );
     return {
-      builder: knex.raw(
+      builder: args.knex.raw(
         `${predicates}`,
         parsedArguments.map((a) => a.builder),
       ),

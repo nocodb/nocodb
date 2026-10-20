@@ -6,6 +6,7 @@ import {
   ProjectRoles,
   WorkspaceUserRoles,
   inviteLinkRolesFor,
+  isCodeProjectAssignableRole,
 } from 'nocodb-sdk'
 import type { IconMapKey } from '#imports'
 import { getI18n } from '~/plugins/a.i18n'
@@ -124,13 +125,35 @@ export const useInviteLinks = createGlobalState(() => {
 
   const teams = computed(() => target.value?.teams ?? [])
 
+  const { isCodeProject, codeProjectRoleLabels, codeProjectRoleDescriptions } = useCodeProjects()
+
+  const basesStore = useBases()
+
+  /** A code project's links grant Maintainer or Developer only, under those names. */
+  const isCodeBaseScope = computed(
+    () => scope.value === InviteLinkScope.BASE && isCodeProject(basesStore.bases.get(target.value?.baseId ?? '')),
+  )
+
   const roleLabels = computed(() =>
-    isAppScope.value ? Object.fromEntries(teams.value.map((t) => [t.id, t.title])) : inviteLinkRoleLabels(scope.value),
+    isAppScope.value
+      ? Object.fromEntries(teams.value.map((t) => [t.id, t.title]))
+      : isCodeBaseScope.value
+      ? codeProjectRoleLabels.value
+      : inviteLinkRoleLabels(scope.value),
   )
 
   /** App teams carry their own descriptions and icons; roles use the defaults. */
   const roleDescriptions = computed(() =>
-    isAppScope.value ? Object.fromEntries(teams.value.map((t) => [t.id, t.description ?? ''])) : undefined,
+    isAppScope.value
+      ? Object.fromEntries(teams.value.map((t) => [t.id, t.description ?? '']))
+      : isCodeBaseScope.value
+      ? codeProjectRoleDescriptions.value
+      : undefined,
+  )
+
+  /** The roles a link in this scope may grant at all. */
+  const linkRoles = computed(() =>
+    inviteLinkRolesFor(scope.value).filter((r) => !isCodeBaseScope.value || isCodeProjectAssignableRole(r)),
   )
 
   const roleIcons = computed(() =>
@@ -185,7 +208,7 @@ export const useInviteLinks = createGlobalState(() => {
     // Team ids stand in for roles here; the pickers take labels for them.
     if (isAppScope.value) return teams.value.map((t) => t.id) as (keyof typeof RoleLabels)[]
 
-    const offered = [...inviteLinkRolesFor(scope.value)]
+    const offered = [...linkRoles.value]
 
     if (power.value < 0) return offered
 
@@ -201,7 +224,7 @@ export const useInviteLinks = createGlobalState(() => {
     if (isAppScope.value) return [] as (keyof typeof RoleLabels)[]
 
     const owner = isWorkspaceScope.value ? WorkspaceUserRoles.OWNER : ProjectRoles.OWNER
-    const above = inviteLinkRolesFor(scope.value).filter((r) => !allowedRoles.value.includes(r))
+    const above = linkRoles.value.filter((r) => !allowedRoles.value.includes(r))
 
     // An interface has no owner to withhold.
     return (isInterfaceScope.value ? above : [owner, ...above]) as (keyof typeof RoleLabels)[]

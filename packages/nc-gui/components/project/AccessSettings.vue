@@ -12,6 +12,7 @@ import {
   WorkspaceUserRoles as WorkspaceUserRolesEnum,
   extractBaseRoleFromWorkspaceRole,
   getEffectiveBaseRole,
+  isCodeProjectAssignableRole,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -75,6 +76,23 @@ const currentBase = computedAsync(async () => {
   return base
 })
 
+const { isCodeProject, codeProjectRoleLabels, codeProjectRoleDescriptions } = useCodeProjects()
+
+const isCodeBase = computed(() => isCodeProject(currentBase.value))
+
+// A code project names its roles Owner, Maintainer and Developer; other bases keep the defaults.
+const roleLabels = computed(() => (isCodeBase.value ? codeProjectRoleLabels.value : undefined))
+
+const roleDescriptions = computed(() => (isCodeBase.value ? codeProjectRoleDescriptions.value : undefined))
+
+/**
+ * What a member's row shows as their role. A code project keeps Commenter and
+ * Viewer rows from before, but they grant nothing there, so they read as no access.
+ */
+const getDisplayedEffectiveRole = (record: any) =>
+  getInheritanceInfo(record)?.effectiveRole ??
+  (isCodeBase.value && !isCodeProjectAssignableRole(record.roles) ? ProjectRoles.NO_ACCESS : undefined)
+
 const isInviteModalVisible = ref(false)
 
 const isInviteTeamDlg = ref<boolean>(false)
@@ -116,7 +134,10 @@ const userSearchText = ref('')
 const isLoading = ref(false)
 const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
 
-const getTeamCompatibleAccessibleRoles = (roles: ProjectRoles[], record: any) => {
+const getTeamCompatibleAccessibleRoles = (allRoles: ProjectRoles[], record: any) => {
+  // A code project takes no Commenter or Viewer.
+  const roles = isCodeBase.value ? allRoles.filter((r) => isCodeProjectAssignableRole(r)) : allRoles
+
   let filteredRoles = roles
 
   // An agent's role is a direct grant with no inheritance chain, and it is
@@ -186,9 +207,12 @@ const memberFilter = ref<string>('all')
 // and App User belongs to the interface surface.
 const roleFilterOptions = computed(() => [
   { value: 'all', label: t('labels.allRoles') },
-  ...OrderedProjectRoles.filter((role) => role !== ProjectRoles.INHERIT && role !== ProjectRoles.APP_USER).map((role) => ({
+  ...OrderedProjectRoles.filter(
+    (role) =>
+      role !== ProjectRoles.INHERIT && role !== ProjectRoles.APP_USER && (!isCodeBase.value || isCodeProjectAssignableRole(role)),
+  ).map((role) => ({
     value: role,
-    label: t(`objects.roleType.${RoleLabels[role]}`),
+    label: roleLabels.value?.[role] ?? t(`objects.roleType.${RoleLabels[role]}`),
     icon: RoleIcons[role],
     color: RoleColors[role],
   })),
@@ -502,6 +526,7 @@ function getInheritanceInfo(record: any) {
     workspaceRole: workspaceUserRole,
     workspaceTeamRole,
     defaultBaseRole: base.value?.default_role,
+    isCodeProject: isCodeBase.value,
   })
 
   if (!effectiveRole || effectiveRole === ProjectRoles.INHERIT) {
@@ -896,7 +921,8 @@ onBeforeUnmount(() => {
                     isDeleteOrUpdateAllowed(record) &&
                     isOwnerOrCreator &&
                     (getTeamCompatibleAccessibleRoles(accessibleRoles, record).includes(record.roles) ||
-                      record.roles === ProjectRoles.INHERIT)
+                      record.roles === ProjectRoles.INHERIT ||
+                      (isCodeBase && !isCodeProjectAssignableRole(record.roles)))
                   "
                 >
                   <RolesSelectorV2
@@ -905,8 +931,10 @@ onBeforeUnmount(() => {
                     :roles="getTeamCompatibleAccessibleRoles(accessibleRoles, record)"
                     :inherit="getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : undefined"
                     :inherit-source="getInheritanceInfo(record)?.source"
-                    :effective-role="getInheritanceInfo(record)?.effectiveRole"
+                    :effective-role="getDisplayedEffectiveRole(record)"
                     :show-inherit="!!getInheritanceInfo(record)"
+                    :labels="roleLabels"
+                    :descriptions="roleDescriptions"
                     :on-role-change="(role) => updateCollaborator(record, role as ProjectRoles)"
                   />
                 </template>
@@ -914,7 +942,8 @@ onBeforeUnmount(() => {
                   <RolesBadge
                     plain
                     :border="false"
-                    :role="getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : record.roles"
+                    :role="getDisplayedEffectiveRole(record) ?? record.roles"
+                    :label="roleLabels?.[getDisplayedEffectiveRole(record) ?? record.roles]"
                   />
                   <div v-if="getInheritanceInfo(record)" class="flex items-center gap-1 text-xs text-nc-content-gray-muted">
                     <GeneralIcon icon="role_inherit" class="h-3 w-3" />

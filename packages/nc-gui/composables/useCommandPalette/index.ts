@@ -63,6 +63,9 @@ export const useCommandPalette = createSharedComposable(() => {
     ),
   )
 
+  // Commands features add for the current context, keyed by feature (e.g. `apps`).
+  const contextCommands = ref<Record<string, CmdAction[]>>({})
+
   const commands = ref({
     homeCommands: getHomeCommands(),
     baseCommands: [],
@@ -90,7 +93,7 @@ export const useCommandPalette = createSharedComposable(() => {
 
     staticCmd.push(...commands.value.baseCommands)
 
-    return workspacesCmd.value.concat(staticCmd)
+    return workspacesCmd.value.concat(staticCmd, ...Object.values(contextCommands.value))
   })
 
   const dynamicData = ref<any>([])
@@ -227,6 +230,7 @@ export const useCommandPalette = createSharedComposable(() => {
     loadScope,
     cmdPlaceholder,
     refreshCommandPalette: refreshCommandPalette.trigger,
+    contextCommands,
     loadTemporaryScope,
     cmdLoading,
     openCommandPalette,

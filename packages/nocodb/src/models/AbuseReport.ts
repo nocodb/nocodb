@@ -29,6 +29,10 @@ export default class AbuseReport implements AbuseReportType {
   user_agent?: string;
   admins_notified?: boolean;
   status: AbuseReportStatus;
+  resolved_by?: string | null;
+  resolved_at?: string | null;
+  resource_disabled_by?: string | null;
+  resource_disabled_at?: string | null;
   created_at?: string;
   updated_at?: string;
 
@@ -81,28 +85,98 @@ export default class AbuseReport implements AbuseReportType {
     return row && new AbuseReport(row);
   }
 
-  static async countRecent(
-    params: { ip: string; resource_type: string; resource_id: string },
-    windowSeconds: number,
+  /** Admin queue, newest first. */
+  static async list(
+    params: { status?: AbuseReportStatus; page: number; pageSize: number },
+    ncMeta = Noco.ncMeta,
+  ): Promise<{ list: AbuseReport[]; totalRows: number }> {
+    const query = () => {
+      const qb = ncMeta.knexConnection(MetaTable.ABUSE_REPORTS);
+      if (params.status) qb.where('status', params.status);
+      return qb;
+    };
+
+    const [rows, count] = await Promise.all([
+      query()
+        .select('*')
+        .orderBy('created_at', 'desc')
+        .orderBy('id', 'desc')
+        .limit(params.pageSize)
+        .offset((params.page - 1) * params.pageSize),
+      query().count('id', { as: 'count' }).first(),
+    ]);
+
+    return {
+      list: rows.map((row) => new AbuseReport(row)),
+      totalRows: Number(count?.count ?? 0),
+    };
+  }
+
+  static async countByStatus(
+    status: AbuseReportStatus,
+    ncMeta = Noco.ncMeta,
+  ): Promise<number> {
+    const row = await ncMeta
+      .knexConnection(MetaTable.ABUSE_REPORTS)
+      .where('status', status)
+      .count('id', { as: 'count' })
+      .first();
+    return Number(row?.count ?? 0);
+  }
+
+  static async update(
+    id: string,
+    data: Partial<
+      Pick<
+        AbuseReport,
+        | 'status'
+        | 'resolved_by'
+        | 'resolved_at'
+        | 'resource_disabled_by'
+        | 'resource_disabled_at'
+      >
+    >,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.ABUSE_REPORTS,
+      data,
+      id,
+    );
+    return this.get(id, ncMeta);
+  }
+
+  /** Resolves every open report about one resource. */
+  static async resolveOpenForResource(
+    params: { resource_type: AbuseReportResourceType; resource_id: string },
+    data: { resolved_by?: string; resolved_at: string },
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta
+      .knexConnection(MetaTable.ABUSE_REPORTS)
+      .where({ ...params, status: AbuseReportStatus.OPEN })
+      .update({
+        status: AbuseReportStatus.RESOLVED,
+        resolved_by: data.resolved_by ?? null,
+        resolved_at: data.resolved_at,
+        updated_at: data.resolved_at,
+      });
+  }
+
+  static async countOpenForResource(
+    params: { resource_type: string; resource_id: string },
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
     return ncMeta.metaCount(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.ABUSE_REPORTS,
-      {
-        condition: params,
-        xcCondition: {
-          created_at: { ge: sinceSeconds(windowSeconds, ncMeta) },
-        },
-      },
+      { condition: { ...params, status: AbuseReportStatus.OPEN } },
     );
   }
 
-  /**
-   * Whether admins were already told about this resource at this URL within
-   * the window. A rotated share link is a new URL and notifies again.
-   */
   static async wasRecentlyNotified(
     params: {
       resource_type: AbuseReportResourceType;

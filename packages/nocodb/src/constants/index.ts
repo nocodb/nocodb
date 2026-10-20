@@ -69,6 +69,15 @@ export const MCP_DATA_PAYLOAD_LIMIT = Math.min(
 // Not related to V1_V2_DATA_PAYLOAD_LIMIT, which guards programmatic (api-token) bulk requests.
 export const NC_GRID_MAX_SELECTION_LIMIT =
   +process.env['NC_GRID_MAX_SELECTION_LIMIT'] || 1000;
+// Terms per UNION ALL chain, which SQLite caps at 500
+// (SQLITE_MAX_COMPOUND_SELECT). knex compiles a multi-row INSERT on SQLite as
+// one, so it bounds those too.
+export const COMPOUND_SELECT_CHUNK_SIZE = 500;
+// Rows per UPDATE matched by an OR of primary keys: SQLite caps expression
+// depth at 1000 (SQLITE_MAX_EXPR_DEPTH).
+export const UPDATE_BY_PK_CHUNK_SIZE = 500;
+// MSSQL rejects a request with more than 2100 bindings; keep some headroom.
+export const MSSQL_MAX_BINDINGS = 2000;
 export const MAX_NESTING_DEPTH = 3;
 export const MAX_CONCURRENT_TRANSFORMS = 50;
 export const NC_ATTACHMENT_URL_MAX_REDIRECT = 3;

@@ -16,6 +16,8 @@ const props = withDefaults(
     inheritedRoleIcon?: string
     /** Drops the chip — role reads as coloured text, the way a permission does. */
     plain?: boolean
+    /** Overrides the role's name, e.g. a code project calls Editor "Developer". */
+    label?: string
   }>(),
   {
     clickable: false,
@@ -60,6 +62,8 @@ const roleProperties = computed(() => {
 
 // Roles outside RoleLabels fall back to the raw value instead of rendering the key path.
 const roleLabel = computed(() => {
+  if (props.label) return props.label
+
   const key = roleProperties.value.label ?? roleRef.value
   return key ? t(`objects.roleType.${key}`, key) : ''
 })

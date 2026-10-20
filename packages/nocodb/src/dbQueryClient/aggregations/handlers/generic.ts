@@ -15,8 +15,8 @@ import type {
  *      `boolean` / `date` / `attachment`).
  *   3. `postProcess()` — dialect hook (mssql/oracle wrap materialized
  *      aggregates in a scalar subquery).
- *   4. `wrap()` — COALESCE-to-0 (except earliest/latest date) and apply the
- *      output alias.
+ *   4. `wrap()` — COALESCE-to-0 (except avg/min/max and earliest/latest
+ *      date, which stay NULL on no data) and apply the output alias.
  *
  * Concrete dialect handlers override `buildContext()` and the category methods
  * they support; everything else is inherited. This mirrors the
@@ -117,7 +117,7 @@ export abstract class GenericAggregationHandler
     return aggregationSql;
   }
 
-  /** Shared COALESCE-to-0 (except earliest/latest date) + output alias. */
+  /** Shared COALESCE-to-0 (except avg/min/max, earliest/latest date) + output alias. */
   protected wrap(
     ctx: AggregationSqlContext,
     aggregationSql: Knex.Raw,
@@ -127,9 +127,13 @@ export abstract class GenericAggregationHandler
     let result = aggregationSql;
 
     if (
-      ![AllAggregations.EarliestDate, AllAggregations.LatestDate].includes(
-        aggregation as any,
-      )
+      ![
+        AllAggregations.Avg,
+        AllAggregations.Min,
+        AllAggregations.Max,
+        AllAggregations.EarliestDate,
+        AllAggregations.LatestDate,
+      ].includes(aggregation as any)
     ) {
       result = knex.raw(`COALESCE(??, 0)`, [result]);
     }

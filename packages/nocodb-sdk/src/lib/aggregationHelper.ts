@@ -1,10 +1,11 @@
-import UITypes from './UITypes';
+import UITypes, { getRollupResultUidt } from './UITypes';
 import { FormulaDataTypes } from '~/lib/formula/enums';
 import type { ColumnType } from '~/lib/Api';
 import { getDateTimeValue, getDateValue } from '~/lib/dateTimeHelper';
 import { formatBytes, parseProp } from '~/lib/helperFunctions';
 import { convertMS2Duration } from '~/lib/durationUtils';
 import { getCurrencyValue, roundTo } from '~/lib/numberUtils';
+import { ncIsNullOrUndefined } from '~/lib/is';
 import { SerializerOrParserFnProps } from './columnHelper/column.interface';
 import { ColumnHelper } from './columnHelper';
 
@@ -58,8 +59,39 @@ const AllAggregations = {
 
 type AggregationValue = (typeof AllAggregations)[keyof typeof AllAggregations];
 
-const getAvailableAggregations = (type: string, parsed_tree?): string[] => {
+// a date rollup offered the numeric list before its result type was resolved;
+// saved views can still hold these, and each has a date aggregation with the same SQL
+const LegacyDateRollupAggregations: Record<string, DateAggregations> = {
+  [NumericalAggregations.Min]: DateAggregations.EarliestDate,
+  [NumericalAggregations.Max]: DateAggregations.LatestDate,
+  [NumericalAggregations.Range]: DateAggregations.DateRange,
+};
+
+/** The date aggregation a saved numeric one on a date rollup runs as. */
+const getLegacyDateRollupAggregation = (
+  column: Pick<ColumnType, 'uidt' | 'colOptions'>,
+  aggregation: string
+): DateAggregations | undefined =>
+  getRollupResultUidt(column)
+    ? LegacyDateRollupAggregations[aggregation]
+    : undefined;
+
+/**
+ * `rollupResultUidt` is a rollup's resolved date type (`colOptions.result_uidt`);
+ * a date rollup takes the date aggregations instead of the numeric ones.
+ */
+const getAvailableAggregations = (
+  type: string,
+  parsed_tree?,
+  rollupResultUidt?: string
+): string[] => {
   let returnAggregations = [];
+  if (
+    type === UITypes.Rollup &&
+    (rollupResultUidt === UITypes.Date || rollupResultUidt === UITypes.DateTime)
+  ) {
+    type = rollupResultUidt;
+  }
   if (type === UITypes.Formula && parsed_tree?.dataType) {
     switch (parsed_tree.dataType) {
       case FormulaDataTypes.BOOLEAN:
@@ -141,6 +173,9 @@ const formatAggregation = (
    */
   columnHelperParams?: SerializerOrParserFnProps['params']
 ) => {
+  aggregation =
+    getLegacyDateRollupAggregation(column, aggregation) ?? aggregation;
+
   if (column.uidt === UITypes.Formula) {
     if ((column?.meta as any)?.display_type) {
       const childColumn = {
@@ -160,9 +195,10 @@ const formatAggregation = (
       aggregation
     )
   ) {
-    if (column.uidt === UITypes.DateTime) {
+    const dateUidt = getRollupResultUidt(column) ?? column.uidt;
+    if (dateUidt === UITypes.DateTime) {
       return getDateTimeValue(value, column);
-    } else if (column.uidt === UITypes.Date) {
+    } else if (dateUidt === UITypes.Date) {
       return getDateValue(value, column);
     }
     return getDateTimeValue(value, column);
@@ -205,6 +241,14 @@ const formatAggregation = (
     return formatBytes(value ?? 0);
   }
 
+  // Avg / Min / Max over no values is null — render blank, not 0.
+  if (
+    Object.values(NumericalAggregations).includes(aggregation) &&
+    ncIsNullOrUndefined(value)
+  ) {
+    return null;
+  }
+
   if (
     columnHelperParams &&
     columnHelperParams?.col &&
@@ -245,6 +289,7 @@ const formatAggregation = (
 
 export {
   getAvailableAggregations,
+  getLegacyDateRollupAggregation,
   NumericalAggregations,
   CommonAggregations,
   BooleanAggregations,

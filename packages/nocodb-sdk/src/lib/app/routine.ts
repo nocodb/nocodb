@@ -20,9 +20,11 @@ export type HttpRoutineMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 export type NcMembersRoutineOp =
   | 'list_teams'
   | 'list_members'
+  | 'get_member'
   | 'invite'
   | 'add_member'
   | 'remove_member'
+  | 'move_member'
   | 'revoke';
 
 /** invoke() result for a SQL routine. */

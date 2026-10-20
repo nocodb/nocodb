@@ -7,6 +7,7 @@ const props = defineProps<{
   baseCount: number
   activeFilter: FilterType
   searchQuery?: string
+  hideFilter?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -31,6 +32,8 @@ const isFilterDropdownOpen = ref(false)
 const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
 const filterOptions = computed<NcListItemType[]>(() => {
+  if (props.hideFilter) return []
+
   const result = [
     { value: 'all', label: t('activity.allBases'), icon: 'ncList' },
     ...(appInfo.value.ee
@@ -98,8 +101,8 @@ const clearFilter = () => {
           <h2 class="text-subHeading1 text-nc-content-gray-extreme mb-0 truncate">
             {{ $t('objects.projects') }}
           </h2>
+          <span class="flex-shrink-0 text-nc-content-gray-muted text-bodyDefaultSm">({{ baseCount }})</span>
         </slot>
-        <span class="flex-shrink-0 text-nc-content-gray-muted text-bodyDefaultSm">({{ baseCount }})</span>
       </div>
 
       <div class="flex items-center gap-2 flex-shrink-0">
@@ -151,12 +154,14 @@ const clearFilter = () => {
           </template>
         </NcListDropdown>
 
-        <WorkspaceCreateProjectBtn type="primary" placement="bottomRight" centered inner-class="children:justify-center">
-          <div class="flex items-center gap-1.5">
-            <GeneralIcon icon="plus" />
-            <span class="hidden sm:inline">{{ $t('title.newProj') }}</span>
-          </div>
-        </WorkspaceCreateProjectBtn>
+        <slot name="action">
+          <WorkspaceCreateProjectBtn type="primary" placement="bottomRight" centered inner-class="children:justify-center">
+            <div class="flex items-center gap-1.5">
+              <GeneralIcon icon="plus" />
+              <span class="hidden sm:inline">{{ $t('title.newProj') }}</span>
+            </div>
+          </WorkspaceCreateProjectBtn>
+        </slot>
       </div>
     </div>
 

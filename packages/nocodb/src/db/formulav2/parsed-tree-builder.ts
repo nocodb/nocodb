@@ -509,6 +509,14 @@ export const binaryExpressionBuilder = async ({
 
   let left = (await fn(pt.left, pt.operator)).builder.toQuery();
   let right = (await fn(pt.right, pt.operator)).builder.toQuery();
+  // A same-operator child is not wrapped by fn, so `a - (b - c)` would emit `a - b - c`.
+  if (
+    ['-', '%'].includes(pt.operator) &&
+    pt.right.type === JSEPNode.BINARY_EXP &&
+    (pt.right as BinaryExpressionNode).operator === pt.operator
+  ) {
+    right = `(${right})`;
+  }
 
   // Blank numerics behave as 0 in arithmetic and comparisons (pg only).
   // Applied in every mode, not just display: if display coalesced but sort did

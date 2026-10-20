@@ -29,6 +29,7 @@ interface AbuseReportTemplateProps {
   description: string;
   reportedAt: string;
   ids: string;
+  suppressed?: number;
   branding?: WhiteLabelConfig | null;
 }
 
@@ -58,6 +59,7 @@ export const AbuseReport = ({
   description,
   reportedAt,
   ids,
+  suppressed,
   branding,
 }: AbuseReportTemplateProps) => (
   <Html>
@@ -83,6 +85,13 @@ export const AbuseReport = ({
             <Field label="Reported at" value={reportedAt} />
             <Field label="Reference" value={ids} />
           </Section>
+          {suppressed ? (
+            <Text className="text-gray-900 text-sm !my-4">
+              {suppressed} more {suppressed === 1 ? 'report' : 'reports'}{' '}
+              arrived while notifications were paused for volume. They are
+              stored and not listed here.
+            </Text>
+          ) : null}
           <Hr />
           <Text className="text-gray-500 text-xs !my-4">
             Links are shown in a non-clickable form ([.] for dots) because the

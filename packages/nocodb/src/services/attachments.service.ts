@@ -328,26 +328,39 @@ export class AttachmentsService {
             }
 
             if (!param.skipHead) {
-              response = await axios.head(url, {
-                maxRedirects: 5,
-                ...getFilteredAgents({
-                  url,
-                  source: OperationSource.ATTACHMENTS,
-                }),
-              });
-              mimeType = response.headers['content-type']?.split(';')[0];
-              size = response.headers['content-length'];
-
-              if (size && +size > NC_ATTACHMENT_FIELD_SIZE) {
-                NcError.get().invalidRequestBody(
-                  `File is too large. Maximum allowed size is ${(
-                    NC_ATTACHMENT_FIELD_SIZE /
-                    (1024 * 1024)
-                  ).toFixed(2)} MB`,
-                );
+              try {
+                response = await axios.head(url, {
+                  maxRedirects: 5,
+                  ...getFilteredAgents({
+                    url,
+                    source: OperationSource.ATTACHMENTS,
+                  }),
+                });
+              } catch (e) {
+                // Pre-signed GET URLs answer HEAD with 403/405: the GET below
+                // still enforces the size cap. No response at all is final.
+                if (!e?.response) {
+                  NcError.badRequest(
+                    'Could not fetch the file: the URL is unreachable or timed out',
+                  );
+                }
               }
 
-              finalUrl = response.request.res.responseUrl;
+              if (response) {
+                mimeType = response.headers['content-type']?.split(';')[0];
+                size = response.headers['content-length'];
+
+                if (size && +size > NC_ATTACHMENT_FIELD_SIZE) {
+                  NcError.get().invalidRequestBody(
+                    `File is too large. Maximum allowed size is ${(
+                      NC_ATTACHMENT_FIELD_SIZE /
+                      (1024 * 1024)
+                    ).toFixed(2)} MB`,
+                  );
+                }
+
+                finalUrl = response.request.res.responseUrl;
+              }
             } else {
               // No HEAD probe — take the caller-supplied size (if any);
               size = urlMeta.size ? String(urlMeta.size) : undefined;
@@ -404,6 +417,8 @@ export class AttachmentsService {
           let attachmentUrl, file;
 
           if (!base64TempStream) {
+            // A failed source download comes back as a 400 (HTTP status or
+            // size cap); storage failures stay 500.
             const { url: _attachmentUrl, data: _file } =
               await storageAdapter.fileCreateByUrl(
                 slash(path.join(fileDestPath, fileName)),

@@ -19,6 +19,8 @@ const { isEEFeatureBlocked } = useEeConfig()
 
 const { copy } = useCopy()
 
+const { unblockUser: unblockOrgUser } = useAbuseReports()
+
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Org')
 
 const users = ref<UserType[]>([])
@@ -154,6 +156,18 @@ const deleteUser = async () => {
     // closing the modal
     isOpen.value = false
     deleteModalInfo.value = null
+  }
+}
+
+async function unblockUser(user: UserType) {
+  try {
+    await unblockOrgUser(user.id!)
+    const idx = users.value.findIndex((u) => u.id === user.id)
+    if (idx !== -1) users.value[idx] = { ...users.value[idx], blocked: false }
+    message.success(t('msg.success.userUnblocked'))
+    $e('a:admin:user:unblock')
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
@@ -370,6 +384,15 @@ const columns = computed(() => {
                     >
                       {{ $t('objects.roleType.superAdmin') }}
                     </NcBadge>
+                    <NcBadge
+                      v-if="el.blocked"
+                      :border="false"
+                      color="red"
+                      class="text-nc-content-red-dark text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                      data-testid="nc-user-blocked-badge"
+                    >
+                      {{ $t('labels.blocked') }}
+                    </NcBadge>
                     <NcTooltip v-if="el.scim_managed" :title="$t('labels.scimManagedUserTooltip')" class="flex items-center">
                       <NcBadge
                         :border="false"
@@ -458,6 +481,11 @@ const columns = computed(() => {
 
                       <template v-if="!el.roles?.includes('super')">
                         <NcDivider />
+
+                        <NcMenuItem v-if="el.blocked && !appInfo.isCloud" data-testid="nc-user-unblock" @click="unblockUser(el)">
+                          <GeneralIcon icon="ncUnlock" class="flex text-nc-content-gray-subtle2" />
+                          <div>{{ $t('activity.unblockUser') }}</div>
+                        </NcMenuItem>
 
                         <!-- Resend invite Email -->
                         <NcMenuItem @click="resendInvite(el)">

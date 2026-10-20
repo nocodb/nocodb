@@ -42,8 +42,11 @@ const FileIcon = (icon: string) => {
   }
 }
 
+const isFailed = computed(() => isAttachmentDownloadFailed(props.attachment))
+
+// A failed item's url was never stored or signed, so don't load it.
 const srcs = computed(() => {
-  return getPossibleAttachmentSrc(props.attachment, props.thumbnail)
+  return isFailed.value ? [] : getPossibleAttachmentSrc(props.attachment, props.thumbnail)
 })
 
 const index = ref(0)
@@ -77,6 +80,14 @@ const onError = async () => {
         class="m-auto h-full max-h-full w-auto nc-attachment-image object-cover origin-center"
         loading="lazy"
         @error="onError"
+      />
+
+      <GeneralIcon
+        v-else-if="isFailed"
+        icon="alertTriangle"
+        class="nc-attachment-failed-icon text-nc-content-red-medium"
+        :height="Math.min(iconHeight, 24)"
+        :width="Math.min(iconWidth, 24)"
       />
 
       <component

@@ -200,6 +200,8 @@ export interface InviteLinkPreviewType {
   /** Base, workspace, interface or app title, per scope. */
   target_title?: string;
   role?: InviteLinkRole;
+  /** Base links: the base's `type`, since a code project names its roles differently. */
+  base_type?: string;
   /** App links: the team on offer, shown in place of the role. */
   team_title?: string;
   email_domain?: string | null;

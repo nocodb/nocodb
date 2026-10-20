@@ -1,11 +1,31 @@
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { NcContext } from '~/interface/config';
 import { FieldHandler } from '~/db/field-handler';
 import { Sort } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getModelContext, setModelContext } from '~/helpers/modelContext';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { getRefColumnIfAlias } from '~/helpers';
+
+function toSort(context: NcContext, _sort: Sort): Sort {
+  const sort = _sort instanceof Sort ? _sort : new Sort(_sort);
+  // Same guard as conditionV2 — a caller-constructed instance may be unstamped
+  if (!getModelContext(sort)) setModelContext(sort, context);
+  return sort;
+}
+
+// skip disabled sorts (enabled === false or enabled === 0)
+function isSortDisabled(sort: Sort) {
+  return sort.enabled === false || (sort.enabled as any) === 0;
+}
+
+// The column sortV2 orders by for a sort, or null when it skips the sort.
+export async function getAppliedSortColumn(context: NcContext, _sort: Sort) {
+  const sort = toSort(context, _sort);
+  if (isSortDisabled(sort)) return null;
+  return getRefColumnIfAlias(context, await sort.getColumn());
+}
 
 export default async function sortV2(
   baseModelSqlv2: IBaseModelSqlV2,
@@ -45,17 +65,8 @@ export default async function sortV2(
   const oracleUnsortableDt = new Set(['clob', 'nclob']);
 
   for (const _sort of sortList) {
-    let sort: Sort;
-    if (_sort instanceof Sort) {
-      sort = _sort;
-    } else {
-      sort = new Sort(_sort);
-    }
-    // Same guard as conditionV2 — a caller-constructed instance may be unstamped
-    if (!getModelContext(sort)) setModelContext(sort, context);
-
-    // skip disabled sorts (enabled === false or enabled === 0)
-    if (sort.enabled === false || (sort.enabled as any) === 0) continue;
+    const sort = toSort(context, _sort);
+    if (isSortDisabled(sort)) continue;
 
     const column = await getRefColumnIfAlias(context, await sort.getColumn());
 

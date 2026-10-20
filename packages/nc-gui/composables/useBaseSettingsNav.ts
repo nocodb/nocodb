@@ -1,8 +1,8 @@
 import { BaseVersion, PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk'
-import type { ShellRailGroup } from '~/components/shell/Rail.vue'
+import type { ShellRailGroup, ShellRailItem } from '~/components/shell/Rail.vue'
 
-/** Manage, Create, Interfaces and the app's own settings. */
-const CODE_PROJECT_HIDDEN_GROUPS = ['data', 'create', 'interfaces', 'app']
+/** Manage, Create and the apps. */
+const CODE_PROJECT_HIDDEN_GROUPS = ['data', 'create', 'apps']
 
 /** Admin rows with nothing to act on in a code project. */
 const CODE_PROJECT_HIDDEN_SLUGS = [
@@ -16,17 +16,16 @@ const CODE_PROJECT_HIDDEN_SLUGS = [
 ]
 
 /**
- * The three things a base's settings are *about*: the project itself, the
- * interfaces built on it, and the app it serves. The rail used to list all of
- * them in one column, so a reader looking for an interface's roster scrolled
- * past snapshots and migrations to find it.
+ * The two things a base's settings are *about*: the project itself and the apps
+ * built on it. The rail used to list all of them in one column, so a reader
+ * looking for an interface's roster scrolled past snapshots and migrations to
+ * find it.
  */
-export type BaseSettingsConcern = 'project' | 'interfaces' | 'apps'
+export type BaseSettingsConcern = 'project' | 'apps'
 
 /** Which concern each rail group belongs to; anything unlisted stays with the project. */
 const GROUP_CONCERN: Record<string, BaseSettingsConcern> = {
-  interfaces: 'interfaces',
-  app: 'apps',
+  apps: 'apps',
 }
 
 export interface BaseSettingsPaneMeta {
@@ -58,6 +57,8 @@ export function useBaseSettingsNav() {
   const { apps, isAppsEnabled } = storeToRefs(useAppStore())
 
   const { isCodeProject } = useCodeProjects()
+
+  const { classicApps, isLoaded: isClassicAppsLoaded } = useBaseSettingsClassicApps()
 
   const {
     isWsAuditEnabled,
@@ -227,6 +228,22 @@ export function useBaseSettingsNav() {
         ].filter(Boolean) as ShellRailGroup['items'],
       },
       {
+        key: 'machines',
+        label: '',
+        items: [
+          // Listing machines is editor+ on the server, the same floor as sessions.
+          isCodeProject(base.value) &&
+            isUIAllowed('appFactorySession', { roles: baseRoles.value }) && {
+              slug: 'machines',
+              ev: 'machines',
+              icon: 'ncServer',
+              testId: 'base-machines',
+              title: t('labels.factoryMachines'),
+              keywords: 'machine environment image runtime packages tools build',
+            },
+        ].filter(Boolean) as ShellRailGroup['items'],
+      },
+      {
         key: 'data',
         label: t('labels.baseNav.groupData'),
         items: [
@@ -289,20 +306,6 @@ export function useBaseSettingsNav() {
             title: t('labels.baseNav.integrations'),
             keywords: 'credentials connection oauth api key slack gmail hubspot twilio google openai',
             logos: ['ncLogoSlackColored', 'ncLogoGmailColored', 'ncLogoHubspotColored', 'ncLogoTwilioColored'],
-          },
-        ].filter(Boolean) as ShellRailGroup['items'],
-      },
-      {
-        key: 'interfaces',
-        label: t('labels.baseNav.groupInterfaces'),
-        items: [
-          canSeeInterfaceMembers.value && {
-            slug: 'interface-members',
-            ev: 'interface-members',
-            icon: 'ncUsers',
-            testId: 'base-interface-members',
-            title: t('labels.baseNav.interfaceMembers'),
-            keywords: 'invite interface app users members roles access',
           },
         ].filter(Boolean) as ShellRailGroup['items'],
       },
@@ -397,12 +400,18 @@ export function useBaseSettingsNav() {
       },
     ]
 
+    const appRows: ShellRailItem[] = []
+
     if (appItems.value.length) {
-      groups.push({
-        key: 'app',
-        label: t('labels.appSettings'),
-        divider: true,
-        items: appItems.value.map((item) => ({
+      appRows.push({
+        slug: 'app',
+        ev: 'app',
+        icon: 'ncAutoAwesome',
+        // A listing published with nothing to serve has no app, so the base names it.
+        title: baseApp.value?.title || base.value?.title || '',
+        badge: t('labels.appsEntry.badgeAi'),
+        testId: 'base-ai-app',
+        children: appItems.value.map((item) => ({
           slug: item.tab,
           ev: item.tab,
           icon: item.icon,
@@ -411,6 +420,24 @@ export function useBaseSettingsNav() {
           keywords: 'app',
         })),
       })
+    }
+
+    if (canSeeInterfaceMembers.value) {
+      for (const app of classicApps.value) {
+        appRows.push({
+          slug: classicAppSlug(app.id),
+          ev: 'interface-members',
+          icon: 'ncLayout',
+          title: app.title,
+          badge: app.isLive ? undefined : t('labels.appsEntry.draft'),
+          testId: `base-classic-app-${app.id}`,
+          keywords: 'members people invite access app interface',
+        })
+      }
+    }
+
+    if (appRows.length) {
+      groups.push({ key: 'apps', label: t('labels.baseNav.concernApps'), divider: true, items: appRows })
     }
 
     // A code project holds a repository, not data: there is nothing in it to
@@ -427,20 +454,29 @@ export function useBaseSettingsNav() {
     return shown.filter((g) => g.items.length)
   })
 
+  /** Rows that open a pane: a parent row stands in for its children. */
+  const leavesOf = (group: ShellRailGroup) => group.items.flatMap((item) => (item.children?.length ? item.children : [item]))
+
   /** The concern a group sits under, defaulting to the project. */
   const concernOfGroup = (key?: string): BaseSettingsConcern => GROUP_CONCERN[key ?? ''] ?? 'project'
 
   /** Rail groups for one concern, so the rail only ever shows one subject's rows. */
   const groupsByConcern = computed<Record<BaseSettingsConcern, ShellRailGroup[]>>(() => {
-    const byConcern: Record<BaseSettingsConcern, ShellRailGroup[]> = { project: [], interfaces: [], apps: [] }
+    const byConcern: Record<BaseSettingsConcern, ShellRailGroup[]> = { project: [], apps: [] }
     for (const group of navGroups.value) byConcern[concernOfGroup(group.key)].push(group)
     return byConcern
   })
 
   /** The concern a pane belongs to — what a deep link to it has to switch the tabs to. */
   const concernOfTab = (slug: string): BaseSettingsConcern => {
-    const group = navGroups.value.find((g) => g.items.some((i) => i.slug === slug))
+    const group = navGroups.value.find((g) => leavesOf(g).some((i) => i.slug === slug))
     return concernOfGroup(group?.key)
+  }
+
+  /** Where a concern's tab lands: its first pane, never a parent row. */
+  const firstTabOf = (concern: BaseSettingsConcern) => {
+    const group = groupsByConcern.value[concern][0]
+    return group ? leavesOf(group)[0]?.slug : undefined
   }
 
   /**
@@ -451,17 +487,22 @@ export function useBaseSettingsNav() {
     (
       [
         { key: 'project', label: t('labels.baseNav.concernProject'), icon: 'ncLayers' },
-        { key: 'interfaces', label: t('labels.baseNav.concernInterfaces'), icon: 'ncLayout' },
-        { key: 'apps', label: t('labels.baseNav.concernApps'), icon: 'ncBox' },
-      ] as { key: BaseSettingsConcern; label: string; icon: string }[]
+        // One per app, however many settings it opens into.
+        {
+          key: 'apps',
+          label: t('labels.baseNav.concernApps'),
+          icon: 'ncApp',
+          count: groupsByConcern.value.apps.reduce((total, group) => total + group.items.length, 0),
+        },
+      ] as { key: BaseSettingsConcern; label: string; icon: string; count?: number }[]
     ).filter((c) => groupsByConcern.value[c.key].length),
   )
 
   /** Every reachable slug, flattened — the deep-link guard's allow-list. */
-  const availableTabs = computed(() => new Set(navGroups.value.flatMap((g) => g.items.map((i) => i.slug))))
+  const availableTabs = computed(() => new Set(navGroups.value.flatMap((g) => leavesOf(g).map((i) => i.slug))))
 
   /** Where an unreachable deep link lands: the first row the reader actually has. */
-  const firstAvailableTab = computed(() => navGroups.value[0]?.items[0]?.slug ?? 'collaborator')
+  const firstAvailableTab = computed(() => (navGroups.value[0] && leavesOf(navGroups.value[0])[0]?.slug) ?? 'collaborator')
 
   /**
    * Header-band copy. The title is often longer than the rail label, which has
@@ -506,8 +547,7 @@ export function useBaseSettingsNav() {
         docsHref: 'https://nocodb.com/docs/product-docs/integrations',
       },
       'interface-members': {
-        title: t('labels.baseNav.interfaceMembersPage'),
-        description: t('labels.baseNav.desc.interfaceMembers'),
+        title: t('labels.members'),
       },
       'workflows': {
         title: t('labels.baseNav.automations'),
@@ -560,6 +600,9 @@ export function useBaseSettingsNav() {
       meta[item.tab] = { title: '' }
     }
 
+    // Writes its own heading, beside the New machine button.
+    meta.machines = { title: '' }
+
     return meta
   })
 
@@ -568,6 +611,9 @@ export function useBaseSettingsNav() {
     groupsByConcern,
     concerns,
     concernOfTab,
+    firstTabOf,
+    classicApps,
+    isClassicAppsLoaded,
     paneMeta,
     availableTabs,
     firstAvailableTab,

@@ -81,8 +81,12 @@ export function useOAuthPopup() {
     const popup = window.open(url, `${oauthMeta.provider} OAuth`, `width=${width},height=${height},left=${left},top=${top}`)
     if (!popup) throw new Error('Popup blocked')
 
-    return new Promise<{ code: string; codeVerifier: string } | null>((resolve, reject) => {
+    return new Promise<{ code: string; codeVerifier: string; forwarded: Record<string, string> } | null>((resolve, reject) => {
       let popupClosed = false
+      /** Kept from a code-less redirect while the popup goes on to `authorizeUri`. */
+      let forwarded: Record<string, string> | undefined
+      /** That redirect's URL: polls landing before the popup has left it are not an answer. */
+      let handoffUrl: string | undefined
 
       const interval = setInterval(() => {
         // First check if we already know the popup is closed
@@ -103,23 +107,47 @@ export function useOAuthPopup() {
 
           const popupUrl = popup.location.href
 
+          if (popupUrl === handoffUrl) return
+
           if (popupUrl.includes(oauthMeta.redirectUri)) {
             const params = new URL(popupUrl).searchParams
             const code = params.get(oauthMeta.codeKey || 'code')
+
+            const landed: Record<string, string> = {}
+            for (const key of oauthMeta.forwardKeys ?? []) {
+              const value = params.get(key)
+              if (value) landed[key] = value
+            }
+
             if (code) {
               clearInterval(interval)
 
               if (params.get('state') !== state) {
+                popup.close()
                 reject(new Error('Invalid state please try again'))
+                return
               }
 
               popup.close()
-              resolve({ code, codeVerifier })
+              resolve({ code, codeVerifier, forwarded: { ...forwarded, ...landed } })
+            } else if (!forwarded && oauthMeta.authorizeUri && Object.keys(landed).length) {
+              // Already installed: GitHub returns the installation but no code, so ask for one.
+              forwarded = landed
+              handoffUrl = popupUrl
+              popup.location.href = appendParams(oauthMeta.authorizeUri, { state })
             } else {
               // If user clicked cancel or code is missing on the redirect url, close the popup
               clearInterval(interval)
 
-              reject(new Error('No code returned'))
+              // A redirect that brought the forwarded params is a real answer, not a cancel: say what was missing.
+              const got = Object.keys({ ...forwarded, ...landed })
+              reject(
+                new Error(
+                  got.length
+                    ? `${oauthMeta.provider} returned ${got.join(', ')} but no authorization code. Try again.`
+                    : 'No code returned',
+                ),
+              )
 
               popup.close()
             }
@@ -144,7 +172,7 @@ export function useOAuthPopup() {
   const performOAuthDance = async (
     oauthMeta: FormBuilderOAuthMeta,
     templateData?: Record<string, any>,
-  ): Promise<{ code: string; code_verifier: string } | null> => {
+  ): Promise<{ code: string; code_verifier: string; [key: string]: string } | null> => {
     let url = resolveAuthUri(oauthMeta.authUri, templateData)
 
     // Unresolved templates mean required fields are missing
@@ -170,6 +198,7 @@ export function useOAuthPopup() {
       }
 
       return {
+        ...result.forwarded,
         code: result.code,
         code_verifier: result.codeVerifier,
       }

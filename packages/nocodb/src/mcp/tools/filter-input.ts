@@ -20,17 +20,22 @@ export async function compileFilterInput(
 
   const columns = await model.getColumns();
   const filterColumns = await Promise.all(
-    columns.map(async (c) => ({
-      id: c.id,
-      title: c.title,
-      column_name: c.column_name,
-      uidt: c.uidt,
-      error: COMPUTED_TYPES.includes(c.uidt as UITypes)
-        ? (
-            await c.getColOptions<{ error?: string | null }>()
-          )?.error
-        : null,
-    })),
+    columns.map(async (c) => {
+      const colOptions = COMPUTED_TYPES.includes(c.uidt as UITypes)
+        ? await c.getColOptions<{
+            error?: string | null;
+            result_uidt?: string;
+          }>()
+        : null;
+      return {
+        id: c.id,
+        title: c.title,
+        column_name: c.column_name,
+        uidt: c.uidt,
+        error: colOptions?.error,
+        result_uidt: colOptions?.result_uidt,
+      };
+    }),
   );
 
   return compileFilterTree(context, filterColumns, filter);

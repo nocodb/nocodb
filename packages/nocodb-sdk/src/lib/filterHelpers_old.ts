@@ -8,7 +8,7 @@ import {
 } from '~/lib/parser/queryFilter/query-filter-lexer';
 import { FilterParseError } from '~/lib/filterHelpers';
 import type { FilterTypeWithMeta } from '~/lib/filterHelpers_withparser';
-import UITypes from '~/lib/UITypes';
+import UITypes, { getRollupResultUidt } from '~/lib/UITypes';
 export {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
@@ -241,6 +241,25 @@ export function validateFilterComparison(
   return errors.length > 0 ? errors : [];
 }
 
+/**
+ * The type a `where` condition on a date rollup is read as. It takes a date
+ * sub-op like a Date field, but only when the value starts with one, so a plain
+ * date value (`(Rollup,gt,2026-03-01)`) keeps comparing as before.
+ */
+export function getRollupWhereDateUidt(
+  column: ColumnType,
+  value: unknown
+): UITypes.Date | UITypes.DateTime | undefined {
+  const rollupUidt = getRollupResultUidt(column);
+  if (!rollupUidt) return undefined;
+  const first = Array.isArray(value)
+    ? value[0]
+    : typeof value === 'string'
+    ? value.split(',')[0].trim()
+    : undefined;
+  return COMPARISON_SUB_OPS.includes(first) ? rollupUidt : undefined;
+}
+
 export function extractCondition(
   nestedArrayConditions: string[],
   aliasColObjMap: { [columnAlias: string]: ColumnType },
@@ -320,7 +339,9 @@ export function extractCondition(
       }
 
       if (aliasColObjMap[alias]) {
-        const columnType = aliasColObjMap[alias].uidt;
+        const columnType =
+          getRollupWhereDateUidt(aliasColObjMap[alias], value) ??
+          aliasColObjMap[alias].uidt;
 
         // Handle date and datetime values
         if (

@@ -24,6 +24,9 @@ interface BaseRoleUpdateTemplateProps {
   baseTitle: string;
   oldRole: string;
   newRole: string;
+  /** Set for a code project: its role names, shown as text in place of the badges. */
+  oldRoleName?: string;
+  newRoleName?: string;
   name: string;
   email: string;
   link: string;
@@ -36,6 +39,8 @@ export const BaseRoleUpdate = ({
   link,
   oldRole,
   newRole,
+  oldRoleName,
+  newRoleName,
   name,
   branding,
 }: BaseRoleUpdateTemplateProps) => (
@@ -51,23 +56,30 @@ export const BaseRoleUpdate = ({
           <Section className="py-6 text-center font-bold text-gray-900 text-base">
             {baseTitle}
           </Section>
-          <Section className="pb-6 text-center">
-            <Row>
-              <Column className="flex max-w-[210px] mx-auto">
-                <Img
-                  src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/${oldRole}.png`}
-                  alt={oldRole}
-                  className="h-7"
-                />
-                <Text className="h-5 text-gray-800 !mt-0.5 !ml-2">➜</Text>
-                <Img
-                  src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/${newRole}.png`}
-                  alt={newRole}
-                  className="h-7 ml-2"
-                />
-              </Column>
-            </Row>
-          </Section>
+          {oldRoleName && newRoleName ? (
+            <Text className="pb-6 !mt-0 text-center text-sm text-gray-800">
+              <span className="font-bold">{oldRoleName}</span> ➜{' '}
+              <span className="font-bold">{newRoleName}</span>
+            </Text>
+          ) : (
+            <Section className="pb-6 text-center">
+              <Row>
+                <Column className="flex max-w-[210px] mx-auto">
+                  <Img
+                    src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/${oldRole}.png`}
+                    alt={oldRole}
+                    className="h-7"
+                  />
+                  <Text className="h-5 text-gray-800 !mt-0.5 !ml-2">➜</Text>
+                  <Img
+                    src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/${newRole}.png`}
+                    alt={newRole}
+                    className="h-7 ml-2"
+                  />
+                </Column>
+              </Row>
+            </Section>
+          )}
           <Text className="text-gray-600 text-center text-sm !mt-0 !mb-6">
             <span className="font-bold text-gray-800">{` ${name}`}</span> (
             {email}) has updated your access in base

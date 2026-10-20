@@ -405,14 +405,24 @@ describe('aggregationCompute', () => {
         ).toBeCloseTo(6 / 5);
       });
 
-      it('returns 0 for empty selection', () => {
+      it('returns null for empty selection', () => {
         expect(
           computeAggregation({
             aggregation: NumericalAggregations.Avg,
             values: [],
             column: numberCol,
           })
-        ).toBe(0);
+        ).toBeNull();
+      });
+
+      it('Rating: all-zero pool returns null', () => {
+        expect(
+          computeAggregation({
+            aggregation: NumericalAggregations.Avg,
+            values: [0, 0],
+            column: ratingCol,
+          })
+        ).toBeNull();
       });
     });
 
@@ -461,21 +471,28 @@ describe('aggregationCompute', () => {
         ).toBe(3);
       });
 
-      it('Min on empty / all-null returns 0', () => {
+      it('Min / Max on empty / all-null return null', () => {
         expect(
           computeAggregation({
             aggregation: NumericalAggregations.Min,
             values: [],
             column: numberCol,
           })
-        ).toBe(0);
+        ).toBeNull();
         expect(
           computeAggregation({
             aggregation: NumericalAggregations.Min,
             values: [null, null],
             column: numberCol,
           })
-        ).toBe(0);
+        ).toBeNull();
+        expect(
+          computeAggregation({
+            aggregation: NumericalAggregations.Max,
+            values: [null, null],
+            column: numberCol,
+          })
+        ).toBeNull();
       });
     });
 

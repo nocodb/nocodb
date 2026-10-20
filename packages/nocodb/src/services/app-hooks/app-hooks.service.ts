@@ -37,6 +37,8 @@ import type {
   OrgUserInviteEvent,
   OrgUserRemoveEvent,
   OrgUserUpdateEvent,
+  OrgUserBlockEvent,
+  AbuseReportAdminEvent,
   OrgWorkspaceEvent,
   PluginEvent,
   PluginTestEvent,
@@ -329,6 +331,16 @@ export class AppHooksService {
   emit(event: AppEvents.ORG_USER_INVITE, data: OrgUserInviteEvent): void;
   emit(event: AppEvents.ORG_USER_RESEND_INVITE, data: OrgUserInviteEvent): void;
   emit(event: AppEvents.ORG_USER_UPDATE, data: OrgUserUpdateEvent): void;
+  emit(
+    event: AppEvents.ORG_USER_BLOCK | AppEvents.ORG_USER_UNBLOCK,
+    data: OrgUserBlockEvent,
+  ): void;
+  emit(
+    event:
+      | AppEvents.ABUSE_REPORT_UPDATE
+      | AppEvents.ABUSE_REPORT_RESOURCE_DISABLE,
+    data: AbuseReportAdminEvent,
+  ): void;
   emit(event: AppEvents.ORG_USER_DELETE, data: OrgUserDeleteEvent): void;
   emit(event: AppEvents.ORG_USER_ADD, data: OrgUserAddEvent): void;
   emit(event: AppEvents.ORG_USER_REMOVE, data: OrgUserRemoveEvent): void;

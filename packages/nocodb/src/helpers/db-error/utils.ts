@@ -318,3 +318,23 @@ export function isExternalSourceError(error: any): boolean {
 
   return EXTERNAL_SOURCE_MESSAGES.some((pattern) => pattern.test(`${message}`));
 }
+
+/**
+ * Drop the `<executed sql> - ` prefix knex puts on a driver error, keeping the
+ * server's own message. Both the SQL and the server's message can contain
+ * ` - `, so cut at the first one after `sqlEnd`, the known tail of the query.
+ * Anything that doesn't match gets the fallback, never a guessed cut.
+ */
+export function stripQueryFromDbMessage(
+  message: string | undefined,
+  sqlEnd: string | undefined,
+  fallback = 'The database could not evaluate this formula.',
+): string {
+  if (!message || !sqlEnd) return fallback;
+  const end = message.indexOf(sqlEnd);
+  if (end < 0) return fallback;
+  const sep = message.indexOf(' - ', end + sqlEnd.length);
+  if (sep < 0) return fallback;
+  const reason = message.slice(sep + 3).trim();
+  return reason ? reason.slice(0, 300) : fallback;
+}

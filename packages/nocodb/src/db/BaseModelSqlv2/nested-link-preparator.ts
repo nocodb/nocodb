@@ -142,10 +142,19 @@ export class NestedLinkPreparator {
     // displacedRecords)` so undo can restore the rows.
     const displacedRecords: DisplacedRecord[] = [];
 
+    // Link values may be keyed by id (MCP re-keys fields by id); the writes
+    // below read them by title. Title and id never collide, unlike column_name.
+    const linkData = { ...data };
+    for (const col of nestedCols) {
+      if (!(col.title in linkData) && col.id in data) {
+        linkData[col.title] = data[col.id];
+      }
+    }
+
     // Nested link values are written here rather than through addLinks(), so the
     // field permission has to be applied at this chokepoint too.
     const writtenLinkColIds = nestedCols
-      .filter((col) => col.title in data)
+      .filter((col) => col.title in linkData)
       .map((col) => col.id);
 
     // One call per column: checkPermission resolves a single grant with `.find()`,
@@ -161,7 +170,7 @@ export class NestedLinkPreparator {
     }
 
     for (const col of nestedCols) {
-      if (col.title in data) {
+      if (col.title in linkData) {
         const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>();
 
         const { childContext, refContext, mmContext } =
@@ -179,9 +188,9 @@ export class NestedLinkPreparator {
         let nestedData;
         try {
           nestedData =
-            typeof data[col.title] === 'string'
-              ? JSON.parse(data[col.title])
-              : data[col.title];
+            typeof linkData[col.title] === 'string'
+              ? JSON.parse(linkData[col.title])
+              : linkData[col.title];
           if (nestedData.length === 0) {
             continue;
           }

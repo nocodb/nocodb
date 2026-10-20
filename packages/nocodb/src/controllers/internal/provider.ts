@@ -9,6 +9,7 @@ import { UiGetOperations } from '~/controllers/internal/modules/UiGet.operations
 import { UiPostOperations } from '~/controllers/internal/modules/UiPost.operations';
 import { BaseListAllGetOperations } from '~/controllers/internal/modules/BaseListAllGet.operations';
 import { InstanceAdminGetOperations } from '~/controllers/internal/modules/InstanceAdminGet.operations';
+import { InstanceAdminPostOperations } from '~/controllers/internal/modules/InstanceAdminPost.operations';
 import { IntegrationGetOperations } from '~/controllers/internal/modules/IntegrationGet.operations';
 import { IntegrationPostOperations } from '~/controllers/internal/modules/IntegrationPost.operations';
 import { AttachmentGetOperations } from '~/controllers/internal/modules/AttachmentGet.operations';
@@ -25,6 +26,7 @@ export const InternalApiModules = [
   UiPostOperations,
   BaseListAllGetOperations,
   InstanceAdminGetOperations,
+  InstanceAdminPostOperations,
   IntegrationGetOperations,
   IntegrationPostOperations,
   AttachmentGetOperations,

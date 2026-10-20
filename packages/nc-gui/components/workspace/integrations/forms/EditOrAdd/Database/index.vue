@@ -611,7 +611,7 @@ onMounted(async () => {
   } else {
     if (!activeIntegration.value) return
 
-    const definedParameters = ['host', 'port', 'user', 'password', 'database']
+    const definedParameters = ['host', 'port', 'user', 'password', 'database', 'ssl']
 
     const tempParameters = Object.entries(activeIntegration.value.config.connection)
       .filter(([key]) => !definedParameters.includes(key))

@@ -48,7 +48,7 @@ function open(tab: string) {
         <PgDemo v-for="group in navGroups" :key="group.label" :label="group.label || 'General'" stage="canvas">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
             <button
-              v-for="item in group.items"
+              v-for="item in group.items.flatMap((i) => i.children ?? [i])"
               :key="item.slug"
               type="button"
               class="flex items-start gap-3 p-3 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default text-left hover:border-nc-border-brand transition-colors"

@@ -84,13 +84,14 @@ const getAvailableRollupForUiType = (type: string) => {
       UITypes.LastModifiedTime,
     ].includes(type as UITypes)
   ) {
-    return ['count', 'min', 'max', 'countDistinct'];
+    return ['count', 'countAll', 'min', 'max', 'countDistinct'];
   }
   if (isNumericCol(type as UITypes)) {
     // Number, Currency, Percent, Duration, Rating, Decimal
     return [
       'sum',
       'count',
+      'countAll',
       'min',
       'max',
       'avg',
@@ -111,20 +112,21 @@ const getAvailableRollupForUiType = (type: string) => {
       UITypes.JSON,
     ].includes(type as UITypes)
   ) {
-    return ['count', 'countDistinct'];
+    return ['count', 'countAll', 'countDistinct'];
   }
   if ([UITypes.Checkbox].includes(type as UITypes)) {
-    return ['count', 'sum'];
+    return ['count', 'countAll', 'sum'];
   }
   if ([UITypes.Attachment].includes(type as UITypes)) {
     return [];
   }
   if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(type as UITypes)) {
-    return ['count', 'countDistinct'];
+    return ['count', 'countAll', 'countDistinct'];
   }
   return [
     'sum',
     'count',
+    'countAll',
     'min',
     'max',
     'avg',
@@ -138,12 +140,13 @@ const getAvailableRollupForFormulaType = (type: FormulaDataTypes) => {
   switch (type) {
     case FormulaDataTypes.DATE:
     case FormulaDataTypes.INTERVAL: {
-      return ['count', 'min', 'max', 'countDistinct'];
+      return ['count', 'countAll', 'min', 'max', 'countDistinct'];
     }
     case FormulaDataTypes.NUMERIC: {
       return [
         'sum',
         'count',
+        'countAll',
         'min',
         'max',
         'avg',
@@ -153,14 +156,14 @@ const getAvailableRollupForFormulaType = (type: FormulaDataTypes) => {
       ];
     }
     case FormulaDataTypes.BOOLEAN: {
-      return ['count', 'sum'];
+      return ['count', 'countAll', 'sum'];
     }
     case FormulaDataTypes.STRING: {
-      return ['count', 'countDistinct'];
+      return ['count', 'countAll', 'countDistinct'];
     }
     case FormulaDataTypes.UNKNOWN:
     default: {
-      return ['count'];
+      return ['count', 'countAll'];
     }
   }
 };
@@ -189,7 +192,7 @@ const isRollupAggregatableColumn = (
 };
 
 /** Rollup functions that always return integer values — no decimal precision needed */
-const integerRollupFunctions: string[] = ['count', 'countDistinct'];
+const integerRollupFunctions: string[] = ['count', 'countAll', 'countDistinct'];
 
 /** Rollup functions that preserve the source column type (integer in → integer out) */
 const integerPreservingRollupFunctions: string[] = [
@@ -250,12 +253,13 @@ const getRenderAsTextFunForUiType = (type: UITypes) => {
       UITypes.Duration,
     ].includes(type)
   ) {
-    return ['count', 'countDistinct'];
+    return ['count', 'countAll', 'countDistinct'];
   }
 
   return [
     'sum',
     'count',
+    'countAll',
     'avg',
     'min',
     'max',

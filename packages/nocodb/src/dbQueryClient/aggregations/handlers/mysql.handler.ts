@@ -403,20 +403,20 @@ export class MysqlAggregationHandler extends GenericAggregationHandler {
 
     switch (aggregation) {
       case DateAggregations.EarliestDate:
-        aggregationSql = knex.raw(`MIN(??)`, [column_query]);
+        aggregationSql = knex.raw(`MIN((??))`, [column_query]);
         break;
       case DateAggregations.LatestDate:
-        aggregationSql = knex.raw(`MAX(??)`, [column_query]);
+        aggregationSql = knex.raw(`MAX((??))`, [column_query]);
         break;
       case DateAggregations.DateRange:
-        aggregationSql = knex.raw(`TIMESTAMPDIFF(DAY, MIN(??), MAX(??))`, [
+        aggregationSql = knex.raw(`TIMESTAMPDIFF(DAY, MIN((??)), MAX((??)))`, [
           column_query,
           column_query,
         ]);
         break;
       case DateAggregations.MonthRange:
         aggregationSql = knex.raw(
-          `PERIOD_DIFF(DATE_FORMAT(MAX(??), '%Y%m'), DATE_FORMAT(MIN(??), '%Y%m'))`,
+          `PERIOD_DIFF(DATE_FORMAT(MAX((??)), '%Y%m'), DATE_FORMAT(MIN((??)), '%Y%m'))`,
           [column_query, column_query],
         );
         break;

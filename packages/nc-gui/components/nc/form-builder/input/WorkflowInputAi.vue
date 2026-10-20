@@ -3,7 +3,7 @@ import type { Editor } from '@tiptap/vue-3'
 import { DOMSerializer } from '@tiptap/pm/model'
 import type { DocAiImproveMode, VariableDefinition } from 'nocodb-sdk'
 import { useWorkflowEmailAi, useWorkflowEmailAiSuggestions } from '#imports'
-import { expressionSpansToTokens } from '~/helpers/workflowExpressionHtml'
+import { expressionSpansToTokens, restoreImages, stashImages } from '~/helpers/workflowExpressionHtml'
 
 /**
  * "Write with AI" popover for the email body, opened from the toolbar and the selection bubble.
@@ -112,20 +112,22 @@ function bodyAsHtml(): string {
 async function runWrite() {
   const text = instruction.value.trim()
   if (!text || loading.value) return
-  const html = await aiWrite({ instruction: text, currentBody: bodyAsHtml(), variables: aiVariables.value })
+  const body = stashImages(bodyAsHtml())
+  const html = await aiWrite({ instruction: text, currentBody: body.html, variables: aiVariables.value })
   if (!html) return
   $e('a:workflow:email:ai:write')
-  emits('result', { html, mode: 'write' })
+  emits('result', { html: restoreImages(html, body.images), mode: 'write' })
   instruction.value = ''
   open.value = false
 }
 
 async function runRewrite(mode: DocAiImproveMode) {
   if (loading.value || props.editor.state.selection.empty) return
-  const html = await aiRewrite({ html: selectionAsHtml(), mode, variables: aiVariables.value })
+  const selection = stashImages(selectionAsHtml())
+  const html = await aiRewrite({ html: selection.html, mode, variables: aiVariables.value })
   if (!html) return
   $e('a:workflow:email:ai:rewrite', { mode })
-  emits('result', { html, mode: 'rewrite' })
+  emits('result', { html: restoreImages(html, selection.images), mode: 'rewrite' })
   open.value = false
 }
 </script>

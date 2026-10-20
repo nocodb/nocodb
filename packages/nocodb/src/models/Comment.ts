@@ -295,6 +295,8 @@ export default class Comment implements CommentType {
       fk_model_id: string;
     },
   ) {
+    if (!args.ids?.length) return [];
+
     const audits = await Noco.ncMeta
       .knex(MetaTable.COMMENTS)
       .count('id', { as: 'count' })

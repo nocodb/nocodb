@@ -105,6 +105,7 @@ async function extractColumnIdentifierType({
         if (
           [
             'count',
+            'countAll',
             'avg',
             'sum',
             'countDistinct',
@@ -1116,13 +1117,22 @@ export async function validateFormulaAndExtractTreeWithType({
         res.dataType = FormulaDataTypes.STRING;
       }
     } else if (parsedTree.type === JSEPNode.UNARY_EXP) {
-      // only support -ve values
       if (
-        ['-'].includes(parsedTree.operator) &&
+        parsedTree.operator === '-' &&
         parsedTree.argument.type === JSEPNode.LITERAL &&
         typeof parsedTree.argument.value === 'number'
       ) {
         res.dataType = FormulaDataTypes.NUMERIC;
+      } else if (parsedTree.operator === '-') {
+        // `-x` is validated and built as `0 - x`, sharing the binary path
+        const { argument, ...unaryFields } = parsedTree;
+        return validateAndExtract({
+          ...unaryFields,
+          type: JSEPNode.BINARY_EXP,
+          operator: '-',
+          left: { type: JSEPNode.LITERAL, value: 0, raw: '0' },
+          right: argument,
+        });
       } else {
         throw new FormulaError(
           FormulaErrorType.NOT_SUPPORTED,

@@ -95,6 +95,14 @@ watch(
   },
 )
 
+watch(
+  [() => vModel.value.comparison_op, () => props.columns.find((col) => col.id === vModel.value.fk_column_id)],
+  ([, col]) => {
+    if (col) defaultDateFilterSubOp(vModel.value, (col.filterUidt ?? col.uidt) as UITypes)
+  },
+  { immediate: true },
+)
+
 const slotHasChildren = (name?: string) => {
   return (slots[name ?? 'default']?.()?.length ?? 0) > 0
 }

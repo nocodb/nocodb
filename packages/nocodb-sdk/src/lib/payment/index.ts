@@ -16,8 +16,6 @@ export enum PlanLimitTypes {
   // were merged in here). Retention governs the automation_executions log.
   LIMIT_AUTOMATION_RUN = 'limit_automation_run',
   LIMIT_AUTOMATION_RETENTION = 'limit_automation_retention',
-  // App routine (sql/http external-data) invocation budget — mirrors automation runs.
-  LIMIT_APP_ROUTINE_RUN = 'limit_app_routine_run',
   LIMIT_WEBHOOK_PER_WORKSPACE = 'limit_webhook',
   LIMIT_EXTENSION_PER_WORKSPACE = 'limit_extension',
   LIMIT_SNAPSHOT_PER_WORKSPACE = 'limit_snapshot',
@@ -422,7 +420,6 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 'to run more automations.',
   [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]:
     'to increase automation retention.',
-  [PlanLimitTypes.LIMIT_APP_ROUTINE_RUN]: 'to run more app routines.',
   [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: 'to add more webhooks.',
   [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: 'to add more extensions.',
   [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]:

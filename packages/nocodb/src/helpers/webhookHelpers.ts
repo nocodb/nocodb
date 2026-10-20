@@ -651,7 +651,8 @@ export async function getAffectedColumns(
     return affectedCols
       .map((title) => columns.find((col) => col.title === title)?.id)
       .filter(Boolean);
-  } else {
-    return undefined;
   }
+  // An update with no changes: `[]`, not `undefined` (unknown), so
+  // field-filtered triggers skip it.
+  return [];
 }

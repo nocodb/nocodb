@@ -2,9 +2,7 @@ import fs from 'fs';
 import { promisify } from 'util';
 import { Readable } from 'stream';
 import path from 'path';
-import axios from 'axios';
 import { Logger } from '@nestjs/common';
-import { OperationSource } from 'nocodb-sdk';
 import {
   GetObjectCommand,
   HeadObjectCommand,
@@ -14,10 +12,12 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Upload } from '@aws-sdk/lib-storage';
 import type { PutObjectRequest, S3 as S3Client } from '@aws-sdk/client-s3';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
-import { getFilteredAgents } from '~/utils/ssrf';
-import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
+import {
+  fetchSourceFile,
+  generateTempFilePath,
+  waitForStreamClose,
+} from '~/utils/pluginUtils';
 import { NcError } from '~/helpers/ncError';
-import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 
 const logger = new Logger('GenericS3');
 
@@ -145,29 +145,26 @@ export default class GenericS3 implements IStorageAdapterV2 {
     url: string,
     { fetchOptions: { buffer } = { buffer: false } },
   ): Promise<any> {
-    try {
-      const response = await axios.get(url, {
-        ...getFilteredAgents({ url, source: OperationSource.PLUGINS }),
-        responseType: buffer ? 'arraybuffer' : 'stream',
-        maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
-      });
-      const uploadParams: PutObjectRequest = {
-        ...this.defaultParams,
-        Body: response.data,
-        Key: key,
-        ContentType: response.headers['content-type'] as string,
-      };
+    return fetchSourceFile(url, { buffer }, async (response) => {
+      try {
+        const uploadParams: PutObjectRequest = {
+          ...this.defaultParams,
+          Body: response.data,
+          Key: key,
+          ContentType: response.headers['content-type'] as string,
+        };
 
-      const data = await this.upload(uploadParams);
-      return {
-        url: data,
-        data: response.data,
-      };
-    } catch (error) {
-      NcError._.storageFileCreateError(
-        `Failed to create file from URL: ${error.message}`,
-      );
-    }
+        const data = await this.upload(uploadParams);
+        return {
+          url: data,
+          data: response.data,
+        };
+      } catch (error) {
+        NcError._.storageFileCreateError(
+          `Failed to create file from URL: ${error.message}`,
+        );
+      }
+    });
   }
 
   public async getSignedUrl(

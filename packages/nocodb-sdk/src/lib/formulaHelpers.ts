@@ -26,12 +26,12 @@ export async function substituteColumnAliasWithIdInFormula(
       return;
     } else if (pt.type === 'Identifier') {
       const colNameOrId = pt.name;
-      const column = columns.find(
-        (c) =>
-          c.id === colNameOrId ||
-          c.column_name === colNameOrId ||
-          c.title === colNameOrId
-      );
+      // Title before column_name: a renamed field keeps its old column_name,
+      // which must not shadow a newer field that took over the title.
+      const column =
+        columns.find((c) => c.id === colNameOrId) ||
+        columns.find((c) => c.title === colNameOrId) ||
+        columns.find((c) => c.column_name === colNameOrId);
       // Leave an unresolvable reference as-is instead of crashing on
       // `column.id` — the downstream formula validation then surfaces a clean
       // "column not found" error rather than a raw TypeError 500.
@@ -67,12 +67,11 @@ export function substituteColumnIdWithAliasInFormula(
       return;
     } else if (pt.type === 'Identifier') {
       const colNameOrId = pt?.name;
-      const column = columns.find(
-        (c) =>
-          c.id === colNameOrId ||
-          c.column_name === colNameOrId ||
-          c.title === colNameOrId
-      );
+      // Same id → title → column_name order as the alias→id direction
+      const column =
+        columns.find((c) => c.id === colNameOrId) ||
+        columns.find((c) => c.title === colNameOrId) ||
+        columns.find((c) => c.column_name === colNameOrId);
       pt.name = column?.title || ptRaw?.name || pt?.name;
     } else if (pt.type === 'BinaryExpression') {
       substituteId(pt.left, ptRaw?.left);

@@ -336,8 +336,8 @@ export abstract class ActionsIntegration<
 
   /**
    * Pricing class. True = a backend the customer brings (a database, a raw HTTP
-   * API, a keyspace), whose invocations bill against LIMIT_APP_ROUTINE_RUN and
-   * require FEATURE_APP_EXTERNAL_DATA. False/absent = a SaaS provider.
+   * API, a keyspace), whose invocations require FEATURE_APP_EXTERNAL_DATA.
+   * False/absent = a SaaS provider.
    *
    * Declared here because it is a property of what the backend IS; the host only
    * enforces it.

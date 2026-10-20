@@ -14,4 +14,6 @@ export default class NocoSocket {
   public static broadcastEventToWorkspaceUsers(..._args: unknown[]) {}
 
   public static broadcastEventToUser(..._args: unknown[]) {}
+
+  public static async disconnectUsers(_userIds: string[]) {}
 }

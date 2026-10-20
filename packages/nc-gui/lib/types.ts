@@ -296,6 +296,9 @@ type NcProject = BaseType & {
   // True when the base has a published interface the current user can open.
   // Drives the base card default ("Open interface" + a "Go to data" button).
   has_published_interface?: boolean
+  published_interface_count?: number
+  // The base's AI app, set only when it is live and would admit the current user.
+  live_app_id?: string | null
 }
 
 interface ImportWorkerPayload {
@@ -1414,4 +1417,12 @@ export interface NcTooltipGroup {
     show: (anchor: HTMLElement, title: string) => void
     hide: (anchor: HTMLElement) => void
   }
+}
+
+/** A review note on a `Pierre*` code surface's line. */
+export interface PierreNoteMetadata {
+  id: string
+  body: string
+  /** The note being written. Its slot is handed back for the composer. */
+  draft?: boolean
 }

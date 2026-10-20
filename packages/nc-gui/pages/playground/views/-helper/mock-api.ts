@@ -130,6 +130,7 @@ function rollup(values: unknown[], fn?: string) {
   const sum = (list: number[]) => list.reduce((a, b) => a + b, 0)
   switch (fn) {
     case 'count':
+    case 'countAll':
       return values.length
     case 'countDistinct':
       return new Set(values.map(String)).size

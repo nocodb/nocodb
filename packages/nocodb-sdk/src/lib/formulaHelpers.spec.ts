@@ -1,6 +1,7 @@
 import {
   FormulaDataTypes,
   substituteColumnAliasWithIdInFormula,
+  substituteColumnIdWithAliasInFormula,
   validateFormulaAndExtractTreeWithType,
 } from './formulaHelpers';
 import { UnifiedMetaType } from './types';
@@ -598,6 +599,37 @@ describe('substituteColumnAliasWithIdInFormula', () => {
       columns
     ).catch((e) => e);
     expect(error.message.split('Use == for equality').length).toBe(2);
+  });
+
+  it('resolves a title before the column_name of a renamed field', async () => {
+    const renamed = [
+      {
+        base_id,
+        id: 'old',
+        title: 'Submitted (old)',
+        column_name: 'Submitted',
+        uidt: UITypes.Date,
+      },
+      {
+        base_id,
+        id: 'new',
+        title: 'Submitted',
+        column_name: 'Submitted_1',
+        uidt: UITypes.Date,
+      },
+    ];
+    expect(
+      await substituteColumnAliasWithIdInFormula('{Submitted}', renamed)
+    ).toBe('{{new}}');
+    expect(
+      await substituteColumnAliasWithIdInFormula('{Submitted (old)}', renamed)
+    ).toBe('{{old}}');
+    expect(substituteColumnIdWithAliasInFormula('{Submitted}', renamed)).toBe(
+      '{Submitted}'
+    );
+    expect(substituteColumnIdWithAliasInFormula('{Submitted_1}', renamed)).toBe(
+      '{Submitted}'
+    );
   });
 
   it('does not hint for other syntax errors', async () => {

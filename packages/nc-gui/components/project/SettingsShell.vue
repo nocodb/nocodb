@@ -23,6 +23,8 @@ const route = router.currentRoute
 
 const { $e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const { isBaseRolesLoaded } = useRoles()
 
 const { isMobileMode } = useGlobal()
@@ -39,6 +41,9 @@ const {
   groupsByConcern,
   concerns,
   concernOfTab,
+  firstTabOf,
+  classicApps,
+  isClassicAppsLoaded,
   paneMeta,
   availableTabs,
   firstAvailableTab,
@@ -57,8 +62,20 @@ const { hasSaveBar, goBack, setCrumb } = useProvideShell()
 provide(IsSettingsSidebarInj, ref(true))
 
 // Docs permissions is its own route slug (an old deep link) but not its own rail
-// row — it is the second tab inside the Data Permissions pane.
-const railActive = computed(() => (props.tab === 'docs-permissions' ? 'permissions' : props.tab))
+// row — it is the second tab inside the Data Permissions pane. A classic app's
+// members pane is one slug for every app, told apart by `?interfaceId=`.
+const railActive = computed(() => {
+  if (props.tab === 'docs-permissions') return 'permissions'
+  if (props.tab === 'interface-members') {
+    return classicAppSlug(ncIsString(route.value.query.interfaceId) ? route.value.query.interfaceId : '')
+  }
+  return props.tab
+})
+
+const activeClassicApp = computed(() => {
+  const id = classicAppIdOfSlug(railActive.value)
+  return id ? classicApps.value.find((app) => app.id === id) : undefined
+})
 
 /**
  * The open pane decides which tab is lit, not the other way round — so a deep
@@ -74,7 +91,12 @@ const railSearch = ref('')
 /** A search spans every concern; picking a result moves the tab with it. */
 const railGroups = computed(() => (railSearch.value.trim() ? navGroups.value : concernGroups.value))
 
-const meta = computed(() => paneMeta.value[props.tab] ?? paneMeta.value[railActive.value])
+const meta = computed(() => {
+  const paneOwn = paneMeta.value[props.tab] ?? paneMeta.value[railActive.value]
+  if (!activeClassicApp.value) return paneOwn
+
+  return { ...paneOwn, description: t('labels.baseNav.desc.classicAppMembers', { app: activeClassicApp.value.title }) }
+})
 
 const baseId = computed(() => base.value?.id)
 
@@ -100,16 +122,30 @@ const isRailOnlyOnMobile = ref(true)
 function goToConcern(key: string) {
   if (key === activeConcern.value) return
 
-  const first = groupsByConcern.value[key as typeof activeConcern.value]?.[0]?.items[0]?.slug
+  const first = firstTabOf(key as typeof activeConcern.value)
   if (first) goToTab(first)
 }
 
-function goToTab(tab: string) {
+function goToTab(tab: string, { replace = false } = {}) {
   isRailOnlyOnMobile.value = false
+
+  // Both are scoped to the pane they were set for.
+  const query = { ...route.value.query }
+  delete query.interfaceId
+  delete query.expand
+
+  const interfaceId = classicAppIdOfSlug(tab)
+
+  if (interfaceId) {
+    if (tab === railActive.value) return
+
+    navigateTo({ query: { ...query, settings: settingsTabToSlug['interface-members'], interfaceId } }, { replace })
+    return
+  }
 
   if (tab === props.tab) return
 
-  navigateTo({ query: { ...route.value.query, settings: settingsTabToSlug[tab] || tab } })
+  navigateTo({ query: { ...query, settings: settingsTabToSlug[tab] || tab } }, { replace })
 }
 
 const showRail = computed(() => !isMobileMode.value || isRailOnlyOnMobile.value)
@@ -164,14 +200,25 @@ const legacyGeneralTabs: Record<string, string> = {
 
 const generalRows = ['base-type', 'data-display', 'migrate-to-v3', 'migrate']
 
+/** Settings opened from inside an app lands on that app's rows. */
+const openAppTabs = computed(() => {
+  const { appId, interfaceId } = route.value.params
+  if (ncIsString(interfaceId)) return [classicAppSlug(interfaceId)]
+  if (ncIsString(appId)) return appSettingsNav.map((item) => item.tab)
+  return []
+})
+
 watch(
-  [() => props.tab, isBaseRolesLoaded],
+  [() => props.tab, () => route.value.query.interfaceId, isBaseRolesLoaded, isClassicAppsLoaded],
   async () => {
     if (!isBaseRolesLoaded.value) return
 
     if (props.tab === 'base-settings') {
+      // An interface's row is only reachable once the base's interfaces load.
+      if (ncIsString(route.value.params.interfaceId) && !isClassicAppsLoaded.value) return
+
       const wanted = legacyGeneralTabs[route.value.query.tab as string]
-      const target = [wanted, ...generalRows].find((slug) => slug && availableTabs.value.has(slug))
+      const target = [wanted, ...openAppTabs.value, ...generalRows].find((slug) => slug && availableTabs.value.has(slug))
 
       const query = { ...route.value.query }
       delete query.tab
@@ -181,6 +228,12 @@ watch(
       // landing loses the rewrite — the address bar snaps back to the legacy path
       // and the overlay unmounts with it.
       await nextTick()
+
+      const interfaceId = target && classicAppIdOfSlug(target)
+      if (interfaceId) {
+        navigateTo({ query: { ...query, settings: settingsTabToSlug['interface-members'], interfaceId } }, { replace: true })
+        return
+      }
 
       navigateTo({ query: { ...query, settings: target ?? settingsTabToSlug[firstAvailableTab.value] } }, { replace: true })
       return
@@ -194,6 +247,9 @@ watch(
       return
     }
 
+    // Left to the watch below, which waits for the base's apps to load.
+    if (props.tab === 'interface-members' && !availableTabs.value.has(railActive.value)) return
+
     // Bounce a deep link this role, edition or plan cannot reach — including the
     // docs-permissions slug, which rides on the Data Permissions row.
     if (!availableTabs.value.has(railActive.value)) {
@@ -202,6 +258,24 @@ watch(
     }
 
     $e(`a:project:view:tab-change:${props.tab}`)
+  },
+  { immediate: true },
+)
+
+// A members link this reader can't open, or an app deleted while open: the first classic app, else the first pane.
+watch(
+  () =>
+    isBaseRolesLoaded.value &&
+    isClassicAppsLoaded.value &&
+    props.tab === 'interface-members' &&
+    // With nothing reachable the route watch closes the modal instead.
+    !!availableTabs.value.size &&
+    !availableTabs.value.has(railActive.value),
+  (isOrphaned) => {
+    if (!isOrphaned) return
+
+    const firstClassicApp = [...availableTabs.value].find((slug) => classicAppIdOfSlug(slug))
+    goToTab(firstClassicApp ?? firstAvailableTab.value, { replace: true })
   },
   { immediate: true },
 )
@@ -265,7 +339,7 @@ watch(
           >
             <GeneralIcon :icon="concern.icon" class="w-4 h-4 flex-none" aria-hidden="true" />
             {{ concern.label }}
-            <ProjectSettingsConcernCount :concern="concern.key" />
+            <span v-if="concern.count" class="text-nc-content-gray-muted font-weight-400">({{ concern.count }})</span>
           </button>
         </div>
 
@@ -283,9 +357,11 @@ watch(
       </div>
 
       <div class="flex-1 min-h-0 flex">
+        <!-- No fill of its own: under the band, rail and pane read as one surface. -->
         <ShellRail
           v-if="showRail"
           v-model:search="railSearch"
+          class="!bg-transparent"
           :full-width="isMobileMode"
           :groups="railGroups"
           :active="railActive"
@@ -316,7 +392,11 @@ watch(
           <div v-else class="flex-1 min-h-0">
             <ProjectAccessSettings v-if="tab === 'collaborator'" :base-id="baseId" />
 
-            <ProjectInterfaceMembers v-else-if="tab === 'interface-members'" />
+            <ProjectInterfaceMembers
+              v-else-if="tab === 'interface-members' && activeClassicApp"
+              :key="activeClassicApp.id"
+              :interface-id="activeClassicApp.id"
+            />
 
             <ProjectWorkflowsList v-else-if="tab === 'workflows' && baseId" :base-id="baseId" />
 
@@ -367,6 +447,8 @@ watch(
             </template>
 
             <DashboardSettingsBaseSkills v-else-if="tab === 'skills'" />
+
+            <FactoryMachines v-else-if="tab === 'machines' && baseId" :key="baseId" />
 
             <template v-else-if="tab === 'record-trash'">
               <div v-if="blockTrashSettings" class="h-full overflow-auto nc-scrollbar-thin">

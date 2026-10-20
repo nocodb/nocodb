@@ -178,6 +178,7 @@ import { chunkArray } from '~/utils/tsUtils';
 import {
   QUERY_STRING_FIELD_ID_ON_RESULT,
   QUERY_STRING_LINKS_AS_LTAR,
+  UPDATE_BY_PK_CHUNK_SIZE,
 } from '~/constants';
 import NocoSocket from '~/socket/NocoSocket';
 import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
@@ -4418,6 +4419,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       apiVersion,
       inlineLinkWrites = false,
       skip_hooks = false,
+      skipPermissionCheck = false,
     }: {
       cookie?: any;
       raw?: boolean;
@@ -4432,6 +4434,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
        */
       inlineLinkWrites?: boolean;
       skip_hooks?: boolean;
+      /** Trusted internal copy paths only — see `prepareNocoData`. */
+      skipPermissionCheck?: boolean;
     } = {},
   ) {
     let transaction;
@@ -4514,7 +4518,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               NcError.get(this.context).recordNotFound(pk);
             continue;
           }
-          await this.prepareNocoData(data, false, cookie, oldRecord);
+          await this.prepareNocoData(data, false, cookie, oldRecord, {
+            skipPermissionCheck,
+          });
           prevData.push(oldRecord);
           if (attachmentCols.length > 0) {
             const attachmentOperation =
@@ -8288,7 +8294,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return thumbnails;
     }
 
-    if ('status' in attachment && attachment.status === 'uploading') {
+    if (
+      'status' in attachment &&
+      ['uploading', 'failed'].includes(attachment.status)
+    ) {
       return thumbnails;
     }
 
@@ -9159,13 +9168,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (Object.keys(updateObject).length === 0) return;
 
-    const qb = knex(baseModel.getTnPath(model.table_name)).update(updateObject);
-
-    for (const rowId of Array.isArray(rowIds) ? rowIds : [rowIds]) {
-      qb.orWhere(_wherePk(model.primaryKeys, rowId));
+    // One OR term per row, and SQLite caps expression depth at 1000.
+    for (const chunk of chunkArray(
+      Array.isArray(rowIds) ? rowIds : [rowIds],
+      UPDATE_BY_PK_CHUNK_SIZE,
+    )) {
+      const qb = knex(baseModel.getTnPath(model.table_name)).update(
+        updateObject,
+      );
+      for (const rowId of chunk) {
+        qb.orWhere(_wherePk(model.primaryKeys, rowId));
+      }
+      await this.execAndParse(qb, null, { raw: true });
     }
-
-    await this.execAndParse(qb, null, { raw: true });
     const normalizedRowIds = (Array.isArray(rowIds) ? rowIds : [rowIds])
       .filter((id) => id != null && id !== '')
       .map((id) => String(id));
@@ -9388,6 +9403,42 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return false;
   }
 
+  // A `path`, or a `url` on our own storage host, must be one the caller owns
+  // (uploaded or already stored in this base). A foreign url is an external
+  // link and is never signed or read.
+  protected async insertAttachmentFileReference(
+    column: Column,
+    attachment: { url?: string; path?: string; size?: number },
+    userId?: string,
+    skipOwnershipCheck?: boolean,
+  ): Promise<string> {
+    if (!skipOwnershipCheck) {
+      for (const ref of [attachment.path, attachment.url]) {
+        if (!(await needsAttachmentOwnership(ref))) continue;
+        const accessible = await FileReference.isFileUrlAccessibleForWrite(
+          this.context,
+          { fileUrl: ref, userId },
+        );
+        if (!accessible) {
+          NcError.get(this.context).unprocessableEntity(
+            'Invalid attachment reference',
+          );
+        }
+      }
+    }
+
+    const source = await this.getSource();
+    return FileReference.insert(this.context, {
+      file_url: attachment.url ?? attachment.path,
+      file_size: attachment.size,
+      fk_user_id: userId ?? 'anonymous',
+      source_id: source.id,
+      fk_model_id: this.model.id,
+      fk_column_id: column.id,
+      is_external: !source.isMeta(),
+    });
+  }
+
   async prepareNocoData(
     data,
     isInsertData = false,
@@ -9490,8 +9541,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (
         !ncIsUndefined(data[column.column_name]) &&
         !ncIsNull(data[column.column_name]) &&
-        // Trusted copies (duplicate / import) keep stored URLs as they are.
-        !(column.uidt === UITypes.URL && extra?.skipPermissionCheck) &&
+        // Trusted copies keep stored URLs and Duration seconds (h:mm reads "90" as minutes).
+        !(
+          [UITypes.URL, UITypes.Duration].includes(column.uidt as UITypes) &&
+          extra?.skipPermissionCheck
+        ) &&
         (this.context.api_version === NcApiVersion.V3 ||
           // partially open the parseUserInput to several UITypes
           [
@@ -9586,6 +9640,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         this.context.api_version === NcApiVersion.V3
       ) {
         if (column.column_name in data) {
+          if (Array.isArray(data[column.column_name])) {
+            for (const attachment of data[column.column_name]) {
+              // a temp_ id without `uploading` status is an own-storage file
+              if (!attachment?.id?.startsWith?.('temp_') || attachment.status) {
+                continue;
+              }
+              attachment.id = await this.insertAttachmentFileReference(
+                column,
+                attachment,
+                cookie?.user?.id,
+                extra?.skipAttachmentOwnershipCheck,
+              );
+            }
+          }
           if (
             data &&
             data[column.column_name] &&
@@ -9652,21 +9720,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
 
           const regenerateIds = [];
+          const oldAttachmentMap = new Map<
+            string,
+            { url?: string; path?: string; status?: string; error?: string }
+          >(
+            !isInsertData &&
+            oldData &&
+            oldData[column.title] &&
+            Array.isArray(oldData[column.title])
+              ? oldData[column.title]
+                  .filter((att) => att.id)
+                  .map((att) => [att.id, att])
+              : [],
+          );
 
           if (!isInsertData) {
-            const oldAttachmentMap = new Map<
-              string,
-              { url?: string; path?: string }
-            >(
-              oldData &&
-              oldData[column.title] &&
-              Array.isArray(oldData[column.title])
-                ? oldData[column.title]
-                    .filter((att) => att.id)
-                    .map((att) => [att.id, att])
-                : [],
-            );
-
             const newAttachmentMap = new Map<
               string,
               { url?: string; path?: string }
@@ -9738,51 +9806,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 !sanitizedAttachment.id ||
                 regenerateIds.includes(sanitizedAttachment.id)
               ) {
-                // A `path`, or a `url` on our own storage host, must be one the
-                // caller owns (uploaded or already stored in this base). A
-                // foreign url is an external link and is never signed or read.
-                const diskResolvableRefs: string[] = [];
-                if (!extra?.skipAttachmentOwnershipCheck) {
-                  for (const ref of [
-                    sanitizedAttachment.path,
-                    sanitizedAttachment.url,
-                  ]) {
-                    if (await needsAttachmentOwnership(ref)) {
-                      diskResolvableRefs.push(ref);
-                    }
-                  }
-                }
-
-                for (const ref of diskResolvableRefs) {
-                  const accessible =
-                    await FileReference.isFileUrlAccessibleForWrite(
-                      this.context,
-                      {
-                        fileUrl: ref,
-                        userId: cookie?.user?.id,
-                      },
-                    );
-                  if (!accessible) {
-                    NcError.get(this.context).unprocessableEntity(
-                      'Invalid attachment reference',
-                    );
-                  }
-                }
-
-                const source = await this.getSource();
-                sanitizedAttachment.id = await FileReference.insert(
-                  this.context,
-                  {
-                    file_url:
-                      sanitizedAttachment.url ?? sanitizedAttachment.path,
-                    file_size: sanitizedAttachment.size,
-                    fk_user_id: cookie?.user?.id ?? 'anonymous',
-                    source_id: source.id,
-                    fk_model_id: this.model.id,
-                    fk_column_id: column.id,
-                    is_external: !source.isMeta(),
-                  },
+                sanitizedAttachment.id =
+                  await this.insertAttachmentFileReference(
+                    column,
+                    sanitizedAttachment,
+                    cookie?.user?.id,
+                    extra?.skipAttachmentOwnershipCheck,
+                  );
+              } else if (
+                oldAttachmentMap.get(sanitizedAttachment.id)?.status ===
+                'failed'
+              ) {
+                // a failed url download keeps its marker, taken from the
+                // stored item so a client can't set it
+                const { status, error } = oldAttachmentMap.get(
+                  sanitizedAttachment.id,
                 );
+                Object.assign(sanitizedAttachment, { status, error });
               }
 
               sanitizedAttachments.push(sanitizedAttachment);

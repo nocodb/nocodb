@@ -325,6 +325,11 @@ export interface ResolvedEmailAttachment {
 export interface ResolveEmailAttachmentsOptions {
   /** Provider ceiling; the host applies its own platform cap on top. */
   maxTotalBytes?: number;
+  /**
+   * Bytes the message already carries outside these attachments (inline body images). The host
+   * takes them off whichever cap applies, its own (admin-configurable) one included.
+   */
+  reservedBytes?: number;
   maxFiles?: number;
   /** The run's cancel signal; URL downloads stop when it fires. */
   signal?: AbortSignal;

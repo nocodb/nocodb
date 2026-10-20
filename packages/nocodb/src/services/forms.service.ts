@@ -280,7 +280,7 @@ export class FormsService {
       owner,
     });
 
-    await view.getViewWithInfo();
+    await view.getViewWithInfo(ncMeta);
 
     // Strip the stored bcrypt password hash from every outbound payload.
     const safeView = View.maskPasswordForResponse(view);

@@ -29,6 +29,7 @@ import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
 import type { TooltipPlacement } from 'ant-design-vue/lib/tooltip'
 import type { ImageWindowLoader } from '../components/smartsheet/grid/canvas/loaders/ImageLoader'
+import type { CmdNlReadingTele } from '../utils/cmdNl/telemetry'
 import type { MarkdownLoader } from '../components/smartsheet/grid/canvas/loaders/markdownLoader'
 import type { SpriteLoader } from '../components/smartsheet/grid/canvas/loaders/SpriteLoader'
 import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders/ActionManager'
@@ -433,6 +434,49 @@ interface CmdCommand {
    * `run` is expected to open the upgrade flow while blocked.
    */
   upgradeFeature?: PlanFeatureTypes
+  /** A reading of the typed query; its chips show how it was understood and Tab moves between readings. */
+  reading?: { chips: CmdChip[] }
+  /** A completion: Enter, Tab or → puts this text in the input instead of running anything. */
+  complete?: string
+  /** Structural telemetry for natural-language rows; never carries typed text or schema names. */
+  tele?: CmdTele
+}
+
+type CmdTele =
+  | {
+      kind: 'reading'
+      reading: CmdNlReadingTele
+      latency?: string
+      tagger?: boolean
+      readings?: number
+      /** View type it ran on: grid, kanban, gallery, calendar, form. */
+      surface?: string
+    }
+  | { kind: 'suggestion'; slot: 'field' | 'cmp' | 'value' | 'history' }
+  | { kind: 'decline'; reason: string; fix: boolean }
+  | { kind: 'chip-swap'; chip: CmdChip['kind']; uidt?: string }
+
+/** One part of a reading ("Industry", "is", "manufacturing"); picking a swap rewrites the query. */
+interface CmdChip {
+  text: string
+  /** `noun` is the table's own name ("companies"); `text` a joiner or unrecognised word, shown plain. */
+  /** `assumed` is a guess the parser made ("recent" → past 30 days), shown so it can be made explicit. */
+  kind: 'field' | 'cmp' | 'value' | 'agg' | 'verb' | 'noun' | 'text' | 'assumed'
+  icon?: CmdIcon
+  /** Hover text: what an assumed chip stands for. */
+  tooltip?: string
+  /** Title of the page listing the swaps, e.g. "Change field". */
+  label?: string
+  swaps?: { label: string; query: string; icon?: CmdIcon }[]
+  /** Stable across keystrokes (e.g. kind and source position), so chips don't remount as the query grows. */
+  key?: string
+}
+
+/** Chips for a half-typed query no reading covers yet, plus the field name being typed, completed. */
+interface CmdSkeleton {
+  chips: CmdChip[]
+  /** Tab or → puts `complete` in the input. */
+  ghost?: { text: string; icon?: CmdIcon; complete: string }
 }
 
 interface CmdEdit {
@@ -455,6 +499,10 @@ interface CmdProviderState {
   commands: CmdCommand[]
   /** Rows appended under every non-empty query, e.g. "Search records in …". */
   fallbacks?: (query: string) => CmdCommand[]
+  /** Chips while the query is still being typed and no reading covers it. */
+  skeleton?: (query: string) => CmdSkeleton | undefined
+  /** Recent natural-language queries with their live result, for an empty or very short query. */
+  recent?: (query: string) => CmdCommand[]
 }
 
 type RecentItemKind = 'dashboard' | 'script' | 'workflow' | 'agent' | 'doc' | 'interface' | 'app'
@@ -1394,6 +1442,9 @@ export type {
   CmdLevel,
   CmdIcon,
   CmdCommand,
+  CmdChip,
+  CmdSkeleton,
+  CmdTele,
   CmdEdit,
   CmdContext,
   CmdProviderState,

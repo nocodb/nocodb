@@ -70,13 +70,16 @@ function onMouseMove(e: MouseEvent) {
           </NcTooltip>
         </div>
         <div v-else key="hints" class="flex items-center gap-2 ml-auto pl-2 flex-none">
-          <span
+          <!-- Previews ("$22,800,000.00 → $24,800,000.00") get room before the title; the rest shows on hover. -->
+          <NcTooltip
             v-if="command.value"
-            class="nc-cmdk-row-value text-bodyDefaultSm text-nc-content-gray-subtle truncate max-w-48"
-            data-testid="nc-cmdk-row-value"
+            show-on-truncate-only
+            class="nc-cmdk-row-value text-bodyDefaultSm text-nc-content-gray-subtle truncate max-w-80"
+            :tooltip-style="{ zIndex: 1100 }"
           >
-            {{ command.value }}
-          </span>
+            <template #title>{{ command.value }}</template>
+            <span data-testid="nc-cmdk-row-value">{{ command.value }}</span>
+          </NcTooltip>
           <PaymentUpgradeBadge
             v-if="command.upgradeFeature"
             :feature="command.upgradeFeature"

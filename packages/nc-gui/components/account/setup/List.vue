@@ -123,7 +123,7 @@ const closeResetModal = () => {
             Switching to {{ switchingTo && switchingTo.title }} will reset your {{ activePlugin && activePlugin.title }}
             settings. Continue?
           </template>
-          <template v-else>Resetting will erase your current configuration.</template>
+          <template v-else>{{ $t('msg.info.resetWillEraseConfiguration') }}</template>
         </div>
         <div class="flex mt-6 justify-end space-x-2">
           <NcButton size="small" type="secondary" @click="closeResetModal"> {{ $t('general.cancel') }}</NcButton>

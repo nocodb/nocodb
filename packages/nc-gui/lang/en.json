@@ -781,7 +781,8 @@
     "appFactory": "App Factory",
     "manage": "Manage",
     "email": "Email",
-    "uploading": "Uploading"
+    "uploading": "Uploading",
+    "config": "Config"
   },
   "objects": {
     "chat": "Chat",
@@ -1581,7 +1582,8 @@
     "creatingAgent": "Creating agent",
     "agentToolsAndAccess": "Tools & access",
     "agentSkills": "Skills",
-    "agentSettings": "Settings"
+    "agentSettings": "Settings",
+    "auditDetails": "Audit Details"
   },
   "labels": {
     "auth": {
@@ -4801,17 +4803,50 @@
         "chooseTriggerHint": "Every workflow starts with a trigger: the event that sets it off.",
         "noMatches": "No steps match",
         "triggers": {
-          "nocodb_trigger_after_insert": { "text": "Record is {bold}", "bold": "created" },
-          "nocodb_trigger_after_update": { "text": "Record is {bold}", "bold": "updated" },
-          "nocodb_trigger_after_delete": { "text": "Record is {bold}", "bold": "deleted" },
-          "nocodb_trigger_record_enters_view": { "text": "Record {bold}", "bold": "enters a view" },
-          "nocodb_trigger_record_matches_condition": { "text": "Record {bold}", "bold": "matches conditions" },
-          "nocodb_trigger_form_submitted": { "text": "{bold}", "bold": "Submits a form" },
-          "core_trigger_button": { "text": "{bold} on a record", "bold": "Clicks a button" },
-          "nocodb_trigger_comment": { "text": "{bold} on a record", "bold": "Comments" },
-          "core_trigger_cron": { "text": "{bold}", "bold": "On a schedule" },
-          "core_trigger_webhook": { "text": "When {bold}", "bold": "webhook received" },
-          "core_trigger_manual": { "text": "{bold}", "bold": "Manually" }
+          "nocodb_trigger_after_insert": {
+            "text": "Record is {bold}",
+            "bold": "created"
+          },
+          "nocodb_trigger_after_update": {
+            "text": "Record is {bold}",
+            "bold": "updated"
+          },
+          "nocodb_trigger_after_delete": {
+            "text": "Record is {bold}",
+            "bold": "deleted"
+          },
+          "nocodb_trigger_record_enters_view": {
+            "text": "Record {bold}",
+            "bold": "enters a view"
+          },
+          "nocodb_trigger_record_matches_condition": {
+            "text": "Record {bold}",
+            "bold": "matches conditions"
+          },
+          "nocodb_trigger_form_submitted": {
+            "text": "{bold}",
+            "bold": "Submits a form"
+          },
+          "core_trigger_button": {
+            "text": "{bold} on a record",
+            "bold": "Clicks a button"
+          },
+          "nocodb_trigger_comment": {
+            "text": "{bold} on a record",
+            "bold": "Comments"
+          },
+          "core_trigger_cron": {
+            "text": "{bold}",
+            "bold": "On a schedule"
+          },
+          "core_trigger_webhook": {
+            "text": "When {bold}",
+            "bold": "webhook received"
+          },
+          "core_trigger_manual": {
+            "text": "{bold}",
+            "bold": "Manually"
+          }
         },
         "groups": {
           "recordEvents": "When",
@@ -5625,7 +5660,13 @@
     "pagination": "Pagination",
     "workspaceSettings": "Workspace settings",
     "showRowNumbers": "Show row numbers",
-    "wrapLongText": "Wrap long text"
+    "wrapLongText": "Wrap long text",
+    "appearanceFilled": "Filled",
+    "appearanceColouredText": "Coloured text",
+    "recordId": "Record ID",
+    "performedBy": "Performed by",
+    "openWithGoogleDocs": "Open with Google Docs",
+    "mcpConfiguration": "MCP Configuration"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6171,7 +6212,9 @@
     "setupScriptSettingsFirstToExecute": "Setup script settings first to execute",
     "selectTable": "Select table",
     "copyViewId": "Copy view ID",
-    "dataSourceReadOnly": "This data source is read-only."
+    "dataSourceReadOnly": "This data source is read-only.",
+    "mentionFields": "Mention fields",
+    "skipEnabledAfterDelay": "Will be enabled after 2 seconds"
   },
   "placeholder": {
     "attachmentUrl": "https://example.com/report.pdf",
@@ -6400,7 +6443,10 @@
     "scriptVariableValue": "Variable value",
     "selectTable": "-- Select table --",
     "typeSomething": "Type something...",
-    "abuseReportDetails": "For example: this page pretends to be another company's login page and asks visitors for their password."
+    "abuseReportDetails": "For example: this page pretends to be another company's login page and asks visitors for their password.",
+    "recordId": "Enter the record ID",
+    "searchForAProject": "Search for a project",
+    "searchForAWorkspace": "Search for a workspace"
   },
   "msg": {
     "agentSkillsSubtitle": "Reusable instructions this agent can load when relevant.",
@@ -7364,7 +7410,8 @@
       "recreateDemoBaseConfirm": "This permanently deletes the \"{title}\" project and all its data, then creates a fresh one.",
       "deleteDemoBaseTitle": "Delete demo project?",
       "deleteDemoBaseConfirm": "This permanently deletes the \"{title}\" project and all its data.",
-      "webhookEmptyStateSubtitle": "Trigger an HTTP request whenever a record is created, updated or deleted."
+      "webhookEmptyStateSubtitle": "Trigger an HTTP request whenever a record is created, updated or deleted.",
+      "resetWillEraseConfiguration": "Resetting will erase your current configuration."
     },
     "error": {
       "attachmentInvalidUrl": "Enter a URL starting with http:// or https://, or a template using variables",
@@ -7602,7 +7649,8 @@
       "childTableNoPrimaryKey": "Child table does not have a primary key column",
       "noWorkspaceAvailable": "No workspace available",
       "invalidJson": "Invalid JSON",
-      "invalidTokensJson": "Not a token export. Expected keys like light, dark, font or radiusScale."
+      "invalidTokensJson": "Not a token export. Expected keys like light, dark, font or radiusScale.",
+      "renameFileFailed": "Error while renaming file"
     },
     "toast": {
       "changesSaved": "Changes saved",

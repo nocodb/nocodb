@@ -1637,9 +1637,14 @@ export class ColumnsService implements IColumnsService {
             (!incomingFormula || incomingFormula === stored?.formula_raw);
 
           if (isAlreadyBroken) {
+            // `Column.update` rebuilds the COL_FORMULA row from this payload,
+            // so every stored field has to be carried over — `error` included.
+            // Dropping it would clear the flag the skip above keys on, and the
+            // next order-only update would validate and fail all over again.
             colBody.formula_raw = stored?.formula_raw;
             colBody.formula = stored?.formula;
             colBody.parsed_tree = stored?.getParsedTree();
+            colBody.error = stored?.error;
           } else {
             try {
               const relatedModels: Map<string, Model> =

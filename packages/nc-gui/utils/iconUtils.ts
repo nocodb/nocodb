@@ -457,6 +457,7 @@ import NcFrownIcon from '~icons/nc-icons-v2/frown.svg'
 import NcToolIcon from '~icons/nc-icons-v2/tool.svg'
 import NcBoldIcon from '~icons/nc-icons-v2/bold.svg'
 import NcHashIcon from '~icons/nc-icons-v2/hash.svg'
+import NcCalculatorIcon from '~icons/nc-icons-v2/calculator.svg'
 import NcShare2Icon from '~icons/nc-icons-v2/share-2.svg'
 import NcPlusIcon from '~icons/nc-icons-v2/plus.svg'
 import NcCheckIcon from '~icons/nc-icons-v2/check.svg'
@@ -1624,6 +1625,7 @@ export const iconMap = {
   'ncTool': NcToolIcon,
   'ncBold': NcBoldIcon,
   'ncHash': NcHashIcon,
+  'ncCalculator': NcCalculatorIcon,
   'ncShare2': NcShare2Icon,
   'ncPlus': NcPlusIcon,
   'ncCheck': NcCheckIcon,

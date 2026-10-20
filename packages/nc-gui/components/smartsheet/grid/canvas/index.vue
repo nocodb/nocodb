@@ -3700,8 +3700,9 @@ useCommandProvider(
           values: (column) => rangeRows.map((row) => row.row[column.title!]),
           section,
           activeColumnId: anchorField?.id,
+          fill: 'range',
           save: async (column, next) => {
-            for (const row of rangeRows) row.row[column.title!] = next(row.row[column.title!])
+            rangeRows.forEach((row, index) => (row.row[column.title!] = next(row.row[column.title!], index)))
             await bulkUpdateRows(rangeRows, [column.title!], undefined, path)
             triggerRefreshCanvas()
           },
@@ -4665,6 +4666,23 @@ defineExpose({
     vSelectedAllRecords.value = false
     vSelectedAllRecordsSkipPks.value = {}
     triggerRefreshCanvas()
+  },
+  // Re-checks rows by primary key once a bulk save's reload brings them back; reports what it found.
+  recheckRows: (pks: Set<string>) => {
+    let found = 0
+    let checked = 0
+    for (const cache of [getDataCache(), ...groupDataCache.value.values()]) {
+      cache.cachedRows.value.forEach((row) => {
+        if (!pks.has(String(extractPkFromRow(row.row, meta.value?.columns as ColumnType[])))) return
+        found++
+        if (!row.rowMeta.selected) {
+          row.rowMeta.selected = true
+          checked++
+        }
+      })
+    }
+    if (checked) triggerRefreshCanvas()
+    return { found, checked }
   },
   // Same clipboard payload as copying a cell range, over the visible fields.
   copyRows: (rows: Row[]) =>

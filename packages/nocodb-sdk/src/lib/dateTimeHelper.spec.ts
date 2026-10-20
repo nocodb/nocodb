@@ -47,12 +47,12 @@ describe('parseDateWithFormat', () => {
 
 describe('getDateTimeValue', () => {
   it.each([
-    ['DD/MM/YYYY', '27/10/2023'],
-    ['MM/DD/YYYY', '10/27/2023'],
-    ['DD.MM.YYYY', '27.10.2023'],
-  ])('formats a raw timestamp using %s', (dateFormat, expectedDate) => {
+    ['DD/MM/YYYY', '27/10/2023 10:30'],
+    ['MM/DD/YYYY', '10/27/2023 10:30'],
+    ['DD.MM.YYYY', '27.10.2023 10:30'],
+  ])('formats a raw timestamp using %s', (dateFormat, expected) => {
     const result = getDateTimeValue(
-      '2023-10-27 10:30:00+00:00',
+      '2023-10-27 10:30:00',
       {
         meta: {
           date_format: dateFormat,
@@ -61,7 +61,6 @@ describe('getDateTimeValue', () => {
       } as any
     );
 
-    expect(result).not.toContain('Invalid Date');
-    expect(result).toContain(expectedDate);
+    expect(result).toBe(expected);
   });
 });

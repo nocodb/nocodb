@@ -286,8 +286,8 @@ const onCreatedRecord = async (record: any) => {
     return
   }
 
-  // The grid provides one hook for both
-  if (reloadTrigger !== reloadViewDataTrigger) reloadTrigger?.trigger({ shouldShowLoading: false })
+  // The grid provides one hook for both; a grid cell's SmartsheetRow hook forwards to it
+  if (reloadTrigger !== reloadViewDataTrigger) reloadTrigger?.trigger({ shouldShowLoading: false, inPlace: true })
 
   reloadViewDataTrigger?.trigger({
     shouldShowLoading: false,

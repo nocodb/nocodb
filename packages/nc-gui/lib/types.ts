@@ -548,6 +548,8 @@ interface RecentItem {
   workspaceId: string
   baseId: string
   baseTitle?: string
+  /** Lane bases are left out of the workspace base list, so pruning can't prove one gone. */
+  isLane?: boolean
   /** Route path to reopen it with. */
   path: string
   icon?: CmdIcon

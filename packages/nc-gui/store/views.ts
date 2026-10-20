@@ -39,6 +39,8 @@ interface RecentView {
   baseId: string
   /** ISO time the view was last opened in this session. */
   viewedAt?: string
+  /** Lane bases are left out of the workspace base list, so pruning can't prove one gone. */
+  isLane?: boolean
 }
 
 export const useViewsStore = defineStore('viewsStore', () => {
@@ -1046,14 +1048,16 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   // Saved recents outlive their views (deleted in another tab, access revoked). Drop the ones the
   // loaded stores prove gone and refresh titles; a base whose tables or views aren't loaded is kept.
+  // Only a successful load of this workspace's base list counts; lanes are never in that list.
   function pruneRecentViews() {
-    if (!bases.isProjectsLoaded) return
+    const wsBases = bases.workspaceBasesMap.get(activeWorkspaceId.value)
+    if (!wsBases) return
 
     allRecentViews.value = allRecentViews.value.flatMap((rv) => {
       if (rv.workspaceId !== activeWorkspaceId.value) return [rv]
 
-      const base = bases.bases.get(rv.baseId)
-      if (!base) return []
+      const base = wsBases.get(rv.baseId) ?? bases.bases.get(rv.baseId)
+      if (!base && !rv.isLane) return []
 
       const tables = tablesStore.baseTables.get(rv.baseId)
       const table = tables?.find((t) => t.id === rv.tableID)
@@ -1066,7 +1070,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       return [
         {
           ...rv,
-          baseName: base.title ?? rv.baseName,
+          baseName: base?.title ?? rv.baseName,
           tableName: table?.title ?? rv.tableName,
           viewName: view?.title ?? rv.viewName,
         },
@@ -1500,6 +1504,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
         iconColor: parseProp(base?.meta).iconColor,
         isDefault: !!view.is_default,
         viewedAt: new Date().toISOString(),
+        isLane: !!base?.is_lane_instance,
       },
       ...allRecentViews.value.filter((f) => f.viewId !== view.id || f.tableID !== view.fk_model_id),
     ]

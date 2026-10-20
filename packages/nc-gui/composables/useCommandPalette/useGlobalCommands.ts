@@ -39,6 +39,16 @@ function parseCreateQuery(query: string): { name: string; kind?: string } {
   return { name: query.replace(/^(?:create|new|add)\s+/i, '').trim() }
 }
 
+const QUESTION_OPENERS = /^(?:which|what|how|why|who|when|where|show|list|find|is|are|do|does|can|should)\b/i
+
+const SENTENCE_WORDS = /\b(?:that|which|who|whose|where|with|are|is|have|has|than|look|looks)\b/i
+
+/** A name, not a sentence: at most 4 words, no "?" or sentence words. An explicit kind ("create table …") always counts. */
+function isNameLike(name: string, kind?: string) {
+  if (kind) return true
+  return !name.includes('?') && !QUESTION_OPENERS.test(name) && !SENTENCE_WORDS.test(name) && name.split(/\s+/).length <= 4
+}
+
 // `outline` icons keep the injected stroke; filled brand logos drop it.
 const COMMUNITY_LINKS = [
   { id: 'forum', titleKey: 'title.forum', icon: 'ncDiscordForum', outline: true, url: 'https://community.nocodb.com/' },
@@ -685,7 +695,7 @@ export function useGlobalCommands(edition?: (ctx: CmdGlobalCommandsContext) => C
   /** "Invoices" → Create table “Invoices”, … — only for openers that take an initial name. */
   function namedCreateCommands(query: string): CmdCommand[] {
     const { name, kind } = parseCreateQuery(query)
-    if (!name) return []
+    if (!name || !isNameLike(name, kind)) return []
 
     const commands: CmdCommand[] = []
 

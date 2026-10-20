@@ -2032,6 +2032,37 @@
       "discardChanges": "Discard unsaved changes",
       "closeRecord": "Close record",
       "recordViewMode": "Switch record view…",
+      "relative": {
+        "add": "Add {amount} to {field}",
+        "subtract": "Subtract {amount} from {field}",
+        "increasePercent": "Increase {field} by {amount}%",
+        "decreasePercent": "Decrease {field} by {amount}%",
+        "multiply": "Multiply {field} by {amount}",
+        "divide": "Divide {field} by {amount}",
+        "round": "Round {field}",
+        "roundTo": "Round {field} to {amount} decimals",
+        "negate": "Negate {field}",
+        "nextWeekday": "Move {field} to next {weekday}",
+        "startOf": "Move {field} to start of {period}",
+        "endOf": "Move {field} to end of {period}",
+        "units": {
+          "minute": "{count} minute | {count} minutes",
+          "hour": "{count} hour | {count} hours",
+          "day": "{count} day | {count} days",
+          "week": "{count} week | {count} weeks",
+          "month": "{count} month | {count} months",
+          "year": "{count} year | {count} years"
+        },
+        "periods": {
+          "week": "week",
+          "month": "month",
+          "year": "year"
+        },
+        "bulkPreview": "{count} record · {preview} | {count} records · {preview} (first)",
+        "emptySkipped": "{count} empty skipped | {count} empty skipped",
+        "invalid": "Result isn't a valid value",
+        "confirmTitle": "Update {count} record? | Update {count} records?"
+      },
       "undoNamed": "Undo: {action}",
       "redoNamed": "Redo: {action}",
       "copyTableLink": "Copy table link",

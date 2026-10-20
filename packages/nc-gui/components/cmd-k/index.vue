@@ -84,12 +84,26 @@ const isSearching = computed(() => !!debouncedQuery.value.trim())
 
 const breadcrumbs = computed(() => [...pages.value, ...(editing.value ? [editing.value] : [])])
 
+/** The provider whose chip is showing; only it may add query-built edits ("add 1 week"). */
+const activeContextProvider = computed(() =>
+  providers.value.findLast((provider) => provider.level === activeLevel.value && provider.context),
+)
+
 /** "Create “name”", docs search and the like: they echo the query, so they are not ranked by use. */
 const fallbacks = computed<CmdCommand[]>(() =>
   activePage.value || !isSearching.value
     ? []
-    : providers.value.flatMap((provider) => provider.fallbacks?.(debouncedQuery.value.trim()) ?? []),
+    : providers.value.flatMap((provider) =>
+        (provider.fallbacks?.(debouncedQuery.value.trim()) ?? []).filter(
+          (command) => !command.lead || provider === activeContextProvider.value,
+        ),
+      ),
 )
+
+/** Query-built edits lead; the other fallbacks stay after the matches. */
+const leadFallbacks = computed(() => fallbacks.value.filter((command) => command.lead))
+
+const trailingFallbacks = computed(() => fallbacks.value.filter((command) => !command.lead))
 
 const aiRow = computed(() => (activePage.value || !isSearching.value ? undefined : aiFallback(debouncedQuery.value.trim())))
 
@@ -108,14 +122,15 @@ const results = computed<CmdCommand[]>(() => {
 
   // A request leads with "Ask NocoAI"; a command-like query keeps its matches and echo rows first.
   const ai = aiRow.value
-  if (!ai) return [...matches, ...fallbacks.value]
-  // "create workflow Foo" asks for the named create, not the AI.
+  const lead = leadFallbacks.value
+  if (!ai) return [...lead, ...matches, ...trailingFallbacks.value]
+  // "create workflow Foo" asks for the named create, not the AI; "add 1 week" asks for the edit.
   const namedCreate = /^\s*(create|new)\s/i.test(debouncedQuery.value)
     ? fallbacks.value.find((command) => command.id.endsWith(':create-named'))
     : undefined
-  return isCmdNaturalLanguage(debouncedQuery.value, matches.length > 0 || !!namedCreate, matches[0]?.title)
-    ? [ai, ...matches, ...fallbacks.value]
-    : [...matches, ...fallbacks.value, ai]
+  return isCmdNaturalLanguage(debouncedQuery.value, matches.length > 0 || !!namedCreate || lead.length > 0, matches[0]?.title)
+    ? [ai, ...lead, ...matches, ...trailingFallbacks.value]
+    : [...lead, ...matches, ...trailingFallbacks.value, ai]
 })
 
 const rows = computed<CmdRow[]>(() =>

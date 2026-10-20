@@ -401,6 +401,8 @@ interface CmdCommand {
   danger?: boolean
   /** `CMD_PRIORITY` value; higher sorts first within its level and wins search ties. */
   priority?: number
+  /** A query-built fallback that leads the results (e.g. "Add 1,000 to Amount"). */
+  lead?: boolean
   /** Only listed when the query is non-empty. */
   searchOnly?: boolean
   /** A status row (loading, load error): shown but not selectable or runnable. */

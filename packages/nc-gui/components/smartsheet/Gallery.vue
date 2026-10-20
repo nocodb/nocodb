@@ -11,6 +11,7 @@ import {
 import type { Attachment } from '../../lib/types'
 import type { Row as RowType } from '#imports'
 import { NavigateDir } from '#imports'
+import { useRelativeEditCommands } from '~/composables/useSetFieldCommands'
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
@@ -762,6 +763,8 @@ const { dashboardUrl } = useDashboard()
 
 const setFieldCommands = useSetFieldCommands()
 
+const relativeEditCommands = useRelativeEditCommands()
+
 const { $api } = useNuxtApp()
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
@@ -793,6 +796,8 @@ useCommandProvider(
     const section = t('labels.commandPalette.sections.record')
     const rowId = extractPkFromRow(record.row, meta.value?.columns as ColumnType[])
     const commands: CmdCommand[] = []
+    // Shared by "Set <Field>…" and query-built edits ("add 10").
+    let editTarget: Parameters<typeof relativeEditCommands>[0] | undefined
 
     if (interfaceClickIntoDetails.value) {
       commands.push({
@@ -910,22 +915,24 @@ useCommandProvider(
     if (hasEditPermission.value && !isPublic.value) {
       const visibleIds = new Set(fields.value.map((f) => f.id))
       commands.push(
-        ...setFieldCommands({
-          meta: meta.value,
-          columns: [
-            ...fields.value.map((column) => ({ column })),
-            ...((meta.value?.columns ?? []) as ColumnType[])
-              .filter((c) => !visibleIds.has(c.id))
-              .map((column) => ({ column, hidden: true })),
-          ],
-          values: (column) => [record.row[column.title!]],
-          row: record.row,
-          section,
-          save: async (column, next) => {
-            record.row[column.title!] = next(record.row[column.title!])
-            await updateOrSaveRow(record, column.title!)
-          },
-        }),
+        ...setFieldCommands(
+          (editTarget = {
+            meta: meta.value,
+            columns: [
+              ...fields.value.map((column) => ({ column })),
+              ...((meta.value?.columns ?? []) as ColumnType[])
+                .filter((c) => !visibleIds.has(c.id))
+                .map((column) => ({ column, hidden: true })),
+            ],
+            values: (column) => [record.row[column.title!]],
+            row: record.row,
+            section,
+            save: async (column, next) => {
+              record.row[column.title!] = next(record.row[column.title!])
+              await updateOrSaveRow(record, column.title!)
+            },
+          }),
+        ),
       )
     }
 
@@ -936,6 +943,7 @@ useCommandProvider(
         icon: { type: 'table', icon: parseProp(meta.value?.meta).icon },
       },
       commands,
+      fallbacks: (query) => (editTarget ? relativeEditCommands(editTarget, query) : []),
     }
   },
 )

@@ -7,6 +7,7 @@ import CanvasTable from './canvas/index.vue'
 import GroupBy from './GroupBy.vue'
 import { DlgRecordDeleteAll } from '#components'
 import type { CmdCommand } from '~/lib/types'
+import { useRelativeEditCommands } from '~/composables/useSetFieldCommands'
 
 const meta = inject(MetaInj, ref())
 
@@ -1006,6 +1007,8 @@ async function exportCheckedRows(exportType: ExportTypes, rows: Row[]) {
 
 const setFieldCommands = useSetFieldCommands()
 
+const relativeEditCommands = useRelativeEditCommands()
+
 const { showWarningModal } = useNcConfirmModal()
 
 /** Cmd+K bulk deletes confirm first; the palette's own Enter never reaches this dialog. */
@@ -1035,6 +1038,9 @@ useCommandProvider(
     const canEdit = isUIAllowed('dataEdit') && !isDataReadOnly.value && !meta.value?.synced
     const canDelete = canEdit && (!interfacePageDataApi || interfacePageDataApi.canAddDeleteInline.value)
     const commands: CmdCommand[] = []
+    // Shared by "Set <Field> for N records…" and query-built edits ("add 10").
+    let editTarget: Parameters<typeof relativeEditCommands>[0] | undefined
+    const fallbacks = (query: string) => (editTarget ? relativeEditCommands(editTarget, query) : [])
     const allColumns = () => {
       const visibleIds = new Set(visibleFields.value.map((f) => f.id))
       return [
@@ -1075,19 +1081,18 @@ useCommandProvider(
       const rows = pData.value.filter((row) => row.rowMeta.selected)
       if (hasSinglePk) commands.push(downloadCommand(rows))
       if (canEdit) {
-        commands.push(
-          ...setFieldCommands({
-            meta: meta.value,
-            count,
-            columns: allColumns(),
-            values: (column) => rows.map((row) => row.row[column.title!]),
-            section,
-            save: async (column, next) => {
-              for (const row of rows) row.row[column.title!] = next(row.row[column.title!])
-              await pBulkUpdateRows(rows, [column.title!])
-            },
-          }),
-        )
+        editTarget = {
+          meta: meta.value,
+          count,
+          columns: allColumns(),
+          values: (column) => rows.map((row) => row.row[column.title!]),
+          section,
+          save: async (column, next) => {
+            for (const row of rows) row.row[column.title!] = next(row.row[column.title!])
+            await pBulkUpdateRows(rows, [column.title!])
+          },
+        }
+        commands.push(...setFieldCommands(editTarget))
       }
       if (canDelete) {
         commands.push({
@@ -1110,6 +1115,7 @@ useCommandProvider(
       return {
         context: { label: t('labels.commandPalette.selectedRecords', count), icon: { type: 'icon', name: 'ncList' } },
         commands,
+        fallbacks,
       }
     }
 
@@ -1131,21 +1137,20 @@ useCommandProvider(
     const groups = checkedRowGroups.value.map(({ path }) => ({ path, rows: getDataCache(path).selectedRows.value }))
 
     if (canEdit && !selectedAllRecords.value && isCanvasRendering.value) {
-      commands.push(
-        ...setFieldCommands({
-          meta: meta.value,
-          count,
-          columns: allColumns(),
-          values: (column) => groups.flatMap(({ rows }) => rows.map((row) => row.row[column.title!])),
-          section,
-          save: async (column, next) => {
-            for (const { path, rows } of groups) {
-              for (const row of rows) row.row[column.title!] = next(row.row[column.title!])
-              await bulkUpdateRows(rows, [column.title!], undefined, path)
-            }
-          },
-        }),
-      )
+      editTarget = {
+        meta: meta.value,
+        count,
+        columns: allColumns(),
+        values: (column) => groups.flatMap(({ rows }) => rows.map((row) => row.row[column.title!])),
+        section,
+        save: async (column, next) => {
+          for (const { path, rows } of groups) {
+            for (const row of rows) row.row[column.title!] = next(row.row[column.title!])
+            await bulkUpdateRows(rows, [column.title!], undefined, path)
+          }
+        },
+      }
+      commands.push(...setFieldCommands(editTarget))
     }
 
     if (canDelete) {
@@ -1188,6 +1193,7 @@ useCommandProvider(
     return {
       context: { label: t('labels.commandPalette.selectedRecords', count), icon: { type: 'icon', name: 'ncList' } },
       commands,
+      fallbacks,
     }
   },
 )

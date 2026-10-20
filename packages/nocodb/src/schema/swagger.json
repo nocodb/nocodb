@@ -11403,6 +11403,14 @@
             "name": "offset"
           },
           {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "JSON array of filters applied on top of the view's own"
+          },
+          {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
@@ -12729,6 +12737,14 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "JSON array of filters scoping the rows to update, as accepted by the list endpoints"
           }
         ]
       },

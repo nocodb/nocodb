@@ -64,7 +64,7 @@ export class BulkDataAliasController {
     });
   }
 
-  // todo: Integrate with filterArrJson bulkDataUpdateAll
+  // `filterArrJson` (query) scopes the update, together with `viewId` and `where`.
   @Patch(['/api/v1/db/data/bulk/:orgs/:baseName/:tableName/all'])
   @Acl('bulkDataUpdateAll')
   async bulkDataUpdateAll(

@@ -1098,6 +1098,24 @@ const saveChanges = async () => {
       })
       moveOps.value = []
 
+      // A failed op stays queued, so the editor keeps reporting unsaved
+      // changes and the leave prompt re-opens on every attempt. The only other
+      // signal is a red mark on the field's row, easy to miss in a long list —
+      // name the fields and the reason.
+      if (res.failedOps?.length) {
+        const failedTitles = res.failedOps.map((op) => (op.column as TableExplorerColumn).title).filter(Boolean)
+        const firstError = (res.failedOps[0] as { error?: string }).error
+        message.error(
+          res.failedOps.length === 1 && failedTitles.length === 1
+            ? t('msg.error.fieldSaveFailed', { field: failedTitles[0], error: firstError })
+            : t('msg.error.fieldSavesFailed', {
+                count: res.failedOps.length,
+                fields: failedTitles.join(', '),
+                error: firstError,
+              }),
+        )
+      }
+
       const failedVisibility = (res as any).failedVisibility as
         | Array<{ viewId: string; columnId: string; error: string }>
         | undefined
@@ -1647,7 +1665,13 @@ const confirmUnsavedChangesBeforeLeaving = (from: RouteLocationNormalizedLoadedG
 
         okProps.value.loading = false
 
-        resolve(!!res)
+        // Some ops were rejected and stay queued. Closing here would cancel the
+        // navigation silently and re-prompt on the next attempt, with no way out
+        // but Discard. Keep the prompt open instead — saveChanges has already
+        // surfaced which fields failed, and Discard is one click away.
+        if (!res) return
+
+        resolve(true)
 
         closeDialog(false)
       },

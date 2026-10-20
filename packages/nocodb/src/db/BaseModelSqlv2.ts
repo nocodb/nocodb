@@ -176,6 +176,7 @@ import {
 import { MetaTable } from '~/utils/globals';
 import { chunkArray } from '~/utils/tsUtils';
 import {
+  NC_BULK_UPDATE_UNDO_LIMIT,
   QUERY_STRING_FIELD_ID_ON_RESULT,
   QUERY_STRING_LINKS_AS_LTAR,
 } from '~/constants';
@@ -4848,7 +4849,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const captureUndoPrev =
           isTraceActive() &&
           this.model.primaryKeys?.length > 0 &&
-          Number(count) <= BULK_UPDATE_ALL_PREV_SNAPSHOT_LIMIT;
+          Number(count) <= NC_BULK_UPDATE_UNDO_LIMIT;
         const affectedPks = captureUndoPrev
           ? await this.collectAffectedPks(qb.clone())
           : undefined;

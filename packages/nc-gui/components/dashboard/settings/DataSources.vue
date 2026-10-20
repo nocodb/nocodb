@@ -3,6 +3,8 @@ import Draggable from 'vuedraggable'
 import { PlanLimitTypes, type SourceType } from 'nocodb-sdk'
 import { ClientType, DataSourcesSubTab } from '#imports'
 
+const { t } = useI18n()
+
 interface Props {
   /** Which sub-view is open. Optional: the shell hosts this pane without binding it. */
   state?: string
@@ -175,7 +177,7 @@ const deleteBase = async () => {
 const toggleBase = async (source: SourceType, state: boolean) => {
   try {
     if (!state && sources.value.filter((src) => src.enabled).length < 2) {
-      message.info('There should be at least one enabled source!')
+      message.info(t('msg.info.atLeastOneEnabledSource'))
       return
     }
     source.enabled = state

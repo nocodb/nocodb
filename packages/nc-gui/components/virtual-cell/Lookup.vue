@@ -483,7 +483,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
       <template #title>
         <span class="font-bold">{{ column.colOptions.error }}</span>
       </template>
-      <span>ERR!</span>
+      <span>{{ $t('labels.errorShort') }}</span>
     </NcTooltip>
   </div>
   <NcDropdown

@@ -104,7 +104,7 @@ const renderAsCell = computed(() => {
       <template #title>
         <span class="font-bold">{{ column.colOptions.error }}</span>
       </template>
-      <span>ERR!</span>
+      <span>{{ $t('labels.errorShort') }}</span>
     </NcTooltip>
 
     <!-- pg IEEE value for this row. No tooltip: unlike colOptions.error above,

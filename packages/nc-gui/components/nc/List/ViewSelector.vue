@@ -184,7 +184,7 @@ defineExpose({
           >
             {{ selectedView?.label }}
           </span>
-          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select view --</span>
+          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">{{ $t('placeholder.selectViewDashed') }}</span>
 
           <template #title>
             {{ selectedView?.label || 'Select view' }}

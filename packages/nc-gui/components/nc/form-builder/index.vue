@@ -559,7 +559,7 @@ watch(
                       option-filter-prop="label"
                       dropdown-match-select-width
                       class="nc-select nc-select-shadow"
-                      placeholder="Select Integration"
+                      :placeholder="$t('placeholder.selectIntegration')"
                       allow-clear
                       :disabled="disabled || field.disabled"
                       show-search

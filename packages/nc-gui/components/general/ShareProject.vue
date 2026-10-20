@@ -100,7 +100,7 @@ const copySharedBase = async () => {
           @click="copySharedBase"
         >
           <GeneralIcon class="mr-1" icon="duplicate" />
-          Copy Project
+          {{ $t('labels.copyProject') }}
         </NcButton>
       </div>
     </div>

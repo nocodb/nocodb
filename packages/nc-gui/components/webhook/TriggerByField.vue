@@ -35,7 +35,7 @@ const removeColumnId = (colId: string) => {
   <div class="w-full flex items-center justify-between h-[28px]">
     <label class="cursor-pointer flex items-center" @click.prevent="triggerField = !triggerField">
       <NcSwitch :checked="triggerField" class="nc-check-box-trigger-field">
-        <span class="!text-nc-content-gray-subtle font-semibold"> Trigger only when specific fields change </span>
+        <span class="!text-nc-content-gray-subtle font-semibold"> {{ $t('labels.triggerOnlyWhenFieldsChange') }} </span>
       </NcSwitch>
     </label>
     <NcDropdown v-if="triggerField" v-model:visible="isDropdownOpen" overlay-class-name="!pt-0">

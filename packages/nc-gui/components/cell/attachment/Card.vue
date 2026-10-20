@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useAttachmentCell } from './utils'
 
+const { t } = useI18n()
+
 const props = withDefaults(
   defineProps<{
     attachment: Record<string, any>
@@ -74,7 +76,7 @@ const handleFileRename = async () => {
       await renameFileInline(props.index, renameTitle.value)
       handleResetFileRename()
     } catch (e) {
-      message.error('Error while renaming file')
+      message.error(t('msg.error.renameFileFailed'))
       throw e
     }
   }

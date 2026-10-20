@@ -153,7 +153,7 @@ defineExpose({
           <span v-if="selectedColumn" class="text-sm flex-1 truncate text-nc-content-gray-default">
             {{ selectedColumn?.label }}
           </span>
-          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select field --</span>
+          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">{{ $t('placeholder.selectFieldDashed') }}</span>
 
           <template #title>
             {{ selectedColumn?.label || 'Select field' }}

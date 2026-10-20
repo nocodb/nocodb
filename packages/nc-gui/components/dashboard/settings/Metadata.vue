@@ -69,7 +69,7 @@ async function loadMetaDiff(afterSync = false) {
 
             console.error(data.data?.error?.message)
 
-            message.error('Failed to load metadata diff', undefined, {
+            message.error(t('msg.error.failedToLoadMetadataDiff'), undefined, {
               copyText: data.data?.error?.message || '',
             })
           }

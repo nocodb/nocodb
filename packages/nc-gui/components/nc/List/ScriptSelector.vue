@@ -152,7 +152,9 @@ defineExpose({
           >
             {{ selectedScript?.label }}
           </span>
-          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select script --</span>
+          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">{{
+            $t('placeholder.selectScriptDashed')
+          }}</span>
 
           <template #title>
             {{ selectedScript?.label || 'Select a script' }}

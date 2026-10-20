@@ -50,7 +50,7 @@ const onAddExtension = (ext: any) => {
 <template>
   <div class="h-full py-4 overflow-auto nc-scrollbar-thin">
     <div class="h-full flex flex-col gap-5 flex-1 pt-2 px-6 w-full mx-auto">
-      <div class="text-base font-bold text-nc-content-gray">Popular Extensions</div>
+      <div class="text-base font-bold text-nc-content-gray">{{ $t('labels.popularExtensions') }}</div>
       <div v-if="searchQuery" class="text-base text-nc-content-gray-subtle">Search result for ‘{{ searchQuery }}’</div>
 
       <div

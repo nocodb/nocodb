@@ -33,7 +33,7 @@ const openMethod = ref<'google' | undefined>()
       <div class="flex items-center gap-1">
         <GeneralIcon class="w-4 h-4" icon="googleDocs" />
 
-        Open with Google Docs
+        {{ $t('labels.openWithGoogleDocs') }}
       </div>
     </NcButton>
   </div>

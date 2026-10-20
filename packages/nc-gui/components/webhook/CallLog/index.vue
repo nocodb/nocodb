@@ -161,7 +161,7 @@ onBeforeMount(async () => {
             </div>
             <div class="flex-1 flex items-stretch gap-4">
               <WebhookCallLogReqResDetailCardSkeleton :title="$t('general.request')" />
-              <WebhookCallLogReqResDetailCardSkeleton title="Response" />
+              <WebhookCallLogReqResDetailCardSkeleton :title="$t('labels.appApi.response')" />
             </div>
           </div>
           <WebhookCallLogDetails v-else :item="activeItem" />

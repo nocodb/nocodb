@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { OAuthAuthorization } from '#imports'
 
+const { t } = useI18n()
+
 interface Props {
   modelValue: boolean
   authorization: OAuthAuthorization
@@ -28,7 +30,7 @@ async function onRevoke() {
     const success = await authStore.revokeAuthorization(authorization.id)
 
     if (success) {
-      message.success('Access revoked successfully')
+      message.success(t('msg.success.accessRevoked'))
       vModel.value = false
       emits('revoked')
     }

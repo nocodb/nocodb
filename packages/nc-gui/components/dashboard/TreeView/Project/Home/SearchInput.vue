@@ -39,7 +39,7 @@ const handleClick = () => {
         v-model:value="baseHomeSearchQuery"
         type="text"
         class="nc-input-border-on-value nc-input-shadow !h-8 !pl-1.5 !pr-1 !py-1 !rounded-lg"
-        placeholder="Quick search..."
+        :placeholder="$t('placeholder.quickSearch')"
         allow-clear
         readonly
         @keydown.stop

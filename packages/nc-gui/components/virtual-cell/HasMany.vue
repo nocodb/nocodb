@@ -229,7 +229,9 @@ onUnmounted(() => {
             @unlink="unlinkRef(cell.item)"
           />
 
-          <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click="openChildList"> more... </span>
+          <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click="openChildList">
+            {{ $t('labels.moreEllipsis') }}
+          </span>
         </template>
       </div>
 

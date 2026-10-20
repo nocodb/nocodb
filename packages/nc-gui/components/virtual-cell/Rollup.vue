@@ -111,7 +111,7 @@ const isIntegerResult = computed(() => {
       <template #title>
         <span class="font-bold">{{ column.colOptions.error }}</span>
       </template>
-      <span>ERR!</span>
+      <span>{{ $t('labels.errorShort') }}</span>
     </NcTooltip>
   </div>
   <div v-else @dblclick="activateShowEditNonEditableFieldWarning">

@@ -85,13 +85,16 @@ export interface FactoryPtyOpenPayload {
   terminalId: string;
   /** The shell to reattach to, from an earlier `READY`. */
   ptyId?: string;
+  /** Set by a user action: a reattach without it never wakes a paused machine. */
+  wake?: boolean;
   cols: number;
   rows: number;
 }
 
 export interface FactoryPtyExitPayload {
   terminalId: string;
-  reason: 'exit' | 'lost' | 'error';
+  /** `asleep`: a reattach found the machine paused and did not wake it. */
+  reason: 'exit' | 'lost' | 'error' | 'asleep';
   exitCode?: number;
   message?: string;
 }

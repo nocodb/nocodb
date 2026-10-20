@@ -355,7 +355,6 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           return column
         })
 
-        reloadData?.()
         return
       }
       if (view?.value?.id) {
@@ -376,8 +375,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         }
       }
 
+      // Hiding needs no data reload: the loaded rows only carry extra values
       await loadViewColumns()
-      reloadData?.()
       $e('a:fields:show-all')
     }
 
@@ -488,7 +487,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
               )
               .finally(() => {
                 loadViewColumns()
-                reloadData?.()
+                // Only showing them needs their values
+                if (v) reloadData?.()
               })
           }
           view.value.show_system_fields = v

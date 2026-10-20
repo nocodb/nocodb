@@ -113,8 +113,8 @@ const hideAllSelected = async () => {
     // Shrink the frozen region once for all frozen fields that were just hidden
     await adjustFrozenFieldsOnBulkHide(hiddenColIds)
 
+    // Hidden fields need no data reload
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-    reloadDataHook?.trigger()
     $e('a:field:hide:multi', { count: Object.keys(columnVisibility).length })
   } catch (e: any) {
     // Roll back optimistic flips for exactly the IDs we set.

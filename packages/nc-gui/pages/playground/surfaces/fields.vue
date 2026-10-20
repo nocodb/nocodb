@@ -191,7 +191,7 @@ function reset(key: string, note?: string) {
         source="SmartsheetColumnEditOrAddProvider"
         description="The add-field editor preloaded with the picked type. The type select inside the editor is live too."
       >
-        <PgDemo :label="$t('labels.multiField.newField')" :hint="savedNote.add" stage="canvas">
+        <PgDemo label="New field" :hint="savedNote.add" stage="canvas">
           <template #actions>
             <NcSelect v-model:value="addType" size="small" class="w-48" show-search>
               <a-select-option v-for="t in addTypes" :key="t" :value="t">{{ t }}</a-select-option>

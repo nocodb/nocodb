@@ -7475,6 +7475,8 @@
       "someFieldsCouldNotBeDeleted": "Some fields could not be deleted: {fields}",
       "fieldVisibilityUpdateFailed": "Field visibility update failed: {error}",
       "fieldVisibilityUpdatesFailed": "{count} field visibility updates failed: {error}",
+      "fieldSaveFailed": "Could not save field '{field}': {error}",
+      "fieldSavesFailed": "Could not save {count} fields ({fields}). First error: {error}",
       "variableKeyRequired": "Variable key is required",
       "variableKeyFormat": "Key must be uppercase letters, numbers and underscores (e.g. WEBHOOK_URL)",
       "latitudeRange": "Latitude must be between -90 and 90",

@@ -1621,67 +1621,90 @@ export class ColumnsService implements IColumnsService {
             error: null,
           } as Column);
         } else if (column.uidt === UITypes.Formula) {
-          try {
-            const relatedModels: Map<string, Model> = await getRelatedModelMap(
-              context,
-              table,
-            );
+          const stored = await column.getColOptions<FormulaColumn>(ncMeta);
 
-            const formulaColumns = table.columns.filter(
-              (c) => !c.colOptions?.error,
-            );
+          // Deleting a field a formula references is allowed and only flags the
+          // formula (`colOptions.error`). Re-validating that stored expression
+          // on an update that does not change it then fails against the missing
+          // reference, so the field could never be renamed or reordered again.
+          // Narrow on purpose: a formula without an error still gets validated,
+          // because an unchanged expression can be newly invalid when the graph
+          // around it changed (e.g. a lookup pointed back at it, making it
+          // circular).
+          const incomingFormula = colBody.formula_raw || colBody.formula;
+          const isAlreadyBroken =
+            !!stored?.error &&
+            (!incomingFormula || incomingFormula === stored?.formula_raw);
 
-            // No formula in the payload (e.g. a rename): keep the stored one
-            if (!colBody.formula_raw && !colBody.formula) {
-              const stored = await column.getColOptions<FormulaColumn>(ncMeta);
-              colBody.formula_raw = stored?.formula_raw;
-              colBody.formula = stored?.formula;
+          if (isAlreadyBroken) {
+            colBody.formula_raw = stored?.formula_raw;
+            colBody.formula = stored?.formula;
+            colBody.parsed_tree = stored?.getParsedTree();
+          } else {
+            try {
+              const relatedModels: Map<string, Model> =
+                await getRelatedModelMap(context, table);
+
+              const formulaColumns = table.columns.filter(
+                (c) => !c.colOptions?.error,
+              );
+
+              // No formula in the payload (e.g. a rename): keep the stored one
+              if (!incomingFormula) {
+                colBody.formula_raw = stored?.formula_raw;
+                colBody.formula = stored?.formula;
+              }
+
+              colBody.formula = await substituteColumnAliasWithIdInFormula(
+                colBody.formula_raw || colBody.formula,
+                table.columns,
+              );
+              colBody.parsed_tree = await validateFormulaAndExtractTreeWithType(
+                {
+                  formula: colBody.formula || colBody.formula_raw,
+                  columns: formulaColumns,
+                  column,
+                  clientOrSqlUi: source.type as any,
+                  getMeta: async (_, { id }) => {
+                    return relatedModels.get(id);
+                  },
+                },
+              );
+
+              const baseModel = await reuseOrSave(
+                'baseModel',
+                reuse,
+                async () =>
+                  Model.getBaseModelSQL(context, {
+                    id: table.id,
+                    dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+                      NcConnectionMgrv2.get(source),
+                    ),
+                  }),
+              );
+              await formulaQueryBuilderv2({
+                baseModel: baseModel,
+                tree: colBody.formula,
+                model: table,
+                column,
+                validateFormula: true,
+                persistError: false,
+                parsedTree: colBody.parsed_tree,
+              });
+            } catch (e) {
+              if (e instanceof NcError || e instanceof NcBaseError) throw e;
+              // Surface the formula parser's reason as a client error rather
+              // than a generic 500 — see the create path above.
+              this.logger.error(
+                `Formula validation failed: ${e?.message ?? e}`,
+                e?.stack,
+              );
+              NcError.get(context).invalidRequestBody(
+                `Invalid formula: ${
+                  e?.message ?? 'the expression could not be parsed'
+                }`,
+              );
             }
-
-            colBody.formula = await substituteColumnAliasWithIdInFormula(
-              colBody.formula_raw || colBody.formula,
-              table.columns,
-            );
-            colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
-              formula: colBody.formula || colBody.formula_raw,
-              columns: formulaColumns,
-              column,
-              clientOrSqlUi: source.type as any,
-              getMeta: async (_, { id }) => {
-                return relatedModels.get(id);
-              },
-            });
-
-            const baseModel = await reuseOrSave('baseModel', reuse, async () =>
-              Model.getBaseModelSQL(context, {
-                id: table.id,
-                dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
-                  NcConnectionMgrv2.get(source),
-                ),
-              }),
-            );
-            await formulaQueryBuilderv2({
-              baseModel: baseModel,
-              tree: colBody.formula,
-              model: table,
-              column,
-              validateFormula: true,
-              persistError: false,
-              parsedTree: colBody.parsed_tree,
-            });
-          } catch (e) {
-            if (e instanceof NcError || e instanceof NcBaseError) throw e;
-            // Surface the formula parser's reason as a client error rather than
-            // a generic 500 — see the create path above.
-            this.logger.error(
-              `Formula validation failed: ${e?.message ?? e}`,
-              e?.stack,
-            );
-            NcError.get(context).invalidRequestBody(
-              `Invalid formula: ${
-                e?.message ?? 'the expression could not be parsed'
-              }`,
-            );
           }
 
           await Column.update(context, column.id, {
@@ -7813,13 +7836,33 @@ export class ColumnsService implements IColumnsService {
     colBody: any,
     column: Column<any>,
   ) {
+    // Deleting a link field leaves the lookups and rollups through it in place,
+    // pointing at a relation that no longer resolves. Re-validating those
+    // stored references on an update that does not change them then fails with
+    // "relation field not found", so the field could never be renamed or
+    // reordered again. Skip only that case: references unchanged *and* the
+    // relation already gone. The caller applies the title and column order
+    // itself, so nothing is lost — and `error` must stay set, the field is
+    // still broken. Everything else validates as before, so a reference that
+    // still resolves is re-checked (circular refs included).
+    const isDanglingNoOp = async (keys: string[]) => {
+      if (!keys.every((key) => colBody[key] === column.colOptions?.[key])) {
+        return false;
+      }
+      const relationColumn = await Column.get(context, {
+        colId: colBody.fk_relation_column_id,
+      });
+      return !relationColumn;
+    };
+
     // Validate rollup or lookup payload before proceeding with the update
     if (
       UITypes.Lookup === column.uidt &&
       validateRequiredField(colBody, [
         'fk_lookup_column_id',
         'fk_relation_column_id',
-      ])
+      ]) &&
+      !(await isDanglingNoOp(['fk_lookup_column_id', 'fk_relation_column_id']))
     ) {
       // Perform additional validation for lookup payload
       await validateLookupPayload(context, colBody, column.id);
@@ -7830,7 +7873,12 @@ export class ColumnsService implements IColumnsService {
         'fk_relation_column_id',
         'fk_rollup_column_id',
         'rollup_function',
-      ])
+      ]) &&
+      !(await isDanglingNoOp([
+        'fk_relation_column_id',
+        'fk_rollup_column_id',
+        'rollup_function',
+      ]))
     ) {
       // Perform additional validation for rollup payload
       await validateRollupPayload(context, colBody);

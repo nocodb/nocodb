@@ -438,7 +438,11 @@ export function useGridViewData(
   async function bulkUpdateRows(
     rows: Row[],
     props: string[],
-    { metaValue = meta.value, onError }: { metaValue?: TableType; viewMetaValue?: ViewType; onError?: (e: any) => void } = {},
+    {
+      metaValue = meta.value,
+      onError,
+      skipRefresh,
+    }: { metaValue?: TableType; viewMetaValue?: ViewType; onError?: (e: any) => void; skipRefresh?: boolean } = {},
     path: Array<number> = [],
   ): Promise<void> {
     isBulkOperationInProgress.value = true
@@ -526,7 +530,7 @@ export function useGridViewData(
     }
     applySorting(rows)
     syncVisibleData()
-    reloadViewDataHook?.trigger()
+    if (!skipRefresh) refreshInPlace()
     isBulkOperationInProgress.value = false
   }
 
@@ -536,8 +540,10 @@ export function useGridViewData(
     props: string[],
     {
       metaValue = meta.value,
+      skipRefresh,
     }: {
       metaValue?: TableType
+      skipRefresh?: boolean
     } = {},
     columns: Partial<ColumnType>[],
     path: Array<number> = [],
@@ -651,9 +657,8 @@ export function useGridViewData(
 
       dataCache.totalRows.value += insertedRows.length
 
-      reloadViewDataHook?.trigger()
       syncVisibleData()
-      await syncCount(path, true, false)
+      if (!skipRefresh) await refreshInPlace()
 
       if (partialInsertError) message.error(await extractSdkResponseErrorMsg(partialInsertError))
 
@@ -907,6 +912,7 @@ export function useGridViewData(
     cachedRows,
     loadData,
     refreshInPlace,
+    refreshLoadedRows,
     insertRow,
     updateRowProperty,
     addEmptyRow,

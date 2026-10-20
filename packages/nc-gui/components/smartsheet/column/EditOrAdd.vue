@@ -439,6 +439,7 @@ const reloadMetaAndData = async () => {
   if (!isKanban.value) {
     reloadDataTrigger?.trigger({
       fieldAdd: true,
+      inPlace: true,
     })
   }
 }

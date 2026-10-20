@@ -155,14 +155,14 @@ export function useCanvasTable({
     insertRows: Row[],
     updateRows: Row[],
     props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    metas?: { metaValue?: TableType; viewMetaValue?: ViewType; skipRefresh?: boolean },
     newColumns?: Partial<ColumnType>[],
     path?: Array<number>,
   ) => Promise<Record<string, any>[] | void>
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    metas?: { metaValue?: TableType; viewMetaValue?: ViewType; skipRefresh?: boolean },
     path?: Array<number>,
   ) => Promise<void>
   addEmptyRow: (
@@ -1606,7 +1606,7 @@ export function useCanvasTable({
       if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
         // Reload view data if it is self link column
         if (columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id) {
-          reloadViewDataHook?.trigger({ shouldShowLoading: false })
+          reloadViewDataHook?.trigger({ inPlace: true })
         }
         triggerRefreshCanvas()
         return

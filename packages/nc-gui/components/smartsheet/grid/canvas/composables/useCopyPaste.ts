@@ -127,14 +127,14 @@ export function useCopyPaste({
     insertRows: Row[],
     updateRows: Row[],
     props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    metas?: { metaValue?: TableType; viewMetaValue?: ViewType; skipRefresh?: boolean },
     newColumns?: Partial<ColumnType>[],
     path?: Array<number>,
   ) => Promise<Record<string, any>[] | void>
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    metas?: { metaValue?: TableType; viewMetaValue?: ViewType; skipRefresh?: boolean },
     path?: Array<number>,
   ) => Promise<void>
   updateOrSaveRow: (
@@ -317,8 +317,6 @@ export function useCopyPaste({
           ? t('msg.error.pasteLinkPartiallySaved', { saved: savedCount, total: entries.length, error: errMsg })
           : errMsg,
       )
-    } finally {
-      reloadViewDataHook?.trigger({ shouldShowLoading: false })
     }
   }
 
@@ -363,8 +361,6 @@ export function useCopyPaste({
         title: t('msg.error.pasteFromClipboardError'),
         content: await extractSdkResponseErrorMsg(e),
       })
-    } finally {
-      reloadViewDataHook?.trigger({ shouldShowLoading: false })
     }
   }
 
@@ -548,6 +544,7 @@ export function useCopyPaste({
         const updatedRows: Row[] = [] as Row[]
         const newRows: Row[] = []
         const propsToPaste: string[] = []
+        let refreshAfterPaste = false
         const bulkLtarOps: BulkLtarOp[] = []
         const textLtarOps: TextLtarOp[] = []
         // Rows inserted by the expand have no pk yet — linked after they are inserted
@@ -776,7 +773,7 @@ export function useCopyPaste({
               savedCount = Math.min(i + LINK_BY_DISPLAY_VALUE_BATCH_SIZE, entries.length)
             }
 
-            reloadViewDataHook?.trigger({ shouldShowLoading: false })
+            refreshAfterPaste = true
           } catch (e: any) {
             // Revert only the rows that were not persisted; keep the already-saved ones
             // so the user can re-paste just the remainder instead of starting over.
@@ -787,8 +784,7 @@ export function useCopyPaste({
             const errMsg = await extractSdkResponseErrorMsg(e)
 
             if (savedCount > 0) {
-              // Reflect the persisted batches in the grid before reporting the failure
-              reloadViewDataHook?.trigger({ shouldShowLoading: false })
+              refreshAfterPaste = true
 
               message.error(t('msg.error.pasteLinkPartiallySaved', { saved: savedCount, total: entries.length, error: errMsg }))
             } else {
@@ -802,10 +798,11 @@ export function useCopyPaste({
             newRows,
             updatedRows,
             propsToPaste,
-            undefined,
+            { skipRefresh: true },
             bulkOpsCols.map(({ column }) => column),
             groupPath,
           )
+          refreshAfterPaste = true
 
           if (upserted?.length && (newRowTextLtarOps.length || newRowBulkLtarOps.length)) {
             // Interface pages accept these links even once the pasted values move a row out of
@@ -824,8 +821,12 @@ export function useCopyPaste({
           // An LTAR-only paste leaves no regular props — the bulk-update call
           // would be a pk-only no-op (and a spurious 403 for interface
           // collaborators, whose bulk route is page-gated).
-          await bulkUpdateRows?.(updatedRows, propsToPaste, undefined, groupPath)
+          await bulkUpdateRows?.(updatedRows, propsToPaste, { skipRefresh: true }, groupPath)
+          refreshAfterPaste = true
         }
+
+        // One refresh after the links and the bulk write, which skips its own
+        if (refreshAfterPaste) reloadViewDataHook?.trigger({ inPlace: true })
 
         if (isTruncated) {
           message.warning(t('tooltip.pasteOperationLimitedToMaxRows', { max: MAX_ROWS }))
@@ -880,7 +881,7 @@ export function useCopyPaste({
               }
 
               // Refresh view data so lookup/rollup columns reflect the new links
-              reloadViewDataHook?.trigger({ shouldShowLoading: false })
+              reloadViewDataHook?.trigger({ inPlace: true })
 
               return await syncCellData?.(activeCell.value, groupPath)
             } catch (e: any) {
@@ -1006,7 +1007,7 @@ export function useCopyPaste({
               // For OO and OM columns, pasting is a "move" — the backend enforces that each
               // child/record can only belong to one parent. Refresh view to reflect changes across all rows.
               // For MM and other LTAR types, refresh the view so dependent lookup/rollup columns update.
-              reloadViewDataHook?.trigger({ shouldShowLoading: false })
+              reloadViewDataHook?.trigger({ inPlace: true })
             }
 
             return await syncCellData?.(activeCell.value, groupPath)
@@ -1405,7 +1406,7 @@ export function useCopyPaste({
       if ((isBt(columnObj) || isOo(columnObj)) && !isMMOrMMLike(columnObj)) await clearLTARCell(rowObj, columnObj)
 
       if (isSelfLinkColumn) {
-        reloadViewDataHook.trigger({ shouldShowLoading: false })
+        reloadViewDataHook.trigger({ inPlace: true })
       }
 
       return

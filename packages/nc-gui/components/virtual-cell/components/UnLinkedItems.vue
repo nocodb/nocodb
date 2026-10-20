@@ -319,11 +319,12 @@ const onCreatedRecord = (record: any) => {
 
   addLTARRef(record, injectedColumn?.value as ColumnType)
 
-  reloadTrigger?.trigger({
-    shouldShowLoading: false,
-  })
+  // The grid provides one hook for both
+  if (reloadTrigger !== reloadViewDataTrigger) reloadTrigger?.trigger({ shouldShowLoading: false })
+
   reloadViewDataTrigger?.trigger({
     shouldShowLoading: false,
+    inPlace: true,
     isFromLinkRecord: true,
     relatedTableMetaId: relatedTableMeta.value.id,
     rowId: rowId.value!,

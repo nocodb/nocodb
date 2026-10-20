@@ -1,4 +1,4 @@
-import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import type { Field } from '~/lib/types'
 
 /** Cmd+K: "Search in view" (Cmd+F), and "Search records in <table>" for whatever was typed. */
@@ -56,6 +56,9 @@ export function useSortCommands(_deps: {
   availableColumns: Ref<ColumnType[]>
   addSort: (column: ColumnType, direction?: 'asc' | 'desc') => void
   open: Ref<boolean>
+  sorts?: Ref<SortType[]>
+  deleteSort?: (sort: SortType) => Promise<void>
+  isPersonalViewNonOwner?: Ref<boolean>
 }) {}
 
 export function useGroupByCommands(_deps: {

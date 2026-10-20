@@ -64,15 +64,21 @@ function inScope(item: { workspaceId: string; baseId: string }) {
 
 // Views (tracked by the views store) and every other object (dashboards, scripts, workflows, …), newest first.
 const commands = computed<CmdCommand[]>(() => {
-  // Scoped to one base, the base name in every hint adds nothing.
-  const baseHint = (name?: string) => (scopeBaseId.value ? undefined : name)
+  // The base name only when it isn't the base you're in (as in Cmd+K's Recent section).
+  const baseHint = (baseId: string, name?: string) => (baseId === scopeBaseId.value ? undefined : name)
 
   const views = allRecentViews.value.filter(inScope).map((view) => ({
     viewedAt: view.viewedAt ?? '',
     command: {
       id: `recent:${view.tableID}:${view.viewId ?? ''}`,
-      title: view.viewName,
-      hint: [baseHint(view.baseName), view.tableName].filter(Boolean).join(' / '),
+      // A default view is its table, named once.
+      title: view.isDefault ? view.tableName || view.viewName : view.viewName,
+      hint: [
+        baseHint(view.baseId, view.baseName),
+        view.isDefault || view.tableName === view.viewName ? undefined : view.tableName,
+      ]
+        .filter(Boolean)
+        .join(' / '),
       section: dayBucket(view.viewedAt),
       icon: { type: 'view', viewType: view.viewType },
       checked: view.viewId === activeView.value?.id && view.tableID === activeView.value?.fk_model_id,
@@ -85,7 +91,7 @@ const commands = computed<CmdCommand[]>(() => {
     command: {
       id: `recent:${item.kind}:${item.id}`,
       title: item.title,
-      hint: [baseHint(item.baseTitle), item.parentTitle].filter(Boolean).join(' / '),
+      hint: [baseHint(item.baseId, item.baseTitle), item.parentTitle].filter(Boolean).join(' / '),
       section: dayBucket(item.viewedAt),
       icon: item.icon,
       checked: route.path === item.path,

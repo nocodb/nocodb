@@ -697,7 +697,8 @@ export function useSmartsheetCommands(ext: CmdSmartsheetExt = {}) {
 
       return {
         context: {
-          prefix: meta.value.title,
+          // A view named like its table (the default one) would read "Deals › Deals".
+          prefix: view.value.title === meta.value.title ? undefined : meta.value.title,
           label: view.value.title!,
           icon: { type: 'view', viewType: view.value.type, icon: view.value.meta?.icon },
         },

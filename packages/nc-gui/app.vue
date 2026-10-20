@@ -85,6 +85,8 @@ useEventListener(
       e.preventDefault()
       setActiveCmdView('cmd-l')
     } else if (key === 'j' && !e.shiftKey) {
+      // Rich-text editors bind Mod-J to insert a link; ProseMirror ignores default-prevented keys.
+      if (e.target instanceof Element && e.target.closest('.ProseMirror')) return
       e.preventDefault()
       if (cmdJ.value) cmdJ.value = false
       else setActiveCmdView('cmd-j')
@@ -174,10 +176,10 @@ const _ = (window as any).ResizeObserver
       <!-- Page Loading Indicator -->
       <NcNuxtLoadingIndicator />
 
-      <!-- Command Menu -->
-      <CmdK ref="commandPalette" v-model:open="cmdK" :set-active-cmd-view="setActiveCmdView" />
+      <!-- Command Menu. Keyed by user: sign-out disposes the Pinia stores these hold, so a new user remounts them. -->
+      <CmdK :key="user?.id" ref="commandPalette" v-model:open="cmdK" :set-active-cmd-view="setActiveCmdView" />
       <!-- Recent Views. Cycles through recently visited Views -->
-      <CmdL v-model:open="cmdL" :set-active-cmd-view="setActiveCmdView" />
+      <CmdL :key="user?.id" v-model:open="cmdL" :set-active-cmd-view="setActiveCmdView" />
       <!-- Documentation. Integrated NocoDB Docs directly inside the Product -->
       <CmdJ v-model:open="cmdJ" :set-active-cmd-view="setActiveCmdView" />
       <DashboardFeatureExperimentation v-model:value="isExperimentalFeatureModalOpen" />

@@ -1514,7 +1514,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
   // views opened this session stay on top.
   watch(
     () => [user.value?.id, activeWorkspaceId.value] as const,
-    ([userId, workspaceId]) => {
+    ([userId, workspaceId], prev) => {
+      // Signed out, or someone else signed in: clear before loading, so only this user's list merges.
+      if (!userId || (prev && prev[0] !== userId)) allRecentViews.value = []
       if (!userId || !workspaceId) return
       const saved: RecentView[] = userLocalStorageInfoManager.get(userId, workspaceId, 'recentViews') ?? []
       const seen = new Set(allRecentViews.value.map((v) => `${v.tableID}:${v.viewId}`))

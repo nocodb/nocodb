@@ -301,6 +301,7 @@ export const permissionScopes = {
 
     // AI
     'aiUtils',
+    'aiCmdkInterpret',
     'aiData',
     'aiBaseSchema',
     'aiDataGenerateRows',
@@ -477,6 +478,8 @@ const rolePermissions:
       // decision 2026-09-19). The invite form caps the offered role at the
       // inviter's own, so a viewer can only ever bring in another viewer.
       userInvite: true,
+      // Cmd+K NocoAI readings: sends field metadata only, never row data.
+      aiCmdkInterpret: true,
       // batch envelope — per-sub-op ACL is enforced inside the handler,
       // so the envelope itself is granted to everyone with base access.
       batch: true,
@@ -877,6 +880,8 @@ export const sourceRestrictions = {
 export default rolePermissions;
 
 const permissionDescriptions: Record<string, string> = {
+  aiCmdkInterpret: 'interpret a Cmd+K query using AI',
+
   // cloudOrg permissions
   orgUserAdd: 'add users to the organization',
   orgUserRemove: 'remove users from the organization',

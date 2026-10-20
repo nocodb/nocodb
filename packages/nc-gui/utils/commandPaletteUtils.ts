@@ -26,6 +26,9 @@ export function getCmdPriority(command: CmdCommand) {
 
 const CMD_USAGE_HALF_LIFE_MS = 7 * 24 * 60 * 60 * 1000
 
+/** Lowest fuzzy score kept: typos score above it ("fitler" 3.9, "srot" 1.08), stray letter hits below ("hooli" 0.56). */
+const CMD_FUZZY_MIN = 1
+
 /** Run count decayed by age (a run a week ago counts half); a submenu pick counts for its parent. */
 export function getCmdFrecency(usage: CmdUsage | undefined, id: string, now = Date.now()) {
   const entry = usage?.[id.split('>')[0]!]
@@ -378,7 +381,7 @@ export function searchCmdCommands(
   const best = Math.max(0, ...candidates.map(fuzzyScore))
   return rank((command) => {
     const score = fuzzyScore(command)
-    return score >= best * 0.5 ? score : 0
+    return score >= Math.max(CMD_FUZZY_MIN, best * 0.5) ? score : 0
   })
 }
 

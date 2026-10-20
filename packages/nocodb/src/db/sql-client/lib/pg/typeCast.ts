@@ -17,7 +17,7 @@ import { DATE_FORMATS, TIME_FORMATS } from '~/db/sql-client/lib/pg/constants';
  * @param {String} source - source column name
  * @returns {String} - query to extract number from a string
  */
-function extractNumberQuery(source: string) {
+export function extractNumberQuery(source: string) {
   return `
     CAST(
       NULLIF(

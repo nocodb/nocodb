@@ -36,6 +36,7 @@ export const baseSettingsTabToSlug: Record<string, string> = {
   'app-url': 'app-url',
   'app-theme': 'app-theme',
   'app-access': 'app-access',
+  'app-teams': 'app-teams',
   'app-public': 'app-public',
   'app-marketplace': 'app-marketplace',
   'app-connections': 'app-connections',
@@ -43,6 +44,7 @@ export const baseSettingsTabToSlug: Record<string, string> = {
   'app-api': 'app-api',
   'app-versions': 'app-versions',
   'skills': 'skills',
+  'machines': 'machines',
 }
 
 // The app settings section, in nav order. Rendered only when the base has an
@@ -70,6 +72,7 @@ export const appSettingsNav: {
 }[] = [
   // Who may use the app is the first thing its owner reaches for, so it leads the nav.
   { tab: 'app-access', label: 'labels.appAccess.membersTitle', icon: 'ncUsers', testId: 'app-access', installer: true },
+  { tab: 'app-teams', label: 'labels.appAccess.teamsActionsTitle', icon: 'ncShield', testId: 'app-teams', installer: true },
   { tab: 'app-url', label: 'labels.appUrl', icon: 'ncGlobe', testId: 'app-url', installer: true },
   { tab: 'app-theme', label: 'labels.appTheme', icon: 'ncPalette', testId: 'app-theme' },
   // The anonymous surface is its own subject: pages and the actions a visitor
@@ -116,6 +119,17 @@ export function appSettingsNavFor(isInstall: boolean, isListing = false, hasApp 
   // `storeEnabled` is the store's own feature flag: a base can already carry a
   // listing from before the flag went on, and its store pane is store-facing.
   return appSettingsNav.filter((item) => (item.listing ? isListing && storeEnabled : hasApp))
+}
+
+const CLASSIC_APP_SLUG_PREFIX = 'interface-members:'
+
+/** A classic app's rail row. Its pane is `interface-members`, scoped by `?interfaceId=`. */
+export function classicAppSlug(interfaceId: string) {
+  return `${CLASSIC_APP_SLUG_PREFIX}${interfaceId}`
+}
+
+export function classicAppIdOfSlug(slug: string) {
+  return slug.startsWith(CLASSIC_APP_SLUG_PREFIX) ? slug.slice(CLASSIC_APP_SLUG_PREFIX.length) || null : null
 }
 
 /** Workspace settings panes, by their `/{ws}/settings/{slug}` slug. The slug is the pane key. */

@@ -1730,7 +1730,7 @@ export class AtImportProcessor {
         CONCATENATE: '',
         COUNT: 'count',
         COUNTA: '',
-        COUNTALL: 'count',
+        COUNTALL: 'countAll',
         MAX: 'max',
         MIN: 'min',
         OR: '',

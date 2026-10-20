@@ -6,6 +6,12 @@ import { getMarkdownSpec } from '../util/extensions'
 import type { MarkdownOptions } from '../types'
 import { mdImageAsText } from '~/helpers/tiptap/functionality'
 
+// DOMPurify's default URI allowlist plus `nc-file:`, the inert reference workflow email bodies store
+// images as (the image node view resolves it to a signed link; nothing loads it as-is). Without it,
+// every setContent strips those images and the next save drops them.
+const ALLOWED_URI_REGEXP =
+  /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|matrix|nc-file):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+
 export class MarkdownParser {
   editor: Editor
 
@@ -29,11 +35,11 @@ export class MarkdownParser {
   }
 
   replaceBlockBrWithEmptyParagraph(html: string): string {
-    const container = document.createElement('div')
-    container.innerHTML = html
+    // Inert (DOMParser) document: a live element would make the browser fetch every <img src>.
+    const container = elementFromString(html)
     ;[...container.children].forEach((child) => {
       if (child.tagName === 'BR') {
-        const p = document.createElement('p')
+        const p = container.ownerDocument.createElement('p')
         child.replaceWith(p)
       }
     })
@@ -48,7 +54,7 @@ export class MarkdownParser {
       getMarkdownSpec(extension)?.parse?.setup?.call({ editor: this.editor, options: extension.options }, this.md),
     )
 
-    const renderedHTML = DOMPurify.sanitize(this.md.render(content))
+    const renderedHTML = DOMPurify.sanitize(this.md.render(content), { ALLOWED_URI_REGEXP })
     const element = elementFromString(renderedHTML)
 
     this.editor.extensionManager.extensions.forEach((extension) => {

@@ -69,6 +69,12 @@ export const permissionScopes = {
     'instanceAdminStats',
     'instanceAdminWorkspaces',
     'instanceAdminBases',
+    'abuseReportList',
+    'abuseReportGet',
+    'abuseReportUpdate',
+    'abuseReportDisableResource',
+    'orgUserBlock',
+    'orgUserUnblock',
 
     // Cache
     'cacheGet',
@@ -135,7 +141,9 @@ export const permissionScopes = {
 
     // Workspace user ops (internal, not exposed as CE API)
     'workspaceUserList',
+    'workspaceAppList',
     'workspaceInvite',
+    'workspaceInviteResend',
     'workspaceUserUpdate',
     'workspaceUserDelete',
     'workspaceInviteLinkList',
@@ -423,6 +431,7 @@ const rolePermissions:
   [WorkspaceUserRoles.NO_ACCESS]: {
     include: {
       baseList: true,
+      workspaceAppList: true,
     },
   },
   [WorkspaceUserRoles.VIEWER]: {
@@ -457,6 +466,7 @@ const rolePermissions:
       integrationLinkedBaseList: true,
       integrationUpdateLinkedBases: true,
       aiSchema: true,
+      workspaceInviteResend: true,
       workspaceUserUpdate: true,
       workspaceUserDelete: true,
     },
@@ -937,6 +947,12 @@ const permissionDescriptions: Record<string, string> = {
   instanceAdminStats: 'view instance admin statistics',
   instanceAdminWorkspaces: 'list all workspaces in instance admin',
   instanceAdminBases: 'list all bases in instance admin',
+  abuseReportList: 'list abuse reports',
+  abuseReportGet: 'view an abuse report',
+  abuseReportUpdate: 'update an abuse report status',
+  abuseReportDisableResource: 'disable the public link of a reported item',
+  orgUserBlock: 'block a user',
+  orgUserUnblock: 'unblock a user',
   testConnection: 'test connection to a service',
   genericGPT: 'use generic GPT functionality',
 
@@ -948,6 +964,8 @@ const permissionDescriptions: Record<string, string> = {
   // workspace permissions
   workspaceUserList: 'view list of users in the workspace',
   workspaceInvite: 'invite users to the workspace',
+  workspaceInviteResend: 'resend a pending workspace invitation',
+  workspaceAppList: 'view list of apps in the workspace',
   workspaceUserUpdate: 'update workspace user details',
   workspaceUserDelete: 'remove a user from the workspace',
 

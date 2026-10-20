@@ -1,6 +1,5 @@
-import MailerSend, { Attachment, EmailParams, Recipient } from 'mailersend';
-import type { IEmailAdapter } from '~/types/nc-plugin';
-import type { XcEmail } from '~/types/nc-plugin/lib/IEmailAdapter';
+import MailerSend, { EmailParams, Recipient } from 'mailersend';
+import type { IEmailAdapter, XcEmail } from '~/types/nc-plugin';
 import { NcError } from '~/helpers/ncError';
 
 export default class Mailer implements IEmailAdapter {
@@ -18,7 +17,7 @@ export default class Mailer implements IEmailAdapter {
   }
 
   public async mailSend(mail: XcEmail): Promise<any> {
-    const recipients = [new Recipient(mail.to)];
+    const recipients = toRecipients(mail.to);
 
     const emailParams = new EmailParams()
       .setFrom(this.input.from)
@@ -28,28 +27,41 @@ export default class Mailer implements IEmailAdapter {
       .setSubject(mail.subject)
       .setHtml(mail.html)
       .setText(mail.text);
+    if (mail.cc) emailParams.setCc(toRecipients(mail.cc));
+    if (mail.bcc) emailParams.setBcc(toRecipients(mail.bcc));
 
-    const attachments = (mail.attachments ?? [])
-      .filter((a) => a.content !== undefined && a.content !== null)
-      .map(
-        (a) =>
-          new Attachment(
-            Buffer.isBuffer(a.content)
-              ? a.content.toString('base64')
-              : Buffer.from(
-                  String(a.content),
-                  (a.encoding as BufferEncoding) || 'utf8',
-                ).toString('base64'),
-            a.filename || 'attachment',
-          ),
-      );
-    if (attachments.length) {
-      emailParams.setAttachments(attachments);
-    }
+    // The SDK predates inline parts; the API reads `id` as the Content-ID for `cid:` references.
+    const attachments = (mail.attachments ?? []).map((attachment) => {
+      if (attachment.content === undefined || attachment.content === null) {
+        // MailerSend takes bytes only; fetching a link here would bypass the SSRF-filtered agents.
+        throw new Error(
+          `MailerSend can't attach "${
+            attachment.filename || 'file'
+          }" by link or path; pass its content instead`,
+        );
+      }
+      const content = Buffer.isBuffer(attachment.content)
+        ? attachment.content
+        : Buffer.from(
+            attachment.content,
+            (attachment.encoding as BufferEncoding) || 'utf8',
+          );
+      return {
+        content: content.toString('base64'),
+        filename: attachment.filename || 'attachment',
+        disposition: attachment.cid ? 'inline' : 'attachment',
+        ...(attachment.cid ? { id: attachment.cid } : {}),
+      };
+    });
+    if (attachments.length) emailParams.setAttachments(attachments);
 
     const res = await this.mailersend.send(emailParams);
-    if (res.status === 401) {
-      throw new Error(res.status);
+    if (!res.ok) {
+      throw new Error(
+        `MailerSend rejected the email (${res.status}): ${await errorMessage(
+          res,
+        )}`,
+      );
     }
   }
 
@@ -64,5 +76,26 @@ export default class Mailer implements IEmailAdapter {
     } catch (e) {
       NcError._.pluginTestError(e?.message);
     }
+  }
+}
+
+// Workflow emails pass comma-separated address lists; the API wants one Recipient each.
+function toRecipients(addresses: string): Recipient[] {
+  return String(addresses)
+    .split(',')
+    .map((address) => address.trim())
+    .filter(Boolean)
+    .map((address) => new Recipient(address));
+}
+
+async function errorMessage(res: {
+  json: () => Promise<any>;
+  statusText: string;
+}): Promise<string> {
+  try {
+    const body = await res.json();
+    return body?.message || res.statusText;
+  } catch {
+    return res.statusText;
   }
 }

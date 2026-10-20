@@ -3,15 +3,12 @@ import path from 'path';
 import { promisify } from 'util';
 import { Readable } from 'stream';
 import mkdirp from 'mkdirp';
-import axios from 'axios';
-import { OperationSource } from 'nocodb-sdk';
 import { globStream } from 'glob';
 import { Logger } from '@nestjs/common';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
-import { getFilteredAgents } from '~/utils/ssrf';
 import { validateAndNormaliseLocalPath } from '~/helpers/attachmentHelpers';
 import { NcError } from '~/helpers/ncError';
-import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
+import { fetchSourceFile } from '~/utils/pluginUtils';
 
 export default class Local implements IStorageAdapterV2 {
   name = 'Local';
@@ -35,11 +32,11 @@ export default class Local implements IStorageAdapterV2 {
     url: string,
     { fetchOptions: { buffer } = { buffer: false } },
   ): Promise<any> {
-    try {
-      const destPath = validateAndNormaliseLocalPath(key);
-      const response = await axios.get(url, {
-        responseType: buffer ? 'arraybuffer' : 'stream',
-        maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
+    const destPath = validateAndNormaliseLocalPath(key);
+    return fetchSourceFile(
+      url,
+      {
+        buffer,
         headers: {
           accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
@@ -50,28 +47,30 @@ export default class Local implements IStorageAdapterV2 {
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
           origin: 'https://www.airtable.com/',
         },
-        ...getFilteredAgents({ url, source: OperationSource.PLUGINS }),
-      });
-
-      await mkdirp(path.dirname(destPath));
-      if (buffer) {
-        await fs.promises.writeFile(destPath, Buffer.from(response.data));
-        return {
-          url: null,
-          data: response.data,
-        };
-      } else {
-        await this.fileCreateByStream(key, response.data);
-        return {
-          url: null,
-          data: null,
-        };
-      }
-    } catch (err) {
-      NcError._.storageFileCreateError(
-        `Failed to create file from URL: ${err.message}`,
-      );
-    }
+      },
+      async (response) => {
+        try {
+          await mkdirp(path.dirname(destPath));
+          if (buffer) {
+            await fs.promises.writeFile(destPath, Buffer.from(response.data));
+            return {
+              url: null,
+              data: response.data,
+            };
+          } else {
+            await this.fileCreateByStream(key, response.data);
+            return {
+              url: null,
+              data: null,
+            };
+          }
+        } catch (err) {
+          NcError._.storageFileCreateError(
+            `Failed to create file from URL: ${err.message}`,
+          );
+        }
+      },
+    );
   }
 
   public async fileCreateByStream(

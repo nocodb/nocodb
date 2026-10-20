@@ -8,6 +8,7 @@ import {
   getEquivalentUIType,
   getFilterCount,
   getPlaceholderNewRow,
+  getRollupResultUidt,
   isBtLikeV2Junction,
   isComparisonOpAllowed,
   isDateType,
@@ -22,6 +23,7 @@ import type {
   ComparisonOpUiType,
   FilterGroupChangeEvent,
   FilterRowChangeEvent,
+  FilterType,
   LinkToAnotherRecordType,
   LookupType,
   TableType,
@@ -222,12 +224,33 @@ export const getFilterUidt = (col: ColumnTypeForFilter): UITypes => {
 
     return (formulaUIType || col.uidt) as UITypes
   }
+  // a rollup returning a date (min/max over a Date field) filters like one
+  else if (col.uidt === UITypes.Rollup) {
+    return getRollupResultUidt(col) ?? (col.uidt as UITypes)
+  }
   // if column is a lookup column, then use the lookup type extracted from the column
   else if (col.btLookupColumn) {
     return col.btLookupColumn.uidt as UITypes
   } else {
     return col.uidt as UITypes
   }
+}
+
+/**
+ * A filter saved before its field filtered as a date (e.g. a min/max rollup) has no sub-op;
+ * give it the one picking the operator would have set.
+ */
+export const defaultDateFilterSubOp = (filter: Pick<FilterType, 'comparison_op' | 'comparison_sub_op'>, uidt?: UITypes) => {
+  if (
+    filter.comparison_sub_op ||
+    !filter.comparison_op ||
+    !uidt ||
+    !isDateType(uidt) ||
+    ['blank', 'notblank', 'empty', 'notempty', 'null', 'notnull'].includes(filter.comparison_op)
+  ) {
+    return
+  }
+  filter.comparison_sub_op = filter.comparison_op === 'isWithin' ? 'pastNumberOfDays' : 'exactDate'
 }
 
 export const composeColumnsForFilter = async ({

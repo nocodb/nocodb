@@ -4,6 +4,7 @@ import {
   isLinksOrLTAR,
   NcBaseErrorv2,
   NcErrorType,
+  RelationTypes,
   serializeExcelDateValue,
   serializeImportValue,
   UITypes,
@@ -67,6 +68,13 @@ const getLinkFlushThreshold = () =>
 /** Default delimiter for multiple display values in one LTAR cell. */
 const DEFAULT_LINK_DELIMITER = ',';
 
+/** Link types that hold one record, so their cell is never split. */
+const SINGLE_TARGET_RELATIONS: RelationTypes[] = [
+  RelationTypes.BELONGS_TO,
+  RelationTypes.MANY_TO_ONE,
+  RelationTypes.ONE_TO_ONE,
+];
+
 /** Row-level errors are retried one-by-one; everything else fails the batch. */
 const ROW_LEVEL_ERRORS = new Set<NcErrorType>([
   NcErrorType.ERR_DUPLICATE_RECORD,
@@ -85,7 +93,8 @@ interface ColumnMapEntry {
 /** A source column mapped to a link (LTAR) destination column. */
 interface LtarColMapEntry {
   colId: string;
-  delimiter: string;
+  /** null = the whole cell is one display value (single-target links). */
+  delimiter: string | null;
 }
 
 /** One inserted parent row's pk + the display values to link for a column. */
@@ -95,10 +104,13 @@ interface LinkAccumEntry {
 }
 
 /** Split an LTAR cell into trimmed, non-empty display values. */
-function splitDisplayValues(raw: any, delimiter: string): string[] {
+export function splitDisplayValues(
+  raw: any,
+  delimiter: string | null,
+): string[] {
   if (raw === null || raw === undefined) return [];
-  return String(raw)
-    .split(delimiter)
+  const text = String(raw);
+  return (delimiter === null ? [text] : text.split(delimiter))
     .map((v) => v.trim())
     .filter((v) => v.length > 0);
 }
@@ -777,10 +789,18 @@ export class DataImportProcessor {
         if (!col) continue;
         const colOpt = (await col.getColOptions()) as {
           fk_related_model_id?: string;
+          type?: string;
         } | null;
+        // A single-target link cell holds one display value, which may
+        // contain the default delimiter; a custom delimiter is kept.
+        if (
+          ltarColMap[srcCol].delimiter === DEFAULT_LINK_DELIMITER &&
+          SINGLE_TARGET_RELATIONS.includes(colOpt?.type as RelationTypes)
+        ) {
+          ltarColMap[srcCol].delimiter = null;
+        }
         if (colOpt?.fk_related_model_id === model.id) {
           hasSelfRefLink = true;
-          break;
         }
       }
     }

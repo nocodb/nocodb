@@ -130,6 +130,8 @@ const carouselCommentsEnabled = computed(
 // Image annotations are EE-only; plain carousel comments stay available in CE.
 const annotationEnabled = computed(() => isEeUI && carouselCommentsEnabled.value)
 
+const isSelectedFailed = computed(() => !!selectedFile.value && isAttachmentDownloadFailed(selectedFile.value))
+
 // Bottom-left file meta (type • size) for the current attachment.
 const fileTypeLabel = computed(() => {
   if (!selectedFile.value) return ''
@@ -272,10 +274,11 @@ const initEmblaApi = (val: any) => {
         >
           <h3
             style="width: max-content"
-            class="hover:underline pointer-events-auto font-semibold cursor-pointer text-white"
+            class="pointer-events-auto font-semibold text-white"
+            :class="{ 'hover:underline cursor-pointer': !isSelectedFailed }"
             @click.stop="downloadAttachment(selectedFile)"
           >
-            {{ selectedFile && selectedFile.title }}
+            {{ selectedFile && getAttachmentDisplayTitle(selectedFile) }}
           </h3>
         </div>
 
@@ -283,8 +286,19 @@ const initEmblaApi = (val: any) => {
           <NcCarouselContent>
             <NcCarouselItem v-for="(item, index) in visibleItems" :key="index">
               <div v-if="selectedIndex === index" :key="isUpdated" class="justify-center w-full h-full flex items-center">
+                <div
+                  v-if="isAttachmentDownloadFailed(item)"
+                  class="nc-attachment-failed-preview bg-nc-bg-default h-full flex flex-col justify-center rounded-md gap-1 items-center w-full px-6"
+                >
+                  <GeneralIcon icon="alertTriangle" class="text-nc-content-red-medium w-20 h-20" />
+                  <div class="text-nc-content-gray text-sm">{{ getAttachmentDisplayTitle(item) }}</div>
+                  <div class="text-nc-content-gray-muted text-xs text-center max-w-100">
+                    {{ $t('msg.error.attachmentUrlDownloadFailed') }}
+                  </div>
+                  <div v-if="item.error" class="text-nc-content-gray-muted text-xs text-center max-w-100">{{ item.error }}</div>
+                </div>
                 <CellAttachmentPreviewImage
-                  v-if="isImage(item.title, item.mimetype)"
+                  v-else-if="isImage(item.title, item.mimetype)"
                   class="nc-attachment-img-wrapper"
                   object-fit="contain"
                   controls
@@ -416,7 +430,7 @@ const initEmblaApi = (val: any) => {
         </div>
 
         <div class="absolute keep-open right-2 z-30 bottom-3 transition-all gap-3 transition-ease-in-out !h-6 flex items-center">
-          <NcTooltip v-if="isEditAllowed" color="light" placement="bottom">
+          <NcTooltip v-if="isEditAllowed && !isSelectedFailed" color="light" placement="bottom">
             <template #title> {{ $t('title.renameFile') }} </template>
             <NcButton
               size="xsmall"
@@ -428,7 +442,7 @@ const initEmblaApi = (val: any) => {
             </NcButton>
           </NcTooltip>
 
-          <NcTooltip color="light" placement="bottom">
+          <NcTooltip v-if="!isSelectedFailed" color="light" placement="bottom">
             <template #title> {{ $t('title.downloadFile') }} </template>
             <NcButton
               class="!hover:bg-transparent !text-white"

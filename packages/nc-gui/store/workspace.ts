@@ -162,6 +162,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
+  const resendCollaboratorInvite = async (..._args: any[]) => {}
+
   const loadWorkspace = async (workspaceId?: string) => {
     if (workspaceId) {
       workspaces.value.set(workspaceId, { ...activeWorkspace.value, id: workspaceId })
@@ -393,6 +395,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     inviteCollaborator,
     removeCollaborator,
     updateCollaborator,
+    resendCollaboratorInvite,
     collaborators,
     collaboratorsMap,
     allCollaborators,

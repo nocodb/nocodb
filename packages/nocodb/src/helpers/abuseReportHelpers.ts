@@ -1,4 +1,24 @@
+import { isIPv4, isIPv6 } from 'net';
 import { AbuseReportReason } from 'nocodb-sdk';
+
+/** Rate-limit key for an IP: IPv6 counts per /64, which one host usually owns. */
+export const ipBucket = (ip: string) => {
+  const v4 = ip.replace(/^::ffff:/i, '');
+  if (isIPv4(v4)) return v4;
+  if (!isIPv6(ip)) return ip;
+  const [head, tail] = ip.toLowerCase().split('::');
+  const groups = head ? head.split(':') : [];
+  if (tail !== undefined) {
+    const rest = tail ? tail.split(':') : [];
+    groups.push(
+      ...Array(Math.max(0, 8 - groups.length - rest.length)).fill('0'),
+    );
+  }
+  return `${groups
+    .slice(0, 4)
+    .map((g) => parseInt(g, 16).toString(16))
+    .join(':')}::/64`;
+};
 
 export const ABUSE_REASON_LABELS: Record<AbuseReportReason, string> = {
   [AbuseReportReason.PHISHING]: 'Phishing / credential harvesting',

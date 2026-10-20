@@ -132,6 +132,24 @@ const checkboxGroupKey = ({
 };
 
 export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
+  // knex drops `nulls` for a raw expression, so pg/Oracle would put NULL last
+  // on asc. Spell the clause out so groups order like row sorts (NULL smallest).
+  const orderByWithNulls = (
+    qb: Knex.QueryBuilder,
+    expr: Knex.Raw,
+    direction: string,
+    nulls: 'FIRST' | 'LAST',
+  ) => {
+    if (
+      (baseModel.isPg || baseModel.isOracle) &&
+      ['asc', 'desc'].includes(direction)
+    ) {
+      qb.orderByRaw(`?? ${direction} NULLS ${nulls}`, [expr]);
+    } else {
+      qb.orderBy(expr as any, direction, nulls);
+    }
+  };
+
   // pg ranks NaN above every number, so ordering group keys by the raw value
   // puts the NaN group last while the rows inside it sort NaN first (see
   // FormulaGeneralHandler.applySort). Rank NaN below -Infinity here too, or the
@@ -149,11 +167,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     ) {
       return;
     }
-    qb.orderBy(
+    orderByWithNulls(
+      qb,
       baseModel.dbDriver.raw(`??.?? <> 'NaN'::double precision`, [
         'g',
         getAs(column),
-      ]) as any,
+      ]),
       direction,
       nulls,
     );
@@ -750,17 +769,14 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             'FIRST',
           );
         } else if (baseModel.isMssql) {
-          // MSSQL's default NULL ordering is the inverse of PG's (the
-          // reference dialect): PG treats NULLs as the largest value
-          // (ASC → NULLs last, DESC → NULLs first). knex drops the explicit
-          // NULLS clause for raw-column orderBy, so MSSQL falls back to its
-          // own default (NULLs smallest) and the group order diverges.
-          // Re-create PG semantics with an explicit NULL bucket.
+          // NULL sorts as the smallest value (first on ASC, last on DESC), as
+          // in row sorts. Explicit bucket: T-SQL has no NULLS FIRST/LAST.
           outerQb.orderByRaw(
-            `CASE WHEN (${finalStatement}) IS NULL THEN 1 ELSE 0 END ${sort.direction}, (${finalStatement}) ${sort.direction}`,
+            `CASE WHEN (${finalStatement}) IS NULL THEN 0 ELSE 1 END ${sort.direction}, (${finalStatement}) ${sort.direction}`,
           );
         } else {
-          outerQb.orderBy(
+          orderByWithNulls(
+            outerQb,
             sanitize(baseModel.dbDriver.raw(finalStatement)),
             sort.direction,
             sort.direction === 'desc' ? 'LAST' : 'FIRST',
@@ -780,10 +796,9 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             'FIRST',
           );
         } else if (baseModel.isMssql) {
-          // See note above — replicate PG's NULL ordering on MSSQL so the
-          // group list order matches the other dialects.
+          // See note above — NULL smallest, matching the other dialects.
           outerQb.orderByRaw(
-            `CASE WHEN ??.?? IS NULL THEN 1 ELSE 0 END ${sort.direction}, ??.?? ${sort.direction}`,
+            `CASE WHEN ??.?? IS NULL THEN 0 ELSE 1 END ${sort.direction}, ??.?? ${sort.direction}`,
             ['g', getAs(column), 'g', getAs(column)],
           );
         } else {
@@ -793,8 +808,9 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             sort.direction,
             sort.direction === 'desc' ? 'LAST' : 'FIRST',
           );
-          outerQb.orderBy(
-            baseModel.dbDriver.raw('??.??', ['g', getAs(column)]) as any,
+          orderByWithNulls(
+            outerQb,
+            baseModel.dbDriver.raw('??.??', ['g', getAs(column)]),
             sort.direction,
             sort.direction === 'desc' ? 'LAST' : 'FIRST',
           );

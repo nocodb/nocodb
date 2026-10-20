@@ -1,5 +1,6 @@
 import {
   FormulaDataTypes,
+  getLegacyDateRollupAggregation,
   NumericalAggregations,
   UITypes,
   validateAggregationColType,
@@ -22,6 +23,11 @@ export interface ApplyAggregationParams {
   column: Column;
   alias?: string;
   baseQuery?: Knex.QueryBuilder;
+  /**
+   * Set for an aggregation saved on the view: a rollup whose result type no
+   * longer fits it is skipped instead of failing the whole footer.
+   */
+  skipStaleRollup?: boolean;
 }
 
 /**
@@ -31,7 +37,7 @@ export interface ApplyAggregationParams {
  * SELECT expression via `getColumnNameQuery`. Returns the resolved
  * `AggregationGeneratorParams`, or `undefined` when the column has no
  * aggregation or carries a stored `colOptions.error`. Throws
- * `NcError.notImplemented` for aggregation × UIType combinations the SDK
+ * `NcError.badRequest` for aggregation × UIType combinations the SDK
  * validator rejects.
  */
 async function resolveAggregationParams({
@@ -40,6 +46,7 @@ async function resolveAggregationParams({
   column,
   alias,
   baseQuery,
+  skipStaleRollup,
 }: ApplyAggregationParams): Promise<AggregationGeneratorParams | undefined> {
   if (!aggregation || !column) {
     return;
@@ -63,14 +70,26 @@ async function resolveAggregationParams({
   - attachment   - attachment aggregations like attachment size.
   - unknown      - if the aggregation is not supported yet
   */
+  // a rollup's date result type is resolved on its colOptions
+  if (column.uidt === UITypes.Rollup && !column.colOptions) {
+    await column.getColOptions();
+  }
+
   const aggType = validateAggregationColType(column, aggregation);
 
   if (aggType === false || aggType === 'unknown') {
-    NcError.get(context).notImplemented(
-      `Aggregation ${aggregation} is not implemented yet`,
+    // the rollup function or its target field changed since the footer was saved
+    if (skipStaleRollup && column.uidt === UITypes.Rollup) {
+      return;
+    }
+    NcError.get(context).badRequest(
+      `Aggregation '${aggregation}' is not supported for field '${column.title}'`,
     );
     return;
   }
+
+  aggregation =
+    getLegacyDateRollupAggregation(column, aggregation) ?? aggregation;
 
   // If the column is a barcode or qr code column, we fetch the column that the virtual column refers to.
   if (column.uidt === UITypes.Barcode || column.uidt === UITypes.QrCode) {

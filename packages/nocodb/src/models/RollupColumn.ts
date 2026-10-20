@@ -1,4 +1,5 @@
-import type { RollupType } from 'nocodb-sdk';
+import { resolveRollupResultUidt } from 'nocodb-sdk';
+import type { RollupType, UITypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import Column from '~/models/Column';
@@ -15,6 +16,7 @@ import {
 
 export const ROLLUP_FUNCTIONS = <const>[
   'count',
+  'countAll',
   'min',
   'max',
   'avg',
@@ -23,6 +25,28 @@ export const ROLLUP_FUNCTIONS = <const>[
   'avgDistinct',
   'sum',
 ];
+
+/**
+ * `min`/`max` over a date field returns that date type. Resolved from the
+ * target field on every read, so it follows a change to that field's type.
+ */
+async function resolveResultUidt(
+  rollup: RollupColumn,
+  ncMeta = Noco.ncMeta,
+): Promise<RollupColumn['result_uidt']> {
+  if (rollup.rollup_function !== 'min' && rollup.rollup_function !== 'max') {
+    return undefined;
+  }
+  try {
+    const rollupColumn = await rollup.getRollupColumn(ncMeta);
+    return rollupColumn
+      ? resolveRollupResultUidt(rollup.rollup_function, rollupColumn.uidt)
+      : undefined;
+  } catch {
+    // a broken link leaves the rollup numeric
+    return undefined;
+  }
+}
 
 export default class RollupColumn implements RollupType {
   id: string;
@@ -33,6 +57,8 @@ export default class RollupColumn implements RollupType {
   fk_rollup_column_id;
   rollup_function: (typeof ROLLUP_FUNCTIONS)[number];
   error: string;
+  // Resolved on read, never stored
+  result_uidt?: UITypes.Date | UITypes.DateTime;
 
   constructor(data: Partial<RollupColumn>) {
     Object.assign(this, data);
@@ -131,6 +157,8 @@ export default class RollupColumn implements RollupType {
     if (!column) return null;
     const instance = new RollupColumn(column);
     setModelContext(instance, context);
+    const resultUidt = await resolveResultUidt(instance, ncMeta);
+    if (resultUidt) instance.result_uidt = resultUidt;
     return instance;
   }
 

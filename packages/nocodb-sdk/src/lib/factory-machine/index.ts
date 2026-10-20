@@ -120,6 +120,8 @@ export interface FactoryMachineSummary extends FactoryMachineType {
   active?: FactoryMachineVersionType;
   latest?: FactoryMachineVersionType;
   version_count: number;
+  /** The version in use was built on an older base image or catalog; rebuilding its spec upgrades it. */
+  outdated?: boolean;
 }
 
 export interface FactoryMachinesState {
@@ -162,10 +164,20 @@ export interface FactoryMachineFix {
  * install itself, offered for the session's machine so later sessions start
  * with them.
  */
+/** What a suggestion takes off a machine: catalog items by id, packages and commands by text. */
+export interface FactoryMachineRemoval {
+  items?: string[];
+  apt?: string[];
+  npm?: string[];
+  pip?: string[];
+  commands?: string[];
+}
+
 export interface FactoryMachineSuggestion {
   type: 'machine_suggestion';
   reason: string;
   add: FactoryMachineSpec;
+  remove?: FactoryMachineRemoval;
   /** The machine the session runs on; absent on the stock machine, which means a new one. */
   machine_id?: string;
   machine_title?: string;
@@ -180,6 +192,8 @@ export interface FactoryMachineState {
   /** Newest build, whatever its status. */
   latest?: FactoryMachineVersionType;
   versions: FactoryMachineVersionType[];
+  /** See {@link FactoryMachineSummary.outdated}. */
+  outdated?: boolean;
 }
 
 export interface FactoryMachineDetection {
@@ -620,8 +634,13 @@ export function factoryMachineRequires(id: string): string | undefined {
   return REQUIRES[id];
 }
 
-/** Debian package, npm and pip name shapes. No quotes or spaces, so {@link quote} holds. */
-const PACKAGE_NAME = /^[a-zA-Z0-9@][a-zA-Z0-9._+@/:=<>~^-]*$/;
+/**
+ * Debian package, npm and pip registry names with an optional version. No
+ * quotes or spaces, so {@link quote} holds, and no `:` or `//`, so never a URL,
+ * git or file source.
+ */
+const PACKAGE_NAME =
+  /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-zA-Z0-9][a-zA-Z0-9._+-]*(?:(?:@|==|>=|<=|~=|=|<|>)[a-zA-Z0-9._*+~^<>=-]*)?$/;
 
 const quote = (name: string) => `'${name}'`;
 
@@ -699,8 +718,61 @@ export function factoryMachineAdditions(
     apt: missing(want.apt, have.apt),
     npm: missing(want.npm, have.npm),
     pip: missing(want.pip, have.pip),
-    commands: [],
+    commands: missing(want.commands, have.commands),
   };
+}
+
+/** The part of `remove` that `base` actually has; empty lists when none of it. */
+export function factoryMachineRemovals(
+  base: FactoryMachineSpec | undefined,
+  remove: FactoryMachineRemoval | undefined
+): Required<FactoryMachineRemoval> {
+  const have = canonicalFactoryMachineSpec(base ?? { items: [] });
+  const owned = (list: string[] | undefined, from: string[]) =>
+    [...new Set(list ?? [])].filter((name) => from.includes(name));
+
+  return {
+    items: owned(
+      remove?.items,
+      have.items.map((item) => item.id)
+    ),
+    apt: owned(remove?.apt, have.apt),
+    npm: owned(remove?.npm, have.npm),
+    pip: owned(remove?.pip, have.pip),
+    commands: owned(remove?.commands, have.commands),
+  };
+}
+
+/** True when a removal takes nothing off. */
+export function isEmptyFactoryMachineRemoval(
+  remove: FactoryMachineRemoval | undefined
+): boolean {
+  return (
+    !remove?.items?.length &&
+    !remove?.apt?.length &&
+    !remove?.npm?.length &&
+    !remove?.pip?.length &&
+    !remove?.commands?.length
+  );
+}
+
+/** The machine a suggestion would build: `base`, plus its additions, minus its removals. */
+export function applyFactoryMachineSuggestion(
+  base: FactoryMachineSpec | undefined,
+  suggestion: Pick<FactoryMachineSuggestion, 'add' | 'remove'>
+): FactoryMachineSpec {
+  const merged = mergeFactoryMachineSpec(base, suggestion.add);
+  const remove = suggestion.remove ?? {};
+  const keep = (list: string[], drop: string[] | undefined) =>
+    list.filter((name) => !(drop ?? []).includes(name));
+
+  return canonicalFactoryMachineSpec({
+    items: merged.items.filter((item) => !(remove.items ?? []).includes(item.id)),
+    apt: keep(merged.apt ?? [], remove.apt),
+    npm: keep(merged.npm ?? [], remove.npm),
+    pip: keep(merged.pip ?? [], remove.pip),
+    commands: keep(merged.commands ?? [], remove.commands),
+  });
 }
 
 /** True when a spec selects nothing at all. */

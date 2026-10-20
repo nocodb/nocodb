@@ -184,11 +184,18 @@ export interface AbuseReportSummary {
   description: string;
   reportedAt: string;
   ids: string;
+  /** Reports held back by the notification budget since the last one. */
+  suppressed?: number;
 }
 
-interface AbuseReportPayload extends AbuseReportSummary {
-  to: string;
+/** Reports the budget held back that no later notification carried. */
+export interface AbuseReportDigest {
+  held: number;
 }
+
+export type AbuseReportMessage = AbuseReportSummary | AbuseReportDigest;
+
+type AbuseReportPayload = AbuseReportMessage & { to: string };
 
 type MailParams =
   | {

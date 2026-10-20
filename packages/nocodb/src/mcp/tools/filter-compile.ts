@@ -96,8 +96,8 @@ const DATE_TYPES = [
 // path types by their result, not by uidt.
 export const COMPUTED_TYPES = [UITypes.Lookup, UITypes.Rollup, UITypes.Formula];
 
-// Rollups and lookups take a date comparison's value plainly, with no sub_operator.
-const PLAIN_DATE_TYPES = [UITypes.Lookup, UITypes.Rollup];
+// Lookups take a date comparison's value plainly, with no sub_operator.
+const PLAIN_DATE_TYPES = [UITypes.Lookup];
 
 const MAX_CONDITIONS = 50;
 const MAX_DEPTH = 5;
@@ -114,6 +114,7 @@ const leafSchema = z.object({
     .optional()
     .describe(
       'Date/DateTime fields only, and required there for every comparison: how the value is read. ' +
+        'A rollup returning a date (min/max over a Date field) takes one too. ' +
         "Use 'exactDate' with value '2026-06-01' for a calendar date; 'today'/'yesterday'/'oneWeekAgo' take no value; " +
         "'daysAgo'/'daysFromNow' take a number. With operator isWithin use one of: " +
         `${IS_WITHIN_COMPARISON_SUB_OPS.join(', ')}.`,
@@ -161,6 +162,8 @@ export interface FilterColumn {
   uidt?: string;
   /** Set on a computed field whose definition is broken. */
   error?: string | null;
+  /** A rollup's resolved date type (min/max over a Date field). */
+  result_uidt?: string | null;
 }
 
 type FilterLeaf = z.infer<typeof leafSchema>;
@@ -335,7 +338,11 @@ function compileLeaf(
   }
 
   const op = leaf.operator;
-  const isDate = DATE_TYPES.includes(column.uidt as UITypes);
+  // A date rollup reads a sub_operator like a Date field; without one it keeps
+  // comparing the plain value.
+  const isDate =
+    DATE_TYPES.includes(column.uidt as UITypes) ||
+    (!!leaf.sub_operator && DATE_TYPES.includes(column.result_uidt as UITypes));
   const values = normalizeValues(context, leaf, op, isDate);
 
   if (leaf.sub_operator && !isDate) {

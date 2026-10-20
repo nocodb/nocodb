@@ -8,6 +8,7 @@ import BaseRoleUpdate from '~/services/mail/templates/base-role-update';
 import FormSubmission from '~/services/mail/templates/form-submission';
 import WorkspaceInvite from '~/services/mail/templates/workspace-invite';
 import AbuseReport from '~/services/mail/templates/abuse-report';
+import AbuseReportDigest from '~/services/mail/templates/abuse-report-digest';
 
 export {
   Welcome,
@@ -20,4 +21,5 @@ export {
   FormSubmission,
   WorkspaceInvite,
   AbuseReport,
+  AbuseReportDigest,
 };

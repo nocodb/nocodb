@@ -52,6 +52,8 @@ const { isAgentsEnabled } = storeToRefs(useAgentStore())
 
 const { isAppsEnabled } = storeToRefs(useAppStore())
 
+const { openAppsHome } = useAppsEntry()
+
 const {
   blockAiChat,
   showEEFeatures,
@@ -70,7 +72,8 @@ const {
 // them where they'd be a pure upsell (blocked tier) — not via `showEEFeatures`.
 const showWorkflowsNav = computed(() => isEeUI && showUpgradeSurface(blockWorkflows.value))
 
-const showInterfacesNav = computed(() => isEeUI && showUpgradeSurface(hideInterfaces.value))
+// One tile for AI and classic apps; it stays while either is reachable (classic via its upsell).
+const showAppsNav = computed(() => isEeUI && (isAppsEnabled.value || showUpgradeSurface(hideInterfaces.value)))
 
 const isBookmarksFlyoutOpen = ref(false)
 
@@ -132,16 +135,12 @@ const hasAvailableBases = computed(() => !!basesList.value?.length)
 
 const { isActiveBaseAppOnlyInstall } = useManagedAppInstalls()
 
-const { isActiveBaseCodeProject, isCodeProjectRoute, isCodeProjectMachinesRoute, machinesStatus } = useCodeProjects()
+const { isActiveBaseCodeProject, isCodeProjectRoute, machinesStatus } = useCodeProjects()
 
-// Templates are browsed before a project exists: the project's own navigation
-// there points at whichever project was open last, which is not what is on screen.
-// A code project has no apps of its own to open either.
-const showAppTile = computed(
-  () => isAppsEnabled.value && hasAvailableBases.value && !isTemplatesPageOpened.value && !isActiveBaseCodeProject.value,
+// An app-only install has no base to navigate, so its rail carries just the app.
+const showAppOnlyInstallTile = computed(
+  () => isAppsEnabled.value && hasAvailableBases.value && !isTemplatesPageOpened.value && isActiveBaseAppOnlyInstall.value,
 )
-
-const isAppFirst = computed(() => isAppFirstBase(resolvedProject.value))
 
 const getBasePath = () => {
   const wsId = route.value.params.typeOrId || activeWorkspaceId.value
@@ -190,13 +189,19 @@ const onTabClick = async (tabKey: string) => {
       return
     }
     await navigateTo(`${basePath}/agents`)
-  } else if (tabKey === 'interfaces') {
-    // Plan-blocked: upsell instead of navigating (mirrors bookmarks)
-    if (hideInterfaces.value) {
-      showUpgradeForInterfaceFeature(PlanFeatureTypes.FEATURE_INTERFACES, 'minisidebar-interfaces')
+  } else if (tabKey === 'apps') {
+    // Nothing to open below the tier: upsell instead of navigating (mirrors bookmarks)
+    if (hideInterfaces.value && !isAppsEnabled.value) {
+      showUpgradeForInterfaceFeature(PlanFeatureTypes.FEATURE_INTERFACES, 'minisidebar-apps')
       return
     }
-    await navigateTo(`${basePath}/interfaces`)
+
+    const baseId = (route.value.params.baseId as string) || resolvedProject.value?.id
+    if (!baseId) return
+
+    // The route decides the tab.
+    await openAppsHome({ baseId, workspaceId: (route.value.params.typeOrId as string) || activeWorkspaceId.value })
+    return
   } else {
     await navigateTo(basePath)
   }
@@ -248,6 +253,15 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
   }
 })
 
+// Base settings is an overlay on the current route, so the tile reads the query.
+// Only a slug the nav knows counts — `?settings=true` belongs to the agent panel.
+const isBaseSettingsOpen = computed(() => !!resolveBaseSettingsTab(route.value.query.settings))
+
+// Lit on every AI and classic app route, edit and preview; base settings over an app lights Settings.
+const isAppsRouteActive = computed(
+  () => ['interfaces', 'app'].includes(activeSidebarTab.value) && !isChatFullScreen.value && !isBaseSettingsOpen.value,
+)
+
 // ── Main nav items (add/remove/reorder here) ──
 const mainItems = computed<NavItem[]>(() =>
   // An app-only install has no base to navigate: every one of these routes
@@ -260,20 +274,9 @@ const mainItems = computed<NavItem[]>(() =>
       [
         {
           key: 'home',
-          icon: 'ncHome',
-          label: t('general.home'),
+          icon: 'ncRobotArm',
+          label: t('general.factory'),
           active: isCodeProjectRoute(route.value),
-          onClick: () => {
-            // Off `settings`, or that item stays lit beside this one.
-            activeSidebarTab.value = 'data'
-            navigateTo(`${getBasePath()}/factory`)
-          },
-        },
-        {
-          key: 'machines',
-          icon: 'ncServer',
-          label: t('labels.factoryMachines'),
-          active: isCodeProjectMachinesRoute(route.value),
           dot: {
             building: 'bg-nc-fill-primary animate-pulse',
             failed: 'bg-nc-fill-red-medium',
@@ -281,7 +284,7 @@ const mainItems = computed<NavItem[]>(() =>
           }[machinesStatus.value ?? 'ready'],
           onClick: () => {
             activeSidebarTab.value = 'data'
-            navigateTo(`${getBasePath()}/machines`)
+            navigateTo(`${getBasePath()}/factory`)
           },
         },
       ]
@@ -312,20 +315,22 @@ const mainItems = computed<NavItem[]>(() =>
               },
             ]
           : []),
-        // Paid-only, but the entry stays visible below the tier — clicking upsells
-        // (onTabClick) instead of navigating, mirroring bookmarks.
-        ...(showInterfacesNav.value
+        // AI apps and classic apps (formerly Interfaces) share one tile. Paid-only, but
+        // the entry stays visible below the tier — clicking upsells (onTabClick) instead.
+        ...(showAppsNav.value
           ? [
               {
-                key: 'interfaces',
-                icon: 'ncLayout',
-                label: t('general.interfaces'),
+                key: 'apps',
+                icon: 'ncApp',
+                label: t('objects.apps'),
+                active: isAppsRouteActive.value,
                 disabled:
                   !hasAvailableBases.value ||
-                  !isUIAllowed('interfaceList', {
-                    roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
-                  }),
-                onClick: () => onTabClick('interfaces'),
+                  (!isAppsEnabled.value &&
+                    !isUIAllowed('interfaceList', {
+                      roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
+                    })),
+                onClick: () => onTabClick('apps'),
               },
             ]
           : []),
@@ -347,6 +352,13 @@ const mainItems = computed<NavItem[]>(() =>
       ],
 )
 
+// Base settings' "Show app first": a base built through the App flow leads with its apps.
+const railItems = computed(() =>
+  isAppFirstBase(resolvedProject.value)
+    ? [...mainItems.value].sort((a, b) => Number(b.key === 'apps') - Number(a.key === 'apps'))
+    : mainItems.value,
+)
+
 const handleOpenBookmarkPanel = () => {
   if (isEEFeatureBlocked.value) {
     showUpgradeToUseBookmarks({ triggerSource: 'minisidebar-bookmarks' })
@@ -354,10 +366,6 @@ const handleOpenBookmarkPanel = () => {
     isBookmarksFlyoutOpen.value = !isBookmarksFlyoutOpen.value
   }
 }
-
-// Base settings is an overlay on the current route, so the tile reads the query.
-// Only a slug the nav knows counts — `?settings=true` belongs to the agent panel.
-const isBaseSettingsOpen = computed(() => !!resolveBaseSettingsTab(route.value.query.settings))
 
 const isSettingsActive = computed(() => isBaseSettingsOpen.value || !!wsSettingsSlugFromRoute(route.value))
 </script>
@@ -391,29 +399,31 @@ const isSettingsActive = computed(() => isBaseSettingsOpen.value || !!wsSettings
       </div>
     </div>
 
-    <!-- Apps — leads the group for a base built through the App flow -->
-    <DashboardMiniSidebarV2AppTiles v-if="showAppTile && isAppFirst" variant="rail" />
+    <DashboardMiniSidebarV2AppTiles v-if="showAppOnlyInstallTile" variant="rail" />
 
     <!-- Main nav items -->
-    <DashboardMiniSidebarV2RailItem
-      v-for="(item, idx) of mainItems"
-      :key="idx"
-      :icon="item.icon"
-      :label="item.label"
-      :panel-key="item.key"
-      :active="item.active ?? (activeSidebarTab === item.key && !isChatFullScreen && !isBaseSettingsOpen)"
-      :disabled="item.disabled"
-      @click="item.onClick?.()"
-    >
-      <template v-if="item.dot" #icon>
-        <span class="relative flex">
-          <GeneralIcon :icon="(item.icon as any)" class="nc-rail-item-icon" />
-          <span class="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full ring-2 ring-nc-bg-default" :class="item.dot" />
-        </span>
-      </template>
-    </DashboardMiniSidebarV2RailItem>
+    <DashboardMiniSidebarV2AppsMovedTip v-for="(item, idx) of railItems" :key="idx" :enabled="item.key === 'apps'">
+      <DashboardMiniSidebarV2RailItem
+        :icon="item.icon"
+        :label="item.label"
+        :panel-key="item.key"
+        :active="item.active ?? (activeSidebarTab === item.key && !isChatFullScreen && !isBaseSettingsOpen)"
+        :disabled="item.disabled"
+        @click="item.onClick?.()"
+      >
+        <template v-if="item.dot" #icon>
+          <span class="relative flex">
+            <GeneralIcon :icon="(item.icon as any)" class="nc-rail-item-icon" />
+            <span class="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full ring-2 ring-nc-bg-default" :class="item.dot" />
+          </span>
+        </template>
+      </DashboardMiniSidebarV2RailItem>
+    </DashboardMiniSidebarV2AppsMovedTip>
 
-    <DashboardMiniSidebarV2AppTiles v-if="showAppTile && !isAppFirst" variant="rail" />
+    <NcDivider
+      v-if="mainItems.length && !isActiveBaseAppOnlyInstall && !isTemplatesPageOpened"
+      class="!w-8 !min-w-8 !max-w-8 !my-0 !border-nc-border-gray-medium"
+    />
 
     <!-- Settings -->
     <DashboardMiniSidebarV2RailItem
@@ -427,6 +437,8 @@ const isSettingsActive = computed(() => isBaseSettingsOpen.value || !!wsSettings
 
     <!-- Bottom group -->
     <div class="nc-rail-bottom-group">
+      <PaymentUpgradeRailItem v-if="isEeUI" />
+
       <DashboardRoadmapRailItem />
 
       <!-- Help -->

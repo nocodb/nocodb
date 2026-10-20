@@ -137,6 +137,8 @@ interface NodeExecutionResult {
   // must run this" apart from "this is broken", and matching on the error text
   // would break the first time the copy is edited or localised.
   needsRun?: boolean;
+  // Input paths sent as HTML on this run (a rich-text template); the run panel renders only these.
+  htmlInputPaths?: string[];
   inputVariables?: VariableDefinition[];
   outputVariables?: VariableDefinition[];
 

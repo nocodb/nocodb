@@ -127,7 +127,7 @@ export class AttachmentUrlUploadPreparator {
             if (!('status' in attr)) {
               return attr;
             }
-            return extractProps(attr, ['id', 'url', 'status', 'type']);
+            return extractProps(attr, ['id', 'url', 'status', 'type', 'error']);
           }),
         );
       }

@@ -15620,6 +15620,12 @@
         "description": "Return the number of comments in the given query.",
         "parameters": [
           {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
             "in": "query",
             "name": "ids",
             "required": true,
@@ -21068,6 +21074,42 @@
           "name": "persona",
           "in": "query",
           "description": "App Team handle to preview the app as",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "reportId",
+          "in": "query",
+          "description": "Abuse report Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "status",
+          "in": "query",
+          "description": "Status to filter by",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "integer"
+          },
+          "name": "page",
+          "in": "query",
+          "description": "Page number, from 1",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "integer"
+          },
+          "name": "pageSize",
+          "in": "query",
+          "description": "Rows per page",
           "required": false
         }
       ]
@@ -27878,6 +27920,7 @@
             "example": "count",
             "enum": [
               "count",
+              "countAll",
               "min",
               "max",
               "avg",
@@ -27890,6 +27933,12 @@
           "error": {
             "description": "Error Message",
             "type": "string"
+          },
+          "result_uidt": {
+            "description": "Resolved result type, set when the rollup returns a date (min/max over a Date, DateTime, CreatedTime or LastModifiedTime field). Read-only, not persisted.",
+            "type": "string",
+            "readOnly": true,
+            "enum": ["Date", "DateTime"]
           }
         },
         "x-stoplight": {
@@ -27928,6 +27977,7 @@
               "avg",
               "avgDistinct",
               "count",
+              "countAll",
               "countDistinct",
               "max",
               "min",

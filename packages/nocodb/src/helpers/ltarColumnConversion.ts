@@ -641,35 +641,27 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
   };
 
   /**
-   * Convert a link (LTAR) column into a SingleLineText column: each row's
-   * linked records' display values are joined (delimiter, default ',') into
-   * the new text column, then the link column is dropped and the text column
-   * takes its title. The inverse (undo) recreates the link and re-links by
-   * resolving those display values — see {@link convertSingleLineTextToLtar}.
+   * Reads, per row, the text a link → SingleLineText conversion writes: the
+   * linked records' display values joined by `delimiter` (default ','), or
+   * null when the row has none.
    */
-  const convertLtarToSingleLineText = async (
+  const linkTextReader = async (
     context: NcContext,
     param: {
       column: Column;
-      colBody: Column & { meta?: Record<string, any> };
       table: Model;
       source: Source;
-      user: UserType;
-      req: NcRequest;
+      delimiter?: string;
     },
   ) => {
-    const { column, colBody, table, source, user, req } = param;
-    const originalTitle = column.title;
-    const delimiter = (colBody.meta?.delimiter as string) || ',';
+    const { column, table, source } = param;
+    const delimiter = param.delimiter || ',';
 
     const dbDriver = await NcConnectionMgrv2.get(source);
     const baseModel = await Model.getBaseModelSQL(context, {
       id: table.id,
       dbDriver,
     });
-
-    // Cap the synchronous conversion at a manageable table size (forward only).
-    await assertConvertibleRowCount(context, baseModel);
 
     // Display-value column of the related records (custom override or PV).
     const groupCtx = await getLtarDisplayValueContext(context, column);
@@ -760,6 +752,99 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
       );
     };
 
+    const textFor = async (pk: string | number): Promise<string | null> => {
+      const linked = await readLinked(pk);
+      if (!linked.length) return null;
+      const text = linked
+        .map((r) => (r == null ? null : r[dvTitle]))
+        .filter((v) => v !== null && v !== undefined && String(v).length > 0)
+        .join(delimiter);
+      return text.length ? text : null;
+    };
+
+    return { baseModel, pkTitles, textFor };
+  };
+
+  /**
+   * What {@link convertLtarToSingleLineText} would write, without writing:
+   * how many rows hold links, and the text a few of them would get.
+   */
+  const previewLtarToSingleLineText = async (
+    context: NcContext,
+    param: {
+      column: Column;
+      table: Model;
+      source: Source;
+      delimiter?: string;
+      sampleSize: number;
+    },
+  ) => {
+    const { baseModel, pkTitles, textFor } = await linkTextReader(
+      context,
+      param,
+    );
+    // A Links field filters as its link count (`notblank` builds invalid SQL).
+    const hasLinks = [
+      new Filter({
+        fk_column_id: param.column.id,
+        comparison_op: 'gt',
+        value: '0',
+      }),
+    ];
+
+    const rowsWithValue = Number(
+      await baseModel.count({ filterArr: hasLinks }, true),
+    );
+    const rows = await baseModel.list(
+      {
+        filterArr: hasLinks,
+        fieldsSet: new Set(pkTitles.filter(Boolean) as string[]),
+        limit: param.sampleSize,
+      },
+      { ignoreViewFilterAndSort: true },
+    );
+    const samples = await Promise.all(
+      rows.map(async (row) => {
+        const id = baseModel.extractPksValues(row);
+        return { id, value: await textFor(id) };
+      }),
+    );
+
+    return { rowsWithValue, samples };
+  };
+
+  /**
+   * Convert a link (LTAR) column into a SingleLineText column: each row's
+   * linked records' display values are joined (delimiter, default ',') into
+   * the new text column, then the link column is dropped and the text column
+   * takes its title (or the title sent with the update). The inverse (undo)
+   * recreates the link and re-links by resolving those display values — see
+   * {@link convertSingleLineTextToLtar}.
+   */
+  const convertLtarToSingleLineText = async (
+    context: NcContext,
+    param: {
+      column: Column;
+      colBody: Column & { meta?: Record<string, any> };
+      table: Model;
+      source: Source;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) => {
+    const { column, colBody, table, source, user, req } = param;
+    const originalTitle = column.title;
+
+    const { baseModel, pkTitles, textFor } = await linkTextReader(context, {
+      column,
+      table,
+      source,
+      delimiter: colBody.meta?.delimiter as string,
+    });
+
+    // Cap the synchronous conversion at a manageable table size (forward only).
+    await assertConvertibleRowCount(context, baseModel);
+
     // Read each row's linked records and join their display values.
     const rows: { pk: string | number; text: string }[] = [];
     const PAGE = 500;
@@ -779,13 +864,8 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
       // a large table.
       const pageRows = await processConcurrently(page, async (row) => {
         const pk = baseModel.extractPksValues(row, true);
-        const linked = await readLinked(pk);
-        if (!linked.length) return null;
-        const text = linked
-          .map((r) => (r == null ? null : r[dvTitle]))
-          .filter((v) => v !== null && v !== undefined && String(v).length > 0)
-          .join(delimiter);
-        return text.length ? { pk, text } : null;
+        const text = await textFor(pk);
+        return text ? { pk, text } : null;
       });
       for (const r of pageRows) if (r) rows.push(r);
       if (page.length < PAGE) break;
@@ -869,7 +949,7 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
     );
     await Column.update2(context, {
       colId: textColumn.id,
-      column: { title: originalTitle },
+      column: { title: colBody.title || originalTitle },
       isSimpleUpdate: true,
     });
 
@@ -1030,6 +1110,7 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
   return {
     convertSingleLineTextToLtar,
     convertLtarToSingleLineText,
+    previewLtarToSingleLineText,
     revertLinkColumnToText,
     revertTextColumnToLink,
   };

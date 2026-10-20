@@ -3,6 +3,7 @@ import { PlanFeatureTypes } from 'nocodb-sdk'
 
 // Members, Teams and Integrations, in the workspace home page's content area
 // beside the home sidebar: the settings page's header band and pane, without its rail.
+// Members and Teams are tabs of one page under one header.
 const props = defineProps<{
   pane: WsHomePane
 }>()
@@ -42,17 +43,22 @@ const accessKey: Record<WsHomePane, 'collaborators' | 'teams' | 'integrations'> 
 // Panes load on mount, so one the reader cannot reach must never mount.
 const isPaneAllowed = computed(() => isRolesLoaded.value && !!wsTabAccess.value[accessKey[props.pane]])
 
+const hasMembersTabs = computed(() => ['members', 'teams'].includes(props.pane) && !!wsTabAccess.value.teams)
+
 const meta = computed(() => {
+  // Without the tabs, the Members pane stands alone under its own name.
+  const membersTitle = hasMembersTabs.value ? t('labels.membersAndTeams') : t('labels.wsNav.membersPage')
+
   switch (props.pane) {
     case 'members':
       return {
-        title: t('labels.wsNav.membersPage'),
+        title: membersTitle,
         description: t('labels.wsNav.desc.members'),
         docsHref: 'https://nocodb.com/docs/product-docs/collaboration/workspace-collaboration',
       }
     case 'teams':
       return {
-        title: t('general.teams'),
+        title: membersTitle,
         description: t('labels.wsNav.desc.teams'),
         docsHref: 'https://nocodb.com/docs/product-docs/collaboration/teams',
       }
@@ -101,6 +107,12 @@ watch(
 <template>
   <div class="nc-ws-home-pane flex flex-col h-full w-full" :data-testid="`nc-ws-home-pane-${pane}`">
     <ShellHeader :title="meta.title" :description="meta.description" :docs-href="meta.docsHref" class="!pt-3" no-close-inset />
+
+    <WorkspaceMembersTabs
+      v-if="hasMembersTabs && isPaneAllowed && workspaceId"
+      :pane="pane === 'teams' ? 'teams' : 'members'"
+      :workspace-id="workspaceId"
+    />
 
     <div v-if="!isPaneAllowed || !workspaceId" class="flex-1 min-h-0 flex items-center justify-center">
       <GeneralLoader size="xlarge" />

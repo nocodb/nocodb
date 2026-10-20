@@ -91,13 +91,14 @@ export const isWsHomeRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
  * Both `'index-typeOrId-index'` and `'index-typeOrId'` resolve to `'bases'`.
  * When inverted, `'index-typeOrId'` wins (last entry) — so `wsTabToRouteName['bases']`
  * navigates to `'index-typeOrId'`, which is the intended parent route for the bases tab.
+ * Members and Teams are tabs of one page, so both resolve to `'collaborators'` and `members` wins.
  */
 export const routeNameToWsTab: Record<string, string> = {
   'index-typeOrId-home': 'home',
   'index-typeOrId-index': 'bases',
   'index-typeOrId': 'bases',
+  'index-typeOrId-teams': 'collaborators',
   'index-typeOrId-members': 'collaborators',
-  'index-typeOrId-teams': 'teams',
   'index-typeOrId-integrations': 'integrations',
 }
 

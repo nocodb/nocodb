@@ -14,6 +14,8 @@ import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { COMPOUND_SELECT_CHUNK_SIZE } from '~/constants';
+import { chunkArray } from '~/utils/tsUtils';
 import {
   _wherePk,
   dataWrapper,
@@ -695,13 +697,18 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           }
 
           // todo: use bulk insert
-          await baseModel.execAndParse(
-            baseModel.dbDriver(vTn).insert(insertData),
-            null,
-            {
-              raw: true,
-            },
-          );
+          for (const chunk of chunkArray(
+            insertData,
+            COMPOUND_SELECT_CHUNK_SIZE,
+          )) {
+            await baseModel.execAndParse(
+              baseModel.dbDriver(vTn).insert(chunk),
+              null,
+              {
+                raw: true,
+              },
+            );
+          }
 
           await parentBaseModel.updateLastModified({
             model: parentTable,
@@ -1296,7 +1303,13 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             }
           }
 
-          const childRowsQb = baseModel.dbDriver(childTn);
+          // only unlink children that point at this row; others are a no-op
+          const childRowsQb = baseModel
+            .dbDriver(childTn)
+            .where(
+              childColumn.column_name,
+              dataWrapper(row).getByColumnNameTitleOrId(parentColumn),
+            );
 
           if (parentTable.primaryKeys.length > 1) {
             childRowsQb.where((qb) => {
@@ -1348,46 +1361,39 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           auditConfig.childColId = column.id;
 
           const refBaseModel = parentBaseModel;
-          // validate Ids
-          {
-            if (childIds.length > 1)
-              NcError.get(baseModel.context).unprocessableEntity(
-                'Request must contain only one parent id',
-              );
-
-            const childRowsQb = baseModel
-              .dbDriver(parentTn)
-              .select(parentTable.primaryKey.column_name)
-              .where(_wherePk(parentTable.primaryKeys, childIds[0]))
-              .first();
-
-            const childRow = await refBaseModel.execAndParse(
-              childRowsQb,
-              null,
-              {
-                first: true,
-                raw: true,
-              },
+          if (childIds.length > 1)
+            NcError.get(baseModel.context).unprocessableEntity(
+              'Request must contain only one parent id',
             );
 
-            if (!childRow) {
-              NcError.get(baseModel.context).recordNotFound(
-                extractIds(childIds, true),
-              );
-            }
+          const parentRow = await refBaseModel.execAndParse(
+            baseModel
+              .dbDriver(parentTn)
+              .select(parentColumn.column_name)
+              .where(_wherePk(parentTable.primaryKeys, childIds[0]))
+              .first(),
+            null,
+            {
+              first: true,
+              raw: true,
+            },
+          );
+
+          if (!parentRow) {
+            NcError.get(baseModel.context).recordNotFound(
+              extractIds(childIds, true),
+            );
           }
 
+          // only clear the FK if it points at the given parent; a different target is a no-op
           await refBaseModel.execAndParse(
             baseModel
               .dbDriver(childTn)
-              // .where({
-              //   [childColumn.cn]: baseModel.dbDriver(parentTable.tn)
-              //     .select(parentColumn.cn)
-              //     .where(parentTable.primaryKey.cn, childId)
-              //     .first()
-              // })
-              // .where(_wherePk(childTable.primaryKeys, rowId))
               .where(childTable.primaryKey.column_name, rowId)
+              .where(
+                childColumn.column_name,
+                parentRow[parentColumn.column_name],
+              )
               .update({ [childColumn.column_name]: null }),
             null,
             { raw: true },

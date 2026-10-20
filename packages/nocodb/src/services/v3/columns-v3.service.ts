@@ -2,31 +2,45 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   enumColors,
   isLinksOrLTAR,
+  isMMOrMMLike,
   LinksVersion,
   NcApiVersion,
   parseProp,
+  SqlUiFactory,
   UITypes,
   WebhookActions,
 } from 'nocodb-sdk';
+import { assertFormulaConvertibleTo } from 'src/services/columns.service';
 import type {
   ColumnReqType,
   FieldOptionAddItemV3Type,
   FieldOptionDeleteItemV3Type,
   FieldUpdateV3Type,
   FieldV3Type,
+  FilterType,
   UserType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ReusableParams } from '~/services/columns.service';
+import type { LinkToAnotherRecordColumn } from '~/models';
 import { NcError } from '~/helpers/ncError';
 import {
   type ColumnWebhookManager,
   ColumnWebhookManagerBuilder,
 } from '~/utils/column-webhook-manager';
-import { ColumnsService } from '~/services/columns.service';
+import {
+  ColumnsService,
+  UNCONVERTIBLE_TARGETS,
+} from '~/services/columns.service';
 import { DataTableService } from '~/services/data-table.service';
-import { Column, Model } from '~/models';
+import { Column, Filter, Model, Source } from '~/models';
 import Noco from '~/Noco';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
+import {
+  pgConversionPredicates,
+  pgNonEmpty,
+} from '~/helpers/fieldConversionPreview';
 import { MetaTable } from '~/utils/globals';
 import {
   columnBuilder,
@@ -42,6 +56,34 @@ type ColumnReqWithMeta = ColumnReqType & {
 };
 
 type SelectChoiceV3 = { id?: string; title: string; color?: string };
+
+type RecordId = string | number;
+
+type CellFilter = Pick<FilterType, 'fk_column_id' | 'comparison_op' | 'value'>;
+
+/** The shape every dryRun preview answers with: what the write would destroy. */
+export type FieldChangeDryRun = {
+  dry_run: true;
+  field_id: string;
+  cleared_rows: number | null;
+  cleared_sample_ids: RecordId[];
+  rounded_rows: number | null;
+  rounded_sample_ids: RecordId[];
+  warnings?: string[];
+};
+
+type FieldDependent = {
+  id: string;
+  title: string;
+  table_id: string;
+  uidt: string;
+  // The link field (this one or its reverse) the dependent reads through.
+  via_field_id: string;
+};
+
+export const DRY_RUN_SAMPLE_SIZE = 5;
+// Per-statement cap on a dry run's scan of the table.
+export const DRY_RUN_STATEMENT_TIMEOUT_MS = 5000;
 
 // Types whose cells are computed or linked, so a before/after count of
 // non-empty cells says nothing about data loss.
@@ -144,7 +186,7 @@ export class ColumnsV3Service {
     const fromLink = typeChanges && isLinksOrLTAR(before);
 
     const dependents = fromLink
-      ? await this.linkDependents(context, param.columnId)
+      ? await this.linkDependents(context, before)
       : [];
     const choiceCounts = await this.countRemovedChoices(
       context,
@@ -207,7 +249,7 @@ export class ColumnsV3Service {
       }
       if (dependents.length) {
         warnings.push(
-          `${dependents.length} lookup/rollup field(s) read through the removed link and now show errors: ` +
+          `${dependents.length} lookup/rollup/formula field(s) read through the removed link or its reverse and now show errors: ` +
             dependents.map((d) => `${d.title} (${d.id})`).join(', ') +
             '. Delete or repoint them.',
         );
@@ -237,7 +279,7 @@ export class ColumnsV3Service {
   private async countWhere(
     context: NcContext,
     modelId: string,
-    filter: { fk_column_id: string; comparison_op: string; value?: string },
+    filter: CellFilter,
   ): Promise<number> {
     const { count } = await this.dataTableService.dataCount(context, {
       modelId,
@@ -261,8 +303,8 @@ export class ColumnsV3Service {
     context: NcContext,
     column: Column | undefined,
     incoming: unknown,
-  ): Promise<{ cleared: number; byChoice: Record<string, number> }> {
-    const byChoice: Record<string, number> = {};
+    sampleSize = 0,
+  ) {
     if (
       !column ||
       !Array.isArray(incoming) ||
@@ -270,7 +312,7 @@ export class ColumnsV3Service {
         column.uidt as UITypes,
       )
     ) {
-      return { cleared: 0, byChoice };
+      return { cleared: 0, byChoice: {}, sampleIds: [] };
     }
 
     const kept = new Set(
@@ -279,23 +321,359 @@ export class ColumnsV3Service {
         this.storedChoices(column),
       ).map((choice) => choice.id),
     );
+
+    return this.countChoiceRows(
+      context,
+      column,
+      this.storedChoices(column)
+        .filter((c) => !kept.has(c.id))
+        .map((c) => c.title),
+      sampleSize,
+    );
+  }
+
+  /** Rows holding each of the given choices: the cells removing them clears. */
+  async countChoiceRows(
+    context: NcContext,
+    column: Column,
+    titles: string[],
+    sampleSize = 0,
+  ): Promise<{
+    cleared: number;
+    byChoice: Record<string, number>;
+    sampleIds: RecordId[];
+  }> {
+    const byChoice: Record<string, number> = {};
+    const sampleIds = new Set<RecordId>();
     // MultiSelect stores a comma-joined list, so `eq` would only match one choice.
     const operator = column.uidt === UITypes.MultiSelect ? 'anyof' : 'eq';
 
-    for (const choice of this.storedChoices(column).filter(
-      (c) => !kept.has(c.id),
-    )) {
-      const count = await this.countWhere(context, column.fk_model_id, {
+    for (const title of titles) {
+      const filter: CellFilter = {
         fk_column_id: column.id,
         comparison_op: operator,
-        value: choice.title,
-      });
-      if (count) byChoice[choice.title] = count;
+        value: title,
+      };
+      const count = await this.countWhere(context, column.fk_model_id, filter);
+      if (!count) continue;
+      byChoice[title] = count;
+      if (sampleIds.size < sampleSize) {
+        for (const id of await this.sampleIdsWhere(
+          context,
+          column.fk_model_id,
+          filter,
+          sampleSize - sampleIds.size,
+        )) {
+          sampleIds.add(id);
+        }
+      }
     }
 
     return {
       cleared: Object.values(byChoice).reduce((sum, n) => sum + n, 0),
       byChoice,
+      sampleIds: [...sampleIds],
+    };
+  }
+
+  private async sampleIdsWhere(
+    context: NcContext,
+    modelId: string,
+    filter: CellFilter,
+    limit: number,
+  ): Promise<RecordId[]> {
+    const model = await Model.get(context, modelId);
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      model,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+    await model.getColumns();
+
+    const rows = await baseModel.list(
+      {
+        filterArr: [new Filter(filter)],
+        fieldsSet: new Set(model.primaryKeys.map((pk) => pk.title)),
+        limit,
+      },
+      { ignoreViewFilterAndSort: true },
+    );
+    // Raw pk values, matching the record ids the v3 API returns.
+    return rows.map((row) => baseModel.extractPksValues(row));
+  }
+
+  /**
+   * What columnUpdate would destroy, without writing anything: cells a type
+   * conversion clears or rounds, cells a removed choice clears, and for
+   * link → text the values written and the fields left broken.
+   */
+  async columnUpdateDryRun(
+    context: NcContext,
+    param: { columnId: string; column: FieldUpdateV3Type },
+  ) {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/FieldUpdate',
+      param.column,
+      true,
+      context,
+    );
+
+    const column = await Column.get(context, { colId: param.columnId });
+    if (!column) {
+      NcError.get(context).fieldNotFound(param.columnId);
+    }
+
+    const newType = (param.column as { type?: string }).type;
+    const report: FieldChangeDryRun = {
+      dry_run: true,
+      field_id: column.id,
+      cleared_rows: 0,
+      cleared_sample_ids: [],
+      rounded_rows: 0,
+      rounded_sample_ids: [],
+    };
+
+    if (!newType || newType === column.uidt) {
+      const choices = await this.countRemovedChoices(
+        context,
+        column,
+        (param.column as FieldOptionsRecord).options?.choices,
+        DRY_RUN_SAMPLE_SIZE,
+      );
+      return {
+        ...report,
+        cleared_rows: choices.cleared,
+        cleared_sample_ids: choices.sampleIds,
+        ...(choices.cleared ? { cleared_by_choice: choices.byChoice } : {}),
+      };
+    }
+
+    if (isLinksOrLTAR(column)) {
+      if (newType !== UITypes.SingleLineText) {
+        NcError.get(context).notImplemented(
+          `Updating ${column.uidt} => ${newType}`,
+        );
+      }
+      return this.linkToTextDryRun(context, column, param.column, report);
+    }
+
+    if (column.uidt === UITypes.Formula) {
+      assertFormulaConvertibleTo(context, newType);
+    }
+
+    // columnUpdate refuses these conversions, so the preview must too.
+    // Formula is the only computed source it can convert; link targets are
+    // previewed below.
+    if (
+      (UNCONVERTIBLE_TARGETS.has(newType) && !isLinksOrLTAR(newType)) ||
+      (NO_CELL_VALUES.has(column.uidt) && column.uidt !== UITypes.Formula)
+    ) {
+      NcError.get(context).notImplemented(
+        `Updating ${column.uidt} => ${newType}`,
+      );
+    }
+
+    if (!holdsCells(column.uidt)) {
+      return {
+        ...report,
+        warnings: [`A ${column.uidt} field stores no cell values to convert.`],
+      };
+    }
+
+    if (isLinksOrLTAR(newType)) {
+      return {
+        ...report,
+        cleared_rows: null,
+        rounded_rows: null,
+        warnings: [
+          'dryRun does not preview a conversion to a link: which cells resolve to records is only known when it runs.',
+        ],
+      };
+    }
+
+    return this.conversionDryRun(
+      context,
+      column,
+      newType,
+      param.column,
+      report,
+    );
+  }
+
+  /** Counted in SQL on the source column, with the cast the ALTER would run. */
+  private async conversionDryRun(
+    context: NcContext,
+    column: Column,
+    newType: string,
+    fieldUpdate: FieldUpdateV3Type,
+    report: FieldChangeDryRun,
+  ): Promise<FieldChangeDryRun & { conversion: Record<string, unknown> }> {
+    const model = await Model.get(context, column.fk_model_id);
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      model,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+    await model.getColumns();
+    const pkNames = model.primaryKeys.map((pk) => pk.column_name);
+    const conversion = { from: column.uidt, to: newType };
+
+    if (source.type !== 'pg') {
+      return {
+        ...report,
+        cleared_rows: null,
+        rounded_rows: null,
+        conversion,
+        warnings: [
+          `dryRun counts conversions on PostgreSQL only; this table is on ${source.type}.`,
+        ],
+      };
+    }
+
+    const sqlUi = SqlUiFactory.create(await source.getConnectionConfig());
+    const colProp = sqlUi.getDataTypeForUiType(
+      { uidt: newType as UITypes },
+      parseProp(column.meta)?.ag ? 'AG' : 'AI',
+    );
+    const v2 = columnV3ToV2Builder().build({
+      ...fieldUpdate,
+      type: newType,
+    } as FieldV3Type) as ColumnReqWithMeta;
+    const quoted = baseModel.dbDriver.raw('??', [column.column_name]).toQuery();
+    // A conversion to a computed type drops the stored values outright.
+    const predicates = holdsCells(newType)
+      ? pgConversionPredicates(quoted, column, {
+          uidt: newType as UITypes,
+          dt: colProp?.dt,
+          dtxp: colProp?.dtxp,
+          meta: parseProp(v2.meta),
+        })
+      : null;
+    const cleared = predicates?.cleared ?? pgNonEmpty(quoted, column.uidt);
+    const rounded = predicates?.rounded ?? 'FALSE';
+
+    // The cast helpers are created inside the transaction and rolled back.
+    const trx = await baseModel.dbDriver.transaction();
+    try {
+      await trx.raw(
+        `SET LOCAL statement_timeout = ${DRY_RUN_STATEMENT_TIMEOUT_MS}`,
+      );
+      for (const sql of predicates?.setupSql ?? []) await trx.raw(sql);
+
+      const counts: { cleared: string; rounded: string } = await trx(
+        baseModel.tnPath,
+      ).first(
+        trx.raw(
+          `COUNT(*) FILTER (WHERE ${cleared}) AS cleared, COUNT(*) FILTER (WHERE ${rounded}) AS rounded`,
+        ),
+      );
+      const sample = async (predicate: string) =>
+        (
+          await trx(baseModel.tnPath)
+            .select(pkNames)
+            .whereRaw(predicate)
+            .orderBy(pkNames)
+            .limit(DRY_RUN_SAMPLE_SIZE)
+        ).map((row) => {
+          const ids = pkNames.map((name) => row[name]);
+          return ids.length === 1 ? ids[0] : ids.join('___');
+        });
+
+      return {
+        ...report,
+        cleared_rows: Number(counts.cleared),
+        cleared_sample_ids: Number(counts.cleared) ? await sample(cleared) : [],
+        rounded_rows: Number(counts.rounded),
+        rounded_sample_ids: Number(counts.rounded) ? await sample(rounded) : [],
+        conversion,
+      };
+    } catch (e) {
+      // 57014: query_canceled, i.e. the statement_timeout above.
+      if (e?.code === '57014') {
+        return {
+          ...report,
+          cleared_rows: null,
+          rounded_rows: null,
+          conversion,
+          warnings: [
+            `dryRun could not finish counting within ${
+              DRY_RUN_STATEMENT_TIMEOUT_MS / 1000
+            }s (large table or a lock on it).`,
+          ],
+        };
+      }
+      // Class 22 (data exception): the same cast runs in the ALTER, so the
+      // real update fails here too. Anything else is not about the data.
+      if (typeof e?.code !== 'string' || !e.code.startsWith('22')) throw e;
+      return {
+        ...report,
+        cleared_rows: null,
+        rounded_rows: null,
+        conversion,
+        warnings: [
+          'Some cell values cannot be cast at all, so this conversion would fail. Fix or clear those values first.',
+        ],
+      };
+    } finally {
+      await trx.rollback();
+    }
+  }
+
+  private async linkToTextDryRun(
+    context: NcContext,
+    column: Column,
+    fieldUpdate: FieldUpdateV3Type,
+    report: FieldChangeDryRun,
+  ) {
+    const reverse = await this.reverseLinkField(context, column);
+    const dependents = await this.linkDependents(context, column);
+    const v2 = columnV3ToV2Builder().build({
+      ...fieldUpdate,
+      type: UITypes.SingleLineText,
+    } as FieldV3Type) as ColumnReqWithMeta;
+
+    const values = await this.columnsService.previewLtarToSingleLineText(
+      context,
+      {
+        column,
+        delimiter: parseProp(v2.meta)?.delimiter,
+        sampleSize: DRY_RUN_SAMPLE_SIZE,
+      },
+    );
+
+    const warnings = [
+      `The link is replaced by a new SingleLineText field with a new id; field ${column.id} will no longer exist.`,
+    ];
+    if (reverse) {
+      warnings.push(
+        `The reverse link field "${reverse.title}" (${reverse.id}) on table ${reverse.fk_model_id} will be deleted.`,
+      );
+    }
+    if (dependents.length) {
+      warnings.push(
+        `${dependents.length} lookup/rollup/formula field(s) read through this link or its reverse and will break: ` +
+          dependents.map((d) => `${d.title} (${d.id})`).join(', ') +
+          '.',
+      );
+    }
+
+    return {
+      ...report,
+      link_to_text: {
+        title: fieldUpdate.title ?? column.title,
+        rows_with_value: values.rowsWithValue,
+        sample_values: values.samples,
+        field_id_changes: true,
+        reverse_field: reverse
+          ? {
+              id: reverse.id,
+              title: reverse.title,
+              table_id: reverse.fk_model_id,
+            }
+          : null,
+      },
+      ...(dependents.length ? { dependents } : {}),
+      warnings,
     };
   }
 
@@ -447,11 +825,10 @@ export class ColumnsV3Service {
     // Link → text replaces the link with a new column and id. Follow it by
     // title, since the old id no longer resolves.
     if (!column) {
+      const title = processedColumnReq.title || previousTitle;
       const replacement = (
         await Column.list(context, { fk_model_id: tableId })
-      ).find(
-        (c) => c.title === previousTitle && c.uidt === UITypes.SingleLineText,
-      );
+      ).find((c) => c.title === title && c.uidt === UITypes.SingleLineText);
       if (!replacement) NcError.get(context).fieldNotFound(param.columnId);
       column = replacement;
       columnWebhookManager.followReplacedColumn(param.columnId, column.id);
@@ -623,49 +1000,99 @@ export class ColumnsV3Service {
     return current.options?.choices ?? [];
   }
 
-  /** Lookups and rollups that read through a link column. */
-  async linkDependents(
+  /** The field on the related table that pairs with a link, deleted with it. */
+  async reverseLinkField(
     context: NcContext,
-    columnId: string,
+    column: Column,
     ncMeta = Noco.ncMeta,
-  ): Promise<{ id: string; title: string; table_id: string; uidt: string }[]> {
-    const rows = [
-      ...(await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.COL_LOOKUP,
-        { condition: { fk_relation_column_id: columnId } },
-      )),
-      ...(await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.COL_ROLLUP,
-        { condition: { fk_relation_column_id: columnId } },
-      )),
-    ];
+  ): Promise<Column | undefined> {
+    if (!isLinksOrLTAR(column)) return undefined;
 
-    const dependents: {
-      id: string;
-      title: string;
-      table_id: string;
-      uidt: string;
-    }[] = [];
-    for (const row of rows) {
-      const col = await Column.get(
-        context,
-        { colId: row.fk_column_id },
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+      ncMeta,
+    );
+    const relatedModel = await colOptions?.getRelatedTable(ncMeta);
+    if (!relatedModel) return undefined;
+
+    const mmLike = isMMOrMMLike({ ...column, colOptions });
+    for (const candidate of await relatedModel.getColumns(ncMeta)) {
+      if (candidate.id === column.id || !isLinksOrLTAR(candidate)) continue;
+      const other = await candidate.getColOptions<LinkToAnotherRecordColumn>(
         ncMeta,
       );
-      if (col) {
-        dependents.push({
-          id: col.id,
-          title: col.title,
-          table_id: col.fk_model_id,
-          uidt: col.uidt,
-        });
-      }
+      const pairs = mmLike
+        ? other?.fk_mm_model_id === colOptions.fk_mm_model_id &&
+          other?.fk_mm_parent_column_id === colOptions.fk_mm_child_column_id &&
+          other?.fk_mm_child_column_id === colOptions.fk_mm_parent_column_id
+        : other?.fk_parent_column_id === colOptions.fk_parent_column_id &&
+          other?.fk_child_column_id === colOptions.fk_child_column_id;
+      if (pairs) return candidate;
     }
-    return dependents;
+    return undefined;
+  }
+
+  /**
+   * Lookups, rollups and formulas that read through a link column or its
+   * reverse field: deleting the pair breaks both sides.
+   */
+  async linkDependents(
+    context: NcContext,
+    column: Column,
+    ncMeta = Noco.ncMeta,
+  ): Promise<FieldDependent[]> {
+    const reverse = await this.reverseLinkField(context, column, ncMeta);
+    const sides = [column, reverse].filter(Boolean);
+    const sideIds = new Set(sides.map((c) => c.id));
+    const found = new Map<string, FieldDependent>();
+
+    const add = (col: Column | undefined, via: string) => {
+      if (!col || sideIds.has(col.id) || found.has(col.id)) return;
+      found.set(col.id, {
+        id: col.id,
+        title: col.title,
+        table_id: col.fk_model_id,
+        uidt: col.uidt,
+        via_field_id: via,
+      });
+    };
+
+    for (const side of sides) {
+      const sideContext = { ...context, base_id: side.base_id };
+      const list = (table: MetaTable, key: string) =>
+        ncMeta.metaList2(sideContext.workspace_id, sideContext.base_id, table, {
+          condition: { [key]: side.id },
+        });
+      const rows = [
+        ...(await list(MetaTable.COL_LOOKUP, 'fk_relation_column_id')),
+        ...(await list(MetaTable.COL_ROLLUP, 'fk_relation_column_id')),
+        // Lookups and rollups on other tables that read this link's value.
+        ...(await list(MetaTable.COL_LOOKUP, 'fk_lookup_column_id')),
+        ...(await list(MetaTable.COL_ROLLUP, 'fk_rollup_column_id')),
+      ];
+      for (const row of rows) {
+        add(
+          await Column.get(sideContext, { colId: row.fk_column_id }, ncMeta),
+          side.id,
+        );
+      }
+
+      const table = await Model.get(
+        sideContext,
+        side.fk_model_id,
+        false,
+        ncMeta,
+      );
+      const formulas = table
+        ? await getFormulasReferredTheColumn(
+            sideContext,
+            { column: side, columns: await table.getColumns(ncMeta) },
+            ncMeta,
+          )
+        : [];
+      for (const formula of formulas) add(formula, side.id);
+    }
+
+    return [...found.values()];
   }
 
   // Read the current select choices from the v3 read representation so they

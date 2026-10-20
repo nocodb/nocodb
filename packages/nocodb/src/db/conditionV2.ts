@@ -10,7 +10,7 @@ import type { FilterOperationResult } from './field-handler/field-handler.interf
 import type { FilterType, NcContext } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { BarcodeColumn, QrCodeColumn } from '~/models';
+import type { BarcodeColumn, QrCodeColumn, RollupColumn } from '~/models';
 import { Column, Model } from '~/models';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getRefColumnIfAlias } from '~/helpers';
@@ -456,6 +456,34 @@ const parseConditionV2 = async (
       );
     }
 
+    // a rollup returning a date (min/max over a date field) compares as one
+    if (column.uidt === UITypes.Rollup && customWhereClause) {
+      const rollupResultUidt = (await column.getColOptions<RollupColumn>())
+        ?.result_uidt;
+      if (rollupResultUidt) {
+        return FieldHandler.fromBaseModel(baseModelSqlv2).applyFilter(
+          filter,
+          setModelContext(
+            new Column({
+              ...column,
+              uidt: rollupResultUidt,
+            }),
+            context,
+          ),
+          {
+            alias,
+            conditionParser: parseConditionV2,
+            depth: aliasCount,
+            context,
+            throwErrorIfInvalid,
+            // the date handlers bind it with `??`, which leaves a subquery
+            // unparenthesised
+            customWhereClause: knex.raw('?', [customWhereClause]),
+          },
+        );
+      }
+    }
+
     {
       if (
         filter.comparison_op === 'empty' ||
@@ -773,12 +801,25 @@ const parseConditionV2 = async (
             case 'lte':
               qb = qb.where(field, customWhereClause ? '>=' : '<=', val);
               break;
-            case 'in':
+            case 'in': {
+              // Formula/Rollup/Links: `val` is the computed expression and the
+              // list is the filter value — `val.split` used to yield undefined.
+              let target = field;
+              let list = val;
+              if (customWhereClause) {
+                target = knex.raw('(?)', [
+                  knex.clientType() === 'oracledb'
+                    ? oracleNarrowFormulaClobForCompare(knex, column, val)
+                    : val,
+                ]);
+                list = filter.value;
+              }
               qb = qb.whereIn(
-                field,
-                Array.isArray(val) ? val : val?.split?.(','),
+                target,
+                Array.isArray(list) ? list : `${list ?? ''}`.split(','),
               );
               break;
+            }
             case 'is':
               if (filter.value === 'null' || filter.value === null)
                 qb = qb.whereNull(customWhereClause || field);
@@ -810,12 +851,31 @@ const parseConditionV2 = async (
                 qb = qb.whereNot(customWhereClause || field, false);
               break;
             case 'empty':
+              // A non-text formula cannot hold '' (PG/MSSQL reject the compare),
+              // so empty is blank's IS NULL here, as in the `blank` branch below.
+              if (
+                column.uidt === UITypes.Formula &&
+                (column?.colOptions as any).parsed_tree?.dataType !==
+                  FormulaDataTypes.STRING
+              ) {
+                qb = qb.whereNull(customWhereClause || field);
+                break;
+              }
               if (column.uidt === UITypes.Formula) {
                 [field, val] = [val, field];
               }
               qb = qb.where(field, val);
               break;
             case 'notempty':
+              // Non-text formula: notempty is notblank's IS NOT NULL.
+              if (
+                column.uidt === UITypes.Formula &&
+                (column?.colOptions as any).parsed_tree?.dataType !==
+                  FormulaDataTypes.STRING
+              ) {
+                qb = qb.whereNotNull(customWhereClause || field);
+                break;
+              }
               // Oracle stores '' as NULL, so no row can hold the empty string —
               // excluding '' excludes nothing and every row qualifies. The
               // generic `<> '' OR IS NULL` shape would instead match only NULL

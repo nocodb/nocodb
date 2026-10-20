@@ -17,6 +17,8 @@ const { removeFromRecentViews } = useViewsStore()
 
 const { refreshCommandPalette } = useCommandPalette()
 
+const { dropBaseApps } = useAppsEntry()
+
 // props.base is provided when the base lives in a different workspace (not in bases.value)
 const base = computed(() => props.base ?? bases.value.get(props.baseId))
 
@@ -30,6 +32,8 @@ const onDelete = async () => {
   isLoading.value = true
   try {
     await deleteProject(toBeDeletedProject.id!)
+
+    dropBaseApps(toBeDeletedProject.id!)
 
     refreshCommandPalette()
 

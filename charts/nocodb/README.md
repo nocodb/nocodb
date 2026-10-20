@@ -215,6 +215,10 @@ Create one Secret and reference it from each `*.existingSecret`:
 | `networkPolicy.extraIngress` | Extra ingress rules | `[]` |
 | `networkPolicy.extraEgress` | Extra egress rules | `[]` |
 
+The policy allows all egress. If you narrow it elsewhere, AI and compute through
+NocoDB Cloud need outbound HTTPS to `app.nocodb.com`, and compute also needs
+HTTPS and WSS to the sandbox hosts (`*.e2b.app`).
+
 ### Persistence (local attachment storage)
 
 | Name | Description | Value |

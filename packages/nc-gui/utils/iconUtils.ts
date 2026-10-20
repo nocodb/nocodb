@@ -309,6 +309,9 @@ import NcAmazonAws from '~icons/nc-icons/amazon_aws'
 // Buttons Icons V2
 
 import NcColumnsIcon from '~icons/nc-icons-v2/columns.svg'
+import NcChevronsUpDownIcon from '~icons/nc-icons-v2/chevrons-up-down.svg'
+import NcChevronsDownUpIcon from '~icons/nc-icons-v2/chevrons-down-up.svg'
+import NcWrapTextIcon from '~icons/nc-icons-v2/wrap-text.svg'
 import NcTabsIcon from '~icons/nc-icons-v2/tabs.svg'
 import NcSquareChevronDownIcon from '~icons/nc-icons-v2/square-chevron-down.svg'
 import NcUnderlineIcon from '~icons/nc-icons-v2/underline.svg'
@@ -495,6 +498,7 @@ import NcLucideLink from '~icons/nc-icons-v2/lucide-link.svg'
 import NcLucideAtSign from '~icons/nc-icons-v2/lucide-at-sign.svg'
 import NcLucidePaperclip from '~icons/nc-icons-v2/lucide-paperclip.svg'
 import LcBraces from '~icons/lucide/braces'
+import LcImage from '~icons/lucide/image'
 import LcUndo2 from '~icons/lucide/undo-2'
 import LcRedo2 from '~icons/lucide/redo-2'
 import LcRemoveFormatting from '~icons/lucide/remove-formatting'
@@ -1477,6 +1481,9 @@ export const iconMap = {
 
   // Nc-IconsV2 Buttons
   'ncColumns': NcColumnsIcon,
+  'ncChevronsUpDown': NcChevronsUpDownIcon,
+  'ncChevronsDownUp': NcChevronsDownUpIcon,
+  'ncWrapText': NcWrapTextIcon,
   'ncTabs': NcTabsIcon,
   'ncSquareChevronDown': NcSquareChevronDownIcon,
   'ncUnderline': NcUnderlineIcon,
@@ -1656,6 +1663,7 @@ export const iconMap = {
   'ncPaperclip': NcPaperclipIcon,
   'lucideBold': NcLucideBold,
   'lucideBraces': LcBraces,
+  'lucideImage': LcImage,
   'lucideUndo2': LcUndo2,
   'lucideRedo2': LcRedo2,
   'lucideRemoveFormatting': LcRemoveFormatting,

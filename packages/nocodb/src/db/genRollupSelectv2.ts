@@ -175,6 +175,12 @@ export default async function genRollupSelectv2(param: {
 
   const applyFunction = async (qb: any) => {
     profiler.log('applyFunction ' + rollupColumn.uidt);
+    // Row count of the linked records — the target value is never read.
+    if (columnOptions.rollup_function === 'countAll') {
+      qb.count('*');
+      profiler.log('applyFunction done');
+      return;
+    }
     let selectColumnName = knex.raw('??.??', [
       refTableAlias,
       rollupColumn.column_name,
@@ -386,14 +392,11 @@ export default async function genRollupSelectv2(param: {
       ]);
     }
 
-    if (
-      ['sum', 'sumDistinct', 'avgDistinct', 'avg'].includes(
-        columnOptions.rollup_function,
-      )
-    ) {
+    // Only the sum family defaults to 0 on an empty set; avg/min/max stay NULL.
+    if (['sum', 'sumDistinct'].includes(columnOptions.rollup_function)) {
       if (baseModelSqlv2.isOracle) {
         const fn = columnOptions.rollup_function as string;
-        const distinct = ['sumDistinct', 'avgDistinct'].includes(fn);
+        const distinct = fn === 'sumDistinct';
         const baseFn = fn.replace('Distinct', '');
         qb.select(
           knex.raw(`COALESCE(${baseFn}(${distinct ? 'distinct ' : ''}??), 0)`, [
@@ -424,7 +427,7 @@ export default async function genRollupSelectv2(param: {
     );
     const baseFn = fn.replace('Distinct', '');
     const aggInner = `${baseFn}(${distinct ? 'distinct ' : ''}??)`;
-    const aggSql = ['sum', 'sumDistinct', 'avgDistinct', 'avg'].includes(fn)
+    const aggSql = ['sum', 'sumDistinct'].includes(fn)
       ? `COALESCE(${aggInner}, 0)`
       : aggInner;
     return knex

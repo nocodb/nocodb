@@ -543,23 +543,24 @@ export class GenericFieldHandler
 
   /**
    * `empty` op — strict `= ''`. NULLs are NOT included (that's `blank`).
-   * The legacy conditionV2 path emits `qb.where(field, '')` for every
-   * column type unconditionally; we replicate that here. If a numeric or
-   * date column is filtered with `empty`, the resulting SQL will surface
-   * the same dialect-level type error it did before the refactor.
+   * Types that cannot hold '' (numeric, date, time, checkbox) delegate to
+   * `blank`: PG/MSSQL error on `= ''`, MySQL/SQLite match the wrong rows.
    */
   async filterEmpty(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
-    _rootArgs: {
+    rootArgs: {
       knex: CustomKnex;
       filter: Filter;
       column: Column;
     },
-    _options: FilterOptions,
+    options: FilterOptions,
   ) {
+    if (isEmptyStringIncompatible(rootArgs.column.uidt)) {
+      return this.filterBlank(args, rootArgs, options);
+    }
     const { sourceField } = args;
     return {
       rootApply: undefined,
@@ -571,7 +572,8 @@ export class GenericFieldHandler
 
   /**
    * `notempty` op — `<> ''` OR `IS NULL`. NULLs are included; only the
-   * empty string is excluded.
+   * empty string is excluded. Empty-string-incompatible types delegate to
+   * `notblank` (IS NOT NULL), same as `filterEmpty`.
    */
   async filterNotempty(
     args: {
@@ -583,8 +585,11 @@ export class GenericFieldHandler
       filter: Filter;
       column: Column;
     },
-    _options: FilterOptions,
+    options: FilterOptions,
   ) {
+    if (isEmptyStringIncompatible(rootArgs.column.uidt)) {
+      return this.filterNotblank(args, rootArgs, options);
+    }
     const { sourceField } = args;
     const { knex } = rootArgs;
     return {

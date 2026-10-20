@@ -111,6 +111,7 @@ export * from './routine';
 export * from './theme';
 export * from './publish';
 export * from './team';
+export * from './workspaceApps';
 
 /**
  * One normalised route declaration the build's route manifest produces — a

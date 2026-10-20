@@ -224,6 +224,13 @@ export const WorkflowComposeModeInj: InjectionKey<Ref<boolean>> = Symbol('workfl
 /** Compose-modal drop target; the attachments input registers its upload here while mounted. */
 export const WorkflowComposeDropInj: InjectionKey<Ref<((files: File[]) => void) | null>> = Symbol('workflow-compose-drop')
 
+/**
+ * Compose-modal drop target for the body editor: it takes the dropped files it can show inline
+ * (inserted at `point` when that is over the body) and returns the rest for the attachments input.
+ */
+export const WorkflowComposeImageDropInj: InjectionKey<Ref<((files: File[], point: { x: number; y: number }) => File[]) | null>> =
+  Symbol('workflow-compose-image-drop')
+
 export const WorkflowVariableInj: InjectionKey<{
   selectedNodeId: Ref<string | null>
   getAvailableVariablesFlat: (nodeId: string) => any[]

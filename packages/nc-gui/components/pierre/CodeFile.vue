@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { DIFFS_TAG_NAME, File } from '@pierre/diffs'
-import type { LineAnnotation, SelectedLineRange } from '@pierre/diffs'
+import { onKeyStroke } from '@vueuse/core'
+import type { LineAnnotation, PostRenderPhase, SelectedLineRange } from '@pierre/diffs'
 import type { Editor as DiffsEditor } from '@pierre/diffs/edit'
 
 /**
@@ -10,13 +11,6 @@ import type { Editor as DiffsEditor } from '@pierre/diffs/edit'
  * surface's life is spent reading rather than editing.
  */
 
-interface Annotation {
-  id: string
-  body: string
-  /** The note being written. Its slot is handed back for the composer. */
-  draft?: boolean
-}
-
 interface Props {
   /** Repo-relative path. The library infers the language from it. */
   name: string
@@ -24,14 +18,23 @@ interface Props {
   /** Put the surface into edit mode. */
   edit?: boolean
   /** Lines carrying a review note, and what to draw for each. */
-  annotations?: LineAnnotation<Annotation>[]
+  annotations?: LineAnnotation<PierreNoteMetadata>[]
   /** Let the reader drag a line range out of the gutter. */
   selectable?: boolean
+  /** Wrap long lines rather than scroll them. */
+  wrap?: boolean
+  /** A "+" in the gutter on hover that starts a note on that line. */
+  gutterUtility?: boolean
+  /** Hand each saved note's slot to the caller (`noteSlot`) to render, instead of plain text. */
+  customNotes?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   edit: false,
   selectable: false,
+  wrap: false,
+  gutterUtility: false,
+  customNotes: false,
 })
 
 const emit = defineEmits<{
@@ -44,6 +47,12 @@ const emit = defineEmits<{
    * teleport its composer into. Null once that annotation is gone.
    */
   draftSlot: [element: HTMLElement | null]
+  /** A saved note's slot, with `customNotes`. */
+  noteSlot: [id: string, element: HTMLElement]
+  /** The gutter "+" was clicked, or dragged over a range. */
+  gutterClick: [range: SelectedLineRange]
+  /** The surface has painted, for a caller covering the gap with a loader. */
+  rendered: []
 }>()
 
 const { isDark } = useTheme()
@@ -61,19 +70,42 @@ const root = ref<HTMLDivElement>()
  */
 const host = ref<HTMLElement>()
 
-let view: File<Annotation> | undefined
+let view: File<PierreNoteMetadata> | undefined
 
-let editor: DiffsEditor<'file', Annotation> | undefined
+let editor: DiffsEditor<'file', PierreNoteMetadata> | undefined
 
 let stopEditing: (() => void) | undefined
 
-function renderFile() {
+/** The whole option set, every time — `setOptions` replaces rather than merges. */
+function fileOptions() {
+  return {
+    themeType: isDark.value ? ('dark' as const) : ('light' as const),
+    overflow: props.wrap ? ('wrap' as const) : ('scroll' as const),
+    // No "+" while editing: a note there would anchor to text that is still moving.
+    enableGutterUtility: props.gutterUtility && !props.edit,
+    onGutterUtilityClick: (range: SelectedLineRange) => emit('gutterClick', range),
+    stickyHeader: true,
+    enableLineSelection: props.selectable,
+    onLineSelectionEnd: (range: SelectedLineRange | null) => emit('select', range),
+    renderAnnotation,
+    onPostRender: (_node: HTMLElement, _view: unknown, phase: PostRenderPhase) => {
+      if (phase !== 'unmount') emit('rendered')
+    },
+    // Without a handler the component reverts the text on every completion,
+    // which would throw away the draft the moment edit mode is left.
+    onEditComplete: () => 'accept' as const,
+  }
+}
+
+/** `force`: redraw after an option change; `render()` otherwise skips a file it already drew. */
+function renderFile(force = false) {
   if (!view || !host.value) return
 
   view.render({
     fileContainer: host.value,
     file: { name: props.name, contents: props.contents },
     lineAnnotations: props.annotations ?? [],
+    forceRender: force,
   })
 }
 
@@ -85,13 +117,20 @@ function renderFile() {
  * teleports the composer into it, so the note is written at the line it is
  * about rather than in a bar at the bottom of the pane.
  */
-function renderAnnotation(annotation: LineAnnotation<Annotation>) {
+function renderAnnotation(annotation: LineAnnotation<PierreNoteMetadata>) {
   const element = document.createElement('div')
   element.className = 'nc-pierre-annotation'
 
   if (annotation.metadata.draft) {
     element.classList.add('nc-pierre-annotation-draft')
     emit('draftSlot', element)
+
+    return element
+  }
+
+  if (props.customNotes) {
+    element.classList.add('nc-pierre-annotation-custom')
+    emit('noteSlot', annotation.metadata.id, element)
 
     return element
   }
@@ -110,7 +149,7 @@ async function startEditing() {
   // module was in flight.
   if (!view || !props.edit) return
 
-  editor = new Editor<'file', Annotation>('file', {
+  editor = new Editor<'file', PierreNoteMetadata>('file', {
     onChange: (event) => emit('change', event.file.contents),
   })
 
@@ -130,16 +169,7 @@ onMounted(() => {
   host.value.style.display = 'block'
   root.value?.appendChild(host.value)
 
-  view = new File<Annotation>({
-    themeType: isDark.value ? 'dark' : 'light',
-    stickyHeader: true,
-    enableLineSelection: props.selectable,
-    onLineSelectionEnd: (range) => emit('select', range),
-    renderAnnotation,
-    // Without a handler the component reverts the text on every completion,
-    // which would throw away the draft the moment edit mode is left.
-    onEditComplete: () => 'accept',
-  })
+  view = new File<PierreNoteMetadata>(fileOptions())
 
   renderFile()
 
@@ -164,24 +194,48 @@ watch(
   },
 )
 
+// `setLineAnnotations` only stores them; the redraw is what places a new note's slot.
 watch(
   () => props.annotations,
-  (annotations) => view?.setLineAnnotations(annotations ?? []),
+  (annotations) => {
+    if (editor) view?.setLineAnnotations(annotations ?? [])
+    else renderFile()
+  },
   { deep: true },
 )
 
 watch(
   () => props.edit,
   (edit) => {
+    view?.setOptions(fileOptions())
+
     if (edit) {
       startEditing()
       return
     }
 
     endEditing()
-    renderFile()
+    renderFile(true)
   },
 )
+
+watch(
+  () => props.wrap,
+  () => {
+    view?.setOptions(fileOptions())
+    if (!editor) renderFile(true)
+  },
+)
+
+// A saved or dropped note leaves nothing for the selection to point at.
+watch(
+  () => !!props.annotations?.some((annotation) => annotation.metadata.draft),
+  (hasDraft, hadDraft) => {
+    if (hadDraft && !hasDraft) view?.setSelectedLines(null)
+  },
+)
+
+onKeyStroke('Escape', () => view?.setSelectedLines(null))
 
 watch(isDark, (dark) => view?.setThemeType(dark ? 'dark' : 'light'))
 </script>

@@ -17,6 +17,17 @@ import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { BaseUser, type Column } from '~/models';
 
+const USER_ID_OPS = new Set([
+  'eq',
+  'neq',
+  'not',
+  'in',
+  'anyof',
+  'allof',
+  'nanyof',
+  'nallof',
+]);
+
 export class UserGeneralHandler extends GenericFieldHandler {
   protected singleLineTextHandler: GenericFieldHandler =
     new GenericFieldHandler();
@@ -132,11 +143,53 @@ export class UserGeneralHandler extends GenericFieldHandler {
       filter,
       setVal: (newVal) => (val = newVal),
     });
+    val = await this.resolveEmailFilterValue(
+      context,
+      column,
+      filter.comparison_op,
+      val,
+    );
     return await this.handleFilter(
       { val, sourceField: field },
       { knex, filter, column },
       options,
     );
+  }
+
+  /**
+   * Stored user values are ids, so an email in a filter value is mapped to
+   * its base user's id. An email that matches no user is kept as-is and
+   * therefore still matches nothing.
+   */
+  protected async resolveEmailFilterValue(
+    context: NcContext,
+    column: Column,
+    comparisonOp: string,
+    val: string,
+  ): Promise<string> {
+    if (!USER_ID_OPS.has(comparisonOp)) return val;
+    // Non-strings (e.g. resolved current-user ids) pass through untouched.
+    if (typeof val !== 'string' || !val.includes('@')) return val;
+
+    // Split for eq/neq too: a multi-user value is a comma-separated id list.
+    const items = val.split(',');
+    const baseUsers = await BaseUser.getUsersList(context, {
+      base_id: column.base_id,
+      include_internal_user: true,
+      include_ws_deleted: true,
+    });
+    const idByEmail = new Map<string, string>();
+    for (const bu of baseUsers) {
+      const key = bu.email?.trim().toLowerCase();
+      if (key && !idByEmail.has(key)) idByEmail.set(key, bu.id);
+    }
+
+    const resolved = items.map((item) =>
+      item.includes('@')
+        ? idByEmail.get(item.trim().toLowerCase()) ?? item
+        : item,
+    );
+    return resolved.join(',');
   }
 
   override async parseUserInput(params: {

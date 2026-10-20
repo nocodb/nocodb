@@ -3,6 +3,7 @@ import {
   ColumnReqType,
   ColumnType,
   LinkToAnotherRecordType,
+  RollupType,
   TableType,
 } from './Api';
 import { FormulaDataTypes } from './formula/enums';
@@ -711,6 +712,37 @@ export const getEquivalentUIType = ({
     case FormulaDataTypes.BOOLEAN:
       return UITypes.Checkbox;
   }
+};
+
+/**
+ * The date type a rollup returns: `min`/`max` over a date field gives that
+ * date. Undefined for every other rollup, which stays numeric.
+ */
+export const resolveRollupResultUidt = (
+  rollupFunction: RollupType['rollup_function'] | string,
+  targetUidt: UITypes | string
+): UITypes.Date | UITypes.DateTime | undefined => {
+  if (rollupFunction !== 'min' && rollupFunction !== 'max') return undefined;
+  switch (targetUidt) {
+    case UITypes.Date:
+      return UITypes.Date;
+    case UITypes.DateTime:
+    case UITypes.CreatedTime:
+    case UITypes.LastModifiedTime:
+      return UITypes.DateTime;
+  }
+  return undefined;
+};
+
+/** A rollup column's resolved date type, from `colOptions.result_uidt`. */
+export const getRollupResultUidt = (
+  column: Pick<ColumnType, 'uidt' | 'colOptions'>
+): UITypes.Date | UITypes.DateTime | undefined => {
+  if (column?.uidt !== UITypes.Rollup) return undefined;
+  const resultUidt = (column.colOptions as RollupType | undefined)?.result_uidt;
+  if (resultUidt === UITypes.Date) return UITypes.Date;
+  if (resultUidt === UITypes.DateTime) return UITypes.DateTime;
+  return undefined;
 };
 
 export const isSelectTypeCol = (

@@ -121,6 +121,8 @@ import * as nc_202610081400_col_button_workflow_meta from './v0/nc_202610081400_
 import * as nc_202610121136_file_references_url_index from './v0/nc_202610121136_file_references_url_index';
 import * as nc_202610131500_factory_machines from './v0/nc_202610131500_factory_machines';
 import * as nc_202610141200_abuse_reports from './v0/nc_202610141200_abuse_reports';
+import * as nc_202610141300_abuse_reports_moderation from './v0/nc_202610141300_abuse_reports_moderation';
+import * as nc_202610201426_chat_sessions_factory_slug from './v0/nc_202610201426_chat_sessions_factory_slug';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -253,6 +255,8 @@ export default class XcMigrationSourcev0 {
       'nc_202610121136_file_references_url_index',
       'nc_202610131500_factory_machines',
       'nc_202610141200_abuse_reports',
+      'nc_202610141300_abuse_reports_moderation',
+      'nc_202610201426_chat_sessions_factory_slug',
     ]);
   }
 
@@ -508,6 +512,10 @@ export default class XcMigrationSourcev0 {
         return nc_202610131500_factory_machines;
       case 'nc_202610141200_abuse_reports':
         return nc_202610141200_abuse_reports;
+      case 'nc_202610141300_abuse_reports_moderation':
+        return nc_202610141300_abuse_reports_moderation;
+      case 'nc_202610201426_chat_sessions_factory_slug':
+        return nc_202610201426_chat_sessions_factory_slug;
     }
   }
 }

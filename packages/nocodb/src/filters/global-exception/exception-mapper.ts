@@ -219,8 +219,16 @@ export function mapExceptionToResponse(
     return { status: exception.getStatus(), body: response };
   }
 
-  // Default 500 — sanitized message. Caller decides on Sentry capture and
-  // whether to attach dev innerError.
+  return unhandledExceptionResponse(apiVersion);
+}
+
+/**
+ * Default 500 — sanitized message. Caller decides on Sentry capture and
+ * whether to attach dev innerError.
+ */
+export function unhandledExceptionResponse(
+  apiVersion?: NcApiVersion,
+): MappedExceptionResponse {
   const msgProp = apiVersion === NcApiVersion.V3 ? 'message' : 'msg';
   return {
     status: 500,

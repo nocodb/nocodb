@@ -112,7 +112,9 @@ onMounted(() => {
       </a-input>
     </div>
 
-    <div class="flex-1 hidden sm:block"></div>
+    <div class="flex-1 hidden sm:flex justify-end">
+      <PaymentUpgradeButton v-if="isEeUI" source="ws-topbar" />
+    </div>
   </div>
 </template>
 

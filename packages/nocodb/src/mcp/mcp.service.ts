@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { createMcpHandler, McpServer } from '@modelcontextprotocol/server';
 import { toNodeHandler } from '@modelcontextprotocol/node';
 import { z } from 'zod-v4';
-import { extractRolesObj, NcApiVersion } from 'nocodb-sdk';
+import { extractRolesObj, NcApiVersion, UITypes } from 'nocodb-sdk';
 import type { FetchLikeMcpHandler } from '@modelcontextprotocol/node';
 import type { NcContext, NcRequest, UserType } from 'nocodb-sdk';
 import type { Request, Response } from 'express';
@@ -58,10 +58,17 @@ import {
 import { baseIdInput, McpFixedBaseScope } from '~/mcp/tools/tool-scope';
 import { withTypedFieldDefaults } from '~/mcp/tools/field-defaults';
 import {
+  includeSystemSchema,
+  systemAuditFields,
+} from '~/mcp/tools/system-fields';
+import {
+  compileFilterInput,
   filterInputDescription,
   filterInputSchema,
   resolveWhere,
 } from '~/mcp/tools/filter-input';
+import { Model } from '~/models';
+import type { Column, LinkToAnotherRecordColumn } from '~/models';
 
 // Image types MCP clients render inline. Anything else binary is linked, not sent.
 const INLINE_IMAGE_MIME_TYPES = [
@@ -287,6 +294,7 @@ export class McpService {
         inputSchema: {
           ...inBase,
           tableId: z.string().describe('Table Id'),
+          includeSystem: includeSystemSchema,
         },
         annotations: {
           title: 'Get the table schema',
@@ -296,18 +304,27 @@ export class McpService {
           openWorldHint: false,
         },
       },
-      async ({ baseId, tableId }) =>
+      async ({ baseId, tableId, includeSystem }) =>
         runBaseTool(
           ctx,
           { op: 'tableGet', scope: 'base' },
           { baseId, tableId },
-          async (target) =>
-            withTypedFieldDefaults(
+          async (target) => {
+            const table = withTypedFieldDefaults(
               await this.tablesV3Service.getTableWithAccessibleViews(
                 target.context,
                 { tableId, user: target.user },
               ),
-            ),
+            );
+            if (!includeSystem) return table;
+            return {
+              ...table,
+              fields: [
+                ...(table.fields ?? []),
+                ...(await systemAuditFields(target.context, tableId)),
+              ],
+            };
+          },
         ),
     );
 
@@ -869,7 +886,11 @@ export class McpService {
       'createRecords',
       {
         title: 'Create Records',
-        description: `Create records in a table. Up to ${MCP_DATA_PAYLOAD_LIMIT} per call`,
+        description:
+          `Create records in a table. Up to ${MCP_DATA_PAYLOAD_LIMIT} per call. ` +
+          'A link field takes primary keys (bare or `{ id }`), never titles. ' +
+          'A one-to-one or has-many target already linked elsewhere is moved, ' +
+          'and its previous link is removed without a warning.',
         annotations: {
           title: 'Create Records',
           readOnlyHint: false,
@@ -960,7 +981,10 @@ export class McpService {
           `Update records in a table. Up to ${MCP_DATA_PAYLOAD_LIMIT} per call. ` +
           'A link field is replaced, not appended to: pass the complete list of ' +
           'linked records you want, and `[]` to clear it. `null` is not a link ' +
-          'value and is ignored. To add or remove individual links without ' +
+          'value and is ignored. Link entries are primary keys (bare or ' +
+          '`{ id }`), never titles. A one-to-one or has-many target already ' +
+          'linked elsewhere is moved, and its previous link is removed without ' +
+          'a warning. To add or remove individual links without ' +
           'restating the set, use linkRecords / unlinkRecords. Computed fields ' +
           'and the primary key are not written; they are listed in ' +
           '`ignored_fields`.',
@@ -1159,6 +1183,127 @@ export class McpService {
         results,
       };
     };
+    // Links fields (hm/mm) read as a count in a record, so read each record's
+    // links, limited to the requested targets. MCP caps records per call.
+    const readLinkedViaNestedList = async (
+      target: { context: NcContext; req: NcRequest },
+      tableId: string,
+      column: Column,
+      records: { id: string | number; links: { id: string | number }[] }[],
+    ) => {
+      const colOptions =
+        await column.getColOptions<LinkToAnotherRecordColumn>();
+      const { refContext } = colOptions.getRelContext();
+      const relatedModel = await colOptions.getRelatedTable();
+      await relatedModel.getColumns();
+
+      const linkedByRow = new Map<string, Set<string>>();
+      for (const record of records) {
+        const ids = [...new Set(record.links.map((l) => String(l.id)))];
+        if (!ids.length) continue;
+        try {
+          const where = await compileFilterInput(refContext, relatedModel.id, {
+            field: relatedModel.primaryKey.id,
+            operator: 'in',
+            value: ids,
+          });
+          const { records: rows = [] } =
+            await this.datasV3Service.nestedDataList(target.context, {
+              modelId: tableId,
+              rowId: String(record.id),
+              columnId: column.id,
+              viewId: undefined,
+              query: { where, limit: String(ids.length) },
+              req: target.req,
+            });
+          linkedByRow.set(
+            String(record.id),
+            new Set(rows.map((row) => String(row.id))),
+          );
+        } catch (e) {
+          this.logger.warn(
+            `unlinkRecords pre-check skipped record ${record.id}: ${
+              (e as Error).message
+            }`,
+          );
+        }
+      }
+      return linkedByRow;
+    };
+    // Single links (bt/oo/mo) read as the linked record, so one dataList
+    // covers every record.
+    const readLinkedViaDataList = async (
+      target: { context: NcContext; req: NcRequest },
+      tableId: string,
+      column: Column,
+      records: { id: string | number; links: { id: string | number }[] }[],
+    ) => {
+      const model = await Model.get(target.context, tableId);
+      await model.getColumns();
+      const ids = [...new Set(records.map((r) => String(r.id)))];
+      const where = await compileFilterInput(target.context, tableId, {
+        field: model.primaryKey.id,
+        operator: 'in',
+        value: ids,
+      });
+      const { records: rows = [] } = await this.datasV3Service.dataList(
+        target.context,
+        {
+          baseId: target.context.base_id,
+          modelId: tableId,
+          query: { where, fields: column.id, limit: ids.length },
+          req: target.req,
+        },
+        true,
+      );
+
+      const linkedByRow = new Map<string, Set<string>>();
+      for (const row of rows) {
+        const key = [column.title, column.id].find((k) => k in row.fields);
+        if (key === undefined) continue;
+        const value = row.fields[key];
+        // A non-object is a count, not a record.
+        if (value != null && typeof value !== 'object') continue;
+        const items: { id?: unknown }[] = Array.isArray(value)
+          ? value
+          : value
+          ? [value]
+          : [];
+        if (items.length >= defaultLimitConfig.ltarV3Limit) continue;
+        linkedByRow.set(
+          String(row.id),
+          new Set(items.map((item) => String(item.id))),
+        );
+      }
+      return linkedByRow;
+    };
+    // Targets not linked before an unlink runs: the link engine reports no
+    // per-link result, so a missing link would read as removed. A record whose
+    // linked set cannot be read is skipped rather than guessed at.
+    const findUnlinkedTargets = async (
+      target: { context: NcContext; req: NcRequest },
+      tableId: string,
+      fieldId: string,
+      records: { id: string | number; links: { id: string | number }[] }[],
+    ): Promise<{ id: string; missing: string[] }[]> => {
+      if (!records.some((r) => r.links.length)) return [];
+      const column = await resolveLinkField(target.context, tableId, fieldId);
+      const linkedByRow =
+        column.uidt === UITypes.Links
+          ? await readLinkedViaNestedList(target, tableId, column, records)
+          : await readLinkedViaDataList(target, tableId, column, records);
+
+      const unlinked: { id: string; missing: string[] }[] = [];
+      for (const record of records) {
+        const linked = linkedByRow.get(String(record.id));
+        if (!linked) continue;
+        const missing = [
+          ...new Set(record.links.map((link) => String(link.id))),
+        ].filter((id) => !linked.has(id));
+        if (missing.length) unlinked.push({ id: String(record.id), missing });
+      }
+      return unlinked;
+    };
     const linkRecordsInput = {
       ...inBase,
       tableId: z.string().describe('Table ID'),
@@ -1201,7 +1346,9 @@ export class McpService {
           'existing links are kept; use updateRecords to replace a whole ' +
           'set, unlinkRecords to remove. A many-to-one, belongs-to or ' +
           'one-to-one field takes one target per record; more is refused, ' +
-          'and one target replaces any existing link on that record. ' +
+          'and one target replaces any existing link on that record. A ' +
+          'one-to-one or has-many target already linked elsewhere is moved, ' +
+          'and its previous link is removed without a warning. ' +
           'Reports per-record ok/error — one bad record does not fail the rest.',
         annotations: {
           title: 'Link Records',
@@ -1244,7 +1391,8 @@ export class McpService {
         title: 'Unlink Records',
         description:
           'Remove specific links from records in this table through a link ' +
-          'field. Links not named are kept. ' +
+          'field. Links not named are kept. A link the record does not have ' +
+          'is named in `warnings`; other links still unlink. ' +
           'Reports per-record ok/error — one bad record does not fail the rest.',
         annotations: {
           title: 'Unlink Records',
@@ -1272,17 +1420,47 @@ export class McpService {
             // carries.
             units: unitsForBulk(records.length, 1),
           },
-          async (target) =>
-            runLinkOps(target, tableId, fieldId, records, (op) =>
-              this.datasV3Service.nestedUnlink(op.target.context, {
-                modelId: tableId,
-                columnId: op.columnId,
-                rowId: op.rowId,
-                refRowIds: op.refRowIds,
-                query: {},
-                cookie: op.target.req,
-              }),
-            ),
+          async (target) => {
+            // The check is advisory: if the read fails, the unlink still runs
+            // and reports as it did before.
+            const unlinked = await findUnlinkedTargets(
+              target,
+              tableId,
+              fieldId,
+              records,
+            ).catch((e: Error) => {
+              this.logger.warn(`unlinkRecords pre-check skipped: ${e.message}`);
+              return [];
+            });
+            const result = await runLinkOps(
+              target,
+              tableId,
+              fieldId,
+              records,
+              (op) =>
+                this.datasV3Service.nestedUnlink(op.target.context, {
+                  modelId: tableId,
+                  columnId: op.columnId,
+                  rowId: op.rowId,
+                  refRowIds: op.refRowIds,
+                  query: {},
+                  cookie: op.target.req,
+                }),
+            );
+            return unlinked.length
+              ? {
+                  ...result,
+                  warnings: unlinked.map(
+                    ({ id, missing }) =>
+                      `Record ${id} had no link to ${missing.join(
+                        ', ',
+                      )}; nothing was unlinked for ${
+                        missing.length === 1 ? 'it' : 'them'
+                      }.`,
+                  ),
+                }
+              : result;
+          },
         ),
     );
   }

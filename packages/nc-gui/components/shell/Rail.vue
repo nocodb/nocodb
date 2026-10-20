@@ -17,6 +17,10 @@ export interface ShellRailItem {
   testId?: string
   /** Telemetry suffix, when the event name differs from the slug. */
   ev?: string
+  /** A short chip after the title ("AI", "Draft"). */
+  badge?: string
+  /** Rows nested under this one. A parent has no pane: picking it opens its first child. */
+  children?: ShellRailItem[]
 }
 
 export interface ShellRailGroup {
@@ -62,8 +66,23 @@ const search = defineModel<string>('search', { default: '' })
 
 const isSearching = computed(() => !!search.value.trim())
 
+function matches(item: ShellRailItem, group: ShellRailGroup, query: string) {
+  return (
+    item.title.toLowerCase().includes(query) || group.label.toLowerCase().includes(query) || (item.keywords ?? '').includes(query)
+  )
+}
+
+/** The rows that open a pane: a parent stands in for its children. */
+function leavesOf(item: ShellRailItem): ShellRailItem[] {
+  return item.children?.length ? item.children : [item]
+}
+
+function containsActive(item: ShellRailItem) {
+  return leavesOf(item).some((leaf) => leaf.slug === props.active)
+}
+
 // Panes whose title, group or keywords match the query; empty groups fall away
-// with their headers.
+// with their headers. A parent that matches keeps all its rows.
 const filteredGroups = computed(() => {
   const query = search.value.trim().toLowerCase()
   if (!query) return props.groups
@@ -71,12 +90,15 @@ const filteredGroups = computed(() => {
   return props.groups
     .map((group) => ({
       ...group,
-      items: group.items.filter(
-        (item) =>
-          item.title.toLowerCase().includes(query) ||
-          group.label.toLowerCase().includes(query) ||
-          (item.keywords ?? '').includes(query),
-      ),
+      items: group.items.flatMap((item) => {
+        if (!item.children?.length) return matches(item, group, query) ? [item] : []
+
+        const children = matches(item, group, query)
+          ? item.children
+          : item.children.filter((child) => matches(child, group, query))
+
+        return children.length ? [{ ...item, children }] : []
+      }),
     }))
     .filter((group) => group.items.length)
 })
@@ -103,7 +125,7 @@ function isGroupOpen(group: ShellRailGroup) {
 
   if (isSearching.value) return true
 
-  if (group.items.some((i) => i.slug === props.active)) return true
+  if (group.items.some(containsActive)) return true
 
   return !!openGroups.value[group.key ?? group.label]
 }
@@ -119,6 +141,28 @@ function toggleGroup(group: ShellRailGroup) {
   emits('groupToggle', key, open)
 }
 
+interface RailRow {
+  item: ShellRailItem
+  isParent: boolean
+  isChild: boolean
+}
+
+/** A parent is open while it holds the active pane or a search runs, so the open app is the selected one. */
+function rowsOf(group: ShellRailGroup): RailRow[] {
+  if (!isGroupOpen(group)) return []
+
+  return group.items.flatMap((item) => {
+    if (!item.children?.length) return [{ item, isParent: false, isChild: false }]
+
+    const children = isSearching.value || containsActive(item) ? item.children : []
+
+    return [
+      { item, isParent: true, isChild: false },
+      ...children.map((child) => ({ item: child, isParent: false, isChild: true })),
+    ]
+  })
+}
+
 const onSelect = (slug: string) => {
   emits('select', slug)
 }
@@ -126,7 +170,7 @@ const onSelect = (slug: string) => {
 // Enter jumps to the first match, so a search can be driven from the keyboard alone.
 const onSearchEnter = () => {
   const first = filteredGroups.value[0]?.items[0]
-  if (first) onSelect(first.slug)
+  if (first) onSelect(leavesOf(first)[0]!.slug)
 }
 </script>
 
@@ -193,20 +237,33 @@ const onSearchEnter = () => {
           />
         </component>
         <div
-          v-for="item in isGroupOpen(group) ? group.items : []"
+          v-for="{ item, isParent, isChild } in rowsOf(group)"
           :key="item.slug"
           v-e="[`${eventPrefix}${item.ev ?? item.slug}`]"
           class="nc-shell-rail-item"
-          :class="{ active: active === item.slug }"
+          :class="{
+            'active': active === item.slug,
+            'nc-shell-rail-item-child': isChild,
+            'nc-shell-rail-item-holds-active': isParent && containsActive(item),
+          }"
           :data-testid="item.testId ?? `${testidPrefix}-item-${item.slug}`"
-          @click="onSelect(item.slug)"
+          @click="onSelect(leavesOf(item)[0]!.slug)"
         >
           <GeneralIcon
             :icon="item.icon"
             class="!h-4 !w-4 flex-none"
-            :class="active === item.slug ? 'text-nc-content-brand' : 'text-nc-content-gray-subtle2'"
+            :class="
+              active === item.slug || (isParent && containsActive(item))
+                ? 'text-nc-content-brand'
+                : 'text-nc-content-gray-subtle2'
+            "
           />
-          <span class="truncate flex-1">{{ item.title }}</span>
+          <span class="truncate" :class="{ 'flex-1': !item.badge }">{{ item.title }}</span>
+
+          <template v-if="item.badge">
+            <span class="nc-shell-rail-badge">{{ item.badge }}</span>
+            <span class="flex-1" />
+          </template>
 
           <div v-if="item.logos" class="nc-shell-rail-logos">
             <div class="nc-shell-rail-logos-stack">
@@ -224,6 +281,13 @@ const onSearchEnter = () => {
           <NcTooltip v-if="item.info" :title="item.info" placement="right" :arrow="false" class="nc-shell-rail-info">
             <GeneralIcon icon="ncInfo" class="nc-shell-rail-info-icon flex-none" />
           </NcTooltip>
+
+          <GeneralIcon
+            v-if="isParent"
+            icon="chevronDown"
+            class="nc-shell-rail-chevron text-nc-content-gray-muted"
+            :class="{ '-rotate-90': !isSearching && !containsActive(item) }"
+          />
         </div>
       </template>
     </div>
@@ -252,6 +316,19 @@ const onSearchEnter = () => {
       @apply bg-nc-bg-brand;
     }
   }
+}
+
+// Indented so a child's icon sits under its parent's title.
+.nc-shell-rail-item-child {
+  @apply pl-9;
+}
+
+.nc-shell-rail-item-holds-active {
+  @apply text-nc-content-brand font-medium;
+}
+
+.nc-shell-rail-badge {
+  @apply flex-none px-1.5 rounded text-[10px] leading-4 font-semibold tracking-wide bg-nc-bg-gray-medium text-nc-content-gray-subtle;
 }
 
 .nc-shell-rail-group {

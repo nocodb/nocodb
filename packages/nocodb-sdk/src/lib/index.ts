@@ -60,6 +60,8 @@ export {
   type LastModifiedTimeColMeta,
   isHiddenCol,
   getEquivalentUIType,
+  resolveRollupResultUidt,
+  getRollupResultUidt,
   isActionButtonCol,
   isSelectTypeCol,
   isOrderCol,

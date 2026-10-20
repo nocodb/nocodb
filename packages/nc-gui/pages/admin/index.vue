@@ -26,6 +26,7 @@ type AdminTab =
   | 'authentication'
   | 'license'
   | 'users-list'
+  | 'abuse-reports'
   | 'settings'
 
 const validTabs = computed<AdminTab[]>(() => {
@@ -37,6 +38,7 @@ const validTabs = computed<AdminTab[]>(() => {
     'external-integrations',
     'authentication',
     'users-list',
+    'abuse-reports',
     'settings',
   ]
 
@@ -70,6 +72,16 @@ watchEffect(() => {
 const isPending = computed(() => !emailConfigured.value || !storageConfigured.value)
 
 const backRoute = computed(() => ncBackRoute().get())
+
+const { openCount: abuseOpenCount, fetchOpenCount: fetchAbuseOpenCount } = useAbuseReports()
+
+watch(
+  isSuperAdmin,
+  (isAdmin) => {
+    if (isAdmin) fetchAbuseOpenCount()
+  },
+  { immediate: true },
+)
 
 // Guard: redirect if not super admin
 watch(
@@ -168,6 +180,23 @@ watch(
             </NcMenuItem>
 
             <NcMenuItem
+              v-if="isSuperAdmin"
+              key="abuse-reports"
+              :class="{ active: activeTab === 'abuse-reports' }"
+              class="item"
+              data-testid="nc-admin-abuse-reports-menu"
+              @click="activeTab = 'abuse-reports'"
+            >
+              <div class="w-full flex items-center space-x-2">
+                <GeneralIcon icon="ncFlag" class="!h-4 !w-4" />
+                <div class="select-none flex-1">{{ $t('title.abuseReports') }}</div>
+                <NcBadge v-if="abuseOpenCount" color="red" :border="false" class="!h-5 text-xs font-semibold px-1.5">
+                  {{ abuseOpenCount }}
+                </NcBadge>
+              </div>
+            </NcMenuItem>
+
+            <NcMenuItem
               v-if="isUIAllowed('ssoSettings') && !isEEFeatureBlocked"
               key="authentication"
               :class="{ active: activeTab === 'authentication' }"
@@ -255,6 +284,7 @@ watch(
               <AccountAuthentication v-else-if="activeTab === 'authentication'" />
               <AccountLicense v-else-if="activeTab === 'license'" />
               <AccountUserList v-else-if="activeTab === 'users-list'" />
+              <AdminAbuseReports v-else-if="activeTab === 'abuse-reports'" />
               <AccountSignupSettings v-else-if="activeTab === 'settings'" />
             </div>
           </div>

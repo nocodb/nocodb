@@ -12,7 +12,9 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
   const { $api, $e } = useNuxtApp()
   const route = useRoute()
 
-  const { maybeNavigateToInterfaceOnlyBase, navigateToBaseInterface, baseOpensInterfaceByDefault } = useInterfacePermissions()
+  const { maybeNavigateToInterfaceOnlyBase } = useInterfacePermissions()
+
+  const { baseCardAppCount, openBaseFromCard } = useAppsEntry()
 
   const { isAppInstall, navigateToApp } = useManagedAppInstalls()
 
@@ -185,11 +187,10 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
       return
     }
 
-    // A base with a published interface the user can open defaults to the
-    // interface — the card's "Go to data" button (onOpenData) is the escape
-    // hatch to the data view.
-    if (baseOpensInterfaceByDefault(base)) {
-      navigateToBaseInterface(base)
+    // A base with an app the user can open defaults to it — the card's "Go to
+    // data" button (onOpenData) is the escape hatch to the data view.
+    if (baseCardAppCount(base) > 0) {
+      await openBaseFromCard(base)
       return
     }
 

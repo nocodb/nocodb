@@ -31,6 +31,8 @@ export interface AggregateColumnSpec {
    * aggregation — otherwise the field title is the label, as before.
    */
   displayKey?: string;
+  /** Aggregation comes from the view's saved footer, not the request. */
+  fromSavedView?: boolean;
 }
 
 /**
@@ -146,16 +148,19 @@ export const aggregate =
       const selectors: Knex.Raw[] = [];
 
       await Promise.all(
-        aggregateColumns.map(async ({ col, aggregation: agg, resultKey }) => {
-          const aggSql = await applyAggregation({
-            baseModelSqlv2: baseModel,
-            aggregation: agg,
-            column: col,
-            alias: resultKey,
-            baseQuery: qb,
-          });
-          if (aggSql) selectors.push(baseModel.dbDriver.raw(aggSql));
-        }),
+        aggregateColumns.map(
+          async ({ col, aggregation: agg, resultKey, fromSavedView }) => {
+            const aggSql = await applyAggregation({
+              baseModelSqlv2: baseModel,
+              aggregation: agg,
+              column: col,
+              alias: resultKey,
+              baseQuery: qb,
+              skipStaleRollup: fromSavedView,
+            });
+            if (aggSql) selectors.push(baseModel.dbDriver.raw(aggSql));
+          },
+        ),
       );
 
       if (!selectors.length) {
@@ -251,7 +256,12 @@ export async function resolveAggregateColumns({
 
       for (const aggType of aggTypes) {
         if (!aggType) continue;
-        aggregateColumns.push({ col, aggregation: aggType, resultKey: col.id });
+        aggregateColumns.push({
+          col,
+          aggregation: aggType,
+          resultKey: col.id,
+          fromSavedView: !overrideMode,
+        });
       }
     }
     return withResultKeys(aggregateColumns);

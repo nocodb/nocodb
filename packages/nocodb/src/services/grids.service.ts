@@ -209,7 +209,7 @@ export class GridsService {
       context,
     });
 
-    await view.getView();
+    await view.getView(ncMeta);
 
     // Strip the stored bcrypt password hash from every outbound payload.
     const safeView = View.maskPasswordForResponse(view);

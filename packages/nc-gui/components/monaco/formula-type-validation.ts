@@ -1225,14 +1225,19 @@ export class FormulaTypeValidator {
 
     switch (node.operator) {
       case '-':
-        if (argType !== FormulaDataTypes.NUMERIC) {
-          errors.push({
-            message: `Negation operator requires a number, but got ${dataTypeLabels[argType]}`,
-            severity: MarkerSeverity.Error,
-            ...nodePosition,
-          })
-        }
-        break
+        // `-x` gets the same checks as `0 - x`; recursion into the argument happens there
+        this.analyzeBinaryExpression(
+          {
+            type: JSEPNode.BINARY_EXP,
+            operator: '-',
+            left: { type: JSEPNode.LITERAL, value: 0, dataType: FormulaDataTypes.NUMERIC },
+            right: node.argument,
+          },
+          errors,
+          formula,
+          nodePosition,
+        )
+        return
 
       case '!':
         if (

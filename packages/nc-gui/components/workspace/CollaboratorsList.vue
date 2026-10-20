@@ -31,7 +31,11 @@ const { showInfoModal } = useNcConfirmModal()
 
 const workspaceStore = useWorkspace()
 
-const { removeCollaborator: _removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
+const {
+  removeCollaborator: _removeCollaborator,
+  updateCollaborator: _updateCollaborator,
+  resendCollaboratorInvite,
+} = workspaceStore
 
 const {
   collaborators,
@@ -919,6 +923,14 @@ watch(inviteDlg, (newVal) => {
                       <NcMenuItem v-if="record.isTeam && teamsMap[record.id]?.is_member" @click="handleEditTeam(record)">
                         <GeneralIcon icon="ncEdit" class="h-4 w-4" />
                         {{ $t('general.edit') }}
+                      </NcMenuItem>
+                      <NcMenuItem
+                        v-if="isOwnerOrCreator && record.invite_pending"
+                        data-testid="nc-workspace-member-resend-invite"
+                        @click="resendCollaboratorInvite(record.id, currentWorkspace?.id)"
+                      >
+                        <GeneralIcon icon="ncMail" class="h-4 w-4" />
+                        {{ $t('activity.resendInvite') }}
                       </NcMenuItem>
                       <template v-if="isAdminPanel && !record.isTeam">
                         <NcMenuItem data-testid="nc-admin-org-user-delete">

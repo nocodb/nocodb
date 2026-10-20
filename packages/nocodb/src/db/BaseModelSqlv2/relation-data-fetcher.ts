@@ -18,12 +18,26 @@ import { Filter, Model, View } from '~/models';
 import { hasLimitedRelatedTableAccess } from '~/helpers/tableHelpers';
 import Noco from '~/Noco';
 import { nocoExecute } from '~/utils/nocoExecute';
+import { chunkArray } from '~/utils/tsUtils';
+import { COMPOUND_SELECT_CHUNK_SIZE } from '~/constants';
 import {
   getRelationReadDepth,
   runAtNextRelationReadDepth,
 } from '~/db/BaseModelSqlv2/relation-read-depth';
 
 const GROUP_COL = '__nc_group_id';
+
+// The multiple* fetchers union one SELECT per id, so they run in chunks.
+const execPerIdChunk = async <T>(
+  ids: T[],
+  exec: (chunk: T[]) => Promise<Record<string, any>[]>,
+) => {
+  const rows: Record<string, any>[] = [];
+  for (const chunk of chunkArray(ids, COMPOUND_SELECT_CHUNK_SIZE)) {
+    rows.push(...(await exec(chunk)));
+  }
+  return rows;
+};
 
 // How many relation levels `postProcessData` expands LTAR/Lookup before falling
 // back to a value-only projection (scalars/Rollup/Links/Formula). Depth 0 is the
@@ -267,40 +281,41 @@ export const relationDataFetcher = (param: {
         const hmSoftDeleteFilter = await childBaseModel.getSoftDeleteFilter();
         if (hmSoftDeleteFilter) qb.where(hmSoftDeleteFilter);
 
-        const childQb = baseModel.dbDriver.queryBuilder().from(
-          baseModel.dbDriver
-            .unionAll(
-              ids.map((p) => {
-                const query = qb
-                  .clone()
-                  .select(baseModel.dbDriver.raw('? as ??', [p, GROUP_COL]))
-                  .whereIn(
-                    childCol.column_name,
-                    baseModel
-                      .dbDriver(parentTn)
-                      .select(parentCol.column_name)
-                      // .where(parentTable.primaryKey.cn, p)
-                      .where(_wherePk(parentTable.primaryKeys, p)),
-                  );
-                // todo: sanitize
+        const childColumns = await childTable.getColumns();
+        const children = await execPerIdChunk(ids, (idChunk) =>
+          childBaseModel.execAndParse(
+            baseModel.dbDriver.queryBuilder().from(
+              baseModel.dbDriver
+                .unionAll(
+                  idChunk.map((p) => {
+                    const query = qb
+                      .clone()
+                      .select(baseModel.dbDriver.raw('? as ??', [p, GROUP_COL]))
+                      .whereIn(
+                        childCol.column_name,
+                        baseModel
+                          .dbDriver(parentTn)
+                          .select(parentCol.column_name)
+                          // .where(parentTable.primaryKey.cn, p)
+                          .where(_wherePk(parentTable.primaryKeys, p)),
+                      );
+                    // todo: sanitize
 
-                // get one extra record to check if there are more records in case of v3 api and nested
-                query.limit(
-                  (+rest?.limit || 25) +
-                    (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
-                );
-                query.offset(+rest?.offset || 0);
+                    // get one extra record to check if there are more records in case of v3 api and nested
+                    query.limit(
+                      (+rest?.limit || 25) +
+                        (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
+                    );
+                    query.offset(+rest?.offset || 0);
 
-                return wrapUnionMember(baseModel, query);
-              }),
-              !needsUnionMemberWrap(baseModel),
-            )
-            .as('list'),
-        );
-
-        const children = await childBaseModel.execAndParse(
-          childQb,
-          await childTable.getColumns(),
+                    return wrapUnionMember(baseModel, query);
+                  }),
+                  !needsUnionMemberWrap(baseModel),
+                )
+                .as('list'),
+            ),
+            childColumns,
+          ),
         );
         const proto = await childBaseModel.getProto();
 
@@ -628,30 +643,33 @@ export const relationDataFetcher = (param: {
         const hmCountSoftDeleteFilter =
           await childBaseModel.getSoftDeleteFilter();
 
-        const children = await childBaseModel.execAndParse(
-          childBaseModel.dbDriver.unionAll(
-            ids.map((p) => {
-              const query = baseModel
-                .dbDriver(childTn)
-                .count(`${childCol?.column_name} as count`)
-                .whereIn(
-                  childCol.column_name,
-                  baseModel
-                    .dbDriver(parentTn)
-                    .select(parentCol.column_name)
-                    // .where(parentTable.primaryKey.cn, p)
-                    .where(_wherePk(parentTable.primaryKeys, p)),
-                )
-                .first();
+        const children = await execPerIdChunk(ids, (idChunk) =>
+          childBaseModel.execAndParse(
+            childBaseModel.dbDriver.unionAll(
+              idChunk.map((p) => {
+                const query = baseModel
+                  .dbDriver(childTn)
+                  .count(`${childCol?.column_name} as count`)
+                  .whereIn(
+                    childCol.column_name,
+                    baseModel
+                      .dbDriver(parentTn)
+                      .select(parentCol.column_name)
+                      // .where(parentTable.primaryKey.cn, p)
+                      .where(_wherePk(parentTable.primaryKeys, p)),
+                  )
+                  .first();
 
-              if (hmCountSoftDeleteFilter) query.where(hmCountSoftDeleteFilter);
+                if (hmCountSoftDeleteFilter)
+                  query.where(hmCountSoftDeleteFilter);
 
-              return wrapUnionMember(childBaseModel, query);
-            }),
-            !needsUnionMemberWrap(childBaseModel),
+                return wrapUnionMember(childBaseModel, query);
+              }),
+              !needsUnionMemberWrap(childBaseModel),
+            ),
+            null,
+            { raw: true },
           ),
-          null,
-          { raw: true },
         );
 
         return children.map(({ count }) => count);
@@ -957,36 +975,37 @@ export const relationDataFetcher = (param: {
 
       const mmListSoftDeleteFilter = await refBaseModel.getSoftDeleteFilter();
 
-      const finalQb = refBaseModel.dbDriver.unionAll(
-        parentIds.map((id) => {
-          const query = qb
-            .clone()
-            .whereIn(
-              `${vtn}.${vcn}`,
-              baseModel
-                .dbDriver(tn)
-                .select(cn)
-                // .where(parentTable.primaryKey.cn, id)
-                .where(_wherePk(table.primaryKeys, id)),
-            )
-            .select(baseModel.dbDriver.raw('? as ??', [id, GROUP_COL]));
+      const refColumns = await refTable.getColumns();
+      const children = await execPerIdChunk(parentIds, (idChunk) =>
+        refBaseModel.execAndParse(
+          refBaseModel.dbDriver.unionAll(
+            idChunk.map((id) => {
+              const query = qb
+                .clone()
+                .whereIn(
+                  `${vtn}.${vcn}`,
+                  baseModel
+                    .dbDriver(tn)
+                    .select(cn)
+                    // .where(parentTable.primaryKey.cn, id)
+                    .where(_wherePk(table.primaryKeys, id)),
+                )
+                .select(baseModel.dbDriver.raw('? as ??', [id, GROUP_COL]));
 
-          if (mmListSoftDeleteFilter) query.where(mmListSoftDeleteFilter);
+              if (mmListSoftDeleteFilter) query.where(mmListSoftDeleteFilter);
 
-          // get one extra record to check if there are more records in case of v3 api and nested
-          query.limit(
-            (+rest?.limit || 25) +
-              (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
-          );
-          query.offset(+rest?.offset || 0);
-          return wrapUnionMember(baseModel, query);
-        }),
-        !needsUnionMemberWrap(baseModel),
-      );
-
-      const children = await refBaseModel.execAndParse(
-        finalQb,
-        await refTable.getColumns(),
+              // get one extra record to check if there are more records in case of v3 api and nested
+              query.limit(
+                (+rest?.limit || 25) +
+                  (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
+              );
+              query.offset(+rest?.offset || 0);
+              return wrapUnionMember(baseModel, query);
+            }),
+            !needsUnionMemberWrap(baseModel),
+          ),
+          refColumns,
+        ),
       );
 
       const proto = await refBaseModel.getProto();
@@ -1061,27 +1080,29 @@ export const relationDataFetcher = (param: {
       if (mmCountSoftDeleteFilter) qb.where(mmCountSoftDeleteFilter);
 
       // await childBaseModel.selectObject({ qb });
-      const children = await baseModel.execAndParse(
-        baseModel.dbDriver.unionAll(
-          parentIds.map((id) => {
-            const query = qb
-              .clone()
-              .whereIn(
-                `${vtn}.${vcn}`,
-                baseModel
-                  .dbDriver(parentTn)
-                  .select(cn)
-                  // .where(parentTable.primaryKey.cn, id)
-                  .where(_wherePk(parentTable.primaryKeys, id)),
-              )
-              .select(baseModel.dbDriver.raw('? as ??', [id, GROUP_COL]));
-            // baseModel._paginateAndSort(query, { sort, limit, offset }, null, true);
-            return wrapUnionMember(baseModel, query);
-          }),
-          !needsUnionMemberWrap(baseModel),
+      const children = await execPerIdChunk(parentIds, (idChunk) =>
+        baseModel.execAndParse(
+          baseModel.dbDriver.unionAll(
+            idChunk.map((id) => {
+              const query = qb
+                .clone()
+                .whereIn(
+                  `${vtn}.${vcn}`,
+                  baseModel
+                    .dbDriver(parentTn)
+                    .select(cn)
+                    // .where(parentTable.primaryKey.cn, id)
+                    .where(_wherePk(parentTable.primaryKeys, id)),
+                )
+                .select(baseModel.dbDriver.raw('? as ??', [id, GROUP_COL]));
+              // baseModel._paginateAndSort(query, { sort, limit, offset }, null, true);
+              return wrapUnionMember(baseModel, query);
+            }),
+            !needsUnionMemberWrap(baseModel),
+          ),
+          null,
+          { raw: true },
         ),
-        null,
-        { raw: true },
       );
 
       const gs = groupBy(children, GROUP_COL);

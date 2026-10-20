@@ -1,12 +1,9 @@
 import fs from 'fs';
 import { Readable } from 'stream';
 import { Client as MinioClient } from 'minio';
-import axios from 'axios';
-import { OperationSource } from 'nocodb-sdk';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
-import { getFilteredAgents } from '~/utils/ssrf';
 import { NcError } from '~/helpers/ncError';
-import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
+import { fetchSourceFile } from '~/utils/pluginUtils';
 
 interface MinioObjectStorageInput {
   bucket: string;
@@ -177,33 +174,29 @@ export default class Minio implements IStorageAdapterV2 {
     url: string,
     { fetchOptions: { buffer } = { buffer: false } },
   ): Promise<any> {
-    try {
-      const response = await axios.get(url, {
-        ...getFilteredAgents({ url, source: OperationSource.PLUGINS }),
-        responseType: buffer ? 'arraybuffer' : 'stream',
-        maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
-      });
+    return fetchSourceFile(url, { buffer }, async (response) => {
+      try {
+        const uploadParams = {
+          ACL: 'public-read',
+          Key: key,
+          Body: response.data,
+          metaData: {
+            ContentType: response.headers['content-type'] as string,
+          },
+        };
 
-      const uploadParams = {
-        ACL: 'public-read',
-        Key: key,
-        Body: response.data,
-        metaData: {
-          ContentType: response.headers['content-type'] as string,
-        },
-      };
+        const responseUrl = await this.upload(uploadParams);
 
-      const responseUrl = await this.upload(uploadParams);
-
-      return {
-        url: responseUrl,
-        data: response.data,
-      };
-    } catch (error) {
-      NcError._.storageFileCreateError(
-        `Failed to create file from URL: ${error?.message}`,
-      );
-    }
+        return {
+          url: responseUrl,
+          data: response.data,
+        };
+      } catch (error) {
+        NcError._.storageFileCreateError(
+          `Failed to create file from URL: ${error?.message}`,
+        );
+      }
+    });
   }
 
   private async upload(uploadParams: {

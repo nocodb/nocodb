@@ -15,6 +15,11 @@ import { Profiler } from '~/helpers/profiler';
 import { Model } from '~/models';
 import { addOrRemoveLinks } from '~/db/BaseModelSqlv2/add-remove-links';
 
+// Link values may be keyed by id (MCP re-keys fields by id). Title and id
+// never collide, unlike column_name.
+export const getLinkValue = (d: Record<string, any>, col: Column) =>
+  col.title in d ? d[col.title] : d[col.id];
+
 // for v3 bulk update with ltar links
 export const LTARColsUpdater = (param: {
   baseModel: IBaseModelSqlV2;
@@ -41,7 +46,8 @@ export const LTARColsUpdater = (param: {
     // No-op in CE, where checkPermission is a stub.
     const writtenLinkColIds = baseModel.model.columns
       .filter(
-        (col) => isLinksOrLTAR(col) && datas.some((d) => d[col.title] != null),
+        (col) =>
+          isLinksOrLTAR(col) && datas.some((d) => getLinkValue(d, col) != null),
       )
       .map((col) => col.id);
 
@@ -81,10 +87,11 @@ export const LTARColsUpdater = (param: {
 
       for (const d of datas) {
         const rowId = baseModel.extractPksValues(d, true);
+        const value = getLinkValue(d, col);
 
         // skip if value is not part of the update; `null` is not a link
         // value (only `[]` clears), so it is skipped too — same as EE.
-        if (d[col.title] == null) continue;
+        if (value == null) continue;
 
         // extract existing link values to current record
         let existingLinks: Record<string, any>[] | Record<string, any> = [];
@@ -129,8 +136,8 @@ export const LTARColsUpdater = (param: {
         }
 
         const idsToLink = [
-          ...(Array.isArray(d[col.title]) ? d[col.title] : [d[col.title]]).map(
-            (rec) => baseModel.extractPksValues(rec, true),
+          ...(Array.isArray(value) ? value : [value]).map((rec) =>
+            baseModel.extractPksValues(rec, true),
           ),
         ];
 

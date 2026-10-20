@@ -2,14 +2,14 @@ import fs from 'fs';
 import { promisify } from 'util';
 import { Readable } from 'stream';
 import { Storage } from '@google-cloud/storage';
-import axios from 'axios';
-import { OperationSource } from 'nocodb-sdk';
 import type { GetSignedUrlConfig, StorageOptions } from '@google-cloud/storage';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
-import { getFilteredAgents } from '~/utils/ssrf';
-import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
+import {
+  fetchSourceFile,
+  generateTempFilePath,
+  waitForStreamClose,
+} from '~/utils/pluginUtils';
 import { NcError } from '~/helpers/ncError';
-import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 
 interface GoogleCloudStorageInput {
   client_email: string;
@@ -157,22 +157,18 @@ export default class Gcs implements IStorageAdapterV2 {
     url: string,
     { fetchOptions: { buffer } = { buffer: false } },
   ): Promise<{ url: string; data: any }> {
-    try {
-      const response = await axios.get(url, {
-        ...getFilteredAgents({ url, source: OperationSource.PLUGINS }),
-        responseType: buffer ? 'arraybuffer' : 'stream',
-        maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
-      });
+    return fetchSourceFile(url, { buffer }, async (response) => {
+      try {
+        const file = this.storageClient.bucket(this.bucketName).file(destPath);
+        await file.save(response.data);
 
-      const file = this.storageClient.bucket(this.bucketName).file(destPath);
-      await file.save(response.data);
-
-      return { url: file.publicUrl(), data: response.data };
-    } catch (e) {
-      NcError._.storageFileCreateError(
-        `Failed to create file from URL: ${e.message}`,
-      );
-    }
+        return { url: file.publicUrl(), data: response.data };
+      } catch (e) {
+        NcError._.storageFileCreateError(
+          `Failed to create file from URL: ${e.message}`,
+        );
+      }
+    });
   }
 
   public async fileDelete(path: string): Promise<void> {

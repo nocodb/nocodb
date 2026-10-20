@@ -35,8 +35,21 @@ export const EMAIL_HTML_SANITIZE_CONFIG = {
     'h4',
     'h5',
     'h6',
+    // Only ever with a `cid:` src that names an image extracted from this body — see
+    // extractInlineImages. Remote and data: sources are dropped.
+    'img',
   ],
-  ALLOWED_ATTR: ['href', 'target', 'rel', 'style', 'align'],
+  ALLOWED_ATTR: [
+    'href',
+    'target',
+    'rel',
+    'style',
+    'align',
+    'src',
+    'alt',
+    'width',
+    'height',
+  ],
   // Editor marks carry data-* mirrors of their styles; recipients never need them.
   ALLOW_DATA_ATTR: false,
   FORBID_TAGS: [
@@ -56,9 +69,10 @@ export const EMAIL_HTML_SANITIZE_CONFIG = {
     'math',
     'base',
   ],
-  ALLOWED_URI_REGEXP: /^(?:https?|mailto):/i,
+  // `cid:` is narrowed to img src by the attribute hook.
+  ALLOWED_URI_REGEXP: /^(?:https?|mailto|cid):/i,
   // A custom URI regexp is applied to every non-URI-safe attribute, which would eat target/rel.
-  ADD_URI_SAFE_ATTR: ['target', 'rel', 'align'],
+  ADD_URI_SAFE_ATTR: ['target', 'rel', 'align', 'width', 'height'],
 };
 
 /**
@@ -84,6 +98,10 @@ export const EMAIL_ALLOWED_CSS_PROPS = new Set([
   'padding-left',
   'border-left',
   'border-radius',
+  'width',
+  'height',
+  'max-width',
+  'vertical-align',
 ]);
 
 /**
@@ -129,6 +147,7 @@ export function sanitizeInlineStyle(style: string): string {
 // (comments, table names…), so both hooks only act while an email sanitize is running.
 let emailSanitizeActive = false;
 let applyBaseStyles = false;
+let allowedInlineCids: ReadonlySet<string> = new Set();
 
 let purify: typeof DOMPurifyType | undefined;
 
@@ -156,15 +175,35 @@ function getPurify(): typeof DOMPurifyType {
     el.setAttribute('style', own ? `${base}; ${own}` : base);
   });
 
-  purify.addHook('uponSanitizeAttribute', (_node, data) => {
+  purify.addHook('uponSanitizeAttribute', (node, data) => {
     if (!emailSanitizeActive) return;
     if (data.attrName === 'href') {
       data.attrValue = normalizeEmailHref(data.attrValue);
+      if (/^cid:/i.test(data.attrValue)) data.keepAttr = false;
+      return;
+    }
+    if (data.attrName === 'src') {
+      const cid = /^cid:(.+)$/i.exec(data.attrValue.trim())?.[1];
+      if (
+        node.nodeName !== 'IMG' ||
+        !cid ||
+        !allowedInlineCids.has(cid.toLowerCase())
+      ) {
+        data.keepAttr = false;
+      }
       return;
     }
     if (data.attrName !== 'style') return;
     data.attrValue = sanitizeInlineStyle(data.attrValue);
     if (!data.attrValue) data.keepAttr = false;
+  });
+
+  // An image whose source was rejected would render as a broken-image box.
+  purify.addHook('afterSanitizeAttributes', (node) => {
+    if (!emailSanitizeActive) return;
+    if (node.nodeName === 'IMG' && !(node as Element).getAttribute('src')) {
+      node.parentNode?.removeChild(node);
+    }
   });
 
   return purify;
@@ -207,17 +246,228 @@ export function isLikelyHtml(value: string): boolean {
  */
 export function sanitizeEmailHtml(
   input: unknown,
-  options: { baseStyles?: boolean } = {},
+  options: { baseStyles?: boolean; inlineCids?: Iterable<string> } = {},
 ): string {
   if (input == null) return '';
   emailSanitizeActive = true;
   applyBaseStyles = !!options.baseStyles;
+  allowedInlineCids = new Set(
+    [...(options.inlineCids ?? [])].map((cid) => cid.toLowerCase()),
+  );
   try {
     return getPurify().sanitize(String(input), EMAIL_HTML_SANITIZE_CONFIG);
   } finally {
     emailSanitizeActive = false;
     applyBaseStyles = false;
+    allowedInlineCids = new Set();
   }
+}
+
+/** An image embedded in the HTML part and referenced from it by Content-ID. */
+export interface EmailInlineImage {
+  cid: string;
+  filename: string;
+  contentType: string;
+  content: Buffer;
+}
+
+/** Inline images as nodemailer attachments (SMTP and the core mailer). */
+export function toNodemailerInlineAttachments(images: EmailInlineImage[]) {
+  return images.map((image) => ({
+    filename: image.filename,
+    content: image.content,
+    contentType: image.contentType,
+    cid: image.cid,
+    contentDisposition: 'inline' as const,
+  }));
+}
+
+export const MAX_EMAIL_INLINE_IMAGES = 10;
+
+/** Decoded bytes across all inline images; Outlook (Graph) rejects inline parts past ~3 MB. */
+export const MAX_EMAIL_INLINE_IMAGES_SIZE = 2 * 1024 * 1024;
+
+// SVG is excluded: it is a script-capable document, not a picture.
+const INLINE_IMAGE_TYPES: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/gif': 'gif',
+  'image/webp': 'webp',
+};
+
+// Every run before the quote is bounded — the attributes ahead of `src` and the whitespace around
+// `=`. Unbounded, a hostile body (many `<img`, or a huge whitespace run after `src=`) backtracks
+// quadratically, and the reference scan runs on every workflow save, inside the API process.
+const DATA_IMAGE_SRC =
+  /(<img\b[^>]{0,512}?\bsrc\s{0,16}=\s{0,16})(["'])data:(image\/[a-z+.-]+);base64,([A-Za-z0-9+/=\s]*)\2/gi;
+
+// The payload of an `<img>` source the send path turns into a part, for measuring a body without
+// those bytes. Anything else counts as markup: a base64 run elsewhere (record values can't form
+// `<img`), an unclosed quote, or a type that is never sent. So the cap bounds what gets sanitized.
+// Anchored on `src=` so the scan stays linear: it runs on every workflow save, before any cap.
+// Whether the `src` belongs to an `<img>` is checked separately (`isInsideImgTag`).
+const DATA_IMAGE_SRC_PAYLOAD =
+  /(\bsrc\s{0,16}=\s{0,16})(["'])data:image\/(?:png|jpe?g|gif|webp);base64,[A-Za-z0-9+/=\s]*\2/gi;
+
+const IMG_TAG_OPENING = /^<img\b[^>]*$/i;
+
+/** Whether `offset` sits inside an `<img` tag, looking back no more than 512 chars. */
+function isInsideImgTag(body: string, offset: number): boolean {
+  const window = body.slice(Math.max(0, offset - 512), offset);
+  const tagStart = window.lastIndexOf('<');
+  return tagStart !== -1 && IMG_TAG_OPENING.test(window.slice(tagStart));
+}
+
+// Base64 of the inline image cap, with room for line breaks inside the payloads.
+const MAX_EMAIL_IMAGE_PAYLOAD_LENGTH =
+  Math.ceil((MAX_EMAIL_INLINE_IMAGES_SIZE * 4) / 3) + 64 * 1024;
+
+/** A body's length without its image payloads (what the markup cap applies to), and theirs. */
+function measureEmailBody(body: string): { markup: number; payload: number } {
+  let payload = 0;
+  const markup = body.replace(
+    DATA_IMAGE_SRC_PAYLOAD,
+    (match, prefix: string, quote: string, offset: number) => {
+      if (!isInsideImgTag(body, offset)) return match;
+      const kept = `${prefix}${quote}${quote}`;
+      payload += match.length - kept.length;
+      return kept;
+    },
+  ).length;
+  return { markup, payload };
+}
+
+function inlineImagesTooLargeError(): Error {
+  return new Error(
+    `Images in the email body exceed the ${formatMb(MAX_EMAIL_INLINE_IMAGES_SIZE)} limit. Use smaller images — a logo is usually well under 100 KB.`,
+  );
+}
+
+/** Scheme of body images stored as NocoDB files: `src="nc-file:<file_url>"`. */
+export const EMAIL_FILE_IMAGE_SCHEME = 'nc-file:';
+
+const FILE_IMAGE_SRC =
+  /(<img\b[^>]{0,512}?\bsrc\s{0,16}=\s{0,16})(["'])nc-file:([^"']{1,2048})\2/gi;
+
+/** Extensions a stored body image may have; the editor only accepts files with one of these. */
+const IMAGE_TYPE_BY_EXT: Record<string, string> = {
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  jpe: 'image/jpeg',
+  jfif: 'image/jpeg',
+  gif: 'image/gif',
+  webp: 'image/webp',
+};
+
+/** Bytes of a stored body image, loaded by the node before the body is prepared. */
+export interface EmailBodyImageFile {
+  content: Buffer;
+  contentType: string;
+}
+
+function decodeAttr(value: string): string {
+  return value
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
+}
+
+/** Image type for a stored file, from its extension; undefined when it is not one we send inline. */
+export function emailImageTypeForFile(fileUrl: string): string | undefined {
+  const ext = /\.([a-z0-9]+)(?:[?#].*)?$/i.exec(fileUrl)?.[1]?.toLowerCase();
+  return ext ? IMAGE_TYPE_BY_EXT[ext] : undefined;
+}
+
+/** `file_url`s of the stored images a body references, deduplicated. */
+export function collectEmailBodyImageRefs(body: unknown): string[] {
+  if (typeof body !== 'string' || !body.includes(EMAIL_FILE_IMAGE_SCHEME)) {
+    return [];
+  }
+  // A body past the markup cap can't be sent, so its references never matter; skipping it keeps
+  // the scan bounded wherever it runs (workflow saves included).
+  if (measureEmailBody(body).markup > MAX_EMAIL_HTML_BODY_LENGTH) return [];
+  const refs = new Set<string>();
+  for (const match of body.matchAll(FILE_IMAGE_SRC)) {
+    refs.add(decodeAttr(match[3]));
+  }
+  return [...refs];
+}
+
+/**
+ * Mail clients block remote images by default, so each body image becomes a Content-ID part and
+ * the `img` points at `cid:` instead. Stored images (`nc-file:`) take their bytes from `files`;
+ * `data:` URIs carry their own. Identical images share one part. A source with no usable bytes
+ * is left as-is, and the sanitizer drops it with its `img`.
+ */
+export function extractInlineImages(
+  html: string,
+  files: Map<string, EmailBodyImageFile> = new Map(),
+): {
+  html: string;
+  images: EmailInlineImage[];
+} {
+  const images: EmailInlineImage[] = [];
+  const byKey = new Map<string, string>();
+  let size = 0;
+
+  const addImage = (key: string, contentType: string, content: Buffer) => {
+    const existing = byKey.get(key);
+    if (existing) return existing;
+
+    if (images.length >= MAX_EMAIL_INLINE_IMAGES) {
+      throw new Error(
+        `Email body has more than ${MAX_EMAIL_INLINE_IMAGES} images. Remove some images from the body.`,
+      );
+    }
+
+    size += content.length;
+    if (size > MAX_EMAIL_INLINE_IMAGES_SIZE) {
+      throw inlineImagesTooLargeError();
+    }
+
+    const cid = `image${images.length + 1}@nocodb`;
+    byKey.set(key, cid);
+    images.push({
+      cid,
+      filename: `image${images.length + 1}.${INLINE_IMAGE_TYPES[contentType]}`,
+      contentType,
+      content,
+    });
+    return cid;
+  };
+
+  const out = html
+    .replace(
+      DATA_IMAGE_SRC,
+      (match, prefix: string, quote: string, type: string, data: string) => {
+        const contentType = type.toLowerCase();
+        if (!INLINE_IMAGE_TYPES[contentType]) return match;
+        const base64 = data.replace(/\s+/g, '');
+        const content = Buffer.from(base64, 'base64');
+        if (!content.length) return match;
+        const cid = addImage(`data:${contentType};${base64}`, contentType, content);
+        return `${prefix}${quote}cid:${cid}${quote}`;
+      },
+    )
+    .replace(FILE_IMAGE_SRC, (match, prefix: string, quote: string, ref: string) => {
+      const fileUrl = decodeAttr(ref);
+      const file = files.get(fileUrl);
+      if (!file?.content.length || !INLINE_IMAGE_TYPES[file.contentType]) {
+        return match;
+      }
+      const cid = addImage(`file:${fileUrl}`, file.contentType, file.content);
+      return `${prefix}${quote}cid:${cid}${quote}`;
+    });
+
+  return { html: out, images };
+}
+
+function formatMb(bytes: number): string {
+  return `${Math.round((bytes / (1024 * 1024)) * 10) / 10} MB`;
 }
 
 const PLAIN_TEXT_BLOCK_TAGS = new Set([
@@ -241,6 +491,9 @@ function inlineToText(node: Node): string {
   const el = node as Element;
 
   if (el.tagName === 'BR') return '\n';
+
+  // A `cid:` reference means nothing in plain text.
+  if (el.tagName === 'IMG') return '';
 
   if (el.tagName === 'A') {
     const label = childrenToText(el).trim();
@@ -359,6 +612,8 @@ export interface PreparedEmailBody {
   html?: string;
   /** Plain-text content — the body itself when plain, or a derived fallback when HTML */
   text: string;
+  /** Images the HTML references by `cid:`; each must be sent as an inline part */
+  inlineImages?: EmailInlineImage[];
 }
 
 /**
@@ -375,7 +630,11 @@ export const MAX_EMAIL_HTML_BODY_LENGTH = 100_000;
 
 export function prepareEmailBody(
   rawBody: unknown,
-  opts: { isHtml: boolean },
+  opts: {
+    isHtml: boolean;
+    /** Bytes for the body's stored images, keyed by `file_url` (see `resolveEmailBodyImages`). */
+    images?: Map<string, EmailBodyImageFile>;
+  },
 ): PreparedEmailBody {
   const body =
     typeof rawBody === 'string'
@@ -393,13 +652,33 @@ export function prepareEmailBody(
     return { isHtml: false, text: body };
   }
 
-  if (body.length > MAX_EMAIL_HTML_BODY_LENGTH) {
+  // The length limit is about markup the parser must walk; image bytes have their own cap. Both
+  // run before extraction, whose regexes scan every `<img`, so their input stays bounded too.
+  const size = measureEmailBody(body);
+  if (size.markup > MAX_EMAIL_HTML_BODY_LENGTH) {
     throw new Error(
       `Email body exceeds the ${Math.floor(MAX_EMAIL_HTML_BODY_LENGTH / 1000)} KB limit for rich-text content`,
     );
   }
+  if (size.payload > MAX_EMAIL_IMAGE_PAYLOAD_LENGTH) {
+    throw inlineImagesTooLargeError();
+  }
 
-  const sanitized = sanitizeEmailHtml(body, { baseStyles: true });
+  const extracted = extractInlineImages(body, opts.images);
+
+  const sanitized = sanitizeEmailHtml(extracted.html, {
+    baseStyles: true,
+    inlineCids: extracted.images.map((image) => image.cid),
+  });
   const html = `<div style="${EMAIL_BODY_STYLE}">${sanitized}</div>`;
-  return { isHtml: true, html, text: htmlToPlainText(sanitized) };
+  // An image the sanitizer removed (e.g. inside a stripped element) must not ride along.
+  const inlineImages = extracted.images.filter((image) =>
+    sanitized.includes(`cid:${image.cid}`),
+  );
+  return {
+    isHtml: true,
+    html,
+    text: htmlToPlainText(sanitized),
+    inlineImages,
+  };
 }

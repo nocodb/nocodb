@@ -9,15 +9,20 @@ import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { User, Workspace } from '~/models';
 import { calculateInstanceEditorCount } from '~/helpers/instanceAdminHelpers';
+import { AbuseReportsService } from '~/services/abuse-reports.service';
 
 @Injectable()
 export class InstanceAdminGetOperations
   implements InternalApiModule<InternalGETResponseType>
 {
+  constructor(protected readonly abuseReportsService: AbuseReportsService) {}
+
   operations = [
     'instanceAdminStats' as const,
     'instanceAdminWorkspaces' as const,
     'instanceAdminBases' as const,
+    'abuseReportList' as const,
+    'abuseReportGet' as const,
   ];
   httpMethod = 'GET' as const;
 
@@ -25,6 +30,7 @@ export class InstanceAdminGetOperations
     _context: NcContext,
     {
       operation,
+      req,
     }: {
       workspaceId: string;
       baseId: string;
@@ -40,6 +46,10 @@ export class InstanceAdminGetOperations
         return this.getWorkspaces();
       case 'instanceAdminBases':
         return this.getBases();
+      case 'abuseReportList':
+        return this.abuseReportsService.adminList(req.query as any);
+      case 'abuseReportGet':
+        return this.abuseReportsService.adminGet(req.query.reportId as string);
     }
   }
 

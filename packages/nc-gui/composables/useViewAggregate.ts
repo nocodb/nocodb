@@ -8,6 +8,7 @@ import {
   type ViewType,
   ViewTypes,
   getAvailableAggregations,
+  getRollupResultUidt,
 } from 'nocodb-sdk'
 import type { EventHook } from '@vueuse/core'
 
@@ -79,7 +80,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
       if (column.uidt === UITypes.Formula && (column.colOptions as any)?.parsed_tree?.dataType) {
         return getAvailableAggregations(column.uidt!, (column.colOptions as any).parsed_tree)
       }
-      return getAvailableAggregations(column.uidt!)
+      return getAvailableAggregations(column.uidt!, undefined, getRollupResultUidt(column))
     }
 
     const loadViewAggregate = async (

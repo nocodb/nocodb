@@ -1314,6 +1314,7 @@ export class DuplicateProcessor {
                             body: chunk,
                             cookie: req,
                             raw: true,
+                            skipPermissionCheck: true,
                             skipPayloadLimit: true,
                           },
                         );
@@ -1343,6 +1344,7 @@ export class DuplicateProcessor {
                       body: chunk,
                       cookie: req,
                       raw: true,
+                      skipPermissionCheck: true,
                       skipPayloadLimit: true,
                     });
                   }

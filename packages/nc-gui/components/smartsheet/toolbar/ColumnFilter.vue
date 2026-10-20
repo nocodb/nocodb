@@ -741,6 +741,16 @@ watch(
   { immediate: true },
 )
 
+watch(
+  [filters, types],
+  ([loadedFilters]) => {
+    for (const filter of loadedFilters ?? []) {
+      if (filter.fk_column_id) defaultDateFilterSubOp(filter, types.value[filter.fk_column_id] as UITypes)
+    }
+  },
+  { immediate: true },
+)
+
 onMounted(async () => {
   eventBus?.on?.(eventBusHandler)
 

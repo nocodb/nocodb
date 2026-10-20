@@ -44,6 +44,8 @@ const { isDrawerOpen: isEnvironmentDrawerOpen } = useEnvironmentChangelog()
 
 const { isRtl } = useRtl()
 
+const { hidesAppsSidebar } = useAppsEntry()
+
 const isChatToggling = ref(false)
 
 const currentSidebarSize = computed({
@@ -282,7 +284,7 @@ watch([isChatPanelExpanded, isEnvironmentDrawerOpen], () => {
         class="nc-sidebar-content-resizable-wrapper h-full"
         :class="{
           'sidebar-closed': !isLeftSidebarOpen,
-          'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart' || hideSidebar,
+          'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart' || hideSidebar || hidesAppsSidebar,
         }"
         :rtl="isRtl"
         @ready="() => onWindowResize()"
@@ -294,7 +296,7 @@ watch([isChatPanelExpanded, isEnvironmentDrawerOpen], () => {
           max-size="60%"
           class="nc-sidebar-splitpane !sm:max-w-140 relative !overflow-visible flex"
           :class="{
-            hidden: hideSidebar,
+            hidden: hideSidebar || hidesAppsSidebar,
           }"
           :style="{
             'width': `${mobileNormalizedSidebarSize}%`,

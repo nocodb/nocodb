@@ -34,3 +34,30 @@ export interface AppTeamMemberEntry {
   title?: string; // team title
   hierarchy_scope?: 'self_only' | 'self_and_descendants';
 }
+
+/** One team a member is on: `auto` comes from their project role, `explicit` from an assignment. */
+export interface AppMemberTeamRef {
+  id: string;
+  /** `auto` by base role, `explicit` by assignment, `team` through a workspace team on it. */
+  source: 'auto' | 'explicit' | 'team';
+}
+
+export interface AppMemberType {
+  principal_type: 'user' | 'team';
+  principal_id: string;
+  email?: string;
+  display_name?: string;
+  /** Workspace team title. */
+  title?: string;
+  /** A real project role; null for app users and workspace teams. */
+  base_role?: string | null;
+  invited?: boolean;
+  teams: AppMemberTeamRef[];
+}
+
+export interface AppMemberListResponse {
+  list: AppMemberType[];
+  pageInfo: { totalRows: number };
+  /** Everyone on each team, before search and filter. */
+  teamCounts: Record<string, number>;
+}

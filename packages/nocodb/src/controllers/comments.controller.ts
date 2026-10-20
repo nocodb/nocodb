@@ -18,6 +18,7 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
+import { normalizeArrayQueryParam } from '~/helpers/apiHelpers';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -95,11 +96,12 @@ export class CommentsController {
   async commentsCount(
     @TenantContext() context: NcContext,
     @Query('fk_model_id') fk_model_id: string,
-    @Query('ids') ids: string[],
+    @Query('ids') ids: unknown,
   ) {
     return await this.commentsService.commentsCount(context, {
       fk_model_id,
-      ids,
+      // `?ids=x` arrives as a string, which knex renders as `in $1`
+      ids: normalizeArrayQueryParam(ids) ?? [],
     });
   }
 }

@@ -9921,18 +9921,8 @@
           },
           "area": {
             "type": "string",
-            "enum": [
-              "account",
-              "records",
-              "schema",
-              "views",
-              "automation",
-              "interfaces",
-              "access",
-              "platform",
-              "other"
-            ],
-            "description": "The section the issue falls under."
+            "maxLength": 50,
+            "description": "The section the issue falls under: `account`, `records`, `schema`, `views`, `automation`, `interfaces`, `access`, `platform` or `other`. An unrecognised value is stored as `other`."
           },
           "feature": {
             "type": "string",
@@ -14099,7 +14089,7 @@
         "properties": {
           "formula": {
             "type": "string",
-            "description": "Formula expression."
+            "description": "Formula expression. Numeric results are returned as raw floating-point values (e.g. `468.90000000000003`), not rounded; wrap the expression in `ROUND()` for a fixed number of decimals."
           },
           "display_type": {
             "type": ["string", "null"],
@@ -14107,7 +14097,7 @@
           },
           "display_column_meta": {
             "type": "object",
-            "description": "Field options applied to the rendered result, shaped like the `display_type` field's own options."
+            "description": "Options for the `display_type` field, nested as `{meta: {...}, custom: {}}`, e.g. `{meta: {currency_code: 'USD'}, custom: {}}`. Flat options are nested on write."
           }
         },
         "additionalProperties": false
@@ -14118,7 +14108,7 @@
         "properties": {
           "max_number_of_attachments": {
             "type": "integer",
-            "description": "Maximum number of files per cell.",
+            "description": "Maximum number of files per cell. Cannot raise the cap above the workspace plan's per-cell attachment limit (10 on the free plan), which still applies.",
             "minimum": 1
           },
           "max_attachment_size": {
@@ -14216,7 +14206,7 @@
           },
           "display_column_meta": {
             "type": "object",
-            "description": "Field options applied to the rendered value, shaped like the `display_type` field's own options."
+            "description": "Options for the `display_type` field, nested as `{meta: {...}, custom: {}}`, e.g. `{meta: {currency_code: 'USD'}, custom: {}}`. Flat options are nested on write."
           }
         },
         "required": [
@@ -14228,6 +14218,7 @@
       "FieldOptions_Rollup": {
         "type": "object",
         "title": "Rollup",
+        "description": "Rollups take no `display_type`. Numeric formatting is `precision` and `separator`; currency and percent come from the rolled-up field (a Currency or Percent field, or the `display_type` of a Formula or Lookup it reads).",
         "properties": {
           "related_field_id": {
             "type": "string",
@@ -14239,9 +14230,10 @@
           },
           "rollup_function": {
             "type": "string",
-            "description": "Rollup function. The accepted set depends on the target field's type — date-like targets take only `count`, `min`, `max` and `countDistinct`, numeric targets additionally take `sum`, `avg`, `sumDistinct` and `avgDistinct`. A function outside the target's set is rejected with `400`.",
+            "description": "Rollup function. The accepted set depends on the target field's type — date-like targets take only `count`, `countAll`, `min`, `max` and `countDistinct`, numeric targets additionally take `sum`, `avg`, `sumDistinct` and `avgDistinct`. A function outside the target's set is rejected with `400`. `count` counts linked records whose target value is not empty; `countAll` counts every linked record. With no linked records (or only empty values), `sum` and the count functions return `0`, while `avg`, `min` and `max` return `null`.",
             "enum": [
               "count",
+              "countAll",
               "min",
               "max",
               "avg",
@@ -14258,7 +14250,7 @@
           },
           "precision": {
             "type": "number",
-            "description": "Number of decimal places for numeric rollups. Defaults to 0.",
+            "description": "Number of decimal places for numeric rollups. Defaults to 0. Display-only: the API returns the unrounded value.",
             "minimum": 0,
             "maximum": 5
           },

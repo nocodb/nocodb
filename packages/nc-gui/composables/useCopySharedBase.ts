@@ -67,6 +67,8 @@ export const useCopySharedBase = createSharedComposable(() => {
 
       sharedBaseId.value = null
 
+      const isTemplate = isUseThisTemplate.value
+
       $poller.subscribe(
         { id: jobData.id },
         async (data: {
@@ -82,6 +84,8 @@ export const useCopySharedBase = createSharedComposable(() => {
         }) => {
           if (data.status !== 'close') {
             if (data.status === JobStatus.COMPLETED) {
+              $e('a:base:create:success', { source: isTemplate ? 'template' : 'shared-base', kind: 'database' })
+
               ncNavigateTo({
                 ...(isEeUI ? { workspaceId: jobData.fk_workspace_id } : {}),
                 baseId: jobData.base_id,

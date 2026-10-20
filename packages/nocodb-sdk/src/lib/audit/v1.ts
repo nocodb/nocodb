@@ -80,6 +80,10 @@ enum AuditV1OperationTypes {
   ORG_USER_ADD = 'ORG_USER_ADD',
   ORG_USER_REMOVE = 'ORG_USER_REMOVE',
   ORG_USER_ROLE_UPDATE = 'ORG_USER_ROLE_UPDATE',
+  ORG_USER_BLOCK = 'ORG_USER_BLOCK',
+  ORG_USER_UNBLOCK = 'ORG_USER_UNBLOCK',
+  ORG_ABUSE_REPORT_UPDATE = 'ORG_ABUSE_REPORT_UPDATE',
+  ORG_ABUSE_REPORT_RESOURCE_DISABLE = 'ORG_ABUSE_REPORT_RESOURCE_DISABLE',
   ORG_WORKSPACE_ADD = 'ORG_WORKSPACE_ADD',
   ORG_WORKSPACE_REMOVE = 'ORG_WORKSPACE_REMOVE',
 
@@ -301,6 +305,9 @@ enum AuditV1OperationTypes {
   APP_TOKEN_CREATE = 'APP_TOKEN_CREATE',
   APP_TOKEN_UPDATE = 'APP_TOKEN_UPDATE',
   APP_TOKEN_DELETE = 'APP_TOKEN_DELETE',
+  APP_MEMBER_INVITE = 'APP_MEMBER_INVITE',
+  APP_MEMBER_TEAMS_UPDATE = 'APP_MEMBER_TEAMS_UPDATE',
+  APP_MEMBER_REMOVE = 'APP_MEMBER_REMOVE',
 
   APP_CREATE = 'APP_CREATE',
   APP_UPDATE = 'APP_UPDATE',
@@ -1936,6 +1943,17 @@ export interface AppTokenAuditDetails {
   expires_at?: string | null;
 }
 
+/** A change to who an app admits: an invite, a team change, or removal from the app. */
+export interface AppMemberAuditDetails {
+  app_id: string;
+  /** `user` or `team` (a workspace team). */
+  principal_type: string;
+  principal_id: string;
+  email?: string;
+  added_team_ids?: string[];
+  removed_team_ids?: string[];
+}
+
 /** The app itself, as the maker sees it — distinct from APP_PUBLISH, which is a version. */
 export interface AppLifecycleAuditDetails {
   app_id?: string;
@@ -2371,6 +2389,16 @@ const descriptionTemplates = {
     }' from organization`,
   [AuditV1OperationTypes.ORG_USER_ROLE_UPDATE]: (audit: AuditV1<any>) =>
     `User '${audit.user}' updated role of '${audit.details?.email}' in organization`,
+  [AuditV1OperationTypes.ORG_USER_BLOCK]: (audit: AuditV1<any>) =>
+    `User '${audit.user}' blocked '${audit.details?.email}'`,
+  [AuditV1OperationTypes.ORG_USER_UNBLOCK]: (audit: AuditV1<any>) =>
+    `User '${audit.user}' unblocked '${audit.details?.email}'`,
+  [AuditV1OperationTypes.ORG_ABUSE_REPORT_UPDATE]: (audit: AuditV1<any>) =>
+    `User '${audit.user}' marked abuse report on '${audit.details?.resource_title}' as ${audit.details?.status}`,
+  [AuditV1OperationTypes.ORG_ABUSE_REPORT_RESOURCE_DISABLE]: (
+    audit: AuditV1<any>
+  ) =>
+    `User '${audit.user}' disabled the public link of reported ${audit.details?.resource_type} '${audit.details?.resource_title}'`,
   [AuditV1OperationTypes.ORG_WORKSPACE_ADD]: (audit: AuditV1<any>) =>
     `User '${audit.user}' added workspace to organization`,
   [AuditV1OperationTypes.ORG_WORKSPACE_REMOVE]: (audit: AuditV1<any>) =>
@@ -2817,6 +2845,20 @@ const descriptionTemplates = {
     `App token '${
       audit.details.title ?? audit.details.token_id
     }' deleted on app '${audit.details.app_id}'`,
+  [AuditV1OperationTypes.APP_MEMBER_INVITE]: (
+    audit: AuditV1<AppMemberAuditDetails>
+  ) =>
+    `'${
+      audit.details.email ?? audit.details.principal_id
+    }' invited to app '${audit.details.app_id}'`,
+  [AuditV1OperationTypes.APP_MEMBER_TEAMS_UPDATE]: (
+    audit: AuditV1<AppMemberAuditDetails>
+  ) =>
+    `Teams of ${audit.details.principal_type} '${audit.details.principal_id}' changed on app '${audit.details.app_id}'`,
+  [AuditV1OperationTypes.APP_MEMBER_REMOVE]: (
+    audit: AuditV1<AppMemberAuditDetails>
+  ) =>
+    `${audit.details.principal_type} '${audit.details.principal_id}' removed from app '${audit.details.app_id}'`,
 
   [AuditV1OperationTypes.APP_CREATE]: (
     audit: AuditV1<AppLifecycleAuditDetails>

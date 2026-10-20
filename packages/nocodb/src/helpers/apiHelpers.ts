@@ -16,11 +16,12 @@ import swagger, { swaggerV3Validation } from '~/schema';
 // numeric keys, and a single value arrives as a bare string.
 export function normalizeArrayQueryParam(value: unknown): string[] | undefined {
   if (value === undefined || value === null || value === '') return undefined;
-  if (Array.isArray(value)) return value as string[];
-  if (typeof value === 'object') {
-    return Object.values(value as Record<string, string>);
-  }
-  return [String(value)];
+  if (typeof value !== 'object') return [String(value)];
+  // Arrays and the numeric-key object both reduce to their values. Nested keys
+  // (`key[a][b]=1`) yield objects here; String() keeps the declared return type
+  // honest so they fail closed at the comparison rather than reaching knex or
+  // ClickHouse's Array(String) as a non-string bind value.
+  return Object.values(value as Record<string, unknown>).map(String);
 }
 
 export function parseHrtimeToMilliSeconds(hrtime) {

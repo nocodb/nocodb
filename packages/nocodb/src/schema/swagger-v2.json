@@ -9709,6 +9709,12 @@
         "description": "Return the number of comments in the given query.",
         "parameters": [
           {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
             "in": "query",
             "name": "ids",
             "required": true,
@@ -19228,6 +19234,7 @@
             "example": "count",
             "enum": [
               "count",
+              "countAll",
               "min",
               "max",
               "avg",
@@ -19274,6 +19281,7 @@
               "avg",
               "avgDistinct",
               "count",
+              "countAll",
               "countDistinct",
               "max",
               "min",

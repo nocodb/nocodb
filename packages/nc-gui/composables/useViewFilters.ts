@@ -5,6 +5,7 @@ import {
   type LookupType,
   type ViewType,
   getEquivalentUIType,
+  getRollupResultUidt,
   isDateType,
   parseProp,
 } from 'nocodb-sdk'
@@ -208,6 +209,10 @@ export function useViewFilters(
         })
 
         obj[col.id] = formulaUIType || col.uidt
+      }
+      // a rollup returning a date (min/max over a Date field) filters like one
+      else if (col.uidt === UITypes.Rollup) {
+        obj[col.id] = getRollupResultUidt(col) ?? col.uidt
       }
       // if column is a lookup column, then use the lookup type extracted from the column
       else if (btLookupTypesMap.value[col.id]) {

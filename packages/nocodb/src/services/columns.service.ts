@@ -162,6 +162,17 @@ import { isReplay } from '~/helpers/replayScope';
 
 const deepClone = rfdc();
 
+// Types an existing field cannot be converted into.
+export const UNCONVERTIBLE_TARGETS = new Set<string>([
+  UITypes.Lookup,
+  UITypes.Rollup,
+  UITypes.LinkToAnotherRecord,
+  UITypes.Formula,
+  UITypes.QrCode,
+  UITypes.Barcode,
+  UITypes.ForeignKey,
+]);
+
 // `tracked_field_ids` rides along with `meta` for LastModifiedTime/By columns —
 // it configures how the value is computed, not the physical column, so it must
 // not disqualify the meta-only update that system fields are limited to.
@@ -429,6 +440,22 @@ async function reuseOrSave(
   params[tp] = res;
 
   return res;
+}
+
+/** The formula type changer copies data into a physical column; virtual targets have none. */
+export function assertFormulaConvertibleTo(
+  context: NcContext,
+  uidt: UITypes | string,
+) {
+  if (
+    isVirtualCol({ uidt }) &&
+    !isCreatedOrLastModifiedTimeCol({ uidt }) &&
+    !isCreatedOrLastModifiedByCol({ uidt })
+  ) {
+    NcError.get(context).invalidRequestBody(
+      `A Formula field cannot be converted to ${uidt}. Delete the Formula field and create a new ${uidt} field.`,
+    );
+  }
 }
 
 export async function getJunctionTableName(
@@ -2003,6 +2030,7 @@ export class ColumnsService implements IColumnsService {
 
         await this.updateRollupOrLookup(context, colBody, column);
       } else if ([UITypes.Formula].includes(column.uidt)) {
+        assertFormulaConvertibleTo(context, param.column.uidt);
         (param.column as any).id = undefined;
         await this.formulaColumnTypeChanger.startChangeFormulaColumnType(
           context,
@@ -2153,17 +2181,7 @@ export class ColumnsService implements IColumnsService {
       }
 
       return safeTable;
-    } else if (
-      [
-        UITypes.Lookup,
-        UITypes.Rollup,
-        UITypes.LinkToAnotherRecord,
-        UITypes.Formula,
-        UITypes.QrCode,
-        UITypes.Barcode,
-        UITypes.ForeignKey,
-      ].includes(colBody.uidt)
-    ) {
+    } else if (UNCONVERTIBLE_TARGETS.has(colBody.uidt)) {
       NcError.get(context).notImplemented(
         `Updating ${column.uidt} => ${colBody.uidt}`,
       );
@@ -6840,6 +6858,20 @@ export class ColumnsService implements IColumnsService {
       context,
       param,
     );
+  }
+
+  /** What {@link convertLtarToSingleLineText} would write — see helper. */
+  async previewLtarToSingleLineText(
+    context: NcContext,
+    param: { column: Column; delimiter?: string; sampleSize: number },
+  ) {
+    const table = await Model.get(context, param.column.fk_model_id);
+    const source = await Source.get(context, table.source_id);
+    return ltarColumnConversion(this).previewLtarToSingleLineText(context, {
+      ...param,
+      table,
+      source,
+    });
   }
 
   /** Inverse of {@link convertLtarToSingleLineText} — see helper for details. */

@@ -23,6 +23,15 @@ const eventFromV3: Record<string, string> = {
   record: 'after',
 };
 
+// v1/v2 rows store a single operation name; the v3 body wants an array.
+function storedOperation(
+  operation: Hook['operation'] | string,
+): HookV3UpdateV3Type['operation'] {
+  return (
+    typeof operation === 'string' ? [operation] : operation
+  ) as HookV3UpdateV3Type['operation'];
+}
+
 @Injectable()
 export class HooksV3Service {
   // Response builder: transforms internal Hook model to V3 API response format
@@ -134,7 +143,7 @@ export class HooksV3Service {
       // An internal event with no v3 spelling (comment hooks) passes through.
       event: (eventToV3[existing.event] ??
         existing.event) as HookV3UpdateV3Type['event'],
-      operation: existing.operation as HookV3UpdateV3Type['operation'],
+      operation: storedOperation(existing.operation),
       notification: parseProp(
         existing.notification,
       ) as HookNotificationV3V3Type,

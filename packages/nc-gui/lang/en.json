@@ -7328,6 +7328,7 @@
     "privateBaseShareRestrictedMsg": "This project is set as Private and cannot be shared publicly.",
     "privateBaseViewShareRestrictedMsg": "Views within a Private project cannot be shared publicly.",
     "warning": {
+      "bulkUpdateNotUndoable": "This updates more than {limit} records, so you won't be able to undo it.",
       "tableDataImportedLinksUnmatched": "Imported successfully. {links} record links created, {unmatched} value(s) matched no record and were skipped.",
       "tableDataImportedLinksFailed": "{failed} record link(s) matched a record but could not be created. See the import log for details.",
       "attachmentsNotCopied": "{count} attachment(s) were not copied: the source base does not hold their files.",

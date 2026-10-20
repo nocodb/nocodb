@@ -36,6 +36,20 @@ const debouncedQuery = ref('')
 
 watchDebounced(query, (value) => (debouncedQuery.value = value), { debounce: 60 })
 
+/** `query` one paint later: the chips follow every keystroke without holding up the typed character. */
+const chipQuery = ref('')
+
+let chipFrame: number | undefined
+
+watch(query, (value) => {
+  if (chipFrame !== undefined) cancelAnimationFrame(chipFrame)
+  if (!value) return (chipQuery.value = '')
+  chipFrame = requestAnimationFrame(() => {
+    chipFrame = undefined
+    setTimeout(() => (chipQuery.value = query.value))
+  })
+})
+
 /** Set once the user moves the selection; until then the first row stays selected as rows arrive. */
 const navigated = ref(false)
 
@@ -187,8 +201,10 @@ const readingRows = computed(() =>
   activePage.value ? [] : results.value.filter((command) => command.reading && command.complete === undefined),
 )
 
-/** The fallback row leads and nothing was read: the query goes there, so no chips or completions. */
-const fallbackLeads = computed(() => !!aiRow.value && results.value[0]?.id === aiRow.value.id && !readingRows.value.length)
+/** Nothing was read and the fallback row leads, or already ran (no `stayOpen`): no chips or completions. */
+const fallbackLeads = computed(
+  () => !!aiRow.value && !readingRows.value.length && (results.value[0]?.id === aiRow.value.id || !aiRow.value.stayOpen),
+)
 
 /**
  * The reading whose chips show: the selected one, else the first reading, else the best completion's
@@ -207,11 +223,11 @@ const chipsTentative = computed(() => chipReading.value?.complete !== undefined)
 
 /** Before any reading: what each typed word stands for, and the field name being typed, completed. */
 const skeleton = computed<CmdSkeleton | undefined>(() => {
-  if (!query.value.trim() || activePage.value || editing.value) return
+  if (!chipQuery.value.trim() || activePage.value || editing.value) return
   if (chipReading.value?.reading?.chips.length && !chipsTentative.value) return
   const own = activeContextProvider.value?.skeleton ? activeContextProvider.value : providers.value.find((p) => p.skeleton)
-  // The raw query: spans are cheap, so chips follow every keystroke without the results' debounce.
-  return own?.skeleton?.(query.value)
+  // Not debounced like the results: chips follow every keystroke, computed just after its paint.
+  return own?.skeleton?.(chipQuery.value)
 })
 
 /** The chip row: the reading's chips, else a completion's (tentative), else the skeleton's (tentative). */
@@ -234,16 +250,47 @@ function defaultSelectedId() {
   return current?.id ?? selectableIds.value[0]
 }
 
-const { list, containerProps, wrapperProps } = useVirtualList(rows, { itemHeight: ROW_HEIGHT })
+/**
+ * Windowed rows from the tracked scroll offset and observed height: a new result list reads no layout
+ * (useVirtualList re-measured the container on every list change, forcing a layout per keystroke).
+ */
+const listEl = ref<HTMLElement>()
+
+const listScrollTop = ref(0)
+
+const { height: listHeight } = useElementSize(listEl)
+
+const LIST_OVERSCAN = 5
+
+const list = computed(() => {
+  const viewport = listHeight.value || 480
+  const start = Math.max(0, Math.floor(listScrollTop.value / ROW_HEIGHT) - LIST_OVERSCAN)
+  const end = Math.min(rows.value.length, Math.ceil((listScrollTop.value + viewport) / ROW_HEIGHT) + LIST_OVERSCAN)
+  return rows.value.slice(start, end).map((data, i) => ({ data, index: start + i }))
+})
+
+const containerProps = { ref: listEl, style: { overflowY: 'auto' as const } }
+
+const wrapperProps = computed(() => {
+  const offset = (list.value[0]?.index ?? 0) * ROW_HEIGHT
+  return { style: { width: '100%', height: `${rows.value.length * ROW_HEIGHT - offset}px`, marginTop: `${offset}px` } }
+})
 
 /** Whether the list is scrolled off the top, tracked from scroll events (reading it on demand forces a layout). */
 let scrolledAway = false
 
+// A new list element (after the empty state) starts at the top.
+watch(listEl, () => {
+  listScrollTop.value = 0
+  scrolledAway = false
+})
+
 useEventListener(
-  containerProps.ref,
+  listEl,
   'scroll',
   (e: Event) => {
-    scrolledAway = (e.target as HTMLElement).scrollTop > 0
+    listScrollTop.value = (e.target as HTMLElement).scrollTop
+    scrolledAway = listScrollTop.value > 0
   },
   { passive: true },
 )
@@ -439,11 +486,8 @@ function execute(command: CmdCommand) {
     return
   }
 
-  if (command.children) {
-    navDirection.value = 'forward'
-    pages.value = [...pages.value, command]
-    query.value = ''
-    focusInput()
+  if (command.children && !(command.runFirst && command.run)) {
+    openChildren(command)
     return
   }
 
@@ -483,6 +527,14 @@ function execute(command: CmdCommand) {
 
   hide()
   command.run?.()
+}
+
+function openChildren(command: CmdCommand) {
+  if (command.disabled || !command.children) return
+  navDirection.value = 'forward'
+  pages.value = [...pages.value, command]
+  query.value = ''
+  focusInput()
 }
 
 let visibleFrame: number | undefined
@@ -585,8 +637,15 @@ function onKeydown(e: KeyboardEvent) {
       goBack()
       return
     case 'ArrowRight': {
-      // At the end of the input, → accepts the first completion ("industry is manu" → "manufacturing").
       const input = e.target as HTMLInputElement
+      // A row that runs on Enter opens its children on → (with the caret at the end of the input).
+      const selected = results.value.find((c) => c.id === selectedId.value)
+      if (selected?.runFirst && selected.children && input.selectionStart === query.value.length) {
+        e.preventDefault()
+        openChildren(selected)
+        return
+      }
+      // At the end of the input, → accepts the first completion ("industry is manu" → "manufacturing").
       const complete = firstCompletion.value?.complete ?? shownChips.value.ghost?.complete
       if (complete === undefined || input.selectionStart !== query.value.length) return
       e.preventDefault()
@@ -694,7 +753,8 @@ watch(vOpen, (isOpen) => {
   isSaved.value = false
   rowStatus.value = undefined
   isRunning = false
-  focusInput()
+  // In the first frame, so the focus reuses the layout the first paint needs instead of forcing one.
+  requestAnimationFrame(() => inputEl.value?.focus())
 })
 
 // Typing or moving on clears a stale result; a pending one stays until it settles.
@@ -948,6 +1008,7 @@ defineExpose({
                 :index-key="shortcutIndex(item.data.command)"
                 @hover="hoverRow(item.data.command.id)"
                 @select="execute(item.data.command)"
+                @open="openChildren(item.data.command)"
               />
             </template>
           </div>

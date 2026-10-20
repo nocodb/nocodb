@@ -426,6 +426,8 @@ interface CmdCommand {
   trailing?: boolean
   /** Opens a sub page; the command title becomes the placeholder. */
   children?: () => CmdCommand[]
+  /** With `run` and `children`: Enter runs it, → or the chevron opens the children. */
+  runFirst?: boolean
   /** Lists children in search results as `Title › Child`. */
   searchChildren?: boolean
   /** Children fetch data when listed; search never expands them (only opening the submenu does). */

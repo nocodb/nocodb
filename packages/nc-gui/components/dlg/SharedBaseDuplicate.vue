@@ -55,7 +55,7 @@ const filterWorkspace = (workspace: NcWorkspace) => {
 
         <NcListWorkspaceSelector
           v-model:value="selectedWorkspace"
-          placeholder="Select workspace"
+          :placeholder="$t('placeholder.selectWorkspace')"
           force-layout="vertical"
           disable-label
           :workspace-list="workspacesList"

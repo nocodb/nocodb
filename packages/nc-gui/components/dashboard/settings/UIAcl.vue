@@ -150,7 +150,7 @@ const columns = [
     <div class="w-full h-full flex flex-col">
       <NcTooltip class="mb-4 first-letter:capital" show-on-truncate-only>
         <template #title>{{ base.title }}</template>
-        <span> Control view visibility for different roles to manage access efficiently. </span>
+        <span> {{ $t('msg.info.controlViewVisibility') }} </span>
       </NcTooltip>
       <div class="flex flex-row items-center w-full mb-4 gap-2 justify-between">
         <a-input

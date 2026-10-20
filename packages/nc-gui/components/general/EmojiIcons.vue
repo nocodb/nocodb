@@ -62,7 +62,7 @@ const selectIcon = (icon?: string) => {
         @click="selectIcon()"
       >
         <PhXCircleLight class="text-sm" />
-        Reset Icon
+        {{ $t('labels.resetIcon') }}
       </div>
     </div>
   </div>

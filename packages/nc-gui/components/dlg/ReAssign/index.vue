@@ -157,7 +157,7 @@ const inputEl = (el: HTMLInputElement) => {
           <input
             :ref="inputEl"
             v-model="searchQuery"
-            placeholder="Search User to assign..."
+            :placeholder="$t('placeholder.searchUserToAssign')"
             class="border-0 px-2 outline-none nc-search-input flex-1"
           />
         </div>

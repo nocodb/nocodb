@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { OAuthClient } from 'nocodb-sdk'
 
+const { t } = useI18n()
+
 interface Props {
   modelValue: boolean
   oauthClient: OAuthClient
@@ -28,7 +30,7 @@ async function onDelete() {
     const success = await deleteOAuthClient(oauthClient.client_id)
 
     if (success) {
-      message.success('OAuth client deleted successfully!')
+      message.success(t('msg.success.oauthClientDeleted'))
       vModel.value = false
       emits('deleted')
     }

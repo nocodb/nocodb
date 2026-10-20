@@ -88,7 +88,7 @@ const onDuplicate = () => {
           </template>
           <NcMenuItem v-if="extensionAccess.update" data-rec="true" danger @click="emits('clearData')">
             <GeneralIcon icon="reload" />
-            Clear data
+            {{ $t('labels.clearData') }}
           </NcMenuItem>
           <NcMenuItem v-if="extensionAccess.delete" data-rec="true" danger @click="emits('delete')">
             <GeneralIcon icon="delete" />

@@ -650,6 +650,7 @@ export abstract class AiIntegration<
   /**
    * Get available models based on user configuration
    * @param capability - Optional capability filter (e.g., 'text', 'vision', 'tools')
+   * @param _useCase - What the pick is for; activity-routing integrations may offer more for some
    * @returns List of models that match the criteria
    *
    * Note: Custom models (not in supportedModels) are always included,
@@ -657,6 +658,7 @@ export abstract class AiIntegration<
    */
   public async availableModels(
     capability?: ModelCapability,
+    _useCase?: AiUseCase,
   ): Promise<ModelInfo[]> {
     const results: ModelInfo[] = [];
 

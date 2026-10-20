@@ -150,6 +150,8 @@ export interface ChatSessionMetaType {
     hash: string;
     fileCount: number;
     archivedAt: string;
+    /** Saved from an out-of-date machine mid-turn, not archived by anyone: the next checkout restores it. */
+    replaced?: boolean;
   };
   /** App Factory: an archive or delete in flight; turns are refused until it clears or goes stale. */
   factoryTransition?: {
@@ -327,6 +329,8 @@ export interface FactoryFile {
    * is refused rather than silently overwriting its work.
    */
   hash: string;
+  /** The read sent the caller's hash and it still matches: `content` is left empty. */
+  unchanged?: boolean;
 }
 
 /** What the review pane diffs, as Codex's review scopes. */
@@ -475,7 +479,8 @@ export const FACTORY_SESSIONS_ROOM = 'sessions';
 export function factorySessionStatus(
   session?: Pick<ChatSessionType, 'status' | 'meta'>
 ): FactorySessionStatus {
-  if (session?.meta?.factoryArchive) return 'archived';
+  if (session?.meta?.factoryArchive && !session.meta.factoryArchive.replaced)
+    return 'archived';
 
   switch (session?.status) {
     case ChatSessionStatus.IN_PROGRESS:

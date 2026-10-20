@@ -64,7 +64,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
         line += 1
       }
 
-      const opColor = isColorCodeEnabled ? optionsMap[text]?.color ?? '#e7e7e9' : undefined
+      const opColor = isColorCodeEnabled ? optionsMap?.[text]?.color ?? '#e7e7e9' : undefined
       const chip = getSelectChipColors(opColor ?? '#e7e7e9', isDark)
       const opBgColor = isColorCodeEnabled ? chip.bg : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
       const opTextColor = isColorCodeEnabled ? chip.ink : getColor('var(--nc-content-gray)')
@@ -112,8 +112,8 @@ export const MultiSelectCellRenderer: CellRenderer = {
         .toString()
         .split(',')
         .sort((a, b) => {
-          const opa = optionsMap[a?.trim()]
-          const opb = optionsMap[b?.trim()]
+          const opa = optionsMap?.[a?.trim()]
+          const opb = optionsMap?.[b?.trim()]
           if (opa && opb) {
             return opa.order! - opb.order!
           }

@@ -265,7 +265,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     const isCalendarDataLoading = ref<boolean>(false)
 
     // show/hide side menu in calendar
-    const showSideMenu = ref(!isMobileMode.value)
+    const showSideMenu = ref(!isMobileMode.value && !isPhoneLandscapeViewport())
 
     // reactive ref for the selected date range - used in week / 2week / 6week views.
     //

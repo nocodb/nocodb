@@ -307,7 +307,7 @@ async function changeView(view: ViewType) {
     doNotSwitchTab: true,
   })
 
-  if (isMobileMode.value) {
+  if (isMobileMode.value || isPhoneLandscapeViewport()) {
     isLeftSidebarOpen.value = false
   }
 }

@@ -415,44 +415,48 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
 </script>
 
 <template>
-  <NcDropdown
+  <NcDropDrawer
     v-model:visible="open"
-    offset-y
     :trigger="['click']"
+    drawer-content-height
+    drawer-body-class-name="nc-dropdown-group-by-menu nc-toolbar-dropdown !px-0"
     overlay-class-name="nc-dropdown-group-by-menu nc-toolbar-dropdown overflow-hidden"
   >
-    <NcTooltip
-      :disabled="(!isMobileMode || props.keepLabelOnMobile) && !isToolbarIconMode"
-      :class="{ 'nc-active-btn': groupedByColumnIds?.length }"
-    >
-      <template #title>
-        {{ $t('activity.group') }}
-      </template>
-      <NcButton
-        v-e="['c:group-by']"
-        class="nc-group-by-menu-btn nc-toolbar-btn !border-0 !h-7"
-        size="small"
-        type="secondary"
-        :show-as-disabled="isLocked"
+    <template #default="{ onClick }">
+      <NcTooltip
+        :disabled="(!isMobileMode || props.keepLabelOnMobile) && !isToolbarIconMode"
+        :class="{ 'nc-active-btn': groupedByColumnIds?.length }"
       >
-        <div class="flex items-center gap-1 min-h-5">
-          <div class="flex items-center gap-2">
-            <component :is="iconMap.group" class="h-4 w-4" />
+        <template #title>
+          {{ $t('activity.group') }}
+        </template>
+        <NcButton
+          v-e="['c:group-by']"
+          class="nc-group-by-menu-btn nc-toolbar-btn !border-0 !h-7"
+          size="small"
+          type="secondary"
+          :show-as-disabled="isLocked"
+          @click="onClick"
+        >
+          <div class="flex items-center gap-1 min-h-5">
+            <div class="flex items-center gap-2">
+              <component :is="iconMap.group" class="h-4 w-4" />
 
-            <!-- Group By -->
-            <span
-              v-if="(!isMobileMode || props.keepLabelOnMobile) && !isToolbarIconMode"
-              class="text-capitalize !text-[13px] font-medium"
-            >
-              {{ $t('activity.group') }}
-            </span>
+              <!-- Group By -->
+              <span
+                v-if="(!isMobileMode || props.keepLabelOnMobile) && !isToolbarIconMode"
+                class="text-capitalize !text-[13px] font-medium"
+              >
+                {{ $t('activity.group') }}
+              </span>
+            </div>
+            <span v-if="groupedByColumnIds?.length" class="bg-nc-bg-brand text-nc-content-brand nc-toolbar-btn-chip">{{
+              groupedByColumnIds.length
+            }}</span>
           </div>
-          <span v-if="groupedByColumnIds?.length" class="bg-nc-bg-brand text-nc-content-brand nc-toolbar-btn-chip">{{
-            groupedByColumnIds.length
-          }}</span>
-        </div>
-      </NcButton>
-    </NcTooltip>
+        </NcButton>
+      </NcTooltip>
+    </template>
     <template #overlay>
       <div
         :class="{
@@ -671,7 +675,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
         </div>
       </div>
     </template>
-  </NcDropdown>
+  </NcDropDrawer>
 </template>
 
 <style scoped lang="scss">

@@ -8,6 +8,7 @@ export const ADD_NEW_COLUMN_WIDTH = 60
 export const COLUMN_DRAG_LEFT_SCROLL_ZONE = 40
 export const EDIT_INTERACTABLE = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.Links]
 export const ROW_META_COLUMN_WIDTH = 80
+export const MOBILE_ROW_META_COLUMN_WIDTH = 56
 export const ROW_COLOR_BORDER_WIDTH = 4
 
 export const CHUNK_SIZE = 50
@@ -22,3 +23,4 @@ export const AGGREGATION_HEIGHT = 36
 
 // Frozen fields (row-number gutter excluded) may take at most this share of the grid viewport
 export const FROZEN_AREA_MAX_WIDTH_RATIO = 3 / 4
+export const MOBILE_FROZEN_PV_MAX_WIDTH_RATIO = 0.45

@@ -147,6 +147,33 @@ const CMD_PARENT_OPTIONAL_WORDS = new Set([
 const childOnlyMatch = new WeakMap<CmdCommand, boolean>()
 
 /**
+ * A command's expanded children and their title words, per command object: providers rebuild commands only
+ * when their state changes, so this saves calling `children()` and normalising titles on every keystroke.
+ */
+const expandedChildren = new WeakMap<CmdCommand, { expanded: CmdCommand; words: string[] }[]>()
+
+function expandedOf(command: CmdCommand, parentTitle: string) {
+  const hit = expandedChildren.get(command)
+  if (hit) return hit
+  const list = command.children!()
+    .filter((child) => !child.disabled)
+    .map((child) => ({
+      expanded: {
+        ...child,
+        id: `${command.id}>${child.id}`,
+        title: `${parentTitle} › ${child.title}`,
+        section: command.section,
+        keywords: [...(child.keywords ?? []), ...(command.keywords ?? [])],
+        priority: child.priority ?? command.priority,
+        searchOnly: true,
+      },
+      words: normalizeCmdText(child.title).split(' '),
+    }))
+  expandedChildren.set(command, list)
+  return list
+}
+
+/**
  * Lists submenu options as `Parent › Child`: always for `searchChildren`, and for other parents
  * only when the query names the parent and has words left for a child ("summarize score sum").
  */
@@ -177,26 +204,15 @@ function expandCmdChildren(commands: CmdCommand[], tokens: string[]): CmdCommand
 
     return [
       command,
-      ...command
-        .children()
-        .filter((child) => !child.disabled)
-        .map((child) => {
-          const expanded: CmdCommand = {
-            ...child,
-            id: `${command.id}>${child.id}`,
-            title: `${parentTitle} › ${child.title}`,
-            section: command.section,
-            keywords: [...(child.keywords ?? []), ...(command.keywords ?? [])],
-            priority: child.priority ?? command.priority,
-            searchOnly: true,
-          }
-          const childWords = normalizeCmdText(child.title).split(' ')
-          childOnlyMatch.set(
-            expanded,
-            leftover.some((token) => matchCmdToken(token, childWords, childWords.join(' ')) > 0),
-          )
-          return expanded
-        }),
+      ...expandedOf(command, parentTitle).map(({ expanded, words }) => {
+        // A fresh object per query: the child-only match below is query-specific and keyed by it.
+        const row = { ...expanded }
+        childOnlyMatch.set(
+          row,
+          leftover.some((token) => matchCmdToken(token, words, words.join(' ')) > 0),
+        )
+        return row
+      }),
     ]
   })
 }

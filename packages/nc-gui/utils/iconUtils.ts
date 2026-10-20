@@ -434,7 +434,6 @@ import NcPhoneForwardedIcon from '~icons/nc-icons-v2/phone-forwarded.svg'
 import NcCornerRightDownIcon from '~icons/nc-icons-v2/corner-right-down.svg'
 import NcBookOpenIcon from '~icons/nc-icons-v2/book-open.svg'
 import NcServerIcon from '~icons/nc-icons-v2/server.svg'
-import NcFactoryIcon from '~icons/nc-icons-v2/factory.svg'
 import NcTvIcon from '~icons/nc-icons-v2/tv.svg'
 import NcSkipForwardIcon from '~icons/nc-icons-v2/skip-forward.svg'
 import NcVolumeIcon from '~icons/nc-icons-v2/volume.svg'
@@ -1605,7 +1604,6 @@ export const iconMap = {
   'ncCornerRightDown': NcCornerRightDownIcon,
   'ncBookOpen': NcBookOpenIcon,
   'ncServer': NcServerIcon,
-  'ncFactory': NcFactoryIcon,
   'ncTv': NcTvIcon,
   'ncSkipForward': NcSkipForwardIcon,
   'ncVolume': NcVolumeIcon,

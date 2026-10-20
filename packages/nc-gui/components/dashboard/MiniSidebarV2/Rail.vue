@@ -260,7 +260,7 @@ const mainItems = computed<NavItem[]>(() =>
       [
         {
           key: 'home',
-          icon: 'ncFactory',
+          icon: 'ncRobotArm',
           label: t('general.factory'),
           active: isCodeProjectRoute(route.value),
           dot: {

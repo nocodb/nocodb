@@ -1375,95 +1375,17 @@ const { message: templatedMessage } = useTemplatedMessage(
   meta,
 )
 
-// Cmd+K in the form editor: the field picked in the canvas, and the sidebar's field toggles.
-useCommandProvider(
-  () => `form-field:${view.value?.id}`,
-  'field',
-  () => {
-    const field = activeField.value
-    if (isPublic.value || !isEditable || isLocked.value || !field || !activeColumn.value) return { commands: [] }
-
-    const section = t('labels.commandPalette.sections.field')
-    const commands: CmdCommand[] = [
-      {
-        id: 'form-field:required',
-        priority: CMD_PRIORITY.primary,
-        title: `${t('general.required')} ${t('objects.field').toLowerCase()}`,
-        section,
-        icon: { type: 'icon', name: 'ncCheckSquare' },
-        keywords: ['mandatory', 'optional', 'validation'],
-        checked: !!field.required,
-        run: () => {
-          field.required = !field.required
-          return updateColMeta(field)
-        },
-      },
-    ]
-
-    // The field menu disables Hide for required fields.
-    if (!shouldSkipColumn(field)) {
-      commands.push({
-        id: 'form-field:hide',
-        priority: CMD_PRIORITY.normal,
-        title: t('general.hideField'),
-        section,
-        icon: { type: 'icon', name: 'eyeSlash' },
-        run: () => showOrHideColumn(field, false, false),
-      })
-    }
-
-    return {
-      context: { label: field.label || field.title, icon: { type: 'field', column: activeColumn.value } },
-      commands,
-    }
-  },
-)
-
-useCommandProvider(
-  () => `form-view:${view.value?.id}`,
-  'view',
-  () => {
-    if (isPublic.value || !isEditable) return { commands: [] }
-
-    const section = t('labels.commandPalette.sections.view')
-    const commands: CmdCommand[] = []
-
-    if (!isLocked.value) {
-      commands.push(
-        {
-          id: 'form:show-all-fields',
-          priority: CMD_PRIORITY.high,
-          title: t('labels.commandPalette.showAllFields'),
-          section,
-          icon: { type: 'icon', name: 'eye' },
-          run: () => handleAddOrRemoveAllColumns(true),
-        },
-        {
-          id: 'form:hide-all-fields',
-          priority: CMD_PRIORITY.normal,
-          title: t('labels.commandPalette.hideAllFields'),
-          section,
-          icon: { type: 'icon', name: 'eyeSlash' },
-          run: () => handleAddOrRemoveAllColumns(false),
-        },
-      )
-    }
-
-    commands.push({
-      id: 'form:toggle-sidebar',
-      priority: CMD_PRIORITY.low,
-      title: t('labels.commandPalette.form.toggleSidebar'),
-      section,
-      icon: { type: 'icon', name: 'sidebar' },
-      keywords: ['fields', 'settings', 'panel'],
-      run: () => {
-        isSidebarVisible.value = !isSidebarVisible.value
-      },
-    })
-
-    return { commands }
-  },
-)
+useFormCommands({
+  activeField,
+  activeColumn,
+  isEditable,
+  isLocked,
+  isSidebarVisible,
+  canHide: (field) => !shouldSkipColumn(field),
+  saveField: updateColMeta,
+  hideField: (field) => showOrHideColumn(field, false, false),
+  setAllFields: handleAddOrRemoveAllColumns,
+})
 </script>
 
 <template>

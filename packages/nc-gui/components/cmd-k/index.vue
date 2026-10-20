@@ -69,6 +69,9 @@ const FEEDBACK_MS = 800
 
 let closeTimer: ReturnType<typeof setTimeout> | undefined
 
+/** A row with `feedback` is saving or has saved: a second Enter or click must not run it again. */
+let isRunning = false
+
 // Closed, no provider is read: the palette stays mounted and would rebuild on every cell click.
 const providers = computed(() => (vOpen.value ? registeredProviders.value : []))
 
@@ -303,12 +306,14 @@ function closeSoon() {
 }
 
 async function runWithFeedback(command: CmdCommand) {
+  isRunning = true
   rowStatus.value = { id: command.id, kind: 'pending' }
   try {
     await command.run?.()
     rowStatus.value = { id: command.id, kind: 'success', text: command.feedback }
     closeSoon()
   } catch (e: unknown) {
+    isRunning = false
     rowStatus.value = { id: command.id, kind: 'error', text: await extractSdkResponseErrorMsg(e as Error) }
   }
 }
@@ -354,7 +359,7 @@ function cancelEdit() {
 
 async function saveEdit() {
   const edit = editing.value?.edit
-  if (!edit || isSaving.value) return
+  if (!edit || isSaving.value || isSaved.value) return
 
   const value = edit.multiline ? editValue.value : editValue.value.trim()
   editError.value = edit.validate?.(value)
@@ -415,7 +420,7 @@ function openChip(chip: CmdChip, index: number) {
 }
 
 function execute(command: CmdCommand) {
-  if (command.disabled) return
+  if (command.disabled || isRunning) return
 
   // A suggestion with a result runs on Enter (Tab / → complete it); one without just completes.
   if (command.complete !== undefined && !command.run) {
@@ -660,6 +665,7 @@ watch(vOpen, (isOpen) => {
   editing.value = undefined
   isSaved.value = false
   rowStatus.value = undefined
+  isRunning = false
   focusInput()
 })
 

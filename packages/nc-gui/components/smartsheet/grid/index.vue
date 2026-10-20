@@ -1,13 +1,10 @@
 <script lang="ts" setup>
 import type { ColumnType, GridType } from 'nocodb-sdk'
-import { ExportTypes, isSmartText } from 'nocodb-sdk'
+import { isSmartText } from 'nocodb-sdk'
 import InfiniteTable from './InfiniteTable.vue'
 import Table from './Table.vue'
 import CanvasTable from './canvas/index.vue'
 import GroupBy from './GroupBy.vue'
-import { DlgRecordDeleteAll } from '#components'
-import type { CmdCommand } from '~/lib/types'
-import { useRelativeEditCommands } from '~/composables/useSetFieldCommands'
 
 const meta = inject(MetaInj, ref())
 
@@ -19,15 +16,11 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { xWhere, eventBus, isExternalSource, sorts, isLocked } = useSmartsheetStoreOrThrow()
-
-const { $api, $poller } = useNuxtApp()
+const { xWhere, eventBus, isExternalSource } = useSmartsheetStoreOrThrow()
 
 const { t } = useI18n()
 
-const { isMobileMode, appInfo } = useGlobal()
-
-const { isUIAllowed, isDataReadOnly } = useRoles()
+const { isMobileMode } = useGlobal()
 
 const { metas } = useMetas()
 
@@ -209,8 +202,6 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 // Interface pages open their record-detail sheet instead of the expanded form.
 const interfaceExpandRecord = inject(InterfaceExpandRecordInj, undefined)
-
-const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
 
 provide(ReloadRowDataHookInj, reloadViewDataHook)
 
@@ -895,354 +886,32 @@ const bulkUpdateTrigger = (path: Array<number>) => {
   bulkUpdateDlg.value = true
 }
 
-// Same flow as the canvas context menu's "Delete all records".
-function deleteAllSelectedRecords() {
-  const isOpen = ref(true)
-  const selectedCount = totalRows.value - Object.keys(selectedAllRecordsSkipPks.value).length
-
-  const { close } = useDialog(DlgRecordDeleteAll, {
-    'modelValue': isOpen,
-    'rows': selectedCount,
-    'isSelectedAll': totalRows.value === selectedCount,
-    'onUpdate:modelValue': closeDlg,
-    'onDeleteAll': async () => {
-      const succeeded = await bulkDeleteAll([])
-      closeDlg()
-      if (!succeeded) return
-
-      selectedAllRecordsSkipPks.value = {}
-      selectedAllRecords.value = false
-    },
-  })
-
-  function closeDlg() {
-    isOpen.value = false
-    close(200)
-  }
-}
-
-// Checked rows live in one cache (path []) when ungrouped, else one cache per leaf group keyed by path.
-const checkedRowGroups = computed(() => {
-  if (!isInfiniteScrollingEnabled.value || (isGroupBy.value && !isCanvasGroupByTableEnabled.value)) return []
-
-  const caches: Array<[Array<number>, ReturnType<typeof getDataCache>]> = isGroupBy.value
-    ? Array.from(groupDataCache.value, ([key, cache]) => [key.split('-').map(Number), cache])
-    : [[[], getDataCache([])]]
-
-  return caches.flatMap(([path, cache]) => {
-    const count = cache.selectedRows.value.length
-    return count ? [{ path, count }] : []
-  })
-})
-
-const checkedRowCount = computed(() => {
-  if (selectedAllRecords.value && !isGroupBy.value) {
-    return totalRows.value - Object.keys(selectedAllRecordsSkipPks.value).length
-  }
-  return checkedRowGroups.value.reduce((sum, group) => sum + group.count, 0)
+const { count: selectionCount, clear: clearCheckedRows } = useGridSelectionCommands({
+  view,
+  meta,
+  isPublic,
+  isGroupBy,
+  isInfiniteScrollingEnabled,
+  isCanvasGroupByTableEnabled,
+  isCanvasRendering,
+  totalRows,
+  selectedAllRecords,
+  selectedAllRecordsSkipPks,
+  groupDataCache,
+  getDataCache,
+  bulkUpdateRows,
+  deleteSelectedRows,
+  bulkDeleteAll,
+  openBulkUpdate: bulkUpdateTrigger,
+  pData,
+  pSelectedAllRecords,
+  pBulkUpdateRows,
+  pDeleteSelectedRows,
+  canvas: tableRef,
 })
 
 // The paginated grid (<Table>) renders when the "Infinite scrolling" beta feature is off.
 const isPaginatedGrid = computed(() => !isInfiniteScrollingEnabled.value && !isGroupBy.value)
-
-const selectionCount = computed(() =>
-  isPaginatedGrid.value ? pData.value.filter((row) => row.rowMeta.selected).length : checkedRowCount.value,
-)
-
-async function deleteCheckedRows() {
-  if (selectedAllRecords.value && !isGroupBy.value) return deleteAllSelectedRecords()
-  for (const { path } of checkedRowGroups.value) await deleteSelectedRows(path)
-}
-
-let recheckTimer: ReturnType<typeof setInterval> | undefined
-
-function stopRecheck() {
-  if (recheckTimer) clearInterval(recheckTimer)
-  recheckTimer = undefined
-}
-
-/** A bulk save reloads the row caches; re-check the same records as they come back so another field can be set. */
-function keepChecked(pks: Set<string>) {
-  stopRecheck()
-  const until = Date.now() + 6000
-  let restored = false
-  recheckTimer = setInterval(() => {
-    const result = tableRef.value?.recheckRows?.(pks)
-    if (result?.checked) restored = true
-    else if (restored && result?.found === pks.size) return stopRecheck()
-    if (Date.now() > until) stopRecheck()
-  }, 150)
-}
-
-onBeforeUnmount(stopRecheck)
-
-function rowPk(row: Row) {
-  return String(extractPkFromRow(row.row, meta.value?.columns as ColumnType[]))
-}
-
-function clearCheckedRows() {
-  stopRecheck()
-  if (isPaginatedGrid.value) {
-    pSelectedAllRecords.value = false
-    return
-  }
-  tableRef.value?.clearRowSelection?.()
-}
-
-// The view's export job (as the Download menu runs it) narrowed to the checked rows by primary key.
-async function exportCheckedRows(exportType: ExportTypes, rows: Row[]) {
-  const pk = ((meta.value?.columns ?? []) as ColumnType[]).find((c) => c.pk)
-  if (!pk || !meta.value || !view.value?.id) return
-
-  const filter = {
-    is_group: true,
-    logical_op: 'and',
-    children: rows.map((row) => ({ fk_column_id: pk.id, comparison_op: 'eq', value: row.row[pk.title!], logical_op: 'or' })),
-  }
-  const jobData: { id: string } = await $api.internal.postOperation(
-    meta.value.fk_workspace_id!,
-    meta.value.base_id!,
-    { operation: 'dataExport', viewId: view.value.id },
-    {
-      options: {
-        filenameTimeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        filterArrJson: JSON.stringify([filter]),
-        ...(!isUIAllowed('sortSync') || isLocked.value
-          ? { sortArrJson: stringifyFilterOrSortArr(sorts.value.filter((s) => !s.id)) }
-          : {}),
-      },
-      exportAs: exportType,
-    },
-  )
-
-  $poller.subscribe({ id: jobData.id }, async (data: { status?: string; data?: { result?: { url?: string } } }) => {
-    if (data.status === JobStatus.FAILED) return message.error(t('msg.error.dataExportFailed'))
-    if (data.status !== JobStatus.COMPLETED || !data.data?.result?.url) return
-
-    let url = data.data.result.url
-    if (!url.startsWith('http')) url = `${appInfo.value.ncSiteUrl || BASE_FALLBACK_URL}/${url}`
-    if (await isLinkExpired(url)) return navigateTo(url, { open: navigateToBlankTargetOpenOption })
-
-    const link = document.createElement('a')
-    link.href = url
-    link.style.display = 'none'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  })
-}
-
-const setFieldCommands = useSetFieldCommands()
-
-const relativeEditCommands = useRelativeEditCommands()
-
-const { showWarningModal } = useNcConfirmModal()
-
-/** Cmd+K bulk deletes confirm first; the palette's own Enter never reaches this dialog. */
-function confirmDeleteRecords(count: number, remove: () => Promise<unknown>) {
-  showWarningModal({
-    title: t('labels.commandPalette.confirmDeleteRecords', { count }, count),
-    content: t('labels.commandPalette.confirmDeleteRecordsBody'),
-    showCancelBtn: true,
-    okText: t('general.delete'),
-    okProps: { type: 'danger' },
-    okCallback: async () => {
-      await remove()
-    },
-  })
-}
-
-const visibleFields = inject(FieldsInj, ref([]))
-
-useCommandProvider(
-  () => `selection:${view.value?.id}`,
-  'selection',
-  () => {
-    const count = selectionCount.value
-    if (isPublic.value || !count) return { commands: [] }
-
-    const section = t('labels.commandPalette.sections.selection')
-    const canEdit = isUIAllowed('dataEdit') && !isDataReadOnly.value && !meta.value?.synced
-    const canDelete = canEdit && (!interfacePageDataApi || interfacePageDataApi.canAddDeleteInline.value)
-    const commands: CmdCommand[] = []
-    // Shared by "Set <Field> for N records…" and query-built edits ("add 10").
-    let editTarget: Parameters<typeof relativeEditCommands>[0] | undefined
-    const fallbacks = (query: string) => (editTarget ? relativeEditCommands(editTarget, query) : [])
-    const allColumns = () => {
-      const visibleIds = new Set(visibleFields.value.map((f) => f.id))
-      return [
-        ...visibleFields.value.map((column) => ({ column })),
-        ...((meta.value?.columns ?? []) as ColumnType[])
-          .filter((c) => !visibleIds.has(c.id))
-          .map((column) => ({ column, hidden: true })),
-      ]
-    }
-
-    // Same formats as the view's Download menu; a composite primary key can't be filtered on.
-    const hasSinglePk = ((meta.value?.columns ?? []) as ColumnType[]).filter((c) => c.pk).length === 1
-    const downloadCommand = (rows: Row[]): CmdCommand => ({
-      id: 'selection:download',
-      title: t('labels.commandPalette.downloadSelected', { count }, count),
-      section,
-      icon: { type: 'icon', name: 'download' },
-      keywords: ['export', 'csv', 'excel', 'json'],
-      searchChildren: true,
-      children: () =>
-        (
-          [
-            [ExportTypes.CSV, 'CSV', 'ncFileTypeCsvSmall'],
-            [ExportTypes.JSON, 'JSON', 'ncFileTypeJson'],
-            [ExportTypes.EXCEL, t('labels.excel'), 'ncFileTypeExcel'],
-          ] as const
-        ).map(([type, title, icon]) => ({
-          id: `selection:download:${type}`,
-          title,
-          icon: { type: 'icon', name: icon },
-          feedback: t('msg.info.preparingForDownload', { type: title.toUpperCase() }),
-          run: () => exportCheckedRows(type, rows),
-        })),
-    })
-
-    // Paginated grid: its rows carry the checkbox state; the canvas copy path isn't there.
-    if (isPaginatedGrid.value) {
-      const rows = pData.value.filter((row) => row.rowMeta.selected)
-      if (hasSinglePk) commands.push(downloadCommand(rows))
-      if (canEdit) {
-        editTarget = {
-          meta: meta.value,
-          count,
-          columns: allColumns(),
-          values: (column) => rows.map((row) => row.row[column.title!]),
-          section,
-          fill: 'rows',
-          save: async (column, next) => {
-            const pks = new Set(rows.map(rowPk))
-            rows.forEach((row, index) => (row.row[column.title!] = next(row.row[column.title!], index)))
-            await pBulkUpdateRows(rows, [column.title!])
-            // A reload replaces the page's rows; keep the same records checked.
-            for (const row of pData.value) if (pks.has(rowPk(row))) row.rowMeta.selected = true
-          },
-        }
-        commands.push(...setFieldCommands(editTarget))
-      }
-      if (canDelete) {
-        commands.push({
-          id: 'selection:delete',
-          title: t('labels.commandPalette.deleteSelected'),
-          section,
-          icon: { type: 'icon', name: 'delete' },
-          danger: true,
-          run: () => confirmDeleteRecords(count, () => pDeleteSelectedRows()),
-        })
-      }
-      commands.push({
-        id: 'selection:clear',
-        priority: CMD_PRIORITY.low,
-        title: t('labels.clearSelection'),
-        section,
-        icon: { type: 'icon', name: 'ncX' },
-        run: clearCheckedRows,
-      })
-      return {
-        context: { label: t('labels.commandPalette.selectedRecords', count), icon: { type: 'icon', name: 'ncList' } },
-        commands,
-        fallbacks,
-      }
-    }
-
-    // Bulk update edits one cache at a time, so a selection spanning groups only offers delete.
-    const singleGroupPath = checkedRowGroups.value.length === 1 ? checkedRowGroups.value[0]!.path : null
-
-    if (canEdit && appInfo.value.ee && !selectedAllRecords.value && singleGroupPath) {
-      commands.push({
-        id: 'selection:update',
-        priority: CMD_PRIORITY.primary,
-        title: t('labels.commandPalette.updateSelected'),
-        section,
-        icon: { type: 'icon', name: 'ncEdit' },
-        run: () => bulkUpdateTrigger(singleGroupPath),
-      })
-    }
-
-    // Same bulk path as the Update dialog, one call per group; "select all" has no loaded rows to update.
-    // Groups and their rows in visual order, so fills ("number rows") run top to bottom.
-    const groups = checkedRowGroups.value
-      .map(({ path }) => ({
-        path,
-        rows: [...getDataCache(path).selectedRows.value].sort((a, b) => (a.rowMeta.rowIndex ?? 0) - (b.rowMeta.rowIndex ?? 0)),
-      }))
-      .sort((a, b) => {
-        for (let i = 0; i < Math.max(a.path.length, b.path.length); i++) {
-          if ((a.path[i] ?? -1) !== (b.path[i] ?? -1)) return (a.path[i] ?? -1) - (b.path[i] ?? -1)
-        }
-        return 0
-      })
-
-    if (canEdit && !selectedAllRecords.value && isCanvasRendering.value) {
-      editTarget = {
-        meta: meta.value,
-        count,
-        columns: allColumns(),
-        values: (column) => groups.flatMap(({ rows }) => rows.map((row) => row.row[column.title!])),
-        section,
-        fill: 'rows',
-        save: async (column, next) => {
-          const pks = new Set(groups.flatMap(({ rows }) => rows.map(rowPk)))
-          let index = 0
-          for (const { path, rows } of groups) {
-            for (const row of rows) row.row[column.title!] = next(row.row[column.title!], index++)
-            await bulkUpdateRows(rows, [column.title!], undefined, path)
-          }
-          keepChecked(pks)
-        },
-      }
-      commands.push(...setFieldCommands(editTarget))
-    }
-
-    if (canDelete) {
-      commands.push({
-        id: 'selection:delete',
-        title: t('labels.commandPalette.deleteSelected'),
-        section,
-        icon: { type: 'icon', name: 'delete' },
-        danger: true,
-        run: () => confirmDeleteRecords(count, deleteCheckedRows),
-      })
-    }
-
-    // "Select all" has no loaded rows to serialise.
-    if (isCanvasRendering.value && !selectedAllRecords.value) {
-      commands.push({
-        id: 'selection:copy',
-        priority: CMD_PRIORITY.normal,
-        title: t('labels.commandPalette.copySelected'),
-        section,
-        icon: { type: 'icon', name: 'copy' },
-        keywords: ['clipboard'],
-        feedback: t('labels.commandPalette.copied'),
-        run: () => tableRef.value?.copyRows?.(groups.flatMap(({ rows }) => rows)),
-      })
-      if (hasSinglePk) commands.push(downloadCommand(groups.flatMap(({ rows }) => rows)))
-    }
-
-    if (isCanvasRendering.value) {
-      commands.push({
-        id: 'selection:clear',
-        priority: CMD_PRIORITY.low,
-        title: t('labels.clearSelection'),
-        section,
-        icon: { type: 'icon', name: 'ncX' },
-        run: clearCheckedRows,
-      })
-    }
-
-    return {
-      context: { label: t('labels.commandPalette.selectedRecords', count), icon: { type: 'icon', name: 'ncList' } },
-      commands,
-      fallbacks,
-    }
-  },
-)
 
 watch([() => view.value?.id, () => meta.value?.columns], async () => {
   await loadDisallowedLookups()

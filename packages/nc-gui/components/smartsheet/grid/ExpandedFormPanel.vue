@@ -3,7 +3,6 @@ import type { TableType, ViewType } from 'nocodb-sdk'
 import { ExpandedFormMode } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useStorage } from '@vueuse/core'
-import type { CmdCommand } from '~/lib/types'
 
 const panelStore = useExpandedFormPanelOrThrow()
 
@@ -22,8 +21,6 @@ const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 const { isUIAllowed } = useRoles()
 
 const { $e } = useNuxtApp()
-
-const { t } = useI18n()
 
 const { isMobileMode } = useGlobal()
 
@@ -336,117 +333,29 @@ const guardedSwitch = (perform: () => void) => {
   perform()
 }
 
-// Cmd+K record navigation; MoreOptionsMenu registers the record chip and its actions.
-useCommandProvider(
-  () => `record-nav:panel:${meta.value?.id}:${activeRowId.value}`,
-  'record',
-  () => {
-    if (!isOpen.value) return { commands: [] }
-
-    const section = t('labels.commandPalette.sections.record')
-    const commands: CmdCommand[] = []
-
-    // An unsaved record still owns the record level, so Cmd+K never acts on the grid row behind the panel.
-    const newRecordContext = isNew.value
-      ? {
-          prefix: meta.value?.title,
-          label: t('activity.newRecord'),
-          icon: { type: 'table' as const, icon: parseProp(meta.value?.meta).icon },
-        }
-      : undefined
-
-    if (hasPrev.value && !isNew.value) {
-      commands.push({
-        id: 'record:previous',
-        priority: CMD_PRIORITY.high,
-        title: t('labels.commandPalette.previousRecord'),
-        section,
-        icon: { type: 'icon', name: 'ncChevronLeft' },
-        shortcut: ['Alt', 'ArrowUp'],
-        run: () => guardedNavigate('prev'),
-      })
-    }
-
-    if (hasNext.value && !isNew.value) {
-      commands.push({
-        id: 'record:next',
-        priority: CMD_PRIORITY.high,
-        title: t('labels.commandPalette.nextRecord'),
-        section,
-        icon: { type: 'icon', name: 'ncChevronRight' },
-        shortcut: ['Alt', 'ArrowDown'],
-        run: () => guardedNavigate('next'),
-      })
-    }
-
-    if (isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value && !isSaveDisabled.value) {
-      commands.push({
-        id: 'record:save',
-        priority: CMD_PRIORITY.primary,
-        title: t('labels.commandPalette.saveRecord'),
-        section,
-        icon: { type: 'icon', name: 'ncSave' },
-        shortcut: [isMac() ? 'Meta' : 'Ctrl', 'S'],
-        run: save,
-      })
-    }
-
-    if (hasUnsavedChanges.value && !isNew.value) {
-      commands.push({
-        id: 'record:discard',
-        priority: CMD_PRIORITY.high,
-        title: t('labels.commandPalette.discardChanges'),
-        section,
-        icon: { type: 'icon', name: 'ncRotateCcw' },
-        keywords: ['revert', 'undo', 'cancel'],
-        // No inline feedback: the command unregisters once clean, which would drop its status row.
-        // Same buffers the discard dialog drops, then the saved values come back.
-        run: async () => {
-          clearColumns()
-          if (_row.value?.rowMeta) _row.value.rowMeta.ltarState = {}
-          pendingLtarOps.value = []
-          await _loadRow(activeRowId.value ?? undefined)
-        },
-      })
-    }
-
-    if (!isFullscreen.value) {
-      commands.push({
-        id: 'record:toggle-sidebar',
-        priority: CMD_PRIORITY.low,
-        title: useDualPane.value ? t('title.hideSidebar') : t('title.showSidebar'),
-        section,
-        icon: { type: 'icon', name: 'sidebar' },
-        keywords: ['comments', 'audit', 'pane'],
-        run: toggleSidebar,
-      })
-    }
-
-    commands.push(
-      {
-        id: 'record:fullscreen',
-        priority: CMD_PRIORITY.low,
-        title: isFullscreen.value ? t('labels.exitFullscreen') : t('labels.enterFullscreen'),
-        section,
-        icon: { type: 'icon', name: isFullscreen.value ? 'ncMinimize' : 'ncMaximize' },
-        keywords: ['expand', 'maximize', 'minimize'],
-        run: () => setFullscreen(!isFullscreen.value),
-      },
-      {
-        id: 'record:close',
-        priority: CMD_PRIORITY.low,
-        title: t('labels.commandPalette.closeRecord'),
-        section,
-        icon: { type: 'icon', name: 'ncX' },
-        shortcut: ['Esc'],
-        // Unsaved edits raise the discard dialog, as the close button does.
-        run: onClose,
-      },
-    )
-
-    return { context: newRecordContext, commands }
+useRecordNavCommands({
+  key: () => `record-nav:panel:${meta.value?.id}:${activeRowId.value}`,
+  isOpen: () => isOpen.value,
+  isNew,
+  canPrev: () => hasPrev.value,
+  canNext: () => hasNext.value,
+  prev: () => guardedNavigate('prev'),
+  next: () => guardedNavigate('next'),
+  navShortcuts: ['ArrowUp', 'ArrowDown'],
+  canSave: () => isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value && !isSaveDisabled.value,
+  save,
+  saveShortcut: [isMac() ? 'Meta' : 'Ctrl', 'S'],
+  hasUnsavedChanges,
+  // Same buffers the discard dialog drops, then the saved values come back.
+  discard: async () => {
+    clearColumns()
+    if (_row.value?.rowMeta) _row.value.rowMeta.ltarState = {}
+    pendingLtarOps.value = []
+    await _loadRow(activeRowId.value ?? undefined)
   },
-)
+  close: onClose,
+  panel: { isFullscreen, isSidebarShown: useDualPane, toggleSidebar, setFullscreen },
+})
 
 // Register guarded variant so grid-driven row clicks surface the discard modal
 // instead of silently overwriting unsaved edits. Reset on unmount so a stale

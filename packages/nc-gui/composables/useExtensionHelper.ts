@@ -217,8 +217,9 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       return { inserted: insertCounter, updated: updateCounter }
     }
 
-    const reloadData = () => {
-      eventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+    // Only the open view showing `tableId` (or reading it through a lookup) refreshes
+    const reloadData = (tableId?: string) => {
+      eventBus.emit(SmartsheetStoreEvents.DATA_RELOAD, { tableId, inPlace: true })
     }
 
     const reloadMeta = () => {

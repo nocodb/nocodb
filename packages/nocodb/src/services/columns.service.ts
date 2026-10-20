@@ -62,7 +62,7 @@ import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type CustomKnex from '~/db/CustomKnex';
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import type { NcRequest } from '~/interface/config';
-import type { Base, LinkToAnotherRecordColumn } from '~/models';
+import type { Base, ButtonColumn, LinkToAnotherRecordColumn } from '~/models';
 import type {
   IColumnsService,
   LtarSideEffectIds,
@@ -1718,7 +1718,24 @@ export class ColumnsService implements IColumnsService {
             ...colBody,
           });
         } else if (column.uidt === UITypes.Button) {
-          if (colBody.type === ButtonActionsType.Url) {
+          const storedButton = await column.getColOptions<ButtonColumn>(ncMeta);
+
+          // Same already-broken skip as the Formula branch above: a URL button
+          // whose referenced field was deleted is flagged, and re-validating
+          // its unchanged formula on a reorder threw out here — outside the
+          // try below, so it surfaced as a 500 rather than a 400.
+          const incomingButtonFormula = colBody.formula_raw || colBody.formula;
+          const isButtonAlreadyBroken =
+            !!storedButton?.error &&
+            (!incomingButtonFormula ||
+              incomingButtonFormula === storedButton?.formula_raw);
+
+          if (colBody.type === ButtonActionsType.Url && isButtonAlreadyBroken) {
+            colBody.formula_raw = storedButton?.formula_raw;
+            colBody.formula = storedButton?.formula;
+            colBody.parsed_tree = storedButton?.getParsedTree();
+            colBody.error = storedButton?.error;
+          } else if (colBody.type === ButtonActionsType.Url) {
             const relatedModels: Map<string, Model> = await getRelatedModelMap(
               context,
               table,

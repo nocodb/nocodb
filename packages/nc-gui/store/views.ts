@@ -1044,6 +1044,36 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
+  // Saved recents outlive their views (deleted in another tab, access revoked). Drop the ones the
+  // loaded stores prove gone and refresh titles; a base whose tables or views aren't loaded is kept.
+  function pruneRecentViews() {
+    if (!bases.isProjectsLoaded) return
+
+    allRecentViews.value = allRecentViews.value.flatMap((rv) => {
+      if (rv.workspaceId !== activeWorkspaceId.value) return [rv]
+
+      const base = bases.bases.get(rv.baseId)
+      if (!base) return []
+
+      const tables = tablesStore.baseTables.get(rv.baseId)
+      const table = tables?.find((t) => t.id === rv.tableID)
+      if (tables && !table) return []
+
+      const views = viewsByTable.value.get(getViewsKey(rv.baseId, rv.tableID))
+      const view = rv.viewId ? views?.find((v) => v.id === rv.viewId) : undefined
+      if (views && rv.viewId && !view) return []
+
+      return [
+        {
+          ...rv,
+          baseName: base.title ?? rv.baseName,
+          tableName: table?.title ?? rv.tableName,
+          viewName: view?.title ?? rv.viewName,
+        },
+      ]
+    })
+  }
+
   const updateTabTitle = () => {
     if (!activeView.value || !activeView.value.base_id) {
       if (openedProject.value?.title) {
@@ -1596,6 +1626,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     changeView,
     hasOnlyOneGridViewInTable,
     removeFromRecentViews,
+    pruneRecentViews,
     refreshViewTabTitle: refreshViewTabTitle.trigger,
     updateViewCoverImageColumnId,
     duplicateView,

@@ -511,6 +511,8 @@ export interface ChatSessionType {
   source_kind?: FactorySourceKind;
   /** Branch name, or the PR / issue number as text. */
   source_ref?: string;
+  /** App Factory: names its preview hosts and new branch, e.g. `fix-login-k3x9ab`. Set once, unique across all workspaces. */
+  factory_slug?: string | null;
   /** Set on a spawned agent's session: the conversation that started it. */
   fk_parent_session_id?: string | null;
   /** The spawned agent's role, e.g. `explorer`. Absent on a user's session. */

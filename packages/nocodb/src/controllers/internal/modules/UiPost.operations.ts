@@ -29,6 +29,7 @@ import { SyncService } from '~/services/sync.service';
 import { SyncSource, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { normalizeArrayQueryParam } from '~/helpers/apiHelpers';
+import { pickBulkAllQuery } from '~/helpers/dataHelpers';
 import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { ExtensionsService } from '~/services/extensions.service';
@@ -693,7 +694,7 @@ export class UiPostOperations
         return await this.bulkDataAliasService.bulkDataDeleteAll(context, {
           baseName: context.base_id,
           tableName: req.query.tableId!,
-          query: req.query,
+          query: pickBulkAllQuery(req.query, ['where', 'viewId', 'skipPks']),
           viewName: req.query.viewId,
           req,
         });

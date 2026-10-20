@@ -150,9 +150,9 @@ export const FormulaCellRenderer: CellRenderer = {
       let displayColumn = getEffectiveDisplayColumn(colExtra, column)
       let displayValue = value
 
-      if (colExtra.display_type === UITypes.SingleSelect) {
+      if (colExtra.display_type === UITypes.SingleSelect || colExtra.display_type === UITypes.MultiSelect) {
         displayColumn = getDisplaySelectColumn(displayColumn)
-        displayValue = getFormulaSelectDisplayValue(value, displayColumn)
+        if (colExtra.display_type === UITypes.SingleSelect) displayValue = getFormulaSelectDisplayValue(value, displayColumn)
       }
 
       getDisplayValueCellRenderer(column).render(ctx, {
@@ -344,7 +344,10 @@ export const FormulaCellRenderer: CellRenderer = {
     hideTooltip()
 
     if (colMeta?.display_type) {
-      const displayColumn = getEffectiveDisplayColumn(colMeta, colObj)
+      let displayColumn = getEffectiveDisplayColumn(colMeta, colObj)
+      if (colMeta.display_type === UITypes.SingleSelect || colMeta.display_type === UITypes.MultiSelect) {
+        displayColumn = getDisplaySelectColumn(displayColumn)
+      }
 
       return getDisplayValueCellRenderer(colObj)?.handleHover?.({
         ...props,

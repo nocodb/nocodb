@@ -1,5 +1,6 @@
 import { phraseAt, tokenizeCmdNl } from './extract'
 import type { CmdNlKind } from './ir'
+import { CMD_NL_COLORS } from './ir'
 import { buildCmdNlLexicon, cmdNlLexAt } from './lexicon'
 import type { CmdNlParseOptions } from './parse'
 import { cmdNlExpected } from './parse'
@@ -13,7 +14,7 @@ import { plural, singular } from './vocab/inflect'
  */
 
 export interface CmdNlSuggestion {
-  kind: 'field' | 'cmp' | 'value'
+  kind: 'field' | 'cmp' | 'value' | 'color'
   label: string
   /** Text that replaces the partial word (query.slice(from)). */
   insert: string
@@ -46,6 +47,7 @@ export const CMD_NL_CMP_BY_KIND: Record<CmdNlKind, string[]> = {
 
 const VALUE_CATS = ['OPT', 'MEMBER', 'ME', 'TEXTW', 'QUOTED', 'BOOL', 'TAGOPT', 'STATE', 'NUM', 'DATE']
 const MAX_ITEMS = 8
+const COLORS_UNTYPED = 4
 /** Distinct text values taken from loaded rows per field. */
 const MAX_TEXT_VALUES = 50
 
@@ -196,6 +198,11 @@ export function cmdNlSuggest(query: string, schema: CmdNlSchema, opts: CmdNlPars
   if (field && target?.atEnd && expected.has('CMP')) {
     for (const label of rank(CMD_NL_CMP_BY_KIND[field.kind], partial))
       items.push({ kind: 'cmp', label, insert: label, fieldId: field.id })
+  }
+  // "colour won deals gr" → green; with nothing typed yet, a few so fields still fit.
+  if (expected.has('COLOR')) {
+    const colors = rank([...CMD_NL_COLORS], partial)
+    for (const label of partial ? colors : colors.slice(0, COLORS_UNTYPED)) items.push({ kind: 'color', label, insert: label })
   }
   if (expected.has('FIELD') && !field) {
     // Hidden audit fields ("Created time") only once a couple of letters point at them.

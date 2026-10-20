@@ -385,6 +385,10 @@ export function canonical(ir: Omit<CmdIR, 'meta'>, schema: CmdNlSchema): string 
       return capitalize(`records${where}${order}${limit}`).replace(/^Records sorted/, 'Sort')
     case 'group':
       return `Group by ${(ir.groupBy ?? []).map((g) => title(schema, g.id)).join(', ')}${where}`
+    case 'color':
+      if (ir.color?.mode === 'field') return `Colour rows by ${title(schema, ir.color.field.id)}`
+      if (ir.color?.mode === 'condition') return `Colour rows ${ir.color.color}${where}`
+      return 'Clear row colours'
     case 'filter':
     case 'navigate':
       return capitalize(`records${where}${order}${limit}`)

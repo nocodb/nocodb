@@ -6,6 +6,8 @@ import FeedYoutube from './Youtube/index.vue'
 // import FeedRoadmap from './Roadmap.vue'
 const { activeTab } = useProductFeed()
 
+const { isMobileMode } = useGlobal()
+
 const { hideSidebar } = storeToRefs(useSidebarStore())
 
 const { $e } = useNuxtApp()
@@ -80,7 +82,7 @@ onBeforeUnmount(() => {
   <FeedHeader />
 
   <div class="flex flex-col h-full">
-    <NcTabs v-model:active-key="activeTab" centered>
+    <NcTabs v-model:active-key="activeTab" :centered="!isMobileMode">
       <a-tab-pane v-for="tab in tabs" :key="tab.key" class="bg-nc-bg-gray-extralight !h-full">
         <template #tab>
           <div class="flex gap-2 items-center">

@@ -36,7 +36,7 @@ onMounted(() => {
     <div v-else-if="isLoading && !socialFeed.length" class="flex items-center justify-center h-full w-full">
       <GeneralLoader size="xlarge" />
     </div>
-    <div v-else class="flex flex-col my-6 items-center gap-6">
+    <div v-else class="flex flex-col my-6 items-center gap-6 xs:px-3">
       <template v-for="feed in socialFeed" :key="feed.Id">
         <FeedRecentsCard v-if="['Github', 'Cloud', 'Youtube'].includes(feed['Feed Source'])" :item="feed" />
       </template>

@@ -418,3 +418,8 @@ export const PHONE_LANDSCAPE_MEDIA_QUERY = '(pointer: coarse) and (max-height: 5
 
 export const isPhoneLandscapeViewport = () =>
   typeof window !== 'undefined' && window.matchMedia(PHONE_LANDSCAPE_MEDIA_QUERY).matches
+
+// iPadOS reports a Mac user agent, so it is told apart by touch support
+export const isIOSDevice = () =>
+  typeof navigator !== 'undefined' &&
+  (/iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1))

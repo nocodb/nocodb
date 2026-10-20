@@ -143,7 +143,7 @@ watch(
               >
                 <GeneralIcon icon="menu" />
               </NcButton>
-              <div class="flex-1 min-w-0">
+              <div class="nc-account-breadcrumb flex-1 min-w-0 overflow-hidden">
                 <AccountBreadcrumb />
               </div>
 
@@ -251,6 +251,18 @@ watch(
 </style>
 
 <style lang="scss">
+// Phones: only the current page's crumb, so the header controls keep their room
+.mobile .nc-account-breadcrumb {
+  .nc-breadcrumb-item:not(:last-of-type),
+  .nc-breadcrumb-divider {
+    @apply !hidden;
+  }
+
+  .nc-breadcrumb-item {
+    @apply !block truncate leading-8;
+  }
+}
+
 .nc-user-sidebar {
   .tabs-menu .active {
     @apply !bg-nc-bg-brand !text-nc-content-brand-disabled !hover:(bg-nc-bg-brand text-nc-content-brand-disabled) dark:(!bg-nc-bg-gray-medium !hover:bg-nc-bg-gray-medium) font-semibold;

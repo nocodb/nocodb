@@ -633,7 +633,7 @@ watch(_baseId, () => {
           </div>
         </div>
         <div
-          class="flex flex-row items-center justify-between gap-x-2"
+          class="flex flex-row flex-wrap items-center justify-between gap-x-2 gap-y-2"
           :class="{
             'px-5 -mt-2': aiMode,
           }"
@@ -648,7 +648,7 @@ watch(_baseId, () => {
             </div>
           </NcButton>
           <div v-else></div>
-          <div class="flex gap-2 items-center">
+          <div class="flex gap-2 items-center ml-auto">
             <NcButton type="secondary" size="small" :disabled="creating || isAiSaving" @click="dialogShow = false">
               {{ $t('general.cancel') }}
             </NcButton>

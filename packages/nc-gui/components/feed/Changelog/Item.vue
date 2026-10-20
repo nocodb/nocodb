@@ -88,7 +88,7 @@ const handleOpenUrl = (url: string) => {
 <template>
   <div class="relative rounded-xl flex flex-col mt-6.25 bg-nc-bg-default changelog-card">
     <div
-      class="w-full relative border cursor-pointer border-base-black h-[334px] xl:h-[394px] w-[540px] xl:w-[638px] border-opacity-10 rounded-t-xl overflow-hidden"
+      class="w-full relative border cursor-pointer border-base-black h-[334px] xl:h-[394px] w-[540px] xl:w-[638px] xs:(w-full h-auto aspect-[540/334]) border-opacity-10 rounded-t-xl overflow-hidden"
       @click="handleOpenUrl(item.Url)"
     >
       <img

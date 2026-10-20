@@ -34,7 +34,6 @@ import {
   COLUMN_HEADER_HEIGHT_IN_PX,
   EDIT_INTERACTABLE,
   FROZEN_AREA_MAX_WIDTH_RATIO,
-  MOBILE_FROZEN_PV_MAX_WIDTH_RATIO,
   MOBILE_ROW_META_COLUMN_WIDTH,
   ROW_COLOR_BORDER_WIDTH,
   ROW_META_COLUMN_WIDTH,
@@ -744,10 +743,6 @@ export function useCanvasTable({
       for (let i = 0; i < frozenCount; i++) {
         cols[i].fixed = true
       }
-    } else if (cols[0]?.pv) {
-      // Phones keep the display value pinned (capped) so a sideways swipe never loses the record
-      cols[0].fixed = true
-      cols[0].width = `${Math.min(parseCellWidth(cols[0].width), Math.round(width.value * MOBILE_FROZEN_PV_MAX_WIDTH_RATIO))}px`
     }
 
     fetchMetaIds.value.push(...fetchMetaIdsLocal)

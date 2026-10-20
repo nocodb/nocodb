@@ -92,7 +92,7 @@ const props = defineProps<{
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    metas?: { metaValue?: TableType; viewMetaValue?: ViewType; skipRefresh?: boolean },
     path?: Array<number>,
   ) => Promise<void>
   bulkDeleteAll: (path?: Array<number>) => Promise<void>
@@ -100,7 +100,7 @@ const props = defineProps<{
     insertRows: Row[],
     updateRows: Row[],
     props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    metas?: { metaValue?: TableType; viewMetaValue?: ViewType; skipRefresh?: boolean },
     newColumns?: Partial<ColumnType>[],
     path?: Array<number>,
   ) => Promise<Record<string, any>[] | void>
@@ -137,6 +137,8 @@ const props = defineProps<{
   fetchMissingGroupChunks: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup, force?: boolean) => Promise<void>
   fetchMissingGroupAggregations: (groups: CanvasGroup[]) => void
   clearGroupCache: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => void
+  refreshInPlace: () => Promise<void>
+  refreshLoadedRows: (path?: Array<number>) => Promise<void>
 }>()
 
 const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords', 'update:selectedAllRecordsSkipPks'])
@@ -168,6 +170,8 @@ const {
   fetchMissingGroupAggregations,
   clearGroupCache,
   toggleExpandAll,
+  refreshInPlace,
+  refreshLoadedRows,
 } = props
 
 // VModels
@@ -935,40 +939,14 @@ function clearSelection() {
   editEnabled.value = null
 }
 
-async function onGroupRowChange({ row, level, path = row?.rowMeta?.path }: { row?: Row; level: number; path?: number[] }) {
-  const parentGroupPath = path?.slice(0, level)
-
-  const parentGroup = parentGroupPath?.length ? findGroupByPath(cachedGroups.value, parentGroupPath) : undefined
-
-  const groupMap = parentGroup?.groups ?? cachedGroups.value
-
-  // get the highest index value present in cachedGroups
-  const endIndex = Math.max(...groupMap.keys())
-
+// A row left its group: refetch the loaded groups and rows over what's on screen.
+async function onGroupRowChange() {
   // clear selection to avoid rendering wrong cell content
   setTimeout(() => {
     clearSelection()
   }, 150)
 
-  // reload all groups in current level since any one of them can be in updated state
-  await fetchMissingGroupChunks(0, endIndex, parentGroup ?? undefined, true)
-
-  // iterate and clear if expanded grid present
-  const clearGridCache = (groupMap: Map<number, CanvasGroup>, toalGroupCount: number, path = []) => {
-    for (let i = 0; i < toalGroupCount; i++) {
-      const group = groupMap.get(i)
-      if (group?.groupCount) {
-        // if group is not expanded, check if it has subgroups and clear their cache
-        clearGridCache(group.groups, group.groupCount, group.path ?? [...path, i])
-      } else {
-        clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, [...path, i])
-      }
-    }
-  }
-
-  clearGridCache(groupMap, parentGroup?.groupCount ?? totalGroups.value, parentGroup ? generateGroupPath(parentGroup) : [])
-
-  await syncGroupCount(parentGroup)
+  await refreshInPlace()
 
   setTimeout(() => {
     // if scrolltop is beyond totaheight, reset it to maximum possible value
@@ -1014,7 +992,7 @@ async function moveRowToGroup({
 async function refreshAfterGroupMove(sourcePath: number[], targetPath: number[], level: number) {
   const parentPath = sourcePath.slice(0, level)
   const parentGroup = parentPath.length ? findGroupByPath(cachedGroups.value, parentPath) : undefined
-  if (parentPath.length && !parentGroup) return onGroupRowChange({ level, path: sourcePath })
+  if (parentPath.length && !parentGroup) return onGroupRowChange()
 
   const siblings = parentGroup?.groups ?? cachedGroups.value
   const changedIndexes = [...new Set([sourcePath[level]!, targetPath[level]!])]
@@ -1035,18 +1013,19 @@ async function refreshAfterGroupMove(sourcePath: number[], targetPath: number[],
 
   const refreshedSiblings = parentGroup?.groups ?? cachedGroups.value
   const isShifted = changedIndexes.some((index, i) => refreshedSiblings.get(index)?.nestedIn[level]?.key !== keysBefore[i])
-  if (isShifted) return onGroupRowChange({ level, path: sourcePath })
+  if (isShifted) return onGroupRowChange()
 
   for (const [index, group] of untouchedBefore) {
     if (refreshedSiblings.get(index)?.nestedIn[level]?.key === group.nestedIn[level]?.key) refreshedSiblings.set(index, group)
   }
 
+  // Refetched over the loaded rows, so the source and target groups don't blank
   const branchKeys = changedIndexes.map((index) => [...parentPath, index].join('-'))
-  for (const key of groupDataCache.value.keys()) {
-    if (branchKeys.some((branchKey) => key === branchKey || key.startsWith(`${branchKey}-`))) {
-      clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, key.split('-').map(Number))
-    }
-  }
+  await Promise.all(
+    [...groupDataCache.value.keys()]
+      .filter((key) => branchKeys.some((branchKey) => key === branchKey || key.startsWith(`${branchKey}-`)))
+      .map((key) => refreshLoadedRows(key.split('-').map(Number))),
+  )
 
   clearSelection()
   calculateSlices()
@@ -1149,7 +1128,7 @@ async function onSelectedTemplateClick() {
     })
 
     message.toast(t('msg.recordCreatedFromTemplate'))
-    reloadViewDataHook?.trigger()
+    reloadViewDataHook?.trigger({ inPlace: true })
   } catch (e: any) {
     console.error(e)
     message.toast(await extractSdkResponseErrorMsg(e))
@@ -2795,6 +2774,11 @@ const reloadViewDataHookHandler = withLoading(async (params) => {
   triggerRefreshCanvas()
 })
 
+function onReloadViewData(params?: { inPlace?: boolean; path?: Array<number> } | void) {
+  if (params?.inPlace) return refreshInPlace()
+  return reloadViewDataHookHandler(params)
+}
+
 let rafId: number | null = null
 
 // Persist the last scroll position per view so the user returns to where they
@@ -3370,7 +3354,7 @@ function selectCell() {
   triggerRefreshCanvas()
 }
 
-reloadViewDataHook.on(reloadViewDataHookHandler)
+reloadViewDataHook.on(onReloadViewData)
 reloadVisibleDataHook?.on(triggerReload)
 openNewRecordFormHook?.on(openNewRecordHandler)
 selectCellHook.on(selectCell)
@@ -3456,7 +3440,7 @@ if (smartTextStoreForActive) {
 
 onBeforeUnmount(() => {
   eventBus.off(smartsheetEvents)
-  reloadViewDataHook.off(reloadViewDataHookHandler)
+  reloadViewDataHook.off(onReloadViewData)
   reloadVisibleDataHook?.off(triggerReload)
   openNewRecordFormHook?.off(openNewRecordHandler)
   selectCellHook.off(selectCell)

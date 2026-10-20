@@ -57,7 +57,7 @@ const handleUseTemplate = async (tmpl: any) => {
     })
 
     message.toast(t('msg.recordCreatedFromTemplate'))
-    reloadViewDataHook?.trigger()
+    reloadViewDataHook?.trigger({ inPlace: true })
   } catch (e: any) {
     console.error(e)
     message.toast(await extractSdkResponseErrorMsg(e))

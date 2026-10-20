@@ -355,8 +355,8 @@ const performHideOrShow = async () => {
 
       delete hidingViewColumnsMap.value[column.value.id!]
 
+      // The field's values never left the loaded rows
       eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-      reloadDataHook?.trigger()
     }
 
     message.error(t('msg.error.columnVisibilityUpdateFailed'))

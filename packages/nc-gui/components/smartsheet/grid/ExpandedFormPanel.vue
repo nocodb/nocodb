@@ -268,7 +268,7 @@ const save = async (): Promise<boolean> => {
       await _loadRow()
     }
 
-    await reloadViewDataTrigger?.trigger()
+    await reloadViewDataTrigger?.trigger({ inPlace: true })
     return true
   } catch (e: any) {
     message.error(await formatSaveError(e))

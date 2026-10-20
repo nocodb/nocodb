@@ -87,12 +87,16 @@ export const ReloadViewDataHookInj: InjectionKey<
     rowId?: string
     path?: Array<number>
     skipLoadingRowId?: string
+    /** Canvas grid: refetch what's loaded without the loader; other views reload as usual */
+    inPlace?: boolean
+    fieldAdd?: boolean
   } | void>
 > = Symbol('reload-view-data-injection')
 export const ReloadViewMetaHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-meta-injection')
 export const ReloadVisibleDataHookInj: InjectionKey<EventHook<void>> = Symbol('reload-visible-data-injection')
-export const ReloadRowDataHookInj: InjectionKey<EventHook<{ shouldShowLoading?: boolean; offset?: number } | void>> =
-  Symbol('reload-row-data-injection')
+export const ReloadRowDataHookInj: InjectionKey<
+  EventHook<{ shouldShowLoading?: boolean; offset?: number; inPlace?: boolean } | void>
+> = Symbol('reload-row-data-injection')
 export const ReloadAggregateHookInj: InjectionKey<
   EventHook<
     | {

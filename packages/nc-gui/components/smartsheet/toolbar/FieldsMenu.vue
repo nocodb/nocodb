@@ -157,8 +157,8 @@ const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } })
     movedField.order = newOrder
     await saveOrUpdate(movedField, _event.moved.newIndex, true, !!isDefaultView.value)
 
+    // Order doesn't change the rows, so no data reload
     await loadViewColumns()
-    reloadViewDataHook.trigger()
     $e('a:fields:reorder')
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))

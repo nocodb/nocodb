@@ -32,10 +32,10 @@ export function useSetDisplayValue() {
 
       // reload data since there might be some changes in the data if there is LTAR
       // or a formula field which refers to a LTAR field
-      reloadDataHook?.trigger()
+      reloadDataHook?.trigger({ inPlace: true })
 
-      // same way reload the row data if trigger is available
-      reloadRowTrigger?.trigger()
+      // same way reload the row data if trigger is available; the grid provides one hook for both
+      if (reloadRowTrigger !== reloadDataHook) reloadRowTrigger?.trigger({ inPlace: true })
 
       return true
     } catch (e) {

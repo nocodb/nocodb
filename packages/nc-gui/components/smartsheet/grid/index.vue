@@ -101,6 +101,7 @@ const {
   toggleExpandAll,
   groupDataCache,
   refreshInPlace,
+  refreshLoadedRows,
 } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
 // SmartText panel row navigation contract.
@@ -962,6 +963,8 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
         :fetch-missing-group-aggregations="fetchMissingGroupAggregations"
         :is-bulk-operation-in-progress="isBulkOperationInProgress"
         :toggle-expand-all="toggleExpandAll"
+        :refresh-in-place="refreshInPlace"
+        :refresh-loaded-rows="refreshLoadedRows"
         @bulk-update-dlg="bulkUpdateTrigger"
       />
 

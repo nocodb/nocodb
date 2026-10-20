@@ -186,6 +186,7 @@ const onConfirmDeleteRowClick = async () => {
 
   await reloadViewDataTrigger.trigger({
     shouldShowLoading: false,
+    inPlace: true,
     skipLoadingRowId: primaryKey.value || undefined,
   })
 }

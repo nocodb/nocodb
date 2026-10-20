@@ -162,12 +162,12 @@ function openExpandedForm() {
   })
 
   function onCreatedRecord() {
-    reloadTrigger?.trigger({
-      shouldShowLoading: false,
-    })
+    // The grid provides one hook for both; a grid cell's SmartsheetRow hook forwards to it
+    if (reloadTrigger !== reloadViewDataTrigger) reloadTrigger?.trigger({ shouldShowLoading: false, inPlace: true })
 
     reloadViewDataTrigger?.trigger({
       shouldShowLoading: false,
+      inPlace: true,
       isFromLinkRecord: true,
       relatedTableMetaId: relatedTableMeta.value.id,
       rowId: rowId!,

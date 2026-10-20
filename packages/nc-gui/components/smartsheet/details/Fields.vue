@@ -1106,7 +1106,7 @@ const saveChanges = async () => {
         const failedTitles = res.failedOps.map((op) => (op.column as TableExplorerColumn).title).filter(Boolean)
         const firstError = (res.failedOps[0] as { error?: string }).error
         message.error(
-          res.failedOps.length === 1
+          res.failedOps.length === 1 && failedTitles.length === 1
             ? t('msg.error.fieldSaveFailed', { field: failedTitles[0], error: firstError })
             : t('msg.error.fieldSavesFailed', {
                 count: res.failedOps.length,

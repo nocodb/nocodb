@@ -1,4 +1,4 @@
-import type { AppContext, VNode } from '@vue/runtime-dom'
+import type { AppContext, Component, VNode } from '@vue/runtime-dom'
 import { Suspense, isVNode, render } from '@vue/runtime-dom'
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 import type { MaybeRef } from '@vueuse/core'
@@ -121,5 +121,29 @@ export function useDialog(
     onMounted: mountedHook.on,
     domNode,
     vNode: vNodeRef,
+  }
+}
+
+/**
+ * Opens a dialog bound to `modelKey` and destroys it once it closes or emits `deleted`.
+ * Pass a component resolved during setup when calling from outside one (e.g. a Cmd+K command).
+ */
+export function openDialog(
+  component: Component | string,
+  props: Record<string, unknown> = {},
+  modelKey: 'modelValue' | 'visible' = 'modelValue',
+) {
+  const isOpen = ref(true)
+
+  const { close } = useDialog(component, {
+    ...props,
+    [modelKey]: isOpen,
+    [`onUpdate:${modelKey}`]: closeDialog,
+    onDeleted: closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
   }
 }

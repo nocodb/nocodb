@@ -52,6 +52,7 @@ const IS_GAP_REGEXP = /[\\\/_+.#"@\[\(\{&]/
 const COUNT_GAPS_REGEXP = /[\\\/_+.#"@\[\(\{&]/g
 const IS_SPACE_REGEXP = /[\s-]/
 const COUNT_SPACE_REGEXP = /[\s-]/g
+const HAS_WORD_BREAK_REGEXP = /[\s\-\\\/_+.#"@\[\(\{&]/
 
 function commandScoreInner(
   string: string,
@@ -61,6 +62,7 @@ function commandScoreInner(
   stringIndex: number,
   abbreviationIndex: number,
   memoizedResults: { [x: string]: number },
+  wordStarts: boolean,
 ) {
   if (abbreviationIndex === abbreviation.length) {
     if (stringIndex === string.length) {
@@ -89,6 +91,7 @@ function commandScoreInner(
       index + 1,
       abbreviationIndex + 1,
       memoizedResults,
+      wordStarts,
     )
     if (score > highScore) {
       if (index === stringIndex) {
@@ -105,6 +108,9 @@ function commandScoreInner(
         if (spaceBreaks && stringIndex > 0) {
           score *= PENALTY_SKIPPED ** spaceBreaks.length
         }
+      } else if (wordStarts && (stringIndex === 0 || HAS_WORD_BREAK_REGEXP.test(string.slice(stringIndex, index)))) {
+        // A run may start mid-word only inside the word already being matched.
+        score = 0
       } else {
         score *= SCORE_CHARACTER_JUMP
         if (stringIndex > 0) {
@@ -120,7 +126,11 @@ function commandScoreInner(
     if (
       (score < SCORE_TRANSPOSITION && lowerString.charAt(index - 1) === lowerAbbreviation.charAt(abbreviationIndex + 1)) ||
       (lowerAbbreviation.charAt(abbreviationIndex + 1) === lowerAbbreviation.charAt(abbreviationIndex) && // allow duplicate letters. Ref #7428
-        lowerString.charAt(index - 1) !== lowerAbbreviation.charAt(abbreviationIndex))
+        lowerString.charAt(index - 1) !== lowerAbbreviation.charAt(abbreviationIndex) &&
+        // "hoosted" → "hosted", but not "hooli" → "HOsted LIcenses": the dropped letter is a typo only mid-run.
+        (!wordStarts ||
+          abbreviationIndex + 2 >= abbreviation.length ||
+          lowerString.charAt(index + 1) === lowerAbbreviation.charAt(abbreviationIndex + 2)))
     ) {
       transposedScore = commandScoreInner(
         string,
@@ -130,6 +140,7 @@ function commandScoreInner(
         index + 1,
         abbreviationIndex + 2,
         memoizedResults,
+        wordStarts,
       )
 
       if (transposedScore * SCORE_TRANSPOSITION > score) {
@@ -153,10 +164,14 @@ function formatInput(string: string) {
   return string.toLowerCase().replace(COUNT_SPACE_REGEXP, ' ')
 }
 
-export function commandScore(string: string, abbreviation: string): number {
+/**
+ * `wordStarts`: every word the match enters must be entered at its start (typos stay; scattered letters across
+ * words don't), and a doubled letter is forgiven only when the match continues right after it.
+ */
+export function commandScore(string: string, abbreviation: string, wordStarts = false): number {
   /* NOTE:
    * in the original, we used to do the lower-casing on each recursive call, but this meant that toLowerCase()
    * was the dominating cost in the algorithm, passing both is a little ugly, but considerably faster.
    */
-  return commandScoreInner(string, abbreviation, formatInput(string), formatInput(abbreviation), 0, 0, {})
+  return commandScoreInner(string, abbreviation, formatInput(string), formatInput(abbreviation), 0, 0, {}, wordStarts)
 }

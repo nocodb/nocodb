@@ -308,14 +308,30 @@ export function useGridCommands(
         }
       }
 
+      // The cell's own Set / Copy / Clear <field> lead the record's rows (link-field:, unlink-field: too).
+      const isOwn = (command: CmdCommand) =>
+        command.id.startsWith('cell:') || (!!cellColumnObj?.id && command.id.endsWith(`-field:${cellColumnObj.id}`))
+      const ordered = [
+        ...commands.filter(isOwn).map((command) => ({ ...command, priority: CMD_PRIORITY.primary })),
+        ...commands.filter((command) => !isOwn(command)),
+      ]
+
       const displayColumn = (meta.value?.columns as ColumnType[] | undefined)?.find((c) => c.pv)
+      const recordLabel = (displayColumn && String(row.row[displayColumn.title!] ?? '')) || String(rowId ?? '')
       return {
-        context: {
-          prefix: meta.value?.title,
-          label: (displayColumn && String(row.row[displayColumn.title!] ?? '')) || String(rowId ?? ''),
-          icon: { type: 'table', icon: parseProp(meta.value?.meta).icon },
-        },
-        commands,
+        // Names the cell: "<record> › <field>"; the table chip is one Backspace away.
+        context: cellColumnObj
+          ? {
+              prefix: recordLabel || meta.value?.title,
+              label: cellColumnObj.title ?? '',
+              icon: { type: 'field', column: cellColumnObj },
+            }
+          : {
+              prefix: meta.value?.title,
+              label: recordLabel,
+              icon: { type: 'table', icon: parseProp(meta.value?.meta).icon },
+            },
+        commands: ordered,
         fallbacks: extras?.fallbacks,
       }
     },

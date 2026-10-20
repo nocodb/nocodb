@@ -761,8 +761,19 @@ export function useGlobalCommands(edition?: (ctx: CmdGlobalCommandsContext) => C
       })
     }
 
-    // A bare name offers a table, view or base; the other kinds need "create …"/"new …" or the kind named.
-    return [...commands, ...((kind || prefixed ? ee.namedCreateCommands?.(name, kind) : undefined) ?? [])]
+    const all = [...commands, ...(ee.namedCreateCommands?.(name, kind) ?? [])]
+    if (kind || prefixed || all.length < 2) return all
+
+    // A bare name may not be meant as one ("qwzx blorp"): one row whose submenu holds the kinds, so Enter creates nothing.
+    return [
+      {
+        id: 'any:create-named',
+        title: t('labels.commandPalette.create.anyNamed', { name }),
+        section: sections.value.create,
+        icon: { type: 'icon', name: 'ncPlus' },
+        children: () => all,
+      },
+    ]
   }
 
   useCommandProvider('base', 'base', () => {

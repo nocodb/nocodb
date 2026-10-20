@@ -24,6 +24,7 @@ export function groupResults(hits: SearchResponseHit[]): SortedResult[] {
         type: 'page',
         url: document.url,
         content: document.title,
+        page: document.title,
       })
     }
 
@@ -36,6 +37,7 @@ export function groupResults(hits: SearchResponseHit[]): SortedResult[] {
         type: document.content === document.section ? 'heading' : 'text',
         url: document.section_id ? `${document.url}#${document.section_id}` : document.url,
         content: document.content,
+        page: document.title,
         section: document.section,
       })
     }

@@ -5674,7 +5674,10 @@
     "feedWhatsNew": "What’s New!",
     "stayTuned": "Stay tuned",
     "resetIcon": "Reset Icon",
-    "copyProject": "Copy Project"
+    "copyProject": "Copy Project",
+    "moreEllipsis": "more...",
+    "nocodbDocs": "NocoDB Docs.",
+    "triggerOnlyWhenFieldsChange": "Trigger only when specific fields change"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6458,7 +6461,16 @@
     "quickSearch": "Quick search...",
     "pasteFileLink": "Paste file link here...",
     "searchUserToAssign": "Search User to assign...",
-    "selectWorkspace": "Select workspace"
+    "selectWorkspace": "Select workspace",
+    "searchRecordsEllipsis": "Search records...",
+    "selectIntegration": "Select Integration",
+    "formBuilderSelectProject": "- Select project -",
+    "selectAggregationDashed": "-- Select aggregation --",
+    "selectProjectDashed": "-- Select project --",
+    "selectScriptDashed": "-- Select script --",
+    "selectViewDashed": "-- Select view --",
+    "searchLinkedRecords": "Search linked records...",
+    "searchRecordsToLink": "Search records to link..."
   },
   "msg": {
     "agentSkillsSubtitle": "Reusable instructions this agent can load when relevant.",
@@ -7425,7 +7437,8 @@
       "webhookEmptyStateSubtitle": "Trigger an HTTP request whenever a record is created, updated or deleted.",
       "resetWillEraseConfiguration": "Resetting will erase your current configuration.",
       "atLeastOneEnabledSource": "There should be at least one enabled source!",
-      "controlViewVisibility": "Control view visibility for different roles to manage access efficiently."
+      "controlViewVisibility": "Control view visibility for different roles to manage access efficiently.",
+      "loadingMonacoEditor": "Loading Monaco Editor..."
     },
     "error": {
       "attachmentInvalidUrl": "Enter a URL starting with http:// or https://, or a template using variables",

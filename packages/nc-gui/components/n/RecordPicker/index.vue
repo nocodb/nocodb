@@ -224,7 +224,7 @@ whenever(isOpen, () => {
                 ref="filterQueryRef"
                 v-model:value="searchQuery"
                 :bordered="false"
-                placeholder="Search records..."
+                :placeholder="$t('placeholder.searchRecordsEllipsis')"
                 class="w-full min-h-4 !pl-0"
                 size="small"
               >

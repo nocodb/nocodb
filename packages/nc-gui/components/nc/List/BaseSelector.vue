@@ -160,7 +160,9 @@ defineExpose({
           >
             {{ selectedBase?.label }}
           </span>
-          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select project --</span>
+          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">{{
+            $t('placeholder.selectProjectDashed')
+          }}</span>
 
           <template #title>
             {{ selectedBase?.label || 'Select project' }}

@@ -1281,7 +1281,7 @@ const webhookV2AndV3Diff = computed(() => {
                 class="nc-link"
                 target="_blank"
               >
-                NocoDB Docs.
+                {{ $t('labels.nocodbDocs') }}
               </a>
             </div>
           </div>

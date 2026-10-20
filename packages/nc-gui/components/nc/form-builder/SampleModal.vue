@@ -83,7 +83,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
   <div class="h-full">
     <NcFormBuilder />
     <div class="mt-10"></div>
-    <NcButton :loading="isLoading" type="primary" @click="submit">Submit</NcButton>
+    <NcButton :loading="isLoading" type="primary" @click="submit">{{ $t('general.submit') }}</NcButton>
   </div>
 </template>
 

@@ -1340,7 +1340,7 @@ const webhookV2AndV3Diff = computed(() => {
           ref="containerElem"
           class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-6 md:px-8 py-6 mx-auto"
         >
-          <div class="max-w-[640px] min-w-[564px] w-full mx-auto gap-8 flex flex-col">
+          <div class="nc-webhook-editor-body max-w-[640px] min-w-[564px] w-full mx-auto gap-8 flex flex-col">
             <NcAlert
               v-if="externallyDeleted"
               type="error"
@@ -1369,7 +1369,7 @@ const webhookV2AndV3Diff = computed(() => {
                 <input
                   ref="titleDomRef"
                   v-model="hookRef.title"
-                  class="flex flex-grow text-lg px-2 font-medium capitalize outline-none bg-inherit nc-text-field-hook-title"
+                  class="flex flex-grow text-base px-2 font-medium capitalize outline-none bg-inherit nc-text-field-hook-title"
                   :placeholder="$t('placeholder.webhookTitle')"
                   :contenteditable="true"
                   @keydown.enter="titleDomRef?.blur()"
@@ -1474,7 +1474,7 @@ const webhookV2AndV3Diff = computed(() => {
                   <div class="w-full flex items-center justify-between h-[28px]">
                     <label class="cursor-pointer flex items-center" @click.prevent="hookRef.condition = !hookRef.condition">
                       <NcSwitch :checked="Boolean(hookRef.condition)" class="nc-check-box-hook-condition">
-                        <span class="!text-nc-content-gray-subtle font-semibold">
+                        <span class="!text-nc-content-gray-subtle font-normal">
                           {{ $t('labels.triggerOnlyWhenConditionsMatch') }}
                         </span>
                       </NcSwitch>
@@ -1773,7 +1773,7 @@ const webhookV2AndV3Diff = computed(() => {
                 <div>
                   <div class="w-full cursor-pointer flex items-center" @click.prevent="toggleIncludeUser">
                     <NcSwitch :checked="Boolean(hookRef.notification.include_user)" class="nc-check-box-include-user">
-                      <span class="!text-nc-content-gray-subtle font-semibold">{{ $t('labels.includeUser') }}</span>
+                      <span class="!text-nc-content-gray-subtle font-normal">{{ $t('labels.includeUser') }}</span>
                     </NcSwitch>
                     <NcTooltip class="flex">
                       <template #title>
@@ -1894,6 +1894,20 @@ const webhookV2AndV3Diff = computed(() => {
   }
   .nc-modal-header {
     @apply !mb-0 !pb-0;
+  }
+
+  // Match the 13px body text of the surrounding settings shell
+  .nc-webhook-editor-body {
+    font-size: 13px;
+
+    .ant-select,
+    .ant-input,
+    .ant-input-affix-wrapper,
+    .ant-tabs-tab,
+    .ant-form-item-label > label,
+    .ant-checkbox-wrapper {
+      font-size: 13px;
+    }
   }
 
   .webhook-event-select div.ant-select-selector {
@@ -2070,7 +2084,7 @@ const webhookV2AndV3Diff = computed(() => {
   @apply w-4;
 }
 .tab .tab-title {
-  @apply min-w-0 text-sm;
+  @apply min-w-0 text-small;
   word-break: keep-all;
   white-space: nowrap;
   display: inline;

@@ -889,9 +889,10 @@ const selectedHeaderColumns = computed<ColumnType[]>(() => {
   return getSelectedHeaderColumnsOrdered()
 })
 
-/** One selected header drives the Cmd+K field context (a headless column menu). */
+/** One selected header drives the Cmd+K field context (a headless column menu), for whoever can open that menu. */
 const cmdkFieldColumn = computed<ColumnType | undefined>(() => {
   if (interfacePageDataApi || selectedHeaderColumnIds.value.size !== 1) return undefined
+  if (!isUIAllowed('fieldEdit') || !isFieldEditAllowed.value) return undefined
   const [id] = selectedHeaderColumnIds.value
   return columns.value.find((col) => col.columnObj?.id === id)?.columnObj
 })
@@ -3110,6 +3111,8 @@ async function addEmptyRow(row?: number, skipUpdate = false, before?: string, ov
 }
 
 async function openNewRecordHandler({ overwrite, path }) {
+  // The grid hides its add-record menu, form option included, past the visible-row limit.
+  if (removeInlineAddRecord.value) return
   // Add an empty row
   const newRow = await addEmptyRow(undefined, true, undefined, overwrite, path)
   // Expand the form

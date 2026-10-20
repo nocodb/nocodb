@@ -74,11 +74,12 @@ export function useSidebarCommands(deps: {
         run: () => item.onClick?.(),
       }))
 
-    // The logo: back to the workspace home.
+    // The logo: back to the workspace home. A code project's rail has its own "Home" (the factory).
     if (activeWorkspaceId.value) {
+      const railHasHome = deps.items.value.some((item) => item.key === 'home')
       commands.unshift({
-        id: 'section:home',
-        title: t('labels.commandPalette.goToSection', { section: t('general.home') }),
+        id: 'section:workspace-home',
+        title: t('labels.commandPalette.goToSection', { section: railHasHome ? t('objects.workspace') : t('general.home') }),
         section,
         icon: { type: 'icon', name: 'ncHome' },
         keywords: [...keywords, 'workspace'],

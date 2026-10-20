@@ -1,4 +1,5 @@
 import dayjs from 'dayjs'
+import { cmdEditDistance, matchCmdName } from './commandPaletteRelativeEdit'
 
 /* ------------------------------------------------------------------------------------------------
  * Calculator: "= 2500 * 1.18", "(10 + 5) / 3". A recursive-descent evaluator; never eval/Function.
@@ -173,12 +174,16 @@ export interface CmdStatColumn {
   aggregations: string[]
   /** Select option titles. */
   options?: string[]
+  /** User fields: the base members a name or email can mean. */
+  members?: { id: string; name: string; email?: string }[]
 }
 
 export interface CmdStatCondition {
   column: CmdStatColumn
-  op: 'eq' | 'neq' | 'gt' | 'lt' | 'gte' | 'lte' | 'like' | 'blank' | 'notblank' | 'checked' | 'notchecked' | 'anyof'
+  op: 'eq' | 'neq' | 'gt' | 'lt' | 'gte' | 'lte' | 'like' | 'blank' | 'notblank' | 'checked' | 'notchecked' | 'anyof' | 'nanyof'
   value?: string
+  /** What to show for `value` when it is an id (a member's name, or "me"). */
+  label?: string
 }
 
 export interface CmdStatQuery {
@@ -188,16 +193,35 @@ export interface CmdStatQuery {
   where: CmdStatCondition[]
 }
 
-type StatAgg = 'sum' | 'avg' | 'min' | 'max' | 'median' | 'range' | 'count' | 'count_unique' | 'count_empty' | 'count_filled'
+/** `mode` ("most common") has no footer aggregation; it only ever yields an "unsupported" reading. */
+type StatAgg =
+  | 'sum'
+  | 'avg'
+  | 'min'
+  | 'max'
+  | 'median'
+  | 'range'
+  | 'count'
+  | 'count_unique'
+  | 'count_empty'
+  | 'count_filled'
+  | 'mode'
 
-/** Longest phrases first, so "number of" wins over "number". */
+/** Longest phrases first, so "number of" wins over "number" and "top value" over "top". */
 const AGG_WORDS: Array<[string[], StatAgg]> = [
   [['how', 'many'], 'count'],
   [['number', 'of'], 'count'],
+  [['count', 'of'], 'count'],
   [['count', 'unique'], 'count_unique'],
   [['count', 'distinct'], 'count_unique'],
   [['count', 'empty'], 'count_empty'],
   [['count', 'filled'], 'count_filled'],
+  [['most', 'common'], 'mode'],
+  [['most', 'frequent'], 'mode'],
+  [['least', 'common'], 'mode'],
+  [['least', 'frequent'], 'mode'],
+  [['top', 'value'], 'mode'],
+  [['mode'], 'mode'],
   [['sum'], 'sum'],
   [['total'], 'sum'],
   [['average'], 'avg'],
@@ -213,12 +237,47 @@ const AGG_WORDS: Array<[string[], StatAgg]> = [
   [['maximum'], 'max'],
   [['highest'], 'max'],
   [['largest'], 'max'],
+  [['biggest'], 'max'],
+  [['top'], 'max'],
   [['latest'], 'max'],
   [['range'], 'range'],
   [['count'], 'count'],
   [['unique'], 'count_unique'],
   [['distinct'], 'count_unique'],
 ]
+
+/** Openers dropped before the aggregation: "what is the max …", "show me the total …". */
+const LEAD_FILLERS: string[][] = [
+  ['what', 'is'],
+  ['whats'],
+  // "what's" arrives as "what" once possessives are folded.
+  ['what'],
+  ['show', 'me'],
+  ['show'],
+  ['get', 'me'],
+  ['get'],
+  ['give', 'me'],
+  ['tell', 'me'],
+  ['find'],
+  ['calculate'],
+  ['the'],
+]
+
+/** Words between the aggregation and the field: "max value of the referral source across all records". */
+const FIELD_FILLERS = new Set([
+  'value',
+  'values',
+  'of',
+  'the',
+  'for',
+  'in',
+  'across',
+  'all',
+  'records',
+  'rows',
+  'field',
+  'column',
+])
 
 const OP_WORDS: Array<[string[], CmdStatCondition['op']]> = [
   [['is', 'not', 'empty'], 'notblank'],
@@ -249,6 +308,9 @@ const OP_WORDS: Array<[string[], CmdStatCondition['op']]> = [
   [['over'], 'gt'],
   [['below'], 'lt'],
   [['under'], 'lt'],
+  [['is', 'like'], 'like'],
+  [['is', 'similar', 'to'], 'like'],
+  [['matches'], 'like'],
   [['contains'], 'like'],
   [['includes'], 'like'],
   [['has'], 'like'],
@@ -268,29 +330,53 @@ function startsWithWords(words: string[], at: number, phrase: string[]) {
 function wordsOf(text: string) {
   return text
     .toLowerCase()
+    .replace(/(\w)'s\b/g, '$1')
     .replace(/[?!,]/g, ' ')
+    .replace(/[^\p{L}\p{N}\s<>=!'._-]/gu, ' ')
     .replace(/(>=|<=|!=|==|[<>=])/g, ' $1 ')
     .split(/\s+/)
     .filter(Boolean)
 }
 
-/** A field title typed as its words, a plural, or a prefix of each word ("amt" doesn't count, "amou" does). */
-function titleWordMatches(typed: string, titleWord: string) {
-  if (typed === titleWord || typed === `${titleWord}s` || `${typed}s` === titleWord) return true
-  return typed.length >= 3 && titleWord.startsWith(typed)
+/**
+ * How well a typed word names a title word: 3 exact, 2 plural/prefix, 1 a typo (one edit for 5+ letters,
+ * two for 8+, e.g. "referaal" → "referral"), 0 no match.
+ */
+function titleWordScore(typed: string, titleWord: string) {
+  if (typed === titleWord) return 3
+  if (typed === `${titleWord}s` || `${typed}s` === titleWord || typed === `${titleWord}es`) return 2
+  if (typed.length >= 3 && titleWord.startsWith(typed)) return 2
+  if (typed.length < 5) return 0
+  return cmdEditDistance(typed, titleWord) <= (typed.length >= 8 ? 2 : 1) ? 1 : 0
 }
 
-/** The column whose title words start at `at`, longest title first; returns it and the words used. */
-function matchColumnAt(words: string[], at: number, columns: CmdStatColumn[]) {
-  let best: { column: CmdStatColumn; length: number } | undefined
+interface ColumnMatch {
+  column: CmdStatColumn
+  length: number
+  score: number
+}
+
+/**
+ * Columns whose title words start at `at`: the longest titles, then the closest spelling. Several at
+ * the same rank are a genuine ambiguity ("score" vs "score 2" typed as "scor").
+ */
+function matchColumnsAt(words: string[], at: number, columns: CmdStatColumn[]): ColumnMatch[] {
+  const matches: ColumnMatch[] = []
   for (const column of columns) {
     const titleWords = wordsOf(column.title)
     if (!titleWords.length || at + titleWords.length > words.length) continue
-    if (titleWords.every((word, i) => titleWordMatches(words[at + i]!, word))) {
-      if (!best || titleWords.length > best.length) best = { column, length: titleWords.length }
-    }
+    const scores = titleWords.map((word, i) => titleWordScore(words[at + i]!, word))
+    if (scores.every(Boolean)) matches.push({ column, length: titleWords.length, score: Math.min(...scores) })
   }
-  return best
+  const longest = Math.max(0, ...matches.map((m) => m.length))
+  const best = Math.max(0, ...matches.filter((m) => m.length === longest).map((m) => m.score))
+  return matches.filter((m) => m.length === longest && m.score === best)
+}
+
+/** The one column at `at`, or none when nothing (or more than one) fits. */
+function matchColumnAt(words: string[], at: number, columns: CmdStatColumn[]) {
+  const matches = matchColumnsAt(words, at, columns)
+  return matches.length === 1 ? matches[0] : undefined
 }
 
 function matchOption(column: CmdStatColumn, value: string) {
@@ -327,7 +413,23 @@ function parseCondition(words: string[], original: string[], columns: CmdStatCol
     return option ? { column, op, value: option } : undefined
   }
   if (column.kind === 'user') {
-    return value.toLowerCase() === 'me' && op === 'eq' ? { column, op: 'anyof', value: '@me' } : undefined
+    if (op !== 'eq' && op !== 'neq' && op !== 'like') return
+    const userOp = op === 'neq' ? 'nanyof' : 'anyof'
+    if (/^(me|myself)$/i.test(value)) return { column, op: userOp, value: '@me', label: 'me' }
+    // A member by name or email, typos allowed ("owner is like anbarasu").
+    const members = column.members ?? []
+    const byName = matchCmdName(
+      value,
+      members.map((m) => m.name),
+    )
+    const byEmail = byName
+      ? undefined
+      : matchCmdName(
+          value,
+          members.map((m) => m.email ?? ''),
+        )
+    const member = members.find((m) => (byName && m.name === byName) || (byEmail && m.email === byEmail))
+    return member ? { column, op: userOp, value: member.id, label: member.name } : undefined
   }
   if (column.kind === 'checkbox') {
     const truthy = /^(true|yes|checked|done|1)$/i.test(value)
@@ -343,73 +445,193 @@ function parseCondition(words: string[], original: string[], columns: CmdStatCol
 
 const DATE_AGG: Partial<Record<StatAgg, string>> = { min: 'earliest_date', max: 'latest_date', range: 'date_range' }
 
-/** Parses "<aggregation> [of] [<field>] [where <condition> [and <condition>…]]"; undefined when it isn't one. */
-export function parseCmdStatsQuery(query: string, columns: CmdStatColumn[]): CmdStatQuery | undefined {
-  const original = query.replace(/[?!,]/g, ' ').trim().split(/\s+/).filter(Boolean)
-  const words = original.map((word) => word.toLowerCase())
-  if (!words.length) return
+/** Query words for parsing: punctuation dropped, possessives folded ("deal's" → "deal"), case kept for values. */
+function queryTokens(query: string) {
+  return query
+    .replace(/(\w)'s\b/g, '$1')
+    .replace(/[?!,]/g, ' ')
+    .replace(/(>=|<=|!=|==|[<>=])/g, ' $1 ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+}
+
+/** "a and b": the conditions of a where clause, in the view's filter vocabulary; undefined when any part doesn't parse. */
+function parseClause(words: string[], original: string[], columns: CmdStatColumn[]): CmdStatCondition[] | undefined {
+  if (!words.length || words.includes('or')) return
+  const where: CmdStatCondition[] = []
+  let start = 0
+  for (let i = 0; i <= words.length; i++) {
+    if (i === words.length || words[i] === 'and') {
+      const condition = parseCondition(words.slice(start, i), original.slice(start, i), columns)
+      if (!condition) return
+      where.push(condition)
+      start = i + 1
+    }
+  }
+  return where
+}
+
+/** Parses a bare where clause ("stage is won and amount > 100"); undefined when any condition doesn't. */
+export function parseCmdWhereClause(clause: string, columns: CmdStatColumn[]): CmdStatCondition[] | undefined {
+  const original = queryTokens(clause)
+  return parseClause(
+    original.map((word) => word.toLowerCase()),
+    original,
+    columns,
+  )
+}
+
+/** Splits "<action> where <clause>" on the last "where"; undefined when either side is empty. */
+export function splitCmdWhere(query: string): { action: string; clause: string } | undefined {
+  const match = /^(.*)\swhere\s(.*)$/is.exec(query.trim())
+  if (!match) return
+  const action = match[1]!.trim()
+  const clause = match[2]!.trim()
+  return action && clause ? { action, clause } : undefined
+}
+
+/** "set stage to won", "change amount = 5", "clear notes": an absolute value for one field. */
+export type CmdSetAction = { column: CmdStatColumn } & ({ clear: true } | { clear?: false; value: string })
+
+const SET_VERBS = new Set(['set', 'change', 'update', 'make', 'put'])
+
+const CLEAR_VERBS = new Set(['clear', 'empty', 'blank', 'unset', 'reset'])
+
+/** Parses an absolute edit; the value is kept as typed (quotes removed) for the caller to fit to the field. */
+export function parseCmdSetAction(action: string, columns: CmdStatColumn[]): CmdSetAction | undefined {
+  // Whitespace only: the value keeps its commas ("1,000") and punctuation.
+  const original = action
+    .replace(/(>=|<=|!=|==|[<>=])/g, ' $1 ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+  const words = original.map((word) => word.toLowerCase().replace(/(\w)'s$/, '$1'))
+  const verb = words[0]
+  if (!verb || (!SET_VERBS.has(verb) && !CLEAR_VERBS.has(verb))) return
+  let at = 1
+  if (words[at] === 'the') at++
+  const field = matchColumnAt(words, at, columns)
+  if (!field) return
+  at += field.length
+
+  if (CLEAR_VERBS.has(verb)) return at === words.length ? { column: field.column, clear: true } : undefined
+
+  if (['to', '=', 'as', 'with'].includes(words[at]!)) at++
+  const value = original
+    .slice(at)
+    .join(' ')
+    .replace(/^["“'‘](.*)["”'’]$/, '$1')
+    .trim()
+  return value ? { column: field.column, value } : undefined
+}
+
+export type CmdStatReading =
+  | { kind: 'query'; query: CmdStatQuery }
+  /** Understood, but the footer has no such aggregation for this field's type. */
+  | { kind: 'unsupported'; aggregation: StatAgg; column: CmdStatColumn; suggestions: string[] }
+  /** The aggregation is clear but no field is called what followed it. */
+  | { kind: 'no-field'; aggregation: StatAgg; text: string }
+  /** The figure is clear but its condition isn't (an unknown member, option or operator). */
+  | { kind: 'bad-condition'; aggregation: StatAgg; column?: CmdStatColumn; text: string }
+
+/** At most this many rows when a typed name fits several fields equally well. */
+const MAX_FIELD_CANDIDATES = 3
+
+const SUGGESTED_AGGREGATIONS = ['count_unique', 'count_filled', 'count_empty']
+
+function readingFor(agg: StatAgg, column: CmdStatColumn, where: CmdStatCondition[]): CmdStatReading {
+  let aggregation: string = agg
+  if (column.kind === 'date' && DATE_AGG[agg]) aggregation = DATE_AGG[agg]!
+  if (agg === 'count') aggregation = 'count_filled'
+  if (agg !== 'mode' && column.aggregations.includes(aggregation)) return { kind: 'query', query: { aggregation, column, where } }
+  return {
+    kind: 'unsupported',
+    aggregation: agg,
+    column,
+    suggestions: SUGGESTED_AGGREGATIONS.filter((a) => column.aggregations.includes(a)),
+  }
+}
+
+/**
+ * Every reading of "<aggregation> [of] [<field>] [where <condition> [and …]]": a figure to fetch, or a
+ * reason it can't be one. Empty when the query isn't a stat at all.
+ */
+export function parseCmdStats(query: string, columns: CmdStatColumn[]): CmdStatReading[] {
+  let original = queryTokens(query)
+  let words = original.map((word) => word.toLowerCase())
+
+  // "what is the max …", "show me the total …".
+  for (let opener = LEAD_FILLERS.find((p) => startsWithWords(words, 0, p)); opener; ) {
+    original = original.slice(opener.length)
+    words = words.slice(opener.length)
+    opener = LEAD_FILLERS.find((p) => startsWithWords(words, 0, p))
+  }
+  if (!words.length) return []
 
   const aggEntry = AGG_WORDS.find(([phrase]) => startsWithWords(words, 0, phrase))
   let agg: StatAgg | undefined = aggEntry?.[1]
   let at = aggEntry?.[0].length ?? 0
   const isHowMany = agg === 'count'
-  if (words[at] === 'of' || words[at] === 'the') at++
-  if (words[at] === 'the') at++
 
-  let column: CmdStatColumn | undefined
+  let fields: ColumnMatch[] = []
   if (agg) {
-    const field = matchColumnAt(words, at, columns)
-    if (field) {
-      column = field.column
-      at += field.length
+    // A field name wins over a filler of the same spelling (a field called "Value").
+    while (at < words.length) {
+      fields = matchColumnsAt(words, at, columns)
+      if (fields.length || !FIELD_FILLERS.has(words[at]!)) break
+      at++
     }
+    if (fields.length) at += fields[0]!.length
+    // "… for all rows" / "… across all records" trailing a field, before the end or a where clause.
+    let skip = at
+    while (skip < words.length && FIELD_FILLERS.has(words[skip]!)) skip++
+    if (skip > at && (skip === words.length || words[skip] === 'where')) at = skip
   } else {
     // "<field> <agg>": "amount total", "score average".
-    const field = matchColumnAt(words, 0, columns)
-    if (!field) return
-    const trailing = AGG_WORDS.find(([phrase]) => startsWithWords(words, field.length, phrase))
-    if (!trailing || trailing[1] === 'count' || field.length + trailing[0].length !== words.length) return
+    fields = matchColumnsAt(words, 0, columns)
+    if (!fields.length) return []
+    const trailing = AGG_WORDS.find(([phrase]) => startsWithWords(words, fields[0]!.length, phrase))
+    if (!trailing || trailing[1] === 'count' || fields[0]!.length + trailing[0].length !== words.length) return []
     agg = trailing[1]
-    column = field.column
     at = words.length
   }
 
   // "how many deals are won", "count deals where …": up to two words naming the records, then the condition.
-  if (isHowMany && !column) {
+  if (isHowMany && !fields.length) {
     const from = at
     while (at < words.length && at - from < 2 && !['are', 'is', 'where', 'with', 'that', 'which'].includes(words[at]!)) at++
     if (at < words.length && !['are', 'is', 'where', 'with', 'that', 'which'].includes(words[at]!)) at = from
     if (words[at] === 'are' || words[at] === 'is') at++
   }
 
-  const where: CmdStatCondition[] = []
+  let where: CmdStatCondition[] = []
   if (at < words.length) {
-    if (['where', 'with', 'when', 'for', 'if', 'whose', 'that', 'which'].includes(words[at]!)) at++
-    else if (!isHowMany) return
-    const clauseWords = words.slice(at)
-    const clauseOriginal = original.slice(at)
-    if (!clauseWords.length) return
-    // "and" splits clauses; "or" isn't supported.
-    if (clauseWords.includes('or')) return
-    let start = 0
-    for (let i = 0; i <= clauseWords.length; i++) {
-      if (i === clauseWords.length || clauseWords[i] === 'and') {
-        const condition = parseCondition(clauseWords.slice(start, i), clauseOriginal.slice(start, i), columns)
-        if (!condition) return
-        where.push(condition)
-        start = i + 1
-      }
+    const isClause = ['where', 'with', 'when', 'for', 'if', 'whose', 'that', 'which'].includes(words[at]!)
+    if (!isClause && !isHowMany) {
+      // "max referral sauce": the aggregation is clear, the field isn't; say so (letters only, not "top 10").
+      const text = original.slice(at).join(' ')
+      return !fields.length && agg !== 'count' && /\p{L}{3,}/u.test(text) ? [{ kind: 'no-field', aggregation: agg, text }] : []
     }
+    if (isClause) at++
+    const clause = parseClause(words.slice(at), original.slice(at), columns)
+    if (!clause) {
+      // Say why rather than vanish: "owner is like zed" with no member called zed.
+      if (!fields.length && agg !== 'count') return []
+      return [{ kind: 'bad-condition', aggregation: agg, column: fields[0]?.column, text: original.slice(at).join(' ') }]
+    }
+    where = clause
   }
 
-  if (agg === 'count' && !column) return { aggregation: 'count', where }
-  if (!column) return
+  if (agg === 'count' && !fields.length) return [{ kind: 'query', query: { aggregation: 'count', where } }]
+  if (!fields.length) return []
+  return fields.slice(0, MAX_FIELD_CANDIDATES).map(({ column }) => readingFor(agg!, column, where))
+}
 
-  let aggregation: string = agg!
-  if (column.kind === 'date' && DATE_AGG[agg!]) aggregation = DATE_AGG[agg!]!
-  if (agg === 'count') aggregation = 'count_filled'
-  if (!column.aggregations.includes(aggregation)) return
-  return { aggregation, column, where }
+/** The first figure a query asks for; undefined when it isn't a stat (or only an unsupported one). */
+export function parseCmdStatsQuery(query: string, columns: CmdStatColumn[]): CmdStatQuery | undefined {
+  const reading = parseCmdStats(query, columns).find((r) => r.kind === 'query')
+  return reading?.kind === 'query' ? reading.query : undefined
 }
 
 /* ------------------------------------------------------------------------------------------------

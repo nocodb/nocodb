@@ -175,18 +175,51 @@ export function extractBaseRoleFromWorkspaceRole(
   return baseRole || null;
 }
 
+/**
+ * The roles a code project admits: Owner, Maintainer (Creator) and Developer
+ * (Editor). Below Editor a code project grants no access at all.
+ */
+export const CodeProjectRoles: ProjectRoles[] = [
+  ProjectRoles.OWNER,
+  ProjectRoles.CREATOR,
+  ProjectRoles.EDITOR,
+];
+
+/** A code project's English role names, for text with no i18n such as emails. */
+export const CodeProjectRoleNames: Partial<Record<string, string>> = {
+  [ProjectRoles.OWNER]: 'Owner',
+  [ProjectRoles.CREATOR]: 'Maintainer',
+  [ProjectRoles.EDITOR]: 'Developer',
+};
+
+export function isCodeProjectRole(role?: string | null): boolean {
+  return !!role && CodeProjectRoles.includes(role as ProjectRoles);
+}
+
+/** Roles that may be stored on a code project member: its own, plus inherit and no-access. */
+export function isCodeProjectAssignableRole(role?: string | null): boolean {
+  return (
+    isCodeProjectRole(role) ||
+    role === ProjectRoles.INHERIT ||
+    role === ProjectRoles.NO_ACCESS
+  );
+}
+
 export function getEffectiveBaseRole({
   baseRole,
   baseTeamRole,
   workspaceRole,
   workspaceTeamRole,
   defaultBaseRole,
+  isCodeProject,
 }: {
   baseRole: ProjectRoles;
   baseTeamRole?: ProjectRoles;
   workspaceRole?: WorkspaceUserRoles;
   workspaceTeamRole?: WorkspaceUserRoles;
   defaultBaseRole?: ProjectRoles;
+  /** A code project resolves anything below Editor to no access. */
+  isCodeProject?: boolean;
 }) {
   // Apply role priority hierarchy for base roles:
   // 1. Direct base role (highest priority)
@@ -212,7 +245,13 @@ export function getEffectiveBaseRole({
     }
   }
 
-  return finalBaseRole === ProjectRoles.INHERIT || !finalBaseRole
-    ? ProjectRoles.NO_ACCESS
-    : finalBaseRole;
+  if (finalBaseRole === ProjectRoles.INHERIT || !finalBaseRole) {
+    return ProjectRoles.NO_ACCESS;
+  }
+
+  if (isCodeProject && !isCodeProjectRole(finalBaseRole)) {
+    return ProjectRoles.NO_ACCESS;
+  }
+
+  return finalBaseRole;
 }

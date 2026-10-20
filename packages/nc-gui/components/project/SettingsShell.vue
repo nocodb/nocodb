@@ -368,6 +368,8 @@ watch(
 
             <DashboardSettingsBaseSkills v-else-if="tab === 'skills'" />
 
+            <FactoryMachines v-else-if="tab === 'machines' && baseId" :key="baseId" />
+
             <template v-else-if="tab === 'record-trash'">
               <div v-if="blockTrashSettings" class="h-full overflow-auto nc-scrollbar-thin">
                 <PaymentUpgradeFeatureCard

@@ -1,10 +1,13 @@
 import {
+  applyFactoryMachineSuggestion,
   canonicalFactoryMachineSpec,
   detectFactoryMachine,
   FACTORY_MACHINE_CATALOG,
   factoryMachineAdditions,
   factoryMachineBuildSteps,
+  factoryMachineRemovals,
   factoryMachineRuntime,
+  isEmptyFactoryMachineRemoval,
   isEmptyFactoryMachineSpec,
   mergeFactoryMachineSpec,
   validateFactoryMachineSpec,
@@ -58,6 +61,30 @@ describe('factory-machine', () => {
       expect(
         validateFactoryMachineSpec({ items: [], apt: ['jq; rm -rf /'] })
       ).toEqual(["'jq; rm -rf /' is not a valid apt package name"]);
+    });
+
+    it('takes registry names with versions, never URL, git or file sources', () => {
+      const ok = {
+        items: [{ id: 'python' }],
+        apt: ['g++', 'nginx=1.18.0-0ubuntu1'],
+        npm: ['@types/node', 'lodash@4.17.21'],
+        pip: ['requests==2.31.0', 'numpy>=1.20'],
+      };
+      expect(validateFactoryMachineSpec(ok)).toEqual([]);
+
+      for (const name of [
+        'git+https://github.com/u/r.git',
+        'https://evil.example/x.tgz',
+        'github:u/r',
+        'file:../x',
+        'user/repo',
+        'pkg@npm:x',
+        '-rf',
+      ]) {
+        expect(
+          validateFactoryMachineSpec({ items: [], npm: [name] })
+        ).toEqual([`'${name}' is not a valid npm package name`]);
+      }
     });
 
     it('needs Python for pip packages', () => {
@@ -200,6 +227,54 @@ describe('factory-machine', () => {
       ).toEqual({
         items: [{ id: 'playwright' }],
         apt: ['libvips-dev'],
+        npm: [],
+        pip: [],
+        commands: [],
+      });
+    });
+
+    it('keeps setup commands the base does not run yet', () => {
+      expect(
+        factoryMachineAdditions(
+          { ...base, commands: ['corepack enable'] },
+          {
+            items: [],
+            commands: ['corepack enable', 'npx playwright install chromium'],
+          }
+        ).commands
+      ).toEqual(['npx playwright install chromium']);
+    });
+
+    it('removes only what the base has, and applies a whole suggestion', () => {
+      const withCmd = { ...base, commands: ['corepack enable'] };
+
+      expect(
+        factoryMachineRemovals(withCmd, {
+          items: ['postgres', 'redis'],
+          apt: ['jq'],
+          commands: ['corepack enable', 'nope'],
+        })
+      ).toEqual({
+        items: ['postgres'],
+        apt: ['jq'],
+        npm: [],
+        pip: [],
+        commands: ['corepack enable'],
+      });
+      expect(isEmptyFactoryMachineRemoval({ items: [] })).toBe(true);
+
+      expect(
+        applyFactoryMachineSuggestion(withCmd, {
+          add: { items: [{ id: 'node', version: '24' }], apt: ['ffmpeg'] },
+          remove: {
+            items: ['postgres'],
+            apt: ['jq'],
+            commands: ['corepack enable'],
+          },
+        })
+      ).toEqual({
+        items: [{ id: 'node', version: '24' }],
+        apt: ['ffmpeg'],
         npm: [],
         pip: [],
         commands: [],

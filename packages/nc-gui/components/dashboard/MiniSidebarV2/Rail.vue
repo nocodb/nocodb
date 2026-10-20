@@ -132,7 +132,7 @@ const hasAvailableBases = computed(() => !!basesList.value?.length)
 
 const { isActiveBaseAppOnlyInstall } = useManagedAppInstalls()
 
-const { isActiveBaseCodeProject, isCodeProjectRoute, isCodeProjectMachinesRoute, machinesStatus } = useCodeProjects()
+const { isActiveBaseCodeProject, isCodeProjectRoute, machinesStatus } = useCodeProjects()
 
 // Templates are browsed before a project exists: the project's own navigation
 // there points at whichever project was open last, which is not what is on screen.
@@ -260,20 +260,9 @@ const mainItems = computed<NavItem[]>(() =>
       [
         {
           key: 'home',
-          icon: 'ncHome',
-          label: t('general.home'),
+          icon: 'ncFactory',
+          label: t('general.factory'),
           active: isCodeProjectRoute(route.value),
-          onClick: () => {
-            // Off `settings`, or that item stays lit beside this one.
-            activeSidebarTab.value = 'data'
-            navigateTo(`${getBasePath()}/factory`)
-          },
-        },
-        {
-          key: 'machines',
-          icon: 'ncServer',
-          label: t('labels.factoryMachines'),
-          active: isCodeProjectMachinesRoute(route.value),
           dot: {
             building: 'bg-nc-fill-primary animate-pulse',
             failed: 'bg-nc-fill-red-medium',
@@ -281,7 +270,7 @@ const mainItems = computed<NavItem[]>(() =>
           }[machinesStatus.value ?? 'ready'],
           onClick: () => {
             activeSidebarTab.value = 'data'
-            navigateTo(`${getBasePath()}/machines`)
+            navigateTo(`${getBasePath()}/factory`)
           },
         },
       ]

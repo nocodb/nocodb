@@ -10,6 +10,7 @@ import {
   type UserType,
   type WorkspaceType,
   WorkspaceUserRoles,
+  isCodeProjectAssignableRole,
 } from 'nocodb-sdk'
 
 import { extractEmail } from '../../../helpers/parsers/parserHelpers'
@@ -103,6 +104,17 @@ const {
 } = useEeConfig()
 
 const dialogShow = computed(() => props.active)
+
+const { isCodeProject, codeProjectRoleLabels, codeProjectRoleDescriptions, codeProjectRolePhrase } = useCodeProjects()
+
+// A code project takes Owner, Maintainer and Developer only, under those names.
+const isCodeBase = computed(() => props.type === 'base' && !!props.baseId && isCodeProject(basesStore.bases.get(props.baseId)))
+
+const resolvedRoleLabels = computed(() => props.roleLabels ?? (isCodeBase.value ? codeProjectRoleLabels.value : undefined))
+
+const resolvedRoleDescriptions = computed(
+  () => props.roleDescriptions ?? (isCodeBase.value ? codeProjectRoleDescriptions.value : undefined),
+)
 
 const orderedRoles = computed(() => {
   return props.type === 'base' || props.type === 'interface' || props.type === 'app' ? ProjectRoles : WorkspaceUserRoles
@@ -244,6 +256,11 @@ watch(
             disabledRoles.value = filteredRoles.slice(0, 1)
           }
         }
+        if (isCodeBase.value) {
+          allowedRoles.value = allowedRoles.value.filter((role) => isCodeProjectAssignableRole(role))
+          disabledRoles.value = disabledRoles.value.filter((role) => isCodeProjectAssignableRole(role))
+        }
+
         // move INHERIT role to the end of the list, if present in allowed roles
         let inheritIndex = allowedRoles.value.indexOf(WorkspaceUserRoles.INHERIT)
         inheritIndex = inheritIndex === -1 ? allowedRoles.value.indexOf(ProjectRoles.INHERIT) : inheritIndex
@@ -344,11 +361,13 @@ const roleCopy = (count: number) => {
   const key = RoleLabels[inviteData.roles] ?? inviteData.roles
   const group = count > 1 ? 'roleTypePlural' : 'roleType'
 
-  const phrase = props.rolePhrase?.(inviteData.roles, count)
+  const phrase =
+    props.rolePhrase?.(inviteData.roles, count) ??
+    (isCodeBase.value && !props.roleLabels ? codeProjectRolePhrase(inviteData.roles, count) : undefined)
 
   return {
-    label: phrase ?? props.roleLabels?.[inviteData.roles] ?? t(`objects.${group}.${key}`, inviteData.roles),
-    can: (props.roleDescriptions?.[inviteData.roles] ?? t(`objects.roleDescription.${inviteData.roles}`)).toLowerCase(),
+    label: phrase ?? resolvedRoleLabels.value?.[inviteData.roles] ?? t(`objects.${group}.${key}`, inviteData.roles),
+    can: (resolvedRoleDescriptions.value?.[inviteData.roles] ?? t(`objects.roleDescription.${inviteData.roles}`)).toLowerCase(),
   }
 }
 
@@ -877,8 +896,8 @@ defineExpose({
               :disabled-roles="disabledRoles"
               :disabled-roles-tooltip="disabledRolesTooltip"
               :roles="allowedRoles"
-              :labels="props.roleLabels"
-              :descriptions="props.roleDescriptions"
+              :labels="resolvedRoleLabels"
+              :descriptions="resolvedRoleDescriptions"
               :icons="props.roleIcons"
               :trigger-variant="isCompose ? 'field' : 'detail'"
               class="nc-invite-role-selector"

@@ -175,6 +175,13 @@ export interface SkillCatalogReqType {
   source_type: SkillSourceType.OFFICIAL | SkillSourceType.COMMUNITY;
   /** `owner/repo`. Ignored for `official`, which always uses NocoDB's catalog. */
   repo?: string;
+  /** One skill's `source_ref`: answers with its {@link SkillPreviewType} instead of the list. */
+  source_ref?: string;
+}
+
+/** One skill as its detail view shows it: the catalog entry plus its SKILL.md, frontmatter stripped. */
+export interface SkillPreviewType extends SkillCatalogEntryType {
+  body: string;
 }
 
 /**

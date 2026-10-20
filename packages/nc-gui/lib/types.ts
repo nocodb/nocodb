@@ -1415,3 +1415,11 @@ export interface NcTooltipGroup {
     hide: (anchor: HTMLElement) => void
   }
 }
+
+/** A review note on a `Pierre*` code surface's line. */
+export interface PierreNoteMetadata {
+  id: string
+  body: string
+  /** The note being written. Its slot is handed back for the composer. */
+  draft?: boolean
+}

@@ -1,5 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ncIsArray, RoleLabels } from 'nocodb-sdk';
+import {
+  CodeProjectRoleNames,
+  ncIsArray,
+  ProjectTypes,
+  RoleLabels,
+} from 'nocodb-sdk';
 import { render } from '@react-email/render';
 import type { NcRequest, WhiteLabelConfig } from 'nocodb-sdk';
 import type { MailParams, RawMailParams } from '~/interface/Mail';
@@ -425,6 +430,13 @@ export class MailService {
                 email: invitee.email,
                 oldRole: RoleLabels[oldRole],
                 newRole: RoleLabels[newRole],
+                // The badge images carry data-base names; a code project's roles go as text.
+                ...(base.type === ProjectTypes.CODE
+                  ? {
+                      oldRoleName: CodeProjectRoleNames[oldRole] ?? oldRole,
+                      newRoleName: CodeProjectRoleNames[newRole] ?? newRole,
+                    }
+                  : {}),
                 link: this.buildUrl(req, {
                   workspaceId: base.fk_workspace_id,
                   baseId: base.id,

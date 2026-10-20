@@ -81,7 +81,7 @@ export function useOAuthPopup() {
     const popup = window.open(url, `${oauthMeta.provider} OAuth`, `width=${width},height=${height},left=${left},top=${top}`)
     if (!popup) throw new Error('Popup blocked')
 
-    return new Promise<{ code: string; codeVerifier: string } | null>((resolve, reject) => {
+    return new Promise<{ code: string; codeVerifier: string; forwarded: Record<string, string> } | null>((resolve, reject) => {
       let popupClosed = false
 
       const interval = setInterval(() => {
@@ -113,8 +113,14 @@ export function useOAuthPopup() {
                 reject(new Error('Invalid state please try again'))
               }
 
+              const forwarded: Record<string, string> = {}
+              for (const key of oauthMeta.forwardKeys ?? []) {
+                const value = params.get(key)
+                if (value) forwarded[key] = value
+              }
+
               popup.close()
-              resolve({ code, codeVerifier })
+              resolve({ code, codeVerifier, forwarded })
             } else {
               // If user clicked cancel or code is missing on the redirect url, close the popup
               clearInterval(interval)
@@ -144,7 +150,7 @@ export function useOAuthPopup() {
   const performOAuthDance = async (
     oauthMeta: FormBuilderOAuthMeta,
     templateData?: Record<string, any>,
-  ): Promise<{ code: string; code_verifier: string } | null> => {
+  ): Promise<{ code: string; code_verifier: string; [key: string]: string } | null> => {
     let url = resolveAuthUri(oauthMeta.authUri, templateData)
 
     // Unresolved templates mean required fields are missing
@@ -170,6 +176,7 @@ export function useOAuthPopup() {
       }
 
       return {
+        ...result.forwarded,
         code: result.code,
         code_verifier: result.codeVerifier,
       }

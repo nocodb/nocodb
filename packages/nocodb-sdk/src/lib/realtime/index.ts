@@ -1,5 +1,5 @@
 import { NotificationType, UserType } from '~/lib/Api';
-import { ChatEventAction } from '~/lib/chat';
+import { ChatEventAction, FACTORY_ROOM } from '~/lib/chat';
 import type {
   ChatArtifactType,
   ChatAttachmentType,
@@ -7,6 +7,7 @@ import type {
   ChatMessageType,
   ChatSessionType,
   ChatToolProgress,
+  FactorySessionSummary,
 } from '~/lib/chat';
 import type { AppBuildLockPayload } from '~/lib/app/build';
 import type { DistributiveOmit } from '~/lib/types/type-utils';
@@ -53,6 +54,112 @@ export const DocCollabClientEvents = {
   UPDATE: 'document:update',
   AWARENESS: 'document:awareness',
 } as const;
+
+/**
+ * App Factory terminal: a PTY in a session's sandbox, relayed over the socket.
+ * Every frame names its `terminalId`, a client-chosen id for one terminal tab.
+ */
+export const FactoryPtyClientEvents = {
+  /** Start a shell, or reattach to `ptyId` when given. */
+  OPEN: 'factory-pty:open',
+  INPUT: 'factory-pty:input',
+  RESIZE: 'factory-pty:resize',
+  /** Stop streaming to this socket; the shell keeps running. */
+  DETACH: 'factory-pty:detach',
+  /** End the shell. */
+  CLOSE: 'factory-pty:close',
+} as const;
+
+export const FactoryPtyServerEvents = {
+  /** Attached: carries the `ptyId` to reattach with, and the screen as `{ cols, rows, data }` to paint first. */
+  READY: 'factory-pty:ready',
+  DATA: 'factory-pty:data',
+  /** `reason: 'exit'` when the shell ended, `'lost'` when the sandbox went away, `'error'` when it never attached. */
+  EXIT: 'factory-pty:exit',
+} as const;
+
+export interface FactoryPtyOpenPayload {
+  workspaceId: string;
+  baseId: string;
+  sessionId: string;
+  terminalId: string;
+  /** The shell to reattach to, from an earlier `READY`. */
+  ptyId?: string;
+  cols: number;
+  rows: number;
+}
+
+export interface FactoryPtyExitPayload {
+  terminalId: string;
+  reason: 'exit' | 'lost' | 'error';
+  exitCode?: number;
+  message?: string;
+}
+
+/**
+ * App Factory ports: what a session's sandbox listens on, pushed as it changes
+ * while the session is watched.
+ */
+export const FactoryPortsClientEvents = {
+  /** `{ workspaceId, baseId, sessionId }` */
+  WATCH: 'factory-ports:watch',
+  /** `{ sessionId }` */
+  UNWATCH: 'factory-ports:unwatch',
+} as const;
+
+export const FactoryPortsServerEvents = {
+  /** `{ sessionId, ports }`: the full list, each time it changes. */
+  CHANGED: 'factory-ports:changed',
+  /** `{ sessionId }`: the scan stopped (the sandbox paused); watch again to restart. */
+  ENDED: 'factory-ports:ended',
+} as const;
+
+/**
+ * App Factory file changes in a session's checkout, pushed while watched, so
+ * the file tree and the review pane refresh without polling.
+ */
+export const FactoryFilesClientEvents = {
+  /** `{ workspaceId, baseId, sessionId }` */
+  WATCH: 'factory-files:watch',
+  /** `{ sessionId }` */
+  UNWATCH: 'factory-files:unwatch',
+} as const;
+
+export const FactoryFilesServerEvents = {
+  /** {@link FactoryFilesChangedPayload} */
+  CHANGED: 'factory-files:changed',
+  /** `{ sessionId }`: the watch stopped (the sandbox paused); watch again to restart. */
+  ENDED: 'factory-files:ended',
+} as const;
+
+export interface FactoryFilesChangedPayload {
+  sessionId: string;
+  /** Workspace-relative paths, coalesced over a short window. */
+  changes: { path: string; type: 'change' | 'rename' }[];
+  /** The repository's own state moved: a commit, a checkout, a stage. */
+  git?: boolean;
+  /** Too many changes to list; refetch everything. */
+  overflow?: boolean;
+}
+
+/**
+ * Presence: the session is on screen in a visible browser tab. Sent on change
+ * and once a minute while it holds; it is what keeps the sandbox awake between
+ * turns, in place of each pane's own keep-alive.
+ */
+export const FactorySessionClientEvents = {
+  /** `{ workspaceId, baseId, sessionId }` */
+  PRESENCE: 'factory-session:presence',
+} as const;
+
+/** Room key for an App Factory session's stream, or `FACTORY_SESSIONS_ROOM` for the project's list. */
+export function getFactoryRoom(
+  workspaceId: string,
+  baseId: string,
+  scope: string
+): string {
+  return `${EventType.CHAT_EVENT}:${workspaceId}:${baseId}:${FACTORY_ROOM}:${scope}`;
+}
 
 /** Room key for a doc's collaborative sync channel. */
 export function getDocSyncRoom(
@@ -521,7 +628,10 @@ export interface ChatEventPayload extends BaseSocketPayload {
   /** Structured payload of the coded error (remaining balance, period end). */
   details?: Record<string, unknown>;
   // action: 'session-create' | 'session-update' | 'session-delete'
-  session?: ChatSessionType;
+  session?: ChatSessionType | Partial<FactorySessionSummary>;
+  /** App Factory session events: the project, and a renamed session's title. */
+  base_id?: string;
+  title?: string;
   // action: 'user-message'
   message?: ChatMessageType;
   // action: 'agent-switch' — multi-agent system

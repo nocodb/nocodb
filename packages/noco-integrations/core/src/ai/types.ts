@@ -486,6 +486,17 @@ export abstract class AiIntegration<
   }
 
   /**
+   * The context window, in tokens, of the model `args` resolves to — `null`
+   * when the integration doesn't know and the caller should look the model up
+   * by id. Override where the model id is not a real model's (a use case).
+   */
+  public async getContextWindow(
+    _args?: AiGetModelArgs,
+  ): Promise<number | null> {
+    return null;
+  }
+
+  /**
    * Anthropic's own Messages endpoint for the model `args` resolves to, for a
    * caller that must forward the wire format unchanged. `null` unless the
    * provider IS that API — a translated or re-hosted endpoint is not one.
@@ -746,13 +757,25 @@ export interface AiGetModelArgs {
 }
 
 export interface AnthropicMessagesTarget {
-  /** Up to and including `/v1`. */
+  /** Up to and including `/v1`. Unused when `relay` is set. */
   baseURL: string;
   /** Credential headers — never shown to the caller's client. */
   headers: Record<string, string>;
   /** Betas the credential itself requires, merged into `anthropic-beta`. */
   betas?: string[];
   modelId: string;
+  /**
+   * Sends the request instead of a fetch to `baseURL`, for a target that is
+   * reached through someone else's relay. Answers with the upstream's reply.
+   */
+  relay?: (request: AnthropicMessagesRelayRequest) => Promise<Response>;
+}
+
+export interface AnthropicMessagesRelayRequest {
+  path: '/messages' | '/messages/count_tokens';
+  body: Record<string, unknown>;
+  headers: Record<string, string>;
+  signal?: AbortSignal;
 }
 
 export interface AiGenerateImageArgs {

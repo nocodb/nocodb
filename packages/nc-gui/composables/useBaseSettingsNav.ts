@@ -227,6 +227,22 @@ export function useBaseSettingsNav() {
         ].filter(Boolean) as ShellRailGroup['items'],
       },
       {
+        key: 'machines',
+        label: '',
+        items: [
+          // Listing machines is editor+ on the server, the same floor as sessions.
+          isCodeProject(base.value) &&
+            isUIAllowed('appFactorySession', { roles: baseRoles.value }) && {
+              slug: 'machines',
+              ev: 'machines',
+              icon: 'ncServer',
+              testId: 'base-machines',
+              title: t('labels.factoryMachines'),
+              keywords: 'machine environment image runtime packages tools build',
+            },
+        ].filter(Boolean) as ShellRailGroup['items'],
+      },
+      {
         key: 'data',
         label: t('labels.baseNav.groupData'),
         items: [
@@ -559,6 +575,9 @@ export function useBaseSettingsNav() {
     for (const item of appSettingsNav) {
       meta[item.tab] = { title: '' }
     }
+
+    // Writes its own heading, beside the New machine button.
+    meta.machines = { title: '' }
 
     return meta
   })

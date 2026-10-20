@@ -43,6 +43,7 @@ export const baseSettingsTabToSlug: Record<string, string> = {
   'app-api': 'app-api',
   'app-versions': 'app-versions',
   'skills': 'skills',
+  'machines': 'machines',
 }
 
 // The app settings section, in nav order. Rendered only when the base has an

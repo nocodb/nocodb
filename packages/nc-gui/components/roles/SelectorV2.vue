@@ -166,6 +166,7 @@ const activeRole = computed(() => {
           :border="false"
           :plain="plain"
           :role="effectiveRole || role"
+          :label="labels?.[effectiveRole || role]"
           :size="size"
           clickable
           class="flex-none"

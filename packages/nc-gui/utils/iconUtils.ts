@@ -309,6 +309,9 @@ import NcAmazonAws from '~icons/nc-icons/amazon_aws'
 // Buttons Icons V2
 
 import NcColumnsIcon from '~icons/nc-icons-v2/columns.svg'
+import NcChevronsUpDownIcon from '~icons/nc-icons-v2/chevrons-up-down.svg'
+import NcChevronsDownUpIcon from '~icons/nc-icons-v2/chevrons-down-up.svg'
+import NcWrapTextIcon from '~icons/nc-icons-v2/wrap-text.svg'
 import NcTabsIcon from '~icons/nc-icons-v2/tabs.svg'
 import NcSquareChevronDownIcon from '~icons/nc-icons-v2/square-chevron-down.svg'
 import NcUnderlineIcon from '~icons/nc-icons-v2/underline.svg'
@@ -431,6 +434,7 @@ import NcPhoneForwardedIcon from '~icons/nc-icons-v2/phone-forwarded.svg'
 import NcCornerRightDownIcon from '~icons/nc-icons-v2/corner-right-down.svg'
 import NcBookOpenIcon from '~icons/nc-icons-v2/book-open.svg'
 import NcServerIcon from '~icons/nc-icons-v2/server.svg'
+import NcFactoryIcon from '~icons/nc-icons-v2/factory.svg'
 import NcTvIcon from '~icons/nc-icons-v2/tv.svg'
 import NcSkipForwardIcon from '~icons/nc-icons-v2/skip-forward.svg'
 import NcVolumeIcon from '~icons/nc-icons-v2/volume.svg'
@@ -1477,6 +1481,9 @@ export const iconMap = {
 
   // Nc-IconsV2 Buttons
   'ncColumns': NcColumnsIcon,
+  'ncChevronsUpDown': NcChevronsUpDownIcon,
+  'ncChevronsDownUp': NcChevronsDownUpIcon,
+  'ncWrapText': NcWrapTextIcon,
   'ncTabs': NcTabsIcon,
   'ncSquareChevronDown': NcSquareChevronDownIcon,
   'ncUnderline': NcUnderlineIcon,
@@ -1598,6 +1605,7 @@ export const iconMap = {
   'ncCornerRightDown': NcCornerRightDownIcon,
   'ncBookOpen': NcBookOpenIcon,
   'ncServer': NcServerIcon,
+  'ncFactory': NcFactoryIcon,
   'ncTv': NcTvIcon,
   'ncSkipForward': NcSkipForwardIcon,
   'ncVolume': NcVolumeIcon,

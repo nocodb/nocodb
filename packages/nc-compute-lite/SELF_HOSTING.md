@@ -14,6 +14,9 @@ account.
 
 NocoDB never gets a Docker socket; it only talks to lite's API.
 
+**Needs a self-hosted Enterprise license.** On other plans NocoDB ignores the
+lite settings and uses its other compute.
+
 ## 1. Requirements
 
 | | |
@@ -122,8 +125,8 @@ Set these on NocoDB and restart it:
 | `NC_COMPUTE_LITE_DOMAIN` | `sandbox.example.com:8431` | the wildcard domain, with the proxy port unless TLS fronts it on 443 |
 | `NC_COMPUTE_LITE_TLS` | `true` | only behind a TLS proxy |
 
-All three of URL, key and domain must be set. When they are, NocoDB uses lite
-for every sandbox, ahead of any other compute.
+All three of URL, key and domain must be set, on an Enterprise license. Then
+NocoDB uses lite for every sandbox, ahead of any other compute.
 
 **Check it works:** run a script from a workflow or button, or ask the AI chat
 to "run 1 + 1 in Python". The first run of each kind pulls its image (see

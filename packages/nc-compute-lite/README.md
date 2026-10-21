@@ -1,7 +1,7 @@
 # nc-compute-lite
 
-Sandboxes for on-prem NocoDB on plain Docker: scripts, AI chat code, app
-builder and app runtime. No KVM needed. NocoDB talks to it over HTTP with an
+Sandboxes for on-prem NocoDB (Enterprise license) on plain Docker: scripts,
+AI chat code, app builder and app runtime. No KVM needed. NocoDB talks to it over HTTP with an
 API key and never gets a Docker socket.
 
 Setting it up for a NocoDB install: [SELF_HOSTING.md](SELF_HOSTING.md).

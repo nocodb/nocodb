@@ -132,6 +132,12 @@ class Sandboxes extends EventEmitter {
         continue;
       }
       const running = c.State === 'running';
+      // Only a sandbox meant to pause is worth keeping stopped: a kill-at-deadline
+      // one that stopped (it exited, or an embedded restart stopped it) is done.
+      if (!running && labels[`${L}.on-timeout`] !== 'pause') {
+        await docker.remove(c.Id).catch(() => undefined);
+        continue;
+      }
       this.items.set(id, {
         id,
         containerId: c.Id,
@@ -326,7 +332,12 @@ class Sandboxes extends EventEmitter {
       throw e;
     });
     if (!info.State.Running) {
-      // Exited on its own: its files are still there, so it reads as paused.
+      // Exited on its own: one meant to pause keeps its files and reads as
+      // paused; one meant to be killed is done with.
+      if (sandbox.onTimeout === 'kill') {
+        await this.kill(id);
+        throw new Gone(`sandbox ${id} not found`);
+      }
       sandbox.state = 'paused';
       sandbox.pausedAt = Date.now();
       throw new Conflict(`sandbox ${id} is not running`);
@@ -351,6 +362,10 @@ class Sandboxes extends EventEmitter {
       throw e;
     });
     if (!info.State.Running && sandbox.state === 'running' && !this.chains.has(id)) {
+      if (sandbox.onTimeout === 'kill') {
+        await this.kill(id);
+        throw new Gone(`sandbox ${id} not found`);
+      }
       sandbox.state = 'paused';
       sandbox.pausedAt = Date.now();
     }
@@ -601,8 +616,12 @@ class Sandboxes extends EventEmitter {
             this.items.delete(sandbox.id);
             this.startedAt.delete(sandbox.id);
           } else if (sandbox.state === 'running' && state !== 'running') {
-            sandbox.state = 'paused';
-            sandbox.pausedAt = Date.now();
+            if (sandbox.onTimeout === 'kill') {
+              void this.kill(sandbox.id).catch(() => undefined);
+            } else {
+              sandbox.state = 'paused';
+              sandbox.pausedAt = Date.now();
+            }
           }
         }
       }

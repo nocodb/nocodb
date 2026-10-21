@@ -34,6 +34,7 @@ forces one. In host mode lite only touches containers it created.
 | `NC_COMPUTE_LITE_PAUSED_RETENTION_HOURS` | 168 | paused sandboxes are deleted after this |
 | `NC_COMPUTE_LITE_ADDRESS_POOL` | 10.213.0.0/16 | embedded: sandbox networks' range; keep it clear of NocoDB's networks |
 | `NC_COMPUTE_LITE_BRIDGE_IP` | 10.214.0.1/24 | embedded: the inner engine's default bridge |
+| `NC_COMPUTE_LITE_ALLOW_PRIVATE` | none | embedded: private CIDRs sandboxes may still reach |
 
 ## Connect NocoDB
 
@@ -55,9 +56,10 @@ registrable domain, not a subdomain of NocoDB's.
 - **Every sandbox port needs its traffic token**, unlike E2B; the code server
   is never exposed.
 - **Internet:** `denyInternet` is enforced; egress allowlists are refused.
-- **Isolation is a container, not a VM.** In host mode sandboxes can reach
-  host services and the LAN like any container: prefer embedded mode, or
-  firewall the `nc-compute-lite` bridges.
+- **Isolation is a container, not a VM.** Embedded mode drops sandbox traffic
+  to private addresses (NocoDB's database, cloud metadata) and keeps the public
+  internet; `NC_COMPUTE_LITE_ALLOW_PRIVATE` opens chosen CIDRs. Host mode needs
+  the same firewall rule on the host: see SELF_HOSTING.md.
 - **Images are multi-platform** (amd64 and arm64 by default), built from
   `nocodb/nc-e2b-template` and pinned by digest in NocoDB; Docker pulls the
   host's. Lite refuses an image built for another CPU.

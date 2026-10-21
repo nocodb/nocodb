@@ -33,7 +33,8 @@ a host with NocoDB.
 |---|---|---|
 | Docker engine | lite runs its own, inside its container | the host's, via its socket |
 | Needs | `--privileged` | `/var/run/docker.sock` mounted, `--network host` |
-| Isolation from your other containers | full: sandboxes can't see them | lite only touches containers it created, but sandboxes reach host services like any container |
+| Docker isolation | sandboxes can't see or manage your other containers | lite only touches containers it created |
+| Network isolation | lite blocks sandbox traffic to private addresses (your database, Redis, cloud metadata); the public internet stays open | sandboxes reach private addresses like any container until you add the firewall rule in section 8 |
 | Restart behaviour | a lite restart stops sandboxes (files kept; they resume on next use) | sandboxes keep running |
 
 ## 3. Install
@@ -165,18 +166,39 @@ docker save nocodb/nc-chat-template:<tag> | docker exec -i nc-compute-lite docke
 | `NC_COMPUTE_LITE_DOCKER` | auto | `host` or `embedded`; auto picks host when a socket is mounted |
 | `NC_COMPUTE_LITE_ADDRESS_POOL` | 10.213.0.0/16 | embedded: sandbox network range; must not overlap your networks |
 | `NC_COMPUTE_LITE_BRIDGE_IP` | 10.214.0.1/24 | embedded: inner engine's default bridge |
+| `NC_COMPUTE_LITE_ALLOW_PRIVATE` | none | embedded: private CIDRs sandboxes may reach (comma-separated) |
 
 ## 8. Security
 
 - Every request to lite needs the API key; every sandbox port needs its own
   per-sandbox token, which NocoDB sends. Sandboxes can't call lite's API or
   reach each other.
-- Sandboxes are containers sharing the host kernel, not VMs. Treat the lite host
-  as running untrusted code: keep it separate from sensitive services, prefer
-  embedded mode, and in host mode firewall the `nc-compute-lite` Docker bridges
-  from your LAN and host services.
-- App actions run without internet access; scripts and chat have outbound
-  access (packages, APIs).
+- Sandboxes run code an AI may have written, steered by whatever files users
+  upload. They are containers sharing the host kernel, not VMs: treat the lite
+  host as running untrusted code.
+- **Private networks are off limits in embedded mode.** At startup lite drops
+  sandbox traffic to 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 100.64.0.0/10
+  and 169.254.0.0/16 (cloud metadata), so a sandbox can't reach NocoDB's
+  database, Redis or anything else on your networks; the public internet stays
+  open for packages and APIs. Lite refuses to start if it can't install the
+  rule. To let sandboxes reach a private service (an internal package
+  registry or proxy), list it in `NC_COMPUTE_LITE_ALLOW_PRIVATE`, e.g.
+  `10.1.2.3/32,10.20.0.0/16`.
+- **Host mode needs the same rule on the host**, since lite doesn't own that
+  engine. As root, after lite has started once (it creates its networks):
+
+  ```bash
+  for net in nc-compute-lite nc-compute-lite-internal; do
+    subnet=$(docker network inspect -f '{{(index .IPAM.Config 0).Subnet}}' $net)
+    for dst in 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10 169.254.0.0/16; do
+      iptables -I DOCKER-USER -s "$subnet" -d "$dst" -j DROP
+    done
+    iptables -I DOCKER-USER -s "$subnet" -m conntrack --ctstate ESTABLISHED,RELATED -j RETURN
+  done
+  ```
+
+  Make it persistent with your distribution's iptables tooling.
+- App actions run with no internet access at all.
 
 ## 9. Operating it
 

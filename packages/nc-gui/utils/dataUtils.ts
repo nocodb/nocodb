@@ -171,7 +171,7 @@ export async function populateInsertObject({
   throwError?: boolean
   allowNullFieldIds?: string[]
 }) {
-  const missingRequiredColumns = new Set()
+  const missingRequiredColumns = new Set<string>()
 
   // `meta` can be transiently undefined (e.g. table meta cleared during
   // navigation/teardown while a deferred save fires) — bail gracefully instead
@@ -180,38 +180,58 @@ export async function populateInsertObject({
     return { missingRequiredColumns, insertObj: {} }
   }
 
-  const insertObj = await meta.columns.reduce(async (_o: Promise<any>, col) => {
-    const o = await _o
+  const insertObj: Record<string, any> = {}
 
-    // if column is BT relation then check if foreign key is not_null(required)
+  // Pass 1 — belongs-to links. The link is persisted through the child's raw
+  // FK column, which a new row never carries (a duplicate drops it as a system
+  // column, a fresh row never had it), so derive the FK from the linked record.
+  // This runs before the column walk so the outcome does not depend on whether
+  // the FK column is listed before or after its link column: walked in one pass,
+  // an FK listed *after* its link was overwritten with the row's `undefined` and,
+  // when NOT NULL, flagged as a missing required column, so a duplicated record
+  // could never be saved (#14844).
+  const linkedFkTitles = new Set<string>()
+
+  for (const col of meta.columns) {
     if (
-      ltarState &&
-      col.uidt === UITypes.LinkToAnotherRecord &&
-      (<LinkToAnotherRecordType>col.colOptions)?.type === RelationTypes.BELONGS_TO
+      !ltarState ||
+      col.uidt !== UITypes.LinkToAnotherRecord ||
+      (<LinkToAnotherRecordType>col.colOptions)?.type !== RelationTypes.BELONGS_TO
     ) {
-      if (ltarState[col.title!] || row[col.title!]) {
-        const ltarVal = ltarState[col.title!] || row[col.title!]
-        const colOpt = <LinkToAnotherRecordType>col.colOptions
-        const childCol = meta.columns!.find((c) => colOpt.fk_child_column_id === c.id)
-        const relatedBaseId = (colOpt as any)?.fk_related_base_id || meta.base_id
-        const relatedTableMeta = (await getMeta(relatedBaseId!, colOpt.fk_related_model_id!)) as TableType
-        if (relatedTableMeta && childCol) {
-          o[childCol.title!] = ltarVal[relatedTableMeta!.columns!.find((c) => c.id === colOpt.fk_parent_column_id)!.title!]
-          if (o[childCol.title!] !== null && o[childCol.title!] !== undefined) missingRequiredColumns.delete(childCol.title)
-        }
-      }
+      continue
     }
-    // check all the required columns are not null
+
+    const ltarVal = ltarState[col.title!] || row?.[col.title!]
+    if (!ltarVal) continue
+
+    const colOpt = <LinkToAnotherRecordType>col.colOptions
+    const childCol = meta.columns.find((c) => colOpt.fk_child_column_id === c.id)
+    const relatedBaseId = (colOpt as any)?.fk_related_base_id || meta.base_id
+    const relatedTableMeta = (await getMeta(relatedBaseId!, colOpt.fk_related_model_id!)) as TableType
+    const parentCol = relatedTableMeta?.columns?.find((c) => c.id === colOpt.fk_parent_column_id)
+    if (!childCol || !parentCol) continue
+
+    const fkValue = ltarVal[parentCol.title!]
+    insertObj[childCol.title!] = fkValue
+    if (fkValue !== null && fkValue !== undefined) linkedFkTitles.add(childCol.title!)
+  }
+
+  // Pass 2 — every other column, copied from the row.
+  for (const col of meta.columns) {
+    const title = col.title as string
+
+    // Derived from its link above; the row has no value of its own to copy, and
+    // copying it would overwrite the mapped FK with `undefined`.
+    if (linkedFkTitles.has(title)) continue
+
     if (isColumnRequiredAndNull(col, row)) {
-      missingRequiredColumns.add(col.title)
+      missingRequiredColumns.add(title)
     }
 
-    if (!col.ai && (row?.[col.title as string] !== null || allowNullFieldIds.includes(col.id as string))) {
-      o[col.title as string] = row?.[col.title as string]
+    if (!col.ai && (row?.[title] !== null || allowNullFieldIds.includes(col.id as string))) {
+      insertObj[title] = row?.[title]
     }
-
-    return o
-  }, Promise.resolve({}))
+  }
 
   if (throwError && missingRequiredColumns.size) {
     throw new Error(`Missing required columns: ${[...missingRequiredColumns].join(', ')}`)
@@ -263,6 +283,10 @@ export const getSkippedDuplicateLinks = (row: Record<string, any> = {}, columns:
 // values but drops:
 //  - the client-side identity markers (`ncRecordId`/`ncRecordHash`)
 //  - system columns (auto pk, raw foreign keys, created/updated by/at, order)
+//  - any other primary key: a pk the database does not generate (no
+//    auto-increment, default or auto-generated value) would be copied verbatim
+//    and the insert would fail on the unique constraint, so leave it for the
+//    user to fill in
 //  - single-parent links (has-many / one-to-one / one-to-many) — copying them
 //    would reassign the linked record to the copy and detach it from the
 //    original (see `isSingleParentLinkColumn`). Shareable links (belongs-to /
@@ -287,7 +311,7 @@ export const getDuplicateRowData = (
   delete clonedRow.ncRecordHash
 
   for (const col of columns) {
-    if (col.title && (isSystemColumn(col) || (!keepSingleParentLinks && isSingleParentLinkColumn(col)))) {
+    if (col.title && (isSystemColumn(col) || col.pk || (!keepSingleParentLinks && isSingleParentLinkColumn(col)))) {
       delete clonedRow[col.title]
     }
   }

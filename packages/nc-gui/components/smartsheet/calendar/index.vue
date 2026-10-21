@@ -77,16 +77,13 @@ const isHeightExpanded = computed(
     ['week', '3day', '2week', 'month', '6week', 'custom'].includes(activeCalendarView.value),
 )
 
-// On a phone the multi-column modes squeeze day-columns to ~50px and event text becomes
-// unreadable. Give the grid a per-mode minimum width so columns stay legible and let the
-// body scroll horizontally instead of collapsing. Day and Year keep the full viewport width.
+// On a phone the week views squeeze day-columns to ~50px and event text becomes unreadable,
+// so they get a minimum width and scroll sideways. Month-style views (MonthView) switch to
+// per-day counts instead and fit the screen. Day and Year keep the full viewport width.
 const gridMinWidth = computed(() => {
-  if (!isMobileMode.value) return 0
+  if (!isMobileMode.value || !calendarRange.value?.length) return 0
   switch (activeCalendarView.value) {
     case 'week':
-    case 'month':
-    case '2week':
-    case '6week':
       return 700
     case '3day':
       return 460
@@ -402,7 +399,7 @@ watch(
               </div>
             </template>
             <template v-else>
-              <div class="flex w-full items-center h-full justify-center">
+              <div class="flex w-full items-center h-full justify-center px-4 text-center">
                 {{ $t('activity.noRange') }}
               </div>
             </template>

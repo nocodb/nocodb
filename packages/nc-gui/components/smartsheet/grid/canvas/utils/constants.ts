@@ -8,6 +8,7 @@ export const ADD_NEW_COLUMN_WIDTH = 60
 export const COLUMN_DRAG_LEFT_SCROLL_ZONE = 40
 export const EDIT_INTERACTABLE = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.Links]
 export const ROW_META_COLUMN_WIDTH = 80
+export const MOBILE_ROW_META_COLUMN_WIDTH = 56
 export const ROW_COLOR_BORDER_WIDTH = 4
 
 export const CHUNK_SIZE = 50

@@ -1638,7 +1638,7 @@ defineExpose({
                   :class="{
                     'xs:(!max-w-none) !max-w-32': !webHook,
                   }"
-                  class="xs:(col-span-6 min-w-0) nc-filter-field-select min-w-32 max-h-8"
+                  class="xs:(col-span-5 min-w-0) nc-filter-field-select min-w-32 max-h-8"
                   :columns="fieldsToFilter"
                   :disable-smartsheet="!!widget || !!workflow || !!rlsPolicyId"
                   :disabled="filter.readOnly || isLockedView || readOnly"
@@ -1653,7 +1653,7 @@ defineExpose({
                   v-model:value="filter.comparison_op"
                   v-e="['c:filter:comparison-op:select', { link: !!link, webHook: !!webHook }]"
                   :dropdown-match-select-width="false"
-                  class="xs:(col-span-3 !min-w-0) caption nc-filter-operation-select max-h-8"
+                  class="xs:(col-span-4 !min-w-0) caption nc-filter-operation-select max-h-8"
                   :placeholder="$t('labels.operation')"
                   :class="{
                     '!max-w-26.75': !webHook,

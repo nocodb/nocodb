@@ -147,7 +147,7 @@ const onCancel = () => {
     </NcPageHeader>
     <div class="h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
       <div class="h-full nc-content-max-w p-6">
-        <div class="flex flex-col w-150 mx-auto">
+        <div class="flex flex-col w-150 max-w-full mx-auto">
           <div class="nc-settings-item-card-wrapper mt-5">
             <div class="nc-settings-item-heading text-nc-content-gray-emphasis">
               {{ $t('labels.accountDetails') }}

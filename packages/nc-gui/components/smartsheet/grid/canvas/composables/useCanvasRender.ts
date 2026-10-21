@@ -904,7 +904,8 @@ export function useCanvasRender({
               getColor,
             )
           } else {
-            ctx.fillText(truncatedText, x, y)
+            // `#` has no icon, so the field-header truncation would blank it in the narrow phone gutter
+            ctx.fillText(column.title!, x, y)
           }
         } else {
           ctx.fillText(truncatedText, x, y)
@@ -1402,7 +1403,7 @@ export function useCanvasRender({
           placement: 'right',
         })
       }
-    } else if (row.rowMeta?.commentCount) {
+    } else if (row.rowMeta?.commentCount && !isMobileMode.value) {
       const reduceFontSize = row.rowMeta.commentCount > 99
       const commentCount = reduceFontSize ? '99+' : row.rowMeta.commentCount.toString()
 
@@ -2727,7 +2728,9 @@ export function useCanvasRender({
     // The row-number gutter is always fixed, so `fixedCols` is never empty. Wait
     // for a frozen *field* — otherwise the line paints at the gutter edge while
     // view columns load, then jumps right once they land.
-    if (!fixedCols.value.some((col) => col.id !== 'row_number')) return
+    // Phones freeze no fields, so the gutter itself is the boundary there.
+    const hasFrozenField = fixedCols.value.some((col) => col.id !== 'row_number')
+    if (!hasFrozenField && !(isMobileMode.value && columns.value.length > 1)) return
 
     // +0.5 keeps the 1px stroke crisp on non-retina displays
     const x = fixedColsWidth.value - 1 + 0.5

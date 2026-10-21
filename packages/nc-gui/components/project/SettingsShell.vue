@@ -295,7 +295,12 @@ watch(
       <div
         class="nc-base-settings-band flex-none relative flex items-center gap-3 h-14 px-4 border-b-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight"
       >
-        <ShellBack v-if="isMobileMode && !isRailOnlyOnMobile" testid="nc-base-settings-back" @back="isRailOnlyOnMobile = true" />
+        <ShellBack
+          v-if="isMobileMode && !isRailOnlyOnMobile"
+          inline
+          testid="nc-base-settings-back"
+          @back="isRailOnlyOnMobile = true"
+        />
 
         <div v-if="base" class="flex items-center gap-2 min-w-0 flex-1">
           <GeneralProjectIcon
@@ -343,7 +348,8 @@ watch(
           </button>
         </div>
 
-        <div class="flex-1" />
+        <!-- Keeps the title in the left half, clear of the centred tabs; without tabs the title takes the row. -->
+        <div v-if="!base || concerns.length > 1" class="flex-1" />
 
         <NcButton
           type="text"
@@ -382,7 +388,7 @@ watch(
             :title="meta.title"
             :description="meta?.description"
             :docs-href="meta?.docsHref"
-            :leading-inset="isMobileMode"
+            :no-close-inset="isMobileMode"
           />
 
           <div v-if="!isPaneAllowed" class="flex-1 min-h-0 flex items-center justify-center">

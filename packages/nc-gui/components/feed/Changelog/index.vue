@@ -42,7 +42,7 @@ const feeds = computed(() => {
       <GeneralLoader size="xlarge" />
     </div>
 
-    <div v-else class="mx-auto max-w-[540px] xl:max-w-[638px] justify-around justify-items-center">
+    <div v-else class="mx-auto max-w-[540px] xl:max-w-[638px] justify-around justify-items-center xs:px-3">
       <FeedChangelogItem v-for="(item, index) in feeds" :key="item.Id" :item="item" :index="index" />
     </div>
   </div>

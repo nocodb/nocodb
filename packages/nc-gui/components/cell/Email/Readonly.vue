@@ -9,15 +9,15 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
-const validEmail = computed(() => props.modelValue && validateEmail(props.modelValue))
+const emailHref = computed(() => getEmailHref(props.modelValue))
 </script>
 
 <template>
   <nuxt-link
-    v-if="validEmail"
+    v-if="emailHref"
     no-ref
     class="py-1 underline inline-block nc-cell-field-link max-w-full relative z-3"
-    :href="`mailto:${modelValue}`"
+    :href="emailHref"
     target="_blank"
     :tabindex="readOnly ? -1 : 0"
   >

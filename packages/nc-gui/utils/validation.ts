@@ -1,10 +1,10 @@
 import type { ColumnType } from 'nocodb-sdk'
-import { validateEmail, validateEntityName } from 'nocodb-sdk'
+import { getEmailHref, validateEmail, validateEntityName } from 'nocodb-sdk'
 import validator from 'validator'
 import { getI18n } from '../plugins/a.i18n'
 import { TypeConversionError } from '../error/type-conversion.error'
 
-export { validateEmail }
+export { getEmailHref, validateEmail }
 
 export const validateTableName = {
   validator: (_: unknown, value: string) => {

@@ -79,10 +79,10 @@ const onBlur = () => {
   isFocused.value = false
 }
 
-const validEmail = computed(() => vModel.value && validateEmail(vModel.value))
+const emailHref = computed(() => getEmailHref(vModel.value))
 
 const showClicableLink = computed(() => {
-  return (isExpandedFormOpen.value || isForm.value) && !isFocused.value && validEmail.value
+  return (isExpandedFormOpen.value || isForm.value) && !isFocused.value && !!emailHref.value
 })
 
 const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
@@ -120,7 +120,7 @@ const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
     <nuxt-link
       no-ref
       class="truncate text-primary cursor-pointer pointer-events-auto no-user-select"
-      :href="`mailto:${vModel}`"
+      :href="emailHref!"
       target="_blank"
       :tabindex="-1"
     >

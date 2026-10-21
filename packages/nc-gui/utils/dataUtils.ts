@@ -182,14 +182,11 @@ export async function populateInsertObject({
 
   const insertObj: Record<string, any> = {}
 
-  // Pass 1 — belongs-to links. The link is persisted through the child's raw
-  // FK column, which a new row never carries (a duplicate drops it as a system
-  // column, a fresh row never had it), so derive the FK from the linked record.
-  // This runs before the column walk so the outcome does not depend on whether
-  // the FK column is listed before or after its link column: walked in one pass,
-  // an FK listed *after* its link was overwritten with the row's `undefined` and,
-  // when NOT NULL, flagged as a missing required column, so a duplicated record
-  // could never be saved (#14844).
+  // Pass 1 — derive belongs-to FKs from their linked records. A new row never
+  // carries the raw FK, and doing this before the column walk keeps the result
+  // independent of whether the FK column is listed before or after its link
+  // (listed after, it used to be overwritten with `undefined` and reported as a
+  // missing required column, #14844).
   const linkedFkTitles = new Set<string>()
 
   for (const col of meta.columns) {

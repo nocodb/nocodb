@@ -35,8 +35,9 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
       'h-[620px]': !isMobileMode && !props.compact,
       'h-[520px]': !isMobileMode && props.compact,
       'nc-h-screen nc-w-screen': isMobileMode,
+      '!rounded-lg': !isMobileMode,
     }"
-    class="!rounded-lg pt-4"
+    class="pt-4"
   >
     <div class="space-y-3">
       <div class="flex px-6 justify-between items-center">

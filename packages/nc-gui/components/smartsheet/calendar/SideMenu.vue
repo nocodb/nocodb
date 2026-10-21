@@ -499,7 +499,9 @@ const selectOption = (option) => {
 <template>
   <div
     :class="{
-      '!min-w-[100svw]': props.visible && isMobileMode,
+      // Interfaces pad the calendar, so fill that box rather than the viewport
+      '!min-w-[100svw]': props.visible && isMobileMode && !interfacePageDataApi,
+      '!min-w-full': props.visible && isMobileMode && !!interfacePageDataApi,
       'nc-calendar-side-menu-open': props.visible,
     }"
     class="h-full flex flex-col relative border-l-1 min-w-[288px] border-nc-border-gray-medium transition transition-all"

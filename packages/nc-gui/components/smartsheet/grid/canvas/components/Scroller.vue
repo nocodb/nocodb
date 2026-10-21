@@ -490,7 +490,8 @@ defineExpose({
 </script>
 
 <template>
-  <div ref="wrapperRef" class="relative overflow-hidden" :style="{ width: `${width}px`, height: `${height}px` }">
+  <!-- isolate: keeps the tracks' z-index 100 inside the scroller, below sheets and popups over the grid -->
+  <div ref="wrapperRef" class="relative isolate overflow-hidden" :style="{ width: `${width}px`, height: `${height}px` }">
     <div class="absolute inset-0 overflow-hidden">
       <div
         ref="contentWrapper"

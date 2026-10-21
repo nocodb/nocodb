@@ -8,6 +8,8 @@ const props = withDefaults(defineProps<Props>(), {
   compact: false,
 })
 
+const { isMobileMode } = useGlobal()
+
 const isMiniSidebar = inject(IsMiniSidebarInj, undefined)
 
 const notificationStore = useNotification()
@@ -21,9 +23,9 @@ const isDropdownOpen = ref(false)
   <div class="cursor-pointer flex items-center">
     <NcDropdown
       v-model:visible="isDropdownOpen"
-      overlay-class-name="!shadow-none"
+      :overlay-class-name="isMobileMode ? '!shadow-none !border-0 !rounded-none' : '!shadow-none'"
       :placement="isMiniSidebar ? 'rightBottom' : 'bottomRight'"
-      :overlay-style="isMiniSidebar ? { marginLeft: '8px' } : {}"
+      :overlay-style="isMiniSidebar && !isMobileMode ? { marginLeft: '8px' } : {}"
       :trigger="['click']"
     >
       <div

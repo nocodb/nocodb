@@ -55,12 +55,13 @@ export const useMetas = createSharedComposable(() => {
 
   const loadingState = useState<Record<string, boolean>>('metas-loading-state', () => ({}))
 
-  const setMeta = async (model: any) => {
+  // `prevTitle`: for a meta renamed in place, whose cached object already holds the new title.
+  const setMeta = async (model: any, prevTitle?: string) => {
     if (!model.base_id) return
 
     // Clean up stale title key when table is renamed
     const idKey = getMetaKey(model.base_id, model.id!)
-    const existingMeta = metas.value[idKey]
+    const oldTitle = prevTitle ?? metas.value[idKey]?.title
 
     const updated = {
       ...metas.value,
@@ -68,8 +69,8 @@ export const useMetas = createSharedComposable(() => {
       [getMetaKey(model.base_id, model.title)]: model,
     }
 
-    if (existingMeta && existingMeta.title !== model.title) {
-      delete updated[getMetaKey(model.base_id, existingMeta.title)]
+    if (oldTitle !== undefined && oldTitle !== model.title) {
+      delete updated[getMetaKey(model.base_id, oldTitle)]
     }
 
     metas.value = updated

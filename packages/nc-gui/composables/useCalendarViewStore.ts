@@ -24,7 +24,7 @@ import type {
 import type dayjs from 'dayjs'
 import type { InterfacePageDataApi } from '~/lib/interfaceData'
 import { isInterfaceSyntheticViewId } from '~/lib/interfaceData'
-import { dataEventSubscriptionKey, isRowUpdateRelevant, viewMembership } from '~/utils/realtimeUtils'
+import { dataEventSubscriptionKey, isRowUpdateRelevant, previousViewMembership, viewMembership } from '~/utils/realtimeUtils'
 
 const formatData = (
   list: Record<string, any>[],
@@ -455,6 +455,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       rowMatchesSearchAndUrl,
       isViewerScopedView,
       rowMatchesViewerScopedFilters,
+      hasClientSideRowFilters,
     } = useSmartsheetStoreOrThrow()
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
@@ -1751,9 +1752,19 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
           const isValidationFailed = !recordPassesViewFilter(data)
 
-          // A row failing the view filter only leaves; an unloaded one has nothing to do.
+          // A row failing the view filter only leaves. An unloaded one may still hold a
+          // date-picker dot (it spans the month, the rows only the range) unless it was already out.
           if (isValidationFailed) {
             if (calendarRowIndex !== -1 || sidebarRowIndex !== -1) handleDataEvent({ ...data, action: 'delete' })
+            else if (
+              previousViewMembership(
+                data.prevMatchedViewIds,
+                viewMeta.value?.id,
+                hasClientSideRowFilters.value,
+                isViewerScopedView.value,
+              ) !== 'out'
+            )
+              fetchActiveDatesDebounced()
             return
           }
 

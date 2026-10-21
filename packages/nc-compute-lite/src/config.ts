@@ -9,6 +9,9 @@ const int = (name: string, fallback: number): number => {
 const apiKey = process.env.NC_COMPUTE_LITE_KEY ?? '';
 if (apiKey.length < 32) throw new Error('NC_COMPUTE_LITE_KEY must be set, 32 characters or more');
 
+/** The code server images run (E2B code-interpreter's): the API's code route proxies to it, the port proxy never does. */
+export const CODE_PORT = 49999;
+
 export const config = {
   apiKey,
   apiPort: int('NC_COMPUTE_LITE_PORT', 8430),

@@ -31,6 +31,10 @@ function call(method: string, path: string, body?: unknown, raw?: Buffer): Promi
       },
       resolve,
     );
+    // Idle, not total: a pull or a big archive keeps bytes moving, a frozen engine sends none.
+    req.setTimeout(30_000, () =>
+      req.destroy(Object.assign(new Error('the Docker engine did not answer'), { code: 'ETIMEDOUT' })),
+    );
     req.on('error', reject);
     req.end(payload);
   });
@@ -59,6 +63,7 @@ async function json<T>(method: string, path: string, body?: unknown): Promise<T>
 
 export type ContainerSummary = {
   Id: string;
+  Names: string[];
   State: string;
   Labels: Record<string, string>;
   Created: number;
@@ -86,6 +91,8 @@ export const docker = {
   create: (name: string, spec: unknown) =>
     json<{ Id: string }>('POST', `/containers/create?name=${encodeURIComponent(name)}`, spec),
 
+  rename: (id: string, name: string) => json('POST', `/containers/${id}/rename?name=${encodeURIComponent(name)}`),
+
   start: async (id: string) => {
     const res = await call('POST', `/containers/${id}/start`);
     const text = (await read(res)).toString('utf8');
@@ -101,7 +108,10 @@ export const docker = {
   remove: async (id: string) => {
     const res = await call('DELETE', `/containers/${id}?force=true&v=true`);
     await read(res);
-    if ((res.statusCode ?? 500) >= 400 && res.statusCode !== 404) throw new DockerError(res.statusCode ?? 500, 'remove failed');
+    // 404 gone already, 409 a removal already in progress (lite's own, or from outside).
+    if ((res.statusCode ?? 500) >= 400 && res.statusCode !== 404 && res.statusCode !== 409) {
+      throw new DockerError(res.statusCode ?? 500, 'remove failed');
+    }
   },
 
   putFile: async (id: string, dir: string, tar: Buffer) => {
@@ -110,12 +120,34 @@ export const docker = {
     if ((res.statusCode ?? 500) >= 400) throw new DockerError(res.statusCode ?? 500, text);
   },
 
-  getArchive: async (id: string, path: string) => {
+  /** Stops reading past `limit`: the sandbox decides how big the file is. */
+  getArchive: async (id: string, path: string, limit: number) => {
     const res = await call('GET', `/containers/${id}/archive?path=${encodeURIComponent(path)}`);
-    const body = await read(res);
+    const chunks: Buffer[] = [];
+    let size = 0;
+    for await (const chunk of res) {
+      size += (chunk as Buffer).length;
+      if (size > limit) {
+        res.destroy();
+        throw new DockerError(413, `file larger than ${limit} bytes`);
+      }
+      chunks.push(chunk as Buffer);
+    }
+    const body = Buffer.concat(chunks);
     if ((res.statusCode ?? 500) >= 400) throw new DockerError(res.statusCode ?? 500, body.toString('utf8'));
     return body;
   },
+
+  /** The engine's CPU architecture, in image terms (`amd64`, `arm64`). */
+  arch: async () => {
+    const { Architecture } = await json<{ Architecture: string }>('GET', '/info');
+    // The engine reports the kernel's name; ppc64le, s390x and riscv64 read the same both ways.
+    const names: Record<string, string> = { x86_64: 'amd64', aarch64: 'arm64', armv7l: 'arm', armv6l: 'arm' };
+    return names[Architecture] ?? Architecture;
+  },
+
+  imageArch: async (image: string) =>
+    (await json<{ Architecture: string }>('GET', `/images/${encodeURIComponent(image)}/json`)).Architecture,
 
   hasImage: async (image: string) => {
     const res = await call('GET', `/images/${encodeURIComponent(image)}/json`);
@@ -131,12 +163,16 @@ export const docker = {
     if ((res.statusCode ?? 500) >= 400 || failed) throw new DockerError(res.statusCode ?? 500, failed ?? text);
   },
 
-  ensureNetwork: async (name: string, internal: boolean) => {
+  /** Returns the network's subnets. */
+  ensureNetwork: async (name: string, internal: boolean): Promise<string[]> => {
+    const subnets = async () =>
+      (await json<{ IPAM: { Config: { Subnet?: string }[] | null } }>('GET', `/networks/${encodeURIComponent(name)}`))
+        .IPAM.Config?.flatMap((c) => (c.Subnet ? [c.Subnet] : [])) ?? [];
     const existing = await json<{ Name: string }[]>(
       'GET',
       `/networks?filters=${encodeURIComponent(JSON.stringify({ name: [name] }))}`,
     );
-    if (existing.some((n) => n.Name === name)) return;
+    if (existing.some((n) => n.Name === name)) return subnets();
     await json('POST', '/networks/create', {
       Name: name,
       Driver: 'bridge',
@@ -146,5 +182,6 @@ export const docker = {
       // (its own engine's namespace, or `--network host` in host mode).
       Options: { 'com.docker.network.bridge.enable_icc': 'false' },
     });
+    return subnets();
   },
 };

@@ -69,6 +69,10 @@ const created = await api('POST', '/v1/sandboxes', {
   ingress: { requireAuth: true },
 });
 check(created.status === 201 && !!created.json?.trafficToken, 'create with requireAuth', `${Date.now() - t0}ms ${created.text.slice(0, 120)}`);
+// Without requireAuth too: no port is public on lite.
+const open = await api('POST', '/v1/sandboxes', { image: IMAGE, timeoutMs: 60_000 });
+check(open.status === 201 && !!open.json?.trafficToken, 'every sandbox gets a traffic token');
+if (open.json?.id) await api('DELETE', `/v1/sandboxes/${open.json.id}`);
 const id: string = created.json.id;
 const traffic = { 'e2b-traffic-access-token': created.json.trafficToken };
 
@@ -89,6 +93,13 @@ const code = await waitFor(() => runCode(id, 'print(6*7)'), (t) => t.includes('4
 check(code.includes('42'), 'run code through the code server', code.slice(0, 120));
 
 await api('PUT', `/v1/sandboxes/${id}/files?path=${encodeURIComponent('/home/user/keep.txt')}&user=user`, undefined, Buffer.from('kept'));
+// A path that resolves to a directory would make Docker replace it (`/tmp/..` is `/`).
+for (const bad of ['/home/user/', '/tmp/..', '/tmp/.', '/']) {
+  const r = await api('PUT', `/v1/sandboxes/${id}/files?path=${encodeURIComponent(bad)}`, undefined, Buffer.from('x'));
+  check(r.status === 400, `refuses to write ${bad}`, String(r.status));
+}
+const dir = await api('GET', `/v1/sandboxes/${id}/files?path=${encodeURIComponent('/home/user')}`);
+check(dir.status === 400, 'reading a directory is refused, not its first file', String(dir.status));
 const link = await api('POST', `/v1/sandboxes/${id}/download-url`, { path: '/home/user/keep.txt', ttlSeconds: 120 });
 const download = await fetch(API + link.json.url);
 check(download.status === 200 && (await download.text()) === 'kept', 'signed download URL, no API key');
@@ -104,6 +115,9 @@ const listed = await api('GET', `/v1/sandboxes?state=paused&metadata=${encodeURI
 check(listed.json?.some((s: { id: string }) => s.id === id), 'list by state and metadata');
 const resumed = await api('POST', `/v1/sandboxes/${id}/resume`, { timeoutMs: 60_000 });
 check(resumed.json?.state === 'running', 'resume', resumed.text.slice(0, 80));
+check(resumed.json?.restarted === true, 'resume reports the restart');
+const again = await api('POST', `/v1/sandboxes/${id}/resume`, { timeoutMs: 60_000 });
+check(again.json?.restarted === false, 'resuming a running sandbox restarts nothing');
 const kept = await api('GET', `/v1/sandboxes/${id}/files?path=${encodeURIComponent('/home/user/keep.txt')}`);
 check(kept.text === 'kept', 'files survive pause/resume');
 const agentAgain = await waitFor(() => viaProxy(id, AGENT_PORT, '/health', { ...traffic, 'x-nc-agent-token': agentToken }), (r) => r.status === 200);

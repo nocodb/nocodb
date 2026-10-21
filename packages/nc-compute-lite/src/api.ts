@@ -1,11 +1,9 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { createServer, request, type IncomingMessage, type ServerResponse } from 'node:http';
-import { config } from './config.ts';
+import { CODE_PORT, config } from './config.ts';
 import { DockerError, docker } from './docker.ts';
-import { BadRequest, Capacity, Conflict, NotFound, sandboxes, type Sandbox } from './sandboxes.ts';
+import { BadRequest, Capacity, Conflict, filePath, Gone, NotFound, sandboxes, type Sandbox } from './sandboxes.ts';
 
-/** The code server images run (E2B code-interpreter's), and what the code route proxies to. */
-const CODE_PORT = 49999;
 const MAX_FILE_BYTES = 64 * 1024 * 1024;
 
 class Unavailable extends Error {}
@@ -46,11 +44,14 @@ async function body(req: IncomingMessage, limit: number): Promise<Buffer> {
 async function jsonBody<T>(req: IncomingMessage): Promise<T> {
   const raw = await body(req, 1024 * 1024);
   if (!raw.length) return {} as T;
+  let parsed: unknown;
   try {
-    return JSON.parse(raw.toString('utf8')) as T;
+    parsed = JSON.parse(raw.toString('utf8'));
   } catch {
     throw new BadRequest('body is not JSON');
   }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new BadRequest('body must be an object');
+  return parsed as T;
 }
 
 function send(res: ServerResponse, status: number, payload?: unknown): void {
@@ -64,7 +65,9 @@ function send(res: ServerResponse, status: number, payload?: unknown): void {
 
 function fail(res: ServerResponse, e: unknown): void {
   const [status, error] =
-    e instanceof NotFound
+    e instanceof Gone
+      ? [404, 'gone']
+      : e instanceof NotFound
       ? [404, 'not_found']
       : e instanceof Conflict
         ? [409, 'conflict']
@@ -75,9 +78,21 @@ function fail(res: ServerResponse, e: unknown): void {
             : e instanceof Unavailable
               ? [503, 'unavailable']
             : e instanceof DockerError && e.status === 404
-              ? [404, 'not_found']
+              ? [404, 'gone'] // the container went away under its registry entry
+            : e instanceof DockerError && e.status === 400
+              ? [400, 'bad_request'] // the engine refused the input (a CPU count past the host's, a bad image name)
+            : e instanceof DockerError && e.status === 409
+              ? [409, 'conflict']
+            : e instanceof DockerError && /unexpectedly nil|marked for removal|removal in progress|is not running/i.test(e.message)
+              ? [409, 'conflict'] // the engine's own 500 for a container being removed or stopped meanwhile
+            : (e instanceof DockerError && /connection reset|broken pipe|read response|unexpected EOF/i.test(e.message)) ||
+                ['ECONNREFUSED', 'ECONNRESET', 'EPIPE', 'ENOENT', 'ETIMEDOUT'].includes((e as NodeJS.ErrnoException)?.code ?? '')
+              ? [503, 'unavailable'] // the engine's socket hiccuped (or the engine restarted): worth a retry
               : [500, 'internal'];
-  if (status === 500) console.error(JSON.stringify({ level: 'error', msg: 'request failed', error: String(e) }));
+  // A stream cut after its headers went out (a sandbox stopped mid-run) is expected, not an error.
+  if (status === 500 && !res.headersSent) {
+    console.error(JSON.stringify({ level: 'error', msg: 'request failed', error: String(e) }));
+  }
   if (!res.headersSent) send(res, status, { error, message: (e as Error)?.message ?? String(e) });
   else res.destroy();
 }
@@ -88,17 +103,30 @@ function fail(res: ServerResponse, e: unknown): void {
  * retried for a while: E2B's create waits for it, and callers expect that.
  */
 async function proxyCode(req: IncomingMessage, res: ServerResponse, id: string, rest: string): Promise<void> {
+  // The caller gave up: stop the run rather than leave it holding a socket.
+  // Registered first and once: a caller gone during the reads below, or
+  // between cold-start retries, never runs the code.
+  let current: ReturnType<typeof request> | undefined;
+  let gone = false;
+  res.once('close', () => {
+    gone = !res.writableFinished;
+    current?.destroy();
+  });
   const payload = await body(req, 16 * 1024 * 1024);
   const address = await sandboxes.address(id);
   const deadline = Date.now() + 30_000;
 
   for (;;) {
+    if (gone) return;
     try {
       return await new Promise<void>((resolve, reject) => {
-        const upstream = request(
+        const upstream = (current = request(
           {
             host: address,
             port: CODE_PORT,
+            // A fresh socket per run: a reused keep-alive one never emits `connect`
+            // (so the timer below would cut a long run) and may be closed under us.
+            agent: false,
             method: req.method,
             path: rest || '/',
             headers: {
@@ -112,19 +140,34 @@ async function proxyCode(req: IncomingMessage, res: ServerResponse, id: string, 
             up.on('end', resolve);
             up.on('error', reject);
           },
-        );
+        ));
+        // A stopped container's address drops packets: without this the call would hang.
+        const onStopped = (stopped: string) => {
+          if (stopped === id) upstream.destroy(Object.assign(new Error('the sandbox stopped'), { code: 'ECONNRESET' }));
+        };
+        sandboxes.on('stopped', onStopped);
+        upstream.on('close', () => sandboxes.off('stopped', onStopped));
+        // Connecting is quick on a bridge; one that is not answering is not coming.
+        upstream.on('socket', (socket) => {
+          const timer = setTimeout(() => upstream.destroy(Object.assign(new Error('connect timeout'), { code: 'EHOSTUNREACH' })), 10_000);
+          socket.once('connect', () => clearTimeout(timer));
+          socket.once('close', () => clearTimeout(timer));
+        });
         upstream.on('error', reject);
         upstream.end(payload);
       });
     } catch (e) {
       const code = (e as NodeJS.ErrnoException).code;
-      if (res.headersSent || (code !== 'ECONNREFUSED' && code !== 'ECONNRESET') || Date.now() > deadline) {
-        if (!res.headersSent && (code === 'ECONNREFUSED' || code === 'ECONNRESET')) {
-          throw new Unavailable('the sandbox has no code server running');
-        }
-        throw e;
+      // Only a refused connection never reached the code server, so only it is
+      // retried: a reset may come after the code ran, and must not run it again.
+      if (!res.headersSent && code === 'ECONNREFUSED' && Date.now() <= deadline) {
+        await new Promise((r) => setTimeout(r, 500));
+        continue;
       }
-      await new Promise((r) => setTimeout(r, 500));
+      if (!res.headersSent && ['ECONNREFUSED', 'ECONNRESET', 'EHOSTUNREACH', 'ENETUNREACH', 'EPIPE'].includes(code ?? '')) {
+        throw new Unavailable('the sandbox code server is not reachable');
+      }
+      throw e;
     }
   }
 }
@@ -132,6 +175,10 @@ async function proxyCode(req: IncomingMessage, res: ServerResponse, id: string, 
 async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const url = new URL(req.url ?? '/', 'http://lite');
   const parts = url.pathname.split('/').filter(Boolean);
+
+  if (sandboxes.fromSandbox(req.socket.remoteAddress)) {
+    return send(res, 403, { error: 'forbidden', message: 'not reachable from a sandbox' });
+  }
 
   if (req.method === 'GET' && url.pathname === '/health') {
     await docker.ping();
@@ -166,31 +213,51 @@ async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> 
   const action = parts[3];
 
   if (!id) {
-    if (req.method === 'POST') return send(res, 201, view(await sandboxes.create(await jsonBody(req))));
+    if (req.method === 'POST') {
+      const sandbox = await sandboxes.create(await jsonBody(req));
+      // The caller gave up (an image pull outlasting its timeout): nobody owns this sandbox.
+      if (res.destroyed || req.socket.destroyed) {
+        await sandboxes.kill(sandbox.id);
+        return;
+      }
+      res.once('finish', () => void sandboxes.confirm(sandbox.id));
+      return send(res, 201, view(sandbox));
+    }
     if (req.method === 'GET') {
       const state = url.searchParams.get('state')?.split(',').filter(Boolean);
-      const metadata = url.searchParams.get('metadata');
-      return send(res, 200, sandboxes.list({ state, metadata: metadata ? JSON.parse(metadata) : undefined }).map(view));
+      const raw = url.searchParams.get('metadata');
+      let metadata: Record<string, string> | undefined;
+      if (raw) {
+        try {
+          metadata = JSON.parse(raw) as Record<string, string>;
+        } catch {
+          throw new BadRequest('metadata is not JSON');
+        }
+        if (!metadata || typeof metadata !== 'object') throw new BadRequest('metadata must be an object');
+      }
+      return send(res, 200, sandboxes.list({ state, metadata }).map(view));
     }
   } else if (!action) {
-    if (req.method === 'GET') return send(res, 200, view(sandboxes.get(id)));
+    if (req.method === 'GET') return send(res, 200, view(await sandboxes.fresh(id)));
     if (req.method === 'DELETE') {
       await sandboxes.kill(id);
       return send(res, 204);
     }
   } else if (req.method === 'POST' && action === 'timeout') {
-    const { timeoutMs } = await jsonBody<{ timeoutMs: number }>(req);
+    const { timeoutMs } = await jsonBody<{ timeoutMs: unknown }>(req);
     return send(res, 200, view(await sandboxes.setTimeout(id, timeoutMs)));
   } else if (req.method === 'POST' && action === 'pause') {
     await sandboxes.pause(id);
     return send(res, 200, view(sandboxes.get(id)));
   } else if (req.method === 'POST' && action === 'resume') {
-    const { timeoutMs } = await jsonBody<{ timeoutMs?: number }>(req);
-    return send(res, 200, view(await sandboxes.resume(id, timeoutMs)));
+    const { timeoutMs } = await jsonBody<{ timeoutMs?: unknown }>(req);
+    const { sandbox, restarted } = await sandboxes.resume(id, timeoutMs);
+    return send(res, 200, { ...view(sandbox), restarted });
   } else if (action === 'files') {
     const path = url.searchParams.get('path') ?? '';
     if (req.method === 'PUT') {
       const mode = Number.parseInt(url.searchParams.get('mode') ?? '644', 8);
+      if (!(mode >= 0 && mode <= 0o7777)) throw new BadRequest('mode must be octal permissions');
       await sandboxes.writeFile(id, path, await body(req, MAX_FILE_BYTES), url.searchParams.get('user') ?? 'user', mode);
       return send(res, 204);
     }
@@ -200,10 +267,11 @@ async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> 
       return void res.end(data);
     }
   } else if (req.method === 'POST' && action === 'download-url') {
-    const { path, ttlSeconds } = await jsonBody<{ path: string; ttlSeconds?: number }>(req);
-    if (!path?.startsWith('/')) throw new BadRequest('path must be absolute');
+    const { path: asked, ttlSeconds } = await jsonBody<{ path: unknown; ttlSeconds?: unknown }>(req);
+    const path = filePath(asked);
     sandboxes.get(id);
-    const exp = Math.floor(Date.now() / 1000) + Math.min(Math.max(ttlSeconds ?? 3600, 60), 7 * 86400);
+    const ttl = typeof ttlSeconds === 'number' && Number.isFinite(ttlSeconds) ? ttlSeconds : 3600;
+    const exp = Math.floor(Date.now() / 1000) + Math.floor(Math.min(Math.max(ttl, 60), 7 * 86400));
     const query = new URLSearchParams({ path, exp: String(exp), sig: sign(id, path, exp) });
     return send(res, 200, { url: `/v1/downloads/${id}?${query}` });
   } else if (action === 'code') {

@@ -35,7 +35,7 @@ a host with NocoDB.
 | Needs | `--privileged` | `/var/run/docker.sock` mounted, `--network host` |
 | Docker isolation | sandboxes can't see or manage your other containers | lite only touches containers it created |
 | Network isolation | lite blocks sandbox traffic to private addresses (your database, Redis, cloud metadata); the public internet stays open | sandboxes reach private addresses like any container until you add the firewall rule in section 8 |
-| Restart behaviour | a lite restart stops sandboxes (files kept; they resume on next use) | sandboxes keep running |
+| Restart behaviour | a lite restart stops sandboxes: chat sandboxes keep their files and resume on next use; script and app sandboxes are removed (they are short-lived and recreated) | sandboxes keep running |
 
 ## 3. Install
 
@@ -184,20 +184,24 @@ docker save nocodb/nc-chat-template:<tag> | docker exec -i nc-compute-lite docke
   rule. To let sandboxes reach a private service (an internal package
   registry or proxy), list it in `NC_COMPUTE_LITE_ALLOW_PRIVATE`, e.g.
   `10.1.2.3/32,10.20.0.0/16`.
-- **Host mode needs the same rule on the host**, since lite doesn't own that
+- **Host mode needs the same rules on the host**, since lite doesn't own that
   engine. As root, after lite has started once (it creates its networks):
 
   ```bash
   for net in nc-compute-lite nc-compute-lite-internal; do
     subnet=$(docker network inspect -f '{{(index .IPAM.Config 0).Subnet}}' $net)
+    # Traffic Docker forwards to other networks: your LAN, other containers, metadata.
     for dst in 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10 169.254.0.0/16; do
       iptables -I DOCKER-USER -s "$subnet" -d "$dst" -j DROP
     done
     iptables -I DOCKER-USER -s "$subnet" -m conntrack --ctstate ESTABLISHED,RELATED -j RETURN
+    # Traffic to the host itself (via the bridge gateway): a database or sshd on the host.
+    iptables -I INPUT -s "$subnet" -m conntrack ! --ctstate ESTABLISHED,RELATED -j DROP
   done
   ```
 
-  Make it persistent with your distribution's iptables tooling.
+  Make them persistent with your distribution's iptables tooling, and re-run
+  this if you recreate lite's networks.
 - App actions run with no internet access at all.
 
 ## 9. Operating it

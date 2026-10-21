@@ -39,6 +39,8 @@ export const LTARColsUpdater = (param: {
      * one request land atomically.
      */
     trx?: Knex.Transaction;
+    /** The caller broadcasts the updated rows itself (EE only). */
+    skipSourceBroadcast?: boolean;
   }) => {
     const profiler = Profiler.start(`base-model/updateLTARCols`);
 

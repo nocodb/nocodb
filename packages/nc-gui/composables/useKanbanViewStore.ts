@@ -14,7 +14,7 @@ import type {
 import { validateRowFilters } from '~/utils/dataUtils'
 import type { InterfacePageDataApi } from '~/lib/interfaceData'
 import { isInterfaceSyntheticViewId } from '~/lib/interfaceData'
-import { dataEventSubscriptionKey } from '~/utils/realtimeUtils'
+import { dataEventSubscriptionKey, previousViewMembership, unloadedRowCountChange } from '~/utils/realtimeUtils'
 
 type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
 
@@ -45,7 +45,16 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { $e, $api, $ncSocket } = useNuxtApp()
 
-    const { sorts, nestedFilters, eventBus, xWhere, rowMatchesSearchAndUrl } = useSmartsheetStoreOrThrow()
+    const {
+      sorts,
+      nestedFilters,
+      eventBus,
+      xWhere,
+      rowMatchesSearchAndUrl,
+      hasClientSideRowFilters,
+      isViewerScopedView,
+      rowMatchesViewerScopedFilters,
+    } = useSmartsheetStoreOrThrow()
 
     const { sharedView, fetchSharedViewData, fetchSharedViewGroupedData } = useSharedView()
 
@@ -939,7 +948,14 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     eventBus.on(smartsheetStoreEventHandler)
 
-    watch([groupingFieldColumn], () => {
+    // Keyed on value: a meta refetch replaces the column object without changing the stacks.
+    const groupingFieldKey = computed(() => {
+      const col = groupingFieldColumn.value
+      if (!col) return undefined
+      return JSON.stringify([col.id, col.title, col.uidt, (col.colOptions as SelectOptionsType | undefined)?.options ?? null])
+    })
+
+    watch(groupingFieldKey, () => {
       loadKanbanData()
     })
 
@@ -948,7 +964,10 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     // Saved view filters → trust the server's matchedViewIds. Ad-hoc URL `where` + toolbar search
     // → server can't know them, so AND them in client-side via rowMatchesSearchAndUrl.
     const recordPassesViewFilter = (data: DataPayload) => {
-      if (
+      // An `@me` view: the server's list never includes it, so its filters are evaluated here.
+      if (isViewerScopedView.value) {
+        if (!rowMatchesViewerScopedFilters(data.payload)) return false
+      } else if (
         !isInterfaceSyntheticViewId(viewMeta.value?.id) &&
         Array.isArray(data.matchedViewIds) &&
         !data.matchedViewIds.includes(viewMeta.value?.id as string)
@@ -957,6 +976,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
       return rowMatchesSearchAndUrl(data.payload)
     }
+
+    const getStackKey = (row: Record<string, any>): string | null =>
+      typeof row?.[groupingField.value] === 'string' && row[groupingField.value].length ? row[groupingField.value] : null
 
     const handleDataEvent = (data: DataPayload) => {
       const { id, action, payload, before } = data
@@ -1023,6 +1045,33 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       } else if (action === 'update') {
         try {
           const isValidationFailed = !recordPassesViewFilter(data)
+          const isLoaded = [...formattedData.value.values()].some((rows) =>
+            rows.some((row) => `${extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])}` === `${id}`),
+          )
+
+          // Unloaded card: the counts move only if it entered or left the view, and its stack is
+          // known only while the grouping field kept its value.
+          if (!isLoaded) {
+            const countChange = unloadedRowCountChange(
+              previousViewMembership(
+                data.prevMatchedViewIds,
+                viewMeta.value?.id,
+                hasClientSideRowFilters.value,
+                isViewerScopedView.value,
+              ),
+              isValidationFailed ? 'out' : 'in',
+            )
+            const stackKept = !!data.changedFields && !data.changedFields.includes(groupingField.value)
+
+            if (countChange === 'none' && (isValidationFailed || stackKept)) return
+            if (countChange === 'remove') {
+              const stackKey = getStackKey(payload)
+              if (stackKept && countByStack.value.has(stackKey)) {
+                countByStack.value.set(stackKey, Math.max((countByStack.value.get(stackKey) || 0) - 1, 0))
+              }
+              return
+            }
+          }
 
           if (isValidationFailed) {
             handleDataEvent({ ...data, action: 'delete' })

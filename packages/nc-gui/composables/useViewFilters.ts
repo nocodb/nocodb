@@ -13,6 +13,7 @@ import type { ComputedRef, Ref } from 'vue'
 import type { SelectProps } from 'ant-design-vue'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import { isInterfaceSyntheticViewId } from '~/lib/interfaceData'
+import { isMetaRowChanged, schedulePeerViewReload } from '~/utils/realtimeUtils'
 
 export type ColumnFilterType = FilterType & {
   status?: string
@@ -1161,34 +1162,50 @@ export function useViewFilters(
 
     if (payload.fk_view_id !== view.value?.id || isTempFilters) return
 
+    // Every mounted instance of the view hears the event: patch idempotently, and reload only if something changed.
+    let changed = false
+
     if (evt === 'filter_create') {
-      allFilters.value.push(payload)
-      if ((!payload.fk_parent_id && !parentId.value) || payload.fk_parent_id === parentId.value) {
-        filters.value.push(payload)
+      if (!allFilters.value.some((f) => f.id === payload.id)) {
+        allFilters.value.push(payload)
+        changed = true
       }
-      reloadHook?.trigger()
+      if (
+        ((!payload.fk_parent_id && !parentId.value) || payload.fk_parent_id === parentId.value) &&
+        !filters.value.some((f) => f.id === payload.id)
+      ) {
+        filters.value.push(payload)
+        changed = true
+      }
     } else if (evt === 'filter_update') {
       const index = filters.value.findIndex((f) => f.id === payload.id)
-      if (index !== -1) {
+      if (index !== -1 && isMetaRowChanged(filters.value[index], payload)) {
         filters.value[index] = payload
         filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
+        changed = true
       }
 
       const allIndex = allFilters.value.findIndex((f) => f.id === payload.id)
-      if (allIndex !== -1) {
+      if (allIndex !== -1 && isMetaRowChanged(allFilters.value[allIndex], payload)) {
         allFilters.value[allIndex] = payload
+        changed = true
       }
-
-      reloadHook?.trigger()
     } else if (evt === 'filter_delete') {
-      filters.value = filters.value.filter((f) => f.id !== payload.id)
-      if (payload.is_group) {
-        deleteFilterGroupFromAllFilters(payload)
-      } else {
-        allFilters.value = allFilters.value.filter((f) => f.id !== payload.id)
+      if (filters.value.some((f) => f.id === payload.id)) {
+        filters.value = filters.value.filter((f) => f.id !== payload.id)
+        changed = true
       }
-      reloadHook?.trigger()
+      if (allFilters.value.some((f) => f.id === payload.id)) {
+        if (payload.is_group) {
+          deleteFilterGroupFromAllFilters(payload)
+        } else {
+          allFilters.value = allFilters.value.filter((f) => f.id !== payload.id)
+        }
+        changed = true
+      }
     }
+
+    if (changed) schedulePeerViewReload(reloadHook)
   }
 
   onMounted(() => {

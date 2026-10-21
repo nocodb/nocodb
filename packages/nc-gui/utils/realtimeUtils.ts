@@ -1,6 +1,14 @@
-import { CURRENT_USER_TOKEN, EventType, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
-import type { FilterType, InterfaceFilterNode, LinkToAnotherRecordType, LookupType, RollupType, TableType } from 'nocodb-sdk'
-import { interfaceDataEventSuffix } from '~/lib/interfaceData'
+import { CURRENT_USER_TOKEN, EventType, UITypes, isLinksOrLTAR, parseProp } from 'nocodb-sdk'
+import type {
+  DataPayload,
+  FilterType,
+  InterfaceFilterNode,
+  LinkToAnotherRecordType,
+  LookupType,
+  RollupType,
+  TableType,
+} from 'nocodb-sdk'
+import { interfaceDataEventSuffix, isInterfaceSyntheticViewId } from '~/lib/interfaceData'
 
 const COMPUTED_DISPLAY_VALUE_TYPES = new Set<UITypes>([UITypes.Formula, UITypes.Lookup, UITypes.Rollup])
 
@@ -120,6 +128,34 @@ export function viewMembership(matchedViewIds: string[] | undefined, viewId: str
 }
 
 /**
+ * A view's membership before a peer's update. The server's list covers saved filters only, so
+ * with ad-hoc client-side filters (search, URL `where`) an `in` is unknown; interface pages
+ * receive synthetic view ids the server never tags, and the server never lists a view filtered
+ * on the viewer (`@me`).
+ */
+export function previousViewMembership(
+  prevMatchedViewIds: string[] | undefined,
+  viewId: string | undefined,
+  hasClientSideRowFilters: boolean,
+  isViewerScopedView = false,
+): ViewMembership {
+  if (isInterfaceSyntheticViewId(viewId) || isViewerScopedView) return 'unknown'
+  const membership = viewMembership(prevMatchedViewIds, viewId)
+  return membership === 'in' && hasClientSideRowFilters ? 'unknown' : membership
+}
+
+/**
+ * How a peer's update to a row a view hasn't loaded moves the view's row count: `none` when
+ * it stayed in (or out), `add` when it entered, `remove` when it left, `unknown` without both
+ * memberships.
+ */
+export function unloadedRowCountChange(wasIn: ViewMembership, isIn: ViewMembership): 'none' | 'add' | 'remove' | 'unknown' {
+  if (wasIn === 'unknown' || isIn === 'unknown') return 'unknown'
+  if (wasIn === isIn) return 'none'
+  return isIn === 'in' ? 'add' : 'remove'
+}
+
+/**
  * What a grid does with a peer's update to a row it hasn't loaded: `ignore` it, reload only the
  * group header aggregations (`aggregates`: the row stayed in its group), or `refresh` in place
  * because the view's or a group's rows changed. A row that starts matching is refreshed rather
@@ -165,4 +201,190 @@ export function classifyUnloadedRowUpdate({
  */
 export function hasViewerScopedFilter(filters: Array<{ value?: unknown }>): boolean {
   return filters.some((filter) => `${filter.value ?? ''}`.split(',').some((value) => value.trim() === CURRENT_USER_TOKEN))
+}
+
+const isSameMetaValue = (a: unknown, b: unknown) => {
+  if ((a ?? null) === (b ?? null)) return true
+  if (typeof a !== 'object' || typeof b !== 'object' || !a || !b) return false
+  try {
+    return JSON.stringify(a) === JSON.stringify(b)
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Whether a peer's filter or sort row differs from the cached one. Only the server's keys are
+ * compared (the cache adds local state such as `status` or `children`), timestamps aside.
+ */
+export function isMetaRowChanged(cached: Record<string, any> | undefined, next: Record<string, any>): boolean {
+  if (!cached) return true
+  return Object.keys(next).some((key) => key !== 'created_at' && key !== 'updated_at' && !isSameMetaValue(cached[key], next[key]))
+}
+
+const pendingPeerViewReloads = new WeakMap<object, ReturnType<typeof setTimeout>>()
+
+/** One quiet reload per view for a burst of peer filter/sort events, however many instances hear them. */
+export function schedulePeerViewReload(
+  hook: { trigger: (param: { shouldShowLoading: boolean }) => unknown } | undefined,
+  wait = 250,
+) {
+  if (!hook) return
+  clearTimeout(pendingPeerViewReloads.get(hook))
+  pendingPeerViewReloads.set(
+    hook,
+    setTimeout(() => {
+      pendingPeerViewReloads.delete(hook)
+      hook.trigger({ shouldShowLoading: false })
+    }, wait),
+  )
+}
+
+/** Whether a peer's edit to a cached RLS policy can change which rows are visible: a rename can't. */
+export function isRlsPolicyEditRowAffecting(prev: Record<string, any> | undefined, next: Record<string, any>): boolean {
+  if (!prev) return true
+  const { title: _prevTitle, ...prevRest } = prev
+  const { title: _nextTitle, ...nextRest } = next
+  return isMetaRowChanged(prevRest, nextRest)
+}
+
+/**
+ * Whether a peer's `table_update` changes what views of the table render from (fields, table
+ * meta, sync state), so the cached meta must be replaced rather than patched. A key the payload
+ * omits counts as unchanged.
+ */
+export function isTableStructureChanged(cached: Record<string, any>, next: Record<string, any>): boolean {
+  return (['columns', 'meta', 'synced'] as const).some((key) => {
+    if (!(key in next)) return false
+    if (key === 'meta') return !isSameMetaValue(parseProp(cached.meta), parseProp(next.meta))
+    return !isSameMetaValue(cached[key], next[key])
+  })
+}
+
+export type ViewColumnState = Record<string, any> & { show?: boolean | number; group_by?: boolean | number }
+
+/**
+ * Whether a peer's view-column change needs the view's data reloaded here: a field was shown
+ * (its values weren't fetched), or the grouping changed. Hiding, resizing or reordering doesn't.
+ */
+export function viewColumnsNeedReload(before: Record<string, ViewColumnState>, after: Record<string, ViewColumnState>): boolean {
+  const ids = new Set([...Object.keys(before), ...Object.keys(after)])
+
+  for (const id of ids) {
+    const prev = before[id] ?? {}
+    const next = after[id] ?? {}
+    if (next.show && !prev.show) return true
+    if (isGroupByChanged(prev, { group_by: false, ...next })) return true
+  }
+
+  return false
+}
+
+/**
+ * Whether a peer's update can change figures a view derives from `fieldTitles` across its rows
+ * (calendar active dates, timeline summaries): not for a row outside the view before and after,
+ * nor for one that stayed in it without any of those fields changing.
+ */
+export function isRowUpdateRelevant({
+  wasIn,
+  isIn,
+  changedFields,
+  fieldTitles,
+}: {
+  wasIn: ViewMembership
+  isIn: ViewMembership
+  changedFields?: string[]
+  fieldTitles: string[]
+}): boolean {
+  if (wasIn === 'out' && isIn === 'out') return false
+  if (wasIn !== isIn || wasIn === 'unknown' || !changedFields) return true
+  return fieldTitles.some((title) => changedFields.includes(title))
+}
+
+/**
+ * A peer's update to a leaf row of a nested (self-link) list: `skip` it when it didn't touch
+ * the view, `patch` the cached row when none of the fields placing it in the tree changed, and
+ * `reload` the tree otherwise.
+ */
+export function classifyNestedLeafUpdate({
+  wasIn,
+  isIn,
+  isCached,
+  changedFields,
+  positionTitles,
+}: {
+  wasIn: ViewMembership
+  isIn: ViewMembership
+  isCached: boolean
+  changedFields?: string[]
+  positionTitles: Set<string>
+}): 'skip' | 'patch' | 'reload' {
+  if (isIn === 'out') return wasIn === 'out' ? 'skip' : 'reload'
+  if (!changedFields || changedFields.some((title) => positionTitles.has(title))) return 'reload'
+  if (isCached) return 'patch'
+  return wasIn === 'in' ? 'skip' : 'reload'
+}
+
+/** Every column a filter config references (`fk_column_id`, `fk_value_col_id`), at any depth. */
+export function collectFilterColumnIds(node: unknown, out = new Set<string>()): Set<string> {
+  if (Array.isArray(node)) {
+    for (const child of node) collectFilterColumnIds(child, out)
+  } else if (node && typeof node === 'object') {
+    for (const [key, value] of Object.entries(node)) {
+      if ((key === 'fk_column_id' || key === 'fk_value_col_id') && typeof value === 'string') out.add(value)
+      else collectFilterColumnIds(value, out)
+    }
+  }
+  return out
+}
+
+/**
+ * Whether a peer's data event can change counts taken under filters over `filterTitles`: a
+ * reorder can't, nor an update whose changed fields include none of them. A filter field the
+ * payload doesn't carry (projected out) may have changed unseen.
+ */
+export function isFilteredCountAffected(data: DataPayload, filterTitles: Set<string>): boolean {
+  if (data.action === 'bulk') return (data.rows ?? []).some((row) => isFilteredCountAffected(row, filterTitles))
+  if (data.action === 'reorder') return false
+  if (data.action !== 'update' || !data.changedFields || !data.payload) return true
+  for (const title of filterTitles) {
+    if (!(title in data.payload) || data.changedFields.includes(title)) return true
+  }
+  return false
+}
+
+/**
+ * Whether a pushed row can belong to a list the viewer narrows client-side: by `searchQuery`
+ * (contains, case-insensitive, over `searchColumns`) and by `filters`. A field the payload
+ * lacks, or a search value that isn't text, can't be judged here and counts as a match.
+ */
+export function rowMayMatchViewerScope({
+  row,
+  searchQuery,
+  searchColumns,
+  filters,
+  columns,
+  evaluateFilters,
+}: {
+  row: Record<string, any>
+  searchQuery: string
+  searchColumns: Array<{ title?: string | null }>
+  filters: FilterType[]
+  columns: Array<{ id?: string | null; title?: string | null }>
+  evaluateFilters: (filters: FilterType[], row: Record<string, any>) => boolean
+}): boolean {
+  const query = searchQuery.trim().toLowerCase()
+  const searchTitles = searchColumns.flatMap((col) => (col.title ? [col.title] : []))
+  if (query && searchTitles.length) {
+    const judgeable = searchTitles.every((title) => title in row && (row[title] == null || typeof row[title] === 'string'))
+    if (judgeable && !searchTitles.some((title) => (row[title] ?? '').toLowerCase().includes(query))) return false
+  }
+
+  if (!filters.length) return true
+
+  const ids = collectFilterColumnIds(filters)
+  const titles = columns.flatMap((col) => (col.id && col.title && ids.has(col.id) ? [col.title] : []))
+  if (titles.length < ids.size || titles.some((title) => !(title in row))) return true
+
+  return evaluateFilters(filters, row)
 }

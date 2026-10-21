@@ -12,6 +12,7 @@ import type {
 import { CommonAggregations, ViewTypes, getFirstNonPersonalView, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { InterfacePageDataApi } from '../lib/interfaceData'
+import { viewColumnsNeedReload } from '~/utils/realtimeUtils'
 
 const [useProvideViewColumns, useViewColumns] = useInjectionState(
   (
@@ -869,16 +870,31 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       { immediate: true },
     )
 
+    const snapshotViewColumns = () =>
+      Object.fromEntries(
+        Object.entries(gridViewCols.value ?? {}).map(([id, col]) => [
+          id,
+          {
+            show: col.show,
+            group_by: col.group_by,
+            group_by_sort: col.group_by_sort,
+            group_by_order: col.group_by_order,
+            group_by_enabled: col.group_by_enabled,
+          },
+        ]),
+      )
+
     const evtListener = (evt: string, payload: any) => {
       if (payload.fk_view_id !== view.value?.id) return
 
       if (evt === 'view_column_update') {
         const col = gridViewCols.value?.[payload.fk_column_id]
         if (col) {
-          const reloadNeeded = isGroupByChanged(col, payload) || (!col.show && payload?.show)
+          const before = snapshotViewColumns()
           const aggregationChanged = 'aggregation' in payload && payload.aggregation !== col?.aggregation
 
           Object.assign(col, payload)
+          const reloadNeeded = viewColumnsNeedReload(before, snapshotViewColumns())
 
           const field = fields.value?.find((f) => f.fk_column_id === payload.fk_column_id)
           if (field) {
@@ -903,8 +919,10 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
         }
       } else if (evt === 'view_column_refresh') {
-        loadViewColumns()
-        nextTick(() => reloadData?.({ shouldShowLoading: false }))
+        const before = snapshotViewColumns()
+        loadViewColumns().then(() => {
+          if (viewColumnsNeedReload(before, snapshotViewColumns())) reloadData?.({ shouldShowLoading: false })
+        })
       }
     }
 

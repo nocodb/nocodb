@@ -416,7 +416,10 @@ export interface IBaseModelSqlV2 {
     }
   >;
 
-  broadcastLinkUpdates(ids: Array<string>): Promise<void>;
+  broadcastLinkUpdates(
+    ids: Array<string>,
+    linkColumnIds?: string[],
+  ): Promise<void>;
   getSource(): Promise<Source>;
   /**
    * Creates a non-transactional clone of this instance for operations

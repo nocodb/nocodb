@@ -24,7 +24,7 @@ import type {
 import type dayjs from 'dayjs'
 import type { InterfacePageDataApi } from '~/lib/interfaceData'
 import { isInterfaceSyntheticViewId } from '~/lib/interfaceData'
-import { dataEventSubscriptionKey } from '~/utils/realtimeUtils'
+import { dataEventSubscriptionKey, isRowUpdateRelevant, previousViewMembership, viewMembership } from '~/utils/realtimeUtils'
 
 const formatData = (
   list: Record<string, any>[],
@@ -447,7 +447,16 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { $e, $api, $ncSocket } = useNuxtApp()
 
-    const { sorts, nestedFilters, eventBus, isSyncedTable, rowMatchesSearchAndUrl } = useSmartsheetStoreOrThrow()
+    const {
+      sorts,
+      nestedFilters,
+      eventBus,
+      isSyncedTable,
+      rowMatchesSearchAndUrl,
+      isViewerScopedView,
+      rowMatchesViewerScopedFilters,
+      hasClientSideRowFilters,
+    } = useSmartsheetStoreOrThrow()
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
@@ -1632,10 +1641,16 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const activeDataListener = ref<string | null>(null)
 
+    // Collapses a bulk peer edit into one refetch.
+    const fetchActiveDatesDebounced = useDebounceFn(() => fetchActiveDates(), 500, { maxWait: 2000 })
+
     // Saved view filters → trust the server's matchedViewIds. Ad-hoc URL `where` + toolbar
     // search → server can't know them, so AND them in client-side via rowMatchesSearchAndUrl.
     const recordPassesViewFilter = (data: DataPayload) => {
-      if (
+      // An `@me` view: the server's list never includes it, so its filters are evaluated here.
+      if (isViewerScopedView.value) {
+        if (!rowMatchesViewerScopedFilters(data.payload)) return false
+      } else if (
         !isInterfaceSyntheticViewId(viewMeta.value?.id) &&
         Array.isArray(data.matchedViewIds) &&
         !data.matchedViewIds.includes(viewMeta.value?.id as string)
@@ -1645,7 +1660,14 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       return rowMatchesSearchAndUrl(data.payload)
     }
 
-    const handleDataEvent = (data: DataPayload) => {
+    // The store also exists under non-calendar views, where there is no range.
+    const rangeFieldTitles = () =>
+      (calendarRange.value ?? []).flatMap((range) =>
+        [range.fk_from_col?.title, range.fk_to_col?.title].filter((title): title is string => !!title),
+      )
+
+    // `fromUpdate`: an update to an unloaded row, which has already settled the active dates.
+    const handleDataEvent = (data: DataPayload, fromUpdate = false) => {
       const { id, action, payload } = data
 
       if (action === 'bulk') {
@@ -1714,9 +1736,11 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             formattedSideBarData.value.unshift({ ...newRowData })
           }
 
-          // Update active dates if any row was added
+          // Update active dates if any row was added; one outside the loaded range may still add a dot
           if (shouldBeInCalendar || shouldBeInSidebar) {
             updateActiveDatesForNewRecord(payload)
+          } else if (!fromUpdate) {
+            fetchActiveDatesDebounced()
           }
         } catch (e) {
           console.error('Failed to add calendar row on socket event', e)
@@ -1737,15 +1761,40 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
           const isValidationFailed = !recordPassesViewFilter(data)
 
-          // If validation fails and row exists in either view, delete it
-          if (isValidationFailed && (calendarRowIndex !== -1 || sidebarRowIndex !== -1)) {
-            handleDataEvent({ ...data, action: 'delete' })
+          // A row failing the view filter only leaves. An unloaded one may still hold a
+          // date-picker dot (it spans the month, the rows only the range) unless it was already out.
+          if (isValidationFailed) {
+            if (calendarRowIndex !== -1 || sidebarRowIndex !== -1) handleDataEvent({ ...data, action: 'delete' })
+            else if (
+              previousViewMembership(
+                data.prevMatchedViewIds,
+                viewMeta.value?.id,
+                hasClientSideRowFilters.value,
+                isViewerScopedView.value,
+              ) !== 'out'
+            )
+              fetchActiveDatesDebounced()
             return
           }
 
           // If validation pass but row doesn't exist in either view, add it
           if (!isValidationFailed && calendarRowIndex === -1 && sidebarRowIndex === -1) {
-            handleDataEvent({ ...data, action: 'add' })
+            // Entering the view, or moving its date, can change a date-picker dot outside the range.
+            if (
+              isRowUpdateRelevant({
+                wasIn: previousViewMembership(
+                  data.prevMatchedViewIds,
+                  viewMeta.value?.id,
+                  hasClientSideRowFilters.value,
+                  isViewerScopedView.value,
+                ),
+                isIn: 'in',
+                changedFields: data.changedFields,
+                fieldTitles: rangeFieldTitles(),
+              })
+            )
+              fetchActiveDatesDebounced()
+            handleDataEvent({ ...data, action: 'add' }, true)
             return
           }
 
@@ -1834,8 +1883,24 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             // Case 8: Row doesn't exist in sidebar AND shouldn't be added → No action
           }
 
-          // Update active dates after any changes
-          fetchActiveDates()
+          const isSynthetic = isInterfaceSyntheticViewId(viewMeta.value?.id)
+          if (
+            isRowUpdateRelevant({
+              // The row was loaded here, so it was in the view.
+              wasIn: 'in',
+              isIn: isSynthetic
+                ? 'unknown'
+                : isViewerScopedView.value
+                ? recordPassesViewFilter(data)
+                  ? 'in'
+                  : 'out'
+                : viewMembership(data.matchedViewIds, viewMeta.value?.id),
+              changedFields: data.changedFields,
+              fieldTitles: rangeFieldTitles(),
+            })
+          ) {
+            fetchActiveDatesDebounced()
+          }
         } catch (e) {
           console.error('Failed to update calendar row on socket event', e)
         }
@@ -1870,7 +1935,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           }
           // Update active dates if anything was removed
           if (removedFromCalendar || removedFromSidebar) {
-            fetchActiveDates()
+            fetchActiveDatesDebounced()
           }
         } catch (e) {
           console.error('Failed to delete calendar row on socket event', e)
@@ -1887,7 +1952,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           if (activeDataListener.value) {
             $ncSocket.offMessage(activeDataListener.value)
           }
-          activeDataListener.value = $ncSocket.onMessage(dataEventSubscriptionKey(newMeta, interfaceDataApi), handleDataEvent)
+          activeDataListener.value = $ncSocket.onMessage(
+            dataEventSubscriptionKey(newMeta, interfaceDataApi),
+            (data: DataPayload) => handleDataEvent(data),
+          )
         }
       },
       { immediate: true },

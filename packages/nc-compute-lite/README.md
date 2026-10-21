@@ -4,6 +4,8 @@ Sandboxes for on-prem NocoDB on plain Docker: scripts, AI chat code, app
 builder and app runtime. No KVM needed. NocoDB talks to it over HTTP with an
 API key and never gets a Docker socket.
 
+Setting it up for a NocoDB install: [SELF_HOSTING.md](SELF_HOSTING.md).
+
 ## Run
 
 ```bash
@@ -40,6 +42,7 @@ forces one. In host mode lite only touches containers it created.
 | `NC_COMPUTE_LITE_URL` | `http://<lite-host>:8430` |
 | `NC_COMPUTE_LITE_KEY` | the same key |
 | `NC_COMPUTE_LITE_DOMAIN` | a wildcard DNS name for the lite host, with the proxy port: `sandbox.example.internal:8431` |
+| `NC_COMPUTE_LITE_TLS` | `true` when a TLS proxy fronts the sandbox domain on 443 |
 | `NC_COMPUTE_LITE_IMAGE_<WORKLOAD>` | optional: a different image for `CHAT`, `SCRIPT`, `APP_BUILDER` or `APP_RUNTIME` |
 
 Only NocoDB needs to reach 8430 and 8431. Give the sandbox domain its own

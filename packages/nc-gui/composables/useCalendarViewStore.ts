@@ -24,7 +24,7 @@ import type {
 import type dayjs from 'dayjs'
 import type { InterfacePageDataApi } from '~/lib/interfaceData'
 import { isInterfaceSyntheticViewId } from '~/lib/interfaceData'
-import { dataEventSubscriptionKey } from '~/utils/realtimeUtils'
+import { dataEventSubscriptionKey, isRowUpdateRelevant, viewMembership } from '~/utils/realtimeUtils'
 
 const formatData = (
   list: Record<string, any>[],
@@ -1632,6 +1632,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const activeDataListener = ref<string | null>(null)
 
+    // Collapses a bulk peer edit into one refetch.
+    const fetchActiveDatesDebounced = useDebounceFn(() => fetchActiveDates(), 500, { maxWait: 2000 })
+
     // Saved view filters → trust the server's matchedViewIds. Ad-hoc URL `where` + toolbar
     // search → server can't know them, so AND them in client-side via rowMatchesSearchAndUrl.
     const recordPassesViewFilter = (data: DataPayload) => {
@@ -1737,9 +1740,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
           const isValidationFailed = !recordPassesViewFilter(data)
 
-          // If validation fails and row exists in either view, delete it
-          if (isValidationFailed && (calendarRowIndex !== -1 || sidebarRowIndex !== -1)) {
-            handleDataEvent({ ...data, action: 'delete' })
+          // A row failing the view filter only leaves; an unloaded one has nothing to do.
+          if (isValidationFailed) {
+            if (calendarRowIndex !== -1 || sidebarRowIndex !== -1) handleDataEvent({ ...data, action: 'delete' })
             return
           }
 
@@ -1834,8 +1837,19 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             // Case 8: Row doesn't exist in sidebar AND shouldn't be added → No action
           }
 
-          // Update active dates after any changes
-          fetchActiveDates()
+          const isSynthetic = isInterfaceSyntheticViewId(viewMeta.value?.id)
+          if (
+            isRowUpdateRelevant({
+              wasIn: isSynthetic ? 'unknown' : viewMembership(data.prevMatchedViewIds, viewMeta.value?.id),
+              isIn: isSynthetic ? 'unknown' : viewMembership(data.matchedViewIds, viewMeta.value?.id),
+              changedFields: data.changedFields,
+              fieldTitles: calendarRange.value.flatMap((range) =>
+                [range.fk_from_col?.title, range.fk_to_col?.title].filter((title): title is string => !!title),
+              ),
+            })
+          ) {
+            fetchActiveDatesDebounced()
+          }
         } catch (e) {
           console.error('Failed to update calendar row on socket event', e)
         }
@@ -1870,7 +1884,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           }
           // Update active dates if anything was removed
           if (removedFromCalendar || removedFromSidebar) {
-            fetchActiveDates()
+            fetchActiveDatesDebounced()
           }
         } catch (e) {
           console.error('Failed to delete calendar row on socket event', e)

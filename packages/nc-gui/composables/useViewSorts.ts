@@ -2,6 +2,7 @@ import type { ColumnType, SortType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import { isInterfaceSyntheticViewId } from '~/lib/interfaceData'
+import { isMetaRowChanged, schedulePeerViewReload } from '~/utils/realtimeUtils'
 
 export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () => void) {
   const { sorts, eventBus } = useSmartsheetStoreOrThrow()
@@ -227,23 +228,30 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
   const evtListener = (evt: string, payload: any) => {
     if (payload.fk_view_id !== view.value?.id) return
 
+    // The toolbar and the column menus all hear the event; the sorts are shared, so only the first one changes them.
+    let changed = false
+
     if (evt === 'sort_create') {
       if (!sorts.value.some((s) => s.id === payload.id)) {
         sorts.value = sortByOrder([...sorts.value, payload])
+        changed = true
       }
-      reloadHook?.trigger()
     } else if (evt === 'sort_update') {
       const index = sorts.value.findIndex((s) => s.id === payload.id)
-      if (index !== -1) {
+      if (index !== -1 && isMetaRowChanged(sorts.value[index], payload)) {
         const next = [...sorts.value]
         next[index] = payload
         sorts.value = sortByOrder(next)
+        changed = true
       }
-      reloadHook?.trigger()
     } else if (evt === 'sort_delete') {
-      sorts.value = sorts.value.filter((s) => s.id !== payload.id)
-      reloadHook?.trigger()
+      if (sorts.value.some((s) => s.id === payload.id)) {
+        sorts.value = sorts.value.filter((s) => s.id !== payload.id)
+        changed = true
+      }
     }
+
+    if (changed) schedulePeerViewReload(reloadHook)
   }
 
   onMounted(() => {

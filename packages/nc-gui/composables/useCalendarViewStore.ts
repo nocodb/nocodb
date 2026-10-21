@@ -1660,7 +1660,13 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       return rowMatchesSearchAndUrl(data.payload)
     }
 
-    const handleDataEvent = (data: DataPayload) => {
+    const rangeFieldTitles = () =>
+      calendarRange.value.flatMap((range) =>
+        [range.fk_from_col?.title, range.fk_to_col?.title].filter((title): title is string => !!title),
+      )
+
+    // `fromUpdate`: an update to an unloaded row, which has already settled the active dates.
+    const handleDataEvent = (data: DataPayload, fromUpdate = false) => {
       const { id, action, payload } = data
 
       if (action === 'bulk') {
@@ -1729,9 +1735,11 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             formattedSideBarData.value.unshift({ ...newRowData })
           }
 
-          // Update active dates if any row was added
+          // Update active dates if any row was added; one outside the loaded range may still add a dot
           if (shouldBeInCalendar || shouldBeInSidebar) {
             updateActiveDatesForNewRecord(payload)
+          } else if (!fromUpdate) {
+            fetchActiveDatesDebounced()
           }
         } catch (e) {
           console.error('Failed to add calendar row on socket event', e)
@@ -1770,7 +1778,22 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
           // If validation pass but row doesn't exist in either view, add it
           if (!isValidationFailed && calendarRowIndex === -1 && sidebarRowIndex === -1) {
-            handleDataEvent({ ...data, action: 'add' })
+            // Entering the view, or moving its date, can change a date-picker dot outside the range.
+            if (
+              isRowUpdateRelevant({
+                wasIn: previousViewMembership(
+                  data.prevMatchedViewIds,
+                  viewMeta.value?.id,
+                  hasClientSideRowFilters.value,
+                  isViewerScopedView.value,
+                ),
+                isIn: 'in',
+                changedFields: data.changedFields,
+                fieldTitles: rangeFieldTitles(),
+              })
+            )
+              fetchActiveDatesDebounced()
+            handleDataEvent({ ...data, action: 'add' }, true)
             return
           }
 
@@ -1862,7 +1885,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           const isSynthetic = isInterfaceSyntheticViewId(viewMeta.value?.id)
           if (
             isRowUpdateRelevant({
-              wasIn: isSynthetic ? 'unknown' : viewMembership(data.prevMatchedViewIds, viewMeta.value?.id),
+              // The row was loaded here, so it was in the view.
+              wasIn: 'in',
               isIn: isSynthetic
                 ? 'unknown'
                 : isViewerScopedView.value
@@ -1871,9 +1895,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                   : 'out'
                 : viewMembership(data.matchedViewIds, viewMeta.value?.id),
               changedFields: data.changedFields,
-              fieldTitles: calendarRange.value.flatMap((range) =>
-                [range.fk_from_col?.title, range.fk_to_col?.title].filter((title): title is string => !!title),
-              ),
+              fieldTitles: rangeFieldTitles(),
             })
           ) {
             fetchActiveDatesDebounced()
@@ -1929,7 +1951,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           if (activeDataListener.value) {
             $ncSocket.offMessage(activeDataListener.value)
           }
-          activeDataListener.value = $ncSocket.onMessage(dataEventSubscriptionKey(newMeta, interfaceDataApi), handleDataEvent)
+          activeDataListener.value = $ncSocket.onMessage(
+            dataEventSubscriptionKey(newMeta, interfaceDataApi),
+            (data: DataPayload) => handleDataEvent(data),
+          )
         }
       },
       { immediate: true },

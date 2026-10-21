@@ -18,6 +18,8 @@ export interface LinkUnlinkRequest {
   colOptions?: LinkToAnotherRecordColumn;
   links?: LinkRow[];
   unlinks?: LinkRow[];
+  /** The caller broadcasts the source rows itself. */
+  skipSourceBroadcast?: boolean;
 }
 export type LinkUnlinkProcessRequest = LinkUnlinkRequest & {
   model: Model;

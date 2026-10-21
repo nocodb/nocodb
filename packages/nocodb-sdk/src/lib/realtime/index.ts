@@ -367,6 +367,8 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'app_sync_delete';
   payload: T;
   baseId?: string;
+  /** row_color_update: the view whose colouring changed (its payload is null once cleared). */
+  viewId?: string;
 }
 
 export interface UserEventPayload<T = any> extends BaseSocketPayload {

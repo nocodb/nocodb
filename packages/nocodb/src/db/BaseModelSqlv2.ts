@@ -4676,15 +4676,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     datas,
     cookie,
     trx,
+    skipSourceBroadcast,
   }: {
     datas: any[];
     cookie: NcRequest;
     trx?: Knex.Transaction;
+    /** The caller broadcasts the updated rows itself. */
+    skipSourceBroadcast?: boolean;
   }) {
     return LTARColsUpdater({ baseModel: this, logger }).updateLTARCols({
       datas,
       cookie,
       trx,
+      skipSourceBroadcast,
     });
   }
 
@@ -10239,7 +10243,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
-  private async broadcastLinkUpdateAwaited(ids: Array<string>) {
+  private async broadcastLinkUpdateAwaited(
+    ids: Array<string>,
+    linkColumnIds: string[] = [],
+  ) {
     const ast = await getAst(this.context, {
       model: this.model,
     });
@@ -10257,11 +10264,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         action: 'update' as const,
         payload: item,
       })),
+      linkColumnIds,
     });
   }
 
-  public async broadcastLinkUpdates(ids: Array<string>) {
-    this.broadcastLinkUpdateAwaited(ids).catch((e) => {
+  /** `linkColumnIds`: the link columns of this table that changed; empty = any link. */
+  public async broadcastLinkUpdates(
+    ids: Array<string>,
+    linkColumnIds: string[] = [],
+  ) {
+    this.broadcastLinkUpdateAwaited(ids, linkColumnIds).catch((e) => {
       logger.error(e);
     });
   }

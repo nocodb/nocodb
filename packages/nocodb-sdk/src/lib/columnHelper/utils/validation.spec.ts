@@ -36,6 +36,24 @@ describe('getEmailHref', () => {
     );
   });
 
+  it('encodes header characters in bare addresses', () => {
+    expect(getEmailHref('"?bcc=x@evil.com&body=hi"@example.com')).toBe(
+      'mailto:%22%3Fbcc=x@evil.com%26body=hi%22@example.com'
+    );
+    expect(getEmailHref('a@example.com?subject=hi&body=x')).toBe(
+      'mailto:a@example.com%3Fsubject=hi%26body=x'
+    );
+    expect(getEmailHref('<"?bcc=x@evil.com"@example.com>')).toBe(
+      'mailto:%22%3Fbcc=x@evil.com%22@example.com'
+    );
+    expect(getEmailHref('"a,b#c%d"@example.com')).toBe(
+      'mailto:%22a%2Cb%23c%25d%22@example.com'
+    );
+    expect(getEmailHref('first.last+tag@example.com')).toBe(
+      'mailto:first.last+tag@example.com'
+    );
+  });
+
   it('quotes names with commas, quotes and reserved characters', () => {
     expect(getEmailHref('"Example, Jane" <person@example.com>')).toBe(
       `mailto:?to=${encodeURIComponent('"Example, Jane" <person@example.com>')}`

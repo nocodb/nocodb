@@ -30,6 +30,10 @@ export const parseNamedEmail = (
   return { name, address };
 };
 
+// `?`, `#`, `&`, `%` and `,` in a mailto path would start headers or extra recipients.
+const encodeMailtoAddress = (address: string) =>
+  address.replace(/[^A-Za-z0-9._~!$'()*+=@-]/gu, (c) => encodeURIComponent(c));
+
 /**
  * mailto href for an Email cell value, or null when it should not be a link.
  * Named mailboxes go in a percent-encoded `to` header (RFC 6068) so the
@@ -38,11 +42,11 @@ export const parseNamedEmail = (
 export const getEmailHref = (v: unknown): string | null => {
   if (typeof v !== 'string' || !v) return null;
 
-  if (validateEmail(v)) return `mailto:${v}`;
+  if (validateEmail(v)) return `mailto:${encodeMailtoAddress(v)}`;
 
   const mailbox = parseNamedEmail(v);
   if (!mailbox) return null;
-  if (!mailbox.name) return `mailto:${mailbox.address}`;
+  if (!mailbox.name) return `mailto:${encodeMailtoAddress(mailbox.address)}`;
 
   const name = /^[\p{L}\p{N}!#$%&'*+\-/=?^_`{|}~ ]+$/u.test(mailbox.name)
     ? mailbox.name

@@ -1660,8 +1660,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       return rowMatchesSearchAndUrl(data.payload)
     }
 
+    // The store also exists under non-calendar views, where there is no range.
     const rangeFieldTitles = () =>
-      calendarRange.value.flatMap((range) =>
+      (calendarRange.value ?? []).flatMap((range) =>
         [range.fk_from_col?.title, range.fk_to_col?.title].filter((title): title is string => !!title),
       )
 

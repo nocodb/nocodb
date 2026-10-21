@@ -447,7 +447,15 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { $e, $api, $ncSocket } = useNuxtApp()
 
-    const { sorts, nestedFilters, eventBus, isSyncedTable, rowMatchesSearchAndUrl } = useSmartsheetStoreOrThrow()
+    const {
+      sorts,
+      nestedFilters,
+      eventBus,
+      isSyncedTable,
+      rowMatchesSearchAndUrl,
+      isViewerScopedView,
+      rowMatchesViewerScopedFilters,
+    } = useSmartsheetStoreOrThrow()
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
@@ -1638,7 +1646,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     // Saved view filters → trust the server's matchedViewIds. Ad-hoc URL `where` + toolbar
     // search → server can't know them, so AND them in client-side via rowMatchesSearchAndUrl.
     const recordPassesViewFilter = (data: DataPayload) => {
-      if (
+      // An `@me` view: the server's list never includes it, so its filters are evaluated here.
+      if (isViewerScopedView.value) {
+        if (!rowMatchesViewerScopedFilters(data.payload)) return false
+      } else if (
         !isInterfaceSyntheticViewId(viewMeta.value?.id) &&
         Array.isArray(data.matchedViewIds) &&
         !data.matchedViewIds.includes(viewMeta.value?.id as string)
@@ -1841,7 +1852,13 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           if (
             isRowUpdateRelevant({
               wasIn: isSynthetic ? 'unknown' : viewMembership(data.prevMatchedViewIds, viewMeta.value?.id),
-              isIn: isSynthetic ? 'unknown' : viewMembership(data.matchedViewIds, viewMeta.value?.id),
+              isIn: isSynthetic
+                ? 'unknown'
+                : isViewerScopedView.value
+                ? recordPassesViewFilter(data)
+                  ? 'in'
+                  : 'out'
+                : viewMembership(data.matchedViewIds, viewMeta.value?.id),
               changedFields: data.changedFields,
               fieldTitles: calendarRange.value.flatMap((range) =>
                 [range.fk_from_col?.title, range.fk_to_col?.title].filter((title): title is string => !!title),

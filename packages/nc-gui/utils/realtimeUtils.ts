@@ -130,14 +130,16 @@ export function viewMembership(matchedViewIds: string[] | undefined, viewId: str
 /**
  * A view's membership before a peer's update. The server's list covers saved filters only, so
  * with ad-hoc client-side filters (search, URL `where`) an `in` is unknown; interface pages
- * receive synthetic view ids the server never tags.
+ * receive synthetic view ids the server never tags, and the server never lists a view filtered
+ * on the viewer (`@me`).
  */
 export function previousViewMembership(
   prevMatchedViewIds: string[] | undefined,
   viewId: string | undefined,
   hasClientSideRowFilters: boolean,
+  isViewerScopedView = false,
 ): ViewMembership {
-  if (isInterfaceSyntheticViewId(viewId)) return 'unknown'
+  if (isInterfaceSyntheticViewId(viewId) || isViewerScopedView) return 'unknown'
   const membership = viewMembership(prevMatchedViewIds, viewId)
   return membership === 'in' && hasClientSideRowFilters ? 'unknown' : membership
 }

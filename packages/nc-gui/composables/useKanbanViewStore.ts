@@ -45,8 +45,16 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { $e, $api, $ncSocket } = useNuxtApp()
 
-    const { sorts, nestedFilters, eventBus, xWhere, rowMatchesSearchAndUrl, hasClientSideRowFilters } =
-      useSmartsheetStoreOrThrow()
+    const {
+      sorts,
+      nestedFilters,
+      eventBus,
+      xWhere,
+      rowMatchesSearchAndUrl,
+      hasClientSideRowFilters,
+      isViewerScopedView,
+      rowMatchesViewerScopedFilters,
+    } = useSmartsheetStoreOrThrow()
 
     const { sharedView, fetchSharedViewData, fetchSharedViewGroupedData } = useSharedView()
 
@@ -956,7 +964,10 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     // Saved view filters → trust the server's matchedViewIds. Ad-hoc URL `where` + toolbar search
     // → server can't know them, so AND them in client-side via rowMatchesSearchAndUrl.
     const recordPassesViewFilter = (data: DataPayload) => {
-      if (
+      // An `@me` view: the server's list never includes it, so its filters are evaluated here.
+      if (isViewerScopedView.value) {
+        if (!rowMatchesViewerScopedFilters(data.payload)) return false
+      } else if (
         !isInterfaceSyntheticViewId(viewMeta.value?.id) &&
         Array.isArray(data.matchedViewIds) &&
         !data.matchedViewIds.includes(viewMeta.value?.id as string)
@@ -1042,7 +1053,12 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           // known only while the grouping field kept its value.
           if (!isLoaded) {
             const countChange = unloadedRowCountChange(
-              previousViewMembership(data.prevMatchedViewIds, viewMeta.value?.id, hasClientSideRowFilters.value),
+              previousViewMembership(
+                data.prevMatchedViewIds,
+                viewMeta.value?.id,
+                hasClientSideRowFilters.value,
+                isViewerScopedView.value,
+              ),
               isValidationFailed ? 'out' : 'in',
             )
             const stackKept = !!data.changedFields && !data.changedFields.includes(groupingField.value)

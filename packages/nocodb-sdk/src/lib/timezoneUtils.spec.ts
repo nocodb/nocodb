@@ -1,6 +1,8 @@
 import {
   getNodejsTimezone,
   isDateTimeStringHasTimezone,
+  nodejsTimezones,
+  timezoneAliases,
 } from './timezoneUtils';
 
 describe('timezoneUtils', () => {
@@ -9,6 +11,46 @@ describe('timezoneUtils', () => {
       expect(getNodejsTimezone('Asia/Kolkata', 'Asia/Jakarta')).toBe(
         'Asia/Calcutta'
       );
+    });
+
+    // These three canonical zones have several legacy aliases. Recording only
+    // the last one left them pointing at an alias Node does not accept, and
+    // they fell back to Etc/UTC: ten hours out for Chuuk.
+    it.each([
+      ['Pacific/Chuuk', 'Pacific/Truk'],
+      ['America/Indiana/Indianapolis', 'America/Indianapolis'],
+      ['America/Argentina/Cordoba', 'America/Cordoba'],
+    ])('resolves %s to an alias node accepts', (canonical, expected) => {
+      expect(getNodejsTimezone(canonical)).toBe(expected);
+    });
+
+    it('never answers with a zone node does not accept', () => {
+      const unusable = Object.keys(timezoneAliases).filter((zone) => {
+        const resolved = getNodejsTimezone(zone);
+        return resolved !== 'Etc/UTC' && !nodejsTimezones.has(resolved);
+      });
+      expect(unusable).toEqual([]);
+    });
+
+    it('gives up only when no name for the zone is one node carries', () => {
+      // Group every alias with its canonical name, then require that a zone
+      // resolves whenever any name in its group is one Node accepts.
+      const groups: Record<string, Set<string>> = {};
+      for (const [alias, canonical] of Object.entries(timezoneAliases)) {
+        const key = timezoneAliases[canonical] ? canonical : alias;
+        (groups[key] ??= new Set()).add(alias);
+        groups[key].add(canonical);
+      }
+      const givenUp: string[] = [];
+      for (const names of Object.values(groups)) {
+        if (![...names].some((name) => nodejsTimezones.has(name))) continue;
+        for (const name of names) {
+          if (name !== 'Etc/UTC' && getNodejsTimezone(name) === 'Etc/UTC') {
+            givenUp.push(name);
+          }
+        }
+      }
+      expect(givenUp).toEqual([]);
     });
   });
   describe('isDateTimeStringHasTimezone', () => {

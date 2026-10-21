@@ -532,9 +532,18 @@ const _timezoneAliases = {
   Zulu: 'Etc/UTC',
 } as Record<string, string>;
 
-// reverse mapping
-for (const [key, value] of Object.entries(_timezoneAliases)) {
-  _timezoneAliases[value] = key;
+// Reverse mapping. Several legacy aliases can share one canonical zone, so
+// assigning straight back let the last one win; when that alias was not one
+// Node accepts, getNodejsTimezone fell through to Etc/UTC even though a
+// sibling alias would have worked. Pacific/Chuuk kept Pacific/Yap and lost
+// Pacific/Truk, which is the name Node has.
+const _aliasesOf: Record<string, string[]> = {};
+for (const [alias, canonical] of Object.entries(_timezoneAliases)) {
+  (_aliasesOf[canonical] ??= []).push(alias);
+}
+for (const [canonical, aliases] of Object.entries(_aliasesOf)) {
+  _timezoneAliases[canonical] =
+    aliases.find((alias) => nodejsTimezones.has(alias)) ?? aliases[0];
 }
 
 export const timezoneAliases = _timezoneAliases;
@@ -543,11 +552,21 @@ export const getNodejsTimezone = (...timezones: string[]) => {
   for (const timezone of timezones ?? []) {
     if (nodejsTimezones.has(timezone)) {
       return timezone;
-    } else if (
-      timezoneAliases[timezone] &&
-      nodejsTimezones.has(timezoneAliases[timezone])
-    ) {
-      return timezoneAliases[timezone];
+    }
+    const canonical = _timezoneAliases[timezone];
+    if (!canonical) {
+      continue;
+    }
+    if (nodejsTimezones.has(canonical)) {
+      return canonical;
+    }
+    // The canonical name may be one Node does not carry either, while a
+    // sibling alias of it is: Pacific/Yap -> Pacific/Chuuk -> Pacific/Truk.
+    const sibling = (_aliasesOf[canonical] ?? []).find((alias) =>
+      nodejsTimezones.has(alias)
+    );
+    if (sibling) {
+      return sibling;
     }
   }
   return 'Etc/UTC';

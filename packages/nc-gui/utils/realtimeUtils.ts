@@ -261,35 +261,21 @@ export function isTableStructureChanged(cached: Record<string, any>, next: Recor
 
 export type ViewColumnState = Record<string, any> & { show?: boolean | number; group_by?: boolean | number }
 
-const groupByCounts = (cols: Record<string, ViewColumnState>) => {
-  const grouped = Object.values(cols).filter((col) => !!col?.group_by)
-  return {
-    total: grouped.length,
-    enabled: grouped.filter((col) => col.group_by_enabled !== false && col.group_by_enabled !== 0).length,
-  }
-}
-
 /**
  * Whether a peer's view-column change needs the view's data reloaded here: a field was shown
- * (its values weren't fetched), or the grouping changed in a way the group-by store's own
- * group-count watcher won't reload for (sort, order, or which field).
+ * (its values weren't fetched), or the grouping changed. Hiding, resizing or reordering doesn't.
  */
 export function viewColumnsNeedReload(before: Record<string, ViewColumnState>, after: Record<string, ViewColumnState>): boolean {
   const ids = new Set([...Object.keys(before), ...Object.keys(after)])
-  let groupByChanged = false
 
   for (const id of ids) {
     const prev = before[id] ?? {}
     const next = after[id] ?? {}
     if (next.show && !prev.show) return true
-    if (!groupByChanged && isGroupByChanged(prev, { group_by: false, ...next })) groupByChanged = true
+    if (isGroupByChanged(prev, { group_by: false, ...next })) return true
   }
 
-  if (!groupByChanged) return false
-
-  const prevCounts = groupByCounts(before)
-  const nextCounts = groupByCounts(after)
-  return prevCounts.total === nextCounts.total && prevCounts.enabled === nextCounts.enabled
+  return false
 }
 
 /**

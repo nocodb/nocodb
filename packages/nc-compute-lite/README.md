@@ -74,12 +74,11 @@ At its deadline a sandbox is paused (`onTimeout: 'pause'`) or deleted.
 
 ## Images
 
-`images/generate.ts` turns NocoDB's E2B templates (`nocodb/nc-e2b-template`)
-into Docker build contexts from the same sources, so a lite sandbox matches an
-E2B one: the templates built on E2B's `code-interpreter-v1` start from that
-template as a Docker image (`e2b-dev/code-interpreter`'s `build_docker.py`).
-`images/sandbox-init.sh` replaces E2B's systemd: it keeps NocoDB's agent running
-as `user` and starts the base image's code server.
+Built and published from `nocodb/nc-e2b-template` (`docker/`), from the same
+sources as the E2B templates. The pin PR pins each by digest in nocohub's
+`DOCKER_IMAGES`, next to its E2B id, so a NocoDB version always runs the exact
+images it was released with. `NC_COMPUTE_LITE_IMAGE_<WORKLOAD>` points one
+elsewhere (a local build, a private mirror).
 
 ## Test
 

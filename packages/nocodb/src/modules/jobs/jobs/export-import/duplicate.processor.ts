@@ -730,6 +730,11 @@ export class DuplicateProcessor {
       c.id.includes(columnId),
     );
 
+    // Not serialized, e.g. a link to another base.
+    if (!replacedColumn) {
+      throw new Error(`Column '${columnId}' cannot be duplicated`);
+    }
+
     const columnWebhookManager = (
       await new ColumnWebhookManagerBuilder(context).withModelId(
         sourceColumn.fk_model_id,

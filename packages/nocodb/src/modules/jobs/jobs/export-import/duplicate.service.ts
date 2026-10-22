@@ -1,6 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
   AppEvents,
+  isCrossBaseLink,
+  isLinksOrLTAR,
   type NcContext,
   type NcRequest,
   ProjectStatus,
@@ -229,6 +231,16 @@ export class DuplicateService {
 
     if (!column) {
       NcError.get(context).fieldNotFound(columnId);
+    }
+
+    // The column duplicate job never recreates a link to another base.
+    if (isLinksOrLTAR(column)) {
+      await column.getColOptions();
+      if (isCrossBaseLink(column)) {
+        NcError.get(context).badRequest(
+          'A link to a table in another base cannot be duplicated.',
+        );
+      }
     }
 
     const model = await Model.get(context, column.fk_model_id);

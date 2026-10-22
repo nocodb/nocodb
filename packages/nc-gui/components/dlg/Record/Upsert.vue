@@ -112,7 +112,7 @@ const close = () => {
           :value="false"
         >
           <div class="nc-content-gray leading-5">
-            <span class="font-semibold"> Don't expand </span>
+            <span class="font-semibold"> {{ $t('labels.dontExpand') }} </span>
             the table. Values beyond the table's current size will be skipped.
           </div>
         </a-radio>

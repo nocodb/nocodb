@@ -59,7 +59,7 @@ onMounted(() => {
         :disabled="formOptions.length === 0"
         @change="onChangeTriggerForm"
       >
-        <span class="!text-nc-content-gray-subtle font-normal"> Trigger only when specific form submitted </span>
+        <span class="!text-nc-content-gray-subtle font-normal"> {{ $t('labels.triggerOnlyWhenFormSubmitted') }} </span>
       </NcSwitch>
     </label>
     <NcListViewSelector

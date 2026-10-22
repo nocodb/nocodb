@@ -795,7 +795,8 @@
     "manage": "Manage",
     "email": "Email",
     "uploading": "Uploading",
-    "config": "Config"
+    "config": "Config",
+    "dismiss": "Dismiss"
   },
   "objects": {
     "chat": "Chat",
@@ -1611,7 +1612,9 @@
     "agentToolsAndAccess": "Tools & access",
     "agentSkills": "Skills",
     "agentSettings": "Settings",
-    "auditDetails": "Audit Details"
+    "auditDetails": "Audit Details",
+    "markdownEditor": "Markdown Editor",
+    "loyaltyBadgeTitle": "Loyalty Discount Unlocked! Save upto 55%!"
   },
   "labels": {
     "blocked": "Blocked",
@@ -5975,7 +5978,13 @@
     "copyProject": "Copy Project",
     "moreEllipsis": "more...",
     "nocodbDocs": "NocoDB Docs.",
-    "triggerOnlyWhenFieldsChange": "Trigger only when specific fields change"
+    "triggerOnlyWhenFieldsChange": "Trigger only when specific fields change",
+    "dontExpand": "Don't expand",
+    "triggerOnlyWhenFormSubmitted": "Trigger only when specific form submitted",
+    "retryNow": "Retry now",
+    "createSchema": "Create schema",
+    "syncSource": "Sync source",
+    "configureSources": "Configure Sources"
   },
   "activity": {
     "blockUser": "Block user",
@@ -6528,7 +6537,8 @@
     "copyViewId": "Copy view ID",
     "dataSourceReadOnly": "This data source is read-only.",
     "mentionFields": "Mention fields",
-    "skipEnabledAfterDelay": "Will be enabled after 2 seconds"
+    "skipEnabledAfterDelay": "Will be enabled after 2 seconds",
+    "clickToCopyDocumentId": "Click to copy Document ID"
   },
   "placeholder": {
     "attachmentUrl": "https://example.com/report.pdf",
@@ -6774,7 +6784,11 @@
     "selectScriptDashed": "-- Select script --",
     "selectViewDashed": "-- Select view --",
     "searchLinkedRecords": "Search linked records...",
-    "searchRecordsToLink": "Search records to link..."
+    "searchRecordsToLink": "Search records to link...",
+    "searchAProject": "Search a project",
+    "organizationNameExample": "Acme Inc",
+    "searchForAMember": "Search for a member",
+    "enterCustomUrl": "Enter custom url"
   },
   "msg": {
     "agentSkillsSubtitle": "Reusable instructions this agent can load when relevant.",

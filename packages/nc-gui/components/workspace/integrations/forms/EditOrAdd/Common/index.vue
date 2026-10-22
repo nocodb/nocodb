@@ -394,7 +394,7 @@ const onTestConnection = async () => {
             <template #title>{{ testConnectionResult?.message }}</template>
             <GeneralIcon icon="alertTriangleSolid" class="text-warning w-4 h-4" />
           </NcTooltip>
-          Test connection
+          {{ $t('labels.testConnection') }}
         </div>
       </NcButton>
       <NcButton

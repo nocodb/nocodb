@@ -6,6 +6,7 @@ import type { LinksColumn } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { invalidateSingleQueryCacheForModels } from '~/helpers/metaCacheInvalidator';
+import { getCrossBaseInboundLinkColumns } from '~/helpers/crossBaseInboundLinks';
 
 const logger = new Logger('singleQueryCacheInvalidator');
 
@@ -235,6 +236,60 @@ export async function clearSingleQueryCacheForColumnReferences(
   refTableIds.delete(oldCol.fk_model_id);
 
   await invalidateSingleQueryCacheForModels(context, [...refTableIds], ncMeta);
+
+  await clearCrossBaseDirectReferrers(context, oldCol, ncMeta);
+}
+
+/**
+ * Cross-base half of `clearSingleQueryCacheForColumnReferences`: the same
+ * one-hop referrers (Lookups/Rollups reading `oldCol`, plus the inbound Links
+ * when it is the display value), found in each base linking into its model and
+ * cleared in that base's context. Best-effort, like the rename variant.
+ */
+async function clearCrossBaseDirectReferrers(
+  context: NcContext,
+  oldCol: Column,
+  ncMeta = Noco.ncMeta,
+): Promise<void> {
+  let linkColsByBase: Map<string, Set<string>>;
+  try {
+    linkColsByBase = await getCrossBaseInboundLinkColumns(
+      context,
+      oldCol.fk_model_id,
+      ncMeta,
+    );
+  } catch {
+    return;
+  }
+
+  for (const [refBaseId, linkColIds] of linkColsByBase) {
+    try {
+      const refCtx: NcContext = { ...context, base_id: refBaseId };
+      const relationColIds = await loadDependentRelationColIds(
+        refCtx,
+        oldCol.id,
+        ncMeta,
+      );
+      if (oldCol.pv) {
+        for (const colId of linkColIds) relationColIds.add(colId);
+      }
+      if (!relationColIds.size) continue;
+
+      const modelIds = await resolveModelIdsFromColumnIds(
+        refCtx,
+        [...relationColIds],
+        ncMeta,
+      );
+      await invalidateSingleQueryCacheForModels(refCtx, [...modelIds], ncMeta);
+    } catch (e) {
+      logger.error(
+        `Cross-base single-query cache invalidation failed for referring base ${refBaseId}: ${
+          (e as Error)?.message
+        }`,
+        (e as Error)?.stack,
+      );
+    }
+  }
 }
 
 /**
@@ -485,28 +540,16 @@ async function clearCrossBaseReferringModels(
 ): Promise<void> {
   if (!Noco.isEE()) return;
 
-  let inbound: Array<Record<string, any>>;
+  let linkColsByBase: Map<string, Set<string>>;
   try {
-    inbound = await ncMeta
-      .knex(MetaTable.COL_RELATIONS)
-      .where('fk_workspace_id', context.workspace_id)
-      .whereNot('base_id', context.base_id)
-      .where('fk_related_base_id', context.base_id)
-      .where('fk_related_model_id', changedModelId);
+    linkColsByBase = await getCrossBaseInboundLinkColumns(
+      context,
+      changedModelId,
+      ncMeta,
+    );
   } catch {
     // No cross-base links (or a transient read error) — nothing to do.
     return;
-  }
-  if (!inbound?.length) return;
-
-  // Group the referring link columns by the base they live in.
-  const linkColsByBase = new Map<string, Set<string>>();
-  for (const rel of inbound) {
-    if (!rel.base_id || !rel.fk_column_id) continue;
-    if (!linkColsByBase.has(rel.base_id)) {
-      linkColsByBase.set(rel.base_id, new Set<string>());
-    }
-    linkColsByBase.get(rel.base_id).add(rel.fk_column_id);
   }
 
   for (const [refBaseId, linkColIds] of linkColsByBase) {

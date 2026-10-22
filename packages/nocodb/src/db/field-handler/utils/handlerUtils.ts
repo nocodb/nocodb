@@ -324,7 +324,10 @@ export async function nestedConditionJoin({
         (relationType === RelationTypes.HAS_MANY ||
           relationType === RelationTypes.BELONGS_TO)
       ) {
-        const cfg = await loadLookupSortAndLimit(context, lookupColumn);
+        const cfg = await loadLookupSortAndLimit(
+          lookupColumn.context,
+          lookupColumn,
+        );
         if (cfg.hasConfig && cfg.limitVal > 0) {
           const isHm = relationType === RelationTypes.HAS_MANY;
           const applier = await buildNestedLookupLevelLimit({
@@ -347,12 +350,23 @@ export async function nestedConditionJoin({
     }
 
     if (lookupColumn.uidt === UITypes.Lookup) {
+      const nestedLookupColumn = await (
+        await lookupColumn.getColOptions<LookupColumn>()
+      ).getLookupColumn();
+      // A cross-base hop descends with the related table's base model so the
+      // next level (and the leaf filter) resolves its columns in that base.
+      const relatedBaseModel =
+        nestedLookupColumn?.fk_model_id === childModel.id
+          ? childBaseModel
+          : parentBaseModel;
+      const nestedBaseModel =
+        relatedBaseModel.context.base_id === baseModelSqlv2.context.base_id
+          ? baseModelSqlv2
+          : relatedBaseModel;
       const filterOperationResult = await nestedConditionJoin({
-        baseModelSqlv2,
+        baseModelSqlv2: nestedBaseModel,
         filter,
-        lookupColumn: await (
-          await lookupColumn.getColOptions<LookupColumn>()
-        ).getLookupColumn(),
+        lookupColumn: nestedLookupColumn,
         knex,
         alias: relAlias,
         aliasCount,

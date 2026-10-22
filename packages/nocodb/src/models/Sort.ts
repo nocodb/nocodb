@@ -124,14 +124,15 @@ export default class Sort {
           )?.order || 0) + 1;
     }
 
-    const model = await Column.get(
-      context,
-      { colId: sortObj.fk_column_id },
-      ncMeta,
-    );
-
     if (!sortObj.source_id) {
-      insertObj.source_id = model.source_id;
+      // A lookup sort's key is a related-table column, possibly in another
+      // base; the sort row belongs to the lookup column's source.
+      const sourceColumn = await Column.get(
+        context,
+        { colId: sortObj.fk_lookup_col_id || sortObj.fk_column_id },
+        ncMeta,
+      );
+      insertObj.source_id = sourceColumn?.source_id;
     }
 
     // increment existing order

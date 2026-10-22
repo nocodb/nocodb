@@ -25,6 +25,7 @@ import type {
   UpdatePayload,
 } from 'nocodb-sdk';
 import type { Request } from 'express';
+import type { LinkToAnotherRecordColumn } from '~/models';
 import { Column, Hook } from '~/models';
 import { Model, View } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
@@ -335,6 +336,27 @@ export const extractColMetaForAudit = (column: ColumnType, datas?: any[]) => {
     : undefined;
 };
 
+// The far side of a link may be in another base. The passed column may be a
+// plain object with colOptions unloaded, so prefer the saved link column.
+const getLinkRefContext = async (
+  context: NcContext,
+  linkColumn: ColumnType & { fk_related_base_id?: string },
+): Promise<NcContext> => {
+  const savedLink = linkColumn?.id
+    ? await Column.get(context, { colId: linkColumn.id })
+    : null;
+  if (savedLink && isLinksOrLTAR(savedLink)) {
+    const relation = await savedLink.getColOptions<LinkToAnotherRecordColumn>();
+    if (relation) return relation.getRelContext().refContext;
+  }
+  const relatedBaseId =
+    linkColumn?.fk_related_base_id ||
+    (linkColumn?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id;
+  return relatedBaseId && relatedBaseId !== context.base_id
+    ? { ...context, base_id: relatedBaseId }
+    : context;
+};
+
 /**
  * Extracts additional metadata corresponding to specific column types.
  * Handles cases such as Barcode, QrCode, Button, Lookup, Rollup, and Links.
@@ -402,7 +424,17 @@ export const extractRefColumnIfFound = async ({
       ? await Model.get(context, linkField.fk_model_id)
       : null;
 
-    const lookupColumn = await Column.get(context, { colId: lookupColumnId });
+    const lookupColumn = await Column.get(
+      await getLinkRefContext(
+        context,
+        linkField ?? {
+          id:
+            column.fk_relation_column_id ||
+            column.colOptions?.fk_relation_column_id,
+        },
+      ),
+      { colId: lookupColumnId },
+    );
 
     return {
       link_field_id: linkField?.id,
@@ -433,7 +465,17 @@ export const extractRefColumnIfFound = async ({
       ? await Model.get(context, linkField.fk_model_id)
       : null;
 
-    const rollupColumn = await Column.get(context, { colId: rollupColumnId });
+    const rollupColumn = await Column.get(
+      await getLinkRefContext(
+        context,
+        linkField ?? {
+          id:
+            column.fk_relation_column_id ||
+            column.colOptions?.fk_relation_column_id,
+        },
+      ),
+      { colId: rollupColumnId },
+    );
 
     return {
       link_field_id: linkField?.id,
@@ -453,8 +495,9 @@ export const extractRefColumnIfFound = async ({
 
   // if Links / LTAR column extract the ref table title and column title
   if (isLinksOrLTAR(column)) {
+    const refContext = await getLinkRefContext(context, column);
     const refTable = await Model.get(
-      context,
+      refContext,
       column.child_id ||
         (column?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id,
     );
@@ -464,7 +507,7 @@ export const extractRefColumnIfFound = async ({
     // extract child view info if defined
     if (column.fk_child_view_id || column.child_view_id) {
       const childView = await View.get(
-        context,
+        refContext,
         column.fk_child_view_id || column.child_view_id,
       );
 

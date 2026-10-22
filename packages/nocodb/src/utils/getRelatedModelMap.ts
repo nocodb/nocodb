@@ -120,8 +120,15 @@ export async function getRelatedModelMap(
 
   relatedModels.set(table.id, table);
 
+  // processColumn falls back to its context's base for same-base links, so it
+  // must be the table's own base (callers may pass a cross-base lookup's model).
+  const tableContext =
+    table.base_id && table.base_id !== context.base_id
+      ? { ...context, base_id: table.base_id }
+      : context;
+
   for (const col of table.columns) {
-    await processColumn(context, col, relatedModels, undefined, ncMeta);
+    await processColumn(tableContext, col, relatedModels, undefined, ncMeta);
   }
 
   return relatedModels;

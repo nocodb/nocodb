@@ -1220,8 +1220,8 @@ export default class Model implements TableType {
       }
     }
 
-    // use set to avoid duplicate
-    const relatedModelIds = new Set<string>();
+    // related model id -> its context; a cross-base one lives in another base
+    const relatedModels = new Map<string, NcContext>();
 
     // clear all single query cache of related views
     for (const col of model.columns) {
@@ -1229,12 +1229,16 @@ export default class Model implements TableType {
       const colOptions = await col.getColOptions<
         LinkToAnotherRecordColumn | LinksColumn
       >();
-      relatedModelIds.add(colOptions?.fk_related_model_id);
+      if (!colOptions?.fk_related_model_id) continue;
+      relatedModels.set(
+        colOptions.fk_related_model_id,
+        colOptions.getRelContext().refContext,
+      );
     }
 
     await Promise.all(
-      Array.from(relatedModelIds).map(async (modelId: string) => {
-        await View.clearSingleQueryCache(context, modelId, null, ncMeta);
+      Array.from(relatedModels).map(async ([modelId, refContext]) => {
+        await View.clearSingleQueryCache(refContext, modelId, null, ncMeta);
       }),
     );
 

@@ -154,7 +154,7 @@ export class ButtonsService {
    * Tables reachable through link fields (two hops: lookups of lookups) — what
    * the grid has loaded when it resolves Lookup/Rollup conditions.
    */
-  protected async relatedMetas(context: NcContext, model: Model) {
+  protected async relatedMetas(_context: NcContext, model: Model) {
     const metas: Record<string, Model> = {
       [`${model.base_id}:${model.id}`]: model,
     };
@@ -174,7 +174,8 @@ export class ButtonsService {
           )
             continue;
 
-          const related = await Model.get(context, relatedId);
+          // the related table may be in another base
+          const related = await relation.getRelatedTable();
           if (!related) continue;
           await related.getColumns();
           metas[`${related.base_id}:${related.id}`] = related;

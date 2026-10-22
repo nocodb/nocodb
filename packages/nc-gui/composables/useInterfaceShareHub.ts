@@ -12,7 +12,7 @@ export function useInterfaceShareHub() {
     isBlocked: computed(() => false),
     linkTarget: computed<InviteLinkTarget | null>(() => null),
     inviteRoles: computed<string[]>(() => []),
-    members: ref<{ email: string }[]>([]),
+    members: ref<{ email: string; roles?: string[] }[]>([]),
     showUpgrade: () => {},
     loadMemberCount: async (): Promise<number | null> => null,
     inviteByEmail: async (_emails: string[], _role: string) => {},

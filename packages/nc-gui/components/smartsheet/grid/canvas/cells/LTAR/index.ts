@@ -45,7 +45,7 @@ export const LtarCellRenderer: CellRenderer = {
       // component setup, where its inject()s resolve to undefined and it throws.
       props = {
         ...props,
-        readonly: props.readonly || !props.isUIAllowed?.('dataEdit', { roles: baseRoles }),
+        readonly: props.readonly || !props.isUIAllowed?.('dataEdit', baseRoles),
       }
     }
 

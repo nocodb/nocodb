@@ -2,6 +2,8 @@ import {
   type ColumnType,
   extractRolesObj,
   getStandingRole,
+  isServiceUser,
+  NcAccessSource,
   type NcContext,
   type OperationSource,
   PermissionEntity,
@@ -11,7 +13,8 @@ import {
   ProjectRoles,
 } from 'nocodb-sdk';
 import type { NcRequest, UITypes } from 'nocodb-sdk';
-import { Model, ModelRoleVisibility, Permission, View } from '~/models';
+import type { LinkToAnotherRecordColumn } from '~/models';
+import { Model, ModelRoleVisibility, Permission, User, View } from '~/models';
 import {
   deleteColumnSystemPropsFromRequest,
   TableSystemColumns,
@@ -291,4 +294,75 @@ export async function hasLimitedRelatedTableAccess(
     relatedTableId,
     context.user,
   ));
+}
+
+/**
+ * Whether a read through a link must collapse the related table to pk +
+ * display value: the caller lacks access to it under its role in the related
+ * table's base, or comes through a shared view, or through a shared base that
+ * the related table's base is not part of.
+ */
+export async function hasLimitedLinkTargetAccess(
+  context: NcContext,
+  colOptions: LinkToAnotherRecordColumn,
+  relatedModelId: string,
+): Promise<boolean> {
+  if (
+    context.access_source === NcAccessSource.SHARED_BASE &&
+    colOptions.isCrossBaseLink()
+  ) {
+    return true;
+  }
+  const { refContext } = colOptions.getRelContext();
+  if (!colOptions.isCrossBaseLink() || isSharedViewAccess(refContext)) {
+    return hasLimitedRelatedTableAccess(refContext, relatedModelId);
+  }
+  return !(await hasTableVisibilityAccess(
+    refContext,
+    relatedModelId,
+    await userInRelatedBase(refContext),
+  ));
+}
+
+// Per request user object: base id -> that user with its roles in that base.
+const relatedBaseUsers = new WeakMap<object, Map<string, Promise<any>>>();
+
+/**
+ * The request user carries its roles in the REQUEST base; a cross-base link's
+ * TABLE_VISIBILITY rule must be read against its role in the related base.
+ * Service users and agents keep the request roles.
+ */
+async function userInRelatedBase(
+  refContext: NcContext,
+): Promise<NcRequest['user']> {
+  const user = refContext.user as NcRequest['user'] & { is_agent?: boolean };
+  if (!user?.id || isServiceUser(user) || user.is_agent) return user;
+
+  let byBase = relatedBaseUsers.get(user);
+  if (!byBase) relatedBaseUsers.set(user, (byBase = new Map()));
+
+  let pending = byBase.get(refContext.base_id);
+  if (!pending) {
+    pending = User.getWithRoles(refContext, user.id, {
+      baseId: refContext.base_id,
+      workspaceId: refContext.workspace_id,
+    })
+      .then((withRoles) => ({
+        ...user,
+        roles: withRoles?.roles ?? null,
+        base_roles: withRoles?.base_roles ?? null,
+        workspace_roles: withRoles?.workspace_roles ?? null,
+        is_app_effective_role: undefined,
+        real_base_role: undefined,
+      }))
+      .catch(() => ({
+        ...user,
+        roles: null,
+        base_roles: null,
+        is_app_effective_role: undefined,
+        real_base_role: undefined,
+      }));
+    byBase.set(refContext.base_id, pending);
+  }
+  return pending;
 }

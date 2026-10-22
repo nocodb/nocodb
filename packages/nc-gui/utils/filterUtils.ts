@@ -268,11 +268,13 @@ export const composeColumnsForFilter = async ({
     }
 
     let nextCol: ColumnType | undefined = column
+    // base of the table nextCol lives in; changes when a hop crosses bases
+    let currentBaseId = rootMeta.base_id!
     // check all the relation of nested lookup columns is bt or not
     // include the column only if all only if all relations are bt
     while (nextCol && nextCol.uidt === UITypes.Lookup) {
       // extract the relation column meta
-      const lookupRelation: ColumnType | undefined = (await getMeta(rootMeta.base_id!, nextCol.fk_model_id!))?.columns?.find(
+      const lookupRelation: ColumnType | undefined = (await getMeta(currentBaseId, nextCol.fk_model_id!))?.columns?.find(
         (c) => c.id === (nextCol!.colOptions as LookupType).fk_relation_column_id,
       )
       // this is less likely to happen but if relation column is not found then break the loop
@@ -280,10 +282,9 @@ export const composeColumnsForFilter = async ({
         break
       }
 
-      const relatedTableMeta: TableType | null = await getMeta(
-        rootMeta.base_id!,
-        (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
-      )
+      const relationColOptions = lookupRelation.colOptions as LinkToAnotherRecordType
+      currentBaseId = relationColOptions.fk_related_base_id || currentBaseId
+      const relatedTableMeta: TableType | null = await getMeta(currentBaseId, relationColOptions.fk_related_model_id!)
       nextCol = relatedTableMeta?.columns?.find((c) => c.id === (nextCol!.colOptions as LookupType).fk_lookup_column_id)
 
       // if next column is same as root lookup column then break the loop

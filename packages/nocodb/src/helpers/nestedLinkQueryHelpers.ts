@@ -236,7 +236,12 @@ export async function restrictNestedLinkQuery(
   if (!query) return;
 
   // Nothing to sanitize — skip the access check and column lookup entirely.
-  if (!query.where && !query.sort) return;
+  if (
+    ![...LIST_ARG_ALIASES.where, ...LIST_ARG_ALIASES.sort].some(
+      (key) => query[key],
+    )
+  )
+    return;
 
   // The related table may live in another base — resolve its own context for the
   // column lookup below.

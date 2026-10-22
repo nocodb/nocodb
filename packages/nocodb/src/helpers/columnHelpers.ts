@@ -530,33 +530,34 @@ export async function validateLookupPayload(
   }
 
   const relation = await column.getColOptions<LinkToAnotherRecordColumn>();
-  const { refContext } = relation.getRelContext();
-
-  // check for circular reference (must be done after getting refContext for cross-base)
-  if (columnId) {
-    let lkCol: LookupColumn | LookupColumnReqType =
-      payload as LookupColumnReqType;
-    while (lkCol) {
-      // check if lookup column is same as column itself
-      if (columnId === lkCol.fk_lookup_column_id)
-        NcError.get(context).badRequest(
-          'Circular lookup reference not allowed',
-        );
-      lkCol = await Column.get(refContext, {
-        colId: lkCol.fk_lookup_column_id,
-      }).then((c: Column) => {
-        if (c && c.uidt === 'Lookup') {
-          return c.getColOptions<LookupColumn>();
-        }
-        return null;
-      });
-    }
-  }
 
   if (!relation) {
     NcError.get(context).relationFieldNotFound(
       (payload as LookupColumnReqType).fk_relation_column_id,
     );
+  }
+
+  const { refContext } = relation.getRelContext();
+
+  // check for circular reference; each hop resolves in its own relation's base
+  if (columnId) {
+    if (columnId === (payload as LookupColumnReqType).fk_lookup_column_id)
+      NcError.get(context).badRequest('Circular lookup reference not allowed');
+
+    let next = await Column.get(refContext, {
+      colId: (payload as LookupColumnReqType).fk_lookup_column_id,
+    });
+    const visited = new Set<string>();
+    while (next?.uidt === UITypes.Lookup && !visited.has(next.id)) {
+      visited.add(next.id);
+      const lkCol = await next.getColOptions<LookupColumn>();
+      if (!lkCol) break;
+      if (columnId === lkCol.fk_lookup_column_id)
+        NcError.get(context).badRequest(
+          'Circular lookup reference not allowed',
+        );
+      next = await lkCol.getLookupColumn();
+    }
   }
 
   let relatedColumn: Column;

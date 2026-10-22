@@ -56,13 +56,15 @@ import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
   LinkToAnotherRecordType,
+  LookupColumnReqType,
+  RollupColumnReqType,
   UserType,
 } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type CustomKnex from '~/db/CustomKnex';
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import type { NcRequest } from '~/interface/config';
-import type { Base, ButtonColumn, LinkToAnotherRecordColumn } from '~/models';
+import type { ButtonColumn, LinkToAnotherRecordColumn } from '~/models';
 import type {
   IColumnsService,
   LtarSideEffectIds,
@@ -111,6 +113,7 @@ import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import validateParams from '~/helpers/validateParams';
 import { MetaService } from '~/meta/meta.service';
 import {
+  Base,
   BaseUser,
   Column,
   Filter,
@@ -153,6 +156,8 @@ import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 import { validateColumnInternalMeta } from '~/types/column-internal-meta';
 import { backfillAutoNumber } from '~/helpers/autonumberHelpers';
 import { getModelContext, setModelContext } from '~/helpers/modelContext';
+import { credentialCoversBase } from '~/helpers/credentialBaseScope';
+import { getCrossBaseInboundLinkColumns } from '~/helpers/crossBaseInboundLinks';
 
 export type {
   LtarSideEffectIds,
@@ -2028,7 +2033,7 @@ export class ColumnsService implements IColumnsService {
           }
         }
 
-        await this.updateRollupOrLookup(context, colBody, column);
+        await this.updateRollupOrLookup(context, colBody, column, req);
       } else if ([UITypes.Formula].includes(column.uidt)) {
         assertFormulaConvertibleTo(context, param.column.uidt);
         (param.column as any).id = undefined;
@@ -4009,6 +4014,9 @@ export class ColumnsService implements IColumnsService {
       },
       context.socket_id,
     );
+    void this.broadcastToCrossBaseReferrers(context, table.id, {
+      skipDataReload: isRowDataUnchanged(oldColumn, updatedColumn),
+    });
 
     if (!param.columnWebhookManager) {
       await columnWebhookManager.populateNewColumns();
@@ -4032,6 +4040,57 @@ export class ColumnsService implements IColumnsService {
 
   async columnGet(context: NcContext, param: { columnId: string }) {
     return Column.get(context, { colId: param.columnId });
+  }
+
+  // Clients on a table in another base that links into `tableId` render its
+  // fields but only listen to their own base's room. Ids only: the client
+  // refetches both metas through its own ACL. Fire-and-forget.
+  protected async broadcastToCrossBaseReferrers(
+    context: NcContext,
+    tableId: string,
+    { skipDataReload = false }: { skipDataReload?: boolean } = {},
+  ) {
+    try {
+      const linkColsByBase = await getCrossBaseInboundLinkColumns(
+        context,
+        tableId,
+      );
+      for (const [refBaseId, linkColIds] of linkColsByBase) {
+        const refContext: NcContext = { ...context, base_id: refBaseId };
+        // referring model -> one of its links into `tableId`
+        const linkByModel = new Map<string, string>();
+        for (const colId of linkColIds) {
+          const linkCol = await Column.get(refContext, { colId });
+          if (linkCol?.fk_model_id && !linkByModel.has(linkCol.fk_model_id)) {
+            linkByModel.set(linkCol.fk_model_id, colId);
+          }
+        }
+        for (const [modelId, linkColumnId] of linkByModel) {
+          // junction tables are never open in a client
+          if ((await Model.get(refContext, modelId))?.mm) continue;
+          NocoSocket.broadcastEvent(refContext, {
+            event: EventType.META_EVENT,
+            payload: {
+              action: 'related_meta_update',
+              payload: {
+                table: { id: modelId, base_id: refBaseId },
+                related_table: {
+                  id: tableId,
+                  base_id: context.base_id,
+                  link_column_id: linkColumnId,
+                },
+                skipDataReload,
+              },
+            },
+          });
+        }
+      }
+    } catch (e) {
+      this.logger.error(
+        `Failed to broadcast cross-base column_update: ${e?.message}`,
+        e?.stack,
+      );
+    }
   }
 
   @TraceCommand(OperationName.columnSetAsPrimary)
@@ -4119,6 +4178,8 @@ export class ColumnsService implements IColumnsService {
       },
       context.socket_id,
     );
+
+    void this.broadcastToCrossBaseReferrers(context, table.id);
 
     return result;
   }
@@ -4372,6 +4433,11 @@ export class ColumnsService implements IColumnsService {
       case UITypes.Rollup:
         {
           await validateRollupPayload(context, param.column);
+          await this.assertCanReadRelatedBase(
+            context,
+            (param.column as RollupColumnReqType).fk_relation_column_id,
+            param.req,
+          );
 
           savedColumn = await Column.insert(context, {
             ...colBody,
@@ -4382,6 +4448,11 @@ export class ColumnsService implements IColumnsService {
       case UITypes.Lookup:
         {
           await validateLookupPayload(context, param.column);
+          await this.assertCanReadRelatedBase(
+            context,
+            (param.column as LookupColumnReqType).fk_relation_column_id,
+            param.req,
+          );
 
           savedColumn = await Column.insert(context, {
             ...colBody,
@@ -5631,6 +5702,26 @@ export class ColumnsService implements IColumnsService {
             // orphaned-link crashes. Tear the whole junction down so nothing
             // dangles. (Guard only fires for genuinely orphaned relations, so
             // this never runs for a normal delete.)
+            // A cross-base relation leaves residue in the related / junction
+            // base too, so search and delete in each base it spans.
+            const { refContext } = relationColOpt.getRelContext();
+            const relContexts = new Map<string, NcContext>(
+              [context, refContext, mmContext].map((c) => [c.base_id, c]),
+            );
+            const listRelations = async (condition: Record<string, string>) =>
+              (
+                await Promise.all(
+                  [...relContexts.values()].map((c) =>
+                    ncMeta.metaList2(
+                      c.workspace_id,
+                      c.base_id,
+                      MetaTable.COL_RELATIONS,
+                      { condition },
+                    ),
+                  ),
+                )
+              ).flat();
+
             if (relationColOpt.fk_mm_model_id) {
               const junctionId = relationColOpt.fk_mm_model_id;
 
@@ -5639,25 +5730,15 @@ export class ColumnsService implements IColumnsService {
               // must be removed explicitly — Model.delete only sweeps the
               // col_relation rows, not the columns on the other tables.
               const refRelations = [
-                ...(await ncMeta.metaList2(
-                  context.workspace_id,
-                  context.base_id,
-                  MetaTable.COL_RELATIONS,
-                  { condition: { fk_mm_model_id: junctionId } },
-                )),
-                ...(await ncMeta.metaList2(
-                  context.workspace_id,
-                  context.base_id,
-                  MetaTable.COL_RELATIONS,
-                  { condition: { fk_related_model_id: junctionId } },
-                )),
+                ...(await listRelations({ fk_mm_model_id: junctionId })),
+                ...(await listRelations({ fk_related_model_id: junctionId })),
               ];
               for (const rel of refRelations) {
                 if (!rel.fk_column_id || rel.fk_column_id === param.columnId) {
                   continue;
                 }
                 await Column.delete2(
-                  context,
+                  relContexts.get(rel.base_id) ?? context,
                   {
                     id: rel.fk_column_id,
                     // may be soft-deleted (cascaded reverse/system link)
@@ -5672,12 +5753,21 @@ export class ColumnsService implements IColumnsService {
               // (DROP TABLE IF EXISTS) and best-effort — it is usually already
               // gone by the time we get here.
               const junction = await Model.get(
-                context,
+                mmContext,
                 junctionId,
                 true,
                 ncMeta,
               );
               if (junction) {
+                const mmSource =
+                  junction.source_id && junction.source_id !== source.id
+                    ? await Source.get(
+                        mmContext,
+                        junction.source_id,
+                        undefined,
+                        ncMeta,
+                      )
+                    : source;
                 try {
                   // getColumns must run first — tableDelete builds a rollback
                   // (down) query from junction.columns; without it that builder
@@ -5687,7 +5777,7 @@ export class ColumnsService implements IColumnsService {
                   junction.columns.forEach((c) => {
                     (c as any).cn = c.column_name;
                   });
-                  await sqlMgr.sqlOpPlus(source, 'tableDelete', junction);
+                  await sqlMgr.sqlOpPlus(mmSource, 'tableDelete', junction);
                 } catch (e) {
                   this.logger.warn(
                     `Orphaned junction ${junctionId}: physical drop skipped (${e?.message})`,
@@ -5704,23 +5794,16 @@ export class ColumnsService implements IColumnsService {
               // it so it isn't left dangling at the now-deleted related table.
               // (The FK column is unique per relationship, so this matches only
               // the paired reverse link.)
-              const reverseRels = await ncMeta.metaList2(
-                context.workspace_id,
-                context.base_id,
-                MetaTable.COL_RELATIONS,
-                {
-                  condition: {
-                    fk_child_column_id: relationColOpt.fk_child_column_id,
-                    fk_parent_column_id: relationColOpt.fk_parent_column_id,
-                  },
-                },
-              );
+              const reverseRels = await listRelations({
+                fk_child_column_id: relationColOpt.fk_child_column_id,
+                fk_parent_column_id: relationColOpt.fk_parent_column_id,
+              });
               for (const rel of reverseRels) {
                 if (!rel.fk_column_id || rel.fk_column_id === param.columnId) {
                   continue;
                 }
                 await Column.delete2(
-                  context,
+                  relContexts.get(rel.base_id) ?? context,
                   {
                     id: rel.fk_column_id,
                     // may be soft-deleted (cascaded reverse/system link)
@@ -6194,6 +6277,8 @@ export class ColumnsService implements IColumnsService {
       },
       context.socket_id,
     );
+
+    void this.broadcastToCrossBaseReferrers(context, table.id);
 
     // Broadcast column_delete for each related table that received a placeholder
     // so remote clients pick up the new SLT without a full meta refetch.
@@ -7003,7 +7088,8 @@ export class ColumnsService implements IColumnsService {
 
     // check permission if cross-base link
     if (table.base_id !== refContext.base_id) {
-      await this.checkCrossBasePermission(refContext, param.req.user);
+      await this.checkCrossBasePermission(refContext, param.req);
+      await this.assertRelatedBaseSchemaWritable(context, refContext);
     }
 
     const refTable = await Model.getWithInfo(refContext, {
@@ -7041,7 +7127,7 @@ export class ColumnsService implements IColumnsService {
 
     let refColumn: Column;
     const childView: View | null = ltarReq?.childViewId
-      ? await View.getByTitleOrId(context, {
+      ? await View.getByTitleOrId(refContext, {
           fk_model_id: refTable.id,
           titleOrId: ltarReq.childViewId,
         })
@@ -7889,6 +7975,7 @@ export class ColumnsService implements IColumnsService {
     context: NcContext,
     colBody: any,
     column: Column<any>,
+    req?: NcRequest,
   ) {
     // Deleting a link field leaves the lookups and rollups through it in place,
     // pointing at a relation that no longer resolves. Re-validating those
@@ -7909,6 +7996,21 @@ export class ColumnsService implements IColumnsService {
       return !relationColumn;
     };
 
+    // re-check related-base access only when the relation or target changes
+    const assertTargetReadable = async (targetKey: string) => {
+      if (
+        colBody.fk_relation_column_id !==
+          column.colOptions?.fk_relation_column_id ||
+        colBody[targetKey] !== column.colOptions?.[targetKey]
+      ) {
+        await this.assertCanReadRelatedBase(
+          context,
+          colBody.fk_relation_column_id,
+          req,
+        );
+      }
+    };
+
     // Validate rollup or lookup payload before proceeding with the update
     if (
       UITypes.Lookup === column.uidt &&
@@ -7920,6 +8022,7 @@ export class ColumnsService implements IColumnsService {
     ) {
       // Perform additional validation for lookup payload
       await validateLookupPayload(context, colBody, column.id);
+      await assertTargetReadable('fk_lookup_column_id');
       await Column.update(context, column.id, { ...colBody, error: null });
     } else if (
       UITypes.Rollup === column.uidt &&
@@ -7936,6 +8039,7 @@ export class ColumnsService implements IColumnsService {
     ) {
       // Perform additional validation for rollup payload
       await validateRollupPayload(context, colBody);
+      await assertTargetReadable('fk_rollup_column_id');
       const baseModel = await getBaseModelSqlFromModelId({
         modelId: column.fk_model_id,
         context,
@@ -8227,8 +8331,11 @@ export class ColumnsService implements IColumnsService {
 
   private async checkCrossBasePermission(
     refContext: NcContext,
-    user: UserType,
+    req: NcRequest,
   ) {
+    const user = req.user;
+    await this.assertCredentialCoversBase(refContext, req);
+
     // extract target base roles and check if columnAdd permission is granted
     const userWithRoles = await User.getWithRoles(refContext, user.id, {
       baseId: refContext.base_id,
@@ -8246,6 +8353,78 @@ export class ColumnsService implements IColumnsService {
       NcError.get(refContext).forbidden(
         `You don't have permission to create a relation to target base ${refContext.base_id}`,
       );
+    }
+  }
+
+  // A base-scoped credential (PAT, OAuth consent, MCP grant) only reaches the
+  // bases it covers, including through a cross-base relation.
+  protected async assertCredentialCoversBase(
+    refContext: NcContext,
+    req?: NcRequest,
+  ) {
+    if (
+      !(await credentialCoversBase(req, {
+        baseId: refContext.base_id,
+        workspaceId: refContext.workspace_id,
+      }))
+    ) {
+      NcError.get(refContext).forbidden(
+        `This credential is not scoped to base ${refContext.base_id}`,
+      );
+    }
+  }
+
+  // A Lookup/Rollup over a cross-base link exposes the related base's data to
+  // everyone who can read this table, so its author must be able to read it.
+  protected async assertCanReadRelatedBase(
+    context: NcContext,
+    relationColumnId: string,
+    req?: NcRequest,
+  ) {
+    const user = req?.user;
+    // internal callers (system/service users, replays) carry no end user
+    if (!user?.id || isServiceUser(user) || isReplay()) return;
+
+    const relationCol = await Column.get(context, { colId: relationColumnId });
+    const relation =
+      await relationCol?.getColOptions<LinkToAnotherRecordColumn>();
+    if (!relation) return;
+
+    const { refContext } = relation.getRelContext();
+    if (refContext.base_id === context.base_id) return;
+
+    await this.assertCredentialCoversBase(refContext, req);
+
+    const userWithRoles = await User.getWithRoles(refContext, user.id, {
+      baseId: refContext.base_id,
+      workspaceId: refContext.workspace_id,
+    });
+    const baseRoles = extractRolesObj(userWithRoles?.base_roles);
+    const canRead = [
+      ProjectRoles.OWNER,
+      ProjectRoles.CREATOR,
+      ProjectRoles.EDITOR,
+      ProjectRoles.COMMENTER,
+      ProjectRoles.VIEWER,
+    ].some((role) => baseRoles?.[role]);
+
+    if (!canRead) {
+      NcError.get(context).forbidden(
+        `You don't have access to the related base ${refContext.base_id}`,
+      );
+    }
+  }
+
+  // Writes into the related base of a cross-base link honour that base's
+  // schema lock, not just the request base's.
+  protected async assertRelatedBaseSchemaWritable(
+    context: NcContext,
+    refContext: NcContext,
+  ) {
+    if (refContext.base_id === context.base_id) return;
+    const refBase = await Base.get(refContext, refContext.base_id);
+    if (refBase?.managed_app_schema_locked) {
+      NcError.get(refContext).schemaLocked();
     }
   }
 
@@ -8471,6 +8650,14 @@ export class ColumnsService implements IColumnsService {
     }
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+
+    // conversion also writes into the related / junction base
+    const { refContext, mmContext } = colOptions.getRelContext();
+    for (const relContext of [refContext, mmContext]) {
+      if (relContext.base_id === context.base_id) continue;
+      await this.assertCredentialCoversBase(relContext, param.req);
+      await this.assertRelatedBaseSchemaWritable(context, relContext);
+    }
 
     // Reject when the paired column on the other side of the relation is
     // already V2 but this column is V1. Both sides must transition together —

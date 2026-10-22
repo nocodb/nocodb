@@ -44,14 +44,19 @@ const relatedTableMeta = computed(() => {
 // (Gallery, Kanban, expanded form) have no rollup preloader, so without this
 // `relatedTableMeta` stays undefined and the cell loses its currency/number
 // formatting (renders a plain number).
+// Set once the related meta request settles, so the fallback below only covers
+// missing access, not the loading window
+const relatedMetaResolved = ref(false)
+
 watch(
   relationColumnOptions,
   async (relOpt) => {
-    if (!relOpt?.fk_related_model_id) return
-    const relatedBaseId = relOpt.fk_related_base_id || meta.value?.base_id
-    if (!relatedBaseId) return
-    if (getMetaByKey(relatedBaseId, relOpt.fk_related_model_id)) return
-    await getMeta(relatedBaseId, relOpt.fk_related_model_id, false, false, true)
+    relatedMetaResolved.value = false
+    const relatedBaseId = relOpt?.fk_related_base_id || meta.value?.base_id
+    if (relOpt?.fk_related_model_id && relatedBaseId && !getMetaByKey(relatedBaseId, relOpt.fk_related_model_id)) {
+      await getMeta(relatedBaseId, relOpt.fk_related_model_id, false, false, true)
+    }
+    relatedMetaResolved.value = true
   },
   { immediate: true },
 )
@@ -59,11 +64,12 @@ watch(
 const colOptions = computed(() => column.value?.colOptions)
 
 const childColumn = computed(() => {
-  if (!relatedTableMeta.value?.columns || !isRollup(column.value)) return ''
+  if (!column.value || !isRollup(column.value)) return ''
 
-  const col = relatedTableMeta.value?.columns.find(
-    (c: ColumnType) => c.id === (colOptions.value as RollupType).fk_rollup_column_id,
-  )
+  // Partial/missing related meta (no access to the related base) — derive the type from the rollup
+  const col =
+    relatedTableMeta.value?.columns?.find((c: ColumnType) => c.id === (colOptions.value as RollupType).fk_rollup_column_id) ??
+    (relatedMetaResolved.value ? getFallbackRollupColumn(column.value) : undefined)
 
   if (!col) return ''
 

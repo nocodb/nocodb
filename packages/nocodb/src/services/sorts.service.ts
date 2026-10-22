@@ -4,6 +4,7 @@ import Noco from 'src/Noco';
 import type { SortReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import type { LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
@@ -136,6 +137,22 @@ export class SortsService {
 
     if (!sort) {
       NcError.badRequest('Sort not found');
+    }
+
+    if (sort.fk_lookup_col_id && param.sort.fk_column_id) {
+      const lookupCol = await Column.get(
+        context,
+        { colId: sort.fk_lookup_col_id },
+        ncMeta,
+      );
+      if (lookupCol) {
+        await this.validateLookupSortColumn(
+          context,
+          lookupCol,
+          param.sort.fk_column_id,
+          ncMeta,
+        );
+      }
     }
 
     const column = await Column.get(
@@ -325,49 +342,13 @@ export class SortsService {
       NcError.get(context).badRequest('Lookup column not found');
     }
 
-    // The sort column must belong to the lookup's related table — otherwise it
-    // silently no-ops at query time. Resolve the related model via the lookup's
-    // target column; skip the check only if it can't be resolved.
-    if ((param.sort as any)?.fk_column_id) {
-      const sortCol = await Column.get(
+    if (param.sort.fk_column_id) {
+      await this.validateLookupSortColumn(
         context,
-        { colId: (param.sort as any).fk_column_id },
+        lookupCol,
+        param.sort.fk_column_id,
         ncMeta,
       );
-
-      // Only real scalar columns are sortable: the correlated sub-query the
-      // filter/formula/view-sort consumers build orders by the physical
-      // `column_name`, which a virtual column (Formula/Lookup/Rollup/LTAR/…)
-      // doesn't have — allowing one would emit an invalid ORDER BY and 500 on
-      // every filtered read. Mirrors the UI's disabled-column rule (LookupSort.vue).
-      if (sortCol && isVirtualCol(sortCol)) {
-        NcError.get(context).badRequest(
-          'Lookup sort column must be a sortable (scalar) field',
-        );
-      }
-
-      let relatedModelId: string | undefined;
-      try {
-        const colOpt: any = await lookupCol.getColOptions(ncMeta);
-        const targetColId = colOpt?.fk_lookup_column_id;
-        if (targetColId) {
-          const targetCol = await Column.get(
-            context,
-            { colId: targetColId },
-            ncMeta,
-          );
-          relatedModelId = targetCol?.fk_model_id;
-        }
-      } catch {
-        relatedModelId = undefined;
-      }
-      if (relatedModelId) {
-        if (!sortCol || sortCol.fk_model_id !== relatedModelId) {
-          NcError.get(context).badRequest(
-            'Lookup sort column must belong to the related table',
-          );
-        }
-      }
     }
 
     return await Sort.insert(
@@ -378,6 +359,44 @@ export class SortsService {
       },
       ncMeta,
     );
+  }
+
+  // The sort column must be a scalar column of the lookup's related table —
+  // otherwise it silently no-ops at query time. The related table may be in
+  // another base, so resolve it through the relation's refContext.
+  protected async validateLookupSortColumn(
+    context: NcContext,
+    lookupCol: Column,
+    fkColumnId: string,
+    ncMeta?: MetaService,
+  ) {
+    const lookupOpts = await lookupCol.getColOptions<LookupColumn>(ncMeta);
+    const relationCol = await lookupOpts?.getRelationColumn();
+    const relation =
+      await relationCol?.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+    const refContext = relation ? relation.getRelContext().refContext : context;
+
+    const sortCol = await Column.get(refContext, { colId: fkColumnId }, ncMeta);
+
+    // Only real scalar columns are sortable: the correlated sub-query the
+    // filter/formula/view-sort consumers build orders by the physical
+    // `column_name`, which a virtual column (Formula/Lookup/Rollup/LTAR/…)
+    // doesn't have — allowing one would emit an invalid ORDER BY and 500 on
+    // every filtered read. Mirrors the UI's disabled-column rule (LookupSort.vue).
+    if (sortCol && isVirtualCol(sortCol)) {
+      NcError.get(context).badRequest(
+        'Lookup sort column must be a sortable (scalar) field',
+      );
+    }
+
+    if (
+      relation?.fk_related_model_id &&
+      sortCol?.fk_model_id !== relation.fk_related_model_id
+    ) {
+      NcError.get(context).badRequest(
+        'Lookup sort column must belong to the related table',
+      );
+    }
   }
 
   async lookupSortList(

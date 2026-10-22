@@ -1161,7 +1161,10 @@ async function loadRootLinkTargets() {
   if (!link.value || !props.rootMeta?.columns) return
   try {
     const targets: Record<string, string> = {}
-    for (const c of await composeColumnsForFilter({ rootMeta: props.rootMeta, getMeta })) {
+    for (const c of await composeColumnsForFilter({
+      rootMeta: props.rootMeta,
+      getMeta: (baseId, id) => getMeta(baseId, id, false, false, true),
+    })) {
       const targetId = getLinkedRecordTargetId(c.btLookupColumn ?? c)
       if (targetId) targets[c.id!] = targetId
     }

@@ -25,7 +25,7 @@ import {
   isLinkedRecordColumn,
   resolveLinkedRecordDynamicFilter,
 } from '~/db/linkedRecordDynamicFilter';
-import Filter from '~/models/Filter';
+import Filter, { FILTER_STORED_BASE } from '~/models/Filter';
 import { getModelContext, setModelContext } from '~/helpers/modelContext';
 import { getAliasGenerator } from '~/utils';
 import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
@@ -1030,9 +1030,19 @@ async function resolveDynamicFilterValue(
   baseModelSqlv2?: IBaseModelSqlV2,
   aliasCount?: { count: number },
 ): Promise<boolean | FilterOperationResult> {
-  const valueColumn = await Column.get(context, {
-    colId: filter.fk_value_col_id,
-  });
+  // Link conditions run on the related model, but a "current record" value
+  // column belongs to the link's own table — resolve it in the stored filter's
+  // base. Request-supplied filters only ever resolve in the request base.
+  const storedBase = filter[FILTER_STORED_BASE];
+  const filterContext =
+    storedBase && storedBase !== context.base_id
+      ? { ...context, base_id: storedBase }
+      : context;
+  const valueColumn =
+    (await Column.get(filterContext, { colId: filter.fk_value_col_id })) ??
+    (filterContext !== context
+      ? await Column.get(context, { colId: filter.fk_value_col_id })
+      : null);
   if (!valueColumn) {
     return false;
   }
@@ -1041,7 +1051,7 @@ async function resolveDynamicFilterValue(
   if (isLinkedRecordColumn(valueColumn) && isLinkedRecordColumn(filterColumn)) {
     if (!baseModelSqlv2 || !aliasCount) return false;
     return resolveLinkedRecordDynamicFilter(
-      context,
+      valueColumn.context,
       knex,
       filter,
       filterColumn,
@@ -1080,7 +1090,6 @@ async function resolveDynamicFilterValue(
   }
 
   return resolveCrossTableDynamicFilter(
-    context,
     knex,
     filter,
     filterColumn,
@@ -1101,7 +1110,6 @@ async function resolveDynamicFilterValue(
  * in the related table satisfies: relatedTable.valueCol <op> sourceTable.filterCol.
  */
 async function resolveCrossTableDynamicFilter(
-  context: NcContext,
   knex: Knex,
   filter: Filter,
   filterColumn: Column,
@@ -1116,7 +1124,7 @@ async function resolveCrossTableDynamicFilter(
   }
   await relatedModel.getColumns();
 
-  const relatedBaseModel = await Model.getBaseModelSQL(context, {
+  const relatedBaseModel = await Model.getBaseModelSQL(valueColumn.context, {
     model: relatedModel,
     dbDriver: baseModelSqlv2.dbDriver,
   });

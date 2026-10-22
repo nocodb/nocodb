@@ -12,6 +12,7 @@ import isBetween from 'dayjs/plugin/isBetween';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import { CURRENT_USER_TOKEN } from '~/lib/globals';
+import { getLookupColumnType } from '~/lib/columnHelper/utils/get-lookup-column-type';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -1717,6 +1718,125 @@ describe('validateRowFilters — column type resolution', () => {
             },
           ],
           { Tm: '10:30:00' }
+        )
+      ).toBe(true);
+    });
+  });
+
+  describe('cross-base link — related meta keyed under the related base', () => {
+    const xbCols: ColumnType[] = [
+      {
+        id: 'xrel',
+        title: 'XRel',
+        uidt: UITypes.LinkToAnotherRecord,
+        colOptions: {
+          fk_related_model_id: 'remote',
+          fk_related_base_id: 'baseB',
+        } as any,
+      },
+      {
+        id: 'xlkNum',
+        title: 'XLkNum',
+        uidt: UITypes.Lookup,
+        colOptions: {
+          fk_relation_column_id: 'xrel',
+          fk_lookup_column_id: 'r_num',
+        } as any,
+      },
+      {
+        id: 'xrollMax',
+        title: 'XRollMax',
+        uidt: UITypes.Rollup,
+        colOptions: {
+          rollup_function: 'max',
+          fk_relation_column_id: 'xrel',
+          fk_rollup_column_id: 'r_date',
+        } as any,
+      },
+    ];
+    const xbMetas = {
+      'baseB:remote': {
+        id: 'remote',
+        base_id: 'baseB',
+        columns: [
+          { id: 'r_num', title: 'RNum', uidt: UITypes.Number },
+          { id: 'r_date', title: 'RDate', uidt: UITypes.Date },
+        ],
+      },
+    };
+    const xbRun = (filters: FilterType[], data: any) =>
+      validateRowFilters({
+        filters,
+        data,
+        columns: xbCols,
+        client: mockClient,
+        metas: xbMetas,
+        baseId: 'baseA',
+        options: { timezone: 'Etc/UTC' },
+      });
+
+    it('lookup resolves the remote leaf type (numeric, not text)', () => {
+      expect(
+        getLookupColumnType({
+          col: xbCols[1],
+          meta: { columns: xbCols, base_id: 'baseA' },
+          metas: xbMetas,
+          baseId: 'baseA',
+        })
+      ).toBe(UITypes.Number);
+      expect(
+        xbRun([{ fk_column_id: 'xlkNum', comparison_op: 'gt', value: 10 }], {
+          XLkNum: [5, 20],
+        })
+      ).toBe(true);
+      expect(
+        xbRun([{ fk_column_id: 'xlkNum', comparison_op: 'gt', value: 100 }], {
+          XLkNum: [5, 20],
+        })
+      ).toBe(false);
+    });
+
+    it('rollup max(date) falls back to result_uidt without the related meta', () => {
+      const cols = [
+        xbCols[0],
+        {
+          ...xbCols[2],
+          colOptions: {
+            ...(xbCols[2].colOptions as any),
+            result_uidt: UITypes.Date,
+          },
+        },
+      ] as ColumnType[];
+      expect(
+        validateRowFilters({
+          filters: [
+            {
+              fk_column_id: 'xrollMax',
+              comparison_op: 'btw',
+              value: '2026-03-01,2026-03-31',
+            },
+          ],
+          data: { XRollMax: '2026-03-15' },
+          columns: cols,
+          client: mockClient,
+          metas: {},
+          baseId: 'baseA',
+          options: { timezone: 'Etc/UTC' },
+        })
+      ).toBe(true);
+    });
+
+    it('rollup max(date) resolves to a date', () => {
+      expect(
+        xbRun(
+          [
+            {
+              fk_column_id: 'xrollMax',
+              comparison_op: 'btw',
+              value: '2026-03-01,2026-03-31',
+            },
+          ],
+          { XRollMax: '2026-03-15' }
         )
       ).toBe(true);
     });

@@ -988,7 +988,9 @@ export class ExportService {
     await model.getColumns();
 
     if (!param.includeCrossBaseColumns) {
-      model.columns = this.filterOutCrossBaseColumns(model);
+      model.columns = this.filterOutCrossBaseColumns(model, {
+        keepLinks: true,
+      });
     } else {
       model.columns = [...model.columns];
     }
@@ -2061,19 +2063,24 @@ export class ExportService {
     }
   }
 
-  private filterOutCrossBaseColumns(model: Model) {
+  // Drops cross-base links and the Lookups/Rollups through them. `keepLinks`
+  // keeps the links themselves: data streams map FK values through them.
+  private filterOutCrossBaseColumns(
+    model: Model,
+    { keepLinks = false }: { keepLinks?: boolean } = {},
+  ) {
     const crossbaseLinkIds = new Set(
       model.columns.filter((c) => isCrossBaseLink(c)).map((c) => c.id),
     );
-    // filter out cross base link columns and any Lookup or Rollup columns which is dependent on cross base link
-    return model.columns.filter((c) =>
-      !isCrossBaseLink(c) &&
-      ([UITypes.Lookup, UITypes.Rollup] as string[]).includes(c.uidt)
-        ? !crossbaseLinkIds.has(
-            (c.colOptions as LookupType | RollupType).fk_relation_column_id,
-          )
-        : true,
-    );
+    return model.columns.filter((c) => {
+      if (crossbaseLinkIds.has(c.id)) return keepLinks;
+      if (([UITypes.Lookup, UITypes.Rollup] as string[]).includes(c.uidt)) {
+        return !crossbaseLinkIds.has(
+          (c.colOptions as LookupType | RollupType).fk_relation_column_id,
+        );
+      }
+      return true;
+    });
   }
 
   // Serialize export rows to CSV. For user-facing exports that emit the header row, the

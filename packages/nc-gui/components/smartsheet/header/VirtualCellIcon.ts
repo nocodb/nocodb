@@ -96,7 +96,7 @@ export default defineComponent({
 
     const column = computed(() => columnMeta.value ?? injectedColumn.value)
 
-    const { metas } = useMetas()
+    const { metasWithIdAsKey } = useMetas()
 
     let relationColumn: ColumnType
 
@@ -105,7 +105,8 @@ export default defineComponent({
 
       if (column && column.value) {
         if (isLookup(column.value) || isRollup(column.value)) {
-          relationColumn = metas.value?.[column.value.fk_model_id]?.columns?.find(
+          // metas are keyed `baseId:tableId`; table ids are unique, so match by id
+          relationColumn = metasWithIdAsKey.value[column.value.fk_model_id!]?.columns?.find(
             (c) => c.id === column.value?.colOptions?.fk_relation_column_id,
           ) as ColumnType
         }

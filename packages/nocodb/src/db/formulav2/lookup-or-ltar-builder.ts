@@ -547,13 +547,23 @@ export const lookupOrLtarBuilder =
         selectQb.limit(1);
       }
 
+      // Builders that resolve the terminal column's own metadata need a base
+      // model in that column's base when the lookup crosses bases.
+      const getLookupBaseModel = async () =>
+        lookupContext.base_id === baseModelSqlv2.context.base_id
+          ? baseModelSqlv2
+          : Model.getBaseModelSQL(lookupContext, {
+              model: await lookupColumn.getModel(),
+              dbDriver: knex,
+            });
+
       switch (lookupColumn.uidt) {
         case UITypes.Links:
         case UITypes.Rollup:
           {
             const builder = (
               await genRollupSelectv2({
-                baseModelSqlv2,
+                baseModelSqlv2: await getLookupBaseModel(),
                 knex,
                 alias: prevAlias,
                 columnOptions:
@@ -599,6 +609,7 @@ export const lookupOrLtarBuilder =
             });
             const { builder } = await _formulaQueryBuilder({
               ...params,
+              baseModelSqlv2: await getLookupBaseModel(),
               _tree: formulaOption.formula,
               model: lookupModel,
               parsedTree: formulaOption.getParsedTree(),
@@ -658,15 +669,16 @@ export const lookupOrLtarBuilder =
           const trackingLmt = isFieldTrackingLmtCol(lookupColumn);
           if (trackingLmt || isFieldTrackingLmbCol(lookupColumn)) {
             const lookupModel = await lookupColumn.getModel();
+            const lookupBaseModel = await getLookupBaseModel();
             const { builder } = trackingLmt
               ? await lmtFieldQueryBuilder({
-                  baseModel: baseModelSqlv2,
+                  baseModel: lookupBaseModel,
                   column: lookupColumn,
                   model: lookupModel,
                   tableAlias: prevAlias,
                 })
               : await lmbFieldQueryBuilder({
-                  baseModel: baseModelSqlv2,
+                  baseModel: lookupBaseModel,
                   column: lookupColumn,
                   model: lookupModel,
                   tableAlias: prevAlias,
@@ -689,7 +701,7 @@ export const lookupOrLtarBuilder =
             break;
           }
 
-          const refCol = await getRefColumnIfAlias(context, lookupColumn);
+          const refCol = await getRefColumnIfAlias(lookupContext, lookupColumn);
           if (isArray) {
             const qb = selectQb;
             selectQb = (fn) =>

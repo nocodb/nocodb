@@ -62,7 +62,7 @@ async function handleConvert() {
     // Reload related table meta (paired column changed too)
     const relatedModelId = colOptions.value?.fk_related_model_id
     if (relatedModelId) {
-      await getMeta(meta.value.base_id!, relatedModelId, true)
+      await getMeta(colOptions.value?.fk_related_base_id || meta.value.base_id!, relatedModelId, true, false, true)
     }
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)

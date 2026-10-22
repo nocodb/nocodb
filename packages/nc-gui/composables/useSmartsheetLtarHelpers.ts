@@ -105,7 +105,7 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
         if (!column || !isLinksOrLTAR(column)) return
 
         const relatedTableMeta = getMetaByKey(
-          meta.value?.base_id,
+          (<LinkToAnotherRecordType>column?.colOptions)?.fk_related_base_id || meta.value?.base_id,
           (<LinkToAnotherRecordType>column?.colOptions)?.fk_related_model_id as string,
         )
 

@@ -409,7 +409,15 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         if (groupby.column.uidt === UITypes.LinkToAnotherRecord) {
           const colOptions = groupby.column.colOptions as LinkToAnotherRecordType
-          const relatedTableMeta = await getMeta(base.value?.id as string, colOptions.fk_related_model_id as string)
+          const relatedBaseId = (colOptions.fk_related_base_id || meta.value?.base_id || base.value?.id) as string
+          const relatedTableId = colOptions.fk_related_model_id as string
+          let relatedTableMeta = await getMeta(relatedBaseId, relatedTableId, false, false, true)
+          if (!relatedTableMeta && !isPublic && groupby.column.id) {
+            relatedTableMeta = await getPartialMeta(relatedBaseId, groupby.column.id, relatedTableId, {
+              workspaceId: base.value?.fk_workspace_id,
+              baseId: meta.value?.base_id ?? base.value?.id,
+            })
+          }
           if (!relatedTableMeta) return
           // Honor the link's custom display value override — server-built group
           // keys use it, and findGroupForRow derives row keys via this prop.
@@ -814,10 +822,10 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             const lookupRelColOpts = lookupRelation.colOptions as LinkToAnotherRecordType
             const relatedTableId = lookupRelColOpts.fk_related_model_id as string
             const relatedBaseId = lookupRelColOpts.fk_related_base_id || currentBaseId
-            try {
-              relatedTableMeta = await getMeta(relatedBaseId, relatedTableId, undefined, undefined, undefined, true)
-            } catch {
-              relatedTableMeta = await getPartialMeta(relatedBaseId, lookupRelation?.id, relatedTableId, {
+            // getMeta never throws; a user without access to the related base gets null
+            relatedTableMeta = await getMeta(relatedBaseId, relatedTableId, false, false, true)
+            if (!relatedTableMeta) {
+              relatedTableMeta = await getPartialMeta(relatedBaseId, lookupRelation.id!, relatedTableId, {
                 workspaceId: (lookupRelation as any)?.fk_workspace_id,
                 baseId: lookupRelation.base_id ?? currentBaseId,
               })

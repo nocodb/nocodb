@@ -23,6 +23,7 @@ import {
   Column,
   GridViewColumn,
   Model,
+  Permission,
   PresignedUrl,
   Source,
   View,
@@ -276,8 +277,9 @@ export class PublicMetasService {
         id: ltarColOption.fk_related_model_id,
       },
     );
-    this.filterIfLimitedAccess(
+    await this.filterIfLimitedAccess(
       context,
+      refContext,
       relatedMetas,
       ltarColOption.fk_related_model_id,
     );
@@ -288,25 +290,33 @@ export class PublicMetasService {
           id: ltarColOption.fk_mm_model_id,
         },
       );
-      this.filterIfLimitedAccess(
+      await this.filterIfLimitedAccess(
         context,
+        mmContext,
         relatedMetas,
         ltarColOption.fk_mm_model_id,
       );
     }
   }
 
-  private filterIfLimitedAccess(
+  // TABLE_VISIBILITY rules live in the table's own base, so a cross-base
+  // table is checked against that base's permissions.
+  private async filterIfLimitedAccess(
     context: NcContext,
+    tableContext: NcContext,
     relatedMetas: {
       [p: string]: Model;
     },
     tableId: string,
   ) {
-    if (
-      relatedMetas[tableId]?.columns &&
-      !hasDefaultTableVisibility(tableId, context.permissions)
-    ) {
+    if (!relatedMetas[tableId]?.columns) return;
+
+    const permissions =
+      tableContext.base_id === context.base_id && context.permissions
+        ? context.permissions
+        : await Permission.list(tableContext, tableContext.base_id);
+
+    if (!hasDefaultTableVisibility(tableId, permissions)) {
       relatedMetas[tableId].columns = relatedMetas[tableId].columns.filter(
         (col) => {
           return col.pk || col.pv;
@@ -331,10 +341,9 @@ export class PublicMetasService {
 
     if (!relationCol) return;
 
-    const { refContext = context } =
-      (
-        relationCol.colOptions as LinkToAnotherRecordColumn
-      )?.getRelContext?.() || {};
+    const relation =
+      await relationCol.getColOptions<LinkToAnotherRecordColumn>();
+    const refContext = relation ? relation.getRelContext().refContext : context;
 
     const lookedUpCol = await Column.get(refContext, {
       colId: lookupColOption.fk_lookup_column_id,
@@ -349,7 +358,8 @@ export class PublicMetasService {
         id: relationCol.fk_model_id,
       });
 
-      this.filterIfLimitedAccess(
+      await this.filterIfLimitedAccess(
+        context,
         context,
         relatedMetas,
         relationCol.fk_model_id,
@@ -365,8 +375,9 @@ export class PublicMetasService {
           id: lookedUpCol.fk_model_id,
         },
       );
-      this.filterIfLimitedAccess(
+      await this.filterIfLimitedAccess(
         context,
+        refContext,
         relatedMetas,
         lookedUpCol.fk_model_id,
       );

@@ -319,6 +319,8 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'column_add'
     | 'column_update'
     | 'column_delete'
+    // a linked table in another base changed; ids only
+    | 'related_meta_update'
     | 'view_create'
     | 'view_update'
     | 'view_delete'

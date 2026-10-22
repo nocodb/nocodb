@@ -10,6 +10,7 @@ import { Filter, Sort } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
+import { getCrossBaseInboundLinkColumns } from '~/helpers/crossBaseInboundLinks';
 
 /**
  * Sort + filter cleanup for a deleted column.
@@ -21,6 +22,8 @@ import Noco from '~/Noco';
  *    sweep above never matches it; deleting the Lookup column would orphan it)
  *  - `nc_filter_exp` rows where `fk_column_id = colId` OR `fk_value_col_id = colId`
  *  - filter-group children parented by this column (recursive cache-aware)
+ *
+ * Same sweep in each base with a cross-base link into the column's table.
  *
  * Broadcasts `sort_delete` per removed sort and `filter_delete` per
  * removed filter (including the parent-column tree) so subscribers
@@ -42,23 +45,9 @@ export class ColumnDeleteFilterDependencyHandler implements MetaEventHandler {
     const id = param.oldEntity?.id;
     if (!id) return undefined;
 
-    for (const table of [MetaTable.SORT, MetaTable.FILTER_EXP]) {
-      const rows = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        table,
-        { condition: { fk_column_id: id }, limit: 1 },
-      );
-      if (rows.length) return {};
+    for (const ctx of await this.sweepContexts(context, param, ncMeta)) {
+      if (await this.hasRefs(ctx, id, ncMeta)) return {};
     }
-    // Per-lookup sort config scoped to this (lookup) column.
-    const lookupSortRows = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.SORT,
-      { condition: { fk_lookup_col_id: id }, limit: 1 },
-    );
-    if (lookupSortRows.length) return {};
     return undefined;
   }
 
@@ -72,6 +61,58 @@ export class ColumnDeleteFilterDependencyHandler implements MetaEventHandler {
     const id = param.oldEntity?.id;
     if (!id) return;
 
+    for (const ctx of await this.sweepContexts(context, param, ncMeta)) {
+      await this.sweep(ctx, id, ncMeta);
+    }
+  }
+
+  // The column's own base, plus bases with a cross-base link into its table:
+  // their lookup sorts and link-condition filters key on this column.
+  private async sweepContexts(
+    context: NcContext,
+    param: MetaDependencyEventRequest,
+    ncMeta = Noco.ncMeta,
+  ): Promise<NcContext[]> {
+    const contexts = [context];
+    const modelId = param.oldEntity?.fk_model_id;
+    if (!modelId) return contexts;
+    for (const baseId of (
+      await getCrossBaseInboundLinkColumns(context, modelId, ncMeta)
+    ).keys()) {
+      contexts.push({ ...context, base_id: baseId });
+    }
+    return contexts;
+  }
+
+  private async hasRefs(
+    context: NcContext,
+    id: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    for (const table of [MetaTable.SORT, MetaTable.FILTER_EXP]) {
+      const rows = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        table,
+        { condition: { fk_column_id: id }, limit: 1 },
+      );
+      if (rows.length) return true;
+    }
+    // Per-lookup sort config scoped to this (lookup) column.
+    const lookupSortRows = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.SORT,
+      { condition: { fk_lookup_col_id: id }, limit: 1 },
+    );
+    return lookupSortRows.length > 0;
+  }
+
+  private async sweep(
+    context: NcContext,
+    id: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
     const deletedSorts: any[] = [];
     const deletedFilters: any[] = [];
 

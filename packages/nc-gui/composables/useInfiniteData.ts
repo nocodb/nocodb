@@ -263,15 +263,15 @@ export function useInfiniteData(args: {
         const relatedModelId = colOptions?.fk_related_model_id
         if (!relatedModelId || !meta.value.base_id) continue
 
-        const existing = getMetaByKey(meta.value.base_id, relatedModelId)
-        if (!existing) {
+        // A cross-base link's related table is keyed under its own base
+        const relatedBaseId = colOptions.fk_related_base_id || meta.value.base_id
+
+        if (!getMetaByKey(relatedBaseId, relatedModelId)) {
           // Try full meta first (user may have access); fall back to partial
           // meta only when full meta isn't cached — same as useLTARStore.loadRelatedTableMeta
-          try {
-            await getMeta(meta.value.base_id, relatedModelId, false, false, true)
-          } catch {}
-          if (!getMetaByKey(meta.value.base_id, relatedModelId)) {
-            await getPartialMeta(meta.value.base_id, col.id!, relatedModelId, {
+          await getMeta(relatedBaseId, relatedModelId, false, false, true)
+          if (!getMetaByKey(relatedBaseId, relatedModelId)) {
+            await getPartialMeta(relatedBaseId, col.id!, relatedModelId, {
               workspaceId: (meta.value as any)?.fk_workspace_id,
               baseId: meta.value.base_id,
             })

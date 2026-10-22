@@ -82,7 +82,10 @@ export const LookupCellRenderer: CellRenderer = {
       return
     }
 
-    const lookupColumn = (relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_lookup_column_id)
+    // Partial meta (no access to the related base) lacks the target column — render the value plainly
+    const lookupColumn =
+      (relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_lookup_column_id) ??
+      getFallbackLookupColumn(column, value)
 
     if (!lookupColumn || lookupColumn?.uidt === UITypes.Button) return
 

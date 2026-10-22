@@ -1131,6 +1131,9 @@ export function useViewFilters(
           const relatedTableMeta = await getMeta(
             relatedBaseId,
             (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
+            false,
+            false,
+            true,
           )
           nextCol = relatedTableMeta?.columns?.find((c) => c.id === (nextCol!.colOptions as LookupType).fk_lookup_column_id)
 

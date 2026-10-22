@@ -14601,6 +14601,10 @@
             "type": "string",
             "description": "Identifier of the linked table."
           },
+          "related_base_id": {
+            "type": "string",
+            "description": "Identifier of the base the linked table belongs to, for a link to a table in another base of the same workspace. Omit it for a link within this base. Read back only on a cross-base link."
+          },
           "enable_conditions": {
             "type": "boolean",
             "description": "Apply the link's configured filters when resolving linked records."
@@ -14625,6 +14629,10 @@
           "related_table_id": {
             "type": "string",
             "description": "Identifier of the linked table."
+          },
+          "related_base_id": {
+            "type": "string",
+            "description": "Identifier of the base the linked table belongs to, for a link to a table in another base of the same workspace. Omit it for a link within this base. Read back only on a cross-base link."
           },
           "enable_conditions": {
             "type": "boolean",

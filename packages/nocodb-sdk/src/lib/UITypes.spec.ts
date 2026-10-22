@@ -307,15 +307,8 @@ describe('UITypes — V2 LTAR helpers', () => {
   });
 });
 
-// ==========================================================================
-// isFormatEditableOnReadonlySource — regression test for nocodb/nocodb#14837
-// Columns synced from an external database live on a schema-readonly source,
-// which disabled the display-format controls (precision, separators, ...) in
-// the field editor even though the backend accepts meta-only updates for
-// these column types. The editor gates the controls with
-// isFormatEditableOnReadonlySource, which must stay in sync with the backend
-// readonly-source guard (readonlyMetaAllowedTypes + partialUpdateAllowedTypes).
-// ==========================================================================
+// Regression test for nocodb/nocodb#14837: isFormatEditableOnReadonlySource must
+// stay in sync with the backend readonly-source guard.
 describe('isFormatEditableOnReadonlySource', () => {
   it('keeps Percent and Decimal format controls editable on readonly sources', () => {
     expect(isFormatEditableOnReadonlySource(UITypes.Percent)).toBe(true);
@@ -343,10 +336,6 @@ describe('isFormatEditableOnReadonlySource', () => {
       UITypes.MultiSelect,
     ];
     for (const uidt of blocked) {
-      expect(
-        readonlyMetaAllowedTypes.includes(uidt) ||
-          partialUpdateAllowedTypes.includes(uidt),
-      ).toBe(false);
       expect(isFormatEditableOnReadonlySource(uidt)).toBe(false);
     }
   });

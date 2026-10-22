@@ -798,11 +798,8 @@ export const partialUpdateAllowedTypes = [
   UITypes.URL,
 ];
 
-// Whether display-format meta (precision, separators, date/time formats, ...)
-// stays editable when the source schema is read-only, e.g. columns synced
-// from an external database. Mirrors the backend columns.service
-// readonly-source guard, which accepts meta-only updates for
-// partialUpdateAllowedTypes without touching the underlying table.
+// Whether display-format meta stays editable when the source schema is
+// read-only (e.g. external-database columns). Mirrors the backend meta-only update guard.
 export const isFormatEditableOnReadonlySource = (
   uidt: UITypes | string,
 ): boolean =>

@@ -41,7 +41,7 @@ const vModel = computed({
   },
 })
 
-const validEmail = computed(() => vModel.value && validateEmail(vModel.value))
+const emailHref = computed(() => getEmailHref(vModel.value))
 
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
@@ -97,10 +97,10 @@ watch(
   <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
 
   <nuxt-link
-    v-else-if="validEmail"
+    v-else-if="emailHref"
     no-ref
     class="py-1 underline inline-block nc-cell-field-link max-w-full"
-    :href="`mailto:${vModel}`"
+    :href="emailHref"
     target="_blank"
     :tabindex="readOnly ? -1 : 0"
   >

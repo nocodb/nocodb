@@ -25,7 +25,7 @@ export const EmailCellRenderer: CellRenderer = {
       }
     }
 
-    const isValidEmail = text && validateEmail(text)
+    const isValidEmail = !!getEmailHref(text)
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
@@ -77,8 +77,8 @@ export const EmailCellRenderer: CellRenderer = {
 
     const text = value?.toString() ?? ''
 
-    const isValid = text && validateEmail(text)
-    if (!isValid) return false
+    const href = getEmailHref(text)
+    if (!href) return false
 
     const pv = column.pv
     const ctx = defaultOffscreen2DContext
@@ -94,7 +94,7 @@ export const EmailCellRenderer: CellRenderer = {
     })
 
     if (isBoxHovered({ x, y, width: xOffset - x, height: yOffset - y }, mousePosition)) {
-      window.open(`mailto:${text}`, '_blank')
+      window.open(href, '_blank')
       return true
     }
     return false

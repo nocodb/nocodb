@@ -18,10 +18,12 @@ import {
   validateV1V2DataPayloadLimit,
 } from '~/helpers/dataHelpers';
 import { restrictNestedLinkQuery } from '~/helpers/nestedLinkQueryHelpers';
+import { LIST_ARG_ALIASES } from '~/helpers/listArgAliases';
 import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import { Column, Model, Source, View } from '~/models';
 import { nocoExecute, processConcurrently } from '~/utils';
 import { DatasService } from '~/services/datas.service';
+import { hasLimitedLinkTargetAccess } from '~/helpers/tableHelpers';
 import {
   captureForTrace,
   TraceCommand,
@@ -526,17 +528,35 @@ export class DataTableService {
 
     const relatedModel = await colOptions.getRelatedTable();
 
-    // Strip caller-supplied where/sort references to columns the link doesn't expose
-    // (cross-base / visibility-limited related tables). This is NOT the view-`show`
-    // dimension (view-hidden columns stay queryable) — it's the cross-base isolation
-    // / table-visibility ACL boundary. Both the data fetch and the count read from
-    // `param.query`, so sanitizing it here covers both surfaces.
+    const hasLimitedAccess = await hasLimitedLinkTargetAccess(
+      context,
+      colOptions,
+      relatedModel.id,
+    );
+
+    // Strip caller-supplied where/sort references to columns the link doesn't
+    // expose. Both the data fetch and the count read from `param.query`. The
+    // fetchers here SELECT pk/pv-only for any cross-base link, so match that.
     await restrictNestedLinkQuery(
       context,
       colOptions,
       relatedModel,
       param.query,
+      { hasLimitedAccess: colOptions.isCrossBaseLink() || hasLimitedAccess },
     );
+
+    // A hidden related table (or a shared view) serves pk + display value only:
+    // no caller projection, and no JSON filter/sort on other columns.
+    if (param.query && hasLimitedAccess) {
+      for (const key of [
+        ...LIST_ARG_ALIASES.fields,
+        'filterArrJson',
+        'sortArrJson',
+        'nested',
+      ]) {
+        delete param.query[key];
+      }
+    }
 
     const { ast, dependencyFields } = await getAst(refContext, {
       model: relatedModel,

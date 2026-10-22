@@ -29,6 +29,7 @@ import {
 } from '~/helpers/getAstColumnStrategy';
 import { resolveViewVisibleColumns } from '~/helpers/viewVisibleColumns';
 import { isSharedViewAccess } from '~/helpers/accessSource';
+import { hasLimitedLinkTargetAccess } from '~/helpers/tableHelpers';
 
 const logger = new Logger('getAst');
 
@@ -327,6 +328,12 @@ const getAst = async (
         const { ast: childAst } = await getAst(refTableContext, {
           model,
           query: query?.nested?.[col.title],
+          // no projection past pk/pv into a related table the user can't see
+          extractOnlyPrimaries: await hasLimitedLinkTargetAccess(
+            context,
+            colOpt,
+            model.id,
+          ),
           fk_display_value_column_id: colOpt.fk_display_value_column_id,
           dependencyFields: (dependencyFields.nested[col.title] =
             dependencyFields.nested[col.title] || {
@@ -379,7 +386,9 @@ const getAst = async (
         await getAst(refTableContext, {
           model,
           query: query?.nested?.[col.title],
-          extractOnlyPrimaries: nestedFields !== '*',
+          extractOnlyPrimaries:
+            nestedFields !== '*' ||
+            (await hasLimitedLinkTargetAccess(context, colOpt, model.id)),
           fk_display_value_column_id: colOpt.fk_display_value_column_id,
           dependencyFields: (dependencyFields.nested[col.title] =
             dependencyFields.nested[col.title] || {

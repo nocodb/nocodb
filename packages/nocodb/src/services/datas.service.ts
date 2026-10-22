@@ -3,15 +3,19 @@ import { isLinksOrLTAR, isLinkV2, NcSDKErrorV2, ViewTypes } from 'nocodb-sdk';
 import { NcApiVersion } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/helpers/dataHelpers';
-import type { Filter } from '~/models';
-import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
+import type { Filter, LinkToAnotherRecordColumn } from '~/models';
 import { NcContext } from '~/interface/config';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import {
   assertLinkColOptions,
   getViewAndModelByAliasOrId,
 } from '~/helpers/dataHelpers';
-import { restrictNestedLinkQueryForColumn } from '~/helpers/nestedLinkQueryHelpers';
+import {
+  restrictNestedLinkQuery,
+  restrictNestedLinkQueryForColumn,
+} from '~/helpers/nestedLinkQueryHelpers';
+import { hasLimitedLinkTargetAccess } from '~/helpers/tableHelpers';
+import { LIST_ARG_ALIASES } from '~/helpers/listArgAliases';
 import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -21,6 +25,18 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
+
+const LINK_PICKER_QUERY_KEYS = [
+  'limit',
+  'l',
+  'offset',
+  'o',
+  'page',
+  'p',
+  'linkColumnId',
+  'linkBaseId',
+  'linkRowData',
+];
 
 @Injectable()
 export class DatasService {
@@ -58,6 +74,8 @@ export class DatasService {
       view = modelAndView.view;
     }
 
+    let restrictedQuery: Record<string, any> | null = null;
+
     // check for linkColumnId query param and handle it
     if (param.query.linkColumnId) {
       const linkColumn = await Column.get<LinkToAnotherRecordColumn>(context, {
@@ -78,24 +96,86 @@ export class DatasService {
       if (linkColumn.colOptions?.fk_target_view_id) {
         view = await View.get(context, linkColumn.colOptions.fk_target_view_id);
       }
+
+      restrictedQuery = await this.restrictLinkPickerQuery(
+        context,
+        linkColumn,
+        model,
+        param.query,
+        { optimised: false },
+      );
     }
 
     return await this.getDataList(context, {
       model,
       view,
-      query: param.query,
+      query: restrictedQuery ?? param.query,
       throwErrorIfInvalidParams: true,
       ignorePagination: param.ignorePagination,
       limitOverride: param.limitOverride,
-      getHiddenColumns: param.getHiddenColumns,
+      getHiddenColumns: !restrictedQuery && param.getHiddenColumns,
       apiVersion: param.apiVersion,
-      includeSortAndFilterColumns: param.includeSortAndFilterColumns,
-      includeRowColorColumns: param.includeRowColorColumns,
-      includeButtonFilterColumns: param.includeButtonFilterColumns,
+      includeSortAndFilterColumns:
+        !restrictedQuery && param.includeSortAndFilterColumns,
+      includeRowColorColumns: !restrictedQuery && param.includeRowColorColumns,
+      includeButtonFilterColumns:
+        !restrictedQuery && param.includeButtonFilterColumns,
       ignoreViewFilterAndSort: param.ignoreViewFilterAndSort,
       baseModel: param.baseModel,
       customConditions: param.customConditions,
     });
+  }
+
+  /**
+   * The new-record link picker reads the related table directly, so it must
+   * expose what the existing-record picker on the same fetch path does:
+   *  - optimised path: restrict iff the user lacks access to the related table;
+   *  - unoptimised path: also restrict any cross-base link (pk/pv-only fetcher).
+   * When restricted, rebuilds the query from an allow-list (pagination,
+   * linkRowData, where/sort stripped to exposed columns) and pins `fields` to
+   * pk + display value. Returns `null` when unrestricted.
+   */
+  protected async restrictLinkPickerQuery(
+    context: NcContext,
+    linkColumn: Column<LinkToAnotherRecordColumn>,
+    model: Model,
+    query: Record<string, any>,
+    { optimised }: { optimised: boolean },
+  ): Promise<Record<string, any> | null> {
+    const colOptions = linkColumn.colOptions;
+    // Related base's own context — its permissions, not the request base's.
+    const { refContext } = colOptions.getRelContext();
+    const hasLimitedAccess = await hasLimitedLinkTargetAccess(
+      context,
+      colOptions,
+      model.id,
+    );
+
+    if (!hasLimitedAccess && (optimised || !colOptions.isCrossBaseLink())) {
+      return null;
+    }
+
+    const restricted: Record<string, any> = {};
+    for (const key of [
+      ...LINK_PICKER_QUERY_KEYS,
+      ...LIST_ARG_ALIASES.where,
+      ...LIST_ARG_ALIASES.sort,
+    ]) {
+      if (query?.[key] !== undefined) restricted[key] = query[key];
+    }
+
+    await restrictNestedLinkQuery(context, colOptions, model, restricted, {
+      hasLimitedAccess: true,
+    });
+
+    const columns = await Column.list(refContext, { fk_model_id: model.id });
+    restricted.fields = columns
+      .filter(
+        (c) => c.pk || c.pv || c.id === colOptions.fk_display_value_column_id,
+      )
+      .map((c) => c.title);
+
+    return restricted;
   }
 
   async dataFindOne(context: NcContext, param: PathParams & { query: any }) {

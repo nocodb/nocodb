@@ -2,6 +2,7 @@ import {
   type ColumnType,
   extractRolesObj,
   getStandingRole,
+  NcAccessSource,
   type NcContext,
   type OperationSource,
   PermissionEntity,
@@ -11,6 +12,7 @@ import {
   ProjectRoles,
 } from 'nocodb-sdk';
 import type { NcRequest, UITypes } from 'nocodb-sdk';
+import type { LinkToAnotherRecordColumn } from '~/models';
 import { Model, ModelRoleVisibility, Permission, View } from '~/models';
 import {
   deleteColumnSystemPropsFromRequest,
@@ -291,4 +293,25 @@ export async function hasLimitedRelatedTableAccess(
     relatedTableId,
     context.user,
   ));
+}
+
+/**
+ * Whether a read through a link must collapse the related table to pk +
+ * display value: the caller lacks access to it in its own base, or comes
+ * through a shared view, or through a shared base that the related table's
+ * base is not part of.
+ */
+export async function hasLimitedLinkTargetAccess(
+  context: NcContext,
+  colOptions: LinkToAnotherRecordColumn,
+  relatedModelId: string,
+): Promise<boolean> {
+  if (
+    context.access_source === NcAccessSource.SHARED_BASE &&
+    colOptions.isCrossBaseLink()
+  ) {
+    return true;
+  }
+  const { refContext } = colOptions.getRelContext();
+  return hasLimitedRelatedTableAccess(refContext, relatedModelId);
 }

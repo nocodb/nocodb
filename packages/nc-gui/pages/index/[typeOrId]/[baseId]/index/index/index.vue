@@ -6,15 +6,18 @@ const router = useRouter()
 const route = router.currentRoute
 
 // The HTML shell doesn't prefetch async chunks, so load the table screen once the browser is idle.
-onNuxtReady(() =>
+// Params are read now: by idle time the user may have left this route.
+const { typeOrId, baseId } = route.value.params
+onNuxtReady(() => {
+  if (!typeOrId || !baseId) return
   preloadRouteComponents(
     {
       name: 'index-typeOrId-baseId-index-index-viewId-viewTitle',
-      params: { typeOrId: route.value.params.typeOrId, baseId: route.value.params.baseId, viewId: '_' },
+      params: { typeOrId, baseId, viewId: '_' },
     },
     router,
-  ),
-)
+  )
+})
 
 const baseStore = useBase()
 const { base, sources, isSharedBase } = storeToRefs(baseStore)

@@ -534,20 +534,21 @@ export class DataTableService {
       relatedModel.id,
     );
 
-    // Strip caller-supplied where/sort references to columns the link doesn't
-    // expose. Both the data fetch and the count read from `param.query`. The
-    // fetchers here SELECT pk/pv-only for any cross-base link, so match that.
+    // The fetchers here SELECT pk/pv only for any cross-base link, so every
+    // caller filter, sort and projection is held to pk/pv under the same rule
+    // (unlike the EE v1 `/mm/` path, which exposes all columns with access).
+    const restricted = colOptions.isCrossBaseLink() || hasLimitedAccess;
+
+    // Both the data fetch and the count read from `param.query`.
     await restrictNestedLinkQuery(
       context,
       colOptions,
       relatedModel,
       param.query,
-      { hasLimitedAccess: colOptions.isCrossBaseLink() || hasLimitedAccess },
+      { hasLimitedAccess: restricted },
     );
 
-    // A hidden related table (or a shared view) serves pk + display value only:
-    // no caller projection, and no JSON filter/sort on other columns.
-    if (param.query && hasLimitedAccess) {
+    if (param.query && restricted) {
       for (const key of [
         ...LIST_ARG_ALIASES.fields,
         'filterArrJson',

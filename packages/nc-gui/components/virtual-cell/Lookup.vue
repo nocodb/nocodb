@@ -70,13 +70,19 @@ watch(
   { immediate: true },
 )
 
+// Set once the related meta request settles, so the fallback below only covers
+// missing access, not the loading window
+const relatedMetaResolved = ref(false)
+
 watch(
   relationColumn,
   async (relationCol: { colOptions: LinkToAnotherRecordType }) => {
+    relatedMetaResolved.value = false
     if (relationCol && relationCol.colOptions) {
       const relatedBaseId = getRelatedBaseId(relationCol as ColumnType)
       if (relatedBaseId) await getMeta(relatedBaseId, relationCol.colOptions.fk_related_model_id!, false, false, true)
     }
+    relatedMetaResolved.value = true
   },
   { immediate: true },
 )
@@ -93,7 +99,7 @@ const lookupColumn = computed<ColumnType | undefined>(() => {
   const col = lookupTableMeta.value?.columns?.find(
     (c: any) => c.id === (column.value?.colOptions as LookupType)?.fk_lookup_column_id,
   ) as ColumnType | undefined
-  if (col || !column.value || !relationColumn.value) return col
+  if (col || !column.value || !relationColumn.value || !relatedMetaResolved.value) return col
 
   // Partial/missing related meta (no access to the related base) — render the value plainly
   return getFallbackLookupColumn(column.value, cellValue.value)

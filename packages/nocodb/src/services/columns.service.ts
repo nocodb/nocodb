@@ -113,7 +113,6 @@ import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import validateParams from '~/helpers/validateParams';
 import { MetaService } from '~/meta/meta.service';
 import {
-  ApiToken,
   Base,
   BaseUser,
   Column,
@@ -157,7 +156,7 @@ import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 import { validateColumnInternalMeta } from '~/types/column-internal-meta';
 import { backfillAutoNumber } from '~/helpers/autonumberHelpers';
 import { getModelContext, setModelContext } from '~/helpers/modelContext';
-import { getPatResourceFilter } from '~/helpers/patResourceFilter';
+import { credentialCoversBase } from '~/helpers/credentialBaseScope';
 import { getCrossBaseInboundLinkColumns } from '~/helpers/crossBaseInboundLinks';
 
 export type {
@@ -8335,7 +8334,7 @@ export class ColumnsService implements IColumnsService {
     req: NcRequest,
   ) {
     const user = req.user;
-    await this.assertApiTokenCoversBase(refContext, req);
+    await this.assertCredentialCoversBase(refContext, req);
 
     // extract target base roles and check if columnAdd permission is granted
     const userWithRoles = await User.getWithRoles(refContext, user.id, {
@@ -8357,29 +8356,20 @@ export class ColumnsService implements IColumnsService {
     }
   }
 
-  // A base-scoped API token (legacy `base_id` or fine-grained scopes) only
-  // reaches its own base, including through a cross-base relation.
-  protected async assertApiTokenCoversBase(
+  // A base-scoped credential (PAT, OAuth consent, MCP grant) only reaches the
+  // bases it covers, including through a cross-base relation.
+  protected async assertCredentialCoversBase(
     refContext: NcContext,
     req?: NcRequest,
   ) {
-    const user = req?.user as
-      | (NcRequest['user'] & { api_token_meta?: { id?: string } })
-      | undefined;
-    if (!user?.is_api_token) return;
-
-    const tokenId = user.api_token_meta?.id;
-    const apiToken = tokenId ? await ApiToken.get(tokenId) : null;
-    const patFilter = await getPatResourceFilter(req);
-
     if (
-      (apiToken?.base_id && apiToken.base_id !== refContext.base_id) ||
-      (patFilter &&
-        !patFilter.baseIds.includes(refContext.base_id) &&
-        !patFilter.workspaceIds.includes(refContext.workspace_id))
+      !(await credentialCoversBase(req, {
+        baseId: refContext.base_id,
+        workspaceId: refContext.workspace_id,
+      }))
     ) {
       NcError.get(refContext).forbidden(
-        `API token is not scoped to base ${refContext.base_id}`,
+        `This credential is not scoped to base ${refContext.base_id}`,
       );
     }
   }
@@ -8403,7 +8393,7 @@ export class ColumnsService implements IColumnsService {
     const { refContext } = relation.getRelContext();
     if (refContext.base_id === context.base_id) return;
 
-    await this.assertApiTokenCoversBase(refContext, req);
+    await this.assertCredentialCoversBase(refContext, req);
 
     const userWithRoles = await User.getWithRoles(refContext, user.id, {
       baseId: refContext.base_id,
@@ -8665,7 +8655,7 @@ export class ColumnsService implements IColumnsService {
     const { refContext, mmContext } = colOptions.getRelContext();
     for (const relContext of [refContext, mmContext]) {
       if (relContext.base_id === context.base_id) continue;
-      await this.assertApiTokenCoversBase(relContext, param.req);
+      await this.assertCredentialCoversBase(relContext, param.req);
       await this.assertRelatedBaseSchemaWritable(context, relContext);
     }
 

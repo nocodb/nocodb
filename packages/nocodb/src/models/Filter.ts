@@ -77,8 +77,20 @@ export function linkFilterRowsIntoTree<
   return roots;
 }
 
+// Set only on filters built from a stored row (castType). Request JSON can't
+// carry a Symbol key, so a caller can't claim another base through it.
+export const FILTER_STORED_BASE: unique symbol = Symbol.for(
+  'nc_filter_stored_base',
+);
+
+export function markStoredFilter(instance: Filter, row: Filter) {
+  if (row?.base_id) instance[FILTER_STORED_BASE] = row.base_id;
+}
+
 export default class Filter implements FilterType {
   id: string;
+
+  [FILTER_STORED_BASE]?: string;
 
   fk_workspace_id?: string;
   fk_model_id?: string;
@@ -137,6 +149,7 @@ export default class Filter implements FilterType {
   public static castType(filter: Filter, context?: NcContext): Filter {
     if (!filter) return filter;
     const instance = new Filter(filter);
+    markStoredFilter(instance, filter);
     const ctx = context ?? getModelContext(filter);
     if (ctx) setModelContext(instance, ctx);
     return instance;
@@ -145,6 +158,7 @@ export default class Filter implements FilterType {
   public castType(filter: Filter): Filter {
     if (!filter) return filter;
     const instance = new Filter(filter);
+    markStoredFilter(instance, filter);
     const ctx = getModelContext(this) ?? getModelContext(filter);
     if (ctx) setModelContext(instance, ctx);
     return instance;
@@ -171,7 +185,9 @@ export default class Filter implements FilterType {
 
   public static async insert(
     context: NcContext,
-    filter: Partial<FilterType & { meta?: any | string; fk_value_col_id?: string }>,
+    filter: Partial<
+      FilterType & { meta?: any | string; fk_value_col_id?: string }
+    >,
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(filter, [

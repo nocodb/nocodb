@@ -25,7 +25,7 @@ import {
   isLinkedRecordColumn,
   resolveLinkedRecordDynamicFilter,
 } from '~/db/linkedRecordDynamicFilter';
-import Filter from '~/models/Filter';
+import Filter, { FILTER_STORED_BASE } from '~/models/Filter';
 import { getModelContext, setModelContext } from '~/helpers/modelContext';
 import { getAliasGenerator } from '~/utils';
 import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
@@ -1031,10 +1031,12 @@ async function resolveDynamicFilterValue(
   aliasCount?: { count: number },
 ): Promise<boolean | FilterOperationResult> {
   // Link conditions run on the related model, but a "current record" value
-  // column belongs to the link's own table — resolve it in the filter's base.
+  // column belongs to the link's own table — resolve it in the stored filter's
+  // base. Request-supplied filters only ever resolve in the request base.
+  const storedBase = filter[FILTER_STORED_BASE];
   const filterContext =
-    filter.base_id && filter.base_id !== context.base_id
-      ? { ...context, base_id: filter.base_id }
+    storedBase && storedBase !== context.base_id
+      ? { ...context, base_id: storedBase }
       : context;
   const valueColumn =
     (await Column.get(filterContext, { colId: filter.fk_value_col_id })) ??

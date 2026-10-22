@@ -1819,6 +1819,9 @@ const cardFields = (record: RowType) => {
     <div
       ref="kanbanContainerRef"
       class="nc-kanban-container flex p-3 overflow-y-hidden w-full nc-view-scrollbar-x min-h-[calc(100%_-_0.4rem)] max-h-[calc(100%_-_0.4rem)]"
+      :class="{
+        'nc-kanban-snap-x': isMobileMode && !!interfacePageDataApi && !isCardDragInProgress && !isStackDragInProgress,
+      }"
     >
       <div v-if="isViewDataLoading" class="flex flex-row min-h-full gap-x-2">
         <a-skeleton-input v-for="index of Array(20)" :key="index" class="!min-w-80 !min-h-full !rounded-xl overflow-hidden" />
@@ -2957,6 +2960,15 @@ const cardFields = (record: RowType) => {
 // seam line runs unbroken instead of stopping where the rotated card ends.
 .nc-kanban-stack-interface-collapsed {
   background: var(--nc-bg-gray-light);
+}
+
+// Phone swipes land on a column edge instead of mid-card; off while dragging so auto-scroll isn't snapped back.
+.nc-kanban-snap-x {
+  scroll-snap-type: x mandatory;
+
+  .nc-kanban-stack {
+    scroll-snap-align: start;
+  }
 }
 
 :deep(.slick-dots li button) {

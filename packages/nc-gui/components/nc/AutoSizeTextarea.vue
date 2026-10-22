@@ -32,9 +32,14 @@ const value = ref(modelValue.value?.toString() ?? '')
 /**
  * Auto-resize logic from @vueuse/core
  */
-const { textarea, input } = useTextareaAutosize({
+const { textarea, input, triggerResize } = useTextareaAutosize({
   input: value,
   ...(props.autoSizeProps || {}),
+})
+
+// A web font swapping in re-wraps the text without resizing the box, so the first measure goes stale
+onMounted(() => {
+  document.fonts?.ready.then(() => triggerResize())
 })
 
 /**

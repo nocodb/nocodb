@@ -99,13 +99,20 @@ export default defineConfig({
   // emits the bracket one first. A variant `sort` only reorders within a single rule — UnoCSS
   // sorts by rule index first — so `grid-cols-2`/`grid-cols-[1fr_2fr]` and pseudo-class pairs
   // would still miss; a layer is what puts every bracket utility last.
-  layers: { 'nc-arbitrary': 1 },
+  layers: { 'nc-arbitrary': 1, 'nc-responsive': 2 },
 
   // Keyed off the escaped selector, not the candidate: a shortcut that expands to a bracket
   // value (`nc-content-max-w`) has none in its own selector and stays in the shortcuts layer.
   postprocess: [
     (util) => {
       if (util.selector?.includes('\\[')) util.layer = 'nc-arbitrary'
+    },
+
+    // A breakpoint override (`xs:h-full`, `md:w-auto`) must beat its base, bracket ones included,
+    // so media-query utilities go one layer after `nc-arbitrary`. Not `@supports`: the
+    // nc-screen svh fallbacks rely on staying beside their base.
+    (util) => {
+      if (util.parent?.startsWith('@media')) util.layer = 'nc-responsive'
     },
 
     // Two utilities of the same property tie on specificity, so the later one wins, and UnoCSS

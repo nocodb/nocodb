@@ -1103,21 +1103,21 @@ const jumpToRecordEdge = (record: Row, edge: 'start' | 'end') => {
   jumpToDate(date, edge)
 }
 
+const isPhoneLandscape = useMediaQuery(PHONE_LANDSCAPE_MEDIA_QUERY)
+
+// Phones: a 7-column month with a record count per day; tapping a day lists its records
+const isPhoneMonth = computed(() => isMobileMode.value || isPhoneLandscape.value)
+
 const viewMore = (date: dayjs.Dayjs) => {
   selectedDate.value = date
 
-  // Interfaces: the "+N more" dropdown lists the overflow itself — don't also
+  // Interfaces on desktop: the "+N more" dropdown lists the overflow itself — don't also
   // swing the records panel open onto that date.
-  if (interfacePageDataApi) return
+  if (interfacePageDataApi && !isPhoneMonth.value) return
 
   sideBarFilterOption.value = 'selectedDate' as const
   showSideMenu.value = true
 }
-
-const isPhoneLandscape = useMediaQuery(PHONE_LANDSCAPE_MEDIA_QUERY)
-
-// Phones: a 7-column month with a record count per day; tapping a day lists its records
-const isPhoneMonth = computed(() => (isMobileMode.value || isPhoneLandscape.value) && !interfacePageDataApi)
 
 const dayRecordCount = (date: dayjs.Dayjs) => {
   const day = recordsToDisplay.value.count[date.format('YYYY-MM-DD')]
@@ -1205,10 +1205,11 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
             class="text-right relative group last:border-r-0 bg-nc-bg-default transition text-sm h-full border-r-1 border-b-1 border-nc-border-gray-light font-medium hover:bg-nc-bg-gray-extralight text-nc-content-gray-default bg-nc-bg-default"
             data-testid="nc-calendar-month-day"
             @click="isPhoneMonth ? viewMore(day.date) : selectDate(day.date)"
-            @dblclick="addRecord(day.date)"
+            @dblclick="!isPhoneMonth && addRecord(day.date)"
           >
+            <!-- Phones add from the day's records panel ("+ Record"), so no per-day hover button -->
             <div
-              v-if="canEditCalendarData || (isUIAllowed('dataEdit') && isAddDeleteInlineEnabled)"
+              v-if="!isPhoneMonth && (canEditCalendarData || (isUIAllowed('dataEdit') && isAddDeleteInlineEnabled))"
               class="flex justify-between p-1"
             >
               <span
@@ -1289,7 +1290,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
               </span>
             </div>
             <div
-              v-if="!(canEditCalendarData || (isUIAllowed('dataEdit') && isAddDeleteInlineEnabled))"
+              v-if="isPhoneMonth || !(canEditCalendarData || (isUIAllowed('dataEdit') && isAddDeleteInlineEnabled))"
               class="flex justify-end p-1"
             >
               <span
@@ -1303,8 +1304,10 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
             </div>
 
             <div v-if="isPhoneMonth && dayRecordCount(day.date)" class="absolute inset-x-0 bottom-1 flex justify-center">
+              <!-- Solid on the selected day: it marks the day the records panel lists -->
               <span
-                class="nc-calendar-phone-day-count min-w-5 px-1 rounded-full bg-nc-bg-brand text-nc-content-brand text-xs leading-5 font-semibold text-center"
+                :class="isDateSelected(day.date) ? 'bg-nc-fill-primary text-white' : 'bg-nc-bg-brand text-nc-content-brand'"
+                class="nc-calendar-phone-day-count min-w-5 px-1 rounded-full text-xs leading-5 font-semibold text-center"
               >
                 {{ dayRecordCount(day.date) }}
               </span>

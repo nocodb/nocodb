@@ -9,6 +9,7 @@ import {
   type GalleryType,
   type GridType,
   type KanbanType,
+  type LinkToAnotherRecordType,
   type LookupType,
   type MapType,
   PlanFeatureTypes,
@@ -456,25 +457,35 @@ onMounted(async () => {
 
         const attLookupColumnIds: Set<string> = new Set()
 
-        const loadLookupMeta = async (originalCol: ColumnType, column: ColumnType, metaId?: string): Promise<void> => {
+        const loadLookupMeta = async (
+          originalCol: ColumnType,
+          column: ColumnType,
+          metaId?: string,
+          metaBaseId?: string,
+        ): Promise<void> => {
+          const currentBaseId = metaBaseId || baseId.value
           const relationColumn =
             metaId || meta.value?.id
-              ? getMetaByKey(baseId.value, metaId || meta.value?.id)?.columns?.find(
+              ? getMetaByKey(currentBaseId, metaId || meta.value?.id)?.columns?.find(
                   (c: ColumnType) => c.id === (column?.colOptions as LookupType)?.fk_relation_column_id,
                 )
               : undefined
 
-          if (relationColumn?.colOptions?.fk_related_model_id) {
-            await getMeta(baseId.value, relationColumn.colOptions.fk_related_model_id!)
+          const relationColOptions = relationColumn?.colOptions as LinkToAnotherRecordType | undefined
+          const relatedModelId = relationColOptions?.fk_related_model_id
+          if (relatedModelId) {
+            // Cross-base links resolve the next hop under the related base
+            const relatedBaseId = relationColOptions?.fk_related_base_id || currentBaseId
+            await getMeta(relatedBaseId, relatedModelId, false, false, true)
 
-            const lookupColumn = getMetaByKey(baseId.value, relationColumn.colOptions.fk_related_model_id)?.columns?.find(
+            const lookupColumn = getMetaByKey(relatedBaseId, relatedModelId)?.columns?.find(
               (c: any) => c.id === (column?.colOptions as LookupType)?.fk_lookup_column_id,
             ) as ColumnType | undefined
 
             if (lookupColumn && isAttachment(lookupColumn)) {
               attLookupColumnIds.add(originalCol.id)
             } else if (lookupColumn && lookupColumn?.uidt === UITypes.Lookup) {
-              await loadLookupMeta(originalCol, lookupColumn, relationColumn.colOptions.fk_related_model_id)
+              await loadLookupMeta(originalCol, lookupColumn, relatedModelId, relatedBaseId)
             }
           }
         }

@@ -6,6 +6,7 @@ import {
   PermissionKey,
   type TableType,
   UITypes,
+  isCrossBaseLink,
   isLinksOrLTAR,
   isVirtualCol,
 } from 'nocodb-sdk'
@@ -96,7 +97,7 @@ const isParentLtarColumn = (col: ColumnType): boolean => {
 const addBlueprintForColumn = async (col: ColumnType) => {
   const colOptions = col.colOptions as LinkToAnotherRecordType
   const relatedTableId = colOptions?.fk_related_model_id
-  const baseId = meta.value?.base_id
+  const baseId = colOptions?.fk_related_base_id || meta.value?.base_id
   if (!relatedTableId || !baseId) return
 
   try {
@@ -142,7 +143,7 @@ const addBlueprintForColumn = async (col: ColumnType) => {
 const getRelatedTableName = (col: ColumnType): string => {
   const colOptions = col.colOptions as LinkToAnotherRecordType
   const relatedTableId = colOptions?.fk_related_model_id
-  const baseId = meta.value?.base_id
+  const baseId = colOptions?.fk_related_base_id || meta.value?.base_id
   if (!relatedTableId || !baseId) return t('objects.subRecord')
   const { getMetaByKey } = useMetas()
   const relatedMeta = getMetaByKey(baseId, relatedTableId)
@@ -319,7 +320,7 @@ function onCellValueChange(colTitle: string | undefined) {
 
     <!-- Add Blueprint button below LTAR fields in template mode -->
     <div
-      v-if="isTemplateMode && isLinksOrLTAR(col) && !readOnly && !isParentLtarColumn(col)"
+      v-if="isTemplateMode && isLinksOrLTAR(col) && !isCrossBaseLink(col) && !readOnly && !isParentLtarColumn(col)"
       class="flex items-center"
       :class="{
         'flex-row lt-lg:pl-0': !props.forceVerticalMode,

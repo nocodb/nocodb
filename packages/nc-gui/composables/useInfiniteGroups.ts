@@ -36,7 +36,7 @@ export const useInfiniteGroups = (
   const baseStore = useBase()
   const { base } = storeToRefs(baseStore)
   const { $api } = useNuxtApp()
-  const { getMeta, metas } = useMetas()
+  const { getMeta, getPartialMeta, metas } = useMetas()
   const { appInfo } = useGlobal()
   const { nestedFilters, sorts } = useSmartsheetStoreOrThrow()
   const { fetchBulkAggregatedData, sharedView } = useSharedView()
@@ -235,6 +235,28 @@ export const useInfiniteGroups = (
       if (!response) throw new Error('groupBy: empty response after retries')
       if (generation !== groupsGeneration) return
 
+      // Full meta, else pk + display value through the link (no access to the related base).
+      // Memoized per page: a denied getMeta isn't cached by useMetas, so don't repeat it per group.
+      const relatedMetaCache = new Map<string, Promise<TableType | null>>()
+      const loadRelatedMeta = (linkCol: ColumnType, relatedBaseId: string) => {
+        const relatedTableId = (linkCol.colOptions as LinkToAnotherRecordType)?.fk_related_model_id as string
+        const key = `${relatedBaseId}:${relatedTableId}`
+        if (!relatedMetaCache.has(key)) {
+          relatedMetaCache.set(
+            key,
+            (async () => {
+              const full = await getMeta(relatedBaseId, relatedTableId, false, false, true)
+              if (full || isPublic.value || !linkCol.id) return full
+              return getPartialMeta(relatedBaseId, linkCol.id, relatedTableId, {
+                workspaceId: base.value?.fk_workspace_id,
+                baseId: meta.value?.base_id ?? base.value?.id,
+              })
+            })(),
+          )
+        }
+        return relatedMetaCache.get(key)!
+      }
+
       const groups: CanvasGroup[] = []
       for (const item of response.list) {
         let group: CanvasGroup = {} as any
@@ -242,43 +264,44 @@ export const useInfiniteGroups = (
         if (groupCol.column.uidt === UITypes.LinkToAnotherRecord) {
           const colOpts = groupCol.column.colOptions as LinkToAnotherRecordType
           const relatedBaseId = colOpts?.fk_related_base_id || (base.value?.id as string)
-          const relatedTableMeta = await getMeta(relatedBaseId, colOpts.fk_related_model_id as string)
-          if (!relatedTableMeta) continue
-          group.relatedTableMeta = relatedTableMeta
-          const col = relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0]
-          group.relatedColumn = col
-          group.displayValueProp = col?.title
+          const relatedTableMeta = await loadRelatedMeta(groupCol.column, relatedBaseId)
+          // keep the group without related meta; its header falls back to the raw value
+          if (relatedTableMeta) {
+            group.relatedTableMeta = relatedTableMeta
+            const col = relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0]
+            group.relatedColumn = col
+            group.displayValueProp = col?.title
+          }
         }
 
         if (groupCol.column.uidt === UITypes.Lookup) {
           const relationColumn = meta.value?.columns?.find(
             (c: ColumnType) => c.id === (groupCol.column?.colOptions as LookupType)?.fk_relation_column_id,
           )
-          if (!relationColumn) continue
 
-          const relColOpts = relationColumn.colOptions as LinkToAnotherRecordType
+          const relColOpts = relationColumn?.colOptions as LinkToAnotherRecordType | undefined
           const relatedBaseId = relColOpts?.fk_related_base_id || (base.value?.id as string)
-          const relatedTableMeta = await getMeta(relatedBaseId, relColOpts.fk_related_model_id as string)
-          if (!relatedTableMeta) continue
+          const relatedTableMeta = relationColumn && relColOpts ? await loadRelatedMeta(relationColumn, relatedBaseId) : null
 
-          const lookupColumn = relatedTableMeta.columns?.find(
-            (c) => c.id === (groupCol.column.colOptions as LookupType)?.fk_lookup_column_id,
-          )
-          if (!lookupColumn) continue
+          // Partial meta lacks the looked-up column — fall back to a plain/attachment stand-in
+          const lookupColumn =
+            relatedTableMeta?.columns?.find((c) => c.id === (groupCol.column.colOptions as LookupType)?.fk_lookup_column_id) ??
+            getFallbackLookupColumn(groupCol.column, item[groupCol.column.title!] ?? item[groupCol.column.column_name!])
 
-          let finalTableMeta = relatedTableMeta
+          let finalTableMeta = relatedTableMeta ?? undefined
           let finalColumn = lookupColumn
+          let currentBaseId = relatedBaseId
 
           // Resolve nested lookups (Lookup → Lookup → ... → target column)
-          while (finalColumn?.uidt === UITypes.Lookup) {
+          while (finalTableMeta && finalColumn?.uidt === UITypes.Lookup) {
             const nestedRelCol = finalTableMeta.columns?.find(
               (c: ColumnType) => c.id === (finalColumn!.colOptions as LookupType)?.fk_relation_column_id,
             )
             if (!nestedRelCol) break
 
             const nestedRelOpts = nestedRelCol.colOptions as LinkToAnotherRecordType
-            const nestedBaseId = nestedRelOpts?.fk_related_base_id || (base.value?.id as string)
-            const nestedTableMeta = await getMeta(nestedBaseId, nestedRelOpts.fk_related_model_id as string)
+            const nestedBaseId = nestedRelOpts?.fk_related_base_id || currentBaseId
+            const nestedTableMeta = await getMeta(nestedBaseId, nestedRelOpts.fk_related_model_id as string, false, false, true)
             if (!nestedTableMeta) break
 
             const nestedLookupCol = nestedTableMeta.columns?.find(
@@ -288,13 +311,14 @@ export const useInfiniteGroups = (
 
             finalTableMeta = nestedTableMeta
             finalColumn = nestedLookupCol
+            currentBaseId = nestedBaseId
           }
 
           // Check if the final column is a LinkToAnotherRecord
           if (finalColumn?.uidt === UITypes.LinkToAnotherRecord) {
             const lookupColOpts = finalColumn.colOptions as LinkToAnotherRecordType
-            const targetBaseId = lookupColOpts?.fk_related_base_id || (base.value?.id as string)
-            const targetTableMeta = await getMeta(targetBaseId, lookupColOpts.fk_related_model_id as string)
+            const targetBaseId = lookupColOpts?.fk_related_base_id || currentBaseId
+            const targetTableMeta = await getMeta(targetBaseId, lookupColOpts.fk_related_model_id as string, false, false, true)
             if (targetTableMeta) {
               finalTableMeta = targetTableMeta
               finalColumn = targetTableMeta.columns?.find((c) => c.pv) || targetTableMeta.columns?.[0]

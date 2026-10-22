@@ -489,7 +489,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       const currColOptions = (col.colOptions || {}) as LinkToAnotherRecordType
       const relatedBaseId = currColOptions.fk_related_base_id || column.value.base_id
 
-      await getMeta(relatedBaseId, currColOptions.fk_related_model_id as string)
+      await getMeta(relatedBaseId, currColOptions.fk_related_model_id as string, false, false, true)
 
       const currColRelatedTableMeta = getMetaByKey(relatedBaseId, currColOptions?.fk_related_model_id as string)
 

@@ -59,13 +59,12 @@ watch(
 const colOptions = computed(() => column.value?.colOptions)
 
 const childColumn = computed(() => {
-  if (!relatedTableMeta.value?.columns || !isRollup(column.value)) return ''
+  if (!column.value || !isRollup(column.value)) return ''
 
-  const col = relatedTableMeta.value?.columns.find(
-    (c: ColumnType) => c.id === (colOptions.value as RollupType).fk_rollup_column_id,
-  )
-
-  if (!col) return ''
+  // Partial/missing related meta (no access to the related base) — derive the type from the rollup
+  const col =
+    relatedTableMeta.value?.columns?.find((c: ColumnType) => c.id === (colOptions.value as RollupType).fk_rollup_column_id) ??
+    getFallbackRollupColumn(column.value)
 
   // Resolve Formula fields with display_type (e.g., Currency, Percent) to their effective type
   if (col.uidt === UITypes.Formula) {

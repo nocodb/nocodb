@@ -10,7 +10,10 @@ import { ColumnType, FilterType, LinkToAnotherRecordType } from '~/lib/Api';
 import { isDateMonthFormat } from '~/lib/dateTimeHelper';
 import { buildFilterTree } from '~/lib/filterHelpers';
 import { parseProp } from '~/lib/helperFunctions';
-import UITypes, { isBtLikeV2Junction } from '~/lib/UITypes';
+import UITypes, {
+  getRollupResultUidt,
+  isBtLikeV2Junction,
+} from '~/lib/UITypes';
 import { FormulaDataTypes } from '~/lib/formula/enums';
 import { getLookupColumnType } from '~/lib/columnHelper/utils/get-lookup-column-type';
 import { getNodejsTimezone } from '~/lib/timezoneUtils';
@@ -140,13 +143,22 @@ export class RowFilterValidator {
     const relationCol = columns.find(
       (c) => c.id === colOptions?.fk_relation_column_id
     );
-    const relatedModelId = (relationCol?.colOptions as any)
-      ?.fk_related_model_id;
-    const relatedMeta = getMetaWithCompositeKey(metas, baseId, relatedModelId);
+    const relationOptions = relationCol?.colOptions as any;
+    const relatedMeta = getMetaWithCompositeKey(
+      metas,
+      relationOptions?.fk_related_base_id || baseId,
+      relationOptions?.fk_related_model_id
+    );
     const rollupCol = relatedMeta?.columns?.find(
       (c: ColumnType) => c.id === colOptions?.fk_rollup_column_id
     );
-    return (rollupCol?.uidt as UITypes) ?? UITypes.Decimal;
+    // the related meta may be partial (no access to its base); result_uidt is
+    // resolved server-side for min/max over a date
+    return (
+      (rollupCol?.uidt as UITypes) ??
+      getRollupResultUidt(column) ??
+      UITypes.Decimal
+    );
   }
 
   validateSync(params: {

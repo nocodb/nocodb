@@ -43,8 +43,10 @@ export const RollupCellRenderer: CellRenderer = {
     const relatedBaseId = getRelatedBaseId(relatedColObj, meta?.base_id || '')
     const relatedTableMeta = getMetaWithCompositeKey(metas, relatedBaseId, relatedColOptions.fk_related_model_id)
 
+    // Partial meta (no access to the related base) lacks the target column — derive its type from the rollup
     const childColumn = deepClone(
-      (relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_rollup_column_id),
+      (relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_rollup_column_id) ??
+        getFallbackRollupColumn(column),
     )
 
     if (!childColumn) return

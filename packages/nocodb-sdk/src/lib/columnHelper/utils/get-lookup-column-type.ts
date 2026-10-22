@@ -32,7 +32,8 @@ export function resolveLookupLeafColumn({
     relationColumnOptions?.fk_related_model_id &&
     getMetaWithCompositeKey(
       metas,
-      currentBaseId,
+      // A cross-base link's related table lives under its own base.
+      relationColumnOptions.fk_related_base_id || currentBaseId,
       relationColumnOptions.fk_related_model_id as string
     );
 

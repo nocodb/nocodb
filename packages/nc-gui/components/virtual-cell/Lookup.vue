@@ -75,7 +75,7 @@ watch(
   async (relationCol: { colOptions: LinkToAnotherRecordType }) => {
     if (relationCol && relationCol.colOptions) {
       const relatedBaseId = getRelatedBaseId(relationCol as ColumnType)
-      if (relatedBaseId) await getMeta(relatedBaseId, relationCol.colOptions.fk_related_model_id!)
+      if (relatedBaseId) await getMeta(relatedBaseId, relationCol.colOptions.fk_related_model_id!, false, false, true)
     }
   },
   { immediate: true },
@@ -89,12 +89,15 @@ const lookupTableMeta = computed<Record<string, any> | undefined>(() => {
   return undefined
 })
 
-const lookupColumn = computed(
-  () =>
-    lookupTableMeta.value?.columns?.find((c: any) => c.id === (column.value?.colOptions as LookupType)?.fk_lookup_column_id) as
-      | ColumnType
-      | undefined,
-)
+const lookupColumn = computed<ColumnType | undefined>(() => {
+  const col = lookupTableMeta.value?.columns?.find(
+    (c: any) => c.id === (column.value?.colOptions as LookupType)?.fk_lookup_column_id,
+  ) as ColumnType | undefined
+  if (col || !column.value || !relationColumn.value) return col
+
+  // Partial/missing related meta (no access to the related base) — render the value plainly
+  return getFallbackLookupColumn(column.value, cellValue.value)
+})
 
 // Apply the lookup column's own formatting override (meta.display_type +
 // meta.display_column_meta) on top of the resolved child column. Returns the same
@@ -182,7 +185,7 @@ watch(
 
       const relMeta = getMetaByKey(baseId, relOpt.fk_related_model_id)
       if (!relMeta) {
-        await getMeta(baseId, relOpt.fk_related_model_id)
+        await getMeta(baseId, relOpt.fk_related_model_id, false, false, true)
         return
       }
 

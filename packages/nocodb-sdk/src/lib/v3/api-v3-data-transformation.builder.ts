@@ -353,6 +353,7 @@ export const colOptionBuilder = builderGenerator({
     'fk_qr_value_column_id',
     'fk_barcode_value_column_id',
     'fk_related_model_id',
+    'fk_related_base_id',
     'type',
     'fk_relation_column_id',
     'fk_rollup_column_id',
@@ -377,6 +378,7 @@ export const colOptionBuilder = builderGenerator({
     fk_barcode_value_column_id: 'barcode_value_field_id',
 
     fk_related_model_id: 'related_table_id',
+    fk_related_base_id: 'related_base_id',
 
     fk_relation_column_id: 'related_field_id',
     fk_rollup_column_id: 'related_table_rollup_field_id',
@@ -573,8 +575,16 @@ export const columnBuilder = builderGenerator<ColumnType, FieldV3Type>({
       const { integration_id: _integrationId, ...rest } = options;
       options = rest;
     } else if (isLinksOrLTAR(data.type)) {
-      const { type, ...rest } = options;
-      options = { ...rest, relation_type: type };
+      // only a cross-base link names its related base; copied same-base
+      // links can carry their own base id
+      const { type, related_base_id, ...rest } = options;
+      const isCrossBase =
+        related_base_id && related_base_id !== data.colOptions?.base_id;
+      options = {
+        ...rest,
+        relation_type: type,
+        ...(isCrossBase ? { related_base_id } : {}),
+      };
     }
 
     // Number/Decimal/Rollup: fold the legacy `isLocaleString` boolean (mapped
@@ -614,6 +624,7 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
     'barcode_value_field_id',
     'relation_type',
     'related_table_id',
+    'related_base_id',
     'related_field_id',
     'related_table_rollup_field_id',
     'related_table_lookup_field_id',
@@ -649,6 +660,8 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
 
     // parent id we need to extract from the url
     related_table_id: 'childId',
+    // cross-base link: the base `related_table_id` lives in
+    related_base_id: 'ref_base_id',
 
     related_field_id: 'fk_relation_column_id',
     related_table_rollup_field_id: 'fk_rollup_column_id',

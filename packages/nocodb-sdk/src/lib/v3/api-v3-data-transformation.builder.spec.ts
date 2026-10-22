@@ -87,3 +87,44 @@ describe('enable_conditions', () => {
     expect(field.options.use_recursive_evaluation).toBe(true);
   });
 });
+
+describe('cross-base link options', () => {
+  const link = (fk_related_base_id: string | null) =>
+    columnBuilder().build({
+      id: 'c1',
+      title: 'L',
+      uidt: UITypes.LinkToAnotherRecord,
+      base_id: 'p1',
+      colOptions: {
+        base_id: 'p1',
+        type: 'mm',
+        fk_related_model_id: 'm2',
+        fk_related_base_id,
+      },
+    } as any) as any;
+
+  it('reads related_base_id only on a cross-base link', () => {
+    expect(link('p2').options).toEqual({
+      relation_type: 'mm',
+      related_table_id: 'm2',
+      related_base_id: 'p2',
+    });
+    expect(link(null).options).not.toHaveProperty('related_base_id');
+    // a copied same-base link can store its own base id
+    expect(link('p1').options).not.toHaveProperty('related_base_id');
+  });
+
+  it('maps related_base_id to ref_base_id on create', () => {
+    const v2 = columnV3ToV2Builder().build({
+      title: 'L',
+      type: UITypes.LinkToAnotherRecord,
+      options: {
+        relation_type: 'mm',
+        related_table_id: 'm2',
+        related_base_id: 'p2',
+      },
+    } as FieldV3Type) as any;
+    expect(v2.childId).toBe('m2');
+    expect(v2.ref_base_id).toBe('p2');
+  });
+});

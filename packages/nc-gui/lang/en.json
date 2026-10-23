@@ -7886,6 +7886,7 @@
       "setFormDataFailed": "Failed to set form data",
       "formViewUpdateFailed": "Failed to update form view",
       "tableNameRequired": "Table name is required",
+      "projectNameRequired": "Project name is required",
       "scriptNameRequired": "Script name is required",
       "dashboardNameRequired": "Dashboard name is required",
       "workflowNameRequired": "Workflow name is required",

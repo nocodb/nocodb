@@ -36,7 +36,18 @@ const { getColor } = useTheme()
 
 const { isAiBetaFeaturesEnabled } = useNocoAi()
 
-const { getPlanTitle, showEEFeatures } = useEeConfig()
+const {
+  getPlanTitle,
+  showEEFeatures,
+  isEEFeatureBlocked,
+  blockAiButtonField,
+  showUpgradeToUseAiButtonField,
+  blockScripts,
+  showUpgradeToUseScripts,
+  blockWorkflows,
+  showUpgradeToUseWorkflows,
+  showUpgradeForEEFeature,
+} = useEeConfig()
 
 const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName } =
   useColumnCreateStoreOrThrow()
@@ -107,6 +118,9 @@ const buttonTypes = computed(() => [
           label: t('labels.generateFieldDataUsingAi'),
           value: ButtonActionsType.Ai,
           tooltip: t('tooltip.generateFieldDataUsingAiButtonOption'),
+          upgradeBadge: { feature: PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD },
+          blocked: blockAiButtonField.value,
+          showUpgrade: () => showUpgradeToUseAiButtonField({ triggerSource: 'button-field-ai' }),
         },
       ]
     : []),
@@ -116,11 +130,24 @@ const buttonTypes = computed(() => [
           icon: 'ncScript',
           label: t('labels.runScript'),
           value: ButtonActionsType.Script,
+          upgradeBadge: { featureEnabledCallback: () => !isEEFeatureBlocked.value },
+          blocked: blockScripts.value,
+          showUpgrade: () => showUpgradeToUseScripts({ triggerSource: 'button-field-script' }),
         },
         {
           icon: 'ncAutomation',
           label: t('labels.interfaceActionRunAutomation'),
           value: ButtonActionsType.Workflow,
+          // Unlicensed on-prem allows workflows but not the button trigger.
+          upgradeBadge: {
+            feature: PlanFeatureTypes.FEATURE_WORKFLOWS,
+            featureEnabledCallback: () => !blockWorkflows.value && !isEEFeatureBlocked.value,
+          },
+          blocked: blockWorkflows.value || isEEFeatureBlocked.value,
+          showUpgrade: () =>
+            blockWorkflows.value
+              ? showUpgradeToUseWorkflows({ triggerSource: 'button-field-automation' })
+              : showUpgradeForEEFeature(t('labels.interfaceActionRunAutomation'), undefined, 'button-field-automation'),
         },
       ]
     : []),
@@ -367,7 +394,15 @@ const selectIcon = (icon: string) => {
   isButtonIconDropdownOpen.value = false
 }
 
-const handleUpdateActionType = () => {
+// Picking a plan-gated action opens the upgrade modal and keeps the current action.
+const handleUpdateActionType = (type: ButtonActionsType) => {
+  const buttonType = buttonTypes.value.find((option) => option.value === type)
+  if (buttonType?.blocked) {
+    buttonType.showUpgrade?.()
+    return
+  }
+
+  vModel.value.type = type
   updateFieldName(true, undefined, true)
   vModel.value.formula_raw = ''
 }
@@ -518,7 +553,7 @@ if (isEdit.value) {
       <a-col :span="24">
         <a-form-item :label="$t('labels.onClick')" v-bind="validateInfos.type">
           <a-select
-            v-model:value="vModel.type"
+            :value="vModel.type"
             class="w-52 nc-button-type-select nc-select-shadow"
             :class="{
               'nc-ai-input': isAiMode,
@@ -535,6 +570,12 @@ if (isEdit.value) {
                   <div class="flex-1">
                     {{ type.label }}
                   </div>
+                  <PaymentUpgradeBadge
+                    v-if="type.upgradeBadge"
+                    :feature="type.upgradeBadge.feature"
+                    :feature-enabled-callback="type.upgradeBadge.featureEnabledCallback"
+                    remove-click
+                  />
                   <component
                     :is="iconMap.check"
                     v-if="vModel.type === type.value"

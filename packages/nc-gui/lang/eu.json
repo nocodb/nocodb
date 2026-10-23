@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "Bertsio-berritu inprimakietan saioa hastea eskatzeko",
     "upgradeToUseFormRequireSigninSubtitle": "Bertsio-berritu {plan} planera erantzuleei inprimakia bidali aurretik saioa hastea eskatzeko.",
     "upgradeToUseSso": "SSO erabiltzeko eguneratu",
-    "upgradeToUseSsoSubtitle": "{plan} planera igotzea Single Sign-On (SSO) konfiguratzeko eta zure taldeari zure identitate-hornitzailearekin saioa hasten uzteko.",
-    "upgradeToUseAppFactory": "Egin bertsio-berritzea App Factory erabiltzeko",
-    "upgradeToUseAppFactorySubtitle": "Pasatu {plan} planera kodetze-agenteak zure konektatutako biltegietan abiarazteko."
+    "upgradeToUseSsoSubtitle": "{plan} planera igotzea Single Sign-On (SSO) konfiguratzeko eta zure taldeari zure identitate-hornitzailearekin saioa hasten uzteko."
   },
   "general": {
     "scrollToBottom": "Behera irristatu",
@@ -766,7 +764,8 @@
     "toggle": "Txandakatu",
     "uploading": "Igotzen",
     "countAll": "Zenbatu guztiak",
-    "config": "Konfigurazioa"
+    "config": "Konfigurazioa",
+    "dismiss": "Baztertu"
   },
   "objects": {
     "script": "Script",
@@ -2200,7 +2199,7 @@
       "webhooks": "Web-hook-ak",
       "webhooksDesc": "Webhook-eragileak eta erregistroak kudeatu",
       "base": "Proiektua",
-      "baseDesc": "Proiektuaren ezarpenak, iturriak eta lanak",
+      "baseDesc": "Proiektuaren ezarpenak, iturriak, lanak, dokumentuak eta haien iruzkinak",
       "users": "Erabiltzaileak",
       "usersDesc": "Proiektuko kideak, lan-espazioko kideak eta gonbidapenak",
       "grantedCount": "{total}(e)tik {count} emanda",
@@ -3104,7 +3103,6 @@
       "syncInfo": "Ekarri datuak kanpoko aplikazio batetik ordutegi baten arabera. Norabide bakarrean.",
       "automations": "Automatizazioak",
       "aiSkills": "AA Skills",
-      "mcpServer": "MCP zerbitzaria",
       "auditLog": "Auditoria-erregistroa",
       "trashRetention": "Zakarrontziaren atxikipena",
       "snapshots": "Snapshots",
@@ -3135,7 +3133,7 @@
         "members": "Nork ireki dezakeen proiektu hau, eta zer egin dezakeen.",
         "permissions": "Nork ikus edo edita dezakeen taula, eremu eta dokumentu bakoitza.",
         "apiTokens": "Kanpoko aplikazioei proiektu hau irakurtzen eta idazten uzten dieten tokenak.",
-        "mcp": "Konektatu AA bezeroak proiektu honetara MCP bidez.",
+        "mcp": "Utzi zure AA tresnei proiektu honekin lan egiten, zure sarbidea erabiliz.",
         "integrations": "Proiektu honek erabil ditzakeen konektatutako kontuak.",
         "automations": "Abiarazle batekin exekutatzen diren lan-fluxuak.",
         "auditLog": "Proiektu honetan egindako aldaketa bakoitza, eta nork egin duen.",
@@ -3154,7 +3152,8 @@
       "upgradeDescDateDependency": "Mendeko datak automatikoki lekualdatzen ditu erregistro bat mugitzean.",
       "concernProject": "Proiektua",
       "concernApps": "Apps",
-      "concernTabs": "Ezarpen-atalak"
+      "concernTabs": "Ezarpen-atalak",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "Kategoriak",
     "blockquote": "Aipua",
@@ -5312,7 +5311,6 @@
     "factoryEnvironment": "Ingurunea",
     "factoryCommitOrPush": "Commit edo push",
     "factoryCompareBranch": "Konparatu adarra",
-    "factoryAddTab": "Ireki panel bat",
     "factoryCommitPushPrompt": "Egin aldaketen commit eta adarraren push.",
     "chatYesterday": "Atzo",
     "chatCopyMessage": "Kopiatu mezua",
@@ -5418,7 +5416,64 @@
     "duplicateField": "Bikoiztu eremua",
     "extensionError": "Hedapen-errorea",
     "clearData": "Garbitu datuak",
-    "copyProject": "Kopiatu proiektua"
+    "copyProject": "Kopiatu proiektua",
+    "factoryBootPartCpu": "Prozesadorea",
+    "factoryBootPartMemory": "Memoria",
+    "factoryBootPartNetwork": "Sarea",
+    "factoryBootPartRepo": "Biltegia",
+    "factoryBootPartServices": "Zerbitzuak",
+    "factoryMachines": "Makinak",
+    "factoryMachinesHint": "Zure saioak abiatzen diren ingurunea. Saio berriek lehenetsia erabiltzen dute; beste bat hauta dezakezu konposatzailean.",
+    "factoryMachinesCreatorOnly": "Mantentzaileek soilik sor, edita edo eraiki ditzakete makinak.",
+    "factoryMachineSearchPanes": "Bilatu",
+    "factoryMachineStockTag": "Barneratua",
+    "factoryMachineSetDefault": "Ezarri lehenetsi gisa",
+    "factoryMachineUpgrade": "Eguneratu",
+    "factoryMachineUpgradingShort": "Eguneratzen…",
+    "factoryMachineUpdateAvailable": "Eguneratzea eskuragarri dago",
+    "factoryMachineUpgradeHint": "Oinarrizko irudi zaharrago baten gainean eraikita dago. Eguneratzeak pakete berak uneko irudiaren gainean berreraikitzen ditu.",
+    "factoryMachineUpgradeBanner": "Oinarrizko irudi zaharrago baten gainean eraikita dago, beraz saio berriak ezin dira bertatik abiatu. Eguneratu pakete berak uneko irudiaren gainean berreraikitzeko.",
+    "factoryMachineStock": "Oinarrizko makina",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep eta Chrome. Makina guztiak horren gainean eraikitzen dira, eta makinarik gabeko saioak horretan exekutatzen dira.",
+    "factoryMachinesEmptyTitle": "Oraindik ez dago makinarik",
+    "factoryMachinesEmptyBody": "Saioak oinarrizko makinan exekutatzen dira. Sortu bat biltegi honek behar dituen exekuzio-inguruneekin, datu-baseekin eta tresnekin, eta saio bakoitza haiekin hasiko da.",
+    "factoryMachinePickTitle": "Hasi saioa hemen",
+    "factoryMachinePip": "pip globala",
+    "factoryMachineReady": "Prest",
+    "factoryMachineStepBase": "Factory mahaigaineko oinarria",
+    "factoryMachineStepBaseDetail": "Ubuntu 22.04 mahaigainarekin, git-ekin eta GitHub CLI-rekin",
+    "factoryMachineStepSave": "Gorde makina",
+    "factoryMachineStepSaveDetail": "Proiektu honen saioetarako argazkia",
+    "factoryMachineServiceStarts": "Saio bakoitzarekin abiarazten da",
+    "factoryMachineServicesHint": "Agenteari ingurune-aldagai gisa ematen zaio, beraz probak eta garapen-zerbitzariak konfiguraziorik gabe konektatzen dira.",
+    "factoryMachineRebuild": "Berreraiki eguneraketekin",
+    "factoryMachineUseVersion": "Erabili bertsio hau",
+    "factoryMachineReused": "Build berdina berrerabili da",
+    "factoryMachineSetUp": "Konfiguratu makina",
+    "factoryMachineSuggestUpdate": "{machine} makinari gehitu etorkizuneko saioetarako?",
+    "factoryMachineSuggestNote": "Atzeko planoan berreraikitzen da. Saio honek dagoen moduan jarraitzen du.",
+    "factoryMachineSuggestCreatorOnly": "Mantentzaileek soilik alda ditzakete makinak. Eskatu haietako bati hau aplikatzeko.",
+    "factoryMachineSuggestAccept": "Gehitu eta berreraiki",
+    "factoryMachineSuggestAdded": "{machine} makinaren bertsio berri bat eraikitzen ari da. Saio berriek erabiliko dute prest dagoenean.",
+    "factoryMachineSuggestDeclined": "Ez da aplikatu. Makina edozein unetan alda dezakezu Makinak atalean.",
+    "factoryMachineSuggestAlreadyIn": "{machine} makinak badu hau jada.",
+    "factoryMachineSuggestReady": "{machine} v{version} prest dago. Saio berriak bertan abiatuko dira.",
+    "factoryMachineSuggestFailed": "Ezin izan da {machine} makinaren bertsio berria eraiki.",
+    "factoryMachineSuggestCancelled": "{machine} makinaren bertsio berria bertan behera utzi da.",
+    "factoryMachineSuggestedFix": "Proposatutako konponketa",
+    "factoryMachineSameAsBefore": "Hautaketa bera, berreraikita",
+    "factoryMachineTabOverview": "Gainbegiratzea",
+    "factoryMachineUnbuiltTo": "Zirriborroa {next}: {count} aldaketa {version} bertsiotik, eraiki gabe | Zirriborroa {next}: {count} aldaketa {version} bertsiotik, eraiki gabe",
+    "factoryMachineReview": "Jarraitu editatzen",
+    "factoryMachineTabVersions": "Bertsioak",
+    "factoryMachineServiceBadge": "Zerbitzua",
+    "factoryMachineUndoChange": "Desegin aldaketa hau",
+    "factoryMachineStepOf": "{step}, {n}/{total} urratsa",
+    "factoryMachineStillUsing": "Saio berriek {version} erabiltzen jarraitzen dute.",
+    "factoryMachineReusedLog": "Lehenagoko build berdin bat berrerabili da, beraz ez zegoen ezer eraikitzeko.",
+    "dontExpand": "Ez zabaldu",
+    "createSchema": "Sortu eskema",
+    "configureSources": "Konfiguratu iturriak"
   },
   "activity": {
     "useTemplate": "Erabili txantiloia",
@@ -7767,6 +7822,81 @@
       "tryBody": "Hasi berriketa berri bat eta galdetu «List my NocoDB tools».",
       "tokenText": "Zure tresnak token bat besterik ez du onartzen?",
       "tokenButton": "Sortu MCP token bat"
+    },
+    "pane": {
+      "tabApps": "AA aplikazioak",
+      "tabManual": "Eskuzko konexioak",
+      "connectTitle": "Konektatu AA aplikazio bat",
+      "recommended": "Gomendatua",
+      "connectBody": "Hasi saioa zure NocoDB kontuarekin. Zuk zehazten duzu zehazki zer ikus eta alda dezakeen.",
+      "otherToolUrl": "Beste AA tresna bat erabiltzen? Gehitu",
+      "otherTool": "Beste tresna bat",
+      "copyValue": "Kopiatu {label}",
+      "addTo": "Gehitu NocoDB hona: {client}",
+      "signInTitle": "Hasi saioa NocoDB-rekin eta baimendu",
+      "waiting": "{client} saioa hastearen zain…",
+      "waitingHint": "Baimendu bezain laster bere kabuz eguneratzen da.",
+      "connectedTitle": "{client} konektatuta dago",
+      "connectedBody": "Orain zure AA aplikazioetan agertzen da.",
+      "connectedElsewhere": "Beste proiektu batzuetarako baimendu zen, beraz ez da hemen agertzen.",
+      "manageAccess": "Kudeatu sarbidea",
+      "fallbackText": "Zure AA tresnak ezin du NocoDB-rekin saioa hasi?",
+      "fallbackLink": "Erabili eskuzko konexio bat horren ordez",
+      "appsTitle": "Zure AA aplikazioak",
+      "appsHint": "Zuk bakarrik ikus dezakezu",
+      "app": "Aplikazioa",
+      "lastSignedInAt": "Azken saio-hasiera {time}",
+      "lastUsed": "Azken erabilera",
+      "lastUsedAt": "Azken erabilera {time}",
+      "canDelete": "Datuak ezaba ditzake",
+      "toolsTitle": "Tresnak eta baimenak",
+      "neverMoreThanRole": "Inoiz ez proiektu honetan duzun rola baino gehiago ({role}).",
+      "neverMoreThanAccess": "Inoiz ez proiektu honetarako duzun sarbidea baino gehiago.",
+      "neverMoreThanOwnAccess": "Inoiz ez baimendu zen lekuan duzun sarbidea baino gehiago.",
+      "notEditable": "Aplikazio honek zer egin dezakeen saioa hastean finkatu zen eta ezin da hemen aldatu. Deskonektatu eta berriro saioa hasarazi bere tresnak hautatzeko.",
+      "disconnectBody": "Aplikazio hau proiektu honetatik deskonektatzen du. Berriro konektatzeko, saioa berriz hasi beharko du.",
+      "disconnectBodyWide": "Aplikazio hau baimendu zen leku guztietan deskonektatzen du, ez proiektu honetan bakarrik. Berriro konektatzeko, saioa berriz hasi beharko du.",
+      "disconnectBodyEverywhere": "Aplikazio hau baimendu zen leku guztietan deskonektatzen du. Berriro konektatzeko, saioa berriz hasi beharko du.",
+      "disconnectConfirm": "{client} deskonektatu?",
+      "disconnectConfirmBody": "Berehala galtzen du sarbidea eta, berriro konektatzeko, saioa berriz hasi beharko du.",
+      "disconnected": "{client} deskonektatuta",
+      "accessUpdated": "Sarbidea eguneratuta",
+      "manualTitle": "Zure eskuzko konexioak",
+      "manualBody": "NocoDB-rekin saioa hasi ezin duten script, CI lan eta bezeroentzat.",
+      "manualNote": "Eskuzko konexioek API gako estatiko bat erabiltzen dute. Baliogabetu arte funtzionatzen du, eta konfigurazioa duen edonork sarbide bera lortzen du. Zure tresnak onartzen badu, {link}.",
+      "manualNoteLink": "konektatu ezazu AA aplikazio gisa",
+      "field": {
+        "remoteServerUrl": "Urruneko MCP zerbitzariaren URL helbidea",
+        "authentication": "Autentifikazioa",
+        "url": "URL",
+        "transport": "Garraioa"
+      },
+      "claude": {
+        "where": "Claude-n, ireki Ezarpenak › Konektoreak eta hautatu Gehitu konektore pertsonalizatua. Bete:",
+        "auth": "Hautatu Konektatu NocoDB-ren ondoan. Hasi saioa NocoDB-rekin, hautatu Claude zeri sar daitekeen, eta ondoren hautatu Baimendu."
+      },
+      "chatgpt": {
+        "where": "ChatGPT-n, ireki Pluginak, hautatu Gehitu eta ondoren Gehitu MCP zerbitzari pertsonalizatua. Bete:",
+        "auth": "Hautatu Sortu. ChatGPT-k NocoDB leiho berri batean irekiko du. Hasi saioa, hautatu zeri sar daitekeen, eta ondoren hautatu Baimendu."
+      },
+      "claudeCode": {
+        "auth": "Claude Code-n, exekutatu /mcp, hautatu nocodb eta ondoren Autentifikatu. Nabigatzailean, hautatu zeri sar daitekeen, eta ondoren hautatu Baimendu."
+      },
+      "cursor": {
+        "where": "Cursor-en, ireki Ezarpenak › MCP eta hautatu Gehitu MCP zerbitzari berria. Bete:",
+        "auth": "Hautatu Konektatu nocodb-ren ondoan MCP zerrendan. Hasi saioa NocoDB-rekin nabigatzailean eta hautatu Baimendu."
+      },
+      "codex": {
+        "auth": "Exekutatu saioa hasteko komandoa, hasi saioa NocoDB-rekin nabigatzailean eta hautatu Baimendu."
+      },
+      "windsurf": {
+        "where": "Windsurf-en, ireki Ezarpenak › Cascade › MCP zerbitzariak eta hautatu Gehitu zerbitzari pertsonalizatua. Bete:",
+        "auth": "Hautatu Konektatu nocodb-ren ondoan. Hasi saioa NocoDB-rekin nabigatzailean eta hautatu Baimendu."
+      },
+      "other": {
+        "where": "Gehitu urruneko MCP zerbitzari bat zure bezeroan datu hauekin:",
+        "auth": "Hasi konexioa zure bezerotik. NocoDB nabigatzailean irekiko da; han saioa hasiko duzu, bezeroak zeri sar daitekeen hautatuko duzu eta Baimendu hautatuko duzu."
+      }
     }
   }
 }

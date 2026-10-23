@@ -304,9 +304,7 @@
     "upgradeToUseFormRequireSignin": "អាប់ក្រេដដើម្បីតម្រូវឱ្យចូលគណនីលើបែបបទ",
     "upgradeToUseFormRequireSigninSubtitle": "អាប់ក្រេដទៅផែនការ {plan} ដើម្បីតម្រូវឱ្យអ្នកឆ្លើយតបចូលគណនីមុនពេលដាក់ស្នើបែបបទ។",
     "upgradeToUseSso": "ដំឡើងកំណែដើម្បីប្រើ SSO",
-    "upgradeToUseSsoSubtitle": "ដំឡើងកំណែទៅគម្រោង {plan} ដើម្បីរៀបចំការចូលតែម្ដង (SSO) និងអនុញ្ញាតឱ្យក្រុមរបស់អ្នកចូលដោយប្រើអ្នកផ្ដល់អត្តសញ្ញាណរបស់អ្នក។",
-    "upgradeToUseAppFactory": "ដំឡើងកញ្ចប់ដើម្បីប្រើ App Factory",
-    "upgradeToUseAppFactorySubtitle": "ដំឡើងទៅកញ្ចប់ {plan} ដើម្បីដំណើរការ agent សរសេរកូដលើ repository ដែលបានតភ្ជាប់របស់អ្នក។"
+    "upgradeToUseSsoSubtitle": "ដំឡើងកំណែទៅគម្រោង {plan} ដើម្បីរៀបចំការចូលតែម្ដង (SSO) និងអនុញ្ញាតឱ្យក្រុមរបស់អ្នកចូលដោយប្រើអ្នកផ្ដល់អត្តសញ្ញាណរបស់អ្នក។"
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -766,7 +764,8 @@
     "uploading": "កំពុងផ្ទុកឡើង",
     "countAll": "រាប់ទាំងអស់",
     "factory": "រោងចក្រ",
-    "config": "ការកំណត់រចនាសម្ព័ន្ធ"
+    "config": "ការកំណត់រចនាសម្ព័ន្ធ",
+    "dismiss": "បិទ"
   },
   "objects": {
     "script": "ស្គ្រីប",
@@ -2200,7 +2199,7 @@
       "webhooks": "Webhooks",
       "webhooksDesc": "Manage webhook triggers and logs",
       "base": "គម្រោង",
-      "baseDesc": "ការកំណត់គម្រោង ប្រភព និងការងារ",
+      "baseDesc": "ការកំណត់គម្រោង ប្រភព ការងារ ឯកសារ និងមតិយោបល់របស់វា",
       "users": "Users",
       "usersDesc": "សមាជិកគម្រោង សមាជិកកន្លែងធ្វើការ និងការអញ្ជើញ",
       "grantedCount": "បានផ្តល់ {count} ក្នុងចំណោម {total}",
@@ -3103,7 +3102,6 @@
       "sync": "Sync",
       "automations": "ស្វ័យប្រវត្តិកម្ម",
       "aiSkills": "ជំនាញ AI",
-      "mcpServer": "ម៉ាស៊ីនបម្រើ MCP",
       "auditLog": "កំណត់ហេតុសវនកម្ម",
       "trashRetention": "រយៈពេលរក្សាទុកធុងសំរាម",
       "snapshots": "Snapshots",
@@ -3132,7 +3130,7 @@
         "members": "អ្នកណាអាចបើកគម្រោងនេះ និងអាចធ្វើអ្វីខ្លះ។",
         "permissions": "អ្នកណាអាចមើល ឬកែសម្រួលតារាង វាល និងឯកសារនីមួយៗ។",
         "apiTokens": "ថូខឹនដែលអនុញ្ញាតឱ្យកម្មវិធីខាងក្រៅអាន និងសរសេរក្នុងគម្រោងនេះ។",
-        "mcp": "ភ្ជាប់កម្មវិធី AI ទៅគម្រោងនេះតាមរយៈ MCP។",
+        "mcp": "អនុញ្ញាតឱ្យឧបករណ៍ AI របស់អ្នកធ្វើការជាមួយគម្រោងនេះ ដោយប្រើសិទ្ធិចូលប្រើរបស់អ្នកផ្ទាល់។",
         "integrations": "គណនីដែលបានភ្ជាប់ ដែលគម្រោងនេះអាចប្រើបាន។",
         "auditLog": "រាល់ការផ្លាស់ប្ដូរក្នុងគម្រោងនេះ និងអ្នកដែលបានធ្វើវា។",
         "trashRetention": "រយៈពេលរក្សាទុកកំណត់ត្រាដែលបានលុប។",
@@ -3150,7 +3148,8 @@
       "upgradeDescDateDependency": "ផ្លាស់ប្តូរកាលបរិច្ឆេទពាក់ព័ន្ធដោយស្វ័យប្រវត្តិនៅពេលកំណត់ត្រាត្រូវបានផ្លាស់ទី។",
       "concernProject": "គម្រោង",
       "concernApps": "Apps",
-      "concernTabs": "ផ្នែកការកំណត់"
+      "concernTabs": "ផ្នែកការកំណត់",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "ប្រភេទ",
     "blockquote": "សម្រង់",
@@ -5285,7 +5284,6 @@
     "factoryEnvironment": "បរិស្ថាន",
     "factoryCommitOrPush": "commit ឬ push",
     "factoryCompareBranch": "ប្រៀបធៀបសាខា",
-    "factoryAddTab": "បើកផ្ទាំងមួយ",
     "factoryCommitPushPrompt": "សូម commit ការផ្លាស់ប្ដូរ ហើយ push សាខា។",
     "chatYesterday": "ម្សិលមិញ",
     "chatCopyMessage": "ចម្លងសារ",
@@ -5391,7 +5389,63 @@
     "duplicateField": "ចម្លងវាល",
     "extensionError": "កំហុសផ្នែកបន្ថែម",
     "clearData": "សម្អាតទិន្នន័យ",
-    "copyProject": "ចម្លងគម្រោង"
+    "copyProject": "ចម្លងគម្រោង",
+    "factoryBootPartMemory": "អង្គចងចាំ",
+    "factoryBootPartNetwork": "បណ្ដាញ",
+    "factoryBootPartRepo": "ឃ្លាំងកូដ",
+    "factoryBootPartServices": "សេវាកម្ម",
+    "factoryMachines": "ម៉ាស៊ីន",
+    "factoryMachinesHint": "បរិស្ថានដែលវគ្គរបស់អ្នកចាប់ផ្ដើម។ វគ្គថ្មីប្រើលំនាំដើម ហើយអ្នកអាចជ្រើសរើសម៉ាស៊ីនផ្សេងនៅក្នុងកម្មវិធីតែង។",
+    "factoryMachinesCreatorOnly": "មានតែអ្នកថែទាំប៉ុណ្ណោះដែលអាចបង្កើត កែសម្រួល ឬសាងសង់ម៉ាស៊ីនបាន។",
+    "factoryMachineSearchPanes": "ស្វែងរក",
+    "factoryMachineStockTag": "មានស្រាប់",
+    "factoryMachineSetDefault": "កំណត់ជាលំនាំដើម",
+    "factoryMachineUpgrade": "អាប់ក្រេដ",
+    "factoryMachineUpgradingShort": "កំពុងអាប់ក្រេដ…",
+    "factoryMachineUpdateAvailable": "មានបច្ចុប្បន្នភាព",
+    "factoryMachineUpgradeHint": "បានសាងសង់នៅលើរូបភាពមូលដ្ឋានចាស់។ ការអាប់ក្រេដនឹងសាងសង់កញ្ចប់ដដែលឡើងវិញនៅលើរូបភាពបច្ចុប្បន្ន។",
+    "factoryMachineUpgradeBanner": "បានសាងសង់នៅលើរូបភាពមូលដ្ឋានចាស់ ដូច្នេះវគ្គថ្មីមិនអាចចាប់ផ្ដើមពីវាបានទេ។ សូមអាប់ក្រេដ ដើម្បីសាងសង់កញ្ចប់ដដែលឡើងវិញនៅលើរូបភាពបច្ចុប្បន្ន។",
+    "factoryMachineStock": "ម៉ាស៊ីនមូលដ្ឋាន",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep និង Chrome។ គ្រប់ម៉ាស៊ីនសាងសង់នៅលើវា ហើយវគ្គដែលគ្មានម៉ាស៊ីនដំណើរការនៅលើវា។",
+    "factoryMachinesEmptyTitle": "មិនទាន់មានម៉ាស៊ីនទេ",
+    "factoryMachinesEmptyBody": "វគ្គដំណើរការនៅលើម៉ាស៊ីនមូលដ្ឋាន។ បង្កើតម៉ាស៊ីនមួយដែលមានបរិស្ថានដំណើរការ មូលដ្ឋានទិន្នន័យ និងឧបករណ៍ដែលឃ្លាំងកូដនេះត្រូវការ នោះគ្រប់វគ្គនឹងចាប់ផ្ដើមជាមួយវា។",
+    "factoryMachinePickTitle": "ចាប់ផ្ដើមវគ្គនៅលើ",
+    "factoryMachinePip": "pip សកល",
+    "factoryMachineReady": "រួចរាល់",
+    "factoryMachineStepBase": "មូលដ្ឋានផ្ទៃតុ Factory",
+    "factoryMachineStepBaseDetail": "Ubuntu 22.04 ជាមួយផ្ទៃតុ git និង GitHub CLI",
+    "factoryMachineStepSave": "រក្សាទុកម៉ាស៊ីន",
+    "factoryMachineStepSaveDetail": "រូបថតសម្រាប់វគ្គនៃគម្រោងនេះ",
+    "factoryMachineServiceStarts": "ចាប់ផ្ដើមជាមួយគ្រប់វគ្គ",
+    "factoryMachineServicesHint": "ផ្ដល់ជូនភ្នាក់ងារជាអថេរបរិស្ថាន ដូច្នេះការធ្វើតេស្ត និងម៉ាស៊ីនមេអភិវឌ្ឍន៍អាចភ្ជាប់បានដោយមិនចាំបាច់រៀបចំ។",
+    "factoryMachineRebuild": "សាងសង់ឡើងវិញជាមួយបច្ចុប្បន្នភាព",
+    "factoryMachineUseVersion": "ប្រើកំណែនេះ",
+    "factoryMachineReused": "បានប្រើប្រាស់ការសាងសង់ដូចគ្នាឡើងវិញ",
+    "factoryMachineSetUp": "រៀបចំម៉ាស៊ីន",
+    "factoryMachineSuggestUpdate": "បន្ថែមទៅ {machine} សម្រាប់វគ្គនាពេលអនាគតឬ?",
+    "factoryMachineSuggestNote": "សាងសង់ឡើងវិញនៅផ្ទៃខាងក្រោយ។ វគ្គនេះនៅតែដំណើរការដដែល។",
+    "factoryMachineSuggestCreatorOnly": "មានតែអ្នកថែទាំប៉ុណ្ណោះដែលអាចប្ដូរម៉ាស៊ីនបាន។ សូមស្នើឱ្យម្នាក់ក្នុងចំណោមពួកគេអនុវត្តវា។",
+    "factoryMachineSuggestAccept": "បន្ថែម និងសាងសង់ឡើងវិញ",
+    "factoryMachineSuggestAdded": "កំពុងសាងសង់កំណែថ្មីនៃ {machine}។ វគ្គថ្មីនឹងប្រើវានៅពេលរួចរាល់។",
+    "factoryMachineSuggestDeclined": "មិនបានអនុវត្តទេ។ អ្នកអាចប្ដូរម៉ាស៊ីនបានគ្រប់ពេលពីផ្នែក ម៉ាស៊ីន។",
+    "factoryMachineSuggestAlreadyIn": "{machine} មានវារួចហើយ។",
+    "factoryMachineSuggestReady": "{machine} v{version} រួចរាល់ហើយ។ វគ្គថ្មីនឹងចាប់ផ្ដើមនៅលើវា។",
+    "factoryMachineSuggestFailed": "ការសាងសង់កំណែថ្មីនៃ {machine} បានបរាជ័យ។",
+    "factoryMachineSuggestCancelled": "កំណែថ្មីនៃ {machine} ត្រូវបានបោះបង់។",
+    "factoryMachineSuggestedFix": "ការជួសជុលដែលបានស្នើ",
+    "factoryMachineSameAsBefore": "ជម្រើសដដែល បានសាងសង់ឡើងវិញ",
+    "factoryMachineTabOverview": "ទិដ្ឋភាពសង្ខេប",
+    "factoryMachineUnbuiltTo": "សេចក្ដីព្រាង {next}៖ ការផ្លាស់ប្ដូរ {count} ពី {version} មិនទាន់សាងសង់ | សេចក្ដីព្រាង {next}៖ ការផ្លាស់ប្ដូរ {count} ពី {version} មិនទាន់សាងសង់",
+    "factoryMachineReview": "បន្តកែសម្រួល",
+    "factoryMachineTabVersions": "កំណែ",
+    "factoryMachineServiceBadge": "សេវាកម្ម",
+    "factoryMachineUndoChange": "មិនធ្វើការផ្លាស់ប្ដូរនេះវិញ",
+    "factoryMachineStepOf": "{step} ជំហានទី {n} ក្នុងចំណោម {total}",
+    "factoryMachineStillUsing": "វគ្គថ្មីនៅតែប្រើ {version}។",
+    "factoryMachineReusedLog": "បានប្រើប្រាស់ការសាងសង់មុនដែលដូចគ្នាឡើងវិញ ដូច្នេះគ្មានអ្វីត្រូវសាងសង់ទេ។",
+    "dontExpand": "កុំពង្រីក",
+    "createSchema": "បង្កើតគ្រោងការណ៍",
+    "configureSources": "កំណត់រចនាសម្ព័ន្ធប្រភព"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -7737,6 +7791,81 @@
       "tryBody": "ចាប់ផ្តើមការជជែកថ្មី រួចសួរថា «List my NocoDB tools»។",
       "tokenText": "ឧបករណ៍របស់អ្នកទទួលយកតែថូខឹនមែនទេ?",
       "tokenButton": "បង្កើតថូខឹន MCP"
+    },
+    "pane": {
+      "tabApps": "កម្មវិធី AI",
+      "tabManual": "ការតភ្ជាប់ដោយដៃ",
+      "connectTitle": "ភ្ជាប់កម្មវិធី AI",
+      "recommended": "បានណែនាំ",
+      "connectBody": "ចូលដោយប្រើគណនី NocoDB របស់អ្នក។ អ្នកជាអ្នកកំណត់ច្បាស់លាស់ថាវាអាចមើល និងផ្លាស់ប្ដូរអ្វីខ្លះ។",
+      "otherToolUrl": "កំពុងប្រើឧបករណ៍ AI ផ្សេងឬ? បន្ថែម",
+      "otherTool": "ឧបករណ៍ផ្សេង",
+      "copyValue": "ចម្លង {label}",
+      "addTo": "បន្ថែម NocoDB ទៅ {client}",
+      "signInTitle": "ចូលដោយប្រើ NocoDB ហើយអនុញ្ញាត",
+      "waiting": "កំពុងរង់ចាំឱ្យ {client} ចូល…",
+      "waitingHint": "វានឹងធ្វើបច្ចុប្បន្នភាពដោយខ្លួនឯង ភ្លាមៗពេលអ្នកអនុញ្ញាត។",
+      "connectedTitle": "{client} បានភ្ជាប់",
+      "connectedBody": "ឥឡូវវាបង្ហាញនៅក្នុងកម្មវិធី AI របស់អ្នក។",
+      "connectedElsewhere": "វាត្រូវបានអនុញ្ញាតសម្រាប់គម្រោងផ្សេងទៀត ដូច្នេះមិនបង្ហាញនៅទីនេះទេ។",
+      "manageAccess": "គ្រប់គ្រងសិទ្ធិចូលប្រើ",
+      "fallbackText": "ឧបករណ៍ AI របស់អ្នកមិនអាចចូលដោយប្រើ NocoDB បានទេឬ?",
+      "fallbackLink": "ប្រើការតភ្ជាប់ដោយដៃជំនួសវិញ",
+      "appsTitle": "កម្មវិធី AI របស់អ្នក",
+      "appsHint": "មើលឃើញតែអ្នកប៉ុណ្ណោះ",
+      "app": "កម្មវិធី",
+      "lastSignedInAt": "ចូលចុងក្រោយ {time}",
+      "lastUsed": "ប្រើចុងក្រោយ",
+      "lastUsedAt": "ប្រើចុងក្រោយ {time}",
+      "canDelete": "អាចលុបទិន្នន័យបាន",
+      "toolsTitle": "ឧបករណ៍ និងសិទ្ធិ",
+      "neverMoreThanRole": "មិនដែលលើសពីតួនាទីរបស់អ្នកផ្ទាល់ក្នុងគម្រោងនេះ ({role}) ទេ។",
+      "neverMoreThanAccess": "មិនដែលលើសពីសិទ្ធិចូលប្រើរបស់អ្នកផ្ទាល់លើគម្រោងនេះទេ។",
+      "neverMoreThanOwnAccess": "មិនដែលលើសពីសិទ្ធិចូលប្រើរបស់អ្នកផ្ទាល់នៅកន្លែងដែលវាត្រូវបានអនុញ្ញាតទេ។",
+      "notEditable": "អ្វីដែលកម្មវិធីនេះអាចធ្វើបាន ត្រូវបានកំណត់តាំងពីពេលចូល ហើយមិនអាចប្ដូរនៅទីនេះបានទេ។ សូមផ្ដាច់វា ហើយឱ្យវាចូលម្ដងទៀត ដើម្បីជ្រើសរើសឧបករណ៍របស់វា។",
+      "disconnectBody": "ផ្ដាច់កម្មវិធីនេះចេញពីគម្រោងនេះ។ ដើម្បីភ្ជាប់ឡើងវិញ វាត្រូវចូលម្ដងទៀត។",
+      "disconnectBodyWide": "ផ្ដាច់កម្មវិធីនេះនៅគ្រប់កន្លែងដែលវាត្រូវបានអនុញ្ញាត មិនត្រឹមតែគម្រោងនេះទេ។ ដើម្បីភ្ជាប់ឡើងវិញ វាត្រូវចូលម្ដងទៀត។",
+      "disconnectBodyEverywhere": "ផ្ដាច់កម្មវិធីនេះនៅគ្រប់កន្លែងដែលវាត្រូវបានអនុញ្ញាត។ ដើម្បីភ្ជាប់ឡើងវិញ វាត្រូវចូលម្ដងទៀត។",
+      "disconnectConfirm": "ផ្ដាច់ {client} ឬ?",
+      "disconnectConfirmBody": "វាបាត់បង់សិទ្ធិចូលប្រើភ្លាមៗ ហើយត្រូវចូលម្ដងទៀតដើម្បីភ្ជាប់ឡើងវិញ។",
+      "disconnected": "បានផ្ដាច់ {client}",
+      "accessUpdated": "បានធ្វើបច្ចុប្បន្នភាពសិទ្ធិចូលប្រើ",
+      "manualTitle": "ការតភ្ជាប់ដោយដៃរបស់អ្នក",
+      "manualBody": "សម្រាប់ស្គ្រីប ការងារ CI និងកម្មវិធីអតិថិជនដែលមិនអាចចូលដោយប្រើ NocoDB។",
+      "manualNote": "ការតភ្ជាប់ដោយដៃប្រើសោ API ថេរ។ វាដំណើរការរហូតដល់អ្នកដកហូត ហើយអ្នកណាដែលមានការកំណត់រចនាសម្ព័ន្ធនេះ នឹងទទួលបានសិទ្ធិចូលប្រើដូចគ្នា។ បើឧបករណ៍របស់អ្នកគាំទ្រ សូម {link}។",
+      "manualNoteLink": "ភ្ជាប់វាជាកម្មវិធី AI ជំនួសវិញ",
+      "field": {
+        "remoteServerUrl": "URL ម៉ាស៊ីនមេ MCP ពីចម្ងាយ",
+        "authentication": "ការផ្ទៀងផ្ទាត់",
+        "url": "URL",
+        "transport": "ការបញ្ជូន"
+      },
+      "claude": {
+        "where": "នៅក្នុង Claude សូមបើក ការកំណត់ › កម្មវិធីតភ្ជាប់ ហើយជ្រើសរើស បន្ថែមកម្មវិធីតភ្ជាប់តាមបំណង។ បំពេញ៖",
+        "auth": "ជ្រើសរើស ភ្ជាប់ នៅក្បែរ NocoDB។ ចូលដោយប្រើ NocoDB ជ្រើសរើសអ្វីដែល Claude អាចចូលប្រើបាន បន្ទាប់មកជ្រើសរើស អនុញ្ញាត។"
+      },
+      "chatgpt": {
+        "where": "នៅក្នុង ChatGPT សូមបើក កម្មវិធីជំនួយ ជ្រើសរើស បន្ថែម រួចជ្រើសរើស បន្ថែមម៉ាស៊ីនមេ MCP តាមបំណង។ បំពេញ៖",
+        "auth": "ជ្រើសរើស បង្កើត។ ChatGPT នឹងបើក NocoDB ក្នុងបង្អួចថ្មី។ ចូល រួចជ្រើសរើសអ្វីដែលវាអាចចូលប្រើបាន បន្ទាប់មកជ្រើសរើស អនុញ្ញាត។"
+      },
+      "claudeCode": {
+        "auth": "នៅក្នុង Claude Code សូមដំណើរការ /mcp ជ្រើសរើស nocodb រួចជ្រើសរើស ផ្ទៀងផ្ទាត់។ នៅក្នុងកម្មវិធីរុករក ជ្រើសរើសអ្វីដែលវាអាចចូលប្រើបាន បន្ទាប់មកជ្រើសរើស អនុញ្ញាត។"
+      },
+      "cursor": {
+        "where": "នៅក្នុង Cursor សូមបើក ការកំណត់ › MCP ហើយជ្រើសរើស បន្ថែមម៉ាស៊ីនមេ MCP ថ្មី។ បំពេញ៖",
+        "auth": "ជ្រើសរើស ភ្ជាប់ នៅក្បែរ nocodb ក្នុងបញ្ជី MCP។ ចូលដោយប្រើ NocoDB ក្នុងកម្មវិធីរុករក ហើយជ្រើសរើស អនុញ្ញាត។"
+      },
+      "codex": {
+        "auth": "ដំណើរការពាក្យបញ្ជាចូល ចូលដោយប្រើ NocoDB ក្នុងកម្មវិធីរុករក ហើយជ្រើសរើស អនុញ្ញាត។"
+      },
+      "windsurf": {
+        "where": "នៅក្នុង Windsurf សូមបើក ការកំណត់ › Cascade › ម៉ាស៊ីនមេ MCP ហើយជ្រើសរើស បន្ថែមម៉ាស៊ីនមេតាមបំណង។ បំពេញ៖",
+        "auth": "ជ្រើសរើស ភ្ជាប់ នៅក្បែរ nocodb។ ចូលដោយប្រើ NocoDB ក្នុងកម្មវិធីរុករក ហើយជ្រើសរើស អនុញ្ញាត។"
+      },
+      "other": {
+        "where": "បន្ថែមម៉ាស៊ីនមេ MCP ពីចម្ងាយនៅក្នុងកម្មវិធីអតិថិជនរបស់អ្នក ដោយប្រើព័ត៌មានទាំងនេះ៖",
+        "auth": "ចាប់ផ្ដើមការតភ្ជាប់ពីកម្មវិធីអតិថិជនរបស់អ្នក។ NocoDB នឹងបើកក្នុងកម្មវិធីរុករក ដែលអ្នកចូល ជ្រើសរើសអ្វីដែលកម្មវិធីអតិថិជនអាចចូលប្រើ រួចជ្រើសរើស អនុញ្ញាត។"
+      }
     }
   }
 }

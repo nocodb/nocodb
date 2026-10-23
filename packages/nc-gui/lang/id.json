@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "Tingkatkan untuk mewajibkan masuk pada formulir",
     "upgradeToUseFormRequireSigninSubtitle": "Tingkatkan ke paket {plan} untuk mewajibkan responden masuk sebelum mengirim formulir.",
     "upgradeToUseSso": "Tingkatkan untuk menggunakan SSO",
-    "upgradeToUseSsoSubtitle": "Tingkatkan ke paket {plan} untuk menyiapkan Single Sign-On (SSO) dan memungkinkan tim Anda masuk dengan penyedia identitas Anda.",
-    "upgradeToUseAppFactory": "Tingkatkan paket untuk menggunakan App Factory",
-    "upgradeToUseAppFactorySubtitle": "Tingkatkan ke paket {plan} untuk menjalankan agen pemrograman pada repositori yang terhubung."
+    "upgradeToUseSsoSubtitle": "Tingkatkan ke paket {plan} untuk menyiapkan Single Sign-On (SSO) dan memungkinkan tim Anda masuk dengan penyedia identitas Anda."
   },
   "general": {
     "scrollToBottom": "Gulir ke bawah",
@@ -766,7 +764,8 @@
     "toggle": "Alihkan",
     "uploading": "Mengunggah",
     "countAll": "Hitung semua",
-    "config": "Konfigurasi"
+    "config": "Konfigurasi",
+    "dismiss": "Tutup"
   },
   "objects": {
     "script": "Skrip",
@@ -2198,7 +2197,7 @@
       "webhooks": "Kait web",
       "webhooksDesc": "Mengelola pemicu dan log webhook",
       "base": "Proyek",
-      "baseDesc": "Pengaturan proyek, sumber, dan pekerjaan",
+      "baseDesc": "Pengaturan proyek, sumber, pekerjaan, dokumen, dan komentarnya",
       "users": "Pengguna",
       "usersDesc": "Anggota proyek, anggota ruang kerja, dan undangan",
       "grantedCount": "{count} dari {total} diberikan",
@@ -3102,7 +3101,6 @@
       "syncInfo": "Tarik data dari aplikasi eksternal sesuai jadwal. Satu arah.",
       "automations": "Otomatisasi",
       "aiSkills": "Skill AI",
-      "mcpServer": "Server MCP",
       "auditLog": "Log audit",
       "trashRetention": "Masa simpan sampah",
       "snapshots": "Snapshots",
@@ -3133,7 +3131,7 @@
         "members": "Siapa yang dapat membuka proyek ini dan apa yang boleh mereka lakukan.",
         "permissions": "Siapa yang dapat melihat atau mengedit setiap tabel, bidang, dan dokumen.",
         "apiTokens": "Token yang memungkinkan aplikasi eksternal membaca dan menulis proyek ini.",
-        "mcp": "Hubungkan klien AI ke proyek ini melalui MCP.",
+        "mcp": "Biarkan alat AI Anda bekerja dengan proyek ini, menggunakan akses Anda sendiri.",
         "integrations": "Akun terhubung yang dapat digunakan proyek ini.",
         "automations": "Alur kerja yang berjalan saat ada pemicu.",
         "auditLog": "Setiap perubahan di proyek ini, dan siapa yang melakukannya.",
@@ -3152,7 +3150,8 @@
       "upgradeDescDateDependency": "Menggeser tanggal terkait secara otomatis saat sebuah catatan dipindahkan.",
       "concernProject": "Proyek",
       "concernApps": "Apps",
-      "concernTabs": "Bagian pengaturan"
+      "concernTabs": "Bagian pengaturan",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "Kategori",
     "blockquote": "Kutipan",
@@ -5300,7 +5299,6 @@
     "factoryEnvironment": "Lingkungan",
     "factoryCommitOrPush": "Commit atau push",
     "factoryCompareBranch": "Bandingkan cabang",
-    "factoryAddTab": "Buka sebuah panel",
     "factoryCommitPushPrompt": "Commit perubahannya dan push cabangnya.",
     "chatYesterday": "Kemarin",
     "chatCopyMessage": "Salin pesan",
@@ -5406,7 +5404,64 @@
     "duplicateField": "Duplikat bidang",
     "extensionError": "Kesalahan ekstensi",
     "clearData": "Bersihkan data",
-    "copyProject": "Salin proyek"
+    "copyProject": "Salin proyek",
+    "factoryBootPartCpu": "Prosesor",
+    "factoryBootPartMemory": "Memori",
+    "factoryBootPartNetwork": "Jaringan",
+    "factoryBootPartRepo": "Repositori",
+    "factoryBootPartServices": "Layanan",
+    "factoryMachines": "Mesin",
+    "factoryMachinesHint": "Lingkungan tempat sesi Anda dimulai. Sesi baru memakai mesin bawaan; pilih yang lain di penyusun.",
+    "factoryMachinesCreatorOnly": "Hanya pengelola yang dapat membuat, menyunting, atau membangun mesin.",
+    "factoryMachineSearchPanes": "Cari",
+    "factoryMachineStockTag": "Bawaan",
+    "factoryMachineSetDefault": "Jadikan bawaan",
+    "factoryMachineUpgrade": "Tingkatkan",
+    "factoryMachineUpgradingShort": "Meningkatkan…",
+    "factoryMachineUpdateAvailable": "Pembaruan tersedia",
+    "factoryMachineUpgradeHint": "Dibangun di atas image dasar yang lebih lama. Peningkatan akan membangun ulang paket yang sama di atas image saat ini.",
+    "factoryMachineUpgradeBanner": "Dibangun di atas image dasar yang lebih lama, sehingga sesi baru tidak bisa dimulai darinya. Tingkatkan untuk membangun ulang paket yang sama di atas image saat ini.",
+    "factoryMachineStock": "Mesin dasar",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep, dan Chrome. Setiap mesin dibangun di atasnya, dan sesi tanpa mesin berjalan di atasnya.",
+    "factoryMachinesEmptyTitle": "Belum ada mesin",
+    "factoryMachinesEmptyBody": "Sesi berjalan di mesin dasar. Buat satu mesin dengan runtime, basis data, dan alat yang dibutuhkan repositori ini, lalu setiap sesi dimulai dengan semuanya.",
+    "factoryMachinePickTitle": "Mulai sesi di",
+    "factoryMachinePip": "pip global",
+    "factoryMachineReady": "Siap",
+    "factoryMachineStepBase": "Dasar desktop Factory",
+    "factoryMachineStepBaseDetail": "Ubuntu 22.04 dengan desktop, git, dan GitHub CLI",
+    "factoryMachineStepSave": "Simpan mesin",
+    "factoryMachineStepSaveDetail": "Snapshot untuk sesi proyek ini",
+    "factoryMachineServiceStarts": "Dimulai pada setiap sesi",
+    "factoryMachineServicesHint": "Diberikan ke agen sebagai variabel lingkungan, sehingga pengujian dan server pengembangan terhubung tanpa penyiapan.",
+    "factoryMachineRebuild": "Bangun ulang dengan pembaruan",
+    "factoryMachineUseVersion": "Gunakan versi ini",
+    "factoryMachineReused": "Build identik digunakan ulang",
+    "factoryMachineSetUp": "Siapkan mesin",
+    "factoryMachineSuggestUpdate": "Tambahkan ke {machine} untuk sesi berikutnya?",
+    "factoryMachineSuggestNote": "Dibangun ulang di latar belakang. Sesi ini tetap berjalan seperti semula.",
+    "factoryMachineSuggestCreatorOnly": "Hanya pengelola yang dapat mengubah mesin. Mintalah salah satu untuk menerapkannya.",
+    "factoryMachineSuggestAccept": "Tambahkan dan bangun ulang",
+    "factoryMachineSuggestAdded": "Versi baru {machine} sedang dibangun. Sesi baru memakainya begitu siap.",
+    "factoryMachineSuggestDeclined": "Tidak diterapkan. Anda dapat mengubah mesin kapan saja dari Mesin.",
+    "factoryMachineSuggestAlreadyIn": "{machine} sudah memilikinya.",
+    "factoryMachineSuggestReady": "{machine} v{version} sudah siap. Sesi baru dimulai di atasnya.",
+    "factoryMachineSuggestFailed": "Versi baru {machine} gagal dibangun.",
+    "factoryMachineSuggestCancelled": "Versi baru {machine} dibatalkan.",
+    "factoryMachineSuggestedFix": "Perbaikan yang disarankan",
+    "factoryMachineSameAsBefore": "Pilihan sama, dibangun ulang",
+    "factoryMachineTabOverview": "Ikhtisar",
+    "factoryMachineUnbuiltTo": "Draf {next}: {count} perubahan dari {version}, belum dibangun | Draf {next}: {count} perubahan dari {version}, belum dibangun",
+    "factoryMachineReview": "Lanjutkan menyunting",
+    "factoryMachineTabVersions": "Versi",
+    "factoryMachineServiceBadge": "Layanan",
+    "factoryMachineUndoChange": "Urungkan perubahan ini",
+    "factoryMachineStepOf": "{step}, langkah {n} dari {total}",
+    "factoryMachineStillUsing": "Sesi baru tetap memakai {version}.",
+    "factoryMachineReusedLog": "Build identik sebelumnya digunakan ulang, jadi tidak ada yang perlu dibangun.",
+    "dontExpand": "Jangan bentangkan",
+    "createSchema": "Buat skema",
+    "configureSources": "Konfigurasikan sumber"
   },
   "activity": {
     "useTemplate": "Gunakan templat",
@@ -7755,6 +7810,80 @@
       "tryBody": "Mulai obrolan baru dan tanyakan «List my NocoDB tools».",
       "tokenText": "Alat Anda hanya menerima token?",
       "tokenButton": "Buat token MCP"
+    },
+    "pane": {
+      "tabApps": "Aplikasi AI",
+      "tabManual": "Koneksi manual",
+      "connectTitle": "Hubungkan aplikasi AI",
+      "recommended": "Direkomendasikan",
+      "connectBody": "Masuk dengan akun NocoDB Anda. Andalah yang menentukan persis apa yang boleh dilihat dan diubahnya.",
+      "otherToolUrl": "Memakai alat AI lain? Tambahkan",
+      "otherTool": "Alat lain",
+      "copyValue": "Salin {label}",
+      "addTo": "Tambahkan NocoDB ke {client}",
+      "signInTitle": "Masuk dengan NocoDB dan otorisasi",
+      "waiting": "Menunggu {client} masuk…",
+      "waitingHint": "Tampilan ini diperbarui sendiri begitu Anda memberi otorisasi.",
+      "connectedTitle": "{client} terhubung",
+      "connectedBody": "Sekarang aplikasi ini muncul di aplikasi AI Anda.",
+      "connectedElsewhere": "Aplikasi ini diotorisasi untuk proyek lain, jadi tidak tercantum di sini.",
+      "manageAccess": "Kelola akses",
+      "fallbackText": "Alat AI Anda tidak bisa masuk dengan NocoDB?",
+      "fallbackLink": "Gunakan koneksi manual sebagai gantinya",
+      "appsTitle": "Aplikasi AI Anda",
+      "appsHint": "Hanya terlihat oleh Anda",
+      "app": "Aplikasi",
+      "lastSignedInAt": "Terakhir masuk {time}",
+      "lastUsed": "Terakhir dipakai",
+      "lastUsedAt": "Terakhir dipakai {time}",
+      "canDelete": "Dapat menghapus data",
+      "toolsTitle": "Alat dan izin",
+      "neverMoreThanRole": "Tidak pernah melebihi peran Anda sendiri di proyek ini ({role}).",
+      "neverMoreThanAccess": "Tidak pernah melebihi akses Anda sendiri ke proyek ini.",
+      "neverMoreThanOwnAccess": "Tidak pernah melebihi akses Anda sendiri di tempat aplikasi ini diotorisasi.",
+      "notEditable": "Apa yang boleh dilakukan aplikasi ini ditetapkan saat masuk dan tidak dapat diubah di sini. Putuskan koneksinya lalu masukkan lagi untuk memilih alatnya.",
+      "disconnectBody": "Memutuskan koneksi aplikasi ini dari proyek ini. Aplikasi harus masuk lagi untuk terhubung kembali.",
+      "disconnectBodyWide": "Memutuskan koneksi aplikasi ini di semua tempat yang pernah diotorisasi, bukan hanya proyek ini. Aplikasi harus masuk lagi untuk terhubung kembali.",
+      "disconnectBodyEverywhere": "Memutuskan koneksi aplikasi ini di semua tempat yang pernah diotorisasi. Aplikasi harus masuk lagi untuk terhubung kembali.",
+      "disconnectConfirm": "Putuskan koneksi {client}?",
+      "disconnectConfirmBody": "Aplikasi langsung kehilangan akses dan harus masuk lagi untuk terhubung kembali.",
+      "disconnected": "{client} terputus",
+      "accessUpdated": "Akses diperbarui",
+      "manualTitle": "Koneksi manual Anda",
+      "manualBody": "Untuk skrip, pekerjaan CI, dan klien yang tidak bisa masuk dengan NocoDB.",
+      "manualNote": "Koneksi manual memakai kunci API statis. Kunci itu berlaku sampai Anda mencabutnya, dan siapa pun yang punya konfigurasinya mendapat akses yang sama. Jika alat Anda mendukungnya, {link}.",
+      "manualNoteLink": "hubungkan saja sebagai aplikasi AI",
+      "field": {
+        "remoteServerUrl": "URL server MCP jarak jauh",
+        "authentication": "Autentikasi",
+        "url": "URL"
+      },
+      "claude": {
+        "where": "Di Claude, buka Pengaturan › Konektor dan pilih Tambahkan konektor khusus. Isi:",
+        "auth": "Pilih Hubungkan di samping NocoDB. Masuk dengan NocoDB, pilih apa yang boleh diakses Claude, lalu pilih Otorisasi."
+      },
+      "chatgpt": {
+        "where": "Di ChatGPT, buka Plugin, pilih Tambah, lalu Tambahkan server MCP khusus. Isi:",
+        "auth": "Pilih Buat. ChatGPT membuka NocoDB di jendela baru. Masuk, pilih apa yang boleh diaksesnya, lalu pilih Otorisasi."
+      },
+      "claudeCode": {
+        "auth": "Di Claude Code, jalankan /mcp, pilih nocodb, lalu pilih Autentikasi. Di browser, pilih apa yang boleh diaksesnya, lalu pilih Otorisasi."
+      },
+      "cursor": {
+        "where": "Di Cursor, buka Pengaturan › MCP dan pilih Tambahkan server MCP baru. Isi:",
+        "auth": "Pilih Hubungkan di samping nocodb pada daftar MCP. Masuk dengan NocoDB di browser, lalu pilih Otorisasi."
+      },
+      "codex": {
+        "auth": "Jalankan perintah masuk, masuk dengan NocoDB di browser, lalu pilih Otorisasi."
+      },
+      "windsurf": {
+        "where": "Di Windsurf, buka Pengaturan › Cascade › Server MCP dan pilih Tambahkan server khusus. Isi:",
+        "auth": "Pilih Hubungkan di samping nocodb. Masuk dengan NocoDB di browser, lalu pilih Otorisasi."
+      },
+      "other": {
+        "where": "Tambahkan server MCP jarak jauh di klien Anda dengan detail berikut:",
+        "auth": "Mulai koneksi dari klien Anda. NocoDB terbuka di browser, tempat Anda masuk, memilih apa yang boleh diakses klien, dan memilih Otorisasi."
+      }
     }
   }
 }

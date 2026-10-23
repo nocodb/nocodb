@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "Jauniniet, lai formās pieprasītu pieteikšanos",
     "upgradeToUseFormRequireSigninSubtitle": "Jauniniet uz {plan} plānu, lai pieprasītu respondentiem pieteikties pirms formas iesniegšanas.",
     "upgradeToUseSso": "Jauniniet, lai izmantotu SSO",
-    "upgradeToUseSsoSubtitle": "Jauniniet uz {plan} plānu, lai iestatītu vienoto pieteikšanos (SSO) un ļautu savai komandai pieteikties ar jūsu identitātes nodrošinātāju.",
-    "upgradeToUseAppFactory": "Jauniniet, lai izmantotu App Factory",
-    "upgradeToUseAppFactorySubtitle": "Jauniniet uz {plan} plānu, lai palaistu programmēšanas aģentus savos pievienotajos repozitorijos."
+    "upgradeToUseSsoSubtitle": "Jauniniet uz {plan} plānu, lai iestatītu vienoto pieteikšanos (SSO) un ļautu savai komandai pieteikties ar jūsu identitātes nodrošinātāju."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -766,7 +764,8 @@
     "uploading": "Notiek augšupielāde",
     "countAll": "Saskaitīt visu",
     "factory": "Rūpnīca",
-    "config": "Konfigurācija"
+    "config": "Konfigurācija",
+    "dismiss": "Aizvērt"
   },
   "objects": {
     "script": "Skripts",
@@ -2199,7 +2198,7 @@
       "webhooks": "Webhooks",
       "webhooksDesc": "Manage webhook triggers and logs",
       "base": "Projekts",
-      "baseDesc": "Projekta iestatījumi, avoti un darbi",
+      "baseDesc": "Projekta iestatījumi, avoti, darbi, dokumenti un to komentāri",
       "users": "Users",
       "usersDesc": "Projekta dalībnieki, darbtelpas dalībnieki un ielūgumi",
       "grantedCount": "Piešķirts {count} no {total}",
@@ -3103,7 +3102,6 @@
       "syncInfo": "Pēc grafika ievelciet datus no ārējas lietotnes. Vienvirziena.",
       "automations": "Automatizācijas",
       "aiSkills": "MI Skills",
-      "mcpServer": "MCP serveris",
       "auditLog": "Audita žurnāls",
       "trashRetention": "Miskastes glabāšanas ilgums",
       "snapshots": "Snapshots",
@@ -3134,7 +3132,7 @@
         "members": "Kurš var atvērt šo projektu un ko viņš tajā drīkst darīt.",
         "permissions": "Kas var skatīt vai rediģēt katru tabulu, lauku un dokumentu.",
         "apiTokens": "Pilnvaras, kas ļauj ārējām lietotnēm lasīt un rakstīt šajā projektā.",
-        "mcp": "Savienojiet MI klientus ar šo projektu, izmantojot MCP.",
+        "mcp": "Ļaujiet saviem MI rīkiem strādāt ar šo projektu, izmantojot jūsu pašu piekļuvi.",
         "integrations": "Pievienotie konti, ko šis projekts var izmantot.",
         "automations": "Darbplūsmas, ko palaiž izraisītājs.",
         "auditLog": "Katra izmaiņa šajā projektā un tās veicējs.",
@@ -3153,7 +3151,8 @@
       "upgradeDescDateDependency": "Automātiski pārbīda atkarīgos datumus, kad ieraksts tiek pārvietots.",
       "concernProject": "Projekts",
       "concernApps": "Apps",
-      "concernTabs": "Iestatījumu sadaļas"
+      "concernTabs": "Iestatījumu sadaļas",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "Kategorijas",
     "blockquote": "Citāts",
@@ -5311,7 +5310,6 @@
     "factoryEnvironment": "Vide",
     "factoryCommitOrPush": "Commit vai push",
     "factoryCompareBranch": "Salīdzināt zaru",
-    "factoryAddTab": "Atvērt paneli",
     "factoryCommitPushPrompt": "Izdari commit izmaiņām un push zaram.",
     "chatYesterday": "Vakar",
     "chatCopyMessage": "Kopēt ziņojumu",
@@ -5417,7 +5415,64 @@
     "duplicateField": "Dublēt lauku",
     "extensionError": "Paplašinājuma kļūda",
     "clearData": "Notīrīt datus",
-    "copyProject": "Kopēt projektu"
+    "copyProject": "Kopēt projektu",
+    "factoryBootPartCpu": "Procesors",
+    "factoryBootPartMemory": "Atmiņa",
+    "factoryBootPartNetwork": "Tīkls",
+    "factoryBootPartRepo": "Repozitorijs",
+    "factoryBootPartServices": "Pakalpojumi",
+    "factoryMachines": "Iekārtas",
+    "factoryMachinesHint": "Vide, no kuras sākas jūsu sesijas. Jaunās sesijas izmanto noklusējuma iekārtu; citu izvēlieties redaktorā.",
+    "factoryMachinesCreatorOnly": "Iekārtas var izveidot, rediģēt vai būvēt tikai uzturētāji.",
+    "factoryMachineSearchPanes": "Meklēt",
+    "factoryMachineStockTag": "Iebūvēts",
+    "factoryMachineSetDefault": "Padarīt par noklusējuma",
+    "factoryMachineUpgrade": "Jaunināt",
+    "factoryMachineUpgradingShort": "Notiek jaunināšana…",
+    "factoryMachineUpdateAvailable": "Pieejams atjauninājums",
+    "factoryMachineUpgradeHint": "Izbūvēts uz vecāka pamata attēla. Jaunināšana pārbūvē tās pašas pakotnes uz pašreizējā.",
+    "factoryMachineUpgradeBanner": "Izbūvēts uz vecāka pamata attēla, tāpēc jaunās sesijas no tā nevar sākties. Jauniniet, lai tās pašas pakotnes pārbūvētu uz pašreizējā.",
+    "factoryMachineStock": "Pamata iekārta",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep un Chrome. Uz tās balstās katra iekārta, un sesijas bez iekārtas darbojas tieši tajā.",
+    "factoryMachinesEmptyTitle": "Vēl nav nevienas iekārtas",
+    "factoryMachinesEmptyBody": "Sesijas darbojas pamata iekārtā. Izveidojiet iekārtu ar izpildvidēm, datubāzēm un rīkiem, kas nepieciešami šim repozitorijam, un katra sesija sāksies ar tiem.",
+    "factoryMachinePickTitle": "Sākt sesiju šajā iekārtā",
+    "factoryMachinePip": "Globālais pip",
+    "factoryMachineReady": "Gatavs",
+    "factoryMachineStepBase": "Factory darbvirsmas pamats",
+    "factoryMachineStepBaseDetail": "Ubuntu 22.04 ar darbvirsmu, git un GitHub CLI",
+    "factoryMachineStepSave": "Saglabāt iekārtu",
+    "factoryMachineStepSaveDetail": "Momentuzņēmums šī projekta sesijām",
+    "factoryMachineServiceStarts": "Startē ar katru sesiju",
+    "factoryMachineServicesHint": "Tiek nodots aģentam kā vides mainīgie, tāpēc testi un izstrādes serveri izveido savienojumu bez iestatīšanas.",
+    "factoryMachineRebuild": "Pārbūvēt ar atjauninājumiem",
+    "factoryMachineUseVersion": "Izmantot šo versiju",
+    "factoryMachineReused": "Atkārtoti izmantots identisks būvējums",
+    "factoryMachineSetUp": "Iestatīt iekārtu",
+    "factoryMachineSuggestUpdate": "Pievienot iekārtai {machine} turpmākajām sesijām?",
+    "factoryMachineSuggestNote": "Tiek pārbūvēts fonā. Šī sesija turpina darboties nemainīgi.",
+    "factoryMachineSuggestCreatorOnly": "Iekārtas var mainīt tikai uzturētāji. Palūdziet kādam no viņiem to lietot.",
+    "factoryMachineSuggestAccept": "Pievienot un pārbūvēt",
+    "factoryMachineSuggestAdded": "Tiek būvēta jauna {machine} versija. Jaunās sesijas to izmantos, tiklīdz tā būs gatava.",
+    "factoryMachineSuggestDeclined": "Nav lietots. Iekārtu varat mainīt jebkurā laikā sadaļā Iekārtas.",
+    "factoryMachineSuggestAlreadyIn": "{machine} tas jau ir.",
+    "factoryMachineSuggestReady": "{machine} v{version} ir gatava. Jaunās sesijas sāksies tajā.",
+    "factoryMachineSuggestFailed": "Neizdevās izbūvēt jauno {machine} versiju.",
+    "factoryMachineSuggestCancelled": "Jaunā {machine} versija tika atcelta.",
+    "factoryMachineSuggestedFix": "Ieteiktais labojums",
+    "factoryMachineSameAsBefore": "Tā pati izvēle, pārbūvēts",
+    "factoryMachineTabOverview": "Pārskats",
+    "factoryMachineUnbuiltTo": "Melnraksts {next}: {count} izmaiņa salīdzinājumā ar {version}, nav izbūvēts | Melnraksts {next}: {count} izmaiņas salīdzinājumā ar {version}, nav izbūvēts",
+    "factoryMachineReview": "Turpināt rediģēšanu",
+    "factoryMachineTabVersions": "Versijas",
+    "factoryMachineServiceBadge": "Pakalpojums",
+    "factoryMachineUndoChange": "Atsaukt šo izmaiņu",
+    "factoryMachineStepOf": "{step}, {n}. solis no {total}",
+    "factoryMachineStillUsing": "Jaunās sesijas joprojām izmanto {version}.",
+    "factoryMachineReusedLog": "Tika atkārtoti izmantots identisks iepriekšējs būvējums, tāpēc nebija ko būvēt.",
+    "dontExpand": "Neizvērst",
+    "createSchema": "Izveidot shēmu",
+    "configureSources": "Konfigurēt avotus"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -7766,6 +7821,81 @@
       "tryBody": "Sāciet jaunu tērzēšanu un pajautājiet «List my NocoDB tools».",
       "tokenText": "Vai jūsu rīks pieņem tikai pilnvaru?",
       "tokenButton": "Izveidot MCP pilnvaru"
+    },
+    "pane": {
+      "tabApps": "MI lietotnes",
+      "tabManual": "Manuālie savienojumi",
+      "connectTitle": "Savienot MI lietotni",
+      "recommended": "Ieteicams",
+      "connectBody": "Piesakieties ar savu NocoDB kontu. Jūs precīzi nosakāt, ko tā drīkst redzēt un mainīt.",
+      "otherToolUrl": "Izmantojat citu MI rīku? Pievienojiet",
+      "otherTool": "Cits rīks",
+      "copyValue": "Kopēt {label}",
+      "addTo": "Pievienot NocoDB lietotnei {client}",
+      "signInTitle": "Pieteikties ar NocoDB un autorizēt",
+      "waiting": "Gaida, kad {client} pieteiksies…",
+      "waitingHint": "Tas atjauninās pats, tiklīdz autorizēsiet.",
+      "connectedTitle": "{client} ir savienota",
+      "connectedBody": "Tagad tā ir redzama jūsu MI lietotnēs.",
+      "connectedElsewhere": "Tā ir autorizēta citiem projektiem, tāpēc šeit nav uzskaitīta.",
+      "manageAccess": "Pārvaldīt piekļuvi",
+      "fallbackText": "Vai jūsu MI rīks nevar pieteikties ar NocoDB?",
+      "fallbackLink": "Tā vietā izmantot manuālu savienojumu",
+      "appsTitle": "Jūsu MI lietotnes",
+      "appsHint": "Redzams tikai jums",
+      "app": "Lietotne",
+      "lastSignedInAt": "Pēdējoreiz pieteicies {time}",
+      "lastUsed": "Pēdējoreiz lietota",
+      "lastUsedAt": "Pēdējoreiz lietota {time}",
+      "canDelete": "Var dzēst datus",
+      "toolsTitle": "Rīki un atļaujas",
+      "neverMoreThanRole": "Nekad vairāk par jūsu pašu lomu šajā projektā ({role}).",
+      "neverMoreThanAccess": "Nekad vairāk par jūsu pašu piekļuvi šim projektam.",
+      "neverMoreThanOwnAccess": "Nekad vairāk par jūsu pašu piekļuvi tur, kur tā bija autorizēta.",
+      "notEditable": "Tas, ko šī lietotne drīkst darīt, tika noteikts pieteikšanās brīdī, un šeit to nevar mainīt. Atvienojiet to un piesakieties no jauna, lai izvēlētos tās rīkus.",
+      "disconnectBody": "Atvieno šo lietotni no šī projekta. Lai atkal savienotos, tai būs jāpiesakās no jauna.",
+      "disconnectBodyWide": "Atvieno šo lietotni visur, kur tā bija autorizēta, nevis tikai šajā projektā. Lai atkal savienotos, tai būs jāpiesakās no jauna.",
+      "disconnectBodyEverywhere": "Atvieno šo lietotni visur, kur tā bija autorizēta. Lai atkal savienotos, tai būs jāpiesakās no jauna.",
+      "disconnectConfirm": "Atvienot {client}?",
+      "disconnectConfirmBody": "Tā uzreiz zaudē piekļuvi, un, lai atkal savienotos, tai būs jāpiesakās no jauna.",
+      "disconnected": "{client} atvienota",
+      "accessUpdated": "Piekļuve atjaunināta",
+      "manualTitle": "Jūsu manuālie savienojumi",
+      "manualBody": "Skriptiem, CI darbiem un klientiem, kas nevar pieteikties ar NocoDB.",
+      "manualNote": "Manuālie savienojumi izmanto statisku API atslēgu. Tā darbojas, līdz to atsaucat, un jebkurš, kam ir konfigurācija, iegūst tādu pašu piekļuvi. Ja jūsu rīks to atbalsta, {link}.",
+      "manualNoteLink": "savienojiet to kā MI lietotni",
+      "field": {
+        "remoteServerUrl": "Attālā MCP servera URL",
+        "authentication": "Autentifikācija",
+        "url": "URL",
+        "transport": "Transports"
+      },
+      "claude": {
+        "where": "Programmā Claude atveriet Iestatījumi › Savienotāji un atlasiet Pievienot pielāgotu savienotāju. Aizpildiet:",
+        "auth": "Atlasiet Savienot blakus NocoDB. Piesakieties ar NocoDB, izvēlieties, kam Claude drīkst piekļūt, un pēc tam atlasiet Autorizēt."
+      },
+      "chatgpt": {
+        "where": "Programmā ChatGPT atveriet Spraudņi, atlasiet Pievienot un pēc tam Pievienot pielāgotu MCP serveri. Aizpildiet:",
+        "auth": "Atlasiet Izveidot. ChatGPT atver NocoDB jaunā logā. Piesakieties, izvēlieties, kam tā drīkst piekļūt, un pēc tam atlasiet Autorizēt."
+      },
+      "claudeCode": {
+        "auth": "Programmā Claude Code palaidiet /mcp, izvēlieties nocodb un pēc tam atlasiet Autentificēt. Pārlūkprogrammā izvēlieties, kam tā drīkst piekļūt, un pēc tam atlasiet Autorizēt."
+      },
+      "cursor": {
+        "where": "Programmā Cursor atveriet Iestatījumi › MCP un atlasiet Pievienot jaunu MCP serveri. Aizpildiet:",
+        "auth": "MCP sarakstā atlasiet Savienot blakus nocodb. Pārlūkprogrammā piesakieties ar NocoDB un atlasiet Autorizēt."
+      },
+      "codex": {
+        "auth": "Palaidiet pieteikšanās komandu, pārlūkprogrammā piesakieties ar NocoDB un atlasiet Autorizēt."
+      },
+      "windsurf": {
+        "where": "Programmā Windsurf atveriet Iestatījumi › Cascade › MCP serveri un atlasiet Pievienot pielāgotu serveri. Aizpildiet:",
+        "auth": "Atlasiet Savienot blakus nocodb. Pārlūkprogrammā piesakieties ar NocoDB un atlasiet Autorizēt."
+      },
+      "other": {
+        "where": "Pievienojiet savā klientā attālu MCP serveri ar šiem datiem:",
+        "auth": "Sāciet savienojumu no sava klienta. Pārlūkprogrammā tiek atvērts NocoDB, kur jūs piesakāties, izvēlaties, kam klients drīkst piekļūt, un atlasāt Autorizēt."
+      }
     }
   }
 }

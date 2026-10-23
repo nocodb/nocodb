@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "อัปเกรดเพื่อกำหนดให้ต้องลงชื่อเข้าใช้ในแบบฟอร์ม",
     "upgradeToUseFormRequireSigninSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อกำหนดให้ผู้ตอบต้องลงชื่อเข้าใช้ก่อนส่งแบบฟอร์ม",
     "upgradeToUseSso": "อัปเกรดเพื่อใช้ SSO",
-    "upgradeToUseSsoSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อตั้งค่าการลงชื่อเข้าใช้ครั้งเดียว (SSO) และให้ทีมของคุณลงชื่อเข้าใช้ด้วยผู้ให้บริการข้อมูลประจำตัวของคุณ",
-    "upgradeToUseAppFactory": "อัปเกรดเพื่อใช้ App Factory",
-    "upgradeToUseAppFactorySubtitle": "อัปเกรดเป็นแพ็กเกจ {plan} เพื่อส่งเอเจนต์เขียนโค้ดไปทำงานกับที่เก็บโค้ดที่เชื่อมต่อไว้"
+    "upgradeToUseSsoSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อตั้งค่าการลงชื่อเข้าใช้ครั้งเดียว (SSO) และให้ทีมของคุณลงชื่อเข้าใช้ด้วยผู้ให้บริการข้อมูลประจำตัวของคุณ"
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -767,7 +765,8 @@
     "uploading": "กำลังอัปโหลด",
     "countAll": "นับทั้งหมด",
     "factory": "แฟกทอรี",
-    "config": "การกำหนดค่า"
+    "config": "การกำหนดค่า",
+    "dismiss": "ปิด"
   },
   "objects": {
     "script": "สคริปต์",
@@ -2201,7 +2200,7 @@
       "webhooks": "Webhooks",
       "webhooksDesc": "Manage webhook triggers and logs",
       "base": "โปรเจกต์",
-      "baseDesc": "การตั้งค่าโปรเจกต์ แหล่งข้อมูล และงาน",
+      "baseDesc": "การตั้งค่าโปรเจกต์ แหล่งข้อมูล งาน เอกสาร และความคิดเห็นของเอกสาร",
       "users": "Users",
       "usersDesc": "สมาชิกโปรเจกต์ สมาชิกพื้นที่ทำงาน และคำเชิญ",
       "grantedCount": "ให้สิทธิ์แล้ว {count} จาก {total}",
@@ -3105,7 +3104,6 @@
       "syncInfo": "ดึงข้อมูลจากแอปภายนอกตามกำหนดเวลา แบบทางเดียว",
       "automations": "ระบบอัตโนมัติ",
       "aiSkills": "ทักษะ AI",
-      "mcpServer": "เซิร์ฟเวอร์ MCP",
       "auditLog": "บันทึกการตรวจสอบ",
       "trashRetention": "ระยะเก็บถังขยะ",
       "snapshots": "Snapshots",
@@ -3136,7 +3134,7 @@
         "members": "ใครเปิดโปรเจกต์นี้ได้ และทำอะไรได้บ้าง",
         "permissions": "ใครดูหรือแก้ไขแต่ละตาราง ฟิลด์ และเอกสารได้",
         "apiTokens": "โทเค็นที่ให้แอปภายนอกอ่านและเขียนโปรเจกต์นี้ได้",
-        "mcp": "เชื่อมต่อไคลเอนต์ AI เข้ากับโปรเจกต์นี้ผ่าน MCP",
+        "mcp": "ให้เครื่องมือ AI ของคุณทำงานกับโปรเจกต์นี้ได้ โดยใช้สิทธิ์การเข้าถึงของคุณเอง",
         "integrations": "บัญชีที่เชื่อมต่อแล้วซึ่งโปรเจกต์นี้ใช้ได้",
         "automations": "เวิร์กโฟลว์ที่ทำงานเมื่อมีทริกเกอร์",
         "auditLog": "ทุกการเปลี่ยนแปลงในโปรเจกต์นี้ และผู้ที่ทำการเปลี่ยนแปลง",
@@ -3155,7 +3153,8 @@
       "upgradeDescDateDependency": "เลื่อนวันที่ที่เกี่ยวข้องโดยอัตโนมัติเมื่อมีการย้ายระเบียน",
       "concernProject": "โปรเจกต์",
       "concernApps": "Apps",
-      "concernTabs": "ส่วนการตั้งค่า"
+      "concernTabs": "ส่วนการตั้งค่า",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "หมวดหมู่",
     "blockquote": "ข้อความอ้างอิง",
@@ -5318,7 +5317,6 @@
     "factoryEnvironment": "สภาพแวดล้อม",
     "factoryCommitOrPush": "คอมมิตหรือพุช",
     "factoryCompareBranch": "เปรียบเทียบแบรนช์",
-    "factoryAddTab": "เปิดแผงหนึ่ง",
     "factoryCommitPushPrompt": "คอมมิตการเปลี่ยนแปลงและพุชแบรนช์",
     "chatYesterday": "เมื่อวาน",
     "chatCopyMessage": "คัดลอกข้อความ",
@@ -5424,7 +5422,63 @@
     "duplicateField": "ทำสำเนาฟิลด์",
     "extensionError": "ข้อผิดพลาดของส่วนขยาย",
     "clearData": "ล้างข้อมูล",
-    "copyProject": "คัดลอกโปรเจกต์"
+    "copyProject": "คัดลอกโปรเจกต์",
+    "factoryBootPartMemory": "หน่วยความจำ",
+    "factoryBootPartNetwork": "เครือข่าย",
+    "factoryBootPartRepo": "ที่เก็บโค้ด",
+    "factoryBootPartServices": "บริการ",
+    "factoryMachines": "เครื่อง",
+    "factoryMachinesHint": "สภาพแวดล้อมที่เซสชันของคุณเริ่มต้น เซสชันใหม่จะใช้เครื่องค่าเริ่มต้น เลือกเครื่องอื่นได้ในตัวเขียน",
+    "factoryMachinesCreatorOnly": "เฉพาะผู้ดูแลเท่านั้นที่สร้าง แก้ไข หรือสร้างบิลด์ของเครื่องได้",
+    "factoryMachineSearchPanes": "ค้นหา",
+    "factoryMachineStockTag": "มีมาให้ในตัว",
+    "factoryMachineSetDefault": "ตั้งเป็นค่าเริ่มต้น",
+    "factoryMachineUpgrade": "อัปเกรด",
+    "factoryMachineUpgradingShort": "กำลังอัปเกรด…",
+    "factoryMachineUpdateAvailable": "มีอัปเดต",
+    "factoryMachineUpgradeHint": "สร้างบนอิมเมจพื้นฐานรุ่นเก่า การอัปเกรดจะสร้างแพ็กเกจเดิมบนอิมเมจปัจจุบันอีกครั้ง",
+    "factoryMachineUpgradeBanner": "สร้างบนอิมเมจพื้นฐานรุ่นเก่า เซสชันใหม่จึงเริ่มจากเครื่องนี้ไม่ได้ อัปเกรดเพื่อสร้างแพ็กเกจเดิมบนอิมเมจปัจจุบันอีกครั้ง",
+    "factoryMachineStock": "เครื่องพื้นฐาน",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep และ Chrome ทุกเครื่องสร้างต่อจากเครื่องนี้ และเซสชันที่ไม่มีเครื่องจะทำงานบนเครื่องนี้",
+    "factoryMachinesEmptyTitle": "ยังไม่มีเครื่อง",
+    "factoryMachinesEmptyBody": "เซสชันทำงานบนเครื่องพื้นฐาน สร้างเครื่องที่มีรันไทม์ ฐานข้อมูล และเครื่องมือที่ที่เก็บโค้ดนี้ต้องการ แล้วทุกเซสชันจะเริ่มต้นพร้อมสิ่งเหล่านั้น",
+    "factoryMachinePickTitle": "เริ่มเซสชันบน",
+    "factoryMachinePip": "pip ส่วนกลาง",
+    "factoryMachineReady": "พร้อมแล้ว",
+    "factoryMachineStepBase": "ฐานเดสก์ท็อปของ Factory",
+    "factoryMachineStepBaseDetail": "Ubuntu 22.04 พร้อมเดสก์ท็อป git และ GitHub CLI",
+    "factoryMachineStepSave": "บันทึกเครื่อง",
+    "factoryMachineStepSaveDetail": "สแนปช็อตสำหรับเซสชันของโปรเจกต์นี้",
+    "factoryMachineServiceStarts": "เริ่มทำงานพร้อมทุกเซสชัน",
+    "factoryMachineServicesHint": "ส่งให้เอเจนต์ในรูปแบบตัวแปรสภาพแวดล้อม เพื่อให้การทดสอบและเซิร์ฟเวอร์สำหรับพัฒนาเชื่อมต่อได้โดยไม่ต้องตั้งค่า",
+    "factoryMachineRebuild": "สร้างใหม่พร้อมอัปเดต",
+    "factoryMachineUseVersion": "ใช้เวอร์ชันนี้",
+    "factoryMachineReused": "ใช้บิลด์ที่เหมือนกันซ้ำ",
+    "factoryMachineSetUp": "ตั้งค่าเครื่อง",
+    "factoryMachineSuggestUpdate": "เพิ่มไปยัง {machine} สำหรับเซสชันในอนาคตหรือไม่",
+    "factoryMachineSuggestNote": "จะสร้างใหม่ในเบื้องหลัง เซสชันนี้ยังทำงานต่อตามเดิม",
+    "factoryMachineSuggestCreatorOnly": "เฉพาะผู้ดูแลเท่านั้นที่เปลี่ยนเครื่องได้ โปรดขอให้ผู้ดูแลนำไปใช้",
+    "factoryMachineSuggestAccept": "เพิ่มแล้วสร้างใหม่",
+    "factoryMachineSuggestAdded": "กำลังสร้าง {machine} เวอร์ชันใหม่ เซสชันใหม่จะใช้เวอร์ชันนี้เมื่อพร้อม",
+    "factoryMachineSuggestDeclined": "ยังไม่ได้นำไปใช้ คุณเปลี่ยนเครื่องได้ทุกเมื่อจากหน้า เครื่อง",
+    "factoryMachineSuggestAlreadyIn": "{machine} มีสิ่งนี้อยู่แล้ว",
+    "factoryMachineSuggestReady": "{machine} v{version} พร้อมแล้ว เซสชันใหม่จะเริ่มบนเครื่องนี้",
+    "factoryMachineSuggestFailed": "สร้าง {machine} เวอร์ชันใหม่ไม่สำเร็จ",
+    "factoryMachineSuggestCancelled": "ยกเลิก {machine} เวอร์ชันใหม่แล้ว",
+    "factoryMachineSuggestedFix": "การแก้ไขที่แนะนำ",
+    "factoryMachineSameAsBefore": "ตัวเลือกเดิม สร้างใหม่แล้ว",
+    "factoryMachineTabOverview": "ภาพรวม",
+    "factoryMachineUnbuiltTo": "ฉบับร่าง {next}: เปลี่ยนแปลง {count} รายการจาก {version} ยังไม่ได้สร้าง | ฉบับร่าง {next}: เปลี่ยนแปลง {count} รายการจาก {version} ยังไม่ได้สร้าง",
+    "factoryMachineReview": "แก้ไขต่อ",
+    "factoryMachineTabVersions": "เวอร์ชัน",
+    "factoryMachineServiceBadge": "บริการ",
+    "factoryMachineUndoChange": "เลิกทำการเปลี่ยนแปลงนี้",
+    "factoryMachineStepOf": "{step} ขั้นที่ {n} จาก {total}",
+    "factoryMachineStillUsing": "เซสชันใหม่จะยังคงใช้ {version}",
+    "factoryMachineReusedLog": "ใช้บิลด์ก่อนหน้าที่เหมือนกันซ้ำ จึงไม่มีอะไรต้องสร้าง",
+    "dontExpand": "ไม่ต้องขยาย",
+    "createSchema": "สร้างสคีมา",
+    "configureSources": "กำหนดค่าแหล่งข้อมูล"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -7772,6 +7826,81 @@
       "tryBody": "เริ่มแชทใหม่แล้วถามว่า «List my NocoDB tools»",
       "tokenText": "เครื่องมือของคุณรับเฉพาะโทเค็นใช่ไหม",
       "tokenButton": "สร้างโทเค็น MCP"
+    },
+    "pane": {
+      "tabApps": "แอป AI",
+      "tabManual": "การเชื่อมต่อด้วยตนเอง",
+      "connectTitle": "เชื่อมต่อแอป AI",
+      "recommended": "แนะนำ",
+      "connectBody": "เข้าสู่ระบบด้วยบัญชี NocoDB ของคุณ คุณเป็นผู้กำหนดเองว่าให้ดูและแก้ไขอะไรได้บ้าง",
+      "otherToolUrl": "ใช้เครื่องมือ AI อื่นอยู่ใช่ไหม เพิ่ม",
+      "otherTool": "เครื่องมืออื่น",
+      "copyValue": "คัดลอก {label}",
+      "addTo": "เพิ่ม NocoDB ไปยัง {client}",
+      "signInTitle": "เข้าสู่ระบบด้วย NocoDB แล้วอนุญาต",
+      "waiting": "กำลังรอให้ {client} เข้าสู่ระบบ…",
+      "waitingHint": "หน้านี้จะอัปเดตเองทันทีที่คุณอนุญาต",
+      "connectedTitle": "{client} เชื่อมต่อแล้ว",
+      "connectedBody": "ตอนนี้จะแสดงอยู่ในแอป AI ของคุณ",
+      "connectedElsewhere": "ได้รับอนุญาตไว้สำหรับโปรเจกต์อื่น จึงไม่แสดงที่นี่",
+      "manageAccess": "จัดการสิทธิ์การเข้าถึง",
+      "fallbackText": "เครื่องมือ AI ของคุณเข้าสู่ระบบด้วย NocoDB ไม่ได้ใช่ไหม",
+      "fallbackLink": "ใช้การเชื่อมต่อด้วยตนเองแทน",
+      "appsTitle": "แอป AI ของคุณ",
+      "appsHint": "มองเห็นได้เฉพาะคุณ",
+      "app": "แอป",
+      "lastSignedInAt": "เข้าสู่ระบบล่าสุด {time}",
+      "lastUsed": "ใช้ล่าสุด",
+      "lastUsedAt": "ใช้ล่าสุด {time}",
+      "canDelete": "ลบข้อมูลได้",
+      "toolsTitle": "เครื่องมือและสิทธิ์",
+      "neverMoreThanRole": "ไม่เกินบทบาทของคุณเองในโปรเจกต์นี้ ({role})",
+      "neverMoreThanAccess": "ไม่เกินสิทธิ์การเข้าถึงของคุณเองในโปรเจกต์นี้",
+      "neverMoreThanOwnAccess": "ไม่เกินสิทธิ์การเข้าถึงของคุณเองในที่ที่ได้รับอนุญาตไว้",
+      "notEditable": "สิ่งที่แอปนี้ทำได้ถูกกำหนดไว้ตอนเข้าสู่ระบบ และเปลี่ยนที่นี่ไม่ได้ ให้ยกเลิกการเชื่อมต่อแล้วเข้าสู่ระบบใหม่เพื่อเลือกเครื่องมือของแอป",
+      "disconnectBody": "ยกเลิกการเชื่อมต่อแอปนี้จากโปรเจกต์นี้ แอปต้องเข้าสู่ระบบอีกครั้งเพื่อเชื่อมต่อใหม่",
+      "disconnectBodyWide": "ยกเลิกการเชื่อมต่อแอปนี้ในทุกที่ที่ได้รับอนุญาตไว้ ไม่ใช่เฉพาะโปรเจกต์นี้ แอปต้องเข้าสู่ระบบอีกครั้งเพื่อเชื่อมต่อใหม่",
+      "disconnectBodyEverywhere": "ยกเลิกการเชื่อมต่อแอปนี้ในทุกที่ที่ได้รับอนุญาตไว้ แอปต้องเข้าสู่ระบบอีกครั้งเพื่อเชื่อมต่อใหม่",
+      "disconnectConfirm": "ยกเลิกการเชื่อมต่อ {client} หรือไม่",
+      "disconnectConfirmBody": "แอปจะเสียสิทธิ์การเข้าถึงทันที และต้องเข้าสู่ระบบอีกครั้งเพื่อเชื่อมต่อใหม่",
+      "disconnected": "ยกเลิกการเชื่อมต่อ {client} แล้ว",
+      "accessUpdated": "อัปเดตสิทธิ์การเข้าถึงแล้ว",
+      "manualTitle": "การเชื่อมต่อด้วยตนเองของคุณ",
+      "manualBody": "สำหรับสคริปต์ งาน CI และไคลเอ็นต์ที่เข้าสู่ระบบด้วย NocoDB ไม่ได้",
+      "manualNote": "การเชื่อมต่อด้วยตนเองใช้คีย์ API แบบคงที่ ซึ่งใช้งานได้จนกว่าคุณจะเพิกถอน และใครก็ตามที่มีการตั้งค่านี้จะได้รับสิทธิ์การเข้าถึงเท่ากัน หากเครื่องมือของคุณรองรับ {link}",
+      "manualNoteLink": "ให้เชื่อมต่อเป็นแอป AI แทน",
+      "field": {
+        "remoteServerUrl": "URL ของเซิร์ฟเวอร์ MCP ระยะไกล",
+        "authentication": "การรับรองความถูกต้อง",
+        "url": "URL",
+        "transport": "การรับส่งข้อมูล"
+      },
+      "claude": {
+        "where": "ใน Claude ให้เปิด การตั้งค่า › ตัวเชื่อมต่อ แล้วเลือก เพิ่มตัวเชื่อมต่อแบบกำหนดเอง กรอกข้อมูล:",
+        "auth": "เลือก เชื่อมต่อ ถัดจาก NocoDB เข้าสู่ระบบด้วย NocoDB เลือกสิ่งที่อนุญาตให้ Claude เข้าถึง แล้วเลือก อนุญาต"
+      },
+      "chatgpt": {
+        "where": "ใน ChatGPT ให้เปิด Plugins เลือก เพิ่ม แล้วเลือก เพิ่มเซิร์ฟเวอร์ MCP แบบกำหนดเอง กรอกข้อมูล:",
+        "auth": "เลือก สร้าง จากนั้น ChatGPT จะเปิด NocoDB ในหน้าต่างใหม่ เข้าสู่ระบบ เลือกสิ่งที่อนุญาตให้เข้าถึง แล้วเลือก อนุญาต"
+      },
+      "claudeCode": {
+        "auth": "ใน Claude Code ให้รัน /mcp เลือก nocodb แล้วเลือก ยืนยันตัวตน จากนั้นในเบราว์เซอร์ให้เลือกสิ่งที่อนุญาตให้เข้าถึง แล้วเลือก อนุญาต"
+      },
+      "cursor": {
+        "where": "ใน Cursor ให้เปิด การตั้งค่า › MCP แล้วเลือก เพิ่มเซิร์ฟเวอร์ MCP ใหม่ กรอกข้อมูล:",
+        "auth": "เลือก เชื่อมต่อ ถัดจาก nocodb ในรายการ MCP เข้าสู่ระบบด้วย NocoDB ในเบราว์เซอร์ แล้วเลือก อนุญาต"
+      },
+      "codex": {
+        "auth": "รันคำสั่งเข้าสู่ระบบ เข้าสู่ระบบด้วย NocoDB ในเบราว์เซอร์ แล้วเลือก อนุญาต"
+      },
+      "windsurf": {
+        "where": "ใน Windsurf ให้เปิด การตั้งค่า › Cascade › เซิร์ฟเวอร์ MCP แล้วเลือก เพิ่มเซิร์ฟเวอร์แบบกำหนดเอง กรอกข้อมูล:",
+        "auth": "เลือก เชื่อมต่อ ถัดจาก nocodb เข้าสู่ระบบด้วย NocoDB ในเบราว์เซอร์ แล้วเลือก อนุญาต"
+      },
+      "other": {
+        "where": "เพิ่มเซิร์ฟเวอร์ MCP ระยะไกลในไคลเอ็นต์ของคุณด้วยรายละเอียดเหล่านี้:",
+        "auth": "เริ่มการเชื่อมต่อจากไคลเอ็นต์ของคุณ NocoDB จะเปิดในเบราว์เซอร์ ที่นั่นคุณจะเข้าสู่ระบบ เลือกสิ่งที่อนุญาตให้ไคลเอ็นต์เข้าถึง แล้วเลือก อนุญาต"
+      }
     }
   }
 }

@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "फ़ॉर्म पर साइन-इन अनिवार्य करने के लिए अपग्रेड करें",
     "upgradeToUseFormRequireSigninSubtitle": "फ़ॉर्म सबमिट करने से पहले उत्तरदाताओं के लिए साइन इन अनिवार्य करने हेतु {plan} योजना में अपग्रेड करें।",
     "upgradeToUseSso": "SSO का उपयोग करने के लिए अपग्रेड करें",
-    "upgradeToUseSsoSubtitle": "सिंगल साइन-ऑन (SSO) सेट अप करने और अपनी टीम को आपके पहचान प्रदाता से साइन इन करने देने के लिए {plan} योजना में अपग्रेड करें।",
-    "upgradeToUseAppFactory": "App Factory का उपयोग करने के लिए अपग्रेड करें",
-    "upgradeToUseAppFactorySubtitle": "अपने जुड़े हुए रिपॉजिटरी पर कोडिंग एजेंट चलाने के लिए {plan} योजना में अपग्रेड करें।"
+    "upgradeToUseSsoSubtitle": "सिंगल साइन-ऑन (SSO) सेट अप करने और अपनी टीम को आपके पहचान प्रदाता से साइन इन करने देने के लिए {plan} योजना में अपग्रेड करें।"
   },
   "general": {
     "scrollToBottom": "नीचे स्क्रॉल करें",
@@ -767,7 +765,8 @@
     "uploading": "अपलोड हो रहा है",
     "countAll": "सभी गिनें",
     "factory": "फ़ैक्टरी",
-    "config": "कॉन्फ़िगरेशन"
+    "config": "कॉन्फ़िगरेशन",
+    "dismiss": "बंद करें"
   },
   "objects": {
     "script": "स्क्रिप्ट",
@@ -2201,7 +2200,7 @@
       "webhooks": "वेबहूक्स",
       "webhooksDesc": "वेबहुक ट्रिगर्स और लॉग्स प्रबंधित करें",
       "base": "प्रोजेक्ट",
-      "baseDesc": "प्रोजेक्ट सेटिंग्स, स्रोत और कार्य",
+      "baseDesc": "प्रोजेक्ट सेटिंग्स, स्रोत, जॉब, दस्तावेज़ और उनकी टिप्पणियाँ",
       "users": "उपयोगकर्ता",
       "usersDesc": "प्रोजेक्ट सदस्य, वर्कस्पेस सदस्य और आमंत्रण",
       "grantedCount": "{total} में से {count} दिए गए",
@@ -3105,7 +3104,6 @@
       "syncInfo": "किसी बाहरी ऐप से तय समय पर डेटा लाएँ। एकतरफ़ा।",
       "automations": "स्वचालन",
       "aiSkills": "AI कौशल",
-      "mcpServer": "MCP सर्वर",
       "auditLog": "ऑडिट लॉग",
       "trashRetention": "कूड़ेदान की अवधारण अवधि",
       "snapshots": "Snapshots",
@@ -3136,7 +3134,7 @@
         "members": "कौन इस प्रोजेक्ट को खोल सकता है, और क्या कर सकता है।",
         "permissions": "हर तालिका, कॉलम और दस्तावेज़ को कौन देख या संपादित कर सकता है।",
         "apiTokens": "ऐसे टोकन जो बाहरी ऐप्स को इस प्रोजेक्ट में पढ़ने और लिखने देते हैं।",
-        "mcp": "MCP के ज़रिए AI क्लाइंट्स को इस प्रोजेक्ट से जोड़ें।",
+        "mcp": "अपने एआई टूल्स को अपनी ही पहुँच से इस प्रोजेक्ट पर काम करने दें।",
         "integrations": "जुड़े हुए खाते जिनका यह प्रोजेक्ट उपयोग कर सकता है।",
         "automations": "ट्रिगर पर चलने वाले वर्कफ़्लो।",
         "auditLog": "इस प्रोजेक्ट में हुआ हर बदलाव, और किसने किया।",
@@ -3155,7 +3153,8 @@
       "upgradeDescDateDependency": "जब कोई अभिलेख खिसकता है तो आश्रित तिथियाँ अपने आप खिसका देता है.",
       "concernProject": "प्रोजेक्ट",
       "concernApps": "Apps",
-      "concernTabs": "सेटिंग अनुभाग"
+      "concernTabs": "सेटिंग अनुभाग",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "श्रेणियाँ",
     "blockquote": "उद्धरण",
@@ -5316,7 +5315,6 @@
     "factoryEnvironment": "परिवेश",
     "factoryCommitOrPush": "कमिट या पुश",
     "factoryCompareBranch": "ब्रांच की तुलना करें",
-    "factoryAddTab": "एक पैनल खोलें",
     "factoryCommitPushPrompt": "बदलाव कमिट करें और ब्रांच पुश करें।",
     "chatYesterday": "बीता कल",
     "chatCopyMessage": "संदेश कॉपी करें",
@@ -5422,7 +5420,64 @@
     "duplicateField": "कॉलम की नकल करें",
     "extensionError": "एक्सटेंशन त्रुटि",
     "clearData": "डेटा साफ़ करें",
-    "copyProject": "प्रोजेक्ट कॉपी करें"
+    "copyProject": "प्रोजेक्ट कॉपी करें",
+    "factoryBootPartCpu": "प्रोसेसर",
+    "factoryBootPartMemory": "मेमोरी",
+    "factoryBootPartNetwork": "नेटवर्क",
+    "factoryBootPartRepo": "रिपॉज़िटरी",
+    "factoryBootPartServices": "सेवाएँ",
+    "factoryMachines": "मशीनें",
+    "factoryMachinesHint": "वह परिवेश जहाँ से आपके सत्र शुरू होते हैं। नए सत्र डिफ़ॉल्ट का उपयोग करते हैं; कंपोज़र में दूसरी चुनें।",
+    "factoryMachinesCreatorOnly": "मशीनें केवल मेंटेनर ही बना, संपादित या बिल्ड कर सकते हैं।",
+    "factoryMachineSearchPanes": "खोजें",
+    "factoryMachineStockTag": "अंतर्निहित",
+    "factoryMachineSetDefault": "डिफ़ॉल्ट बनाएँ",
+    "factoryMachineUpgrade": "अपग्रेड करें",
+    "factoryMachineUpgradingShort": "अपग्रेड हो रहा है…",
+    "factoryMachineUpdateAvailable": "अपडेट उपलब्ध है",
+    "factoryMachineUpgradeHint": "यह पुरानी बेस इमेज पर बनी है। अपग्रेड करने पर वही पैकेज मौजूदा इमेज पर दोबारा बनते हैं।",
+    "factoryMachineUpgradeBanner": "यह पुरानी बेस इमेज पर बनी है, इसलिए नए सत्र इससे शुरू नहीं हो सकते। अपग्रेड करें ताकि वही पैकेज मौजूदा इमेज पर दोबारा बन जाएँ।",
+    "factoryMachineStock": "बेस मशीन",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep और Chrome। हर मशीन इसी पर बनती है, और बिना मशीन वाले सत्र इसी पर चलते हैं।",
+    "factoryMachinesEmptyTitle": "अभी कोई मशीन नहीं",
+    "factoryMachinesEmptyBody": "सत्र बेस मशीन पर चलते हैं। इस रिपॉज़िटरी को जिन रनटाइम, डेटाबेस और टूल की ज़रूरत है, उनके साथ एक मशीन बनाएँ, फिर हर सत्र उन्हीं के साथ शुरू होगा।",
+    "factoryMachinePickTitle": "सत्र यहाँ शुरू करें",
+    "factoryMachinePip": "ग्लोबल pip",
+    "factoryMachineReady": "तैयार",
+    "factoryMachineStepBase": "Factory डेस्कटॉप बेस",
+    "factoryMachineStepBaseDetail": "डेस्कटॉप, git और GitHub CLI के साथ Ubuntu 22.04",
+    "factoryMachineStepSave": "मशीन सहेजें",
+    "factoryMachineStepSaveDetail": "इस प्रोजेक्ट के सत्रों के लिए स्नैपशॉट",
+    "factoryMachineServiceStarts": "हर सत्र के साथ शुरू होता है",
+    "factoryMachineServicesHint": "एजेंट को एनवायरनमेंट वेरिएबल के रूप में दिया जाता है, जिससे टेस्ट और डेव सर्वर बिना सेटअप के कनेक्ट हो जाते हैं।",
+    "factoryMachineRebuild": "अपडेट के साथ दोबारा बनाएँ",
+    "factoryMachineUseVersion": "यह संस्करण उपयोग करें",
+    "factoryMachineReused": "समान बिल्ड दोबारा इस्तेमाल किया गया",
+    "factoryMachineSetUp": "मशीन सेट करें",
+    "factoryMachineSuggestUpdate": "भविष्य के सत्रों के लिए {machine} में जोड़ें?",
+    "factoryMachineSuggestNote": "पृष्ठभूमि में दोबारा बनाया जाता है। यह सत्र जैसा है वैसा ही चलता रहता है।",
+    "factoryMachineSuggestCreatorOnly": "मशीनें केवल मेंटेनर ही बदल सकते हैं। किसी से इसे लागू करने को कहें।",
+    "factoryMachineSuggestAccept": "जोड़ें और दोबारा बनाएँ",
+    "factoryMachineSuggestAdded": "{machine} का नया संस्करण बन रहा है। तैयार होते ही नए सत्र इसका उपयोग करेंगे।",
+    "factoryMachineSuggestDeclined": "लागू नहीं किया गया। आप मशीनें में कभी भी मशीन बदल सकते हैं।",
+    "factoryMachineSuggestAlreadyIn": "{machine} में यह पहले से है।",
+    "factoryMachineSuggestReady": "{machine} v{version} तैयार है। नए सत्र इसी पर शुरू होंगे।",
+    "factoryMachineSuggestFailed": "{machine} का नया संस्करण बनाने में विफल।",
+    "factoryMachineSuggestCancelled": "{machine} का नया संस्करण रद्द कर दिया गया।",
+    "factoryMachineSuggestedFix": "सुझाया गया सुधार",
+    "factoryMachineSameAsBefore": "वही चयन, दोबारा बनाया गया",
+    "factoryMachineTabOverview": "सारांश",
+    "factoryMachineUnbuiltTo": "ड्राफ़्ट {next}: {version} से {count} बदलाव, बिल्ड नहीं हुआ | ड्राफ़्ट {next}: {version} से {count} बदलाव, बिल्ड नहीं हुआ",
+    "factoryMachineReview": "संपादन जारी रखें",
+    "factoryMachineTabVersions": "संस्करण",
+    "factoryMachineServiceBadge": "सेवा",
+    "factoryMachineUndoChange": "यह बदलाव पूर्ववत करें",
+    "factoryMachineStepOf": "{step}, चरण {n}/{total}",
+    "factoryMachineStillUsing": "नए सत्र {version} का उपयोग करते रहेंगे।",
+    "factoryMachineReusedLog": "पहले का समान बिल्ड दोबारा इस्तेमाल किया गया, इसलिए बनाने के लिए कुछ नहीं था।",
+    "dontExpand": "विस्तृत न करें",
+    "createSchema": "स्कीमा बनाएँ",
+    "configureSources": "स्रोत कॉन्फ़िगर करें"
   },
   "activity": {
     "useTemplate": "टेम्पलेट का उपयोग करें",
@@ -7770,6 +7825,81 @@
       "tryBody": "नई चैट शुरू करें और पूछें «List my NocoDB tools»।",
       "tokenText": "आपका टूल सिर्फ़ टोकन स्वीकार करता है?",
       "tokenButton": "MCP टोकन बनाएँ"
+    },
+    "pane": {
+      "tabApps": "एआई ऐप",
+      "tabManual": "मैन्युअल कनेक्शन",
+      "connectTitle": "एआई ऐप कनेक्ट करें",
+      "recommended": "अनुशंसित",
+      "connectBody": "अपने NocoDB खाते से साइन इन करें। वह क्या देख और बदल सकता है, यह ठीक-ठीक आप तय करते हैं।",
+      "otherToolUrl": "कोई और एआई टूल इस्तेमाल कर रहे हैं? जोड़ें",
+      "otherTool": "दूसरा टूल",
+      "copyValue": "{label} कॉपी करें",
+      "addTo": "{client} में NocoDB जोड़ें",
+      "signInTitle": "NocoDB से साइन इन करें और अधिकृत करें",
+      "waiting": "{client} के साइन इन की प्रतीक्षा है…",
+      "waitingHint": "आपके अधिकृत करते ही यह अपने आप अपडेट हो जाता है।",
+      "connectedTitle": "{client} कनेक्ट है",
+      "connectedBody": "अब यह आपके एआई ऐप्स में दिखता है।",
+      "connectedElsewhere": "यह अन्य प्रोजेक्ट्स के लिए अधिकृत है, इसलिए यहाँ सूचीबद्ध नहीं है।",
+      "manageAccess": "पहुँच प्रबंधित करें",
+      "fallbackText": "क्या आपका एआई टूल NocoDB से साइन इन नहीं कर पा रहा?",
+      "fallbackLink": "इसके बजाय मैन्युअल कनेक्शन इस्तेमाल करें",
+      "appsTitle": "आपके एआई ऐप",
+      "appsHint": "केवल आपको दिखाई देता है",
+      "app": "ऐप",
+      "lastSignedInAt": "पिछला साइन इन {time}",
+      "lastUsed": "अंतिम उपयोग",
+      "lastUsedAt": "अंतिम उपयोग {time}",
+      "canDelete": "डेटा हटा सकता है",
+      "toolsTitle": "टूल और अनुमतियाँ",
+      "neverMoreThanRole": "इस प्रोजेक्ट में आपकी अपनी भूमिका ({role}) से कभी ज़्यादा नहीं।",
+      "neverMoreThanAccess": "इस प्रोजेक्ट पर आपकी अपनी पहुँच से कभी ज़्यादा नहीं।",
+      "neverMoreThanOwnAccess": "जहाँ यह अधिकृत था, वहाँ आपकी अपनी पहुँच से कभी ज़्यादा नहीं।",
+      "notEditable": "यह ऐप क्या कर सकता है, यह साइन इन के समय तय हो गया था और यहाँ बदला नहीं जा सकता। इसके टूल चुनने के लिए इसे डिस्कनेक्ट करें और दोबारा साइन इन कराएँ।",
+      "disconnectBody": "यह ऐप इस प्रोजेक्ट से डिस्कनेक्ट हो जाता है। दोबारा कनेक्ट करने के लिए इसे फिर से साइन इन करना होगा।",
+      "disconnectBodyWide": "जहाँ-जहाँ यह अधिकृत था, वहाँ सब जगह यह ऐप डिस्कनेक्ट हो जाता है, सिर्फ़ इस प्रोजेक्ट में नहीं। दोबारा कनेक्ट करने के लिए इसे फिर से साइन इन करना होगा।",
+      "disconnectBodyEverywhere": "जहाँ-जहाँ यह अधिकृत था, वहाँ सब जगह यह ऐप डिस्कनेक्ट हो जाता है। दोबारा कनेक्ट करने के लिए इसे फिर से साइन इन करना होगा।",
+      "disconnectConfirm": "{client} को डिस्कनेक्ट करें?",
+      "disconnectConfirmBody": "इसकी पहुँच तुरंत खत्म हो जाती है और दोबारा कनेक्ट करने के लिए इसे फिर से साइन इन करना होगा।",
+      "disconnected": "{client} डिस्कनेक्ट हो गया",
+      "accessUpdated": "पहुँच अपडेट हो गई",
+      "manualTitle": "आपके मैन्युअल कनेक्शन",
+      "manualBody": "ऐसी स्क्रिप्ट, CI जॉब और क्लाइंट के लिए जो NocoDB से साइन इन नहीं कर सकते।",
+      "manualNote": "मैन्युअल कनेक्शन स्थिर API कुंजी का उपयोग करते हैं। जब तक आप उसे रद्द न करें, वह काम करती है, और जिसके पास कॉन्फ़िगरेशन है उसे वही पहुँच मिल जाती है। अगर आपका टूल समर्थन करता है, तो {link}।",
+      "manualNoteLink": "इसके बजाय इसे एआई ऐप के रूप में कनेक्ट करें",
+      "field": {
+        "remoteServerUrl": "रिमोट MCP सर्वर URL",
+        "authentication": "प्रमाणीकरण",
+        "url": "URL",
+        "transport": "ट्रांसपोर्ट"
+      },
+      "claude": {
+        "where": "Claude में सेटिंग्स › कनेक्टर खोलें और कस्टम कनेक्टर जोड़ें चुनें। भरें:",
+        "auth": "NocoDB के बगल में कनेक्ट करें चुनें। NocoDB से साइन इन करें, चुनें कि Claude किस चीज़ तक पहुँच सकता है, फिर अधिकृत करें चुनें।"
+      },
+      "chatgpt": {
+        "where": "ChatGPT में प्लगइन्स खोलें, जोड़ें चुनें, फिर कस्टम MCP सर्वर जोड़ें चुनें। भरें:",
+        "auth": "बनाएँ चुनें। ChatGPT नई विंडो में NocoDB खोलेगा। साइन इन करें, चुनें कि वह किस चीज़ तक पहुँच सकता है, फिर अधिकृत करें चुनें।"
+      },
+      "claudeCode": {
+        "auth": "Claude Code में /mcp चलाएँ, nocodb चुनें और फिर प्रमाणीकरण चुनें। ब्राउज़र में चुनें कि वह किस चीज़ तक पहुँच सकता है, फिर अधिकृत करें चुनें।"
+      },
+      "cursor": {
+        "where": "Cursor में सेटिंग्स › MCP खोलें और नया MCP सर्वर जोड़ें चुनें। भरें:",
+        "auth": "MCP सूची में nocodb के बगल में कनेक्ट करें चुनें। ब्राउज़र में NocoDB से साइन इन करें और अधिकृत करें चुनें।"
+      },
+      "codex": {
+        "auth": "लॉगिन कमांड चलाएँ, ब्राउज़र में NocoDB से साइन इन करें और अधिकृत करें चुनें।"
+      },
+      "windsurf": {
+        "where": "Windsurf में सेटिंग्स › Cascade › MCP सर्वर खोलें और कस्टम सर्वर जोड़ें चुनें। भरें:",
+        "auth": "nocodb के बगल में कनेक्ट करें चुनें। ब्राउज़र में NocoDB से साइन इन करें और अधिकृत करें चुनें।"
+      },
+      "other": {
+        "where": "अपने क्लाइंट में इन विवरणों के साथ एक रिमोट MCP सर्वर जोड़ें:",
+        "auth": "कनेक्शन अपने क्लाइंट से शुरू करें। ब्राउज़र में NocoDB खुलता है, जहाँ आप साइन इन करते हैं, चुनते हैं कि क्लाइंट किस चीज़ तक पहुँच सकता है, और अधिकृत करें चुनते हैं।"
+      }
     }
   }
 }

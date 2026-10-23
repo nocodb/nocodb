@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "Opgrader for at kræve login på formularer",
     "upgradeToUseFormRequireSigninSubtitle": "Opgrader til {plan}-planen for at kræve, at respondenter logger ind, før de indsender en formular.",
     "upgradeToUseSso": "Opgrader for at bruge SSO",
-    "upgradeToUseSsoSubtitle": "Opgrader til {plan} abonnementet for at opsætte Single Sign-On (SSO) og lade dit team logge ind med din identitetsudbyder.",
-    "upgradeToUseAppFactory": "Opgrader for at bruge App Factory",
-    "upgradeToUseAppFactorySubtitle": "Opgrader til {plan}-planen for at sætte kodningsagenter i gang på dine tilknyttede repositories."
+    "upgradeToUseSsoSubtitle": "Opgrader til {plan} abonnementet for at opsætte Single Sign-On (SSO) og lade dit team logge ind med din identitetsudbyder."
   },
   "general": {
     "scrollToBottom": "Rul til bunden",
@@ -765,7 +763,8 @@
     "toggle": "Skift",
     "uploading": "Uploader",
     "countAll": "Tæl alle",
-    "config": "Konfiguration"
+    "config": "Konfiguration",
+    "dismiss": "Afvis"
   },
   "objects": {
     "script": "Script",
@@ -2198,7 +2197,7 @@
       "webhooks": "Webhooks",
       "webhooksDesc": "Administrer webhook udløsere og logfiler",
       "base": "Projekt",
-      "baseDesc": "Projektindstillinger, kilder og job",
+      "baseDesc": "Projektindstillinger, kilder, job, dokumenter og deres kommentarer",
       "users": "Brugere",
       "usersDesc": "Projektmedlemmer, medlemmer af arbejdsområdet og invitationer",
       "grantedCount": "{count} af {total} tildelt",
@@ -3101,7 +3100,6 @@
       "syncInfo": "Hent data fra en ekstern app efter en tidsplan. Envejs.",
       "automations": "Automatiseringer",
       "aiSkills": "AI-skills",
-      "mcpServer": "MCP-server",
       "auditLog": "Revisionslog",
       "trashRetention": "Opbevaring i papirkurven",
       "snapshots": "Snapshots",
@@ -3132,7 +3130,7 @@
         "members": "Hvem der kan åbne dette projekt, og hvad de må gøre.",
         "permissions": "Hvem der kan se eller redigere hver tabel, hvert felt og hvert dokument.",
         "apiTokens": "Tokens, der lader eksterne apps læse og skrive i dette projekt.",
-        "mcp": "Forbind AI-klienter til dette projekt via MCP.",
+        "mcp": "Lad dine AI-værktøjer arbejde med dette projekt med din egen adgang.",
         "integrations": "Forbundne konti, som dette projekt kan bruge.",
         "automations": "Workflows, der køres af en udløser.",
         "auditLog": "Alle ændringer i dette projekt, og hvem der har lavet dem.",
@@ -3151,7 +3149,8 @@
       "upgradeDescDateDependency": "Flyt automatisk afhængige datoer, når en post flyttes.",
       "concernProject": "Projekt",
       "concernApps": "Apps",
-      "concernTabs": "Indstillingsafsnit"
+      "concernTabs": "Indstillingsafsnit",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "Kategorier",
     "blockquote": "Citat",
@@ -5292,7 +5291,6 @@
     "factoryEnvironment": "Miljø",
     "factoryCommitOrPush": "Commit eller push",
     "factoryCompareBranch": "Sammenlign gren",
-    "factoryAddTab": "Åbn et panel",
     "factoryCommitPushPrompt": "Commit ændringerne, og push grenen.",
     "chatYesterday": "I går",
     "chatCopyMessage": "Kopier besked",
@@ -5398,7 +5396,62 @@
     "duplicateField": "Dupliker mark",
     "extensionError": "Udvidelsesfejl",
     "clearData": "Ryd data",
-    "copyProject": "Kopier projekt"
+    "copyProject": "Kopier projekt",
+    "factoryBootPartCpu": "Processor",
+    "factoryBootPartMemory": "Hukommelse",
+    "factoryBootPartNetwork": "Netværk",
+    "factoryBootPartServices": "Tjenester",
+    "factoryMachines": "Maskiner",
+    "factoryMachinesHint": "Det miljø, dine sessioner starter fra. Nye sessioner bruger standardmaskinen; vælg en anden i komponisten.",
+    "factoryMachinesCreatorOnly": "Kun vedligeholdere kan oprette, redigere eller bygge maskiner.",
+    "factoryMachineSearchPanes": "Søg",
+    "factoryMachineStockTag": "Indbygget",
+    "factoryMachineSetDefault": "Gør til standard",
+    "factoryMachineUpgrade": "Opgrader",
+    "factoryMachineUpgradingShort": "Opgraderer…",
+    "factoryMachineUpdateAvailable": "Opdatering tilgængelig",
+    "factoryMachineUpgradeHint": "Bygget på et ældre basis-image. En opgradering bygger de samme pakker på det nuværende.",
+    "factoryMachineUpgradeBanner": "Bygget på et ældre basis-image, så nye sessioner kan ikke starte fra det. Opgrader for at bygge de samme pakker på det nuværende.",
+    "factoryMachineStock": "Basismaskine",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep og Chrome. Alle maskiner bygger videre på den, og sessioner uden maskine kører på den.",
+    "factoryMachinesEmptyTitle": "Ingen maskiner endnu",
+    "factoryMachinesEmptyBody": "Sessioner kører på basismaskinen. Opret en med de runtimes, databaser og værktøjer, dette repository har brug for, så starter hver session med dem.",
+    "factoryMachinePickTitle": "Start sessionen på",
+    "factoryMachineReady": "Klar",
+    "factoryMachineStepBase": "Factory-skrivebordsbasis",
+    "factoryMachineStepBaseDetail": "Ubuntu 22.04 med skrivebordet, git og GitHub CLI",
+    "factoryMachineStepSave": "Gem maskine",
+    "factoryMachineStepSaveDetail": "Øjebliksbillede til dette projekts sessioner",
+    "factoryMachineServiceStarts": "Starter med hver session",
+    "factoryMachineServicesHint": "Eksponeres for agenten som miljøvariabler, så test og udviklingsservere kan forbinde uden opsætning.",
+    "factoryMachineRebuild": "Byg igen med opdateringer",
+    "factoryMachineUseVersion": "Brug denne version",
+    "factoryMachineReused": "Genbrugte en identisk build",
+    "factoryMachineSetUp": "Opsæt maskine",
+    "factoryMachineSuggestUpdate": "Føj til {machine} til fremtidige sessioner?",
+    "factoryMachineSuggestNote": "Bygges igen i baggrunden. Denne session kører videre uændret.",
+    "factoryMachineSuggestCreatorOnly": "Kun vedligeholdere kan ændre maskiner. Bed en om at anvende dette.",
+    "factoryMachineSuggestAccept": "Tilføj og byg igen",
+    "factoryMachineSuggestAdded": "Bygger en ny version af {machine}. Nye sessioner bruger den, når den er klar.",
+    "factoryMachineSuggestDeclined": "Ikke anvendt. Du kan altid ændre maskinen under Maskiner.",
+    "factoryMachineSuggestAlreadyIn": "{machine} har allerede dette.",
+    "factoryMachineSuggestReady": "{machine} v{version} er klar. Nye sessioner starter på den.",
+    "factoryMachineSuggestFailed": "Den nye version af {machine} kunne ikke bygges.",
+    "factoryMachineSuggestCancelled": "Den nye version af {machine} blev annulleret.",
+    "factoryMachineSuggestedFix": "Foreslået rettelse",
+    "factoryMachineSameAsBefore": "Samme valg, bygget igen",
+    "factoryMachineTabOverview": "Oversigt",
+    "factoryMachineUnbuiltTo": "Kladde {next}: {count} ændring i forhold til {version}, ikke bygget | Kladde {next}: {count} ændringer i forhold til {version}, ikke bygget",
+    "factoryMachineReview": "Fortsæt redigering",
+    "factoryMachineTabVersions": "Versioner",
+    "factoryMachineServiceBadge": "Tjeneste",
+    "factoryMachineUndoChange": "Fortryd denne ændring",
+    "factoryMachineStepOf": "{step}, trin {n} af {total}",
+    "factoryMachineStillUsing": "Nye sessioner bruger fortsat {version}.",
+    "factoryMachineReusedLog": "Genbrugte en identisk tidligere build, så der var ikke noget at bygge.",
+    "dontExpand": "Udvid ikke",
+    "createSchema": "Opret skema",
+    "configureSources": "Konfigurer kilder"
   },
   "activity": {
     "useTemplate": "Brug skabelon",
@@ -7746,6 +7799,80 @@
       "tryBody": "Start en ny chat, og spørg «List my NocoDB tools».",
       "tokenText": "Accepterer dit værktøj kun et token?",
       "tokenButton": "Opret et MCP-token"
+    },
+    "pane": {
+      "tabApps": "AI-apps",
+      "tabManual": "Manuelle forbindelser",
+      "connectTitle": "Forbind en AI-app",
+      "recommended": "Anbefalet",
+      "connectBody": "Log ind med din NocoDB-konto. Du bestemmer præcis, hvad den må se og ændre.",
+      "otherToolUrl": "Bruger du et andet AI-værktøj? Tilføj",
+      "otherTool": "Andet værktøj",
+      "copyValue": "Kopiér {label}",
+      "addTo": "Føj NocoDB til {client}",
+      "signInTitle": "Log ind med NocoDB, og godkend",
+      "waiting": "Venter på, at {client} logger ind…",
+      "waitingHint": "Dette opdateres af sig selv, så snart du godkender.",
+      "connectedTitle": "{client} er forbundet",
+      "connectedBody": "Den vises nu under dine AI-apps.",
+      "connectedElsewhere": "Den er godkendt til andre projekter og er derfor ikke vist her.",
+      "manageAccess": "Administrer adgang",
+      "fallbackText": "Kan dit AI-værktøj ikke logge ind med NocoDB?",
+      "fallbackLink": "Brug en manuel forbindelse i stedet",
+      "appsTitle": "Dine AI-apps",
+      "appsHint": "Kun synlig for dig",
+      "app": "App",
+      "lastSignedInAt": "Sidst logget ind {time}",
+      "lastUsed": "Sidst brugt",
+      "lastUsedAt": "Sidst brugt {time}",
+      "canDelete": "Kan slette data",
+      "toolsTitle": "Værktøjer og rettigheder",
+      "neverMoreThanRole": "Aldrig mere end din egen rolle i dette projekt ({role}).",
+      "neverMoreThanAccess": "Aldrig mere end din egen adgang til dette projekt.",
+      "neverMoreThanOwnAccess": "Aldrig mere end din egen adgang der, hvor den er godkendt.",
+      "notEditable": "Hvad denne app må gøre, blev fastlagt, da den loggede ind, og kan ikke ændres her. Afbryd forbindelsen, og log den ind igen for at vælge dens værktøjer.",
+      "disconnectBody": "Afbryder denne apps forbindelse til dette projekt. Den skal logge ind igen for at oprette forbindelse på ny.",
+      "disconnectBodyWide": "Afbryder denne apps forbindelse alle de steder, hvor den er godkendt – ikke kun i dette projekt. Den skal logge ind igen for at oprette forbindelse på ny.",
+      "disconnectBodyEverywhere": "Afbryder denne apps forbindelse alle de steder, hvor den er godkendt. Den skal logge ind igen for at oprette forbindelse på ny.",
+      "disconnectConfirm": "Afbryd forbindelsen til {client}?",
+      "disconnectConfirmBody": "Den mister adgangen med det samme og skal logge ind igen for at oprette forbindelse på ny.",
+      "disconnected": "{client} afbrudt",
+      "accessUpdated": "Adgang opdateret",
+      "manualTitle": "Dine manuelle forbindelser",
+      "manualBody": "Til scripts, CI-job og klienter, der ikke kan logge ind med NocoDB.",
+      "manualNote": "Manuelle forbindelser bruger en statisk API-nøgle. Den virker, indtil du tilbagekalder den, og alle med konfigurationen får samme adgang. Hvis dit værktøj understøtter det, {link}.",
+      "manualNoteLink": "forbind det som en AI-app i stedet",
+      "field": {
+        "remoteServerUrl": "URL til ekstern MCP-server",
+        "authentication": "Godkendelse",
+        "url": "URL"
+      },
+      "claude": {
+        "where": "I Claude skal du åbne Indstillinger › Connectors og vælge Tilføj brugerdefineret connector. Udfyld:",
+        "auth": "Vælg Forbind ved siden af NocoDB. Log ind med NocoDB, vælg hvad Claude må tilgå, og vælg derefter Godkend."
+      },
+      "chatgpt": {
+        "where": "I ChatGPT skal du åbne Plugins, vælge Tilføj og derefter Tilføj brugerdefineret MCP-server. Udfyld:",
+        "auth": "Vælg Opret. ChatGPT åbner NocoDB i et nyt vindue. Log ind, vælg hvad der må tilgås, og vælg derefter Godkend."
+      },
+      "claudeCode": {
+        "auth": "I Claude Code skal du køre /mcp, vælge nocodb og derefter Autentificer. Vælg i browseren hvad der må tilgås, og vælg derefter Godkend."
+      },
+      "cursor": {
+        "where": "I Cursor skal du åbne Indstillinger › MCP og vælge Tilføj ny MCP-server. Udfyld:",
+        "auth": "Vælg Forbind ved siden af nocodb på MCP-listen. Log ind med NocoDB i browseren, og vælg Godkend."
+      },
+      "codex": {
+        "auth": "Kør login-kommandoen, log ind med NocoDB i browseren, og vælg Godkend."
+      },
+      "windsurf": {
+        "where": "I Windsurf skal du åbne Indstillinger › Cascade › MCP-servere og vælge Tilføj brugerdefineret server. Udfyld:",
+        "auth": "Vælg Forbind ved siden af nocodb. Log ind med NocoDB i browseren, og vælg Godkend."
+      },
+      "other": {
+        "where": "Tilføj en ekstern MCP-server i din klient med disse oplysninger:",
+        "auth": "Start forbindelsen fra din klient. NocoDB åbnes i browseren, hvor du logger ind, vælger hvad klienten må tilgå, og vælger Godkend."
+      }
     }
   }
 }

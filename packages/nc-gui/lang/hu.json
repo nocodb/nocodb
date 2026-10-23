@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "Frissítsen, hogy bejelentkezést írhasson elő az űrlapokon",
     "upgradeToUseFormRequireSigninSubtitle": "Frissítsen a(z) {plan} csomagra, hogy a kitöltőknek be kelljen jelentkezniük az űrlap elküldése előtt.",
     "upgradeToUseSso": "Frissítés az SSO használatához",
-    "upgradeToUseSsoSubtitle": "A {plan} csomagra való frissítéssel beállíthatja az egyszeri bejelentkezést (SSO), és a csapata bejelentkezhet az identitásszolgáltatójával.",
-    "upgradeToUseAppFactory": "Váltson magasabb csomagra az App Factory használatához",
-    "upgradeToUseAppFactorySubtitle": "Váltson a(z) {plan} csomagra, hogy kódoló ügynököket indíthasson a csatlakoztatott tárolóiban."
+    "upgradeToUseSsoSubtitle": "A {plan} csomagra való frissítéssel beállíthatja az egyszeri bejelentkezést (SSO), és a csapata bejelentkezhet az identitásszolgáltatójával."
   },
   "general": {
     "scrollToBottom": "Görgessen az aljára",
@@ -766,7 +764,8 @@
     "toggle": "Átváltás",
     "uploading": "Feltöltés folyamatban",
     "countAll": "Összes megszámolása",
-    "config": "Konfiguráció"
+    "config": "Konfiguráció",
+    "dismiss": "Elvetés"
   },
   "objects": {
     "script": "Szkript",
@@ -2200,7 +2199,7 @@
       "webhooks": "Webhooks",
       "webhooksDesc": "Webhook triggerek és naplók kezelése",
       "base": "Projekt",
-      "baseDesc": "Projektbeállítások, források és feladatok",
+      "baseDesc": "Projektbeállítások, források, feladatok, dokumentumok és azok megjegyzései",
       "users": "Felhasználók",
       "usersDesc": "Projekttagok, munkaterület-tagok és meghívók",
       "grantedCount": "{total} közül {count} megadva",
@@ -3104,7 +3103,6 @@
       "syncInfo": "Adatok lekérése egy külső alkalmazásból ütemezetten. Egyirányú.",
       "automations": "Automatizálások",
       "aiSkills": "MI Skills",
-      "mcpServer": "MCP-kiszolgáló",
       "auditLog": "Auditnapló",
       "trashRetention": "Kuka megőrzési ideje",
       "snapshots": "Snapshots",
@@ -3135,7 +3133,7 @@
         "members": "Ki nyithatja meg ezt a projektet, és mit tehet benne.",
         "permissions": "Ki tekintheti meg vagy szerkesztheti az egyes táblákat, mezőket és dokumentumokat.",
         "apiTokens": "Tokenek, amelyekkel külső alkalmazások olvashatják és írhatják ezt a projektet.",
-        "mcp": "Csatlakoztasson MI-klienseket ehhez a projekthez MCP-n keresztül.",
+        "mcp": "Engedje, hogy MI-eszközei az Ön saját hozzáférésével dolgozzanak ezzel a projekttel.",
         "integrations": "Csatlakoztatott fiókok, amelyeket ez a projekt használhat.",
         "automations": "Munkafolyamatok, amelyeket egy trigger indít el.",
         "auditLog": "Minden módosítás ebben a projektben, és hogy ki végezte.",
@@ -3154,7 +3152,8 @@
       "upgradeDescDateDependency": "Automatikusan eltolja a függő dátumokat, amikor egy rekord áthelyeződik.",
       "concernProject": "Projekt",
       "concernApps": "Apps",
-      "concernTabs": "Beállítási szakaszok"
+      "concernTabs": "Beállítási szakaszok",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "Kategóriák",
     "blockquote": "Idézet",
@@ -5311,7 +5310,6 @@
     "factoryEnvironment": "Környezet",
     "factoryCommitOrPush": "Commit vagy push",
     "factoryCompareBranch": "Ág összehasonlítása",
-    "factoryAddTab": "Panel megnyitása",
     "factoryCommitPushPrompt": "Commitold a változtatásokat, és pushold az ágat.",
     "chatYesterday": "Tegnap",
     "chatCopyMessage": "Üzenet másolása",
@@ -5417,7 +5415,64 @@
     "duplicateField": "Mező kettőzése",
     "extensionError": "Bővítményhiba",
     "clearData": "Adatok törlése",
-    "copyProject": "Projekt másolása"
+    "copyProject": "Projekt másolása",
+    "factoryBootPartCpu": "Processzor",
+    "factoryBootPartMemory": "Memória",
+    "factoryBootPartNetwork": "Hálózat",
+    "factoryBootPartRepo": "Tároló",
+    "factoryBootPartServices": "Szolgáltatások",
+    "factoryMachines": "Gépek",
+    "factoryMachinesHint": "A környezet, amelyből a munkamenetei indulnak. Az új munkamenetek az alapértelmezettet használják; a szerkesztőben választhat másikat.",
+    "factoryMachinesCreatorOnly": "Gépeket csak karbantartók hozhatnak létre, szerkeszthetnek vagy építhetnek.",
+    "factoryMachineSearchPanes": "Keresés",
+    "factoryMachineStockTag": "Beépített",
+    "factoryMachineSetDefault": "Beállítás alapértelmezettként",
+    "factoryMachineUpgrade": "Frissítés",
+    "factoryMachineUpgradingShort": "Frissítés folyamatban…",
+    "factoryMachineUpdateAvailable": "Frissítés elérhető",
+    "factoryMachineUpgradeHint": "Régebbi alapképre épül. A frissítés ugyanazokat a csomagokat építi újra a jelenlegire.",
+    "factoryMachineUpgradeBanner": "Régebbi alapképre épül, ezért új munkamenetek nem indíthatók róla. Frissítsen, hogy ugyanazok a csomagok a jelenlegire épüljenek újra.",
+    "factoryMachineStock": "Alapgép",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep és Chrome. Minden gép erre épül, és a gép nélküli munkamenetek ezen futnak.",
+    "factoryMachinesEmptyTitle": "Még nincsenek gépek",
+    "factoryMachinesEmptyBody": "A munkamenetek az alapgépen futnak. Hozzon létre egyet azokkal a futtatókörnyezetekkel, adatbázisokkal és eszközökkel, amelyekre ennek a tárolónak szüksége van, és minden munkamenet ezekkel indul.",
+    "factoryMachinePickTitle": "A munkamenet indítása ezen",
+    "factoryMachinePip": "Globális pip",
+    "factoryMachineReady": "Kész",
+    "factoryMachineStepBase": "Factory asztali alap",
+    "factoryMachineStepBaseDetail": "Ubuntu 22.04 asztali környezettel, gittel és GitHub CLI-vel",
+    "factoryMachineStepSave": "Gép mentése",
+    "factoryMachineStepSaveDetail": "Pillanatkép a projekt munkameneteihez",
+    "factoryMachineServiceStarts": "Minden munkamenettel elindul",
+    "factoryMachineServicesHint": "Környezeti változóként jelenik meg az ügynök számára, így a tesztek és a fejlesztői kiszolgálók beállítás nélkül csatlakoznak.",
+    "factoryMachineRebuild": "Újraépítés frissítésekkel",
+    "factoryMachineUseVersion": "Ez a verzió használata",
+    "factoryMachineReused": "Azonos build újrafelhasználva",
+    "factoryMachineSetUp": "Gép beállítása",
+    "factoryMachineSuggestUpdate": "Hozzáadja a(z) {machine} géphez a jövőbeli munkamenetekhez?",
+    "factoryMachineSuggestNote": "A háttérben újraépül. Ez a munkamenet változatlanul fut tovább.",
+    "factoryMachineSuggestCreatorOnly": "Gépeket csak karbantartók módosíthatnak. Kérjen meg egyet, hogy alkalmazza ezt.",
+    "factoryMachineSuggestAccept": "Hozzáadás és újraépítés",
+    "factoryMachineSuggestAdded": "A(z) {machine} új verziója épül. Az új munkamenetek akkor használják, amint elkészül.",
+    "factoryMachineSuggestDeclined": "Nincs alkalmazva. A gépet bármikor módosíthatja a Gépek menüpontban.",
+    "factoryMachineSuggestAlreadyIn": "A(z) {machine} gépen ez már megvan.",
+    "factoryMachineSuggestReady": "A(z) {machine} v{version} elkészült. Az új munkamenetek ezen indulnak.",
+    "factoryMachineSuggestFailed": "A(z) {machine} új verzióját nem sikerült felépíteni.",
+    "factoryMachineSuggestCancelled": "A(z) {machine} új verziója meg lett szakítva.",
+    "factoryMachineSuggestedFix": "Javasolt javítás",
+    "factoryMachineSameAsBefore": "Ugyanaz a választás, újraépítve",
+    "factoryMachineTabOverview": "Áttekintés",
+    "factoryMachineUnbuiltTo": "Piszkozat {next}: {count} változás a(z) {version} verzióhoz képest, nincs felépítve | Piszkozat {next}: {count} változás a(z) {version} verzióhoz képest, nincs felépítve",
+    "factoryMachineReview": "Szerkesztés folytatása",
+    "factoryMachineTabVersions": "Verziók",
+    "factoryMachineServiceBadge": "Szolgáltatás",
+    "factoryMachineUndoChange": "Változás visszavonása",
+    "factoryMachineStepOf": "{step}, {n}/{total}. lépés",
+    "factoryMachineStillUsing": "Az új munkamenetek továbbra is a(z) {version} verziót használják.",
+    "factoryMachineReusedLog": "Egy azonos korábbi build lett újrafelhasználva, így nem volt mit építeni.",
+    "dontExpand": "Ne bontsa ki",
+    "createSchema": "Séma létrehozása",
+    "configureSources": "Források beállítása"
   },
   "activity": {
     "useTemplate": "Sablon használata",
@@ -7766,6 +7821,81 @@
       "tryBody": "Indítson új beszélgetést, és kérdezze meg: «List my NocoDB tools».",
       "tokenText": "Az eszköze csak tokent fogad el?",
       "tokenButton": "MCP-token létrehozása"
+    },
+    "pane": {
+      "tabApps": "MI-alkalmazások",
+      "tabManual": "Kézi kapcsolatok",
+      "connectTitle": "MI-alkalmazás csatlakoztatása",
+      "recommended": "Ajánlott",
+      "connectBody": "Jelentkezzen be NocoDB-fiókjával. Ön határozza meg pontosan, mit láthat és módosíthat.",
+      "otherToolUrl": "Másik MI-eszközt használ? Adja hozzá",
+      "otherTool": "Más eszköz",
+      "copyValue": "{label} másolása",
+      "addTo": "NocoDB hozzáadása ehhez: {client}",
+      "signInTitle": "Bejelentkezés a NocoDB-vel és engedélyezés",
+      "waiting": "Várakozás a(z) {client} bejelentkezésére…",
+      "waitingHint": "Ez magától frissül, amint engedélyezi.",
+      "connectedTitle": "A(z) {client} csatlakoztatva van",
+      "connectedBody": "Mostantól megjelenik az MI-alkalmazásai között.",
+      "connectedElsewhere": "Más projektekhez lett engedélyezve, ezért itt nem szerepel.",
+      "manageAccess": "Hozzáférés kezelése",
+      "fallbackText": "Az MI-eszköze nem tud bejelentkezni a NocoDB-vel?",
+      "fallbackLink": "Helyette kézi kapcsolat használata",
+      "appsTitle": "Az Ön MI-alkalmazásai",
+      "appsHint": "Csak Ön láthatja",
+      "app": "Alkalmazás",
+      "lastSignedInAt": "Utolsó bejelentkezés: {time}",
+      "lastUsed": "Utoljára használva",
+      "lastUsedAt": "Utoljára használva: {time}",
+      "canDelete": "Törölhet adatokat",
+      "toolsTitle": "Eszközök és engedélyek",
+      "neverMoreThanRole": "Soha nem több, mint az Ön saját szerepköre ebben a projektben ({role}).",
+      "neverMoreThanAccess": "Soha nem több, mint az Ön saját hozzáférése ehhez a projekthez.",
+      "neverMoreThanOwnAccess": "Soha nem több, mint az Ön saját hozzáférése ott, ahol engedélyezve lett.",
+      "notEditable": "Hogy ez az alkalmazás mit tehet, a bejelentkezéskor rögzült, és itt nem módosítható. Válassza le, és jelentkeztesse be újra az eszközeinek kiválasztásához.",
+      "disconnectBody": "Leválasztja ezt az alkalmazást erről a projektről. Az újracsatlakozáshoz ismét be kell jelentkeznie.",
+      "disconnectBodyWide": "Leválasztja ezt az alkalmazást mindenhol, ahol engedélyezve volt, nem csak ebben a projektben. Az újracsatlakozáshoz ismét be kell jelentkeznie.",
+      "disconnectBodyEverywhere": "Leválasztja ezt az alkalmazást mindenhol, ahol engedélyezve volt. Az újracsatlakozáshoz ismét be kell jelentkeznie.",
+      "disconnectConfirm": "Leválasztja a(z) {client} alkalmazást?",
+      "disconnectConfirmBody": "Azonnal elveszíti a hozzáférést, és az újracsatlakozáshoz ismét be kell jelentkeznie.",
+      "disconnected": "{client} leválasztva",
+      "accessUpdated": "Hozzáférés frissítve",
+      "manualTitle": "Az Ön kézi kapcsolatai",
+      "manualBody": "Parancsfájlokhoz, CI-feladatokhoz és olyan kliensekhez, amelyek nem tudnak bejelentkezni a NocoDB-vel.",
+      "manualNote": "A kézi kapcsolatok statikus API-kulcsot használnak. Addig működik, amíg vissza nem vonja, és bárki, akinél megvan a konfiguráció, ugyanazt a hozzáférést kapja. Ha az eszköze támogatja, {link}.",
+      "manualNoteLink": "inkább MI-alkalmazásként csatlakoztassa",
+      "field": {
+        "remoteServerUrl": "Távoli MCP-kiszolgáló URL-címe",
+        "authentication": "Hitelesítés",
+        "url": "URL",
+        "transport": "Átvitel"
+      },
+      "claude": {
+        "where": "A Claude-ban nyissa meg a Beállítások › Összekötők menüt, és válassza az Egyéni összekötő hozzáadása lehetőséget. Töltse ki:",
+        "auth": "Válassza a Csatlakozás lehetőséget a NocoDB mellett. Jelentkezzen be a NocoDB-vel, válassza ki, mihez férhet hozzá a Claude, majd válassza az Engedélyezés lehetőséget."
+      },
+      "chatgpt": {
+        "where": "A ChatGPT-ben nyissa meg a Bővítmények menüpontot, válassza a Hozzáadás, majd az Egyéni MCP-kiszolgáló hozzáadása lehetőséget. Töltse ki:",
+        "auth": "Válassza a Létrehozás lehetőséget. A ChatGPT új ablakban nyitja meg a NocoDB-t. Jelentkezzen be, válassza ki, mihez férhet hozzá, majd válassza az Engedélyezés lehetőséget."
+      },
+      "claudeCode": {
+        "auth": "A Claude Code-ban futtassa a /mcp parancsot, válassza a nocodb elemet, majd a Hitelesítés lehetőséget. A böngészőben válassza ki, mihez férhet hozzá, majd válassza az Engedélyezés lehetőséget."
+      },
+      "cursor": {
+        "where": "A Cursorban nyissa meg a Beállítások › MCP menüt, és válassza az Új MCP-kiszolgáló hozzáadása lehetőséget. Töltse ki:",
+        "auth": "Válassza a Csatlakozás lehetőséget a nocodb mellett az MCP-listában. Jelentkezzen be a NocoDB-vel a böngészőben, és válassza az Engedélyezés lehetőséget."
+      },
+      "codex": {
+        "auth": "Futtassa a bejelentkezési parancsot, jelentkezzen be a NocoDB-vel a böngészőben, és válassza az Engedélyezés lehetőséget."
+      },
+      "windsurf": {
+        "where": "A Windsurfban nyissa meg a Beállítások › Cascade › MCP-kiszolgálók menüt, és válassza az Egyéni kiszolgáló hozzáadása lehetőséget. Töltse ki:",
+        "auth": "Válassza a Csatlakozás lehetőséget a nocodb mellett. Jelentkezzen be a NocoDB-vel a böngészőben, és válassza az Engedélyezés lehetőséget."
+      },
+      "other": {
+        "where": "Adjon hozzá egy távoli MCP-kiszolgálót a kliensében ezekkel az adatokkal:",
+        "auth": "Indítsa el a kapcsolatot a kliensből. A NocoDB megnyílik a böngészőben, ahol bejelentkezik, kiválasztja, mihez férhet hozzá a kliens, és az Engedélyezés lehetőséget választja."
+      }
     }
   }
 }

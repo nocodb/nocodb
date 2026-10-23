@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "Päivitä vaatiaksesi kirjautumista lomakkeisiin",
     "upgradeToUseFormRequireSigninSubtitle": "Päivitä {plan}-pakettiin, jos haluat vaatia vastaajilta kirjautumista ennen lomakkeen lähettämistä.",
     "upgradeToUseSso": "Päivitä käyttääksesi SSO:ta",
-    "upgradeToUseSsoSubtitle": "Päivitä {plan} tilaukseen, jotta voit ottaa käyttöön kertakirjautumisen (SSO) ja antaa tiimisi kirjautua sisään identiteetintarjoajallasi.",
-    "upgradeToUseAppFactory": "Päivitä tilaus käyttääksesi App Factorya",
-    "upgradeToUseAppFactorySubtitle": "Päivitä {plan}-tilaukseen, jotta voit käynnistää koodausagentteja yhdistetyissä repositorioissasi."
+    "upgradeToUseSsoSubtitle": "Päivitä {plan} tilaukseen, jotta voit ottaa käyttöön kertakirjautumisen (SSO) ja antaa tiimisi kirjautua sisään identiteetintarjoajallasi."
   },
   "general": {
     "scrollToBottom": "Siirry alareunaan",
@@ -767,7 +765,8 @@
     "uploading": "Lähetetään",
     "countAll": "Laske kaikki",
     "factory": "Tehdas",
-    "config": "Konfiguraatio"
+    "config": "Konfiguraatio",
+    "dismiss": "Hylkää"
   },
   "objects": {
     "script": "Skripti",
@@ -2201,7 +2200,7 @@
       "webhooks": "Verkkokoukut",
       "webhooksDesc": "Hallitse webkoukun käynnistimiä ja lokeja",
       "base": "Projekti",
-      "baseDesc": "Projektin asetukset, lähteet ja työt",
+      "baseDesc": "Projektin asetukset, lähteet, työt, dokumentit ja niiden kommentit",
       "users": "Käyttäjät",
       "usersDesc": "Projektin jäsenet, työtilan jäsenet ja kutsut",
       "grantedCount": "{count} / {total} myönnetty",
@@ -3105,7 +3104,6 @@
       "syncInfo": "Hae tietoja ulkoisesta sovelluksesta aikataulun mukaan. Yksisuuntainen.",
       "automations": "Automaatiot",
       "aiSkills": "Tekoälyn Skills",
-      "mcpServer": "MCP-palvelin",
       "auditLog": "Auditointiloki",
       "trashRetention": "Roskakorin säilytysaika",
       "snapshots": "Snapshots",
@@ -3136,7 +3134,7 @@
         "members": "Kuka voi avata tämän projektin ja mitä hän voi tehdä.",
         "permissions": "Kuka voi katsoa tai muokata kutakin taulukkoa, kenttää ja dokumenttia.",
         "apiTokens": "Tunnisteet, joiden avulla ulkoiset sovellukset voivat lukea ja kirjoittaa tähän projektiin.",
-        "mcp": "Yhdistä tekoälysovellukset tähän projektiin MCP:n kautta.",
+        "mcp": "Anna tekoälytyökalujesi työskennellä tämän projektin kanssa omilla käyttöoikeuksillasi.",
         "integrations": "Yhdistetyt tilit, joita tämä projekti voi käyttää.",
         "automations": "Työnkulut, jotka käynnistyvät liipaisimesta.",
         "auditLog": "Jokainen tässä projektissa tehty muutos ja sen tekijä.",
@@ -3155,7 +3153,8 @@
       "upgradeDescDateDependency": "Siirrä riippuvaiset päivämäärät automaattisesti, kun tietue siirtyy.",
       "concernProject": "Projekti",
       "concernApps": "Apps",
-      "concernTabs": "Asetusosiot"
+      "concernTabs": "Asetusosiot",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "Kategoriat",
     "blockquote": "Lainaus",
@@ -5316,7 +5315,6 @@
     "factoryEnvironment": "Ympäristö",
     "factoryCommitOrPush": "Commit tai push",
     "factoryCompareBranch": "Vertaa haaraa",
-    "factoryAddTab": "Avaa paneeli",
     "factoryCommitPushPrompt": "Tee commit muutoksista ja push haarasta.",
     "chatYesterday": "Eilen",
     "chatCopyMessage": "Kopioi viesti",
@@ -5422,7 +5420,64 @@
     "duplicateField": "Monista kenttä",
     "extensionError": "Laajennusvirhe",
     "clearData": "Tyhjennä tiedot",
-    "copyProject": "Kopioi projekti"
+    "copyProject": "Kopioi projekti",
+    "factoryBootPartCpu": "Suoritin",
+    "factoryBootPartMemory": "Muisti",
+    "factoryBootPartNetwork": "Verkko",
+    "factoryBootPartRepo": "Repositorio",
+    "factoryBootPartServices": "Palvelut",
+    "factoryMachines": "Koneet",
+    "factoryMachinesHint": "Ympäristö, josta istuntosi käynnistyvät. Uudet istunnot käyttävät oletuskonetta; valitse toinen koostimessa.",
+    "factoryMachinesCreatorOnly": "Vain ylläpitäjät voivat luoda, muokata tai rakentaa koneita.",
+    "factoryMachineSearchPanes": "Hae",
+    "factoryMachineStockTag": "Sisäänrakennettu",
+    "factoryMachineSetDefault": "Aseta oletukseksi",
+    "factoryMachineUpgrade": "Päivitä",
+    "factoryMachineUpgradingShort": "Päivitetään…",
+    "factoryMachineUpdateAvailable": "Päivitys saatavilla",
+    "factoryMachineUpgradeHint": "Rakennettu vanhemman perusimagen päälle. Päivitys rakentaa samat paketit uudelleen nykyisen päälle.",
+    "factoryMachineUpgradeBanner": "Rakennettu vanhemman perusimagen päälle, joten uudet istunnot eivät voi käynnistyä siitä. Päivitä, niin samat paketit rakennetaan uudelleen nykyisen päälle.",
+    "factoryMachineStock": "Peruskone",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep ja Chrome. Jokainen kone rakentuu sen päälle, ja koneettomat istunnot suoritetaan sillä.",
+    "factoryMachinesEmptyTitle": "Ei vielä koneita",
+    "factoryMachinesEmptyBody": "Istunnot suoritetaan peruskoneella. Luo kone, jossa on tämän repositorion tarvitsemat ajoympäristöt, tietokannat ja työkalut, niin jokainen istunto käynnistyy niiden kanssa.",
+    "factoryMachinePickTitle": "Käynnistä istunto koneella",
+    "factoryMachinePip": "Globaali pip",
+    "factoryMachineReady": "Valmis",
+    "factoryMachineStepBase": "Factoryn työpöytäperusta",
+    "factoryMachineStepBaseDetail": "Ubuntu 22.04, jossa on työpöytä, git ja GitHub CLI",
+    "factoryMachineStepSave": "Tallenna kone",
+    "factoryMachineStepSaveDetail": "Tilannevedos tämän projektin istunnoille",
+    "factoryMachineServiceStarts": "Käynnistyy jokaisen istunnon mukana",
+    "factoryMachineServicesHint": "Välitetään agentille ympäristömuuttujina, joten testit ja kehityspalvelimet yhdistävät ilman asetuksia.",
+    "factoryMachineRebuild": "Rakenna uudelleen päivitysten kanssa",
+    "factoryMachineUseVersion": "Käytä tätä versiota",
+    "factoryMachineReused": "Käytettiin uudelleen samanlaista koontiversiota",
+    "factoryMachineSetUp": "Määritä kone",
+    "factoryMachineSuggestUpdate": "Lisätäänkö koneeseen {machine} tulevia istuntoja varten?",
+    "factoryMachineSuggestNote": "Rakennetaan uudelleen taustalla. Tämä istunto jatkuu ennallaan.",
+    "factoryMachineSuggestCreatorOnly": "Vain ylläpitäjät voivat muuttaa koneita. Pyydä jotakuta heistä ottamaan tämä käyttöön.",
+    "factoryMachineSuggestAccept": "Lisää ja rakenna uudelleen",
+    "factoryMachineSuggestAdded": "Koneesta {machine} rakennetaan uutta versiota. Uudet istunnot käyttävät sitä heti, kun se on valmis.",
+    "factoryMachineSuggestDeclined": "Ei otettu käyttöön. Voit muuttaa konetta milloin tahansa Koneet-kohdassa.",
+    "factoryMachineSuggestAlreadyIn": "Koneessa {machine} on tämä jo.",
+    "factoryMachineSuggestReady": "{machine} v{version} on valmis. Uudet istunnot käynnistyvät sillä.",
+    "factoryMachineSuggestFailed": "Koneen {machine} uuden version rakentaminen epäonnistui.",
+    "factoryMachineSuggestCancelled": "Koneen {machine} uusi versio peruutettiin.",
+    "factoryMachineSuggestedFix": "Ehdotettu korjaus",
+    "factoryMachineSameAsBefore": "Sama valinta, rakennettu uudelleen",
+    "factoryMachineTabOverview": "Yhteenveto",
+    "factoryMachineUnbuiltTo": "Luonnos {next}: {count} muutos versioon {version} verrattuna, ei rakennettu | Luonnos {next}: {count} muutosta versioon {version} verrattuna, ei rakennettu",
+    "factoryMachineReview": "Jatka muokkaamista",
+    "factoryMachineTabVersions": "Versiot",
+    "factoryMachineServiceBadge": "Palvelu",
+    "factoryMachineUndoChange": "Kumoa tämä muutos",
+    "factoryMachineStepOf": "{step}, vaihe {n}/{total}",
+    "factoryMachineStillUsing": "Uudet istunnot käyttävät edelleen versiota {version}.",
+    "factoryMachineReusedLog": "Käytettiin uudelleen samanlaista aiempaa koontiversiota, joten rakennettavaa ei ollut.",
+    "dontExpand": "Älä laajenna",
+    "createSchema": "Luo skeema",
+    "configureSources": "Määritä lähteet"
   },
   "activity": {
     "useTemplate": "Käytä mallia",
@@ -7771,6 +7826,80 @@
       "tryBody": "Aloita uusi keskustelu ja kysy «List my NocoDB tools».",
       "tokenText": "Hyväksyykö työkalusi vain tunnuksen?",
       "tokenButton": "Luo MCP-tunnus"
+    },
+    "pane": {
+      "tabApps": "Tekoälysovellukset",
+      "tabManual": "Manuaaliset yhteydet",
+      "connectTitle": "Yhdistä tekoälysovellus",
+      "recommended": "Suositeltu",
+      "connectBody": "Kirjaudu sisään NocoDB-tililläsi. Sinä päätät tarkalleen, mitä se saa nähdä ja muuttaa.",
+      "otherToolUrl": "Käytätkö toista tekoälytyökalua? Lisää",
+      "otherTool": "Muu työkalu",
+      "copyValue": "Kopioi {label}",
+      "addTo": "Lisää NocoDB kohteeseen {client}",
+      "signInTitle": "Kirjaudu sisään NocoDB:llä ja valtuuta",
+      "waiting": "Odotetaan, että {client} kirjautuu sisään…",
+      "waitingHint": "Tämä päivittyy itsestään heti, kun valtuutat.",
+      "connectedTitle": "{client} on yhdistetty",
+      "connectedBody": "Se näkyy nyt tekoälysovelluksissasi.",
+      "connectedElsewhere": "Se on valtuutettu muihin projekteihin, joten sitä ei näytetä tässä.",
+      "manageAccess": "Hallitse käyttöoikeuksia",
+      "fallbackText": "Eikö tekoälytyökalusi pysty kirjautumaan sisään NocoDB:llä?",
+      "fallbackLink": "Käytä sen sijaan manuaalista yhteyttä",
+      "appsTitle": "Tekoälysovelluksesi",
+      "appsHint": "Näkyy vain sinulle",
+      "app": "Sovellus",
+      "lastSignedInAt": "Viimeksi kirjautunut {time}",
+      "lastUsed": "Viimeksi käytetty",
+      "lastUsedAt": "Viimeksi käytetty {time}",
+      "canDelete": "Voi poistaa tietoja",
+      "toolsTitle": "Työkalut ja oikeudet",
+      "neverMoreThanRole": "Ei koskaan enempää kuin oma roolisi tässä projektissa ({role}).",
+      "neverMoreThanAccess": "Ei koskaan enempää kuin oma käyttöoikeutesi tähän projektiin.",
+      "neverMoreThanOwnAccess": "Ei koskaan enempää kuin oma käyttöoikeutesi siellä, missä se on valtuutettu.",
+      "notEditable": "Se, mitä tämä sovellus saa tehdä, määritettiin sisäänkirjautumisen yhteydessä, eikä sitä voi muuttaa tässä. Katkaise sen yhteys ja kirjaa se uudelleen sisään valitaksesi sen työkalut.",
+      "disconnectBody": "Katkaisee tämän sovelluksen yhteyden tähän projektiin. Sen on kirjauduttava uudelleen sisään yhteyden palauttamiseksi.",
+      "disconnectBodyWide": "Katkaisee tämän sovelluksen yhteyden kaikkialta, missä se on valtuutettu, ei vain tästä projektista. Sen on kirjauduttava uudelleen sisään yhteyden palauttamiseksi.",
+      "disconnectBodyEverywhere": "Katkaisee tämän sovelluksen yhteyden kaikkialta, missä se on valtuutettu. Sen on kirjauduttava uudelleen sisään yhteyden palauttamiseksi.",
+      "disconnectConfirm": "Katkaistaanko yhteys kohteeseen {client}?",
+      "disconnectConfirmBody": "Se menettää käyttöoikeuden heti, ja sen on kirjauduttava uudelleen sisään yhteyden palauttamiseksi.",
+      "disconnected": "{client} irrotettu",
+      "accessUpdated": "Käyttöoikeus päivitetty",
+      "manualTitle": "Manuaaliset yhteytesi",
+      "manualBody": "Skripteille, CI-töille ja asiakkaille, jotka eivät voi kirjautua sisään NocoDB:llä.",
+      "manualNote": "Manuaaliset yhteydet käyttävät staattista API-avainta. Se toimii, kunnes kumoat sen, ja kuka tahansa, jolla on asetukset, saa saman käyttöoikeuden. Jos työkalusi tukee sitä, {link}.",
+      "manualNoteLink": "yhdistä se sen sijaan tekoälysovelluksena",
+      "field": {
+        "remoteServerUrl": "Etä-MCP-palvelimen URL",
+        "authentication": "Todennus",
+        "url": "URL"
+      },
+      "claude": {
+        "where": "Avaa Claudessa Asetukset › Liittimet ja valitse Lisää mukautettu liitin. Täytä:",
+        "auth": "Valitse Yhdistä NocoDB:n vierestä. Kirjaudu sisään NocoDB:llä, valitse mihin Claude pääsee käsiksi, ja valitse sitten Valtuuta."
+      },
+      "chatgpt": {
+        "where": "Avaa ChatGPT:ssä Plugins, valitse Lisää ja sitten Lisää mukautettu MCP-palvelin. Täytä:",
+        "auth": "Valitse Luo. ChatGPT avaa NocoDB:n uuteen ikkunaan. Kirjaudu sisään, valitse mihin se pääsee käsiksi, ja valitse sitten Valtuuta."
+      },
+      "claudeCode": {
+        "auth": "Suorita Claude Codessa /mcp, valitse nocodb ja sitten Todenna. Valitse selaimessa mihin se pääsee käsiksi, ja valitse sitten Valtuuta."
+      },
+      "cursor": {
+        "where": "Avaa Cursorissa Asetukset › MCP ja valitse Lisää uusi MCP-palvelin. Täytä:",
+        "auth": "Valitse Yhdistä nocodb:n vierestä MCP-luettelossa. Kirjaudu selaimessa sisään NocoDB:llä ja valitse Valtuuta."
+      },
+      "codex": {
+        "auth": "Suorita kirjautumiskomento, kirjaudu selaimessa sisään NocoDB:llä ja valitse Valtuuta."
+      },
+      "windsurf": {
+        "where": "Avaa Windsurfissa Asetukset › Cascade › MCP-palvelimet ja valitse Lisää mukautettu palvelin. Täytä:",
+        "auth": "Valitse Yhdistä nocodb:n vierestä. Kirjaudu selaimessa sisään NocoDB:llä ja valitse Valtuuta."
+      },
+      "other": {
+        "where": "Lisää asiakasohjelmaasi etä-MCP-palvelin näillä tiedoilla:",
+        "auth": "Käynnistä yhteys asiakasohjelmastasi. NocoDB avautuu selaimeen, jossa kirjaudut sisään, valitset mihin asiakasohjelma pääsee käsiksi ja valitset Valtuuta."
+      }
     }
   }
 }

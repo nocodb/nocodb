@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "फारमहरूमा साइन इन अनिवार्य गर्न अपग्रेड गर्नुहोस्",
     "upgradeToUseFormRequireSigninSubtitle": "फारम पेस गर्नुअघि उत्तरदाताहरूलाई साइन इन गर्न अनिवार्य बनाउन {plan} योजनामा अपग्रेड गर्नुहोस्।",
     "upgradeToUseSso": "SSO प्रयोग गर्न अपग्रेड गर्नुहोस्",
-    "upgradeToUseSsoSubtitle": "एकल साइन-अन (SSO) सेटअप गर्न र तपाईंको टोलीलाई तपाईंको पहिचान प्रदायकमार्फत साइन इन गर्न दिन {plan} योजनामा अपग्रेड गर्नुहोस्।",
-    "upgradeToUseAppFactory": "App Factory प्रयोग गर्न अपग्रेड गर्नुहोस्",
-    "upgradeToUseAppFactorySubtitle": "जोडिएका रिपोजिटरीमा कोडिङ एजेन्ट चलाउन {plan} योजनामा अपग्रेड गर्नुहोस्।"
+    "upgradeToUseSsoSubtitle": "एकल साइन-अन (SSO) सेटअप गर्न र तपाईंको टोलीलाई तपाईंको पहिचान प्रदायकमार्फत साइन इन गर्न दिन {plan} योजनामा अपग्रेड गर्नुहोस्।"
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -767,7 +765,8 @@
     "uploading": "अपलोड हुँदै",
     "countAll": "सबै गन्नुहोस्",
     "factory": "फ्याक्ट्री",
-    "config": "कन्फिगरेसन"
+    "config": "कन्फिगरेसन",
+    "dismiss": "बन्द गर्नुहोस्"
   },
   "objects": {
     "script": "स्क्रिप्ट",
@@ -2201,7 +2200,7 @@
       "webhooks": "Webhooks",
       "webhooksDesc": "Manage webhook triggers and logs",
       "base": "परियोजना",
-      "baseDesc": "परियोजना सेटिङ, स्रोत र कामहरू",
+      "baseDesc": "परियोजना सेटिङ, स्रोतहरू, कामहरू, कागजातहरू र तिनका टिप्पणीहरू",
       "users": "Users",
       "usersDesc": "परियोजनाका सदस्य, कार्यक्षेत्रका सदस्य र निमन्त्रणाहरू",
       "grantedCount": "{total} मध्ये {count} प्रदान गरिएको",
@@ -3105,7 +3104,6 @@
       "syncInfo": "तालिकाअनुसार बाह्य एपबाट डेटा तान्नुहोस्। एकतर्फी।",
       "automations": "स्वचालनहरू",
       "aiSkills": "AI सीपहरू",
-      "mcpServer": "MCP सर्भर",
       "auditLog": "लेखापरीक्षण लग",
       "trashRetention": "रद्दीटोकरी राख्ने अवधि",
       "snapshots": "Snapshots",
@@ -3136,7 +3134,7 @@
         "members": "यो परियोजना कसले खोल्न सक्छ, र के गर्न सक्छ।",
         "permissions": "हरेक तालिका, क्षेत्र र कागजात कसले हेर्न वा सम्पादन गर्न सक्छ।",
         "apiTokens": "बाह्य अनुप्रयोगहरूलाई यस परियोजनामा पढ्न र लेख्न दिने टोकनहरू।",
-        "mcp": "MCP मार्फत AI क्लाइन्टहरूलाई यस परियोजनासँग जोड्नुहोस्।",
+        "mcp": "आफ्नै पहुँचसहित तपाईंका एआई उपकरणहरूलाई यो परियोजनामा काम गर्न दिनुहोस्।",
         "integrations": "यस परियोजनाले प्रयोग गर्न सक्ने जोडिएका खाताहरू।",
         "automations": "ट्रिगरमा चल्ने वर्कफ्लोहरू।",
         "auditLog": "यस परियोजनामा भएको हरेक परिवर्तन, र कसले गर्‍यो।",
@@ -3155,7 +3153,8 @@
       "upgradeDescDateDependency": "रेकर्ड सारिँदा आश्रित मितिहरू स्वतः सार्छ।",
       "concernProject": "परियोजना",
       "concernApps": "Apps",
-      "concernTabs": "सेटिङ खण्डहरू"
+      "concernTabs": "सेटिङ खण्डहरू",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "श्रेणीहरू",
     "blockquote": "उद्धरण",
@@ -5316,7 +5315,6 @@
     "factoryEnvironment": "वातावरण",
     "factoryCommitOrPush": "कमिट वा पुश",
     "factoryCompareBranch": "ब्रान्च तुलना गर्नुहोस्",
-    "factoryAddTab": "एउटा प्यानल खोल्नुहोस्",
     "factoryCommitPushPrompt": "परिवर्तनहरू कमिट गर्नुहोस् र ब्रान्च पुश गर्नुहोस्।",
     "chatYesterday": "हिजो",
     "chatCopyMessage": "सन्देश प्रतिलिपि गर्नुहोस्",
@@ -5422,7 +5420,64 @@
     "duplicateField": "क्षेत्रको प्रतिलिपि बनाउनुहोस्",
     "extensionError": "एक्सटेन्सन त्रुटि",
     "clearData": "डाटा खाली गर्नुहोस्",
-    "copyProject": "परियोजना प्रतिलिपि गर्नुहोस्"
+    "copyProject": "परियोजना प्रतिलिपि गर्नुहोस्",
+    "factoryBootPartCpu": "प्रोसेसर",
+    "factoryBootPartMemory": "मेमोरी",
+    "factoryBootPartNetwork": "नेटवर्क",
+    "factoryBootPartRepo": "रिपोजिटरी",
+    "factoryBootPartServices": "सेवाहरू",
+    "factoryMachines": "मेसिनहरू",
+    "factoryMachinesHint": "तपाईंका सत्रहरू सुरु हुने वातावरण। नयाँ सत्रहरूले पूर्वनिर्धारित प्रयोग गर्छन्; कम्पोजरमा अर्को छान्नुहोस्।",
+    "factoryMachinesCreatorOnly": "मेसिनहरू सिर्जना, सम्पादन वा बिल्ड गर्न मर्मतकर्ताहरूले मात्र सक्छन्।",
+    "factoryMachineSearchPanes": "खोज्नुहोस्",
+    "factoryMachineStockTag": "अन्तर्निहित",
+    "factoryMachineSetDefault": "पूर्वनिर्धारित बनाउनुहोस्",
+    "factoryMachineUpgrade": "अपग्रेड गर्नुहोस्",
+    "factoryMachineUpgradingShort": "अपग्रेड हुँदै…",
+    "factoryMachineUpdateAvailable": "अद्यावधिक उपलब्ध छ",
+    "factoryMachineUpgradeHint": "पुरानो आधार इमेजमा बनेको हो। अपग्रेड गर्दा उही प्याकेजहरू हालको इमेजमा पुनः बन्छन्।",
+    "factoryMachineUpgradeBanner": "पुरानो आधार इमेजमा बनेको हुनाले नयाँ सत्रहरू यसबाट सुरु हुन सक्दैनन्। उही प्याकेजहरू हालको इमेजमा पुनः बनाउन अपग्रेड गर्नुहोस्।",
+    "factoryMachineStock": "आधार मेसिन",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep र Chrome। हरेक मेसिन यसैमाथि बन्छ, र मेसिनविनाका सत्रहरू यसैमा चल्छन्।",
+    "factoryMachinesEmptyTitle": "अहिलेसम्म कुनै मेसिन छैन",
+    "factoryMachinesEmptyBody": "सत्रहरू आधार मेसिनमा चल्छन्। यो रिपोजिटरीलाई चाहिने रनटाइम, डाटाबेस र उपकरणसहितको एउटा मेसिन बनाउनुहोस्, अनि हरेक सत्र तिनीसँगै सुरु हुन्छ।",
+    "factoryMachinePickTitle": "सत्र यहाँ सुरु गर्नुहोस्",
+    "factoryMachinePip": "ग्लोबल pip",
+    "factoryMachineReady": "तयार",
+    "factoryMachineStepBase": "Factory डेस्कटप आधार",
+    "factoryMachineStepBaseDetail": "डेस्कटप, git र GitHub CLI सहितको Ubuntu 22.04",
+    "factoryMachineStepSave": "मेसिन सुरक्षित गर्नुहोस्",
+    "factoryMachineStepSaveDetail": "यस परियोजनाका सत्रहरूका लागि स्न्यापसट",
+    "factoryMachineServiceStarts": "हरेक सत्रसँगै सुरु हुन्छ",
+    "factoryMachineServicesHint": "एजेन्टलाई वातावरण चरका रूपमा दिइन्छ, त्यसैले परीक्षण र डेभ सर्भरहरू कुनै सेटअपविना जडान हुन्छन्।",
+    "factoryMachineRebuild": "अद्यावधिकसहित पुनः बिल्ड गर्नुहोस्",
+    "factoryMachineUseVersion": "यो संस्करण प्रयोग गर्नुहोस्",
+    "factoryMachineReused": "उस्तै बिल्ड पुनः प्रयोग गरियो",
+    "factoryMachineSetUp": "मेसिन सेटअप गर्नुहोस्",
+    "factoryMachineSuggestUpdate": "भविष्यका सत्रहरूका लागि {machine} मा थप्ने?",
+    "factoryMachineSuggestNote": "पृष्ठभूमिमा पुनः बन्छ। यो सत्र जस्ताको तस्तै चलिरहन्छ।",
+    "factoryMachineSuggestCreatorOnly": "मेसिन बदल्न मर्मतकर्ताहरूले मात्र सक्छन्। कसैलाई यो लागू गर्न भन्नुहोस्।",
+    "factoryMachineSuggestAccept": "थपेर पुनः बिल्ड गर्नुहोस्",
+    "factoryMachineSuggestAdded": "{machine} को नयाँ संस्करण बन्दै छ। तयार भएपछि नयाँ सत्रहरूले यो प्रयोग गर्नेछन्।",
+    "factoryMachineSuggestDeclined": "लागू गरिएको छैन। मेसिनहरू खण्डबाट जहिले पनि मेसिन बदल्न सक्नुहुन्छ।",
+    "factoryMachineSuggestAlreadyIn": "{machine} मा यो पहिले नै छ।",
+    "factoryMachineSuggestReady": "{machine} v{version} तयार छ। नयाँ सत्रहरू यसैमा सुरु हुनेछन्।",
+    "factoryMachineSuggestFailed": "{machine} को नयाँ संस्करण बनाउन सकिएन।",
+    "factoryMachineSuggestCancelled": "{machine} को नयाँ संस्करण रद्द गरियो।",
+    "factoryMachineSuggestedFix": "सुझाइएको सुधार",
+    "factoryMachineSameAsBefore": "उही छनौट, पुनः बिल्ड गरियो",
+    "factoryMachineTabOverview": "अवलोकन",
+    "factoryMachineUnbuiltTo": "मस्यौदा {next}: {version} भन्दा {count} परिवर्तन, बिल्ड भएको छैन | मस्यौदा {next}: {version} भन्दा {count} परिवर्तन, बिल्ड भएको छैन",
+    "factoryMachineReview": "सम्पादन जारी राख्नुहोस्",
+    "factoryMachineTabVersions": "संस्करणहरू",
+    "factoryMachineServiceBadge": "सेवा",
+    "factoryMachineUndoChange": "यो परिवर्तन पूर्ववत गर्नुहोस्",
+    "factoryMachineStepOf": "{step}, चरण {n}/{total}",
+    "factoryMachineStillUsing": "नयाँ सत्रहरूले {version} प्रयोग गरिरहन्छन्।",
+    "factoryMachineReusedLog": "अघिको उस्तै बिल्ड पुनः प्रयोग गरियो, त्यसैले बनाउनु केही थिएन।",
+    "dontExpand": "नफैलाउनुहोस्",
+    "createSchema": "स्किमा सिर्जना गर्नुहोस्",
+    "configureSources": "स्रोतहरू कन्फिगर गर्नुहोस्"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -7770,6 +7825,81 @@
       "tryBody": "नयाँ कुराकानी सुरु गर्नुहोस् र सोध्नुहोस् «List my NocoDB tools»।",
       "tokenText": "तपाईंको उपकरणले टोकन मात्र स्वीकार गर्छ?",
       "tokenButton": "MCP टोकन बनाउनुहोस्"
+    },
+    "pane": {
+      "tabApps": "एआई एपहरू",
+      "tabManual": "म्यानुअल जडानहरू",
+      "connectTitle": "एआई एप जडान गर्नुहोस्",
+      "recommended": "सिफारिस गरिएको",
+      "connectBody": "आफ्नो NocoDB खाताबाट साइन इन गर्नुहोस्। यसले के हेर्न र बदल्न पाउने हो, त्यो ठ्याक्कै तपाईंले तय गर्नुहुन्छ।",
+      "otherToolUrl": "अर्को एआई उपकरण प्रयोग गर्दै हुनुहुन्छ? थप्नुहोस्",
+      "otherTool": "अर्को उपकरण",
+      "copyValue": "{label} प्रतिलिपि गर्नुहोस्",
+      "addTo": "{client} मा NocoDB थप्नुहोस्",
+      "signInTitle": "NocoDB बाट साइन इन गरी अधिकृत गर्नुहोस्",
+      "waiting": "{client} साइन इन हुने प्रतीक्षामा…",
+      "waitingHint": "तपाईंले अधिकृत गर्नासाथ यो आफैँ अद्यावधिक हुन्छ।",
+      "connectedTitle": "{client} जडान भएको छ",
+      "connectedBody": "अब यो तपाईंका एआई एपहरूमा देखिन्छ।",
+      "connectedElsewhere": "यो अन्य परियोजनाहरूका लागि अधिकृत छ, त्यसैले यहाँ सूचीबद्ध छैन।",
+      "manageAccess": "पहुँच व्यवस्थापन गर्नुहोस्",
+      "fallbackText": "तपाईंको एआई उपकरणले NocoDB बाट साइन इन गर्न सकेन?",
+      "fallbackLink": "यसको साटो म्यानुअल जडान प्रयोग गर्नुहोस्",
+      "appsTitle": "तपाईंका एआई एपहरू",
+      "appsHint": "तपाईंलाई मात्र देखिन्छ",
+      "app": "एप",
+      "lastSignedInAt": "अन्तिम साइन इन {time}",
+      "lastUsed": "अन्तिम प्रयोग",
+      "lastUsedAt": "अन्तिम प्रयोग {time}",
+      "canDelete": "डेटा मेटाउन सक्छ",
+      "toolsTitle": "उपकरण र अनुमतिहरू",
+      "neverMoreThanRole": "यस परियोजनामा तपाईंको आफ्नै भूमिका ({role}) भन्दा कहिल्यै बढी हुँदैन।",
+      "neverMoreThanAccess": "यस परियोजनामा तपाईंको आफ्नै पहुँचभन्दा कहिल्यै बढी हुँदैन।",
+      "neverMoreThanOwnAccess": "जहाँ अधिकृत थियो त्यहाँ तपाईंको आफ्नै पहुँचभन्दा कहिल्यै बढी हुँदैन।",
+      "notEditable": "यो एपले के गर्न सक्छ भन्ने कुरा साइन इन गर्दाकै बेला तय भइसकेको थियो र यहाँ बदल्न मिल्दैन। यसका उपकरणहरू छान्न जडान विच्छेद गरेर फेरि साइन इन गराउनुहोस्।",
+      "disconnectBody": "यो एपलाई यस परियोजनाबाट जडान विच्छेद गर्छ। फेरि जडान हुन यसले पुनः साइन इन गर्नुपर्छ।",
+      "disconnectBodyWide": "यस परियोजनामा मात्र नभई, जहाँ-जहाँ अधिकृत थियो सबै ठाउँमा यो एपको जडान विच्छेद गर्छ। फेरि जडान हुन यसले पुनः साइन इन गर्नुपर्छ।",
+      "disconnectBodyEverywhere": "जहाँ-जहाँ अधिकृत थियो, सबै ठाउँमा यो एपको जडान विच्छेद गर्छ। फेरि जडान हुन यसले पुनः साइन इन गर्नुपर्छ।",
+      "disconnectConfirm": "{client} को जडान विच्छेद गर्ने?",
+      "disconnectConfirmBody": "यसले तुरुन्तै पहुँच गुमाउँछ र फेरि जडान हुन पुनः साइन इन गर्नुपर्छ।",
+      "disconnected": "{client} जडान विच्छेद भयो",
+      "accessUpdated": "पहुँच अद्यावधिक भयो",
+      "manualTitle": "तपाईंका म्यानुअल जडानहरू",
+      "manualBody": "NocoDB बाट साइन इन गर्न नसक्ने स्क्रिप्ट, CI काम र क्लाइन्टहरूका लागि।",
+      "manualNote": "म्यानुअल जडानहरूले स्थिर API कुञ्जी प्रयोग गर्छन्। तपाईंले रद्द नगरेसम्म यो काम गर्छ, र कन्फिगरेसन भएको जोकोहीले उही पहुँच पाउँछ। तपाईंको उपकरणले समर्थन गर्छ भने, {link}।",
+      "manualNoteLink": "यसको साटो यसलाई एआई एपका रूपमा जडान गर्नुहोस्",
+      "field": {
+        "remoteServerUrl": "टाढाको MCP सर्भरको URL",
+        "authentication": "प्रमाणीकरण",
+        "url": "URL",
+        "transport": "ट्रान्सपोर्ट"
+      },
+      "claude": {
+        "where": "Claude मा सेटिङ › कनेक्टरहरू खोल्नुहोस् र अनुकूल कनेक्टर थप्नुहोस् छान्नुहोस्। भर्नुहोस्:",
+        "auth": "NocoDB को छेउमा जडान गर्नुहोस् छान्नुहोस्। NocoDB बाट साइन इन गर्नुहोस्, Claude ले केमा पहुँच पाउने हो छान्नुहोस्, त्यसपछि अधिकृत गर्नुहोस् छान्नुहोस्।"
+      },
+      "chatgpt": {
+        "where": "ChatGPT मा प्लगइनहरू खोल्नुहोस्, थप्नुहोस् छान्नुहोस्, त्यसपछि अनुकूल MCP सर्भर थप्नुहोस् छान्नुहोस्। भर्नुहोस्:",
+        "auth": "सिर्जना गर्नुहोस् छान्नुहोस्। ChatGPT ले नयाँ विन्डोमा NocoDB खोल्छ। साइन इन गर्नुहोस्, यसले केमा पहुँच पाउने हो छान्नुहोस्, त्यसपछि अधिकृत गर्नुहोस् छान्नुहोस्।"
+      },
+      "claudeCode": {
+        "auth": "Claude Code मा /mcp चलाउनुहोस्, nocodb छान्नुहोस् र प्रमाणीकरण छान्नुहोस्। ब्राउजरमा यसले केमा पहुँच पाउने हो छान्नुहोस्, त्यसपछि अधिकृत गर्नुहोस् छान्नुहोस्।"
+      },
+      "cursor": {
+        "where": "Cursor मा सेटिङ › MCP खोल्नुहोस् र नयाँ MCP सर्भर थप्नुहोस् छान्नुहोस्। भर्नुहोस्:",
+        "auth": "MCP सूचीमा nocodb को छेउमा जडान गर्नुहोस् छान्नुहोस्। ब्राउजरमा NocoDB बाट साइन इन गर्नुहोस् र अधिकृत गर्नुहोस् छान्नुहोस्।"
+      },
+      "codex": {
+        "auth": "लगइन आदेश चलाउनुहोस्, ब्राउजरमा NocoDB बाट साइन इन गर्नुहोस् र अधिकृत गर्नुहोस् छान्नुहोस्।"
+      },
+      "windsurf": {
+        "where": "Windsurf मा सेटिङ › Cascade › MCP सर्भरहरू खोल्नुहोस् र अनुकूल सर्भर थप्नुहोस् छान्नुहोस्। भर्नुहोस्:",
+        "auth": "nocodb को छेउमा जडान गर्नुहोस् छान्नुहोस्। ब्राउजरमा NocoDB बाट साइन इन गर्नुहोस् र अधिकृत गर्नुहोस् छान्नुहोस्।"
+      },
+      "other": {
+        "where": "आफ्नो क्लाइन्टमा यी विवरणसहित टाढाको MCP सर्भर थप्नुहोस्:",
+        "auth": "आफ्नो क्लाइन्टबाट जडान सुरु गर्नुहोस्। ब्राउजरमा NocoDB खुल्छ, जहाँ तपाईं साइन इन गर्नुहुन्छ, क्लाइन्टले केमा पहुँच पाउने हो छान्नुहुन्छ र अधिकृत गर्नुहोस् छान्नुहुन्छ।"
+      }
     }
   }
 }

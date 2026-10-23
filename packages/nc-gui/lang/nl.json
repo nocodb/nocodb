@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "Upgrade om aanmelden verplicht te stellen voor formulieren",
     "upgradeToUseFormRequireSigninSubtitle": "Upgrade naar het {plan}-abonnement om respondenten te verplichten zich aan te melden voordat ze een formulier verzenden.",
     "upgradeToUseSso": "Upgrade om SSO te gebruiken",
-    "upgradeToUseSsoSubtitle": "Upgrade naar het {plan} plan om Single Sign-On (SSO) in te stellen en je team te laten inloggen met je identiteitsprovider.",
-    "upgradeToUseAppFactory": "Upgrade om de App Factory te gebruiken",
-    "upgradeToUseAppFactorySubtitle": "Upgrade naar het {plan}-abonnement om codeeragenten in te zetten op je gekoppelde repository's."
+    "upgradeToUseSsoSubtitle": "Upgrade naar het {plan} plan om Single Sign-On (SSO) in te stellen en je team te laten inloggen met je identiteitsprovider."
   },
   "general": {
     "scrollToBottom": "Scroll naar beneden",
@@ -764,7 +762,8 @@
     "toggle": "Schakelen",
     "uploading": "Uploaden",
     "countAll": "Alles tellen",
-    "config": "Configuratie"
+    "config": "Configuratie",
+    "dismiss": "Sluiten"
   },
   "objects": {
     "script": "Script",
@@ -2194,7 +2193,7 @@
       "webhooks": "Webhooks",
       "webhooksDesc": "Beheer webhook triggers en logs",
       "base": "Project",
-      "baseDesc": "Projectinstellingen, bronnen en taken",
+      "baseDesc": "Projectinstellingen, bronnen, taken, documenten en hun reacties",
       "users": "Gebruikers",
       "usersDesc": "Projectleden, werkruimteleden en uitnodigingen",
       "grantedCount": "{count} van {total} verleend",
@@ -3095,7 +3094,6 @@
       "syncInfo": "Haal volgens een schema gegevens op uit een externe app. Eenrichtingsverkeer.",
       "automations": "Automatiseringen",
       "aiSkills": "AI-skills",
-      "mcpServer": "MCP-server",
       "auditLog": "Auditlogboek",
       "trashRetention": "Bewaartermijn prullenbak",
       "snapshots": "Snapshots",
@@ -3126,7 +3124,7 @@
         "members": "Wie dit project kan openen en wat ze mogen doen.",
         "permissions": "Wie elke tabel, elk veld en elk document kan bekijken of bewerken.",
         "apiTokens": "Tokens waarmee externe apps dit project kunnen lezen en schrijven.",
-        "mcp": "Verbind AI-clients via MCP met dit project.",
+        "mcp": "Laat je AI-tools met dit project werken, met je eigen toegang.",
         "integrations": "Gekoppelde accounts die dit project kan gebruiken.",
         "automations": "Workflows die door een trigger worden gestart.",
         "auditLog": "Elke wijziging in dit project, en wie die heeft gedaan.",
@@ -3145,7 +3143,8 @@
       "upgradeDescDateDependency": "Verschuif afhankelijke datums automatisch wanneer een record verplaatst wordt.",
       "concernProject": "Project",
       "concernApps": "Apps",
-      "concernTabs": "Instellingensecties"
+      "concernTabs": "Instellingensecties",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "Categorieën",
     "blockquote": "Citaat",
@@ -5282,7 +5281,6 @@
     "factoryEnvironment": "Omgeving",
     "factoryCommitOrPush": "Committen of pushen",
     "factoryCompareBranch": "Branch vergelijken",
-    "factoryAddTab": "Een paneel openen",
     "factoryCommitPushPrompt": "Commit de wijzigingen en push de branch.",
     "chatYesterday": "Gisteren",
     "chatCopyMessage": "Bericht kopiëren",
@@ -5387,7 +5385,60 @@
     "duplicateField": "Veld dupliceren",
     "extensionError": "Extensiefout",
     "clearData": "Gegevens wissen",
-    "copyProject": "Project kopiëren"
+    "copyProject": "Project kopiëren",
+    "factoryBootPartCpu": "Processor",
+    "factoryBootPartMemory": "Geheugen",
+    "factoryBootPartNetwork": "Netwerk",
+    "factoryMachinesHint": "De omgeving waarin je sessies starten. Nieuwe sessies gebruiken de standaardmachine; kies een andere in de composer.",
+    "factoryMachinesCreatorOnly": "Alleen beheerders kunnen machines maken, bewerken of bouwen.",
+    "factoryMachineSearchPanes": "Zoeken",
+    "factoryMachineStockTag": "Ingebouwd",
+    "factoryMachineSetDefault": "Als standaard instellen",
+    "factoryMachineUpgrade": "Upgraden",
+    "factoryMachineUpgradingShort": "Bezig met upgraden…",
+    "factoryMachineUpdateAvailable": "Update beschikbaar",
+    "factoryMachineUpgradeHint": "Gebouwd op een oudere basisimage. Bij een upgrade worden dezelfde pakketten op de huidige image opnieuw gebouwd.",
+    "factoryMachineUpgradeBanner": "Gebouwd op een oudere basisimage, dus nieuwe sessies kunnen er niet mee starten. Upgrade om dezelfde pakketten op de huidige image opnieuw te bouwen.",
+    "factoryMachineStock": "Basismachine",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep en Chrome. Elke machine bouwt hierop voort en sessies zonder machine draaien hierop.",
+    "factoryMachinesEmptyTitle": "Nog geen machines",
+    "factoryMachinesEmptyBody": "Sessies draaien op de basismachine. Maak er een met de runtimes, databases en hulpmiddelen die deze repository nodig heeft, dan start elke sessie daarmee.",
+    "factoryMachinePickTitle": "Sessie starten op",
+    "factoryMachinePip": "Globale pip",
+    "factoryMachineReady": "Klaar",
+    "factoryMachineStepBase": "Factory-desktopbasis",
+    "factoryMachineStepBaseDetail": "Ubuntu 22.04 met de desktop, git en GitHub CLI",
+    "factoryMachineStepSave": "Machine opslaan",
+    "factoryMachineStepSaveDetail": "Momentopname voor de sessies van dit project",
+    "factoryMachineServiceStarts": "Start bij elke sessie",
+    "factoryMachineServicesHint": "Wordt als omgevingsvariabelen aan de agent doorgegeven, zodat tests en dev-servers zonder configuratie verbinding maken.",
+    "factoryMachineRebuild": "Opnieuw bouwen met updates",
+    "factoryMachineUseVersion": "Deze versie gebruiken",
+    "factoryMachineReused": "Identieke build hergebruikt",
+    "factoryMachineSetUp": "Machine instellen",
+    "factoryMachineSuggestUpdate": "Toevoegen aan {machine} voor toekomstige sessies?",
+    "factoryMachineSuggestNote": "Wordt op de achtergrond opnieuw gebouwd. Deze sessie blijft ongewijzigd draaien.",
+    "factoryMachineSuggestCreatorOnly": "Alleen beheerders kunnen machines wijzigen. Vraag er een om dit toe te passen.",
+    "factoryMachineSuggestAccept": "Toevoegen en opnieuw bouwen",
+    "factoryMachineSuggestAdded": "Er wordt een nieuwe versie van {machine} gebouwd. Nieuwe sessies gebruiken die zodra ze klaar is.",
+    "factoryMachineSuggestDeclined": "Niet toegepast. Je kunt de machine altijd wijzigen via Machines.",
+    "factoryMachineSuggestAlreadyIn": "{machine} heeft dit al.",
+    "factoryMachineSuggestReady": "{machine} v{version} is klaar. Nieuwe sessies starten hierop.",
+    "factoryMachineSuggestFailed": "De nieuwe versie van {machine} kon niet worden gebouwd.",
+    "factoryMachineSuggestCancelled": "De nieuwe versie van {machine} is geannuleerd.",
+    "factoryMachineSuggestedFix": "Voorgestelde oplossing",
+    "factoryMachineSameAsBefore": "Zelfde selectie, opnieuw gebouwd",
+    "factoryMachineTabOverview": "Overzicht",
+    "factoryMachineUnbuiltTo": "Concept {next}: {count} wijziging ten opzichte van {version}, niet gebouwd | Concept {next}: {count} wijzigingen ten opzichte van {version}, niet gebouwd",
+    "factoryMachineReview": "Verder bewerken",
+    "factoryMachineTabVersions": "Versies",
+    "factoryMachineUndoChange": "Deze wijziging ongedaan maken",
+    "factoryMachineStepOf": "{step}, stap {n} van {total}",
+    "factoryMachineStillUsing": "Nieuwe sessies blijven {version} gebruiken.",
+    "factoryMachineReusedLog": "Een identieke eerdere build is hergebruikt, dus er was niets te bouwen.",
+    "dontExpand": "Niet uitklappen",
+    "createSchema": "Schema maken",
+    "configureSources": "Bronnen configureren"
   },
   "activity": {
     "useTemplate": "Sjabloon gebruiken",
@@ -7733,6 +7784,80 @@
       "tryBody": "Start een nieuwe chat en vraag «List my NocoDB tools».",
       "tokenText": "Accepteert uw tool alleen een token?",
       "tokenButton": "Een MCP-token maken"
+    },
+    "pane": {
+      "tabApps": "AI-apps",
+      "tabManual": "Handmatige verbindingen",
+      "connectTitle": "Een AI-app verbinden",
+      "recommended": "Aanbevolen",
+      "connectBody": "Meld je aan met je NocoDB-account. Jij bepaalt precies wat het mag zien en wijzigen.",
+      "otherToolUrl": "Gebruik je een andere AI-tool? Voeg toe",
+      "otherTool": "Ander hulpmiddel",
+      "copyValue": "{label} kopiëren",
+      "addTo": "NocoDB toevoegen aan {client}",
+      "signInTitle": "Aanmelden met NocoDB en autoriseren",
+      "waiting": "Wachten tot {client} zich aanmeldt…",
+      "waitingHint": "Dit wordt vanzelf bijgewerkt zodra je autoriseert.",
+      "connectedTitle": "{client} is verbonden",
+      "connectedBody": "De app staat nu bij je AI-apps.",
+      "connectedElsewhere": "De app is voor andere projecten geautoriseerd en staat daarom niet in deze lijst.",
+      "manageAccess": "Toegang beheren",
+      "fallbackText": "Kan je AI-tool zich niet aanmelden met NocoDB?",
+      "fallbackLink": "In plaats daarvan een handmatige verbinding gebruiken",
+      "appsTitle": "Jouw AI-apps",
+      "appsHint": "Alleen zichtbaar voor jou",
+      "app": "App",
+      "lastSignedInAt": "Laatst aangemeld {time}",
+      "lastUsed": "Laatst gebruikt",
+      "lastUsedAt": "Laatst gebruikt {time}",
+      "canDelete": "Kan gegevens verwijderen",
+      "toolsTitle": "Hulpmiddelen en machtigingen",
+      "neverMoreThanRole": "Nooit meer dan je eigen rol in dit project ({role}).",
+      "neverMoreThanAccess": "Nooit meer dan je eigen toegang tot dit project.",
+      "neverMoreThanOwnAccess": "Nooit meer dan je eigen toegang daar waar de app geautoriseerd is.",
+      "notEditable": "Wat deze app mag doen, is bij het aanmelden vastgelegd en kan hier niet worden gewijzigd. Koppel de app los en meld haar opnieuw aan om haar hulpmiddelen te kiezen.",
+      "disconnectBody": "Verbreekt de verbinding van deze app met dit project. De app moet zich opnieuw aanmelden om weer verbinding te maken.",
+      "disconnectBodyWide": "Verbreekt de verbinding van deze app overal waar die geautoriseerd is, niet alleen in dit project. De app moet zich opnieuw aanmelden om weer verbinding te maken.",
+      "disconnectBodyEverywhere": "Verbreekt de verbinding van deze app overal waar die geautoriseerd is. De app moet zich opnieuw aanmelden om weer verbinding te maken.",
+      "disconnectConfirm": "{client} loskoppelen?",
+      "disconnectConfirmBody": "De app verliest meteen de toegang en moet zich opnieuw aanmelden om weer verbinding te maken.",
+      "disconnected": "{client} losgekoppeld",
+      "accessUpdated": "Toegang bijgewerkt",
+      "manualTitle": "Jouw handmatige verbindingen",
+      "manualBody": "Voor scripts, CI-taken en clients die zich niet met NocoDB kunnen aanmelden.",
+      "manualNote": "Handmatige verbindingen gebruiken een statische API-sleutel. Die werkt totdat je hem intrekt, en iedereen met de configuratie krijgt dezelfde toegang. Als je tool het ondersteunt, {link}.",
+      "manualNoteLink": "verbind de tool liever als AI-app",
+      "field": {
+        "remoteServerUrl": "URL van de externe MCP-server",
+        "authentication": "Authenticatie",
+        "url": "URL"
+      },
+      "claude": {
+        "where": "Open in Claude Instellingen › Connectoren en selecteer Aangepaste connector toevoegen. Vul in:",
+        "auth": "Selecteer Verbinden naast NocoDB. Meld je aan met NocoDB, kies waartoe Claude toegang krijgt en selecteer vervolgens Autoriseren."
+      },
+      "chatgpt": {
+        "where": "Open in ChatGPT Plug-ins, selecteer Toevoegen en vervolgens Aangepaste MCP-server toevoegen. Vul in:",
+        "auth": "Selecteer Maken. ChatGPT opent NocoDB in een nieuw venster. Meld je aan, kies waartoe het toegang krijgt en selecteer vervolgens Autoriseren."
+      },
+      "claudeCode": {
+        "auth": "Voer in Claude Code /mcp uit, kies nocodb en selecteer Verifiëren. Kies in de browser waartoe het toegang krijgt en selecteer vervolgens Autoriseren."
+      },
+      "cursor": {
+        "where": "Open in Cursor Instellingen › MCP en selecteer Nieuwe MCP-server toevoegen. Vul in:",
+        "auth": "Selecteer Verbinden naast nocodb in de MCP-lijst. Meld je in de browser aan met NocoDB en selecteer Autoriseren."
+      },
+      "codex": {
+        "auth": "Voer het aanmeldcommando uit, meld je in de browser aan met NocoDB en selecteer Autoriseren."
+      },
+      "windsurf": {
+        "where": "Open in Windsurf Instellingen › Cascade › MCP-servers en selecteer Aangepaste server toevoegen. Vul in:",
+        "auth": "Selecteer Verbinden naast nocodb. Meld je in de browser aan met NocoDB en selecteer Autoriseren."
+      },
+      "other": {
+        "where": "Voeg in je client een externe MCP-server toe met deze gegevens:",
+        "auth": "Start de verbinding vanuit je client. NocoDB wordt in de browser geopend; daar meld je je aan, kies je waartoe de client toegang krijgt en selecteer je Autoriseren."
+      }
     }
   }
 }

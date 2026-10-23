@@ -1563,6 +1563,8 @@
     "dashboardPermissions": "Permissions",
     "dashboardVisibility": "Dashboard Visibility",
     "dashboardEditing": "Dashboard Editing",
+    "baseTypeDefaultSubtext": "Workspace members can collaborate based on their role.",
+    "baseTypePrivateSubtext": "Invite-only project. Only you can view and manage its members.",
     "baseTypeTabSubtext": "Whether everyone in the workspace can open this project.",
     "baseTypeSettingsDefaultSubtext": "Everyone in the workspace can access this project, based on their role.",
     "baseTypeSettingsPrivateSubtext": "Only you and members invited to this project can view and interact with it.",

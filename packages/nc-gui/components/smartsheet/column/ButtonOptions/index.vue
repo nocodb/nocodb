@@ -118,7 +118,7 @@ const buttonTypes = computed(() => [
           label: t('labels.generateFieldDataUsingAi'),
           value: ButtonActionsType.Ai,
           tooltip: t('tooltip.generateFieldDataUsingAiButtonOption'),
-          upgradeBadge: { feature: PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD },
+          upgradeFeature: PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD,
           blocked: blockAiButtonField.value,
           showUpgrade: () => showUpgradeToUseAiButtonField({ triggerSource: 'button-field-ai' }),
         },
@@ -130,7 +130,6 @@ const buttonTypes = computed(() => [
           icon: 'ncScript',
           label: t('labels.runScript'),
           value: ButtonActionsType.Script,
-          upgradeBadge: { featureEnabledCallback: () => !isEEFeatureBlocked.value },
           blocked: blockScripts.value,
           showUpgrade: () => showUpgradeToUseScripts({ triggerSource: 'button-field-script' }),
         },
@@ -139,10 +138,7 @@ const buttonTypes = computed(() => [
           label: t('labels.interfaceActionRunAutomation'),
           value: ButtonActionsType.Workflow,
           // Unlicensed on-prem allows workflows but not the button trigger.
-          upgradeBadge: {
-            feature: PlanFeatureTypes.FEATURE_WORKFLOWS,
-            featureEnabledCallback: () => !blockWorkflows.value && !isEEFeatureBlocked.value,
-          },
+          upgradeFeature: PlanFeatureTypes.FEATURE_WORKFLOWS,
           blocked: blockWorkflows.value || isEEFeatureBlocked.value,
           showUpgrade: () =>
             blockWorkflows.value
@@ -571,9 +567,10 @@ if (isEdit.value) {
                     {{ type.label }}
                   </div>
                   <PaymentUpgradeBadge
-                    v-if="type.upgradeBadge"
-                    :feature="type.upgradeBadge.feature"
-                    :feature-enabled-callback="type.upgradeBadge.featureEnabledCallback"
+                    v-if="type.blocked"
+                    :feature="type.upgradeFeature"
+                    :feature-enabled-callback="() => !type.blocked"
+                    class="nc-select-hide-item"
                     remove-click
                   />
                   <component

@@ -7765,14 +7765,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       // For Links columns, only treat as LTAR when linksAsLtar produced
       // nested object data (not a count number). Check the actual data to decide.
-      let isLinksAsLtar = false;
-      if (col.uidt === UITypes.Links) {
+      const holdsRows = () => {
         const sampleRow = data.find((d) => d[col.id] != null);
         const sampleVal = sampleRow?.[col.id];
-        isLinksAsLtar =
+        return !!(
           Array.isArray(sampleVal) ||
-          (sampleVal && typeof sampleVal === 'object');
-      }
+          (sampleVal && typeof sampleVal === 'object')
+        );
+      };
+      const isLinksAsLtar = col.uidt === UITypes.Links && holdsRows();
 
       const isLtarColumn =
         [UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(col.uidt) ||
@@ -7780,7 +7781,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (isLtarColumn) {
         if (col.uidt === UITypes.Lookup) {
           const nestedCol = await this.getNestedColumn(col);
-          if (nestedCol?.uidt !== UITypes.LinkToAnotherRecord) {
+          // A lookup of a junction link (mo/om/oo) ends on a Links column and
+          // carries its rows keyed by column id, same as LinkToAnotherRecord.
+          const nestedIsLtar =
+            nestedCol?.uidt === UITypes.LinkToAnotherRecord ||
+            (nestedCol?.uidt === UITypes.Links && holdsRows());
+          if (!nestedIsLtar) {
             ltarMap[col.id] = false;
             continue;
           }

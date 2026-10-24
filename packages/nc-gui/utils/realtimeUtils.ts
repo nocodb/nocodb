@@ -476,6 +476,8 @@ export function isWidgetDataAffected({
  * payload doesn't carry (projected out) may have changed unseen.
  */
 export function isFilteredCountAffected(data: DataPayload, filterTitles: Set<string>): boolean {
+  // An update-all lists no rows, so any of them may have changed
+  if (isUnlistedRowsChange(data)) return true
   if (data.action === 'bulk') return (data.rows ?? []).some((row) => isFilteredCountAffected(row, filterTitles))
   if (data.action === 'reorder') return false
   if (data.action !== 'update' || !data.changedFields || !data.payload) return true

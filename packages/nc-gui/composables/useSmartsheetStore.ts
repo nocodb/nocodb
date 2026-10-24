@@ -336,6 +336,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const viewerFilterEventListener = (evt: string, payload: { fk_view_id?: string } | undefined) => {
       if (!evt.startsWith('filter_') || payload?.fk_view_id !== view.value?.id) return
+      // The shared list predates this change; the instances still share the refetch via the debounce
+      if (payload?.fk_view_id) recentViewerFilterLoads.delete(payload.fk_view_id)
       if (!isViewOperationsAllowed.value) loadSavedFiltersForViewer()
     }
     $eventBus.realtimeViewMetaEventBus.on(viewerFilterEventListener)

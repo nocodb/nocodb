@@ -86,6 +86,7 @@ import {
   NestedLinkPreparator,
 } from '~/db/BaseModelSqlv2/nested-link-preparator';
 import { baseModelInsert } from '~/db/BaseModelSqlv2/insert';
+import { collectLinkBroadcast } from '~/db/BaseModelSqlv2/link-broadcast-batch';
 import {
   mssqlBuildBulkInsertWithCapture,
   mssqlChunkSize,
@@ -10291,11 +10292,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
   }
 
-  /** `linkColumnIds`: the link columns of this table that changed; empty = any link. */
+  /**
+   * `linkColumnIds`: the link columns that changed (other tables' ids are ignored);
+   * empty = any link. Inside `batchLinkBroadcasts` the call is deferred and merged.
+   */
   public async broadcastLinkUpdates(
     ids: Array<string>,
     linkColumnIds: string[] = [],
   ) {
+    if (collectLinkBroadcast(this, ids, linkColumnIds)) return;
     this.broadcastLinkUpdateAwaited(ids, linkColumnIds).catch((e) => {
       logger.error(e);
     });

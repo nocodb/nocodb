@@ -34,6 +34,7 @@ import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { dataWrapper } from '~/helpers/dbHelpers';
+import { batchLinkBroadcasts } from '~/db/BaseModelSqlv2/link-broadcast-batch';
 import { Profiler } from '~/helpers/profiler';
 import {
   getLtarDisplayValueContext,
@@ -1150,20 +1151,22 @@ export class DataTableService {
       unlink: Array<string | number>;
     }> = [];
     // Inner per-entry calls auto-skip recording via ALS re-entrancy —
-    // only this outer bulk op records.
-    for (const entry of param.entries) {
-      const r = await this._traceApplyLinkSwap(context, {
-        modelId: param.modelId,
-        baseId: param.baseId,
-        viewId: param.viewId,
-        columnId: entry.columnId,
-        rowId: entry.rowId,
-        link: entry.link,
-        unlink: entry.unlink,
-        cookie: param.cookie,
-      });
-      out.push(r);
-    }
+    // only this outer bulk op records. Their link broadcasts go out once per table.
+    await batchLinkBroadcasts(async () => {
+      for (const entry of param.entries) {
+        const r = await this._traceApplyLinkSwap(context, {
+          modelId: param.modelId,
+          baseId: param.baseId,
+          viewId: param.viewId,
+          columnId: entry.columnId,
+          rowId: entry.rowId,
+          link: entry.link,
+          unlink: entry.unlink,
+          cookie: param.cookie,
+        });
+        out.push(r);
+      }
+    });
     return out;
   }
 

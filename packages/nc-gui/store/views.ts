@@ -1358,7 +1358,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
           callback: () => {
             // Load data after fields reload
             forcedNextTick(() => {
-              $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+              // In place; a new grouping falls back to the full reload
+              $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD, {
+                tableId: destView.fk_model_id,
+                inPlace: true,
+              })
             })
           },
         })

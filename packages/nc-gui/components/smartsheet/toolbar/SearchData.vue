@@ -148,7 +148,7 @@ if (isList.value && listViewStore) {
 
 function onPressEnter() {
   $e('a:view:search')
-  reloadData.trigger({ shouldShowLoading: false, offset: 0 })
+  reloadData.trigger({ shouldShowLoading: false, offset: 0, inPlace: true })
   reloadAggregate?.trigger()
 }
 

@@ -25,7 +25,7 @@ const {
   addSort: _addSort,
   deleteSort,
   canSyncSort,
-} = useViewSorts(view, () => reloadDataHook?.trigger())
+} = useViewSorts(view, () => reloadDataHook?.trigger({ shouldShowLoading: false, inPlace: true }))
 
 const { showSystemFields, metaColumnById } = useViewColumnsOrThrow()
 

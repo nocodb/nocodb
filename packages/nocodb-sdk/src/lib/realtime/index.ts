@@ -278,6 +278,7 @@ export interface DataPayload extends BaseSocketPayload {
   prevMatchedViewIds?: string[];
   /** update only: titles of the fields whose value changed (absent = unknown). */
   changedFields?: string[];
+  /** bulk only. Empty: rows changed that the event doesn't list; refresh the table's views. */
   rows?: DataPayload[];
 }
 

@@ -397,6 +397,32 @@ export function getRelatedLinksColumn(
   });
 }
 
+/**
+ * Both tables' link columns for a link write, for `broadcastLinkUpdates`: each table's broadcast
+ * reads the one it holds. A missing or self-resolved mirror gives [], i.e. any link changed.
+ */
+export function touchedLinkColumnIds(
+  columnId?: string | null,
+  mirrorColumnId?: string | null,
+): string[] {
+  return columnId && mirrorColumnId && columnId !== mirrorColumnId
+    ? [columnId, mirrorColumnId]
+    : [];
+}
+
+/**
+ * For rows linked to deleted records: their mirror column changed. On a self-referencing
+ * table the mirror can resolve to the deleted side's own column, so it counts every link.
+ */
+export function linkedRecordColumnIds(
+  entry: { model?: { id?: string } | null; colId?: string | null },
+  sourceModelId: string,
+): string[] {
+  return entry.colId && entry.model?.id && entry.model.id !== sourceModelId
+    ? [entry.colId]
+    : [];
+}
+
 export function extractIdPropIfObjectOrReturn(id: any, prop: string) {
   return typeof id === 'object' ? id[prop] : id;
 }

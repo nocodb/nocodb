@@ -86,6 +86,7 @@ import {
   NestedLinkPreparator,
 } from '~/db/BaseModelSqlv2/nested-link-preparator';
 import { baseModelInsert } from '~/db/BaseModelSqlv2/insert';
+import { collectLinkBroadcast } from '~/db/BaseModelSqlv2/link-broadcast-batch';
 import {
   mssqlBuildBulkInsertWithCapture,
   mssqlChunkSize,
@@ -125,6 +126,7 @@ import {
   haveFormulaColumn,
   isDataAuditEnabled as isDataAuditEnabledFn,
   isPrimitiveType,
+  linkedRecordColumnIds,
   nanoidv2,
   populatePk,
   shouldCascadeLinkCleanup,
@@ -2647,7 +2649,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             cookie,
             updatedColIds: [entry.colId].filter(Boolean),
           });
-          await entry.baseModel.broadcastLinkUpdates(entry.ids);
+          await entry.baseModel.broadcastLinkUpdates(
+            entry.ids,
+            linkedRecordColumnIds(entry, this.model.id),
+          );
         } catch (e) {
           logger.error(e?.message, e?.stack);
         }
@@ -4904,6 +4909,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             logger.error(e.message, e.stack);
           }
         }
+
+        // Rows aren't re-read, so peers get a table-level change. Column rewrites
+        // (skipValidationAndHooks) reload through their column event instead.
+        if (+count > 0 && !args.skipValidationAndHooks) {
+          // After the commit, if any: peers refetch on it and must read the new rows
+          this.dbDriver.attachToTransaction(async () => {
+            NocoSocket.broadcastTableRowsChanged(
+              this.context,
+              this.model.id,
+              this.context.socket_id,
+            );
+          });
+        }
       }
 
       if (!args.skipValidationAndHooks && !skip_hooks)
@@ -5537,7 +5555,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               cookie,
               updatedColIds: [entry.colId].filter(Boolean),
             });
-            await entry.baseModel.broadcastLinkUpdates(entry.ids);
+            await entry.baseModel.broadcastLinkUpdates(
+              entry.ids,
+              linkedRecordColumnIds(entry, this.model.id),
+            );
           } catch (e) {
             logger.error(e?.message, e?.stack);
           }
@@ -10274,11 +10295,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
   }
 
-  /** `linkColumnIds`: the link columns of this table that changed; empty = any link. */
+  /**
+   * `linkColumnIds`: the link columns that changed (other tables' ids are ignored);
+   * empty = any link. Inside `batchLinkBroadcasts` the call is deferred and merged.
+   */
   public async broadcastLinkUpdates(
     ids: Array<string>,
     linkColumnIds: string[] = [],
   ) {
+    if (collectLinkBroadcast(this, ids, linkColumnIds)) return;
     this.broadcastLinkUpdateAwaited(ids, linkColumnIds).catch((e) => {
       logger.error(e);
     });
@@ -10567,7 +10592,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               cookie,
               updatedColIds: [inverseLinkCol?.id].filter(Boolean),
             });
-            await parentBaseModel.broadcastLinkUpdates(parentIds as string[]);
+            await parentBaseModel.broadcastLinkUpdates(
+              parentIds as string[],
+              linkedRecordColumnIds(
+                { model: parentTable, colId: inverseLinkCol?.id },
+                this.model.id,
+              ),
+            );
           }
         }
 
@@ -10625,7 +10656,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               cookie,
               updatedColIds: [inverseLinkCol?.id].filter(Boolean),
             });
-            await childBaseModel.broadcastLinkUpdates(linkedIds);
+            await childBaseModel.broadcastLinkUpdates(
+              linkedIds,
+              linkedRecordColumnIds(
+                { model: childTable, colId: inverseLinkCol?.id },
+                this.model.id,
+              ),
+            );
           }
         }
 
@@ -10677,7 +10714,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               cookie,
               updatedColIds: [inverseLinkCol?.id].filter(Boolean),
             });
-            await parentBaseModel.broadcastLinkUpdates(linkedIds);
+            await parentBaseModel.broadcastLinkUpdates(
+              linkedIds,
+              linkedRecordColumnIds(
+                { model: parentTable, colId: inverseLinkCol?.id },
+                this.model.id,
+              ),
+            );
           }
         }
       } catch (e) {

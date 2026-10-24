@@ -5,7 +5,6 @@ import axios from 'axios';
 import { nanoid } from 'nanoid';
 import {
   AuditV1OperationTypes,
-  EventType,
   ncIsNull,
   OperationSource,
   UITypes,
@@ -185,6 +184,8 @@ export class DataAttachmentV3Service {
       return;
     }
 
+    const prevRow = await this.readRowForBroadcast(baseModel, recordId);
+
     // direct update to prevent prepare noco data again
     await baseModel.execAndParse(
       baseModel
@@ -246,19 +247,7 @@ export class DataAttachmentV3Service {
       ),
     );
 
-    NocoSocket.broadcastEvent(
-      context,
-      {
-        event: EventType.DATA_EVENT,
-        payload: {
-          id: recordId,
-          action: 'update',
-          payload: await baseModel.readByPk(recordId, false),
-        },
-        scopes: [modelId],
-      },
-      context.socket_id,
-    );
+    await this.broadcastCellUpdate(context, baseModel, recordId, prevRow);
   }
 
   async appendBase64AttachmentToCellData(param: AttachmentBase64UploadParam) {
@@ -425,6 +414,8 @@ export class DataAttachmentV3Service {
 
     const updatedAttachments = [...currentAttachments, ...processedAttachments];
 
+    const prevRow = await this.readRowForBroadcast(baseModel, recordId);
+
     await baseModel.execAndParse(
       baseModel
         .dbDriver(baseModel.getTnPath(baseModel.model))
@@ -481,12 +472,59 @@ export class DataAttachmentV3Service {
       ),
     );
 
+    await this.broadcastCellUpdate(context, baseModel, recordId, prevRow);
+
     return await this.dataV3Service.dataRead(context, {
       modelId,
       query: '',
       req: { context, user: context.user } as any,
       rowId: recordId,
     });
+  }
+
+  // Peers apply their own RLS, so the row is read without the uploader's. A failed
+  // read only costs the broadcast, never the write.
+  private async readRowForBroadcast(
+    baseModel: Awaited<ReturnType<typeof getBaseModelSqlFromModelId>>,
+    recordId: string,
+  ): Promise<Record<string, any> | null> {
+    // No socket server (CE, or realtime off): nothing to broadcast, so no reads
+    if (!NocoSocket.ioServer) return null;
+    try {
+      const row = await baseModel.readByPk(
+        recordId,
+        false,
+        {},
+        { ignoreRls: true },
+      );
+      if (!row || !Object.keys(row).length) return null;
+      const { __nc_rls_hidden: _, ...rest } = row;
+      return rest;
+    } catch (e) {
+      this.logger.error(e?.message, e?.stack);
+      return null;
+    }
+  }
+
+  // The before-image lets the update carry change hints like any other edit.
+  private async broadcastCellUpdate(
+    context: NcContext,
+    baseModel: Awaited<ReturnType<typeof getBaseModelSqlFromModelId>>,
+    recordId: string,
+    prevRow: Record<string, any> | null,
+  ) {
+    const row = await this.readRowForBroadcast(baseModel, recordId);
+    if (!row) return;
+
+    await NocoSocket.broadcastDataEvent(
+      context,
+      {
+        payload: { id: recordId, action: 'update', payload: row },
+        prevPayload: prevRow,
+        tableId: baseModel.model.id,
+      },
+      context.socket_id,
+    );
   }
 
   protected async downloadAndStoreAttachment(

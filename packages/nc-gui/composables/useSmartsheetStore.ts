@@ -6,6 +6,10 @@ import { validateRowFilters } from '~/utils/dataUtils'
 import { isInterfaceSyntheticViewId } from '~/lib/interfaceData'
 import { flattenFiltersForEval, hasViewerScopedFilter } from '~/utils/realtimeUtils'
 
+// Saved-filter loads for roles below Editor, shared by the store instances of one view.
+const VIEWER_FILTER_LOAD_SHARE_MS = 1000
+const recentViewerFilterLoads = new Map<string, { at: number; list: Promise<FilterType[]> }>()
+
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   (
     // _view is deprecated, we use viewsStore instead
@@ -308,12 +312,23 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       if (!viewValue?.id || isViewOperationsAllowed.value || isInterfaceSyntheticViewId(viewValue.id)) return
       if (!viewValue.fk_workspace_id || !viewValue.base_id) return
       try {
-        const { list } = await internalGet(viewValue.fk_workspace_id, viewValue.base_id, {
-          operation: 'filterList',
-          viewId: viewValue.id,
-          includeAllFilters: 'true',
-        })
-        if (view.value?.id === viewValue.id) savedFiltersForViewer.value = (list ?? []) as FilterType[]
+        // Every store instance on the page (tab, expanded-form panel) asks for the same list
+        // View ids repeat across bases (managed-app installs, duplicated bases)
+        const loadKey = `${viewValue.base_id}:${viewValue.id}`
+        let load = recentViewerFilterLoads.get(loadKey)
+        if (!load || Date.now() - load.at > VIEWER_FILTER_LOAD_SHARE_MS) {
+          load = {
+            at: Date.now(),
+            list: internalGet(viewValue.fk_workspace_id, viewValue.base_id, {
+              operation: 'filterList',
+              viewId: viewValue.id,
+              includeAllFilters: 'true',
+            }).then(({ list }) => (list ?? []) as FilterType[]),
+          }
+          recentViewerFilterLoads.set(loadKey, load)
+        }
+        const list = await load.list
+        if (view.value?.id === viewValue.id) savedFiltersForViewer.value = list
       } catch {
         // Without them the view falls back to the server's lists, as before.
       }
@@ -323,6 +338,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const viewerFilterEventListener = (evt: string, payload: { fk_view_id?: string } | undefined) => {
       if (!evt.startsWith('filter_') || payload?.fk_view_id !== view.value?.id) return
+      // The shared list predates this change; the instances still share the refetch via the debounce
+      if (payload?.fk_view_id) recentViewerFilterLoads.delete(`${view.value?.base_id}:${payload.fk_view_id}`)
       if (!isViewOperationsAllowed.value) loadSavedFiltersForViewer()
     }
     $eventBus.realtimeViewMetaEventBus.on(viewerFilterEventListener)

@@ -15,3 +15,4 @@ export * from './clipboard-config';
 export * from './colour';
 export * from './separator';
 export * from './abbreviation';
+export * from './row-data-unchanged';

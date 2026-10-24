@@ -280,6 +280,8 @@ const {
     reloadDataHook.trigger({
       shouldShowLoading: showLoading.value,
       offset: 0,
+      // The canvas grid swaps the new rows in over the loaded ones
+      inPlace: !isForm.value,
       isFormFieldFilters: isForm.value && !webHook.value,
     })
     reloadAggregate?.trigger({ path: [] })
@@ -870,6 +872,7 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
         reloadDataHook?.trigger({
           shouldShowLoading: showLoading.value,
           offset: 0,
+          inPlace: !isForm.value,
           isFormFieldFilters: isForm.value && !webHook.value,
         })
         reloadAggregate?.trigger({ path: [] })

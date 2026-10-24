@@ -14,7 +14,13 @@ import type {
 import { validateRowFilters } from '~/utils/dataUtils'
 import type { InterfacePageDataApi } from '~/lib/interfaceData'
 import { isInterfaceSyntheticViewId } from '~/lib/interfaceData'
-import { dataEventSubscriptionKey, previousViewMembership, unloadedRowCountChange } from '~/utils/realtimeUtils'
+import {
+  dataEventSubscriptionKey,
+  isUnlistedRowsChange,
+  previousViewMembership,
+  schedulePeerTableReload,
+  unloadedRowCountChange,
+} from '~/utils/realtimeUtils'
 import { runOneQueueOne } from '~/utils/runQueued'
 
 type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
@@ -44,7 +50,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { getBaseType } = baseStore
 
-    const { $e, $api, $ncSocket } = useNuxtApp()
+    const { $e, $api, $ncSocket, $eventBus } = useNuxtApp()
 
     const {
       sorts,
@@ -1099,6 +1105,10 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       const { id, action, payload, before } = data
 
       if (action === 'bulk') {
+        if (isUnlistedRowsChange(data)) {
+          schedulePeerTableReload($eventBus.smartsheetStoreEventBus, meta?.value?.id)
+          return
+        }
         if (Array.isArray(data.rows)) {
           for (const row of data.rows) handleDataEvent(row)
         }
@@ -1305,7 +1315,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
               stackRows.push(moved!)
               formattedData.value.set(stackKey, stackRows)
             } else {
-              // `before` is in another stack or not loaded, so the slot within this stack is unknown.
+              // `before` isn't in this stack's loaded cards: it may be in another stack, past this one's
+              // window, or outside this view (order is table-wide), so the slot here is unknown.
               reload(stackKey)
             }
             return

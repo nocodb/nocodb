@@ -51,7 +51,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
-const { insertSort } = useViewSorts(view, () => reloadDataHook?.trigger())
+const { insertSort } = useViewSorts(view, () => reloadDataHook?.trigger({ shouldShowLoading: false, inPlace: true }))
 
 const { $api } = useNuxtApp()
 

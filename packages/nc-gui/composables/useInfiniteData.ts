@@ -28,7 +28,10 @@ import {
   classifyUnloadedRowUpdate,
   dataEventSubscriptionKey,
   flattenFiltersForEval,
+  isPrevMembershipWithheld,
+  isUnlistedRowsChange,
   peerAggregateChange,
+  schedulePeerTableReload,
   viewMembership,
 } from '~/utils/realtimeUtils'
 import type { ViewMembership } from '~/utils/realtimeUtils'
@@ -2355,6 +2358,11 @@ export function useInfiniteData(args: {
     const { id, action, payload, before } = data
 
     if (action === 'bulk') {
+      if (isUnlistedRowsChange(data)) {
+        $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.AGGREGATION_RELOAD, { tableId: meta.value?.id, peer: true })
+        schedulePeerTableReload($eventBus.smartsheetStoreEventBus, meta.value?.id)
+        return
+      }
       if (Array.isArray(data.rows)) {
         for (const row of data.rows) handleDataEvent(row)
       }
@@ -2538,6 +2546,7 @@ export function useInfiniteData(args: {
             sortTitles: activeSorts.value
               .map((sort) => columnsById.value[sort.fk_column_id!]?.title)
               .filter((title): title is string => !!title),
+            isPrevMembershipWithheld: isPrevMembershipWithheld(data),
           })
           if (outcome === 'aggregates') callbacks?.refreshGroupAggregations?.(data.changedFields)
           else if (outcome === 'refresh') requestInPlaceRefresh()

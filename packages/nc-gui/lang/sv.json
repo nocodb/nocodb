@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "Uppgradera för att kräva inloggning i formulär",
     "upgradeToUseFormRequireSigninSubtitle": "Uppgradera till {plan}-planen för att kräva att svarande loggar in innan de skickar in ett formulär.",
     "upgradeToUseSso": "Uppgradera för att använda SSO",
-    "upgradeToUseSsoSubtitle": "Uppgradera till {plan} planen för att konfigurera Single Sign-On (SSO) och låta ditt team logga in med din identitetsleverantör.",
-    "upgradeToUseAppFactory": "Uppgradera för att använda App Factory",
-    "upgradeToUseAppFactorySubtitle": "Uppgradera till {plan}-planen för att sätta kodningsagenter på dina anslutna repositorier."
+    "upgradeToUseSsoSubtitle": "Uppgradera till {plan} planen för att konfigurera Single Sign-On (SSO) och låta ditt team logga in med din identitetsleverantör."
   },
   "general": {
     "scrollToBottom": "Rulla till botten",
@@ -766,7 +764,8 @@
     "toggle": "Växla",
     "uploading": "Laddar upp",
     "countAll": "Räkna alla",
-    "config": "Konfiguration"
+    "config": "Konfiguration",
+    "dismiss": "Avfärda"
   },
   "objects": {
     "script": "Skript",
@@ -2199,7 +2198,7 @@
       "webhooks": "Webbhookar",
       "webhooksDesc": "Hantera webhook triggers och loggar",
       "base": "Projekt",
-      "baseDesc": "Projektinställningar, källor och jobb",
+      "baseDesc": "Projektinställningar, källor, jobb, dokument och deras kommentarer",
       "users": "Användare",
       "usersDesc": "Projektmedlemmar, medlemmar i arbetsytan och inbjudningar",
       "grantedCount": "{count} av {total} beviljade",
@@ -3103,7 +3102,6 @@
       "syncInfo": "Hämta data från en extern app enligt ett schema. Enkelriktat.",
       "automations": "Automatiseringar",
       "aiSkills": "AI-skills",
-      "mcpServer": "MCP-server",
       "auditLog": "Granskningslogg",
       "trashRetention": "Bevarandetid för papperskorgen",
       "snapshots": "Snapshots",
@@ -3134,7 +3132,7 @@
         "members": "Vem som kan öppna det här projektet och vad de får göra.",
         "permissions": "Vem som kan visa eller redigera varje tabell, fält och dokument.",
         "apiTokens": "Tokens som låter externa appar läsa och skriva i det här projektet.",
-        "mcp": "Anslut AI-klienter till det här projektet via MCP.",
+        "mcp": "Låt dina AI-verktyg arbeta med det här projektet, med din egen åtkomst.",
         "integrations": "Anslutna konton som det här projektet kan använda.",
         "automations": "Arbetsflöden som körs av en utlösare.",
         "auditLog": "Varje ändring i det här projektet och vem som gjorde den.",
@@ -3153,7 +3151,8 @@
       "upgradeDescDateDependency": "Flytta beroende datum automatiskt när en post flyttas.",
       "concernProject": "Projekt",
       "concernApps": "Apps",
-      "concernTabs": "Inställningsavsnitt"
+      "concernTabs": "Inställningsavsnitt",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "Kategorier",
     "blockquote": "Citat",
@@ -5304,7 +5303,6 @@
     "factoryEnvironment": "Miljö",
     "factoryCommitOrPush": "Commit eller push",
     "factoryCompareBranch": "Jämför gren",
-    "factoryAddTab": "Öppna en panel",
     "factoryCommitPushPrompt": "Commit:a ändringarna och push:a grenen.",
     "chatYesterday": "Igår",
     "chatCopyMessage": "Kopiera meddelande",
@@ -5410,7 +5408,62 @@
     "duplicateField": "Duplicera fält",
     "extensionError": "Tilläggsfel",
     "clearData": "Rensa data",
-    "copyProject": "Kopiera projekt"
+    "copyProject": "Kopiera projekt",
+    "factoryBootPartCpu": "Processor",
+    "factoryBootPartMemory": "Minne",
+    "factoryBootPartNetwork": "Nätverk",
+    "factoryBootPartServices": "Tjänster",
+    "factoryMachines": "Maskiner",
+    "factoryMachinesHint": "Miljön som dina sessioner startar från. Nya sessioner använder standardmaskinen; välj en annan i kompositören.",
+    "factoryMachinesCreatorOnly": "Endast underhållare kan skapa, redigera eller bygga maskiner.",
+    "factoryMachineSearchPanes": "Sök",
+    "factoryMachineStockTag": "Inbyggt",
+    "factoryMachineSetDefault": "Gör till standard",
+    "factoryMachineUpgrade": "Uppgradera",
+    "factoryMachineUpgradingShort": "Uppgraderar…",
+    "factoryMachineUpdateAvailable": "Uppdatering tillgänglig",
+    "factoryMachineUpgradeHint": "Byggd på en äldre basavbildning. Uppgraderingen bygger om samma paket på den aktuella.",
+    "factoryMachineUpgradeBanner": "Byggd på en äldre basavbildning, så nya sessioner kan inte starta från den. Uppgradera för att bygga om samma paket på den aktuella.",
+    "factoryMachineStock": "Basmaskin",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep och Chrome. Varje maskin bygger vidare på den, och sessioner utan maskin körs på den.",
+    "factoryMachinesEmptyTitle": "Inga maskiner ännu",
+    "factoryMachinesEmptyBody": "Sessioner körs på basmaskinen. Skapa en med de körmiljöer, databaser och verktyg som det här repositoryt behöver, så startar varje session med dem.",
+    "factoryMachinePickTitle": "Starta sessionen på",
+    "factoryMachineReady": "Klar",
+    "factoryMachineStepBase": "Factory-skrivbordsbas",
+    "factoryMachineStepBaseDetail": "Ubuntu 22.04 med skrivbordet, git och GitHub CLI",
+    "factoryMachineStepSave": "Spara maskin",
+    "factoryMachineStepSaveDetail": "Ögonblicksbild för det här projektets sessioner",
+    "factoryMachineServiceStarts": "Startar med varje session",
+    "factoryMachineServicesHint": "Exponeras för agenten som miljövariabler, så att tester och utvecklingsservrar ansluter utan konfiguration.",
+    "factoryMachineRebuild": "Bygg om med uppdateringar",
+    "factoryMachineUseVersion": "Använd den här versionen",
+    "factoryMachineReused": "Återanvände en identisk build",
+    "factoryMachineSetUp": "Konfigurera maskin",
+    "factoryMachineSuggestUpdate": "Lägga till i {machine} för framtida sessioner?",
+    "factoryMachineSuggestNote": "Byggs om i bakgrunden. Den här sessionen fortsätter oförändrad.",
+    "factoryMachineSuggestCreatorOnly": "Endast underhållare kan ändra maskiner. Be någon av dem att tillämpa detta.",
+    "factoryMachineSuggestAccept": "Lägg till och bygg om",
+    "factoryMachineSuggestAdded": "En ny version av {machine} byggs. Nya sessioner använder den när den är klar.",
+    "factoryMachineSuggestDeclined": "Inte tillämpat. Du kan ändra maskinen när som helst under Maskiner.",
+    "factoryMachineSuggestAlreadyIn": "{machine} har redan detta.",
+    "factoryMachineSuggestReady": "{machine} v{version} är klar. Nya sessioner startar på den.",
+    "factoryMachineSuggestFailed": "Den nya versionen av {machine} kunde inte byggas.",
+    "factoryMachineSuggestCancelled": "Den nya versionen av {machine} avbröts.",
+    "factoryMachineSuggestedFix": "Föreslagen åtgärd",
+    "factoryMachineSameAsBefore": "Samma val, ombyggd",
+    "factoryMachineTabOverview": "Översikt",
+    "factoryMachineUnbuiltTo": "Utkast {next}: {count} ändring från {version}, inte byggd | Utkast {next}: {count} ändringar från {version}, inte byggd",
+    "factoryMachineReview": "Fortsätt redigera",
+    "factoryMachineTabVersions": "Versioner",
+    "factoryMachineServiceBadge": "Tjänst",
+    "factoryMachineUndoChange": "Ångra den här ändringen",
+    "factoryMachineStepOf": "{step}, steg {n} av {total}",
+    "factoryMachineStillUsing": "Nya sessioner fortsätter att använda {version}.",
+    "factoryMachineReusedLog": "Återanvände en identisk tidigare build, så det fanns inget att bygga.",
+    "dontExpand": "Expandera inte",
+    "createSchema": "Skapa schema",
+    "configureSources": "Konfigurera källor"
   },
   "activity": {
     "useTemplate": "Använd mall",
@@ -7759,6 +7812,80 @@
       "tryBody": "Starta en ny chatt och fråga «List my NocoDB tools».",
       "tokenText": "Accepterar ditt verktyg bara en token?",
       "tokenButton": "Skapa en MCP-token"
+    },
+    "pane": {
+      "tabApps": "AI-appar",
+      "tabManual": "Manuella anslutningar",
+      "connectTitle": "Anslut en AI-app",
+      "recommended": "Rekommenderad",
+      "connectBody": "Logga in med ditt NocoDB-konto. Du bestämmer exakt vad den får se och ändra.",
+      "otherToolUrl": "Använder du ett annat AI-verktyg? Lägg till",
+      "otherTool": "Annat verktyg",
+      "copyValue": "Kopiera {label}",
+      "addTo": "Lägg till NocoDB i {client}",
+      "signInTitle": "Logga in med NocoDB och godkänn",
+      "waiting": "Väntar på att {client} ska logga in…",
+      "waitingHint": "Det här uppdateras av sig självt så snart du godkänner.",
+      "connectedTitle": "{client} är ansluten",
+      "connectedBody": "Den visas nu bland dina AI-appar.",
+      "connectedElsewhere": "Den godkändes för andra projekt och visas därför inte här.",
+      "manageAccess": "Hantera åtkomst",
+      "fallbackText": "Kan ditt AI-verktyg inte logga in med NocoDB?",
+      "fallbackLink": "Använd en manuell anslutning i stället",
+      "appsTitle": "Dina AI-appar",
+      "appsHint": "Endast synlig för dig",
+      "app": "App",
+      "lastSignedInAt": "Senast inloggad {time}",
+      "lastUsed": "Senast använd",
+      "lastUsedAt": "Senast använd {time}",
+      "canDelete": "Kan ta bort data",
+      "toolsTitle": "Verktyg och behörigheter",
+      "neverMoreThanRole": "Aldrig mer än din egen roll i det här projektet ({role}).",
+      "neverMoreThanAccess": "Aldrig mer än din egen åtkomst till det här projektet.",
+      "neverMoreThanOwnAccess": "Aldrig mer än din egen åtkomst där den har godkänts.",
+      "notEditable": "Vad den här appen får göra bestämdes när den loggade in och kan inte ändras här. Koppla från den och logga in den igen för att välja dess verktyg.",
+      "disconnectBody": "Kopplar från den här appen från det här projektet. Den måste logga in igen för att ansluta på nytt.",
+      "disconnectBodyWide": "Kopplar från den här appen överallt där den har godkänts, inte bara i det här projektet. Den måste logga in igen för att ansluta på nytt.",
+      "disconnectBodyEverywhere": "Kopplar från den här appen överallt där den har godkänts. Den måste logga in igen för att ansluta på nytt.",
+      "disconnectConfirm": "Koppla från {client}?",
+      "disconnectConfirmBody": "Den förlorar åtkomsten direkt och måste logga in igen för att ansluta på nytt.",
+      "disconnected": "{client} frånkopplad",
+      "accessUpdated": "Åtkomst uppdaterad",
+      "manualTitle": "Dina manuella anslutningar",
+      "manualBody": "För skript, CI-jobb och klienter som inte kan logga in med NocoDB.",
+      "manualNote": "Manuella anslutningar använder en statisk API-nyckel. Den fungerar tills du återkallar den, och alla med konfigurationen får samma åtkomst. Om ditt verktyg stöder det, {link}.",
+      "manualNoteLink": "anslut det som en AI-app i stället",
+      "field": {
+        "remoteServerUrl": "URL till fjärransluten MCP-server",
+        "authentication": "Autentisering",
+        "url": "URL"
+      },
+      "claude": {
+        "where": "I Claude öppnar du Inställningar › Kopplingar och väljer Lägg till anpassad koppling. Fyll i:",
+        "auth": "Välj Anslut bredvid NocoDB. Logga in med NocoDB, välj vad Claude får komma åt och välj sedan Godkänn."
+      },
+      "chatgpt": {
+        "where": "I ChatGPT öppnar du Plugins, väljer Lägg till och sedan Lägg till anpassad MCP-server. Fyll i:",
+        "auth": "Välj Skapa. ChatGPT öppnar NocoDB i ett nytt fönster. Logga in, välj vad den får komma åt och välj sedan Godkänn."
+      },
+      "claudeCode": {
+        "auth": "I Claude Code kör du /mcp, väljer nocodb och sedan Autentisera. Välj i webbläsaren vad den får komma åt och välj sedan Godkänn."
+      },
+      "cursor": {
+        "where": "I Cursor öppnar du Inställningar › MCP och väljer Lägg till ny MCP-server. Fyll i:",
+        "auth": "Välj Anslut bredvid nocodb i MCP-listan. Logga in med NocoDB i webbläsaren och välj Godkänn."
+      },
+      "codex": {
+        "auth": "Kör inloggningskommandot, logga in med NocoDB i webbläsaren och välj Godkänn."
+      },
+      "windsurf": {
+        "where": "I Windsurf öppnar du Inställningar › Cascade › MCP-servrar och väljer Lägg till anpassad server. Fyll i:",
+        "auth": "Välj Anslut bredvid nocodb. Logga in med NocoDB i webbläsaren och välj Godkänn."
+      },
+      "other": {
+        "where": "Lägg till en fjärransluten MCP-server i din klient med de här uppgifterna:",
+        "auth": "Starta anslutningen från din klient. NocoDB öppnas i webbläsaren, där du loggar in, väljer vad klienten får komma åt och väljer Godkänn."
+      }
     }
   }
 }

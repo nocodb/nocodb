@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "Nâng cấp để yêu cầu đăng nhập trên biểu mẫu",
     "upgradeToUseFormRequireSigninSubtitle": "Nâng cấp lên gói {plan} để yêu cầu người trả lời đăng nhập trước khi gửi biểu mẫu.",
     "upgradeToUseSso": "Nâng cấp để sử dụng SSO",
-    "upgradeToUseSsoSubtitle": "Nâng cấp lên gói {plan} để thiết lập Đăng nhập một lần (SSO) và cho phép nhóm của bạn đăng nhập bằng nhà cung cấp danh tính của bạn.",
-    "upgradeToUseAppFactory": "Nâng cấp để dùng App Factory",
-    "upgradeToUseAppFactorySubtitle": "Nâng cấp lên gói {plan} để điều phối các tác nhân lập trình trên những kho lưu trữ đã kết nối."
+    "upgradeToUseSsoSubtitle": "Nâng cấp lên gói {plan} để thiết lập Đăng nhập một lần (SSO) và cho phép nhóm của bạn đăng nhập bằng nhà cung cấp danh tính của bạn."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -766,7 +764,8 @@
     "toggle": "Bật/tắt",
     "uploading": "Đang tải lên",
     "countAll": "Đếm tất cả",
-    "config": "Cấu hình"
+    "config": "Cấu hình",
+    "dismiss": "Bỏ qua"
   },
   "objects": {
     "script": "Script",
@@ -2200,7 +2199,7 @@
       "webhooks": "Webhooks",
       "webhooksDesc": "Manage webhook triggers and logs",
       "base": "Dự án",
-      "baseDesc": "Cài đặt dự án, nguồn và tác vụ",
+      "baseDesc": "Cài đặt dự án, nguồn dữ liệu, tác vụ, tài liệu và bình luận của chúng",
       "users": "Users",
       "usersDesc": "Thành viên dự án, thành viên không gian làm việc và lời mời",
       "grantedCount": "Đã cấp {count} trong {total}",
@@ -3104,7 +3103,6 @@
       "syncInfo": "Kéo dữ liệu từ một ứng dụng bên ngoài theo lịch. Một chiều.",
       "automations": "Tự động hóa",
       "aiSkills": "Kỹ năng AI",
-      "mcpServer": "Máy chủ MCP",
       "auditLog": "Nhật ký kiểm toán",
       "trashRetention": "Thời gian giữ thùng rác",
       "snapshots": "Snapshots",
@@ -3135,7 +3133,7 @@
         "members": "Ai có thể mở dự án này và họ được làm gì.",
         "permissions": "Ai có thể xem hoặc chỉnh sửa từng bảng, trường và tài liệu.",
         "apiTokens": "Token cho phép ứng dụng bên ngoài đọc và ghi dự án này.",
-        "mcp": "Kết nối các ứng dụng AI với dự án này qua MCP.",
+        "mcp": "Cho phép các công cụ AI của bạn làm việc với dự án này bằng chính quyền truy cập của bạn.",
         "integrations": "Các tài khoản đã kết nối mà dự án này có thể dùng.",
         "automations": "Quy trình chạy khi có kích hoạt.",
         "auditLog": "Mọi thay đổi trong dự án này và ai đã thực hiện.",
@@ -3154,7 +3152,8 @@
       "upgradeDescDateDependency": "Tự động dời các ngày phụ thuộc khi một bản ghi được di chuyển.",
       "concernProject": "Dự án",
       "concernApps": "Apps",
-      "concernTabs": "Các mục cài đặt"
+      "concernTabs": "Các mục cài đặt",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "Danh mục",
     "blockquote": "Trích dẫn",
@@ -5312,7 +5311,6 @@
     "factoryEnvironment": "Môi trường",
     "factoryCommitOrPush": "Commit hoặc push",
     "factoryCompareBranch": "So sánh nhánh",
-    "factoryAddTab": "Mở một bảng",
     "factoryCommitPushPrompt": "Hãy commit các thay đổi và push nhánh.",
     "chatYesterday": "Hôm qua",
     "chatCopyMessage": "Sao chép tin nhắn",
@@ -5418,7 +5416,64 @@
     "duplicateField": "Nhân bản trường dữ liệu",
     "extensionError": "Lỗi tiện ích mở rộng",
     "clearData": "Xóa dữ liệu",
-    "copyProject": "Sao chép dự án"
+    "copyProject": "Sao chép dự án",
+    "factoryBootPartCpu": "Bộ xử lý",
+    "factoryBootPartMemory": "Bộ nhớ",
+    "factoryBootPartNetwork": "Mạng",
+    "factoryBootPartRepo": "Kho mã nguồn",
+    "factoryBootPartServices": "Dịch vụ",
+    "factoryMachines": "Máy",
+    "factoryMachinesHint": "Môi trường mà các phiên của bạn khởi động từ đó. Phiên mới dùng máy mặc định; chọn máy khác trong trình soạn thảo.",
+    "factoryMachinesCreatorOnly": "Chỉ người bảo trì mới có thể tạo, chỉnh sửa hoặc dựng máy.",
+    "factoryMachineSearchPanes": "Tìm kiếm",
+    "factoryMachineStockTag": "Có sẵn",
+    "factoryMachineSetDefault": "Đặt làm mặc định",
+    "factoryMachineUpgrade": "Nâng cấp",
+    "factoryMachineUpgradingShort": "Đang nâng cấp…",
+    "factoryMachineUpdateAvailable": "Có bản cập nhật",
+    "factoryMachineUpgradeHint": "Được dựng trên ảnh cơ sở cũ hơn. Nâng cấp sẽ dựng lại cùng các gói đó trên ảnh hiện tại.",
+    "factoryMachineUpgradeBanner": "Được dựng trên ảnh cơ sở cũ hơn nên các phiên mới không thể khởi động từ nó. Hãy nâng cấp để dựng lại cùng các gói đó trên ảnh hiện tại.",
+    "factoryMachineStock": "Máy cơ sở",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep và Chrome. Mọi máy đều dựa trên nó, và các phiên không có máy sẽ chạy trên nó.",
+    "factoryMachinesEmptyTitle": "Chưa có máy nào",
+    "factoryMachinesEmptyBody": "Các phiên chạy trên máy cơ sở. Hãy tạo một máy với các môi trường chạy, cơ sở dữ liệu và công cụ mà kho mã này cần, rồi mọi phiên sẽ khởi động cùng chúng.",
+    "factoryMachinePickTitle": "Khởi động phiên trên",
+    "factoryMachinePip": "pip toàn cục",
+    "factoryMachineReady": "Sẵn sàng",
+    "factoryMachineStepBase": "Nền desktop Factory",
+    "factoryMachineStepBaseDetail": "Ubuntu 22.04 kèm desktop, git và GitHub CLI",
+    "factoryMachineStepSave": "Lưu máy",
+    "factoryMachineStepSaveDetail": "Ảnh chụp cho các phiên của dự án này",
+    "factoryMachineServiceStarts": "Khởi động cùng mọi phiên",
+    "factoryMachineServicesHint": "Được cung cấp cho tác nhân dưới dạng biến môi trường, nhờ đó các bài kiểm thử và máy chủ phát triển kết nối được mà không cần thiết lập.",
+    "factoryMachineRebuild": "Dựng lại kèm bản cập nhật",
+    "factoryMachineUseVersion": "Dùng phiên bản này",
+    "factoryMachineReused": "Đã dùng lại bản dựng giống hệt",
+    "factoryMachineSetUp": "Thiết lập máy",
+    "factoryMachineSuggestUpdate": "Thêm vào {machine} cho các phiên sau?",
+    "factoryMachineSuggestNote": "Sẽ dựng lại ở chế độ nền. Phiên này vẫn chạy nguyên trạng.",
+    "factoryMachineSuggestCreatorOnly": "Chỉ người bảo trì mới có thể thay đổi máy. Hãy nhờ một người áp dụng thay đổi này.",
+    "factoryMachineSuggestAccept": "Thêm và dựng lại",
+    "factoryMachineSuggestAdded": "Đang dựng phiên bản mới của {machine}. Các phiên mới sẽ dùng nó khi sẵn sàng.",
+    "factoryMachineSuggestDeclined": "Chưa áp dụng. Bạn có thể thay đổi máy bất cứ lúc nào trong mục Máy.",
+    "factoryMachineSuggestAlreadyIn": "{machine} đã có mục này.",
+    "factoryMachineSuggestReady": "{machine} v{version} đã sẵn sàng. Các phiên mới sẽ khởi động trên nó.",
+    "factoryMachineSuggestFailed": "Không dựng được phiên bản mới của {machine}.",
+    "factoryMachineSuggestCancelled": "Phiên bản mới của {machine} đã bị hủy.",
+    "factoryMachineSuggestedFix": "Bản sửa được đề xuất",
+    "factoryMachineSameAsBefore": "Cùng lựa chọn, đã dựng lại",
+    "factoryMachineTabOverview": "Tổng quan",
+    "factoryMachineUnbuiltTo": "Bản nháp {next}: {count} thay đổi so với {version}, chưa dựng | Bản nháp {next}: {count} thay đổi so với {version}, chưa dựng",
+    "factoryMachineReview": "Tiếp tục chỉnh sửa",
+    "factoryMachineTabVersions": "Phiên bản",
+    "factoryMachineServiceBadge": "Dịch vụ",
+    "factoryMachineUndoChange": "Hoàn tác thay đổi này",
+    "factoryMachineStepOf": "{step}, bước {n}/{total}",
+    "factoryMachineStillUsing": "Các phiên mới vẫn tiếp tục dùng {version}.",
+    "factoryMachineReusedLog": "Đã dùng lại một bản dựng trước đó giống hệt nên không có gì để dựng.",
+    "dontExpand": "Không mở rộng",
+    "createSchema": "Tạo lược đồ",
+    "configureSources": "Cấu hình nguồn dữ liệu"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -7767,6 +7822,81 @@
       "tryBody": "Bắt đầu cuộc trò chuyện mới và hỏi «List my NocoDB tools».",
       "tokenText": "Công cụ của bạn chỉ chấp nhận mã thông báo?",
       "tokenButton": "Tạo mã thông báo MCP"
+    },
+    "pane": {
+      "tabApps": "Ứng dụng AI",
+      "tabManual": "Kết nối thủ công",
+      "connectTitle": "Kết nối một ứng dụng AI",
+      "recommended": "Được khuyến nghị",
+      "connectBody": "Đăng nhập bằng tài khoản NocoDB của bạn. Bạn quyết định chính xác những gì nó được xem và thay đổi.",
+      "otherToolUrl": "Đang dùng công cụ AI khác? Hãy thêm",
+      "otherTool": "Công cụ khác",
+      "copyValue": "Sao chép {label}",
+      "addTo": "Thêm NocoDB vào {client}",
+      "signInTitle": "Đăng nhập bằng NocoDB và ủy quyền",
+      "waiting": "Đang chờ {client} đăng nhập…",
+      "waitingHint": "Trang sẽ tự cập nhật ngay khi bạn ủy quyền.",
+      "connectedTitle": "{client} đã kết nối",
+      "connectedBody": "Giờ nó đã xuất hiện trong các ứng dụng AI của bạn.",
+      "connectedElsewhere": "Nó đã được ủy quyền cho dự án khác nên không hiển thị ở đây.",
+      "manageAccess": "Quản lý quyền truy cập",
+      "fallbackText": "Công cụ AI của bạn không đăng nhập được bằng NocoDB?",
+      "fallbackLink": "Dùng kết nối thủ công thay thế",
+      "appsTitle": "Ứng dụng AI của bạn",
+      "appsHint": "Chỉ bạn nhìn thấy",
+      "app": "Ứng dụng",
+      "lastSignedInAt": "Đăng nhập lần cuối {time}",
+      "lastUsed": "Dùng lần cuối",
+      "lastUsedAt": "Dùng lần cuối {time}",
+      "canDelete": "Có thể xóa dữ liệu",
+      "toolsTitle": "Công cụ và quyền hạn",
+      "neverMoreThanRole": "Không bao giờ vượt quá vai trò của chính bạn trong dự án này ({role}).",
+      "neverMoreThanAccess": "Không bao giờ vượt quá quyền truy cập của chính bạn vào dự án này.",
+      "neverMoreThanOwnAccess": "Không bao giờ vượt quá quyền truy cập của chính bạn ở nơi nó được ủy quyền.",
+      "notEditable": "Những gì ứng dụng này được làm đã được ấn định khi đăng nhập và không thể thay đổi ở đây. Hãy ngắt kết nối rồi đăng nhập lại để chọn công cụ cho nó.",
+      "disconnectBody": "Ngắt kết nối ứng dụng này khỏi dự án này. Ứng dụng phải đăng nhập lại để kết nối lại.",
+      "disconnectBodyWide": "Ngắt kết nối ứng dụng này ở mọi nơi nó đã được ủy quyền, không chỉ dự án này. Ứng dụng phải đăng nhập lại để kết nối lại.",
+      "disconnectBodyEverywhere": "Ngắt kết nối ứng dụng này ở mọi nơi nó đã được ủy quyền. Ứng dụng phải đăng nhập lại để kết nối lại.",
+      "disconnectConfirm": "Ngắt kết nối {client}?",
+      "disconnectConfirmBody": "Ứng dụng mất quyền truy cập ngay lập tức và phải đăng nhập lại để kết nối lại.",
+      "disconnected": "Đã ngắt kết nối {client}",
+      "accessUpdated": "Đã cập nhật quyền truy cập",
+      "manualTitle": "Kết nối thủ công của bạn",
+      "manualBody": "Dành cho script, tác vụ CI và ứng dụng khách không đăng nhập được bằng NocoDB.",
+      "manualNote": "Kết nối thủ công dùng khóa API tĩnh. Khóa còn hiệu lực cho đến khi bạn thu hồi, và bất kỳ ai có cấu hình đều có cùng quyền truy cập. Nếu công cụ của bạn hỗ trợ, hãy {link}.",
+      "manualNoteLink": "kết nối nó dưới dạng ứng dụng AI",
+      "field": {
+        "remoteServerUrl": "URL máy chủ MCP từ xa",
+        "authentication": "Xác thực",
+        "url": "URL",
+        "transport": "Giao thức truyền"
+      },
+      "claude": {
+        "where": "Trong Claude, mở Cài đặt › Trình kết nối và chọn Thêm trình kết nối tùy chỉnh. Điền:",
+        "auth": "Chọn Kết nối bên cạnh NocoDB. Đăng nhập bằng NocoDB, chọn những gì Claude được truy cập, rồi chọn Ủy quyền."
+      },
+      "chatgpt": {
+        "where": "Trong ChatGPT, mở Plugins, chọn Thêm, rồi chọn Thêm máy chủ MCP tùy chỉnh. Điền:",
+        "auth": "Chọn Tạo. ChatGPT sẽ mở NocoDB trong cửa sổ mới. Đăng nhập, chọn những gì nó được truy cập, rồi chọn Ủy quyền."
+      },
+      "claudeCode": {
+        "auth": "Trong Claude Code, chạy /mcp, chọn nocodb rồi chọn Xác thực. Trong trình duyệt, chọn những gì nó được truy cập, rồi chọn Ủy quyền."
+      },
+      "cursor": {
+        "where": "Trong Cursor, mở Cài đặt › MCP và chọn Thêm máy chủ MCP mới. Điền:",
+        "auth": "Chọn Kết nối bên cạnh nocodb trong danh sách MCP. Đăng nhập bằng NocoDB trong trình duyệt và chọn Ủy quyền."
+      },
+      "codex": {
+        "auth": "Chạy lệnh đăng nhập, đăng nhập bằng NocoDB trong trình duyệt và chọn Ủy quyền."
+      },
+      "windsurf": {
+        "where": "Trong Windsurf, mở Cài đặt › Cascade › Máy chủ MCP và chọn Thêm máy chủ tùy chỉnh. Điền:",
+        "auth": "Chọn Kết nối bên cạnh nocodb. Đăng nhập bằng NocoDB trong trình duyệt và chọn Ủy quyền."
+      },
+      "other": {
+        "where": "Thêm một máy chủ MCP từ xa trong ứng dụng khách của bạn với các thông tin sau:",
+        "auth": "Bắt đầu kết nối từ ứng dụng khách của bạn. NocoDB sẽ mở trong trình duyệt, nơi bạn đăng nhập, chọn những gì ứng dụng khách được truy cập và chọn Ủy quyền."
+      }
     }
   }
 }

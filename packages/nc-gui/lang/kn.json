@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "ಫಾರ್ಮ್‌ಗಳಲ್ಲಿ ಸೈನ್ ಇನ್ ಕಡ್ಡಾಯಗೊಳಿಸಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ",
     "upgradeToUseFormRequireSigninSubtitle": "ಫಾರ್ಮ್ ಸಲ್ಲಿಸುವ ಮೊದಲು ಪ್ರತಿಕ್ರಿಯೆದಾರರು ಸೈನ್ ಇನ್ ಮಾಡುವುದನ್ನು ಕಡ್ಡಾಯಗೊಳಿಸಲು {plan} ಪ್ಲ್ಯಾನ್‌ಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
     "upgradeToUseSso": "SSO ಬಳಸಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ",
-    "upgradeToUseSsoSubtitle": "ಏಕೀಕೃತ ಸೈನ್-ಆನ್ (SSO) ಹೊಂದಿಸಲು ಮತ್ತು ನಿಮ್ಮ ತಂಡವು ನಿಮ್ಮ ಗುರುತಿನ ಪೂರೈಕೆದಾರರ ಮೂಲಕ ಸೈನ್ ಇನ್ ಮಾಡಲು {plan} ಯೋಜನೆಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
-    "upgradeToUseAppFactory": "App Factory ಬಳಸಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ",
-    "upgradeToUseAppFactorySubtitle": "ಸಂಪರ್ಕಿತ ರೆಪೊಸಿಟರಿಗಳಲ್ಲಿ ಕೋಡಿಂಗ್ ಏಜೆಂಟ್‌ಗಳನ್ನು ಬಳಸಲು {plan} ಯೋಜನೆಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ."
+    "upgradeToUseSsoSubtitle": "ಏಕೀಕೃತ ಸೈನ್-ಆನ್ (SSO) ಹೊಂದಿಸಲು ಮತ್ತು ನಿಮ್ಮ ತಂಡವು ನಿಮ್ಮ ಗುರುತಿನ ಪೂರೈಕೆದಾರರ ಮೂಲಕ ಸೈನ್ ಇನ್ ಮಾಡಲು {plan} ಯೋಜನೆಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -767,7 +765,8 @@
     "uploading": "ಅಪ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ",
     "countAll": "ಎಲ್ಲವನ್ನೂ ಎಣಿಸಿ",
     "factory": "ಫ್ಯಾಕ್ಟರಿ",
-    "config": "ಸಂರಚನೆ"
+    "config": "ಸಂರಚನೆ",
+    "dismiss": "ಮುಚ್ಚಿ"
   },
   "objects": {
     "script": "ಸ್ಕ್ರಿಪ್ಟ್",
@@ -2201,7 +2200,7 @@
       "webhooks": "Webhooks",
       "webhooksDesc": "Manage webhook triggers and logs",
       "base": "ಯೋಜನೆ",
-      "baseDesc": "ಯೋಜನೆಯ ಸೆಟ್ಟಿಂಗ್‌ಗಳು, ಮೂಲಗಳು ಮತ್ತು ಕೆಲಸಗಳು",
+      "baseDesc": "ಯೋಜನೆಯ ಸೆಟ್ಟಿಂಗ್‌ಗಳು, ಮೂಲಗಳು, ಕೆಲಸಗಳು, ದಾಖಲೆಗಳು ಮತ್ತು ಅವುಗಳ ಕಾಮೆಂಟ್‌ಗಳು",
       "users": "Users",
       "usersDesc": "ಯೋಜನೆಯ ಸದಸ್ಯರು, ಕಾರ್ಯಕ್ಷೇತ್ರದ ಸದಸ್ಯರು ಮತ್ತು ಆಹ್ವಾನಗಳು",
       "grantedCount": "{total} ರಲ್ಲಿ {count} ನೀಡಲಾಗಿದೆ",
@@ -3105,7 +3104,6 @@
       "syncInfo": "ನಿಗದಿತ ವೇಳಾಪಟ್ಟಿಯಂತೆ ಹೊರಗಿನ ಅಪ್ಲಿಕೇಶನ್‌ನಿಂದ ಡೇಟಾ ತನ್ನಿ. ಒಂದೇ ದಿಕ್ಕಿನಲ್ಲಿ.",
       "automations": "ಸ್ವಯಂಚಾಲನೆಗಳು",
       "aiSkills": "AI ಕೌಶಲ್ಯಗಳು",
-      "mcpServer": "MCP ಸರ್ವರ್",
       "auditLog": "ಲೆಕ್ಕಪರಿಶೋಧನಾ ದಾಖಲೆ",
       "trashRetention": "ಕಸದ ಬುಟ್ಟಿಯ ಧಾರಣ ಅವಧಿ",
       "snapshots": "Snapshots",
@@ -3136,7 +3134,7 @@
         "members": "ಈ ಯೋಜನೆಯನ್ನು ಯಾರು ತೆರೆಯಬಹುದು ಮತ್ತು ಏನು ಮಾಡಬಹುದು.",
         "permissions": "ಪ್ರತಿ ಕೋಷ್ಟಕ, ಕ್ಷೇತ್ರ ಮತ್ತು ದಾಖಲೆಯನ್ನು ಯಾರು ನೋಡಬಹುದು ಅಥವಾ ಸಂಪಾದಿಸಬಹುದು.",
         "apiTokens": "ಬಾಹ್ಯ ಅಪ್ಲಿಕೇಶನ್‌ಗಳಿಗೆ ಈ ಯೋಜನೆಯನ್ನು ಓದಲು ಮತ್ತು ಬರೆಯಲು ಅವಕಾಶ ನೀಡುವ ಟೋಕನ್‌ಗಳು.",
-        "mcp": "MCP ಮೂಲಕ AI ಕ್ಲೈಂಟ್‌ಗಳನ್ನು ಈ ಯೋಜನೆಗೆ ಸಂಪರ್ಕಿಸಿ.",
+        "mcp": "ನಿಮ್ಮ ಸ್ವಂತ ಪ್ರವೇಶದೊಂದಿಗೆ ನಿಮ್ಮ AI ಸಾಧನಗಳು ಈ ಯೋಜನೆಯೊಂದಿಗೆ ಕೆಲಸ ಮಾಡಲು ಅವಕಾಶ ನೀಡಿ.",
         "integrations": "ಈ ಯೋಜನೆ ಬಳಸಬಹುದಾದ ಸಂಪರ್ಕಿತ ಖಾತೆಗಳು.",
         "automations": "ಟ್ರಿಗರ್‌ನಿಂದ ಚಲಿಸುವ ಕಾರ್ಯಹರಿವುಗಳು.",
         "auditLog": "ಈ ಯೋಜನೆಯಲ್ಲಿ ಆದ ಪ್ರತಿ ಬದಲಾವಣೆ ಮತ್ತು ಅದನ್ನು ಮಾಡಿದವರು.",
@@ -3155,7 +3153,8 @@
       "upgradeDescDateDependency": "ದಾಖಲೆ ಸ್ಥಳಾಂತರಗೊಂಡಾಗ ಅವಲಂಬಿತ ದಿನಾಂಕಗಳನ್ನು ತಾನಾಗಿಯೇ ಸರಿಸುತ್ತದೆ.",
       "concernProject": "ಪ್ರಾಜೆಕ್ಟ್",
       "concernApps": "Apps",
-      "concernTabs": "ಸೆಟ್ಟಿಂಗ್ಸ್ ವಿಭಾಗಗಳು"
+      "concernTabs": "ಸೆಟ್ಟಿಂಗ್ಸ್ ವಿಭಾಗಗಳು",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "ವರ್ಗಗಳು",
     "blockquote": "ಉದ್ಧರಣ",
@@ -5316,7 +5315,6 @@
     "factoryEnvironment": "ಪರಿಸರ",
     "factoryCommitOrPush": "ಕಮಿಟ್ ಅಥವಾ ಪುಶ್",
     "factoryCompareBranch": "ಬ್ರಾಂಚ್ ಹೋಲಿಸಿ",
-    "factoryAddTab": "ಒಂದು ಫಲಕ ತೆರೆಯಿರಿ",
     "factoryCommitPushPrompt": "ಬದಲಾವಣೆಗಳನ್ನು ಕಮಿಟ್ ಮಾಡಿ ಮತ್ತು ಬ್ರಾಂಚ್ ಪುಶ್ ಮಾಡಿ.",
     "chatYesterday": "ನಿನ್ನೆ",
     "chatCopyMessage": "ಸಂದೇಶ ನಕಲಿಸಿ",
@@ -5422,7 +5420,64 @@
     "duplicateField": "ಕ್ಷೇತ್ರವನ್ನು ನಕಲಿಸಿ",
     "extensionError": "ವಿಸ್ತರಣೆ ದೋಷ",
     "clearData": "ಡೇಟಾ ಅಳಿಸಿ",
-    "copyProject": "ಯೋಜನೆಯನ್ನು ನಕಲಿಸಿ"
+    "copyProject": "ಯೋಜನೆಯನ್ನು ನಕಲಿಸಿ",
+    "factoryBootPartCpu": "ಪ್ರೊಸೆಸರ್",
+    "factoryBootPartMemory": "ಮೆಮೊರಿ",
+    "factoryBootPartNetwork": "ನೆಟ್‌ವರ್ಕ್",
+    "factoryBootPartRepo": "ರೆಪಾಸಿಟರಿ",
+    "factoryBootPartServices": "ಸೇವೆಗಳು",
+    "factoryMachines": "ಯಂತ್ರಗಳು",
+    "factoryMachinesHint": "ನಿಮ್ಮ ಅಧಿವೇಶನಗಳು ಆರಂಭವಾಗುವ ಪರಿಸರ. ಹೊಸ ಅಧಿವೇಶನಗಳು ಪೂರ್ವನಿಯೋಜಿತವನ್ನು ಬಳಸುತ್ತವೆ; ಸಂಯೋಜಕದಲ್ಲಿ ಬೇರೊಂದನ್ನು ಆರಿಸಿ.",
+    "factoryMachinesCreatorOnly": "ಯಂತ್ರಗಳನ್ನು ನಿರ್ವಾಹಕರು ಮಾತ್ರ ರಚಿಸಲು, ಸಂಪಾದಿಸಲು ಅಥವಾ ನಿರ್ಮಿಸಲು ಸಾಧ್ಯ.",
+    "factoryMachineSearchPanes": "ಹುಡುಕಿ",
+    "factoryMachineStockTag": "ಅಂತರ್ನಿರ್ಮಿತ",
+    "factoryMachineSetDefault": "ಪೂರ್ವನಿಯೋಜಿತವಾಗಿ ಮಾಡಿ",
+    "factoryMachineUpgrade": "ಅಪ್‌ಗ್ರೇಡ್",
+    "factoryMachineUpgradingShort": "ಅಪ್‌ಗ್ರೇಡ್ ಆಗುತ್ತಿದೆ…",
+    "factoryMachineUpdateAvailable": "ನವೀಕರಣ ಲಭ್ಯವಿದೆ",
+    "factoryMachineUpgradeHint": "ಹಳೆಯ ಮೂಲ ಇಮೇಜ್ ಮೇಲೆ ನಿರ್ಮಿಸಲಾಗಿದೆ. ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿದರೆ ಅದೇ ಪ್ಯಾಕೇಜ್‌ಗಳು ಪ್ರಸ್ತುತ ಇಮೇಜ್ ಮೇಲೆ ಮರುನಿರ್ಮಾಣವಾಗುತ್ತವೆ.",
+    "factoryMachineUpgradeBanner": "ಹಳೆಯ ಮೂಲ ಇಮೇಜ್ ಮೇಲೆ ನಿರ್ಮಿಸಲಾಗಿದೆ, ಆದ್ದರಿಂದ ಹೊಸ ಅಧಿವೇಶನಗಳು ಇದರಿಂದ ಆರಂಭವಾಗಲಾರವು. ಅದೇ ಪ್ಯಾಕೇಜ್‌ಗಳನ್ನು ಪ್ರಸ್ತುತ ಇಮೇಜ್ ಮೇಲೆ ಮರುನಿರ್ಮಿಸಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
+    "factoryMachineStock": "ಮೂಲ ಯಂತ್ರ",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep ಮತ್ತು Chrome. ಪ್ರತಿ ಯಂತ್ರವೂ ಇದರ ಮೇಲೆ ನಿರ್ಮಾಣವಾಗುತ್ತದೆ, ಮತ್ತು ಯಂತ್ರವಿಲ್ಲದ ಅಧಿವೇಶನಗಳು ಇದರ ಮೇಲೆಯೇ ನಡೆಯುತ್ತವೆ.",
+    "factoryMachinesEmptyTitle": "ಇನ್ನೂ ಯಂತ್ರಗಳಿಲ್ಲ",
+    "factoryMachinesEmptyBody": "ಅಧಿವೇಶನಗಳು ಮೂಲ ಯಂತ್ರದಲ್ಲಿ ನಡೆಯುತ್ತವೆ. ಈ ರೆಪಾಸಿಟರಿಗೆ ಬೇಕಾದ ರನ್‌ಟೈಮ್‌ಗಳು, ಡೇಟಾಬೇಸ್‌ಗಳು ಮತ್ತು ಸಾಧನಗಳೊಂದಿಗೆ ಒಂದು ಯಂತ್ರ ರಚಿಸಿ, ಆಗ ಪ್ರತಿ ಅಧಿವೇಶನವೂ ಅವುಗಳೊಂದಿಗೆ ಆರಂಭವಾಗುತ್ತದೆ.",
+    "factoryMachinePickTitle": "ಅಧಿವೇಶನವನ್ನು ಇಲ್ಲಿ ಪ್ರಾರಂಭಿಸಿ",
+    "factoryMachinePip": "ಜಾಗತಿಕ pip",
+    "factoryMachineReady": "ಸಿದ್ಧ",
+    "factoryMachineStepBase": "Factory ಡೆಸ್ಕ್‌ಟಾಪ್ ಮೂಲ",
+    "factoryMachineStepBaseDetail": "ಡೆಸ್ಕ್‌ಟಾಪ್, git ಮತ್ತು GitHub CLI ಜೊತೆಗೆ Ubuntu 22.04",
+    "factoryMachineStepSave": "ಯಂತ್ರವನ್ನು ಉಳಿಸಿ",
+    "factoryMachineStepSaveDetail": "ಈ ಯೋಜನೆಯ ಅಧಿವೇಶನಗಳಿಗಾಗಿ ಸ್ನ್ಯಾಪ್‌ಶಾಟ್",
+    "factoryMachineServiceStarts": "ಪ್ರತಿ ಅಧಿವೇಶನದೊಂದಿಗೆ ಆರಂಭವಾಗುತ್ತದೆ",
+    "factoryMachineServicesHint": "ಪರಿಸರ ಚರಾಂಶಗಳ ರೂಪದಲ್ಲಿ ಏಜೆಂಟ್‌ಗೆ ನೀಡಲಾಗುತ್ತದೆ, ಆದ್ದರಿಂದ ಪರೀಕ್ಷೆಗಳು ಮತ್ತು ಡೆವ್ ಸರ್ವರ್‌ಗಳು ಯಾವುದೇ ಸಿದ್ಧತೆ ಇಲ್ಲದೆ ಸಂಪರ್ಕಗೊಳ್ಳುತ್ತವೆ.",
+    "factoryMachineRebuild": "ನವೀಕರಣಗಳೊಂದಿಗೆ ಮರುನಿರ್ಮಿಸಿ",
+    "factoryMachineUseVersion": "ಈ ಆವೃತ್ತಿಯನ್ನು ಬಳಸಿ",
+    "factoryMachineReused": "ಒಂದೇ ರೀತಿಯ ಬಿಲ್ಡ್ ಮರುಬಳಕೆಯಾಗಿದೆ",
+    "factoryMachineSetUp": "ಯಂತ್ರವನ್ನು ಹೊಂದಿಸಿ",
+    "factoryMachineSuggestUpdate": "ಮುಂದಿನ ಅಧಿವೇಶನಗಳಿಗಾಗಿ {machine} ಗೆ ಸೇರಿಸುವುದೇ?",
+    "factoryMachineSuggestNote": "ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಮರುನಿರ್ಮಾಣವಾಗುತ್ತದೆ. ಈ ಅಧಿವೇಶನ ಹಾಗೆಯೇ ಮುಂದುವರಿಯುತ್ತದೆ.",
+    "factoryMachineSuggestCreatorOnly": "ಯಂತ್ರಗಳನ್ನು ನಿರ್ವಾಹಕರು ಮಾತ್ರ ಬದಲಾಯಿಸಬಹುದು. ಅವರಲ್ಲಿ ಒಬ್ಬರನ್ನು ಇದನ್ನು ಅನ್ವಯಿಸಲು ಕೇಳಿ.",
+    "factoryMachineSuggestAccept": "ಸೇರಿಸಿ ಮತ್ತು ಮರುನಿರ್ಮಿಸಿ",
+    "factoryMachineSuggestAdded": "{machine} ನ ಹೊಸ ಆವೃತ್ತಿ ನಿರ್ಮಾಣವಾಗುತ್ತಿದೆ. ಸಿದ್ಧವಾದ ತಕ್ಷಣ ಹೊಸ ಅಧಿವೇಶನಗಳು ಅದನ್ನು ಬಳಸುತ್ತವೆ.",
+    "factoryMachineSuggestDeclined": "ಅನ್ವಯಿಸಿಲ್ಲ. ಯಂತ್ರಗಳು ವಿಭಾಗದಿಂದ ನೀವು ಯಾವಾಗ ಬೇಕಾದರೂ ಯಂತ್ರವನ್ನು ಬದಲಾಯಿಸಬಹುದು.",
+    "factoryMachineSuggestAlreadyIn": "{machine} ನಲ್ಲಿ ಇದು ಈಗಾಗಲೇ ಇದೆ.",
+    "factoryMachineSuggestReady": "{machine} v{version} ಸಿದ್ಧವಾಗಿದೆ. ಹೊಸ ಅಧಿವೇಶನಗಳು ಇದರ ಮೇಲೆ ಆರಂಭವಾಗುತ್ತವೆ.",
+    "factoryMachineSuggestFailed": "{machine} ನ ಹೊಸ ಆವೃತ್ತಿಯನ್ನು ನಿರ್ಮಿಸಲು ವಿಫಲವಾಗಿದೆ.",
+    "factoryMachineSuggestCancelled": "{machine} ನ ಹೊಸ ಆವೃತ್ತಿಯನ್ನು ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ.",
+    "factoryMachineSuggestedFix": "ಸೂಚಿಸಿದ ಸರಿಪಡಿಕೆ",
+    "factoryMachineSameAsBefore": "ಅದೇ ಆಯ್ಕೆ, ಮರುನಿರ್ಮಿಸಲಾಗಿದೆ",
+    "factoryMachineTabOverview": "ಅವಲೋಕನ",
+    "factoryMachineUnbuiltTo": "ಕರಡು {next}: {version} ನಿಂದ {count} ಬದಲಾವಣೆ, ನಿರ್ಮಿಸಿಲ್ಲ | ಕರಡು {next}: {version} ನಿಂದ {count} ಬದಲಾವಣೆಗಳು, ನಿರ್ಮಿಸಿಲ್ಲ",
+    "factoryMachineReview": "ಸಂಪಾದನೆ ಮುಂದುವರಿಸಿ",
+    "factoryMachineTabVersions": "ಆವೃತ್ತಿಗಳು",
+    "factoryMachineServiceBadge": "ಸೇವೆ",
+    "factoryMachineUndoChange": "ಈ ಬದಲಾವಣೆಯನ್ನು ರದ್ದುಗೊಳಿಸಿ",
+    "factoryMachineStepOf": "{step}, ಹಂತ {n}/{total}",
+    "factoryMachineStillUsing": "ಹೊಸ ಅಧಿವೇಶನಗಳು {version} ಬಳಸುವುದನ್ನು ಮುಂದುವರಿಸುತ್ತವೆ.",
+    "factoryMachineReusedLog": "ಹಿಂದಿನ ಒಂದೇ ರೀತಿಯ ಬಿಲ್ಡ್ ಮರುಬಳಕೆಯಾಗಿದೆ, ಆದ್ದರಿಂದ ನಿರ್ಮಿಸಲು ಏನೂ ಇರಲಿಲ್ಲ.",
+    "dontExpand": "ವಿಸ್ತರಿಸಬೇಡಿ",
+    "createSchema": "ಸ್ಕೀಮಾ ರಚಿಸಿ",
+    "configureSources": "ಮೂಲಗಳನ್ನು ಸಂರಚಿಸಿ"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -7770,6 +7825,81 @@
       "tryBody": "ಹೊಸ ಚಾಟ್ ಪ್ರಾರಂಭಿಸಿ ಮತ್ತು «List my NocoDB tools» ಎಂದು ಕೇಳಿ.",
       "tokenText": "ನಿಮ್ಮ ಪರಿಕರವು ಟೋಕನ್ ಮಾತ್ರ ಸ್ವೀಕರಿಸುತ್ತದೆಯೇ?",
       "tokenButton": "MCP ಟೋಕನ್ ರಚಿಸಿ"
+    },
+    "pane": {
+      "tabApps": "AI ಅಪ್ಲಿಕೇಶನ್‌ಗಳು",
+      "tabManual": "ಹಸ್ತಚಾಲಿತ ಸಂಪರ್ಕಗಳು",
+      "connectTitle": "AI ಅಪ್ಲಿಕೇಶನ್ ಸಂಪರ್ಕಿಸಿ",
+      "recommended": "ಶಿಫಾರಸು ಮಾಡಲಾಗಿದೆ",
+      "connectBody": "ನಿಮ್ಮ NocoDB ಖಾತೆಯೊಂದಿಗೆ ಸೈನ್ ಇನ್ ಮಾಡಿ. ಅದು ಏನನ್ನು ನೋಡಬಹುದು ಮತ್ತು ಬದಲಾಯಿಸಬಹುದು ಎಂಬುದನ್ನು ನೀವೇ ನಿಖರವಾಗಿ ನಿರ್ಧರಿಸುತ್ತೀರಿ.",
+      "otherToolUrl": "ಬೇರೆ AI ಸಾಧನ ಬಳಸುತ್ತಿದ್ದೀರಾ? ಸೇರಿಸಿ",
+      "otherTool": "ಬೇರೆ ಸಾಧನ",
+      "copyValue": "{label} ನಕಲಿಸಿ",
+      "addTo": "{client} ಗೆ NocoDB ಸೇರಿಸಿ",
+      "signInTitle": "NocoDB ಮೂಲಕ ಸೈನ್ ಇನ್ ಮಾಡಿ ಮತ್ತು ಅಧಿಕೃತಗೊಳಿಸಿ",
+      "waiting": "{client} ಸೈನ್ ಇನ್ ಆಗುವುದನ್ನು ಕಾಯಲಾಗುತ್ತಿದೆ…",
+      "waitingHint": "ನೀವು ಅಧಿಕೃತಗೊಳಿಸಿದ ತಕ್ಷಣ ಇದು ತಾನಾಗಿಯೇ ನವೀಕರಣಗೊಳ್ಳುತ್ತದೆ.",
+      "connectedTitle": "{client} ಸಂಪರ್ಕಗೊಂಡಿದೆ",
+      "connectedBody": "ಈಗ ಅದು ನಿಮ್ಮ AI ಅಪ್ಲಿಕೇಶನ್‌ಗಳಲ್ಲಿ ಕಾಣಿಸುತ್ತದೆ.",
+      "connectedElsewhere": "ಅದನ್ನು ಬೇರೆ ಯೋಜನೆಗಳಿಗೆ ಅಧಿಕೃತಗೊಳಿಸಲಾಗಿದೆ, ಆದ್ದರಿಂದ ಇಲ್ಲಿ ಪಟ್ಟಿ ಮಾಡಿಲ್ಲ.",
+      "manageAccess": "ಪ್ರವೇಶವನ್ನು ನಿರ್ವಹಿಸಿ",
+      "fallbackText": "ನಿಮ್ಮ AI ಸಾಧನಕ್ಕೆ NocoDB ಮೂಲಕ ಸೈನ್ ಇನ್ ಮಾಡಲು ಆಗುತ್ತಿಲ್ಲವೇ?",
+      "fallbackLink": "ಬದಲಿಗೆ ಹಸ್ತಚಾಲಿತ ಸಂಪರ್ಕ ಬಳಸಿ",
+      "appsTitle": "ನಿಮ್ಮ AI ಅಪ್ಲಿಕೇಶನ್‌ಗಳು",
+      "appsHint": "ನಿಮಗೆ ಮಾತ್ರ ಗೋಚರ",
+      "app": "ಅಪ್ಲಿಕೇಶನ್",
+      "lastSignedInAt": "ಕೊನೆಯ ಸೈನ್ ಇನ್ {time}",
+      "lastUsed": "ಕೊನೆಯ ಬಳಕೆ",
+      "lastUsedAt": "ಕೊನೆಯ ಬಳಕೆ {time}",
+      "canDelete": "ಡೇಟಾ ಅಳಿಸಬಹುದು",
+      "toolsTitle": "ಸಾಧನಗಳು ಮತ್ತು ಅನುಮತಿಗಳು",
+      "neverMoreThanRole": "ಈ ಯೋಜನೆಯಲ್ಲಿ ನಿಮ್ಮ ಸ್ವಂತ ಪಾತ್ರಕ್ಕಿಂತ ({role}) ಎಂದಿಗೂ ಹೆಚ್ಚಿಲ್ಲ.",
+      "neverMoreThanAccess": "ಈ ಯೋಜನೆಗೆ ನಿಮ್ಮ ಸ್ವಂತ ಪ್ರವೇಶಕ್ಕಿಂತ ಎಂದಿಗೂ ಹೆಚ್ಚಿಲ್ಲ.",
+      "neverMoreThanOwnAccess": "ಅದು ಅಧಿಕೃತಗೊಂಡ ಕಡೆ ನಿಮ್ಮ ಸ್ವಂತ ಪ್ರವೇಶಕ್ಕಿಂತ ಎಂದಿಗೂ ಹೆಚ್ಚಿಲ್ಲ.",
+      "notEditable": "ಈ ಅಪ್ಲಿಕೇಶನ್ ಏನು ಮಾಡಬಹುದು ಎಂಬುದು ಸೈನ್ ಇನ್ ಆದಾಗಲೇ ನಿಗದಿಯಾಗಿದೆ ಮತ್ತು ಇಲ್ಲಿ ಬದಲಾಯಿಸಲಾಗದು. ಅದರ ಸಾಧನಗಳನ್ನು ಆರಿಸಲು ಸಂಪರ್ಕ ಕಡಿತಗೊಳಿಸಿ ಮತ್ತೆ ಸೈನ್ ಇನ್ ಮಾಡಿಸಿ.",
+      "disconnectBody": "ಈ ಅಪ್ಲಿಕೇಶನ್ ಅನ್ನು ಈ ಯೋಜನೆಯಿಂದ ಸಂಪರ್ಕ ಕಡಿತಗೊಳಿಸುತ್ತದೆ. ಮತ್ತೆ ಸಂಪರ್ಕಗೊಳ್ಳಲು ಅದು ಮತ್ತೊಮ್ಮೆ ಸೈನ್ ಇನ್ ಮಾಡಬೇಕು.",
+      "disconnectBodyWide": "ಈ ಯೋಜನೆಯಲ್ಲಿ ಮಾತ್ರವಲ್ಲದೆ, ಅಧಿಕೃತಗೊಂಡಿದ್ದ ಎಲ್ಲ ಕಡೆಯೂ ಈ ಅಪ್ಲಿಕೇಶನ್ ಸಂಪರ್ಕ ಕಡಿತಗೊಳಿಸುತ್ತದೆ. ಮತ್ತೆ ಸಂಪರ್ಕಗೊಳ್ಳಲು ಅದು ಮತ್ತೊಮ್ಮೆ ಸೈನ್ ಇನ್ ಮಾಡಬೇಕು.",
+      "disconnectBodyEverywhere": "ಅಧಿಕೃತಗೊಂಡಿದ್ದ ಎಲ್ಲ ಕಡೆಯೂ ಈ ಅಪ್ಲಿಕೇಶನ್ ಸಂಪರ್ಕ ಕಡಿತಗೊಳಿಸುತ್ತದೆ. ಮತ್ತೆ ಸಂಪರ್ಕಗೊಳ್ಳಲು ಅದು ಮತ್ತೊಮ್ಮೆ ಸೈನ್ ಇನ್ ಮಾಡಬೇಕು.",
+      "disconnectConfirm": "{client} ಸಂಪರ್ಕ ಕಡಿತಗೊಳಿಸುವುದೇ?",
+      "disconnectConfirmBody": "ಅದು ತಕ್ಷಣವೇ ಪ್ರವೇಶ ಕಳೆದುಕೊಳ್ಳುತ್ತದೆ ಮತ್ತು ಮತ್ತೆ ಸಂಪರ್ಕಗೊಳ್ಳಲು ಮತ್ತೊಮ್ಮೆ ಸೈನ್ ಇನ್ ಮಾಡಬೇಕು.",
+      "disconnected": "{client} ಸಂಪರ್ಕ ಕಡಿತಗೊಂಡಿದೆ",
+      "accessUpdated": "ಪ್ರವೇಶವನ್ನು ನವೀಕರಿಸಲಾಗಿದೆ",
+      "manualTitle": "ನಿಮ್ಮ ಹಸ್ತಚಾಲಿತ ಸಂಪರ್ಕಗಳು",
+      "manualBody": "NocoDB ಮೂಲಕ ಸೈನ್ ಇನ್ ಮಾಡಲಾಗದ ಸ್ಕ್ರಿಪ್ಟ್‌ಗಳು, CI ಕೆಲಸಗಳು ಮತ್ತು ಕ್ಲೈಂಟ್‌ಗಳಿಗಾಗಿ.",
+      "manualNote": "ಹಸ್ತಚಾಲಿತ ಸಂಪರ್ಕಗಳು ಸ್ಥಿರ API ಕೀ ಬಳಸುತ್ತವೆ. ನೀವು ಅದನ್ನು ರದ್ದುಗೊಳಿಸುವವರೆಗೆ ಅದು ಕೆಲಸ ಮಾಡುತ್ತದೆ, ಮತ್ತು ಆ ಸಂರಚನೆ ಇರುವ ಯಾರಿಗಾದರೂ ಅದೇ ಪ್ರವೇಶ ಸಿಗುತ್ತದೆ. ನಿಮ್ಮ ಸಾಧನ ಬೆಂಬಲಿಸಿದರೆ, {link}.",
+      "manualNoteLink": "ಬದಲಿಗೆ ಅದನ್ನು AI ಅಪ್ಲಿಕೇಶನ್ ಆಗಿ ಸಂಪರ್ಕಿಸಿ",
+      "field": {
+        "remoteServerUrl": "ರಿಮೋಟ್ MCP ಸರ್ವರ್ URL",
+        "authentication": "ದೃಢೀಕರಣ",
+        "url": "URL",
+        "transport": "ಸಾಗಣೆ"
+      },
+      "claude": {
+        "where": "Claude ನಲ್ಲಿ ಸೆಟ್ಟಿಂಗ್‌ಗಳು › ಕನೆಕ್ಟರ್‌ಗಳು ತೆರೆಯಿರಿ ಮತ್ತು ಕಸ್ಟಮ್ ಕನೆಕ್ಟರ್ ಸೇರಿಸಿ ಆಯ್ಕೆಮಾಡಿ. ಭರ್ತಿ ಮಾಡಿ:",
+        "auth": "NocoDB ಪಕ್ಕದಲ್ಲಿ ಸಂಪರ್ಕಿಸಿ ಆಯ್ಕೆಮಾಡಿ. NocoDB ಮೂಲಕ ಸೈನ್ ಇನ್ ಮಾಡಿ, Claude ಏನನ್ನು ಪ್ರವೇಶಿಸಬಹುದು ಎಂಬುದನ್ನು ಆರಿಸಿ, ನಂತರ ಅಧಿಕೃತಗೊಳಿಸಿ ಆಯ್ಕೆಮಾಡಿ."
+      },
+      "chatgpt": {
+        "where": "ChatGPT ನಲ್ಲಿ ಪ್ಲಗಿನ್‌ಗಳನ್ನು ತೆರೆಯಿರಿ, ಸೇರಿಸಿ ಆಯ್ಕೆಮಾಡಿ, ನಂತರ ಕಸ್ಟಮ್ MCP ಸರ್ವರ್ ಸೇರಿಸಿ ಆಯ್ಕೆಮಾಡಿ. ಭರ್ತಿ ಮಾಡಿ:",
+        "auth": "ರಚಿಸಿ ಆಯ್ಕೆಮಾಡಿ. ChatGPT ಹೊಸ ವಿಂಡೋದಲ್ಲಿ NocoDB ತೆರೆಯುತ್ತದೆ. ಸೈನ್ ಇನ್ ಮಾಡಿ, ಅದು ಏನನ್ನು ಪ್ರವೇಶಿಸಬಹುದು ಎಂಬುದನ್ನು ಆರಿಸಿ, ನಂತರ ಅಧಿಕೃತಗೊಳಿಸಿ ಆಯ್ಕೆಮಾಡಿ."
+      },
+      "claudeCode": {
+        "auth": "Claude Code ನಲ್ಲಿ /mcp ಚಲಾಯಿಸಿ, nocodb ಆರಿಸಿ ಮತ್ತು ದೃಢೀಕರಿಸಿ ಆಯ್ಕೆಮಾಡಿ. ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಅದು ಏನನ್ನು ಪ್ರವೇಶಿಸಬಹುದು ಎಂಬುದನ್ನು ಆರಿಸಿ, ನಂತರ ಅಧಿಕೃತಗೊಳಿಸಿ ಆಯ್ಕೆಮಾಡಿ."
+      },
+      "cursor": {
+        "where": "Cursor ನಲ್ಲಿ ಸೆಟ್ಟಿಂಗ್‌ಗಳು › MCP ತೆರೆಯಿರಿ ಮತ್ತು ಹೊಸ MCP ಸರ್ವರ್ ಸೇರಿಸಿ ಆಯ್ಕೆಮಾಡಿ. ಭರ್ತಿ ಮಾಡಿ:",
+        "auth": "MCP ಪಟ್ಟಿಯಲ್ಲಿ nocodb ಪಕ್ಕದಲ್ಲಿ ಸಂಪರ್ಕಿಸಿ ಆಯ್ಕೆಮಾಡಿ. ಬ್ರೌಸರ್‌ನಲ್ಲಿ NocoDB ಮೂಲಕ ಸೈನ್ ಇನ್ ಮಾಡಿ ಮತ್ತು ಅಧಿಕೃತಗೊಳಿಸಿ ಆಯ್ಕೆಮಾಡಿ."
+      },
+      "codex": {
+        "auth": "ಲಾಗಿನ್ ಆದೇಶವನ್ನು ಚಲಾಯಿಸಿ, ಬ್ರೌಸರ್‌ನಲ್ಲಿ NocoDB ಮೂಲಕ ಸೈನ್ ಇನ್ ಮಾಡಿ ಮತ್ತು ಅಧಿಕೃತಗೊಳಿಸಿ ಆಯ್ಕೆಮಾಡಿ."
+      },
+      "windsurf": {
+        "where": "Windsurf ನಲ್ಲಿ ಸೆಟ್ಟಿಂಗ್‌ಗಳು › Cascade › MCP ಸರ್ವರ್‌ಗಳು ತೆರೆಯಿರಿ ಮತ್ತು ಕಸ್ಟಮ್ ಸರ್ವರ್ ಸೇರಿಸಿ ಆಯ್ಕೆಮಾಡಿ. ಭರ್ತಿ ಮಾಡಿ:",
+        "auth": "nocodb ಪಕ್ಕದಲ್ಲಿ ಸಂಪರ್ಕಿಸಿ ಆಯ್ಕೆಮಾಡಿ. ಬ್ರೌಸರ್‌ನಲ್ಲಿ NocoDB ಮೂಲಕ ಸೈನ್ ಇನ್ ಮಾಡಿ ಮತ್ತು ಅಧಿಕೃತಗೊಳಿಸಿ ಆಯ್ಕೆಮಾಡಿ."
+      },
+      "other": {
+        "where": "ನಿಮ್ಮ ಕ್ಲೈಂಟ್‌ನಲ್ಲಿ ಈ ವಿವರಗಳೊಂದಿಗೆ ರಿಮೋಟ್ MCP ಸರ್ವರ್ ಸೇರಿಸಿ:",
+        "auth": "ನಿಮ್ಮ ಕ್ಲೈಂಟ್‌ನಿಂದ ಸಂಪರ್ಕವನ್ನು ಪ್ರಾರಂಭಿಸಿ. ಬ್ರೌಸರ್‌ನಲ್ಲಿ NocoDB ತೆರೆಯುತ್ತದೆ, ಅಲ್ಲಿ ನೀವು ಸೈನ್ ಇನ್ ಮಾಡಿ, ಕ್ಲೈಂಟ್ ಏನನ್ನು ಪ್ರವೇಶಿಸಬಹುದು ಎಂಬುದನ್ನು ಆರಿಸಿ ಅಧಿಕೃತಗೊಳಿಸಿ ಆಯ್ಕೆಮಾಡಿ."
+      }
     }
   }
 }

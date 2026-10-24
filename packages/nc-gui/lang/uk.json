@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "Оновіть тариф, щоб вимагати вхід у формах",
     "upgradeToUseFormRequireSigninSubtitle": "Перейдіть на тариф {plan}, щоб респонденти входили в обліковий запис перед надсиланням форми.",
     "upgradeToUseSso": "Оновіть, аби використовувати SSO",
-    "upgradeToUseSsoSubtitle": "Оновіть до плану {plan}, щоб налаштувати єдиний вхід (SSO) і дозволити вашій команді входити через вашого постачальника ідентифікації.",
-    "upgradeToUseAppFactory": "Перейдіть на платний тариф, щоб користуватися App Factory",
-    "upgradeToUseAppFactorySubtitle": "Перейдіть на тариф {plan}, щоб запускати агентів-розробників у підключених репозиторіях."
+    "upgradeToUseSsoSubtitle": "Оновіть до плану {plan}, щоб налаштувати єдиний вхід (SSO) і дозволити вашій команді входити через вашого постачальника ідентифікації."
   },
   "general": {
     "scrollToBottom": "Прокрутити до кінця",
@@ -767,7 +765,8 @@
     "uploading": "Завантаження",
     "countAll": "Порахувати всі",
     "factory": "Фабрика",
-    "config": "Конфігурація"
+    "config": "Конфігурація",
+    "dismiss": "Закрити"
   },
   "objects": {
     "script": "Скрипт",
@@ -2201,7 +2200,7 @@
       "webhooks": "Вебгаки",
       "webhooksDesc": "Управління тригерами вебхуків і журналами",
       "base": "Проєкт",
-      "baseDesc": "Налаштування проєкту, джерела та завдання",
+      "baseDesc": "Налаштування проєкту, джерела, завдання, документи та коментарі до них",
       "users": "Спільноти",
       "usersDesc": "Учасники проєкту, учасники робочої області та запрошення",
       "grantedCount": "Надано {count} з {total}",
@@ -3105,7 +3104,6 @@
       "syncInfo": "Отримуйте дані із зовнішнього застосунку за розкладом. В один бік.",
       "automations": "Автоматизації",
       "aiSkills": "ШІ-навички",
-      "mcpServer": "Сервер MCP",
       "auditLog": "Журнал аудиту",
       "trashRetention": "Зберігання у кошику",
       "snapshots": "Snapshots",
@@ -3136,7 +3134,7 @@
         "members": "Хто може відкрити цей проєкт і що в ньому робити.",
         "permissions": "Хто може переглядати або редагувати кожну таблицю, поле та документ.",
         "apiTokens": "Токени, що дозволяють зовнішнім застосункам читати та записувати дані цього проєкту.",
-        "mcp": "Підключайте ШІ-клієнти до цього проєкту через MCP.",
+        "mcp": "Дозвольте своїм ШІ-інструментам працювати з цим проєктом під вашим власним доступом.",
         "integrations": "Підключені облікові записи, які може використовувати цей проєкт.",
         "automations": "Робочі процеси, які запускає тригер.",
         "auditLog": "Кожна зміна в цьому проєкті та хто її зробив.",
@@ -3155,7 +3153,8 @@
       "upgradeDescDateDependency": "Автоматично зсуває залежні дати під час переміщення запису.",
       "concernProject": "Проєкт",
       "concernApps": "Apps",
-      "concernTabs": "Розділи налаштувань"
+      "concernTabs": "Розділи налаштувань",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "Категорії",
     "blockquote": "Цитата",
@@ -5319,7 +5318,6 @@
     "factoryEnvironment": "Середовище",
     "factoryCommitOrPush": "Commit або push",
     "factoryCompareBranch": "Порівняти гілку",
-    "factoryAddTab": "Відкрити панель",
     "factoryCommitPushPrompt": "Закомить зміни та запуш гілку.",
     "chatYesterday": "Вчора",
     "chatCopyMessage": "Копіювати повідомлення",
@@ -5425,7 +5423,64 @@
     "duplicateField": "Дублювати поле",
     "extensionError": "Помилка розширення",
     "clearData": "Очистити дані",
-    "copyProject": "Копіювати проєкт"
+    "copyProject": "Копіювати проєкт",
+    "factoryBootPartCpu": "Процесор",
+    "factoryBootPartMemory": "Пам'ять",
+    "factoryBootPartNetwork": "Мережа",
+    "factoryBootPartRepo": "Репозиторій",
+    "factoryBootPartServices": "Служби",
+    "factoryMachines": "Машини",
+    "factoryMachinesHint": "Середовище, з якого починаються ваші сеанси. Нові сеанси використовують типову машину; іншу можна вибрати в редакторі.",
+    "factoryMachinesCreatorOnly": "Створювати, змінювати та збирати машини можуть лише супровідники.",
+    "factoryMachineSearchPanes": "Пошук",
+    "factoryMachineStockTag": "Вбудовано",
+    "factoryMachineSetDefault": "Зробити типовою",
+    "factoryMachineUpgrade": "Оновити",
+    "factoryMachineUpgradingShort": "Оновлення…",
+    "factoryMachineUpdateAvailable": "Доступне оновлення",
+    "factoryMachineUpgradeHint": "Зібрано на старішому базовому образі. Оновлення перезбирає ті самі пакети на поточному образі.",
+    "factoryMachineUpgradeBanner": "Зібрано на старішому базовому образі, тому нові сеанси не можуть з неї запускатися. Оновіть, щоб перезібрати ті самі пакети на поточному образі.",
+    "factoryMachineStock": "Базова машина",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep і Chrome. На ній будується кожна машина, і сеанси без машини виконуються саме на ній.",
+    "factoryMachinesEmptyTitle": "Машин ще немає",
+    "factoryMachinesEmptyBody": "Сеанси виконуються на базовій машині. Створіть машину із середовищами виконання, базами даних та інструментами, які потрібні цьому репозиторію, і кожен сеанс починатиметься з ними.",
+    "factoryMachinePickTitle": "Запустити сеанс на",
+    "factoryMachinePip": "Глобальний pip",
+    "factoryMachineReady": "Готово",
+    "factoryMachineStepBase": "Базова стільниця Factory",
+    "factoryMachineStepBaseDetail": "Ubuntu 22.04 зі стільницею, git та GitHub CLI",
+    "factoryMachineStepSave": "Зберегти машину",
+    "factoryMachineStepSaveDetail": "Знімок для сеансів цього проєкту",
+    "factoryMachineServiceStarts": "Запускається з кожним сеансом",
+    "factoryMachineServicesHint": "Передається агенту у вигляді змінних середовища, тож тести та сервери розробки підключаються без налаштування.",
+    "factoryMachineRebuild": "Перезібрати з оновленнями",
+    "factoryMachineUseVersion": "Використати цю версію",
+    "factoryMachineReused": "Повторно використано ідентичну збірку",
+    "factoryMachineSetUp": "Налаштувати машину",
+    "factoryMachineSuggestUpdate": "Додати до {machine} для майбутніх сеансів?",
+    "factoryMachineSuggestNote": "Перезбирається у фоновому режимі. Цей сеанс продовжує працювати як є.",
+    "factoryMachineSuggestCreatorOnly": "Змінювати машини можуть лише супровідники. Попросіть когось із них застосувати це.",
+    "factoryMachineSuggestAccept": "Додати та перезібрати",
+    "factoryMachineSuggestAdded": "Збирається нова версія машини {machine}. Нові сеанси використовуватимуть її, щойно вона буде готова.",
+    "factoryMachineSuggestDeclined": "Не застосовано. Машину можна змінити будь-коли в розділі Машини.",
+    "factoryMachineSuggestAlreadyIn": "У {machine} це вже є.",
+    "factoryMachineSuggestReady": "{machine} v{version} готова. Нові сеанси запускатимуться на ній.",
+    "factoryMachineSuggestFailed": "Не вдалося зібрати нову версію машини {machine}.",
+    "factoryMachineSuggestCancelled": "Нову версію машини {machine} скасовано.",
+    "factoryMachineSuggestedFix": "Пропоноване виправлення",
+    "factoryMachineSameAsBefore": "Той самий вибір, перезібрано",
+    "factoryMachineTabOverview": "Огляд",
+    "factoryMachineUnbuiltTo": "Чернетка {next}: {count} зміна відносно {version}, не зібрано | Чернетка {next}: {count} змін відносно {version}, не зібрано",
+    "factoryMachineReview": "Продовжити редагування",
+    "factoryMachineTabVersions": "Версії",
+    "factoryMachineServiceBadge": "Служба",
+    "factoryMachineUndoChange": "Скасувати цю зміну",
+    "factoryMachineStepOf": "{step}, крок {n} з {total}",
+    "factoryMachineStillUsing": "Нові сеанси й надалі використовують {version}.",
+    "factoryMachineReusedLog": "Повторно використано ідентичну попередню збірку, тому збирати не було чого.",
+    "dontExpand": "Не розгортати",
+    "createSchema": "Створити схему",
+    "configureSources": "Налаштувати джерела"
   },
   "activity": {
     "useTemplate": "Використовувати шаблон",
@@ -7773,6 +7828,81 @@
       "tryBody": "Почніть новий чат і запитайте «List my NocoDB tools».",
       "tokenText": "Ваш інструмент приймає лише токен?",
       "tokenButton": "Створити токен MCP"
+    },
+    "pane": {
+      "tabApps": "ШІ-застосунки",
+      "tabManual": "Ручні підключення",
+      "connectTitle": "Підключити ШІ-застосунок",
+      "recommended": "Рекомендовано",
+      "connectBody": "Увійдіть за допомогою свого облікового запису NocoDB. Ви самі точно визначаєте, що він зможе бачити та змінювати.",
+      "otherToolUrl": "Користуєтеся іншим ШІ-інструментом? Додайте",
+      "otherTool": "Інший інструмент",
+      "copyValue": "Копіювати {label}",
+      "addTo": "Додати NocoDB до {client}",
+      "signInTitle": "Увійти через NocoDB та авторизувати",
+      "waiting": "Очікування входу {client}…",
+      "waitingHint": "Сторінка оновиться сама, щойно ви авторизуєте.",
+      "connectedTitle": "{client} підключено",
+      "connectedBody": "Тепер він відображається серед ваших ШІ-застосунків.",
+      "connectedElsewhere": "Його авторизовано для інших проєктів, тому тут він не показується.",
+      "manageAccess": "Керувати доступом",
+      "fallbackText": "Ваш ШІ-інструмент не може ввійти через NocoDB?",
+      "fallbackLink": "Використати натомість ручне підключення",
+      "appsTitle": "Ваші ШІ-застосунки",
+      "appsHint": "Видно лише вам",
+      "app": "Застосунок",
+      "lastSignedInAt": "Останній вхід {time}",
+      "lastUsed": "Останнє використання",
+      "lastUsedAt": "Останнє використання {time}",
+      "canDelete": "Може видаляти дані",
+      "toolsTitle": "Інструменти та дозволи",
+      "neverMoreThanRole": "Ніколи більше за вашу власну роль у цьому проєкті ({role}).",
+      "neverMoreThanAccess": "Ніколи більше за ваш власний доступ до цього проєкту.",
+      "neverMoreThanOwnAccess": "Ніколи більше за ваш власний доступ там, де його було авторизовано.",
+      "notEditable": "Можливості цього застосунку було визначено під час входу, і тут їх змінити не можна. Від'єднайте його та виконайте вхід заново, щоб вибрати його інструменти.",
+      "disconnectBody": "Від'єднує цей застосунок від цього проєкту. Щоб підключитися знову, йому потрібно буде ввійти ще раз.",
+      "disconnectBodyWide": "Від'єднує цей застосунок скрізь, де його було авторизовано, а не лише в цьому проєкті. Щоб підключитися знову, йому потрібно буде ввійти ще раз.",
+      "disconnectBodyEverywhere": "Від'єднує цей застосунок скрізь, де його було авторизовано. Щоб підключитися знову, йому потрібно буде ввійти ще раз.",
+      "disconnectConfirm": "Від'єднати {client}?",
+      "disconnectConfirmBody": "Він одразу втрачає доступ, і щоб підключитися знову, йому потрібно буде ввійти ще раз.",
+      "disconnected": "{client} від'єднано",
+      "accessUpdated": "Доступ оновлено",
+      "manualTitle": "Ваші ручні підключення",
+      "manualBody": "Для скриптів, завдань CI та клієнтів, які не можуть увійти через NocoDB.",
+      "manualNote": "Ручні підключення використовують статичний ключ API. Він діє, доки ви його не відкличете, і кожен, хто має цю конфігурацію, отримує такий самий доступ. Якщо ваш інструмент це підтримує, {link}.",
+      "manualNoteLink": "підключіть його як ШІ-застосунок",
+      "field": {
+        "remoteServerUrl": "URL віддаленого MCP-сервера",
+        "authentication": "Автентифікація",
+        "url": "URL",
+        "transport": "Транспорт"
+      },
+      "claude": {
+        "where": "У Claude відкрийте Налаштування › Конектори та виберіть Додати власний конектор. Заповніть:",
+        "auth": "Виберіть Підключити поруч із NocoDB. Увійдіть через NocoDB, виберіть, до чого матиме доступ Claude, а потім виберіть Авторизувати."
+      },
+      "chatgpt": {
+        "where": "У ChatGPT відкрийте Plugins, виберіть Додати, а потім Додати власний MCP-сервер. Заповніть:",
+        "auth": "Виберіть Створити. ChatGPT відкриє NocoDB у новому вікні. Увійдіть, виберіть, до чого буде доступ, а потім виберіть Авторизувати."
+      },
+      "claudeCode": {
+        "auth": "У Claude Code виконайте /mcp, виберіть nocodb, а потім Автентифікація. У браузері виберіть, до чого буде доступ, а потім виберіть Авторизувати."
+      },
+      "cursor": {
+        "where": "У Cursor відкрийте Налаштування › MCP та виберіть Додати новий MCP-сервер. Заповніть:",
+        "auth": "Виберіть Підключити поруч із nocodb у списку MCP. Увійдіть через NocoDB у браузері та виберіть Авторизувати."
+      },
+      "codex": {
+        "auth": "Виконайте команду входу, увійдіть через NocoDB у браузері та виберіть Авторизувати."
+      },
+      "windsurf": {
+        "where": "У Windsurf відкрийте Налаштування › Cascade › MCP-сервери та виберіть Додати власний сервер. Заповніть:",
+        "auth": "Виберіть Підключити поруч із nocodb. Увійдіть через NocoDB у браузері та виберіть Авторизувати."
+      },
+      "other": {
+        "where": "Додайте у своєму клієнті віддалений MCP-сервер із цими даними:",
+        "auth": "Розпочніть підключення зі свого клієнта. У браузері відкриється NocoDB, де ви ввійдете, виберете, до чого матиме доступ клієнт, і виберете Авторизувати."
+      }
     }
   }
 }

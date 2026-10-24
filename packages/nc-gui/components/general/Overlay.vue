@@ -11,6 +11,8 @@ interface Props {
   teleportDisabled?: TeleportProps['disabled']
   transition?: boolean
   zIndex?: number
+  /** set false when the content handles Escape itself */
+  closeOnEscape?: boolean
 }
 
 interface Emits {
@@ -21,13 +23,22 @@ interface Emits {
   (event: 'open'): void
 }
 
-const { transition = true, teleportDisabled = false, inline = false, target, zIndex = 100, ...rest } = defineProps<Props>()
+const {
+  transition = true,
+  teleportDisabled = false,
+  inline = false,
+  target,
+  zIndex = 100,
+  closeOnEscape = true,
+  ...rest
+} = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
 const vModel = useVModel(rest, 'modelValue', emits)
 
 onKeyDown('Escape', () => {
+  if (!closeOnEscape) return
   vModel.value = false
 })
 

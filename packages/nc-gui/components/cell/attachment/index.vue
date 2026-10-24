@@ -230,7 +230,8 @@ watch(isNewAttachmentModalOpen, (newVal, oldVal) => {
 })
 
 watch(selectedFile, (newVal, oldVal) => {
-  if (oldVal && !newVal) canvasSelectCell?.trigger()
+  // Opened from the attachment modal: it reopens and re-selects the cell when it closes.
+  if (oldVal && !newVal && !modalRendered.value) canvasSelectCell?.trigger()
 })
 
 const openAttachmentModal = (e: Event) => {

@@ -18,7 +18,10 @@ const form = reactive({
   title: props.title,
 })
 
+let isRenamed = false
+
 function renameFile(fileName: string) {
+  isRenamed = true
   visible.value = false
   emit('rename', fileName)
 }
@@ -34,10 +37,14 @@ const rules = {
 
 function onCancel() {
   visible.value = false
-  emit('cancel')
 }
 
 onKeyStroke('Escape', onCancel)
+
+// The modal also closes itself (Escape on its wrapper, mask click) without calling onCancel.
+watch(visible, (isVisible) => {
+  if (!isVisible && !isRenamed) emit('cancel')
+})
 
 onMounted(() => {
   inputEl.value.select()

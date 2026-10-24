@@ -381,6 +381,44 @@ export function collectFilterColumnIds(node: unknown, out = new Set<string>()): 
   return out
 }
 
+const WIDGET_COLUMN_ID_KEYS = new Set(['column_id', 'fieldId', 'groupBy', 'fk_column_id', 'fk_value_col_id', 'fk_link_col_id'])
+
+/** Every column a dashboard widget config or filter tree reads (metric, axes, group-by, filters), at any depth. */
+export function collectWidgetColumnIds(node: unknown, out = new Set<string>()): Set<string> {
+  if (Array.isArray(node)) {
+    for (const child of node) collectWidgetColumnIds(child, out)
+  } else if (node && typeof node === 'object') {
+    for (const [key, value] of Object.entries(node)) {
+      if (WIDGET_COLUMN_ID_KEYS.has(key) && typeof value === 'string') out.add(value)
+      else collectWidgetColumnIds(value, out)
+    }
+  }
+  return out
+}
+
+/**
+ * Whether a peer's data event can change an aggregate widget reading `columnIds`. A column the
+ * meta lacks can't be matched by title, and under RLS a row can enter the viewer's scope through
+ * a field the widget doesn't read: both refetch on every event, like a missing meta.
+ */
+export function isWidgetDataAffected({
+  data,
+  columnIds,
+  columns,
+  isRlsEnabled,
+}: {
+  data: DataPayload
+  columnIds: Set<string>
+  columns?: Array<{ id?: string | null; title?: string | null }>
+  isRlsEnabled?: boolean
+}): boolean {
+  if (data.action === 'reorder') return false
+  if (!columns || isRlsEnabled) return true
+  const titles = new Set(columns.flatMap((col) => (col.id && col.title && columnIds.has(col.id) ? [col.title] : [])))
+  if (titles.size < columnIds.size) return true
+  return isFilteredCountAffected(data, titles)
+}
+
 /**
  * Whether a peer's data event can change counts taken under filters over `filterTitles`: a
  * reorder can't, nor an update whose changed fields include none of them. A filter field the

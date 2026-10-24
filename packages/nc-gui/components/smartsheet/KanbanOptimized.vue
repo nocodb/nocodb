@@ -70,6 +70,7 @@ const {
   loadKanbanDataForStacks,
   useWindowedKanbanLoad,
   loadMoreKanbanData,
+  refreshLoadedStacksInPlace,
   kanbanMetaData,
   formattedData,
   updateOrSaveRow,
@@ -493,7 +494,10 @@ const stackCardSlices = shallowRef<Map<string | null, { start: number; end: numb
 // Version counter for slice changes - more efficient than hash calculation
 const slicesVersion = ref(0)
 
-const reloadViewDataListener = withLoading(async () => {
+const reloadViewDataListener = withLoading(async (params?: { inPlace?: boolean }) => {
+  // In place: refetch the loaded stacks over their cards, so the board never empties
+  if (params?.inPlace) return refreshLoadedStacksInPlace()
+
   // Reset so a filter/search/sort change refetches the current window fresh (and other stacks reload
   // as they scroll back into view).
   await loadVisibleStacks(true)

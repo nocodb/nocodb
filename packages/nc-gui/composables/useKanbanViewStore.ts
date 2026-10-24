@@ -982,18 +982,28 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       return rowMatchesSearchAndUrl(data.payload)
     }
 
-    // Refetches the loaded stacks (cards and counts) without clearing them
-    const refreshLoadedStacks = useDebounceFn(async () => {
+    // Refetches the loaded stacks (cards and counts) over what's on screen, keeping scrolled-in cards
+    async function refreshLoadedStacksInPlace() {
       if (!useWindowedKanbanLoad.value) return loadKanbanData()
 
-      const titles = [...loadedStacks.value]
-      titles.forEach((title) => loadedStacks.value.delete(title))
+      const loadedCounts = new Map([...loadedStacks.value].map((title) => [title, formattedData.value.get(title)?.length ?? 0]))
+      loadedCounts.forEach((_, title) => loadedStacks.value.delete(title))
       try {
-        await loadKanbanDataForStacks(titles)
+        await loadKanbanDataForStacks([...loadedCounts.keys()])
+        await Promise.all(
+          [...loadedCounts].map(([title, loadedCount]) => {
+            const reloadedCount = formattedData.value.get(title)?.length ?? 0
+            return loadedCount > reloadedCount
+              ? loadMoreKanbanData(title, { offset: reloadedCount, limit: loadedCount - reloadedCount })
+              : undefined
+          }),
+        )
       } catch (e) {
         console.error('Failed to refresh kanban stacks', e)
       }
-    }, 500)
+    }
+
+    const refreshLoadedStacks = useDebounceFn(refreshLoadedStacksInPlace, 500)
 
     const getStackKey = (row: Record<string, any>): string | null =>
       typeof row?.[groupingField.value] === 'string' && row[groupingField.value].length ? row[groupingField.value] : null
@@ -1272,6 +1282,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       useWindowedKanbanLoad,
       loadedStacks,
       loadMoreKanbanData,
+      refreshLoadedStacksInPlace,
       updateKanbanMeta,
       kanbanMetaData,
       formattedData,

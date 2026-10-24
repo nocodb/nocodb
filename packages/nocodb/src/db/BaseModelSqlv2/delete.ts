@@ -17,6 +17,7 @@ import {
   _wherePk,
   deletedColValue,
   getCompositePkValue,
+  linkedRecordColumnIds,
   shouldCascadeLinkCleanup,
 } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
@@ -737,7 +738,10 @@ export class BaseModelDelete {
             updatedColIds: [entry.colId].filter(Boolean),
             timestamp: operationNow,
           });
-          await entry.baseModel.broadcastLinkUpdates(entry.ids);
+          await entry.baseModel.broadcastLinkUpdates(
+            entry.ids,
+            linkedRecordColumnIds(entry, this.baseModel.model.id),
+          );
         } catch (e) {
           // Don't fail the delete if linked record updates fail
           this.logger.warn(

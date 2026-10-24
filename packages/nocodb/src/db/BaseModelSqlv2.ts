@@ -125,6 +125,7 @@ import {
   haveFormulaColumn,
   isDataAuditEnabled as isDataAuditEnabledFn,
   isPrimitiveType,
+  linkedRecordColumnIds,
   nanoidv2,
   populatePk,
   shouldCascadeLinkCleanup,
@@ -2647,7 +2648,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             cookie,
             updatedColIds: [entry.colId].filter(Boolean),
           });
-          await entry.baseModel.broadcastLinkUpdates(entry.ids);
+          await entry.baseModel.broadcastLinkUpdates(
+            entry.ids,
+            linkedRecordColumnIds(entry, this.model.id),
+          );
         } catch (e) {
           logger.error(e?.message, e?.stack);
         }
@@ -5547,7 +5551,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               cookie,
               updatedColIds: [entry.colId].filter(Boolean),
             });
-            await entry.baseModel.broadcastLinkUpdates(entry.ids);
+            await entry.baseModel.broadcastLinkUpdates(
+              entry.ids,
+              linkedRecordColumnIds(entry, this.model.id),
+            );
           } catch (e) {
             logger.error(e?.message, e?.stack);
           }
@@ -10577,7 +10584,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               cookie,
               updatedColIds: [inverseLinkCol?.id].filter(Boolean),
             });
-            await parentBaseModel.broadcastLinkUpdates(parentIds as string[]);
+            await parentBaseModel.broadcastLinkUpdates(
+              parentIds as string[],
+              linkedRecordColumnIds(
+                { model: parentTable, colId: inverseLinkCol?.id },
+                this.model.id,
+              ),
+            );
           }
         }
 
@@ -10635,7 +10648,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               cookie,
               updatedColIds: [inverseLinkCol?.id].filter(Boolean),
             });
-            await childBaseModel.broadcastLinkUpdates(linkedIds);
+            await childBaseModel.broadcastLinkUpdates(
+              linkedIds,
+              linkedRecordColumnIds(
+                { model: childTable, colId: inverseLinkCol?.id },
+                this.model.id,
+              ),
+            );
           }
         }
 
@@ -10687,7 +10706,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               cookie,
               updatedColIds: [inverseLinkCol?.id].filter(Boolean),
             });
-            await parentBaseModel.broadcastLinkUpdates(linkedIds);
+            await parentBaseModel.broadcastLinkUpdates(
+              linkedIds,
+              linkedRecordColumnIds(
+                { model: parentTable, colId: inverseLinkCol?.id },
+                this.model.id,
+              ),
+            );
           }
         }
       } catch (e) {

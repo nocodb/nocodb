@@ -13,7 +13,11 @@ import type { LinkToAnotherRecordColumn } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Knex } from 'knex';
 import type { Column } from '~/models';
-import { deletedColValue, displayValueMapKey } from '~/helpers/dbHelpers';
+import {
+  deletedColValue,
+  displayValueMapKey,
+  touchedLinkColumnIds,
+} from '~/helpers/dbHelpers';
 import { Model } from '~/models';
 import { RelationUpdateWebhookHandler } from '~/db/relation-update-webhook-handler';
 import { NcError } from '~/helpers/catchError';
@@ -575,6 +579,7 @@ export class RelationManager {
 
     const { vChildCol, vParentCol, vTn, column, req, refTableLinkColumnId } =
       params;
+    const linkColIds = touchedLinkColumnIds(column.id, refTableLinkColumnId);
 
     const allAffectedParentIds: any[] = [];
     const allAffectedChildIds: any[] = [];
@@ -757,8 +762,8 @@ export class RelationManager {
       updatedColIds: [column.id],
     });
 
-    await parentBaseModel.broadcastLinkUpdates(allParentRowIds);
-    await childBaseModel.broadcastLinkUpdates(allChildRowIds);
+    await parentBaseModel.broadcastLinkUpdates(allParentRowIds, linkColIds);
+    await childBaseModel.broadcastLinkUpdates(allChildRowIds, linkColIds);
   }
 
   async addChild(params: {
@@ -795,6 +800,7 @@ export class RelationManager {
             : childTable,
       })
     )?.id;
+    const linkColIds = touchedLinkColumnIds(column.id, refTableLinkColumnId);
 
     const isMMLike = isMMOrMMLike(this.relationContext.relationColumn);
 
@@ -894,7 +900,7 @@ export class RelationManager {
               updatedColIds: [refTableLinkColumnId],
             });
 
-            await parentBaseModel.broadcastLinkUpdates([parentId]);
+            await parentBaseModel.broadcastLinkUpdates([parentId], linkColIds);
 
             await childBaseModel.updateLastModified({
               baseModel: childBaseModel,
@@ -904,7 +910,7 @@ export class RelationManager {
               updatedColIds: [column.id],
             });
 
-            await childBaseModel.broadcastLinkUpdates([childId]);
+            await childBaseModel.broadcastLinkUpdates([childId], linkColIds);
           }
         }
         break;
@@ -993,7 +999,7 @@ export class RelationManager {
             updatedColIds: [refTableLinkColumnId],
           });
 
-          await childBaseModel.broadcastLinkUpdates([childId]);
+          await childBaseModel.broadcastLinkUpdates([childId], linkColIds);
 
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
@@ -1003,7 +1009,7 @@ export class RelationManager {
             updatedColIds: [column.id],
           });
 
-          await parentBaseModel.broadcastLinkUpdates([parentId]);
+          await parentBaseModel.broadcastLinkUpdates([parentId], linkColIds);
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -1098,7 +1104,7 @@ export class RelationManager {
             updatedColIds: [column.id],
           });
 
-          await childBaseModel.broadcastLinkUpdates([childId]);
+          await childBaseModel.broadcastLinkUpdates([childId], linkColIds);
 
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
@@ -1108,7 +1114,7 @@ export class RelationManager {
             updatedColIds: [refTableLinkColumnId],
           });
 
-          await parentBaseModel.broadcastLinkUpdates([parentId]);
+          await parentBaseModel.broadcastLinkUpdates([parentId], linkColIds);
         }
         break;
       case RelationTypes.ONE_TO_ONE:
@@ -1287,7 +1293,7 @@ export class RelationManager {
             updatedColIds: [column.meta?.bt ? column.id : refTableLinkColumnId],
           });
 
-          await childBaseModel.broadcastLinkUpdates([childId]);
+          await childBaseModel.broadcastLinkUpdates([childId], linkColIds);
 
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
@@ -1297,7 +1303,7 @@ export class RelationManager {
             updatedColIds: [column.meta?.bt ? refTableLinkColumnId : column.id],
           });
 
-          await parentBaseModel.broadcastLinkUpdates([parentId]);
+          await parentBaseModel.broadcastLinkUpdates([parentId], linkColIds);
         }
         break;
     }
@@ -1350,6 +1356,7 @@ export class RelationManager {
         referencedTable: parentTable,
       })
     )?.id;
+    const linkColIds = touchedLinkColumnIds(column.id, refTableLinkColumnId);
 
     const webhookHandler = await RelationUpdateWebhookHandler.beginUpdate(
       {
@@ -1408,7 +1415,7 @@ export class RelationManager {
             updatedColIds: [refTableLinkColumnId],
           });
 
-          await parentBaseModel.broadcastLinkUpdates([parentId]);
+          await parentBaseModel.broadcastLinkUpdates([parentId], linkColIds);
 
           await childBaseModel.updateLastModified({
             baseModel: childBaseModel,
@@ -1418,7 +1425,7 @@ export class RelationManager {
             updatedColIds: [colOptions.fk_column_id],
           });
 
-          await childBaseModel.broadcastLinkUpdates([childId]);
+          await childBaseModel.broadcastLinkUpdates([childId], linkColIds);
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -1445,7 +1452,7 @@ export class RelationManager {
             updatedColIds: [colOptions.fk_column_id],
           });
 
-          await childBaseModel.broadcastLinkUpdates([childId]);
+          await childBaseModel.broadcastLinkUpdates([childId], linkColIds);
 
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
@@ -1455,7 +1462,7 @@ export class RelationManager {
             updatedColIds: [refTableLinkColumnId],
           });
 
-          await parentBaseModel.broadcastLinkUpdates([parentId]);
+          await parentBaseModel.broadcastLinkUpdates([parentId], linkColIds);
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -1483,7 +1490,7 @@ export class RelationManager {
             updatedColIds: [column.id],
           });
 
-          await childBaseModel.broadcastLinkUpdates([childId]);
+          await childBaseModel.broadcastLinkUpdates([childId], linkColIds);
 
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
@@ -1493,7 +1500,7 @@ export class RelationManager {
             updatedColIds: [refTableLinkColumnId],
           });
 
-          await parentBaseModel.broadcastLinkUpdates([parentId]);
+          await parentBaseModel.broadcastLinkUpdates([parentId], linkColIds);
         }
         break;
       case RelationTypes.ONE_TO_ONE:
@@ -1515,7 +1522,7 @@ export class RelationManager {
             updatedColIds: [colOptions.fk_column_id],
           });
 
-          await childBaseModel.broadcastLinkUpdates([childId]);
+          await childBaseModel.broadcastLinkUpdates([childId], linkColIds);
 
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
@@ -1524,7 +1531,7 @@ export class RelationManager {
             cookie: req,
             updatedColIds: [refTableLinkColumnId],
           });
-          await parentBaseModel.broadcastLinkUpdates([parentId]);
+          await parentBaseModel.broadcastLinkUpdates([parentId], linkColIds);
         }
         break;
     }

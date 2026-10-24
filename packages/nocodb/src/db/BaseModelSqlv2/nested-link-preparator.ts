@@ -8,6 +8,7 @@ import {
 import type { Knex } from 'knex';
 import type { DisplacedRecord } from '~/command-registry/types';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import { extractCorrespondingLinkColumn } from '~/db/BaseModelSqlv2/add-remove-links';
 import {
   dataWrapper,
   extractIdPropIfObjectOrReturn,
@@ -52,10 +53,14 @@ export const broadcastNestedLinkRefRows = async (
   // so a shared parent is read and broadcast once.
   const idsByRefModel = new Map<
     string,
-    { refBaseModel: IBaseModelSqlV2; ids: Set<string> }
+    {
+      refBaseModel: IBaseModelSqlV2;
+      ids: Set<string>;
+      linkColIds: Set<string> | null;
+    }
   >();
 
-  for (const { refBaseModel, nestedData } of entries) {
+  for (const { refBaseModel, nestedData, col, model } of entries) {
     const ids = (Array.isArray(nestedData) ? nestedData : [nestedData])
       .map((d) =>
         d && typeof d === 'object' ? refBaseModel.extractPksValues(d, true) : d,
@@ -68,14 +73,29 @@ export const broadcastNestedLinkRefRows = async (
     const refModelId = refBaseModel.model.id;
     let group = idsByRefModel.get(refModelId);
     if (!group) {
-      group = { refBaseModel, ids: new Set() };
+      group = { refBaseModel, ids: new Set(), linkColIds: new Set() };
       idsByRefModel.set(refModelId, group);
     }
     for (const id of ids) group.ids.add(id);
+
+    // The ref rows changed through the mirror of `col`; unresolved counts every link.
+    if (group.linkColIds) {
+      const mirrorId =
+        model.id !== refModelId
+          ? (
+              await extractCorrespondingLinkColumn(refBaseModel.context, {
+                ltarColumn: col,
+                referencedTable: refBaseModel.model,
+              }).catch(() => null)
+            )?.id
+          : undefined;
+      if (mirrorId) group.linkColIds.add(mirrorId);
+      else group.linkColIds = null;
+    }
   }
 
-  for (const { refBaseModel, ids } of idsByRefModel.values()) {
-    await refBaseModel.broadcastLinkUpdates([...ids]);
+  for (const { refBaseModel, ids, linkColIds } of idsByRefModel.values()) {
+    await refBaseModel.broadcastLinkUpdates([...ids], [...(linkColIds ?? [])]);
   }
 };
 

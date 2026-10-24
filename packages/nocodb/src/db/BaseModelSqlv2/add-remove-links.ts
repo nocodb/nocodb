@@ -23,6 +23,7 @@ import {
   extractIds,
   getOppositeRelationType,
   getRelatedLinksColumn,
+  touchedLinkColumnIds,
 } from '~/helpers/dbHelpers';
 import { Model } from '~/models';
 
@@ -224,6 +225,14 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     if (!_childIds.length) return;
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+    const linkColIds = touchedLinkColumnIds(
+      column.id,
+      (
+        await extractCorrespondingLinkColumn(baseModel.context, {
+          ltarColumn: column,
+        })
+      )?.id,
+    );
 
     const { childContext, parentContext, mmContext } =
       await colOptions.getParentChildContext();
@@ -728,7 +737,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           baseModel.dbDriver.attachToTransaction(async () => {
             await parentBaseModel
               .getNonTransactionalClone()
-              .broadcastLinkUpdates(childIds as string[]);
+              .broadcastLinkUpdates(childIds as string[], linkColIds);
           });
 
           await childBaseModel.updateLastModified({
@@ -741,7 +750,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           baseModel.dbDriver.attachToTransaction(async () => {
             await childBaseModel
               .getNonTransactionalClone()
-              .broadcastLinkUpdates([rowId]);
+              .broadcastLinkUpdates([rowId], linkColIds);
           });
 
           auditConfig.parentModel =
@@ -850,7 +859,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           baseModel.dbDriver.attachToTransaction(async () => {
             await parentBaseModel
               .getNonTransactionalClone()
-              .broadcastLinkUpdates([rowId]);
+              .broadcastLinkUpdates([rowId], linkColIds);
           });
         }
         break;
@@ -926,14 +935,14 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           baseModel.dbDriver.attachToTransaction(async () => {
             await childBaseModel
               .getNonTransactionalClone()
-              .broadcastLinkUpdates([rowId]);
+              .broadcastLinkUpdates([rowId], linkColIds);
           });
 
           // Broadcast parent row update (link count changed on the referenced record)
           baseModel.dbDriver.attachToTransaction(async () => {
             await parentBaseModel
               .getNonTransactionalClone()
-              .broadcastLinkUpdates(childIds as string[]);
+              .broadcastLinkUpdates(childIds as string[], linkColIds);
           });
         }
         break;
@@ -1029,6 +1038,14 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     if (!_childIds.length) return;
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+    const linkColIds = touchedLinkColumnIds(
+      column.id,
+      (
+        await extractCorrespondingLinkColumn(baseModel.context, {
+          ltarColumn: column,
+        })
+      )?.id,
+    );
 
     const { parentContext, childContext, mmContext } =
       await colOptions.getParentChildContext();
@@ -1219,7 +1236,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           baseModel.dbDriver.attachToTransaction(async () => {
             await parentBaseModel
               .getNonTransactionalClone()
-              .broadcastLinkUpdates(childIds as string[]);
+              .broadcastLinkUpdates(childIds as string[], linkColIds);
           });
 
           await childBaseModel.updateLastModified({
@@ -1232,7 +1249,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           baseModel.dbDriver.attachToTransaction(async () => {
             await childBaseModel
               .getNonTransactionalClone()
-              .broadcastLinkUpdates([rowId]);
+              .broadcastLinkUpdates([rowId], linkColIds);
           });
 
           auditConfig.parentModel =
@@ -1346,7 +1363,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           baseModel.dbDriver.attachToTransaction(async () => {
             await parentBaseModel
               .getNonTransactionalClone()
-              .broadcastLinkUpdates([rowId]);
+              .broadcastLinkUpdates([rowId], linkColIds);
           });
         }
         break;
@@ -1417,14 +1434,14 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           baseModel.dbDriver.attachToTransaction(async () => {
             await childBaseModel
               .getNonTransactionalClone()
-              .broadcastLinkUpdates([rowId]);
+              .broadcastLinkUpdates([rowId], linkColIds);
           });
 
           // Broadcast parent row update (link count changed on the unlinked record)
           baseModel.dbDriver.attachToTransaction(async () => {
             await parentBaseModel
               .getNonTransactionalClone()
-              .broadcastLinkUpdates([childIds[0] as string]);
+              .broadcastLinkUpdates([childIds[0] as string], linkColIds);
           });
         }
         break;
@@ -1604,7 +1621,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     baseModel.dbDriver.attachToTransaction(async () => {
       await baseModel
         .getNonTransactionalClone()
-        .broadcastLinkUpdates([String(rowId)]);
+        .broadcastLinkUpdates([String(rowId)], [column.id]);
     });
 
     return true;

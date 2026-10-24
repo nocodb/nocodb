@@ -138,7 +138,7 @@ const props = defineProps<{
   fetchMissingGroupAggregations: (groups: CanvasGroup[]) => void
   clearGroupCache: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => void
   refreshInPlace: () => Promise<void>
-  refreshLoadedRows: (path?: Array<number>) => Promise<void>
+  refreshRowsInPlace: (paths: number[][]) => Promise<void>
 }>()
 
 const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords', 'update:selectedAllRecordsSkipPks'])
@@ -171,7 +171,7 @@ const {
   clearGroupCache,
   toggleExpandAll,
   refreshInPlace,
-  refreshLoadedRows,
+  refreshRowsInPlace,
 } = props
 
 // VModels
@@ -1021,10 +1021,10 @@ async function refreshAfterGroupMove(sourcePath: number[], targetPath: number[],
 
   // Refetched over the loaded rows, so the source and target groups don't blank
   const branchKeys = changedIndexes.map((index) => [...parentPath, index].join('-'))
-  await Promise.all(
+  await refreshRowsInPlace(
     [...groupDataCache.value.keys()]
       .filter((key) => branchKeys.some((branchKey) => key === branchKey || key.startsWith(`${branchKey}-`)))
-      .map((key) => refreshLoadedRows(key.split('-').map(Number))),
+      .map((key) => key.split('-').map(Number)),
   )
 
   clearSelection()

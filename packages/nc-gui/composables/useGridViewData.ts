@@ -291,13 +291,24 @@ export function useGridViewData(
 
   let isRefreshingInPlace = false
   let isRefreshInPlaceQueued = false
+  let refreshInPlaceStart: Promise<void> | null = null
 
   /**
    * Resync after peers' changes without the loader or clearing the grid: refetch the loaded
    * groups and rows over what's on screen. Groups whose value or index changed drop their rows,
-   * which the next render refetches. Calls during a run coalesce into one more run.
+   * which the next render refetches. Calls in the same tick share one run (a linked record
+   * created in a cell fires both the row and the view hook); calls during a run coalesce into
+   * one more run.
    */
-  async function refreshInPlace() {
+  function refreshInPlace() {
+    refreshInPlaceStart ??= Promise.resolve().then(() => {
+      refreshInPlaceStart = null
+      return runRefreshInPlace()
+    })
+    return refreshInPlaceStart
+  }
+
+  async function runRefreshInPlace() {
     // Before the cache check: a run in flight has its chunks marked `loading`.
     if (isRefreshingInPlace) {
       isRefreshInPlaceQueued = true
@@ -309,11 +320,29 @@ export function useGridViewData(
       reloadViewDataHook?.trigger()
       return
     }
+
+    await withRefreshLock(async () => {
+      if (isGroupBy.value) await refreshGroupsInPlace()
+      else await refreshLoadedRows()
+    })
+  }
+
+  /** Refetches the given groups' loaded rows; while a full refresh runs, queues another instead. */
+  function refreshRowsInPlace(paths: number[][]) {
+    if (isRefreshingInPlace) {
+      isRefreshInPlaceQueued = true
+      return Promise.resolve()
+    }
+    return withRefreshLock(async () => {
+      await Promise.all(paths.map((path) => refreshLoadedRows(path)))
+    })
+  }
+
+  async function withRefreshLock(refresh: () => Promise<void>) {
     isRefreshingInPlace = true
 
     try {
-      if (isGroupBy.value) await refreshGroupsInPlace()
-      else await refreshLoadedRows()
+      await refresh()
     } catch (e) {
       console.error('Failed to refresh grid in place', e)
     } finally {
@@ -912,7 +941,7 @@ export function useGridViewData(
     cachedRows,
     loadData,
     refreshInPlace,
-    refreshLoadedRows,
+    refreshRowsInPlace,
     insertRow,
     updateRowProperty,
     addEmptyRow,

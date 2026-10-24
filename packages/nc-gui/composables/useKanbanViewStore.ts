@@ -982,6 +982,19 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       return rowMatchesSearchAndUrl(data.payload)
     }
 
+    // Refetches the loaded stacks (cards and counts) without clearing them
+    const refreshLoadedStacks = useDebounceFn(async () => {
+      if (!useWindowedKanbanLoad.value) return loadKanbanData()
+
+      const titles = [...loadedStacks.value]
+      titles.forEach((title) => loadedStacks.value.delete(title))
+      try {
+        await loadKanbanDataForStacks(titles)
+      } catch (e) {
+        console.error('Failed to refresh kanban stacks', e)
+      }
+    }, 500)
+
     const getStackKey = (row: Record<string, any>): string | null =>
       typeof row?.[groupingField.value] === 'string' && row[groupingField.value].length ? row[groupingField.value] : null
 
@@ -1069,6 +1082,11 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             const stackKept = !!data.changedFields && !data.changedFields.includes(groupingField.value)
 
             if (countChange === 'none' && (isValidationFailed || stackKept)) return
+            // Moved between stacks: the event has no old value, so the stack it left is unknown
+            if (countChange === 'none') {
+              refreshLoadedStacks()
+              return
+            }
             if (countChange === 'remove') {
               const stackKey = getStackKey(payload)
               if (stackKept && countByStack.value.has(stackKey)) {

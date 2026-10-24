@@ -122,6 +122,15 @@ export function isGroupByChanged(col: Record<string, any>, payload: Record<strin
 
 export type ViewMembership = 'in' | 'out' | 'unknown'
 
+/** A peer's row event that can't move a view's totals: the row was outside the view before and after. */
+export function isRowOutsideViewThroughout(
+  data: { action?: string; matchedViewIds?: string[]; prevMatchedViewIds?: string[] },
+  viewId: string | undefined,
+): boolean {
+  if (isInterfaceSyntheticViewId(viewId) || viewMembership(data.matchedViewIds, viewId) !== 'out') return false
+  return data.action === 'add' || viewMembership(data.prevMatchedViewIds, viewId) === 'out'
+}
+
 export function viewMembership(matchedViewIds: string[] | undefined, viewId: string | undefined): ViewMembership {
   if (!viewId || !Array.isArray(matchedViewIds)) return 'unknown'
   return matchedViewIds.includes(viewId) ? 'in' : 'out'

@@ -237,10 +237,16 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
 
     reloadAggregate?.on(reloadAggregateListener)
 
-    const aggregationReloadListener = (event: SmartsheetStoreEvents) => {
-      if (event === SmartsheetStoreEvents.AGGREGATION_RELOAD) {
-        loadViewAggregate()
-      }
+    const hasFooterAggregations = () =>
+      Object.values(gridViewCols.value).some((col) => col.aggregation && col.aggregation !== CommonAggregations.None)
+
+    // A peer's row events arrive in bursts; one footer reload covers them.
+    const reloadAggregateForPeers = useDebounceFn(() => loadViewAggregate(), 1000, { maxWait: 5000 })
+
+    const aggregationReloadListener = (event: SmartsheetStoreEvents, payload?: { tableId?: string; peer?: boolean }) => {
+      if (event !== SmartsheetStoreEvents.AGGREGATION_RELOAD) return
+      if (!payload?.peer) return loadViewAggregate()
+      if (payload.tableId === meta.value?.id && hasFooterAggregations()) reloadAggregateForPeers()
     }
     $eventBus.smartsheetStoreEventBus.on(aggregationReloadListener)
 

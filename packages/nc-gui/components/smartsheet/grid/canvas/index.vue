@@ -138,7 +138,7 @@ const props = defineProps<{
   fetchMissingGroupAggregations: (groups: CanvasGroup[]) => void
   clearGroupCache: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => void
   refreshInPlace: () => Promise<void>
-  refreshRowsInPlace: (paths: number[][]) => Promise<void>
+  refreshPartInPlace: (refresh: (refreshRows: (paths: number[][]) => Promise<void>) => Promise<void>) => Promise<void>
 }>()
 
 const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords', 'update:selectedAllRecordsSkipPks'])
@@ -171,7 +171,7 @@ const {
   clearGroupCache,
   toggleExpandAll,
   refreshInPlace,
-  refreshRowsInPlace,
+  refreshPartInPlace,
 } = props
 
 // VModels
@@ -1007,25 +1007,35 @@ async function refreshAfterGroupMove(sourcePath: number[], targetPath: number[],
     }
   }
 
-  await Promise.all(
-    chunkIds.map((chunkId) => fetchMissingGroupChunks(chunkId * GROUP_CHUNK_SIZE, chunkId * GROUP_CHUNK_SIZE, parentGroup, true)),
-  )
+  let isShifted = false
 
-  const refreshedSiblings = parentGroup?.groups ?? cachedGroups.value
-  const isShifted = changedIndexes.some((index, i) => refreshedSiblings.get(index)?.nestedIn[level]?.key !== keysBefore[i])
+  // Under the in-place lock, so a peer's refresh queues behind it instead of overlapping
+  await refreshPartInPlace(async (refreshRows) => {
+    await Promise.all(
+      chunkIds.map((chunkId) =>
+        fetchMissingGroupChunks(chunkId * GROUP_CHUNK_SIZE, chunkId * GROUP_CHUNK_SIZE, parentGroup, true),
+      ),
+    )
+
+    const refreshedSiblings = parentGroup?.groups ?? cachedGroups.value
+    isShifted = changedIndexes.some((index, i) => refreshedSiblings.get(index)?.nestedIn[level]?.key !== keysBefore[i])
+    if (isShifted) return
+
+    for (const [index, group] of untouchedBefore) {
+      if (refreshedSiblings.get(index)?.nestedIn[level]?.key === group.nestedIn[level]?.key) refreshedSiblings.set(index, group)
+    }
+
+    // Refetched over the loaded rows, so the source and target groups don't blank
+    const branchKeys = changedIndexes.map((index) => [...parentPath, index].join('-'))
+    await refreshRows(
+      [...groupDataCache.value.keys()]
+        .filter((key) => branchKeys.some((branchKey) => key === branchKey || key.startsWith(`${branchKey}-`)))
+        .map((key) => key.split('-').map(Number)),
+    )
+  })
+
+  // Indices shifted: the whole level refreshes (after the lock is released)
   if (isShifted) return onGroupRowChange()
-
-  for (const [index, group] of untouchedBefore) {
-    if (refreshedSiblings.get(index)?.nestedIn[level]?.key === group.nestedIn[level]?.key) refreshedSiblings.set(index, group)
-  }
-
-  // Refetched over the loaded rows, so the source and target groups don't blank
-  const branchKeys = changedIndexes.map((index) => [...parentPath, index].join('-'))
-  await refreshRowsInPlace(
-    [...groupDataCache.value.keys()]
-      .filter((key) => branchKeys.some((branchKey) => key === branchKey || key.startsWith(`${branchKey}-`)))
-      .map((key) => key.split('-').map(Number)),
-  )
 
   clearSelection()
   calculateSlices()

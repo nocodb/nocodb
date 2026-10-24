@@ -327,15 +327,20 @@ export function useGridViewData(
     })
   }
 
-  /** Refetches the given groups' loaded rows; while a full refresh runs, queues another instead. */
-  function refreshRowsInPlace(paths: number[][]) {
+  /**
+   * Runs a partial refresh (group refetch, rows over given paths) under the in-place lock; while a
+   * full refresh runs, queues another instead.
+   */
+  function refreshPartInPlace(refresh: (refreshRows: (paths: number[][]) => Promise<void>) => Promise<void>) {
     if (isRefreshingInPlace) {
       isRefreshInPlaceQueued = true
       return Promise.resolve()
     }
-    return withRefreshLock(async () => {
-      await Promise.all(paths.map((path) => refreshLoadedRows(path)))
-    })
+    return withRefreshLock(() =>
+      refresh(async (paths) => {
+        await Promise.all(paths.map((path) => refreshLoadedRows(path)))
+      }),
+    )
   }
 
   async function withRefreshLock(refresh: () => Promise<void>) {
@@ -941,7 +946,7 @@ export function useGridViewData(
     cachedRows,
     loadData,
     refreshInPlace,
-    refreshRowsInPlace,
+    refreshPartInPlace,
     insertRow,
     updateRowProperty,
     addEmptyRow,

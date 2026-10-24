@@ -440,11 +440,32 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     watch([countByStack, () => groupingFieldColOptions.value.length], () => autoCollapseEmptyStacks())
 
+    const filerDuplicateRecords = (existingRecords: Row[], newRecords: Row[]) => {
+      const existingRecordsMap = (existingRecords || []).reduce((acc, curr) => {
+        const primaryKey = extractPkFromRow(curr.row, meta!.value!.columns as ColumnType[])
+        if (primaryKey) {
+          acc[primaryKey] = curr
+        }
+        return acc
+      }, {} as Record<string, Row>)
+
+      return (newRecords || []).filter(({ row }) => {
+        const primaryKey = extractPkFromRow(row, meta!.value!.columns as ColumnType[])
+        if (primaryKey && existingRecordsMap[primaryKey]) {
+          return false
+        }
+        return true
+      })
+    }
+
     // Optimised Kanban: load grouped data (rows + count) for only the given stacks, merging into the
     // existing maps. `optionsArrJson` restricts the server-side group-by to just these titles (the
     // backend already honours it for both data and count under opt=true), so a board with thousands
     // of stacks fetches a handful at a time as the user scrolls instead of all of them upfront.
-    async function loadKanbanDataForStacks(stackTitles: (string | null)[], { reset = false }: { reset?: boolean } = {}) {
+    async function loadKanbanDataForStacks(
+      stackTitles: (string | null)[],
+      { reset = false, loadedCounts }: { reset?: boolean; loadedCounts?: Map<string | null, number> } = {},
+    ) {
       // Interface mounts never take this path — the adapter's fetchGroupedData has no per-stack
       if (
         (!base?.value?.id || !meta.value?.id || !viewMeta?.value?.id || !groupingFieldColumn?.value?.id) &&
@@ -509,6 +530,18 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           newCountByStack.set(key, data.value.pageInfo.totalRows || 0)
         }
 
+        // Fetched past the first page before the swap, so scrolled-in cards never drop out
+        if (loadedCounts) {
+          await Promise.all(
+            [...loadedCounts].map(async ([title, loadedCount]) => {
+              const rows = newFormattedData.get(title) ?? []
+              if (loadedCount <= rows.length) return
+              const more = await fetchStackRows(title, { offset: rows.length, limit: loadedCount - rows.length })
+              if (more) newFormattedData.set(title, [...rows, ...filerDuplicateRecords(rows, more)])
+            }),
+          )
+        }
+
         formattedData.value = newFormattedData
         countByStack.value = newCountByStack
       } catch (e) {
@@ -518,25 +551,10 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
     }
 
-    const filerDuplicateRecords = (existingRecords: Row[], newRecords: Row[]) => {
-      const existingRecordsMap = (existingRecords || []).reduce((acc, curr) => {
-        const primaryKey = extractPkFromRow(curr.row, meta!.value!.columns as ColumnType[])
-        if (primaryKey) {
-          acc[primaryKey] = curr
-        }
-        return acc
-      }, {} as Record<string, Row>)
-
-      return (newRecords || []).filter(({ row }) => {
-        const primaryKey = extractPkFromRow(row, meta!.value!.columns as ColumnType[])
-        if (primaryKey && existingRecordsMap[primaryKey]) {
-          return false
-        }
-        return true
-      })
-    }
-
-    async function loadMoreKanbanData(stackTitle: string | null, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
+    async function fetchStackRows(
+      stackTitle: string | null,
+      params: Parameters<Api<any>['dbViewRow']['list']>[4] = {},
+    ): Promise<Row[] | undefined> {
       if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value && !interfaceDataApi) return
       let where = `(${groupingField.value},eq,${stackTitle})`
       if (stackTitle === null) {
@@ -571,12 +589,16 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             where,
           })
 
+      return formatData(response!.list!, getEvaluatedRowMetaRowColorInfo, evaluateButtonVisibility)
+    }
+
+    async function loadMoreKanbanData(stackTitle: string | null, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
+      const rows = await fetchStackRows(stackTitle, params)
+      if (!rows) return
+
       formattedData.value.set(stackTitle, [
         ...formattedData.value.get(stackTitle)!,
-        ...filerDuplicateRecords(
-          formattedData.value.get(stackTitle)!,
-          formatData(response!.list!, getEvaluatedRowMetaRowColorInfo, evaluateButtonVisibility),
-        ),
+        ...filerDuplicateRecords(formattedData.value.get(stackTitle)!, rows),
       ])
     }
 
@@ -989,15 +1011,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       const loadedCounts = new Map([...loadedStacks.value].map((title) => [title, formattedData.value.get(title)?.length ?? 0]))
       loadedCounts.forEach((_, title) => loadedStacks.value.delete(title))
       try {
-        await loadKanbanDataForStacks([...loadedCounts.keys()])
-        await Promise.all(
-          [...loadedCounts].map(([title, loadedCount]) => {
-            const reloadedCount = formattedData.value.get(title)?.length ?? 0
-            return loadedCount > reloadedCount
-              ? loadMoreKanbanData(title, { offset: reloadedCount, limit: loadedCount - reloadedCount })
-              : undefined
-          }),
-        )
+        await loadKanbanDataForStacks([...loadedCounts.keys()], { loadedCounts })
       } catch (e) {
         console.error('Failed to refresh kanban stacks', e)
       }

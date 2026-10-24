@@ -691,12 +691,12 @@ if (interfacePageDataApi) {
   })
 }
 
-const reloadViewDataListener = withLoading(async () => {
-  // Interface reloads (filter edits, user-filter picks) swap in place: keep
+const reloadViewDataListener = withLoading(async (params?: { inPlace?: boolean }) => {
+  // Interface reloads (filter edits, user-filter picks) and in-place refreshes swap in place: keep
   // the current cards on screen and only re-arm the chunk states so the
   // visible range refetches over them — clearing the cache first blanks the
   // whole gallery for the fetch round-trip.
-  if (interfacePageDataApi) {
+  if (interfacePageDataApi || params?.inPlace) {
     chunkStates.value = []
     await syncCount()
     calculateSlices()
@@ -710,11 +710,11 @@ const reloadViewDataListener = withLoading(async () => {
 
 reloadViewDataHook?.on(reloadViewDataListener)
 
-const smartsheetEventHandler = (event: SmartsheetStoreEvents, payload?: { tableId?: string }) => {
+const smartsheetEventHandler = (event: SmartsheetStoreEvents, payload?: { tableId?: string; inPlace?: boolean }) => {
   if (!isTableEventForMeta(payload, meta.value, metas.value)) return
 
   if (event === SmartsheetStoreEvents.DATA_RELOAD) {
-    reloadViewDataHook?.trigger()
+    reloadViewDataHook?.trigger(payload?.inPlace ? { shouldShowLoading: false, inPlace: true } : undefined)
   }
 }
 

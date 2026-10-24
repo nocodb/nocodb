@@ -949,10 +949,15 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     eventBus.on(smartsheetStoreEventHandler)
 
     // Keyed on value: a meta refetch replaces the column object without changing the stacks.
+    // Option colours are read from groupingFieldColOptions, so a colour-only edit needs no reload.
     const groupingFieldKey = computed(() => {
       const col = groupingFieldColumn.value
       if (!col) return undefined
-      return JSON.stringify([col.id, col.title, col.uidt, (col.colOptions as SelectOptionsType | undefined)?.options ?? null])
+      const options = ((col.colOptions as SelectOptionsType | undefined)?.options ?? []).map((option) => [
+        option.id,
+        option.title,
+      ])
+      return JSON.stringify([col.id, col.title, col.uidt, options])
     })
 
     watch(groupingFieldKey, () => {

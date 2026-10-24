@@ -501,11 +501,12 @@ const reloadViewDataListener = withLoading(async () => {
 
 reloadViewDataHook?.on(reloadViewDataListener)
 
-const smartsheetEventHandler = (event: SmartsheetStoreEvents, payload?: { tableId?: string }) => {
+const smartsheetEventHandler = (event: SmartsheetStoreEvents, payload?: { tableId?: string; inPlace?: boolean }) => {
   if (!isTableEventForMeta(payload, meta.value, metas.value)) return
 
   if (event === SmartsheetStoreEvents.DATA_RELOAD) {
-    reloadViewDataHook?.trigger()
+    // In place: the visible stacks refetch without the loader
+    reloadViewDataHook?.trigger(payload?.inPlace ? { shouldShowLoading: false, inPlace: true } : undefined)
   }
 }
 

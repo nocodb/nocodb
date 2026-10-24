@@ -9,6 +9,7 @@ import type {
   TableType,
 } from 'nocodb-sdk'
 import { interfaceDataEventSuffix, isInterfaceSyntheticViewId } from '~/lib/interfaceData'
+import { SmartsheetStoreEvents } from '~/lib/enums'
 
 const COMPUTED_DISPLAY_VALUE_TYPES = new Set<UITypes>([UITypes.Formula, UITypes.Lookup, UITypes.Rollup])
 
@@ -267,6 +268,30 @@ export function schedulePeerViewReload(
     setTimeout(() => {
       pendingPeerViewReloads.delete(hook)
       hook.trigger({ shouldShowLoading: false, inPlace: true })
+    }, wait),
+  )
+}
+
+/** A `bulk` event without rows: the table's rows changed without being listed (an update-all). */
+export function isUnlistedRowsChange(data: DataPayload): boolean {
+  return data.action === 'bulk' && !data.rows?.length
+}
+
+const pendingPeerTableReloads = new Map<string, ReturnType<typeof setTimeout>>()
+
+/** One in-place reload per table for an unlisted rows change, however many stores hear it. */
+export function schedulePeerTableReload(
+  bus: { emit: (event: SmartsheetStoreEvents, payload: { tableId: string; inPlace: boolean }) => unknown },
+  tableId: string | undefined,
+  wait = 250,
+) {
+  if (!tableId) return
+  clearTimeout(pendingPeerTableReloads.get(tableId))
+  pendingPeerTableReloads.set(
+    tableId,
+    setTimeout(() => {
+      pendingPeerTableReloads.delete(tableId)
+      bus.emit(SmartsheetStoreEvents.DATA_RELOAD, { tableId, inPlace: true })
     }, wait),
   )
 }

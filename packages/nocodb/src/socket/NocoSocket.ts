@@ -9,6 +9,8 @@ export default class NocoSocket {
 
   public static broadcastBulkDataEvent(..._args: unknown[]) {}
 
+  public static broadcastTableRowsChanged(..._args: unknown[]) {}
+
   public static broadcastEventToBaseUsers(..._args: unknown[]) {}
 
   public static broadcastEventToWorkspaceUsers(..._args: unknown[]) {}

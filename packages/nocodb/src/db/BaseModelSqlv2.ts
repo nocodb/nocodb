@@ -4904,6 +4904,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             logger.error(e.message, e.stack);
           }
         }
+
+        // Rows aren't re-read, so peers get a table-level change. Column rewrites
+        // (skipValidationAndHooks) reload through their column event instead.
+        if (+count > 0 && !args.skipValidationAndHooks) {
+          NocoSocket.broadcastTableRowsChanged(
+            this.context,
+            this.model.id,
+            this.context.socket_id,
+          );
+        }
       }
 
       if (!args.skipValidationAndHooks && !skip_hooks)

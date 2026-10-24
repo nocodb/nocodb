@@ -28,7 +28,9 @@ import {
   classifyUnloadedRowUpdate,
   dataEventSubscriptionKey,
   flattenFiltersForEval,
+  isUnlistedRowsChange,
   peerAggregateChange,
+  schedulePeerTableReload,
   viewMembership,
 } from '~/utils/realtimeUtils'
 import type { ViewMembership } from '~/utils/realtimeUtils'
@@ -2355,6 +2357,11 @@ export function useInfiniteData(args: {
     const { id, action, payload, before } = data
 
     if (action === 'bulk') {
+      if (isUnlistedRowsChange(data)) {
+        $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.AGGREGATION_RELOAD, { tableId: meta.value?.id, peer: true })
+        schedulePeerTableReload($eventBus.smartsheetStoreEventBus, meta.value?.id)
+        return
+      }
       if (Array.isArray(data.rows)) {
         for (const row of data.rows) handleDataEvent(row)
       }

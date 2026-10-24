@@ -157,12 +157,6 @@ export function viewMembership(matchedViewIds: string[] | undefined, viewId: str
 }
 
 /**
- * A view's membership before a peer's update. The server's list covers saved filters only, so
- * with ad-hoc client-side filters (search, URL `where`) an `in` is unknown; interface pages
- * receive synthetic view ids the server never tags, and the server never lists a view filtered
- * on the viewer (`@me`).
- */
-/**
  * Whether the server left out the views a row matched before because a field some view filters on
  * changed (link writes). An update with no before-image at all also has no `prevMatchedViewIds`,
  * but carries no `changedFields` either, so it doesn't count.
@@ -173,6 +167,12 @@ export function isPrevMembershipWithheld(
   return Array.isArray(data.matchedViewIds) && Array.isArray(data.changedFields) && !Array.isArray(data.prevMatchedViewIds)
 }
 
+/**
+ * A view's membership before a peer's update. The server's list covers saved filters only, so
+ * with ad-hoc client-side filters (search, URL `where`) an `in` is unknown; interface pages
+ * receive synthetic view ids the server never tags, and the server never lists a view filtered
+ * on the viewer (`@me`).
+ */
 export function previousViewMembership(
   prevMatchedViewIds: string[] | undefined,
   viewId: string | undefined,
@@ -503,38 +503,48 @@ export function isFilteredCountAffected(data: DataPayload, filterTitles: Set<str
   return false
 }
 
-/**
- * Whether a pushed row can belong to a list the viewer narrows client-side: by `searchQuery`
- * (contains, case-insensitive, over `searchColumns`) and by `filters`. A field the payload
- * lacks, or a search value that isn't text, can't be judged here and counts as a match.
- */
-export function rowMayMatchViewerScope({
-  row,
-  searchQuery,
-  searchColumns,
-  filters,
-  columns,
-  evaluateFilters,
-}: {
+interface ViewerScopeParams {
   row: Record<string, any>
   searchQuery: string
   searchColumns: Array<{ title?: string | null }>
   filters: FilterType[]
   columns: Array<{ id?: string | null; title?: string | null }>
   evaluateFilters: (filters: FilterType[], row: Record<string, any>) => boolean
-}): boolean {
+}
+
+/**
+ * Whether a pushed row belongs to a list the viewer narrows client-side: by `searchQuery`
+ * (contains, case-insensitive, over `searchColumns`) and by `filters`. `unknown` when it can't be
+ * judged here: a field the payload lacks, or a search value that isn't text.
+ */
+export function matchViewerScope({
+  row,
+  searchQuery,
+  searchColumns,
+  filters,
+  columns,
+  evaluateFilters,
+}: ViewerScopeParams): 'match' | 'no-match' | 'unknown' {
+  let result: 'match' | 'unknown' = 'match'
+
   const query = searchQuery.trim().toLowerCase()
   const searchTitles = searchColumns.flatMap((col) => (col.title ? [col.title] : []))
   if (query && searchTitles.length) {
     const judgeable = searchTitles.every((title) => title in row && (row[title] == null || typeof row[title] === 'string'))
-    if (judgeable && !searchTitles.some((title) => (row[title] ?? '').toLowerCase().includes(query))) return false
+    if (!judgeable) result = 'unknown'
+    else if (!searchTitles.some((title) => (row[title] ?? '').toLowerCase().includes(query))) return 'no-match'
   }
 
-  if (!filters.length) return true
+  if (!filters.length) return result
 
   const ids = collectFilterColumnIds(filters)
   const titles = columns.flatMap((col) => (col.id && col.title && ids.has(col.id) ? [col.title] : []))
-  if (titles.length < ids.size || titles.some((title) => !(title in row))) return true
+  if (titles.length < ids.size || titles.some((title) => !(title in row))) return 'unknown'
 
-  return evaluateFilters(filters, row)
+  return evaluateFilters(filters, row) ? result : 'no-match'
+}
+
+/** A row that may belong to the viewer's list: anything `matchViewerScope` can't rule out. */
+export function rowMayMatchViewerScope(params: ViewerScopeParams): boolean {
+  return matchViewerScope(params) !== 'no-match'
 }

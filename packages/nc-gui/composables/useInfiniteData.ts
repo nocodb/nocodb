@@ -28,7 +28,7 @@ import {
   classifyUnloadedRowUpdate,
   dataEventSubscriptionKey,
   flattenFiltersForEval,
-  isRowOutsideViewThroughout,
+  peerAggregateChange,
   viewMembership,
 } from '~/utils/realtimeUtils'
 import type { ViewMembership } from '~/utils/realtimeUtils'
@@ -2361,9 +2361,17 @@ export function useInfiniteData(args: {
       return
     }
 
-    // The footer's totals aren't in the rows; the footer debounces a burst
-    if (!isRowOutsideViewThroughout(data, viewMeta.value?.id)) {
-      $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.AGGREGATION_RELOAD, { tableId: meta.value?.id, peer: true })
+    // The footer's totals aren't in the rows: it decides from what changed, and debounces a burst
+    const aggregateChange =
+      action === 'reorder' || action === 'delete'
+        ? peerAggregateChange(action, 'unknown', 'unknown')
+        : peerAggregateChange(action, previousMembership(data), currentMembership(data), data.changedFields)
+    if (aggregateChange) {
+      $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.AGGREGATION_RELOAD, {
+        tableId: meta.value?.id,
+        peer: true,
+        changedFields: aggregateChange.changedFields,
+      })
     }
 
     if (action === 'add') {

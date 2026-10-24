@@ -122,13 +122,32 @@ export function isGroupByChanged(col: Record<string, any>, payload: Record<strin
 
 export type ViewMembership = 'in' | 'out' | 'unknown'
 
-/** A peer's row event that can't move a view's totals: the row was outside the view before and after. */
-export function isRowOutsideViewThroughout(
-  data: { action?: string; matchedViewIds?: string[]; prevMatchedViewIds?: string[] },
-  viewId: string | undefined,
+/**
+ * How a peer's row event reaches a view's footer totals: `null` when it can't move them (a
+ * reorder, or a row outside the view before and after), else the fields to judge it by. Only an
+ * update that stayed in the view is judged by its changed fields; otherwise every total counts.
+ */
+export function peerAggregateChange(
+  action: DataPayload['action'],
+  wasIn: ViewMembership,
+  isIn: ViewMembership,
+  changedFields?: string[],
+): { changedFields?: string[] } | null {
+  if (action === 'reorder') return null
+  const before: ViewMembership = action === 'add' ? 'out' : action === 'delete' ? 'unknown' : wasIn
+  const after: ViewMembership = action === 'delete' ? 'unknown' : isIn
+  if (before === 'out' && after === 'out') return null
+  return { changedFields: action === 'update' && before === 'in' && after === 'in' ? changedFields : undefined }
+}
+
+/** Whether changed fields can move footer totals over `aggregated` fields; a computed field changes through its inputs. */
+export function isPeerChangeAffectingAggregates(
+  changedFields: string[] | undefined,
+  aggregated: Array<{ title?: string | null; isComputed: boolean }>,
 ): boolean {
-  if (isInterfaceSyntheticViewId(viewId) || viewMembership(data.matchedViewIds, viewId) !== 'out') return false
-  return data.action === 'add' || viewMembership(data.prevMatchedViewIds, viewId) === 'out'
+  if (!changedFields) return true
+  if (aggregated.some((field) => field.isComputed)) return true
+  return aggregated.some((field) => !!field.title && changedFields.includes(field.title))
 }
 
 export function viewMembership(matchedViewIds: string[] | undefined, viewId: string | undefined): ViewMembership {

@@ -159,7 +159,7 @@ const duplicateVirtualColumn = async () => {
     await getMeta(meta!.value!.base_id!, meta!.value!.id!, true)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-    reloadDataHook?.trigger()
+    reloadDataHook?.trigger({ shouldShowLoading: false, inPlace: true })
 
     // message.success(t('msg.success.columnDuplicated'))
   } catch (e) {
@@ -345,7 +345,7 @@ const performHideOrShow = async () => {
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     if (!currentColumn.show) {
-      reloadDataHook?.trigger()
+      reloadDataHook?.trigger({ shouldShowLoading: false, inPlace: true })
     }
   } catch (e: any) {
     console.log('error', e)

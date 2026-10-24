@@ -197,8 +197,8 @@ export function useGridViewData(
   // data event is missed — peers moving records between groups, deletes, updates —
   // so group counts and cached rows go stale and moved-out records linger as loading
   // placeholders. A page reload fixes it; so does resyncing the view on reconnect.
-  // Not on the first handshake (data is already fresh then). onReconnect, unlike onReady's
-  // `reconnected`, also covers a socket rebuilt on token refresh, which drops events too.
+  // Not on the first handshake (data is already fresh then); also after a socket rebuilt on
+  // token refresh, which drops events too.
   const offSocketReady = $ncSocket.onReconnect(() => {
     refreshInPlace()
     // Footer/column aggregations aren't re-fetched by the data reload above (group
@@ -291,13 +291,24 @@ export function useGridViewData(
 
   let isRefreshingInPlace = false
   let isRefreshInPlaceQueued = false
+  let refreshInPlaceStart: Promise<void> | null = null
 
   /**
    * Resync after peers' changes without the loader or clearing the grid: refetch the loaded
    * groups and rows over what's on screen. Groups whose value or index changed drop their rows,
-   * which the next render refetches. Calls during a run coalesce into one more run.
+   * which the next render refetches. Calls in the same tick share one run (a linked record
+   * created in a cell fires both the row and the view hook); calls during a run coalesce into
+   * one more run.
    */
-  async function refreshInPlace() {
+  function refreshInPlace() {
+    refreshInPlaceStart ??= Promise.resolve().then(() => {
+      refreshInPlaceStart = null
+      return runRefreshInPlace()
+    })
+    return refreshInPlaceStart
+  }
+
+  async function runRefreshInPlace() {
     // Before the cache check: a run in flight has its chunks marked `loading`.
     if (isRefreshingInPlace) {
       isRefreshInPlaceQueued = true
@@ -309,11 +320,34 @@ export function useGridViewData(
       reloadViewDataHook?.trigger()
       return
     }
+
+    await withRefreshLock(async () => {
+      if (isGroupBy.value) await refreshGroupsInPlace()
+      else await refreshLoadedRows()
+    })
+  }
+
+  /**
+   * Runs a partial refresh (group refetch, rows over given paths) under the in-place lock; while a
+   * full refresh runs, queues another instead.
+   */
+  function refreshPartInPlace(refresh: (refreshRows: (paths: number[][]) => Promise<void>) => Promise<void>) {
+    if (isRefreshingInPlace) {
+      isRefreshInPlaceQueued = true
+      return Promise.resolve()
+    }
+    return withRefreshLock(() =>
+      refresh(async (paths) => {
+        await Promise.all(paths.map((path) => refreshLoadedRows(path)))
+      }),
+    )
+  }
+
+  async function withRefreshLock(refresh: () => Promise<void>) {
     isRefreshingInPlace = true
 
     try {
-      if (isGroupBy.value) await refreshGroupsInPlace()
-      else await refreshLoadedRows()
+      await refresh()
     } catch (e) {
       console.error('Failed to refresh grid in place', e)
     } finally {
@@ -912,7 +946,7 @@ export function useGridViewData(
     cachedRows,
     loadData,
     refreshInPlace,
-    refreshLoadedRows,
+    refreshPartInPlace,
     insertRow,
     updateRowProperty,
     addEmptyRow,

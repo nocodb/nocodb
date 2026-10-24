@@ -12,13 +12,13 @@ import type {
 import { CommonAggregations, ViewTypes, getFirstNonPersonalView, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { InterfacePageDataApi } from '../lib/interfaceData'
-import { viewColumnsNeedReload } from '~/utils/realtimeUtils'
+import { viewColumnsReloadKind } from '~/utils/realtimeUtils'
 
 const [useProvideViewColumns, useViewColumns] = useInjectionState(
   (
     view: Ref<ViewType | undefined>,
     meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
-    reloadData?: (params?: { shouldShowLoading?: boolean }) => void,
+    reloadData?: (params?: { shouldShowLoading?: boolean; inPlace?: boolean }) => void,
     isPublic = false,
     /**
      * Interface-page data adapter. Normally resolved via `InterfacePageDataInj`,
@@ -322,7 +322,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
       await loadViewColumns()
       await preserveFrozenFields(frozenIdsBefore)
-      reloadData?.()
+      // The shown fields' values over the loaded rows
+      reloadData?.({ shouldShowLoading: false, inPlace: true })
       $e('a:fields:show-all')
     }
 
@@ -460,7 +461,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
       if (!disableDataReload) {
         await loadViewColumns()
-        reloadData?.({ shouldShowLoading: false })
+        reloadData?.({ shouldShowLoading: false, inPlace: true })
       }
     }
 
@@ -489,7 +490,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
               .finally(() => {
                 loadViewColumns()
                 // Only showing them needs their values
-                if (v) reloadData?.()
+                if (v) reloadData?.({ shouldShowLoading: false, inPlace: true })
               })
           }
           view.value.show_system_fields = v
@@ -894,7 +895,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           const aggregationChanged = 'aggregation' in payload && payload.aggregation !== col?.aggregation
 
           Object.assign(col, payload)
-          const reloadNeeded = viewColumnsNeedReload(before, snapshotViewColumns())
+          const reloadKind = viewColumnsReloadKind(before, snapshotViewColumns())
 
           const field = fields.value?.find((f) => f.fk_column_id === payload.fk_column_id)
           if (field) {
@@ -908,8 +909,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
             fields.value?.sort((a: Field, b: Field) => a.order - b.order)
           }
 
-          if (reloadNeeded) {
-            nextTick(() => reloadData?.({ shouldShowLoading: false }))
+          if (reloadKind !== 'none') {
+            nextTick(() => reloadData?.({ shouldShowLoading: false, inPlace: reloadKind === 'refresh' }))
           }
 
           if (aggregationChanged) {
@@ -921,7 +922,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       } else if (evt === 'view_column_refresh') {
         const before = snapshotViewColumns()
         loadViewColumns().then(() => {
-          if (viewColumnsNeedReload(before, snapshotViewColumns())) reloadData?.({ shouldShowLoading: false })
+          const reloadKind = viewColumnsReloadKind(before, snapshotViewColumns())
+          if (reloadKind !== 'none') reloadData?.({ shouldShowLoading: false, inPlace: reloadKind === 'refresh' })
         })
       }
     }

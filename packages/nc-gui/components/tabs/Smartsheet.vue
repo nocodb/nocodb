@@ -6,11 +6,11 @@ import { UITypes, isLinksOrLTAR, isSmartText } from 'nocodb-sdk'
 import { UseDetachedLongTextProvider } from '../smartsheet/grid/canvas/composables/useDetachedLongText'
 import DetachedExpandedText from '../smartsheet/grid/canvas/components/DetachedExpandedText.vue'
 
-const { t } = useI18n()
-
 const props = defineProps<{
   activeTab: TabItem
 }>()
+
+const { t } = useI18n()
 
 const activeTab = toRef(props, 'activeTab')
 
@@ -98,6 +98,8 @@ watch(
   },
 )
 
+const RECONNECT_RESYNC_JITTER_MS = 3000
+
 const reloadViewDataEventHook = createEventHook()
 
 const reloadViewMetaEventHook = createEventHook<void | boolean>()
@@ -125,6 +127,23 @@ provide(IsLockedInj, isLocked)
 provide(ReloadViewDataHookInj, reloadViewDataEventHook)
 provide(ReloadViewMetaHookInj, reloadViewMetaEventHook)
 provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
+
+// Events were missed while the socket was down. The grid resyncs itself (useGridViewData); other
+// views refetch quietly, jittered because a deploy reconnects every client at once.
+const { $ncSocket } = useNuxtApp()
+let reconnectResyncTimer: ReturnType<typeof setTimeout> | undefined
+const offReconnectResync = $ncSocket.onReconnect(() => {
+  if (isGrid.value || isForm.value) return
+  clearTimeout(reconnectResyncTimer)
+  reconnectResyncTimer = setTimeout(
+    () => reloadViewDataEventHook.trigger({ shouldShowLoading: false, inPlace: true }),
+    Math.random() * RECONNECT_RESYNC_JITTER_MS,
+  )
+})
+onBeforeUnmount(() => {
+  offReconnectResync?.()
+  clearTimeout(reconnectResyncTimer)
+})
 provide(IsFormInj, isForm)
 provide(IsTimelineInj, isTimeline)
 provide(IsGanttInj, isGantt)

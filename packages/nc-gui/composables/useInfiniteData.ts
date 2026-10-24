@@ -24,7 +24,13 @@ import axios from 'axios'
 import type { CanvasGroup } from '../lib/types'
 import type { InterfacePageDataApi } from '../lib/interfaceData'
 import { isInterfaceSyntheticViewId } from '../lib/interfaceData'
-import { classifyUnloadedRowUpdate, dataEventSubscriptionKey, flattenFiltersForEval, viewMembership } from '~/utils/realtimeUtils'
+import {
+  classifyUnloadedRowUpdate,
+  dataEventSubscriptionKey,
+  flattenFiltersForEval,
+  peerAggregateChange,
+  viewMembership,
+} from '~/utils/realtimeUtils'
 import type { ViewMembership } from '~/utils/realtimeUtils'
 import type { Row } from '#imports'
 import { validateRowFilters } from '~/utils/dataUtils'
@@ -122,7 +128,7 @@ export function useInfiniteData(args: {
   const NOCO = 'noco'
   const { meta, viewMeta, callbacks, where, disableSmartsheet, isPublic, groupByColumns = ref(null) } = args
 
-  const { $api, $ncSocket } = useNuxtApp()
+  const { $api, $ncSocket, $eventBus } = useNuxtApp()
 
   const { internalGet } = useInternalBatch()
 
@@ -2353,6 +2359,19 @@ export function useInfiniteData(args: {
         for (const row of data.rows) handleDataEvent(row)
       }
       return
+    }
+
+    // The footer's totals aren't in the rows: it decides from what changed, and debounces a burst
+    const aggregateChange =
+      action === 'reorder' || action === 'delete'
+        ? peerAggregateChange(action, 'unknown', 'unknown')
+        : peerAggregateChange(action, previousMembership(data), currentMembership(data), data.changedFields)
+    if (aggregateChange) {
+      $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.AGGREGATION_RELOAD, {
+        tableId: meta.value?.id,
+        peer: true,
+        changedFields: aggregateChange.changedFields,
+      })
     }
 
     if (action === 'add') {

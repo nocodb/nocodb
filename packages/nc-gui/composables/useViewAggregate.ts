@@ -9,8 +9,10 @@ import {
   ViewTypes,
   getAvailableAggregations,
   getRollupResultUidt,
+  isVirtualCol,
 } from 'nocodb-sdk'
 import type { EventHook } from '@vueuse/core'
+import { isPeerChangeAffectingAggregates } from '~/utils/realtimeUtils'
 
 const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
   (
@@ -83,11 +85,13 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
       return getAvailableAggregations(column.uidt!, undefined, getRollupResultUidt(column))
     }
 
+    // `silent`: a refresh nobody asked for (a peer's change) fails without a toast
     const loadViewAggregate = async (
       fields?: Array<{
         field: string
         type: string
       }>,
+      { silent = false }: { silent?: boolean } = {},
     ) => {
       // Interface pages: aggregations flow through the adapter — always with
       // explicit (field, type) pairs since the synthetic view stores none
@@ -151,7 +155,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
             reloadVisibleDataHook?.trigger()
           } catch (error) {
             console.log(error)
-            message.error(await extractSdkResponseErrorMsgv2(error as any))
+            if (!silent) message.error(await extractSdkResponseErrorMsgv2(error as any))
           }
         })
     }
@@ -237,10 +241,35 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
 
     reloadAggregate?.on(reloadAggregateListener)
 
-    const aggregationReloadListener = (event: SmartsheetStoreEvents) => {
-      if (event === SmartsheetStoreEvents.AGGREGATION_RELOAD) {
-        loadViewAggregate()
-      }
+    const hasFooterAggregations = () =>
+      Object.values(gridViewCols.value).some((col) => col.aggregation && col.aggregation !== CommonAggregations.None)
+
+    // A peer's row events arrive in bursts; one footer reload covers them.
+    // A peer's row events arrive in bursts, and on every client at once: one reload per burst, spread per client.
+    const peerJitterMs = Math.random() * 1500
+    const reloadAggregateForPeers = useDebounceFn(() => loadViewAggregate(undefined, { silent: true }), 1000 + peerJitterMs, {
+      maxWait: 5000 + peerJitterMs,
+    })
+
+    const peerChangeAffectsAggregates = (changedFields?: string[]) =>
+      isPeerChangeAffectingAggregates(
+        changedFields,
+        (fields.value ?? [])
+          .filter((field) => {
+            const aggregation = field.id ? gridViewCols.value[field.id]?.aggregation : undefined
+            return !!aggregation && aggregation !== CommonAggregations.None
+          })
+          .map((field) => ({ title: field.title, isComputed: isVirtualCol(field) })),
+      )
+
+    const aggregationReloadListener = (
+      event: SmartsheetStoreEvents,
+      payload?: { tableId?: string; peer?: boolean; changedFields?: string[] },
+    ) => {
+      if (event !== SmartsheetStoreEvents.AGGREGATION_RELOAD) return
+      if (!payload?.peer) return loadViewAggregate()
+      if (payload.tableId === meta.value?.id && hasFooterAggregations() && peerChangeAffectsAggregates(payload.changedFields))
+        reloadAggregateForPeers()
     }
     $eventBus.smartsheetStoreEventBus.on(aggregationReloadListener)
 

@@ -66,7 +66,7 @@ async function handleConvert() {
     }
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-    reloadDataHook?.trigger()
+    reloadDataHook?.trigger({ shouldShowLoading: false, inPlace: true })
 
     $e('a:field:convert-link-v2')
 

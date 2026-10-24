@@ -70,6 +70,9 @@ const {
   loadKanbanDataForStacks,
   useWindowedKanbanLoad,
   loadMoreKanbanData,
+  refreshLoadedStacksInPlace,
+  setVisibleStackTitles,
+  setCardDragActive,
   kanbanMetaData,
   formattedData,
   updateOrSaveRow,
@@ -430,6 +433,10 @@ useWindowedKanbanLoad.value = !isPublic.value
 
 const currentWindowStackTitles = () => visibleStackOptions.value.map((stack) => stack.title ?? null)
 
+// In-place refreshes cover the stacks on screen and hold their write while a card is dragged
+setVisibleStackTitles(currentWindowStackTitles)
+watch(isCardDragInProgress, (active) => setCardDragActive(active))
+
 const loadVisibleStacks = async (reset = false) => {
   if (!useWindowedKanbanLoad.value) {
     await loadKanbanData()
@@ -493,7 +500,10 @@ const stackCardSlices = shallowRef<Map<string | null, { start: number; end: numb
 // Version counter for slice changes - more efficient than hash calculation
 const slicesVersion = ref(0)
 
-const reloadViewDataListener = withLoading(async () => {
+const reloadViewDataListener = withLoading(async (params?: { inPlace?: boolean }) => {
+  // In place: refetch the loaded stacks over their cards, so the board never empties
+  if (params?.inPlace) return refreshLoadedStacksInPlace()
+
   // Reset so a filter/search/sort change refetches the current window fresh (and other stacks reload
   // as they scroll back into view).
   await loadVisibleStacks(true)
@@ -501,11 +511,12 @@ const reloadViewDataListener = withLoading(async () => {
 
 reloadViewDataHook?.on(reloadViewDataListener)
 
-const smartsheetEventHandler = (event: SmartsheetStoreEvents, payload?: { tableId?: string }) => {
+const smartsheetEventHandler = (event: SmartsheetStoreEvents, payload?: { tableId?: string; inPlace?: boolean }) => {
   if (!isTableEventForMeta(payload, meta.value, metas.value)) return
 
   if (event === SmartsheetStoreEvents.DATA_RELOAD) {
-    reloadViewDataHook?.trigger()
+    // In place: the visible stacks refetch without the loader
+    reloadViewDataHook?.trigger(payload?.inPlace ? { shouldShowLoading: false, inPlace: true } : undefined)
   }
 }
 

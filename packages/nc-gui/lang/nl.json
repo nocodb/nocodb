@@ -3632,7 +3632,6 @@
     "limitFileSizeDescription": "Beperk de grootte van bestanden die geüpload mogen worden. (Limiet per bestand)",
     "layout": "Lay-out",
     "interfaceRevisionHistory": "Revisiegeschiedenis",
-    "linkUnlinkRecords": "Records koppelen/ontkoppelen",
     "limitRecordSelection": "Recordselectie beperken",
     "keepAsDraft": "Als concept bewaren",
     "lastPublished": "Laatst gepubliceerd {time}",

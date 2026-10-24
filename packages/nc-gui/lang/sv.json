@@ -3640,7 +3640,6 @@
     "limitFileSizeDescription": "Begränsa storleken på filer som får laddas upp. (Gräns per fil)",
     "layout": "Layout",
     "interfaceRevisionHistory": "Revisionshistorik",
-    "linkUnlinkRecords": "Länka/avlänka poster",
     "limitRecordSelection": "Begränsa valet av poster",
     "keepAsDraft": "Behåll som utkast",
     "lastPublished": "Senast publicerad {time}",

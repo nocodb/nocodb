@@ -3644,7 +3644,6 @@
     "limitFileSizeDescription": "限制可上传文件的大小。（每个文件的上限）",
     "layout": "布局",
     "interfaceRevisionHistory": "修订历史",
-    "linkUnlinkRecords": "关联/取消关联记录",
     "limitRecordSelection": "限制记录的选择",
     "keepAsDraft": "保留为草稿",
     "lastPublished": "上次发布 {time}",

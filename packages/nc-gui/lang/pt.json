@@ -3642,7 +3642,6 @@
     "limitFileSizeDescription": "Limite o tamanho dos ficheiros que podem ser carregados. (Limite por ficheiro)",
     "layout": "Esquema",
     "interfaceRevisionHistory": "Histórico de revisões",
-    "linkUnlinkRecords": "Ligar/desligar registos",
     "limitRecordSelection": "Limitar a seleção de registos",
     "keepAsDraft": "Manter como rascunho",
     "lastPublished": "Última publicação {time}",

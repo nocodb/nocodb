@@ -3622,7 +3622,6 @@
     "limitFileSizeDescription": "កំណត់ទំហំឯកសារដែលអាចបញ្ចូលបាន។ (ដែនកំណត់ក្នុងមួយឯកសារ)",
     "layout": "ប្លង់",
     "interfaceRevisionHistory": "ប្រវត្តិការកែប្រែ",
-    "linkUnlinkRecords": "ភ្ជាប់/ផ្តាច់កំណត់ត្រា",
     "limitRecordSelection": "កំណត់ការជ្រើសរើសកំណត់ត្រា",
     "keepAsDraft": "រក្សាទុកជាសេចក្តីព្រាង",
     "lastPublished": "ផ្សាយចុងក្រោយ {time}",

@@ -3635,7 +3635,6 @@
     "limitFileSizeDescription": "Limitează dimensiunea fișierelor care pot fi încărcate. (Limită per fișier)",
     "layout": "Aranjament",
     "interfaceRevisionHistory": "Istoricul reviziilor",
-    "linkUnlinkRecords": "Leagă/dezleagă înregistrări",
     "limitRecordSelection": "Limitează selecția de înregistrări",
     "keepAsDraft": "Păstrează ca ciornă",
     "lastPublished": "Ultima publicare {time}",

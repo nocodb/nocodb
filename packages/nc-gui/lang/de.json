@@ -3697,7 +3697,6 @@
     "notifyMeAboutAllComments": "Über alle Kommentare benachrichtigen",
     "noCommentsMatchFilter": "Keine Kommentare passen zu diesem Filter",
     "nComments": "{count} Kommentar | {count} Kommentare",
-    "linkUnlinkRecords": "Einträge verknüpfen/lösen",
     "limitRecordSelection": "Eintragsauswahl begrenzen",
     "keepAsDraft": "Als Entwurf behalten",
     "lastPublished": "Zuletzt veröffentlicht {time}",

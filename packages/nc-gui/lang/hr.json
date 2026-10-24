@@ -3643,7 +3643,6 @@
     "limitFileSizeDescription": "Ograničite veličinu datoteka koje se mogu prenijeti. (Ograničenje po datoteci)",
     "layout": "Raspored",
     "interfaceRevisionHistory": "Povijest revizija",
-    "linkUnlinkRecords": "Poveži/razveži zapise",
     "limitRecordSelection": "Ograniči odabir zapisa",
     "keepAsDraft": "Zadrži kao skicu",
     "lastPublished": "Zadnja objava {time}",

@@ -3644,7 +3644,6 @@
     "limitFileSizeDescription": "अपलोड गर्न सकिने फाइलहरूको आकार सीमित गर्नुहोस्। (प्रति फाइल सीमा)",
     "layout": "लेआउट",
     "interfaceRevisionHistory": "संशोधन इतिहास",
-    "linkUnlinkRecords": "रेकर्डहरू लिङ्क/अनलिङ्क गर्नुहोस्",
     "limitRecordSelection": "रेकर्ड छनौट सीमित गर्नुहोस्",
     "keepAsDraft": "मस्यौदाका रूपमा राख्नुहोस्",
     "lastPublished": "अन्तिम प्रकाशन {time}",

@@ -92,20 +92,24 @@ const maxVisibleDays = computed(() => {
   return viewMetaProperties.value?.hide_weekend ? 5 : 7
 })
 
+const { locale } = useI18n()
+
 const days = computed(() => {
-  let days = []
-
-  if (isMondayFirst.value) {
-    days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  } else {
-    days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  // 2024-01-07 is a Sunday — use it as a stable anchor to render weekday names
+  // in the active UI locale instead of the hardcoded English labels (#10176).
+  // i18n keys use underscores (`pt_BR`), while Intl expects BCP 47 (`pt-BR`).
+  let weekdayFormatter: Intl.DateTimeFormat
+  try {
+    weekdayFormatter = new Intl.DateTimeFormat(locale.value.replaceAll('_', '-'), { weekday: 'short' })
+  } catch {
+    weekdayFormatter = new Intl.DateTimeFormat('en', { weekday: 'short' })
   }
 
-  if (maxVisibleDays.value === 5) {
-    days = days.filter((day) => day !== 'Sat' && day !== 'Sun')
-  }
+  const indexes = isMondayFirst.value ? [1, 2, 3, 4, 5, 6, 0] : [0, 1, 2, 3, 4, 5, 6]
 
-  return days
+  return indexes
+    .filter((index) => maxVisibleDays.value === 7 || (index !== 0 && index !== 6))
+    .map((index) => weekdayFormatter.format(new Date(Date.UTC(2024, 0, 7 + index))))
 })
 
 const calendarGridContainer = ref()

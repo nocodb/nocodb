@@ -16,6 +16,8 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
+const isInterfaceUi = useIsInterfaceUi()
+
 const cellClickHook = inject(CellClickHookInj, null)
 
 const onDivDataCellEventHook = inject(OnDivDataCellEventHookInj, null)
@@ -161,6 +163,11 @@ const active = inject(ActiveCellInj, ref(false))
 function onCellClick(e: Event) {
   if (e.type !== 'click') return
   if (isExpandedForm.value || isForm.value || active.value) {
+    // Interface new record with no links yet: skip the empty linked list, open the picker.
+    if (isInterfaceUi.value && isNew.value && !localCellValue.value.length && !isSimpleLinkRecordList.value) {
+      return openListDlg()
+    }
+
     openChildList()
   }
 }

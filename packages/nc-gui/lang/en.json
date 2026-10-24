@@ -1616,7 +1616,8 @@
     "agentSettings": "Settings",
     "auditDetails": "Audit Details",
     "markdownEditor": "Markdown Editor",
-    "loyaltyBadgeTitle": "Loyalty Discount Unlocked! Save upto 55%!"
+    "loyaltyBadgeTitle": "Loyalty Discount Unlocked! Save upto 55%!",
+    "creatingWorkspace": "Creating Workspace"
   },
   "labels": {
     "blocked": "Blocked",
@@ -5986,7 +5987,16 @@
     "retryNow": "Retry now",
     "createSchema": "Create schema",
     "syncSource": "Sync source",
-    "configureSources": "Configure Sources"
+    "configureSources": "Configure Sources",
+    "popularScripts": "Popular Scripts",
+    "viewSource": "View Source",
+    "noDataToShow": "No data to show",
+    "display": "Display",
+    "textWidget": "Text Widget",
+    "noTextWidgetSelected": "No text widget selected",
+    "scriptDocs": "Script Docs",
+    "editScript": "Edit Script",
+    "notFound": "Not found"
   },
   "activity": {
     "blockUser": "Block user",
@@ -6540,7 +6550,8 @@
     "dataSourceReadOnly": "This data source is read-only.",
     "mentionFields": "Mention fields",
     "skipEnabledAfterDelay": "Will be enabled after 2 seconds",
-    "clickToCopyDocumentId": "Click to copy Document ID"
+    "clickToCopyDocumentId": "Click to copy Document ID",
+    "noPermissionToToggleWorkflow": "You do not have permission to enable/disable workflow"
   },
   "placeholder": {
     "attachmentUrl": "https://example.com/report.pdf",
@@ -6790,7 +6801,8 @@
     "searchAProject": "Search a project",
     "organizationNameExample": "Acme Inc",
     "searchForAMember": "Search for a member",
-    "enterCustomUrl": "Enter custom url"
+    "enterCustomUrl": "Enter custom url",
+    "searchScript": "Search for a script"
   },
   "msg": {
     "agentSkillsSubtitle": "Reusable instructions this agent can load when relevant.",
@@ -8018,7 +8030,8 @@
       "invalidTokensJson": "Not a token export. Expected keys like light, dark, font or radiusScale.",
       "renameFileFailed": "Error while renaming file",
       "failedToLoadMetadataDiff": "Failed to load metadata diff",
-      "failedToLoadMonacoEditor": "Failed to load Monaco Editor"
+      "failedToLoadMonacoEditor": "Failed to load Monaco Editor",
+      "stripePublishableKeyNotFound": "Stripe publishable key not found"
     },
     "toast": {
       "changesSaved": "Changes saved",

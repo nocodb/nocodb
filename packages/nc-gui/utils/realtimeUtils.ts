@@ -224,9 +224,12 @@ export function isMetaRowChanged(cached: Record<string, any> | undefined, next: 
 
 const pendingPeerViewReloads = new WeakMap<object, ReturnType<typeof setTimeout>>()
 
-/** One quiet reload per view for a burst of peer filter/sort events, however many instances hear them. */
+/**
+ * One quiet reload per view for a burst of peer filter/sort events, however many instances hear them.
+ * The canvas grid refreshes in place; other views reload without the loader.
+ */
 export function schedulePeerViewReload(
-  hook: { trigger: (param: { shouldShowLoading: boolean }) => unknown } | undefined,
+  hook: { trigger: (param: { shouldShowLoading: boolean; inPlace: boolean }) => unknown } | undefined,
   wait = 250,
 ) {
   if (!hook) return
@@ -235,7 +238,7 @@ export function schedulePeerViewReload(
     hook,
     setTimeout(() => {
       pendingPeerViewReloads.delete(hook)
-      hook.trigger({ shouldShowLoading: false })
+      hook.trigger({ shouldShowLoading: false, inPlace: true })
     }, wait),
   )
 }
@@ -268,16 +271,28 @@ export type ViewColumnState = Record<string, any> & { show?: boolean | number; g
  * (its values weren't fetched), or the grouping changed. Hiding, resizing or reordering doesn't.
  */
 export function viewColumnsNeedReload(before: Record<string, ViewColumnState>, after: Record<string, ViewColumnState>): boolean {
+  return viewColumnsReloadKind(before, after) !== 'none'
+}
+
+/**
+ * How a view's data must follow a view-column change: a group-by change rebuilds the groups
+ * (`reload`); a field going hidden → shown only needs its values over the loaded rows (`refresh`).
+ */
+export function viewColumnsReloadKind(
+  before: Record<string, ViewColumnState>,
+  after: Record<string, ViewColumnState>,
+): 'none' | 'refresh' | 'reload' {
   const ids = new Set([...Object.keys(before), ...Object.keys(after)])
+  let kind: 'none' | 'refresh' = 'none'
 
   for (const id of ids) {
     const prev = before[id] ?? {}
     const next = after[id] ?? {}
-    if (next.show && !prev.show) return true
-    if (isGroupByChanged(prev, { group_by: false, ...next })) return true
+    if (isGroupByChanged(prev, { group_by: false, ...next })) return 'reload'
+    if (next.show && !prev.show) kind = 'refresh'
   }
 
-  return false
+  return kind
 }
 
 /**

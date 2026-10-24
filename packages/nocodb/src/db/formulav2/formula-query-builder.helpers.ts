@@ -183,3 +183,12 @@ export const getAggregateFn: IGetAggregateFn = (parentFn) => {
         qb.clear('select').concat(cn, (qb as any)?._ncLinkOrderRef);
   }
 };
+
+// pg booleans can't take part in arithmetic and render as t/f in text. Formulas
+// treat them as 1/0, as mysql/sqlite (and Airtable) do; a blank checkbox is 0.
+export const isBooleanFormulaType = (dataType?: FormulaDataTypes | string) =>
+  dataType === FormulaDataTypes.BOOLEAN ||
+  dataType === FormulaDataTypes.COND_EXP;
+
+export const pgBooleanAsNumberSql = (sql: string) =>
+  `COALESCE((${sql})::int, 0)`;

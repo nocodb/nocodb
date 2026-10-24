@@ -10,6 +10,10 @@ import {
 import { convertDateFormatForConcat } from 'src/helpers/formulaFnHelper';
 import mapFunctionName from '../mapFunctionName';
 import {
+  isBooleanFormulaType,
+  pgBooleanAsNumberSql,
+} from './formula-query-builder.helpers';
+import {
   coalesceNumericOperand,
   ieeeDivisionSql,
   ieeeModuloSql,
@@ -320,6 +324,12 @@ export const callExpressionBuilder = async ({
       pt.arguments.map(async (arg) => {
         let query = (await fn(arg)).builder.toQuery();
         if (calleeName === 'CONCAT') {
+          if (
+            knex.clientType() === 'pg' &&
+            isBooleanFormulaType((arg as FnParsedTreeNode).dataType)
+          ) {
+            query = pgBooleanAsNumberSql(query);
+          }
           if (knex.clientType() !== 'sqlite3') {
             query = await convertDateFormatForConcat(
               context,
@@ -403,9 +413,29 @@ export const binaryExpressionBuilder = async ({
     );
   }
 
+  // pg: a boolean operand of arithmetic, an ordering comparison or an equality
+  // against a number is used as 1/0. `/` gets it through FLOAT().
+  const boolAsNumber = { left: false, right: false };
+  if (knex.clientType() === 'pg') {
+    for (const [side, other] of [
+      ['left', 'right'],
+      ['right', 'left'],
+    ] as const) {
+      boolAsNumber[side] =
+        isBooleanFormulaType(pt[side].dataType) &&
+        (['+', '-', '*', '%', '<', '>', '<=', '>='].includes(pt.operator) ||
+          (['==', '=', '!='].includes(pt.operator) &&
+            pt[other].dataType === FormulaDataTypes.NUMERIC));
+    }
+  }
+  // `=` too: the tree is built more than once and `==` is rewritten in place.
+  const isBoolNumberEquality =
+    ['==', '=', '!='].includes(pt.operator) &&
+    (boolAsNumber.left || boolAsNumber.right);
+
   // if operator is == or !=, then handle comparison with BLANK which should accept NULL and empty string
   if (pt.operator === '==' || pt.operator === '!=') {
-    for (const operand of ['left', 'right']) {
+    for (const operand of isBoolNumberEquality ? [] : ['left', 'right']) {
       if (
         pt[operand].dataType === FormulaDataTypes.BOOLEAN &&
         pt[operand === 'left' ? 'right' : 'left'].dataType ===
@@ -463,6 +493,7 @@ export const binaryExpressionBuilder = async ({
     pt.operator = '=';
     // if left/right is of different type, convert to string and compare
     if (
+      !isBoolNumberEquality &&
       pt.left.dataType !== pt.right.dataType &&
       [pt.left.dataType, pt.right.dataType].every(
         (type) => type !== FormulaDataTypes.NULL,
@@ -517,6 +548,9 @@ export const binaryExpressionBuilder = async ({
   ) {
     right = `(${right})`;
   }
+
+  if (boolAsNumber.left) left = pgBooleanAsNumberSql(left);
+  if (boolAsNumber.right) right = pgBooleanAsNumberSql(right);
 
   // Blank numerics behave as 0 in arithmetic and comparisons (pg only).
   // Applied in every mode, not just display: if display coalesced but sort did

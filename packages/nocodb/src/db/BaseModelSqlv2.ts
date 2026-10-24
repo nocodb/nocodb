@@ -8997,6 +8997,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (!relColumn) {
         NcError.get(this.context).fieldNotFound(colId);
       }
+      // The FK-holding (`meta.bt`) side reads like a belongs-to.
+      if (relColumn.meta?.bt) {
+        return this.btRead({ colId, id }, _args);
+      }
       const relColOptions =
         (await relColumn.getColOptions()) as LinkToAnotherRecordColumn;
       const relatedContext = await relColOptions.getRelContext();
@@ -9004,9 +9008,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         modelId: relColOptions.fk_related_model_id,
         context: relatedContext.refContext,
       });
-      // ooRead serves the parent (non-`meta.bt`) side, so the FK lives on the
-      // related table. Match it by id: on a self link the parent column (pk)
-      // is on the same table too.
+      // On the parent side the FK lives on the related table. Match it by id:
+      // on a self link the parent column (pk) is on the same table too.
       const relatedColumn = (await relatedBaseModel.model.getColumns()).find(
         (col) => col.id === relColOptions.fk_child_column_id,
       );

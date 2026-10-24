@@ -295,6 +295,9 @@ const onInputBlur = (e: FocusEvent) => {
     saveValue(targetValue)
     setTimeout(() => {
       // allow for debouncing to clear first
+      // ...but never rewrite a refocused input: it can hold a value no keyup has committed yet
+      if (document.activeElement === inputRef.value) return
+
       refreshVModel()
     }, 100)
   }

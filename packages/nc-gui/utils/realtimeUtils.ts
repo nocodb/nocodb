@@ -162,6 +162,17 @@ export function viewMembership(matchedViewIds: string[] | undefined, viewId: str
  * receive synthetic view ids the server never tags, and the server never lists a view filtered
  * on the viewer (`@me`).
  */
+/**
+ * Whether the server left out the views a row matched before because a field some view filters on
+ * changed (link writes). An update with no before-image at all also has no `prevMatchedViewIds`,
+ * but carries no `changedFields` either, so it doesn't count.
+ */
+export function isPrevMembershipWithheld(
+  data: Pick<DataPayload, 'matchedViewIds' | 'prevMatchedViewIds' | 'changedFields'>,
+): boolean {
+  return Array.isArray(data.matchedViewIds) && Array.isArray(data.changedFields) && !Array.isArray(data.prevMatchedViewIds)
+}
+
 export function previousViewMembership(
   prevMatchedViewIds: string[] | undefined,
   viewId: string | undefined,

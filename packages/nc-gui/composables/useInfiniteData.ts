@@ -28,6 +28,7 @@ import {
   classifyUnloadedRowUpdate,
   dataEventSubscriptionKey,
   flattenFiltersForEval,
+  isPrevMembershipWithheld,
   isUnlistedRowsChange,
   peerAggregateChange,
   schedulePeerTableReload,
@@ -2545,7 +2546,7 @@ export function useInfiniteData(args: {
             sortTitles: activeSorts.value
               .map((sort) => columnsById.value[sort.fk_column_id!]?.title)
               .filter((title): title is string => !!title),
-            isPrevMembershipWithheld: Array.isArray(data.matchedViewIds) && !Array.isArray(data.prevMatchedViewIds),
+            isPrevMembershipWithheld: isPrevMembershipWithheld(data),
           })
           if (outcome === 'aggregates') callbacks?.refreshGroupAggregations?.(data.changedFields)
           else if (outcome === 'refresh') requestInPlaceRefresh()

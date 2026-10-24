@@ -540,9 +540,10 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         if (loadedCounts) {
           await Promise.all(
             [...fetchedRows].map(async ([title, rows]) => {
-              const loadedCount = loadedCounts.get(title) ?? 0
-              if (loadedCount <= rows.length) return
-              const more = await fetchStackRows(title, { offset: rows.length, limit: loadedCount - rows.length })
+              // Capped at the stack's new total: a stack that shrank has no rows past it
+              const target = Math.min(loadedCounts.get(title) ?? 0, fetchedCounts.get(title) ?? 0)
+              if (target <= rows.length) return
+              const more = await fetchStackRows(title, { offset: rows.length, limit: target - rows.length })
               if (more) fetchedRows.set(title, [...rows, ...filerDuplicateRecords(rows, more)])
             }),
           )

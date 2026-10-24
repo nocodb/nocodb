@@ -376,10 +376,12 @@ export function useViewData(
 
   async function loadFormView() {
     if (!viewMeta?.value?.id) return
+    // Key the cache by the view requested: the active view can change while this is in flight
+    const formViewId = viewMeta.value.id
     try {
       const { columns, ...view } = await internalGet(base.value!.fk_workspace_id!, base.value!.id!, {
         operation: 'formViewGet',
-        formViewId: viewMeta.value.id,
+        formViewId,
       })
       let order = 1
       const fieldById = (columns || []).reduce((o: Record<string, any>, f: Record<string, any>) => {
@@ -393,7 +395,7 @@ export function useViewData(
       }, {} as Record<string, FormColumnType>)
 
       formViewData.value = view
-      persistedFormPayloads.set(viewMeta.value.id, formViewSaveBody(view))
+      persistedFormPayloads.set(formViewId, formViewSaveBody(view))
 
       formColumnData.value = meta?.value?.columns
         ?.map((c: ColumnType) => ({

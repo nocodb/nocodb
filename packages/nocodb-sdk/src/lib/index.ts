@@ -68,6 +68,7 @@ export {
   getUITypesForFormulaDataType,
   readonlyMetaAllowedTypes,
   partialUpdateAllowedTypes,
+  isFormatEditableOnReadonlySource,
   isSupportedDisplayValueColumn,
   columnTypeName,
   checkboxIconList,

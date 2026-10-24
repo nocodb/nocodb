@@ -103,6 +103,15 @@ export class FiltersV3Service {
     const view = await View.get(context, viewId);
     if (!view) NcError.get(context).viewNotFound(viewId);
 
+    await this.assertFilterTreeReadable(context, view.fk_model_id, tree);
+  }
+
+  /** The same check for a tree not attached to a view yet (view create). */
+  async assertFilterTreeReadable(
+    context: NcContext,
+    modelId: string,
+    tree: FilterCreateV3Type | FilterCreateUpdateV3Type,
+  ) {
     const leaves: Partial<FilterType>[] = [];
     const collect = (node: any) => {
       if (!node) return;
@@ -113,7 +122,7 @@ export class FiltersV3Service {
     };
     collect(tree);
 
-    await assertFiltersReadable(context, view.fk_model_id, leaves);
+    await assertFiltersReadable(context, modelId, leaves);
   }
 
   async insertFilterGroup({

@@ -459,6 +459,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       })
     }
 
+    // Bumped by a board reset, so a stack load that started before it doesn't write over it
+    let stackLoadGeneration = 0
+
     // Optimised Kanban: load grouped data (rows + count) for only the given stacks, merging into the
     // existing maps. `optionsArrJson` restricts the server-side group-by to just these titles (the
     // backend already honours it for both data and count under opt=true), so a board with thousands
@@ -476,10 +479,12 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         return
 
       if (reset) {
+        stackLoadGeneration++
         formattedData.value = new Map<string | null, Row[]>()
         countByStack.value = new Map<string | null, number>()
         loadedStacks.value = new Set<string | null>()
       }
+      const generation = stackLoadGeneration
 
       // De-duplicate and skip stacks already fetched (or in-flight, since we mark them eagerly below).
       const toLoad = [...new Set(stackTitles)].filter((title) => !loadedStacks.value.has(title))
@@ -522,26 +527,35 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           )
         }
 
-        const newFormattedData = new Map(formattedData.value)
-        const newCountByStack = new Map(countByStack.value)
+        const fetchedRows = new Map<string | null, Row[]>()
+        const fetchedCounts = new Map<string | null, number>()
 
         for (const data of groupData ?? []) {
           const key = typeof data.key === 'string' ? (data.key?.length ? data.key : null) : null
-          newFormattedData.set(key, formatData(data.value.list, getEvaluatedRowMetaRowColorInfo, evaluateButtonVisibility))
-          newCountByStack.set(key, data.value.pageInfo.totalRows || 0)
+          fetchedRows.set(key, formatData(data.value.list, getEvaluatedRowMetaRowColorInfo, evaluateButtonVisibility))
+          fetchedCounts.set(key, data.value.pageInfo.totalRows || 0)
         }
 
         // Fetched past the first page before the swap, so scrolled-in cards never drop out
         if (loadedCounts) {
           await Promise.all(
-            [...loadedCounts].map(async ([title, loadedCount]) => {
-              const rows = newFormattedData.get(title) ?? []
+            [...fetchedRows].map(async ([title, rows]) => {
+              const loadedCount = loadedCounts.get(title) ?? 0
               if (loadedCount <= rows.length) return
               const more = await fetchStackRows(title, { offset: rows.length, limit: loadedCount - rows.length })
-              if (more) newFormattedData.set(title, [...rows, ...filerDuplicateRecords(rows, more)])
+              if (more) fetchedRows.set(title, [...rows, ...filerDuplicateRecords(rows, more)])
             }),
           )
         }
+
+        // A reset meanwhile (e.g. a renamed option) reloaded the board: this fetch is stale
+        if (generation !== stackLoadGeneration) return
+
+        // Merged onto the live maps: stacks another load wrote meanwhile stay
+        const newFormattedData = new Map(formattedData.value)
+        const newCountByStack = new Map(countByStack.value)
+        fetchedRows.forEach((rows, key) => newFormattedData.set(key, rows))
+        fetchedCounts.forEach((count, key) => newCountByStack.set(key, count))
 
         formattedData.value = newFormattedData
         countByStack.value = newCountByStack

@@ -322,7 +322,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
       await loadViewColumns()
       await preserveFrozenFields(frozenIdsBefore)
-      reloadData?.()
+      // The shown fields' values over the loaded rows
+      reloadData?.({ shouldShowLoading: false, inPlace: true })
       $e('a:fields:show-all')
     }
 
@@ -460,7 +461,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
       if (!disableDataReload) {
         await loadViewColumns()
-        reloadData?.({ shouldShowLoading: false })
+        reloadData?.({ shouldShowLoading: false, inPlace: true })
       }
     }
 
@@ -489,7 +490,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
               .finally(() => {
                 loadViewColumns()
                 // Only showing them needs their values
-                if (v) reloadData?.()
+                if (v) reloadData?.({ shouldShowLoading: false, inPlace: true })
               })
           }
           view.value.show_system_fields = v

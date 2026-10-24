@@ -43,7 +43,7 @@ const isLoading = ref(false)
 const reloadTable = async () => {
   await getMeta(meta!.value!.base_id, meta!.value!.id!, true)
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-  reloadDataHook?.trigger()
+  reloadDataHook?.trigger({ shouldShowLoading: false, inPlace: true })
 }
 
 const _duplicate = async () => {

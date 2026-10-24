@@ -536,9 +536,12 @@ const pg = {
         };
       }),
     );
+    // `#` XORs the 0/1 terms into an integer; compare to 1 so the result is a
+    // boolean like AND/OR. Left as an integer, boolean filters (checked,
+    // notchecked, eq true) failed with `operator does not exist: integer = boolean`.
     return {
       builder: args.knex.raw(
-        `${predicates}`,
+        `((${predicates}) = 1)`,
         parsedArguments.map((a) => a.builder),
       ),
     };

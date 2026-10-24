@@ -224,6 +224,24 @@ const showContextMenu = (e: MouseEvent, target?: { row: RowType; index: number }
   }
 }
 
+/** Deletes the right-clicked card, found by pk: the cache can be re-keyed after the right-click. */
+function deleteContextMenuRow() {
+  const target = contextMenuTarget.value
+  if (!target) return
+
+  const pk = contextMenuRowId.value
+  const index = pk
+    ? [...cachedRows.value.entries()].find(([, row]) => extractPkFromRow(row.row, meta.value?.columns) === pk)?.[0]
+    : target.index
+
+  if (index === undefined) {
+    message.error(t('msg.error.deleteRowFailed'))
+    return
+  }
+
+  deleteRow(index)
+}
+
 /** Interface: duplicate the right-clicked card, inserting directly below it. */
 async function interfaceDuplicateRow() {
   const target = contextMenuTarget.value
@@ -824,7 +842,7 @@ function hasPosterCover(record: RowType) {
                 danger
                 data-testid="nc-gallery-context-menu-delete"
                 :disabled="!isAllowed"
-                @click="deleteRow(contextMenuTarget.index)"
+                @click="deleteContextMenuRow"
               >
                 <div v-e="['a:row:delete']" class="flex items-center gap-2">
                   <GeneralIcon icon="delete" />

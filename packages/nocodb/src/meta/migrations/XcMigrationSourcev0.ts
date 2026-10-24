@@ -123,7 +123,6 @@ import * as nc_202610131500_factory_machines from './v0/nc_202610131500_factory_
 import * as nc_202610141200_abuse_reports from './v0/nc_202610141200_abuse_reports';
 import * as nc_202610141300_abuse_reports_moderation from './v0/nc_202610141300_abuse_reports_moderation';
 import * as nc_202610201426_chat_sessions_factory_slug from './v0/nc_202610201426_chat_sessions_factory_slug';
-import * as nc_202610221200_mcp_token_hash from './v0/nc_202610221200_mcp_token_hash';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -258,7 +257,6 @@ export default class XcMigrationSourcev0 {
       'nc_202610141200_abuse_reports',
       'nc_202610141300_abuse_reports_moderation',
       'nc_202610201426_chat_sessions_factory_slug',
-      'nc_202610221200_mcp_token_hash',
     ]);
   }
 
@@ -518,8 +516,6 @@ export default class XcMigrationSourcev0 {
         return nc_202610141300_abuse_reports_moderation;
       case 'nc_202610201426_chat_sessions_factory_slug':
         return nc_202610201426_chat_sessions_factory_slug;
-      case 'nc_202610221200_mcp_token_hash':
-        return nc_202610221200_mcp_token_hash;
     }
   }
 }

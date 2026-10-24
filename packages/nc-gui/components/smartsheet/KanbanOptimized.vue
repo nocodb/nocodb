@@ -71,6 +71,8 @@ const {
   useWindowedKanbanLoad,
   loadMoreKanbanData,
   refreshLoadedStacksInPlace,
+  setVisibleStackTitles,
+  setCardDragActive,
   kanbanMetaData,
   formattedData,
   updateOrSaveRow,
@@ -430,6 +432,10 @@ const getAbsStackIdx = (relIndex: number) => stackWindow.value.start + relIndex
 useWindowedKanbanLoad.value = !isPublic.value
 
 const currentWindowStackTitles = () => visibleStackOptions.value.map((stack) => stack.title ?? null)
+
+// In-place refreshes cover the stacks on screen and hold their write while a card is dragged
+setVisibleStackTitles(currentWindowStackTitles)
+watch(isCardDragInProgress, (active) => setCardDragActive(active))
 
 const loadVisibleStacks = async (reset = false) => {
   if (!useWindowedKanbanLoad.value) {

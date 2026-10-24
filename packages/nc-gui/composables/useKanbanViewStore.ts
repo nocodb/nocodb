@@ -461,6 +461,14 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     // Bumped by a board reset, so a stack load that started before it doesn't write over it
     let stackLoadGeneration = 0
+    // The user's own card moves: an in-place refresh that started before one, or lands mid-drag,
+    // would write the card back where it was, so it defers to a rerun instead.
+    let localMoveCount = 0
+    let pendingLocalMoves = 0
+    let isCardDragActive = false
+    let isInPlaceWriteDeferred = false
+    // Set once the debounced refresh exists below
+    let scheduleStackRefresh = () => {}
 
     // Optimised Kanban: load grouped data (rows + count) for only the given stacks, merging into the
     // existing maps. `optionsArrJson` restricts the server-side group-by to just these titles (the
@@ -478,6 +486,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       )
         return
 
+      const localMoves = localMoveCount
       if (reset) {
         stackLoadGeneration++
         formattedData.value = new Map<string | null, Row[]>()
@@ -552,6 +561,12 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         // A reset meanwhile (e.g. a renamed option) reloaded the board: this fetch is stale
         if (generation !== stackLoadGeneration) return
 
+        if (loadedCounts && (isCardDragActive || pendingLocalMoves > 0 || localMoves !== localMoveCount)) {
+          isInPlaceWriteDeferred = true
+          if (!isCardDragActive) scheduleStackRefresh()
+          return
+        }
+
         // Merged onto the live maps: stacks another load wrote meanwhile stay
         const newFormattedData = new Map(formattedData.value)
         const newCountByStack = new Map(countByStack.value)
@@ -584,6 +599,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       const response = interfaceDataApi
         ? await interfaceDataApi.fetchList({
             offset: params.offset,
+            limit: params.limit,
             where,
             sortsArr: sorts.value,
             filtersArr: nestedFilters.value,
@@ -741,10 +757,16 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     }
 
     async function updateOrSaveRow(row: Row) {
-      if (row.rowMeta.new) {
-        await insertRow(row.row, formattedData.value.get(row.row.title!)!.indexOf(row))
-      } else {
-        await updateRowProperty(row, groupingField.value)
+      localMoveCount++
+      pendingLocalMoves++
+      try {
+        if (row.rowMeta.new) {
+          await insertRow(row.row, formattedData.value.get(row.row.title!)!.indexOf(row))
+        } else {
+          await updateRowProperty(row, groupingField.value)
+        }
+      } finally {
+        pendingLocalMoves--
       }
     }
 
@@ -755,11 +777,13 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
      * (interface/public views, or an active sort re-sorts on the next fetch anyway).
      */
     async function updateRecordOrder(row: Row, beforeRow: Row | null) {
+      localMoveCount++
       if (interfaceDataApi || isPublic.value || sorts.value?.length) return
       if (!base.value?.id || !meta.value?.id) return
       // moveRecord needs an order column (absent on e.g. external-source tables).
       if (!meta.value.columns?.some((c) => isOrderCol(c))) return
 
+      pendingLocalMoves++
       try {
         const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
         const beforeRowId = beforeRow ? extractPkFromRow(beforeRow.row, meta.value?.columns as ColumnType[]) : null
@@ -777,6 +801,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         )
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
+      } finally {
+        pendingLocalMoves--
       }
     }
 
@@ -1022,20 +1048,49 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     // Refetches the loaded stacks (cards and counts) over what's on screen, keeping scrolled-in cards.
     // One runs at a time: a call during a run queues one rerun, which reads the counts it left.
-    const refreshLoadedStacksInPlace = runOneQueueOne(async () => {
-      if (!useWindowedKanbanLoad.value) return loadKanbanData()
+    // Only the stacks on screen refetch in place; the board sets this from its scroll window.
+    let visibleStackTitles: () => (string | null)[] | undefined = () => undefined
+    const setVisibleStackTitles = (titles: () => (string | null)[]) => {
+      visibleStackTitles = titles
+    }
 
-      const loadedCounts = new Map([...loadedStacks.value].map((title) => [title, formattedData.value.get(title)?.length ?? 0]))
-      loadedCounts.forEach((_, title) => loadedStacks.value.delete(title))
+    const refreshLoadedStacksInPlace = runOneQueueOne(async () => {
       try {
+        if (!useWindowedKanbanLoad.value) return await loadKanbanData()
+
+        // Stacks off screen go stale and refetch when they scroll back into view
+        const visible = new Set(visibleStackTitles() ?? loadedStacks.value)
+        const loaded = [...loadedStacks.value]
+        loaded.filter((title) => !visible.has(title)).forEach((title) => loadedStacks.value.delete(title))
+
+        const loadedCounts = new Map(
+          loaded.filter((title) => visible.has(title)).map((title) => [title, formattedData.value.get(title)?.length ?? 0]),
+        )
+        loadedCounts.forEach((_, title) => loadedStacks.value.delete(title))
         await loadKanbanDataForStacks([...loadedCounts.keys()], { loadedCounts })
       } catch (e) {
         console.error('Failed to refresh kanban stacks', e)
       }
     })
 
-    // Capped, so a steady stream of peer moves can't keep the counts stale
-    const refreshLoadedStacks = useDebounceFn(refreshLoadedStacksInPlace, 500, { maxWait: 5000 })
+    // Capped, so a steady stream of peer moves can't keep the counts stale; every client on the board
+    // gets the same event, so each waits a little longer of its own.
+    const refreshJitterMs = Math.random() * 1000
+    const refreshLoadedStacks = useDebounceFn(refreshLoadedStacksInPlace, 500 + refreshJitterMs, {
+      maxWait: 5000 + refreshJitterMs,
+    })
+    scheduleStackRefresh = () => {
+      refreshLoadedStacks()
+    }
+
+    // The board's own drag: a deferred in-place write runs once it ends
+    const setCardDragActive = (active: boolean) => {
+      isCardDragActive = active
+      if (!active && isInPlaceWriteDeferred) {
+        isInPlaceWriteDeferred = false
+        refreshLoadedStacks()
+      }
+    }
 
     const getStackKey = (row: Record<string, any>): string | null =>
       typeof row?.[groupingField.value] === 'string' && row[groupingField.value].length ? row[groupingField.value] : null
@@ -1315,6 +1370,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       loadedStacks,
       loadMoreKanbanData,
       refreshLoadedStacksInPlace,
+      setVisibleStackTitles,
+      setCardDragActive,
       updateKanbanMeta,
       kanbanMetaData,
       formattedData,

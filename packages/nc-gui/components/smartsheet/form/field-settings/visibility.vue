@@ -1,7 +1,10 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 const { visibleColumns, activeField, allViewFilters, localColumns, localColumnsMapByFkColumnId } = useFormViewStoreOrThrow()
+
+const { getPlanTitle } = useEeConfig()
 
 const isOpen = ref<boolean>(false)
 
@@ -57,84 +60,98 @@ const filterOption = (column: ColumnType) => {
 <template>
   <div v-if="activeField" class="flex flex-col">
     <div class="flex flex-col gap-3">
-      <div class="flex items-center justify-between">
-        <div class="text-nc-content-gray font-medium">{{ $t('labels.showOnConditions') }}</div>
+      <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION">
+        <template #default="{ isFeatureEnabled }">
+          <div class="flex items-center justify-between">
+            <div class="text-nc-content-gray font-medium">{{ $t('labels.showOnConditions') }}</div>
 
-        <div class="flex flex-col">
-          <NcDropdown
-            v-if="visibilityFilters"
-            v-model:visible="isOpen"
-            placement="bottomLeft"
-            :disabled="isFirstField && !visibilityFilters.length && !isOpen"
-            overlay-class-name="nc-form-field-visibility-dropdown"
-          >
-            <NcTooltip placement="left" :disabled="!isFirstField">
-              <template #title> {{ $t('tooltip.cannotAddConditionsToFirstField') }} </template>
-              <div
-                class="nc-form-field-visibility-btn border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all cursor-pointer select-none text-sm"
-                :class="{
-                  '!border-nc-border-brand shadow-selected': isOpen,
-                  'border-nc-border-gray-medium': !isOpen,
-                  'bg-nc-bg-brand dark:bg-nc-bg-gray-light': visibilityFilters.length,
-                  'opacity-70 cursor-default nc-disabled': isFirstField && !visibilityFilters.length,
-                }"
-                data-testid="nc-form-field-visibility-btn"
+            <div class="flex flex-col">
+              <LazyPaymentUpgradeBadge
+                v-if="!isFeatureEnabled && !visibilityFilters?.length"
+                :feature="PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION"
+                :content="
+                  $t('upgrade.upgradeToShowFieldOnConditionsSubtitle', {
+                    plan: getPlanTitle(PlanTitles.PLUS),
+                  })
+                "
+              />
+
+              <NcDropdown
+                v-else-if="visibilityFilters"
+                v-model:visible="isOpen"
+                placement="bottomLeft"
+                :disabled="isFirstField && !visibilityFilters.length && !isOpen"
+                overlay-class-name="nc-form-field-visibility-dropdown"
               >
-                <div
-                  class="nc-form-field-visibility-conditions-count flex-1"
-                  :class="{
-                    'text-nc-content-brand ': visibilityFilters.length,
-                  }"
-                >
-                  {{
-                    visibilityFilters.length
-                      ? $t('labels.conditionsCount', { count: visibilityFilters.length }, visibilityFilters.length)
-                      : $t('labels.noConditions')
-                  }}
-                </div>
+                <NcTooltip placement="left" :disabled="!isFirstField">
+                  <template #title> {{ $t('tooltip.cannotAddConditionsToFirstField') }} </template>
+                  <div
+                    class="nc-form-field-visibility-btn border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all cursor-pointer select-none text-sm"
+                    :class="{
+                      '!border-nc-border-brand shadow-selected': isOpen,
+                      'border-nc-border-gray-medium': !isOpen,
+                      'bg-nc-bg-brand dark:bg-nc-bg-gray-light': visibilityFilters.length,
+                      'opacity-70 cursor-default nc-disabled': isFirstField && !visibilityFilters.length,
+                    }"
+                    data-testid="nc-form-field-visibility-btn"
+                  >
+                    <div
+                      class="nc-form-field-visibility-conditions-count flex-1"
+                      :class="{
+                        'text-nc-content-brand ': visibilityFilters.length,
+                      }"
+                    >
+                      {{
+                        visibilityFilters.length
+                          ? $t('labels.conditionsCount', { count: visibilityFilters.length }, visibilityFilters.length)
+                          : $t('labels.noConditions')
+                      }}
+                    </div>
 
-                <GeneralIcon v-if="hasvisibilityError" icon="alertTriangle" class="flex-none !text-nc-content-red-medium" />
+                    <GeneralIcon v-if="hasvisibilityError" icon="alertTriangle" class="flex-none !text-nc-content-red-medium" />
 
-                <GeneralIcon
-                  icon="settings"
-                  class="flex-none w-4 h-4"
-                  :class="{
-                    'text-nc-content-brand ': visibilityFilters.length,
-                  }"
-                />
-              </div>
-            </NcTooltip>
+                    <GeneralIcon
+                      icon="settings"
+                      class="flex-none w-4 h-4"
+                      :class="{
+                        'text-nc-content-brand ': visibilityFilters.length,
+                      }"
+                    />
+                  </div>
+                </NcTooltip>
 
-            <template #overlay>
-              <div
-                class="nc-form-field-visibility-dropdown-container"
-                :class="{
-                  'py-2': !visibilityFilters.length,
-                }"
-              >
-                <SmartsheetToolbarColumnFilter
-                  ref="fieldVisibilityRef"
-                  v-model="visibilityFilters"
-                  class="w-full"
-                  :auto-save="true"
-                  data-testid="nc-filter-menu"
-                  :show-loading="false"
-                  :parent-col-id="activeField.fk_column_id"
-                  :filter-option="filterOption"
-                  :visibility-error="visibilityError"
-                  :disable-add-new-filter="isFirstField"
-                />
-              </div>
-            </template>
-          </NcDropdown>
-        </div>
-      </div>
-      <div>
-        <div class="text-sm text-nc-content-gray-muted">{{ $t('labels.showFieldOnConditionsMet') }}</div>
-        <div v-if="hasvisibilityError" class="mt-2 visibility-condition-input-error text-nc-content-red-medium">
-          {{ $t('msg.error.errorConditionsIgnoredForVisibility') }}
-        </div>
-      </div>
+                <template #overlay>
+                  <div
+                    class="nc-form-field-visibility-dropdown-container"
+                    :class="{
+                      'py-2': !visibilityFilters.length,
+                    }"
+                  >
+                    <SmartsheetToolbarColumnFilter
+                      ref="fieldVisibilityRef"
+                      v-model="visibilityFilters"
+                      class="w-full"
+                      :auto-save="true"
+                      data-testid="nc-filter-menu"
+                      :show-loading="false"
+                      :parent-col-id="activeField.fk_column_id"
+                      :filter-option="filterOption"
+                      :visibility-error="visibilityError"
+                      :disable-add-new-filter="isFirstField || !isFeatureEnabled"
+                    />
+                  </div>
+                </template>
+              </NcDropdown>
+            </div>
+          </div>
+          <div>
+            <div class="text-sm text-nc-content-gray-muted">{{ $t('labels.showFieldOnConditionsMet') }}</div>
+            <div v-if="hasvisibilityError" class="mt-2 visibility-condition-input-error text-nc-content-red-medium">
+              {{ $t('msg.error.errorConditionsIgnoredForVisibility') }}
+            </div>
+          </div>
+        </template>
+      </PaymentUpgradeBadgeProvider>
     </div>
   </div>
 </template>

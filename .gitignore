@@ -155,3 +155,7 @@ GUIDE.md
 
 # brainstorming working notes, never committed
 docs/superpowers
+
+# Python bytecode from tests/playwright/scripts
+__pycache__/
+*.pyc

@@ -488,6 +488,8 @@ export class DataAttachmentV3Service {
     baseModel: Awaited<ReturnType<typeof getBaseModelSqlFromModelId>>,
     recordId: string,
   ): Promise<Record<string, any> | null> {
+    // No socket server (CE, or realtime off): nothing to broadcast, so no reads
+    if (!NocoSocket.ioServer) return null;
     try {
       const row = await baseModel.readByPk(
         recordId,

@@ -60,6 +60,8 @@ export const broadcastNestedLinkRefRows = async (
     }
   >();
 
+  const mirrorIds = new Map<string, string | undefined>();
+
   for (const { refBaseModel, nestedData, col, model } of entries) {
     const ids = (Array.isArray(nestedData) ? nestedData : [nestedData])
       .map((d) =>
@@ -79,16 +81,23 @@ export const broadcastNestedLinkRefRows = async (
     for (const id of ids) group.ids.add(id);
 
     // The ref rows changed through the mirror of `col`; unresolved counts every link.
+    // Resolved once per (column, ref table): a bulk insert has an entry per row.
     if (group.linkColIds) {
-      const mirrorId =
-        model.id !== refModelId
-          ? (
-              await extractCorrespondingLinkColumn(refBaseModel.context, {
-                ltarColumn: col,
-                referencedTable: refBaseModel.model,
-              }).catch(() => null)
-            )?.id
-          : undefined;
+      const mirrorKey = `${col.id}:${refModelId}`;
+      if (!mirrorIds.has(mirrorKey)) {
+        mirrorIds.set(
+          mirrorKey,
+          model.id !== refModelId
+            ? (
+                await extractCorrespondingLinkColumn(refBaseModel.context, {
+                  ltarColumn: col,
+                  referencedTable: refBaseModel.model,
+                }).catch(() => null)
+              )?.id
+            : undefined,
+        );
+      }
+      const mirrorId = mirrorIds.get(mirrorKey);
       if (mirrorId) group.linkColIds.add(mirrorId);
       else group.linkColIds = null;
     }

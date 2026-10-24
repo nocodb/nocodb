@@ -225,14 +225,6 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     if (!_childIds.length) return;
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
-    const linkColIds = touchedLinkColumnIds(
-      column.id,
-      (
-        await extractCorrespondingLinkColumn(baseModel.context, {
-          ltarColumn: column,
-        })
-      )?.id,
-    );
 
     const { childContext, parentContext, mmContext } =
       await colOptions.getParentChildContext();
@@ -243,6 +235,19 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     const childTable = await childColumn.getModel();
     await childTable.getColumns();
     await parentTable.getColumns();
+
+    // The related table and its columns are loaded already, so the mirror lookup reuses them
+    const linkColIds = touchedLinkColumnIds(
+      column.id,
+      (
+        await extractCorrespondingLinkColumn(baseModel.context, {
+          ltarColumn: column,
+          referencedTable: [parentTable, childTable].find(
+            (table) => table.id === colOptions.fk_related_model_id,
+          ),
+        })
+      )?.id,
+    );
 
     const childBaseModel = await Model.getBaseModelSQL(childContext, {
       model: childTable,
@@ -1038,14 +1043,6 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     if (!_childIds.length) return;
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
-    const linkColIds = touchedLinkColumnIds(
-      column.id,
-      (
-        await extractCorrespondingLinkColumn(baseModel.context, {
-          ltarColumn: column,
-        })
-      )?.id,
-    );
 
     const { parentContext, childContext, mmContext } =
       await colOptions.getParentChildContext();
@@ -1056,6 +1053,19 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     const childTable = await childColumn.getModel();
     await childTable.getColumns();
     await parentTable.getColumns();
+
+    // The related table and its columns are loaded already, so the mirror lookup reuses them
+    const linkColIds = touchedLinkColumnIds(
+      column.id,
+      (
+        await extractCorrespondingLinkColumn(baseModel.context, {
+          ltarColumn: column,
+          referencedTable: [parentTable, childTable].find(
+            (table) => table.id === colOptions.fk_related_model_id,
+          ),
+        })
+      )?.id,
+    );
 
     const childBaseModel = await Model.getBaseModelSQL(childContext, {
       model: childTable,

@@ -8,20 +8,32 @@ interface TableBatch {
   linkColumnIds: Set<string> | null;
 }
 
-const storage = new AsyncLocalStorage<Map<string, TableBatch>>();
+interface Batch {
+  tables: Map<string, TableBatch>;
+  // Timers and jobs started inside `fn` keep the store after the flush; they send directly.
+  closed: boolean;
+}
+
+const storage = new AsyncLocalStorage<Batch>();
+
+const activeBatch = () => {
+  const batch = storage.getStore();
+  return batch && !batch.closed ? batch : undefined;
+};
 
 /**
  * Run `fn` with link broadcasts collected per table, then send one per table.
  * A nested call joins the outer batch.
  */
 export async function batchLinkBroadcasts<T>(fn: () => Promise<T>): Promise<T> {
-  if (storage.getStore()) return fn();
+  if (activeBatch()) return fn();
 
-  const batch = new Map<string, TableBatch>();
+  const batch: Batch = { tables: new Map(), closed: false };
   try {
     return await storage.run(batch, fn);
   } finally {
-    for (const { baseModel, ids, linkColumnIds } of batch.values()) {
+    batch.closed = true;
+    for (const { baseModel, ids, linkColumnIds } of batch.tables.values()) {
       await baseModel.broadcastLinkUpdates(
         [...ids],
         linkColumnIds ? [...linkColumnIds] : [],
@@ -36,18 +48,18 @@ export function collectLinkBroadcast(
   ids: Array<string>,
   linkColumnIds: string[],
 ): boolean {
-  const batch = storage.getStore();
+  const batch = activeBatch();
   if (!batch) return false;
 
   const tableId = baseModel.model.id;
-  let entry = batch.get(tableId);
+  let entry = batch.tables.get(tableId);
   if (!entry) {
     entry = {
       baseModel: baseModel.getNonTransactionalClone(),
       ids: new Set(),
       linkColumnIds: new Set(),
     };
-    batch.set(tableId, entry);
+    batch.tables.set(tableId, entry);
   }
 
   for (const id of ids) entry.ids.add(String(id));

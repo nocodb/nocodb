@@ -4913,11 +4913,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         // Rows aren't re-read, so peers get a table-level change. Column rewrites
         // (skipValidationAndHooks) reload through their column event instead.
         if (+count > 0 && !args.skipValidationAndHooks) {
-          NocoSocket.broadcastTableRowsChanged(
-            this.context,
-            this.model.id,
-            this.context.socket_id,
-          );
+          // After the commit, if any: peers refetch on it and must read the new rows
+          this.dbDriver.attachToTransaction(async () => {
+            NocoSocket.broadcastTableRowsChanged(
+              this.context,
+              this.model.id,
+              this.context.socket_id,
+            );
+          });
         }
       }
 

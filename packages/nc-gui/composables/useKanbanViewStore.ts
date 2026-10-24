@@ -1004,16 +1004,38 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       return rowMatchesSearchAndUrl(data.payload)
     }
 
-    // Refetches the loaded stacks (cards and counts) over what's on screen, keeping scrolled-in cards
-    async function refreshLoadedStacksInPlace() {
-      if (!useWindowedKanbanLoad.value) return loadKanbanData()
+    let stackRefresh: Promise<void> | null = null
+    let isStackRefreshQueued = false
 
-      const loadedCounts = new Map([...loadedStacks.value].map((title) => [title, formattedData.value.get(title)?.length ?? 0]))
-      loadedCounts.forEach((_, title) => loadedStacks.value.delete(title))
+    // Refetches the loaded stacks (cards and counts) over what's on screen, keeping scrolled-in cards.
+    // One runs at a time: a call during a run queues one rerun, which reads the counts it left.
+    async function refreshLoadedStacksInPlace(): Promise<void> {
+      if (stackRefresh) {
+        isStackRefreshQueued = true
+        return stackRefresh
+      }
+
+      stackRefresh = (async () => {
+        if (!useWindowedKanbanLoad.value) return loadKanbanData()
+
+        const loadedCounts = new Map([...loadedStacks.value].map((title) => [title, formattedData.value.get(title)?.length ?? 0]))
+        loadedCounts.forEach((_, title) => loadedStacks.value.delete(title))
+        try {
+          await loadKanbanDataForStacks([...loadedCounts.keys()], { loadedCounts })
+        } catch (e) {
+          console.error('Failed to refresh kanban stacks', e)
+        }
+      })()
+
       try {
-        await loadKanbanDataForStacks([...loadedCounts.keys()], { loadedCounts })
-      } catch (e) {
-        console.error('Failed to refresh kanban stacks', e)
+        await stackRefresh
+      } finally {
+        stackRefresh = null
+      }
+
+      if (isStackRefreshQueued) {
+        isStackRefreshQueued = false
+        await refreshLoadedStacksInPlace()
       }
     }
 

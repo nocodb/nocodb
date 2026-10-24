@@ -2,7 +2,7 @@ import { PermissionEntity, PermissionKey, ViewTypes } from 'nocodb-sdk'
 import axios from 'axios'
 import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { NavigateDir } from '#imports'
+import { NavigateDir } from '~/lib/enums'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
@@ -48,6 +48,10 @@ export function useViewData(
   const formColumnData = ref<Record<string, any>[]>()
 
   const formViewData = ref<FormType>()
+
+  // Last form payload known to be on the server, per form view. A save identical to it is skipped:
+  // it changes nothing, but would still land on the undo stack above the user's real last action.
+  const persistedFormPayloads = new Map<string, Record<string, any>>()
 
   const formattedData = ref<Row[]>([])
 
@@ -389,6 +393,7 @@ export function useViewData(
       }, {} as Record<string, FormColumnType>)
 
       formViewData.value = view
+      persistedFormPayloads.set(viewMeta.value.id, formViewSaveBody(view))
 
       formColumnData.value = meta?.value?.columns
         ?.map((c: ColumnType) => ({
@@ -420,20 +425,34 @@ export function useViewData(
     }
   }
 
+  function formViewSaveBody(view: FormType) {
+    const {
+      source_id: _sourceId,
+      base_id: _baseId,
+      fk_view_id: _fkViewId,
+      fk_workspace_id: _fkWs,
+      created_at: _createdAt,
+      updated_at: _updatedAt,
+      ...body
+    } = view as Record<string, any>
+
+    // Detached copy: the form mutates `formViewData` in place
+    return JSON.parse(JSON.stringify(body)) as Record<string, any>
+  }
+
   async function updateFormView(view: FormType | undefined) {
     if (!viewMeta?.value?.id || !view || !isUIAllowed('viewFieldEdit')) return
 
-    try {
-      const {
-        source_id: _sourceId,
-        base_id: _baseId,
-        fk_view_id: fkViewId,
-        fk_workspace_id: _fkWs,
-        created_at: _createdAt,
-        updated_at: _updatedAt,
-        ...body
-      } = view as Record<string, any>
+    const fkViewId = (view as Record<string, any>).fk_view_id as string | undefined
+    const targetViewId = fkViewId ?? viewMeta.value.id
+    const body = formViewSaveBody(view)
 
+    if (deepCompare(persistedFormPayloads.get(targetViewId), body)) return
+
+    // Recorded before the request so a quick revert to the previous value is not mistaken for a no-op
+    persistedFormPayloads.set(targetViewId, body)
+
+    try {
       // Persist against the form view this data actually belongs to (`fk_view_id`),
       // not the currently-active view. The save is debounced, so it can fire after
       // the user has switched to another form view of the same table but before that
@@ -441,8 +460,9 @@ export function useViewData(
       // at the new view while `view` still holds the previous form's data. Keying off
       // the data's own `fk_view_id` stops one form's heading/subheading from
       // overwriting another's. See nocodb/nocodb#14153.
-      await updateViewMeta(fkViewId ?? viewMeta.value.id, ViewTypes.FORM, body)
+      await updateViewMeta(targetViewId, ViewTypes.FORM, body)
     } catch (e: any) {
+      persistedFormPayloads.delete(targetViewId)
       return message.error(`${t('msg.error.formViewUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
   }

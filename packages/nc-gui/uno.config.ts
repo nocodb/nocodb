@@ -70,6 +70,10 @@ export default defineConfig({
     'text-blue-500',
     'text-purple-500',
     'text-grey',
+    // DateTime cell's time-box caps, picked from a computed-key map the extractor misses
+    'max-w-[65px]',
+    'max-w-[85px]',
+    'max-w-[130px]',
   ],
 
   // Class strings built with template literals (`h-[${height}]`) reach the extractor verbatim.

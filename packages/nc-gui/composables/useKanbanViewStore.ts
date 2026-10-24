@@ -15,6 +15,7 @@ import { validateRowFilters } from '~/utils/dataUtils'
 import type { InterfacePageDataApi } from '~/lib/interfaceData'
 import { isInterfaceSyntheticViewId } from '~/lib/interfaceData'
 import { dataEventSubscriptionKey, previousViewMembership, unloadedRowCountChange } from '~/utils/realtimeUtils'
+import { runOneQueueOne } from '~/utils/runQueued'
 
 type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
 
@@ -1004,42 +1005,22 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       return rowMatchesSearchAndUrl(data.payload)
     }
 
-    let stackRefresh: Promise<void> | null = null
-    let isStackRefreshQueued = false
-
     // Refetches the loaded stacks (cards and counts) over what's on screen, keeping scrolled-in cards.
     // One runs at a time: a call during a run queues one rerun, which reads the counts it left.
-    async function refreshLoadedStacksInPlace(): Promise<void> {
-      if (stackRefresh) {
-        isStackRefreshQueued = true
-        return stackRefresh
-      }
+    const refreshLoadedStacksInPlace = runOneQueueOne(async () => {
+      if (!useWindowedKanbanLoad.value) return loadKanbanData()
 
-      stackRefresh = (async () => {
-        if (!useWindowedKanbanLoad.value) return loadKanbanData()
-
-        const loadedCounts = new Map([...loadedStacks.value].map((title) => [title, formattedData.value.get(title)?.length ?? 0]))
-        loadedCounts.forEach((_, title) => loadedStacks.value.delete(title))
-        try {
-          await loadKanbanDataForStacks([...loadedCounts.keys()], { loadedCounts })
-        } catch (e) {
-          console.error('Failed to refresh kanban stacks', e)
-        }
-      })()
-
+      const loadedCounts = new Map([...loadedStacks.value].map((title) => [title, formattedData.value.get(title)?.length ?? 0]))
+      loadedCounts.forEach((_, title) => loadedStacks.value.delete(title))
       try {
-        await stackRefresh
-      } finally {
-        stackRefresh = null
+        await loadKanbanDataForStacks([...loadedCounts.keys()], { loadedCounts })
+      } catch (e) {
+        console.error('Failed to refresh kanban stacks', e)
       }
+    })
 
-      if (isStackRefreshQueued) {
-        isStackRefreshQueued = false
-        await refreshLoadedStacksInPlace()
-      }
-    }
-
-    const refreshLoadedStacks = useDebounceFn(refreshLoadedStacksInPlace, 500)
+    // Capped, so a steady stream of peer moves can't keep the counts stale
+    const refreshLoadedStacks = useDebounceFn(refreshLoadedStacksInPlace, 500, { maxWait: 5000 })
 
     const getStackKey = (row: Record<string, any>): string | null =>
       typeof row?.[groupingField.value] === 'string' && row[groupingField.value].length ? row[groupingField.value] : null

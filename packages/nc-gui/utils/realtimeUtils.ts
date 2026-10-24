@@ -196,12 +196,15 @@ export function classifyUnloadedRowUpdate({
   changedFields,
   groupByTitles,
   sortTitles = [],
+  isPrevMembershipWithheld = false,
 }: {
   wasIn: ViewMembership
   isIn: ViewMembership
   changedFields?: string[]
   groupByTitles: string[]
   sortTitles?: string[]
+  /** The server left out the views the row matched before because a field some view filters on changed. */
+  isPrevMembershipWithheld?: boolean
 }): 'ignore' | 'aggregates' | 'refresh' {
   const isGrouped = groupByTitles.length > 0
 
@@ -215,9 +218,11 @@ export function classifyUnloadedRowUpdate({
     return 'refresh'
   }
 
-  // Without both images a flat grid keeps its count: refreshing on every such event costs more than a stale count.
+  // Without both images a flat grid keeps its count: refreshing on every such event costs more than a stale
+  // count. A withheld earlier membership is the exception: a filter field changed, so the row may have entered.
   if (!isGrouped) {
     if (wasIn !== isIn && wasIn !== 'unknown' && isIn !== 'unknown') return 'refresh'
+    if (wasIn === 'unknown' && isIn === 'in' && isPrevMembershipWithheld) return 'refresh'
     return 'ignore'
   }
 

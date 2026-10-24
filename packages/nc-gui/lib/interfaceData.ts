@@ -360,6 +360,8 @@ export interface InterfacePageDataApi {
     fieldPageId?: string
     /** Allow-listed related-table field titles — the picker's card rows. */
     fields?: string
+    /** A new record's draft (JSON) — resolves the link field's dynamic filters. */
+    linkRowData?: string
   }): Promise<{ list: Record<string, any>[]; pageInfo: PaginatedType }>
   /**
    * Link records into an LTAR cell — gated like an inline cell edit, or (when

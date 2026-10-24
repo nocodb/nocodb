@@ -227,6 +227,12 @@ export class TablesService {
     // trashed table still owns this physical name — and the rename DDL then
     // fails with "table already exists". Same treatment tableCreate applies.
     // nocohub#10873
+    const sqlMgr = await ProjectMgrv2.getSqlMgr(context, base);
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
+
+    const sqlClientType = sqlClient.knex.clientType();
+    const tableNameLengthLimit = this.getTableNameLengthLimit(sqlClientType);
+
     if (param.table.table_name !== model.table_name) {
       param.table.table_name = await this.resolveFreePhysicalTableName(
         context,
@@ -235,25 +241,9 @@ export class TablesService {
           source_id: source.id,
           desired: param.table.table_name,
           exclude_model_id: model.id,
+          maxLength: tableNameLengthLimit,
         },
       );
-    }
-
-    const sqlMgr = await ProjectMgrv2.getSqlMgr(context, base);
-    const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
-
-    let tableNameLengthLimit = 255;
-    const sqlClientType = sqlClient.knex.clientType();
-    if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
-      tableNameLengthLimit = 64;
-    } else if (sqlClientType === 'pg') {
-      tableNameLengthLimit = 63;
-    } else if (sqlClientType === 'mssql') {
-      // T-SQL identifiers map to sysname (nvarchar(128)).
-      tableNameLengthLimit = 128;
-    } else if (sqlClientType === 'oracledb') {
-      // Oracle 12.2+ identifiers cap at 128 bytes.
-      tableNameLengthLimit = 128;
     }
 
     if (param.table.table_name.length > tableNameLengthLimit) {
@@ -314,6 +304,8 @@ export class TablesService {
       source_id: string;
       desired: string;
       exclude_model_id?: string;
+      // The dialect's table-name limit; the suffix must fit within it.
+      maxLength?: number;
     },
   ): Promise<string> {
     const models = await Model.list(context, {
@@ -330,9 +322,37 @@ export class TablesService {
 
     if (!taken.has(param.desired)) return param.desired;
 
+    // Trim the base so `<base>_<n>` stays within the limit: a free 62–63 char
+    // name on pg would otherwise be refused as too long. A requested name that
+    // is already over the limit is left alone so the length check rejects it.
+    const maxLength =
+      param.maxLength && param.desired.length <= param.maxLength
+        ? param.maxLength
+        : undefined;
+    const candidate = (n: number) => {
+      const suffix = `_${n}`;
+      // Cut by code point so an astral character isn't split into a lone surrogate.
+      const base = maxLength
+        ? Array.from(param.desired)
+            .slice(0, maxLength - suffix.length)
+            .join('')
+        : param.desired;
+      return `${base}${suffix}`;
+    };
+
     let i = 1;
-    while (taken.has(`${param.desired}_${i}`)) i++;
-    return `${param.desired}_${i}`;
+    while (taken.has(candidate(i))) i++;
+    return candidate(i);
+  }
+
+  private getTableNameLengthLimit(sqlClientType: string): number {
+    if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') return 64;
+    if (sqlClientType === 'pg') return 63;
+    // T-SQL identifiers map to sysname (nvarchar(128)).
+    if (sqlClientType === 'mssql') return 128;
+    // Oracle 12.2+ identifiers cap at 128 bytes.
+    if (sqlClientType === 'oracledb') return 128;
+    return 255;
   }
 
   @TraceCommand(OperationName.tableReorder)
@@ -1055,12 +1075,18 @@ export class TablesService {
     // Soft-deleted tables keep their physical DB tables until permanent delete,
     // and a renamed table can hold a suffixed physical name. Uniquify against
     // both so the CREATE TABLE DDL doesn't collide.
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
+
+    const sqlClientType = sqlClient.knex.clientType();
+    const tableNameLengthLimit = this.getTableNameLengthLimit(sqlClientType);
+
     tableCreatePayLoad.table_name = await this.resolveFreePhysicalTableName(
       context,
       {
         base_id: base.id,
         source_id: source.id,
         desired: tableCreatePayLoad.table_name,
+        maxLength: tableNameLengthLimit,
       },
     );
 
@@ -1073,22 +1099,6 @@ export class TablesService {
     }
 
     const sqlMgr = await ProjectMgrv2.getSqlMgr(context, base);
-
-    const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
-
-    let tableNameLengthLimit = 255;
-    const sqlClientType = sqlClient.knex.clientType();
-    if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
-      tableNameLengthLimit = 64;
-    } else if (sqlClientType === 'pg') {
-      tableNameLengthLimit = 63;
-    } else if (sqlClientType === 'mssql') {
-      // T-SQL identifiers map to sysname (nvarchar(128)).
-      tableNameLengthLimit = 128;
-    } else if (sqlClientType === 'oracledb') {
-      // Oracle 12.2+ identifiers cap at 128 bytes.
-      tableNameLengthLimit = 128;
-    }
 
     if (tableCreatePayLoad.table_name.length > tableNameLengthLimit) {
       NcError.get(context).invalidRequestBody(

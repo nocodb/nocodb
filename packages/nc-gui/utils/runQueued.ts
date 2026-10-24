@@ -1,29 +1,26 @@
 /**
- * Wraps an async task so one run is in flight at a time: a call during a run queues a single
- * rerun (however many calls arrive) and gets the running promise.
+ * Wraps an async task so one run is in flight at a time. Calls during a run share one queued
+ * rerun, and their promise settles once that rerun has finished, so it covers their own change.
  */
 export function runOneQueueOne(task: () => Promise<void>): () => Promise<void> {
   let running: Promise<void> | null = null
-  let isQueued = false
+  let rerun: Promise<void> | null = null
 
-  const run = async (): Promise<void> => {
+  const run = (): Promise<void> => {
     if (running) {
-      isQueued = true
-      return running
+      rerun ??= running
+        .catch(() => undefined)
+        .then(() => {
+          rerun = null
+          return run()
+        })
+      return rerun
     }
 
     running = task().finally(() => {
       running = null
     })
-
-    try {
-      await running
-    } finally {
-      if (isQueued) {
-        isQueued = false
-        await run()
-      }
-    }
+    return running
   }
 
   return run

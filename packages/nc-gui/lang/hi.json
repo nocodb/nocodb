@@ -3644,7 +3644,6 @@
     "limitFileSizeDescription": "अपलोड की जा सकने वाली फ़ाइलों का आकार सीमित करें। (प्रति फ़ाइल सीमा)",
     "layout": "लेआउट",
     "interfaceRevisionHistory": "संशोधन इतिहास",
-    "linkUnlinkRecords": "रिकॉर्ड लिंक/अनलिंक करें",
     "limitRecordSelection": "रिकॉर्ड चयन सीमित करें",
     "keepAsDraft": "ड्राफ़्ट के रूप में रखें",
     "lastPublished": "अंतिम प्रकाशन {time}",

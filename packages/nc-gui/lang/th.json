@@ -3644,7 +3644,6 @@
     "limitFileSizeDescription": "จำกัดขนาดไฟล์ที่อัปโหลดได้ (จำกัดต่อไฟล์)",
     "layout": "เลย์เอาต์",
     "interfaceRevisionHistory": "ประวัติการแก้ไข",
-    "linkUnlinkRecords": "เชื่อม/ยกเลิกการเชื่อมเรกคอร์ด",
     "limitRecordSelection": "จำกัดการเลือกเรกคอร์ด",
     "keepAsDraft": "เก็บไว้เป็นฉบับร่าง",
     "lastPublished": "เผยแพร่ล่าสุด {time}",

@@ -3644,7 +3644,6 @@
     "limitFileSizeDescription": "حدِّد حجم الملفات التي يمكن رفعها. (الحد لكل ملف)",
     "layout": "التخطيط",
     "interfaceRevisionHistory": "سجل المراجعات",
-    "linkUnlinkRecords": "ربط السجلات أو فك ارتباطها",
     "limitRecordSelection": "تحديد اختيار السجلات",
     "keepAsDraft": "الإبقاء عليه كمسودة",
     "lastPublished": "آخر نشر {time}",

@@ -3644,7 +3644,6 @@
     "limitFileSizeDescription": "업로드할 수 있는 파일 크기를 제한합니다. (파일당 한도)",
     "layout": "레이아웃",
     "interfaceRevisionHistory": "수정 기록",
-    "linkUnlinkRecords": "항목 연결/연결 해제",
     "limitRecordSelection": "항목 선택 제한",
     "keepAsDraft": "초안으로 두기",
     "lastPublished": "마지막 게시 {time}",

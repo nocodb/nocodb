@@ -3640,7 +3640,6 @@
     "limitFileSizeDescription": "Ierobežojiet augšupielādējamo failu izmēru. (Ierobežojums vienam failam)",
     "layout": "Izkārtojums",
     "interfaceRevisionHistory": "Versiju vēsture",
-    "linkUnlinkRecords": "Saistīt/atsaistīt ierakstus",
     "limitRecordSelection": "Ierobežot ierakstu atlasi",
     "keepAsDraft": "Paturēt kā melnrakstu",
     "lastPublished": "Pēdējoreiz publicēts {time}",

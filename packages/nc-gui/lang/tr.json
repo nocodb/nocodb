@@ -3644,7 +3644,6 @@
     "limitFileSizeDescription": "Yüklenebilecek dosyaların boyutunu sınırlayın. (Dosya başına sınır)",
     "layout": "Düzen",
     "interfaceRevisionHistory": "Revizyon geçmişi",
-    "linkUnlinkRecords": "Kayıtları bağla/bağlantıyı kaldır",
     "limitRecordSelection": "Kayıt seçimini sınırla",
     "keepAsDraft": "Taslak olarak sakla",
     "lastPublished": "Son yayımlanma {time}",

@@ -3644,7 +3644,6 @@
     "limitFileSizeDescription": "הגבילו את גודל הקבצים שניתן להעלות. (מגבלה לכל קובץ)",
     "layout": "פריסה",
     "interfaceRevisionHistory": "היסטוריית גרסאות",
-    "linkUnlinkRecords": "קישור/ביטול קישור של רשומות",
     "limitRecordSelection": "הגבלת בחירת הרשומות",
     "keepAsDraft": "להשאיר כטיוטה",
     "lastPublished": "פורסם לאחרונה {time}",

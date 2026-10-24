@@ -3637,7 +3637,6 @@
     "limitFileSizeDescription": "Begræns størrelsen på de filer, der kan uploades. (Grænse pr. fil)",
     "layout": "Layout",
     "interfaceRevisionHistory": "Revisionshistorik",
-    "linkUnlinkRecords": "Kæd poster sammen / fjern kædning",
     "limitRecordSelection": "Begræns valget af poster",
     "keepAsDraft": "Behold som kladde",
     "lastPublished": "Sidst udgivet {time}",

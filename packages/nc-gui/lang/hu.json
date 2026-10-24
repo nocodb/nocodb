@@ -3643,7 +3643,6 @@
     "limitFileSizeDescription": "Korlátozza a feltölthető fájlok méretét. (Fájlonkénti korlát)",
     "layout": "Elrendezés",
     "interfaceRevisionHistory": "Változatok előzményei",
-    "linkUnlinkRecords": "Rekordok összekapcsolása / szétválasztása",
     "limitRecordSelection": "A rekordok kiválasztásának korlátozása",
     "keepAsDraft": "Megtartás piszkozatként",
     "lastPublished": "Utoljára közzétéve: {time}",

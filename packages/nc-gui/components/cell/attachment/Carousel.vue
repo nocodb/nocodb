@@ -84,31 +84,6 @@ const triggerReload = async () => {
   isUpdated.value = isUpdated.value + 1
 }
 
-onMounted(() => {
-  document.addEventListener('keydown', onKeyDown)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', onKeyDown)
-})
-
-function onKeyDown(event: KeyboardEvent) {
-  if (isRenameModalOpen.value) return
-  const prevKey = ['ArrowLeft', 'Left', 'a', 'A']
-  const nextKey = ['ArrowRight', 'Right', 'd', 'D']
-
-  if (prevKey.includes(event.key)) {
-    event.preventDefault()
-    emblaMainApi.value?.scrollPrev()
-    return
-  }
-
-  if (nextKey.includes(event.key)) {
-    event.preventDefault()
-    emblaMainApi.value?.scrollNext()
-  }
-}
-
 const openComments = ref(false)
 
 // Absent in form contexts — the attachment cell only provides row comments
@@ -194,6 +169,59 @@ useEventListener(container, 'click', (e) => {
   selectedFile.value = false
 })
 
+// Restored on close so keyboard focus returns to wherever the preview was opened from.
+const previouslyFocused = document.activeElement as HTMLElement | null
+
+onBeforeUnmount(() => {
+  if (previouslyFocused?.isConnected && previouslyFocused !== document.body) previouslyFocused.focus?.()
+})
+
+const isTypingTarget = (target: EventTarget | null) =>
+  target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
+
+// Capture phase on window: the preview is the top layer, so its keys must not
+// reach the grid canvas or the expanded record underneath.
+useEventListener(window, 'keydown', onKeyDown, true)
+
+function onKeyDown(event: KeyboardEvent) {
+  if (isRenameModalOpen.value) return
+
+  if (event.key === 'Escape') {
+    if (draft.value || activeAnnotationId.value) {
+      // Close the annotation popup first, one layer at a time.
+      cancelDraft()
+      setActive(null)
+      container.value?.focus()
+    } else if (isTypingTarget(event.target) && container.value?.parentElement?.contains(event.target as Node)) {
+      // Let an input inside the preview (comments) handle its own Escape.
+      return
+    } else {
+      selectedFile.value = false
+    }
+    event.preventDefault()
+    event.stopPropagation()
+    return
+  }
+
+  if (isTypingTarget(event.target) || event.metaKey || event.ctrlKey || event.altKey) return
+
+  const prevKey = ['ArrowLeft', 'Left', 'a', 'A']
+  const nextKey = ['ArrowRight', 'Right', 'd', 'D']
+
+  if (prevKey.includes(event.key)) {
+    event.preventDefault()
+    event.stopPropagation()
+    emblaMainApi.value?.scrollPrev()
+    return
+  }
+
+  if (nextKey.includes(event.key)) {
+    event.preventDefault()
+    event.stopPropagation()
+    emblaMainApi.value?.scrollNext()
+  }
+}
+
 const toggleComment = () => {
   openComments.value = !openComments.value
 }
@@ -250,7 +278,13 @@ const initEmblaApi = (val: any) => {
 </script>
 
 <template>
-  <GeneralOverlay v-model="selectedFile" transition :z-index="isExpandedFormOpen ? 1000 : 504" class="bg-black bg-opacity-90">
+  <GeneralOverlay
+    v-model="selectedFile"
+    transition
+    :close-on-escape="false"
+    :z-index="isExpandedFormOpen ? 1000 : 504"
+    class="bg-black bg-opacity-90"
+  >
     <!-- The carousel is always dark; force the dark theme on its subtree (the
          comment popup + comments side-panel) regardless of the app theme.
          `theme="dark"` switches the CSS variables; `dark` enables Windi dark: variants. -->
@@ -258,7 +292,9 @@ const initEmblaApi = (val: any) => {
       <div
         v-if="selectedFile"
         ref="container"
-        class="flex w-full overflow-hidden justify-center text-center relative nc-h-screen items-center"
+        tabindex="-1"
+        data-testid="nc-attachment-carousel"
+        class="flex w-full overflow-hidden outline-none justify-center text-center relative nc-h-screen items-center"
       >
         <NcButton
           class="top-5 !absolute cursor-pointer !z-30 !hover:bg-transparent left-5"

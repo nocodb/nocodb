@@ -9004,13 +9004,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         modelId: relColOptions.fk_related_model_id,
         context: relatedContext.refContext,
       });
-      const joinIds = [
-        relColOptions.fk_child_column_id,
-        relColOptions.fk_parent_column_id,
-      ];
+      // ooRead serves the parent (non-`meta.bt`) side, so the FK lives on the
+      // related table. Match it by id: on a self link the parent column (pk)
+      // is on the same table too.
       const relatedColumn = (await relatedBaseModel.model.getColumns()).find(
-        (col) => joinIds.includes(col.id),
+        (col) => col.id === relColOptions.fk_child_column_id,
       );
+      if (!relatedColumn) {
+        NcError.get(this.context).fieldNotFound(
+          relColOptions.fk_child_column_id,
+        );
+      }
 
       const ooQb = relatedBaseModel
         .dbDriver(relatedBaseModel.getTnPath(relatedBaseModel.model.table_name))

@@ -368,6 +368,32 @@ export function classifyNestedLeafUpdate({
   return wasIn === 'in' ? 'skip' : 'reload'
 }
 
+/**
+ * What a view that reloads by group (grouped Gantt / timeline) does with a peer's row event:
+ * `patch` a loaded row whose group can't have changed, `skip` an event that can't touch the
+ * view, `reload` the groups otherwise (adds and deletes move group counts).
+ */
+export function classifyGroupedRowEvent({
+  action,
+  wasIn,
+  isIn,
+  isLoaded,
+  changedFields,
+  positionTitles,
+}: {
+  action: DataPayload['action']
+  wasIn: ViewMembership
+  isIn: ViewMembership
+  isLoaded: boolean
+  changedFields?: string[]
+  positionTitles: Set<string>
+}): 'skip' | 'patch' | 'reload' {
+  if (action === 'reorder') return 'skip'
+  if (action === 'add') return isIn === 'out' ? 'skip' : 'reload'
+  if (action !== 'update') return 'reload'
+  return classifyNestedLeafUpdate({ wasIn, isIn, isCached: isLoaded, changedFields, positionTitles })
+}
+
 /** Every column a filter config references (`fk_column_id`, `fk_value_col_id`), at any depth. */
 export function collectFilterColumnIds(node: unknown, out = new Set<string>()): Set<string> {
   if (Array.isArray(node)) {

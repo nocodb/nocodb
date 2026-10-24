@@ -128,7 +128,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     const { sorts, nestedFilters, eventBus } = useSmartsheetStoreOrThrow()
 
     const injectedReloadHook = inject(ReloadViewDataHookInj, createEventHook())
-    const reloadViewData = reloadData ?? (() => injectedReloadHook?.trigger())
+    // Groups are rebuilt, so not in place, but without the loader
+    const reloadViewData = reloadData ?? (() => injectedReloadHook?.trigger({ shouldShowLoading: false }))
 
     const groupByGroupLimit = computed(() => {
       return appInfo.value.defaultGroupByLimit?.limitGroup || 25

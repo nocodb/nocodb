@@ -6,6 +6,7 @@ import {
   PlanTitles,
   UITypesSearchTerms,
   isAIPromptCol,
+  isRowDataUnchanged,
   isSupportedDisplayValueColumn,
 } from 'nocodb-sdk'
 import {
@@ -432,9 +433,16 @@ const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSea
 }
 
 const reloadMetaAndData = async () => {
+  // The cached column until the refetch below replaces it (the form edits a clone)
+  const columnBefore = isEdit.value && column.value ? { ...column.value } : undefined
+
   await getMeta(meta.value?.base_id, meta.value?.id as string, true)
 
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+
+  // A display-only edit (description, default, colour, new option) leaves every cell as it was
+  const columnAfter = columnBefore && meta.value?.columns?.find((col) => col.id === columnBefore.id)
+  if (isRowDataUnchanged(columnBefore, columnAfter)) return
 
   if (!isKanban.value) {
     reloadDataTrigger?.trigger({

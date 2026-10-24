@@ -932,9 +932,15 @@ export function useGridViewData(
     } catch (error: any) {
       message.error(`Bulk delete failed: ${await extractSdkResponseErrorMsg(error)}`)
     } finally {
-      clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, path)
-      await syncCount(path)
-      syncVisibleData?.()
+      // From the grouped grid's root, every group lost rows
+      if (isGroupBy.value && !path.length) {
+        isBulkOperationInProgress.value = false
+        await refreshInPlace()
+      } else {
+        clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, path)
+        await syncCount(path)
+        syncVisibleData?.()
+      }
       triggerAggregateReload({ path })
       isBulkOperationInProgress.value = false
     }

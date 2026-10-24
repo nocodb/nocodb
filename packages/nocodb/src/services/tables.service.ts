@@ -331,8 +331,11 @@ export class TablesService {
         : undefined;
     const candidate = (n: number) => {
       const suffix = `_${n}`;
+      // Cut by code point so an astral character isn't split into a lone surrogate.
       const base = maxLength
-        ? param.desired.slice(0, maxLength - suffix.length)
+        ? Array.from(param.desired)
+            .slice(0, maxLength - suffix.length)
+            .join('')
         : param.desired;
       return `${base}${suffix}`;
     };

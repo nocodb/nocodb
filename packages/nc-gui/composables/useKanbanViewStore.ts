@@ -1314,14 +1314,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             } else if (!before && rows.length >= (countByStack.value.get(stackKey) ?? 0)) {
               stackRows.push(moved!)
               formattedData.value.set(stackKey, stackRows)
-            } else if (
-              before &&
-              ![...formattedData.value.values()].some((stackCards) => stackCards.some((row) => pkOf(row) === `${before}`))
-            ) {
-              // `before` isn't loaded, so the card's new slot is past the loaded window
-              formattedData.value.set(stackKey, stackRows)
             } else {
-              // `before` is in another stack, or the card moved to the end, so its slot here is unknown.
+              // `before` isn't in this stack's loaded cards: it may be in another stack, past this one's
+              // window, or outside this view (order is table-wide), so the slot here is unknown.
               reload(stackKey)
             }
             return

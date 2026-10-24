@@ -93,6 +93,15 @@ describe('isRowDataUnchanged', () => {
     ).toBe(true);
   });
 
+  it('is false for a timezone change, which moves DateTime filter matches', () => {
+    expect(
+      isRowDataUnchanged(
+        text({ uidt: UITypes.DateTime, meta: { timezone: 'UTC' } }),
+        text({ uidt: UITypes.DateTime, meta: { timezone: 'Asia/Kolkata' } })
+      )
+    ).toBe(false);
+  });
+
   it('is false for a meta change that can rewrite cells', () => {
     expect(
       isRowDataUnchanged(

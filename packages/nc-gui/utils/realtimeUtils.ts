@@ -267,30 +267,42 @@ export function isMetaRowChanged(cached: Record<string, any> | undefined, next: 
   return Object.keys(next).some((key) => key !== 'created_at' && key !== 'updated_at' && !isSameMetaValue(cached[key], next[key]))
 }
 
-const pendingPeerViewReloads = new WeakMap<object, ReturnType<typeof setTimeout>>()
+const pendingPeerViewReloads = new WeakMap<object, { timer: ReturnType<typeof setTimeout>; since: number }>()
 
 /**
  * One quiet reload per view for a burst of peer filter/sort events, however many instances hear them.
- * The canvas grid refreshes in place; other views reload without the loader.
+ * The canvas grid refreshes in place; other views reload without the loader. A steady stream is
+ * capped at `maxWait`, so it can't push the reload back forever.
  */
 export function schedulePeerViewReload(
   hook: { trigger: (param: { shouldShowLoading: boolean; inPlace: boolean }) => unknown } | undefined,
   wait = 250,
+  maxWait = 3000,
 ) {
   if (!hook) return
-  clearTimeout(pendingPeerViewReloads.get(hook))
-  pendingPeerViewReloads.set(
-    hook,
-    setTimeout(() => {
+  const pending = pendingPeerViewReloads.get(hook)
+  const since = pending?.since ?? Date.now()
+  if (pending) clearTimeout(pending.timer)
+  pendingPeerViewReloads.set(hook, {
+    since,
+    timer: setTimeout(() => {
       pendingPeerViewReloads.delete(hook)
       hook.trigger({ shouldShowLoading: false, inPlace: true })
-    }, wait),
-  )
+    }, Math.max(0, Math.min(wait, since + maxWait - Date.now()))),
+  })
 }
 
 /** A `bulk` event without rows: the table's rows changed without being listed (an update-all). */
 export function isUnlistedRowsChange(data: DataPayload): boolean {
   return data.action === 'bulk' && !data.rows?.length
+}
+
+// Every client on the table gets an update-all at once: each reacts after its own fixed delay.
+const UNLISTED_CHANGE_JITTER_MS = Math.random() * 2000
+
+/** Runs a reaction to an unlisted rows change after this client's delay. */
+export function afterUnlistedChangeJitter(react: () => unknown) {
+  setTimeout(react, UNLISTED_CHANGE_JITTER_MS)
 }
 
 const pendingPeerTableReloads = new Map<string, ReturnType<typeof setTimeout>>()
@@ -308,7 +320,7 @@ export function schedulePeerTableReload(
     setTimeout(() => {
       pendingPeerTableReloads.delete(tableId)
       bus.emit(SmartsheetStoreEvents.DATA_RELOAD, { tableId, inPlace: true })
-    }, wait),
+    }, wait + UNLISTED_CHANGE_JITTER_MS),
   )
 }
 

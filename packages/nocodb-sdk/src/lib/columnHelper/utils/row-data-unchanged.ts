@@ -8,7 +8,7 @@ import UITypes, { isVirtualCol } from '~/lib/UITypes';
 const DISPLAY_ONLY_META_KEYS = new Set([
   'time_format',
   'is12hrFormat',
-  'timezone',
+  // `timezone` is left out too: the server builds DateTime filters in the column's timezone.
   'isDisplayTimezone',
   'useSameTimezoneForAll',
   'precision',

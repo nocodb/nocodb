@@ -313,7 +313,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       if (!viewValue.fk_workspace_id || !viewValue.base_id) return
       try {
         // Every store instance on the page (tab, expanded-form panel) asks for the same list
-        let load = recentViewerFilterLoads.get(viewValue.id)
+        // View ids repeat across bases (managed-app installs, duplicated bases)
+        const loadKey = `${viewValue.base_id}:${viewValue.id}`
+        let load = recentViewerFilterLoads.get(loadKey)
         if (!load || Date.now() - load.at > VIEWER_FILTER_LOAD_SHARE_MS) {
           load = {
             at: Date.now(),
@@ -323,7 +325,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
               includeAllFilters: 'true',
             }).then(({ list }) => (list ?? []) as FilterType[]),
           }
-          recentViewerFilterLoads.set(viewValue.id, load)
+          recentViewerFilterLoads.set(loadKey, load)
         }
         const list = await load.list
         if (view.value?.id === viewValue.id) savedFiltersForViewer.value = list
@@ -337,7 +339,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const viewerFilterEventListener = (evt: string, payload: { fk_view_id?: string } | undefined) => {
       if (!evt.startsWith('filter_') || payload?.fk_view_id !== view.value?.id) return
       // The shared list predates this change; the instances still share the refetch via the debounce
-      if (payload?.fk_view_id) recentViewerFilterLoads.delete(payload.fk_view_id)
+      if (payload?.fk_view_id) recentViewerFilterLoads.delete(`${view.value?.base_id}:${payload.fk_view_id}`)
       if (!isViewOperationsAllowed.value) loadSavedFiltersForViewer()
     }
     $eventBus.realtimeViewMetaEventBus.on(viewerFilterEventListener)

@@ -57,7 +57,7 @@
       "@babel/plugin-transform-modules-systemjs@>=7.12.0 <=7.29.3": ">=7.29.4",
       "hono@<4.13.5": ">=4.13.5",
       "basic-ftp@<=6.2.0": "^6.2.1",
-      "simple-git@<3.36.0": "^3.36.0",
+      "simple-git@<3.36.0": "^4.0.2",
       "fast-xml-parser@<5.7.0": ">=5.7.0",
       "fast-xml-builder@<=1.1.6": ">=1.1.7",
       "thrift@<0.23.0": ">=0.23.0",

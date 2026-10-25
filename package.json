@@ -55,7 +55,7 @@
       "protobufjs@<=7.6.0": "^7.6.1",
       "@protobufjs/utf8@<=1.1.0": ">=1.1.1",
       "@babel/plugin-transform-modules-systemjs@>=7.12.0 <=7.29.3": ">=7.29.4",
-      "hono@<4.13.5": ">=4.13.5",
+      "hono@<4.13.5": ">=4.13.13",
       "basic-ftp@<=6.2.0": "^6.2.1",
       "simple-git@<3.36.0": "^3.36.0",
       "fast-xml-parser@<5.7.0": ">=5.7.0",

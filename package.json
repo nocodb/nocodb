@@ -118,7 +118,7 @@
       "nodemailer@<10.0.6": "^10.0.6",
       "jws@<3.2.3": ">=3.2.3",
       "express-rate-limit@>=8.2.0 <8.2.2": ">=8.2.2",
-      "multer@<2.2.0": "^2.2.0",
+      "multer@<2.2.0": "^2.5.0",
       "dompurify@<3.4.13": "3.4.13",
       "@hono/node-server@<1.19.15": "1.19.17",
       "@modelcontextprotocol/sdk@<1.31.0": "^1.31.0",

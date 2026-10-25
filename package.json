@@ -113,7 +113,7 @@
       "@node-saml/node-saml": "5.1.0",
       "@node-saml/passport-saml": "5.1.0",
       "form-data@<2.5.4": ">=2.5.4",
-      "form-data@>=3.0.0 <3.0.4": ">=3.0.4",
+      "form-data@>=3.0.0 <3.0.4": ">=3.0.5",
       "node-forge@<1.4.0": ">=1.4.0",
       "nodemailer@<10.0.6": "^10.0.6",
       "jws@<3.2.3": ">=3.2.3",

@@ -67,7 +67,7 @@
       "postcss@<8.5.18": ">=8.5.18",
       "svelte@<=5.55.6": ">=5.55.7",
       "webpack-dev-server@<=5.2.3": ">=5.2.4",
-      "follow-redirects@<1.15.4": ">=1.15.4",
+      "follow-redirects@<1.15.4": ">=1.15.11",
       "node.extend@<1.1.7": ">=1.1.7",
       "tough-cookie": "^5.1.0",
       "typescript": "5.8.3",

@@ -16,6 +16,8 @@ minimumReleaseAge: 10080
 # plus three WebSocket / retry-interceptor issues; released 2026-09-04.
 minimumReleaseAgeExclude:
   - undici
+  # Renovate security update: form-data@2.5.6
+  - form-data@2.5.6
 
 # Detect when a package loses its provenance guarantees (e.g. previously
 # published via CI, now published from a local machine — signals account compromise).

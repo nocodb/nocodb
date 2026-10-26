@@ -171,6 +171,12 @@ export interface UserPasswordChangeEvent
   user: UserType;
 }
 
+export interface UserSessionsRevokeEvent
+  extends Optional<NcBaseEvent, 'context'> {
+  user: UserType;
+  disconnectApps: boolean;
+}
+
 export interface UserPasswordForgotEvent
   extends Optional<NcBaseEvent, 'context'> {
   user: UserType;

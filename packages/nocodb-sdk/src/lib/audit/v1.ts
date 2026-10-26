@@ -46,6 +46,7 @@ enum AuditV1OperationTypes {
   WHITE_LABEL_UPDATE = 'WHITE_LABEL_UPDATE',
 
   USER_PASSWORD_CHANGE = 'USER_PASSWORD_CHANGE',
+  USER_SESSIONS_REVOKE = 'USER_SESSIONS_REVOKE',
   USER_PASSWORD_RESET = 'USER_PASSWORD_RESET',
   USER_PASSWORD_FORGOT = 'USER_PASSWORD_FORGOT',
   USER_EMAIL_VERIFY = 'USER_EMAIL_VERIFY',
@@ -613,6 +614,10 @@ export interface UserInvitePayload {
 }
 
 export interface UserPasswordChangePayload {}
+
+export interface UserSessionsRevokePayload {
+  disconnect_apps: boolean;
+}
 
 export interface UserPasswordResetPayload {}
 
@@ -2291,6 +2296,12 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.USER_PASSWORD_CHANGE]: (
     audit: AuditV1<UserPasswordChangePayload>
   ) => `User '${audit.user}' changed password`,
+  [AuditV1OperationTypes.USER_SESSIONS_REVOKE]: (
+    audit: AuditV1<UserSessionsRevokePayload>
+  ) =>
+    `User '${audit.user}' signed out of other devices${
+      audit.details.disconnect_apps ? ' and disconnected connected apps' : ''
+    }`,
   [AuditV1OperationTypes.USER_PASSWORD_RESET]: (
     audit: AuditV1<UserPasswordResetPayload>
   ) => `User '${audit.user}' reset password`,

@@ -298,14 +298,12 @@ export class UsersService {
       salt,
       password,
       email: user.email,
-      token_version: randomTokenString(),
       reset_password_token: null,
       reset_password_expires: null,
     });
 
-    // delete all refresh token and populate a new one
-    await UserRefreshToken.deleteAllUserToken(user.id);
-    await this.revokeAllOAuthTokensByUser(user.id);
+    // The controller issues a new session for the current device.
+    await this.revokeAllSessions(user);
 
     this.appHooksService.emit(AppEvents.USER_PASSWORD_CHANGE, {
       user: user,
@@ -807,13 +805,17 @@ export class UsersService {
       }
 
       await UserRefreshToken.deleteAllUserToken(user.id);
-    } else if (!user.token_version) {
-      // Preserve legacy behavior: ensure token_version exists for users that
-      // pre-date the column or had it cleared.
-      user.token_version = randomTokenString();
-      await User.update(user.id, {
-        token_version: user.token_version,
-      });
+    } else {
+      if (!user.token_version) {
+        // Preserve legacy behavior: ensure token_version exists for users that
+        // pre-date the column or had it cleared.
+        user.token_version = randomTokenString();
+        await User.update(user.id, {
+          token_version: user.token_version,
+        });
+      }
+      // req.user can predate a rotation earlier in this request (password
+      // change, sign-out of other sessions).
       if (req.user) {
         req.user.token_version = user.token_version;
       }
@@ -826,6 +828,22 @@ export class UsersService {
     });
 
     setTokenCookie(res, refreshToken, req);
+  }
+
+  // Invalidates every session of the user, including the caller's; the caller
+  // re-issues one for the current device. API tokens are left alone.
+  async revokeAllSessions(
+    user: Pick<UserType, 'id' | 'email'>,
+    { revokeOAuthTokens = true }: { revokeOAuthTokens?: boolean } = {},
+  ) {
+    await User.update(user.id, {
+      email: user.email,
+      token_version: randomTokenString(),
+    });
+    await UserRefreshToken.deleteAllUserToken(user.id);
+    if (revokeOAuthTokens) {
+      await this.revokeAllOAuthTokensByUser(user.id);
+    }
   }
 
   protected async revokeAllOAuthTokensByUser(userId: string) {

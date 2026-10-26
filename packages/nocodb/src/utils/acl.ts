@@ -44,6 +44,7 @@ export const permissionScopes = {
     'userUpdate',
     'userDelete',
     'passwordChange',
+    'signOutOtherSessions',
     'mfaSetup',
     'mfaVerifySetup',
     'mfaDisable',
@@ -377,6 +378,7 @@ const rolePermissions:
       apiTokenUpdate: true,
       apiTokenDelete: true,
       passwordChange: true,
+      signOutOtherSessions: true,
       mfaSetup: true,
       mfaVerifySetup: true,
       mfaDisable: true,
@@ -926,6 +928,7 @@ const permissionDescriptions: Record<string, string> = {
   apiTokenDelete: 'delete an API token',
 
   passwordChange: 'change your password',
+  signOutOtherSessions: 'sign out of your other devices',
   mfaSetup: 'set up two-factor authentication',
   mfaVerifySetup: 'verify two-factor authentication setup',
   mfaDisable: 'disable two-factor authentication',

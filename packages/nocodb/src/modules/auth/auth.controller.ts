@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  Logger,
   Param,
   Post,
   Req,
@@ -13,6 +14,7 @@ import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { extractRolesObj } from 'nocodb-sdk';
+import type { UserType } from 'nocodb-sdk';
 import { PresignedUrl } from 'src/models';
 import type { AppConfig } from '~/interface/config';
 
@@ -29,6 +31,8 @@ import { NcRequest } from '~/interface/config';
 
 @Controller()
 export class AuthController {
+  protected logger = new Logger(AuthController.name);
+
   constructor(
     protected readonly usersService: UsersService,
     protected readonly appHooksService: AppHooksService,
@@ -188,6 +192,45 @@ export class AuthController {
     setAuthCookie(res, loginResult.token);
 
     res.json({ msg: 'Password has been updated successfully' });
+  }
+
+  @Post([
+    '/api/v1/auth/user/signout-others',
+    '/api/v2/auth/user/signout-others',
+  ])
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @Acl('signOutOtherSessions', {
+    scope: 'org',
+    blockApiTokenAccess: true,
+  })
+  @HttpCode(200)
+  async signOutOtherSessions(@Req() req: NcRequest, @Res() res: Response) {
+    if (!(req as any).isAuthenticated?.()) {
+      NcError.forbidden('Not allowed');
+    }
+
+    let revokeError: unknown;
+    try {
+      await this.usersService.revokeAllSessions(req.user as UserType);
+    } catch (e) {
+      revokeError = e;
+    }
+
+    // Re-issue the current device's session even if a later revocation step
+    // failed, so the caller is not signed out by its own request.
+    await this.setRefreshToken({ req, res });
+    const loginResult = await this.usersService.login(req.user, req);
+    setAuthCookie(res, loginResult.token);
+
+    if (revokeError) {
+      this.logger.error(
+        'Failed to sign out other sessions',
+        (revokeError as Error)?.stack,
+      );
+      NcError.internalServerError('Failed to sign out of other devices');
+    }
+
+    res.json({ token: loginResult.token });
   }
 
   @Post([

@@ -8,6 +8,7 @@ export enum Language {
   cs = 'Czech',
   da = 'Dansk',
   de = 'Deutsch',
+  el = 'Ελληνικά',
   en = 'English',
   es = 'Español',
   eu = 'Basque',

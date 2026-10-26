@@ -100,9 +100,9 @@ const days = computed(() => {
   // i18n keys use underscores (`pt_BR`), while Intl expects BCP 47 (`pt-BR`).
   let weekdayFormatter: Intl.DateTimeFormat
   try {
-    weekdayFormatter = new Intl.DateTimeFormat(locale.value.replaceAll('_', '-'), { weekday: 'short' })
+    weekdayFormatter = new Intl.DateTimeFormat(locale.value.replaceAll('_', '-'), { weekday: 'short', timeZone: 'UTC' })
   } catch {
-    weekdayFormatter = new Intl.DateTimeFormat('en', { weekday: 'short' })
+    weekdayFormatter = new Intl.DateTimeFormat('en', { weekday: 'short', timeZone: 'UTC' })
   }
 
   const indexes = isMondayFirst.value ? [1, 2, 3, 4, 5, 6, 0] : [0, 1, 2, 3, 4, 5, 6]

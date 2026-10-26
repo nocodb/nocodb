@@ -834,13 +834,18 @@ export class UsersService {
 
   // Invalidates every session of the user, including the caller's; the caller
   // re-issues one for the current device. API tokens are left alone.
-  async revokeAllSessions(user: Pick<UserType, 'id' | 'email'>) {
+  async revokeAllSessions(
+    user: Pick<UserType, 'id' | 'email'>,
+    { revokeOAuthTokens = true }: { revokeOAuthTokens?: boolean } = {},
+  ) {
     await User.update(user.id, {
       email: user.email,
       token_version: randomTokenString(),
     });
     await UserRefreshToken.deleteAllUserToken(user.id);
-    await this.revokeAllOAuthTokensByUser(user.id);
+    if (revokeOAuthTokens) {
+      await this.revokeAllOAuthTokensByUser(user.id);
+    }
   }
 
   protected async revokeAllOAuthTokensByUser(userId: string) {

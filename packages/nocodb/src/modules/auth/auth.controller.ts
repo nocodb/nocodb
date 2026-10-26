@@ -211,7 +211,10 @@ export class AuthController {
 
     let revokeError: unknown;
     try {
-      await this.usersService.revokeAllSessions(req.user as UserType);
+      await this.usersService.revokeAllSessions(req.user as UserType, {
+        // Connected apps are disconnected unless the caller opts out.
+        revokeOAuthTokens: req.body?.disconnectApps !== false,
+      });
     } catch (e) {
       revokeError = e;
     }

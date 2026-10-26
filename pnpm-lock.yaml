@@ -172,9 +172,9 @@ overrides:
   uuid@>=12.0.0 <12.0.1: ^12.0.1
   smol-toml@<1.7.1: '>=1.7.1'
   pacote@>=11.2.7 <21.5.1: '>=21.5.1'
-  undici@>=6.0.0 <6.28.1: 6.28.1
-  undici@>=7.0.0 <7.29.1: ^7.29.1
-  undici@>=8.0.0 <8.10.2: ^8.10.2
+  undici@>=6.0.0 <6.29.1: 6.29.1
+  undici@>=7.0.0 <7.30.1: ^7.30.1
+  undici@>=8.0.0 <8.12.2: ^8.12.2
   '@xmldom/xmldom@<0.8.15': ~0.8.15
   '@xmldom/xmldom@>=0.9.0 <0.9.12': ~0.9.12
   fastify@<5.12.5: ^5.12.5
@@ -18094,12 +18094,12 @@ packages:
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
-  undici@6.28.1:
-    resolution: {integrity: sha512-zWpdTVD54H48CIybL0rWQ3ukpb9d23wM7eH5RtfdmeP70cWHNjtfo7P4vZX+5CoDcO53J4Pu5uXp7lNfjc6DRA==}
+  undici@6.29.1:
+    resolution: {integrity: sha512-EvRlUt/QqAEvXdQeRMYUfwOQsfzpDztykrG2owGEE/rBOBoYv9uF39ZzsNDh4lTFHhTr2XOZjKkYgueD12ZmGA==}
     engines: {node: '>=18.17'}
 
-  undici@8.10.2:
-    resolution: {integrity: sha512-/y4/bH9YNU5hi9NIrpOuvGXFcxrj3CMrV+/AYpowAYTpHn8gX/XPFjNy766FPoYY0miQhdW977JFWKGNhBdwyQ==}
+  undici@8.12.3:
+    resolution: {integrity: sha512-+fdndUTwBP86cVjihTp21hZHo7d6oj1c/47XPA3lL8mM0XHs+C4EkcjmgRsFnFk2f/UONGDy9ItBItmXsLOQHw==}
     engines: {node: '>=22.19.0'}
 
   unenv@2.0.0-rc.24:
@@ -19347,7 +19347,7 @@ snapshots:
       '@ai-sdk/provider': 3.0.19
       '@standard-schema/spec': 1.1.0
       eventsource-parser: 3.1.1
-      undici: 6.28.1
+      undici: 6.29.1
       zod: 3.25.76
 
   '@ai-sdk/provider@1.1.3':
@@ -36749,7 +36749,7 @@ snapshots:
       semver: 7.8.5
       tar: 7.5.22
       tinyglobby: 0.2.17
-      undici: 6.28.1
+      undici: 6.29.1
       which: 6.0.1
 
   node-gyp@8.4.1:
@@ -37000,7 +37000,7 @@ snapshots:
       ultrahtml: 1.7.0
       uncrypto: 0.1.3
       unctx: 3.0.0(magic-string@1.2.0)(oxc-parser@0.131.0)(rolldown@1.2.4)(unplugin@3.3.0(@rspack/core@2.2.2(@swc/helpers@0.5.17))(esbuild@0.28.1)(rolldown@1.2.4)(rollup@4.60.4)(vite@8.2.1(@types/node@22.15.23)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.89.0)(terser@5.40.0)(yaml@2.9.0))(webpack@5.106.2(@swc/core@1.10.0(@swc/helpers@0.5.17))(esbuild@0.28.1)(lightningcss@1.33.0)(postcss@8.5.26)))
-      undici: 8.10.2
+      undici: 8.12.3
       unhead: 3.3.2(@rspack/core@2.2.2(@swc/helpers@0.5.17))(esbuild@0.28.1)(rolldown@1.2.4)(rollup@4.60.4)(vite@8.2.1(@types/node@22.15.23)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.89.0)(terser@5.40.0)(yaml@2.9.0))(webpack@5.106.2(@swc/core@1.10.0(@swc/helpers@0.5.17))(esbuild@0.28.1)(lightningcss@1.33.0)(postcss@8.5.26))
       unimport: 6.4.0(@rspack/core@2.2.2(@swc/helpers@0.5.17))(esbuild@0.28.1)(oxc-parser@0.131.0)(rolldown@1.2.4)(rollup@4.60.4)(vite@8.2.1(@types/node@22.15.23)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.89.0)(terser@5.40.0)(yaml@2.9.0))(webpack@5.106.2(@swc/core@1.10.0(@swc/helpers@0.5.17))(esbuild@0.28.1)(lightningcss@1.33.0)(postcss@8.5.26))
       unplugin: 3.3.0(@rspack/core@2.2.2(@swc/helpers@0.5.17))(esbuild@0.28.1)(rolldown@1.2.4)(rollup@4.60.4)(vite@8.2.1(@types/node@22.15.23)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.89.0)(terser@5.40.0)(yaml@2.9.0))(webpack@5.106.2(@swc/core@1.10.0(@swc/helpers@0.5.17))(esbuild@0.28.1)(lightningcss@1.33.0)(postcss@8.5.26))
@@ -40649,9 +40649,9 @@ snapshots:
 
   undici-types@6.21.0: {}
 
-  undici@6.28.1: {}
+  undici@6.29.1: {}
 
-  undici@8.10.2: {}
+  undici@8.12.3: {}
 
   unenv@2.0.0-rc.24:
     dependencies:

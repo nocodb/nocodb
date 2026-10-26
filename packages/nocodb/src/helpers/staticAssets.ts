@@ -21,6 +21,9 @@ export function ncStaticCacheControl(filePath: string): string {
   // The shell, and the self-destroying service worker that unregisters stale ones.
   if (p.endsWith('.html') || p.endsWith('/sw.js')) return REVALIDATE;
 
+  // Build identifier polled by the EE update toast; a cached copy fakes a deploy.
+  if (p.endsWith('/nc.txt')) return REVALIDATE;
+
   if (p.includes('/_nuxt/builds/')) {
     // How an open tab learns a new build landed. Freezing it strands the tab.
     // meta/<uuid>.json is per-build, so it freezes like any hashed asset.

@@ -585,6 +585,16 @@ export const columnBuilder = builderGenerator<ColumnType, FieldV3Type>({
         relation_type: type,
         ...(isCrossBase ? { related_base_id } : {}),
       };
+    } else if (data.type === UITypes.Lookup) {
+      // Stored as `{ type, value }`; v3 exposes the number plus its type. A
+      // legacy plain-number value is never applied, so it is not reported.
+      const { lookup_limit: limit, ...rest } = options;
+      options = rest;
+      delete options.lookup_limit_type;
+      if (limit && typeof limit === 'object' && +limit.value > 0) {
+        options.lookup_limit = +limit.value;
+        options.lookup_limit_type = limit.type === 'last' ? 'last' : 'first';
+      }
     }
 
     // Number/Decimal/Rollup: fold the legacy `isLocaleString` boolean (mapped
@@ -828,6 +838,21 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
         meta.duration = durationIdx;
       }
     }
+    // Lookup limit: v3 takes a plain number (+ optional first/last type); the
+    // backend only reads the stored `{ type, value }` shape.
+    else if (data.uidt === UITypes.Lookup) {
+      const { lookup_limit: limit, lookup_limit_type: limitType } =
+        meta as Record<string, any>;
+      delete meta.lookup_limit_type;
+      if (typeof limit === 'number' && limit > 0) {
+        meta.lookup_limit = {
+          type: limitType === 'last' ? 'last' : 'first',
+          value: limit,
+        };
+      } else if (!limit || typeof limit !== 'object') {
+        delete meta.lookup_limit;
+      }
+    }
     // if multi select then accept array of default values
     else if (data.uidt === UITypes.MultiSelect) {
       data.cdf = Array.isArray(data.cdf) ? data.cdf.join(',') : data.cdf;
@@ -889,6 +914,7 @@ export const filterBuilder = builderGenerator<FilterType>({
     'is_group',
     'fk_related_col_id',
     'fk_value_col_id',
+    'enabled',
   ],
   mappings: {
     fk_column_id: 'field_id',
@@ -898,7 +924,7 @@ export const filterBuilder = builderGenerator<FilterType>({
     comparison_sub_op: 'sub_operator',
   },
   excludeNullProps: true,
-  booleanProps: ['is_group'],
+  booleanProps: ['is_group', 'enabled'],
 });
 
 export const filterRevBuilder = builderGenerator<

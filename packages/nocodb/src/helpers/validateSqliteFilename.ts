@@ -91,19 +91,21 @@ export function extractSqliteFilename(config: unknown): string | undefined {
 
 export function validateAndNormalizeSqliteConfig(
   config: unknown,
-  subType?: string,
+  _subType?: string,
 ): void {
-  if (subType && subType !== 'sqlite3') return;
   if (!config || typeof config !== 'object') return;
   const c: any = config;
+  const conn = c?.connection;
+  if (!conn || typeof conn !== 'object') return;
+  // Not gated on client: knex opens SQLite under several client names, and
+  // only SQLite reads `filename`.
 
-  const inner = c?.connection?.connection;
+  // Check both keys: Source.getConnectionConfig opens the outer one first.
+  if (conn.filename != null) {
+    conn.filename = validateSqliteFilename(conn.filename);
+  }
+  const inner = conn.connection;
   if (inner && typeof inner === 'object' && inner.filename != null) {
     inner.filename = validateSqliteFilename(inner.filename);
-    return;
-  }
-  const conn = c?.connection;
-  if (conn && typeof conn === 'object' && conn.filename != null) {
-    conn.filename = validateSqliteFilename(conn.filename);
   }
 }

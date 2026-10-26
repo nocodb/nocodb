@@ -266,10 +266,15 @@ export default class Gcs implements IStorageAdapterV2 {
       globPattern = `nc/uploads/${globPattern}`;
     }
 
-    const stream = new Readable({
-      objectMode: true,
-      read() {},
-    });
+    // GCS lists by plain prefix, so drop the glob wildcards
+    globPattern = globPattern.replace(/\*/g, '');
+
+    // pull-based, so pages are fetched as the consumer reads
+    async function* listNames(files: AsyncIterable<{ name: string }>) {
+      for await (const file of files) {
+        yield file.name;
+      }
+    }
 
     try {
       const fileStream = this.storageClient
@@ -279,21 +284,8 @@ export default class Gcs implements IStorageAdapterV2 {
           autoPaginate: true,
         });
 
-      fileStream.on('error', (error) => {
-        stream.destroy(error);
-      });
-
-      fileStream.on('data', (file) => {
-        stream.push(file.name);
-      });
-
-      fileStream.on('end', () => {
-        stream.push(null);
-      });
-
-      return stream;
+      return Readable.from(listNames(fileStream));
     } catch (e) {
-      stream.destroy(new Error(`Failed to scan files: ${e.message}`));
       NcError._.storageFileReadError(`Failed to scan files: ${e.message}`);
     }
   }

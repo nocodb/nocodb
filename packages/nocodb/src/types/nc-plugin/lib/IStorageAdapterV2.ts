@@ -41,6 +41,8 @@ export default interface IStorageAdapterV2<
   fileSize(key: string): Promise<number>;
   getDirectoryList(path: string): Promise<string[]>;
   scanFiles(_globPattern: string): Promise<Readable>;
+  /** Bulk delete where the backend supports it; resolves to the count deleted. */
+  fileDeleteBatch?(keys: string[]): Promise<number>;
   getUploadedPath(path: string): {
     path?: string;
     url?: string;

@@ -257,25 +257,32 @@ class PGClient extends KnexClient {
     try {
       await this.raw('SELECT 1+1 as data');
     } catch (e1) {
-      const connectionParamsWithoutDb = deepClone(this.connectionConfig);
-      connectionParamsWithoutDb.connection.password =
-        this.connectionConfig.connection.password;
-      connectionParamsWithoutDb.connection.database = 'postgres';
-      const tempSqlClient = knex({
-        ...connectionParamsWithoutDb,
-        pool: { min: 0, max: 1 },
-      });
-      try {
-        await tempSqlClient.raw('SELECT 1+1 as data');
-      } catch (e) {
-        if (!/^database "[\w\d_]+" does not exist$/.test(e.message)) {
-          log.ppe(e);
-          result.code = -1;
-          // send back original error message
-          result.message = e1.message;
+      // Opt-in: other callers may create the database later, so a missing one passes for them.
+      if (args.requireDatabase && e1?.code === '3D000') {
+        result.code = -1;
+        result.message = e1.message;
+        result.sql_code = e1.code;
+      } else {
+        const connectionParamsWithoutDb = deepClone(this.connectionConfig);
+        connectionParamsWithoutDb.connection.password =
+          this.connectionConfig.connection.password;
+        connectionParamsWithoutDb.connection.database = 'postgres';
+        const tempSqlClient = knex({
+          ...connectionParamsWithoutDb,
+          pool: { min: 0, max: 1 },
+        });
+        try {
+          await tempSqlClient.raw('SELECT 1+1 as data');
+        } catch (e) {
+          if (!/^database "[\w\d_]+" does not exist$/.test(e.message)) {
+            log.ppe(e);
+            result.code = -1;
+            // send back original error message
+            result.message = e1.message;
+          }
+        } finally {
+          await tempSqlClient.destroy();
         }
-      } finally {
-        await tempSqlClient.destroy();
       }
     } finally {
       log.api(`${_func}:result:`, result);

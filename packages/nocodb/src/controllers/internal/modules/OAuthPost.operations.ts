@@ -21,9 +21,13 @@ export class OAuthPostOperations
     'oAuthClientUpdate' as const,
     'oAuthClientDelete' as const,
     'oAuthAuthorizationRevoke' as const,
+    'oAuthAuthorizationUpdate' as const,
     'oAuthClientRegenerateSecret' as const,
   ];
   httpMethod = 'POST' as const;
+
+  // A leaked API token must not widen what a signed-in AI app may call.
+  apiTokenBlockedOperations = ['oAuthAuthorizationUpdate' as const];
 
   async handle(
     context: NcContext,
@@ -63,6 +67,12 @@ export class OAuthPostOperations
           payload.tokenId,
         );
         return true;
+      case 'oAuthAuthorizationUpdate':
+        return await this.oAuthTokenService.updateUserAuthorization(
+          req.user.id,
+          payload.tokenId,
+          { tools: payload.tools },
+        );
       case 'oAuthClientRegenerateSecret':
         return await this.oAuthClientService.regenerateClientSecret(context, {
           clientId: req.query.clientId as string,

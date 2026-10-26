@@ -1,7 +1,10 @@
 import fs from 'fs';
 import { promisify } from 'util';
 import { NcError } from '~/helpers/ncError';
-import { validateDbConnectionSslPaths } from '~/helpers/validateDbConnectionHost';
+import {
+  validateDbConnectionDsnSslPaths,
+  validateDbConnectionSslPaths,
+} from '~/helpers/validateDbConnectionHost';
 
 const readFileAsync = promisify(fs.readFile);
 
@@ -25,6 +28,9 @@ const readFileAsync = promisify(fs.readFile);
 export async function resolveSslFileConfig(
   connectionConfig: any,
 ): Promise<void> {
+  // pg-connection-string reads DSN cert params from disk when the client is built.
+  validateDbConnectionDsnSslPaths(connectionConfig);
+
   const ssl = connectionConfig?.connection?.ssl;
   if (!ssl || typeof ssl !== 'object') return;
 

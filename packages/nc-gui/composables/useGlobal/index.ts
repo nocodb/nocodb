@@ -77,7 +77,9 @@ export const useGlobal = createGlobalState((): UseGlobalReturn => {
       if (newToken) {
         document.cookie = `nc_token=${newToken}; path=/api; max-age=${10 * 60 * 60}; samesite=lax${secure}`
       } else {
-        document.cookie = `nc_token=; path=/api; max-age=0; samesite=lax${secure}`
+        // Always send the Secure deletion so a Secure cookie is cleared; plain http drops that write, so repeat it without.
+        document.cookie = 'nc_token=; path=/api; max-age=0; samesite=lax; secure'
+        if (!secure) document.cookie = 'nc_token=; path=/api; max-age=0; samesite=lax'
       }
     },
     { immediate: true },

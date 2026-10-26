@@ -125,6 +125,8 @@ export class WorkspaceUsersService {
       ncMeta,
     );
 
+    delete workspaceUser.invite_token;
+
     return workspaceUser;
   }
 
@@ -196,7 +198,7 @@ export class WorkspaceUsersService {
     }
 
     const error = [];
-    // Only set when the token was saved on the user row, i.e. usable for signup
+    // Only set for a row this call created; a refreshed token goes by mail only
     let invite_token: string | null = null;
 
     for (const emailAddr of emails) {
@@ -263,8 +265,10 @@ export class WorkspaceUsersService {
         );
       }
 
-      // Existing user who never finished signup: refresh their invite token
-      if (!signupToken && !user.password) {
+      invite_token = signupToken;
+
+      // Refresh only an outstanding invite: a password-less account may be OAuth/SSO.
+      if (!signupToken && user.invite_token && !user.password) {
         await User.update(
           user.id,
           {
@@ -275,7 +279,6 @@ export class WorkspaceUsersService {
         );
         signupToken = token;
       }
-      invite_token = signupToken;
 
       // Best-effort; mail failure must not fail the invite.
       this.mailService

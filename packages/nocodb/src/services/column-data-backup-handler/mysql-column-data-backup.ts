@@ -33,7 +33,11 @@ export class MysqlColumnDataBackup implements ColumnDataBackupDriver {
   }): Promise<ColumnBackupRef> {
     const knex = baseModelSqlV2.dbDriver;
     const tnPath = baseModelSqlV2.getTnPath(baseModelSqlV2.model.table_name);
-    const dt = buildBackupColumnTypeExpr(sourceColumn, 'text');
+    const dt = buildBackupColumnTypeExpr(
+      sourceColumn,
+      'text',
+      ClientType.MYSQL,
+    );
 
     await baseModelSqlV2.execAndParse(
       knex

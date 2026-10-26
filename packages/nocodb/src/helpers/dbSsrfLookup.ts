@@ -11,8 +11,9 @@ import ipaddr from 'ipaddr.js';
  * flip to a private/internal address before the driver actually connects.
  *
  * Wired in via knex's per-driver `connection.stream` factory (pg + mysql/mysql2)
- * — see {@link applyDbSsrfProtection}. The factory never rewrites `host`, so the
- * driver's TLS servername / certificate verification is unaffected.
+ * and tedious's `options.connector` (mssql) — see {@link applyDbSsrfProtection}.
+ * The factory never rewrites `host`, so the driver's TLS servername /
+ * certificate verification is unaffected.
  *
  * NOTE: keep this file free of app-internal imports — it is copied verbatim into
  * packages/nc-sql-executor (a separate deployable that cannot import from
@@ -224,6 +225,64 @@ function mysql2StreamFactory(): (opts: Mysql2StreamOpts) => net.Socket {
   };
 }
 
+interface TediousConnectOpts {
+  host: string;
+  port: number;
+  localAddress?: string;
+}
+
+/**
+ * mssql (tedious) connector: replaces tedious's own socket setup, so the address
+ * it dials — including an Azure SQL redirect target — is range-checked.
+ */
+function tediousConnector(): (
+  opts: TediousConnectOpts,
+  lookup: unknown,
+  signal?: AbortSignal,
+) => Promise<net.Socket> {
+  return (opts, _lookup, signal) =>
+    new Promise((resolve, reject) => {
+      if (net.isIP(opts.host) && isBlockedIp(opts.host)) {
+        console.warn(
+          `[ssrf] blocked DB connection: internal IP literal ${opts.host}`,
+        );
+        return reject(blockedError());
+      }
+      if (signal?.aborted) return reject(signal.reason);
+
+      const socket = net.connect({
+        host: opts.host,
+        port: opts.port,
+        localAddress: opts.localAddress,
+        lookup: validatingLookup,
+      });
+
+      const cleanup = () => {
+        signal?.removeEventListener('abort', onAbort);
+        socket.removeListener('error', onError);
+        socket.removeListener('connect', onConnect);
+      };
+      const onAbort = () => {
+        cleanup();
+        socket.destroy();
+        reject(signal?.reason);
+      };
+      const onError = (err: Error) => {
+        cleanup();
+        socket.destroy();
+        reject(err);
+      };
+      const onConnect = () => {
+        cleanup();
+        resolve(socket);
+      };
+
+      signal?.addEventListener('abort', onAbort, { once: true });
+      socket.once('error', onError);
+      socket.once('connect', onConnect);
+    });
+}
+
 /** Returns the stream factory for a knex client, or undefined if unsupported. */
 function ssrfStreamFactoryFor(client: unknown): unknown {
   switch (client) {
@@ -235,14 +294,23 @@ function ssrfStreamFactoryFor(client: unknown): unknown {
     case 'mysql2':
       return mysql2StreamFactory();
     default:
-      // sqlite (no network); mssql / oracledb / snowflake / databricks
-      // (different drivers).
+      // sqlite (no network); mssql (see tediousConnector); oracledb /
+      // snowflake / databricks (no socket hook).
       return undefined;
   }
 }
 
+/** `'mssql'`, or a knex dialect class for it (e.g. `knex-mssql`'s MssqlClient). */
+function isMssqlClient(client: unknown): boolean {
+  if (client === 'mssql') return true;
+  if (typeof client !== 'function') return false;
+  const proto = (client as { prototype?: Record<string, unknown> }).prototype;
+  return proto?.dialect === 'mssql' || proto?.driverName === 'mssql';
+}
+
 /**
- * Inject the validating stream factory into a knex config's `connection`.
+ * Inject the validating stream factory (or tedious connector) into a knex
+ * config's `connection`.
  * No-op when disabled, for string DSN connections, unsupported clients, or when
  * a stream factory is already present.
  */
@@ -253,6 +321,14 @@ export function applyDbSsrfProtection<
 
   const connection = config.connection;
   if (!connection || typeof connection !== 'object') return config; // string DSN — see caveat
+
+  if (isMssqlClient(config.client)) {
+    const conn = connection as { options?: { connector?: unknown } };
+    if (typeof conn.options?.connector !== 'function') {
+      conn.options = { ...conn.options, connector: tediousConnector() };
+    }
+    return config;
+  }
 
   const conn = connection as { stream?: unknown };
   if (conn.stream) return config; // respect an explicitly supplied factory

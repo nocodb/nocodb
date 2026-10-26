@@ -175,6 +175,41 @@ export default class OAuthToken {
     return true;
   }
 
+  static async updatePermissions(
+    id: string,
+    permissions: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const token = await this.get(id, ncMeta);
+    if (!token) {
+      return false;
+    }
+
+    const updateData = { permissions };
+
+    // Skips a token a concurrent refresh revoked, whose grant it already copied.
+    const updated = await ncMeta.metaUpdate(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.OAUTH_TOKENS,
+      updateData,
+      { id, is_revoked: false },
+    );
+
+    if (!updated) {
+      return false;
+    }
+
+    // The strategy reads the grant through this cache entry on every call.
+    await NocoCache.update(
+      'root',
+      `${CacheScope.OAUTH_TOKEN}:${token.access_token}`,
+      updateData,
+    );
+
+    return true;
+  }
+
   /**
    * Atomically revoke a token only if it is currently active. Returns true only
    * if this caller won the compare-and-swap (the token was active and is now
@@ -273,32 +308,48 @@ export default class OAuthToken {
     return deletedCount;
   }
 
-  static async updateLastUsed(id: string, ncMeta = Noco.ncMeta) {
-    const token = await this.get(id, ncMeta);
-    if (!token) {
-      return false;
+  private static lastUsedWrites = new Map<string, number>();
+  private static readonly LAST_USED_INTERVAL_MS = 60_000;
+
+  /**
+   * Fire-and-forget, at most one `last_used_at` write per token a minute. The
+   * map skips the shared lease on most calls; the lease dedupes across instances.
+   */
+  static touchLastUsed(token: OAuthToken) {
+    const now = Date.now();
+    const lastWrite = OAuthToken.lastUsedWrites.get(token.id);
+
+    if (lastWrite && now - lastWrite < OAuthToken.LAST_USED_INTERVAL_MS) return;
+
+    // Re-inserted so the map stays oldest-first; a token evicted early only costs a lease check.
+    OAuthToken.lastUsedWrites.delete(token.id);
+    OAuthToken.lastUsedWrites.set(token.id, now);
+    if (OAuthToken.lastUsedWrites.size > 10_000) {
+      const [oldest] = OAuthToken.lastUsedWrites.keys();
+      OAuthToken.lastUsedWrites.delete(oldest);
     }
 
-    const updateData = {
-      last_used_at: new Date().toISOString(),
-    };
+    NocoCache.setIfNotExist(
+      'root',
+      `oAuthTokenLastUsed:${token.id}`,
+      '1',
+      OAuthToken.LAST_USED_INTERVAL_MS / 1000,
+    )
+      .then((acquired) => acquired && OAuthToken.updateLastUsed(token.id))
+      .catch(() => {});
+  }
 
-    await ncMeta.metaUpdate(
+  // Not mirrored into the cached token: merging into it could write back a stale `is_revoked` or `permissions`.
+  static async updateLastUsed(id: string, ncMeta = Noco.ncMeta) {
+    const updated = await ncMeta.metaUpdate(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.OAUTH_TOKENS,
-      updateData,
-      { id },
+      { last_used_at: new Date().toISOString() },
+      id,
     );
 
-    // Update cache by access token
-    await NocoCache.update(
-      'root',
-      `${CacheScope.OAUTH_TOKEN}:${token.access_token}`,
-      updateData,
-    );
-
-    return true;
+    return !!updated;
   }
 
   public static castType(token: any): OAuthToken {

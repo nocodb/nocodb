@@ -16,6 +16,7 @@ import { CacheDelDirection, CacheScope } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
+import { assertViewConfigEditable } from '~/helpers/viewLockHelpers';
 import { assertNotLockedViewOnLaneProduction } from '~/helpers/environmentGuards';
 import { Column, GridViewColumn, View } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
@@ -81,6 +82,7 @@ export class GridColumnsService {
       false,
       ncMeta,
     );
+    assertViewConfigEditable(context, view, param.req);
 
     const viewWebhookManager =
       param.viewWebhookManager ??

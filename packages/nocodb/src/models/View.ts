@@ -1489,6 +1489,8 @@ export default class View implements ViewType {
       italic?: BoolType;
     },
     ncMeta = Noco.ncMeta,
+    // Set when colId was read from this view's own columns.
+    { skipViewCheck = false }: { skipViewCheck?: boolean } = {},
   ) {
     const view = await this.get(context, viewId, false, ncMeta);
     if (!view) NcError.viewNotFound(viewId);
@@ -1531,6 +1533,15 @@ export default class View implements ViewType {
         table = MetaTable.GANTT_VIEW_COLUMNS;
         cacheScope = CacheScope.GANTT_VIEW_COLUMN;
     }
+    // Only touch a column row that belongs to this view.
+    if (
+      !skipViewCheck &&
+      !(await this.getColumnOfView(context, view, colId, ncMeta))
+    ) {
+      return;
+    }
+
+    // width/group_by* are grid-only and go through GridViewColumn.update
     let updateObj = extractProps(colData, ['order', 'show']);
 
     // keep primary_value_column always visible and first in grid view
@@ -1635,27 +1646,47 @@ export default class View implements ViewType {
     ncMeta = Noco.ncMeta,
   ) {
     const view = await this.get(context, viewId, false, ncMeta);
-    switch (view.type) {
+    return this.getColumnOfView(context, view, colId, ncMeta);
+  }
+
+  private static async getColumnOfView(
+    context: NcContext,
+    view: View,
+    colId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    let viewColumn;
+    switch (view?.type) {
       case ViewTypes.GRID:
-        return GridViewColumn.get(context, colId, ncMeta);
+        viewColumn = await GridViewColumn.get(context, colId, ncMeta);
+        break;
       case ViewTypes.MAP:
-        return MapViewColumn.get(context, colId, ncMeta);
+        viewColumn = await MapViewColumn.get(context, colId, ncMeta);
+        break;
       case ViewTypes.LIST:
-        return ListViewColumn.get(context, colId, ncMeta);
+        viewColumn = await ListViewColumn.get(context, colId, ncMeta);
+        break;
       case ViewTypes.GALLERY:
-        return GalleryViewColumn.get(context, colId, ncMeta);
+        viewColumn = await GalleryViewColumn.get(context, colId, ncMeta);
+        break;
       case ViewTypes.KANBAN:
-        return KanbanViewColumn.get(context, colId, ncMeta);
+        viewColumn = await KanbanViewColumn.get(context, colId, ncMeta);
+        break;
       case ViewTypes.FORM:
-        return FormViewColumn.get(context, colId, ncMeta);
+        viewColumn = await FormViewColumn.get(context, colId, ncMeta);
+        break;
       case ViewTypes.CALENDAR:
-        return CalendarViewColumn.get(context, colId, ncMeta);
+        viewColumn = await CalendarViewColumn.get(context, colId, ncMeta);
+        break;
       case ViewTypes.TIMELINE:
-        return TimelineViewColumn.get(context, colId, ncMeta);
+        viewColumn = await TimelineViewColumn.get(context, colId, ncMeta);
+        break;
       case ViewTypes.GANTT:
-        return GanttViewColumn.get(context, colId, ncMeta);
+        viewColumn = await GanttViewColumn.get(context, colId, ncMeta);
+        break;
     }
-    return null;
+    // Ids are table-wide; a column row of another view is not this view's.
+    return viewColumn && viewColumn.fk_view_id === view.id ? viewColumn : null;
   }
 
   static async insertOrUpdateColumn(
@@ -2408,6 +2439,7 @@ export default class View implements ViewType {
           viewColumns[colIndex].id,
           { show: true },
           ncMeta,
+          { skipViewCheck: true },
         );
       } else if (!levelId) {
         // Only insert new columns when not level-scoped

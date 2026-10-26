@@ -354,6 +354,7 @@ const isColumnInvalid = ({
     case UITypes.QrCode:
     case UITypes.Barcode:
       result.isInvalid = isColumnInError(col)
+      if (result.isInvalid) result.tooltip = 'msg.invalidColumnSourceRemoved'
       break
     case UITypes.Button: {
       const colOptions = col.colOptions as ButtonType

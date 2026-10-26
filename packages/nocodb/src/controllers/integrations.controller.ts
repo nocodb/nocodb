@@ -44,6 +44,7 @@ export class IntegrationsController {
       {
         integrationId,
         includeSources: includeSources === 'true',
+        req,
       },
     );
 

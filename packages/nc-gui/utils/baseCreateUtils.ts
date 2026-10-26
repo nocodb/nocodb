@@ -1,4 +1,4 @@
-import { type BoolType, SSLUsage } from 'nocodb-sdk'
+import { type BoolType, SSLUsage, getTestDatabaseName } from 'nocodb-sdk'
 import { ClientType } from '~/lib/enums'
 
 // todo: move to noco-sdk
@@ -67,6 +67,34 @@ interface DatabricksConnection {
 const defaultHost = 'localhost'
 
 export { getTestDatabaseName } from 'nocodb-sdk'
+
+/**
+ * Request body for testing an existing data source's connection (Edit data source).
+ * An integration-backed source is tested against the integration's stored target;
+ * the server accepts only the database and schema on top of it.
+ */
+export const buildSourceTestConnectionBody = ({
+  dataSource,
+  connection,
+  fkIntegrationId,
+}: {
+  dataSource: Record<string, any>
+  connection: Record<string, any>
+  fkIntegrationId?: string
+}) => {
+  const database = getTestDatabaseName(dataSource as Parameters<typeof getTestDatabaseName>[0])
+
+  if (!fkIntegrationId) {
+    return { ...dataSource, connection: { ...connection, database }, searchPath: dataSource.searchPath }
+  }
+
+  // an empty database/schema means the integration's default
+  return {
+    fk_integration_id: fkIntegrationId,
+    connection: { database: database === '' ? undefined : database },
+    searchPath: dataSource.searchPath?.[0] === '' ? undefined : dataSource.searchPath,
+  }
+}
 
 export const clientTypes = [
   {

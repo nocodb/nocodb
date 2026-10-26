@@ -14,6 +14,7 @@ import { BaseUser, Plugin, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { isGoogleEmailUnverified } from '~/strategies/google.strategy/googleEmailVerification';
+import { googleOAuthStateStore } from '~/strategies/google.strategy/googleOAuthState';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -89,10 +90,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   authorizationParams(options: any) {
     const params = super.authorizationParams(options) as Record<string, any>;
 
-    if (options.state) {
-      params.state = options.state;
-    }
-
     if (options.login_hint) {
       params.login_hint = options.login_hint;
     }
@@ -125,7 +122,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
       passReqToCallback: true,
       scope: ['profile', 'email'],
-      state: req.query.state,
       login_hint: req.query.login_hint,
     });
   }
@@ -148,6 +144,7 @@ export const GoogleStrategyProvider: FactoryProvider = {
       callbackURL: 'http://localhost:8080/dahsboard',
       passReqToCallback: true,
       scope: ['profile', 'email'],
+      store: googleOAuthStateStore,
     };
 
     return new GoogleStrategy(clientConfig, usersService, appHooksService);

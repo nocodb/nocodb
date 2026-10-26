@@ -19,8 +19,10 @@ import {
   checkIsPersonalViewOwner,
   editorPersonalViewOnlyPermissions,
   markPersonalViewIfNeeded,
+  memoTableVisibility,
   personalViewOwnerAllowedPermissions,
   personalViewOwnerOnlyOps,
+  resolveFilterTableId,
   VIEW_KEY,
 } from './extract-ids.helpers';
 import type { ViewTypes } from 'nocodb-sdk';
@@ -159,6 +161,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       // See the note on the same binding in `legacyExtractIds` — kept apart from
       // `view` so a shared view never reaches `markPersonalViewIfNeeded`.
       let shareViewType: ViewTypes | undefined;
+      // Feeds the per-role table visibility gate in the ACL middleware.
+      let tableIdToCheck: string | undefined;
 
       // Query-string only: no route pairs :mcpTokenId with :baseId, and the MCP
       // operations read `tokenId` instead — so accepting it here only let a
@@ -229,16 +233,17 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = model.source_id;
+        tableIdToCheck = model.id;
       } else if (viewId) {
-        const view =
-          (await View.get(context, viewId)) ||
-          (await Model.get(context, viewId));
+        const viewById = await View.get(context, viewId);
+        const view = viewById || (await Model.get(context, viewId));
 
         if (!view) {
           NcError.get(context).viewNotFound(viewId);
         }
 
         req.ncSourceId = view.source_id;
+        tableIdToCheck = viewById ? viewById.fk_model_id : view.id;
 
         markPersonalViewIfNeeded(req, view);
       } else if (
@@ -268,6 +273,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = view.source_id;
+        tableIdToCheck = view.fk_model_id;
 
         markPersonalViewIfNeeded(req, view);
       } else if (publicDataUuid) {
@@ -302,6 +308,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = hook.source_id;
+        tableIdToCheck = hook.fk_model_id;
       } else if (buttonColId) {
         const column = await Column.get(context, { colId: buttonColId });
 
@@ -310,6 +317,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = column.source_id;
+        tableIdToCheck = column.fk_model_id;
       } else if (rowColorConditionId) {
         const rowColorCondition = await RowColorCondition.getById(
           context,
@@ -325,6 +333,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
         const view = await View.get(context, rowColorCondition.fk_view_id);
         req.ncSourceId = view.source_id;
+        tableIdToCheck = view.fk_model_id;
       } else if (gridViewColumnId) {
         const gridViewColumn = await GridViewColumn.get(
           context,
@@ -378,6 +387,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = column.source_id;
+        tableIdToCheck = column.fk_model_id;
       } else if (filterId) {
         const filter = await Filter.get(context, filterId);
 
@@ -390,6 +400,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = filter.source_id;
+        tableIdToCheck = await resolveFilterTableId(context, filter);
       } else if (filterParentId) {
         const filter = await Filter.get(context, filterParentId);
 
@@ -402,6 +413,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = filter.source_id;
+        tableIdToCheck = await resolveFilterTableId(context, filter);
       } else if (widgetId) {
         const widget = await Widget.get(context, widgetId);
 
@@ -416,6 +428,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = section.source_id;
+        tableIdToCheck = section.fk_model_id;
       } else if (baseSectionId) {
         // Base-level sections are base-scoped, so there is no source to pin.
         // This branch exists only to 404 an unknown id before the handler runs.
@@ -463,7 +476,21 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
       }
 
+      // Routes carrying both :tableId and :viewId (nested v3) skip the viewId
+      // branch above; resolve the view so the view gates still apply.
+      if (!view && viewId) {
+        const viewFromId = await View.get(context, viewId);
+        if (viewFromId) {
+          view = viewFromId;
+        }
+      }
+
       markPersonalViewIfNeeded(req, view);
+
+      tableIdToCheck = tableIdToCheck ?? view?.fk_model_id;
+      if (tableIdToCheck) {
+        req.context.ncTableId = tableIdToCheck;
+      }
 
       if (publicDataUuid || sharedViewUuid || sharedBaseUuid) {
         req.context.is_public = true;
@@ -785,9 +812,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncSourceId = filter.source_id;
 
       // Extract table ID for permission check at the end
-      if (view?.fk_model_id) {
-        tableIdToCheck = view.fk_model_id;
-      }
+      tableIdToCheck = await resolveFilterTableId(context, filter);
     } else if (params.filterParentId) {
       const filter = await Filter.get(context, params.filterParentId);
 
@@ -803,9 +828,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncSourceId = filter.source_id;
 
       // Extract table ID for permission check at the end
-      if (view?.fk_model_id) {
-        tableIdToCheck = view.fk_model_id;
-      }
+      tableIdToCheck = await resolveFilterTableId(context, filter);
     } else if (params.widgetId) {
       const widget = await Widget.get(context, params.widgetId);
 
@@ -1211,7 +1234,6 @@ export class AclMiddleware implements NestInterceptor {
     }
 
     if (
-      (!allowedRoles || allowedRoles.some((role) => roles?.[role])) &&
       ![extendedScopeRoles, roles].some(
         (roles) =>
           roles &&
@@ -1239,6 +1261,22 @@ export class AclMiddleware implements NestInterceptor {
       NcError.unauthorized('Unauthorized access');
     }
     // todo : verify user have access to base or not
+
+    // `allowedRoles` narrows the role table for a route; it never widens it.
+    if (
+      allowedRoles?.length &&
+      !allowedRoles.some(
+        (role) => roles?.[role] || extractRolesObj(extendedScopeRoles)?.[role],
+      )
+    ) {
+      NcError.forbidden(
+        generateReadablePermissionErr(
+          permissionName,
+          roles ?? extendedScopeRoles,
+          scope,
+        ),
+      );
+    }
 
     // if user have no access role and trying to remove self from workspace then allow it
     const isUserWithNoAccessLeavingWorkspace =
@@ -1305,10 +1343,8 @@ export class AclMiddleware implements NestInterceptor {
       req.user &&
       !isServiceUser(req.user) &&
       req.ncBaseId &&
-      !(await hasModelRoleVisibilityAccess(
-        req.context,
-        req.context.ncTableId,
-        roles,
+      !(await memoTableVisibility(req, req.context.ncTableId, roles, () =>
+        hasModelRoleVisibilityAccess(req.context, req.context.ncTableId, roles),
       ))
     ) {
       // 404, not 403 — matches `getTableWithAccessibleViews` and keeps the id

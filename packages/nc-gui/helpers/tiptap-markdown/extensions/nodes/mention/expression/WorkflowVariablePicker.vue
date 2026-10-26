@@ -16,11 +16,14 @@ interface Props {
   query?: string
   /** Kinds the field takes; other values are shown disabled. Unset means anything. */
   accepts?: WorkflowValueKind[]
+  /** Offer Insert / ⇧↵ on rows that open. */
+  allowInsertWhole?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   query: '',
   groupedItems: () => [],
+  allowInsertWhole: true,
 })
 
 // State
@@ -268,7 +271,7 @@ const activate = (variable: VariableDefinition) => {
 
 // A row that opens can still be inserted whole (a Record into a script input) with Insert or ⇧↵.
 const canInsertWhole = (variable: VariableDefinition) =>
-  !!variable.children?.length && !matchesAccepts(variable) && isAccepted(variable)
+  props.allowInsertWhole && !!variable.children?.length && !matchesAccepts(variable) && isAccepted(variable)
 
 const selectedCanInsertWhole = computed(() => {
   const variable = orderedVariables.value[selectedVariableIndex.value]

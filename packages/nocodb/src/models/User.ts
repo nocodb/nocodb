@@ -238,6 +238,9 @@ export default class User implements UserType {
         token_version: update.token_version,
         reset_password_expires: null,
         reset_password_token: '',
+        // Setting a password finishes signup.
+        invite_token: null,
+        invite_token_expires: null,
       }),
       {
         // The token stays in the predicate so the database still picks the CAS

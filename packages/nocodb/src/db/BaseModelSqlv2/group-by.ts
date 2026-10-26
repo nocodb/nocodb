@@ -17,7 +17,7 @@ import type {
   RollupColumn,
 } from '~/models';
 import { DBQueryClient } from '~/dbQueryClient';
-import { sanitize } from '~/helpers/sqlSanitize';
+import { escapeBindingPlaceholders, sanitize } from '~/helpers/sqlSanitize';
 import conditionV2 from '~/db/conditionV2';
 import {
   lmbFieldQueryBuilder,
@@ -750,13 +750,14 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           })})`;
         } else {
           finalStatement = baseUsers.reduce((acc, user) => {
-            const qbReplace = baseModel.dbDriver.raw(`REPLACE(${acc}, ?, ?)`, [
-              user.id,
-              user.display_name || user.email,
-            ]);
+            const qbReplace = baseModel.dbDriver.raw(
+              `REPLACE(${escapeBindingPlaceholders(acc)}, ?, ?)`,
+              [user.id, user.display_name || user.email],
+            );
             return qbReplace.toQuery();
           }, groupedColQb.toQuery());
         }
+        finalStatement = escapeBindingPlaceholders(finalStatement);
         if (!['asc', 'desc'].includes(sort.direction)) {
           outerQb.orderBy(
             'g.count',
@@ -879,6 +880,18 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
     const columns = await baseModel.model.getColumns();
 
+    // Same shared-view gate as `list` — the group count leaks distinct values too.
+    let exposedColumnIds: Set<string> | null = null;
+    if (isSharedViewAccess(baseModel.context) && baseModel.viewId) {
+      const view = await View.get(baseModel.context, baseModel.viewId);
+      if (view) {
+        exposedColumnIds = await getViewExposedColumnIds(baseModel.context, {
+          model: baseModel.model,
+          view,
+        });
+      }
+    }
+
     // todo: refactor and avoid duplicate code
     await Promise.all(
       args.column_name.split(',').map(async (col) => {
@@ -886,6 +899,10 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           (c) => c.column_name === col || c.title === col,
         );
         if (!column) {
+          NcError.get(baseModel.context).fieldNotFound(col);
+        }
+
+        if (exposedColumnIds && !exposedColumnIds.has(column.id)) {
           NcError.get(baseModel.context).fieldNotFound(col);
         }
 

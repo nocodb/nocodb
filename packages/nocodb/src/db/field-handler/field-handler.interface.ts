@@ -12,7 +12,7 @@ export interface ConditionParser {
     _filter: Filter | FilterType | FilterType[] | Filter[],
     aliasCount: { count: number },
     alias?: string,
-    customWhereClause?: string,
+    customWhereClause?: Knex.QueryBuilder | Knex.Raw | string,
     throwErrorIfInvalid?: boolean,
   ): Promise<FilterOperationResult>;
 }
@@ -141,6 +141,7 @@ export interface FieldHandlerInterface {
       metaService?: MetaService;
       logger?: Logger;
       baseModel?: IBaseModelSqlV2;
+      skipLengthLimit?: boolean;
     };
     // for now the return value need to be {value: any}
     // since it's possible for it to be knex query, which
@@ -212,6 +213,7 @@ export interface IFieldHandler {
       metaService?: MetaService;
       baseModel?: IBaseModelSqlV2;
       logger?: Logger;
+      skipLengthLimit?: boolean;
     };
   }): Promise<{ value: any }>;
 

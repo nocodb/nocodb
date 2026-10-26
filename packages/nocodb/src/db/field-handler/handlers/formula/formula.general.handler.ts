@@ -15,6 +15,7 @@ import type {
 } from '~/db/field-handler/field-handler.interface';
 import type { FormulaColumn } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import { formulaOutputsRawJson } from '~/db/formulav2/formula-query-builder.helpers';
 import {
   isNonFiniteFormulaHandlingEnabled,
   stripNaNSql,
@@ -57,15 +58,13 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
     }
 
     const isIeeeCapable = isPgNumericFormula(baseModelSqlv2, parsedTree);
-    const builder = (
-      await formulaQueryBuilderv2({
-        baseModel: baseModelSqlv2,
-        tree: formulaOptions.formula,
-        model,
-        column,
-        tableAlias: alias,
-      })
-    ).builder;
+    const { builder, parsedTree: builtTree } = await formulaQueryBuilderv2({
+      baseModel: baseModelSqlv2,
+      tree: formulaOptions.formula,
+      model,
+      column,
+      tableAlias: alias,
+    });
 
     // knex drops `nulls` for a raw expression, so pg/Oracle would fall back to
     // nulls-last on asc. Spell the clause out to match physical columns; the
@@ -84,7 +83,20 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
       // that block first and descending puts it last.
       orderBy(knex.raw(`(?? <> 'NaN'::double precision)`, [builder]));
     }
-    orderBy(builder);
+
+    // Oracle: a string formula compiles to a CLOB (wrapFormulaWithMaxLength),
+    // which can't be an ORDER BY key (ORA-22849). Sort on its first 2000 chars,
+    // as sortV2 does for CLOB columns.
+    const outTree = builtTree ?? parsedTree;
+    const isOracleClob =
+      baseModelSqlv2.isOracle &&
+      outTree?.dataType === FormulaDataTypes.STRING &&
+      !formulaOutputsRawJson(outTree);
+    orderBy(
+      isOracleClob
+        ? knex.raw('DBMS_LOB.SUBSTR((?), 2000, 1)', [builder])
+        : builder,
+    );
   }
 
   override async filter(

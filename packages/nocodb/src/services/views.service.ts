@@ -22,6 +22,10 @@ import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
 import {
+  assertViewConfigEditable,
+  assertViewIdConfigEditable,
+} from '~/helpers/viewLockHelpers';
+import {
   BaseUser,
   CustomUrl,
   Model,
@@ -507,6 +511,38 @@ export class ViewsService {
     return safeResult;
   }
 
+  protected assertViewDeletable(
+    context: NcContext,
+    view: View,
+    user?: UserType & { base_roles?: Record<string, boolean> | string },
+  ) {
+    // Only creators or owners can delete a locked view. Editors inherit
+    // viewDelete via ACL but are blocked here to keep locked views frozen.
+    const userBaseRoles = extractRolesObj(user?.base_roles);
+    const isCreatorPlus = !!(
+      userBaseRoles?.[ProjectRoles.OWNER] ||
+      userBaseRoles?.[ProjectRoles.CREATOR]
+    );
+
+    if (view.lock_type === ViewLockType.Locked && !isCreatorPlus) {
+      NcError.get(context).forbidden(
+        'Only creators or owners can delete a locked view',
+      );
+    }
+
+    // Editors can only delete personal views they own. Creator+ can delete any.
+    if (
+      !isCreatorPlus &&
+      view.lock_type === ViewLockType.Personal &&
+      view.owned_by &&
+      view.owned_by !== user?.id
+    ) {
+      NcError.get(context).forbidden(
+        'Only the view owner or creator can delete this personal view',
+      );
+    }
+  }
+
   async viewDelete(
     context: NcContext,
     param: {
@@ -533,31 +569,7 @@ export class ViewsService {
       NcError.get(context).viewNotFound(param.viewId);
     }
 
-    // Only creators or owners can delete a locked view. Editors inherit
-    // viewDelete via ACL but are blocked here to keep locked views frozen.
-    const userBaseRoles = extractRolesObj(user?.base_roles);
-    const isCreatorPlus = !!(
-      userBaseRoles?.[ProjectRoles.OWNER] ||
-      userBaseRoles?.[ProjectRoles.CREATOR]
-    );
-
-    if (view.lock_type === ViewLockType.Locked && !isCreatorPlus) {
-      NcError.get(context).forbidden(
-        'Only creators or owners can delete a locked view',
-      );
-    }
-
-    // Editors can only delete personal views they own. Creator+ can delete any.
-    if (
-      !isCreatorPlus &&
-      view.lock_type === ViewLockType.Personal &&
-      view.owned_by &&
-      view.owned_by !== user?.id
-    ) {
-      NcError.get(context).forbidden(
-        'Only the view owner or creator can delete this personal view',
-      );
-    }
+    this.assertViewDeletable(context, view, user);
 
     const views = await View.list(context, view.fk_model_id, false, ncMeta);
 
@@ -830,6 +842,8 @@ export class ViewsService {
     },
     ncMeta?: MetaService,
   ) {
+    await assertViewIdConfigEditable(context, param.viewId, param.req, ncMeta);
+
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
       const view = await View.get(context, param.viewId, false, ncMeta);
@@ -886,6 +900,8 @@ export class ViewsService {
     },
     ncMeta?: MetaService,
   ) {
+    await assertViewIdConfigEditable(context, param.viewId, param.req, ncMeta);
+
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
       const view = await View.get(context, param.viewId, false, ncMeta);
@@ -951,6 +967,7 @@ export class ViewsService {
     if (!view) {
       NcError.get(context).viewNotFound(param.viewId);
     }
+    assertViewConfigEditable(context, view, param.req);
 
     const viewWebhookManager: ViewWebhookManager =
       param.viewWebhookManager ??
@@ -962,15 +979,21 @@ export class ViewsService {
         ).withViewId(view.id)
       ).forUpdate();
 
+    // One lookup for the whole call; ids of other views are skipped.
+    const ownColumnIds = new Set(
+      (await View.getColumns(context, param.viewId, ncMeta)).map((c) => c.id),
+    );
     for (const [viewColumnId, show] of Object.entries(
       param.columnVisibility ?? {},
     )) {
+      if (!ownColumnIds.has(viewColumnId)) continue;
       await View.updateColumn(
         context,
         param.viewId,
         viewColumnId,
         { show: !!show },
         ncMeta,
+        { skipViewCheck: true },
       );
     }
 

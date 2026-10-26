@@ -104,6 +104,10 @@ export const EMAIL_ALLOWED_CSS_PROPS = new Set([
   'vertical-align',
 ]);
 
+// Image sizing; on any other element it could stretch or collapse the layout.
+const IMG_ONLY_CSS_PROPS = new Set(['width', 'height', 'max-width', 'vertical-align']);
+const IMG_ONLY_ATTRS = new Set(['width', 'height', 'alt']);
+
 /**
  * Mail clients ignore <style> blocks and apply their own defaults (Times, browser heading
  * sizes…), so the editor's look is inlined per element at send time. Mirrors the editor CSS.
@@ -126,7 +130,7 @@ export const EMAIL_BASE_STYLES: Record<string, string> = {
 
 const SAFE_CSS_VALUE = /^[\w\s#,.%()'"-]+$/;
 
-export function sanitizeInlineStyle(style: string): string {
+export function sanitizeInlineStyle(style: string, isImage = false): string {
   return style
     .split(';')
     .map((decl) => {
@@ -135,6 +139,7 @@ export function sanitizeInlineStyle(style: string): string {
       const prop = decl.slice(0, idx).trim().toLowerCase();
       const value = decl.slice(idx + 1).trim();
       if (!EMAIL_ALLOWED_CSS_PROPS.has(prop)) return '';
+      if (!isImage && IMG_ONLY_CSS_PROPS.has(prop)) return '';
       if (!value || !SAFE_CSS_VALUE.test(value)) return '';
       if (/url\s*\(|expression\s*\(|\\/i.test(value)) return '';
       return `${prop}: ${value}`;
@@ -193,8 +198,15 @@ function getPurify(): typeof DOMPurifyType {
       }
       return;
     }
+    if (IMG_ONLY_ATTRS.has(data.attrName)) {
+      if (node.nodeName !== 'IMG') data.keepAttr = false;
+      return;
+    }
     if (data.attrName !== 'style') return;
-    data.attrValue = sanitizeInlineStyle(data.attrValue);
+    data.attrValue = sanitizeInlineStyle(
+      data.attrValue,
+      node.nodeName === 'IMG',
+    );
     if (!data.attrValue) data.keepAttr = false;
   });
 
@@ -326,16 +338,37 @@ const MAX_EMAIL_IMAGE_PAYLOAD_LENGTH =
 /** A body's length without its image payloads (what the markup cap applies to), and theirs. */
 function measureEmailBody(body: string): { markup: number; payload: number } {
   let payload = 0;
+  // A repeated image is sent as one part, so its bytes count once.
+  const seen = new Set<string>();
   const markup = body.replace(
     DATA_IMAGE_SRC_PAYLOAD,
     (match, prefix: string, quote: string, offset: number) => {
       if (!isInsideImgTag(body, offset)) return match;
       const kept = `${prefix}${quote}${quote}`;
-      payload += match.length - kept.length;
+      const key = match.slice(prefix.length + 1, -1).replace(/\s+/g, '');
+      if (!seen.has(key)) {
+        seen.add(key);
+        payload += match.length - kept.length;
+      }
       return kept;
     },
   ).length;
   return { markup, payload };
+}
+
+/** Longer than any body that could pass both caps; rejected before the regex scan. */
+function exceedsEmailBodyCaps(body: string): boolean {
+  return (
+    body.length > MAX_EMAIL_HTML_BODY_LENGTH + MAX_EMAIL_IMAGE_PAYLOAD_LENGTH
+  );
+}
+
+function emailBodyTooLongError(withImages = false): Error {
+  return new Error(
+    `Email body exceeds the ${Math.floor(MAX_EMAIL_HTML_BODY_LENGTH / 1000)} KB limit for rich-text content${
+      withImages ? ` plus ${formatMb(MAX_EMAIL_INLINE_IMAGES_SIZE)} of images` : ''
+    }`,
+  );
 }
 
 function inlineImagesTooLargeError(): Error {
@@ -389,7 +422,12 @@ export function collectEmailBodyImageRefs(body: unknown): string[] {
   }
   // A body past the markup cap can't be sent, so its references never matter; skipping it keeps
   // the scan bounded wherever it runs (workflow saves included).
-  if (measureEmailBody(body).markup > MAX_EMAIL_HTML_BODY_LENGTH) return [];
+  if (
+    exceedsEmailBodyCaps(body) ||
+    measureEmailBody(body).markup > MAX_EMAIL_HTML_BODY_LENGTH
+  ) {
+    return [];
+  }
   const refs = new Set<string>();
   for (const match of body.matchAll(FILE_IMAGE_SRC)) {
     refs.add(decodeAttr(match[3]));
@@ -654,12 +692,9 @@ export function prepareEmailBody(
 
   // The length limit is about markup the parser must walk; image bytes have their own cap. Both
   // run before extraction, whose regexes scan every `<img`, so their input stays bounded too.
+  if (exceedsEmailBodyCaps(body)) throw emailBodyTooLongError(true);
   const size = measureEmailBody(body);
-  if (size.markup > MAX_EMAIL_HTML_BODY_LENGTH) {
-    throw new Error(
-      `Email body exceeds the ${Math.floor(MAX_EMAIL_HTML_BODY_LENGTH / 1000)} KB limit for rich-text content`,
-    );
-  }
+  if (size.markup > MAX_EMAIL_HTML_BODY_LENGTH) throw emailBodyTooLongError();
   if (size.payload > MAX_EMAIL_IMAGE_PAYLOAD_LENGTH) {
     throw inlineImagesTooLargeError();
   }
@@ -675,10 +710,16 @@ export function prepareEmailBody(
   const inlineImages = extracted.images.filter((image) =>
     sanitized.includes(`cid:${image.cid}`),
   );
+  const text = htmlToPlainText(sanitized);
+  if (!text && !inlineImages.length && /<img\b/i.test(body)) {
+    throw new Error(
+      'Email body is empty: none of its images could be included',
+    );
+  }
   return {
     isHtml: true,
     html,
-    text: htmlToPlainText(sanitized),
+    text,
     inlineImages,
   };
 }

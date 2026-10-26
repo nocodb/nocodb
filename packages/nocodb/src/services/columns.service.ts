@@ -103,7 +103,10 @@ import { OperationName } from '~/command-registry/op-names';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { isRowDataUnchanged } from '~/helpers/isRowDataUnchanged';
-import { pgQuoteLiteral } from '~/helpers/sqlSanitize';
+import {
+  escapeBindingPlaceholders,
+  pgQuoteLiteral,
+} from '~/helpers/sqlSanitize';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import {
   getUniqueColumnAliasName,
@@ -1668,66 +1671,76 @@ export class ColumnsService implements IColumnsService {
             !!stored?.error &&
             (!incomingFormula || incomingFormula === stored?.formula_raw);
 
+          // Resolves the expression against the current columns; throws when it
+          // can't. Rebuilding colBody without `error` clears a stale flag.
+          const resolveFormula = async () => {
+            const relatedModels: Map<string, Model> = await getRelatedModelMap(
+              context,
+              table,
+            );
+
+            const formulaColumns = table.columns.filter(
+              (c) => !c.colOptions?.error,
+            );
+
+            // No formula in the payload (e.g. a rename): keep the stored one
+            if (!incomingFormula) {
+              colBody.formula_raw = stored?.formula_raw;
+              colBody.formula = stored?.formula;
+            }
+
+            colBody.formula = await substituteColumnAliasWithIdInFormula(
+              colBody.formula_raw || colBody.formula,
+              table.columns,
+            );
+            colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
+              formula: colBody.formula || colBody.formula_raw,
+              columns: formulaColumns,
+              column,
+              clientOrSqlUi: source.type as any,
+              getMeta: async (_, { id }) => {
+                return relatedModels.get(id);
+              },
+            });
+
+            const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+              Model.getBaseModelSQL(context, {
+                id: table.id,
+                dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+                  NcConnectionMgrv2.get(source),
+                ),
+              }),
+            );
+            await formulaQueryBuilderv2({
+              baseModel: baseModel,
+              tree: colBody.formula,
+              model: table,
+              column,
+              validateFormula: true,
+              persistError: false,
+              parsedTree: colBody.parsed_tree,
+            });
+          };
+
           if (isAlreadyBroken) {
-            // `Column.update` rebuilds the COL_FORMULA row from this payload,
-            // so every stored field has to be carried over — `error` included.
-            // Dropping it would clear the flag the skip above keys on, and the
-            // next order-only update would validate and fail all over again.
-            colBody.formula_raw = stored?.formula_raw;
-            colBody.formula = stored?.formula;
-            colBody.parsed_tree = stored?.getParsedTree();
-            colBody.error = stored?.error;
+            // The missing reference may be back (e.g. the field was recreated):
+            // re-resolve, so saving it again repairs the formula. Only if it is
+            // still broken keep the stored one, so rename/reorder keep working.
+            try {
+              await resolveFormula();
+            } catch {
+              // `Column.update` rebuilds the COL_FORMULA row from this payload,
+              // so every stored field has to be carried over — `error` included.
+              // Dropping it would clear the flag the skip above keys on, and the
+              // next order-only update would validate and fail all over again.
+              colBody.formula_raw = stored?.formula_raw;
+              colBody.formula = stored?.formula;
+              colBody.parsed_tree = stored?.getParsedTree();
+              colBody.error = stored?.error;
+            }
           } else {
             try {
-              const relatedModels: Map<string, Model> =
-                await getRelatedModelMap(context, table);
-
-              const formulaColumns = table.columns.filter(
-                (c) => !c.colOptions?.error,
-              );
-
-              // No formula in the payload (e.g. a rename): keep the stored one
-              if (!incomingFormula) {
-                colBody.formula_raw = stored?.formula_raw;
-                colBody.formula = stored?.formula;
-              }
-
-              colBody.formula = await substituteColumnAliasWithIdInFormula(
-                colBody.formula_raw || colBody.formula,
-                table.columns,
-              );
-              colBody.parsed_tree = await validateFormulaAndExtractTreeWithType(
-                {
-                  formula: colBody.formula || colBody.formula_raw,
-                  columns: formulaColumns,
-                  column,
-                  clientOrSqlUi: source.type as any,
-                  getMeta: async (_, { id }) => {
-                    return relatedModels.get(id);
-                  },
-                },
-              );
-
-              const baseModel = await reuseOrSave(
-                'baseModel',
-                reuse,
-                async () =>
-                  Model.getBaseModelSQL(context, {
-                    id: table.id,
-                    dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
-                      NcConnectionMgrv2.get(source),
-                    ),
-                  }),
-              );
-              await formulaQueryBuilderv2({
-                baseModel: baseModel,
-                tree: colBody.formula,
-                model: table,
-                column,
-                validateFormula: true,
-                persistError: false,
-                parsedTree: colBody.parsed_tree,
-              });
+              await resolveFormula();
             } catch (e) {
               if (e instanceof NcError || e instanceof NcBaseError) throw e;
               // Surface the formula parser's reason as a client error rather
@@ -3754,18 +3767,31 @@ export class ColumnsService implements IColumnsService {
         });
 
         // create nested replace statement for each user
-        const setStatement = baseUsers.reduce((acc, user) => {
-          const qb = sqlClient.knex.raw(`REPLACE(${acc}, ?, ?)`, [
-            user.id,
-            user.email,
-          ]);
-          return qb.toQuery();
-        }, sqlClient.knex.raw(`??`, [column.column_name]).toQuery());
+        const setStatement = baseUsers.reduce(
+          (acc, user) => {
+            const qb = sqlClient.knex.raw(`REPLACE(${acc}, ?, ?)`, [
+              user.id,
+              user.email,
+            ]);
+            return escapeBindingPlaceholders(qb.toQuery());
+          },
+          escapeBindingPlaceholders(
+            sqlClient.knex.raw(`??`, [column.column_name]).toQuery(),
+          ),
+        );
 
-        await sqlClient.raw(`UPDATE ?? SET ?? = ${setStatement};`, [
-          baseModel.getTnPath(table.table_name),
-          column.column_name,
-        ]);
+        const updateSql = sqlClient.knex
+          .raw(`UPDATE ?? SET ?? = ${setStatement};`, [
+            baseModel.getTnPath(table.table_name),
+            column.column_name,
+          ])
+          .toQuery();
+        // knex runs SQLite SQL as-is, so it must not carry `\?` escapes
+        await sqlClient.raw(
+          sqlClientType === 'sqlite3'
+            ? updateSql
+            : escapeBindingPlaceholders(updateSql),
+        );
       } else if (
         column.uidt === UITypes.SingleSelect &&
         column.uidt !== colBody.uidt &&

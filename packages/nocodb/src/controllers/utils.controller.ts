@@ -5,6 +5,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  Logger,
   Post,
   Req,
   Request,
@@ -19,10 +20,16 @@ import {
   OrgUserRoles,
 } from 'nocodb-sdk';
 import {
-  extractDbConnectionHosts,
+  hasDsnSslFilePath,
   hasSslFilePath,
-  validateDbConnectionHost,
+  validateDbConnectionTargets,
 } from '~/helpers/validateDbConnectionHost';
+import {
+  genericConnectionTestError,
+  overridesDbTarget,
+  SAVED_CONNECTION_OVERRIDE_MESSAGE,
+  sourceOverridesOnly,
+} from '~/helpers/dbConnectionTest';
 import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
 import { applyDbSsrfProtection } from '~/helpers/dbSsrfLookup';
 import { isSsrfProtectionEnabled } from '~/utils/ssrf';
@@ -39,7 +46,7 @@ import { TelemetryService } from '~/services/telemetry.service';
 import { NcRequest } from '~/interface/config';
 import { Integration } from '~/models';
 import { MetaTable, RootScopes } from '~/utils/globals';
-import { NcError } from '~/helpers/catchError';
+import { NcBaseError, NcError } from '~/helpers/catchError';
 import { deepMerge, isEE } from '~/utils';
 import Noco from '~/Noco';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
@@ -47,6 +54,7 @@ import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 @Controller()
 export class UtilsController {
   private version: string;
+  protected readonly logger = new Logger(UtilsController.name);
 
   constructor(
     protected readonly utilsService: UtilsService,
@@ -77,11 +85,6 @@ export class UtilsController {
   })
   @HttpCode(200)
   async testConnection(@Body() body: any, @Req() req: NcRequest) {
-    body.pool = {
-      min: 0,
-      max: 1,
-    };
-
     let config = { ...body };
 
     if (body.fk_integration_id) {
@@ -94,16 +97,6 @@ export class UtilsController {
 
       if (!integration || integration.type !== IntegrationsType.Database) {
         NcError.integrationNotFound(body.fk_integration_id);
-      }
-
-      // Integration must belong to the caller's current workspace.
-      const callerWorkspaceId = (req as any).ncWorkspaceId;
-      if (
-        integration.fk_workspace_id &&
-        callerWorkspaceId &&
-        integration.fk_workspace_id !== callerWorkspaceId
-      ) {
-        NcError.forbidden('Integration belongs to a different workspace');
       }
 
       if (integration.is_private && integration.created_by !== req.user.id) {
@@ -137,20 +130,26 @@ export class UtilsController {
           NcError.forbidden('You do not have access to this integration');
       }
 
-      config = await integration.getConfig();
-      deepMerge(config, body);
+      const storedConfig = await integration.getConfig();
+
+      // Stored credentials only go to the stored target: the body may
+      // override what a source may, nothing that picks the server.
+      if (overridesDbTarget(storedConfig, body)) {
+        NcError.badRequest(SAVED_CONNECTION_OVERRIDE_MESSAGE);
+      }
+      config = deepMerge(storedConfig, sourceOverridesOnly(body));
 
       if (config?.connection?.database) {
         config.connection.database = getTestDatabaseName(config);
       }
     }
 
-    // Every host shape, not just `connection.host` — a string DSN used to skip
-    // the check entirely, and this endpoint builds a plain knex (no CustomKnex),
-    // so there is no connect-time lookup behind it to catch the miss.
-    for (const host of extractDbConnectionHosts(config)) {
-      await validateDbConnectionHost(host);
-    }
+    config.pool = {
+      min: 0,
+      max: 1,
+    };
+
+    await validateDbConnectionTargets(config);
 
     // Same internal-DB guard the source/integration write paths apply: without
     // it this endpoint is an open/exists oracle for NocoDB's own SQLite state.
@@ -175,12 +174,34 @@ export class UtilsController {
       isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS }),
     );
 
-    const runTest = () => this.utilsService.testConnection({ body: config });
+    const runTest = async () => {
+      try {
+        const result = await this.utilsService.testConnection({
+          body: config,
+        });
+        if (result?.code === -1) {
+          this.logger.warn(
+            `Connection test failed (${config.client}): ${result.message}`,
+          );
+          Object.assign(
+            result,
+            genericConnectionTestError(result.message, result.sql_code),
+          );
+        }
+        return result;
+      } catch (e) {
+        if (e instanceof NcBaseError) throw e;
+        this.logger.warn(
+          `Connection test failed (${config.client}): ${e?.message}`,
+        );
+        return { code: -1, ...genericConnectionTestError(e?.message, e?.code) };
+      }
+    };
 
     // Flatten the SSL file-path timing oracle: when the request reads a cert
     // from disk, pad the response to a common floor so file-existence can't be
     // inferred from response time. Plain connections are not penalised.
-    return hasSslFilePath(config.connection?.ssl)
+    return hasSslFilePath(config.connection?.ssl) || hasDsnSslFilePath(config)
       ? await withMinResponseTime(SSL_FILE_PATH_TEST_MIN_RESPONSE_MS, runTest)
       : await runTest();
   }

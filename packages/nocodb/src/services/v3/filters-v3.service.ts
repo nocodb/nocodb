@@ -15,6 +15,7 @@ import type { MetaService } from '~/meta/meta.service';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
+import { assertViewIdConfigEditable } from '~/helpers/viewLockHelpers';
 import { assertFiltersReadable } from '~/helpers/filterVerify';
 import { Column, Filter, Hook, View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
@@ -33,6 +34,16 @@ function extractLogicalOp(group_operator: 'AND' | 'OR') {
   return group_operator?.toLowerCase() as 'and' | 'or';
 }
 
+// Non-root `parent_id`s referenced anywhere in a v3 filter tree.
+const collectParentIds = (node: any, ids: string[] = []): string[] => {
+  if (!node) return ids;
+  if (node.parent_id && node.parent_id !== 'root') ids.push(node.parent_id);
+  if (Array.isArray(node.filters)) {
+    for (const child of node.filters) collectParentIds(child, ids);
+  }
+  return ids;
+};
+
 @Injectable()
 export class FiltersV3Service {
   constructor(
@@ -48,7 +59,14 @@ export class FiltersV3Service {
       req: NcRequest;
     } & { viewId: string }, // | { hookId: string } | { linkColumnId: string }),
   ) {
+    await assertViewIdConfigEditable(context, param.viewId, param.req);
     await this.assertViewFiltersReadable(context, param.viewId, param.filter);
+    for (const parentId of collectParentIds(param.filter)) {
+      const parent = await Filter.get(context, parentId);
+      if (!parent || parent.fk_view_id !== param.viewId) {
+        NcError.get(context).filterNotFound(parentId);
+      }
+    }
 
     const insertedFilters: Filter[] = [];
 
@@ -103,6 +121,15 @@ export class FiltersV3Service {
     const view = await View.get(context, viewId);
     if (!view) NcError.get(context).viewNotFound(viewId);
 
+    await this.assertFilterTreeReadable(context, view.fk_model_id, tree);
+  }
+
+  /** The same check for a tree not attached to a view yet (view create). */
+  async assertFilterTreeReadable(
+    context: NcContext,
+    modelId: string,
+    tree: FilterCreateV3Type | FilterCreateUpdateV3Type,
+  ) {
     const leaves: Partial<FilterType>[] = [];
     const collect = (node: any) => {
       if (!node) return;
@@ -113,7 +140,7 @@ export class FiltersV3Service {
     };
     collect(tree);
 
-    await assertFiltersReadable(context, view.fk_model_id, leaves);
+    await assertFiltersReadable(context, modelId, leaves);
   }
 
   async insertFilterGroup({
@@ -445,6 +472,8 @@ export class FiltersV3Service {
     context: NcContext,
     param: { filterId: string; req: NcRequest; viewId: string },
   ) {
+    await assertViewIdConfigEditable(context, param.viewId, param.req);
+
     // if filter id is `root` then delete whole filters of the view
     if (param.filterId === 'root') {
       await Filter.deleteAll(context, param.viewId);
@@ -493,6 +522,7 @@ export class FiltersV3Service {
     if (!filter || filter.fk_view_id !== param.viewId) {
       NcError.badRequest('Filter not found');
     }
+    await assertViewIdConfigEditable(context, param.viewId, param.req);
 
     // if group operator is changed, update all children logical_op
     if (filter.is_group) {
@@ -657,7 +687,14 @@ export class FiltersV3Service {
       true,
       context,
     );
+    await assertViewIdConfigEditable(context, param.viewId, param.req);
     await this.assertViewFiltersReadable(context, param.viewId, param.filter);
+    // Replace deletes every filter of the view, so no existing group can be a parent.
+    if (collectParentIds(param.filter).length) {
+      NcError.get(context).invalidRequestBody(
+        'parent_id must be root when replacing filters',
+      );
+    }
 
     // delete existing filters
     await Filter.deleteAll(context, param.viewId);
@@ -672,6 +709,7 @@ export class FiltersV3Service {
   }
 
   // skip viewWebhookManager for this, deleteAll is not a standalone operation, it's invoked by view service
+  // No request here: callers (v3 view update, copy view settings) check the view lock first.
   async filterDeleteAll(
     context: NcContext,
     param: {

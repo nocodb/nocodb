@@ -2504,6 +2504,8 @@ export interface FilterGroupV3Type {
   parent_id?: string;
   /** Logical operator for combining filters in the group. */
   group_operator: 'AND' | 'OR';
+  /** Whether the group is switched on. A switched-off group is skipped only when the plan includes toggle filters; otherwise it is still applied. Returned on reads; ignored on create, update and replace, so a recreated group comes back switched on. */
+  enabled?: boolean;
   /** Nested filters or filter groups. */
   filters: (
     | FilterV3Type
@@ -2551,6 +2553,8 @@ export interface FilterV3Type {
   sub_operator?: string | null;
   /** Value for comparison. */
   value?: string | number | boolean | null;
+  /** Whether the filter is switched on. A switched-off filter is skipped only when the plan includes toggle filters; otherwise it is still applied. Returned on reads; ignored on create, update and replace, so a recreated filter comes back switched on. */
+  enabled?: boolean;
 }
 
 /**
@@ -2630,6 +2634,7 @@ export type FieldUpdateV3Type = FieldBaseV3Type &
       }
     | {
         type?: 'Rollup';
+        /** Rollups take no `display_type`. Numeric formatting is `precision` and `separator`; currency and percent come from the rolled-up field (a Currency or Percent field, or the `display_type` of a Formula or Lookup it reads). */
         options?: FieldOptionsRollupV3Type;
       }
     | {
@@ -2714,6 +2719,7 @@ export type FieldUpdateV3Type = FieldBaseV3Type &
         options?: FieldOptionsLinkToAnotherRecordV3Type;
       } & {
         type?: 'Rollup';
+        /** Rollups take no `display_type`. Numeric formatting is `precision` and `separator`; currency and percent come from the rolled-up field (a Currency or Percent field, or the `display_type` of a Formula or Lookup it reads). */
         options?: FieldOptionsRollupV3Type;
       } & {
         type?: 'Button';
@@ -2846,6 +2852,7 @@ export type FieldV3Type = FieldBaseV3Type &
       }
     | {
         type?: 'Rollup';
+        /** Rollups take no `display_type`. Numeric formatting is `precision` and `separator`; currency and percent come from the rolled-up field (a Currency or Percent field, or the `display_type` of a Formula or Lookup it reads). */
         options?: FieldOptionsRollupV3Type;
       }
     | {
@@ -2889,6 +2896,8 @@ export interface FieldOptionsLinkToAnotherRecordV3Type {
   relation_type: 'om' | 'mo' | 'mm' | 'oo' | 'hm' | 'bt';
   /** Identifier of the linked table. */
   related_table_id: string;
+  /** Identifier of the base the linked table belongs to, for a link to a table in another base of the same workspace. Omit it for a link within this base. Read back only on a cross-base link. */
+  related_base_id?: string;
   /** Apply the link's configured filters when resolving linked records. */
   enable_conditions?: boolean;
 }
@@ -2905,6 +2914,8 @@ export interface FieldOptionsLinksV3Type {
   relation_type: 'om' | 'mo' | 'mm' | 'oo' | 'hm' | 'bt';
   /** Identifier of the linked table. */
   related_table_id: string;
+  /** Identifier of the base the linked table belongs to, for a link to a table in another base of the same workspace. Omit it for a link within this base. Read back only on a cross-base link. */
+  related_base_id?: string;
   /** Apply the link's configured filters when resolving linked records. */
   enable_conditions?: boolean;
 }
@@ -3040,14 +3051,18 @@ export type FieldOptionsButtonV3Type =
       theme?: 'solid' | 'light' | 'text';
     };
 
+/**
+ * Rollups take no `display_type`. Numeric formatting is `precision` and `separator`; currency and percent come from the rolled-up field (a Currency or Percent field, or the `display_type` of a Formula or Lookup it reads).
+ */
 export interface FieldOptionsRollupV3Type {
   /** Linked field ID. */
   related_field_id: string;
   /** Rollup field ID in the linked table. */
   related_table_rollup_field_id: string;
-  /** Rollup function. The accepted set depends on the target field's type — date-like targets take only `count`, `min`, `max` and `countDistinct`, numeric targets additionally take `sum`, `avg`, `sumDistinct` and `avgDistinct`. A function outside the target's set is rejected with `400`. */
+  /** Rollup function. The accepted set depends on the target field's type — date-like targets take only `count`, `countAll`, `min`, `max` and `countDistinct`, numeric targets additionally take `sum`, `avg`, `sumDistinct` and `avgDistinct`. A function outside the target's set is rejected with `400`. `count` counts linked records whose target value is not empty; `countAll` counts every linked record. With no linked records (or only empty values), `sum` and the count functions return `0`, while `avg`, `min` and `max` return `null`. */
   rollup_function:
     | 'count'
+    | 'countAll'
     | 'min'
     | 'max'
     | 'avg'
@@ -3058,7 +3073,7 @@ export interface FieldOptionsRollupV3Type {
   /** Error message recorded by the server when a field this one depends on is deleted. Server-maintained and never returned by v3 reads. */
   error?: string;
   /**
-   * Number of decimal places for numeric rollups. Defaults to 0.
+   * Number of decimal places for numeric rollups. Defaults to 0. Display-only: the API returns the unrounded value.
    * @min 0
    * @max 5
    */
@@ -3085,13 +3100,18 @@ export interface FieldOptionsLookupV3Type {
   error?: string;
   /** Apply the linked field's filters when resolving the lookup. */
   enable_conditions?: boolean;
-  /** Maximum number of linked records to resolve. */
-  lookup_limit?: number;
+  /**
+   * Show only the first N linked records in this lookup (N = this number); `lookup_limit_type: 'last'` shows the last N instead. `null` or `0` removes the limit. PostgreSQL bases only (other databases reject it with a 400), and requires a plan with lookup sort and limit (otherwise the write is rejected naming that plan feature).
+   * @min 0
+   */
+  lookup_limit?: number | null;
+  /** Which end of the linked records `lookup_limit` keeps. Defaults to `first`. Only meaningful with `lookup_limit`. */
+  lookup_limit_type?: 'first' | 'last';
   /** Resolve lookups of lookups recursively. */
   use_recursive_evaluation?: boolean;
   /** Field type the looked-up value is rendered as. Null renders the raw value. */
   display_type?: string | null;
-  /** Field options applied to the rendered value, shaped like the `display_type` field's own options. */
+  /** Options for the `display_type` field, nested as `{meta: {...}, custom: {}}`, e.g. `{meta: {currency_code: 'USD'}, custom: {}}`. Flat options are nested on write. */
   display_column_meta?: object;
 }
 
@@ -3118,7 +3138,7 @@ export interface FieldOptionsCreatedByV3Type {
 
 export interface FieldOptionsAttachmentV3Type {
   /**
-   * Maximum number of files per cell.
+   * Maximum number of files per cell. Cannot raise the cap above the workspace plan's per-cell attachment limit (10 on the free plan), which still applies.
    * @min 1
    */
   max_number_of_attachments?: number;
@@ -3132,11 +3152,11 @@ export interface FieldOptionsAttachmentV3Type {
 }
 
 export interface FieldOptionsFormulaV3Type {
-  /** Formula expression. */
+  /** Formula expression. Numeric results are returned as raw floating-point values (e.g. `468.90000000000003`), not rounded; wrap the expression in `ROUND()` for a fixed number of decimals. */
   formula?: string;
   /** Field type the formula result is rendered as. Null renders the raw result. */
   display_type?: string | null;
-  /** Field options applied to the rendered result, shaped like the `display_type` field's own options. */
+  /** Options for the `display_type` field, nested as `{meta: {...}, custom: {}}`, e.g. `{meta: {currency_code: 'USD'}, custom: {}}`. Flat options are nested on write. */
   display_column_meta?: object;
 }
 
@@ -3336,6 +3356,14 @@ export interface FieldOptionsPercentV3Type {
  * Currency settings for this column. `currency_locale` defaults to `en-US` and `currency_code` defaults to `USD`
  */
 export interface FieldOptionsCurrencyV3Type {
+  /** Large number abbreviation for display (1.2K, 3.4M). `auto` picks the unit by magnitude; `none` shows the full number. Defaults to `none`. */
+  abbreviate?:
+    | 'none'
+    | 'auto'
+    | 'thousand'
+    | 'million'
+    | 'billion'
+    | 'trillion';
   /** Locale for currency formatting. Refer https://simplelocalize.io/data/locales/ */
   currency_locale?: string;
   /**
@@ -3551,6 +3579,14 @@ export interface FieldOptionsCurrencyV3Type {
 }
 
 export interface FieldOptionsDecimalV3Type {
+  /** Large number abbreviation for display (1.2K, 3.4M). `auto` picks the unit by magnitude; `none` shows the full number. Defaults to `none`. */
+  abbreviate?:
+    | 'none'
+    | 'auto'
+    | 'thousand'
+    | 'million'
+    | 'billion'
+    | 'trillion';
   /**
    * Decimal field precision. Defaults to 0
    * @min 0
@@ -3569,6 +3605,14 @@ export interface FieldOptionsDecimalV3Type {
 }
 
 export interface FieldOptionsNumberV3Type {
+  /** Large number abbreviation for display (1.2K, 3.4M). `auto` picks the unit by magnitude; `none` shows the full number. Defaults to `none`. */
+  abbreviate?:
+    | 'none'
+    | 'auto'
+    | 'thousand'
+    | 'million'
+    | 'billion'
+    | 'trillion';
   /** Thousand/decimal separator style. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping. */
   separator?:
     | 'locale'
@@ -4302,6 +4346,8 @@ export interface ViewOptionsFormV3Type {
   show_submit_another_button?: boolean;
   /** Whether to show a blank form after submission. */
   reset_form_after_submit?: boolean;
+  /** Whether a shared form keeps unsubmitted answers in the visitor's browser across refreshes. Set false to reset fields to their defaults on refresh. */
+  save_draft_to_browser?: boolean;
   /** Whether to hide the banner on the form. */
   form_hide_banner?: boolean;
   /** Whether to hide branding on the form. */
@@ -5209,17 +5255,8 @@ export interface FeedbackSubmitV3Type {
   };
   /** The user's own words (`user_request` only). */
   userQuote?: string;
-  /** The section the issue falls under. */
-  area?:
-    | 'account'
-    | 'records'
-    | 'schema'
-    | 'views'
-    | 'automation'
-    | 'interfaces'
-    | 'access'
-    | 'platform'
-    | 'other';
+  /** The section the issue falls under: `account`, `records`, `schema`, `views`, `automation`, `interfaces`, `access`, `platform` or `other`. An unrecognised value is stored as `other`. */
+  area?: string;
   /** The MCP tool family, e.g. `fields`, `filters`, `links`; `other` if none fits. An unrecognised value is stored as `other`. */
   feature?: string;
   /** The workspace the issue happened in. Kept only if you can access it. */
@@ -8004,6 +8041,7 @@ export interface RollupType {
    */
   rollup_function?:
     | 'count'
+    | 'countAll'
     | 'min'
     | 'max'
     | 'avg'
@@ -8013,6 +8051,8 @@ export interface RollupType {
     | 'avgDistinct';
   /** Error Message */
   error?: string;
+  /** Resolved result type, set when the rollup returns a date (min/max over a Date, DateTime, CreatedTime or LastModifiedTime field). Read-only, not persisted. */
+  result_uidt?: 'Date' | 'DateTime';
 }
 
 /**
@@ -8030,6 +8070,7 @@ export interface RollupColumnReqType {
     | 'avg'
     | 'avgDistinct'
     | 'count'
+    | 'countAll'
     | 'countDistinct'
     | 'max'
     | 'min'
@@ -8543,7 +8584,7 @@ export interface ViewUpdateReqType {
 }
 
 /**
- * Model for View Column Update Request
+ * Model for View Column Update Request. Applies `show` and `order` (plus `underline`/`bold`/`italic` on calendar, timeline and gantt views). Grid-only properties (`width`, `group_by`, `group_by_order`, `group_by_sort`) are ignored; use the Grid Column Update endpoint (`PATCH /api/v1/db/meta/grid-columns/{columnId}`) for those.
  */
 export interface ViewColumnUpdateReqType {
   /** View Title */
@@ -13842,7 +13883,7 @@ export class Api<
       }),
 
     /**
- * @description Update a column in a View
+ * @description Update a column in a View. Applies `show` and `order` (plus `underline`/`bold`/`italic` on calendar, timeline and gantt views). Grid-only properties (`width`, `group_by`, `group_by_order`, `group_by_sort`) are ignored; set them via `PATCH /api/v1/db/meta/grid-columns/{columnId}`.
  * 
  * @tags DB View Column
  * @name Update
@@ -17021,7 +17062,7 @@ export class Api<
     commentCount: (
       query: {
         /** Comment IDs */
-        ids: any;
+        ids: string[];
         /** Foreign Key to Model */
         fk_model_id: IdType;
       },
@@ -19711,6 +19752,14 @@ export class Api<
         threadId?: string;
         /** App Team handle to preview the app as */
         persona?: string;
+        /** Abuse report Id */
+        reportId?: string;
+        /** Status to filter by */
+        status?: string;
+        /** Page number, from 1 */
+        page?: number;
+        /** Rows per page */
+        pageSize?: number;
       },
       data: Record<string, any>,
       params: RequestParams = {}
@@ -19832,6 +19881,14 @@ export class Api<
         threadId?: string;
         /** App Team handle to preview the app as */
         persona?: string;
+        /** Abuse report Id */
+        reportId?: string;
+        /** Status to filter by */
+        status?: string;
+        /** Page number, from 1 */
+        page?: number;
+        /** Rows per page */
+        pageSize?: number;
       },
       params: RequestParams = {}
     ) =>

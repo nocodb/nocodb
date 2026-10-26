@@ -3,10 +3,12 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { NcContext } from '~/interface/config';
 import { FieldHandler } from '~/db/field-handler';
 import { Sort } from '~/models';
+import { SORT_STORED } from '~/models/Sort';
 import { NcError } from '~/helpers/catchError';
 import { getModelContext, setModelContext } from '~/helpers/modelContext';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { getRefColumnIfAlias } from '~/helpers';
+import { compilesStoredConditionWithEmails } from '~/helpers/accessSource';
 
 function toSort(context: NcContext, _sort: Sort): Sort {
   const sort = _sort instanceof Sort ? _sort : new Sort(_sort);
@@ -119,12 +121,21 @@ export default async function sortV2(
       continue;
     }
 
-    await fieldHandler.applySort(qb, column, direction, {
+    // A stored (view) sort orders as for a signed-in user, user formulas by email
+    // (except in shared-base sessions that can edit; see compilesStoredConditionWithEmails).
+    const sortBaseModel =
+      sort[SORT_STORED] && compilesStoredConditionWithEmails(context)
+        ? baseModelSqlv2.getNonPublicClone()
+        : baseModelSqlv2;
+    await (sortBaseModel === baseModelSqlv2
+      ? fieldHandler
+      : FieldHandler.fromBaseModel(sortBaseModel)
+    ).applySort(qb, column, direction, {
       alias,
       nulls,
-      context,
+      context: sortBaseModel.context,
       knex,
-      baseModel: baseModelSqlv2,
+      baseModel: sortBaseModel,
     });
   }
 }

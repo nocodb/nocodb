@@ -587,6 +587,7 @@ export class FieldHandler implements IFieldHandler {
       metaService?: MetaService;
       logger?: Logger;
       baseModel?: IBaseModelSqlV2;
+      skipLengthLimit?: boolean;
     };
   }): Promise<{ value: any }> {
     const baseModel = params.options?.baseModel ?? this.info.baseModel;

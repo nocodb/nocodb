@@ -7,6 +7,7 @@ import NocoCache from '~/cache/NocoCache';
 import { validatePayload } from '~/helpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
 import { NcError } from '~/helpers/catchError';
+import { assertViewConfigEditable } from '~/helpers/viewLockHelpers';
 import { claimObjectTitle } from '~/helpers/customObjects';
 import { MapView, Model, User, View } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -110,6 +111,7 @@ export class MapsService {
     if (!view) {
       NcError.get(context).viewNotFound(param.mapViewId);
     }
+    assertViewConfigEditable(context, view, param.req);
 
     const oldMapView = await MapView.get(context, param.mapViewId, ncMeta);
 

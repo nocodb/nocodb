@@ -6,6 +6,16 @@ import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Base, SyncSource } from '~/models';
 
+// Stands in for the stored Airtable token in responses; saved back, it keeps the token.
+const SYNC_SECRET_MASK = '********';
+
+const maskDetails = (sync: SyncSource) => {
+  if (sync?.details?.apiKey) {
+    sync.details = { ...sync.details, apiKey: SYNC_SECRET_MASK };
+  }
+  return sync;
+};
+
 @Injectable()
 export class SyncService {
   constructor(private readonly appHooksService: AppHooksService) {}
@@ -14,9 +24,9 @@ export class SyncService {
     context: NcContext,
     param: { baseId: string; sourceId?: string },
   ) {
-    return new PagedResponseImpl(
-      await SyncSource.list(context, param.baseId, param.sourceId),
-    );
+    const list = await SyncSource.list(context, param.baseId, param.sourceId);
+
+    return new PagedResponseImpl(list.map(maskDetails));
   }
 
   async syncCreate(
@@ -44,7 +54,7 @@ export class SyncService {
       context,
     });
 
-    return sync;
+    return maskDetails(new SyncSource({ ...sync }));
   }
 
   async syncDelete(
@@ -81,11 +91,16 @@ export class SyncService {
       NcError.get(context).badRequest('Sync source not found');
     }
 
-    const res = await SyncSource.update(
-      context,
-      param.syncId,
-      param.syncPayload,
-    );
+    let syncPayload = param.syncPayload;
+
+    if (syncPayload?.details?.apiKey === SYNC_SECRET_MASK) {
+      syncPayload = {
+        ...syncPayload,
+        details: { ...syncPayload.details, apiKey: syncSource.details?.apiKey },
+      };
+    }
+
+    const res = await SyncSource.update(context, param.syncId, syncPayload);
 
     this.appHooksService.emit(AppEvents.SYNC_SOURCE_UPDATE, {
       syncSource,
@@ -93,6 +108,6 @@ export class SyncService {
       context,
     });
 
-    return res;
+    return maskDetails(res);
   }
 }

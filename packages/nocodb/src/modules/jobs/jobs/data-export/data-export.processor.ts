@@ -1,4 +1,5 @@
 import { Readable } from 'stream';
+import { randomBytes } from 'crypto';
 import path from 'path';
 import iconv from 'iconv-lite';
 import { Injectable, Logger } from '@nestjs/common';
@@ -78,7 +79,9 @@ export class DataExportProcessor {
         : exportAs === 'ics'
         ? 'ics'
         : 'csv';
-    const destPath = `nc/uploads/data-export/${dateFolder}/${modelId}/${filename}.${fileExtension}`;
+    // unguessable segment: /download serves this folder without auth on default installs
+    const exportToken = randomBytes(24).toString('hex');
+    const destPath = `nc/uploads/data-export/${dateFolder}/${modelId}/${exportToken}/${filename}.${fileExtension}`;
 
     let url = null;
     let excelStats: { rows: number; truncated: boolean } | undefined;

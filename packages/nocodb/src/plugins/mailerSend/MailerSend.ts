@@ -17,7 +17,7 @@ export default class Mailer implements IEmailAdapter {
   }
 
   public async mailSend(mail: XcEmail): Promise<any> {
-    const recipients = toRecipients(mail.to);
+    const recipients = toRecipients(mail.to, 'To', MAX_TO_RECIPIENTS);
 
     const emailParams = new EmailParams()
       .setFrom(this.input.from)
@@ -27,10 +27,12 @@ export default class Mailer implements IEmailAdapter {
       .setSubject(mail.subject)
       .setHtml(mail.html)
       .setText(mail.text);
-    if (mail.cc) emailParams.setCc(toRecipients(mail.cc));
-    if (mail.bcc) emailParams.setBcc(toRecipients(mail.bcc));
+    if (mail.cc)
+      emailParams.setCc(toRecipients(mail.cc, 'CC', MAX_CC_BCC_RECIPIENTS));
+    if (mail.bcc)
+      emailParams.setBcc(toRecipients(mail.bcc, 'BCC', MAX_CC_BCC_RECIPIENTS));
 
-    // The SDK predates inline parts; the API reads `id` as the Content-ID for `cid:` references.
+    // The SDK predates inline parts; the API reads `id` (bare, ≤256 chars) as the `cid:` Content-ID.
     const attachments = (mail.attachments ?? []).map((attachment) => {
       if (attachment.content === undefined || attachment.content === null) {
         // MailerSend takes bytes only; fetching a link here would bypass the SSRF-filtered agents.
@@ -79,13 +81,27 @@ export default class Mailer implements IEmailAdapter {
   }
 }
 
+// MailerSend's per-email limits; past them the API rejects the whole send with a 422.
+const MAX_TO_RECIPIENTS = 50;
+const MAX_CC_BCC_RECIPIENTS = 10;
+
 // Workflow emails pass comma-separated address lists; the API wants one Recipient each.
-function toRecipients(addresses: string): Recipient[] {
-  return String(addresses)
+function toRecipients(
+  addresses: string,
+  field: string,
+  max: number,
+): Recipient[] {
+  const recipients = String(addresses)
     .split(',')
     .map((address) => address.trim())
     .filter(Boolean)
     .map((address) => new Recipient(address));
+  if (recipients.length > max) {
+    NcError._.badRequest(
+      `MailerSend accepts at most ${max} ${field} recipients per email; got ${recipients.length}`,
+    );
+  }
+  return recipients;
 }
 
 async function errorMessage(res: {

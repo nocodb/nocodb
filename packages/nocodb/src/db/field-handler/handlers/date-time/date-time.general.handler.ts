@@ -26,6 +26,7 @@ import type { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import { lmtFieldQueryBuilder } from '~/db/formulav2/lmtFieldQueryBuilder';
+import { padShortFraction } from '~/helpers/dateTimePrecision';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -206,7 +207,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
           // then append +00:00 to make it as UTC
           strVal += '+00:00';
         }
-        dayjsUtcValue = dayjs(strVal).utc();
+        dayjsUtcValue = dayjs(padShortFraction(strVal)).utc();
         if (!dayjsUtcValue.isValid() && dateFormat) {
           dayjsUtcValue = dayjs(strVal, dateFormat).utc();
         }

@@ -24,7 +24,10 @@ import {
   assertLinkColOptions,
   getColumnByIdOrName,
 } from '~/helpers/dataHelpers';
-import { restrictNestedLinkQueryForColumn } from '~/helpers/nestedLinkQueryHelpers';
+import {
+  restrictNestedLinkQueryForColumn,
+  stripHiddenColumnFilters,
+} from '~/helpers/nestedLinkQueryHelpers';
 import { collectRelatedNeededColumnIds } from '~/helpers/relatedMetaProjection';
 import {
   resolveSharedViewQueryScope,
@@ -194,7 +197,10 @@ export class PublicDatasService {
       includeRowColorColumns: query.include_row_color === 'true',
     });
 
-    const listArgs: any = { ...query, ...dependencyFields };
+    const listArgs: any = {
+      ...sanitizePublicQuery(query),
+      ...dependencyFields,
+    };
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}
@@ -280,7 +286,10 @@ export class PublicDatasService {
     // No-op off the shared-view access source — see the DESIGN NOTE.
     await restrictSharedViewQuery(context, { model, view, query: param.query });
 
-    const countArgs: any = { ...param.query, throwErrorIfInvalidParams: true };
+    const countArgs: any = {
+      ...sanitizePublicQuery(param.query),
+      throwErrorIfInvalidParams: true,
+    };
     countArgs.filterArr = parseFilterArrJson(context, countArgs.filterArrJson);
 
     const count: number = await baseModel.count(countArgs);
@@ -437,7 +446,7 @@ export class PublicDatasService {
       includeRowColorColumns: query.include_row_color === 'true',
     });
 
-    const listArgs: any = { ...query };
+    const listArgs: any = { ...sanitizePublicQuery(query) };
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}
@@ -994,6 +1003,23 @@ export class PublicDatasService {
       if (listArgs.filterArrJson)
         listArgs.filterArr = JSON.parse(listArgs.filterArrJson) as Filter[];
     } catch (e) {}
+
+    // Confine the caller filter tree to the related columns `where` may name.
+    if (ncIsArray(listArgs.filterArr)) {
+      const relatedColumns = await model.getColumns();
+      listArgs.filterArr = stripHiddenColumnFilters(
+        listArgs.filterArr,
+        new Set(
+          relatedColumns
+            .filter(
+              (c) =>
+                c.pk || c.pv || c.id === colOptions.fk_display_value_column_id,
+            )
+            .map((c) => c.id),
+        ),
+        new Set(relatedColumns.map((c) => c.id)),
+      ) as Filter[];
+    }
 
     if (view.type === ViewTypes.FORM && ncIsArray(param.query?.fields)) {
       // A shared form's picker legitimately asks for extra related-table fields

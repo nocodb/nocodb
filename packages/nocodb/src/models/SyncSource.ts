@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import User from '~/models/User';
 import { NcError } from '~/helpers/catchError';
@@ -5,6 +6,29 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { MetaTable } from '~/utils/globals';
 import { isReplay } from '~/helpers/replayScope';
+import { decryptPropIfRequired, encryptPropIfRequired } from '~/utils';
+
+const logger = new Logger('SyncSource');
+
+// Rows written before encryption hold plain JSON, so anything that parses is
+// read as-is and the rest is ciphertext.
+const parseDetails = (details: unknown) => {
+  if (!details || typeof details !== 'string') return details;
+
+  try {
+    return JSON.parse(details);
+  } catch {}
+
+  try {
+    return decryptPropIfRequired({ data: { details }, prop: 'details' });
+  } catch {
+    logger.warn('Failed to decrypt sync source details');
+    return null;
+  }
+};
+
+const serializeDetails = (details: unknown) =>
+  encryptPropIfRequired({ data: { details }, prop: 'details' });
 
 export default class SyncSource {
   id?: string;
@@ -38,11 +62,7 @@ export default class SyncSource {
       syncSourceId,
     );
     if (!syncSource) return null;
-    if (syncSource.details && typeof syncSource.details === 'string') {
-      try {
-        syncSource.details = JSON.parse(syncSource.details);
-      } catch {}
-    }
+    syncSource.details = parseDetails(syncSource.details);
     return new SyncSource(syncSource);
   }
 
@@ -68,11 +88,7 @@ export default class SyncSource {
     );
 
     for (const syncSource of syncSources) {
-      if (syncSource.details && typeof syncSource.details === 'string') {
-        try {
-          syncSource.details = JSON.parse(syncSource.details);
-        } catch {}
-      }
+      syncSource.details = parseDetails(syncSource.details);
     }
     return syncSources?.map((h) => new SyncSource(h));
   }
@@ -96,8 +112,8 @@ export default class SyncSource {
       insertObj.id = syncSource.id;
     }
 
-    if (insertObj.details && typeof insertObj.details === 'object') {
-      insertObj.details = JSON.stringify(insertObj.details);
+    if (insertObj.details) {
+      insertObj.details = serializeDetails(insertObj.details);
     }
 
     const { id } = await ncMeta.metaInsert2(
@@ -127,8 +143,8 @@ export default class SyncSource {
       'source_id',
     ]);
 
-    if (updateObj.details && typeof updateObj.details === 'object') {
-      updateObj.details = JSON.stringify(updateObj.details);
+    if (updateObj.details) {
+      updateObj.details = serializeDetails(updateObj.details);
     }
 
     // set meta

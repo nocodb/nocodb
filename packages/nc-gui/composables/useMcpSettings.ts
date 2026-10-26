@@ -240,6 +240,9 @@ export const useMcpSettings = createSharedComposable(() => {
 
   const toolCatalog = ref<McpToolCatalogEntry[]>([])
 
+  /** Destructive or side-effecting tools, switched on per connection rather than granted by level. */
+  const optInToolCatalog = ref<McpToolCatalogEntry[]>([])
+
   /** What a connection can be granted, read off the tool surface itself. */
   const loadToolCatalog = async () => {
     if (toolCatalog.value.length) return toolCatalog.value
@@ -249,7 +252,10 @@ export const useMcpSettings = createSharedComposable(() => {
         operation: 'mcpToolCatalog',
       })
 
-      toolCatalog.value = (response as { list?: McpToolCatalogEntry[] })?.list ?? []
+      const list = (response as { list?: McpToolCatalogEntry[] })?.list ?? []
+
+      toolCatalog.value = list.filter((tool) => !tool.opt_in)
+      optInToolCatalog.value = list.filter((tool) => tool.opt_in)
     } catch (error: any) {
       // The picker still works without it — the tiers are known, only the tool
       // names and counts come from here.
@@ -259,7 +265,12 @@ export const useMcpSettings = createSharedComposable(() => {
     return toolCatalog.value
   }
 
-  const createAccountMcpToken = async (payload: { title: string; scopes: ApiTokenScopeEntry[]; tools: string[] }) => {
+  const createAccountMcpToken = async (payload: {
+    title: string
+    scopes: ApiTokenScopeEntry[]
+    tools: string[]
+    opt_in_tools?: string[]
+  }) => {
     try {
       isCreatingMcpToken.value = true
 
@@ -309,7 +320,7 @@ export const useMcpSettings = createSharedComposable(() => {
   /** Change a scoped connection's name, reach or tools; its secret stays. */
   const updateAccountMcpToken = async (
     token: MCPTokenExtendedType,
-    payload: { title: string; scopes: ApiTokenScopeEntry[]; tools: string[] },
+    payload: { title: string; scopes: ApiTokenScopeEntry[]; tools: string[]; opt_in_tools?: string[] },
   ) => {
     try {
       isCreatingMcpToken.value = true
@@ -373,6 +384,7 @@ export const useMcpSettings = createSharedComposable(() => {
     listAccountMcpTokens,
     createAccountMcpToken,
     toolCatalog,
+    optInToolCatalog,
     loadToolCatalog,
     regenerateAccountMcpToken,
     updateAccountMcpToken,

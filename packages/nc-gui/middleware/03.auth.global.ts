@@ -124,8 +124,8 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   const hasPaymentRedirectParams =
     to.query.upgrade || to.query.pricing || to.query.afterPayment || to.query.afterManage || to.query.afterUpgrade
 
-  /** So is a broadcast link asking to pick a base for an app (/?pickAppBase=1) */
-  const hasRootRedirectParams = hasPaymentRedirectParams || to.query[PICK_APP_BASE_PARAM]
+  /** So is a broadcast link asking to pick a base for an app (/?pickAppBase=1), a Home build kind (/?kind=factory), or an AI-setup link (/?mcp=claude) */
+  const hasRootRedirectParams = hasPaymentRedirectParams || to.query[PICK_APP_BASE_PARAM] || to.query.kind || to.query.mcp
 
   /** if auth is required or unspecified (same `as required) and user is not signed in, redirect to signin page */
   if ((to.meta.requiresAuth || typeof to.meta.requiresAuth === 'undefined') && !state.signedIn.value) {
@@ -249,6 +249,10 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
     const cleanURL = new URL(window.location.href)
     cleanURL.searchParams.delete('short-token')
     cleanURL.searchParams.delete('continueAfterSignIn')
+    // The code is single-use: left in the URL, a failed exchange retries on every reload.
+    cleanURL.searchParams.delete('code')
+    cleanURL.searchParams.delete('state')
+    cleanURL.searchParams.delete('scope')
     // Legacy Google/GitHub sign-in (genTokenByCode) returns no `extra`, so the
     // return target lives only in localStorage. Restore it to the URL before the
     // reload below — the reload wipes `isTokenUpdatedTab`, so without the query

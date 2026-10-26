@@ -5,14 +5,17 @@ import bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { OAuthClientType } from 'nocodb-sdk';
 import {
+  Base,
   OAuthAuthorizationCode,
   OAuthClient,
   OAuthToken,
   User,
 } from '~/models';
 import { NcError } from '~/helpers/ncError';
+import { checkOAuthResourceAccess } from '~/mcp/oauth-scope-guard';
 import { buildOAuthAccessTokenClaims } from '~/modules/oauth/services/oauth-token.claims';
 import Noco from '~/Noco';
+import { RootScopes } from '~/utils/globals';
 
 export interface TokenResponse {
   access_token: string;
@@ -321,24 +324,41 @@ export class OauthTokenService {
     // minting a second valid token chain. Done after token generation so a
     // generateAccessToken failure does not burn the still-valid refresh token
     // (GHSA-353r).
-    const revoked = await OAuthToken.revokeIfActive(tokenRecord.id);
-    if (!revoked) {
-      NcError.badRequest('Refresh token has been revoked');
-    }
+    const ncMetaTrans = await Noco.ncMeta.startTransaction();
+    try {
+      const revoked = await OAuthToken.revokeIfActive(
+        tokenRecord.id,
+        ncMetaTrans,
+      );
+      if (!revoked) {
+        NcError.badRequest('Refresh token has been revoked');
+      }
 
-    // Create new token record
-    await OAuthToken.insert({
-      fk_client_id: tokenRecord.fk_client_id,
-      fk_user_id: tokenRecord.fk_user_id,
-      access_token: newAccessToken,
-      access_token_expires_at: newAccessTokenExpiresAt,
-      refresh_token: newRefreshToken,
-      refresh_token_expires_at: newRefreshTokenExpiresAt,
-      scope: tokenRecord.scope,
-      granted_resources: tokenRecord.granted_resources,
-      resource: tokenRecord.resource,
-      permissions: tokenRecord.permissions,
-    });
+      // The revoke holds the row lock, so a concurrent tool edit is either visible here or refused.
+      const { permissions } = await OAuthToken.get(tokenRecord.id, ncMetaTrans);
+
+      // Create new token record
+      await OAuthToken.insert(
+        {
+          fk_client_id: tokenRecord.fk_client_id,
+          fk_user_id: tokenRecord.fk_user_id,
+          access_token: newAccessToken,
+          access_token_expires_at: newAccessTokenExpiresAt,
+          refresh_token: newRefreshToken,
+          refresh_token_expires_at: newRefreshTokenExpiresAt,
+          scope: tokenRecord.scope,
+          granted_resources: tokenRecord.granted_resources,
+          resource: tokenRecord.resource,
+          permissions,
+        },
+        ncMetaTrans,
+      );
+
+      await ncMetaTrans.commit();
+    } catch (e) {
+      await ncMetaTrans.rollback();
+      throw e;
+    }
 
     return {
       access_token: newAccessToken,
@@ -392,9 +412,33 @@ export class OauthTokenService {
     return true;
   }
 
-  async listUserAuthorizations(userId: string) {
-    const tokens = await OAuthToken.listByUser(userId);
+  /**
+   * With `scopeBaseId` (base settings → MCP), only the authorizations that
+   * reach that base, by the same check the OAuth strategy applies per request.
+   */
+  async listUserAuthorizations(
+    userId: string,
+    params: { scopeBaseId?: string } = {},
+  ) {
+    let tokens = await OAuthToken.listByUser(userId);
     const authorizationsList = [];
+
+    if (params.scopeBaseId) {
+      const base = await Base.get(
+        { workspace_id: RootScopes.BYPASS, base_id: RootScopes.BYPASS },
+        params.scopeBaseId,
+      );
+
+      if (!base) return [];
+
+      tokens = tokens.filter(
+        (token) =>
+          !checkOAuthResourceAccess(token, {
+            workspace_id: base.fk_workspace_id,
+            base_id: base.id,
+          }),
+      );
+    }
 
     for (const token of tokens) {
       const client = await OAuthClient.getByClientId(token.fk_client_id);
@@ -408,6 +452,7 @@ export class OauthTokenService {
           logo_uri: client.logo_uri,
           scope: token.scope,
           granted_resources: token.granted_resources,
+          permissions: token.permissions,
           created_at: token.created_at,
           last_used_at: token.last_used_at,
         });
@@ -415,6 +460,44 @@ export class OauthTokenService {
     }
 
     return authorizationsList;
+  }
+
+  /**
+   * Change what one of the user's own authorizations may call. The client
+   * keeps its tokens; the next MCP call runs under the new grant.
+   */
+  async updateUserAuthorization(
+    userId: string,
+    tokenId: string,
+    payload: { tools?: string[] },
+  ) {
+    const token = await OAuthToken.get(tokenId);
+
+    if (!token || token.is_revoked) {
+      NcError.notFound('OAuth authorization not found');
+    }
+
+    if (token.fk_user_id !== userId) {
+      NcError.forbidden(
+        'You do not have permission to change this authorization',
+      );
+    }
+
+    const permissions = await this.buildUpdatedPermissions(token, payload);
+
+    if (!(await OAuthToken.updatePermissions(tokenId, permissions))) {
+      NcError.notFound('OAuth authorization not found');
+    }
+
+    return { id: tokenId, permissions };
+  }
+
+  /** CE records no tools on a consent, so there is nothing to edit. */
+  protected async buildUpdatedPermissions(
+    _token: OAuthToken,
+    _payload: { tools?: string[] },
+  ): Promise<string> {
+    NcError.badRequest('This authorization cannot be edited');
   }
 
   async revokeUserAuthorization(userId: string, tokenId: string) {

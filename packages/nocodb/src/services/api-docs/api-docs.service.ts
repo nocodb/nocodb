@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { extractRolesObj } from 'nocodb-sdk';
 import getSwaggerJSON from './swagger/getSwaggerJSON';
 import getSwaggerJSONV2 from './swaggerV2/getSwaggerJSONV2';
 import getSwaggerJSONV3 from './swaggerV3/getSwaggerJSONV3';
@@ -8,7 +9,10 @@ import type { Source } from '~/models';
 import type { SourcesMap } from '~/services/api-docs/types';
 import { NcError } from '~/helpers/catchError';
 import { Base, Model } from '~/models';
-import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
+import {
+  hasModelRoleVisibilityAccess,
+  hasTableVisibilityAccess,
+} from '~/helpers/tableHelpers';
 
 @Injectable()
 export class ApiDocsService {
@@ -59,10 +63,16 @@ export class ApiDocsService {
       source_id: null,
     });
 
+    const roles = extractRolesObj(param.req?.user?.base_roles);
     // filter based on table visibility permission, keeping list order
     const visible = await Promise.all(
-      allModels.map((model) =>
-        hasTableVisibilityAccess(context, model.id, param.req?.user),
+      allModels.map(
+        async (model) =>
+          (await hasTableVisibilityAccess(
+            context,
+            model.id,
+            param.req?.user,
+          )) && (await hasModelRoleVisibilityAccess(context, model.id, roles)),
       ),
     );
     return allModels.filter((_, i) => visible[i]);

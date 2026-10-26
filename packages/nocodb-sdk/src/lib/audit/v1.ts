@@ -83,6 +83,7 @@ enum AuditV1OperationTypes {
   ORG_USER_ROLE_UPDATE = 'ORG_USER_ROLE_UPDATE',
   ORG_USER_BLOCK = 'ORG_USER_BLOCK',
   ORG_USER_UNBLOCK = 'ORG_USER_UNBLOCK',
+  ORG_USER_DELETE = 'ORG_USER_DELETE',
   ORG_ABUSE_REPORT_UPDATE = 'ORG_ABUSE_REPORT_UPDATE',
   ORG_ABUSE_REPORT_RESOURCE_DISABLE = 'ORG_ABUSE_REPORT_RESOURCE_DISABLE',
   ORG_WORKSPACE_ADD = 'ORG_WORKSPACE_ADD',
@@ -2404,6 +2405,10 @@ const descriptionTemplates = {
     `User '${audit.user}' blocked '${audit.details?.email}'`,
   [AuditV1OperationTypes.ORG_USER_UNBLOCK]: (audit: AuditV1<any>) =>
     `User '${audit.user}' unblocked '${audit.details?.email}'`,
+  [AuditV1OperationTypes.ORG_USER_DELETE]: (audit: AuditV1<any>) =>
+    `${audit.user ? `User '${audit.user}'` : 'An operator'} deleted the account of '${
+      audit.details?.email
+    }'`,
   [AuditV1OperationTypes.ORG_ABUSE_REPORT_UPDATE]: (audit: AuditV1<any>) =>
     `User '${audit.user}' marked abuse report on '${audit.details?.resource_title}' as ${audit.details?.status}`,
   [AuditV1OperationTypes.ORG_ABUSE_REPORT_RESOURCE_DISABLE]: (

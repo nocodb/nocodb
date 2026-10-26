@@ -13,6 +13,10 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { SourcesService } from '~/services/sources.service';
 import { generateUniqueName } from '~/helpers/exportImportHelpers';
 import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
+import {
+  validateChangedDbConnectionTargets,
+  validateDbConnectionTargets,
+} from '~/helpers/validateDbConnectionHost';
 import { isPrivateIntegrationForbidden } from '~/helpers/integrationAccess';
 
 @Injectable()
@@ -25,13 +29,17 @@ export class IntegrationsService {
 
   async integrationGetWithConfig(
     context: NcContext,
-    param: { integrationId: any; includeSources?: boolean },
+    param: { integrationId: any; includeSources?: boolean; req?: NcRequest },
   ) {
     const integration = await Integration.get(context, param.integrationId);
 
-    if (!integration) {
-      NcError.get(context).integrationNotFound(param.integrationId);
-    }
+    // A private integration is readable by its creator only, as for writes.
+    this.assertIntegrationWritable(
+      context,
+      integration,
+      param.integrationId,
+      param.req,
+    );
 
     integration.config = await integration.getConnectionConfig();
 
@@ -73,6 +81,16 @@ export class IntegrationsService {
       integrationBody?.config,
       integrationBody?.sub_type ?? oldIntegration?.sub_type,
     );
+    if (
+      (integrationBody?.type ?? oldIntegration.type) ===
+        IntegrationsType.Database &&
+      integrationBody?.config
+    ) {
+      await validateChangedDbConnectionTargets(
+        integrationBody.config,
+        oldIntegration.getConfig(),
+      );
+    }
 
     const integration = await Integration.updateIntegration(
       context,
@@ -340,6 +358,9 @@ export class IntegrationsService {
       integrationBody.config,
       integrationBody.sub_type,
     );
+    if (integrationBody.type === IntegrationsType.Database) {
+      await validateDbConnectionTargets(integrationBody.config);
+    }
     // for SQLite check for existing integration which refers to the same file
     if (integrationBody.sub_type === 'sqlite3') {
       // get all integrations of type sqlite3

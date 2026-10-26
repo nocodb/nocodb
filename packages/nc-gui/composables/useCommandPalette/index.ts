@@ -171,6 +171,8 @@ export const useCommandPalette = createSharedComposable(() => {
       })
       .catch((e) => {
         cmdLoading.value = false
+        // Cleared before the request: without re-arming, one failed fetch empties the palette for the session
+        needRefresh.value = true
         console.log(e)
       })
   }

@@ -50,6 +50,10 @@ import { Source } from '~/models';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 import { clearSingleQueryCacheForReferencingModels } from '~/helpers/singleQueryCacheInvalidator';
 import { dataWrapper } from '~/helpers/dbHelpers';
+import {
+  formatPgDateTime,
+  padShortFraction,
+} from '~/helpers/dateTimePrecision';
 import { isEE } from '~/utils';
 import { NcCache } from '~/decorators/nc-cache.decorator';
 import {
@@ -970,14 +974,16 @@ export default class Model implements TableType {
             ]);
           } else if (isSqlite) {
             // convert to UTC
-            // e.g. 2022-01-01T10:00:00.000Z -> 2022-01-01 04:30:00+00:00
-            val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
+            // e.g. 2022-01-01T10:00:00.000Z -> 2022-01-01 04:30:00.000+00:00
+            val = dayjs(padShortFraction(val))
+              .utc()
+              .format('YYYY-MM-DD HH:mm:ss.SSSZ');
           } else if (isPg) {
             // convert to UTC
-            // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
+            // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00.000+00:00
             // then convert to db timezone
             val = knex.raw(`? AT TIME ZONE CURRENT_SETTING('timezone')`, [
-              dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'),
+              formatPgDateTime(val, col),
             ]);
           } else {
             // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00

@@ -369,6 +369,7 @@ export function validateRowFilters(
       email: string
     }
     timezone?: string
+    missingColumnNeverMatches?: boolean
   },
 ) {
   return sdkValidateRowFilters({

@@ -62,18 +62,17 @@ export class BaseUsersService {
     });
   }
 
-  async userInvite(
+  // Validates and authorizes an invite without writing anything.
+  async preUserInvite(
     context: NcContext,
     param: {
       baseId: string;
       baseUser: ProjectUserReqType;
       req: NcRequest;
       workspaceInvited?: boolean;
-      registeredEmails?: string[];
-      invite_token?: string;
     },
     ncMeta = Noco.ncMeta,
-  ): Promise<any> {
+  ): Promise<{ emails: string[] }> {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUserReq',
       param.baseUser,
@@ -123,8 +122,6 @@ export class BaseUsersService {
       NcError.baseUserError(emailAliasNotAllowedMessage(aliasEmails));
     }
 
-    const error = [];
-
     const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
     const newRolePower = reverseOrderedProjectRoles.indexOf(
       param.baseUser.roles as ProjectRoles,
@@ -136,6 +133,25 @@ export class BaseUsersService {
     }
 
     await this.assertNoExistingMembers(context, param.baseId, emails, ncMeta);
+
+    return { emails };
+  }
+
+  async userInvite(
+    context: NcContext,
+    param: {
+      baseId: string;
+      baseUser: ProjectUserReqType;
+      req: NcRequest;
+      workspaceInvited?: boolean;
+      registeredEmails?: string[];
+      invite_token?: string;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<any> {
+    const { emails } = await this.preUserInvite(context, param, ncMeta);
+
+    const error = [];
 
     for (const email of emails) {
       // Reuse the caller's token when there is one — the workspace invite that
@@ -303,9 +319,12 @@ export class BaseUsersService {
           context,
         });
       } else {
+        let user: User;
+        // One unit, so a failed invite leaves no account or membership behind.
+        const transaction = await ncMeta.startTransaction();
         try {
           // create new user with invite token
-          const user = await User.insert(
+          user = await User.insert(
             {
               invite_token,
               invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
@@ -313,7 +332,7 @@ export class BaseUsersService {
               roles: OrgUserRoles.VIEWER,
               token_version: randomTokenString(),
             },
-            ncMeta,
+            transaction,
           );
 
           // Ensure user exists in default workspace with NO_ACCESS —
@@ -321,7 +340,7 @@ export class BaseUsersService {
           await ensureUserInDefaultWorkspace(
             user.id,
             WorkspaceUserRoles.NO_ACCESS,
-            ncMeta,
+            transaction,
           );
 
           // add user to base
@@ -333,59 +352,48 @@ export class BaseUsersService {
               roles: param.baseUser.roles,
               invited_by: param.req?.user?.id,
             },
-            ncMeta,
+            transaction,
           );
 
-          this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
-            base,
-            user,
-            role: param.baseUser.roles,
-            req: param.req,
-            invitedBy: param.req?.user,
-            context,
-          });
-
-          if (emails.length === 1) {
-            try {
-              await this.mailService.sendMail(
-                {
-                  mailEvent: MailEvent.BASE_INVITE,
-                  payload: {
-                    req: param.req,
-                    user: user,
-                    base: base,
-                    role: (param.baseUser.roles || 'editor') as ProjectRoles,
-                    token: invite_token,
-                  },
-                },
-                ncMeta,
-              );
-            } catch (e) {
-              this.logger.error(e.message, e.stack);
-              return { invite_token, email };
-            }
-          } else {
-            await this.mailService.sendMail(
-              {
-                mailEvent: MailEvent.BASE_INVITE,
-                payload: {
-                  req: param.req,
-                  user: user,
-                  base: base,
-                  token: invite_token,
-                  role: (param.baseUser.roles || 'editor') as ProjectRoles,
-                },
-              },
-              ncMeta,
-            );
-          }
+          await transaction.commit();
         } catch (e) {
+          await transaction.rollback();
           this.logger.error(e.message, e.stack);
           if (emails.length === 1) {
             NcError.get(context).baseUserError('Bad Request');
-          } else {
-            error.push({ email, error: e.message });
           }
+          error.push({ email, error: 'Failed to invite user' });
+          continue;
+        }
+
+        this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
+          base,
+          user,
+          role: param.baseUser.roles,
+          req: param.req,
+          invitedBy: param.req?.user,
+          context,
+        });
+
+        try {
+          await this.mailService.sendMail(
+            {
+              mailEvent: MailEvent.BASE_INVITE,
+              payload: {
+                req: param.req,
+                user: user,
+                base: base,
+                role: (param.baseUser.roles || 'editor') as ProjectRoles,
+                token: invite_token,
+              },
+            },
+            ncMeta,
+          );
+        } catch (e) {
+          this.logger.error(e.message, e.stack);
+          // A new row's link can be shared by hand when the mail fails.
+          if (emails.length === 1) return { invite_token, email };
+          error.push({ email, error: 'Failed to send invite email' });
         }
       }
     }

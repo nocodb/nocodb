@@ -1307,20 +1307,17 @@ export class ExportService {
         const childColumnTitle = childColumn.title;
         const parentColumnTitle = parentColumn.title;
 
-        const mmFields = mmModel.columns
-          .filter((c) => c.uidt === UITypes.ForeignKey)
-          .map((c) => c.title);
+        // One CSV header serves every junction of the model: rows keep one shape.
+        const mmFields = [childColumnTitle, parentColumnTitle];
 
         const mmFormatData = (data: any) => {
-          data.map((d) => {
-            d.column = mm.id;
-            d.child = d[childColumnTitle];
-            d.parent = d[parentColumnTitle];
-            delete d[childColumnTitle];
-            delete d[parentColumnTitle];
-            return d;
-          });
-          return { data };
+          return {
+            data: data.map((d) => ({
+              column: mm.id,
+              child: d[childColumnTitle],
+              parent: d[parentColumnTitle],
+            })),
+          };
         };
 
         const mmLimit = 200;

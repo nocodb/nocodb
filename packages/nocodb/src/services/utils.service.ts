@@ -420,7 +420,7 @@ export class UtilsService {
   };
 
   async testConnection(param: { body: any }) {
-    return await SqlMgrv2.testConnection(param.body);
+    return await SqlMgrv2.testConnection(param.body, { requireDatabase: true });
   }
 
   async appInfo(param: { req: { ncSiteUrl: string } }) {
@@ -614,7 +614,7 @@ export class UtilsService {
     await NocoCache.setExpiring(
       'root',
       cacheKey,
-      JSON.stringify(response.data, getCircularReplacer),
+      JSON.stringify(response.data, getCircularReplacer()),
       Number.isNaN(parseInt(process.env.NC_ATTACHMENT_EXPIRE_SECONDS))
         ? 2 * 60 * 60
         : parseInt(process.env.NC_ATTACHMENT_EXPIRE_SECONDS),
@@ -661,7 +661,7 @@ export class UtilsService {
     await NocoCache.setExpiring(
       'root',
       cacheKey,
-      JSON.stringify(response.data, getCircularReplacer),
+      JSON.stringify(response.data, getCircularReplacer()),
       3 * 60 * 60,
     );
 

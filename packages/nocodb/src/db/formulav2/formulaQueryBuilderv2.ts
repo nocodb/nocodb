@@ -48,7 +48,9 @@ import {
   isTransientError,
 } from '~/helpers/db-error/utils';
 import { getRefColumnIfAlias } from '~/helpers';
+import { extractDisplayNameFromEmail } from '~/utils/emailUtils';
 import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
+import { escapeBindingPlaceholders } from '~/helpers/sqlSanitize';
 import { BaseUser, ButtonColumn, View } from '~/models';
 import FormulaColumn from '~/models/FormulaColumn';
 import LmtTrackedField from '~/models/LmtTrackedField';
@@ -365,6 +367,15 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                 ).builder
               : await getColumnName(context, col, columns);
 
+            // Public responses redact user emails; a formula must not re-derive them.
+            const userValue = (user: Partial<User>) =>
+              context.is_public
+                ? extractDisplayNameFromEmail(
+                    user.email ?? '',
+                    user.display_name,
+                  )
+                : user.email;
+
             // create nested replace statement for each user
             if (knex.clientType() === 'pg' || knex.clientType() === 'sqlite3') {
               finalStatement = `(${DBQueryClient.get(
@@ -374,21 +385,23 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                 needleColumn: columnName,
                 stack: baseUsers.map((user) => ({
                   key: user.id,
-                  value: `${user.email}`,
+                  value: `${userValue(user)}`,
                 })),
               })})`;
             } else {
               finalStatement = baseUsers.reduce((acc, user) => {
-                const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [
-                  user.id,
-                  user.email,
-                ]);
+                const qb = knex.raw(
+                  `REPLACE(${escapeBindingPlaceholders(acc)}, ?, ?)`,
+                  [user.id, userValue(user)],
+                );
                 return qb.toQuery();
               }, knex.raw(`??`, [columnName]).toQuery());
             }
 
             return {
-              builder: knex.raw(finalStatement).wrap('(', ')'),
+              builder: knex
+                .raw(escapeBindingPlaceholders(finalStatement))
+                .wrap('(', ')'),
             };
           };
         }

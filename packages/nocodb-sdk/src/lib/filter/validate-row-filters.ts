@@ -174,6 +174,8 @@ export class RowFilterValidator {
         email: string;
       };
       timezone?: string;
+      /** Fail a condition on a column absent from `columns` instead of skipping it. */
+      missingColumnNeverMatches?: boolean;
     };
     /** Internal: input is already a built tree (recursive call). */
     isTree?: boolean;
@@ -215,6 +217,13 @@ export class RowFilterValidator {
           options: params.options,
           isTree: true,
         });
+      } else if (
+        params.options?.missingColumnNeverMatches &&
+        filter.fk_column_id &&
+        !columns.some((c) => c.id === filter.fk_column_id)
+      ) {
+        // The caller's meta omits the column (pruned from a shared view).
+        res = false;
       } else {
         const column = columns.find((c) => c.id === filter.fk_column_id);
         if (!column) {
@@ -1062,6 +1071,8 @@ export function validateRowFilters(params: {
       email: string;
     };
     timezone?: string;
+    /** Fail a condition on a column absent from `columns` instead of skipping it. */
+    missingColumnNeverMatches?: boolean;
   };
   /** Internal: input is already a built tree (recursive call). */
   isTree?: boolean;

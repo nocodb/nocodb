@@ -12,8 +12,7 @@ import { BaseReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
-import { validateDbConnectionHost } from '~/helpers/validateDbConnectionHost';
-import { getValidatableSourceCreateHost } from '~/helpers/dbConnectionHost.utils';
+import { validateDbConnectionTargets } from '~/helpers/validateDbConnectionHost';
 import { Integration } from '~/models';
 import { JobTypes } from '~/interface/Jobs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -51,32 +50,18 @@ export class SourceCreateController {
       );
     }
 
-    // SSRF: range-check the connection host before creating the source, matching
-    // the test-connection / EE paths (only those validated before — GHSA-m4v9).
-    // Integration-backed sources (fk_integration_id) carry the routable host in
-    // the integration config — merged in at connect time via Source.getConfig,
-    // not present in body.config — so resolve the integration config first to
-    // reach parity with the EE controller. No-op for host-less clients
-    // (sqlite/snowflake); self-hosted can bypass via NC_ALLOW_LOCAL_EXTERNAL_DBS,
-    // which validateDbConnectionHost honours.
-    let integrationConfig:
-      | { client?: string; connection?: { host?: unknown } }
-      | undefined;
+    // SSRF: check every target the source will dial. An integration-backed
+    // source dials the integration's config (Source.getConfig only takes
+    // database/searchPath from the body), so check both.
     if (body?.fk_integration_id) {
       const integration = await Integration.get(
         context,
         body.fk_integration_id,
       );
-      integrationConfig = integration?.getConfig();
+      if (integration)
+        await validateDbConnectionTargets(integration.getConfig());
     }
-
-    const host = getValidatableSourceCreateHost(
-      body?.config,
-      integrationConfig,
-    );
-    if (host) {
-      await validateDbConnectionHost(host);
-    }
+    if (body?.config) await validateDbConnectionTargets(body.config);
 
     const job = await this.jobsService.add(JobTypes.SourceCreate, {
       context,

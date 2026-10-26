@@ -407,6 +407,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const isEEFeatureBlocked = computed(() => true)
 
+  const isUpgradeDialogOpen = computed(() => false)
+
   const hideUpgradePrompts = ref(false)
   const communityMode = computed(() => false)
 
@@ -477,8 +479,6 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseAgents = (..._args: any[]) => {}
 
   const blockAppFactory = computed(() => true)
-
-  const showUpgradeToUseAppFactory = (..._args: any[]) => {}
 
   const showUpgradeToUseWorkflows = (..._args: any[]) => {}
 
@@ -708,6 +708,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockExtensions,
     showUpgradeToUseExtensions,
     isEEFeatureBlocked,
+    isUpgradeDialogOpen,
     communityMode,
     hideUpgradePrompts,
     showUpgradeSurface,
@@ -751,7 +752,6 @@ export const useEeConfig = createSharedComposable(() => {
     isWorkflowLimitReached,
     showWorkflowPlanLimitExceededModal,
     blockAppFactory,
-    showUpgradeToUseAppFactory,
     blockBookmarks,
     showUpgradeToUseBookmarks,
     blockTrashSettings,

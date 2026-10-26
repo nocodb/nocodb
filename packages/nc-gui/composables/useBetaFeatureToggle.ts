@@ -275,6 +275,16 @@ const FEATURES = [
     isEE: true,
   },
   {
+    id: 'factory',
+    title: 'Factory',
+    description:
+      'Hand coding tasks on your GitHub repos to NocoAI and get pull requests back. Still needs a plan that includes Factory.',
+    enabled: false,
+    version: 1,
+    isAdvanced: true,
+    isEE: true,
+  },
+  {
     // id is persisted in localStorage and drives FEATURE_FLAG — renaming it
     // would silently reset the toggle for anyone who had it on.
     id: 'marketplace',

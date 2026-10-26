@@ -6,7 +6,6 @@ import {
   isLinkV2,
   isVirtualCol,
   NcApiVersion,
-  NcBaseError,
   parseProp,
   RelationTypes,
   SqlUiFactory,
@@ -31,7 +30,6 @@ import { sanitizeCommentBody } from '~/helpers/sanitizeCommentBody';
 import { NcError } from '~/helpers/catchError';
 import {
   copyFormImages,
-  DroppedAttachments,
   dropUnheldAttachments,
   findWithIdentifier,
   generateUniqueName,
@@ -43,7 +41,6 @@ import {
   withoutNull,
 } from '~/helpers/exportImportHelpers';
 import type { AttachmentHolder } from '~/helpers/exportImportHelpers';
-import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import {
   Base,
   Column,
@@ -2300,142 +2297,6 @@ export class ImportService {
     return null;
   }
 
-  async importBase(
-    context: NcContext,
-    param: {
-      user: User;
-      baseId: string;
-      sourceId: string;
-      src: {
-        type: 'local' | 'url' | 'file';
-        path?: string;
-        url?: string;
-        file?: any;
-      };
-      req: NcRequest;
-    },
-  ) {
-    const hrTime = initTime();
-
-    const { user, baseId, sourceId, src, req } = param;
-
-    const destProject = await Base.get(context, baseId);
-    const destBase = await Source.get(context, sourceId);
-
-    if (!destProject) return NcError.baseNotFound(baseId);
-    if (!destBase) return NcError.sourceNotFound(sourceId);
-
-    switch (src.type) {
-      case 'local': {
-        const path = src.path.replace(/\/$/, '');
-
-        const storageAdapter = await NcPluginMgrv2.storageAdapter();
-
-        try {
-          const schema = JSON.parse(
-            await storageAdapter.fileRead(`${path}/schema.json`),
-          );
-
-          elapsedTime(hrTime, 'read schema from file', 'importBase');
-
-          // store fk_mm_model_id (mm) to link once
-          let handledLinks = [];
-
-          const dropped = new DroppedAttachments();
-          const idMap = await this.importModels(context, {
-            user,
-            baseId,
-            sourceId,
-            data: schema,
-            req,
-            attachmentHolder: { baseId, userId: user?.id, dropped },
-          });
-
-          elapsedTime(hrTime, 'import models schema', 'importBase');
-
-          if (idMap) {
-            const files = await (storageAdapter as any).getDirectoryList(
-              `${path}/data`,
-            );
-            const dataFiles = files.filter(
-              (file) => !file.match(/links\.csv$/),
-            );
-            const linkFile = `${path}/data/links.csv`;
-
-            for (const file of dataFiles) {
-              const readStream = await (storageAdapter as any).fileReadByStream(
-                `${path}/data/${file}`,
-                { encoding: 'utf8' },
-              );
-
-              const modelId = findWithIdentifier(
-                idMap,
-                file.replace(/\.csv$/, ''),
-              );
-
-              const model = await Model.get(context, modelId);
-
-              this.debugLog(`Importing ${model.title}...`);
-
-              await this.importDataFromCsvStream(context, {
-                idMap,
-                dataStream: readStream,
-                destProject,
-                destBase,
-                destModel: model,
-                req,
-                attachmentHolder: {
-                  baseId: destProject.id,
-                  userId: req?.user?.id,
-                  dropped,
-                },
-              });
-
-              elapsedTime(
-                hrTime,
-                `import data for ${model.title}`,
-                'importBase',
-              );
-            }
-
-            // reset timer
-            elapsedTime(hrTime);
-
-            const linkReadStream = await (
-              storageAdapter as any
-            ).fileReadByStream(linkFile, {
-              encoding: 'utf8',
-            });
-
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            handledLinks = await this.importLinkFromCsvStream(context, {
-              idMap,
-              linkStream: linkReadStream,
-              destProject,
-              destBase,
-              handledLinks,
-            });
-
-            elapsedTime(hrTime, `import links`, 'importBase');
-          }
-
-          if (dropped.count) {
-            this.logger.warn(`Not imported into base ${baseId}: ${dropped}`);
-          }
-        } catch (e) {
-          if (e instanceof NcError || e instanceof NcBaseError) throw e;
-          this.logger.error('Error Importing base', e);
-          NcError.get(context).internalServerError(e?.message);
-        }
-        break;
-      }
-      case 'url':
-        break;
-      case 'file':
-        break;
-    }
-  }
-
   /**
    * Realign a Postgres target's auto-increment (serial) sequences with the
    * imported data.
@@ -2763,12 +2624,13 @@ export class ImportService {
     let childIndex = -1;
     let parentIndex = -1;
     let columnIndex = -1;
+    let headerLength = 0;
 
     const mmColumns: Record<string, Column> = {};
     const mmParentChild: any = {};
 
     return new Promise((resolve, reject) => {
-      papaparse.parse(linkStream, {
+      papaparse.parse<string[]>(linkStream, {
         newline: '\r\n',
         step: async (results, parser) => {
           if (!headersFound) {
@@ -2781,12 +2643,16 @@ export class ImportService {
                 columnIndex = parseInt(i);
               }
             }
+            headerLength = results.data.length;
             headersFound = true;
           } else {
             if (results.errors.length === 0) {
-              const child = results.data[childIndex];
-              const parent = results.data[parentIndex];
-              const columnId = results.data[columnIndex];
+              // Older exporters gave each junction its own row width under one
+              // header, always ending in column, child, parent: index from the end.
+              const shift = results.data.length - headerLength;
+              const child = results.data[childIndex + shift];
+              const parent = results.data[parentIndex + shift];
+              const columnId = results.data[columnIndex + shift];
               if (child && parent && columnId) {
                 if (mmColumns[columnId]) {
                   // push to chunk

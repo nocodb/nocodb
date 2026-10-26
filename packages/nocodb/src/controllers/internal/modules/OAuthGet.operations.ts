@@ -45,7 +45,10 @@ export class OAuthGetOperations
       case 'oAuthClientList':
         return await this.oAuthClientService.listClients(context, req);
       case 'oAuthAuthorizationList':
-        return await this.oAuthTokenService.listUserAuthorizations(req.user.id);
+        return await this.oAuthTokenService.listUserAuthorizations(
+          req.user.id,
+          { scopeBaseId: req.query.scopeBaseId as string | undefined },
+        );
     }
   }
 }

@@ -7,6 +7,13 @@ export function sanitize(v) {
   });
 }
 
+// Escape `?` in rendered SQL so knex.raw keeps it as text; parity matches pg's positionBindings.
+export function escapeBindingPlaceholders(sql: string): string {
+  return sql.replace(/(\\*)\?/g, (match, backslashes: string) =>
+    backslashes.length % 2 ? match : `${backslashes}\\?`,
+  );
+}
+
 export function unsanitize(v) {
   if (typeof v !== 'string') return v;
   return v?.replace(/\\[?]/g, '?');
@@ -29,6 +36,30 @@ export function pgQuoteLiteral(value: string): string {
   return `'${String(value).replace(/'/g, "''")}'`;
 }
 
+// String literals in these dialects treat `\` as an escape character.
+const BACKSLASH_ESCAPE_CLIENTS = new Set(['mysql', 'mysql2', 'snowflake']);
+
+const MYSQL_LITERAL_ESCAPES: Record<string, string> = {
+  '0': '\0',
+  b: '\b',
+  n: '\n',
+  r: '\r',
+  t: '\t',
+  Z: '\x1a',
+};
+
+/**
+ * Convert an enum/set value list as MySQL reports it (`COLUMN_TYPE`, with
+ * backslash escapes) to the `dtxp` form NocoDB stores, where only `'` is
+ * escaped (as `''`).
+ */
+export function mysqlEnumListToDtxp(list: string): string {
+  return list.replace(
+    /\\([\s\S])/g,
+    (_, c: string) => MYSQL_LITERAL_ESCAPES[c] ?? c,
+  );
+}
+
 /**
  * Validate a column precision/length value (`dtxp`) before it is interpolated
  * into DDL. Unlike the data type (`dt`, guarded by `KnexClient.sanitiseDataType`),
@@ -45,11 +76,13 @@ export function pgQuoteLiteral(value: string): string {
  *   - enum/set value lists of single-quoted SQL string literals (with `''`
  *     escaping) — e.g. `'a','b'`, built by `columns.service` for Single/MultiSelect
  *
- * Returns the validated value (trimmed; enum lists kept verbatim) so it can be
+ * Returns the validated value (trimmed; enum lists kept verbatim, with `\`
+ * doubled for `clientType`s whose literals treat it as an escape) so it can be
  * interpolated as-is. Throws on anything else — mirroring `sanitiseDataType`.
  */
 export function sanitiseDataTypePrecision(
   dtxp: string | number | null | undefined,
+  clientType?: string,
 ): string {
   if (dtxp === null || dtxp === undefined) return '';
 
@@ -64,7 +97,13 @@ export function sanitiseDataTypePrecision(
   if (/^max$/i.test(value)) return 'MAX';
 
   // enum/set value list: `'a','b',…` — each a quoted literal with `''` escaping
-  if (/^'(?:[^']|'')*'(?:\s*,\s*'(?:[^']|'')*')*$/.test(value)) return value;
+  if (/^'(?:[^']|'')*'(?:\s*,\s*'(?:[^']|'')*')*$/.test(value)) {
+    // Outside the literals there are only commas and spaces, so this only
+    // touches literal content.
+    return BACKSLASH_ESCAPE_CLIENTS.has(clientType)
+      ? value.replace(/\\/g, '\\\\')
+      : value;
+  }
 
   throw new Error(`Invalid data type precision: ${dtxp}`);
 }

@@ -16,10 +16,11 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { hasMinimumRole } from '~/utils/roleHelper';
 
 @Controller()
-@UseGuards(MetaApiLimiterGuard)
 export class McpController {
   constructor(protected readonly mcpService: McpService) {}
 
+  // On the method, not the class: class guards are inherited, and EE overrides this route with an MCP limit of its own.
+  @UseGuards(MetaApiLimiterGuard)
   @All('mcp/:mcpTokenId')
   async handleMcpRequest(
     @Param('mcpTokenId') tokenId: string,

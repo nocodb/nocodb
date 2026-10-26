@@ -26,6 +26,7 @@ import { CleanupOrphanViewColumnsMigration } from '~/modules/jobs/migration-jobs
 import { PgSourceSearchPathBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_015_pg_source_searchpath_backfill';
 import { CreditPlanBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_016_credit_plan_backfill';
 import { StoreLaneBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_017_store_lane_backfill';
+import { CreditAllowanceIncreaseMigration } from '~/modules/jobs/migration-jobs/nc_job_018_credit_allowance_increase';
 import { isEE } from '~/utils';
 
 @Injectable()
@@ -116,6 +117,11 @@ export class InitMigrationJobs {
       job: MigrationJobTypes.StoreLaneBackfill,
       service: this.storeLaneBackfillMigration,
     },
+    {
+      version: '18',
+      job: MigrationJobTypes.CreditAllowanceIncrease,
+      service: this.creditAllowanceIncreaseMigration,
+    },
   ];
 
   private readonly debugLog = debug('nc:migration-jobs:init');
@@ -140,6 +146,7 @@ export class InitMigrationJobs {
     private readonly pgSourceSearchPathBackfillMigration: PgSourceSearchPathBackfillMigration,
     private readonly creditPlanBackfillMigration: CreditPlanBackfillMigration,
     private readonly storeLaneBackfillMigration: StoreLaneBackfillMigration,
+    private readonly creditAllowanceIncreaseMigration: CreditAllowanceIncreaseMigration,
   ) {}
 
   log = (...msgs: string[]) => {
@@ -153,6 +160,15 @@ export class InitMigrationJobs {
     const runUuid = uuidv4();
 
     const migrationJobsState = await getMigrationJobsState();
+
+    // get migrations need to be applied
+    const migrations = this.migrationJobsList.filter(
+      (m) => +m.version > +migrationJobsState.version,
+    );
+
+    if (!migrations.length) {
+      return;
+    }
 
     // check for stall (no update for 10 mins)
     if (migrationJobsState.locked) {
@@ -173,20 +189,16 @@ export class InitMigrationJobs {
         return;
       }
 
+      // the next repeat tick re-checks the stall itself
+      if (job?.opts?.repeat) {
+        return;
+      }
+
       // migration job is running, make sure it's not stalled by checking after 10 mins
       // stall check is updated every 5 mins
       setTimeout(() => {
         this.jobsService.add(JobTypes.InitMigrationJobs, {});
       }, 10 * 60 * 1000).unref();
-      return;
-    }
-
-    // get migrations need to be applied
-    const migrations = this.migrationJobsList.filter(
-      (m) => +m.version > +migrationJobsState.version,
-    );
-
-    if (!migrations.length) {
       return;
     }
 

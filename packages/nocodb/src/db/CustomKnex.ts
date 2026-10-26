@@ -22,12 +22,16 @@ const pgTypes = {
 // override parsing date column to Date()
 types.setTypeParser(pgTypes.DATE, (val) => val);
 // override timestamp
+// pg trims trailing zeros of the fraction (`.7`) and sends no offset, which
+// dayjs's regex parser reads as 7ms; an explicit `Z` routes it through Date.
 types.setTypeParser(pgTypes.TIMESTAMP, (val) => {
-  return dayjs.utc(val).format('YYYY-MM-DD HH:mm:ssZ');
+  return dayjs
+    .utc(`${val.replace(' ', 'T')}Z`)
+    .format('YYYY-MM-DD HH:mm:ss.SSSZ');
 });
 // override timestampz
 types.setTypeParser(pgTypes.TIMESTAMPTZ, (val) => {
-  return dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
+  return dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss.SSSZ');
 });
 
 const parseFloatVal = (val: string) => {

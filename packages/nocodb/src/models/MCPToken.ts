@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from 'crypto';
 import { NcError } from 'src/helpers/catchError';
 import { nanoid } from 'nanoid';
 import { NO_SCOPE } from 'nocodb-sdk';
@@ -17,6 +18,37 @@ import {
 } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb } from '~/utils/modelUtils';
+
+const hashSecret = (secret: string) =>
+  createHash('sha256').update(secret, 'utf8').digest();
+
+// Neither column leaves this model: the secret is returned once, by the write that mints it.
+const withoutSecret = <T extends Record<string, unknown>>(row: T) => {
+  if (!row) return row;
+  const { token: _token, token_hash: _hash, ...rest } = row;
+  return rest as T;
+};
+
+const secretMatches = (
+  row: { token?: string | null; token_hash?: string | null },
+  presented: string,
+) => {
+  const presentedHash = hashSecret(presented);
+
+  // New code nulls `token` whenever it writes a hash, so a set `token` was
+  // written by a pod on the previous image and is the current secret.
+  if (row.token) {
+    return timingSafeEqual(hashSecret(row.token), presentedHash);
+  }
+
+  if (!row.token_hash) return false;
+
+  const storedHash = Buffer.from(row.token_hash, 'hex');
+  return (
+    storedHash.length === presentedHash.length &&
+    timingSafeEqual(storedHash, presentedHash)
+  );
+};
 
 export default class MCPToken implements MCPTokenType {
   id: string;
@@ -102,16 +134,30 @@ export default class MCPToken implements MCPTokenType {
     id: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const mcpToken = await this.get(context, id, ncMeta);
+    const row = await this.getRow(context, id, ncMeta);
 
-    if (!mcpToken || token !== mcpToken.token) {
+    if (!row || typeof token !== 'string' || !secretMatches(row, token)) {
       NcError.unauthorized('Invalid MCP token');
     }
 
-    return mcpToken;
+    return new MCPToken(withoutSecret(row));
   }
 
   public static async get(
+    context: NcContext,
+    mcpTokenId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const row = await this.getRow(context, mcpTokenId, ncMeta);
+
+    return row && new MCPToken(withoutSecret(row));
+  }
+
+  /**
+   * The row as cached, secret columns included: pods on the previous image
+   * share this cache entry and validate against its `token`.
+   */
+  private static async getRow(
     context: NcContext,
     mcpTokenId: string,
     ncMeta = Noco.ncMeta,
@@ -132,7 +178,7 @@ export default class MCPToken implements MCPTokenType {
       }
     }
 
-    return mcpToken && new MCPToken(mcpToken);
+    return mcpToken;
   }
 
   public static async list(
@@ -169,10 +215,9 @@ export default class MCPToken implements MCPTokenType {
       );
     }
 
-    return mcpTokenList.map((mcpToken) => {
-      delete mcpToken.token;
-      return new MCPToken(mcpToken);
-    });
+    return mcpTokenList.map(
+      (mcpToken) => new MCPToken(withoutSecret(mcpToken)),
+    );
   }
 
   public static async listByUser(
@@ -194,10 +239,9 @@ export default class MCPToken implements MCPTokenType {
       },
     );
 
-    return mcpTokenList.map((mcpToken) => {
-      delete mcpToken.token;
-      return new MCPToken(mcpToken);
-    });
+    return mcpTokenList.map(
+      (mcpToken) => new MCPToken(withoutSecret(mcpToken)),
+    );
   }
 
   public static async insert(
@@ -222,7 +266,7 @@ export default class MCPToken implements MCPTokenType {
       insertObj.permissions = JSON.stringify(insertObj.permissions);
     }
 
-    insertObj.token = nanoid(32);
+    const secret = nanoid(32);
 
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.MCP_TOKENS, {
       base_id: context.base_id,
@@ -232,7 +276,7 @@ export default class MCPToken implements MCPTokenType {
       context.workspace_id,
       context.base_id,
       MetaTable.MCP_TOKENS,
-      insertObj,
+      { ...insertObj, token_hash: hashSecret(secret).toString('hex') },
     );
 
     return this.get(context, id, ncMeta).then(async (res) => {
@@ -243,7 +287,7 @@ export default class MCPToken implements MCPTokenType {
         [context.base_id, mcpToken.fk_user_id],
         key,
       );
-      return res;
+      return Object.assign(res, { token: secret });
     });
   }
 
@@ -251,29 +295,43 @@ export default class MCPToken implements MCPTokenType {
     context: NcContext,
     mcpTokenId: string,
     mcpToken: Partial<MCPTokenType> & {
-      permissions?: string | McpTokenPermissionsJson;
+      permissions?: string | McpTokenStoredPermissions;
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(mcpToken, ['token', 'title', 'permissions']);
+    const updateObj = extractProps(mcpToken, ['title', 'permissions']);
 
     if (updateObj.permissions && typeof updateObj.permissions !== 'string') {
       updateObj.permissions = JSON.stringify(updateObj.permissions);
     }
 
+    const secret = mcpToken.token;
+    const dbObj = secret
+      ? {
+          ...updateObj,
+          token_hash: hashSecret(secret).toString('hex'),
+          // Clears a secret still held in clear from before hashing.
+          token: null,
+        }
+      : updateObj;
+
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.MCP_TOKENS,
-      prepareForDb(updateObj),
+      prepareForDb(dbObj),
       mcpTokenId,
     );
 
     const key = `${CacheScope.MCP_TOKEN}:${mcpTokenId}`;
-    await NocoCache.update(context, key, updateObj);
+    await NocoCache.update(context, key, dbObj);
     await this.delBypassCache(mcpTokenId);
 
-    return await this.get(context, mcpTokenId, ncMeta);
+    const updated = await this.get(context, mcpTokenId, ncMeta);
+
+    return secret && updated
+      ? Object.assign(updated, { token: secret })
+      : updated;
   }
 
   public static async delete(
@@ -300,13 +358,12 @@ export default class MCPToken implements MCPTokenType {
 
   /**
    * Record a base this credential itself created, so its own base pin does not
-   * shut it out of it.
+   * shut it out of it, and so `deleteBase` knows which bases it may remove.
    *
    * Only `created_bases` is written — never `scopes` — so a legacy credential
    * stays the legacy credential it was: same authority, same reading, one more
-   * base it can address. (A scoped credential needs nothing recorded: it can
-   * only create where it holds a workspace-wide or account-wide scope, and
-   * that scope already covers whatever it creates.)
+   * base it can address. A scoped credential gains no reach from it: its
+   * scopes, not this list, decide where it reaches.
    *
    * Read-modify-write on a single JSON column: two creates racing can lose an
    * append, and the loser is a refusal the agent can report rather than a

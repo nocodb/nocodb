@@ -31,6 +31,7 @@ export const OPERATION_SCOPES = {
   oAuthClientGet: 'org',
   oAuthAuthorizationList: 'org',
   oAuthAuthorizationRevoke: 'org',
+  oAuthAuthorizationUpdate: 'org',
   oAuthClientRegenerateSecret: 'org',
   checkDependency: 'base',
 

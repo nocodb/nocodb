@@ -72,6 +72,7 @@ export interface AppInfo {
   marketingRootUrl?: string
   templatesRootUrl?: string
   openReplayKey?: string | null
+  posthogKey?: string | null
   disableSupportChat: boolean
   disableOnboardingFlow: boolean
   disableTours: boolean

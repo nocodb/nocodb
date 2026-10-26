@@ -11,7 +11,7 @@ import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 import { getColumnName } from '~/helpers/dbHelpers';
 import { lmbFieldQueryBuilder } from '~/db/formulav2/lmtFieldQueryBuilder';
-import { sanitize } from '~/helpers/sqlSanitize';
+import { escapeBindingPlaceholders, sanitize } from '~/helpers/sqlSanitize';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
@@ -59,14 +59,16 @@ export class UserGeneralHandler extends GenericFieldHandler {
     needleColumn: string | Knex.QueryBuilder | Knex.RawBuilder,
     users: Awaited<ReturnType<typeof BaseUser.getUsersList>>,
   ): Promise<string> {
-    return this.replaceDelimitedWithKeyValue({
-      knex,
-      needleColumn,
-      stack: users.map((user) => ({
-        key: user.id,
-        value: user.display_name || user.email,
-      })),
-    });
+    return escapeBindingPlaceholders(
+      this.replaceDelimitedWithKeyValue({
+        knex,
+        needleColumn,
+        stack: users.map((user) => ({
+          key: user.id,
+          value: user.display_name || user.email,
+        })),
+      }),
+    );
   }
 
   /**
@@ -445,7 +447,10 @@ export class UserGeneralHandler extends GenericFieldHandler {
   }) {
     const { knex, needleColumn, stack } = param;
     return stack.reduce((acc, each) => {
-      const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [each.key, each.value]);
+      const qb = knex.raw(`REPLACE(${escapeBindingPlaceholders(acc)}, ?, ?)`, [
+        each.key,
+        each.value,
+      ]);
       return qb.toQuery();
     }, knex.raw(`??`, [needleColumn]).toQuery());
   }

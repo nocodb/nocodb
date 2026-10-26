@@ -1,5 +1,7 @@
 import {
+  extractRolesObj,
   NcAccessSource,
+  ProjectRoles,
   SHARED_VIEW_ACCESS_SOURCES,
   ViewTypes,
 } from 'nocodb-sdk';
@@ -55,4 +57,35 @@ export function resolveShareAccessSource(
  */
 export function isSharedViewAccess(context: Pick<NcContext, 'access_source'>) {
   return SHARED_VIEW_ACCESS_SOURCES.includes(context?.access_source);
+}
+
+// Share roles that can't write stored data: view filters, sorts or row values.
+const SHARED_BASE_READ_ONLY_ROLES = [
+  ProjectRoles.VIEWER,
+  ProjectRoles.COMMENTER,
+];
+
+/**
+ * Whether a stored condition (view filter or sort, link condition, RLS policy)
+ * compiles as for a signed-in user, so user formulas compare on emails.
+ *
+ * A shared-base session that can edit (a legacy editor share) can write view
+ * filters, sorts and row values, so it could pick the email being compared;
+ * those compile on the public model there. Viewer and commenter shares (the
+ * default) can't write any of it, so the values compared are the members',
+ * and they keep emails to see what a signed-in member sees — narrowing them
+ * would close nothing. RLS policies no session can edit, so they keep emails.
+ *
+ * An allow-list of read-only roles, so a missing or unknown share role falls
+ * back to the public model rather than giving an editor share emails.
+ */
+export function compilesStoredConditionWithEmails(
+  context: Pick<NcContext, 'access_source' | 'user'>,
+  isRlsPolicyCondition = false,
+) {
+  if (isRlsPolicyCondition) return true;
+  if (context?.access_source !== NcAccessSource.SHARED_BASE) return true;
+
+  const shareRoles = extractRolesObj(context.user?.base_roles) ?? {};
+  return SHARED_BASE_READ_ONLY_ROLES.some((role) => shareRoles[role]);
 }

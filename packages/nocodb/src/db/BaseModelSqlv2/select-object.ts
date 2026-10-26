@@ -219,7 +219,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               ) {
                 res[sanitize(getAs(column) || columnName)] = baseModel.dbDriver
                   .raw(
-                    `TO_CHAR((?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'), 'YYYY-MM-DD HH24:MI:SSTZH:TZM')`,
+                    `TO_CHAR((?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'), 'YYYY-MM-DD HH24:MI:SS.MSTZH:TZM')`,
                     [`${sanitize(alias || baseModel.tnPath)}.${columnName}`],
                   )
                   .wrap('(', ')');

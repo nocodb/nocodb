@@ -7,6 +7,9 @@ export const useOAuthAuthorizations = defineStore('oauthAuthorizationsStore', ()
   const authorizations = ref<OAuthAuthorization[]>([])
   const isLoading = ref(false)
 
+  // The ones that reach one base (base settings → MCP), kept apart from the account-wide list.
+  const baseAuthorizations = ref<OAuthAuthorization[]>([])
+
   const loadAuthorizations = async ({ force = false }: { force?: boolean } = {}) => {
     if (authorizations.value.length > 0 && !force) {
       return authorizations.value
@@ -29,6 +32,47 @@ export const useOAuthAuthorizations = defineStore('oauthAuthorizationsStore', ()
     }
   }
 
+  const loadBaseAuthorizations = async (baseId: string) => {
+    try {
+      const response = await $api.internal.getOperation(NO_SCOPE, NO_SCOPE, {
+        operation: 'oAuthAuthorizationList',
+        scopeBaseId: baseId,
+      })
+
+      baseAuthorizations.value = response as OAuthAuthorization[]
+    } catch (e) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
+    }
+
+    return baseAuthorizations.value
+  }
+
+  const updateAuthorizationTools = async (tokenId: string, tools: string[]) => {
+    try {
+      const { permissions } = (await $api.internal.postOperation(
+        NO_SCOPE,
+        NO_SCOPE,
+        {
+          operation: 'oAuthAuthorizationUpdate',
+        },
+        { tokenId, tools },
+      )) as { permissions: string }
+
+      for (const list of [authorizations, baseAuthorizations]) {
+        list.value = list.value.map((auth) => (auth.id === tokenId ? { ...auth, permissions } : auth))
+      }
+
+      $e('a:oauth-authorization:update')
+
+      return true
+    } catch (e) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
+      return false
+    }
+  }
+
   const revokeAuthorization = async (tokenId: string) => {
     try {
       await $api.internal.postOperation(
@@ -41,6 +85,7 @@ export const useOAuthAuthorizations = defineStore('oauthAuthorizationsStore', ()
       )
 
       authorizations.value = authorizations.value.filter((auth) => auth.id !== tokenId)
+      baseAuthorizations.value = baseAuthorizations.value.filter((auth) => auth.id !== tokenId)
 
       $e('a:oauth-authorization:revoke')
 
@@ -54,8 +99,11 @@ export const useOAuthAuthorizations = defineStore('oauthAuthorizationsStore', ()
 
   return {
     authorizations,
+    baseAuthorizations,
     isLoading,
     loadAuthorizations,
+    loadBaseAuthorizations,
+    updateAuthorizationTools,
     revokeAuthorization,
   }
 })

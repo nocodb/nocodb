@@ -244,6 +244,29 @@ export default class NocoCache {
     );
   }
 
+  public static async getMany(
+    context: CacheContext,
+    keys: string[],
+  ): Promise<any[]> {
+    if (this.cacheDisabled || isCacheBypassed()) return keys.map(() => null);
+    return this.client.getMany(
+      keys.map((key) => `${this.prefix}:${cacheContext(context)}:${key}`),
+    );
+  }
+
+  public static async setExpiringMany(
+    context: CacheContext,
+    entries: { key: string; value: any; seconds: number }[],
+  ): Promise<(Error | null)[]> {
+    if (this.cacheDisabled || isCacheBypassed()) return entries.map(() => null);
+    return this.client.setExpiringMany(
+      entries.map((entry) => ({
+        ...entry,
+        key: `${this.prefix}:${cacheContext(context)}:${entry.key}`,
+      })),
+    );
+  }
+
   public static async del(context: CacheContext, key): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
     if (Array.isArray(key))

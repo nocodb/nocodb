@@ -176,7 +176,7 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
   <!-- One MCP surface: on EE this is the account page pinned to the base, the
        way base settings → API Tokens reuses the account token page. CE has no
        scopes, so it keeps its own inline list below. -->
-  <AccountMcp v-if="isEeUI" :locked-base-id="props.baseId" />
+  <ConnectAiPane v-if="isEeUI" :base-id="props.baseId" />
 
   <div v-else class="flex flex-col h-full min-h-0 nc-shell-gutter pb-6 pt-3">
     <ShellActions>

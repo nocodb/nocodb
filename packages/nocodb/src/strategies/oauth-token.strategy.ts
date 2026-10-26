@@ -98,6 +98,8 @@ export class OAuthTokenStrategy extends PassportStrategy(
         if (refusal) return callback({ msg: refusal });
       }
 
+      OAuthToken.touchLastUsed(oAuthToken);
+
       // Build user object with OAuth context
       const user = {
         id: dbUser.id,

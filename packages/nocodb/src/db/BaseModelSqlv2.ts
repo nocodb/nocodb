@@ -72,6 +72,7 @@ import type {
 } from '~/db/sql-data-mapper/lib/BaseModel';
 import type { NcContext } from '~/interface/config';
 import type LookupColumn from '~/models/LookupColumn';
+import type { SignAttachmentParams } from '~/models/PresignedUrl';
 import type { ResolverObj } from '~/utils';
 import type { FormulaColumn, LinkToAnotherRecordColumn } from '~/models';
 import { LTARColsUpdater } from '~/db/BaseModelSqlv2/ltar-cols-updater';
@@ -108,6 +109,10 @@ import sortV2 from '~/db/sortV2';
 import { customValidators } from '~/db/util/customValidators';
 import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
 import { handleNotNullConstraintError } from '~/helpers/notNullConstraintErrorHandler';
+import {
+  formatPgDateTime,
+  padShortFraction,
+} from '~/helpers/dateTimePrecision';
 import {
   _wherePk,
   applyPaginate,
@@ -323,6 +328,29 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    */
   public get dbDriver() {
     return this._activeTransaction || this._dbDriver;
+  }
+
+  private _nonPublicClone?: BaseModelSqlv2;
+
+  /**
+   * The same model compiling SQL as for a signed-in user: formulas over user
+   * fields keep emails, and reads skip public redaction. For stored view
+   * conditions and hook reads on a public request, never for a response.
+   */
+  public getNonPublicClone(): this {
+    if (!this.context?.is_public) return this;
+    if (!this._nonPublicClone) {
+      this._nonPublicClone = new (this.constructor as typeof BaseModelSqlv2)({
+        dbDriver: this._dbDriver,
+        model: this.model,
+        viewId: this.viewId,
+        context: { ...this.context, is_public: false },
+        schema: this.schema,
+        queryQueue: this._queryQueue,
+      });
+    }
+    this._nonPublicClone._activeTransaction = this._activeTransaction;
+    return this._nonPublicClone as this;
   }
 
   /**
@@ -2259,6 +2287,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ignoreView: true,
         getHiddenColumn: true,
         source,
+        skipPublicRedaction: true,
       });
       await this.beforeDelete(id, cookie);
 
@@ -2823,7 +2852,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           )
         : null;
 
-      const prevData = await this.readByPk(
+      // Hook rows are read as for a signed-in user, so they keep emails.
+      const hookReader = this.getNonPublicClone();
+      const prevData = await hookReader.readByPk(
         id,
         false,
         {},
@@ -2872,12 +2903,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         true,
       );
 
-      const newData = await this.readByPk(
-        newId,
-        false,
-        {},
-        { ignoreView: true, getHiddenColumn: true },
-      );
+      const readNewData = (model: BaseModelSqlv2) =>
+        model.readByPk(
+          newId,
+          false,
+          {},
+          { ignoreView: true, getHiddenColumn: true },
+        );
+      const newData = await readNewData(hookReader);
 
       if (btColumn && Object.keys(data || {}).length === 1) {
         await this.addChild({
@@ -2891,7 +2924,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       } else {
         await this.afterUpdate(prevData, newData, cookie, updateObj);
       }
-      return newData;
+      return hookReader === this ? newData : await readNewData(this);
     } catch (e) {
       await this.errorUpdate(e, data, cookie);
       await handleNotNullConstraintError({ error: e, baseModel: this });
@@ -2988,6 +3021,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     ignoreRls?: boolean;
     skipPublicRedaction?: boolean;
   }): Promise<any> {
+    // An internal read (hooks): formulas must be compiled non-public to keep emails.
+    if (params.skipPublicRedaction && this.context?.is_public) {
+      const internalModel = await Model.getBaseModelSQL(
+        { ...this.context, is_public: false },
+        {
+          model: this.model,
+          viewId: this.viewId,
+          dbDriver: this.dbDriver,
+          source: params.source,
+        },
+      );
+      return internalModel.readRecord(params);
+    }
     return this.readByPk(
       params.idOrRecord,
       false,
@@ -3426,6 +3472,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         req: request,
         insertData: data,
       });
+
+      // The read above is internal; a public caller gets a public re-read, so
+      // formula values derived from users carry no emails either.
+      if (this.context?.is_public && response) {
+        const rlsHidden = response.__nc_rls_hidden;
+        response = await this.readRecord({
+          idOrRecord: rowId,
+          validateFormula: false,
+          ignoreView: true,
+          getHiddenColumn: true,
+          source,
+          ignoreRls: true,
+        });
+        if (response && rlsHidden) response.__nc_rls_hidden = true;
+      }
 
       // Counterpart to `skipPublicRedaction: true` above — restore the
       // public-viewer redaction on the response after the webhook has fired.
@@ -4373,14 +4434,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       ]);
     } else if (isSqlite) {
       // convert to UTC
-      // e.g. 2022-01-01T10:00:00.000Z -> 2022-01-01 04:30:00+00:00
-      return dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
+      // e.g. 2022-01-01T10:00:00.000Z -> 2022-01-01 04:30:00.000+00:00
+      return dayjs(padShortFraction(val))
+        .utc()
+        .format('YYYY-MM-DD HH:mm:ss.SSSZ');
     } else if (isPg) {
       // convert to UTC
-      // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
+      // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00.000+00:00
       // then convert to db timezone
       return this.dbDriver.raw(`? AT TIME ZONE CURRENT_SETTING('timezone')`, [
-        dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'),
+        formatPgDateTime(val, col),
       ]);
     } else {
       // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
@@ -4472,6 +4535,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       const prevData = [];
       const newData = [];
+      // Hook rows are read as for a signed-in user, so they keep emails.
+      const hookReader = this.getNonPublicClone();
       const updatePkValues = [];
       const toBeUpdated = [];
       const pkAndData: { pk: string; data: any }[] = [];
@@ -4495,7 +4560,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const chunk = pkAndData.slice(i, i + readChunkSize);
         const pksToRead = chunk.map((v) => v.pk);
 
-        const oldRecordChunkList = await this.chunkList({ pks: pksToRead });
+        const oldRecordChunkList = await hookReader.chunkList({
+          pks: pksToRead,
+        });
 
         // get ast
         const { ast, parsedQuery } = await getAst(this.context, {
@@ -4624,11 +4691,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         profiler.log('postUpdateOps end');
       }
 
-      if (!raw) {
+      const readUpdatedRecords = async (model: BaseModelSqlv2) => {
+        const rows = [];
         for (let i = 0; i < updatePkValues.length; i += readChunkSize) {
           const pksChunk = updatePkValues.slice(i, i + readChunkSize);
 
-          const updatedRecordList = await this.list(
+          const updatedRecordList = await model.list(
             { pks: pksChunk.join(',') },
             { limitOverride: pksChunk.length },
           );
@@ -4655,10 +4723,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
           for (const pk of pksChunk) {
             if (updatedRecordsMap.has(pk)) {
-              newData.push(updatedRecordsMap.get(pk));
+              rows.push(updatedRecordsMap.get(pk));
             }
           }
         }
+        return rows;
+      };
+
+      if (!raw) {
+        newData.push(...(await readUpdatedRecords(hookReader)));
       }
 
       if (!raw && !skip_hooks) {
@@ -4669,7 +4742,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
       profiler.end();
-      return newData;
+      return raw || hookReader === this
+        ? newData
+        : await readUpdatedRecords(this);
     } catch (e) {
       if (transaction) await transaction.rollback();
       await handleNotNullConstraintError({ error: e, baseModel: this });
@@ -5003,7 +5078,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
     for (let i = 0; i < pks.length; i += readChunkSize) {
       const chunk = pks.slice(i, i + readChunkSize);
-      const list = await this.list(
+      // Hook rows: read as for a signed-in user, so they keep emails.
+      const list = await this.getNonPublicClone().list(
         { pks: chunk.join(',') },
         { limitOverride: chunk.length },
       );
@@ -5104,7 +5180,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
         if (pkAndData.length >= readChunkSize || i === deleteIds.length - 1) {
           const tempToRead = pkAndData.splice(0, pkAndData.length);
-          const oldRecords = await this.list(
+          // Hook rows: read as for a signed-in user, so they keep emails.
+          const oldRecords = await this.getNonPublicClone().list(
             {
               pks: tempToRead.map((v) => v.pk).join(','),
             },
@@ -6270,7 +6347,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     };
 
     Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
-      context: { ...this.context, cache: false, cacheMap: undefined },
+      // Webhook reads are server-side: never public, so formulas keep emails.
+      context: {
+        ...this.context,
+        cache: false,
+        cacheMap: undefined,
+        is_public: false,
+      },
       hookName,
       prevData: snapshot(prevData),
       newData: snapshot(newData),
@@ -8208,18 +8291,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return [...directUserColumns, ...lookupUserColumns];
   }
 
-  protected async _convertAttachmentType(
+  // also parses the row's attachment cells in place
+  protected attachmentsToSign(
     attachmentColumns: Record<string, any>[],
     d: Record<string, any>,
     signFilters?: Map<string, (attachment: unknown) => boolean>,
-  ) {
+  ): SignAttachmentParams[] {
+    const allAttachments = [];
+    const allThumbnails = [];
+
     try {
       if (!d || !attachmentColumns.length) {
-        return d;
+        return [];
       }
-
-      const allAttachments = [];
-      const allThumbnails = [];
 
       // First pass: parse JSON and collect all attachment instances (no deduplication)
       for (const col of attachmentColumns) {
@@ -8272,45 +8356,29 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
         }
       }
-
-      await processConcurrently(
-        allAttachments,
-        async (item) => {
-          try {
-            await PresignedUrl.signAttachment({
-              attachment: item,
-              filename: item.title,
-            });
-          } catch (e) {}
-        },
-        15,
-      );
-
-      await processConcurrently(
-        allThumbnails,
-        async ({ attachment, thumbnailKey, thumbnailPath }) => {
-          try {
-            await PresignedUrl.signAttachment({
-              attachment: {
-                ...attachment,
-                ...(attachment.path
-                  ? { path: thumbnailPath }
-                  : { url: thumbnailPath }),
-              },
-              filename: attachment.title,
-              mimetype: 'image/jpeg',
-              nestedKeys: ['thumbnails', thumbnailKey],
-            });
-          } catch (e) {}
-        },
-        15,
-      );
     } catch (error) {
       // Log error but don't throw to avoid breaking the entire response
-      console.warn('Error in _convertAttachmentType:', error.message);
+      console.warn('Error in attachmentsToSign:', error.message);
+      return [];
     }
 
-    return d;
+    return [
+      ...allAttachments.map((item) => ({
+        attachment: item,
+        filename: item.title,
+      })),
+      ...allThumbnails.map(({ attachment, thumbnailKey, thumbnailPath }) => ({
+        attachment: {
+          ...attachment,
+          ...(attachment.path
+            ? { path: thumbnailPath }
+            : { url: thumbnailPath }),
+        },
+        filename: attachment.title,
+        mimetype: 'image/jpeg',
+        nestedKeys: ['thumbnails', thumbnailKey],
+      })),
+    ];
   }
 
   private prepareAttachmentForSigning(attachment: any) {
@@ -8649,19 +8717,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       Array.isArray(data) ? data : [data],
     );
 
-    if (Array.isArray(data)) {
-      return Promise.all(
-        data.map((d) =>
-          this._convertAttachmentType(allAttachmentColumns, d, signFilters),
-        ),
-      );
-    } else {
-      return this._convertAttachmentType(
-        allAttachmentColumns,
-        data,
-        signFilters,
-      );
-    }
+    // every row in one batch: one cache read and one write for the whole response
+    await PresignedUrl.signAttachments(
+      (Array.isArray(data) ? data : [data]).flatMap((d) =>
+        this.attachmentsToSign(allAttachmentColumns, d, signFilters),
+      ),
+    ).catch((error) => {
+      // don't throw to avoid breaking the entire response
+      logger.warn(`Error signing attachments: ${error.message}`);
+    });
+
+    return data;
   }
 
   // A lookup's files come from the looked-up table, whose source decides what a read signs.
@@ -8729,8 +8795,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // the pre-compiled patterns have mutable `lastIndex` property that we use below, so it cannot be made global to avoid race condition
     const isoRegex = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/g;
     const datetimeRegex =
-      /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2})?/g;
-    const noTimezoneRegex = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
+      /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?(?:[+-]\d{2}:\d{2})?/g;
+    const noTimezoneRegex = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?$/;
+    // only pg/sqlite store sub-second values; the other dialects' reads are
+    // truncated to seconds, so `.000` there would be false precision
+    const dateTimeOutputFormat =
+      this.isPg || this.isSqlite
+        ? 'YYYY-MM-DD HH:mm:ss.SSSZ'
+        : 'YYYY-MM-DD HH:mm:ssZ';
 
     for (const col of dateTimeColumns) {
       if (!d[col.id]) continue;
@@ -8818,7 +8890,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             d[col.id] = dayjs(d[col.id])
               .tz(Intl.DateTimeFormat().resolvedOptions().timeZone)
               .utc()
-              .format('YYYY-MM-DD HH:mm:ssZ');
+              .format('YYYY-MM-DD HH:mm:ss.SSSZ');
             continue;
           } else {
             // otherwise, we convert from the given timezone to UTC
@@ -8853,13 +8925,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       ) {
         keepLocalTime = false;
       }
-      // e.g. 01.01.2022 10:00:00+05:30 -> 2022-01-01 04:30:00+00:00
-      // e.g. 2023-05-09 11:41:49 -> 2023-05-09 11:41:49+00:00
-      d[col.id] = dayjs(d[col.id])
+      // e.g. 01.01.2022 10:00:00+05:30 -> 2022-01-01 04:30:00.000+00:00 (pg/sqlite)
+      // e.g. 2023-05-09 11:41:49 -> 2023-05-09 11:41:49+00:00 (other dialects)
+      d[col.id] = dayjs(padShortFraction(d[col.id]))
         // keep the local time
         .utc(keepLocalTime)
         // show the timezone even for Mysql
-        .format('YYYY-MM-DD HH:mm:ssZ');
+        .format(dateTimeOutputFormat);
     }
     return d;
   }
@@ -9620,6 +9692,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             options: {
               context: this.context,
               logger: logger,
+              // Trusted copies carry stored values, including ones past the write limit.
+              skipLengthLimit: extra?.skipPermissionCheck,
             },
           })
         ).value;
@@ -10141,6 +10215,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const fmt =
       this.isMySQL || this.isMssql || this.isOracle
         ? 'YYYY-MM-DD HH:mm:ss'
+        : this.isPg || this.isSqlite
+        ? 'YYYY-MM-DD HH:mm:ss.SSSZ'
         : 'YYYY-MM-DD HH:mm:ssZ';
     return dayjs().utc().format(fmt);
   }

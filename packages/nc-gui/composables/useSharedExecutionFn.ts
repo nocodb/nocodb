@@ -125,8 +125,9 @@ export function useSharedExecutionFn<T>(key: string, fn: () => Promise<T> | T, o
             if (timedOut) return
 
             stopTimeout()
-            const { result, error } = res
-            result ? resolve(result) : reject(error)
+            const { status, result, error } = res
+            // A falsy success (e.g. no token) must not reach waiters as a rejection with no error
+            status === 'success' ? resolve(result as T) : reject(error)
           })
       })
     }

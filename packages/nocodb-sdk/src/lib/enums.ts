@@ -526,6 +526,8 @@ export enum AppEvents {
   FACTORY_SESSION_RESUME = 'factory.session.resume',
   FACTORY_SESSION_RENAME = 'factory.session.rename',
   FACTORY_SESSION_DELETE = 'factory.session.delete',
+  FACTORY_SESSION_FIRST_TURN = 'factory.session.first_turn',
+  FACTORY_PULL_REQUEST_OPEN = 'factory.pull_request.open',
   FACTORY_REPO_ENABLE = 'factory.repo.enable',
   FACTORY_REPO_DISABLE = 'factory.repo.disable',
   FACTORY_MACHINE_CREATE = 'factory.machine.create',

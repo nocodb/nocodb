@@ -102,7 +102,12 @@ interface BaseInvitePayload {
 
 // Structural app shape — the App model is EE-only, so CE stays decoupled.
 interface AppInvitePayload {
-  app: { id?: string; title?: string; slug?: string | null };
+  app: {
+    id?: string;
+    title?: string;
+    slug?: string | null;
+    fk_workspace_id?: string;
+  };
   user: UserType;
   req: NcRequest;
   token?: string;

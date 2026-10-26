@@ -12491,6 +12491,10 @@
               "type": "boolean",
               "description": "Whether to show a blank form after submission."
             },
+            "save_draft_to_browser": {
+              "type": "boolean",
+              "description": "Whether a shared form keeps unsubmitted answers in the visitor's browser across refreshes. Set false to reset fields to their defaults on refresh."
+            },
             "form_hide_banner": {
               "type": "boolean",
               "description": "Whether to hide the banner on the form."
@@ -13601,6 +13605,11 @@
         "type": "object",
         "title": "Number",
         "properties": {
+          "abbreviate": {
+            "type": "string",
+            "description": "Large number abbreviation for display (1.2K, 3.4M). `auto` picks the unit by magnitude; `none` shows the full number. Defaults to `none`.",
+            "enum": ["none", "auto", "thousand", "million", "billion", "trillion"]
+          },
           "separator": {
             "type": "string",
             "description": "Thousand/decimal separator style. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping.",
@@ -13621,6 +13630,11 @@
         "type": "object",
         "title": "Decimal",
         "properties": {
+          "abbreviate": {
+            "type": "string",
+            "description": "Large number abbreviation for display (1.2K, 3.4M). `auto` picks the unit by magnitude; `none` shows the full number. Defaults to `none`.",
+            "enum": ["none", "auto", "thousand", "million", "billion", "trillion"]
+          },
           "precision": {
             "type": "number",
             "description": "Decimal field precision. Defaults to 0",
@@ -13648,6 +13662,11 @@
         "title": "Currency",
         "description": "Currency settings for this column. `currency_locale` defaults to `en-US` and `currency_code` defaults to `USD`",
         "properties": {
+          "abbreviate": {
+            "type": "string",
+            "description": "Large number abbreviation for display (1.2K, 3.4M). `auto` picks the unit by magnitude; `none` shows the full number. Defaults to `none`.",
+            "enum": ["none", "auto", "thousand", "million", "billion", "trillion"]
+          },
           "currency_locale": {
             "type": "string",
             "description": "Locale for currency formatting. Refer https://simplelocalize.io/data/locales/"
@@ -14193,8 +14212,14 @@
             "description": "Apply the linked field's filters when resolving the lookup."
           },
           "lookup_limit": {
-            "type": "number",
-            "description": "Maximum number of linked records to resolve."
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Show only the first N linked records in this lookup (N = this number); `lookup_limit_type: 'last'` shows the last N instead. `null` or `0` removes the limit. PostgreSQL bases only (other databases reject it with a 400), and requires a plan with lookup sort and limit (otherwise the write is rejected naming that plan feature)."
+          },
+          "lookup_limit_type": {
+            "type": "string",
+            "enum": ["first", "last"],
+            "description": "Which end of the linked records `lookup_limit` keeps. Defaults to `first`. Only meaningful with `lookup_limit`."
           },
           "use_recursive_evaluation": {
             "type": "boolean",
@@ -15422,6 +15447,11 @@
               "null"
             ],
             "description": "Value for comparison."
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether the filter is switched on. A switched-off filter is skipped only when the plan includes toggle filters; otherwise it is still applied. Returned on reads; ignored on create, update and replace, so a recreated filter comes back switched on.",
+            "readOnly": true
           }
         },
         "required": [
@@ -15556,6 +15586,11 @@
               "OR"
             ],
             "description": "Logical operator for combining filters in the group."
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether the group is switched on. A switched-off group is skipped only when the plan includes toggle filters; otherwise it is still applied. Returned on reads; ignored on create, update and replace, so a recreated group comes back switched on.",
+            "readOnly": true
           },
           "filters": {
             "type": "array",

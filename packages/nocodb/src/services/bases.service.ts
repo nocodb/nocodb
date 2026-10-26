@@ -26,7 +26,9 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { extractPropsAndSanitize } from '~/helpers/extractProps';
+import { getIntegrationForSource } from '~/helpers/integrationAccess';
 import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
+import { validateDbConnectionTargets } from '~/helpers/validateDbConnectionHost';
 import { sanitizeBase } from '~/helpers/sanitizeBase';
 import syncMigration from '~/helpers/syncMigration';
 import { Base, BaseUser, Integration, IntegrationLink } from '~/models';
@@ -347,8 +349,21 @@ export class BasesService {
       }
 
       for (const source of baseBody.sources || []) {
+        // Server-owned: they point the source at NocoDB's own database.
+        delete source.is_meta;
+        delete source.is_local;
+        validateAndNormalizeSqliteConfig(
+          source.config,
+          source.config?.client ?? source.type,
+        );
         if (!source.fk_integration_id) {
-          validateAndNormalizeSqliteConfig(source.config, source.type);
+          // Mirrors the SQLite block in sources.service / integrationCreate.
+          if (source.config?.client === 'sqlite3' && Noco.isEE()) {
+            NcError.get({ api_version: param.apiVersion }).badRequest(
+              'SQLite connections are only available on the free self-hosted edition',
+            );
+          }
+          await validateDbConnectionTargets(source.config);
           const integration = await Integration.createIntegration(
             {
               title: source.alias || baseBody.title,
@@ -366,6 +381,16 @@ export class BasesService {
           source.config = {
             client: baseBody.config?.client,
           };
+        } else {
+          await getIntegrationForSource(
+            {
+              workspace_id:
+                baseBody.fk_workspace_id ?? Noco.ncDefaultWorkspaceId,
+              api_version: param.apiVersion,
+            },
+            source.fk_integration_id,
+            param.req.user?.id,
+          );
         }
       }
       baseBody.is_meta = false;

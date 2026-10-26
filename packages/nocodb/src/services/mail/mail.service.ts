@@ -121,6 +121,14 @@ export class MailService {
     return null;
   }
 
+  // Hook: EE stops printing a new account's free-text name in invite emails.
+  protected async inviterName(
+    inviter: { id?: string; email: string; display_name?: string },
+    _workspaceId?: string,
+  ): Promise<string> {
+    return extractDisplayNameFromEmail(inviter.email, inviter.display_name);
+  }
+
   /**
    * Resolve the subject line. Pass a `(productName) => string` builder for any
    * subject that references the product name — it receives the white-label name
@@ -394,10 +402,7 @@ export class MailService {
               'BaseInvite',
               {
                 baseTitle: base.title,
-                name: extractDisplayNameFromEmail(
-                  invitee.email,
-                  invitee.display_name,
-                ),
+                name: await this.inviterName(invitee, base.fk_workspace_id),
                 email: invitee.email,
                 link: this.buildUrl(req, {
                   workspaceId: base.fk_workspace_id,
@@ -423,10 +428,7 @@ export class MailService {
               'BaseRoleUpdate',
               {
                 baseTitle: base.title,
-                name: extractDisplayNameFromEmail(
-                  invitee.email,
-                  invitee.display_name,
-                ),
+                name: await this.inviterName(invitee, base.fk_workspace_id),
                 email: invitee.email,
                 oldRole: RoleLabels[oldRole],
                 newRole: RoleLabels[newRole],

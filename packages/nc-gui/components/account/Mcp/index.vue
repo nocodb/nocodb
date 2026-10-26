@@ -5,13 +5,16 @@ import dayjs from 'dayjs'
 /**
  * The account MCP surface. With `lockedBaseId` (base settings → MCP Server)
  * it lists only connections that reach that base and creates new ones pinned
- * to it, the way the API-token page does.
+ * to it, the way the API-token page does. Inside a shell it takes the shell's
+ * layout: no page header, actions in the header band.
  */
 const props = defineProps<{
   lockedBaseId?: string
 }>()
 
 const { t } = useI18n()
+
+const shell = useShell()
 
 const { accountMcpTokens, listAccountMcpTokens, regenerateAccountMcpToken, isScopedMcpToken } = useMcpSettings()
 
@@ -87,7 +90,7 @@ const columns = computed<NcTableColumnProps[]>(() => [
   {
     key: 'action',
     // Shell lists leave the actions header blank.
-    title: props.lockedBaseId ? '' : t('general.action'),
+    title: shell ? '' : t('general.action'),
     // Holds one 33px icon button, right-aligned.
     width: 120,
     minWidth: 120,
@@ -229,13 +232,16 @@ const accessSummary = (token: MCPTokenExtendedType) => {
     }
   }
 
-  const levels = scopes.flatMap((scope) => Object.values(scope.permissions ?? {}))
+  const level = mcpGrantCategoryLevel(scopes)
 
-  const tier = levels.includes(ApiTokenPermissionLevel.DELETE)
-    ? t('labels.mcpTools.readWriteDelete')
-    : levels.includes(ApiTokenPermissionLevel.WRITE)
-    ? t('labels.readAndWrite')
-    : t('labels.readOnlyAccess')
+  const tier =
+    level === ApiTokenPermissionLevel.DELETE
+      ? t('labels.mcpTools.readWriteDelete')
+      : level === ApiTokenPermissionLevel.WRITE
+      ? t('labels.readAndWrite')
+      : level === ApiTokenPermissionLevel.READ
+      ? t('labels.readOnlyAccess')
+      : t('objects.roleType.noaccess')
 
   return { label: `${scopeLabel} · ${tier}`, legacy: false }
 }
@@ -248,7 +254,7 @@ onMounted(async () => {
 
 <template>
   <div class="flex flex-col h-full">
-    <NcPageHeader v-if="!lockedBaseId">
+    <NcPageHeader v-if="!shell">
       <template #icon>
         <GeneralIcon icon="mcp" class="flex-none h-5 w-5" />
       </template>
@@ -272,7 +278,7 @@ onMounted(async () => {
     <div
       class="flex flex-col nc-scrollbar-thin"
       :class="
-        lockedBaseId
+        shell
           ? 'h-full min-h-0 nc-shell-gutter pb-6 pt-3 overflow-hidden'
           : [
               'nc-content-max-w p-6 gap-6 h-[calc(100vh_-_100px)]',
@@ -297,11 +303,11 @@ onMounted(async () => {
       <div
         v-else
         class="w-full"
-        :class="lockedBaseId ? 'flex-1 min-h-0 flex flex-col' : 'max-w-202 mx-auto h-full'"
+        :class="shell ? 'flex-1 min-h-0 flex flex-col' : 'max-w-202 mx-auto h-full'"
         data-testid="nc-mcp-list"
       >
         <!-- Nothing to search through, so no search box. -->
-        <div v-if="lockedBaseId && (accountMcpTokens.length || mcpSearch)" class="mb-6 flex items-center justify-between gap-3">
+        <div v-if="shell && (accountMcpTokens.length || mcpSearch)" class="mb-6 flex items-center justify-between gap-3">
           <a-input
             v-model:value="mcpSearch"
             type="text"
@@ -317,7 +323,7 @@ onMounted(async () => {
         </div>
 
         <!-- Shell: the title lives in the header band, the primary action in its action zone. -->
-        <ShellActions v-if="lockedBaseId">
+        <ShellActions v-if="shell">
           <NcButton
             v-if="isEeUI"
             v-e="['c:mcp-connection:create:open']"
@@ -353,13 +359,13 @@ onMounted(async () => {
           <span data-rec="true">{{ $t('labels.mcpConnectionsLabel') }}</span>
         </template>
 
-        <div v-if="!lockedBaseId && isLoading" class="flex items-center justify-center h-96">
+        <div v-if="!shell && isLoading" class="flex items-center justify-center h-96">
           <GeneralLoader size="xlarge" />
         </div>
 
         <!-- Account page empty state, same shape as the API-token page -->
         <div
-          v-else-if="!lockedBaseId && isEeUI && !sortedMcpTokens.length"
+          v-else-if="!shell && isEeUI && !sortedMcpTokens.length"
           class="max-w-[40rem] mx-auto px-3 py-6 flex flex-col items-center justify-center gap-6 text-center"
           data-testid="nc-mcp-empty"
         >
@@ -382,14 +388,14 @@ onMounted(async () => {
         <NcTable
           v-else
           v-model:order-by="orderBy"
-          :hide-on-empty="!!lockedBaseId"
+          :hide-on-empty="!!shell"
           :columns="columns"
-          :header-row-height="lockedBaseId ? '54px' : '44px'"
-          :row-height="lockedBaseId ? '54px' : '44px'"
+          :header-row-height="shell ? '54px' : '44px'"
+          :row-height="shell ? '54px' : '44px'"
           :data="sortedMcpTokens"
-          :is-data-loading="!!lockedBaseId && isLoading"
+          :is-data-loading="!!shell && isLoading"
           class="max-h-full min-h-0 w-full"
-          :class="{ 'mt-6': !lockedBaseId }"
+          :class="{ 'mt-6': !shell }"
           body-row-class-name="nc-account-mcp-token-item group no-border-last cursor-pointer"
           @row-click="openRow"
         >
@@ -397,7 +403,7 @@ onMounted(async () => {
             <template v-if="column.key === 'name'">
               <NcTooltip
                 class="truncate w-full text-nc-content-gray"
-                :class="lockedBaseId ? 'text-captionMedium' : 'font-semibold text-sm'"
+                :class="shell ? 'text-captionMedium' : 'font-semibold text-sm'"
               >
                 {{ token.title }}
 
@@ -416,7 +422,7 @@ onMounted(async () => {
               <div class="flex items-center gap-2 truncate">
                 <span
                   class="truncate"
-                  :class="lockedBaseId ? 'text-bodyDefaultSm text-nc-content-gray-subtle2' : 'text-nc-content-gray-subtle'"
+                  :class="shell ? 'text-bodyDefaultSm text-nc-content-gray-subtle2' : 'text-nc-content-gray-subtle'"
                 >
                   {{ accessSummary(token).label }}
                 </span>
@@ -424,7 +430,10 @@ onMounted(async () => {
                   <NcBadge :border="false" size="xs" class="!bg-nc-bg-orange-light !text-nc-content-orange-dark text-captionSm">
                     {{ $t('labels.legacy') }}
                   </NcBadge>
-                  <template #title>{{ $t('msg.info.mcpLegacyConnection') }}</template>
+                  <template #title>
+                    {{ $t('msg.info.mcpLegacyConnection') }}
+                    <AccountMcpLegacyOptInNote v-if="isEeUI" />
+                  </template>
                 </NcTooltip>
               </div>
             </template>
@@ -463,14 +472,14 @@ onMounted(async () => {
             <template v-if="column.key === 'created_at'">
               <div
                 v-if="token.created_at"
-                :class="lockedBaseId ? 'text-bodyDefaultSm text-nc-content-gray-subtle2' : 'text-nc-content-gray-subtle'"
+                :class="shell ? 'text-bodyDefaultSm text-nc-content-gray-subtle2' : 'text-nc-content-gray-subtle'"
               >
                 {{ getFormattedDate(token.created_at, 'D MMM YYYY') }}
               </div>
             </template>
           </template>
 
-          <template v-if="lockedBaseId" #emptyText>
+          <template v-if="shell" #emptyText>
             <ShellEmpty :title="mcpSearch ? $t('title.noResultsMatchedYourSearch') : $t('labels.noMcpConnectionsYet')" />
           </template>
         </NcTable>

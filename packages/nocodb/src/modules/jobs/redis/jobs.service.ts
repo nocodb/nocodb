@@ -5,6 +5,7 @@ import { getTrueCircularReplacer } from 'nocodb-sdk';
 import type { JobOptions } from 'bull';
 import type { OnModuleInit } from '@nestjs/common';
 import {
+  DATA_EXPORT_CLEAN_UP_CRON,
   InstanceCommands,
   JOBS_QUEUE,
   JobStatus,
@@ -29,17 +30,13 @@ export class JobsService implements OnModuleInit {
       await this.jobsQueue.pause(true);
     }
 
-    // await this.jobsQueue.add(
-    //   {
-    //     jobName: JobTypes.DataExportCleanUp,
-    //     context: {},
-    //   },
-    //   {
-    //     jobId: JobTypes.DataExportCleanUp,
-    //     // run every 5 hours
-    //     repeat: { cron: '0 */5 * * *' },
-    //   },
-    // );
+    await this.jobsQueue.add(
+      { jobName: JobTypes.DataExportCleanUp },
+      {
+        jobId: JobTypes.DataExportCleanUp,
+        repeat: { cron: DATA_EXPORT_CLEAN_UP_CRON },
+      },
+    );
 
     await this.toggleQueue();
 
@@ -52,7 +49,10 @@ export class JobsService implements OnModuleInit {
       await this.jobsQueue.pause(true);
     };
 
-    await this.add(JobTypes.InitMigrationJobs, {});
+    // mains boot while old-code workers still drain the queue, so their run would be wasted
+    if (process.env.NC_WORKER_CONTAINER !== 'false') {
+      await this.add(JobTypes.InitMigrationJobs, {});
+    }
   }
 
   async toggleQueue() {

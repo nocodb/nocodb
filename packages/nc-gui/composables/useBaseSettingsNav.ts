@@ -294,7 +294,7 @@ export function useBaseSettingsNav() {
             ev: 'mcp',
             icon: 'mcp',
             testId: 'base-mcp',
-            title: t('labels.baseNav.mcpServer'),
+            title: t('labels.baseNav.nocodbMcp'),
             keywords: 'mcp agent ai token endpoint claude',
             logos: ['ncLogoClaudeColored', 'ncLogoOpenAiColored', 'ncLogoGeminiAiColored'],
           },
@@ -537,7 +537,7 @@ export function useBaseSettingsNav() {
         docsHref: 'https://nocodb.com/docs/product-docs/account-settings/api-tokens#create-api-token',
       },
       'mcp': {
-        title: t('labels.baseNav.mcpServer'),
+        title: t('labels.baseNav.nocodbMcp'),
         description: t('labels.baseNav.desc.mcp'),
       },
       'integrations': {

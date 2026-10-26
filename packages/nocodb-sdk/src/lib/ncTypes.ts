@@ -73,6 +73,8 @@ export interface NcContext {
    * `is_public === true` ⟺ `SHARED_ACCESS_SOURCES.includes(access_source)`.
    */
   access_source?: NcAccessSource;
+  /** Table the request addresses; the ACL applies table visibility to it. */
+  ncTableId?: string;
   /**
    * Set by replay dispatchers when running an undo / redo / environment-promote.
    */

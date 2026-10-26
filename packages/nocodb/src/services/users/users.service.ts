@@ -298,14 +298,12 @@ export class UsersService {
       salt,
       password,
       email: user.email,
-      token_version: randomTokenString(),
       reset_password_token: null,
       reset_password_expires: null,
     });
 
-    // delete all refresh token and populate a new one
-    await UserRefreshToken.deleteAllUserToken(user.id);
-    await this.revokeAllOAuthTokensByUser(user.id);
+    // The controller issues a new session for the current device.
+    await this.revokeAllSessions(user);
 
     this.appHooksService.emit(AppEvents.USER_PASSWORD_CHANGE, {
       user: user,

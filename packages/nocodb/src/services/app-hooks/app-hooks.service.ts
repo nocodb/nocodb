@@ -73,6 +73,7 @@ import type {
   UserEmailVerificationEvent,
   UserInviteEvent,
   UserPasswordChangeEvent,
+  UserSessionsRevokeEvent,
   UserPasswordForgotEvent,
   UserPasswordResetEvent,
   UserProfileUpdateEvent,
@@ -250,6 +251,10 @@ export class AppHooksService {
   emit(
     event: AppEvents.USER_PASSWORD_CHANGE,
     data: UserPasswordChangeEvent,
+  ): void;
+  emit(
+    event: AppEvents.USER_SESSIONS_REVOKE,
+    data: UserSessionsRevokeEvent,
   ): void;
   emit(
     event: AppEvents.USER_PASSWORD_FORGOT,

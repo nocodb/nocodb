@@ -49,6 +49,8 @@ export default class User implements UserType {
   email_verified: boolean;
   roles?: string;
   token_version?: string;
+  // Epoch ms; a bigint, so pg returns it as a string.
+  sessions_revoked_at?: number | string;
 
   display_name?: string;
   avatar?: string;
@@ -151,6 +153,7 @@ export default class User implements UserType {
       'email_verified',
       'roles',
       'token_version',
+      'sessions_revoked_at',
       'display_name',
       'avatar',
       'is_new_user',

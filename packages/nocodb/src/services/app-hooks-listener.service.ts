@@ -67,6 +67,8 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         break;
       case AppEvents.USER_PASSWORD_CHANGE:
         break;
+      case AppEvents.USER_SESSIONS_REVOKE:
+        break;
       case AppEvents.USER_PASSWORD_FORGOT:
         break;
       case AppEvents.USER_DELETE:

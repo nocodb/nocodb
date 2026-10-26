@@ -13,14 +13,18 @@ import {
 import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
-import { extractRolesObj } from 'nocodb-sdk';
+import { AppEvents, extractRolesObj } from 'nocodb-sdk';
 import { PresignedUrl } from 'src/models';
 import type { UserType } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
 
 import { UsersService } from '~/services/users/users.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { clearAuthCookie, setAuthCookie } from '~/services/users/helpers';
+import {
+  clearAuthCookie,
+  genJwt,
+  setAuthCookie,
+} from '~/services/users/helpers';
 
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { NcError } from '~/helpers/catchError';
@@ -28,6 +32,7 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
+import Noco from '~/Noco';
 
 @Controller()
 export class AuthController {
@@ -198,22 +203,26 @@ export class AuthController {
     '/api/v1/auth/user/signout-others',
     '/api/v2/auth/user/signout-others',
   ])
-  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  // The meta limiter skips cookie-only callers; the IP limiter covers them.
+  @UseGuards(PublicApiLimiterGuard, MetaApiLimiterGuard, GlobalGuard)
   @Acl('signOutOtherSessions', {
     scope: 'org',
     blockApiTokenAccess: true,
   })
   @HttpCode(200)
   async signOutOtherSessions(@Req() req: NcRequest, @Res() res: Response) {
+    const ncError = NcError.get(req.context);
     if (!(req as any).isAuthenticated?.()) {
-      NcError.forbidden('Not allowed');
+      ncError.forbidden('Not allowed');
     }
+
+    // Connected apps are disconnected unless the caller opts out.
+    const disconnectApps = req.body?.disconnectApps !== false;
 
     let revokeError: unknown;
     try {
       await this.usersService.revokeAllSessions(req.user as UserType, {
-        // Connected apps are disconnected unless the caller opts out.
-        revokeOAuthTokens: req.body?.disconnectApps !== false,
+        revokeOAuthTokens: disconnectApps,
       });
     } catch (e) {
       revokeError = e;
@@ -221,21 +230,28 @@ export class AuthController {
 
     // Re-issue the current device's session even if a later revocation step
     // failed, so the caller is not signed out by its own request.
+    // Not login(): that would audit a sign-in that never happened.
     await this.setRefreshToken({ req, res });
-    const loginResult = await this.usersService.login(req.user, req);
-    setAuthCookie(res, loginResult.token);
+    const token = genJwt(req.user as UserType, Noco.getConfig());
+    setAuthCookie(res, token);
 
     if (revokeError) {
       this.logger.error(
         'Failed to sign out other sessions',
         (revokeError as Error)?.stack,
       );
-      NcError.internalServerError(
+      ncError.internalServerError(
         "Couldn't sign out other devices. Please try again.",
       );
     }
 
-    res.json({ token: loginResult.token });
+    this.appHooksService.emit(AppEvents.USER_SESSIONS_REVOKE, {
+      user: req.user as UserType,
+      disconnectApps,
+      req,
+    });
+
+    res.json({ token });
   }
 
   @Post([

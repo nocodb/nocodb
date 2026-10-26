@@ -126,6 +126,7 @@ export enum AppEvents {
   USER_UPDATE = 'user.update',
   USER_PASSWORD_RESET = 'user.password.reset',
   USER_PASSWORD_CHANGE = 'user.password.change',
+  USER_SESSIONS_REVOKE = 'user.sessions.revoke',
   USER_PASSWORD_FORGOT = 'user.password.forgot',
   USER_DELETE = 'user.delete',
   USER_EMAIL_VERIFICATION = 'user.email.verification',

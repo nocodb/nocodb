@@ -21,6 +21,10 @@ import {
   isPgIeeeEnabled,
   stripNaNSql,
 } from '~/db/formulav2/pg-ieee';
+import {
+  isBooleanFormulaType,
+  pgBooleanAsNumberSql,
+} from '~/db/formulav2/formula-query-builder.helpers';
 import { convertUnits } from '~/helpers/convertUnits';
 import {
   getWeekdayByText,
@@ -175,7 +179,10 @@ const pg = {
   },
   MID: 'SUBSTR',
   FLOAT: async ({ fn, knex, pt }: MapFnArgs) => {
-    const source = (await fn(pt.arguments[0])).builder;
+    let source = (await fn(pt.arguments[0])).builder;
+    if (isBooleanFormulaType(pt.arguments[0]?.dataType)) {
+      source = knex.raw(pgBooleanAsNumberSql('?'), [source]);
+    }
 
     return {
       builder: knex.raw(`CAST(? as DOUBLE PRECISION)`, [source]).wrap('(', ')'),

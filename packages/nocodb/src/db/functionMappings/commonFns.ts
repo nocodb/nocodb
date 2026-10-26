@@ -4,6 +4,10 @@ import type { MapFnArgs } from '~/db/mapFunctionName';
 import { concatKnexRaw } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
 import { DEFAULT_DATETIME_FORMAT } from '~/db/datetime-format';
+import {
+  isBooleanFormulaType,
+  pgBooleanAsNumberSql,
+} from '~/db/formulav2/formula-query-builder.helpers';
 
 // For SQL assembled by hand into a bindingless `knex.raw`: an outer `toQuery()`
 // fills every `?` with the next binding, even inside a string literal, so a
@@ -192,8 +196,26 @@ export default {
     // Check type mismatch between switch value and WHEN comparison values.
     // Strict-typed DBs (e.g. PG) require matching types in CASE WHEN.
     const switchType = args.pt.arguments[0]?.dataType;
+    const isNumericLike = (type?: string) =>
+      type === FormulaDataTypes.NUMERIC || isBooleanFormulaType(type);
+    // pg: match a boolean against numeric cases (1/0, TRUE()/FALSE()) as 1/0,
+    // not as text, where 'true' never equals '1'. A BLANK case keeps the old path.
+    const boolSwitchAsNumber =
+      args.knex.clientType() === 'pg' &&
+      isBooleanFormulaType(switchType) &&
+      Array.from(
+        { length: count },
+        (_, i) => args.pt.arguments[i * 2 + 1],
+      ).every((arg) => isNumericLike(arg?.dataType));
+    const resolveAsNumber = async (arg: any) => {
+      const { builder } = await args.fn(arg);
+      return isBooleanFormulaType(arg?.dataType)
+        ? { builder: args.knex.raw(pgBooleanAsNumberSql('?'), [builder]) }
+        : { builder };
+    };
     let hasCompareTypeMismatch = false;
     if (
+      !boolSwitchAsNumber &&
       switchType &&
       switchType !== FormulaDataTypes.NULL &&
       switchType !== FormulaDataTypes.UNKNOWN
@@ -240,7 +262,9 @@ export default {
       return { builder };
     };
 
-    const switchVal = hasCompareTypeMismatch
+    const switchVal = boolSwitchAsNumber
+      ? (await resolveAsNumber(args.pt.arguments[0])).builder
+      : hasCompareTypeMismatch
       ? (await castToString(args.pt.arguments[0])).builder
       : (await args.fn(args.pt.arguments[0])).builder;
 
@@ -278,7 +302,9 @@ export default {
         );
       } else {
         // cast WHEN comparison values to string if types differ
-        const whenVal = hasCompareTypeMismatch
+        const whenVal = boolSwitchAsNumber
+          ? (await resolveAsNumber(args.pt.arguments[i * 2 + 1])).builder
+          : hasCompareTypeMismatch
           ? (await castToString(args.pt.arguments[i * 2 + 1])).builder
           : (await args.fn(args.pt.arguments[i * 2 + 1])).builder;
         query.push(args.knex.raw(`\n\tWHEN ? THEN ?`, [whenVal, val]));

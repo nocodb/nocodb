@@ -26,6 +26,7 @@ import type { MetaService } from '~/meta/meta.service';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
+import { assertViewConfigEditable } from '~/helpers/viewLockHelpers';
 import {
   CalendarViewColumn,
   Column,
@@ -67,6 +68,7 @@ export class ViewColumnsService {
     );
 
     const view = await View.get(context, param.viewId, false, ncMeta);
+    assertViewConfigEditable(context, view, param.req);
 
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
@@ -142,6 +144,7 @@ export class ViewColumnsService {
     if (!view) {
       NcError.get(context).viewNotFound(param.viewId);
     }
+    assertViewConfigEditable(context, view, param.req);
 
     const oldViewColumn = await View.getColumn(
       context,
@@ -175,6 +178,7 @@ export class ViewColumnsService {
         ).forUpdate();
     }
 
+    // width/group_by* are grid-only and go through GridColumnsService.gridColumnUpdate
     const result = await View.updateColumn(
       context,
       param.viewId,
@@ -264,6 +268,7 @@ export class ViewColumnsService {
     if (!view) {
       NcError.get(context).viewNotFound('View not found');
     }
+    assertViewConfigEditable(context, view, param.req);
 
     // Build the webhook manager before opening the transaction — its async
     // builder chain can throw on transient DB errors, which would otherwise

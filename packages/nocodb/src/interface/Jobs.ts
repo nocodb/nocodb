@@ -39,6 +39,7 @@ export enum MigrationJobTypes {
   PgSourceSearchPathBackfill = 'pg-source-searchpath-backfill',
   CreditPlanBackfill = 'credit-plan-backfill',
   StoreLaneBackfill = 'store-lane-backfill',
+  CreditAllowanceIncrease = 'credit-allowance-increase',
 }
 
 export enum JobTypes {
@@ -108,8 +109,12 @@ export enum JobTypes {
   FactoryMachineImageDelete = 'factory-machine-image-delete',
 }
 
+// hourly; the processor deletes exports once their signed links (3h) have expired
+export const DATA_EXPORT_CLEAN_UP_CRON = '25 * * * *';
+
 export const SKIP_STORING_JOB_META = [
   JobTypes.HealthCheck,
+  JobTypes.DataExportCleanUp,
   JobTypes.ThumbnailGenerator,
   JobTypes.UseWorker,
   JobTypes.HandleWebhook,

@@ -128,3 +128,70 @@ describe('cross-base link options', () => {
     expect(v2.ref_base_id).toBe('p2');
   });
 });
+
+describe('lookup_limit', () => {
+  const readOptions = (meta: Record<string, unknown>) =>
+    (
+      columnBuilder().build({
+        id: 'c1',
+        title: 'L',
+        uidt: UITypes.Lookup,
+        meta,
+      } as any) as any
+    ).options ?? {};
+
+  it('writes a plain number as the stored first-N shape', () => {
+    const meta = buildMeta({
+      title: 'L',
+      type: UITypes.Lookup,
+      options: { lookup_limit: 3 } as any,
+    });
+
+    expect(meta.lookup_limit).toEqual({ type: 'first', value: 3 });
+    expect(meta).not.toHaveProperty('lookup_limit_type');
+  });
+
+  it('writes an explicit last type', () => {
+    const meta = buildMeta({
+      title: 'L',
+      type: UITypes.Lookup,
+      options: { lookup_limit: 2, lookup_limit_type: 'last' } as any,
+    });
+
+    expect(meta.lookup_limit).toEqual({ type: 'last', value: 2 });
+  });
+
+  it('drops a null or zero limit', () => {
+    for (const lookup_limit of [null, 0]) {
+      const meta = buildMeta({
+        title: 'L',
+        type: UITypes.Lookup,
+        options: { lookup_limit, lookup_limit_type: 'last' } as any,
+      });
+      expect(meta).not.toHaveProperty('lookup_limit');
+      expect(meta).not.toHaveProperty('lookup_limit_type');
+    }
+  });
+
+  it('reads the stored shape back as a number and its type', () => {
+    expect(
+      readOptions({ lookup_limit: { type: 'last', value: 2 } })
+    ).toMatchObject({ lookup_limit: 2, lookup_limit_type: 'last' });
+  });
+
+  it('does not report a legacy plain number, which is never applied', () => {
+    const options = readOptions({ lookup_limit: 5 });
+    expect(options).not.toHaveProperty('lookup_limit');
+    expect(options).not.toHaveProperty('lookup_limit_type');
+  });
+
+  it('round-trips read → write without reshaping', () => {
+    const stored = { type: 'last', value: 4 };
+    const meta = buildMeta({
+      title: 'L',
+      type: UITypes.Lookup,
+      options: readOptions({ lookup_limit: stored }),
+    });
+    expect(meta.lookup_limit).toEqual(stored);
+  });
+});

@@ -13,7 +13,7 @@ export class JobsMetaController {
   constructor(private readonly jobsMetaService: JobsMetaService) {}
 
   @Post(['/api/v2/jobs/:baseId'])
-  @Acl('jobList')
+  @Acl('jobList', { blockPublicBaseAccess: true })
   async jobList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,

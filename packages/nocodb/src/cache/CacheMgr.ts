@@ -274,6 +274,45 @@ export default abstract class CacheMgr {
     }
   }
 
+  // values in key order, null for a miss; unlike get, it never refreshes a TTL
+  async getMany(keys: string[]): Promise<any[]> {
+    if (!keys.length) return [];
+    const values = await this.client.mget(keys);
+    return values.map((res, i) => {
+      if (!res) return null;
+      try {
+        const o = JSON.parse(res);
+        if (o && typeof o === 'object' && o.value) return o.value;
+        return o;
+      } catch (e) {
+        logger.error(`Bad value stored for key ${keys[i]} : ${res}`);
+        return res;
+      }
+    });
+  }
+
+  // one round trip, resolving each entry's write error (null when written);
+  // keys written here keep no parent keys, so they can't be list members
+  async setExpiringMany(
+    entries: { key: string; value: any; seconds: number }[],
+  ): Promise<(Error | null)[]> {
+    if (!entries.length) return [];
+    const pipeline = this.client.pipeline();
+    for (const { key, value, seconds } of entries) {
+      pipeline.set(
+        key,
+        JSON.stringify(
+          this.prepareValue({ value, parentKeys: [] }),
+          getCircularReplacer(),
+        ),
+        'EX',
+        seconds,
+      );
+    }
+    const results = await pipeline.exec();
+    return results.map(([err]) => err);
+  }
+
   // @ts-ignore
   async incrby(key: string, value = 1): Promise<any> {
     return this.client.incrby(key, value);

@@ -36,10 +36,55 @@ import { hasDefaultTableVisibility } from '~/helpers/tableHelpers';
 import { isSharedViewAccess } from '~/helpers/accessSource';
 import { projectRelatedMetas } from '~/helpers/relatedMetaProjection';
 import { withoutViewSecrets } from '~/helpers/publicViewSecrets';
+import { resolveViewVisibleColumns } from '~/helpers/viewVisibleColumns';
 
 @Injectable()
 export class PublicMetasService {
   async viewMetaGet(
+    context: NcContext,
+    param: { sharedViewUuid: string; password: string },
+  ) {
+    return this.pruneToExposedColumns(
+      context,
+      await this.loadViewMeta(context, param),
+    );
+  }
+
+  // Runs after every edition has added to `view.model.columns`. Keeps the
+  // layout columns (cover, kanban stack, ranges) the data path also returns.
+  protected async pruneToExposedColumns<
+    T extends View & { model?: Model; columns?: View['columns'] },
+  >(context: NcContext, view: T): Promise<T> {
+    if (!view?.model?.columns) return view;
+
+    const { allowedCols } = await resolveViewVisibleColumns(context, {
+      model: view.model,
+      view,
+    });
+    const exposedIds = new Set<string>(view.model.columns.map((c) => c.id));
+    for (const [id, allowed] of Object.entries(allowedCols ?? {})) {
+      if (allowed) exposedIds.add(id);
+    }
+
+    const columnsById = Object.fromEntries(
+      Object.entries(view.model.columnsById ?? {}).filter(([id]) =>
+        exposedIds.has(id),
+      ),
+    );
+
+    view.model = Object.assign(
+      Object.create(Object.getPrototypeOf(view.model)),
+      view.model,
+      { columnsById },
+    );
+    if (view.columns) {
+      view.columns = view.columns.filter((c) => exposedIds.has(c.fk_column_id));
+    }
+
+    return view;
+  }
+
+  protected async loadViewMeta(
     context: NcContext,
     param: { sharedViewUuid: string; password: string },
   ) {

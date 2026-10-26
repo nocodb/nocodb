@@ -12,7 +12,9 @@ import { populateMeta, validatePayload } from '~/helpers';
 import { syncBaseMigration } from '~/helpers/syncMigration';
 import { Base, Integration, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { getIntegrationForSource } from '~/helpers/integrationAccess';
 import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
+import { validateChangedDbConnectionTargets } from '~/helpers/validateDbConnectionHost';
 import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
 
@@ -66,6 +68,25 @@ export class SourcesService {
       baseBody?.config,
       baseBody?.type ?? oldSource?.type,
     );
+    if (baseBody?.config) {
+      await validateChangedDbConnectionTargets(
+        baseBody.config,
+        oldSource.getSourceConfig(),
+      );
+    }
+
+    if (
+      (baseBody as any).fk_integration_id &&
+      (baseBody as any).fk_integration_id !== oldSource.fk_integration_id
+    ) {
+      this.assertDatabaseIntegration(
+        await getIntegrationForSource(
+          context,
+          (baseBody as any).fk_integration_id,
+          param.req.user?.id,
+        ),
+      );
+    }
 
     const source = await Source.update(context, param.sourceId, {
       ...baseBody,
@@ -102,6 +123,15 @@ export class SourcesService {
     );
 
     return source;
+  }
+
+  protected assertDatabaseIntegration(integration: IntegrationType) {
+    if (
+      integration.type !== IntegrationsType.Database ||
+      !integration.sub_type
+    ) {
+      NcError.badRequest('Integration type should be Database');
+    }
   }
 
   async baseList(context: NcContext, param: { baseId: string }) {
@@ -238,25 +268,13 @@ export class SourcesService {
       };
       baseBody.type = baseBody.config?.client as unknown as BaseReqType['type'];
     } else {
-      integration = await Integration.get(
+      integration = await getIntegrationForSource(
         context,
         (baseBody as any).fk_integration_id,
+        param.req.user?.id,
       );
 
-      // Check if integration exists
-      if (!integration) {
-        NcError.get(context).integrationNotFound(
-          (baseBody as any).fk_integration_id,
-        );
-      }
-
-      // check if integration is of type Database
-      if (
-        integration.type !== IntegrationsType.Database ||
-        !integration.sub_type
-      ) {
-        NcError.badRequest('Integration type should be Database');
-      }
+      this.assertDatabaseIntegration(integration);
 
       baseBody.type = integration.sub_type as unknown as BaseReqType['type'];
     }

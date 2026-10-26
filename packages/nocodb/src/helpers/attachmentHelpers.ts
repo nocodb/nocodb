@@ -246,7 +246,9 @@ export function getPathFromUrl(url: string, removePrefix = false) {
 // `<region>.digitaloceanspaces.com/<bucket>/` (Spaces), and GCS decodes `%2F`
 // before resolving a key, so those forms reach our storage too.
 // Every key NocoDB writes lives under `nc/` (uploads, thumbnails, app builds).
-const STORAGE_KEY_RE = /^(?:[^/]+?(?:\/|%2F)){0,2}nc(?:\/|%2F)/i;
+// Local storage also serves `nc/uploads/noco/…` on any host at `/download/noco/…`.
+const STORAGE_KEY_RE =
+  /^(?:[^/]+?(?:\/|%2F)){0,2}(?:nc|download(?:\/|%2F)noco)(?:\/|%2F)/i;
 
 /**
  * Whether a client-supplied attachment `path`/`url` resolves to an object in
@@ -536,6 +538,33 @@ export async function assertAttachmentRefOwned(
   if (!(await isAttachmentRefOwned(context, attachment, userId))) {
     NcError.get(context).unprocessableEntity('Invalid attachment reference');
   }
+}
+
+// The read-time twin of isAttachmentRefOwned, for stored refs no write may have vetted.
+export async function filterHeldAttachments<
+  T extends { path?: string; url?: string },
+>(
+  context: NcContext,
+  param: { attachments: T[]; userId?: string },
+): Promise<T[]> {
+  const refsByAttachment = await Promise.all(
+    param.attachments.map(async (attachment) => {
+      const refs: string[] = [];
+      for (const ref of [attachment?.path, attachment?.url]) {
+        if (await needsAttachmentOwnership(ref)) refs.push(ref);
+      }
+      return refs;
+    }),
+  );
+  if (!refsByAttachment.some((refs) => refs.length)) return param.attachments;
+
+  const held = await FileReference.listHeldFileUrls(
+    { baseId: context.base_id, userId: param.userId },
+    refsByAttachment.flat(),
+  );
+  return param.attachments.filter((_, i) =>
+    refsByAttachment[i].every((ref) => held.has(ref)),
+  );
 }
 
 // Stored images may arrive as JSON strings, which reads parse before signing.

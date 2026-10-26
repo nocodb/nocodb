@@ -73,8 +73,13 @@ export class SecretManager {
 
     const integrations = await this.sqlClient.knex(MetaTable.INTEGRATIONS);
 
+    const syncSources = await this.sqlClient
+      .knex(MetaTable.SYNC_SOURCE)
+      .whereNotNull('details');
+
     const sourcesToUpdate: Record<string, any>[] = [];
     const integrationsToUpdate: Record<string, any>[] = [];
+    const syncSourcesToUpdate: Record<string, any>[] = [];
 
     let isValid = false;
     for (const source of sources) {
@@ -105,20 +110,41 @@ export class SecretManager {
       }
     }
 
+    for (const syncSource of syncSources) {
+      // Plain JSON predates encryption, so there is nothing to re-encrypt.
+      try {
+        JSON.parse(syncSource.details);
+        continue;
+      } catch {}
+
+      try {
+        const decrypted = decryptPropIfRequired({
+          data: syncSource,
+          secret: this.prevSecret,
+          prop: 'details',
+        });
+        isValid = true;
+        syncSourcesToUpdate.push({ ...syncSource, details: decrypted });
+      } catch (e) {
+        logger.error('Failed to decrypt sync source details : ' + (e as Error).message);
+      }
+    }
+
     // If all decryptions have failed, then throw an error
     if (!isValid) {
       throw new NcError('Invalid old secret or no sources/integrations found');
     }
 
-    return { sourcesToUpdate, integrationsToUpdate };
+    return { sourcesToUpdate, integrationsToUpdate, syncSourcesToUpdate };
   }
 
   async updateSecret(
     sourcesToUpdate: Record<string, any>[],
     integrationsToUpdate: Record<string, any>[],
+    syncSourcesToUpdate: Record<string, any>[] = [],
   ) {
     // start transaction
-    const transaction = await this.sqlClient.transaction();
+    const transaction = await this.sqlClient.knex.transaction();
 
     try {
       //  update sources
@@ -145,6 +171,18 @@ export class SecretManager {
             }),
           })
           .where('id', integration.id);
+      }
+
+      for (const syncSource of syncSourcesToUpdate) {
+        await transaction(MetaTable.SYNC_SOURCE)
+          .update({
+            details: encryptPropIfRequired({
+              data: syncSource,
+              secret: this.newSecret,
+              prop: 'details',
+            }),
+          })
+          .where('id', syncSource.id);
       }
 
       await transaction.commit();

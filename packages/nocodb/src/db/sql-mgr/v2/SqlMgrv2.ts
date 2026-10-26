@@ -38,9 +38,12 @@ export default class SqlMgrv2 {
     return this._migrator;
   }
 
-  public static async testConnection(args = {}) {
+  public static async testConnection(
+    args = {},
+    testArgs: { requireDatabase?: boolean } = {},
+  ) {
     const client = await SqlClientFactory.create(args);
-    const result = await client.testConnection();
+    const result = await client.testConnection(testArgs);
 
     // close connection
     await client.knex.destroy();

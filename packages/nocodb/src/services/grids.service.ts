@@ -13,6 +13,7 @@ import { validatePayload } from '~/helpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
 import { assertNotLaneInstance } from '~/helpers/environmentGuards';
 import { NcError } from '~/helpers/catchError';
+import { assertViewConfigEditable } from '~/helpers/viewLockHelpers';
 import { claimObjectTitle } from '~/helpers/customObjects';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
@@ -180,6 +181,7 @@ export class GridsService {
     if (!view) {
       NcError.viewNotFound(param.viewId);
     }
+    assertViewConfigEditable(context, view, param.req);
 
     const oldGridView = await GridView.get(context, param.viewId, ncMeta);
     const viewWebhookManager =

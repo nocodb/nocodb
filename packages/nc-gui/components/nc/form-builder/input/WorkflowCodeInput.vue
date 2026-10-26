@@ -36,6 +36,8 @@ interface Props {
   openPickerWhenEmpty?: boolean
   /** Kinds of value the field takes; the picker disables the rest. */
   accepts?: WorkflowValueKind[]
+  /** Offer Insert / ⇧↵ on rows that open (a whole Record); off for fields that need a single value. */
+  allowInsertWhole?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -47,6 +49,7 @@ const props = withDefaults(defineProps<Props>(), {
   multiline: false,
   openPickerWhenEmpty: false,
   accepts: undefined,
+  allowInsertWhole: true,
 })
 
 const emit = defineEmits<{
@@ -799,6 +802,7 @@ onBeforeUnmount(() => {
           :grouped-items="groupedVariables"
           :query="picker.query"
           :accepts="accepts"
+          :allow-insert-whole="allowInsertWhole"
           :command="onPickerCommand"
         />
       </div>

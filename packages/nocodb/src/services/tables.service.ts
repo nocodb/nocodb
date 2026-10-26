@@ -14,7 +14,9 @@ import {
   ProjectRoles,
   RelationTypes,
   ServiceUserType,
+  SqlUiFactory,
   UITypes,
+  validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
 import type {
   ColumnType,
@@ -26,7 +28,7 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
-import type { LinkToAnotherRecordColumn, User } from '~/models';
+import type { LinkToAnotherRecordColumn, Source, User } from '~/models';
 import type { NcRequest } from '~/interface/config';
 import { getDOMPurify } from '~/helpers/domPurify';
 import { NcContext } from '~/interface/config';
@@ -43,6 +45,7 @@ import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
 import {
   Base,
   Column,
+  FormulaColumn,
   LmtTrackedField,
   Model,
   ModelRoleVisibility,
@@ -66,6 +69,7 @@ import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
 import { OperationName } from '~/command-registry/op-names';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { isReplay } from '~/helpers/replayScope';
+import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 
 @Injectable()
 export class TablesService {
@@ -909,6 +913,39 @@ export class TablesService {
       : (tableList.filter((t) => !t.mm) as Model[]);
   }
 
+  private async buildFormulaParsedTrees(
+    context: NcContext,
+    model: Model,
+    source: Source,
+  ) {
+    const columns = await model.getColumns();
+    const formulaColumns = columns.filter((c) => c.uidt === UITypes.Formula);
+    if (!formulaColumns.length) return;
+
+    const relatedModels = await getRelatedModelMap(context, model);
+    for (const column of formulaColumns) {
+      const formula = await column.getColOptions<FormulaColumn>();
+      if (!formula?.formula) continue;
+      try {
+        const parsedTree = await validateFormulaAndExtractTreeWithType({
+          formula: formula.formula.replaceAll('{{', '{').replaceAll('}}', '}'),
+          column,
+          columns,
+          clientOrSqlUi: SqlUiFactory.create({ client: source.type }),
+          getMeta: async (_, { id }) => relatedModels.get(id),
+        });
+        await FormulaColumn.update(context, column.id, {
+          parsed_tree: parsedTree,
+        });
+      } catch (e) {
+        // left unset: the first read rebuilds it and records the error
+        this.logger.warn(
+          `Formula parse failed for column ${column.id}: ${e?.message}`,
+        );
+      }
+    }
+  }
+
   async tableCreate(
     context: NcContext,
     param: {
@@ -1190,6 +1227,8 @@ export class TablesService {
               : null;
           return {
             ...props,
+            // never trust a client-supplied tree; it is rebuilt after insert
+            ...(c.uidt === UITypes.Formula ? { parsed_tree: null } : {}),
             cdf: preservedCdf,
             unique:
               originalUnique !== undefined ? originalUnique : props.unique,
@@ -1272,6 +1311,10 @@ export class TablesService {
         })),
       ],
     } as any);
+
+    if (tableCreatePayLoad.columns.some((c) => c.uidt === UITypes.Formula)) {
+      await this.buildFormulaParsedTrees(context, result, source);
+    }
 
     try {
       // create nc_order index column

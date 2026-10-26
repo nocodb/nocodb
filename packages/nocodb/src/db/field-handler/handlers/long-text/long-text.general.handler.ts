@@ -117,6 +117,7 @@ export class LongTextGeneralHandler extends GenericFieldHandler {
       baseModel?: IBaseModelSqlV2;
       context?: NcContext;
       metaService?: MetaService;
+      skipLengthLimit?: boolean;
     };
   }): Promise<{ value: any }> {
     let value = params.value;
@@ -144,7 +145,7 @@ export class LongTextGeneralHandler extends GenericFieldHandler {
     //     type: params.column.uidt,
     //   });
     // }
-    if (value.length > NC_MAX_TEXT_LENGTH) {
+    if (!params.options?.skipLengthLimit && value.length > NC_MAX_TEXT_LENGTH) {
       NcError._.valueLengthExceedLimit({
         length: value.length,
         column: params.column.title,

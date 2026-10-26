@@ -3,6 +3,7 @@ import { parseProp } from 'nocodb-sdk';
 import type {
   HookNotificationV3V3Type,
   HookReqType,
+  HookType,
   HookV3CreateV3Type,
   HookV3UpdateV3Type,
 } from 'nocodb-sdk';
@@ -242,5 +243,48 @@ export class HooksV3Service {
     param: { hookId: string; req: NcRequest },
   ) {
     return await this.hooksService.hookDelete(context, param);
+  }
+
+  /**
+   * Fire a stored hook once with its table's sample payload, as the editor's
+   * Test button does. The request is real and is logged.
+   */
+  async hookTest(
+    context: NcContext,
+    param: { hookId: string; req: NcRequest },
+  ) {
+    const hook = await Hook.get(context, param.hookId);
+
+    if (!hook) NcError.get(context).hookNotFound(param.hookId);
+
+    const operation = [hook.operation].flat().filter(Boolean) as string[];
+    const notification = parseProp(hook.notification);
+
+    const payload = await this.hooksService.tableSampleData(context, {
+      tableId: hook.fk_model_id,
+      event: hook.event,
+      operation: (operation[0] ?? 'insert') as HookType['operation'][number],
+      version: hook.version,
+      includeUser: !!notification?.include_user,
+    });
+
+    // The stored row has nulls where the request schema wants a value or
+    // nothing at all.
+    const hookReq = Object.fromEntries(
+      Object.entries({ ...hook, operation, notification }).filter(
+        ([, value]) => value !== null && value !== undefined,
+      ),
+    ) as HookReqType;
+
+    await this.hooksService.hookTest(context, {
+      tableId: hook.fk_model_id,
+      hookTest: {
+        hook: hookReq,
+        payload: { ...payload, user: param.req.user },
+      },
+      req: param.req,
+    });
+
+    return { tested: true, id: hook.id };
   }
 }

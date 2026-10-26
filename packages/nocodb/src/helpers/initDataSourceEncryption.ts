@@ -114,4 +114,47 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
     console.error('Failed to encrypt data sources');
     throw e;
   }
+
+  await encryptSyncSourceDetails(_ncMeta, secret);
+}
+
+// Per row and outside the transaction, so one failing sync row cannot block boot.
+async function encryptSyncSourceDetails(
+  ncMeta: typeof Noco.ncMeta,
+  secret: string,
+) {
+  // No is_encrypted flag here: plain JSON is what still needs encrypting.
+  const syncSources = await ncMeta
+    .knex(MetaTable.SYNC_SOURCE)
+    .where('details', 'like', '{%');
+
+  for (const syncSource of syncSources) {
+    try {
+      JSON.parse(syncSource.details);
+    } catch {
+      continue;
+    }
+
+    try {
+      await ncMeta.metaUpdate(
+        syncSource.fk_workspace_id,
+        syncSource.base_id,
+        MetaTable.SYNC_SOURCE,
+        {
+          details: encryptPropIfRequired({
+            data: syncSource,
+            prop: 'details',
+            secret,
+          }),
+        },
+        syncSource.id,
+      );
+      logger.log(`Encrypted sync source details ${syncSource.title}`);
+    } catch (e) {
+      logger.error(
+        `Failed to encrypt sync source details ${syncSource.id}`,
+        e?.stack,
+      );
+    }
+  }
 }

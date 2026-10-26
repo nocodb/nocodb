@@ -17,6 +17,7 @@ import { validatePayload } from '~/helpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
 import { assertNotLaneInstance } from '~/helpers/environmentGuards';
 import { NcError } from '~/helpers/catchError';
+import { assertViewConfigEditable } from '~/helpers/viewLockHelpers';
 import {
   assertNewAttachmentRefsOwned,
   holdAttachmentRefsInBase,
@@ -239,6 +240,7 @@ export class FormsService {
     if (!view) {
       NcError.get(context).viewNotFound(param.formViewId);
     }
+    assertViewConfigEditable(context, view, param.req);
 
     const viewWebhookManager =
       param.viewWebhookManager ??

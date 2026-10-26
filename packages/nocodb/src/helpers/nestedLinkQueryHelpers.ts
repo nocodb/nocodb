@@ -11,28 +11,31 @@ import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 import { isSharedViewAccess } from '~/helpers/accessSource';
 import { LIST_ARG_ALIASES } from '~/helpers/listArgAliases';
 
+// A request leaf may name a second column to compare against (field-to-field).
+type ColumnRefFilter = FilterType & { fk_value_col_id?: string };
+
 /**
  * Reports whether any leaf references a known-but-hidden (non-exposed) column.
  * Used as a fast guard so the strip/re-serialize below only runs when there is
  * actually something to strip — otherwise the original `where` is left untouched.
  */
 export function filtersReferenceHiddenColumn(
-  filters: FilterType[] | undefined,
+  filters: ColumnRefFilter[] | undefined,
   exposedColumnIds: Set<string>,
 ): boolean {
   for (const filter of filters || []) {
     if (filter.is_group) {
       if (
         filtersReferenceHiddenColumn(
-          filter.children as FilterType[],
+          filter.children as ColumnRefFilter[],
           exposedColumnIds,
         )
       ) {
         return true;
       }
     } else if (
-      filter.fk_column_id &&
-      !exposedColumnIds.has(filter.fk_column_id)
+      (filter.fk_column_id && !exposedColumnIds.has(filter.fk_column_id)) ||
+      (filter.fk_value_col_id && !exposedColumnIds.has(filter.fk_value_col_id))
     ) {
       return true;
     }
@@ -47,20 +50,27 @@ export function filtersReferenceHiddenColumn(
  * are harmless. Returns the surviving filters.
  */
 export function stripHiddenColumnFilters(
-  filters: FilterType[] | undefined,
+  filters: ColumnRefFilter[] | undefined,
   exposedColumnIds: Set<string>,
+  // When given, ids outside it are unknown and kept, so they still fail verification.
+  knownColumnIds?: Set<string>,
 ): FilterType[] {
   const survivors: FilterType[] = [];
   for (const filter of filters || []) {
     if (filter.is_group) {
       const children = stripHiddenColumnFilters(
-        filter.children as FilterType[],
+        filter.children as ColumnRefFilter[],
         exposedColumnIds,
+        knownColumnIds,
       );
       if (children.length) survivors.push({ ...filter, children });
     } else if (
-      !filter.fk_column_id ||
-      exposedColumnIds.has(filter.fk_column_id)
+      // A field-to-field value column can resolve on any table, so it must be exposed.
+      (!filter.fk_value_col_id ||
+        exposedColumnIds.has(filter.fk_value_col_id)) &&
+      (!filter.fk_column_id ||
+        exposedColumnIds.has(filter.fk_column_id) ||
+        (knownColumnIds && !knownColumnIds.has(filter.fk_column_id)))
     ) {
       survivors.push(filter);
     }

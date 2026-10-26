@@ -154,6 +154,8 @@ export enum PlanFeatureTypes {
   /** Enterprise Vaults: source integration credentials from a customer-owned
    * secrets manager (AWS Secrets Manager, HashiCorp Vault, …) */
   FEATURE_ENTERPRISE_VAULTS = 'feature_enterprise_vaults',
+  /** On-prem: run sandboxes on your own Docker host with nc-compute-lite */
+  FEATURE_COMPUTE_LITE = 'feature_compute_lite',
   /** Interfaces (Interface Designer): page-based shareable apps on base data */
   FEATURE_INTERFACES = 'feature_interfaces',
   FEATURE_INTERFACE_TABLE_MULTI_VIZ = 'feature_interface_table_multi_viz',
@@ -544,8 +546,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: 'to use Custom Sync.',
   [PlanFeatureTypes.FEATURE_SYNC_15_MIN]: 'to sync every 15 minutes.',
   [PlanFeatureTypes.FEATURE_UNIQUE]: 'to use unique constraint.',
-  [PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT]:
-    'to sort and limit lookup field values.',
+  [PlanFeatureTypes.FEATURE_LOOKUP_SORT_LIMIT]: 'to use lookup sort and limit.',
   [PlanFeatureTypes.FEATURE_TOGGLE_FILTER]:
     'to enable or disable individual filters.',
   [PlanFeatureTypes.FEATURE_TOGGLE_GROUPBY]:
@@ -654,6 +655,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to manage skills across every workspace in your organization.',
   [PlanFeatureTypes.FEATURE_ENTERPRISE_VAULTS]:
     'to keep integration credentials in your own secrets manager.',
+  [PlanFeatureTypes.FEATURE_COMPUTE_LITE]:
+    'to run sandboxes on your own servers with nc-compute-lite.',
 };
 
 // Add-on-only features — no plan tier grants these, so "upgrade your plan"

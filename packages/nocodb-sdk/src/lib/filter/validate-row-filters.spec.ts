@@ -2333,3 +2333,36 @@ describe('validateRowFilters — User / LTAR / nested resolution', () => {
     });
   });
 });
+
+describe('validateRowFilters missingColumnNeverMatches', () => {
+  // '99' is absent from `mockColumns`, as a hidden column is from shared-view meta.
+  const andFilters: FilterType[] = [
+    { fk_column_id: '1', comparison_op: 'eq', value: 'Alice' },
+    { fk_column_id: '99', comparison_op: 'eq', value: 'x', logical_op: 'and' },
+  ];
+  const orFilters: FilterType[] = [
+    { fk_column_id: '1', comparison_op: 'eq', value: 'Alice' },
+    { fk_column_id: '99', comparison_op: 'eq', value: 'x', logical_op: 'or' },
+  ];
+  const run = (filters: FilterType[], missingColumnNeverMatches?: boolean) =>
+    validateRowFilters({
+      filters,
+      data: { Name: 'Alice' },
+      columns: mockColumns,
+      client: mockClient,
+      metas: mockMetas,
+      options: { missingColumnNeverMatches },
+    });
+
+  it('skips a missing-column condition by default', () => {
+    expect(run(andFilters)).toBe(true);
+  });
+
+  it('fails a missing-column condition in an AND chain when set', () => {
+    expect(run(andFilters, true)).toBe(false);
+  });
+
+  it('keeps the other branch of an OR chain when set', () => {
+    expect(run(orFilters, true)).toBe(true);
+  });
+});

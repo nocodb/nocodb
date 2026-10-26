@@ -33,6 +33,7 @@ overrides:
   svelte@<=5.55.6: '>=5.55.7'
   webpack-dev-server@<=5.2.3: '>=5.2.4'
   follow-redirects@<1.15.4: '>=1.15.4'
+  follow-redirects@>=1.16.0 <1.16.1: ^1.16.1
   node.extend@<1.1.7: '>=1.1.7'
   tough-cookie: ^5.1.0
   typescript: 5.8.3
@@ -86,7 +87,9 @@ overrides:
   multer@<2.2.0: ^2.2.0
   dompurify@<3.4.13: 3.4.13
   '@hono/node-server@<1.19.15': 1.19.17
-  '@modelcontextprotocol/sdk@<1.31.0': ^1.31.0
+  '@modelcontextprotocol/sdk@<1.32.1': ^1.32.1
+  '@ai-sdk/provider-utils@>=4.0.0 <4.0.61': 4.0.61
+  launch-editor@<2.14.2: ^2.14.2
   source-map-js@<1.2.2: ^1.2.2
   defu@<=6.1.4: '>=6.1.5'
   devalue@<5.9.4: 5.9.4
@@ -159,7 +162,7 @@ overrides:
   bn.js@<4.12.3: ~4.12.5
   bn.js@>=5.0.0 <5.2.3: ~5.2.5
   ipx@>=2.0.0-0 <2.1.1: 2.1.1
-  markdown-it@<=14.1.1: 14.3.0
+  markdown-it@<14.3.3: 14.3.3
   mdast-util-to-hast@>=13.0.0 <13.2.1: 13.2.1
   file-type@<21.3.2: 21.3.4
   mysql2@<3.22.0: '>=3.22.0'
@@ -169,9 +172,9 @@ overrides:
   uuid@>=12.0.0 <12.0.1: ^12.0.1
   smol-toml@<1.7.1: '>=1.7.1'
   pacote@>=11.2.7 <21.5.1: '>=21.5.1'
-  undici@>=6.0.0 <6.28.1: 6.28.1
-  undici@>=7.0.0 <7.29.1: ^7.29.1
-  undici@>=8.0.0 <8.10.2: ^8.10.2
+  undici@>=6.0.0 <6.29.1: 6.29.1
+  undici@>=7.0.0 <7.30.1: ^7.30.1
+  undici@>=8.0.0 <8.12.2: ^8.12.2
   '@xmldom/xmldom@<0.8.15': ~0.8.15
   '@xmldom/xmldom@>=0.9.0 <0.9.12': ~0.9.12
   fastify@<5.12.5: ^5.12.5
@@ -185,7 +188,7 @@ overrides:
 
 patchedDependencies:
   ant-design-vue@3.2.20:
-    hash: 60728dae2fea3ada36e7f0c581e02664f6782d54d2066d9ffbfca0a24f57ffeb
+    hash: 6c770d2827a49c8a123116b10376c06d226be81a774c6c25cb6a2efd08ad9c3c
     path: packages/nc-gui/.patches/ant-design-vue@3.2.20.patch
   splitpanes@3.1.5:
     hash: 203a092b77593dfaf72ce85769a33061a3f4dbb0999eb458b5ead220efd0750b
@@ -395,7 +398,7 @@ importers:
         version: 6.183.0
       ant-design-vue:
         specifier: ^3.2.20
-        version: 3.2.20(patch_hash=60728dae2fea3ada36e7f0c581e02664f6782d54d2066d9ffbfca0a24f57ffeb)(vue@3.5.43(typescript@5.8.3))
+        version: 3.2.20(patch_hash=6c770d2827a49c8a123116b10376c06d226be81a774c6c25cb6a2efd08ad9c3c)(vue@3.5.43(typescript@5.8.3))
       aws-amplify:
         specifier: ^5.3.27
         version: 5.3.29(encoding@0.1.13)(react-native@0.83.1(@babel/core@7.29.7)(react@19.1.0))
@@ -496,8 +499,8 @@ importers:
         specifier: ^11.0.2
         version: 11.1.0
       markdown-it:
-        specifier: 14.3.0
-        version: 14.3.0
+        specifier: 14.3.3
+        version: 14.3.3
       markdown-it-regexp:
         specifier: ^0.4.0
         version: 0.4.0
@@ -933,8 +936,8 @@ importers:
         specifier: ^4.0.3
         version: 4.0.12(zod@3.25.76)
       '@ai-sdk/anthropic':
-        specifier: ^3.0.1
-        version: 3.0.9(zod@3.25.76)
+        specifier: ^3.0.133
+        version: 3.0.133(zod@3.25.76)
       '@ai-sdk/azure':
         specifier: ^3.0.1
         version: 3.0.7(zod@3.25.76)
@@ -1005,10 +1008,10 @@ importers:
         specifier: ^3.0.7
         version: 3.0.7
       '@modelcontextprotocol/node':
-        specifier: ^2.1.0
+        specifier: ^2.1.1
         version: 2.1.1(@modelcontextprotocol/server@2.3.1)
       '@modelcontextprotocol/server':
-        specifier: ^2.2.0
+        specifier: ^2.3.1
         version: 2.3.1
       '@napi-rs/canvas':
         specifier: ^0.1.77
@@ -1722,6 +1725,12 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
+  '@ai-sdk/anthropic@3.0.133':
+    resolution: {integrity: sha512-ODK8CN/Q4WH4xFG5CLj+0oz99bjGCkgBHopnuIfRH2OUtwqyitJSo9UuyvBFeaAm05kGYrmgwfZWCg4sEFPB/w==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
   '@ai-sdk/anthropic@3.0.9':
     resolution: {integrity: sha512-QBD4qDnwIHd+N5PpjxXOaWJig1aRB43J0PM5ZUe6Yyl9Qq2bUmraQjvNznkuFKy+hMFDgj0AvgGogTiO5TC+qA==}
     engines: {node: '>=18'}
@@ -1781,9 +1790,9 @@ packages:
     peerDependencies:
       zod: ^3.23.8
 
-  '@ai-sdk/provider-utils@4.0.4':
-    resolution: {integrity: sha512-VxhX0B/dWGbpNHxrKCWUAJKXIXV015J4e7qYjdIU9lLWeptk0KMLGcqkB4wFxff5Njqur8dt8wRi1MN9lZtDqg==}
-    engines: {node: '>=18'}
+  '@ai-sdk/provider-utils@4.0.61':
+    resolution: {integrity: sha512-spROQutwsgm9ezXdoKP5PUPuHnNqMnuFqjioihmYDMJaaJnknYiEXYctH9hL4NJjaHuQBIl4ageCNsIZrQ+yCg==}
+    engines: {node: '>=18.17'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
@@ -1793,6 +1802,10 @@ packages:
 
   '@ai-sdk/provider@3.0.10':
     resolution: {integrity: sha512-Q3BZ27qfpYqnCYGvE3vt+Qi6LGOF9R5Nmzn+9JoM1lCRsD9mYaIhfJLkSunN48nfGXJ6n+XNV0J/XVpqGQl7Dw==}
+    engines: {node: '>=18'}
+
+  '@ai-sdk/provider@3.0.19':
+    resolution: {integrity: sha512-5lWq7zSfRaU5ylDESn3sDQjgGl2AI1vjZKO/6JY3aFW70ct4zcP1kN+ZUYOuTXr28fVsYbyu2YFhddLdIgQFZQ==}
     engines: {node: '>=18'}
 
   '@ai-sdk/provider@3.0.2':
@@ -3389,6 +3402,7 @@ packages:
 
   '@clickhouse/client-common@1.16.0':
     resolution: {integrity: sha512-qMzkI1NmV29ZjFkNpVSvGNfA0c7sCExlufAQMv+V+5xtNeYXnRfdqzmBLIQoq6Pf1ij0kw/wGLD3HQrl7pTFLA==}
+    deprecated: 'Deprecated: import from @clickhouse/client or @clickhouse/client-web instead.'
 
   '@clickhouse/client@1.16.0':
     resolution: {integrity: sha512-ThPhoRMsKsf/hmBEgWlUsGxFecsr3i+k3JI8JV0Od7UpH2BSmk9VKMGJoyPCrTL0vPUs5rJH+7o4iCqBF09Xvg==}
@@ -9746,6 +9760,7 @@ packages:
 
   aws-amplify@5.3.29:
     resolution: {integrity: sha512-FbAi0OwtHczxyBhZ1AFPFovCYFB6LAsC14pZdGXOAC6aq6umL1NcyYEG7X4ESIY+sjEjfuqMLCFXHz7J1EpmJw==}
+    deprecated: 'Amplify JavaScript v5 is in maintenance mode. Upgrade to v6. See the migration guide: https://docs.amplify.aws/gen1/javascript/build-a-backend/troubleshooting/migrate-from-javascript-v5-to-v6/'
 
   aws-jwt-verify@4.0.1:
     resolution: {integrity: sha512-kzvi71eD3w/mCpYRUY7cz6DX4bfYihGdI2yV3FYQ2JuZZenqAqDPz0gWj0ew6vlAtdEVBNb7p+Dm2TAIxpVYMA==}
@@ -11813,8 +11828,8 @@ packages:
     resolution: {integrity: sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==}
     engines: {node: '>=0.8.x'}
 
-  eventsource-parser@3.0.6:
-    resolution: {integrity: sha512-Vo1ab+QXPzZ4tCa8SwIHJFaSzy4R6SHf7BY79rFBDf0idraZWAkYrDjDj8uWaSm3S2TK+hJ7/t1CEmZ7jXw+pg==}
+  eventsource-parser@3.1.1:
+    resolution: {integrity: sha512-EKN1vKAMcZ8MlYMpaNuxN6R9yakzH6uajHcHVTqWJzvu5pWw9DyhbP35HH8MVBQ+dZjAfDxk+A8NiR9KWaXiyQ==}
     engines: {node: '>=18.0.0'}
 
   exceljs@4.4.0:
@@ -12080,8 +12095,8 @@ packages:
   fnv1a-64@0.1.2:
     resolution: {integrity: sha512-mJbcILTPybAR1jdOwt/lVv8N2cffeJFFP+gVbSAwLEx1ujXH27RpPd8Rokec/KX9c76UYIB6Co+H4lQzxPnJfA==}
 
-  follow-redirects@1.16.0:
-    resolution: {integrity: sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==}
+  follow-redirects@1.16.1:
+    resolution: {integrity: sha512-FNvFGzoMLWmE6Yj9spb/zjd7yiNCHiAW9/Tg9CXrQ8wuu32HtlJOwWO11OJafl5FfY3DxTdQ0vj42zU1kvv5jg==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -13764,8 +13779,8 @@ packages:
   langs@2.0.0:
     resolution: {integrity: sha512-v4pxOBEQVN1WBTfB1crhTtxzNLZU9HPWgadlwzWKISJtt6Ku/CnpBrwVy+jFv8StjxsPfwPFzO0CMwdZLJ0/BA==}
 
-  launch-editor@2.14.1:
-    resolution: {integrity: sha512-QWBrQsMpH7gPr965dsKD/3cKWiNoTjpATQf++Xq63N6sKRGMwlVXz41O1IZTMfZQgBctD/K5Zt06+/I6pP6+HA==}
+  launch-editor@2.14.2:
+    resolution: {integrity: sha512-NHJEb30MGBCkmZXLZwz25t37QR4aY03ZzPYUJXOJaOa92uWwExI9SBQUuIznBYc1xkD7cJNGX7oc3Nl3sq2kQQ==}
 
   lazy-cache@2.0.2:
     resolution: {integrity: sha512-7vp2Acd2+Kz4XkzxGxaB1FWOi8KjWIWsgdfD5MCb86DWvlLqhRPM+d6Pro3iNEL5VT9mstz5hKAlcd+QR6H3aA==}
@@ -14208,8 +14223,8 @@ packages:
   markdown-it-task-lists@2.1.1:
     resolution: {integrity: sha512-TxFAc76Jnhb2OUu+n3yz9RMu4CwGfaT788br6HhEDlvWfdeJcLUsxk1Hgw2yJio0OXsxv7pyIPmvECY7bMbluA==}
 
-  markdown-it@14.3.0:
-    resolution: {integrity: sha512-RCEsPjR+sr0x+AuYp601tKTkgFG4YEPLCzHST3cQ/fhlJkqAkz1L2/Qbp1j9qw5SBwQHFBoW8+hoN5xssOF0Tw==}
+  markdown-it@14.3.3:
+    resolution: {integrity: sha512-L//tDAkjTjJCU6pBUSBTgs3Kg4InVaZuUZog/b6V12UKhcDQ7S78877ibbCanRExwPuYP1CZD7Gd2dxSy1GXRg==}
     hasBin: true
 
   marked@4.3.0:
@@ -18079,12 +18094,12 @@ packages:
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
-  undici@6.28.1:
-    resolution: {integrity: sha512-zWpdTVD54H48CIybL0rWQ3ukpb9d23wM7eH5RtfdmeP70cWHNjtfo7P4vZX+5CoDcO53J4Pu5uXp7lNfjc6DRA==}
+  undici@6.29.1:
+    resolution: {integrity: sha512-EvRlUt/QqAEvXdQeRMYUfwOQsfzpDztykrG2owGEE/rBOBoYv9uF39ZzsNDh4lTFHhTr2XOZjKkYgueD12ZmGA==}
     engines: {node: '>=18.17'}
 
-  undici@8.10.2:
-    resolution: {integrity: sha512-/y4/bH9YNU5hi9NIrpOuvGXFcxrj3CMrV+/AYpowAYTpHn8gX/XPFjNy766FPoYY0miQhdW977JFWKGNhBdwyQ==}
+  undici@8.12.3:
+    resolution: {integrity: sha512-+fdndUTwBP86cVjihTp21hZHo7d6oj1c/47XPA3lL8mM0XHs+C4EkcjmgRsFnFk2f/UONGDy9ItBItmXsLOQHw==}
     engines: {node: '>=22.19.0'}
 
   unenv@2.0.0-rc.24:
@@ -19252,29 +19267,35 @@ snapshots:
     dependencies:
       '@ai-sdk/anthropic': 3.0.9(zod@3.25.76)
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.4(zod@3.25.76)
+      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
       '@smithy/eventstream-codec': 4.0.3
       '@smithy/util-utf8': 4.0.0
       aws4fetch: 1.0.20
       zod: 3.25.76
 
+  '@ai-sdk/anthropic@3.0.133(zod@3.25.76)':
+    dependencies:
+      '@ai-sdk/provider': 3.0.19
+      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
+      zod: 3.25.76
+
   '@ai-sdk/anthropic@3.0.9(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.4(zod@3.25.76)
+      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
       zod: 3.25.76
 
   '@ai-sdk/azure@3.0.7(zod@3.25.76)':
     dependencies:
       '@ai-sdk/openai': 3.0.7(zod@3.25.76)
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.4(zod@3.25.76)
+      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
       zod: 3.25.76
 
   '@ai-sdk/deepseek@2.0.4(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.4(zod@3.25.76)
+      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
       zod: 3.25.76
 
   '@ai-sdk/devtools@0.0.19':
@@ -19286,20 +19307,20 @@ snapshots:
   '@ai-sdk/gateway@3.0.10(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.4(zod@3.25.76)
+      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
       '@vercel/oidc': 3.1.0
       zod: 3.25.76
 
   '@ai-sdk/google@3.0.6(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.4(zod@3.25.76)
+      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
       zod: 3.25.76
 
   '@ai-sdk/groq@3.0.4(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.4(zod@3.25.76)
+      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
       zod: 3.25.76
 
   '@ai-sdk/openai-compatible@0.2.16(zod@3.25.76)':
@@ -19311,7 +19332,7 @@ snapshots:
   '@ai-sdk/openai@3.0.7(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.4(zod@3.25.76)
+      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
       zod: 3.25.76
 
   '@ai-sdk/provider-utils@2.2.8(zod@3.25.76)':
@@ -19321,11 +19342,12 @@ snapshots:
       secure-json-parse: 2.7.0
       zod: 3.25.76
 
-  '@ai-sdk/provider-utils@4.0.4(zod@3.25.76)':
+  '@ai-sdk/provider-utils@4.0.61(zod@3.25.76)':
     dependencies:
-      '@ai-sdk/provider': 3.0.2
+      '@ai-sdk/provider': 3.0.19
       '@standard-schema/spec': 1.1.0
-      eventsource-parser: 3.0.6
+      eventsource-parser: 3.1.1
+      undici: 6.29.1
       zod: 3.25.76
 
   '@ai-sdk/provider@1.1.3':
@@ -19333,6 +19355,10 @@ snapshots:
       json-schema: 0.4.0
 
   '@ai-sdk/provider@3.0.10':
+    dependencies:
+      json-schema: 0.4.0
+
+  '@ai-sdk/provider@3.0.19':
     dependencies:
       json-schema: 0.4.0
 
@@ -25164,7 +25190,7 @@ snapshots:
       hookable: 6.1.1
       image-meta: 0.2.2
       is-installed-globally: 1.0.0
-      launch-editor: 2.14.1
+      launch-editor: 2.14.2
       local-pkg: 1.2.1
       magicast: 0.5.4
       nypm: 0.6.9
@@ -29863,7 +29889,7 @@ snapshots:
     dependencies:
       '@ai-sdk/gateway': 3.0.10(zod@3.25.76)
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.4(zod@3.25.76)
+      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
       '@opentelemetry/api': 1.9.0
       zod: 3.25.76
 
@@ -29958,7 +29984,7 @@ snapshots:
 
   ansis@4.3.0: {}
 
-  ant-design-vue@3.2.20(patch_hash=60728dae2fea3ada36e7f0c581e02664f6782d54d2066d9ffbfca0a24f57ffeb)(vue@3.5.43(typescript@5.8.3)):
+  ant-design-vue@3.2.20(patch_hash=6c770d2827a49c8a123116b10376c06d226be81a774c6c25cb6a2efd08ad9c3c)(vue@3.5.43(typescript@5.8.3)):
     dependencies:
       '@ant-design/colors': 6.0.0
       '@ant-design/icons-vue': 6.1.0(vue@3.5.43(typescript@5.8.3))
@@ -30290,7 +30316,7 @@ snapshots:
 
   axios@1.20.0:
     dependencies:
-      follow-redirects: 1.16.0(debug@4.4.3(supports-color@7.2.0))
+      follow-redirects: 1.16.1(debug@4.4.3(supports-color@7.2.0))
       form-data: 4.0.6
       https-proxy-agent: 5.0.1(supports-color@7.2.0)
       proxy-from-env: 2.1.0
@@ -30300,7 +30326,7 @@ snapshots:
 
   axios@1.20.0(debug@4.4.1):
     dependencies:
-      follow-redirects: 1.16.0(debug@4.4.1)
+      follow-redirects: 1.16.1(debug@4.4.1)
       form-data: 4.0.6
       https-proxy-agent: 5.0.1(supports-color@7.2.0)
       proxy-from-env: 2.1.0
@@ -30310,7 +30336,7 @@ snapshots:
 
   axios@1.20.0(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0):
     dependencies:
-      follow-redirects: 1.16.0(debug@4.4.3(supports-color@7.2.0))
+      follow-redirects: 1.16.1(debug@4.4.3(supports-color@7.2.0))
       form-data: 4.0.6
       https-proxy-agent: 5.0.1(supports-color@7.2.0)
       proxy-from-env: 2.1.0
@@ -30320,7 +30346,7 @@ snapshots:
 
   axios@1.20.0(debug@4.4.3):
     dependencies:
-      follow-redirects: 1.16.0(debug@4.4.3)
+      follow-redirects: 1.16.1(debug@4.4.3)
       form-data: 4.0.6
       https-proxy-agent: 5.0.1(supports-color@7.2.0)
       proxy-from-env: 2.1.0
@@ -32738,7 +32764,7 @@ snapshots:
 
   events@3.3.0: {}
 
-  eventsource-parser@3.0.6: {}
+  eventsource-parser@3.1.1: {}
 
   exceljs@4.4.0:
     dependencies:
@@ -33060,15 +33086,15 @@ snapshots:
 
   fnv1a-64@0.1.2: {}
 
-  follow-redirects@1.16.0(debug@4.4.1):
+  follow-redirects@1.16.1(debug@4.4.1):
     optionalDependencies:
       debug: 4.4.1(supports-color@5.5.0)
 
-  follow-redirects@1.16.0(debug@4.4.3(supports-color@7.2.0)):
+  follow-redirects@1.16.1(debug@4.4.3(supports-color@7.2.0)):
     optionalDependencies:
       debug: 4.4.3(supports-color@7.2.0)
 
-  follow-redirects@1.16.0(debug@4.4.3):
+  follow-redirects@1.16.1(debug@4.4.3):
     optionalDependencies:
       debug: 4.4.3(supports-color@7.2.0)
 
@@ -35132,7 +35158,7 @@ snapshots:
 
   langs@2.0.0: {}
 
-  launch-editor@2.14.1:
+  launch-editor@2.14.2:
     dependencies:
       picocolors: 1.1.1
       shell-quote: 1.12.0
@@ -35693,7 +35719,7 @@ snapshots:
 
   markdown-it-task-lists@2.1.1: {}
 
-  markdown-it@14.3.0:
+  markdown-it@14.3.3:
     dependencies:
       argparse: 2.0.1
       entities: 4.5.0
@@ -36723,7 +36749,7 @@ snapshots:
       semver: 7.8.5
       tar: 7.5.22
       tinyglobby: 0.2.17
-      undici: 6.28.1
+      undici: 6.29.1
       which: 6.0.1
 
   node-gyp@8.4.1:
@@ -36974,7 +37000,7 @@ snapshots:
       ultrahtml: 1.7.0
       uncrypto: 0.1.3
       unctx: 3.0.0(magic-string@1.2.0)(oxc-parser@0.131.0)(rolldown@1.2.4)(unplugin@3.3.0(@rspack/core@2.2.2(@swc/helpers@0.5.17))(esbuild@0.28.1)(rolldown@1.2.4)(rollup@4.60.4)(vite@8.2.1(@types/node@22.15.23)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.89.0)(terser@5.40.0)(yaml@2.9.0))(webpack@5.106.2(@swc/core@1.10.0(@swc/helpers@0.5.17))(esbuild@0.28.1)(lightningcss@1.33.0)(postcss@8.5.26)))
-      undici: 8.10.2
+      undici: 8.12.3
       unhead: 3.3.2(@rspack/core@2.2.2(@swc/helpers@0.5.17))(esbuild@0.28.1)(rolldown@1.2.4)(rollup@4.60.4)(vite@8.2.1(@types/node@22.15.23)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.89.0)(terser@5.40.0)(yaml@2.9.0))(webpack@5.106.2(@swc/core@1.10.0(@swc/helpers@0.5.17))(esbuild@0.28.1)(lightningcss@1.33.0)(postcss@8.5.26))
       unimport: 6.4.0(@rspack/core@2.2.2(@swc/helpers@0.5.17))(esbuild@0.28.1)(oxc-parser@0.131.0)(rolldown@1.2.4)(rollup@4.60.4)(vite@8.2.1(@types/node@22.15.23)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.89.0)(terser@5.40.0)(yaml@2.9.0))(webpack@5.106.2(@swc/core@1.10.0(@swc/helpers@0.5.17))(esbuild@0.28.1)(lightningcss@1.33.0)(postcss@8.5.26))
       unplugin: 3.3.0(@rspack/core@2.2.2(@swc/helpers@0.5.17))(esbuild@0.28.1)(rolldown@1.2.4)(rollup@4.60.4)(vite@8.2.1(@types/node@22.15.23)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.89.0)(terser@5.40.0)(yaml@2.9.0))(webpack@5.106.2(@swc/core@1.10.0(@swc/helpers@0.5.17))(esbuild@0.28.1)(lightningcss@1.33.0)(postcss@8.5.26))
@@ -37112,7 +37138,7 @@ snapshots:
       escape-string-regexp: 1.0.5
       figures: 3.2.0
       flat: 5.0.2
-      follow-redirects: 1.16.0(debug@4.4.3(supports-color@7.2.0))
+      follow-redirects: 1.16.1(debug@4.4.3(supports-color@7.2.0))
       form-data: 4.0.6
       fs-constants: 1.0.0
       function-bind: 1.1.2
@@ -38377,7 +38403,7 @@ snapshots:
   prosemirror-markdown@1.13.2:
     dependencies:
       '@types/markdown-it': 14.1.2
-      markdown-it: 14.3.0
+      markdown-it: 14.3.3
       prosemirror-model: 1.25.12
 
   prosemirror-menu@1.2.5:
@@ -40242,7 +40268,7 @@ snapshots:
     dependencies:
       '@tiptap/core': 2.12.0(@tiptap/pm@2.12.0)
       '@types/markdown-it': 13.0.9
-      markdown-it: 14.3.0
+      markdown-it: 14.3.3
       markdown-it-task-lists: 2.1.1
       prosemirror-markdown: 1.13.2
 
@@ -40623,9 +40649,9 @@ snapshots:
 
   undici-types@6.21.0: {}
 
-  undici@6.28.1: {}
+  undici@6.29.1: {}
 
-  undici@8.10.2: {}
+  undici@8.12.3: {}
 
   unenv@2.0.0-rc.24:
     dependencies:

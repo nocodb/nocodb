@@ -63,6 +63,8 @@ interface Props {
   openPickerWhenEmpty?: boolean
   /** Kinds of value the field takes; the picker disables the rest. */
   accepts?: WorkflowValueKind[]
+  /** Offer Insert / ⇧↵ on rows that open (a whole Record); off for fields that need a single value. */
+  allowInsertWhole?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -73,6 +75,7 @@ const props = withDefaults(defineProps<Props>(), {
   readOnly: false,
   openPickerWhenEmpty: false,
   accepts: undefined,
+  allowInsertWhole: true,
 })
 
 const emit = defineEmits(['update:modelValue', 'enter'])
@@ -1763,6 +1766,7 @@ watch(readOnly, (newValue) => {
       :multiline="isMultiline"
       :open-picker-when-empty="openPickerWhenEmpty"
       :accepts="accepts"
+      :allow-insert-whole="allowInsertWhole"
       @enter="emit('enter')"
     />
   </div>

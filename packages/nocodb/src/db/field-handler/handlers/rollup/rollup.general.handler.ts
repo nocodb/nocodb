@@ -67,7 +67,7 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
     } = options;
 
     const columnOptions = (await column.getColOptions()) as RollupColumn;
-    const builder = (
+    const subQb = (
       await genRollupSelectv2({
         baseModelSqlv2,
         knex,
@@ -75,6 +75,9 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
         columnOptions,
       })
     ).builder;
+    // knex doesn't parenthesise a bare subquery in column position
+    // (whereNull, where(x, '')); wrap it so every operator gets (select ...)
+    const builder = knex.raw('?', [subQb]);
     return parseConditionV2(
       baseModelSqlv2,
       new Filter({
@@ -82,7 +85,7 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
         // a date result keeps its value for the date handler to parse
         value: columnOptions?.result_uidt
           ? filter.value
-          : filter.comparison_op === 'in'
+          : ['in', 'btw', 'nbtw'].includes(filter.comparison_op)
           ? // numbers, not strings: SQLite never matches a count/sum to '2'
             (Array.isArray(filter.value)
               ? filter.value

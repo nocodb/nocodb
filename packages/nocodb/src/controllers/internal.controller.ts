@@ -18,7 +18,14 @@ import {
   NcRequest,
   SourceRestriction,
 } from 'nocodb-sdk';
-import { markPersonalViewIfNeeded } from 'src/middlewares/extract-ids/extract-ids.helpers';
+import {
+  editorPersonalViewOnlyPermissions,
+  markPersonalViewIfNeeded,
+  personalViewOwnerAllowedPermissions,
+  resolveFilterTableId,
+  tableVisibilityCache,
+  VIEW_KEY,
+} from 'src/middlewares/extract-ids/extract-ids.helpers';
 import type { InternalApiModule } from '~/utils/internal-type';
 import { sourceRestrictions } from '~/utils/acl';
 import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
@@ -34,14 +41,20 @@ import {
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
 import {
+  Column,
   Filter,
   FormViewColumn,
+  GalleryViewColumn,
   GridViewColumn,
+  Hook,
   ListViewColumn,
+  Model,
   Sort,
   TimelineViewColumn,
   View,
+  ViewSection,
 } from '~/models';
+import RowColorCondition from '~/models/RowColorCondition';
 import { RootScopes } from '~/utils/globals';
 
 // Operations that must never run inside the batch envelope. A batch sub-op
@@ -100,6 +113,9 @@ export class InternalController {
       for (const operation of each.publicBaseBlockedOperations ?? []) {
         this.publicBaseBlockedOperations.add(operation);
       }
+      for (const operation of each.apiTokenBlockedOperations ?? []) {
+        this.apiTokenBlockedOperations.add(operation);
+      }
     }
   }
 
@@ -114,6 +130,11 @@ export class InternalController {
    * to set `blockPublicBaseAccess` on the ACL gate — see `InternalApiModule`.
    */
   protected publicBaseBlockedOperations = new Set<
+    keyof typeof OPERATION_SCOPES
+  >();
+
+  /** Operations refused to API-token auth, from `apiTokenBlockedOperations`. */
+  protected apiTokenBlockedOperations = new Set<
     keyof typeof OPERATION_SCOPES
   >();
 
@@ -156,56 +177,80 @@ export class InternalController {
       'rowColorConditionsFilterCreate',
     ];
 
-    if (filterSortOperations.includes(operation as string)) {
+    if (
+      filterSortOperations.includes(operation as string) ||
+      editorPersonalViewOnlyPermissions.includes(operation as string) ||
+      personalViewOwnerAllowedPermissions.includes(operation as string)
+    ) {
       // Prefer request context over bypass to avoid stale cache reads
       const context = req.context ?? {
         workspace_id: RootScopes.BYPASS,
         base_id: RootScopes.BYPASS,
       };
 
-      let view: View | null = null;
+      // Views of every child id the request carries, plus viewId in query
+      // (or body for create operations such as filterCreate / sortCreate).
+      const views = new Map<string, View>();
+      // A child row that exists without a view (webhook, link, button or
+      // widget filter, lookup sort) belongs to some other owner.
+      let hasViewlessChild = false;
+      const addView = async (viewId?: string | null) => {
+        if (!viewId || views.has(viewId)) return;
+        const found = await View.get(context, viewId);
+        if (found) views.set(found.id, found);
+      };
+      const addChildView = async (
+        child: { fk_view_id?: string } | null | undefined,
+      ) => {
+        if (!child) return;
+        if (child.fk_view_id) await addView(child.fk_view_id);
+        else hasViewlessChild = true;
+      };
+      const addRowColorConditionView = async (conditionId: string) => {
+        const condition = await RowColorCondition.getById(context, conditionId);
+        await addChildView(condition);
+      };
 
-      // Extract view based on the operation parameters
-      if (req.query.viewId) {
-        view = await View.get(context, req.query.viewId as string);
-      } else if (req.body?.fk_view_id) {
-        // For create operations (filterCreate, sortCreate, etc.) where viewId is in body
-        view = await View.get(context, req.body.fk_view_id);
-      } else if (req.query.filterId) {
-        const filter = await Filter.get(context, req.query.filterId as string);
-        if (filter?.fk_view_id) {
-          view = await View.get(context, filter.fk_view_id);
+      const filterIds = [
+        req.query.filterId,
+        ...(Array.isArray(req.body?.filters)
+          ? req.body.filters.map((f) => f?.filterId)
+          : []),
+      ].filter(Boolean) as string[];
+      for (const filterId of filterIds) {
+        const filter = await Filter.get(context, filterId);
+        if (filter?.fk_row_color_condition_id && !filter.fk_view_id) {
+          await addRowColorConditionView(filter.fk_row_color_condition_id);
+        } else {
+          await addChildView(filter);
         }
-      } else if (req.query.sortId) {
+      }
+      if (req.query.sortId) {
         const sort = await Sort.get(context, req.query.sortId as string);
-        if (sort?.fk_view_id) {
-          view = await View.get(context, sort.fk_view_id);
-        }
-      } else if (req.query.gridViewColumnId) {
+        await addChildView(sort);
+      }
+      if (req.query.gridViewColumnId) {
         const gridCol = await GridViewColumn.get(
           context,
           req.query.gridViewColumnId as string,
         );
-        if (gridCol?.fk_view_id) {
-          view = await View.get(context, gridCol.fk_view_id);
-        }
-      } else if (req.query.timelineViewColumnId) {
+        await addChildView(gridCol);
+      }
+      if (req.query.timelineViewColumnId) {
         const timelineCol = await TimelineViewColumn.get(
           context,
           req.query.timelineViewColumnId as string,
         );
-        if (timelineCol?.fk_view_id) {
-          view = await View.get(context, timelineCol.fk_view_id);
-        }
-      } else if (req.query.listViewColumnId) {
+        await addChildView(timelineCol);
+      }
+      if (req.query.listViewColumnId) {
         const listCol = await ListViewColumn.get(
           context,
           req.query.listViewColumnId as string,
         );
-        if (listCol?.fk_view_id) {
-          view = await View.get(context, listCol.fk_view_id);
-        }
-      } else if (req.query.formColumnId) {
+        await addChildView(listCol);
+      }
+      if (req.query.formColumnId) {
         // formColumnUpdate handler reads `req.query.formColumnId` (note:
         // not the more generic `formViewColumnId` the outer extract-ids
         // middleware recognises). Handle it here so VIEW_KEY is set
@@ -214,16 +259,29 @@ export class InternalController {
           context,
           req.query.formColumnId as string,
         );
-        if (formCol?.fk_view_id) {
-          view = await View.get(context, formCol.fk_view_id);
-        }
+        await addChildView(formCol);
       }
+      if (req.query.rowColorConditionId) {
+        await addRowColorConditionView(req.query.rowColorConditionId as string);
+      }
+      await addView((req.query.viewId || req.body?.fk_view_id) as string);
+
+      // Reject ids that resolve to different views (or a view and a viewless
+      // child), or the ACL would check the wrong view.
+      if (views.size > 1 || (hasViewlessChild && views.size > 0)) {
+        NcError.get(context).badRequest('Item does not belong to this view');
+      }
+
+      const view = views.values().next().value ?? null;
 
       // Set view in request for personal view ownership check in ACL
       // middleware. markPersonalViewIfNeeded covers both Personal and
       // Locked lock_types — the editor + locked-view gate relies on
       // VIEW_KEY being set for locked views too.
-      markPersonalViewIfNeeded(req, view);
+      if (view) {
+        req[VIEW_KEY] = undefined;
+        markPersonalViewIfNeeded(req, view);
+      }
     }
 
     await this.aclMiddleware.aclFn(
@@ -231,6 +289,7 @@ export class InternalController {
       {
         scope,
         blockPublicBaseAccess: this.publicBaseBlockedOperations.has(operation),
+        blockApiTokenAccess: this.apiTokenBlockedOperations.has(operation),
       },
       null,
       req,
@@ -359,6 +418,9 @@ export class InternalController {
       }
     }
 
+    // Created before the fan-out so the sub-requests share the verdicts.
+    tableVisibilityCache(req);
+
     const settled = await Promise.allSettled(
       ops.map((op) => this.runBatchedOp(context, workspaceId, baseId, op, req)),
     );
@@ -461,7 +523,7 @@ export class InternalController {
     // we shadow `query` / `body` for the sub-op and rely on the prototype
     // chain for everything else (user, headers, route, etc.).
     const subReq: NcRequest = Object.create(req);
-    subReq.query = { ...(req.query ?? {}), ...(subOp.query ?? {}), operation };
+    subReq.query = buildSubOpQuery(req, subOp, operation);
     subReq.body = subOp.payload ?? {};
 
     // Do NOT let the sub-op inherit the envelope request's resolved source
@@ -471,6 +533,8 @@ export class InternalController {
     // against a different source than the one it actually targets. Clear it as
     // an own property so the ACL cannot silently trust the wrong source.
     subReq.ncSourceId = undefined;
+    // Same for the envelope's view: `checkAcl` resolves the sub-op's own.
+    subReq[VIEW_KEY] = undefined;
 
     const module =
       this.internalApiModuleMap['POST']?.[operation] ??
@@ -484,6 +548,8 @@ export class InternalController {
     // every batched read is judged as a write.
     subReq.method = module.httpMethod;
 
+    await this.scopeSubReqToTable(subReq, subContext, subOp);
+
     // Per-sub-op authorization. `this.checkAcl` is overridable in EE so
     // license checks etc. layer on automatically through prototype dispatch.
     await this.checkAcl(operation, subReq, scope);
@@ -496,9 +562,141 @@ export class InternalController {
       req: subReq,
     });
   }
+
+  /**
+   * Point the per-role table visibility gate at the table the sub-op's own ids
+   * address — never the envelope's. `subContext` becomes the sub-request's
+   * context too, so what the ACL writes onto it reaches the handler.
+   */
+  protected async scopeSubReqToTable(
+    subReq: NcRequest,
+    subContext: NcContext,
+    subOp: BatchSubOp,
+  ) {
+    subContext.ncTableId = subReq.ncBaseId
+      ? await resolveSubOpTableId(subContext, subOp.query ?? {})
+      : undefined;
+    subReq.context = subContext;
+  }
 }
 
-interface BatchSubOp {
+// Query ids that address a table. A sub-op takes them from its own query only,
+// so the handler and the visibility gate always see the same target.
+const TABLE_ADDRESSING_QUERY_KEYS = [
+  'tableId',
+  'modelId',
+  'viewId',
+  'formViewId',
+  'gridViewId',
+  'kanbanViewId',
+  'galleryViewId',
+  'calendarViewId',
+  'hookId',
+  'columnId',
+  'buttonColId',
+  'filterId',
+  'filterParentId',
+  'sortId',
+  'gridViewColumnId',
+  'formViewColumnId',
+  'galleryViewColumnId',
+  'rowColorConditionId',
+  'sectionId',
+];
+
+/** The envelope's query minus its table ids, overlaid with the sub-op's. */
+export function buildSubOpQuery(
+  req: NcRequest,
+  subOp: BatchSubOp,
+  operation: string,
+): Record<string, any> {
+  const envelopeQuery: Record<string, any> = { ...(req.query ?? {}) };
+  for (const key of TABLE_ADDRESSING_QUERY_KEYS) delete envelopeQuery[key];
+  return { ...envelopeQuery, ...(subOp.query ?? {}), operation };
+}
+
+/**
+ * The table a batched sub-op addresses, from the same query ids the
+ * extract-ids middleware resolves for a direct request.
+ */
+async function resolveSubOpTableId(
+  context: NcContext,
+  query: Record<string, any>,
+): Promise<string | undefined> {
+  const tableId = query.tableId || query.modelId;
+  if (tableId) return tableId;
+
+  const viewId =
+    query.viewId ||
+    query.formViewId ||
+    query.gridViewId ||
+    query.kanbanViewId ||
+    query.galleryViewId ||
+    query.calendarViewId;
+  if (viewId) {
+    const view = await View.get(context, viewId);
+    return view?.fk_model_id ?? (await Model.get(context, viewId))?.id;
+  }
+
+  if (query.hookId) {
+    return (await Hook.get(context, query.hookId))?.fk_model_id;
+  }
+
+  // Same order as the middleware: these come before columnId, and a present
+  // key decides the table even when its lookup misses.
+  if (
+    query.rowColorConditionId ||
+    query.gridViewColumnId ||
+    query.formViewColumnId ||
+    query.galleryViewColumnId
+  ) {
+    let viewRef: { fk_view_id?: string } | null | undefined;
+    if (query.rowColorConditionId) {
+      viewRef = await RowColorCondition.getById(
+        context,
+        query.rowColorConditionId,
+      );
+    } else if (query.gridViewColumnId) {
+      viewRef = await GridViewColumn.get(context, query.gridViewColumnId);
+    } else if (query.formViewColumnId) {
+      viewRef = await FormViewColumn.get(context, query.formViewColumnId);
+    } else {
+      viewRef = await GalleryViewColumn.get(context, query.galleryViewColumnId);
+    }
+    return viewRef?.fk_view_id
+      ? (await View.get(context, viewRef.fk_view_id))?.fk_model_id
+      : undefined;
+  }
+
+  const columnId = query.columnId || query.buttonColId;
+  if (columnId) {
+    return (await Column.get(context, { colId: columnId }))?.fk_model_id;
+  }
+
+  // A present filter id decides the table even when its lookup misses.
+  if (query.filterId || query.filterParentId) {
+    const filter = await Filter.get(
+      context,
+      query.filterId || query.filterParentId,
+    );
+    return filter ? resolveFilterTableId(context, filter) : undefined;
+  }
+
+  if (query.sectionId) {
+    return (await ViewSection.get(context, query.sectionId))?.fk_model_id;
+  }
+
+  if (query.sortId) {
+    const sort = await Sort.get(context, query.sortId);
+    return sort?.fk_view_id
+      ? (await View.get(context, sort.fk_view_id))?.fk_model_id
+      : undefined;
+  }
+
+  return undefined;
+}
+
+export interface BatchSubOp {
   operation: string;
   query?: Record<string, any>;
   payload?: any;

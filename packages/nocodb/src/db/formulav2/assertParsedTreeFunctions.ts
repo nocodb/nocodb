@@ -1,4 +1,4 @@
-import { formulas, JSEPNode } from 'nocodb-sdk';
+import { formulaJsep, formulas, JSEPNode } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { getMappedFunctionNames } from '~/db/mapFunctionName';
 
@@ -34,6 +34,15 @@ function getAllowedFunctionNames(): Set<string> {
   return set;
 }
 
+// `=` is the builder's in-place rewrite of `==`, persisted with the tree.
+const allowedBinaryOperators = new Set<string>([
+  ...Object.keys(formulaJsep.binary_ops),
+  '=',
+]);
+const allowedUnaryOperators = new Set<string>(
+  Object.keys(formulaJsep.unary_ops),
+);
+
 export function assertParsedTreeFunctions(node: unknown): void {
   if (!node || typeof node !== 'object') return;
 
@@ -52,6 +61,21 @@ export function assertParsedTreeFunctions(node: unknown): void {
     if (!getAllowedFunctionNames().has(calleeName)) {
       NcError.formulaError(`Function ${calleeName} is not available`);
     }
+  }
+
+  if (
+    (record.type === JSEPNode.BINARY_EXP &&
+      !(
+        typeof record.operator === 'string' &&
+        allowedBinaryOperators.has(record.operator)
+      )) ||
+    (record.type === JSEPNode.UNARY_EXP &&
+      !(
+        typeof record.operator === 'string' &&
+        allowedUnaryOperators.has(record.operator)
+      ))
+  ) {
+    NcError.formulaError('Invalid operator in formula');
   }
 
   for (const key of Object.keys(record)) {

@@ -1,4 +1,5 @@
-import type { McpTokenPermissionsJson } from 'nocodb-sdk'
+import { ApiTokenPermissionLevel } from 'nocodb-sdk'
+import type { ApiTokenScopeEntry, McpTokenPermissionsJson } from 'nocodb-sdk'
 import type { SupportedDocsType } from '~/lib/types'
 
 /**
@@ -20,6 +21,20 @@ export function parseMcpTokenPermissions(token: {
   } catch {
     return null
   }
+}
+
+/**
+ * The widest level a category-shaped grant (no `tools`) holds. NONE means the
+ * MCP guard refuses every call but the always-allowed ones.
+ */
+export function mcpGrantCategoryLevel(scopes: ApiTokenScopeEntry[]): ApiTokenPermissionLevel {
+  const levels = scopes.flatMap((scope) => Object.values(scope.permissions ?? {}))
+
+  return (
+    [ApiTokenPermissionLevel.DELETE, ApiTokenPermissionLevel.WRITE, ApiTokenPermissionLevel.READ].find((level) =>
+      levels.includes(level),
+    ) ?? ApiTokenPermissionLevel.NONE
+  )
 }
 
 /** Setup docs offered next to a connection's client config. */

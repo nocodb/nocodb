@@ -87,5 +87,18 @@ module.exports = {
     'no-empty': 'off',
     '@typescript-eslint/no-empty-function': 'off',
     '@typescript-eslint/consistent-type-imports': 'warn',
+    '@typescript-eslint/no-restricted-imports': [
+      'error',
+      {
+        paths: [
+          {
+            name: 'isomorphic-dompurify',
+            message:
+              'Loads jsdom at boot; use getDOMPurify() from ~/helpers/domPurify.',
+            allowTypeImports: true,
+          },
+        ],
+      },
+    ],
   },
 };

@@ -89,8 +89,13 @@ export class ColumnsV3Controller {
   async columnGet(
     @TenantContext() context: NcContext,
     @Param('columnId') columnId: string,
+    @Req() req: NcRequest,
   ) {
-    return await this.columnsV3Service.columnGet(context, { columnId });
+    return await this.columnsV3Service.columnGet(context, {
+      columnId,
+      // `linkFilterList` refuses API tokens, so this read does too.
+      linkFilterFor: { user: req.user, viaApiToken: !!req.user?.is_api_token },
+    });
   }
 
   @Post([`${PREFIX_APIV3_METABASE}/fields/:columnId/options`])

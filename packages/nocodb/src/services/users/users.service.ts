@@ -37,6 +37,7 @@ import { isTokenExpired } from '~/helpers/isTokenExpired';
 import { withSignupClaim } from '~/helpers/signupClaim';
 import { BasesService } from '~/services/bases.service';
 import { extractProps } from '~/helpers/extractProps';
+import { cleanDisplayName, displayNameError } from '~/helpers/displayName';
 import deepClone from '~/helpers/deepClone';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
@@ -123,6 +124,14 @@ export class UsersService {
       'is_new_user',
       'meta',
     ]);
+
+    if (typeof updateObj.display_name === 'string') {
+      updateObj.display_name = cleanDisplayName(updateObj.display_name);
+      const error =
+        updateObj.display_name !== oldUser?.display_name &&
+        displayNameError(updateObj.display_name);
+      if (error) NcError.badRequest(error);
+    }
 
     await assertMetaIconOwned(
       { workspace_id: RootScopes.ROOT, base_id: RootScopes.ROOT },
@@ -603,7 +612,8 @@ export class UsersService {
 
     if (user) {
       if (token) {
-        if (token !== user.invite_token) {
+        // A completed account never redeems a token; any sign-in clears it (see login).
+        if (token !== user.invite_token || user.password) {
           NcError.badRequest(`Invalid invite url`);
         } else if (isTokenExpired(user.invite_token_expires)) {
           NcError.badRequest(
@@ -711,6 +721,14 @@ export class UsersService {
     // Reject at signin so a blocked user gets a clear failure instead of a
     // successful login followed by 401s on every subsequent request.
     User.assertNotBlocked(user);
+
+    // Signing in by any provider completes signup, so the invite can no longer set a password.
+    if (user.id && (await User.get(user.id))?.invite_token) {
+      await User.update(user.id, {
+        invite_token: null,
+        invite_token_expires: null,
+      });
+    }
 
     this.appHooksService.emit(AppEvents.USER_SIGNIN, {
       user,

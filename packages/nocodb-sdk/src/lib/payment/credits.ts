@@ -291,6 +291,13 @@ export type CreditLedgerReasonType =
       accrued: number;
       carried_consumed: number;
     }
+  /** The plan's allowance went up; the running period gets the difference. */
+  | {
+      kind: 'allowance_increase';
+      rate: number;
+      per_seat?: number;
+      seats?: number;
+    }
   /** Closed because a re-priced allowance replaced it (pairs with a reprice). */
   | { kind: 'superseded' }
   /** Plan allowance lapsed with the billing period. */

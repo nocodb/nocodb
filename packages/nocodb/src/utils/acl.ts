@@ -36,6 +36,7 @@ export const permissionScopes = {
 
     'oAuthAuthorizationList',
     'oAuthAuthorizationRevoke',
+    'oAuthAuthorizationUpdate',
     'oAuthClientRegenerateSecret',
 
     // User (SUPER_ADMIN only via '*')
@@ -398,6 +399,7 @@ const rolePermissions:
       oAuthClientGet: true,
       oAuthAuthorizationList: true,
       oAuthAuthorizationRevoke: true,
+      oAuthAuthorizationUpdate: true,
       oAuthClientRegenerateSecret: true,
 
       mcpRootList: true,
@@ -689,6 +691,7 @@ const rolePermissions:
   [ProjectRoles.CREATOR]: {
     exclude: {
       baseDelete: true,
+      baseDeletePreview: true,
       migrateBase: true,
     },
   },
@@ -1117,6 +1120,7 @@ const permissionDescriptions: Record<string, string> = {
 
   createBase: 'create a new base',
   baseDelete: 'delete a base',
+  baseDeletePreview: 'preview what deleting a base removes',
   sourceCreate: 'create a new source',
 
   userInvite: 'invite a user',
@@ -1133,6 +1137,7 @@ const permissionDescriptions: Record<string, string> = {
   mcpRootCreate: 'create an MCP connection with explicit scopes',
   mcpRootUpdate: 'edit or regenerate one of your MCP connections',
   mcpRootDelete: 'delete one of your MCP connections',
+  oAuthAuthorizationUpdate: 'change what one of your AI apps may call',
   mcpList: 'view list of MCP tokens',
   mcpCreate: 'create a new MCP token',
   mcpUpdate: 'update an MCP token',

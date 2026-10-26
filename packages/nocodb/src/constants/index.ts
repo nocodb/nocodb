@@ -12,6 +12,14 @@ export const NC_WEB_ARTIFACT_MAX_SIZE =
   +process.env['NC_WEB_ARTIFACT_MAX_SIZE'] || 20 * 1024 * 1024; // 20 MB, matches the attachment cap
 export const NC_DATA_IMPORT_FILE_SIZE =
   +process.env['NC_DATA_IMPORT_FILE_SIZE'] || 100 * 1024 * 1024; // 100 MB
+// xlsx parts exceljs holds in memory: everything but worksheet XML (e.g. sharedStrings)
+export const NC_DATA_IMPORT_XLSX_MAX_PART_SIZE =
+  +process.env['NC_DATA_IMPORT_XLSX_MAX_PART_SIZE'] ||
+  Math.max(200 * 1024 * 1024, 2 * NC_DATA_IMPORT_FILE_SIZE); // 200 MB at the default file size
+// whole unzipped workbook; worksheet XML is streamed, so this one is generous
+export const NC_DATA_IMPORT_XLSX_MAX_UNZIPPED_SIZE =
+  +process.env['NC_DATA_IMPORT_XLSX_MAX_UNZIPPED_SIZE'] ||
+  Math.max(1024 * 1024 * 1024, 30 * NC_DATA_IMPORT_FILE_SIZE); // 3 GB at the default file size
 export const NC_MAX_ATTACHMENTS_ALLOWED =
   +process.env['NC_MAX_ATTACHMENTS_ALLOWED'] || 10;
 export const NC_REFRESH_TOKEN_EXP_IN_DAYS =

@@ -16,7 +16,10 @@ import queries from './mysql.queries';
 import fakerFunctionList from './fakerFunctionList';
 import * as findDataType from './findDataTypeMapping';
 import deepClone from '~/helpers/deepClone';
-import { sanitiseDataTypePrecision } from '~/helpers/sqlSanitize';
+import {
+  mysqlEnumListToDtxp,
+  sanitiseDataTypePrecision,
+} from '~/helpers/sqlSanitize';
 
 const log = new Debug('MysqlClient');
 const evt = new Emit();
@@ -709,6 +712,15 @@ class MysqlClient extends KnexClient {
               column.ct.lastIndexOf('(') + 1,
               column.ct.lastIndexOf(')'),
             );
+            if (column.dt === 'enum' || column.dt === 'set') {
+              // Option values may contain parentheses.
+              column.dtxp = mysqlEnumListToDtxp(
+                column.ct.substring(
+                  column.ct.indexOf('(') + 1,
+                  column.ct.lastIndexOf(')'),
+                ),
+              );
+            }
             column.dtxs = response[0][i].ns;
           } else {
             column.dtxp =
@@ -2688,7 +2700,9 @@ class MysqlClient extends KnexClient {
     }
     if (!n.dt.endsWith('text')) {
       query +=
-        n.dtxp && n.dtxp !== ' ' ? `(${sanitiseDataTypePrecision(n.dtxp)}` : '';
+        n.dtxp && n.dtxp !== ' '
+          ? `(${sanitiseDataTypePrecision(n.dtxp, 'mysql2')}`
+          : '';
       query += scale ? `,${scale}` : '';
       query += n.dtxp && n.dtxp !== ' ' ? ')' : '';
     }

@@ -19,6 +19,7 @@ import { assertNotLockedViewOnLaneProduction } from '~/helpers/environmentGuards
 import { Column, FormViewColumn, View } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/ncError';
+import { assertViewConfigEditable } from '~/helpers/viewLockHelpers';
 import Noco from '~/Noco';
 import { NcBaseError } from '~/helpers/catchError';
 
@@ -71,6 +72,7 @@ export class FormColumnsService {
       false,
       ncMeta,
     );
+    assertViewConfigEditable(context, view, param.req);
 
     const column = await Column.get(
       context,
@@ -182,6 +184,7 @@ export class FormColumnsService {
     if (!view) {
       NcError.get(context).viewNotFound(param.formViewId);
     }
+    assertViewConfigEditable(context, view, param.req);
 
     // Validate max fields per row against the final projected state —
     // updates may move fields in/out of rows, so compute counts after apply.

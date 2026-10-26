@@ -75,6 +75,7 @@ const onDelete = async () => {
           {{ base.title }}
         </div>
       </div>
+      <DlgBaseDeleteCrossBaseLinks v-if="isEeUI && base" :base="base" />
     </template>
   </GeneralDeleteModal>
 </template>

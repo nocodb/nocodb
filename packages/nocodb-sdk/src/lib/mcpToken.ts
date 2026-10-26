@@ -32,6 +32,28 @@ export interface McpTokenStoredPermissions {
    * was just told to create cannot build anything.
    */
   created_bases?: string[];
+  /**
+   * Destructive or side-effecting tools the owner switched on for this
+   * credential. Never implied by `tools`, nor by a missing `tools`: a tool in
+   * `MCP_OPT_IN_TOOLS` registers only when named here.
+   */
+  opt_in_tools?: McpOptInTool[];
+}
+
+/**
+ * Tools no credential gets by default — including a legacy one, or one without
+ * a `tools` allowlist. Each is switched on per connection by its owner.
+ */
+export const MCP_OPT_IN_TOOLS = [
+  'deleteBase',
+  'executeWorkflow',
+  'testHook',
+] as const;
+
+export type McpOptInTool = (typeof MCP_OPT_IN_TOOLS)[number];
+
+export function isMcpOptInTool(name: string): name is McpOptInTool {
+  return (MCP_OPT_IN_TOOLS as readonly string[]).includes(name);
 }
 
 /** The same column read as a scoped credential — `scopes` present. */
@@ -75,6 +97,8 @@ export interface McpToolCatalogEntry {
   section: McpToolSection;
   /** What the tool does, as its registration tells the MCP client. */
   description?: string;
+  /** In `MCP_OPT_IN_TOOLS`: switched on through `opt_in_tools`, not `tools`. */
+  opt_in?: boolean;
 }
 
 /** The header an MCP client sends its credential in. */

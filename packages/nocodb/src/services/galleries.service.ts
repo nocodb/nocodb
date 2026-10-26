@@ -17,6 +17,7 @@ import { validatePayload } from '~/helpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
 import { assertNotLaneInstance } from '~/helpers/environmentGuards';
 import { NcError } from '~/helpers/catchError';
+import { assertViewConfigEditable } from '~/helpers/viewLockHelpers';
 import { claimObjectTitle } from '~/helpers/customObjects';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
@@ -190,6 +191,7 @@ export class GalleriesService {
     if (!view) {
       NcError.get(context).viewNotFound(param.galleryViewId);
     }
+    assertViewConfigEditable(context, view, param.req);
 
     const viewWebhookManager =
       param.viewWebhookManager ??

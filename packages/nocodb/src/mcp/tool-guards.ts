@@ -1,7 +1,27 @@
+import { extractRolesObj } from 'nocodb-sdk';
 import type { NcContext, UserType } from 'nocodb-sdk';
 import { Column, Comment, Hook, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
+import {
+  hasModelRoleVisibilityAccess,
+  hasTableVisibilityAccess,
+} from '~/helpers/tableHelpers';
+
+/** Both table-visibility rules: the TABLE_VISIBILITY permission and UI ACL. */
+export async function isTableVisible(
+  context: NcContext,
+  tableId: string,
+  user: (UserType & { base_roles?: Record<string, boolean> }) | undefined,
+): Promise<boolean> {
+  return (
+    (await hasTableVisibilityAccess(context, tableId, user as any)) &&
+    (await hasModelRoleVisibilityAccess(
+      context,
+      tableId,
+      extractRolesObj(user?.base_roles),
+    ))
+  );
+}
 
 /**
  * MCP tools receive `tableId` in the JSON-RPC body, so they never pass through
@@ -15,9 +35,9 @@ import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 export async function assertTableVisible(
   context: NcContext,
   tableId: string,
-  user: UserType | undefined,
+  user: (UserType & { base_roles?: Record<string, boolean> }) | undefined,
 ): Promise<void> {
-  if (!(await hasTableVisibilityAccess(context, tableId, user as any))) {
+  if (!(await isTableVisible(context, tableId, user))) {
     NcError.get(context).genericNotFound('Table', tableId);
   }
 }

@@ -426,6 +426,7 @@ export interface IBaseModelSqlV2 {
    * that need to run outside the current transaction context.
    */
   getNonTransactionalClone(): IBaseModelSqlV2;
+  getNonPublicClone(): IBaseModelSqlV2;
 
   now(): string;
   schema?: string;

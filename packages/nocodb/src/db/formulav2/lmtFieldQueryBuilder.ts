@@ -23,7 +23,7 @@ export function lmtUtcText(baseModel: IBaseModelSqlV2, expr: string): string {
   // the ::timestamp cast pins the TO_CHAR overload — the expression degrades to
   // a bare NULL when no tracked ids survive, and to_char(unknown, unknown) is
   // ambiguous in pg
-  return `TO_CHAR((${expr})::timestamp, 'YYYY-MM-DD HH24:MI:SS"+00:00"')`;
+  return `TO_CHAR((${expr})::timestamp, 'YYYY-MM-DD HH24:MI:SS.MS"+00:00"')`;
 }
 
 /**

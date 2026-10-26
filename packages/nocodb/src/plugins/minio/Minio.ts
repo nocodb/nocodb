@@ -318,31 +318,32 @@ export default class Minio implements IStorageAdapterV2 {
     // Minio does not support glob so remove *
     globPattern = globPattern.replace(/\*/g, '');
 
-    const stream = new Readable({
-      read() {},
-    });
+    const objectStream = this.minioClient.listObjectsV2(
+      this.input.bucket,
+      globPattern,
+      true,
+    );
 
-    stream.setEncoding('utf8');
-
-    const listObjects = async () => {
-      const objectStream = this.minioClient.listObjectsV2(
-        this.input.bucket,
-        globPattern,
-        true,
-      );
-
+    // pull-based, so pages are fetched as the consumer reads
+    async function* listNames() {
       for await (const item of objectStream) {
-        stream.push(item.name);
+        yield item.name;
       }
+    }
 
-      stream.push(null);
-    };
+    return Readable.from(listNames());
+  }
 
-    listObjects().catch((error) => {
-      stream.destroy(error);
-    });
-
-    return stream;
+  public async fileDeleteBatch(keys: string[]): Promise<number> {
+    try {
+      const results = await this.minioClient.removeObjects(
+        this.input.bucket,
+        keys,
+      );
+      return keys.length - results.filter((r) => r?.Error).length;
+    } catch (error) {
+      NcError._.storageFileDeleteError(error?.message);
+    }
   }
 
   getUploadedPath(path: string): { path?: string; url?: string } {

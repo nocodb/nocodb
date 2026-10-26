@@ -320,8 +320,7 @@
       "audit": "Workspace Audit",
       "ltarCustomDisplayValue": "Custom Display Value Field",
       "publicDocShare": "Public Document Sharing",
-      "agents": "Agents",
-      "appFactory": "App Factory"
+      "agents": "Agents"
     },
     "toAccessCopyViewConfigFromAnotherView": "to access copy view configuration from another view feature.",
     "toAccessReassignPersonalView": "to access re-assign personal view feature.",
@@ -332,9 +331,7 @@
     "upgradeToUsePerUserCredentials": "Upgrade to use per-user credentials",
     "upgradeToUsePerUserCredentialsSubtitle": "Your {activePlan} plan uses shared credentials only. Upgrade to {plan} to let each member connect their own account.",
     "upgradeToUseCustomEnvironments": "Upgrade to create custom environments",
-    "upgradeToUseCustomEnvironmentsSubtitle": "Custom environments aren't available on your {activePlan} plan. Upgrade to {plan} to create environments beyond Production and Staging.",
-    "upgradeToUseAppFactory": "Upgrade to use the App Factory",
-    "upgradeToUseAppFactorySubtitle": "Upgrade to the {plan} plan to dispatch coding agents against your connected repositories."
+    "upgradeToUseCustomEnvironmentsSubtitle": "Custom environments aren't available on your {activePlan} plan. Upgrade to {plan} to create environments beyond Production and Staging."
   },
   "general": {
     "value": "Value",
@@ -1848,6 +1845,8 @@
       "buildWithAi": "Build with AI",
       "startBlank": "Start blank",
       "browseTemplates": "Browse templates",
+      "templatesTitle": "Or start from a template",
+      "allTemplates": "All templates",
       "kinds": {
         "app": {
           "label": "App",
@@ -3031,6 +3030,10 @@
       "allowShown": "Allow shown",
       "clearShown": "Clear shown",
       "shownOf": "{shown} of {total} shown",
+      "optIn": {
+        "title": "Opt-in tools",
+        "description": "Tools that delete for good or act outside NocoDB, such as running an automation or firing a webhook. A connection never gets them unless you switch them on here."
+      },
       "sections": {
         "account": "Account & workspaces",
         "accountDesc": "Who you are, your workspaces, the projects in them, and links into the app",
@@ -3069,7 +3072,7 @@
       "webhooks": "Webhooks",
       "webhooksDesc": "Manage webhook triggers and logs",
       "base": "Project",
-      "baseDesc": "Project settings, sources, and jobs",
+      "baseDesc": "Project settings, sources, jobs, documents and their comments",
       "users": "Users",
       "usersDesc": "Project members, workspace members, and invitations",
       "workflows": "Workflows",
@@ -3666,7 +3669,7 @@
     "selectOneOrMoreTeams": "Select one or more teams",
     "selectOneOrMoreMembers": "Select one or more members",
     "selectWorkspaceToDuplicateSharedBaseTo": "Select workspace to duplicate shared project to:",
-    "chooseWorkspaceToApplyTemplate": "Choose a workspace to apply this template",
+    "chooseWorkspaceToApplyTemplate": "Choose a workspace to use this template",
     "hideFieldHeader": "Hide field header",
     "showFieldHeader": "Show field header",
     "cellsSelected": "cells selected",
@@ -4344,11 +4347,13 @@
       "stepTables": "Create tables",
       "stepFields": "Add fields",
       "stepViews": "Set up views",
+      "stepRecords": "Add sample records",
       "stepInterfaces": "Lay out interfaces",
       "stepApp": "Assemble the app",
       "countTables": "{count} table | {count} tables",
       "countFields": "{count} field | {count} fields",
       "countViews": "{count} view | {count} views",
+      "countRecords": "{count} record | {count} records",
       "readyTitle": "Your {name} is ready",
       "readySubtitle": "Tables, views, and a working app.",
       "readyOpen": "Open your project",
@@ -5354,7 +5359,7 @@
       "syncInfo": "Pull data from an external app on a schedule. One-way.",
       "automations": "Automations",
       "aiSkills": "AI Skills",
-      "mcpServer": "MCP Server",
+      "nocodbMcp": "NocoDB MCP",
       "variables": "Variables",
       "auditLog": "Audit Log",
       "trashRetention": "Trash Retention",
@@ -5390,7 +5395,7 @@
         "members": "Who can open this project, and what they can do.",
         "permissions": "Who can view or edit each table, field and doc.",
         "apiTokens": "Tokens that let external apps read and write this project.",
-        "mcp": "Connect AI clients to this project over MCP.",
+        "mcp": "Let your AI tools work with this project, using your own access.",
         "integrations": "Connected accounts this project can use.",
         "classicAppMembers": "Who can use {app}. Invite people to the app, not the data underneath.",
         "automations": "Workflows that run on a trigger.",
@@ -5413,7 +5418,6 @@
     "factoryCommitOrPush": "Commit or push",
     "factoryCompareBranch": "Compare branch",
     "factoryTogglePanel": "Side panel",
-    "factoryAddTab": "Open a panel",
     "factoryCommitPushPrompt": "Commit the changes and push the branch.",
     "chatYesterday": "Yesterday",
     "chatCopyMessage": "Copy message",
@@ -5476,6 +5480,11 @@
     "factoryBootClone": "Cloning {repo}",
     "factoryBootContext": "Reading the project",
     "factoryBootReady": "Your machine is ready · {seconds}",
+    "factoryBootPartCpu": "CPU",
+    "factoryBootPartMemory": "Memory",
+    "factoryBootPartNetwork": "Network",
+    "factoryBootPartRepo": "Repository",
+    "factoryBootPartServices": "Services",
     "factoryDesktopViewOnly": "View only: only the person who started this session can control it",
     "factoryDesktopViewOnlyBadge": "View only",
     "planStepsDone": "{done} of {total} done",
@@ -6873,6 +6882,7 @@
     "manageConnections": "Manage connections for your integrations.",
     "manageAllConnections": "Manage all active and inactive connections across this project.",
     "invalidColumnConfiguration": "Invalid field configuration",
+    "invalidColumnSourceRemoved": "A field this depends on was removed or changed. Edit this field to fix it, or delete it.",
     "buttonTypeIsMissing": "Button type is missing",
     "invalidTheme": "Select a valid theme",
     "invalidColor": "Select a valid color",
@@ -7068,6 +7078,10 @@
       "migrating": "Migrating..."
     },
     "info": {
+      "baseDeleteRemovesCrossBaseLinks": "These link fields in other projects point into this project. Deleting it removes them.",
+      "baseDeleteHiddenCrossBaseLinks": "Link fields in projects you cannot access that are also removed: {count}",
+      "baseDeleteHiddenLockedCrossBaseLinks": "({count} of them in locked projects)",
+      "baseDeleteLinkInLockedBase": "In a locked project",
       "linkDynamicFilterNoMatchingField": "To use a dynamic condition, add a Link or Lookup field to {table} that points to {target}.",
       "linkDynamicFilterNoMatchingFieldGeneric": "To use a dynamic condition, add a Link or Lookup field to {table} that points to the same table as this field.",
       "attachmentsLimit": "Up to {count} files per email.",
@@ -7373,6 +7387,7 @@
       "mcpConnectionNeedsTools": "Allow at least one tool.",
       "mcpConnectionNeedsAccess": "Add at least one project, or all resources.",
       "mcpLegacyConnection": "Created before scopes existed, so it carries your own access to that one project. Delete it and create a new one to bound it.",
+      "mcpLegacyOptInTools": "Opt-in tools (deleteBase, executeWorkflow, testHook) need a per-tool connection. Create a new connection to use them.",
       "tokenCreatedSuccessfully": "Token created successfully",
       "tokenWontBeDisplayedAgain": "You won't be able to see it again.",
       "tokenUpdatedSuccessfully": "Token updated successfully",
@@ -8458,6 +8473,7 @@
       "entryAdjust": "Adjustment",
       "entryPlanChanged": "Plan changed",
       "entrySeatsChanged": "Seats changed",
+      "entryCreditsAdded": "Credits added",
       "planBalanceAfter": "Plan credits: {count}",
       "featureChat": "AI Chat",
       "featureSchema": "Schema generation",
@@ -8507,12 +8523,14 @@
         "planReprice": "Plan changed mid-period. Allowance updated to {rate} credits, adjusted for the time already used",
         "seatReprice": "Seats changed mid-period. Allowance updated to {seats} seat × {perSeat}, adjusted for the time already used | Seats changed mid-period. Allowance updated to {seats} seats × {perSeat} each, adjusted for the time already used",
         "seatRepriceFlat": "Seats changed mid-period. Allowance updated to {rate} credits, adjusted for the time already used",
+        "allowanceIncrease": "Your plan now includes {rate} credits a month. The difference was added for this period",
         "superseded": "Closed. Replaced by the updated allowance",
         "periodEnd": "Billing period ended. Unused plan credits don't carry over",
         "debtCarried": "Credits spent over the allowance couldn't be covered. They'll be deducted from upcoming credits",
         "debtSettled": "Deducted from new credits to settle earlier overspend",
         "overspendCharge": "Credits spent beyond the updated allowance. Collected from your remaining credits",
         "overspendNote": "{count} credits already spent over the new allowance are carried as debt, settled at period close",
+        "settledNote": "{count} credits went to settle earlier overspend",
         "rolloverEnd": "Top-up expired. Unused credits lapse {months} months after purchase",
         "topup": "Purchased a {count}-credit pack",
         "refund": "Purchase refunded. Credits removed",
@@ -9311,6 +9329,81 @@
       "tryBody": "Start a new chat and ask “List my NocoDB tools”.",
       "tokenText": "Tool only accepts a token?",
       "tokenButton": "Create an MCP token"
+    },
+    "pane": {
+      "tabApps": "AI apps",
+      "tabManual": "Manual connections",
+      "connectTitle": "Connect an AI app",
+      "recommended": "Recommended",
+      "connectBody": "Sign in with your NocoDB account. You choose exactly what it can see and change.",
+      "otherToolUrl": "Using another AI tool? Add",
+      "otherTool": "Other tool",
+      "copyValue": "Copy {label}",
+      "addTo": "Add NocoDB to {client}",
+      "signInTitle": "Sign in with NocoDB and authorize",
+      "waiting": "Waiting for {client} to sign in…",
+      "waitingHint": "This updates by itself as soon as you authorize.",
+      "connectedTitle": "{client} is connected",
+      "connectedBody": "It now shows in your AI apps.",
+      "connectedElsewhere": "It was authorized for other projects, so it isn’t listed here.",
+      "manageAccess": "Manage access",
+      "fallbackText": "Your AI tool can’t sign in with NocoDB?",
+      "fallbackLink": "Use a manual connection instead",
+      "appsTitle": "Your AI apps",
+      "appsHint": "Only visible to you",
+      "app": "App",
+      "lastSignedInAt": "Last signed in {time}",
+      "lastUsed": "Last used",
+      "lastUsedAt": "Last used {time}",
+      "canDelete": "Can delete data",
+      "toolsTitle": "Tools & permissions",
+      "neverMoreThanRole": "Never more than your own role in this project ({role}).",
+      "neverMoreThanAccess": "Never more than your own access to this project.",
+      "neverMoreThanOwnAccess": "Never more than your own access where it was authorized.",
+      "notEditable": "What this app can do was fixed when it signed in and can’t be changed here. Disconnect it and sign it in again to choose its tools.",
+      "disconnectBody": "Disconnects this app from this project. It has to sign in again to reconnect.",
+      "disconnectBodyWide": "Disconnects this app everywhere it was authorized, not only this project. It has to sign in again to reconnect.",
+      "disconnectBodyEverywhere": "Disconnects this app everywhere it was authorized. It has to sign in again to reconnect.",
+      "disconnectConfirm": "Disconnect {client}?",
+      "disconnectConfirmBody": "It loses access right away and has to sign in again to reconnect.",
+      "disconnected": "{client} disconnected",
+      "accessUpdated": "Access updated",
+      "manualTitle": "Your manual connections",
+      "manualBody": "For scripts, CI jobs and clients that can’t sign in with NocoDB.",
+      "manualNote": "Manual connections use a static API key. It works until you revoke it, and anyone with the config gets the same access. If your tool supports it, {link} instead.",
+      "manualNoteLink": "connect it as an AI app",
+      "field": {
+        "remoteServerUrl": "Remote MCP server URL",
+        "authentication": "Authentication",
+        "url": "URL",
+        "transport": "Transport"
+      },
+      "claude": {
+        "where": "In Claude, open Settings › Connectors and select Add custom connector. Fill in:",
+        "auth": "Select Connect next to NocoDB. Sign in with NocoDB, choose what Claude can access, then select Authorize."
+      },
+      "chatgpt": {
+        "where": "In ChatGPT, open Plugins, select Add, then Add custom MCP server. Fill in:",
+        "auth": "Select Create. ChatGPT opens NocoDB in a new window. Sign in, choose what it can access, then select Authorize."
+      },
+      "claudeCode": {
+        "auth": "In Claude Code, run /mcp, pick nocodb and choose Authenticate. In the browser, choose what it can access, then select Authorize."
+      },
+      "cursor": {
+        "where": "In Cursor, open Settings › MCP and select Add new MCP server. Fill in:",
+        "auth": "Select Connect next to nocodb in the MCP list. Sign in with NocoDB in the browser and select Authorize."
+      },
+      "codex": {
+        "auth": "Run the login command, sign in with NocoDB in the browser and select Authorize."
+      },
+      "windsurf": {
+        "where": "In Windsurf, open Settings › Cascade › MCP servers and select Add custom server. Fill in:",
+        "auth": "Select Connect next to nocodb. Sign in with NocoDB in the browser and select Authorize."
+      },
+      "other": {
+        "where": "Add a remote MCP server in your client with these details:",
+        "auth": "Start the connection from your client. It opens NocoDB in the browser, where you sign in, choose what the client can access and select Authorize."
+      }
     }
   }
 }

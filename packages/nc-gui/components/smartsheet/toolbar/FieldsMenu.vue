@@ -1019,6 +1019,7 @@ const onAddColumnDropdownVisibilityChange = () => {
             class="nc-fields-show-system-fields !px-2 !font-normal"
             size="xs"
             type="text"
+            :aria-pressed="showSystemField"
             @click="showSystemField = !showSystemField"
           >
             <GeneralIcon :icon="showSystemField ? 'eyeSlash' : 'eye'" class="!w-4 !h-4 mr-2" />

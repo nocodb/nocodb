@@ -206,6 +206,7 @@ export class JsonGeneralHandler extends GenericFieldHandler {
       baseModel?: IBaseModelSqlV2;
       context?: NcContext;
       metaService?: MetaService;
+      skipLengthLimit?: boolean;
     };
   }): Promise<{ value: any }> {
     if (ncIsUndefined(params.value) || ncIsNull(params.value)) {
@@ -215,7 +216,7 @@ export class JsonGeneralHandler extends GenericFieldHandler {
       (typeof params.value === 'string' && params.value.length) ??
       (typeof params.value === 'object' && JSON.stringify(params.value).length);
 
-    if (length > NC_MAX_TEXT_LENGTH) {
+    if (!params.options?.skipLengthLimit && length > NC_MAX_TEXT_LENGTH) {
       NcError._.valueLengthExceedLimit({
         column: params.column.title,
         type: params.column.uidt,

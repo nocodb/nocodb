@@ -23,6 +23,8 @@ export const useNotification = defineStore('notificationStore', () => {
 
   let timeOutId: number | null = null
 
+  let retryDelay = 0
+
   let cancelTokenSource: CancelTokenSource | null
 
   const pollNotificationsApiCall = async () => {
@@ -52,12 +54,14 @@ export const useNotification = defineStore('notificationStore', () => {
         unreadCount.value = unreadCount.value + 1
       }
 
+      retryDelay = 0
       timeOutId = setTimeout(pollNotifications, 0)
     } catch (e) {
       // If request is cancelled, do nothing
       if (axios.isCancel(e)) return
-      // If network error, retry after 2 seconds
-      timeOutId = setTimeout(pollNotifications, 2000)
+      // Back off on failure (401 / 429 / 5xx / network): 2s, doubling up to a minute
+      retryDelay = Math.min(Math.max(retryDelay * 2, 2000), 60000)
+      timeOutId = setTimeout(pollNotifications, retryDelay)
     }
   }
 

@@ -3,6 +3,7 @@ import { getTrueCircularReplacer } from 'nocodb-sdk';
 import type { OnModuleInit } from '@nestjs/common';
 import { QueueService } from '~/modules/jobs/fallback/fallback-queue.service';
 import {
+  DATA_EXPORT_CLEAN_UP_CRON,
   JobStatus,
   JobTypes,
   JobVersions,
@@ -17,15 +18,13 @@ export class JobsService implements OnModuleInit {
   constructor(private readonly fallbackQueueService: QueueService) {}
 
   async onModuleInit() {
-    // await this.fallbackQueueService.add(
-    //   JobTypes.DataExportCleanUp,
-    //   {},
-    //   {
-    //     jobId: JobTypes.DataExportCleanUp,
-    //     // run every 5 hours
-    //     repeat: { cron: '* * * * *' },
-    //   },
-    // );
+    await this.fallbackQueueService.add(
+      { jobName: JobTypes.DataExportCleanUp },
+      {
+        jobId: JobTypes.DataExportCleanUp,
+        repeat: { cron: DATA_EXPORT_CLEAN_UP_CRON },
+      },
+    );
 
     await this.add(JobTypes.InitMigrationJobs, {});
   }

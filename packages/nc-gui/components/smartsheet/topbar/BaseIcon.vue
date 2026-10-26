@@ -14,6 +14,8 @@ withDefaults(
 )
 
 const { base } = storeToRefs(useBase())
+
+const { projectIcon } = useCodeProjects()
 </script>
 
 <template>
@@ -21,7 +23,7 @@ const { base } = storeToRefs(useBase())
   <span class="relative inline-flex flex-none">
     <GeneralProjectIcon
       :color="parseProp(base?.meta).iconColor"
-      :icon="parseProp(base?.meta).icon"
+      :icon="projectIcon(base)"
       :managed-app="{
         managed_app_master: base?.managed_app_master,
         managed_app_id: base?.managed_app_id,

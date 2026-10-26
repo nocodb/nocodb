@@ -29,6 +29,7 @@ import Filter, { FILTER_STORED_BASE } from '~/models/Filter';
 import { getModelContext, setModelContext } from '~/helpers/modelContext';
 import { getAliasGenerator } from '~/utils';
 import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
+import { compilesStoredConditionWithEmails } from '~/helpers/accessSource';
 import {
   ncIsKnexRawOrRef,
   ncLikePatternForRef,
@@ -190,6 +191,20 @@ const parseConditionV2 = async (
   customWhereClause?,
   throwErrorIfInvalid = false,
 ): Promise<FilterOperationResult> => {
+  // A stored (view, RLS, link) condition and its subtree compile as for a
+  // signed-in user, so user formulas compare on emails (except in shared-base
+  // sessions that can edit; see compilesStoredConditionWithEmails).
+  if (
+    !Array.isArray(_filter) &&
+    (_filter as Filter)?.[FILTER_STORED_BASE] &&
+    compilesStoredConditionWithEmails(
+      baseModelSqlv2.context,
+      !!(_filter as Filter).fk_rls_policy_id,
+    )
+  ) {
+    baseModelSqlv2 = baseModelSqlv2.getNonPublicClone();
+  }
+
   const knex = baseModelSqlv2.dbDriver;
 
   const context = baseModelSqlv2.context;
@@ -990,10 +1005,15 @@ const parseConditionV2 = async (
               // guards against a non-string value reaching `.split` and passes
               // an array straight through (whereBetween already wants
               // [lower, upper]).
-              qb = qb.whereBetween(field, extractArray(val));
+              // with customWhereClause, `field` holds the bounds and `val` the column
+              qb = customWhereClause
+                ? qb.whereBetween(val, extractArray(genVal))
+                : qb.whereBetween(field, extractArray(val));
               break;
             case 'nbtw':
-              qb = qb.whereNotBetween(field, extractArray(val));
+              qb = customWhereClause
+                ? qb.whereNotBetween(val, extractArray(genVal))
+                : qb.whereNotBetween(field, extractArray(val));
               break;
             // `isWithin` is date-only (pastWeek/Month/Year/NumberOfDays and
             // nextWeek/Month/Year/NumberOfDays). DateTime/Date/CreatedTime/

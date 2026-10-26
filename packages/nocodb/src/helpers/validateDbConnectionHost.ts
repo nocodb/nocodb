@@ -50,66 +50,316 @@ export function validateDbConnectionSslPaths(ssl: unknown): void {
   }
 }
 
-/**
- * Pull the target host out of a connection config, whichever shape it arrives
- * in: `{ connection: { host } }`, a string DSN (`postgres://u:p@host/db`), a
- * `connectionString`, or a nested `{ connection: { connection: … } }`.
- *
- * Callers used to read `config.connection?.host` directly, which is `undefined`
- * for every non-object form — so a DSN reached the driver unvalidated.
- */
-export function extractDbConnectionHosts(config: unknown): string[] {
-  const hosts: string[] = [];
+/** pg-connection-string reads these DSN params from disk when it builds the client. */
+const DSN_SSL_FILE_PARAMS = ['sslrootcert', 'sslcert', 'sslkey'] as const;
+
+/** Every connection-string shape knex and the drivers accept. */
+function collectDsnStrings(config: unknown): string[] {
+  const dsns: string[] = [];
 
   const visit = (node: unknown, depth: number) => {
     if (!node || depth > 3) return;
-
     if (typeof node === 'string') {
-      const host = hostFromDsn(node);
-      if (host) hosts.push(host);
+      dsns.push(node);
       return;
     }
     if (typeof node !== 'object') return;
 
     const n = node as Record<string, unknown>;
-    if (typeof n.host === 'string') hosts.push(n.host);
-    if (typeof n.connectionString === 'string')
-      visit(n.connectionString, depth);
+    if (typeof n.connectionString === 'string') dsns.push(n.connectionString);
+    if (typeof n.uri === 'string') dsns.push(n.uri);
     if (n.connection) visit(n.connection, depth + 1);
   };
 
   visit((config as any)?.connection, 0);
 
-  return hosts;
+  return dsns;
+}
+
+function parseDsn(dsn: string): URL | undefined {
+  const trimmed = dsn.trim().replace(/^jdbc:/i, '');
+  if (!/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return undefined;
+
+  try {
+    return new URL(trimmed);
+  } catch {
+    return undefined;
+  }
+}
+
+/** True if a connection string names a certificate file for the driver to read. */
+export function hasDsnSslFilePath(config: unknown): boolean {
+  return collectDsnStrings(config).some((dsn) => {
+    const url = parseDsn(dsn);
+    return !!url && DSN_SSL_FILE_PARAMS.some((p) => !!url.searchParams.get(p));
+  });
+}
+
+/** {@link validateDbConnectionSslPaths} for the certificate params of a DSN. */
+export function validateDbConnectionDsnSslPaths(config: unknown): void {
+  if (!isCloud && process.env.NC_DISABLE_DB_SSL_FILE_PATHS !== 'true') return;
+
+  if (hasDsnSslFilePath(config)) {
+    NcError.badRequest(
+      'SSL certificate file paths are not allowed; provide the certificate contents instead',
+    );
+  }
+}
+
+interface DbConnectionTargets {
+  hosts: string[];
+  sockets: string[];
+  invalid: boolean;
+}
+
+// Snowflake's own account/region check (snowflake-sdk `isCorrectSubdomain`).
+const SNOWFLAKE_SUBDOMAIN = /^\w+([.-]\w+)*$/;
+
+/**
+ * Every network target the selected client may dial, from whatever shape the
+ * config uses. Unknown clients get the generic fields, so a superset is checked.
+ */
+function collectDbConnectionTargets(config: unknown): DbConnectionTargets {
+  const targets: DbConnectionTargets = {
+    hosts: [],
+    sockets: [],
+    invalid: false,
+  };
+  const client = (config as any)?.client;
+
+  const addHost = (value: unknown) => {
+    if (typeof value !== 'string') return;
+    const v = value.trim();
+    if (!v) return;
+    if (v.startsWith('/')) targets.sockets.push(v);
+    else targets.hosts.push(v);
+  };
+
+  const addSocket = (value: unknown) => {
+    if (typeof value === 'string' && value.trim())
+      targets.sockets.push(value.trim());
+  };
+
+  const addUrlHost = (value: unknown) => {
+    if (typeof value !== 'string' || !value.trim()) return;
+    const url = parseDsn(value);
+    if (url) addHost(url.hostname.replace(/^\[|\]$/g, ''));
+    else targets.invalid = true;
+  };
+
+  // pg-connection-string copies every query param onto the config and fills
+  // `host` from the URL only when no `host`/`hostaddr` param is present, so a
+  // param wins; `hostaddr` is the literal address pg dials. mysql/mssql take
+  // `socketPath`/`server` the same way. No host means the driver default.
+  const addDsn = (dsn: string) => {
+    const trimmed = dsn.trim();
+    if (trimmed.startsWith('/')) return addSocket(trimmed);
+
+    // pg-connection-string still parses what URL rejects (an empty host, no
+    // scheme) and dials its `host` param, so fail closed.
+    const url = parseDsn(trimmed);
+    if (!url) {
+      targets.invalid = true;
+      return;
+    }
+    if (url.protocol === 'socket:') return addSocket(url.pathname || trimmed);
+
+    const params = url.searchParams;
+    let hostname = url.hostname.replace(/^\[|\]$/g, '');
+    try {
+      hostname = decodeURIComponent(hostname);
+    } catch {
+      targets.invalid = true;
+    }
+    addHost(
+      params.get('hostaddr') ?? params.get('host') ?? (hostname || 'localhost'),
+    );
+    addHost(params.get('server'));
+    addSocket(params.get('socketPath'));
+  };
+
+  // EZConnect (`[tcp[s]://]host[:port][/service][?https_proxy=…]`, comma lists)
+  // or a connect descriptor with one `(HOST=…)` per address.
+  const addOracleConnectString = (value: unknown) => {
+    if (typeof value !== 'string' || !value.trim()) return;
+    const s = value.trim();
+
+    if (s.includes('(')) {
+      for (const m of s.matchAll(
+        /\(\s*(?:HOST|HTTPS_PROXY)\s*=\s*([^)\s]+)\s*\)/gi,
+      )) {
+        addHost(m[1]);
+      }
+      return;
+    }
+
+    const rest = s.replace(/^[a-z]+:\/\//i, '').replace(/^\/\//, '');
+    const [hostList, query] = rest.split('?', 2);
+    for (const entry of hostList.split('/')[0].split(',')) {
+      const e = entry.trim();
+      // An unbracketed IPv6 literal carries no port.
+      if (isIP(e)) {
+        addHost(e);
+        continue;
+      }
+      const m = e.match(/^\[([^\]]+)\]|^([^:]+)/);
+      addHost(m?.[1] ?? m?.[2]);
+    }
+    if (query) addHost(new URLSearchParams(query).get('https_proxy'));
+  };
+
+  const visit = (node: unknown, depth: number) => {
+    if (!node || depth > 3) return;
+    if (typeof node === 'string') return addDsn(node);
+    if (typeof node !== 'object') return;
+
+    const n = node as Record<string, any>;
+
+    if (client === 'oracledb') {
+      addOracleConnectString(n.connectString);
+      addOracleConnectString(n.host);
+    } else {
+      addHost(n.host);
+    }
+    addHost(n.server);
+    addHost(n.options?.server);
+    addSocket(n.socketPath);
+    if (typeof n.connectionString === 'string') addDsn(n.connectionString);
+    if (typeof n.uri === 'string') addDsn(n.uri);
+
+    if (client === 'snowflake') {
+      // Without host/accessUrl the SDK dials `<account>.snowflakecomputing.*`.
+      for (const key of ['account', 'region']) {
+        if (
+          n[key] != null &&
+          (typeof n[key] !== 'string' || !SNOWFLAKE_SUBDOMAIN.test(n[key]))
+        ) {
+          targets.invalid = true;
+        }
+      }
+      addUrlHost(n.accessUrl);
+      addHost(n.proxyHost);
+    }
+    if (client === 'databricks') addHost(n.proxy?.host);
+
+    if (n.connection) visit(n.connection, depth + 1);
+  };
+
+  visit((config as any)?.connection, 0);
+
+  return targets;
 }
 
 /**
- * Effective network host of a DB URL — the one the driver actually dials — or
- * undefined when it isn't parseable as one.
- *
- * `pg-connection-string` copies every query param onto the config, then fills
- * `host` from the URL ONLY when no `host`/`hostaddr` param is present (verified
- * against the vendored 2.9.0 copy). So a `?host=`/`?hostaddr=` param WINS over
- * the URL host: `postgres://public.example.com/db?host=169.254.169.254` reaches
- * the URL host through validation while pg connects to the param. `hostaddr` is
- * the literal address pg dials, so it outranks `host`. A comma-separated
- * failover list is left intact for {@link validateDbConnectionHost} to split.
+ * Pull the target hosts out of a connection config, whichever shape it arrives
+ * in: `{ connection: { host } }`, a string DSN, a `connectionString`/`uri`, a
+ * nested `{ connection: { connection: … } }`, and the client-specific fields
+ * (mssql `server`, oracle `connectString`, snowflake/databricks hosts).
  */
-function hostFromDsn(dsn: string): string | undefined {
-  const trimmed = dsn.trim().replace(/^jdbc:/i, '');
-  if (!trimmed.includes('://')) return undefined;
+export function extractDbConnectionHosts(config: unknown): string[] {
+  return collectDbConnectionTargets(config).hosts;
+}
 
-  try {
-    const url = new URL(trimmed);
-    const paramHost =
-      url.searchParams.get('hostaddr') ?? url.searchParams.get('host');
-    // `hostname` (not `host`) drops the port. It keeps the IPv6 brackets for a
-    // non-special protocol like `postgres:`, and `isIP('[::1]')` is 0 — a
-    // bracketed literal would skip the range check and fall through to DNS.
-    const hostname = paramHost ?? url.hostname;
-    return hostname.replace(/^\[|\]$/g, '') || undefined;
-  } catch {
-    return undefined;
+// Connection fields that choose where a client connects.
+const DB_TARGET_PATHS = [
+  'host',
+  'hostaddr',
+  'port',
+  'server',
+  'options.server',
+  'options.instanceName',
+  'socketPath',
+  'connectString',
+  'connectionString',
+  'uri',
+  'account',
+  'region',
+  'accessUrl',
+  'proxyHost',
+  'proxyPort',
+  'proxy.host',
+  'proxy.port',
+];
+
+/** The target fields a config sets, flattened to comparable strings. */
+export function dbTargetFields(config: unknown): Record<string, string> {
+  const fields: Record<string, string> = {};
+
+  const visit = (node: unknown, prefix: string, depth: number) => {
+    if (node === undefined || node === null || node === '' || depth > 3) return;
+    if (typeof node !== 'object') {
+      fields[`${prefix}(dsn)`] = String(node);
+      return;
+    }
+
+    for (const path of DB_TARGET_PATHS) {
+      const value = path.split('.').reduce<any>((obj, key) => obj?.[key], node);
+      if (value === undefined || value === null || value === '') continue;
+      fields[prefix + path] =
+        typeof value === 'object' ? JSON.stringify(value) : String(value);
+    }
+    visit((node as any).connection, `${prefix}connection.`, depth + 1);
+  };
+
+  visit((config as any)?.connection, '', 0);
+
+  return fields;
+}
+
+/** True when `incoming` would connect somewhere other than `stored`. */
+export function hasDbTargetChanged(
+  stored: unknown,
+  incoming: unknown,
+): boolean {
+  const client = (incoming as any)?.client ?? (stored as any)?.client;
+  if (client !== (stored as any)?.client) return true;
+
+  const before = dbTargetFields(stored);
+  const after = dbTargetFields(incoming);
+  return [...new Set([...Object.keys(before), ...Object.keys(after)])].some(
+    (key) => before[key] !== after[key],
+  );
+}
+
+/**
+ * {@link validateDbConnectionTargets} for an update: an unchanged target is not
+ * re-checked, so a rename or flag toggle still saves when the stored host no
+ * longer passes (e.g. legacy source configs that are never dialed).
+ */
+export async function validateChangedDbConnectionTargets(
+  incoming: unknown,
+  stored: unknown,
+): Promise<void> {
+  if (stored && !hasDbTargetChanged(stored, incoming)) return;
+  await validateDbConnectionTargets(incoming);
+}
+
+/**
+ * Pre-flight for every external-DB write and connection test: reject internal
+ * hosts in every field the driver dials, unix sockets, and (by policy) DSN
+ * certificate files. sqlite is left to the filename guard.
+ */
+export async function validateDbConnectionTargets(
+  config: unknown,
+): Promise<void> {
+  validateDbConnectionDsnSslPaths(config);
+
+  if (!isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS }))
+    return;
+
+  const client = (config as any)?.client;
+  if (typeof client === 'string' && client.includes('sqlite')) return;
+
+  const targets = collectDbConnectionTargets(config);
+
+  if (targets.invalid) {
+    NcError.badRequest('Invalid database connection configuration');
+  }
+  if (targets.sockets.length) {
+    NcError.badRequest('Connection to internal hosts is not allowed');
+  }
+  for (const host of targets.hosts) {
+    await validateDbConnectionHost(host);
   }
 }
 
@@ -144,6 +394,7 @@ export async function validateDbConnectionHost(host: unknown): Promise<void> {
 
   const trimmed = hostList[0];
   if (
+    trimmed.startsWith('/') ||
     trimmed === '0.0.0.0' ||
     trimmed === '::' ||
     /^localhost$/i.test(trimmed)
@@ -164,8 +415,10 @@ export async function validateDbConnectionHost(host: unknown): Promise<void> {
       const records = await dns.lookup(trimmed, { all: true });
       resolvedIps = records.map((r) => r.address);
     } catch {
-      // Let the driver surface DNS failures.
-      return;
+      // Fail closed: clients without a connect-time hook (oracle, snowflake,
+      // databricks, string DSNs) rely on this check alone, and a name that
+      // resolves only later would skip it.
+      NcError.badRequest('Unable to resolve the database host');
     }
   }
 

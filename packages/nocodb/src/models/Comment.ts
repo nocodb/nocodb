@@ -383,6 +383,26 @@ export default class Comment implements CommentType {
   }
 
   /**
+   * Map comment id → owning document id, for document comments only.
+   */
+  public static async docIdsByCommentIds(
+    context: NcContext,
+    commentIds: string[],
+    ncMeta = Noco.ncMeta,
+  ): Promise<Map<string, string>> {
+    if (!commentIds.length) return new Map();
+
+    const rows = await ncMeta
+      .knex(MetaTable.COMMENTS)
+      .select('id', 'fk_doc_id')
+      .whereIn('id', commentIds)
+      .where('base_id', context.base_id)
+      .whereNotNull('fk_doc_id');
+
+    return new Map(rows.map((r) => [r.id, r.fk_doc_id]));
+  }
+
+  /**
    * Count comments per document (for sidebar badge).
    */
   public static async docCommentsCount(

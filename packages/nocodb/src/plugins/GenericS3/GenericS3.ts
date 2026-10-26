@@ -293,41 +293,54 @@ export default class GenericS3 implements IStorageAdapterV2 {
     // S3 does not support glob so remove *
     globPattern = globPattern.replace(/\*/g, '');
 
-    const stream = new Readable({
-      read() {},
-    });
+    const s3Client = this.s3Client;
+    const bucket = this.input.bucket;
 
-    stream.setEncoding('utf8');
-
-    const listObjects = async (continuationToken?: string) => {
-      try {
-        const response = await this.s3Client.listObjectsV2({
-          Bucket: this.input.bucket,
+    // fetch the next page only when the consumer asks for more keys
+    async function* listKeys() {
+      let continuationToken: string | undefined;
+      do {
+        const response = await s3Client.listObjectsV2({
+          Bucket: bucket,
           Prefix: globPattern,
           ...(continuationToken
             ? { ContinuationToken: continuationToken }
             : {}),
         });
 
-        response.Contents.forEach((content) => {
-          stream.push(content.Key);
-        });
-
-        if (response.IsTruncated) {
-          await listObjects(response.NextContinuationToken);
-        } else {
-          stream.push(null);
+        // the SDK omits Contents when nothing matches the prefix
+        for (const content of response.Contents ?? []) {
+          yield content.Key;
         }
+
+        continuationToken = response.IsTruncated
+          ? response.NextContinuationToken
+          : undefined;
+      } while (continuationToken);
+    }
+
+    return Readable.from(listKeys());
+  }
+
+  public async fileDeleteBatch(keys: string[]): Promise<number> {
+    let deleted = 0;
+    // DeleteObjects takes at most 1000 keys per request
+    for (let i = 0; i < keys.length; i += 1000) {
+      const chunk = keys.slice(i, i + 1000);
+      try {
+        const response = await this.s3Client.deleteObjects({
+          Bucket: this.input.bucket,
+          Delete: {
+            Objects: chunk.map((key) => ({ Key: this.patchKey(key) })),
+            Quiet: true,
+          },
+        });
+        deleted += chunk.length - (response.Errors?.length ?? 0);
       } catch (error) {
-        stream.destroy(error);
+        NcError._.storageFileDeleteError(error.message);
       }
-    };
-
-    listObjects().catch((error) => {
-      stream.destroy(error);
-    });
-
-    return stream;
+    }
+    return deleted;
   }
 
   getUploadedPath(path: string): { path?: string; url?: string } {

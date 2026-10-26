@@ -222,27 +222,11 @@ const testConnection = async () => {
     if (formState.value.dataSource.client === ClientType.SQLITE) {
       testSuccess.value = true
     } else {
-      const connection = getConnectionConfig()
-
-      connection.database = getTestDatabaseName(formState.value.dataSource)!
-
-      let searchPath = formState.value.dataSource.searchPath
-
-      // if integration is selected and database/schema is empty, set it to `undefined` to use default from integration
-      if (selectedIntegration.value) {
-        if (connection?.database === '') {
-          connection.database = undefined
-        }
-        if (searchPath?.[0] === '') {
-          searchPath = undefined
-        }
-      }
-      const testConnectionConfig = {
-        ...formState.value.dataSource,
-        connection,
-        searchPath,
-        fk_integration_id: formState.value.fk_integration_id,
-      }
+      const testConnectionConfig = buildSourceTestConnectionBody({
+        dataSource: formState.value.dataSource,
+        connection: getConnectionConfig(),
+        fkIntegrationId: formState.value.fk_integration_id,
+      })
 
       const result = await api.utils.testConnection(testConnectionConfig)
 

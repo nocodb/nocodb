@@ -197,6 +197,11 @@
         "type": "object",
         "title": "Number",
         "properties": {
+          "abbreviate": {
+            "type": "string",
+            "description": "Large number abbreviation for display (1.2K, 3.4M). `auto` picks the unit by magnitude; `none` shows the full number. Defaults to `none`.",
+            "enum": ["none", "auto", "thousand", "million", "billion", "trillion"]
+          },
           "separator": {
             "type": "string",
             "description": "Thousand/decimal separator style. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping.",
@@ -221,6 +226,11 @@
         "type": "object",
         "title": "Decimal",
         "properties": {
+          "abbreviate": {
+            "type": "string",
+            "description": "Large number abbreviation for display (1.2K, 3.4M). `auto` picks the unit by magnitude; `none` shows the full number. Defaults to `none`.",
+            "enum": ["none", "auto", "thousand", "million", "billion", "trillion"]
+          },
           "precision": {
             "type": "number",
             "description": "Decimal field precision. Defaults to 0",

@@ -6700,6 +6700,7 @@
       ],
       "patch": {
         "summary": "Update View Column",
+        "description": "On a grid, `width`, `group_by`, `group_by_order` and `group_by_sort` are accepted but not stored by this route: use `PATCH /api/v1/db/meta/grid-columns/{columnId}` for those.",
         "operationId": "db-view-column-update",
         "responses": {
           "200": {
@@ -6741,7 +6742,7 @@
             }
           }
         },
-        "description": "Update a column in a View",
+        "description": "Update a column in a View. Applies `show` and `order` (plus `underline`/`bold`/`italic` on calendar, timeline and gantt views). Grid-only properties (`width`, `group_by`, `group_by_order`, `group_by_sort`) are ignored; set them via `PATCH /api/v1/db/meta/grid-columns/{columnId}`.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -30091,7 +30092,7 @@
         }
       },
       "ViewColumnUpdateReq": {
-        "description": "Model for View Column Update Request",
+        "description": "Model for View Column Update Request. Applies `show` and `order` (plus `underline`/`bold`/`italic` on calendar, timeline and gantt views). Grid-only properties (`width`, `group_by`, `group_by_order`, `group_by_sort`) are ignored; use the Grid Column Update endpoint (`PATCH /api/v1/db/meta/grid-columns/{columnId}`) for those.",
         "x-stoplight": {
           "id": "7xso36z6hvh43"
         },

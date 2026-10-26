@@ -16,12 +16,25 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
+import { assertViewConfigEditable } from '~/helpers/viewLockHelpers';
 import NocoSocket from '~/socket/NocoSocket';
 import { Column, Filter, Hook, View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
+
+// Columns that tie a filter to what it filters.
+const FILTER_OWNER_KEYS = [
+  'fk_view_id',
+  'fk_row_color_condition_id',
+  'fk_hook_id',
+  'fk_link_col_id',
+  'fk_parent_column_id',
+  'fk_button_col_id',
+  'fk_widget_id',
+  'fk_rls_policy_id',
+] as const;
 
 @Injectable()
 export class FiltersService {
@@ -106,6 +119,7 @@ export class FiltersService {
     let viewWebhookManager: ViewWebhookManager;
     if (filter.fk_view_id) {
       const view = await View.get(context, filter.fk_view_id, false, ncMeta);
+      assertViewConfigEditable(context, view, param.req);
       viewWebhookManager = (
         await (
           await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
@@ -125,6 +139,7 @@ export class FiltersService {
         false,
         ncMeta,
       );
+      assertViewConfigEditable(context, view, param.req);
       viewWebhookManager = (
         await (
           await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
@@ -192,6 +207,14 @@ export class FiltersService {
     }
 
     const view = await View.get(context, param.viewId);
+    assertViewConfigEditable(context, view, param.req);
+
+    if (param.filter.fk_parent_id) {
+      const parent = await Filter.get(context, param.filter.fk_parent_id);
+      if (!parent || parent.fk_view_id !== param.viewId) {
+        NcError.get(context).filterNotFound(param.filter.fk_parent_id);
+      }
+    }
 
     const viewWebhookManager: ViewWebhookManager = (
       await (
@@ -269,9 +292,43 @@ export class FiltersService {
       NcError.get(context).filterNotFound(param.filterId);
     }
 
+    // A new parent must be a group of the same owner (view, hook, column, ...).
+    if (
+      param.filter.fk_parent_id &&
+      param.filter.fk_parent_id !== filter.fk_parent_id
+    ) {
+      const parent = await Filter.get(
+        context,
+        param.filter.fk_parent_id,
+        ncMeta,
+      );
+      if (
+        !parent?.is_group ||
+        parent.id === filter.id ||
+        !FILTER_OWNER_KEYS.every(
+          (key) => (parent[key] ?? null) === (filter[key] ?? null),
+        )
+      ) {
+        NcError.get(context).filterNotFound(param.filter.fk_parent_id);
+      }
+
+      // Moving under its own descendant would store a cycle.
+      const visited = new Set<string>([parent.id]);
+      let ancestorId = parent.fk_parent_id;
+      while (ancestorId && !visited.has(ancestorId)) {
+        if (ancestorId === filter.id) {
+          NcError.get(context).filterNotFound(param.filter.fk_parent_id);
+        }
+        visited.add(ancestorId);
+        ancestorId = (await Filter.get(context, ancestorId, ncMeta))
+          ?.fk_parent_id;
+      }
+    }
+
     let viewWebhookManager: ViewWebhookManager;
     if (filter.fk_view_id) {
       const view = await View.get(context, filter.fk_view_id, false, ncMeta);
+      assertViewConfigEditable(context, view, param.req);
       viewWebhookManager = (
         await (
           await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
@@ -291,6 +348,7 @@ export class FiltersService {
         false,
         ncMeta,
       );
+      assertViewConfigEditable(context, view, param.req);
       viewWebhookManager = (
         await (
           await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
@@ -397,6 +455,7 @@ export class FiltersService {
     // `filter_update` still fire per row so listeners and other tabs see
     // each change individually.
     const view = await View.get(context, firstViewId, false, ncMeta);
+    assertViewConfigEditable(context, view, param.req);
     const sharedViewWebhookManager: ViewWebhookManager = (
       await (
         await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(

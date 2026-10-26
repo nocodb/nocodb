@@ -87,7 +87,8 @@ class SqliteClient extends KnexClient {
     } catch (e) {
       log.ppe(e);
       result.code = -1;
-      result.message = e.message;
+      // The driver message reveals whether the path exists on the server.
+      result.message = 'Unable to open the SQLite database';
     } finally {
       log.api(`${_func} :result: ${result}`);
     }

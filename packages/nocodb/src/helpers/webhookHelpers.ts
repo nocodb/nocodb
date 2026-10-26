@@ -29,7 +29,6 @@ import { hardenHandlebarsPathHelpers } from '~/helpers/handlebarsProtoGuard';
 import { getModelContext, setModelContext } from '~/helpers/modelContext';
 
 handlebarsHelpers({ handlebars: Handlebars });
-hardenHandlebarsPathHelpers(Handlebars);
 
 dayjs.extend(isBetween);
 dayjs.extend(isSameOrBefore);
@@ -42,6 +41,8 @@ Handlebars.registerHelper('json', function (context, pretty = false) {
   }
   return JSON.stringify(context);
 });
+
+hardenHandlebarsPathHelpers(Handlebars);
 
 const logger = new Logger('webhookHelpers');
 

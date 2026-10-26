@@ -13,6 +13,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { assertLookupSortLimitLicensed } from '~/helpers/lookupSortLimitGate';
 import { NcError } from '~/helpers/catchError';
+import { assertViewConfigEditable } from '~/helpers/viewLockHelpers';
 import { Column, Sort, View } from '~/models';
 import NocoSocket from '~/socket/NocoSocket';
 
@@ -64,6 +65,7 @@ export class SortsService {
     }
 
     const view = await View.get(context, sort.fk_view_id, false, ncMeta);
+    assertViewConfigEditable(context, view, param.req);
 
     const viewWebhookManager =
       param.viewWebhookManager ??
@@ -180,6 +182,7 @@ export class SortsService {
     }
 
     const view = await View.get(context, sort.fk_view_id, false, ncMeta);
+    assertViewConfigEditable(context, view, param.req);
 
     const viewWebhookManager =
       param.viewWebhookManager ??
@@ -259,6 +262,7 @@ export class SortsService {
     if (!view) {
       NcError.badRequest('View not found');
     }
+    assertViewConfigEditable(context, view, param.req);
     const viewWebhookManager =
       param.viewWebhookManager ??
       (

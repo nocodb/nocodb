@@ -1,6 +1,11 @@
 export const useCodeProjects = createSharedComposable(() => {
   const isCodeProject = (_base?: { type?: string } | null) => false
 
+  const defaultProjectIcon = (_base?: { type?: string } | null): IconMapKey | undefined => undefined
+
+  const projectIcon = (base?: { type?: string; meta?: unknown } | null): IconMapKey | undefined =>
+    resolveIconMapKey(parseProp(base?.meta).icon)
+
   const isActiveBaseCodeProject = computed(() => false)
 
   const isCodeProjectRoute = (_route: { name?: unknown }) => false
@@ -33,6 +38,8 @@ export const useCodeProjects = createSharedComposable(() => {
     codeProjectRoleDescriptions,
     codeProjectRolePhrase,
     isCodeProject,
+    defaultProjectIcon,
+    projectIcon,
     isActiveBaseCodeProject,
     isCodeProjectRoute,
     isCodeProjectMachinesRoute,

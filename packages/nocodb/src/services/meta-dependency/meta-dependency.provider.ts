@@ -21,6 +21,9 @@ import { HookDeleteButtonRefDependencyHandler } from '~/services/meta-dependency
 
 export const MetaDependencyServices = [
   ColumnTimezoneUpdateDependencyHandler,
+  // Before the filter sweep, which would otherwise remove a row-colour rule's
+  // conditions first and leave an empty rule that colours every row.
+  ColumnDeleteRowColorDependencyHandler,
   ColumnDeleteFilterDependencyHandler,
   ColumnDeleteCoverImageDependencyHandler,
   ColumnDeleteKanbanGroupByDependencyHandler,
@@ -28,7 +31,6 @@ export const MetaDependencyServices = [
   ColumnDeleteHookTriggerDependencyHandler,
   ColumnDeleteLmtTrackedDependencyHandler,
   ColumnDeleteExpandedModeDependencyHandler,
-  ColumnDeleteRowColorDependencyHandler,
   ColumnDeleteTransitiveDependentsDependencyHandler,
   ColumnUpdateCoverImageDependencyHandler,
   ColumnUpdateExpandedModeDependencyHandler,

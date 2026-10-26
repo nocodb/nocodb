@@ -63,9 +63,12 @@ const PREVIEW_CSS_PROPS = new Set([
   'vertical-align',
 ])
 
+const IMG_ONLY_CSS_PROPS = new Set(['width', 'height', 'max-width', 'vertical-align'])
+const IMG_ONLY_ATTRS = ['width', 'height', 'alt']
+
 const SAFE_CSS_VALUE = /^[\w\s#,.%()'"-]+$/
 
-function sanitizeStyle(style: string): string {
+function sanitizeStyle(style: string, isImage: boolean): string {
   return style
     .split(';')
     .map((decl) => {
@@ -74,6 +77,7 @@ function sanitizeStyle(style: string): string {
       const prop = decl.slice(0, idx).trim().toLowerCase()
       const value = decl.slice(idx + 1).trim()
       if (!PREVIEW_CSS_PROPS.has(prop) || !value || !SAFE_CSS_VALUE.test(value)) return ''
+      if (!isImage && IMG_ONLY_CSS_PROPS.has(prop)) return ''
       if (/url\s*\(|expression\s*\(|\\/i.test(value)) return ''
       return `${prop}: ${value}`
     })
@@ -114,8 +118,11 @@ export function sanitizeEmailPreviewHtml(html: string): string {
   clean.querySelectorAll('img[src]').forEach((img) => {
     if (!SENDABLE_DATA_IMAGE.test(img.getAttribute('src') ?? '')) img.remove()
   })
+  clean.querySelectorAll(IMG_ONLY_ATTRS.map((attr) => `[${attr}]:not(img)`).join(',')).forEach((el) => {
+    IMG_ONLY_ATTRS.forEach((attr) => el.removeAttribute(attr))
+  })
   clean.querySelectorAll<HTMLElement>('[style]').forEach((el) => {
-    const style = sanitizeStyle(el.getAttribute('style') ?? '')
+    const style = sanitizeStyle(el.getAttribute('style') ?? '', el.tagName === 'IMG')
     if (style) el.setAttribute('style', style)
     else el.removeAttribute('style')
   })

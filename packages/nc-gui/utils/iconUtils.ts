@@ -799,6 +799,9 @@ import NcLogoOpenAiColored from '~icons/nc-icons-v2/open-ai-colored.svg'
 import NcLogoCursorColored from '~icons/nc-icons-v2/cursor-logo-colored.svg'
 import NcLogoCursor from '~icons/nc-icons-v2/cursor-logo.svg'
 import NcLogoClaudeCodeColored from '~icons/nc-icons-v2/claude-code-logo-colored.svg'
+import NcLogoCodexColored from '~icons/nc-icons-v2/codex-logo-colored.svg'
+import NcLogoCodex from '~icons/nc-icons-v2/codex-logo.svg'
+import NcLogoWindsurf from '~icons/nc-icons-v2/windsurf-logo.svg'
 import NcLogoOpenAi from '~icons/nc-icons-v2/open-ai.svg'
 import NcLogoOutlookColored from '~icons/nc-icons-v2/outlook-colored.svg'
 import NcLogoOutlook from '~icons/nc-icons-v2/outlook.svg'
@@ -1931,6 +1934,9 @@ export const iconMap = {
   'ncLogoCursorColored': h(NcLogoCursorColored, { stroke: 'transparent' }),
   'ncLogoCursor': h(NcLogoCursor, { stroke: 'transparent' }),
   'ncLogoClaudeCodeColored': h(NcLogoClaudeCodeColored, { stroke: 'transparent' }),
+  'ncLogoCodexColored': h(NcLogoCodexColored, { stroke: 'transparent' }),
+  'ncLogoCodex': h(NcLogoCodex, { stroke: 'transparent' }),
+  'ncLogoWindsurf': h(NcLogoWindsurf, { stroke: 'transparent' }),
   'ncLogoOpenAi': h(NcLogoOpenAi, { stroke: 'transparent' }),
   'ncLogoOutlookColored': h(NcLogoOutlookColored, { stroke: 'transparent' }),
   'ncLogoOutlook': h(NcLogoOutlook, { stroke: 'transparent' }),

@@ -37,6 +37,7 @@ import { Column, Filter, Model, Source } from '~/models';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
+import { getLinkRecordSelectionFilter } from '~/helpers/linkRecordSelectionFilter';
 import {
   pgConversionPredicates,
   pgNonEmpty,
@@ -154,6 +155,18 @@ function withCanonicalOptionAliases<T>(payload: T): T {
   const { button_hook_id, ...rest } = options;
 
   return { ...payload, options: { webhook_id: button_hook_id, ...rest } };
+}
+
+// `record_selection_filter` is read-only: field reads add it to a link's
+// options, so a read-back payload may carry it into a write.
+function withoutReadOnlyOptions<T>(payload: T): T {
+  const options = (payload as FieldOptionsRecord).options;
+
+  if (!options || !('record_selection_filter' in options)) return payload;
+
+  const { record_selection_filter: _, ...rest } = options;
+
+  return { ...payload, options: rest };
 }
 
 @Injectable()
@@ -717,7 +730,9 @@ export class ColumnsV3Service {
       !!param.column.type && param.column.type !== column.uidt;
 
     if (optionsSchema) {
-      param.column = withCanonicalOptionAliases(param.column);
+      param.column = withoutReadOnlyOptions(
+        withCanonicalOptionAliases(param.column),
+      );
 
       // A partial options update ("only the keys to change") must merge onto
       // the stored options, not replace them. Without this, an options-only
@@ -805,6 +820,14 @@ export class ColumnsV3Service {
       }
     }
 
+    if ((param.column.type ?? column.uidt) === UITypes.Lookup) {
+      await this.assertLookupLimitSupported(
+        context,
+        column.fk_model_id,
+        processedColumnReq.meta,
+      );
+    }
+
     // in payload id is required in existing implementation
     const { title: previousTitle, fk_model_id: tableId } = column;
     column.id = param.columnId;
@@ -879,12 +902,53 @@ export class ColumnsV3Service {
     return merged;
   }
 
-  async columnGet(context: NcContext, param: { columnId: string }) {
+  // Lookup limit only applies on PostgreSQL; refuse it elsewhere rather than
+  // store a value that is silently ignored.
+  private async assertLookupLimitSupported(
+    context: NcContext,
+    modelId: string,
+    meta: unknown,
+  ) {
+    const limit = parseProp(meta)?.lookup_limit;
+    const value = limit && typeof limit === 'object' ? limit.value : 0;
+    if (!(+value > 0)) return;
+
+    const model = await Model.get(context, modelId);
+    const source = model && (await Source.get(context, model.source_id));
+    if (source && source.type !== 'pg') {
+      NcError.get(context).invalidRequestBody(
+        'Lookup limit is only supported on PostgreSQL bases',
+      );
+    }
+  }
+
+  async columnGet(
+    context: NcContext,
+    param: {
+      columnId: string;
+      // Set by direct field reads to add a link's record-selection filter.
+      linkFilterFor?: { user: NcRequest['user']; viaApiToken?: boolean };
+    },
+  ) {
     const column = await Column.get(context, { colId: param.columnId });
     if (!column) {
       NcError.get(context).fieldNotFound(param.columnId);
     }
-    return columnBuilder().build(column);
+    const field = columnBuilder().build(column) as {
+      options?: Record<string, unknown>;
+    };
+    if (param.linkFilterFor && isLinksOrLTAR(column)) {
+      field.options = {
+        ...field.options,
+        record_selection_filter: await getLinkRecordSelectionFilter(
+          context,
+          column,
+          param.linkFilterFor.user,
+          { viaApiToken: param.linkFilterFor.viaApiToken },
+        ),
+      };
+    }
+    return field;
   }
 
   async columnAdd(
@@ -899,6 +963,7 @@ export class ColumnsV3Service {
     },
     ncMeta = Noco.ncMeta,
   ) {
+    param.column = withoutReadOnlyOptions(param.column);
     validatePayload(
       'swagger-v3.json#/components/schemas/CreateField',
       param.column,
@@ -931,6 +996,14 @@ export class ColumnsV3Service {
     ) as ColumnReqWithMeta & {
       parentId?: string;
     };
+
+    if (column.uidt === UITypes.Lookup) {
+      await this.assertLookupLimitSupported(
+        context,
+        param.tableId,
+        column.meta,
+      );
+    }
 
     // if LTAR column then define table id as parent id in request
     // and set version to V2 so all relation types use junction tables

@@ -19,8 +19,14 @@ import {
 import View from '~/models/View';
 import { isReplay } from '~/helpers/replayScope';
 
+// Set only on sorts loaded from a stored row. Request JSON can't carry a
+// Symbol key, so a caller sort can't claim to be the view's own.
+export const SORT_STORED: unique symbol = Symbol.for('nc_sort_stored');
+
 export default class Sort {
   id: string;
+
+  [SORT_STORED]?: boolean;
 
   fk_view_id?: string;
   fk_column_id?: string;
@@ -50,6 +56,12 @@ export default class Sort {
 
   constructor(data: Partial<SortType>) {
     Object.assign(this, data);
+  }
+
+  private static fromStored(context: NcContext, row: Partial<SortType>) {
+    const sort = new Sort(row);
+    sort[SORT_STORED] = true;
+    return setModelContext(sort, context);
   }
 
   // skip viewWebhookManager for this, Sort.deleteAll is not a standalone operation, it's invoked by view service
@@ -245,7 +257,7 @@ export default class Sort {
         (a.order != null ? a.order : Infinity) -
         (b.order != null ? b.order : Infinity),
     );
-    return sortList.map((s) => setModelContext(new Sort(s), context));
+    return sortList.map((s) => Sort.fromStored(context, s));
   }
 
   // Sorts scoped to a lookup column (used to order the relation sub-query).
@@ -284,7 +296,7 @@ export default class Sort {
         (a.order != null ? a.order : Infinity) -
         (b.order != null ? b.order : Infinity),
     );
-    return sortList.map((s) => setModelContext(new Sort(s), context));
+    return sortList.map((s) => Sort.fromStored(context, s));
   }
 
   // Clear the single-query cache for the model a sort affects: the view's model
@@ -395,7 +407,7 @@ export default class Sort {
       );
       await NocoCache.set(context, `${CacheScope.SORT}:${id}`, sortData);
     }
-    return sortData && setModelContext(new Sort(sortData), context);
+    return sortData && Sort.fromStored(context, sortData);
   }
 
   public async getModel(ncMeta = Noco.ncMeta): Promise<Model> {

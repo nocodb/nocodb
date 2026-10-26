@@ -9,6 +9,7 @@ import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
 import { validateAndNormaliseLocalPath } from '~/helpers/attachmentHelpers';
 import { NcError } from '~/helpers/ncError';
 import { fetchSourceFile } from '~/utils/pluginUtils';
+import { getToolDir } from '~/utils/nc-config';
 
 export default class Local implements IStorageAdapterV2 {
   name = 'Local';
@@ -178,8 +179,10 @@ export default class Local implements IStorageAdapterV2 {
         globPattern = path.join('nc', 'uploads', globPattern);
       }
 
+      // files live under the tool dir, which differs from cwd in Docker
       const globStreamInstance = globStream(globPattern, {
         nodir: true,
+        cwd: getToolDir(),
       });
 
       const stream = Readable.from(globStreamInstance);

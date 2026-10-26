@@ -177,6 +177,8 @@ export interface InternalApiModule<
    * whose operations are safe for shared bases.
    */
   publicBaseBlockedOperations?: (keyof typeof OPERATION_SCOPES)[];
+  /** Operations refused to API-token (xc-token) auth; a browser session only. */
+  apiTokenBlockedOperations?: (keyof typeof OPERATION_SCOPES)[];
   handle(
     context: NcContext,
     param: {

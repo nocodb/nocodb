@@ -38,6 +38,7 @@ import {
 } from '~/controllers/invite-links/invite-links.controller';
 import { AttachmentsSecureController } from '~/controllers/attachments-secure.controller';
 import { AttachmentsController } from '~/controllers/attachments.controller';
+import { isSecureAttachmentEnabled } from '~/utils/envs';
 import { BaseUsersController } from '~/controllers/base-users.controller';
 import { BasesController } from '~/controllers/bases.controller';
 import { CachesController } from '~/controllers/caches.controller';
@@ -210,7 +211,7 @@ export const nocoModuleMetadata = {
           ApiTokensController,
           InviteLinksController,
           PublicInviteLinksController,
-          ...(process.env.NC_SECURE_ATTACHMENTS === 'true'
+          ...(isSecureAttachmentEnabled
             ? [AttachmentsSecureController]
             : [AttachmentsController]),
           SourcesController,

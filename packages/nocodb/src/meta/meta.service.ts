@@ -1149,13 +1149,17 @@ export class MetaService {
   public now(): any {
     return dayjs()
       .utc()
-      .format(this.isMySQL() ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');
+      .format(
+        this.isMySQL() ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ss.SSSZ',
+      );
   }
 
   public formatDateTime(date: string): string {
     return dayjs(date)
       .utc()
-      .format(this.isMySQL() ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');
+      .format(
+        this.isMySQL() ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ss.SSSZ',
+      );
   }
 
   public async init(): Promise<boolean> {

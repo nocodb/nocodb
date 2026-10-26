@@ -5,6 +5,7 @@ import { sanitiseDataTypePrecision } from '~/helpers/sqlSanitize';
 export function buildBackupColumnTypeExpr(
   sourceColumn: Column<any>,
   fallback: string,
+  clientType?: string,
 ): string {
   const dt = sourceColumn.dt || fallback;
 
@@ -36,7 +37,7 @@ export function buildBackupColumnTypeExpr(
   // Validate against the strict allowlist rather than a blacklist — a payload
   // like `1) CHECK(1=0` slips past a comment/terminator blacklist and would
   // inject a constraint into the backup column's DDL.
-  return `${dt}(${sanitiseDataTypePrecision(dtxp)})`;
+  return `${dt}(${sanitiseDataTypePrecision(dtxp, clientType)})`;
 }
 
 /**

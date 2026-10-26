@@ -14,8 +14,8 @@ import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { extractRolesObj } from 'nocodb-sdk';
-import type { UserType } from 'nocodb-sdk';
 import { PresignedUrl } from 'src/models';
+import type { UserType } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
 
 import { UsersService } from '~/services/users/users.service';
@@ -227,7 +227,9 @@ export class AuthController {
         'Failed to sign out other sessions',
         (revokeError as Error)?.stack,
       );
-      NcError.internalServerError('Failed to sign out of other devices');
+      NcError.internalServerError(
+        "Couldn't sign out other devices. Please try again.",
+      );
     }
 
     res.json({ token: loginResult.token });

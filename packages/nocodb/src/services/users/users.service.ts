@@ -311,15 +311,27 @@ export class UsersService {
       reset_password_expires: null,
     });
 
-    // The controller issues a new session for the current device.
-    await this.revokeAllSessions(user);
+    // The password is changed now; a failure here must not fail the request
+    // before the controller re-issues the current device's session.
+    let sessionsRevoked = true;
+    try {
+      await this.revokeAllSessions(user);
+      // API tokens aren't tied to token_version, so they'd survive the change.
+      await ApiToken.deleteByUser(user.id);
+    } catch (e) {
+      this.logger.error(
+        'Failed to revoke sessions after password change',
+        e?.stack,
+      );
+      sessionsRevoked = false;
+    }
 
     this.appHooksService.emit(AppEvents.USER_PASSWORD_CHANGE, {
       user: user,
       req: param.req,
     });
 
-    return true;
+    return { sessionsRevoked };
   }
 
   async passwordForgot(param: {

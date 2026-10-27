@@ -180,21 +180,27 @@ export class AuthController {
   })
   @HttpCode(200)
   async passwordChange(@Req() req: NcRequest, @Res() res): Promise<any> {
+    const ncError = NcError.get(req.context);
     if (!(req as any).isAuthenticated?.()) {
-      NcError.forbidden('Not allowed');
+      ncError.forbidden('Not allowed');
     }
 
-    await this.usersService.passwordChange({
+    const { sessionsRevoked } = await this.usersService.passwordChange({
       user: req['user'],
       req,
       body: req.body,
     });
 
-    // set new refresh token
+    // Re-issue the current device's session even if revoking the others
+    // failed. Not login(): that would audit a sign-in that never happened.
     await this.setRefreshToken({ req, res });
+    setAuthCookie(res, genJwt(req.user as UserType, Noco.getConfig()));
 
-    const loginResult = await this.usersService.login(req.user, req);
-    setAuthCookie(res, loginResult.token);
+    if (!sessionsRevoked) {
+      ncError.internalServerError(
+        "Your password was changed, but we couldn't sign out your other devices. Please try again.",
+      );
+    }
 
     res.json({ msg: 'Password has been updated successfully' });
   }

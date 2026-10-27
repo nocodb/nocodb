@@ -22,6 +22,19 @@ let sessionCheck: { token: string; at: number; dead: Promise<boolean> } | null =
 let refreshSeq = 0
 let deadCountedSeq = 0
 
+// Revoke every session and re-issue this tab's in the response: a 401 while one is
+// in flight comes from that revocation, and refreshing then would use a deleted token.
+const SESSION_ROTATION_URL = /\/auth\/(password\/change|user\/signout-others)$/
+// Longest a 401 waits for one before handling it normally
+const SESSION_ROTATION_WAIT_MS = 30_000
+let sessionRotation: { config: unknown; done: Promise<void>; settle: () => void } | null = null
+
+function settleSessionRotation(config: unknown) {
+  if (!sessionRotation || sessionRotation.config !== config) return
+  sessionRotation.settle()
+  sessionRotation = null
+}
+
 /**
  * /signin that returns to the page being loaded. Reads the address bar, not the
  * router: mid-navigation the router still reports the previous route, and this
@@ -68,12 +81,23 @@ export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
       config.params = { ...(config.params ?? {}), opt: 'false' }
     }
 
+    if (config.url && SESSION_ROTATION_URL.test(config.url)) {
+      let settle!: () => void
+      const done = new Promise<void>((resolve) => (settle = resolve))
+      sessionRotation = { config, done, settle }
+    }
+
     return config
   })
 
   axiosInstance.interceptors.response.use(
-    (response) => response,
+    (response) => {
+      settleSessionRotation(response.config)
+      return response
+    },
     async (error) => {
+      settleSessionRotation(error.config)
+
       const isSharedPage =
         route.value?.params?.typeOrId === 'base' || route.value?.params?.typeOrId === 'ERD' || route.value.meta.public
 
@@ -106,9 +130,20 @@ export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
         _ncAuthRetried?: boolean
         _ncRefreshSeq?: number
         _ncSessionCheck?: boolean
+        _ncRotationWaited?: boolean
       }
 
       if (config._ncSessionCheck) return Promise.reject(error)
+
+      // Wait for the new session, then retry: its 401 is handled normally from there.
+      const rotation = sessionRotation
+      if (rotation && !config._ncRotationWaited) {
+        config._ncRotationWaited = true
+        let timer: ReturnType<typeof setTimeout> | undefined
+        await Promise.race([rotation.done, new Promise((resolve) => (timer = setTimeout(resolve, SESSION_ROTATION_WAIT_MS)))])
+        clearTimeout(timer)
+        return axiosInstance.request(config)
+      }
 
       const signOutOnce = () => {
         deadToken = state.token.value || ''

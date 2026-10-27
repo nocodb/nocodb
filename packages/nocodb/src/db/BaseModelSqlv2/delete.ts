@@ -1072,15 +1072,13 @@ export class BaseModelDelete {
       await metaQuery({ qb: qb.clone(), ids: survivingIds, rows });
     }
 
-    if (!options.skipHooks) {
-      await this.baseModel.afterBulkDelete(
-        oldRecords,
-        cookie,
-        isBulkAllOperation,
-        AuditV1OperationTypes.DATA_BULK_PERMANENT_DELETE,
-        AuditV1OperationTypes.DATA_DELETE,
-      );
-    }
+    await this.baseModel.afterBulkDelete(
+      oldRecords,
+      cookie,
+      isBulkAllOperation,
+      AuditV1OperationTypes.DATA_BULK_PERMANENT_DELETE,
+      AuditV1OperationTypes.DATA_DELETE,
+    );
 
     return oldRecords;
   }

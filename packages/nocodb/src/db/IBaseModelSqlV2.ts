@@ -29,8 +29,6 @@ import type PQueue from 'p-queue';
 export interface PermanentDeleteOptions {
   /** Delete rows that were never trashed (rolling back a failed write). */
   includeLive?: boolean;
-  /** Skip delete hooks and audit — the rows were never visible as written. */
-  skipHooks?: boolean;
 }
 
 export interface IBaseModelSqlV2 {

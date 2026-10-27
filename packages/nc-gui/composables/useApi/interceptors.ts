@@ -22,6 +22,68 @@ let sessionCheck: { token: string; at: number; dead: Promise<boolean> } | null =
 let refreshSeq = 0
 let deadCountedSeq = 0
 
+// Revoke every session and re-issue this tab's in the response: a 401 while one is
+// in flight comes from that revocation, and refreshing then would use a deleted token.
+const SESSION_ROTATION_URL = /\/auth\/(password\/change|user\/signout-others)$/
+// Longest a 401 waits for one before handling it normally
+const SESSION_ROTATION_WAIT_MS = 30_000
+// Other tabs hold their 401s too: signing out there clears the token this tab shares
+const SESSION_ROTATION_KEY = 'nc-session-rotation'
+const SESSION_ROTATION_POLL_MS = 200
+let sessionRotation: { config: unknown; done: Promise<void>; settle: () => void } | null = null
+
+function readSharedSessionRotation(): { tabId?: string; expiresAt: number } | null {
+  try {
+    const rotation = JSON.parse(localStorage.getItem(SESSION_ROTATION_KEY) || 'null')
+    return rotation?.expiresAt > Date.now() ? rotation : null
+  } catch {
+    return null
+  }
+}
+
+function startSessionRotation(config: unknown) {
+  let settle!: () => void
+  const done = new Promise<void>((resolve) => (settle = resolve))
+  sessionRotation = { config, done, settle }
+  try {
+    localStorage.setItem(
+      SESSION_ROTATION_KEY,
+      JSON.stringify({ tabId: getTabId(), expiresAt: Date.now() + SESSION_ROTATION_WAIT_MS }),
+    )
+  } catch {}
+}
+
+function settleSessionRotation(config: unknown) {
+  if (!sessionRotation || sessionRotation.config !== config) return
+  sessionRotation.settle()
+  sessionRotation = null
+  try {
+    if (readSharedSessionRotation()?.tabId === getTabId()) localStorage.removeItem(SESSION_ROTATION_KEY)
+  } catch {}
+}
+
+/** Resolves once no tab has a session rotation in flight, or after the wait limit. */
+function waitForSessionRotation(): Promise<void> | null {
+  const local = sessionRotation
+  if (!local && !readSharedSessionRotation()) return null
+
+  return new Promise<void>((resolve) => {
+    const deadline = Date.now() + SESSION_ROTATION_WAIT_MS
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const finish = () => {
+      clearTimeout(timer)
+      resolve()
+    }
+    local?.done.then(finish)
+    const poll = () => {
+      if ((!local && !readSharedSessionRotation()) || Date.now() >= deadline) return finish()
+      timer = setTimeout(poll, SESSION_ROTATION_POLL_MS)
+    }
+    if (local) timer = setTimeout(finish, SESSION_ROTATION_WAIT_MS)
+    else poll()
+  })
+}
+
 /**
  * /signin that returns to the page being loaded. Reads the address bar, not the
  * router: mid-navigation the router still reports the previous route, and this
@@ -68,12 +130,19 @@ export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
       config.params = { ...(config.params ?? {}), opt: 'false' }
     }
 
+    if (config.url && SESSION_ROTATION_URL.test(config.url)) startSessionRotation(config)
+
     return config
   })
 
   axiosInstance.interceptors.response.use(
-    (response) => response,
+    (response) => {
+      settleSessionRotation(response.config)
+      return response
+    },
     async (error) => {
+      settleSessionRotation(error.config)
+
       const isSharedPage =
         route.value?.params?.typeOrId === 'base' || route.value?.params?.typeOrId === 'ERD' || route.value.meta.public
 
@@ -106,9 +175,18 @@ export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
         _ncAuthRetried?: boolean
         _ncRefreshSeq?: number
         _ncSessionCheck?: boolean
+        _ncRotationWaited?: boolean
       }
 
       if (config._ncSessionCheck) return Promise.reject(error)
+
+      // Wait for the new session, then retry: its 401 is handled normally from there.
+      const rotation = config._ncRotationWaited ? null : waitForSessionRotation()
+      if (rotation) {
+        config._ncRotationWaited = true
+        await rotation
+        return axiosInstance.request(config)
+      }
 
       const signOutOnce = () => {
         deadToken = state.token.value || ''

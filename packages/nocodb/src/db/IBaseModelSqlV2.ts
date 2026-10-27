@@ -26,6 +26,13 @@ import type { ExecAndParseOptions } from 'src/db/BaseModelSqlv2';
 import type { DisplacedRecord } from '~/command-registry/types';
 import type PQueue from 'p-queue';
 
+export interface PermanentDeleteOptions {
+  /** Delete rows that were never trashed (rolling back a failed write). */
+  includeLive?: boolean;
+  /** Skip delete hooks and audit — the rows were never visible as written. */
+  skipHooks?: boolean;
+}
+
 export interface IBaseModelSqlV2 {
   context: NcContext;
   model: Model;
@@ -232,6 +239,7 @@ export interface IBaseModelSqlV2 {
     rowIds: string[],
     cookie: any,
     isBulkAllOperation?: boolean,
+    options?: PermanentDeleteOptions,
   ): Promise<any[]>;
 
   applySortAndFilter(param: {

@@ -601,6 +601,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return clauses.join('~or')
     }
 
+    /** New-row picker on an interface page: the draft resolves dynamic link filters server-side. */
+    const interfaceDraftRowData = async (): Promise<{ linkRowData?: string }> =>
+      isNewRow?.value ? { linkRowData: JSON.stringify(await sanitizeRowData(row.value?.row)) } : {}
+
     /** New-row picker: hide what the draft already links (nothing is persisted to exclude server-side). */
     const dropStagedLinks = <T extends { list?: Record<string, any>[] }>(result: T): T => {
       const ids = new Set(childrenList.value?.list?.map((item) => item.Id) ?? [])
@@ -675,6 +679,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             limit: childrenExcludedListPagination.size,
             offset,
             search: childrenExcludedListPagination.query || undefined,
+            ...(await interfaceDraftRowData()),
             ...(interfaceFieldElement?.value ?? {}),
           })
 
@@ -1431,6 +1436,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           limit,
           offset,
           search: childrenExcludedListPagination.query || undefined,
+          ...(await interfaceDraftRowData()),
           ...(interfaceFieldElement?.value ?? {}),
         })
 

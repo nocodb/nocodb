@@ -198,7 +198,7 @@ export class AuthController {
 
     if (!sessionsRevoked) {
       ncError.internalServerError(
-        "Your password was changed, but we couldn't sign out your other devices. Please try again.",
+        "Your password was changed, but we couldn't sign out all other sessions and connected apps. To retry, change your password again using your new password as the current one.",
       );
     }
 

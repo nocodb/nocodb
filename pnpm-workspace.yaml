@@ -16,6 +16,12 @@ minimumReleaseAge: 10080
 # plus three WebSocket / retry-interceptor issues; released 2026-09-04.
 minimumReleaseAgeExclude:
   - undici
+  # Security patches published inside the 7-day window (Oct 2026 Dependabot sweep):
+  # body-parser 1.20.9 / 2.4.0, multer 2.5.0, serialize-javascript 7.1.3, happy-dom 21.0.4
+  - body-parser
+  - multer
+  - serialize-javascript
+  - happy-dom
 
 # Detect when a package loses its provenance guarantees (e.g. previously
 # published via CI, now published from a local machine — signals account compromise).

@@ -32,7 +32,7 @@
     "chalk": "^5.3.0",
     "commander": "^12.1.0",
     "enquirer": "^2.4.1",
-    "figlet": "^1.7.0",
+    "figlet": "^1.11.3",
     "knex": "^3.1.0",
     "mysql": "^2.18.1",
     "parse-database-url": "^0.3.0",

@@ -316,8 +316,6 @@ export class UsersService {
     let sessionsRevoked = true;
     try {
       await this.revokeAllSessions(user);
-      // API tokens aren't tied to token_version, so they'd survive the change.
-      await ApiToken.deleteByUser(user.id);
     } catch (e) {
       this.logger.error(
         'Failed to revoke sessions after password change',

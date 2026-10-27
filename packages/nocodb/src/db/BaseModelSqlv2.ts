@@ -64,7 +64,10 @@ import type {
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { XKnex } from '~/db/CustomKnex';
-import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type {
+  IBaseModelSqlV2,
+  PermanentDeleteOptions,
+} from '~/db/IBaseModelSqlV2';
 import type { NestedLinkLastModifiedEntry } from '~/db/BaseModelSqlv2/nested-link-preparator';
 import type {
   XcFilter,
@@ -5705,11 +5708,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     rowIds: string[],
     cookie: NcRequest,
     isBulkAllOperation = false,
+    options: PermanentDeleteOptions = {},
   ) {
     return await new BaseModelDelete(this).permanentDeleteByIds(
       rowIds,
       cookie,
       isBulkAllOperation,
+      options,
     );
   }
 

@@ -11,7 +11,10 @@ import {
 import type { Knex } from 'knex';
 import type { NcRequest } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
-import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type {
+  IBaseModelSqlV2,
+  PermanentDeleteOptions,
+} from '~/db/IBaseModelSqlV2';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import {
   _wherePk,
@@ -784,6 +787,7 @@ export class BaseModelDelete {
     rowIds: string[],
     cookie: NcRequest,
     isBulkAllOperation = false,
+    options: PermanentDeleteOptions = {},
   ) {
     const columns = await this.baseModel.model.getColumns();
     const source = await this.baseModel.getSource();
@@ -1005,8 +1009,10 @@ export class BaseModelDelete {
 
     const oldRecords = await this.baseModel.chunkList({
       pks: rowIds,
-      deletedOnly: true,
+      deletedOnly: !options.includeLive,
+      ...(options.includeLive ? { ignoreRls: true } : {}),
     });
+    if (options.includeLive && !oldRecords.length) return [];
 
     // Strict-equality check (`oldRecords.length !== rowIds.length`) caused the
     // base-trash cleanup processor to retry the same trash entries indefinitely

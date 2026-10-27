@@ -41,6 +41,14 @@ import {
   resolveLtarDisplayValuesToPks,
 } from '~/helpers/ltarDisplayValueResolver';
 
+/** One cell's resolved link diff: pks to link and unlink on `rowId`. */
+export interface LinkSwapDiffEntry {
+  columnId: string;
+  rowId: string | number;
+  link: Array<string | number>;
+  unlink: Array<string | number>;
+}
+
 @Injectable()
 export class DataTableService {
   constructor(protected datasService: DatasService) {}
@@ -821,10 +829,14 @@ export class DataTableService {
         fk_related_model_id: string;
       }[];
       user?: any;
+      /** Runs on the resolved diff before it's applied — throw to refuse. */
+      assertLinks?: (entries: LinkSwapDiffEntry[]) => Promise<void>;
     },
   ) {
     const { swapEntry, feResponse } =
       await this.computeListCopyPasteOrDeleteAllDiff(context, param);
+
+    if (swapEntry?.link.length) await param.assertLinks?.([swapEntry]);
 
     // Deposit the computed diff for an OUTER trace scope (the interface
     // page-scoped swap contract builds its inverse from it — its own params
@@ -1211,6 +1223,8 @@ export class DataTableService {
         }[];
       }[];
       user?: any;
+      /** Runs on the resolved diff before it's applied — throw to refuse. */
+      assertLinks?: (entries: LinkSwapDiffEntry[]) => Promise<void>;
     },
   ) {
     if (!Array.isArray(param.data) || !param.data.length) {
@@ -1242,6 +1256,8 @@ export class DataTableService {
       if (swapEntry) swapEntries.push(swapEntry);
       results.push(feResponse ?? { link: [], unlink: [] });
     }
+
+    if (swapEntries.length) await param.assertLinks?.(swapEntries);
 
     // Same deposit as the single-cell path — the interface bulk swap
     // contract reads it for its page-scoped inverse.
@@ -1275,6 +1291,8 @@ export class DataTableService {
         displayValues: string[];
       }[];
       user?: any;
+      /** Runs on the resolved diff before it's applied — throw to refuse. */
+      assertLinks?: (entries: LinkSwapDiffEntry[]) => Promise<void>;
     },
   ) {
     validatePayload(
@@ -1349,6 +1367,8 @@ export class DataTableService {
         linkSwapEntries,
       );
     }
+
+    if (linkSwapEntries.length) await param.assertLinks?.(linkSwapEntries);
 
     // Deposit the resolved diffs for an OUTER trace scope (the interface
     // by-display contract builds its page-scoped inverse from them — its own

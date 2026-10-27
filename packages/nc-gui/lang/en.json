@@ -8118,6 +8118,7 @@
       "columnUpdated": "Field updated",
       "columnCreated": "Field created",
       "passwordChanged": "Password changed successfully.",
+      "passwordChangeRevokesTokens": "Changing your password signs you out on other devices and deletes your API tokens.",
       "signedOutOtherDevices": "Signed out of other devices",
       "settingsSaved": "Settings saved successfully",
       "roleUpdated": "Role updated successfully",

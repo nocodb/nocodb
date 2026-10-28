@@ -387,11 +387,32 @@ const handleKeydownEnter = (event: KeyboardEvent) => {
   event.preventDefault()
   event.stopPropagation()
 
-  if (list.value[activeOptionIndex.value]) {
-    handleSelectOption(list.value[activeOptionIndex.value])
-  } else if (list.value[0]) {
-    handleSelectOption(list.value[activeOptionIndex.value])
+  // Nothing highlighted (or the highlight fell off a narrowed list): Enter picks the first match.
+  const option =
+    list.value[activeOptionIndex.value] ??
+    (searchQuery.value ? list.value.find((o) => !o.ncItemDisabled && !o.ncGroupHeader) : undefined)
+
+  if (option) handleSelectOption(option)
+}
+
+/**
+ * A dropdown's first open mounts its overlay hidden until it is aligned, and
+ * focus() on a hidden input is a no-op — retry for a few frames.
+ */
+const focusInputWhenVisible = (attempts = 20) => {
+  const input = inputRef.value?.input as HTMLInputElement | undefined
+
+  if (!vOpen.value || !input) return
+
+  if (!input.getClientRects().length) {
+    if (attempts > 0) requestAnimationFrame(() => focusInputWhenVisible(attempts - 1))
+    return
   }
+
+  // preventScroll: the overlay may still be at its pre-align position,
+  // overflowing the viewport — focusing it would scroll the page there
+  // and back as soon as the trigger re-aligns.
+  inputRef.value?.focus({ preventScroll: true })
 }
 
 /**
@@ -403,12 +424,7 @@ const focusInputBox = () => {
   until(() => !!inputRef.value?.input)
     .toBeTruthy()
     .then(() => {
-      forcedNextTick(() => {
-        // preventScroll: the overlay may still be at its pre-align position,
-        // overflowing the viewport — focusing it would scroll the page there
-        // and back as soon as the trigger re-aligns.
-        inputRef.value?.focus({ preventScroll: true })
-      })
+      forcedNextTick(() => focusInputWhenVisible())
     })
 }
 

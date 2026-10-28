@@ -1,15 +1,16 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
-import { type LocalSelectOptionType, getOptions } from './utils'
+import { type LocalSelectOptionType, getFilterSelectDropdownWidth, getOptions } from './utils'
 
 interface Props {
   modelValue?: string | undefined
   rowIndex?: number
   disableOptionCreation?: boolean
   options?: LocalSelectOptionType[]
+  location?: 'cell' | 'filter'
 }
 
-const { modelValue, disableOptionCreation, options: selectOptions } = defineProps<Props>()
+const { modelValue, disableOptionCreation, options: selectOptions, location } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -73,6 +74,11 @@ const isNewOptionCreateEnabled = computed(
 const options = computed(() => {
   return selectOptions ?? getOptions(column.value, isEditColumn.value, isForm.value, isDark.value, getColor)
 })
+
+// Filter value inputs are narrow; matching their width cuts option titles to one prefix.
+const dropdownMatchSelectWidth = computed<boolean | number>(() =>
+  location === 'filter' ? getFilterSelectDropdownWidth(options.value.map((op) => op.title)) : true,
+)
 
 const optionsMap = computed(() => {
   return options.value.reduce((acc, op) => {
@@ -353,8 +359,10 @@ onMounted(() => {
       :disabled="readOnly || !editAllowed"
       :show-search="!isMobileMode && isOpen && active"
       :show-arrow="hasEditRoles && !readOnly && active && (vModel === null || vModel === undefined) && !searchVal"
-      :dropdown-class-name="`nc-dropdown-single-select-cell !min-w-156px ${isOpen && active ? 'active' : ''}`"
-      :dropdown-match-select-width="true"
+      :dropdown-class-name="`nc-dropdown-single-select-cell ${location === 'filter' ? '' : '!min-w-156px'} ${
+        isOpen && active ? 'active' : ''
+      }`"
+      :dropdown-match-select-width="dropdownMatchSelectWidth"
       :search-value="searchVal ?? ''"
       @select="onSelect"
       @keydown="onKeydown($event)"

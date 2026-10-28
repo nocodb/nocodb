@@ -7,6 +7,7 @@ interface Props {
   rowIndex?: number
   disableOptionCreation?: boolean
   showReadonlyField?: boolean
+  location?: 'cell' | 'filter'
 }
 
 const props = defineProps<Props>()
@@ -44,5 +45,6 @@ const showReadonlyField = computed(() => {
     :disable-option-creation="disableOptionCreation"
     :row-index="rowIndex"
     :options="options"
+    :location="location"
   />
 </template>

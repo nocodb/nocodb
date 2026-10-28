@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
+import { getFilterSelectDropdownWidth } from '../SingleSelect/utils'
 import { type LocalSelectOptionType, type SelectInputOptionType, getOptions, getSelectedTitles } from './utils'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
@@ -11,7 +12,7 @@ interface Props {
   options?: LocalSelectOptionType[]
 }
 
-const { modelValue, disableOptionCreation, options: selectOptions } = defineProps<Props>()
+const { modelValue, disableOptionCreation, options: selectOptions, location } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -77,6 +78,16 @@ const isNewOptionCreateEnabled = computed(
 const options = computed(() => {
   return selectOptions ?? getOptions(column.value, isEditColumn.value, isForm.value, isDark.value, getColor)
 })
+
+// Filter value inputs are narrow; matching their width cuts option titles to one prefix.
+const dropdownMatchSelectWidth = computed<boolean | number>(() =>
+  location === 'filter'
+    ? getFilterSelectDropdownWidth(
+        options.value.map((op) => op.title),
+        24,
+      )
+    : true,
+)
 
 const optionsMap = computed(() => {
   return options.value.reduce((acc, op) => {
@@ -386,6 +397,7 @@ onMounted(() => {
       :disabled="readOnly || !editAllowed"
       :class="{ 'caret-transparent': !hasEditRoles }"
       :dropdown-class-name="`nc-dropdown-multi-select-cell !min-w-156px ${isOpen ? 'active' : ''}`"
+      :dropdown-match-select-width="dropdownMatchSelectWidth"
       :search-value="searchVal ?? ''"
       @search="search"
       @keydown="onKeyDown"

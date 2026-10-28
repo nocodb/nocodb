@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
-import { defaultOffscreen2DContext } from '../../smartsheet/grid/canvas/utils/canvas'
-import { type LocalSelectOptionType, getOptions } from './utils'
+import { type LocalSelectOptionType, getFilterSelectDropdownWidth, getOptions } from './utils'
 
 interface Props {
   modelValue?: string | undefined
@@ -76,21 +75,10 @@ const options = computed(() => {
   return selectOptions ?? getOptions(column.value, isEditColumn.value, isForm.value, isDark.value, getColor)
 })
 
-/**
- * A filter's value input is narrow, so matching its width cuts option titles to the
- * same prefix. There the dropdown sizes to the longest title instead (capped);
- * ant keeps the trigger width as its minimum.
- */
-const dropdownMatchSelectWidth = computed<boolean | number>(() => {
-  if (location !== 'filter') return true
-
-  defaultOffscreen2DContext.font = '13px Inter'
-
-  const longest = options.value.reduce((max, op) => Math.max(max, defaultOffscreen2DContext.measureText(op.title ?? '').width), 0)
-
-  // Canvas measures ~5% narrower than the rendered tag text; 56px = option + tag padding and the scrollbar.
-  return Math.min(Math.ceil(longest * 1.1) + 56, 360)
-})
+// Filter value inputs are narrow; matching their width cuts option titles to one prefix.
+const dropdownMatchSelectWidth = computed<boolean | number>(() =>
+  location === 'filter' ? getFilterSelectDropdownWidth(options.value.map((op) => op.title)) : true,
+)
 
 const optionsMap = computed(() => {
   return options.value.reduce((acc, op) => {

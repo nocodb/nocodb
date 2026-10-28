@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
+import { defaultOffscreen2DContext } from '../../smartsheet/grid/canvas/utils/canvas'
 import { type LocalSelectOptionType, getOptions } from './utils'
 
 interface Props {
@@ -7,9 +8,10 @@ interface Props {
   rowIndex?: number
   disableOptionCreation?: boolean
   options?: LocalSelectOptionType[]
+  location?: 'cell' | 'filter'
 }
 
-const { modelValue, disableOptionCreation, options: selectOptions } = defineProps<Props>()
+const { modelValue, disableOptionCreation, options: selectOptions, location } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -72,6 +74,22 @@ const isNewOptionCreateEnabled = computed(
 
 const options = computed(() => {
   return selectOptions ?? getOptions(column.value, isEditColumn.value, isForm.value, isDark.value, getColor)
+})
+
+/**
+ * A filter's value input is narrow, so matching its width cuts option titles to the
+ * same prefix. There the dropdown sizes to the longest title instead (capped);
+ * ant keeps the trigger width as its minimum.
+ */
+const dropdownMatchSelectWidth = computed<boolean | number>(() => {
+  if (location !== 'filter') return true
+
+  defaultOffscreen2DContext.font = '13px Inter'
+
+  const longest = options.value.reduce((max, op) => Math.max(max, defaultOffscreen2DContext.measureText(op.title ?? '').width), 0)
+
+  // Canvas measures ~5% narrower than the rendered tag text; 56px = option + tag padding and the scrollbar.
+  return Math.min(Math.ceil(longest * 1.1) + 56, 360)
 })
 
 const optionsMap = computed(() => {
@@ -354,7 +372,7 @@ onMounted(() => {
       :show-search="!isMobileMode && isOpen && active"
       :show-arrow="hasEditRoles && !readOnly && active && (vModel === null || vModel === undefined) && !searchVal"
       :dropdown-class-name="`nc-dropdown-single-select-cell !min-w-156px ${isOpen && active ? 'active' : ''}`"
-      :dropdown-match-select-width="true"
+      :dropdown-match-select-width="dropdownMatchSelectWidth"
       :search-value="searchVal ?? ''"
       @select="onSelect"
       @keydown="onKeydown($event)"

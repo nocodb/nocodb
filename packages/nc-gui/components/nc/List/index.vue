@@ -477,7 +477,12 @@ watch(
   },
 )
 
-watch(searchQuery, () => {
+// Highlight the first match so Enter picks the row the user sees.
+watch(searchQuery, (query) => {
+  if (query) {
+    activeOptionIndex.value = list.value.findIndex((o) => !o.ncItemDisabled && !o.ncGroupHeader)
+  }
+
   if (activeOptionIndex.value === -1) return
 
   nextTick(() => {

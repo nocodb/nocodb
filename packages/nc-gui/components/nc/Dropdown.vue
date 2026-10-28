@@ -73,8 +73,7 @@ const overlayClassNameComputed = computed(() => {
   if (overlayClassName.value) {
     className += ` ${overlayClassName.value}`
   }
-  // isOpen, not the prop: uncontrolled dropdowns need `.active` too, or keyboard guards miss them.
-  className += isOpen.value ? ' active' : ' '
+  className += visible.value ? ' active' : ' '
   return className
 })
 

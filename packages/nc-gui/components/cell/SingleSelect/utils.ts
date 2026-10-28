@@ -76,7 +76,8 @@ export const getOptions = (
 
 /**
  * Width for a select dropdown in a filter, whose value input is too narrow for option
- * titles: the longest title (capped at 360px). Ant keeps the trigger width as the minimum.
+ * titles: the longest title, between 156px and 360px. Ant keeps the trigger width as the
+ * minimum, so the dropdown class must not override min-width.
  * `extra` covers anything beside the tag, e.g. the multi-select check.
  */
 export const getFilterSelectDropdownWidth = (titles: Array<string | undefined>, extra = 0): number => {
@@ -85,5 +86,5 @@ export const getFilterSelectDropdownWidth = (titles: Array<string | undefined>, 
   const longest = titles.reduce((max, title) => Math.max(max, defaultOffscreen2DContext.measureText(title ?? '').width), 0)
 
   // Canvas measures ~5% narrower than the rendered tag text; 56px = option + tag padding and the scrollbar.
-  return Math.min(Math.ceil(longest * 1.1) + 56 + extra, 360)
+  return Math.max(156, Math.min(Math.ceil(longest * 1.1) + 56 + extra, 360))
 }

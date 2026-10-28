@@ -396,7 +396,9 @@ onMounted(() => {
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed"
       :class="{ 'caret-transparent': !hasEditRoles }"
-      :dropdown-class-name="`nc-dropdown-multi-select-cell !min-w-156px ${isOpen ? 'active' : ''}`"
+      :dropdown-class-name="`nc-dropdown-multi-select-cell ${location === 'filter' ? '' : '!min-w-156px'} ${
+        isOpen ? 'active' : ''
+      }`"
       :dropdown-match-select-width="dropdownMatchSelectWidth"
       :search-value="searchVal ?? ''"
       @search="search"

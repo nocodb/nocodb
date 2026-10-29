@@ -1,0 +1,8 @@
+# Values used by chart-testing (ct lint) in CI to render the HTTPRoute.
+# Installing with them needs the Gateway API CRDs and a Gateway named "gw".
+httproute:
+  enabled: true
+  parentRefs:
+    - name: gw
+  hostnames:
+    - nocodb.example.com

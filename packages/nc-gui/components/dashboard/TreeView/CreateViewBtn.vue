@@ -7,6 +7,8 @@ const props = defineProps<{
   alignLeftLevel: number | undefined
   source: Source
   placement?: NcDropdownPlacement
+  /** Create the view inside this view folder */
+  viewSectionId?: string
 }>()
 
 const emit = defineEmits<{
@@ -119,6 +121,7 @@ async function onOpenModal({
     baseId: base.value.id!,
     tableId: table.value.id!,
     sourceId: table.value?.source_id,
+    viewSectionId: props.viewSectionId,
   })
 }
 
@@ -345,7 +348,8 @@ watch(isOpen, (val) => {
           </div>
         </NcMenuItem>
 
-        <template v-if="showEEFeatures">
+        <!-- View folders don't nest -->
+        <template v-if="showEEFeatures && !viewSectionId">
           <!-- Section -->
           <NcDivider />
 

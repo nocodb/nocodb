@@ -3134,7 +3134,7 @@
       "description": "Smart Text uses a rich block-based editor with formatting, images, tables, and more. Content is stored in-row, so it's searchable and filterable.",
       "remoteUpdateAvailable": "Someone else updated this cell",
       "saveBlockedOutOfSync": "Someone else updated this cell. Reload it to see their version before saving.",
-    "unsavedHint": "Unsaved changes. Saved when you close it or move to another cell."
+      "unsavedHint": "Unsaved changes. Saved when you close it or move to another cell."
     },
     "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Copied record URL",

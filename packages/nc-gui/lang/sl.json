@@ -3642,7 +3642,6 @@
     "limitFileSizeDescription": "Omejite velikost datotek, ki jih je mogoče naložiti. (Omejitev na datoteko)",
     "layout": "Postavitev",
     "interfaceRevisionHistory": "Zgodovina revizij",
-    "linkUnlinkRecords": "Poveži/odstrani povezavo med zapisi",
     "limitRecordSelection": "Omeji izbiro zapisov",
     "keepAsDraft": "Obdrži kot osnutek",
     "lastPublished": "Nazadnje objavljeno {time}",

@@ -3644,7 +3644,6 @@
     "limitFileSizeDescription": "যে ফাইলগুলি আপলোড করা যাবে তার আকার সীমিত করুন। (প্রতি ফাইলে সীমা)",
     "layout": "লেআউট",
     "interfaceRevisionHistory": "সংশোধনের ইতিহাস",
-    "linkUnlinkRecords": "রেকর্ড যুক্ত/বিচ্ছিন্ন করুন",
     "limitRecordSelection": "রেকর্ড নির্বাচন সীমিত করুন",
     "keepAsDraft": "খসড়া হিসেবে রাখুন",
     "lastPublished": "সর্বশেষ প্রকাশ {time}",

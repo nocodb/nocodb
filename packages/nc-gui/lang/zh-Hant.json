@@ -3644,7 +3644,6 @@
     "limitFileSizeDescription": "限制可上傳檔案的大小。（每個檔案的上限）",
     "layout": "版面配置",
     "interfaceRevisionHistory": "修訂紀錄",
-    "linkUnlinkRecords": "連結／取消連結記錄",
     "limitRecordSelection": "限制記錄的選取",
     "keepAsDraft": "保留為草稿",
     "lastPublished": "上次發佈 {time}",

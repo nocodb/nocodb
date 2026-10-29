@@ -3640,7 +3640,6 @@
     "limitFileSizeDescription": "Batasi ukuran berkas yang dapat diunggah. (Batas per berkas)",
     "layout": "Tata letak",
     "interfaceRevisionHistory": "Riwayat revisi",
-    "linkUnlinkRecords": "Tautkan/lepas tautan catatan",
     "limitRecordSelection": "Batasi pemilihan catatan",
     "keepAsDraft": "Simpan sebagai draf",
     "lastPublished": "Terakhir diterbitkan {time}",

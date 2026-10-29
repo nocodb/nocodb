@@ -3641,7 +3641,6 @@
     "limitFileSizeDescription": "Ogranicz rozmiar przesyłanych plików. (Limit na plik)",
     "layout": "Układ",
     "interfaceRevisionHistory": "Historia zmian",
-    "linkUnlinkRecords": "Powiąż/rozłącz rekordy",
     "limitRecordSelection": "Ogranicz wybór rekordów",
     "keepAsDraft": "Zachowaj jako wersję roboczą",
     "lastPublished": "Ostatnio opublikowano {time}",

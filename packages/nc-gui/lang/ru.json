@@ -3644,7 +3644,6 @@
     "limitFileSizeDescription": "Ограничьте размер загружаемых файлов. (Ограничение на файл)",
     "layout": "Макет",
     "interfaceRevisionHistory": "История изменений",
-    "linkUnlinkRecords": "Связать/отвязать записи",
     "limitRecordSelection": "Ограничить выбор записей",
     "keepAsDraft": "Сохранить как черновик",
     "lastPublished": "Последняя публикация {time}",

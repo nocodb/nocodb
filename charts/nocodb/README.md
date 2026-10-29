@@ -214,7 +214,7 @@ Create one Secret and reference it from each `*.existingSecret`:
 | `httproute.annotations` | HTTPRoute annotations | `{}` |
 | `httproute.parentRefs` | Gateways this route attaches to (each entry: name, and optional namespace/sectionName/port). Required when enabled | `[]` |
 | `httproute.hostnames` | Hostnames matched by this route | `[]` |
-| `httproute.rules` | Custom routing rules; when set, replaces the default "/ -> service" rule (tpl-rendered) | `[]` |
+| `httproute.rules` | Custom routing rules; when set, replaces the default "/ -> service" rule (tpl-rendered, so write ports as plain numbers) | `[]` |
 | `networkPolicy.enabled` | Create a NetworkPolicy | `false` |
 | `networkPolicy.allowExternal` | Allow ingress from anywhere | `true` |
 | `networkPolicy.extraIngress` | Extra ingress rules | `[]` |

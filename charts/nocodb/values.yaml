@@ -306,7 +306,7 @@ ingress:
 ## @param httproute.annotations HTTPRoute annotations
 ## @param httproute.parentRefs Gateways this route attaches to (each entry: name, and optional namespace/sectionName/port). Required when enabled
 ## @param httproute.hostnames Hostnames matched by this route
-## @param httproute.rules Custom routing rules; when set, replaces the default "/ -> service" rule (tpl-rendered)
+## @param httproute.rules Custom routing rules; when set, replaces the default "/ -> service" rule (tpl-rendered, so write ports as plain numbers)
 httproute:
   enabled: false
   annotations: {}

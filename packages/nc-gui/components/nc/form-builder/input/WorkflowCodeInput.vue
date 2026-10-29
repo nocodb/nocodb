@@ -32,6 +32,10 @@ interface Props {
   groupedVariables?: NodeGroup[]
   readOnly?: boolean
   multiline?: boolean
+  /** Wraps a single-line value instead of scrolling it; the expand modal's editor. */
+  wrap?: boolean
+  /** Title of the expand modal. */
+  label?: string
   /** Focusing the empty field opens the variable picker, for inputs that pick a field. */
   openPickerWhenEmpty?: boolean
   /** Kinds of value the field takes; the picker disables the rest. */
@@ -47,6 +51,8 @@ const props = withDefaults(defineProps<Props>(), {
   groupedVariables: () => [],
   readOnly: false,
   multiline: false,
+  wrap: false,
+  label: undefined,
   openPickerWhenEmpty: false,
   accepts: undefined,
   allowInsertWhole: true,
@@ -82,6 +88,28 @@ const chipHint = ref<{ top: number; left: number } | null>(null)
 
 /** The caret is inside an expression, which reads as code and offers `.` completions. */
 const isEditingExpression = ref(false)
+
+/** Single-line fields scroll sideways; multiline and the expand modal's editor wrap. */
+const isWrapped = computed(() => props.multiline || props.wrap)
+
+/** Which edges of a scrolling single-line value have text past them. */
+const overflow = ref({ start: false, end: false })
+
+function syncOverflow(scroller: HTMLElement) {
+  const start = scroller.scrollLeft > 0
+  const end = scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 1
+  if (start !== overflow.value.start || end !== overflow.value.end) overflow.value = { start, end }
+}
+
+const isExpandOpen = ref(false)
+
+const expandedInputRef = ref<{ focus: () => void }>()
+
+watch(isExpandOpen, async (open) => {
+  if (!open) return
+  await nextTick()
+  expandedInputRef.value?.focus()
+})
 
 const CHIP_HINT_DELAY = 400
 
@@ -452,7 +480,7 @@ function extensions(): Extension[] {
   return [
     history(),
     chipPlugin,
-    EditorView.lineWrapping,
+    ...(isWrapped.value ? [EditorView.lineWrapping] : []),
     EditorState.readOnly.of(props.readOnly),
     EditorView.editable.of(!props.readOnly),
     ...(props.placeholder ? [cmPlaceholder(props.placeholder)] : []),
@@ -561,6 +589,7 @@ function extensions(): Extension[] {
     }),
     EditorView.updateListener.of((update) => {
       if (update.focusChanged) isFocused.value = update.view.hasFocus
+      if (!isWrapped.value && (update.docChanged || update.geometryChanged)) syncOverflow(update.view.scrollDOM)
       if (update.focusChanged || update.selectionSet || update.docChanged) {
         const head = update.state.selection.main.head
         isEditingExpression.value =
@@ -635,6 +664,9 @@ function createView() {
     parent: hostRef.value,
     state: EditorState.create({ doc: props.modelValue ?? '', extensions: extensions() }),
   })
+  const scroller = view.scrollDOM
+  scroller.addEventListener('scroll', () => syncOverflow(scroller), { passive: true })
+  if (!isWrapped.value) requestAnimationFrame(() => syncOverflow(scroller))
 }
 
 function insertVariable() {
@@ -695,7 +727,7 @@ watch(picker, (value, previous) => {
 })
 
 watch(
-  () => [props.readOnly, props.multiline, props.placeholder],
+  () => [props.readOnly, props.multiline, props.wrap, props.placeholder],
   () => createView(),
 )
 
@@ -733,14 +765,35 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="nc-workflow-code-input relative" :class="{ 'is-multiline': multiline, 'is-readonly': readOnly }">
-    <div class="nc-workflow-code-input-field" :class="{ 'is-focused': isFocused }">
+  <div class="nc-workflow-code-input relative" :class="{ 'is-wrapped': isWrapped, 'is-readonly': readOnly }">
+    <div
+      class="nc-workflow-code-input-field"
+      :class="{ 'is-focused': isFocused, 'is-overflow-start': overflow.start, 'is-overflow-end': overflow.end }"
+    >
       <div ref="hostRef" class="flex-1 min-w-0" data-testid="nc-workflow-code-input" />
+
+      <NcTooltip
+        v-if="!isWrapped"
+        class="nc-workflow-code-input-expand flex flex-none self-center"
+        hide-on-click
+        :title="$t('general.expand')"
+      >
+        <NcButton
+          size="xs"
+          type="text"
+          class="!px-1.5"
+          data-testid="nc-workflow-code-input-expand-btn"
+          @mousedown.prevent
+          @click.stop="isExpandOpen = true"
+        >
+          <GeneralIcon icon="ncMaximize" class="text-nc-content-gray-subtle flex-none w-4 h-4" />
+        </NcButton>
+      </NcTooltip>
 
       <NcTooltip
         v-if="!readOnly"
         class="flex flex-none"
-        :class="multiline ? 'self-start' : 'self-center'"
+        :class="isWrapped ? 'self-start' : 'self-center'"
         hide-on-click
         :title="$t('general.variable')"
       >
@@ -776,6 +829,37 @@ onBeforeUnmount(() => {
         <template v-if="hasFieldPreview"> · </template>{{ $t('labels.workflow.transforms.dotHint') }}
       </span>
     </div>
+
+    <NcModal v-if="!isWrapped" v-model:visible="isExpandOpen" size="medium" height="auto">
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center justify-between gap-2">
+          <div class="text-base font-bold text-nc-content-gray-emphasis truncate">{{ label || $t('general.value') }}</div>
+          <NcButton size="small" type="text" @click="isExpandOpen = false">
+            <GeneralIcon icon="ncX" class="w-4 h-4" />
+          </NcButton>
+        </div>
+        <!-- Esc that closed the picker or autocomplete shouldn't also close the modal. -->
+        <div @keydown.esc="(event: KeyboardEvent) => event.defaultPrevented && event.stopPropagation()">
+          <WorkflowCodeInput
+            v-if="isExpandOpen"
+            ref="expandedInputRef"
+            :model-value="modelValue"
+            :placeholder="placeholder"
+            :variables="variables"
+            :grouped-variables="groupedVariables"
+            :read-only="readOnly"
+            :accepts="accepts"
+            :allow-insert-whole="allowInsertWhole"
+            wrap
+            @update:model-value="(value: string) => emit('update:modelValue', value)"
+            @enter="isExpandOpen = false"
+          />
+        </div>
+        <div class="flex justify-end">
+          <NcButton size="small" type="primary" @click="isExpandOpen = false">{{ $t('general.done') }}</NcButton>
+        </div>
+      </div>
+    </NcModal>
 
     <!-- `nc-dropdown`: the canvas keeps the step selected for clicks inside these. -->
     <Teleport to="body">
@@ -838,8 +922,54 @@ onBeforeUnmount(() => {
   }
 }
 
-.is-multiline .nc-workflow-code-input-field {
+.is-wrapped .nc-workflow-code-input-field {
   @apply items-start min-h-20 py-2;
+}
+
+// Single-line values scroll sideways: no scrollbar, faded edges where text continues.
+.nc-workflow-code-input:not(.is-wrapped) {
+  :deep(.cm-scroller) {
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .nc-workflow-code-input-field {
+    --nc-fade-start: 0px;
+    --nc-fade-end: 0px;
+
+    &.is-overflow-start {
+      --nc-fade-start: 16px;
+    }
+
+    &.is-overflow-end {
+      --nc-fade-end: 16px;
+    }
+
+    :deep(.cm-scroller) {
+      mask-image: linear-gradient(
+        to right,
+        transparent 0,
+        #000 var(--nc-fade-start),
+        #000 calc(100% - var(--nc-fade-end)),
+        transparent 100%
+      );
+    }
+  }
+
+  // The expand button shows on hover or focus, so it doesn't take room from short values.
+  .nc-workflow-code-input-expand {
+    @apply hidden;
+  }
+
+  .nc-workflow-code-input-field:hover,
+  .nc-workflow-code-input-field.is-focused {
+    .nc-workflow-code-input-expand {
+      @apply flex;
+    }
+  }
 }
 
 .is-readonly .nc-workflow-code-input-field {

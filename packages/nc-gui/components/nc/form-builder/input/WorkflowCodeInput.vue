@@ -978,7 +978,7 @@ onBeforeUnmount(() => {
   }
 
   .nc-workflow-code-input-field:hover,
-  .nc-workflow-code-input-field.is-focused {
+  .nc-workflow-code-input-field:focus-within {
     :deep(.nc-workflow-code-input-expand) {
       @apply flex;
     }

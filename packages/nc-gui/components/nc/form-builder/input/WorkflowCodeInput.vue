@@ -781,7 +781,7 @@ onBeforeUnmount(() => {
         <NcButton
           size="xs"
           type="text"
-          class="!px-1.5"
+          class="nc-workflow-code-input-btn"
           data-testid="nc-workflow-code-input-expand-btn"
           @mousedown.prevent
           @click.stop="isExpandOpen = true"
@@ -800,7 +800,7 @@ onBeforeUnmount(() => {
         <NcButton
           size="xs"
           type="text"
-          class="nc-workflow-input-insert-btn !px-1.5"
+          class="nc-workflow-input-insert-btn nc-workflow-code-input-btn"
           @mousedown.prevent
           @click.stop="insertVariable"
         >
@@ -915,11 +915,16 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .nc-workflow-code-input-field {
-  @apply flex items-center gap-1 w-full min-h-8 pl-3 pr-1 py-1 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default transition-colors;
+  @apply flex items-center gap-0.5 w-full min-h-[38px] pl-3 pr-1.5 py-1 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default transition-colors;
 
   &.is-focused {
     @apply border-nc-border-brand shadow-selected;
   }
+}
+
+// Compact icon buttons so expand and insert sit together.
+.nc-workflow-code-input-btn {
+  @apply !w-6 !h-6 !min-w-6 !px-0 !border-0 !shadow-none;
 }
 
 .is-wrapped .nc-workflow-code-input-field {

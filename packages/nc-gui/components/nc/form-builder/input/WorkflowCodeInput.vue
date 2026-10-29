@@ -838,8 +838,16 @@ onBeforeUnmount(() => {
             <GeneralIcon icon="ncX" class="w-4 h-4" />
           </NcButton>
         </div>
+        <!-- Fields edited alongside the value, e.g. a header's name. -->
+        <slot name="expand-fields" :close="() => (isExpandOpen = false)" />
         <!-- Esc that closed the picker or autocomplete shouldn't also close the modal. -->
-        <div @keydown.esc="(event: KeyboardEvent) => event.defaultPrevented && event.stopPropagation()">
+        <div
+          class="flex flex-col gap-2"
+          @keydown.esc="(event: KeyboardEvent) => event.defaultPrevented && event.stopPropagation()"
+        >
+          <label v-if="$slots['expand-fields']" class="text-sm font-medium text-nc-content-gray-emphasis">
+            {{ $t('general.value') }}
+          </label>
           <WorkflowCodeInput
             v-if="isExpandOpen"
             ref="expandedInputRef"

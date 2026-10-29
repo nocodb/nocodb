@@ -1771,7 +1771,11 @@ watch(readOnly, (newValue) => {
       :allow-insert-whole="allowInsertWhole"
       :label="label"
       @enter="emit('enter')"
-    />
+    >
+      <template v-if="$slots['expand-fields']" #expand-fields="slotProps">
+        <slot name="expand-fields" v-bind="slotProps" />
+      </template>
+    </WorkflowCodeInput>
   </div>
 </template>
 

@@ -5785,6 +5785,7 @@
     "emailVerification": "Email Verification",
     "method": "Method",
     "queryParameters": "Query Parameters",
+    "queryParameter": "Query Parameter",
     "webhookSettings": "Webhook Settings",
     "webhookResponseChange": "Change in webhook response",
     "triggerOnlyWhenConditionsMatch": "Trigger only when conditions match",

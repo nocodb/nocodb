@@ -17,6 +17,10 @@ Access:
   {{- range .Values.ingress.hosts }}
   {{ ternary "https" "http" (gt (len $.Values.ingress.tls) 0) }}://{{ .host }}
   {{- end }}
+{{- else if and .Values.httproute.enabled .Values.httproute.hostnames }}
+  {{- range .Values.httproute.hostnames }}
+  https://{{ . }}
+  {{- end }}
 {{- else }}
   kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "nocodb.fullname" . }} 8080:{{ .Values.service.port }}
   Then open http://localhost:8080

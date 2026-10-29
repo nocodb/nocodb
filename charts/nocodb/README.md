@@ -94,7 +94,7 @@ Create one Secret and reference it from each `*.existingSecret`:
 
 | Name | Description | Value |
 |------|-------------|-------|
-| `nocodb.publicUrl` | NC_SITE_URL. If empty, derived from the first ingress host when TLS is set | `""` |
+| `nocodb.publicUrl` | NC_SITE_URL. If empty, derived from the first ingress host when TLS is set, or from the first HTTPRoute hostname as https | `""` |
 | `nocodb.dashboardUrl` | NC_DASHBOARD_URL | `""` |
 | `nocodb.disableMux` | Set NC_DISABLE_MUX=true (recommended for self-hosted) | `true` |
 | `nocodb.disableTelemetry` | Set NC_DISABLE_TELE=true | `false` |
@@ -210,6 +210,11 @@ Create one Secret and reference it from each `*.existingSecret`:
 | `ingress.annotations` | Ingress annotations (cert-manager cluster-issuer here) | `{}` |
 | `ingress.hosts` | Ingress hosts | See values.yaml |
 | `ingress.tls` | Ingress TLS entries | `[]` |
+| `httproute.enabled` | Create a Gateway API HTTPRoute (alternative to Ingress; needs the Gateway API CRDs and a Gateway) | `false` |
+| `httproute.annotations` | HTTPRoute annotations | `{}` |
+| `httproute.parentRefs` | Gateways this route attaches to (each entry: name, and optional namespace/sectionName/port). Required when enabled | `[]` |
+| `httproute.hostnames` | Hostnames matched by this route | `[]` |
+| `httproute.rules` | Custom routing rules; when set, replaces the default "/ -> service" rule (tpl-rendered, so write ports as plain numbers) | `[]` |
 | `networkPolicy.enabled` | Create a NetworkPolicy | `false` |
 | `networkPolicy.allowExternal` | Allow ingress from anywhere | `true` |
 | `networkPolicy.extraIngress` | Extra ingress rules | `[]` |

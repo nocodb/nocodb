@@ -12,7 +12,7 @@ import {
   PermissionRole,
   ProjectRoles,
 } from 'nocodb-sdk';
-import type { NcRequest, UITypes } from 'nocodb-sdk';
+import type { NcRequest, UITypes, UserType } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import { Model, ModelRoleVisibility, Permission, User, View } from '~/models';
 import {
@@ -271,11 +271,27 @@ export async function hasModelRoleVisibilityAccess(
   });
 }
 
+/** Both table-visibility rules: the TABLE_VISIBILITY permission and UI ACL. */
+export async function isTableVisible(
+  context: NcContext,
+  tableId: string,
+  user: (UserType & { base_roles?: Record<string, boolean> }) | undefined,
+): Promise<boolean> {
+  return (
+    (await hasTableVisibilityAccess(context, tableId, user)) &&
+    (await hasModelRoleVisibilityAccess(
+      context,
+      tableId,
+      extractRolesObj(user?.base_roles),
+    ))
+  );
+}
+
 /**
  * Whether a nested-link fetch must collapse the RELATED table to what the link
  * exposes (pk + primary value + the link's custom display column). Two
- * independent access boundaries: the caller lacks TABLE_VISIBILITY on the
- * related table, or the request came through a shared VIEW/form — which
+ * independent access boundaries: the related table is not visible to the
+ * caller (`isTableVisible`), or the request came through a shared VIEW/form — which
  * publishes one view of one table, so the tables it links to are not published.
  *
  * The second needs its own check: with no user `hasTableVisibilityAccess` falls
@@ -289,11 +305,7 @@ export async function hasLimitedRelatedTableAccess(
 ): Promise<boolean> {
   if (isSharedViewAccess(context)) return true;
 
-  return !(await hasTableVisibilityAccess(
-    context,
-    relatedTableId,
-    context.user,
-  ));
+  return !(await isTableVisible(context, relatedTableId, context.user));
 }
 
 /**
@@ -317,11 +329,14 @@ export async function hasLimitedLinkTargetAccess(
   if (!colOptions.isCrossBaseLink() || isSharedViewAccess(refContext)) {
     return hasLimitedRelatedTableAccess(refContext, relatedModelId);
   }
-  return !(await hasTableVisibilityAccess(
-    refContext,
-    relatedModelId,
-    await userInRelatedBase(refContext),
-  ));
+  const relatedUser = await userInRelatedBase(refContext);
+  // A user re-resolved in the related base needs a role there; no-access (or
+  // none) must not fall through to the "no visibility rule = open" default.
+  if (relatedUser !== refContext.user) {
+    const role = getStandingRole(relatedUser);
+    if (!role || role === ProjectRoles.NO_ACCESS) return true;
+  }
+  return !(await isTableVisible(refContext, relatedModelId, relatedUser));
 }
 
 // Per request user object: base id -> that user with its roles in that base.

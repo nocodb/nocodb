@@ -46,8 +46,13 @@ export interface ChatToolProgress {
   stage?: FactoryBootStage;
 }
 
-/** What a factory turn does before the agent starts: bring up the machine, its services, the repo, the project's instructions. */
-export type FactoryBootStage = 'machine' | 'services' | 'clone' | 'context';
+/** What a factory turn does before the agent starts: wait for its machine's build, bring up the machine, its services, the repo, the project's instructions. */
+export type FactoryBootStage =
+  | 'build'
+  | 'machine'
+  | 'services'
+  | 'clone'
+  | 'context';
 
 export enum ChatToolCallStatus {
   PENDING = 'pending',
@@ -96,8 +101,14 @@ export interface ChatSessionMetaType {
   factoryMachineVersion?: number;
   /** App Factory: the last model picked, a {@link factoryModelRef}; the default for a message that names none. */
   factoryModel?: string;
-  /** App Factory: the project's first session, opened with it to get it running and its machine ready. */
+  /** A coding agent's setup session, started on its first repo to get it running and its machine ready. */
   factoryKickoff?: 'setup';
+  /** A general agent's setup chat, where its draft was made; never one of its runs. */
+  agentSetup?: boolean;
+  /** App Factory: the branch its runs start from and pull requests target, when not the repo's default. Fixed for the session. */
+  factoryBase?: string;
+  /** App Factory: the agent's branch name pattern when the session started, so a re-clone lands on the same branch. */
+  factoryBranchPattern?: string;
   /**
    * The app-build sandbox running RIGHT NOW, so a Stop on any instance can kill
    * it by id. Separate from `computeId`, which is the chat analyst's PAUSED
@@ -182,24 +193,41 @@ export enum FactorySourceKind {
   ISSUE = 'issue',
 }
 
-/** The repository behind a code project. */
+/**
+ * No repository. Coding agents are git-only, so nothing starts on it any more:
+ * a trigger stored with it runs on the agent's default repository.
+ */
+export const FACTORY_NO_REPO = 'none';
+
+/** A repository a coding agent may work in. */
 export interface FactoryRepoType {
   id?: string;
   fk_workspace_id?: string;
-  /** The code project — one repo per base. */
   base_id?: string;
+  /** The coding agent it belongs to. */
+  fk_agent_id?: string;
+  /** Where a session starts when nobody names a repository. One per agent. */
+  is_default?: boolean;
   fk_integration_id?: string;
   provider_repo_id?: string;
   full_name?: string;
   remote_url?: string;
   default_branch?: string;
+  /** Where its runs branch off and their pull requests open against; unset is the default branch. */
+  base_branch?: string | null;
   is_private?: boolean;
   enabled?: boolean;
   meta?: Record<string, any>;
   created_at?: string;
   updated_at?: string;
-  /** On creation only: the setup session the project opens with, when one could start. */
+  /** On adding the agent's first repo: the session setting it up, when one started. */
   kickoff_session_id?: string;
+}
+
+/** Someone who can be asked to review a coding agent's pull requests. */
+export interface FactoryReviewer {
+  login: string;
+  avatarUrl?: string;
 }
 
 /** A repository the connection can reach, whether or not it is set up here. */
@@ -210,8 +238,71 @@ export interface FactoryAvailableRepo {
   defaultBranch: string;
   isPrivate: boolean;
   description?: string;
-  /** Whether a code project in this workspace already uses it. */
+  /** Last push, ISO. */
+  updatedAt?: string;
+  /** Whether the agent it was listed for already has it. */
   configured: boolean;
+}
+
+/** An open issue or pull request a new coding agent can take as its first task. */
+export interface FactoryTaskCandidate {
+  kind: FactorySourceKind.ISSUE | FactorySourceKind.PR;
+  number: number;
+  title: string;
+  labels: string[];
+  /** ISO. */
+  updatedAt: string;
+  author?: string;
+  /** Pull requests: a reviewer asked for changes. */
+  changesRequested?: boolean;
+  /** Pull requests: opened as a draft. */
+  draft?: boolean;
+  /** Labelled as a good first issue, or similar. */
+  goodFirst?: boolean;
+}
+
+/** One repo's open work, for picking a first task. */
+export interface FactoryTaskList {
+  /** A few small, well-described ones; only when nothing was searched. */
+  suggested: FactoryTaskCandidate[];
+  issues: FactoryTaskCandidate[];
+  pulls: FactoryTaskCandidate[];
+  /** Open counts across the repo, not just the page returned. */
+  totals: { issues: number; pulls: number };
+  /** Set when the host could not be read: `auth` when it rejected the connection. */
+  error?: 'auth' | 'unreachable';
+}
+
+/** A repository picked in the creator, by connection and the host's own id. */
+export interface FactoryLaunchRepo {
+  fk_integration_id: string;
+  provider_repo_id: string;
+}
+
+/** Creating a coding agent and starting its first run, in one call. */
+export interface FactoryAgentLaunchReq {
+  title: string;
+  /** The first is the agent's default, and where the first task runs. */
+  repos: FactoryLaunchRepo[];
+  size?: string;
+  instructions?: string;
+  /** Defaults to on, as for any new agent. */
+  webAccess?: boolean;
+  /** Ids from the base's shared skill catalogs. */
+  skills?: string[];
+  /** An issue or pull request in the first repo; without it, `prompt` is the task. */
+  task: {
+    kind?: FactorySourceKind.ISSUE | FactorySourceKind.PR;
+    number?: number;
+    /** The issue or PR title, for the session's first message. */
+    title?: string;
+    prompt?: string;
+  };
+}
+
+export interface FactoryAgentLaunchRes {
+  agentId: string;
+  sessionId: string;
 }
 
 /** A branch, pull request or issue a session can start from. */
@@ -233,6 +324,8 @@ export interface FactorySourceBundle {
   branch: FactorySourceOption[];
   pr: FactorySourceOption[];
   issue: FactorySourceOption[];
+  /** Set when every lookup failed: `auth` when the host rejected the connection. */
+  error?: 'auth' | 'unreachable';
 }
 
 /**
@@ -257,6 +350,10 @@ export interface FactorySessionSummary {
   title?: string;
   status: FactorySessionStatus;
   repo?: { id: string; full_name: string };
+  /** The coding agent the session belongs to. */
+  fk_agent_id?: string | null;
+  /** `'chat'` for a person; a trigger node id for a run a trigger started. */
+  trigger_type?: string;
   updated_at?: string;
   /**
    * Set on a spawned agent: the session that started it. The sidebar nests
@@ -497,7 +594,6 @@ export interface ChatSessionType {
   id?: string;
   title?: string;
   fk_workspace_id: string;
-  /** Absent on an App Factory session — those are pinned to a repo, not a base. */
   base_id?: string | null;
   /** Absent on a triggered session — nobody started it. */
   fk_user_id?: string;
@@ -506,7 +602,9 @@ export interface ChatSessionType {
   /** `'chat'` for a person; a trigger node id for a firing. */
   trigger_type?: string;
   status?: ChatSessionStatus;
-  /** The App Factory repo this session runs against; absent on a normal chat. */
+  /** A coding agent's session, with a machine of its own; false for a chat. */
+  is_coding?: boolean;
+  /** The repo a coding session runs against; absent on a chat and on a coding session without one. */
   fk_factory_repo_id?: string | null;
   source_kind?: FactorySourceKind;
   /** Branch name, or the PR / issue number as text. */
@@ -663,7 +761,8 @@ export const NC_NEW_SESSION = 'NC_SESSION';
  * `website` runs the same phases as `app` and differs only in the brief: its pages
  * are declared public. `interfaces` stops at NocoDB's own interface pages and never
  * reaches the app builder. `workflow` stops at the automation plus the tables it
- * acts on, since the workflow itself is the deliverable.
+ * acts on, since the workflow itself is the deliverable. `agent` is the same with
+ * an agent in place of the automation.
  */
 export const BUILD_SCOPES = [
   'app',
@@ -672,6 +771,7 @@ export const BUILD_SCOPES = [
   'table',
   'form',
   'workflow',
+  'agent',
 ] as const;
 
 export type BuildScope = (typeof BUILD_SCOPES)[number];
@@ -698,7 +798,7 @@ export interface ChatUIContext {
   onboarding?: boolean;
   /** What that build should produce. Absent means a full app. */
   buildScope?: BuildScope;
-  /** Agents is on for this user — its experimental flag lives in the browser, so only the client knows. */
+  /** The client shows Agents to this user, so the builder may make and change them. */
   agentsEnabled?: boolean;
 }
 

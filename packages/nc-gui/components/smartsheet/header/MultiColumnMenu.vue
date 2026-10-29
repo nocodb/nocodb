@@ -53,6 +53,9 @@ const columnCount = computed(() => props.columns.length)
 // pv (display value) column cannot be hidden or deleted.
 const nonPvColumns = computed(() => props.columns.filter((col) => !col.pv))
 
+// Keep the PK out of bulk field permissions — a select-all would restrict it unintentionally.
+const permissionColumns = computed(() => props.columns.filter((col) => !col.pk))
+
 const fieldDeleteReason = computed(() => environmentRestrictionReason('fieldDelete'))
 
 const closeAndClear = () => {
@@ -215,17 +218,17 @@ const onPermissionsSaved = () => {
     <NcDivider />
 
     <NcMenuItem
-      v-if="appInfo.ee && !isPublic && isUIAllowed('permissionEdit')"
+      v-if="appInfo.ee && !isPublic && isUIAllowed('permissionEdit') && permissionColumns.length"
       data-testid="nc-multi-field-permissions"
       @click="onPermissions"
     >
       <div v-e="['a:field:permissions:multi']" class="nc-multi-column-permissions nc-header-menu-item">
         <GeneralIcon icon="ncLock" class="opacity-80 !w-4 !h-4" />
-        {{ t('labels.editNFieldPermissions', { count: columnCount }) }}
+        {{ t('labels.editNFieldPermissions', { count: permissionColumns.length }) }}
       </div>
     </NcMenuItem>
 
-    <NcDivider v-if="appInfo.ee && !isPublic && isUIAllowed('permissionEdit')" />
+    <NcDivider v-if="appInfo.ee && !isPublic && isUIAllowed('permissionEdit') && permissionColumns.length" />
 
     <NcTooltip :disabled="isAnyFilterable && !isFilterLimitBlocking">
       <template #title>
@@ -310,7 +313,7 @@ const onPermissionsSaved = () => {
       <DlgFieldMultiPermissions
         v-if="appInfo.ee && meta"
         v-model:visible="showMultiPermissionsModal"
-        :columns="columns"
+        :columns="permissionColumns"
         @saved="onPermissionsSaved"
       />
     </div>

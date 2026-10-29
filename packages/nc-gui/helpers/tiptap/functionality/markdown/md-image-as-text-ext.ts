@@ -11,7 +11,7 @@ function mdImageAsText(md: MarkdownIt) {
     // Get the src value from the attributes (it's the first attribute)
     const srcValue = tokens[idx].attrs?.[0]?.[1] // Safe access to src
 
-    return `<a href="${srcValue}">${tokens[idx].content}</a>`
+    return `<a href="${srcValue}">${tokens[idx].content || md.utils.escapeHtml(srcValue ?? '')}</a>`
   }
 }
 

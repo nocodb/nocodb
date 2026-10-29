@@ -50,7 +50,7 @@ export class BasesController {
     });
   }
 
-  @Acl('baseInfoGet')
+  @Acl('baseInfoGet', { blockPublicBaseAccess: true })
   @Get([
     '/api/v1/db/meta/projects/:baseId/info',
     '/api/v2/meta/bases/:baseId/info',
@@ -131,7 +131,7 @@ export class BasesController {
       user: req['user'],
     });
 
-    return base;
+    return this.projectsService.sanitizeProject(base);
   }
 
   @Acl('hasEmptyOrNullFilters')

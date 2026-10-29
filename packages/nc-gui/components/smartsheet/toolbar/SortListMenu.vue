@@ -306,6 +306,7 @@ watch(
               :read-only="isRestrictedEditor"
               :draggable="appInfo.ee && !isPublic"
               :show-enable-toggle="appInfo.ee && !isPublic"
+              show-order-by
               :disabled="isLocked"
               @save-or-update="saveOrUpdate($event, getSortIndex($event))"
               @delete="deleteSort($event, getSortIndex($event))"

@@ -90,10 +90,16 @@ const sqlite3 = {
   },
   DATEADD: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
-    let dateIN = (await fn(pt.arguments[1])).builder;
-    if (typeof dateIN === 'object' && dateIN.toQuery) {
-      dateIN = Number(dateIN.toQuery());
-    }
+    const amountBuilder = (await fn(pt.arguments[1])).builder;
+    const dateIN = Number(
+      typeof amountBuilder === 'object' && amountBuilder.toQuery
+        ? amountBuilder.toQuery()
+        : amountBuilder,
+    );
+    // A field reference or expression isn't a literal number, so build the
+    // modifier's amount in SQL instead of inlining NaN
+    const isLiteralAmount = !Number.isNaN(dateIN);
+    const amountSql = knex.raw(`CAST(? AS TEXT) || ' '`, [amountBuilder]);
 
     if (pt.arguments[2].type === 'Literal') {
       let dateModifier = (await fn(pt.arguments[2])).builder;
@@ -101,6 +107,20 @@ const sqlite3 = {
         dateModifier = dateModifier.toQuery();
       }
       const unit = validateDateAddUnit(String(dateModifier));
+      if (!isLiteralAmount) {
+        const fullModifier = knex.raw(`? || '${unit}'`, [amountSql]);
+        return {
+          builder: knex.raw(
+            `CASE
+        WHEN ? LIKE '%:%' THEN
+          STRFTIME('%Y-%m-%dT%H:%M:%fZ', DATETIME(?, 'utc', ?))
+        ELSE
+          DATE(?, ?)
+        END`,
+            [source, source, fullModifier, source, fullModifier],
+          ),
+        };
+      }
       const fullModifierRaw = `${dateIN > 0 ? '+' : ''}${dateIN} ${unit}`;
 
       return {
@@ -123,8 +143,9 @@ const sqlite3 = {
     // with proper ? bindings so knex nests the Raw correctly
     const unitBuilder = (await fn(pt.arguments[2])).builder;
     const safeUnit = safeDateAddUnitSQL(knex, unitBuilder);
-    const prefix = `${dateIN > 0 ? '+' : ''}${dateIN} `;
-    const fullModifier = knex.raw(`'${prefix}' || ?`, [safeUnit]);
+    const fullModifier = isLiteralAmount
+      ? knex.raw(`'${dateIN > 0 ? '+' : ''}${dateIN} ' || ?`, [safeUnit])
+      : knex.raw(`? || ?`, [amountSql, safeUnit]);
 
     return {
       builder: knex.raw(

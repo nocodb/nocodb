@@ -21,6 +21,7 @@ import { MetaService } from '~/meta/meta.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
+import { isReplay } from '~/helpers/replayScope';
 import {
   assertViewConfigEditable,
   assertViewIdConfigEditable,
@@ -543,6 +544,34 @@ export class ViewsService {
     }
   }
 
+  protected async assertNotLastCollaborativeGrid(
+    context: NcContext,
+    view: View,
+    ncMeta = Noco.ncMeta,
+  ) {
+    // Undo and replay re-apply an accepted change; tables that lost their
+    // last grid before EE checked this must still undo a grid create.
+    if (
+      isReplay() ||
+      view.type !== ViewTypes.GRID ||
+      view.lock_type === ViewLockType.Personal
+    ) {
+      return;
+    }
+
+    const views = await View.list(context, view.fk_model_id, false, ncMeta);
+    const otherNonPersonalGridView = getFirstNonPersonalView(
+      views.filter((v) => v.id !== view.id),
+      { includeViewType: ViewTypes.GRID },
+    );
+
+    if (!otherNonPersonalGridView) {
+      NcError.get(context).badRequest(
+        'Cannot delete the last collaborative grid view',
+      );
+    }
+  }
+
   async viewDelete(
     context: NcContext,
     param: {
@@ -571,25 +600,7 @@ export class ViewsService {
 
     this.assertViewDeletable(context, view, user);
 
-    const views = await View.list(context, view.fk_model_id, false, ncMeta);
-
-    // Check if this is the last collaborative grid view
-    // Use helper to find if there's at least one other non-personal grid view
-    if (
-      view.type === ViewTypes.GRID &&
-      view.lock_type !== ViewLockType.Personal
-    ) {
-      const otherNonPersonalGridView = getFirstNonPersonalView(
-        views.filter((v) => v.id !== view.id),
-        { includeViewType: ViewTypes.GRID },
-      );
-
-      if (!otherNonPersonalGridView) {
-        NcError.get(context).badRequest(
-          'Cannot delete the last collaborative grid view',
-        );
-      }
-    }
+    await this.assertNotLastCollaborativeGrid(context, view, ncMeta);
 
     const viewWebhookManager = (
       await (

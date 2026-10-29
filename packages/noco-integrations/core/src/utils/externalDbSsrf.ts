@@ -1,6 +1,11 @@
+import { lookup as dnsLookup } from 'dns';
 import dns from 'dns/promises';
-import { isIP } from 'net';
+import http from 'http';
+import https from 'https';
+import { connect as netConnect, isIP, Socket } from 'net';
 import ipaddr from 'ipaddr.js';
+import type { LookupAddress } from 'dns';
+import type { LookupFunction, TcpSocketConnectOpts } from 'net';
 
 /**
  * SSRF guard for external database connections opened by integrations
@@ -120,51 +125,248 @@ export class SsrfBlockedHostError extends Error {
 }
 
 /**
- * Throws `SsrfBlockedHostError` if `host` resolves to a non-routable range.
- * No-op when SSRF protection is disabled (see `isDbSsrfProtectionEnabled`).
+ * Throws `SsrfBlockedHostError` if `host` is missing, a unix socket, does not
+ * resolve, or resolves to a non-routable range. No-op when SSRF protection is
+ * disabled (see `isDbSsrfProtectionEnabled`).
  */
 export async function assertExternalDbHostAllowed(
   host: unknown,
 ): Promise<void> {
   if (!isDbSsrfProtectionEnabled()) return;
-  if (typeof host !== 'string' || host.length === 0) return;
 
-  const trimmed = host.trim();
+  // Without a host the drivers dial their local default.
+  const hosts =
+    typeof host === 'string'
+      ? host
+          .split(',')
+          .map((h) => h.trim())
+          .filter(Boolean)
+      : [];
+  if (!hosts.length) {
+    throw new SsrfBlockedHostError('Database host is required');
+  }
+
+  for (const h of hosts) await assertSingleHostAllowed(h);
+}
+
+async function assertSingleHostAllowed(host: string): Promise<void> {
   if (
-    trimmed === '0.0.0.0' ||
-    trimmed === '::' ||
-    /^localhost$/i.test(trimmed)
+    host.startsWith('/') ||
+    host === '0.0.0.0' ||
+    host === '::' ||
+    /^localhost$/i.test(host)
   ) {
     throw new SsrfBlockedHostError();
   }
 
-  // TOCTOU note: the driver re-resolves at connect-time; a controlled DNS
-  // record with short TTL could flip between this lookup and the driver's
-  // connect(). Mitigating fully requires passing the resolved IP to the
-  // driver, which is per-driver wiring out of scope here.
+  // Fail-fast only: the address actually dialed is re-checked where the
+  // integration installs `withExternalDbSsrfProtection` / `externalDbHttpAgent`.
   let resolvedIps: string[] = [];
-  if (isIP(trimmed)) {
-    resolvedIps = [trimmed];
+  if (isIP(host)) {
+    resolvedIps = [host];
   } else {
     try {
-      const records = await dns.lookup(trimmed, { all: true });
+      const records = await dns.lookup(host, { all: true });
       resolvedIps = records.map((r) => r.address);
-    } catch {
-      // Let the driver surface DNS failures.
-      return;
+    } catch (err) {
+      // Keep the DNS code so callers still classify it as a network failure.
+      throw Object.assign(
+        new SsrfBlockedHostError('Unable to resolve the database host'),
+        { code: (err as NodeJS.ErrnoException)?.code },
+      );
     }
   }
 
   for (const addr of resolvedIps) {
-    if (!ipaddr.isValid(addr)) {
-      // Node accepts IPv6 spellings ipaddr.js rejects (dotted-quad tails behind a
-      // multi-group prefix, on ipaddr.js < 2.2). Skipping would mean allowing, and
-      // a routable host always parses — so fail closed.
-      if (isIP(addr)) throw new SsrfBlockedHostError();
-      continue;
-    }
-    if (isBlockedIp(ipaddr.parse(addr))) {
-      throw new SsrfBlockedHostError();
-    }
+    if (isBlockedAddress(addr)) throw new SsrfBlockedHostError();
   }
+}
+
+function isBlockedAddress(addr: string): boolean {
+  if (!ipaddr.isValid(addr)) {
+    // Node accepts IPv6 spellings ipaddr.js rejects (dotted-quad tails behind a
+    // multi-group prefix, on ipaddr.js < 2.2). A routable host always parses —
+    // so fail closed.
+    return isIP(addr) !== 0;
+  }
+  return isBlockedIp(ipaddr.parse(addr));
+}
+
+function blockedSocketError(): NodeJS.ErrnoException {
+  return Object.assign(new SsrfBlockedHostError(), { code: 'EACCES' });
+}
+
+/** dns.lookup that fails when any resolved address is in a blocked range. */
+export const externalDbValidatingLookup: LookupFunction = (
+  hostname,
+  options,
+  callback,
+) => {
+  dnsLookup(hostname, options, (err, address, family) => {
+    if (err) return callback(err, address, family);
+
+    const records: LookupAddress[] = Array.isArray(address)
+      ? address
+      : [{ address, family: family ?? 0 }];
+    if (records.some((r) => isBlockedAddress(r.address))) {
+      return callback(blockedSocketError(), '', 0);
+    }
+    callback(null, address, family);
+  });
+};
+
+function refusingSocket(): Socket {
+  const socket = new Socket();
+  process.nextTick(() => socket.destroy(blockedSocketError()));
+  return socket;
+}
+
+function isBlockedLiteral(host: unknown): boolean {
+  return typeof host === 'string' && isIP(host) !== 0 && isBlockedAddress(host);
+}
+
+// pg calls `stream.connect(port, host)`, or `stream.connect(path)` for a socket.
+function pgStream(): Socket {
+  const socket = new Socket();
+  const originalConnect = socket.connect.bind(socket);
+
+  socket.connect = ((...args: unknown[]): Socket => {
+    const [first, second] = args;
+    if (typeof first === 'string' && first.startsWith('/')) {
+      process.nextTick(() => socket.destroy(blockedSocketError()));
+      return socket;
+    }
+    const opts: TcpSocketConnectOpts =
+      typeof first === 'object' && first !== null
+        ? { ...(first as TcpSocketConnectOpts) }
+        : { port: Number(first), host: second as string };
+    if (isBlockedLiteral(opts.host)) {
+      process.nextTick(() => socket.destroy(blockedSocketError()));
+      return socket;
+    }
+    return originalConnect({ ...opts, lookup: externalDbValidatingLookup });
+  }) as typeof socket.connect;
+
+  return socket;
+}
+
+interface Mysql2StreamOpts {
+  config: {
+    host?: string;
+    port?: number;
+    socketPath?: string;
+    enableKeepAlive?: boolean;
+    keepAliveInitialDelay?: number;
+  };
+}
+
+// mysql2 never calls `.connect()` on a supplied stream; it must be connecting.
+function mysql2Stream({ config: cfg }: Mysql2StreamOpts): Socket {
+  if (cfg.socketPath || isBlockedLiteral(cfg.host)) return refusingSocket();
+
+  const socket = netConnect({
+    port: cfg.port ?? 3306,
+    host: cfg.host,
+    lookup: externalDbValidatingLookup,
+  });
+  socket.setNoDelay(true);
+  if (cfg.enableKeepAlive) {
+    socket.on('connect', () =>
+      socket.setKeepAlive(true, cfg.keepAliveInitialDelay),
+    );
+  }
+  return socket;
+}
+
+// tedious `options.connector`: also covers an Azure SQL redirect target.
+function tediousConnector(
+  opts: { host: string; port: number; localAddress?: string },
+  _lookup: unknown,
+  signal?: AbortSignal,
+): Promise<Socket> {
+  return new Promise((resolve, reject) => {
+    if (isBlockedLiteral(opts.host)) return reject(blockedSocketError());
+    if (signal?.aborted) return reject(signal.reason);
+
+    const socket = netConnect({
+      host: opts.host,
+      port: opts.port,
+      localAddress: opts.localAddress,
+      lookup: externalDbValidatingLookup,
+    });
+    const cleanup = () => {
+      signal?.removeEventListener('abort', onAbort);
+      socket.removeListener('error', onError);
+      socket.removeListener('connect', onConnect);
+    };
+    const onAbort = () => {
+      cleanup();
+      socket.destroy();
+      reject(signal?.reason);
+    };
+    const onError = (err: Error) => {
+      cleanup();
+      socket.destroy();
+      reject(err);
+    };
+    const onConnect = () => {
+      cleanup();
+      resolve(socket);
+    };
+    signal?.addEventListener('abort', onAbort, { once: true });
+    socket.once('error', onError);
+    socket.once('connect', onConnect);
+  });
+}
+
+/**
+ * Re-check the address the driver actually dials (pg, mysql2, mssql), so a
+ * DNS answer that changes after `assertExternalDbHostAllowed` cannot reach an
+ * internal host. No-op when SSRF protection is disabled.
+ */
+export function withExternalDbSsrfProtection<
+  T extends { client?: unknown; connection?: unknown },
+>(config: T): T {
+  if (!isDbSsrfProtectionEnabled()) return config;
+
+  const connection = config.connection as Record<string, any> | undefined;
+  if (!connection || typeof connection !== 'object') return config;
+
+  switch (config.client) {
+    case 'pg':
+    case 'postgres':
+    case 'postgresql':
+    case 'pg-native':
+    case 'redshift':
+    case 'cockroachdb':
+      connection.stream = pgStream;
+      break;
+    case 'mysql':
+    case 'mysql2':
+      connection.stream = mysql2Stream;
+      break;
+    case 'mssql':
+      connection.options = {
+        ...connection.options,
+        connector: tediousConnector,
+      };
+      break;
+  }
+  return config;
+}
+
+/**
+ * HTTP(S) agent whose sockets resolve through the validating lookup, for
+ * clients that dial over HTTP. Undefined when SSRF protection is disabled.
+ */
+export function externalDbHttpAgent(
+  url: URL,
+  tlsOptions: Pick<https.AgentOptions, 'ca'> = {},
+): http.Agent | undefined {
+  if (!isDbSsrfProtectionEnabled()) return undefined;
+
+  const options = { keepAlive: true, lookup: externalDbValidatingLookup };
+  return url.protocol === 'https:'
+    ? new https.Agent({ ...options, ...tlsOptions })
+    : new http.Agent(options);
 }

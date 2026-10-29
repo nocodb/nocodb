@@ -866,7 +866,8 @@ export const formulas: Record<string, FormulaMeta> = {
         type: FormulaDataTypes.STRING,
       },
     },
-    description: 'Percent-encode the input parameter for use in URLs',
+    description:
+      'Percent-encode the input parameter for use in URLs. Only these characters are encoded: space % : / ? # [ ] @ $ & + , ; = (other characters, including non-ASCII, are left as is)',
     syntax: 'URLENCODE(str)',
     examples: [
       'URLENCODE("Hello, world") => "Hello%2C%20world"',

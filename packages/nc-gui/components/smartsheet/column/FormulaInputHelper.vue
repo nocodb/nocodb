@@ -13,7 +13,7 @@ import {
   editor as monacoEditor,
 } from 'monaco-editor'
 import formulaLanguage from '../../monaco/formula'
-import { isCursorInsideString } from '../../../utils/formulaUtils'
+import { filterColumnSuggestions, getColumnRefAtCursor, isCursorInsideString } from '../../../utils/formulaUtils'
 
 interface Props {
   error?: boolean
@@ -23,7 +23,7 @@ interface Props {
   editorHeight?: string
   suggestionHeight?: 'small' | 'medium' | 'large'
   disableSuggestionHeaders?: boolean
-  disabledFormulas: string[]
+  disabledFormulas?: string[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -75,6 +75,9 @@ const suggestionPreviewed = ref<Record<any, string> | undefined>()
 const priority = ref(0)
 
 const showFunctionList = ref<boolean>(true)
+
+// cursor is inside `{...}`, where only fields apply
+const isInsideColumnRef = ref(false)
 
 const availableFunctions = formulaList
 
@@ -150,9 +153,13 @@ const suggestionsList = computed(() => {
 // set default suggestion list
 const suggestion: Ref<Record<string, any>[]> = ref(suggestionsList.value)
 
+const columnSuggestions = computed(() => suggestionsList.value.filter((s) => s.type === 'column'))
+
+// prefix-matched functions and operators; columns are matched by `filterColumnSuggestions`
 const acTree = computed(() => {
   const ref = new NcAutocompleteTree()
   for (const sug of suggestionsList.value) {
+    if (sug.type === 'column') continue
     ref.add(sug)
   }
   return ref
@@ -165,6 +172,13 @@ const suggestedFormulas = computed(() => {
 const variableList = computed(() => {
   return suggestion.value.filter((s) => s && s.type === 'column')
 })
+
+// keyboard order matches the on-screen order: FIELDS is listed first inside parentheses
+const orderedSuggestions = computed(() =>
+  priority.value === -1
+    ? [...variableList.value, ...suggestedFormulas.value]
+    : [...suggestedFormulas.value, ...variableList.value],
+)
 
 const monacoRoot = ref<HTMLDivElement>()
 let editor: MonacoEditor.IStandaloneCodeEditor
@@ -393,9 +407,9 @@ onMounted(async () => {
 useResizeObserver(monacoRoot, (entries) => {
   if (!editor) return
   const entry = entries[0]
-  const { height } = entry.contentRect
+  const { width, height } = entry.contentRect
   editor.layout({
-    width: 339,
+    width,
     height,
   })
 })
@@ -425,6 +439,31 @@ function insertStringAtPosition(editor: MonacoEditor.IStandaloneCodeEditor, text
   editor.focus()
 }
 
+function replaceColumnRef(item: Record<string, any>) {
+  const model = editor.getModel()
+  const position = editor.getPosition()
+  if (!model || !position) return false
+
+  const columnRef = getColumnRefAtCursor(model.getValue(), model.getOffsetAt(position))
+  if (!columnRef) return false
+
+  const start = model.getPositionAt(columnRef.start)
+  const end = model.getPositionAt(columnRef.end)
+  const text = `{${item.text}}`
+
+  editor.executeEdits('', [
+    {
+      range: new Range(start.lineNumber, start.column, end.lineNumber, end.column),
+      text,
+      forceMoveMarkers: true,
+    },
+  ])
+  editor.setPosition(model.getPositionAt(columnRef.start + text.length))
+  editor.focus()
+
+  return true
+}
+
 function appendText(item: Record<string, any>) {
   const len = wordToComplete.value?.length || 0
 
@@ -435,6 +474,13 @@ function appendText(item: Record<string, any>) {
 
   if (!position) {
     return // No cursor position available
+  }
+
+  if (item.type === 'column' && replaceColumnRef(item)) {
+    wordToComplete.value = ''
+    isInsideColumnRef.value = false
+    suggestion.value = suggestionsList.value
+    return
   }
 
   const newColumn = Math.max(1, position.column - len)
@@ -487,8 +533,9 @@ function isCursorBetweenParenthesis() {
   return openParenthesis > closeParenthesis
 }
 
+// the row Enter will pick
 const isItemSelected = (item: Record<string, any>) => {
-  return suggestionPreviewed.value?.text === item.text
+  return orderedSuggestions.value[selected.value] === item
 }
 
 function handleInput() {
@@ -513,6 +560,7 @@ function handleInput() {
   // IF cursor is inside string, don't show any suggestions
   if (isCursorInsideString(text, offset)) {
     suggestion.value = []
+    isInsideColumnRef.value = false
     return
   }
 
@@ -520,20 +568,26 @@ function handleInput() {
 
   selected.value = 0
   suggestion.value = []
-  const query = getCurrentKeyword() ?? ''
-  const parts = query.split(/\W+/)
-  wordToComplete.value = parts.pop() || ''
-  suggestion.value = acTree.value
-    .complete(wordToComplete.value)
-    ?.sort((x: Record<string, any>, y: Record<string, any>) => sortOrder[x.type] - sortOrder[y.type])
+  const columnRef = getColumnRefAtCursor(text, offset)
+  isInsideColumnRef.value = !!columnRef
+
+  if (columnRef) {
+    // typing inside `{...}`: the query can contain spaces and only columns apply
+    wordToComplete.value = ''
+    suggestion.value = filterColumnSuggestions(columnSuggestions.value, columnRef.query)
+  } else {
+    const query = getCurrentKeyword() ?? ''
+    const parts = query.split(/\W+/)
+    wordToComplete.value = parts.pop() || ''
+    suggestion.value = [
+      ...acTree.value.complete(wordToComplete.value),
+      ...filterColumnSuggestions(columnSuggestions.value, wordToComplete.value),
+    ].sort((x: Record<string, any>, y: Record<string, any>) => sortOrder[x.type] - sortOrder[y.type])
+  }
 
   if (isCursorBetweenParenthesis()) {
     // Show columns at top
-    suggestion.value = suggestion.value.sort((a, b) => {
-      if (a.type === 'column') return -1
-      if (b.type === 'column') return 1
-      return 0
-    })
+    suggestion.value = suggestion.value.sort((a, b) => (a.type === 'column' ? 0 : 1) - (b.type === 'column' ? 0 : 1))
     selected.value = 0
     priority.value = -1
   } else if (!showFunctionList.value) {
@@ -542,15 +596,10 @@ function handleInput() {
 }
 
 function selectText() {
-  if (suggestion.value && selected.value > -1 && selected.value < suggestion.value.length) {
-    if (selected.value < suggestedFormulas.value.length) {
-      if (suggestedFormulas.value[selected.value].unsupported) return
-      appendText(suggestedFormulas.value[selected.value])
-    } else {
-      // Calculate the index in variableList by subtracting the length of suggestedFormulas
-      const variableIndex = selected.value - suggestedFormulas.value.length
-      appendText(variableList.value[variableIndex])
-    }
+  const item = orderedSuggestions.value[selected.value]
+  if (item) {
+    if (item.unsupported) return
+    appendText(item)
   }
 
   selected.value = 0
@@ -559,14 +608,7 @@ function selectText() {
 function suggestionListUp() {
   if (suggestion.value?.length) {
     selected.value = --selected.value > -1 ? selected.value : suggestion.value.length - 1
-
-    // Update suggestionPreviewed for both formula and field items
-    if (selected.value < suggestedFormulas.value.length) {
-      suggestionPreviewed.value = suggestedFormulas.value[selected.value]
-    } else {
-      const variableIndex = selected.value - suggestedFormulas.value.length
-      suggestionPreviewed.value = variableList.value[variableIndex]
-    }
+    suggestionPreviewed.value = orderedSuggestions.value[selected.value]
 
     scrollToSelectedOption()
   }
@@ -575,14 +617,7 @@ function suggestionListUp() {
 function suggestionListDown() {
   if (suggestion.value?.length) {
     selected.value = ++selected.value % suggestion.value.length
-
-    // Update suggestionPreviewed for both formula and field items
-    if (selected.value < suggestedFormulas.value.length) {
-      suggestionPreviewed.value = suggestedFormulas.value[selected.value]
-    } else {
-      const variableIndex = selected.value - suggestedFormulas.value.length
-      suggestionPreviewed.value = variableList.value[variableIndex]
-    }
+    suggestionPreviewed.value = orderedSuggestions.value[selected.value]
 
     scrollToSelectedOption()
   }
@@ -903,7 +938,10 @@ const validationErrorDisplay = computed(() => {
     }"
     class="overflow-auto flex flex-col nc-suggestion-list nc-scrollbar-thin border-1 border-nc-border-gray-medium rounded-lg"
   >
-    <div v-if="suggestedFormulas && showFunctionList" :style="{ order: priority === -1 ? 2 : 1 }">
+    <div
+      v-if="showFunctionList && !isInsideColumnRef && (suggestedFormulas.length || !variableList.length)"
+      :style="{ order: priority === -1 ? 2 : 1 }"
+    >
       <div
         v-if="!disableSuggestionHeaders"
         class="border-b-1 bg-nc-bg-gray-extralight px-3 py-1 uppercase text-nc-content-gray-subtle2 text-xs font-semibold sticky top-0 z-10"
@@ -916,7 +954,7 @@ const validationErrorDisplay = computed(() => {
           <a-list-item
             :ref="
               (el) => {
-                sugOptionsRef[index] = el
+                sugOptionsRef[priority === -1 ? index + variableList.length : index] = el
               }
             "
             class="cursor-pointer !overflow-hidden hover:bg-nc-bg-gray-extralight"
@@ -972,7 +1010,7 @@ const validationErrorDisplay = computed(() => {
           <a-list-item
             :ref="
               (el) => {
-                sugOptionsRef[index + suggestedFormulas.length] = el
+                sugOptionsRef[priority === -1 ? index : index + suggestedFormulas.length] = el
               }
             "
             :class="{

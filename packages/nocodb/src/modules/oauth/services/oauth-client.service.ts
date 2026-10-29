@@ -12,6 +12,10 @@ import { OAuthAuthorizationCode, OAuthClient, OAuthToken } from '~/models';
 import { NcError } from '~/helpers/ncError';
 import { assertNewAttachmentRefsOwned } from '~/helpers/attachmentHelpers';
 import { RootScopes } from '~/utils/globals';
+import {
+  isInstanceAdmin,
+  isReservedOAuthClientName,
+} from '~/modules/oauth/helpers/clientTrust';
 
 // The logo is served unauthenticated: only the caller's own upload may be set.
 const LOGO_CONTEXT = {
@@ -72,6 +76,8 @@ export class OauthClientService {
       });
     }
 
+    await this.assertClientNameAllowed(context, body.client_name, req);
+
     body.fk_user_id = req.user.id;
 
     await assertNewAttachmentRefsOwned(LOGO_CONTEXT, {
@@ -109,6 +115,11 @@ export class OauthClientService {
       NcError.get(context).apiClientNotFound(clientId);
     }
 
+    // The edit form always sends the name; only a new one is checked.
+    if (body.client_name !== client.client_name) {
+      await this.assertClientNameAllowed(context, body.client_name, req);
+    }
+
     await assertNewAttachmentRefsOwned(LOGO_CONTEXT, {
       value: body.logo_uri,
       previous: client.logo_uri,
@@ -116,6 +127,19 @@ export class OauthClientService {
     });
 
     return await OAuthClient.update(clientId, body);
+  }
+
+  protected async assertClientNameAllowed(
+    context: NcContext,
+    clientName: unknown,
+    req: NcRequest,
+  ) {
+    if (
+      isReservedOAuthClientName(clientName) &&
+      !(await isInstanceAdmin(req.user?.id))
+    ) {
+      NcError.get(context).invalidRequestBody('This client name is reserved');
+    }
   }
 
   async deleteClient(

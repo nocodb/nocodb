@@ -31,11 +31,18 @@ export const BUILD_SCOPE_PARAM = 'buildScope'
 /** Query param that asks an existing user to pick a base and opens its app to build in. */
 export const PICK_APP_BASE_PARAM = 'pickAppBase'
 
+/** Query param that asks an existing user to pick a base and opens its Agents page. */
+export const PICK_AGENT_BASE_PARAM = 'pickAgentBase'
+
 const toScope = (raw: unknown): BuildScope => (isBuildScope(raw) ? raw : 'app')
 
 /** `website` runs the app pipeline too, so both fall back to tables while Apps is off. */
 export const buildScopeWithApps = (scope: BuildScope, appsEnabled: boolean): BuildScope =>
   !appsEnabled && (scope === 'app' || scope === 'website') ? 'table' : scope
+
+/** An agent build falls back to tables while Agents is off. */
+export const buildScopeWithAgents = (scope: BuildScope, agentsEnabled: boolean): BuildScope =>
+  !agentsEnabled && scope === 'agent' ? 'table' : scope
 
 /**
  * Parse a hand-off query string. Returns null unless the search carries both a

@@ -163,19 +163,21 @@ export class UtilsController {
       );
     }
 
-    // Authoritative, TOCTOU-free check for the object-connection shape: hook the
-    // driver's socket so the host it ACTUALLY resolves and dials is range-checked
-    // at connect time (a short-TTL DNS flip or a `?host=` override can't slip
-    // past it). The pre-flight above stays as save-time fail-fast; this is what
-    // makes the plain-knex test path as safe as the CustomKnex data path. No-op
-    // for string DSNs (covered by the pre-flight) and non-pg/mysql clients.
-    applyDbSsrfProtection(
-      config,
-      isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS }),
-    );
+    // Read before the hook below rewrites a string DSN into an object.
+    const readsSslFile =
+      hasSslFilePath(config.connection?.ssl) || hasDsnSslFilePath(config);
 
     const runTest = async () => {
       try {
+        // Authoritative, TOCTOU-free check: hook the driver's socket so the
+        // host it ACTUALLY resolves and dials is range-checked at connect time
+        // (a short-TTL DNS flip or a `?host=` override can't slip past the
+        // pre-flight above). Inside the try so a throw gets the generic answer;
+        // oracle/snowflake/databricks have no hook.
+        applyDbSsrfProtection(
+          config,
+          isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS }),
+        );
         const result = await this.utilsService.testConnection({
           body: config,
         });
@@ -201,7 +203,7 @@ export class UtilsController {
     // Flatten the SSL file-path timing oracle: when the request reads a cert
     // from disk, pad the response to a common floor so file-existence can't be
     // inferred from response time. Plain connections are not penalised.
-    return hasSslFilePath(config.connection?.ssl) || hasDsnSslFilePath(config)
+    return readsSslFile
       ? await withMinResponseTime(SSL_FILE_PATH_TEST_MIN_RESPONSE_MS, runTest)
       : await runTest();
   }

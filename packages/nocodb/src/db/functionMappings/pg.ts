@@ -1,16 +1,17 @@
 import dayjs from 'dayjs';
 import { customAlphabet } from 'nanoid';
 import { ClientType, FormulaDataTypes, JSEPNode, UITypes } from 'nocodb-sdk';
-import { sanitize } from 'src/helpers/sqlSanitize';
 import commonFns, {
   escapePlaceholders,
   extractDatetimeFormat,
+  isNumericValueArg,
   safeDateAddUnitSQL,
   treatArgAsConditionalExp,
   validateDateAddUnit,
 } from './commonFns';
 import type { CallExpressionNode } from 'nocodb-sdk';
 import type { MapFnArgs } from '~/db/mapFunctionName';
+import { rawFromBuilder } from '~/helpers/sqlSanitize';
 import {
   ieeeLogBaseSql,
   ieeeLogSql,
@@ -581,14 +582,30 @@ const pg = {
       ),
     };
   },
-  VALUE: async ({ fn, knex, pt }: MapFnArgs) => {
+  VALUE: async ({ fn, knex, pt, model }: MapFnArgs) => {
     const value = (await fn(pt.arguments[0])).builder;
+    const kind = await isNumericValueArg(pt.arguments[0], model);
+    // Same result as the text path: a float, NULL for Infinity/NaN
+    if (kind === 'money') {
+      // pg has no money → float8 cast, and money text follows `lc_monetary`.
+      // Money is always finite, so it needs no Infinity/NaN guard.
+      return { builder: knex.raw(`(:value)::NUMERIC::FLOAT8`, { value }) };
+    }
+    if (kind) {
+      // IEEE arithmetic and stored numeric/float8 values can be Infinity/NaN
+      return {
+        builder: knex.raw(
+          `NULLIF(NULLIF(NULLIF((:value)::FLOAT8, 'Infinity'), '-Infinity'), 'NaN')`,
+          { value },
+        ),
+      };
+    }
+    // NULL for no digits or more than one dot; a % divides by 100
     return {
       builder: knex.raw(
         `CASE
-  WHEN :value IS NULL OR REGEXP_REPLACE(:value ::TEXT, '[^\\d.]+', '', 'g') IN ('.', '') OR LENGTH(REGEXP_REPLACE(:value ::TEXT, '[^.]+', '', 'g')) > 1 THEN NULL
-  WHEN LENGTH(REGEXP_REPLACE(:value ::TEXT, '[^%]', '','g')) > 0 THEN POW(-1, LENGTH(REGEXP_REPLACE(:value ::TEXT, '[^-]','', 'g'))) * (REGEXP_REPLACE(:value ::TEXT, '[^\\d.]+', '', 'g'))::NUMERIC / 100
-  ELSE POW(-1, LENGTH(REGEXP_REPLACE(:value ::TEXT, '[^-]', '', 'g'))) * (REGEXP_REPLACE(:value ::TEXT, '[^\\d.]+', '', 'g'))::NUMERIC
+  WHEN (:value)::TEXT ~ '[.][^.]*[.]' THEN NULL
+  ELSE POW(-1, LENGTH(REGEXP_REPLACE((:value)::TEXT, '[^-]', '', 'g'))) * NULLIF(NULLIF(REGEXP_REPLACE((:value)::TEXT, '[^\\d.]+', '', 'g'), ''), '.')::NUMERIC / CASE WHEN STRPOS((:value)::TEXT, '%') > 0 THEN 100 ELSE 1 END
 END`,
         {
           value,
@@ -701,7 +718,7 @@ END`,
           : knex.raw('asc');
     } else {
       // Formula expression path (e.g. IF(..., "asc", "desc"))
-      direction = sanitize(knex.raw((await fn(pt.arguments[1])).builder));
+      direction = rawFromBuilder(knex, (await fn(pt.arguments[1])).builder);
     }
 
     if ((<CallExpressionNode>pt).referencedColumn?.uidt === UITypes.User) {
@@ -786,9 +803,9 @@ END`,
     const { fn, knex, pt } = args;
     const source = (await getArraySource(pt.arguments[0], args)).builder;
 
-    const start = sanitize(knex.raw((await fn(pt.arguments[1])).builder));
+    const start = rawFromBuilder(knex, (await fn(pt.arguments[1])).builder);
     const end = pt.arguments[2]
-      ? sanitize(knex.raw((await fn(pt.arguments[2])).builder))
+      ? rawFromBuilder(knex, (await fn(pt.arguments[2])).builder)
       : knex.raw('');
 
     return {

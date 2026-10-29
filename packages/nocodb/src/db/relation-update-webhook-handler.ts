@@ -6,6 +6,8 @@ export type RelationUpdateWebhookContext = {
   parentBaseModel: IBaseModelSqlV2;
   childBaseModel: IBaseModelSqlV2;
   ignoreWebhook?: boolean;
+  // The caller fires the child row's update hooks itself
+  skipChildRow?: boolean;
 };
 export class RelationUpdateWebhookHandler {
   private constructor(
@@ -64,9 +66,10 @@ export class RelationUpdateWebhookHandler {
     );
 
     if (
-      this.relationWebhookContext.parentBaseModel.model.id !==
+      !this.relationWebhookContext.skipChildRow &&
+      (this.relationWebhookContext.parentBaseModel.model.id !==
         this.relationWebhookContext.childBaseModel.model.id ||
-      this.parentRowId !== this.childRowId
+        this.parentRowId !== this.childRowId)
     ) {
       this.childUpdateWebhookHandler = await UpdateWebhookHandler.beginUpdate(
         {
@@ -111,14 +114,8 @@ export class RelationUpdateWebhookHandler {
 
   async finishUpdate() {
     await this.parentUpdateWebhookHandler.finishUpdate();
-    if (this.childUpdateWebhookHandler) {
-      await this.childUpdateWebhookHandler.finishUpdate();
-      if (this.affectedChildUpdateWebhookHandler) {
-        await this.affectedChildUpdateWebhookHandler.finishUpdate();
-      }
-      if (this.affectedParentUpdateWebhookHandler) {
-        await this.affectedParentUpdateWebhookHandler.finishUpdate();
-      }
-    }
+    await this.childUpdateWebhookHandler?.finishUpdate();
+    await this.affectedChildUpdateWebhookHandler?.finishUpdate();
+    await this.affectedParentUpdateWebhookHandler?.finishUpdate();
   }
 }

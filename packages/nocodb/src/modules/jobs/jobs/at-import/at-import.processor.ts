@@ -8,6 +8,7 @@ import {
   isSupportedDisplayValueColumn,
   isSystemColumn,
   OperationSource,
+  SortOrderBy,
   SqlUiFactory,
   UITypes,
 } from 'nocodb-sdk';
@@ -40,13 +41,14 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { AtImportJobData } from '~/interface/Jobs';
+import type { NcContext } from '~/interface/config';
 import type { SharedViewImport } from './helpers/sharedView';
 import {
   extractNonSystemProps,
   generateAuditV1Payload,
   transformToSnakeCase,
 } from '~/utils';
-import { type Base, Model, Source } from '~/models';
+import { type Base, Model, Source, SyncSource } from '~/models';
 import { sanitizeColumnName } from '~/helpers';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import { AttachmentsService } from '~/services/attachments.service';
@@ -121,6 +123,18 @@ const selectColors = {
   grayDarker: '#444',
 };
 
+// Jobs queued before the token left the payload still carry it.
+export const withSyncCredentials = async (
+  context: NcContext,
+  data: AtImportJobData,
+): Promise<AtImportJobData & { apiKey?: string }> => {
+  if ('apiKey' in data || !data.syncId) return data;
+
+  const syncSource = await SyncSource.get(context, data.syncId);
+
+  return { ...data, apiKey: syncSource?.details?.apiKey };
+};
+
 @Injectable()
 export class AtImportProcessor {
   private readonly debugLog = debug('nc:jobs:at-import');
@@ -151,7 +165,21 @@ export class AtImportProcessor {
 
     const context = job.data.context;
 
-    const syncDB = job.data;
+    const syncDB = await withSyncCredentials(context, job.data);
+
+    // Jobs queued by an older pod carry the token; keep it out of the stored job.
+    if ('apiKey' in job.data && typeof job.update === 'function') {
+      const { apiKey: _apiKey, ...data } = job.data as AtImportJobData & {
+        apiKey?: string;
+      };
+      try {
+        await job.update(data);
+      } catch (e) {
+        logger.warn(
+          `Could not drop the token from job ${job.id}: ${e?.message}`,
+        );
+      }
+    }
 
     const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
     const req = {
@@ -654,7 +682,17 @@ export class AtImportProcessor {
           //
           const options = [];
           let order = 1;
-          for (const [, value] of Object.entries(col.typeOptions.choices)) {
+          // Follow Airtable's displayed option order (choiceOrder) so sorts
+          // migrated as option-order sorts match.
+          const choices = col.typeOptions.choices ?? {};
+          const choiceOrder: string[] = (
+            col.typeOptions.choiceOrder ?? []
+          ).filter((id: string) => choices[id]);
+          const orderedChoiceIds = [
+            ...choiceOrder,
+            ...Object.keys(choices).filter((id) => !choiceOrder.includes(id)),
+          ];
+          for (const value of orderedChoiceIds.map((id) => choices[id])) {
             // max length of option is 255 chars
             // truncate to 255 chars if character if exceeds above 255
             (value as any).name = (value as any).name?.slice(0, 255).trim();
@@ -3491,6 +3529,10 @@ export class AtImportProcessor {
               sort: {
                 fk_column_id: colSchema.id,
                 direction: s.sortSet[i].ascending ? 'asc' : 'desc',
+                // Airtable sorts selects by option order, not by text.
+                ...(colSchema.uidt === UITypes.SingleSelect
+                  ? { order_by: SortOrderBy.OPTION_ORDER }
+                  : {}),
               },
               req,
             }),

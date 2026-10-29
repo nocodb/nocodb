@@ -4,6 +4,7 @@ import commonFns, {
   ALLOWED_DATEADD_UNITS,
   escapePlaceholders,
   extractDatetimeFormat,
+  isNumericValueArg,
   validateDateAddUnit,
 } from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
@@ -252,19 +253,27 @@ const mysql2 = {
     );
     const predicates = args.map(() => '?').join(' XOR ');
     return {
-      builder: knex.raw(`${predicates}`, args),
+      builder: knex.raw(
+        `${predicates}`,
+        args.map((a) => a.builder),
+      ),
     };
   },
 
-  VALUE: async ({ fn, knex, pt }: MapFnArgs) => {
+  VALUE: async ({ fn, knex, pt, model }: MapFnArgs) => {
     const value = (await fn(pt.arguments[0])).builder;
+    // Rounds a double, like the text path below
+    if (await isNumericValueArg(pt.arguments[0], model)) {
+      return { builder: knex.raw(`ROUND((:value) * 1e0)`, { value }) };
+    }
 
+    // NULL for no digits or more than one dot; a % divides by 100.
+    // No NULLIF: MySQL evaluates its first argument twice.
     return {
       builder: knex.raw(
         `ROUND(CASE
-  WHEN :value IS NULL OR REGEXP_REPLACE(:value, '[^0-9.]+', '') IN ('.', '') OR LENGTH(REGEXP_REPLACE(:value, '[^.]+', '')) > 1 THEN NULL
-  WHEN LENGTH(REGEXP_REPLACE(:value, '[^%]', '')) > 0 THEN POW(-1, LENGTH(REGEXP_REPLACE(:value, '[^-]',''))) * (REGEXP_REPLACE(:value, '[^0-9.]+', '')) / 100
-  ELSE POW(-1, LENGTH(REGEXP_REPLACE(:value, '[^-]', ''))) * (REGEXP_REPLACE(:value, '[^0-9.]+', ''))
+  WHEN :value REGEXP '[.][^.]*[.]' OR :value NOT REGEXP '[0-9]' THEN NULL
+  ELSE POW(-1, LENGTH(REGEXP_REPLACE(:value, '[^-]', ''))) * REGEXP_REPLACE(:value, '[^0-9.]+', '') / IF(LOCATE('%', :value) > 0, 100, 1)
 END)`,
         { value },
       ),

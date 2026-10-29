@@ -11,10 +11,13 @@ export const useUndoRedo = createSharedComposable(() => {
   const toastWithUndo = (content: string, _opts?: { undoable?: boolean; event?: string; plainDuration?: number }) =>
     message.toast(content)
 
+  const onUndoRedoApplied = (_fn: (direction: 'undo' | 'redo') => void) => ({ off: () => {} })
+
   return {
     undo,
     redo,
     toastWithUndo,
+    onUndoRedoApplied,
     canDispatchUndoRedo,
     isUndoRedoInFlight,
     inFlightDirection,

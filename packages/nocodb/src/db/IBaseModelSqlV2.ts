@@ -350,6 +350,16 @@ export interface IBaseModelSqlV2 {
       type: RelationTypes;
     }>,
   ): Promise<void>;
+  hasActiveUpdateHooks(): Promise<boolean>;
+  readRowsForLinkHooks(
+    rowIds: unknown[],
+    trx?: Knex.Transaction,
+  ): Promise<Record<string, any>[]>;
+  afterLinkUpdate(
+    prevData: Record<string, any>[],
+    newData: Record<string, any>[],
+    req: NcRequest,
+  ): Promise<void>;
 
   sanitizeQuery(query: string | string[]): any;
   getNestedColumn(column: Column, context?: NcContext): Promise<Column | any>;

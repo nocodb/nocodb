@@ -165,10 +165,10 @@ export class BasesService {
         event: EventType.USER_EVENT,
         payload: {
           action: 'base_update',
-          payload: {
+          payload: sanitizeBase({
             ...base,
             ...data,
-          },
+          }),
         },
       },
       context.socket_id,

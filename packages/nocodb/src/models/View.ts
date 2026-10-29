@@ -693,6 +693,7 @@ export default class View implements ViewType {
             'fk_column_id',
             'fk_level_id',
             'direction',
+            'order_by',
             'base_id',
             'source_id',
             'order',

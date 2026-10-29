@@ -7,6 +7,7 @@ import type {
 } from '~/utils/internal-type';
 import { OauthClientService } from '~/modules/oauth/services/oauth-client.service';
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
+import { assertFirstPartySession } from '~/modules/oauth/helpers/clientTrust';
 
 @Injectable()
 export class OAuthPostOperations
@@ -43,6 +44,8 @@ export class OAuthPostOperations
       req: NcRequest;
     },
   ): InternalPOSTResponseType {
+    assertFirstPartySession(context, req);
+
     switch (operation) {
       case 'oAuthClientCreate':
         return await this.oAuthClientService.createClient(

@@ -103,3 +103,16 @@ export interface McpToolCatalogEntry {
 
 /** The header an MCP client sends its credential in. */
 export const MCP_TOKEN_HEADER = 'xc-mcp-token';
+
+/**
+ * How an MCP session exposes its tools, chosen by the endpoint the client called.
+ *
+ * - `flat` (`/mcp`): every allowed tool is in `tools/list`.
+ * - `discovery` (`/mcp-discovery`): only core tools are listed; the rest sit
+ *   behind `listTools`/`callTool`. For clients that cap the tool list at 100
+ *   and cannot defer schemas.
+ */
+export type McpToolMode = 'flat' | 'discovery';
+
+/** The path of the `discovery` endpoint, without a leading slash. */
+export const MCP_DISCOVERY_PATH = 'mcp-discovery';

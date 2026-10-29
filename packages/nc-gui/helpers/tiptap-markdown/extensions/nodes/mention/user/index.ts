@@ -1,10 +1,16 @@
 import TipTapMention, { type MentionNodeAttrs, type MentionOptions } from '@tiptap/extension-mention'
 import type MarkdownIt from 'markdown-it'
 import regexp from 'markdown-it-regexp'
+import { encode } from 'html-entities'
 import type { UserType } from 'nocodb-sdk'
 import type { MarkdownNodeSpec } from '../../../../types'
+import { getI18n } from '~/plugins/a.i18n'
 
 const USER_ID_REGEXP = /@\(([^)]+)\)/
+
+// A mention can carry neither name nor email (e.g. emails withheld in a shared base).
+const mentionLabel = (user: { display_name?: string; email?: string }) =>
+  extractUserDisplayNameOrEmail(user) || getI18n().global.t('labels.unknownUser')
 
 export const parseUserMention = (
   users: (Partial<UserType> | Partial<User>)[] = [],
@@ -21,19 +27,23 @@ export const parseUserMention = (
         display_name: match[1]?.split('|')?.[2],
       } as User)
 
-    const processedContent = extractUserDisplayNameOrEmail(bUser)
+    const processedContent = mentionLabel(bUser)
 
     let className = 'mention'
     if (bUser.id === currentUser?.id) {
       className += ' nc-current-user'
     }
 
-    return `<span class="${className}" data-id='${JSON.stringify({
+    const dataId = JSON.stringify({
       id: bUser?.id,
       email: bUser?.email,
       name: bUser?.display_name ?? '',
       isSameUser: bUser?.id === currentUser?.id,
-    })}'  data-type="mention">${isReadonly ? '<span>@</span>' : '@'}${processedContent}</span>`
+    })
+
+    return `<span class="${className}" data-id="${encode(dataId)}" data-type="mention">${
+      isReadonly ? '<span>@</span>' : '@'
+    }${encode(processedContent ?? '')}</span>`
   })
 }
 
@@ -83,9 +93,7 @@ export const UserMention = TipTapMention.extend<MentionOptions<any, MentionNodeA
     // parseProp returns the raw string if it can't parse JSON, so attributes may not be
     // an object. Fallback to empty string to avoid passing undefined to ProseMirror's
     // renderSpec, which would crash with "Cannot read properties of undefined (reading 'nodeType')".
-    const innerText = ncIsObject(attributes)
-      ? extractUserDisplayNameOrEmail({ display_name: attributes.name, email: attributes.email })
-      : ''
+    const innerText = ncIsObject(attributes) ? mentionLabel({ display_name: attributes.name, email: attributes.email }) : ''
 
     const styles =
       ncIsObject(attributes) && (attributes.isSameUser === true || attributes.isSameUser === 'true') ? 'nc-current-user' : ''

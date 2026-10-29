@@ -5,6 +5,7 @@ import type {
   AggregationHandlerInterface,
   AggregationSqlContext,
 } from '~/dbQueryClient/aggregations/aggregation-handler.interface';
+import { escapeBindingPlaceholders } from '~/helpers/sqlSanitize';
 
 /**
  * Base aggregation strategy. Owns the dialect-agnostic flow:
@@ -142,6 +143,7 @@ export abstract class GenericAggregationHandler
       result = knex.raw(`?? AS ??`, [result, alias]);
     }
 
-    return result?.toQuery();
+    // Callers splice this into knex.raw; escape `?` from inlined literals.
+    return result && escapeBindingPlaceholders(result.toQuery());
   }
 }

@@ -12,6 +12,8 @@ export const useAgentStore = defineStore('agent', () => {
 
   const isAgentsEnabled = computed(() => false)
 
+  const isAgentsOffered = computed(() => false)
+
   // Actions
   const loadAgents = async (..._args: any[]) => {}
 
@@ -37,6 +39,7 @@ export const useAgentStore = defineStore('agent', () => {
     activeBaseAgents,
     activeAgentId,
     isAgentsEnabled,
+    isAgentsOffered,
 
     // Actions
     loadAgents,

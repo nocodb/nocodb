@@ -1,5 +1,16 @@
-import { ColumnHelper, UITypes, handleTZ, parseProp, renderValue } from 'nocodb-sdk'
-import type { ColumnType, TableType } from 'nocodb-sdk'
+import { ColumnHelper, RelationTypes, UITypes, handleTZ, isLinksOrLTAR, parseProp, renderValue } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+
+/**
+ * Whether one value may be pasted down a range of a link column. Belongs-to and many-to-many
+ * repeat sensibly; has-many and one-to-one would move children between parents.
+ */
+export const isLinkRangePasteSupported = (col: ColumnType): boolean => {
+  if (!isLinksOrLTAR(col)) return false
+  const type = (col.colOptions as LinkToAnotherRecordType | undefined)?.type
+  if (type === RelationTypes.BELONGS_TO) return !parseProp(col.meta)?.custom
+  return type === RelationTypes.MANY_TO_MANY || type === RelationTypes.MANY_TO_ONE
+}
 
 /**
  * When a Formula cell's rendered result is a single top-level URL token (the whole cell is one

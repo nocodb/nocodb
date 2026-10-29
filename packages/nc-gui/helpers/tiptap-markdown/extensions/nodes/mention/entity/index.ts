@@ -14,6 +14,8 @@ export type EntityMentionKind =
   | 'interface'
   | 'interfacePage'
   | 'integration'
+  /** One of the agent's own files; refId is the file's id in `config.files`. */
+  | 'file'
 
 export interface EntityMentionItem {
   kind: EntityMentionKind

@@ -1,6 +1,8 @@
-import * as dns from 'dns';
+import dns from 'dns';
 import * as net from 'net';
 import ipaddr from 'ipaddr.js';
+import parseKnexConnection from 'knex/lib/knex-builder/internal/parse-connection';
+import type { LookupAddress } from 'dns';
 
 /**
  * SSRF protection for outbound database connections.
@@ -115,7 +117,7 @@ export const validatingLookup: net.LookupFunction = (
   dns.lookup(hostname, options, (err, address, family) => {
     if (err) return callback(err, address, family);
 
-    const records: dns.LookupAddress[] = Array.isArray(address)
+    const records: LookupAddress[] = Array.isArray(address)
       ? address
       : [{ address, family: family ?? 0 }];
 
@@ -151,6 +153,13 @@ function pgStreamFactory(): () => net.Socket {
 
     socket.connect = ((...args: unknown[]): net.Socket => {
       const first = args[0];
+
+      // pg dials a unix socket as `connect(path)`.
+      if (typeof first === 'string' && first.startsWith('/')) {
+        console.warn(`[ssrf] blocked DB connection: unix socket ${first}`);
+        process.nextTick(() => socket.destroy(blockedError()));
+        return socket;
+      }
       const opts: net.TcpSocketConnectOpts =
         typeof first === 'object' && first !== null
           ? { ...(first as net.TcpSocketConnectOpts) }
@@ -196,8 +205,12 @@ function mysql2StreamFactory(): (opts: Mysql2StreamOpts) => net.Socket {
   return (opts) => {
     const cfg = opts.config;
 
-    // Unix domain socket — operator-configured, no DNS involved.
-    if (cfg.socketPath) return net.connect(cfg.socketPath);
+    if (cfg.socketPath) {
+      console.warn(
+        `[ssrf] blocked DB connection: unix socket ${cfg.socketPath}`,
+      );
+      return refusingSocket();
+    }
 
     if (
       typeof cfg.host === 'string' &&
@@ -283,13 +296,24 @@ function tediousConnector(): (
     });
 }
 
+// Every knex client name that loads the pg driver.
+const PG_CLIENTS = new Set([
+  'pg',
+  'postgres',
+  'postgresql',
+  'pg-native',
+  'redshift',
+  'cockroachdb',
+]);
+
+function isPgClient(client: unknown): boolean {
+  return typeof client === 'string' && PG_CLIENTS.has(client);
+}
+
 /** Returns the stream factory for a knex client, or undefined if unsupported. */
 function ssrfStreamFactoryFor(client: unknown): unknown {
+  if (isPgClient(client)) return pgStreamFactory();
   switch (client) {
-    case 'pg':
-    case 'pg-native':
-    case 'cockroachdb':
-      return pgStreamFactory();
     case 'mysql':
     case 'mysql2':
       return mysql2StreamFactory();
@@ -310,17 +334,30 @@ function isMssqlClient(client: unknown): boolean {
 
 /**
  * Inject the validating stream factory (or tedious connector) into a knex
- * config's `connection`.
- * No-op when disabled, for string DSN connections, unsupported clients, or when
- * a stream factory is already present.
+ * config's `connection`. A pg DSN is wrapped as `{ connectionString }`; others parse as knex would.
+ * No-op when disabled, for unsupported clients, or when a stream factory is
+ * already present.
  */
 export function applyDbSsrfProtection<
   T extends { client?: unknown; connection?: unknown },
 >(config: T, enabled: boolean): T {
   if (!enabled || !config || typeof config !== 'object') return config;
 
+  if (typeof config.connection === 'string') {
+    if (isPgClient(config.client)) {
+      // pg-connection-string reads sslrootcert/sslcert/sslkey from disk; leave
+      // that to the pg client constructor, inside the caller's error handling.
+      config.connection = { connectionString: config.connection };
+    } else if (
+      isMssqlClient(config.client) ||
+      ssrfStreamFactoryFor(config.client)
+    ) {
+      config.connection = parseKnexConnection(config.connection).connection;
+    }
+  }
+
   const connection = config.connection;
-  if (!connection || typeof connection !== 'object') return config; // string DSN — see caveat
+  if (!connection || typeof connection !== 'object') return config;
 
   if (isMssqlClient(config.client)) {
     const conn = connection as { options?: { connector?: unknown } };

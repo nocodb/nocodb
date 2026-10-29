@@ -20,7 +20,7 @@ import {
   getAliasedSoftDeleteFilter,
   getColumnName,
 } from '~/helpers/dbHelpers';
-import { sanitize } from '~/helpers/sqlSanitize';
+import { rawFromBuilder, sanitize } from '~/helpers/sqlSanitize';
 import {
   isLinkedRecordColumn,
   resolveLinkedRecordDynamicFilter,
@@ -345,7 +345,10 @@ const parseConditionV2 = async (
           clause: (qb) => {
             if ((filter.comparison_op as any) === 'gb_eq')
               qb.where(knex.raw('?', [filter.value]) as any, lkQb.builder);
-            else qb.whereNull(knex.raw(lkQb.builder).wrap('(', ')') as any);
+            else
+              qb.whereNull(
+                rawFromBuilder(knex, lkQb.builder).wrap('(', ')') as any,
+              );
           },
         };
       } else {

@@ -2,7 +2,6 @@ import path from 'path';
 import { PassThrough } from 'stream';
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
-import { nanoid } from 'nanoid';
 import {
   AuditV1OperationTypes,
   ncIsNull,
@@ -23,6 +22,7 @@ import {
   NC_ATTACHMENT_URL_MAX_REDIRECT,
 } from '~/constants';
 import {
+  attachmentFileName,
   constructFilePath,
   normalizeFilename,
   validateNumberOfFilesInCell,
@@ -342,9 +342,10 @@ export class DataAttachmentV3Service {
         ? `${normalizeFilename(path.parse(filename).name)}${path.extname(
             filename,
           )}`
-        : `${normalizeFilename(path.parse(filename).name)}_${nanoid(
-            5,
-          )}${path.extname(filename)}`;
+        : attachmentFileName(
+            normalizeFilename(path.parse(filename).name),
+            path.extname(filename),
+          );
 
       const filePath = path.join(
         ...[context.workspace_id, context.base_id, modelId, column.id].filter(
@@ -397,7 +398,7 @@ export class DataAttachmentV3Service {
         path: ncIsNull(resultAttachmentUrl)
           ? path.join('download', filePath, filename)
           : undefined,
-        title: filename,
+        title: attachment.filename,
         mimetype: mimeType,
         size: fileSize,
       };
@@ -587,9 +588,10 @@ export class DataAttachmentV3Service {
           ? `${normalizeFilename(
               path.parse(originalFileName).name,
             )}${path.extname(originalFileName)}`
-          : `${normalizeFilename(path.parse(originalFileName).name)}_${nanoid(
-              5,
-            )}${path.extname(originalFileName)}`;
+          : attachmentFileName(
+              normalizeFilename(path.parse(originalFileName).name),
+              path.extname(originalFileName),
+            );
       }
     }
     const filePathConstructed = filename

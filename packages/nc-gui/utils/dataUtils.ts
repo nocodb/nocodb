@@ -718,7 +718,7 @@ export const getAttachmentValue = (modelValue: string | null | number | Array<an
   return modelValue as string
 }
 
-export const getLinksValue = (modelValue: string, params: ParsePlainCellValueProps['params']) => {
+export const getLinksValue = (modelValue: string, params: Pick<ParsePlainCellValueProps['params'], 'col' | 't'>) => {
   const { col, t } = params
 
   if (typeof col?.meta === 'string') {

@@ -80,7 +80,7 @@ export default class WorkspaceUser {
         `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
         `${MetaTable.WORKSPACE_USER}.fk_user_id`,
         `${MetaTable.WORKSPACE_USER}.roles`,
-        `${MetaTable.WORKSPACE_USER}.invite_token`,
+        // No invite_token: viewers can list the roster, and signup redeems it.
         `${MetaTable.WORKSPACE_USER}.deleted`,
       )
       .innerJoin(MetaTable.WORKSPACE_USER, function () {

@@ -1,4 +1,4 @@
-import { type ColumnType, type SortType, UITypes, getEquivalentUIType } from 'nocodb-sdk'
+import { type ColumnType, type SelectOptionsType, SortOrderBy, type SortType, UITypes, getEquivalentUIType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
 export const getSortDirectionOptions = (uidt: UITypes | string, isGroupBy?: boolean) => {
@@ -42,11 +42,30 @@ export const getSortDirectionOptions = (uidt: UITypes | string, isGroupBy?: bool
   }
 }
 
+const selectOptionRanks = new WeakMap<object, Map<string, number>>()
+
+// Option title → position, in the server's order (by `order`, first title wins).
+const getSelectOptionRanks = (column: ColumnType) => {
+  const options = (column.colOptions as SelectOptionsType | undefined)?.options ?? []
+  let ranks = selectOptionRanks.get(options)
+  if (!ranks) {
+    ranks = new Map()
+    for (const option of [...options].sort((x, y) => (x.order ?? 0) - (y.order ?? 0))) {
+      if (option.title != null && !ranks.has(option.title)) ranks.set(option.title, ranks.size)
+    }
+    selectOptionRanks.set(options, ranks)
+  }
+  return ranks
+}
+
+export const isOptionOrderSort = (sort: Pick<SortType, 'order_by'> | undefined, column?: ColumnType) =>
+  sort?.order_by === SortOrderBy.OPTION_ORDER && column?.uidt === UITypes.SingleSelect
+
 export const sortByUIType = ({
   uidt,
   a,
   b,
-  options: { caseSensitive = true, direction },
+  options: { caseSensitive = true, direction, orderBy, column },
 }: {
   uidt: UITypes
   a: any
@@ -54,9 +73,23 @@ export const sortByUIType = ({
   options: {
     caseSensitive?: boolean
     direction?: 'asc' | 'desc' | 'count-asc' | 'count-desc'
+    // With `option_order` and the SingleSelect column, ranks values by option position like the server.
+    orderBy?: SortType['order_by']
+    column?: ColumnType
   }
 }) => {
   let nullsLast = direction !== 'asc'
+
+  if (column && isOptionOrderSort({ order_by: orderBy }, column)) {
+    if (a === null || a === undefined) return b === null || b === undefined ? 0 : nullsLast ? 1 : -1
+    if (b === null || b === undefined) return nullsLast ? -1 : 1
+
+    // A value that isn't an option sorts after every option in either direction.
+    const ranks = getSelectOptionRanks(column)
+    const unknownRank = direction === 'desc' ? -1 : ranks.size
+    const result = (ranks.get(a) ?? unknownRank) - (ranks.get(b) ?? unknownRank)
+    return direction === 'desc' ? -result : result
+  }
 
   if ([UITypes.Formula, UITypes.User].includes(uidt)) {
     nullsLast = !nullsLast

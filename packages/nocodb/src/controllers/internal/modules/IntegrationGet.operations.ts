@@ -26,6 +26,11 @@ export class IntegrationGetOperations
   ];
   httpMethod = 'GET' as const;
 
+  publicBaseBlockedOperations = [
+    'baseIntegrationList' as const,
+    'baseIntegrationRead' as const,
+  ];
+
   async handle(
     context: NcContext,
     {

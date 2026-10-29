@@ -7,6 +7,7 @@
  */
 
 import type { Validation } from '../form';
+import type { InterfaceRoles } from '../enums';
 import type { AttachmentResType } from '~/lib/Api';
 import type { InterfaceVisualizationConfig } from './pageConfigs';
 import type {
@@ -101,6 +102,12 @@ interface InterfaceButtonBase {
   confirmation?: InterfaceButtonConfirmation;
   /** Conditional visibility — no rules means always visible. */
   visibility?: InterfaceFilterGroup | null;
+  /**
+   * Page-chrome buttons only (no record to test `visibility` against): the
+   * interface roles that see the button. Owners/creators count as editors.
+   * Absent or empty = everyone.
+   */
+  visible_to_roles?: InterfaceRoles[] | null;
 }
 
 export interface InterfaceButtonExternalUrl extends InterfaceButtonBase {

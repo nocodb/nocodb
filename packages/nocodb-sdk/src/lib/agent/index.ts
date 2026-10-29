@@ -1,12 +1,25 @@
 import { ProjectRoles } from '~/lib/enums';
 import type { AgentChannelType } from './channel';
 import type { SkillType } from '../skill';
+import type { AgentDelivery, AgentSetupState } from './setup';
+import type { AgentFileType } from './files';
+
+/**
+ * What an agent runs on, fixed at creation. A coding agent gets repositories
+ * and its own machine per session.
+ */
+export enum AgentMode {
+  STANDARD = 'standard',
+  CODING = 'coding',
+}
 
 /**
  * An agent's whole behaviour, in one place. There is no second copy and no
  * publish step: what you edit is what runs on the next turn or trigger.
  */
 export interface AgentConfigType {
+  /** Absent means standard. Set at creation; an update cannot change it. */
+  mode?: AgentMode;
   instructions?: string;
   /** ProseMirror JSON behind `instructions`. The prompt always reads `instructions`. */
   instructions_doc?: Record<string, any>;
@@ -17,9 +30,8 @@ export interface AgentConfigType {
   /** Falls back to the workspace default when unset. */
   fk_integration_id?: string;
   /**
-   * Tool allowlist, intersected with the role-derived set. Web access and
-   * Compute are not separate switches: they are {@link AGENT_WEB_TOOLS} and
-   * {@link AGENT_COMPUTE_TOOLS} present in this list.
+   * Tool allowlist, intersected with the role-derived set. Web access is not a
+   * separate switch: it is {@link AGENT_WEB_TOOLS} present in this list.
    */
   tools?: string[];
   /**
@@ -28,12 +40,88 @@ export interface AgentConfigType {
    * default — an agent starts with none opted in.
    */
   skills?: string[];
+  /** Coding agents: how a run's work comes back as a branch and a pull request. */
+  code?: AgentCodeConfig;
+  /** A general agent still being set up. Present only while it is a draft. */
+  setup?: AgentSetupState;
+  /** Where a triggered run's final answer goes. */
+  delivery?: AgentDelivery;
+  /** Placed in the agent's workspace on every run; instruction chips name them. */
+  files?: AgentFileType[];
+}
+
+/** Whether a coding agent's pull request opens as a draft or ready for review. */
+export enum AgentPrMode {
+  DRAFT = 'draft',
+  READY = 'ready',
+}
+
+export interface AgentCodeConfig {
+  /** Each run's branch; see {@link agentBranchName}. Unset is {@link AGENT_DEFAULT_BRANCH_PATTERN}. */
+  branch_pattern?: string;
+  /** Unset is draft. */
+  pr_mode?: AgentPrMode;
+  /** GitHub logins asked to review its pull requests. */
+  reviewers?: string[];
+}
+
+/** A shared prefix lets a maintainer see at a glance which branches are the agent's, and delete them in one go. */
+export const AGENT_DEFAULT_BRANCH_PATTERN = 'nocodb-agent/{slug}';
+
+export const AGENT_MAX_REVIEWERS = 10;
+
+/** A GitHub login: letters, digits and single inner hyphens, at most 39 characters. */
+export const GITHUB_LOGIN_PATTERN = /^(?=.{1,39}$)[A-Za-z0-9](?:-?[A-Za-z0-9])*$/;
+
+/** A git branch name: letters, digits, dots, dashes and inner slashes, as git accepts them. */
+export function isGitBranchName(name: string): boolean {
+  return (
+    name.length > 0 &&
+    name.length <= 255 &&
+    /^[A-Za-z0-9._/-]+$/.test(name) &&
+    !/\.\.|\/\/|\/\.|^[/.-]|[/.]$|\.lock$/.test(name)
+  );
+}
+
+/** Why a branch pattern cannot name a run's branch, or undefined when it can. */
+export function agentBranchPatternError(pattern: string): string | undefined {
+  if (pattern.length > 100) return 'Keep the branch name under 100 characters.';
+  if (!pattern.includes('{slug}'))
+    return 'The branch name needs {slug}, which keeps every run on a branch of its own.';
+
+  const literal = pattern.replace(/\{(slug|issue)\}/g, 'x');
+
+  if (/[{}]/.test(literal)) return 'Only {issue} and {slug} are filled in.';
+  if (!isGitBranchName(literal)) {
+    return 'Use letters, digits, dots, dashes and slashes, with no slash at either end.';
+  }
+
+  return undefined;
+}
+
+/**
+ * A run's branch from its agent's pattern: `{slug}` names the run and keeps it
+ * unique, `{issue}` is the issue or pull request it works on. An empty
+ * `{issue}` takes its separator with it, so `agent/{issue}-{slug}` gives
+ * `agent/<slug>` for a run with no issue.
+ */
+export function agentBranchName(
+  pattern: string | undefined | null,
+  vars: { slug: string; issue?: string | null }
+): string {
+  return (pattern || AGENT_DEFAULT_BRANCH_PATTERN)
+    .replace(/\{issue\}/g, vars.issue ?? '')
+    .replace(/\{slug\}/g, vars.slug)
+    .replace(/[-/.]{2,}/g, (run) =>
+      run.includes('/') ? '/' : run.includes('-') ? '-' : '.'
+    )
+    .replace(/^[-/.]+|[-/.]+$/g, '');
 }
 
 /** Granted and revoked as a group by the Web access switch. */
 export const AGENT_WEB_TOOLS = ['web_search', 'web_scrape'] as const;
 
-/** Granted and revoked as a group by the Compute switch. */
+/** Every standard agent's, whatever its allowlist says. The sandbox starts on the first call. */
 export const AGENT_COMPUTE_TOOLS = [
   'execute_code',
   'bash',
@@ -51,6 +139,21 @@ export const AGENT_DEFAULT_INSTRUCTIONS = `You are a helpful assistant working i
 Answer questions about the data using your tools, and say plainly when something \
 is outside what your tools can reach. Keep replies short and concrete, and prefer \
 values you actually read over anything you remember.`;
+
+/** A new coding agent's. The session prompt already covers the repo and machine. */
+export const AGENT_CODING_DEFAULT_INSTRUCTIONS = `Make the change you are asked for, \
+keeping it focused and consistent with the code around it. Run the project's \
+tests or checks before you finish, and say what you changed and how you checked it.`;
+
+/** What the coding agent creator offers: a first task is an issue, and the work ends in a draft pull request. */
+export const AGENT_CODING_ISSUE_INSTRUCTIONS = `Pick up the issue you are given.
+
+1. Reproduce it with a failing test.
+2. Fix it with the smallest change that passes.
+3. Run the tests and lint.
+4. Open a pull request that links the issue and explains the change.
+
+Ask if the issue is unclear. Never merge.`;
 
 /**
  * Roles an agent may hold on its base.  editor is the ceiling.
@@ -102,6 +205,9 @@ export interface AgentCreateReqType {
   /** Seeded with {@link AGENT_DEFAULT_INSTRUCTIONS} when omitted. */
   config?: AgentConfigType;
   role?: AgentAssignableRole;
+  /** False creates it switched off; a draft being set up starts this way. */
+  enabled?: boolean;
+  meta?: Record<string, any>;
 }
 
 export interface AgentUpdateReqType {
@@ -128,5 +234,15 @@ export interface AgentTriggerDefinition {
   config?: Record<string, any>;
   /** Default true. Disabled triggers stay in the config but never register. */
   enabled?: boolean;
+  /** Coding agents: the repository the run starts on; unset uses the agent's default. */
+  fk_repo_id?: string;
+}
+
+export function isCodingAgent(
+  agent?: Pick<AgentType, 'config'> | null
+): boolean {
+  return agent?.config?.mode === AgentMode.CODING;
 }
 export * from './channel';
+export * from './setup';
+export * from './files';

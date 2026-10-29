@@ -12,6 +12,7 @@ const KIND_LABELS = {
   interface: 'Interfaces',
   interfacePage: 'Interface Pages',
   integration: 'Integrations',
+  file: 'Files',
 }
 
 const KIND_ICONS = {
@@ -25,6 +26,7 @@ const KIND_ICONS = {
   interface: 'ncLayers',
   interfacePage: 'ncFile',
   integration: 'integration',
+  file: 'ncPaperclip',
 }
 
 export default {

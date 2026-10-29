@@ -597,22 +597,20 @@ export function useCopyPaste({
             if (isLtarTextTargetCol) {
               if (!isPasteable(targetRow, column, false, true)) continue
 
+              // Block OO and OM (copied link or text) — paste moves records between rows
+              if (isOoOrOm(column)) {
+                if (!isInfoShown) {
+                  message.toast(t('msg.info.groupPasteIsNotSupportedOnOoOmColumn'))
+                  isInfoShown = true
+                }
+                continue
+              }
+
               const clipboardItem = extractCellClipboardData(storedCopiedData, clipboardRowIndex, j)
               const isStructuredLtarPaste = clipboardItem && isLinksOrLTAR(clipboardItem.column)
 
-              if (isStructuredLtarPaste) {
-                // Structured bulk paste is only supported for junction-based LTAR columns — v1 BT has no matching source
-                if (!isMMOrMMLike(column)) continue
-
-                // Block structured copy-paste for OO and OM — paste moves records between rows
-                if (isOoOrOm(column)) {
-                  if (!isInfoShown) {
-                    message.toast(t('msg.info.groupPasteIsNotSupportedOnOoOmColumn'))
-                    isInfoShown = true
-                  }
-                  continue
-                }
-
+              // Structured bulk paste needs a junction table — a copied link into a v1 BT goes by its display text
+              if (isStructuredLtarPaste && isMMOrMMLike(column)) {
                 const pasteVal = convertCellData(
                   {
                     value: clipboardMatrix[clipboardRowIndex][j],

@@ -16,6 +16,7 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { UsersService } from '~/services/users/users.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { NcError } from '~/helpers/catchError';
 
 @Controller()
 export class UsersController {
@@ -29,6 +30,8 @@ export class UsersController {
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @HttpCode(200)
   async update(@Body() body, @Request() req: NcRequest, @Response() res) {
+    // A shared-base session is a pseudo-user with no account to update.
+    if (!req.user?.id) NcError.unauthorized('Invalid token');
     res.json(
       await this.usersService.profileUpdate({
         id: req.user.id,

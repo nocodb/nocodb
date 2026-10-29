@@ -593,12 +593,13 @@ describe('Formula parsing and type validation', () => {
 describe('substituteColumnAliasWithIdInFormula', () => {
   const columns = [{ base_id, id: 'id1', title: 'N', uidt: UITypes.Number }];
 
-  it('hints == once for a bare =', async () => {
-    const error = await substituteColumnAliasWithIdInFormula(
-      'IF({N} = 1, "a", "b")',
-      columns
-    ).catch((e) => e);
-    expect(error.message.split('Use == for equality').length).toBe(2);
+  it('accepts Airtable-style = and stores it as ==', async () => {
+    expect(
+      await substituteColumnAliasWithIdInFormula(
+        'IF({N} = 1, "a", "b")',
+        columns
+      )
+    ).toBe('IF(({{id1}} == 1), "a", "b")');
   });
 
   it('resolves a title before the column_name of a renamed field', async () => {
@@ -632,12 +633,14 @@ describe('substituteColumnAliasWithIdInFormula', () => {
     );
   });
 
-  it('does not hint for other syntax errors', async () => {
-    const error = await substituteColumnAliasWithIdInFormula(
-      'IF({N} == 1, "a"',
-      columns
-    ).catch((e) => e);
-    expect(error).toBeInstanceOf(Error);
-    expect(error.message).not.toContain('Use == for equality');
+  it('keeps = inside string literals and other operators intact', async () => {
+    expect(
+      await substituteColumnAliasWithIdInFormula(
+        'IF(AND({N} >= 1, {N} <= 2, {N} != 3), "a=b", "")',
+        columns
+      )
+    ).toBe(
+      'IF(AND(({{id1}} >= 1), ({{id1}} <= 2), ({{id1}} != 3)), "a=b", "")'
+    );
   });
 });

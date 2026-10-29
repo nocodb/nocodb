@@ -78,7 +78,11 @@ import type LookupColumn from '~/models/LookupColumn';
 import type { SignAttachmentParams } from '~/models/PresignedUrl';
 import type { ResolverObj } from '~/utils';
 import type { FormulaColumn, LinkToAnotherRecordColumn } from '~/models';
-import { LTARColsUpdater } from '~/db/BaseModelSqlv2/ltar-cols-updater';
+import type { LinkHookChange } from '~/db/BaseModelSqlv2/add-remove-links';
+import {
+  getLinkValue,
+  LTARColsUpdater,
+} from '~/db/BaseModelSqlv2/ltar-cols-updater';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 import { AttachmentUrlUploadPreparator } from '~/db/BaseModelSqlv2/attachment-url-upload-preparator';
@@ -99,6 +103,8 @@ import {
 } from '~/db/BaseModelSqlv2/mssql-insert-sql';
 import {
   addOrRemoveLinks,
+  captureLinkHooks,
+  captureNestedLinkHooks,
   extractCorrespondingLinkColumn,
 } from '~/db/BaseModelSqlv2/add-remove-links';
 import { groupBy as baseModelGroupBy } from '~/db/BaseModelSqlv2/group-by';
@@ -2924,6 +2930,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           onlyUpdateAuditLogs: true,
           prevData,
         });
+        await this.afterLinkUpdate([prevData], [newData], cookie);
       } else {
         await this.afterUpdate(prevData, newData, cookie, updateObj);
       }
@@ -3134,6 +3141,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
         }
       }
+
+      // Read the linked records before any link op runs
+      const fireLinkHooks = await captureNestedLinkHooks({
+        baseModel: this,
+        entries: postInsertLastModifiedEntries,
+        req: request,
+      });
 
       // Cap in-flight preInsertOps so many nested LTAR capture SELECTs
       // don't saturate the knex pool. Mutating closures only build
@@ -3372,7 +3386,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             try {
               await Audit.insert(
                 await generateAuditV1Payload<DataLinkPayload>(
-                  AuditV1OperationTypes.DATA_LINK,
+                  entry.opType ?? AuditV1OperationTypes.DATA_LINK,
                   {
                     context: {
                       ...this.context,
@@ -3445,6 +3459,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       await broadcastNestedLinkRefRows(postInsertLastModifiedEntries);
+
+      // Autocommit: the links are written, so this fires now
+      await fireLinkHooks();
 
       if (this.model.primaryKey && rowId !== null && rowId !== undefined) {
         response = await this.readRecord({
@@ -3634,6 +3651,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       typecast = false,
       apiVersion,
       onUpsertSplit,
+      triggerLinkUpdateHooks = false,
     }: {
       chunkSize?: number;
       cookie?: any;
@@ -3651,6 +3669,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
        * `status: inserted | updated`) can't derive it otherwise.
        */
       onUpsertSplit?: (split: { updatedPks: string[] }) => void;
+      /** Fire update hooks on the records the inline links change — user writes only */
+      triggerLinkUpdateHooks?: boolean;
     } = {},
   ) {
     let trx;
@@ -3893,6 +3913,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
+      // Read the linked records before any link op runs
+      const fireLinkHooks = triggerLinkUpdateHooks
+        ? await captureNestedLinkHooks({
+            baseModel: this,
+            entries: nestedLinkEntries,
+            req: cookie,
+          })
+        : null;
+
       trx = await this.dbDriver.transaction();
 
       if (linkPreInsertOps.length) {
@@ -3965,6 +3994,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           datas: linkUpdateDatas,
           cookie,
           trx,
+          triggerUpdateHooks: triggerLinkUpdateHooks,
         });
       }
 
@@ -4110,10 +4140,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await this.updateLTARCols({
           datas: linkUpdateDatas,
           cookie,
+          triggerUpdateHooks: triggerLinkUpdateHooks,
         });
       }
 
       await broadcastNestedLinkRefRows(nestedLinkEntries);
+
+      await fireLinkHooks?.();
 
       const updatedRecords = await this.chunkList({
         pks: updatedPks,
@@ -4473,6 +4506,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       skipPermissionCheck?: boolean;
       /** Trusted internal copy paths only — see `prepareNocoData`. */
       skipAttachmentOwnershipCheck?: boolean;
+      /** Fire update hooks on the records the nested links change — user writes only */
+      triggerLinkUpdateHooks?: boolean;
     },
   ) {
     return await baseModelInsert(this).bulk(datas, params);
@@ -4489,6 +4524,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       typecast = false,
       apiVersion,
       inlineLinkWrites = false,
+      triggerLinkUpdateHooks = false,
       skip_hooks = false,
       skipPermissionCheck = false,
     }: {
@@ -4504,6 +4540,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
        * reshapes the rows `chunkList` feeds to hooks and audit.
        */
       inlineLinkWrites?: boolean;
+      /** Fire update hooks on the records the inline links change — user writes only */
+      triggerLinkUpdateHooks?: boolean;
       skip_hooks?: boolean;
       /** Trusted internal copy paths only — see `prepareNocoData`. */
       skipPermissionCheck?: boolean;
@@ -4679,6 +4717,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await this.updateLTARCols({
           datas,
           cookie,
+          triggerUpdateHooks: triggerLinkUpdateHooks && !skip_hooks,
         });
       }
 
@@ -4760,19 +4799,62 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     cookie,
     trx,
     skipSourceBroadcast,
+    triggerUpdateHooks = false,
   }: {
     datas: any[];
     cookie: NcRequest;
     trx?: Knex.Transaction;
     /** The caller broadcasts the updated rows itself. */
     skipSourceBroadcast?: boolean;
+    /** Fire update hooks on the linked and displaced records — user writes only */
+    triggerUpdateHooks?: boolean;
   }) {
-    return LTARColsUpdater({ baseModel: this, logger }).updateLTARCols({
+    let fireLinkHooks: Awaited<ReturnType<typeof captureLinkHooks>> = null;
+    if (triggerUpdateHooks) {
+      const rowIds = datas.map((d) => this.extractPksValues(d, true));
+      // One change per link field, so partners are read once per field
+      const changes: LinkHookChange[] = [];
+      for (const col of await this.model.getColumns()) {
+        if (!isLinksOrLTAR(col)) continue;
+        const replace = new Map<string, unknown[]>();
+        const changeRowIds: unknown[] = [];
+        datas.forEach((d, i) => {
+          const value = getLinkValue(d, col);
+          if (value == null) return;
+          changeRowIds.push(rowIds[i]);
+          replace.set(
+            String(rowIds[i]),
+            Array.isArray(value) ? value : [value],
+          );
+        });
+        if (!changeRowIds.length) continue;
+        const refRowIds = [...replace.values()].flat();
+        changes.push({
+          column: col,
+          rowIds: changeRowIds,
+          refRowIds,
+          linkedRefRowIds: refRowIds,
+          replace,
+        });
+      }
+      fireLinkHooks = await captureLinkHooks({
+        baseModel: this,
+        changes,
+        req: cookie,
+        // The updated rows fire their own afterUpdate
+        notifiedRowIds: rowIds,
+        trx,
+      });
+    }
+
+    await LTARColsUpdater({ baseModel: this, logger }).updateLTARCols({
       datas,
       cookie,
       trx,
       skipSourceBroadcast,
     });
+
+    await fireLinkHooks?.(trx ?? this.dbDriver);
   }
 
   async bulkUpdateAll(
@@ -5029,6 +5111,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       Agent.hasRecordUpdateTriggers(this.context, this.model.id),
     ]);
     return hasWorkflows || hasAgents;
+  }
+
+  // Single-row updates too: a link change fires after.update for one row.
+  public async hasActiveUpdateHooks(): Promise<boolean> {
+    const hooks = await Hook.list(this.context, {
+      fk_model_id: this.model.id,
+      event: 'after',
+      operation: 'update',
+    });
+    if (hooks.some((hook) => hook.active)) return true;
+    return this.hasActiveBulkUpdateHooks();
   }
 
   // Collect the primary-key values of every row matching the (pre-update) query
@@ -6871,6 +6964,58 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         },
       ),
     );
+  }
+
+  /** Rows as update hooks receive them, for a link change's before/after. */
+  public async readRowsForLinkHooks(
+    rowIds: unknown[],
+    trx?: Knex.Transaction,
+  ): Promise<Record<string, any>[]> {
+    const pks = [...new Set(rowIds.map((id) => `${id}`))];
+    if (!pks.length) return [];
+    const reader = this.getNonPublicClone();
+    const trxReader =
+      trx &&
+      new (this.constructor as typeof BaseModelSqlv2)({
+        dbDriver: trx,
+        model: this.model,
+        viewId: this.viewId,
+        context: reader.context,
+        schema: this.schema,
+        queryQueue: this._queryQueue,
+      });
+    return (trxReader ?? reader).chunkList({ pks, ignoreRls: true });
+  }
+
+  // A link change is audited as DATA_LINK / DATA_UNLINK, so only the update
+  // hooks run here: workflows, webhooks and agents watching the link field.
+  public async afterLinkUpdate(
+    prevData: Record<string, any>[],
+    newData: Record<string, any>[],
+    req: NcRequest,
+  ): Promise<void> {
+    const ignoreWebhook = req?.query?.ignoreWebhook;
+    if (ignoreWebhook !== undefined && ignoreWebhook !== 'false') return;
+
+    const prevByPk = new Map(
+      (prevData ?? []).map((d) => [`${this.extractPksValues(d, true)}`, d]),
+    );
+    const prev: Record<string, any>[] = [];
+    const next: Record<string, any>[] = [];
+    for (const d of newData ?? []) {
+      const p = prevByPk.get(`${this.extractPksValues(d, true)}`);
+      // Rows the link left untouched would read as no-op updates
+      if (!p || equal(p, d)) continue;
+      prev.push(p);
+      next.push(d);
+    }
+    if (!next.length) return;
+
+    if (next.length === 1) {
+      await this.handleHooks('after.update', prev[0], next[0], req);
+    } else {
+      await this.handleHooks('after.bulkUpdate', prev, next, req);
+    }
   }
 
   async afterAddOrRemoveChild(
@@ -9016,6 +9161,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     childIds: (string | number)[];
     colId: string;
     rowId: string;
+    triggerUpdateHooks?: boolean;
   }) {
     await this.checkPermission({
       entity: PermissionEntity.FIELD,
@@ -9033,6 +9179,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     childIds: (string | number)[];
     colId: string;
     rowId: string;
+    triggerUpdateHooks?: boolean;
   }) {
     await this.checkPermission({
       entity: PermissionEntity.FIELD,
@@ -9270,7 +9417,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     if (metaColumn && updatedColIds.length > 0) {
-      updateObject[metaColumn.column_name] = prepareMetaUpdateQuery({
+      const metaUpdate = prepareMetaUpdateQuery({
         knex: this.dbDriver,
         colIds: updatedColIds,
         props: {
@@ -9279,6 +9426,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         },
         metaColumn,
       });
+      // CE stub returns undefined; an undefined value yields an invalid UPDATE
+      if (metaUpdate) updateObject[metaColumn.column_name] = metaUpdate;
     }
 
     if (Object.keys(updateObject).length === 0) return;
@@ -9601,7 +9750,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           runAfterForLoop.push(() => {
             if (!updatedColIds.length) return;
 
-            data[column.column_name] = prepareMetaUpdateQuery({
+            const metaUpdate = prepareMetaUpdateQuery({
               knex: this.dbDriver,
               colIds: updatedColIds,
               props: {
@@ -9610,6 +9759,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               },
               metaColumn: column,
             });
+            if (metaUpdate) data[column.column_name] = metaUpdate;
           });
 
         continue;

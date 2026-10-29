@@ -34,6 +34,7 @@ import { getAliasedSoftDeleteFilter, getAs } from '~/helpers/dbHelpers';
 import { Model, View } from '~/models';
 import { getAliasGenerator } from '~/utils';
 import { DBQueryClient } from '~/dbQueryClient';
+import { rawFromBuilder } from '~/helpers/sqlSanitize';
 
 const LOOKUP_VAL_SEPARATOR = '___';
 
@@ -738,7 +739,7 @@ export default async function generateLookupSelectQuery({
                 })
               ).builder;
               selectQb.select({
-                [lookupColumn.id]: knex.raw(builder).wrap('(', ')'),
+                [lookupColumn.id]: rawFromBuilder(knex, builder).wrap('(', ')'),
               });
             }
             break;

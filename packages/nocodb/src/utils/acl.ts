@@ -393,7 +393,6 @@ const rolePermissions:
 
       // oAuth
       oAuthClientList: true,
-      oAuthClientCreate: true,
       oAuthClientUpdate: true,
       oAuthClientDelete: true,
       oAuthClientGet: true,

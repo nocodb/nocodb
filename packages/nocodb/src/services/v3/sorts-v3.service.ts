@@ -23,7 +23,7 @@ export class SortsV3Service {
     SortCreateV3Type | SortUpdateV3Type,
     SortType
   >({
-    allowed: ['id', 'field_id', 'direction', 'enabled'],
+    allowed: ['id', 'field_id', 'direction', 'order_by', 'enabled'],
     mappings: {
       field_id: 'fk_column_id',
     },

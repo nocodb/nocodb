@@ -8,10 +8,11 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import type Bull from 'bull';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
-import { JobTypes } from '~/interface/Jobs';
+import { JobStatus, JobTypes } from '~/interface/Jobs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
@@ -23,6 +24,17 @@ export class MetaSyncController {
   constructor(
     @Inject('JobsService') private readonly jobsService: IJobsService,
   ) {}
+
+  // Reuse only a queued diff: a started one may have read the schema before the change being diffed.
+  private async findQueuedDiffJob(match: (job: Bull.Job) => boolean) {
+    const jobs = (await this.jobsService.jobList()).filter(
+      (j) => j.name === JobTypes.MetaDiff && match(j),
+    );
+    for (const job of jobs) {
+      const status = await this.jobsService.jobStatus(String(job.id));
+      if (status === JobStatus.WAITING) return job;
+    }
+  }
 
   @Post([
     '/api/v1/db/meta/projects/:baseId/meta-diff',
@@ -109,10 +121,7 @@ export class MetaSyncController {
     @Param('baseId') baseId: string,
     @Req() req: NcRequest,
   ) {
-    const jobs = await this.jobsService.jobList();
-    const fnd = jobs.find(
-      (j) => j.name === JobTypes.MetaDiff && j.data.baseId === baseId,
-    );
+    const fnd = await this.findQueuedDiffJob((j) => j.data.baseId === baseId);
 
     if (fnd) {
       return { id: fnd.id };
@@ -143,10 +152,8 @@ export class MetaSyncController {
     @Param('sourceId') sourceId: string,
     @Req() req: NcRequest,
   ) {
-    const jobs = await this.jobsService.jobList();
-    const fnd = jobs.find(
+    const fnd = await this.findQueuedDiffJob(
       (j) =>
-        j.name === JobTypes.MetaDiff &&
         j.data.baseId === baseId &&
         (j.data.sourceId === sourceId || j.data.sourceId === 'all'),
     );

@@ -159,6 +159,8 @@ export interface SignOutParams {
 export interface Actions {
   signOut: (signOutParams?: SignOutParams) => Promise<void>
   signIn: (token: string, keepProps?: boolean) => void
+  /** Hand a sign-in that still needs its TOTP code to the signin page; a no-op without 2FA (CE). */
+  stageTwoFactorChallenge: (twoFactorToken: string) => void
   refreshToken: (params: {
     axiosInstance?: AxiosInstance
     // Named to match both implementations. The interface previously said

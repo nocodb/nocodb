@@ -26,4 +26,7 @@ export const backendRouteExcludePatterns = [
   // GUI middleware answers `POST /mcp` on an app origin with the console SPA
   // shell.
   '/mcp',
+  // Discovery-mode MCP: a GET must reach the controller's 405, not the SPA shell.
+  '/mcp-discovery',
+  '/mcp-discovery/:mcpTokenId',
 ];

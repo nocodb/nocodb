@@ -75,6 +75,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
         const sortBody = {
           fk_column_id: sort.fk_column_id,
           direction: sort.direction,
+          ...(sort.order_by !== undefined ? { order_by: sort.order_by } : {}),
           ...((sort as { fk_level_id?: string | null }).fk_level_id !== undefined
             ? { fk_level_id: (sort as { fk_level_id?: string | null }).fk_level_id }
             : {}),

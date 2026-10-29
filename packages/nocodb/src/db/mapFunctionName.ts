@@ -8,6 +8,7 @@ import sqlite from '~/db/functionMappings/sqlite';
 import databricks from '~/db/functionMappings/databricks';
 import mssql from '~/db/functionMappings/mssql';
 import oracle from '~/db/functionMappings/oracle';
+import { escapeBindingPlaceholders } from '~/helpers/sqlSanitize';
 
 export interface MapFnArgs {
   pt: any;
@@ -56,6 +57,20 @@ export function getMappedFunctionNames(): Set<string> {
   return set;
 }
 
+// Escapes `?` in a bindingless raw; a mapping mixing rendered SQL with bindings must escape it itself.
+function escapeRenderedPlaceholders<T extends { builder?: any }>(res: T): T {
+  const builder = res?.builder;
+  if (
+    builder?.isRawInstance &&
+    typeof builder.sql === 'string' &&
+    (builder.bindings === undefined ||
+      (Array.isArray(builder.bindings) && !builder.bindings.length))
+  ) {
+    builder.sql = escapeBindingPlaceholders(builder.sql);
+  }
+  return res;
+}
+
 const mapFunctionName = async (args: MapFnArgs): Promise<any> => {
   const name = args.pt.callee.name.toUpperCase();
   let val;
@@ -86,7 +101,7 @@ const mapFunctionName = async (args: MapFnArgs): Promise<any> => {
   }
 
   if (typeof val === 'function') {
-    return val(args);
+    return escapeRenderedPlaceholders(await val(args));
   } else if (typeof val === 'string') {
     args.pt.callee.name = val;
   }

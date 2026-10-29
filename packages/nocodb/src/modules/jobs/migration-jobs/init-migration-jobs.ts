@@ -27,6 +27,8 @@ import { PgSourceSearchPathBackfillMigration } from '~/modules/jobs/migration-jo
 import { CreditPlanBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_016_credit_plan_backfill';
 import { StoreLaneBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_017_store_lane_backfill';
 import { CreditAllowanceIncreaseMigration } from '~/modules/jobs/migration-jobs/nc_job_018_credit_allowance_increase';
+import { McpTokenPlaintextCleanupMigration } from '~/modules/jobs/migration-jobs/nc_job_019_mcp_token_plaintext_cleanup';
+import { AtImportFailedJobScrubMigration } from '~/modules/jobs/migration-jobs/nc_job_020_at_import_failed_job_scrub';
 import { isEE } from '~/utils';
 
 @Injectable()
@@ -122,6 +124,16 @@ export class InitMigrationJobs {
       job: MigrationJobTypes.CreditAllowanceIncrease,
       service: this.creditAllowanceIncreaseMigration,
     },
+    {
+      version: '19',
+      job: MigrationJobTypes.McpTokenPlaintextCleanup,
+      service: this.mcpTokenPlaintextCleanupMigration,
+    },
+    {
+      version: '20',
+      job: MigrationJobTypes.AtImportFailedJobScrub,
+      service: this.atImportFailedJobScrubMigration,
+    },
   ];
 
   private readonly debugLog = debug('nc:migration-jobs:init');
@@ -147,6 +159,8 @@ export class InitMigrationJobs {
     private readonly creditPlanBackfillMigration: CreditPlanBackfillMigration,
     private readonly storeLaneBackfillMigration: StoreLaneBackfillMigration,
     private readonly creditAllowanceIncreaseMigration: CreditAllowanceIncreaseMigration,
+    private readonly mcpTokenPlaintextCleanupMigration: McpTokenPlaintextCleanupMigration,
+    private readonly atImportFailedJobScrubMigration: AtImportFailedJobScrubMigration,
   ) {}
 
   log = (...msgs: string[]) => {

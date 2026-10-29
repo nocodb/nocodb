@@ -134,6 +134,10 @@ const resetError = () => {
                 />
               </a-form-item>
 
+              <div class="text-nc-content-gray-muted text-small" data-rec="true">
+                {{ $t('msg.info.passwordChangeRevokesTokens') }}
+              </div>
+
               <div class="text-right mt-5">
                 <NcButton size="small" data-testid="nc-user-settings-form__submit" html-type="submit">
                   <div class="flex justify-center items-center gap-2" data-rec="true">

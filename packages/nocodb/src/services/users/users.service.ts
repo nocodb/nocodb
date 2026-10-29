@@ -1,6 +1,11 @@
 import { promisify } from 'util';
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, OrgUserRoles, validatePassword } from 'nocodb-sdk';
+import {
+  AppEvents,
+  extractRolesObj,
+  OrgUserRoles,
+  validatePassword,
+} from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import isEmail from 'validator/lib/isEmail';
 import bcrypt from 'bcryptjs';
@@ -15,7 +20,7 @@ import type {
 import type { NcRequest } from '~/interface/config';
 import {
   ensureUserInDefaultWorkspace,
-  verifyDefaultWorkspace,
+  verifyDefaultWsOwner,
 } from '~/helpers/verifyDefaultWorkspace';
 import { ensureUserInDefaultOrg } from '~/helpers/verifyDefaultOrg';
 import { isEE, isOnPrem, sanitiseUserObj, T } from '~/utils';
@@ -29,12 +34,24 @@ import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
-import { OAuthToken, PresignedUrl, User, UserRefreshToken } from '~/models';
-import { randomTokenString } from '~/helpers/stringHelpers';
+import {
+  ApiToken,
+  OAuthToken,
+  PresignedUrl,
+  User,
+  UserRefreshToken,
+} from '~/models';
+import { randomTokenString, safeEqual } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
 import { assertMetaIconOwned } from '~/helpers/attachmentHelpers';
 import { isTokenExpired } from '~/helpers/isTokenExpired';
 import { withSignupClaim } from '~/helpers/signupClaim';
+import { withFirstUserLock } from '~/helpers/firstUserLock';
+import {
+  SIGNUP_EMAIL_UNAVAILABLE_MSG,
+  SIGNUP_INVITE_ONLY_MSG,
+  SSO_SIGNUP_INVITE_ONLY_MSG,
+} from '~/helpers/authMessages';
 import { BasesService } from '~/services/bases.service';
 import { extractProps } from '~/helpers/extractProps';
 import { cleanDisplayName, displayNameError } from '~/helpers/displayName';
@@ -197,73 +214,107 @@ export class UsersService {
       NcError.badRequest(emailAliasNotAllowedMessage());
     }
 
-    let roles: string = OrgUserRoles.CREATOR;
+    return withFirstUserLock(async (isFirstUser) => {
+      let roles: string = OrgUserRoles.CREATOR;
 
-    const isFirstUser = await User.isFirst(ncMeta);
-
-    if (isFirstUser && process.env.NC_CLOUD !== 'true') {
-      roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
-      // todo: update in nc_store
-      // roles = 'owner,creator,editor'
-      T.emit('evt', {
-        evt_type: 'base:invite',
-        count: 1,
-      });
-    } else {
-      const settings = await Noco.getAppSettings();
-
-      if (settings?.invite_only_signup && !is_invite && !workspace_invite) {
-        NcError.badRequest('Not allowed to signup, contact super admin.');
+      if (isFirstUser && process.env.NC_CLOUD !== 'true') {
+        roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
+        // todo: update in nc_store
+        // roles = 'owner,creator,editor'
+        T.emit('evt', {
+          evt_type: 'base:invite',
+          count: 1,
+        });
       } else {
-        roles = OrgUserRoles.VIEWER;
+        const settings = await Noco.getAppSettings();
+
+        if (settings?.invite_only_signup && !is_invite && !workspace_invite) {
+          // SSO/OAuth callers register with an empty password.
+          NcError.badRequest(
+            password ? SIGNUP_INVITE_ONLY_MSG : SSO_SIGNUP_INVITE_ONLY_MSG,
+          );
+        } else {
+          roles = OrgUserRoles.VIEWER;
+        }
       }
-    }
 
-    const token_version = randomTokenString();
-    const user = await User.insert(
-      {
-        email,
-        salt,
-        password,
-        email_verification_token,
-        roles,
-        token_version,
-        invite_token,
-        // set expiry only when an invite token is present
-        invite_token_expires: invite_token
-          ? new Date(Date.now() + 24 * 60 * 60 * 1000)
-          : null,
-        // `user_name` is deliberately not forwarded: it is absent from the CE
-        // User type, and neither edition's User.insert persists it.
-        display_name,
-        meta,
-      },
-      ncMeta,
-    );
-
-    // if first user and super admin, create a base
-    // On unlicensed on-prem (EE build), @EEOnly() falls back to this CE code,
-    // so on-prem also needs workspace + base creation here.
-    if (isFirstUser && (!isEE || isOnPrem)) {
-      await verifyDefaultWorkspace(user, ncMeta);
-      await ensureUserInDefaultOrg(user.id, undefined, ncMeta);
-
-      // todo: update swagger type
-      (user as any).createdProject = await this.createDefaultProject(
-        user,
-        req,
+      const token_version = randomTokenString();
+      const user = await User.insert(
+        {
+          email,
+          salt,
+          password,
+          email_verification_token,
+          roles,
+          token_version,
+          invite_token,
+          // set expiry only when an invite token is present
+          invite_token_expires: invite_token
+            ? new Date(Date.now() + 24 * 60 * 60 * 1000)
+            : null,
+          // `user_name` is deliberately not forwarded: it is absent from the CE
+          // User type, and neither edition's User.insert persists it.
+          display_name,
+          meta,
+        },
         ncMeta,
       );
-    } else if (!isFirstUser && !is_invite && !workspace_invite) {
-      // Only add to default workspace for self-signups, not invites.
-      // Workspace invites set the role explicitly via the invite flow;
-      // org invites call ensureUserInDefaultWorkspace separately.
-      await ensureUserInDefaultWorkspace(user.id, undefined, ncMeta);
-      await ensureUserInDefaultOrg(user.id, undefined, ncMeta);
-    }
 
-    // todo: update swagger type
-    return user as any;
+      // if first user and super admin, create a base
+      // On unlicensed on-prem (EE build), @EEOnly() falls back to this CE code,
+      // so on-prem also needs workspace + base creation here.
+      if (isFirstUser && (!isEE || isOnPrem)) {
+        try {
+          // Also makes this user the owner if a failed first signup left the workspace behind
+          await verifyDefaultWsOwner(ncMeta);
+          await ensureUserInDefaultOrg(user.id, undefined, ncMeta);
+
+          // todo: update swagger type
+          (user as any).createdProject = await this.createDefaultProject(
+            user,
+            req,
+            ncMeta,
+          );
+        } catch (e) {
+          await this.discardFailedFirstUser(user, e, ncMeta);
+          throw e;
+        }
+      } else if (!isFirstUser && !is_invite && !workspace_invite) {
+        // Only add to default workspace for self-signups, not invites.
+        // Workspace invites set the role explicitly via the invite flow;
+        // org invites call ensureUserInDefaultWorkspace separately.
+        await ensureUserInDefaultWorkspace(user.id, undefined, ncMeta);
+        await ensureUserInDefaultOrg(user.id, undefined, ncMeta);
+      }
+
+      // todo: update swagger type
+      return user as any;
+    }, ncMeta);
+  }
+
+  // Undoes a first signup whose setup failed. Never throws, so callers rethrow the setup error.
+  protected async discardFailedFirstUser(
+    user: Pick<User, 'id' | 'roles'>,
+    setupError: Error,
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!extractRolesObj(user.roles)?.[OrgUserRoles.SUPER_ADMIN]) {
+      this.logger.error(setupError?.message, setupError?.stack);
+      return;
+    }
+    try {
+      await User.delete(user.id, ncMeta);
+      this.logger.error(
+        `First-user setup failed for user ${user.id}, account removed: ${setupError?.message}`,
+        setupError?.stack,
+      );
+    } catch (cleanupError) {
+      // Keep the row: it is still the only first-user claimant, so demoting would leave no super admin.
+      this.logger.error(
+        `First-user setup failed for user ${user.id} and removing the account also failed; keeping it as the first user. Setup error: ${setupError?.message}. Cleanup error: ${cleanupError?.message}`,
+        setupError?.stack,
+      );
+    }
   }
 
   async passwordChange(param: {
@@ -316,6 +367,8 @@ export class UsersService {
     let sessionsRevoked = true;
     try {
       await this.revokeAllSessions(user);
+      // API tokens aren't tied to token_version, so they'd survive the change.
+      await ApiToken.deleteByUser(user.id);
     } catch (e) {
       this.logger.error(
         'Failed to revoke sessions after password change',
@@ -377,8 +430,8 @@ export class UsersService {
         );
       }
 
-      await UserRefreshToken.deleteAllUserToken(user.id);
-      await this.revokeAllOAuthTokensByUser(user.id);
+      // Unauthenticated endpoint: revoking here would let anyone sign a user
+      // out. passwordReset revokes on completion.
 
       this.appHooksService.emit(AppEvents.USER_PASSWORD_FORGOT, {
         user: user,
@@ -467,6 +520,8 @@ export class UsersService {
     // delete all refresh tokens to invalidate existing sessions
     await UserRefreshToken.deleteAllUserToken(user.id);
     await this.revokeAllOAuthTokensByUser(user.id);
+    // API tokens aren't tied to token_version, so they'd survive the reset.
+    await ApiToken.deleteByUser(user.id);
 
     this.appHooksService.emit(AppEvents.USER_PASSWORD_RESET, {
       user: user,
@@ -623,7 +678,14 @@ export class UsersService {
     if (user) {
       if (token) {
         // A completed account never redeems a token; any sign-in clears it (see login).
-        if (token !== user.invite_token || user.password) {
+        if (!safeEqual(token, user.invite_token)) {
+          // Same rule as for an unknown email, so a live token cannot tell registered emails apart.
+          NcError.badRequest(
+            (await User.hasPendingInvite(token))
+              ? 'This invite was sent to a different email address'
+              : 'Invalid invite url',
+          );
+        } else if (user.password) {
           NcError.badRequest(`Invalid invite url`);
         } else if (isTokenExpired(user.invite_token_expires)) {
           NcError.badRequest(
@@ -634,9 +696,13 @@ export class UsersService {
         // todo : opening up signup for timebeing
         // return next(new Error(`Email '${email}' already registered`));
       }
-    } else if (await User.hasPendingInvite(token)) {
-      // e.g. an invite made out to an alias, which never resolves to this address
-      NcError.badRequest('This invite was sent to a different email address');
+    } else if (token) {
+      // Unknown tokens get the same answer as for a known email, so invite-only stays uniform.
+      NcError.badRequest(
+        (await User.hasPendingInvite(token))
+          ? 'This invite was sent to a different email address'
+          : 'Invalid invite url',
+      );
     }
 
     const salt = await promisify(bcrypt.genSalt)(10);
@@ -659,20 +725,28 @@ export class UsersService {
           email: user.email,
         });
       } else {
-        NcError.badRequest('User already exist');
+        // One answer for registered, invited and SSO accounts; invite-only matches a new email's.
+        NcError.badRequest(
+          (await Noco.getAppSettings())?.invite_only_signup
+            ? SIGNUP_INVITE_ONLY_MSG
+            : SIGNUP_EMAIL_UNAVAILABLE_MSG,
+        );
       }
     } else {
-      const { createdProject: _createdProject } = await withSignupClaim(
-        email,
-        () => User.getByCanonicalEmail(email),
-        () =>
-          this.registerNewUserIfAllowed({
-            email,
-            salt,
-            password,
-            email_verification_token,
-            req: param.req,
-          }),
+      // Lock outside the claim, so waiting on it cannot outlast the claim's TTL.
+      const { createdProject: _createdProject } = await withFirstUserLock(() =>
+        withSignupClaim(
+          email,
+          () => User.getByCanonicalEmail(email),
+          () =>
+            this.registerNewUserIfAllowed({
+              email,
+              salt,
+              password,
+              email_verification_token,
+              req: param.req,
+            }),
+        ),
       );
       createdProject = _createdProject;
     }

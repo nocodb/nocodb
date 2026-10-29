@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnType, SortType, TableType } from 'nocodb-sdk'
+import { type ColumnType, SortOrderBy, type SortType, type TableType, UITypes } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { getColumnUidtByID as resolveColumnUidt } from '~/utils/sortUtils'
 
@@ -29,6 +29,8 @@ const props = withDefaults(
     // Bypass view-column store inside the field dropdown — required when used
     // outside a smartsheet view (e.g. the lookup field editor modal).
     disableSmartsheet?: boolean
+    // Offer Alphabetical / Option order on SingleSelect rows (toolbar).
+    showOrderBy?: boolean
   }>(),
   {
     draggable: false,
@@ -36,6 +38,7 @@ const props = withDefaults(
     readOnly: false,
     disabled: false,
     disableSmartsheet: false,
+    showOrderBy: false,
   },
 )
 
@@ -50,7 +53,32 @@ const emit = defineEmits<{
   (e: 'move', event: { moved?: { newIndex: number; oldIndex: number } }): void
 }>()
 
+const { t } = useI18n()
+
 const getColumnUidtByID = (key?: string) => resolveColumnUidt(key, props.columns)
+
+const orderByOptions = computed(() => [
+  { text: t('labels.sortAlphabetical'), value: SortOrderBy.ALPHABETICAL },
+  { text: t('labels.sortOptionOrder'), value: SortOrderBy.OPTION_ORDER },
+])
+
+const showOrderByFor = (sort: SortType) => props.showOrderBy && getColumnUidtByID(sort.fk_column_id) === UITypes.SingleSelect
+
+const getOrderBy = (sort: SortType) =>
+  sort.order_by === SortOrderBy.OPTION_ORDER ? SortOrderBy.OPTION_ORDER : SortOrderBy.ALPHABETICAL
+
+const onFieldChange = (sort: SortType) => {
+  // Option order only applies to SingleSelect fields.
+  if (sort.order_by && getColumnUidtByID(sort.fk_column_id) !== UITypes.SingleSelect) {
+    sort.order_by = null
+  }
+  emit('saveOrUpdate', sort)
+}
+
+const onOrderBySelect = (sort: SortType, value: SortOrderBy) => {
+  sort.order_by = value
+  emit('saveOrUpdate', sort)
+}
 </script>
 
 <template>
@@ -89,7 +117,7 @@ const getColumnUidtByID = (key?: string) => resolveColumnUidt(key, props.columns
                 :disabled="disabled"
                 :disable-smartsheet="disableSmartsheet"
                 @click.stop
-                @update:model-value="emit('saveOrUpdate', sort)"
+                @update:model-value="onFieldChange(sort)"
               />
 
               <NcSelect
@@ -112,6 +140,28 @@ const getColumnUidtByID = (key?: string) => resolveColumnUidt(key, props.columns
                     <component
                       :is="iconMap.check"
                       v-if="sort.direction === option.value"
+                      id="nc-selected-item-icon"
+                      class="text-primary w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </NcSelect>
+
+              <NcSelect
+                v-if="showOrderByFor(sort)"
+                :value="getOrderBy(sort)"
+                class="flex flex-grow-1 w-full nc-sort-order-by-select"
+                dropdown-class-name="nc-dropdown-sort-order-by !rounded-lg"
+                :disabled="disabled"
+                @click.stop
+                @select="onOrderBySelect(sort, $event)"
+              >
+                <a-select-option v-for="option of orderByOptions" :key="option.value" :value="option.value">
+                  <div class="w-full flex items-center justify-between gap-2">
+                    <div class="truncate flex-1">{{ option.text }}</div>
+                    <component
+                      :is="iconMap.check"
+                      v-if="getOrderBy(sort) === option.value"
                       id="nc-selected-item-icon"
                       class="text-primary w-4 h-4"
                     />
@@ -191,6 +241,18 @@ const getColumnUidtByID = (key?: string) => resolveColumnUidt(key, props.columns
           </a-select-option>
         </NcSelect>
 
+        <NcSelect
+          v-if="showOrderByFor(sort)"
+          :value="getOrderBy(sort)"
+          class="flex flex-grow-1 w-full nc-sort-order-by-select"
+          dropdown-class-name="nc-dropdown-sort-order-by !rounded-lg"
+          :disabled="true"
+        >
+          <a-select-option v-for="option of orderByOptions" :key="option.value" :value="option.value">
+            <div class="truncate flex-1">{{ option.text }}</div>
+          </a-select-option>
+        </NcSelect>
+
         <NcTooltip placement="top" :title="$t('general.remove')" class="flex-none">
           <NcButton
             v-e="['c:sort:delete']"
@@ -231,15 +293,21 @@ const getColumnUidtByID = (key?: string) => resolveColumnUidt(key, props.columns
   }
 }
 
-:deep(.nc-sort-dir-select) {
+:deep(.nc-sort-dir-select),
+:deep(.nc-sort-order-by-select) {
   .ant-select-selector {
     @apply !rounded-none !border-nc-border-gray-medium !shadow-none;
   }
 }
 
+:deep(.nc-sort-order-by-select) .ant-select-selector {
+  @apply !border-l-transparent;
+}
+
 .nc-sort-disabled-row {
   .nc-sort-field-select,
-  .nc-sort-dir-select {
+  .nc-sort-dir-select,
+  .nc-sort-order-by-select {
     @apply opacity-40 pointer-events-none;
   }
 }

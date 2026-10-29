@@ -218,7 +218,7 @@ const blockMarkers: BlockMarker[] = [
   { open: '- ', type: 'list-item' },
   { open: '* ', type: 'list-item' },
   { open: '+ ', type: 'list-item' },
-  { open: /\d+\. /, type: 'numbered-list-item' },
+  { open: /^\d+\. /, type: 'numbered-list-item' },
 ]
 
 export const parseMarkdown = (

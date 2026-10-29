@@ -212,7 +212,7 @@ Create one Secret and reference it from each `*.existingSecret`:
 | `ingress.tls` | Ingress TLS entries | `[]` |
 | `httproute.enabled` | Create a Gateway API HTTPRoute (alternative to Ingress; needs the Gateway API CRDs and a Gateway) | `false` |
 | `httproute.annotations` | HTTPRoute annotations | `{}` |
-| `httproute.parentRefs` | Gateways this route attaches to (each entry: name, and optional namespace/sectionName/port) | `[]` |
+| `httproute.parentRefs` | Gateways this route attaches to (each entry: name, and optional namespace/sectionName/port). Required when enabled | `[]` |
 | `httproute.hostnames` | Hostnames matched by this route | `[]` |
 | `httproute.rules` | Custom routing rules; when set, replaces the default "/ -> service" rule (tpl-rendered) | `[]` |
 | `networkPolicy.enabled` | Create a NetworkPolicy | `false` |

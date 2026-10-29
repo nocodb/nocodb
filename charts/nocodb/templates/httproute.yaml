@@ -1,4 +1,7 @@
 {{- if .Values.httproute.enabled -}}
+{{- if not .Values.httproute.parentRefs }}
+{{- fail "httproute.parentRefs is required when httproute.enabled is true" }}
+{{- end }}
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:

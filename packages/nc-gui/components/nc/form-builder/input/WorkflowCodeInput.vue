@@ -959,14 +959,14 @@ onBeforeUnmount(() => {
     }
   }
 
-  // The expand button shows on hover or focus, so it doesn't take room from short values.
-  .nc-workflow-code-input-expand {
+  // The expand button shows on hover or focus. :deep — NcTooltip's wrapper isn't scoped.
+  :deep(.nc-workflow-code-input-expand) {
     @apply hidden;
   }
 
   .nc-workflow-code-input-field:hover,
   .nc-workflow-code-input-field.is-focused {
-    .nc-workflow-code-input-expand {
+    :deep(.nc-workflow-code-input-expand) {
       @apply flex;
     }
   }

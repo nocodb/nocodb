@@ -114,7 +114,7 @@ terminationGracePeriodSeconds: 60
 
 ## @section App config (non-secret)
 nocodb:
-  ## @param nocodb.publicUrl NC_SITE_URL. If empty, derived from the first ingress host when TLS is set
+  ## @param nocodb.publicUrl NC_SITE_URL. If empty, derived from the first ingress host when TLS is set, or from the first HTTPRoute hostname as https
   publicUrl: ""
   ## @param nocodb.dashboardUrl NC_DASHBOARD_URL
   dashboardUrl: ""

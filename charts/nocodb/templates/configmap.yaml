@@ -19,6 +19,8 @@ data:
   NC_SITE_URL: {{ .Values.nocodb.publicUrl | quote }}
   {{- else if and .Values.ingress.enabled .Values.ingress.hosts }}
   NC_SITE_URL: {{ printf "%s://%s" (ternary "https" "http" (gt (len .Values.ingress.tls) 0)) (first .Values.ingress.hosts).host | quote }}
+  {{- else if and .Values.httproute.enabled .Values.httproute.hostnames }}
+  NC_SITE_URL: {{ printf "https://%s" (first .Values.httproute.hostnames) | quote }}
   {{- end }}
   {{- with .Values.nocodb.dashboardUrl }}
   NC_DASHBOARD_URL: {{ . | quote }}

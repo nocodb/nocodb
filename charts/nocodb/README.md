@@ -94,7 +94,7 @@ Create one Secret and reference it from each `*.existingSecret`:
 
 | Name | Description | Value |
 |------|-------------|-------|
-| `nocodb.publicUrl` | NC_SITE_URL. If empty, derived from the first ingress host when TLS is set | `""` |
+| `nocodb.publicUrl` | NC_SITE_URL. If empty, derived from the first ingress host when TLS is set, or from the first HTTPRoute hostname as https | `""` |
 | `nocodb.dashboardUrl` | NC_DASHBOARD_URL | `""` |
 | `nocodb.disableMux` | Set NC_DISABLE_MUX=true (recommended for self-hosted) | `true` |
 | `nocodb.disableTelemetry` | Set NC_DISABLE_TELE=true | `false` |

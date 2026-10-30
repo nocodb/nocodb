@@ -391,6 +391,9 @@ export class UserGeneralHandler extends GenericFieldHandler {
       include_internal_user: true,
     });
     const users = baseUsers.filter((user) => {
+      // A full id (what `@me` resolves to) matches its user; a partial one
+      // matches nothing.
+      if (user.id === val) return true;
       const filterVal = val.toLowerCase();
       const displayValue = (
         user.display_name ||

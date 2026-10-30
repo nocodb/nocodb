@@ -13,6 +13,8 @@ import type { MetaService } from 'src/meta/meta.service';
 import type CustomKnex from 'src/db/CustomKnex';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 
+const DECIMAL_STRING = /^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i;
+
 export class DecimalGeneralHandler extends GenericFieldHandler {
   override async verifyFilter(filter: Filter, column: Column) {
     const supportedOperations = [
@@ -113,10 +115,18 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
     };
   }): Promise<{ value: any }> {
     // Number('') is 0, which would store a zero for a cleared cell.
-    if (params.value === '') return { value: null };
+    if (typeof params.value === 'string' && params.value.trim() === '') {
+      return { value: null };
+    }
     if (!ncIsUndefined(params.value) && !ncIsNull(params.value)) {
       const numberValue = Number(params.value);
-      if (!ncIsNumber(numberValue)) {
+      if (
+        !ncIsNumber(numberValue) ||
+        typeof params.value === 'boolean' ||
+        // Number() also reads hex/binary/octal literals ("0x1A" -> 26).
+        (typeof params.value === 'string' &&
+          !DECIMAL_STRING.test(params.value.trim()))
+      ) {
         NcError.invalidValueForField({
           value: params.value,
           column: params.column.title,

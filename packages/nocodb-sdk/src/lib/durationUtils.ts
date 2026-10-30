@@ -78,6 +78,11 @@ export const convertDurationToSeconds = (val: any, durationType: number) => {
     _sec: 0,
     _isValid: true,
   };
+  // The unanchored h:mm regexes would read "-60" as 60 minutes.
+  if (typeof val === 'string' && val.trim().startsWith('-')) {
+    res._isValid = false;
+    return res;
+  }
   const durationRegex = durationOptions[durationType].regex;
   if (durationRegex.test(val)) {
     let h, mm, ss;

@@ -155,7 +155,7 @@ loadSettings()
                 :disabled="settings.allow_reporting_abuse === false"
                 data-testid="nc-abuse-contact-email"
                 @blur="saveAbuseContactEmail"
-                @press-enter="saveAbuseContactEmail"
+                @press-enter=";($event.target as HTMLInputElement).blur()"
               />
               <span v-if="abuseContactEmailError" class="text-xs text-nc-content-red-dark">{{ abuseContactEmailError }}</span>
               <span v-else class="text-xs text-nc-content-gray-muted">{{ $t('msg.info.abuseReport.contactEmailHint') }}</span>

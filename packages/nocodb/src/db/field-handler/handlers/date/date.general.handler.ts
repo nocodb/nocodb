@@ -97,6 +97,11 @@ export class DateGeneralHandler extends DateTimeGeneralHandler {
       }
     }
 
+    // Unix seconds; passed on as a number the database would read milliseconds.
+    if (typeof params.value === 'number') {
+      return { value: dayjsUtcValue.format('YYYY-MM-DD') };
+    }
+
     return { value: params.value };
   }
 

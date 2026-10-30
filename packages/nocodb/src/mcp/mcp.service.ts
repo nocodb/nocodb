@@ -1061,8 +1061,13 @@ export class McpService {
               }),
               returnTitles,
             );
-            return warnings.length
-              ? { ...result, warnings, ignored_fields }
+            const allWarnings = [...warnings, ...(result.warnings ?? [])];
+            return allWarnings.length
+              ? {
+                  ...result,
+                  warnings: allWarnings,
+                  ...(ignored_fields.length ? { ignored_fields } : {}),
+                }
               : result;
           },
         ),

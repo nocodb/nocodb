@@ -1,15 +1,25 @@
 import { customAlphabet, nanoid } from 'nanoid';
 import { ncSiteUrl } from '~/utils/envs';
 
+// These go into CREATE USER / ALTER ROLE; -1 there means unlimited.
+const positiveIntEnv = (value: string | undefined, fallback: number) => {
+  const n = Math.floor(Number(value));
+  return Number.isSafeInteger(n) && n > 0 ? n : fallback;
+};
+
 const NC_DATA_REFLECTION_SETTINGS = {
   host:
     process.env.NC_DATA_REFLECTION_HOST ||
     ncSiteUrl?.replace(/(^\w+:|^)\/\//, '').replace(/\/$/, ''),
   port: +process.env.NC_DATA_REFLECTION_PORT || 5433,
-  maxConnections: Math.floor(
-    +process.env.NC_DATA_REFLECTION_MAX_CONNECTIONS || 10,
+  maxConnections: positiveIntEnv(
+    process.env.NC_DATA_REFLECTION_MAX_CONNECTIONS,
+    10,
   ),
-  statementTimeout: +process.env.NC_DATA_REFLECTION_STATEMENT_TIMEOUT || 30_000,
+  statementTimeout: positiveIntEnv(
+    process.env.NC_DATA_REFLECTION_STATEMENT_TIMEOUT,
+    30_000,
+  ),
 };
 
 const genSuffix = customAlphabet('1234567890abcdef', 6);

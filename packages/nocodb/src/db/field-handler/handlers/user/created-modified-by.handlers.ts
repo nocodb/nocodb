@@ -5,9 +5,10 @@ import type { Column } from '~/models';
 
 /**
  * Mix-in for CreatedBy / LastModifiedBy columns: same filter behavior as the
- * corresponding User handler (user-id → display-name substitution for
- * like/nlike), but `parseUserInput` returns undefined since these columns
- * are auto-populated by the system and never accept user-supplied writes.
+ * corresponding User handler (like/nlike match the cell's ids against the
+ * users whose id, display name or email matches the value), but
+ * `parseUserInput` returns undefined since these columns are auto-populated
+ * by the system and never accept user-supplied writes.
  *
  * The User-handler hierarchy already implements the right SQL for each
  * dialect; we just narrow `parseUserInput` to match ComputedFieldHandler.

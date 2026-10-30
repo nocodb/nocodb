@@ -517,6 +517,9 @@ export class FiltersV3Service {
     // confirm if filter belongs to view — without this an editor on view A can
     // PATCH a filter of view B in the same base (incl. locked/personal views).
     // Same guard and same error as filterDelete.
+    // The table-scoped route resolves ids from tableId, so an unknown view gets here.
+    const view = await View.get(context, param.viewId);
+    if (!view) NcError.get(context).viewNotFound(param.viewId);
     const filter = await Filter.get(context, param.filterId ?? '');
 
     if (!filter || filter.fk_view_id !== param.viewId) {
@@ -541,7 +544,6 @@ export class FiltersV3Service {
       ) as FilterType;
       delete remappedFilter.logical_op;
 
-      const view = await View.get(context, param.viewId);
       await assertFiltersReadable(context, view.fk_model_id, [
         {
           fk_column_id: remappedFilter.fk_column_id ?? filter.fk_column_id,

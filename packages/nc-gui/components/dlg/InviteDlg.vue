@@ -24,12 +24,7 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { load: loadInviteLinks, defaultEmailDomain } = useInviteLinks()
 
-/** Their own domain makes the example read as their team, not a stock address. */
-const emailPlaceholder = computed(() =>
-  defaultEmailDomain.value
-    ? `name1@${defaultEmailDomain.value}, name2@${defaultEmailDomain.value}`
-    : 'name@example.com, another@example.com',
-)
+const emailPlaceholder = computed(() => inviteEmailPlaceholder(defaultEmailDomain.value))
 
 /**
  * Both the base and the workspace invite offer a link. The team pickers do not:

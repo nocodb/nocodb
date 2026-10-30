@@ -64,6 +64,13 @@ export class LinksHelper extends AbstractColumnHelper {
   }
 
   parseValue(value: any, params: SerializerOrParserFnProps['params']) {
+    return this.parsePlainCellValue(value, params);
+  }
+
+  parsePlainCellValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): string {
     // Clipboard text is what the cell renders — the lossless envelope rides the
     // clipboard item instead (see serializeValue). Split on the SAME predicate
     // the grid renderer uses to pick a renderer for a Links column
@@ -80,12 +87,5 @@ export class LinksHelper extends AbstractColumnHelper {
     }
 
     return parseLinksValue(!ncIsNaN(value) ? +value : 0, params);
-  }
-
-  parsePlainCellValue(
-    value: any,
-    params: SerializerOrParserFnProps['params'] & { rowId: string }
-  ): string {
-    return parseLinksValue(value, params) ?? '';
   }
 }

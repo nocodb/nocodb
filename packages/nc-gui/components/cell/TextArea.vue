@@ -322,9 +322,12 @@ const onExpand = () => {
   isVisible.value = true
 }
 
-// Enter on a link inside the preview keeps its default.
+// Enter on a link inside the Smart Text preview keeps its default.
 const onRichPreviewEnter = (e: KeyboardEvent) => {
-  if (!isInterfaceSmartPreview.value) return onExpand()
+  if (!isInterfaceSmartPreview.value) {
+    e.preventDefault()
+    return onExpand()
+  }
   if (readOnly.value || e.target !== e.currentTarget) return
 
   e.preventDefault()

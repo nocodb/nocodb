@@ -14,6 +14,7 @@ const pgTypes = {
   FLOAT4: 700,
   FLOAT8: 701,
   DATE: 1082,
+  INTERVAL: 1186,
   TIMESTAMP: 1114,
   TIMESTAMPTZ: 1184,
   NUMERIC: 1700,
@@ -21,6 +22,8 @@ const pgTypes = {
 
 // override parsing date column to Date()
 types.setTypeParser(pgTypes.DATE, (val) => val);
+// keep interval as the raw Postgres string — default parser returns a JS object
+types.setTypeParser(pgTypes.INTERVAL, (val) => val);
 // override timestamp
 // pg trims trailing zeros of the fraction (`.7`) and sends no offset, which
 // dayjs's regex parser reads as 7ms; an explicit `Z` routes it through Date.

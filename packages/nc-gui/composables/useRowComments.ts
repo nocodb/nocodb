@@ -322,10 +322,16 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
   // let the slower (older record's) response win.
   let commentNotificationPreferenceSeq = 0
 
+  // Set once something reads the bell; record switches only refetch after that,
+  // so a scope without a bell (e.g. an interface page with comments off) never asks.
+  let isNotificationPreferenceUsed = false
+
   async function loadCommentNotificationPreference() {
     // The bell is per-user; a shared-base session has no user and is refused.
     if (!isEeUI || isSharedBase.value) return
     if (!ifaceSidebar && !isUIAllowed('commentList')) return
+
+    isNotificationPreferenceUsed = true
 
     const seq = ++commentNotificationPreferenceSeq
 
@@ -390,7 +396,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
   // Next/prev record navigation rebinds the same engine (the panel stays
   // mounted) — the bell must follow the row, not its mount.
   watch(primaryKey, (pk, prev) => {
-    if (pk && pk !== prev) loadCommentNotificationPreference().catch(() => undefined)
+    if (isNotificationPreferenceUsed && pk && pk !== prev) loadCommentNotificationPreference().catch(() => undefined)
   })
 
   return {

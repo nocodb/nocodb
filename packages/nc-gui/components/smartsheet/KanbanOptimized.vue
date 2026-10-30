@@ -252,10 +252,37 @@ const kanbanContainerRef = ref()
 
 const selectedStackTitle = ref('')
 
+const hideEmptyStack = computed<boolean>(() => parseProp(kanbanMetaData.value?.meta).hide_empty_stack || false)
+
+const autoCollapseEmptyStack = computed<boolean>(() => parseProp(kanbanMetaData.value?.meta).auto_collapse_empty_stack || false)
+
+// Session-only override: user-expanded auto-collapsed empty stacks for this view mount
+const userExpandedEmptyStacks = ref<Set<string>>(new Set())
+
+// Stacks temporarily expanded because a dragged card is hovering over them
+const tempExpandedStacks = ref<Set<string>>(new Set())
+
+const isStackEmpty = (stack: { title: string | null }) => {
+  return !formattedData.value.get(stack.title)?.length
+}
+
+const isStackCollapsed = (stack: { id: string; title: string | null; collapsed?: boolean }) => {
+  if (!stack || stack.id === addNewStackId) return false
+  if (tempExpandedStacks.value.has(stack.id)) return false
+  if (stack.collapsed) return true
+  if (autoCollapseEmptyStack.value && isStackEmpty(stack) && !userExpandedEmptyStacks.value.has(stack.id)) {
+    return true
+  }
+  return false
+}
+
 // Horizontal virtual scrolling for stacks
 const STACK_WIDTH = 274 // w-68.5 = 274px (17.125rem * 16)
 const STACK_GAP = 12 // gap-3 = 12px
 const STACK_WIDTH_WITH_GAP = STACK_WIDTH + STACK_GAP
+// Collapsed rails: 52px on interfaces, 44px on the classic board (see the stack template)
+const COLLAPSED_STACK_WIDTH = 44
+const INTERFACE_COLLAPSED_STACK_WIDTH = 52
 
 // Boards at or below this many stacks render every stack — the legacy board always did, so this is
 // never more expensive than before, and it keeps ordinary boards fully in the DOM (browser find,
@@ -318,6 +345,51 @@ onUnmounted(() => {
   isUnmounted = true
 })
 
+// Rendered width of a stack including its trailing gap. Stacks whose data isn't loaded yet are
+// estimated by their collapsed state, and only a loaded-and-empty stack counts as hidden.
+const getStackOuterWidth = (stack: { id: string; title: string | null; collapsed?: boolean }) => {
+  const stackData = formattedData.value.get(stack.title)
+  if (
+    (hideEmptyStack.value && stackData && !stackData.length) ||
+    (isRequiredGroupingFieldColumn.value && stack.id === uncategorizedStackId) ||
+    (isMobileMode.value && stack.id === uncategorizedStackId && !stackData?.length)
+  ) {
+    return 0
+  }
+
+  if (isStackCollapsed(stack)) {
+    return (interfacePageDataApi ? INTERFACE_COLLAPSED_STACK_WIDTH : COLLAPSED_STACK_WIDTH) + STACK_GAP
+  }
+
+  return STACK_WIDTH_WITH_GAP
+}
+
+// stackOffsets[i] is the horizontal offset of stack i; the last entry is the total width. Collapsed
+// stacks are far narrower than expanded ones, so a uniform width would leave most of the viewport as
+// blank spacer on a board of collapsed stacks.
+const stackOffsets = computed(() => {
+  const options = groupingFieldColOptions.value
+  const offsets = new Array<number>(options.length + 1)
+  offsets[0] = 0
+  for (let i = 0; i < options.length; i++) {
+    offsets[i + 1] = offsets[i] + getStackOuterWidth(options[i])
+  }
+  return offsets
+})
+
+// Number of stacks whose offset is <= x (binary search over stackOffsets)
+const countStacksStartingBefore = (x: number) => {
+  const offsets = stackOffsets.value
+  let lo = 0
+  let hi = offsets.length
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1
+    if (offsets[mid] <= x) lo = mid + 1
+    else hi = mid
+  }
+  return lo
+}
+
 // Calculate horizontal stack visibility
 const calculateStackSlice = () => {
   if (!kanbanContainerRef.value) {
@@ -348,15 +420,10 @@ const calculateStackSlice = () => {
   const contentScrollLeft = Math.max(0, scrollLeft - padding)
   const visibleWidth = containerWidth - padding
 
-  // Calculate start index - each stack takes STACK_WIDTH, with STACK_GAP between them
-  // In flexbox with gap-3, the gap is automatically added between items
-  // So the effective width per stack is STACK_WIDTH + STACK_GAP
-  const startIndex = Math.max(0, Math.floor(contentScrollLeft / STACK_WIDTH_WITH_GAP))
-
-  // Calculate how many stacks fit in the visible area
-  // Add 1 to ensure we include partially visible stacks
-  const visibleCount = Math.ceil(visibleWidth / STACK_WIDTH_WITH_GAP) + 1
-  const endIndex = Math.min(startIndex + visibleCount, groupingFieldColOptions.value.length)
+  // First stack whose right edge is past the scroll position, and the stacks starting inside the viewport
+  const total = groupingFieldColOptions.value.length
+  const startIndex = Math.max(0, Math.min(countStacksStartingBefore(contentScrollLeft) - 1, total - 1))
+  const endIndex = Math.min(Math.max(countStacksStartingBefore(contentScrollLeft + visibleWidth), startIndex + 1), total)
 
   // Add buffer stacks for smooth scrolling
   const BUFFER_STACKS = 2
@@ -412,14 +479,13 @@ const stackWindow = computed(() => {
 // this slice on the next tick, so the in-place change is never the source of truth.
 const visibleStackOptions = computed(() => groupingFieldColOptions.value.slice(stackWindow.value.start, stackWindow.value.end))
 
-// Spacer widths approximate off-screen stacks at a uniform width (matching calculateStackSlice's
-// assumption). Collapsed/hidden stacks make this slightly imprecise, but it keeps the horizontal
-// scrollbar proportional, which is all that matters for high stack counts.
-const leftStackSpacerWidth = computed(() => stackWindow.value.start * STACK_WIDTH_WITH_GAP)
+// Spacer widths stand in for the off-screen stacks at their estimated widths (see stackOffsets)
+const leftStackSpacerWidth = computed(() => stackOffsets.value[stackWindow.value.start] ?? 0)
 
-const rightStackSpacerWidth = computed(
-  () => Math.max(0, groupingFieldColOptions.value.length - stackWindow.value.end) * STACK_WIDTH_WITH_GAP,
-)
+const rightStackSpacerWidth = computed(() => {
+  const offsets = stackOffsets.value
+  return Math.max(0, (offsets[offsets.length - 1] ?? 0) - (offsets[stackWindow.value.end] ?? 0))
+})
 
 // Map a Draggable slot index (relative to the rendered window) back to the absolute index into
 // groupingFieldColOptions, which the stack mutation handlers rely on.
@@ -1489,6 +1555,13 @@ watch(
   },
 )
 
+// Collapsing/expanding (e.g. "Collapse all") changes stack widths, so the visible slice moves too
+watch(stackOffsets, () => {
+  nextTick(() => {
+    calculateStackSlice()
+  })
+})
+
 // Watch for container size changes
 const { width: containerWidth } = useElementSize(kanbanContainerRef)
 watch(containerWidth, () => {
@@ -1530,30 +1603,6 @@ onMounted(async () => {
 const getRowId = (row: RowType) => {
   const pk = extractPkFromRow(row.row, meta.value!.columns!)
   return pk ? `row-${pk}` : ''
-}
-
-const hideEmptyStack = computed<boolean>(() => parseProp(kanbanMetaData.value?.meta).hide_empty_stack || false)
-
-const autoCollapseEmptyStack = computed<boolean>(() => parseProp(kanbanMetaData.value?.meta).auto_collapse_empty_stack || false)
-
-// Session-only override: user-expanded auto-collapsed empty stacks for this view mount
-const userExpandedEmptyStacks = ref<Set<string>>(new Set())
-
-// Stacks temporarily expanded because a dragged card is hovering over them
-const tempExpandedStacks = ref<Set<string>>(new Set())
-
-const isStackEmpty = (stack: { title: string | null }) => {
-  return !formattedData.value.get(stack.title)?.length
-}
-
-const isStackCollapsed = (stack: { id: string; title: string | null; collapsed?: boolean }) => {
-  if (!stack || stack.id === addNewStackId) return false
-  if (tempExpandedStacks.value.has(stack.id)) return false
-  if (stack.collapsed) return true
-  if (autoCollapseEmptyStack.value && isStackEmpty(stack) && !userExpandedEmptyStacks.value.has(stack.id)) {
-    return true
-  }
-  return false
 }
 
 const handleCollapsedStackClick = (stack: { id: string; title: string | null; collapsed?: boolean }, stackIdx: number) => {

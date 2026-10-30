@@ -6271,7 +6271,8 @@
       "deliverySlackInvalid": "Enter a Slack channel, like #sales.",
       "discardTitle": "Discard this draft?",
       "discardContent": "The draft and its setup chat will be moved to the trash."
-    }
+    },
+    "interfaceBookmarkPageMissing": "Page not found"
   },
   "activity": {
     "blockUser": "Block user",
@@ -8076,7 +8077,11 @@
       "resetWillEraseConfiguration": "Resetting will erase your current configuration.",
       "atLeastOneEnabledSource": "There should be at least one enabled source!",
       "controlViewVisibility": "Control view visibility for different roles to manage access efficiently.",
-      "loadingMonacoEditor": "Loading Monaco Editor..."
+      "loadingMonacoEditor": "Loading Monaco Editor...",
+      "interfaceButtonTargetPageMissing": "The page this button opens no longer exists",
+      "interfaceRecordUrlNotUrlField": "This button's field isn't a URL field",
+      "interfaceWidgetFieldDeleted": "Field deleted",
+      "interfacePageUnavailable": "That page was deleted or isn't shared with you"
     },
     "error": {
       "attachmentInvalidUrl": "Enter a URL starting with http:// or https://, or a template using variables",
@@ -8328,7 +8333,8 @@
       "invalidTokensJson": "Not a token export. Expected keys like light, dark, font or radiusScale.",
       "renameFileFailed": "Error while renaming file",
       "failedToLoadMetadataDiff": "Failed to load metadata diff",
-      "failedToLoadMonacoEditor": "Failed to load Monaco Editor"
+      "failedToLoadMonacoEditor": "Failed to load Monaco Editor",
+      "interfaceWriteNoPermission": "You no longer have permission to make this change. Reload the page to see your current access."
     },
     "toast": {
       "changesSaved": "Changes saved",

@@ -8081,6 +8081,7 @@
       "loadingMonacoEditor": "Loading Monaco Editor...",
       "interfaceButtonTargetPageMissing": "The page this button opens no longer exists",
       "interfaceRecordUrlNotUrlField": "This button's field isn't a URL field",
+      "interfaceRecordUrlFieldDeleted": "This button's field was deleted",
       "interfaceWidgetFieldDeleted": "Field deleted",
       "interfacePageUnavailableTitle": "This page isn't available",
       "interfacePageUnavailable": "It was deleted, or it isn't shared with you.",

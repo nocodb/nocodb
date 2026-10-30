@@ -640,7 +640,10 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
       const response = interfaceDataApi
         ? await interfaceDataApi.fetchGroupBy({ ...params, sortsArr: sorts.value, filtersArr: nestedFilters.value })
-        : await api.dbViewRow.groupBy('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, params)
+        : await api.dbViewRow.groupBy('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
+            ...params,
+            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+          })
 
       // The server clamps `limit` (NC_DB_QUERY_LIMIT_MAX, 100 on cloud): a cut-off list can't say which stacks miss
       if (response?.pageInfo?.isLastPage === false) return

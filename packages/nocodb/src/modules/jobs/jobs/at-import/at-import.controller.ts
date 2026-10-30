@@ -10,6 +10,7 @@ import { Request } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { SyncSource } from '~/models';
+import { omitSyncToken } from '~/models/SyncSource';
 import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -54,7 +55,8 @@ export class AtImportController {
     const job = await this.jobsService.add(JobTypes.AtImport, {
       context,
       syncId: req.params.syncId,
-      ...(syncSource?.details || {}),
+      // The processor reads the token from the sync source.
+      ...omitSyncToken(syncSource?.details),
       baseId: syncSource.base_id,
       sourceId: syncSource.source_id,
       authToken: '',

@@ -967,8 +967,8 @@ export class OracleUi implements SqlUi {
     return ['json'].includes(col.dt?.toLowerCase());
   }
   get tableNameLengthLimit(): number {
-    // 12.2+ identifier limit. (Pre-12.2 was 30 — not targeted.)
-    return 128;
+    // 12.2+ identifier limit (128) less the `PK_` constraint prefix.
+    return 125;
   }
   //#endregion methods
 }

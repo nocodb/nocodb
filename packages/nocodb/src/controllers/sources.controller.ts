@@ -27,7 +27,7 @@ export class SourcesController {
     '/api/v1/db/meta/projects/:baseId/bases/:sourceId',
     '/api/v2/meta/bases/:baseId/sources/:sourceId',
   ])
-  @Acl('baseGet')
+  @Acl('baseGet', { blockPublicBaseAccess: true })
   async baseGet(
     @TenantContext() context: NcContext,
     @Param('sourceId') sourceId: string,

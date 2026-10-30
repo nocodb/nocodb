@@ -22,7 +22,8 @@ import {
   editorPersonalViewOnlyPermissions,
   markPersonalViewIfNeeded,
   personalViewOwnerAllowedPermissions,
-  resolveFilterTableId,
+  resolveRequestTable,
+  TABLE_ADDRESSING_KEYS,
   tableVisibilityCache,
   VIEW_KEY,
 } from 'src/middlewares/extract-ids/extract-ids.helpers';
@@ -41,18 +42,13 @@ import {
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
 import {
-  Column,
   Filter,
   FormViewColumn,
-  GalleryViewColumn,
   GridViewColumn,
-  Hook,
   ListViewColumn,
-  Model,
   Sort,
   TimelineViewColumn,
   View,
-  ViewSection,
 } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
 import { RootScopes } from '~/utils/globals';
@@ -580,30 +576,6 @@ export class InternalController {
   }
 }
 
-// Query ids that address a table. A sub-op takes them from its own query only,
-// so the handler and the visibility gate always see the same target.
-const TABLE_ADDRESSING_QUERY_KEYS = [
-  'tableId',
-  'modelId',
-  'viewId',
-  'formViewId',
-  'gridViewId',
-  'kanbanViewId',
-  'galleryViewId',
-  'calendarViewId',
-  'hookId',
-  'columnId',
-  'buttonColId',
-  'filterId',
-  'filterParentId',
-  'sortId',
-  'gridViewColumnId',
-  'formViewColumnId',
-  'galleryViewColumnId',
-  'rowColorConditionId',
-  'sectionId',
-];
-
 /** The envelope's query minus its table ids, overlaid with the sub-op's. */
 export function buildSubOpQuery(
   req: NcRequest,
@@ -611,89 +583,21 @@ export function buildSubOpQuery(
   operation: string,
 ): Record<string, any> {
   const envelopeQuery: Record<string, any> = { ...(req.query ?? {}) };
-  for (const key of TABLE_ADDRESSING_QUERY_KEYS) delete envelopeQuery[key];
+  // A sub-op takes its table ids from its own query only, so the handler and
+  // the visibility gate always see the same target.
+  for (const key of TABLE_ADDRESSING_KEYS) delete envelopeQuery[key];
   return { ...envelopeQuery, ...(subOp.query ?? {}), operation };
 }
 
 /**
- * The table a batched sub-op addresses, from the same query ids the
- * extract-ids middleware resolves for a direct request.
+ * The table a batched sub-op addresses, resolved from its own query ids the
+ * same way the extract-ids middleware resolves a direct request's.
  */
-async function resolveSubOpTableId(
+function resolveSubOpTableId(
   context: NcContext,
   query: Record<string, any>,
 ): Promise<string | undefined> {
-  const tableId = query.tableId || query.modelId;
-  if (tableId) return tableId;
-
-  const viewId =
-    query.viewId ||
-    query.formViewId ||
-    query.gridViewId ||
-    query.kanbanViewId ||
-    query.galleryViewId ||
-    query.calendarViewId;
-  if (viewId) {
-    const view = await View.get(context, viewId);
-    return view?.fk_model_id ?? (await Model.get(context, viewId))?.id;
-  }
-
-  if (query.hookId) {
-    return (await Hook.get(context, query.hookId))?.fk_model_id;
-  }
-
-  // Same order as the middleware: these come before columnId, and a present
-  // key decides the table even when its lookup misses.
-  if (
-    query.rowColorConditionId ||
-    query.gridViewColumnId ||
-    query.formViewColumnId ||
-    query.galleryViewColumnId
-  ) {
-    let viewRef: { fk_view_id?: string } | null | undefined;
-    if (query.rowColorConditionId) {
-      viewRef = await RowColorCondition.getById(
-        context,
-        query.rowColorConditionId,
-      );
-    } else if (query.gridViewColumnId) {
-      viewRef = await GridViewColumn.get(context, query.gridViewColumnId);
-    } else if (query.formViewColumnId) {
-      viewRef = await FormViewColumn.get(context, query.formViewColumnId);
-    } else {
-      viewRef = await GalleryViewColumn.get(context, query.galleryViewColumnId);
-    }
-    return viewRef?.fk_view_id
-      ? (await View.get(context, viewRef.fk_view_id))?.fk_model_id
-      : undefined;
-  }
-
-  const columnId = query.columnId || query.buttonColId;
-  if (columnId) {
-    return (await Column.get(context, { colId: columnId }))?.fk_model_id;
-  }
-
-  // A present filter id decides the table even when its lookup misses.
-  if (query.filterId || query.filterParentId) {
-    const filter = await Filter.get(
-      context,
-      query.filterId || query.filterParentId,
-    );
-    return filter ? resolveFilterTableId(context, filter) : undefined;
-  }
-
-  if (query.sectionId) {
-    return (await ViewSection.get(context, query.sectionId))?.fk_model_id;
-  }
-
-  if (query.sortId) {
-    const sort = await Sort.get(context, query.sortId);
-    return sort?.fk_view_id
-      ? (await View.get(context, sort.fk_view_id))?.fk_model_id
-      : undefined;
-  }
-
-  return undefined;
+  return resolveRequestTable(context, undefined, query);
 }
 
 export interface BatchSubOp {

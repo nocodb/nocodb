@@ -1,9 +1,16 @@
-import { FormulaDataTypes, JSEPNode } from 'nocodb-sdk';
+import {
+  FormulaDataTypes,
+  isBtLikeV2Junction,
+  JSEPNode,
+  UITypes,
+} from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { MapFnArgs } from '~/db/mapFunctionName';
+import type { Column, FormulaColumn, Model, RollupColumn } from '~/models';
 import { concatKnexRaw } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
 import { DEFAULT_DATETIME_FORMAT } from '~/db/datetime-format';
+import { escapeBindingPlaceholders } from '~/helpers/sqlSanitize';
 import {
   isBooleanFormulaType,
   pgBooleanAsNumberSql,
@@ -36,6 +43,178 @@ export function extractDatetimeFormat(pt: MapFnArgs['pt']): string {
   }
 
   return formatArg.value;
+}
+
+const NUMERIC_COLUMN_UIDTS = new Set<string>([
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Rating,
+  UITypes.Duration,
+  UITypes.Links,
+]);
+
+// pg prints money per the database's `lc_monetary`, so the text path would
+// depend on the server locale — cast through NUMERIC, which is exact.
+const isMoneyColumn = (column: Column) => column?.dt?.toLowerCase() === 'money';
+
+// float4 → float8 exposes the binary error (0.1 → 0.10000000149011612);
+// the text path reads the printed 0.1
+const isFloat4Column = (column: Column) =>
+  ['real', 'float4', 'float'].includes(column?.dt?.toLowerCase());
+
+/** How a VALUE() argument should be cast; `false` = parse it as text. */
+export type ValueArgKind = false | 'float' | 'money';
+
+/**
+ * Whether a VALUE() argument is numeric SQL, and how to cast it. Judged by the
+ * columns as they are now: a stored parse tree may predate a referenced
+ * field's type change.
+ */
+export async function isNumericValueArg(
+  arg: MapFnArgs['pt'],
+  model: Model,
+): Promise<ValueArgKind> {
+  if (arg?.dataType !== FormulaDataTypes.NUMERIC || arg.isDataArray) {
+    return false;
+  }
+
+  const columns = model.columns?.length
+    ? model.columns
+    : await model.getColumns();
+
+  const columnById = (id: string) => columns.find((c) => c.id === id);
+
+  // formulas on the current reference path — stops a cycle, not a repeat
+  const visitedFormulas = new Set<string>();
+  // finished results, so a repeated reference isn't walked again
+  const formulaKinds = new Map<string, ValueArgKind>();
+
+  const columnKind = async (column: Column): Promise<ValueArgKind> => {
+    if (!column) return false;
+    if (isMoneyColumn(column)) return 'money';
+    if (isFloat4Column(column)) return false;
+
+    if (column.uidt === UITypes.Links) {
+      // a single-record V2 link reads the related record's display value
+      await column.getColOptions().catch(() => null);
+      return isBtLikeV2Junction(column) ? false : 'float';
+    }
+
+    if (NUMERIC_COLUMN_UIDTS.has(column.uidt)) return 'float';
+
+    if (column.uidt === UITypes.Formula) {
+      if (formulaKinds.has(column.id)) return formulaKinds.get(column.id);
+      if (visitedFormulas.has(column.id)) return false;
+      visitedFormulas.add(column.id);
+      try {
+        const formula = (column.colOptions ??
+          (await column.getColOptions().catch(() => null))) as FormulaColumn;
+
+        // no stored tree = it was cleared by a field change; parse as text
+        const kind = await nodeKind(formula?.getParsedTree?.());
+        formulaKinds.set(column.id, kind);
+        return kind;
+      } finally {
+        visitedFormulas.delete(column.id);
+      }
+    }
+
+    if (column.uidt !== UITypes.Rollup) return false;
+    if (!rollupKinds.has(column.id)) {
+      rollupKinds.set(column.id, rollupKind(column));
+    }
+    return rollupKinds.get(column.id);
+  };
+
+  // each lookup of the rollup target is a cache read
+  const rollupKinds = new Map<string, Promise<ValueArgKind>>();
+  const rollupKind = async (column: Column): Promise<ValueArgKind> => {
+    const rollup = (column.colOptions ??
+      (await column.getColOptions().catch(() => null))) as RollupColumn;
+    if (!rollup) return false;
+
+    // count variants return an integer whatever the target field is
+    if (rollup.rollup_function?.startsWith('count')) return 'float';
+
+    const target = await rollup.getRollupColumn().catch(() => null);
+    // sum/min/max of a float4 stay float4
+    if (isFloat4Column(target)) return false;
+    // sum/avg/min/max of money stay money
+    if (isMoneyColumn(target)) return 'money';
+    // min/max return the target field's type
+    if (!['min', 'max'].includes(rollup.rollup_function)) return 'float';
+    return NUMERIC_COLUMN_UIDTS.has(target?.uidt) ? 'float' : false;
+  };
+
+  // Every field a node reads is still plain-numeric — a function's own SQL is
+  // numeric when its tree says so, but the tree may be out of date.
+  const readsOnlyFloatColumns = async (node: unknown): Promise<boolean> => {
+    if (!node || typeof node !== 'object') return true;
+
+    if (Array.isArray(node)) {
+      for (const child of node) {
+        if (!(await readsOnlyFloatColumns(child))) return false;
+      }
+      return true;
+    }
+
+    const typed = node as MapFnArgs['pt'];
+    if (typed.type === JSEPNode.IDENTIFIER) {
+      return (await columnKind(columnById(typed.name))) === 'float';
+    }
+
+    // a call's `callee` is an Identifier holding the function name, not a field
+    if (typed.type === JSEPNode.CALL_EXP) {
+      return readsOnlyFloatColumns(typed.arguments);
+    }
+
+    for (const value of Object.values(node)) {
+      if (!(await readsOnlyFloatColumns(value))) return false;
+    }
+    return true;
+  };
+
+  async function nodeKind(node: MapFnArgs['pt']): Promise<ValueArgKind> {
+    switch (node?.type) {
+      case JSEPNode.LITERAL:
+        return typeof node.value === 'number' ? 'float' : false;
+      case JSEPNode.IDENTIFIER:
+        return columnKind(columnById(node.name));
+      case JSEPNode.UNARY_EXP:
+        return ['-', '+'].includes(node.operator)
+          ? nodeKind(node.argument)
+          : false;
+      case JSEPNode.BINARY_EXP: {
+        if (!['+', '-', '*', '/'].includes(node.operator)) return false;
+
+        const left = await nodeKind(node.left);
+        if (!left) return false;
+        const right = await nodeKind(node.right);
+        if (!right) return false;
+
+        if (left === 'money' || right === 'money') {
+          // only division can turn money into an IEEE Infinity, which pg < 14
+          // cannot cast to NUMERIC — leave that one to the text path
+          return node.operator === '/' ? false : 'money';
+        }
+        return 'float';
+      }
+      case JSEPNode.CALL_EXP:
+        // pg prints a float8 in exponent form past 1e15 and below 1e-4, which
+        // the text path would misread (`1e-05` parses as -105).
+        return node.dataType === FormulaDataTypes.NUMERIC &&
+          !node.isDataArray &&
+          (await readsOnlyFloatColumns(node))
+          ? 'float'
+          : false;
+      default:
+        return false;
+    }
+  }
+
+  return nodeKind(arg);
 }
 
 export const ALLOWED_DATEADD_UNITS = new Set([
@@ -198,11 +377,11 @@ export default {
     const switchType = args.pt.arguments[0]?.dataType;
     const isNumericLike = (type?: string) =>
       type === FormulaDataTypes.NUMERIC || isBooleanFormulaType(type);
-    // pg: match a boolean against numeric cases (1/0, TRUE()/FALSE()) as 1/0,
-    // not as text, where 'true' never equals '1'. A BLANK case keeps the old path.
+    // pg: compare booleans and numbers as 1/0, not as text, where 'true' never
+    // equals '1'. A BLANK case keeps the old path.
     const boolSwitchAsNumber =
       args.knex.clientType() === 'pg' &&
-      isBooleanFormulaType(switchType) &&
+      isNumericLike(switchType) &&
       Array.from(
         { length: count },
         (_, i) => args.pt.arguments[i * 2 + 1],
@@ -363,9 +542,11 @@ export default {
     const cond = (await treatArgAsConditionalExp(args)).builder;
     let thenArg;
     let elseArg;
+    // the else branch is optional: `IF(cond, value)`
+    const hasElse = !!args.pt.arguments[2];
     const returnArgsType = new Set(
-      [args.pt.arguments[1].dataType, args.pt.arguments[2].dataType].filter(
-        (type) => type !== FormulaDataTypes.NULL,
+      [args.pt.arguments[1].dataType, args.pt.arguments[2]?.dataType].filter(
+        (type) => type && type !== FormulaDataTypes.NULL,
       ),
     );
 
@@ -393,12 +574,12 @@ export default {
       ).builder;
     } else {
       thenArg = (await args.fn(args.pt.arguments[1])).builder;
-      elseArg = (await args.fn(args.pt.arguments[2])).builder;
+      if (hasElse) elseArg = (await args.fn(args.pt.arguments[2])).builder;
     }
 
     // Oracle: keep the THEN / ELSE result branches type-consistent so a CLOB
     // branch (e.g. CONCAT) and a VARCHAR2 literal don't collide in the CASE.
-    if (args.knex.clientType() === 'oracledb') {
+    if (hasElse && args.knex.clientType() === 'oracledb') {
       [thenArg, elseArg] = unifyOracleClobCaseBranches(args.knex, [
         thenArg,
         elseArg,
@@ -408,7 +589,7 @@ export default {
     const queries: Knex.Raw[] = [];
     queries.push(args.knex.raw(`\n\tWHEN ? THEN ?`, [cond, thenArg]));
 
-    if (args.pt.arguments[2]) {
+    if (hasElse) {
       queries.push(args.knex.raw(`\n\tELSE ?`, [elseArg]));
     }
     const predicates = queries.map(() => '?').join(' ');
@@ -644,7 +825,10 @@ export default {
   },
   URLENCODE: async ({ fn, knex, pt }: MapFnArgs) => {
     const specialCharacters = '% :/?#[]@$&+,;=';
-    let str = (await fn(pt.arguments[0])).builder;
+    // The rendered source is followed by real bindings, so its own `?` must not count.
+    let str = escapeBindingPlaceholders(
+      `${(await fn(pt.arguments[0])).builder}`,
+    );
     // Pass the characters as bound parameters to avoid problems with ? sign.
     for (const c of specialCharacters) {
       str = `REPLACE(${str}, ?, '${encodeURIComponent(c)}')`;

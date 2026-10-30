@@ -81,3 +81,26 @@ export const jsepCurlyHook = {
     });
   },
 } as jsep.IPlugin;
+
+const normalizeEquals = (node) => {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    node.forEach(normalizeEquals);
+    return;
+  }
+  if (node.type === 'BinaryExpression' && node.operator === '=') {
+    node.operator = '==';
+  }
+  for (const value of Object.values(node)) {
+    if (value && typeof value === 'object') normalizeEquals(value);
+  }
+};
+
+// Airtable-style `=` comparison, parsed as `==`
+export const jsepEqualsHook = {
+  name: 'equals',
+  init(jsep) {
+    jsep.addBinaryOp('=', jsep.binary_ops['==']);
+    jsep.hooks.add('after-all', (env) => normalizeEquals(env.node));
+  },
+} as jsep.IPlugin;

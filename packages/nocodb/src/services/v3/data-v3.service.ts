@@ -27,6 +27,7 @@ import type {
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { ReusableParams } from '~/utils';
+import { captureLinkHookRowsForColumn } from '~/db/BaseModelSqlv2/add-remove-links';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import {
   getLtarDisplayValueContext,
@@ -1171,6 +1172,7 @@ export class DataV3Service {
       mergeColumns,
       throwOnDuplicate: true,
       apiVersion: NcApiVersion.V3,
+      triggerLinkUpdateHooks: true,
       onUpsertSplit: ({ updatedPks }) => {
         updatedPkSet = new Set(updatedPks);
       },
@@ -1839,6 +1841,15 @@ export class DataV3Service {
 
     await baseModel.model.getColumns();
 
+    const fireLinkHooks = await captureLinkHookRowsForColumn({
+      baseModel,
+      column,
+      rowId: param.rowId,
+      refRowIds: normalizedRefRowIds,
+      linkedRefRowIds: normalizedRefRowIds,
+      req: param.cookie,
+    });
+
     await LTARColsUpdater({
       baseModel,
       logger: this.logger,
@@ -1857,6 +1868,8 @@ export class DataV3Service {
       cookie: param.cookie,
       trx: baseModel.dbDriver,
     });
+
+    fireLinkHooks();
 
     return { success: true };
   }

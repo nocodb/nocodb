@@ -510,14 +510,14 @@
                       "msg": "Expired invite url, Please contact super admin to get a new invite url"
                     }
                   },
-                  "User already exist": {
+                  "Email unavailable": {
                     "value": {
-                      "msg": "User already exist"
+                      "msg": "Unable to sign up with this email. If you already have an account, sign in or use \"Forgot password\". If you were invited, use the link in your invite email. If you use Google or SSO, sign in with that option."
                     }
                   },
                   "Invite only signup": {
                     "value": {
-                      "msg": "Not allowed to signup, contact super admin"
+                      "msg": "Not allowed to signup, contact super admin. If you already have an account, sign in or use \"Forgot password\". If you were invited, use the link in your invite email. If you use Google or SSO, sign in with that option."
                     }
                   }
                 }
@@ -19707,6 +19707,16 @@
           "fk_lookup_col_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "When set, scopes this sort to a lookup column (it orders that lookup's relation sub-query) instead of a view"
+          },
+          "order_by": {
+            "type": "string",
+            "description": "How a SingleSelect field is ordered: `alphabetical` (default, by option text) or `option_order` (by the field's option order). Only SingleSelect fields support `option_order`.",
+            "enum": [
+              "alphabetical",
+              "option_order",
+              null
+            ],
+            "nullable": true
           }
         },
         "x-stoplight": {
@@ -19820,6 +19830,16 @@
               "desc"
             ],
             "type": "string"
+          },
+          "order_by": {
+            "type": "string",
+            "description": "How a SingleSelect field is ordered: `alphabetical` (default, by option text) or `option_order` (by the field's option order). Only SingleSelect fields support `option_order`.",
+            "enum": [
+              "alphabetical",
+              "option_order",
+              null
+            ],
+            "nullable": true
           }
         },
         "x-stoplight": {

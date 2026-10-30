@@ -205,11 +205,13 @@ const FEATURES = [
     get title() {
       return getI18n().global.t('general.agents')
     },
-    description: 'Enable the Agents section in the sidebar.',
+    description: 'Show Agents on plans that do not include them, badged to upgrade. Paid plans have them without this.',
     enabled: false,
     version: 1,
     isEngineering: true,
     isEE: true,
+    // Agents are cloud only for now; no on-prem plan has them to upgrade to.
+    isOnPrem: false,
   },
   {
     id: 'presence_visibility_toggle',
@@ -268,17 +270,7 @@ const FEATURES = [
     id: 'build_modes',
     title: 'Build modes',
     description:
-      'Pick what the workspace home builds — an app, a Dev Factory or tables — instead of always tables. Each needs its own plan or flag.',
-    enabled: false,
-    version: 1,
-    isAdvanced: true,
-    isEE: true,
-  },
-  {
-    id: 'factory',
-    title: 'Factory',
-    description:
-      'Hand coding tasks on your GitHub repos to NocoAI and get pull requests back. Still needs a plan that includes Factory.',
+      'Pick what the workspace home builds — an app, an agent or tables — instead of always tables. Each needs its own plan.',
     enabled: false,
     version: 1,
     isAdvanced: true,

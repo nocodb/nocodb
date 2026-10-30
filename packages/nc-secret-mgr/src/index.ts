@@ -38,11 +38,11 @@ program
         await secretManager.validateConfig();
 
         // validate old secret
-        const { sourcesToUpdate, integrationsToUpdate, syncSourcesToUpdate } = await secretManager.validateAndExtract();
+        const { sourcesToUpdate, integrationsToUpdate, syncSourcesToUpdate, pluginsToUpdate } = await secretManager.validateAndExtract();
 
 
         // update sources and integrations
-        await secretManager.updateSecret(sourcesToUpdate, integrationsToUpdate, syncSourcesToUpdate);
+        await secretManager.updateSecret(sourcesToUpdate, integrationsToUpdate, syncSourcesToUpdate, pluginsToUpdate);
 
       }
     } catch (e) {

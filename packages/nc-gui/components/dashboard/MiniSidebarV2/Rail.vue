@@ -7,8 +7,6 @@ interface NavItem {
   label: string
   disabled?: boolean
   active?: boolean
-  /** Classes for a status dot on the icon; none drawn when unset. */
-  dot?: string
   onClick?: () => void
 }
 
@@ -48,7 +46,7 @@ const isNotificationOpen = ref(false)
 
 const { isFullScreen: isChatFullScreen, hasBaseContext: hasChatBaseContext, cycleChatPanel } = useChatPanel()
 
-const { isAgentsEnabled } = storeToRefs(useAgentStore())
+const { isAgentsOffered } = storeToRefs(useAgentStore())
 
 const { isAppsEnabled } = storeToRefs(useAppStore())
 
@@ -134,8 +132,6 @@ const navigateToProjectPage = () => {
 const hasAvailableBases = computed(() => !!basesList.value?.length)
 
 const { isActiveBaseAppOnlyInstall } = useManagedAppInstalls()
-
-const { isActiveBaseCodeProject, isCodeProjectRoute, machinesStatus } = useCodeProjects()
 
 // An app-only install has no base to navigate, so its rail carries just the app.
 const showAppOnlyInstallTile = computed(
@@ -238,7 +234,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 // Cmd/Ctrl + Shift + A — toggle AI chat
 useEventListener(document, 'keydown', (e: KeyboardEvent) => {
-  if (!isEeUI || blockAiChat.value || !hasChatBaseContext.value || isActiveBaseCodeProject.value) return
+  if (!isEeUI || blockAiChat.value || !hasChatBaseContext.value) return
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (
     cmdOrCtrl &&
@@ -268,26 +264,6 @@ const mainItems = computed<NavItem[]>(() =>
   // resolves straight back to the app, so offering them is offering dead ends.
   isActiveBaseAppOnlyInstall.value || isTemplatesPageOpened.value
     ? []
-    : isActiveBaseCodeProject.value
-    ? // A code project has no data behind those either — just its sessions,
-      // and a way back to them from Settings.
-      [
-        {
-          key: 'home',
-          icon: 'ncRobotArm',
-          label: t('general.factory'),
-          active: isCodeProjectRoute(route.value),
-          dot: {
-            building: 'bg-nc-fill-primary animate-pulse',
-            failed: 'bg-nc-fill-red-medium',
-            ready: undefined,
-          }[machinesStatus.value ?? 'ready'],
-          onClick: () => {
-            activeSidebarTab.value = 'data'
-            navigateTo(`${getBasePath()}/factory`)
-          },
-        },
-      ]
     : [
         {
           key: 'data',
@@ -334,7 +310,8 @@ const mainItems = computed<NavItem[]>(() =>
               },
             ]
           : []),
-        ...(isAgentsEnabled.value
+        // Below the tier only with the Agents experimental flag; then it upsells (onTabClick).
+        ...(isAgentsOffered.value
           ? [
               {
                 key: 'agents',
@@ -410,14 +387,7 @@ const isSettingsActive = computed(() => isBaseSettingsOpen.value || !!wsSettings
         :active="item.active ?? (activeSidebarTab === item.key && !isChatFullScreen && !isBaseSettingsOpen)"
         :disabled="item.disabled"
         @click="item.onClick?.()"
-      >
-        <template v-if="item.dot" #icon>
-          <span class="relative flex">
-            <GeneralIcon :icon="(item.icon as any)" class="nc-rail-item-icon" />
-            <span class="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full ring-2 ring-nc-bg-default" :class="item.dot" />
-          </span>
-        </template>
-      </DashboardMiniSidebarV2RailItem>
+      />
     </DashboardMiniSidebarV2AppsMovedTip>
 
     <NcDivider
@@ -431,7 +401,7 @@ const isSettingsActive = computed(() => isBaseSettingsOpen.value || !!wsSettings
       icon="ncSettings"
       :label="$t('labels.settings')"
       panel-key="settings"
-      :active="isSettingsActive && !isChatFullScreen && !isCodeProjectRoute(route)"
+      :active="isSettingsActive && !isChatFullScreen"
       @click="onTabClick('settings')"
     />
 

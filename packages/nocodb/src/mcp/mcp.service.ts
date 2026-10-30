@@ -4,7 +4,7 @@ import { toNodeHandler } from '@modelcontextprotocol/node';
 import { z } from 'zod-v4';
 import { extractRolesObj, NcApiVersion, UITypes } from 'nocodb-sdk';
 import type { FetchLikeMcpHandler } from '@modelcontextprotocol/node';
-import type { NcContext, NcRequest, UserType } from 'nocodb-sdk';
+import type { McpToolMode, NcContext, NcRequest, UserType } from 'nocodb-sdk';
 import type { Request, Response } from 'express';
 import type { McpToolRegisterCtx } from '~/mcp/tools/tool-helpers';
 import type {
@@ -123,18 +123,23 @@ export class McpService {
     context: NcContext,
     req: NcRequest,
     res: Response,
+    mode: McpToolMode,
   ) {
     // Before any tool registers: handlers close over `req`, and a JSON-RPC
     // batch runs them concurrently over that one object.
     scopeAuditFieldsPerCall(req);
 
-    const server = await this.createServer({ context, user: req.user, req });
+    const server = await this.createServer({
+      context,
+      user: req.user,
+      req,
+      mode,
+    });
 
     return this.serve(server, req, res);
   }
 
-  // CE lists every tool it has, so it advertises no discovery instructions —
-  // EE overrides this to add them only when something actually deferred.
+  // CE lists every tool it has, so it ignores `mode`; EE reads it.
   protected async createServer(opts: {
     context: NcContext;
     user: UserType & {
@@ -142,6 +147,7 @@ export class McpService {
       workspace_roles?: Record<string, boolean>;
     };
     req: NcRequest;
+    mode: McpToolMode;
   }): Promise<McpServer> {
     const server = this.newServer();
 

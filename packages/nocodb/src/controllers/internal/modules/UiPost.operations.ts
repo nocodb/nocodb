@@ -27,6 +27,7 @@ import { CommentsService } from '~/services/comments.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { SyncService } from '~/services/sync.service';
 import { SyncSource, View } from '~/models';
+import { omitSyncToken } from '~/models/SyncSource';
 import { NcError } from '~/helpers/catchError';
 import { normalizeArrayQueryParam } from '~/helpers/apiHelpers';
 import { JobTypes } from '~/interface/Jobs';
@@ -763,7 +764,8 @@ export class UiPostOperations
         const job = await this.nocoJobsService.add(JobTypes.AtImport, {
           context,
           syncId: req.query.syncId as string,
-          ...(syncSource?.details || {}),
+          // The processor reads the token from the sync source.
+          ...omitSyncToken(syncSource?.details),
           baseId: syncSource.base_id,
           sourceId: syncSource.source_id,
           authToken: '',

@@ -16,6 +16,7 @@ const KIND_ICONS: Record<string, string> = {
   interface: 'ncLayers',
   interfacePage: 'ncFile',
   integration: 'integration',
+  file: 'ncPaperclip',
 }
 
 const icon = computed(() => KIND_ICONS[payload.value.kind] ?? 'file')

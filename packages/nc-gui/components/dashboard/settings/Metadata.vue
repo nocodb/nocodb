@@ -27,15 +27,26 @@ const metadiff = ref<any[]>([])
 
 const { $poller } = useNuxtApp()
 
+// Only the most recent load may update the list; an older job can finish after it.
+let latestDiffJobId: string | null = null
+let diffLoadSeq = 0
+
 async function loadMetaDiff(afterSync = false) {
+  let loadSeq = 0
   try {
     if (!base.value?.id) return
 
     if (triggeredSync.value && !syncCompleted.value && !afterSync) return
 
+    loadSeq = ++diffLoadSeq
+    latestDiffJobId = null
+
     isLoading.value = true
     isDifferent.value = false
     const jobData = await $api.source.metaDiffGet(base.value?.id, props.sourceId)
+
+    if (loadSeq !== diffLoadSeq) return
+    latestDiffJobId = jobData.id
 
     $poller.subscribe(
       { id: jobData.id },
@@ -50,6 +61,8 @@ async function loadMetaDiff(afterSync = false) {
           result?: any
         }
       }) => {
+        if (data.id !== latestDiffJobId) return
+
         if (data.status !== 'close') {
           if (data.status === JobStatus.COMPLETED) {
             metadiff.value = data.data?.result || []
@@ -76,8 +89,16 @@ async function loadMetaDiff(afterSync = false) {
         }
       },
     )
-  } catch (e) {
+  } catch (e: any) {
     console.error(e)
+
+    if (loadSeq && loadSeq === diffLoadSeq) {
+      isLoading.value = false
+      if (afterSync) syncCompleted.value = true
+      message.error(t('msg.error.failedToLoadMetadataDiff'), undefined, {
+        copyText: await extractSdkResponseErrorMsg(e),
+      })
+    }
   }
 }
 
@@ -206,6 +227,7 @@ const customRow = (record: Record<string, any>) => ({
           size="small"
           type="secondary"
           class="self-start !rounded-md nc-btn-metasync-reload"
+          :disabled="isLoading"
           @click="loadMetaDiff()"
         >
           <div class="flex items-center gap-2 text-nc-content-gray-subtle2 font-light">

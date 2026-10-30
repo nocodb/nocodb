@@ -19,8 +19,10 @@ import { HooksService } from '~/services/hooks.service';
 import { FormsService } from '~/services/forms.service';
 import { MapsService } from '~/services/maps.service';
 import { CommentsService } from '~/services/comments.service';
+import { NcError } from '~/helpers/catchError';
 import { SyncService } from '~/services/sync.service';
 import { ExtensionsService } from '~/services/extensions.service';
+import { hideCommentEmailsForSharedBase } from '~/helpers/commentAuthorVisibility';
 
 @Injectable()
 export class UiGetOperations
@@ -226,15 +228,22 @@ export class UiGetOperations
           user: req.user,
         });
       case 'commentList':
+        if (!req.query.fk_model_id)
+          NcError.get(context).badRequest('fk_model_id is required');
         return new PagedResponseImpl(
-          await this.commentsService.commentList(context, {
-            query: {
-              row_id: req.query.row_id as string,
-              fk_model_id: req.query.fk_model_id as string,
-            },
-          }),
+          hideCommentEmailsForSharedBase(
+            context,
+            await this.commentsService.commentList(context, {
+              query: {
+                row_id: req.query.row_id as string,
+                fk_model_id: req.query.fk_model_id as string,
+              },
+            }),
+          ),
         );
       case 'commentCount':
+        if (!req.query.fk_model_id)
+          NcError.get(context).badRequest('fk_model_id is required');
         return await this.commentsService.commentsCount(context, {
           fk_model_id: req.query.fk_model_id as string,
           ids: normalizeArrayQueryParam(req.query.ids) ?? [],

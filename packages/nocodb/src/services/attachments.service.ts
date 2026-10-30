@@ -3,7 +3,6 @@ import Url from 'url';
 import { Readable } from 'stream';
 import { AppEvents, OperationSource, PublicAttachmentScope } from 'nocodb-sdk';
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
-import { nanoid } from 'nanoid';
 import mime from 'mime/lite';
 import slash from 'slash';
 import PQueue from 'p-queue';
@@ -34,6 +33,8 @@ import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
 import { RootScopes } from '~/utils/globals';
 import {
+  attachmentFileName,
+  attachmentRandomId,
   attachmentStorageRefs,
   isAttachmentField,
   isSignedStorageAttachment,
@@ -115,7 +116,7 @@ export class AttachmentsService {
     queue.addAll(
       param.files?.map((file) => async () => {
         try {
-          const nanoId = nanoid(5);
+          const nanoId = attachmentRandomId();
 
           // For scoped uploads the scope itself must appear in the stored
           // `attachment.path` (otherwise the signed-URL controller falls
@@ -136,9 +137,10 @@ export class AttachmentsService {
             ? `${normalizeFilename(
                 path.parse(originalName).name,
               )}${path.extname(originalName)}`
-            : `${normalizeFilename(path.parse(originalName).name)}_${nanoid(
-                5,
-              )}${path.extname(originalName)}`;
+            : attachmentFileName(
+                normalizeFilename(path.parse(originalName).name),
+                path.extname(originalName),
+              );
 
           const tempMetadata: {
             width?: number;
@@ -302,7 +304,7 @@ export class AttachmentsService {
         try {
           const { url, fileName: _fileName } = urlMeta;
 
-          const nanoId = nanoid(5);
+          const nanoId = attachmentRandomId();
 
           const filePath = this.sanitizeUrlPath([
             ...(param.scope ? [param.scope] : []),
@@ -404,9 +406,10 @@ export class AttachmentsService {
             ? `${normalizeFilename(
                 path.parse(fileNameWithExt).name,
               )}${path.extname(fileNameWithExt)}`
-            : `${normalizeFilename(path.parse(fileNameWithExt).name)}_${nanoid(
-                5,
-              )}${path.extname(fileNameWithExt)}`;
+            : attachmentFileName(
+                normalizeFilename(path.parse(fileNameWithExt).name),
+                path.extname(fileNameWithExt),
+              );
 
           if (!mimeType) {
             mimeType =

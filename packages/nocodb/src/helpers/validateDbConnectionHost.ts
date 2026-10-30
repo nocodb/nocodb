@@ -334,14 +334,38 @@ export async function validateChangedDbConnectionTargets(
   await validateDbConnectionTargets(incoming);
 }
 
+// The clients SqlClientFactory (CE + EE) connects with; knex accepts more
+// names (e.g. pgnative, which loads libpq and bypasses the connect-time hook).
+const SUPPORTED_DB_CLIENTS = new Set([
+  'mysql',
+  'mysql2',
+  'pg',
+  'sqlite3',
+  'mssql',
+  'oracledb',
+  'snowflake',
+  'databricks',
+]);
+
+/** Reject a `client` the product does not support; an absent one is left alone. */
+export function validateDbClient(config: unknown): void {
+  const client = (config as any)?.client;
+  if (client === undefined || client === null) return;
+  if (typeof client !== 'string' || !SUPPORTED_DB_CLIENTS.has(client)) {
+    NcError.badRequest('Unsupported database client');
+  }
+}
+
 /**
- * Pre-flight for every external-DB write and connection test: reject internal
- * hosts in every field the driver dials, unix sockets, and (by policy) DSN
- * certificate files. sqlite is left to the filename guard.
+ * Pre-flight for every external-DB write and connection test: reject
+ * unsupported clients, internal hosts in every field the driver dials, unix
+ * sockets, and (by policy) DSN certificate files. sqlite is left to the
+ * filename guard.
  */
 export async function validateDbConnectionTargets(
   config: unknown,
 ): Promise<void> {
+  validateDbClient(config);
   validateDbConnectionDsnSslPaths(config);
 
   if (!isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS }))

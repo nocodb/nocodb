@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { MCP_DISCOVERY_PATH } from 'nocodb-sdk'
+
 interface Props {
   token: MCPTokenExtendedType
   /** Name the server after the connection's workspace and base rather than the open base. */
@@ -19,7 +21,7 @@ const { appInfo } = useGlobal()
 
 const { openedProject } = storeToRefs(useBases())
 
-type McpClient = 'claude' | 'claudeCode' | 'cursor' | 'windsurf' | 'antigravity' | 'codex'
+type McpClient = 'claude' | 'claudeCode' | 'cursor' | 'windsurf' | 'copilot' | 'antigravity' | 'codex'
 
 const activeTab = ref<McpClient>('claudeCode')
 
@@ -53,21 +55,42 @@ const secret = computed(() => props.token.token ?? 'xxxxxxxxxxxxxxxxxxxxxxxxxxx'
 
 const mcpUrl = computed(() => `${appInfo.value.ncSiteUrl}/mcp/${props.token.id}`)
 
+// Windsurf, Copilot and AntiGravity cap the tool list at 100 and cannot defer schemas, so on EE
+// they use the endpoint that keeps writes behind `listTools`/`callTool`. CE lists few enough tools.
+const cappedClientUrl = computed(() =>
+  isEeUI ? `${appInfo.value.ncSiteUrl}/${MCP_DISCOVERY_PATH}/${props.token.id}` : mcpUrl.value,
+)
+
 const toJson = (server: Record<string, unknown>) => JSON.stringify({ mcpServers: { [serverName.value]: server } }, null, 2)
 
 // Claude Desktop and AntiGravity only launch stdio servers, so they still need the
 // `mcp-remote` bridge; every other client connects over HTTP and skips npx's startup.
 // `http-only` because the endpoint 405s the SSE fallback.
-const bridgeCode = computed(() =>
+const bridgeCodeFor = (url: string) =>
   toJson({
     command: 'npx',
-    args: ['-y', 'mcp-remote', mcpUrl.value, '--transport', 'http-only', '--header', `x-api-key:${secret.value}`],
-  }),
-)
+    args: ['-y', 'mcp-remote', url, '--transport', 'http-only', '--header', `x-api-key:${secret.value}`],
+  })
+
+const bridgeCode = computed(() => bridgeCodeFor(mcpUrl.value))
+
+const antigravityCode = computed(() => bridgeCodeFor(cappedClientUrl.value))
 
 const cursorCode = computed(() => toJson({ url: mcpUrl.value, headers: { 'x-api-key': secret.value } }))
 
-const windsurfCode = computed(() => toJson({ serverUrl: mcpUrl.value, headers: { 'x-api-key': secret.value } }))
+const windsurfCode = computed(() => toJson({ serverUrl: cappedClientUrl.value, headers: { 'x-api-key': secret.value } }))
+
+const copilotCode = computed(() =>
+  JSON.stringify(
+    {
+      servers: {
+        [bareServerName.value]: { type: 'http', url: cappedClientUrl.value, headers: { 'x-api-key': secret.value } },
+      },
+    },
+    null,
+    2,
+  ),
+)
 
 const claudeCodeCode = computed(
   () => `claude mcp add --transport http --scope user ${bareServerName.value} \\
@@ -93,6 +116,10 @@ const snippet = computed<{ code: string; lang: string }>(() => {
       return { code: cursorCode.value, lang: 'json' }
     case 'windsurf':
       return { code: windsurfCode.value, lang: 'json' }
+    case 'copilot':
+      return { code: copilotCode.value, lang: 'json' }
+    case 'antigravity':
+      return { code: antigravityCode.value, lang: 'json' }
     default:
       return { code: bridgeCode.value, lang: 'json' }
   }
@@ -105,6 +132,7 @@ const clients = [
   { key: 'antigravity', label: 'AntiGravity', icon: 'ncLogoGeminiAiColored' },
   { key: 'cursor', label: 'Cursor', icon: 'ncCode' },
   { key: 'windsurf', label: 'Windsurf', icon: 'ncCode' },
+  { key: 'copilot', label: 'Copilot', icon: 'ncGithub' },
 ] as const
 </script>
 
@@ -174,6 +202,16 @@ const clients = [
             <li>{{ $t('msg.info.mcpSetupCursorStep1') }}</li>
             <li>{{ $t('msg.info.mcpSetupCursorStep2') }}</li>
             <li>{{ $t('msg.info.mcpSetupCursorStep3') }}</li>
+          </ol>
+        </template>
+
+        <template v-else-if="client.key === 'copilot'">
+          {{ $t('msg.info.mcpSetupIntroCopilot') }}
+
+          <ol class="list-decimal pl-5">
+            <li>{{ $t('msg.info.mcpSetupCopilotStep1') }}</li>
+            <li>{{ $t('msg.info.mcpSetupCopilotStep2') }}</li>
+            <li>{{ $t('msg.info.mcpSetupCopilotStep3') }}</li>
           </ol>
         </template>
 

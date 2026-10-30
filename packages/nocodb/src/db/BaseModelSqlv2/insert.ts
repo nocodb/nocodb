@@ -30,6 +30,7 @@ import getAst from '~/helpers/getAst';
 import { nocoExecute } from '~/utils';
 import { captureForTrace } from '~/decorators/trace-command.decorator';
 import { isReplay } from '~/helpers/replayScope';
+import { captureNestedLinkHooks } from '~/db/BaseModelSqlv2/add-remove-links';
 
 const logger = new Logger('BaseModelSqlv2');
 
@@ -263,6 +264,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       onInsertedPks,
       skipPermissionCheck = false,
       skipAttachmentOwnershipCheck = false,
+      triggerLinkUpdateHooks = false,
     }: {
       chunkSize?: number;
       cookie?: NcRequest;
@@ -288,6 +290,8 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       skipPermissionCheck?: boolean;
       /** Trusted internal copy paths only — see `prepareNocoData`. */
       skipAttachmentOwnershipCheck?: boolean;
+      /** Fire update hooks on the records the nested links change — user writes only */
+      triggerLinkUpdateHooks?: boolean;
     } = {},
   ) => {
     // The after-insert hooks read the inserted rows back by pk. In raw mode the
@@ -429,6 +433,16 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       // to avoid `too many SQL variables` error
       // refer : https://www.sqlite.org/limits.html
       const chunkSize = baseModel.isSqlite ? 10 : _chunkSize;
+
+      // Read the linked records before any link op runs
+      const fireLinkHooks =
+        triggerLinkUpdateHooks && !skip_hooks
+          ? await captureNestedLinkHooks({
+              baseModel,
+              entries: nestedLinkEntries,
+              req: cookie,
+            })
+          : null;
 
       trx = await baseModel.dbDriver.transaction();
 
@@ -647,6 +661,8 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       }
 
       await broadcastNestedLinkRefRows(nestedLinkEntries);
+
+      await fireLinkHooks?.();
 
       if (!skip_hooks) {
         try {

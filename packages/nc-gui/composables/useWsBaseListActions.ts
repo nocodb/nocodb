@@ -18,8 +18,6 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
 
   const { isAppInstall, navigateToApp } = useManagedAppInstalls()
 
-  const { isCodeProject, openCodeProject } = useCodeProjects()
-
   // Dialog state - consolidated into single reactive object
   const dialogState = reactive({
     duplicate: {
@@ -178,12 +176,6 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
     // to the base under it.
     if (isAppInstall(base)) {
       navigateToApp(base)
-      return
-    }
-
-    // A code project has no data view — it opens on its sessions.
-    if (isCodeProject(base)) {
-      openCodeProject(base)
       return
     }
 

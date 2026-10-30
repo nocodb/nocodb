@@ -233,9 +233,7 @@ class NcPluginMgrv2 {
     );
     const plugin = new pluginConfig.builder(ncMeta, pluginData);
 
-    if (pluginData?.input) {
-      pluginData.input = JSON.parse(pluginData.input);
-    }
+    pluginData.input = Plugin.parseInput(pluginData);
 
     await plugin.init(pluginData?.input);
     const adapter = plugin.getAdapter();
@@ -270,9 +268,7 @@ class NcPluginMgrv2 {
     );
     const plugin = new pluginConfig.builder(ncMeta, pluginData);
 
-    if (pluginData?.input) {
-      pluginData.input = JSON.parse(pluginData.input);
-    }
+    pluginData.input = Plugin.parseInput(pluginData);
 
     await plugin.init(pluginData?.input);
     return plugin.getAdapter();
@@ -299,9 +295,7 @@ class NcPluginMgrv2 {
     );
     const plugin = new pluginConfig.builder(ncMeta, pluginData);
 
-    if (pluginData?.input) {
-      pluginData.input = JSON.parse(pluginData.input);
-    }
+    pluginData.input = Plugin.parseInput(pluginData);
 
     await plugin.init(pluginData?.input);
     return plugin.getAdapter() as IWebhookNotificationAdapter;

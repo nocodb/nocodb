@@ -1271,7 +1271,7 @@ export function useInfiniteData(args: {
           uidt: column.uidt as UITypes,
           a: updatedRow.row[column.title],
           b: prevRow.row[column.title],
-          options: { direction },
+          options: { direction, orderBy: sort.order_by, column },
         })
 
         if (comparison !== 0) {
@@ -1297,7 +1297,7 @@ export function useInfiniteData(args: {
           uidt: column.uidt as UITypes,
           a: updatedRow.row[column.title],
           b: nextRow.row[column.title],
-          options: { direction },
+          options: { direction, orderBy: sort.order_by, column },
         })
 
         if (comparison !== 0) {
@@ -1374,7 +1374,7 @@ export function useInfiniteData(args: {
             uidt: columnsById.value[sort.fk_column_id!].uidt as UITypes,
             a: a.row.row[column],
             b: b.row.row[column],
-            options: { direction },
+            options: { direction, orderBy: sort.order_by, column: columnsById.value[sort.fk_column_id!] },
           })
 
           if (comparison !== 0) return comparison

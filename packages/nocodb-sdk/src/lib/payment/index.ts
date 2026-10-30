@@ -648,7 +648,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_MIGRATE_BASE_EXPORT]:
     'to migrate a base to another NocoDB instance.',
   [PlanFeatureTypes.FEATURE_AGENTS]: 'to use agents.',
-  [PlanFeatureTypes.FEATURE_APP_FACTORY]: 'to use the App Factory.',
+  [PlanFeatureTypes.FEATURE_APP_FACTORY]: 'to use coding agents.',
   [PlanFeatureTypes.FEATURE_SKILLS_GOVERNANCE]:
     'to control which skills your workspace can install.',
   [PlanFeatureTypes.FEATURE_SKILLS_ORG]:

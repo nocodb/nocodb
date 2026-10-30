@@ -48,6 +48,8 @@ import { PgSourceSearchPathBackfillMigration } from '~/modules/jobs/migration-jo
 import { CreditPlanBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_016_credit_plan_backfill';
 import { StoreLaneBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_017_store_lane_backfill';
 import { CreditAllowanceIncreaseMigration } from '~/modules/jobs/migration-jobs/nc_job_018_credit_allowance_increase';
+import { McpTokenPlaintextCleanupMigration } from '~/modules/jobs/migration-jobs/nc_job_019_mcp_token_plaintext_cleanup';
+import { AtImportFailedJobScrubMigration } from '~/modules/jobs/migration-jobs/nc_job_020_at_import_failed_job_scrub';
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -119,6 +121,8 @@ export const JobsModuleMetadata = {
     CreditPlanBackfillMigration,
     StoreLaneBackfillMigration,
     CreditAllowanceIncreaseMigration,
+    McpTokenPlaintextCleanupMigration,
+    AtImportFailedJobScrubMigration,
   ],
   exports: [
     'JobsService',

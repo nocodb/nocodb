@@ -13,6 +13,8 @@ export enum ChartTypes {
 interface BaseChartConfig {
   chartType: ChartTypes;
   dataSource?: WidgetDataSourceTypes;
+  /** Interface dashboards: `false` hides the widget title. */
+  show_title?: boolean;
 }
 
 interface PieChartDataConfig {

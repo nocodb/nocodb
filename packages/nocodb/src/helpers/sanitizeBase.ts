@@ -1,5 +1,6 @@
 // Fields on a Base row that must never reach an API client: `password` is a
-// stored credential, source `config` holds connection credentials.
+// stored credential, source `config` / `integration_config` hold connection
+// credentials.
 //
 // Returns a shallow copy — callers MUST use the return value, the input is not
 // mutated.
@@ -16,6 +17,7 @@ export function sanitizeBase<T extends Record<string, any>>(base: T): T {
       if (!s || typeof s !== 'object') return s;
       const copy = { ...s };
       delete copy.config;
+      delete copy.integration_config;
       return copy;
     });
   }

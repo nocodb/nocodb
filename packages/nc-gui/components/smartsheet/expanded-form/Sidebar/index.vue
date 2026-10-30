@@ -24,6 +24,8 @@ const { isAuditEnabled } = expandedFormStore
 
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
+const { isSharedBase } = storeToRefs(useBase())
+
 const FEEDS = [
   { value: 'fields', labelKey: 'objects.fields' },
   { value: 'audits', labelKey: 'labels.revisionHistory' },
@@ -76,7 +78,9 @@ const offersResolvedToggle = computed(
 )
 
 /** The bell follows the comments feed — except in Discussion mode, where the main pane is it. */
-const showNotificationBell = computed(() => isEeUI && (props.activityInMainPane || tab.value === 'comments'))
+const showNotificationBell = computed(
+  () => isEeUI && !isSharedBase.value && (props.activityInMainPane || tab.value === 'comments'),
+)
 
 function setFeed(value: SidebarFeed) {
   tab.value = value

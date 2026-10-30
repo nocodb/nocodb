@@ -80,6 +80,7 @@ export class SecretManager {
     const sourcesToUpdate: Record<string, any>[] = [];
     const integrationsToUpdate: Record<string, any>[] = [];
     const syncSourcesToUpdate: Record<string, any>[] = [];
+    const pluginsToUpdate: Record<string, any>[] = [];
 
     let isValid = false;
     for (const source of sources) {
@@ -130,18 +131,48 @@ export class SecretManager {
       }
     }
 
+    const plugins = await this.sqlClient
+      .knex(MetaTable.PLUGIN)
+      .whereNotNull('input');
+
+    for (const plugin of plugins) {
+      // Plain JSON predates encryption, so there is nothing to re-encrypt.
+      try {
+        JSON.parse(plugin.input);
+        continue;
+      } catch {}
+
+      try {
+        const decrypted = decryptPropIfRequired({
+          data: plugin,
+          secret: this.prevSecret,
+          prop: 'input',
+        });
+        isValid = true;
+        pluginsToUpdate.push({ ...plugin, input: decrypted });
+      } catch (e) {
+        logger.error('Failed to decrypt plugin input : ' + (e as Error).message);
+      }
+    }
+
     // If all decryptions have failed, then throw an error
     if (!isValid) {
       throw new NcError('Invalid old secret or no sources/integrations found');
     }
 
-    return { sourcesToUpdate, integrationsToUpdate, syncSourcesToUpdate };
+    return {
+      sourcesToUpdate,
+      integrationsToUpdate,
+      syncSourcesToUpdate,
+      pluginsToUpdate,
+    };
   }
 
   async updateSecret(
     sourcesToUpdate: Record<string, any>[],
     integrationsToUpdate: Record<string, any>[],
     syncSourcesToUpdate: Record<string, any>[] = [],
+    pluginsToUpdate: Record<string, any>[] = [],
   ) {
     // start transaction
     const transaction = await this.sqlClient.knex.transaction();
@@ -183,6 +214,18 @@ export class SecretManager {
             }),
           })
           .where('id', syncSource.id);
+      }
+
+      for (const plugin of pluginsToUpdate) {
+        await transaction(MetaTable.PLUGIN)
+          .update({
+            input: encryptPropIfRequired({
+              data: plugin,
+              secret: this.newSecret,
+              prop: 'input',
+            }),
+          })
+          .where('id', plugin.id);
       }
 
       await transaction.commit();

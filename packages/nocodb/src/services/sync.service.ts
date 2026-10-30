@@ -5,13 +5,11 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Base, SyncSource } from '~/models';
-
-// Stands in for the stored Airtable token in responses; saved back, it keeps the token.
-const SYNC_SECRET_MASK = '********';
+import { maskSyncDetails, SYNC_SECRET_MASK } from '~/models/SyncSource';
 
 const maskDetails = (sync: SyncSource) => {
   if (sync?.details?.apiKey) {
-    sync.details = { ...sync.details, apiKey: SYNC_SECRET_MASK };
+    sync.details = maskSyncDetails(sync.details);
   }
   return sync;
 };
@@ -49,7 +47,7 @@ export class SyncService {
     });
 
     this.appHooksService.emit(AppEvents.SYNC_SOURCE_CREATE, {
-      syncSource: sync,
+      syncSource: maskDetails(new SyncSource({ ...sync })),
       req: param.req,
       context,
     });
@@ -70,7 +68,7 @@ export class SyncService {
     const res = await SyncSource.delete(context, param.syncId);
 
     this.appHooksService.emit(AppEvents.SYNC_SOURCE_DELETE, {
-      syncSource,
+      syncSource: maskDetails(new SyncSource({ ...syncSource })),
       req: param.req,
       context,
     });
@@ -103,7 +101,7 @@ export class SyncService {
     const res = await SyncSource.update(context, param.syncId, syncPayload);
 
     this.appHooksService.emit(AppEvents.SYNC_SOURCE_UPDATE, {
-      syncSource,
+      syncSource: maskDetails(new SyncSource({ ...syncSource })),
       req: param.req,
       context,
     });

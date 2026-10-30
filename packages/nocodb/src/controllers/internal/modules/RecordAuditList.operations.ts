@@ -6,6 +6,7 @@ import type {
   InternalGETResponseType,
 } from '~/utils/internal-type';
 import { AuditsService } from '~/services/audits.service';
+import { NcError } from '~/helpers/catchError';
 
 @Injectable()
 export class RecordAuditListOperations
@@ -33,6 +34,8 @@ export class RecordAuditListOperations
       req: NcRequest;
     },
   ): InternalGETResponseType {
+    if (!req.query.fk_model_id)
+      NcError.get(context).badRequest('fk_model_id is required');
     return await this.auditsService.recordAuditList(context, {
       row_id: req.query.row_id as string,
       fk_model_id: req.query.fk_model_id as string,

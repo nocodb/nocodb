@@ -100,6 +100,8 @@ const { t } = useI18n()
 const metaInj = inject(MetaInj, ref())
 const isPublic = inject(IsPublicInj, ref(false))
 
+const { isSharedBase } = storeToRefs(useBase())
+
 const isReadonly = inject(ReadonlyInj, ref(false))
 
 // Interface pages flag row add/delete separately from cell editing.
@@ -952,7 +954,7 @@ const execBulkAction = async (path: Array<number>) => {
           </div>
         </NcMenuItem>
         <NcMenuItem
-          v-if="appInfo.ee && contextMenuRowId && !isPublic"
+          v-if="appInfo.ee && contextMenuRowId && !isPublic && !isSharedBase"
           key="send-record"
           class="nc-base-menu-item"
           @click="emits('sendRecord', contextMenuRowId)"

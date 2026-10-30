@@ -107,6 +107,30 @@ export function collectVizStructuralFieldIds(
 }
 
 /**
+ * Allowed column ids for ONE visualization — the server's field allow-list
+ * (before pk/Order columns ride along). `null` = all fields allowed (the viz
+ * has no explicit `visible_field_ids` curation).
+ */
+export function collectVizAllowedFieldIds(
+  viz: InterfaceVisualizationConfig
+): string[] | null {
+  if (!viz.visible_field_ids) {
+    // Uncurated means "renders everything" on grid/list, but a card viz draws
+    // the display value only — so absent curation is MINIMAL there, not
+    // unrestricted. pv is appended downstream so cards keep their labels.
+    if (!isMinimalCardInterfaceViz(viz.type)) return null;
+
+    return [...collectVizStructuralFieldIds(viz)];
+  }
+
+  const ids = new Set<string>(viz.visible_field_ids);
+
+  for (const id of collectVizStructuralFieldIds(viz)) ids.add(id);
+
+  return [...ids];
+}
+
+/**
  * Apply an explicit `field_order` to a list of column ids: listed ids first, in
  * that order, then everything unlisted in the order it came in. Ids in
  * `fieldOrder` that aren't in `ids` are dropped — the caller's list is the

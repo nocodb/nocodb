@@ -8,8 +8,12 @@ import {
   RelationTypes,
 } from 'nocodb-sdk';
 import BigNumber from 'bignumber.js';
+import { Logger } from '@nestjs/common';
 import type { AuditOperationSubTypes, NcRequest } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type CustomKnex from '~/db/CustomKnex';
+import type { NestedLinkLastModifiedEntry } from '~/db/BaseModelSqlv2/nested-link-preparator';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { Column } from '~/models';
@@ -26,6 +30,8 @@ import {
   touchedLinkColumnIds,
 } from '~/helpers/dbHelpers';
 import { Model } from '~/models';
+
+const logger = new Logger('AddRemoveLinks');
 
 /**
  * Extract the corresponding link column in the referencing table using a given LTAR column and the referenced table
@@ -161,6 +167,335 @@ export const extractCorrespondingLinkColumn = async (
  * broadcasting operations to run independently.
  */
 
+const isWebhookIgnored = (req: NcRequest) => {
+  const ignoreWebhook = req?.query?.ignoreWebhook;
+  return ignoreWebhook !== undefined && ignoreWebhook !== 'false';
+};
+
+/** One link field written on `rowIds`, as {@link captureLinkHooks} reads it. */
+export interface LinkHookChange {
+  /** Link field on the written table */
+  column: Column;
+  /** Existing rows on the written side; empty for a row being inserted */
+  rowIds: unknown[];
+  /** Rows on the other side that are linked or unlinked */
+  refRowIds: unknown[];
+  /** The part of `refRowIds` being linked, whose current partners can be displaced */
+  linkedRefRowIds: unknown[];
+  /** Per row (`String(rowId)`), the refs that replace its links: rows linked today are unlinked */
+  replace?: Map<string, unknown[]>;
+}
+
+const noopFire = () => {};
+
+/**
+ * `[id, partner]` pairs for the rows on the other side of `column` that `ids`
+ * link to today. `fromRef` reads from the related table's side. Only single-pk
+ * tables whose link stores the pk are resolved; others return nothing.
+ */
+const readLinkPartners = async ({
+  baseModel,
+  column,
+  ids,
+  fromRef,
+  trx,
+}: {
+  baseModel: IBaseModelSqlV2;
+  column: Column;
+  ids: unknown[];
+  fromRef: boolean;
+  trx?: Knex.Transaction;
+}): Promise<[unknown, unknown][]> => {
+  if (!ids.length) return [];
+  const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+  const { childContext, mmContext } = await colOptions.getParentChildContext();
+  const childColumn = await colOptions.getChildColumn();
+  const parentColumn = await colOptions.getParentColumn();
+  const childTable = await childColumn.getModel();
+  const parentTable = await parentColumn.getModel();
+  await childTable.getColumns();
+  await parentTable.getColumns();
+  if (
+    childTable.primaryKeys.length !== 1 ||
+    parentTable.primaryKeys.length !== 1 ||
+    !parentColumn.pk
+  ) {
+    return [];
+  }
+
+  const partners: [unknown, unknown][] = [];
+  if (isMMOrMMLike(column)) {
+    if (!childColumn.pk) return [];
+    // The junction's child side is the written table
+    const vTable = await colOptions.getMMModel();
+    const vChildCol = await colOptions.getMMChildColumn();
+    const vParentCol = await colOptions.getMMParentColumn();
+    const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+      model: vTable,
+      dbDriver: trx ?? baseModel.dbDriver,
+    });
+    const [from, to] = fromRef
+      ? [vParentCol.column_name, vChildCol.column_name]
+      : [vChildCol.column_name, vParentCol.column_name];
+    for (const chunk of chunkArray(ids, COMPOUND_SELECT_CHUNK_SIZE)) {
+      const rows = await assocBaseModel.execAndParse(
+        assocBaseModel
+          .dbDriver(assocBaseModel.getTnPath(vTable))
+          .select(from, to)
+          .whereIn(from, chunk),
+        null,
+        { raw: true },
+      );
+      partners.push(...rows.map((r): [unknown, unknown] => [r[from], r[to]]));
+    }
+  } else {
+    // The FK sits on the child table and points at the parent's pk
+    const childBaseModel = await Model.getBaseModelSQL(childContext, {
+      model: childTable,
+      dbDriver: trx ?? baseModel.dbDriver,
+    });
+    const ownIsChild =
+      colOptions.type === RelationTypes.BELONGS_TO ||
+      (colOptions.type === RelationTypes.ONE_TO_ONE && !!column.meta?.bt);
+    const fromChild = ownIsChild !== fromRef;
+    const [from, to] = fromChild
+      ? [childTable.primaryKey.column_name, childColumn.column_name]
+      : [childColumn.column_name, childTable.primaryKey.column_name];
+    for (const chunk of chunkArray(ids, COMPOUND_SELECT_CHUNK_SIZE)) {
+      const rows = await childBaseModel.execAndParse(
+        childBaseModel
+          .dbDriver(childBaseModel.getTnPath(childTable))
+          .select(from, to)
+          .whereIn(from, chunk),
+        null,
+        { raw: true },
+      );
+      partners.push(...rows.map((r): [unknown, unknown] => [r[from], r[to]]));
+    }
+  }
+  return partners.filter(([, id]) => !ncIsNullOrUndefined(id));
+};
+
+/**
+ * Reads every existing record whose link field a write changes, before the
+ * write: the written rows, the rows on the other side, and rows that lose a
+ * link as a side effect (a single-record link replaced). Returns a function
+ * that reads them again once the write commits and fires their update hooks.
+ * A table without an after-update subscriber is never read.
+ */
+export const captureLinkHooks = async ({
+  baseModel,
+  changes,
+  req,
+  notifiedRowIds = [],
+  trx,
+}: {
+  baseModel: IBaseModelSqlV2;
+  changes: LinkHookChange[];
+  req: NcRequest;
+  /** Rows of `baseModel` whose update hooks the write fires itself */
+  notifiedRowIds?: unknown[];
+  /**
+   * The write's open transaction, once it has written: reads go through it,
+   * since on MSSQL a read on another connection waits on its locks
+   */
+  trx?: Knex.Transaction;
+}): Promise<
+  // The driver whose commit the hooks wait for
+  (driver?: CustomKnex | Knex.Transaction) => unknown
+> => {
+  if (isWebhookIgnored(req) || !changes.length) return noopFire;
+
+  const listened = new Map<string, Promise<boolean>>();
+  const isListened = (model: IBaseModelSqlV2) => {
+    if (!listened.has(model.model.id)) {
+      listened.set(model.model.id, model.hasActiveUpdateHooks());
+    }
+    return listened.get(model.model.id);
+  };
+
+  const targets = new Map<string, { model: IBaseModelSqlV2; ids: unknown[] }>();
+  const addTargets = (model: IBaseModelSqlV2, ids: unknown[]) => {
+    if (!ids.length) return;
+    if (!targets.has(model.model.id)) {
+      targets.set(model.model.id, { model, ids: [] });
+    }
+    targets.get(model.model.id).ids.push(...ids);
+  };
+
+  for (const change of changes) {
+    const { column } = change;
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+    const { refContext } = await colOptions.getParentChildContext();
+    const refModel = await Model.get(
+      refContext,
+      colOptions.fk_related_model_id,
+    );
+    await refModel.getColumns();
+    const refBaseModel = await Model.getBaseModelSQL(refContext, {
+      model: refModel,
+      dbDriver: baseModel.dbDriver,
+    });
+
+    const toRefId = (id: unknown) =>
+      id && typeof id === 'object'
+        ? refBaseModel.extractPksValues(id, true)
+        : id;
+    const rowIds = change.rowIds.filter((id) => !ncIsNullOrUndefined(id));
+    let refRowIds = change.refRowIds.map(toRefId);
+    const linkedRefRowIds = change.linkedRefRowIds.map(toRefId);
+
+    const type = colOptions.type as RelationTypes;
+    // Written rows hold one link, so linking replaces the current one
+    const ownSingle = [
+      RelationTypes.BELONGS_TO,
+      RelationTypes.ONE_TO_ONE,
+      RelationTypes.MANY_TO_ONE,
+    ].includes(type);
+    // Related rows hold one link, so linking takes them from their current row
+    const refSingle = [
+      RelationTypes.HAS_MANY,
+      RelationTypes.ONE_TO_ONE,
+      RelationTypes.ONE_TO_MANY,
+    ].includes(type);
+
+    const ownListened = await isListened(baseModel);
+    const refListened =
+      !!getRelatedLinksColumn(column, refModel) &&
+      (await isListened(refBaseModel));
+
+    if (ownListened) {
+      addTargets(baseModel, rowIds);
+    }
+    if (refListened) {
+      if (change.replace || (ownSingle && linkedRefRowIds.length)) {
+        const current = await readLinkPartners({
+          baseModel,
+          column,
+          ids: rowIds,
+          fromRef: false,
+          trx,
+        });
+        if (change.replace) {
+          const currentByRow = new Map<string, string[]>();
+          for (const [rowId, refId] of current) {
+            const key = String(rowId);
+            if (!currentByRow.has(key)) currentByRow.set(key, []);
+            currentByRow.get(key).push(String(refId));
+          }
+          // Only rows whose link actually flips: unlinked plus newly linked
+          refRowIds = [];
+          for (const [rowId, sent] of change.replace) {
+            const sentIds = sent.map(toRefId);
+            const next = new Set(sentIds.map(String));
+            const now = currentByRow.get(rowId) ?? [];
+            const nowSet = new Set(now);
+            refRowIds.push(
+              ...now.filter((id) => !next.has(id)),
+              ...sentIds.filter((id) => !nowSet.has(String(id))),
+            );
+          }
+        } else {
+          refRowIds = [...refRowIds, ...current.map(([, refId]) => refId)];
+        }
+      }
+      addTargets(refBaseModel, refRowIds);
+    }
+    if (ownListened && refSingle && linkedRefRowIds.length) {
+      const written = new Set(rowIds.map(String));
+      addTargets(
+        baseModel,
+        (
+          await readLinkPartners({
+            baseModel,
+            column,
+            ids: linkedRefRowIds,
+            fromRef: true,
+            trx,
+          })
+        )
+          .map(([, id]) => id)
+          .filter((id) => !written.has(String(id))),
+      );
+    }
+  }
+  // Those rows already get one event from the write
+  const notified = new Set(notifiedRowIds.map(String));
+  const own = targets.get(baseModel.model.id);
+  if (own && notified.size) {
+    own.ids = own.ids.filter((id) => !notified.has(String(id)));
+  }
+  const sides = [...targets.values()].filter((side) => side.ids.length);
+  if (!sides.length) return noopFire;
+
+  const prevRows: Record<string, any>[][] = [];
+  for (const side of sides) {
+    prevRows.push(await side.model.readRowsForLinkHooks(side.ids, trx));
+  }
+
+  const fire = async () => {
+    try {
+      for (const [i, side] of sides.entries()) {
+        const clone = side.model.getNonTransactionalClone();
+        await clone.afterLinkUpdate(
+          prevRows[i],
+          await clone.readRowsForLinkHooks(side.ids),
+          req,
+        );
+      }
+    } catch (e) {
+      logger.error(e?.message, e?.stack);
+    }
+  };
+  // Off a transaction this runs now
+  return (driver = baseModel.dbDriver) =>
+    'attachToTransaction' in driver ? driver.attachToTransaction(fire) : fire();
+};
+
+/** {@link captureLinkHooks} for one row's link field written outside `addLinks` / `removeLinks`. */
+export const captureLinkHookRowsForColumn = ({
+  baseModel,
+  column,
+  rowId,
+  refRowIds,
+  linkedRefRowIds,
+  req,
+}: {
+  baseModel: IBaseModelSqlV2;
+  column: Column;
+  rowId: string;
+  refRowIds: unknown[];
+  linkedRefRowIds: unknown[];
+  req: NcRequest;
+}) =>
+  captureLinkHooks({
+    baseModel,
+    changes: [{ column, rowIds: [rowId], refRowIds, linkedRefRowIds }],
+    req,
+  });
+
+/** {@link captureLinkHooks} for the links a nested insert writes. */
+export const captureNestedLinkHooks = ({
+  baseModel,
+  entries,
+  req,
+}: {
+  baseModel: IBaseModelSqlV2;
+  entries: NestedLinkLastModifiedEntry[];
+  req: NcRequest;
+}) =>
+  captureLinkHooks({
+    baseModel,
+    changes: entries.map(({ col, nestedData }) => {
+      const ids = (
+        Array.isArray(nestedData) ? nestedData : [nestedData]
+      ).filter((d) => !ncIsNullOrUndefined(d) && d !== '');
+      // The inserted row only gets after.insert
+      return { column: col, rowIds: [], refRowIds: ids, linkedRefRowIds: ids };
+    }),
+    req,
+  });
+
 export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
   const validateRefIds = (
     refIds: (string | number | Record<string, any>)[],
@@ -198,11 +533,14 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     childIds: _childIds,
     colId,
     rowId,
+    triggerUpdateHooks = false,
   }: {
     cookie: any;
     childIds: (string | number)[];
     colId: string;
     rowId: string;
+    // Fire after-update hooks for the linked records — user-facing link calls only
+    triggerUpdateHooks?: boolean;
   }) => {
     await baseModel.model.getColumns();
     const column = baseModel.model.columnsById[colId];
@@ -291,6 +629,17 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       childColId: string;
       parentColId: string;
     };
+
+    const fireLinkHooks = triggerUpdateHooks
+      ? await captureLinkHookRowsForColumn({
+          baseModel,
+          column,
+          rowId,
+          refRowIds: childIds,
+          linkedRefRowIds: childIds,
+          req: cookie,
+        })
+      : null;
 
     if (relationType === RelationTypes.ONE_TO_ONE) {
       relationType = column.meta?.bt
@@ -1009,6 +1358,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
         childAuditObj,
       );
     });
+
+    fireLinkHooks?.();
   };
 
   const removeLinks = async ({
@@ -1016,11 +1367,14 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     childIds: _childIds,
     colId,
     rowId,
+    triggerUpdateHooks = false,
   }: {
     cookie: any;
     childIds: (string | number)[];
     colId: string;
     rowId: string;
+    // Fire after-update hooks for the linked records — user-facing link calls only
+    triggerUpdateHooks?: boolean;
   }) => {
     await baseModel.model.getColumns();
     const column = baseModel.model.columnsById[colId];
@@ -1125,6 +1479,17 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       parentColTitle: string;
       parentColId: string;
     };
+
+    const fireLinkHooks = triggerUpdateHooks
+      ? await captureLinkHookRowsForColumn({
+          baseModel,
+          column,
+          rowId,
+          refRowIds: childIds,
+          linkedRefRowIds: [],
+          req: cookie,
+        })
+      : null;
 
     const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
 
@@ -1512,6 +1877,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
         childAuditObj,
       );
     });
+
+    fireLinkHooks?.();
   };
   // Move an existing link `childId` within `rowId`'s ordered list of links for
   // column `colId`, placing it immediately before `before` (another linked

@@ -1,4 +1,4 @@
-import { createHash, timingSafeEqual } from 'crypto';
+import { timingSafeEqual } from 'crypto';
 import { NcError } from 'src/helpers/catchError';
 import { nanoid } from 'nanoid';
 import { NO_SCOPE } from 'nocodb-sdk';
@@ -18,9 +18,7 @@ import {
 } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb } from '~/utils/modelUtils';
-
-const hashSecret = (secret: string) =>
-  createHash('sha256').update(secret, 'utf8').digest();
+import { sha256Hex } from '~/helpers/sha256';
 
 // Neither column leaves this model: the secret is returned once, by the write that mints it.
 const withoutSecret = <T extends Record<string, unknown>>(row: T) => {
@@ -30,16 +28,10 @@ const withoutSecret = <T extends Record<string, unknown>>(row: T) => {
 };
 
 const secretMatches = (
-  row: { token?: string | null; token_hash?: string | null },
+  row: { token_hash?: string | null },
   presented: string,
 ) => {
-  const presentedHash = hashSecret(presented);
-
-  // New code nulls `token` whenever it writes a hash, so a set `token` was
-  // written by a pod on the previous image and is the current secret.
-  if (row.token) {
-    return timingSafeEqual(hashSecret(row.token), presentedHash);
-  }
+  const presentedHash = Buffer.from(sha256Hex(presented), 'hex');
 
   if (!row.token_hash) return false;
 
@@ -153,10 +145,7 @@ export default class MCPToken implements MCPTokenType {
     return row && new MCPToken(withoutSecret(row));
   }
 
-  /**
-   * The row as cached, secret columns included: pods on the previous image
-   * share this cache entry and validate against its `token`.
-   */
+  /** The row as cached, `token_hash` included for validation. */
   private static async getRow(
     context: NcContext,
     mcpTokenId: string,
@@ -276,7 +265,7 @@ export default class MCPToken implements MCPTokenType {
       context.workspace_id,
       context.base_id,
       MetaTable.MCP_TOKENS,
-      { ...insertObj, token_hash: hashSecret(secret).toString('hex') },
+      { ...insertObj, token_hash: sha256Hex(secret) },
     );
 
     return this.get(context, id, ncMeta).then(async (res) => {
@@ -309,7 +298,7 @@ export default class MCPToken implements MCPTokenType {
     const dbObj = secret
       ? {
           ...updateObj,
-          token_hash: hashSecret(secret).toString('hex'),
+          token_hash: sha256Hex(secret),
           // Clears a secret still held in clear from before hashing.
           token: null,
         }

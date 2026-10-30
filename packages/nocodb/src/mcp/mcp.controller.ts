@@ -59,7 +59,13 @@ export class McpController {
 
     await this.loadPermissions(context, req);
 
-    return await this.mcpService.handleRequest(tokenId, context, req, res);
+    return await this.mcpService.handleRequest(
+      tokenId,
+      context,
+      req,
+      res,
+      'flat',
+    );
   }
 
   // The exact field set GlobalGuard puts on `req.context.user`. Copying `req.user`

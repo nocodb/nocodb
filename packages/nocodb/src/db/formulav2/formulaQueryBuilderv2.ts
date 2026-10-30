@@ -50,7 +50,10 @@ import {
 import { getRefColumnIfAlias } from '~/helpers';
 import { extractDisplayNameFromEmail } from '~/utils/emailUtils';
 import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
-import { escapeBindingPlaceholders } from '~/helpers/sqlSanitize';
+import {
+  escapeBindingPlaceholders,
+  rawFromBuilder,
+} from '~/helpers/sqlSanitize';
 import { BaseUser, ButtonColumn, View } from '~/models';
 import FormulaColumn from '~/models/FormulaColumn';
 import LmtTrackedField from '~/models/LmtTrackedField';
@@ -251,7 +254,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             alias: tableAlias,
             parentColumns,
           });
-          return { builder: knex.raw(qb.builder).wrap('(', ')') };
+          return { builder: rawFromBuilder(knex, qb.builder).wrap('(', ')') };
         };
         break;
       case UITypes.CreatedTime:
@@ -278,7 +281,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                 tableAlias,
                 parentColumns: params.parentColumns,
               });
-              return { builder: knex.raw(builder).wrap('(', ')') };
+              return { builder: rawFromBuilder(knex, builder).wrap('(', ')') };
             };
             break;
           }
@@ -549,7 +552,10 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       ) {
         // limit 1 for subquery
         return {
-          builder: knex.raw(`${builder.toQuery().replace(/\)$/, '')} LIMIT 1)`),
+          builder: rawFromBuilder(
+            knex,
+            `${builder.toQuery().replace(/\)$/, '')} LIMIT 1)`,
+          ),
         };
       }
 
@@ -576,7 +582,8 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             ((pt.argument as LiteralNode).value as number),
         ]);
       } else {
-        query = knex.raw(
+        query = rawFromBuilder(
+          knex,
           `${pt.operator}${(
             await fn(pt.argument, pt.operator)
           ).builder.toQuery()}`,

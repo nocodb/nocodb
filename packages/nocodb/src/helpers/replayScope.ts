@@ -30,6 +30,7 @@ export interface ReplayBag {
   rowColorFilterIds: ReadonlyArray<string>;
   interfaceDuplicatePageIds: ReadonlyArray<string>;
   viewColumnIds: Record<string, string>;
+  replaySourceBaseId: string;
 }
 
 export function runInReplay<T>(fn: () => Promise<T>): Promise<T> {

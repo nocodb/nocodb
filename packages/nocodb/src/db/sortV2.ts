@@ -1,12 +1,14 @@
+import { SortOrderBy, UITypes } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { NcContext } from '~/interface/config';
+import type { Column, SelectOption } from '~/models';
 import { FieldHandler } from '~/db/field-handler';
 import { Sort } from '~/models';
 import { SORT_STORED } from '~/models/Sort';
 import { NcError } from '~/helpers/catchError';
 import { getModelContext, setModelContext } from '~/helpers/modelContext';
-import { sanitize } from '~/helpers/sqlSanitize';
+import { escapeBindingPlaceholders, sanitize } from '~/helpers/sqlSanitize';
 import { getRefColumnIfAlias } from '~/helpers';
 import { compilesStoredConditionWithEmails } from '~/helpers/accessSource';
 
@@ -66,6 +68,10 @@ export default async function sortV2(
   // VARCHAR2 cap for multi-byte content).
   const oracleUnsortableDt = new Set(['clob', 'nclob']);
 
+  // A repeated sort key can't reorder anything, and MSSQL rejects a column
+  // listed twice in ORDER BY (error 169), so only its first occurrence applies.
+  const appliedSortKeys = new Set<string>();
+
   for (const _sort of sortList) {
     const sort = toSort(context, _sort);
     if (isSortDisabled(sort)) continue;
@@ -79,6 +85,13 @@ export default async function sortV2(
       continue;
     }
 
+    const byOptionOrder =
+      sort.order_by === SortOrderBy.OPTION_ORDER &&
+      column.uidt === UITypes.SingleSelect;
+    const sortKey = `${column.id}:${byOptionOrder ? 'option' : 'value'}`;
+    if (appliedSortKeys.has(sortKey)) continue;
+    appliedSortKeys.add(sortKey);
+
     const direction: 'asc' | 'desc' =
       sort.direction === 'desc' ? 'desc' : 'asc';
     // Only the PK surely holds no NULLs; NULLS on it defeats pg's btree order.
@@ -87,6 +100,33 @@ export default async function sortV2(
       : sort.direction === 'desc'
       ? 'LAST'
       : 'FIRST';
+
+    if (byOptionOrder) {
+      const field = alias
+        ? `${alias}.${column.column_name}`
+        : column.column_name;
+      const dt = (column.dt ?? '').toLowerCase();
+      let valueSql = '??';
+      if (baseModelSqlv2.isMssql && mssqlUnsortableDt.has(dt)) {
+        valueSql = `CAST(?? AS NVARCHAR(${MSSQL_SORT_KEY_WIDTH}))`;
+      } else if (baseModelSqlv2.isOracle && oracleUnsortableDt.has(dt)) {
+        valueSql = 'DBMS_LOB.SUBSTR(??, 2000, 1)';
+      } else if (baseModelSqlv2.isPg) {
+        // Native enums would reject a literal that isn't one of their labels.
+        valueSql = 'CAST(?? AS TEXT)';
+      }
+      const rank = optionOrderSortKey({
+        titles: await getOptionTitles(column),
+        valueSql,
+        valueBindings: [field],
+        direction,
+        nulls,
+        // SQL Server caps a statement at 2100 parameters.
+        inlineTitles: baseModelSqlv2.isMssql,
+      });
+      qb.orderBy(sanitize(knex.raw(rank.sql, rank.bindings)), direction);
+      continue;
+    }
 
     if (
       baseModelSqlv2.isMssql &&
@@ -138,4 +178,64 @@ export default async function sortV2(
       baseModel: sortBaseModel,
     });
   }
+}
+
+export async function getOptionTitles(column: Column) {
+  const colOptions = await column.getColOptions<{
+    options?: SelectOption[];
+  }>();
+  return [...new Set((colOptions?.options ?? []).map((o) => o.title))].filter(
+    (t) => t != null,
+  );
+}
+
+// Rank of a SingleSelect value in its option list. A value that isn't an
+// option sorts after every option in either direction. NULL is ranked too —
+// knex drops NULLS FIRST/LAST on raw expressions. `valueBindings` binds one
+// occurrence of `valueSql`, which appears twice.
+export function optionOrderSortKey({
+  titles,
+  valueSql,
+  valueBindings,
+  direction,
+  nulls,
+  inlineTitles = false,
+}: {
+  titles: string[];
+  valueSql: string;
+  valueBindings: unknown[];
+  direction: 'asc' | 'desc';
+  nulls?: 'FIRST' | 'LAST';
+  // Embed titles as N'…' literals instead of one binding each (MSSQL only).
+  inlineTitles?: boolean;
+}): { sql: string; bindings: unknown[] } {
+  const unknownRank = direction === 'desc' ? -1 : titles.length;
+  const nullRank =
+    direction === 'desc'
+      ? nulls === 'FIRST'
+        ? titles.length
+        : -2
+      : nulls === 'LAST'
+      ? titles.length + 1
+      : -1;
+
+  const titleSql = (t: string) =>
+    inlineTitles
+      ? escapeBindingPlaceholders(`N'${t.replace(/'/g, "''")}'`)
+      : '?';
+
+  const rank = titles.length
+    ? `CASE ${valueSql} ${titles
+        .map((t, i) => `WHEN ${titleSql(t)} THEN ${i}`)
+        .join(' ')} ELSE ${unknownRank} END`
+    : `${unknownRank}`;
+
+  return {
+    sql: `CASE WHEN ${valueSql} IS NULL THEN ${nullRank} ELSE ${rank} END`,
+    bindings: [
+      ...valueBindings,
+      ...(titles.length ? valueBindings : []),
+      ...(titles.length && !inlineTitles ? titles : []),
+    ],
+  };
 }

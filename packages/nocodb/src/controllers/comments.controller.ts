@@ -19,6 +19,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { normalizeArrayQueryParam } from '~/helpers/apiHelpers';
+import { hideCommentEmailsForSharedBase } from '~/helpers/commentAuthorVisibility';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -27,15 +28,17 @@ export class CommentsController {
 
   // INTENTIONALLY NOT gated with `blockPublicBaseAccess` — do not add it.
   // Comments are a shared-base collaboration feature: public shared-base
-  // sessions (VIEWER) are meant to read them, and the UI shows the author's
-  // `created_by_email` by design. Only AUDIT is blocked for shared bases
-  // (recordAuditList — GHSA-6297-qpqf-235w), not comments (see cef84cab10).
+  // sessions (VIEWER) are meant to read them, minus user emails. Only AUDIT
+  // (recordAuditList) is blocked for shared bases, not comments (cef84cab10).
   // Adding the gate would 403 `loadComments` and break the feature.
   @Get(['/api/v1/db/meta/comments', '/api/v2/meta/comments'])
   @Acl('commentList')
   async commentList(@TenantContext() context: NcContext, @Req() req: any) {
     return new PagedResponseImpl(
-      await this.commentsService.commentList(context, { query: req.query }),
+      hideCommentEmailsForSharedBase(
+        context,
+        await this.commentsService.commentList(context, { query: req.query }),
+      ),
     );
   }
 

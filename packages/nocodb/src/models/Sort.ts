@@ -1,3 +1,4 @@
+import { SortOrderBy } from 'nocodb-sdk';
 import type { SortType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Model from '~/models/Model';
@@ -36,6 +37,8 @@ export default class Sort {
   fk_lookup_col_id?: string;
   fk_level_id?: string;
   direction?: 'asc' | 'desc' | 'count-desc' | 'count-asc';
+  // `option_order` sorts a SingleSelect by option position; unset = alphabetical.
+  order_by?: SortType['order_by'];
   enabled?: boolean;
   order?: number;
   fk_workspace_id?: string;
@@ -110,10 +113,12 @@ export default class Sort {
       'fk_lookup_col_id',
       'fk_level_id',
       'direction',
+      'order_by',
       'enabled',
       'base_id',
       'source_id',
     ]);
+    normalizeOrderBy(insertObj);
 
     // A sort belongs to a view OR (for lookup-scoped sorts) a lookup column.
     const parentCond = sortObj.fk_lookup_col_id
@@ -342,9 +347,11 @@ export default class Sort {
     const updateObj = extractProps(body, [
       'fk_column_id',
       'direction',
+      'order_by',
       'enabled',
       'order',
     ]);
+    normalizeOrderBy(updateObj);
 
     // set meta
     const res = await ncMeta.metaUpdate(
@@ -418,6 +425,13 @@ export default class Sort {
       },
       ncMeta,
     );
+  }
+}
+
+// Alphabetical is the default, so it is stored as NULL like every older sort.
+function normalizeOrderBy(obj: Partial<Sort>) {
+  if ('order_by' in obj && obj.order_by !== SortOrderBy.OPTION_ORDER) {
+    obj.order_by = null;
   }
 }
 

@@ -54,6 +54,8 @@ const { t } = useI18n()
 
 const route = useRoute()
 
+const { isSharedBase } = storeToRefs(useBase())
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 const injectedView = inject(ActiveViewInj, ref())
@@ -93,7 +95,7 @@ const visibleMoreOptions = computed(() => {
   const result = {
     reloadRecord: !isEeUI && !!props.rowId,
     copyRecordUrl: !isNew.value && !!props.rowId,
-    sendRecord: appInfo.value.ee && !isNew.value && !!props.rowId && !isPublic.value,
+    sendRecord: appInfo.value.ee && !isNew.value && !!props.rowId && !isPublic.value && !isSharedBase.value,
     duplicateRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value && !isMobileMode.value,
     deleteRecord: !isNew.value && isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value,
   }

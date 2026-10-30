@@ -7,6 +7,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { MetaTable } from '~/utils/globals';
 import { isReplay } from '~/helpers/replayScope';
 import { decryptPropIfRequired, encryptPropIfRequired } from '~/utils';
+import { sha256Hex } from '~/helpers/sha256';
 
 const logger = new Logger('SyncSource');
 
@@ -27,8 +28,34 @@ const parseDetails = (details: unknown) => {
   }
 };
 
-const serializeDetails = (details: unknown) =>
-  encryptPropIfRequired({ data: { details }, prop: 'details' });
+// Stands in for the Airtable token in every copy that leaves the row; saved back, it keeps the token.
+export const SYNC_SECRET_MASK = '********';
+
+// Recorded sandbox edits carry the mask plus this short hash of the token they typed.
+export const SYNC_TOKEN_FINGERPRINT = '__nc_recorded_token_fp';
+
+export const syncTokenFingerprint = (token: string) =>
+  sha256Hex(token).slice(0, 12);
+
+const serializeDetails = (details: unknown) => {
+  if (details && typeof details === 'object') {
+    const { [SYNC_TOKEN_FINGERPRINT]: _fp, ...rest } = details as Record<
+      string,
+      unknown
+    >;
+    details = rest;
+  }
+  return encryptPropIfRequired({ data: { details }, prop: 'details' });
+};
+
+export const maskSyncDetails = <T extends { apiKey?: unknown } | undefined>(
+  details: T,
+): T => (details?.apiKey ? { ...details, apiKey: SYNC_SECRET_MASK } : details);
+
+export const omitSyncToken = (details?: Record<string, unknown>) => {
+  const { apiKey: _apiKey, ...rest } = details ?? {};
+  return rest;
+};
 
 export default class SyncSource {
   id?: string;

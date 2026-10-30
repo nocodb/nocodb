@@ -701,7 +701,7 @@ const onDeleteColumn = () => {
         column.uidt !== UITypes.ForeignKey &&
         showEEFeatures
       "
-      :disabled="!fieldAlterReason && showEditRestrictedColumnTooltip(column) && !isSyncedReadonlyField"
+      :disabled="!fieldAlterReason && showEditRestrictedColumnTooltip(column) && !isSyncedReadonlyField && !column.pk"
       placement="right"
       :arrow="false"
     >
@@ -709,6 +709,9 @@ const onDeleteColumn = () => {
         <template v-if="fieldAlterReason">{{ $t(fieldAlterReason) }}</template>
         <template v-else-if="isSyncedReadonlyField">
           {{ $t('tooltip.fieldPermissionsNotAvailableForSyncedColumns') }}
+        </template>
+        <template v-else-if="column.pk">
+          {{ $t('tooltip.fieldPermissionsNotAvailableForPrimaryKey') }}
         </template>
         <template v-else>
           {{ $t('tooltip.dataInThisFieldCantBeManuallyEdited') }}
@@ -718,7 +721,13 @@ const onDeleteColumn = () => {
       <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS">
         <template #default="{ click }">
           <NcMenuItem
-            :disabled="!!fieldAlterReason || !showEditRestrictedColumnTooltip(column) || isSyncedReadonlyField || isUUID(column)"
+            :disabled="
+              !!fieldAlterReason ||
+              !showEditRestrictedColumnTooltip(column) ||
+              isSyncedReadonlyField ||
+              isUUID(column) ||
+              !!column.pk
+            "
             @click="
               click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, () => {
                 onFieldPermissions()

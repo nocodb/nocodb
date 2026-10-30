@@ -23,8 +23,6 @@ const { t } = useI18n()
 
 const { signedIn, user, signOut } = useGlobal()
 
-const { isCodeProject, codeProjectRoleLabels } = useCodeProjects()
-
 const { $api, $e } = useNuxtApp()
 
 const token = computed(() => String(route.params.token || ''))
@@ -72,13 +70,7 @@ const roleLabel = computed(() => {
   const phrase = inviteLinkRolePhrase(preview.value?.scope, role, { article: true })
   if (phrase) return phrase
 
-  // A code project's link grants Maintainer or Developer.
-  const codeProjectLabel =
-    preview.value?.scope === InviteLinkScope.BASE && isCodeProject({ type: preview.value?.base_type })
-      ? codeProjectRoleLabels.value[role]
-      : undefined
-
-  return (codeProjectLabel ?? t(`objects.roleType.${RoleLabels[role] ?? role}`)).toLowerCase()
+  return t(`objects.roleType.${RoleLabels[role] ?? role}`).toLowerCase()
 })
 
 const invalidCopy = computed(() => {

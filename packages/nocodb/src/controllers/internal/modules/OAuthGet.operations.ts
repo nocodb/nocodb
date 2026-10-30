@@ -7,6 +7,7 @@ import type {
 } from '~/utils/internal-type';
 import { OauthClientService } from '~/modules/oauth/services/oauth-client.service';
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
+import { assertFirstPartySession } from '~/modules/oauth/helpers/clientTrust';
 
 @Injectable()
 export class OAuthGetOperations
@@ -36,6 +37,8 @@ export class OAuthGetOperations
       req: NcRequest;
     },
   ): InternalGETResponseType {
+    assertFirstPartySession(context, req);
+
     switch (operation) {
       case 'oAuthClientGet':
         return await this.oAuthClientService.getClient(context, {

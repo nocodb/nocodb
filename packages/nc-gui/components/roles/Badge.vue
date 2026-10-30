@@ -16,7 +16,7 @@ const props = withDefaults(
     inheritedRoleIcon?: string
     /** Drops the chip — role reads as coloured text, the way a permission does. */
     plain?: boolean
-    /** Overrides the role's name, e.g. a code project calls Editor "Developer". */
+    /** Overrides the role's name, e.g. an interface calls Viewer "Read only". */
     label?: string
   }>(),
   {

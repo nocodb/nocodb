@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import type { Api } from 'nocodb-sdk'
+
+type OAuthPublicClient = Awaited<ReturnType<Api<unknown>['oAuth']['v2PublicOauthClientDetail']>>
+
 const route = useRoute()
 
 const { productName } = useBranding()
@@ -19,7 +23,7 @@ const codeChallengeMethod = computed(() => route.query.code_challenge_method as 
 const loading = ref(true)
 const error = ref('')
 const authorizing = ref(false)
-const clientInfo = ref<any>({})
+const clientInfo = ref<Partial<OAuthPublicClient>>({})
 
 const selectedWorkspace = ref()
 const selectedBase = ref()
@@ -27,6 +31,8 @@ const selectedBase = ref()
 const isValidRequest = computed(() => {
   return clientId.value && redirect_uri.value && responseType.value === 'code'
 })
+
+const clientLogo = computed(() => (ncIsObject(clientInfo.value.logo_uri) ? clientInfo.value.logo_uri : undefined))
 
 const isSelectionValid = computed(() => {
   if (isEeUI) {
@@ -155,8 +161,8 @@ onMounted(() => {
     <div v-else class="rounded-xl bg-nc-bg-default shadow-sm border-1 border-nc-border-gray-medium p-8 max-w-lg w-full">
       <div class="flex items-center justify-center flex-1 w-full">
         <CellAttachmentPreviewImage
-          v-if="clientInfo.logo_uri"
-          :srcs="getPossibleAttachmentSrc(clientInfo.logo_uri)"
+          v-if="clientLogo"
+          :srcs="getPossibleAttachmentSrc(clientLogo)"
           class="!object-contain max-h-12 max-w-12 !rounded-full"
           :is-cell-preview="false"
         />
@@ -173,6 +179,8 @@ onMounted(() => {
         <span class="font-semibold"> {{ clientInfo.client_name }} </span> needs access to your account to provide you service. We
         value your privacy and only request necessary permissions.
       </div>
+
+      <AuthOAuthClientTrust :client-name="clientInfo.client_name" :redirect-uri="redirect_uri" :verified="clientInfo.verified" />
 
       <div class="flex items-center justify-center my-6 gap-2">
         <GeneralUserIcon :user="user" size="medium" />

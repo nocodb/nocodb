@@ -4,6 +4,13 @@ export function randomTokenString(): string {
   return crypto.randomBytes(40).toString('hex');
 }
 
+// Constant-time string comparison; digests first so length does not leak.
+export function safeEqual(a?: string | null, b?: string | null): boolean {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const digest = (s: string) => crypto.createHash('sha256').update(s).digest();
+  return crypto.timingSafeEqual(digest(a), digest(b));
+}
+
 export function utf8ify(str: string): string {
   return Buffer.from(str, 'latin1').toString('utf8');
 }

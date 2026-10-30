@@ -14,77 +14,89 @@ const _replaceUrlsWithLink = (text: string, plainCellValue = false): boolean | s
 
   const protocolRegex = /^(https?|ftp|mailto|file):\/\//
   let isUrlPatternFound = false
-  const out = rawText.replace(
-    /**
-     * Matches patterns of the form:
-     * URI::(url_content)[optional space]LABEL::(label_content)
-     *
-     * - `URI::(...)` - Extracts the URL content between parentheses.
-     * - `LABEL::(...)` - (Optional) Extracts the label content between parentheses.
-     * - `(?:...)` - Non-capturing groups used for optional and grouped patterns.
-     * - `[^()]|\\\)|\\\(` - Matches any character except parentheses or escaped parentheses.
-     * - `\s*` - Matches any optional spaces between the URI and LABEL parts.
-     *
-     * Important Notes:
-     * - Whitespace around the content is now optional and is
-     *   trimmed later during processing.
-     * - This prevents trailing backslashes (`\`) from being treated
-     *   as escape sequences when followed by a closing parenthesis.
-     *
-     * Example Matches:
-     * - URI::(https://example.com)
-     * - URI::(https://example.com) LABEL::(My Label)
-     * - URI::(https://example.com\)with\)escapes) LABEL::(Label\))
-     */
-    /URI::\(((?:[^()]|\\\)|\\\()*[^\\]|)\)(?:\s*LABEL::\(((?:[^()]|\\\)|\\\()*[^\\]|)\))?/g,
-    (_, _url, _label) => {
-      isUrlPatternFound = true
-      let isUrl = false
-      // replace whitespace at beginning and end of URL and label if found
-      // Unescape escaped parentheses (`(` and `)`) in the URL and label content
-      const url = _url.trim().replace(/\\([()])/g, '$1')
-      const label = _label?.trim()?.replace(/\\([()])/g, '$1')
+  let lastIndex = 0
+  let out = ''
+  /**
+   * Matches patterns of the form:
+   * URI::(url_content)[optional space]LABEL::(label_content)
+   *
+   * - `URI::(...)` - Extracts the URL content between parentheses.
+   * - `LABEL::(...)` - (Optional) Extracts the label content between parentheses.
+   * - `(?:...)` - Non-capturing groups used for optional and grouped patterns.
+   * - `[^()]|\\\)|\\\(` - Matches any character except parentheses or escaped parentheses.
+   * - `\s*` - Matches any optional spaces between the URI and LABEL parts.
+   *
+   * Important Notes:
+   * - Whitespace around the content is now optional and is
+   *   trimmed later during processing.
+   * - This prevents trailing backslashes (`\`) from being treated
+   *   as escape sequences when followed by a closing parenthesis.
+   *
+   * Example Matches:
+   * - URI::(https://example.com)
+   * - URI::(https://example.com) LABEL::(My Label)
+   * - URI::(https://example.com\)with\)escapes) LABEL::(Label\))
+   */
+  const uriRegex = /URI::\(((?:[^()]|\\\)|\\\()*[^\\]|)\)(?:\s*LABEL::\(((?:[^()]|\\\)|\\\()*[^\\]|)\))?/g
 
-      if (!url.trim()) {
-        // `label` is user-controlled (from LABEL::(...)). In HTML mode the
-        // return value is assigned to innerHTML by downstream consumers, so it
-        // must be HTML-encoded to prevent stored XSS (e.g. an <img onerror>
-        // payload). In plainCellValue mode the value is used as text, so leave
-        // it raw.
-        if (plainCellValue) return label || ' '
-        return label ? encode(label) : ' '
-      }
+  for (const match of rawText.matchAll(uriRegex)) {
+    isUrlPatternFound = true
+    // Formula output never carries markup: the text between links is shown as text.
+    const before = rawText.slice(lastIndex, match.index)
+    out += plainCellValue ? before : encode(before)
+    lastIndex = match.index + match[0].length
+    out += linkFor(match[1] ?? '', match[2])
+  }
 
-      const fullUrl = protocolRegex.test(url) ? url : url.trim() ? `https://${url}` : ''
+  if (!isUrlPatternFound) return false // Return false if no URL found
 
-      // Encode spaces so isURL accepts URLs with unencoded spaces (e.g. query params like ?where=(field,eq,hello world))
-      const encodedUrl = fullUrl.replace(/ /g, '%20')
+  const after = rawText.slice(lastIndex)
+  return out + (plainCellValue ? after : encode(after))
 
-      isUrl = isURL(encodedUrl)
+  function linkFor(_url: string, _label: string | undefined): string {
+    let isUrl = false
+    // replace whitespace at beginning and end of URL and label if found
+    // Unescape escaped parentheses (`(` and `)`) in the URL and label content
+    const url = _url.trim().replace(/\\([()])/g, '$1')
+    const label = _label?.trim()?.replace(/\\([()])/g, '$1')
 
-      const anchorLabel = label || url || ''
+    if (!url.trim()) {
+      // `label` is user-controlled (from LABEL::(...)). In HTML mode the
+      // return value is assigned to innerHTML by downstream consumers, so it
+      // must be HTML-encoded to prevent stored XSS (e.g. an <img onerror>
+      // payload). In plainCellValue mode the value is used as text, so leave
+      // it raw.
+      if (plainCellValue) return label || ' '
+      return label ? encode(label) : ' '
+    }
 
-      // plainCellValue: consumer uses the string as text, return raw.
-      if (plainCellValue) return anchorLabel
+    const fullUrl = protocolRegex.test(url) ? url : url.trim() ? `https://${url}` : ''
 
-      // Invalid URL: this string is assigned to innerHTML downstream. The
-      // valid-URL branch below is safe because it builds the anchor with
-      // `textContent`; make the invalid branch consistent by HTML-encoding the
-      // user-controlled label so it can never introduce active markup (root
-      // cause of the canvas-grid formula-URL stored XSS).
-      if (!isUrl) return encode(anchorLabel)
+    // Encode spaces so isURL accepts URLs with unencoded spaces (e.g. query params like ?where=(field,eq,hello world))
+    const encodedUrl = fullUrl.replace(/ /g, '%20')
 
-      const a = document.createElement('a')
-      a.textContent = anchorLabel
-      a.setAttribute('href', decode(encodedUrl))
-      a.setAttribute('class', 'nc-cell-field-link')
-      a.setAttribute('target', '_blank')
-      a.setAttribute('rel', 'noopener noreferrer')
-      return a.outerHTML
-    },
-  )
+    isUrl = isURL(encodedUrl)
 
-  return isUrlPatternFound ? out : false // Return false if no URL found
+    const anchorLabel = label || url || ''
+
+    // plainCellValue: consumer uses the string as text, return raw.
+    if (plainCellValue) return anchorLabel
+
+    // Invalid URL: this string is assigned to innerHTML downstream. The
+    // valid-URL branch below is safe because it builds the anchor with
+    // `textContent`; make the invalid branch consistent by HTML-encoding the
+    // user-controlled label so it can never introduce active markup (root
+    // cause of the canvas-grid formula-URL stored XSS).
+    if (!isUrl) return encode(anchorLabel)
+
+    const a = document.createElement('a')
+    a.textContent = anchorLabel
+    a.setAttribute('href', decode(encodedUrl))
+    a.setAttribute('class', 'nc-cell-field-link')
+    a.setAttribute('target', '_blank')
+    a.setAttribute('rel', 'noopener noreferrer')
+    return a.outerHTML
+  }
 }
 
 export const replaceUrlsWithLink = (text: string, plainCellValue = false) => {

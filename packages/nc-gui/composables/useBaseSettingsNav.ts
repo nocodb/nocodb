@@ -1,20 +1,6 @@
 import { BaseVersion, PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk'
 import type { ShellRailGroup, ShellRailItem } from '~/components/shell/Rail.vue'
 
-/** Manage, Create and the apps. */
-const CODE_PROJECT_HIDDEN_GROUPS = ['data', 'create', 'apps']
-
-/** Admin rows with nothing to act on in a code project. */
-const CODE_PROJECT_HIDDEN_SLUGS = [
-  'workflows',
-  'record-trash',
-  'snapshots',
-  'variables',
-  'data-display',
-  'migrate-to-v3',
-  'migrate',
-]
-
 /**
  * The two things a base's settings are *about*: the project itself and the apps
  * built on it. The rail used to list all of them in one column, so a reader
@@ -55,8 +41,6 @@ export function useBaseSettingsNav() {
   const { isSharedBase, base, listingManagedAppId } = storeToRefs(useBase())
 
   const { apps, isAppsEnabled } = storeToRefs(useAppStore())
-
-  const { isCodeProject } = useCodeProjects()
 
   const { classicApps, isLoaded: isClassicAppsLoaded } = useBaseSettingsClassicApps()
 
@@ -225,22 +209,6 @@ export function useBaseSettingsNav() {
             title: t('labels.baseNav.members'),
             keywords: 'invite people users collaborators teams roles project base access',
           },
-        ].filter(Boolean) as ShellRailGroup['items'],
-      },
-      {
-        key: 'machines',
-        label: '',
-        items: [
-          // Listing machines is editor+ on the server, the same floor as sessions.
-          isCodeProject(base.value) &&
-            isUIAllowed('appFactorySession', { roles: baseRoles.value }) && {
-              slug: 'machines',
-              ev: 'machines',
-              icon: 'ncServer',
-              testId: 'base-machines',
-              title: t('labels.factoryMachines'),
-              keywords: 'machine environment image runtime packages tools build',
-            },
         ].filter(Boolean) as ShellRailGroup['items'],
       },
       {
@@ -440,18 +408,7 @@ export function useBaseSettingsNav() {
       groups.push({ key: 'apps', label: t('labels.baseNav.concernApps'), divider: true, items: appRows })
     }
 
-    // A code project holds a repository, not data: there is nothing in it to
-    // manage, build on, restore, display or migrate.
-    const shown = isCodeProject(base.value)
-      ? groups
-          .filter((group) => !CODE_PROJECT_HIDDEN_GROUPS.includes(group.key))
-          .map((group) => ({
-            ...group,
-            items: group.items.filter((item) => !CODE_PROJECT_HIDDEN_SLUGS.includes(item.slug)),
-          }))
-      : groups
-
-    return shown.filter((g) => g.items.length)
+    return groups.filter((g) => g.items.length)
   })
 
   /** Rows that open a pane: a parent row stands in for its children. */
@@ -599,9 +556,6 @@ export function useBaseSettingsNav() {
     for (const item of appSettingsNav) {
       meta[item.tab] = { title: '' }
     }
-
-    // Writes its own heading, beside the New machine button.
-    meta.machines = { title: '' }
 
     return meta
   })

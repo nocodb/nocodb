@@ -27,6 +27,8 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const { isSharedBase } = storeToRefs(useBase())
+
 // Interface pages open their record-detail sheet instead of the expanded form.
 const interfaceExpandRecord = inject(InterfaceExpandRecordInj, undefined)
 
@@ -2821,7 +2823,7 @@ const cardFields = (record: RowType) => {
             </NcMenuItem>
             <!-- Send record is collaborator/data-app vocabulary — hidden on interface pages -->
             <NcMenuItem
-              v-if="contextMenuTarget && contextMenuRowId && !isPublic && appInfo.ee && !interfacePageDataApi"
+              v-if="contextMenuTarget && contextMenuRowId && !isPublic && !isSharedBase && appInfo.ee && !interfacePageDataApi"
               @click="showSendRecordModal = true"
             >
               <div class="flex items-center gap-2 nc-kanban-context-menu-item">

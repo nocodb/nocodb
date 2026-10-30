@@ -374,6 +374,8 @@ enum AuditV1OperationTypes {
   FACTORY_REPO_DISABLE = 'FACTORY_REPO_DISABLE',
   FACTORY_MACHINE_CREATE = 'FACTORY_MACHINE_CREATE',
   FACTORY_MACHINE_RENAME = 'FACTORY_MACHINE_RENAME',
+  FACTORY_MACHINE_RESIZE = 'FACTORY_MACHINE_RESIZE',
+  FACTORY_MACHINE_UPDATE = 'FACTORY_MACHINE_UPDATE',
   FACTORY_MACHINE_SET_DEFAULT = 'FACTORY_MACHINE_SET_DEFAULT',
   FACTORY_MACHINE_DELETE = 'FACTORY_MACHINE_DELETE',
   FACTORY_MACHINE_BUILD = 'FACTORY_MACHINE_BUILD',
@@ -579,7 +581,7 @@ export const auditV1OperationsCategory: Record<
     ),
   },
   FACTORY: {
-    label: 'general.appFactory',
+    label: 'labels.codingAgent',
     value: 'FACTORY',
     types: Object.values(AuditV1OperationTypes).filter((key) =>
       key.startsWith('FACTORY_')
@@ -1765,12 +1767,16 @@ export interface FactoryRepoPayload {
   integration_id?: string;
 }
 
-/** A code project's machine, or one version of it. */
+/** A coding agent's machine, or one version of it. */
 export interface FactoryMachinePayload {
   machine_id: string;
   machine_title?: string;
   /** Set on a rename only: what the machine was called before. */
   old_machine_title?: string;
+  /** Resize and build: the size its sessions start at. */
+  size?: string;
+  /** Set on a resize only: the size before. */
+  old_size?: string;
   /** Build, cancel and activate: the version they act on. */
   version_id?: string;
   version?: number;
@@ -1780,6 +1786,8 @@ export interface FactoryMachinePayload {
   refresh?: boolean;
   /** Build: an identical finished version of this machine was reused. */
   reused?: boolean;
+  /** Update: the settings and variables changed, by name only; values are secrets. */
+  changed?: string[];
 }
 
 export interface SkillPayload {
@@ -3101,38 +3109,38 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.FACTORY_SESSION_CREATE]: (
     audit: AuditV1<FactorySessionPayload>
   ) =>
-    `App Factory session started on ${audit.details.repo ?? 'a repository'}${
+    `Coding session started on ${audit.details.repo ?? 'a repository'}${
       audit.details.machine_title
         ? ` with machine '${audit.details.machine_title}'`
         : ''
     }`,
   [AuditV1OperationTypes.FACTORY_SESSION_STOP]: (
     audit: AuditV1<FactorySessionPayload>
-  ) => `App Factory session '${audit.details.session_title ?? ''}' was stopped`,
+  ) => `Coding session '${audit.details.session_title ?? ''}' was stopped`,
   [AuditV1OperationTypes.FACTORY_SESSION_ARCHIVE]: (
     audit: AuditV1<FactorySessionPayload>
   ) =>
-    `App Factory session '${
+    `Coding session '${
       audit.details.session_title ?? ''
     }' was archived and its sandbox released`,
   [AuditV1OperationTypes.FACTORY_SESSION_RESUME]: (
     audit: AuditV1<FactorySessionPayload>
-  ) => `App Factory session '${audit.details.session_title ?? ''}' was resumed`,
+  ) => `Coding session '${audit.details.session_title ?? ''}' was resumed`,
   [AuditV1OperationTypes.FACTORY_SESSION_RENAME]: (
     audit: AuditV1<FactorySessionPayload>
   ) =>
-    `App Factory session '${
+    `Coding session '${
       audit.details.old_session_title ?? ''
     }' was renamed to '${audit.details.session_title ?? ''}'`,
   [AuditV1OperationTypes.FACTORY_SESSION_DELETE]: (
     audit: AuditV1<FactorySessionPayload>
-  ) => `App Factory session '${audit.details.session_title ?? ''}' was deleted`,
+  ) => `Coding session '${audit.details.session_title ?? ''}' was deleted`,
   [AuditV1OperationTypes.FACTORY_REPO_ENABLE]: (
     audit: AuditV1<FactoryRepoPayload>
-  ) => `Repository '${audit.details.repo}' was added to App Factory`,
+  ) => `Repository '${audit.details.repo}' was added to a coding agent`,
   [AuditV1OperationTypes.FACTORY_REPO_DISABLE]: (
     audit: AuditV1<FactoryRepoPayload>
-  ) => `Repository '${audit.details.repo}' was removed from App Factory`,
+  ) => `Repository '${audit.details.repo}' was removed from a coding agent`,
   [AuditV1OperationTypes.FACTORY_MACHINE_CREATE]: (
     audit: AuditV1<FactoryMachinePayload>
   ) => `Machine '${audit.details.machine_title ?? ''}' was created`,
@@ -3142,6 +3150,18 @@ const descriptionTemplates = {
     `Machine '${audit.details.old_machine_title ?? ''}' was renamed to '${
       audit.details.machine_title ?? ''
     }'`,
+  [AuditV1OperationTypes.FACTORY_MACHINE_RESIZE]: (
+    audit: AuditV1<FactoryMachinePayload>
+  ) =>
+    `Machine '${audit.details.machine_title ?? ''}' was resized from ${
+      audit.details.old_size ?? 'standard'
+    } to ${audit.details.size ?? 'standard'}`,
+  [AuditV1OperationTypes.FACTORY_MACHINE_UPDATE]: (
+    audit: AuditV1<FactoryMachinePayload>
+  ) =>
+    `Machine '${audit.details.machine_title ?? ''}' settings changed: ${(
+      audit.details.changed ?? []
+    ).join(', ')}`,
   [AuditV1OperationTypes.FACTORY_MACHINE_SET_DEFAULT]: (
     audit: AuditV1<FactoryMachinePayload>
   ) =>

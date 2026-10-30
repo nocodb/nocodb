@@ -59,7 +59,9 @@ const { isDark, getColor } = useTheme()
 
 const { metaColumnById } = useViewColumnsOrThrow(view, meta)
 
-const { isSyncedTable, eventBus } = useSmartsheetStoreOrThrow()
+const { isSyncedTable, eventBus, xWhere } = useSmartsheetStoreOrThrow()
+
+const { search } = useFieldQuery()
 
 const { copy } = useCopy()
 
@@ -71,6 +73,8 @@ const {
   loadKanbanData,
   loadKanbanDataForStacks,
   useWindowedKanbanLoad,
+  loadedStacks,
+  fetchNonEmptyStackTitles,
   loadMoreKanbanData,
   refreshLoadedStacksInPlace,
   setVisibleStackTitles,
@@ -252,10 +256,56 @@ const kanbanContainerRef = ref()
 
 const selectedStackTitle = ref('')
 
+const hideEmptyStack = computed<boolean>(() => parseProp(kanbanMetaData.value?.meta).hide_empty_stack || false)
+
+const autoCollapseEmptyStack = computed<boolean>(() => parseProp(kanbanMetaData.value?.meta).auto_collapse_empty_stack || false)
+
+// Session-only override: user-expanded auto-collapsed empty stacks for this view mount
+const userExpandedEmptyStacks = ref<Set<string>>(new Set())
+
+// Stacks temporarily expanded because a dragged card is hovering over them
+const tempExpandedStacks = ref<Set<string>>(new Set())
+
+const isStackEmpty = (stack: { title: string | null }) => {
+  return !formattedData.value.get(stack.title)?.length
+}
+
+// Stacks holding a search match across the whole board; null while no search is active
+const searchMatchTitles = ref<Set<string | null> | null>(null)
+
+// Collapsed matches reopen only while this few match — more would widen the board again
+const SEARCH_AUTO_EXPAND_MAX = 5
+
+// Session-only: search-reopened stacks the user collapsed again under the current search
+const searchDismissedStacks = ref<Set<string>>(new Set())
+
+const isSearchMatch = (stack: { title: string | null }) => !!searchMatchTitles.value?.has(stack.title ?? null)
+
+// Reopened by the search, never saved: clearing the search restores the user's layout
+const isSearchExpanded = (stack: { id: string; title: string | null }) =>
+  !!searchMatchTitles.value &&
+  searchMatchTitles.value.size <= SEARCH_AUTO_EXPAND_MAX &&
+  isSearchMatch(stack) &&
+  !searchDismissedStacks.value.has(stack.id)
+
+const isStackCollapsed = (stack: { id: string; title: string | null; collapsed?: boolean }) => {
+  if (!stack || stack.id === addNewStackId) return false
+  if (tempExpandedStacks.value.has(stack.id)) return false
+  if (isSearchExpanded(stack)) return false
+  if (stack.collapsed) return true
+  if (autoCollapseEmptyStack.value && isStackEmpty(stack) && !userExpandedEmptyStacks.value.has(stack.id)) {
+    return true
+  }
+  return false
+}
+
 // Horizontal virtual scrolling for stacks
 const STACK_WIDTH = 274 // w-68.5 = 274px (17.125rem * 16)
 const STACK_GAP = 12 // gap-3 = 12px
 const STACK_WIDTH_WITH_GAP = STACK_WIDTH + STACK_GAP
+// Collapsed rails: 52px on interfaces, 44px on the classic board (see the stack template)
+const COLLAPSED_STACK_WIDTH = 44
+const INTERFACE_COLLAPSED_STACK_WIDTH = 52
 
 // Boards at or below this many stacks render every stack — the legacy board always did, so this is
 // never more expensive than before, and it keeps ordinary boards fully in the DOM (browser find,
@@ -318,6 +368,51 @@ onUnmounted(() => {
   isUnmounted = true
 })
 
+// Rendered width of a stack including its trailing gap. Stacks whose data isn't loaded yet are
+// estimated by their collapsed state, and only a loaded-and-empty stack counts as hidden.
+const getStackOuterWidth = (stack: { id: string; title: string | null; collapsed?: boolean }) => {
+  const stackData = formattedData.value.get(stack.title)
+  if (
+    (hideEmptyStack.value && stackData && !stackData.length) ||
+    (isRequiredGroupingFieldColumn.value && stack.id === uncategorizedStackId) ||
+    (isMobileMode.value && stack.id === uncategorizedStackId && !stackData?.length)
+  ) {
+    return 0
+  }
+
+  if (isStackCollapsed(stack)) {
+    return (interfacePageDataApi ? INTERFACE_COLLAPSED_STACK_WIDTH : COLLAPSED_STACK_WIDTH) + STACK_GAP
+  }
+
+  return STACK_WIDTH_WITH_GAP
+}
+
+// stackOffsets[i] is the horizontal offset of stack i; the last entry is the total width. Collapsed
+// stacks are far narrower than expanded ones, so a uniform width would leave most of the viewport as
+// blank spacer on a board of collapsed stacks.
+const stackOffsets = computed(() => {
+  const options = groupingFieldColOptions.value
+  const offsets = new Array<number>(options.length + 1)
+  offsets[0] = 0
+  for (let i = 0; i < options.length; i++) {
+    offsets[i + 1] = offsets[i] + getStackOuterWidth(options[i])
+  }
+  return offsets
+})
+
+// Number of stacks whose offset is <= x (binary search over stackOffsets)
+const countStacksStartingBefore = (x: number) => {
+  const offsets = stackOffsets.value
+  let lo = 0
+  let hi = offsets.length
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1
+    if (offsets[mid] <= x) lo = mid + 1
+    else hi = mid
+  }
+  return lo
+}
+
 // Calculate horizontal stack visibility
 const calculateStackSlice = () => {
   if (!kanbanContainerRef.value) {
@@ -348,15 +443,10 @@ const calculateStackSlice = () => {
   const contentScrollLeft = Math.max(0, scrollLeft - padding)
   const visibleWidth = containerWidth - padding
 
-  // Calculate start index - each stack takes STACK_WIDTH, with STACK_GAP between them
-  // In flexbox with gap-3, the gap is automatically added between items
-  // So the effective width per stack is STACK_WIDTH + STACK_GAP
-  const startIndex = Math.max(0, Math.floor(contentScrollLeft / STACK_WIDTH_WITH_GAP))
-
-  // Calculate how many stacks fit in the visible area
-  // Add 1 to ensure we include partially visible stacks
-  const visibleCount = Math.ceil(visibleWidth / STACK_WIDTH_WITH_GAP) + 1
-  const endIndex = Math.min(startIndex + visibleCount, groupingFieldColOptions.value.length)
+  // First stack whose right edge is past the scroll position, and the stacks starting inside the viewport
+  const total = groupingFieldColOptions.value.length
+  const startIndex = Math.max(0, Math.min(countStacksStartingBefore(contentScrollLeft) - 1, total - 1))
+  const endIndex = Math.min(Math.max(countStacksStartingBefore(contentScrollLeft + visibleWidth), startIndex + 1), total)
 
   // Add buffer stacks for smooth scrolling
   const BUFFER_STACKS = 2
@@ -412,14 +502,14 @@ const stackWindow = computed(() => {
 // this slice on the next tick, so the in-place change is never the source of truth.
 const visibleStackOptions = computed(() => groupingFieldColOptions.value.slice(stackWindow.value.start, stackWindow.value.end))
 
-// Spacer widths approximate off-screen stacks at a uniform width (matching calculateStackSlice's
-// assumption). Collapsed/hidden stacks make this slightly imprecise, but it keeps the horizontal
-// scrollbar proportional, which is all that matters for high stack counts.
-const leftStackSpacerWidth = computed(() => stackWindow.value.start * STACK_WIDTH_WITH_GAP)
+// Spacer widths stand in for the off-screen stacks at their estimated widths (see stackOffsets)
+// Each spacer sits beside the Draggable in a gap-3 row, so that row gap stands in for one STACK_GAP
+const leftStackSpacerWidth = computed(() => Math.max(0, (stackOffsets.value[stackWindow.value.start] ?? 0) - STACK_GAP))
 
-const rightStackSpacerWidth = computed(
-  () => Math.max(0, groupingFieldColOptions.value.length - stackWindow.value.end) * STACK_WIDTH_WITH_GAP,
-)
+const rightStackSpacerWidth = computed(() => {
+  const offsets = stackOffsets.value
+  return Math.max(0, (offsets[offsets.length - 1] ?? 0) - (offsets[stackWindow.value.end] ?? 0) - STACK_GAP)
+})
 
 // Map a Draggable slot index (relative to the rendered window) back to the absolute index into
 // groupingFieldColOptions, which the stack mutation handlers rely on.
@@ -502,13 +592,75 @@ const stackCardSlices = shallowRef<Map<string | null, { start: number; end: numb
 // Version counter for slice changes - more efficient than hash calculation
 const slicesVersion = ref(0)
 
+// Search already brought into view, so filter/sort/realtime reloads under it don't move the board
+let lastScrolledSearch: string | undefined
+
+// Bring the first matching stack into view when no stack on screen holds a match
+const scrollToFirstMatchingStack = () => {
+  const container = kanbanContainerRef.value
+  const options = groupingFieldColOptions.value
+  if (!container || !options.length || !searchMatchTitles.value?.size) return
+
+  // Same viewport maths as calculateStackSlice (p-3 left padding)
+  const padding = 12
+  const left = Math.max(0, container.scrollLeft - padding)
+  const first = Math.max(0, countStacksStartingBefore(left) - 1)
+  const end = Math.min(countStacksStartingBefore(left + container.clientWidth - padding), options.length)
+  for (let i = first; i < end; i++) {
+    if (getStackOuterWidth(options[i]) && isSearchMatch(options[i])) return
+  }
+
+  const idx = options.findIndex((o) => getStackOuterWidth(o) && isSearchMatch(o))
+  if (idx !== -1) container.scrollTo({ left: stackOffsets.value[idx], behavior: 'smooth' })
+}
+
+// Recompute which stacks hold a search match after each reload; a new search also scrolls to one
+const refreshSearchMatches = async () => {
+  // Only the toolbar search reopens and dims stacks, not a URL `where` deep link
+  const query = search.value.query?.trim() ? xWhere.value : undefined
+  if (!query) {
+    searchMatchTitles.value = null
+    searchDismissedStacks.value = new Set()
+    lastScrolledSearch = undefined
+    return
+  }
+
+  const options = groupingFieldColOptions.value
+  let titles: Set<string | null> | undefined
+  if (useWindowedKanbanLoad.value && options.some((o) => !loadedStacks.value.has(o.title ?? null))) {
+    try {
+      titles = await fetchNonEmptyStackTitles()
+    } catch {
+      titles = undefined
+    }
+    // Superseded by a newer search
+    if (xWhere.value !== query) return
+  } else {
+    titles = new Set(options.map((o) => o.title ?? null).filter((title) => (countByStack.value.get(title) ?? 0) > 0))
+  }
+
+  searchMatchTitles.value = titles ?? null
+
+  if (query === lastScrolledSearch) return
+  lastScrolledSearch = query
+  searchDismissedStacks.value = new Set()
+
+  // After the reopened stacks lay out, so the offsets are their expanded widths
+  await nextTick()
+  scrollToFirstMatchingStack()
+}
+
 const reloadViewDataListener = withLoading(async (params?: { inPlace?: boolean }) => {
   // In place: refetch the loaded stacks over their cards, so the board never empties
-  if (params?.inPlace) return refreshLoadedStacksInPlace()
+  if (params?.inPlace) {
+    await refreshLoadedStacksInPlace()
+  } else {
+    // Reset so a filter/search/sort change refetches the current window fresh (and other stacks reload
+    // as they scroll back into view).
+    await loadVisibleStacks(true)
+  }
 
-  // Reset so a filter/search/sort change refetches the current window fresh (and other stacks reload
-  // as they scroll back into view).
-  await loadVisibleStacks(true)
+  refreshSearchMatches()
 })
 
 reloadViewDataHook?.on(reloadViewDataListener)
@@ -1004,11 +1156,21 @@ const handleDeleteStackConfirmClick = async () => {
 }
 
 const handleCollapseStack = async (stackIdx: number) => {
-  const currentCollapsed = groupingFieldColOptions.value[stackIdx].collapsed
+  const stack = groupingFieldColOptions.value[stackIdx]
+  // Open for the search: close it now; save the collapse only if it wasn't saved already
+  if (isSearchExpanded(stack)) {
+    searchDismissedStacks.value.add(stack.id)
+    if (stack.collapsed) return
+  }
+
+  const currentCollapsed = stack.collapsed
   await updateStackProperty(stackIdx, { collapsed: !currentCollapsed })
 }
 
 const handleCollapseAllStack = async () => {
+  // Stacks open only for the search are already saved collapsed — close them without a write
+  groupingFieldColOptions.value.filter(isSearchExpanded).forEach((stack) => searchDismissedStacks.value.add(stack.id))
+
   await updateAllStacksProperty((stack) => {
     if (stack.id !== addNewStackId && !stack.collapsed) {
       return { collapsed: true }
@@ -1489,6 +1651,13 @@ watch(
   },
 )
 
+// Collapsing/expanding (e.g. "Collapse all") changes stack widths, so the visible slice moves too
+watch(stackOffsets, () => {
+  nextTick(() => {
+    calculateStackSlice()
+  })
+})
+
 // Watch for container size changes
 const { width: containerWidth } = useElementSize(kanbanContainerRef)
 watch(containerWidth, () => {
@@ -1532,31 +1701,9 @@ const getRowId = (row: RowType) => {
   return pk ? `row-${pk}` : ''
 }
 
-const hideEmptyStack = computed<boolean>(() => parseProp(kanbanMetaData.value?.meta).hide_empty_stack || false)
-
-const autoCollapseEmptyStack = computed<boolean>(() => parseProp(kanbanMetaData.value?.meta).auto_collapse_empty_stack || false)
-
-// Session-only override: user-expanded auto-collapsed empty stacks for this view mount
-const userExpandedEmptyStacks = ref<Set<string>>(new Set())
-
-// Stacks temporarily expanded because a dragged card is hovering over them
-const tempExpandedStacks = ref<Set<string>>(new Set())
-
-const isStackEmpty = (stack: { title: string | null }) => {
-  return !formattedData.value.get(stack.title)?.length
-}
-
-const isStackCollapsed = (stack: { id: string; title: string | null; collapsed?: boolean }) => {
-  if (!stack || stack.id === addNewStackId) return false
-  if (tempExpandedStacks.value.has(stack.id)) return false
-  if (stack.collapsed) return true
-  if (autoCollapseEmptyStack.value && isStackEmpty(stack) && !userExpandedEmptyStacks.value.has(stack.id)) {
-    return true
-  }
-  return false
-}
-
 const handleCollapsedStackClick = (stack: { id: string; title: string | null; collapsed?: boolean }, stackIdx: number) => {
+  if (searchDismissedStacks.value.delete(stack.id)) return
+
   const isAutoCollapsedEmpty = !stack.collapsed && autoCollapseEmptyStack.value && isStackEmpty(stack)
   if (isAutoCollapsedEmpty) {
     userExpandedEmptyStacks.value.add(stack.id)
@@ -1823,7 +1970,7 @@ const cardFields = (record: RowType) => {
 
 <template>
   <div
-    class="flex flex-col w-full bg-nc-bg-gray-extralight h-full"
+    class="relative flex flex-col w-full bg-nc-bg-gray-extralight h-full"
     data-testid="nc-kanban-wrapper"
     :style="{
       minHeight: 'calc(100% - var(--topbar-height))',
@@ -2595,6 +2742,7 @@ const cardFields = (record: RowType) => {
                     'nc-kanban-collapsed-stack-reading-down': !!interfacePageDataApi,
                     'h-[52px]': !!interfacePageDataApi,
                     'h-[44px]': !interfacePageDataApi,
+                    'nc-kanban-collapsed-stack-search-miss': !!searchMatchTitles && !isSearchMatch(stack),
                   }"
                   :body-style="{
                     padding: '0px !important',
@@ -2617,7 +2765,7 @@ const cardFields = (record: RowType) => {
                       <a-skeleton-input :active="true" class="!w-full !h-4 !rounded-lg overflow-hidden" />
                     </div>
                     <div v-else class="nc-kanban-stack-head w-full flex items-center justify-between gap-2">
-                      <div class="flex items-center gap-1">
+                      <div class="flex items-center gap-1 min-w-0">
                         <NcButton
                           v-if="!(isLocked || isPublic || !hasEditPermission || interfacePageDataApi)"
                           :disabled="!stack.title"
@@ -2630,7 +2778,7 @@ const cardFields = (record: RowType) => {
                         </NcButton>
 
                         <!-- Interfaces show a bare count, freeing most of the bar for the title. -->
-                        <div class="flex-1 flex" :class="interfacePageDataApi ? 'max-w-[170px]' : 'max-w-[115px]'">
+                        <div class="flex-1 flex min-w-0" :class="interfacePageDataApi ? 'max-w-[170px]' : 'max-w-[115px]'">
                           <a-tag
                             class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none"
                             :color="
@@ -2674,9 +2822,14 @@ const cardFields = (record: RowType) => {
                         </div>
                       </div>
 
-                      <div class="flex items-center gap-2 truncate">
+                      <div class="flex items-center gap-2 flex-none">
                         <div
-                          class="nc-kanban-data-count px-1 rounded bg-nc-bg-gray-medium text-nc-content-gray text-sm font-weight-500 truncate"
+                          class="nc-kanban-data-count px-1 rounded text-sm font-weight-500"
+                          :class="
+                            searchMatchTitles && isSearchMatch(stack)
+                              ? 'bg-nc-bg-brand text-nc-content-brand'
+                              : 'bg-nc-bg-gray-medium text-nc-content-gray'
+                          "
                           :style="{ 'word-break': 'keep-all', 'white-space': 'nowrap' }"
                         >
                           <!-- Record Count (interfaces: bare number) -->
@@ -2872,6 +3025,18 @@ const cardFields = (record: RowType) => {
         </template>
       </NcDropdown>
     </div>
+
+    <div
+      v-if="!isViewDataLoading && searchMatchTitles?.size === 0"
+      class="absolute inset-x-0 bottom-16 flex justify-center pointer-events-none"
+      data-testid="nc-kanban-search-no-match"
+    >
+      <div
+        class="px-3 py-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default text-sm font-weight-500 text-nc-content-gray-subtle shadow-sm"
+      >
+        {{ $t('msg.noRecordsMatchYourSearchQuery') }}
+      </div>
+    </div>
   </div>
 
   <SmartsheetExpandedForm
@@ -2956,6 +3121,11 @@ const cardFields = (record: RowType) => {
   transform: rotate(-90deg) translateX(-100%);
   transform-origin: left top 0px;
   transition: left 0.2s ease-in-out 0s;
+}
+
+// Searching: stacks without a match recede so the matching counts stand out
+.nc-kanban-collapsed-stack-search-miss {
+  @apply opacity-50 hover:opacity-100;
 }
 
 // Interfaces read collapsed stacks TOP-TO-BOTTOM (reference design) — the

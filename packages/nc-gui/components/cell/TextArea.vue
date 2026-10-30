@@ -322,6 +322,15 @@ const onExpand = () => {
   isVisible.value = true
 }
 
+// Enter on a link inside the preview keeps its default.
+const onRichPreviewEnter = (e: KeyboardEvent) => {
+  if (!isInterfaceSmartPreview.value) return onExpand()
+  if (readOnly.value || e.target !== e.currentTarget) return
+
+  e.preventDefault()
+  startInterfaceSmartEdit()
+}
+
 const onSmartTextSaved = (markdown: string | null) => {
   // Mirror the new markdown into the expanded form's local row copy so the
   // form preview updates immediately (without waiting for the reload below).
@@ -792,7 +801,7 @@ useResizeObserver(inputWrapperRef, () => {
         @focus="isInterfaceSmartPreview ? onInterfaceSmartPreviewFocus($event) : undefined"
         @click.stop="isInterfaceSmartPreview ? startInterfaceSmartEdit() : isExpandedFormOpen ? onExpand() : undefined"
         @dblclick="isInterfaceSmartPreview ? undefined : onExpand()"
-        @keydown.enter.prevent="isInterfaceSmartPreview ? startInterfaceSmartEdit() : onExpand()"
+        @keydown.enter="onRichPreviewEnter"
       >
         <div
           v-dompurify-html="richTextContent"

@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "アップグレードしてフォームでログインを必須にする",
     "upgradeToUseFormRequireSigninSubtitle": "{plan} プランにアップグレードすると、フォーム送信前に回答者のログインを必須にできます。",
     "upgradeToUseSso": "SSO を使用するにはアップグレードしてください",
-    "upgradeToUseSsoSubtitle": "{plan} プランにアップグレードすると、シングルサインオン (SSO) を設定し、チームが ID プロバイダーでサインインできるようになります。",
-    "upgradeToUseAppFactory": "App Factory を使うにはアップグレードしてください",
-    "upgradeToUseAppFactorySubtitle": "{plan} プランにアップグレードすると、接続したリポジトリにコーディングエージェントを割り当てられます。"
+    "upgradeToUseSsoSubtitle": "{plan} プランにアップグレードすると、シングルサインオン (SSO) を設定し、チームが ID プロバイダーでサインインできるようになります。"
   },
   "general": {
     "scrollToBottom": "一番下までスクロール",
@@ -767,7 +765,8 @@
     "uploading": "アップロード中",
     "countAll": "すべてカウント",
     "factory": "ファクトリー",
-    "config": "構成"
+    "config": "構成",
+    "dismiss": "閉じる"
   },
   "objects": {
     "script": "スクリプト",
@@ -2201,7 +2200,7 @@
       "webhooks": "Webhooks",
       "webhooksDesc": "Webhookのトリガーとログを管理",
       "base": "プロジェクト",
-      "baseDesc": "プロジェクト設定、ソース、ジョブ",
+      "baseDesc": "プロジェクト設定、ソース、ジョブ、ドキュメントとそのコメント",
       "users": "ユーザー",
       "usersDesc": "プロジェクトのメンバー、ワークスペースのメンバー、および招待",
       "grantedCount": "{total}件中{count}件を付与",
@@ -3105,7 +3104,6 @@
       "syncInfo": "外部アプリからスケジュールに従ってデータを取得します。一方向です。",
       "automations": "オートメーション",
       "aiSkills": "AI スキル",
-      "mcpServer": "MCP サーバー",
       "auditLog": "監査ログ",
       "trashRetention": "ゴミ箱の保持期間",
       "snapshots": "Snapshots",
@@ -3136,7 +3134,7 @@
         "members": "このプロジェクトを開けるユーザーと、そのユーザーができることです。",
         "permissions": "各テーブル、フィールド、ドキュメントを表示または編集できる人です。",
         "apiTokens": "外部アプリがこのプロジェクトを読み書きできるようにするトークンです。",
-        "mcp": "MCP 経由で AI クライアントをこのプロジェクトに接続します。",
+        "mcp": "あなた自身のアクセス権限で、AI ツールがこのプロジェクトを扱えるようにします。",
         "integrations": "このプロジェクトが利用できる接続済みアカウントです。",
         "automations": "トリガーで実行されるワークフローです。",
         "auditLog": "このプロジェクトで行われたすべての変更と、その実行者です。",
@@ -3155,7 +3153,8 @@
       "upgradeDescDateDependency": "レコードを移動したときに、連動する日付を自動的にずらします。",
       "concernProject": "プロジェクト",
       "concernApps": "Apps",
-      "concernTabs": "設定セクション"
+      "concernTabs": "設定セクション",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "カテゴリ",
     "blockquote": "引用",
@@ -5316,7 +5315,6 @@
     "factoryEnvironment": "環境",
     "factoryCommitOrPush": "コミットまたはプッシュ",
     "factoryCompareBranch": "ブランチを比較",
-    "factoryAddTab": "パネルを開く",
     "factoryCommitPushPrompt": "変更をコミットしてブランチをプッシュしてください。",
     "chatYesterday": "昨日",
     "chatCopyMessage": "メッセージをコピー",
@@ -5422,7 +5420,65 @@
     "duplicateField": "フィールドを複製",
     "extensionError": "拡張機能のエラー",
     "clearData": "データをクリア",
-    "copyProject": "プロジェクトをコピー"
+    "copyProject": "プロジェクトをコピー",
+    "factoryBootPartMemory": "メモリ",
+    "factoryBootPartNetwork": "ネットワーク",
+    "factoryBootPartRepo": "リポジトリ",
+    "factoryBootPartServices": "サービス",
+    "factoryMachines": "マシン",
+    "factoryMachinesHint": "セッションの開始環境です。新しいセッションは既定のマシンを使います。別のマシンはコンポーザーで選べます。",
+    "factoryMachinesCreatorOnly": "マシンの作成・編集・ビルドはメンテナーのみが行えます。",
+    "factoryMachineSearchPanes": "検索",
+    "factoryMachineStockTag": "標準搭載",
+    "factoryMachineStockExtras": "・git、GitHub CLI、ripgrep、Chrome",
+    "factoryMachineSetDefault": "既定にする",
+    "factoryMachineUpgrade": "アップグレード",
+    "factoryMachineUpgradingShort": "アップグレード中…",
+    "factoryMachineUpdateAvailable": "アップデートがあります",
+    "factoryMachineUpgradeHint": "古いベースイメージ上でビルドされています。アップグレードすると、同じパッケージが現在のイメージ上で再ビルドされます。",
+    "factoryMachineUpgradeBanner": "古いベースイメージ上でビルドされているため、新しいセッションはここから開始できません。アップグレードすると、同じパッケージが現在のイメージ上で再ビルドされます。",
+    "factoryMachineStock": "ベースマシン",
+    "factoryMachineStockShort": "Node.js 24、Python 3、git、gh、Chrome",
+    "factoryMachineStockBody": "Node.js 24、Python 3、git、GitHub CLI、ripgrep、Chrome。すべてのマシンはこれを基盤とし、マシンのないセッションはこの上で実行されます。",
+    "factoryMachinesEmptyTitle": "マシンはまだありません",
+    "factoryMachinesEmptyBody": "セッションはベースマシン上で実行されます。このリポジトリに必要なランタイム、データベース、ツールを含むマシンを作成すると、すべてのセッションがそれらを備えた状態で始まります。",
+    "factoryMachinePickTitle": "セッションの実行環境",
+    "factoryMachinePip": "グローバル pip",
+    "factoryMachineReady": "準備完了",
+    "factoryMachineStepBase": "Factory デスクトップベース",
+    "factoryMachineStepBaseDetail": "デスクトップ、git、GitHub CLI を含む Ubuntu 22.04",
+    "factoryMachineStepSave": "マシンを保存",
+    "factoryMachineStepSaveDetail": "このプロジェクトのセッション用スナップショット",
+    "factoryMachineServiceStarts": "すべてのセッションで起動します",
+    "factoryMachineServicesHint": "環境変数としてエージェントに渡されるため、テストや開発サーバーは設定なしで接続できます。",
+    "factoryMachineRebuild": "更新を取り込んで再ビルド",
+    "factoryMachineUseVersion": "このバージョンを使う",
+    "factoryMachineReused": "同一のビルドを再利用しました",
+    "factoryMachineSetUp": "マシンをセットアップ",
+    "factoryMachineSuggestUpdate": "今後のセッションのために {machine} に追加しますか?",
+    "factoryMachineSuggestNote": "バックグラウンドで再ビルドします。このセッションはそのまま継続します。",
+    "factoryMachineSuggestCreatorOnly": "マシンを変更できるのはメンテナーのみです。適用を依頼してください。",
+    "factoryMachineSuggestAccept": "追加して再ビルド",
+    "factoryMachineSuggestAdded": "{machine} の新しいバージョンをビルドしています。準備ができ次第、新しいセッションで使われます。",
+    "factoryMachineSuggestDeclined": "適用されていません。マシンは「マシン」からいつでも変更できます。",
+    "factoryMachineSuggestAlreadyIn": "{machine} にはすでに含まれています。",
+    "factoryMachineSuggestReady": "{machine} v{version} の準備ができました。新しいセッションはこの上で開始します。",
+    "factoryMachineSuggestFailed": "{machine} の新しいバージョンのビルドに失敗しました。",
+    "factoryMachineSuggestCancelled": "{machine} の新しいバージョンはキャンセルされました。",
+    "factoryMachineSuggestedFix": "修正案",
+    "factoryMachineSameAsBefore": "同じ選択内容で再ビルド",
+    "factoryMachineTabOverview": "概要",
+    "factoryMachineUnbuiltTo": "下書き {next}: {version} から {count} 件の変更、未ビルド | 下書き {next}: {version} から {count} 件の変更、未ビルド",
+    "factoryMachineReview": "編集を続ける",
+    "factoryMachineTabVersions": "バージョン",
+    "factoryMachineServiceBadge": "サービス",
+    "factoryMachineUndoChange": "この変更を元に戻す",
+    "factoryMachineStepOf": "{step}、ステップ {n}/{total}",
+    "factoryMachineStillUsing": "新しいセッションは引き続き {version} を使用します。",
+    "factoryMachineReusedLog": "同一の以前のビルドを再利用したため、ビルドするものはありませんでした。",
+    "dontExpand": "展開しない",
+    "createSchema": "スキーマを作成",
+    "configureSources": "ソースを設定"
   },
   "activity": {
     "useTemplate": "テンプレートを使用",
@@ -7770,6 +7826,81 @@
       "tryBody": "新しいチャットを開始して「List my NocoDB tools」と尋ねます。",
       "tokenText": "ツールがトークンしか受け付けない場合は",
       "tokenButton": "MCP トークンを作成"
+    },
+    "pane": {
+      "tabApps": "AI アプリ",
+      "tabManual": "手動接続",
+      "connectTitle": "AI アプリを接続",
+      "recommended": "おすすめ",
+      "connectBody": "NocoDB アカウントでログインします。何を参照・変更できるかはあなたが正確に決められます。",
+      "otherToolUrl": "別の AI ツールをお使いですか? 追加してください",
+      "otherTool": "その他のツール",
+      "copyValue": "{label} をコピー",
+      "addTo": "{client} に NocoDB を追加",
+      "signInTitle": "NocoDB でログインして承認",
+      "waiting": "{client} のログインを待っています…",
+      "waitingHint": "承認すると自動的に更新されます。",
+      "connectedTitle": "{client} は接続されています",
+      "connectedBody": "これであなたの AI アプリに表示されます。",
+      "connectedElsewhere": "他のプロジェクトで承認されているため、ここには表示されません。",
+      "manageAccess": "アクセスを管理",
+      "fallbackText": "AI ツールが NocoDB でログインできませんか?",
+      "fallbackLink": "代わりに手動接続を使う",
+      "appsTitle": "あなたの AI アプリ",
+      "appsHint": "あなただけに表示されます",
+      "app": "アプリ",
+      "lastSignedInAt": "最終ログイン {time}",
+      "lastUsed": "最終使用",
+      "lastUsedAt": "最終使用 {time}",
+      "canDelete": "データを削除できます",
+      "toolsTitle": "ツールと権限",
+      "neverMoreThanRole": "このプロジェクトでのあなた自身のロール ({role}) を超えることはありません。",
+      "neverMoreThanAccess": "このプロジェクトに対するあなた自身のアクセス権を超えることはありません。",
+      "neverMoreThanOwnAccess": "承認された場所でのあなた自身のアクセス権を超えることはありません。",
+      "notEditable": "このアプリにできることはログイン時に決まり、ここでは変更できません。ツールを選び直すには、切断してからもう一度ログインしてください。",
+      "disconnectBody": "このアプリをこのプロジェクトから切断します。再接続するには、もう一度ログインが必要です。",
+      "disconnectBodyWide": "このプロジェクトだけでなく、承認されているすべての場所でこのアプリを切断します。再接続するには、もう一度ログインが必要です。",
+      "disconnectBodyEverywhere": "承認されているすべての場所で、このアプリを切断します。再接続するには、もう一度ログインが必要です。",
+      "disconnectConfirm": "{client} を切断しますか?",
+      "disconnectConfirmBody": "すぐにアクセス権を失い、再接続にはもう一度ログインが必要になります。",
+      "disconnected": "{client} を切断しました",
+      "accessUpdated": "アクセス権を更新しました",
+      "manualTitle": "あなたの手動接続",
+      "manualBody": "NocoDB でログインできないスクリプト、CI ジョブ、クライアント向けです。",
+      "manualNote": "手動接続は静的な API キーを使用します。取り消すまで有効で、設定を持つ人は誰でも同じアクセス権を得ます。ツールが対応している場合は、{link}。",
+      "manualNoteLink": "代わりに AI アプリとして接続してください",
+      "field": {
+        "remoteServerUrl": "リモート MCP サーバーの URL",
+        "authentication": "認証",
+        "url": "URL",
+        "transport": "トランスポート"
+      },
+      "claude": {
+        "where": "Claude で「設定」›「コネクタ」を開き、「カスタムコネクタを追加」を選択します。次の項目を入力します:",
+        "auth": "NocoDB の横の「接続」を選択します。NocoDB でログインし、Claude にアクセスを許可する範囲を選んでから「承認」を選択します。"
+      },
+      "chatgpt": {
+        "where": "ChatGPT で「プラグイン」を開き、「追加」、続いて「カスタム MCP サーバーを追加」を選択します。次の項目を入力します:",
+        "auth": "「作成」を選択します。ChatGPT が新しいウィンドウで NocoDB を開きます。ログインし、アクセスを許可する範囲を選んでから「承認」を選択します。"
+      },
+      "claudeCode": {
+        "auth": "Claude Code で /mcp を実行し、nocodb を選んで「認証」を選択します。ブラウザーでアクセスを許可する範囲を選んでから「承認」を選択します。"
+      },
+      "cursor": {
+        "where": "Cursor で「設定」›「MCP」を開き、「新しい MCP サーバーを追加」を選択します。次の項目を入力します:",
+        "auth": "MCP の一覧で nocodb の横の「接続」を選択します。ブラウザーで NocoDB にログインして「承認」を選択します。"
+      },
+      "codex": {
+        "auth": "ログインコマンドを実行し、ブラウザーで NocoDB にログインして「承認」を選択します。"
+      },
+      "windsurf": {
+        "where": "Windsurf で「設定」›「Cascade」›「MCP サーバー」を開き、「カスタムサーバーを追加」を選択します。次の項目を入力します:",
+        "auth": "nocodb の横の「接続」を選択します。ブラウザーで NocoDB にログインして「承認」を選択します。"
+      },
+      "other": {
+        "where": "次の情報でクライアントにリモート MCP サーバーを追加します:",
+        "auth": "接続はクライアント側から開始します。ブラウザーで NocoDB が開くので、そこでログインし、クライアントにアクセスを許可する範囲を選んで「承認」を選択します。"
+      }
     }
   }
 }

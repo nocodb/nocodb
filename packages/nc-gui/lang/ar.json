@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "قم بالترقية لطلب تسجيل الدخول في النماذج",
     "upgradeToUseFormRequireSigninSubtitle": "قم بالترقية إلى خطة {plan} لمطالبة المستجيبين بتسجيل الدخول قبل إرسال النموذج.",
     "upgradeToUseSso": "الترقية لاستخدام SSO",
-    "upgradeToUseSsoSubtitle": "قم بالترقية إلى خطة {plan} لإعداد الدخول الموحّد (SSO) والسماح لفريقك بتسجيل الدخول باستخدام موفّر الهوية الخاص بك.",
-    "upgradeToUseAppFactory": "قم بالترقية لاستخدام App Factory",
-    "upgradeToUseAppFactorySubtitle": "قم بالترقية إلى خطة {plan} لتشغيل وكلاء البرمجة على مستودعاتك المتصلة."
+    "upgradeToUseSsoSubtitle": "قم بالترقية إلى خطة {plan} لإعداد الدخول الموحّد (SSO) والسماح لفريقك بتسجيل الدخول باستخدام موفّر الهوية الخاص بك."
   },
   "general": {
     "scrollToBottom": "التمرير إلى الأسفل",
@@ -767,7 +765,8 @@
     "uploading": "جارٍ الرفع",
     "countAll": "عدّ الكل",
     "factory": "مصنع",
-    "config": "التكوين"
+    "config": "التكوين",
+    "dismiss": "إغلاق"
   },
   "objects": {
     "script": "سكربت",
@@ -2201,7 +2200,7 @@
       "webhooks": "الوب",
       "webhooksDesc": "إدارة مشغلات ويب هوك وسجلات",
       "base": "المشروع",
-      "baseDesc": "إعدادات المشروع والمصادر والمهام",
+      "baseDesc": "إعدادات المشروع والمصادر والمهام والمستندات وتعليقاتها",
       "users": "المستخدمون",
       "usersDesc": "أعضاء المشروع وأعضاء مساحة العمل والدعوات",
       "grantedCount": "تم منح {count} من {total}",
@@ -3105,7 +3104,6 @@
       "syncInfo": "اسحب البيانات من تطبيق خارجي وفق جدول زمني. باتجاه واحد.",
       "automations": "الأتمتة",
       "aiSkills": "مهارات الذكاء الاصطناعي",
-      "mcpServer": "خادم MCP",
       "auditLog": "سجل التدقيق",
       "trashRetention": "مدة الاحتفاظ بالمهملات",
       "snapshots": "Snapshots",
@@ -3136,7 +3134,7 @@
         "members": "من يمكنه فتح هذا المشروع وما الذي يمكنه فعله فيه.",
         "permissions": "من يمكنه عرض أو تحرير كل جدول وحقل ومستند.",
         "apiTokens": "رموز تتيح للتطبيقات الخارجية القراءة من هذا المشروع والكتابة فيه.",
-        "mcp": "اربط عملاء الذكاء الاصطناعي بهذا المشروع عبر MCP.",
+        "mcp": "اسمح لأدوات الذكاء الاصطناعي لديك بالعمل مع هذا المشروع باستخدام صلاحياتك أنت.",
         "integrations": "الحسابات المتصلة التي يمكن لهذا المشروع استخدامها.",
         "automations": "سير عمل يعمل عند حدوث مشغل.",
         "auditLog": "كل تغيير جرى في هذا المشروع ومن قام به.",
@@ -3155,7 +3153,8 @@
       "upgradeDescDateDependency": "إزاحة التواريخ المرتبطة تلقائيًا عند نقل سجل.",
       "concernProject": "مشروع",
       "concernApps": "Apps",
-      "concernTabs": "أقسام الإعدادات"
+      "concernTabs": "أقسام الإعدادات",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "الفئات",
     "blockquote": "اقتباس",
@@ -5319,7 +5318,6 @@
     "factoryEnvironment": "البيئة",
     "factoryCommitOrPush": "إجراء commit أو push",
     "factoryCompareBranch": "مقارنة الفرع",
-    "factoryAddTab": "فتح لوحة",
     "factoryCommitPushPrompt": "نفّذ commit للتغييرات وادفع الفرع.",
     "chatYesterday": "أمس",
     "chatCopyMessage": "نسخ الرسالة",
@@ -5425,7 +5423,64 @@
     "duplicateField": "تكرار الحقل",
     "extensionError": "خطأ في الامتداد",
     "clearData": "مسح البيانات",
-    "copyProject": "نسخ المشروع"
+    "copyProject": "نسخ المشروع",
+    "factoryBootPartCpu": "المعالج",
+    "factoryBootPartMemory": "الذاكرة",
+    "factoryBootPartNetwork": "الشبكة",
+    "factoryBootPartRepo": "المستودع",
+    "factoryBootPartServices": "الخدمات",
+    "factoryMachines": "الأجهزة",
+    "factoryMachinesHint": "البيئة التي تبدأ منها جلساتك. تستخدم الجلسات الجديدة الجهاز الافتراضي، ويمكنك اختيار جهاز آخر في المحرر.",
+    "factoryMachinesCreatorOnly": "يمكن للمشرفين فقط إنشاء الأجهزة أو تحريرها أو بناؤها.",
+    "factoryMachineSearchPanes": "البحث",
+    "factoryMachineStockTag": "مضمّن",
+    "factoryMachineSetDefault": "تعيين كافتراضي",
+    "factoryMachineUpgrade": "ترقية",
+    "factoryMachineUpgradingShort": "جارٍ الترقية…",
+    "factoryMachineUpdateAvailable": "التحديث متاح",
+    "factoryMachineUpgradeHint": "مبني على صورة أساسية أقدم. تعيد الترقية بناء الحزم نفسها على الصورة الحالية.",
+    "factoryMachineUpgradeBanner": "مبني على صورة أساسية أقدم، لذا لا يمكن للجلسات الجديدة أن تبدأ منه. قم بالترقية لإعادة بناء الحزم نفسها على الصورة الحالية.",
+    "factoryMachineStock": "الجهاز الأساسي",
+    "factoryMachineStockBody": "Node.js 24 و Python 3 و git و GitHub CLI و ripgrep و Chrome. يُبنى كل جهاز فوقه، وتعمل عليه الجلسات التي بلا جهاز.",
+    "factoryMachinesEmptyTitle": "لا توجد أجهزة بعد",
+    "factoryMachinesEmptyBody": "تعمل الجلسات على الجهاز الأساسي. أنشئ جهازاً يضم بيئات التشغيل وقواعد البيانات والأدوات التي يحتاجها هذا المستودع، فتبدأ كل جلسة وهي مزودة بها.",
+    "factoryMachinePickTitle": "بدء الجلسة على",
+    "factoryMachinePip": "pip العام",
+    "factoryMachineReady": "جاهز",
+    "factoryMachineStepBase": "أساس سطح مكتب Factory",
+    "factoryMachineStepBaseDetail": "Ubuntu 22.04 مع سطح المكتب و git و GitHub CLI",
+    "factoryMachineStepSave": "حفظ الجهاز",
+    "factoryMachineStepSaveDetail": "لقطة لجلسات هذا المشروع",
+    "factoryMachineServiceStarts": "يبدأ مع كل جلسة",
+    "factoryMachineServicesHint": "تُتاح للوكيل كمتغيرات بيئة، فتتصل الاختبارات وخوادم التطوير دون أي إعداد.",
+    "factoryMachineRebuild": "إعادة البناء مع التحديثات",
+    "factoryMachineUseVersion": "استخدام هذا الإصدار",
+    "factoryMachineReused": "تمت إعادة استخدام بناء مطابق",
+    "factoryMachineSetUp": "إعداد الجهاز",
+    "factoryMachineSuggestUpdate": "هل تريد الإضافة إلى {machine} للجلسات المستقبلية؟",
+    "factoryMachineSuggestNote": "تتم إعادة البناء في الخلفية. تستمر هذه الجلسة كما هي.",
+    "factoryMachineSuggestCreatorOnly": "يمكن للمشرفين فقط تغيير الأجهزة. اطلب من أحدهم تطبيق هذا.",
+    "factoryMachineSuggestAccept": "إضافة وإعادة بناء",
+    "factoryMachineSuggestAdded": "يجري بناء إصدار جديد من {machine}. ستستخدمه الجلسات الجديدة فور جاهزيته.",
+    "factoryMachineSuggestDeclined": "لم يُطبَّق. يمكنك تغيير الجهاز في أي وقت من الأجهزة.",
+    "factoryMachineSuggestAlreadyIn": "{machine} يحتوي على هذا بالفعل.",
+    "factoryMachineSuggestReady": "{machine} v{version} جاهز. ستبدأ الجلسات الجديدة عليه.",
+    "factoryMachineSuggestFailed": "فشل بناء الإصدار الجديد من {machine}.",
+    "factoryMachineSuggestCancelled": "تم إلغاء الإصدار الجديد من {machine}.",
+    "factoryMachineSuggestedFix": "إصلاح مقترح",
+    "factoryMachineSameAsBefore": "الاختيار نفسه، أُعيد البناء",
+    "factoryMachineTabOverview": "نظرة عامة",
+    "factoryMachineUnbuiltTo": "مسودة {next}: {count} تغيير عن {version}، لم يُبنَ | مسودة {next}: {count} تغييرات عن {version}، لم يُبنَ",
+    "factoryMachineReview": "متابعة التحرير",
+    "factoryMachineTabVersions": "الإصدارات",
+    "factoryMachineServiceBadge": "خدمة",
+    "factoryMachineUndoChange": "التراجع عن هذا التغيير",
+    "factoryMachineStepOf": "{step}، الخطوة {n} من {total}",
+    "factoryMachineStillUsing": "تواصل الجلسات الجديدة استخدام {version}.",
+    "factoryMachineReusedLog": "تمت إعادة استخدام بناء سابق مطابق، لذا لم يكن هناك ما يُبنى.",
+    "dontExpand": "عدم التوسيع",
+    "createSchema": "إنشاء مخطط",
+    "configureSources": "تكوين المصادر"
   },
   "activity": {
     "useTemplate": "استخدام القالب",
@@ -7773,6 +7828,81 @@
       "tryBody": "ابدأ محادثة جديدة واسأل «List my NocoDB tools».",
       "tokenText": "أداتك تقبل رمزًا فقط؟",
       "tokenButton": "إنشاء رمز MCP"
+    },
+    "pane": {
+      "tabApps": "تطبيقات الذكاء الاصطناعي",
+      "tabManual": "الاتصالات اليدوية",
+      "connectTitle": "توصيل تطبيق ذكاء اصطناعي",
+      "recommended": "موصى به",
+      "connectBody": "سجّل الدخول بحساب NocoDB الخاص بك. أنت تحدد بالضبط ما يمكنه رؤيته وتغييره.",
+      "otherToolUrl": "هل تستخدم أداة ذكاء اصطناعي أخرى؟ أضف",
+      "otherTool": "أداة أخرى",
+      "copyValue": "نسخ {label}",
+      "addTo": "إضافة NocoDB إلى {client}",
+      "signInTitle": "سجّل الدخول باستخدام NocoDB وفوّض",
+      "waiting": "في انتظار تسجيل دخول {client}…",
+      "waitingHint": "يتم تحديث هذا تلقائياً بمجرد التفويض.",
+      "connectedTitle": "{client} متصل",
+      "connectedBody": "يظهر الآن ضمن تطبيقات الذكاء الاصطناعي الخاصة بك.",
+      "connectedElsewhere": "تم تفويضه لمشاريع أخرى، لذا لا يظهر هنا.",
+      "manageAccess": "إدارة الوصول",
+      "fallbackText": "هل يتعذر على أداة الذكاء الاصطناعي لديك تسجيل الدخول باستخدام NocoDB؟",
+      "fallbackLink": "استخدم اتصالاً يدوياً بدلاً من ذلك",
+      "appsTitle": "تطبيقات الذكاء الاصطناعي الخاصة بك",
+      "appsHint": "مرئي لك وحدك",
+      "app": "التطبيق",
+      "lastSignedInAt": "آخر تسجيل دخول {time}",
+      "lastUsed": "آخر استخدام",
+      "lastUsedAt": "آخر استخدام {time}",
+      "canDelete": "يمكنه حذف البيانات",
+      "toolsTitle": "الأدوات والأذونات",
+      "neverMoreThanRole": "لا يتجاوز أبداً دورك أنت في هذا المشروع ({role}).",
+      "neverMoreThanAccess": "لا يتجاوز أبداً وصولك أنت إلى هذا المشروع.",
+      "neverMoreThanOwnAccess": "لا يتجاوز أبداً وصولك أنت حيث تم التفويض.",
+      "notEditable": "تم تحديد ما يمكن لهذا التطبيق فعله عند تسجيل دخوله، ولا يمكن تغييره هنا. اقطع اتصاله وسجّل دخوله من جديد لاختيار أدواته.",
+      "disconnectBody": "يقطع اتصال هذا التطبيق بهذا المشروع. سيحتاج إلى تسجيل الدخول مرة أخرى لإعادة الاتصال.",
+      "disconnectBodyWide": "يقطع اتصال هذا التطبيق في كل مكان تم تفويضه فيه، وليس في هذا المشروع فقط. سيحتاج إلى تسجيل الدخول مرة أخرى لإعادة الاتصال.",
+      "disconnectBodyEverywhere": "يقطع اتصال هذا التطبيق في كل مكان تم تفويضه فيه. سيحتاج إلى تسجيل الدخول مرة أخرى لإعادة الاتصال.",
+      "disconnectConfirm": "هل تريد قطع اتصال {client}؟",
+      "disconnectConfirmBody": "يفقد الوصول على الفور ويحتاج إلى تسجيل الدخول مرة أخرى لإعادة الاتصال.",
+      "disconnected": "تم قطع اتصال {client}",
+      "accessUpdated": "تم تحديث الوصول",
+      "manualTitle": "اتصالاتك اليدوية",
+      "manualBody": "للبرامج النصية ومهام CI والعملاء الذين لا يمكنهم تسجيل الدخول باستخدام NocoDB.",
+      "manualNote": "تستخدم الاتصالات اليدوية مفتاح API ثابتاً. يظل صالحاً حتى تلغيه، وكل من لديه هذه الإعدادات يحصل على الوصول نفسه. إذا كانت أداتك تدعم ذلك، {link}.",
+      "manualNoteLink": "فوصّلها كتطبيق ذكاء اصطناعي بدلاً من ذلك",
+      "field": {
+        "remoteServerUrl": "عنوان URL لخادم MCP البعيد",
+        "authentication": "المصادقة",
+        "url": "URL",
+        "transport": "النقل"
+      },
+      "claude": {
+        "where": "في Claude، افتح الإعدادات › الموصلات واختر إضافة موصل مخصص. املأ ما يلي:",
+        "auth": "اختر اتصال بجوار NocoDB. سجّل الدخول باستخدام NocoDB، واختر ما يمكن لـ Claude الوصول إليه، ثم اختر تفويض."
+      },
+      "chatgpt": {
+        "where": "في ChatGPT، افتح الإضافات، واختر إضافة، ثم إضافة خادم MCP مخصص. املأ ما يلي:",
+        "auth": "اختر إنشاء. سيفتح ChatGPT تطبيق NocoDB في نافذة جديدة. سجّل الدخول، واختر ما يمكنه الوصول إليه، ثم اختر تفويض."
+      },
+      "claudeCode": {
+        "auth": "في Claude Code، شغّل /mcp، واختر nocodb ثم اختر المصادقة. في المتصفح، اختر ما يمكنه الوصول إليه، ثم اختر تفويض."
+      },
+      "cursor": {
+        "where": "في Cursor، افتح الإعدادات › MCP واختر إضافة خادم MCP جديد. املأ ما يلي:",
+        "auth": "اختر اتصال بجوار nocodb في قائمة MCP. سجّل الدخول باستخدام NocoDB في المتصفح، ثم اختر تفويض."
+      },
+      "codex": {
+        "auth": "شغّل أمر تسجيل الدخول، وسجّل الدخول باستخدام NocoDB في المتصفح، ثم اختر تفويض."
+      },
+      "windsurf": {
+        "where": "في Windsurf، افتح الإعدادات › Cascade › خوادم MCP واختر إضافة خادم مخصص. املأ ما يلي:",
+        "auth": "اختر اتصال بجوار nocodb. سجّل الدخول باستخدام NocoDB في المتصفح، ثم اختر تفويض."
+      },
+      "other": {
+        "where": "أضف خادم MCP بعيداً في عميلك بهذه البيانات:",
+        "auth": "ابدأ الاتصال من عميلك. سيُفتح NocoDB في المتصفح، حيث تسجّل الدخول وتختار ما يمكن للعميل الوصول إليه ثم تختار تفويض."
+      }
     }
   }
 }

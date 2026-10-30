@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "Faça upgrade para exigir início de sessão nos formulários",
     "upgradeToUseFormRequireSigninSubtitle": "Faça upgrade para o plano {plan} para exigir que os inquiridos iniciem sessão antes de submeter um formulário.",
     "upgradeToUseSso": "Atualize para usar SSO",
-    "upgradeToUseSsoSubtitle": "Faça o upgrade para o plano {plan} para configurar o Início de Sessão Único (SSO) e permitir que a sua equipa inicie sessão com o seu fornecedor de identidade.",
-    "upgradeToUseAppFactory": "Atualize o plano para usar a App Factory",
-    "upgradeToUseAppFactorySubtitle": "Atualize para o plano {plan} para lançar agentes de programação nos seus repositórios ligados."
+    "upgradeToUseSsoSubtitle": "Faça o upgrade para o plano {plan} para configurar o Início de Sessão Único (SSO) e permitir que a sua equipa inicie sessão com o seu fornecedor de identidade."
   },
   "general": {
     "scrollToBottom": "Rolar para o final",
@@ -766,7 +764,8 @@
     "toggle": "Alternar",
     "uploading": "A carregar",
     "countAll": "Contar tudo",
-    "config": "Configuração"
+    "config": "Configuração",
+    "dismiss": "Dispensar"
   },
   "objects": {
     "script": "Script",
@@ -2200,7 +2199,7 @@
       "webhooks": "Webhooks",
       "webhooksDesc": "Gerenciar webhook gatilhos e logs",
       "base": "Projeto",
-      "baseDesc": "Definições, origens e tarefas do projeto",
+      "baseDesc": "Definições do projeto, fontes, tarefas, documentos e respetivos comentários",
       "users": "Utilizadores",
       "usersDesc": "Membros do projeto, membros da área de trabalho e convites",
       "grantedCount": "{count} de {total} concedidos",
@@ -3103,7 +3102,6 @@
       "syncInfo": "Traga dados de uma aplicação externa de forma agendada. Unidirecional.",
       "automations": "Automatizações",
       "aiSkills": "Skills de IA",
-      "mcpServer": "Servidor MCP",
       "auditLog": "Registo de auditoria",
       "trashRetention": "Retenção da reciclagem",
       "snapshots": "Snapshots",
@@ -3134,7 +3132,7 @@
         "members": "Quem pode abrir este projeto e o que pode fazer nele.",
         "permissions": "Quem pode ver ou editar cada tabela, campo e documento.",
         "apiTokens": "Tokens que permitem a aplicações externas ler e escrever neste projeto.",
-        "mcp": "Ligue clientes de IA a este projeto através de MCP.",
+        "mcp": "Deixe as suas ferramentas de IA trabalhar com este projeto, com os seus próprios acessos.",
         "integrations": "Contas ligadas que este projeto pode utilizar.",
         "automations": "Fluxos de trabalho que correm a partir de um acionador.",
         "auditLog": "Todas as alterações feitas neste projeto e quem as fez.",
@@ -3153,7 +3151,8 @@
       "upgradeDescDateDependency": "Desloca automaticamente as datas dependentes quando um registo é movido.",
       "concernProject": "Projeto",
       "concernApps": "Apps",
-      "concernTabs": "Secções de definições"
+      "concernTabs": "Secções de definições",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "Categorias",
     "blockquote": "Citação",
@@ -5309,7 +5308,6 @@
     "factoryEnvironment": "Ambiente",
     "factoryCommitOrPush": "Fazer commit ou push",
     "factoryCompareBranch": "Comparar ramo",
-    "factoryAddTab": "Abrir um painel",
     "factoryCommitPushPrompt": "Faz commit das alterações e push do ramo.",
     "chatYesterday": "Ontem",
     "chatCopyMessage": "Copiar mensagem",
@@ -5415,7 +5413,64 @@
     "duplicateField": "Duplicar campo",
     "extensionError": "Erro de extensão",
     "clearData": "Limpar dados",
-    "copyProject": "Copiar projeto"
+    "copyProject": "Copiar projeto",
+    "factoryBootPartCpu": "Processador",
+    "factoryBootPartMemory": "Memória",
+    "factoryBootPartNetwork": "Rede",
+    "factoryBootPartRepo": "Repositório",
+    "factoryBootPartServices": "Serviços",
+    "factoryMachines": "Máquinas",
+    "factoryMachinesHint": "O ambiente a partir do qual as suas sessões arrancam. As novas sessões utilizam a predefinida; escolha outra no compositor.",
+    "factoryMachinesCreatorOnly": "Apenas os mantenedores podem criar, editar ou construir máquinas.",
+    "factoryMachineSearchPanes": "Procurar",
+    "factoryMachineStockTag": "Incluído",
+    "factoryMachineSetDefault": "Tornar predefinida",
+    "factoryMachineUpgrade": "Atualizar",
+    "factoryMachineUpgradingShort": "A atualizar…",
+    "factoryMachineUpdateAvailable": "Atualização disponível",
+    "factoryMachineUpgradeHint": "Foi construída sobre uma imagem base mais antiga. A atualização reconstrói os mesmos pacotes sobre a atual.",
+    "factoryMachineUpgradeBanner": "Foi construída sobre uma imagem base mais antiga, por isso as novas sessões não podem arrancar a partir dela. Atualize para reconstruir os mesmos pacotes sobre a atual.",
+    "factoryMachineStock": "Máquina base",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep e Chrome. Todas as máquinas assentam nela e as sessões sem máquina são executadas nela.",
+    "factoryMachinesEmptyTitle": "Ainda não há máquinas",
+    "factoryMachinesEmptyBody": "As sessões são executadas na máquina base. Crie uma com os runtimes, as bases de dados e as ferramentas de que este repositório precisa, e todas as sessões começam com eles.",
+    "factoryMachinePickTitle": "Iniciar a sessão em",
+    "factoryMachinePip": "pip global",
+    "factoryMachineReady": "Pronta",
+    "factoryMachineStepBase": "Base de ambiente de trabalho Factory",
+    "factoryMachineStepBaseDetail": "Ubuntu 22.04 com o ambiente de trabalho, git e GitHub CLI",
+    "factoryMachineStepSave": "Guardar máquina",
+    "factoryMachineStepSaveDetail": "Instantâneo para as sessões deste projeto",
+    "factoryMachineServiceStarts": "Inicia em todas as sessões",
+    "factoryMachineServicesHint": "É exposto ao agente como variáveis de ambiente, para que os testes e os servidores de desenvolvimento se liguem sem configuração.",
+    "factoryMachineRebuild": "Reconstruir com atualizações",
+    "factoryMachineUseVersion": "Utilizar esta versão",
+    "factoryMachineReused": "Compilação idêntica reutilizada",
+    "factoryMachineSetUp": "Configurar máquina",
+    "factoryMachineSuggestUpdate": "Adicionar a {machine} para sessões futuras?",
+    "factoryMachineSuggestNote": "É reconstruída em segundo plano. Esta sessão continua a funcionar tal como está.",
+    "factoryMachineSuggestCreatorOnly": "Apenas os mantenedores podem alterar máquinas. Peça a um deles para aplicar isto.",
+    "factoryMachineSuggestAccept": "Adicionar e reconstruir",
+    "factoryMachineSuggestAdded": "A criar uma nova versão de {machine}. As novas sessões utilizam-na quando estiver pronta.",
+    "factoryMachineSuggestDeclined": "Não aplicado. Pode alterar a máquina a qualquer momento em Máquinas.",
+    "factoryMachineSuggestAlreadyIn": "{machine} já tem isto.",
+    "factoryMachineSuggestReady": "{machine} v{version} está pronta. As novas sessões arrancam a partir dela.",
+    "factoryMachineSuggestFailed": "A nova versão de {machine} não foi criada.",
+    "factoryMachineSuggestCancelled": "A nova versão de {machine} foi cancelada.",
+    "factoryMachineSuggestedFix": "Correção sugerida",
+    "factoryMachineSameAsBefore": "Mesma seleção, reconstruída",
+    "factoryMachineTabOverview": "Visão geral",
+    "factoryMachineUnbuiltTo": "Rascunho {next}: {count} alteração em relação a {version}, não construído | Rascunho {next}: {count} alterações em relação a {version}, não construído",
+    "factoryMachineReview": "Continuar a editar",
+    "factoryMachineTabVersions": "Versões",
+    "factoryMachineServiceBadge": "Serviço",
+    "factoryMachineUndoChange": "Anular esta alteração",
+    "factoryMachineStepOf": "{step}, passo {n} de {total}",
+    "factoryMachineStillUsing": "As novas sessões continuam a utilizar {version}.",
+    "factoryMachineReusedLog": "Foi reutilizada uma compilação anterior idêntica, pelo que não havia nada a construir.",
+    "dontExpand": "Não expandir",
+    "createSchema": "Criar esquema",
+    "configureSources": "Configurar fontes"
   },
   "activity": {
     "useTemplate": "Usar modelo",
@@ -7763,6 +7818,81 @@
       "tryBody": "Inicie uma nova conversa e peça «List my NocoDB tools».",
       "tokenText": "A sua ferramenta só aceita um token?",
       "tokenButton": "Criar um token MCP"
+    },
+    "pane": {
+      "tabApps": "Aplicações de IA",
+      "tabManual": "Ligações manuais",
+      "connectTitle": "Ligar uma aplicação de IA",
+      "recommended": "Recomendado",
+      "connectBody": "Inicie sessão com a sua conta NocoDB. É você que decide exatamente o que pode ser visto e alterado.",
+      "otherToolUrl": "Utiliza outra ferramenta de IA? Adicione",
+      "otherTool": "Outra ferramenta",
+      "copyValue": "Copiar {label}",
+      "addTo": "Adicionar o NocoDB ao {client}",
+      "signInTitle": "Iniciar sessão com o NocoDB e autorizar",
+      "waiting": "A aguardar o início de sessão de {client}…",
+      "waitingHint": "Isto é atualizado automaticamente assim que autorizar.",
+      "connectedTitle": "{client} está ligado",
+      "connectedBody": "Passa agora a aparecer nas suas aplicações de IA.",
+      "connectedElsewhere": "Foi autorizada para outros projetos, por isso não aparece aqui.",
+      "manageAccess": "Gerir o acesso",
+      "fallbackText": "A sua ferramenta de IA não consegue iniciar sessão com o NocoDB?",
+      "fallbackLink": "Utilizar antes uma ligação manual",
+      "appsTitle": "As suas aplicações de IA",
+      "appsHint": "Visível apenas para si",
+      "app": "Aplicação",
+      "lastSignedInAt": "Última sessão iniciada {time}",
+      "lastUsed": "Última utilização",
+      "lastUsedAt": "Última utilização {time}",
+      "canDelete": "Pode eliminar dados",
+      "toolsTitle": "Ferramentas e permissões",
+      "neverMoreThanRole": "Nunca mais do que a sua própria função neste projeto ({role}).",
+      "neverMoreThanAccess": "Nunca mais do que o seu próprio acesso a este projeto.",
+      "neverMoreThanOwnAccess": "Nunca mais do que o seu próprio acesso onde foi autorizada.",
+      "notEditable": "O que esta aplicação pode fazer ficou definido no início de sessão e não pode ser alterado aqui. Desligue-a e volte a iniciar sessão para escolher as respetivas ferramentas.",
+      "disconnectBody": "Desliga esta aplicação deste projeto. Terá de iniciar sessão novamente para voltar a ligar-se.",
+      "disconnectBodyWide": "Desliga esta aplicação em todos os locais onde foi autorizada, não apenas neste projeto. Terá de iniciar sessão novamente para voltar a ligar-se.",
+      "disconnectBodyEverywhere": "Desliga esta aplicação em todos os locais onde foi autorizada. Terá de iniciar sessão novamente para voltar a ligar-se.",
+      "disconnectConfirm": "Desligar {client}?",
+      "disconnectConfirmBody": "Perde o acesso de imediato e terá de iniciar sessão novamente para voltar a ligar-se.",
+      "disconnected": "{client} desligado",
+      "accessUpdated": "Acesso atualizado",
+      "manualTitle": "As suas ligações manuais",
+      "manualBody": "Para scripts, tarefas de CI e clientes que não conseguem iniciar sessão com o NocoDB.",
+      "manualNote": "As ligações manuais utilizam uma chave de API estática. Funciona até a revogar e qualquer pessoa com a configuração obtém o mesmo acesso. Se a sua ferramenta o permitir, {link}.",
+      "manualNoteLink": "ligue-a antes como aplicação de IA",
+      "field": {
+        "remoteServerUrl": "URL do servidor MCP remoto",
+        "authentication": "Autenticação",
+        "url": "URL",
+        "transport": "Transporte"
+      },
+      "claude": {
+        "where": "No Claude, abra Definições › Conectores e selecione Adicionar conector personalizado. Preencha:",
+        "auth": "Selecione Ligar junto a NocoDB. Inicie sessão com o NocoDB, escolha a que o Claude pode aceder e selecione Autorizar."
+      },
+      "chatgpt": {
+        "where": "No ChatGPT, abra Plugins, selecione Adicionar e depois Adicionar servidor MCP personalizado. Preencha:",
+        "auth": "Selecione Criar. O ChatGPT abre o NocoDB numa nova janela. Inicie sessão, escolha a que pode aceder e selecione Autorizar."
+      },
+      "claudeCode": {
+        "auth": "No Claude Code, execute /mcp, escolha nocodb e selecione Autenticar. No navegador, escolha a que pode aceder e selecione Autorizar."
+      },
+      "cursor": {
+        "where": "No Cursor, abra Definições › MCP e selecione Adicionar novo servidor MCP. Preencha:",
+        "auth": "Selecione Ligar junto a nocodb na lista MCP. Inicie sessão com o NocoDB no navegador e selecione Autorizar."
+      },
+      "codex": {
+        "auth": "Execute o comando de início de sessão, inicie sessão com o NocoDB no navegador e selecione Autorizar."
+      },
+      "windsurf": {
+        "where": "No Windsurf, abra Definições › Cascade › Servidores MCP e selecione Adicionar servidor personalizado. Preencha:",
+        "auth": "Selecione Ligar junto a nocodb. Inicie sessão com o NocoDB no navegador e selecione Autorizar."
+      },
+      "other": {
+        "where": "Adicione um servidor MCP remoto no seu cliente com estes dados:",
+        "auth": "Inicie a ligação a partir do seu cliente. O NocoDB abre no navegador, onde inicia sessão, escolhe a que o cliente pode aceder e seleciona Autorizar."
+      }
     }
   }
 }

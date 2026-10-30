@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "שדרג כדי לדרוש התחברות בטפסים",
     "upgradeToUseFormRequireSigninSubtitle": "שדרג לתוכנית {plan} כדי לדרוש מהמשיבים להתחבר לפני שליחת טופס.",
     "upgradeToUseSso": "שדרג כדי להשתמש ב-SSO",
-    "upgradeToUseSsoSubtitle": "שדרג לתוכנית {plan} כדי להגדיר כניסה יחידה (SSO) ולאפשר לצוות שלך להתחבר באמצעות ספק הזהויות שלך.",
-    "upgradeToUseAppFactory": "שדרגו כדי להשתמש ב־App Factory",
-    "upgradeToUseAppFactorySubtitle": "שדרגו לתוכנית {plan} כדי להפעיל סוכני קוד על המאגרים המחוברים שלכם."
+    "upgradeToUseSsoSubtitle": "שדרג לתוכנית {plan} כדי להגדיר כניסה יחידה (SSO) ולאפשר לצוות שלך להתחבר באמצעות ספק הזהויות שלך."
   },
   "general": {
     "scrollToBottom": "גלול למטה",
@@ -767,7 +765,8 @@
     "uploading": "מעלה",
     "countAll": "ספירת הכול",
     "factory": "מפעל",
-    "config": "תצורה"
+    "config": "תצורה",
+    "dismiss": "סגירה"
   },
   "objects": {
     "script": "סקריפט",
@@ -2201,7 +2200,7 @@
       "webhooks": "Webhooks",
       "webhooksDesc": "ניהול טריגרים ויומני Webhook",
       "base": "פרויקט",
-      "baseDesc": "הגדרות הפרויקט, מקורות ומשימות",
+      "baseDesc": "הגדרות הפרויקט, מקורות, משימות, מסמכים והתגובות שלהם",
       "users": "משתמשים",
       "usersDesc": "חברי הפרויקט, חברי מרחב העבודה והזמנות",
       "grantedCount": "{count} מתוך {total} הוענקו",
@@ -3105,7 +3104,6 @@
       "syncInfo": "משכו נתונים מאפליקציה חיצונית לפי לוח זמנים. בכיוון אחד בלבד.",
       "automations": "אוטומציות",
       "aiSkills": "Skills של בינה מלאכותית",
-      "mcpServer": "שרת MCP",
       "auditLog": "יומן ביקורת",
       "trashRetention": "שמירת האשפה",
       "snapshots": "Snapshots",
@@ -3136,7 +3134,7 @@
         "members": "מי יכול לפתוח את הפרויקט הזה ומה מותר לו לעשות.",
         "permissions": "מי יכול לצפות או לערוך כל טבלה, שדה ומסמך.",
         "apiTokens": "אסימונים שמאפשרים לאפליקציות חיצוניות לקרוא ולכתוב בפרויקט הזה.",
-        "mcp": "חברו לקוחות AI לפרויקט הזה באמצעות MCP.",
+        "mcp": "אפשרו לכלי ה-AI שלכם לעבוד עם הפרויקט הזה, עם ההרשאות שלכם.",
         "integrations": "חשבונות מחוברים שהפרויקט הזה יכול להשתמש בהם.",
         "automations": "תהליכי עבודה שרצים לפי טריגר.",
         "auditLog": "כל שינוי שבוצע בפרויקט הזה ומי ביצע אותו.",
@@ -3155,7 +3153,8 @@
       "upgradeDescDateDependency": "הזזת תאריכים תלויים באופן אוטומטי כאשר רשומה זזה.",
       "concernProject": "פרויקט",
       "concernApps": "Apps",
-      "concernTabs": "מקטעי הגדרות"
+      "concernTabs": "מקטעי הגדרות",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "קטגוריות",
     "blockquote": "ציטוט",
@@ -5318,7 +5317,6 @@
     "factoryEnvironment": "סביבה",
     "factoryCommitOrPush": "commit או push",
     "factoryCompareBranch": "השוואת ענף",
-    "factoryAddTab": "פתיחת חלונית",
     "factoryCommitPushPrompt": "בצע commit לשינויים ו‑push לענף.",
     "chatYesterday": "אתמול",
     "chatCopyMessage": "העתקת ההודעה",
@@ -5424,7 +5422,64 @@
     "duplicateField": "שכפול השדה",
     "extensionError": "שגיאת תוסף",
     "clearData": "ניקוי הנתונים",
-    "copyProject": "העתקת הפרויקט"
+    "copyProject": "העתקת הפרויקט",
+    "factoryBootPartCpu": "מעבד",
+    "factoryBootPartMemory": "זיכרון",
+    "factoryBootPartNetwork": "רשת",
+    "factoryBootPartRepo": "מאגר",
+    "factoryBootPartServices": "שירותים",
+    "factoryMachines": "מכונות",
+    "factoryMachinesHint": "הסביבה שממנה הסשנים שלכם מתחילים. סשנים חדשים משתמשים בברירת המחדל; בחרו אחרת בעורך.",
+    "factoryMachinesCreatorOnly": "רק מתחזקים יכולים ליצור מכונות, לערוך אותן או לבנות אותן.",
+    "factoryMachineSearchPanes": "חיפוש",
+    "factoryMachineStockTag": "מובנה",
+    "factoryMachineSetDefault": "הגדרה כברירת מחדל",
+    "factoryMachineUpgrade": "שדרוג",
+    "factoryMachineUpgradingShort": "משדרג…",
+    "factoryMachineUpdateAvailable": "קיים עדכון",
+    "factoryMachineUpgradeHint": "נבנתה על תמונת בסיס ישנה יותר. השדרוג בונה מחדש את אותן חבילות על התמונה הנוכחית.",
+    "factoryMachineUpgradeBanner": "נבנתה על תמונת בסיס ישנה יותר, ולכן סשנים חדשים לא יכולים להתחיל ממנה. שדרגו כדי לבנות מחדש את אותן חבילות על התמונה הנוכחית.",
+    "factoryMachineStock": "מכונת בסיס",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep ו-Chrome. כל מכונה נבנית עליה, וסשנים ללא מכונה רצים עליה.",
+    "factoryMachinesEmptyTitle": "אין עדיין מכונות",
+    "factoryMachinesEmptyBody": "סשנים רצים על מכונת הבסיס. צרו מכונה עם סביבות הריצה, מסדי הנתונים והכלים שהמאגר הזה צריך, וכל סשן יתחיל איתם.",
+    "factoryMachinePickTitle": "הפעלת הסשן על",
+    "factoryMachinePip": "pip גלובלי",
+    "factoryMachineReady": "מוכן",
+    "factoryMachineStepBase": "בסיס שולחן העבודה של Factory",
+    "factoryMachineStepBaseDetail": "Ubuntu 22.04 עם שולחן העבודה, git ו-GitHub CLI",
+    "factoryMachineStepSave": "שמירת מכונה",
+    "factoryMachineStepSaveDetail": "תמונת מצב לסשנים של הפרויקט הזה",
+    "factoryMachineServiceStarts": "מופעל עם כל סשן",
+    "factoryMachineServicesHint": "נחשף לסוכן כמשתני סביבה, כך שבדיקות ושרתי פיתוח מתחברים בלי הגדרות.",
+    "factoryMachineRebuild": "בנייה מחדש עם עדכונים",
+    "factoryMachineUseVersion": "שימוש בגרסה הזו",
+    "factoryMachineReused": "נעשה שימוש חוזר בבנייה זהה",
+    "factoryMachineSetUp": "הגדרת מכונה",
+    "factoryMachineSuggestUpdate": "להוסיף אל {machine} עבור סשנים עתידיים?",
+    "factoryMachineSuggestNote": "נבנית מחדש ברקע. הסשן הזה ממשיך לפעול כרגיל.",
+    "factoryMachineSuggestCreatorOnly": "רק מתחזקים יכולים לשנות מכונות. בקשו מאחד מהם להחיל את זה.",
+    "factoryMachineSuggestAccept": "הוספה ובנייה מחדש",
+    "factoryMachineSuggestAdded": "נבנית גרסה חדשה של {machine}. סשנים חדשים ישתמשו בה ברגע שתהיה מוכנה.",
+    "factoryMachineSuggestDeclined": "לא הוחל. אפשר לשנות את המכונה בכל עת במסך המכונות.",
+    "factoryMachineSuggestAlreadyIn": "ל-{machine} כבר יש את זה.",
+    "factoryMachineSuggestReady": "{machine} v{version} מוכנה. סשנים חדשים יתחילו עליה.",
+    "factoryMachineSuggestFailed": "בניית הגרסה החדשה של {machine} נכשלה.",
+    "factoryMachineSuggestCancelled": "הגרסה החדשה של {machine} בוטלה.",
+    "factoryMachineSuggestedFix": "תיקון מוצע",
+    "factoryMachineSameAsBefore": "אותה בחירה, נבנה מחדש",
+    "factoryMachineTabOverview": "סקירה כללית",
+    "factoryMachineUnbuiltTo": "טיוטה {next}: שינוי {count} לעומת {version}, לא נבנה | טיוטה {next}: {count} שינויים לעומת {version}, לא נבנה",
+    "factoryMachineReview": "המשך עריכה",
+    "factoryMachineTabVersions": "גרסאות",
+    "factoryMachineServiceBadge": "שירות",
+    "factoryMachineUndoChange": "ביטול השינוי הזה",
+    "factoryMachineStepOf": "{step}, שלב {n} מתוך {total}",
+    "factoryMachineStillUsing": "סשנים חדשים ממשיכים להשתמש ב-{version}.",
+    "factoryMachineReusedLog": "נעשה שימוש חוזר בבנייה קודמת זהה, ולכן לא היה מה לבנות.",
+    "dontExpand": "לא להרחיב",
+    "createSchema": "יצירת סכימה",
+    "configureSources": "הגדרת מקורות"
   },
   "activity": {
     "useTemplate": "השתמש בתבנית",
@@ -7772,6 +7827,81 @@
       "tryBody": "התחל שיחה חדשה ושאל «List my NocoDB tools».",
       "tokenText": "הכלי שלך מקבל רק אסימון?",
       "tokenButton": "צור אסימון MCP"
+    },
+    "pane": {
+      "tabApps": "אפליקציות AI",
+      "tabManual": "חיבורים ידניים",
+      "connectTitle": "חיבור אפליקציית AI",
+      "recommended": "מומלץ",
+      "connectBody": "התחברו עם חשבון NocoDB שלכם. אתם קובעים בדיוק מה מותר לו לראות ולשנות.",
+      "otherToolUrl": "משתמשים בכלי AI אחר? הוסיפו",
+      "otherTool": "כלי אחר",
+      "copyValue": "העתקת {label}",
+      "addTo": "הוספת NocoDB אל {client}",
+      "signInTitle": "התחברות באמצעות NocoDB ואישור",
+      "waiting": "ממתין להתחברות של {client}…",
+      "waitingHint": "התצוגה מתעדכנת מעצמה ברגע שתאשרו.",
+      "connectedTitle": "{client} מחובר",
+      "connectedBody": "הוא מופיע כעת באפליקציות ה-AI שלכם.",
+      "connectedElsewhere": "הוא אושר עבור פרויקטים אחרים ולכן אינו מופיע כאן.",
+      "manageAccess": "ניהול גישה",
+      "fallbackText": "כלי ה-AI שלכם לא מצליח להתחבר באמצעות NocoDB?",
+      "fallbackLink": "השתמשו בחיבור ידני במקום זאת",
+      "appsTitle": "אפליקציות ה-AI שלכם",
+      "appsHint": "גלוי לכם בלבד",
+      "app": "אפליקציה",
+      "lastSignedInAt": "התחברות אחרונה {time}",
+      "lastUsed": "שימוש אחרון",
+      "lastUsedAt": "שימוש אחרון {time}",
+      "canDelete": "יכול למחוק נתונים",
+      "toolsTitle": "כלים והרשאות",
+      "neverMoreThanRole": "לעולם לא יותר מהתפקיד שלכם בפרויקט הזה ({role}).",
+      "neverMoreThanAccess": "לעולם לא יותר מהגישה שלכם לפרויקט הזה.",
+      "neverMoreThanOwnAccess": "לעולם לא יותר מהגישה שלכם במקום שבו אושרה.",
+      "notEditable": "מה שהאפליקציה הזו יכולה לעשות נקבע בעת ההתחברות ולא ניתן לשנותו כאן. נתקו אותה וחברו אותה מחדש כדי לבחור את הכלים שלה.",
+      "disconnectBody": "מנתק את האפליקציה הזו מהפרויקט הזה. כדי להתחבר שוב היא תצטרך להתחבר מחדש.",
+      "disconnectBodyWide": "מנתק את האפליקציה הזו בכל מקום שבו אושרה, לא רק בפרויקט הזה. כדי להתחבר שוב היא תצטרך להתחבר מחדש.",
+      "disconnectBodyEverywhere": "מנתק את האפליקציה הזו בכל מקום שבו אושרה. כדי להתחבר שוב היא תצטרך להתחבר מחדש.",
+      "disconnectConfirm": "לנתק את {client}?",
+      "disconnectConfirmBody": "היא מאבדת גישה מיד ותצטרך להתחבר מחדש כדי להתחבר שוב.",
+      "disconnected": "{client} נותק",
+      "accessUpdated": "הגישה עודכנה",
+      "manualTitle": "החיבורים הידניים שלכם",
+      "manualBody": "לסקריפטים, משימות CI ולקוחות שאינם יכולים להתחבר באמצעות NocoDB.",
+      "manualNote": "חיבורים ידניים משתמשים במפתח API סטטי. הוא פועל עד שתבטלו אותו, וכל מי שיש לו את התצורה מקבל את אותה גישה. אם הכלי שלכם תומך בכך, {link}.",
+      "manualNoteLink": "חברו אותו כאפליקציית AI במקום זאת",
+      "field": {
+        "remoteServerUrl": "כתובת URL של שרת MCP מרוחק",
+        "authentication": "אימות",
+        "url": "URL",
+        "transport": "תעבורה"
+      },
+      "claude": {
+        "where": "ב-Claude פתחו הגדרות › מחברים ובחרו הוספת מחבר מותאם. מלאו:",
+        "auth": "בחרו חיבור לצד NocoDB. התחברו באמצעות NocoDB, בחרו למה מותר ל-Claude לגשת ואז בחרו אישור."
+      },
+      "chatgpt": {
+        "where": "ב-ChatGPT פתחו תוספים, בחרו הוספה ואז הוספת שרת MCP מותאם. מלאו:",
+        "auth": "בחרו יצירה. ChatGPT יפתח את NocoDB בחלון חדש. התחברו, בחרו למה מותר לו לגשת ואז בחרו אישור."
+      },
+      "claudeCode": {
+        "auth": "ב-Claude Code הריצו /mcp, בחרו nocodb ואז בחרו אימות. בדפדפן בחרו למה מותר לו לגשת ואז בחרו אישור."
+      },
+      "cursor": {
+        "where": "ב-Cursor פתחו הגדרות › MCP ובחרו הוספת שרת MCP חדש. מלאו:",
+        "auth": "בחרו חיבור לצד nocodb ברשימת MCP. התחברו באמצעות NocoDB בדפדפן ובחרו אישור."
+      },
+      "codex": {
+        "auth": "הריצו את פקודת ההתחברות, התחברו באמצעות NocoDB בדפדפן ובחרו אישור."
+      },
+      "windsurf": {
+        "where": "ב-Windsurf פתחו הגדרות › Cascade › שרתי MCP ובחרו הוספת שרת מותאם. מלאו:",
+        "auth": "בחרו חיבור לצד nocodb. התחברו באמצעות NocoDB בדפדפן ובחרו אישור."
+      },
+      "other": {
+        "where": "הוסיפו בלקוח שלכם שרת MCP מרוחק עם הפרטים הבאים:",
+        "auth": "התחילו את החיבור מהלקוח שלכם. NocoDB ייפתח בדפדפן, שם תתחברו, תבחרו למה מותר ללקוח לגשת ותבחרו אישור."
+      }
     }
   }
 }

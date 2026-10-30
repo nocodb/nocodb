@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "Fă upgrade pentru a solicita autentificarea la formulare",
     "upgradeToUseFormRequireSigninSubtitle": "Treci la planul {plan} pentru a le solicita respondenților să se autentifice înainte de a trimite un formular.",
     "upgradeToUseSso": "Actualizați pentru a utiliza SSO",
-    "upgradeToUseSsoSubtitle": "Actualizați la planul {plan} pentru a configura autentificarea unică (SSO) și a permite echipei dvs. să se conecteze cu furnizorul dvs. de identitate.",
-    "upgradeToUseAppFactory": "Treci la un plan superior pentru a folosi App Factory",
-    "upgradeToUseAppFactorySubtitle": "Treci la planul {plan} pentru a porni agenți de programare pe depozitele tale conectate."
+    "upgradeToUseSsoSubtitle": "Actualizați la planul {plan} pentru a configura autentificarea unică (SSO) și a permite echipei dvs. să se conecteze cu furnizorul dvs. de identitate."
   },
   "general": {
     "scrollToBottom": "Derulează până jos",
@@ -764,7 +762,8 @@
     "toggle": "Comută",
     "uploading": "Se încarcă",
     "countAll": "Numără tot",
-    "config": "Configurație"
+    "config": "Configurație",
+    "dismiss": "Închide"
   },
   "objects": {
     "script": "Script",
@@ -2198,7 +2197,7 @@
       "webhooks": "Webhook-uri",
       "webhooksDesc": "Gestionați declanșatoarele și jurnalele webhook",
       "base": "Proiect",
-      "baseDesc": "Setările proiectului, sursele și sarcinile",
+      "baseDesc": "Setările proiectului, surse, sarcini, documente și comentariile acestora",
       "users": "Utilizatori",
       "usersDesc": "Membrii proiectului, membrii spațiului de lucru și invitațiile",
       "grantedCount": "{count} din {total} acordate",
@@ -3102,7 +3101,6 @@
       "syncInfo": "Preia date dintr-o aplicație externă după un program. Unidirecțional.",
       "automations": "Automatizări",
       "aiSkills": "Skills IA",
-      "mcpServer": "Server MCP",
       "auditLog": "Jurnal de audit",
       "trashRetention": "Păstrarea în coșul de gunoi",
       "snapshots": "Snapshots",
@@ -3132,7 +3130,7 @@
         "members": "Cine poate deschide acest proiect și ce poate face în el.",
         "permissions": "Cine poate vedea sau edita fiecare tabel, câmp și document.",
         "apiTokens": "Token-uri care permit aplicațiilor externe să citească și să scrie în acest proiect.",
-        "mcp": "Conectează clienți AI la acest proiect prin MCP.",
+        "mcp": "Lăsați instrumentele dvs. de IA să lucreze cu acest proiect, cu propriul dvs. acces.",
         "integrations": "Conturi conectate pe care acest proiect le poate folosi.",
         "automations": "Fluxuri de lucru care pornesc la un declanșator.",
         "auditLog": "Fiecare modificare făcută în acest proiect și cine a făcut-o.",
@@ -3151,7 +3149,8 @@
       "upgradeDescDateDependency": "Deplasează automat datele dependente atunci când o înregistrare este mutată.",
       "concernProject": "Proiect",
       "concernApps": "Apps",
-      "concernTabs": "Secțiuni de setări"
+      "concernTabs": "Secțiuni de setări",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "Categorii",
     "blockquote": "Citat",
@@ -5294,7 +5293,6 @@
     "factoryEnvironment": "Mediu",
     "factoryCommitOrPush": "Commit sau push",
     "factoryCompareBranch": "Compară ramura",
-    "factoryAddTab": "Deschide un panou",
     "factoryCommitPushPrompt": "Fă commit modificărilor și push ramurii.",
     "chatYesterday": "Ieri",
     "chatCopyMessage": "Copiază mesajul",
@@ -5400,7 +5398,64 @@
     "duplicateField": "Duplică câmpul",
     "extensionError": "Eroare de extensie",
     "clearData": "Șterge datele",
-    "copyProject": "Copiază proiectul"
+    "copyProject": "Copiază proiectul",
+    "factoryBootPartCpu": "Procesor",
+    "factoryBootPartMemory": "Memorie",
+    "factoryBootPartNetwork": "Rețea",
+    "factoryBootPartRepo": "Depozit",
+    "factoryBootPartServices": "Servicii",
+    "factoryMachines": "Mașini",
+    "factoryMachinesHint": "Mediul din care pornesc sesiunile dvs. Sesiunile noi folosesc mașina implicită; alegeți alta în editor.",
+    "factoryMachinesCreatorOnly": "Doar întreținătorii pot crea, edita sau construi mașini.",
+    "factoryMachineSearchPanes": "Caută",
+    "factoryMachineStockTag": "Inclus",
+    "factoryMachineSetDefault": "Setează ca implicită",
+    "factoryMachineUpgrade": "Actualizează",
+    "factoryMachineUpgradingShort": "Se actualizează…",
+    "factoryMachineUpdateAvailable": "Actualizare disponibilă",
+    "factoryMachineUpgradeHint": "Este construită pe o imagine de bază mai veche. Actualizarea reconstruiește aceleași pachete pe cea curentă.",
+    "factoryMachineUpgradeBanner": "Este construită pe o imagine de bază mai veche, așa că sesiunile noi nu pot porni de la ea. Actualizați pentru a reconstrui aceleași pachete pe cea curentă.",
+    "factoryMachineStock": "Mașină de bază",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep și Chrome. Fiecare mașină se construiește pe ea, iar sesiunile fără mașină rulează pe ea.",
+    "factoryMachinesEmptyTitle": "Încă nu există mașini",
+    "factoryMachinesEmptyBody": "Sesiunile rulează pe mașina de bază. Creați una cu mediile de execuție, bazele de date și instrumentele de care are nevoie acest depozit, iar fiecare sesiune va începe cu ele.",
+    "factoryMachinePickTitle": "Pornește sesiunea pe",
+    "factoryMachinePip": "pip global",
+    "factoryMachineReady": "Gata",
+    "factoryMachineStepBase": "Bază desktop Factory",
+    "factoryMachineStepBaseDetail": "Ubuntu 22.04 cu desktopul, git și GitHub CLI",
+    "factoryMachineStepSave": "Salvează mașina",
+    "factoryMachineStepSaveDetail": "Instantaneu pentru sesiunile acestui proiect",
+    "factoryMachineServiceStarts": "Pornește cu fiecare sesiune",
+    "factoryMachineServicesHint": "Este expus agentului ca variabile de mediu, astfel încât testele și serverele de dezvoltare se conectează fără configurare.",
+    "factoryMachineRebuild": "Reconstruiește cu actualizări",
+    "factoryMachineUseVersion": "Folosește această versiune",
+    "factoryMachineReused": "A fost reutilizată o compilare identică",
+    "factoryMachineSetUp": "Configurează mașina",
+    "factoryMachineSuggestUpdate": "Adăugați la {machine} pentru sesiunile viitoare?",
+    "factoryMachineSuggestNote": "Se reconstruiește în fundal. Această sesiune continuă să ruleze ca atare.",
+    "factoryMachineSuggestCreatorOnly": "Doar întreținătorii pot modifica mașinile. Rugați pe unul dintre ei să aplice acest lucru.",
+    "factoryMachineSuggestAccept": "Adaugă și reconstruiește",
+    "factoryMachineSuggestAdded": "Se construiește o versiune nouă a mașinii {machine}. Sesiunile noi o vor folosi de îndată ce este gata.",
+    "factoryMachineSuggestDeclined": "Neaplicat. Puteți modifica mașina oricând din secțiunea Mașini.",
+    "factoryMachineSuggestAlreadyIn": "{machine} are deja acest lucru.",
+    "factoryMachineSuggestReady": "{machine} v{version} este gata. Sesiunile noi pornesc pe ea.",
+    "factoryMachineSuggestFailed": "Versiunea nouă a mașinii {machine} nu a putut fi construită.",
+    "factoryMachineSuggestCancelled": "Versiunea nouă a mașinii {machine} a fost anulată.",
+    "factoryMachineSuggestedFix": "Remediere sugerată",
+    "factoryMachineSameAsBefore": "Aceeași selecție, reconstruită",
+    "factoryMachineTabOverview": "Prezentare generală",
+    "factoryMachineUnbuiltTo": "Ciornă {next}: {count} modificare față de {version}, neconstruită | Ciornă {next}: {count} modificări față de {version}, neconstruită",
+    "factoryMachineReview": "Continuă editarea",
+    "factoryMachineTabVersions": "Versiuni",
+    "factoryMachineServiceBadge": "Serviciu",
+    "factoryMachineUndoChange": "Anulează această modificare",
+    "factoryMachineStepOf": "{step}, pasul {n} din {total}",
+    "factoryMachineStillUsing": "Sesiunile noi continuă să folosească {version}.",
+    "factoryMachineReusedLog": "A fost reutilizată o compilare anterioară identică, așa că nu a fost nimic de construit.",
+    "dontExpand": "Nu extinde",
+    "createSchema": "Creează schema",
+    "configureSources": "Configurează sursele"
   },
   "activity": {
     "useTemplate": "Folosește șablon",
@@ -7746,6 +7801,80 @@
       "tryBody": "Începeți o conversație nouă și întrebați «List my NocoDB tools».",
       "tokenText": "Instrumentul dvs. acceptă doar un token?",
       "tokenButton": "Creează un token MCP"
+    },
+    "pane": {
+      "tabApps": "Aplicații de IA",
+      "tabManual": "Conexiuni manuale",
+      "connectTitle": "Conectează o aplicație de IA",
+      "recommended": "Recomandat",
+      "connectBody": "Autentificați-vă cu contul dvs. NocoDB. Dvs. stabiliți exact ce poate vedea și modifica.",
+      "otherToolUrl": "Folosiți alt instrument de IA? Adăugați",
+      "otherTool": "Alt instrument",
+      "copyValue": "Copiază {label}",
+      "addTo": "Adaugă NocoDB în {client}",
+      "signInTitle": "Autentificați-vă cu NocoDB și autorizați",
+      "waiting": "Se așteaptă autentificarea {client}…",
+      "waitingHint": "Se actualizează de la sine imediat ce autorizați.",
+      "connectedTitle": "{client} este conectat",
+      "connectedBody": "Acum apare în aplicațiile dvs. de IA.",
+      "connectedElsewhere": "A fost autorizată pentru alte proiecte, așa că nu este listată aici.",
+      "manageAccess": "Gestionează accesul",
+      "fallbackText": "Instrumentul dvs. de IA nu se poate autentifica cu NocoDB?",
+      "fallbackLink": "Folosiți în schimb o conexiune manuală",
+      "appsTitle": "Aplicațiile dvs. de IA",
+      "appsHint": "Vizibil doar pentru dvs.",
+      "app": "Aplicație",
+      "lastSignedInAt": "Ultima autentificare {time}",
+      "lastUsed": "Ultima utilizare",
+      "lastUsedAt": "Ultima utilizare {time}",
+      "canDelete": "Poate șterge date",
+      "toolsTitle": "Instrumente și permisiuni",
+      "neverMoreThanRole": "Niciodată mai mult decât propriul dvs. rol în acest proiect ({role}).",
+      "neverMoreThanAccess": "Niciodată mai mult decât propriul dvs. acces la acest proiect.",
+      "neverMoreThanOwnAccess": "Niciodată mai mult decât propriul dvs. acces acolo unde a fost autorizată.",
+      "notEditable": "Ce poate face această aplicație a fost stabilit la autentificare și nu poate fi modificat aici. Deconectați-o și autentificați-o din nou pentru a-i alege instrumentele.",
+      "disconnectBody": "Deconectează această aplicație de la acest proiect. Va trebui să se autentifice din nou pentru a se reconecta.",
+      "disconnectBodyWide": "Deconectează această aplicație din toate locurile în care a fost autorizată, nu doar din acest proiect. Va trebui să se autentifice din nou pentru a se reconecta.",
+      "disconnectBodyEverywhere": "Deconectează această aplicație din toate locurile în care a fost autorizată. Va trebui să se autentifice din nou pentru a se reconecta.",
+      "disconnectConfirm": "Deconectați {client}?",
+      "disconnectConfirmBody": "Pierde accesul imediat și va trebui să se autentifice din nou pentru a se reconecta.",
+      "disconnected": "{client} deconectat",
+      "accessUpdated": "Acces actualizat",
+      "manualTitle": "Conexiunile dvs. manuale",
+      "manualBody": "Pentru scripturi, sarcini CI și clienți care nu se pot autentifica cu NocoDB.",
+      "manualNote": "Conexiunile manuale folosesc o cheie API statică. Funcționează până când o revocați, iar oricine are configurația obține același acces. Dacă instrumentul dvs. acceptă acest lucru, {link}.",
+      "manualNoteLink": "conectați-l mai degrabă ca aplicație de IA",
+      "field": {
+        "remoteServerUrl": "URL-ul serverului MCP la distanță",
+        "authentication": "Autentificare",
+        "url": "URL"
+      },
+      "claude": {
+        "where": "În Claude, deschideți Setări › Conectori și selectați Adaugă conector personalizat. Completați:",
+        "auth": "Selectați Conectează lângă NocoDB. Autentificați-vă cu NocoDB, alegeți la ce poate avea acces Claude, apoi selectați Autorizează."
+      },
+      "chatgpt": {
+        "where": "În ChatGPT, deschideți Plugins, selectați Adaugă, apoi Adaugă server MCP personalizat. Completați:",
+        "auth": "Selectați Creează. ChatGPT deschide NocoDB într-o fereastră nouă. Autentificați-vă, alegeți la ce poate avea acces, apoi selectați Autorizează."
+      },
+      "claudeCode": {
+        "auth": "În Claude Code, rulați /mcp, alegeți nocodb și selectați Autentificare. În browser, alegeți la ce poate avea acces, apoi selectați Autorizează."
+      },
+      "cursor": {
+        "where": "În Cursor, deschideți Setări › MCP și selectați Adaugă server MCP nou. Completați:",
+        "auth": "Selectați Conectează lângă nocodb în lista MCP. Autentificați-vă cu NocoDB în browser și selectați Autorizează."
+      },
+      "codex": {
+        "auth": "Rulați comanda de autentificare, autentificați-vă cu NocoDB în browser și selectați Autorizează."
+      },
+      "windsurf": {
+        "where": "În Windsurf, deschideți Setări › Cascade › Servere MCP și selectați Adaugă server personalizat. Completați:",
+        "auth": "Selectați Conectează lângă nocodb. Autentificați-vă cu NocoDB în browser și selectați Autorizează."
+      },
+      "other": {
+        "where": "Adăugați în clientul dvs. un server MCP la distanță cu aceste date:",
+        "auth": "Porniți conexiunea din clientul dvs. NocoDB se deschide în browser, unde vă autentificați, alegeți la ce poate avea acces clientul și selectați Autorizează."
+      }
     }
   }
 }

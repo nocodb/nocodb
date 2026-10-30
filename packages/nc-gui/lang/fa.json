@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "برای الزامی کردن ورود در فرم‌ها ارتقا دهید",
     "upgradeToUseFormRequireSigninSubtitle": "برای الزامی کردن ورود پاسخ‌دهندگان پیش از ارسال فرم، به پلن {plan} ارتقا دهید.",
     "upgradeToUseSso": "برای استفاده از SSO ارتقا دهید",
-    "upgradeToUseSsoSubtitle": "برای راه‌اندازی ورود یکپارچه (SSO) و اجازه ورود تیم شما با ارائه‌دهنده هویت خود، به طرح {plan} ارتقا دهید.",
-    "upgradeToUseAppFactory": "برای استفاده از App Factory ارتقا دهید",
-    "upgradeToUseAppFactorySubtitle": "به طرح {plan} ارتقا دهید تا عامل‌های برنامه‌نویسی را روی مخازن متصل خود به کار بگیرید."
+    "upgradeToUseSsoSubtitle": "برای راه‌اندازی ورود یکپارچه (SSO) و اجازه ورود تیم شما با ارائه‌دهنده هویت خود، به طرح {plan} ارتقا دهید."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -767,7 +765,8 @@
     "uploading": "در حال بارگذاری",
     "countAll": "شمارش همه",
     "factory": "کارخانه",
-    "config": "پیکربندی"
+    "config": "پیکربندی",
+    "dismiss": "بستن"
   },
   "objects": {
     "script": "اسکریپت",
@@ -2201,7 +2200,7 @@
       "webhooks": "Webhooks",
       "webhooksDesc": "Manage webhook triggers and logs",
       "base": "پروژه",
-      "baseDesc": "تنظیمات پروژه، منابع و کارها",
+      "baseDesc": "تنظیمات پروژه، منابع، کارها، سندها و نظرهای آن‌ها",
       "users": "Users",
       "usersDesc": "اعضای پروژه، اعضای فضای کاری و دعوت‌ها",
       "grantedCount": "{count} از {total} اعطا شده",
@@ -3105,7 +3104,6 @@
       "syncInfo": "داده‌ها را طبق زمان‌بندی از یک برنامه بیرونی دریافت کنید. یک‌طرفه.",
       "automations": "خودکارسازی‌ها",
       "aiSkills": "Skills هوش مصنوعی",
-      "mcpServer": "سرور MCP",
       "auditLog": "گزارش ممیزی",
       "trashRetention": "نگهداری سطل زباله",
       "snapshots": "Snapshots",
@@ -3136,7 +3134,7 @@
         "members": "چه کسی می‌تواند این پروژه را باز کند و چه کارهایی می‌تواند انجام دهد.",
         "permissions": "چه کسی می‌تواند هر جدول، فیلد و سند را ببیند یا ویرایش کند.",
         "apiTokens": "توکن‌هایی که به برنامه‌های بیرونی اجازهٔ خواندن و نوشتن در این پروژه را می‌دهند.",
-        "mcp": "کلاینت‌های هوش مصنوعی را از طریق MCP به این پروژه متصل کنید.",
+        "mcp": "به ابزارهای هوش مصنوعی خود اجازه دهید با دسترسی خودتان روی این پروژه کار کنند.",
         "integrations": "حساب‌های متصلی که این پروژه می‌تواند استفاده کند.",
         "automations": "گردش‌کارهایی که با یک راه‌انداز اجرا می‌شوند.",
         "auditLog": "هر تغییری که در این پروژه انجام شده و اینکه چه کسی آن را انجام داده است.",
@@ -3155,7 +3153,8 @@
       "upgradeDescDateDependency": "هنگام جابه‌جایی یک رکورد، تاریخ‌های وابسته را به‌طور خودکار جابه‌جا می‌کند.",
       "concernProject": "پروژه",
       "concernApps": "Apps",
-      "concernTabs": "بخش‌های تنظیمات"
+      "concernTabs": "بخش‌های تنظیمات",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "دسته‌ها",
     "blockquote": "نقل‌قول",
@@ -5318,7 +5317,6 @@
     "factoryEnvironment": "محیط",
     "factoryCommitOrPush": "commit یا push",
     "factoryCompareBranch": "مقایسهٔ شاخه",
-    "factoryAddTab": "باز کردن یک پنل",
     "factoryCommitPushPrompt": "تغییرها را commit کن و شاخه را push کن.",
     "chatYesterday": "دیروز",
     "chatCopyMessage": "کپی پیام",
@@ -5424,7 +5422,64 @@
     "duplicateField": "تکثیر فیلد",
     "extensionError": "خطای افزونه",
     "clearData": "پاک کردن داده‌ها",
-    "copyProject": "کپی پروژه"
+    "copyProject": "کپی پروژه",
+    "factoryBootPartCpu": "پردازنده",
+    "factoryBootPartMemory": "حافظه",
+    "factoryBootPartNetwork": "شبکه",
+    "factoryBootPartRepo": "مخزن",
+    "factoryBootPartServices": "سرویس‌ها",
+    "factoryMachines": "ماشین‌ها",
+    "factoryMachinesHint": "محیطی که نشست‌های شما از آن آغاز می‌شوند. نشست‌های تازه از پیش‌فرض استفاده می‌کنند؛ در ویرایشگر می‌توانید دیگری را انتخاب کنید.",
+    "factoryMachinesCreatorOnly": "فقط نگه‌دارندگان می‌توانند ماشین بسازند، ویرایش کنند یا بیلد بگیرند.",
+    "factoryMachineSearchPanes": "جست‌وجو",
+    "factoryMachineStockTag": "درون‌ساخته",
+    "factoryMachineSetDefault": "تنظیم به‌عنوان پیش‌فرض",
+    "factoryMachineUpgrade": "ارتقا",
+    "factoryMachineUpgradingShort": "در حال ارتقا…",
+    "factoryMachineUpdateAvailable": "به‌روزرسانی موجود است",
+    "factoryMachineUpgradeHint": "روی یک ایمیج پایهٔ قدیمی‌تر ساخته شده است. ارتقا همان بسته‌ها را روی ایمیج کنونی دوباره می‌سازد.",
+    "factoryMachineUpgradeBanner": "روی یک ایمیج پایهٔ قدیمی‌تر ساخته شده، بنابراین نشست‌های تازه نمی‌توانند از آن آغاز شوند. ارتقا دهید تا همان بسته‌ها روی ایمیج کنونی دوباره ساخته شوند.",
+    "factoryMachineStock": "ماشین پایه",
+    "factoryMachineStockBody": "Node.js 24، Python 3، git، GitHub CLI، ripgrep و Chrome. هر ماشینی روی آن ساخته می‌شود و نشست‌های بدون ماشین روی همان اجرا می‌شوند.",
+    "factoryMachinesEmptyTitle": "هنوز ماشینی وجود ندارد",
+    "factoryMachinesEmptyBody": "نشست‌ها روی ماشین پایه اجرا می‌شوند. ماشینی بسازید با زمان‌های اجرا، پایگاه‌های داده و ابزارهایی که این مخزن نیاز دارد تا هر نشست با آن‌ها آغاز شود.",
+    "factoryMachinePickTitle": "اجرای نشست روی",
+    "factoryMachinePip": "pip سراسری",
+    "factoryMachineReady": "آماده",
+    "factoryMachineStepBase": "پایهٔ میزکار Factory",
+    "factoryMachineStepBaseDetail": "Ubuntu 22.04 همراه با میزکار، git و GitHub CLI",
+    "factoryMachineStepSave": "ذخیرهٔ ماشین",
+    "factoryMachineStepSaveDetail": "عکس لحظه‌ای برای نشست‌های این پروژه",
+    "factoryMachineServiceStarts": "با هر نشست آغاز می‌شود",
+    "factoryMachineServicesHint": "به‌صورت متغیرهای محیطی در اختیار عامل قرار می‌گیرد، بنابراین آزمون‌ها و سرورهای توسعه بدون تنظیمات وصل می‌شوند.",
+    "factoryMachineRebuild": "ساخت دوباره با به‌روزرسانی‌ها",
+    "factoryMachineUseVersion": "استفاده از این نسخه",
+    "factoryMachineReused": "یک ساخت یکسان دوباره استفاده شد",
+    "factoryMachineSetUp": "راه‌اندازی ماشین",
+    "factoryMachineSuggestUpdate": "برای نشست‌های آینده به {machine} افزوده شود؟",
+    "factoryMachineSuggestNote": "در پس‌زمینه دوباره ساخته می‌شود. این نشست بدون تغییر ادامه می‌یابد.",
+    "factoryMachineSuggestCreatorOnly": "فقط نگه‌دارندگان می‌توانند ماشین‌ها را تغییر دهند. از یکی از آن‌ها بخواهید این را اعمال کند.",
+    "factoryMachineSuggestAccept": "افزودن و ساخت دوباره",
+    "factoryMachineSuggestAdded": "نسخهٔ تازه‌ای از {machine} در حال ساخت است. نشست‌های تازه به‌محض آماده شدن از آن استفاده می‌کنند.",
+    "factoryMachineSuggestDeclined": "اعمال نشد. می‌توانید هر زمان ماشین را از بخش ماشین‌ها تغییر دهید.",
+    "factoryMachineSuggestAlreadyIn": "{machine} این را از قبل دارد.",
+    "factoryMachineSuggestReady": "{machine} v{version} آماده است. نشست‌های تازه روی آن آغاز می‌شوند.",
+    "factoryMachineSuggestFailed": "ساخت نسخهٔ تازهٔ {machine} ناموفق بود.",
+    "factoryMachineSuggestCancelled": "نسخهٔ تازهٔ {machine} لغو شد.",
+    "factoryMachineSuggestedFix": "اصلاح پیشنهادی",
+    "factoryMachineSameAsBefore": "همان انتخاب، دوباره ساخته شد",
+    "factoryMachineTabOverview": "نمای کلی",
+    "factoryMachineUnbuiltTo": "پیش‌نویس {next}: {count} تغییر نسبت به {version}، ساخته نشده | پیش‌نویس {next}: {count} تغییر نسبت به {version}، ساخته نشده",
+    "factoryMachineReview": "ادامهٔ ویرایش",
+    "factoryMachineTabVersions": "نسخه‌ها",
+    "factoryMachineServiceBadge": "سرویس",
+    "factoryMachineUndoChange": "برگرداندن این تغییر",
+    "factoryMachineStepOf": "{step}، گام {n} از {total}",
+    "factoryMachineStillUsing": "نشست‌های تازه همچنان از {version} استفاده می‌کنند.",
+    "factoryMachineReusedLog": "یک ساخت پیشین یکسان دوباره استفاده شد، بنابراین چیزی برای ساختن نبود.",
+    "dontExpand": "گسترش نده",
+    "createSchema": "ایجاد شِما",
+    "configureSources": "پیکربندی منابع"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -7772,6 +7827,81 @@
       "tryBody": "گفتگوی تازه‌ای آغاز کنید و بپرسید «List my NocoDB tools».",
       "tokenText": "ابزار شما فقط توکن می‌پذیرد؟",
       "tokenButton": "ایجاد توکن MCP"
+    },
+    "pane": {
+      "tabApps": "برنامه‌های هوش مصنوعی",
+      "tabManual": "اتصال‌های دستی",
+      "connectTitle": "اتصال یک برنامهٔ هوش مصنوعی",
+      "recommended": "پیشنهادشده",
+      "connectBody": "با حساب NocoDB خود وارد شوید. شما دقیقاً تعیین می‌کنید چه چیزی را ببیند و تغییر دهد.",
+      "otherToolUrl": "از ابزار هوش مصنوعی دیگری استفاده می‌کنید؟ اضافه کنید",
+      "otherTool": "ابزار دیگر",
+      "copyValue": "کپی {label}",
+      "addTo": "افزودن NocoDB به {client}",
+      "signInTitle": "ورود با NocoDB و تأیید",
+      "waiting": "در انتظار ورود {client}…",
+      "waitingHint": "به‌محض تأیید، به‌طور خودکار به‌روز می‌شود.",
+      "connectedTitle": "{client} متصل است",
+      "connectedBody": "اکنون در برنامه‌های هوش مصنوعی شما نمایش داده می‌شود.",
+      "connectedElsewhere": "برای پروژه‌های دیگر تأیید شده است، بنابراین اینجا فهرست نمی‌شود.",
+      "manageAccess": "مدیریت دسترسی",
+      "fallbackText": "ابزار هوش مصنوعی شما نمی‌تواند با NocoDB وارد شود؟",
+      "fallbackLink": "به‌جای آن از اتصال دستی استفاده کنید",
+      "appsTitle": "برنامه‌های هوش مصنوعی شما",
+      "appsHint": "فقط برای شما قابل مشاهده است",
+      "app": "برنامه",
+      "lastSignedInAt": "آخرین ورود {time}",
+      "lastUsed": "آخرین استفاده",
+      "lastUsedAt": "آخرین استفاده {time}",
+      "canDelete": "می‌تواند داده‌ها را حذف کند",
+      "toolsTitle": "ابزارها و دسترسی‌ها",
+      "neverMoreThanRole": "هرگز بیش از نقش خودتان در این پروژه ({role}) نیست.",
+      "neverMoreThanAccess": "هرگز بیش از دسترسی خودتان به این پروژه نیست.",
+      "neverMoreThanOwnAccess": "هرگز بیش از دسترسی خودتان در جایی که تأیید شده نیست.",
+      "notEditable": "کارهایی که این برنامه می‌تواند انجام دهد هنگام ورود تعیین شده و اینجا قابل تغییر نیست. اتصالش را قطع کنید و دوباره واردش کنید تا ابزارهایش را انتخاب کنید.",
+      "disconnectBody": "اتصال این برنامه را از این پروژه قطع می‌کند. برای اتصال دوباره باید دوباره وارد شود.",
+      "disconnectBodyWide": "اتصال این برنامه را در همهٔ جاهایی که تأیید شده قطع می‌کند، نه فقط در این پروژه. برای اتصال دوباره باید دوباره وارد شود.",
+      "disconnectBodyEverywhere": "اتصال این برنامه را در همهٔ جاهایی که تأیید شده قطع می‌کند. برای اتصال دوباره باید دوباره وارد شود.",
+      "disconnectConfirm": "اتصال {client} قطع شود؟",
+      "disconnectConfirmBody": "بی‌درنگ دسترسی را از دست می‌دهد و برای اتصال دوباره باید دوباره وارد شود.",
+      "disconnected": "اتصال {client} قطع شد",
+      "accessUpdated": "دسترسی به‌روزرسانی شد",
+      "manualTitle": "اتصال‌های دستی شما",
+      "manualBody": "برای اسکریپت‌ها، کارهای CI و کلاینت‌هایی که نمی‌توانند با NocoDB وارد شوند.",
+      "manualNote": "اتصال‌های دستی از یک کلید API ثابت استفاده می‌کنند. تا زمانی که آن را باطل نکنید کار می‌کند و هر کسی که پیکربندی را داشته باشد همان دسترسی را می‌گیرد. اگر ابزار شما پشتیبانی می‌کند، {link}.",
+      "manualNoteLink": "به‌جای آن، آن را به‌عنوان برنامهٔ هوش مصنوعی وصل کنید",
+      "field": {
+        "remoteServerUrl": "نشانی URL سرور MCP راه دور",
+        "authentication": "احراز هویت",
+        "url": "URL",
+        "transport": "انتقال"
+      },
+      "claude": {
+        "where": "در Claude، تنظیمات › رابط‌ها را باز کنید و افزودن رابط سفارشی را انتخاب کنید. تکمیل کنید:",
+        "auth": "گزینهٔ اتصال کنار NocoDB را انتخاب کنید. با NocoDB وارد شوید، انتخاب کنید Claude به چه چیزی دسترسی داشته باشد، سپس تأیید را انتخاب کنید."
+      },
+      "chatgpt": {
+        "where": "در ChatGPT، افزونه‌ها را باز کنید، افزودن و سپس افزودن سرور MCP سفارشی را انتخاب کنید. تکمیل کنید:",
+        "auth": "گزینهٔ ایجاد را انتخاب کنید. ChatGPT، NocoDB را در پنجره‌ای تازه باز می‌کند. وارد شوید، انتخاب کنید به چه چیزی دسترسی داشته باشد، سپس تأیید را انتخاب کنید."
+      },
+      "claudeCode": {
+        "auth": "در Claude Code، دستور /mcp را اجرا کنید، nocodb را انتخاب کرده و سپس احراز هویت را انتخاب کنید. در مرورگر انتخاب کنید به چه چیزی دسترسی داشته باشد، سپس تأیید را انتخاب کنید."
+      },
+      "cursor": {
+        "where": "در Cursor، تنظیمات › MCP را باز کنید و افزودن سرور MCP جدید را انتخاب کنید. تکمیل کنید:",
+        "auth": "گزینهٔ اتصال کنار nocodb را در فهرست MCP انتخاب کنید. در مرورگر با NocoDB وارد شوید و تأیید را انتخاب کنید."
+      },
+      "codex": {
+        "auth": "دستور ورود را اجرا کنید، در مرورگر با NocoDB وارد شوید و تأیید را انتخاب کنید."
+      },
+      "windsurf": {
+        "where": "در Windsurf، تنظیمات › Cascade › سرورهای MCP را باز کنید و افزودن سرور سفارشی را انتخاب کنید. تکمیل کنید:",
+        "auth": "گزینهٔ اتصال کنار nocodb را انتخاب کنید. در مرورگر با NocoDB وارد شوید و تأیید را انتخاب کنید."
+      },
+      "other": {
+        "where": "در کلاینت خود یک سرور MCP راه دور با این مشخصات اضافه کنید:",
+        "auth": "اتصال را از کلاینت خود آغاز کنید. NocoDB در مرورگر باز می‌شود؛ آنجا وارد می‌شوید، انتخاب می‌کنید کلاینت به چه چیزی دسترسی داشته باشد و تأیید را انتخاب می‌کنید."
+      }
     }
   }
 }

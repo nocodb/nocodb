@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "Inovujte, aby ste mohli vo formulároch vyžadovať prihlásenie",
     "upgradeToUseFormRequireSigninSubtitle": "Inovujte na plán {plan}, aby ste od respondentov vyžadovali prihlásenie pred odoslaním formulára.",
     "upgradeToUseSso": "Upgradujte na používanie SSO",
-    "upgradeToUseSsoSubtitle": "Upgradujte na plán {plan}, aby ste nastavili jednotné prihlásenie (SSO) a umožnili svojmu tímu prihlasovať sa cez vášho poskytovateľa identity.",
-    "upgradeToUseAppFactory": "Prejdite na vyšší plán a používajte App Factory",
-    "upgradeToUseAppFactorySubtitle": "Prejdite na plán {plan} a spúšťajte programovacích agentov nad prepojenými repozitármi."
+    "upgradeToUseSsoSubtitle": "Upgradujte na plán {plan}, aby ste nastavili jednotné prihlásenie (SSO) a umožnili svojmu tímu prihlasovať sa cez vášho poskytovateľa identity."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -767,7 +765,8 @@
     "uploading": "Nahráva sa",
     "countAll": "Spočítať všetko",
     "factory": "Továreň",
-    "config": "Konfigurácia"
+    "config": "Konfigurácia",
+    "dismiss": "Zavrieť"
   },
   "objects": {
     "script": "Skript",
@@ -2201,7 +2200,7 @@
       "webhooks": "Webhooks",
       "webhooksDesc": "Manage webhook triggers and logs",
       "base": "Projekt",
-      "baseDesc": "Nastavenia projektu, zdroje a úlohy",
+      "baseDesc": "Nastavenia projektu, zdroje, úlohy, dokumenty a ich komentáre",
       "users": "Users",
       "usersDesc": "Členovia projektu, členovia pracovného priestoru a pozvánky",
       "grantedCount": "Udelené {count} z {total}",
@@ -3105,7 +3104,6 @@
       "syncInfo": "Sťahujte údaje z externej aplikácie podľa plánu. Jednosmerne.",
       "automations": "Automatizácie",
       "aiSkills": "AI zručnosti",
-      "mcpServer": "Server MCP",
       "auditLog": "Auditný záznam",
       "trashRetention": "Doba uchovania koša",
       "snapshots": "Snapshots",
@@ -3136,7 +3134,7 @@
         "members": "Kto môže tento projekt otvoriť a čo v ňom môže robiť.",
         "permissions": "Kto môže zobraziť alebo upraviť každú tabuľku, pole a dokument.",
         "apiTokens": "Tokeny, ktoré externým aplikáciám umožňujú čítať a zapisovať v tomto projekte.",
-        "mcp": "Pripojte klientov AI k tomuto projektu cez MCP.",
+        "mcp": "Nechajte svoje nástroje AI pracovať s týmto projektom pod vaším vlastným prístupom.",
         "integrations": "Pripojené účty, ktoré môže tento projekt používať.",
         "automations": "Pracovné postupy, ktoré spúšťa spúšťač.",
         "auditLog": "Každá zmena vykonaná v tomto projekte a kto ju vykonal.",
@@ -3155,7 +3153,8 @@
       "upgradeDescDateDependency": "Automaticky posunie závislé dátumy, keď sa záznam presunie.",
       "concernProject": "Projekt",
       "concernApps": "Apps",
-      "concernTabs": "Sekcie nastavení"
+      "concernTabs": "Sekcie nastavení",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "Kategórie",
     "blockquote": "Citácia",
@@ -5310,7 +5309,6 @@
     "factoryEnvironment": "Prostredie",
     "factoryCommitOrPush": "Commit alebo push",
     "factoryCompareBranch": "Porovnať vetvu",
-    "factoryAddTab": "Otvoriť panel",
     "factoryCommitPushPrompt": "Zacommituj zmeny a pushni vetvu.",
     "chatYesterday": "Včera",
     "chatCopyMessage": "Kopírovať správu",
@@ -5416,7 +5414,64 @@
     "duplicateField": "Duplikovať pole",
     "extensionError": "Chyba rozšírenia",
     "clearData": "Vymazať údaje",
-    "copyProject": "Kopírovať projekt"
+    "copyProject": "Kopírovať projekt",
+    "factoryBootPartCpu": "Procesor",
+    "factoryBootPartMemory": "Pamäť",
+    "factoryBootPartNetwork": "Sieť",
+    "factoryBootPartRepo": "Repozitár",
+    "factoryBootPartServices": "Služby",
+    "factoryMachines": "Stroje",
+    "factoryMachinesHint": "Prostredie, z ktorého sa vaše relácie spúšťajú. Nové relácie používajú predvolený stroj; iný vyberte v editore.",
+    "factoryMachinesCreatorOnly": "Stroje môžu vytvárať, upravovať alebo zostavovať iba správcovia.",
+    "factoryMachineSearchPanes": "Hľadať",
+    "factoryMachineStockTag": "Vstavané",
+    "factoryMachineSetDefault": "Nastaviť ako predvolené",
+    "factoryMachineUpgrade": "Inovovať",
+    "factoryMachineUpgradingShort": "Inovuje sa…",
+    "factoryMachineUpdateAvailable": "K dispozícii je aktualizácia",
+    "factoryMachineUpgradeHint": "Je postavený na staršom základnom obraze. Inovácia znova zostaví rovnaké balíky na aktuálnom obraze.",
+    "factoryMachineUpgradeBanner": "Je postavený na staršom základnom obraze, takže nové relácie z neho nemôžu štartovať. Inovujte, aby sa rovnaké balíky znova zostavili na aktuálnom obraze.",
+    "factoryMachineStock": "Základný stroj",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep a Chrome. Na ňom stavia každý stroj a relácie bez stroja bežia práve na ňom.",
+    "factoryMachinesEmptyTitle": "Zatiaľ žiadne stroje",
+    "factoryMachinesEmptyBody": "Relácie bežia na základnom stroji. Vytvorte stroj s behovými prostrediami, databázami a nástrojmi, ktoré tento repozitár potrebuje, a každá relácia s nimi začne.",
+    "factoryMachinePickTitle": "Spustiť reláciu na",
+    "factoryMachinePip": "Globálny pip",
+    "factoryMachineReady": "Pripravené",
+    "factoryMachineStepBase": "Základ Factory pre desktop",
+    "factoryMachineStepBaseDetail": "Ubuntu 22.04 s desktopom, gitom a GitHub CLI",
+    "factoryMachineStepSave": "Uložiť stroj",
+    "factoryMachineStepSaveDetail": "Snímka pre relácie tohto projektu",
+    "factoryMachineServiceStarts": "Spustí sa s každou reláciou",
+    "factoryMachineServicesHint": "Sprístupnené agentovi ako premenné prostredia, takže testy a vývojové servery sa pripoja bez nastavovania.",
+    "factoryMachineRebuild": "Znova zostaviť s aktualizáciami",
+    "factoryMachineUseVersion": "Použiť túto verziu",
+    "factoryMachineReused": "Znova použité identické zostavenie",
+    "factoryMachineSetUp": "Nastaviť stroj",
+    "factoryMachineSuggestUpdate": "Pridať do stroja {machine} pre budúce relácie?",
+    "factoryMachineSuggestNote": "Zostavuje sa znova na pozadí. Táto relácia beží bez zmeny ďalej.",
+    "factoryMachineSuggestCreatorOnly": "Stroje môžu meniť iba správcovia. Požiadajte niektorého z nich, aby to použil.",
+    "factoryMachineSuggestAccept": "Pridať a znova zostaviť",
+    "factoryMachineSuggestAdded": "Zostavuje sa nová verzia stroja {machine}. Nové relácie ju použijú, len čo bude hotová.",
+    "factoryMachineSuggestDeclined": "Nepoužité. Stroj môžete kedykoľvek zmeniť v sekcii Stroje.",
+    "factoryMachineSuggestAlreadyIn": "{machine} toto už má.",
+    "factoryMachineSuggestReady": "{machine} v{version} je pripravený. Nové relácie sa na ňom spúšťajú.",
+    "factoryMachineSuggestFailed": "Novú verziu stroja {machine} sa nepodarilo zostaviť.",
+    "factoryMachineSuggestCancelled": "Nová verzia stroja {machine} bola zrušená.",
+    "factoryMachineSuggestedFix": "Navrhovaná oprava",
+    "factoryMachineSameAsBefore": "Rovnaký výber, znova zostavené",
+    "factoryMachineTabOverview": "Prehľad",
+    "factoryMachineUnbuiltTo": "Koncept {next}: {count} zmena oproti {version}, nezostavené | Koncept {next}: {count} zmien oproti {version}, nezostavené",
+    "factoryMachineReview": "Pokračovať v úpravách",
+    "factoryMachineTabVersions": "Verzie",
+    "factoryMachineServiceBadge": "Služba",
+    "factoryMachineUndoChange": "Vrátiť túto zmenu späť",
+    "factoryMachineStepOf": "{step}, krok {n} z {total}",
+    "factoryMachineStillUsing": "Nové relácie naďalej používajú {version}.",
+    "factoryMachineReusedLog": "Bolo znova použité identické skoršie zostavenie, takže nebolo čo zostavovať.",
+    "dontExpand": "Nerozbaľovať",
+    "createSchema": "Vytvoriť schému",
+    "configureSources": "Konfigurovať zdroje"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -7765,6 +7820,80 @@
       "tryBody": "Spustite nový chat a opýtajte sa «List my NocoDB tools».",
       "tokenText": "Váš nástroj prijíma iba token?",
       "tokenButton": "Vytvoriť token MCP"
+    },
+    "pane": {
+      "tabApps": "Aplikácie AI",
+      "tabManual": "Manuálne pripojenia",
+      "connectTitle": "Pripojiť aplikáciu AI",
+      "recommended": "Odporúčané",
+      "connectBody": "Prihláste sa svojím účtom NocoDB. Presne určíte, čo môže vidieť a meniť.",
+      "otherToolUrl": "Používate iný nástroj AI? Pridajte",
+      "otherTool": "Iný nástroj",
+      "copyValue": "Kopírovať {label}",
+      "addTo": "Pridať NocoDB do {client}",
+      "signInTitle": "Prihlásiť sa pomocou NocoDB a autorizovať",
+      "waiting": "Čaká sa na prihlásenie {client}…",
+      "waitingHint": "Zobrazenie sa samo aktualizuje hneď, ako autorizujete.",
+      "connectedTitle": "{client} je pripojený",
+      "connectedBody": "Teraz sa zobrazuje vo vašich aplikáciách AI.",
+      "connectedElsewhere": "Bola autorizovaná pre iné projekty, preto tu nie je uvedená.",
+      "manageAccess": "Spravovať prístup",
+      "fallbackText": "Váš nástroj AI sa nedokáže prihlásiť pomocou NocoDB?",
+      "fallbackLink": "Použiť namiesto toho manuálne pripojenie",
+      "appsTitle": "Vaše aplikácie AI",
+      "appsHint": "Viditeľné iba pre vás",
+      "app": "Aplikácia",
+      "lastSignedInAt": "Naposledy prihlásený {time}",
+      "lastUsed": "Naposledy použité",
+      "lastUsedAt": "Naposledy použité {time}",
+      "canDelete": "Môže mazať údaje",
+      "toolsTitle": "Nástroje a oprávnenia",
+      "neverMoreThanRole": "Nikdy viac než vaša vlastná rola v tomto projekte ({role}).",
+      "neverMoreThanAccess": "Nikdy viac než váš vlastný prístup k tomuto projektu.",
+      "neverMoreThanOwnAccess": "Nikdy viac než váš vlastný prístup tam, kde bola autorizovaná.",
+      "notEditable": "To, čo môže táto aplikácia robiť, sa určilo pri prihlásení a tu sa to nedá zmeniť. Odpojte ju a znova ju prihláste, aby ste vybrali jej nástroje.",
+      "disconnectBody": "Odpojí túto aplikáciu od tohto projektu. Na opätovné pripojenie sa bude musieť znova prihlásiť.",
+      "disconnectBodyWide": "Odpojí túto aplikáciu všade, kde bola autorizovaná, nielen v tomto projekte. Na opätovné pripojenie sa bude musieť znova prihlásiť.",
+      "disconnectBodyEverywhere": "Odpojí túto aplikáciu všade, kde bola autorizovaná. Na opätovné pripojenie sa bude musieť znova prihlásiť.",
+      "disconnectConfirm": "Odpojiť {client}?",
+      "disconnectConfirmBody": "Okamžite stratí prístup a na opätovné pripojenie sa bude musieť znova prihlásiť.",
+      "disconnected": "{client} odpojený",
+      "accessUpdated": "Prístup aktualizovaný",
+      "manualTitle": "Vaše manuálne pripojenia",
+      "manualBody": "Pre skripty, úlohy CI a klientov, ktorí sa nemôžu prihlásiť pomocou NocoDB.",
+      "manualNote": "Manuálne pripojenia používajú statický kľúč API. Funguje, kým ho neodvoláte, a ktokoľvek s touto konfiguráciou získa rovnaký prístup. Ak to váš nástroj podporuje, {link}.",
+      "manualNoteLink": "pripojte ho radšej ako aplikáciu AI",
+      "field": {
+        "remoteServerUrl": "URL vzdialeného servera MCP",
+        "authentication": "Overovanie",
+        "url": "URL"
+      },
+      "claude": {
+        "where": "V Claude otvorte Nastavenia › Konektory a vyberte Pridať vlastný konektor. Vyplňte:",
+        "auth": "Vyberte Pripojiť vedľa NocoDB. Prihláste sa pomocou NocoDB, vyberte, k čomu môže Claude pristupovať, a potom vyberte Autorizovať."
+      },
+      "chatgpt": {
+        "where": "V ChatGPT otvorte Pluginy, vyberte Pridať a potom Pridať vlastný server MCP. Vyplňte:",
+        "auth": "Vyberte Vytvoriť. ChatGPT otvorí NocoDB v novom okne. Prihláste sa, vyberte, k čomu môže pristupovať, a potom vyberte Autorizovať."
+      },
+      "claudeCode": {
+        "auth": "V Claude Code spustite /mcp, zvoľte nocodb a vyberte Overiť. V prehliadači vyberte, k čomu môže pristupovať, a potom vyberte Autorizovať."
+      },
+      "cursor": {
+        "where": "V Cursore otvorte Nastavenia › MCP a vyberte Pridať nový server MCP. Vyplňte:",
+        "auth": "Vyberte Pripojiť vedľa nocodb v zozname MCP. Prihláste sa v prehliadači pomocou NocoDB a vyberte Autorizovať."
+      },
+      "codex": {
+        "auth": "Spustite prihlasovací príkaz, prihláste sa v prehliadači pomocou NocoDB a vyberte Autorizovať."
+      },
+      "windsurf": {
+        "where": "Vo Windsurfe otvorte Nastavenia › Cascade › Servery MCP a vyberte Pridať vlastný server. Vyplňte:",
+        "auth": "Vyberte Pripojiť vedľa nocodb. Prihláste sa v prehliadači pomocou NocoDB a vyberte Autorizovať."
+      },
+      "other": {
+        "where": "Pridajte vo svojom klientovi vzdialený server MCP s týmito údajmi:",
+        "auth": "Spustite pripojenie zo svojho klienta. V prehliadači sa otvorí NocoDB, kde sa prihlásite, vyberiete, k čomu môže klient pristupovať, a vyberiete Autorizovať."
+      }
     }
   }
 }

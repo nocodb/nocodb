@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "Nadgradite, da boste lahko pri obrazcih zahtevali prijavo",
     "upgradeToUseFormRequireSigninSubtitle": "Nadgradite na paket {plan}, da boste od anketirancev zahtevali prijavo pred oddajo obrazca.",
     "upgradeToUseSso": "Nadgradite za uporabo SSO",
-    "upgradeToUseSsoSubtitle": "Nadgradite na paket {plan} za nastavitev enotne prijave (SSO) in omogočite ekipi prijavo prek vašega ponudnika identitete.",
-    "upgradeToUseAppFactory": "Nadgradite za uporabo App Factory",
-    "upgradeToUseAppFactorySubtitle": "Nadgradite na paket {plan} in poganjajte programerske agente na svojih povezanih repozitorijih."
+    "upgradeToUseSsoSubtitle": "Nadgradite na paket {plan} za nastavitev enotne prijave (SSO) in omogočite ekipi prijavo prek vašega ponudnika identitete."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -767,7 +765,8 @@
     "uploading": "Nalaganje",
     "countAll": "Preštej vse",
     "factory": "Tovarna",
-    "config": "Konfiguracija"
+    "config": "Konfiguracija",
+    "dismiss": "Opusti"
   },
   "objects": {
     "script": "Skripta",
@@ -2200,7 +2199,7 @@
       "webhooks": "Webhooks",
       "webhooksDesc": "Manage webhook triggers and logs",
       "base": "Projekt",
-      "baseDesc": "Nastavitve projekta, viri in opravila",
+      "baseDesc": "Nastavitve projekta, viri, opravila, dokumenti in njihovi komentarji",
       "users": "Users",
       "usersDesc": "Člani projekta, člani delovnega prostora in povabila",
       "grantedCount": "Odobreno {count} od {total}",
@@ -3104,7 +3103,6 @@
       "syncInfo": "Po urniku prenašajte podatke iz zunanje aplikacije. Enosmerno.",
       "automations": "Avtomatizacije",
       "aiSkills": "UI Skills",
-      "mcpServer": "Strežnik MCP",
       "auditLog": "Revizijski dnevnik",
       "trashRetention": "Hramba v košu",
       "snapshots": "Snapshots",
@@ -3135,7 +3133,7 @@
         "members": "Kdo lahko odpre ta projekt in kaj lahko v njem počne.",
         "permissions": "Kdo lahko vidi ali ureja vsako tabelo, polje in dokument.",
         "apiTokens": "Žetoni, ki zunanjim aplikacijam omogočajo branje in pisanje v tem projektu.",
-        "mcp": "Povežite odjemalce UI s tem projektom prek MCP.",
+        "mcp": "Dovolite, da vaša orodja UI delajo s tem projektom z vašim lastnim dostopom.",
         "integrations": "Povezani računi, ki jih lahko uporablja ta projekt.",
         "automations": "Delovni tokovi, ki jih zažene sprožilec.",
         "auditLog": "Vsaka sprememba v tem projektu in kdo jo je naredil.",
@@ -3154,7 +3152,8 @@
       "upgradeDescDateDependency": "Samodejno zamakne odvisne datume, ko se zapis premakne.",
       "concernProject": "Projekt",
       "concernApps": "Apps",
-      "concernTabs": "Razdelki nastavitev"
+      "concernTabs": "Razdelki nastavitev",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "Kategorije",
     "blockquote": "Citat",
@@ -5310,7 +5309,6 @@
     "factoryEnvironment": "Okolje",
     "factoryCommitOrPush": "Commit ali push",
     "factoryCompareBranch": "Primerjaj vejo",
-    "factoryAddTab": "Odpri ploščo",
     "factoryCommitPushPrompt": "Commitaj spremembe in pushaj vejo.",
     "chatYesterday": "Včeraj",
     "chatCopyMessage": "Kopiraj sporočilo",
@@ -5416,7 +5414,64 @@
     "duplicateField": "Podvoji polje",
     "extensionError": "Napaka razširitve",
     "clearData": "Počisti podatke",
-    "copyProject": "Kopiraj projekt"
+    "copyProject": "Kopiraj projekt",
+    "factoryBootPartCpu": "Procesor",
+    "factoryBootPartMemory": "Pomnilnik",
+    "factoryBootPartNetwork": "Omrežje",
+    "factoryBootPartRepo": "Repozitorij",
+    "factoryBootPartServices": "Storitve",
+    "factoryMachines": "Stroji",
+    "factoryMachinesHint": "Okolje, iz katerega se zaženejo vaše seje. Nove seje uporabljajo privzeti stroj; drugega izberite v urejevalniku.",
+    "factoryMachinesCreatorOnly": "Stroje lahko ustvarjajo, urejajo ali gradijo samo vzdrževalci.",
+    "factoryMachineSearchPanes": "Iskanje",
+    "factoryMachineStockTag": "Vgrajeno",
+    "factoryMachineSetDefault": "Nastavi kot privzeto",
+    "factoryMachineUpgrade": "Nadgradi",
+    "factoryMachineUpgradingShort": "Nadgrajevanje…",
+    "factoryMachineUpdateAvailable": "Na voljo je posodobitev",
+    "factoryMachineUpgradeHint": "Zgrajen je na starejši osnovni sliki. Nadgradnja znova zgradi iste pakete na trenutni.",
+    "factoryMachineUpgradeBanner": "Zgrajen je na starejši osnovni sliki, zato nove seje z njega ne morejo začeti. Nadgradite, da se isti paketi znova zgradijo na trenutni.",
+    "factoryMachineStock": "Osnovni stroj",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep in Chrome. Na njem temelji vsak stroj, seje brez stroja pa tečejo prav na njem.",
+    "factoryMachinesEmptyTitle": "Strojev še ni",
+    "factoryMachinesEmptyBody": "Seje tečejo na osnovnem stroju. Ustvarite stroj z izvajalnimi okolji, podatkovnimi bazami in orodji, ki jih ta repozitorij potrebuje, in vsaka seja se bo začela z njimi.",
+    "factoryMachinePickTitle": "Zaženi sejo na",
+    "factoryMachinePip": "Globalni pip",
+    "factoryMachineReady": "Pripravljeno",
+    "factoryMachineStepBase": "Osnova Factory za namizje",
+    "factoryMachineStepBaseDetail": "Ubuntu 22.04 z namizjem, gitom in GitHub CLI",
+    "factoryMachineStepSave": "Shrani stroj",
+    "factoryMachineStepSaveDetail": "Posnetek za seje tega projekta",
+    "factoryMachineServiceStarts": "Zažene se z vsako sejo",
+    "factoryMachineServicesHint": "Izpostavljeno agentu kot spremenljivke okolja, tako da se testi in razvojni strežniki povežejo brez nastavljanja.",
+    "factoryMachineRebuild": "Znova zgradi s posodobitvami",
+    "factoryMachineUseVersion": "Uporabi to različico",
+    "factoryMachineReused": "Znova uporabljena enaka gradnja",
+    "factoryMachineSetUp": "Nastavi stroj",
+    "factoryMachineSuggestUpdate": "Dodati v {machine} za prihodnje seje?",
+    "factoryMachineSuggestNote": "Znova se gradi v ozadju. Ta seja teče naprej nespremenjena.",
+    "factoryMachineSuggestCreatorOnly": "Stroje lahko spreminjajo samo vzdrževalci. Prosite enega od njih, naj to uveljavi.",
+    "factoryMachineSuggestAccept": "Dodaj in znova zgradi",
+    "factoryMachineSuggestAdded": "Gradi se nova različica stroja {machine}. Nove seje jo bodo uporabile, ko bo pripravljena.",
+    "factoryMachineSuggestDeclined": "Ni uveljavljeno. Stroj lahko kadar koli spremenite v razdelku Stroji.",
+    "factoryMachineSuggestAlreadyIn": "{machine} to že ima.",
+    "factoryMachineSuggestReady": "{machine} v{version} je pripravljen. Nove seje se zaženejo na njem.",
+    "factoryMachineSuggestFailed": "Nove različice stroja {machine} ni bilo mogoče zgraditi.",
+    "factoryMachineSuggestCancelled": "Nova različica stroja {machine} je bila preklicana.",
+    "factoryMachineSuggestedFix": "Predlagan popravek",
+    "factoryMachineSameAsBefore": "Enaka izbira, znova zgrajeno",
+    "factoryMachineTabOverview": "Pregled",
+    "factoryMachineUnbuiltTo": "Osnutek {next}: {count} sprememba glede na {version}, ni zgrajeno | Osnutek {next}: {count} sprememb glede na {version}, ni zgrajeno",
+    "factoryMachineReview": "Nadaljuj urejanje",
+    "factoryMachineTabVersions": "Različice",
+    "factoryMachineServiceBadge": "Storitev",
+    "factoryMachineUndoChange": "Razveljavi to spremembo",
+    "factoryMachineStepOf": "{step}, korak {n} od {total}",
+    "factoryMachineStillUsing": "Nove seje še naprej uporabljajo {version}.",
+    "factoryMachineReusedLog": "Znova je bila uporabljena enaka prejšnja gradnja, zato ni bilo ničesar za gradnjo.",
+    "dontExpand": "Ne razširi",
+    "createSchema": "Ustvari shemo",
+    "configureSources": "Konfiguriraj vire"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -7765,6 +7820,80 @@
       "tryBody": "Začnite nov klepet in vprašajte «List my NocoDB tools».",
       "tokenText": "Ali vaše orodje sprejema samo žeton?",
       "tokenButton": "Ustvari žeton MCP"
+    },
+    "pane": {
+      "tabApps": "Aplikacije UI",
+      "tabManual": "Ročne povezave",
+      "connectTitle": "Poveži aplikacijo UI",
+      "recommended": "Priporočeno",
+      "connectBody": "Prijavite se s svojim računom NocoDB. Sami natančno določite, kaj lahko vidi in spremeni.",
+      "otherToolUrl": "Uporabljate drugo orodje UI? Dodajte",
+      "otherTool": "Drugo orodje",
+      "copyValue": "Kopiraj {label}",
+      "addTo": "Dodaj NocoDB v {client}",
+      "signInTitle": "Prijavi se z NocoDB in pooblasti",
+      "waiting": "Čakanje na prijavo {client}…",
+      "waitingHint": "Prikaz se posodobi sam, takoj ko pooblastite.",
+      "connectedTitle": "{client} je povezan",
+      "connectedBody": "Zdaj je prikazana med vašimi aplikacijami UI.",
+      "connectedElsewhere": "Pooblaščena je bila za druge projekte, zato tukaj ni navedena.",
+      "manageAccess": "Upravljaj dostop",
+      "fallbackText": "Se vaše orodje UI ne more prijaviti z NocoDB?",
+      "fallbackLink": "Namesto tega uporabi ročno povezavo",
+      "appsTitle": "Vaše aplikacije UI",
+      "appsHint": "Vidno samo vam",
+      "app": "Aplikacija",
+      "lastSignedInAt": "Zadnja prijava {time}",
+      "lastUsed": "Zadnja uporaba",
+      "lastUsedAt": "Zadnja uporaba {time}",
+      "canDelete": "Lahko briše podatke",
+      "toolsTitle": "Orodja in dovoljenja",
+      "neverMoreThanRole": "Nikoli več kot vaša lastna vloga v tem projektu ({role}).",
+      "neverMoreThanAccess": "Nikoli več kot vaš lastni dostop do tega projekta.",
+      "neverMoreThanOwnAccess": "Nikoli več kot vaš lastni dostop tam, kjer je bila pooblaščena.",
+      "notEditable": "Kaj ta aplikacija lahko počne, je bilo določeno ob prijavi in tega tukaj ni mogoče spremeniti. Prekinite povezavo in jo znova prijavite, da izberete njena orodja.",
+      "disconnectBody": "Prekine povezavo te aplikacije s tem projektom. Za ponovno povezavo se mora znova prijaviti.",
+      "disconnectBodyWide": "Prekine povezavo te aplikacije povsod, kjer je bila pooblaščena, ne le v tem projektu. Za ponovno povezavo se mora znova prijaviti.",
+      "disconnectBodyEverywhere": "Prekine povezavo te aplikacije povsod, kjer je bila pooblaščena. Za ponovno povezavo se mora znova prijaviti.",
+      "disconnectConfirm": "Prekiniti povezavo z {client}?",
+      "disconnectConfirmBody": "Takoj izgubi dostop in se mora za ponovno povezavo znova prijaviti.",
+      "disconnected": "Povezava z {client} prekinjena",
+      "accessUpdated": "Dostop posodobljen",
+      "manualTitle": "Vaše ročne povezave",
+      "manualBody": "Za skripte, opravila CI in odjemalce, ki se ne morejo prijaviti z NocoDB.",
+      "manualNote": "Ročne povezave uporabljajo statični ključ API. Deluje, dokler ga ne prekličete, in vsak, ki ima konfiguracijo, dobi enak dostop. Če vaše orodje to podpira, {link}.",
+      "manualNoteLink": "raje ga povežite kot aplikacijo UI",
+      "field": {
+        "remoteServerUrl": "URL oddaljenega strežnika MCP",
+        "authentication": "Preverjanje pristnosti",
+        "url": "URL"
+      },
+      "claude": {
+        "where": "V Claude odprite Nastavitve › Konektorji in izberite Dodaj konektor po meri. Izpolnite:",
+        "auth": "Izberite Poveži poleg NocoDB. Prijavite se z NocoDB, izberite, do česa lahko dostopa Claude, nato izberite Pooblasti."
+      },
+      "chatgpt": {
+        "where": "V ChatGPT odprite Vtičniki, izberite Dodaj in nato Dodaj strežnik MCP po meri. Izpolnite:",
+        "auth": "Izberite Ustvari. ChatGPT odpre NocoDB v novem oknu. Prijavite se, izberite, do česa lahko dostopa, nato izberite Pooblasti."
+      },
+      "claudeCode": {
+        "auth": "V Claude Code zaženite /mcp, izberite nocodb in nato Preveri pristnost. V brskalniku izberite, do česa lahko dostopa, nato izberite Pooblasti."
+      },
+      "cursor": {
+        "where": "V Cursor odprite Nastavitve › MCP in izberite Dodaj nov strežnik MCP. Izpolnite:",
+        "auth": "Izberite Poveži poleg nocodb na seznamu MCP. Prijavite se z NocoDB v brskalniku in izberite Pooblasti."
+      },
+      "codex": {
+        "auth": "Zaženite ukaz za prijavo, prijavite se z NocoDB v brskalniku in izberite Pooblasti."
+      },
+      "windsurf": {
+        "where": "V Windsurf odprite Nastavitve › Cascade › Strežniki MCP in izberite Dodaj strežnik po meri. Izpolnite:",
+        "auth": "Izberite Poveži poleg nocodb. Prijavite se z NocoDB v brskalniku in izberite Pooblasti."
+      },
+      "other": {
+        "where": "V svojem odjemalcu dodajte oddaljeni strežnik MCP s temi podatki:",
+        "auth": "Povezavo začnite v svojem odjemalcu. NocoDB se odpre v brskalniku, kjer se prijavite, izberete, do česa lahko odjemalec dostopa, in izberete Pooblasti."
+      }
     }
   }
 }

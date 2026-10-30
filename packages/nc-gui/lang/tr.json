@@ -305,9 +305,7 @@
     "upgradeToUseFormRequireSignin": "Formlarda oturum açmayı zorunlu kılmak için yükseltin",
     "upgradeToUseFormRequireSigninSubtitle": "Yanıtlayanların bir formu göndermeden önce oturum açmasını zorunlu kılmak için {plan} planına yükseltin.",
     "upgradeToUseSso": "SSO kullanmak için yükseltin",
-    "upgradeToUseSsoSubtitle": "Çoklu Oturum Açma (SSO) kurmak ve ekibinizin kimlik sağlayıcınızla oturum açmasını sağlamak için {plan} planına yükseltin.",
-    "upgradeToUseAppFactory": "App Factory'yi kullanmak için yükseltin",
-    "upgradeToUseAppFactorySubtitle": "Bağlı depolarınızda kodlama aracıları çalıştırmak için {plan} planına yükseltin."
+    "upgradeToUseSsoSubtitle": "Çoklu Oturum Açma (SSO) kurmak ve ekibinizin kimlik sağlayıcınızla oturum açmasını sağlamak için {plan} planına yükseltin."
   },
   "general": {
     "scrollToBottom": "En alta kaydır",
@@ -767,7 +765,8 @@
     "uploading": "Yükleniyor",
     "countAll": "Tümünü say",
     "factory": "Fabrika",
-    "config": "Yapılandırma"
+    "config": "Yapılandırma",
+    "dismiss": "Kapat"
   },
   "objects": {
     "script": "Script",
@@ -2201,7 +2200,7 @@
       "webhooks": "Webhooklar",
       "webhooksDesc": "Webhook tetikleyicilerini ve kayıtlarını yönet",
       "base": "Proje",
-      "baseDesc": "Proje ayarları, kaynaklar ve işler",
+      "baseDesc": "Proje ayarları, kaynaklar, işler, belgeler ve bunların yorumları",
       "users": "Kullanıcılar",
       "usersDesc": "Proje üyeleri, çalışma alanı üyeleri ve davetler",
       "grantedCount": "{total} içinden {count} verildi",
@@ -3105,7 +3104,6 @@
       "syncInfo": "Harici bir uygulamadan zamanlanmış olarak veri çekin. Tek yönlü.",
       "automations": "Otomasyonlar",
       "aiSkills": "Yapay Zekâ Skills",
-      "mcpServer": "MCP sunucusu",
       "auditLog": "Denetim günlüğü",
       "trashRetention": "Çöp kutusu saklama süresi",
       "snapshots": "Snapshots",
@@ -3136,7 +3134,7 @@
         "members": "Bu projeyi kimlerin açabileceği ve neler yapabileceği.",
         "permissions": "Her tabloyu, alanı ve belgeyi kimin görüntüleyebileceği veya düzenleyebileceği.",
         "apiTokens": "Harici uygulamaların bu projeyi okuyup yazmasını sağlayan token'lar.",
-        "mcp": "Yapay zekâ istemcilerini MCP üzerinden bu projeye bağlayın.",
+        "mcp": "Yapay zekâ araçlarınızın bu projeyle kendi erişiminizle çalışmasına izin verin.",
         "integrations": "Bu projenin kullanabileceği bağlı hesaplar.",
         "automations": "Bir tetikleyiciyle çalışan iş akışları.",
         "auditLog": "Bu projede yapılan her değişiklik ve bunu kimin yaptığı.",
@@ -3155,7 +3153,8 @@
       "upgradeDescDateDependency": "Bir kayıt taşındığında bağımlı tarihleri otomatik olarak kaydırır.",
       "concernProject": "Proje",
       "concernApps": "Apps",
-      "concernTabs": "Ayar bölümleri"
+      "concernTabs": "Ayar bölümleri",
+      "nocodbMcp": "NocoDB MCP"
     },
     "categories": "Kategoriler",
     "blockquote": "Alıntı",
@@ -5313,7 +5312,6 @@
     "factoryEnvironment": "Ortam",
     "factoryCommitOrPush": "Commit veya push",
     "factoryCompareBranch": "Dalı karşılaştır",
-    "factoryAddTab": "Bir panel aç",
     "factoryCommitPushPrompt": "Değişiklikleri commit et ve dalı push et.",
     "chatYesterday": "Dün",
     "chatCopyMessage": "Mesajı kopyala",
@@ -5419,7 +5417,64 @@
     "duplicateField": "Alanı çoğalt",
     "extensionError": "Eklenti hatası",
     "clearData": "Verileri temizle",
-    "copyProject": "Projeyi kopyala"
+    "copyProject": "Projeyi kopyala",
+    "factoryBootPartCpu": "İşlemci",
+    "factoryBootPartMemory": "Bellek",
+    "factoryBootPartNetwork": "Ağ",
+    "factoryBootPartRepo": "Depo",
+    "factoryBootPartServices": "Hizmetler",
+    "factoryMachines": "Makineler",
+    "factoryMachinesHint": "Oturumlarınızın başladığı ortam. Yeni oturumlar varsayılanı kullanır; düzenleyicide başka birini seçebilirsiniz.",
+    "factoryMachinesCreatorOnly": "Makineleri yalnızca sorumlular oluşturabilir, düzenleyebilir veya derleyebilir.",
+    "factoryMachineSearchPanes": "Ara",
+    "factoryMachineStockTag": "Yerleşik",
+    "factoryMachineSetDefault": "Varsayılan yap",
+    "factoryMachineUpgrade": "Yükselt",
+    "factoryMachineUpgradingShort": "Yükseltiliyor…",
+    "factoryMachineUpdateAvailable": "Güncelleme mevcut",
+    "factoryMachineUpgradeHint": "Daha eski bir temel imaj üzerine kurulmuş. Yükseltme, aynı paketleri güncel imaj üzerine yeniden derler.",
+    "factoryMachineUpgradeBanner": "Daha eski bir temel imaj üzerine kurulduğu için yeni oturumlar bununla başlatılamaz. Aynı paketleri güncel imaj üzerine yeniden derlemek için yükseltin.",
+    "factoryMachineStock": "Temel makine",
+    "factoryMachineStockBody": "Node.js 24, Python 3, git, GitHub CLI, ripgrep ve Chrome. Her makine bunun üzerine kurulur ve makinesi olmayan oturumlar bunun üzerinde çalışır.",
+    "factoryMachinesEmptyTitle": "Henüz makine yok",
+    "factoryMachinesEmptyBody": "Oturumlar temel makinede çalışır. Bu deponun ihtiyaç duyduğu çalışma zamanları, veritabanları ve araçlarla bir makine oluşturun; her oturum bunlarla başlasın.",
+    "factoryMachinePickTitle": "Oturumu şurada başlat",
+    "factoryMachinePip": "Genel pip",
+    "factoryMachineReady": "Hazır",
+    "factoryMachineStepBase": "Factory masaüstü tabanı",
+    "factoryMachineStepBaseDetail": "Masaüstü, git ve GitHub CLI içeren Ubuntu 22.04",
+    "factoryMachineStepSave": "Makineyi kaydet",
+    "factoryMachineStepSaveDetail": "Bu projenin oturumları için anlık görüntü",
+    "factoryMachineServiceStarts": "Her oturumla birlikte başlar",
+    "factoryMachineServicesHint": "Aracıya ortam değişkenleri olarak sunulur, böylece testler ve geliştirme sunucuları kurulum olmadan bağlanır.",
+    "factoryMachineRebuild": "Güncellemelerle yeniden derle",
+    "factoryMachineUseVersion": "Bu sürümü kullan",
+    "factoryMachineReused": "Aynı derleme yeniden kullanıldı",
+    "factoryMachineSetUp": "Makineyi kur",
+    "factoryMachineSuggestUpdate": "Gelecekteki oturumlar için {machine} makinesine eklensin mi?",
+    "factoryMachineSuggestNote": "Arka planda yeniden derleniyor. Bu oturum olduğu gibi çalışmaya devam eder.",
+    "factoryMachineSuggestCreatorOnly": "Makineleri yalnızca sorumlular değiştirebilir. Bunu uygulaması için birinden rica edin.",
+    "factoryMachineSuggestAccept": "Ekle ve yeniden derle",
+    "factoryMachineSuggestAdded": "{machine} makinesinin yeni bir sürümü derleniyor. Hazır olduğunda yeni oturumlar bunu kullanır.",
+    "factoryMachineSuggestDeclined": "Uygulanmadı. Makineyi istediğiniz zaman Makineler bölümünden değiştirebilirsiniz.",
+    "factoryMachineSuggestAlreadyIn": "{machine} makinesinde bu zaten var.",
+    "factoryMachineSuggestReady": "{machine} v{version} hazır. Yeni oturumlar bunun üzerinde başlar.",
+    "factoryMachineSuggestFailed": "{machine} makinesinin yeni sürümü derlenemedi.",
+    "factoryMachineSuggestCancelled": "{machine} makinesinin yeni sürümü iptal edildi.",
+    "factoryMachineSuggestedFix": "Önerilen düzeltme",
+    "factoryMachineSameAsBefore": "Aynı seçim, yeniden derlendi",
+    "factoryMachineTabOverview": "Genel Bakış",
+    "factoryMachineUnbuiltTo": "Taslak {next}: {version} sürümüne göre {count} değişiklik, derlenmedi | Taslak {next}: {version} sürümüne göre {count} değişiklik, derlenmedi",
+    "factoryMachineReview": "Düzenlemeye devam et",
+    "factoryMachineTabVersions": "Sürümler",
+    "factoryMachineServiceBadge": "Hizmet",
+    "factoryMachineUndoChange": "Bu değişikliği geri al",
+    "factoryMachineStepOf": "{step}, adım {n}/{total}",
+    "factoryMachineStillUsing": "Yeni oturumlar {version} sürümünü kullanmaya devam eder.",
+    "factoryMachineReusedLog": "Aynı olan daha önceki bir derleme yeniden kullanıldı, bu yüzden derlenecek bir şey yoktu.",
+    "dontExpand": "Genişletme",
+    "createSchema": "Şema oluştur",
+    "configureSources": "Kaynakları yapılandır"
   },
   "activity": {
     "useTemplate": "Şablon kullan",
@@ -7768,6 +7823,81 @@
       "tryBody": "Yeni bir sohbet başlatın ve «List my NocoDB tools» diye sorun.",
       "tokenText": "Aracınız yalnızca belirteç mi kabul ediyor?",
       "tokenButton": "MCP belirteci oluştur"
+    },
+    "pane": {
+      "tabApps": "Yapay zekâ uygulamaları",
+      "tabManual": "El ile bağlantılar",
+      "connectTitle": "Bir yapay zekâ uygulaması bağla",
+      "recommended": "Önerilen",
+      "connectBody": "NocoDB hesabınızla oturum açın. Neleri görebileceğine ve değiştirebileceğine tam olarak siz karar verirsiniz.",
+      "otherToolUrl": "Başka bir yapay zekâ aracı mı kullanıyorsunuz? Ekleyin",
+      "otherTool": "Başka araç",
+      "copyValue": "{label} kopyala",
+      "addTo": "NocoDB'yi {client} uygulamasına ekle",
+      "signInTitle": "NocoDB ile oturum aç ve yetkilendir",
+      "waiting": "{client} uygulamasının oturum açması bekleniyor…",
+      "waitingHint": "Siz yetkilendirdiğiniz anda bu kendiliğinden güncellenir.",
+      "connectedTitle": "{client} bağlı",
+      "connectedBody": "Artık yapay zekâ uygulamalarınızda görünüyor.",
+      "connectedElsewhere": "Başka projeler için yetkilendirildiğinden burada listelenmiyor.",
+      "manageAccess": "Erişimi yönet",
+      "fallbackText": "Yapay zekâ aracınız NocoDB ile oturum açamıyor mu?",
+      "fallbackLink": "Bunun yerine el ile bağlantı kullan",
+      "appsTitle": "Yapay zekâ uygulamalarınız",
+      "appsHint": "Yalnızca size görünür",
+      "app": "Uygulama",
+      "lastSignedInAt": "Son oturum açma {time}",
+      "lastUsed": "Son kullanım",
+      "lastUsedAt": "Son kullanım {time}",
+      "canDelete": "Veri silebilir",
+      "toolsTitle": "Araçlar ve izinler",
+      "neverMoreThanRole": "Asla bu projedeki kendi rolünüzden ({role}) fazlası değil.",
+      "neverMoreThanAccess": "Asla bu projedeki kendi erişiminizden fazlası değil.",
+      "neverMoreThanOwnAccess": "Asla yetkilendirildiği yerdeki kendi erişiminizden fazlası değil.",
+      "notEditable": "Bu uygulamanın neler yapabileceği oturum açtığında belirlendi ve burada değiştirilemez. Araçlarını seçmek için bağlantısını kesin ve yeniden oturum açtırın.",
+      "disconnectBody": "Bu uygulamanın bu projeyle bağlantısını keser. Yeniden bağlanmak için tekrar oturum açması gerekir.",
+      "disconnectBodyWide": "Bu uygulamanın yalnızca bu projede değil, yetkilendirildiği her yerdeki bağlantısını keser. Yeniden bağlanmak için tekrar oturum açması gerekir.",
+      "disconnectBodyEverywhere": "Bu uygulamanın yetkilendirildiği her yerdeki bağlantısını keser. Yeniden bağlanmak için tekrar oturum açması gerekir.",
+      "disconnectConfirm": "{client} bağlantısı kesilsin mi?",
+      "disconnectConfirmBody": "Erişimini hemen kaybeder ve yeniden bağlanmak için tekrar oturum açması gerekir.",
+      "disconnected": "{client} bağlantısı kesildi",
+      "accessUpdated": "Erişim güncellendi",
+      "manualTitle": "El ile bağlantılarınız",
+      "manualBody": "NocoDB ile oturum açamayan betikler, CI işleri ve istemciler için.",
+      "manualNote": "El ile bağlantılar statik bir API anahtarı kullanır. Siz iptal edene kadar çalışır ve yapılandırmaya sahip herkes aynı erişimi elde eder. Aracınız destekliyorsa {link}.",
+      "manualNoteLink": "bunun yerine onu yapay zekâ uygulaması olarak bağlayın",
+      "field": {
+        "remoteServerUrl": "Uzak MCP sunucusu URL'si",
+        "authentication": "Kimlik Doğrulama",
+        "url": "URL",
+        "transport": "Taşıma"
+      },
+      "claude": {
+        "where": "Claude'da Ayarlar › Bağlayıcılar'ı açın ve Özel bağlayıcı ekle'yi seçin. Şunları doldurun:",
+        "auth": "NocoDB'nin yanındaki Bağlan'ı seçin. NocoDB ile oturum açın, Claude'un nelere erişebileceğini seçin, ardından Yetkilendir'i seçin."
+      },
+      "chatgpt": {
+        "where": "ChatGPT'de Eklentiler'i açın, Ekle'yi, ardından Özel MCP sunucusu ekle'yi seçin. Şunları doldurun:",
+        "auth": "Oluştur'u seçin. ChatGPT, NocoDB'yi yeni bir pencerede açar. Oturum açın, nelere erişebileceğini seçin, ardından Yetkilendir'i seçin."
+      },
+      "claudeCode": {
+        "auth": "Claude Code'da /mcp komutunu çalıştırın, nocodb'yi seçin ve Kimlik doğrula'yı seçin. Tarayıcıda nelere erişebileceğini seçin, ardından Yetkilendir'i seçin."
+      },
+      "cursor": {
+        "where": "Cursor'da Ayarlar › MCP'yi açın ve Yeni MCP sunucusu ekle'yi seçin. Şunları doldurun:",
+        "auth": "MCP listesinde nocodb'nin yanındaki Bağlan'ı seçin. Tarayıcıda NocoDB ile oturum açın ve Yetkilendir'i seçin."
+      },
+      "codex": {
+        "auth": "Oturum açma komutunu çalıştırın, tarayıcıda NocoDB ile oturum açın ve Yetkilendir'i seçin."
+      },
+      "windsurf": {
+        "where": "Windsurf'te Ayarlar › Cascade › MCP sunucuları'nı açın ve Özel sunucu ekle'yi seçin. Şunları doldurun:",
+        "auth": "nocodb'nin yanındaki Bağlan'ı seçin. Tarayıcıda NocoDB ile oturum açın ve Yetkilendir'i seçin."
+      },
+      "other": {
+        "where": "İstemcinize şu bilgilerle uzak bir MCP sunucusu ekleyin:",
+        "auth": "Bağlantıyı istemcinizden başlatın. NocoDB tarayıcıda açılır; orada oturum açar, istemcinin nelere erişebileceğini seçer ve Yetkilendir'i seçersiniz."
+      }
     }
   }
 }

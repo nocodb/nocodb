@@ -59,7 +59,7 @@ const { isDark, getColor } = useTheme()
 
 const { metaColumnById } = useViewColumnsOrThrow(view, meta)
 
-const { isSyncedTable, eventBus } = useSmartsheetStoreOrThrow()
+const { isSyncedTable, eventBus, xWhere } = useSmartsheetStoreOrThrow()
 
 const { copy } = useCopy()
 
@@ -71,6 +71,8 @@ const {
   loadKanbanData,
   loadKanbanDataForStacks,
   useWindowedKanbanLoad,
+  loadedStacks,
+  fetchNonEmptyStackTitles,
   loadMoreKanbanData,
   refreshLoadedStacksInPlace,
   setVisibleStackTitles,
@@ -266,9 +268,28 @@ const isStackEmpty = (stack: { title: string | null }) => {
   return !formattedData.value.get(stack.title)?.length
 }
 
+// Stacks holding a search match across the whole board; null while no search is active
+const searchMatchTitles = ref<Set<string | null> | null>(null)
+
+// Collapsed matches reopen only while this few match — more would widen the board again
+const SEARCH_AUTO_EXPAND_MAX = 5
+
+// Session-only: search-reopened stacks the user collapsed again under the current search
+const searchDismissedStacks = ref<Set<string>>(new Set())
+
+const isSearchMatch = (stack: { title: string | null }) => !!searchMatchTitles.value?.has(stack.title ?? null)
+
+// Reopened by the search, never saved: clearing the search restores the user's layout
+const isSearchExpanded = (stack: { id: string; title: string | null }) =>
+  !!searchMatchTitles.value &&
+  searchMatchTitles.value.size <= SEARCH_AUTO_EXPAND_MAX &&
+  isSearchMatch(stack) &&
+  !searchDismissedStacks.value.has(stack.id)
+
 const isStackCollapsed = (stack: { id: string; title: string | null; collapsed?: boolean }) => {
   if (!stack || stack.id === addNewStackId) return false
   if (tempExpandedStacks.value.has(stack.id)) return false
+  if (isSearchExpanded(stack)) return false
   if (stack.collapsed) return true
   if (autoCollapseEmptyStack.value && isStackEmpty(stack) && !userExpandedEmptyStacks.value.has(stack.id)) {
     return true
@@ -568,13 +589,74 @@ const stackCardSlices = shallowRef<Map<string | null, { start: number; end: numb
 // Version counter for slice changes - more efficient than hash calculation
 const slicesVersion = ref(0)
 
+// Search already brought into view, so filter/sort/realtime reloads under it don't move the board
+let lastScrolledSearch: string | undefined
+
+// Bring the first matching stack into view when no stack on screen holds a match
+const scrollToFirstMatchingStack = () => {
+  const container = kanbanContainerRef.value
+  const options = groupingFieldColOptions.value
+  if (!container || !options.length || !searchMatchTitles.value?.size) return
+
+  // Same viewport maths as calculateStackSlice (p-3 left padding)
+  const padding = 12
+  const left = Math.max(0, container.scrollLeft - padding)
+  const first = Math.max(0, countStacksStartingBefore(left) - 1)
+  const end = Math.min(countStacksStartingBefore(left + container.clientWidth - padding), options.length)
+  for (let i = first; i < end; i++) {
+    if (getStackOuterWidth(options[i]) && isSearchMatch(options[i])) return
+  }
+
+  const idx = options.findIndex((o) => getStackOuterWidth(o) && isSearchMatch(o))
+  if (idx !== -1) container.scrollTo({ left: stackOffsets.value[idx], behavior: 'smooth' })
+}
+
+// Recompute which stacks hold a search match after each reload; a new search also scrolls to one
+const refreshSearchMatches = async () => {
+  const search = xWhere.value
+  if (!search) {
+    searchMatchTitles.value = null
+    searchDismissedStacks.value = new Set()
+    lastScrolledSearch = undefined
+    return
+  }
+
+  const options = groupingFieldColOptions.value
+  let titles: Set<string | null> | undefined
+  if (useWindowedKanbanLoad.value && options.some((o) => !loadedStacks.value.has(o.title ?? null))) {
+    try {
+      titles = await fetchNonEmptyStackTitles()
+    } catch {
+      titles = undefined
+    }
+    // Superseded by a newer search
+    if (xWhere.value !== search) return
+  } else {
+    titles = new Set(options.map((o) => o.title ?? null).filter((title) => (countByStack.value.get(title) ?? 0) > 0))
+  }
+
+  searchMatchTitles.value = titles ?? null
+
+  if (search === lastScrolledSearch) return
+  lastScrolledSearch = search
+  searchDismissedStacks.value = new Set()
+
+  // After the reopened stacks lay out, so the offsets are their expanded widths
+  await nextTick()
+  scrollToFirstMatchingStack()
+}
+
 const reloadViewDataListener = withLoading(async (params?: { inPlace?: boolean }) => {
   // In place: refetch the loaded stacks over their cards, so the board never empties
-  if (params?.inPlace) return refreshLoadedStacksInPlace()
+  if (params?.inPlace) {
+    await refreshLoadedStacksInPlace()
+  } else {
+    // Reset so a filter/search/sort change refetches the current window fresh (and other stacks reload
+    // as they scroll back into view).
+    await loadVisibleStacks(true)
+  }
 
-  // Reset so a filter/search/sort change refetches the current window fresh (and other stacks reload
-  // as they scroll back into view).
-  await loadVisibleStacks(true)
+  refreshSearchMatches()
 })
 
 reloadViewDataHook?.on(reloadViewDataListener)
@@ -1070,7 +1152,14 @@ const handleDeleteStackConfirmClick = async () => {
 }
 
 const handleCollapseStack = async (stackIdx: number) => {
-  const currentCollapsed = groupingFieldColOptions.value[stackIdx].collapsed
+  const stack = groupingFieldColOptions.value[stackIdx]
+  // Saved as collapsed and only open for the search: close it again without saving
+  if (stack.collapsed && isSearchExpanded(stack)) {
+    searchDismissedStacks.value.add(stack.id)
+    return
+  }
+
+  const currentCollapsed = stack.collapsed
   await updateStackProperty(stackIdx, { collapsed: !currentCollapsed })
 }
 
@@ -1606,6 +1695,8 @@ const getRowId = (row: RowType) => {
 }
 
 const handleCollapsedStackClick = (stack: { id: string; title: string | null; collapsed?: boolean }, stackIdx: number) => {
+  if (searchDismissedStacks.value.delete(stack.id)) return
+
   const isAutoCollapsedEmpty = !stack.collapsed && autoCollapseEmptyStack.value && isStackEmpty(stack)
   if (isAutoCollapsedEmpty) {
     userExpandedEmptyStacks.value.add(stack.id)
@@ -2644,6 +2735,7 @@ const cardFields = (record: RowType) => {
                     'nc-kanban-collapsed-stack-reading-down': !!interfacePageDataApi,
                     'h-[52px]': !!interfacePageDataApi,
                     'h-[44px]': !interfacePageDataApi,
+                    'nc-kanban-collapsed-stack-search-miss': !!searchMatchTitles && !isSearchMatch(stack),
                   }"
                   :body-style="{
                     padding: '0px !important',
@@ -2725,7 +2817,12 @@ const cardFields = (record: RowType) => {
 
                       <div class="flex items-center gap-2 truncate">
                         <div
-                          class="nc-kanban-data-count px-1 rounded bg-nc-bg-gray-medium text-nc-content-gray text-sm font-weight-500 truncate"
+                          class="nc-kanban-data-count px-1 rounded text-sm font-weight-500 truncate"
+                          :class="
+                            searchMatchTitles && isSearchMatch(stack)
+                              ? 'bg-nc-bg-brand text-nc-content-brand'
+                              : 'bg-nc-bg-gray-medium text-nc-content-gray'
+                          "
                           :style="{ 'word-break': 'keep-all', 'white-space': 'nowrap' }"
                         >
                           <!-- Record Count (interfaces: bare number) -->
@@ -3005,6 +3102,11 @@ const cardFields = (record: RowType) => {
   transform: rotate(-90deg) translateX(-100%);
   transform-origin: left top 0px;
   transition: left 0.2s ease-in-out 0s;
+}
+
+// Searching: stacks without a match recede so the matching counts stand out
+.nc-kanban-collapsed-stack-search-miss {
+  @apply opacity-50 hover:opacity-100;
 }
 
 // Interfaces read collapsed stacks TOP-TO-BOTTOM (reference design) — the

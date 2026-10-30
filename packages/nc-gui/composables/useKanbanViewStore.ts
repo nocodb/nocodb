@@ -630,6 +630,27 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       return formatData(response!.list!, getEvaluatedRowMetaRowColorInfo, evaluateButtonVisibility)
     }
 
+    // Titles of every stack holding a row in the current scope, across the whole board — the
+    // windowed load only knows the counts of stacks it has fetched. Shared views load every stack.
+    async function fetchNonEmptyStackTitles(): Promise<Set<string | null> | undefined> {
+      if (isPublic.value || !groupingField.value) return
+      if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !interfaceDataApi) return
+
+      const params = { where: xWhere.value, column_name: groupingField.value, limit: groupingFieldColOptions.value.length + 1 }
+
+      const response = interfaceDataApi
+        ? await interfaceDataApi.fetchGroupBy({ ...params, sortsArr: sorts.value, filtersArr: nestedFilters.value })
+        : await api.dbViewRow.groupBy('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, params)
+
+      const titles = new Set<string | null>()
+      for (const group of response?.list ?? []) {
+        if (!+group.count) continue
+        const key = group[groupingField.value]
+        titles.add(typeof key === 'string' && key.length ? key : null)
+      }
+      return titles
+    }
+
     async function loadMoreKanbanData(stackTitle: string | null, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
       const rows = await fetchStackRows(stackTitle, params)
       if (!rows) return
@@ -1379,6 +1400,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       loadKanbanDataForStacks,
       useWindowedKanbanLoad,
       loadedStacks,
+      fetchNonEmptyStackTitles,
       loadMoreKanbanData,
       refreshLoadedStacksInPlace,
       setVisibleStackTitles,

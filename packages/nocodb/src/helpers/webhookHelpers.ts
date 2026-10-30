@@ -16,13 +16,14 @@ import type {
   ColumnType,
   FormColumnType,
   HookType,
+  LinkToAnotherRecordType,
   TableType,
   UpdatePayload,
 } from 'nocodb-sdk';
 import type { AxiosResponse } from 'axios';
 import type { NcContext } from '~/interface/config';
-import type { Column, FormView, Hook, Model, Source, View } from '~/models';
-import { Filter } from '~/models';
+import type { Column, FormView, Hook, Model, View } from '~/models';
+import { Filter, Source } from '~/models';
 import { populateUpdatePayloadDiff } from '~/utils';
 import { WebhookInvoker } from '~/utils/webhook-invoker';
 import { hardenHandlebarsPathHelpers } from '~/helpers/handlebarsProtoGuard';
@@ -574,6 +575,47 @@ export function transformDataForMailRendering(
   });
 
   return transformedData;
+}
+
+/**
+ * A form submission's rows for the FORM_SUBMISSION mail. LinkToAnotherRecord
+ * columns render the related record's display value, which needs the related
+ * table's columns loaded (getModels returns them without columns), otherwise
+ * the value falls back to "[object Object]". Links columns render a count.
+ */
+export async function formSubmissionMailData(
+  context: NcContext,
+  param: {
+    model: Model;
+    columns: (ColumnType & FormColumnType)[];
+    data: Record<string, any>;
+  },
+) {
+  const { model, columns, data } = param;
+
+  const source = await Source.get(context, model.source_id);
+
+  const models = await source.getModels();
+
+  const metas = models.reduce((o, m) => {
+    return Object.assign(o, { [m.id]: m });
+  }, {});
+
+  const relatedModelIds = new Set(
+    columns
+      .filter((c) => c.uidt === UITypes.LinkToAnotherRecord)
+      .map(
+        (c) =>
+          (c.colOptions as LinkToAnotherRecordType)?.fk_related_model_id,
+      )
+      .filter((id): id is string => !!id),
+  );
+
+  await Promise.all(
+    models.filter((m) => relatedModelIds.has(m.id)).map((m) => m.getColumns()),
+  );
+
+  return transformDataForMailRendering(data, columns, source, model, metas);
 }
 
 export function operationArrToCode(value: HookType['operation']) {

@@ -6,16 +6,15 @@ import type {
   FormColumnType,
   FormType,
   HookType,
-  LinkToAnotherRecordType,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import {
+  formSubmissionMailData,
   getAffectedColumns,
-  transformDataForMailRendering,
 } from '~/helpers/webhookHelpers';
 import { JobTypes } from '~/interface/Jobs';
 import { MailEvent } from '~/interface/Mail';
-import { Base, BaseUser, FormView, Hook, Model, Source, View } from '~/models';
+import { Base, BaseUser, FormView, Hook, Model, View } from '~/models';
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { MailService } from '~/services/mail/mail.service';
@@ -114,43 +113,11 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
               return c;
             });
 
-          const source = await Source.get(context, model.source_id);
-
-          const models = await source.getModels();
-
-          const metas = models.reduce((o, m) => {
-            return Object.assign(o, { [m.id]: m });
-          }, {});
-
-          // LinkToAnotherRecord columns render the related record's display
-          // value in the email — that needs the related table's columns loaded
-          // (getModels returns them without columns), otherwise the value can't
-          // be resolved and falls back to "[object Object]". (Links columns
-          // render a count and don't need related columns.)
-          const relatedModelIds = new Set(
-            filteredColumns
-              .filter((c) => c.uidt === UITypes.LinkToAnotherRecord)
-              .map(
-                (c) =>
-                  (c.colOptions as LinkToAnotherRecordType)
-                    ?.fk_related_model_id,
-              )
-              .filter((id): id is string => !!id),
-          );
-
-          await Promise.all(
-            models
-              .filter((m) => relatedModelIds.has(m.id))
-              .map((m) => m.getColumns()),
-          );
-
-          const formattedData = transformDataForMailRendering(
-            newData,
-            filteredColumns,
-            source,
+          const formattedData = await formSubmissionMailData(context, {
             model,
-            metas,
-          );
+            columns: filteredColumns,
+            data: newData,
+          });
 
           formView.title = view.title;
           const base = await Base.get(context, model.base_id);

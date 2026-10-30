@@ -1336,6 +1336,8 @@ export class AclMiddleware implements NestInterceptor {
           roles ?? extendedScopeRoles,
           scope,
         ),
+        // Stable tag for clients; the message is prose.
+        { details: { permissionName } },
       );
 
       // NcError.forbidden(

@@ -3640,7 +3640,6 @@
     "limitFileSizeDescription": "Omezte velikost souborů, které lze nahrát. (Limit na soubor)",
     "layout": "Rozvržení",
     "interfaceRevisionHistory": "Historie revizí",
-    "linkUnlinkRecords": "Propojit / zrušit propojení záznamů",
     "limitRecordSelection": "Omezit výběr záznamů",
     "keepAsDraft": "Ponechat jako koncept",
     "lastPublished": "Naposledy publikováno {time}",

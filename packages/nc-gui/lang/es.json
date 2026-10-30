@@ -3637,7 +3637,6 @@
     "limitFileSizeDescription": "Limita el tamaño de los archivos que se pueden subir. (Límite por archivo)",
     "layout": "Diseño",
     "interfaceRevisionHistory": "Historial de revisiones",
-    "linkUnlinkRecords": "Vincular/desvincular registros",
     "limitRecordSelection": "Limitar la selección de registros",
     "keepAsDraft": "Mantener como borrador",
     "lastPublished": "Última publicación {time}",

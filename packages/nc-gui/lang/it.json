@@ -3641,7 +3641,6 @@
     "limitFileSizeDescription": "Limita la dimensione dei file caricabili. (Limite per file)",
     "layout": "Layout",
     "interfaceRevisionHistory": "Cronologia delle revisioni",
-    "linkUnlinkRecords": "Collega/scollega record",
     "limitRecordSelection": "Limita la selezione dei record",
     "keepAsDraft": "Mantieni come bozza",
     "lastPublished": "Ultima pubblicazione {time}",

@@ -3643,7 +3643,6 @@
     "limitFileSizeDescription": "Obmedzte veľkosť súborov, ktoré možno nahrať. (Limit na súbor)",
     "layout": "Rozloženie",
     "interfaceRevisionHistory": "História revízií",
-    "linkUnlinkRecords": "Prepojiť / zrušiť prepojenie záznamov",
     "limitRecordSelection": "Obmedziť výber záznamov",
     "keepAsDraft": "Ponechať ako koncept",
     "lastPublished": "Naposledy publikované {time}",

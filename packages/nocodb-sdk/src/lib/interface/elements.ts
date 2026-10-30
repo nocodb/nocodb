@@ -368,12 +368,6 @@ export interface InterfaceFieldElementConfig {
   click_into_details?: boolean;
   /** Record-detail page (layout = RECORD_DETAIL) of the LINKED table. */
   fk_detail_page_id?: string | null;
-  /**
-   * Links/LTAR detail layouts: consumers may link/unlink records — gates the
-   * linked-records block's per-record unlink and its "+ Add record" picker.
-   * Absent = DISABLED (the block is a read-only display).
-   */
-  allow_link_unlink?: boolean;
   /** Links/LTAR, inline-editable only: the picker's "New record" opens `fk_add_form_page_id` — absent = DISABLED. */
   allow_add_record_via_form?: boolean;
   /** RECORD_DETAIL layout of the LINKED table, opened as a create form. */
@@ -490,6 +484,15 @@ export enum InterfaceEditFieldsModes {
   INLINE = 'inline',
   FORM = 'form',
 }
+
+/** A Links/LTAR detail element links/unlinks wherever the layout edits inline and the field isn't view-only. */
+export const isLinkUnlinkAllowed = (
+  element: Pick<InterfaceFieldElementConfig, 'permissions'> | null | undefined,
+  editFields: InterfaceEditFieldsModes | null | undefined,
+): boolean =>
+  !!element &&
+  editFields === InterfaceEditFieldsModes.INLINE &&
+  element.permissions !== InterfaceFieldPermissions.VIEW_ONLY;
 
 export interface InterfaceRecordDetailConfig {
   /** Defaults to the table's display field. */

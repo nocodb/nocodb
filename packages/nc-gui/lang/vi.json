@@ -3643,7 +3643,6 @@
     "limitFileSizeDescription": "Giới hạn dung lượng tệp có thể tải lên. (Giới hạn cho mỗi tệp)",
     "layout": "Bố cục",
     "interfaceRevisionHistory": "Lịch sử chỉnh sửa",
-    "linkUnlinkRecords": "Liên kết/bỏ liên kết bản ghi",
     "limitRecordSelection": "Giới hạn việc chọn bản ghi",
     "keepAsDraft": "Giữ làm bản nháp",
     "lastPublished": "Xuất bản lần cuối {time}",

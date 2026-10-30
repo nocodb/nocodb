@@ -3640,7 +3640,6 @@
     "limitFileSizeDescription": "Begrens størrelsen på filene som kan lastes opp. (Grense per fil)",
     "layout": "Layout",
     "interfaceRevisionHistory": "Revisjonshistorikk",
-    "linkUnlinkRecords": "Koble poster sammen / koble fra",
     "limitRecordSelection": "Begrens valget av poster",
     "keepAsDraft": "Behold som utkast",
     "lastPublished": "Sist publisert {time}",

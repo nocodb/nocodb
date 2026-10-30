@@ -3642,7 +3642,6 @@
     "limitFileSizeDescription": "Limite o tamanho dos arquivos que podem ser enviados. (Limite por arquivo)",
     "layout": "Layout",
     "interfaceRevisionHistory": "Histórico de revisões",
-    "linkUnlinkRecords": "Vincular/desvincular registros",
     "limitRecordSelection": "Limitar a seleção de registros",
     "keepAsDraft": "Manter como rascunho",
     "lastPublished": "Última publicação {time}",

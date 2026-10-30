@@ -3644,7 +3644,6 @@
     "limitFileSizeDescription": "Rajoita ladattavien tiedostojen kokoa. (Raja tiedostoa kohden)",
     "layout": "Asettelu",
     "interfaceRevisionHistory": "Versiohistoria",
-    "linkUnlinkRecords": "Linkitä tietueita tai poista linkitys",
     "limitRecordSelection": "Rajoita tietueiden valintaa",
     "keepAsDraft": "Säilytä luonnoksena",
     "lastPublished": "Viimeksi julkaistu {time}",

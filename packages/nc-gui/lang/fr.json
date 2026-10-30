@@ -3620,7 +3620,6 @@
     "limitFileSizeDescription": "Limitez la taille des fichiers pouvant être envoyés. (Limite par fichier)",
     "layout": "Mise en page",
     "interfaceRevisionHistory": "Historique des révisions",
-    "linkUnlinkRecords": "Lier/délier des enregistrements",
     "limitRecordSelection": "Limiter la sélection d'enregistrements",
     "keepAsDraft": "Conserver comme brouillon",
     "lastPublished": "Dernière publication {time}",

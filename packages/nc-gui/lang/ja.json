@@ -3644,7 +3644,6 @@
     "limitFileSizeDescription": "アップロードできるファイルのサイズを制限します。（1 ファイルあたりの上限）",
     "layout": "レイアウト",
     "interfaceRevisionHistory": "変更履歴",
-    "linkUnlinkRecords": "レコードのリンク／リンク解除",
     "limitRecordSelection": "レコードの選択を制限",
     "keepAsDraft": "下書きのまま保持",
     "lastPublished": "最終公開 {time}",

@@ -3644,7 +3644,6 @@
     "limitFileSizeDescription": "Обмежте розмір файлів, які можна завантажувати. (Обмеження на файл)",
     "layout": "Макет",
     "interfaceRevisionHistory": "Історія змін",
-    "linkUnlinkRecords": "Зв'язати/розв'язати записи",
     "limitRecordSelection": "Обмежити вибір записів",
     "keepAsDraft": "Зберегти як чернетку",
     "lastPublished": "Востаннє опубліковано {time}",

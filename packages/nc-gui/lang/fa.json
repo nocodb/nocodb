@@ -3644,7 +3644,6 @@
     "limitFileSizeDescription": "اندازه فایل‌هایی که می‌توان بارگذاری کرد را محدود کنید. (محدودیت برای هر فایل)",
     "layout": "چیدمان",
     "interfaceRevisionHistory": "تاریخچه بازبینی‌ها",
-    "linkUnlinkRecords": "پیوند دادن/برداشتن پیوند رکوردها",
     "limitRecordSelection": "محدود کردن انتخاب رکوردها",
     "keepAsDraft": "نگه داشتن به‌عنوان پیش‌نویس",
     "lastPublished": "آخرین انتشار {time}",

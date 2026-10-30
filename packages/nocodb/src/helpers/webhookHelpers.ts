@@ -605,8 +605,7 @@ export async function formSubmissionMailData(
     columns
       .filter((c) => c.uidt === UITypes.LinkToAnotherRecord)
       .map(
-        (c) =>
-          (c.colOptions as LinkToAnotherRecordType)?.fk_related_model_id,
+        (c) => (c.colOptions as LinkToAnotherRecordType)?.fk_related_model_id,
       )
       .filter((id): id is string => !!id),
   );

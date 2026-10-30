@@ -67,7 +67,9 @@ onMounted(() => {
           />
         </a-form-item>
         <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-          <NcButton key="back" html-type="back" size="small" type="secondary">{{ $t('general.cancel') }}</NcButton>
+          <NcButton key="back" html-type="button" size="small" type="secondary" @click="onCancel">
+            {{ $t('general.cancel') }}
+          </NcButton>
           <NcButton key="submit" html-type="submit" size="small" type="primary">{{ $t('general.confirm') }}</NcButton>
         </div>
       </a-form>

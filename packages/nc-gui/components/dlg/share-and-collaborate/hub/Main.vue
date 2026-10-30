@@ -30,12 +30,7 @@ function onEmailFocus() {
   emit(props.blocked ? 'blocked' : 'compose')
 }
 
-/** Their own domain makes the example read as their team, not a stock address. */
-const emailPlaceholder = computed(() =>
-  defaultEmailDomain.value
-    ? `name1@${defaultEmailDomain.value}, name2@${defaultEmailDomain.value}`
-    : 'name@example.com, another@example.com',
-)
+const emailPlaceholder = computed(() => inviteEmailPlaceholder(defaultEmailDomain.value))
 </script>
 
 <template>

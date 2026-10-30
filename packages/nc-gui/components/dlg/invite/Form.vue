@@ -72,6 +72,11 @@ const basesStore = useBases()
 
 const { appInfo } = useGlobal()
 
+const { defaultEmailDomain } = useInviteLinks()
+
+// Same example as the share hub's email field that opens this form.
+const emailPlaceholder = computed(() => inviteEmailPlaceholder(defaultEmailDomain.value))
+
 const { t } = useI18n()
 
 const { $e } = useNuxtApp()
@@ -527,9 +532,7 @@ const inviteCollaborator = async () => {
 
           if (props.type === 'workspace') {
             scopeLabel = 'objects.workspace'
-          } else if (props.type === 'interface') {
-            scopeLabel = 'general.interface'
-          } else if (props.type === 'app') {
+          } else if (props.type === 'interface' || props.type === 'app') {
             scopeLabel = 'objects.app'
           } else if (props.type === 'organization') {
             scopeLabel = 'general.organization'
@@ -820,7 +823,7 @@ defineExpose({
                 v-model="inviteData.email"
                 inputmode="email"
                 :disabled="isLoading"
-                :placeholder="$t('activity.inviteEmailExample')"
+                :placeholder="emailPlaceholder"
                 class="flex-1 md:min-w-36 outline-none px-2"
                 :class="{ 'basis-full': emailBadges?.length > 0 }"
                 data-testid="email-input"

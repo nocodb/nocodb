@@ -31,6 +31,8 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isInterfaceUi = useIsInterfaceUi()
 
+const isInterfaceRecordDetail = inject(IsInterfaceRecordDetailInj, ref(false))
+
 const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
 
 const isGrid = inject(IsGridInj, ref(false))
@@ -255,8 +257,8 @@ const isSmartMode = computed(() => isSmartText(column?.value))
 // rendering). Form view still uses the textarea so users can type input.
 // Edit-mode flows continue to gate on isRichMode so the LongText rich modal
 // doesn't auto-open for SmartText cells (they have their own modal).
-// Interface record forms/detail keep the textarea for typing, but a stored
-// SmartText value previews rendered until the user clicks into it.
+// Interface record detail keeps the textarea for typing, but a stored SmartText
+// value previews rendered until the user clicks or tabs into it.
 const isInterfaceSmartEditing = ref(false)
 
 const isInterfaceSmartPreview = computed(
@@ -264,6 +266,7 @@ const isInterfaceSmartPreview = computed(
     isSmartMode.value &&
     isForm.value &&
     isInterfaceUi.value &&
+    isInterfaceRecordDetail.value &&
     !!vModel.value &&
     (!!readOnly.value || !isInterfaceSmartEditing.value),
 )
@@ -276,6 +279,11 @@ const startInterfaceSmartEdit = async () => {
   isInterfaceSmartEditing.value = true
   await nextTick()
   textAreaRef.value?.focus()
+}
+
+// Keyboard focus only — a mouse focus would swap the preview out before a link click lands.
+const onInterfaceSmartPreviewFocus = (e: FocusEvent) => {
+  if ((e.target as HTMLElement | null)?.matches(':focus-visible')) startInterfaceSmartEdit()
 }
 
 const richTextContent = computedAsync(async () => {
@@ -780,9 +788,11 @@ useResizeObserver(inputWrapperRef, () => {
             ? `${height}px`
             : `${16.5 * rowHeightTruncateLines(localRowHeight)}px`,
         }"
+        :tabindex="isInterfaceSmartPreview && !readOnly ? 0 : undefined"
+        @focus="isInterfaceSmartPreview ? onInterfaceSmartPreviewFocus($event) : undefined"
         @click.stop="isInterfaceSmartPreview ? startInterfaceSmartEdit() : isExpandedFormOpen ? onExpand() : undefined"
         @dblclick="isInterfaceSmartPreview ? undefined : onExpand()"
-        @keydown.enter="isInterfaceSmartPreview ? startInterfaceSmartEdit() : onExpand()"
+        @keydown.enter.prevent="isInterfaceSmartPreview ? startInterfaceSmartEdit() : onExpand()"
       >
         <div
           v-dompurify-html="richTextContent"

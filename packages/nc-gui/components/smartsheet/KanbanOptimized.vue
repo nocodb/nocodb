@@ -61,6 +61,8 @@ const { metaColumnById } = useViewColumnsOrThrow(view, meta)
 
 const { isSyncedTable, eventBus, xWhere } = useSmartsheetStoreOrThrow()
 
+const { search } = useFieldQuery()
+
 const { copy } = useCopy()
 
 const { t } = useI18n()
@@ -501,11 +503,12 @@ const stackWindow = computed(() => {
 const visibleStackOptions = computed(() => groupingFieldColOptions.value.slice(stackWindow.value.start, stackWindow.value.end))
 
 // Spacer widths stand in for the off-screen stacks at their estimated widths (see stackOffsets)
-const leftStackSpacerWidth = computed(() => stackOffsets.value[stackWindow.value.start] ?? 0)
+// Each spacer sits beside the Draggable in a gap-3 row, so that row gap stands in for one STACK_GAP
+const leftStackSpacerWidth = computed(() => Math.max(0, (stackOffsets.value[stackWindow.value.start] ?? 0) - STACK_GAP))
 
 const rightStackSpacerWidth = computed(() => {
   const offsets = stackOffsets.value
-  return Math.max(0, (offsets[offsets.length - 1] ?? 0) - (offsets[stackWindow.value.end] ?? 0))
+  return Math.max(0, (offsets[offsets.length - 1] ?? 0) - (offsets[stackWindow.value.end] ?? 0) - STACK_GAP)
 })
 
 // Map a Draggable slot index (relative to the rendered window) back to the absolute index into
@@ -613,8 +616,9 @@ const scrollToFirstMatchingStack = () => {
 
 // Recompute which stacks hold a search match after each reload; a new search also scrolls to one
 const refreshSearchMatches = async () => {
-  const search = xWhere.value
-  if (!search) {
+  // Only the toolbar search reopens and dims stacks, not a URL `where` deep link
+  const query = search.value.query?.trim() ? xWhere.value : undefined
+  if (!query) {
     searchMatchTitles.value = null
     searchDismissedStacks.value = new Set()
     lastScrolledSearch = undefined
@@ -630,15 +634,15 @@ const refreshSearchMatches = async () => {
       titles = undefined
     }
     // Superseded by a newer search
-    if (xWhere.value !== search) return
+    if (xWhere.value !== query) return
   } else {
     titles = new Set(options.map((o) => o.title ?? null).filter((title) => (countByStack.value.get(title) ?? 0) > 0))
   }
 
   searchMatchTitles.value = titles ?? null
 
-  if (search === lastScrolledSearch) return
-  lastScrolledSearch = search
+  if (query === lastScrolledSearch) return
+  lastScrolledSearch = query
   searchDismissedStacks.value = new Set()
 
   // After the reopened stacks lay out, so the offsets are their expanded widths
@@ -1164,6 +1168,9 @@ const handleCollapseStack = async (stackIdx: number) => {
 }
 
 const handleCollapseAllStack = async () => {
+  // Stacks open only for the search are already saved collapsed — close them without a write
+  groupingFieldColOptions.value.filter(isSearchExpanded).forEach((stack) => searchDismissedStacks.value.add(stack.id))
+
   await updateAllStacksProperty((stack) => {
     if (stack.id !== addNewStackId && !stack.collapsed) {
       return { collapsed: true }
@@ -1963,7 +1970,7 @@ const cardFields = (record: RowType) => {
 
 <template>
   <div
-    class="flex flex-col w-full bg-nc-bg-gray-extralight h-full"
+    class="relative flex flex-col w-full bg-nc-bg-gray-extralight h-full"
     data-testid="nc-kanban-wrapper"
     :style="{
       minHeight: 'calc(100% - var(--topbar-height))',
@@ -2758,7 +2765,7 @@ const cardFields = (record: RowType) => {
                       <a-skeleton-input :active="true" class="!w-full !h-4 !rounded-lg overflow-hidden" />
                     </div>
                     <div v-else class="nc-kanban-stack-head w-full flex items-center justify-between gap-2">
-                      <div class="flex items-center gap-1">
+                      <div class="flex items-center gap-1 min-w-0">
                         <NcButton
                           v-if="!(isLocked || isPublic || !hasEditPermission || interfacePageDataApi)"
                           :disabled="!stack.title"
@@ -2771,7 +2778,7 @@ const cardFields = (record: RowType) => {
                         </NcButton>
 
                         <!-- Interfaces show a bare count, freeing most of the bar for the title. -->
-                        <div class="flex-1 flex" :class="interfacePageDataApi ? 'max-w-[170px]' : 'max-w-[115px]'">
+                        <div class="flex-1 flex min-w-0" :class="interfacePageDataApi ? 'max-w-[170px]' : 'max-w-[115px]'">
                           <a-tag
                             class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none"
                             :color="
@@ -2815,9 +2822,9 @@ const cardFields = (record: RowType) => {
                         </div>
                       </div>
 
-                      <div class="flex items-center gap-2 truncate">
+                      <div class="flex items-center gap-2 flex-none">
                         <div
-                          class="nc-kanban-data-count px-1 rounded text-sm font-weight-500 truncate"
+                          class="nc-kanban-data-count px-1 rounded text-sm font-weight-500"
                           :class="
                             searchMatchTitles && isSearchMatch(stack)
                               ? 'bg-nc-bg-brand text-nc-content-brand'
@@ -3017,6 +3024,18 @@ const cardFields = (record: RowType) => {
           </NcMenu>
         </template>
       </NcDropdown>
+    </div>
+
+    <div
+      v-if="!isViewDataLoading && searchMatchTitles?.size === 0"
+      class="absolute inset-x-0 bottom-16 flex justify-center pointer-events-none"
+      data-testid="nc-kanban-search-no-match"
+    >
+      <div
+        class="px-3 py-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default text-sm font-weight-500 text-nc-content-gray-subtle shadow-sm"
+      >
+        {{ $t('msg.noRecordsMatchYourSearchQuery') }}
+      </div>
     </div>
   </div>
 

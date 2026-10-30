@@ -642,6 +642,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         ? await interfaceDataApi.fetchGroupBy({ ...params, sortsArr: sorts.value, filtersArr: nestedFilters.value })
         : await api.dbViewRow.groupBy('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, params)
 
+      // The server clamps `limit` (NC_DB_QUERY_LIMIT_MAX, 100 on cloud): a cut-off list can't say which stacks miss
+      if (response?.pageInfo?.isLastPage === false) return
+
       const titles = new Set<string | null>()
       for (const group of response?.list ?? []) {
         if (!+group.count) continue

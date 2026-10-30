@@ -84,6 +84,15 @@ const sendLabel = computed(() => {
       @close="emit('back')"
     />
 
+    <div
+      v-if="props.type === 'interface'"
+      class="flex items-start gap-2 -mt-2 text-bodySm text-nc-content-gray-muted"
+      data-testid="nc-hub-interface-editor-note"
+    >
+      <GeneralIcon icon="info" class="flex-none h-3.5 w-3.5 mt-0.5" />
+      <span>{{ $t('msg.info.interfaceInviteEditorPageNote') }}</span>
+    </div>
+
     <NcButton
       type="primary"
       size="medium"

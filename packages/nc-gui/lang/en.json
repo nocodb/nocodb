@@ -7511,6 +7511,7 @@
       "cantDeleteLastGridView": "You can't delete a view when it's the only collaborative grid view in the table",
       "inviteSent": "Invitation sent successfully",
       "interfaceInvitePageRolesHint": "The selected role applies to the whole app. To set page-level roles, invite first, then adjust each page from the member's row.",
+      "interfaceInviteEditorPageNote": "What editors can change depends on each page's settings.",
       "selectBaseMembers": "Select project members to send the record to",
       "subjectLineNotification": "This subject line will appear in the email notification",
       "shareRecordWithTeam": "Share this record with team members",

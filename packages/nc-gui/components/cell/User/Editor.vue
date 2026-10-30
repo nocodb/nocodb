@@ -164,6 +164,15 @@ const vModelListLayout = computed(() => {
   }
 })
 
+// Same name as the read-only cell and the grid (display name, else the name from the email).
+function tagLabel(val: string, label: string) {
+  if (val === CURRENT_USER_TOKEN) return label
+
+  const selected = vModel.value.find((u) => u.value === val)
+
+  return selected ? extractUserDisplayNameOrEmail(selected) || label : label
+}
+
 watch(isOpen, (n, _o) => {
   // If it is form list view then we don't need to do anything here
   if (isFormListView.value) return
@@ -595,7 +604,7 @@ onMounted(() => {
                 'font-600': isInFilter || isEditColumn,
               }"
             >
-              {{ label }}
+              {{ tagLabel(val, label) }}
             </span>
           </span>
         </a-tag>

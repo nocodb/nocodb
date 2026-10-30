@@ -832,6 +832,7 @@ useResizeObserver(inputWrapperRef, () => {
           :disabled="!!readOnly || (props.isAi && !!isEditColumn) || isAiGenerating"
           :readonly="isSmartMode && isExpandedFormOpen"
           :autocomplete="formFieldAutocomplete"
+          @focus="isInterfaceSmartEditing = true"
           @blur="onTextAreaBlur"
           @keydown.alt.stop
           @keydown.alt.enter.stop

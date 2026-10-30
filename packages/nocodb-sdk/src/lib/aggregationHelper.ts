@@ -305,9 +305,24 @@ const getColumnAggregations = (
   );
 };
 
+/**
+ * Earliest/Latest return a date, not a number, so charts can't plot them.
+ * A legacy date-rollup key (min/max) counts as the date aggregation it runs as.
+ */
+const isDateValuedAggregation = (
+  column: Pick<ColumnType, 'uidt' | 'colOptions'>,
+  aggregation: string
+): boolean => {
+  const agg = getLegacyDateRollupAggregation(column, aggregation) ?? aggregation;
+  return (
+    agg === DateAggregations.EarliestDate || agg === DateAggregations.LatestDate
+  );
+};
+
 export {
   getAvailableAggregations,
   getColumnAggregations,
+  isDateValuedAggregation,
   getLegacyDateRollupAggregation,
   NumericalAggregations,
   CommonAggregations,

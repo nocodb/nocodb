@@ -1,6 +1,7 @@
 import {
   DateAggregations,
   getColumnAggregations,
+  isDateValuedAggregation,
   NumericalAggregations,
 } from './aggregationHelper';
 import { FormulaDataTypes } from './formula/enums';
@@ -34,5 +35,24 @@ describe('getColumnAggregations', () => {
     });
 
     expect(aggs).toContain(NumericalAggregations.Sum);
+  });
+});
+
+describe('isDateValuedAggregation', () => {
+  const dateRollup = {
+    uidt: UITypes.Rollup,
+    colOptions: { result_uidt: UITypes.Date },
+  };
+
+  it('flags earliest/latest and a legacy max on a date rollup', () => {
+    expect(isDateValuedAggregation(dateRollup, 'latest_date')).toBe(true);
+    expect(isDateValuedAggregation(dateRollup, 'max')).toBe(true);
+  });
+
+  it('leaves numeric results alone', () => {
+    expect(isDateValuedAggregation(dateRollup, 'date_range')).toBe(false);
+    expect(
+      isDateValuedAggregation({ uidt: UITypes.Number, colOptions: {} }, 'max')
+    ).toBe(false);
   });
 });

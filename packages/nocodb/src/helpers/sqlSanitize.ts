@@ -14,6 +14,18 @@ export function escapeBindingPlaceholders(sql: string): string {
   );
 }
 
+// Wraps a builder as raw SQL; `knex.raw(builder)` renders via toQuery() and drops the `?` escapes.
+export function rawFromBuilder(
+  knex: Pick<XKnex, 'raw'>,
+  builder: { toQuery(): string } | string,
+) {
+  return knex.raw(
+    escapeBindingPlaceholders(
+      typeof builder === 'string' ? builder : builder.toQuery(),
+    ),
+  );
+}
+
 export function unsanitize(v) {
   if (typeof v !== 'string') return v;
   return v?.replace(/\\[?]/g, '?');

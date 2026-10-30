@@ -28,6 +28,10 @@ import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { Profiler } from '~/helpers/profiler';
 import { DBQueryClient } from '~/dbQueryClient';
+import {
+  escapeBindingPlaceholders,
+  rawFromBuilder,
+} from '~/helpers/sqlSanitize';
 
 // Numeric rollups a non-finite value would poison. `count`/`countDistinct` are
 // deliberately absent — they must keep seeing every row.
@@ -243,9 +247,9 @@ export default async function genRollupSelectv2(param: {
       // See: parsed-tree-builder.ts:307 (where the original `\\?` escape
       // is applied to formula output).
       selectColumnIsSubquery = true;
-      const resolvedFormulaSql = `(${formulaQb.builder
-        .toQuery()
-        .replaceAll('?', '\\?')})`;
+      const resolvedFormulaSql = `(${escapeBindingPlaceholders(
+        formulaQb.builder.toQuery(),
+      )})`;
       // A rollup is the second numeric-aggregate consumer of a pg formula, and
       // the only one that doesn't route through applyAggregation — so it needs
       // the same exclusion at its own site. Otherwise a single non-finite row
@@ -330,8 +334,9 @@ export default async function genRollupSelectv2(param: {
       // metadata columns lower into a formula builder too, so they share the
       // same `?`-binding hazard when wrapped via `knex.raw(rawObj)`.
       selectColumnIsSubquery = true;
-      selectColumnName = knex.raw(
-        `(${formulaQb.builder.toQuery().replaceAll('?', '\\?')})`,
+      selectColumnName = rawFromBuilder(
+        knex,
+        `(${formulaQb.builder.toQuery()})`,
       );
     }
 

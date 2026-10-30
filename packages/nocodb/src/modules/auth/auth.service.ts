@@ -4,7 +4,6 @@ import bcrypt from 'bcryptjs';
 import Noco from '~/Noco';
 import { genJwt } from '~/services/users/helpers';
 import { UsersService } from '~/services/users/users.service';
-import { NcError } from '~/helpers/ncError';
 
 export class CreateUserDto {
   readonly username: string;
@@ -22,25 +21,18 @@ export class AuthService {
 
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.usersService.findOne(email);
-    if (user) {
+
+    // Invited and Google/SSO accounts have no password; fail them like a wrong one, timing included.
+    const hasPassword = !!(user?.salt && user.password);
+
+    const valid = await promisify(bcrypt.compare)(
+      pass,
+      hasPassword ? user.password : AuthService.DUMMY_HASH,
+    );
+
+    if (hasPassword && valid) {
       const { password, salt, ...result } = user;
-
-      // `salt` will be null,
-      // 1. If the user is invited and yet to set password
-      // 2. If the user is created via non email-password auth (OAuth)
-      if (!user.salt) {
-        return NcError.badRequest(
-          'If invited, sign up via the email link; otherwise, use forgot password or contact the super admin.',
-        );
-      }
-
-      const valid = await promisify(bcrypt.compare)(pass, user.password);
-      if (valid) {
-        return result;
-      }
-    } else {
-      // Perform a dummy compare with a random prefix to prevent timing-based user enumeration
-      await promisify(bcrypt.compare)(pass, AuthService.DUMMY_HASH);
+      return result;
     }
     return null;
   }

@@ -1,27 +1,9 @@
-import { extractRolesObj } from 'nocodb-sdk';
 import type { NcContext, UserType } from 'nocodb-sdk';
 import { Column, Comment, Hook, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import {
-  hasModelRoleVisibilityAccess,
-  hasTableVisibilityAccess,
-} from '~/helpers/tableHelpers';
+import { isTableVisible } from '~/helpers/tableHelpers';
 
-/** Both table-visibility rules: the TABLE_VISIBILITY permission and UI ACL. */
-export async function isTableVisible(
-  context: NcContext,
-  tableId: string,
-  user: (UserType & { base_roles?: Record<string, boolean> }) | undefined,
-): Promise<boolean> {
-  return (
-    (await hasTableVisibilityAccess(context, tableId, user as any)) &&
-    (await hasModelRoleVisibilityAccess(
-      context,
-      tableId,
-      extractRolesObj(user?.base_roles),
-    ))
-  );
-}
+export { isTableVisible };
 
 /**
  * MCP tools receive `tableId` in the JSON-RPC body, so they never pass through

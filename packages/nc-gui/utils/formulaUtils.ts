@@ -71,6 +71,14 @@ function isCursorInsideString(text: string, offset: number) {
       continue
     }
 
+    // `{...}` is a field reference: quotes in a title don't open a string
+    if (char === '{' && !inSingleQuoteString && !inDoubleQuoteString) {
+      const close = text.indexOf('}', i + 1)
+      if (close === -1 || close >= offset) return false
+      i = close
+      continue
+    }
+
     if (char === "'" && !inDoubleQuoteString) {
       inSingleQuoteString = !inSingleQuoteString
     } else if (char === '"' && !inSingleQuoteString) {
@@ -81,4 +89,105 @@ function isCursorInsideString(text: string, offset: number) {
   return inDoubleQuoteString || inSingleQuoteString
 }
 
-export { formulaList, formulas, getWordUntilCaret, insertAtCursor, isCursorInsideString }
+// Rewrites Airtable-style `=` to `==` outside strings and `{field}` refs, so saved formula_raw stays parseable by older versions
+function normalizeFormulaEquals(formula: string) {
+  let result = ''
+  let i = 0
+
+  while (i < formula.length) {
+    const char = formula[i]!
+
+    if (char === '"' || char === "'") {
+      let end = i + 1
+      while (end < formula.length && formula[end] !== char) {
+        end += formula[end] === '\\' ? 2 : 1
+      }
+      result += formula.slice(i, end + 1)
+      i = end + 1
+      continue
+    }
+
+    if (char === '{') {
+      const close = formula.startsWith('{{', i) ? '}}' : '}'
+      const end = formula.indexOf(close, i + 1)
+      if (end === -1) return result + formula.slice(i)
+      result += formula.slice(i, end + close.length)
+      i = end + close.length
+      continue
+    }
+
+    if (char === '=' && (i === 0 || !'=<>!'.includes(formula[i - 1]!)) && formula[i + 1] !== '=') {
+      result += '=='
+    } else {
+      result += char
+    }
+    i++
+  }
+
+  return result
+}
+
+// Column reference being typed at the cursor, i.e. after an unclosed `{` on the current line.
+// `end` also covers the rest of the reference up to its `}` (e.g. the auto-closed one) so it can be replaced.
+function getColumnRefAtCursor(text: string, offset: number): { start: number; end: number; query: string } | null {
+  const lineStart = text.lastIndexOf('\n', offset - 1) + 1
+  const before = text.slice(lineStart, offset)
+  const openIdx = before.lastIndexOf('{')
+
+  if (openIdx === -1 || before.includes('}', openIdx)) return null
+
+  const start = lineStart + openIdx
+  if (isCursorInsideString(text, start)) return null
+
+  let end = offset
+  for (let i = offset; i < text.length; i++) {
+    const char = text[i]
+    if (char === '}') {
+      end = i + 1
+      break
+    }
+    // `'` is common in titles (Owner's Email), `"` isn't
+    if (char === '{' || char === '\n' || char === '"') break
+  }
+
+  return { start, end, query: before.slice(openIdx + 1) }
+}
+
+const isWordStart = (title: string, index: number) => index === 0 || !/[\p{L}\p{N}]/u.test(title[index - 1]!)
+
+// lowercase and drop accents, so `dias` matches `Días`
+const foldTitle = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
+
+// Case- and accent-insensitive substring match on titles: title prefix first, then word prefix, then anywhere
+function filterColumnSuggestions<T extends { text: string }>(items: T[], query: string): T[] {
+  const q = foldTitle(query.trim())
+  if (!q) return [...items]
+
+  const rank = (title: string) => {
+    let index = title.indexOf(q)
+    if (index === -1) return -1
+    if (index === 0) return 0
+    while (index !== -1) {
+      if (isWordStart(title, index)) return 1
+      index = title.indexOf(q, index + 1)
+    }
+    return 2
+  }
+
+  return items
+    .map((item) => ({ item, rank: rank(foldTitle(item.text ?? '')) }))
+    .filter(({ rank }) => rank !== -1)
+    .sort((a, b) => a.rank - b.rank)
+    .map(({ item }) => item)
+}
+
+export {
+  filterColumnSuggestions,
+  formulaList,
+  formulas,
+  getColumnRefAtCursor,
+  getWordUntilCaret,
+  insertAtCursor,
+  isCursorInsideString,
+  normalizeFormulaEquals,
+}

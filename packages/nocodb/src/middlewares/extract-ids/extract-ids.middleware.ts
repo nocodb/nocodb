@@ -23,6 +23,7 @@ import {
   personalViewOwnerAllowedPermissions,
   personalViewOwnerOnlyOps,
   resolveFilterTableId,
+  resolveRequestTable,
   VIEW_KEY,
 } from './extract-ids.helpers';
 import type { ViewTypes } from 'nocodb-sdk';
@@ -487,7 +488,12 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       markPersonalViewIfNeeded(req, view);
 
-      tableIdToCheck = tableIdToCheck ?? view?.fk_model_id;
+      tableIdToCheck = await resolveRequestTable(
+        context,
+        tableIdToCheck ?? view?.fk_model_id,
+        params,
+        query,
+      );
       if (tableIdToCheck) {
         req.context.ncTableId = tableIdToCheck;
       }
@@ -1108,6 +1114,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           }
         : {}),
     };
+
+    if (tableIdToCheck) {
+      await resolveRequestTable(context, tableIdToCheck, params, req.query);
+    }
 
     // Store table ID to check in context for ACL middleware to perform table visibility check
     if (tableIdToCheck) {

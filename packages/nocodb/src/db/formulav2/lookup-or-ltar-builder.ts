@@ -37,6 +37,7 @@ import {
   lmtFieldQueryBuilder,
 } from '~/db/formulav2/lmtFieldQueryBuilder';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
+import { rawFromBuilder } from '~/helpers/sqlSanitize';
 import { Model } from '~/models';
 import { DBQueryClient } from '~/dbQueryClient';
 
@@ -576,17 +577,16 @@ export const lookupOrLtarBuilder =
             if (isArray) {
               const qb = selectQb;
               selectQb = (fn) =>
-                knex
-                  .raw(
-                    getAggregateFn(fn)({
-                      qb,
-                      knex,
-                      cn: knex.raw(builder).wrap('(', ')'),
-                    }),
-                  )
-                  .wrap('(', ')');
+                rawFromBuilder(
+                  knex,
+                  getAggregateFn(fn)({
+                    qb,
+                    knex,
+                    cn: rawFromBuilder(knex, builder).wrap('(', ')'),
+                  }),
+                ).wrap('(', ')');
             } else {
-              selectQb.select(knex.raw(builder).wrap('(', ')'));
+              selectQb.select(rawFromBuilder(knex, builder).wrap('(', ')'));
             }
           }
           break;
@@ -621,15 +621,14 @@ export const lookupOrLtarBuilder =
             if (isArray) {
               const qb = selectQb;
               selectQb = (fn) =>
-                knex
-                  .raw(
-                    getAggregateFn(fn)({
-                      qb,
-                      knex,
-                      cn: knex.raw(builder).wrap('(', ')'),
-                    }),
-                  )
-                  .wrap('(', ')');
+                rawFromBuilder(
+                  knex,
+                  getAggregateFn(fn)({
+                    qb,
+                    knex,
+                    cn: rawFromBuilder(knex, builder).wrap('(', ')'),
+                  }),
+                ).wrap('(', ')');
             } else {
               selectQb.select(builder);
             }
@@ -644,15 +643,14 @@ export const lookupOrLtarBuilder =
           if (isArray) {
             const qb = selectQb;
             selectQb = (fn) =>
-              knex
-                .raw(
-                  getAggregateFn(fn)({
-                    qb,
-                    knex,
-                    cn: `${prevAlias}.${referenceColumn.column_name}`,
-                  }),
-                )
-                .wrap('(', ')');
+              rawFromBuilder(
+                knex,
+                getAggregateFn(fn)({
+                  qb,
+                  knex,
+                  cn: `${prevAlias}.${referenceColumn.column_name}`,
+                }),
+              ).wrap('(', ')');
           } else {
             selectQb.select(`${prevAlias}.${referenceColumn.column_name}`);
           }
@@ -686,15 +684,14 @@ export const lookupOrLtarBuilder =
             if (isArray) {
               const qb = selectQb;
               selectQb = (fn) =>
-                knex
-                  .raw(
-                    getAggregateFn(fn)({
-                      qb,
-                      knex,
-                      cn: knex.raw(builder).wrap('(', ')'),
-                    }),
-                  )
-                  .wrap('(', ')');
+                rawFromBuilder(
+                  knex,
+                  getAggregateFn(fn)({
+                    qb,
+                    knex,
+                    cn: rawFromBuilder(knex, builder).wrap('(', ')'),
+                  }),
+                ).wrap('(', ')');
             } else {
               selectQb.select(builder);
             }
@@ -705,15 +702,14 @@ export const lookupOrLtarBuilder =
           if (isArray) {
             const qb = selectQb;
             selectQb = (fn) =>
-              knex
-                .raw(
-                  getAggregateFn(fn)({
-                    qb,
-                    knex,
-                    cn: `${prevAlias}.${refCol.column_name}`,
-                  }),
-                )
-                .wrap('(', ')');
+              rawFromBuilder(
+                knex,
+                getAggregateFn(fn)({
+                  qb,
+                  knex,
+                  cn: `${prevAlias}.${refCol.column_name}`,
+                }),
+              ).wrap('(', ')');
           } else {
             selectQb.select(`${prevAlias}.${refCol.column_name}`);
           }
@@ -746,15 +742,14 @@ export const lookupOrLtarBuilder =
                     )
                     .wrap('(', ')');
                 } else {
-                  return knex
-                    .raw(
-                      getAggregateFn(fn)({
-                        qb,
-                        knex,
-                        cn: `${prevAlias}.${lookupColumn.column_name}`,
-                      }),
-                    )
-                    .wrap('(', ')');
+                  return rawFromBuilder(
+                    knex,
+                    getAggregateFn(fn)({
+                      qb,
+                      knex,
+                      cn: `${prevAlias}.${lookupColumn.column_name}`,
+                    }),
+                  ).wrap('(', ')');
                 }
               };
             } else {
@@ -769,15 +764,14 @@ export const lookupOrLtarBuilder =
             if (isArray) {
               const qb = selectQb;
               selectQb = (fn) =>
-                knex
-                  .raw(
-                    getAggregateFn(fn)({
-                      qb,
-                      knex,
-                      cn: `${prevAlias}.${lookupColumn.column_name}`,
-                    }),
-                  )
-                  .wrap('(', ')');
+                rawFromBuilder(
+                  knex,
+                  getAggregateFn(fn)({
+                    qb,
+                    knex,
+                    cn: `${prevAlias}.${lookupColumn.column_name}`,
+                  }),
+                ).wrap('(', ')');
             } else {
               selectQb.select(`${prevAlias}.${lookupColumn.column_name}`);
             }
@@ -791,7 +785,7 @@ export const lookupOrLtarBuilder =
           builder:
             typeof selectQb === 'function'
               ? selectQb
-              : knex.raw(selectQb as any).wrap('(', ')'),
+              : rawFromBuilder(knex, selectQb).wrap('(', ')'),
         };
       }
     }

@@ -33,7 +33,10 @@ import {
   isPreviewAllowed,
   localFileExists,
 } from '~/helpers/attachmentHelpers';
-import { NC_DATA_IMPORT_FILE_SIZE } from '~/constants';
+import {
+  NC_DATA_IMPORT_FILE_SIZE,
+  NC_MULTIPART_FIELD_LIMITS,
+} from '~/constants';
 
 @Controller()
 export class AttachmentsSecureController {
@@ -82,6 +85,7 @@ export class AttachmentsSecureController {
     UploadAllowedInterceptor,
     AnyFilesInterceptor({
       limits: {
+        ...NC_MULTIPART_FIELD_LIMITS,
         fileSize: NC_DATA_IMPORT_FILE_SIZE,
       },
     }),

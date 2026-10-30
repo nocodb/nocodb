@@ -17,7 +17,11 @@ import type {
   RollupColumn,
 } from '~/models';
 import { DBQueryClient } from '~/dbQueryClient';
-import { escapeBindingPlaceholders, sanitize } from '~/helpers/sqlSanitize';
+import {
+  escapeBindingPlaceholders,
+  rawFromBuilder,
+  sanitize,
+} from '~/helpers/sqlSanitize';
 import conditionV2 from '~/db/conditionV2';
 import {
   lmbFieldQueryBuilder,
@@ -73,24 +77,26 @@ const sqlNullIfBlank = ({
   columnName: string | Knex.QueryBuilder | Knex.Raw;
   isStringType?: boolean;
 }) => {
+  // Positional `??`, not named `:column:` — Knex's named-binding replace drops
+  // a `$'` inside a raw value, e.g. a formula string literal " - $".
   if (baseModel.isPg && !isStringType) {
     return baseModel.dbDriver.raw(
       `CASE
-        WHEN (pg_typeof(:column:) = 'text'::regtype
-          OR pg_typeof(:column:) = 'varchar'::regtype
-          OR pg_typeof(:column:) = 'char'::regtype)
-          AND (:column:)::text = ''
+        WHEN (pg_typeof(??) = 'text'::regtype
+          OR pg_typeof(??) = 'varchar'::regtype
+          OR pg_typeof(??) = 'char'::regtype)
+          AND (??)::text = ''
         THEN NULL
-        ELSE :column:
+        ELSE ??
       END`,
-      { column: columnName },
+      Array(5).fill(columnName),
     );
   }
 
   if (baseModel.isMssql && !isStringType) {
     return baseModel.dbDriver.raw(
-      `CASE WHEN CAST(:column: AS NVARCHAR(MAX)) = '' THEN NULL ELSE :column: END`,
-      { column: columnName },
+      `CASE WHEN CAST(?? AS NVARCHAR(MAX)) = '' THEN NULL ELSE ?? END`,
+      [columnName, columnName],
     );
   }
 
@@ -364,7 +370,10 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             model: baseModel.model,
             getAlias,
           });
-          columnQuery = baseModel.dbDriver.raw(lookupQb.builder).wrap('(', ')');
+          columnQuery = rawFromBuilder(
+            baseModel.dbDriver,
+            lookupQb.builder,
+          ).wrap('(', ')');
           if (!isSubGroup) {
             selectors.push(
               baseModel.dbDriver.raw(`?? as ??`, [columnQuery, alias]),
@@ -524,7 +533,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     if (subGroupColumnName) {
       // Sanitize at the leaf so the inner `.toSQL()` chain doesn't trip
       // on literal `?` characters from formula string literals.
-      const subGroupQuery = baseModel.sanitizeQuery(
+      const subGroupQuery = escapeBindingPlaceholders(
         await processColumn(subGroupColumnName, true),
       );
       if (baseModel.isMssql) {
@@ -558,7 +567,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         // We must re-sanitize the composed string before feeding it to the
         // outer `raw(...)` — otherwise those bare `?` chars get counted as
         // placeholders and Knex throws "Expected 1 bindings, saw N".
-        const innerExpr = baseModel.sanitizeQuery(
+        const innerExpr = escapeBindingPlaceholders(
           `COUNT(DISTINCT COALESCE(${sqlNullIfBlank({
             columnName: baseModel.dbDriver.raw(
               baseModel.isPg ? '(??)::text' : '??',
@@ -849,7 +858,10 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
     return await baseModel.execAndParse(
       baseModel.dbDriver.from(
-        baseModel.dbDriver.raw(outerQb).wrap('(', ') __nc_group_alias'),
+        rawFromBuilder(baseModel.dbDriver, outerQb).wrap(
+          '(',
+          ') __nc_group_alias',
+        ),
       ),
     );
   };
@@ -1009,7 +1021,10 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               });
 
               const selectQb = baseModel.dbDriver.raw(`?? as ??`, [
-                baseModel.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
+                rawFromBuilder(baseModel.dbDriver, _selectQb.builder).wrap(
+                  '(',
+                  ')',
+                ),
                 getAs(column),
               ]);
 

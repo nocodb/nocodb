@@ -69,6 +69,8 @@ export function useMultiSelect(
 
   const CHUNK_SIZE = 50
 
+  const LINK_BY_DISPLAY_VALUE_BATCH_SIZE = 100
+
   const { t } = useI18n()
 
   const { copy, copyMimes } = useCopy()
@@ -401,6 +403,46 @@ export function useMultiSelect(
     }
 
     scrollToCell?.(row, col)
+  }
+
+  /** Range-paste entry for a link column: the row's links are replaced by the records the text names. */
+  function getLinkPasteEntry(row: Row, col: ColumnType, text?: string) {
+    if (!row || row.rowMeta?.new || row.rowMeta?.isExistingRow === false) return
+
+    const displayValues = (text ?? '')
+      .split(',')
+      .map((v: string) => v.trim())
+      .filter(Boolean)
+    if (!displayValues.length) return
+
+    const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+    if (!rowId) return
+
+    return { columnId: col.id as string, rowId, displayValues }
+  }
+
+  async function linkByDisplayValues(entries: { columnId: string; rowId: string; displayValues: string[] }[]) {
+    if (!entries.length) return
+
+    try {
+      // Chunked to stay within the backend per-request entry cap
+      for (let i = 0; i < entries.length; i += LINK_BY_DISPLAY_VALUE_BATCH_SIZE) {
+        await api.internal.postOperation(
+          meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+          meta.value?.base_id ?? base.value.id,
+          {
+            operation: 'nestedDataBulkLinkByDisplayValue',
+            tableId: meta.value?.id as string,
+            viewId: activeView?.value?.id,
+          },
+          entries.slice(i, i + LINK_BY_DISPLAY_VALUE_BATCH_SIZE),
+        )
+      }
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+
+    reloadViewDataHook?.trigger({ shouldShowLoading: false })
   }
 
   function isPasteable(row?: Row, col?: ColumnType, showInfo = false) {
@@ -1251,6 +1293,7 @@ export function useMultiSelect(
         const updatedRows: Row[] = []
         const newRows: Row[] = []
         const propsToPaste: string[] = []
+        const linkPasteEntries: { columnId: string; rowId: string; displayValues: string[] }[] = []
         let isInfoShown = false
         // We can use this if we want to avoid same info multiple times per column
         const isColInfoShown = {} as Record<string, boolean>
@@ -1298,6 +1341,20 @@ export function useMultiSelect(
           for (let j = 0; j < clipboardMatrix[clipboardRowIndex].length; j++) {
             const column = colsToPaste[j]
             if (!column) continue
+            if (isLinkRangePasteSupported(column)) {
+              const entry = getLinkPasteEntry(targetRow, column, clipboardMatrix[clipboardRowIndex][j])
+              if (entry) linkPasteEntries.push(entry)
+              // Rows the paste creates have no id to link yet
+              else if (
+                targetRow.rowMeta?.isExistingRow === false &&
+                clipboardMatrix[clipboardRowIndex][j]?.trim() &&
+                !isInfoShown
+              ) {
+                message.toast(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
+                isInfoShown = true
+              }
+              continue
+            }
             if (column && isPasteable(targetRow, column)) {
               propsToPaste.push(column.title!)
               let pasteValue: any
@@ -1336,7 +1393,7 @@ export function useMultiSelect(
               if (pasteValue !== undefined) {
                 targetRow.row[column.title!] = pasteValue
               }
-            } else if ((isBt(column) || isOo(column) || isMMOrMMLike(column)) && !isInfoShown) {
+            } else if (isLinksOrLTAR(column) && !isInfoShown) {
               message.toast(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
               isInfoShown = true
             }
@@ -1355,6 +1412,8 @@ export function useMultiSelect(
         } else {
           await bulkUpdateRows?.(updatedRows, propsToPaste)
         }
+
+        await linkByDisplayValues(linkPasteEntries)
         // #endregion handle tabbed newline data
       } else {
         if (selectedRange.isSingleCell()) {
@@ -1582,6 +1641,7 @@ export function useMultiSelect(
               .map(([, row]) => row)
           }
           const props = []
+          const linkPasteEntries: { columnId: string; rowId: string; displayValues: string[] }[] = []
 
           let pasteValue
           let isInfoShown = false
@@ -1595,8 +1655,14 @@ export function useMultiSelect(
             if (!row || row.rowMeta.new) continue
 
             for (const col of cols) {
+              if (isLinkRangePasteSupported(col)) {
+                const entry = !files?.length && getLinkPasteEntry(row, col, clipboardData)
+                if (entry) linkPasteEntries.push(entry)
+                continue
+              }
+
               if (!col.title || !isPasteable(row, col)) {
-                if ((isBt(col) || isOo(col) || isMMOrMMLike(col)) && !isInfoShown) {
+                if (isLinksOrLTAR(col) && !isInfoShown) {
                   message.toast(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
                   isInfoShown = true
                 }
@@ -1677,8 +1743,8 @@ export function useMultiSelect(
             }
           }
 
-          if (!props.length) return
-          await bulkUpdateRows?.(rows, props)
+          if (props.length) await bulkUpdateRows?.(rows, props)
+          await linkByDisplayValues(linkPasteEntries)
           // #endregion handle multi cell paste
         }
       }

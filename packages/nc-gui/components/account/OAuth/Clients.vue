@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { OrgUserRoles } from 'nocodb-sdk'
 
 const authClientStore = useOAuthClients()
 
 const { t } = useI18n()
+
+const { orgRoles } = useRoles()
 
 const { loadOAuthClients } = authClientStore
 
@@ -32,6 +35,9 @@ const orderBy = computed<Record<string, SordDirectionType>>({
     }
   },
 })
+
+// Only super admins can create clients; owners still manage their existing ones.
+const isSuper = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
 const sortedOAuthClients = computed(() => handleGetSortedData(oauthClients.value, sorts.value))
 
@@ -117,6 +123,7 @@ onMounted(async () => {
         <div class="flex gap-4 items-baseline justify-between">
           <h6 class="text-xl text-left font-bold my-0" data-rec="true">{{ $t('title.oauthClients') }}</h6>
           <NcButton
+            v-if="isSuper"
             :disabled="isOauthClientsLoading"
             data-testid="nc-token-create-top"
             size="small"
@@ -195,7 +202,7 @@ onMounted(async () => {
       </div>
     </div>
 
-    <AccountOAuthModal v-model:visible="modalVisible" />
+    <AccountOAuthModal v-if="isSuper" v-model:visible="modalVisible" />
     <AccountOAuthDetails
       v-model:visible="detailsModalVisible"
       :client-id="selectedClientId"

@@ -5,7 +5,6 @@ import type CustomKnex from '~/db/CustomKnex';
 import type { Knex } from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { MetaService } from '~/meta/meta.service';
-import type { Filter } from '~/models';
 import type { FilterOptions, SortOptions } from '../../field-handler.interface';
 import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
@@ -15,7 +14,7 @@ import { escapeBindingPlaceholders, sanitize } from '~/helpers/sqlSanitize';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
-import { BaseUser, type Column } from '~/models';
+import { BaseUser, type Column, Filter } from '~/models';
 
 const USER_ID_OPS = new Set([
   'eq',
@@ -32,11 +31,8 @@ export class UserGeneralHandler extends GenericFieldHandler {
   protected singleLineTextHandler: GenericFieldHandler =
     new GenericFieldHandler();
 
-  // For MySQL/MSSQL (and any dialect without a specific User handler),
-  // `like`/`nlike` against a User-style column needs the user-id → display-name
-  // substitution so the filter matches against the visible name. The
-  // dialect-specific PG/SQLite handlers override these to use their own
-  // GROUP_CONCAT/string_agg-based replace functions.
+  // `like`/`nlike` against a User-style column match the visible name: the
+  // users whose name matches are resolved first, then rows by their ids.
   override filterLike = (...args: Parameters<typeof this.filterLikeNlike>) =>
     this.filterLikeNlike(...args);
   override filterNlike = (...args: Parameters<typeof this.filterLikeNlike>) =>
@@ -45,9 +41,8 @@ export class UserGeneralHandler extends GenericFieldHandler {
   /**
    * Shared SQL expression that maps the stored user-ID column to its
    * display-name representation via nested REPLACE() chained over a given
-   * user list. Used by `filterLikeNlike` (with a pre-filtered user list)
-   * and `applySort` (with all base users) — both need the column to read
-   * as display-text, not as a raw user-id.
+   * user list. Used by `applySort` (with all base users), which needs the
+   * column to read as display-text, not as a raw user-id.
    *
    * The dialect-specific User handlers (`UserPgHandler`, `UserSqliteHandler`)
    * override `replaceDelimitedWithKeyValue` to use their own
@@ -417,26 +412,31 @@ export class UserGeneralHandler extends GenericFieldHandler {
 
       return displayValue.includes(filterVal.toLowerCase());
     });
+    const matchedIds = users.map((user) => user.id);
 
-    const finalStatement = await this.buildDisplayNameExpression(
-      knex,
-      sourceField,
-      users,
-    );
-
-    if (filter.comparison_op === 'like') {
-      return this.singleLineTextHandler.filterLike(
-        { val, sourceField: knex.raw(finalStatement) },
-        rootArgs,
-        options,
-      );
-    } else {
-      return this.singleLineTextHandler.filterNlike(
-        { val, sourceField: knex.raw(finalStatement) },
-        rootArgs,
-        options,
-      );
+    // Match the cell's ids, not a rewritten text: an id left unrewritten can
+    // contain the value itself.
+    const isLike = filter.comparison_op === 'like';
+    if (!matchedIds.length) {
+      return {
+        rootApply: undefined,
+        clause: (qb: Knex.QueryBuilder) => {
+          qb.whereRaw(isLike ? '1 = 0' : '1 = 1');
+        },
+      };
     }
+    return this.filterAnyof(
+      { sourceField, val: matchedIds },
+      {
+        knex,
+        column,
+        filter: new Filter({
+          ...filter,
+          comparison_op: isLike ? 'anyof' : 'nanyof',
+        }),
+      },
+      options,
+    );
   }
 
   replaceDelimitedWithKeyValue(param: {

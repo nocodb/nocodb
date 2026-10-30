@@ -20,6 +20,7 @@ import {
 } from 'nocodb-sdk';
 import type {
   ColumnType,
+  FormulaColumnReqType,
   NcApiVersion,
   NormalColumnRequestType,
   OperationSource,
@@ -352,10 +353,9 @@ export class TablesService {
   private getTableNameLengthLimit(sqlClientType: string): number {
     if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') return 64;
     if (sqlClientType === 'pg') return 63;
-    // T-SQL identifiers map to sysname (nvarchar(128)).
-    if (sqlClientType === 'mssql') return 128;
-    // Oracle 12.2+ identifiers cap at 128 bytes.
-    if (sqlClientType === 'oracledb') return 128;
+    // 128-char identifiers, less room for the `PK_` prefix of the derived
+    // constraint name: a longer table name truncates it into a collision.
+    if (sqlClientType === 'mssql' || sqlClientType === 'oracledb') return 125;
     return 255;
   }
 
@@ -1225,10 +1225,24 @@ export class TablesService {
                 props.cdf !== ''
               ? props.cdf
               : null;
+          const formulaCol = c as typeof c &
+            Pick<FormulaColumnReqType, 'formula' | 'formula_raw'>;
+          const formula =
+            c.uidt === UITypes.Formula
+              ? formulaCol.formula_raw || formulaCol.formula
+              : undefined;
+          // checked before the physical table exists, so a bad payload leaves nothing behind
+          if (c.uidt === UITypes.Formula && !formula) {
+            NcError.get(context).invalidRequestBody(
+              `Formula is required for column ${c.title || c.column_name}`,
+            );
+          }
           return {
             ...props,
             // never trust a client-supplied tree; it is rebuilt after insert
-            ...(c.uidt === UITypes.Formula ? { parsed_tree: null } : {}),
+            ...(c.uidt === UITypes.Formula
+              ? { parsed_tree: null, formula }
+              : {}),
             cdf: preservedCdf,
             unique:
               originalUnique !== undefined ? originalUnique : props.unique,

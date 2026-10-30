@@ -162,6 +162,57 @@ export interface InterfacePageType<
 
 export type AnyInterfacePageType = InterfacePageType<InterfacePageLayoutTypes>;
 
+export enum InterfacePageSaveWarnings {
+  /** A saved sort orders rows by a field viewers can't see. */
+  HIDDEN_FIELD_SORT = 'hidden_field_sort',
+}
+
+/** Informational notice on a page save — the save itself went through. */
+export interface InterfacePageSaveWarning {
+  code: InterfacePageSaveWarnings;
+  message: string;
+  fk_column_id?: string;
+  field_title?: string;
+  /** The visualization whose saved sorts it concerns (table pages). */
+  viz_id?: string;
+}
+
+/** A page as `interfacePageUpdate` (and the builder's page list) returns it. */
+export type InterfacePageWithWarnings<
+  L extends InterfacePageLayoutTypes = InterfacePageLayoutTypes
+> = InterfacePageType<L> & {
+  warnings?: InterfacePageSaveWarning[];
+};
+
+/** Anything but `desc` (any casing) sorts ascending. */
+export function normalizeInterfaceSortDirection(
+  direction?: string | null
+): 'asc' | 'desc' {
+  return String(direction ?? '').toLowerCase() === 'desc' ? 'desc' : 'asc';
+}
+
+/**
+ * Index where `saved` starts as the contiguous tail of `sorts` (same fields,
+ * directions and order), or `-1`. An interface page applies a saved sort on a
+ * hidden field only while the request ends with the whole saved list.
+ */
+export function savedSortTailStart(
+  sorts: Array<{ fk_column_id?: string | null; direction?: string | null }>,
+  saved: Array<{ fk_column_id?: string | null; direction?: string | null }>
+): number {
+  const start = sorts.length - saved.length;
+  if (!saved.length || start < 0) return -1;
+
+  const matches = saved.every(
+    (s, i) =>
+      sorts[start + i]?.fk_column_id === s.fk_column_id &&
+      normalizeInterfaceSortDirection(sorts[start + i]?.direction) ===
+        normalizeInterfaceSortDirection(s.direction)
+  );
+
+  return matches ? start : -1;
+}
+
 /**
  * Default (empty but valid) config per layout — used at page creation.
  */

@@ -40,6 +40,8 @@ export enum MigrationJobTypes {
   CreditPlanBackfill = 'credit-plan-backfill',
   StoreLaneBackfill = 'store-lane-backfill',
   CreditAllowanceIncrease = 'credit-allowance-increase',
+  McpTokenPlaintextCleanup = 'mcp-token-plaintext-cleanup',
+  AtImportFailedJobScrub = 'at-import-failed-job-scrub',
 }
 
 export enum JobTypes {

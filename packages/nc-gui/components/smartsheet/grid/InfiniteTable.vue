@@ -108,6 +108,8 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
+const { isSharedBase } = storeToRefs(useBase())
+
 const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
 
 // Interface pages hide the row-expand (maximize) icon on the launched page when
@@ -3180,7 +3182,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                 </div>
               </NcMenuItem>
               <NcMenuItem
-                v-if="contextMenuRowId && !isPublicView && appInfo.ee"
+                v-if="contextMenuRowId && !isPublicView && !isSharedBase && appInfo.ee"
                 class="nc-base-menu-item"
                 @click="showSendRecordModal = true"
               >

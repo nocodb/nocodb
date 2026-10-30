@@ -29,6 +29,7 @@ import type RowColorCondition from '~/models/RowColorCondition';
 import type { GetRowColorConditionsResult } from '~/helpers/rowColorViewHelpers';
 import type { ExcelNumberFormat } from '~/modules/jobs/jobs/export-import/excel-number-format';
 import { NcError } from '~/helpers/catchError';
+import { DriverClient } from '~/utils/nc-config';
 import {
   escapeFormulaeInRows,
   escapeFormulaHeader,
@@ -984,6 +985,11 @@ export class ExportService {
     });
 
     const source = await Source.get(context, model.source_id);
+    const jsonParsedOnRead = [
+      DriverClient.PG,
+      DriverClient.MYSQL,
+      DriverClient.MYSQL_LEGACY,
+    ].includes(source.type);
 
     await model.getColumns();
 
@@ -1168,6 +1174,11 @@ export class ExportService {
                 skip = true;
                 break;
               case UITypes.JSON:
+                // pg/mysql drivers parse JSON on read; the others hand back the stored JSON text
+                if (typeof v === 'string' && !jsonParsedOnRead) {
+                  row[colId] = v;
+                  break;
+                }
                 try {
                   row[colId] = JSON.stringify(v);
                 } catch (e) {

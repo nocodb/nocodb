@@ -157,7 +157,7 @@ export class BaseUsersController {
     '/api/v1/db/meta/projects/:baseId/user',
     '/api/v2/meta/bases/:baseId/user',
   ])
-  @Acl('baseUserMetaUpdate')
+  @Acl('baseUserMetaUpdate', { blockPublicBaseAccess: true })
   async baseUserMetaUpdate(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,

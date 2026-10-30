@@ -514,6 +514,7 @@ export enum AppEvents {
   AGENT_ROLE_UPDATE = 'agent.role.update',
   AGENT_SESSION_CREATE = 'agent.session.create',
   AGENT_SESSION_DELETE = 'agent.session.delete',
+  AGENT_TURN_END = 'agent.turn.end',
 
   SKILL_CREATE = 'skill.create',
   SKILL_UPDATE = 'skill.update',
@@ -532,6 +533,8 @@ export enum AppEvents {
   FACTORY_REPO_DISABLE = 'factory.repo.disable',
   FACTORY_MACHINE_CREATE = 'factory.machine.create',
   FACTORY_MACHINE_RENAME = 'factory.machine.rename',
+  FACTORY_MACHINE_RESIZE = 'factory.machine.resize',
+  FACTORY_MACHINE_UPDATE = 'factory.machine.update',
   FACTORY_MACHINE_SET_DEFAULT = 'factory.machine.set_default',
   FACTORY_MACHINE_DELETE = 'factory.machine.delete',
   FACTORY_MACHINE_BUILD = 'factory.machine.build',
@@ -1030,4 +1033,12 @@ export enum OperationSource {
   DATA_IMPORT = 'data_import',
   // A customer's HashiCorp Vault or Conjur, often on a private network.
   VAULTS = 'vaults',
+}
+
+/**
+ * How a sort orders a SingleSelect field. A sort without one is alphabetical.
+ */
+export enum SortOrderBy {
+  ALPHABETICAL = 'alphabetical',
+  OPTION_ORDER = 'option_order',
 }

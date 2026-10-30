@@ -21,6 +21,10 @@ import { OauthAuthorizationService } from '~/modules/oauth/services/oauth-author
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
 import { toPublicOAuthClient } from '~/modules/oauth/helpers/sanitizeOAuthClient';
 import { OAuthInvalidScopeError } from '~/modules/oauth/helpers/consentScopeError';
+import {
+  assertFirstPartySession,
+  isVerifiedOAuthClient,
+} from '~/modules/oauth/helpers/clientTrust';
 
 const logger = new Logger('OAuthController');
 
@@ -40,7 +44,14 @@ export class OAuthController {
       NcError.notFound('Oauth Client');
     }
 
-    return toPublicOAuthClient(client);
+    const verified = await isVerifiedOAuthClient(client);
+
+    return {
+      ...toPublicOAuthClient(client),
+      // Any logo, NocoDB's included, is shown only for a verified client.
+      ...(!verified && { logo_uri: undefined }),
+      verified,
+    };
   }
 
   @Get('/api/v2/oauth/authorize')
@@ -57,16 +68,8 @@ export class OAuthController {
   @Post('/api/v2/oauth/authorize')
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   async authorize(@Body() body, @Req() req: NcRequest) {
-    // GlobalGuard is authentication-OPTIONAL and this route has no @Acl, so
-    // without this an anonymous caller reaches createAuthorizationCode with an
-    // undefined user id. `isAuthorized` is set at runtime by the auth strategies
-    // (see aclFn in extract-ids.middleware) and is not on the base user type.
-    if (
-      !(req.user as (typeof req.user & { isAuthorized?: boolean }) | undefined)
-        ?.isAuthorized
-    ) {
-      NcError.unauthorized('Invalid token');
-    }
+    // GlobalGuard is authentication-optional and this route has no @Acl.
+    assertFirstPartySession(req.context, req);
 
     const {
       client_id,

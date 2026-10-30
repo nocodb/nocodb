@@ -3,17 +3,21 @@ import template from 'nc-jsep-plugin-template';
 import object from 'nc-jsep-plugin-object';
 import ternary from 'nc-jsep-plugin-ternary';
 import arrow from 'nc-jsep-plugin-arrow';
-import { jsepCurlyHook, jsepIndexHook } from './hooks';
+import { jsepCurlyHook, jsepEqualsHook, jsepIndexHook } from './hooks';
 
 // Formula jsep instance - with curly hook only
 export const formulaJsep = jsep.instance();
 formulaJsep.defaultConfig();
-formulaJsep.plugins.register(jsepCurlyHook);
+formulaJsep.plugins.register(jsepCurlyHook, jsepEqualsHook);
 
 // Formula jsep instance with position tracking - with curly hook and index hook
 export const formulaJsepWithIndex = jsep.instance();
 formulaJsepWithIndex.defaultConfig();
-formulaJsepWithIndex.plugins.register(jsepCurlyHook, jsepIndexHook);
+formulaJsepWithIndex.plugins.register(
+  jsepCurlyHook,
+  jsepEqualsHook,
+  jsepIndexHook
+);
 
 // Workflow jsep instance - with template, object, ternary plugins
 export const workflowJsep = jsep.instance();

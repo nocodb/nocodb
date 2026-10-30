@@ -15,6 +15,16 @@ export const useProvideChatwoot = () => {
 
   const chatwootReady = ref(false)
 
+  const { isDark } = useTheme()
+
+  // The widget is created light; keep it in step with the app theme
+  const syncColorScheme = () => {
+    if (!chatwootReady.value) return
+    syncChatwootColorScheme(isDark.value)
+  }
+
+  watch(isDark, syncColorScheme)
+
   const isChatWootEnabled = computed(() => !appInfo.value.disableSupportChat)
 
   const initUserCustomerAttributes = () => {
@@ -50,6 +60,7 @@ export const useProvideChatwoot = () => {
   const chatwootInit = async () => {
     if (ncIsIframe() || appInfo.value.disableSupportChat) return
     chatwootReady.value = true
+    syncColorScheme()
     initUserCustomerAttributes()
   }
 

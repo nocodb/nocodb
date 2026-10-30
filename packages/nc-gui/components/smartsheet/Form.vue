@@ -134,9 +134,13 @@ const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
 
 eventBus.on(smartsheetEventHandler)
 
+// Server-applied undo/redo doesn't touch the local form state.
+const undoRedoSub = useUndoRedo().onUndoRedoApplied(() => reloadEventHook.trigger())
+
 onBeforeUnmount(() => {
   eventBus.off(smartsheetEventHandler)
   reloadEventHook.off(reloadEventHookHandler)
+  undoRedoSub.off()
 })
 
 const { fields, showAll, hideAll } = useViewColumnsOrThrow()

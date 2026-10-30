@@ -1,11 +1,8 @@
-import { createHash } from 'crypto';
 import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
+import { sha256Hex } from '~/helpers/sha256';
 
 const BATCH_SIZE = 500;
-
-const sha256 = (value: string) =>
-  createHash('sha256').update(value, 'utf8').digest('hex');
 
 /**
  * Hashes every MCP secret still held only in clear. Safe to re-run: a row with
@@ -47,7 +44,7 @@ export const hashPlaintextMcpTokens = async (knex: Knex) => {
       await knex(MetaTable.MCP_TOKENS)
         .where({ id: row.id })
         .whereNull('token_hash')
-        .update({ token_hash: sha256(row.token) });
+        .update({ token_hash: sha256Hex(row.token) });
     }
   }
 };

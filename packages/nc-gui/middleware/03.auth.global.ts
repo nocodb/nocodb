@@ -3,7 +3,7 @@ import type { Api } from 'nocodb-sdk'
 import { NcErrorType } from 'nocodb-sdk'
 import type { UseGlobalReturn } from '../composables/useGlobal/types'
 import type { Actions } from '~/composables/useGlobal/types'
-import { PICK_APP_BASE_PARAM } from '~/utils/buildIntentUtils'
+import { PICK_AGENT_BASE_PARAM, PICK_APP_BASE_PARAM } from '~/utils/buildIntentUtils'
 
 /**
  * Safely persist to localStorage. In some embedded webviews and privacy
@@ -108,11 +108,13 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
   /** if user isn't signed in and google auth is enabled, try to check if sign-in data is present */
   if (!state.signedIn.value && state.appInfo.value.googleAuthEnabled) {
-    await tryGoogleAuth(api, state.signIn)
+    const googleAuthRedirect = await tryGoogleAuth(api, state)
+    if (googleAuthRedirect) return googleAuthRedirect
   }
 
   /** Try token population based on short-lived-token */
-  await tryShortTokenAuth(api, state.signIn, state)
+  const shortTokenRedirect = await tryShortTokenAuth(api, state.signIn, state)
+  if (shortTokenRedirect) return shortTokenRedirect
 
   /** if public allow all visitors */
   if (to.meta.public) return
@@ -124,8 +126,9 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   const hasPaymentRedirectParams =
     to.query.upgrade || to.query.pricing || to.query.afterPayment || to.query.afterManage || to.query.afterUpgrade
 
-  /** So is a broadcast link asking to pick a base for an app (/?pickAppBase=1), a Home build kind (/?kind=factory), or an AI-setup link (/?mcp=claude) */
-  const hasRootRedirectParams = hasPaymentRedirectParams || to.query[PICK_APP_BASE_PARAM] || to.query.kind || to.query.mcp
+  /** So is a broadcast link asking to pick a base for an app or agents (/?pickAppBase=1, /?pickAgentBase=1), a Home build kind (/?kind=app), or an AI-setup link (/?mcp=claude) */
+  const hasRootRedirectParams =
+    hasPaymentRedirectParams || to.query[PICK_APP_BASE_PARAM] || to.query[PICK_AGENT_BASE_PARAM] || to.query.kind || to.query.mcp
 
   /** if auth is required or unspecified (same `as required) and user is not signed in, redirect to signin page */
   if ((to.meta.requiresAuth || typeof to.meta.requiresAuth === 'undefined') && !state.signedIn.value) {
@@ -178,10 +181,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       })
     }
   } else if (to.meta.requiresAuth === false && state.signedIn.value) {
-    if (to.query?.logout) {
-      await state.signOut({ redirectToSignin: true })
-    }
-
     /**
      * if user was turned away from non-auth page but also came from a non-auth page (e.g. user went to /signin and reloaded the page)
      * redirect to home page
@@ -220,26 +219,38 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 /**
  * If present, try using google auth data to sign user in before navigating to the next page
  */
-async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
+async function tryGoogleAuth(api: Api<any>, state: UseGlobalReturn) {
   if (window.location.search && /\bscope=|\bstate=/.test(window.location.search) && /\bcode=/.test(window.location.search)) {
+    // The code is single-use: strip it before any await, or the guard for the next
+    // navigation (e.g. the 2FA redirect) still sees it and exchanges it again.
+    const callbackSearch = window.location.search
+    const callbackURL = new URL(window.location.href)
+    callbackURL.searchParams.delete('code')
+    callbackURL.searchParams.delete('state')
+    callbackURL.searchParams.delete('scope')
+    window.history.pushState('object', document.title, callbackURL.toString())
+
     let extraProps: any = {}
     try {
       let authProvider: 'google' | 'github' | 'oidc' = 'google'
-      if (window.location.search.includes('state=github')) {
+      if (callbackSearch.includes('state=github')) {
         authProvider = 'github'
-      } else if (window.location.search.includes('state=oidc')) {
+      } else if (callbackSearch.includes('state=oidc')) {
         authProvider = 'oidc'
       }
 
       // `extra` prop is used in our cloud implementation, so we are keeping it
-      const {
-        data: { token, extra },
-      } = await api.instance.post(`/auth/${authProvider}/genTokenByCode${window.location.search}`)
+      const { data } = await api.instance.post(`/auth/${authProvider}/genTokenByCode${callbackSearch}`)
+
+      // the stored return target stays put for after the TOTP step
+      if (data.twoFactorRequired && data.twoFactorToken) return await toTwoFactorChallenge(state, data.twoFactorToken)
+
+      const { token, extra } = data
 
       // if extra prop is null/undefined set it as an empty object as fallback
       extraProps = extra || {}
 
-      signIn(token)
+      state.signIn(token)
       // the staged click is lost when the callback opens in another tab; GitHub has no badge
       commitPendingAuthMethod(authProvider === 'github' ? undefined : authProvider)
     } catch (e: any) {
@@ -249,10 +260,6 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
     const cleanURL = new URL(window.location.href)
     cleanURL.searchParams.delete('short-token')
     cleanURL.searchParams.delete('continueAfterSignIn')
-    // The code is single-use: left in the URL, a failed exchange retries on every reload.
-    cleanURL.searchParams.delete('code')
-    cleanURL.searchParams.delete('state')
-    cleanURL.searchParams.delete('scope')
     // Legacy Google/GitHub sign-in (genTokenByCode) returns no `extra`, so the
     // return target lives only in localStorage. Restore it to the URL before the
     // reload below — the reload wipes `isTokenUpdatedTab`, so without the query
@@ -264,6 +271,16 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
     window.history.pushState('object', document.title, cleanURL.toString())
     window.location.reload()
   }
+}
+
+/**
+ * The user has 2FA on: no session yet, so finish the sign-in with the TOTP code on /signin.
+ */
+async function toTwoFactorChallenge(state: UseGlobalReturn, twoFactorToken: string) {
+  // A session still in the tab bounces /signin back to `/`. signOut also clears 2FA state, so it runs first.
+  if (state.signedIn.value) await state.signOut({ skipApiCall: true })
+  state.stageTwoFactorChallenge(twoFactorToken)
+  return navigateTo('/signin')
 }
 
 /**
@@ -303,6 +320,12 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn'], state
           } as any,
         },
       )
+
+      if (data.twoFactorRequired && data.twoFactorToken) {
+        const next = redirectContinue ?? consumeStoredContinuePath()
+        if (next && isSafeContinuePath(next)) safeSetLocalStorage('continueAfterSignIn', next)
+        return await toTwoFactorChallenge(state, data.twoFactorToken)
+      }
 
       const { token, extra } = data
 

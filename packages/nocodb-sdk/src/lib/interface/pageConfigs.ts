@@ -527,7 +527,10 @@ export interface InterfaceDashboardWidgetConfig {
   description?: string | null;
   /** WidgetTypes value ('metric' | 'chart' | ...). */
   type: string;
-  /** Widget-type-specific config (ChartWidgetConfig / MetricWidgetConfig / ...). */
+  /**
+   * Widget-type-specific config (ChartWidgetConfig / MetricWidgetConfig / ...).
+   * Data, chart and number widgets also read `show_title: false` to hide the title.
+   */
   config?: Record<string, unknown> | null;
   /** Defaults to the group's source table. */
   fk_model_id?: string | null;
@@ -556,6 +559,8 @@ export const INTERFACE_VIEW_WIDGET_TYPE = 'view';
 /** `config` payload of a `type: 'view'` dashboard widget. */
 export interface InterfaceDashboardViewWidgetConfig {
   viz: InterfaceVisualizationConfig;
+  /** `false` hides the widget title; absent shows it. */
+  show_title?: boolean;
 }
 
 export interface InterfaceDashboardGroupConfig {

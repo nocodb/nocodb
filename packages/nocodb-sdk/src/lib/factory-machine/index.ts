@@ -1,6 +1,6 @@
 /**
- * App Factory machines: the packages a code project's sandbox image is
- * built with. One catalog, read by the backend to build and boot the image and
+ * Coding agent machines: the packages a session's sandbox image is built
+ * with. One catalog, read by the backend to build and boot the image and
  * by the frontend to draw the picker, so the two can never disagree on what an
  * item installs.
  *
@@ -14,38 +14,45 @@ export const FACTORY_MACHINE_CATALOG_VERSION = 1;
 /** Picks no machine for a session: the stock image, with nothing added. */
 export const FACTORY_STOCK_MACHINE = 'stock';
 
-/** Ready-made selections a machine can start from; their names are the UI's. */
-export const FACTORY_MACHINE_TEMPLATES: {
-  id: string;
-  spec: FactoryMachineSpec;
-}[] = [
+export enum FactoryMachineSize {
+  Small = 'small',
+  Standard = 'standard',
+  Large = 'large',
+}
+
+export interface FactoryMachineSizeShape {
+  id: FactoryMachineSize;
+  vcpus: number;
+  memoryGiB: number;
+  /** Off until the compute provider's ceiling allows it (E2B Pro stops at 8 vCPU / 8 GB). */
+  available: boolean;
+}
+
+/** Standard is the stock machine's own shape: a machine without a size runs at it. */
+export const FACTORY_MACHINE_SIZES: FactoryMachineSizeShape[] = [
+  { id: FactoryMachineSize.Small, vcpus: 4, memoryGiB: 4, available: true },
   {
-    id: 'node',
-    spec: {
-      items: [
-        { id: 'node' },
-        { id: 'pnpm' },
-        { id: 'postgres' },
-        { id: 'playwright' },
-      ],
-    },
+    id: FactoryMachineSize.Standard,
+    vcpus: 8,
+    memoryGiB: 8,
+    available: true,
   },
-  {
-    id: 'python',
-    spec: { items: [{ id: 'python' }, { id: 'uv' }, { id: 'postgres' }] },
-  },
-  {
-    id: 'go',
-    spec: {
-      items: [
-        { id: 'go' },
-        { id: 'postgres' },
-        { id: 'redis' },
-        { id: 'docker' },
-      ],
-    },
-  },
+  { id: FactoryMachineSize.Large, vcpus: 8, memoryGiB: 16, available: false },
 ];
+
+/** The shape a machine runs at; unknown or unset is Standard. */
+export function factoryMachineSize(size?: string | null): FactoryMachineSizeShape {
+  return (
+    FACTORY_MACHINE_SIZES.find((shape) => shape.id === size) ??
+    FACTORY_MACHINE_SIZES.find(
+      (shape) => shape.id === FactoryMachineSize.Standard
+    )!
+  );
+}
+
+export function isFactoryMachineSizeAvailable(size?: string | null): boolean {
+  return !!FACTORY_MACHINE_SIZES.find((shape) => shape.id === size)?.available;
+}
 
 export enum FactoryMachineCategory {
   Language = 'language',
@@ -102,18 +109,43 @@ export type FactoryMachineVersionStatus =
   | 'cancelled';
 
 /**
- * A named machine on a code project: what a session's sandbox starts from.
- * A project can have several; one is its default.
+ * A named machine on a coding agent: what a session's sandbox starts from.
+ * An agent can have several; one is its default.
  */
 export interface FactoryMachineType {
   id: string;
   base_id: string;
+  fk_agent_id?: string | null;
   title: string;
   is_default: boolean;
+  /** Unset runs at Standard. */
+  size?: FactoryMachineSize | null;
+  /** The port the preview opens on; unset is the lowest one listening. */
+  preview_port?: number | null;
+  /** How long a session's machine stays up after its last turn; unset is {@link FACTORY_MACHINE_IDLE_DEFAULT}. */
+  idle_minutes?: number | null;
+  /** The names of its environment variables. Their values are write-only: they reach the machine and nothing else. */
+  env_keys?: string[];
   created_by?: string;
   created_at?: string;
   updated_at?: string;
 }
+
+/** The choices for how long an idle machine stays up, in minutes. */
+export const FACTORY_MACHINE_IDLE_OPTIONS = [10, 15, 30, 60];
+
+export const FACTORY_MACHINE_IDLE_DEFAULT = 30;
+
+export const FACTORY_MACHINE_MAX_ENV = 50;
+
+/** Shell-safe: what `export NAME=` accepts. */
+export const FACTORY_ENV_KEY_PATTERN = /^[A-Za-z_][A-Za-z0-9_]{0,127}$/;
+
+/**
+ * A machine's variables, as an update sends them: each key it keeps, with a
+ * value only when that value changes. A key left out is removed.
+ */
+export type FactoryMachineEnvUpdate = { key: string; value?: string }[];
 
 /** A machine with its version in use and its newest build, for listing. */
 export interface FactoryMachineSummary extends FactoryMachineType {
@@ -200,6 +232,12 @@ export interface FactoryMachineDetection {
   spec: FactoryMachineSpec;
   /** Which file suggested each item. */
   reasons: { id: string; file: string }[];
+}
+
+/** A machine suggested for a repo a new coding agent is about to get. */
+export interface FactoryRepoDetection extends FactoryMachineDetection {
+  /** Whether machines can be built here; without a builder every session runs the stock machine. */
+  available: boolean;
 }
 
 export interface FactoryMachineRuntime {

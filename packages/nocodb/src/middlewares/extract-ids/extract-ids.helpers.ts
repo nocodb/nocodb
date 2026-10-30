@@ -1,8 +1,22 @@
 import { ViewLockType } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
-import type { Filter } from '~/models';
-import { Column, Hook, View } from '~/models';
+import {
+  Column,
+  Filter,
+  FormViewColumn,
+  GalleryViewColumn,
+  GanttViewColumn,
+  GridViewColumn,
+  Hook,
+  ListViewColumn,
+  Model,
+  Sort,
+  TimelineViewColumn,
+  View,
+  ViewSection,
+} from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
+import { NcError } from '~/helpers/catchError';
 
 export const VIEW_KEY = Symbol.for('nc:view');
 
@@ -222,4 +236,146 @@ export async function resolveFilterTableId(
   }
 
   return undefined;
+}
+
+type ChildTableResolver = {
+  tableOf: (context: NcContext, id: string) => Promise<string | undefined>;
+  notFound: (context: NcContext, id: string) => never;
+};
+
+const viewTable: ChildTableResolver = {
+  // A view slot may carry a table id on some data routes.
+  tableOf: async (context, id) =>
+    (await View.get(context, id))?.fk_model_id ??
+    (await Model.get(context, id))?.id,
+  notFound: (context, id) => NcError.get(context).viewNotFound(id),
+};
+
+const columnTable: ChildTableResolver = {
+  tableOf: async (context, id) =>
+    (await Column.get(context, { colId: id }))?.fk_model_id,
+  notFound: (context, id) => NcError.get(context).fieldNotFound(id),
+};
+
+const filterTable: ChildTableResolver = {
+  tableOf: async (context, id) => {
+    const filter = await Filter.get(context, id);
+    return filter ? resolveFilterTableId(context, filter) : undefined;
+  },
+  notFound: (context, id) => NcError.get(context).genericNotFound('Filter', id),
+};
+
+const tableTable: ChildTableResolver = {
+  tableOf: async (context, id) => (await Model.get(context, id))?.id,
+  notFound: (context, id) => NcError.get(context).tableNotFound(id),
+};
+
+/** A child row that names its view: the table is the view's. */
+const viewOwnedTable = (
+  get: (
+    context: NcContext,
+    id: string,
+  ) => Promise<{ fk_view_id?: string } | null | undefined>,
+  notFound: ChildTableResolver['notFound'],
+): ChildTableResolver => ({
+  tableOf: async (context, id) => {
+    const viewId = (await get(context, id))?.fk_view_id;
+    return viewId ? (await View.get(context, viewId))?.fk_model_id : undefined;
+  },
+  notFound,
+});
+
+const viewColumnNotFound: ChildTableResolver['notFound'] = (context, id) =>
+  NcError.get(context).fieldNotFound(id);
+
+// Table ids first, so they seed the table and a mismatch is reported on the child.
+const CHILD_TABLE_RESOLVERS: Record<string, ChildTableResolver> = {
+  tableId: tableTable,
+  modelId: tableTable,
+  fk_model_id: tableTable,
+  viewId: viewTable,
+  // v1 alias routes put a view id or title here; a title resolves to nothing and is skipped.
+  viewName: viewTable,
+  formViewId: viewTable,
+  gridViewId: viewTable,
+  kanbanViewId: viewTable,
+  galleryViewId: viewTable,
+  calendarViewId: viewTable,
+  mapViewId: viewTable,
+  ganttViewId: viewTable,
+  fk_gantt_view_id: viewTable,
+  columnId: columnTable,
+  buttonColId: columnTable,
+  filterId: filterTable,
+  filterParentId: filterTable,
+  sortId: viewOwnedTable(
+    (context, id) => Sort.get(context, id),
+    (context, id) => NcError.get(context).genericNotFound('Sort', id),
+  ),
+  rowColorConditionId: viewOwnedTable(
+    (context, id) => RowColorCondition.getById(context, id),
+    (context, id) =>
+      NcError.get(context).genericNotFound('Row color condition', id),
+  ),
+  gridViewColumnId: viewOwnedTable(
+    (context, id) => GridViewColumn.get(context, id),
+    viewColumnNotFound,
+  ),
+  formViewColumnId: viewOwnedTable(
+    (context, id) => FormViewColumn.get(context, id),
+    viewColumnNotFound,
+  ),
+  formColumnId: viewOwnedTable(
+    (context, id) => FormViewColumn.get(context, id),
+    viewColumnNotFound,
+  ),
+  galleryViewColumnId: viewOwnedTable(
+    (context, id) => GalleryViewColumn.get(context, id),
+    viewColumnNotFound,
+  ),
+  listViewColumnId: viewOwnedTable(
+    (context, id) => ListViewColumn.get(context, id),
+    viewColumnNotFound,
+  ),
+  timelineViewColumnId: viewOwnedTable(
+    (context, id) => TimelineViewColumn.get(context, id),
+    viewColumnNotFound,
+  ),
+  ganttViewColumnId: viewOwnedTable(
+    (context, id) => GanttViewColumn.get(context, id),
+    viewColumnNotFound,
+  ),
+  sectionId: {
+    tableOf: async (context, id) =>
+      (await ViewSection.get(context, id))?.fk_model_id,
+    notFound: (context, id) => NcError.get(context).viewSectionNotFound(id),
+  },
+  hookId: {
+    tableOf: async (context, id) => (await Hook.get(context, id))?.fk_model_id,
+    notFound: (context, id) => NcError.get(context).hookNotFound(id),
+  },
+};
+
+/** Query / param keys that address a table. */
+export const TABLE_ADDRESSING_KEYS = Object.keys(CHILD_TABLE_RESOLVERS);
+
+/** The one table every id in the sources addresses (seeded by `tableId`); refuses ids of another. */
+export async function resolveRequestTable(
+  context: NcContext,
+  tableId: string | undefined,
+  ...sources: Array<Record<string, unknown> | undefined>
+): Promise<string | undefined> {
+  for (const [key, resolver] of Object.entries(CHILD_TABLE_RESOLVERS)) {
+    const ids = sources.flatMap((source) =>
+      source?.[key] ? [source[key]].flat() : [],
+    );
+    for (const id of ids) {
+      if (typeof id !== 'string') continue;
+      const childTableId = await resolver.tableOf(context, id);
+      if (!childTableId) continue;
+      if (!tableId) tableId = childTableId;
+      else if (childTableId !== tableId) resolver.notFound(context, id);
+    }
+  }
+  return tableId;
 }

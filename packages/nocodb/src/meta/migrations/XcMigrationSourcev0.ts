@@ -125,6 +125,8 @@ import * as nc_202610141300_abuse_reports_moderation from './v0/nc_202610141300_
 import * as nc_202610201426_chat_sessions_factory_slug from './v0/nc_202610201426_chat_sessions_factory_slug';
 import * as nc_202610221200_mcp_token_hash from './v0/nc_202610221200_mcp_token_hash';
 import * as nc_202610260820_users_sessions_revoked_at from './v0/nc_202610260820_users_sessions_revoked_at';
+import * as nc_202610271333_sort_option_order from './v0/nc_202610271333_sort_option_order';
+import * as nc_202610271400_factory_repos_coding_agents from './v0/nc_202610271400_factory_repos_coding_agents';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -261,6 +263,8 @@ export default class XcMigrationSourcev0 {
       'nc_202610201426_chat_sessions_factory_slug',
       'nc_202610221200_mcp_token_hash',
       'nc_202610260820_users_sessions_revoked_at',
+      'nc_202610271333_sort_option_order',
+      'nc_202610271400_factory_repos_coding_agents',
     ]);
   }
 
@@ -524,6 +528,10 @@ export default class XcMigrationSourcev0 {
         return nc_202610221200_mcp_token_hash;
       case 'nc_202610260820_users_sessions_revoked_at':
         return nc_202610260820_users_sessions_revoked_at;
+      case 'nc_202610271333_sort_option_order':
+        return nc_202610271333_sort_option_order;
+      case 'nc_202610271400_factory_repos_coding_agents':
+        return nc_202610271400_factory_repos_coding_agents;
     }
   }
 }

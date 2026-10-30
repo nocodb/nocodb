@@ -1,6 +1,7 @@
 import TipTapMention from '@tiptap/extension-mention'
 import type MarkdownIt from 'markdown-it'
 import regexp from 'markdown-it-regexp'
+import { encode } from 'html-entities'
 import type { UserType } from 'nocodb-sdk'
 
 // Todo: Update user mention to field mention
@@ -29,12 +30,16 @@ export const parseFieldMention = (
       className += ' nc-current-user'
     }
 
-    return `<span class="${className}" data-id='${JSON.stringify({
+    const dataId = JSON.stringify({
       id: bUser?.id,
       email: bUser?.email,
       name: bUser?.display_name ?? '',
       isSameUser: bUser?.id === currentUser?.id,
-    })}'  data-type="mention">${isReadonly ? '<span>@</span>' : '@'}${processedContent}</span>`
+    })
+
+    return `<span class="${className}" data-id="${encode(dataId)}" data-type="mention">${
+      isReadonly ? '<span>@</span>' : '@'
+    }${encode(processedContent ?? '')}</span>`
   })
 }
 

@@ -236,10 +236,19 @@ function switchEnv(env: EnvironmentType) {
   // config — cache → stored override (production = the integration's own) → empty.
   configByEnv.value[activeEnvKey.value] = formState.value.config
   activeEnvKey.value = env.key
-  formState.value.config =
+  setEnvConfig(
     configByEnv.value[env.key] ??
-    (env.key === DefaultEnvironmentKey.PRODUCTION ? activeIntegration.value?.config : envOverrideConfig(env.id)) ??
-    {}
+      (env.key === DefaultEnvironmentKey.PRODUCTION ? activeIntegration.value?.config : envOverrideConfig(env.id)) ??
+      {},
+  )
+}
+
+function setEnvConfig(config: Record<string, any>) {
+  formState.value.config = config
+  // Leaving production changes the schema, and the form builder then resets from the production config.
+  nextTick(() => {
+    formState.value.config = config
+  })
 }
 
 function applyLaneDefaultEnv() {
@@ -253,7 +262,7 @@ function applyLaneDefaultEnv() {
 
   configByEnv.value[activeEnvKey.value] = formState.value.config
   activeEnvKey.value = sbxKey
-  formState.value.config = envOverrideConfig(env.id) ?? {}
+  setEnvConfig(envOverrideConfig(env.id) ?? {})
 }
 
 // Quick "+ New environment" from the tab strip — gate the custom feature.

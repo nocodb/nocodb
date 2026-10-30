@@ -7,7 +7,7 @@ import type { FilterType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn, Model } from '~/models';
 import { Column } from '~/models';
-import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
+import { hasLimitedRelatedTableAccess } from '~/helpers/tableHelpers';
 import { isSharedViewAccess } from '~/helpers/accessSource';
 import { LIST_ARG_ALIASES } from '~/helpers/listArgAliases';
 
@@ -269,11 +269,7 @@ export async function restrictNestedLinkQuery(
     (options?.hasLimitedAccess !== undefined
       ? options.hasLimitedAccess
       : colOptions.isCrossBaseLink() ||
-        !(await hasTableVisibilityAccess(
-          context,
-          relatedModel.id,
-          context.user,
-        )));
+        (await hasLimitedRelatedTableAccess(context, relatedModel.id)));
 
   if (!restricted) return;
 
@@ -350,12 +346,23 @@ export async function restrictQueryToExposedColumns(
     // otherwise leave the original string as-is (no re-serialization).
     if (filtersReferenceHiddenColumn(filters, exposedColumnIds)) {
       const survivors = stripHiddenColumnFilters(filters, exposedColumnIds);
-      query[key] = survivors.length
+      let rebuilt = survivors.length
         ? serializeFiltersToXwhere(
             survivors,
             new Map(columns.map((c) => [c.id, c])),
           )
         : undefined;
+      // Values are written unquoted, so a value holding `)~or(` re-parses as new leaves.
+      if (
+        rebuilt &&
+        filtersReferenceHiddenColumn(
+          extractFilterFromXwhere(context, rebuilt, aliasColObjMap).filters,
+          exposedColumnIds,
+        )
+      ) {
+        rebuilt = undefined;
+      }
+      query[key] = rebuilt;
     }
   }
 

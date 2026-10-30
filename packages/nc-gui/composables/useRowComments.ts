@@ -29,6 +29,8 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
 
   const { basesUser } = storeToRefs(basesStore)
 
+  const { isSharedBase } = storeToRefs(useBase())
+
   const baseUsers = computed(() => (meta.value.base_id ? basesUser.value.get(meta.value.base_id) || [] : []))
 
   const comments = ref<Array<CommentTypeExtended>>([])
@@ -321,7 +323,8 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
   let commentNotificationPreferenceSeq = 0
 
   async function loadCommentNotificationPreference() {
-    if (!isEeUI) return
+    // The bell is per-user; a shared-base session has no user and is refused.
+    if (!isEeUI || isSharedBase.value) return
     if (!ifaceSidebar && !isUIAllowed('commentList')) return
 
     const seq = ++commentNotificationPreferenceSeq

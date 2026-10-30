@@ -950,7 +950,8 @@ export class MssqlUi implements SqlUi {
     return ['json'].includes(col.dt?.toLowerCase());
   }
   get tableNameLengthLimit(): number {
-    return 128;
+    // sysname (128) less the `PK_` constraint prefix.
+    return 125;
   }
   //#endregion methods
 }

@@ -45,6 +45,13 @@ const SERVER_SIDE_NC_ERROR_TYPES = [
 const JSON_PARSE_ERROR_RE =
   /\bJSON at position \d+|is not valid JSON|^Unexpected end of JSON input/;
 
+// Multer codes Nest's transformException doesn't map; their `code` would read as an unknown db error.
+const MULTER_FIELD_NAME_ERROR_CODES = new Set([
+  'LIMIT_FIELD_ARRAY_INDEX',
+  'LIMIT_FIELD_NESTING',
+  'INVALID_FIELD_NAME',
+]);
+
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   constructor() {}
@@ -72,6 +79,16 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         response.status(400).json(JSON_RPC_PARSE_ERROR);
         return;
       }
+    }
+
+    if (
+      exception?.name === 'MulterError' &&
+      MULTER_FIELD_NAME_ERROR_CODES.has(exception.code)
+    ) {
+      exception = NcError._.errorCodex.generateError(
+        NcErrorType.ERR_INVALID_REQUEST_BODY,
+        { params: 'Invalid multipart field name' },
+      );
     }
 
     // try to extract db error for unknown errors — kept here (in addition

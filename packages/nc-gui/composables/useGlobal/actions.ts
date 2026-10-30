@@ -250,8 +250,11 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
     state.syncDataUpvotes.value = upvotes
   }
 
+  const stageTwoFactorChallenge: Actions['stageTwoFactorChallenge'] = () => {}
+
   return {
     signIn,
+    stageTwoFactorChallenge,
     signOut,
     refreshToken,
     loadAppInfo,

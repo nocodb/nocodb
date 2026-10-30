@@ -1,5 +1,7 @@
 import {
+  AuditV1OperationTypes,
   isLinkV2,
+  ncIsNullOrUndefined,
   type NcRequest,
   PermissionEntity,
   PermissionKey,
@@ -12,6 +14,7 @@ import { extractCorrespondingLinkColumn } from '~/db/BaseModelSqlv2/add-remove-l
 import {
   dataWrapper,
   extractIdPropIfObjectOrReturn,
+  getOppositeRelationType,
   getRelatedLinksColumn,
 } from '~/helpers/dbHelpers';
 import { type Column, type LinkToAnotherRecordColumn, Model } from '~/models';
@@ -30,6 +33,8 @@ export interface NestedLinkAuditEntry {
   refRowIdIsInsertedRow: boolean;
   type: RelationTypes;
   req: NcRequest;
+  // A link the insert takes from another row; DATA_LINK when unset
+  opType?: AuditV1OperationTypes.DATA_UNLINK;
 }
 
 export interface NestedLinkLastModifiedEntry {
@@ -232,6 +237,46 @@ export class NestedLinkPreparator {
           dbDriver: baseModel.dbDriver,
         });
 
+        // Audit a link the insert takes from an existing row of this table
+        const pushDisplacedUnlinkAudit = (
+          rowId: unknown,
+          refRowId: unknown,
+        ) => {
+          if (ncIsNullOrUndefined(rowId) || ncIsNullOrUndefined(refRowId)) {
+            return;
+          }
+          const common = {
+            rowIdIsInsertedRow: false,
+            refRowIdIsInsertedRow: false,
+            req,
+            opType: AuditV1OperationTypes.DATA_UNLINK as const,
+          };
+          postInsertAuditEntries.push(
+            {
+              ...common,
+              columnTitle: col.title,
+              columnId: col.id,
+              refColumnTitle: refChildCol.title,
+              rowId,
+              refRowId,
+              model: baseModel.model,
+              refModel,
+              type: colOptions.type as RelationTypes,
+            },
+            {
+              ...common,
+              columnTitle: refChildCol.title,
+              columnId: refChildCol.id,
+              refColumnTitle: col.title,
+              rowId: refRowId,
+              refRowId: rowId,
+              model: refModel,
+              refModel: baseModel.model,
+              type: getOppositeRelationType(colOptions.type),
+            },
+          );
+        };
+
         // V2 OO uses junction table (like MO), not FK-based like V1 OO
         const effectiveType =
           isLinkV2(col) && colOptions.type === RelationTypes.ONE_TO_ONE
@@ -340,6 +385,10 @@ export class NestedLinkPreparator {
                       // OO BT-side forward action: null-out the partner's FK.
                       forward: 'null',
                     });
+                    pushDisplacedUnlinkAudit(
+                      dataWrapper(partner).extractPksValue(childModel, true),
+                      refRowId,
+                    );
                   }
                   return '';
                 });
@@ -413,6 +462,10 @@ export class NestedLinkPreparator {
                       forward: 'newRowPk',
                     };
                     displacedRecords.push(pendingEntry);
+                    pushDisplacedUnlinkAudit(
+                      child[childCol.column_name],
+                      pendingEntry.pk,
+                    );
                   }
                   return '';
                 });
@@ -539,6 +592,10 @@ export class NestedLinkPreparator {
                       };
                     displacedRecords.push(entry);
                     pendingEntries.push(entry);
+                    pushDisplacedUnlinkAudit(
+                      row[childCol.column_name],
+                      entry.pk,
+                    );
                   }
                   return '';
                 });
@@ -658,6 +715,10 @@ export class NestedLinkPreparator {
                   parentValue: row[omParentMMCol.column_name],
                   childValue: row[omChildMMCol.column_name],
                 });
+                pushDisplacedUnlinkAudit(
+                  row[omChildMMCol.column_name],
+                  row[omParentMMCol.column_name],
+                );
               }
               return '';
             });
@@ -776,6 +837,10 @@ export class NestedLinkPreparator {
                     parentValue: row[moParentMMCol.column_name],
                     childValue: row[moChildMMCol.column_name],
                   });
+                  pushDisplacedUnlinkAudit(
+                    row[moChildMMCol.column_name],
+                    row[moParentMMCol.column_name],
+                  );
                 }
                 return '';
               });

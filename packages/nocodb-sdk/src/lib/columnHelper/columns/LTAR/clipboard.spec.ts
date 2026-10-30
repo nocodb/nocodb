@@ -147,6 +147,15 @@ describe('LTAR clipboard serialization', () => {
       expect(String(parsed)).not.toContain('[object Object]');
     });
 
+    it('Links (V2 mo) plain value is the display value, not "0 Links"', () => {
+      expect(
+        new LinksHelper().parsePlainCellValue(
+          { Id: 1, order_id: '702-4787840-9226625' },
+          { ...baseParams, col: moLinksCol }
+        )
+      ).toBe('702-4787840-9226625');
+    });
+
     // hm / mm / om are the COUNT-shaped Links relations — the renderer shows
     // "N Links" for all three (`parseLinksValue` via `parsePlainCellValue`), so
     // copy must too. Only bt/oo and the v2 bt-like junctions (mo/oo) are

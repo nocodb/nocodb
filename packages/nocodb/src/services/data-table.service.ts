@@ -33,7 +33,8 @@ import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { dataWrapper } from '~/helpers/dbHelpers';
+import { captureLinkHookRowsForColumn } from '~/db/BaseModelSqlv2/add-remove-links';
+import { _wherePk, dataWrapper } from '~/helpers/dbHelpers';
 import { batchLinkBroadcasts } from '~/db/BaseModelSqlv2/link-broadcast-batch';
 import { Profiler } from '~/helpers/profiler';
 import {
@@ -211,6 +212,7 @@ export class DataTableService {
         apiVersion: param.apiVersion,
         allowSystemColumn: param.internalFlags?.allowSystemColumn,
         skip_hooks: param.internalFlags?.skipHooks,
+        triggerLinkUpdateHooks: true,
       },
     );
 
@@ -304,6 +306,7 @@ export class DataTableService {
         inlineLinkWrites: param.inlineLinkWrites,
         allowSystemColumn: param.internalFlags?.allowSystemColumn,
         skip_hooks: param.internalFlags?.skipHooks,
+        triggerLinkUpdateHooks: true,
       },
     );
     profiler.log('extractIdObj');
@@ -728,6 +731,7 @@ export class DataTableService {
         : [param.refRowIds],
       rowId: param.rowId,
       cookie: param.cookie,
+      triggerUpdateHooks: true,
     });
     return true;
   }
@@ -808,6 +812,7 @@ export class DataTableService {
         : [param.refRowIds],
       rowId: param.rowId,
       cookie: param.cookie,
+      triggerUpdateHooks: true,
     });
 
     return true;
@@ -1119,6 +1124,19 @@ export class DataTableService {
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
+    await baseModel.model.getColumns();
+    const column = baseModel.model.columnsById[param.columnId];
+    if (!column || !isLinksOrLTAR(column))
+      NcError.get(context).fieldNotFound(param.columnId);
+    // One update event per row for the whole swap, not one per write
+    const fireLinkHooks = await captureLinkHookRowsForColumn({
+      baseModel,
+      column,
+      rowId: String(param.rowId),
+      refRowIds: [...param.unlink, ...param.link],
+      linkedRefRowIds: param.link,
+      req: param.cookie,
+    });
     if (param.unlink.length) {
       await baseModel.removeLinks({
         colId: param.columnId,
@@ -1135,6 +1153,7 @@ export class DataTableService {
         cookie: param.cookie,
       });
     }
+    fireLinkHooks();
     return { link: param.link, unlink: param.unlink };
   }
 
@@ -1333,7 +1352,7 @@ export class DataTableService {
         columnId,
       );
 
-      // No junction model — nothing to link for this column group
+      // Unsupported relation — nothing to link for this column group
       if (!groupCtx) {
         for (const { index } of entries) {
           results[index] = { link: [], unlink: [] };
@@ -1415,8 +1434,8 @@ export class DataTableService {
   /**
    * Resolves all shared context for a column group: validates the column is an
    * LTAR type, fetches colOptions, related model, related source, and the
-   * display-value column. Returns `null` when there is no junction model
-   * (nothing to link).
+   * display-value column. Returns `null` for relations paste can't replace:
+   * no junction model and not a FK-based belongs-to (v1 has-many/one-to-one).
    */
   private async resolveColumnGroupContext(
     context: NcContext,
@@ -1430,11 +1449,12 @@ export class DataTableService {
 
     const groupCtx = await getLtarDisplayValueContext(context, column);
 
-    // Paste resolves links by replacing the junction set (`mmList` diff), so
-    // it only services junction-backed relations. A column with no junction
-    // model (e.g. a v1 belongs-to handled via the FK column elsewhere) has
-    // nothing to link here.
-    if (!groupCtx.colOptions.fk_mm_model_id) {
+    // Junction-backed relations diff against `mmList`; a v1 belongs-to diffs
+    // against the row's FK column instead.
+    if (
+      !groupCtx.colOptions.fk_mm_model_id &&
+      groupCtx.colOptions.type !== RelationTypes.BELONGS_TO
+    ) {
       return null;
     }
 
@@ -1491,7 +1511,24 @@ export class DataTableService {
       unlink: Array<string | number>;
     }>,
   ) {
-    const { column, relatedModel, isSingleLink } = groupCtx;
+    const { column, colOptions, relatedModel, isSingleLink } = groupCtx;
+
+    const fkColumn = colOptions.fk_mm_model_id
+      ? null
+      : (await baseModel.model.getColumns()).find(
+          (c) => c.id === colOptions.fk_child_column_id,
+        );
+    if (!colOptions.fk_mm_model_id && !fkColumn) {
+      NcError.get(context).fieldNotFound(colOptions.fk_child_column_id);
+    }
+    const parentColumn = fkColumn
+      ? relatedModel.columns.find(
+          (c) => c.id === colOptions.fk_parent_column_id,
+        )
+      : null;
+    if (fkColumn && !parentColumn) {
+      NcError.get(context).fieldNotFound(colOptions.fk_parent_column_id);
+    }
 
     for (const { index, entry } of entries) {
       if (!(await baseModel.exist(entry.rowId))) {
@@ -1517,18 +1554,29 @@ export class DataTableService {
       // For BT/OO: only take the first match
       const pksToLink = isSingleLink ? [matchedPks[0]] : matchedPks;
 
-      const existingLinkedList = await baseModel.mmList(
-        {
-          colId: column.id,
-          parentId: entry.rowId,
-        },
-        listArgs as any,
-        true,
-      );
+      let existingPks: (string | number)[];
+      if (fkColumn) {
+        existingPks = await this.getBelongsToLinkedPks(
+          baseModel,
+          groupCtx,
+          fkColumn,
+          parentColumn,
+          entry.rowId,
+        );
+      } else {
+        const existingLinkedList = await baseModel.mmList(
+          {
+            colId: column.id,
+            parentId: entry.rowId,
+          },
+          listArgs as any,
+          true,
+        );
 
-      const existingPks = (existingLinkedList || []).map((row) =>
-        dataWrapper(row).extractPksValue(relatedModel, true),
-      );
+        existingPks = (existingLinkedList || []).map((row) =>
+          dataWrapper(row).extractPksValue(relatedModel, true),
+        );
+      }
 
       const existingPkSet = new Set(existingPks.map(String));
       const newPkSet = new Set(pksToLink.map(String));
@@ -1547,6 +1595,43 @@ export class DataTableService {
         });
       }
     }
+  }
+
+  /** PK of the parent a belongs-to row points at, or none. The FK may reference
+   *  a non-PK parent column, and a dangling FK counts as no link. */
+  private async getBelongsToLinkedPks(
+    baseModel: Awaited<ReturnType<typeof Model.getBaseModelSQL>>,
+    groupCtx: LtarDisplayValueContext,
+    fkColumn: Column,
+    parentColumn: Column,
+    rowId: string,
+  ): Promise<(string | number)[]> {
+    const { relatedModel, relatedBaseModel } = groupCtx;
+
+    const row = await baseModel.execAndParse(
+      baseModel
+        .dbDriver(baseModel.tnPath)
+        .select(fkColumn.column_name)
+        .where(_wherePk(baseModel.model.primaryKeys, rowId))
+        .first(),
+      null,
+      { first: true, raw: true },
+    );
+    const fk = row?.[fkColumn.column_name];
+    if (fk === undefined || fk === null) return [];
+
+    const parentRow = await relatedBaseModel.execAndParse(
+      relatedBaseModel
+        .dbDriver(relatedBaseModel.tnPath)
+        .select(relatedModel.primaryKeys.map((pk) => pk.column_name))
+        .where(parentColumn.column_name, fk)
+        .first(),
+      null,
+      { first: true, raw: true },
+    );
+    if (!parentRow) return [];
+
+    return [dataWrapper(parentRow).extractPksValue(relatedModel, true)];
   }
 
   validateIds(context: NcContext, rowIds: any[] | any) {

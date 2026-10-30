@@ -816,6 +816,7 @@ export class RelationManager {
         parentBaseModel,
         user: req.user,
         ignoreWebhook: req.query?.ignoreWebhook,
+        skipChildRow: onlyUpdateAuditLogs,
       },
       {
         parent: parentId,

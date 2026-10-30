@@ -32,7 +32,10 @@ import {
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { NC_DATA_IMPORT_FILE_SIZE } from '~/constants';
+import {
+  NC_DATA_IMPORT_FILE_SIZE,
+  NC_MULTIPART_FIELD_LIMITS,
+} from '~/constants';
 
 @Controller()
 export class AttachmentsController {
@@ -84,6 +87,7 @@ export class AttachmentsController {
     UploadAllowedInterceptor,
     AnyFilesInterceptor({
       limits: {
+        ...NC_MULTIPART_FIELD_LIMITS,
         fileSize: NC_DATA_IMPORT_FILE_SIZE,
       },
     }),

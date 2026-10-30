@@ -6,6 +6,7 @@ import { AppEvents, extractRolesObj } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
 import { AuthService } from '~/modules/auth/auth.service';
 import { NcError } from '~/helpers/catchError';
+import { SIGNIN_FAILED_MSG } from '~/helpers/authMessages';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Injectable()
@@ -35,7 +36,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
         reason: 'Invalid credentials',
         req,
       });
-      NcError.badRequest('Invalid credentials');
+      NcError.badRequest(SIGNIN_FAILED_MSG);
     }
 
     user.roles = extractRolesObj(user.roles);

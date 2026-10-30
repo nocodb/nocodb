@@ -1,6 +1,5 @@
 import { ColumnType } from './Api';
 import { formulaJsep } from './formula/jsepInstances';
-import { appendEqualsHint } from './formula/handle-formula-error';
 
 export * from './formula/enums';
 export * from './formula/error';
@@ -41,13 +40,7 @@ export async function substituteColumnAliasWithIdInFormula(
       await substituteId(pt.right);
     }
   };
-  let parsedFormula;
-  try {
-    parsedFormula = formulaJsep(formula);
-  } catch (e) {
-    // First parse on the column add/update path, before the validator's hint.
-    throw appendEqualsHint(formula, e);
-  }
+  const parsedFormula = formulaJsep(formula);
   await substituteId(parsedFormula);
   return jsepTreeToFormula(parsedFormula);
 }

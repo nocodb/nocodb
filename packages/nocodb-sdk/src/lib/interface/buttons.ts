@@ -1,3 +1,4 @@
+import { InterfaceRoles } from '../enums';
 import { InterfacePageLayoutTypes } from './enums';
 import type {
   InterfaceButtonConfig,
@@ -101,4 +102,25 @@ export function findInterfaceButtonPlacement(
       (p) => p.button.id === buttonId
     ) ?? null
   );
+}
+
+/** Roles a page-chrome button's `visible_to_roles` rule can name, most access first. */
+export const INTERFACE_BUTTON_VISIBLE_TO_ROLES = [
+  InterfaceRoles.EDITOR,
+  InterfaceRoles.COMMENTER,
+  InterfaceRoles.VIEWER,
+] as const;
+
+/**
+ * Whether a page-chrome button's `visible_to_roles` rule admits `role` — the
+ * viewer's effective interface role; null/undefined is a builder (owner/creator),
+ * who counts as an editor. No rule = visible to everyone.
+ */
+export function isInterfaceButtonVisibleToRole(
+  button: Pick<InterfaceButtonConfig, 'visible_to_roles'>,
+  role: InterfaceRoles | null | undefined
+): boolean {
+  if (!button.visible_to_roles?.length) return true;
+
+  return button.visible_to_roles.includes(role ?? InterfaceRoles.EDITOR);
 }

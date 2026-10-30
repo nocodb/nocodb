@@ -6,30 +6,6 @@ import { FormulaError } from './error';
 import { FormulaErrorType } from './enums';
 const REGEX_ERROR_AT_CHARACTER = /\sat character (\d+)/;
 
-const EQUALS_HINT =
-  ' Use == for equality; a single = is not a comparison operator in formulas.';
-
-// A bare `=` outside string literals (not part of ==, !=, <=, >=).
-const hasBareEquals = (formula: string) =>
-  /(?<![=!<>])=(?!=)/.test(
-    formula.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, '')
-  );
-
-const equalsHint = (formula: string, message: string) =>
-  /Expected/.test(message) &&
-  !message.endsWith(EQUALS_HINT) &&
-  hasBareEquals(formula)
-    ? EQUALS_HINT
-    : '';
-
-// For callers that don't track positions (the API), so they get the hint too.
-export function appendEqualsHint(formula: string, error) {
-  if (typeof error?.message === 'string') {
-    error.message += equalsHint(formula, error.message);
-  }
-  return error;
-}
-
 export function handleFormulaError({
   formula,
   error,
@@ -68,15 +44,13 @@ export function handleFormulaError({
       position,
     });
 
-    const hint = equalsHint(formula, error.message);
-
     throw new FormulaError(
       error.type ?? FormulaErrorType.INVALID_SYNTAX,
       {
         ...(error.extra ?? {}),
         position: { ...colRowPosition, length: identifierLength },
       },
-      `${error.message}${hint}`
+      error.message
     );
   } else {
     throw error;

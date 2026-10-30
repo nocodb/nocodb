@@ -28,6 +28,7 @@ import { UsersService } from '~/services/users/users.service';
 import {
   NC_ATTACHMENT_FIELD_SIZE,
   NC_MAX_ATTACHMENTS_ALLOWED,
+  NC_MULTIPART_FIELD_LIMITS,
   NC_NON_ATTACHMENT_FIELD_SIZE,
 } from '~/constants';
 import { ApiDocsController } from '~/controllers/api-docs/api-docs.controller';
@@ -189,6 +190,7 @@ export const nocoModuleMetadata = {
     MulterModule.register({
       storage: multer.diskStorage({}),
       limits: {
+        ...NC_MULTIPART_FIELD_LIMITS,
         fieldSize: NC_NON_ATTACHMENT_FIELD_SIZE,
         fileSize: NC_ATTACHMENT_FIELD_SIZE,
         files: NC_MAX_ATTACHMENTS_ALLOWED,

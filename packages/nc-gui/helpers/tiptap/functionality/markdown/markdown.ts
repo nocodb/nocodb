@@ -26,6 +26,79 @@ export interface NcMarkdownParserConstructorType {
   maxBlockTokens?: number // Add this to limit block tokens
 }
 
+// Editor-controlled HTML: nothing that loads, submits, or can be styled into an overlay by app CSS.
+const RICH_TEXT_SANITIZE_CONFIG = {
+  USE_PROFILES: { html: true },
+  FORBID_TAGS: [
+    'form',
+    'button',
+    'select',
+    'textarea',
+    'option',
+    'style',
+    'iframe',
+    'object',
+    'embed',
+    'img',
+    'picture',
+    'video',
+    'audio',
+    'source',
+    'track',
+    'map',
+    'area',
+    'dialog',
+  ],
+  FORBID_ATTR: [
+    'style',
+    'id',
+    'srcset',
+    'background',
+    'poster',
+    'form',
+    'formaction',
+    'name',
+    'value',
+    'popover',
+    'popovertarget',
+    'popovertargetaction',
+  ],
+  ALLOW_DATA_ATTR: false,
+  // Mention and link-tooltip markup.
+  ADD_ATTR: ['data-id', 'data-type', 'data-tooltip'],
+}
+
+// Classes the renderer emits (task lists, code fences, mentions, link tooltips); the rest is app CSS.
+const RENDERED_CLASS =
+  /^(contains-task-list|task-list-item(-checkbox)?|language-[\w+#-]+|mention|nc-current-user|nc-rich-link-tooltip)$/
+
+function hardenNode(node: Element) {
+  if (node.hasAttribute('class')) {
+    const kept = [...node.classList].filter((name) => RENDERED_CLASS.test(name))
+    if (kept.length) node.setAttribute('class', kept.join(' '))
+    else node.removeAttribute('class')
+  }
+
+  // `input` stays allowed only for the task-list checkboxes, which render read-only.
+  if (node.tagName !== 'INPUT') return
+
+  if (node.getAttribute('type')?.toLowerCase() !== 'checkbox') {
+    node.remove()
+    return
+  }
+
+  node.setAttribute('disabled', '')
+}
+
+export function sanitizeRichTextHtml(html: string): string {
+  DOMPurify.addHook('afterSanitizeAttributes', hardenNode)
+  try {
+    return DOMPurify.sanitize(html, RICH_TEXT_SANITIZE_CONFIG)
+  } finally {
+    DOMPurify.removeHook('afterSanitizeAttributes', hardenNode)
+  }
+}
+
 // Precompiled regex patterns
 const taskRegex = /^(?!.*- )(\s*)\[( |x|X)\]/gm // Matches unchecked and checked tasks
 const strikeThroughRegex = /(?<!~)~(?!~)(.*?)(?<!~)~(?!~)/g // Matches strikethrough syntax
@@ -136,7 +209,7 @@ export class NcMarkdownParser {
 
     // If content is a string, parse it and sanitize to prevent XSS
     if (ncIsString(content)) {
-      return DOMPurify.sanitize(parser.md.render(NcMarkdownParser.preprocessMarkdown(content)))
+      return sanitizeRichTextHtml(parser.md.render(NcMarkdownParser.preprocessMarkdown(content)))
     }
 
     return content

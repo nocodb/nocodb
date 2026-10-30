@@ -82,6 +82,8 @@ export interface TableWidgetConfig {
 
 export interface MetricWidgetConfig {
   dataSource?: WidgetDataSourceTypes;
+  /** Interface dashboards: `false` hides the widget title. */
+  show_title?: boolean;
   metric: {
     type: 'count' | 'summary';
     column_id?: string;

@@ -73,6 +73,11 @@ export function inviteLinkDefaultDomain(email?: string | null): string | null {
   return isPersonalEmailDomain(domain) ? null : domain
 }
 
+/** Invite email field placeholder — their own domain makes the example read as their team. */
+export function inviteEmailPlaceholder(domain?: string | null): string {
+  return domain ? `name1@${domain}, name2@${domain}` : 'name@example.com, another@example.com'
+}
+
 /**
  * Same rule as the server's `normaliseDomain`, so the edit screen can refuse a
  * bad domain at the field instead of waiting for a 400 to come back as a toast.

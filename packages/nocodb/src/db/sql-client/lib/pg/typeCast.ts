@@ -74,7 +74,8 @@ function generateBooleanCastQuery(columnName: string): string {
 // `YYYY-MM-DD HH:mm` must still go through the column's own date format.
 const ISO_TIME = '\\d{1,2}:\\d{2}(:\\d{2}(\\.\\d+){0,1}){0,1}';
 const ISO_OFFSET = '\\s*(z|[+-]\\d{2}(:{0,1}\\d{2}){0,1})';
-const ISO_DATETIME_REGEX = `^\\d{4}-\\d{1,2}-\\d{1,2}(t${ISO_TIME}(${ISO_OFFSET}){0,1}|\\s+${ISO_TIME}${ISO_OFFSET})$`;
+// The last branch is a pg `timestamp` read as text once it holds milliseconds.
+const ISO_DATETIME_REGEX = `^\\d{4}-\\d{1,2}-\\d{1,2}(t${ISO_TIME}(${ISO_OFFSET}){0,1}|\\s+${ISO_TIME}${ISO_OFFSET}|\\s+\\d{1,2}:\\d{2}:\\d{2}\\.\\d+)$`;
 
 function generateDateTimeCastQuery(
   source: string,

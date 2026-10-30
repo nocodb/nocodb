@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import type { PluginType } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -8,6 +9,55 @@ import {
   MetaTable,
   RootScopes,
 } from '~/utils/globals';
+import { decryptPropIfRequired } from '~/utils';
+import { NcError } from '~/helpers/catchError';
+
+const logger = new Logger('Plugin');
+
+// Last undecryptable input per plugin id, so each bad value is logged once.
+const loggedDecryptFailures = new Map<string, string>();
+
+// Plain JSON is read as-is, anything else as ciphertext; returns JSON or null.
+export const decryptPluginInput = (input: unknown) => {
+  if (!input || typeof input !== 'string') return input as string | null;
+
+  try {
+    JSON.parse(input);
+    return input;
+  } catch {}
+
+  try {
+    return JSON.stringify(
+      decryptPropIfRequired({ data: { input }, prop: 'input' }),
+    );
+  } catch {
+    return null;
+  }
+};
+
+const logDecryptFailure = (plugin: {
+  id?: string;
+  title?: string;
+  input?: unknown;
+}) => {
+  const input = `${plugin.input}`;
+  if (loggedDecryptFailures.get(plugin.id) === input) return;
+  loggedDecryptFailures.set(plugin.id, input);
+  logger.error(
+    `Plugin config decryption failed: ${plugin.title} (${plugin.id})`,
+  );
+};
+
+const withDecryptedInput = <
+  T extends { id?: string; title?: string; input?: unknown },
+>(
+  plugin: T,
+) => {
+  if (!plugin) return plugin;
+  const input = decryptPluginInput(plugin.input);
+  if (plugin.input && !input) logDecryptFailure(plugin);
+  return { ...plugin, input };
+};
 
 export default class Plugin implements PluginType {
   id?: string;
@@ -50,7 +100,7 @@ export default class Plugin implements PluginType {
       );
       await NocoCache.set('root', `${CacheScope.PLUGIN}:${pluginId}`, plugin);
     }
-    return plugin && new Plugin(plugin);
+    return plugin && new Plugin(withDecryptedInput(plugin));
   }
 
   static async list(ncMeta = Noco.ncMeta) {
@@ -65,7 +115,7 @@ export default class Plugin implements PluginType {
       );
       await NocoCache.setList('root', CacheScope.PLUGIN, [], pluginList);
     }
-    return pluginList;
+    return pluginList.map(withDecryptedInput);
   }
 
   static async count(ncMeta = Noco.ncMeta): Promise<number> {
@@ -98,6 +148,24 @@ export default class Plugin implements PluginType {
     return this.get(pluginId);
   }
 
+  // Throws rather than handing an adapter a null config.
+  public static parseInput(plugin: {
+    id?: string;
+    title?: string;
+    input?: unknown;
+  }): Record<string, any> | null {
+    if (!plugin?.input) return null;
+
+    const input = decryptPluginInput(plugin.input);
+    if (!input) {
+      logDecryptFailure(plugin);
+      NcError.internalServerError(
+        `Plugin config decryption failed: ${plugin.title}`,
+      );
+    }
+    return JSON.parse(input);
+  }
+
   public static async isPluginActive(id: string, ncMeta = Noco.ncMeta) {
     return !!(
       (await this.getPlugin(id, ncMeta)) ||
@@ -125,16 +193,17 @@ export default class Plugin implements PluginType {
       );
       await NocoCache.set('root', `${CacheScope.PLUGIN}:${id}`, plugin);
     }
-    return plugin;
+    return withDecryptedInput(plugin);
   }
 
   // keeping it for backward compatibility, if someone configured google auth via plugin it still relies on this
   static async getPluginByTitle(title: string, ncMeta = Noco.ncMeta) {
-    return await ncMeta.metaGet2(
+    const plugin = await ncMeta.metaGet2(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.PLUGIN,
       { title },
     );
+    return withDecryptedInput(plugin);
   }
 }

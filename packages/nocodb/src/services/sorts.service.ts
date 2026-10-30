@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, EventType, isVirtualCol, UITypes } from 'nocodb-sdk';
+import {
+  AppEvents,
+  EventType,
+  isVirtualCol,
+  SortOrderBy,
+  UITypes,
+} from 'nocodb-sdk';
 import Noco from 'src/Noco';
 import type { SortReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -157,6 +163,32 @@ export class SortsService {
       }
     }
 
+    const targetColumnId = param.sort.fk_column_id ?? sort.fk_column_id;
+    if (param.sort.order_by === SortOrderBy.OPTION_ORDER) {
+      await this.validateSortOrderBy(
+        context,
+        param.sort,
+        targetColumnId,
+        ncMeta,
+        !!sort.fk_lookup_col_id,
+      );
+    } else if (
+      param.sort.order_by === undefined &&
+      sort.order_by === SortOrderBy.OPTION_ORDER &&
+      param.sort.fk_column_id &&
+      param.sort.fk_column_id !== sort.fk_column_id
+    ) {
+      // Switching the field away from a SingleSelect drops option order.
+      const newColumn = await Column.get(
+        context,
+        { colId: param.sort.fk_column_id },
+        ncMeta,
+      );
+      if (newColumn?.uidt !== UITypes.SingleSelect) {
+        param.sort = { ...param.sort, order_by: null };
+      }
+    }
+
     const column = await Column.get(
       context,
       { colId: sort.fk_column_id },
@@ -257,6 +289,13 @@ export class SortsService {
       }
     }
 
+    await this.validateSortOrderBy(
+      context,
+      param.sort,
+      param.sort.fk_column_id,
+      ncMeta,
+    );
+
     const view = await View.get(context, param.viewId, false, ncMeta);
 
     if (!view) {
@@ -314,6 +353,31 @@ export class SortsService {
     return sort;
   }
 
+  // Option order is SingleSelect-only for now (MultiSelect semantics are open),
+  // and not on lookup sorts: their row-limit subqueries order by the raw column.
+  protected async validateSortOrderBy(
+    context: NcContext,
+    sort: SortReqType,
+    columnId: string | undefined,
+    ncMeta?: MetaService,
+    isLookupSort = false,
+  ) {
+    if (sort?.order_by !== SortOrderBy.OPTION_ORDER) return;
+    if (isLookupSort) {
+      NcError.get(context).badRequest(
+        'option order sort is not supported for lookup sorts',
+      );
+    }
+    const column = columnId
+      ? await Column.get(context, { colId: columnId }, ncMeta)
+      : undefined;
+    if (column?.uidt !== UITypes.SingleSelect) {
+      NcError.get(context).badRequest(
+        'option order sort is only supported for SingleSelect fields',
+      );
+    }
+  }
+
   async sortList(context: NcContext, param: { viewId: string }) {
     return Sort.list(context, { viewId: param.viewId });
   }
@@ -336,6 +400,14 @@ export class SortsService {
     await assertLookupSortLimitLicensed(context);
 
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
+
+    await this.validateSortOrderBy(
+      context,
+      param.sort,
+      param.sort.fk_column_id,
+      ncMeta,
+      true,
+    );
 
     const lookupCol = await Column.get(
       context,

@@ -12,6 +12,7 @@ import {
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
+import { normalizeFormulaEquals } from '~/utils/formulaUtils'
 
 const useForm = Form.useForm
 
@@ -352,6 +353,24 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       if (cdf) formState.value.cdf = formState.value.cdf || null
     }
 
+    // Surface a formula save error on the formula field so Fix Formula can send it to the AI
+    const setFormulaSaveError = async (e: unknown, errorMsg: string) => {
+      const { error } = await extractSdkResponseErrorMsgv2(e)
+      const isFormulaError =
+        [NcErrorType.ERR_FORMULA, NcErrorType.ERR_CIRCULAR_REF_IN_FORMULA].includes(error) ||
+        // v1 responses carry no error code, so the request-body error is matched by message
+        ([NcErrorType.ERR_INVALID_REQUEST_BODY, NcErrorType.ERR_UNKNOWN].includes(error) &&
+          errorMsg.startsWith('Invalid formula'))
+      if (!isFormulaError) return
+
+      if (!validateInfos.formula_raw) validateInfos.formula_raw = {}
+      validateInfos.formula_raw!.validateStatus = 'error'
+      if (!validateInfos.formula_raw?.help) {
+        validateInfos.formula_raw!.help = []
+      }
+      validateInfos.formula_raw?.help.push(errorMsg)
+    }
+
     const addOrUpdate = async (
       onSuccess: (col?: ColumnType) => Promise<void>,
       columnPosition?: Pick<ColumnReqType, 'column_order'>,
@@ -397,6 +416,11 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         }
 
         formState.value.table_name = meta.value?.table_name
+
+        // Older versions can't parse a bare `=` in formula_raw
+        if (formState.value.uidt === UITypes.Formula && formState.value.formula_raw) {
+          formState.value.formula_raw = normalizeFormulaEquals(formState.value.formula_raw)
+        }
 
         const refModelId = formState.value.custom?.ref_model_id
 
@@ -474,13 +498,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             eventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
             eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
           } catch (e: any) {
-            if (!validateInfos.formula_raw) validateInfos.formula_raw = {}
-            validateInfos.formula_raw!.validateStatus = 'error'
-            if (!validateInfos.formula_raw?.help) {
-              validateInfos.formula_raw!.help = []
-            }
-            validateInfos.formula_raw?.help.push(await extractSdkResponseErrorMsg(e))
-            message.error(await extractSdkResponseErrorMsg(e))
+            const errorMsg = await extractSdkResponseErrorMsg(e)
+            await setFormulaSaveError(e, errorMsg)
+            message.error(errorMsg)
             return
           }
 
@@ -549,7 +569,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         await onSuccess?.(savedColumn)
         return true
       } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
+        const errorMsg = await extractSdkResponseErrorMsg(e)
+        await setFormulaSaveError(e, errorMsg)
+        message.error(errorMsg)
       } finally {
         isSaving.value = false // reset saving state
       }

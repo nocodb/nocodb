@@ -541,16 +541,16 @@ describe('validateFormulaAndExtractTreeWithType', () => {
 
   // Test cases for identifier resolution
   it.each([false, true])(
-    'should hint == once for a bare = (trackPosition: %s)',
+    'should parse a bare = as == (trackPosition: %s)',
     async (trackPosition) => {
-      const error = await validateFormulaAndExtractTreeWithType({
-        formula: 'IF(1 = 1, 1, 0)',
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: 'IF(1 = 1, 1)',
         columns: mockColumns,
         clientOrSqlUi: mockClientOrSqlUi,
         getMeta: mockGetMeta,
         trackPosition,
-      }).catch((e) => e);
-      expect(error.message.split('Use == for equality').length).toBe(2);
+      });
+      expect(result).toHaveProperty(['arguments', 0, 'operator'], '==');
     }
   );
 

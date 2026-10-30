@@ -1,2 +1,2 @@
-export { default as suggestion } from './suggestion'
+export { default as suggestion, suggestionHandledKeyEvents } from './suggestion'
 export * from './markdown'

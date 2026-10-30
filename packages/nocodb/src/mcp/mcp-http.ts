@@ -20,9 +20,9 @@ export function refuseNonPostMcp(req: { method?: string }, res: Response) {
   return true;
 }
 
-/** The MCP endpoint, whose errors must be JSON-RPC shaped. */
+/** The MCP endpoints (flat and discovery), whose errors must be JSON-RPC shaped. */
 export function isMcpEndpoint(path?: string) {
-  return !!path && /^\/mcp(\/[^/]+)?\/?$/.test(path);
+  return !!path && /^\/mcp(-discovery)?(\/[^/]+)?\/?$/.test(path);
 }
 
 export const JSON_RPC_PARSE_ERROR = {

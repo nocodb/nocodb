@@ -669,6 +669,7 @@ export const ATTACHMENT_ROOTS = [
   PublicAttachmentScope.WORKSPACEPICS,
   PublicAttachmentScope.PROFILEPICS,
   PublicAttachmentScope.ORGANIZATIONPICS,
+  PublicAttachmentScope.OAUTHCLIENTS,
   PublicAttachmentScope.WHITELABEL,
   PublicAttachmentScope.MARKETPLACE,
 ];
@@ -688,6 +689,22 @@ export const normalizeFilename = (filename: string) => {
   return filename.replace(/[\\/:*?"<>'`#|%~{}[\]^\x00-\x1f\x7f]/g, '_');
 };
 
+// The open /download routes serve a file by its path alone, so this must be unguessable.
+export const attachmentRandomId = () => nanoid(16);
+
+// `<stem>_<random id><ext>`, with the stem cut on a character boundary to fit the 255-byte file name limit.
+export const attachmentFileName = (stem: string, ext: string) => {
+  const suffix = `_${attachmentRandomId()}${ext}`;
+  let budget = 255 - Buffer.byteLength(suffix);
+  let kept = '';
+  for (const char of stem) {
+    budget -= Buffer.byteLength(char);
+    if (budget < 0) break;
+    kept += char;
+  }
+  return `${kept}${suffix}`;
+};
+
 export const getFileNameFromUrl = (param: { url: string; scope?: string }) => {
   const originalFileName =
     param.url.split('/').pop()?.split('?')[0] || 'attachment';
@@ -695,9 +712,10 @@ export const getFileNameFromUrl = (param: { url: string; scope?: string }) => {
     ? `${normalizeFilename(path.parse(originalFileName).name)}${path.extname(
         originalFileName,
       )}`
-    : `${normalizeFilename(path.parse(originalFileName).name)}_${nanoid(
-        5,
-      )}${path.extname(originalFileName)}`;
+    : attachmentFileName(
+        normalizeFilename(path.parse(originalFileName).name),
+        path.extname(originalFileName),
+      );
   return { originalFileName, fileName };
 };
 
@@ -732,7 +750,7 @@ export const constructFilePath = (
       context.base_id,
       param.modelId,
       param.columnId,
-      param.scope ? nanoid(5) : undefined,
+      param.scope ? attachmentRandomId() : undefined,
     ].filter((k) => k),
   );
 

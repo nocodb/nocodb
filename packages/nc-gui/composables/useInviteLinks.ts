@@ -6,7 +6,6 @@ import {
   ProjectRoles,
   WorkspaceUserRoles,
   inviteLinkRolesFor,
-  isCodeProjectAssignableRole,
 } from 'nocodb-sdk'
 import type { IconMapKey } from '#imports'
 import { getI18n } from '~/plugins/a.i18n'
@@ -125,36 +124,17 @@ export const useInviteLinks = createGlobalState(() => {
 
   const teams = computed(() => target.value?.teams ?? [])
 
-  const { isCodeProject, codeProjectRoleLabels, codeProjectRoleDescriptions } = useCodeProjects()
-
-  const basesStore = useBases()
-
-  /** A code project's links grant Maintainer or Developer only, under those names. */
-  const isCodeBaseScope = computed(
-    () => scope.value === InviteLinkScope.BASE && isCodeProject(basesStore.bases.get(target.value?.baseId ?? '')),
-  )
-
   const roleLabels = computed(() =>
-    isAppScope.value
-      ? Object.fromEntries(teams.value.map((t) => [t.id, t.title]))
-      : isCodeBaseScope.value
-      ? codeProjectRoleLabels.value
-      : inviteLinkRoleLabels(scope.value),
+    isAppScope.value ? Object.fromEntries(teams.value.map((t) => [t.id, t.title])) : inviteLinkRoleLabels(scope.value),
   )
 
   /** App teams carry their own descriptions and icons; roles use the defaults. */
   const roleDescriptions = computed(() =>
-    isAppScope.value
-      ? Object.fromEntries(teams.value.map((t) => [t.id, t.description ?? '']))
-      : isCodeBaseScope.value
-      ? codeProjectRoleDescriptions.value
-      : undefined,
+    isAppScope.value ? Object.fromEntries(teams.value.map((t) => [t.id, t.description ?? ''])) : undefined,
   )
 
   /** The roles a link in this scope may grant at all. */
-  const linkRoles = computed(() =>
-    inviteLinkRolesFor(scope.value).filter((r) => !isCodeBaseScope.value || isCodeProjectAssignableRole(r)),
-  )
+  const linkRoles = computed(() => inviteLinkRolesFor(scope.value))
 
   const roleIcons = computed(() =>
     isAppScope.value

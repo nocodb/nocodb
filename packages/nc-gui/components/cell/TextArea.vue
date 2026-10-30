@@ -255,7 +255,28 @@ const isSmartMode = computed(() => isSmartText(column?.value))
 // rendering). Form view still uses the textarea so users can type input.
 // Edit-mode flows continue to gate on isRichMode so the LongText rich modal
 // doesn't auto-open for SmartText cells (they have their own modal).
-const isRichPreview = computed(() => isRichMode.value || (isSmartMode.value && !isForm.value))
+// Interface record forms/detail keep the textarea for typing, but a stored
+// SmartText value previews rendered until the user clicks into it.
+const isInterfaceSmartEditing = ref(false)
+
+const isInterfaceSmartPreview = computed(
+  () =>
+    isSmartMode.value &&
+    isForm.value &&
+    isInterfaceUi.value &&
+    !!vModel.value &&
+    (!!readOnly.value || !isInterfaceSmartEditing.value),
+)
+
+const isRichPreview = computed(() => isRichMode.value || (isSmartMode.value && !isForm.value) || isInterfaceSmartPreview.value)
+
+const startInterfaceSmartEdit = async () => {
+  if (!isInterfaceSmartPreview.value || readOnly.value) return
+
+  isInterfaceSmartEditing.value = true
+  await nextTick()
+  textAreaRef.value?.focus()
+}
 
 const richTextContent = computedAsync(async () => {
   if (isRichPreview.value && vModel.value) {
@@ -266,7 +287,7 @@ const richTextContent = computedAsync(async () => {
           enableMention: true,
           users: unref(baseUsers.value),
           currentUser: unref(user.value),
-          ...(isExpandedFormOpen.value || isPageDesignerPreviewPanel.value
+          ...(isExpandedFormOpen.value || isPageDesignerPreviewPanel.value || isInterfaceSmartPreview.value
             ? { maxBlockTokens: undefined }
             : { maxBlockTokens: rowHeight.value }),
         },
@@ -538,6 +559,11 @@ watch(inputWrapperRef, () => {
   }
 })
 
+const onTextAreaBlur = () => {
+  editEnabled.value = false
+  isInterfaceSmartEditing.value = false
+}
+
 const handleClose = () => {
   isVisible.value = false
 }
@@ -754,15 +780,17 @@ useResizeObserver(inputWrapperRef, () => {
             ? `${height}px`
             : `${16.5 * rowHeightTruncateLines(localRowHeight)}px`,
         }"
-        @click.stop="isExpandedFormOpen ? onExpand() : undefined"
-        @dblclick="onExpand"
-        @keydown.enter="onExpand"
+        @click.stop="isInterfaceSmartPreview ? startInterfaceSmartEdit() : isExpandedFormOpen ? onExpand() : undefined"
+        @dblclick="isInterfaceSmartPreview ? undefined : onExpand()"
+        @keydown.enter="isInterfaceSmartPreview ? startInterfaceSmartEdit() : onExpand()"
       >
         <div
           v-dompurify-html="richTextContent"
           class="nc-cell-field nc-rich-text-content nc-rich-text-content-grid"
           :class="
-            !isExpandedFormOpen && !isPageDesignerPreviewPanel
+            isInterfaceSmartPreview
+              ? 'py-1'
+              : !isExpandedFormOpen && !isPageDesignerPreviewPanel
               ? `line-clamp-${rowHeightTruncateLines(localRowHeight, true)}`
               : 'py-2'
           "
@@ -804,7 +832,7 @@ useResizeObserver(inputWrapperRef, () => {
           :disabled="!!readOnly || (props.isAi && !!isEditColumn) || isAiGenerating"
           :readonly="isSmartMode && isExpandedFormOpen"
           :autocomplete="formFieldAutocomplete"
-          @blur="editEnabled = false"
+          @blur="onTextAreaBlur"
           @keydown.alt.stop
           @keydown.alt.enter.stop
           @keydown.shift.enter.stop

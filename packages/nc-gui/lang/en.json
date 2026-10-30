@@ -6272,7 +6272,8 @@
       "discardTitle": "Discard this draft?",
       "discardContent": "The draft and its setup chat will be moved to the trash."
     },
-    "interfaceBookmarkPageMissing": "Page not found"
+    "interfaceBookmarkPageMissing": "Page not found",
+    "interfaceRecordUrlNotUrlField": "Not a URL field"
   },
   "activity": {
     "blockUser": "Block user",

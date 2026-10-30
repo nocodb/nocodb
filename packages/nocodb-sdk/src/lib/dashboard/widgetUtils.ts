@@ -219,7 +219,7 @@ const getDefaultChartConfig = (
             column_id: getDefaultCategoryColumn(columns),
             orderBy: 'default' as const,
             includeEmptyRecords: false,
-            includeOthers: false,
+            includeOthers: true,
             categoryLimit: 10,
           },
           value: {
@@ -249,7 +249,7 @@ const getDefaultChartConfig = (
             column_id: getDefaultCategoryColumn(columns),
             orderBy: 'default' as const,
             includeEmptyRecords: false,
-            includeOthers: false,
+            includeOthers: true,
             categoryLimit: 10,
           },
           value: {

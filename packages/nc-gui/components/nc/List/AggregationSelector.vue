@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CommonAggregations, UITypes, getAvailableAggregations, getRollupResultUidt } from 'nocodb-sdk'
+import { CommonAggregations, getColumnAggregations } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 
 interface Props {
@@ -67,15 +67,8 @@ const loadAggregationList = async () => {
 
     column.value = columnMeta
 
-    let availableAggregations: string[]
-    if (columnMeta.uidt === UITypes.Formula && columnMeta.colOptions && 'parsed_tree' in columnMeta.colOptions) {
-      availableAggregations = getAvailableAggregations(columnMeta.uidt, (columnMeta.colOptions as any).parsed_tree)
-    } else {
-      availableAggregations = getAvailableAggregations(columnMeta.uidt!, undefined, getRollupResultUidt(columnMeta))
-    }
-
     // Filter out None aggregation
-    availableAggregations = availableAggregations.filter((agg) => agg !== CommonAggregations.None)
+    let availableAggregations = getColumnAggregations(columnMeta).filter((agg) => agg !== CommonAggregations.None)
 
     // Apply custom filter if provided
     if (props.filterAggregation) {

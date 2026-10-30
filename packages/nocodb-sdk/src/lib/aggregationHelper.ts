@@ -287,8 +287,42 @@ const formatAggregation = (
   return value;
 };
 
+/**
+ * A column's aggregations by its result type: a formula's `parsed_tree`, a
+ * rollup's `result_uidt`. Pickers should use this rather than the bare uidt.
+ */
+const getColumnAggregations = (
+  column: Pick<ColumnType, 'uidt' | 'colOptions'>
+): string[] => {
+  const colOptions = column.colOptions as
+    | { parsed_tree?: unknown; result_uidt?: string }
+    | null
+    | undefined;
+  return getAvailableAggregations(
+    column.uidt,
+    colOptions?.parsed_tree,
+    colOptions?.result_uidt
+  );
+};
+
+/**
+ * Earliest/Latest return a date, not a number, so charts can't plot them.
+ * A legacy date-rollup key (min/max) counts as the date aggregation it runs as.
+ */
+const isDateValuedAggregation = (
+  column: Pick<ColumnType, 'uidt' | 'colOptions'>,
+  aggregation: string
+): boolean => {
+  const agg = getLegacyDateRollupAggregation(column, aggregation) ?? aggregation;
+  return (
+    agg === DateAggregations.EarliestDate || agg === DateAggregations.LatestDate
+  );
+};
+
 export {
   getAvailableAggregations,
+  getColumnAggregations,
+  isDateValuedAggregation,
   getLegacyDateRollupAggregation,
   NumericalAggregations,
   CommonAggregations,

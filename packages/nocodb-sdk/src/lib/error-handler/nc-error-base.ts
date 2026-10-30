@@ -358,6 +358,14 @@ export class NcErrorBase {
     });
   }
 
+  /** A saved widget config the renderer rejects — `widget` names it, `issues` lists the offending paths. */
+  widgetValidation(widget: string, issues: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_WIDGET_VALIDATION, {
+      params: [widget, issues],
+      ...args,
+    });
+  }
+
   viewSectionNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.ERR_VIEW_SECTION_NOT_FOUND,

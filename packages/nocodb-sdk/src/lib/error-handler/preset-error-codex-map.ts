@@ -184,6 +184,11 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Widget '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_WIDGET_VALIDATION]: {
+    message: (widget: string, issues: string) =>
+      `Widget validation failed for ${widget}: ${issues}`,
+    code: 400,
+  },
   [NcErrorType.ERR_VIEW_SECTION_NOT_FOUND]: {
     message: (id: string) => `View folder '${id}' not found`,
     code: 404,

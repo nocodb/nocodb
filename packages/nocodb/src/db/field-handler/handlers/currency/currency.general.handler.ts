@@ -5,6 +5,8 @@ import type { MetaService } from 'src/meta/meta.service';
 import type { Column } from 'src/models';
 import { NcError } from '~/helpers/ncError';
 
+const RADIX_LITERAL = /(^|[^\d.,])0[xob][\da-f]/i;
+
 export class CurrencyGeneralHandler extends DecimalGeneralHandler {
   override async parseUserInput(params: {
     value: any;
@@ -20,7 +22,11 @@ export class CurrencyGeneralHandler extends DecimalGeneralHandler {
       const locale = parseProp(params.column.meta).currency_locale;
 
       const numericValueResult = getNumericValue(params.value, locale);
-      if (!numericValueResult.isValid) {
+      if (
+        !numericValueResult.isValid ||
+        // getNumericValue strips letters, so "0x1A" would read as 1.
+        RADIX_LITERAL.test(params.value)
+      ) {
         NcError._.invalidValueForField({
           value: params.value,
           column: params.column.title,

@@ -1,4 +1,5 @@
 import {
+  encodeQueryFilterToken,
   extractFilterFromXwhere,
   isLinksOrLTAR,
   NcApiVersion,
@@ -13,6 +14,9 @@ import { LIST_ARG_ALIASES } from '~/helpers/listArgAliases';
 
 // A request leaf may name a second column to compare against (field-to-field).
 type ColumnRefFilter = FilterType & { fk_value_col_id?: string };
+
+// The parsers set `meta.ltarSubField` for a link filtered by its id (`Link.Id`).
+type ParsedFilter = FilterType & { meta?: { ltarSubField?: string } };
 
 /**
  * Reports whether any leaf references a known-but-hidden (non-exposed) column.
@@ -80,38 +84,124 @@ export function stripHiddenColumnFilters(
 }
 
 /**
- * Re-serializes a parsed filter tree back to the v2 xwhere string
- * (`(field,op[,sub_op],value)`, groups wrapped in parens, children joined by
- * `~and`/`~or`). Used to re-emit a `where` after hidden-column leaves have been
- * stripped — every downstream consumer re-parses the string, so the surviving
- * conditions still apply.
+ * Re-serializes a parsed filter tree to the v2 xwhere string. Used to re-emit a
+ * `where` after hidden-column leaves have been stripped — every downstream
+ * consumer re-parses the string.
+ *
+ * `quoted` emits the `@` grammar, which every api version accepts and where a
+ * quoted value holding `,` `(` `)` or a quote stays one token. Otherwise values
+ * are written bare, which only the legacy parser reads as before.
  */
 function serializeFiltersToXwhere(
-  filters: FilterType[],
+  filters: ParsedFilter[],
   columnById: Map<string, { title?: string }>,
-): string {
-  const one = (filter: FilterType, isFirst: boolean): string => {
-    const prefix = isFirst ? '' : `~${filter.logical_op || 'and'}`;
+  quoted: boolean,
+): string | undefined {
+  const token = (v: unknown) =>
+    quoted ? encodeQueryFilterToken(String(v ?? '')) : String(v);
+  let representable = true;
+
+  const one = (filter: ParsedFilter, isFirst: boolean): string => {
+    const children = (filter.children as ParsedFilter[]) || [];
+    // The `@` parser unwraps a one-child group and drops its logical op, so
+    // the child carries it instead; `~or` over a `~not` child has no form.
+    if (quoted && filter.is_group && children.length === 1) {
+      const [child] = children;
+      if (child.logical_op !== 'not') {
+        return one({ ...child, logical_op: filter.logical_op }, isFirst);
+      }
+      if (
+        filter.logical_op === 'not' ||
+        !(isFirst || (filter.logical_op ?? 'and') === 'and')
+      ) {
+        representable = false;
+      }
+      return one(child, isFirst);
+    }
+
+    let clause: string;
     if (filter.is_group) {
-      const inner = ((filter.children as FilterType[]) || [])
-        .map((c, i) => one(c, i === 0))
-        .join('');
-      return `${prefix}(${inner})`;
+      clause = `(${children.map((c, i) => one(c, i === 0)).join('')})`;
+    } else {
+      const title =
+        columnById.get(filter.fk_column_id)?.title ?? filter.fk_column_id;
+      const { ltarSubField } = filter.meta ?? {};
+      const field = ltarSubField ? `${title}.${ltarSubField}` : title;
+      const parts = [token(field), filter.comparison_op];
+      if (filter.comparison_sub_op) parts.push(filter.comparison_sub_op);
+      if (filter.value !== undefined && filter.value !== null) {
+        parts.push(
+          ...(Array.isArray(filter.value) ? filter.value : [filter.value]).map(
+            token,
+          ),
+        );
+      }
+      clause = `(${parts.join(',')})`;
     }
-    const field =
-      columnById.get(filter.fk_column_id)?.title ?? filter.fk_column_id;
-    const parts: (string | number)[] = [field, filter.comparison_op];
-    if (filter.comparison_sub_op) parts.push(filter.comparison_sub_op);
-    if (filter.value !== undefined && filter.value !== null) {
-      parts.push(
-        Array.isArray(filter.value)
-          ? filter.value.join(',')
-          : (filter.value as string | number),
-      );
+    // The `@` parser takes `~not` only at the start of a group.
+    if (quoted && filter.logical_op === 'not') {
+      return isFirst ? `~not${clause}` : `~and(~not${clause})`;
     }
-    return `${prefix}(${parts.join(',')})`;
+    if (isFirst) return filter.logical_op === 'not' ? `~not${clause}` : clause;
+    return `~${filter.logical_op || 'and'}${clause}`;
   };
-  return filters.map((f, i) => one(f, i === 0)).join('');
+  const xwhere = filters.map((f, i) => one(f, i === 0)).join('');
+  if (!representable) return undefined;
+  return quoted ? `@${xwhere}` : xwhere;
+}
+
+type NormalizedFilter = {
+  op: 'and' | 'or' | 'not';
+  leaf?: unknown[];
+  children?: NormalizedFilter[];
+};
+
+/**
+ * A filter tree reduced to what the compiler acts on, so trees the two parsers
+ * nest differently compare equal: a first child's op counts as `and` (unless
+ * `not`), a one-child group is its child carrying the group's op, and a list
+ * holding only an `and` group is that group's children.
+ */
+function normalizeFilterTree(
+  filters: ParsedFilter[] | undefined,
+): NormalizedFilter[] {
+  const nodes = (filters || []).map((filter, i): NormalizedFilter => {
+    const op =
+      filter.logical_op === 'not'
+        ? 'not'
+        : i === 0 || filter.logical_op !== 'or'
+        ? 'and'
+        : 'or';
+    if (!filter.is_group) {
+      return {
+        op,
+        leaf: [
+          filter.fk_column_id,
+          filter.meta?.ltarSubField || null,
+          filter.comparison_op,
+          filter.comparison_sub_op || null,
+          // Parsers differ on an absent value: undefined, null or ''.
+          Array.isArray(filter.value)
+            ? filter.value.map(String)
+            : filter.value === undefined ||
+              filter.value === null ||
+              filter.value === ''
+            ? null
+            : String(filter.value),
+        ],
+      };
+    }
+    const children = normalizeFilterTree(filter.children as ParsedFilter[]);
+    if (children.length === 1) {
+      const [child] = children;
+      if (child.op === 'and') return { ...child, op };
+      if (op === 'and') return child;
+    }
+    return { op, children };
+  });
+  return nodes.length === 1 && nodes[0].children && nodes[0].op === 'and'
+    ? nodes[0].children
+    : nodes;
 }
 
 /**
@@ -346,22 +436,28 @@ export async function restrictQueryToExposedColumns(
     // otherwise leave the original string as-is (no re-serialization).
     if (filtersReferenceHiddenColumn(filters, exposedColumnIds)) {
       const survivors = stripHiddenColumnFilters(filters, exposedColumnIds);
-      let rebuilt = survivors.length
-        ? serializeFiltersToXwhere(
-            survivors,
-            new Map(columns.map((c) => [c.id, c])),
-          )
+      // The rebuild must re-parse to the survivors' tree, so no hidden leaf can
+      // reappear and the leaves combine as requested. Bare values cover what the
+      // `@` grammar can't (a value with both `'` and `"`, `~or` over a lone
+      // `~not`) on the legacy parser; anything else drops the where.
+      const columnById = new Map(columns.map((c) => [c.id, c]));
+      const survivorTree = JSON.stringify(normalizeFilterTree(survivors));
+      const rebuilt = survivors.length
+        ? [true, false]
+            .map((quoted) =>
+              serializeFiltersToXwhere(survivors, columnById, quoted),
+            )
+            .find(
+              (xwhere) =>
+                xwhere &&
+                JSON.stringify(
+                  normalizeFilterTree(
+                    extractFilterFromXwhere(context, xwhere, aliasColObjMap)
+                      .filters,
+                  ),
+                ) === survivorTree,
+            )
         : undefined;
-      // Values are written unquoted, so a value holding `)~or(` re-parses as new leaves.
-      if (
-        rebuilt &&
-        filtersReferenceHiddenColumn(
-          extractFilterFromXwhere(context, rebuilt, aliasColObjMap).filters,
-          exposedColumnIds,
-        )
-      ) {
-        rebuilt = undefined;
-      }
       query[key] = rebuilt;
     }
   }

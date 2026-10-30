@@ -31,7 +31,7 @@ const { isMobileMode } = useGlobal()
 
 const { getValidSearchQueryForColumn } = useFieldQuery()
 
-const _fields = computedInject(FieldsInj, (_fields) => {
+const _fields = computed<ColumnType[]>(() => {
   const conditionToCheck = (col: ColumnType) =>
     !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isCreatedOrLastModifiedTimeCol(col)
 
@@ -44,7 +44,7 @@ const _fields = computedInject(FieldsInj, (_fields) => {
     .sort((a, b) => {
       return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
     })
-}) as ComputedRef<ColumnType[]>
+})
 
 const fieldsToDisplay = computed(() => _fields.value.slice(0, isMobileMode.value ? 1 : 3))
 

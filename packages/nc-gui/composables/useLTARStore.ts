@@ -388,9 +388,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return row.value.row[displayValueProp.value]
     })
 
-    // Plain computeds: the injected fields were never read, and `computedInject`
-    // calls `inject()` without a default first — a Vue warning per store outside
-    // a fields provider (interface record layouts).
     const attachmentCol = computed(() => {
       return (relatedTableMeta.value?.columns ?? []).filter((col) => isAttachment(col))[0]
     })
@@ -846,9 +843,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             list,
             pageInfo: {
               isFirstPage: true,
-              isLastPage: list.length <= 10,
+              isLastPage: list.length <= CHUNK_SIZE,
               page: 1,
-              pageSize: 10,
+              pageSize: CHUNK_SIZE,
               totalRows: list.length,
             },
           }

@@ -1157,10 +1157,10 @@ const handleDeleteStackConfirmClick = async () => {
 
 const handleCollapseStack = async (stackIdx: number) => {
   const stack = groupingFieldColOptions.value[stackIdx]
-  // Saved as collapsed and only open for the search: close it again without saving
-  if (stack.collapsed && isSearchExpanded(stack)) {
+  // Open for the search: close it now; save the collapse only if it wasn't saved already
+  if (isSearchExpanded(stack)) {
     searchDismissedStacks.value.add(stack.id)
-    return
+    if (stack.collapsed) return
   }
 
   const currentCollapsed = stack.collapsed

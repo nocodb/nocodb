@@ -4121,6 +4121,7 @@
     "illDoThisLater": "I'll do this later",
     "editField": "Edit field",
     "countVisible": "{count} visible",
+    "countVisibleHidden": "{visible} visible · {hidden} hidden",
     "buttonLabel": "Button label",
     "showGroupTitle": "Show group title",
     "showBackgroundColor": "Show background color",

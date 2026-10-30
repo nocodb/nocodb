@@ -324,14 +324,20 @@ const onExpand = () => {
 
 // Enter on a link inside the Smart Text preview keeps its default.
 const onRichPreviewEnter = (e: KeyboardEvent) => {
-  if (!isInterfaceSmartPreview.value) {
-    e.preventDefault()
-    return onExpand()
-  }
+  if (!isInterfaceSmartPreview.value) return onExpand()
   if (readOnly.value || e.target !== e.currentTarget) return
 
   e.preventDefault()
   startInterfaceSmartEdit()
+}
+
+// A link click inside the Smart Text preview just follows the link.
+const onRichPreviewClick = (e: MouseEvent) => {
+  if (isInterfaceSmartPreview.value) {
+    if (!(e.target as HTMLElement | null)?.closest('a')) startInterfaceSmartEdit()
+    return
+  }
+  if (isExpandedFormOpen.value) onExpand()
 }
 
 const onSmartTextSaved = (markdown: string | null) => {
@@ -802,7 +808,7 @@ useResizeObserver(inputWrapperRef, () => {
         }"
         :tabindex="isInterfaceSmartPreview && !readOnly ? 0 : undefined"
         @focus="isInterfaceSmartPreview ? onInterfaceSmartPreviewFocus($event) : undefined"
-        @click.stop="isInterfaceSmartPreview ? startInterfaceSmartEdit() : isExpandedFormOpen ? onExpand() : undefined"
+        @click.stop="onRichPreviewClick"
         @dblclick="isInterfaceSmartPreview ? undefined : onExpand()"
         @keydown.enter="onRichPreviewEnter"
       >

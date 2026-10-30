@@ -4876,6 +4876,8 @@ export interface SortUpdateV3Type {
   field_id?: string;
   /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
   direction?: 'asc' | 'desc';
+  /** How a SingleSelect field is ordered: 'alphabetical' (default, by option text) or 'option_order' (by the field's option order). Only SingleSelect fields support 'option_order'. */
+  order_by?: 'alphabetical' | 'option_order';
   /** Whether this sort is enabled. Disabled sorts are skipped during evaluation. */
   enabled?: boolean | null;
 }
@@ -4885,6 +4887,8 @@ export interface SortCreateV3Type {
   field_id: string;
   /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
   direction?: 'asc' | 'desc';
+  /** How a SingleSelect field is ordered: 'alphabetical' (default, by option text) or 'option_order' (by the field's option order). Only SingleSelect fields support 'option_order'. */
+  order_by?: 'alphabetical' | 'option_order';
 }
 
 export interface SortV3Type {
@@ -4894,6 +4898,8 @@ export interface SortV3Type {
   field_id: string;
   /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
   direction: 'asc' | 'desc';
+  /** How a SingleSelect field is ordered: 'alphabetical' (default, by option text) or 'option_order' (by the field's option order). Only SingleSelect fields support 'option_order'. */
+  order_by?: 'alphabetical' | 'option_order';
   /** Whether this sort is enabled. Disabled sorts are skipped during evaluation. */
   enabled?: boolean | null;
 }
@@ -7858,7 +7864,7 @@ export interface BaseType {
    * @example nc_vm5q__
    */
   prefix?: string;
-  type?: 'database' | 'documentation' | 'dashboard' | 'code';
+  type?: 'database' | 'documentation' | 'dashboard';
   /** List of linked Database Projects that this base has access to (only used in Dashboard bases so far) */
   linked_db_projects?: BaseType[];
   status?: string;
@@ -8219,6 +8225,8 @@ export interface SortType {
   fk_level_id?: StringOrNullType;
   /** When set, scopes this sort to a lookup column (it orders that lookup's relation sub-query) instead of a view */
   fk_lookup_col_id?: StringOrNullType;
+  /** How a SingleSelect field is ordered: `alphabetical` (default, by option text) or `option_order` (by the field's option order). Only SingleSelect fields support `option_order`. */
+  order_by?: 'alphabetical' | 'option_order' | null;
   /** Whether this sort is enabled. Disabled sorts are skipped during evaluation. */
   enabled?: boolean | null;
 }
@@ -8245,6 +8253,8 @@ export interface SortReqType {
   fk_level_id?: StringOrNullType;
   /** Whether this sort is enabled. Disabled sorts are skipped during evaluation. */
   enabled?: boolean | null;
+  /** How a SingleSelect field is ordered: `alphabetical` (default, by option text) or `option_order` (by the field's option order). Only SingleSelect fields support `option_order`. */
+  order_by?: 'alphabetical' | 'option_order' | null;
   /** The order in which the sort is applied relative to other sorts on the view. */
   order?: number | null;
 }
@@ -16688,6 +16698,8 @@ export class Api<
   redirect_uris: (string)[],
   \** OAuth client type *\
   client_type: "public" | "confidential",
+  \** Registered by an instance admin. Unverified clients are shown with a warning and without a logo. *\
+  verified: boolean,
 
 }` OAuth client information
  * @response `400` `{
@@ -16732,6 +16744,8 @@ export class Api<
           redirect_uris: string[];
           /** OAuth client type */
           client_type: 'public' | 'confidential';
+          /** Registered by an instance admin. Unverified clients are shown with a warning and without a logo. */
+          verified: boolean;
         },
         | {
             /** @example invalid_client_id */

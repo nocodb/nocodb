@@ -14,7 +14,8 @@ import {
 } from '~/helpers/webhookHelpers';
 import { JobTypes } from '~/interface/Jobs';
 import { MailEvent } from '~/interface/Mail';
-import { Base, BaseUser, FormView, Hook, Model, View } from '~/models';
+import { Base, FormView, Hook, Model, View } from '~/models';
+import { getUsersWithBaseAccess } from '~/helpers/baseAccessHelpers';
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { MailService } from '~/services/mail/mail.service';
@@ -61,11 +62,11 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
           .filter((a) => a[1])
           .map((a) => a[0]);
 
-        // The form API stores any address; mail only the base's members.
+        // The form API stores any address; mail only users who can open the base.
         if (emails.length) {
           const members = new Set(
             (
-              await BaseUser.getUsersList(context, { base_id: model.base_id })
+              await getUsersWithBaseAccess(context, { baseId: model.base_id })
             ).map((u) => u.email?.toLowerCase()),
           );
           emails = emails.filter((email) => members.has(email.toLowerCase()));

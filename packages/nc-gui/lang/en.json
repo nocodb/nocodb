@@ -7791,6 +7791,7 @@
       "interfaceHiddenFieldSort": "Viewers will see rows ordered by {field}, a field they can't see.",
       "interfacePageSortLocked": "Set by the page. It orders rows by a field you can't see.",
       "interfacePageSortLockedVisible": "Set by the page. Locked because the page also sorts by a field you can't see.",
+      "interfacePageSortLockedByPage": "Set by the page. Sorts you add apply first.",
       "interfaceRecordSavedLeftPageScope": "Record saved. It no longer matches what this page shows, so it was closed.",
       "interfaceRecordUnreadableOnPage": "This record can no longer be opened from this page. It was either deleted, or changed so it no longer matches what this page shows.",
       "interfaceRecordUnreadableEditingOff": "Editing is turned off until it can be read again.",

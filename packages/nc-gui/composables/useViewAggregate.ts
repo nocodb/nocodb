@@ -4,11 +4,9 @@ import {
   CommonAggregations,
   type FormulaType,
   type TableType,
-  UITypes,
   type ViewType,
   ViewTypes,
-  getAvailableAggregations,
-  getRollupResultUidt,
+  getColumnAggregations,
   isVirtualCol,
 } from 'nocodb-sdk'
 import type { EventHook } from '@vueuse/core'
@@ -78,12 +76,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
       }
     })
 
-    const getAggregations = (column: ColumnType) => {
-      if (column.uidt === UITypes.Formula && (column.colOptions as any)?.parsed_tree?.dataType) {
-        return getAvailableAggregations(column.uidt!, (column.colOptions as any).parsed_tree)
-      }
-      return getAvailableAggregations(column.uidt!, undefined, getRollupResultUidt(column))
-    }
+    const getAggregations = (column: ColumnType) => getColumnAggregations(column)
 
     // `silent`: a refresh nobody asked for (a peer's change) fails without a toast
     const loadViewAggregate = async (

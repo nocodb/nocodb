@@ -287,8 +287,27 @@ const formatAggregation = (
   return value;
 };
 
+/**
+ * A column's aggregations by its result type: a formula's `parsed_tree`, a
+ * rollup's `result_uidt`. Pickers should use this rather than the bare uidt.
+ */
+const getColumnAggregations = (
+  column: Pick<ColumnType, 'uidt' | 'colOptions'>
+): string[] => {
+  const colOptions = column.colOptions as
+    | { parsed_tree?: unknown; result_uidt?: string }
+    | null
+    | undefined;
+  return getAvailableAggregations(
+    column.uidt,
+    colOptions?.parsed_tree,
+    colOptions?.result_uidt
+  );
+};
+
 export {
   getAvailableAggregations,
+  getColumnAggregations,
   getLegacyDateRollupAggregation,
   NumericalAggregations,
   CommonAggregations,

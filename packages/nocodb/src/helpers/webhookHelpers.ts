@@ -10,6 +10,7 @@ import {
   ColumnHelper,
   HookOperationCode,
   isDateMonthFormat,
+  isLinksOrLTAR,
   UITypes,
 } from 'nocodb-sdk';
 import type {
@@ -578,10 +579,10 @@ export function transformDataForMailRendering(
 }
 
 /**
- * A form submission's rows for the FORM_SUBMISSION mail. LinkToAnotherRecord
- * columns render the related record's display value, which needs the related
- * table's columns loaded (getModels returns them without columns), otherwise
- * the value falls back to "[object Object]". Links columns render a count.
+ * A form submission's rows for the FORM_SUBMISSION mail. Single-record links
+ * (LinkToAnotherRecord, and Links of a bt-like relation) render the related
+ * record's display value, which needs the related table's columns loaded
+ * (getModels returns them without columns). Multi-record Links render a count.
  */
 export async function formSubmissionMailData(
   context: NcContext,
@@ -603,7 +604,7 @@ export async function formSubmissionMailData(
 
   const relatedModelIds = new Set(
     columns
-      .filter((c) => c.uidt === UITypes.LinkToAnotherRecord)
+      .filter((c) => isLinksOrLTAR(c))
       .map(
         (c) => (c.colOptions as LinkToAnotherRecordType)?.fk_related_model_id,
       )

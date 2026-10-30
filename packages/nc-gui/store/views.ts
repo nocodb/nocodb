@@ -442,6 +442,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
         type: form.type,
         description: form.description,
         copy_from_id: form.copy_from_id,
+        ...(form.fk_view_section_id ? { fk_view_section_id: form.fk_view_section_id } : {}),
       }
 
       switch (form.type) {
@@ -1161,6 +1162,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     baseId,
     tableId,
     sourceId,
+    viewSectionId,
   }: {
     title?: string
     type: ViewTypes | 'AI'
@@ -1174,6 +1176,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     baseId: string
     tableId: string
     sourceId?: string
+    viewSectionId?: string
   }) => {
     if (!baseId || !tableId) return
 
@@ -1191,6 +1194,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       'onUpdate:modelValue': closeDialog,
       'baseId': baseId,
       'sourceId': sourceId,
+      viewSectionId,
       'onCreated': async (view?: ViewType) => {
         closeDialog()
 

@@ -16,6 +16,7 @@ import {
   type SerializedAiViewType,
   type TableType,
   type TimelineType,
+  type ViewType,
   stringToViewTypeMap,
   viewTypeToStringMap,
 } from 'nocodb-sdk'
@@ -50,6 +51,8 @@ interface Props {
   }>
   coverImageColumnId?: string
   sourceId?: string
+  /** EE: view folder the new view(s) land in */
+  viewSectionId?: string
 }
 
 interface Emits {
@@ -94,6 +97,8 @@ interface Form {
   }
 
   fk_cover_image_col_id: string | null | undefined
+
+  fk_view_section_id?: string
 
   // Applied after view creation via a follow-up updateView call. Defaults
   // to Collaborative. Editors can pick Collaborative or Personal; only
@@ -182,6 +187,7 @@ const form = reactive<Form>({
   fk_cover_image_col_id: undefined,
   description: props.description || '',
   lock_type: ViewLockType.Collaborative,
+  fk_view_section_id: props.viewSectionId,
 })
 
 const viewSelectFieldOptions = ref<SelectProps['options']>([])
@@ -300,6 +306,15 @@ const onAiEnter = async () => {
   if (activeTabSelectedViews.value.length) {
     try {
       const data = await createViews(activeTabSelectedViews.value, baseId.value, props.sourceId)
+
+      // AI create has no folder param — move the new views in afterwards
+      if (props.viewSectionId && ncIsArray(data)) {
+        await Promise.all(
+          (data as ViewType[])
+            .filter((v) => v?.id)
+            .map((v) => updateViewInStore(v.id!, { fk_view_section_id: props.viewSectionId } as Partial<ViewType>)),
+        )
+      }
 
       emits('created', ncIsArray(data) && data.length ? data[0] : undefined)
     } catch (e: any) {

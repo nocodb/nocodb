@@ -3133,7 +3133,9 @@
       "richTextDisabledWhenAi": "Rich text formatting is not supported when generate text using AI is enabled",
       "description": "Smart Text uses a rich block-based editor with formatting, images, tables, and more. Content is stored in-row, so it's searchable and filterable.",
       "remoteUpdateAvailable": "Someone else updated this cell",
-      "saveBlockedOutOfSync": "Someone else updated this cell. Reload it to see their version before saving."
+      "saveBlockedOutOfSync": "Someone else updated this cell. Reload it to see their version before saving.",
+      "unsavedHint": "Unsaved changes. Saved when you close it or move to another cell.",
+      "unsavedHintDeferred": "Unsaved changes. Saved when you save the record."
     },
     "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Copied record URL",
@@ -5785,6 +5787,7 @@
     "emailVerification": "Email Verification",
     "method": "Method",
     "queryParameters": "Query Parameters",
+    "queryParameter": "Query Parameter",
     "webhookSettings": "Webhook Settings",
     "webhookResponseChange": "Change in webhook response",
     "triggerOnlyWhenConditionsMatch": "Trigger only when conditions match",

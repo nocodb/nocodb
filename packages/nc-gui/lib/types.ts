@@ -1170,6 +1170,8 @@ interface CreateViewForm {
     fk_to_column_id: string | null // for ee only
   }>
   fk_cover_image_col_id: string | null | undefined
+  // EE: view folder to create the view in
+  fk_view_section_id?: string
 }
 
 // NcClipboardDataType type starts here

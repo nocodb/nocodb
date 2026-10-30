@@ -685,6 +685,7 @@ watch(
                       :read-only="disabled"
                       :plugins="field.plugins"
                       :grouped-variables="workflowVariablesGrouped"
+                      :label="field.label"
                       @update:model-value="setFormStateWithEmit(field.model, $event)"
                     />
                   </template>

@@ -65,6 +65,8 @@ interface Props {
   accepts?: WorkflowValueKind[]
   /** Offer Insert / ⇧↵ on rows that open (a whole Record); off for fields that need a single value. */
   allowInsertWhole?: boolean
+  /** Title of a single-line field's expand modal. */
+  label?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -1767,8 +1769,13 @@ watch(readOnly, (newValue) => {
       :open-picker-when-empty="openPickerWhenEmpty"
       :accepts="accepts"
       :allow-insert-whole="allowInsertWhole"
+      :label="label"
       @enter="emit('enter')"
-    />
+    >
+      <template v-if="$slots['expand-fields']" #expand-fields="slotProps">
+        <slot name="expand-fields" v-bind="slotProps" />
+      </template>
+    </WorkflowCodeInput>
   </div>
 </template>
 

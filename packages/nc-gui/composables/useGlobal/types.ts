@@ -39,6 +39,8 @@ export interface AppInfo {
   ncMaxTextLength: number
   ncDataImportFileSize: number
   ncGridMaxSelectionLimit: number
+  /** Most rows a bulk update-all can undo; past it the update isn't recorded for undo. */
+  ncBulkUpdateUndoLimit: number
   isCloud: boolean
   automationLogLevel: 'OFF' | 'ERROR' | 'ALL'
   baseHostName?: string

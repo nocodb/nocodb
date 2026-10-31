@@ -58,7 +58,12 @@ type RelativeEditTarget = SetFieldTarget & {
   activeColumnId?: string
   /** Offers fills ("fill down", "number rows"): a cell range fills its column(s), checked rows the fitting fields. */
   fill?: 'range' | 'rows'
+  /** Records named in the confirm dialog's change list ("Acme: Lead → Won"); asking first even for one record. */
+  rowLabels?: string[]
 }
+
+/** Changes listed in a confirm dialog before "… +N more". */
+const CONFIRM_LIST_MAX = 3
 
 interface LinkListState {
   loading: boolean
@@ -1020,7 +1025,22 @@ export function useRelativeEditCommands() {
     })
   }
 
-  return function relativeEditCommands(target: RelativeEditTarget, query: string): CmdCommand[] {
+  /** "Acme: Lead → Won, Globex: Lead → Won, … +5 more" for the records whose value actually changes. */
+  function changeList(column: ColumnType, labels: string[], values: unknown[], nexts: unknown[], meta?: TableType) {
+    const changes = nexts.flatMap((next, i) => {
+      if (next === undefined) return []
+      const before = display(column, values[i], meta)
+      const after = display(column, next, meta)
+      return before === after ? [] : [`${labels[i] ?? i + 1}: ${before} → ${after}`]
+    })
+    const more = changes.length - CONFIRM_LIST_MAX
+    return [
+      ...changes.slice(0, CONFIRM_LIST_MAX),
+      ...(more > 0 ? [t('labels.commandPalette.where.more', { count: more }, more)] : []),
+    ].join(', ')
+  }
+
+  function relativeEditCommands(target: RelativeEditTarget, query: string): CmdCommand[] {
     const fill = target.fill ? parseCmdFill(query) : undefined
     if (fill) return fillCommands(target, fill)
 
@@ -1064,13 +1084,15 @@ export function useRelativeEditCommands() {
               : undefined,
             error: invalid,
             disabled: invalid || firstIndex < 0,
-            feedback: count > 1 ? undefined : target.feedback ?? t('labels.commandPalette.saved'),
+            feedback: count > 1 || target.rowLabels ? undefined : target.feedback ?? t('labels.commandPalette.saved'),
             run:
-              count > 1
+              count > 1 || target.rowLabels
                 ? () =>
                     showWarningModal({
                       title: t('labels.commandPalette.relative.confirmTitle', { count }, count),
-                      content: `${rowTitle} · ${preview}`,
+                      content: target.rowLabels
+                        ? `${rowTitle} · ${changeList(column, target.rowLabels, values, nexts, target.meta) || dash}`
+                        : `${rowTitle} · ${preview}`,
                       showCancelBtn: true,
                       okText: t('general.update'),
                       okCallback: async () => {
@@ -1082,4 +1104,11 @@ export function useRelativeEditCommands() {
         }),
     )
   }
+
+  // Shared with "… where …" edits, which build absolute "set" rows next to these.
+  return Object.assign(relativeEditCommands, {
+    display,
+    changeList,
+    isSettable: (column: ColumnType) => isSettableColumn(column, isAllowed, RELATIVE_ONLY_UIDTS),
+  })
 }

@@ -688,7 +688,7 @@ export function matchCmdName(typed: string, names: string[]) {
   const allowed = needle.length >= 8 ? 2 : 1
   const typo = parts.flatMap((keys, i) =>
     keys.some((key) =>
-      [needle.length - 1, needle.length, needle.length + 1].some((n) => editDistance(needle, key.slice(0, n)) <= allowed),
+      [needle.length - 1, needle.length, needle.length + 1].some((n) => cmdEditDistance(needle, key.slice(0, n)) <= allowed),
     )
       ? [i]
       : [],
@@ -697,7 +697,7 @@ export function matchCmdName(typed: string, names: string[]) {
 }
 
 /** Levenshtein distance with adjacent swaps, for short strings. */
-function editDistance(a: string, b: string) {
+export function cmdEditDistance(a: string, b: string) {
   const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array<number>(b.length).fill(0)])
   for (let j = 1; j <= b.length; j++) d[0]![j] = j
   for (let i = 1; i <= a.length; i++) {

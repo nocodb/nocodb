@@ -163,7 +163,7 @@ function execute(command: CmdCommand) {
 }
 
 function onKeydown(e: KeyboardEvent) {
-  if (e.isComposing) return
+  if (e.isComposing || e.keyCode === 229) return
 
   switch (e.key) {
     case 'ArrowDown':

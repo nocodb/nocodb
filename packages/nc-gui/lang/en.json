@@ -1763,7 +1763,6 @@
         "goToWidget": "Go to widget…"
       },
       "app": {
-        "toggleAssistant": "Toggle app assistant",
         "openLive": "Open live app",
         "copyLink": "Copy app link",
         "share": "Share app…",
@@ -1817,7 +1816,7 @@
         "docNamed": "Create document “{name}”",
         "baseNamed": "Create base “{name}”",
         "dashboardNamed": "Create dashboard “{name}”",
-        "interfaceNamed": "Create interface “{name}”",
+        "interfaceNamed": "Create classic app “{name}”",
         "workflowNamed": "Create workflow “{name}”",
         "scriptNamed": "Create script “{name}”",
         "agentNamed": "Create agent “{name}”",
@@ -1918,7 +1917,6 @@
       "createWorkflow": "Create workflow…",
       "createAgent": "Create agent…",
       "createDoc": "Create document…",
-      "createInterface": "Create interface…",
       "switchWorkspace": "Switch workspace…",
       "createWorkspace": "Create workspace…",
       "goToSection": "Go to {section}",
@@ -2008,6 +2006,7 @@
       "openComments": "Open comments",
       "openRevisionHistory": "Open revision history",
       "commentAdded": "Comment added",
+      "recordDeleted": "Record deleted",
       "commentPlaceholder": "Write a comment…",
       "commentRequired": "Comment can't be empty",
       "selectedRecords": "{count} record | {count} records",

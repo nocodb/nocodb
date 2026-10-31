@@ -11,6 +11,8 @@ export const useTypesenseSearch = (
   const results = ref<'empty' | SortedResult[]>('empty')
   const error = ref<any>()
   const isLoading = ref(false)
+  /** The search text `results` (or `error`) belongs to; behind `search` while debouncing or fetching. */
+  const settledSearch = ref<string>()
 
   const cache = new Map<string, 'empty' | SortedResult[]>()
 
@@ -22,6 +24,7 @@ export const useTypesenseSearch = (
 
   const debouncedSearch = useDebounceFn(async () => {
     const newCacheKey = cacheKey.value
+    const term = search.value
 
     // Not cached: allowEmpty can turn on later for the same (empty) key.
     if (search.value.length === 0 && !toValue(allowEmpty)) {
@@ -29,6 +32,7 @@ export const useTypesenseSearch = (
       isLoading.value = false
       error.value = undefined
       results.value = 'empty'
+      settledSearch.value = term
       return
     }
 
@@ -37,6 +41,7 @@ export const useTypesenseSearch = (
       isLoading.value = false
       error.value = undefined
       results.value = cached
+      settledSearch.value = term
       return
     }
 
@@ -44,16 +49,18 @@ export const useTypesenseSearch = (
     const requestId = ++currentRequestId
 
     try {
-      const result = await searchDocs(client, typesenseCollection, search.value)
+      const result = await searchDocs(client, typesenseCollection, term)
 
       if (requestId === currentRequestId) {
         cache.set(newCacheKey, result)
         error.value = undefined
         results.value = result
+        settledSearch.value = term
       }
     } catch (err) {
       if (requestId === currentRequestId) {
         error.value = err
+        settledSearch.value = term
       }
     } finally {
       if (requestId === currentRequestId) {
@@ -75,6 +82,7 @@ export const useTypesenseSearch = (
     query: {
       isLoading,
       data: results,
+      settledSearch,
       error,
     },
   }

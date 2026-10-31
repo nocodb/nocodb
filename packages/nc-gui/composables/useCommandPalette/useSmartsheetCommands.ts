@@ -483,7 +483,13 @@ export function useSmartsheetCommands(ext: CmdSmartsheetExt = {}) {
     const commands: CmdCommand[] = []
 
     // Opens the new-record form. The canvas grid's listener destructures `{ overwrite, path }`.
-    if ((isGrid.value || isGallery.value || isKanban.value) && isUIAllowed('dataInsert') && !isSqlView.value && !table.synced) {
+    if (
+      (isGrid.value || isGallery.value || isKanban.value) &&
+      isUIAllowed('dataInsert') &&
+      !isSqlView.value &&
+      !table.synced &&
+      (!table.id || isPermissionAllowed(PermissionEntity.TABLE, table.id, PermissionKey.TABLE_RECORD_ADD))
+    ) {
       commands.push({
         id: 'table:add-record',
         priority: CMD_PRIORITY.primary,
@@ -492,7 +498,12 @@ export function useSmartsheetCommands(ext: CmdSmartsheetExt = {}) {
         section: sections.value.view,
         icon: { type: 'icon', name: 'plus' },
         keywords: ['new', 'row', 'create'],
-        run: () => (isGrid.value ? openNewRecordFormHook.trigger({ overwrite: {}, path: [] }) : openNewRecordFormHook.trigger()),
+        run: () => {
+          // As the add-record buttons; gallery and kanban's form hooks don't check it themselves.
+          if (showRecordPlanLimitExceededModal()) return
+          if (isGrid.value) openNewRecordFormHook.trigger({ overwrite: {}, path: [] })
+          else openNewRecordFormHook.trigger()
+        },
       })
     }
 

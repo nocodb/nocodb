@@ -147,6 +147,58 @@ onClickOutside(contentEl, () => {
     @apply h-4 w-4 flex-none text-nc-content-gray-muted;
   }
 
+  // A reading's parts under the input: field, operator, value… Swappable ones open their alternatives.
+  .nc-cmdk-chip {
+    @apply flex items-center gap-1 h-6 px-1.5 rounded-md border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight text-bodySm text-nc-content-gray-subtle min-w-0;
+  }
+
+  // Half-typed query: the chips preview the highlighted completion, so they read as a draft.
+  .nc-cmdk-chips--tentative .nc-cmdk-chip {
+    @apply border-dashed opacity-70;
+  }
+
+  .nc-cmdk-chip--cmp,
+  .nc-cmdk-chip--agg,
+  .nc-cmdk-chip--verb,
+  .nc-cmdk-chip--text {
+    @apply border-transparent bg-transparent text-nc-content-gray-muted px-0.5;
+  }
+
+  // The table's own name ("companies"): the records the query is about.
+  .nc-cmdk-chip--noun {
+    @apply text-nc-content-gray;
+  }
+
+  // The field name being typed, completed; Tab or → accepts it.
+  .nc-cmdk-chip--ghost {
+    @apply cursor-pointer border-dashed border-nc-border-brand text-nc-content-brand bg-transparent opacity-100;
+
+    .nc-cmdk-chip-key {
+      @apply text-nc-content-gray-muted;
+
+      .nc-shortcut-label {
+        @apply flex items-center h-4 min-h-0 leading-none text-[0.65rem];
+      }
+    }
+  }
+
+  .nc-cmdk-chip--value {
+    @apply text-nc-content-gray;
+  }
+
+  // A guess made for the user ("recent" → past 30 days): dotted, labelled, and editable into explicit words.
+  .nc-cmdk-chip--assumed {
+    @apply border-dotted border-nc-border-gray-dark text-nc-content-gray;
+
+    .nc-cmdk-chip-assumed {
+      @apply text-[0.65rem] text-nc-content-gray-muted;
+    }
+  }
+
+  .nc-cmdk-chip--swappable {
+    @apply cursor-pointer hover:(bg-nc-bg-gray-light text-nc-content-gray);
+  }
+
   .nc-cmdk-textarea {
     resize: none;
   }

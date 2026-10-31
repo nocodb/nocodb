@@ -20,6 +20,8 @@ export type NcShowConfirmModalProps = Pick<
    */
   key?: string
   okCallback?: () => Promise<void>
+  /** Called once when the modal is dismissed without OK (Cancel, Esc, mask click). */
+  cancelCallback?: () => void
   initialSlots?: MaybeRef<Record<string, () => VNode[]>>
   showOkLoading?: boolean
 }
@@ -65,6 +67,7 @@ const useNcConfirmModal = () => {
     key,
     okProps: _okProps = {},
     okCallback = () => Promise.resolve(),
+    cancelCallback,
     initialSlots = {},
     showOkLoading,
   }: NcShowConfirmModalProps) => {
@@ -82,6 +85,16 @@ const useNcConfirmModal = () => {
 
     const slots = ref<Record<string, () => VNode[]>>(toValue(initialSlots))
 
+    let settled = false
+
+    function dismiss() {
+      if (!settled) {
+        settled = true
+        cancelCallback?.()
+      }
+      closeDialog(key)
+    }
+
     const { close } = useDialog(
       NcModalConfirm,
       {
@@ -92,8 +105,9 @@ const useNcConfirmModal = () => {
         'contentClass': contentClass,
         'okText': okText,
         'cancelText': cancelText,
-        'onCancel': () => closeDialog(key),
+        'onCancel': dismiss,
         'onOk': async () => {
+          settled = true
           if (showOkLoading) {
             okProps.value.loading = true
 
@@ -108,7 +122,7 @@ const useNcConfirmModal = () => {
         },
         'okClass': okClass,
         'okProps': okProps,
-        'update:visible': () => closeDialog(key),
+        'update:visible': dismiss,
         'showIcon': showIcon,
         'maskClosable': maskClosable,
         'keyboard': keyboard,

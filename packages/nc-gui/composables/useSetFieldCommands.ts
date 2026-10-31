@@ -605,6 +605,8 @@ export function useRelativeEditCommands() {
 
   const { isMysql } = useBase()
 
+  const { schemaFor, parse: parseNl } = useCmdNl()
+
   const dash = '—'
 
   const truncate = (text: string) => (text.length > 28 ? `${text.slice(0, 27)}…` : text)
@@ -1040,14 +1042,42 @@ export function useRelativeEditCommands() {
     ].join(', ')
   }
 
+  /** What the query asks of this surface (no where clause), from the NL parser's readings, best first. */
+  function readSurfaceQuery(query: string, meta?: TableType): { edits: CmdRelativeEdit[]; fill?: CmdFill } {
+    const schema = schemaFor(meta)
+    if (!schema) return { edits: parseCmdRelativeEdits(query), fill: parseCmdFill(query) }
+    const readings = parseNl(query, schema)
+    // "add 1 week to due where stage is lead" is the view's where-edit, not this record's.
+    if (readings[0]?.scope === 'where') return { edits: [] }
+    const edits: CmdRelativeEdit[] = []
+    let fill: CmdFill | undefined
+    for (const ir of readings) {
+      if (ir.scope === 'where' || (ir.intent !== 'edit' && ir.intent !== 'fill')) continue
+      for (const edit of ir.edits ?? []) {
+        // The resolved field's own title words, matched back to the column by targetColumns.
+        const field = edit.field
+          ? schema.fields
+              .find((f) => f.id === edit.field!.id)
+              ?.title.toLowerCase()
+              .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+              .trim()
+              .replace(/\s+/g, ' ')
+          : undefined
+        if (edit.op.kind === 'relative') edits.push(field ? { ...edit.op.edit, field } : edit.op.edit)
+        else if (edit.op.kind === 'fill') fill ??= edit.op.fill
+      }
+    }
+    return { edits, fill }
+  }
+
   function relativeEditCommands(target: RelativeEditTarget, query: string): CmdCommand[] {
-    const fill = target.fill ? parseCmdFill(query) : undefined
-    if (fill) return fillCommands(target, fill)
+    const read = readSurfaceQuery(query, target.meta)
+    if (target.fill && read.fill) return fillCommands(target, read.fill)
 
     const seen = new Set<string>()
     const count = target.count ?? 1
 
-    return parseCmdRelativeEdits(query).flatMap((edit) =>
+    return read.edits.flatMap((edit) =>
       targetColumns(edit, target)
         .filter((column) => !seen.has(column.id!) && seen.add(column.id!))
         .map((column, _, columns): CmdCommand => {
@@ -1109,6 +1139,9 @@ export function useRelativeEditCommands() {
   return Object.assign(relativeEditCommands, {
     display,
     changeList,
+    accepts,
+    nextValue,
+    title,
     isSettable: (column: ColumnType) => isSettableColumn(column, isAllowed, RELATIVE_ONLY_UIDTS),
   })
 }

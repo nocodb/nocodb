@@ -1703,6 +1703,8 @@
       "askNocoAi": "Ask NocoAI: “{query}”",
       "removeContext": "Remove context",
       "sections": {
+        "goToView": "Go to view",
+        "popularDocs": "Popular docs",
         "recent": "Recent",
         "create": "Create",
         "edit": "Edit",
@@ -1809,6 +1811,7 @@
         "changeLanguage": "Change language…"
       },
       "create": {
+        "anyNamed": "Create “{name}”…",
         "tableNamed": "Create table “{name}”",
         "viewNamed": "Create view “{name}”",
         "docNamed": "Create document “{name}”",
@@ -2104,7 +2107,8 @@
         "calculator": "Calculator",
         "statHidden": "Show {field} in this view to summarize it",
         "me": "me",
-        "created": "Created"
+        "created": "Created",
+        "recordCreated": "Record created"
       },
       "where": {
         "invalidValue": "“{value}” isn't a valid {field}",
@@ -2117,7 +2121,7 @@
         "count": "{count} record | {count} records",
         "more": "… +{count} more",
         "nothingToChange": "Every matching record already has this value",
-        "updated": "Updated {count} record · {undo} to undo | Updated {count} records · {undo} to undo"
+        "updated": "Updated {count} record | Updated {count} records"
       },
       "relative": {
         "set": "Set {field} to {value}",
@@ -2232,6 +2236,9 @@
       "copiedValue": "Copied {value}",
       "nl": {
         "section": "Answers",
+        "openTableToAsk": "Open a table to ask about its data",
+        "filtersCleared": "Filters removed",
+        "sortsCleared": "Sorts removed",
         "aiReading": "NocoAI is reading “{query}”…",
         "aiChip": "NocoAI",
         "aiChipTooltip": "Read by NocoAI. Check it before running; edits are written out first.",

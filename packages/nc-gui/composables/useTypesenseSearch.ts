@@ -1,9 +1,10 @@
 import type { Client } from 'typesense'
+import type { MaybeRefOrGetter } from 'vue'
 export const useTypesenseSearch = (
   client: Client,
   typesenseCollection: string,
   delayMs = 100,
-  allowEmpty = false,
+  allowEmpty: MaybeRefOrGetter<boolean> = false,
   key?: string,
 ) => {
   const search = ref('')
@@ -22,6 +23,15 @@ export const useTypesenseSearch = (
   const debouncedSearch = useDebounceFn(async () => {
     const newCacheKey = cacheKey.value
 
+    // Not cached: allowEmpty can turn on later for the same (empty) key.
+    if (search.value.length === 0 && !toValue(allowEmpty)) {
+      ++currentRequestId
+      isLoading.value = false
+      error.value = undefined
+      results.value = 'empty'
+      return
+    }
+
     const cached = cache.get(newCacheKey)
     if (cached !== undefined) {
       isLoading.value = false
@@ -34,13 +44,7 @@ export const useTypesenseSearch = (
     const requestId = ++currentRequestId
 
     try {
-      let result: 'empty' | SortedResult[]
-
-      if (search.value.length === 0 && !allowEmpty) {
-        result = 'empty'
-      } else {
-        result = await searchDocs(client, typesenseCollection, search.value)
-      }
+      const result = await searchDocs(client, typesenseCollection, search.value)
 
       if (requestId === currentRequestId) {
         cache.set(newCacheKey, result)
@@ -59,7 +63,7 @@ export const useTypesenseSearch = (
   }, delayMs)
 
   watch(
-    search,
+    [search, () => toValue(allowEmpty)],
     () => {
       debouncedSearch()
     },

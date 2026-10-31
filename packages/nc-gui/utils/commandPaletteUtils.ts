@@ -374,7 +374,7 @@ export function searchCmdCommands(
     if (known !== undefined) return known
     const title = normalizedOf(command.title)
     title.chars ??= new Set(title.text)
-    const score = queryChars.every((c) => title.chars!.has(c)) ? commandScore(title.text, normalizedQuery) : 0
+    const score = queryChars.every((c) => title.chars!.has(c)) ? commandScore(title.text, normalizedQuery, true) : 0
     fuzzyScores.set(command, score)
     return score
   }

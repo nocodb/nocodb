@@ -568,7 +568,7 @@ export class McpService {
                 })
                 .loose()
                 .refine((f) => !!(f.url || f.path), {
-                  message: 'An attachment needs a `url` or a `path`',
+                  error: 'An attachment needs a `url` or a `path`',
                 }),
             )
             .describe('Array of attachment objects from NocoDB'),

@@ -31,9 +31,9 @@ export const CreateOAuthClientSchema = z.object({
     .array(
       z
         .url('Each redirect URI must be a valid URL')
-        // `z.string().url()` alone accepts javascript:/data:/vbscript:/file:.
+        // `z.url()` alone accepts javascript:/data:/vbscript:/file:.
         .refine(isHttpRedirectUri, {
-          message: 'Each redirect URI must use the http(s) scheme',
+          error: 'Each redirect URI must use the http(s) scheme',
         }),
     )
     .min(1, 'At least one redirect URI is required'),
@@ -91,7 +91,7 @@ export const UpdateOAuthClientSchema = z.object({
         .url('Each redirect URI must be a valid URL')
         // Must match create, or a client can be edited into an XSS sink.
         .refine(isHttpRedirectUri, {
-          message: 'Each redirect URI must use the http(s) scheme',
+          error: 'Each redirect URI must use the http(s) scheme',
         }),
     )
     .min(1, 'At least one redirect URI is required')

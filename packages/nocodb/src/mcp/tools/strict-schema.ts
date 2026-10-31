@@ -13,7 +13,7 @@ export function isZodSchema(value: unknown): value is z.ZodType {
  * a plain object's parser *strips* unknown keys instead of failing. A
  * misspelled parameter therefore reported success while silently no-opping
  * whatever it governed (`content` instead of `contentMarkdown` created an
- * empty document). `.strict()` makes the validator match the advertisement.
+ * empty document). `z.strictObject` makes the validator match the advertisement.
  *
  * Accepts either form `registerTool` takes — a raw shape or an already-built
  * object schema — and is idempotent, so normalizing twice is harmless.
@@ -30,9 +30,9 @@ export function toStrictInputSchema(
   if (!inputSchema) return undefined;
 
   if (isZodSchema(inputSchema)) {
-    // Non-object schemas have no `.strict()`; nothing to tighten.
-    return typeof (inputSchema as any).strict === 'function'
-      ? (inputSchema as any).strict()
+    // Non-object schemas have nothing to tighten.
+    return inputSchema instanceof z.ZodObject
+      ? z.strictObject(inputSchema.shape)
       : inputSchema;
   }
 
@@ -40,7 +40,7 @@ export function toStrictInputSchema(
 
   if (!Object.keys(shape).length) return shape;
 
-  return z.object(shape).strict();
+  return z.strictObject(shape);
 }
 
 /**

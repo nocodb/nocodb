@@ -16,6 +16,7 @@ const props = defineProps<{
 const emits = defineEmits<{
   hover: []
   select: []
+  open: []
 }>()
 
 // A palette opening under a resting pointer fires mousemove with no movement; that is not a hover.
@@ -90,7 +91,19 @@ function onMouseMove(e: MouseEvent) {
           <GeneralIcon v-if="command.checked" icon="ncCheck" class="h-4 w-4 text-nc-content-brand" />
           <GeneralShortcutLabel v-if="indexKey" :keys="[indexKey]" class="text-nc-content-gray-muted" />
           <GeneralShortcutLabel v-else-if="command.shortcut" :keys="command.shortcut" class="text-nc-content-gray-muted" />
-          <GeneralIcon v-if="command.children" icon="ncChevronRight" class="h-4 w-4 text-nc-content-gray-muted" />
+          <template v-if="command.children && command.runFirst && command.run">
+            <GeneralShortcutLabel v-if="selected" :keys="['ArrowRight']" class="text-nc-content-gray-muted" />
+            <NcButton
+              type="text"
+              size="xxsmall"
+              class="!px-0.5"
+              data-testid="nc-cmdk-row-open"
+              @click.stop="!command.disabled && emits('open')"
+            >
+              <GeneralIcon icon="ncChevronRight" class="h-4 w-4 text-nc-content-gray-muted" />
+            </NcButton>
+          </template>
+          <GeneralIcon v-else-if="command.children" icon="ncChevronRight" class="h-4 w-4 text-nc-content-gray-muted" />
           <GeneralIcon
             v-else-if="command.edit"
             icon="ncEdit"

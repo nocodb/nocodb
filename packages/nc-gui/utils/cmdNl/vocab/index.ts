@@ -1,0 +1,11 @@
+// One vocabulary for every Cmd+K parser: legacy edits/stats and the NL parser read these same tables.
+export * from './numbers'
+export * from './dates'
+export * from './aggregations'
+export * from './comparators'
+export * from './verbs'
+export * from './fillers'
+export * from './inflect'
+export * from './hints'
+export * from './shorthand'
+export * from './abbreviations'

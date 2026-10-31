@@ -1,6 +1,11 @@
 import dayjs from 'dayjs'
+import type { CmdDateUnit } from './cmdNl/vocab/dates'
+import { DATE_UNITS, WEEKDAY_NAMES } from './cmdNl/vocab/dates'
+import { MULTIPLIERS, NUM, WORD_NUMBERS } from './cmdNl/vocab/numbers'
+import { ADD_WORDS, DIV_WORDS, MUL_WORDS, SUB_WORDS, TEXT_CASE_OPS, VERB_ALIASES } from './cmdNl/vocab/verbs'
+import { JOIN_WORDS } from './cmdNl/vocab/fillers'
 
-export type CmdDateUnit = 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
+export type { CmdDateUnit }
 
 export type CmdDatePeriod = 'week' | 'month' | 'year'
 
@@ -22,129 +27,6 @@ export type CmdRelativeEdit = { field?: string } & (
   | { kind: 'option'; op: 'clear' }
   | { kind: 'user'; op: 'add' | 'remove'; who: string }
 )
-
-const NUM = String.raw`(\d+(?:\.\d+)?e\d+|\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?|\.\d+)`
-
-const MULTIPLIERS: Record<string, number> = {
-  k: 1e3,
-  thousand: 1e3,
-  hundred: 1e2,
-  dozen: 12,
-  m: 1e6,
-  mn: 1e6,
-  mil: 1e6,
-  million: 1e6,
-  b: 1e9,
-  bn: 1e9,
-  billion: 1e9,
-}
-
-/** Units read after a number in date edits. "m" is minutes here; on numbers it's million. */
-const DATE_UNITS: Record<string, [CmdDateUnit, number]> = {
-  m: ['minute', 1],
-  min: ['minute', 1],
-  mins: ['minute', 1],
-  minute: ['minute', 1],
-  minutes: ['minute', 1],
-  h: ['hour', 1],
-  hr: ['hour', 1],
-  hrs: ['hour', 1],
-  hour: ['hour', 1],
-  hours: ['hour', 1],
-  d: ['day', 1],
-  day: ['day', 1],
-  days: ['day', 1],
-  w: ['week', 1],
-  wk: ['week', 1],
-  wks: ['week', 1],
-  week: ['week', 1],
-  weeks: ['week', 1],
-  fortnight: ['week', 2],
-  fortnights: ['week', 2],
-  mo: ['month', 1],
-  mos: ['month', 1],
-  mth: ['month', 1],
-  mths: ['month', 1],
-  month: ['month', 1],
-  months: ['month', 1],
-  y: ['year', 1],
-  yr: ['year', 1],
-  yrs: ['year', 1],
-  year: ['year', 1],
-  years: ['year', 1],
-}
-
-const WEEKDAY_NAMES: Record<string, number> = {
-  sunday: 0,
-  sun: 0,
-  monday: 1,
-  mon: 1,
-  tuesday: 2,
-  tue: 2,
-  tues: 2,
-  wednesday: 3,
-  wed: 3,
-  thursday: 4,
-  thu: 4,
-  thur: 4,
-  thurs: 4,
-  friday: 5,
-  fri: 5,
-  saturday: 6,
-  sat: 6,
-}
-
-const WORD_NUMBERS: Record<string, number> = {
-  zero: 0,
-  one: 1,
-  two: 2,
-  three: 3,
-  four: 4,
-  five: 5,
-  six: 6,
-  seven: 7,
-  eight: 8,
-  nine: 9,
-  ten: 10,
-  eleven: 11,
-  twelve: 12,
-  thirteen: 13,
-  fourteen: 14,
-  fifteen: 15,
-  sixteen: 16,
-  seventeen: 17,
-  eighteen: 18,
-  nineteen: 19,
-  twenty: 20,
-  thirty: 30,
-  forty: 40,
-  fifty: 50,
-  sixty: 60,
-  seventy: 70,
-  eighty: 80,
-  ninety: 90,
-  couple: 2,
-}
-
-const ADD_WORDS = [
-  'add',
-  'plus',
-  'increase',
-  'raise',
-  'bump',
-  'boost',
-  'up',
-  'more',
-  'push',
-  'postpone',
-  'delay',
-  'extend',
-  'move',
-  'shift',
-]
-const SUB_WORDS = ['subtract', 'minus', 'decrease', 'reduce', 'lower', 'drop', 'cut', 'deduct', 'less', 'down', 'rewind']
-const MUL_WORDS = ['multiply', 'times', 'x']
-const DIV_WORDS = ['divide']
 
 /** Multi-word phrases folded into one verb before reading. */
 const PHRASES: Array<[RegExp, string]> = [
@@ -199,7 +81,6 @@ const VERB_VOCAB = [
   'unassign',
   'cycle',
 ]
-const VERB_ALIASES: Record<string, string> = { ad: 'add', sub: 'subtract', mult: 'multiply', mul: 'multiply', div: 'divide' }
 const UNIT_VOCAB = [
   ...Object.keys(DATE_UNITS).filter((unit) => unit.length >= 4),
   'points',
@@ -208,42 +89,6 @@ const UNIT_VOCAB = [
   'thousand',
   'billion',
 ]
-
-/** Words that join the verb, amount and field name; dropped before the rest is read as a field name. */
-const JOIN_WORDS = new Set([
-  'to',
-  'by',
-  'from',
-  'the',
-  'of',
-  'in',
-  'into',
-  'on',
-  'onto',
-  'for',
-  'field',
-  'value',
-  'values',
-  'a',
-  'an',
-  'it',
-  'all',
-  'with',
-  'as',
-  'make',
-  'set',
-  'convert',
-  'change',
-])
-
-const TEXT_CASE_OPS: Record<string, 'upper' | 'lower' | 'title' | 'capitalize' | 'trim'> = {
-  uppercase: 'upper',
-  lowercase: 'lower',
-  titlecase: 'title',
-  capitalize: 'capitalize',
-  capitalise: 'capitalize',
-  trim: 'trim',
-}
 
 /** One edit (insert, delete, substitute or swap of neighbours) apart. */
 function isOneEditApart(a: string, b: string) {

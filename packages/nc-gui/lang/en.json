@@ -6284,7 +6284,10 @@
     "scriptDocs": "Script Docs",
     "editScript": "Edit Script",
     "notFound": "Not found",
-    "goToApp": "Go to App"
+    "goToApp": "Go to App",
+    "notificationMentionedYouInComment": "has mentioned you in a comment on",
+    "notificationMentionedYouInDoc": "has mentioned you in",
+    "notificationCommentedOn": "commented on"
   },
   "activity": {
     "blockUser": "Block user",

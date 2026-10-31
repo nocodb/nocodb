@@ -71,12 +71,12 @@ function onMouseMove(e: MouseEvent) {
             {{ status.text }}
           </NcTooltip>
         </div>
-        <div v-else key="hints" class="flex items-center gap-2 ml-auto pl-2 flex-none">
-          <!-- Previews ("$22,800,000.00 → $24,800,000.00") get room before the title; the rest shows on hover. -->
+        <!-- Short of room, the value truncates well before the title does (it shrinks 4x as fast). -->
+        <div v-else key="hints" class="flex items-center gap-2 ml-auto pl-2 min-w-0 flex-shrink-[4] children:flex-none">
           <NcTooltip
             v-if="command.value"
             show-on-truncate-only
-            class="nc-cmdk-row-value text-bodyDefaultSm text-nc-content-gray-subtle truncate max-w-80"
+            class="nc-cmdk-row-value text-bodyDefaultSm text-nc-content-gray-subtle truncate min-w-0 max-w-80 !flex-shrink"
             :tooltip-style="{ zIndex: 1100 }"
           >
             <template #title>{{ command.value }}</template>

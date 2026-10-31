@@ -20,6 +20,10 @@ import { NcError } from '~/helpers/catchError';
 import { Model, View } from '~/models';
 import Base from '~/models/Base';
 import {
+  LIST_ARG_ALIASES,
+  resolveListArgAlias,
+} from '~/helpers/listArgAliases';
+import {
   NC_GRID_MAX_SELECTION_LIMIT,
   V1_V2_DATA_PAYLOAD_LIMIT,
 } from '~/constants';
@@ -339,15 +343,21 @@ export async function getColumnByIdOrName(
 
 // Bulk "all" endpoints spread their query into model args, which also carry
 // internal flags (skipValidationAndHooks, includeSoftDeleted, permanentDelete).
-// Only the public string params may come from HTTP.
+// Only the public string params may come from HTTP. `where` keeps its aliases,
+// and a non-string scope fails closed rather than widening the write.
 export function pickBulkAllQuery<K extends string>(
   query: Record<string, unknown>,
   keys: readonly K[],
 ): Partial<Record<K, string>> {
   const picked: Partial<Record<K, string>> = {};
   for (const key of keys) {
-    const value = query?.[key];
-    if (typeof value === 'string') picked[key] = value;
+    const value: unknown =
+      key === 'where'
+        ? resolveListArgAlias(query, LIST_ARG_ALIASES.where)
+        : query?.[key];
+    if (value == null || value === '') continue;
+    if (typeof value !== 'string') NcError.badRequest(`Invalid ${key}`);
+    picked[key] = value;
   }
   return picked;
 }

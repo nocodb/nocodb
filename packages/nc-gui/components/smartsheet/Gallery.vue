@@ -913,6 +913,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                   @click="expandFormClick($event, record)"
                   @contextmenu="showContextMenu($event, { row: record, index: record.rowMeta.rowIndex })"
                   @mouseenter="onCardEnter(record)"
+                  @mousemove="onCardEnter(record)"
                   @mouseleave="onCardLeave(record)"
                 >
                   <SmartsheetRecordPresenceBadge v-if="isEeUI" :row="record" class="absolute top-2 right-2 z-10" />

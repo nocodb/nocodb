@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { CmdChip, CmdCommand, CmdLevel, CmdSkeleton, CmdTele, CommandPaletteType } from '~/lib/types'
-import { cmdRowDomId, isCmdNaturalLanguage } from '~/utils/commandPaletteUtils'
+import { CMD_LEVELS, cmdRowDomId, isCmdNaturalLanguage } from '~/utils/commandPaletteUtils'
 
 type CmdRow = { kind: 'section'; title: string } | { kind: 'command'; command: CmdCommand }
 
@@ -86,6 +86,9 @@ let closeTimer: ReturnType<typeof setTimeout> | undefined
 /** A row with `feedback` is saving or has saved: a second Enter or click must not run it again. */
 let isRunning = false
 
+/** Enter pressed while the leading reading was still fetching its answer: it runs once that settles. */
+const pendingEnterId = ref<string>()
+
 // Closed, no provider is read: the palette stays mounted and would rebuild on every cell click.
 const providers = computed(() => (vOpen.value ? registeredProviders.value : []))
 
@@ -110,20 +113,32 @@ const activeContextProvider = computed(() =>
 const fallbacks = computed<CmdCommand[]>(() =>
   activePage.value || !isSearching.value
     ? []
-    : providers.value.flatMap((provider) =>
-        (provider.fallbacks?.(debouncedQuery.value.trim()) ?? []).filter(
-          // Data answers (calc, stats, quick create) lead from any level; edits only from the active chip.
-          (command) => !command.lead || provider === activeContextProvider.value || command.id.startsWith('data:'),
-        ),
-      ),
+    : providers.value.flatMap((provider) => {
+        // A data answer from a dismissed chip's provider still runs there, so the row names it.
+        const dismissed = CMD_LEVELS.indexOf(provider.level) < CMD_LEVELS.indexOf(activeLevel.value)
+        const where = dismissed ? provider.context?.prefix ?? provider.context?.label : undefined
+        return (provider.fallbacks?.(debouncedQuery.value.trim()) ?? [])
+          .filter(
+            // Data answers (calc, stats, quick create) lead from any level; edits only from the active chip.
+            (command) => !command.lead || provider === activeContextProvider.value || command.id.startsWith('data:'),
+          )
+          .map((command) =>
+            where && command.id.startsWith('data:')
+              ? { ...command, hint: [where, command.hint].filter(Boolean).join(' · ') }
+              : command,
+          )
+      }),
 )
 
 /** Query-built edits lead; the other fallbacks stay after the matches. */
 const leadFallbacks = computed(() => fallbacks.value.filter((command) => command.lead))
 
 // A query read as an edit ("add 10 to amount") isn't also a name for a new table, view…
+// Searching this view's records comes before naming a new table after the query.
 const trailingFallbacks = computed(() =>
-  fallbacks.value.filter((command) => !command.lead && !(leadFallbacks.value.length && command.id.endsWith(':create-named'))),
+  fallbacks.value
+    .filter((command) => !command.lead && !(leadFallbacks.value.length && command.id.endsWith(':create-named')))
+    .sort((a, b) => Number(b.id.endsWith(':search-for')) - Number(a.id.endsWith(':search-for'))),
 )
 
 const aiRow = computed(() => (activePage.value || !isSearching.value ? undefined : aiFallback(debouncedQuery.value.trim())))
@@ -131,7 +146,10 @@ const aiRow = computed(() => (activePage.value || !isSearching.value ? undefined
 /** Recent natural-language queries (with their results): with an empty query, or one this short that starts one. */
 const recentRows = computed<CmdCommand[]>(() => {
   if (activePage.value || editing.value) return []
-  const own = activeContextProvider.value?.recent ? activeContextProvider.value : providers.value.find((p) => p.recent)
+  // Not from a level whose chip was dismissed: its recents would run there unannounced.
+  const own = activeContextProvider.value?.recent
+    ? activeContextProvider.value
+    : providers.value.find((p) => p.recent && CMD_LEVELS.indexOf(p.level) >= CMD_LEVELS.indexOf(activeLevel.value))
   return own?.recent?.(debouncedQuery.value.trim()) ?? []
 })
 
@@ -156,8 +174,16 @@ const results = computed<CmdCommand[]>(() => {
   const contextIds = new Set(
     providers.value.filter((p) => p.level !== 'global').flatMap((p) => p.commands.map((command) => command.id)),
   )
-  const matches = searchCmdCommands(scoped, debouncedQuery.value, contextIds, commandUsage.value)
-  if (!isSearching.value) return [...recentRows.value, ...matches]
+  const found = searchCmdCommands(scoped, debouncedQuery.value, contextIds, commandUsage.value)
+  // On a record, field or selection its own actions come first; the view's recent queries follow.
+  if (!isSearching.value) {
+    return CMD_LEVELS.indexOf(activeLevel.value) < CMD_LEVELS.indexOf('view')
+      ? [...found, ...recentRows.value]
+      : [...recentRows.value, ...found]
+  }
+  // A match with the same effect as a reading ("Group by › Stage" next to "Group by Stage") isn't listed twice.
+  const covered = new Set(leadFallbacks.value.flatMap((c) => (c.dedupeKey ? [c.dedupeKey] : [])))
+  const matches = covered.size ? found.filter((c) => !c.dedupeKey || !covered.has(c.dedupeKey)) : found
 
   // A request leads with "Ask NocoAI"; a command-like query keeps its matches and echo rows first.
   const ai = aiRow.value
@@ -379,12 +405,16 @@ async function runWithFeedback(command: CmdCommand) {
 function recordUse(command: CmdCommand) {
   if (pages.value[0]) return recordCommandUse(pages.value[0].id)
   if ((command.searchOnly && !command.id.includes('>')) || fallbacks.value.includes(command) || command === aiRow.value) return
+  if (/^data:nl:(complete|recent):/.test(command.id)) return
   recordCommandUse(command.id.split('>')[0]!)
 }
 
 function telemetryId(command: CmdCommand) {
   if (pages.value[0]) return `${pages.value[0].id}:pick`
   if (command.searchOnly && !command.id.includes('>')) return 'navigate'
+  // Completion and recent ids carry typed values and queries: only their kind is sent.
+  const nl = /^data:nl:(complete:[a-z]+|recent):/.exec(command.id)
+  if (nl) return `data:nl:${nl[1]}`
   return command.id.split('>')[0]
 }
 
@@ -562,6 +592,7 @@ function moveSelection(step: number) {
 
   const index = selectedId.value ? ids.indexOf(selectedId.value) : -1
   navigated.value = true
+  pendingEnterId.value = undefined
   selectedId.value = ids[(index + step + ids.length) % ids.length]
   ensureVisible(selectedId.value)
 }
@@ -612,12 +643,24 @@ function onKeydown(e: KeyboardEvent) {
       // A dialog the command opens (GeneralDeleteModal confirms on window Enter) must not get this key.
       e.stopPropagation()
       // Typed faster than the debounce: rank the current query now and take its first row.
+      // A row the user arrowed or hovered to stays picked if the new ranking still has it.
       if (debouncedQuery.value !== query.value) {
         debouncedQuery.value = query.value
-        navigated.value = false
-        selectedId.value = defaultSelectedId()
+        if (!navigated.value || !selectedId.value || !selectableIds.value.includes(selectedId.value)) {
+          navigated.value = false
+          selectedId.value = defaultSelectedId()
+        }
       }
-      const command = results.value.find((c) => c.id === selectedId.value)
+      const selectedIndex = results.value.findIndex((c) => c.id === selectedId.value)
+      // The leading reading is still loading (so not selectable): wait for it only while the selection is
+      // still the default row below it. A row the user arrowed or hovered to runs as picked.
+      const lead = readingRows.value[0]
+      const isDefaultSelection = !navigated.value || selectedIndex < 0
+      if (lead?.loading && isDefaultSelection && (selectedIndex < 0 || results.value.indexOf(lead) < selectedIndex)) {
+        pendingEnterId.value = lead.id
+        return
+      }
+      const command = results.value[selectedIndex]
       if (command) execute(command)
       return
     }
@@ -627,6 +670,12 @@ function onKeydown(e: KeyboardEvent) {
       e.stopPropagation()
       if (aiRow.value?.loading && aiRow.value.cancel) {
         aiRow.value.cancel()
+        return
+      }
+      // In a submenu (or a chip's choices), Esc goes back a level, as it does from an editor.
+      if (pages.value.length) {
+        goBack()
+        focusInput()
         return
       }
       hide()
@@ -757,6 +806,20 @@ watch(vOpen, (isOpen) => {
   requestAnimationFrame(() => inputEl.value?.focus())
 })
 
+watch([query, vOpen], () => (pendingEnterId.value = undefined))
+
+// The reading Enter waited for has settled: run it, or select it so its hint says why it can't.
+watch(results, (list) => {
+  if (!pendingEnterId.value) return
+  const row = list.find((c) => c.id === pendingEnterId.value)
+  if (row?.loading) return
+  pendingEnterId.value = undefined
+  if (!row) return
+  if (!row.disabled) return execute(row)
+  navigated.value = true
+  selectedId.value = row.id
+})
+
 // Typing or moving on clears a stale result; a pending one stays until it settles.
 watch([query, selectedId], () => {
   if (rowStatus.value && rowStatus.value.kind !== 'pending' && rowStatus.value.id !== selectedId.value) {
@@ -865,7 +928,7 @@ defineExpose({
         />
         <GeneralLoader v-if="cmdLoading && isSearching" />
         <div
-          v-if="!activePage && (readingRows.length > 1 || firstCompletion)"
+          v-if="!activePage && isSearching && (readingRows.length > 1 || firstCompletion)"
           class="flex items-center gap-1.5 text-bodySm text-nc-content-gray-muted flex-none"
           data-testid="nc-cmdk-tab-hint"
         >
@@ -873,7 +936,7 @@ defineExpose({
           <GeneralShortcutLabel :keys="['Tab']" />
         </div>
         <div
-          v-else-if="isAiAvailable && !activePage && !aiRow"
+          v-else-if="isAiAvailable && !activePage && !aiRow && !firstCompletion"
           class="flex items-center gap-1.5 text-bodySm text-nc-content-gray-muted flex-none cursor-pointer hover:text-nc-content-gray"
           @click="askAi(query)"
         >
@@ -907,7 +970,7 @@ defineExpose({
             @click="openChip(chip, i)"
           >
             <CmdKItemIcon v-if="chip.icon" :icon="chip.icon" class="flex-none" />
-            <span class="truncate max-w-40">{{ chip.text }}</span>
+            <span class="truncate" :class="chip.kind === 'assumed' ? 'max-w-64' : 'max-w-40'">{{ chip.text }}</span>
             <span v-if="chip.kind === 'assumed' && !chip.plain" class="nc-cmdk-chip-assumed flex-none">
               {{ $t('labels.commandPalette.nl.assumed') }}
             </span>

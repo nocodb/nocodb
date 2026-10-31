@@ -147,7 +147,9 @@ export function rollupFormulaKeepsTargetFormat(
   );
 }
 
-const INTEGER_TARGET_TYPES = [
+// a function, not a module constant: helperFunctions imports this file and
+// UITypes imports helperFunctions, so UITypes can be unset at load time
+const integerTargetTypes = () => [
   UITypes.Number,
   UITypes.Links,
   UITypes.Rating,
@@ -183,7 +185,7 @@ export function isIntegerRollupFormula(parsedTree?: ParsedFormulaNode) {
       call.rollupAggregate as RollupAggregate
     ) &&
     rollupFormulaKeepsTargetFormat(parsedTree) &&
-    INTEGER_TARGET_TYPES.includes(call.referencedColumn?.uidt as UITypes)
+    integerTargetTypes().includes(call.referencedColumn?.uidt as UITypes)
   );
 }
 

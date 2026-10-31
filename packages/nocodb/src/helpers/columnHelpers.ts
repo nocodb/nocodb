@@ -9,7 +9,6 @@ import {
   isLinksOrLTAR,
   isMMOrMMLike,
   isRollupAggregatableColumn,
-  isRollupFormula,
   isRollupFormulaTargetColumn,
   NcBaseError,
   OperationSource,
@@ -586,16 +585,15 @@ export async function validateRollupPayload(
   rollupPayload.rollup_formula = null;
   rollupPayload.parsed_tree = null;
 
-  // a formula rollup target aggregates as its result type (sum of a text result
-  // would fail every read)
+  // a rollup target aggregates as its result type (sum of a text or date
+  // result would fail every read)
   if (rollupColumn.uidt === UITypes.Rollup) {
     await rollupColumn.getColOptions(ncMeta);
   }
-  const availableFunctions = isRollupFormula(
-    rollupColumn.colOptions as RollupColumn,
-  )
-    ? getAvailableRollupForColumn(rollupColumn)
-    : getAvailableRollupForUiType(rollupColumn.uidt);
+  const availableFunctions =
+    rollupColumn.uidt === UITypes.Rollup
+      ? getAvailableRollupForColumn(rollupColumn)
+      : getAvailableRollupForUiType(rollupColumn.uidt);
   if (
     !availableFunctions.includes(
       (payload as RollupColumnReqType).rollup_function,

@@ -17,8 +17,23 @@ import type { ColumnType, LinkToAnotherRecordType, SelectOptionType, TableType }
 import { timeFormatsObj } from '~/components/cell/DateTime/utils'
 import { getSelectedUsers, getOptions as getUserOptions } from '~/components/cell/User/utils'
 import type { CmdCommand, CmdEdit } from '~/lib/types'
-import { applyCmdDateEdit, applyCmdNumberEdit, parseCmdRelativeEdit } from '~/utils/commandPaletteRelativeEdit'
-import type { CmdRelativeEdit } from '~/utils/commandPaletteRelativeEdit'
+import {
+  applyCmdCheckboxEdit,
+  applyCmdDateEdit,
+  applyCmdListEdit,
+  applyCmdNumberEdit,
+  applyCmdSelectEdit,
+  applyCmdTextEdit,
+  applyCmdTimeEdit,
+  cmdFieldWordMatches,
+  cmdFillAccepts,
+  cmdFillValues,
+  cmdShiftSeconds,
+  matchCmdName,
+  parseCmdFill,
+  parseCmdRelativeEdits,
+} from '~/utils/commandPaletteRelativeEdit'
+import type { CmdFill, CmdFillType, CmdRelativeEdit } from '~/utils/commandPaletteRelativeEdit'
 import { applyLtarCellOp } from '~/utils/ltarDeferredOps'
 
 interface SetFieldTarget {
@@ -27,8 +42,8 @@ interface SetFieldTarget {
   columns: Array<{ column: ColumnType; hidden?: boolean }>
   /** The column's current value on every targeted record. */
   values: (column: ColumnType) => unknown[]
-  /** Applies `next` to every targeted record; throws to show the error inline. */
-  save: (column: ColumnType, next: (prev: unknown) => unknown) => Promise<unknown>
+  /** Applies `next` to every targeted record, in visual order (`index`); throws to show the error inline. */
+  save: (column: ColumnType, next: (prev: unknown, index?: number) => unknown) => Promise<unknown>
   section: string
   /** Records targeted; above one the titles say "for N records". */
   count?: number
@@ -37,6 +52,12 @@ interface SetFieldTarget {
   row?: Record<string, any>
   /** Runs after a link or unlink, e.g. to repaint the canvas. */
   afterSave?: () => void
+}
+
+type RelativeEditTarget = SetFieldTarget & {
+  activeColumnId?: string
+  /** Offers fills ("fill down", "number rows"): a cell range fills its column(s), checked rows the fitting fields. */
+  fill?: 'range' | 'rows'
 }
 
 interface LinkListState {
@@ -76,15 +97,19 @@ const SETTABLE_UIDTS: string[] = [
 
 const NUMERIC_UIDTS: string[] = [UITypes.Number, UITypes.Decimal, UITypes.Currency, UITypes.Percent, UITypes.Rating]
 
-const DATE_UIDTS: string[] = [UITypes.Date, UITypes.DateTime]
-
 /** At most this many fields get a row when the query names none and no field is active. */
 const RELATIVE_EDIT_MAX_FIELDS = 4
 
 type CanEdit = ReturnType<typeof usePermissions>['isAllowed']
 
-function isSettableColumn(column: ColumnType, isAllowed: CanEdit) {
-  if (!SETTABLE_UIDTS.includes(column.uidt!) || column.pk || column.ai || column.readonly || isSystemColumn(column)) {
+/** Types only relative edits change ("+1h" on a duration); Set field has no picker for them. */
+const RELATIVE_ONLY_UIDTS: string[] = [UITypes.Duration, UITypes.Time, UITypes.Year]
+
+const TEXT_UIDTS: string[] = [UITypes.SingleLineText, UITypes.LongText]
+
+function isSettableColumn(column: ColumnType, isAllowed: CanEdit, extraUidts: string[] = []) {
+  const settable = SETTABLE_UIDTS.includes(column.uidt!) || extraUidts.includes(column.uidt!)
+  if (!settable || column.pk || column.ai || column.readonly || isSystemColumn(column)) {
     return false
   }
   // Rich text and AI prompts have their own editors.
@@ -559,8 +584,8 @@ export function useSetFieldCommands() {
 }
 
 /**
- * "add 1m", "+10%", "add 1 week", "next monday": rows built from the query for the surface's
- * number and date fields, previewing old → new. Above one record, applying asks first.
+ * "add 1m", "+10%", "add a week", "uppercase name", "add urgent to tags": rows built from the query
+ * for the surface's fields, previewing old → new. Above one record, applying asks first.
  */
 export function useRelativeEditCommands() {
   const { t } = useI18n()
@@ -569,11 +594,95 @@ export function useRelativeEditCommands() {
 
   const { showWarningModal } = useNcConfirmModal()
 
+  const { user } = useGlobal()
+
+  const { basesUser } = storeToRefs(useBases())
+
+  const { isMysql } = useBase()
+
   const dash = '—'
 
-  function display(column: ColumnType, value: unknown) {
+  const truncate = (text: string) => (text.length > 28 ? `${text.slice(0, 27)}…` : text)
+
+  const selectTitles = (column: ColumnType) =>
+    ((column.colOptions as { options?: SelectOptionType[] })?.options ?? [])
+      .filter((option) => option.title)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .map((option) => option.title!)
+
+  function members(column: ColumnType, meta?: TableType) {
+    const baseUsers = meta?.base_id ? basesUser.value.get(meta.base_id) ?? [] : []
+    return getUserOptions(column, false, false, baseUsers).filter((option) => !option.deleted)
+  }
+
+  function userIds(column: ColumnType, meta: TableType | undefined, value: unknown) {
+    const options = members(column, meta)
+    const optionsMap = Object.fromEntries(
+      options.flatMap((option) => [
+        [option.id!, option],
+        [option.email!, option],
+      ]),
+    )
+    return getSelectedUsers(optionsMap, value as Parameters<typeof getSelectedUsers>[1]).map(
+      (selected) => selected.value as string,
+    )
+  }
+
+  /** The member a typed name means ("me", a name or an email), or undefined. */
+  function resolveUser(column: ColumnType, meta: TableType | undefined, who: string) {
+    const options = members(column, meta)
+    if (/^(me|myself)$/i.test(who)) return options.find((option) => option.id === user.value?.id)
+    const byName = matchCmdName(
+      who,
+      options.map((option) => option.display_name || option.email || ''),
+    )
+    const byEmail = byName
+      ? undefined
+      : matchCmdName(
+          who,
+          options.map((option) => option.email ?? ''),
+        )
+    return options.find((option) => (option.display_name || option.email) === byName || option.email === byEmail)
+  }
+
+  function parseTime(value: unknown) {
+    if (value === null || value === undefined || value === '') return
+    let time = dayjs(value as string)
+    if (!time.isValid()) time = dayjs(value as string, 'HH:mm:ss')
+    if (!time.isValid()) time = dayjs(`1999-01-01 ${value}`)
+    return time.isValid() ? time : undefined
+  }
+
+  function display(column: ColumnType, value: unknown, meta?: TableType) {
     if (value === null || value === undefined || value === '') return dash
-    const meta = parseProp(column.meta)
+    const columnMeta = parseProp(column.meta)
+    switch (column.uidt) {
+      case UITypes.Duration:
+        return String(convertMS2Duration(value, columnMeta.duration ?? 0))
+      case UITypes.Time:
+        return parseTime(value)?.format(columnMeta.is12hrFormat ? 'hh:mm A' : 'HH:mm') ?? dash
+      case UITypes.Year:
+        return String(value)
+      case UITypes.Checkbox:
+        return value === true || value === 1 || value === '1' || value === 'true' ? '☑' : '☐'
+      case UITypes.SingleSelect:
+      case UITypes.SingleLineText:
+      case UITypes.LongText:
+      case UITypes.Email:
+      case UITypes.URL:
+      case UITypes.PhoneNumber:
+        return truncate(String(value))
+      case UITypes.MultiSelect:
+        return truncate((Array.isArray(value) ? value.map(String) : String(value).split(',')).join(', '))
+      case UITypes.User: {
+        const byId = Object.fromEntries(members(column, meta).map((option) => [option.id, option.display_name || option.email]))
+        return truncate(
+          userIds(column, meta, value)
+            .map((id) => byId[id] ?? id)
+            .join(', ') || dash,
+        )
+      }
+    }
     switch (column.uidt) {
       case UITypes.Currency:
         return getCurrencyValue(value as number, column)
@@ -581,44 +690,118 @@ export function useRelativeEditCommands() {
         return `${Number(value).toLocaleString()}%`
       case UITypes.Decimal:
         return Number(value).toLocaleString(undefined, {
-          minimumFractionDigits: meta.precision ?? 0,
-          maximumFractionDigits: meta.precision ?? 8,
+          minimumFractionDigits: columnMeta.precision ?? 0,
+          maximumFractionDigits: columnMeta.precision ?? 8,
         })
       case UITypes.Date:
-        return dayjs(value as string).format(meta.date_format ?? 'YYYY-MM-DD')
+        return dayjs(value as string).format(columnMeta.date_format ?? 'YYYY-MM-DD')
       case UITypes.DateTime: {
         const date = dayjs(value as string)
-        const local = meta.timezone && isEeUI ? date.tz(meta.timezone) : date
-        return local.format(`${meta.date_format ?? 'YYYY-MM-DD'} ${meta.time_format ?? 'HH:mm'}`)
+        const local = columnMeta.timezone && isEeUI ? date.tz(columnMeta.timezone) : date
+        return local.format(`${columnMeta.date_format ?? 'YYYY-MM-DD'} ${columnMeta.time_format ?? 'HH:mm'}`)
       }
       default:
         return Number(value).toLocaleString()
     }
   }
 
-  /** `undefined` leaves the value as it is; `NaN` marks a result the field can't hold. */
-  function nextValue(edit: CmdRelativeEdit, column: ColumnType, prev: unknown): unknown {
-    if (edit.kind === 'number') {
-      const next = applyCmdNumberEdit(edit, prev)
-      if (next === undefined || Number.isNaN(next)) return next
-      if (column.uidt === UITypes.Number) return Math.round(next)
-      if (column.uidt === UITypes.Rating) {
-        const max = Number(parseProp(column.meta).max ?? 5)
-        return Math.min(max, Math.max(0, Math.round(next)))
+  /** Whether `edit` can apply to `column` at all (option and user edits also need a match). */
+  function accepts(edit: CmdRelativeEdit, column: ColumnType, meta?: TableType) {
+    const uidt = column.uidt as string
+    switch (edit.kind) {
+      case 'number':
+        if (edit.op === 'add' && edit.unit === 'stars') return uidt === UITypes.Rating
+        // A bare amount on a duration has no unit ("+30": seconds? minutes?); scaling does.
+        if (uidt === UITypes.Duration) return edit.op !== 'add'
+        if (uidt === UITypes.Year) return edit.op === 'add' && !edit.unit
+        return NUMERIC_UIDTS.includes(uidt)
+      case 'date': {
+        const isTimeUnit = edit.op === 'shift' && (edit.unit === 'hour' || edit.unit === 'minute')
+        if (uidt === UITypes.Date) return !isTimeUnit
+        if (uidt === UITypes.DateTime) return true
+        if (uidt === UITypes.Duration) return cmdShiftSeconds(edit) !== undefined
+        if (uidt === UITypes.Time) return isTimeUnit
+        if (uidt === UITypes.Year) return edit.op === 'shift' && edit.unit === 'year'
+        return false
       }
-      return next
+      case 'text':
+        if (edit.op === 'https') return uidt === UITypes.URL
+        if (edit.op === 'trim') return [...TEXT_UIDTS, UITypes.Email, UITypes.URL, UITypes.PhoneNumber].includes(uidt as UITypes)
+        return TEXT_UIDTS.includes(uidt)
+      case 'checkbox':
+        return uidt === UITypes.Checkbox
+      case 'select':
+        return uidt === UITypes.SingleSelect
+      case 'option':
+        return uidt === UITypes.MultiSelect && (edit.op === 'clear' || !!matchCmdName(edit.option, selectTitles(column)))
+      case 'user':
+        return uidt === UITypes.User && !!resolveUser(column, meta, edit.who)
+    }
+  }
+
+  /** `undefined` leaves the value as it is; `NaN` marks a result the field can't hold. */
+  function nextValue(edit: CmdRelativeEdit, column: ColumnType, prev: unknown, meta?: TableType): unknown {
+    const columnMeta = parseProp(column.meta)
+    const isEmpty = prev === null || prev === undefined || prev === ''
+
+    switch (edit.kind) {
+      case 'number': {
+        // An empty year isn't year 0.
+        if (column.uidt === UITypes.Year && isEmpty) return
+        const next = applyCmdNumberEdit(edit, prev)
+        if (next === undefined || Number.isNaN(next)) return next
+        if (column.uidt === UITypes.Number || column.uidt === UITypes.Year) return Math.round(next)
+        if (column.uidt === UITypes.Rating) {
+          const max = Number(columnMeta.max ?? 5)
+          return Math.min(max, Math.max(0, Math.round(next)))
+        }
+        if (column.uidt === UITypes.Decimal && columnMeta.precision !== undefined) {
+          return Number(next.toFixed(Number(columnMeta.precision)))
+        }
+        return next
+      }
+      case 'text':
+        return applyCmdTextEdit(edit, prev)
+      case 'checkbox':
+        return applyCmdCheckboxEdit(edit, prev)
+      case 'select':
+        return applyCmdSelectEdit(edit, prev, selectTitles(column))
+      case 'option': {
+        const option = edit.op === 'clear' ? undefined : matchCmdName(edit.option, selectTitles(column))
+        if (edit.op === 'clear') return isEmpty ? undefined : null
+        return applyCmdListEdit(edit.op, prev, option)
+      }
+      case 'user': {
+        const member = resolveUser(column, meta, edit.who)
+        if (!member) return
+        const current = userIds(column, meta, prev)
+        if (!parseProp(column.meta).is_multi) {
+          if (edit.op === 'add') return member.id
+          return current.includes(member.id!) ? null : undefined
+        }
+        return applyCmdListEdit(edit.op, current.join(','), member.id)
+      }
     }
 
-    if (prev === null || prev === undefined || prev === '') return
-    const meta = parseProp(column.meta)
+    // Date edits, by the field they land on.
+    if (column.uidt === UITypes.Duration) {
+      const seconds = cmdShiftSeconds(edit)
+      return seconds === undefined ? undefined : Math.max(0, (isEmpty ? 0 : Number(prev)) + seconds)
+    }
+    if (isEmpty) return
+    if (column.uidt === UITypes.Year) return Number(prev) + (edit.op === 'shift' ? edit.amount : 0)
+    if (column.uidt === UITypes.Time) {
+      const format = isMysql(column.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
+      return applyCmdTimeEdit(edit, parseTime(prev))?.format(format)
+    }
     if (column.uidt === UITypes.Date) return applyCmdDateEdit(edit, dayjs(prev as string))?.format('YYYY-MM-DD')
     // Date-times shift in the column's timezone and are stored as the cells store them.
     const date = dayjs(prev as string)
-    const local = meta.timezone && isEeUI ? date.tz(meta.timezone) : date
+    const local = columnMeta.timezone && isEeUI ? date.tz(columnMeta.timezone) : date
     return applyCmdDateEdit(edit, local)?.utc().format('YYYY-MM-DD HH:mm:ssZ')
   }
 
-  function title(edit: CmdRelativeEdit, column: ColumnType) {
+  function title(edit: CmdRelativeEdit, column: ColumnType, meta?: TableType) {
     const field = column.title
     const prefix = 'labels.commandPalette.relative'
     if (edit.kind === 'date') {
@@ -627,17 +810,60 @@ export function useRelativeEditCommands() {
         const span = t(`${prefix}.units.${edit.unit}`, { count: amount.toLocaleString() }, amount)
         return t(edit.amount < 0 ? `${prefix}.subtract` : `${prefix}.add`, { amount: span, field })
       }
-      if (edit.op === 'next-weekday') {
-        return t(`${prefix}.nextWeekday`, { field, weekday: dayjs().day(edit.weekday).format('dddd') })
+      if (edit.op === 'weekday') {
+        const key = edit.which === 'next' ? 'nextWeekday' : edit.which === 'this' ? 'thisWeekday' : 'lastWeekday'
+        return t(`${prefix}.${key}`, { field, weekday: dayjs().day(edit.weekday).format('dddd') })
       }
-      return t(`${prefix}.${edit.op === 'end-of' ? 'endOf' : 'startOf'}`, { field, period: t(`${prefix}.periods.${edit.unit}`) })
+      const unit = t(`${prefix}.periods.${edit.unit}`)
+      const period =
+        edit.offset > 0
+          ? t(`${prefix}.periodNext`, { period: unit })
+          : edit.offset < 0
+          ? t(`${prefix}.periodLast`, { period: unit })
+          : unit
+      return t(`${prefix}.${edit.op === 'end-of' ? 'endOf' : 'startOf'}`, { field, period })
+    }
+    if (edit.kind === 'text') {
+      switch (edit.op) {
+        case 'append':
+        case 'prepend':
+        case 'remove':
+          return t(`${prefix}.text.${edit.op}`, { text: truncate(edit.text), field })
+        case 'replace':
+          return t(`${prefix}.text.replace`, { from: truncate(edit.from), to: truncate(edit.to), field })
+        default:
+          return t(`${prefix}.text.${edit.op}`, { field })
+      }
+    }
+    if (edit.kind === 'checkbox') return t(`${prefix}.checkbox.${edit.op}`, { field })
+    if (edit.kind === 'select') return t(`${prefix}.select.${edit.op}`, { field })
+    if (edit.kind === 'option') {
+      if (edit.op === 'clear') return t(`${prefix}.option.clear`, { field })
+      return t(`${prefix}.option.${edit.op}`, { option: matchCmdName(edit.option, selectTitles(column)) ?? edit.option, field })
+    }
+    if (edit.kind === 'user') {
+      const member = resolveUser(column, meta, edit.who)
+      return t(`${prefix}.user.${edit.op}`, { user: member?.display_name || member?.email || edit.who, field })
     }
     switch (edit.op) {
-      case 'add':
-        return t(edit.amount < 0 ? `${prefix}.subtract` : `${prefix}.add`, {
-          amount: Math.abs(edit.amount).toLocaleString(),
-          field,
-        })
+      case 'add': {
+        const amount = Math.abs(edit.amount)
+        if (edit.unit) {
+          const key = `${prefix}.${edit.unit}.${edit.amount < 0 ? 'subtract' : 'add'}`
+          return t(key, { count: amount.toLocaleString(), field }, amount)
+        }
+        return t(edit.amount < 0 ? `${prefix}.subtract` : `${prefix}.add`, { amount: amount.toLocaleString(), field })
+      }
+      case 'round-nearest':
+        return t(`${prefix}.roundNearest`, { amount: edit.amount.toLocaleString(), field })
+      case 'at-least':
+        return t(`${prefix}.atLeast`, { amount: edit.amount.toLocaleString(), field })
+      case 'at-most':
+        return t(`${prefix}.atMost`, { amount: edit.amount.toLocaleString(), field })
+      case 'abs':
+      case 'floor':
+      case 'ceil':
+        return t(`${prefix}.${edit.op}`, { field })
       case 'percent':
         return t(edit.amount < 0 ? `${prefix}.decreasePercent` : `${prefix}.increasePercent`, {
           amount: Math.abs(edit.amount).toLocaleString(),
@@ -654,74 +880,134 @@ export function useRelativeEditCommands() {
     }
   }
 
-  return function relativeEditCommands(target: SetFieldTarget & { activeColumnId?: string }, query: string): CmdCommand[] {
-    const edit = parseCmdRelativeEdit(query)
-    if (!edit) return []
-
-    const kinds = edit.kind === 'number' ? NUMERIC_UIDTS : DATE_UIDTS
-    // Hours and minutes only make sense on date-times.
-    const needsTime = edit.kind === 'date' && edit.op === 'shift' && (edit.unit === 'hour' || edit.unit === 'minute')
+  /** Columns an edit targets: the named field, else the active one, else the first few visible. */
+  function targetColumns(edit: CmdRelativeEdit, target: RelativeEditTarget) {
     const candidates = target.columns.filter(
-      ({ column }) =>
-        kinds.includes(column.uidt!) && (!needsTime || column.uidt === UITypes.DateTime) && isSettableColumn(column, isAllowed),
+      ({ column }) => isSettableColumn(column, isAllowed, RELATIVE_ONLY_UIDTS) && accepts(edit, column, target.meta),
     )
-
-    let columns: ColumnType[]
     if (edit.field) {
       const words = edit.field.split(' ')
-      columns = candidates
+      return candidates
         .map(({ column }) => column)
         .filter((column) => {
-          const titleWords = (column.title ?? '').toLowerCase().split(/\s+/)
-          return words.every((word) => titleWords.some((titleWord) => titleWord.startsWith(word)))
+          const titleWords = (column.title ?? '')
+            .toLowerCase()
+            .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+            .split(/\s+/)
+          return words.every((word) => titleWords.some((titleWord) => cmdFieldWordMatches(word, titleWord)))
         })
+    }
+    const active = candidates.find(({ column }) => column.id === target.activeColumnId)
+    if (active) return [active.column]
+    const visible = candidates.filter(({ hidden }) => !hidden).map(({ column }) => column)
+    // A single field that takes the edit ("assign ann" with one User field) counts as known.
+    return (visible.length ? visible : candidates.map(({ column }) => column)).slice(0, RELATIVE_EDIT_MAX_FIELDS)
+  }
+
+  /** The field is known when the query names it, it's the selected cell's, or it's the only one that fits. */
+  function isKnownField(edit: CmdRelativeEdit, column: ColumnType, columns: ColumnType[], activeColumnId?: string) {
+    return !!edit.field || column.id === activeColumnId || columns.length === 1
+  }
+
+  function fillType(column: ColumnType): CmdFillType {
+    const uidt = column.uidt as string
+    if (NUMERIC_UIDTS.includes(uidt) || uidt === UITypes.Year) return 'number'
+    if (uidt === UITypes.Date || uidt === UITypes.DateTime) return 'date'
+    if (TEXT_UIDTS.includes(uidt)) return 'text'
+    if (uidt === UITypes.SingleSelect) return 'select'
+    return 'other'
+  }
+
+  /** Fits a filled number or date to the column as its cells store it; other values pass through. */
+  function fitFillValue(column: ColumnType, value: unknown, prev: unknown) {
+    if (value === undefined) return
+    const columnMeta = parseProp(column.meta)
+    if (typeof value === 'number') {
+      if (column.uidt === UITypes.Number || column.uidt === UITypes.Year) return Math.round(value)
+      if (column.uidt === UITypes.Rating) return Math.min(Number(columnMeta.max ?? 5), Math.max(0, Math.round(value)))
+      if (column.uidt === UITypes.Decimal && columnMeta.precision !== undefined) {
+        return Number(value.toFixed(Number(columnMeta.precision)))
+      }
+      return value
+    }
+    if (column.uidt === UITypes.DateTime && typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      // A filled day keeps the cell's time of day (else midnight), in the column's timezone.
+      const timezone = columnMeta.timezone && isEeUI ? (columnMeta.timezone as string) : undefined
+      const prevDate = prev === null || prev === undefined || prev === '' ? undefined : dayjs(prev as string)
+      const prevLocal = prevDate?.isValid() ? (timezone ? prevDate.tz(timezone) : prevDate) : undefined
+      const day = timezone ? dayjs.tz(value, timezone) : dayjs(value)
+      const local = prevLocal ? day.hour(prevLocal.hour()).minute(prevLocal.minute()).second(prevLocal.second()) : day
+      return local.utc().format('YYYY-MM-DD HH:mm:ssZ')
+    }
+    return value
+  }
+
+  /** "fill down", "number rows", "fill weekly from today": a range fills its column(s), checked rows the fitting fields. */
+  function fillCommands(target: RelativeEditTarget, fill: CmdFill): CmdCommand[] {
+    const prefix = 'labels.commandPalette.fill'
+    const candidates = target.columns.filter(({ column }) => isSettableColumn(column, isAllowed, RELATIVE_ONLY_UIDTS))
+    const accepting = candidates.filter(({ column }) => cmdFillAccepts(fill, fillType(column), selectTitles(column)))
+
+    let columns: ColumnType[]
+    if (target.fill === 'range') {
+      // A range over several columns only fills each of them down.
+      columns = candidates.length > 1 && fill.kind !== 'down' ? [] : accepting.map(({ column }) => column)
     } else {
-      const active = candidates.find(({ column }) => column.id === target.activeColumnId)
+      const active = accepting.find(({ column }) => column.id === target.activeColumnId)
       columns = active
         ? [active.column]
-        : candidates
+        : accepting
             .filter(({ hidden }) => !hidden)
             .map(({ column }) => column)
             .slice(0, RELATIVE_EDIT_MAX_FIELDS)
     }
 
-    const count = target.count ?? 1
     return columns.map((column): CmdCommand => {
-      const values = target.values(column)
-      const nexts = values.map((prev) => nextValue(edit, column, prev))
-      const invalid = nexts.some((next) => typeof next === 'number' && Number.isNaN(next))
-      const skipped = nexts.filter((next) => next === undefined).length
-      const firstIndex = nexts.findIndex((next) => next !== undefined)
-      const rowTitle = title(edit, column)
-      const preview = firstIndex < 0 ? dash : `${display(column, values[firstIndex])} → ${display(column, nexts[firstIndex])}`
+      const field = column.title
+      const prevs = target.values(column)
+      const values = cmdFillValues(fill, prevs, fillType(column), { options: selectTitles(column) }).map((value, i) =>
+        fitFillValue(column, value, prevs[i]),
+      )
+      const changed = values.flatMap((value, i) => (value === undefined ? [] : [i]))
+      const cells = changed.length
+      const firstValue = cells ? display(column, values[changed[0]!], target.meta) : dash
+      const lastValue = cells ? display(column, values[changed[cells - 1]!], target.meta) : dash
+      const rowTitle =
+        fill.kind === 'down'
+          ? t(`${prefix}.down`, { field })
+          : fill.kind === 'constant'
+          ? t(`${prefix}.with`, { field, value: firstValue })
+          : t(`${prefix}.title`, { field })
+      const preview = !cells
+        ? dash
+        : fill.kind === 'down' || fill.kind === 'constant'
+        ? t(`${prefix}.previewSame`, { value: firstValue, count: cells }, cells)
+        : t(`${prefix}.preview`, { from: firstValue, to: lastValue, count: cells }, cells)
+      // "fill 1..3" over six cells stops at 3; the rest stay as they are.
+      const beyondEnd = (fill.kind === 'number' || fill.kind === 'text') && fill.end !== undefined ? values.length - cells : 0
 
       const apply = () =>
-        target.save(column, (prev) => {
-          const next = nextValue(edit, column, prev)
-          return next === undefined ? prev : next
+        target.save(column, (prev, index) => {
+          const value = values[index ?? 0]
+          return value === undefined ? prev : value
         })
 
       return {
-        id: `relative-edit:${column.id}`,
+        id: `fill:${column.id}`,
         title: rowTitle,
         section: target.section,
         icon: { type: 'field', column },
         priority: CMD_PRIORITY.primary,
         lead: true,
-        value: count > 1 ? t('labels.commandPalette.relative.bulkPreview', { count, preview }, count) : preview,
-        hint: invalid
-          ? t('labels.commandPalette.relative.invalid')
-          : skipped && count > 1
-          ? t('labels.commandPalette.relative.emptySkipped', { count: skipped }, skipped)
-          : undefined,
-        error: invalid,
-        disabled: invalid || firstIndex < 0,
-        feedback: count > 1 ? undefined : target.feedback ?? t('labels.commandPalette.saved'),
+        value: preview,
+        hint: !cells ? t(`${prefix}.nothing`) : beyondEnd ? t(`${prefix}.beyondEnd`, { count: beyondEnd }, beyondEnd) : undefined,
+        disabled: !cells,
+        feedback: cells > 1 ? undefined : target.feedback ?? t('labels.commandPalette.saved'),
         run:
-          count > 1
+          cells > 1
             ? () =>
                 showWarningModal({
-                  title: t('labels.commandPalette.relative.confirmTitle', { count }, count),
+                  title: t('labels.commandPalette.relative.confirmTitle', { count: cells }, cells),
                   content: `${rowTitle} · ${preview}`,
                   showCancelBtn: true,
                   okText: t('general.update'),
@@ -732,5 +1018,68 @@ export function useRelativeEditCommands() {
             : apply,
       }
     })
+  }
+
+  return function relativeEditCommands(target: RelativeEditTarget, query: string): CmdCommand[] {
+    const fill = target.fill ? parseCmdFill(query) : undefined
+    if (fill) return fillCommands(target, fill)
+
+    const seen = new Set<string>()
+    const count = target.count ?? 1
+
+    return parseCmdRelativeEdits(query).flatMap((edit) =>
+      targetColumns(edit, target)
+        .filter((column) => !seen.has(column.id!) && seen.add(column.id!))
+        .map((column, _, columns): CmdCommand => {
+          const values = target.values(column)
+          const nexts = values.map((prev) => nextValue(edit, column, prev, target.meta))
+          const invalid = nexts.some((next) => typeof next === 'number' && Number.isNaN(next))
+          const skipped = nexts.filter((next) => next === undefined).length
+          const firstIndex = nexts.findIndex((next) => next !== undefined)
+          const rowTitle = title(edit, column, target.meta)
+          const preview =
+            firstIndex < 0
+              ? dash
+              : `${display(column, values[firstIndex], target.meta)} → ${display(column, nexts[firstIndex], target.meta)}`
+
+          const apply = () =>
+            target.save(column, (prev) => {
+              const next = nextValue(edit, column, prev, target.meta)
+              return next === undefined ? prev : next
+            })
+
+          return {
+            id: `relative-edit:${column.id}`,
+            title: rowTitle,
+            section: target.section,
+            icon: { type: 'field', column },
+            priority: CMD_PRIORITY.primary,
+            // An option/member match ("add urgent") may also be a command's name; it leads once its field is known.
+            lead: (edit.kind !== 'option' && edit.kind !== 'user') || isKnownField(edit, column, columns, target.activeColumnId),
+            value: count > 1 ? t('labels.commandPalette.relative.bulkPreview', { count, preview }, count) : preview,
+            hint: invalid
+              ? t('labels.commandPalette.relative.invalid')
+              : skipped && count > 1
+              ? t('labels.commandPalette.relative.emptySkipped', { count: skipped }, skipped)
+              : undefined,
+            error: invalid,
+            disabled: invalid || firstIndex < 0,
+            feedback: count > 1 ? undefined : target.feedback ?? t('labels.commandPalette.saved'),
+            run:
+              count > 1
+                ? () =>
+                    showWarningModal({
+                      title: t('labels.commandPalette.relative.confirmTitle', { count }, count),
+                      content: `${rowTitle} · ${preview}`,
+                      showCancelBtn: true,
+                      okText: t('general.update'),
+                      okCallback: async () => {
+                        await apply()
+                      },
+                    })
+                : apply,
+          }
+        }),
+    )
   }
 }

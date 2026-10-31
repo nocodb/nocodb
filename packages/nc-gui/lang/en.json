@@ -2083,6 +2083,19 @@
       "discardChanges": "Discard unsaved changes",
       "closeRecord": "Close record",
       "recordViewMode": "Switch record view…",
+      "data": {
+        "calculator": "Calculator",
+        "stats": "Stats",
+        "statOf": "{aggregation} of {field}",
+        "statCount": "Count",
+        "statWhere": "{stat} where {conditions}",
+        "statHidden": "Show {field} in this view to summarize it",
+        "me": "me",
+        "and": "and",
+        "createRecord": "Create record: {mapping}",
+        "missingRequired": "Required: {fields}",
+        "created": "Created"
+      },
       "relative": {
         "add": "Add {amount} to {field}",
         "subtract": "Subtract {amount} from {field}",
@@ -2096,6 +2109,56 @@
         "nextWeekday": "Move {field} to next {weekday}",
         "startOf": "Move {field} to start of {period}",
         "endOf": "Move {field} to end of {period}",
+        "thisWeekday": "Move {field} to this {weekday}",
+        "lastWeekday": "Move {field} to last {weekday}",
+        "periodNext": "next {period}",
+        "periodLast": "last {period}",
+        "roundNearest": "Round {field} to nearest {amount}",
+        "atLeast": "Raise {field} to at least {amount}",
+        "atMost": "Cap {field} at {amount}",
+        "abs": "Make {field} positive",
+        "floor": "Round {field} down",
+        "ceil": "Round {field} up",
+        "points": {
+          "add": "Add {count} point to {field} | Add {count} points to {field}",
+          "subtract": "Subtract {count} point from {field} | Subtract {count} points from {field}"
+        },
+        "stars": {
+          "add": "Add {count} star to {field} | Add {count} stars to {field}",
+          "subtract": "Remove {count} star from {field} | Remove {count} stars from {field}"
+        },
+        "text": {
+          "append": "Append “{text}” to {field}",
+          "prepend": "Prepend “{text}” to {field}",
+          "remove": "Remove “{text}” from {field}",
+          "replace": "Replace “{from}” with “{to}” in {field}",
+          "upper": "Uppercase {field}",
+          "lower": "Lowercase {field}",
+          "title": "Title-case {field}",
+          "capitalize": "Capitalize {field}",
+          "trim": "Trim {field}",
+          "https": "Add https:// to {field}"
+        },
+        "checkbox": {
+          "toggle": "Toggle {field}",
+          "check": "Check {field}",
+          "uncheck": "Uncheck {field}"
+        },
+        "select": {
+          "next": "Move {field} to next option",
+          "previous": "Move {field} to previous option",
+          "cycle": "Cycle {field} to next option"
+        },
+        "option": {
+          "add": "Add {option} to {field}",
+          "remove": "Remove {option} from {field}",
+          "toggle": "Toggle {option} in {field}",
+          "clear": "Clear {field}"
+        },
+        "user": {
+          "add": "Assign {user} to {field}",
+          "remove": "Unassign {user} from {field}"
+        },
         "units": {
           "minute": "{count} minute | {count} minutes",
           "hour": "{count} hour | {count} hours",
@@ -2113,6 +2176,15 @@
         "emptySkipped": "{count} empty skipped | {count} empty skipped",
         "invalid": "Result isn't a valid value",
         "confirmTitle": "Update {count} record? | Update {count} records?"
+      },
+      "fill": {
+        "title": "Fill {field}",
+        "down": "Fill {field} down",
+        "with": "Fill {field} with {value}",
+        "preview": "{from} → {to} · {count} cell | {from} → {to} · {count} cells",
+        "previewSame": "{value} · {count} cell | {value} · {count} cells",
+        "nothing": "Nothing to fill",
+        "beyondEnd": "{count} cell past the end left as is | {count} cells past the end left as is"
       },
       "undoNamed": "Undo: {action}",
       "redoNamed": "Redo: {action}",

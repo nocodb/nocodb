@@ -954,7 +954,34 @@ async function deleteCheckedRows() {
   for (const { path } of checkedRowGroups.value) await deleteSelectedRows(path)
 }
 
+let recheckTimer: ReturnType<typeof setInterval> | undefined
+
+function stopRecheck() {
+  if (recheckTimer) clearInterval(recheckTimer)
+  recheckTimer = undefined
+}
+
+/** A bulk save reloads the row caches; re-check the same records as they come back so another field can be set. */
+function keepChecked(pks: Set<string>) {
+  stopRecheck()
+  const until = Date.now() + 6000
+  let restored = false
+  recheckTimer = setInterval(() => {
+    const result = tableRef.value?.recheckRows?.(pks)
+    if (result?.checked) restored = true
+    else if (restored && result?.found === pks.size) return stopRecheck()
+    if (Date.now() > until) stopRecheck()
+  }, 150)
+}
+
+onBeforeUnmount(stopRecheck)
+
+function rowPk(row: Row) {
+  return String(extractPkFromRow(row.row, meta.value?.columns as ColumnType[]))
+}
+
 function clearCheckedRows() {
+  stopRecheck()
   if (isPaginatedGrid.value) {
     pSelectedAllRecords.value = false
     return
@@ -1087,9 +1114,13 @@ useCommandProvider(
           columns: allColumns(),
           values: (column) => rows.map((row) => row.row[column.title!]),
           section,
+          fill: 'rows',
           save: async (column, next) => {
-            for (const row of rows) row.row[column.title!] = next(row.row[column.title!])
+            const pks = new Set(rows.map(rowPk))
+            rows.forEach((row, index) => (row.row[column.title!] = next(row.row[column.title!], index)))
             await pBulkUpdateRows(rows, [column.title!])
+            // A reload replaces the page's rows; keep the same records checked.
+            for (const row of pData.value) if (pks.has(rowPk(row))) row.rowMeta.selected = true
           },
         }
         commands.push(...setFieldCommands(editTarget))
@@ -1134,7 +1165,18 @@ useCommandProvider(
     }
 
     // Same bulk path as the Update dialog, one call per group; "select all" has no loaded rows to update.
-    const groups = checkedRowGroups.value.map(({ path }) => ({ path, rows: getDataCache(path).selectedRows.value }))
+    // Groups and their rows in visual order, so fills ("number rows") run top to bottom.
+    const groups = checkedRowGroups.value
+      .map(({ path }) => ({
+        path,
+        rows: [...getDataCache(path).selectedRows.value].sort((a, b) => (a.rowMeta.rowIndex ?? 0) - (b.rowMeta.rowIndex ?? 0)),
+      }))
+      .sort((a, b) => {
+        for (let i = 0; i < Math.max(a.path.length, b.path.length); i++) {
+          if ((a.path[i] ?? -1) !== (b.path[i] ?? -1)) return (a.path[i] ?? -1) - (b.path[i] ?? -1)
+        }
+        return 0
+      })
 
     if (canEdit && !selectedAllRecords.value && isCanvasRendering.value) {
       editTarget = {
@@ -1143,11 +1185,15 @@ useCommandProvider(
         columns: allColumns(),
         values: (column) => groups.flatMap(({ rows }) => rows.map((row) => row.row[column.title!])),
         section,
+        fill: 'rows',
         save: async (column, next) => {
+          const pks = new Set(groups.flatMap(({ rows }) => rows.map(rowPk)))
+          let index = 0
           for (const { path, rows } of groups) {
-            for (const row of rows) row.row[column.title!] = next(row.row[column.title!])
+            for (const row of rows) row.row[column.title!] = next(row.row[column.title!], index++)
             await bulkUpdateRows(rows, [column.title!], undefined, path)
           }
+          keepChecked(pks)
         },
       }
       commands.push(...setFieldCommands(editTarget))

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type SortType, type TableType, UITypes, UITypesName, isColumnInError, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, type SortType, type TableType, UITypes, isColumnInError, isVirtualCol } from 'nocodb-sdk'
 
 // Local, status-tagged sort collection for a Lookup column — the sort analogue of
 // how LTAR limit-by-filter works: NOTHING is persisted here. The field editor
@@ -23,7 +23,7 @@ const props = defineProps<{
 
 const { internalGet } = useInternalBatch()
 const { base } = storeToRefs(useBase())
-const { t } = useI18n()
+const { t, te } = useI18n()
 
 const wsId = computed(() => base.value?.fk_workspace_id as string)
 const baseId = computed(() => base.value?.id as string)
@@ -55,7 +55,7 @@ const sortableColumns = computed<ColumnType[]>(() =>
         col.ncItemDisabled = true
         col.ncItemTooltip = isColumnInError(col)
           ? t('tooltip.sortingNotSupportedForFieldsWithErrors')
-          : t('tooltip.sortingNotSupportedForField', { type: UITypesName[col.uidt] })
+          : t('tooltip.sortingNotSupportedForField', { type: getColumnTypeI18nName(col, t, te) })
       }
       return col
     }),

@@ -21,6 +21,7 @@
   "web-types": "web-types.json",
   "scripts": {
     "dev": "nuxt dev",
+    "test:unit": "vitest run test",
     "lint": "eslint --ext \".js,.jsx,.ts,.tsx,.vue\" --fix --ignore-path .gitignore .",
     "preinstall": "npx only-allow pnpm",
     "postinstall": "nuxt prepare"
@@ -217,6 +218,7 @@
     "@types/tinycolor2": "^1.4.6",
     "@types/validator": "^13.12.2",
     "@types/vue-barcode-reader": "^0.0.3",
+    "@vitejs/plugin-vue": "^6.0.10",
     "@vitest/ui": "^4.1.1",
     "@vue/compiler-sfc": "^3.5.43",
     "@vue/test-utils": "^2.4.6",

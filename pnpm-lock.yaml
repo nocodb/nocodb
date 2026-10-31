@@ -806,6 +806,9 @@ importers:
       '@unocss/preset-wind3':
         specifier: ^66.7.5
         version: 66.7.5
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.10
+        version: 6.0.10(vite@8.2.4(@types/node@22.15.23)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.89.0)(terser@5.40.0)(yaml@2.9.0))(vue@3.5.43(typescript@5.8.3))
       '@vitest/ui':
         specifier: ~4.1.12
         version: 4.1.12(vitest@4.1.12)

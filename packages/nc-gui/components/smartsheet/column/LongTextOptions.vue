@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, UITypes, UITypesName, isAIPromptCol, substituteColumnIdWithAliasInPrompt } from 'nocodb-sdk'
+import { type ColumnType, UITypes, isAIPromptCol, substituteColumnIdWithAliasInPrompt } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: any
@@ -9,7 +9,7 @@ const emit = defineEmits(['update:modelValue', 'navigateToIntegrations'])
 
 const { appInfo } = useGlobal()
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 
 const meta = inject(MetaInj)!
 
@@ -210,7 +210,7 @@ const smartTextDisableReason = computed(() => {
   if (richMode.value) return t('labels.smartText.disableReason.mutuallyExclusiveRichText')
   if (isEnabledGenerateText.value) return t('labels.smartText.disableReason.mutuallyExclusiveAi')
   if (isPvColumn.value && !smartMode.value)
-    return t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: UITypesName.SmartText })
+    return t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: getUidtI18nName('SmartText', t, te) })
   return ''
 })
 
@@ -250,7 +250,7 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
         <template #title>
           {{
             isPvColumn && !richMode
-              ? $t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: UITypesName.RichText })
+              ? $t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: getUidtI18nName('RichText', t, te) })
               : smartMode
               ? $t('labels.smartText.richTextDisabledWhenSmart')
               : $t('labels.smartText.richTextDisabledWhenAi')
@@ -294,7 +294,7 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
               isSyncedField
                 ? $t('msg.info.cannotGenerateInSyncedField')
                 : isPvColumn && !isEnabledGenerateText
-                ? $t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: UITypesName.AIPrompt })
+                ? $t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: getUidtI18nName('AIPrompt', t, te) })
                 : $t('msg.info.generateTextNotSupportedWithRichText')
             }}</template
           >

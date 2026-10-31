@@ -113,7 +113,7 @@ const editDescription = toRef(props, 'editDescription')
 
 const { getMeta } = useMetas()
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 
 const { isMetaReadOnly } = useRoles()
 
@@ -377,7 +377,7 @@ const uiTypesOptions = computed<(UiTypesType & { disabled?: boolean; tooltip?: s
         disabled: isColumnTypeDisabled,
         tooltip:
           isColumnTypeDisabled && UITypesName[type.name]
-            ? t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: UITypesName[type.name] })
+            ? t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: getUidtI18nName(type.name, t, te) })
             : '',
       }
     })
@@ -728,7 +728,7 @@ const filterOption = (input: string, option: { value: UITypes }) => {
   delete searchBasisInfoMap.value[option.value]
 
   // Step 1: apply default filter
-  if (searchCompare([option.value, ...(UITypesName[option.value] ? [UITypesName[option.value]] : [])], input)) return true
+  if (searchCompare([option.value, UITypesName[option.value], getUidtI18nName(option.value, t, te)], input)) return true
 
   // Step 2: apply search basis options
   return searchCompare([...(UITypesSearchTerms[option.value as string] || [])], input, (matchKeyword) => {
@@ -1251,7 +1251,7 @@ const unique = computed({
                         'flex-1 min-w-0': !searchBasisInfoMap[opt.name],
                       }"
                     >
-                      <span class="truncate">{{ UITypesName[opt.name] }}</span>
+                      <span class="truncate">{{ getUidtI18nName(opt.name, t, te) }}</span>
                       <NcTooltip
                         v-if="
                           isEdit &&
@@ -1394,14 +1394,7 @@ const unique = computed({
         <div v-if="formState.meta && columnToValidate.includes(formState.uidt)" class="flex items-center gap-1">
           <NcSwitch v-model:checked="formState.meta.validate" size="small" class="nc-switch">
             <div class="text-sm text-nc-content-gray">
-              {{
-                `${$t('msg.acceptOnlyValid', {
-                  type:
-                    formState.uidt === UITypes.URL
-                      ? `${UITypesName[formState.uidt as UITypes]}s`
-                      : `${UITypesName[formState.uidt as UITypes]}s`.toLowerCase(),
-                })}`
-              }}
+              {{ $t('msg.acceptOnlyValid', { type: getUidtI18nName(formState.uidt, t, te) }) }}
             </div>
           </NcSwitch>
         </div>

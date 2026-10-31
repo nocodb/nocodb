@@ -1,7 +1,9 @@
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, UITypesName, isLinksOrLTAR } from 'nocodb-sdk'
+import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 import { parseCellWidth } from './cell'
 import type { CanvasGridColumn } from '~/lib/types'
+import { getI18n } from '~/plugins/a.i18n'
+import { getColumnTypeI18nName } from '~/utils/fieldTypeI18n'
 
 /**
  * Header drag-drop landing spot: the dragged field is inserted *after*
@@ -32,17 +34,8 @@ export function getDisplayValueDropSlot(columns: CanvasGridColumn[], scrollLeft:
 }
 
 export function columnTypeName(column: CanvasGridColumn) {
-  if (column?.columnObj.uidt === UITypes.LongText) {
-    if (parseProp(column?.columnObj?.meta)?.richMode) {
-      return UITypesName.RichText
-    }
-
-    if (parseProp(column.columnObj?.meta)?.[LongTextAiMetaProp]) {
-      return UITypesName.AIPrompt
-    }
-  }
-
-  return column.columnObj.uidt ? UITypesName[column.columnObj.uidt!] : ''
+  const { t, te } = getI18n().global
+  return getColumnTypeI18nName(column?.columnObj, t, te)
 }
 export function getCustomColumnTooltip({
   column,

@@ -2231,6 +2231,7 @@
         "share": "Share",
         "records": "records",
         "shareNeedsCondition": "Add a condition, e.g. “… where stage is won”",
+        "noValuesFor": "{field} has no values in this view",
         "groupedStat": "Per-group totals show in the group headers; group the view instead",
         "filtered": "Filter added",
         "sorted": "Sort added",

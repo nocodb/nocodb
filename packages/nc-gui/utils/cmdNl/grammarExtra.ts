@@ -1,7 +1,7 @@
 import { ChartScaled } from './chart'
 import { numberAt } from './extract'
 import type { CmdNlAssumption, CmdNlCmp, Cond, CondLeaf, Scalar } from './ir'
-import { CMD_NL_RATIO, isCondLeaf } from './ir'
+import { CMD_NL_RATIO, cmdNlPercentileText, isCondLeaf } from './ir'
 import { cmdNlLexAt } from './lexicon'
 import type { CmdNlCtx } from './procedural'
 import { fieldsOf, leafOf, numberField, pickField, systemField } from './procedural'
@@ -69,7 +69,7 @@ export const CMD_NL_VAGUE_NEEDS: Record<string, string> = Object.fromEntries([
   ...[...RECENT_WORDS, ...OLD_WORDS].map((w) => [w, 'a date field']),
   ...[...STALE_WORDS].map((w) => [w, 'a last-updated date field']),
   ...[...SOON_WORDS].map((w) => [w, 'a due or close date field']),
-  ...[...BIG_WORDS].map((w) => [w, 'a number field with loaded rows']),
+  ...[...BIG_WORDS].map((w) => [w, 'a number field']),
   ...[...URGENT_WORDS].map((w) => [w, 'a priority field']),
 ])
 
@@ -79,6 +79,12 @@ const SOON_DAYS = 14
 const LOW_STOCK = 10
 /** Percentile a vague size word means ("big deals": the top quarter). */
 const BIG_PERCENTILE = 0.75
+/** Priority levels on a number field with no scale. */
+const PRIORITY_PERCENTILE: Record<'urgent' | 'high' | 'low', ['gte' | 'lte', number]> = {
+  urgent: ['gte', 0.9],
+  high: ['gte', 0.75],
+  low: ['lte', 0.25],
+}
 
 const CREATED_HINTS = ['created', 'added', 'opened', 'submitted', 'joined', 'start', 'updated', 'modified', 'date']
 const AGE_HINTS = ['created', 'added', 'opened', 'submitted', 'joined', 'registered']
@@ -99,21 +105,6 @@ function hintedOnly(fields: CmdNlField[], hints: string[]): CmdNlField | undefin
   if (!picked) return
   const words = picked.title.toLowerCase().split(/\s+/)
   return hints.some((h) => words.some((w) => w.startsWith(h))) ? picked : undefined
-}
-
-function numbersOf(ctx: CmdNlCtx, field: CmdNlField): number[] {
-  return (ctx.rows ?? [])
-    .map((row) => row[field.title])
-    .filter((v) => v !== null && v !== undefined && v !== '')
-    .map(Number)
-    .filter(Number.isFinite)
-    .sort((a, b) => a - b)
-}
-
-/** The value at fraction `p` of the loaded values (nearest rank); undefined with too few rows to say. */
-function percentile(values: number[], p: number): number | undefined {
-  if (values.length < 4) return
-  return values[Math.min(values.length - 1, Math.ceil(p * values.length) - 1)]
 }
 
 const fmt = (n: number) => n.toLocaleString('en-US', { maximumFractionDigits: 2 })
@@ -158,14 +149,13 @@ function priorityCond(ctx: CmdNlCtx, level: 'urgent' | 'high' | 'low', field?: C
     return vague(target, options.length === 1 ? 'eq' : 'anyof', value, `${target.title} is ${options.join(' or ')}`, 'priority')
   }
   if (target.kind !== 'number') return
-  const values = numbersOf(ctx, target)
-  const max = target.max ?? values[values.length - 1]
-  const min = target.max ? 1 : values[0]
-  if (level === 'low') {
-    if (min === undefined) return
-    return vague(target, 'lte', min + 1, `${target.title} at most ${fmt(min + 1)}`, 'priority')
+  // Without a scale (a Rating's max), a level is a share of the records, resolved on the server.
+  const max = target.max
+  if (!max) {
+    const [cmp, p] = PRIORITY_PERCENTILE[level]
+    return vague(target, cmp, { percentile: p }, `${target.title} in the ${cmdNlPercentileText(cmp, p)}`, 'priority')
   }
-  if (max === undefined) return
+  if (level === 'low') return vague(target, 'lte', 2, `${target.title} at most 2`, 'priority')
   const bound = level === 'urgent' ? max : max - 1
   return vague(target, 'gte', bound, `${target.title} at least ${fmt(bound)}`, 'priority')
 }
@@ -254,10 +244,10 @@ export function addExtraTerminals(ctx: CmdNlCtx, words: string[], add: Add) {
       const top = w === 'top' && isNoun(next) && numberAt(tokens, i + 1) === undefined
       if (BIG_WORDS.has(w) || bigPair || top) {
         const field = numberField(ctx)
-        const bound = field ? percentile(numbersOf(ctx, field), BIG_PERCENTILE) : undefined
-        if (field && bound !== undefined) {
-          const text = `${field.title} at least ${fmt(bound)} (top quarter)`
-          add('VAGUE', i, bigPair ? i + 2 : i + 1, vague(field, 'gte', bound, text, 'threshold'), 0.85)
+        if (field) {
+          const text = `${field.title} in the ${cmdNlPercentileText('gte', BIG_PERCENTILE)}`
+          const value: Scalar = { percentile: BIG_PERCENTILE }
+          add('VAGUE', i, bigPair ? i + 2 : i + 1, vague(field, 'gte', value, text, 'threshold'), 0.85)
         }
       }
       if (URGENT_WORDS.has(w)) {

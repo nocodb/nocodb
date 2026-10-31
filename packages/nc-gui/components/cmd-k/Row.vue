@@ -88,7 +88,12 @@ function onMouseMove(e: MouseEvent) {
             remove-click
             source="command-palette"
           />
-          <GeneralIcon v-if="command.checked" icon="ncCheck" class="h-4 w-4 text-nc-content-brand" />
+          <GeneralIcon
+            v-if="command.checked"
+            icon="ncCheck"
+            class="h-4 w-4 text-nc-content-brand"
+            data-testid="nc-cmdk-row-checked"
+          />
           <GeneralShortcutLabel v-if="indexKey" :keys="[indexKey]" class="text-nc-content-gray-muted" />
           <GeneralShortcutLabel v-else-if="command.shortcut" :keys="command.shortcut" class="text-nc-content-gray-muted" />
           <template v-if="command.children && command.runFirst && command.run">

@@ -427,6 +427,7 @@ export interface ApiTokenCreateEvent extends Optional<NcBaseEvent, 'context'> {
   scopeCount?: number;
   permissionCategories?: string[];
   hasExpiry?: boolean;
+  ipAllowlistCount?: number;
 }
 
 export interface ApiTokenUpdateEvent extends Optional<NcBaseEvent, 'context'> {
@@ -436,6 +437,7 @@ export interface ApiTokenUpdateEvent extends Optional<NcBaseEvent, 'context'> {
   scopeCount?: number;
   permissionCategories?: string[];
   hasExpiry?: boolean;
+  ipAllowlistCount?: number;
 }
 
 export interface ApiTokenDeleteEvent extends Optional<NcBaseEvent, 'context'> {

@@ -8477,6 +8477,18 @@
                     "format": "date-time",
                     "description": "When the token stops working. Must be in the future. Honoured only on Cloud and licensed self-hosted deployments; elsewhere it is ignored and the token never expires.",
                     "example": "2026-12-30 15:17:24+00:00"
+                  },
+                  "ip_allowlist": {
+                    "type": "array",
+                    "maxItems": 50,
+                    "description": "IPv4/IPv6 addresses and CIDR ranges the token may be used from, at most 50. Entries are stored in canonical form. Omit or send an empty array for no restriction. Honoured only on Cloud and licensed self-hosted deployments.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": [
+                      "203.0.113.4",
+                      "10.0.0.0/8"
+                    ]
                   }
                 }
               },
@@ -8617,6 +8629,21 @@
                     "type": "boolean",
                     "description": "Whether the token is accepted. Disabling a token keeps it listed but stops it authenticating.",
                     "example": false
+                  },
+                  "ip_allowlist": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "maxItems": 50,
+                    "description": "Replaces the allowlist. Send null or an empty array to remove the restriction; omit to leave it untouched. Setting or extending one needs Cloud or a licensed self-hosted deployment; without a license an existing allowlist can still be cleared or have entries removed.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": [
+                      "203.0.113.4",
+                      "10.0.0.0/8"
+                    ]
                   }
                 }
               }
@@ -18188,6 +18215,32 @@
           "enabled": {
             "type": "boolean",
             "description": "Whether the token is currently accepted. Fine-grained tokens only.",
+            "example": true
+          },
+          "ip_allowlist": {
+            "type": "array",
+            "description": "IPv4/IPv6 addresses and CIDR ranges the token is accepted from, in canonical form. Absent when the token is unrestricted.",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "203.0.113.4",
+              "10.0.0.0/8"
+            ]
+          },
+          "self_lockout_warning": {
+            "type": "boolean",
+            "description": "Present on create / update responses when the caller's own IP is outside the allowlist just set. The write still succeeds.",
+            "example": true
+          },
+          "caller_ip": {
+            "type": "string",
+            "description": "The caller IP the server saw, returned with `self_lockout_warning`; IPv4-mapped IPv6 is given as plain IPv4. Behind a proxy it reflects `NC_TRUST_PROXY`: unset, it is the proxy's address.",
+            "example": "203.0.113.4"
+          },
+          "caller_ip_internal": {
+            "type": "boolean",
+            "description": "Present when `caller_ip` is a private or loopback address, as it is for every caller behind a proxy when `NC_TRUST_PROXY` is unset.",
             "example": true
           },
           "last_used_at": {

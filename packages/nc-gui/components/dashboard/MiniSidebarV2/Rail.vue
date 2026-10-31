@@ -7,6 +7,7 @@ interface NavItem {
   label: string
   disabled?: boolean
   active?: boolean
+  hasAlert?: boolean
   onClick?: () => void
 }
 
@@ -33,6 +34,12 @@ const { basesList, resolvedProject } = storeToRefs(basesStore)
 const sidebarStore = useSidebarStore()
 
 const { activeSidebarTab } = storeToRefs(sidebarStore)
+
+const { isReturnVisible, goBack: goBackFromSidebar } = useSidebarReturn()
+
+const { activeBaseWorkflows } = storeToRefs(useWorkflowStore())
+
+const hasFailedWorkflowRun = computed(() => activeBaseWorkflows.value.some((workflow) => isWorkflowFailing(workflow)))
 
 const openWorkspaceSettings = useWorkspaceSettingsLink()
 
@@ -148,6 +155,12 @@ const getBasePath = () => {
 
 const onTabClick = async (tabKey: string) => {
   if (isChatFullScreen.value) isChatFullScreen.value = false
+
+  // Arrived from a table's Automate or Agents popover: Data goes back to that table.
+  if (tabKey === 'data' && isReturnVisible.value) {
+    await goBackFromSidebar()
+    return
+  }
 
   if (tabKey === 'settings') {
     // Inside a base, base settings opens as a modal over the page — same route,
@@ -279,7 +292,8 @@ const mainItems = computed<NavItem[]>(() =>
               {
                 key: 'workflows',
                 icon: 'ncAutomation',
-                label: t('general.workflows'),
+                label: t('labels.railWorkflows'),
+                hasAlert: hasFailedWorkflowRun.value && activeSidebarTab.value !== 'workflows',
                 disabled:
                   !hasAvailableBases.value ||
                   !isUIAllowed('scriptList', {
@@ -386,6 +400,7 @@ const isSettingsActive = computed(() => isBaseSettingsOpen.value || !!wsSettings
         :panel-key="item.key"
         :active="item.active ?? (activeSidebarTab === item.key && !isChatFullScreen && !isBaseSettingsOpen)"
         :disabled="item.disabled"
+        :has-alert="item.hasAlert"
         @click="item.onClick?.()"
       />
     </DashboardMiniSidebarV2AppsMovedTip>
@@ -413,7 +428,7 @@ const isSettingsActive = computed(() => isBaseSettingsOpen.value || !!wsSettings
 
       <!-- Help -->
       <DashboardMiniSidebarHelp>
-        <DashboardMiniSidebarV2RailItem icon="ncHelp" :label="$t('general.help')" panel-key="help" is-dropdown />
+        <DashboardMiniSidebarV2RailItem icon="ncHelp" :tooltip="$t('general.help')" panel-key="help" is-dropdown />
       </DashboardMiniSidebarHelp>
     </div>
 
@@ -424,7 +439,6 @@ const isSettingsActive = computed(() => isBaseSettingsOpen.value || !!wsSettings
       <DashboardMiniSidebarV2RailItem
         icon="ncBookmark"
         :tooltip="$t('tooltip.bookmarks')"
-        :label="$t('labels.bookmarks')"
         :active="isBookmarksFlyoutOpen"
         is-dropdown
         data-testid="nc-rail-bookmarks"
@@ -443,7 +457,6 @@ const isSettingsActive = computed(() => isBaseSettingsOpen.value || !!wsSettings
       :trigger="['click']"
     >
       <DashboardMiniSidebarV2RailItem
-        :label="$t('labels.activity')"
         :tooltip="$t('labels.activity')"
         panel-key="notification"
         data-testid="nc-sidebar-notification-btn"

@@ -318,10 +318,10 @@ export class ViewsService {
           false,
           ncMeta,
         );
-        if (model?.synced) {
-          NcError.get(context).badRequest(
-            'Allow sync cannot be enabled on a synced table',
-          );
+        const blockedReason =
+          model && (await this.allowSyncBlockedReason(model, ncMeta));
+        if (blockedReason) {
+          NcError.get(context).badRequest(blockedReason);
         }
         if (!oldView.uuid) {
           autoShareView = true;
@@ -510,6 +510,17 @@ export class ViewsService {
     }
 
     return safeResult;
+  }
+
+  /** Why `allow_sync` (exposing the view as a table-sync source) is refused
+   *  for this table, or null. EE narrows it to table-sync destinations. */
+  protected async allowSyncBlockedReason(
+    model: Model,
+    _ncMeta?: MetaService,
+  ): Promise<string | null> {
+    return model.synced
+      ? 'Allow sync cannot be enabled on a synced table'
+      : null;
   }
 
   protected assertViewDeletable(

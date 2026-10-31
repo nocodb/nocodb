@@ -19,9 +19,20 @@ export function createCoalescer<T>(opts: {
   /** Two items with the same key are the same subject — the later one wins. */
   key: (item: T) => string;
   flush: (items: T[]) => void | Promise<void>;
-}): { add: (item: T) => void } {
+}): { add: (item: T) => void; flush: () => Promise<void> } {
   const pending = new Map<string, T>();
   let timer: ReturnType<typeof setTimeout> | undefined;
+
+  const flush = async () => {
+    clearTimeout(timer);
+    timer = undefined;
+    if (!pending.size) return;
+
+    const items = [...pending.values()];
+    pending.clear();
+
+    await opts.flush(items);
+  };
 
   return {
     add(item: T) {
@@ -29,17 +40,12 @@ export function createCoalescer<T>(opts: {
 
       if (timer) return;
 
-      timer = setTimeout(() => {
-        timer = undefined;
-
-        const items = [...pending.values()];
-        pending.clear();
-
-        void opts.flush(items);
-      }, opts.delayMs);
+      timer = setTimeout(() => void flush(), opts.delayMs);
 
       // Never hold the process open for pending work.
       timer.unref?.();
     },
+    /** Hands over what is pending now rather than after the delay. */
+    flush,
   };
 }

@@ -4,6 +4,7 @@ import type { UserType } from 'nocodb-sdk';
 import { extractApiTokenListQuery } from '~/helpers/apiTokenListQuery';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { ApiToken } from '~/models';
+import { withParsedIpAllowlist } from '~/helpers/ipAllowlist';
 
 @Injectable()
 export class OrgTokensEeService {
@@ -31,7 +32,9 @@ export class OrgTokensEeService {
     const { limit, offset } = extractApiTokenListQuery(param.query);
 
     return new PagedResponseImpl(
-      await ApiToken.listWithCreatedBy({ ...filters, limit, offset }),
+      withParsedIpAllowlist(
+        await ApiToken.listWithCreatedBy({ ...filters, limit, offset }),
+      ),
       {
         limit,
         offset,

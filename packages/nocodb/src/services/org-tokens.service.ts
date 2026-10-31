@@ -3,6 +3,7 @@ import { AppEvents, extractRolesObj, OrgUserRoles } from 'nocodb-sdk';
 import type { User } from '~/models';
 import type { ApiTokenReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import { withParsedIpAllowlist } from '~/helpers/ipAllowlist';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -25,12 +26,14 @@ export class OrgTokensService {
       : undefined;
 
     return new PagedResponseImpl(
-      await ApiToken.listWithCreatedBy({
-        ...param.query,
-        fk_user_id,
-        includeUnmappedToken,
-        ssoClientId,
-      }),
+      withParsedIpAllowlist(
+        await ApiToken.listWithCreatedBy({
+          ...param.query,
+          fk_user_id,
+          includeUnmappedToken,
+          ssoClientId,
+        }),
+      ),
       {
         ...param.query,
         count: await ApiToken.count({

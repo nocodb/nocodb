@@ -166,6 +166,7 @@ enum AuditV1OperationTypes {
   API_TOKEN_DELETE = 'API_TOKEN_DELETE',
   API_TOKEN_CREATE = 'API_TOKEN_CREATE',
   API_TOKEN_UPDATE = 'API_TOKEN_UPDATE',
+  API_TOKEN_IP_BLOCKED = 'API_TOKEN_IP_BLOCKED',
 
   BASE_DUPLICATE = 'BASE_DUPLICATE',
   BASE_DUPLICATE_ERROR = 'BASE_DUPLICATE_ERROR',
@@ -1249,6 +1250,8 @@ export interface FieldDeletePayload {
 export interface APITokenCreatePayload {
   token_id: string;
   token_title: string;
+  /** Present when the token was created with an IP allowlist. */
+  ip_allowlist_count?: number;
 }
 
 export interface APITokenDeletePayload {
@@ -1262,6 +1265,13 @@ export interface APITokenUpdatePayload {
   scope_count?: number;
   permission_categories?: string[];
   has_expiry?: boolean;
+  /** Entries after the update when the allowlist changed; 0 = removed. */
+  ip_allowlist_count?: number;
+}
+
+export interface APITokenIpBlockedPayload {
+  token_id: string;
+  token_prefix?: string;
 }
 
 export interface SharedBasePayload {

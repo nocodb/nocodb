@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+  <rect x="2" y="10" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.05" />
+  <rect x="6" y="2" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.05" />
+  <rect x="10" y="10" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.05" />
+  <path d="M8 6V7C8 7.55228 7.55228 8 7 8H5C4.44772 8 4 8.44772 4 9V10" stroke="currentColor" stroke-width="1.05" />
+  <path d="M8 6V7C8 7.55228 8.44772 8 9 8H11C11.5523 8 12 8.44772 12 9V10" stroke="currentColor" stroke-width="1.05" />
+</svg>

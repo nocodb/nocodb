@@ -73,6 +73,8 @@ export const upsertCachedRows = (
       // Comment counts load after the rows, so the fresh row has none yet.
       existing.rowMeta = {
         ...item.rowMeta,
+        // The legacy grid keys rows on it; dropping it remounts the row.
+        new: existing.rowMeta?.new,
         selected: existing.rowMeta?.selected,
         commentCount: item.rowMeta.commentCount ?? existing.rowMeta?.commentCount,
       }

@@ -71,9 +71,8 @@ export const EXTERNAL_SOURCE_TOTAL_ROWS = 200
 
 export const EXTERNAL_SOURCE_VISIBLE_ROWS = 100
 
-export const MINI_SIDEBAR_WIDTH = 48
-
-export const NEW_MINI_SIDEBAR_WIDTH = 64
+/** Matches `--mini-sidebar-width`. */
+export const MINI_SIDEBAR_WIDTH = 54
 
 export const NC_CLOUD_URL = 'https://app.nocodb.com'
 

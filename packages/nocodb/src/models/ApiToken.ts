@@ -27,6 +27,9 @@ export default class ApiToken implements ApiTokenType {
   token?: string;
   expiry?: string;
   enabled?: boolean;
+  // JSON-encoded array of IPv4/IPv6 addresses and CIDR ranges. Null/empty =
+  // unrestricted. Enforced in the EE authtoken strategy.
+  ip_allowlist?: string | null;
 
   constructor(audit: Partial<ApiToken | ApiTokenType>) {
     Object.assign(this, audit);
@@ -78,6 +81,7 @@ export default class ApiToken implements ApiTokenType {
     'token_prefix',
     'expiry',
     'enabled',
+    'ip_allowlist',
     'last_used_at',
     'created_at',
     'updated_at',
@@ -235,6 +239,7 @@ export default class ApiToken implements ApiTokenType {
         `${MetaTable.API_TOKENS}.token_prefix`,
         `${MetaTable.API_TOKENS}.expiry`,
         `${MetaTable.API_TOKENS}.enabled`,
+        `${MetaTable.API_TOKENS}.ip_allowlist`,
         `${MetaTable.API_TOKENS}.last_used_at`,
       )
       .select(

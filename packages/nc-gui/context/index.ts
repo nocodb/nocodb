@@ -411,6 +411,9 @@ export const InterfaceRecordSidebarInj: InjectionKey<InterfaceRecordSidebarApi |
  */
 export const IsInterfaceRecordSurfaceInj: InjectionKey<boolean> = Symbol('is-interface-record-surface')
 
+/** Interface record DETAIL sheet (read-only or inline edit), not a submit form. */
+export const IsInterfaceRecordDetailInj: InjectionKey<Ref<boolean>> = Symbol('is-interface-record-detail')
+
 /**
  * Kanban surface theme for interface-mounted kanbans. Provided by the interface
  * hosts (EE) from the kanban viz config; undefined outside interface pages —

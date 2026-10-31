@@ -461,6 +461,11 @@ function getWorkflowPendingRetry(
   }
 }
 
+/** A live workflow whose latest (non-skipped) run failed. Paused and never-published
+ *  workflows don't run, so an old failure doesn't flag them. */
+const isWorkflowFailing = (workflow: Pick<WorkflowType, 'nodes' | 'enabled' | 'last_run'>) =>
+  !!(workflow.nodes as unknown[] | undefined)?.length && !!workflow.enabled && workflow.last_run?.status === 'error'
+
 const getWorkflowExecutionStatusDisplay = (
   execution?: Pick<IWorkflowExecution, 'status' | 'control' | 'execution_data' | 'resume_at' | 'workflow_data'> | null,
 ): WorkflowExecutionStatusDisplay => {
@@ -566,6 +571,7 @@ function getWorkflowLoops(nodes: Pick<Node, 'id' | 'type'>[], edges: Pick<Edge, 
 export {
   getWorkflowLoops,
   getWorkflowNodeIconClass,
+  isWorkflowFailing,
   getWorkflowExecutionStatusDisplay,
   formatWorkflowResumeTime,
   formatWorkflowDuration,

@@ -1,3 +1,6 @@
+import { EventType } from '~/lib/realtime';
+import type { BaseSocketPayload } from '~/lib/realtime';
+
 export enum RoadmapStatus {
   TRIAGE = 'triage',
   BACKLOG = 'backlog',
@@ -763,6 +766,125 @@ export interface RoadmapMuteByTokenResult {
   itemTitle: string;
   muted: boolean;
 }
+
+/**
+ * The two socket rooms. A room payload is presented for an anonymous viewer of
+ * its audience; users whose own view differs get a personal copy on their
+ * `user:<id>` room instead.
+ */
+export type RoadmapRealtimeAudience = Exclude<RoadmapAudience, 'public'>;
+
+export function roadmapRealtimeRoom(audience: RoadmapRealtimeAudience) {
+  return `${EventType.ROADMAP_EVENT}:${audience}`;
+}
+
+export enum RoadmapRealtimeAction {
+  ITEM = 'item',
+  VOTES = 'votes',
+  COMMENT = 'comment',
+  LABELS = 'labels',
+  COUNTS = 'counts',
+  /** Personal: the receiving user's follow and mute state. */
+  VIEWER = 'viewer',
+  /** Personal: the receiving user's roadmap profile. */
+  ME = 'me',
+  /** Staff only. */
+  IMPACT = 'impact',
+  /** Customers only: a pseudonym was replaced. */
+  HANDLE = 'handle',
+}
+
+interface RoadmapRealtimeBase extends BaseSocketPayload {
+  /** Who the payload was presented for; a client drops item, vote and comment payloads of the other audience. */
+  audience: RoadmapRealtimeAudience;
+  /** Server clock in µs, read before the snapshot; a client drops anything older than what it applied for the same key. */
+  version: number;
+}
+
+export interface RoadmapRealtimeItemEvent extends RoadmapRealtimeBase {
+  action: RoadmapRealtimeAction.ITEM;
+  itemId: string;
+  /** Null once the item is deleted or this audience can no longer see it. */
+  item: RoadmapItemDetail | null;
+  /** The item before the change, null if this audience couldn't see it. Absent when the change can't move it between lists. */
+  previous?: RoadmapItemCard | null;
+  /** Entries the change wrote, as this audience sees them. */
+  activity?: RoadmapActivity[];
+}
+
+export interface RoadmapRealtimeVotesEvent extends RoadmapRealtimeBase {
+  action: RoadmapRealtimeAction.VOTES;
+  itemId: string;
+  /** Real votes plus the staff adjustment, floored at 0; a viewer who voted shows at least 1. */
+  votes: number;
+  /** Staff only. */
+  realVotes?: number;
+  voteAdjustment?: number;
+  /** Staff only: the voter, null once they unvoted. */
+  voter?: { userId: string; entry: RoadmapVoter | null };
+  /** Personal copies only. */
+  voted?: boolean;
+}
+
+export interface RoadmapRealtimeCommentEvent extends RoadmapRealtimeBase {
+  action: RoadmapRealtimeAction.COMMENT;
+  itemId: string;
+  commentId: string;
+  /** Null once deleted, or hidden from this audience. Carries its replies only after a hide or unhide. */
+  comment: RoadmapComment | null;
+  commentCount: number;
+  activity?: RoadmapActivity[];
+}
+
+export interface RoadmapRealtimeLabelsEvent extends RoadmapRealtimeBase {
+  action: RoadmapRealtimeAction.LABELS;
+  labels: RoadmapLabel[];
+}
+
+/** Each view and section is versioned on its own: a push carries only some of them. */
+export type RoadmapCountsPatch = Partial<RoadmapBootstrap['counts']>;
+
+export interface RoadmapRealtimeCountsEvent extends RoadmapRealtimeBase {
+  action: RoadmapRealtimeAction.COUNTS;
+  counts: RoadmapCountsPatch;
+  /** Set on a TEAM count: it holds only for a panel open on this workspace. */
+  workspaceId?: string;
+}
+
+export interface RoadmapRealtimeViewerEvent extends RoadmapRealtimeBase {
+  action: RoadmapRealtimeAction.VIEWER;
+  itemId: string;
+  subscribed: boolean;
+  muted: boolean;
+}
+
+export interface RoadmapRealtimeMeEvent extends RoadmapRealtimeBase {
+  action: RoadmapRealtimeAction.ME;
+  me: Partial<RoadmapBootstrap['me']>;
+}
+
+export interface RoadmapRealtimeImpactEvent extends RoadmapRealtimeBase {
+  action: RoadmapRealtimeAction.IMPACT;
+  itemId: string;
+  impact: RoadmapImpact;
+}
+
+export interface RoadmapRealtimeHandleEvent extends RoadmapRealtimeBase {
+  action: RoadmapRealtimeAction.HANDLE;
+  from: string;
+  to: string;
+}
+
+export type RoadmapRealtimePayload =
+  | RoadmapRealtimeItemEvent
+  | RoadmapRealtimeVotesEvent
+  | RoadmapRealtimeCommentEvent
+  | RoadmapRealtimeLabelsEvent
+  | RoadmapRealtimeCountsEvent
+  | RoadmapRealtimeViewerEvent
+  | RoadmapRealtimeMeEvent
+  | RoadmapRealtimeImpactEvent
+  | RoadmapRealtimeHandleEvent;
 
 export function roadmapIdentifier(number: number) {
   return `RM-${number}`;

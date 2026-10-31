@@ -44,6 +44,8 @@ const handleValueUpdate = (value: any) => {
 
 const tableList = computedAsync(async () => {
   let tables: TableType[]
+  // Read before the first await so a new filter function re-runs the list.
+  const filterTable = props.filterTable
 
   if (props.baseId) {
     await tableStore.loadProjectTables(props.baseId, props.forceLoadBaseTables)
@@ -52,8 +54,8 @@ const tableList = computedAsync(async () => {
     tables = activeTables.value || []
   }
 
-  if (props.filterTable) {
-    tables = tables.filter(props.filterTable)
+  if (filterTable) {
+    tables = tables.filter(filterTable)
   }
 
   return tables.map((table) => {

@@ -31141,6 +31141,21 @@
             "type": "string",
             "nullable": true
           },
+          "last_run": {
+            "description": "Latest run of the workflow (runs the trigger filtered out are ignored); list responses only",
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "status": {
+                "type": "string",
+                "description": "Run status"
+              },
+              "at": {
+                "type": "string",
+                "description": "When the run was created"
+              }
+            }
+          },
           "updated_at": {
             "type": "string",
             "description": "Last updated time"

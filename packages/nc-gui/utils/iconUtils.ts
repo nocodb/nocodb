@@ -363,6 +363,7 @@ import NcTableOutlineIcon from '~icons/nc-icons-v2/table-outline.svg'
 import NcTableFilledIcon from '~icons/nc-icons-v2/table-filled.svg'
 import NcTableIcon from '~icons/nc-icons-v2/nc-table.svg'
 import NcAutomationsFilledIcon from '~icons/nc-icons-v2/automations-filled.svg'
+import NcAutomationsLightIcon from '~icons/nc-icons-v2/automations-light.svg'
 import NcGitlabIcon from '~icons/nc-icons-v2/gitlab.svg'
 import NcSmartphoneIcon from '~icons/nc-icons-v2/smartphone.svg'
 import NcMoreHorizontalIcon from '~icons/nc-icons-v2/more-horizontal.svg'
@@ -1537,6 +1538,7 @@ export const iconMap = {
   'ncTableOutline': NcTableOutlineIcon,
   'ncTableFilled': h(NcTableFilledIcon, { stroke: 'transparent' }),
   'ncAutomationsFilled': h(NcAutomationsFilledIcon, { stroke: 'transparent' }),
+  'ncAutomationsLight': NcAutomationsLightIcon,
   'ncGitlab': NcGitlabIcon,
   'ncSmartphone': NcSmartphoneIcon,
   'ncMoreHorizontal': NcMoreHorizontalIcon,

@@ -308,6 +308,16 @@ const FEATURES = [
     isEngineering: true,
     isEE: true,
   },
+  {
+    // id is persisted in localStorage and drives FEATURE_FLAG — renaming it
+    // would silently reset the toggle for anyone who had it on.
+    id: 'api_token_ip_allowlist',
+    title: 'API token IP allowlist',
+    description: 'Restrict API tokens to specific IP addresses or CIDR ranges.',
+    enabled: false,
+    version: 1,
+    isEE: true,
+  },
 ] as const
 
 // Retired flags: FEATURES entries commented out above, but kept in FEATURE_FLAG

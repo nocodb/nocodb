@@ -108,10 +108,23 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       }, {} as Record<string, ColumnType>)
     })
 
+    // Interface page adapter — when present, every base-scoped LTAR call in
+    // this store re-routes through the page-scoped internal ops: interface
+    // collaborators may hold no base role, so the raw endpoints 403 with
+    // empty roles. Builders in the same tree take the identical route (the
+    // ops clear the plain ACL for base roles too).
+    const interfaceDataApi = inject(InterfacePageDataInj, undefined)
+
+    // --- Chunked cache for virtual scroll ---
+    // Interface pages page 25 at a time, like the interface's own linked-record reads.
+    const CHUNK_SIZE = interfaceDataApi ? 25 : 10
+    const MAX_CACHE_SIZE = 50
+    const ROW_HEIGHT = 56
+
     const childrenExcludedListPagination = reactive({
       page: 1,
       query: '',
-      size: 10,
+      size: CHUNK_SIZE,
     })
 
     const childrenExcludedOffsetCount = ref(0)
@@ -119,7 +132,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const childrenListPagination = reactive({
       page: 1,
       query: '',
-      size: 10,
+      size: CHUNK_SIZE,
     })
 
     const childrenListOffsetCount = ref(0)
@@ -135,11 +148,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const isChildrenExcludedLoading = ref(false)
 
     const isChildrenExcludedListLinked = ref<Array<boolean>>([])
-
-    // --- Chunked cache for virtual scroll ---
-    const CHUNK_SIZE = 10
-    const MAX_CACHE_SIZE = 50
-    const ROW_HEIGHT = 56
 
     // Excluded list (unlinked items) cache
     const excludedCachedRows = ref<Map<number, Record<string, any>>>(new Map())
@@ -190,13 +198,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const { t } = useI18n()
 
     const isPublic: Ref<boolean> = inject(IsPublicInj, ref(false))
-
-    // Interface page adapter — when present, every base-scoped LTAR call in
-    // this store re-routes through the page-scoped internal ops: interface
-    // collaborators may hold no base role, so the raw endpoints 403 with
-    // empty roles. Builders in the same tree take the identical route (the
-    // ops clear the plain ACL for base roles too).
-    const interfaceDataApi = inject(InterfacePageDataInj, undefined)
 
     // Record-form field element hosting this cell — picker calls carry its
     // addressing so the server applies the ELEMENT's link-record selection,
@@ -387,60 +388,52 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return row.value.row[displayValueProp.value]
     })
 
-    const attachmentCol = computedInject(
-      FieldsInj,
-      (_fields) => {
-        return (relatedTableMeta.value?.columns ?? []).filter((col) => isAttachment(col))[0]
-      },
-      ref([]),
-    )
+    const attachmentCol = computed(() => {
+      return (relatedTableMeta.value?.columns ?? []).filter((col) => isAttachment(col))[0]
+    })
 
-    const fields = computedInject(
-      FieldsInj,
-      (_fields) => {
-        const colOptions = (column.value?.colOptions as LinkToAnotherRecordType) || {}
-        const hasCustomDisplayValue = !!colOptions.fk_display_value_column_id
+    const fields = computed(() => {
+      const colOptions = (column.value?.colOptions as LinkToAnotherRecordType) || {}
+      const hasCustomDisplayValue = !!colOptions.fk_display_value_column_id
 
-        const filteredFields = (relatedTableMeta.value?.columns ?? []).filter((col) => {
-          // Hide the custom display value column from extra fields since it's already shown as the primary display
-          if (hasCustomDisplayValue && col.id === colOptions.fk_display_value_column_id) return false
+      const filteredFields = (relatedTableMeta.value?.columns ?? []).filter((col) => {
+        // Hide the custom display value column from extra fields since it's already shown as the primary display
+        if (hasCustomDisplayValue && col.id === colOptions.fk_display_value_column_id) return false
 
-          // Hiding lookup field from dropdown as we don't send lookup field info in list response due to performance reasons
-          return !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col) && !isLookup(col)
-        })
+        // Hiding lookup field from dropdown as we don't send lookup field info in list response due to performance reasons
+        return !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col) && !isLookup(col)
+      })
 
-        // Resolve a stable sort order for each extra field:
-        //   1. the target view's column order — authoritative when loaded
-        //   2. else the field's default-view order — always present on meta
-        // Public views never load target-view columns, so they use (2). Cross-base
-        // links can also end up with no target-view columns (they load from the
-        // external base and may come back empty), and without a fallback every
-        // field resolved to Infinity — `Infinity - Infinity` is NaN, which makes
-        // Array.sort bail and surface raw table-creation order (the reported
-        // "notes / model / old-values on top instead of the display fields" bug).
-        const fieldOrder = (col: ColumnType) => {
-          const viewOrder = isPublic.value ? undefined : targetViewColumnsById.value[col.id!]?.order
-          return viewOrder ?? col.meta?.defaultViewColOrder ?? Infinity
-        }
+      // Resolve a stable sort order for each extra field:
+      //   1. the target view's column order — authoritative when loaded
+      //   2. else the field's default-view order — always present on meta
+      // Public views never load target-view columns, so they use (2). Cross-base
+      // links can also end up with no target-view columns (they load from the
+      // external base and may come back empty), and without a fallback every
+      // field resolved to Infinity — `Infinity - Infinity` is NaN, which makes
+      // Array.sort bail and surface raw table-creation order (the reported
+      // "notes / model / old-values on top instead of the display fields" bug).
+      const fieldOrder = (col: ColumnType) => {
+        const viewOrder = isPublic.value ? undefined : targetViewColumnsById.value[col.id!]?.order
+        return viewOrder ?? col.meta?.defaultViewColOrder ?? Infinity
+      }
 
-        const sortedFields = filteredFields.sort((a, b) => {
-          const diff = fieldOrder(a) - fieldOrder(b)
-          return Number.isNaN(diff) ? 0 : diff
-        })
+      const sortedFields = filteredFields.sort((a, b) => {
+        const diff = fieldOrder(a) - fieldOrder(b)
+        return Number.isNaN(diff) ? 0 : diff
+      })
 
-        // When a custom display value is set, prepend the original PV as the first extra field
-        // so it's guaranteed to be present regardless of the slice limit below.
-        if (hasCustomDisplayValue) {
-          const pvCol = (relatedTableMeta.value?.columns ?? []).find(
-            (c) => isPrimary(c) && !isSystemColumn(c) && !isLinksOrLTAR(c) && !isAttachment(c) && !isLookup(c),
-          )
-          if (pvCol) sortedFields.unshift(pvCol)
-        }
+      // When a custom display value is set, prepend the original PV as the first extra field
+      // so it's guaranteed to be present regardless of the slice limit below.
+      if (hasCustomDisplayValue) {
+        const pvCol = (relatedTableMeta.value?.columns ?? []).find(
+          (c) => isPrimary(c) && !isSystemColumn(c) && !isLinksOrLTAR(c) && !isAttachment(c) && !isLookup(c),
+        )
+        if (pvCol) sortedFields.unshift(pvCol)
+      }
 
-        return sortedFields.slice(0, isMobileMode.value ? 1 : 3)
-      },
-      ref([]),
-    )
+      return sortedFields.slice(0, isMobileMode.value ? 1 : 3)
+    })
 
     const fieldsToLoad = computed(() => {
       return [
@@ -620,6 +613,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       // is in flight the response is discarded rather than overwriting the newer
       // search's results.
       const req = excludedSearch.track()
+      let claimsFirstChunk = false
       try {
         let offset =
           childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1) - childrenExcludedOffsetCount.value
@@ -628,6 +622,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           offset = 0
           childrenExcludedOffsetCount.value = 0
           childrenExcludedListPagination.page = 1
+        }
+
+        // This page IS chunk 0 — claim it so the picker's own chunk-0 fetch on mount skips.
+        if (offset === 0 && !excludedChunkStates.value[0]) {
+          excludedChunkStates.value[0] = 'loading'
+          claimsFirstChunk = true
         }
         isChildrenExcludedLoading.value = true
         const where = getWhereClause(childrenExcludedListPagination.query)
@@ -774,7 +774,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             excludedLinkedState.value.set(index, isChildrenExcludedListLinked.value[index] || false)
             excludedLoadingState.value.set(index, false)
           })
-          if (childrenExcludedList.value.list.length > 0) {
+          if (claimsFirstChunk || childrenExcludedList.value.list.length > 0) {
             excludedChunkStates.value[0] = 'loaded'
           }
           if (childrenExcludedList.value.pageInfo?.totalRows != null) {
@@ -796,6 +796,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         // one clearing it would falsely end the current search's loading state.
         if (req.isCurrent()) {
           isChildrenExcludedLoading.value = false
+          // Failed: release the claim so a later chunk fetch can retry.
+          if (claimsFirstChunk && excludedChunkStates.value[0] === 'loading') excludedChunkStates.value[0] = undefined
         }
       }
     }
@@ -807,6 +809,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       // is in flight the response is discarded rather than overwriting the newer
       // search's results.
       const req = childrenSearch.track()
+      let claimsFirstChunk = false
 
       try {
         isChildrenLoading.value = true
@@ -819,6 +822,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           childrenListPagination.page = 1
         } else if (offset >= childrenListCount.value) {
           offset = 0
+        }
+
+        // This page IS chunk 0 — claim it so the list's own chunk-0 fetch on mount skips.
+        if (offset === 0 && !childrenChunkStates.value[0]) {
+          childrenChunkStates.value[0] = 'loading'
+          claimsFirstChunk = true
         }
 
         if (isNewRow?.value || !rowId.value) {
@@ -834,9 +843,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             list,
             pageInfo: {
               isFirstPage: true,
-              isLastPage: list.length <= 10,
+              isLastPage: list.length <= CHUNK_SIZE,
               page: 1,
-              pageSize: 10,
+              pageSize: CHUNK_SIZE,
               totalRows: list.length,
             },
           }
@@ -940,7 +949,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             childrenCachedLinkedState.value.set(index, true)
             childrenCachedLoadingState.value.set(index, false)
           })
-          if (childrenList.value.list.length > 0) {
+          if (claimsFirstChunk || childrenList.value.list.length > 0) {
             childrenChunkStates.value[0] = 'loaded'
           }
           if (childrenList.value.pageInfo?.totalRows != null) {
@@ -953,6 +962,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         // Only the request matching the active id owns the loading flag.
         if (req.isCurrent()) {
           isChildrenLoading.value = false
+          // Failed: release the claim so a later chunk fetch can retry.
+          if (claimsFirstChunk && childrenChunkStates.value[0] === 'loading') childrenChunkStates.value[0] = undefined
         }
       }
 

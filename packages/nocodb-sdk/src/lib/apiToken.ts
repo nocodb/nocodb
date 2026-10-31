@@ -152,6 +152,64 @@ export interface ApiTokenScopeEntry {
 
 export const API_TOKEN_PREFIX = 'nc_pat_';
 
+// Maximum number of IP / CIDR entries allowed on a single token's allowlist.
+export const MAX_API_TOKEN_IP_ALLOWLIST = 50;
+
+/**
+ * Normalize a raw IP allowlist input into a clean list of entries.
+ * Accepts a string (comma / newline / whitespace separated) or an array.
+ * Trims, drops empties, and de-duplicates while preserving order.
+ * Pure string handling only — actual IP/CIDR validity is checked on the backend.
+ */
+export function normalizeIpAllowlist(
+  input?: string | string[] | null
+): string[] {
+  if (!input) return [];
+  const parts = Array.isArray(input)
+    ? input
+    : typeof input === 'string'
+    ? input.split(/[\s,]+/)
+    : [];
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const raw of parts) {
+    if (typeof raw !== 'string') continue;
+    const entry = raw.trim();
+    if (!entry || seen.has(entry)) continue;
+    seen.add(entry);
+    result.push(entry);
+  }
+  return result;
+}
+
+const IPV4_OCTET = '(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)';
+const IPV4_RE = new RegExp(`^${IPV4_OCTET}(?:\\.${IPV4_OCTET}){3}$`);
+
+function isIpv6(value: string): boolean {
+  if (!value.includes(':') || /[^0-9a-fA-F:.]/.test(value)) return false;
+  try {
+    new URL(`http://[${value}]/`);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Client-side check for one allowlist entry: a dotted-quad IPv4 or an IPv6
+ * address, optionally with a CIDR prefix. The backend stays authoritative.
+ */
+export function isValidIpAllowlistEntry(entry: string): boolean {
+  const [addr, prefix, ...rest] = entry.split('/');
+  if (rest.length) return false;
+
+  const isV4 = IPV4_RE.test(addr);
+  if (!isV4 && !isIpv6(addr)) return false;
+  if (prefix === undefined) return true;
+
+  return /^\d{1,3}$/.test(prefix) && Number(prefix) <= (isV4 ? 32 : 128);
+}
+
 // Preset permission configurations for UI
 export const API_TOKEN_PERMISSION_PRESETS = {
   readOnly: {

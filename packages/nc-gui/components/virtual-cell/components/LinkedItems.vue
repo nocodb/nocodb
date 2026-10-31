@@ -369,19 +369,21 @@ watch(expandedFormDlg, () => {
    displayed
  */
 const skeletonCount = computed(() => {
-  if (props.items < 10 && childrenListPagination.page === 1) {
+  const pageSize = childrenListPagination.size
+
+  if (props.items < pageSize && childrenListPagination.page === 1) {
     return props.items
   }
 
-  if (childrenListCount.value < 10 && childrenListPagination.page === 1) {
-    return childrenListCount.value || 10
+  if (childrenListCount.value < pageSize && childrenListPagination.page === 1) {
+    return childrenListCount.value || pageSize
   }
-  const totalRows = Math.ceil(childrenListCount.value / 10)
+  const totalRows = Math.ceil(childrenListCount.value / pageSize)
 
   if (totalRows === childrenListPagination.page) {
-    return childrenListCount.value % 10
+    return childrenListCount.value % pageSize
   }
-  return 10
+  return pageSize
 })
 
 const totalItemsToShow = computed(() => {

@@ -7,6 +7,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
 import { ApiToken } from '~/models';
+import { withParsedIpAllowlist } from '~/helpers/ipAllowlist';
 
 @Injectable()
 export class ApiTokensService {
@@ -16,13 +17,12 @@ export class ApiTokensService {
     // Check if user logged in via SSO
     const ssoClientId = (param.req.user as any)?.extra?.sso_client_id;
 
-    if (ssoClientId) {
-      // User logged in via SSO - show both SSO and normal tokens
-      return await ApiToken.list(param.userId);
-    } else {
-      // User logged in normally - only show non-SSO tokens
-      return await ApiToken.listForNonSsoUser(param.userId);
-    }
+    // SSO sessions see SSO and normal tokens; others only non-SSO tokens.
+    const tokens = ssoClientId
+      ? await ApiToken.list(param.userId)
+      : await ApiToken.listForNonSsoUser(param.userId);
+
+    return withParsedIpAllowlist(tokens);
   }
   async apiTokenCreate(param: {
     userId: string;

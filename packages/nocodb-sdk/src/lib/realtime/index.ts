@@ -46,6 +46,7 @@ export enum EventType {
   COLLAB_SYNC_EVENT = 'event-collab-sync',
   CREDIT_EVENT = 'event-credit',
   AGENT_EVENT = 'event-agent',
+  ROADMAP_EVENT = 'event-roadmap',
 }
 
 /** Client→server socket events for collaborative doc editing (binary Yjs frames). */

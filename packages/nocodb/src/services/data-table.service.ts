@@ -63,6 +63,7 @@ export class DataTableService {
       query: any;
       viewId?: string;
       ignorePagination?: boolean;
+      limitOverride?: number;
       apiVersion?: NcApiVersion;
       includeSortAndFilterColumns?: boolean;
       getHiddenColumns?: boolean;

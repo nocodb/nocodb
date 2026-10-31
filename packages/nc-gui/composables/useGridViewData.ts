@@ -317,7 +317,7 @@ export function useGridViewData(
 
     // Nothing in these caches: the paginated table or the non-canvas group-by renders this view.
     if (!isGridCacheInUse(isGroupBy.value ? groupChunkStates.value : chunkStates.value)) {
-      reloadViewDataHook?.trigger()
+      reloadViewDataHook?.trigger({ shouldShowLoading: false })
       return
     }
 

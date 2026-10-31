@@ -1236,6 +1236,9 @@ importers:
       ioredis-mock:
         specifier: 8.9.0
         version: 8.9.0(@types/ioredis-mock@8.2.6(ioredis@5.6.1))(ioredis@5.6.1)
+      ipaddr.js:
+        specifier: ^2.1.0
+        version: 2.2.0
       is-docker:
         specifier: ^2.2.1
         version: 2.2.1

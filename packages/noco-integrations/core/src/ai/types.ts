@@ -283,10 +283,36 @@ export function resolveReasoningEffort(
  *   gpt-5.2/5.3/5.4/5.5 (+ -mini/-nano): none | low | medium | high | xhigh (no minimal)
  *   gpt-5.6 (sol/terra/luna): none | low | medium | high | xhigh | max (no minimal) —
  *     adds a genuine ceiling above xhigh, so `max` claims it and `high` shifts to xhigh
+ *   gpt-6.x sol         : low | medium | high | xhigh | max (no none/minimal)
+ *   gpt-6.x terra/luna  : none | low | medium | high | xhigh | max (no minimal)
  *   gpt-5 (Aug-2025)    : minimal | low | medium | high     (no none/xhigh)
  *   gpt-5-mini/-nano, o-series, gpt-4o/4.1: no configurable effort → omitted
  */
 export const OPENAI_REASONING_TABLE: ReasoningModelTable = [
+  {
+    // GPT-6.x Sol: low | medium | high | xhigh | max (no none).
+    match: /^gpt-6(?:\.\d+)?-sol/,
+    efforts: {
+      off: 'low',
+      minimal: 'low',
+      low: 'low',
+      medium: 'medium',
+      high: 'xhigh',
+      max: 'max',
+    },
+  },
+  {
+    // GPT-6.x Terra / Luna: none | low | medium | high | xhigh | max.
+    match: /^gpt-6/,
+    efforts: {
+      off: 'none',
+      minimal: 'low',
+      low: 'low',
+      medium: 'medium',
+      high: 'xhigh',
+      max: 'max',
+    },
+  },
   {
     // GPT-5.x Pro: medium | high | xhigh only.
     match: /^gpt-5\.\d.*pro/,

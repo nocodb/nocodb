@@ -1669,6 +1669,9 @@ watch(containerWidth, () => {
 onMounted(async () => {
   try {
     isViewDataLoading.value = true
+    // Measure the window first — the 800px fallback slice would load a second
+    // window as soon as the real width lands.
+    calculateStackSlice()
     await loadVisibleStacks()
 
     nextTick(() => {

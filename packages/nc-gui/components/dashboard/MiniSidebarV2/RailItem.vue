@@ -12,6 +12,8 @@ interface Props {
   /** Hide the left-side active indicator bar and active background */
   plainActive?: boolean
   panelKey?: string
+  /** A red dot on the icon: something here needs attention. */
+  hasAlert?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -24,32 +26,28 @@ const props = withDefaults(defineProps<Props>(), {
   isDropdown: false,
   plainActive: false,
   panelKey: undefined,
+  hasAlert: false,
 })
 
 const emits = defineEmits<{
   (e: 'click'): void
 }>()
 
-const slots = useSlots()
+// Rail spellings (labels.rail*) carry a zero-width space so long words wrap; keep it out of the tooltip and aria-label.
+const plainLabel = computed(() => props.label.replace(/\u200B/g, ''))
 
-/**
- * Experiment: rail labels off — icons only, tooltips carry the names.
- * TODO: cleanup — drop this flag and the label path (span, `label` slot,
- * `.nc-rail-item-label` styles) once the rail design is settled.
- */
-const showRailLabels = false
-
-const tooltipText = computed(() => props.tooltip || props.label)
+const tooltipText = computed(() => props.tooltip || plainLabel.value)
 
 const currentIcon = computed(() => {
   if (props.active && props.activeIcon) return props.activeIcon
   return props.icon
 })
 
+// The label already names the item, so only a tooltip that says more is shown.
 const isTooltipDisabled = computed(() => {
   if (!tooltipText.value || props.disableTooltip) return true
 
-  return showRailLabels && !!(props.label || slots.label)
+  return tooltipText.value === plainLabel.value
 })
 
 // A real click, so a wrapping dropdown trigger opens too.
@@ -86,9 +84,11 @@ function onActivateKey(e: KeyboardEvent) {
             <GeneralIcon v-if="currentIcon" :icon="(currentIcon as any)" class="nc-rail-item-icon" />
           </slot>
         </template>
+
+        <span v-if="hasAlert" class="nc-rail-item-alert" />
       </span>
 
-      <span v-if="showRailLabels && (label || $slots.label)" class="nc-rail-item-label">
+      <span v-if="label || $slots.label" class="nc-rail-item-label">
         <slot name="label">{{ label }}</slot>
       </span>
     </div>
@@ -97,7 +97,7 @@ function onActivateKey(e: KeyboardEvent) {
 
 <style lang="scss" scoped>
 .nc-rail-item {
-  @apply flex flex-col items-center justify-center cursor-pointer transition-all duration-150 outline-none;
+  @apply flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all duration-150 outline-none;
 
   &:focus-visible .nc-rail-item-chip {
     @apply shadow-focus;
@@ -109,9 +109,14 @@ function onActivateKey(e: KeyboardEvent) {
   // The hover/active fill lives on this chip rather than the whole item, so it
   // hugs the icon instead of boxing in the label beneath it.
   .nc-rail-item-chip {
-    @apply flex items-center justify-center rounded-lg transition-all duration-150;
+    @apply relative flex items-center justify-center rounded-lg transition-all duration-150;
     width: 32px;
     height: 32px;
+  }
+
+  .nc-rail-item-alert {
+    @apply absolute top-[5px] right-[5px] w-1.5 h-1.5 rounded-full pointer-events-none;
+    background: var(--nc-content-red-medium);
   }
 
   // Idle state. Kept on a token rather than an rgba literal so every dark
@@ -120,8 +125,9 @@ function onActivateKey(e: KeyboardEvent) {
     @apply text-nc-content-gray-muted;
   }
 
+  // Centred on the chip, not the item, whose midpoint the label drags down.
   .nc-rail-item-indicator {
-    @apply absolute left-0 top-1/2 transform -translate-y-1/2 w-[4px] h-[22px] opacity-0 pointer-events-none rounded-r-[3px];
+    @apply absolute left-0 top-[16px] transform -translate-y-1/2 w-[4px] h-[22px] opacity-0 pointer-events-none rounded-r-[3px];
     @apply bg-nc-content-brand;
     transition: opacity 0.2s;
   }
@@ -137,8 +143,13 @@ function onActivateKey(e: KeyboardEvent) {
     @apply h-[13px] w-[13px];
   }
 
+  // The rail's full 53px content box, not the 40px item, so a bold "Roadmap" (44.3px) stays on
+  // one line. Longer words break at their marked break, or the locale's hyphenation, then anywhere.
   .nc-rail-item-label {
-    @apply select-none text-captionXsBold leading-tight tracking-tight hidden;
+    @apply select-none text-captionXsBold leading-tight tracking-tight text-center;
+    width: 53px;
+    hyphens: auto;
+    overflow-wrap: anywhere;
   }
 
   // One step down from the active label, so the selected item reads as the
@@ -202,11 +213,11 @@ function onActivateKey(e: KeyboardEvent) {
 
   // Touch primary input: the 40x32 target clears WCAG 2.5.8 (AA, 24px) but not
   // 2.5.5 (AAA, 44px) or the Apple/Material minimums, which only matters for
-  // fingers. Grow the target, not the icon. The rail stays one width — 46px
-  // leaves a 45px content box, so 44 fits without a second rail size.
+  // fingers. Grow the target, not the icon. The rail stays one width — 54px
+  // leaves a 53px content box, so 44 fits without a second rail size.
   @media (pointer: coarse) {
     width: 44px;
-    height: 44px;
+    min-height: 44px;
 
     .nc-rail-item-chip {
       width: 40px;
@@ -214,7 +225,7 @@ function onActivateKey(e: KeyboardEvent) {
     }
 
     .nc-rail-item-indicator {
-      @apply h-[24px];
+      @apply h-[24px] top-[20px];
     }
   }
 }

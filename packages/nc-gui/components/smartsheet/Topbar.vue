@@ -9,7 +9,7 @@ const { activeScriptId } = storeToRefs(useScriptStore())
 
 const { activeDashboardId, isEditingDashboard } = storeToRefs(useDashboardStore())
 
-const { activeWorkflowId, activeWorkflowHasDraftChanges } = storeToRefs(useWorkflowStore())
+const { activeWorkflowId } = storeToRefs(useWorkflowStore())
 
 const { activeAgentId } = storeToRefs(useAgentStore())
 
@@ -44,7 +44,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
 <template>
   <div
     :class="{
-      'bg-nc-bg-brand': isEditingDashboard || activeWorkflowHasDraftChanges,
+      'bg-nc-bg-brand': isEditingDashboard,
     }"
     class="nc-table-topbar py-2 border-b-1 border-nc-border-gray-medium flex gap-3 items-center justify-between overflow-hidden relative h-[var(--topbar-height)] max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(px-2) xs:(px-1)"
     style="z-index: 7"
@@ -60,6 +60,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         }"
       >
         <GeneralOpenLeftSidebarBtn />
+        <SmartsheetTopbarSidebarReturn v-if="!isPublic && !isSharedBase" />
         <LazySmartsheetToolbarViewInfo
           v-if="!isPublic && !activeScriptId && !activeDashboardId && !activeWorkflowId && !activeAgentId"
         />
@@ -84,6 +85,32 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
         <!-- isEeUI, not appInfo.ee: presence ships on unlicensed on-prem too, where appInfo.ee is false. -->
         <LazySmartsheetTopbarCollaboratorPresence v-if="!isPublic && !isSharedBase && !isMobileMode && isEeUI" />
+
+        <SmartsheetTopbarAutomate
+          v-if="
+            !isPublic &&
+            !isSharedBase &&
+            !isMobileMode &&
+            isEeUI &&
+            !activeScriptId &&
+            !activeDashboardId &&
+            !activeWorkflowId &&
+            !activeAgentId
+          "
+        />
+
+        <SmartsheetTopbarAgents
+          v-if="
+            !isPublic &&
+            !isSharedBase &&
+            !isMobileMode &&
+            isEeUI &&
+            !activeScriptId &&
+            !activeDashboardId &&
+            !activeWorkflowId &&
+            !activeAgentId
+          "
+        />
 
         <LazySmartsheetTopbarHistory v-if="!isSharedBase && !isMobileMode && isEeUI" />
 

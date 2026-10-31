@@ -6,6 +6,7 @@ import {
   getAvailableRollupForUiType,
   isLinksOrLTAR,
   isRollupAggregatableColumn,
+  isRollupFormula,
   UITypes,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
@@ -433,7 +434,8 @@ async function rollupSourceIncompatible(
   opt: RollupColumn | undefined,
   ncMeta: MetaService,
 ): Promise<boolean> {
-  if (!opt?.fk_rollup_column_id) return false;
+  // a formula rollup is type-checked by its re-typing handler
+  if (!opt?.fk_rollup_column_id || isRollupFormula(opt)) return false;
   const source = await Column.get(
     ctx,
     { colId: opt.fk_rollup_column_id },
@@ -675,7 +677,8 @@ export async function applySourceTypeChange(
     const entry = await loadEntry(ctx, dep, ncMeta);
     if (!entry) continue;
     const opt = await entry.col.getColOptions<RollupColumn>(ncMeta);
-    if (!opt) continue;
+    // a formula rollup is re-typed by its own handler
+    if (!opt || isRollupFormula(opt)) continue;
     if (strict && !isRollupSourceCompatible(source, opt.rollup_function)) {
       if (!opt.error) {
         await markErrored(

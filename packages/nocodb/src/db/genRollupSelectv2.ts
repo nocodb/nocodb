@@ -502,6 +502,16 @@ export default async function genRollupSelectv2(param: {
           if (softDeleteFilter) {
             qb.where(softDeleteFilter);
           }
+          if (column) {
+            await extractLinkRelFiltersAndApply({
+              qb,
+              column,
+              alias: refTableAlias,
+              table: parentBaseModel.model,
+              baseModel: parentBaseModel,
+              context: parentBaseModel.context,
+            });
+          }
           return { qb };
         }
         const qb = knex(

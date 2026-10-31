@@ -1,4 +1,5 @@
 import {
+  NC_ERROR_SENTINEL,
   RelationTypes,
   UITypes,
   dateFormats,
@@ -587,6 +588,8 @@ export const getTextAreaValue = (modelValue: string | null, col: ColumnType) => 
 }
 
 export const getRollupValue = (modelValue: string | null | number, params: ParsePlainCellValueProps['params']) => {
+  if (modelValue === NC_ERROR_SENTINEL) return 'ERR!'
+
   const { col, meta, metas } = params
 
   const colOptions = col.colOptions as RollupType

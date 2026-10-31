@@ -7,6 +7,7 @@ import {
   getViewAndModelByAliasOrId,
   validateV1V2DataPayloadLimit,
 } from '~/helpers/dataHelpers';
+import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Model, Source } from '~/models';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
@@ -45,7 +46,6 @@ export class BulkDataAliasService {
     return await baseModel[param.operation].apply(null, param.options);
   }
 
-  // todo: Integrate with filterArrJson bulkDataUpdateAll
   @TraceCommand(OperationName.recordBulkInsert)
   async bulkDataInsert(
     context: NcContext,
@@ -87,7 +87,6 @@ export class BulkDataAliasService {
     });
   }
 
-  // todo: Integrate with filterArrJson bulkDataUpdateAll
   @TraceCommand(OperationName.recordBulkUpdate)
   async bulkDataUpdate(
     context: NcContext,
@@ -121,7 +120,10 @@ export class BulkDataAliasService {
     });
   }
 
-  // todo: Integrate with filterArrJson bulkDataUpdateAll
+  // `internalFlags` marks a system sweep (sync), which is not the user's to undo.
+  @TraceCommand((_ctx, param) =>
+    param?.internalFlags ? null : OperationName.recordBulkUpdateAll,
+  )
   async bulkDataUpdateAll(
     context: NcContext,
     param: PathParams & {
@@ -134,11 +136,17 @@ export class BulkDataAliasService {
       };
     },
   ) {
+    // filterArrJson scopes the update like list/count do; a malformed value fails closed.
+    const filterArr = parseFilterArrJson(
+      context,
+      param.query?.filterArrJson,
+      'bulk update',
+    );
     return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkUpdateAll',
       options: [
-        param.query,
+        { ...param.query, ...(filterArr ? { filterArr } : {}) },
         param.body,
         {
           cookie: param.cookie,

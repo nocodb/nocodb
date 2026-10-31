@@ -1755,7 +1755,8 @@ export default class Column<T = any> implements ColumnType {
     if (!skipFormulaInvalidate) {
       // invalidate formula/button parsed-tree in which current column is used
       // whenever a new request comes for that formula, it will be populated again
-      getFormulasReferredTheColumn(
+      // (awaited: the dependency handlers that run next re-derive these trees)
+      await getFormulasReferredTheColumn(
         context,
         {
           column: updatedColumn,

@@ -37,6 +37,7 @@ import {
   getRollupModifier,
   hasFreeRollupValues,
   isRollupFormula,
+  MAX_ROLLUP_AGGREGATES,
   ROLLUP_VALUES_KEYWORD,
   RollupAggregate,
   RollupModifier,
@@ -1564,15 +1565,33 @@ export async function validateFormulaAndExtractTreeWithType({
     }
     // TODO: better jsep expression handling
     const result = await validateAndExtract(parsedFormula);
-    if (rollup && !extractRollupAggregates(result).length) {
-      throw new FormulaError(
-        FormulaErrorType.INVALID_ARG,
-        {},
-        'A rollup formula must aggregate `values`, e.g. SUM(values)'
-      );
+    if (rollup) {
+      const aggregateCount = extractRollupAggregates(result).length;
+      if (!aggregateCount) {
+        throw new FormulaError(
+          FormulaErrorType.INVALID_ARG,
+          {},
+          'A rollup formula must aggregate `values`, e.g. SUM(values)'
+        );
+      }
+      // each aggregate is a subquery run for every row read
+      if (aggregateCount > MAX_ROLLUP_AGGREGATES) {
+        throw new FormulaError(
+          FormulaErrorType.INVALID_ARG,
+          {},
+          `A rollup formula can use at most ${MAX_ROLLUP_AGGREGATES} aggregates, found ${aggregateCount}`
+        );
+      }
     }
     return result;
   } catch (ex) {
+    if (ex instanceof RangeError) {
+      ex = new FormulaError(
+        FormulaErrorType.INVALID_SYNTAX,
+        {},
+        'The formula is too long or too deeply nested'
+      );
+    }
     if (trackPosition) {
       handleFormulaError({ formula, error: ex });
     }

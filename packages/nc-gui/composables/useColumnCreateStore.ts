@@ -363,12 +363,14 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           errorMsg.startsWith('Invalid formula'))
       if (!isFormulaError) return
 
-      if (!validateInfos.formula_raw) validateInfos.formula_raw = {}
-      validateInfos.formula_raw!.validateStatus = 'error'
-      if (!validateInfos.formula_raw?.help) {
-        validateInfos.formula_raw!.help = []
+      // a formula rollup reports on its own formula input
+      const errorField = getColumnUpdateErrorField(formState.value)
+      if (!validateInfos[errorField]) validateInfos[errorField] = {}
+      validateInfos[errorField]!.validateStatus = 'error'
+      if (!validateInfos[errorField]?.help) {
+        validateInfos[errorField]!.help = []
       }
-      validateInfos.formula_raw?.help.push(errorMsg)
+      validateInfos[errorField]?.help.push(errorMsg)
     }
 
     const addOrUpdate = async (

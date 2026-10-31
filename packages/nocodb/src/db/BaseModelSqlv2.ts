@@ -8956,7 +8956,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         : 'YYYY-MM-DD HH:mm:ssZ';
 
     for (const col of dateTimeColumns) {
-      if (!d[col.id]) continue;
+      // an errored cell keeps its sentinel (not "Invalid Date")
+      if (!d[col.id] || d[col.id] === NC_ERROR_SENTINEL) continue;
       // a date-time rollup result can still be a date-only value (MIN of a
       // date rollup): only rewrite the date-time parts, as for formulas
       if (

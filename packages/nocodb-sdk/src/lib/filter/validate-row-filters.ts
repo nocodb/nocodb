@@ -12,11 +12,7 @@ import { buildFilterTree } from '~/lib/filterHelpers';
 import { parseProp } from '~/lib/helperFunctions';
 import UITypes, { isBtLikeV2Junction } from '~/lib/UITypes';
 import { FormulaDataTypes } from '~/lib/formula/enums';
-import {
-  getRollupResultUidt,
-  isRollupFormula,
-  rollupFormulaResultUidt,
-} from '~/lib/formula/rollupFormula';
+import { getRollupResultUidt } from '~/lib/formula/rollupFormula';
 import { getLookupColumnType } from '~/lib/columnHelper/utils/get-lookup-column-type';
 import { getNodejsTimezone } from '~/lib/timezoneUtils';
 import { ColumnHelper } from '~/lib/columnHelper/column-helper';
@@ -149,9 +145,9 @@ export class RowFilterValidator {
     baseId?: string;
   }): UITypes {
     const { column, columns, metas, baseId } = params;
+    const resultUidt = getRollupResultUidt(column);
+    if (resultUidt) return resultUidt;
     const colOptions = column.colOptions as any;
-    if (isRollupFormula(colOptions))
-      return rollupFormulaResultUidt(colOptions.parsed_tree);
     const fn = colOptions?.rollup_function;
     if (!['min', 'max'].includes(fn)) return UITypes.Decimal;
 

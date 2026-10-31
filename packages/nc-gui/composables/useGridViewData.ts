@@ -767,7 +767,7 @@ export function useGridViewData(
     syncVisibleData()
   }
 
-  async function deleteRangeOfRows(cellRange: CellRange, path: Array<number> = []): Promise<void> {
+  async function deleteRangeOfRows(cellRange: CellRange, path: Array<number> = [], { notify = true } = {}): Promise<void> {
     if (!cellRange._start || !cellRange._end) return
     isBulkOperationInProgress.value = true
     const dataCache = getDataCache(path)
@@ -837,11 +837,15 @@ export function useGridViewData(
         })
       }
 
-      await bulkDeleteRows(rowsToDelete.map((row) => row.pkData))
+      await bulkDeleteRows(
+        rowsToDelete.map((row) => row.pkData),
+        { notify },
+      )
     } catch (e: any) {
       const errorMessage = await extractSdkResponseErrorMsg(e)
-      message.error(`${t('msg.error.deleteRowFailed')}: ${errorMessage}`)
       isBulkOperationInProgress.value = false
+      if (!notify) throw new Error(`${t('msg.error.deleteRowFailed')}: ${errorMessage}`)
+      message.error(`${t('msg.error.deleteRowFailed')}: ${errorMessage}`)
       throw e
     }
 
@@ -854,9 +858,11 @@ export function useGridViewData(
     {
       metaValue = meta.value,
       viewMetaValue = viewMeta.value,
+      notify = true,
     }: {
       metaValue?: TableType
       viewMetaValue?: ViewType
+      notify?: boolean
     } = {},
   ): Promise<any> {
     // Let adapter failures propagate — the callers toast and leave the row
@@ -886,6 +892,8 @@ export function useGridViewData(
 
       return rows.length === 1 && bulkDeletedRowsData ? [bulkDeletedRowsData] : bulkDeletedRowsData
     } catch (error: any) {
+      // Quiet callers handle the failure themselves (and must not evict rows that weren't deleted).
+      if (!notify) throw error
       const errorMessage = await extractSdkResponseErrorMsg(error)
       message.error(`Bulk delete failed: ${errorMessage}`)
     }

@@ -18,6 +18,8 @@ const { isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
 
 const { isMobileMode } = useGlobal()
 
+const { t } = useI18n()
+
 // Default the hidden-fields section to open when this is a new row
 // and at least one hidden field is required (#13838) — saves the user
 // from hunting for the field that's blocking their save. For existing
@@ -67,6 +69,30 @@ const showHiddenFieldsSection = computed(() => {
   if (showEmptyState.value) return false
   if (isFiltering.value && visibleHiddenFieldsCount.value === 0) return false
   return true
+})
+
+// Cmd+K mirror of the hidden-fields button (disabled there while filtering).
+useCommandProvider(`record-hidden-fields:${useId()}`, 'record', () => {
+  if (!showHiddenFieldsSection.value || isFiltering.value) return { commands: [] }
+  const count = props.hiddenFields.length
+  return {
+    commands: [
+      {
+        id: 'record:toggle-hidden-fields',
+        priority: CMD_PRIORITY.low,
+        title: showHiddenFields.value
+          ? t('labels.hideHiddenFields', { count }, count)
+          : t('labels.showHiddenFields', { count }, count),
+        section: t('labels.commandPalette.sections.record'),
+        icon: { type: 'icon', name: showHiddenFields.value ? 'eyeSlash' : 'eye' },
+        // The title is singular for one field; "hidden fields" must still find it.
+        keywords: ['hidden', 'fields', 'show', 'hide'],
+        run: () => {
+          showHiddenFields.value = !showHiddenFields.value
+        },
+      },
+    ],
+  }
 })
 </script>
 

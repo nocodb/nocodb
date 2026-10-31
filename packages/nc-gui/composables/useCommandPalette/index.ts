@@ -1,221 +1,195 @@
-import type { Ref } from 'vue'
-import { getHomeCommands } from './commands'
+import { ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import { getI18n } from '~/plugins/a.i18n'
+import type { CmdCommand, CmdIcon, CmdLevel, CmdProvider, CmdProviderState } from '~/lib/types'
 
-interface CmdAction {
+interface CmdRegistration {
+  level: CmdLevel
+  read: () => CmdProviderState
+  token: symbol
+}
+
+const registrations = shallowReactive(new Map<string, CmdRegistration>())
+
+/** Commands registered by whatever is mounted; the Cmd+K palette reads them all. */
+export function useCommandRegistry() {
+  const providers = computed<CmdProvider[]>(() => [...registrations].map(([id, { level, read }]) => ({ id, level, ...read() })))
+
+  function register(id: string, level: CmdLevel, read: () => CmdProviderState) {
+    const token = Symbol(id)
+    registrations.set(id, { level, read, token })
+
+    return () => {
+      // A newer mount may have taken the id; only remove our own registration.
+      if (registrations.get(id)?.token === token) registrations.delete(id)
+    }
+  }
+
+  return { providers, register }
+}
+
+/**
+ * Registers commands for as long as the calling scope lives. `read` runs inside the
+ * palette's computed, so the refs it touches keep the list reactive.
+ */
+export function useCommandProvider(id: MaybeRefOrGetter<string>, level: CmdLevel, read: () => CmdProviderState) {
+  const { register } = useCommandRegistry()
+
+  let unregister: (() => void) | undefined
+
+  watch(
+    () => toValue(id),
+    (providerId) => {
+      unregister?.()
+      unregister = register(providerId, level, read)
+    },
+    { immediate: true },
+  )
+
+  tryOnScopeDispose(() => unregister?.())
+}
+
+interface NavItem {
   id: string
   title: string
-  hotkey?: string
   parent?: string
-  handler?: Function
-  icon?: VNode | string
-  keywords?: string[]
-  projectName?: string
+  icon?: string
+  iconColor?: string
   section?: string
+  projectName?: string
+  synced?: boolean
+  managed_app_master?: boolean
+  managed_app_id?: string
+  handler?: { type: string; payload: string }
+}
+
+// A function, not a module-level const: SDK enums read at module top level break the Rollup build.
+function viewTypeByAlias(alias: string): ViewTypes | undefined {
+  const entry = Object.entries(viewTypeAlias).find(([, value]) => value === alias)
+  return entry ? (Number(entry[0]) as ViewTypes) : undefined
 }
 
 export const useCommandPalette = createSharedComposable(() => {
   const { $api } = useNuxtApp()
 
+  const { t } = getI18n().global
+
   const router = useRouter()
 
   const route = router.currentRoute
+
+  const { token } = useGlobal()
 
   const commandPalette = ref()
 
   const refreshCommandPalette = createEventHook<void>()
 
-  const activeScope: Ref<{ scope: string; data: any }> = ref({ scope: 'disabled', data: {} })
+  const activeScope = ref<{ scope: string; data: Record<string, string> }>({ scope: 'disabled', data: {} })
 
   const cmdLoading = ref(false)
 
   const needRefresh = ref(true)
 
-  const cmdPlaceholder = ref('Search workspace, projects, tables, views & more...')
+  const navItems = ref<NavItem[]>([])
 
-  const { token, user, signOut } = useGlobal()
+  const sectionLabels = computed<Record<string, string>>(() => ({
+    Bases: t('objects.projects'),
+    Tables: t('objects.tables'),
+    Views: t('objects.views'),
+  }))
 
-  const { workspacesList } = storeToRefs(useWorkspace())
-
-  const workspacesCmd = computed(() =>
-    (workspacesList?.value || []).map(
-      (workspace: {
-        id: string
-        title: string
-        meta?: { color: string; icon: string | Record<string, any>; iconType: string }
-      }) => ({
-        id: `ws-nav-${workspace.id}`,
-        title: workspace.title,
-        icon: workspace.meta?.icon || 'workspace',
-        iconType: workspace.meta?.iconType,
-        iconColor: workspace.meta?.color,
-        section: 'Workspaces',
-        scopePayload: {
-          scope: `ws-${workspace.id}`,
-          data: {
-            workspace_id: workspace.id,
-          },
-        },
-        handler: processHandler({
-          type: 'navigate',
-          payload: `/${workspace.id}`,
-        }),
-      }),
-    ),
-  )
-
-  // Commands features add for the current context, keyed by feature (e.g. `apps`).
-  const contextCommands = ref<Record<string, CmdAction[]>>({})
-
-  const commands = ref({
-    homeCommands: getHomeCommands(),
-    baseCommands: [],
-  } as Record<string, CmdAction[]>)
-
-  const staticData = computed(() => {
-    const staticCmd = commands.value.homeCommands
-
-    // Static Commands
-    staticCmd.map((cmd) => {
-      if (cmd.id === 'user') {
-        if (user.value && user.value.display_name && user.value.email) {
-          cmd.title = extractUserDisplayNameOrEmail(user.value) || 'User'
-        }
-      } else if (cmd.id === 'user_account-logout') {
-        cmd.handler = async () => {
-          await signOut()
-          window.location.reload()
-        }
+  function navIcon(item: NavItem): CmdIcon | undefined {
+    if (item.section === 'Bases' || item.icon === 'project') {
+      return {
+        type: 'base',
+        color: item.iconColor,
+        managedAppMaster: item.managed_app_master,
+        managedAppId: item.managed_app_id,
       }
-      return cmd
-    })
-
-    if (activeScope.value.scope === 'root') return staticCmd
-
-    staticCmd.push(...commands.value.baseCommands)
-
-    return workspacesCmd.value.concat(staticCmd, ...Object.values(contextCommands.value))
-  })
-
-  const dynamicData = ref<any>([])
-
-  const tempData = ref<any>([])
-
-  const loadedTemporaryScopes = ref<any>([])
-
-  const cmdData = computed(() => {
-    if (cmdLoading.value) {
-      return [{ id: 'loading', title: 'Loading...' }, ...staticData.value]
-    } else {
-      return [...dynamicData.value, ...tempData.value, ...staticData.value]
     }
-  })
-
-  function processHandler(handler: { type: string; payload: string }) {
-    switch (handler.type) {
-      case 'navigate':
-        return () => navigateTo(handler.payload)
-      default:
-        break
+    // The server sends a custom emoji, or else the table type / view type alias.
+    if (item.section === 'Tables' || item.icon === 'table') {
+      const isTypeName = !item.icon || item.icon === 'table' || item.icon === 'view'
+      return { type: 'table', icon: isTypeName ? undefined : item.icon, synced: item.synced }
     }
+    if (item.section === 'Views') {
+      const viewType = viewTypeByAlias(item.icon ?? '')
+      return viewType ? { type: 'view', viewType } : { type: 'view', viewType: ViewTypes.GRID, icon: item.icon }
+    }
+    if (!item.icon) return
+    return { type: 'icon', name: item.icon }
   }
 
-  async function loadTemporaryScope(scope: { scope: string; data: any }) {
-    if (loadedTemporaryScopes.value.find((s: any) => s.scope === scope.scope)) return
+  /** Server tree as commands: leaves navigate, branches open their children. Search-only. */
+  const navigationCommands = computed<CmdCommand[]>(() => {
+    const byParent = new Map<string, NavItem[]>()
+    for (const item of navItems.value) {
+      if (!item.parent) continue
+      if (!byParent.has(item.parent)) byParent.set(item.parent, [])
+      byParent.get(item.parent)!.push(item)
+    }
 
-    if (
-      activeScope.value.scope === scope.scope &&
-      Object.keys(scope.data).every((k) => activeScope.value.data[k] && scope.data[k] === activeScope.value.data[k])
-    )
-      return
-    $api.utils.commandPalette(scope).then((res) => {
-      const fetchData = res.map((item: any) => {
-        if (item.handler) item.handler = processHandler(item.handler)
-        return item
-      })
-      for (const d of fetchData) {
-        const fnd = tempData.value.find((t: any) => t.id === d.id)
-        if (fnd) {
-          Object.assign(fnd, d)
-        } else {
-          tempData.value.push(d)
-        }
+    const toCommand = (item: NavItem): CmdCommand => {
+      const children = byParent.get(item.id)
+      const payload = item.handler?.type === 'navigate' ? item.handler.payload : undefined
+
+      return {
+        id: item.id,
+        title: item.title,
+        section: item.section ? sectionLabels.value[item.section] ?? item.section : undefined,
+        hint: item.projectName,
+        icon: navIcon(item),
+        searchOnly: true,
+        run: payload ? () => navigateTo(payload) : undefined,
+        children: !payload && children?.length ? () => children.map(toCommand) : undefined,
       }
-      loadedTemporaryScopes.value.push(scope)
-    })
+    }
+
+    return navItems.value.map(toCommand)
+  })
+
+  function navigationChildrenOf(id: string) {
+    return navigationCommands.value.find((command) => command.id === id)?.children?.() ?? []
   }
 
   async function loadScope() {
-    if (activeScope.value.scope === 'disabled') {
-      activeScope.value = { scope: activeScope.value.scope, data: activeScope.value.data }
-      return
-    }
-
-    if (!needRefresh.value) {
-      return
-    }
+    if (activeScope.value.scope === 'disabled' || !needRefresh.value) return
 
     needRefresh.value = false
-    dynamicData.value = []
-    tempData.value = []
-    loadedTemporaryScopes.value = []
+    navItems.value = []
     cmdLoading.value = true
 
-    $api.utils
-      .commandPalette(activeScope.value)
-      .then((res) => {
-        dynamicData.value = res.map((item: any) => {
-          if (item.handler) item.handler = processHandler(item.handler)
-          return item
-        })
-        cmdLoading.value = false
-      })
-      .catch((e) => {
-        cmdLoading.value = false
-        // Cleared before the request: without re-arming, one failed fetch empties the palette for the session
-        needRefresh.value = true
-        console.log(e)
-      })
+    try {
+      navItems.value = await $api.utils.commandPalette(activeScope.value)
+    } catch {
+      needRefresh.value = true
+    } finally {
+      cmdLoading.value = false
+    }
   }
 
   refreshCommandPalette.on(() => {
-    dynamicData.value = []
-    tempData.value = []
-    loadedTemporaryScopes.value = []
+    navItems.value = []
     needRefresh.value = true
   })
 
   watch(
     () => route.value.params,
     () => {
-      // if user is not authenticated, don't load scope
       if (!token.value) return
 
-      if (route.value.params.typeOrId && typeof route.value.params.typeOrId === 'string') {
-        if (route.value.params.typeOrId === 'base') {
-          if (activeScope.value.scope === 'disabled') return
-
-          activeScope.value = { scope: 'disabled', data: {} }
-        } else if (route.value.params.typeOrId.startsWith('w')) {
-          if (activeScope.value.data?.workspace_id === route.value.params.typeOrId) return
-
-          activeScope.value = {
-            scope: `ws-${route.value.params.typeOrId}`,
-            data: { workspace_id: route.value.params.typeOrId },
-          }
-
-          refreshCommandPalette.trigger()
-        } else if (route.value.params.typeOrId === 'nc') {
-          if (activeScope.value.data.base_id === route.value.params.baseId) return
-
-          activeScope.value = {
-            scope: `p-${route.value.params.baseId}`,
-            data: { base_id: route.value.params.baseId },
-          }
-        }
-      } else {
-        if (activeScope.value.scope === 'root') return
-
+      const typeOrId = route.value.params.typeOrId
+      if (typeof typeOrId !== 'string') {
         activeScope.value = { scope: 'root', data: {} }
+        return
+      }
+
+      if (typeOrId === 'base') {
+        activeScope.value = { scope: 'disabled', data: {} }
+      } else if (typeOrId.startsWith('w')) {
+        if (activeScope.value.data.workspace_id === typeOrId) return
+
+        activeScope.value = { scope: `ws-${typeOrId}`, data: { workspace_id: typeOrId } }
+        refreshCommandPalette.trigger()
       }
     },
     { immediate: true, deep: true },
@@ -227,14 +201,12 @@ export const useCommandPalette = createSharedComposable(() => {
 
   return {
     commandPalette,
-    cmdData,
     activeScope,
     loadScope,
-    cmdPlaceholder,
-    refreshCommandPalette: refreshCommandPalette.trigger,
-    contextCommands,
-    loadTemporaryScope,
     cmdLoading,
+    navigationCommands,
+    navigationChildrenOf,
+    refreshCommandPalette: refreshCommandPalette.trigger,
     openCommandPalette,
   }
 })

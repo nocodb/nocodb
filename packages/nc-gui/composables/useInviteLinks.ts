@@ -261,7 +261,8 @@ export const useInviteLinks = createGlobalState(() => {
    * nowhere to put it -- a screen that can show the message beside the field
    * that caused it passes `toast: false` and renders `error` itself.
    */
-  async function request<T>(fn: () => Promise<T>, { toast = true } = {}): Promise<T | null> {
+  /** `rethrow` hands the raw error to the caller (Cmd+K reads its type for plan limits). */
+  async function request<T>(fn: () => Promise<T>, { toast = true, rethrow = false } = {}): Promise<T | null> {
     error.value = ''
 
     try {
@@ -270,6 +271,7 @@ export const useInviteLinks = createGlobalState(() => {
       error.value = await extractSdkResponseErrorMsg(e)
 
       if (toast) message.error(error.value)
+      if (rethrow) throw e
 
       return null
     }
@@ -347,7 +349,7 @@ export const useInviteLinks = createGlobalState(() => {
     isLoading.value = false
   }
 
-  async function createLink(body?: Partial<InviteLinkReqType>, opts?: { toast?: boolean }) {
+  async function createLink(body?: Partial<InviteLinkReqType>, opts?: { toast?: boolean; rethrow?: boolean }) {
     if (!target.value) return null
 
     const t = target.value

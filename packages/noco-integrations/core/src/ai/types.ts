@@ -2,13 +2,16 @@ import {
   generateText as sdkGenerateText,
   Output,
   wrapLanguageModel,
-  defaultSettingsMiddleware,
+  extractReasoningMiddleware,
 } from 'ai';
 import { devToolsMiddleware } from '@ai-sdk/devtools';
 import { IntegrationWrapper } from '../integration';
 import { maskSecret } from '../auth/sensitive';
 import type { EmbeddingModel, ModelMessage, ToolSet } from 'ai';
-import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
+import type {
+  LanguageModelV4 as LanguageModel,
+  LanguageModelV4CallOptions,
+} from '@ai-sdk/provider';
 
 /**
  * AI SDK DevTools — opt-in via NC_AI_DEVTOOLS=true. The watch:run* scripts in
@@ -116,7 +119,7 @@ export interface AiSdkUsageLike {
   };
 }
 
-/** The same usage in the provider-level (`LanguageModelV3`) nested spelling. */
+/** The same usage in the provider-level (`LanguageModelV4`) nested spelling. */
 export interface AiSdkNestedUsageLike {
   inputTokens?: {
     total?: number;
@@ -180,7 +183,7 @@ export function splitAiUsage(usage?: AiSdkUsageLike | null): AiUsageBuckets {
 }
 
 /**
- * `splitAiUsage` for the provider-level nested shape (`LanguageModelV3Usage`),
+ * `splitAiUsage` for the provider-level nested shape (`LanguageModelV4Usage`),
  * which `doGenerate`/`doStream` return. Normalises and delegates so the netting
  * itself has exactly one implementation — the gateway paths bill from this.
  */
@@ -198,17 +201,7 @@ export function splitLanguageModelUsage(
   });
 }
 
-/**
- * Normalized, provider-agnostic reasoning intensity.
- *
- * Every supported provider exposes reasoning differently (OpenAI `reasoningEffort`,
- * Anthropic `effort`/`thinking`, Google `thinkingConfig`, Bedrock `reasoningConfig`,
- * …). Callers speak this single vocabulary; each integration translates it onto its
- * own provider knob via {@link AiIntegration.reasoningProviderOptions}.
- *
- *   off → disable reasoning where the provider allows it
- *   max → the provider's strongest reasoning setting
- */
+/** Reasoning intensity callers ask for; each integration maps it per model. */
 export type AiReasoningEffort =
   | 'off'
   | 'minimal'
@@ -217,47 +210,25 @@ export type AiReasoningEffort =
   | 'high'
   | 'max';
 
-type AiJsonValue =
-  | null
-  | string
-  | number
-  | boolean
-  | { [key: string]: AiJsonValue }
-  | AiJsonValue[];
-
 /**
- * Provider-namespaced options bag, e.g. `{ openai: { reasoningEffort: 'minimal' } }`.
- * Structurally mirrors the AI SDK's `SharedV2ProviderOptions`.
+ * What a reasoning effort becomes on one model: the SDK's `reasoning` where the
+ * provider maps it correctly itself, else exact `providerOptions`.
  */
-export type AiReasoningProviderOptions = Record<
-  string,
-  Record<string, AiJsonValue>
+export type AiReasoningSettings = Pick<
+  LanguageModelV4CallOptions,
+  'reasoning' | 'providerOptions'
 >;
 
 /**
- * The provider's OWN reasoning value for each normalized {@link AiReasoningEffort}.
- * Reasoning knobs differ per provider AND per model (OpenAI: none/minimal/low/
- * medium/high/xhigh — but 'none' is GPT-5.1-only, 'minimal' is gpt-5-only, o-series
- * has neither; Groq: low/medium/high, 'none' model-dependent; …). So we don't
- * guess — we look up the exact value. **Omit an effort key** when the model has no
- * valid value for it → no reasoning options are emitted for that effort.
- */
-export type ReasoningEffortMap = Partial<Record<AiReasoningEffort, string>>;
-
-/**
- * Ordered (model-pattern → effort map) table for one provider. First match wins.
- * A model that matches **no** entry has no reasoning support → emit nothing.
+ * Per-model reasoning values, first match wins. A model with no entry, or no
+ * value for an effort, gets nothing — sending one to it is a 400.
  */
 export type ReasoningModelTable = Array<{
   match: RegExp;
-  efforts: ReasoningEffortMap;
+  efforts: Partial<Record<AiReasoningEffort, string>>;
 }>;
 
-/**
- * Resolve the provider's reasoning value for `(modelId, effort)` from a table, or
- * `undefined` when the model isn't in the table or has no value mapped for that
- * effort. The provider id prefix (gateway form `vendor/model`) is stripped first.
- */
+/** Strips a `vendor/` prefix before matching. */
 export function resolveReasoningEffort(
   table: ReasoningModelTable,
   modelId: string | undefined,
@@ -268,25 +239,8 @@ export function resolveReasoningEffort(
 }
 
 /**
- * OpenAI Responses-API `reasoning.effort` values per model — verified against the
- * per-model "supported values" from OpenAI's model pages. The valid set differs by
- * model, so we look up the exact value (first match wins). A model that matches no
- * entry, or whose matched entry has no value for the requested effort, gets NO
- * reasoning options. Shared by every `openai`-namespace integration (OpenAI,
- * OpenAI-compatible, NocoDB-managed).
- *
- * Confirmed sets (off/minimal map to each model's lowest supported value):
- *   gpt-5.x "-pro"      : medium | high | xhigh           (no none/low)
- *   gpt-5.x "-codex"    : low | medium | high | xhigh      (no none/minimal)
- *   gpt-5.x "-instant"/"-thinking": no data → omitted (no reasoning)
- *   gpt-5.1             : none | low | medium | high       (no minimal/xhigh)
- *   gpt-5.2/5.3/5.4/5.5 (+ -mini/-nano): none | low | medium | high | xhigh (no minimal)
- *   gpt-5.6 (sol/terra/luna): none | low | medium | high | xhigh | max (no minimal) —
- *     adds a genuine ceiling above xhigh, so `max` claims it and `high` shifts to xhigh
- *   gpt-6.x sol         : low | medium | high | xhigh | max (no none/minimal)
- *   gpt-6.x terra/luna  : none | low | medium | high | xhigh | max (no minimal)
- *   gpt-5 (Aug-2025)    : minimal | low | medium | high     (no none/xhigh)
- *   gpt-5-mini/-nano, o-series, gpt-4o/4.1: no configurable effort → omitted
+ * OpenAI `reasoningEffort` per model, from OpenAI's model pages. off/minimal map
+ * to each model's lowest value; o-series and gpt-4.x have no entry.
  */
 export const OPENAI_REASONING_TABLE: ReasoningModelTable = [
   {
@@ -379,9 +333,32 @@ export const OPENAI_REASONING_TABLE: ReasoningModelTable = [
     },
   },
   {
-    // GPT-5 base snapshots only (gpt-5, gpt-5-YYYY-MM-DD): minimal|low|medium|high.
-    // Excludes gpt-5-mini / gpt-5-nano (no configurable effort) → they match nothing.
-    match: /^gpt-5(?:-\d{4}-\d{2}-\d{2})?$/,
+    // GPT-6 Sol / Luna: none | low | medium | high | xhigh | max.
+    match: /^gpt-6-(?:sol|luna)$/,
+    efforts: {
+      off: 'none',
+      minimal: 'low',
+      low: 'low',
+      medium: 'medium',
+      high: 'high',
+      max: 'max',
+    },
+  },
+  {
+    // Other GPT-6.x: low | medium | high | xhigh | max (no none).
+    match: /^gpt-6/,
+    efforts: {
+      off: 'low',
+      minimal: 'low',
+      low: 'low',
+      medium: 'medium',
+      high: 'high',
+      max: 'max',
+    },
+  },
+  {
+    // GPT-5, -mini, -nano (+ dated snapshots): minimal | low | medium | high.
+    match: /^gpt-5(?:-(?:mini|nano))?(?:-\d{4}-\d{2}-\d{2})?$/,
     efforts: {
       off: 'minimal',
       minimal: 'minimal',
@@ -404,6 +381,9 @@ export abstract class AiIntegration<
 
   /** Default sampling temperature for generateText / generateObject. */
   protected temperature = 0.5;
+
+  /** Open-weight hosts return reasoning inline as `<think>…</think>`. */
+  protected extractThinkTags = false;
 
   /**
    * The config keys holding THIS provider's credentials. Override where the
@@ -459,16 +439,11 @@ export abstract class AiIntegration<
     return this.resolveModelId(args?.customModel);
   }
 
-  /**
-   * Translate the normalized reasoning effort into this provider's `providerOptions`
-   * shape. Return `undefined` when the provider has no reasoning control (default).
-   * `modelId` is supplied because some providers (e.g. Bedrock) key the shape off the
-   * model family.
-   */
-  protected reasoningProviderOptions(
+  /** `undefined` (the default) sends nothing: the model runs at its own default. */
+  protected reasoningSettings(
     _effort: AiReasoningEffort,
     _modelId: string,
-  ): AiReasoningProviderOptions | undefined {
+  ): AiReasoningSettings | undefined {
     return undefined;
   }
 
@@ -534,30 +509,45 @@ export abstract class AiIntegration<
   }
 
   /**
-   * Get the underlying language model, with reasoning effort baked in when requested.
-   *
-   * Reasoning is applied as a model-level default via `defaultSettingsMiddleware`, so
-   * the returned model carries it on every call — callers never touch provider-specific
-   * `providerOptions`.
+   * The provider's model, with the requested reasoning effort applied to every
+   * call so callers never touch provider-specific options.
    */
   public getModel(args?: AiGetModelArgs): LanguageModel {
     const provider = this.createProvider();
     const modelId = this.resolveModel(args);
     let model = provider(modelId);
 
-    if (args?.reasoningEffort) {
-      const providerOptions = this.reasoningProviderOptions(
-        args.reasoningEffort,
-        modelId,
-      );
-      if (providerOptions) {
-        model = wrapLanguageModel({
-          model,
-          middleware: defaultSettingsMiddleware({
-            settings: { providerOptions },
-          }),
-        });
-      }
+    const reasoning =
+      args?.reasoningEffort &&
+      this.reasoningSettings(args.reasoningEffort, modelId);
+    if (reasoning) {
+      // Per-call values win, per provider namespace.
+      model = wrapLanguageModel({
+        model,
+        middleware: {
+          specificationVersion: 'v4',
+          transformParams: async ({ params }) => {
+            const providerOptions = { ...reasoning.providerOptions };
+            for (const [ns, opts] of Object.entries(
+              params.providerOptions ?? {},
+            )) {
+              providerOptions[ns] = { ...providerOptions[ns], ...opts };
+            }
+            return {
+              ...params,
+              reasoning: params.reasoning ?? reasoning.reasoning,
+              providerOptions,
+            };
+          },
+        },
+      });
+    }
+
+    if (this.extractThinkTags) {
+      model = wrapLanguageModel({
+        model,
+        middleware: extractReasoningMiddleware({ tagName: 'think' }),
+      });
     }
 
     // DevTools capture (no-op unless NC_AI_DEVTOOLS=true) — applied last so it
@@ -580,7 +570,8 @@ export abstract class AiIntegration<
 
     const response = await sdkGenerateText({
       model,
-      system: args.system,
+      instructions: args.system,
+      allowSystemInMessages: true,
       temperature: this.temperature,
       abortSignal: args.abortSignal,
       ...('messages' in args
@@ -625,6 +616,7 @@ export abstract class AiIntegration<
       model,
       output: Output.object({ schema: args.schema }),
       messages: args.messages,
+      allowSystemInMessages: true,
       temperature: this.temperature,
       abortSignal: args.abortSignal,
       ...(tools ? { tools } : {}),

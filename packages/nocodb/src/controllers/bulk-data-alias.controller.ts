@@ -18,6 +18,7 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
+import { pickBulkAllQuery } from '~/helpers/dataHelpers';
 
 @Controller()
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
@@ -79,7 +80,7 @@ export class BulkDataAliasController {
       cookie: req,
       baseName: baseName,
       tableName: tableName,
-      query: req.query,
+      query: pickBulkAllQuery(req.query, ['where', 'viewId', 'filterArrJson']),
     });
   }
 
@@ -114,7 +115,7 @@ export class BulkDataAliasController {
       // cookie: req,
       baseName: baseName,
       tableName: tableName,
-      query: req.query,
+      query: pickBulkAllQuery(req.query, ['where', 'viewId', 'skipPks']),
       viewName: req.query.viewId,
       req,
     });

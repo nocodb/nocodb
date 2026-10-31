@@ -1600,7 +1600,8 @@
     "markdownEditor": "Markdown Editor",
     "loyaltyBadgeTitle": "Loyalty Discount Unlocked! Save upto 55%!",
     "agentCode": "Code",
-    "agentMachines": "Machines"
+    "agentMachines": "Machines",
+    "creatingWorkspace": "Creating Workspace"
   },
   "labels": {
     "interfacePageSort": "Page sort",
@@ -6273,7 +6274,20 @@
       "discardContent": "The draft and its setup chat will be moved to the trash."
     },
     "interfaceBookmarkPageMissing": "Page not found",
-    "interfaceRecordUrlNotUrlField": "Not a URL field"
+    "interfaceRecordUrlNotUrlField": "Not a URL field",
+    "popularScripts": "Popular Scripts",
+    "viewSource": "View Source",
+    "noDataToShow": "No data to show",
+    "display": "Display",
+    "textWidget": "Text Widget",
+    "noTextWidgetSelected": "No text widget selected",
+    "scriptDocs": "Script Docs",
+    "editScript": "Edit Script",
+    "notFound": "Not found",
+    "goToApp": "Go to App",
+    "notificationMentionedYouInComment": "has mentioned you in a comment on",
+    "notificationMentionedYouInDoc": "has mentioned you in",
+    "notificationCommentedOn": "commented on"
   },
   "activity": {
     "blockUser": "Block user",
@@ -6827,7 +6841,8 @@
     "dataSourceReadOnly": "This data source is read-only.",
     "mentionFields": "Mention fields",
     "skipEnabledAfterDelay": "Will be enabled after 2 seconds",
-    "clickToCopyDocumentId": "Click to copy Document ID"
+    "clickToCopyDocumentId": "Click to copy Document ID",
+    "noPermissionToToggleWorkflow": "You do not have permission to enable/disable workflow"
   },
   "placeholder": {
     "attachmentUrl": "https://example.com/report.pdf",
@@ -7082,7 +7097,8 @@
     "searchAProject": "Search a project",
     "organizationNameExample": "Acme Inc",
     "searchForAMember": "Search for a member",
-    "enterCustomUrl": "Enter custom url"
+    "enterCustomUrl": "Enter custom url",
+    "searchScript": "Search for a script"
   },
   "msg": {
     "agentSkillsSubtitle": "Reusable instructions this agent can load when relevant.",
@@ -8338,7 +8354,9 @@
       "renameFileFailed": "Error while renaming file",
       "failedToLoadMetadataDiff": "Failed to load metadata diff",
       "failedToLoadMonacoEditor": "Failed to load Monaco Editor",
-      "interfaceWriteNoPermission": "You no longer have permission to make this change. Reload the page to see your current access."
+      "interfaceWriteNoPermission": "You no longer have permission to make this change. Reload the page to see your current access.",
+      "stripePublishableKeyNotFound": "Stripe publishable key not found",
+      "notAllowedToCreateBase": "You are not allowed to create project"
     },
     "toast": {
       "changesSaved": "Changes saved",

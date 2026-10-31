@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+const { t } = useI18n()
 definePageMeta({
   hideHeader: true,
   hasSidebar: true,
@@ -135,7 +136,7 @@ onMounted(() => {
   handleRouteTypeIdChange().then(() => {
     if (sharedBaseId.value) {
       if (!isUIAllowed('baseDuplicate')) {
-        message.error('You are not allowed to create project')
+        message.error(t('msg.error.notAllowedToCreateBase'))
         return
       }
       isDuplicateDlgOpen.value = true

@@ -7280,6 +7280,7 @@
       "approvalNeeded": "Needs your approval",
       "approvalMoreOptions": "More ways to allow",
       "approvalIrreversible": "Deletes data. This can't be undone.",
+      "approvalUnlisted": "Plus {count} step behind the scenes | Plus {count} steps behind the scenes",
       "showToolDetails": "Show details",
       "hideToolDetails": "Hide details",
       "pendingApprovalCount": "{count} action requires approval | {count} actions require approval"
@@ -8873,6 +8874,7 @@
       "policy": {
         "any": "Verified connectors, workspace connectors and any server URL members add.",
         "managedByOrg": "Your organization manages connectors for this workspace.",
+        "orgPausesWorkspace": "Your organization allows only the connectors it approves, so this workspace's own connectors are paused and new ones can't be added.",
         "restricted": "The verified connectors you pick, plus the connectors you add below. No custom URLs.",
         "subtitle": "Members always connect with their own accounts.",
         "summaryAny": "Members can use every verified connector, {count} workspace connectors and any server URL.",
@@ -8881,7 +8883,7 @@
         "verifiedNone": "No verified connectors. Members can only use the ones you add below.",
         "workspacesDecide": "Workspace admins choose their own. Organization connectors apply everywhere.",
         "orgAny": "Every workspace allows verified connectors, organization and workspace connectors, and any server URL.",
-        "orgRestricted": "The verified connectors you pick, plus organization and workspace connectors. No custom URLs.",
+        "orgRestricted": "The verified connectors you pick, plus organization connectors. Workspace connectors and custom URLs are off.",
         "summaryWorkspacesDecide": "Each workspace sets its own policy. {count} organization connectors are available in all of them.",
         "summaryOrgAny": "Every workspace can use every verified connector, {count} organization connectors and any server URL.",
         "summaryOrgRestricted": "Every workspace can use {verified} verified and {org} organization connectors, plus its own. Custom URLs are blocked."

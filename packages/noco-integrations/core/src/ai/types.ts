@@ -2,6 +2,7 @@ import {
   generateText as sdkGenerateText,
   Output,
   wrapLanguageModel,
+  defaultSettingsMiddleware,
   extractReasoningMiddleware,
 } from 'ai';
 import { devToolsMiddleware } from '@ai-sdk/devtools';
@@ -106,12 +107,10 @@ export interface ModelInfo {
   capabilities: ModelCapability[];
 }
 
-/** The AI-SDK usage fields billing needs, in either SDK spelling. */
+/** The AI-SDK usage fields billing needs. */
 export interface AiSdkUsageLike {
   inputTokens?: number;
   outputTokens?: number;
-  /** @deprecated SDK alias for cacheRead ONLY — never includes cache writes. */
-  cachedInputTokens?: number;
   inputTokenDetails?: {
     noCacheTokens?: number;
     cacheReadTokens?: number;
@@ -154,17 +153,11 @@ export interface AiUsageBuckets {
  * the remainder is billed at the full input rate, or every cached token is charged
  * twice.
  *
- * `cachedInputTokens` is deprecated AND covers cacheRead only, so
- * `inputTokenDetails` is read first: relying on the deprecated field alone bills
- * cache writes as plain input today, and bills EVERYTHING at full price the day the
- * SDK drops it.
- *
  * One implementation on purpose — this arithmetic decides what customers pay.
  */
 export function splitAiUsage(usage?: AiSdkUsageLike | null): AiUsageBuckets {
   const details = usage?.inputTokenDetails;
-  const cacheReadTokens =
-    details?.cacheReadTokens ?? usage?.cachedInputTokens ?? 0;
+  const cacheReadTokens = details?.cacheReadTokens ?? 0;
   const cacheWriteTokens = details?.cacheWriteTokens ?? 0;
   const total = usage?.inputTokens ?? 0;
   // Prefer the provider's own non-cached count; otherwise net the buckets off.
@@ -521,25 +514,9 @@ export abstract class AiIntegration<
       args?.reasoningEffort &&
       this.reasoningSettings(args.reasoningEffort, modelId);
     if (reasoning) {
-      // Per-call values win, per provider namespace.
       model = wrapLanguageModel({
         model,
-        middleware: {
-          specificationVersion: 'v4',
-          transformParams: async ({ params }) => {
-            const providerOptions = { ...reasoning.providerOptions };
-            for (const [ns, opts] of Object.entries(
-              params.providerOptions ?? {},
-            )) {
-              providerOptions[ns] = { ...providerOptions[ns], ...opts };
-            }
-            return {
-              ...params,
-              reasoning: params.reasoning ?? reasoning.reasoning,
-              providerOptions,
-            };
-          },
-        },
+        middleware: defaultSettingsMiddleware({ settings: reasoning }),
       });
     }
 

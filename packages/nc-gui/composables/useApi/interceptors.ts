@@ -1,6 +1,13 @@
 import type { Api } from 'nocodb-sdk'
 import { type AxiosRequestConfig, type InternalAxiosRequestConfig, isAxiosError } from 'axios'
 
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    /** The caller shows a 402 itself (an inline row), so no warning toast. */
+    quietPaymentRequired?: boolean
+  }
+}
+
 const DbNotFoundMsg = 'Database config not found'
 
 // After a refresh with no response: wait this long (doubling, capped) before the next one
@@ -158,7 +165,9 @@ export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
         // the fallback, so a license that is merely inactive was reported as
         // an Enterprise entitlement problem. 402 also covers exhausted
         // credits, which is not a tier issue either.
-        message.warning(error.response?.data?.message || error.response?.data?.msg || 'This action is currently unavailable.')
+        if (!error.config?.quietPaymentRequired) {
+          message.warning(error.response?.data?.message || error.response?.data?.msg || 'This action is currently unavailable.')
+        }
         return Promise.reject(error)
       }
 

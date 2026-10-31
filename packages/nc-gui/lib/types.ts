@@ -421,6 +421,12 @@ interface CmdCommand {
    * On an `edit` command it replaces "Saved".
    */
   feedback?: string
+  /** Runs with the palette left open: the command's own rows show what happens next. */
+  stayOpen?: boolean
+  /** On a loading fallback row: Esc calls this instead of closing, and the row holds the list meanwhile. */
+  cancel?: () => void
+  /** A fallback row that stays after the answers (e.g. once it has produced them). */
+  trailing?: boolean
   /** Opens a sub page; the command title becomes the placeholder. */
   children?: () => CmdCommand[]
   /** Lists children in search results as `Title › Child`. */
@@ -488,6 +494,8 @@ interface CmdChip {
   icon?: CmdIcon
   /** Hover text: what an assumed chip stands for. */
   tooltip?: string
+  /** An assumed chip whose icon already says it is a guess: no "assumed" tag. */
+  plain?: boolean
   /** Title of the page listing the swaps, e.g. "Change field". */
   label?: string
   swaps?: { label: string; query: string; icon?: CmdIcon }[]

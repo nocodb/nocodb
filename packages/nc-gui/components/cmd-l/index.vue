@@ -27,7 +27,7 @@ const { recentItems } = useCommand()
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-const { bases, isProjectsLoaded } = storeToRefs(useBases())
+const { bases, workspaceBasesMap } = storeToRefs(useBases())
 
 const route = useRoute()
 
@@ -196,11 +196,14 @@ watch(vOpen, (isOpen) => {
   openedAt = performance.now()
   viewStore.pruneRecentViews()
   // Only the base is checked for other objects: their own stores load per kind, on demand.
-  if (isProjectsLoaded.value) {
+  // As in pruneRecentViews, only a successful load of this workspace's base list counts.
+  const wsBases = workspaceBasesMap.value.get(activeWorkspaceId.value)
+  if (wsBases) {
     recentItems.value = recentItems.value.flatMap((item) => {
       if (item.workspaceId !== activeWorkspaceId.value) return [item]
-      const base = bases.value.get(item.baseId)
-      return base ? [{ ...item, baseTitle: base.title ?? item.baseTitle }] : []
+      const base = wsBases.get(item.baseId) ?? bases.value.get(item.baseId)
+      if (!base) return item.isLane ? [item] : []
+      return [{ ...item, baseTitle: base.title ?? item.baseTitle }]
     })
   }
   search.value = ''

@@ -82,7 +82,16 @@ export enum ChatSessionStatus {
 /** `trigger_type` of a session a person started, as opposed to a trigger node. */
 export const CHAT_TRIGGER_TYPE = 'chat';
 
+/** One chat's own connector choices, on top of the person's connection settings. */
+export interface ChatSessionConnectors {
+  /** Connection ids switched off for this chat. */
+  off?: string[];
+  /** Model-facing connector tool names that run without asking in this chat. */
+  allowed_tools?: string[];
+}
+
 export interface ChatSessionMetaType {
+  connectors?: ChatSessionConnectors;
   trigger?: {
     payload?: Record<string, any>;
     depth?: number;
@@ -841,6 +850,8 @@ export enum ChatMentionType {
   DASHBOARD = 'dashboard',
   SCRIPT = 'script',
   DOCUMENT = 'document',
+  /** One of the person's own connector connections (MCP). */
+  CONNECTOR = 'connector',
 }
 
 /**

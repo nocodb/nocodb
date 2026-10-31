@@ -791,7 +791,8 @@
     "email": "Email",
     "uploading": "Uploading",
     "config": "Config",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "reconnect": "Reconnect"
   },
   "objects": {
     "chat": "Chat",
@@ -1600,7 +1601,10 @@
     "markdownEditor": "Markdown Editor",
     "loyaltyBadgeTitle": "Loyalty Discount Unlocked! Save upto 55%!",
     "agentCode": "Code",
-    "agentMachines": "Machines"
+    "agentMachines": "Machines",
+    "connectors": "Connectors",
+    "connectorDisconnect": "Disconnect {title}?",
+    "connectorRemove": "Remove {title}?"
   },
   "labels": {
     "agentsPopover": {
@@ -5365,7 +5369,8 @@
         "billing": "Your plan, seats, payment method and invoices.",
         "usage": "What this workspace uses against its plan limits.",
         "audits": "Every change made in this workspace, and who made it.",
-        "sso": "Sign-in through your identity provider."
+        "sso": "Sign-in through your identity provider.",
+        "connectors": "Choose which connectors members can use with AI chat and agents"
       }
     },
     "baseNav": {
@@ -5968,6 +5973,11 @@
     "agentCodeNeverMergeAny": "Agents never merge and never push to the branch a run starts from. A person always merges.",
     "agentAccessWeb": "Web access",
     "agentAccessWebHint": "Search the web and read pages",
+    "agentAddConnectedService": "Add an app integration",
+    "agentNoConnectedServices": "Connect an app integration with actions first",
+    "agentToolSourceEnabledCount": "{count} enabled",
+    "agentToolChanged": "Changed since picked",
+    "agentToolRunsWithoutAsking": "Runs without asking",
     "copyToClipboard": "Copy to clipboard",
     "downloadAsCsv": "Download as CSV",
     "noMatchingRecordsFound": "No matching records found",
@@ -6311,7 +6321,95 @@
       "discardContent": "The draft and its setup chat will be moved to the trash."
     },
     "interfaceBookmarkPageMissing": "Page not found",
-    "interfaceRecordUrlNotUrlField": "Not a URL field"
+    "interfaceRecordUrlNotUrlField": "Not a URL field",
+    "connectors": {
+      "about": "About",
+      "accounts": "Connected accounts",
+      "addConnector": "Add connector",
+      "addCustom": "Add custom connector",
+      "addedByAdmin": "Added by a workspace admin",
+      "allow": "Allow",
+      "allowed": "Allowed connectors",
+      "anyConnector": "Any connector",
+      "approvedOnly": "Only approved connectors",
+      "ask": "Ask",
+      "auth": {
+        "apiKey": "API key",
+        "headers": "Custom headers",
+        "none": "No authentication",
+        "oauth": "OAuth (DCR)",
+        "oauthClient": "OAuth (client ID)"
+      },
+      "byDeveloper": "By {developer}",
+      "category": {
+        "work": "Work management",
+        "files": "Files",
+        "communication": "Communication",
+        "crm": "CRM and sales",
+        "support": "Support",
+        "marketing": "Marketing and analytics",
+        "finance": "Finance and commerce",
+        "forms": "Docs, forms and signing",
+        "data": "Data and developer tools"
+      },
+      "connectAnother": "Connect another account",
+      "connected": "Connected",
+      "connectedAccount": "Connected account",
+      "connectedOn": "Connected on",
+      "connectorId": "Connector ID",
+      "developer": "Developer",
+      "editConnector": "Edit connector",
+      "fromWorkspace": "From your workspace",
+      "makeDefault": "Make default",
+      "manageConnectors": "Manage connectors",
+      "name": "Name",
+      "needsSetup": "Needs setup",
+      "notAllowedHere": "Not allowed here",
+      "notConnected": "You have not connected it",
+      "otherWorkspace": "From another workspace",
+      "permission": {
+        "all": "Allow all",
+        "ask": "Always ask",
+        "lowRisk": "Allow read-only",
+        "title": "Permission"
+      },
+      "personal": "Personal",
+      "privacy": "Privacy policy",
+      "refreshTools": "Refresh tools",
+      "removed": "Removed by an admin",
+      "results": "Results",
+      "review": "Review",
+      "reviewStatus": "Review status",
+      "notReviewed": "Not reviewed by NocoDB",
+      "addedByOrg": "Added by your organization",
+      "selected": "Selected",
+      "server": "Server",
+      "serverUrl": "Server URL",
+      "signIn": "Authentication",
+      "headerName": "Header",
+      "headerValue": "Value",
+      "addHeader": "Add header",
+      "signInExpired": "Sign-in expired",
+      "terms": "Terms of service",
+      "toolKind": {
+        "destructive": "Destructive",
+        "read": "Read",
+        "write": "Write"
+      },
+      "toolSummary": "{count} tools, {allowed} run without asking",
+      "tryAsking": "Try asking",
+      "verified": "Verified",
+      "verifiedByNocodb": "Verified by NocoDB",
+      "website": "Website",
+      "workspaceAllows": "This workspace allows: {policy}",
+      "workspaceConnectors": "Workspace connectors",
+      "orgConnectors": "Organization connectors",
+      "workspacesDecide": "Each workspace decides",
+      "youAreConnected": "You are connected",
+      "yourConnections": "Your connections",
+      "yourServerUrl": "Your {title} server URL",
+      "unavailableHere": "Not available in this workspace"
+    }
   },
   "activity": {
     "blockUser": "Block user",
@@ -6620,6 +6718,7 @@
     "createAgent": "Create agent"
   },
   "tooltip": {
+    "agentToolRunsWithoutAsking": "Off: the agent asks before every call, and triggered runs leave the tool out. On: it runs without asking.",
     "factoryGitApplyTruncated": "This patch was cut short and may end mid-change, so it would not apply cleanly.",
     "factoryGitApplyWhitespace": "Whitespace changes are hidden, so this patch leaves them out. Show them to copy a patch that applies.",
     "factoryGitApplyBinary": "This patch changes binary files, which git apply cannot recreate from it.",
@@ -7120,7 +7219,13 @@
     "searchAProject": "Search a project",
     "organizationNameExample": "Acme Inc",
     "searchForAMember": "Search for a member",
-    "enterCustomUrl": "Enter custom url"
+    "enterCustomUrl": "Enter custom url",
+    "connectorKey": "Paste the key",
+    "connectorName": "Taken from the server when empty",
+    "connectorNickname": "Work, Personal, …",
+    "keepStoredSecret": "Leave empty to keep the stored secret",
+    "optionalForPublicClients": "Optional for public clients",
+    "searchConnectors": "Search connectors"
   },
   "msg": {
     "agentSkillsSubtitle": "Reusable instructions this agent can load when relevant.",
@@ -7158,8 +7263,25 @@
       "showMoreLines": "Show {count} more lines",
       "showThinking": "Show thinking",
       "hideThinking": "Hide thinking",
+      "wrapUp": {
+        "wrapping": "Wrapping up…",
+        "assembling": "Putting it together…",
+        "summarizing": "Summarizing…",
+        "composing": "Composing…",
+        "tying": "Tying it together…",
+        "polishing": "Polishing…"
+      },
       "approveAllTools": "Approve All",
+      "alwaysAllowTools": "Always allow",
+      "allowForChat": "Allow for this chat",
       "denyAllTools": "Deny All",
+      "allowTool": "Allow",
+      "denyTool": "Deny",
+      "approvalNeeded": "Needs your approval",
+      "approvalMoreOptions": "More ways to allow",
+      "approvalIrreversible": "Deletes data. This can't be undone.",
+      "showToolDetails": "Show details",
+      "hideToolDetails": "Hide details",
       "pendingApprovalCount": "{count} action requires approval | {count} actions require approval"
     },
     "autoNumberFieldInfo": "Automatically generates a unique incremented number for each record. Values are read-only and cannot be edited.",
@@ -8718,7 +8840,61 @@
     "codingAgentReposAdded": "{count} repositories added",
     "codingAgentReposSettingUp": "{count} repositories added. A session is setting up {repo}.",
     "codingAgentRepoDefaultNow": "{repo} is now the default",
-    "codingAgentRemoveRepo": "New sessions can no longer start in {repo}. Triggers set to it run on the default repository instead. Sessions already on it keep their work."
+    "codingAgentRemoveRepo": "New sessions can no longer start in {repo}. Triggers set to it run on the default repository instead. Sessions already on it keep their work.",
+    "connectors": {
+      "addCustomSubtitle": "Any remote MCP server. Only you can use it.",
+      "agentSubtitle": "Each person chatting uses their own account and their own approvals.",
+      "agentTriggered": "Scheduled and triggered runs have no one to sign in as, so they skip connectors.",
+      "auth": {
+        "apiKey": "Sent as a bearer token with every request.",
+        "headers": "Header names and values sent with every request, e.g. X-API-Key.",
+        "none": "The server is open to anyone.",
+        "oauth": "Sign in with your account. NocoDB registers itself with the server.",
+        "oauthClient": "Sign in through an OAuth app you registered with the server."
+      },
+      "blockedHere": "This workspace does not allow this connector, so chats and agents here do not use it. Your sign-in is kept.",
+      "customBlocked": "This workspace only allows approved connectors",
+      "customWarning": "NocoDB has not reviewed this server. Its tools ask before they run until you choose otherwise.",
+      "disconnectConfirm": "Chats and agents stop using this account. You can connect it again later.",
+      "needsSetup": "This NocoDB has no OAuth app for this connector yet. Ask your administrator.",
+      "notAllowedHere": "This workspace does not allow this connector.",
+      "noTools": "This connector offers no tools.",
+      "noWorkspaceConnectors": "No connectors added for this workspace yet.",
+      "noOrgConnectors": "No connectors added for this organization yet.",
+      "orgSubtitle": "Choose which connectors every workspace in your organization may use, and add servers for all of them.",
+      "orgConnectorsSubtitle": "Servers you set up once for every workspace in this organization.",
+      "orgFormHint": "Members of every workspace connect with their own accounts. Nobody shares yours.",
+      "permission": {
+        "all": "Nothing asks first",
+        "ask": "Every action waits for you",
+        "lowRisk": "Look-ups run; changes ask",
+        "subtitle": "When AI should ask you before using this connector. Applies to your chats and the agents you talk to."
+      },
+      "policy": {
+        "any": "Verified connectors, workspace connectors and any server URL members add.",
+        "managedByOrg": "Your organization manages connectors for this workspace.",
+        "restricted": "The verified connectors you pick, plus the connectors you add below. No custom URLs.",
+        "subtitle": "Members always connect with their own accounts.",
+        "summaryAny": "Members can use every verified connector, {count} workspace connectors and any server URL.",
+        "summaryRestricted": "Members can use {verified} verified and {workspace} workspace connectors. Custom URLs are blocked.",
+        "verifiedAll": "Every verified connector, including ones NocoDB adds later.",
+        "verifiedNone": "No verified connectors. Members can only use the ones you add below.",
+        "workspacesDecide": "Workspace admins choose their own. Organization connectors apply everywhere.",
+        "orgAny": "Every workspace allows verified connectors, organization and workspace connectors, and any server URL.",
+        "orgRestricted": "The verified connectors you pick, plus organization and workspace connectors. No custom URLs.",
+        "summaryWorkspacesDecide": "Each workspace sets its own policy. {count} organization connectors are available in all of them.",
+        "summaryOrgAny": "Every workspace can use every verified connector, {count} organization connectors and any server URL.",
+        "summaryOrgRestricted": "Every workspace can use {verified} verified and {org} organization connectors, plus its own. Custom URLs are blocked."
+      },
+      "removeConfirm": "Members keep their sign-ins, but chats and agents stop using this connector.",
+      "signInExpired": "Reconnect to keep using this connector in chats and agents.",
+      "subtitle": "Let AI chat and agents work across your other tools. Your connections are yours alone.",
+      "toolsRefreshed": "Tools refreshed",
+      "workspaceFormHint": "Members connect with their own accounts. Nobody shares yours.",
+      "workspaceSubtitle": "Servers you set up once for everyone in this workspace.",
+      "serverUrlInvalid": "That isn't a {title} server URL. Use the HTTPS address shown in your {title} account.",
+      "serverUrlSecret": "This URL contains a key. It is stored encrypted and never shown again."
+    }
   },
   "trash": {
     "restore": "Restore",

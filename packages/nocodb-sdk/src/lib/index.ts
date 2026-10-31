@@ -155,6 +155,7 @@ export * from '~/lib/interface';
 export * from '~/lib/previewAs';
 export * from '~/lib/agent';
 export * from '~/lib/skill';
+export * from '~/lib/mcp';
 export * from '~/lib/inviteLink';
 export * from '~/lib/abuseReport';
 export * from '~/lib/templateCard';

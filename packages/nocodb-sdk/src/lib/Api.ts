@@ -982,6 +982,26 @@ export interface ApiTokenV3V3Type {
    */
   enabled?: boolean;
   /**
+   * IPv4/IPv6 addresses and CIDR ranges the token is accepted from, in canonical form. Absent when the token is unrestricted.
+   * @example ["203.0.113.4","10.0.0.0/8"]
+   */
+  ip_allowlist?: string[];
+  /**
+   * Present on create / update responses when the caller's own IP is outside the allowlist just set. The write still succeeds.
+   * @example true
+   */
+  self_lockout_warning?: boolean;
+  /**
+   * The caller IP the server saw, returned with `self_lockout_warning`; IPv4-mapped IPv6 is given as plain IPv4. Behind a proxy it reflects `NC_TRUST_PROXY`: unset, it is the proxy's address.
+   * @example 203.0.113.4
+   */
+  caller_ip?: string;
+  /**
+   * Present when `caller_ip` is a private or loopback address, as it is for every caller behind a proxy when `NC_TRUST_PROXY` is unset.
+   * @example true
+   */
+  caller_ip_internal?: boolean;
+  /**
    * When the token was last used. Absent until the token has been used; updated on a 5-second batched flush, so it lags slightly behind live use.
    * @format date-time
    * @example 2025-12-31 09:02:11+00:00
@@ -9093,6 +9113,13 @@ export interface WorkflowType {
   order?: number;
   /** ID of the automation folder this workflow is grouped under, if any */
   fk_automation_section_id?: string | null;
+  /** Latest run of the workflow (runs the trigger filtered out are ignored); list responses only */
+  last_run?: {
+    /** Run status */
+    status?: string;
+    /** When the run was created */
+    at?: string;
+  } | null;
   /** Last updated time */
   updated_at?: string;
   /** Creation time */

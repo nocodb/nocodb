@@ -27,8 +27,11 @@ export class AjvError extends NcBaseError {
 
 export class NcZodError extends NcBaseErrorv2 {
   constructor(param: { message: string; errors: ZodError | ZodError[] }) {
+    // A zod 4 ZodError serializes as `{name, message}`; keep the `issues` shape clients read.
     super(param.message, 400, NcErrorType.ERR_INVALID_REQUEST_BODY, {
-      details: param.errors,
+      details: Array.isArray(param.errors)
+        ? param.errors.map((err) => ({ issues: err.issues }))
+        : { issues: param.errors.issues },
     });
     this.errors = Array.isArray(param.errors) ? param.errors : [param.errors];
   }

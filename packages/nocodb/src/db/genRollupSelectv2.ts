@@ -477,6 +477,8 @@ export default async function genRollupSelectv2(param: {
         // a one-to-one seen from the side holding the key: the linked record
         // is the parent this row points at
         if (relationColumn.meta?.bt) {
+          // older rollups made here targeted this row's own table
+          if (rollupColumn.fk_model_id !== parentModel.id) return null;
           const qb = knex(
             dbQueryClient.tableAlias(
               knex,

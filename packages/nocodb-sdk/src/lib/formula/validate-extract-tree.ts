@@ -35,13 +35,13 @@ import {
   extractRollupAggregates,
   getRollupAggregate,
   getRollupModifier,
+  getRollupResultUidt,
   hasFreeRollupValues,
   isRollupFormula,
   MAX_ROLLUP_AGGREGATES,
   ROLLUP_VALUES_KEYWORD,
   RollupAggregate,
   RollupModifier,
-  rollupFormulaResultUidt,
 } from '~/lib/formula/rollupFormula';
 
 // Where a node sits in a rollup formula: outside aggregates, as the value set
@@ -203,7 +203,10 @@ export async function extractColumnIdentifierType({
             rollupOptions.parsed_tree?.dataType ?? FormulaDataTypes.UNKNOWN;
           // a date-only result stays date-only for MIN/MAX one level up
           if (
-            rollupFormulaResultUidt(rollupOptions.parsed_tree) === UITypes.Date
+            getRollupResultUidt({
+              uidt: col.uidt,
+              colOptions: rollupOptions,
+            }) === UITypes.Date
           ) {
             res.referencedColumn = { id: col.id, uidt: UITypes.Date };
           }
@@ -1585,16 +1588,17 @@ export async function validateFormulaAndExtractTreeWithType({
     }
     return result;
   } catch (ex) {
-    if (ex instanceof RangeError) {
-      ex = new FormulaError(
-        FormulaErrorType.INVALID_SYNTAX,
-        {},
-        'The formula is too long or too deeply nested'
-      );
-    }
+    const error =
+      ex instanceof RangeError
+        ? new FormulaError(
+            FormulaErrorType.INVALID_SYNTAX,
+            {},
+            'The formula is too long or too deeply nested'
+          )
+        : ex;
     if (trackPosition) {
-      handleFormulaError({ formula, error: ex });
+      handleFormulaError({ formula, error });
     }
-    throw ex;
+    throw error;
   }
 }

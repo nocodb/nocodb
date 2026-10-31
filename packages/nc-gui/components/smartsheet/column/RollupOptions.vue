@@ -41,6 +41,7 @@ const meta = inject(MetaInj, ref())
 const {
   setAdditionalValidations,
   setAvoidShowingToastMsgForValidations,
+  validate,
   validateInfos,
   sqlUi,
   onDataTypeChange,
@@ -271,8 +272,9 @@ const treeTracker = createLatestCallTracker()
 // as FormulaOptions: debounced, and only the latest result types the formula
 const deriveFormulaTree = useDebounceFn(async () => {
   const formula = vModel.value.rollup_formula
-  if (!isFormulaMode.value || !formula?.trim() || !rollupTargetColumn.value) return
+  // started first: a derivation still in flight must not land after this
   const token = treeTracker.start()
+  if (!isFormulaMode.value || !formula?.trim() || !rollupTargetColumn.value) return
   try {
     const tree = await extractRollupFormulaTree(formula)
     if (treeTracker.isLatest(token)) formulaParsedTree.value = tree
@@ -351,7 +353,8 @@ watch(
     if (!vModel.value.rollup_formula) {
       vModel.value.rollup_formula = defaultRollupFormula()
     }
-    validateRollupFormula(vModel.value.rollup_formula).catch(() => {})
+    // through the form, so the field's status (and the Save button) follows
+    validate('rollup_formula').catch(() => {})
   },
 )
 

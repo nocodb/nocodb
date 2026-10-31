@@ -12,6 +12,7 @@ import type { Body, FieldT, R, ValT } from './grammarCore'
 import { F, fieldT, fit, isDateKind, r, ref, valT } from './grammarCore'
 import { EDIT_RULES, addEditTerminals } from './grammarEdit'
 import { EXTRA_RULES, addExtraTerminals } from './grammarExtra'
+import { COLOR_RULES, addColorTerminals } from './grammarColor'
 import {
   AGG_WORDS,
   AGG_WORDS_EXTRA,
@@ -277,6 +278,7 @@ export function buildCmdNlLattice(ctx: CmdNlCtx): CmdNlLattice {
 
   addEditTerminals(ctx, words, add)
   addExtraTerminals(ctx, words, add)
+  addColorTerminals(ctx, words, add)
 
   const lead = leadingFillers(words)
   const skip = words.map((w, i) => i < lead || GLUE_WORDS.has(w) || lex.tableNouns.has(w))
@@ -819,6 +821,7 @@ const RULES: R[] = [
   r('Q', 'Create', 1),
   ...EDIT_RULES,
   ...EXTRA_RULES,
+  ...COLOR_RULES,
 ]
 
 function cueCond(ctx: CmdNlCtx, cue: string, v: ValT): Cond | undefined {

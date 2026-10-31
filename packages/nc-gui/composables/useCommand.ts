@@ -48,7 +48,7 @@ export const useCommand = createSharedComposable(() => {
         userId,
         workspaceId,
         'recentItems',
-        items.filter((item) => item.workspaceId === workspaceId).slice(0, 20),
+        items.filter((item) => item.workspaceId === workspaceId).slice(0, MAX_RECENT_ITEMS),
       )
     },
     { deep: true },

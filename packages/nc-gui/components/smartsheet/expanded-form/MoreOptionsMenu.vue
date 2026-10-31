@@ -2,6 +2,7 @@
 import type { ButtonType, ColumnType, ViewType } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, UITypes, isAIPromptCol, isSystemColumn } from 'nocodb-sdk'
 import type { CmdCommand } from '~/lib/types'
+import { useRelativeEditCommands } from '~/composables/useSetFieldCommands'
 
 interface Props {
   isLoading?: boolean
@@ -232,6 +233,8 @@ function focusField(columnId: string) {
 
 const setFieldCommands = useSetFieldCommands()
 
+const relativeEditCommands = useRelativeEditCommands()
+
 useCommandProvider(
   () => `record:${meta.value?.id}:${primaryKey.value}`,
   'record',
@@ -240,6 +243,8 @@ useCommandProvider(
 
     const section = t('labels.commandPalette.sections.record')
     const commands: CmdCommand[] = []
+    // Shared by "Set <Field>…" and query-built edits ("add 10").
+    let editTarget: Parameters<typeof relativeEditCommands>[0] | undefined
 
     if (visibleMoreOptions.value.copyRecordUrl) {
       commands.push({
@@ -278,30 +283,32 @@ useCommandProvider(
       // With other edits pending the value joins them unsaved, as typing in the form would.
       const hasPendingEdits = expandedFormStore.changedColumns.value.size > 0 || expandedFormStore.hasLtarChanges.value
       commands.push(
-        ...setFieldCommands({
-          meta: meta.value,
-          // Shared views open the form read-only.
-          columns: isPublic.value
-            ? []
-            : [
-                ...expandedFormStore.fields.value.map((column) => ({ column })),
-                ...expandedFormStore.hiddenFields.value.map((column) => ({ column, hidden: true })),
-              ],
-          values: (column) => [_row.value.row[column.title!]],
-          section,
-          // Links save immediately; with edits pending they'd bypass the form's queued link changes.
-          row: hasPendingEdits ? undefined : _row.value.row,
-          feedback: hasPendingEdits ? t('labels.commandPalette.setUnsaved') : undefined,
-          save: async (column, next) => {
-            _row.value.row[column.title!] = next(_row.value.row[column.title!])
-            expandedFormStore.changedColumns.value = new Set([...expandedFormStore.changedColumns.value, column.title!])
-            if (hasPendingEdits) return
+        ...setFieldCommands(
+          (editTarget = {
+            meta: meta.value,
+            // Shared views open the form read-only.
+            columns: isPublic.value
+              ? []
+              : [
+                  ...expandedFormStore.fields.value.map((column) => ({ column })),
+                  ...expandedFormStore.hiddenFields.value.map((column) => ({ column, hidden: true })),
+                ],
+            values: (column) => [_row.value.row[column.title!]],
+            section,
+            // Links save immediately; with edits pending they'd bypass the form's queued link changes.
+            row: hasPendingEdits ? undefined : _row.value.row,
+            feedback: hasPendingEdits ? t('labels.commandPalette.setUnsaved') : undefined,
+            save: async (column, next) => {
+              _row.value.row[column.title!] = next(_row.value.row[column.title!])
+              expandedFormStore.changedColumns.value = new Set([...expandedFormStore.changedColumns.value, column.title!])
+              if (hasPendingEdits) return
 
-            await expandedFormStore.save()
-            await _loadRow()
-            await reloadViewDataTrigger.trigger()
-          },
-        }),
+              await expandedFormStore.save()
+              await _loadRow()
+              await reloadViewDataTrigger.trigger()
+            },
+          }),
+        ),
       )
     }
 
@@ -459,6 +466,7 @@ useCommandProvider(
         icon: { type: 'table', icon: parseProp(meta.value?.meta).icon },
       },
       commands,
+      fallbacks: (query) => (editTarget ? relativeEditCommands(editTarget, query) : []),
     }
   },
 )

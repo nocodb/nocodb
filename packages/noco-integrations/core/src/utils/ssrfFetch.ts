@@ -1,6 +1,6 @@
 import dns from 'dns';
 import { isIP } from 'net';
-import { Agent } from 'undici';
+import { Agent, buildConnector } from 'undici';
 import {
   isBlockedAddress,
   isSsrfProtectionEnabled,
@@ -30,12 +30,23 @@ function filteringLookup(
   });
 }
 
-const filteringAgent = new Agent({ connect: { lookup: filteringLookup } });
+const connectFiltered = buildConnector({ lookup: filteringLookup });
+
+// Node skips the lookup for IP-literal hosts, so every connection — a followed
+// redirect's included — checks those here.
+const filteringAgent = new Agent({
+  connect: (options, callback) => {
+    const host = options.hostname.replace(/^\[|\]$/g, '');
+    if (isIP(host) && isBlockedAddress(host)) {
+      return callback(new SsrfBlockedHostError(), null);
+    }
+    connectFiltered(options, callback);
+  },
+});
 
 /**
  * `fetch` for URLs a user supplied: refuses private, loopback, link-local and
- * metadata addresses, redirects included. Node skips the lookup for IP-literal
- * hosts, so those are checked here.
+ * metadata addresses, redirects included.
  */
 export const ssrfSafeFetch: typeof fetch = async (input, init) => {
   if (!isSsrfProtectionEnabled()) return fetch(input, init);

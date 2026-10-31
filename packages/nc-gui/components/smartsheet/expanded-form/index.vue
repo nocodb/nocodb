@@ -4,8 +4,6 @@ import { ExpandedFormMode, PermissionEntity, PermissionKey, ViewTypes } from 'no
 import type { Ref } from 'vue'
 import { Drawer } from 'ant-design-vue'
 import NcModal from '../../nc/Modal.vue'
-import type { CmdCommand } from '~/lib/types'
-
 interface Props {
   modelValue?: boolean
   state?: Record<string, any> | null
@@ -586,98 +584,32 @@ const addNewRow = () => {
     isExpanded.value = true
   }, 500)
 }
-// Cmd+K record navigation; MoreOptionsMenu registers the record chip and its actions.
-useCommandProvider(
-  () => `record-nav:modal:${meta.value?.id}:${primaryKey.value}`,
-  'record',
-  () => {
-    if (!isExpanded.value || props.templateMode || props.blueprintMode) return { commands: [] }
-
-    const section = t('labels.commandPalette.sections.record')
-    const commands: CmdCommand[] = []
-
-    // An unsaved record still owns the record level, so Cmd+K never acts on the grid row behind the form.
-    const newRecordContext = isNew.value
-      ? {
-          prefix: meta.value?.title,
-          label: t('activity.newRecord'),
-          icon: { type: 'table' as const, icon: parseProp(meta.value?.meta).icon },
-        }
-      : undefined
-
-    if (props.showNextPrevIcons && !isNew.value && !isFirstRow.value) {
-      commands.push({
-        id: 'record:previous',
-        priority: CMD_PRIORITY.high,
-        title: t('labels.commandPalette.previousRecord'),
-        section,
-        icon: { type: 'icon', name: 'ncChevronLeft' },
-        shortcut: ['Alt', 'ArrowLeft'],
-        run: onPrev,
-      })
-    }
-
-    if (props.showNextPrevIcons && !isNew.value && !isLastRow.value) {
-      commands.push({
-        id: 'record:next',
-        priority: CMD_PRIORITY.high,
-        title: t('labels.commandPalette.nextRecord'),
-        section,
-        icon: { type: 'icon', name: 'ncChevronRight' },
-        shortcut: ['Alt', 'ArrowRight'],
-        run: onNext,
-      })
-    }
-
-    if (isAllowedAddNewRecord.value && !isSaveRecordBtnDisabled.value) {
-      commands.push({
-        id: 'record:save',
-        priority: CMD_PRIORITY.primary,
-        title: t('labels.commandPalette.saveRecord'),
-        section,
-        icon: { type: 'icon', name: 'ncSave' },
-        shortcut: ['Alt', 'S'],
-        feedback: t('general.saved'),
-        // `save` reports its own failures in the form.
-        run: async () => {
-          await save()
-          reloadHook?.trigger(null)
-        },
-      })
-    }
-
-    if (hasUnsavedChanges.value && !isNew.value) {
-      commands.push({
-        id: 'record:discard',
-        priority: CMD_PRIORITY.high,
-        title: t('labels.commandPalette.discardChanges'),
-        section,
-        icon: { type: 'icon', name: 'ncRotateCcw' },
-        keywords: ['revert', 'undo', 'cancel'],
-        // No inline feedback: the command unregisters once clean, which would drop its status row.
-        // Same buffers the discard dialog drops; the form stays open on the saved values.
-        run: async () => {
-          clearColumns()
-          clearLtarBuffers()
-          await _loadRow()
-        },
-      })
-    }
-
-    commands.push({
-      id: 'record:close',
-      priority: CMD_PRIORITY.low,
-      title: t('labels.commandPalette.closeRecord'),
-      section,
-      icon: { type: 'icon', name: 'ncX' },
-      shortcut: ['Esc'],
-      // Unsaved edits raise the discard dialog, as the close button does.
-      run: () => onClose(),
-    })
-
-    return { context: newRecordContext, commands }
+useRecordNavCommands({
+  key: () => `record-nav:modal:${meta.value?.id}:${primaryKey.value}`,
+  isOpen: () => isExpanded.value && !props.templateMode && !props.blueprintMode,
+  isNew,
+  canPrev: () => !!props.showNextPrevIcons && !isFirstRow.value,
+  canNext: () => !!props.showNextPrevIcons && !isLastRow.value,
+  prev: onPrev,
+  next: onNext,
+  navShortcuts: ['ArrowLeft', 'ArrowRight'],
+  canSave: () => isAllowedAddNewRecord.value && !isSaveRecordBtnDisabled.value,
+  // `save` reports its own failures in the form.
+  save: async () => {
+    await save()
+    reloadHook?.trigger(null)
   },
-)
+  saveShortcut: ['Alt', 'S'],
+  saveFeedback: t('general.saved'),
+  hasUnsavedChanges,
+  // Same buffers the discard dialog drops; the form stays open on the saved values.
+  discard: async () => {
+    clearColumns()
+    clearLtarBuffers()
+    await _loadRow()
+  },
+  close: () => onClose(),
+})
 
 // attach keyboard listeners to switch between rows
 // using alt + left/right arrow keys

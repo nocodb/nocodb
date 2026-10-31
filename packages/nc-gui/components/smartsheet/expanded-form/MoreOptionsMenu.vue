@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import type { ButtonType, ColumnType, ViewType } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey, UITypes, isAIPromptCol, isSystemColumn } from 'nocodb-sdk'
-import type { CmdCommand } from '~/lib/types'
-import { useRelativeEditCommands } from '~/composables/useSetFieldCommands'
+import type { ColumnType, ViewType } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey } from 'nocodb-sdk'
 
 interface Props {
   isLoading?: boolean
@@ -57,8 +55,6 @@ const { t } = useI18n()
 const route = useRoute()
 
 const { isSharedBase } = storeToRefs(useBase())
-
-const { isAiRecordContextEnabled, setAiRecordContext } = useAiRecordContext()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -207,269 +203,21 @@ const onConfirmDeleteRowClick = async () => {
   })
 }
 
-function formRowEl(columnId: string) {
-  return document.querySelector<HTMLElement>(`.nc-expanded-form-row[col-id="${columnId}"]`)
-}
-
-// Deferred so the closing palette doesn't take focus back. Cells without a text input
-// (select, checkbox, rating…) are activated by a click, as a pointer would; read-only ones only flash.
-function focusField(columnId: string) {
-  setTimeout(() => {
-    const rowEl = formRowEl(columnId)
-    if (!rowEl) return
-    rowEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    rowEl.animate([{ backgroundColor: 'var(--nc-bg-brand)' }, { backgroundColor: 'transparent' }], {
-      duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1200,
-      easing: 'cubic-bezier(0.2, 0, 0, 1)',
-    })
-
-    const input = rowEl.querySelector<HTMLElement>('input:not([type="checkbox"]), textarea, [contenteditable="true"]')
-    if (input) return input.focus()
-
-    const cell = rowEl.querySelector<HTMLElement>('.nc-data-cell')
-    if (cell && !rowEl.querySelector('.nc-readonly-div-data-cell, .nc-system-field')) cell.click()
-  }, 150)
-}
-
-const setFieldCommands = useSetFieldCommands()
-
-const relativeEditCommands = useRelativeEditCommands()
-
-useCommandProvider(
-  () => `record:${meta.value?.id}:${primaryKey.value}`,
-  'record',
-  () => {
-    if (!hasRecordCommands.value) return { commands: [] }
-
-    const section = t('labels.commandPalette.sections.record')
-    const commands: CmdCommand[] = []
-    // Shared by "Set <Field>…" and query-built edits ("add 10").
-    let editTarget: Parameters<typeof relativeEditCommands>[0] | undefined
-
-    if (visibleMoreOptions.value.copyRecordUrl) {
-      commands.push({
-        id: 'record:copy-url',
-        priority: CMD_PRIORITY.high,
-        title: t('labels.commandPalette.copyRecordUrl'),
-        section,
-        icon: { type: 'icon', name: 'copy' },
-        keywords: ['link'],
-        feedback: t('labels.commandPalette.copied'),
-        run: () => {
-          copyRecordUrl()
-        },
-      })
-    }
-
-    if (isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value) {
-      commands.push({
-        id: 'record:edit-field',
-        priority: CMD_PRIORITY.primary,
-        title: `${t('labels.editField')}…`,
-        section,
-        icon: { type: 'icon', name: 'ncEdit' },
-        searchChildren: true,
-        children: () =>
-          (meta.value?.columns ?? [])
-            .filter((col) => !isSystemColumn(col) && col.id && formRowEl(col.id))
-            .map((col) => ({
-              id: `record:edit-field:${col.id}`,
-              title: col.title!,
-              icon: { type: 'field', column: col },
-              run: () => focusField(col.id!),
-            })),
-      })
-
-      // With other edits pending the value joins them unsaved, as typing in the form would.
-      const hasPendingEdits = expandedFormStore.changedColumns.value.size > 0 || expandedFormStore.hasLtarChanges.value
-      commands.push(
-        ...setFieldCommands(
-          (editTarget = {
-            meta: meta.value,
-            // Shared views open the form read-only.
-            columns: isPublic.value
-              ? []
-              : [
-                  ...expandedFormStore.fields.value.map((column) => ({ column })),
-                  ...expandedFormStore.hiddenFields.value.map((column) => ({ column, hidden: true })),
-                ],
-            values: (column) => [_row.value.row[column.title!]],
-            section,
-            // Links save immediately; with edits pending they'd bypass the form's queued link changes.
-            row: hasPendingEdits ? undefined : _row.value.row,
-            feedback: hasPendingEdits ? t('labels.commandPalette.setUnsaved') : undefined,
-            save: async (column, next) => {
-              _row.value.row[column.title!] = next(_row.value.row[column.title!])
-              expandedFormStore.changedColumns.value = new Set([...expandedFormStore.changedColumns.value, column.title!])
-              if (hasPendingEdits) return
-
-              await expandedFormStore.save()
-              await _loadRow()
-              await reloadViewDataTrigger.trigger()
-            },
-          }),
-        ),
-      )
-    }
-
-    // Same gates as the sidebar's comment box and feeds (none on SQL views or shared views).
-    if (!isNew.value && props.rowId && !isSqlView.value && !isPublic.value) {
-      if (isUIAllowed('commentEdit')) {
-        commands.push({
-          id: 'record:add-comment',
-          priority: CMD_PRIORITY.normal,
-          title: t('labels.commandPalette.addComment'),
-          section,
-          icon: { type: 'icon', name: 'ncMessageCircle' },
-          keywords: ['comment', 'note', 'discuss'],
-          feedback: t('labels.commandPalette.commentAdded'),
-          edit: {
-            value: '',
-            multiline: true,
-            placeholder: t('labels.commandPalette.commentPlaceholder'),
-            validate: (value) => (value.trim() ? undefined : t('labels.commandPalette.commentRequired')),
-            submit: async (value) => {
-              await expandedFormStore.saveComment(value.trim().replace(/\n/g, '<br />'), undefined, undefined, undefined, {
-                notify: false,
-              })
-              expandedFormStore.requestedSidebarFeed.value = 'comments'
-            },
-          },
-        })
-      }
-
-      if (isUIAllowed('commentList')) {
-        commands.push({
-          id: 'record:open-comments',
-          priority: CMD_PRIORITY.normal,
-          title: t('labels.commandPalette.openComments'),
-          section,
-          icon: { type: 'icon', name: 'ncMessageCircle' },
-          run: () => {
-            expandedFormStore.requestedSidebarFeed.value = 'comments'
-          },
-        })
-      }
-
-      if (expandedFormStore.isAuditEnabled.value) {
-        commands.push({
-          id: 'record:open-history',
-          priority: CMD_PRIORITY.low,
-          title: t('labels.commandPalette.openRevisionHistory'),
-          section,
-          icon: { type: 'icon', name: 'ncClock' },
-          keywords: ['audit', 'history', 'changes', 'log'],
-          run: () => {
-            expandedFormStore.requestedSidebarFeed.value = 'audits'
-          },
-        })
-      }
-    }
-
-    if (visibleMoreOptions.value.sendRecord) {
-      commands.push({
-        id: 'record:send',
-        priority: CMD_PRIORITY.normal,
-        title: t('activity.sendRecord'),
-        section,
-        icon: { type: 'icon', name: 'mail' },
-        keywords: ['email'],
-        run: () => {
-          showSendRecordModal.value = true
-        },
-      })
-    }
-
-    if (visibleMoreOptions.value.duplicateRecord && !meta.value?.synced) {
-      commands.push({
-        id: 'record:duplicate',
-        priority: CMD_PRIORITY.normal,
-        title: t('labels.commandPalette.duplicateRecord'),
-        section,
-        icon: { type: 'icon', name: 'duplicate' },
-        feedback: t('msg.success.rowDuplicatedWithoutSavedYet'),
-        run: () => onDuplicateRow({ notify: false }),
-      })
-    }
-
-    if (visibleMoreOptions.value.reloadRecord) {
-      commands.push({
-        id: 'record:reload',
-        priority: CMD_PRIORITY.low,
-        title: `${t('general.reload')} ${t('objects.record')}`,
-        section,
-        icon: { type: 'icon', name: 'reload' },
-        keywords: ['refresh'],
-        run: () => _loadRow(),
-      })
-    }
-
-    if (props.showCompactToggle) {
-      commands.push({
-        id: 'record:compact-view',
-        priority: CMD_PRIORITY.low,
-        title: t('labels.compactView'),
-        section,
-        icon: { type: 'icon', name: 'list' },
-        checked: props.compactMode,
-        keywords: ['dense', 'plain'],
-        run: () => emits('update:compactMode', !props.compactMode),
-      })
-    }
-
-    // Button and AI fields: click the form's own control, so its gates, confirmations and status apply.
-    for (const col of meta.value?.columns ?? []) {
-      if (!col.id || isSystemColumn(col)) continue
-      const isButton = col.uidt === UITypes.Button
-      if (!isButton && !isAIPromptCol(col)) continue
-      const selector = isButton ? '[data-testid="nc-button-cell"], .nc-cell-ai-button' : 'button.theme-ai'
-      const control = formRowEl(col.id)?.querySelector<HTMLElement>(selector)
-      if (!control || control.matches('[disabled], .disabled')) continue
-      commands.push({
-        id: `record:run:${col.id}`,
-        priority: CMD_PRIORITY.normal,
-        title: t(isButton ? 'labels.commandPalette.runButton' : 'labels.commandPalette.generateField', { field: col.title }),
-        section,
-        icon: { type: 'field', column: col },
-        keywords: ['run', 'click', 'button', 'generate', (col.colOptions as ButtonType | undefined)?.label ?? ''],
-        // After the palette closes, so focus and any dialog the action opens land in the form.
-        run: () => setTimeout(() => formRowEl(col.id!)?.querySelector<HTMLElement>(selector)?.click(), 0),
-      })
-    }
-
-    if (isAiRecordContextEnabled.value) {
-      commands.push({
-        id: 'record:ask-ai',
-        priority: CMD_PRIORITY.high,
-        title: t('labels.commandPalette.askAiAboutRecord'),
-        section,
-        icon: { type: 'icon', name: 'ncAutoAwesome' },
-        run: () => setAiRecordContext({ tableId: meta.value!.id!, recordId: String(primaryKey.value), title: recordTitle.value }),
-      })
-    }
-
-    if (visibleMoreOptions.value.deleteRecord && !meta.value?.synced) {
-      commands.push({
-        id: 'record:delete',
-        title: t('labels.commandPalette.deleteRecord'),
-        section,
-        icon: { type: 'icon', name: 'delete' },
-        danger: true,
-        run: onDeleteRowClick,
-      })
-    }
-
-    return {
-      context: {
-        prefix: meta.value?.title,
-        label: recordTitle.value || String(primaryKey.value),
-        icon: { type: 'table', icon: parseProp(meta.value?.meta).icon },
-      },
-      commands,
-      fallbacks: (query) => (editTarget ? relativeEditCommands(editTarget, query) : []),
-    }
+useExpandedRecordCommands({
+  hasRecordCommands,
+  options: visibleMoreOptions,
+  rowId: () => props.rowId,
+  recordTitle,
+  copyRecordUrl,
+  duplicate: () => onDuplicateRow({ notify: false }),
+  deleteRecord: onDeleteRowClick,
+  showCompactToggle: () => props.showCompactToggle,
+  compactMode: () => props.compactMode,
+  setCompactMode: (compact) => emits('update:compactMode', compact),
+  openSendRecord: () => {
+    showSendRecordModal.value = true
   },
-)
+})
 </script>
 
 <template>

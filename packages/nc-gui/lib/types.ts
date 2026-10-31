@@ -29,7 +29,6 @@ import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
 import type { TooltipPlacement } from 'ant-design-vue/lib/tooltip'
 import type { ImageWindowLoader } from '../components/smartsheet/grid/canvas/loaders/ImageLoader'
-import type { CmdNlReadingTele } from '../utils/cmdNl/telemetry'
 import type { MarkdownLoader } from '../components/smartsheet/grid/canvas/loaders/markdownLoader'
 import type { SpriteLoader } from '../components/smartsheet/grid/canvas/loaders/SpriteLoader'
 import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders/ActionManager'
@@ -445,10 +444,31 @@ interface CmdCommand {
   tele?: CmdTele
 }
 
+/** A typed query's reading, structurally: intent, counts, kinds and field types; no text, titles, ids or values. */
+interface CmdReadingTele {
+  intent: string
+  /** 0 = the top reading. */
+  rank: number
+  scope: string
+  unsure: boolean
+  assumed: boolean
+  assumption_kinds: string[]
+  source: string
+  aggs: string[]
+  cmps: string[]
+  uidts: string[]
+  conditions: number
+  has_or: boolean
+  has_not: boolean
+  edit_kinds: string[]
+  group_by: number
+  sort: number
+}
+
 type CmdTele =
   | {
       kind: 'reading'
-      reading: CmdNlReadingTele
+      reading: CmdReadingTele
       latency?: string
       tagger?: boolean
       readings?: number

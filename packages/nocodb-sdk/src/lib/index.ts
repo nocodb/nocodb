@@ -62,7 +62,6 @@ export {
   isHiddenCol,
   getEquivalentUIType,
   resolveRollupResultUidt,
-  getRollupResultUidt,
   isActionButtonCol,
   isSelectTypeCol,
   isOrderCol,

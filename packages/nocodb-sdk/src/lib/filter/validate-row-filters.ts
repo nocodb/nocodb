@@ -10,14 +10,17 @@ import { ColumnType, FilterType, LinkToAnotherRecordType } from '~/lib/Api';
 import { isDateMonthFormat } from '~/lib/dateTimeHelper';
 import { buildFilterTree } from '~/lib/filterHelpers';
 import { parseProp } from '~/lib/helperFunctions';
-import UITypes, {
-  getRollupResultUidt,
-  isBtLikeV2Junction,
-} from '~/lib/UITypes';
+import UITypes, { isBtLikeV2Junction } from '~/lib/UITypes';
 import { FormulaDataTypes } from '~/lib/formula/enums';
+import {
+  getRollupResultUidt,
+  isRollupFormula,
+  rollupFormulaResultUidt,
+} from '~/lib/formula/rollupFormula';
 import { getLookupColumnType } from '~/lib/columnHelper/utils/get-lookup-column-type';
 import { getNodejsTimezone } from '~/lib/timezoneUtils';
 import { ColumnHelper } from '~/lib/columnHelper/column-helper';
+import { parseCheckboxValue } from '~/lib/columnHelper/utils/parser';
 import { CURRENT_USER_TOKEN } from '~/lib/globals';
 import { getMetaWithCompositeKey } from '~/lib/helpers/metaHelpers';
 
@@ -41,6 +44,16 @@ const DATE_TYPES = [
 ];
 
 const USER_TYPES = [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy];
+
+const NUMERIC_COMPARE_TYPES = [
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Rating,
+  UITypes.Duration,
+  UITypes.Year,
+];
 
 // Ops that mean "no value" / "has value" — kept out of the date path (handled
 // generically) and used for array (lookup/attachment) emptiness checks.
@@ -137,6 +150,8 @@ export class RowFilterValidator {
   }): UITypes {
     const { column, columns, metas, baseId } = params;
     const colOptions = column.colOptions as any;
+    if (isRollupFormula(colOptions))
+      return rollupFormulaResultUidt(colOptions.parsed_tree);
     const fn = colOptions?.rollup_function;
     if (!['min', 'max'].includes(fn)) return UITypes.Decimal;
 
@@ -702,14 +717,24 @@ export class RowFilterValidator {
       }
     }
 
+    // decimals often arrive as strings ("60.50"), so equality is numeric
+    const sameNumber =
+      NUMERIC_COMPARE_TYPES.includes(effectiveUidt) &&
+      ncToString(value).trim() !== '' &&
+      ncToString(filter.value).trim() !== '' &&
+      !isNaN(+value) &&
+      !isNaN(+filter.value!)
+        ? +value === +filter.value!
+        : undefined;
+
     switch (op) {
       case 'eq':
       case 'gb_eq':
-        res = val == filter.value;
+        res = sameNumber ?? val == filter.value;
         break;
       case 'neq':
       case 'not':
-        res = val != filter.value;
+        res = sameNumber === undefined ? val != filter.value : !sameNumber;
         break;
       case 'like':
         res =
@@ -731,11 +756,12 @@ export class RowFilterValidator {
       case 'notblank':
         res = !isBlankValue(value);
         break;
+      // a checkbox may arrive as true / 1 / "1" / "0" depending on the database
       case 'checked':
-        res = !!value;
+        res = parseCheckboxValue(value) ?? !!value;
         break;
       case 'notchecked':
-        res = !value;
+        res = !(parseCheckboxValue(value) ?? !!value);
         break;
       case 'null':
       case 'gb_null':

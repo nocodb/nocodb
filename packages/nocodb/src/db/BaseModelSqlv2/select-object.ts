@@ -632,10 +632,15 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           const rollupColOptions =
             (await column.getColOptions()) as RollupColumn;
 
-          // Errored rollup/link (e.g. its relation was cascade-deleted):
-          // emit a NULL dummy select instead of attempting the rollup.
+          // Errored rollup/link (e.g. its relation was cascade-deleted): the
+          // error sentinel, as on the EE query clients.
           if (rollupColOptions?.error) {
-            qb.select(baseModel.dbDriver.raw(`? as ??`, [null, getAs(column)]));
+            qb.select(
+              baseModel.dbDriver.raw(`? as ??`, [
+                column.uidt === UITypes.Rollup ? NC_ERROR_SENTINEL : null,
+                getAs(column),
+              ]),
+            );
             break;
           }
 

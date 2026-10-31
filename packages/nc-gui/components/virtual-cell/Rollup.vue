@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import {
+  NC_ERROR_SENTINEL,
   UITypes,
   getEffectiveDisplayColumn,
   getRenderAsTextFunForUiType,
   getRollupColumnMeta,
+  getRollupFormulaDisplayColumn,
   integerPreservingRollupFunctions,
   integerRollupFunctions,
+  isRollupFormula,
 } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, RollupType } from 'nocodb-sdk'
 
@@ -66,10 +69,15 @@ const colOptions = computed(() => column.value?.colOptions)
 const childColumn = computed(() => {
   if (!column.value || !isRollup(column.value)) return ''
 
+  const targetCol = relatedTableMeta.value?.columns?.find(
+    (c: ColumnType) => c.id === (colOptions.value as RollupType).fk_rollup_column_id,
+  )
+
+  // a formula rollup renders as its result type
+  if (isRollupFormula(colOptions.value as RollupType)) return getRollupFormulaDisplayColumn(column.value, targetCol)
+
   // Partial/missing related meta (no access to the related base) — derive the type from the rollup
-  const col =
-    relatedTableMeta.value?.columns?.find((c: ColumnType) => c.id === (colOptions.value as RollupType).fk_rollup_column_id) ??
-    (relatedMetaResolved.value ? getFallbackRollupColumn(column.value) : undefined)
+  const col = targetCol ?? (relatedMetaResolved.value ? getFallbackRollupColumn(column.value) : undefined)
 
   if (!col) return ''
 
@@ -112,10 +120,10 @@ const isIntegerResult = computed(() => {
 </script>
 
 <template>
-  <div v-if="column && column.colOptions && column.colOptions.error" class="nc-cell-field">
-    <NcTooltip placement="bottom" class="text-nc-content-orange-dark">
+  <div v-if="column?.colOptions?.error || value === NC_ERROR_SENTINEL" class="nc-cell-field">
+    <NcTooltip placement="bottom" class="text-nc-content-orange-dark" :disabled="!column?.colOptions?.error">
       <template #title>
-        <span class="font-bold">{{ column.colOptions.error }}</span>
+        <span class="font-bold">{{ column?.colOptions?.error }}</span>
       </template>
       <span>{{ $t('labels.errorShort') }}</span>
     </NcTooltip>

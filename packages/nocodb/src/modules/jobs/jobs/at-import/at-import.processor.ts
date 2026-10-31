@@ -8,6 +8,7 @@ import {
   isSupportedDisplayValueColumn,
   isSystemColumn,
   OperationSource,
+  ROLLUP_FORMULA_FUNCTION,
   SortOrderBy,
   SqlUiFactory,
   UITypes,
@@ -1798,14 +1799,23 @@ export class AtImportProcessor {
               }/${aTblColumns.length}] ${aTblSchema[idx].name}`,
             );
 
-            // fetch associated rollup function
-            // skip column creation if supported rollup function does not exist
-            const ncRollupFn =
+            // a plain `FN(values)` keeps the matching rollup function; any other
+            // Airtable aggregation imports as a rollup formula
+            const formulaText: string | undefined =
+              aTblColumns[i].typeOptions?.formulaTextParsed?.trim();
+            let ncRollupFn =
               aTblColumns[i].type === 'count'
                 ? 'count'
-                : getRollupNcFunction(
-                    aTblColumns[i].typeOptions.formulaTextParsed,
-                  );
+                : /^\w+\(\s*values\s*\)$/i.test(formulaText ?? '')
+                ? getRollupNcFunction(formulaText)
+                : '';
+            if (
+              !ncRollupFn &&
+              aTblColumns[i].type === 'rollup' &&
+              formulaText
+            ) {
+              ncRollupFn = ROLLUP_FORMULA_FUNCTION;
+            }
 
             if (ncRollupFn === '' || ncRollupFn === undefined) {
               updateMigrationSkipLog(
@@ -1866,15 +1876,30 @@ export class AtImportProcessor {
               continue;
             }
 
-            // skip, if rollup column was pointing to another virtual column
+            // the rollup functions can't aggregate these; a rollup formula can
             const ncColSchema = await nc_getColumnSchema(
               aTblColumns[i].typeOptions.foreignTableRollupColumnId,
             );
             if (
-              ncColSchema?.uidt === UITypes.Formula ||
-              ncColSchema?.uidt === UITypes.Lookup ||
-              ncColSchema?.uidt === UITypes.Rollup ||
-              ncColSchema?.uidt === UITypes.Checkbox
+              ncRollupFn !== 'count' &&
+              formulaText &&
+              [
+                UITypes.Formula,
+                UITypes.Rollup,
+                UITypes.Checkbox,
+                UITypes.Lookup,
+              ].includes(ncColSchema?.uidt)
+            ) {
+              ncRollupFn = ROLLUP_FORMULA_FUNCTION;
+            }
+            if (
+              ncRollupFn !== ROLLUP_FORMULA_FUNCTION &&
+              [
+                UITypes.Formula,
+                UITypes.Rollup,
+                UITypes.Checkbox,
+                UITypes.Lookup,
+              ].includes(ncColSchema?.uidt)
             ) {
               updateMigrationSkipLog(
                 srcTableSchema.title,
@@ -1905,6 +1930,9 @@ export class AtImportProcessor {
                   fk_relation_column_id: ncRelationColumnId,
                   fk_rollup_column_id: ncRollupColumnId,
                   rollup_function: ncRollupFn,
+                  ...(ncRollupFn === ROLLUP_FORMULA_FUNCTION
+                    ? { rollup_formula: formulaText }
+                    : {}),
                 },
                 req,
                 user: syncDB.user,

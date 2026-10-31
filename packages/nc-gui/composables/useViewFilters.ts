@@ -211,7 +211,7 @@ export function useViewFilters(
 
         obj[col.id] = formulaUIType || col.uidt
       }
-      // a rollup returning a date (min/max over a Date field) filters like one
+      // a rollup filters as its result type
       else if (col.uidt === UITypes.Rollup) {
         obj[col.id] = getRollupResultUidt(col) ?? col.uidt
       }

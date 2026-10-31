@@ -1,4 +1,4 @@
-import { extractFilterFromXwhere } from 'nocodb-sdk';
+import { extractFilterFromXwhere, getRollupResultUidt } from 'nocodb-sdk';
 import type { FilterType, NcContext, UITypes } from 'nocodb-sdk';
 import { compileFilterTree, COMPUTED_TYPES } from '~/mcp/tools/filter-compile';
 import { Model } from '~/models';
@@ -22,18 +22,15 @@ export async function compileFilterInput(
   const filterColumns = await Promise.all(
     columns.map(async (c) => {
       const colOptions = COMPUTED_TYPES.includes(c.uidt as UITypes)
-        ? await c.getColOptions<{
-            error?: string | null;
-            result_uidt?: string;
-          }>()
+        ? await c.getColOptions<{ error?: string | null }>()
         : null;
       return {
         id: c.id,
         title: c.title,
         column_name: c.column_name,
         uidt: c.uidt,
-        error: colOptions?.error,
-        result_uidt: colOptions?.result_uidt,
+        error: colOptions?.error ?? null,
+        result_uidt: getRollupResultUidt({ uidt: c.uidt, colOptions }),
       };
     }),
   );

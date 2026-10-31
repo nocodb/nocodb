@@ -14306,7 +14306,7 @@
           },
           "rollup_function": {
             "type": "string",
-            "description": "Rollup function. The accepted set depends on the target field's type — date-like targets take only `count`, `countAll`, `min`, `max` and `countDistinct`, numeric targets additionally take `sum`, `avg`, `sumDistinct` and `avgDistinct`. A function outside the target's set is rejected with `400`. `count` counts linked records whose target value is not empty; `countAll` counts every linked record. With no linked records (or only empty values), `sum` and the count functions return `0`, while `avg`, `min` and `max` return `null`.",
+            "description": "Rollup function. The accepted set depends on the target field's type — date-like targets take only `count`, `countAll`, `min`, `max` and `countDistinct`, numeric targets additionally take `sum`, `avg`, `sumDistinct` and `avgDistinct`. A function outside the target's set is rejected with `400`. `count` counts linked records whose target value is not empty; `countAll` counts every linked record. With no linked records (or only empty values), `sum` and the count functions return `0`, while `avg`, `min` and `max` return `null`. `formula` aggregates with `formula` instead, for any target type.",
             "enum": [
               "count",
               "countAll",
@@ -14316,8 +14316,13 @@
               "sum",
               "countDistinct",
               "sumDistinct",
-              "avgDistinct"
+              "avgDistinct",
+              "formula"
             ]
+          },
+          "formula": {
+            "type": "string",
+            "description": "Required when `rollup_function` is `formula`: an expression over `values`, the linked records' values of the rollup field — e.g. `ROUND(SUM(values) * 1.1, 2)` or `ARRAYJOIN(ARRAYUNIQUE(values), \"; \")`. Aggregates: SUM, AVERAGE, MIN, MAX, COUNT, COUNTA, COUNTALL, AND, OR, XOR, CONCATENATE, ARRAYJOIN; set modifiers: ARRAYUNIQUE, ARRAYCOMPACT, ARRAYSLICE, ARRAYFLATTEN."
           },
           "error": {
             "type": "string",
@@ -14329,6 +14334,17 @@
             "description": "Number of decimal places for numeric rollups. Defaults to 0. Display-only: the API returns the unrounded value.",
             "minimum": 0,
             "maximum": 5
+          },
+          "display_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Formula rollups only: field type the result is rendered as (e.g. `Currency`, `Percent`, `Date`). Null renders the raw result."
+          },
+          "display_column_meta": {
+            "type": "object",
+            "description": "Formula rollups only: field options applied to the rendered result, shaped like the `display_type` field's own options."
           },
           "enable_conditions": {
             "type": "boolean",

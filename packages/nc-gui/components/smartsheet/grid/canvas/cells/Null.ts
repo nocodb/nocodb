@@ -7,7 +7,8 @@ export const NullCellRenderer: CellRenderer = {
 
     const isNumericField =
       isNumericFieldType(column, getAbstractType(column, sqlUis)) ||
-      (column.uidt === UITypes.Formula && (column.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC)
+      ([UITypes.Formula, UITypes.Rollup].includes(column.uidt) &&
+        (column.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC)
 
     const { x: xOffset, y: yOffset } = renderSingleLineText(ctx, {
       x: isNumericField ? x + width - padding : x + padding,

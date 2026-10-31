@@ -6,6 +6,7 @@ import {
   getEffectiveLookupColumn,
   getRenderAsTextFunForUiType,
   getRollupColumnMeta,
+  getRollupFormulaDisplayColumn,
   integerPreservingRollupFunctions,
   integerRollupFunctions,
   isAIPromptCol,
@@ -15,6 +16,7 @@ import {
   isIntegerUiType,
   isLinkV2,
   isLinksOrLTAR,
+  isRollupFormula,
   isSystemColumn,
   isValidValue,
   isVirtualCol,
@@ -602,6 +604,11 @@ export const getRollupValue = (modelValue: string | null | number, params: Parse
   let childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_rollup_column_id) as
     | ColumnType
     | undefined
+
+  if (isRollupFormula(colOptions)) {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    return parsePlainCellValue(modelValue, { ...params, col: getRollupFormulaDisplayColumn(col, childColumn) }) as string
+  }
 
   if (!childColumn) return modelValue?.toString() ?? ''
   // may use deepClone

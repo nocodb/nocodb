@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ClientType, SqlUiFactory, UITypes } from 'nocodb-sdk'
+import { ClientType, SqlUiFactory, UITypes, getRollupResultUidt } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import SingleSelect from '~/components/cell/SingleSelect/index.vue'
 import MultiSelect from '~/components/cell/MultiSelect/index.vue'
@@ -32,7 +32,11 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<Emits>()
 
-const column = toRef(props, 'column')
+// a rollup takes the value input of its result type
+const column = computed(() => {
+  const resultUidt = getRollupResultUidt(props.column)
+  return resultUidt ? { ...props.column, uidt: resultUidt } : props.column
+})
 
 const editEnabled = computed(() => !props.disabled)
 

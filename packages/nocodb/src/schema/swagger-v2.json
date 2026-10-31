@@ -17178,8 +17178,24 @@
             "type": "string"
           },
           "rollup_function": {
-            "description": "Foreign Key to rollup function",
-            "type": "string"
+            "description": "Rollup function",
+            "type": "string",
+            "enum": [
+              "count",
+              "min",
+              "max",
+              "avg",
+              "sum",
+              "countDistinct",
+              "sumDistinct",
+              "avgDistinct",
+              "formula"
+            ]
+          },
+          "rollup_formula": {
+            "description": "Formula over `values` (the linked records' values), required when rollup_function is `formula`",
+            "type": "string",
+            "example": "SUM(values) * 1.1"
           }
         }
       },
@@ -19242,8 +19258,14 @@
               "sum",
               "countDistinct",
               "sumDistinct",
-              "avgDistinct"
+              "avgDistinct",
+              "formula"
             ]
+          },
+          "rollup_formula": {
+            "type": "string",
+            "description": "Formula over `values` (the linked records' values) when rollup_function is `formula`",
+            "example": "SUM(values) * 1.1"
           }
         },
         "x-stoplight": {
@@ -19287,10 +19309,16 @@
               "max",
               "min",
               "sum",
-              "sumDistinct"
+              "sumDistinct",
+              "formula"
             ],
             "type": "string",
             "description": "Rollup Function"
+          },
+          "rollup_formula": {
+            "type": "string",
+            "description": "Formula over `values` (the linked records' values), required when rollup_function is `formula`",
+            "example": "SUM(values) * 1.1"
           },
           "uidt": {
             "enum": [

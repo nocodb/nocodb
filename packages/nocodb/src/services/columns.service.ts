@@ -15,6 +15,7 @@ import {
   isFieldTrackingLmtCol,
   isLinksOrLTAR,
   isMMOrMMLike,
+  isRollupFormula,
   isServiceUser,
   isSupportedDisplayValueColumn,
   isSystemColumn,
@@ -4150,6 +4151,12 @@ export class ColumnsService implements IColumnsService {
 
     const column = await Column.get(context, { colId: param.columnId });
 
+    await this.metaDependencyEventHandler.handleEvent(context, {
+      eventType: MetaEventType.COLUMN_PRIMARY_UPDATED,
+      oldEntity: oldPrimaryColumn,
+      newEntity: column,
+    });
+
     // to reflect column properly on realtime and getWithInfo we will get default view column order and visibility in col meta
     const table = await Model.getWithInfo(context, { id: column.fk_model_id });
 
@@ -4464,6 +4471,9 @@ export class ColumnsService implements IColumnsService {
             (param.column as RollupColumnReqType).fk_relation_column_id,
             param.req,
           );
+          if (isRollupFormula(colBody)) {
+            await this.dryRunRollup(context, table.id, colBody);
+          }
 
           savedColumn = await Column.insert(context, {
             ...colBody,
@@ -8063,24 +8073,63 @@ export class ColumnsService implements IColumnsService {
         'rollup_function',
       ]))
     ) {
+      // a payload that omits the formula (e.g. a rename) keeps the saved one
+      if (
+        isRollupFormula(colBody) &&
+        colBody.rollup_formula === undefined &&
+        isRollupFormula(column.colOptions)
+      ) {
+        colBody.rollup_formula = column.colOptions.rollup_formula;
+      }
       // Perform additional validation for rollup payload
       await validateRollupPayload(context, colBody);
       await assertTargetReadable('fk_rollup_column_id');
-      const baseModel = await getBaseModelSqlFromModelId({
-        modelId: column.fk_model_id,
-        context,
-      });
-      await genRollupSelectv2({
-        baseModelSqlv2: baseModel,
-        knex: baseModel.dbDriver,
-        columnOptions: {
-          // colBody do not have fk_column_id
-          // fk_column_id is required to detect circular ref
-          fk_column_id: column.colOptions.fk_column_id,
-          ...colBody,
-        },
+      await this.dryRunRollup(context, column.fk_model_id, {
+        // colBody do not have fk_column_id
+        // fk_column_id is required to detect circular ref
+        fk_column_id: column.colOptions.fk_column_id,
+        ...colBody,
       });
       await Column.update(context, column.id, { ...colBody, error: null });
+    }
+  }
+
+  /**
+   * Build the rollup's SQL (catches circular references) and, for a formula
+   * rollup, run it on one row so a formula the database rejects fails the
+   * save rather than every later read.
+   */
+  async dryRunRollup(
+    context: NcContext,
+    modelId: string,
+    columnOptions: Partial<RollupColumn>,
+  ) {
+    const baseModel = await getBaseModelSqlFromModelId({ modelId, context });
+    const { builder } = await genRollupSelectv2({
+      baseModelSqlv2: baseModel,
+      knex: baseModel.dbDriver,
+      throwOnFormulaError: true,
+      columnOptions: columnOptions as RollupColumn,
+    });
+    if (!isRollupFormula(columnOptions)) return;
+
+    const knex = baseModel.dbDriver;
+    try {
+      await baseModel.execAndParse(
+        knex(baseModel.getTnPath(baseModel.model))
+          .select(knex.raw('(??) as ??', [builder, '__nc_dry_run']))
+          .limit(1, { skipBinding: true }),
+        null,
+        { raw: true },
+      );
+    } catch (e) {
+      const dbError = DBErrorExtractor.get().extractDbError(e, {
+        clientType: baseModel.clientType as ClientType,
+        ignoreDefault: true,
+      });
+      NcError.get(context).formulaError(
+        dbError?.message ?? 'The rollup formula could not be evaluated',
+      );
     }
   }
 

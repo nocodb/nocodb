@@ -366,6 +366,21 @@ export function isNumericCol(
     | ColumnReqType
     | ColumnType
 ) {
+  // a formula rollup is numeric only when its result is
+  const colOptions =
+    typeof col === 'object'
+      ? ((col as ColumnType)?.colOptions as {
+          rollup_function?: string;
+          parsed_tree?: { dataType?: FormulaDataTypes };
+        })
+      : undefined;
+  if (
+    typeof col === 'object' &&
+    col?.uidt === UITypes.Rollup &&
+    colOptions?.rollup_function === 'formula'
+  ) {
+    return colOptions.parsed_tree?.dataType === FormulaDataTypes.NUMERIC;
+  }
   return numericUITypes.includes(
     <UITypes>(typeof col === 'object' ? col?.uidt : col)
   );
@@ -731,17 +746,6 @@ export const resolveRollupResultUidt = (
     case UITypes.LastModifiedTime:
       return UITypes.DateTime;
   }
-  return undefined;
-};
-
-/** A rollup column's resolved date type, from `colOptions.result_uidt`. */
-export const getRollupResultUidt = (
-  column: Pick<ColumnType, 'uidt' | 'colOptions'>
-): UITypes.Date | UITypes.DateTime | undefined => {
-  if (column?.uidt !== UITypes.Rollup) return undefined;
-  const resultUidt = (column.colOptions as RollupType | undefined)?.result_uidt;
-  if (resultUidt === UITypes.Date) return UITypes.Date;
-  if (resultUidt === UITypes.DateTime) return UITypes.DateTime;
   return undefined;
 };
 

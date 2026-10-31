@@ -1,9 +1,12 @@
 import {
   convertMS2Duration,
   getEffectiveLookupColumn,
+  getRollupFormulaDisplayColumn,
   isLinksOrLTAR,
+  isRollupFormula,
   isSupportedDisplayValueColumn,
   LongTextAiMetaProp,
+  NC_ERROR_SENTINEL,
   parseDecimalValue,
   parseHelper,
   parseIntValue,
@@ -14,6 +17,7 @@ import {
 import type { ColumnType } from 'nocodb-sdk';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
+import type RollupColumn from '~/models/RollupColumn';
 import type { NcContext } from '~/interface/config';
 import type Column from '~/models/Column';
 import { NcError } from '~/helpers/catchError';
@@ -112,6 +116,25 @@ export async function serializeCellValue(
   if (!value) return value;
 
   switch (column?.uidt) {
+    case UITypes.Rollup: {
+      // the grid shows an errored cell as ERR!
+      if (value === NC_ERROR_SENTINEL) return 'ERR!';
+      const rollupOptions = await column.getColOptions<RollupColumn>();
+      // a formula rollup exports as its result type / picked format
+      if (!isRollupFormula(rollupOptions)) return value;
+      return serializeCellValue(context, {
+        value,
+        column: getRollupFormulaDisplayColumn(
+          column,
+          (await rollupOptions.getRollupColumn().catch(() => undefined)) as
+            | ColumnType
+            | undefined,
+        ) as Column,
+        siteUrl,
+        locale,
+        rawNumeric,
+      });
+    }
     case UITypes.Attachment: {
       let data = value;
       try {

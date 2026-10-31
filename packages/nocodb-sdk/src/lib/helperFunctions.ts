@@ -64,7 +64,12 @@ const stringifyRolesObj = (roles?: RolesObj | null): string => {
   return rolesArr.join(',');
 };
 const getAvailableRollupForColumn = (column: ColumnType) => {
-  if ([UITypes.Formula].includes(column.uidt as UITypes)) {
+  // a formula rollup aggregates as its result type, like a formula
+  const isFormulaRollup =
+    column.uidt === UITypes.Rollup &&
+    (column.colOptions as { rollup_function?: string })?.rollup_function ===
+      'formula';
+  if (isFormulaRollup || [UITypes.Formula].includes(column.uidt as UITypes)) {
     return getAvailableRollupForFormulaType(
       (column.colOptions as FormulaType as any)?.parsed_tree?.dataType ??
         FormulaDataTypes.UNKNOWN
@@ -188,6 +193,21 @@ const isRollupAggregatableColumn = (
       UITypes.LastModifiedTime,
       UITypes.LastModifiedBy,
     ].includes(uidt)
+  );
+};
+
+/**
+ * Whether a field of the linked table can be what a rollup formula's `values`
+ * reads. Beyond the aggregatable fields: Links (each record's link count) and
+ * Lookup / LinkToAnotherRecord, whose values are flattened across the next link.
+ */
+const isRollupFormulaTargetColumn = (
+  col: UITypes | { uidt: UITypes | string }
+) => {
+  const uidt = (typeof col === 'object' ? col?.uidt : col) as UITypes;
+  return (
+    isRollupAggregatableColumn(uidt) ||
+    [UITypes.Links, UITypes.Lookup, UITypes.LinkToAnotherRecord].includes(uidt)
   );
 };
 
@@ -324,6 +344,7 @@ export {
   getAvailableRollupForFormulaType,
   getRenderAsTextFunForUiType,
   isRollupAggregatableColumn,
+  isRollupFormulaTargetColumn,
   integerRollupFunctions,
   integerPreservingRollupFunctions,
   isIntegerUiType,

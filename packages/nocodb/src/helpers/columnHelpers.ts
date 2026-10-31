@@ -1,6 +1,7 @@
 import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
+  getAvailableRollupForColumn,
   getAvailableRollupForUiType,
   isAllowedLmtTrackedField,
   isFieldTrackingLmbCol,
@@ -8,10 +9,14 @@ import {
   isLinksOrLTAR,
   isMMOrMMLike,
   isRollupAggregatableColumn,
+  isRollupFormula,
+  isRollupFormulaTargetColumn,
   OperationSource,
   parseProp,
   RelationTypes,
+  ROLLUP_FORMULA_FUNCTION,
   UITypes,
+  validateFormulaAndExtractTreeWithType,
   WebhookActions,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
@@ -19,9 +24,11 @@ import { REGEXSTR_INTL_LETTER, REGEXSTR_NUMERIC_ARABIC } from 'nocodb-sdk';
 import { NcError } from './ncError';
 import type {
   BoolType,
+  ClientTypeOrSqlUI,
   ColumnReqType,
   LookupColumnReqType,
   NcRequest,
+  ParsedFormulaNode,
   RollupColumnReqType,
   TableType,
 } from 'nocodb-sdk';
@@ -32,7 +39,8 @@ import type { RollupColumn, View } from '~/models';
 import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
 import type Model from '~/models/Model';
 import type { LtarHmBtIds } from '~/services/columns.service.type';
-import { GridViewColumn } from '~/models';
+import { GridViewColumn, Source } from '~/models';
+import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import Column from '~/models/Column';
@@ -447,6 +455,7 @@ export async function validateRollupPayload(
   const relationType = isMMOrMMLike(column) ? 'mm' : relation.type;
   switch (relationType) {
     case 'hm':
+    case 'oo':
       relatedColumn = await Column.get(refContext, {
         colId: relation.fk_child_column_id,
       });
@@ -457,6 +466,8 @@ export async function validateRollupPayload(
         colId: relation.fk_parent_column_id,
       });
       break;
+    default:
+      NcError.get(context).unSupportedRelation(relationType);
   }
 
   const relatedTable = await relatedColumn.getModel();
@@ -471,7 +482,15 @@ export async function validateRollupPayload(
 
   // Rolling up a link/lookup/barcode-style column would build SQL against a
   // column that doesn't physically exist, breaking every read of the table.
-  if (!isRollupAggregatableColumn(rollupColumn)) {
+  // A formula rollup also reads links (counts) and flattens lookups.
+  const isFormula =
+    (payload as RollupColumnReqType).rollup_function ===
+    ROLLUP_FORMULA_FUNCTION;
+  if (
+    isFormula
+      ? !isRollupFormulaTargetColumn(rollupColumn)
+      : !isRollupAggregatableColumn(rollupColumn)
+  ) {
     const aggregatable = relatedTableColumns
       .filter(
         (c) =>
@@ -489,8 +508,51 @@ export async function validateRollupPayload(
     );
   }
 
+  const rollupPayload = payload as RollupColumnReqType & {
+    parsed_tree?: ParsedFormulaNode | null;
+  };
+
+  if (rollupPayload.rollup_function === ROLLUP_FORMULA_FUNCTION) {
+    if (!rollupPayload.rollup_formula?.trim()) {
+      NcError.get(context).badRequest(
+        'A formula rollup needs a formula over `values`, e.g. SUM(values)',
+      );
+    }
+    const relatedModels = await getRelatedModelMap(refContext, relatedTable);
+    const source = await Source.get(refContext, relatedTable.source_id);
+    try {
+      rollupPayload.parsed_tree = await validateFormulaAndExtractTreeWithType({
+        formula: rollupPayload.rollup_formula,
+        columns: [],
+        clientOrSqlUi: source?.type as ClientTypeOrSqlUI,
+        getMeta: async (_, { id }) => relatedModels.get(id),
+        rollup: {
+          valuesColumn: rollupColumn,
+          valuesColumns: relatedTableColumns,
+        },
+      });
+    } catch (e) {
+      NcError.get(context).formulaError(e.message);
+    }
+    return;
+  }
+
+  // switching back from a formula rollup drops its formula
+  rollupPayload.rollup_formula = null;
+  rollupPayload.parsed_tree = null;
+
+  // a formula rollup target aggregates as its result type (sum of a text result
+  // would fail every read)
+  if (rollupColumn.uidt === UITypes.Rollup) {
+    await rollupColumn.getColOptions();
+  }
+  const availableFunctions = isRollupFormula(
+    rollupColumn.colOptions as RollupColumn,
+  )
+    ? getAvailableRollupForColumn(rollupColumn)
+    : getAvailableRollupForUiType(rollupColumn.uidt);
   if (
-    !getAvailableRollupForUiType(rollupColumn.uidt).includes(
+    !availableFunctions.includes(
       (payload as RollupColumnReqType).rollup_function,
     )
   ) {

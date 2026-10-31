@@ -1,17 +1,33 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
-import type { ColumnType, FormulaType, LinkToAnotherRecordType, RollupType, TableType } from 'nocodb-sdk'
+import type {
+  ColumnType,
+  FormulaType,
+  LinkToAnotherRecordType,
+  ParsedFormulaNode,
+  RollupType,
+  TableType,
+  UnifiedMetaType,
+} from 'nocodb-sdk'
 import {
   ColumnHelper,
   FormulaDataTypes,
+  FormulaError,
   PlanFeatureTypes,
   PlanTitles,
+  ROLLUP_FORMULA_FUNCTION,
   UITypes,
   getAvailableRollupForColumn,
+  getUITypesForFormulaDataType,
   integerPreservingRollupFunctions,
   integerRollupFunctions,
+  isIntegerRollupFormula,
+  isNumericCol,
+  isRollupFormulaTargetColumn,
+  isSystemColumn,
   resolveColumnSeparator,
   rollupAllFunctions,
+  validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -26,6 +42,7 @@ const {
   setAdditionalValidations,
   setAvoidShowingToastMsgForValidations,
   validateInfos,
+  sqlUi,
   onDataTypeChange,
   isEdit,
   disableSubmitBtn,
@@ -46,6 +63,22 @@ const { getPlanTitle, showEEFeatures } = useEeConfig()
 
 const filterRef = ref()
 
+const defaultEditorError = {
+  isError: false,
+  message: '',
+  position: {
+    column: -1,
+    row: -1,
+  },
+}
+
+const editorError = ref(defaultEditorError)
+
+// typed tree of the formula as last validated, drives the formatting options
+const formulaParsedTree = ref<ParsedFormulaNode>()
+
+const isFormulaMode = computed(() => vModel.value.rollup_function === ROLLUP_FORMULA_FUNCTION)
+
 setAdditionalValidations({
   fk_relation_column_id: [{ required: true, message: t('general.required') }],
   fk_rollup_column_id: [{ required: true, message: t('general.required') }],
@@ -56,6 +89,7 @@ setAvoidShowingToastMsgForValidations({
   fk_relation_column_id: true,
   fk_rollup_column_id: true,
   rollup_function: true,
+  rollup_formula: true,
 })
 
 if (!vModel.value.fk_relation_column_id) vModel.value.fk_relation_column_id = null
@@ -91,8 +125,9 @@ const columns = computed<ColumnType[]>(() => {
     return []
   }
 
-  return getMetaByKey(selectedTable.value.base_id, selectedTable.value.id)?.columns?.filter((c: ColumnType) =>
-    getValidRollupColumn(c),
+  // a formula rollup also reads Links counts and flattens Lookup / LinkToAnotherRecord fields
+  return getMetaByKey(selectedTable.value.base_id, selectedTable.value.id)?.columns?.filter(
+    (c: ColumnType) => getValidRollupColumn(c) || (isRollupFormulaTargetColumn(c as { uidt: UITypes }) && !isSystemColumn(c)),
   )
 })
 
@@ -135,6 +170,8 @@ onMounted(() => {
     vModel.value.fk_relation_column_id = vModel.value.colOptions?.fk_relation_column_id
     vModel.value.fk_rollup_column_id = vModel.value.colOptions?.fk_rollup_column_id
     vModel.value.rollup_function = vModel.value.colOptions?.rollup_function
+    vModel.value.rollup_formula = vModel.value.colOptions?.rollup_formula
+    formulaParsedTree.value = vModel.value.colOptions?.parsed_tree
   }
 })
 
@@ -176,10 +213,63 @@ const availableRollupPerColumn = computed(() => {
           text: t(obj.text),
         }
       })
-      .filter((func) => getAvailableRollupForColumn(column).includes(func.value))
+      // links and lookups take only a formula
+      .filter((func) => getValidRollupColumn(column) && getAvailableRollupForColumn(column).includes(func.value))
+    // a formula can aggregate any field
+    fnMap[column.id].push({ text: t('datatype.Formula'), value: ROLLUP_FORMULA_FUNCTION })
   })
   return fnMap
 })
+
+const rollupTargetColumn = computed(() => columns.value?.find((c) => c.id === vModel.value.fk_rollup_column_id))
+
+const relatedTableColumns = computed<ColumnType[]>(() => {
+  if (!selectedTable.value?.id) return []
+  return getMetaByKey(selectedTable.value.base_id, selectedTable.value.id)?.columns || []
+})
+
+async function validateRollupFormula(formula?: string) {
+  if (!isFormulaMode.value) return
+  if (!formula?.trim()) throw new Error(t('general.required'))
+  if (!rollupTargetColumn.value) return
+  try {
+    formulaParsedTree.value = await validateFormulaAndExtractTreeWithType({
+      formula,
+      // gives the validator a base/table to resolve metas from
+      column: rollupTargetColumn.value as UnifiedMetaType.IColumn,
+      columns: [],
+      clientOrSqlUi: sqlUi.value,
+      getMeta: validateFormulaGetMeta(getMeta),
+      trackPosition: true,
+      rollup: {
+        valuesColumn: rollupTargetColumn.value as UnifiedMetaType.IColumn,
+        valuesColumns: relatedTableColumns.value as UnifiedMetaType.IColumn[],
+      },
+    })
+    editorError.value = { ...defaultEditorError }
+  } catch (e: any) {
+    formulaParsedTree.value = undefined
+    const errorMessage = e instanceof FormulaError && e.extra?.key ? t(e.extra.key, e.extra) : e.message
+    editorError.value =
+      e instanceof FormulaError && e.extra?.position
+        ? { isError: true, message: errorMessage, position: e.extra.position }
+        : { ...defaultEditorError }
+    throw new Error(errorMessage)
+  }
+}
+
+setAdditionalValidations({
+  rollup_formula: [{ validator: (_: any, formula: string) => validateRollupFormula(formula) }],
+})
+
+// a numeric field starts from SUM, anything else from a joined list
+function defaultRollupFormula() {
+  const target = rollupTargetColumn.value
+  // formulas and formula rollups go by their result type
+  const resultType = (target?.colOptions as FormulaType)?.parsed_tree?.dataType
+  const isNumeric = resultType ? resultType === FormulaDataTypes.NUMERIC : isNumericCol(target?.uidt as UITypes)
+  return isNumeric ? 'SUM(values)' : 'ARRAYJOIN(values)'
+}
 
 const filteredColumns = computed(() => {
   return columns.value?.filter((column) => {
@@ -191,6 +281,13 @@ const onRollupFunctionChange = () => {
   const rollupFun = aggFunctionsList.value.find((func) => func.value === vModel.value.rollup_function)
   if (rollupFun && rollupFun?.text) {
     vModel.value.rollup_function_name = rollupFun.text
+  }
+  if (isFormulaMode.value && !vModel.value.rollup_formula) {
+    vModel.value.rollup_formula = defaultRollupFormula()
+  }
+  // a saved plain rollup switched to a formula by the user starts at two decimals
+  if (isEdit.value && isFormulaMode.value && vModel.value.colOptions?.rollup_function !== ROLLUP_FORMULA_FUNCTION) {
+    vModel.value.meta = { ...vModel.value.meta, precision: 2 }
   }
   onDataTypeChange()
   updateFieldName()
@@ -221,12 +318,21 @@ watch(
 )
 
 watchEffect(() => {
-  if (!refTables.value.length) {
-    disableSubmitBtn.value = true
-  } else if (refTables.value.length && disableSubmitBtn.value) {
-    disableSubmitBtn.value = false
-  }
+  disableSubmitBtn.value =
+    !refTables.value.length || (isFormulaMode.value && validateInfos.rollup_formula?.validateStatus === 'error')
 })
+
+// the formula is typed against the rolled-up field, so re-check it when that changes
+watch(
+  () => vModel.value.fk_rollup_column_id,
+  () => {
+    if (!isFormulaMode.value) return
+    if (!vModel.value.rollup_formula) {
+      vModel.value.rollup_formula = defaultRollupFormula()
+    }
+    validateRollupFormula(vModel.value.rollup_formula).catch(() => {})
+  },
+)
 
 watch(
   () => vModel.value.fk_relation_column_id,
@@ -260,7 +366,27 @@ if (!vModel.value.meta.separator) {
   vModel.value.meta.separator = resolveColumnSeparator(vModel.value.meta)
 }
 
+// formats a formula result can take, as offered for formula fields
+const rollupFormulaFormats = computed(() => {
+  if (!isFormulaMode.value || !formulaParsedTree.value?.dataType) return []
+  try {
+    return getUITypesForFormulaDataType(formulaParsedTree.value.dataType as FormulaDataTypes).map((uidt) => ({
+      value: uidt,
+      label: t(`datatype.${uidt}`),
+      icon: h(resolveComponent('SmartsheetHeaderIcon'), { column: { uidt } }),
+    }))
+  } catch {
+    return []
+  }
+})
+
 const enableFormattingOptions = computed(() => {
+  if (isFormulaMode.value) {
+    // a picked format carries its own number options
+    if (vModel.value.meta?.display_type) return false
+    return formulaParsedTree.value?.dataType === FormulaDataTypes.NUMERIC && !isIntegerRollupFormula(formulaParsedTree.value)
+  }
+
   const relatedCol = filteredColumns.value?.find((col) => col.id === vModel.value.fk_rollup_column_id)
 
   if (!relatedCol || !vModel.value.rollup_function) return false
@@ -295,6 +421,35 @@ watch(
         ...vModel.value.meta,
         ...ColumnHelper.getColumnDefaultMeta(UITypes.Rollup),
       }
+    }
+  },
+  { immediate: true },
+)
+
+// a new formula rollup shows two decimals; saved columns keep their precision
+watch(isFormulaMode, (formulaMode) => {
+  if (isEdit.value) return
+  vModel.value.meta = {
+    ...vModel.value.meta,
+    precision: formulaMode ? 2 : ColumnHelper.getColumnDefaultMeta(UITypes.Rollup).precision,
+  }
+})
+
+// a format that no longer fits the result type (or a plain rollup) is dropped
+watch(rollupFormulaFormats, (formats) => {
+  const displayType = vModel.value.meta?.display_type
+  // in formula mode an empty list only means the formula isn't checked yet
+  if (!displayType || (isFormulaMode.value && !formats.length)) return
+  if (!formats.some((f) => f.value === displayType)) {
+    vModel.value.meta = { ...vModel.value.meta, display_type: null }
+  }
+})
+
+watch(
+  () => vModel.value.meta?.display_type,
+  (displayType) => {
+    if (displayType && !vModel.value.meta.display_column_meta) {
+      vModel.value.meta.display_column_meta = { meta: {}, custom: {} }
     }
   },
   { immediate: true },
@@ -427,6 +582,76 @@ const handleScrollIntoView = () => {
         </a-select-option>
       </a-select>
     </a-form-item>
+    <div v-if="isFormulaMode && rollupTargetColumn" class="nc-rollup-formula-editor">
+      <SmartsheetColumnFormulaInputHelper
+        :key="rollupTargetColumn.id"
+        v-model:value="vModel.rollup_formula"
+        :label="$t('datatype.Formula')"
+        :rollup-values-column="rollupTargetColumn"
+        validate-key="rollup_formula"
+        :error="validateInfos.rollup_formula?.validateStatus === 'error'"
+        :editor-error="editorError"
+        suggestion-height="medium"
+      />
+    </div>
+    <template v-if="isFormulaMode && rollupFormulaFormats.length">
+      <a-form-item :label="$t('general.format')">
+        <NcSelect
+          v-model:value="vModel.meta.display_type"
+          class="w-full nc-select-shadow"
+          :placeholder="$t('labels.selectAFormatType')"
+          allow-clear
+          data-testid="nc-rollup-formula-format"
+        >
+          <a-select-option v-for="option in rollupFormulaFormats" :key="option.value" :value="option.value">
+            <div class="flex w-full items-center gap-2 justify-between">
+              <div class="w-full">
+                <component :is="option.icon" class="w-4 h-4" color="text-nc-content-gray-subtle2" />
+                {{ option.label }}
+              </div>
+              <component
+                :is="iconMap.check"
+                v-if="option.value === vModel.meta?.display_type"
+                id="nc-selected-item-icon"
+                class="text-nc-content-brand w-4 h-4"
+              />
+            </div>
+          </a-select-option>
+        </NcSelect>
+      </a-form-item>
+      <SmartsheetColumnCurrencyOptions
+        v-if="vModel.meta.display_type === UITypes.Currency"
+        :value="vModel.meta.display_column_meta"
+      />
+      <SmartsheetColumnDecimalOptions
+        v-else-if="vModel.meta.display_type === UITypes.Decimal"
+        :value="vModel.meta.display_column_meta"
+      />
+      <SmartsheetColumnPercentOptions
+        v-else-if="vModel.meta.display_type === UITypes.Percent"
+        :value="vModel.meta.display_column_meta"
+      />
+      <SmartsheetColumnRatingOptions
+        v-else-if="vModel.meta.display_type === UITypes.Rating"
+        :value="vModel.meta.display_column_meta"
+      />
+      <SmartsheetColumnTimeOptions
+        v-else-if="vModel.meta.display_type === UITypes.Time"
+        :value="vModel.meta.display_column_meta"
+      />
+      <SmartsheetColumnDateTimeOptions
+        v-else-if="vModel.meta.display_type === UITypes.DateTime"
+        :value="vModel.meta.display_column_meta"
+      />
+      <SmartsheetColumnDateOptions
+        v-else-if="vModel.meta.display_type === UITypes.Date"
+        :value="vModel.meta.display_column_meta"
+      />
+      <SmartsheetColumnCheckboxOptions
+        v-else-if="vModel.meta.display_type === UITypes.Checkbox"
+        :value="vModel.meta.display_column_meta"
+      />
+    </template>
     <a-form-item v-if="enableFormattingOptions" :label="$t('placeholder.precision')">
       <a-select
         v-model:value="vModel.meta.precision"

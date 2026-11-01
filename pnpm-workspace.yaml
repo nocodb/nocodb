@@ -22,6 +22,8 @@ minimumReleaseAgeExclude:
   - multer
   - serialize-javascript
   - happy-dom
+  # Renovate security update: vue-i18n@11.4.16
+  - vue-i18n@11.4.16
 
 # Detect when a package loses its provenance guarantees (e.g. previously
 # published via CI, now published from a local machine — signals account compromise).

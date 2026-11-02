@@ -7923,6 +7923,7 @@
     "warning": {
       "oauthClientNotVerifiedTitle": "This app is not verified by {product}",
       "oauthClientNotVerified": "Anyone can register an app under any name. Only authorize {name} if you started this sign-in and trust {host}.",
+      "bulkUpdateNotUndoable": "This updates more than {limit} records, so you won't be able to undo it.",
       "tableDataImportedLinksUnmatched": "Imported successfully. {links} record links created, {unmatched} value(s) matched no record and were skipped.",
       "tableDataImportedLinksFailed": "{failed} record link(s) matched a record but could not be created. See the import log for details.",
       "attachmentsNotCopied": "{count} attachment(s) were not copied: the source base does not hold their files.",

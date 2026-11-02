@@ -7501,6 +7501,8 @@
       "utilizationNeedsGroup": "Utilization shows in {field} groups. Group the view by {field} to see it.",
       "utilizationHoursRequiredHint": "The time a record needs.",
       "utilizationHoursMustBeNumber": "This field must be a number.",
+      "summaryFieldMustSupport": "This field must work with {fn}.",
+      "utilizationWorkingHoursMax": "Can't be more than {max} hours {rate}.",
       "utilizationResourceMustBe": "This field must be a User field or a link to one record.",
       "utilizationAvailableHint": "Set up the people, their working hours, and days off.",
       "utilizationResourceHint": "The person or team the work is assigned to.",

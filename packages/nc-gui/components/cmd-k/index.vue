@@ -25,7 +25,13 @@ const { isAiAvailable, askAi, aiFallback } = useGlobalCommands()
 
 const { commandUsage, recordCommandUse } = useCommand()
 
+const { t } = useI18n()
+
 const ROW_HEIGHT = 36
+
+/** Openers of a question about records: an aggregate, "how many", or a sort/group/filter of them. */
+const CMD_DATA_QUESTION =
+  /^\s*(?:sum|total|average|avg|mean|median|count|number of|how many|how much|max|maximum|min|minimum|top \d+|group by|sort by|filter|records|rows)\b/i
 
 const inputEl = ref<HTMLInputElement | HTMLTextAreaElement>()
 
@@ -130,16 +136,37 @@ const fallbacks = computed<CmdCommand[]>(() =>
       }),
 )
 
+/** A data question ("sum of amount") at base level, with no table open: say so instead of offering creates. */
+const noTableRow = computed<CmdCommand | undefined>(() => {
+  if (activePage.value || activeLevel.value !== 'base' || providers.value.some((p) => p.level === 'view')) return
+  if (!CMD_DATA_QUESTION.test(debouncedQuery.value)) return
+  return {
+    id: 'data:nl:open-table',
+    lead: true,
+    title: t('labels.commandPalette.nl.openTableToAsk'),
+    section: t('labels.commandPalette.nl.section'),
+    icon: { type: 'icon', name: 'ncInfo' },
+    disabled: true,
+    tele: { kind: 'decline', reason: 'no-table', fix: false },
+  }
+})
+
 /** Query-built edits lead; the other fallbacks stay after the matches. */
-const leadFallbacks = computed(() => fallbacks.value.filter((command) => command.lead))
+const leadFallbacks = computed(() => [
+  ...(noTableRow.value ? [noTableRow.value] : []),
+  ...fallbacks.value.filter((command) => command.lead),
+])
 
 // A query read as an edit ("add 10 to amount") isn't also a name for a new table, view…
-// Searching this view's records comes before naming a new table after the query.
-const trailingFallbacks = computed(() =>
-  fallbacks.value
+// Searching records or docs comes before naming something new after the query, unless it starts "create"/"new".
+const trailingFallbacks = computed(() => {
+  const createFirst = /^\s*(create|new)\s/i.test(debouncedQuery.value)
+  const rank = (command: CmdCommand) =>
+    command.id.endsWith(':create-named') ? (createFirst ? 3 : 0) : command.id.endsWith(':search-for') ? 2 : 1
+  return fallbacks.value
     .filter((command) => !command.lead && !(leadFallbacks.value.length && command.id.endsWith(':create-named')))
-    .sort((a, b) => Number(b.id.endsWith(':search-for')) - Number(a.id.endsWith(':search-for'))),
-)
+    .sort((a, b) => rank(b) - rank(a))
+})
 
 const aiRow = computed(() => (activePage.value || !isSearching.value ? undefined : aiFallback(debouncedQuery.value.trim())))
 

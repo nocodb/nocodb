@@ -94,7 +94,8 @@ export const useCommandPalette = createSharedComposable(() => {
   const sectionLabels = computed<Record<string, string>>(() => ({
     Bases: t('objects.projects'),
     Tables: t('objects.tables'),
-    Views: t('objects.views'),
+    // Not "Views": it would read like the "View" actions section beside it.
+    Views: t('labels.commandPalette.sections.goToView'),
   }))
 
   function navIcon(item: NavItem): CmdIcon | undefined {

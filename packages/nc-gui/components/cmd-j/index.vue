@@ -32,7 +32,8 @@ const typesenseClient = new Client({
   ],
 })
 
-const { search, query } = useTypesenseSearch(typesenseClient, 'noco-docs-v2')
+// An empty query lists popular pages, fetched only while the palette is open.
+const { search, query } = useTypesenseSearch(typesenseClient, 'noco-docs-v2', 100, () => vOpen.value)
 
 const { docsQuery } = useCommand()
 
@@ -45,22 +46,17 @@ const commands = computed<CmdCommand[]>(() => {
   const data = query.data.value
   if (!Array.isArray(data)) return []
 
-  // Many pages share headings like "Filter"; each heading/text row names its page (and a text row its heading).
-  // Hits interleave pages, so a row finds its page by url: the page row always precedes its sections.
-  const pageTitles = new Map<string, string>()
+  // Many pages share headings like "Filter", so the hint is the lvl1 › lvl2 path. The index has two levels:
+  // a heading row is itself lvl2, so its path is just the page.
   const seen = new Set<string>()
   return data
     .filter((result) => !!result.url)
     .flatMap((result): CmdCommand[] => {
       const pageUrl = result.url.split('#')[0]!
-      if (result.type === 'page') pageTitles.set(pageUrl, result.content)
-      const pageTitle = pageTitles.get(pageUrl)
       const hint =
         result.type === 'page'
           ? undefined
-          : result.type === 'text' && result.section && result.section !== result.content
-          ? `${pageTitle} › ${result.section}`
-          : pageTitle
+          : [result.page, result.section !== result.content ? result.section : undefined].filter(Boolean).join(' › ')
       // Two "Filter" headings on one page would be the same row twice.
       const key = `${pageUrl}\n${result.content}\n${hint ?? ''}`
       if (seen.has(key)) return []
@@ -190,18 +186,25 @@ watch(rows, (list) => {
       </div>
     </template>
 
-    <div v-if="!search" class="nc-cmdk-empty">
+    <div v-if="isLoading && !rows.length" class="nc-cmdk-empty">
+      <GeneralLoader :size="24" />
+    </div>
+    <div v-else-if="!search && !rows.length" class="nc-cmdk-empty">
       <GeneralIcon icon="ncFileSearch" class="h-6 w-6 text-nc-content-gray-muted" />
       <div class="text-body text-nc-content-gray">{{ $t('labels.docsSearchPrompt') }}</div>
-    </div>
-    <div v-else-if="isLoading && !rows.length" class="nc-cmdk-empty">
-      <GeneralLoader :size="24" />
     </div>
     <div v-else-if="!rows.length" class="nc-cmdk-empty">
       <GeneralIcon icon="search" class="h-6 w-6 text-nc-content-gray-muted" />
       <div class="text-body text-nc-content-gray">{{ $t('msg.info.docsSearchNoResults') }}</div>
     </div>
-    <div v-else v-bind="containerProps" class="cmdk-actions nc-scrollbar-thin">
+    <!-- Outside the virtual list so row offsets stay exact; px-2 matches .cmdk-actions, and the
+         inline flex beats the shell's `.nc-cmdk-body > *` flex-1. -->
+    <div v-if="!search && rows.length" class="px-2" style="flex: none" role="presentation">
+      <div class="nc-cmdk-section" :style="{ height: `${ROW_HEIGHT}px` }">
+        {{ $t('labels.commandPalette.sections.popularDocs') }}
+      </div>
+    </div>
+    <div v-if="rows.length" v-bind="containerProps" class="cmdk-actions nc-scrollbar-thin">
       <div id="nc-cmdj-listbox" v-bind="wrapperProps" role="listbox">
         <CmdKRow
           v-for="item in list"

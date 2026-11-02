@@ -258,7 +258,11 @@ export function useGlobalCommands(edition?: (ctx: CmdGlobalCommandsContext) => C
         section: sections.value.create,
         icon: { type: 'base' },
         keywords: ['new', 'add', 'project'],
-        run: () => openDialog(WorkspaceCreateProjectDlg, { workspaceId: activeWorkspaceId.value }),
+        // EE creates every project from the New project page; its dialog is only the AI build hand-off.
+        run: () =>
+          isEeUI
+            ? navigateTo(`/${activeWorkspaceId.value}/new`)
+            : openDialog(WorkspaceCreateProjectDlg, { workspaceId: activeWorkspaceId.value }),
       })
     }
 
@@ -751,7 +755,8 @@ export function useGlobalCommands(edition?: (ctx: CmdGlobalCommandsContext) => C
       })
     }
 
-    if ((!kind || kind === 'base') && isUIAllowed('baseCreate')) {
+    // The New project page takes no name, so EE has no named base create.
+    if (!isEeUI && (!kind || kind === 'base') && isUIAllowed('baseCreate')) {
       commands.push({
         id: 'base:create-named',
         title: t('labels.commandPalette.create.baseNamed', { name }),

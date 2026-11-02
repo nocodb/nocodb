@@ -95,7 +95,8 @@ const fallbacks = computed<CmdCommand[]>(() =>
     ? []
     : providers.value.flatMap((provider) =>
         (provider.fallbacks?.(debouncedQuery.value.trim()) ?? []).filter(
-          (command) => !command.lead || provider === activeContextProvider.value,
+          // Data answers (calc, stats, quick create) lead from any level; edits only from the active chip.
+          (command) => !command.lead || provider === activeContextProvider.value || command.id.startsWith('data:'),
         ),
       ),
 )
@@ -103,7 +104,10 @@ const fallbacks = computed<CmdCommand[]>(() =>
 /** Query-built edits lead; the other fallbacks stay after the matches. */
 const leadFallbacks = computed(() => fallbacks.value.filter((command) => command.lead))
 
-const trailingFallbacks = computed(() => fallbacks.value.filter((command) => !command.lead))
+// A query read as an edit ("add 10 to amount") isn't also a name for a new table, view…
+const trailingFallbacks = computed(() =>
+  fallbacks.value.filter((command) => !command.lead && !(leadFallbacks.value.length && command.id.endsWith(':create-named'))),
+)
 
 const aiRow = computed(() => (activePage.value || !isSearching.value ? undefined : aiFallback(debouncedQuery.value.trim())))
 
@@ -128,7 +132,10 @@ const results = computed<CmdCommand[]>(() => {
   const namedCreate = /^\s*(create|new)\s/i.test(debouncedQuery.value)
     ? fallbacks.value.find((command) => command.id.endsWith(':create-named'))
     : undefined
-  return isCmdNaturalLanguage(debouncedQuery.value, matches.length > 0 || !!namedCreate || lead.length > 0, matches[0]?.title)
+  // A parsed answer or edit ("how many deals are won") beats the AI unless the query is an explicit question.
+  const answered = lead.length > 0 && !/\?\s*$/.test(debouncedQuery.value)
+  return !answered &&
+    isCmdNaturalLanguage(debouncedQuery.value, matches.length > 0 || !!namedCreate || lead.length > 0, matches[0]?.title)
     ? [ai, ...lead, ...matches, ...trailingFallbacks.value]
     : [...lead, ...matches, ...trailingFallbacks.value, ai]
 })

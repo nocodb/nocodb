@@ -18,6 +18,7 @@ import { DlgAirtableImport, DlgBaseDuplicate, DlgKeyboardShortcuts, DlgQuickImpo
 import { Language } from '#imports'
 import { setI18nLanguage } from '~/plugins/a.i18n'
 import type { CmdCommand } from '~/lib/types'
+import { type CmdCalcResult, evaluateCmdCalc } from '~/utils/commandPaletteDataOps'
 import type { InviteLinkTarget } from '~/composables/useInviteLinks'
 
 /** "create table invoices" / "new view Q3" → the kind word and the name; anything else is just a name. */
@@ -989,8 +990,25 @@ export function useGlobalCommands() {
       ...navigationCommands.value,
       ...ee.navigationCommands.value,
     ],
-    fallbacks: (query) => [...namedCreateCommands(query), ...docsFallback(query)],
+    fallbacks: (query) => {
+      // A calculation isn't also a name for a new table or a docs search.
+      const calc = evaluateCmdCalc(query)
+      return calc ? [calcCommand(calc)] : [...namedCreateCommands(query), ...docsFallback(query)]
+    },
   }))
+
+  function calcCommand(calc: CmdCalcResult): CmdCommand {
+    return {
+      id: 'data:calc',
+      lead: true,
+      title: `= ${calc.display}`,
+      hint: calc.expression,
+      section: t('labels.commandPalette.data.calculator'),
+      icon: { type: 'icon', name: 'ncCalculator' },
+      feedback: t('labels.commandPalette.copiedValue', { value: calc.copy }),
+      run: () => copy(calc.copy),
+    }
+  }
 
   function docsFallback(query: string): CmdCommand[] {
     return [

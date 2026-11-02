@@ -1,7 +1,19 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
-import type { GalleryType, KanbanType, TableType, ViewType } from 'nocodb-sdk'
-import { ExportTypes, PermissionEntity, PermissionKey, PlanFeatureTypes, PlanTitles, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import type { ColumnType, FilterType, GalleryType, KanbanType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
+import {
+  ExportTypes,
+  PermissionEntity,
+  PermissionKey,
+  PlanFeatureTypes,
+  PlanTitles,
+  UITypes,
+  ViewTypes,
+  getAvailableAggregations,
+  isSystemColumn,
+  isVirtualCol,
+  viewTypeAlias,
+} from 'nocodb-sdk'
 import {
   DlgBaseErd,
   DlgQuickImport,
@@ -13,6 +25,16 @@ import {
 } from '#components'
 import { LockType } from '#imports'
 import type { CmdCommand, ViewPageType } from '~/lib/types'
+import {
+  type CmdCreateColumn,
+  type CmdCreateKind,
+  type CmdStatColumn,
+  type CmdStatCondition,
+  type CmdStatKind,
+  type CmdStatQuery,
+  parseCmdQuickCreate,
+  parseCmdStatsQuery,
+} from '~/utils/commandPaletteDataOps'
 
 const { t } = useI18n()
 
@@ -24,7 +46,7 @@ const { isUIAllowed, isDataReadOnly, environmentRestrictionReason } = useRoles()
 
 const { copy } = useCopy()
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, user } = useGlobal()
 
 const { showEEFeatures, getFeature, getPlanTitle, handleUpgradePlan, showRecordPlanLimitExceededModal } = useEeConfig()
 
@@ -61,7 +83,9 @@ const { isMysql, isPg, loadTables } = baseStore
 
 const { base, isPrivateBase } = storeToRefs(baseStore)
 
-const { setMeta } = useMetas()
+const { setMeta, metas } = useMetas()
+
+const { internalGet } = useInternalBatch()
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -73,7 +97,11 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
-const { isSqlView, isGallery, isKanban, isGrid } = useSmartsheetStoreOrThrow()
+const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+
+const visibleFields = inject(FieldsInj, ref([]))
+
+const { isSqlView, isGallery, isKanban, isGrid, nestedFilters } = useSmartsheetStoreOrThrow()
 
 const { toolGroups } = useTableToolsNav()
 
@@ -964,6 +992,315 @@ function tableCommands(): CmdCommand[] {
   return commands
 }
 
+function statKind(column: ColumnType): CmdStatKind | undefined {
+  switch (column.uidt) {
+    case UITypes.Number:
+    case UITypes.Decimal:
+    case UITypes.Currency:
+    case UITypes.Percent:
+    case UITypes.Duration:
+    case UITypes.Rating:
+      return 'number'
+    case UITypes.Date:
+    case UITypes.DateTime:
+    case UITypes.CreatedTime:
+    case UITypes.LastModifiedTime:
+      return 'date'
+    case UITypes.Checkbox:
+      return 'checkbox'
+    case UITypes.SingleSelect:
+    case UITypes.MultiSelect:
+      return 'select'
+    case UITypes.User:
+      return 'user'
+    case UITypes.SingleLineText:
+    case UITypes.LongText:
+    case UITypes.Email:
+    case UITypes.URL:
+    case UITypes.PhoneNumber:
+      return 'text'
+  }
+}
+
+function optionTitles(column: ColumnType) {
+  return ((column.colOptions as SelectOptionsType | undefined)?.options ?? []).map((option) => option.title!).filter(Boolean)
+}
+
+type StatResult = { at: number } & (
+  | { status: 'loading' }
+  | { status: 'done'; value: string }
+  | { status: 'error'; message: string }
+)
+
+// Server results per query; reading the map inside the provider re-renders the row when one lands.
+const statResults = reactive(new Map<string, StatResult>())
+
+const pendingStat = shallowRef<{ key: string; query: CmdStatQuery }>()
+
+const STAT_TTL = 30_000
+
+function statKey(query: CmdStatQuery) {
+  return JSON.stringify([
+    view.value?.id,
+    query.aggregation,
+    query.column?.id,
+    query.where.map((c) => [c.column.id, c.op, c.value]),
+  ])
+}
+
+function statFilter(condition: CmdStatCondition): FilterType {
+  const isMulti = meta.value?.columns?.find((c) => c.id === condition.column.id)?.uidt === UITypes.MultiSelect
+  const op = isMulti && condition.op === 'eq' ? 'anyof' : isMulti && condition.op === 'neq' ? 'nanyof' : condition.op
+  return {
+    fk_column_id: condition.column.id,
+    comparison_op: op as FilterType['comparison_op'],
+    ...(condition.value !== undefined ? { value: condition.value } : {}),
+    logical_op: 'and',
+  }
+}
+
+async function loadStat(key: string, query: CmdStatQuery) {
+  const table = meta.value
+  const target = query.column
+    ? table?.columns?.find((c) => c.id === query.column!.id)
+    : table?.columns?.find((c) => c.pv) ?? table?.columns?.[0]
+  if (!table?.id || !view.value?.id || !target?.id) return
+
+  statResults.set(key, { status: 'loading', at: Date.now() })
+  // Unsaved toolbar filters (no filter-sync) apply too, as the footer does; the view's saved filters apply server-side.
+  const filters: FilterType[] = [
+    ...(!isUIAllowed('filterSync') && nestedFilters.value.length
+      ? [{ is_group: true, children: nestedFilters.value, logical_op: 'and' } as FilterType]
+      : []),
+    ...query.where.map(statFilter),
+  ]
+  try {
+    const data = await internalGet<Record<string, unknown>>(table.fk_workspace_id!, table.base_id!, {
+      operation: 'dataAggregate',
+      tableId: table.id,
+      viewId: view.value.id,
+      baseId: table.base_id!,
+      aggregation: JSON.stringify([{ field: target.id, type: query.aggregation }]),
+      ...(filters.length ? { filterArrJson: JSON.stringify(filters) } : {}),
+    })
+    const raw = data?.[target.title!]
+    const value =
+      query.aggregation === 'count'
+        ? Number(raw ?? 0).toLocaleString('en-US')
+        : getFormattedAggrationValue(query.aggregation, raw, target, [], {
+            col: target,
+            meta: table as TableType,
+            metas: metas.value,
+            isMysql,
+            isPg,
+          })
+    statResults.set(key, { status: 'done', value: value === undefined || value === null ? '–' : String(value), at: Date.now() })
+  } catch (e) {
+    statResults.set(key, {
+      status: 'error',
+      message: await extractSdkResponseErrorMsg(e as Error & { response?: unknown }),
+      at: Date.now(),
+    })
+  }
+}
+
+// Debounced so typing "sum of amount where…" doesn't fire a request per keystroke.
+watchDebounced(
+  pendingStat,
+  (pending) => {
+    if (pending) loadStat(pending.key, pending.query)
+  },
+  { debounce: 300 },
+)
+
+const STAT_OP_LABEL: Record<CmdStatCondition['op'], string> = {
+  eq: 'is',
+  neq: 'is not',
+  gt: '>',
+  lt: '<',
+  gte: '≥',
+  lte: '≤',
+  like: 'contains',
+  blank: 'is empty',
+  notblank: 'is not empty',
+  checked: 'is checked',
+  notchecked: 'is unchecked',
+  anyof: 'is',
+}
+
+function statTitle(query: CmdStatQuery) {
+  const stat = query.column
+    ? t('labels.commandPalette.data.statOf', {
+        aggregation: t(`aggregation_type.${query.aggregation}`),
+        field: query.column.title,
+      })
+    : t('labels.commandPalette.data.statCount')
+  if (!query.where.length) return stat
+  const conditions = query.where
+    .map((c) =>
+      [c.column.title, STAT_OP_LABEL[c.op], c.op === 'anyof' ? t('labels.commandPalette.data.me') : c.value]
+        .filter(Boolean)
+        .join(' '),
+    )
+    .join(` ${t('labels.commandPalette.data.and')} `)
+  return t('labels.commandPalette.data.statWhere', { stat, conditions })
+}
+
+/** "sum of amount where stage is won": the view's own figure from the server, copied on Enter. Grid views only. */
+function statCommands(query: string): CmdCommand[] {
+  if (!isGrid.value || isSqlView.value || !meta.value?.columns) return []
+  const columns: CmdStatColumn[] = meta.value.columns
+    .filter((column) => !isSystemColumn(column) && statKind(column))
+    .map((column) => ({
+      id: column.id!,
+      title: column.title!,
+      kind: statKind(column)!,
+      aggregations: getAvailableAggregations(column.uidt!),
+      options: optionTitles(column),
+    }))
+  const parsed = parseCmdStatsQuery(query, columns)
+  if (!parsed) return []
+
+  const base = {
+    id: 'data:stat',
+    lead: true,
+    title: statTitle(parsed),
+    section: t('labels.commandPalette.data.stats'),
+    icon: { type: 'icon', name: 'ncBarChart2' },
+  } satisfies Partial<CmdCommand>
+
+  // The aggregate endpoint only sums fields the view shows.
+  if (parsed.column && !visibleFields.value.some((field) => field.id === parsed.column!.id)) {
+    return [
+      { ...base, hint: t('labels.commandPalette.data.statHidden', { field: parsed.column.title }), disabled: true, error: true },
+    ]
+  }
+
+  const key = statKey(parsed)
+  const result = statResults.get(key)
+  if (!result || (result.status !== 'loading' && Date.now() - result.at > STAT_TTL)) {
+    // Not from inside the provider's read; the watcher picks it up.
+    queueMicrotask(() => {
+      if (pendingStat.value?.key !== key) pendingStat.value = { key, query: parsed }
+    })
+  }
+  if (!result || result.status === 'loading') return [{ ...base, loading: true, disabled: true }]
+  if (result.status === 'error') return [{ ...base, hint: result.message, disabled: true, error: true }]
+  const value = result.value
+  return [
+    {
+      ...base,
+      value,
+      feedback: t('labels.commandPalette.copiedValue', { value }),
+      run: () => copy(value),
+    },
+  ]
+}
+
+function createKind(column: ColumnType): CmdCreateKind {
+  if (isSystemColumn(column) || isVirtualCol(column) || column.readonly || column.ai || column.pk) return 'other'
+  switch (column.uidt) {
+    case UITypes.SingleLineText:
+    case UITypes.LongText:
+    case UITypes.Email:
+    case UITypes.URL:
+    case UITypes.PhoneNumber:
+      return parseProp(column.meta)?.richMode ? 'other' : 'text'
+    case UITypes.Number:
+    case UITypes.Decimal:
+    case UITypes.Currency:
+    case UITypes.Percent:
+    case UITypes.Rating:
+      return 'number'
+    case UITypes.Date:
+      return 'date'
+    case UITypes.DateTime:
+      return 'datetime'
+    case UITypes.SingleSelect:
+      return 'select'
+    case UITypes.MultiSelect:
+      return 'multiselect'
+    case UITypes.User:
+      return 'user'
+    case UITypes.Checkbox:
+      return 'checkbox'
+    default:
+      return 'other'
+  }
+}
+
+/** "new deal Acme 5000 won": one row showing what goes where; Enter inserts it without the form. */
+function quickCreateCommands(query: string): CmdCommand[] {
+  const table = meta.value
+  if (
+    !table?.id ||
+    !view.value?.id ||
+    !(isGrid.value || isGallery.value || isKanban.value) ||
+    !isUIAllowed('dataInsert') ||
+    isDataReadOnly.value ||
+    isSqlView.value ||
+    table.synced ||
+    !isPermissionAllowed(PermissionEntity.TABLE, table.id, PermissionKey.TABLE_RECORD_ADD)
+  ) {
+    return []
+  }
+
+  const visibleIds = new Set(visibleFields.value.map((field) => field.id))
+  const toCreateColumn = (column: ColumnType, hidden: boolean): CmdCreateColumn => ({
+    title: column.title!,
+    // Values only land in fields the view shows; hidden ones still count when required.
+    kind: hidden ? 'other' : createKind(column),
+    pv: !!column.pv,
+    required: !!column.rqd && !column.cdf && createKind(column) !== 'other',
+    options: optionTitles(column),
+    ...(column.uidt === UITypes.Rating ? { max: parseProp(column.meta)?.max ?? 5 } : {}),
+  })
+  const columns = [
+    ...visibleFields.value.map((column) => toCreateColumn(column, false)),
+    ...(table.columns ?? [])
+      .filter((column) => !visibleIds.has(column.id) && !isSystemColumn(column))
+      .map((column) => toCreateColumn(column, !column.pv)),
+  ]
+
+  const plan = parseCmdQuickCreate(query, {
+    tableTitle: table.title!,
+    columns,
+    currentUserLabel: user.value?.display_name || user.value?.email,
+  })
+  if (!plan) return []
+
+  const mapping = plan.pairs.map((pair) => `${pair.column.title} ${pair.display}`).join(' · ')
+  const command = {
+    id: 'data:quick-create',
+    lead: true,
+    title: t('labels.commandPalette.data.createRecord', { mapping }),
+    section: t('labels.commandPalette.sections.create'),
+    icon: { type: 'icon', name: 'plus' },
+  } satisfies Partial<CmdCommand>
+
+  const problem =
+    plan.error ??
+    (plan.missingRequired.length
+      ? t('labels.commandPalette.data.missingRequired', { fields: plan.missingRequired.join(', ') })
+      : undefined)
+  if (problem) return [{ ...command, hint: problem, disabled: true, error: true }]
+
+  // "@me" is the signed-in user, sent the way the user cell does (by email).
+  const values = Object.fromEntries(
+    Object.entries(plan.values).map(([title, value]) => [title, value === '@me' ? user.value?.email : value]),
+  )
+  return [
+    {
+      ...command,
+      feedback: t('labels.commandPalette.data.created'),
+      run: async () => {
+        await $api.dbViewRow.create('noco', table.base_id!, table.id!, view.value!.id!, values)
+        reloadViewDataHook.trigger()
+      },
+    },
+  ]
+}
+
 useCommandProvider(
   () => `view:${view.value?.id}`,
   'view',
@@ -977,6 +1314,7 @@ useCommandProvider(
         icon: { type: 'view', viewType: view.value.type, icon: view.value.meta?.icon },
       },
       commands: [...viewCommands(), ...tableCommands()],
+      fallbacks: (query) => [...statCommands(query), ...quickCreateCommands(query)],
     }
   },
 )

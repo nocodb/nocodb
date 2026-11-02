@@ -31,22 +31,36 @@ export function cmdRolesUpTo(offered: readonly string[], ordered: readonly strin
 }
 
 /** "create table invoices" / "new view Q3" → the kind word and the name; anything else is just a name. */
-function parseCreateQuery(query: string): { name: string; kind?: string } {
+function parseCreateQuery(query: string): { name: string; kind?: string; prefixed: boolean } {
   const match = query.match(
     /^(?:create|new|add)\s+(table|view|base|doc|document|page|dashboard|interface|workflow|script|agent|workspace)\s+(.+)$/i,
   )
-  if (match) return { kind: match[1]!.toLowerCase(), name: match[2]!.trim() }
-  return { name: query.replace(/^(?:create|new|add)\s+/i, '').trim() }
+  if (match) return { kind: match[1]!.toLowerCase(), name: match[2]!.trim(), prefixed: true }
+  return { name: query.replace(/^(?:create|new)\s+/i, '').trim(), prefixed: /^(?:create|new)\s/i.test(query) }
 }
 
 const QUESTION_OPENERS = /^(?:which|what|how|why|who|when|where|show|list|find|is|are|do|does|can|should)\b/i
 
 const SENTENCE_WORDS = /\b(?:that|which|who|whose|where|with|are|is|have|has|than|look|looks)\b/i
 
-/** A name, not a sentence: at most 4 words, no "?" or sentence words. An explicit kind ("create table …") always counts. */
-function isNameLike(name: string, kind?: string) {
+/** "clear filters", "sort by amount": a command being typed, not a name for something new. */
+const COMMAND_OPENERS =
+  /^(?:clear|remove|delete|reset|undo|redo|set|move|sort|group|filter|unfilter|hide|show|stack|add|change|update|sum|average|count|max|min|top)\b/i
+
+/**
+ * A name, not a sentence or a command: at most 4 words with a letter, no "?", sentence words or command verb.
+ * An explicit kind ("create table …") always counts; after "create"/"new", "Top accounts" is a name, not a verb.
+ */
+function isNameLike(name: string, kind?: string, prefixed = false) {
   if (kind) return true
-  return !name.includes('?') && !QUESTION_OPENERS.test(name) && !SENTENCE_WORDS.test(name) && name.split(/\s+/).length <= 4
+  return (
+    !name.includes('?') &&
+    !QUESTION_OPENERS.test(name) &&
+    !SENTENCE_WORDS.test(name) &&
+    (prefixed || !COMMAND_OPENERS.test(name)) &&
+    /\p{L}/u.test(name) &&
+    name.split(/\s+/).length <= 4
+  )
 }
 
 // `outline` icons keep the injected stroke; filled brand logos drop it.
@@ -98,7 +112,7 @@ export function useGlobalCommands(edition?: (ctx: CmdGlobalCommandsContext) => C
 
   const { navigationCommands, refreshCommandPalette } = useCommandPalette()
 
-  const { setActiveCmdView, cmdK } = useCommand()
+  const { setActiveCmdView, cmdK, docsQuery } = useCommand()
 
   const { selectedTheme, setTheme } = useTheme()
 
@@ -309,8 +323,14 @@ export function useGlobalCommands(edition?: (ctx: CmdGlobalCommandsContext) => C
       .slice(0, 5)
       .map((recent) => ({
         id: `recent:${recent.tableID}:${recent.viewId ?? ''}`,
-        title: recent.viewName,
-        hint: `${recent.baseName} / ${recent.tableName}`,
+        // Same format as Cmd+L: a default view is its table, named once; the base only when it isn't this one.
+        title: recent.isDefault ? recent.tableName || recent.viewName : recent.viewName,
+        hint: [
+          recent.baseId === currentBase.value?.id ? undefined : recent.baseName,
+          recent.isDefault || recent.tableName === recent.viewName ? undefined : recent.tableName,
+        ]
+          .filter(Boolean)
+          .join(' / '),
         section: sections.value.recent,
         icon: { type: 'view', viewType: recent.viewType },
         run: () => viewsStore.changeView({ viewId: recent.viewId ?? null, tableId: recent.tableID, baseId: recent.baseId }),
@@ -433,7 +453,7 @@ export function useGlobalCommands(edition?: (ctx: CmdGlobalCommandsContext) => C
     {
       id: 'recent:open',
       title: t('labels.commandPalette.recentViews'),
-      section: sections.value.help,
+      section: sections.value.goTo,
       icon: { type: 'icon', name: 'ncClock' },
       shortcut: [cmdOrCtrlKey, 'L'],
       run: () => setActiveCmdView('cmd-l'),
@@ -687,15 +707,18 @@ export function useGlobalCommands(edition?: (ctx: CmdGlobalCommandsContext) => C
         title: t('labels.commandPalette.searchDocsFor', { query }),
         section: sections.value.help,
         icon: { type: 'icon', name: 'ncFileSearch' },
-        run: () => setActiveCmdView('cmd-j'),
+        run: () => {
+          docsQuery.value = query
+          setActiveCmdView('cmd-j')
+        },
       },
     ]
   }
 
   /** "Invoices" → Create table “Invoices”, … — only for openers that take an initial name. */
   function namedCreateCommands(query: string): CmdCommand[] {
-    const { name, kind } = parseCreateQuery(query)
-    if (!name || !isNameLike(name, kind)) return []
+    const { name, kind, prefixed } = parseCreateQuery(query)
+    if (!name || !isNameLike(name, kind, prefixed)) return []
 
     const commands: CmdCommand[] = []
 
@@ -738,7 +761,8 @@ export function useGlobalCommands(edition?: (ctx: CmdGlobalCommandsContext) => C
       })
     }
 
-    return [...commands, ...(ee.namedCreateCommands?.(name, kind) ?? [])]
+    // A bare name offers a table, view or base; the other kinds need "create …"/"new …" or the kind named.
+    return [...commands, ...((kind || prefixed ? ee.namedCreateCommands?.(name, kind) : undefined) ?? [])]
   }
 
   useCommandProvider('base', 'base', () => {

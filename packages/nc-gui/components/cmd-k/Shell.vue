@@ -120,6 +120,19 @@ onClickOutside(contentEl, () => {
   // In flow, so the footer never covers the list.
   .cmdk-footer {
     @apply static;
+
+    // On a phone equal thirds clip "Quick Navigation"; items size to their labels instead.
+    @media (max-width: 639px) {
+      > div {
+        gap: 4px;
+        padding-inline: 4px;
+
+        > div {
+          width: auto;
+          gap: 6px;
+        }
+      }
+    }
   }
 
   .nc-cmdk-header {
@@ -140,7 +153,7 @@ onClickOutside(contentEl, () => {
   }
 
   .nc-cmdk-input-row {
-    @apply flex items-center gap-3 px-4 py-3.5;
+    @apply flex items-center gap-2.5 px-4 py-3.5;
   }
 
   .nc-cmdk-input-icon {
@@ -154,7 +167,7 @@ onClickOutside(contentEl, () => {
 
   // Half-typed query: the chips preview the highlighted completion, so they read as a draft.
   .nc-cmdk-chips--tentative .nc-cmdk-chip {
-    @apply border-dashed opacity-70;
+    @apply border-dashed;
   }
 
   .nc-cmdk-chip--cmp,

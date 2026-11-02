@@ -106,7 +106,7 @@ watch(dialogShow, (n) => {
 
 // Opened already visible (useDialog), so the watcher above never fires.
 onMounted(() => {
-  if (props.title && dialogShow.value) onInit()
+  if (dialogShow.value) onInit()
 })
 </script>
 

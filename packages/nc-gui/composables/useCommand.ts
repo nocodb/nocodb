@@ -12,6 +12,9 @@ export const useCommand = createSharedComposable(() => {
   const cmdL = ref(false)
   const cmdJ = ref(false)
 
+  /** What Cmd+K's "Search docs for …" hands Cmd+J to search; Cmd+J takes it once on open. */
+  const docsQuery = ref('')
+
   // Command palette refs
   const commandPalette = ref()
 
@@ -24,7 +27,9 @@ export const useCommand = createSharedComposable(() => {
 
   watch(
     () => [user.value?.id, activeWorkspaceId.value] as const,
-    ([userId, workspaceId]) => {
+    ([userId, workspaceId], prev) => {
+      // Signed out, or someone else signed in: clear before loading, so only this user's list merges.
+      if (!userId || (prev && prev[0] !== userId)) recentItems.value = []
       if (!userId || !workspaceId) return
       const saved: RecentItem[] = userLocalStorageInfoManager.get(userId, workspaceId, 'recentItems') ?? []
       const seen = new Set(recentItems.value.map((item) => `${item.kind}:${item.id}`))
@@ -135,6 +140,7 @@ export const useCommand = createSharedComposable(() => {
     cmdJ,
     commandPalette,
     recentItems,
+    docsQuery,
     commandUsage,
 
     // Methods

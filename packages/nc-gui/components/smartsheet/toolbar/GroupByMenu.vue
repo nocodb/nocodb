@@ -241,6 +241,11 @@ const saveGroupBy = async () => {
 }
 
 const addFieldToGroupBy = (column: ColumnType) => {
+  // Header-menu and Cmd+K adds can name a field already grouped, or arrive at the level limit.
+  if (_groupBy.value.length >= groupByLimit || _groupBy.value.some((g) => g.fk_column_id === column.id)) {
+    showCreateGroupBy.value = false
+    return
+  }
   _groupBy.value.push({ fk_column_id: column.id, sort: 'asc', order: _groupBy.value.length + 1, enabled: true })
   saveGroupBy()
   showCreateGroupBy.value = false
@@ -323,6 +328,7 @@ const smartSheetListener = async (event: SmartsheetStoreEvents, payload: any = {
     if (columns?.length) {
       const existing = new Set(_groupBy.value.map((g) => g.fk_column_id))
       for (const col of columns) {
+        if (_groupBy.value.length >= groupByLimit) break
         if (!col?.id || existing.has(col.id)) continue
         _groupBy.value.push({ fk_column_id: col.id, sort: 'asc', order: _groupBy.value.length + 1 })
         existing.add(col.id)

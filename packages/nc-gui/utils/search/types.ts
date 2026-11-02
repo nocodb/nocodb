@@ -40,4 +40,6 @@ export interface SortedResult {
   url: string
   type: 'page' | 'heading' | 'text'
   content: string
+  /** The heading a text result sits under. */
+  section?: string
 }

@@ -224,7 +224,17 @@ watch(
   { immediate: true },
 )
 
-useSortCommands({ view, isPublic, isRestrictedEditor, availableColumns, addSort, open })
+useSortCommands({
+  view,
+  isPublic,
+  isRestrictedEditor,
+  availableColumns,
+  addSort,
+  open,
+  sorts: displayedSorts,
+  deleteSort: (sort) => deleteSort(sort, getSortIndex(sort)),
+  isPersonalViewNonOwner,
+})
 </script>
 
 <template>

@@ -36,6 +36,7 @@ export function groupResults(hits: SearchResponseHit[]): SortedResult[] {
         type: document.content === document.section ? 'heading' : 'text',
         url: document.section_id ? `${document.url}#${document.section_id}` : document.url,
         content: document.content,
+        section: document.section,
       })
     }
   }

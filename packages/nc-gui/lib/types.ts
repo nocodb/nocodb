@@ -450,6 +450,8 @@ interface CmdCommand {
   complete?: string
   /** Structural telemetry for natural-language rows; never carries typed text or schema names. */
   tele?: CmdTele
+  /** Rows with the same effect share a key ("group:<fieldId>"); search hides a match a lead row already covers. */
+  dedupeKey?: string
 }
 
 /** A typed query's reading, structurally: intent, counts, kinds and field types; no text, titles, ids or values. */

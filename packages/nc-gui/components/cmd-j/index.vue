@@ -34,6 +34,8 @@ const typesenseClient = new Client({
 
 const { search, query } = useTypesenseSearch(typesenseClient, 'noco-docs-v2')
 
+const { docsQuery } = useCommand()
+
 const cmdOrCtrlKey = isMac() ? 'Meta' : 'Ctrl'
 
 const isLoading = computed(() => query.isLoading.value)
@@ -43,22 +45,38 @@ const commands = computed<CmdCommand[]>(() => {
   const data = query.data.value
   if (!Array.isArray(data)) return []
 
-  // Many pages share headings like "Filter"; each heading/text row names its page as the hint.
-  let pageTitle: string | undefined
+  // Many pages share headings like "Filter"; each heading/text row names its page (and a text row its heading).
+  // Hits interleave pages, so a row finds its page by url: the page row always precedes its sections.
+  const pageTitles = new Map<string, string>()
+  const seen = new Set<string>()
   return data
     .filter((result) => !!result.url)
-    .map((result) => {
-      if (result.type === 'page') pageTitle = result.content
-      return {
-        id: result.id,
-        title: result.content,
-        hint: result.type === 'page' ? undefined : pageTitle,
-        icon: {
-          type: 'icon',
-          name: result.type === 'page' ? 'ncFileText' : result.type === 'heading' ? 'ncHash' : 'ncAlignLeft',
+    .flatMap((result): CmdCommand[] => {
+      const pageUrl = result.url.split('#')[0]!
+      if (result.type === 'page') pageTitles.set(pageUrl, result.content)
+      const pageTitle = pageTitles.get(pageUrl)
+      const hint =
+        result.type === 'page'
+          ? undefined
+          : result.type === 'text' && result.section && result.section !== result.content
+          ? `${pageTitle} › ${result.section}`
+          : pageTitle
+      // Two "Filter" headings on one page would be the same row twice.
+      const key = `${pageUrl}\n${result.content}\n${hint ?? ''}`
+      if (seen.has(key)) return []
+      seen.add(key)
+      return [
+        {
+          id: result.id,
+          title: result.content,
+          hint,
+          icon: {
+            type: 'icon',
+            name: result.type === 'page' ? 'ncFileText' : result.type === 'heading' ? 'ncHash' : 'ncAlignLeft',
+          },
+          run: () => window.open(`https://nocodb.com${result.url}`, '_blank', 'noopener,noreferrer'),
         },
-        run: () => window.open(`https://nocodb.com${result.url}`, '_blank', 'noopener,noreferrer'),
-      }
+      ]
     })
 })
 
@@ -128,7 +146,9 @@ function onKeydown(e: KeyboardEvent) {
 
 watch(vOpen, (isOpen) => {
   if (!isOpen) return
-  search.value = ''
+  // "Search docs for …" from Cmd+K opens on its query; Cmd+J itself opens empty.
+  search.value = docsQuery.value
+  docsQuery.value = ''
   selectedId.value = undefined
   navigated.value = false
   nextTick(() => inputEl.value?.focus())
@@ -157,7 +177,7 @@ watch(rows, (list) => {
           class="cmdk-input cmdj-input"
           type="text"
           data-testid="nc-cmdj-input"
-          :placeholder="$t('placeholder.searchThroughDocs')"
+          :placeholder="$t('labels.commandPalette.searchDocsPlaceholder')"
           role="combobox"
           aria-autocomplete="list"
           :aria-expanded="!!rows.length"

@@ -1209,7 +1209,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             is_group: true,
             logical_op: 'and',
           }),
-          ...(args.filterArr || []),
         ],
         qb,
         undefined,
@@ -1238,7 +1237,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             is_group: true,
             logical_op: 'and',
           }),
-          ...(args.filterArr || []),
         ],
         qb,
         undefined,
@@ -1340,14 +1338,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     sortArr?: Sort[];
     minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
   }) {
-    // Prepend RLS conditions to filterArr for groupBy
+    // The client filters get their own group: a top-level 'or' filter would
+    // otherwise OR past the RLS group.
     const rlsConditionsGB = await this.getRlsConditions();
     if (rlsConditionsGB.length) {
       args = {
         ...args,
         filterArr: [
           new Filter({ children: rlsConditionsGB, is_group: true }),
-          ...(args.filterArr || []),
+          new Filter({
+            children: args.filterArr || [],
+            is_group: true,
+            logical_op: 'and',
+          }),
         ],
       };
     }
@@ -1362,14 +1365,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     filterArr?: Filter[];
     minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
   }) {
-    // Prepend RLS conditions to filterArr for groupByCount
+    // See groupBy: client filters are grouped so they can't OR past RLS.
     const rlsConditionsGBC = await this.getRlsConditions();
     if (rlsConditionsGBC.length) {
       args = {
         ...args,
         filterArr: [
           new Filter({ children: rlsConditionsGBC, is_group: true }),
-          ...(args.filterArr || []),
+          new Filter({
+            children: args.filterArr || [],
+            is_group: true,
+            logical_op: 'and',
+          }),
         ],
       };
     }
@@ -5021,8 +5028,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           : updateData;
 
         // Matched PKs, read once and shared by the undo and hook snapshots.
+        // Undo records only tabbed user requests (see maybeRecordUndoEntry).
         const captureUndoPrev =
           isTraceActive() &&
+          !!cookie?.ncTabId &&
+          !args.skipValidationAndHooks &&
           this.model.primaryKeys?.length > 0 &&
           Number(count) <= NC_BULK_UPDATE_UNDO_LIMIT;
         const affectedPks = captureUndoPrev

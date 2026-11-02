@@ -508,11 +508,6 @@ export function formatUtilizationPercent(percent: number | null): string {
 }
 
 /**
- * Re-points a saved date-axis summary at another copy of the base (duplicate
- * / import). Returns `undefined` when a field it needs has no counterpart;
- * time off is dropped alone when only its table or fields are missing.
- */
-/**
  * Whether a utilization summary has everything it needs to compute. An
  * unfinished one is still saved on the view so its setup isn't lost.
  */
@@ -530,6 +525,11 @@ export function isUtilizationSummaryComplete(
   );
 }
 
+/**
+ * Re-points a saved date-axis summary at another copy of the base (duplicate
+ * / import). Returns `undefined` when a field it needs has no counterpart;
+ * time off is dropped alone when only its table or fields are missing.
+ */
 export function remapDateAxisSummaryIds(
   summary: DateAxisSummaryConfig | undefined | null,
   mapId: (id: string) => string | undefined | null

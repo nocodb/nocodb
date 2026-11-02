@@ -22,6 +22,8 @@ minimumReleaseAgeExclude:
   - multer
   - serialize-javascript
   - happy-dom
+  # Renovate security update: node-forge@1.4.2
+  - node-forge@1.4.2
 
 # Detect when a package loses its provenance guarantees (e.g. previously
 # published via CI, now published from a local machine — signals account compromise).

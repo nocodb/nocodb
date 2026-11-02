@@ -3886,6 +3886,7 @@
     "conditionCount": "{count} condition | {count} conditions",
     "trackTimeOffInTable": "Track days off in a separate table",
     "availableHours": "Available hours",
+    "requiredFieldsMissing": "Required fields missing",
     "workingHours": "Working hours",
     "resource": "Resource",
     "rate": "Rate",

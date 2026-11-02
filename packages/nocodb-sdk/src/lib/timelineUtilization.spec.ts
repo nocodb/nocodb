@@ -9,6 +9,7 @@ import {
   formatUtilizationPercent,
   instantToDayNumber,
   isUtilizationResourceLink,
+  isUtilizationSummaryComplete,
   isUtilizationTimeOffLink,
   isUtilizationTimeOffSource,
   MONDAY_TO_FRIDAY,
@@ -398,5 +399,59 @@ describe('timelineUtilization', () => {
     }
     expect(isUtilizationResourceLink({ uidt: UITypes.User })).toBe(false);
     expect(isUtilizationResourceLink(null)).toBe(false);
+  });
+
+  it('treats a summary as complete only once utilization can compute', () => {
+    const base = {
+      aggregation: 'utilization',
+      fk_column_id: 'hours',
+      utilization: {
+        allocated_rate: 'total' as const,
+        available_rate: 'week' as const,
+        fk_resource_column_id: 'owner',
+        available_value: 40,
+      },
+    };
+    expect(isUtilizationSummaryComplete(base)).toBe(true);
+    expect(isUtilizationSummaryComplete({ ...base, fk_column_id: '' })).toBe(
+      false
+    );
+    expect(
+      isUtilizationSummaryComplete({
+        ...base,
+        utilization: { ...base.utilization, fk_resource_column_id: '' },
+      })
+    ).toBe(false);
+    expect(
+      isUtilizationSummaryComplete({
+        ...base,
+        utilization: { ...base.utilization, available_value: null },
+      })
+    ).toBe(false);
+    expect(
+      isUtilizationSummaryComplete({
+        ...base,
+        utilization: {
+          ...base.utilization,
+          available_value: null,
+          fk_available_column_id: 'capacity',
+        },
+      })
+    ).toBe(true);
+    expect(
+      isUtilizationSummaryComplete({
+        ...base,
+        utilization: {
+          ...base.utilization,
+          time_off: {
+            fk_model_id: 'pto',
+            fk_link_column_id: '',
+            fk_start_column_id: '',
+            fk_end_column_id: null,
+            label: 'PTO',
+          },
+        },
+      })
+    ).toBe(false);
   });
 });

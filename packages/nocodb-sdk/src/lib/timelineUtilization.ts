@@ -512,6 +512,24 @@ export function formatUtilizationPercent(percent: number | null): string {
  * / import). Returns `undefined` when a field it needs has no counterpart;
  * time off is dropped alone when only its table or fields are missing.
  */
+/**
+ * Whether a utilization summary has everything it needs to compute. An
+ * unfinished one is still saved on the view so its setup isn't lost.
+ */
+export function isUtilizationSummaryComplete(
+  summary?: DateAxisSummaryConfig | null
+): boolean {
+  const util = summary?.utilization;
+  if (!summary?.fk_column_id || !util?.fk_resource_column_id) return false;
+  if (!util.fk_available_column_id && !(Number(util.available_value) > 0))
+    return false;
+  const off = util.time_off;
+  return (
+    !off ||
+    !!(off.fk_model_id && off.fk_link_column_id && off.fk_start_column_id)
+  );
+}
+
 export function remapDateAxisSummaryIds(
   summary: DateAxisSummaryConfig | undefined | null,
   mapId: (id: string) => string | undefined | null

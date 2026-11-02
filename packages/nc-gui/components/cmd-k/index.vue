@@ -92,6 +92,9 @@ let closeTimer: ReturnType<typeof setTimeout> | undefined
 /** A row with `feedback` is saving or has saved: a second Enter or click must not run it again. */
 let isRunning = false
 
+/** Bumped on every open: a run or save that settles after a reopen must not touch the new session. */
+let session = 0
+
 /** Enter pressed while the leading reading was still fetching its answer: it runs once that settles. */
 const pendingEnterId = ref<string>()
 
@@ -416,15 +419,19 @@ function closeSoon() {
 }
 
 async function runWithFeedback(command: CmdCommand) {
+  const runSession = session
   isRunning = true
   rowStatus.value = { id: command.id, kind: 'pending' }
   try {
     await command.run?.()
+    if (runSession !== session) return
     rowStatus.value = { id: command.id, kind: 'success', text: command.feedback }
     closeSoon()
   } catch (e: unknown) {
+    const text = await extractSdkResponseErrorMsg(e as Error)
+    if (runSession !== session) return
     isRunning = false
-    rowStatus.value = { id: command.id, kind: 'error', text: await extractSdkResponseErrorMsg(e as Error) }
+    rowStatus.value = { id: command.id, kind: 'error', text }
   }
 }
 
@@ -486,16 +493,21 @@ async function saveEdit() {
     return
   }
 
+  const command = editing.value!
+  const saveSession = session
   isSaving.value = true
   try {
     await edit.submit(value)
-    recordUse(editing.value!)
+    if (saveSession !== session) return
+    recordUse(command)
     isSaved.value = true
     closeSoon()
   } catch (e: unknown) {
-    editError.value = await extractSdkResponseErrorMsg(e as Error)
+    const message = await extractSdkResponseErrorMsg(e as Error)
+    if (saveSession !== session) return
+    editError.value = message
   } finally {
-    isSaving.value = false
+    if (saveSession === session) isSaving.value = false
   }
 
   // The input was disabled while saving, which dropped focus; give it back so Esc and a retry work.
@@ -638,8 +650,18 @@ function goBack() {
   }
 }
 
+/** The chip's ×: its pages and editor belong to the dismissed context, so they close with it. */
+function dismissContext() {
+  navDirection.value = 'back'
+  pages.value = []
+  editing.value = undefined
+  editError.value = undefined
+  dismissedLevels.value++
+  focusInput()
+}
+
 function onEditKeydown(e: KeyboardEvent) {
-  if (e.isComposing) return
+  if (e.isComposing || e.keyCode === 229) return
 
   if (e.key === 'Escape') {
     e.preventDefault()
@@ -651,8 +673,22 @@ function onEditKeydown(e: KeyboardEvent) {
   }
 }
 
+/**
+ * Typed faster than the debounce: rank the current query now and take its first row.
+ * A row the user arrowed or hovered to stays picked if the new ranking still has it.
+ */
+function flushQuery() {
+  if (debouncedQuery.value === query.value) return
+  debouncedQuery.value = query.value
+  if (!navigated.value || !selectedId.value || !selectableIds.value.includes(selectedId.value)) {
+    navigated.value = false
+    selectedId.value = defaultSelectedId()
+  }
+}
+
 function onKeydown(e: KeyboardEvent) {
-  if (e.isComposing) return
+  // Safari sends the IME-confirming Enter after compositionend, as keyCode 229.
+  if (e.isComposing || e.keyCode === 229) return
 
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
 
@@ -669,15 +705,7 @@ function onKeydown(e: KeyboardEvent) {
       e.preventDefault()
       // A dialog the command opens (GeneralDeleteModal confirms on window Enter) must not get this key.
       e.stopPropagation()
-      // Typed faster than the debounce: rank the current query now and take its first row.
-      // A row the user arrowed or hovered to stays picked if the new ranking still has it.
-      if (debouncedQuery.value !== query.value) {
-        debouncedQuery.value = query.value
-        if (!navigated.value || !selectedId.value || !selectableIds.value.includes(selectedId.value)) {
-          navigated.value = false
-          selectedId.value = defaultSelectedId()
-        }
-      }
+      flushQuery()
       const selectedIndex = results.value.findIndex((c) => c.id === selectedId.value)
       // The leading reading is still loading (so not selectable): wait for it only while the selection is
       // still the default row below it. A row the user arrowed or hovered to runs as picked.
@@ -708,11 +736,13 @@ function onKeydown(e: KeyboardEvent) {
       hide()
       return
     case 'Backspace':
-      if (query.value) return
+      // Held down to clear the query, it must not also unwind every page and chip.
+      if (query.value || e.repeat) return
       e.preventDefault()
       goBack()
       return
     case 'ArrowRight': {
+      flushQuery()
       const input = e.target as HTMLInputElement
       // A row that runs on Enter opens its children on → (with the caret at the end of the input).
       const selected = results.value.find((c) => c.id === selectedId.value)
@@ -732,6 +762,7 @@ function onKeydown(e: KeyboardEvent) {
     case 'Tab': {
       e.preventDefault()
       if (activePage.value) return
+      flushQuery()
       const selected = results.value.find((c) => c.id === selectedId.value)
       if (selected?.complete !== undefined) {
         trackSuggestion(selected, 'tab')
@@ -829,6 +860,8 @@ watch(vOpen, (isOpen) => {
   isSaved.value = false
   rowStatus.value = undefined
   isRunning = false
+  isSaving.value = false
+  session++
   // In the first frame, so the focus reuses the layout the first paint needs instead of forcing one.
   requestAnimationFrame(() => inputEl.value?.focus())
 })
@@ -907,7 +940,7 @@ defineExpose({
             <NcTooltip :title="$t('labels.commandPalette.removeContext')" :tooltip-style="{ zIndex: 1100 }">
               <div
                 class="flex items-center justify-center h-4 w-4 rounded cursor-pointer text-nc-content-gray-muted hover:(bg-nc-bg-gray-medium text-nc-content-gray)"
-                @click="goBack()"
+                @click="dismissContext()"
               >
                 <GeneralIcon icon="ncX" class="h-3 w-3" />
               </div>

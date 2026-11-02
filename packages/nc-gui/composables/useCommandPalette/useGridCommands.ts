@@ -214,6 +214,8 @@ export function useGridCommands(
           section,
           icon: { type: 'icon', name: 'delete' },
           danger: true,
+          // `notify: false` throws instead of toasting, so a failure must show in the row.
+          feedback: t('labels.commandPalette.recordDeleted'),
           // Deletes immediately, as the menu's "Delete record" does (undo restores it).
           run: async () => {
             await g.deleteRow?.(cell.row!, path, { notify: false })

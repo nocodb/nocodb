@@ -209,6 +209,7 @@ import {
 import {
   captureForTrace,
   isTraceActive,
+  isTraceRecordable,
 } from '~/decorators/trace-command.decorator';
 import { isReplay } from '~/helpers/replayScope';
 import { pickChangedFieldsForUpdatePrev } from '~/utils/dataUtils';
@@ -5029,49 +5030,58 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
         // Matched PKs, read once and shared by the undo and hook snapshots.
         // Undo records only tabbed user requests (see maybeRecordUndoEntry).
-        const captureUndoPrev =
-          isTraceActive() &&
+        const undoable =
           !!cookie?.ncTabId &&
           !args.skipValidationAndHooks &&
           this.model.primaryKeys?.length > 0 &&
-          Number(count) <= NC_BULK_UPDATE_UNDO_LIMIT;
-        const affectedPks = captureUndoPrev
-          ? await this.collectAffectedPks(qb.clone())
-          : undefined;
+          (await isTraceRecordable());
+        const captureUndoPrev =
+          undoable && Number(count) <= NC_BULK_UPDATE_UNDO_LIMIT;
+        if (undoable && !captureUndoPrev) captureForTrace('notUndoable', true);
+        let affectedPks: string[] | undefined;
 
         // Undo snapshot: the changed fields of every matched row, read before the
-        // UPDATE. Past the cap nothing is captured, so the op isn't recorded.
+        // UPDATE. Past the cap, or if the read fails, nothing is captured and the
+        // op isn't recorded; the update itself still runs.
         if (captureUndoPrev) {
-          const aliasColMap = await this.model.getAliasColObjMap(columns);
-          const changedColIds = Object.keys(data)
-            .map(
-              (k) =>
-                aliasColMap[k] ??
-                columns.find((c) => c.column_name === k || c.id === k),
-            )
-            .filter((c) => c && !isLinksOrLTAR(c))
-            .map((c) => c.id);
-          const prevRows = await this.chunkList({
-            pks: affectedPks,
-            args: {
-              ignoreViewFilterAndSort: true,
-              fields: [
-                ...this.model.primaryKeys.map((pk) => pk.id),
-                ...changedColIds,
-              ],
-            },
-          });
-          captureForTrace(
-            'recordPrev',
-            prevRows.map((row) =>
-              pickChangedFieldsForUpdatePrev(
-                row,
-                data,
-                columns,
-                this.model.primaryKeys,
+          try {
+            affectedPks = await this.collectAffectedPks(qb.clone());
+            const aliasColMap = await this.model.getAliasColObjMap(columns);
+            const changedColIds = Object.keys(data)
+              .map(
+                (k) =>
+                  aliasColMap[k] ??
+                  columns.find((c) => c.column_name === k || c.id === k),
+              )
+              .filter((c) => c && !isLinksOrLTAR(c))
+              .map((c) => c.id);
+            const prevRows = await this.chunkList({
+              pks: affectedPks,
+              args: {
+                ignoreViewFilterAndSort: true,
+                fields: [
+                  ...this.model.primaryKeys.map((pk) => pk.id),
+                  ...changedColIds,
+                ],
+              },
+            });
+            captureForTrace(
+              'recordPrev',
+              prevRows.map((row) =>
+                pickChangedFieldsForUpdatePrev(
+                  row,
+                  data,
+                  columns,
+                  this.model.primaryKeys,
+                ),
               ),
-            ),
-          );
+            );
+          } catch (e) {
+            captureForTrace('notUndoable', true);
+            logger.warn(
+              `bulkUpdateAll on ${this.model.id}: undo snapshot failed, the update won't be undoable: ${e?.message}`,
+            );
+          }
         }
 
         // Snapshot the affected rows (PKs + pre-update values) against the

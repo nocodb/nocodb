@@ -21,6 +21,9 @@ const selectedId = ref<string>()
 /** Set once the user moves the selection; new results reset it to the first row until then. */
 const navigated = ref(false)
 
+/** Enter pressed before the results for the typed text arrived: it runs the first of them once they do. */
+const pendingEnter = ref(false)
+
 const typesenseClient = new Client({
   apiKey: 'lNKDTZdJrE76Sg8WEyeN9mXT29l1xq7Q',
   nodes: [
@@ -116,7 +119,7 @@ function execute(command: CmdCommand) {
 }
 
 function onKeydown(e: KeyboardEvent) {
-  if (e.isComposing) return
+  if (e.isComposing || e.keyCode === 229) return
 
   switch (e.key) {
     case 'ArrowDown':
@@ -129,6 +132,10 @@ function onKeydown(e: KeyboardEvent) {
       return
     case 'Enter': {
       e.preventDefault()
+      if (query.settledSearch.value !== search.value) {
+        pendingEnter.value = true
+        return
+      }
       const command = rows.value.find((c) => c.id === selectedId.value)
       if (command) execute(command)
       return
@@ -147,12 +154,26 @@ watch(vOpen, (isOpen) => {
   docsQuery.value = ''
   selectedId.value = undefined
   navigated.value = false
+  pendingEnter.value = false
   nextTick(() => inputEl.value?.focus())
 })
 
 watch(search, () => {
   navigated.value = false
+  pendingEnter.value = false
 })
+
+// After the `rows` watcher below has moved the selection to the new first row.
+watch(
+  query.settledSearch,
+  (settled) => {
+    if (!pendingEnter.value || settled !== search.value) return
+    pendingEnter.value = false
+    const command = query.error.value ? undefined : rows.value.find((c) => c.id === selectedId.value)
+    if (command) execute(command)
+  },
+  { flush: 'post' },
+)
 
 watch(rows, (list) => {
   if (!navigated.value || !selectedId.value || !list.some((command) => command.id === selectedId.value)) {

@@ -183,8 +183,14 @@ export function useGlobalCommands(edition?: (ctx: CmdGlobalCommandsContext) => C
   // The user menu's Admin Panel link (EEMenuOption): super admins only, unless the edition says otherwise.
   const adminPanelPath = ee.adminPanelPath ?? computed(() => (orgRoles.value?.[OrgUserRoles.SUPER_ADMIN] ? '/admin' : undefined))
 
+  // Cmd+K is mounted outside the base tree, so the base is passed for its managed-app and environment locks.
+  function canCreateInBase(permission: string, extra: Record<string, unknown> = {}) {
+    const args = { ...extra, base: currentBase.value }
+    return isUIAllowed(permission, args) && !environmentRestrictionReason(permission, args)
+  }
+
   const canCreateTable = computed(
-    () => !!currentBase.value && !!defaultSource.value && isUIAllowed('tableCreate', { source: defaultSource.value }),
+    () => !!currentBase.value && !!defaultSource.value && canCreateInBase('tableCreate', { source: defaultSource.value }),
   )
 
   function createTable() {
@@ -237,7 +243,7 @@ export function useGlobalCommands(edition?: (ctx: CmdGlobalCommandsContext) => C
       })
     }
 
-    if (activeTable.value && isUIAllowed('viewCreateOrEdit')) {
+    if (activeTable.value && canCreateInBase('viewCreateOrEdit')) {
       commands.push({
         id: 'view:create',
         title: t('labels.commandPalette.createView'),
@@ -738,7 +744,7 @@ export function useGlobalCommands(edition?: (ctx: CmdGlobalCommandsContext) => C
     }
 
     const table = activeTable.value
-    if ((!kind || kind === 'view') && table?.id && table.base_id && isUIAllowed('viewCreateOrEdit')) {
+    if ((!kind || kind === 'view') && table?.id && table.base_id && canCreateInBase('viewCreateOrEdit')) {
       commands.push({
         id: 'view:create-named',
         title: t('labels.commandPalette.create.viewNamed', { name }),
@@ -755,7 +761,17 @@ export function useGlobalCommands(edition?: (ctx: CmdGlobalCommandsContext) => C
       })
     }
 
-    // The New project page takes no name, so EE has no named base create.
+    // The New project page takes no name: an explicit "create base …" in EE just opens it.
+    if (isEeUI && kind === 'base' && isUIAllowed('baseCreate')) {
+      commands.push({
+        id: 'base:create-page',
+        title: t('labels.commandPalette.createBase'),
+        section: sections.value.create,
+        icon: { type: 'base' },
+        run: () => navigateTo(`/${activeWorkspaceId.value}/new`),
+      })
+    }
+
     if (!isEeUI && (!kind || kind === 'base') && isUIAllowed('baseCreate')) {
       commands.push({
         id: 'base:create-named',

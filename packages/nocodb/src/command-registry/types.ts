@@ -383,6 +383,10 @@ export interface CaptureBag {
    *  half-revert on undo, restoring field values while leaving links moved,
    *  with nothing telling the user part of the op was skipped. */
   linkChangesUnavailable: boolean;
+  /** A tabbed write ran but captured nothing to undo it with (e.g. past
+   *  NC_BULK_UPDATE_UNDO_LIMIT): it records no undo entry, but still drops
+   *  the tab's undone entries so a redo can't overwrite it. */
+  notUndoable: boolean;
   /** Pre-move neighbor for `recordMove`. `beforeRowId` = pk of the row
    *  that was immediately after the moved row in the pre-move ordering
    *  (or `null` if it was at the end). The inverse `moveRecord` call

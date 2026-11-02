@@ -1,7 +1,7 @@
 import type { CmdFillType } from '../commandPaletteRelativeEdit'
 import { cmdFillAccepts } from '../commandPaletteRelativeEdit'
 import type { Agg, CmdIR, CmdNlCmp, CmdNlEdit, CmdNlKind, Cond, Scalar } from './ir'
-import { CMD_NL_RATIO, CMD_NL_SHARE, isCmdNlPercentile, isCondLeaf } from './ir'
+import { CMD_NL_COLORS, CMD_NL_RATIO, CMD_NL_SHARE, isCmdNlPercentile, isCondLeaf } from './ir'
 import type { CmdNlField, CmdNlSchema } from './schema'
 import { cmdNlField } from './schema'
 
@@ -210,7 +210,18 @@ export function validateIR(ir: CmdIR, schema: CmdNlSchema): CmdNlValidation {
     }
   }
 
+  const color = ir.color
+  if (color?.mode === 'field') {
+    const field = cmdNlField(schema, color.field.id)
+    if (!field) errors.push(`unknown field ${color.field.id}`)
+    else if (field.kind !== 'select') errors.push(`${field.title} has no option colours`)
+  } else if (color?.mode === 'condition') {
+    if (!CMD_NL_COLORS.includes(color.color)) errors.push(`“${color.color}” is not a palette colour`)
+    if (!ir.where) errors.push('colouring records needs a condition')
+  }
+
   const needs: Partial<Record<CmdIR['intent'], boolean>> = {
+    color: !!color,
     stat: !!ir.aggs?.length,
     edit: !!ir.edits?.length,
     fill: !!ir.edits?.length,

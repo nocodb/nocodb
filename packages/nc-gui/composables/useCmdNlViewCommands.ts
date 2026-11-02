@@ -1,13 +1,22 @@
 import type { EventHook, UseEventBusReturn } from '@vueuse/core'
 import dayjs from 'dayjs'
 import type { ColumnType, FilterType, TableType, ViewType } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey, UITypes, ViewTypes } from 'nocodb-sdk'
+import {
+  PermissionEntity,
+  PermissionKey,
+  PlanFeatureTypes,
+  ROW_COLORING_MODE,
+  UITypes,
+  ViewLockType,
+  ViewTypes,
+} from 'nocodb-sdk'
 import type { CmdChip, CmdCommand, CmdIcon, CmdSkeleton } from '~/lib/types'
 import { useCmdNl } from '~/composables/useCmdNl'
 import { useRelativeEditCommands } from '~/composables/useSetFieldCommands'
 import { canonical, compileCond } from '~/utils/cmdNl/compile'
-import type { CmdIR, CmdNlAssumption, CmdNlCmp, CondLeaf, FieldRef, Scalar } from '~/utils/cmdNl/ir'
+import type { CmdIR, CmdNlAssumption, CmdNlCmp, CmdNlColor, CondLeaf, FieldRef, Scalar } from '~/utils/cmdNl/ir'
 import {
+  CMD_NL_COLORS,
   CMD_NL_RATIO,
   CMD_NL_SHARE,
   cmdNlPercentileLeaves,
@@ -25,6 +34,8 @@ import type { CmdNlSuggestion } from '~/utils/cmdNl/suggest'
 import { CMD_NL_CMP_BY_KIND, cmdNlSuggest, cmdNlValueTail, cmdNlValueTyped } from '~/utils/cmdNl/suggest'
 import { cmdNlCountBucket, cmdNlLatencyBucket, cmdNlReadingTele } from '~/utils/cmdNl/telemetry'
 import { getCmdNlTagger } from '~/utils/cmdNl/taggerScore'
+import { themeV3Colors } from '~/utils/colorsUtils'
+import { COLOR_NAMES } from '~/utils/cmdNl/vocab/colors'
 
 /**
  * The view's natural-language rows in Cmd+K: every reading of the query from the NL parser, run by the
@@ -106,6 +117,7 @@ const ICON_OF: Partial<Record<CmdIR['intent'], string>> = {
   group: 'group',
   edit: 'ncEdit',
   create: 'plus',
+  color: 'ncPaintRoller',
 }
 
 export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
@@ -126,6 +138,12 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
   const { isMysql, isPg } = useBase()
 
   const { showWarningModal } = useNcConfirmModal()
+
+  const { showEEFeatures, blockRowColoring, showUpgradeToUseRowColoring } = useEeConfig()
+
+  const viewsStore = useViewsStore()
+
+  const { activeViewRowColorInfo } = storeToRefs(viewsStore)
 
   const { schemaFor, parse: parseRaw, warm, historyFor, remember, historyVersion } = useCmdNl()
 
@@ -178,6 +196,9 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
   const columnOf = (id: string) => ctx.meta.value?.columns?.find((column) => column.id === id)
 
   const isVisible = (id: string) => ctx.visibleFields.value.some((field) => field.id === id)
+
+  /** A palette colour at the shade the toolbar's Colour menu picks. */
+  const colorDot = (name: CmdNlColor): CmdIcon => ({ type: 'color', color: themeV3Colors[name][600] })
 
   /** Only grid views aggregate server-side with their own filters; other views send theirs explicitly. */
   const aggregatesByView = computed(() => ctx.isGrid.value)
@@ -456,6 +477,15 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
           .filter((f) => f.kind === field.kind && f.id !== field.id)
           .slice(0, 12)
           .map((f) => ({ label: f.title, query: rewrite(query, at, f.title.toLowerCase()) }))
+      case 'color': {
+        // A colour word outside the palette is replaced; with none typed, one is added.
+        const typed = colorWordIn(query, at)
+        return CMD_NL_COLORS.map((name) => ({
+          label: t(`labels.commandPalette.colors.${name}`),
+          query: typed ? rewrite(query, typed, name) : `${query.trimEnd()} in ${name}`,
+          icon: colorDot(name),
+        }))
+      }
       default:
         return []
     }
@@ -466,6 +496,7 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
     return (ir.meta.assumptions ?? []).map((assumption) => ({
       key: `assumed:${assumption.span[0]}`,
       kind: 'assumed',
+      ...(assumption.kind === 'color' && ir.color?.mode === 'condition' ? { icon: colorDot(ir.color.color) } : {}),
       text: query.slice(assumption.span[0], assumption.span[1]) || assumption.text,
       tooltip: assumption.text,
       label: t('labels.commandPalette.nl.makeExplicit'),
@@ -492,6 +523,8 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
       chips.push({ text: t(`labels.commandPalette.nl.edit.${edit.op.kind}`), kind: 'verb' })
       if (edit.field) push(fieldChip(ir, query, edit.field))
     }
+    if (ir.color?.mode === 'field') push(fieldChip(ir, query, ir.color.field))
+    if (ir.color?.mode === 'condition') push(colorChip(ir, query, ir.color.color))
     for (const field of ir.groupBy ?? []) push(fieldChip(ir, query, field))
     for (const order of ir.orderBy ?? []) if (order.field !== 'agg0') push(fieldChip(ir, query, order.field))
     for (const leaf of condLeaves(ir.where)) {
@@ -500,6 +533,34 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
       push(valueChip(ir, query, leaf))
     }
     return chips
+  }
+
+  /** The colour word inside a value span ("red" in "red color", "blue" in "in blue"), so a swap keeps the rest. */
+  function colorWordIn(query: string, span: { start: number; end: number; tag?: string }) {
+    if (span.tag && span.tag !== 'value') return
+    const match = /[a-z]+/gi
+    const text = query.slice(span.start, span.end)
+    for (let m = match.exec(text); m; m = match.exec(text)) {
+      if (COLOR_NAMES[m[0].toLowerCase()]) return { start: span.start + m.index, end: span.start + m.index + m[0].length }
+    }
+  }
+
+  /** The colour a reading paints with, as typed; its alternatives are the palette's other colours. */
+  function colorChip(ir: CmdIR, query: string, name: CmdNlColor): CmdChip | undefined {
+    const at = ir.meta.spans.map((s) => colorWordIn(query, s)).find((s) => !!s)
+    if (!at) return
+    return {
+      key: `color:${at.start}`,
+      kind: 'value',
+      text: t(`labels.commandPalette.colors.${name}`),
+      icon: colorDot(name),
+      label: t('labels.commandPalette.nl.changeColour'),
+      swaps: CMD_NL_COLORS.filter((other) => other !== name).map((other) => ({
+        label: t(`labels.commandPalette.colors.${other}`),
+        query: rewrite(query, at, other),
+        icon: colorDot(other),
+      })),
+    }
   }
 
   /** Comparators that take no value: swapping to one drops the typed value too. */
@@ -942,6 +1003,102 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
     }
   }
 
+  /** "colour won deals green", "colour by stage", "clear row colours": the toolbar Colour menu's saves. */
+  function colorRow(row: CmdCommand, ir: CmdIR): CmdCommand | undefined {
+    const color = ir.color
+    const view = ctx.view.value
+    if (!color || !view?.id || !showEEFeatures.value || ctx.isInterfacePage) return
+    if (view.type === ViewTypes.FORM || view.type === ViewTypes.MAP) return
+    if (blockRowColoring.value) {
+      return {
+        ...row,
+        upgradeFeature: PlanFeatureTypes.FEATURE_ROW_COLOUR,
+        feedback: undefined,
+        run: () => showUpgradeToUseRowColoring({ triggerSource: 'command-palette' }),
+      }
+    }
+    const isOwner = view.lock_type === ViewLockType.Personal && viewsStore.isUserViewOwner(view)
+    if (ctx.isLockedView.value || !(isUIAllowed('rowColourUpdate') || isOwner)) {
+      return { ...row, hint: t('labels.commandPalette.nl.cannotColour'), disabled: true }
+    }
+
+    const table = ctx.meta.value!
+    const current = activeViewRowColorInfo.value
+    const post = (operation: string, body: object, query: Record<string, string> = {}) =>
+      $api.internal.postOperation(table.fk_workspace_id!, table.base_id!, { operation, viewId: view.id!, ...query }, body)
+    // The toolbar won't switch between modes in place either: the old one is removed first.
+    const removeIf = async (mode: ROW_COLORING_MODE | null) => {
+      if (current?.mode && (!mode || current.mode === mode)) await post('viewRowColorInfoDelete', {})
+    }
+    const saved = (mode: ROW_COLORING_MODE | null, meta: Record<string, unknown>, columnIds: string[]) => {
+      Object.assign(viewsStore.views.find((v) => v.id === view.id) ?? {}, { row_coloring_mode: mode, meta })
+      ctx.eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
+      ctx.eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+      // A hidden field the colour depends on isn't loaded yet.
+      if (columnIds.some((id) => !isVisible(id))) ctx.reloadViewDataHook.trigger({ shouldShowLoading: false })
+    }
+    const viewMeta: Record<string, unknown> = { ...parseProp(view.meta) }
+    delete viewMeta.rowColoringInfo
+
+    if (color.mode === 'clear') {
+      if (!current?.mode) return { ...row, disabled: true }
+      return {
+        ...row,
+        feedback: t('labels.commandPalette.rowColoursCleared'),
+        run: async () => {
+          await removeIf(null)
+          saved(null, viewMeta, [])
+        },
+      }
+    }
+
+    if (color.mode === 'field') {
+      const column = columnOf(color.field.id)
+      if (!column) return { ...row, disabled: true }
+      return {
+        ...row,
+        feedback: t('labels.commandPalette.rowsColoured'),
+        run: async () => {
+          await removeIf(ROW_COLORING_MODE.FILTER)
+          const info = { fk_column_id: column.id, is_set_as_background: false }
+          await post('viewRowColorSelectAdd', info)
+          saved(ROW_COLORING_MODE.SELECT, { ...viewMeta, rowColoringInfo: info }, [column.id!])
+        },
+      }
+    }
+
+    const compiled = compileCond(ir.where!, schema.value!)
+    if (compiled.errors.length || !compiled.filters.length)
+      return { ...row, hint: compiled.errors[0], disabled: true, error: true }
+    const filter: FilterType =
+      compiled.filters.length === 1 ? compiled.filters[0]! : { is_group: true, logical_op: 'and', children: compiled.filters }
+    const counted = canStat.value ? statRow({ ...row }, { ...ir, intent: 'stat', aggs: [{ fn: 'count' }] }, false) : undefined
+    const count = counted?.value ? Number(counted.value.replace(/,/g, '')) : undefined
+    return {
+      ...row,
+      ...(count !== undefined && Number.isFinite(count)
+        ? { value: t('labels.commandPalette.where.count', { count }, count) }
+        : {}),
+      feedback: t('labels.commandPalette.rowsColoured'),
+      run: async () => {
+        await removeIf(ROW_COLORING_MODE.SELECT)
+        const conditions = current?.mode === ROW_COLORING_MODE.FILTER ? current.conditions : []
+        await post('viewRowColorConditionAdd', {
+          color: themeV3Colors[color.color][600],
+          is_set_as_background: false,
+          type: 'row',
+          nc_order: Math.max(0, ...conditions.map((c) => Number(c.nc_order) || 0)) + 1,
+          filter,
+        })
+        saved(
+          ROW_COLORING_MODE.FILTER,
+          viewMeta,
+          condLeaves(ir.where).map((leaf) => leaf.field.id),
+        )
+      },
+    }
+  }
+
   /** The matching records' total plus the first `limit`, with only the pk, display and edited fields. */
   function loadWhere(key: string, filters: FilterType[], column: ColumnType, limit: number) {
     const table = ctx.meta.value!
@@ -1224,11 +1381,13 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
           ? t('labels.commandPalette.nl.field')
           : item.kind === 'cmp'
           ? t('labels.commandPalette.nl.operator')
+          : item.kind === 'color'
+          ? t('labels.commandPalette.nl.colour')
           : field?.title ?? ''
       const icon: CmdIcon | undefined = item.kind === 'field' && column ? { type: 'field', column } : undefined
       const text = `${query.slice(0, item.from ?? suggestions.from)}${item.insert}`
       const row = completionRow(`${item.kind}:${item.fieldId ?? ''}:${item.insert}`, text, hint, icon)
-      return item.kind === 'value' ? withResult(row, text, nlSchema, rows) : row
+      return item.kind === 'value' || item.kind === 'color' ? withResult(row, text, nlSchema, rows) : row
     })
     return { rows: rowsOut, partialValue, exactTyped }
   }
@@ -1242,7 +1401,11 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
     if (!ir) return row
     // An unsure or unrunnable completion still shows how it would read, as tentative chips.
     const chipsOnly = { ...row, reading: { chips: chipsOf(ir, text) } }
-    if (ir.meta.unsure || !['stat', 'filter', 'edit'].includes(ir.intent) || (ir.intent === 'edit' && ir.scope !== 'where')) {
+    if (
+      ir.meta.unsure ||
+      !['stat', 'filter', 'edit', 'color'].includes(ir.intent) ||
+      (ir.intent === 'edit' && ir.scope !== 'where')
+    ) {
       return chipsOnly
     }
     const result = readingRow(ir, text, '', 0, false)
@@ -1314,7 +1477,10 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
       title: share ? t('labels.commandPalette.nl.shareOf', { stat: shared }) : sentence,
       hint: unsure ? t('labels.commandPalette.nl.unsure') : undefined,
       section: t('labels.commandPalette.nl.section'),
-      icon: { type: 'icon', name: share || nativeShare ? 'ncPercent' : ICON_OF[ir.intent] ?? 'ncZap' },
+      icon:
+        ir.color?.mode === 'condition'
+          ? colorDot(ir.color.color)
+          : { type: 'icon', name: share || nativeShare ? 'ncPercent' : ICON_OF[ir.intent] ?? 'ncZap' },
       reading: { chips },
       tele: {
         kind: 'reading',
@@ -1351,6 +1517,8 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
         return ir.scope === 'where' ? whereEditRow(base, ir) : undefined
       case 'create':
         return createRow(base, ir)
+      case 'color':
+        return colorRow(base, ir)
       default:
         return undefined
     }

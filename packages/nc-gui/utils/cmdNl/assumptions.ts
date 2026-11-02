@@ -27,6 +27,13 @@ export function cmdNlAssumptionsOf(
     if (v && typeof v === 'object' && v.assume) out.push({ span: span(term), ...v.assume })
   }
 
+  // "highlight overdue tasks": no colour named, so the default highlight.
+  if (ir.color?.mode === 'condition' && !terms.some((t) => t.cat === 'COLOR' || t.cat === 'INCOLOR')) {
+    const verb = terms.find((t) => t.cat === 'COLORV')
+    const name = ir.color.color
+    if (verb) out.push({ span: span(verb), text: `Colour: ${name.charAt(0).toUpperCase()}${name.slice(1)}`, kind: 'color' })
+  }
+
   const agg = ir.aggs?.[0]
   if (ir.intent === 'stat' && agg && agg.fn !== CMD_NL_SHARE && agg.fn !== CMD_NL_RATIO) {
     // "deals per stage" plainly counts; only a summary of a field's values is a guess.

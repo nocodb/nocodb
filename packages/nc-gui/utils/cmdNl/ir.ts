@@ -104,7 +104,7 @@ export interface CmdNlAssumption {
   span: [number, number]
   /** Readable: "Close date in the past 30 days", "Sum of Amount". */
   text: string
-  kind: 'date-window' | 'threshold' | 'priority' | 'agg' | 'field'
+  kind: 'date-window' | 'threshold' | 'priority' | 'agg' | 'field' | 'color'
   /** The field the assumption is about. */
   ref?: string
 }
@@ -151,7 +151,15 @@ export interface Span {
   score?: number
 }
 
-export type CmdNlIntent = 'filter' | 'stat' | 'edit' | 'fill' | 'create' | 'sort' | 'group' | 'calc' | 'navigate'
+export type CmdNlIntent = 'filter' | 'stat' | 'edit' | 'fill' | 'create' | 'sort' | 'group' | 'calc' | 'navigate' | 'color'
+
+/** The row-colour palette (the toolbar's default hues), by name. */
+export const CMD_NL_COLORS = ['red', 'pink', 'orange', 'yellow', 'green', 'teal', 'blue', 'purple', 'maroon', 'gray'] as const
+
+export type CmdNlColor = (typeof CMD_NL_COLORS)[number]
+
+/** Row colouring: by a single select's option colours, the records in `where` in one colour, or none. */
+export type CmdNlRowColor = { mode: 'field'; field: FieldRef } | { mode: 'condition'; color: CmdNlColor } | { mode: 'clear' }
 
 export interface CmdIR {
   intent: CmdNlIntent
@@ -166,6 +174,7 @@ export interface CmdIR {
   /** Insert payload keyed by field id. */
   create?: { values: Record<string, Scalar | Scalar[]> }
   calc?: { expression: string; value: number }
+  color?: CmdNlRowColor
   meta: {
     /** 0–1; below the palette's threshold the reading shows as "unsure". */
     score: number

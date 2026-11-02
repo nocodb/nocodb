@@ -7,6 +7,7 @@ import type { CmdNlSchema } from './schema'
 import { AGG_WORDS, AGG_WORDS_EXTRA, PERCENT_AGG_WORDS, SHARE_WORDS } from './vocab/aggregations'
 import { CMP_PHRASES } from './vocab/comparators'
 import { CONJUNCTIONS, GLUE_WORDS } from './vocab/fillers'
+import { COLOR_VERBS } from './vocab/colors'
 import {
   ADD_WORDS,
   CLEAR_VERBS,
@@ -61,6 +62,7 @@ const VERBS = new Set([
   ...CLEAR_VERBS,
   ...SORT_VERBS,
   ...GROUP_VERBS,
+  ...COLOR_VERBS,
   ...ADD_WORDS,
   ...SUB_WORDS,
   ...MUL_WORDS,

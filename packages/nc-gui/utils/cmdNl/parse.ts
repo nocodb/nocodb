@@ -132,6 +132,11 @@ const TAG_OF: Record<string, CmdNlTag> = {
   VS: 'conj',
   COMPAREV: 'verb',
   CLAUSEW: 'filler',
+  // grammarColor
+  COLOR: 'value',
+  INCOLOR: 'value',
+  CONDW: 'filler',
+  COLOROFF: 'verb',
 }
 
 /** A query ending on a connector or a comparator still waiting for its value. */

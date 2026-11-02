@@ -153,6 +153,8 @@ export function rescoreWithCmdNlTagger(ranked: CmdIR[], tagger: CmdNlTagger, a: 
 export function cmdNlTaggerDisagrees(top: CmdIR, tagger: CmdNlTagger, a: CmdNlTaggerAnalysis) {
   const agreement = cmdNlSpanAgreement(top, a)
   if (agreement !== undefined && agreement < CMD_NL_TAGGER.unsureAgreement) return true
+  // An intent the model wasn't trained on (row colours) gets no intent opinion.
+  if (!tagger.spec.intents.includes(top.intent)) return false
   const best = tagger.spec.intents[a.result.intentProbs.indexOf(Math.max(...a.result.intentProbs))]
   return best !== top.intent && Math.max(...a.result.intentProbs) >= CMD_NL_TAGGER.unsureIntent
 }

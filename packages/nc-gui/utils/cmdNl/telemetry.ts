@@ -46,6 +46,7 @@ export function cmdNlReadingTele(ir: CmdIR, schema: CmdNlSchema, rank: number): 
     ...(ir.orderBy ?? []).flatMap((o) => (o.field === 'agg0' ? [] : [o.field.id])),
     ...(ir.edits ?? []).flatMap((e) => (e.field ? [e.field.id] : [])),
     ...Object.keys(ir.create?.values ?? {}),
+    ...(ir.color?.mode === 'field' ? [ir.color.field.id] : []),
   ]
   const assumptions = ir.meta.assumptions ?? []
   return {

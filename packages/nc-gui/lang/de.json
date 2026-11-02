@@ -1689,7 +1689,7 @@
     "noMoreActionsToRedo": "Keine weiteren Aktionen mehr zu wiederholen",
     "noRecentViews": "Keine aktuellen Aufrufe",
     "expandLinkFields": "Linkfelder erweitern",
-    "expandLinkFieldsDesc": "Gelinkte Datensätze anstelle der Zählung zurückgeben",
+    "expandLinkFieldsDesc": "Verknüpfungsfelder in der Ausgabe enthalten die verknüpften Datensätze statt einer Anzahl",
     "inheritedFromParent": "Vererbt von Elternteil",
     "pageOrUrl": "Seite oder URL",
     "linkTitle": "Link-Titel",
@@ -4782,7 +4782,7 @@
       },
       "optIn": {
         "title": "Opt-in-Werkzeuge",
-        "description": "Werkzeuge, die endgültig löschen oder außerhalb von NocoDB wirken, etwa das Ausführen einer Automatisierung oder das Auslösen eines Webhooks. Eine Verbindung erhält sie nur, wenn Sie sie hier aktivieren."
+        "description": "Werkzeuge, die endgültig löschen oder außerhalb von NocoDB wirken, etwa eine Automatisierung starten oder einen Webhook auslösen. Sie bleiben deaktiviert, bis Sie sie hier einschalten."
       }
     },
     "noBaseAccess": "Kein Projektzugriff",
@@ -5765,7 +5765,87 @@
     "workflowValueDynamicDescription": "Variablen aus einem vorherigen Schritt dieser Automatisierung verwenden",
     "workflowRunAs": "Ausführen als",
     "workflowChangeRunAs": "Ausführen als ändern",
-    "workflowServiceAccount": "Dienstkonto"
+    "workflowServiceAccount": "Dienstkonto",
+    "wsEmpty": {
+      "title": "Starten Sie Ihr erstes Projekt",
+      "subtitle": "Ein Projekt enthält Ihre Daten und die darauf aufgebauten Apps.",
+      "sharedTitle": "Bisher wurde nichts mit Ihnen geteilt",
+      "sharedSubtitle": "Projekte und Apps, zu denen Sie eingeladen werden, erscheinen hier."
+    },
+    "workspaceHome": {
+      "uploadFile": "CSV oder Excel hochladen",
+      "pickTemplate": "Oder eine Vorlage als Ausgangspunkt wählen",
+      "untitledBase": "Unbenanntes Projekt",
+      "templates": {
+        "projectManagement": {
+          "label": "Projektmanagement",
+          "prompt": "Ein Projekt-Tracker mit Projekten und Aufgaben, jede Aufgabe mit Verantwortlichem, Status, Priorität und Fälligkeitsdatum."
+        },
+        "product": {
+          "label": "Produkt",
+          "prompt": "Eine Produkt-Roadmap mit Funktionen, dem Problem, das jede löst, Priorität, Status und Zielversion."
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "Ein Marketing-Kalender mit Kampagnen, den Kanälen, auf denen sie laufen, Budget, Verantwortlichen und Starttermin."
+        },
+        "sales": {
+          "label": "Vertrieb",
+          "prompt": "Ein Vertriebs-CRM mit Unternehmen, Kontakten und Deals, wobei jeder Deal eine Phase, einen Wert und ein erwartetes Abschlussdatum hat."
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "Ein Support-Desk mit Tickets, dem Kunden, der sie gemeldet hat, Priorität, Status und zugewiesenem Agenten."
+        },
+        "hr": {
+          "label": "Personalwesen",
+          "prompt": "Ein Bewerber-Tracker mit offenen Stellen, Kandidaten nach Bewerbungsphase und Vorstellungsgesprächen mit Terminen und Notizen der Prüfer."
+        }
+      }
+    },
+    "yourConnections": "Ihre Verbindungen",
+    "workingHours": "Arbeitszeiten",
+    "workingDays": "Arbeitstage",
+    "wsNav": {
+      "groupBilling": "Plan",
+      "groupAdmin": "Admin",
+      "membersPage": "Arbeitsbereichsmitglieder",
+      "iconHint": "Wird in der Seitenleiste und im Arbeitsbereichswechsler angezeigt.",
+      "nameHint": "Wie dieser Arbeitsbereich in NocoDB benannt wird.",
+      "workspaceId": "Arbeitsbereichs-ID",
+      "workspaceIdHint": "Verwenden Sie sie mit der API oder wenn Sie den Support kontaktieren.",
+      "allTypes": "Alle Typen",
+      "allTeams": "Alle Teams",
+      "teamsCreatedHere": "Hier erstellt",
+      "teamsScimManaged": "SCIM-verwaltet",
+      "upgradeTitleAudits": "Audit-Protokoll des Arbeitsbereichs",
+      "upgradeDescAudits": "Sehen Sie jede Änderung in diesem Arbeitsbereich und wer sie vorgenommen hat.",
+      "upgradeDescSso": "Mitglieder sich über Ihren Identitätsanbieter anmelden lassen.",
+      "desc": {
+        "members": "Wer zu diesem Arbeitsbereich gehört und welche Standardrolle diese Person hat.",
+        "teams": "Gruppen von Mitgliedern, die Sie gemeinsam zu Projekten hinzufügen können.",
+        "integrations": "Verbundene Konten und Zugangsdaten, die im gesamten Arbeitsbereich geteilt werden.",
+        "general": "Name, Symbol und ID des Arbeitsbereichs.",
+        "skills": "Anweisungen, denen der KI-Assistent in diesem Arbeitsbereich folgt.",
+        "security": "Anmeldeanforderungen für alle in diesem Arbeitsbereich.",
+        "dangerZone": "Diesen Arbeitsbereich verlassen oder endgültig löschen.",
+        "billing": "Ihr Plan, die Sitze, die Zahlungsmethode und die Rechnungen.",
+        "usage": "Was dieser Arbeitsbereich von seinen Plan-Limits verbraucht.",
+        "audits": "Jede Änderung in diesem Arbeitsbereich und wer sie vorgenommen hat.",
+        "sso": "Anmeldung über Ihren Identitätsanbieter."
+      }
+    },
+    "workspaceMode": "Arbeitsbereichsmodus",
+    "zoomIn": "Vergrößern",
+    "zoomOut": "Verkleinern",
+    "zoomTo50Percent": "Auf 50 % zoomen",
+    "zoomTo100Percent": "Auf 100 % zoomen",
+    "workflowValueStatic": "Statisch",
+    "workflowValueStaticDescription": "Werte direkt eingeben",
+    "workspaceNoAccess": "Arbeitsbereich (kein Zugriff)",
+    "yAxis": "Y-Achse",
+    "workspaceSettings": "Arbeitsbereichseinstellungen",
+    "wrapLongText": "Langen Text umbrechen"
   },
   "activity": {
     "useTemplate": "Vorlage verwenden",
@@ -7120,8 +7200,6 @@
       "selectFieldFirst": "Wählen Sie zuerst {field}, um diese Optionen zu laden.",
       "viewFolderDeleteConfirmation": "Ansichten in diesem Ordner werden auf die oberste Ebene verschoben.",
       "saveDraftToBrowser": "Entwurf im Browser speichern",
-      "showAppFirst": "App zuerst in der Seitenleiste anzeigen",
-      "showAppFirstDesc": "Apps in der Seitenleiste dieses Projekts über Daten anzeigen.",
       "seeChangesToRecord": "Änderungen an diesem Eintrag ansehen",
       "scriptRequiresInputNoBulk": "Dieses Skript benötigt Benutzereingaben und kann nicht als Sammelaktion ausgeführt werden. Führen Sie es stattdessen aus einzelnen Einträgen heraus aus.",
       "useRecordIdInRedirectUrl": "Verwenden Sie {'{'}record_id{'}'}, um die ID des neu erstellten Eintrags zu erhalten.",
@@ -7229,7 +7307,20 @@
       "mcpSetupCursorStep3": "Fügen Sie die JSON-Konfiguration hinzu, die nach dem Erstellen eines Tokens bereitgestellt wird.",
       "mcpSetupIntroWindsurf": "Starten Sie mit NocoDB MCP und Windsurf in 4 einfachen Schritten",
       "mcpSetupWindsurfStep1": "Öffnen Sie die Windsurf-Einstellungen und wählen Sie in der linken Seitenleiste den Tab Cascade",
-      "mcpSetupWindsurfStep2": "Klicken Sie auf Manage MCP."
+      "mcpSetupWindsurfStep2": "Klicken Sie auf Manage MCP.",
+      "abuseReport": {
+        "queueDescription": "Über öffentliche Links eingereichte Meldungen. Deaktivieren Sie einen Link, um ihn abzuschalten, oder sperren Sie die dahinterstehenden Konten.",
+        "disableConfirm": "Der öffentliche Link funktioniert für niemanden mehr, und alle offenen Meldungen dazu gelten als erledigt. Die Eigentümerin oder der Eigentümer kann das Element mit einem neuen Link erneut teilen.",
+        "blockConfirm": "{email} ist überall abgemeldet und kann sich nicht mehr anmelden oder API-Tokens verwenden. Sie können die Sperre in der Benutzerverwaltung aufheben.",
+        "noAccounts": "Mit diesem Element sind keine Konten verknüpft.",
+        "superAdminNotBlockable": "Super-Admins können nicht gesperrt werden.",
+        "description": "Glauben Sie, dass diese Seite für Phishing, Identitätsmissbrauch, Betrug oder andere missbräuchliche Zwecke genutzt wird? Informieren Sie die Administratoren dieser {productName}-Instanz.",
+        "detailsMin": "Bitte beschreiben Sie das Problem mit mindestens {min} Zeichen.",
+        "thanksTitle": "Vielen Dank für Ihre Meldung",
+        "thanksDescription": "Ihre Meldung ist eingegangen. Die Administratoren dieser {productName}-Instanz werden sie prüfen.",
+        "contactEmailHint": "Meldungen aus öffentlichen Ansichten, Formularen, Interfaces und Dashboards werden an diese Adresse gesendet. Leer lassen, um alle Super-Admins zu benachrichtigen."
+      },
+      "actWithYourOwnPermissions": "In diesen Ressourcen mit Ihren eigenen Berechtigungen handeln"
     },
     "error": {
       "failedToCreateSync": "Fehler beim Erstellen der Synchronisation",
@@ -7442,7 +7533,46 @@
       "inviteLinkRevoked": "Dieser Einladungslink wurde widerrufen",
       "inviteLinkExhausted": "Dieser Einladungslink wurde bereits vollständig genutzt",
       "inviteLinkUnavailable": "Dieser Einladungslink funktioniert nicht mehr",
-      "invalidEmailDomain": "Geben Sie eine Domain wie acme.io ein"
+      "invalidEmailDomain": "Geben Sie eine Domain wie acme.io ein",
+      "attachmentInvalidUrl": "Geben Sie eine URL ein, die mit http:// oder https:// beginnt, oder eine Vorlage mit Variablen",
+      "attachmentAlreadyAttached": "Diese Datei ist bereits angehängt.",
+      "attachmentOpenWorkflowToUpload": "Öffnen Sie den Workflow, um Dateien hochzuladen",
+      "attachmentNoLongerAvailable": "Diese Datei ist nicht mehr verfügbar",
+      "attachmentsTooLarge": "Die Dateien überschreiten das Limit von {size} pro E-Mail",
+      "factoryMachineNameRequired": "Geben Sie der Maschine einen Namen",
+      "factoryMachineNameDuplicate": "Eine Maschine mit diesem Namen existiert bereits",
+      "vaultUnreachable": "Der Tresor war mit diesen Einstellungen nicht erreichbar",
+      "vaultAliasStart": "Der Name muss mit einem Buchstaben beginnen",
+      "vaultAliasCharacters": "Der Name darf nur Buchstaben und Ziffern enthalten – keine Leerzeichen, Bindestriche oder Unterstriche",
+      "vaultAliasReserved": "„{name}“ ist ein reservierter Name, wählen Sie einen anderen",
+      "fieldSaveFailed": "Feld „{field}“ konnte nicht gespeichert werden: {error}",
+      "fieldSavesFailed": "{count} Felder konnten nicht gespeichert werden ({fields}). Erster Fehler: {error}",
+      "projectNameRequired": "Ein Projektname ist erforderlich",
+      "attachmentUrlDownloadFailed": "NocoDB konnte diese Datei nicht von ihrer URL herunterladen. Entfernen Sie sie und fügen Sie die Datei erneut hinzu.",
+      "emailImageSize": "Bilder im E-Mail-Text müssen kleiner als {size} sein. Ein Logo liegt üblicherweise deutlich unter 100 KB.",
+      "emailImageType": "Verwenden Sie ein PNG-, JPEG-, GIF- oder WebP-Bild",
+      "emailImageCount": "Ein E-Mail-Text kann bis zu {count} Bilder enthalten",
+      "emailImageTotalSize": "Bilder im E-Mail-Text dürfen zusammen höchstens {size} groß sein",
+      "emailImageNoWorkflow": "Öffnen Sie den Workflow, um Bilder hinzuzufügen",
+      "emailImageUploadFailed": "Das Bild konnte nicht hochgeladen werden",
+      "emailImageMissing": "Dieses Bild ist nicht mehr verfügbar und wird in der E-Mail weggelassen. Entfernen Sie es und fügen Sie es erneut ein.",
+      "vaultSecretNeedsProperty": "Dieses Geheimnis enthält mehrere Felder. Wählen Sie das zu verwendende aus, sonst schlägt die Verbindung zur Laufzeit fehl.",
+      "vaultUnknownAlias": "Ihnen steht kein Tresor mit dem Namen „{name}“ zur Verfügung.",
+      "atLeastOneOperationRequired": "Es muss mindestens ein Vorgang ausgewählt werden",
+      "triggerFormRequired": "Sie müssen ein Auslöser-Formular auswählen",
+      "failedToStartListening": "Das Empfangen von Aktualisierungen konnte nicht gestartet werden",
+      "unknownPermissionRequested": "Diese Berechtigung bietet der Server nicht an",
+      "authorizationWillBeRefused": "Diese Anfrage wird aufgrund der oben genannten Berechtigungen abgelehnt.",
+      "vaultAliasNotAllowed": "Sie dürfen den Tresor „{name}“ nicht verwenden. Bitten Sie einen Eigentümer des Arbeitsbereichs um Zugriff oder geben Sie die Zugangsdaten direkt ein.",
+      "selectTargetField": "Bitte wählen Sie ein Zielfeld aus!",
+      "parentTableNoPrimaryKey": "Die übergeordnete Tabelle hat keine Primärschlüsselspalte",
+      "childTableNoPrimaryKey": "Die untergeordnete Tabelle hat keine Primärschlüsselspalte",
+      "noWorkspaceAvailable": "Kein Arbeitsbereich verfügbar",
+      "invalidJson": "Ungültiges JSON",
+      "invalidTokensJson": "Kein Token-Export. Erwartet werden Schlüssel wie light, dark, font oder radiusScale.",
+      "renameFileFailed": "Fehler beim Umbenennen der Datei",
+      "failedToLoadMetadataDiff": "Metadaten-Vergleich konnte nicht geladen werden",
+      "failedToLoadMonacoEditor": "Monaco Editor konnte nicht geladen werden"
     },
     "toast": {
       "inviteUrlCopy": "Einladungs-URL in die Zwischenablage kopiert",
@@ -7650,9 +7780,9 @@
       "failed": "Registrierung fehlgeschlagen",
       "paused": "Pausiert"
     },
-    "agentToolsAndAccessSubtitle": "Was darf der Agent nutzen? Fügen Sie Tools, Seiten und Verbindungen hinzu, auf die er zugreifen kann.",
+    "agentToolsAndAccessSubtitle": "Was darf dieser Agent lesen und ändern? Wählen Sie jeweils eine Stufe.",
     "agentNoFilters": "Noch keine Bedingungen",
-    "agentInstructionsSubtitle": "Was soll der Agent bei jedem Lauf tun? Hier sind die bewährten Vorgehensweisen.",
+    "agentInstructionsSubtitle": "Geben Sie ihm einen Namen und beschreiben Sie dann, was er tun soll – so wie Sie eine Kollegin oder einen Kollegen einweisen würden.",
     "delistFromStore": "Die Store-Seite verschwindet und niemand Neues kann die App installieren. Sonst ändert sich nichts: der Eintrag, seine veröffentlichten Versionen und die Staging-Kopie bleiben, und Sie können sie jederzeit zurückholen.",
     "delistWithInstalls": "Die Store-Seite wird entfernt und niemand Neues kann die App installieren. Die {count} bestehenden Installationen funktionieren weiter, erhalten aber keine Updates mehr. Sonst ändert sich nichts. Der Eintrag, seine veröffentlichten Versionen und seine Staging-Kopie bleiben alle erhalten, und Sie können ihn jederzeit wieder einstellen.",
     "delistFromStoreHint": "Nimmt die Store-Seite vom Netz. Bestehende Installationen funktionieren weiter; nichts wird gelöscht.",
@@ -7752,7 +7882,14 @@
       "confirmCta": "Migration bestätigen",
       "migrating": "Migration läuft …"
     },
-    "skillsRegistryErrorTitle": "Die Skills-Registry konnte nicht durchsucht werden"
+    "skillsRegistryErrorTitle": "Die Skills-Registry konnte nicht durchsucht werden",
+    "airtableImportReportSummary": "{skipped} übersprungen · {approximated} angenähert · {failed} fehlgeschlagen",
+    "airtableImportReportTruncated": "Der Bericht listet die ersten {shown} von {total} Einträgen. Laden Sie die Protokolle für die vollständige Liste herunter.",
+    "factoryMachineReadyNow": "Maschine bereit. Neue Sitzungen verwenden sie.",
+    "factoryMachineSwitched": "Neue Sitzungen verwenden Version {version}.",
+    "factoryMachineDefaultNow": "Neue Sitzungen starten jetzt auf {machine}.",
+    "factoryMachineUpgrading": "{machine} wird aktualisiert. Neue Sitzungen verwenden sie, sobald der Build fertig ist.",
+    "factoryAppInstallUnavailable": "{provider} kann noch nicht mit Coding-Agenten verbunden werden. Dafür ist eine App-Installation nötig, und für {provider} ist hier keine eingerichtet."
   },
   "trash": {
     "restore": "Wiederherstellen",

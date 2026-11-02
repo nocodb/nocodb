@@ -1689,7 +1689,7 @@
     "noMoreActionsToRedo": "No more actions to redo",
     "noRecentViews": "No recent views",
     "expandLinkFields": "Expand link fields",
-    "expandLinkFieldsDesc": "Return linked record data instead of count",
+    "expandLinkFieldsDesc": "فیلدهای پیوند در خروجی به جای تعداد، رکوردهای پیوندخورده را نگه می‌دارند",
     "inheritedFromParent": "Inherited from parent",
     "pageOrUrl": "Page or URL",
     "linkTitle": "Link title",
@@ -4780,7 +4780,7 @@
       },
       "optIn": {
         "title": "ابزارهای اختیاری",
-        "description": "ابزارهایی که برای همیشه حذف می‌کنند یا بیرون از NocoDB عمل می‌کنند، مثل اجرای یک خودکارسازی یا فعال کردن یک وب‌هوک. هیچ اتصالی آن‌ها را دریافت نمی‌کند مگر اینکه اینجا روشنشان کنید."
+        "description": "ابزارهایی که برای همیشه حذف می‌کنند یا بیرون از NocoDB عمل می‌کنند، مثل اجرای یک خودکارسازی یا فعال‌کردن یک وب‌هوک. تا وقتی اینجا روشنشان نکنید خاموش می‌مانند."
       }
     },
     "noBaseAccess": "بدون دسترسی به پروژه",
@@ -5777,7 +5777,88 @@
     "workflowValueDynamicDescription": "استفاده از متغیرهای یک مرحله پیشین این خودکارسازی",
     "workflowRunAs": "اجرا به‌عنوان",
     "workflowChangeRunAs": "تغییر اجرا به‌عنوان",
-    "workflowServiceAccount": "حساب سرویس"
+    "workflowServiceAccount": "حساب سرویس",
+    "wsEmpty": {
+      "title": "نخستین پروژهٔ خود را آغاز کنید",
+      "subtitle": "یک پروژه داده‌های شما و برنامه‌های ساخته‌شده روی آن‌ها را نگه می‌دارد.",
+      "sharedTitle": "هنوز چیزی با شما به اشتراک گذاشته نشده است",
+      "sharedSubtitle": "پروژه‌ها و برنامه‌هایی که به آن‌ها دعوت می‌شوید اینجا ظاهر می‌شوند."
+    },
+    "workspaceHome": {
+      "uploadFile": "بارگذاری CSV یا Excel",
+      "pickTemplate": "یا یک قالب برای شروع انتخاب کنید",
+      "untitledBase": "پروژهٔ بی‌نام",
+      "templates": {
+        "projectManagement": {
+          "label": "مدیریت پروژه",
+          "prompt": "پیگیری پروژه‌ها با پروژه‌ها و وظایف، که هر وظیفه مسئول، وضعیت، اولویت و مهلت دارد."
+        },
+        "product": {
+          "label": "محصول",
+          "prompt": "نقشهٔ راه محصول با قابلیت‌ها، مسئله‌ای که هر کدام حل می‌کنند، اولویت، وضعیت و نسخهٔ هدف."
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "تقویم بازاریابی با کمپین‌ها، کانال‌هایی که هر کمپین در آن اجرا می‌شود، بودجه، مسئول و تاریخ آغاز."
+        },
+        "sales": {
+          "label": "فروش",
+          "prompt": "یک CRM فروش با شرکت‌ها، مخاطبان و معاملات، که هر معامله مرحله، ارزش و تاریخ بستهٔ شدن پیش‌بینی‌شده دارد."
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "میز پشتیبانی با تیکت‌ها، مشتری ثبت‌کنندهٔ هر تیکت، اولویت، وضعیت و کارشناس تخصیص‌یافته."
+        },
+        "hr": {
+          "label": "منابع انسانی",
+          "prompt": "پیگیری متقاضیان با موقعیت‌های شغلی باز، نامزدها بر اساس مرحلهٔ استخدام، و مصاحبه‌ها همراه با تاریخ و یادداشت ارزیابان."
+        }
+      }
+    },
+    "yourConnections": "اتصال‌های شما",
+    "workingHours": "ساعات کاری",
+    "workingDays": "روزهای کاری",
+    "wsNav": {
+      "groupBilling": "طرح",
+      "groupAdmin": "مدیریت",
+      "membersPage": "اعضای فضای کار",
+      "iconHint": "در نوار کناری و در جابه‌جاکنندهٔ فضای کار نمایش داده می‌شود.",
+      "nameHint": "نامی که این فضای کار در سراسر NocoDB با آن شناخته می‌شود.",
+      "workspaceId": "شناسهٔ فضای کار",
+      "workspaceIdHint": "از آن با API استفاده کنید، یا هنگام تماس با پشتیبانی.",
+      "allTypes": "همهٔ انواع",
+      "allTeams": "همهٔ تیم‌ها",
+      "teamsCreatedHere": "ساخته‌شده در اینجا",
+      "teamsScimManaged": "مدیریت‌شده با SCIM",
+      "upgradeTitleAudits": "گزارش بازرسی فضای کار",
+      "upgradeDescAudits": "هر تغییری را که در این فضای کار انجام شده و این که چه کسی آن را انجام داده ببینید.",
+      "upgradeTitleSso": "ورود یکپارچه",
+      "upgradeDescSso": "به اعضا اجازه دهید از طریق ارائه‌دهندهٔ هویت شما وارد شوند.",
+      "desc": {
+        "members": "چه کسانی عضو این فضای کار هستند و نقش پیش‌فرضشان چیست.",
+        "teams": "گروه‌هایی از اعضا که می‌توانید یکجا به پروژه‌ها اضافه کنید.",
+        "integrations": "حساب‌های متصل و اطلاعات ورود که در سراسر فضای کار به اشتراک گذاشته می‌شوند.",
+        "general": "نام، نماد و شناسهٔ فضای کار.",
+        "skills": "دستورالعمل‌هایی که دستیار هوش مصنوعی در سراسر این فضای کار دنبال می‌کند.",
+        "security": "الزامات ورود برای همهٔ افراد این فضای کار.",
+        "dangerZone": "ترک این فضای کار یا حذف همیشگی آن.",
+        "billing": "طرح شما، صندلی‌ها، روش پرداخت و فاکتورها.",
+        "usage": "میزان مصرف این فضای کار نسبت به محدودیت‌های طرحش.",
+        "audits": "هر تغییری که در این فضای کار انجام شده و این که چه کسی آن را انجام داده است.",
+        "sso": "ورود از طریق ارائه‌دهندهٔ هویت شما."
+      }
+    },
+    "workspaceMode": "حالت فضای کار",
+    "zoomIn": "بزرگ‌نمایی",
+    "zoomOut": "کوچک‌نمایی",
+    "zoomTo50Percent": "بزرگ‌نمایی تا ۵۰٪",
+    "zoomTo100Percent": "بزرگ‌نمایی تا ۱۰۰٪",
+    "workflowValueStatic": "ثابت",
+    "workflowValueStaticDescription": "مقدارها را مستقیم وارد کنید",
+    "workspaceNoAccess": "فضای کار (بدون دسترسی)",
+    "yAxis": "محور Y",
+    "workspaceSettings": "تنظیمات فضای کار",
+    "wrapLongText": "شکستن متن بلند"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -7137,8 +7218,6 @@
       "selectFieldFirst": "برای بارگذاری این گزینه‌ها ابتدا {field} را انتخاب کنید.",
       "viewFolderDeleteConfirmation": "نماهای این پوشه به بالاترین سطح منتقل می‌شوند.",
       "saveDraftToBrowser": "ذخیرهٔ پیش‌نویس در مرورگر",
-      "showAppFirst": "نمایش برنامه در ابتدای نوار کناری",
-      "showAppFirstDesc": "در نوار کناری این پروژه، Apps را بالای داده‌ها قرار دهید.",
       "recordSavedButHidden": "رکورد با موفقیت ذخیره شد، اما به دلیل مجوزهای دسترسی شما پنهان است.",
       "seeChangesToRecord": "دیدن تغییرات این رکورد",
       "revisionHistoryUpgrade": "شما {limit} تاریخچهٔ بازبینی دارید. برای دیدن تاریخچهٔ کامل ارتقا دهید.",
@@ -7241,7 +7320,20 @@
       "mcpSetupCursorStep3": "پیکربندی JSON را که پس از ساخت توکن ارائه می‌شود اضافه کنید.",
       "mcpSetupIntroWindsurf": "در ۴ گام ساده کار با NocoDB MCP در Windsurf را آغاز کنید",
       "mcpSetupWindsurfStep1": "به تنظیمات Windsurf بروید و در نوار کناری چپ زبانهٔ Cascade را انتخاب کنید",
-      "mcpSetupWindsurfStep2": "روی Manage MCP کلیک کنید."
+      "mcpSetupWindsurfStep2": "روی Manage MCP کلیک کنید.",
+      "abuseReport": {
+        "queueDescription": "گزارش‌هایی که از پیوندهای عمومی ثبت شده‌اند. برای برداشتن یک پیوند آن را غیرفعال کنید، یا حساب‌های پشت آن را مسدود کنید.",
+        "disableConfirm": "پیوند عمومی برای همه از کار می‌افتد و همهٔ گزارش‌های باز دربارهٔ آن حل‌شده تلقی می‌شوند. مالک می‌تواند مورد را با پیوندی تازه دوباره به اشتراک بگذارد.",
+        "blockConfirm": "{email} از همه‌جا خارج شده و دیگر نمی‌تواند وارد شود یا از توکن‌های API استفاده کند. می‌توانید از مدیریت کاربران رفع مسدودیت کنید.",
+        "noAccounts": "هیچ حسابی به این مورد پیوند نخورده است.",
+        "superAdminNotBlockable": "ابرمدیران را نمی‌توان مسدود کرد.",
+        "description": "فکر می‌کنید این صفحه برای فیشینگ، جعل هویت، کلاهبرداری یا دیگر مقاصد سوءاستفاده‌گرانه به کار می‌رود؟ به مدیران این نمونهٔ {productName} اطلاع دهید.",
+        "detailsMin": "لطفاً مشکل را دست‌کم در {min} نویسه شرح دهید.",
+        "thanksTitle": "از گزارش شما سپاسگزاریم",
+        "thanksDescription": "گزارش شما دریافت شد. مدیران این نمونهٔ {productName} آن را بررسی خواهند کرد.",
+        "contactEmailHint": "گزارش‌های نماها، فرم‌ها، رابط‌ها و داشبوردهای عمومی به این نشانی ایمیل می‌شوند. برای ارسال به همهٔ ابرمدیران خالی بگذارید."
+      },
+      "actWithYourOwnPermissions": "در آن منابع با دسترسی‌های خودتان عمل کنید"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -7454,7 +7546,46 @@
       "inviteLinkExhausted": "این لینک دعوت به‌طور کامل استفاده شده است",
       "inviteLinkUnavailable": "این لینک دعوت دیگر کار نمی‌کند",
       "invalidEmailDomain": "دامنه‌ای مانند acme.io وارد کنید",
-      "projectNotAccessible": "پروژه در دسترس نیست"
+      "projectNotAccessible": "پروژه در دسترس نیست",
+      "attachmentInvalidUrl": "نشانی URL را وارد کنید که با http:// یا https:// آغاز شود، یا قالبی که از متغیرها استفاده می‌کند",
+      "attachmentAlreadyAttached": "این فایل از پیش پیوست شده است.",
+      "attachmentOpenWorkflowToUpload": "برای بارگذاری فایل‌ها گردش کار را باز کنید",
+      "attachmentNoLongerAvailable": "این فایل دیگر در دسترس نیست",
+      "attachmentsTooLarge": "فایل‌ها از محدودیت {size} برای هر ایمیل فراتر می‌روند",
+      "factoryMachineNameRequired": "برای ماشین نامی بگذارید",
+      "factoryMachineNameDuplicate": "ماشینی با این نام از پیش وجود دارد",
+      "vaultUnreachable": "با این تنظیمات نتوانستیم به گاوصندوق برسیم",
+      "vaultAliasStart": "نام باید با یک حرف آغاز شود",
+      "vaultAliasCharacters": "نام فقط می‌تواند شامل حرف و رقم باشد — بدون فاصله، خط تیره یا زیرخط",
+      "vaultAliasReserved": "«{name}» نامی رزروشده است، نام دیگری انتخاب کنید",
+      "fieldSaveFailed": "ذخیرهٔ فیلد «{field}» ممکن نشد: {error}",
+      "fieldSavesFailed": "ذخیرهٔ {count} فیلد ممکن نشد ({fields}). نخستین خطا: {error}",
+      "projectNameRequired": "نام پروژه الزامی است",
+      "attachmentUrlDownloadFailed": "NocoDB نتوانست این فایل را از نشانی URL آن دانلود کند. آن را حذف کنید و فایل را دوباره بیفزایید.",
+      "emailImageSize": "تصاویر بدنهٔ ایمیل باید کمتر از {size} باشند. یک لوگو معمولاً بسیار کمتر از ۱۰۰ کیلوبایت است.",
+      "emailImageType": "از تصویری با قالب PNG، JPEG، GIF یا WebP استفاده کنید",
+      "emailImageCount": "بدنهٔ یک ایمیل می‌تواند تا {count} تصویر داشته باشد",
+      "emailImageTotalSize": "مجموع تصاویر بدنهٔ ایمیل باید کمتر از {size} باشد",
+      "emailImageNoWorkflow": "برای افزودن تصویر گردش کار را باز کنید",
+      "emailImageUploadFailed": "بارگذاری تصویر ممکن نشد",
+      "emailImageMissing": "این تصویر دیگر در دسترس نیست و از ایمیل کنار گذاشته می‌شود. آن را حذف کنید و دوباره درج کنید.",
+      "vaultSecretNeedsProperty": "این راز چند فیلد دارد. انتخاب کنید کدام استفاده شود، وگرنه اتصال هنگام اجرا شکست می‌خورد.",
+      "vaultUnknownAlias": "هیچ گاوصندوقی با نام «{name}» برای شما در دسترس نیست.",
+      "atLeastOneOperationRequired": "دست‌کم یک عملیات باید انتخاب شود",
+      "triggerFormRequired": "باید یک فرم راه‌انداز انتخاب کنید",
+      "failedToStartListening": "آغاز شنود به‌روزرسانی‌ها ناموفق بود",
+      "unknownPermissionRequested": "این سرور چنین دسترسی‌ای ارائه نمی‌کند",
+      "authorizationWillBeRefused": "این درخواست به دلیل دسترسی‌های بالا رد خواهد شد.",
+      "vaultAliasNotAllowed": "اجازهٔ استفاده از گاوصندوق «{name}» را ندارید. از یکی از مالکان فضای کار درخواست دسترسی کنید، یا اطلاعات ورود را مستقیم وارد کنید.",
+      "selectTargetField": "لطفاً یک فیلد مقصد انتخاب کنید!",
+      "parentTableNoPrimaryKey": "جدول والد ستون کلید اصلی ندارد",
+      "childTableNoPrimaryKey": "جدول فرزند ستون کلید اصلی ندارد",
+      "noWorkspaceAvailable": "هیچ فضای کاری در دسترس نیست",
+      "invalidJson": "JSON نامعتبر",
+      "invalidTokensJson": "این یک خروجی توکن نیست. کلیدهایی مانند light، dark، font یا radiusScale انتظار می‌رود.",
+      "renameFileFailed": "خطا هنگام تغییر نام فایل",
+      "failedToLoadMetadataDiff": "بارگیری تفاوت فراداده‌ها ناموفق بود",
+      "failedToLoadMonacoEditor": "بارگیری Monaco Editor ناموفق بود"
     },
     "toast": {
       "inviteUrlCopy": "URL دعوت نامه در کلیپ بورد ذخیره شده",
@@ -7597,9 +7728,9 @@
       "failed": "ثبت‌نام ناموفق بود",
       "paused": "متوقف‌شده"
     },
-    "agentToolsAndAccessSubtitle": "عامل از چه چیزهایی می‌تواند استفاده کند؟ ابزارها، صفحه‌ها و اتصال‌هایی را که می‌تواند به آنها دسترسی داشته باشد اضافه کنید.",
+    "agentToolsAndAccessSubtitle": "این عامل چه چیزهایی را می‌تواند بخواند و تغییر دهد؟ برای هر مورد یک سطح انتخاب کنید.",
     "agentNoFilters": "هنوز شرطی وجود ندارد",
-    "agentInstructionsSubtitle": "عامل هر بار که اجرا می‌شود چه کاری باید انجام دهد؟ این هم بهترین شیوه‌ها.",
+    "agentInstructionsSubtitle": "نامی برایش بگذارید، سپس بنویسید چه کاری باید انجام دهد، همان‌طور که به یک همکار توضیح می‌دادید.",
     "communitySkillsSubtitle": "در بالا Skills به‌اشتراک‌گذاشته‌شده در skills.sh را جست‌وجو کنید، سپس یکی را باز کنید تا پیش از نصب، فایل SKILL.md آن را بخوانید.",
     "environmentBlockedBySync": "برای پروژه‌ای که همگام‌سازی فعال دارد نمی‌توان محیطی باز کرد. ابتدا پیکربندی‌های همگام‌سازی را حذف کنید.",
     "chatArtifactPublicLinkHint": "هر کسی که پیوند را داشته باشد می‌تواند این را ببیند.",
@@ -7764,7 +7895,14 @@
       "confirmCta": "تأیید مهاجرت",
       "migrating": "در حال مهاجرت..."
     },
-    "skillsRegistryErrorTitle": "جست‌وجو در فهرست مهارت‌ها ممکن نشد"
+    "skillsRegistryErrorTitle": "جست‌وجو در فهرست مهارت‌ها ممکن نشد",
+    "airtableImportReportSummary": "{skipped} رد شد · {approximated} تقریبی · {failed} ناموفق",
+    "airtableImportReportTruncated": "گزارش {shown} مورد نخست از {total} مورد را فهرست می‌کند. برای فهرست کامل، گزارش‌ها را دانلود کنید.",
+    "factoryMachineReadyNow": "ماشین آماده است. نشست‌های تازه از آن استفاده می‌کنند.",
+    "factoryMachineSwitched": "نشست‌های تازه از نسخهٔ {version} استفاده خواهند کرد.",
+    "factoryMachineDefaultNow": "نشست‌های تازه اکنون روی {machine} آغاز می‌شوند.",
+    "factoryMachineUpgrading": "در حال ارتقای {machine}. نشست‌های تازه پس از آمادگی ساخت از آن استفاده می‌کنند.",
+    "factoryAppInstallUnavailable": "{provider} هنوز به عامل‌های کدنویسی وصل نمی‌شود. به نصب یک برنامه نیاز دارند و اینجا هیچ موردی برای {provider} تنظیم نشده است."
   },
   "trash": {
     "restore": "Restore",

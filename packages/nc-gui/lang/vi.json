@@ -1689,7 +1689,7 @@
     "noMoreActionsToRedo": "No more actions to redo",
     "noRecentViews": "No recent views",
     "expandLinkFields": "Expand link fields",
-    "expandLinkFieldsDesc": "Return linked record data instead of count",
+    "expandLinkFieldsDesc": "Các trường liên kết trong kết quả chứa bản ghi được liên kết thay vì số lượng",
     "inheritedFromParent": "Inherited from parent",
     "pageOrUrl": "Page or URL",
     "linkTitle": "Link title",
@@ -4778,7 +4778,7 @@
       },
       "optIn": {
         "title": "Công cụ cần bật thủ công",
-        "description": "Các công cụ xóa vĩnh viễn hoặc hành động bên ngoài NocoDB, chẳng hạn chạy một tự động hóa hay kích hoạt một webhook. Một kết nối sẽ không bao giờ nhận được chúng trừ khi bạn bật tại đây."
+        "description": "Những công cụ xóa vĩnh viễn hoặc hoạt động bên ngoài NocoDB, chẳng hạn chạy một tự động hóa hay kích hoạt một webhook. Chúng luôn tắt cho đến khi bạn bật tại đây."
       }
     },
     "noBaseAccess": "Không có quyền truy cập dự án",
@@ -5772,7 +5772,88 @@
     "workflowValueDynamicDescription": "Dùng biến từ một bước trước đó của tự động hóa này",
     "workflowRunAs": "Chạy với tư cách",
     "workflowChangeRunAs": "Đổi chạy với tư cách",
-    "workflowServiceAccount": "Tài khoản dịch vụ"
+    "workflowServiceAccount": "Tài khoản dịch vụ",
+    "wsEmpty": {
+      "title": "Bắt đầu dự án đầu tiên của bạn",
+      "subtitle": "Một dự án chứa dữ liệu của bạn và các ứng dụng được xây dựng trên đó.",
+      "sharedTitle": "Chưa có gì được chia sẻ với bạn",
+      "sharedSubtitle": "Các dự án và ứng dụng mà bạn được mời sẽ xuất hiện ở đây."
+    },
+    "workspaceHome": {
+      "uploadFile": "Tải lên CSV hoặc Excel",
+      "pickTemplate": "Hoặc chọn một mẫu để bắt đầu",
+      "untitledBase": "Dự án chưa đặt tên",
+      "templates": {
+        "projectManagement": {
+          "label": "Quản lý dự án",
+          "prompt": "Công cụ theo dõi dự án với dự án và công việc, mỗi công việc có người phụ trách, trạng thái, mức ưu tiên và hạn chót."
+        },
+        "product": {
+          "label": "Sản phẩm",
+          "prompt": "Lộ trình sản phẩm với các tính năng, vấn đề mà mỗi tính năng giải quyết, mức ưu tiên, trạng thái và phiên bản mục tiêu."
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "Lịch tiếp thị với các chiến dịch, kênh mà mỗi chiến dịch chạy, ngân sách, người phụ trách và ngày khởi chạy."
+        },
+        "sales": {
+          "label": "Bán hàng",
+          "prompt": "CRM bán hàng với công ty, liên hệ và thương vụ, trong đó mỗi thương vụ có giai đoạn, giá trị và ngày chốt dự kiến."
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "Bộ phận hỗ trợ với các yêu cầu, khách hàng đã gửi từng yêu cầu, mức ưu tiên, trạng thái và nhân viên được phân công."
+        },
+        "hr": {
+          "label": "Nhân sự",
+          "prompt": "Công cụ theo dõi ứng viên với các vị trí đang tuyển, ứng viên theo từng giai đoạn tuyển dụng, cùng các buổi phỏng vấn kèm ngày và ghi chú của người đánh giá."
+        }
+      }
+    },
+    "yourConnections": "Kết nối của bạn",
+    "workingHours": "Giờ làm việc",
+    "workingDays": "Ngày làm việc",
+    "wsNav": {
+      "groupBilling": "Plan",
+      "groupAdmin": "Admin",
+      "membersPage": "Thành viên không gian làm việc",
+      "iconHint": "Hiển thị ở thanh bên và trong bộ chuyển không gian làm việc.",
+      "nameHint": "Cách không gian làm việc này được gọi trong toàn bộ NocoDB.",
+      "workspaceId": "ID không gian làm việc",
+      "workspaceIdHint": "Dùng nó với API, hoặc khi liên hệ bộ phận hỗ trợ.",
+      "allTypes": "Tất cả các loại",
+      "allTeams": "Tất cả các nhóm",
+      "teamsCreatedHere": "Tạo tại đây",
+      "teamsScimManaged": "Do SCIM quản lý",
+      "upgradeTitleAudits": "Nhật ký kiểm toán của không gian làm việc",
+      "upgradeDescAudits": "Xem mọi thay đổi được thực hiện trong không gian làm việc này, và ai đã thực hiện.",
+      "upgradeTitleSso": "Đăng nhập một lần",
+      "upgradeDescSso": "Cho phép thành viên đăng nhập qua nhà cung cấp danh tính của bạn.",
+      "desc": {
+        "members": "Ai thuộc không gian làm việc này, và vai trò mặc định của họ.",
+        "teams": "Các nhóm thành viên mà bạn có thể thêm vào dự án cùng lúc.",
+        "integrations": "Các tài khoản đã kết nối và thông tin đăng nhập được dùng chung trong cả không gian làm việc.",
+        "general": "Tên, biểu tượng và ID của không gian làm việc.",
+        "skills": "Hướng dẫn mà trợ lý AI tuân theo trong toàn bộ không gian làm việc này.",
+        "security": "Yêu cầu đăng nhập cho mọi người trong không gian làm việc này.",
+        "dangerZone": "Rời khỏi hoặc xóa vĩnh viễn không gian làm việc này.",
+        "billing": "Gói của bạn, số chỗ, phương thức thanh toán và hóa đơn.",
+        "usage": "Mức sử dụng của không gian làm việc này so với giới hạn của gói.",
+        "audits": "Mọi thay đổi được thực hiện trong không gian làm việc này, và ai đã thực hiện.",
+        "sso": "Đăng nhập qua nhà cung cấp danh tính của bạn."
+      }
+    },
+    "workspaceMode": "Chế độ không gian làm việc",
+    "zoomIn": "Phóng to",
+    "zoomOut": "Thu nhỏ",
+    "zoomTo50Percent": "Thu phóng về 50%",
+    "zoomTo100Percent": "Thu phóng về 100%",
+    "workflowValueStatic": "Tĩnh",
+    "workflowValueStaticDescription": "Nhập giá trị trực tiếp",
+    "workspaceNoAccess": "Không gian làm việc (không có quyền truy cập)",
+    "yAxis": "Trục Y",
+    "workspaceSettings": "Cài đặt không gian làm việc",
+    "wrapLongText": "Ngắt dòng văn bản dài"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -7132,8 +7213,6 @@
       "selectFieldFirst": "Hãy chọn {field} trước để nạp các tùy chọn này.",
       "viewFolderDeleteConfirmation": "Các chế độ xem trong thư mục này sẽ được chuyển lên cấp trên cùng.",
       "saveDraftToBrowser": "Lưu bản nháp trong trình duyệt",
-      "showAppFirst": "Hiển thị ứng dụng đầu tiên trên thanh bên",
-      "showAppFirstDesc": "Đặt Apps phía trên Dữ liệu trong thanh bên của dự án này.",
       "recordSavedButHidden": "Đã lưu bản ghi nhưng nó bị ẩn do quyền truy cập của bạn.",
       "seeChangesToRecord": "Xem các thay đổi của bản ghi này",
       "revisionHistoryUpgrade": "Bạn có {limit} lịch sử phiên bản. Hãy nâng cấp để xem toàn bộ lịch sử.",
@@ -7236,7 +7315,20 @@
       "mcpSetupCursorStep3": "Thêm cấu hình JSON được cung cấp sau khi tạo token.",
       "mcpSetupIntroWindsurf": "Bắt đầu dùng NocoDB MCP với Windsurf qua 4 bước đơn giản",
       "mcpSetupWindsurfStep1": "Vào phần cài đặt Windsurf và chọn tab Cascade ở thanh bên trái",
-      "mcpSetupWindsurfStep2": "Nhấp vào Manage MCP."
+      "mcpSetupWindsurfStep2": "Nhấp vào Manage MCP.",
+      "abuseReport": {
+        "queueDescription": "Các báo cáo gửi từ liên kết công khai. Hãy tắt một liên kết để gỡ bỏ nó, hoặc chặn những tài khoản đứng sau.",
+        "disableConfirm": "Liên kết công khai sẽ ngừng hoạt động với tất cả mọi người, và mọi báo cáo đang mở về nó đều được đánh dấu đã xử lý. Chủ sở hữu có thể chia sẻ lại mục đó bằng một liên kết mới.",
+        "blockConfirm": "{email} đã bị đăng xuất ở mọi nơi và không thể đăng nhập hay dùng token API nữa. Bạn có thể bỏ chặn trong phần quản lý người dùng.",
+        "noAccounts": "Không có tài khoản nào được liên kết với mục này.",
+        "superAdminNotBlockable": "Không thể chặn quản trị viên cấp cao.",
+        "description": "Bạn cho rằng trang này đang bị dùng để lừa đảo, mạo danh, gian lận hay mục đích lạm dụng khác? Hãy báo cho quản trị viên của phiên bản {productName} này.",
+        "detailsMin": "Vui lòng mô tả vấn đề bằng ít nhất {min} ký tự.",
+        "thanksTitle": "Cảm ơn bạn đã báo cáo",
+        "thanksDescription": "Chúng tôi đã nhận được báo cáo của bạn. Quản trị viên của phiên bản {productName} này sẽ xem xét.",
+        "contactEmailHint": "Báo cáo từ các chế độ xem, biểu mẫu, giao diện và bảng điều khiển công khai sẽ được gửi tới đây. Để trống để gửi cho mọi quản trị viên cấp cao."
+      },
+      "actWithYourOwnPermissions": "Hành động với quyền của chính bạn trong các tài nguyên đó"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -7449,7 +7541,46 @@
       "inviteLinkExhausted": "Liên kết mời này đã được dùng hết",
       "inviteLinkUnavailable": "Liên kết mời này không còn hoạt động",
       "invalidEmailDomain": "Nhập một tên miền như acme.io",
-      "projectNotAccessible": "Không thể truy cập dự án"
+      "projectNotAccessible": "Không thể truy cập dự án",
+      "attachmentInvalidUrl": "Nhập URL bắt đầu bằng http:// hoặc https://, hoặc một mẫu dùng biến",
+      "attachmentAlreadyAttached": "Tệp này đã được đính kèm.",
+      "attachmentOpenWorkflowToUpload": "Mở quy trình để tải tệp lên",
+      "attachmentNoLongerAvailable": "Tệp này không còn khả dụng",
+      "attachmentsTooLarge": "Các tệp vượt quá giới hạn {size} cho mỗi email",
+      "factoryMachineNameRequired": "Hãy đặt tên cho máy",
+      "factoryMachineNameDuplicate": "Đã có một máy trùng tên này",
+      "vaultUnreachable": "Không kết nối được tới kho với các cài đặt này",
+      "vaultAliasStart": "Tên phải bắt đầu bằng một chữ cái",
+      "vaultAliasCharacters": "Tên chỉ được chứa chữ cái và chữ số — không có khoảng trắng, dấu gạch ngang hay gạch dưới",
+      "vaultAliasReserved": "'{name}' là tên dành riêng, hãy chọn tên khác",
+      "fieldSaveFailed": "Không lưu được trường '{field}': {error}",
+      "fieldSavesFailed": "Không lưu được {count} trường ({fields}). Lỗi đầu tiên: {error}",
+      "projectNameRequired": "Tên dự án là bắt buộc",
+      "attachmentUrlDownloadFailed": "NocoDB không tải được tệp này từ URL của nó. Hãy xóa và thêm lại tệp.",
+      "emailImageSize": "Hình ảnh trong nội dung email phải nhỏ hơn {size}. Một logo thường nhỏ hơn 100 KB rất nhiều.",
+      "emailImageType": "Hãy dùng hình ảnh PNG, JPEG, GIF hoặc WebP",
+      "emailImageCount": "Nội dung email có thể chứa tối đa {count} hình ảnh",
+      "emailImageTotalSize": "Tổng dung lượng hình ảnh trong nội dung email phải nhỏ hơn {size}",
+      "emailImageNoWorkflow": "Mở quy trình để thêm hình ảnh",
+      "emailImageUploadFailed": "Không tải được hình ảnh lên",
+      "emailImageMissing": "Hình ảnh này không còn khả dụng và sẽ bị bỏ khỏi email. Hãy xóa và chèn lại.",
+      "vaultSecretNeedsProperty": "Bí mật này chứa nhiều trường. Hãy chọn trường cần dùng, nếu không kết nối sẽ thất bại khi chạy.",
+      "vaultUnknownAlias": "Bạn không có kho nào tên '{name}'.",
+      "atLeastOneOperationRequired": "Phải chọn ít nhất một thao tác",
+      "triggerFormRequired": "Bạn phải chọn một biểu mẫu kích hoạt",
+      "failedToStartListening": "Không bắt đầu lắng nghe cập nhật được",
+      "unknownPermissionRequested": "Máy chủ này không cung cấp quyền đó",
+      "authorizationWillBeRefused": "Yêu cầu này sẽ bị từ chối vì các quyền ở trên.",
+      "vaultAliasNotAllowed": "Bạn không được phép dùng kho '{name}'. Hãy xin quyền truy cập từ chủ sở hữu không gian làm việc, hoặc nhập thông tin xác thực trực tiếp.",
+      "selectTargetField": "Vui lòng chọn trường đích!",
+      "parentTableNoPrimaryKey": "Bảng cha không có cột khóa chính",
+      "childTableNoPrimaryKey": "Bảng con không có cột khóa chính",
+      "noWorkspaceAvailable": "Không có không gian làm việc nào khả dụng",
+      "invalidJson": "JSON không hợp lệ",
+      "invalidTokensJson": "Đây không phải bản xuất token. Cần các khóa như light, dark, font hoặc radiusScale.",
+      "renameFileFailed": "Lỗi khi đổi tên tệp",
+      "failedToLoadMetadataDiff": "Không tải được phần khác biệt siêu dữ liệu",
+      "failedToLoadMonacoEditor": "Không tải được Monaco Editor"
     },
     "toast": {
       "inviteUrlCopy": "Sao chép lời mời URL vào clipboard",
@@ -7592,9 +7723,9 @@
       "failed": "Đăng ký thất bại",
       "paused": "Đã tạm dừng"
     },
-    "agentToolsAndAccessSubtitle": "Tác nhân có thể dùng gì? Hãy thêm công cụ, trang và kết nối mà nó được phép truy cập.",
+    "agentToolsAndAccessSubtitle": "Tác nhân này được đọc và thay đổi những gì? Hãy chọn một mức cho từng mục.",
     "agentNoFilters": "Chưa có điều kiện nào",
-    "agentInstructionsSubtitle": "Tác nhân nên làm gì mỗi lần chạy? Đây là các cách làm tốt nhất.",
+    "agentInstructionsSubtitle": "Đặt tên cho nó, rồi viết ra việc nó cần làm như khi bạn hướng dẫn một đồng nghiệp.",
     "communitySkillsSubtitle": "Tìm ở trên các skills được chia sẻ trên skills.sh, rồi mở một mục để đọc SKILL.md của nó trước khi cài đặt.",
     "environmentBlockedBySync": "Không thể mở môi trường cho dự án đang có đồng bộ hoạt động. Hãy xóa các cấu hình đồng bộ trước.",
     "chatArtifactPublicLinkHint": "Bất kỳ ai có liên kết đều xem được nội dung này.",
@@ -7759,7 +7890,14 @@
       "confirmCta": "Xác nhận chuyển đổi",
       "migrating": "Đang chuyển đổi..."
     },
-    "skillsRegistryErrorTitle": "Không thể tìm kiếm trong kho kỹ năng"
+    "skillsRegistryErrorTitle": "Không thể tìm kiếm trong kho kỹ năng",
+    "airtableImportReportSummary": "{skipped} đã bỏ qua · {approximated} đã ước lượng · {failed} thất bại",
+    "airtableImportReportTruncated": "Báo cáo liệt kê {shown} mục đầu tiên trong {total} mục. Hãy tải nhật ký để xem danh sách đầy đủ.",
+    "factoryMachineReadyNow": "Máy đã sẵn sàng. Các phiên mới sẽ dùng máy này.",
+    "factoryMachineSwitched": "Các phiên mới sẽ dùng phiên bản {version}.",
+    "factoryMachineDefaultNow": "Các phiên mới giờ khởi chạy trên {machine}.",
+    "factoryMachineUpgrading": "Đang nâng cấp {machine}. Các phiên mới sẽ dùng máy này khi bản dựng sẵn sàng.",
+    "factoryAppInstallUnavailable": "{provider} chưa thể kết nối với các tác nhân lập trình. Chúng cần một bản cài đặt ứng dụng, và ở đây chưa có bản nào được thiết lập cho {provider}."
   },
   "trash": {
     "restore": "Restore",

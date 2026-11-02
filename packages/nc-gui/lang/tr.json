@@ -1689,7 +1689,7 @@
     "noMoreActionsToRedo": "Yineleyecek başka işlem yok",
     "noRecentViews": "Son görüntülenen yok",
     "expandLinkFields": "Bağlantı alanlarını genişlet",
-    "expandLinkFieldsDesc": "Sayı yerine bağlantılı kayıt verisini döndür",
+    "expandLinkFieldsDesc": "Çıktıdaki bağlantı alanları, sayı yerine bağlı kayıtları içerir",
     "inheritedFromParent": "Üstten miras alındı",
     "pageOrUrl": "Sayfa veya URL",
     "linkTitle": "Bağlantı başlığı",
@@ -4779,7 +4779,7 @@
       },
       "optIn": {
         "title": "İsteğe bağlı araçlar",
-        "description": "Kalıcı olarak silen veya NocoDB dışında işlem yapan araçlar; örneğin bir otomasyonu çalıştırmak ya da bir webhook tetiklemek. Bir bağlantı, siz burada açmadıkça bunları asla almaz."
+        "description": "Kalıcı olarak silen veya NocoDB dışında işlem yapan araçlar; örneğin bir otomasyonu çalıştırmak ya da bir webhook tetiklemek. Siz buradan açmadıkça kapalı kalırlar."
       }
     },
     "noBaseAccess": "Proje erişimi yok",
@@ -5770,7 +5770,88 @@
     "workflowValueDynamicDescription": "Bu otomasyonun önceki bir adımındaki değişkenleri kullan",
     "workflowRunAs": "Farklı çalıştır",
     "workflowChangeRunAs": "Farklı çalıştırmayı değiştir",
-    "workflowServiceAccount": "Hizmet hesabı"
+    "workflowServiceAccount": "Hizmet hesabı",
+    "wsEmpty": {
+      "title": "İlk projenizi oluşturun",
+      "subtitle": "Bir proje, verilerinizi ve bunların üzerine kurulan uygulamaları barındırır.",
+      "sharedTitle": "Henüz sizinle hiçbir şey paylaşılmadı",
+      "sharedSubtitle": "Davet edildiğiniz projeler ve uygulamalar burada görünür."
+    },
+    "workspaceHome": {
+      "uploadFile": "CSV veya Excel yükle",
+      "pickTemplate": "Ya da başlangıç için bir şablon seçin",
+      "untitledBase": "Adsız proje",
+      "templates": {
+        "projectManagement": {
+          "label": "Proje yönetimi",
+          "prompt": "Projeler ve görevlerden oluşan, her görevin bir sorumlusu, durumu, önceliği ve bitiş tarihi olan bir proje takip sistemi."
+        },
+        "product": {
+          "label": "Ürün",
+          "prompt": "Özellikler, her birinin çözdüğü problem, öncelik, durum ve hedef sürümü içeren bir ürün yol haritası."
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "Kampanyalar, her birinin yürüdüğü kanallar, bütçe, sorumlu ve başlangıç tarihini içeren bir pazarlama takvimi."
+        },
+        "sales": {
+          "label": "Satış",
+          "prompt": "Şirketler, kişiler ve fırsatlardan oluşan, her fırsatın bir aşaması, değeri ve beklenen kapanış tarihi olan bir satış CRM'i."
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "Talepler, her talebi açan müşteri, öncelik, durum ve atanan temsilciden oluşan bir destek masası."
+        },
+        "hr": {
+          "label": "İnsan kaynakları",
+          "prompt": "Açık pozisyonlar, işe alım aşamasına göre adaylar ve tarihleri ile değerlendirici notlarını içeren görüşmelerden oluşan bir aday takip sistemi."
+        }
+      }
+    },
+    "yourConnections": "Bağlantılarınız",
+    "workingHours": "Çalışma saatleri",
+    "workingDays": "Çalışma günleri",
+    "wsNav": {
+      "groupBilling": "Plan",
+      "groupAdmin": "Admin",
+      "membersPage": "Çalışma Alanı Üyeleri",
+      "iconHint": "Kenar çubuğunda ve çalışma alanı değiştiricide gösterilir.",
+      "nameHint": "Bu çalışma alanının NocoDB genelinde nasıl adlandırıldığı.",
+      "workspaceId": "Çalışma Alanı Kimliği",
+      "workspaceIdHint": "Bunu API ile veya destek ekibiyle iletişime geçerken kullanın.",
+      "allTypes": "Tüm türler",
+      "allTeams": "Tüm ekipler",
+      "teamsCreatedHere": "Burada oluşturuldu",
+      "teamsScimManaged": "SCIM ile yönetiliyor",
+      "upgradeTitleAudits": "Çalışma alanı denetim kaydı",
+      "upgradeDescAudits": "Bu çalışma alanında yapılan her değişikliği ve bunu kimin yaptığını görün.",
+      "upgradeTitleSso": "Çoklu oturum açma",
+      "upgradeDescSso": "Üyelerin kimlik sağlayıcınız üzerinden oturum açmasına izin verin.",
+      "desc": {
+        "members": "Bu çalışma alanına kimlerin ait olduğu ve varsayılan rolleri.",
+        "teams": "Projelere topluca ekleyebileceğiniz üye grupları.",
+        "integrations": "Çalışma alanının tamamında paylaşılan bağlı hesaplar ve kimlik bilgileri.",
+        "general": "Çalışma alanının adı, simgesi ve kimliği.",
+        "skills": "Yapay zekâ asistanının bu çalışma alanının tamamında izlediği yönergeler.",
+        "security": "Bu çalışma alanındaki herkes için oturum açma gereksinimleri.",
+        "dangerZone": "Bu çalışma alanından ayrılın veya kalıcı olarak silin.",
+        "billing": "Planınız, koltuklar, ödeme yöntemi ve faturalar.",
+        "usage": "Bu çalışma alanının plan sınırlarından ne kadarını kullandığı.",
+        "audits": "Bu çalışma alanında yapılan her değişiklik ve bunu kimin yaptığı.",
+        "sso": "Kimlik sağlayıcınız üzerinden oturum açma."
+      }
+    },
+    "workspaceMode": "Çalışma Alanı Modu",
+    "zoomIn": "Yakınlaştır",
+    "zoomOut": "Uzaklaştır",
+    "zoomTo50Percent": "%50 yakınlaştır",
+    "zoomTo100Percent": "%100 yakınlaştır",
+    "workflowValueStatic": "Sabit",
+    "workflowValueStaticDescription": "Değerleri doğrudan girin",
+    "workspaceNoAccess": "Çalışma alanı (erişim yok)",
+    "yAxis": "Y ekseni",
+    "workspaceSettings": "Çalışma alanı ayarları",
+    "wrapLongText": "Uzun metni kaydır"
   },
   "activity": {
     "useTemplate": "Şablon kullan",
@@ -7130,8 +7211,6 @@
       "selectFieldFirst": "Bu seçeneklerin yüklenmesi için önce {field} alanını seçin.",
       "viewFolderDeleteConfirmation": "Bu klasördeki görünümler en üst düzeye taşınacak.",
       "saveDraftToBrowser": "Taslağı tarayıcıya kaydet",
-      "showAppFirst": "Uygulamayı kenar çubuğunda ilk sırada göster",
-      "showAppFirstDesc": "Bu projenin kenar çubuğunda Apps bölümünü Veri'nin üstüne koy.",
       "recordSavedButHidden": "Kayıt başarıyla kaydedildi ancak erişim izinleriniz nedeniyle gizli.",
       "seeChangesToRecord": "Bu kaydın değişikliklerini gör",
       "revisionHistoryUpgrade": "{limit} düzeltme geçmişiniz var. Tüm geçmişi görmek için yükseltin.",
@@ -7234,7 +7313,20 @@
       "mcpSetupCursorStep3": "Bir belirteç oluşturduktan sonra verilen JSON yapılandırmasını ekleyin.",
       "mcpSetupIntroWindsurf": "NocoDB MCP ile Windsurf kullanmaya 4 basit adımda başlayın",
       "mcpSetupWindsurfStep1": "Windsurf ayarlarına gidin ve sol kenar çubuğundan Cascade sekmesini seçin",
-      "mcpSetupWindsurfStep2": "Manage MCP seçeneğine tıklayın."
+      "mcpSetupWindsurfStep2": "Manage MCP seçeneğine tıklayın.",
+      "abuseReport": {
+        "queueDescription": "Herkese açık bağlantılardan gönderilen bildirimler. Bir bağlantıyı yayından kaldırmak için devre dışı bırakın ya da arkasındaki hesapları engelleyin.",
+        "disableConfirm": "Herkese açık bağlantı herkes için çalışmayı durdurur ve bununla ilgili tüm açık bildirimler çözülmüş sayılır. Sahibi, öğeyi yeni bir bağlantıyla tekrar paylaşabilir.",
+        "blockConfirm": "{email} her yerde oturumu kapatıldı ve artık oturum açamaz veya API belirteçlerini kullanamaz. Kullanıcı yönetiminden engeli kaldırabilirsiniz.",
+        "noAccounts": "Bu öğeye bağlı hesap yok.",
+        "superAdminNotBlockable": "Süper yöneticiler engellenemez.",
+        "description": "Bu sayfanın kimlik avı, taklit, dolandırıcılık veya başka kötüye kullanım amaçlarıyla kullanıldığını mı düşünüyorsunuz? Bu {productName} örneğinin yöneticilerine bildirin.",
+        "detailsMin": "Lütfen sorunu en az {min} karakterle açıklayın.",
+        "thanksTitle": "Bildiriminiz için teşekkürler",
+        "thanksDescription": "Bildiriminiz alındı. Bu {productName} örneğinin yöneticileri bildiriminizi inceleyecek.",
+        "contactEmailHint": "Herkese açık görünümlerden, formlardan, arayüzlerden ve panolardan gelen bildirimler buraya e-postayla gönderilir. Tüm süper yöneticilere gönderilmesi için boş bırakın."
+      },
+      "actWithYourOwnPermissions": "Bu kaynaklarda kendi izinlerinizle işlem yapın"
     },
     "error": {
       "failedToCreateSync": "Senkronizasyon oluşturulamadı",
@@ -7447,7 +7539,46 @@
       "inviteLinkRevoked": "Bu davet bağlantısı iptal edildi",
       "inviteLinkExhausted": "Bu davet bağlantısının tüm kullanım hakkı tükendi",
       "inviteLinkUnavailable": "Bu davet bağlantısı artık çalışmıyor",
-      "invalidEmailDomain": "acme.io gibi bir alan adı girin"
+      "invalidEmailDomain": "acme.io gibi bir alan adı girin",
+      "attachmentInvalidUrl": "http:// veya https:// ile başlayan bir URL ya da değişken kullanan bir şablon girin",
+      "attachmentAlreadyAttached": "Bu dosya zaten ekli.",
+      "attachmentOpenWorkflowToUpload": "Dosya yüklemek için iş akışını açın",
+      "attachmentNoLongerAvailable": "Bu dosya artık kullanılabilir değil",
+      "attachmentsTooLarge": "Dosyalar e-posta başına {size} sınırını aşıyor",
+      "factoryMachineNameRequired": "Makineye bir ad verin",
+      "factoryMachineNameDuplicate": "Bu ada sahip bir makine zaten var",
+      "vaultUnreachable": "Bu ayarlarla kasaya ulaşılamadı",
+      "vaultAliasStart": "Ad bir harfle başlamalıdır",
+      "vaultAliasCharacters": "Ad yalnızca harf ve rakam içerebilir — boşluk, tire veya alt çizgi olamaz",
+      "vaultAliasReserved": "'{name}' ayrılmış bir addır, başka bir tane seçin",
+      "fieldSaveFailed": "'{field}' alanı kaydedilemedi: {error}",
+      "fieldSavesFailed": "{count} alan kaydedilemedi ({fields}). İlk hata: {error}",
+      "projectNameRequired": "Proje adı zorunludur",
+      "attachmentUrlDownloadFailed": "NocoDB bu dosyayı URL'sinden indiremedi. Dosyayı kaldırıp yeniden ekleyin.",
+      "emailImageSize": "E-posta gövdesindeki görseller {size} boyutunun altında olmalıdır. Bir logo genellikle 100 KB'ın çok altındadır.",
+      "emailImageType": "PNG, JPEG, GIF veya WebP bir görsel kullanın",
+      "emailImageCount": "Bir e-posta gövdesi en fazla {count} görsel içerebilir",
+      "emailImageTotalSize": "E-posta gövdesindeki görsellerin toplamı {size} boyutunun altında olmalıdır",
+      "emailImageNoWorkflow": "Görsel eklemek için iş akışını açın",
+      "emailImageUploadFailed": "Görsel yüklenemedi",
+      "emailImageMissing": "Bu görsel artık kullanılabilir değil ve e-postaya dahil edilmeyecek. Kaldırıp yeniden ekleyin.",
+      "vaultSecretNeedsProperty": "Bu gizli bilgi birden fazla alan içeriyor. Kullanılacak olanı seçin, yoksa çalıştırıldığında bağlantı başarısız olur.",
+      "vaultUnknownAlias": "'{name}' adlı bir kasa size açık değil.",
+      "atLeastOneOperationRequired": "En az bir işlem seçilmelidir",
+      "triggerFormRequired": "Bir tetikleyici form seçmelisiniz",
+      "failedToStartListening": "Güncellemeleri dinlemeye başlanamadı",
+      "unknownPermissionRequested": "Bu sunucu böyle bir izin sunmuyor",
+      "authorizationWillBeRefused": "Bu istek, yukarıdaki izinler nedeniyle reddedilecek.",
+      "vaultAliasNotAllowed": "'{name}' kasasını kullanma izniniz yok. Bir çalışma alanı sahibinden erişim isteyin ya da kimlik bilgisini doğrudan girin.",
+      "selectTargetField": "Lütfen bir hedef alan seçin!",
+      "parentTableNoPrimaryKey": "Üst tabloda birincil anahtar sütunu yok",
+      "childTableNoPrimaryKey": "Alt tabloda birincil anahtar sütunu yok",
+      "noWorkspaceAvailable": "Kullanılabilir çalışma alanı yok",
+      "invalidJson": "Geçersiz JSON",
+      "invalidTokensJson": "Bu bir token dışa aktarımı değil. light, dark, font veya radiusScale gibi anahtarlar bekleniyor.",
+      "renameFileFailed": "Dosya yeniden adlandırılırken hata oluştu",
+      "failedToLoadMetadataDiff": "Meta veri farkı yüklenemedi",
+      "failedToLoadMonacoEditor": "Monaco Editor yüklenemedi"
     },
     "toast": {
       "inviteUrlCopy": "Davet bağlantısı kopyalandı",
@@ -7590,9 +7721,9 @@
       "failed": "Kayıt başarısız oldu",
       "paused": "Duraklatıldı"
     },
-    "agentToolsAndAccessSubtitle": "Ajan neleri kullanabilir? Erişebileceği araçları, sayfaları ve bağlantıları ekleyin.",
+    "agentToolsAndAccessSubtitle": "Bu ajan neleri okuyabilir ve değiştirebilir? Her biri için bir düzey seçin.",
     "agentNoFilters": "Henüz koşul yok",
-    "agentInstructionsSubtitle": "Ajan her çalıştığında ne yapmalı? İşte en iyi uygulamalar.",
+    "agentInstructionsSubtitle": "Ona bir ad verin, sonra bir ekip arkadaşınızı bilgilendirir gibi ne yapması gerektiğini yazın.",
     "communitySkillsSubtitle": "Yukarıdan skills.sh üzerinde paylaşılan skills içinde arama yapın, sonra kurmadan önce birini açıp SKILL.md dosyasını okuyun.",
     "environmentBlockedBySync": "Etkin senkronizasyonu olan bir proje için ortam açılamaz. Önce senkronizasyon yapılandırmalarını kaldırın.",
     "chatArtifactPublicLinkHint": "Bağlantıya sahip herkes bunu görüntüleyebilir.",
@@ -7757,7 +7888,14 @@
       "confirmCta": "Taşımayı onayla",
       "migrating": "Taşınıyor..."
     },
-    "skillsRegistryErrorTitle": "Beceri kayıt defterinde arama yapılamadı"
+    "skillsRegistryErrorTitle": "Beceri kayıt defterinde arama yapılamadı",
+    "airtableImportReportSummary": "{skipped} atlandı · {approximated} yaklaşık · {failed} başarısız",
+    "airtableImportReportTruncated": "Rapor, {total} öğenin ilk {shown} tanesini listeler. Tam liste için günlükleri indirin.",
+    "factoryMachineReadyNow": "Makine hazır. Yeni oturumlar onu kullanıyor.",
+    "factoryMachineSwitched": "Yeni oturumlar {version} sürümünü kullanacak.",
+    "factoryMachineDefaultNow": "Yeni oturumlar artık {machine} üzerinde başlıyor.",
+    "factoryMachineUpgrading": "{machine} yükseltiliyor. Derleme hazır olduğunda yeni oturumlar onu kullanacak.",
+    "factoryAppInstallUnavailable": "{provider} henüz kod ajanlarına bağlanamıyor. Bunun için bir uygulama kurulumu gerekiyor ve burada {provider} için kurulu bir tane yok."
   },
   "trash": {
     "restore": "Geri Yükle",

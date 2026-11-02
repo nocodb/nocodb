@@ -1689,7 +1689,7 @@
     "noMoreActionsToRedo": "لا مزيد من الإجراءات لإعادة العمل",
     "noRecentViews": "لا توجد مشاهدات حديثة",
     "expandLinkFields": "توسيع حقول الرابط",
-    "expandLinkFieldsDesc": "إرجاع بيانات السجل المرتبط بدلاً من العد",
+    "expandLinkFieldsDesc": "تحتوي حقول الارتباط في المخرجات على السجلات المرتبطة بدلاً من العدد",
     "inheritedFromParent": "موروث من الأصل",
     "pageOrUrl": "صفحة أو رابط",
     "linkTitle": "عنوان الرابط",
@@ -4780,7 +4780,7 @@
       },
       "optIn": {
         "title": "أدوات اختيارية",
-        "description": "أدوات تحذف نهائيًا أو تعمل خارج NocoDB، مثل تشغيل أتمتة أو إطلاق webhook. لا يحصل أي اتصال عليها ما لم تفعّلها هنا."
+        "description": "أدوات تحذف نهائيًا أو تعمل خارج NocoDB، مثل تشغيل أتمتة أو إطلاق خطاف ويب. تبقى معطّلة إلى أن تفعّلها من هنا."
       }
     },
     "noBaseAccess": "لا يوجد وصول إلى المشروع",
@@ -5778,7 +5778,88 @@
     "workflowValueDynamicDescription": "استخدام متغيرات من خطوة سابقة في هذه الأتمتة",
     "workflowRunAs": "التشغيل باسم",
     "workflowChangeRunAs": "تغيير التشغيل باسم",
-    "workflowServiceAccount": "حساب خدمة"
+    "workflowServiceAccount": "حساب خدمة",
+    "wsEmpty": {
+      "title": "ابدأ مشروعك الأول",
+      "subtitle": "يحتوي المشروع على بياناتك والتطبيقات المبنية عليها.",
+      "sharedTitle": "لم تتم مشاركة أي شيء معك بعد",
+      "sharedSubtitle": "تظهر هنا المشاريع والتطبيقات التي تُدعى إليها."
+    },
+    "workspaceHome": {
+      "uploadFile": "رفع ملف CSV أو Excel",
+      "pickTemplate": "أو اختر قالبًا للبدء",
+      "untitledBase": "مشروع بلا عنوان",
+      "templates": {
+        "projectManagement": {
+          "label": "إدارة المشاريع",
+          "prompt": "متتبّع للمشاريع يضم المشاريع والمهام، ولكل مهمة مسؤول وحالة وأولوية وتاريخ استحقاق."
+        },
+        "product": {
+          "label": "المنتج",
+          "prompt": "خارطة طريق للمنتج تضم الميزات والمشكلة التي تحلها كل منها والأولوية والحالة والإصدار المستهدف."
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "تقويم تسويقي يضم الحملات والقنوات التي تُعرض فيها كل حملة والميزانية والمسؤول وتاريخ الإطلاق."
+        },
+        "sales": {
+          "label": "المبيعات",
+          "prompt": "نظام CRM للمبيعات يضم الشركات وجهات الاتصال والصفقات، ولكل صفقة مرحلة وقيمة وتاريخ إغلاق متوقع."
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "مكتب دعم يضم التذاكر والعميل الذي أنشأ كل تذكرة والأولوية والحالة والوكيل المُسنَد."
+        },
+        "hr": {
+          "label": "الموارد البشرية",
+          "prompt": "متتبّع للمتقدمين يضم الوظائف الشاغرة والمرشحين حسب مرحلة التوظيف والمقابلات مع تواريخها وملاحظات المُقيّمين."
+        }
+      }
+    },
+    "yourConnections": "اتصالاتك",
+    "workingHours": "ساعات العمل",
+    "workingDays": "أيام العمل",
+    "wsNav": {
+      "groupBilling": "الخطة",
+      "groupAdmin": "الإدارة",
+      "membersPage": "أعضاء مساحة العمل",
+      "iconHint": "يظهر في الشريط الجانبي وفي مبدّل مساحات العمل.",
+      "nameHint": "الاسم الذي تظهر به مساحة العمل هذه في NocoDB بالكامل.",
+      "workspaceId": "معرّف مساحة العمل",
+      "workspaceIdHint": "استخدمه مع واجهة API، أو عند التواصل مع الدعم.",
+      "allTypes": "كل الأنواع",
+      "allTeams": "كل الفرق",
+      "teamsCreatedHere": "أُنشئ هنا",
+      "teamsScimManaged": "مُدار عبر SCIM",
+      "upgradeTitleAudits": "سجل تدقيق مساحة العمل",
+      "upgradeDescAudits": "اطّلع على كل تغيير جرى في مساحة العمل هذه، ومَن أجراه.",
+      "upgradeTitleSso": "الدخول الموحّد",
+      "upgradeDescSso": "اسمح للأعضاء بتسجيل الدخول عبر موفّر الهوية الخاص بك.",
+      "desc": {
+        "members": "من ينتمي إلى مساحة العمل هذه، وما دوره الافتراضي.",
+        "teams": "مجموعات من الأعضاء يمكنك إضافتها إلى المشاريع دفعة واحدة.",
+        "integrations": "الحسابات المتصلة وبيانات الاعتماد المشتركة عبر مساحة العمل.",
+        "general": "اسم مساحة العمل وأيقونتها ومعرّفها.",
+        "skills": "التعليمات التي يتبعها مساعد الذكاء الاصطناعي في مساحة العمل هذه.",
+        "security": "متطلبات تسجيل الدخول لكل من في مساحة العمل هذه.",
+        "dangerZone": "مغادرة مساحة العمل هذه أو حذفها نهائيًا.",
+        "billing": "خطتك والمقاعد وطريقة الدفع والفواتير.",
+        "usage": "ما تستهلكه مساحة العمل هذه من حدود خطتها.",
+        "audits": "كل تغيير جرى في مساحة العمل هذه، ومَن أجراه.",
+        "sso": "تسجيل الدخول عبر موفّر الهوية الخاص بك."
+      }
+    },
+    "workspaceMode": "وضع مساحة العمل",
+    "zoomIn": "تكبير",
+    "zoomOut": "تصغير",
+    "zoomTo50Percent": "تكبير إلى 50%",
+    "zoomTo100Percent": "تكبير إلى 100%",
+    "workflowValueStatic": "ثابت",
+    "workflowValueStaticDescription": "أدخل القيم مباشرة",
+    "workspaceNoAccess": "مساحة العمل (لا يوجد وصول)",
+    "yAxis": "المحور ص",
+    "workspaceSettings": "إعدادات مساحة العمل",
+    "wrapLongText": "التفاف النص الطويل"
   },
   "activity": {
     "useTemplate": "استخدام القالب",
@@ -7138,8 +7219,6 @@
       "selectFieldFirst": "حدِّد {field} أولًا لتحميل هذه الخيارات.",
       "viewFolderDeleteConfirmation": "ستُنقل طرق العرض في هذا المجلد إلى المستوى الأعلى.",
       "saveDraftToBrowser": "حفظ المسودة في المتصفح",
-      "showAppFirst": "إظهار التطبيق أولًا في الشريط الجانبي",
-      "showAppFirstDesc": "ضع Apps فوق البيانات في الشريط الجانبي لهذا المشروع.",
       "recordSavedButHidden": "تم حفظ السجل بنجاح، لكنه مخفي بسبب أذونات الوصول الخاصة بك.",
       "seeChangesToRecord": "اطّلع على تغييرات هذا السجل",
       "revisionHistoryUpgrade": "لديك {limit} من سجل المراجعات. قم بالترقية لعرض السجل كاملًا.",
@@ -7242,7 +7321,20 @@
       "mcpSetupCursorStep3": "أضِف إعداد JSON الذي يُعطى بعد إنشاء رمز مميز.",
       "mcpSetupIntroWindsurf": "ابدأ استخدام NocoDB MCP مع Windsurf في 4 خطوات بسيطة",
       "mcpSetupWindsurfStep1": "ادخل إلى إعدادات Windsurf واختر تبويب Cascade في الشريط الجانبي الأيسر",
-      "mcpSetupWindsurfStep2": "انقر على Manage MCP."
+      "mcpSetupWindsurfStep2": "انقر على Manage MCP.",
+      "abuseReport": {
+        "queueDescription": "بلاغات قُدِّمت عبر روابط عامة. عطّل رابطًا لإزالته، أو احظر الحسابات التي تقف خلفه.",
+        "disableConfirm": "يتوقف الرابط العام عن العمل للجميع، وتُعتبر كل البلاغات المفتوحة بشأنه محلولة. يمكن للمالك مشاركة العنصر من جديد برابط جديد.",
+        "blockConfirm": "تم تسجيل خروج {email} من كل مكان ولم يعد بإمكانه تسجيل الدخول أو استخدام رموز API. يمكنك رفع الحظر عنه من إدارة المستخدمين.",
+        "noAccounts": "لا توجد حسابات مرتبطة بهذا العنصر.",
+        "superAdminNotBlockable": "لا يمكن حظر المشرفين العامين.",
+        "description": "هل تعتقد أن هذه الصفحة تُستخدم للتصيّد الاحتيالي أو انتحال الهوية أو الاحتيال أو أي أغراض مسيئة أخرى؟ أبلغ مشرفي نسخة {productName} هذه.",
+        "detailsMin": "يرجى وصف المشكلة بما لا يقل عن {min} حرفًا.",
+        "thanksTitle": "شكرًا لك على بلاغك",
+        "thanksDescription": "تم استلام بلاغك. سيراجعه مشرفو نسخة {productName} هذه.",
+        "contactEmailHint": "تُرسل البلاغات الواردة من طرق العرض والنماذج والواجهات ولوحات المعلومات العامة إلى هذا العنوان. اتركه فارغًا لإرسالها إلى جميع المشرفين العامين."
+      },
+      "actWithYourOwnPermissions": "التصرف بصلاحياتك الخاصة في تلك الموارد"
     },
     "error": {
       "failedToCreateSync": "فشل في إنشاء المزامنة",
@@ -7455,7 +7547,46 @@
       "inviteLinkExhausted": "استُخدم رابط الدعوة هذا بالكامل",
       "inviteLinkUnavailable": "لم يعد رابط الدعوة هذا يعمل",
       "invalidEmailDomain": "أدخل نطاقًا مثل acme.io",
-      "projectNotAccessible": "المشروع غير متاح"
+      "projectNotAccessible": "المشروع غير متاح",
+      "attachmentInvalidUrl": "أدخل عنوان URL يبدأ بـ http:// أو https://، أو قالبًا يستخدم المتغيرات",
+      "attachmentAlreadyAttached": "هذا الملف مرفق بالفعل.",
+      "attachmentOpenWorkflowToUpload": "افتح سير العمل لرفع الملفات",
+      "attachmentNoLongerAvailable": "لم يعد هذا الملف متاحًا",
+      "attachmentsTooLarge": "تتجاوز الملفات حد {size} لكل رسالة بريد",
+      "factoryMachineNameRequired": "أعطِ الجهاز اسمًا",
+      "factoryMachineNameDuplicate": "يوجد بالفعل جهاز بهذا الاسم",
+      "vaultUnreachable": "تعذّر الوصول إلى الخزنة بهذه الإعدادات",
+      "vaultAliasStart": "يجب أن يبدأ الاسم بحرف",
+      "vaultAliasCharacters": "يمكن أن يحتوي الاسم على حروف وأرقام فقط — بدون مسافات أو شرطات أو شرطات سفلية",
+      "vaultAliasReserved": "«{name}» اسم محجوز، اختر اسمًا آخر",
+      "fieldSaveFailed": "تعذّر حفظ الحقل «{field}»: {error}",
+      "fieldSavesFailed": "تعذّر حفظ {count} من الحقول ({fields}). الخطأ الأول: {error}",
+      "projectNameRequired": "اسم المشروع مطلوب",
+      "attachmentUrlDownloadFailed": "تعذّر على NocoDB تنزيل هذا الملف من عنوان URL الخاص به. أزله ثم أضف الملف من جديد.",
+      "emailImageSize": "يجب أن تكون الصور في نص الرسالة أصغر من {size}. الشعار عادةً أقل بكثير من 100 كيلوبايت.",
+      "emailImageType": "استخدم صورة بصيغة PNG أو JPEG أو GIF أو WebP",
+      "emailImageCount": "يمكن أن يحتوي نص الرسالة على {count} صورة كحد أقصى",
+      "emailImageTotalSize": "يجب ألا يتجاوز مجموع الصور في نص الرسالة {size}",
+      "emailImageNoWorkflow": "افتح سير العمل لإضافة الصور",
+      "emailImageUploadFailed": "تعذّر رفع الصورة",
+      "emailImageMissing": "لم تعد هذه الصورة متاحة وسيتم استبعادها من الرسالة. أزلها ثم أدرجها من جديد.",
+      "vaultSecretNeedsProperty": "يحتوي هذا السر على عدة حقول. اختر الحقل الذي سيُستخدم، وإلا سيفشل الاتصال عند التشغيل.",
+      "vaultUnknownAlias": "لا تتوفر لك أي خزنة باسم «{name}».",
+      "atLeastOneOperationRequired": "يجب اختيار عملية واحدة على الأقل",
+      "triggerFormRequired": "يجب اختيار نموذج مُشغِّل",
+      "failedToStartListening": "تعذّر بدء الاستماع إلى التحديثات",
+      "unknownPermissionRequested": "هذا الإذن غير متوفر على هذا الخادم",
+      "authorizationWillBeRefused": "سيُرفض هذا الطلب بسبب الأذونات المذكورة أعلاه.",
+      "vaultAliasNotAllowed": "غير مسموح لك باستخدام الخزنة «{name}». اطلب الوصول من أحد مالكي مساحة العمل، أو أدخل بيانات الاعتماد مباشرة.",
+      "selectTargetField": "يرجى اختيار حقل الهدف!",
+      "parentTableNoPrimaryKey": "الجدول الأصل لا يحتوي على عمود مفتاح أساسي",
+      "childTableNoPrimaryKey": "الجدول الفرعي لا يحتوي على عمود مفتاح أساسي",
+      "noWorkspaceAvailable": "لا توجد مساحة عمل متاحة",
+      "invalidJson": "JSON غير صالح",
+      "invalidTokensJson": "هذا ليس تصديرًا للرموز. المتوقع مفاتيح مثل light أو dark أو font أو radiusScale.",
+      "renameFileFailed": "حدث خطأ أثناء إعادة تسمية الملف",
+      "failedToLoadMetadataDiff": "تعذّر تحميل فروق البيانات الوصفية",
+      "failedToLoadMonacoEditor": "تعذّر تحميل Monaco Editor"
     },
     "toast": {
       "inviteUrlCopy": "تم نسخ رابط الدعوة للحافظة",
@@ -7598,9 +7729,9 @@
       "failed": "فشل التسجيل",
       "paused": "متوقف مؤقتًا"
     },
-    "agentToolsAndAccessSubtitle": "ما الذي يمكن للوكيل استخدامه؟ أضف الأدوات والصفحات والاتصالات التي يمكنه الوصول إليها.",
+    "agentToolsAndAccessSubtitle": "ما الذي يستطيع هذا الوكيل قراءته وتغييره؟ اختر مستوى لكل بند.",
     "agentNoFilters": "لا توجد شروط بعد",
-    "agentInstructionsSubtitle": "ماذا ينبغي أن يفعل الوكيل في كل مرة يعمل فيها؟ إليك أفضل الممارسات.",
+    "agentInstructionsSubtitle": "سمِّه، ثم اكتب ما ينبغي أن يفعله كما لو كنت تشرح المهمة لزميل في الفريق.",
     "communitySkillsSubtitle": "ابحث في الأعلى عن Skills المشاركة على skills.sh، ثم افتح واحدة لقراءة ملف SKILL.md الخاص بها قبل التثبيت.",
     "environmentBlockedBySync": "لا يمكن فتح بيئة لمشروع تعمل فيه مزامنة نشطة. أزل إعدادات المزامنة أولًا.",
     "chatArtifactPublicLinkHint": "يمكن لأي شخص لديه الرابط عرض هذا.",
@@ -7765,7 +7896,14 @@
       "confirmCta": "تأكيد الترحيل",
       "migrating": "جارٍ الترحيل..."
     },
-    "skillsRegistryErrorTitle": "تعذّر البحث في سجل المهارات"
+    "skillsRegistryErrorTitle": "تعذّر البحث في سجل المهارات",
+    "airtableImportReportSummary": "{skipped} تم تخطيها · {approximated} تم تقريبها · {failed} فشلت",
+    "airtableImportReportTruncated": "يعرض التقرير أول {shown} من أصل {total} عنصر. نزّل السجلات للاطلاع على القائمة الكاملة.",
+    "factoryMachineReadyNow": "الجهاز جاهز. الجلسات الجديدة تستخدمه.",
+    "factoryMachineSwitched": "ستستخدم الجلسات الجديدة الإصدار {version}.",
+    "factoryMachineDefaultNow": "تبدأ الجلسات الجديدة الآن على {machine}.",
+    "factoryMachineUpgrading": "يجري ترقية {machine}. ستستخدمه الجلسات الجديدة عندما تصبح البنية جاهزة.",
+    "factoryAppInstallUnavailable": "لا يمكن حتى الآن ربط {provider} بوكلاء البرمجة. فهم يحتاجون إلى تثبيت تطبيق، ولا يوجد أي تطبيق مُعدّ لـ {provider} هنا."
   },
   "trash": {
     "restore": "إستعادة",

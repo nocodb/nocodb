@@ -1687,7 +1687,7 @@
     "noMoreActionsToRedo": "Nu mai sunt acțiuni de refăcut",
     "noRecentViews": "Nicio vizualizare recentă",
     "expandLinkFields": "Extinde câmpurile link-urilor",
-    "expandLinkFieldsDesc": "Date de înregistrare legate de retur în loc de numărare",
+    "expandLinkFieldsDesc": "Câmpurile de legătură din rezultat conțin înregistrările legate, nu un număr",
     "inheritedFromParent": "Moștenit de la părinte",
     "pageOrUrl": "Pagina sau URL-ul",
     "linkTitle": "Titlu link",
@@ -4767,7 +4767,7 @@
       },
       "optIn": {
         "title": "Instrumente opționale",
-        "description": "Instrumente care șterg definitiv sau acționează în afara NocoDB, cum ar fi rularea unei automatizări sau declanșarea unui webhook. O conexiune nu le primește niciodată dacă nu le activați aici."
+        "description": "Instrumente care șterg definitiv sau acționează în afara NocoDB, cum ar fi rularea unei automatizări sau declanșarea unui webhook. Rămân dezactivate până le activezi aici."
       }
     },
     "noBaseAccess": "Fără acces la proiect",
@@ -5753,7 +5753,88 @@
     "workflowValueDynamicDescription": "Folosește variabile dintr-un pas anterior al acestei automatizări",
     "workflowRunAs": "Rulează ca",
     "workflowChangeRunAs": "Schimbă rulează ca",
-    "workflowServiceAccount": "Cont de serviciu"
+    "workflowServiceAccount": "Cont de serviciu",
+    "wsEmpty": {
+      "title": "Începe primul tău proiect",
+      "subtitle": "Un proiect conține datele tale și aplicațiile construite pe ele.",
+      "sharedTitle": "Încă nu s-a partajat nimic cu tine",
+      "sharedSubtitle": "Proiectele și aplicațiile la care ești invitat apar aici."
+    },
+    "workspaceHome": {
+      "uploadFile": "Încarcă CSV sau Excel",
+      "pickTemplate": "Sau alege un șablon de pornire",
+      "untitledBase": "Proiect fără titlu",
+      "templates": {
+        "projectManagement": {
+          "label": "Managementul proiectelor",
+          "prompt": "O evidență a proiectelor cu proiecte și sarcini, fiecare sarcină având un responsabil, o stare, o prioritate și un termen."
+        },
+        "product": {
+          "label": "Produs",
+          "prompt": "O foaie de parcurs a produsului cu funcționalități, problema pe care o rezolvă fiecare, prioritate, stare și versiunea țintă."
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "Un calendar de marketing cu campanii, canalele pe care rulează fiecare, buget, responsabil și dată de lansare."
+        },
+        "sales": {
+          "label": "Vânzări",
+          "prompt": "Un CRM de vânzări cu companii, persoane de contact și oportunități, unde fiecare oportunitate are o etapă, o valoare și o dată estimată de finalizare."
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "Un birou de asistență cu tichete, clientul care a deschis fiecare tichet, prioritate, stare și agentul alocat."
+        },
+        "hr": {
+          "label": "Resurse umane",
+          "prompt": "O evidență a candidaturilor cu posturi deschise, candidați pe etape de recrutare și interviuri cu date și notițe ale evaluatorilor."
+        }
+      }
+    },
+    "yourConnections": "Conexiunile tale",
+    "workingHours": "Program de lucru",
+    "workingDays": "Zile lucrătoare",
+    "wsNav": {
+      "groupBilling": "Plan",
+      "groupAdmin": "Admin",
+      "membersPage": "Membrii spațiului de lucru",
+      "iconHint": "Se afișează în bara laterală și în selectorul de spații de lucru.",
+      "nameHint": "Cum se numește acest spațiu de lucru în tot NocoDB.",
+      "workspaceId": "ID-ul spațiului de lucru",
+      "workspaceIdHint": "Folosește-l cu API-ul sau când contactezi asistența.",
+      "allTypes": "Toate tipurile",
+      "allTeams": "Toate echipele",
+      "teamsCreatedHere": "Creată aici",
+      "teamsScimManaged": "Gestionată prin SCIM",
+      "upgradeTitleAudits": "Jurnalul de audit al spațiului de lucru",
+      "upgradeDescAudits": "Vezi fiecare modificare făcută în acest spațiu de lucru și cine a făcut-o.",
+      "upgradeTitleSso": "Autentificare unică",
+      "upgradeDescSso": "Permite membrilor să se autentifice prin furnizorul tău de identitate.",
+      "desc": {
+        "members": "Cine face parte din acest spațiu de lucru și care este rolul lor implicit.",
+        "teams": "Grupuri de membri pe care îi poți adăuga împreună în proiecte.",
+        "integrations": "Conturi conectate și credențiale partajate în tot spațiul de lucru.",
+        "general": "Numele, pictograma și ID-ul spațiului de lucru.",
+        "skills": "Instrucțiunile pe care asistentul AI le urmează în tot acest spațiu de lucru.",
+        "security": "Cerințe de autentificare pentru toți cei din acest spațiu de lucru.",
+        "dangerZone": "Părăsește sau șterge definitiv acest spațiu de lucru.",
+        "billing": "Planul tău, locurile, metoda de plată și facturile.",
+        "usage": "Cât consumă acest spațiu de lucru din limitele planului său.",
+        "audits": "Fiecare modificare făcută în acest spațiu de lucru și cine a făcut-o.",
+        "sso": "Autentificare prin furnizorul tău de identitate."
+      }
+    },
+    "workspaceMode": "Mod spațiu de lucru",
+    "zoomIn": "Mărește",
+    "zoomOut": "Micșorează",
+    "zoomTo50Percent": "Mărește la 50%",
+    "zoomTo100Percent": "Mărește la 100%",
+    "workflowValueStatic": "Statică",
+    "workflowValueStaticDescription": "Introdu valorile direct",
+    "workspaceNoAccess": "Spațiu de lucru (fără acces)",
+    "yAxis": "Axa Y",
+    "workspaceSettings": "Setările spațiului de lucru",
+    "wrapLongText": "Încadrează textul lung"
   },
   "activity": {
     "useTemplate": "Folosește șablon",
@@ -7110,8 +7191,6 @@
       "selectFieldFirst": "Selectează mai întâi {field} pentru a încărca aceste opțiuni.",
       "viewFolderDeleteConfirmation": "Vizualizările din acest dosar vor fi mutate la nivelul superior.",
       "saveDraftToBrowser": "Salvează ciorna în browser",
-      "showAppFirst": "Afișează aplicația prima în bara laterală",
-      "showAppFirstDesc": "Pune Apps deasupra secțiunii Date în bara laterală a acestui proiect.",
       "recordSavedButHidden": "Înregistrarea a fost salvată, dar este ascunsă din cauza permisiunilor tale de acces.",
       "seeChangesToRecord": "Vezi modificările acestei înregistrări",
       "revisionHistoryUpgrade": "Ai {limit} de istoric al reviziilor. Treci la un plan superior pentru a vedea istoricul complet.",
@@ -7214,7 +7293,20 @@
       "mcpSetupCursorStep3": "Adaugă configurația JSON furnizată după crearea unui token.",
       "mcpSetupIntroWindsurf": "Începe cu NocoDB MCP și Windsurf în 4 pași simpli",
       "mcpSetupWindsurfStep1": "Accesează setările Windsurf și selectează fila Cascade din bara laterală din stânga",
-      "mcpSetupWindsurfStep2": "Dă clic pe Manage MCP."
+      "mcpSetupWindsurfStep2": "Dă clic pe Manage MCP.",
+      "abuseReport": {
+        "queueDescription": "Sesizări depuse din linkuri publice. Dezactivează un link pentru a-l retrage sau blochează conturile din spatele lui.",
+        "disableConfirm": "Linkul public încetează să funcționeze pentru toată lumea, iar toate sesizările deschise despre el sunt rezolvate. Proprietarul poate partaja din nou elementul cu un link nou.",
+        "blockConfirm": "{email} a fost deconectat peste tot și nu se mai poate autentifica și nici nu mai poate folosi tokenuri API. Îl poți debloca din gestionarea utilizatorilor.",
+        "noAccounts": "Niciun cont nu este asociat cu acest element.",
+        "superAdminNotBlockable": "Superadministratorii nu pot fi blocați.",
+        "description": "Crezi că această pagină este folosită pentru phishing, uzurpare de identitate, escrocherii sau alte scopuri abuzive? Anunță administratorii acestei instanțe {productName}.",
+        "detailsMin": "Te rugăm să descrii problema în cel puțin {min} caractere.",
+        "thanksTitle": "Îți mulțumim pentru sesizare",
+        "thanksDescription": "Sesizarea ta a fost primită. Administratorii acestei instanțe {productName} o vor analiza.",
+        "contactEmailHint": "Sesizările din vizualizări, formulare, interfețe și panouri publice sunt trimise pe e-mail aici. Lasă gol pentru a le trimite tuturor superadministratorilor."
+      },
+      "actWithYourOwnPermissions": "Acționează cu propriile tale permisiuni în acele resurse"
     },
     "error": {
       "failedToCreateSync": "Crearea sincronizării a eșuat",
@@ -7427,7 +7519,46 @@
       "inviteLinkRevoked": "Acest link de invitație a fost revocat",
       "inviteLinkExhausted": "Acest link de invitație a fost folosit complet",
       "inviteLinkUnavailable": "Acest link de invitație nu mai funcționează",
-      "invalidEmailDomain": "Introdu un domeniu precum acme.io"
+      "invalidEmailDomain": "Introdu un domeniu precum acme.io",
+      "attachmentInvalidUrl": "Introdu un URL care începe cu http:// sau https://, ori un șablon care folosește variabile",
+      "attachmentAlreadyAttached": "Acest fișier este deja atașat.",
+      "attachmentOpenWorkflowToUpload": "Deschide fluxul de lucru pentru a încărca fișiere",
+      "attachmentNoLongerAvailable": "Acest fișier nu mai este disponibil",
+      "attachmentsTooLarge": "Fișierele depășesc limita de {size} per e-mail",
+      "factoryMachineNameRequired": "Dă un nume mașinii",
+      "factoryMachineNameDuplicate": "Există deja o mașină cu acest nume",
+      "vaultUnreachable": "Seiful nu a putut fi contactat cu aceste setări",
+      "vaultAliasStart": "Numele trebuie să înceapă cu o literă",
+      "vaultAliasCharacters": "Numele poate conține doar litere și cifre — fără spații, cratime sau underscore",
+      "vaultAliasReserved": "„{name}” este un nume rezervat, alege altul",
+      "fieldSaveFailed": "Câmpul „{field}” nu a putut fi salvat: {error}",
+      "fieldSavesFailed": "Nu s-au putut salva {count} câmpuri ({fields}). Prima eroare: {error}",
+      "projectNameRequired": "Numele proiectului este obligatoriu",
+      "attachmentUrlDownloadFailed": "NocoDB nu a putut descărca acest fișier de la URL-ul său. Elimină-l și adaugă fișierul din nou.",
+      "emailImageSize": "Imaginile din corpul unui e-mail trebuie să fie sub {size}. Un logo stă de obicei mult sub 100 KB.",
+      "emailImageType": "Folosește o imagine PNG, JPEG, GIF sau WebP",
+      "emailImageCount": "Corpul unui e-mail poate conține cel mult {count} imagini",
+      "emailImageTotalSize": "Imaginile din corpul unui e-mail trebuie să însumeze sub {size}",
+      "emailImageNoWorkflow": "Deschide fluxul de lucru pentru a adăuga imagini",
+      "emailImageUploadFailed": "Imaginea nu a putut fi încărcată",
+      "emailImageMissing": "Această imagine nu mai este disponibilă și va fi omisă din e-mail. Elimin-o și inserează-o din nou.",
+      "vaultSecretNeedsProperty": "Acest secret conține mai multe câmpuri. Alege-l pe cel de folosit, altfel conexiunea va eșua la rulare.",
+      "vaultUnknownAlias": "Niciun seif cu numele „{name}” nu îți este disponibil.",
+      "atLeastOneOperationRequired": "Trebuie selectată cel puțin o operațiune",
+      "triggerFormRequired": "Trebuie să selectezi un formular declanșator",
+      "failedToStartListening": "Ascultarea actualizărilor nu a putut fi pornită",
+      "unknownPermissionRequested": "Serverul nu oferă această permisiune",
+      "authorizationWillBeRefused": "Această cerere va fi respinsă din cauza permisiunilor de mai sus.",
+      "vaultAliasNotAllowed": "Nu ai voie să folosești seiful „{name}”. Cere acces unui proprietar al spațiului de lucru sau introdu credențialul direct.",
+      "selectTargetField": "Selectează un câmp țintă!",
+      "parentTableNoPrimaryKey": "Tabelul părinte nu are o coloană de cheie primară",
+      "childTableNoPrimaryKey": "Tabelul copil nu are o coloană de cheie primară",
+      "noWorkspaceAvailable": "Niciun spațiu de lucru disponibil",
+      "invalidJson": "JSON nevalid",
+      "invalidTokensJson": "Nu este un export de tokenuri. Se așteaptă chei precum light, dark, font sau radiusScale.",
+      "renameFileFailed": "Eroare la redenumirea fișierului",
+      "failedToLoadMetadataDiff": "Diferențele de metadate nu au putut fi încărcate",
+      "failedToLoadMonacoEditor": "Monaco Editor nu a putut fi încărcat"
     },
     "toast": {
       "inviteUrlCopy": "URL-ul de invitație copiat în clipboard",
@@ -7570,9 +7701,9 @@
       "failed": "Înregistrarea a eșuat",
       "paused": "În pauză"
     },
-    "agentToolsAndAccessSubtitle": "Ce poate folosi agentul? Adaugă instrumente, pagini și conexiuni pe care le poate accesa.",
+    "agentToolsAndAccessSubtitle": "Ce poate citi și modifica acest agent? Alege un nivel pentru fiecare.",
     "agentNoFilters": "Încă nu există condiții",
-    "agentInstructionsSubtitle": "Ce ar trebui să facă agentul de fiecare dată când rulează? Iată bunele practici.",
+    "agentInstructionsSubtitle": "Dă-i un nume, apoi scrie ce ar trebui să facă, așa cum i-ai explica unui coleg.",
     "communitySkillsSubtitle": "Caută mai sus skills partajate pe skills.sh, apoi deschide unul ca să îi citești SKILL.md înainte de instalare.",
     "environmentBlockedBySync": "Nu se poate deschide un mediu pentru un proiect cu sincronizare activă. Elimină mai întâi configurațiile de sincronizare.",
     "chatArtifactPublicLinkHint": "Oricine are linkul poate vedea asta.",
@@ -7737,7 +7868,14 @@
       "confirmCta": "Confirmă migrarea",
       "migrating": "Se migrează..."
     },
-    "skillsRegistryErrorTitle": "Nu s-a putut căuta în registrul de competențe"
+    "skillsRegistryErrorTitle": "Nu s-a putut căuta în registrul de competențe",
+    "airtableImportReportSummary": "{skipped} omise · {approximated} aproximate · {failed} eșuate",
+    "airtableImportReportTruncated": "Raportul listează primele {shown} din {total} elemente. Descarcă jurnalele pentru lista completă.",
+    "factoryMachineReadyNow": "Mașina este gata. Sesiunile noi o folosesc.",
+    "factoryMachineSwitched": "Sesiunile noi vor folosi versiunea {version}.",
+    "factoryMachineDefaultNow": "Sesiunile noi pornesc acum pe {machine}.",
+    "factoryMachineUpgrading": "Se actualizează {machine}. Sesiunile noi o vor folosi când compilarea este gata.",
+    "factoryAppInstallUnavailable": "{provider} nu poate fi încă conectat la agenți de programare. Este nevoie de o instalare de aplicație, iar aici nu există niciuna configurată pentru {provider}."
   },
   "trash": {
     "restore": "Restaurează",

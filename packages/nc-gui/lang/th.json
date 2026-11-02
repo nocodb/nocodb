@@ -1689,7 +1689,7 @@
     "noMoreActionsToRedo": "No more actions to redo",
     "noRecentViews": "No recent views",
     "expandLinkFields": "Expand link fields",
-    "expandLinkFieldsDesc": "Return linked record data instead of count",
+    "expandLinkFieldsDesc": "ฟิลด์ลิงก์ในผลลัพธ์จะเก็บเรกคอร์ดที่เชื่อมโยงไว้แทนจำนวนนับ",
     "inheritedFromParent": "Inherited from parent",
     "pageOrUrl": "Page or URL",
     "linkTitle": "Link title",
@@ -4780,7 +4780,7 @@
       },
       "optIn": {
         "title": "เครื่องมือแบบเลือกเปิด",
-        "description": "เครื่องมือที่ลบอย่างถาวรหรือทำงานนอก NocoDB เช่น การรันออโตเมชันหรือยิง webhook การเชื่อมต่อจะไม่ได้รับเครื่องมือเหล่านี้เลย เว้นแต่คุณเปิดใช้ที่นี่"
+        "description": "เครื่องมือที่ลบอย่างถาวรหรือทำงานนอก NocoDB เช่น เรียกใช้การทำงานอัตโนมัติหรือยิงเว็บฮุก เครื่องมือเหล่านี้จะปิดอยู่จนกว่าคุณจะเปิดที่นี่"
       }
     },
     "noBaseAccess": "ไม่มีสิทธิ์เข้าถึงโปรเจกต์",
@@ -5776,7 +5776,88 @@
     "workflowValueDynamicDescription": "ใช้ตัวแปรจากขั้นตอนก่อนหน้าของระบบอัตโนมัตินี้",
     "workflowRunAs": "เรียกใช้ในฐานะ",
     "workflowChangeRunAs": "เปลี่ยนการเรียกใช้ในฐานะ",
-    "workflowServiceAccount": "บัญชีบริการ"
+    "workflowServiceAccount": "บัญชีบริการ",
+    "wsEmpty": {
+      "title": "เริ่มโปรเจกต์แรกของคุณ",
+      "subtitle": "โปรเจกต์เก็บข้อมูลของคุณและแอปที่สร้างบนข้อมูลนั้น",
+      "sharedTitle": "ยังไม่มีใครแชร์อะไรกับคุณ",
+      "sharedSubtitle": "โปรเจกต์และแอปที่คุณได้รับเชิญจะแสดงที่นี่"
+    },
+    "workspaceHome": {
+      "uploadFile": "อัปโหลด CSV หรือ Excel",
+      "pickTemplate": "หรือเลือกเทมเพลตเพื่อเริ่มต้น",
+      "untitledBase": "โปรเจกต์ที่ไม่มีชื่อ",
+      "templates": {
+        "projectManagement": {
+          "label": "การบริหารโครงการ",
+          "prompt": "ระบบติดตามโครงการที่มีโครงการและงาน โดยแต่ละงานมีผู้รับผิดชอบ สถานะ ลำดับความสำคัญ และกำหนดส่ง"
+        },
+        "product": {
+          "label": "ผลิตภัณฑ์",
+          "prompt": "แผนงานผลิตภัณฑ์ที่มีฟีเจอร์ ปัญหาที่แต่ละฟีเจอร์แก้ไข ลำดับความสำคัญ สถานะ และเวอร์ชันเป้าหมาย"
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "ปฏิทินการตลาดที่มีแคมเปญ ช่องทางที่แต่ละแคมเปญทำงาน งบประมาณ ผู้รับผิดชอบ และวันเริ่มต้น"
+        },
+        "sales": {
+          "label": "การขาย",
+          "prompt": "CRM ฝ่ายขายที่มีบริษัท ผู้ติดต่อ และดีล โดยแต่ละดีลมีขั้นตอน มูลค่า และวันที่คาดว่าจะปิดการขาย"
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "ศูนย์ช่วยเหลือที่มีทิกเก็ต ลูกค้าที่แจ้งเรื่องแต่ละราย ลำดับความสำคัญ สถานะ และเจ้าหน้าที่ที่ได้รับมอบหมาย"
+        },
+        "hr": {
+          "label": "ฝ่ายบุคคล",
+          "prompt": "ระบบติดตามผู้สมัครที่มีตำแหน่งที่เปิดรับ ผู้สมัครแยกตามขั้นตอนการจ้างงาน และการสัมภาษณ์พร้อมวันที่และบันทึกของผู้สัมภาษณ์"
+        }
+      }
+    },
+    "yourConnections": "การเชื่อมต่อของคุณ",
+    "workingHours": "เวลาทำงาน",
+    "workingDays": "วันทำงาน",
+    "wsNav": {
+      "groupBilling": "Plan",
+      "groupAdmin": "Admin",
+      "membersPage": "สมาชิกพื้นที่ทำงาน",
+      "iconHint": "แสดงในแถบด้านข้างและในตัวสลับพื้นที่ทำงาน",
+      "nameHint": "ชื่อที่ใช้เรียกพื้นที่ทำงานนี้ทั่วทั้ง NocoDB",
+      "workspaceId": "ID พื้นที่ทำงาน",
+      "workspaceIdHint": "ใช้กับ API หรือเมื่อติดต่อฝ่ายสนับสนุน",
+      "allTypes": "ทุกประเภท",
+      "allTeams": "ทุกทีม",
+      "teamsCreatedHere": "สร้างที่นี่",
+      "teamsScimManaged": "จัดการด้วย SCIM",
+      "upgradeTitleAudits": "บันทึกการตรวจสอบของพื้นที่ทำงาน",
+      "upgradeDescAudits": "ดูทุกการเปลี่ยนแปลงในพื้นที่ทำงานนี้ และผู้ที่ทำการเปลี่ยนแปลง",
+      "upgradeTitleSso": "การลงชื่อเข้าใช้ครั้งเดียว",
+      "upgradeDescSso": "ให้สมาชิกลงชื่อเข้าใช้ผ่านผู้ให้บริการข้อมูลประจำตัวของคุณ",
+      "desc": {
+        "members": "ใครอยู่ในพื้นที่ทำงานนี้ และบทบาทเริ่มต้นของพวกเขา",
+        "teams": "กลุ่มสมาชิกที่คุณเพิ่มเข้าโปรเจกต์พร้อมกันได้",
+        "integrations": "บัญชีที่เชื่อมต่อและข้อมูลรับรองที่ใช้ร่วมกันทั้งพื้นที่ทำงาน",
+        "general": "ชื่อ ไอคอน และ ID ของพื้นที่ทำงาน",
+        "skills": "คำสั่งที่ผู้ช่วย AI ปฏิบัติตามทั่วทั้งพื้นที่ทำงานนี้",
+        "security": "ข้อกำหนดการลงชื่อเข้าใช้สำหรับทุกคนในพื้นที่ทำงานนี้",
+        "dangerZone": "ออกจากพื้นที่ทำงานนี้หรือลบอย่างถาวร",
+        "billing": "แพ็กเกจ ที่นั่ง วิธีการชำระเงิน และใบแจ้งหนี้ของคุณ",
+        "usage": "ปริมาณที่พื้นที่ทำงานนี้ใช้เทียบกับขีดจำกัดของแพ็กเกจ",
+        "audits": "ทุกการเปลี่ยนแปลงในพื้นที่ทำงานนี้ และผู้ที่ทำการเปลี่ยนแปลง",
+        "sso": "ลงชื่อเข้าใช้ผ่านผู้ให้บริการข้อมูลประจำตัวของคุณ"
+      }
+    },
+    "workspaceMode": "โหมดพื้นที่ทำงาน",
+    "zoomIn": "ขยาย",
+    "zoomOut": "ย่อ",
+    "zoomTo50Percent": "ซูมเป็น 50%",
+    "zoomTo100Percent": "ซูมเป็น 100%",
+    "workflowValueStatic": "คงที่",
+    "workflowValueStaticDescription": "กรอกค่าโดยตรง",
+    "workspaceNoAccess": "พื้นที่ทำงาน (ไม่มีสิทธิ์เข้าถึง)",
+    "yAxis": "แกน Y",
+    "workspaceSettings": "การตั้งค่าพื้นที่ทำงาน",
+    "wrapLongText": "ตัดขึ้นบรรทัดใหม่สำหรับข้อความยาว"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -7136,8 +7217,6 @@
       "selectFieldFirst": "เลือก {field} ก่อนเพื่อโหลดตัวเลือกเหล่านี้",
       "viewFolderDeleteConfirmation": "มุมมองในโฟลเดอร์นี้จะถูกย้ายไปยังระดับบนสุด",
       "saveDraftToBrowser": "บันทึกฉบับร่างไว้ในเบราว์เซอร์",
-      "showAppFirst": "แสดงแอปเป็นอันดับแรกในแถบข้าง",
-      "showAppFirstDesc": "วาง Apps ไว้เหนือข้อมูลในแถบด้านข้างของโปรเจกต์นี้",
       "recordSavedButHidden": "บันทึกระเบียนสำเร็จแล้ว แต่ถูกซ่อนไว้เนื่องจากสิทธิ์การเข้าถึงของคุณ",
       "seeChangesToRecord": "ดูการเปลี่ยนแปลงของระเบียนนี้",
       "revisionHistoryUpgrade": "คุณมีประวัติการแก้ไข {limit} อัปเกรดเพื่อดูประวัติทั้งหมด",
@@ -7240,7 +7319,20 @@
       "mcpSetupCursorStep3": "เพิ่มการกำหนดค่า JSON ที่ได้รับหลังสร้างโทเคน",
       "mcpSetupIntroWindsurf": "เริ่มใช้ NocoDB MCP ร่วมกับ Windsurf ใน 4 ขั้นตอนง่าย ๆ",
       "mcpSetupWindsurfStep1": "เข้าไปที่การตั้งค่า Windsurf แล้วเลือกแท็บ Cascade ในแถบด้านซ้าย",
-      "mcpSetupWindsurfStep2": "คลิก Manage MCP"
+      "mcpSetupWindsurfStep2": "คลิก Manage MCP",
+      "abuseReport": {
+        "queueDescription": "รายงานที่ส่งจากลิงก์สาธารณะ ปิดใช้งานลิงก์เพื่อนำออก หรือบล็อกบัญชีที่อยู่เบื้องหลัง",
+        "disableConfirm": "ลิงก์สาธารณะจะหยุดทำงานสำหรับทุกคน และรายงานที่ยังเปิดอยู่ทั้งหมดเกี่ยวกับลิงก์นั้นจะถูกปิด เจ้าของสามารถแชร์รายการนี้อีกครั้งด้วยลิงก์ใหม่",
+        "blockConfirm": "{email} ถูกออกจากระบบทุกที่แล้ว และไม่สามารถลงชื่อเข้าใช้หรือใช้โทเคน API ได้อีก คุณสามารถปลดบล็อกได้จากการจัดการผู้ใช้",
+        "noAccounts": "ไม่มีบัญชีใดเชื่อมโยงกับรายการนี้",
+        "superAdminNotBlockable": "ไม่สามารถบล็อกผู้ดูแลระบบสูงสุดได้",
+        "description": "คุณเชื่อว่าหน้านี้ถูกใช้เพื่อฟิชชิง การแอบอ้างตัวตน การหลอกลวง หรือการใช้งานในทางที่ผิดอื่น ๆ ใช่หรือไม่ โปรดแจ้งผู้ดูแลระบบของอินสแตนซ์ {productName} นี้",
+        "detailsMin": "โปรดอธิบายปัญหาด้วยความยาวอย่างน้อย {min} ตัวอักษร",
+        "thanksTitle": "ขอบคุณสำหรับรายงานของคุณ",
+        "thanksDescription": "ได้รับรายงานของคุณแล้ว ผู้ดูแลระบบของอินสแตนซ์ {productName} นี้จะตรวจสอบ",
+        "contactEmailHint": "รายงานจากมุมมอง ฟอร์ม อินเทอร์เฟซ และแดชบอร์ดสาธารณะจะถูกส่งอีเมลมาที่นี่ เว้นว่างไว้เพื่อส่งถึงผู้ดูแลระบบสูงสุดทุกคน"
+      },
+      "actWithYourOwnPermissions": "ดำเนินการด้วยสิทธิ์ของคุณเองในทรัพยากรเหล่านั้น"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -7453,7 +7545,46 @@
       "inviteLinkExhausted": "ลิงก์คำเชิญนี้ถูกใช้ครบแล้ว",
       "inviteLinkUnavailable": "ลิงก์คำเชิญนี้ใช้ไม่ได้อีกต่อไป",
       "invalidEmailDomain": "กรอกโดเมน เช่น acme.io",
-      "projectNotAccessible": "เข้าถึงโปรเจกต์ไม่ได้"
+      "projectNotAccessible": "เข้าถึงโปรเจกต์ไม่ได้",
+      "attachmentInvalidUrl": "กรอก URL ที่ขึ้นต้นด้วย http:// หรือ https:// หรือเทมเพลตที่ใช้ตัวแปร",
+      "attachmentAlreadyAttached": "ไฟล์นี้ถูกแนบไว้แล้ว",
+      "attachmentOpenWorkflowToUpload": "เปิดเวิร์กโฟลว์เพื่ออัปโหลดไฟล์",
+      "attachmentNoLongerAvailable": "ไฟล์นี้ไม่มีให้ใช้งานอีกต่อไป",
+      "attachmentsTooLarge": "ไฟล์เกินขีดจำกัด {size} ต่ออีเมลหนึ่งฉบับ",
+      "factoryMachineNameRequired": "ตั้งชื่อให้เครื่องนี้",
+      "factoryMachineNameDuplicate": "มีเครื่องชื่อนี้อยู่แล้ว",
+      "vaultUnreachable": "เชื่อมต่อกับห้องนิรภัยด้วยการตั้งค่านี้ไม่ได้",
+      "vaultAliasStart": "ชื่อต้องขึ้นต้นด้วยตัวอักษร",
+      "vaultAliasCharacters": "ชื่อใช้ได้เฉพาะตัวอักษรและตัวเลขเท่านั้น — ห้ามมีช่องว่าง ขีดกลาง หรือขีดล่าง",
+      "vaultAliasReserved": "'{name}' เป็นชื่อที่สงวนไว้ โปรดเลือกชื่ออื่น",
+      "fieldSaveFailed": "บันทึกฟิลด์ '{field}' ไม่สำเร็จ: {error}",
+      "fieldSavesFailed": "บันทึก {count} ฟิลด์ไม่สำเร็จ ({fields}) ข้อผิดพลาดแรก: {error}",
+      "projectNameRequired": "ต้องระบุชื่อโปรเจกต์",
+      "attachmentUrlDownloadFailed": "NocoDB ดาวน์โหลดไฟล์นี้จาก URL ของมันไม่ได้ โปรดลบออกแล้วเพิ่มไฟล์ใหม่อีกครั้ง",
+      "emailImageSize": "รูปภาพในเนื้อหาอีเมลต้องมีขนาดต่ำกว่า {size} โดยทั่วไปโลโก้จะเล็กกว่า 100 KB มาก",
+      "emailImageType": "ใช้รูปภาพแบบ PNG, JPEG, GIF หรือ WebP",
+      "emailImageCount": "เนื้อหาอีเมลใส่รูปภาพได้สูงสุด {count} รูป",
+      "emailImageTotalSize": "รูปภาพในเนื้อหาอีเมลรวมกันต้องมีขนาดต่ำกว่า {size}",
+      "emailImageNoWorkflow": "เปิดเวิร์กโฟลว์เพื่อเพิ่มรูปภาพ",
+      "emailImageUploadFailed": "อัปโหลดรูปภาพไม่สำเร็จ",
+      "emailImageMissing": "รูปภาพนี้ไม่มีให้ใช้งานอีกต่อไปและจะไม่ถูกใส่ในอีเมล โปรดลบออกแล้วแทรกใหม่อีกครั้ง",
+      "vaultSecretNeedsProperty": "ข้อมูลลับนี้มีหลายฟิลด์ โปรดเลือกฟิลด์ที่จะใช้ มิฉะนั้นการเชื่อมต่อจะล้มเหลวตอนทำงาน",
+      "vaultUnknownAlias": "ไม่มีห้องนิรภัยชื่อ '{name}' ให้คุณใช้งาน",
+      "atLeastOneOperationRequired": "ต้องเลือกอย่างน้อยหนึ่งการดำเนินการ",
+      "triggerFormRequired": "คุณต้องเลือกฟอร์มที่เป็นตัวกระตุ้น",
+      "failedToStartListening": "เริ่มรับฟังการอัปเดตไม่สำเร็จ",
+      "unknownPermissionRequested": "เซิร์ฟเวอร์นี้ไม่มีสิทธิ์ดังกล่าว",
+      "authorizationWillBeRefused": "คำขอนี้จะถูกปฏิเสธเนื่องจากสิทธิ์ด้านบน",
+      "vaultAliasNotAllowed": "คุณไม่ได้รับอนุญาตให้ใช้ห้องนิรภัย '{name}' โปรดขอสิทธิ์จากเจ้าของพื้นที่ทำงาน หรือกรอกข้อมูลรับรองโดยตรง",
+      "selectTargetField": "โปรดเลือกฟิลด์ปลายทาง!",
+      "parentTableNoPrimaryKey": "ตารางแม่ไม่มีคอลัมน์คีย์หลัก",
+      "childTableNoPrimaryKey": "ตารางลูกไม่มีคอลัมน์คีย์หลัก",
+      "noWorkspaceAvailable": "ไม่มีพื้นที่ทำงานให้ใช้งาน",
+      "invalidJson": "JSON ไม่ถูกต้อง",
+      "invalidTokensJson": "นี่ไม่ใช่ไฟล์ส่งออกโทเคน ควรมีคีย์อย่างเช่น light, dark, font หรือ radiusScale",
+      "renameFileFailed": "เกิดข้อผิดพลาดขณะเปลี่ยนชื่อไฟล์",
+      "failedToLoadMetadataDiff": "โหลดส่วนต่างของเมทาดาทาไม่สำเร็จ",
+      "failedToLoadMonacoEditor": "โหลด Monaco Editor ไม่สำเร็จ"
     },
     "toast": {
       "inviteUrlCopy": "คัดลอก URL เชิญไปยังคลิปบอร์ด",
@@ -7596,9 +7727,9 @@
       "failed": "การลงทะเบียนล้มเหลว",
       "paused": "หยุดชั่วคราว"
     },
-    "agentToolsAndAccessSubtitle": "เอเจนต์ใช้อะไรได้บ้าง เพิ่มเครื่องมือ หน้า และการเชื่อมต่อที่มันเข้าถึงได้",
+    "agentToolsAndAccessSubtitle": "เอเจนต์นี้อ่านและแก้ไขอะไรได้บ้าง เลือกระดับสำหรับแต่ละรายการ",
     "agentNoFilters": "ยังไม่มีเงื่อนไข",
-    "agentInstructionsSubtitle": "เอเจนต์ควรทำอะไรทุกครั้งที่ทำงาน นี่คือแนวทางที่ดีที่สุด",
+    "agentInstructionsSubtitle": "ตั้งชื่อให้มัน แล้วเขียนว่าควรทำอะไร เหมือนที่คุณอธิบายงานให้เพื่อนร่วมทีมฟัง",
     "communitySkillsSubtitle": "ค้นหาด้านบนเพื่อดู Skills ที่แชร์ไว้บน skills.sh แล้วเปิดสักรายการเพื่ออ่าน SKILL.md ก่อนติดตั้ง",
     "environmentBlockedBySync": "ไม่สามารถเปิดสภาพแวดล้อมสำหรับโปรเจกต์ที่มีการซิงก์ทำงานอยู่ กรุณาลบการตั้งค่าการซิงก์ก่อน",
     "chatArtifactPublicLinkHint": "ใครก็ตามที่มีลิงก์ดูสิ่งนี้ได้",
@@ -7763,7 +7894,14 @@
       "confirmCta": "ยืนยันการย้ายข้อมูล",
       "migrating": "กำลังย้ายข้อมูล..."
     },
-    "skillsRegistryErrorTitle": "ไม่สามารถค้นหาในทะเบียนทักษะได้"
+    "skillsRegistryErrorTitle": "ไม่สามารถค้นหาในทะเบียนทักษะได้",
+    "airtableImportReportSummary": "ข้าม {skipped} · ประมาณค่า {approximated} · ล้มเหลว {failed}",
+    "airtableImportReportTruncated": "รายงานแสดง {shown} รายการแรกจากทั้งหมด {total} รายการ ดาวน์โหลดบันทึกเพื่อดูรายการทั้งหมด",
+    "factoryMachineReadyNow": "เครื่องพร้อมแล้ว เซสชันใหม่จะใช้เครื่องนี้",
+    "factoryMachineSwitched": "เซสชันใหม่จะใช้เวอร์ชัน {version}",
+    "factoryMachineDefaultNow": "เซสชันใหม่จะเริ่มต้นบน {machine} แล้ว",
+    "factoryMachineUpgrading": "กำลังอัปเกรด {machine} เซสชันใหม่จะใช้เครื่องนี้เมื่อบิลด์พร้อม",
+    "factoryAppInstallUnavailable": "{provider} ยังเชื่อมต่อกับเอเจนต์เขียนโค้ดไม่ได้ เพราะต้องติดตั้งแอปก่อน และที่นี่ยังไม่ได้ตั้งค่าไว้สำหรับ {provider}"
   },
   "trash": {
     "restore": "Restore",

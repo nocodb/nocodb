@@ -1687,7 +1687,7 @@
     "noMoreActionsToRedo": "Ikke flere handlinger at gentage",
     "noRecentViews": "Ingen seneste visninger",
     "expandLinkFields": "Udvid link felter",
-    "expandLinkFieldsDesc": "Returnér linkede rekorddata i stedet for antal",
+    "expandLinkFieldsDesc": "Linkfelter i outputtet indeholder de linkede poster i stedet for et antal",
     "inheritedFromParent": "Nedarvet fra forælder",
     "pageOrUrl": "Side eller URL",
     "linkTitle": "Link titel",
@@ -4768,7 +4768,7 @@
       },
       "optIn": {
         "title": "Tilvalgsværktøjer",
-        "description": "Værktøjer, der sletter for altid eller handler uden for NocoDB, såsom at køre en automatisering eller udløse en webhook. En forbindelse får dem aldrig, medmindre du slår dem til her."
+        "description": "Værktøjer, der sletter permanent eller handler uden for NocoDB, f.eks. kører en automatisering eller udløser en webhook. De er slået fra, indtil du slår dem til her."
       }
     },
     "noBaseAccess": "Ingen projektadgang",
@@ -5747,7 +5747,88 @@
     "workflowValueDynamicDescription": "Brug variabler fra et tidligere trin i denne automatisering",
     "workflowRunAs": "Kør som",
     "workflowChangeRunAs": "Skift kør som",
-    "workflowServiceAccount": "Servicekonto"
+    "workflowServiceAccount": "Servicekonto",
+    "wsEmpty": {
+      "title": "Start dit første projekt",
+      "subtitle": "Et projekt indeholder dine data og de apps, der er bygget på dem.",
+      "sharedTitle": "Der er endnu ikke delt noget med dig",
+      "sharedSubtitle": "Projekter og apps, du bliver inviteret til, vises her."
+    },
+    "workspaceHome": {
+      "uploadFile": "Upload CSV eller Excel",
+      "pickTemplate": "Eller vælg en skabelon at starte fra",
+      "untitledBase": "Projekt uden titel",
+      "templates": {
+        "projectManagement": {
+          "label": "Projektstyring",
+          "prompt": "Et projektoverblik med projekter og opgaver, hvor hver opgave har en ansvarlig, status, prioritet og forfaldsdato."
+        },
+        "product": {
+          "label": "Produkt",
+          "prompt": "En produkt-roadmap med funktioner, det problem hver funktion løser, prioritet, status og målrelease."
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "En marketingkalender med kampagner, de kanaler hver kampagne kører på, budget, ansvarlig og lanceringsdato."
+        },
+        "sales": {
+          "label": "Salg",
+          "prompt": "Et salgs-CRM med virksomheder, kontakter og salgsmuligheder, hvor hver salgsmulighed har et trin, en værdi og en forventet lukkedato."
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "En supportafdeling med sager, kunden der har oprettet hver sag, prioritet, status og den tildelte agent."
+        },
+        "hr": {
+          "label": "HR-afdeling",
+          "prompt": "Et ansøgersystem med ledige stillinger, kandidater efter rekrutteringstrin og samtaler med datoer og noter fra bedømmerne."
+        }
+      }
+    },
+    "yourConnections": "Dine forbindelser",
+    "workingHours": "Arbejdstid",
+    "workingDays": "Arbejdsdage",
+    "wsNav": {
+      "groupBilling": "Plan",
+      "groupAdmin": "Admin",
+      "membersPage": "Medlemmer af arbejdsområdet",
+      "iconHint": "Vises i sidepanelet og i arbejdsområdevælgeren.",
+      "nameHint": "Hvad dette arbejdsområde hedder i hele NocoDB.",
+      "workspaceId": "Arbejdsområde-ID",
+      "workspaceIdHint": "Brug det med API'et eller når du kontakter support.",
+      "allTypes": "Alle typer",
+      "allTeams": "Alle teams",
+      "teamsCreatedHere": "Oprettet her",
+      "teamsScimManaged": "SCIM-styret",
+      "upgradeTitleAudits": "Revisionslog for arbejdsområdet",
+      "upgradeDescAudits": "Se alle ændringer i dette arbejdsområde, og hvem der har lavet dem.",
+      "upgradeTitleSso": "Enkeltlogon",
+      "upgradeDescSso": "Lad medlemmer logge ind via din identitetsudbyder.",
+      "desc": {
+        "members": "Hvem der hører til dette arbejdsområde, og deres standardrolle.",
+        "teams": "Grupper af medlemmer, du kan føje til projekter samlet.",
+        "integrations": "Forbundne konti og legitimationsoplysninger, der deles i hele arbejdsområdet.",
+        "general": "Arbejdsområdets navn, ikon og ID.",
+        "skills": "Instruktioner, som AI-assistenten følger i hele dette arbejdsområde.",
+        "security": "Krav til login for alle i dette arbejdsområde.",
+        "dangerZone": "Forlad eller slet dette arbejdsområde permanent.",
+        "billing": "Dit abonnement, pladser, betalingsmetode og fakturaer.",
+        "usage": "Hvad dette arbejdsområde bruger af sine abonnementsgrænser.",
+        "audits": "Alle ændringer i dette arbejdsområde, og hvem der har lavet dem.",
+        "sso": "Login via din identitetsudbyder."
+      }
+    },
+    "workspaceMode": "Arbejdsområdetilstand",
+    "zoomIn": "Zoom ind",
+    "zoomOut": "Zoom ud",
+    "zoomTo50Percent": "Zoom til 50 %",
+    "zoomTo100Percent": "Zoom til 100 %",
+    "workflowValueStatic": "Statisk",
+    "workflowValueStaticDescription": "Indtast værdier direkte",
+    "workspaceNoAccess": "Arbejdsområde (ingen adgang)",
+    "yAxis": "Y-akse",
+    "workspaceSettings": "Indstillinger for arbejdsområdet",
+    "wrapLongText": "Ombryd lang tekst"
   },
   "activity": {
     "useTemplate": "Brug skabelon",
@@ -7107,8 +7188,6 @@
       "selectFieldFirst": "Vælg {field} først for at indlæse disse muligheder.",
       "viewFolderDeleteConfirmation": "Visninger i denne mappe flyttes til øverste niveau.",
       "saveDraftToBrowser": "Gem kladde i browseren",
-      "showAppFirst": "Vis appen først i sidepanelet",
-      "showAppFirstDesc": "Placer Apps over Data i dette projekts sidepanel.",
       "recordSavedButHidden": "Posten blev gemt, men er skjult på grund af dine adgangsrettigheder.",
       "seeChangesToRecord": "Se ændringer til denne post",
       "revisionHistoryUpgrade": "Du har {limit} revisionshistorik. Opgrader for at se hele historikken.",
@@ -7211,7 +7290,20 @@
       "mcpSetupCursorStep3": "Tilføj JSON-konfigurationen, der gives efter oprettelse af et token.",
       "mcpSetupIntroWindsurf": "Kom i gang med NocoDB MCP og Windsurf i 4 enkle trin",
       "mcpSetupWindsurfStep1": "Åbn Windsurf-indstillingerne, og vælg fanen Cascade i venstre sidepanel",
-      "mcpSetupWindsurfStep2": "Klik på Manage MCP."
+      "mcpSetupWindsurfStep2": "Klik på Manage MCP.",
+      "abuseReport": {
+        "queueDescription": "Anmeldelser indsendt fra offentlige links. Deaktiver et link for at tage det ned, eller blokér kontiene bag det.",
+        "disableConfirm": "Det offentlige link holder op med at virke for alle, og alle åbne anmeldelser om det markeres som løst. Ejeren kan dele elementet igen med et nyt link.",
+        "blockConfirm": "{email} er logget ud overalt og kan ikke længere logge ind eller bruge API-tokens. Du kan ophæve blokeringen under brugeradministration.",
+        "noAccounts": "Der er ingen konti knyttet til dette element.",
+        "superAdminNotBlockable": "Superadministratorer kan ikke blokeres.",
+        "description": "Mener du, at denne side bruges til phishing, identitetstyveri, svindel eller andre former for misbrug? Giv administratorerne af denne {productName}-instans besked.",
+        "detailsMin": "Beskriv venligst problemet med mindst {min} tegn.",
+        "thanksTitle": "Tak for din anmeldelse",
+        "thanksDescription": "Din anmeldelse er modtaget. Administratorerne af denne {productName}-instans vil gennemgå den.",
+        "contactEmailHint": "Anmeldelser fra offentlige visninger, formularer, grænseflader og dashboards sendes hertil. Lad feltet stå tomt for at sende til alle superadministratorer."
+      },
+      "actWithYourOwnPermissions": "Handl med dine egne rettigheder i disse ressourcer"
     },
     "error": {
       "failedToCreateSync": "Kunne ikke oprette synkronisering",
@@ -7424,7 +7516,46 @@
       "inviteLinkRevoked": "Dette invitationslink er tilbagekaldt",
       "inviteLinkExhausted": "Dette invitationslink er brugt helt op",
       "inviteLinkUnavailable": "Dette invitationslink virker ikke længere",
-      "invalidEmailDomain": "Indtast et domæne som acme.io"
+      "invalidEmailDomain": "Indtast et domæne som acme.io",
+      "attachmentInvalidUrl": "Indtast en URL, der starter med http:// eller https://, eller en skabelon med variabler",
+      "attachmentAlreadyAttached": "Denne fil er allerede vedhæftet.",
+      "attachmentOpenWorkflowToUpload": "Åbn arbejdsgangen for at uploade filer",
+      "attachmentNoLongerAvailable": "Denne fil er ikke længere tilgængelig",
+      "attachmentsTooLarge": "Filerne overskrider grænsen på {size} pr. e-mail",
+      "factoryMachineNameRequired": "Giv maskinen et navn",
+      "factoryMachineNameDuplicate": "Der findes allerede en maskine med dette navn",
+      "vaultUnreachable": "Kunne ikke få forbindelse til boksen med disse indstillinger",
+      "vaultAliasStart": "Navnet skal starte med et bogstav",
+      "vaultAliasCharacters": "Navnet må kun indeholde bogstaver og tal — ingen mellemrum, bindestreger eller understregninger",
+      "vaultAliasReserved": "'{name}' er et reserveret navn, vælg et andet",
+      "fieldSaveFailed": "Feltet '{field}' kunne ikke gemmes: {error}",
+      "fieldSavesFailed": "{count} felter kunne ikke gemmes ({fields}). Første fejl: {error}",
+      "projectNameRequired": "Projektnavn er påkrævet",
+      "attachmentUrlDownloadFailed": "NocoDB kunne ikke hente denne fil fra dens URL. Fjern den, og tilføj filen igen.",
+      "emailImageSize": "Billeder i en e-mailtekst skal være under {size}. Et logo ligger normalt langt under 100 KB.",
+      "emailImageType": "Brug et PNG-, JPEG-, GIF- eller WebP-billede",
+      "emailImageCount": "En e-mailtekst kan indeholde op til {count} billeder",
+      "emailImageTotalSize": "Billeder i en e-mailtekst må tilsammen højst fylde {size}",
+      "emailImageNoWorkflow": "Åbn arbejdsgangen for at tilføje billeder",
+      "emailImageUploadFailed": "Billedet kunne ikke uploades",
+      "emailImageMissing": "Dette billede er ikke længere tilgængeligt og udelades fra e-mailen. Fjern det, og indsæt det igen.",
+      "vaultSecretNeedsProperty": "Denne hemmelighed indeholder flere felter. Vælg hvilket der skal bruges, ellers fejler forbindelsen under kørslen.",
+      "vaultUnknownAlias": "Der er ingen boks ved navn '{name}' tilgængelig for dig.",
+      "atLeastOneOperationRequired": "Der skal vælges mindst én handling",
+      "triggerFormRequired": "Du skal vælge en udløserformular",
+      "failedToStartListening": "Kunne ikke begynde at lytte efter opdateringer",
+      "unknownPermissionRequested": "Denne rettighed tilbydes ikke af serveren",
+      "authorizationWillBeRefused": "Denne anmodning afvises på grund af rettighederne ovenfor.",
+      "vaultAliasNotAllowed": "Du må ikke bruge boksen '{name}'. Bed en ejer af arbejdsområdet om adgang, eller indtast legitimationsoplysningerne direkte.",
+      "selectTargetField": "Vælg et målfelt!",
+      "parentTableNoPrimaryKey": "Overordnet tabel har ingen primærnøglekolonne",
+      "childTableNoPrimaryKey": "Underordnet tabel har ingen primærnøglekolonne",
+      "noWorkspaceAvailable": "Intet arbejdsområde tilgængeligt",
+      "invalidJson": "Ugyldig JSON",
+      "invalidTokensJson": "Dette er ikke en token-eksport. Der forventes nøgler som light, dark, font eller radiusScale.",
+      "renameFileFailed": "Fejl ved omdøbning af filen",
+      "failedToLoadMetadataDiff": "Metadataforskellene kunne ikke indlæses",
+      "failedToLoadMonacoEditor": "Monaco Editor kunne ikke indlæses"
     },
     "toast": {
       "inviteUrlCopy": "Kopieret invitere url til udklipsholder",
@@ -7567,9 +7698,9 @@
       "failed": "Registreringen mislykkedes",
       "paused": "Sat på pause"
     },
-    "agentToolsAndAccessSubtitle": "Hvad kan agenten bruge? Tilføj værktøjer, sider og forbindelser, den kan tilgå.",
+    "agentToolsAndAccessSubtitle": "Hvad må denne agent læse og ændre? Vælg et niveau for hver.",
     "agentNoFilters": "Ingen betingelser endnu",
-    "agentInstructionsSubtitle": "Hvad skal agenten gøre, hver gang den kører? Her er de bedste fremgangsmåder.",
+    "agentInstructionsSubtitle": "Giv den et navn, og skriv så, hvad den skal gøre, ligesom du ville briefe en kollega.",
     "communitySkillsSubtitle": "Søg ovenfor efter skills, der er delt på skills.sh, og åbn en for at læse dens SKILL.md, før du installerer den.",
     "environmentBlockedBySync": "Der kan ikke åbnes et miljø for et projekt med aktiv synkronisering. Fjern synkroniseringskonfigurationerne først.",
     "chatArtifactPublicLinkHint": "Alle med linket kan se dette.",
@@ -7734,7 +7865,14 @@
       "confirmCta": "Bekræft migreringen",
       "migrating": "Migrerer..."
     },
-    "skillsRegistryErrorTitle": "Kunne ikke søge i skills-registret"
+    "skillsRegistryErrorTitle": "Kunne ikke søge i skills-registret",
+    "airtableImportReportSummary": "{skipped} sprunget over · {approximated} tilnærmet · {failed} mislykkedes",
+    "airtableImportReportTruncated": "Rapporten viser de første {shown} af {total} elementer. Download logfilerne for at se hele listen.",
+    "factoryMachineReadyNow": "Maskinen er klar. Nye sessioner bruger den.",
+    "factoryMachineSwitched": "Nye sessioner bruger version {version}.",
+    "factoryMachineDefaultNow": "Nye sessioner starter nu på {machine}.",
+    "factoryMachineUpgrading": "Opgraderer {machine}. Nye sessioner bruger den, når builden er klar.",
+    "factoryAppInstallUnavailable": "{provider} kan endnu ikke forbindes til kodeagenter. De kræver en app-installation, og der er ikke sat nogen op til {provider} her."
   },
   "trash": {
     "restore": "Gendan",

@@ -1687,7 +1687,7 @@
     "noMoreActionsToRedo": "Tidak ada lagi tindakan yang harus diulang",
     "noRecentViews": "Tidak ada tampilan terbaru",
     "expandLinkFields": "Memperluas bidang tautan",
-    "expandLinkFieldsDesc": "Mengembalikan data rekaman yang ditautkan, bukan menghitung",
+    "expandLinkFieldsDesc": "Bidang tautan pada keluaran berisi catatan yang ditautkan, bukan jumlahnya",
     "inheritedFromParent": "Diwarisi dari orang tua",
     "pageOrUrl": "Halaman atau URL",
     "linkTitle": "Judul tautan",
@@ -4772,7 +4772,7 @@
       },
       "optIn": {
         "title": "Alat opsional",
-        "description": "Alat yang menghapus permanen atau bertindak di luar NocoDB, seperti menjalankan otomatisasi atau memicu webhook. Sebuah koneksi tidak pernah mendapatkannya kecuali Anda mengaktifkannya di sini."
+        "description": "Alat yang menghapus secara permanen atau bertindak di luar NocoDB, misalnya menjalankan otomatisasi atau memicu webhook. Alat ini tetap nonaktif sampai Anda mengaktifkannya di sini."
       }
     },
     "noBaseAccess": "Tidak ada akses proyek",
@@ -5758,7 +5758,88 @@
     "workflowValueDynamicDescription": "Gunakan variabel dari langkah sebelumnya dalam otomatisasi ini",
     "workflowRunAs": "Jalankan sebagai",
     "workflowChangeRunAs": "Ubah jalankan sebagai",
-    "workflowServiceAccount": "Akun layanan"
+    "workflowServiceAccount": "Akun layanan",
+    "wsEmpty": {
+      "title": "Mulai proyek pertama Anda",
+      "subtitle": "Sebuah proyek menyimpan data Anda dan aplikasi yang dibangun di atasnya.",
+      "sharedTitle": "Belum ada yang dibagikan dengan Anda",
+      "sharedSubtitle": "Proyek dan aplikasi yang mengundang Anda akan muncul di sini."
+    },
+    "workspaceHome": {
+      "uploadFile": "Unggah CSV atau Excel",
+      "pickTemplate": "Atau pilih templat untuk memulai",
+      "untitledBase": "Proyek tanpa judul",
+      "templates": {
+        "projectManagement": {
+          "label": "Manajemen proyek",
+          "prompt": "Pelacak proyek berisi proyek dan tugas, setiap tugas dengan penanggung jawab, status, prioritas, dan tenggat waktu."
+        },
+        "product": {
+          "label": "Produk",
+          "prompt": "Peta jalan produk berisi fitur, masalah yang dipecahkan masing-masing, prioritas, status, dan rilis yang ditargetkan."
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "Kalender pemasaran berisi kampanye, kanal tempat masing-masing berjalan, anggaran, penanggung jawab, dan tanggal peluncuran."
+        },
+        "sales": {
+          "label": "Penjualan",
+          "prompt": "CRM penjualan berisi perusahaan, kontak, dan kesepakatan, di mana setiap kesepakatan punya tahap, nilai, dan perkiraan tanggal penutupan."
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "Meja bantuan berisi tiket, pelanggan yang mengajukan masing-masing, prioritas, status, dan agen yang ditugaskan."
+        },
+        "hr": {
+          "label": "SDM",
+          "prompt": "Pelacak pelamar berisi posisi yang dibuka, kandidat menurut tahap rekrutmen, serta wawancara dengan tanggal dan catatan pewawancara."
+        }
+      }
+    },
+    "yourConnections": "Koneksi Anda",
+    "workingHours": "Jam kerja",
+    "workingDays": "Hari kerja",
+    "wsNav": {
+      "groupBilling": "Plan",
+      "groupAdmin": "Admin",
+      "membersPage": "Anggota Ruang Kerja",
+      "iconHint": "Ditampilkan di bilah sisi dan pengalih ruang kerja.",
+      "nameHint": "Nama ruang kerja ini di seluruh NocoDB.",
+      "workspaceId": "ID Ruang Kerja",
+      "workspaceIdHint": "Gunakan dengan API, atau saat menghubungi dukungan.",
+      "allTypes": "Semua jenis",
+      "allTeams": "Semua tim",
+      "teamsCreatedHere": "Dibuat di sini",
+      "teamsScimManaged": "Dikelola SCIM",
+      "upgradeTitleAudits": "Log audit ruang kerja",
+      "upgradeDescAudits": "Lihat setiap perubahan yang dilakukan di ruang kerja ini, dan siapa yang melakukannya.",
+      "upgradeTitleSso": "Masuk sekali untuk semua",
+      "upgradeDescSso": "Izinkan anggota masuk melalui penyedia identitas Anda.",
+      "desc": {
+        "members": "Siapa saja anggota ruang kerja ini, dan peran bawaan mereka.",
+        "teams": "Grup anggota yang bisa Anda tambahkan ke proyek sekaligus.",
+        "integrations": "Akun terhubung dan kredensial yang dibagikan di seluruh ruang kerja.",
+        "general": "Nama, ikon, dan ID ruang kerja.",
+        "skills": "Instruksi yang diikuti asisten AI di seluruh ruang kerja ini.",
+        "security": "Persyaratan masuk untuk semua orang di ruang kerja ini.",
+        "dangerZone": "Keluar dari ruang kerja ini atau hapus secara permanen.",
+        "billing": "Paket Anda, kursi, metode pembayaran, dan faktur.",
+        "usage": "Pemakaian ruang kerja ini terhadap batas paketnya.",
+        "audits": "Setiap perubahan yang dilakukan di ruang kerja ini, dan siapa yang melakukannya.",
+        "sso": "Masuk melalui penyedia identitas Anda."
+      }
+    },
+    "workspaceMode": "Mode Ruang Kerja",
+    "zoomIn": "Perbesar",
+    "zoomOut": "Perkecil",
+    "zoomTo50Percent": "Zoom ke 50%",
+    "zoomTo100Percent": "Zoom ke 100%",
+    "workflowValueStatic": "Statis",
+    "workflowValueStaticDescription": "Masukkan nilai secara langsung",
+    "workspaceNoAccess": "Ruang kerja (tidak ada akses)",
+    "yAxis": "Sumbu Y",
+    "workspaceSettings": "Pengaturan ruang kerja",
+    "wrapLongText": "Bungkus teks panjang"
   },
   "activity": {
     "useTemplate": "Gunakan templat",
@@ -7118,8 +7199,6 @@
       "selectFieldFirst": "Pilih {field} dulu untuk memuat opsi-opsi ini.",
       "viewFolderDeleteConfirmation": "Tampilan dalam folder ini akan dipindahkan ke tingkat teratas.",
       "saveDraftToBrowser": "Simpan draf di peramban",
-      "showAppFirst": "Tampilkan aplikasi lebih dulu di bilah sisi",
-      "showAppFirstDesc": "Letakkan Apps di atas Data pada bilah sisi proyek ini.",
       "recordSavedButHidden": "Catatan berhasil disimpan, tetapi tersembunyi karena izin akses Anda.",
       "seeChangesToRecord": "Lihat perubahan pada catatan ini",
       "revisionHistoryUpgrade": "Anda memiliki {limit} riwayat revisi. Tingkatkan paket untuk melihat riwayat lengkapnya.",
@@ -7222,7 +7301,20 @@
       "mcpSetupCursorStep3": "Tambahkan konfigurasi JSON yang diberikan setelah membuat token.",
       "mcpSetupIntroWindsurf": "Mulai gunakan NocoDB MCP dengan Windsurf dalam 4 langkah mudah",
       "mcpSetupWindsurfStep1": "Buka pengaturan Windsurf dan pilih tab Cascade di bilah sisi kiri",
-      "mcpSetupWindsurfStep2": "Klik Manage MCP."
+      "mcpSetupWindsurfStep2": "Klik Manage MCP.",
+      "abuseReport": {
+        "queueDescription": "Laporan yang diajukan dari tautan publik. Nonaktifkan tautan untuk menurunkannya, atau blokir akun di baliknya.",
+        "disableConfirm": "Tautan publik berhenti berfungsi untuk semua orang, dan setiap laporan terbuka tentangnya dianggap selesai. Pemiliknya dapat membagikan item itu lagi dengan tautan baru.",
+        "blockConfirm": "{email} telah dikeluarkan di semua perangkat dan tidak dapat lagi masuk atau memakai token API. Anda dapat membuka blokirnya dari manajemen pengguna.",
+        "noAccounts": "Tidak ada akun yang tertaut ke item ini.",
+        "superAdminNotBlockable": "Super admin tidak dapat diblokir.",
+        "description": "Menurut Anda halaman ini dipakai untuk phishing, peniruan identitas, penipuan, atau tujuan penyalahgunaan lain? Beri tahu administrator instans {productName} ini.",
+        "detailsMin": "Jelaskan masalahnya dalam setidaknya {min} karakter.",
+        "thanksTitle": "Terima kasih atas laporan Anda",
+        "thanksDescription": "Laporan Anda telah diterima. Administrator instans {productName} ini akan meninjaunya.",
+        "contactEmailHint": "Laporan dari tampilan, formulir, antarmuka, dan dasbor publik dikirim ke alamat ini. Kosongkan untuk mengirim ke semua super admin."
+      },
+      "actWithYourOwnPermissions": "Bertindak dengan izin Anda sendiri pada sumber daya tersebut"
     },
     "error": {
       "failedToCreateSync": "Gagal membuat sinkronisasi",
@@ -7435,7 +7527,46 @@
       "inviteLinkRevoked": "Tautan undangan ini telah dicabut",
       "inviteLinkExhausted": "Tautan undangan ini sudah habis dipakai",
       "inviteLinkUnavailable": "Tautan undangan ini tidak berfungsi lagi",
-      "invalidEmailDomain": "Masukkan domain seperti acme.io"
+      "invalidEmailDomain": "Masukkan domain seperti acme.io",
+      "attachmentInvalidUrl": "Masukkan URL yang diawali http:// atau https://, atau templat yang memakai variabel",
+      "attachmentAlreadyAttached": "Berkas ini sudah dilampirkan.",
+      "attachmentOpenWorkflowToUpload": "Buka alur kerja untuk mengunggah berkas",
+      "attachmentNoLongerAvailable": "Berkas ini sudah tidak tersedia",
+      "attachmentsTooLarge": "Berkas melebihi batas {size} per email",
+      "factoryMachineNameRequired": "Beri nama pada mesin",
+      "factoryMachineNameDuplicate": "Mesin dengan nama ini sudah ada",
+      "vaultUnreachable": "Tidak dapat menjangkau brankas dengan pengaturan ini",
+      "vaultAliasStart": "Nama harus diawali huruf",
+      "vaultAliasCharacters": "Nama hanya boleh berisi huruf dan angka — tanpa spasi, tanda hubung, atau garis bawah",
+      "vaultAliasReserved": "'{name}' adalah nama yang dipesan, pilih nama lain",
+      "fieldSaveFailed": "Tidak dapat menyimpan bidang '{field}': {error}",
+      "fieldSavesFailed": "Tidak dapat menyimpan {count} bidang ({fields}). Kesalahan pertama: {error}",
+      "projectNameRequired": "Nama proyek wajib diisi",
+      "attachmentUrlDownloadFailed": "NocoDB tidak dapat mengunduh berkas ini dari URL-nya. Hapus lalu tambahkan berkas itu lagi.",
+      "emailImageSize": "Gambar di badan email harus di bawah {size}. Sebuah logo biasanya jauh di bawah 100 KB.",
+      "emailImageType": "Gunakan gambar PNG, JPEG, GIF, atau WebP",
+      "emailImageCount": "Badan email dapat memuat hingga {count} gambar",
+      "emailImageTotalSize": "Total gambar di badan email harus di bawah {size}",
+      "emailImageNoWorkflow": "Buka alur kerja untuk menambahkan gambar",
+      "emailImageUploadFailed": "Gambar gagal diunggah",
+      "emailImageMissing": "Gambar ini sudah tidak tersedia dan tidak akan disertakan dalam email. Hapus lalu sisipkan lagi.",
+      "vaultSecretNeedsProperty": "Rahasia ini memuat beberapa bidang. Pilih bidang yang dipakai, atau koneksi akan gagal saat dijalankan.",
+      "vaultUnknownAlias": "Tidak ada brankas bernama '{name}' yang tersedia untuk Anda.",
+      "atLeastOneOperationRequired": "Setidaknya satu operasi harus dipilih",
+      "triggerFormRequired": "Anda harus memilih formulir pemicu",
+      "failedToStartListening": "Gagal mulai menyimak pembaruan",
+      "unknownPermissionRequested": "Server ini tidak menyediakan izin tersebut",
+      "authorizationWillBeRefused": "Permintaan ini akan ditolak karena izin di atas.",
+      "vaultAliasNotAllowed": "Anda tidak diizinkan memakai brankas '{name}'. Mintalah akses kepada pemilik ruang kerja, atau masukkan kredensialnya langsung.",
+      "selectTargetField": "Silakan pilih bidang tujuan!",
+      "parentTableNoPrimaryKey": "Tabel induk tidak memiliki kolom kunci utama",
+      "childTableNoPrimaryKey": "Tabel anak tidak memiliki kolom kunci utama",
+      "noWorkspaceAvailable": "Tidak ada ruang kerja yang tersedia",
+      "invalidJson": "JSON tidak valid",
+      "invalidTokensJson": "Ini bukan ekspor token. Diharapkan kunci seperti light, dark, font, atau radiusScale.",
+      "renameFileFailed": "Terjadi kesalahan saat mengganti nama berkas",
+      "failedToLoadMetadataDiff": "Gagal memuat perbedaan metadata",
+      "failedToLoadMonacoEditor": "Gagal memuat Monaco Editor"
     },
     "toast": {
       "inviteUrlCopy": "URL Undangan yang Disalin ke Clipboard",
@@ -7578,9 +7709,9 @@
       "failed": "Pendaftaran gagal",
       "paused": "Dijeda"
     },
-    "agentToolsAndAccessSubtitle": "Apa yang boleh dipakai agen? Tambahkan alat, halaman, dan koneksi yang dapat diaksesnya.",
+    "agentToolsAndAccessSubtitle": "Apa yang boleh dibaca dan diubah agen ini? Pilih tingkat untuk masing-masing.",
     "agentNoFilters": "Belum ada kondisi",
-    "agentInstructionsSubtitle": "Apa yang harus dilakukan agen setiap kali berjalan? Berikut praktik terbaiknya.",
+    "agentInstructionsSubtitle": "Beri nama, lalu tuliskan apa yang harus dilakukannya seperti Anda memberi arahan kepada rekan kerja.",
     "communitySkillsSubtitle": "Cari di atas skills yang dibagikan di skills.sh, lalu buka salah satunya untuk membaca SKILL.md-nya sebelum memasang.",
     "environmentBlockedBySync": "Tidak dapat membuka environment untuk proyek dengan sinkronisasi aktif. Hapus dulu konfigurasi sinkronisasinya.",
     "chatArtifactPublicLinkHint": "Siapa pun yang punya tautannya bisa melihat ini.",
@@ -7745,7 +7876,14 @@
       "confirmCta": "Konfirmasi migrasi",
       "migrating": "Memigrasikan..."
     },
-    "skillsRegistryErrorTitle": "Tidak dapat menelusuri registri keterampilan"
+    "skillsRegistryErrorTitle": "Tidak dapat menelusuri registri keterampilan",
+    "airtableImportReportSummary": "{skipped} dilewati · {approximated} diperkirakan · {failed} gagal",
+    "airtableImportReportTruncated": "Laporan menampilkan {shown} item pertama dari {total}. Unduh log untuk melihat daftar lengkapnya.",
+    "factoryMachineReadyNow": "Mesin siap. Sesi baru memakainya.",
+    "factoryMachineSwitched": "Sesi baru akan memakai versi {version}.",
+    "factoryMachineDefaultNow": "Sesi baru sekarang dimulai di {machine}.",
+    "factoryMachineUpgrading": "Memutakhirkan {machine}. Sesi baru memakainya setelah build siap.",
+    "factoryAppInstallUnavailable": "{provider} belum dapat dihubungkan ke agen pengodean. Keduanya butuh pemasangan aplikasi, dan belum ada yang disiapkan untuk {provider} di sini."
   },
   "trash": {
     "restore": "Mengembalikan",

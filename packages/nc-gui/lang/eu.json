@@ -1689,7 +1689,7 @@
     "noMoreActionsToRedo": "Ez dago berriro egiteko ekintzarik",
     "noRecentViews": "Ez dago azken ikuspegirik",
     "expandLinkFields": "Lotura-eremuak zabaldu",
-    "expandLinkFieldsDesc": "Kontatu beharrean, itzuli lotutako erregistroen datuak",
+    "expandLinkFieldsDesc": "Irteerako esteka-eremuek estekatutako erregistroak dituzte, zenbaketa baten ordez",
     "inheritedFromParent": "Gurasoengandik heredatua",
     "pageOrUrl": "Orrialdea edo URL-a",
     "linkTitle": "Estekaren izenburua",
@@ -4778,7 +4778,7 @@
       },
       "optIn": {
         "title": "Aukerako tresnak",
-        "description": "Betiko ezabatzen duten edo NocoDB kanpoan jarduten duten tresnak, hala nola automatizazio bat exekutatzea edo webhook bat abiaraztea. Konexio batek ez ditu inoiz jasotzen hemen aktibatzen ez badituzu."
+        "description": "Betiko ezabatzen duten edo NocoDB-tik kanpo jarduten duten tresnak, esate baterako automatizazio bat exekutatzea edo webhook bat abiaraztea. Itzalita jarraitzen dute hemen piztu arte."
       }
     },
     "noBaseAccess": "Ez dago proiekturako sarbiderik",
@@ -5772,7 +5772,88 @@
     "workflowValueDynamicDescription": "Erabili automatizazio honen aurreko urrats bateko aldagaiak",
     "workflowRunAs": "Nor bezala exekutatu",
     "workflowChangeRunAs": "Aldatu nor bezala exekutatu",
-    "workflowServiceAccount": "Zerbitzu-kontua"
+    "workflowServiceAccount": "Zerbitzu-kontua",
+    "wsEmpty": {
+      "title": "Hasi zure lehen proiektua",
+      "subtitle": "Proiektu batek zure datuak eta haien gainean eraikitako aplikazioak gordetzen ditu.",
+      "sharedTitle": "Oraindik ez dute ezer partekatu zurekin",
+      "sharedSubtitle": "Gonbidatzen zaituzten proiektuak eta aplikazioak hemen agertuko dira."
+    },
+    "workspaceHome": {
+      "uploadFile": "Igo CSV edo Excel fitxategia",
+      "pickTemplate": "Edo aukeratu hasteko txantiloi bat",
+      "untitledBase": "Izenik gabeko proiektua",
+      "templates": {
+        "projectManagement": {
+          "label": "Proiektuen kudeaketa",
+          "prompt": "Proiektuen jarraipena proiektuekin eta zereginekin; zeregin bakoitzak arduraduna, egoera, lehentasuna eta epemuga ditu."
+        },
+        "product": {
+          "label": "Produktua",
+          "prompt": "Produktuaren ibilbide-orria, ezaugarriekin, bakoitzak konpontzen duen arazoarekin, lehentasunarekin, egoerarekin eta helburuko bertsioarekin."
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "Marketin-egutegia kanpainekin, bakoitza zein kanaletan dabilen, aurrekontua, arduraduna eta abiarazte-data."
+        },
+        "sales": {
+          "label": "Salmentak",
+          "prompt": "Salmenten CRMa enpresekin, kontaktuekin eta akordioekin; akordio bakoitzak fase bat, balio bat eta ixteko aurreikusitako data ditu."
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "Laguntza-zerbitzua txartelekin, bakoitza ireki duen bezeroarekin, lehentasunarekin, egoerarekin eta esleitutako agentearekin."
+        },
+        "hr": {
+          "label": "Giza baliabideak",
+          "prompt": "Hautagaien jarraipena, lanpostu irekiekin, kontratazio-faseka antolatutako hautagaiekin eta elkarrizketekin, haien datak eta ebaluatzaileen oharrak barne."
+        }
+      }
+    },
+    "yourConnections": "Zure konexioak",
+    "workingHours": "Lanordutegia",
+    "workingDays": "Lanegunak",
+    "wsNav": {
+      "groupBilling": "Plan",
+      "groupAdmin": "Admin",
+      "membersPage": "Lan-espazioko kideak",
+      "iconHint": "Alboko barran eta lan-espazioen hautatzailean erakusten da.",
+      "nameHint": "Nola izendatzen den lan-espazio hau NocoDB osoan.",
+      "workspaceId": "Lan-espazioaren IDa",
+      "workspaceIdHint": "Erabili API-arekin, edo laguntza-zerbitzuarekin harremanetan jartzean.",
+      "allTypes": "Mota guztiak",
+      "allTeams": "Talde guztiak",
+      "teamsCreatedHere": "Hemen sortua",
+      "teamsScimManaged": "SCIM bidez kudeatua",
+      "upgradeTitleAudits": "Lan-espazioaren ikuskaritza-erregistroa",
+      "upgradeDescAudits": "Ikusi lan-espazio honetan egindako aldaketa oro, eta nork egin duen.",
+      "upgradeTitleSso": "Saio-hasiera bakarra",
+      "upgradeDescSso": "Utzi kideei saioa zure identitate-hornitzailearen bidez hasten.",
+      "desc": {
+        "members": "Nor den lan-espazio honetakoa, eta zein den haien rol lehenetsia.",
+        "teams": "Proiektuetara batera gehi ditzakezun kideen taldeak.",
+        "integrations": "Lan-espazio osoan partekatzen diren konektatutako kontuak eta kredentzialak.",
+        "general": "Lan-espazioaren izena, ikonoa eta IDa.",
+        "skills": "AA laguntzaileak lan-espazio honetan jarraitzen dituen argibideak.",
+        "security": "Lan-espazio honetako guztientzako saioa hasteko baldintzak.",
+        "dangerZone": "Utzi lan-espazio hau edo ezabatu betiko.",
+        "billing": "Zure plana, eserlekuak, ordainketa-metodoa eta fakturak.",
+        "usage": "Lan-espazio honek bere planaren mugetatik zenbat erabiltzen duen.",
+        "audits": "Lan-espazio honetan egindako aldaketa oro, eta nork egin duen.",
+        "sso": "Saioa hastea zure identitate-hornitzailearen bidez."
+      }
+    },
+    "workspaceMode": "Lan-espazioaren modua",
+    "zoomIn": "Handiagotu",
+    "zoomOut": "Txikiagotu",
+    "zoomTo50Percent": "Zooma % 50ean",
+    "zoomTo100Percent": "Zooma % 100ean",
+    "workflowValueStatic": "Estatikoa",
+    "workflowValueStaticDescription": "Sartu balioak zuzenean",
+    "workspaceNoAccess": "Lan-espazioa (sarbiderik ez)",
+    "yAxis": "Y ardatza",
+    "workspaceSettings": "Lan-espazioaren ezarpenak",
+    "wrapLongText": "Doitu testu luzea"
   },
   "activity": {
     "useTemplate": "Erabili txantiloia",
@@ -7132,8 +7213,6 @@
       "selectFieldFirst": "Hautatu {field} lehenik aukera hauek kargatzeko.",
       "viewFolderDeleteConfirmation": "Karpeta honetako bistaratzeak goiko mailara eramango dira.",
       "saveDraftToBrowser": "Gorde zirriborroa nabigatzailean",
-      "showAppFirst": "Erakutsi app-a lehena alboko barran",
-      "showAppFirstDesc": "Jarri Apps Datuen gainean proiektu honen alboko barran.",
       "recordSavedButHidden": "Erregistroa ondo gorde da, baina zure sarbide-baimenengatik ezkutatuta dago.",
       "seeChangesToRecord": "Ikusi erregistro honen aldaketak",
       "revisionHistoryUpgrade": "{limit} berrikuspen-historia duzu. Egin planaren hobekuntza historia osoa ikusteko.",
@@ -7236,7 +7315,20 @@
       "mcpSetupCursorStep3": "Gehitu tokena sortu ondoren ematen den JSON konfigurazioa.",
       "mcpSetupIntroWindsurf": "Hasi NocoDB MCP erabiltzen Windsurf aplikazioarekin 4 urrats errazetan",
       "mcpSetupWindsurfStep1": "Sartu Windsurf ezarpenetan eta hautatu Cascade fitxa ezkerreko alboko barran",
-      "mcpSetupWindsurfStep2": "Egin klik Manage MCP aukeran."
+      "mcpSetupWindsurfStep2": "Egin klik Manage MCP aukeran.",
+      "abuseReport": {
+        "queueDescription": "Esteka publikoetatik aurkeztutako salaketak. Desgaitu esteka bat kentzeko, edo blokeatu atzean dauden kontuak.",
+        "disableConfirm": "Esteka publikoak denentzat funtzionatzeari uzten dio, eta hari buruzko salaketa ireki guztiak konpondutzat ematen dira. Jabeak elementua berriro parteka dezake esteka berri batekin.",
+        "blockConfirm": "{email} erabiltzailearen saioa leku guztietan itxi da eta ezin du jada saiorik hasi, ezta API tokenik erabili ere. Erabiltzaileen kudeaketatik desblokea dezakezu.",
+        "noAccounts": "Ez dago konturik elementu honi lotuta.",
+        "superAdminNotBlockable": "Superadministratzaileak ezin dira blokeatu.",
+        "description": "Uste duzu orri hau phishing-erako, nortasun-ordezkapenerako, iruzurretarako edo bestelako gehiegikerietarako erabiltzen ari dela? Jakinarazi {productName} instantzia honetako administratzaileei.",
+        "detailsMin": "Deskribatu arazoa gutxienez {min} karakterekin.",
+        "thanksTitle": "Eskerrik asko zure salaketagatik",
+        "thanksDescription": "Zure salaketa jaso dugu. {productName} instantzia honetako administratzaileek aztertuko dute.",
+        "contactEmailHint": "Ikuspegi, inprimaki, interfaze eta panel publikoetatik datozen salaketak hona bidaltzen dira. Utzi hutsik superadministratzaile guztiei bidaltzeko."
+      },
+      "actWithYourOwnPermissions": "Jardun zure baimenekin baliabide horietan"
     },
     "error": {
       "failedToCreateSync": "Sinkronizazioa sortzeko huts egin da",
@@ -7449,7 +7541,46 @@
       "inviteLinkExhausted": "Gonbidapen-esteka hau guztiz erabilita dago",
       "inviteLinkUnavailable": "Gonbidapen-esteka honek ez du gehiago funtzionatzen",
       "invalidEmailDomain": "Sartu acme.io moduko domeinu bat",
-      "projectNotAccessible": "Proiektua ez dago eskuragarri"
+      "projectNotAccessible": "Proiektua ez dago eskuragarri",
+      "attachmentInvalidUrl": "Sartu http:// edo https:// hasten den URL bat, edo aldagaiak erabiltzen dituen txantiloi bat",
+      "attachmentAlreadyAttached": "Fitxategi hau jada erantsita dago.",
+      "attachmentOpenWorkflowToUpload": "Ireki lan-fluxua fitxategiak igotzeko",
+      "attachmentNoLongerAvailable": "Fitxategi hau ez dago jada erabilgarri",
+      "attachmentsTooLarge": "Fitxategiek mezu elektroniko bakoitzeko {size} muga gainditzen dute",
+      "factoryMachineNameRequired": "Jarri izen bat makinari",
+      "factoryMachineNameDuplicate": "Izen hori duen makina bat badago jada",
+      "vaultUnreachable": "Ezin izan da kutxa gotorrera iritsi ezarpen hauekin",
+      "vaultAliasStart": "Izenak letra batekin hasi behar du",
+      "vaultAliasCharacters": "Izenak letrak eta zenbakiak baino ezin ditu izan — zuriunerik, marrarik edo azpimarrarik gabe",
+      "vaultAliasReserved": "“{name}” izen erreserbatua da, aukeratu beste bat",
+      "fieldSaveFailed": "Ezin izan da “{field}” eremua gorde: {error}",
+      "fieldSavesFailed": "Ezin izan dira {count} eremu gorde ({fields}). Lehen errorea: {error}",
+      "projectNameRequired": "Proiektuaren izena beharrezkoa da",
+      "attachmentUrlDownloadFailed": "NocoDB-k ezin izan du fitxategi hau bere URL-etik deskargatu. Kendu eta gehitu fitxategia berriro.",
+      "emailImageSize": "Mezu elektroniko bateko irudiek {size} baino txikiagoak izan behar dute. Logo bat normalean 100 KB baino askoz txikiagoa izaten da.",
+      "emailImageType": "Erabili PNG, JPEG, GIF edo WebP irudi bat",
+      "emailImageCount": "Mezu elektroniko baten gorputzak gehienez {count} irudi izan ditzake",
+      "emailImageTotalSize": "Mezu elektroniko bateko irudiek guztira {size} baino gutxiago izan behar dute",
+      "emailImageNoWorkflow": "Ireki lan-fluxua irudiak gehitzeko",
+      "emailImageUploadFailed": "Ezin izan da irudia igo",
+      "emailImageMissing": "Irudi hau ez dago jada erabilgarri eta mezutik kanpo geratuko da. Kendu eta txertatu berriro.",
+      "vaultSecretNeedsProperty": "Sekretu honek hainbat eremu ditu. Aukeratu zein erabili, bestela konexioak huts egingo du exekutatzean.",
+      "vaultUnknownAlias": "Ez duzu “{name}” izeneko kutxa gotorrik erabilgarri.",
+      "atLeastOneOperationRequired": "Gutxienez eragiketa bat hautatu behar da",
+      "triggerFormRequired": "Abiarazteko inprimaki bat hautatu behar duzu",
+      "failedToStartListening": "Ezin izan da eguneraketak entzuten hasi",
+      "unknownPermissionRequested": "Zerbitzari honek ez du baimen hori eskaintzen",
+      "authorizationWillBeRefused": "Eskaera hau ukatu egingo da goiko baimenak direla eta.",
+      "vaultAliasNotAllowed": "Ez duzu “{name}” kutxa gotorra erabiltzeko baimenik. Eskatu sarbidea lan-espazioaren jabe bati, edo sartu kredentziala zuzenean.",
+      "selectTargetField": "Hautatu helburuko eremu bat!",
+      "parentTableNoPrimaryKey": "Guraso-taulak ez du lehen mailako gakoaren zutaberik",
+      "childTableNoPrimaryKey": "Taula umeak ez du lehen mailako gakoaren zutaberik",
+      "noWorkspaceAvailable": "Ez dago lan-espaziorik erabilgarri",
+      "invalidJson": "JSON baliogabea",
+      "invalidTokensJson": "Hau ez da tokenen esportazioa. light, dark, font edo radiusScale moduko gakoak espero dira.",
+      "renameFileFailed": "Errorea fitxategiari izena aldatzean",
+      "failedToLoadMetadataDiff": "Ezin izan dira metadatuen desberdintasunak kargatu",
+      "failedToLoadMonacoEditor": "Ezin izan da Monaco Editor kargatu"
     },
     "toast": {
       "inviteUrlCopy": "Copied invite URL to clipboard",
@@ -7592,9 +7723,9 @@
       "failed": "Erregistroak huts egin du",
       "paused": "Pausatuta"
     },
-    "agentToolsAndAccessSubtitle": "Zer erabil dezake agenteak? Gehitu tresnak, orriak eta atzi ditzakeen konexioak.",
+    "agentToolsAndAccessSubtitle": "Zer irakurri eta aldatu dezake agente honek? Aukeratu maila bat bakoitzarentzat.",
     "agentNoFilters": "Oraindik ez dago baldintzarik",
-    "agentInstructionsSubtitle": "Zer egin beharko luke agenteak exekutatzen den bakoitzean? Hona hemen jardunbide egokiak.",
+    "agentInstructionsSubtitle": "Jarri izen bat eta idatzi zer egin behar duen, lankide bati azalduko zeniokeen bezala.",
     "communitySkillsSubtitle": "Bilatu goian skills.sh gunean partekatutako skills, eta ireki bat bere SKILL.md irakurtzeko instalatu aurretik.",
     "environmentBlockedBySync": "Ezin da ingurunerik ireki sinkronizazio aktiboa duen proiektu baterako. Kendu lehenik sinkronizazio-konfigurazioak.",
     "chatArtifactPublicLinkHint": "Esteka duen edonork ikus dezake hau.",
@@ -7759,7 +7890,14 @@
       "confirmCta": "Berretsi migrazioa",
       "migrating": "Migratzen..."
     },
-    "skillsRegistryErrorTitle": "Ezin izan da trebetasunen erregistroan bilatu"
+    "skillsRegistryErrorTitle": "Ezin izan da trebetasunen erregistroan bilatu",
+    "airtableImportReportSummary": "{skipped} saltatuta · {approximated} gutxi gorabehera · {failed} huts eginda",
+    "airtableImportReportTruncated": "Txostenak {total} elementuetatik lehen {shown} zerrendatzen ditu. Deskargatu erregistroak zerrenda osoa ikusteko.",
+    "factoryMachineReadyNow": "Makina prest. Saio berriek erabiltzen dute.",
+    "factoryMachineSwitched": "Saio berriek {version} bertsioa erabiliko dute.",
+    "factoryMachineDefaultNow": "Saio berriak orain {machine} makinan hasten dira.",
+    "factoryMachineUpgrading": "{machine} eguneratzen. Saio berriek erabiliko dute eraikuntza prest dagoenean.",
+    "factoryAppInstallUnavailable": "{provider} ezin da oraindik kodeketa-agenteekin konektatu. Aplikazio-instalazio bat behar dute, eta hemen ez dago {provider} zerbitzurako bat ere konfiguratuta."
   },
   "trash": {
     "restore": "Berreskuratu",

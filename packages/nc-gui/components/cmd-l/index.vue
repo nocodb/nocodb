@@ -27,6 +27,8 @@ const { recentItems } = useCommand()
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
+const { bases, isProjectsLoaded } = storeToRefs(useBases())
+
 const route = useRoute()
 
 const ROW_HEIGHT = 36
@@ -39,6 +41,8 @@ const selectedId = ref<string>()
 
 /** Set once the user moves the selection; until then late-arriving items keep the default row selected. */
 const navigated = ref(false)
+
+let openedAt = 0
 
 const cmdOrCtrlKey = isMac() ? 'Meta' : 'Ctrl'
 
@@ -178,15 +182,27 @@ function onKeydown(e: KeyboardEvent) {
 }
 
 // app.vue opens it; while open Cmd+L steps forward (Shift steps back), like an app switcher.
+// The press that opened it reaches this listener too, so skip events older than the open.
 useEventListener('keydown', (e: KeyboardEvent) => {
   if (!vOpen.value || !(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'l') return
   e.preventDefault()
+  if (e.timeStamp <= openedAt) return
   moveSelection(e.shiftKey ? -1 : 1)
 })
 
 watch(vOpen, (isOpen) => {
   if (!isOpen) return
 
+  openedAt = performance.now()
+  viewStore.pruneRecentViews()
+  // Only the base is checked for other objects: their own stores load per kind, on demand.
+  if (isProjectsLoaded.value) {
+    recentItems.value = recentItems.value.flatMap((item) => {
+      if (item.workspaceId !== activeWorkspaceId.value) return [item]
+      const base = bases.value.get(item.baseId)
+      return base ? [{ ...item, baseTitle: base.title ?? item.baseTitle }] : []
+    })
+  }
   search.value = ''
   navigated.value = false
   selectedId.value = defaultSelectedId()

@@ -1543,7 +1543,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
         userId,
         workspaceId,
         'recentViews',
-        views.filter((v) => v.workspaceId === workspaceId).slice(0, 20),
+        views.filter((v) => v.workspaceId === workspaceId).slice(0, 50),
       )
     },
     { deep: true },

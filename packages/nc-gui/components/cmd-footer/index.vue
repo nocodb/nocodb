@@ -6,9 +6,7 @@ defineProps<{
   setActiveCmdView: (cmd: CommandPaletteType) => void
 }>()
 
-const renderCmdOrCtrlKey = () => {
-  return isMac() ? '⌘' : 'Ctrl'
-}
+const cmdOrCtrlKey = isMac() ? 'Meta' : 'Ctrl'
 </script>
 
 <template>
@@ -21,16 +19,7 @@ const renderCmdOrCtrlKey = () => {
       >
         <GeneralIcon icon="ncFileSearch" class="h-4 w-4" />
         {{ $t('objects.document') }}
-        <span
-          class="text-small !leading-5 px-1 rounded-md border-1"
-          :class="
-            activeCmd === 'cmd-j'
-              ? 'bg-nc-fill-primary border-nc-border-brand text-nc-content-inverted-primary'
-              : 'bg-nc-bg-gray-medium border-nc-border-gray-medium'
-          "
-        >
-          {{ renderCmdOrCtrlKey() }} + J
-        </span>
+        <GeneralShortcutLabel :keys="[cmdOrCtrlKey, 'J']" :class="activeCmd === 'cmd-j' ? '' : 'text-nc-content-gray-muted'" />
       </div>
       <div
         class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center cursor-pointer"
@@ -39,34 +28,16 @@ const renderCmdOrCtrlKey = () => {
       >
         <GeneralIcon icon="ncCornerUpRight" class="h-4 w-4" />
         {{ $t('labels.quickNavigation') }}
-        <span
-          class="text-small !leading-5 px-1 rounded-md border-1"
-          :class="
-            activeCmd === 'cmd-k'
-              ? 'bg-nc-fill-primary border-nc-border-brand text-nc-content-inverted-primary'
-              : 'bg-nc-bg-gray-medium border-nc-border-gray-medium'
-          "
-        >
-          {{ renderCmdOrCtrlKey() }} + K
-        </span>
+        <GeneralShortcutLabel :keys="[cmdOrCtrlKey, 'K']" :class="activeCmd === 'cmd-k' ? '' : 'text-nc-content-gray-muted'" />
       </div>
       <div
         class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center cursor-pointer"
         :class="activeCmd === 'cmd-l' ? 'text-nc-content-brand' : ''"
         @click.stop="activeCmd !== 'cmd-l' ? setActiveCmdView('cmd-l') : () => undefined"
       >
-        <MdiClockOutline class="h-4 w-4" />
+        <GeneralIcon icon="ncClock" class="h-4 w-4" />
         {{ $t('labels.recent') }}
-        <span
-          class="text-small !leading-5 px-1 rounded-md border-1"
-          :class="
-            activeCmd === 'cmd-l'
-              ? 'bg-nc-fill-primary border-nc-border-brand text-nc-content-inverted-primary'
-              : 'bg-nc-bg-gray-medium border-nc-border-gray-medium'
-          "
-        >
-          {{ renderCmdOrCtrlKey() }} + L
-        </span>
+        <GeneralShortcutLabel :keys="[cmdOrCtrlKey, 'L']" :class="activeCmd === 'cmd-l' ? '' : 'text-nc-content-gray-muted'" />
       </div>
     </div>
   </div>

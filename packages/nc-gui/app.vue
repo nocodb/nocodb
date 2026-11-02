@@ -39,9 +39,11 @@ const { isRtl } = useRtl()
 
 const antDirection = computed(() => (isRtl.value ? 'rtl' : 'ltr'))
 
-const { commandPalette, cmdData, cmdPlaceholder, activeScope, loadTemporaryScope } = useCommandPalette()
+const { commandPalette } = useCommandPalette()
 
 const { cmdK, cmdL, cmdJ, setActiveCmdView } = useCommand()
+
+const { user } = useGlobal()
 
 useUserSync()
 
@@ -65,6 +67,32 @@ onBeforeUnmount(() => {
   window.removeEventListener('chatwoot:ready', chatwootInit)
 })
 
+// Capture phase: editors such as Monaco (scripts) bind Cmd+K/L/J and stop them bubbling.
+// Propagation is left alone so editors that use the keys still see them. An open Cmd+L
+// cycles on its own Cmd+L, so only opening happens here.
+useEventListener(
+  document,
+  'keydown',
+  (e: KeyboardEvent) => {
+    const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+    if (!cmdOrCtrl || e.altKey || !user.value) return
+
+    const key = e.key.toLowerCase()
+    if (key === 'k' && !e.shiftKey) {
+      e.preventDefault()
+      setActiveCmdView('cmd-k')
+    } else if (key === 'l' && !cmdL.value) {
+      e.preventDefault()
+      setActiveCmdView('cmd-l')
+    } else if (key === 'j' && !e.shiftKey) {
+      e.preventDefault()
+      if (cmdJ.value) cmdJ.value = false
+      else setActiveCmdView('cmd-j')
+    }
+  },
+  { capture: true },
+)
+
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (cmdOrCtrl) {
@@ -74,10 +102,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         if (!['input', 'textarea'].includes((e.target as any).nodeName.toLowerCase())) {
           e.preventDefault()
         }
-        break
-      case 'k':
-        e.preventDefault()
-        commandPalette.value?.open?.()
         break
       case 'l':
         e.preventDefault()
@@ -112,12 +136,6 @@ if (typeof window !== 'undefined') {
 
   // @ts-expect-error using arbitrary window key
   window.__ncvue = true
-}
-
-function onScope(scope: string) {
-  if (scope === 'root' && isEeUI) {
-    loadTemporaryScope({ scope: 'root', data: {} })
-  }
 }
 
 // ref: https://github.com/vuejs/vue-cli/issues/7431#issuecomment-1793385162
@@ -157,16 +175,7 @@ const _ = (window as any).ResizeObserver
       <NcNuxtLoadingIndicator />
 
       <!-- Command Menu -->
-      <CmdK
-        ref="commandPalette"
-        v-model:open="cmdK"
-        :scope="activeScope.scope"
-        :data="cmdData"
-        :placeholder="cmdPlaceholder"
-        :load-temporary-scope="loadTemporaryScope"
-        :set-active-cmd-view="setActiveCmdView"
-        @scope="onScope"
-      />
+      <CmdK ref="commandPalette" v-model:open="cmdK" :set-active-cmd-view="setActiveCmdView" />
       <!-- Recent Views. Cycles through recently visited Views -->
       <CmdL v-model:open="cmdL" :set-active-cmd-view="setActiveCmdView" />
       <!-- Documentation. Integrated NocoDB Docs directly inside the Product -->

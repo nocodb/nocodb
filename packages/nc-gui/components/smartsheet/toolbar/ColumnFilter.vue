@@ -790,7 +790,9 @@ watch(
   async () => {
     if (!isMounted.value || !draftFilter.value?.fk_column_id) return
 
-    await addFilter(draftFilter.value)
+    // A draft with its operator (Cmd+K quick filter) is complete: save it as is, like a copied filter.
+    const isComplete = !!draftFilter.value.comparison_op
+    await addFilter(draftFilter.value, isComplete)
 
     await nextTick()
 
@@ -799,7 +801,7 @@ watch(
     const filterWrapper = document.querySelectorAll(`.nc-filter-wrapper-${draftFilter.value.fk_column_id}`)
 
     draftFilter.value = {}
-    if (!filterWrapper.length) return
+    if (!filterWrapper.length || isComplete) return
 
     const filterInputElement =
       filterWrapper[filterWrapper.length - 1]?.querySelector<HTMLInputElement>('.nc-filter-value-select input')

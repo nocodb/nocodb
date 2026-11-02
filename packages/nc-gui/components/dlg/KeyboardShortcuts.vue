@@ -34,7 +34,7 @@ const shortcutList = [
       },
       {
         keys: [renderAltOrOptlKey(), 'D'],
-        behaviour: 'Create new project',
+        behaviour: 'Create new base',
       },
       {
         keys: [renderAltOrOptlKey(), 'T'],
@@ -215,6 +215,45 @@ const shortcutList = [
     ],
   },
 ]
+
+const { providers } = useCommandRegistry()
+
+const KEY_LABELS: Record<string, () => string> = {
+  Meta: () => '⌘',
+  Ctrl: () => 'Ctrl',
+  Alt: () => renderAltOrOptlKey(),
+  Shift: () => (isMac() ? '⇧' : 'Shift'),
+  ArrowLeft: () => '←',
+  ArrowRight: () => '→',
+  ArrowUp: () => '↑',
+  ArrowDown: () => '↓',
+}
+
+// The same commands Cmd+K lists with a shortcut on the current screen, so the two never disagree.
+// A combo already listed below, or registered twice (toolbar and grid), shows once.
+const screenShortcuts = computed(() => {
+  const seen = new Set(
+    shortcutList.flatMap((section) => section.shortcuts.map((shortcut) => shortcut.keys.join('+').toUpperCase())),
+  )
+  // Global ones (Cmd+J, Cmd+L) are already in the General list below.
+  return providers.value
+    .filter((provider) => provider.level !== 'global')
+    .flatMap((provider) => provider.commands)
+    .flatMap((command) => {
+      if (!command.shortcut?.length) return []
+      const keys = command.shortcut.map((key) => KEY_LABELS[key]?.() ?? key)
+      const combo = keys.join('+').toUpperCase()
+      if (seen.has(combo)) return []
+      seen.add(combo)
+      return [{ keys, behaviour: command.title }]
+    })
+})
+
+const sections = computed(() =>
+  screenShortcuts.value.length
+    ? [{ title: t('labels.commandPalette.onThisScreen'), shortcuts: screenShortcuts.value }, ...shortcutList]
+    : shortcutList,
+)
 </script>
 
 <template>
@@ -239,7 +278,7 @@ const shortcutList = [
 
       <!-- Content -->
       <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-4">
-        <div v-for="(section, sectionIdx) of shortcutList" :key="sectionIdx" class="mb-4 last:mb-0">
+        <div v-for="(section, sectionIdx) of sections" :key="sectionIdx" class="mb-4 last:mb-0">
           <div class="text-bodyBold font-semibold text-nc-content-gray-subtle mb-2 tracking-wide rtl:text-right">
             {{ section.title }}
           </div>

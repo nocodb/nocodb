@@ -6,6 +6,8 @@ import type { VNodeRef } from '@vue/runtime-core'
 const props = defineProps<{
   modelValue: boolean
   isCreateNewActionMenu?: boolean
+  /** Prefills the name, e.g. from Cmd+K's "Create base “…”". */
+  title?: string
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -83,7 +85,7 @@ const onInit = () => {
     form.value?.resetFields()
 
     formState.value = {
-      title: t('objects.project'),
+      title: props.title || t('objects.project'),
       meta: {
         iconColor: baseIconColors[Math.floor(Math.random() * 1000) % baseIconColors.length],
       },
@@ -100,6 +102,11 @@ watch(dialogShow, (n) => {
   if (n) {
     onInit()
   }
+})
+
+// Opened already visible (useDialog), so the watcher above never fires.
+onMounted(() => {
+  if (props.title && dialogShow.value) onInit()
 })
 </script>
 

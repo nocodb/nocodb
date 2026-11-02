@@ -259,6 +259,9 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
   const pendingDeepLinkHookId = ref<string | null>(null)
   const pendingDeepLinkHookTab = ref<string | null>(null)
 
+  // Set by Cmd+K "Create webhook…": the webhooks tab starts a new webhook once it is open.
+  const pendingCreateHook = ref(false)
+
   return {
     hooks,
     loadHooksList,
@@ -269,6 +272,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     hasV2Webhooks,
     pendingDeepLinkHookId,
     pendingDeepLinkHookTab,
+    pendingCreateHook,
   }
 })
 

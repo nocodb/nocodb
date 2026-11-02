@@ -62,6 +62,7 @@ const {
   isLastRow,
   clearCache,
   viewData: galleryData,
+  updateOrSaveRow,
 } = useGalleryViewData(meta, view, xWhere)
 
 const { copy } = useCopy()
@@ -772,6 +773,192 @@ const cardFields = (record: RowType) => {
 function hasPosterCover(record: RowType) {
   return isMounted.value && !reloadAttachments.value && attachments(record).length > 0
 }
+
+const { cmdK } = useCommand()
+
+const { isAllowed: isPermissionAllowed } = usePermissions()
+
+const { dashboardUrl } = useDashboard()
+
+const setFieldCommands = useSetFieldCommands()
+
+const { $api } = useNuxtApp()
+
+const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
+const { isMobileMode } = useGlobal()
+
+const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+
+// Cmd+K acts on the card under the pointer; kept while the palette covers it.
+const cmdkCard = ref<RowType | null>(null)
+
+function onCardMouseLeave(record: RowType) {
+  if (!cmdK.value && cmdkCard.value === record) cmdkCard.value = null
+}
+
+watch(cmdK, (open) => {
+  if (!open) cmdkCard.value = null
+})
+
+useCommandProvider(
+  () => `gallery-card:${view.value?.id}`,
+  'record',
+  () => {
+    const record = cmdkCard.value
+    if (!record || record.rowMeta?.new || isSqlView.value || expandedFormDlg.value || expandedFormOnRowIdDlg.value) {
+      return { commands: [] }
+    }
+
+    const section = t('labels.commandPalette.sections.record')
+    const rowId = extractPkFromRow(record.row, meta.value?.columns as ColumnType[])
+    const commands: CmdCommand[] = []
+
+    if (interfaceClickIntoDetails.value) {
+      commands.push({
+        id: 'record:expand',
+        priority: CMD_PRIORITY.primary,
+        title: t('labels.commandPalette.record.expand'),
+        section,
+        icon: { type: 'icon', name: 'ncMaximize2' },
+        keywords: ['open'],
+        run: () => expandForm(record),
+      })
+    }
+
+    if (rowId && !isPublic.value) {
+      commands.push({
+        id: 'record:copy-url',
+        priority: CMD_PRIORITY.normal,
+        title: t('labels.commandPalette.copyRecordUrl'),
+        section,
+        icon: { type: 'icon', name: 'ncLink' },
+        keywords: ['link'],
+        feedback: t('labels.commandPalette.copied'),
+        run: () => {
+          if (!interfacePageDataApi) {
+            const { typeOrId, baseId } = route.params
+            return copy(
+              encodeURI(`${dashboardUrl.value}/${typeOrId}/${baseId}/${meta.value?.id}/${view.value?.id}?rowId=${rowId}`),
+            )
+          }
+          const [origin, hash = ''] = window.location.href.split('#')
+          const [hashPath, hashQuery = ''] = hash.split('?')
+          const params = new URLSearchParams(hashQuery)
+          params.set('rowId', rowId)
+          return copy(`${origin}#${hashPath}?${params.toString()}`)
+        },
+      })
+    }
+
+    if (rowId && !isPublic.value && appInfo.value.ee && !interfacePageDataApi) {
+      commands.push({
+        id: 'record:send',
+        priority: CMD_PRIORITY.normal,
+        title: t('activity.sendRecord'),
+        section,
+        icon: { type: 'icon', name: 'mail' },
+        keywords: ['email'],
+        run: () => {
+          contextMenuTarget.value = { row: record, index: record.rowMeta.rowIndex! }
+          showSendRecordModal.value = true
+        },
+      })
+    }
+
+    // Same gate and call as the grid record chip's comment commands.
+    if (rowId && !interfacePageDataApi && !isPublic.value && isUIAllowed('commentEdit') && !isMobileMode.value) {
+      commands.push(
+        {
+          id: 'record:add-comment',
+          priority: CMD_PRIORITY.normal,
+          title: t('labels.commandPalette.addComment'),
+          section,
+          icon: { type: 'icon', name: 'ncMessageCircle' },
+          keywords: ['comment', 'note', 'discuss'],
+          feedback: t('labels.commandPalette.commentAdded'),
+          edit: {
+            value: '',
+            multiline: true,
+            placeholder: t('labels.commandPalette.commentPlaceholder'),
+            validate: (value) => (value.trim() ? undefined : t('labels.commandPalette.commentRequired')),
+            submit: async (value) => {
+              try {
+                await $api.internal.postOperation(
+                  activeWorkspaceId.value!,
+                  meta.value!.base_id!,
+                  { operation: 'commentRow' },
+                  { fk_model_id: meta.value!.id!, row_id: rowId, comment: value.trim().replace(/\n/g, '<br />') },
+                )
+              } catch (e: unknown) {
+                throw new Error(await extractSdkResponseErrorMsg(e as Error & { response?: unknown }))
+              }
+              record.rowMeta.commentCount = (record.rowMeta.commentCount ?? 0) + 1
+            },
+          },
+        },
+        {
+          id: 'record:open-comments',
+          priority: CMD_PRIORITY.normal,
+          title: t('labels.commandPalette.openComments'),
+          section,
+          icon: { type: 'icon', name: 'ncMessageCircle' },
+          run: () => {
+            isExpandedFormCommentMode.value = true
+            expandForm(record)
+          },
+        },
+      )
+    }
+
+    if (
+      hasEditPermission.value &&
+      canAddDeleteRows.value &&
+      record.rowMeta.rowIndex !== undefined &&
+      (!meta.value?.id || isPermissionAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_DELETE))
+    ) {
+      commands.push({
+        id: 'record:delete',
+        title: t('labels.commandPalette.deleteRecord'),
+        section,
+        icon: { type: 'icon', name: 'delete' },
+        danger: true,
+        run: () => deleteRow(record.rowMeta.rowIndex!),
+      })
+    }
+
+    if (hasEditPermission.value && !isPublic.value) {
+      const visibleIds = new Set(fields.value.map((f) => f.id))
+      commands.push(
+        ...setFieldCommands({
+          meta: meta.value,
+          columns: [
+            ...fields.value.map((column) => ({ column })),
+            ...((meta.value?.columns ?? []) as ColumnType[])
+              .filter((c) => !visibleIds.has(c.id))
+              .map((column) => ({ column, hidden: true })),
+          ],
+          values: (column) => [record.row[column.title!]],
+          row: record.row,
+          section,
+          save: async (column, next) => {
+            record.row[column.title!] = next(record.row[column.title!])
+            await updateOrSaveRow(record, column.title!)
+          },
+        }),
+      )
+    }
+
+    return {
+      context: {
+        prefix: meta.value?.title,
+        label: (displayField.value && String(record.row[displayField.value.title!] ?? '')) || String(rowId ?? ''),
+        icon: { type: 'table', icon: parseProp(meta.value?.meta).icon },
+      },
+      commands,
+    }
+  },
+)
 </script>
 
 <template>
@@ -887,6 +1074,8 @@ function hasPosterCover(record: RowType) {
                   :style="[getCardColorStyle(record), isTileTheme ? { height: `${cardHeight}px` } : {}]"
                   @click="expandFormClick($event, record)"
                   @contextmenu="showContextMenu($event, { row: record, index: record.rowMeta.rowIndex })"
+                  @mouseenter="cmdkCard = record"
+                  @mouseleave="onCardMouseLeave(record)"
                 >
                   <SmartsheetRecordPresenceBadge v-if="isEeUI" :row="record" class="absolute top-2 right-2 z-10" />
                   <template v-if="showCover" #cover>

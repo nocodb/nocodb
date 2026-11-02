@@ -1887,6 +1887,7 @@ export default class View implements ViewType {
 
   static async share(context: NcContext, viewId, ncMeta = Noco.ncMeta) {
     const view = await this.get(context, viewId);
+    if (!view) NcError.get(context).viewNotFound(viewId);
     if (!view.uuid) {
       const uuid = uuidv4();
       view.uuid = uuid;

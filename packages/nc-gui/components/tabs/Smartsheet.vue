@@ -431,6 +431,7 @@ watch(isViewsLoading, async () => {
 
       <!-- Table Tools shell — a route-driven modal over the view (open while the slug names a tool). -->
       <LazySmartsheetDetails />
+      <SmartsheetCommandProvider v-if="activeView && meta" />
     </div>
     <LazySmartsheetExpandedFormDetached />
     <DetachedExpandedText />

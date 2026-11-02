@@ -34,18 +34,10 @@ const viewsStore = useViewsStore()
 const {
   navigateToView,
   duplicateView,
-  updateView,
   updateViewMeta,
   onOpenCopyViewConfigFromAnotherViewModal,
   getCopyViewConfigBtnAccessStatus,
 } = viewsStore
-
-// Reactive views map for the whole store. We look up by the action target's
-// own (baseId, tableId) rather than relying on the active-table view list,
-// because the three-dot menu can be opened on a view that belongs to a table
-// other than the currently-active one (e.g. from the sidebar tree while a
-// different table is loaded).
-const { viewsByTable } = storeToRefs(viewsStore)
 
 const { base } = storeToRefs(useBase())
 
@@ -57,25 +49,24 @@ const lockType = computed(() => (view.value?.lock_type as LockType) || LockType.
 
 const currentSourceId = computed(() => table.value?.source_id)
 
-// "Would converting/deleting THIS view leave the table with zero collab
-// grid views?" Computed synchronously from the store's reactive
-// `viewsByTable` map, keyed by the action target's own (baseId, tableId)
-// so it works regardless of which table is currently active in the UI.
-// Falls back to `false` (don't block) when the list is empty or doesn't
-// include the current view — avoids spuriously disabling actions during
-// initial load or on views the store hasn't seen yet.
-const isLastGridViewInTable = computed(() => {
-  const baseId = table.value?.base_id
-  const tableId = table.value?.id
-  if (!baseId || !tableId) return false
-  const viewsList = viewsByTable.value.get(`${baseId}:${tableId}`) || []
-  if (viewsList.length === 0) return false
-  if (!viewsList.some((v) => v.id === view.value?.id)) return false
-  const otherNonPersonalGrids = viewsList.filter(
-    (v) => v.id !== view.value?.id && v.type === ViewTypes.GRID && v.lock_type !== LockType.Personal,
-  )
-  return otherNonPersonalGrids.length === 0
-})
+const {
+  blockViewOperations,
+  disableLockTypeMenu,
+  disablePersonalView,
+  disableCollaborativeOption,
+  changeLockType: switchLockType,
+} = useViewLockType(view, table, { onDone: () => emits('closeModal') })
+
+function changeLockType(type: LockType) {
+  // Emitted only when the switch saves directly; changes into or out of Locked go through a dialog.
+  const current = view.value?.lock_type
+  const isBlockedPersonal = type === LockType.Personal && blockViewOperations.value
+  if (view.value && current !== type && !isBlockedPersonal && type !== LockType.Locked && current !== LockType.Locked) {
+    $e(`a:${viewTypeAlias[view.value.type] || 'view'}:lockmenu`, { lockType: type, sidebar: props.inSidebar })
+  }
+
+  return switchLockType(type)
+}
 
 const onRenameMenuClick = () => {
   emits('rename')
@@ -112,66 +103,6 @@ const onImportClick = (dialog: any) => {
   if (showRecordPlanLimitExceededModal()) return
 
   dialog.value = true
-}
-
-const onLockTypeChange = (type: LockType) => {
-  const { close } = useDialog(resolveComponent('DlgLockView'), {
-    'modelValue': ref(true),
-    'onUpdate:modelValue': () => {
-      close()
-    },
-    'changeType': type,
-    view,
-  })
-
-  emits('closeModal')
-}
-
-const blockViewOperations = computed(() => {
-  return isLastGridViewInTable.value && view.value?.type === ViewTypes.GRID
-})
-
-const lockTypeSwitchedMessage: Record<LockType, string> = {
-  [LockType.Collaborative]: 'msg.toast.collabView',
-  [LockType.Personal]: 'msg.toast.personalView',
-  [LockType.Locked]: 'msg.toast.lockedView',
-}
-
-async function changeLockType(type: LockType) {
-  if (!view.value) return
-
-  if (view.value?.lock_type === type) {
-    message.toast(t('msg.toast.alreadyInView', { type }))
-    emits('closeModal')
-
-    return
-  }
-
-  // if default view block the change since it's not allowed
-  if (type === 'personal' && blockViewOperations.value) {
-    return message.toast(t('msg.toast.notAllowedToChangeGridView'))
-  }
-
-  if (type === LockType.Locked || view.value.lock_type === LockType.Locked) {
-    onLockTypeChange(type)
-
-    return
-  }
-
-  $e(`a:${viewTypeAlias[view.value.type] || 'view'}:lockmenu`, { lockType: type, sidebar: props.inSidebar })
-
-  try {
-    view.value.lock_type = type
-
-    await updateView(view.value?.id, {
-      lock_type: type,
-    })
-    message.toast(t(lockTypeSwitchedMessage[type]))
-  } catch (e: any) {
-    message.toast(await extractSdkResponseErrorMsg(e))
-  }
-
-  emits('closeModal')
 }
 
 const isOnDuplicateLoading = ref<boolean>(false)
@@ -304,44 +235,12 @@ const isDeleteDisabled = computed(() => {
   return false
 })
 
-// The Lock-type submenu is disabled when the user can't change this view's lock_type.
-// - Not owner of a personal view (and can't reassign) → can't flip personal → anything.
-// - Locked view + not creator+ (via fieldAdd) → can't unlock.
-const disableLockTypeMenu = computed(() => {
-  if (isPersonalView.value && !isPersonalViewOwner.value && !isUIAllowed('reAssignViewOwner')) return true
-  if (isLockedView.value && !isUIAllowed('fieldAdd')) return true
-  return false
-})
-
 // Tooltip shown when the whole view-mode submenu is disabled (so the user
 // can hover the title and understand why it won't expand).
 const lockTypeMenuDisabledReason = computed(() => {
   if (isPersonalView.value && !isPersonalViewOwner.value) return t('tooltip.onlyViewOwnerCanModifyPersonalView')
   if (isLockedView.value) return t('tooltip.onlyCreatorsCanUnlockView')
   return ''
-})
-
-const disablePersonalView = computed(() => {
-  // Default grid view can't be made personal (would leave the table without a grid view)
-  if (blockViewOperations.value) return true
-
-  // Converting someone else's personal view is not allowed (they're already personal anyway)
-  if (isPersonalView.value && !isPersonalViewOwner.value) return true
-
-  // Unlocking a locked view requires creator+
-  if (isLockedView.value && !isUIAllowed('fieldAdd')) return true
-
-  return false
-})
-
-const disableCollaborativeOption = computed(() => {
-  // Locked → Collab = unlock, only creator+
-  if (isLockedView.value) return !isUIAllowed('fieldAdd')
-
-  // Personal → Collab, owner or creator+
-  if (isPersonalView.value) return !isPersonalViewOwner.value && !isUIAllowed('reAssignViewOwner')
-
-  return false
 })
 
 // Tooltips shown on hover of each disabled view-mode option.

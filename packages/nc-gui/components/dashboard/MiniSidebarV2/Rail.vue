@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import { PlanFeatureTypes, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
+import Draggable from 'vuedraggable'
+import type { CmdCommand } from '~/lib/types'
 
 interface NavItem {
   key: string
@@ -50,6 +52,34 @@ const notificationStore = useNotification()
 const { unreadCount } = toRefs(notificationStore)
 
 const isNotificationOpen = ref(false)
+
+// Cmd+K opens this dropdown directly; deferred so the palette has closed first.
+useCommandProvider('notifications:rail', 'global', () => ({
+  commands: [
+    {
+      id: 'workspace:notifications',
+      title: t('labels.commandPalette.workspace.notifications'),
+      section: t('labels.commandPalette.sections.workspace'),
+      icon: { type: 'icon', name: 'ncBell' },
+      keywords: ['inbox', 'mentions', 'unread', 'activity', 'notification', 'settings'],
+      run: () => setTimeout(() => (isNotificationOpen.value = true), 0),
+    },
+    // The dropdown's "Mark all as read"; its store call throws on failure instead of toasting.
+    ...(unreadCount.value
+      ? [
+          {
+            id: 'workspace:notifications:mark-all-read',
+            title: t('activity.markAllAsRead'),
+            section: t('labels.commandPalette.sections.workspace'),
+            icon: { type: 'icon' as const, name: 'ncCheckCircle' },
+            keywords: ['notifications', 'inbox', 'clear'],
+            feedback: t('labels.commandPalette.markedAsRead'),
+            run: () => notificationStore.markAllAsRead({}),
+          },
+        ]
+      : []),
+  ],
+}))
 
 const { isFullScreen: isChatFullScreen, hasBaseContext: hasChatBaseContext, cycleChatPanel } = useChatPanel()
 
@@ -359,6 +389,55 @@ const handleOpenBookmarkPanel = () => {
 }
 
 const isSettingsActive = computed(() => isBaseSettingsOpen.value || !!wsSettingsSlugFromRoute(route.value))
+
+// Cmd+K: the rail's sections (same items, gates and clicks) and its bookmarks flyout.
+useCommandProvider('sections:rail', 'global', () => {
+  const section = t('labels.commandPalette.sections.goTo')
+  const keywords = ['go', 'section', 'sidebar', 'switch']
+
+  const commands: CmdCommand[] = mainItems.value
+    .filter((item) => !item.disabled)
+    .map((item) => ({
+      id: `section:${item.key}`,
+      title: t('labels.commandPalette.goToSection', { section: item.label }),
+      section,
+      icon: { type: 'icon', name: item.icon },
+      keywords,
+      checked: item.active ?? (activeSidebarTab.value === item.key && !isChatFullScreen.value && !isBaseSettingsOpen.value),
+      run: () => item.onClick?.(),
+    }))
+
+  // The logo: back to the workspace home.
+  if (activeWorkspaceId.value) {
+    commands.unshift({
+      id: 'section:home',
+      title: t('labels.commandPalette.goToSection', { section: t('general.home') }),
+      section,
+      icon: { type: 'icon', name: 'ncHome' },
+      keywords: [...keywords, 'workspace'],
+      checked: !route.value.params.baseId,
+      run: () => navigateTo(`/${activeWorkspaceId.value}`),
+    })
+  }
+
+  if (showEEFeatures.value) {
+    commands.push({
+      id: 'bookmarks:open',
+      title: t('labels.commandPalette.openBookmarks'),
+      section: t('labels.commandPalette.sections.workspace'),
+      icon: { type: 'icon', name: 'ncBookmark' },
+      keywords: ['bookmarks', 'saved', 'favourites', 'favorites'],
+      // Deferred so the flyout doesn't count the palette's closing click as an outside click.
+      run: () =>
+        setTimeout(() => {
+          if (isEEFeatureBlocked.value) showUpgradeToUseBookmarks({ triggerSource: 'command-palette' })
+          else isBookmarksFlyoutOpen.value = true
+        }, 0),
+    })
+  }
+
+  return { commands }
+})
 </script>
 
 <template>

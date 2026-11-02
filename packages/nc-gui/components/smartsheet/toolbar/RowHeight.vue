@@ -96,6 +96,34 @@ const _wrapHeaders = computed({
 })
 
 useMenuCloseOnEsc(open)
+
+useCommandProvider(
+  () => `view-toolbar:row-height:${view.value?.id}`,
+  'view',
+  () => ({
+    commands:
+      isPublic.value || isLocked.value
+        ? []
+        : [
+            {
+              id: 'view:row-height',
+              priority: CMD_PRIORITY.high,
+              title: t('labels.commandPalette.changeRowHeight'),
+              section: t('labels.commandPalette.sections.view'),
+              icon: { type: 'icon', name: 'heightMedium' },
+              searchChildren: true,
+              children: () =>
+                rowHeightOptions.map((option, index) => ({
+                  id: `view:row-height:${option.heightClass}`,
+                  title: t(`objects.heightClass.${option.heightClass}`),
+                  icon: { type: 'icon', name: option.icon },
+                  checked: (currentRowHeight.value ?? 0) === index,
+                  run: () => updateRowHeight(index),
+                })),
+            },
+          ],
+  }),
+)
 </script>
 
 <template>

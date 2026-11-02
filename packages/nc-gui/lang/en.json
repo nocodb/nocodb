@@ -2113,6 +2113,7 @@
         "invalidValue": "“{value}” isn't a valid {field}",
         "hidden": "Show {field} in this view to edit it",
         "tooMany": "{count} records match; narrow the condition (up to {cap})",
+        "relativeUnavailable": "Only fixed values can be set with a condition",
         "noMatch": "No records match",
         "changed": "The matching records changed since the preview.",
         "guessed": "Edits need an exact condition; Enter writes it out",

@@ -114,17 +114,18 @@ export function useCmdNl() {
     query: string,
     schema: CmdNlSchema,
     rows?: Record<string, unknown>[],
-    extra?: Pick<CmdNlParseOptions, 'history'> & { key?: string },
+    extra?: Pick<CmdNlParseOptions, 'history' | 'anchors'> & { key?: string },
   ): CmdIR[] {
     const text = query.trim()
     if (!text) return []
     prepare()
     let byQuery = parseCache.get(schema)
     if (!byQuery) parseCache.set(schema, (byQuery = new Map()))
-    const key = `${rows?.length ?? 0}\u0000${extra?.key ?? ''}\u0000${text}`
+    const anchors = extra?.anchors ? JSON.stringify(extra.anchors) : ''
+    const key = `${rows?.length ?? 0}\u0000${extra?.key ?? ''}\u0000${anchors}\u0000${text}`
     const hit = byQuery.get(key)
     if (hit) return hit
-    const readings = parseCmdNl(text, schema, { rows, history: extra?.history })
+    const readings = parseCmdNl(text, schema, { rows, history: extra?.history, anchors: extra?.anchors })
     byQuery.set(key, readings)
     if (byQuery.size > PARSE_CACHE_SIZE) byQuery.delete(byQuery.keys().next().value!)
     return readings

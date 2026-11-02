@@ -26,6 +26,8 @@ export interface CmdNlParseOptions {
   now?: dayjs.Dayjs
   /** Loaded rows, for value anchors ("austin deals"). */
   rows?: Record<string, unknown>[]
+  /** Text values found on the server beyond the loaded rows, by field id ("mining" in Industry). */
+  anchors?: Record<string, string[]>
   /** Skip the legacy parsers (edits, fills, creates, calc). */
   legacy?: boolean
   /** The stage-2 readers: contenders next to the chart (default), left out, or used alone. */
@@ -68,13 +70,12 @@ export const CMD_NL_TAGGER_ENABLED = true
 type Body = Omit<CmdIR, 'meta'>
 
 function contextFor(query: string, schema: CmdNlSchema, opts: CmdNlParseOptions, onUnanchored?: () => void): CmdNlCtx {
-  const lex = buildCmdNlLexicon(schema, opts.rows)
+  const lex = buildCmdNlLexicon(schema, opts.rows, opts.anchors)
   return {
     tokens: tokenizeCmdNl(query, cmdNlLiteralGuard(lex, onUnanchored)),
     lex,
     schema,
     now: opts.now ?? dayjs(),
-    rows: opts.rows,
   }
 }
 
@@ -199,10 +200,12 @@ export function parseCmdNl(query: string, schema: CmdNlSchema, opts: CmdNlParseO
   const stage2 =
     mode === 'off'
       ? []
-      : parseCmdNlProcedural(text, schema, { now: opts.now, rows: opts.rows, legacy: false }).map((ir) => ({
-          ...ir,
-          meta: { ...ir.meta, score: ir.meta.score * (mode === 'only' ? 1 : PROCEDURAL_FACTOR) },
-        }))
+      : parseCmdNlProcedural(text, schema, { now: opts.now, rows: opts.rows, anchors: opts.anchors, legacy: false }).map(
+          (ir) => ({
+            ...ir,
+            meta: { ...ir.meta, score: ir.meta.score * (mode === 'only' ? 1 : PROCEDURAL_FACTOR) },
+          }),
+        )
   // A legacy reading contested by a full grammar reading of the same intent ranks just under it.
   const bestByIntent = new Map<string, number>()
   for (const ir of [...chart, ...stage2]) bestByIntent.set(ir.intent, Math.max(bestByIntent.get(ir.intent) ?? 0, ir.meta.score))

@@ -7,8 +7,17 @@ import { useCmdNl } from '~/composables/useCmdNl'
 import { useRelativeEditCommands } from '~/composables/useSetFieldCommands'
 import { canonical, compileCond } from '~/utils/cmdNl/compile'
 import type { CmdIR, CmdNlAssumption, CmdNlCmp, CondLeaf, FieldRef, Scalar } from '~/utils/cmdNl/ir'
-import { CMD_NL_RATIO, CMD_NL_SHARE, condLeaves } from '~/utils/cmdNl/ir'
-import { cmdNlDiagnose } from '~/utils/cmdNl/diagnose'
+import {
+  CMD_NL_RATIO,
+  CMD_NL_SHARE,
+  cmdNlPercentileLeaves,
+  cmdNlPercentileText,
+  cmdNlResolvePercentiles,
+  condLeaves,
+  isCmdNlPercentile,
+} from '~/utils/cmdNl/ir'
+import { cmdNlDiagnose, cmdNlUnknownWords } from '~/utils/cmdNl/diagnose'
+import { cmdNlThreshold } from '~/utils/cmdNl/threshold'
 import type { CmdNlField, CmdNlSchema } from '~/utils/cmdNl/schema'
 import { cmdNlField } from '~/utils/cmdNl/schema'
 import { cmdNlSkeleton } from '~/utils/cmdNl/skeleton'
@@ -60,6 +69,12 @@ const MAX_SUGGESTIONS = 6
 
 /** Shown when the parser isn't sure: the top readings, Tab switching between them. */
 const UNSURE_READINGS = 2
+
+/** Text fields a word no reading explains is looked up in, and the readings offered when several have it. */
+const LOOKUP_FIELDS = 3
+
+/** Titles of fields whose values are categories ("mining" in Industry), looked up first. */
+const CATEGORY_TITLE = /industry|sector|segment|category|type|kind|city|country|region|state|source|channel|status|tier|group/i
 
 const CMP_TEXT: Partial<Record<CmdNlCmp, string>> = {
   eq: 'is',
@@ -117,10 +132,11 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
   const { cmdK } = useCommand()
 
   /** Readings with the user's past picks on this table as a (capped) ranking hint. */
-  const parse = (query: string, nlSchema: CmdNlSchema, rows?: Record<string, unknown>[]) =>
+  const parse = (query: string, nlSchema: CmdNlSchema, rows?: Record<string, unknown>[], anchors?: Record<string, string[]>) =>
     parseRaw(query, nlSchema, rows, {
       history: historyFor(ctx.meta.value?.id),
       key: String(historyVersion.value),
+      anchors,
     })
 
   const relativeEdit = useRelativeEditCommands()
@@ -130,6 +146,8 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
   const whereRows = reactive(new Map<string, Remote<{ rows: Record<string, any>[]; total: number }>>())
 
   const valueLookups = reactive(new Map<string, Remote<string[]>>())
+
+  const thresholds = reactive(new Map<string, Remote<number | null>>())
 
   const samples = shallowReactive(new Map<string, Record<string, unknown>[]>())
 
@@ -267,7 +285,7 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
       const member = schema.value?.fields.find((f) => f.id === column.id)?.members?.find((m) => m.id === value.member)
       return member?.email ?? value.member
     }
-    if ('range' in value) return
+    if ('range' in value || 'percentile' in value) return
     const day = 'date' in value ? dayjs(value.date) : relativeDay(value)
     if (!day.isValid()) return
     if (column.uidt === UITypes.DateTime) return day.utc().format('YYYY-MM-DD HH:mm:ssZ')
@@ -283,6 +301,7 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
     if ('member' in value) return field?.members?.find((m) => m.id === value.member)?.name ?? value.member
     if ('date' in value) return value.date
     if ('range' in value) return `${value.range[0]} – ${value.range[1]}`
+    if ('percentile' in value) return cmdNlPercentileText('gte', value.percentile)
     return relativeText(value)
   }
 
@@ -591,6 +610,90 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
       isPg,
     })
     return value === undefined || value === null ? '–' : String(value)
+  }
+
+  /**
+   * "big deals": each percentile bound as a number, read over the view's records (not the reading's other
+   * conditions), cached per view, field and fraction. `labels` re-title the assumed chips.
+   */
+  function withThresholds(ir: CmdIR): {
+    ir: CmdIR
+    state: 'done' | 'loading' | 'empty' | 'error'
+    message?: string
+    labels: Map<string, string>
+  } {
+    const labels = new Map<string, string>()
+    const leaves = cmdNlPercentileLeaves(ir)
+    if (!leaves.length) return { ir, state: 'done', labels }
+    const table = ctx.meta.value!
+    const viewId = ctx.view.value!.id!
+    const keyOf = (leaf: CondLeaf, p: number) => JSON.stringify([viewId, leaf.field.id, p, leaf.cmp, viewFilters([])])
+    const entries = leaves.map((leaf) => {
+      const p = isCmdNlPercentile(leaf.value) ? leaf.value.percentile : 0
+      const column = columnOf(leaf.field.id)
+      const key = keyOf(leaf, p)
+      const entry = thresholds.get(key)
+      if (column) {
+        enqueue(key, entry, async () => {
+          thresholds.set(key, { status: 'loading', at: Date.now() })
+          try {
+            const value = await cmdNlThreshold(leaf, p, {
+              count: async (filters) => Number((await aggregate(column, 'count', viewFilters(filters))) ?? 0),
+              valueAt: async (filters, dir, offset) => {
+                const data = await $api.dbViewRow.list('noco', table.base_id!, table.id!, viewId, {
+                  fields: [column.title!],
+                  sort: [`${dir === 'desc' ? '-' : ''}${column.title}`],
+                  filterArrJson: JSON.stringify(viewFilters(filters)),
+                  limit: 1,
+                  offset,
+                })
+                return (data.list?.[0] as Record<string, unknown> | undefined)?.[column.title!]
+              },
+            })
+            thresholds.set(key, { status: 'done', value, at: Date.now() })
+          } catch (e) {
+            thresholds.set(key, { status: 'error', message: await extractSdkResponseErrorMsg(e as Error), at: Date.now() })
+          }
+        })
+      }
+      return { leaf, p, column, entry }
+    })
+    const assumptionOf = (leaf: CondLeaf) =>
+      ir.meta.assumptions?.find((a) => a.ref === leaf.field.id && (a.kind === 'threshold' || a.kind === 'priority'))
+    const error = entries.find((e) => e.entry?.status === 'error')?.entry
+    if (error?.status === 'error') return { ir, state: 'error', message: error.message, labels }
+    if (entries.some((e) => !e.column || !e.entry || e.entry.status === 'loading')) {
+      for (const { leaf } of entries) {
+        const a = assumptionOf(leaf)
+        if (a) labels.set(`assumed:${a.span[0]}`, `${a.text} …`)
+      }
+      return { ir, state: 'loading', labels }
+    }
+    const empty = entries.find((e) => e.entry?.status === 'done' && e.entry.value === null)
+    if (empty) {
+      const message = t('labels.commandPalette.nl.noValuesFor', { field: empty.column!.title })
+      return { ir, state: 'empty', message, labels }
+    }
+    const valueOf = (leaf: CondLeaf, p: number) => {
+      const entry = thresholds.get(keyOf(leaf, p))
+      return entry?.status === 'done' && entry.value !== null ? entry.value : undefined
+    }
+    const resolved = cmdNlResolvePercentiles(ir, valueOf)
+    if (!resolved) return { ir, state: 'loading', labels }
+    // "Amount ≥ $15,500 (top 25%)": the guess, now with the number it stands for.
+    const assumptions = (ir.meta.assumptions ?? []).map((a) => {
+      const hit = entries.find((e) => e.leaf.field.id === a.ref && assumptionOf(e.leaf) === a)
+      const value = hit && valueOf(hit.leaf, hit.p)
+      if (!hit || value === undefined) return a
+      const text = `${hit.column!.title} ${CMP_TEXT[hit.leaf.cmp]} ${formatAggregate(
+        hit.column!,
+        'max',
+        value,
+      )} (${cmdNlPercentileText(hit.leaf.cmp, hit.p)})`
+      labels.set(`assumed:${a.span[0]}`, text)
+      return { ...a, text }
+    })
+    return { ir: { ...resolved, meta: { ...resolved.meta, assumptions } }, state: 'done', labels }
   }
 
   /** A summary row: the server's figure for the view (and a condition), copied on Enter. */
@@ -1145,9 +1248,10 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
     const result = readingRow(ir, text, '', 0, false)
     if (!result) return chipsOnly
     // A filter shows how many records it keeps; Enter still adds the filter.
+    const bounded = withThresholds(ir)
     const counted =
-      ir.intent === 'filter' && ir.where && !ir.orderBy?.length && canStat.value
-        ? statRow({ ...result }, { ...ir, intent: 'stat', aggs: [{ fn: 'count' }] }, false)
+      ir.intent === 'filter' && ir.where && !ir.orderBy?.length && canStat.value && bounded.state === 'done'
+        ? statRow({ ...result }, { ...bounded.ir, intent: 'stat', aggs: [{ fn: 'count' }] }, false)
         : undefined
     const value = counted?.value ?? result.value
     return {
@@ -1190,8 +1294,10 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
     return remembering(readingRowOf(ir, text, prefix, index, unsure), ir, `${prefix}${text}`)
   }
 
-  function readingRowOf(ir: CmdIR, text: string, prefix: string, index: number, unsure: boolean): CmdCommand | undefined {
+  function readingRowOf(parsed: CmdIR, text: string, prefix: string, index: number, unsure: boolean): CmdCommand | undefined {
     const nlSchema = schema.value!
+    const bounds = withThresholds(parsed)
+    const ir = bounds.ir
     const nativeShare = ir.aggs?.[0]?.fn === CMD_NL_SHARE
     const share = !!prefix
     const sentence = canonical(ir, nlSchema)
@@ -1199,6 +1305,7 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
     const shared = sentence.replace(/^Sum of /, '').replace(/^Count\b/, t('labels.commandPalette.nl.records'))
     const chips = chipsOf(ir, text).map((chip) => ({
       ...chip,
+      text: (chip.key && bounds.labels.get(chip.key)) || chip.text,
       swaps: chip.swaps?.map((swap) => ({ ...swap, query: `${prefix}${swap.query}` })),
     }))
     const base: CmdCommand = {
@@ -1216,6 +1323,8 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
         surface: surface.value,
       },
     }
+    if (bounds.state === 'loading') return { ...base, loading: true, disabled: true }
+    if (bounds.state !== 'done') return { ...base, hint: bounds.message, disabled: true, error: bounds.state === 'error' }
     switch (ir.intent) {
       case 'stat':
         if (!canStat.value) return undefined
@@ -1247,6 +1356,36 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
     }
   }
 
+  /**
+   * "mining companies" when "mining" isn't in the loaded rows: each word nothing reads is looked up (debounced,
+   * cached) in up to LOOKUP_FIELDS text fields; a field holding it exactly anchors a re-parse, one reading per field.
+   */
+  function serverValueReadings(query: string, nlSchema: CmdNlSchema, rows?: Record<string, unknown>[]): CmdIR[] {
+    const words = cmdNlUnknownWords(query, nlSchema, { rows }).filter((w) => w.length >= 3)
+    // Some other word must read ("companies"), or this is a command search, not a query.
+    const total = query.trim().split(/\s+/).length
+    if (!words.length || words.join(' ').split(/\s+/).length >= total) return []
+    const fields = nlSchema.fields
+      .filter((f) => f.kind === 'text' && !f.pv && !f.system && f.uidt !== UITypes.LongText && isVisible(f.id))
+      .sort((a, b) => Number(CATEGORY_TITLE.test(b.title)) - Number(CATEGORY_TITLE.test(a.title)))
+      .slice(0, LOOKUP_FIELDS)
+    let sets: Record<string, string[]>[] = [{}]
+    for (const word of words) {
+      const hits = fields.flatMap((field) => {
+        const value = lookupValues(field, word).find((v) => v.toLowerCase() === word.toLowerCase())
+        return value ? [{ field, value }] : []
+      })
+      if (!hits.length) continue
+      // One field: one reading; several: a reading for each, as alternatives.
+      sets = sets
+        .flatMap((set) => hits.map(({ field, value }) => ({ ...set, [field.id]: [...(set[field.id] ?? []), value] })))
+        .slice(0, LOOKUP_FIELDS)
+    }
+    if (!Object.keys(sets[0]!).length) return []
+    const readings = sets.flatMap((anchors) => parse(query, nlSchema, rows, anchors).slice(0, 1))
+    return readings.length > 1 ? readings.map((ir) => ({ ...ir, meta: { ...ir.meta, unsure: true } })) : readings
+  }
+
   /** The view provider's fallbacks: readings of the query first (or completions while a value is half typed). */
   function nlCommands(query: string): CmdCommand[] {
     const table = ctx.meta.value
@@ -1263,12 +1402,15 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
     const share = nativeFn === CMD_NL_SHARE || nativeFn === CMD_NL_RATIO ? null : SHARE_OF.exec(query)
     const text = share ? share[1]! : query
     const prefix = query.slice(0, query.length - text.length)
-    const parsed = share ? parse(text, nlSchema, anchors) : native
+    const own = share ? parse(text, nlSchema, anchors) : native
+    // Declined, or a word left over: the server may know it as a value the loaded rows don't have.
+    const looked = !own.length || own[0]!.meta.coverage < 1 ? serverValueReadings(text, nlSchema, anchors) : []
+    const parsed = looked.length ? looked : own
     const readings = share ? shareReadings(parsed, text, nlSchema, anchors) : parsed
 
     const unsure = !!readings[0]?.meta.unsure
     const rowsOut = readings
-      .slice(0, unsure ? UNSURE_READINGS : 1)
+      .slice(0, unsure ? Math.max(UNSURE_READINGS, looked.length) : 1)
       .map((ir, i) => readingRow(ir, text, prefix, i, unsure))
       .filter((row): row is CmdCommand => !!row)
       .map((row) => (row.tele?.kind === 'reading' ? { ...row, tele: { ...row.tele, latency, readings: readings.length } } : row))

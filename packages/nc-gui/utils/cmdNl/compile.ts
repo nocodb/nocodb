@@ -1,7 +1,7 @@
 import type { FilterType } from 'nocodb-sdk'
 import type { CmdFill, CmdRelativeEdit } from '../commandPaletteRelativeEdit'
 import type { CmdIR, CmdNlCmp, CmdNlEdit, CmdNlRelativeDate, Cond, CondLeaf, Scalar } from './ir'
-import { CMD_NL_RATIO, CMD_NL_SHARE, isCondLeaf } from './ir'
+import { CMD_NL_RATIO, CMD_NL_SHARE, cmdNlPercentileText, isCmdNlPercentile, isCondLeaf } from './ir'
 import type { CmdNlField, CmdNlSchema } from './schema'
 import { cmdNlField } from './schema'
 
@@ -140,6 +140,10 @@ function compileNode(cond: Cond, schema: CmdNlSchema, logical: 'and' | 'or', err
       errors.push(`unknown field ${cond.field.id}`)
       return []
     }
+    if (isCmdNlPercentile(cond.value)) {
+      errors.push(`${field.title}: threshold not resolved yet`)
+      return []
+    }
     return leafFilters(cond, field, logical)
   }
   if (cond.op === 'not') {
@@ -243,6 +247,7 @@ function scalarText(value: Scalar, field?: CmdNlField): string {
   if ('member' in value) return field?.members?.find((m) => m.id === value.member)?.name ?? value.member
   if ('date' in value) return value.date
   if ('range' in value) return `${value.range[0]} – ${value.range[1]}`
+  if ('percentile' in value) return cmdNlPercentileText('gte', value.percentile)
   return RELATIVE_TEXT[value.relative].replace('{n}', String(value.n ?? ''))
 }
 
@@ -259,6 +264,7 @@ export function canonicalCond(cond: Cond, schema: CmdNlSchema, nested = false): 
   const field = cmdNlField(schema, cond.field.id)
   const name = field?.title ?? cond.field.id
   if (cond.value === undefined) return `${name} ${CMP_TEXT[cond.cmp]}`
+  if (isCmdNlPercentile(cond.value)) return `${name} in the ${cmdNlPercentileText(cond.cmp, cond.value.percentile)}`
   if (cond.cmp === 'between' && Array.isArray(cond.value)) {
     return `${name} is between ${scalarText(cond.value[0]!, field)} and ${scalarText(cond.value[1]!, field)}`
   }

@@ -8,7 +8,7 @@ interface Props {
   options?: LocalSelectOptionType[]
 }
 
-const { modelValue, options: selectOptions } = defineProps<Props>()
+const { modelValue, options: selectOptions, location } = defineProps<Props>()
 
 const { isDark, getColor } = useTheme()
 
@@ -51,6 +51,9 @@ const selectedOpts = computed(() => {
   }, [] as LocalSelectOptionType[])
 })
 
+// A filter value has no row height to truncate to: show every selected option.
+const isInFilter = computed(() => location === 'filter')
+
 const selectedOptsListLayout = computed(() => selectedOpts.value.map((item) => item.title!))
 </script>
 
@@ -71,9 +74,10 @@ const selectedOptsListLayout = computed(() => selectedOpts.value.map((item) => i
       class="flex flex-wrap"
       :class="{
         'flex-col items-start gap-2': extensionConfig?.widget?.displayAs === 'List',
+        'gap-y-1 max-w-full': isInFilter,
       }"
       :style="
-        extensionConfig?.widget?.displayAs !== 'List'
+        extensionConfig?.widget?.displayAs !== 'List' && !isInFilter
           ? {
               'display': '-webkit-box',
               'max-width': '100%',

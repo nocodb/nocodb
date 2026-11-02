@@ -70,6 +70,8 @@ export enum AiUseCase {
   FieldSuggestions = 'field_suggestions',
   /** Formula generation, repair, and next-formula prediction. */
   Formula = 'formula',
+  /** Cmd+K: reading a typed request into the palette's structured readings. */
+  CmdkInterpret = 'cmdk_interpret',
   /** Row auto-fill and extract-from-input (no per-field integration). */
   Data = 'data',
   /** Document authoring/editing: write, continue, improve. */

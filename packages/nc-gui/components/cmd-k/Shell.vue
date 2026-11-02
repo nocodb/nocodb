@@ -262,6 +262,11 @@ onClickOutside(contentEl, () => {
         @apply text-nc-content-gray-muted;
       }
     }
+
+    // Work in progress, not unavailable: readable text beside the spinner.
+    &.is-loading:not(.is-danger) {
+      @apply text-nc-content-gray-subtle;
+    }
   }
 
   // One 16px column for every icon kind; nested icons drop their own margins and tints.

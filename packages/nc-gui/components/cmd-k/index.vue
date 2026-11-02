@@ -147,10 +147,13 @@ const results = computed<CmdCommand[]>(() => {
 
   // A request leads with "Ask NocoAI"; a command-like query keeps its matches and echo rows first.
   const ai = aiRow.value
+  // A fallback row still working (it can be cancelled) holds the list until it settles.
+  if (ai?.loading && ai.cancel) return [ai]
   // "Not understood" only when nothing else answered: a matching command means the query was understood.
   const leadRows = matches.length ? leadFallbacks.value.filter((c) => c.tele?.kind !== 'decline') : leadFallbacks.value
   const lead = [...recentRows.value, ...leadRows]
   if (!ai) return [...lead, ...matches, ...trailingFallbacks.value]
+  if (ai.trailing) return [...lead, ...matches, ...trailingFallbacks.value, ai]
   // Mid-typing ("…where company si"): what is being typed leads, not the AI, unless it ends with "?".
   const question = /\?\s*$/.test(debouncedQuery.value)
   if (!question && isBeingTyped(debouncedQuery.value)) return [...lead, ...matches, ...trailingFallbacks.value, ai]
@@ -158,8 +161,9 @@ const results = computed<CmdCommand[]>(() => {
   const namedCreate = /^\s*(create|new)\s/i.test(debouncedQuery.value)
     ? fallbacks.value.find((command) => command.id.endsWith(':create-named'))
     : undefined
-  // A parsed answer or edit ("how many deals are won") beats the AI unless the query is an explicit question.
-  const answered = lead.length > 0 && !question
+  // A parsed answer or edit ("how many deals are won") beats the AI; with "?", only a confident reading does.
+  const confident = lead.some((command) => command.tele?.kind === 'reading' && !command.tele.reading.unsure)
+  const answered = lead.length > 0 && (!question || confident)
   return !answered &&
     isCmdNaturalLanguage(debouncedQuery.value, matches.length > 0 || !!namedCreate || lead.length > 0, matches[0]?.title)
     ? [ai, ...lead, ...matches, ...trailingFallbacks.value]
@@ -182,6 +186,9 @@ const readingRows = computed(() =>
   // Suggestions carry their completed reading too, but Tab completes them rather than cycling.
   activePage.value ? [] : results.value.filter((command) => command.reading && command.complete === undefined),
 )
+
+/** The fallback row leads and nothing was read: the query goes there, so no chips or completions. */
+const fallbackLeads = computed(() => !!aiRow.value && results.value[0]?.id === aiRow.value.id && !readingRows.value.length)
 
 /**
  * The reading whose chips show: the selected one, else the first reading, else the best completion's
@@ -209,6 +216,7 @@ const skeleton = computed<CmdSkeleton | undefined>(() => {
 
 /** The chip row: the reading's chips, else a completion's (tentative), else the skeleton's (tentative). */
 const shownChips = computed<{ chips: CmdChip[]; tentative: boolean; ghost?: CmdSkeleton['ghost'] }>(() => {
+  if (fallbackLeads.value) return { chips: [], tentative: true }
   const reading = chipReading.value?.reading?.chips
   if (reading?.length && !chipsTentative.value) return { chips: reading, tentative: false }
   if (reading?.length) return { chips: reading, tentative: true, ghost: skeleton.value?.ghost }
@@ -216,7 +224,9 @@ const shownChips = computed<{ chips: CmdChip[]; tentative: boolean; ghost?: CmdS
 })
 
 /** The first completion row, accepted by Tab or → when nothing else claims the key. */
-const firstCompletion = computed(() => (activePage.value ? undefined : results.value.find((c) => c.complete !== undefined)))
+const firstCompletion = computed(() =>
+  activePage.value || fallbackLeads.value ? undefined : results.value.find((c) => c.complete !== undefined),
+)
 
 /** A submenu opens on its current value (e.g. the active theme), else on the first row. */
 function defaultSelectedId() {
@@ -464,6 +474,13 @@ function execute(command: CmdCommand) {
     return
   }
 
+  if (command.stayOpen) {
+    // Its own rows show what happens next, so the selection follows the list again.
+    navigated.value = false
+    command.run?.()
+    return
+  }
+
   hide()
   command.run?.()
 }
@@ -556,6 +573,10 @@ function onKeydown(e: KeyboardEvent) {
       e.preventDefault()
       // Closing the palette must not also close what's under it (an expanded form closes on Esc).
       e.stopPropagation()
+      if (aiRow.value?.loading && aiRow.value.cancel) {
+        aiRow.value.cancel()
+        return
+      }
       hide()
       return
     case 'Backspace':
@@ -607,14 +628,21 @@ function onKeydown(e: KeyboardEvent) {
         aiRow.value.run?.()
         return
       }
-      if (!isAiAvailable.value) return
+      if (!isAiAvailable.value || aiRow.value?.disabled) return
       $e('c:command-palette:ai:ask', {
         level: activeLevel.value,
         // Why the query went to the AI: nothing read it, the reading was unsure, or Tab was just pressed.
         reason: !readingRows.value.length ? 'no-reading' : nlTop?.reading.unsure ? 'unsure' : 'tab',
       })
+      // An AI row that answers in the palette keeps it open; otherwise it runs like a pick.
+      if (aiRow.value?.stayOpen) {
+        navigated.value = false
+        aiRow.value.run?.()
+        return
+      }
       hide()
-      askAi(query.value)
+      if (aiRow.value?.run) aiRow.value.run()
+      else askAi(query.value)
       return
     }
   }
@@ -785,7 +813,7 @@ defineExpose({
           <GeneralShortcutLabel :keys="['Tab']" />
         </div>
         <div
-          v-else-if="isAiAvailable && !activePage"
+          v-else-if="isAiAvailable && !activePage && !aiRow"
           class="flex items-center gap-1.5 text-bodySm text-nc-content-gray-muted flex-none cursor-pointer hover:text-nc-content-gray"
           @click="askAi(query)"
         >
@@ -820,7 +848,7 @@ defineExpose({
           >
             <CmdKItemIcon v-if="chip.icon" :icon="chip.icon" class="flex-none" />
             <span class="truncate max-w-40">{{ chip.text }}</span>
-            <span v-if="chip.kind === 'assumed'" class="nc-cmdk-chip-assumed flex-none">
+            <span v-if="chip.kind === 'assumed' && !chip.plain" class="nc-cmdk-chip-assumed flex-none">
               {{ $t('labels.commandPalette.nl.assumed') }}
             </span>
             <GeneralIcon v-if="chip.swaps?.length" icon="ncChevronDown" class="h-3 w-3 flex-none opacity-60" />

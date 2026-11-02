@@ -33,6 +33,7 @@ function onMouseMove(e: MouseEvent) {
       'selected': selected && !command.disabled,
       'is-danger': command.danger || command.error,
       'is-disabled': command.disabled,
+      'is-loading': command.loading,
     }"
     :style="{ height: `${height}px` }"
     role="option"
@@ -43,8 +44,8 @@ function onMouseMove(e: MouseEvent) {
     @click="!command.disabled && emits('select')"
   >
     <div class="nc-cmdk-row-inner">
-      <div v-if="command.loading" class="h-4 w-4 flex-none flex items-center justify-center">
-        <GeneralLoader size="small" />
+      <div v-if="command.loading" class="h-4 w-4 flex-none flex items-center justify-center text-nc-content-brand">
+        <GeneralLoader size="medium" />
       </div>
       <CmdKItemIcon v-else-if="command.icon" :icon="command.icon" class="flex-none" />
       <NcTooltip show-on-truncate-only class="truncate" :tooltip-style="{ zIndex: 1100 }">

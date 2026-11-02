@@ -1,13 +1,19 @@
 import dayjs from 'dayjs'
 import { cmdEditDistance, matchCmdName } from './commandPaletteRelativeEdit'
+import type { StatAgg } from './cmdNl/vocab/aggregations'
+import { AGG_WORDS, DATE_AGG } from './cmdNl/vocab/aggregations'
+import type { CmdStatOp } from './cmdNl/vocab/comparators'
+import { OP_WORDS } from './cmdNl/vocab/comparators'
+import { MONTHS } from './cmdNl/vocab/dates'
+import { FIELD_FILLERS, LEAD_FILLERS } from './cmdNl/vocab/fillers'
+import { SUFFIX } from './cmdNl/vocab/numbers'
+import { CLEAR_VERBS, SET_VERBS } from './cmdNl/vocab/verbs'
 
 /* ------------------------------------------------------------------------------------------------
  * Calculator: "= 2500 * 1.18", "(10 + 5) / 3". A recursive-descent evaluator; never eval/Function.
  * ---------------------------------------------------------------------------------------------- */
 
 type CalcToken = { kind: 'num'; value: number } | { kind: 'op'; value: string }
-
-const SUFFIX: Record<string, number> = { k: 1e3, m: 1e6 }
 
 function tokenizeCalc(input: string): CalcToken[] | undefined {
   const tokens: CalcToken[] = []
@@ -180,7 +186,7 @@ export interface CmdStatColumn {
 
 export interface CmdStatCondition {
   column: CmdStatColumn
-  op: 'eq' | 'neq' | 'gt' | 'lt' | 'gte' | 'lte' | 'like' | 'blank' | 'notblank' | 'checked' | 'notchecked' | 'anyof' | 'nanyof'
+  op: CmdStatOp
   value?: string
   /** What to show for `value` when it is an id (a member's name, or "me"). */
   label?: string
@@ -192,134 +198,6 @@ export interface CmdStatQuery {
   column?: CmdStatColumn
   where: CmdStatCondition[]
 }
-
-/** `mode` ("most common") has no footer aggregation; it only ever yields an "unsupported" reading. */
-type StatAgg =
-  | 'sum'
-  | 'avg'
-  | 'min'
-  | 'max'
-  | 'median'
-  | 'range'
-  | 'count'
-  | 'count_unique'
-  | 'count_empty'
-  | 'count_filled'
-  | 'mode'
-
-/** Longest phrases first, so "number of" wins over "number" and "top value" over "top". */
-const AGG_WORDS: Array<[string[], StatAgg]> = [
-  [['how', 'many'], 'count'],
-  [['number', 'of'], 'count'],
-  [['count', 'of'], 'count'],
-  [['count', 'unique'], 'count_unique'],
-  [['count', 'distinct'], 'count_unique'],
-  [['count', 'empty'], 'count_empty'],
-  [['count', 'filled'], 'count_filled'],
-  [['most', 'common'], 'mode'],
-  [['most', 'frequent'], 'mode'],
-  [['least', 'common'], 'mode'],
-  [['least', 'frequent'], 'mode'],
-  [['top', 'value'], 'mode'],
-  [['mode'], 'mode'],
-  [['sum'], 'sum'],
-  [['total'], 'sum'],
-  [['average'], 'avg'],
-  [['avg'], 'avg'],
-  [['mean'], 'avg'],
-  [['median'], 'median'],
-  [['min'], 'min'],
-  [['minimum'], 'min'],
-  [['lowest'], 'min'],
-  [['smallest'], 'min'],
-  [['earliest'], 'min'],
-  [['max'], 'max'],
-  [['maximum'], 'max'],
-  [['highest'], 'max'],
-  [['largest'], 'max'],
-  [['biggest'], 'max'],
-  [['top'], 'max'],
-  [['latest'], 'max'],
-  [['range'], 'range'],
-  [['count'], 'count'],
-  [['unique'], 'count_unique'],
-  [['distinct'], 'count_unique'],
-]
-
-/** Openers dropped before the aggregation: "what is the max …", "show me the total …". */
-const LEAD_FILLERS: string[][] = [
-  ['what', 'is'],
-  ['whats'],
-  // "what's" arrives as "what" once possessives are folded.
-  ['what'],
-  ['show', 'me'],
-  ['show'],
-  ['get', 'me'],
-  ['get'],
-  ['give', 'me'],
-  ['tell', 'me'],
-  ['find'],
-  ['calculate'],
-  ['the'],
-]
-
-/** Words between the aggregation and the field: "max value of the referral source across all records". */
-const FIELD_FILLERS = new Set([
-  'value',
-  'values',
-  'of',
-  'the',
-  'for',
-  'in',
-  'across',
-  'all',
-  'records',
-  'rows',
-  'field',
-  'column',
-])
-
-const OP_WORDS: Array<[string[], CmdStatCondition['op']]> = [
-  [['is', 'not', 'empty'], 'notblank'],
-  [['is', 'not', 'blank'], 'notblank'],
-  [['is', 'filled'], 'notblank'],
-  [['is', 'empty'], 'blank'],
-  [['is', 'blank'], 'blank'],
-  [['is', 'unchecked'], 'notchecked'],
-  [['is', 'not', 'checked'], 'notchecked'],
-  [['is', 'checked'], 'checked'],
-  [['greater', 'than', 'or', 'equal', 'to'], 'gte'],
-  [['less', 'than', 'or', 'equal', 'to'], 'lte'],
-  [['greater', 'than'], 'gt'],
-  [['more', 'than'], 'gt'],
-  [['less', 'than'], 'lt'],
-  [['fewer', 'than'], 'lt'],
-  [['at', 'least'], 'gte'],
-  [['at', 'most'], 'lte'],
-  [['is', 'not'], 'neq'],
-  [["isn't"], 'neq'],
-  [['not'], 'neq'],
-  [['!='], 'neq'],
-  [['>='], 'gte'],
-  [['<='], 'lte'],
-  [['>'], 'gt'],
-  [['<'], 'lt'],
-  [['above'], 'gt'],
-  [['over'], 'gt'],
-  [['below'], 'lt'],
-  [['under'], 'lt'],
-  [['is', 'like'], 'like'],
-  [['is', 'similar', 'to'], 'like'],
-  [['matches'], 'like'],
-  [['contains'], 'like'],
-  [['includes'], 'like'],
-  [['has'], 'like'],
-  [['like'], 'like'],
-  [['equals'], 'eq'],
-  [['=='], 'eq'],
-  [['='], 'eq'],
-  [['is'], 'eq'],
-]
 
 const NUMERIC_OPS = new Set(['gt', 'lt', 'gte', 'lte'])
 
@@ -443,8 +321,6 @@ function parseCondition(words: string[], original: string[], columns: CmdStatCol
   return { column, op, value: column.kind === 'number' ? value.replace(/,/g, '') : value }
 }
 
-const DATE_AGG: Partial<Record<StatAgg, string>> = { min: 'earliest_date', max: 'latest_date', range: 'date_range' }
-
 /** Query words for parsing: punctuation dropped, possessives folded ("deal's" → "deal"), case kept for values. */
 function queryTokens(query: string) {
   return query
@@ -493,10 +369,6 @@ export function splitCmdWhere(query: string): { action: string; clause: string }
 
 /** "set stage to won", "change amount = 5", "clear notes": an absolute value for one field. */
 export type CmdSetAction = { column: CmdStatColumn } & ({ clear: true } | { clear?: false; value: string })
-
-const SET_VERBS = new Set(['set', 'change', 'update', 'make', 'put'])
-
-const CLEAR_VERBS = new Set(['clear', 'empty', 'blank', 'unset', 'reset'])
 
 /** Parses an absolute edit; the value is kept as typed (quotes removed) for the caller to fit to the field. */
 export function parseCmdSetAction(action: string, columns: CmdStatColumn[]): CmdSetAction | undefined {
@@ -661,8 +533,6 @@ export interface CmdCreatePlan {
   /** Why the plan can't be inserted as typed. */
   error?: string
 }
-
-const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 
 function parseCreateNumber(token: string) {
   const match = /^[$€£₹¥]?(-?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?|-?\.\d+)([km])?%?$/i.exec(token)

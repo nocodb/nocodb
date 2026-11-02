@@ -186,6 +186,9 @@ export const useBases = defineStore('basesStore', () => {
         return acc
       }, new Map())
 
+      // Set only on success, so its presence means the workspace's list is complete.
+      workspaceBasesMap.value.set(activeWorkspace?.id ?? workspace?.id, new Map(bases.value))
+
       await updateIfBaseOrderIsNullOrDuplicate()
 
       return _projects

@@ -498,40 +498,7 @@ const selectOption = (option) => {
   sideBarFilterOption.value = option.value
 }
 
-const { isAllowed: isPermissionAllowed } = usePermissions()
-
-// Same gates as the side panel's "+ Record" button; outside interfaces it opens the new-record form on that date.
-useCommandProvider(
-  () => `calendar-new-record:${meta.value?.id}`,
-  'view',
-  () => {
-    const fromDate = newRecordFromDate()
-    if (
-      interfaceEditSelect.value ||
-      !fromDate ||
-      !isUIAllowed('dataEdit') ||
-      !isAddDeleteInlineEnabled.value ||
-      isSyncedTable.value ||
-      (meta.value?.id && !isPermissionAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD))
-    ) {
-      return { commands: [] }
-    }
-
-    return {
-      commands: [
-        {
-          id: 'calendar:new-record',
-          priority: CMD_PRIORITY.primary,
-          title: t('labels.commandPalette.calendar.newRecordOn', { date: fromDate.format('D MMM YYYY') }),
-          section: t('labels.commandPalette.sections.view'),
-          icon: { type: 'icon', name: 'ncPlus' },
-          keywords: ['add', 'create', 'event'],
-          run: newRecord,
-        },
-      ],
-    }
-  },
-)
+useCalendarNewRecordCommands({ fromDate: newRecordFromDate, newRecord })
 </script>
 
 <template>

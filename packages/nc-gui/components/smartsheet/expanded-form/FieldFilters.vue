@@ -17,27 +17,7 @@ const searchQuery = defineModel<string>('searchQuery', { default: '' })
 
 const hideBlankFields = defineModel<boolean>('hideBlankFields', { default: false })
 
-const { t } = useI18n()
-
-// Cmd+K mirror of the checkbox; unavailable on a new record, as there.
-useCommandProvider(`record-hide-blank:${useId()}`, 'record', () => ({
-  commands: props.isNew
-    ? []
-    : [
-        {
-          id: 'record:hide-blank-fields',
-          priority: CMD_PRIORITY.low,
-          title: t('labels.hideBlankFields'),
-          section: t('labels.commandPalette.sections.record'),
-          icon: { type: 'icon', name: 'eyeSlash' },
-          keywords: ['empty', 'filled', 'fields'],
-          checked: hideBlankFields.value,
-          run: () => {
-            hideBlankFields.value = !hideBlankFields.value
-          },
-        },
-      ],
-}))
+useHideBlankFieldsCommands({ isNew: () => !!props.isNew, hideBlankFields })
 </script>
 
 <template>

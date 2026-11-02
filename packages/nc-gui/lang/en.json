@@ -2097,17 +2097,16 @@
         "calculator": "Calculator",
         "statHidden": "Show {field} in this view to summarize it",
         "me": "me",
-        "and": "and",
-        "missingRequired": "Required: {fields}",
         "created": "Created"
       },
       "where": {
-        "section": "Bulk edit",
-        "suffix": "where {conditions}",
         "invalidValue": "“{value}” isn't a valid {field}",
         "hidden": "Show {field} in this view to edit it",
         "tooMany": "{count} records match; narrow the condition (up to {cap})",
         "noMatch": "No records match",
+        "changed": "The matching records changed since the preview.",
+        "guessed": "Edits need an exact condition; Enter writes it out",
+        "needsExact": "Edits need an exact condition, e.g. a field and a value",
         "count": "{count} record | {count} records",
         "more": "… +{count} more"
       },

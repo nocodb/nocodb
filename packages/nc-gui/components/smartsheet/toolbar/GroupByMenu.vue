@@ -6,12 +6,10 @@ import {
   ViewLockType,
   ViewSettingOverrideOptions,
   ViewTypes,
-  isHiddenCol,
   isLinksOrLTAR,
   isSystemColumn,
 } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
-import type { CmdCommand } from '~/lib/types'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
 
 interface Props {
@@ -142,21 +140,6 @@ const availableColumns = computed(() => {
     })
     .filter((c) => !groupedByColumnIds.value.includes(c.id!))
 })
-
-/** The fields CreateGroupBy's picker offers (it keeps this filter inline), so Cmd+K lists the same. */
-function isOfferedByGroupPicker(c: ColumnType) {
-  if (c.uidt === UITypes.Links) return true
-  if (isSystemColumn(metaColumnById?.value?.[c.id!])) {
-    if (c.colOptions || isHiddenCol(c, meta.value)) return false
-    return showSystemFields.value
-  }
-  return !(
-    isLinksOrLTAR(c) &&
-    ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE, RelationTypes.MANY_TO_ONE].includes(
-      (c.colOptions as LinkToAnotherRecordType).type as RelationTypes,
-    )
-  )
-}
 
 const getColumnUidtByID = (key?: string) => {
   return sortGetColumnUidtByID(key, columnByID.value)
@@ -430,78 +413,22 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
   })
 }
 
-useCommandProvider(
-  () => `view-toolbar:group-by:${view.value?.id}`,
-  'view',
-  () => {
-    if (isPublic.value || isRestrictedEditor.value) return { commands: [] }
-
-    const section = t('labels.commandPalette.sections.view')
-    const offered = fieldsToGroupBy.value.filter(
-      (column) =>
-        isOfferedByGroupPicker(column) &&
-        (groupedByColumnIds.value.includes(column.id!) || groupedByColumnIds.value.length < groupByLimit),
-    )
-
-    return {
-      commands: [
-        {
-          id: 'view:group-by',
-          priority: CMD_PRIORITY.high,
-          title: t('labels.commandPalette.groupBy'),
-          section,
-          icon: { type: 'icon', name: 'group' },
-          children: () =>
-            offered.map((column) => {
-              const isGrouped = groupedByColumnIds.value.includes(column.id!)
-              return {
-                id: `view:group-by:${column.id}`,
-                title: column.title!,
-                icon: { type: 'field', column },
-                checked: isGrouped,
-                run: () =>
-                  smartSheetListener(isGrouped ? SmartsheetStoreEvents.GROUP_BY_REMOVE : SmartsheetStoreEvents.GROUP_BY_ADD, {
-                    column,
-                  }),
-              }
-            }),
-        },
-        // Search-only: "group by stage" adds that level straight away.
-        ...offered
-          .filter((column) => !groupedByColumnIds.value.includes(column.id!))
-          .map(
-            (column): CmdCommand => ({
-              id: `view:group-by:add:${column.id}`,
-              title: t('labels.commandPalette.groupByField', { field: column.title }),
-              section,
-              icon: { type: 'field', column },
-              searchOnly: true,
-              run: () => smartSheetListener(SmartsheetStoreEvents.GROUP_BY_ADD, { column }),
-            }),
-          ),
-        ...(groupedByColumnIds.value.length
-          ? [
-              {
-                id: 'view:group-by:clear',
-                priority: CMD_PRIORITY.low,
-                title: t('labels.commandPalette.removeGrouping'),
-                section,
-                icon: { type: 'icon', name: 'ncX' },
-                keywords: ['ungroup', 'group'],
-                searchOnly: true,
-                // As removing each level in the menu, saved once.
-                run: async () => {
-                  if (!open.value) seedGroupByFromState()
-                  _groupBy.value = []
-                  await saveGroupBy()
-                },
-              } satisfies CmdCommand,
-            ]
-          : []),
-      ],
-    }
-  },
-)
+useGroupByCommands({
+  view,
+  meta,
+  isPublic,
+  isRestrictedEditor,
+  fieldsToGroupBy,
+  groupedByColumnIds,
+  groupByLimit,
+  metaColumnById,
+  showSystemFields,
+  open,
+  groupBy: _groupBy,
+  seedGroupByFromState,
+  saveGroupBy,
+  addOrRemove: smartSheetListener,
+})
 </script>
 
 <template>

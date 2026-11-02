@@ -4,13 +4,11 @@ import {
   InviteLinkScope,
   NcErrorType,
   OrderedProjectRoles,
-  OrderedWorkspaceRoles,
-  PlanFeatureTypes,
+  OrgUserRoles,
   ProjectRoles,
   RoleIcons,
   RoleLabels,
   ViewTypes,
-  WORKSPACE_INVITE_LINK_ROLES,
   viewTypeAlias,
 } from 'nocodb-sdk'
 import type { PlanLimitExceededDetailsType, ProjectUserReqType, WorkspaceUserRoles } from 'nocodb-sdk'
@@ -18,8 +16,19 @@ import { DlgAirtableImport, DlgBaseDuplicate, DlgKeyboardShortcuts, DlgQuickImpo
 import { Language } from '#imports'
 import { setI18nLanguage } from '~/plugins/a.i18n'
 import type { CmdCommand } from '~/lib/types'
-import { type CmdCalcResult, evaluateCmdCalc } from '~/utils/commandPaletteDataOps'
-import type { InviteLinkTarget } from '~/composables/useInviteLinks'
+import type { CmdGlobalCommandsContext, CmdGlobalCommandsExt, CmdInviteScope } from '~/lib/cmdPaletteTypes'
+
+/** Roles at or below the caller's own, as the invite dialogs offer them; `ordered` is strongest first. */
+export function cmdRolesUpTo(offered: readonly string[], ordered: readonly string[], held?: Record<string, boolean> | null) {
+  const own = Object.keys(held ?? {})
+    .filter((role) => held?.[role])
+    .map((role) => ordered.indexOf(role))
+    .filter((index) => index >= 0)
+
+  if (!own.length) return offered
+
+  return offered.filter((role) => ordered.indexOf(role) >= Math.min(...own))
+}
 
 /** "create table invoices" / "new view Q3" → the kind word and the name; anything else is just a name. */
 function parseCreateQuery(query: string): { name: string; kind?: string } {
@@ -66,9 +75,9 @@ function openDialog(component: Component, props: Record<string, unknown> = {}) {
 
 /**
  * Commands that exist on every screen, plus the base context. Mounted once by Cmd+K, which
- * gets the Tab → AI handoff back from it.
+ * gets the Tab → AI handoff back from it. `edition` builds the EE additions from this scope.
  */
-export function useGlobalCommands() {
+export function useGlobalCommands(edition?: (ctx: CmdGlobalCommandsContext) => CmdGlobalCommandsExt) {
   const { t } = useI18n()
 
   const route = useRoute()
@@ -83,15 +92,7 @@ export function useGlobalCommands() {
 
   const { selectedTheme, setTheme } = useTheme()
 
-  const { isUIAllowed, environmentRestrictionReason, baseRoles, workspaceRoles } = useRoles()
-
-  const { isChatWootEnabled } = useProvideChatwoot()
-
-  const { isWhiteLabelled, config: brandingConfig } = useBranding()
-
-  const supportEmail = computed(() =>
-    isWhiteLabelled.value && brandingConfig.value?.supportEmail ? brandingConfig.value.supportEmail : 'support@nocodb.com',
-  )
+  const { isUIAllowed, environmentRestrictionReason, baseRoles, orgRoles } = useRoles()
 
   const { isCodeProject } = useCodeProjects()
 
@@ -99,15 +100,9 @@ export function useGlobalCommands() {
 
   const { copy } = useCopy()
 
-  const openWorkspaceSettings = useWorkspaceSettingsLink()
-
   const openBaseSettings = useBaseSettingsLink()
 
-  const workspaceStore = useWorkspace()
-
-  const { workspacesList, activeWorkspaceId, activeWorkspace } = storeToRefs(workspaceStore)
-
-  const { wsTabAccess } = useWorkspaceTabVisibility(activeWorkspace)
+  const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
   const { openedProject } = storeToRefs(useBases())
 
@@ -119,12 +114,9 @@ export function useGlobalCommands() {
 
   const viewsStore = useViewsStore()
 
-  const { recentViews, allRecentViews, views, activeView, isListViewEnabled } = storeToRefs(viewsStore)
+  const { recentViews, allRecentViews, views, activeView } = storeToRefs(viewsStore)
 
   const {
-    showEEFeatures,
-    showUpgradeToUseTimelineView,
-    showUpgradeToUseGanttView,
     showRecordPlanLimitExceededModal,
     isPaymentEnabled,
     isOnPrem,
@@ -139,8 +131,6 @@ export function useGlobalCommands() {
   const { showShareModal } = storeToRefs(useShare())
 
   const inviteLinks = useInviteLinks()
-
-  const interfaceShare = useInterfaceShareHub()
 
   const cmdOrCtrlKey = isMac() ? 'Meta' : 'Ctrl'
 
@@ -162,11 +152,12 @@ export function useGlobalCommands() {
 
   const defaultSource = computed(() => currentBase.value?.sources?.[0])
 
-  const ee = useCommandPaletteEe({
-    base: currentBase,
-    createSection: computed(() => sections.value.create),
-    baseSection: computed(() => sections.value.base),
-  })
+  const ee: CmdGlobalCommandsExt = edition?.({ base: currentBase, sections, createView, inviteScopeCommands }) ?? {}
+
+  const none = computed<CmdCommand[]>(() => [])
+
+  // The user menu's Admin Panel link (EEMenuOption): super admins only, unless the edition says otherwise.
+  const adminPanelPath = ee.adminPanelPath ?? computed(() => (orgRoles.value?.[OrgUserRoles.SUPER_ADMIN] ? '/admin' : undefined))
 
   const canCreateTable = computed(
     () => !!currentBase.value && !!defaultSource.value && isUIAllowed('tableCreate', { source: defaultSource.value }),
@@ -204,43 +195,8 @@ export function useGlobalCommands() {
     const options = [option(ViewTypes.GRID)]
     if (canCreateForm) options.push(option(ViewTypes.FORM))
     options.push(option(ViewTypes.GALLERY), option(ViewTypes.KANBAN), option(ViewTypes.CALENDAR))
-    if (isEeUI) options.push(option(ViewTypes.MAP))
 
-    if (isListViewEnabled.value && source?.type === 'pg') {
-      options.push(
-        option(ViewTypes.LIST, {
-          upgradeFeature: PlanFeatureTypes.FEATURE_LIST_VIEW,
-          run: () =>
-            viewsStore.showUpgradeToUseListView({
-              successCallback: () => createView(ViewTypes.LIST),
-              triggerSource: 'command-palette-list',
-            }),
-        }),
-      )
-    }
-
-    if (showEEFeatures.value) {
-      options.push(
-        option(ViewTypes.TIMELINE, {
-          upgradeFeature: PlanFeatureTypes.FEATURE_TIMELINE_VIEW,
-          run: () =>
-            showUpgradeToUseTimelineView({
-              successCallback: () => createView(ViewTypes.TIMELINE),
-              triggerSource: 'command-palette-timeline',
-            }),
-        }),
-        option(ViewTypes.GANTT, {
-          upgradeFeature: PlanFeatureTypes.FEATURE_GANTT_VIEW,
-          run: () =>
-            showUpgradeToUseGanttView({
-              successCallback: () => createView(ViewTypes.GANTT),
-              triggerSource: 'command-palette-gantt',
-            }),
-        }),
-      )
-    }
-
-    return options
+    return [...options, ...(ee.viewCreateOptions?.(option, source?.type) ?? [])]
   }
 
   const createCommands = computed<CmdCommand[]>(() => {
@@ -269,7 +225,7 @@ export function useGlobalCommands() {
       })
     }
 
-    commands.push(...ee.createCommands.value)
+    commands.push(...(ee.createCommands ?? none).value)
 
     if (isUIAllowed('baseCreate')) {
       commands.push({
@@ -286,31 +242,7 @@ export function useGlobalCommands() {
   })
 
   const goToCommands = computed<CmdCommand[]>(() => {
-    const commands: CmdCommand[] = []
-
-    if ((workspacesList.value?.length ?? 0) > 1) {
-      commands.push({
-        id: 'workspace:switch',
-        title: t('labels.commandPalette.switchWorkspace'),
-        section: sections.value.goTo,
-        icon: { type: 'icon', name: 'ncWorkspace' },
-        children: () =>
-          workspacesList.value.map((workspace) => ({
-            id: `workspace:switch:${workspace.id}`,
-            title: workspace.title!,
-            checked: workspace.id === activeWorkspaceId.value,
-            icon: {
-              type: 'workspace',
-              id: workspace.id!,
-              title: workspace.title!,
-              color: workspace.meta?.color,
-              icon: workspace.meta?.icon,
-              iconType: workspace.meta?.iconType,
-            },
-            run: () => navigateTo(`/${workspace.id}`),
-          })),
-      })
-    }
+    const commands: CmdCommand[] = [...(ee.goToCommands ?? none).value]
 
     const bases = navigationCommands.value.filter((command) => command.id.startsWith('p-'))
     if (bases.length) {
@@ -465,28 +397,6 @@ export function useGlobalCommands() {
       run: () => navigateTo('/account/mcp'),
     })
 
-    if (isEeUI) {
-      commands.push({
-        id: 'account:external-integrations',
-        title: t('title.externalIntegrations'),
-        section: sections.value.settings,
-        icon: { type: 'icon', name: 'ncSliders' },
-        keywords: ['account', 'connections'],
-        run: () => navigateTo('/account/external-integrations'),
-      })
-    }
-
-    if (isEeUI && appInfo.value.isCloud) {
-      commands.push({
-        id: 'account:self-hosted',
-        title: t('title.selfHostedLicenses'),
-        section: sections.value.settings,
-        icon: { type: 'icon', name: 'ncServer' },
-        keywords: ['account', 'license', 'on-prem'],
-        run: () => navigateTo('/account/self-hosted'),
-      })
-    }
-
     if (!isEeUI || (!appInfo.value.isCloud && !appInfo.value.disableEmailAuth)) {
       commands.push({
         id: 'account:password',
@@ -498,153 +408,7 @@ export function useGlobalCommands() {
       })
     }
 
-    if (isEeUI && showEEFeatures.value) {
-      commands.push({
-        id: 'account:security',
-        title: t('labels.security'),
-        hint: t('labels.account'),
-        section: sections.value.settings,
-        icon: { type: 'icon', name: 'ncShield' },
-        keywords: ['account', 'two factor', '2fa', 'mfa', 'sessions'],
-        run: () => navigateTo('/account/security'),
-      })
-    }
-
-    if (isEeUI && activeWorkspaceId.value && isUIAllowed('workspaceSettings')) {
-      commands.push({
-        id: 'workspace:settings',
-        title: t('labels.commandPalette.workspaceSettings'),
-        section: sections.value.settings,
-        icon: { type: 'icon', name: 'settings' },
-        run: () => openWorkspaceSettings('general'),
-      })
-    }
-
-    return commands
-  })
-
-  /** The workspace home's panes and admin tabs, with the visibility `useWorkspaceTabVisibility` gives them. */
-  const workspaceCommands = computed<CmdCommand[]>(() => {
-    if (!isEeUI || !activeWorkspaceId.value) return []
-
-    const access = wsTabAccess.value
-    const section = sections.value.workspace
-    const commands: CmdCommand[] = []
-
-    if (access.collaborators) {
-      commands.push({
-        id: 'workspace:members',
-        title: t('labels.commandPalette.workspace.members'),
-        section,
-        // Icons as in the workspace home sidebar (HomeSidebar).
-        icon: { type: 'icon', name: 'users' },
-        run: () => openWorkspaceSettings('members'),
-      })
-    }
-
-    if (access.teams) {
-      commands.push({
-        id: 'workspace:teams',
-        title: t('labels.commandPalette.workspace.teams'),
-        section,
-        icon: { type: 'icon', name: 'ncBuilding' },
-        run: () => openWorkspaceSettings('teams'),
-      })
-    }
-
-    if (access.integrations) {
-      commands.push({
-        id: 'workspace:integrations',
-        title: t('labels.commandPalette.workspace.integrations'),
-        section,
-        icon: { type: 'icon', name: 'integration' },
-        run: () => openWorkspaceSettings('integrations'),
-      })
-    }
-
-    if (access.billing) {
-      commands.push({
-        id: 'workspace:billing',
-        title: t('general.billing'),
-        section,
-        icon: { type: 'icon', name: 'ncDollarSign' },
-        keywords: ['plan', 'subscription', 'invoice', 'upgrade'],
-        run: () => openWorkspaceSettings('billing'),
-      })
-    }
-
-    if (access.usage) {
-      commands.push({
-        id: 'workspace:usage',
-        title: t('general.usage'),
-        section,
-        icon: { type: 'icon', name: 'ncBarChart2' },
-        run: () => openWorkspaceSettings('usage'),
-      })
-    }
-
-    if (access.audits) {
-      commands.push({
-        id: 'workspace:audits',
-        title: t('title.audits'),
-        section,
-        icon: { type: 'icon', name: 'audit' },
-        keywords: ['history', 'activity', 'log'],
-        // The pane shows the upgrade card itself when the plan lacks it.
-        upgradeFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
-        run: () => openWorkspaceSettings('audits'),
-      })
-    }
-
-    if (access.sso) {
-      commands.push({
-        id: 'workspace:sso',
-        title: t('title.sso'),
-        section,
-        icon: { type: 'icon', name: 'sso' },
-        keywords: ['saml', 'oidc', 'single sign on', 'login'],
-        // The pane shows the upgrade card itself when the plan lacks it.
-        upgradeFeature: PlanFeatureTypes.FEATURE_SSO,
-        run: () => openWorkspaceSettings('sso'),
-      })
-    }
-
-    // Sections of the workspace Settings pane (WorkspaceSettings), with its own gates.
-    if (isUIAllowed('workspaceSettings') && showEEFeatures.value) {
-      commands.push({
-        id: 'workspace:skills',
-        title: t('labels.aiSkills'),
-        section,
-        icon: { type: 'icon', name: 'ncScript' },
-        keywords: ['ai', 'agent', 'prompts'],
-        run: () => openWorkspaceSettings('skills'),
-      })
-    }
-
-    if (isUIAllowed('workspaceSettings') && isUIAllowed('workspaceManage') && showEEFeatures.value) {
-      commands.push({
-        id: 'workspace:security',
-        title: t('labels.security'),
-        hint: t('objects.workspace'),
-        section,
-        icon: { type: 'icon', name: 'ncShield' },
-        keywords: ['sign in', 'requirements', '2fa', 'domain'],
-        run: () => openWorkspaceSettings('security'),
-      })
-    }
-
-    commands.push({
-      id: 'workspace:copy-link',
-      title: t('labels.commandPalette.workspace.copyLink'),
-      section,
-      icon: { type: 'icon', name: 'ncLink' },
-      feedback: t('labels.commandPalette.copied'),
-      run: () => copy(`${window.location.origin}/${activeWorkspaceId.value}`),
-    })
-
-    // "Notifications" is registered by the sidebar rail / dock that own the dropdown.
-
-    return commands
+    return [...commands, ...(ee.settingsCommands ?? none).value]
   })
 
   const helpCommands = computed<CmdCommand[]>(() => [
@@ -701,34 +465,7 @@ export function useGlobalCommands() {
           run: () => navigateTo(link.url, { external: true, open: navigateToBlankTargetOpenOption }),
         })),
     },
-    // The Help menu shows support chat only when the build has it (appInfo.ee) and it is enabled.
-    ...(appInfo.value.ee && isChatWootEnabled.value
-      ? [
-          {
-            id: 'support:chat',
-            title: t('labels.chatWithNocoDBSupport'),
-            section: sections.value.help,
-            icon: { type: 'icon', name: 'ncSupportAgent' },
-            keywords: ['help', 'support', 'contact'],
-            run: () => window.$chatwoot?.toggle?.('show'),
-          } satisfies CmdCommand,
-        ]
-      : []),
-    // The Help menu's support email (white-label may override it), shown with the Contact support group.
-    ...(appInfo.value.ee
-      ? [
-          {
-            id: 'support:email',
-            title: t('labels.commandPalette.copySupportEmail'),
-            hint: supportEmail.value,
-            section: sections.value.help,
-            icon: { type: 'icon', name: 'ncMail' },
-            keywords: ['help', 'support', 'contact', 'email'],
-            feedback: t('labels.commandPalette.copied'),
-            run: () => copy(supportEmail.value),
-          } satisfies CmdCommand,
-        ]
-      : []),
+    ...(ee.helpCommands ?? none).value,
     ...(!isMobileMode.value
       ? [
           {
@@ -751,7 +488,7 @@ export function useGlobalCommands() {
       feedback: t('labels.commandPalette.copied'),
       run: () => copy(window.location.href),
     },
-    ...(ee.adminPanelPath.value
+    ...(adminPanelPath.value
       ? [
           {
             id: 'account:admin-panel',
@@ -761,7 +498,7 @@ export function useGlobalCommands() {
             keywords: ['admin', 'instance', 'organisation', 'organization', 'users', 'license'],
             run: () => {
               ncBackRoute().set(route.fullPath)
-              return navigateTo(ee.adminPanelPath.value ?? '/admin')
+              return navigateTo(adminPanelPath.value ?? '/admin')
             },
           } satisfies CmdCommand,
         ]
@@ -778,32 +515,7 @@ export function useGlobalCommands() {
     },
   ])
 
-  interface InviteScope {
-    id: 'base' | 'interface' | 'workspace'
-    name: string
-    kind: string
-    priority: number
-    searchOnly?: boolean
-    roles: readonly string[]
-    send?: (emails: string[], role: string) => Promise<void>
-    link?: InviteLinkTarget
-    linkRoles?: readonly string[]
-    roleLabels?: Partial<Record<string, string>>
-  }
-
-  /** Roles at or below the caller's own, as the invite dialogs offer them; `ordered` is strongest first. */
-  function rolesUpTo(offered: readonly string[], ordered: readonly string[], held?: Record<string, boolean> | null) {
-    const own = Object.keys(held ?? {})
-      .filter((role) => held?.[role])
-      .map((role) => ordered.indexOf(role))
-      .filter((index) => index >= 0)
-
-    if (!own.length) return offered
-
-    return offered.filter((role) => ordered.indexOf(role) >= Math.min(...own))
-  }
-
-  function roleRow(scope: InviteScope, role: string, prefix: string) {
+  function roleRow(scope: CmdInviteScope, role: string, prefix: string) {
     return {
       id: `${prefix}:${role}`,
       title: scope.roleLabels?.[role] ?? t(`objects.roleType.${RoleLabels[role as keyof typeof RoleLabels]}`),
@@ -813,7 +525,7 @@ export function useGlobalCommands() {
   }
 
   /** "Invite to X" (role → emails) and "Copy invite link" (role → link) for one scope. */
-  function inviteScopeCommands(scope: InviteScope): CmdCommand[] {
+  function inviteScopeCommands(scope: CmdInviteScope): CmdCommand[] {
     // A seat/plan limit opens the upgrade modal the invite dialog shows; other errors stay inline.
     async function withPlanLimit(role: string, action: () => Promise<unknown>) {
       try {
@@ -908,40 +620,22 @@ export function useGlobalCommands() {
     return commands
   }
 
-  /** The innermost open scope leads; the workspace invite only shows on search once inside a base. */
+  /** The innermost open scope leads (an interface's, from EE); the base invite follows. */
   const inviteCommands = computed<CmdCommand[]>(() => {
     const base = currentBase.value
-    const isInterface = interfaceShare.isActive.value && interfaceShare.canInvite.value
-    const commands: CmdCommand[] = []
-
-    if (isInterface && interfaceShare.linkTarget.value) {
-      const roles = interfaceShare.inviteRoles.value
-      commands.push(
-        ...inviteScopeCommands({
-          id: 'interface',
-          name: interfaceShare.title.value ?? '',
-          kind: t('general.interface'),
-          priority: CMD_PRIORITY.high,
-          roles: interfaceShare.canInviteByEmail.value ? roles : [],
-          send: interfaceShare.isBlocked.value ? undefined : interfaceShare.inviteByEmail,
-          link:
-            interfaceShare.canCreateLink.value && !interfaceShare.isBlocked.value ? interfaceShare.linkTarget.value : undefined,
-          linkRoles: roles,
-          roleLabels: inviteLinkRoleLabels(InviteLinkScope.INTERFACE),
-        }),
-      )
-    }
+    const scoped = ee.inviteCommands?.value ?? { interface: [], workspace: [] }
+    const commands: CmdCommand[] = [...scoped.interface]
 
     if (base?.id) {
       const offered = BASE_INVITE_LINK_ROLES.filter((role) => isEeUI || role !== ProjectRoles.APP_USER)
-      const roles = rolesUpTo(offered, OrderedProjectRoles, baseRoles.value)
+      const roles = cmdRolesUpTo(offered, OrderedProjectRoles, baseRoles.value)
 
       commands.push(
         ...inviteScopeCommands({
           id: 'base',
           name: base.title ?? '',
           kind: sections.value.base,
-          priority: isInterface ? CMD_PRIORITY.normal : CMD_PRIORITY.high,
+          priority: scoped.interface.length ? CMD_PRIORITY.normal : CMD_PRIORITY.high,
           roles: isUIAllowed('userInvite') ? roles.filter((role) => role !== ProjectRoles.APP_USER) : [],
           send: async (emails, role) => {
             await $api.auth.baseUserAdd(base.id!, { email: emails.join(','), roles: role as ProjectUserReqType['roles'] })
@@ -952,28 +646,7 @@ export function useGlobalCommands() {
       )
     }
 
-    const workspace = activeWorkspace.value
-    if (isEeUI && workspace?.id && wsTabAccess.value.collaborators) {
-      const roles = rolesUpTo(WORKSPACE_INVITE_LINK_ROLES, OrderedWorkspaceRoles, workspaceRoles.value)
-
-      commands.push(
-        ...inviteScopeCommands({
-          id: 'workspace',
-          name: workspace.title ?? '',
-          kind: t('objects.workspace'),
-          priority: base?.id || isInterface ? CMD_PRIORITY.low : CMD_PRIORITY.high,
-          searchOnly: !!base?.id || isInterface,
-          roles,
-          send: (emails, role) => workspaceStore.inviteCollaborator(emails.join(','), role as WorkspaceUserRoles),
-          link: isUIAllowed('workspaceInviteLinkCreate')
-            ? { scope: InviteLinkScope.WORKSPACE, workspaceId: workspace.id }
-            : undefined,
-          linkRoles: roles,
-        }),
-      )
-    }
-
-    return commands
+    return [...commands, ...scoped.workspace]
   })
 
   useCommandProvider('global', 'global', () => ({
@@ -981,34 +654,21 @@ export function useGlobalCommands() {
       ...inviteCommands.value,
       ...withPriority(recentCommands.value, CMD_PRIORITY.primary),
       ...withPriority(createCommands.value, CMD_PRIORITY.high),
-      ...withPriority(ee.globalCommands.value, CMD_PRIORITY.normal),
+      ...withPriority((ee.globalCommands ?? none).value, CMD_PRIORITY.normal),
       ...goToCommands.value,
       ...withPriority(preferenceCommands.value, CMD_PRIORITY.low),
-      ...withPriority(workspaceCommands.value, CMD_PRIORITY.normal),
+      ...withPriority((ee.workspaceCommands ?? none).value, CMD_PRIORITY.normal),
       ...withPriority(settingsCommands.value, CMD_PRIORITY.low),
       ...withPriority(helpCommands.value, CMD_PRIORITY.low),
       ...navigationCommands.value,
-      ...ee.navigationCommands.value,
+      ...(ee.navigationCommands ?? none).value,
     ],
     fallbacks: (query) => {
-      // A calculation isn't also a name for a new table or a docs search.
-      const calc = evaluateCmdCalc(query)
-      return calc ? [calcCommand(calc)] : [...namedCreateCommands(query), ...docsFallback(query)]
+      // A typed answer isn't also a name for a new table or a docs search.
+      const answers = ee.queryFallbacks?.(query) ?? []
+      return answers.length ? answers : [...namedCreateCommands(query), ...docsFallback(query)]
     },
   }))
-
-  function calcCommand(calc: CmdCalcResult): CmdCommand {
-    return {
-      id: 'data:calc',
-      lead: true,
-      title: `= ${calc.display}`,
-      hint: calc.expression,
-      section: t('labels.commandPalette.data.calculator'),
-      icon: { type: 'icon', name: 'ncCalculator' },
-      feedback: t('labels.commandPalette.copiedValue', { value: calc.copy }),
-      run: () => copy(calc.copy),
-    }
-  }
 
   function docsFallback(query: string): CmdCommand[] {
     return [
@@ -1068,7 +728,7 @@ export function useGlobalCommands() {
       })
     }
 
-    return [...commands, ...ee.namedCreateCommands(name, kind)]
+    return [...commands, ...(ee.namedCreateCommands?.(name, kind) ?? [])]
   }
 
   useCommandProvider('base', 'base', () => {
@@ -1136,19 +796,6 @@ export function useGlobalCommands() {
       })
     }
 
-    // Snapshots is limit-gated: on a plan with none, the pane itself shows the upgrade card.
-    if (settingsRows.some((item) => item.slug === 'snapshots')) {
-      commands.push({
-        id: 'base:snapshots',
-        priority: CMD_PRIORITY.low,
-        title: t('labels.commandPalette.base.snapshots'),
-        section: sections.value.base,
-        icon: { type: 'icon', name: 'ncLayers' },
-        keywords: ['backup', 'restore'],
-        run: () => openBaseSettings('snapshots', { baseId: base.id }),
-      })
-    }
-
     // A code project holds a repository: nothing to import, duplicate or share as data.
     const hasData = !isCodeProject(base)
     const source = base.sources?.[0]
@@ -1195,7 +842,7 @@ export function useGlobalCommands() {
       }
     }
 
-    commands.push(...ee.baseCommands.value)
+    commands.push(...(ee.baseCommands ?? none).value)
 
     if (
       hasData &&
@@ -1215,19 +862,6 @@ export function useGlobalCommands() {
         },
       })
     }
-
-    // Starring is EE; the CE store's toggle is a no-op.
-    if (isEeUI)
-      commands.push({
-        id: 'base:star',
-        priority: CMD_PRIORITY.low,
-        title: base.starred ? t('activity.removeFromStarred') : t('activity.addToStarred'),
-        section: sections.value.base,
-        icon: { type: 'icon', name: base.starred ? 'unStar' : 'star' },
-        keywords: ['favorite', 'star', 'bookmark'],
-        feedback: base.starred ? t('labels.commandPalette.base.unstarred') : t('labels.commandPalette.base.starred'),
-        run: () => basesStore.toggleStarred(base.id!),
-      })
 
     if (isUIAllowed('newUser')) {
       commands.push({
@@ -1269,5 +903,9 @@ export function useGlobalCommands() {
     }
   })
 
-  return { isAiAvailable: ee.isAiAvailable, askAi: ee.askAi, aiFallback: ee.aiFallback }
+  return {
+    isAiAvailable: ee.isAiAvailable ?? computed(() => false),
+    askAi: ee.askAi ?? ((_query: string) => {}),
+    aiFallback: ee.aiFallback ?? ((_query: string): CmdCommand | undefined => undefined),
+  }
 }

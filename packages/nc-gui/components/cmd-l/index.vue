@@ -22,7 +22,7 @@ const viewStore = useViewsStore()
 
 const { allRecentViews, activeView } = storeToRefs(viewStore)
 
-// Recorded by Cmd+K's EE commands (useCommandPaletteEe), which are mounted for the app's lifetime.
+// Recorded by Cmd+K's EE commands (ee useGlobalCommands), which are mounted for the app's lifetime.
 const { recentItems } = useCommand()
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())

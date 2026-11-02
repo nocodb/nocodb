@@ -190,6 +190,13 @@ export const useCommandPalette = createSharedComposable(() => {
 
         activeScope.value = { scope: `ws-${typeOrId}`, data: { workspace_id: typeOrId } }
         refreshCommandPalette.trigger()
+      } else if (typeOrId === 'nc') {
+        const baseId = route.value.params.baseId
+        if (typeof baseId !== 'string' || activeScope.value.data.base_id === baseId) return
+
+        activeScope.value = { scope: `p-${baseId}`, data: { base_id: baseId } }
+      } else if (activeScope.value.scope !== 'root') {
+        activeScope.value = { scope: 'root', data: {} }
       }
     },
     { immediate: true, deep: true },

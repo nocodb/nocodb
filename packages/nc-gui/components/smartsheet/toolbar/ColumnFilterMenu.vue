@@ -1,19 +1,6 @@
 <script setup lang="ts">
-import {
-  CURRENT_USER_TOKEN,
-  type ColumnType,
-  type FilterType,
-  type SelectOptionsType,
-  UITypes,
-  ViewLockType,
-  ViewSettingOverrideOptions,
-  comparisonOpList,
-  comparisonSubOpList,
-  isNumericCol,
-  isSystemColumn,
-} from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN, type ColumnType, type FilterType, ViewLockType, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import type ColumnFilter from './ColumnFilter.vue'
-import type { CmdCommand } from '~/lib/types'
 
 interface Props {
   /**
@@ -30,8 +17,6 @@ const isLocked = inject(IsLockedInj, ref(false))
 const isPublic = inject(IsPublicInj, ref(false))
 
 const activeView = inject(ActiveViewInj, ref())
-
-const meta = inject(MetaInj, ref())
 
 const isToolbarIconMode = inject(
   IsToolbarIconMode,
@@ -234,7 +219,7 @@ const smartsheetEventListener = async (event: string, payload?: any) => {
 
     if (!column) return
 
-    draftFilter.value = { fk_column_id: column.id, ...(payload?.filter as Partial<FilterType> | undefined) }
+    draftFilter.value = { fk_column_id: column.id }
     open.value = true
   }
 }
@@ -244,143 +229,6 @@ eventBus.on(smartsheetEventListener)
 onBeforeUnmount(() => {
   eventBus.off(smartsheetEventListener)
 })
-
-const TEXT_QUICK_FILTER_TYPES = [UITypes.SingleLineText, UITypes.LongText, UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
-
-const DATE_QUICK_FILTER_TYPES = [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime]
-
-/** Ready-made conditions for one field, built from the filter menu's own operators and labels. */
-function quickFilterCommands(column: ColumnType): CmdCommand[] {
-  const uidt = column.uidt as UITypes
-  const dateFormat = parseProp(column.meta)?.date_format
-  const isAllowed = (op: { value: string; includedTypes?: UITypes[]; excludedTypes?: UITypes[]; text: string }) =>
-    !!isComparisonSubOpAllowed({ fk_column_id: column.id }, op, uidt)
-  const ops = comparisonOpList(uidt, dateFormat).filter(isAllowed)
-  const op = (value: string) => ops.find((o) => o.value === value)
-  const label = (o: { text: string; i18nKey?: string }) => (o.i18nKey ? t(o.i18nKey) : o.text)
-  const stage = (filter: Partial<FilterType>) => smartsheetEventListener(SmartsheetStoreEvents.FILTER_ADD, { column, filter })
-
-  if (uidt === UITypes.SingleSelect || uidt === UITypes.MultiSelect) {
-    const selectOp = op(uidt === UITypes.SingleSelect ? 'eq' : 'anyof')
-    if (!selectOp) return []
-    return ((column.colOptions as SelectOptionsType | undefined)?.options ?? []).map((option) => ({
-      id: `option:${option.id ?? option.title}`,
-      title: `${label(selectOp)} ${option.title}`,
-      icon: { type: 'color', color: option.color ?? '' },
-      run: () => stage({ comparison_op: selectOp.value as FilterType['comparison_op'], value: option.title }),
-    }))
-  }
-
-  if (uidt === UITypes.Checkbox) {
-    return (['checked', 'notchecked'] as const).flatMap((value) => {
-      const checkOp = op(value)
-      return checkOp ? [{ id: value, title: label(checkOp), run: () => stage({ comparison_op: value }) }] : []
-    })
-  }
-
-  if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(uidt)) {
-    return op('anyof')
-      ? [
-          {
-            id: 'me',
-            title: t('labels.commandPalette.filterIsMe'),
-            run: () => stage({ comparison_op: 'anyof', value: CURRENT_USER_TOKEN }),
-          },
-        ]
-      : []
-  }
-
-  if (DATE_QUICK_FILTER_TYPES.includes(uidt)) {
-    return (
-      [
-        ['eq', 'today'],
-        ['isWithin', 'pastWeek'],
-      ] as const
-    ).flatMap(([opValue, subValue]) => {
-      const dateOp = op(opValue)
-      const subOp = comparisonSubOpList(opValue, dateFormat).find((o) => o.value === subValue && isAllowed(o))
-      if (!dateOp || !subOp) return []
-      return [
-        {
-          id: `${opValue}:${subValue}`,
-          title: `${label(dateOp)} ${label(subOp)}`,
-          run: () => stage({ comparison_op: opValue, comparison_sub_op: subValue }),
-        },
-      ]
-    })
-  }
-
-  // Free-text values: the menu's default operator for the type, value typed inline.
-  const isNumeric = isNumericCol(uidt)
-  if (!TEXT_QUICK_FILTER_TYPES.includes(uidt) && !isNumeric) return []
-  const defaultOp = op(getDefaultComparisonOp(ops, () => true, uidt) ?? '')
-  if (!defaultOp || defaultOp.ignoreVal) return []
-  return [
-    {
-      id: `value:${defaultOp.value}`,
-      title: `${label(defaultOp)}…`,
-      edit: {
-        value: '',
-        placeholder: column.title,
-        validate: (value) => {
-          if (!value.trim()) return t('labels.commandPalette.filterValueRequired')
-          if (isNumeric && Number.isNaN(Number(value))) return t('labels.commandPalette.invalidNumber')
-        },
-        submit: async (value) => {
-          stage({ comparison_op: defaultOp.value as FilterType['comparison_op'], value: value.trim() })
-        },
-      },
-    },
-  ]
-}
-
-useCommandProvider(
-  () => `view-toolbar:filter:${activeView.value?.id}`,
-  'view',
-  () => {
-    if (isPublic.value || isLocked.value || interfacePageDataApi) return { commands: [] }
-
-    const section = t('labels.commandPalette.sections.view')
-    const filterableColumns = (meta.value?.columns ?? []).filter(
-      (column) => !isSystemColumn(column) && ![UITypes.QrCode, UITypes.Barcode, UITypes.Button].includes(column.uidt as UITypes),
-    )
-
-    return {
-      commands: [
-        {
-          id: 'view:filter:add',
-          priority: CMD_PRIORITY.primary,
-          title: t('labels.commandPalette.addFilter'),
-          section,
-          icon: { type: 'icon', name: 'filter' },
-          keywords: ['where', 'condition'],
-          children: () =>
-            filterableColumns.map((column) => ({
-              id: `view:filter:add:${column.id}`,
-              title: column.title!,
-              icon: { type: 'field', column },
-              run: () => smartsheetEventListener(SmartsheetStoreEvents.FILTER_ADD, { column }),
-            })),
-        },
-        // Search-only, so "filter stage won" lands on "Filter by Stage › is Won" without a menu.
-        ...(isRestrictedEditor.value
-          ? []
-          : filterableColumns.map(
-              (column): CmdCommand => ({
-                id: `view:filter:by:${column.id}`,
-                title: t('labels.commandPalette.filterByField', { field: column.title }),
-                section,
-                icon: { type: 'field', column },
-                keywords: ['where', 'condition'],
-                searchOnly: true,
-                searchChildren: true,
-                children: () => quickFilterCommands(column),
-              }),
-            )),
-      ],
-    }
-  },
-)
 
 const combinedFilterLength = computed(() => filtersLength.value)
 

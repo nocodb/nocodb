@@ -291,40 +291,15 @@ watch(
   },
 )
 
-useCommandProvider(
-  () => `view-toolbar:search:${activeView.value?.id}`,
-  'view',
-  () => {
-    if (isPublic.value) return { commands: [] }
-
-    return {
-      commands: [
-        {
-          id: 'view:search',
-          priority: CMD_PRIORITY.primary,
-          title: t('labels.commandPalette.searchInView'),
-          section: t('labels.commandPalette.sections.view'),
-          icon: { type: 'icon', name: 'search' },
-          keywords: ['find'],
-          shortcut: [isMac() ? 'Meta' : 'Ctrl', 'F'],
-          run: handleShowSearchInput,
-        },
-      ],
-      fallbacks: (query) => [
-        {
-          id: 'view:search-for',
-          title: t('labels.commandPalette.searchRecordsIn', { table: meta.value?.title ?? '' }),
-          section: t('labels.commandPalette.sections.search'),
-          icon: { type: 'icon', name: 'search' },
-          run: () => {
-            search.value.query = query
-            handleShowSearchInput()
-          },
-        },
-      ],
-    }
+useSearchCommands({
+  view: activeView,
+  isPublic,
+  tableTitle: computed(() => meta.value?.title),
+  showSearch: handleShowSearchInput,
+  setQuery: (query) => {
+    search.value.query = query
   },
-)
+})
 </script>
 
 <template>

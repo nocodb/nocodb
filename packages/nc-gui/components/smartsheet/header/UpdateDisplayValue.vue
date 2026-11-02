@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, columnTypeName, isSupportedDisplayValueColumn, isSystemColumn } from 'nocodb-sdk'
+import { type ColumnType, isSupportedDisplayValueColumn, isSystemColumn } from 'nocodb-sdk'
 
 interface Props {
   value?: boolean
@@ -13,7 +13,7 @@ const props = defineProps<Props>()
 
 const { fields } = useViewColumnsOrThrow()
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 
 const { setAsDisplayValue } = useSetDisplayValue()
 
@@ -52,7 +52,7 @@ const selectedColumn = computed(() => meta.value?.columns?.find((c) => c.id === 
 
 const selectedFieldError = computed(() =>
   selectedColumn.value && !selectedColumn.value.pv && !isSupportedDisplayValueColumn(selectedColumn.value)
-    ? t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: columnTypeName(selectedColumn.value) })
+    ? t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: getColumnTypeI18nName(selectedColumn.value, t, te) })
     : '',
 )
 
@@ -65,8 +65,8 @@ const getFormatedColumn = (column: ColumnType) => ({
   id: column.id,
   ncItemDisabled: !isSupportedDisplayValueColumn(column) && !column.pv,
   ncItemTooltip:
-    !isSupportedDisplayValueColumn(column) && columnTypeName(column) && !column.pv
-      ? t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: columnTypeName(column) })
+    !isSupportedDisplayValueColumn(column) && column.uidt && !column.pv
+      ? t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: getColumnTypeI18nName(column, t, te) })
       : '',
   column,
 })

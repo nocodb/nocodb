@@ -298,7 +298,7 @@ const { selectedTemplate } = useRecordTemplate()
 const { base } = storeToRefs(useBase())
 const route = useRoute()
 const { $e, $api } = useNuxtApp()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const tooltipStore = useTooltipStore()
 const { targetReference, placement } = storeToRefs(tooltipStore)
 const tooltipRef = ref()
@@ -3192,7 +3192,7 @@ const handleSendRecord = (rowId: string) => {
   showSendRecordModal.value = true
 }
 
-watch([height, width, windowWidth, windowHeight], () => {
+watch([height, width, windowWidth, windowHeight, locale], () => {
   nextTick(() => {
     calculateSlices()
     triggerRefreshCanvas()

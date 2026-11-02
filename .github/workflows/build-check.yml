@@ -58,6 +58,9 @@ jobs:
       - name: Build backend
         working-directory: ./packages/nocodb
         run: pnpm exec rspack --config rspack.config.js
+      - name: Frontend unit tests
+        working-directory: ./packages/nc-gui
+        run: pnpm test:unit
       - name: Build frontend
         working-directory: ./packages/nc-gui
         env:

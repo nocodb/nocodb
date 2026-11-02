@@ -5,7 +5,6 @@ import {
   type LinkToAnotherRecordType,
   type LookupType,
   type TableType,
-  UITypesName,
   type ViewType,
   isColumnInError,
   isSupportedDisplayValueColumn,
@@ -36,7 +35,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
   ) => {
     const groupByLimit = GROUP_BY_MAX_LEVELS
 
-    const { t } = useI18n()
+    const { t, te } = useI18n()
 
     const { api } = useApi()
 
@@ -151,7 +150,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           field.ncItemDisabled = true
           field.ncItemTooltip = isColumnInError(field)
             ? t('tooltip.groupingNotSupportedForFieldsWithErrors')
-            : `This Field of type ${UITypesName[field.uidt]} not supported for grouping`
+            : t('tooltip.groupingNotSupportedForField', { type: getColumnTypeI18nName(field, t, te) })
         } else {
           field.ncItemDisabled = false
           field.ncItemTooltip = ''

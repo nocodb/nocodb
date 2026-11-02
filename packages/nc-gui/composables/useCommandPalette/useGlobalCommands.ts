@@ -118,8 +118,6 @@ export function useGlobalCommands(edition?: (ctx: CmdGlobalCommandsContext) => C
 
   const { isUIAllowed, environmentRestrictionReason, baseRoles, orgRoles } = useRoles()
 
-  const { isCodeProject } = useCodeProjects()
-
   const { navGroups: baseSettingsGroups } = useBaseSettingsNav()
 
   const { copy } = useCopy()
@@ -862,13 +860,11 @@ export function useGlobalCommands(edition?: (ctx: CmdGlobalCommandsContext) => C
       })
     }
 
-    // A code project holds a repository: nothing to import, duplicate or share as data.
-    const hasData = !isCodeProject(base)
     const source = base.sources?.[0]
     const restrictionArgs = { base, source }
 
     // Mirrors the base menu's "Import data" submenu (TreeView/BaseOptions.vue).
-    if (hasData && source && (source.enabled || (base.sources?.length ?? 0) > 1)) {
+    if (source && (source.enabled || (base.sources?.length ?? 0) > 1)) {
       const importOptions = (
         [
           { permission: 'airtableImport', type: 'airtable', title: t('labels.airtableBase'), icon: 'airtable' },
@@ -910,11 +906,7 @@ export function useGlobalCommands(edition?: (ctx: CmdGlobalCommandsContext) => C
 
     commands.push(...(ee.baseCommands ?? none).value)
 
-    if (
-      hasData &&
-      isUIAllowed('baseDuplicate', restrictionArgs) &&
-      !environmentRestrictionReason('baseDuplicate', restrictionArgs)
-    ) {
+    if (isUIAllowed('baseDuplicate', restrictionArgs) && !environmentRestrictionReason('baseDuplicate', restrictionArgs)) {
       commands.push({
         id: 'base:duplicate',
         priority: CMD_PRIORITY.low,

@@ -337,6 +337,21 @@ export async function getColumnByIdOrName(
   return column;
 }
 
+// Bulk "all" endpoints spread their query into model args, which also carry
+// internal flags (skipValidationAndHooks, includeSoftDeleted, permanentDelete).
+// Only the public string params may come from HTTP.
+export function pickBulkAllQuery<K extends string>(
+  query: Record<string, unknown>,
+  keys: readonly K[],
+): Partial<Record<K, string>> {
+  const picked: Partial<Record<K, string>> = {};
+  for (const key of keys) {
+    const value = query?.[key];
+    if (typeof value === 'string') picked[key] = value;
+  }
+  return picked;
+}
+
 export const validateV1V2DataPayloadLimit = (
   context: NcContext,
   param: { body: any },

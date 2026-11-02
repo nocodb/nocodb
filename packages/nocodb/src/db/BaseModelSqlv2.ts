@@ -210,6 +210,7 @@ import {
   isTraceActive,
 } from '~/decorators/trace-command.decorator';
 import { isReplay } from '~/helpers/replayScope';
+import { pickChangedFieldsForUpdatePrev } from '~/utils/dataUtils';
 
 const debugCount = debug('nc:db:query:basemodel:count');
 
@@ -5017,6 +5018,30 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               ),
             )
           : updateData;
+
+        // Undo snapshot: the changed fields of every matched row, read before the
+        // UPDATE. Past the cap nothing is captured, so the op isn't recorded.
+        if (
+          isTraceActive() &&
+          this.model.primaryKeys?.length &&
+          Number(count) <= BULK_UPDATE_ALL_PREV_SNAPSHOT_LIMIT
+        ) {
+          const prevRows = await this.chunkList({
+            pks: await this.collectAffectedPks(qb.clone()),
+            args: { ignoreViewFilterAndSort: true },
+          });
+          captureForTrace(
+            'recordPrev',
+            prevRows.map((row) =>
+              pickChangedFieldsForUpdatePrev(
+                row,
+                data,
+                columns,
+                this.model.primaryKeys,
+              ),
+            ),
+          );
+        }
 
         // Snapshot the affected rows (PKs + pre-update values) against the
         // pre-update filter — the update may change the very columns the filter

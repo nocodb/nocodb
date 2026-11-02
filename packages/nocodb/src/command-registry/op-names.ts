@@ -254,6 +254,8 @@ export const OperationName = {
   recordUpdateUndo: 'recordUpdateUndo',
   recordBulkUpdate: 'recordBulkUpdate',
   recordBulkUpdateUndo: 'recordBulkUpdateUndo',
+  recordBulkUpdateAll: 'recordBulkUpdateAll',
+  recordBulkUpdateAllUndo: 'recordBulkUpdateAllUndo',
 
   // Explicit link mutations (each is the other's inverse) + row reorder
   recordLinkAdd: 'recordLinkAdd',

@@ -44,8 +44,14 @@ type Remote<T> = { at: number } & ({ status: 'loading' } | { status: 'done'; val
 /** Server answers are reused for this long before a repeated query refetches them. */
 const REMOTE_TTL = 30_000
 
-/** Matching records a where-edit fetches and updates in one go. */
+/** Records a relative where-edit reads and writes: one bulk update, so one undo step (the server's payload cap). */
 const WHERE_ROW_CAP = 1000
+
+/** Records a condition-based update can match; the server snapshots up to this many for undo. */
+const WHERE_UNDO_CAP = 10_000
+
+/** Matching records listed in an absolute where-edit's confirm dialog (the confirm list's length). */
+const WHERE_PREVIEW_ROWS = 3
 
 /** Loaded records used as value anchors and for value completion. */
 const SAMPLE_ROWS = 200
@@ -196,11 +202,14 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
     if (!table?.id || !viewId || ctx.isSqlView.value) return
     const rows = samples.get(viewId)
     if (rows || sampleRequested.has(viewId)) return rows
+    // Only text values are read off the sample (value anchors and completion).
+    const fields = schema.value?.fields.filter((f) => f.kind === 'text').map((f) => f.title) ?? []
+    if (!fields.length) return
     sampleRequested.add(viewId)
     // Not from inside the provider's read.
     queueMicrotask(() =>
       $api.dbViewRow
-        .list('noco', table.base_id!, table.id!, viewId, { limit: SAMPLE_ROWS, offset: 0 })
+        .list('noco', table.base_id!, table.id!, viewId, { fields, limit: SAMPLE_ROWS, offset: 0 })
         .then((data) => samples.set(viewId, (data.list ?? []) as Record<string, unknown>[]))
         .catch(() => sampleRequested.delete(viewId)),
     )
@@ -830,15 +839,18 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
     }
   }
 
-  function loadWhere(key: string, filters: FilterType[]) {
+  /** The matching records' total plus the first `limit`, with only the pk, display and edited fields. */
+  function loadWhere(key: string, filters: FilterType[], column: ColumnType, limit: number) {
     const table = ctx.meta.value!
     const viewId = ctx.view.value!.id!
+    const fields = (table.columns ?? []).filter((c) => c.pk || c.pv || c.id === column.id).map((c) => c.title!)
     return async () => {
       whereRows.set(key, { status: 'loading', at: Date.now() })
       try {
         const data = await $api.dbViewRow.list('noco', table.base_id!, table.id!, viewId, {
+          fields,
           filterArrJson: JSON.stringify(viewFilters(filters)),
-          limit: WHERE_ROW_CAP,
+          limit,
           offset: 0,
         })
         const rows = (data.list ?? []) as Record<string, any>[]
@@ -849,20 +861,12 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
     }
   }
 
-  /** One bulk update for the records whose value changes; the palette has closed, so errors toast as bulk saves do. */
-  async function saveWhere(key: string, rows: Record<string, any>[], column: ColumnType, next: (prev: unknown) => unknown) {
-    const table = ctx.meta.value!
-    const title = column.title!
-    const updates = rows.flatMap((row) => {
-      const prev = row[title]
-      const value = next(prev)
-      if (value === undefined || JSON.stringify(value ?? null) === JSON.stringify(prev ?? null)) return []
-      return [{ ...rowPkData(row, table.columns as ColumnType[]), [title]: value }]
-    })
-    if (!updates.length) return
-    const tele = { count: cmdNlCountBucket(updates.length), uidt: column.uidt }
+  /** One server request, so one undo step; the palette has closed, so errors toast as bulk saves do. */
+  async function saveWhere(key: string, column: ColumnType, count: number, write: () => Promise<unknown>) {
+    if (!count) return
+    const tele = { count: cmdNlCountBucket(count), uidt: column.uidt }
     try {
-      await $api.dbTableRow.bulkUpdate('noco', table.base_id!, table.id!, updates, { typecast: 'true' })
+      await write()
     } catch (e) {
       $e('a:command-palette:where-edit:error', tele)
       message.error(await extractSdkResponseErrorMsg(e as Error))
@@ -916,39 +920,63 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
 
     const compiled = compileCond(ir.where, schema.value!)
     if (compiled.errors.length) return { ...row, hint: compiled.errors[0], disabled: true, error: true }
-    const key = JSON.stringify([ctx.view.value?.id, compiled.filters])
+    // A fixed value is applied by the server to every match; a relative one is computed per record here.
+    const absolute = op.kind !== 'relative'
+    const cap = absolute ? WHERE_UNDO_CAP : WHERE_ROW_CAP
+    const key = JSON.stringify([ctx.view.value?.id, compiled.filters, column.id, absolute])
     const entry = whereRows.get(key)
-    enqueue(key, entry, loadWhere(key, compiled.filters))
+    enqueue(key, entry, loadWhere(key, compiled.filters, column, absolute ? WHERE_PREVIEW_ROWS : WHERE_ROW_CAP))
     if (!entry || entry.status === 'loading') return { ...row, loading: true, disabled: true }
     if (entry.status === 'error') return { ...row, hint: entry.message, disabled: true, error: true }
 
     const { rows, total } = entry.value
-    if (total > rows.length) {
-      return {
-        ...row,
-        hint: t('labels.commandPalette.where.tooMany', { count: total, cap: WHERE_ROW_CAP }),
-        disabled: true,
-        error: true,
-      }
+    if (total > cap) {
+      return { ...row, hint: t('labels.commandPalette.where.tooMany', { count: total, cap }), disabled: true, error: true }
     }
-    if (!rows.length) return { ...row, hint: t('labels.commandPalette.where.noMatch'), disabled: true }
+    if (!total) return { ...row, hint: t('labels.commandPalette.where.noMatch'), disabled: true }
     const pv = table.columns?.find((c) => c.pv)
     const labels = rows.map((r, i) => String((pv && r[pv.title!]) ?? extractPkFromRow(r, table.columns as ColumnType[]) ?? i + 1))
     const prevs = rows.map((r) => r[column.title!])
     const nexts = prevs.map((prev) => next(prev))
-    const count = rows.length
+    const unlisted = total - rows.length
+    const changes = [
+      relativeEdit.changeList(column, labels, prevs, nexts, table),
+      ...(unlisted > 0 ? [t('labels.commandPalette.where.more', { count: unlisted }, unlisted)] : []),
+    ]
+      .filter(Boolean)
+      .join(', ')
+    const write = absolute
+      ? () =>
+          $api.dbTableRow.bulkUpdateAll(
+            'noco',
+            table.base_id!,
+            table.id!,
+            { [column.title!]: next(undefined) },
+            { viewId: ctx.view.value!.id!, filterArrJson: JSON.stringify(viewFilters(compiled.filters)) },
+          )
+      : () => {
+          const updates = rows.flatMap((r, i) =>
+            nexts[i] === undefined || JSON.stringify(nexts[i] ?? null) === JSON.stringify(prevs[i] ?? null)
+              ? []
+              : [{ ...rowPkData(r, table.columns as ColumnType[]), [column.title!]: nexts[i] }],
+          )
+          return updates.length
+            ? $api.dbTableRow.bulkUpdate('noco', table.base_id!, table.id!, updates, { typecast: 'true' })
+            : Promise.resolve()
+        }
+    const count = total
     return {
       ...row,
       value: t('labels.commandPalette.where.count', { count }, count),
       run: () =>
         showWarningModal({
           title: t('labels.commandPalette.relative.confirmTitle', { count }, count),
-          content: `${row.title} · ${relativeEdit.changeList(column, labels, prevs, nexts, table) || '—'}`,
+          content: `${row.title} · ${changes || '—'}`,
           showCancelBtn: true,
           okText: t('general.update'),
           okCallback: async () => {
             $e('c:command-palette:where-edit:confirm', { count: cmdNlCountBucket(count), uidt: column.uidt })
-            await saveWhere(key, rows, column, next)
+            await saveWhere(key, column, count, write)
           },
           cancelCallback: () => $e('c:command-palette:where-edit:cancel', { count: cmdNlCountBucket(count), uidt: column.uidt }),
         }),
@@ -1004,13 +1032,15 @@ export function useCmdNlViewCommands(ctx: CmdNlViewContext) {
     enqueue(key, entry, async () => {
       valueLookups.set(key, { status: 'loading', at: Date.now() })
       try {
-        const data = await $api.dbViewRow.list('noco', table.base_id!, table.id!, viewId, {
-          fields: [field.title],
+        // Distinct values, grouped by the server; a few spare for blanks.
+        const data = await $api.dbViewRow.groupBy('noco', table.base_id!, table.id!, viewId, {
+          column_name: field.title,
           filterArrJson: JSON.stringify([{ fk_column_id: field.id, comparison_op: 'like', value: prefix, logical_op: 'and' }]),
-          limit: 50,
+          limit: MAX_SUGGESTIONS + 2,
           offset: 0,
         })
-        const values = [...new Set((data.list ?? []).map((r) => (r as Record<string, unknown>)[field.title]))]
+        const values = ((data as { list?: Record<string, unknown>[] }).list ?? [])
+          .map((r) => r[field.title])
           .filter((v): v is string => typeof v === 'string' && !!v.trim())
           .slice(0, MAX_SUGGESTIONS)
         valueLookups.set(key, { status: 'done', value: values, at: Date.now() })

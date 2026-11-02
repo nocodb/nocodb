@@ -60,6 +60,11 @@ const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
 // chip opens the LINKED record's interface record-detail sheet instead.
 const linkRecordExpand = inject(LinkRecordExpandInj, ref(null))
 
+// Under a Lookup the page element is the Lookup field, not this inner link.
+const lookupColumn = inject(LookupColumnInj, ref())
+
+const expandColumn = computed<ColumnType | undefined>(() => lookupColumn.value ?? injectedColumn.value)
+
 /** Whether this chip represents a blueprint (unsaved sub-record template) vs. an existing record */
 const isBlueprint = computed(() => !!item.value?._isBlueprint)
 
@@ -67,8 +72,8 @@ const interfaceExpandEnabled = computed(
   () =>
     !!interfacePageDataApi &&
     !isBlueprint.value &&
-    !!injectedColumn.value &&
-    !!linkRecordExpand.value?.isEnabled(injectedColumn.value),
+    !!expandColumn.value &&
+    !!linkRecordExpand.value?.isEnabled(expandColumn.value),
 )
 
 const isClickDisabled = computed(() => {
@@ -138,7 +143,7 @@ function openExpandedForm() {
   // Interface pages — the configured record-detail sheet, never the data-app form.
   if (interfaceExpandEnabled.value) {
     linkRecordExpand.value?.expand({
-      column: injectedColumn.value!,
+      column: expandColumn.value!,
       row: item.value,
       relatedTableMeta: relatedTableMeta.value,
     })

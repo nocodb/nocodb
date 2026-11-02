@@ -122,6 +122,8 @@ export const OnDivDataCellEventHookInj: InjectionKey<EventHook<Event> | undefine
 export const SaveRowInj: InjectionKey<(() => void) | undefined> = Symbol('save-row-injection')
 export const CurrentCellInj: InjectionKey<Ref<Element | undefined>> = Symbol('current-cell-injection')
 export const IsUnderLookupInj: InjectionKey<Ref<boolean>> = Symbol('is-under-lookup-injection')
+/** The Lookup column a nested cell renders under — the field an interface page configured. */
+export const LookupColumnInj: InjectionKey<Ref<ColumnType | undefined>> = Symbol('lookup-column-injection')
 export const IsUnderFormulaInj: InjectionKey<Ref<boolean>> = Symbol('is-under-ltar-injection')
 export const IsUnderLTARInj: InjectionKey<Ref<boolean>> = Symbol('is-under-lookup-injection')
 export const DocsLocalPageInj: InjectionKey<Ref<PageSidebarNode | undefined>> = Symbol('docs-local-page-injection')

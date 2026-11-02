@@ -295,6 +295,8 @@ provide(LookupAttachmentDownloadInj, lookupAttachmentDownloadCtx)
 
 provide(IsUnderLookupInj, ref(true))
 
+provide(LookupColumnInj, column)
+
 provide(CellUrlDisableOverlayInj, ref(true))
 
 const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =

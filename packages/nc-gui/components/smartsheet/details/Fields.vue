@@ -985,6 +985,34 @@ const sortAlphabetizedSelectOptions = () => {
   }
 }
 
+// A move that changes nothing else only needs the view-column order. Sent as a
+// field update it re-validates the whole field, so one with a broken reference
+// failed on every save and kept the editor dirty.
+function takeOrderOnlyMoves() {
+  const orderOnlyColumns = new Set<TableExplorerColumn>()
+  const orderOnlyPayload: Array<{ viewId: string; columnId: string; column: Record<string, unknown> }> = []
+
+  for (const op of ops.value) {
+    if (op.op !== 'update') continue
+
+    const mop = moveOps.value.find((m) => compareCols(m.column, op.column))
+    const original = fields.value.find((f) => compareCols(f, op.column))
+    const viewField = op.column.id ? viewFieldsMap.value[op.column.id] : undefined
+    if (!mop || !original || !viewField) continue
+
+    const { column_order: _order, view_id: _viewId, ...rest } = diff(original, op.column) as Record<string, unknown>
+    if (Object.values(rest).some((value) => value !== undefined)) continue
+
+    const entry = buildVisibilityEntry({ id: viewField.id, order: mop.order })
+    if (!entry) continue
+
+    orderOnlyColumns.add(op.column)
+    orderOnlyPayload.push(entry)
+  }
+
+  return { orderOnlyColumns, orderOnlyPayload }
+}
+
 const saveChanges = async () => {
   if (!isColumnsValid.value) {
     message.error(t('msg.error.multiFieldSaveValidation'))
@@ -998,6 +1026,9 @@ const saveChanges = async () => {
     if (!meta.value?.id) return
 
     loading.value = true
+
+    const { orderOnlyColumns, orderOnlyPayload } = takeOrderOnlyMoves()
+
     const newFieldTitles: string[] = []
     for (const mop of moveOps.value) {
       const op = ops.value.find((op) => compareCols(op.column, mop.column))
@@ -1066,6 +1097,12 @@ const saveChanges = async () => {
       if (entry) visibilityPayload.push(entry)
     }
 
+    for (const entry of orderOnlyPayload) {
+      const existing = visibilityPayload.find((v) => v.viewId === entry.viewId && v.columnId === entry.columnId)
+      if (existing) existing.column.order = entry.column.order
+      else visibilityPayload.push(entry)
+    }
+
     ops.value = ops.value.map(({ error: _err, ...rest }) => {
       return rest
     })
@@ -1076,7 +1113,7 @@ const saveChanges = async () => {
       { operation: 'columnsBulk', tableId: meta.value?.id as string },
       {
         hash: columnsHash.value,
-        ops: ops.value,
+        ops: ops.value.filter((op) => !orderOnlyColumns.has(op.column)),
         ...(visibilityPayload.length ? { visibility: visibilityPayload } : {}),
       },
     )

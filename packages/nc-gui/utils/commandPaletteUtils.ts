@@ -217,13 +217,28 @@ function expandCmdChildren(commands: CmdCommand[], tokens: string[]): CmdCommand
   })
 }
 
-function normalizeCmdText(text: string) {
-  return text
+/** Normalised text and its words by raw string: providers rebuild command objects, but titles repeat. */
+const normalizedCache = new Map<string, { text: string; words: string[]; chars?: Set<string> }>()
+
+const NORMALIZED_CACHE_MAX = 20000
+
+function normalizedOf(raw: string) {
+  const hit = normalizedCache.get(raw)
+  if (hit) return hit
+  const text = raw
     .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim()
+  if (normalizedCache.size >= NORMALIZED_CACHE_MAX) normalizedCache.clear()
+  const entry = { text, words: text.split(' ') }
+  normalizedCache.set(raw, entry)
+  return entry
+}
+
+function normalizeCmdText(text: string) {
+  return normalizedOf(text).text
 }
 
 // Openers of a question or request; none of them starts a command title.
@@ -279,15 +294,17 @@ function matchCmdToken(token: string, words: string[], text: string) {
 }
 
 /** 0 when some meaningful query word matches nothing; otherwise the mean of per-word scores. */
+/** Field weights: what the row says outranks its keywords, its hint and its section. */
+const CMD_FIELD_WEIGHTS = [1, 0.75, 0.6, 0.5]
+
 function scoreCmdCommand(command: CmdCommand, tokens: string[], normalizedQuery: string) {
-  const title = normalizeCmdText(command.title)
-  // Field weights: what the row says outranks its keywords, its hint and its section.
+  const title = normalizedOf(command.title).text
   const fields = [
-    { text: title, weight: 1 },
-    { text: normalizeCmdText(command.keywords?.join(' ') ?? ''), weight: 0.75 },
-    { text: normalizeCmdText(command.hint ?? ''), weight: 0.6 },
-    { text: normalizeCmdText(command.section ?? ''), weight: 0.5 },
-  ].map((field) => ({ ...field, words: field.text.split(' ') }))
+    normalizedOf(command.title),
+    normalizedOf(command.keywords?.join(' ') ?? ''),
+    normalizedOf(command.hint ?? ''),
+    normalizedOf(command.section ?? ''),
+  ].map((field, i) => ({ ...field, weight: CMD_FIELD_WEIGHTS[i]! }))
 
   // A query of only filler words ("go to") must match them all, or every row with "to" qualifies.
   const fillersOptional = !tokens.every((token) => CMD_FILLER_WORDS.has(token))
@@ -319,7 +336,7 @@ export function searchCmdCommands(
   contextIds: Set<string> = new Set(),
   usage?: CmdUsage,
 ): CmdCommand[] {
-  const normalizedQuery = normalizeCmdText(query)
+  const normalizedQuery = normalizedOf(query).text
   if (!normalizedQuery) return commands.filter((command) => !command.searchOnly)
 
   const tokens = normalizedQuery.split(' ')
@@ -345,8 +362,19 @@ export function searchCmdCommands(
   const strict = rank((command) => scoreCmdCommand(command, tokens, normalizedQuery))
   if (strict.length) return strict
 
-  // Typos and abbreviations: keep only fuzzy matches close to the best one.
-  const fuzzyScore = (command: CmdCommand) => commandScore(normalizeCmdText(command.title), normalizedQuery)
+  // Typos and abbreviations: keep only fuzzy matches close to the best one. commandScore is 0 unless every
+  // query character occurs in the title (transpositions included), so that check skips most titles exactly.
+  const queryChars = [...new Set(normalizedQuery)]
+  const fuzzyScores = new Map<CmdCommand, number>()
+  const fuzzyScore = (command: CmdCommand) => {
+    const known = fuzzyScores.get(command)
+    if (known !== undefined) return known
+    const title = normalizedOf(command.title)
+    title.chars ??= new Set(title.text)
+    const score = queryChars.every((c) => title.chars!.has(c)) ? commandScore(title.text, normalizedQuery) : 0
+    fuzzyScores.set(command, score)
+    return score
+  }
   const best = Math.max(0, ...candidates.map(fuzzyScore))
   return rank((command) => {
     const score = fuzzyScore(command)

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { CmdCommand, CmdLevel, CommandPaletteType } from '~/lib/types'
+import type { CmdChip, CmdCommand, CmdLevel, CmdSkeleton, CmdTele, CommandPaletteType } from '~/lib/types'
 import { cmdRowDomId, isCmdNaturalLanguage } from '~/utils/commandPaletteUtils'
 
 type CmdRow = { kind: 'section'; title: string } | { kind: 'command'; command: CmdCommand }
@@ -111,6 +111,24 @@ const trailingFallbacks = computed(() =>
 
 const aiRow = computed(() => (activePage.value || !isSearching.value ? undefined : aiFallback(debouncedQuery.value.trim())))
 
+/** Recent natural-language queries (with their results): with an empty query, or one this short that starts one. */
+const recentRows = computed<CmdCommand[]>(() => {
+  if (activePage.value || editing.value) return []
+  const own = activeContextProvider.value?.recent ? activeContextProvider.value : providers.value.find((p) => p.recent)
+  return own?.recent?.(debouncedQuery.value.trim()) ?? []
+})
+
+/**
+ * Whether the query is mid-way through a field or value: a completion row, or a skeleton chip that reads part
+ * of it. The AI row then waits at the end unless the query is an explicit question.
+ */
+function isBeingTyped(text: string) {
+  if (leadFallbacks.value.some((command) => command.complete !== undefined)) return true
+  const own = activeContextProvider.value?.skeleton ? activeContextProvider.value : providers.value.find((p) => p.skeleton)
+  const skeleton = own?.skeleton?.(text)
+  return !!skeleton?.ghost || !!skeleton?.chips.some((chip) => ['field', 'agg', 'cmp', 'value'].includes(chip.kind))
+}
+
 const results = computed<CmdCommand[]>(() => {
   if (activePage.value) {
     const children = (activePage.value.children?.() ?? []).map((child) => ({ ...child, searchOnly: false }))
@@ -122,18 +140,23 @@ const results = computed<CmdCommand[]>(() => {
     providers.value.filter((p) => p.level !== 'global').flatMap((p) => p.commands.map((command) => command.id)),
   )
   const matches = searchCmdCommands(scoped, debouncedQuery.value, contextIds, commandUsage.value)
-  if (!isSearching.value) return matches
+  if (!isSearching.value) return [...recentRows.value, ...matches]
 
   // A request leads with "Ask NocoAI"; a command-like query keeps its matches and echo rows first.
   const ai = aiRow.value
-  const lead = leadFallbacks.value
+  // "Not understood" only when nothing else answered: a matching command means the query was understood.
+  const leadRows = matches.length ? leadFallbacks.value.filter((c) => c.tele?.kind !== 'decline') : leadFallbacks.value
+  const lead = [...recentRows.value, ...leadRows]
   if (!ai) return [...lead, ...matches, ...trailingFallbacks.value]
+  // Mid-typing ("…where company si"): what is being typed leads, not the AI, unless it ends with "?".
+  const question = /\?\s*$/.test(debouncedQuery.value)
+  if (!question && isBeingTyped(debouncedQuery.value)) return [...lead, ...matches, ...trailingFallbacks.value, ai]
   // "create workflow Foo" asks for the named create, not the AI; "add 1 week" asks for the edit.
   const namedCreate = /^\s*(create|new)\s/i.test(debouncedQuery.value)
     ? fallbacks.value.find((command) => command.id.endsWith(':create-named'))
     : undefined
   // A parsed answer or edit ("how many deals are won") beats the AI unless the query is an explicit question.
-  const answered = lead.length > 0 && !/\?\s*$/.test(debouncedQuery.value)
+  const answered = lead.length > 0 && !question
   return !answered &&
     isCmdNaturalLanguage(debouncedQuery.value, matches.length > 0 || !!namedCreate || lead.length > 0, matches[0]?.title)
     ? [ai, ...lead, ...matches, ...trailingFallbacks.value]
@@ -151,6 +174,47 @@ const selectableIds = computed(() =>
   rows.value.flatMap((row) => (row.kind === 'command' && !row.command.disabled ? [row.command.id] : [])),
 )
 
+/** Readings of the query (stat, filter, edit…): Tab moves between them when there is more than one. */
+const readingRows = computed(() =>
+  // Suggestions carry their completed reading too, but Tab completes them rather than cycling.
+  activePage.value ? [] : results.value.filter((command) => command.reading && command.complete === undefined),
+)
+
+/**
+ * The reading whose chips show: the selected one, else the first reading, else the best completion's
+ * reading while the query is still half typed (shown tentative).
+ */
+const chipReading = computed(() =>
+  isSearching.value
+    ? results.value.find((c) => c.id === selectedId.value && c.reading) ??
+      readingRows.value[0] ??
+      results.value.find((c) => c.reading)
+    : undefined,
+)
+
+/** Chips from a completion describe where the query is heading, not what it says yet. */
+const chipsTentative = computed(() => chipReading.value?.complete !== undefined)
+
+/** Before any reading: what each typed word stands for, and the field name being typed, completed. */
+const skeleton = computed<CmdSkeleton | undefined>(() => {
+  if (!query.value.trim() || activePage.value || editing.value) return
+  if (chipReading.value?.reading?.chips.length && !chipsTentative.value) return
+  const own = activeContextProvider.value?.skeleton ? activeContextProvider.value : providers.value.find((p) => p.skeleton)
+  // The raw query: spans are cheap, so chips follow every keystroke without the results' debounce.
+  return own?.skeleton?.(query.value)
+})
+
+/** The chip row: the reading's chips, else a completion's (tentative), else the skeleton's (tentative). */
+const shownChips = computed<{ chips: CmdChip[]; tentative: boolean; ghost?: CmdSkeleton['ghost'] }>(() => {
+  const reading = chipReading.value?.reading?.chips
+  if (reading?.length && !chipsTentative.value) return { chips: reading, tentative: false }
+  if (reading?.length) return { chips: reading, tentative: true, ghost: skeleton.value?.ghost }
+  return { chips: skeleton.value?.chips ?? [], tentative: true, ghost: skeleton.value?.ghost }
+})
+
+/** The first completion row, accepted by Tab or → when nothing else claims the key. */
+const firstCompletion = computed(() => (activePage.value ? undefined : results.value.find((c) => c.complete !== undefined)))
+
 /** A submenu opens on its current value (e.g. the active theme), else on the first row. */
 function defaultSelectedId() {
   const current = activePage.value && !debouncedQuery.value ? results.value.find((c) => c.checked && !c.disabled) : undefined
@@ -158,6 +222,18 @@ function defaultSelectedId() {
 }
 
 const { list, containerProps, wrapperProps } = useVirtualList(rows, { itemHeight: ROW_HEIGHT })
+
+/** Whether the list is scrolled off the top, tracked from scroll events (reading it on demand forces a layout). */
+let scrolledAway = false
+
+useEventListener(
+  containerProps.ref,
+  'scroll',
+  (e: Event) => {
+    scrolledAway = (e.target as HTMLElement).scrollTop > 0
+  },
+  { passive: true },
+)
 
 function focusInput() {
   nextTick(() => inputEl.value?.focus())
@@ -171,6 +247,54 @@ function show() {
 function hide() {
   clearTimeout(closeTimer)
   vOpen.value = false
+}
+
+/** Share of palette sessions that send the NL query summary; every run, swap and decline is sent in full. */
+const NL_SUMMARY_SAMPLE = 0.1
+
+/** This session's top NL reading and which reading (if any) ran, for the sampled summary on close. */
+let nlTop: Extract<CmdTele, { kind: 'reading' }> | undefined
+let nlRanRank: number | undefined
+const nlDeclinesSent = new Set<string>()
+
+watch(results, (list) => {
+  const top = list.find((c) => c.tele?.kind === 'reading')?.tele
+  if (top?.kind === 'reading') nlTop = top
+  const declines = list.flatMap((c) => (c.tele?.kind === 'decline' && !c.tele.fix ? [c.tele.reason] : []))
+  const key = [...declines].sort().join(',')
+  if (!declines.length || nlDeclinesSent.has(key)) return
+  nlDeclinesSent.add(key)
+  const hadFix = list.some((c) => c.tele?.kind === 'decline' && c.tele.fix)
+  $e('a:command-palette:nl-decline:show', { reasons: declines, had_suggestion: hadFix, level: activeLevel.value })
+})
+
+watch(vOpen, (open) => {
+  if (open) return
+  if (nlTop && Math.random() < NL_SUMMARY_SAMPLE) {
+    $e('a:command-palette:nl-query:summarize', {
+      ...nlTop.reading,
+      readings: nlTop.readings,
+      latency: nlTop.latency,
+      tagger: nlTop.tagger,
+      surface: nlTop.surface,
+      chosen_rank: nlRanRank ?? null,
+    })
+  }
+  nlTop = undefined
+  nlRanRank = undefined
+  nlDeclinesSent.clear()
+})
+
+function trackSuggestion(command: CmdCommand | undefined, via: 'enter' | 'tab' | 'arrow', ghost = false) {
+  if (ghost) return $e('c:command-palette:nl-suggestion:accept', { slot: 'ghost', via })
+  if (command?.id.startsWith('data:nl:recent:')) return $e('c:command-palette:nl-suggestion:accept', { slot: 'history', via })
+  if (command?.tele?.kind === 'suggestion') return $e('c:command-palette:nl-suggestion:accept', { slot: command.tele.slot, via })
+  if (command?.tele?.kind === 'decline' && command.tele.fix) {
+    return $e('c:command-palette:nl-decline:fix', { reason: command.tele.reason, via })
+  }
+  if (command?.tele?.kind === 'chip-swap') {
+    return $e('c:command-palette:nl-chip:switch', { chip: command.tele.chip, uidt: command.tele.uidt ?? null })
+  }
 }
 
 function closeSoon() {
@@ -259,8 +383,46 @@ async function saveEdit() {
   if (!isSaved.value) nextTick(() => inputEl.value?.focus())
 }
 
+/** Puts `text` in the input, as if typed: completions and chip swaps rewrite the query. */
+function applyQuery(text: string) {
+  navDirection.value = 'back'
+  pages.value = []
+  query.value = text
+  debouncedQuery.value = text
+  navigated.value = false
+  focusInput()
+}
+
+/** A chip with alternatives opens them as a page; picking one rewrites the query. */
+function openChip(chip: CmdChip, index: number) {
+  if (!chip.swaps?.length) return
+  execute({
+    id: `chip:${index}`,
+    title: `${chip.label ?? chip.text}…`,
+    children: () =>
+      chip.swaps!.map((swap, i) => ({
+        id: `chip:${index}:${i}`,
+        title: swap.label,
+        icon: swap.icon,
+        complete: swap.query,
+        tele: {
+          kind: 'chip-swap' as const,
+          chip: chip.kind,
+          uidt: chip.icon?.type === 'field' ? chip.icon.column?.uidt : undefined,
+        },
+      })),
+  })
+}
+
 function execute(command: CmdCommand) {
   if (command.disabled) return
+
+  // A suggestion with a result runs on Enter (Tab / → complete it); one without just completes.
+  if (command.complete !== undefined && !command.run) {
+    trackSuggestion(command, 'enter')
+    applyQuery(command.complete)
+    return
+  }
 
   if (command.children) {
     navDirection.value = 'forward'
@@ -277,6 +439,20 @@ function execute(command: CmdCommand) {
 
   $e('c:command-palette:command:run', { command: telemetryId(command), level: activeLevel.value })
   recordUse(command)
+  if (command.tele?.kind === 'suggestion') trackSuggestion(command, 'enter')
+  if (command.tele?.kind === 'reading') {
+    nlRanRank = command.tele.reading.rank
+    $e('c:command-palette:nl-reading:run', {
+      intent: command.tele.reading.intent,
+      rank: command.tele.reading.rank,
+      was_unsure: command.tele.reading.unsure,
+      scope: command.tele.reading.scope,
+      assumed: command.tele.reading.assumed,
+      surface: command.tele.surface ?? null,
+      level: activeLevel.value,
+      recent: command.id.startsWith('data:nl:recent:'),
+    })
+  }
 
   if (command.feedback) {
     runWithFeedback(command)
@@ -287,16 +463,23 @@ function execute(command: CmdCommand) {
   command.run?.()
 }
 
-function ensureVisible(id: string) {
-  const container = containerProps.ref.value
-  const rowIndex = rows.value.findIndex((row) => row.kind === 'command' && row.command.id === id)
-  if (!container || rowIndex === -1) return
+let visibleFrame: number | undefined
 
-  // Keep the section header above the first row in view.
-  const top = (rowIndex > 0 && rows.value[rowIndex - 1].kind === 'section' ? rowIndex - 1 : rowIndex) * ROW_HEIGHT
-  const bottom = (rowIndex + 1) * ROW_HEIGHT
-  if (top < container.scrollTop) container.scrollTop = top
-  else if (bottom > container.scrollTop + container.clientHeight) container.scrollTop = bottom - container.clientHeight
+/** Scrolls `id` into view. Reading scroll metrics forces a layout, so it runs once per frame, before paint. */
+function ensureVisible(id: string) {
+  if (visibleFrame !== undefined) cancelAnimationFrame(visibleFrame)
+  visibleFrame = requestAnimationFrame(() => {
+    visibleFrame = undefined
+    const container = containerProps.ref.value
+    const rowIndex = rows.value.findIndex((row) => row.kind === 'command' && row.command.id === id)
+    if (!container || rowIndex === -1) return
+
+    // Keep the section header above the first row in view.
+    const top = (rowIndex > 0 && rows.value[rowIndex - 1].kind === 'section' ? rowIndex - 1 : rowIndex) * ROW_HEIGHT
+    const bottom = (rowIndex + 1) * ROW_HEIGHT
+    if (top < container.scrollTop) container.scrollTop = top
+    else if (bottom > container.scrollTop + container.clientHeight) container.scrollTop = bottom - container.clientHeight
+  })
 }
 
 function moveSelection(step: number) {
@@ -375,9 +558,44 @@ function onKeydown(e: KeyboardEvent) {
       e.preventDefault()
       goBack()
       return
-    case 'Tab':
+    case 'ArrowRight': {
+      // At the end of the input, → accepts the first completion ("industry is manu" → "manufacturing").
+      const input = e.target as HTMLInputElement
+      const complete = firstCompletion.value?.complete ?? shownChips.value.ghost?.complete
+      if (complete === undefined || input.selectionStart !== query.value.length) return
+      e.preventDefault()
+      trackSuggestion(firstCompletion.value, 'arrow', !firstCompletion.value)
+      applyQuery(complete)
+      return
+    }
+    case 'Tab': {
       e.preventDefault()
       if (activePage.value) return
+      const selected = results.value.find((c) => c.id === selectedId.value)
+      if (selected?.complete !== undefined) {
+        trackSuggestion(selected, 'tab')
+        applyQuery(selected.complete)
+        return
+      }
+      // Several readings: Tab moves to the next one (its chips show which).
+      const readings = readingRows.value.filter((c) => !c.disabled || c.loading)
+      if (readings.length > 1) {
+        const index = readings.findIndex((c) => c.id === selectedId.value)
+        navigated.value = true
+        selectedId.value = readings[(index + 1) % readings.length]!.id
+        ensureVisible(selectedId.value)
+        return
+      }
+      if (firstCompletion.value) {
+        trackSuggestion(firstCompletion.value, 'tab')
+        applyQuery(firstCompletion.value.complete!)
+        return
+      }
+      if (shownChips.value.ghost) {
+        trackSuggestion(undefined, 'tab', true)
+        applyQuery(shownChips.value.ghost.complete)
+        return
+      }
       // A plan without AI chat: Tab opens the same upgrade prompt as the fallback row.
       if (aiRow.value?.upgradeFeature) {
         hide()
@@ -385,10 +603,15 @@ function onKeydown(e: KeyboardEvent) {
         return
       }
       if (!isAiAvailable.value) return
-      $e('c:command-palette:ai:ask', { level: activeLevel.value })
+      $e('c:command-palette:ai:ask', {
+        level: activeLevel.value,
+        // Why the query went to the AI: nothing read it, the reading was unsure, or Tab was just pressed.
+        reason: !readingRows.value.length ? 'no-reading' : nlTop?.reading.unsure ? 'unsure' : 'tab',
+      })
       hide()
       askAi(query.value)
       return
+    }
   }
 
   // Cmd+L / Cmd+J open the other palettes from their own window listeners.
@@ -451,8 +674,10 @@ watch([debouncedQuery, () => pages.value.length, activeLevel], () => {
   if (!vOpen.value) return
   navigated.value = false
   selectedId.value = defaultSelectedId()
-  containerProps.ref.value?.scrollTo({ top: 0 })
-  if (selectedId.value) nextTick(() => ensureVisible(selectedId.value!))
+  // Known from the scroll event, so a new query doesn't force a layout just to check it.
+  if (scrolledAway) containerProps.ref.value?.scrollTo({ top: 0 })
+  // The first row is in view at the top; only a submenu opening on its current value may need scrolling.
+  if (selectedId.value && selectedId.value !== selectableIds.value[0]) ensureVisible(selectedId.value)
 })
 
 // Providers that mount late (toolbar, submenus loading) keep the first row selected until the user navigates.
@@ -546,7 +771,15 @@ defineExpose({
         />
         <GeneralLoader v-if="cmdLoading && isSearching" />
         <div
-          v-if="isAiAvailable && !activePage"
+          v-if="!activePage && (readingRows.length > 1 || firstCompletion)"
+          class="flex items-center gap-1.5 text-bodySm text-nc-content-gray-muted flex-none"
+          data-testid="nc-cmdk-tab-hint"
+        >
+          {{ readingRows.length > 1 ? $t('labels.commandPalette.nl.nextReading') : $t('labels.commandPalette.nl.complete') }}
+          <GeneralShortcutLabel :keys="['Tab']" />
+        </div>
+        <div
+          v-else-if="isAiAvailable && !activePage"
           class="flex items-center gap-1.5 text-bodySm text-nc-content-gray-muted flex-none cursor-pointer hover:text-nc-content-gray"
           @click="askAi(query)"
         >
@@ -554,6 +787,52 @@ defineExpose({
           {{ $t('labels.commandPalette.askAi') }}
           <GeneralShortcutLabel :keys="['Tab']" />
         </div>
+      </div>
+      <!-- How the selected reading understood the query; a chip with alternatives opens them. -->
+      <div
+        v-if="!editing && !activePage && (shownChips.chips.length || shownChips.ghost)"
+        class="nc-cmdk-chips flex items-center gap-1 flex-wrap px-4 pb-2.5 -mt-1"
+        :class="{ 'nc-cmdk-chips--tentative': shownChips.tentative }"
+        data-testid="nc-cmdk-reading-chips"
+        :data-tentative="shownChips.tentative || undefined"
+      >
+        <NcTooltip
+          v-for="(chip, i) of shownChips.chips"
+          :key="chip.key ?? `${chip.kind}:${i}`"
+          :disabled="!chip.tooltip"
+          :title="chip.tooltip"
+          :tooltip-style="{ zIndex: 1100 }"
+          class="flex min-w-0"
+        >
+          <component
+            :is="chip.swaps?.length ? 'button' : 'span'"
+            class="nc-cmdk-chip"
+            :class="[`nc-cmdk-chip--${chip.kind}`, { 'nc-cmdk-chip--swappable': chip.swaps?.length }]"
+            :data-testid="`nc-cmdk-chip-${chip.kind}`"
+            :type="chip.swaps?.length ? 'button' : undefined"
+            @click="openChip(chip, i)"
+          >
+            <CmdKItemIcon v-if="chip.icon" :icon="chip.icon" class="flex-none" />
+            <span class="truncate max-w-40">{{ chip.text }}</span>
+            <span v-if="chip.kind === 'assumed'" class="nc-cmdk-chip-assumed flex-none">
+              {{ $t('labels.commandPalette.nl.assumed') }}
+            </span>
+            <GeneralIcon v-if="chip.swaps?.length" icon="ncChevronDown" class="h-3 w-3 flex-none opacity-60" />
+          </component>
+        </NcTooltip>
+        <!-- The field name being typed, completed: Tab or → accepts it. -->
+        <button
+          v-if="shownChips.ghost"
+          key="ghost"
+          type="button"
+          class="nc-cmdk-chip nc-cmdk-chip--field nc-cmdk-chip--ghost"
+          data-testid="nc-cmdk-chip-ghost"
+          @click="applyQuery(shownChips.ghost.complete)"
+        >
+          <CmdKItemIcon v-if="shownChips.ghost.icon" :icon="shownChips.ghost.icon" class="flex-none" />
+          <span class="truncate max-w-40">{{ shownChips.ghost.text }}</span>
+          <GeneralShortcutLabel :keys="['Tab']" class="nc-cmdk-chip-key" />
+        </button>
       </div>
     </template>
 

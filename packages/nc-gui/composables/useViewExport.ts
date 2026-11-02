@@ -27,10 +27,8 @@ export function useViewExport() {
     isLocked: ref(false),
   }
 
-  // In a shared view the top-bar Download button lives outside the grid's smartsheet store tree
-  // (it has its own provider via ExportWithProvider), so `nestedFilters`/`sorts` above stay empty.
-  // The grid mirrors the viewer-applied filters/sorts to these global refs, so read from them for
-  // public views to ensure the export honours the currently configured filters and sorts.
+  // A shared view's Download button sits outside the grid's store tree, so `nestedFilters`/`sorts` stay
+  // empty there; the grid mirrors viewer-applied filters and sorts into these global refs instead.
   const { activeNestedFilters, activeSorts } = storeToRefs(useViewsStore())
 
   const effectiveSorts = computed(() => (isPublicView.value ? activeSorts.value : sorts.value))

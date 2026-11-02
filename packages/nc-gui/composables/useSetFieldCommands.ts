@@ -17,6 +17,8 @@ import type { ColumnType, LinkToAnotherRecordType, SelectOptionType, TableType }
 import { timeFormatsObj } from '~/components/cell/DateTime/utils'
 import { getSelectedUsers, getOptions as getUserOptions } from '~/components/cell/User/utils'
 import type { CmdCommand, CmdEdit } from '~/lib/types'
+import { applyCmdDateEdit, applyCmdNumberEdit, parseCmdRelativeEdit } from '~/utils/commandPaletteRelativeEdit'
+import type { CmdRelativeEdit } from '~/utils/commandPaletteRelativeEdit'
 import { applyLtarCellOp } from '~/utils/ltarDeferredOps'
 
 interface SetFieldTarget {
@@ -71,6 +73,24 @@ const SETTABLE_UIDTS: string[] = [
   UITypes.URL,
   UITypes.PhoneNumber,
 ]
+
+const NUMERIC_UIDTS: string[] = [UITypes.Number, UITypes.Decimal, UITypes.Currency, UITypes.Percent, UITypes.Rating]
+
+const DATE_UIDTS: string[] = [UITypes.Date, UITypes.DateTime]
+
+/** At most this many fields get a row when the query names none and no field is active. */
+const RELATIVE_EDIT_MAX_FIELDS = 4
+
+type CanEdit = ReturnType<typeof usePermissions>['isAllowed']
+
+function isSettableColumn(column: ColumnType, isAllowed: CanEdit) {
+  if (!SETTABLE_UIDTS.includes(column.uidt!) || column.pk || column.ai || column.readonly || isSystemColumn(column)) {
+    return false
+  }
+  // Rich text and AI prompts have their own editors.
+  if (column.uidt === UITypes.LongText && (parseProp(column.meta).richMode || isAIPromptCol(column))) return false
+  return !column.id || isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)
+}
 
 /** "Set <Field>…" commands, Linear style, for one record or a selection; the caller gates the surface. */
 export function useSetFieldCommands() {
@@ -150,14 +170,7 @@ export function useSetFieldCommands() {
       .catch(() => linkLists.set(key, { loading: false, error: true, list: [], loadedAt: Date.now() }))
   }
 
-  function isSettable(column: ColumnType) {
-    if (!SETTABLE_UIDTS.includes(column.uidt!) || column.pk || column.ai || column.readonly || isSystemColumn(column)) {
-      return false
-    }
-    // Rich text and AI prompts have their own editors.
-    if (column.uidt === UITypes.LongText && (parseProp(column.meta).richMode || isAIPromptCol(column))) return false
-    return !column.id || isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)
-  }
+  const isSettable = (column: ColumnType) => isSettableColumn(column, isAllowed)
 
   return function setFieldCommands(target: SetFieldTarget): CmdCommand[] {
     const count = target.count ?? 1
@@ -542,5 +555,182 @@ export function useSetFieldCommands() {
           return { ...base, title: title(column), edit: textEdit(column) }
       }
     }
+  }
+}
+
+/**
+ * "add 1m", "+10%", "add 1 week", "next monday": rows built from the query for the surface's
+ * number and date fields, previewing old → new. Above one record, applying asks first.
+ */
+export function useRelativeEditCommands() {
+  const { t } = useI18n()
+
+  const { isAllowed } = usePermissions()
+
+  const { showWarningModal } = useNcConfirmModal()
+
+  const dash = '—'
+
+  function display(column: ColumnType, value: unknown) {
+    if (value === null || value === undefined || value === '') return dash
+    const meta = parseProp(column.meta)
+    switch (column.uidt) {
+      case UITypes.Currency:
+        return getCurrencyValue(value as number, column)
+      case UITypes.Percent:
+        return `${Number(value).toLocaleString()}%`
+      case UITypes.Decimal:
+        return Number(value).toLocaleString(undefined, {
+          minimumFractionDigits: meta.precision ?? 0,
+          maximumFractionDigits: meta.precision ?? 8,
+        })
+      case UITypes.Date:
+        return dayjs(value as string).format(meta.date_format ?? 'YYYY-MM-DD')
+      case UITypes.DateTime: {
+        const date = dayjs(value as string)
+        const local = meta.timezone && isEeUI ? date.tz(meta.timezone) : date
+        return local.format(`${meta.date_format ?? 'YYYY-MM-DD'} ${meta.time_format ?? 'HH:mm'}`)
+      }
+      default:
+        return Number(value).toLocaleString()
+    }
+  }
+
+  /** `undefined` leaves the value as it is; `NaN` marks a result the field can't hold. */
+  function nextValue(edit: CmdRelativeEdit, column: ColumnType, prev: unknown): unknown {
+    if (edit.kind === 'number') {
+      const next = applyCmdNumberEdit(edit, prev)
+      if (next === undefined || Number.isNaN(next)) return next
+      if (column.uidt === UITypes.Number) return Math.round(next)
+      if (column.uidt === UITypes.Rating) {
+        const max = Number(parseProp(column.meta).max ?? 5)
+        return Math.min(max, Math.max(0, Math.round(next)))
+      }
+      return next
+    }
+
+    if (prev === null || prev === undefined || prev === '') return
+    const meta = parseProp(column.meta)
+    if (column.uidt === UITypes.Date) return applyCmdDateEdit(edit, dayjs(prev as string))?.format('YYYY-MM-DD')
+    // Date-times shift in the column's timezone and are stored as the cells store them.
+    const date = dayjs(prev as string)
+    const local = meta.timezone && isEeUI ? date.tz(meta.timezone) : date
+    return applyCmdDateEdit(edit, local)?.utc().format('YYYY-MM-DD HH:mm:ssZ')
+  }
+
+  function title(edit: CmdRelativeEdit, column: ColumnType) {
+    const field = column.title
+    const prefix = 'labels.commandPalette.relative'
+    if (edit.kind === 'date') {
+      if (edit.op === 'shift') {
+        const amount = Math.abs(edit.amount)
+        const span = t(`${prefix}.units.${edit.unit}`, { count: amount.toLocaleString() }, amount)
+        return t(edit.amount < 0 ? `${prefix}.subtract` : `${prefix}.add`, { amount: span, field })
+      }
+      if (edit.op === 'next-weekday') {
+        return t(`${prefix}.nextWeekday`, { field, weekday: dayjs().day(edit.weekday).format('dddd') })
+      }
+      return t(`${prefix}.${edit.op === 'end-of' ? 'endOf' : 'startOf'}`, { field, period: t(`${prefix}.periods.${edit.unit}`) })
+    }
+    switch (edit.op) {
+      case 'add':
+        return t(edit.amount < 0 ? `${prefix}.subtract` : `${prefix}.add`, {
+          amount: Math.abs(edit.amount).toLocaleString(),
+          field,
+        })
+      case 'percent':
+        return t(edit.amount < 0 ? `${prefix}.decreasePercent` : `${prefix}.increasePercent`, {
+          amount: Math.abs(edit.amount).toLocaleString(),
+          field,
+        })
+      case 'multiply':
+        return t(`${prefix}.multiply`, { amount: edit.amount.toLocaleString(), field })
+      case 'divide':
+        return t(`${prefix}.divide`, { amount: edit.amount.toLocaleString(), field })
+      case 'round':
+        return edit.amount ? t(`${prefix}.roundTo`, { amount: edit.amount, field }) : t(`${prefix}.round`, { field })
+      case 'negate':
+        return t(`${prefix}.negate`, { field })
+    }
+  }
+
+  return function relativeEditCommands(target: SetFieldTarget & { activeColumnId?: string }, query: string): CmdCommand[] {
+    const edit = parseCmdRelativeEdit(query)
+    if (!edit) return []
+
+    const kinds = edit.kind === 'number' ? NUMERIC_UIDTS : DATE_UIDTS
+    // Hours and minutes only make sense on date-times.
+    const needsTime = edit.kind === 'date' && edit.op === 'shift' && (edit.unit === 'hour' || edit.unit === 'minute')
+    const candidates = target.columns.filter(
+      ({ column }) =>
+        kinds.includes(column.uidt!) && (!needsTime || column.uidt === UITypes.DateTime) && isSettableColumn(column, isAllowed),
+    )
+
+    let columns: ColumnType[]
+    if (edit.field) {
+      const words = edit.field.split(' ')
+      columns = candidates
+        .map(({ column }) => column)
+        .filter((column) => {
+          const titleWords = (column.title ?? '').toLowerCase().split(/\s+/)
+          return words.every((word) => titleWords.some((titleWord) => titleWord.startsWith(word)))
+        })
+    } else {
+      const active = candidates.find(({ column }) => column.id === target.activeColumnId)
+      columns = active
+        ? [active.column]
+        : candidates
+            .filter(({ hidden }) => !hidden)
+            .map(({ column }) => column)
+            .slice(0, RELATIVE_EDIT_MAX_FIELDS)
+    }
+
+    const count = target.count ?? 1
+    return columns.map((column): CmdCommand => {
+      const values = target.values(column)
+      const nexts = values.map((prev) => nextValue(edit, column, prev))
+      const invalid = nexts.some((next) => typeof next === 'number' && Number.isNaN(next))
+      const skipped = nexts.filter((next) => next === undefined).length
+      const firstIndex = nexts.findIndex((next) => next !== undefined)
+      const rowTitle = title(edit, column)
+      const preview = firstIndex < 0 ? dash : `${display(column, values[firstIndex])} → ${display(column, nexts[firstIndex])}`
+
+      const apply = () =>
+        target.save(column, (prev) => {
+          const next = nextValue(edit, column, prev)
+          return next === undefined ? prev : next
+        })
+
+      return {
+        id: `relative-edit:${column.id}`,
+        title: rowTitle,
+        section: target.section,
+        icon: { type: 'field', column },
+        priority: CMD_PRIORITY.primary,
+        lead: true,
+        value: count > 1 ? t('labels.commandPalette.relative.bulkPreview', { count, preview }, count) : preview,
+        hint: invalid
+          ? t('labels.commandPalette.relative.invalid')
+          : skipped && count > 1
+          ? t('labels.commandPalette.relative.emptySkipped', { count: skipped }, skipped)
+          : undefined,
+        error: invalid,
+        disabled: invalid || firstIndex < 0,
+        feedback: count > 1 ? undefined : target.feedback ?? t('labels.commandPalette.saved'),
+        run:
+          count > 1
+            ? () =>
+                showWarningModal({
+                  title: t('labels.commandPalette.relative.confirmTitle', { count }, count),
+                  content: `${rowTitle} · ${preview}`,
+                  showCancelBtn: true,
+                  okText: t('general.update'),
+                  okCallback: async () => {
+                    await apply()
+                  },
+                })
+            : apply,
+      }
+    })
   }
 }

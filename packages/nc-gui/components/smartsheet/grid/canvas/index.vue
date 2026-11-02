@@ -55,6 +55,7 @@ import { CanvasElement, ElementTypes } from './utils/CanvasElement'
 import AddNewRowMenu from './components/AddNewRowMenu.vue'
 import GroupContextMenu from './components/GroupHeaderMenu.vue'
 import type { Row } from '#imports'
+import { useRelativeEditCommands } from '~/composables/useSetFieldCommands'
 
 const props = defineProps<{
   totalRows: number
@@ -3156,6 +3157,10 @@ const { copy: copyToClipboard } = useCopy()
 
 const setFieldCommands = useSetFieldCommands()
 
+const relativeEditCommands = useRelativeEditCommands()
+
+type RelativeEditTarget = Parameters<typeof relativeEditCommands>[0]
+
 const { showWarningModal } = useNcConfirmModal()
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
@@ -3182,6 +3187,8 @@ useCommandProvider(
 
     const section = t('labels.commandPalette.sections.record')
     const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+    // Shared by "Set <Field>…" and query-built edits ("add 10").
+    let editTarget: RelativeEditTarget | undefined
     const canInsert =
       isAddingEmptyRowAllowed.value &&
       isUIAllowed('dataEdit') &&
@@ -3379,26 +3386,26 @@ useCommandProvider(
     ) {
       const visible = columns.value.filter((c) => c.columnObj && !c.readonly && !c.inlineEditDisabled)
       const visibleIds = new Set(columns.value.map((c) => c.id))
-      commands.push(
-        ...setFieldCommands({
-          meta: meta.value,
-          columns: [
-            ...visible.map((c) => ({ column: c.columnObj })),
-            ...((meta.value?.columns ?? []) as ColumnType[])
-              .filter((c) => !visibleIds.has(c.id!))
-              .map((column) => ({ column, hidden: true })),
-          ],
-          values: (column) => [row.row[column.title!]],
-          section,
-          row: row.row,
-          afterSave: triggerRefreshCanvas,
-          save: async (column, next) => {
-            row.row[column.title!] = next(row.row[column.title!])
-            await updateOrSaveRow?.(row, column.title!, undefined, undefined, undefined, path)
-            triggerRefreshCanvas()
-          },
-        }),
-      )
+      editTarget = {
+        meta: meta.value,
+        columns: [
+          ...visible.map((c) => ({ column: c.columnObj })),
+          ...((meta.value?.columns ?? []) as ColumnType[])
+            .filter((c) => !visibleIds.has(c.id!))
+            .map((column) => ({ column, hidden: true })),
+        ],
+        values: (column) => [row.row[column.title!]],
+        section,
+        row: row.row,
+        afterSave: triggerRefreshCanvas,
+        save: async (column, next) => {
+          row.row[column.title!] = next(row.row[column.title!])
+          await updateOrSaveRow?.(row, column.title!, undefined, undefined, undefined, path)
+          triggerRefreshCanvas()
+        },
+        activeColumnId: columns.value[cell.column ?? -1]?.columnObj?.id,
+      }
+      commands.push(...setFieldCommands(editTarget))
     }
 
     // Button and AI fields: the same action a click on the cell runs, with its disabled states.
@@ -3490,6 +3497,7 @@ useCommandProvider(
         icon: { type: 'table', icon: parseProp(meta.value?.meta).icon },
       },
       commands,
+      fallbacks: (query) => (editTarget ? relativeEditCommands(editTarget, query) : []),
     }
   },
 )
@@ -3684,6 +3692,32 @@ useCommandProvider(
       })
     }
 
+    // "add 10", "add 1 week": the range's loaded rows × its editable columns, one bulk call.
+    const canEditRange = hasEditPermission && !isDataReadOnly.value && !meta.value?.synced && !isSelectionReadOnly.value
+    const rangeRows = canEditRange
+      ? Array.from({ length: rowCount }, (_, i) => getDataCache(path).cachedRows.value.get(start.row + i)).filter(
+          (row): row is Row => !!row && !row.rowMeta.new && !row.rowMeta.isRlsHidden,
+        )
+      : []
+    const rangeTarget: RelativeEditTarget | undefined = rangeRows.length
+      ? {
+          meta: meta.value,
+          count: rangeRows.length,
+          columns: columns.value
+            .slice(start.col, end.col + 1)
+            .filter((c) => c.columnObj && !c.readonly && !c.inlineEditDisabled)
+            .map((c) => ({ column: c.columnObj })),
+          values: (column) => rangeRows.map((row) => row.row[column.title!]),
+          section,
+          activeColumnId: anchorField?.id,
+          save: async (column, next) => {
+            for (const row of rangeRows) row.row[column.title!] = next(row.row[column.title!])
+            await bulkUpdateRows(rangeRows, [column.title!], undefined, path)
+            triggerRefreshCanvas()
+          },
+        }
+      : undefined
+
     return {
       context: {
         prefix: meta.value?.title,
@@ -3691,6 +3725,7 @@ useCommandProvider(
         icon: { type: 'icon', name: 'ncGrid' },
       },
       commands,
+      fallbacks: (query) => (rangeTarget ? relativeEditCommands(rangeTarget, query) : []),
     }
   },
 )

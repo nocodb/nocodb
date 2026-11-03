@@ -7871,6 +7871,8 @@
       "interfaceImportNotWhilePreviewingAs": "Import is turned off while previewing as someone else",
       "interfacePrintPreparing": "Preparing records for printing…",
       "interfacePrintTruncated": "Showing the first {limit} of {total} records. Narrow the selection to print the rest.",
+      "interfaceImportNotOnSqlView": "CSV import isn't available for SQL views",
+      "interfaceImportReadonlySource": "CSV import isn't available because this data source is read-only",
       "interfaceCsvExportAccess": "Owners and creators can always export. Members with access to the project can also export this table from the project.",
       "interfaceCsvImportAccess": "Owners and creators can always import. Others also need edit access to this page.",
       "interfaceNoConfiguredUrl": "No configured URL",

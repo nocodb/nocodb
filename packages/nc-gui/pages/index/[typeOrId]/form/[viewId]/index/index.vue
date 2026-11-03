@@ -143,7 +143,7 @@ const { message: templatedMessage } = useTemplatedMessage(
           </div>
         </div>
 
-        <a-alert v-if="notFound" type="warning" class="!mt-2 !mb-4 text-center" message="Not found" />
+        <a-alert v-if="notFound" type="warning" class="!mt-2 !mb-4 text-center" :message="$t('labels.notFound')" />
 
         <template v-else-if="submitted">
           <div class="flex justify-center">

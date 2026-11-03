@@ -21,7 +21,15 @@ export const Image = TiptapImage.extend<ImageOptions, { markdown: MarkdownNodeSp
   addStorage() {
     return {
       markdown: {
-        serialize: defaultMarkdownSerializer.nodes.image!,
+        serialize(state, node, parent, index) {
+          defaultMarkdownSerializer.nodes.image!(state, node, parent, index)
+
+          // The image node is a block (`inline: false`), but the default serializer is written for
+          // inline images and never closes the block, so the next node would be glued onto the same line.
+          if (node.isBlock) {
+            state.closeBlock(node)
+          }
+        },
         parse: {
           setup(markdownit) {
             // Conditionally apply mdImageAsText plugin based on renderImagesAsLinks option

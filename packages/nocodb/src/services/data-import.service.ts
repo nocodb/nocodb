@@ -68,6 +68,7 @@ export class DataImportService {
         options: FileImportOptions;
       };
       req: NcRequest;
+      scope?: DataImportJobData['scope'];
     },
   ) {
     const { baseId, body, req } = param;
@@ -128,6 +129,7 @@ export class DataImportService {
         ncBaseId: req.ncBaseId,
         ncSourceId: req.ncSourceId,
       },
+      ...(param.scope ? { scope: param.scope } : {}),
     } as DataImportJobData);
 
     return { id: job.id };

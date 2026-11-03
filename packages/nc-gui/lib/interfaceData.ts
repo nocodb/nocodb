@@ -1,7 +1,10 @@
 import type { Ref } from 'vue'
 import type {
   CommentNotificationPreference,
+  FileImportParserConfig,
+  FileImportSheet,
   FilterType,
+  ImportPreviewResponse,
   InterfaceFilterGroup,
   InterfacePageType,
   InterfaceVizFieldConfig,
@@ -146,6 +149,17 @@ export interface InterfacePageDataApi {
    * returns a job id; poll the job for the presigned download URL.
    */
   exportCsv(params?: { where?: string; sortsArr?: SortType[]; filtersArr?: FilterType[] }): Promise<{ id: string }>
+  /** Parse an uploaded CSV for the import dialog (builder opt-in via `allow_csv_import`). */
+  importCsvPreview?(params: {
+    attachment: Record<string, any>
+    parserConfig: FileImportParserConfig
+  }): Promise<ImportPreviewResponse & { columns: Array<{ id: string; title: string; column_name: string; uidt: string }> }>
+  /** Enqueue the CSV import job into this page's table; poll the job for counts. */
+  importCsv?(params: {
+    attachment: Record<string, any>
+    parserConfig: FileImportParserConfig
+    sheet: Pick<FileImportSheet, 'sheetName' | 'columns' | 'columnMapping'>
+  }): Promise<{ id: string }>
   /**
    * Grid group-by headers — distinct group keys + counts for one nesting
    * level. `pageInfo.totalRows` carries the exact total group count.

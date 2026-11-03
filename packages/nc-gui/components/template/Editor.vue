@@ -3,6 +3,7 @@ import type { ColumnType, TableType } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
+import type { InterfacePageDataApi } from '~/lib/interfaceData'
 
 interface Props {
   quickImportType: 'csv' | 'excel' | 'json'
@@ -27,6 +28,11 @@ interface Props {
   baseId: string
   sourceId: string
   tableIcon?: string
+  /** Interface page import: targets limited to these fields, job via the page's import op. */
+  interfaceImport?: {
+    dataApi: InterfacePageDataApi
+    columns: Array<Pick<ColumnType, 'id' | 'title' | 'column_name' | 'uidt'>>
+  }
 }
 
 interface Option {
@@ -45,6 +51,7 @@ const {
   options,
   baseId,
   sourceId,
+  interfaceImport,
 } = defineProps<Props>()
 
 const emit = defineEmits(['import', 'error', 'change'])
@@ -101,8 +108,17 @@ const filterForDestinationColumn = (col: ColumnType): boolean => {
   return !isSystemColumn(col) && !isVirtualCol(col) && !isAttachment(col)
 }
 
-const columns = computed(() =>
-  (meta.value?.columns || [])
+const columns = computed(() => {
+  // Interface import: only the page's importable fields; the server enforces field rights.
+  if (interfaceImport) {
+    return interfaceImport.columns.map((target) => ({
+      ...((meta.value?.columns || []).find((c) => c.id === target.id) ?? target),
+      readonly: false,
+      permissions: { isEditAllowed: true, tooltip: '' },
+    }))
+  }
+
+  return (meta.value?.columns || [])
     ?.filter((col) => filterForDestinationColumn(col))
     .map((col) => {
       // If it is import data only, then we need to check if the field is editable
@@ -123,8 +139,8 @@ const columns = computed(() =>
             : '',
         },
       }
-    }),
-)
+    })
+})
 
 const reloadHook = inject(ReloadViewDataHookInj, createEventHook())
 
@@ -797,25 +813,31 @@ async function importViaJob() {
         totals[table.table_name] = table._totalRows || 0
       }
 
-      const jobResult = await $api.internal.postOperation(
-        activeWorkspace.value?.id,
-        base.value.id,
-        {
-          operation: 'dataImportFile',
-          baseId: base.value.id,
-          sourceId: sourceId || base.value?.sources?.[0]?.id,
-        },
-        {
-          importType: quickImportType,
-          sourceId: sourceId || base.value?.sources?.[0]?.id,
-          attachment,
-          parserConfig: parserCfg,
-          options: opts,
-          sheets,
-        },
-      )
+      const jobResult = interfaceImport
+        ? await interfaceImport.dataApi.importCsv!({
+            attachment,
+            parserConfig: parserCfg,
+            sheet: sheets[0],
+          })
+        : await $api.internal.postOperation(
+            activeWorkspace.value?.id,
+            base.value.id,
+            {
+              operation: 'dataImportFile',
+              baseId: base.value.id,
+              sourceId: sourceId || base.value?.sources?.[0]?.id,
+            },
+            {
+              importType: quickImportType,
+              sourceId: sourceId || base.value?.sources?.[0]?.id,
+              attachment,
+              parserConfig: parserCfg,
+              options: opts,
+              sheets,
+            },
+          )
       const jobId = (jobResult as any).id
-      const baseName = base.value.title as string
+      const baseName = (base.value?.title as string) ?? ''
 
       await new Promise<void>((resolve, reject) => {
         $poller.subscribe(
@@ -1291,6 +1313,7 @@ function getErrorByTableName(tableName: string) {
                           </div>
                         </a-select-option>
                         <a-select-option
+                          v-if="!interfaceImport"
                           :key="CREATE_NEW_FIELD_VALUE"
                           :value="CREATE_NEW_FIELD_VALUE"
                           class="nc-import-create-new-field-option"
@@ -1334,7 +1357,8 @@ function getErrorByTableName(tableName: string) {
         </a-collapse-panel>
       </a-collapse>
 
-      <div v-if="appInfo.ee" class="pt-4 pr-2">
+      <!-- Interface imports never change field settings, so no new select options. -->
+      <div v-if="appInfo.ee && !interfaceImport" class="pt-4 pr-2">
         <label class="flex">
           <NcCheckbox v-model:checked="autoInsertOption" :disabled="isImporting" />
           <span class="ml-2">{{ $t('labels.autoCreateMissingSelectionOptions') }}</span>

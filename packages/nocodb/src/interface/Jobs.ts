@@ -587,4 +587,6 @@ export interface DataImportJobData extends JobData {
   parserConfig: FileImportParserConfig;
   options: FileImportOptions;
   req: NcRequest;
+  /** Set by an interface page import: only these columns are written (no links, no new fields). */
+  scope?: { allowedColumnIds: string[] };
 }

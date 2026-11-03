@@ -32,7 +32,15 @@ import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import { TablesService } from '~/services/tables.service';
 import { ColumnsService } from '~/services/columns.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
-import { Agent, Audit, Hook, Model, Source, Workflow } from '~/models';
+import {
+  Agent,
+  Audit,
+  Hook,
+  Model,
+  Permission,
+  Source,
+  Workflow,
+} from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import Noco from '~/Noco';
@@ -193,8 +201,13 @@ export class DataImportProcessor {
     const { attachment, importType, sheets, options, user } = data;
 
     const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
+    // Roles and base permissions ride along so table/field permission checks
+    // in the insert path enforce here as they do on the request.
     const req: NcRequest = {
-      user: { id: user?.id, email: user?.email },
+      user,
+      permissions:
+        data.context?.permissions ??
+        (await Permission.list(data.context, data.baseId)),
       clientIp: data.req?.clientIp,
       ncBaseId: data.baseId,
       ncSourceId: data.sourceId,
@@ -256,6 +269,7 @@ export class DataImportProcessor {
             user,
             baseId: data.baseId,
             sourceId: data.sourceId,
+            scope: data.scope,
             req,
             log,
           }),
@@ -356,6 +370,7 @@ export class DataImportProcessor {
     options: FileImportOptions;
     spec: FileImportSheet;
     user: Partial<UserType>;
+    scope?: DataImportJobData['scope'];
     req: NcRequest;
     log: (msg: string, verbose?: boolean) => void;
   }): Promise<SheetResult> {
@@ -367,6 +382,7 @@ export class DataImportProcessor {
       attachment,
       parserConfig,
       options,
+      scope,
       spec,
       user,
       req,
@@ -418,6 +434,7 @@ export class DataImportProcessor {
     // resolving the map, then refresh so they're picked up below.
     let createdColumns = new Map<string, ColumnType>();
     if (
+      !scope &&
       options.importDataOnly &&
       spec.columnMapping?.some((m) => m.enabled && m.createColumn)
     ) {
@@ -442,11 +459,19 @@ export class DataImportProcessor {
     // their cells hold display values to resolve, not scalar data to insert.
     const ltarColMap: Record<string, LtarColMapEntry> = {};
 
+    // A scoped (interface page) import writes only its allowed fields, never links.
+    const scopeColumnIds = scope ? new Set(scope.allowedColumnIds) : null;
+
     const classifyDest = (
       srcColName: string,
       dest: any,
       delimiter?: string,
     ) => {
+      if (
+        scopeColumnIds &&
+        (!scopeColumnIds.has(dest.id) || isLinksOrLTAR(dest))
+      )
+        return;
       if (isLinksOrLTAR(dest)) {
         ltarColMap[srcColName] = {
           colId: dest.id,
@@ -473,6 +498,7 @@ export class DataImportProcessor {
         // existing field, fall back to that existing column by TITLE only —
         // never by column_name, so a name-only clash can't silently reroute the
         // imported data into an unrelated existing column.
+        if (scope && m.createColumn) continue;
         const dest = m.createColumn
           ? createdColumns.get(m.sourceCn) ??
             tableColumns.find((c) => c.title === m.destCn)

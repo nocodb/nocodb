@@ -75,6 +75,15 @@ const formulaParsedTree = ref<ParsedFormulaNode>()
 
 const isFormulaMode = computed(() => vModel.value.rollup_function === ROLLUP_FORMULA_FUNCTION)
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+// a saved formula rollup stays editable with the flag off
+const formulaAllowed = computed(
+  () =>
+    isFeatureEnabled(FEATURE_FLAG.ROLLUP_FORMULA) ||
+    (isEdit.value && vModel.value.colOptions?.rollup_function === ROLLUP_FORMULA_FUNCTION),
+)
+
 setAdditionalValidations({
   fk_relation_column_id: [{ required: true, message: t('general.required') }],
   fk_rollup_column_id: [{ required: true, message: t('general.required') }],
@@ -124,7 +133,8 @@ const columns = computed<ColumnType[]>(() => {
   // a formula rollup also reads Links counts and flattens Lookup / LinkToAnotherRecord fields
   return getMetaByKey(selectedTable.value.base_id, selectedTable.value.id)?.columns?.filter(
     (c: ColumnType) =>
-      getValidRollupColumn(c) || (!!c.uidt && isRollupFormulaTargetColumn({ uidt: c.uidt }) && !isSystemColumn(c)),
+      getValidRollupColumn(c) ||
+      (formulaAllowed.value && !!c.uidt && isRollupFormulaTargetColumn({ uidt: c.uidt }) && !isSystemColumn(c)),
   )
 })
 
@@ -213,7 +223,7 @@ const availableRollupPerColumn = computed(() => {
         // links and lookups take only a formula
         .filter((func) => getValidRollupColumn(column) && getAvailableRollupForColumn(column).includes(func.value)),
       // a formula can aggregate any field
-      { text: t('datatype.Formula'), value: ROLLUP_FORMULA_FUNCTION },
+      ...(formulaAllowed.value ? [{ text: t('datatype.Formula'), value: ROLLUP_FORMULA_FUNCTION }] : []),
     ]
   })
   return fnMap

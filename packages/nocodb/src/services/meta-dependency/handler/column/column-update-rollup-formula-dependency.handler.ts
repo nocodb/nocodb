@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   EventType,
   isLinksOrLTAR,
+  isRollupFormula,
   MetaEventType,
   ROLLUP_FORMULA_FUNCTION,
   UITypes,
@@ -24,22 +25,25 @@ import Column from '~/models/Column';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
+import { NcBaseError, NcBaseErrorv2 } from '~/helpers/catchError';
 import { validateRollupPayload } from '~/helpers/columnHelpers';
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 import { clearSingleQueryCacheForColumnReferences } from '~/helpers/singleQueryCacheInvalidator';
 
+// fields whose `error` the trash / delete cascade owns
+const CASCADE_ERROR_UIDTS: string[] = [
+  UITypes.Lookup,
+  UITypes.Rollup,
+  UITypes.QrCode,
+  UITypes.Barcode,
+];
+
 /**
  * A formula rollup stores the type of `values` (`parsed_tree`). When a field
- * changes, the rollups reading it — directly, through formulas over it,
- * lookups of it, links to its table when it is the display value, or other
- * rollups — are re-validated: re-typed, or error-marked when the formula no
- * longer fits. Reads only re-derive in memory; this keeps the stored tree
- * current.
- *
- * Walks same-base AND cross-base dependents, like the transitive delete
- * handler. A rollup is only written when its tree or error changed, so an
- * unrelated column update costs a few indexed reads. Errors are logged and
- * swallowed — the column update has already committed.
+ * changes, is restored or becomes a display value, the formula rollups that
+ * read it — directly, through formulas, lookups, links or other rollups, in
+ * this base or a linked one — are re-typed, or error-marked when the formula
+ * no longer fits. Errors are logged, not thrown: the update has committed.
  */
 @Injectable()
 export class ColumnUpdateRollupFormulaDependencyHandler
@@ -49,10 +53,13 @@ export class ColumnUpdateRollupFormulaDependencyHandler
     ColumnUpdateRollupFormulaDependencyHandler.name,
   );
 
-  // a new display value changes what links to its table read
+  // COLUMN_ADDED: a restored field (or formula rollup) is re-checked;
+  // COLUMN_DELETED: a deleted field may have been a link's display value
   triggerMetaEvents: MetaEventType[] = [
     MetaEventType.COLUMN_UPDATED,
     MetaEventType.COLUMN_PRIMARY_UPDATED,
+    MetaEventType.COLUMN_ADDED,
+    MetaEventType.COLUMN_DELETED,
   ];
 
   async getAffectedDependency(
@@ -60,51 +67,29 @@ export class ColumnUpdateRollupFormulaDependencyHandler
     param: MetaDependencyEventRequest,
     ncMeta = Noco.ncMeta,
   ): Promise<AffectedDependencyResult | undefined> {
-    const newCol = param.newEntity;
+    const newCol = param.newEntity ?? param.oldEntity;
     if (!newCol?.id) return undefined;
 
     // runs on every column update: a failing probe must not roll back the
     // other handlers' work in the shared transaction
     try {
-      // Probe — does anything read this field? Formulas over it live in its
-      // own table; lookups and rollups of it may be cross-base.
+      // Probe — only bases holding a formula rollup can be affected.
       const columns = await Column.list(
         context,
         { fk_model_id: newCol.fk_model_id },
         ncMeta,
       );
-      if (
-        (
-          await getFormulasReferredTheColumn(
-            context,
-            { column: newCol, columns },
-            ncMeta,
-          )
-        ).length
-      ) {
-        return {};
-      }
       for (const ctx of await this.linkedContexts(context, columns, ncMeta)) {
-        for (const [table, condition] of [
-          [MetaTable.COL_LOOKUP, { fk_lookup_column_id: newCol.id }],
-          [MetaTable.COL_ROLLUP, { fk_rollup_column_id: newCol.id }],
-          ...(newCol.pv
-            ? [
-                [
-                  MetaTable.COL_RELATIONS,
-                  { fk_related_model_id: newCol.fk_model_id },
-                ],
-              ]
-            : []),
-        ] as [MetaTable, Record<string, string>][]) {
-          const rows = await ncMeta.metaList2(
-            ctx.workspace_id,
-            ctx.base_id,
-            table,
-            { condition, limit: 1 },
-          );
-          if (rows.length) return {};
-        }
+        const rows = await ncMeta.metaList2(
+          ctx.workspace_id,
+          ctx.base_id,
+          MetaTable.COL_ROLLUP,
+          {
+            condition: { rollup_function: ROLLUP_FORMULA_FUNCTION },
+            limit: 1,
+          },
+        );
+        if (rows.length) return {};
       }
     } catch (e) {
       this.logger.error(
@@ -122,7 +107,7 @@ export class ColumnUpdateRollupFormulaDependencyHandler
     },
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
-    const newCol = param.newEntity as Column;
+    const newCol = (param.newEntity ?? param.oldEntity) as Column;
     if (!newCol?.id) return;
 
     try {
@@ -136,15 +121,53 @@ export class ColumnUpdateRollupFormulaDependencyHandler
       };
       const affectedModelCtxMap = new Map<string, NcContext>();
 
+      // A deleted field has no dependents left to walk, but a link that used
+      // it as its display value was reset to the table's own: re-check them.
+      if (param.eventType === MetaEventType.COLUMN_DELETED) {
+        const tableColumns = await Column.list(
+          context,
+          { fk_model_id: newCol.fk_model_id },
+          ncMeta,
+        );
+        for (const linkedCtx of await this.linkedContexts(
+          context,
+          tableColumns,
+          ncMeta,
+        )) {
+          for (const row of await ncMeta.metaList2(
+            linkedCtx.workspace_id,
+            linkedCtx.base_id,
+            MetaTable.COL_RELATIONS,
+            { condition: { fk_related_model_id: newCol.fk_model_id } },
+          )) {
+            enqueue(row.fk_column_id, linkedCtx);
+          }
+        }
+      } else {
+        enqueue(newCol.id, context);
+      }
+
+      // A restored / added formula rollup is re-checked itself.
+      if (
+        newCol.uidt === UITypes.Rollup &&
+        param.eventType !== MetaEventType.COLUMN_DELETED
+      ) {
+        const rollup = await RollupColumn.read(context, newCol.id, ncMeta);
+        if (isRollupFormula(rollup)) {
+          await this.retypeRollup(context, rollup, ncMeta);
+          affectedModelCtxMap.set(newCol.fk_model_id, context);
+        }
+      }
+
       // BFS over the fields whose type may have changed: the updated one,
       // then every formula, lookup, link and rollup that passes it on.
-      enqueue(newCol.id, context);
       while (queue.length > 0) {
         const { fk_column_id: id, context: ctx } = queue.shift();
         const column = await Column.get(ctx, { colId: id }, ncMeta);
         if (!column) continue;
 
-        // Formulas read only their own table — re-derive their stored tree.
+        // Formulas read only their own table. `Column.update` has just
+        // cleared their trees; re-derive them so rollups over them type right.
         const tableColumns = await Column.list(
           ctx,
           { fk_model_id: column.fk_model_id },
@@ -156,9 +179,8 @@ export class ColumnUpdateRollupFormulaDependencyHandler
           ncMeta,
         )) {
           if (formula.uidt !== UITypes.Formula) continue;
-          if (await this.retypeFormula(ctx, formula, tableColumns, ncMeta)) {
-            enqueue(formula.id, ctx);
-          }
+          await this.retypeFormula(ctx, formula, tableColumns, ncMeta);
+          enqueue(formula.id, ctx);
         }
 
         for (const linkedCtx of await this.linkedContexts(
@@ -166,50 +188,53 @@ export class ColumnUpdateRollupFormulaDependencyHandler
           tableColumns,
           ncMeta,
         )) {
-          for (const row of await ncMeta.metaList2(
-            linkedCtx.workspace_id,
-            linkedCtx.base_id,
-            MetaTable.COL_LOOKUP,
-            { condition: { fk_lookup_column_id: id } },
-          )) {
+          const list = (table: MetaTable, condition: Record<string, string>) =>
+            ncMeta.metaList2(linkedCtx.workspace_id, linkedCtx.base_id, table, {
+              condition,
+            });
+
+          for (const row of await list(MetaTable.COL_LOOKUP, {
+            fk_lookup_column_id: id,
+          })) {
             enqueue(row.fk_column_id, linkedCtx);
           }
 
-          // A link reads as its records' display value.
-          if (column.pv) {
-            for (const row of await ncMeta.metaList2(
-              linkedCtx.workspace_id,
-              linkedCtx.base_id,
-              MetaTable.COL_RELATIONS,
-              { condition: { fk_related_model_id: column.fk_model_id } },
-            )) {
-              enqueue(row.fk_column_id, linkedCtx);
-            }
+          // A link reads as its records' display value, or its own override.
+          for (const row of [
+            ...(column.pv
+              ? await list(MetaTable.COL_RELATIONS, {
+                  fk_related_model_id: column.fk_model_id,
+                })
+              : []),
+            ...(await list(MetaTable.COL_RELATIONS, {
+              fk_display_value_column_id: id,
+            })),
+          ]) {
+            enqueue(row.fk_column_id, linkedCtx);
           }
 
-          for (const rollup of await ncMeta.metaList2(
-            linkedCtx.workspace_id,
-            linkedCtx.base_id,
-            MetaTable.COL_ROLLUP,
-            {
-              condition: {
-                fk_rollup_column_id: id,
-                rollup_function: ROLLUP_FORMULA_FUNCTION,
-              },
-            },
-          )) {
-            const rollupCol = await this.retypeRollup(
+          // Every rollup over the field: formula ones are re-typed, plain
+          // min / max pass the type on, and any of them may embed new SQL.
+          for (const rollup of await list(MetaTable.COL_ROLLUP, {
+            fk_rollup_column_id: id,
+          })) {
+            const rollupCol = await Column.get(
               linkedCtx,
-              rollup,
+              { colId: rollup.fk_column_id },
               ncMeta,
             );
             if (!rollupCol) continue;
+            if (
+              isRollupFormula(rollup) &&
+              (await this.retypeRollup(linkedCtx, rollup, ncMeta))
+            ) {
+              // lookups of this rollup embed its SQL in their own queries
+              await clearSingleQueryCacheForColumnReferences(
+                linkedCtx,
+                rollupCol,
+              );
+            }
             affectedModelCtxMap.set(rollupCol.fk_model_id, linkedCtx);
-            // lookups of this rollup embed its SQL in their own models' queries
-            await clearSingleQueryCacheForColumnReferences(
-              linkedCtx,
-              rollupCol,
-            );
             enqueue(rollupCol.id, linkedCtx);
           }
         }
@@ -255,13 +280,13 @@ export class ColumnUpdateRollupFormulaDependencyHandler
     return contexts;
   }
 
-  // Re-derives a formula's stored tree; true when its type changed.
+  // Re-derives a formula's stored tree (cleared by `Column.update`).
   private async retypeFormula(
     context: NcContext,
     formula: Column,
     tableColumns: Column[],
     ncMeta: MetaService,
-  ): Promise<boolean> {
+  ): Promise<void> {
     const colOptions = await formula.getColOptions<FormulaColumn>(ncMeta);
     const model = await Model.get(context, formula.fk_model_id, false, ncMeta);
     const source = await Source.get(context, model.source_id, false, ncMeta);
@@ -280,32 +305,60 @@ export class ColumnUpdateRollupFormulaDependencyHandler
       });
     } catch {
       // a formula that no longer fits reports that on its own read
-      return false;
+      return;
     }
-    const stored = colOptions.getParsedTree();
-    if (JSON.stringify(parsedTree) === JSON.stringify(stored)) return false;
+    if (
+      JSON.stringify(parsedTree) === JSON.stringify(colOptions.getParsedTree())
+    ) {
+      return;
+    }
     await FormulaColumn.update(
       context,
       formula.id,
       { parsed_tree: parsedTree },
       ncMeta,
     );
-    return parsedTree?.dataType !== stored?.dataType;
   }
 
-  // Re-validates a formula rollup; returns its column when the tree or error
-  // changed (and was written).
+  // True when the rollup's link or target is trashed or cascade-errored: the
+  // trash system owns its error then, and restores re-check it.
+  private async upstreamBroken(
+    context: NcContext,
+    rollup: RollupColumn,
+    ncMeta: MetaService,
+  ): Promise<boolean> {
+    const relation = await Column.get(
+      context,
+      { colId: rollup.fk_relation_column_id, includeDeleted: true },
+      ncMeta,
+    );
+    if (!relation || relation.deleted) return true;
+    const relationOptions = await relation.getColOptions<any>(ncMeta);
+    const refContext = relationOptions?.getRelContext?.().refContext ?? context;
+    const target = await Column.get(
+      refContext,
+      { colId: rollup.fk_rollup_column_id, includeDeleted: true },
+      ncMeta,
+    );
+    if (!target || target.deleted) return true;
+    if (!CASCADE_ERROR_UIDTS.includes(target.uidt)) return false;
+    return !!(await target.getColOptions<{ error?: string }>(ncMeta))?.error;
+  }
+
+  // Re-validates a formula rollup; true when its tree or error changed (and
+  // was written).
   private async retypeRollup(
     context: NcContext,
     rollup: RollupColumn,
     ncMeta: MetaService,
-  ): Promise<Column | undefined> {
+  ): Promise<boolean> {
+    if (await this.upstreamBroken(context, rollup, ncMeta)) return false;
     const column = await Column.get(
       context,
       { colId: rollup.fk_column_id },
       ncMeta,
     );
-    if (!column) return undefined;
+    if (!column) return false;
 
     const payload: RollupColumnReqType & {
       title: string;
@@ -320,8 +373,10 @@ export class ColumnUpdateRollupFormulaDependencyHandler
     };
     let error: string | null = null;
     try {
-      await validateRollupPayload(context, payload);
+      await validateRollupPayload(context, payload, ncMeta);
     } catch (e) {
+      // only a formula that no longer fits is the rollup's error
+      if (!(e instanceof NcBaseErrorv2 || e instanceof NcBaseError)) throw e;
       error = e.message;
     }
 
@@ -330,10 +385,10 @@ export class ColumnUpdateRollupFormulaDependencyHandler
         ? rollup.parsed_tree
         : JSON.stringify(rollup.parsed_tree);
     if (
-      (rollup.error ?? null) === error &&
+      (rollup.error || null) === error &&
       (error || JSON.stringify(payload.parsed_tree) === stored)
     ) {
-      return undefined;
+      return false;
     }
     await RollupColumn.update(
       context,
@@ -341,7 +396,7 @@ export class ColumnUpdateRollupFormulaDependencyHandler
       error ? { error } : { parsed_tree: payload.parsed_tree, error: null },
       ncMeta,
     );
-    return column;
+    return true;
   }
 
   private async broadcastColumnUpdates(

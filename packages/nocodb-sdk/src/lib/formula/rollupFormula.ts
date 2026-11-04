@@ -11,6 +11,8 @@ export const ROLLUP_FORMULA_FUNCTION = 'formula';
 
 /** Identifier a rollup formula uses for the linked records' values */
 export const ROLLUP_VALUES_KEYWORD = 'values';
+// each aggregate is a correlated subquery per row read
+export const MAX_ROLLUP_AGGREGATES = 50;
 
 export enum RollupAggregate {
   SUM = 'SUM',

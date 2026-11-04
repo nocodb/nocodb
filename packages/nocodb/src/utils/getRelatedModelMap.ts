@@ -17,13 +17,15 @@ async function processColumn(
   ncMeta: MetaService = Noco.ncMeta,
 ) {
   // Prevent circular references
-  if (visitedColumns.has(column.id)) {
+  // a dangling reference (deleted column / table) has nothing to add
+  if (!column || visitedColumns.has(column.id)) {
     return;
   }
   visitedColumns.add(column.id);
 
   if (!relatedModels.has(column.fk_model_id)) {
     const model = await Model.get(context, column.fk_model_id, false, ncMeta);
+    if (!model) return;
     await model.getColumns(ncMeta);
     relatedModels.set(column.fk_model_id, model);
   }
@@ -42,8 +44,10 @@ async function processColumn(
         false,
         ncMeta,
       );
-      await relatedModel.getColumns(ncMeta);
-      relatedModels.set(column.colOptions.fk_related_model_id, relatedModel);
+      if (relatedModel) {
+        await relatedModel.getColumns(ncMeta);
+        relatedModels.set(column.colOptions.fk_related_model_id, relatedModel);
+      }
     }
 
     // junction model for many-to-many
@@ -61,14 +65,16 @@ async function processColumn(
         false,
         ncMeta,
       );
-      await relatedModel.getColumns(ncMeta);
-      relatedModels.set(column.colOptions.fk_mm_model_id, relatedModel);
+      if (relatedModel) {
+        await relatedModel.getColumns(ncMeta);
+        relatedModels.set(column.colOptions.fk_mm_model_id, relatedModel);
+      }
     }
   }
   // Handle Lookup columns - traverse the entire lookup chain
   else if (column.uidt === UITypes.Lookup) {
     const colOptions = await column.getColOptions<LookupColumn>(ncMeta);
-    if (colOptions?.error) return;
+    if (!colOptions || colOptions.error) return;
     const relationCol = await Column.get(
       colOptions.context,
       { colId: colOptions.fk_relation_column_id },
@@ -77,6 +83,7 @@ async function processColumn(
     const relationColOpt =
       (relationCol?.colOptions as LinkToAnotherRecordColumn) ??
       (await relationCol?.getColOptions<LinkToAnotherRecordColumn>(ncMeta));
+    if (!relationColOpt) return;
 
     // related model
     if (!relatedModels.has(relationColOpt.fk_related_model_id)) {
@@ -90,8 +97,10 @@ async function processColumn(
         false,
         ncMeta,
       );
-      await relatedModel.getColumns(ncMeta);
-      relatedModels.set(relationColOpt.fk_related_model_id, relatedModel);
+      if (relatedModel) {
+        await relatedModel.getColumns(ncMeta);
+        relatedModels.set(relationColOpt.fk_related_model_id, relatedModel);
+      }
     }
 
     const { refContext } = relationColOpt.getRelContext();
@@ -103,7 +112,7 @@ async function processColumn(
         ncMeta,
       ),
       relatedModels,
-      undefined,
+      visitedColumns,
       ncMeta,
     );
   }

@@ -213,25 +213,36 @@ export default class RollupColumn implements RollupType {
       'error',
     ]);
 
+    const storedTree =
+      'parsed_tree' in updateObj
+        ? stringifyMetaProp(updateObj, 'parsed_tree', null)
+        : undefined;
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.COL_ROLLUP,
       'parsed_tree' in updateObj
-        ? {
-            ...updateObj,
-            parsed_tree: stringifyMetaProp(updateObj, 'parsed_tree', null),
-          }
+        ? { ...updateObj, parsed_tree: storedTree }
         : updateObj,
       {
         fk_column_id: columnId,
       },
     );
 
+    // cache the tree as stored: the validator's tree holds live column objects
     await NocoCache.update(
       context,
       `${CacheScope.COL_ROLLUP}:${columnId}`,
-      updateObj,
+      'parsed_tree' in updateObj
+        ? {
+            ...updateObj,
+            parsed_tree: parseMetaProp(
+              { parsed_tree: storedTree },
+              'parsed_tree',
+              null,
+            ),
+          }
+        : updateObj,
     );
   }
 }

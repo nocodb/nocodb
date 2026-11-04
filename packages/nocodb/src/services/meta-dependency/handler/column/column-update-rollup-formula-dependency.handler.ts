@@ -71,6 +71,23 @@ export class ColumnUpdateRollupFormulaDependencyHandler
     const newCol = param.newEntity ?? param.oldEntity;
     if (!newCol?.id) return undefined;
 
+    // A rename or meta-only edit keeps every result type. Only the options of
+    // these types can change one without touching `uidt` / `dt`.
+    if (
+      param.eventType === MetaEventType.COLUMN_UPDATED &&
+      param.oldEntity?.uidt === newCol.uidt &&
+      param.oldEntity?.dt === newCol.dt &&
+      ![
+        UITypes.Formula,
+        UITypes.Lookup,
+        UITypes.Rollup,
+        UITypes.Links,
+        UITypes.LinkToAnotherRecord,
+      ].includes(newCol.uidt)
+    ) {
+      return undefined;
+    }
+
     // runs on every column update: a failing probe must not roll back the
     // other handlers' work in the shared transaction
     try {
@@ -153,10 +170,19 @@ export class ColumnUpdateRollupFormulaDependencyHandler
         newCol.uidt === UITypes.Rollup &&
         param.eventType !== MetaEventType.COLUMN_DELETED
       ) {
-        const rollup = await RollupColumn.read(context, newCol.id, ncMeta);
-        if (isRollupFormula(rollup)) {
-          await this.retypeRollup(context, rollup, ncMeta);
-          affectedModelCtxMap.set(newCol.fk_model_id, context);
+        try {
+          const rollup = await RollupColumn.read(context, newCol.id, ncMeta);
+          if (
+            isRollupFormula(rollup) &&
+            (await this.retypeRollup(context, rollup, ncMeta))
+          ) {
+            affectedModelCtxMap.set(newCol.fk_model_id, context);
+          }
+        } catch (e) {
+          this.logger.error(
+            `Failed to re-type rollup ${newCol.id}: ${e?.message}`,
+            e?.stack,
+          );
         }
       }
 
@@ -215,7 +241,8 @@ export class ColumnUpdateRollupFormulaDependencyHandler
           }
 
           // Every rollup over the field: formula ones are re-typed, plain
-          // min / max pass the type on, and any of them may embed new SQL.
+          // min / max pass the type on. `Column.update` already cleared the
+          // caches of direct referrers, so only re-typed ones are cleared here.
           for (const rollup of await list(MetaTable.COL_ROLLUP, {
             fk_rollup_column_id: id,
           })) {
@@ -243,8 +270,8 @@ export class ColumnUpdateRollupFormulaDependencyHandler
                 linkedCtx,
                 rollupCol,
               );
+              affectedModelCtxMap.set(rollupCol.fk_model_id, linkedCtx);
             }
-            affectedModelCtxMap.set(rollupCol.fk_model_id, linkedCtx);
             enqueue(rollupCol.id, linkedCtx);
           }
         }

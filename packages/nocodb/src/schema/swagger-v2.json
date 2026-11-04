@@ -17130,6 +17130,7 @@
             "type": "string",
             "enum": [
               "count",
+              "countAll",
               "min",
               "max",
               "avg",

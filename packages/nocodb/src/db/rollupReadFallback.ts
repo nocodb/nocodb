@@ -52,6 +52,8 @@ const HEALTHY_TTL_MS = 30_000;
 // bounds a dry run; a timed-out one heals and rejects nothing, and flags only
 // when the failed read itself points at the rollup
 const DRY_RUN_TIMEOUT_MS = 60_000;
+// the background heal scan; no one waits on it
+const HEAL_DRY_RUN_TIMEOUT_MS = 15 * 60_000;
 // a rollup whose dry run timed out isn't re-scanned by other failed reads
 const TIMED_OUT_TTL_MS = 10 * 60_000;
 
@@ -70,6 +72,38 @@ type FlagOutcome =
   | 'changed'
   | 'inconclusive'
   | 'timeout';
+
+// what one failed read's walk over its columns found
+interface FallbackWalk {
+  // formula rollups whose dry run timed out
+  timedOut: Column[];
+  // plain formulas, which can raise the same data errors
+  formulas: number;
+}
+
+// divide by zero, a math domain error (LOG(0)), numeric overflow
+const ARITHMETIC_ERROR_CODES = new Set([
+  '22012',
+  '2201E',
+  '22003',
+  '2201F',
+  'ER_DIVISION_BY_ZERO',
+  'ER_DATA_OUT_OF_RANGE',
+  'ORA-01476',
+  'ORA-01428',
+  'ORA-01426',
+]);
+const MSSQL_ARITHMETIC_ERROR_NUMBERS = new Set([8134, 3623, 8115]);
+
+function isArithmeticError(e: unknown): boolean {
+  if (typeof e !== 'object' || e === null) return false;
+  const code = 'code' in e ? e.code : undefined;
+  if (typeof code === 'string' && ARITHMETIC_ERROR_CODES.has(code)) {
+    return true;
+  }
+  const number = driverNumber(e);
+  return number !== undefined && MSSQL_ARITHMETIC_ERROR_NUMBERS.has(number);
+}
 
 async function flagRollup(column: Column, message: string) {
   await RollupColumn.update(column.context, column.id, {
@@ -202,10 +236,12 @@ export async function execRollupDryRun(
   const countQb = knex
     .count({ n: '__nc_dry_run' })
     .from(qb.as('__nc_dry_run_t'));
+  // a heal must be able to finish a scan a read's dry run can't
+  const timeoutMs = background ? HEAL_DRY_RUN_TIMEOUT_MS : DRY_RUN_TIMEOUT_MS;
   if (!baseModel.isPg || knex.isExternal) {
     // mysql stops the statement itself; elsewhere only the wait is bounded
     if (baseModel.isMySQL) {
-      countQb.hintComment(`MAX_EXECUTION_TIME(${DRY_RUN_TIMEOUT_MS})`);
+      countQb.hintComment(`MAX_EXECUTION_TIME(${timeoutMs})`);
     }
     if (background) {
       await baseModel.execAndParse(countQb, null, { raw: true });
@@ -235,7 +271,7 @@ export async function execRollupDryRun(
     await trx.raw(
       `SELECT set_config(name, 'off', true) FROM pg_settings WHERE name = 'jit'`,
     );
-    await trx.raw(`SET LOCAL statement_timeout = ${DRY_RUN_TIMEOUT_MS}`);
+    await trx.raw(`SET LOCAL statement_timeout = ${timeoutMs}`);
     const trxModel = await Model.getBaseModelSQL(baseModel.context, {
       model: baseModel.model,
       dbDriver: trx,
@@ -404,8 +440,7 @@ async function flagIfFailing(
   column: Column,
   requesting: IBaseModelSqlV2,
   seen: Set<string>,
-  // formula rollups whose dry run timed out
-  timedOut: Column[],
+  walk: FallbackWalk,
 ): Promise<boolean> {
   if (seen.has(column.id)) return false;
   seen.add(column.id);
@@ -427,11 +462,13 @@ async function flagIfFailing(
     if (!lookup || lookup.error) return false;
     const target = await lookup.getLookupColumn();
     return clearOwnPlans(
-      !!target && (await flagIfFailing(target, requesting, seen, timedOut)),
+      !!target && (await flagIfFailing(target, requesting, seen, walk)),
     );
   }
 
   if (column.uidt === UITypes.Formula) {
+    // it can raise the same data errors a rollup can
+    walk.formulas++;
     const formula = await column.getColOptions<FormulaColumn>();
     const tree: ParsedFormulaNode | undefined = formula?.getParsedTree();
     let flagged = false;
@@ -439,8 +476,7 @@ async function flagIfFailing(
       const referenced = await Column.get(column.context, { colId });
       if (referenced) {
         flagged =
-          (await flagIfFailing(referenced, requesting, seen, timedOut)) ||
-          flagged;
+          (await flagIfFailing(referenced, requesting, seen, walk)) || flagged;
       }
     }
     return clearOwnPlans(flagged);
@@ -449,7 +485,7 @@ async function flagIfFailing(
   if (isLinksOrLTAR(column)) {
     const display = await linkDisplayColumn(column);
     return clearOwnPlans(
-      !!display && (await flagIfFailing(display, requesting, seen, timedOut)),
+      !!display && (await flagIfFailing(display, requesting, seen, walk)),
     );
   }
 
@@ -464,12 +500,12 @@ async function flagIfFailing(
 
   const target = await rollup.getRollupColumn();
   const targetFlagged =
-    !!target && (await flagIfFailing(target, requesting, seen, timedOut));
+    !!target && (await flagIfFailing(target, requesting, seen, walk));
   await clearOwnPlans(targetFlagged);
   if (!isRollupFormula(rollup)) return targetFlagged;
 
   const outcome = await probeAndFlag(column, rollup);
-  if (outcome === 'timeout') timedOut.push(column);
+  if (outcome === 'timeout') walk.timedOut.push(column);
   if (outcome !== 'flagged' && outcome !== 'changed') return targetFlagged;
   if (outcome === 'flagged' && requesting.model.id !== column.fk_model_id) {
     await View.clearSingleQueryCache(
@@ -549,27 +585,31 @@ export async function flagFailingRollups(
   if (!isRollupDataError(failure)) return false;
 
   const seen = new Set<string>();
-  const timedOut: Column[] = [];
+  const walk: FallbackWalk = { timedOut: [], formulas: 0 };
   let flagged = false;
   for (const column of columns) {
     try {
-      flagged =
-        (await flagIfFailing(column, baseModel, seen, timedOut)) || flagged;
+      flagged = (await flagIfFailing(column, baseModel, seen, walk)) || flagged;
     } catch (e) {
       // must not replace the error being reported
       logger.warn(`Rollup check failed on ${column.id}: ${errorMessage(e)}`);
     }
   }
-  // too slow to dry-run: when it is the read's only suspect, the read's own
-  // data error is the evidence
-  if (!flagged && timedOut.length === 1) {
+  // Too slow to dry-run: the read's own error is the evidence, but only when
+  // nothing else in the read can raise it. A formula can raise any data error;
+  // a filter value raises input errors, never an arithmetic one.
+  if (
+    !flagged &&
+    walk.timedOut.length === 1 &&
+    walk.formulas === 0 &&
+    isArithmeticError(failure)
+  ) {
+    const [suspect] = walk.timedOut;
     try {
-      await flagRollup(timedOut[0], rollupDryRunMessage(baseModel, failure));
+      await flagRollup(suspect, rollupDryRunMessage(baseModel, failure));
       flagged = true;
     } catch (e) {
-      logger.warn(
-        `Rollup flag failed on ${timedOut[0].id}: ${errorMessage(e)}`,
-      );
+      logger.warn(`Rollup flag failed on ${suspect.id}: ${errorMessage(e)}`);
     }
   }
   if (flagged) {

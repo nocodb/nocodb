@@ -772,6 +772,20 @@ export class ColumnsV3Service {
             this.storedChoices(column),
           );
         }
+        // back to a plain function: the stored formula options go with it,
+        // while ones the caller sends are still rejected by the schema
+        if (
+          optionsType === UITypes.Rollup &&
+          merged.rollup_function !== ROLLUP_FORMULA_FUNCTION
+        ) {
+          for (const key of [
+            'formula',
+            'display_type',
+            'display_column_meta',
+          ]) {
+            if (!(key in incomingOptions)) delete merged[key];
+          }
+        }
         (param.column as FieldOptionsRecord).options = merged;
       }
 

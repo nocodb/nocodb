@@ -273,6 +273,18 @@ const onToggleFieldHeaderVisibility = async () => {
 // come from usePersonalViewPermissions to avoid drift with other components.
 const { isPersonalView, isLockedView, isPersonalViewOwner, canModifyView, canDeleteView } = usePersonalViewPermissions(view)
 
+const onRecordIndicatorsClick = () => {
+  if (!canModifyView.value) return
+
+  const { close } = useDialog(resolveComponent('DlgViewRecordIndicators'), {
+    'modelValue': ref(true),
+    'view': view,
+    'table': table,
+    'onUpdate:modelValue': () => close(),
+  })
+  emits('closeModal')
+}
+
 // Tooltip shown when a modify-view action is disabled (rename, change icon, edit description).
 const modifyViewDisabledReason = computed(() => {
   if (isLockedView.value) return t('msg.info.disabledAsViewLocked')
@@ -459,6 +471,17 @@ defineOptions({
           <NcTooltip v-else>
             <template #title> {{ modifyViewDisabledReason }} </template>
             <NcMenuItemChangeIcon disabled />
+          </NcTooltip>
+          <NcMenuItem v-if="canModifyView" data-testid="view-indicators-menu" @click="onRecordIndicatorsClick">
+            <GeneralIcon icon="ncSettings" class="opacity-80" />
+            {{ $t('labels.viewRecordIndicators.title') }}
+          </NcMenuItem>
+          <NcTooltip v-else>
+            <template #title> {{ modifyViewDisabledReason }} </template>
+            <NcMenuItem disabled data-testid="view-indicators-menu">
+              <GeneralIcon icon="ncSettings" class="opacity-80" />
+              {{ $t('labels.viewRecordIndicators.title') }}
+            </NcMenuItem>
           </NcTooltip>
         </template>
         <NcMenuItem @click="onDuplicate">

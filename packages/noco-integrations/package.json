@@ -17,16 +17,16 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",
-    "@types/node": "^20.17.46",
-    "@typescript-eslint/eslint-plugin": "^8.32.0",
-    "@typescript-eslint/parser": "^8.32.0",
+    "@types/node": "^24.19.2",
+    "@typescript-eslint/eslint-plugin": "^8.71.1",
+    "@typescript-eslint/parser": "^8.71.1",
     "eslint": "^9.26.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.5.4",
     "prettier": "^3.5.3",
     "taze": "^19.1.0",
-    "typescript": "^5.8.3"
+    "typescript": "^6.0.3"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

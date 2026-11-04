@@ -241,8 +241,8 @@ export class ColumnUpdateRollupFormulaDependencyHandler
           }
 
           // Every rollup over the field: formula ones are re-typed, plain
-          // min / max pass the type on. `Column.update` already cleared the
-          // caches of direct referrers, so only re-typed ones are cleared here.
+          // min / max pass the type on. `Column.update` clears only the first
+          // hop, so a plain rollup further along the chain is cleared here.
           for (const rollup of await list(MetaTable.COL_ROLLUP, {
             fk_rollup_column_id: id,
           })) {
@@ -264,7 +264,7 @@ export class ColumnUpdateRollupFormulaDependencyHandler
                 e?.stack,
               );
             }
-            if (retyped) {
+            if (retyped || id !== newCol.id) {
               // lookups of this rollup embed its SQL in their own queries
               await clearSingleQueryCacheForColumnReferences(
                 linkedCtx,

@@ -8,6 +8,7 @@ import {
   LinkToAnotherRecordType,
 } from './Api';
 import { FormulaDataTypes } from './formula/enums';
+import { getRollupResultUidt } from './formula/rollupFormula';
 import { ncIsNull, ncIsUndefined } from '~/lib/is';
 
 // import {RelationTypes} from "./globals";
@@ -75,7 +76,10 @@ const getAvailableRollupForColumn = (column: ColumnType) => {
         FormulaDataTypes.UNKNOWN
     );
   } else {
-    return getAvailableRollupForUiType(column.uidt);
+    // a min/max date rollup aggregates as a date
+    return getAvailableRollupForUiType(
+      getRollupResultUidt(column) ?? column.uidt
+    );
   }
 };
 const getAvailableRollupForUiType = (type: string) => {

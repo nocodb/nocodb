@@ -292,7 +292,9 @@ async function processColumnToSwaggerField(
           break;
         case undefined:
           // numeric, except min/max over a non-date field, which keeps its type
-          if (['max', 'min'].includes(colOptions.rollup_function)) {
+          if (
+            ['max', 'min'].includes(colOptions.rollup_function.toLowerCase())
+          ) {
             setAsAnyType(field);
           } else {
             field.type = 'number';

@@ -134,7 +134,10 @@ export class SortsService {
         { colId: param.sort.fk_column_id },
         ncMeta,
       );
-      if (col?.colOptions?.error) {
+      if (
+        col?.colOptions?.error &&
+        !(col?.colOptions as { data_error?: boolean }).data_error
+      ) {
         NcError.get(context).badRequest(
           `Cannot use column '${col.title}' in sort: ${col.colOptions.error}`,
         );
@@ -282,7 +285,10 @@ export class SortsService {
         { colId: param.sort.fk_column_id },
         ncMeta,
       );
-      if (col?.colOptions?.error) {
+      if (
+        col?.colOptions?.error &&
+        !(col?.colOptions as { data_error?: boolean }).data_error
+      ) {
         NcError.get(context).badRequest(
           `Cannot use column '${col.title}' in sort: ${col.colOptions.error}`,
         );

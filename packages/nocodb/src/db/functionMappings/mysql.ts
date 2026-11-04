@@ -59,7 +59,8 @@ const mysql2 = {
     const parts = (await Promise.all(pt.arguments.map((arg) => fn(arg)))).map(
       ({ builder }) =>
         knex.raw(
-          `CASE WHEN ? IS NOT NULL AND CAST(? AS CHAR) <> '' THEN 1 ELSE 0 END`,
+          // not `<> ''`: PAD SPACE collations read '   ' as equal to ''
+          `CASE WHEN ? IS NOT NULL AND LENGTH(CAST(? AS CHAR)) > 0 THEN 1 ELSE 0 END`,
           [builder, builder],
         ),
     );

@@ -37,8 +37,8 @@ import type LookupColumn from '~/models/LookupColumn';
 import type { NcContext } from '~/interface/config';
 import type { RollupColumn, View } from '~/models';
 import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
-import type Model from '~/models/Model';
 import type { LtarHmBtIds } from '~/services/columns.service.type';
+import Model from '~/models/Model';
 import { GridViewColumn, Source } from '~/models';
 import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 import validateParams from '~/helpers/validateParams';
@@ -420,7 +420,7 @@ export async function validateRollupPayload(
     | 'fk_rollup_column_id'
     | 'rollup_function'
     | 'rollup_formula'
-  > & { parsed_tree?: ParsedFormulaNode | null },
+  > & { parsed_tree?: ParsedFormulaNode | null; meta?: unknown },
   ncMeta = Noco.ncMeta,
 ) {
   validateParams(
@@ -564,7 +564,14 @@ export async function validateRollupPayload(
         formula: payload.rollup_formula,
         columns: [],
         clientOrSqlUi: SqlUiFactory.create({ client: source?.type }),
-        getMeta: async (_, { id }) => relatedModels.get(id),
+        // the map follows links and lookups only, not a rollup's own link
+        getMeta: async (metaContext, { id }) => {
+          const mapped = relatedModels.get(id);
+          if (mapped) return mapped;
+          const related = await Model.get(metaContext, id, false, ncMeta);
+          await related?.getColumns(ncMeta);
+          return related;
+        },
         rollup: {
           valuesColumn: rollupColumn,
           valuesColumns: relatedTableColumns,
@@ -579,9 +586,17 @@ export async function validateRollupPayload(
     return;
   }
 
-  // switching back from a formula rollup drops its formula
+  // switching back from a formula rollup drops its formula and result format
   payload.rollup_formula = null;
   payload.parsed_tree = null;
+  if (payload.meta && typeof payload.meta === 'object') {
+    const {
+      display_type: _type,
+      display_column_meta: _meta,
+      ...meta
+    } = payload.meta as Record<string, unknown>;
+    payload.meta = meta;
+  }
 
   // a rollup target aggregates as its result type (sum of a text or date
   // result would fail every read)

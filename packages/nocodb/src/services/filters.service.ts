@@ -199,7 +199,10 @@ export class FiltersService {
       const column = await Column.get(context, {
         colId: param.filter.fk_column_id,
       });
-      if (column?.colOptions?.error) {
+      if (
+        column?.colOptions?.error &&
+        !(column?.colOptions as { data_error?: boolean }).data_error
+      ) {
         NcError.get(context).badRequest(
           `Cannot use column '${column.title}' in filter: ${column.colOptions.error}`,
         );
@@ -279,7 +282,10 @@ export class FiltersService {
         { colId: param.filter.fk_column_id },
         ncMeta,
       );
-      if (column?.colOptions?.error) {
+      if (
+        column?.colOptions?.error &&
+        !(column?.colOptions as { data_error?: boolean }).data_error
+      ) {
         NcError.get(context).badRequest(
           `Cannot use column '${column.title}' in filter: ${column.colOptions.error}`,
         );

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import {
   type ColumnType,
+  FormulaDataTypes,
   type LinkToAnotherRecordType,
   RelationTypes,
-  getRollupFormulaTextColumn,
+  type RollupType,
   isBtLikeV2Junction,
   isMMOrMMLike,
+  isRollupFormula,
 } from 'nocodb-sdk'
 import { isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
 import { NavigateDir } from '#imports'
@@ -82,7 +84,9 @@ const virtualCellClassName = computed(() => {
     !isForm.value &&
     virtualCellType.value === 'rollup' &&
     !isExpandedForm.value &&
-    !getRollupFormulaTextColumn(column.value)
+    // a formula rollup is right-aligned only for a number, as on the canvas grid
+    (!isRollupFormula(column.value.colOptions as RollupType) ||
+      getColumnParsedTree(column.value)?.dataType === FormulaDataTypes.NUMERIC)
   ) {
     className += ' text-right justify-end'
   }

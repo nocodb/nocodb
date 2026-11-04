@@ -627,7 +627,11 @@ export const columnBuilder = builderGenerator<ColumnType, FieldV3Type>({
       if (isRollupColOptions(rollupOptions) && isRollupFormula(rollupOptions)) {
         options.formula = rollupOptions.rollup_formula;
       } else {
+        // left in meta when it stopped being a formula rollup; sending them
+        // back would be rejected for a plain rollup
         delete options.formula;
+        delete options.display_type;
+        delete options.display_column_meta;
       }
     }
 
@@ -789,7 +793,7 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
     // with v2 keys of the display type; a flat object would be ignored by the UI.
     const displayColumnMeta = meta.display_column_meta;
     if (
-      [UITypes.Formula, UITypes.Lookup].includes(data.uidt) &&
+      [UITypes.Formula, UITypes.Lookup, UITypes.Rollup].includes(data.uidt) &&
       displayColumnMeta &&
       typeof displayColumnMeta === 'object' &&
       !('meta' in displayColumnMeta)

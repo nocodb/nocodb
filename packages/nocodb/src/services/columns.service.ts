@@ -8106,10 +8106,17 @@ export class ColumnsService implements IColumnsService {
         'fk_rollup_column_id',
         'rollup_function',
       ]) &&
-      !(await isDanglingNoOp(
-        ['fk_relation_column_id', 'fk_rollup_column_id', 'rollup_function'],
-        'fk_rollup_column_id',
-      ))
+      !(
+        // a new formula is an edit, which must not report success unsaved
+        (
+          (colBody.rollup_formula === undefined ||
+            colBody.rollup_formula === column.colOptions?.rollup_formula) &&
+          (await isDanglingNoOp(
+            ['fk_relation_column_id', 'fk_rollup_column_id', 'rollup_function'],
+            'fk_rollup_column_id',
+          ))
+        )
+      )
     ) {
       // a payload that omits the formula (e.g. a rename) keeps the saved one
       if (

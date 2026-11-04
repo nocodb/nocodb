@@ -31,6 +31,7 @@ import { validateRollupPayload } from '~/helpers/columnHelpers';
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 import { clearSingleQueryCacheForColumnReferences } from '~/helpers/singleQueryCacheInvalidator';
 import { applyRollupResultTypeChange } from '~/services/meta-dependency/dependent-error-helpers';
+import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 
 // fields whose `error` the trash / delete cascade owns
 const CASCADE_ERROR_UIDTS: string[] = [
@@ -285,6 +286,12 @@ export class ColumnUpdateRollupFormulaDependencyHandler
 
       for (const [modelId, modelCtx] of affectedModelCtxMap) {
         await View.clearSingleQueryCache(modelCtx, modelId, null, ncMeta);
+      }
+      // scripts read each rollup's result type from the base schema
+      for (const baseId of new Set(
+        [...affectedModelCtxMap.values()].map((c) => c.base_id),
+      )) {
+        await cleanBaseSchemaCacheForBase(baseId);
       }
 
       // Realtime: other clients pick up the new result types / error state.

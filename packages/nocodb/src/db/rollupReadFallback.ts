@@ -35,7 +35,8 @@ import {
 import { clearSingleQueryCacheForRenamedColumnReferences } from '~/helpers/singleQueryCacheInvalidator';
 import { NcBaseError, NcBaseErrorv2 } from '~/helpers/catchError';
 import { setModelContext } from '~/helpers/modelContext';
-import { MetaTable } from '~/utils/globals';
+import { CacheGetType, MetaTable } from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
 
 const logger = new Logger('rollupReadFallback');
 
@@ -48,12 +49,14 @@ const ROLLUP_NUMERIC_OVERFLOW =
 const HEAL_PROBE_INTERVAL_MS = 5 * 60_000;
 const HEAL_PROBE_MAX_INTERVAL_MS = 60 * 60_000;
 // a rollup that just passed a full dry run isn't re-scanned by other failed reads
-const HEALTHY_TTL_MS = 30_000;
+const HEALTHY_TTL_MS = 2 * 60_000;
 // bounds a dry run; a timed-out one heals and rejects nothing, and flags only
 // when the failed read itself points at the rollup
 const DRY_RUN_TIMEOUT_MS = 60_000;
 // the background heal scan; no one waits on it
 const HEAL_DRY_RUN_TIMEOUT_MS = 15 * 60_000;
+// heal scans running at once, per process
+const MAX_CONCURRENT_HEALS = 2;
 // a rollup whose dry run timed out isn't re-scanned by other failed reads
 const TIMED_OUT_TTL_MS = 10 * 60_000;
 
@@ -77,23 +80,23 @@ type FlagOutcome =
 interface FallbackWalk {
   // formula rollups whose dry run timed out
   timedOut: Column[];
-  // plain formulas, which can raise the same data errors
+  // other possible causes: plain formulas, and rollups left unchecked
   formulas: number;
+  // past this, the remaining formula rollups aren't dry-run
+  deadline: number;
 }
 
-// divide by zero, a math domain error (LOG(0)), numeric overflow
+// divide by zero, a math domain error (LOG(0))
+// (not overflow: a filter literal or a plain SUM raises that too)
 const ARITHMETIC_ERROR_CODES = new Set([
   '22012',
   '2201E',
-  '22003',
   '2201F',
   'ER_DIVISION_BY_ZERO',
-  'ER_DATA_OUT_OF_RANGE',
   'ORA-01476',
   'ORA-01428',
-  'ORA-01426',
 ]);
-const MSSQL_ARITHMETIC_ERROR_NUMBERS = new Set([8134, 3623, 8115]);
+const MSSQL_ARITHMETIC_ERROR_NUMBERS = new Set([8134, 3623]);
 
 function isArithmeticError(e: unknown): boolean {
   if (typeof e !== 'object' || e === null) return false;
@@ -105,13 +108,45 @@ function isArithmeticError(e: unknown): boolean {
   return number !== undefined && MSSQL_ARITHMETIC_ERROR_NUMBERS.has(number);
 }
 
+// bumped on every flag and heal; a plan compiled across a change is stale
+let flagGeneration = 0;
+export const rollupFlagGeneration = () => flagGeneration;
+
+// Shared by every process, so pods don't each run a heal scan per interval.
+// Holds the time it runs out; the cache TTL only cleans it up.
+const healLeaseKey = (columnId: string) => `rollup_heal_lease:${columnId}`;
+
+async function setHealLease(columnId: string, ms: number) {
+  await NocoCache.setExpiring(
+    'root',
+    healLeaseKey(columnId),
+    String(Date.now() + ms),
+    Math.ceil(ms / 1000) + 60,
+  );
+}
+
+async function takeHealLease(columnId: string, ms: number) {
+  const until = Number(
+    await NocoCache.get(
+      'root',
+      healLeaseKey(columnId),
+      CacheGetType.TYPE_STRING,
+    ),
+  );
+  if (until > Date.now()) return false;
+  await setHealLease(columnId, ms);
+  return true;
+}
+
 async function flagRollup(column: Column, message: string) {
   await RollupColumn.update(column.context, column.id, {
     error: ROLLUP_DATA_ERROR_MARK + message,
   });
+  flagGeneration++;
   nextHealProbeAt.set(column.id, Date.now() + HEAL_PROBE_INTERVAL_MS);
   // a fresh flag (e.g. after a save) starts the backoff over
   healIntervals.delete(column.id);
+  await setHealLease(column.id, HEAL_PROBE_INTERVAL_MS);
   await clearPlansOf(column.context, column);
 }
 
@@ -504,6 +539,12 @@ async function flagIfFailing(
   await clearOwnPlans(targetFlagged);
   if (!isRollupFormula(rollup)) return targetFlagged;
 
+  // one failed read waits for at most one dry-run budget in all
+  if (Date.now() > walk.deadline) {
+    // unchecked, so it may be the cause: no lone suspect then
+    walk.formulas++;
+    return targetFlagged;
+  }
   const outcome = await probeAndFlag(column, rollup);
   if (outcome === 'timeout') walk.timedOut.push(column);
   if (outcome !== 'flagged' && outcome !== 'changed') return targetFlagged;
@@ -585,7 +626,11 @@ export async function flagFailingRollups(
   if (!isRollupDataError(failure)) return false;
 
   const seen = new Set<string>();
-  const walk: FallbackWalk = { timedOut: [], formulas: 0 };
+  const walk: FallbackWalk = {
+    timedOut: [],
+    formulas: 0,
+    deadline: Date.now() + DRY_RUN_TIMEOUT_MS,
+  };
   let flagged = false;
   for (const column of columns) {
     try {
@@ -704,12 +749,17 @@ export function healRollupDataError(
   const id = rollup.fk_column_id;
   if (healProbes.has(id)) return;
   if ((nextHealProbeAt.get(id) ?? 0) > Date.now()) return;
+  // each holds a data-DB connection for its scan, from the pool reads use;
+  // a later read starts this one when a slot frees
+  if (healProbes.size >= MAX_CONCURRENT_HEALS) return;
   const interval = healIntervals.get(id) ?? HEAL_PROBE_INTERVAL_MS;
   nextHealProbeAt.set(id, Date.now() + interval);
   healIntervals.set(id, Math.min(interval * 2, HEAL_PROBE_MAX_INTERVAL_MS));
 
   const probe = (async () => {
     const context = rollup.context;
+    // another process is healing it, or flagged it, this interval
+    if (!(await takeHealLease(id, interval))) return false;
     const column = await Column.get(context, { colId: id });
     if (!column) return false;
     const baseModel = await getBaseModelSqlFromModelId({
@@ -741,8 +791,10 @@ export function healRollupDataError(
       return false;
     }
     await RollupColumn.update(context, id, { error: null });
+    flagGeneration++;
     nextHealProbeAt.delete(id);
     healIntervals.delete(id);
+    await NocoCache.del('root', healLeaseKey(id));
     requesting.context.cacheMap?.clear();
     await clearPlansOf(context, column);
     return true;

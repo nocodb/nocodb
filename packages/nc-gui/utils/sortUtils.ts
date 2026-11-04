@@ -86,6 +86,11 @@ export const sortByUIType = ({
     column?: ColumnType
   }
 }) => {
+  // a rollup sorts as its result type (text, date, …), as the backend does
+  if (uidt === UITypes.Rollup && column) {
+    uidt = (getRollupResultUidt(column) as UITypes | undefined) ?? uidt
+  }
+
   let nullsLast = direction !== 'asc'
 
   if (column && isOptionOrderSort({ order_by: orderBy }, column)) {

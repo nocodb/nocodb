@@ -180,6 +180,8 @@ async function processColumnToSwaggerField(
       break;
     case UITypes.Rollup:
       // typed by its result
+      // a looked-up column comes without its colOptions
+      if (!column.colOptions) await column.getColOptions(ncMeta);
       switch (getRollupResultUidt(column)) {
         case UITypes.SingleLineText:
           field.type = 'string';

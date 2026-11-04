@@ -1457,10 +1457,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
-    return relationDataFetcher({ baseModel: this, logger }).multipleHmList(
-      param,
-      args,
-    );
+    try {
+      return await retryLinkedReadOnRollupError(
+        this,
+        await this.linkColumn(param.colId),
+        () =>
+          relationDataFetcher({ baseModel: this, logger }).multipleHmList(
+            param,
+            args,
+          ),
+      );
+    } catch (e) {
+      // the fetcher logs and skips other failures; a rollup data error that
+      // couldn't be flagged is skipped the same way
+      logger.error(e);
+    }
   }
 
   public async mmList(
@@ -1566,9 +1577,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
-    return relationDataFetcher({ baseModel: this, logger }).multipleMmList(
-      param,
-      args,
+    return retryLinkedReadOnRollupError(
+      this,
+      await this.linkColumn(param.colId),
+      () =>
+        relationDataFetcher({ baseModel: this, logger }).multipleMmList(
+          param,
+          args,
+        ),
     );
   }
 

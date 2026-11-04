@@ -112,7 +112,10 @@ export class SortsV3Service {
         { colId: param.sort.field_id },
         ncMeta,
       );
-      if (column?.colOptions?.error) {
+      if (
+        column?.colOptions?.error &&
+        !(column?.colOptions as { data_error?: boolean }).data_error
+      ) {
         NcError.get(context).badRequest(
           `Cannot use column '${column.title}' in sort: ${column.colOptions.error}`,
         );
@@ -181,7 +184,10 @@ export class SortsV3Service {
       NcError.get(context).notFound('Column not found');
     }
 
-    if (column.colOptions?.error) {
+    if (
+      column.colOptions?.error &&
+      !(column.colOptions as { data_error?: boolean }).data_error
+    ) {
       NcError.get(context).badRequest(
         `Cannot use column '${column.title}' in sort: ${column.colOptions.error}`,
       );

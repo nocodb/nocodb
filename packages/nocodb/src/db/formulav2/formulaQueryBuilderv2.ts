@@ -248,13 +248,20 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
           tableAlias,
           parentColumns: parentColumns,
         }: TAliasToColumnParam) => {
+          const columnOptions = (await col.getColOptions()) as RollupColumn;
           const qb = await genRollupSelectv2({
             baseModelSqlv2,
             knex,
-            columnOptions: (await col.getColOptions()) as RollupColumn,
+            columnOptions,
             alias: tableAlias,
             parentColumns,
           });
+          // A rollup flagged from its data reads as blank here, not as the
+          // error text: `'ERR!' * 2` would fail this formula's check and
+          // store an error on it that the rollup's heal never clears.
+          if (columnOptions?.data_error) {
+            return { builder: knex.raw('NULL') };
+          }
           return { builder: rawFromBuilder(knex, qb.builder).wrap('(', ')') };
         };
         break;

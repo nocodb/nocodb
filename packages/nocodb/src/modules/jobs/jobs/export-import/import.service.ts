@@ -1565,8 +1565,11 @@ export class ImportService {
           !getIdOrExternalId(colOptions.fk_relation_column_id) ||
           !getIdOrExternalId(colOptions.fk_rollup_column_id)
         ) {
-          if (colOptions.error) await insertErrored(colOptions.error);
-          else {
+          // a data error isn't a broken definition: stored as one it would
+          // never clear, so such a rollup is skipped like a healthy one
+          if (colOptions.error && !colOptions.data_error) {
+            await insertErrored(colOptions.error);
+          } else {
             this.logger.warn(
               `Skipping rollup ${col.id} during import: its link or target field was not imported`,
             );

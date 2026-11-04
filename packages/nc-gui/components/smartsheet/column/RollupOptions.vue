@@ -410,14 +410,17 @@ const onPrecisionChange = (value: number) => {
 
 // set default value; a saved formula rollup with no precision opens at the
 // grid's default for its formula, not the plain rollup's 0
+// (the header editor copies `rollup_function` from colOptions only on mount)
+const isSavedFormulaRollup = () =>
+  isEdit.value && (isFormulaMode.value || vModel.value.colOptions?.rollup_function === ROLLUP_FORMULA_FUNCTION)
+
 vModel.value.meta = {
   ...ColumnHelper.getColumnDefaultMeta(UITypes.Rollup),
-  ...(isEdit.value &&
-    isFormulaMode.value &&
-    vModel.value.meta?.precision === undefined && {
+  ...(vModel.value.meta || {}),
+  ...(isSavedFormulaRollup() &&
+    vModel.value.meta?.precision == null && {
       precision: getRollupFormulaDefaultPrecision(getColumnParsedTree(vModel.value)),
     }),
-  ...(vModel.value.meta || {}),
 }
 
 const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
@@ -483,11 +486,10 @@ watch(
         ...vModel.value.meta,
         ...ColumnHelper.getColumnDefaultMeta(UITypes.Rollup),
         // a saved formula rollup with no precision shows the cell's default
-        ...(isEdit.value &&
-          isFormulaMode.value && {
-            // the formula being edited, else the saved one
-            precision: getRollupFormulaDefaultPrecision(formulaParsedTree.value ?? getColumnParsedTree(vModel.value)),
-          }),
+        ...(isSavedFormulaRollup() && {
+          // the formula being edited, else the saved one
+          precision: getRollupFormulaDefaultPrecision(formulaParsedTree.value ?? getColumnParsedTree(vModel.value)),
+        }),
       }
     }
   },

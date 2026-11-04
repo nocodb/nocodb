@@ -596,7 +596,7 @@ export const binaryExpressionBuilder = async ({
         // both take pg's rule: numeric text compares as a number, else NULL
         case 'mysql2':
         case 'mysql':
-          return `(CASE WHEN TRIM(${expr}) REGEXP '^[-+]?[0-9]+([.][0-9]+)?$' THEN CAST(TRIM(${expr}) AS DOUBLE) END)`;
+          return `(CASE WHEN TRIM(${expr}) REGEXP '^[-+]?[0-9]+([.][0-9]+)?$' THEN (TRIM(${expr}) + 0e0) END)`;
         case 'sqlite3': {
           const unsigned = `(CASE WHEN substr(TRIM(${expr}), 1, 1) IN ('+', '-') THEN substr(TRIM(${expr}), 2) ELSE TRIM(${expr}) END)`;
           return `(CASE WHEN ${unsigned} <> '' AND ${unsigned} NOT GLOB '*[^0-9.]*' AND ${unsigned} NOT GLOB '*.*.*' AND ${unsigned} NOT GLOB '.*' AND ${unsigned} NOT GLOB '*.' THEN CAST(TRIM(${expr}) AS REAL) END)`;

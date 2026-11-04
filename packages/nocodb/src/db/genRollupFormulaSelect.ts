@@ -55,6 +55,9 @@ const MAX_LOOKUP_HOPS = 8;
 // SQL text spliced into another knex query: a bare `?` would bind
 const escapeBindings = (sql: string) => sql.replaceAll('?', '\\?');
 
+// ASCII unit separator: joins text where a separator must be a literal
+const PLACEHOLDER_SEP = '\u001f';
+
 // the type the stored tree gave `values`
 function storedValuesType(node: ParsedFormulaNode): FormulaDataTypes {
   if (!node) return undefined;
@@ -98,7 +101,7 @@ function attachmentTextSql(knex: XKnex, col: string): string | null {
     case 'mssql':
       return `(SELECT STRING_AGG(CONCAT(COALESCE(JSON_VALUE(e.value, '$.title'), ''), ' (' + COALESCE(JSON_VALUE(e.value, '$.url'), JSON_VALUE(e.value, '$.path')) + ')'), ', ') WITHIN GROUP (ORDER BY CAST(e.[key] AS INT)) FROM OPENJSON(CASE WHEN ISJSON(${col}) = 1 THEN ${col} ELSE '[]' END) e)`;
     case 'oracledb':
-      return `(SELECT LISTAGG(j.title || CASE WHEN NVL(j.url, j.path) IS NOT NULL THEN ' (' || NVL(j.url, j.path) || ')' END, ', ') WITHIN GROUP (ORDER BY j.i) FROM JSON_TABLE(${col}, '$[*]' COLUMNS (i FOR ORDINALITY, title VARCHAR2(4000) PATH '$.title', url VARCHAR2(4000) PATH '$.url', path VARCHAR2(4000) PATH '$.path')) j)`;
+      return `(SELECT LISTAGG(j.title || CASE WHEN NVL(j.url, j.path) IS NOT NULL THEN ' (' || NVL(j.url, j.path) || ')' END, ', ' ON OVERFLOW TRUNCATE) WITHIN GROUP (ORDER BY j.i) FROM JSON_TABLE(${col}, '$[*]' COLUMNS (i FOR ORDINALITY, title VARCHAR2(4000) PATH '$.title', url VARCHAR2(4000) PATH '$.url', path VARCHAR2(4000) PATH '$.path')) j)`;
     default:
       return null;
   }
@@ -552,15 +555,27 @@ export default async function genRollupFormulaSelect(params: {
         orderBy ? ` ORDER BY ${orderBy}` : ''
       })`;
     }
+    // STRING_AGG / LISTAGG take a literal separator, and a `?` can't be one
+    // (knex reads it as a binding): join on a control character, then swap in
+    // the separator, where an expression is allowed
+    const literalSep = separator.includes('?') ? `'${PLACEHOLDER_SEP}'` : sep;
+    const withSep = (agg: string) =>
+      separator.includes('?')
+        ? `REPLACE(${agg}, '${PLACEHOLDER_SEP}', ${sep})`
+        : agg;
     if (baseModelSqlv2.isMssql) {
-      return `STRING_AGG(CAST(${v} AS NVARCHAR(MAX)), ${sep})${
-        orderBy ? ` WITHIN GROUP (ORDER BY ${orderBy})` : ''
-      }`;
+      return withSep(
+        `STRING_AGG(CAST(${v} AS NVARCHAR(MAX)), ${
+          separator.includes('?') ? `N${literalSep}` : literalSep
+        })${orderBy ? ` WITHIN GROUP (ORDER BY ${orderBy})` : ''}`,
+      );
     }
     if (baseModelSqlv2.isOracle) {
-      return `LISTAGG(${v}, ${sep} ON OVERFLOW TRUNCATE) WITHIN GROUP (ORDER BY ${
-        orderBy ?? 'NULL'
-      })`;
+      return withSep(
+        `LISTAGG(${v}, ${literalSep} ON OVERFLOW TRUNCATE) WITHIN GROUP (ORDER BY ${
+          orderBy ?? 'NULL'
+        })`,
+      );
     }
     if (baseModelSqlv2.isSnowflake) {
       return `LISTAGG(${v}, ${sep}) WITHIN GROUP (ORDER BY ${
@@ -725,6 +740,12 @@ export default async function genRollupFormulaSelect(params: {
       } else if (baseModelSqlv2.isSqlite) {
         // strftime applies a stored offset and drops milliseconds
         v = `(strftime('%Y-%m-%d %H:%M:%S', ${v}) || '+00:00')`;
+      } else if (baseModelSqlv2.isMssql) {
+        // style 120: yyyy-mm-dd hh:mi:ss, without datetime2's fraction
+        v = `(CONVERT(VARCHAR(19), ${v}, 120) + '+00:00')`;
+      } else if (baseModelSqlv2.isOracle) {
+        // not the session's NLS format
+        v = `(TO_CHAR(${v}, 'YYYY-MM-DD HH24:MI:SS') || '+00:00')`;
       }
     }
     // pg / mysql JSON_EXTRACT yields JSON; as text a string reads unquoted, as
@@ -787,19 +808,20 @@ export default async function genRollupFormulaSelect(params: {
       // MSSQL rejects an aggregate over a subquery
       (baseModelSqlv2.isMssql && /\bselect\b/i.test(v));
 
-    // window functions and JSON_TABLE; 0 = version unknown, assume a modern server
+    // window functions, recursive CTEs (attachments) and derived tables over
+    // the outer row (8.0.14+); 0 = version unknown, assume a modern server
     const mysqlMajor = baseModelSqlv2.isMySQL ? getDbMajor(knex) : 0;
     if (mysqlMajor > 0 && mysqlMajor < 8) {
       const needsMysql8 = modifiers.some(
         (m) => m.modifier === RollupModifier.ARRAYSLICE,
       )
         ? 'ARRAYSLICE'
-        : /\bJSON_TABLE\(/.test(v) &&
+        : /\bWITH RECURSIVE\b/.test(v) &&
           (aggregate !== RollupAggregate.COUNTALL ||
             needsDerivedTable ||
             modifiers.length > 0)
         ? 'Rolling up attachments'
-        : needsDerivedTable && orderRefs.length > 1
+        : needsDerivedTable
         ? 'ARRAYUNIQUE'
         : null;
       if (needsMysql8) {

@@ -20,6 +20,7 @@ import Noco from '~/Noco';
 import { nocoExecute } from '~/utils/nocoExecute';
 import { chunkArray } from '~/utils/tsUtils';
 import { COMPOUND_SELECT_CHUNK_SIZE } from '~/constants';
+import { isRollupDataError } from '~/db/rollupReadFallback';
 import {
   getRelationReadDepth,
   runAtNextRelationReadDepth,
@@ -327,6 +328,8 @@ export const relationDataFetcher = (param: {
           GROUP_COL,
         );
       } catch (e) {
+        // the caller flags a failing formula rollup and reads again
+        if (isRollupDataError(e)) throw e;
         param.logger.error(e);
       }
     },

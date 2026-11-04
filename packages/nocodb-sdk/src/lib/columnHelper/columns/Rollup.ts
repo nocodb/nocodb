@@ -155,6 +155,8 @@ export class RollupHelper extends AbstractColumnHelper {
     plain = false
   ): string | null {
     if (!isValidValue(value)) return null;
+    // an errored cell, as the grid shows it
+    if (value === NC_ERROR_SENTINEL) return 'ERR!';
 
     const { col, meta, metas } = params;
 

@@ -42,6 +42,7 @@ import { formulaOutputsRawJson } from '~/db/formulav2/formula-query-builder.help
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
+import { questionFreeLiteral } from '~/helpers/sqlSanitize';
 import { getRefColumnIfAlias } from '~/helpers';
 import { DBQueryClient } from '~/dbQueryClient';
 import { getDbMajor } from '~/db/util/dbVersion';
@@ -521,7 +522,11 @@ export default async function genRollupFormulaSelect(params: {
       : `MOD(${v}, 2)`;
 
   const stringAggSql = (v: string, separator: string, orderBy?: string) => {
-    const sep = knex.raw('?', [separator]).toQuery();
+    // MySQL's SEPARATOR takes a literal only: a `?` goes as plain hex
+    const sep =
+      baseModelSqlv2.isMySQL && separator.includes('?')
+        ? `X'${Buffer.from(separator, 'utf8').toString('hex')}'`
+        : questionFreeLiteral(knex, separator);
     if (baseModelSqlv2.isPg) {
       return `STRING_AGG(CAST(${v} AS TEXT), ${sep}${
         orderBy ? ` ORDER BY ${orderBy}` : ''

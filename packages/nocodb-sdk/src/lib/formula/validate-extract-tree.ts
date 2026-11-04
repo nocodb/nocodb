@@ -4,6 +4,7 @@ import {
   LinkToAnotherRecordType,
   LookupType,
 } from '~/lib/Api';
+import rfdc from 'rfdc';
 import UITypes, { isSupportedDisplayValueColumn } from '~/lib/UITypes';
 import {
   FormulaDataTypes,
@@ -56,6 +57,8 @@ import {
   RollupAggregate,
   RollupModifier,
 } from '~/lib/formula/rollupFormula';
+
+const clone = rfdc();
 
 // Where a node sits in a rollup formula: outside aggregates, as the value set
 // an aggregate consumes, or inside a per-value expression.
@@ -1297,9 +1300,9 @@ export async function validateFormulaAndExtractTreeWithType({
     return res;
   };
 
-  const validateAndExtract = async (
+  const extract = async (
     parsedTree: ParsedFormulaNode,
-    scope: RollupScope = 'outer',
+    scope: RollupScope,
     // an aggregate name with a scalar version, read one way (see below)
     reading?: 'scalar' | 'aggregate'
   ): Promise<ParsedFormulaNode> => {
@@ -1929,6 +1932,31 @@ export async function validateFormulaAndExtractTreeWithType({
       );
     }
     return res;
+  };
+
+  // The scalar-then-per-value retry re-validates subtrees: once per reading
+  // each. Copies are handed out, as a parent annotates its arguments (`cast`).
+  const validated = new WeakMap<
+    ParsedFormulaNode,
+    Map<string, Promise<ParsedFormulaNode>>
+  >();
+  const validateAndExtract = (
+    parsedTree: ParsedFormulaNode,
+    scope: RollupScope = 'outer',
+    reading?: 'scalar' | 'aggregate'
+  ): Promise<ParsedFormulaNode> => {
+    if (!rollup) return extract(parsedTree, scope, reading);
+    const key = `${scope}:${reading ?? ''}`;
+    let byKey = validated.get(parsedTree);
+    if (!byKey) validated.set(parsedTree, (byKey = new Map()));
+    const cached = byKey.get(key);
+    if (cached) return cached.then(clone);
+    const result = extract(parsedTree, scope, reading);
+    const stored = result.then(clone);
+    // a failure reaches the caller through `result`
+    stored.catch(() => undefined);
+    byKey.set(key, stored);
+    return result;
   };
 
   try {

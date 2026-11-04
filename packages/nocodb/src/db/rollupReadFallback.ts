@@ -1,10 +1,23 @@
-import { ClientType, isRollupFormula, JSEPNode, UITypes } from 'nocodb-sdk';
+import {
+  ClientType,
+  isLinksOrLTAR,
+  isRollupFormula,
+  isSupportedDisplayValueColumn,
+  JSEPNode,
+  UITypes,
+} from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { NcContext, ParsedFormulaNode } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { FormulaColumn, LookupColumn } from '~/models';
-import { Column, RollupColumn, View } from '~/models';
+import type {
+  BarcodeColumn,
+  FormulaColumn,
+  LinkToAnotherRecordColumn,
+  LookupColumn,
+  QrCodeColumn,
+} from '~/models';
+import { Column, Model, RollupColumn, View } from '~/models';
 import { ROLLUP_DATA_ERROR_MARK } from '~/models/RollupColumn';
 import Noco from '~/Noco';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
@@ -32,6 +45,8 @@ const HEAL_PROBE_INTERVAL_MS = 60_000;
 const HEAL_PROBE_LIMIT = 1000;
 // a rollup that just passed a full dry run isn't re-scanned by other failed reads
 const HEALTHY_TTL_MS = 30_000;
+// pg: bounds a dry run; a cancelled one is no data error, so it flags nothing
+const DRY_RUN_TIMEOUT = '60s';
 
 const nextHealProbeAt = new Map<string, number>();
 const healProbes = new Map<string, Promise<boolean>>();
@@ -132,11 +147,31 @@ export async function execRollupDryRun(
   );
   if (limit) qb.limit(limit, { skipBinding: true });
   // counting evaluates every value without sending the rows back
-  await baseModel.execAndParse(
-    knex.count({ n: '__nc_dry_run' }).from(qb.as('__nc_dry_run_t')),
-    null,
-    { raw: true },
-  );
+  const countQb = knex
+    .count({ n: '__nc_dry_run' })
+    .from(qb.as('__nc_dry_run_t'));
+  if (!baseModel.isPg || knex.isExternal) {
+    await baseModel.execAndParse(countQb, null, { raw: true });
+    return;
+  }
+  // pg JIT-compiles a many-aggregate scan for seconds (50 aggregates: ~4-90 s)
+  // to then run it in ms; `jit` is missing before pg 11
+  // the callback form isn't decorated with the CTE helpers execAndParse uses
+  const trx = await knex.transaction();
+  try {
+    await trx.raw(
+      `SELECT set_config(name, 'off', true) FROM pg_settings WHERE name = 'jit'`,
+    );
+    await trx.raw(`SET LOCAL statement_timeout = '${DRY_RUN_TIMEOUT}'`);
+    const trxModel = await Model.getBaseModelSQL(baseModel.context, {
+      model: baseModel.model,
+      dbDriver: trx,
+    });
+    await trxModel.execAndParse(countQb, null, { raw: true });
+  } finally {
+    // read-only: nothing to commit
+    await trx.rollback();
+  }
 }
 
 export function rollupDryRunMessage(baseModel: IBaseModelSqlV2, e: unknown) {
@@ -262,6 +297,20 @@ function probeAndFlag(column: Column, rollup: RollupColumn) {
  * data, or one already flagged whose SQL a cached plan may still hold.
  * Innermost first, so an outer rollup isn't blamed for its target's failure.
  */
+// a link's cell embeds its related table's display value
+async function linkDisplayColumn(column: Column): Promise<Column | undefined> {
+  const link = await column.getColOptions<LinkToAnotherRecordColumn>();
+  const related = link ? await link.getRelatedTable() : null;
+  const relatedColumns = related ? await related.getColumns() : [];
+  return (
+    relatedColumns.find(
+      (c) =>
+        c.id === link?.fk_display_value_column_id &&
+        isSupportedDisplayValueColumn(c),
+    ) ?? relatedColumns.find((c) => c.pv)
+  );
+}
+
 async function flagIfFailing(
   column: Column,
   requesting: IBaseModelSqlV2,
@@ -303,6 +352,13 @@ async function flagIfFailing(
       }
     }
     return clearOwnPlans(flagged);
+  }
+
+  if (isLinksOrLTAR(column)) {
+    const display = await linkDisplayColumn(column);
+    return clearOwnPlans(
+      !!display && (await flagIfFailing(display, requesting, seen)),
+    );
   }
 
   if (column.uidt !== UITypes.Rollup) return false;
@@ -364,6 +420,16 @@ export async function readsDataFlaggedRollup(
           const referenced = await Column.get(column.context, { colId });
           if (referenced) next.push(referenced);
         }
+      } else if (isLinksOrLTAR(column)) {
+        const display = await linkDisplayColumn(column);
+        if (display) next.push(display);
+      } else if (
+        column.uidt === UITypes.QrCode ||
+        column.uidt === UITypes.Barcode
+      ) {
+        const code = await column.getColOptions<QrCodeColumn | BarcodeColumn>();
+        const source = code ? await code.getValueColumn() : null;
+        if (source) next.push(source);
       }
       if (next.length && (await readsDataFlaggedRollup(next, seen))) {
         return true;

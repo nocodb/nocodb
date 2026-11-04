@@ -13,7 +13,8 @@ import commonFns, {
 } from './commonFns';
 import type { CallExpressionNode } from 'nocodb-sdk';
 import type { MapFnArgs } from '~/db/mapFunctionName';
-import { rawFromBuilder } from '~/helpers/sqlSanitize';
+import type { WorkdaySqlDialect } from '~/db/functionMappings/workday';
+import { questionFreeLiteral, rawFromBuilder } from '~/helpers/sqlSanitize';
 import {
   ieeeLogBaseSql,
   ieeeLogSql,
@@ -690,10 +691,13 @@ END`,
             `CASE WHEN ( ${removeNullUnicode('?')} )::jsonb IS NOT NULL`,
             `THEN jsonb_path_query_first(( ${removeNullUnicode(
               '?',
-            )} )::jsonb, ?::jsonpath)`,
+            )} )::jsonb, (${questionFreeLiteral(
+              knex,
+              `$${pathArg.value}`,
+            )})::jsonpath)`,
             `ELSE NULL END`,
           ].join(' '),
-          [source, source, `$${pathArg.value}`],
+          [source, source],
         ),
       };
     }

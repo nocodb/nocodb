@@ -26,6 +26,41 @@ export function rawFromBuilder(
   );
 }
 
+/**
+ * A string literal as SQL text without a `?`: escape passes that re-read the
+ * text can't tell an escaped `\?` from a literal backslash before one, so `?`
+ * is spelled as a character instead (MySQL: a hex text literal).
+ */
+export function questionFreeLiteral(
+  knex: Pick<XKnex, 'raw' | 'clientType'>,
+  value: string,
+): string {
+  const client = knex.clientType();
+  const quote = (s: string) =>
+    client === 'mssql'
+      ? `N'${s.replace(/'/g, "''")}'`
+      : knex.raw('?', [s]).toQuery();
+  if (!value.includes('?')) return quote(value);
+  if (client === 'mysql' || client === 'mysql2') {
+    return `_utf8mb4 X'${Buffer.from(value, 'utf8').toString('hex')}'`;
+  }
+  const questionMark =
+    client === 'mssql'
+      ? 'NCHAR(63)'
+      : client === 'sqlite3'
+      ? 'CHAR(63)'
+      : 'CHR(63)';
+  const parts = value
+    .split('?')
+    .flatMap((piece, i) => [
+      ...(i ? [questionMark] : []),
+      ...(piece ? [quote(piece)] : []),
+    ]);
+  if (parts.length === 1) return parts[0];
+  if (client === 'databricks') return `concat(${parts.join(', ')})`;
+  return `(${parts.join(client === 'mssql' ? ' + ' : ' || ')})`;
+}
+
 export function unsanitize(v) {
   if (typeof v !== 'string') return v;
   return v?.replace(/\\[?]/g, '?');

@@ -8036,12 +8036,14 @@ export class ColumnsService implements IColumnsService {
       return !(await Column.get(refContext, { colId: colBody[targetKey] }));
     };
 
-    // re-check related-base access only when the relation or target changes
+    // re-check related-base access when the relation or target changes, and
+    // for every formula rollup: unlike a count it can return the linked values
     const assertTargetReadable = async (targetKey: string) => {
       if (
         colBody.fk_relation_column_id !==
           column.colOptions?.fk_relation_column_id ||
-        colBody[targetKey] !== column.colOptions?.[targetKey]
+        colBody[targetKey] !== column.colOptions?.[targetKey] ||
+        isRollupFormula(colBody)
       ) {
         await this.assertCanReadRelatedBase(
           context,

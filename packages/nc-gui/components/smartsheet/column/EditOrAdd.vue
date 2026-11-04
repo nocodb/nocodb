@@ -62,6 +62,7 @@ const {
   isEdit,
   isSystem,
   disableSubmitBtn,
+  disableSubmitBtnReason,
   column,
   isAiMode,
   isSyncedField,
@@ -1088,29 +1089,30 @@ const unique = computed({
               </NcButton>
 
               <!-- Save -->
-              <NcButton
-                v-if="aiIntegrationAvailable"
-                v-e="['a:column:ai:add']"
-                html-type="submit"
-                type="primary"
-                theme="ai"
-                :loading="saving"
-                :disabled="disableSubmitBtn || saving"
-                size="small"
-                :label="submitBtnLabel.label"
-                :loading-label="submitBtnLabel.loadingLabel"
-                data-testid="nc-field-modal-submit-btn"
-                @click.prevent="onSubmit"
-              >
-                <template #icon>
-                  <GeneralIcon icon="ncAutoAwesome" />
-                </template>
+              <NcTooltip v-if="aiIntegrationAvailable" :disabled="!disableSubmitBtnReason" :title="disableSubmitBtnReason">
+                <NcButton
+                  v-e="['a:column:ai:add']"
+                  html-type="submit"
+                  type="primary"
+                  theme="ai"
+                  :loading="saving"
+                  :disabled="disableSubmitBtn || saving"
+                  size="small"
+                  :label="submitBtnLabel.label"
+                  :loading-label="submitBtnLabel.loadingLabel"
+                  data-testid="nc-field-modal-submit-btn"
+                  @click.prevent="onSubmit"
+                >
+                  <template #icon>
+                    <GeneralIcon icon="ncAutoAwesome" />
+                  </template>
 
-                {{ submitBtnLabel.label }}
-                <template #loading>
-                  {{ submitBtnLabel.loadingLabel }}
-                </template>
-              </NcButton>
+                  {{ submitBtnLabel.label }}
+                  <template #loading>
+                    {{ submitBtnLabel.loadingLabel }}
+                  </template>
+                </NcButton>
+              </NcTooltip>
               <NcButton v-else type="primary" size="small" @click="handleNavigateToIntegrations">
                 {{ $t('labels.addAiIntegration') }}
               </NcButton>
@@ -1637,23 +1639,25 @@ const unique = computed({
                 </NcButton>
 
                 <!-- Save -->
-                <NcButton
-                  html-type="submit"
-                  type="primary"
-                  :theme="isAiMode ? 'ai' : 'default'"
-                  :loading="saving"
-                  :disabled="!formState.uidt || disableSubmitBtn || saving || (isTextToLtarConversion && !formState.childId)"
-                  size="small"
-                  :label="submitBtnLabel.label"
-                  :loading-label="submitBtnLabel.loadingLabel"
-                  data-testid="nc-field-modal-submit-btn"
-                  @click.prevent="onSubmit"
-                >
-                  {{ submitBtnLabel.label }}
-                  <template #loading>
-                    {{ submitBtnLabel.loadingLabel }}
-                  </template>
-                </NcButton>
+                <NcTooltip :disabled="!disableSubmitBtnReason" :title="disableSubmitBtnReason">
+                  <NcButton
+                    html-type="submit"
+                    type="primary"
+                    :theme="isAiMode ? 'ai' : 'default'"
+                    :loading="saving"
+                    :disabled="!formState.uidt || disableSubmitBtn || saving || (isTextToLtarConversion && !formState.childId)"
+                    size="small"
+                    :label="submitBtnLabel.label"
+                    :loading-label="submitBtnLabel.loadingLabel"
+                    data-testid="nc-field-modal-submit-btn"
+                    @click.prevent="onSubmit"
+                  >
+                    {{ submitBtnLabel.label }}
+                    <template #loading>
+                      {{ submitBtnLabel.loadingLabel }}
+                    </template>
+                  </NcButton>
+                </NcTooltip>
               </div>
             </a-form-item>
           </div>

@@ -78,7 +78,11 @@ import {
   ColumnWebhookManagerBuilder,
 } from '~/utils/column-webhook-manager';
 import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
-import { execRollupDryRun, rollupDryRunMessage } from '~/db/rollupReadFallback';
+import {
+  execRollupDryRun,
+  isDryRunTimeout,
+  rollupDryRunMessage,
+} from '~/db/rollupReadFallback';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -8142,6 +8146,8 @@ export class ColumnsService implements IColumnsService {
     try {
       await execRollupDryRun(baseModel, builder);
     } catch (e) {
+      // too slow to verify: saved, and the read fallback catches a bad row
+      if (isDryRunTimeout(e)) return;
       NcError.get(context).formulaError(rollupDryRunMessage(baseModel, e));
     }
   }

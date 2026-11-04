@@ -1880,6 +1880,30 @@ export async function validateFormulaAndExtractTreeWithType({
             ])
           )
         ) {
+          const isValuesNode = (node: ParsedFormulaNode) =>
+            node.type === JSEPNode.IDENTIFIER &&
+            node.name === ROLLUP_VALUES_KEYWORD;
+          // outside an aggregate, `values` is the joined list, whatever its type
+          const valuesOutsideAggregate =
+            scope === 'outer' &&
+            (isValuesNode(parsedTree.left) || isValuesNode(parsedTree.right));
+          const hasValueFn = !sqlUI?.getUnsupportedFnList().includes('VALUE');
+          const [key, hint] = valuesOutsideAggregate
+            ? [
+                'msg.formula.rollupOperatorValuesOutsideAggregate',
+                '; use values inside an aggregate, e.g. SUM(values)',
+              ]
+            : parsedTree.operator === '-'
+            ? [
+                'msg.formula.rollupOperatorNumericDate',
+                '; use DATEADD for dates',
+              ]
+            : hasValueFn
+            ? [
+                'msg.formula.rollupOperatorNumericText',
+                '; use VALUE(values) for numbers stored as text',
+              ]
+            : ['msg.formula.rollupOperatorNumeric', ''];
           throw new FormulaError(
             FormulaErrorType.INVALID_ARG,
             {
@@ -1889,16 +1913,10 @@ export async function validateFormulaAndExtractTreeWithType({
                 nodePosition(parsedTree.right),
               // operands carry no index; underline `values` instead
               columnName: ROLLUP_VALUES_KEYWORD,
-              key:
-                parsedTree.operator === '-'
-                  ? 'msg.formula.rollupOperatorNumericDate'
-                  : 'msg.formula.rollupOperatorNumericText',
+              key,
               operator: parsedTree.operator,
             },
-            `The ${parsedTree.operator} operator requires numeric values` +
-              (parsedTree.operator === '-'
-                ? '; use DATEADD for dates'
-                : '; use VALUE(values) for numbers stored as text')
+            `The ${parsedTree.operator} operator requires numeric values${hint}`
           );
         }
         res.dataType = FormulaDataTypes.NUMERIC;

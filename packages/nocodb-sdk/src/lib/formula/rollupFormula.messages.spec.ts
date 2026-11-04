@@ -34,12 +34,13 @@ const getMeta: UnifiedMetaType.IGetModel = async (_context, { id }) => ({
 
 const validate = (
   formula: string,
-  valuesColumn: UnifiedMetaType.IColumn = amount
+  valuesColumn: UnifiedMetaType.IColumn = amount,
+  client: 'pg' | 'sqlite3' = 'pg'
 ) =>
   validateFormulaAndExtractTreeWithType({
     formula,
     columns: [],
-    clientOrSqlUi: 'pg',
+    clientOrSqlUi: client,
     getMeta,
     trackPosition: true,
     rollup: { valuesColumn, valuesColumns: [amount, name, due] },
@@ -70,7 +71,11 @@ const interpolate = (message: string, params: Record<string, unknown>) =>
   });
 
 describe('rollup formula error messages', () => {
-  const cases: [string, UnifiedMetaType.IColumn, string][] = [
+  const cases: [string, UnifiedMetaType.IColumn, string, 'sqlite3'?][] = [
+    // `values` outside an aggregate is the joined list, even over numbers
+    ['values * 2', amount, 'rollupOperatorValuesOutsideAggregate'],
+    // SQLite has no VALUE(), so the hint leaves it out
+    ['SUM(values * 2)', name, 'rollupOperatorNumeric', 'sqlite3'],
     ['AVERAGE(values, 1)', amount, 'rollupAverageValuesOnly'],
     ['MAX(values, values)', amount, 'rollupAggregateValuesOnce'],
     ['COUNTA(values, 1 + 1)', amount, 'rollupCountLiteralItems'],
@@ -108,10 +113,11 @@ describe('rollup formula error messages', () => {
 
   it.each(
     cases.map(
-      ([formula, valuesColumn, key]) => [key, formula, valuesColumn] as const
+      ([formula, valuesColumn, key, client]) =>
+        [key, formula, valuesColumn, client] as const
     )
-  )('%s', async (key, formula, valuesColumn) => {
-    const error = await caught(validate(formula, valuesColumn));
+  )('%s', async (key, formula, valuesColumn, client) => {
+    const error = await caught(validate(formula, valuesColumn, client));
     expect(error.extra.key).toBe(`msg.formula.${key}`);
     expect(enFormulaMessages[key]).toBeDefined();
     // en.json renders the same text the SDK throws

@@ -712,6 +712,9 @@ export default async function genRollupFormulaSelect(params: {
         v = `(TO_CHAR(${utc}, 'YYYY-MM-DD HH24:MI:SS') || '+00:00')`;
       } else if (baseModelSqlv2.isMySQL) {
         v = `CONCAT(DATE_FORMAT(${v}, '%Y-%m-%d %H:%i:%s'), '+00:00')`;
+      } else if (baseModelSqlv2.isSqlite) {
+        // strftime applies a stored offset and drops milliseconds
+        v = `(strftime('%Y-%m-%d %H:%M:%S', ${v}) || '+00:00')`;
       }
     }
     // pg JSON_EXTRACT yields jsonb; as text a string reads unquoted, as the

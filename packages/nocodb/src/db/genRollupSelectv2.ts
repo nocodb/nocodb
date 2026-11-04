@@ -87,13 +87,10 @@ export default async function genRollupSelectv2(param: {
     };
   };
 
-  if (
-    columnOptions.error &&
-    !(
-      'data_error' in columnOptions &&
-      (await healRollupDataError(baseModelSqlv2, columnOptions))
-    )
-  ) {
+  if (columnOptions.error) {
+    if ('data_error' in columnOptions) {
+      healRollupDataError(baseModelSqlv2, columnOptions);
+    }
     return errorSentinel();
   }
 
@@ -174,13 +171,10 @@ export default async function genRollupSelectv2(param: {
     const targetOptions = await rollupColumn.getColOptions<
       RollupColumn | LookupColumn
     >();
-    if (
-      targetOptions?.error &&
-      !(
-        'data_error' in targetOptions &&
-        (await healRollupDataError(baseModelSqlv2, targetOptions))
-      )
-    ) {
+    if (targetOptions?.error) {
+      if ('data_error' in targetOptions) {
+        healRollupDataError(baseModelSqlv2, targetOptions);
+      }
       return errorSentinel();
     }
   }

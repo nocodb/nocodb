@@ -204,6 +204,7 @@ import { Profiler } from '~/helpers/profiler';
 import { StageTimer } from '~/helpers/stageTimer';
 import {
   flagFailingRollups,
+  isRollupDataError,
   shouldRetryFailedRead,
 } from '~/db/rollupReadFallback';
 import {
@@ -1169,10 +1170,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         throwErrorIfInvalidParams,
       );
     } catch (e) {
-      // a filter on a formula rollup that fails on the data matches no rows once flagged
+      // a filter on a formula rollup that fails on the data matches no rows
+      // once flagged; anything else rethrows before an await, or a parallel
+      // list() rejection would be reported instead
       if (
-        isTransientError(e) ||
-        isExternalSourceError(e) ||
+        !isRollupDataError(e) ||
         !(await flagFailingRollups(this, await this.model.getColumns(), e))
       )
         throw e;
@@ -1400,8 +1402,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } catch (e) {
       // a formula rollup that fails on the data groups as an error once flagged
       if (
-        isTransientError(e) ||
-        isExternalSourceError(e) ||
+        !isRollupDataError(e) ||
         !(await flagFailingRollups(this, await this.model.getColumns(), e))
       )
         throw e;
@@ -1436,8 +1437,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return await baseModelGroupBy(this, logger).count(args);
     } catch (e) {
       if (
-        isTransientError(e) ||
-        isExternalSourceError(e) ||
+        !isRollupDataError(e) ||
         !(await flagFailingRollups(this, await this.model.getColumns(), e))
       )
         throw e;

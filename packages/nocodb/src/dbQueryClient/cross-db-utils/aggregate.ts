@@ -9,11 +9,7 @@ import type { NcContext } from '~/interface/config';
 import type { Column, View } from '~/models';
 import type { AggregateCtx, DBQueryClient } from '~/dbQueryClient/types';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import { flagFailingRollups } from '~/db/rollupReadFallback';
-import {
-  isExternalSourceError,
-  isTransientError,
-} from '~/helpers/db-error/utils';
+import { flagFailingRollups, isRollupDataError } from '~/db/rollupReadFallback';
 import { applyAggregation } from '~/dbQueryClient/cross-db-utils/applyAggregation';
 import conditionV2 from '~/db/conditionV2';
 import { Filter, GridViewColumn, Model } from '~/models';
@@ -242,8 +238,7 @@ export const aggregate = (_client: DBQueryClient, logger?: Logger) => {
       if (
         !retried &&
         baseModel &&
-        !isTransientError(e) &&
-        !isExternalSourceError(e) &&
+        isRollupDataError(e) &&
         (await flagFailingRollups(baseModel, await model.getColumns(), e))
       ) {
         return run(context, ctx, true);

@@ -8072,6 +8072,8 @@
       "rollupDateNumberComparison": "A date or time can't be compared with a number using {operator}",
       "rollupOperatorNumericDate": "The {operator} operator requires numeric values; use DATEADD for dates",
       "rollupOperatorNumericText": "The {operator} operator requires numeric values; use VALUE(values) for numbers stored as text",
+      "rollupOperatorNumeric": "The {operator} operator requires numeric values",
+      "rollupOperatorValuesOutsideAggregate": "The {operator} operator requires numeric values; use values inside an aggregate, e.g. SUM(values)",
       "rollupMustAggregate": "A rollup formula must aggregate `values`, e.g. SUM(values)",
       "rollupMaxAggregates": "A rollup formula can use at most {maxAggregates} aggregates, found {aggregateCount}"
     },

@@ -4,6 +4,8 @@ import {
   isRollupFormula,
   isSupportedDisplayValueColumn,
   JSEPNode,
+  NcSDKError,
+  NcSDKErrorV2,
   UITypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
@@ -38,17 +40,22 @@ import { MetaTable } from '~/utils/globals';
 const logger = new Logger('rollupReadFallback');
 
 const ROLLUP_EVAL_FAILED = 'The rollup formula could not be evaluated';
+const ROLLUP_NUMERIC_OVERFLOW =
+  'The rollup formula produces a number too large for the database on the existing data';
 
-// a data-flagged rollup is re-probed at most this often per column and process
-const HEAL_PROBE_INTERVAL_MS = 60_000;
-// rows the self-heal probe evaluates; a bad row past it is re-flagged on read
-const HEAL_PROBE_LIMIT = 1000;
+// a data-flagged rollup is re-probed (a full scan, in the background) at most
+// this often per column and process, doubling after each failed probe
+const HEAL_PROBE_INTERVAL_MS = 5 * 60_000;
+const HEAL_PROBE_MAX_INTERVAL_MS = 60 * 60_000;
 // a rollup that just passed a full dry run isn't re-scanned by other failed reads
 const HEALTHY_TTL_MS = 30_000;
-// pg: bounds a dry run; a cancelled one is no data error, so it flags nothing
-const DRY_RUN_TIMEOUT = '60s';
+// bounds a dry run; a timed-out one flags, heals and rejects nothing
+const DRY_RUN_TIMEOUT_MS = 60_000;
+
+class RollupDryRunTimeout extends Error {}
 
 const nextHealProbeAt = new Map<string, number>();
+const healIntervals = new Map<string, number>();
 const healProbes = new Map<string, Promise<boolean>>();
 const healthyUntil = new Map<string, number>();
 const flagProbes = new Map<string, Promise<FlagOutcome>>();
@@ -110,23 +117,46 @@ function driverNumber(e: object): number | undefined {
   return undefined;
 }
 
+/** A dry run that ran out of time: says nothing about the formula. */
+export function isDryRunTimeout(e: unknown): boolean {
+  if (e instanceof RollupDryRunTimeout) return true;
+  if (typeof e !== 'object' || e === null) return false;
+  if ('name' in e && e.name === 'KnexTimeoutError') return true;
+  const code = 'code' in e ? e.code : undefined;
+  return (
+    // pg query_canceled, mysql MAX_EXECUTION_TIME, mssql, oracle
+    code === '57014' ||
+    code === 'ER_QUERY_TIMEOUT' ||
+    code === 'ETIMEOUT' ||
+    code === 'ORA-01013' ||
+    driverNumber(e) === 3024
+  );
+}
+
 /**
  * False when the failed read's error is clearly not a rollup failing on the
- * data (a missing table, a syntax or connection error), so no probe runs.
- * An error without a driver code can't be told apart and is probed.
+ * data (a missing table, a syntax or connection error, a bad `where`), so no
+ * probe runs. Only database driver errors are probed.
  */
 export function isRollupDataError(e: unknown): boolean {
   if (isTransientError(e) || isExternalSourceError(e)) return false;
   // raised by the app (bad request, missing field), not by the database on a value
-  if (e instanceof NcBaseError || e instanceof NcBaseErrorv2) return false;
-  if (typeof e !== 'object' || e === null) return true;
+  if (
+    e instanceof NcBaseError ||
+    e instanceof NcBaseErrorv2 ||
+    e instanceof NcSDKError ||
+    e instanceof NcSDKErrorV2
+  )
+    return false;
+  if (typeof e !== 'object' || e === null) return false;
+  if (isDryRunTimeout(e)) return false;
 
   const mssqlNumber = driverNumber(e);
   if (mssqlNumber !== undefined)
     return MSSQL_DATA_ERROR_NUMBERS.has(mssqlNumber);
 
   const code = 'code' in e && typeof e.code === 'string' ? e.code : undefined;
-  if (!code) return true;
+  if (!code) return false;
   if (code.startsWith('ER_')) return MYSQL_DATA_ERROR_CODES.has(code);
   if (code.startsWith('ORA-')) return ORACLE_DATA_ERROR_CODES.has(code);
   if (/^[0-9A-Z]{5}$/.test(code)) {
@@ -136,22 +166,46 @@ export function isRollupDataError(e: unknown): boolean {
   return true;
 }
 
+/**
+ * `background`: nobody waits on it, so a database that can't cancel the
+ * statement runs it to the end rather than leaving it behind a timed-out wait.
+ */
 export async function execRollupDryRun(
   baseModel: IBaseModelSqlV2,
   builder: Knex.QueryBuilder,
-  limit?: number,
+  { background = false }: { background?: boolean } = {},
 ) {
   const knex = baseModel.dbDriver;
   const qb = knex(baseModel.getTnPath(baseModel.model)).select(
     knex.raw('(??) as ??', [builder, '__nc_dry_run']),
   );
-  if (limit) qb.limit(limit, { skipBinding: true });
   // counting evaluates every value without sending the rows back
   const countQb = knex
     .count({ n: '__nc_dry_run' })
     .from(qb.as('__nc_dry_run_t'));
   if (!baseModel.isPg || knex.isExternal) {
-    await baseModel.execAndParse(countQb, null, { raw: true });
+    // mysql stops the statement itself; elsewhere only the wait is bounded
+    if (baseModel.isMySQL) {
+      countQb.hintComment(`MAX_EXECUTION_TIME(${DRY_RUN_TIMEOUT_MS})`);
+    }
+    if (background) {
+      await baseModel.execAndParse(countQb, null, { raw: true });
+      return;
+    }
+    let timer: NodeJS.Timeout | undefined;
+    try {
+      await Promise.race([
+        baseModel.execAndParse(countQb, null, { raw: true }),
+        new Promise((_, reject) => {
+          timer = setTimeout(
+            () => reject(new RollupDryRunTimeout('rollup dry run timed out')),
+            DRY_RUN_TIMEOUT_MS,
+          );
+        }),
+      ]);
+    } finally {
+      clearTimeout(timer);
+    }
     return;
   }
   // pg JIT-compiles a many-aggregate scan for seconds (50 aggregates: ~4-90 s)
@@ -162,7 +216,7 @@ export async function execRollupDryRun(
     await trx.raw(
       `SELECT set_config(name, 'off', true) FROM pg_settings WHERE name = 'jit'`,
     );
-    await trx.raw(`SET LOCAL statement_timeout = '${DRY_RUN_TIMEOUT}'`);
+    await trx.raw(`SET LOCAL statement_timeout = ${DRY_RUN_TIMEOUT_MS}`);
     const trxModel = await Model.getBaseModelSQL(baseModel.context, {
       model: baseModel.model,
       dbDriver: trx,
@@ -175,6 +229,18 @@ export async function execRollupDryRun(
 }
 
 export function rollupDryRunMessage(baseModel: IBaseModelSqlV2, e: unknown) {
+  // the extractor reads overflow as a bad value for a column, which a rollup has none of
+  if (typeof e === 'object' && e !== null) {
+    const code = 'code' in e ? e.code : undefined;
+    if (
+      code === '22003' ||
+      code === 'ER_DATA_OUT_OF_RANGE' ||
+      code === 'ORA-01426' ||
+      driverNumber(e) === 8115
+    ) {
+      return ROLLUP_NUMERIC_OVERFLOW;
+    }
+  }
   const clientType = Object.values(ClientType).find(
     (type) => type === baseModel.clientType,
   );
@@ -283,6 +349,8 @@ function probeAndFlag(column: Column, rollup: RollupColumn) {
           error: ROLLUP_DATA_ERROR_MARK + rollupDryRunMessage(baseModel, e),
         });
         nextHealProbeAt.set(column.id, Date.now() + HEAL_PROBE_INTERVAL_MS);
+        // a fresh flag (e.g. after a save) starts the backoff over
+        healIntervals.delete(column.id);
         await clearPlansOf(context, column);
         return 'flagged';
       }
@@ -492,24 +560,29 @@ export async function shouldRetryFailedRead(
   );
 }
 
+/** Settles once every running self-heal probe has finished (tests). */
+export async function settleRollupHeals() {
+  await Promise.all(healProbes.values());
+}
+
 /**
- * A rollup the read fallback flagged from its data: re-runs a bounded dry run
- * at most once per interval and clears the error when it passes. True when
- * cleared. Errors from validation are never touched.
+ * A rollup the read fallback flagged from its data: at most once per interval,
+ * starts a background dry run over the same rows the flag covered and clears
+ * the error when it passes; the read itself still shows the error. Errors from
+ * validation are never touched.
  */
-export async function healRollupDataError(
+export function healRollupDataError(
   requesting: IBaseModelSqlV2,
   rollup: RollupColumn,
-): Promise<boolean> {
-  if (!rollup.data_error || !isRollupFormula(rollup)) return false;
-  // a failed probe would abort it (pg)
-  if (requesting.dbDriver.isTransaction) return false;
+): void {
+  if (!rollup.data_error || !isRollupFormula(rollup)) return;
 
   const id = rollup.fk_column_id;
-  const running = healProbes.get(id);
-  if (running) return running;
-  if ((nextHealProbeAt.get(id) ?? 0) > Date.now()) return false;
-  nextHealProbeAt.set(id, Date.now() + HEAL_PROBE_INTERVAL_MS);
+  if (healProbes.has(id)) return;
+  if ((nextHealProbeAt.get(id) ?? 0) > Date.now()) return;
+  const interval = healIntervals.get(id) ?? HEAL_PROBE_INTERVAL_MS;
+  nextHealProbeAt.set(id, Date.now() + interval);
+  healIntervals.set(id, Math.min(interval * 2, HEAL_PROBE_MAX_INTERVAL_MS));
 
   const probe = (async () => {
     const context = rollup.context;
@@ -530,7 +603,7 @@ export async function healRollupDataError(
     });
     if (isError) return false;
     try {
-      await execRollupDryRun(baseModel, builder, HEAL_PROBE_LIMIT);
+      await execRollupDryRun(baseModel, builder, { background: true });
     } catch {
       return false;
     }
@@ -539,13 +612,13 @@ export async function healRollupDataError(
     const current = await storedRollup(context, id);
     if (
       !current?.error?.startsWith(ROLLUP_DATA_ERROR_MARK) ||
-      current.rollup_formula !== rollup.rollup_formula ||
-      current.fk_rollup_column_id !== rollup.fk_rollup_column_id
+      (await changedSinceProbe(context, rollup))
     ) {
       return false;
     }
     await RollupColumn.update(context, id, { error: null });
     nextHealProbeAt.delete(id);
+    healIntervals.delete(id);
     requesting.context.cacheMap?.clear();
     await clearPlansOf(context, column);
     return true;
@@ -556,5 +629,4 @@ export async function healRollupDataError(
     })
     .finally(() => healProbes.delete(id));
   healProbes.set(id, probe);
-  return probe;
 }

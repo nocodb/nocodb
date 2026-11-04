@@ -40,4 +40,7 @@ export interface SortedResult {
   url: string
   type: 'page' | 'heading' | 'text'
   content: string
+  /** Hierarchy for the hint: the page title (lvl1) and the heading a result sits under (lvl2). */
+  page: string
+  section?: string
 }

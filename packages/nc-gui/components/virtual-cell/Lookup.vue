@@ -65,7 +65,7 @@ watch(
   column,
   async (newColumn) => {
     if (!newColumn?.fk_model_id || getMetaByKey(parentMeta.value?.base_id, newColumn?.fk_model_id)) return
-    if (parentMeta.value?.base_id) await getMeta(parentMeta.value.base_id, newColumn.fk_model_id)
+    if (parentMeta.value?.base_id) await getMeta({ baseId: parentMeta.value.base_id, tableIdOrTitle: newColumn.fk_model_id })
   },
   { immediate: true },
 )
@@ -80,7 +80,8 @@ watch(
     relatedMetaResolved.value = false
     if (relationCol && relationCol.colOptions) {
       const relatedBaseId = getRelatedBaseId(relationCol as ColumnType)
-      if (relatedBaseId) await getMeta(relatedBaseId, relationCol.colOptions.fk_related_model_id!, false, false, true)
+      if (relatedBaseId)
+        await getMeta({ baseId: relatedBaseId, tableIdOrTitle: relationCol.colOptions.fk_related_model_id!, disableError: true })
     }
     relatedMetaResolved.value = true
   },
@@ -191,7 +192,7 @@ watch(
 
       const relMeta = getMetaByKey(baseId, relOpt.fk_related_model_id)
       if (!relMeta) {
-        await getMeta(baseId, relOpt.fk_related_model_id, false, false, true)
+        await getMeta({ baseId, tableIdOrTitle: relOpt.fk_related_model_id, disableError: true })
         return
       }
 
@@ -294,6 +295,8 @@ const lookupAttachmentDownloadCtx = computed(() => {
 provide(LookupAttachmentDownloadInj, lookupAttachmentDownloadCtx)
 
 provide(IsUnderLookupInj, ref(true))
+
+provide(LookupColumnInj, column)
 
 provide(CellUrlDisableOverlayInj, ref(true))
 
@@ -684,7 +687,9 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
               v-if="
                 lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
                 (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
-                  [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions.type))
+                  (isBtLikeV2Junction(lookupColumn) ||
+                    (!isMMOrMMLike(lookupColumn) &&
+                      [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions.type))))
               "
             >
               <LazySmartsheetVirtualCell
@@ -696,6 +701,14 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
                 :read-only="true"
               />
             </template>
+
+            <LazySmartsheetVirtualCell
+              v-else
+              :edit-enabled="false"
+              :read-only="true"
+              :model-value="filteredArrValues"
+              :column="lookupColumn"
+            />
           </template>
           <template v-else>
             <div

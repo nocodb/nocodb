@@ -28,6 +28,7 @@ import {
 
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { NcError } from '~/helpers/catchError';
+import { getApiTokenFromHeader } from '~/helpers/apiHelpers';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
@@ -140,20 +141,28 @@ export class AuthController {
     '/auth/user/me',
     '/api/v1/db/auth/user/me',
     '/api/v1/auth/user/me',
+    // Deprecated: undocumented, not served by EE. Use /api/v1/auth/user/me.
     '/api/v2/auth/user/me',
   ])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   async me(@Req() req: NcRequest) {
+    if (req.route?.path === '/api/v2/auth/user/me') {
+      req.res?.setHeader('Deprecation', 'true');
+    }
+
     // GlobalGuard silently falls back to a guest user when JWT validation
     // fails. If the caller supplied a JWT (xc-auth header or nc_token cookie)
     // and we ended up as guest, the token is invalid/expired — surface 401
     // so the client can refresh or sign out instead of consuming a guest
     // identity that flips the UI's session state mid-flight.
-    if (
-      (req.headers?.['xc-auth'] || req.cookies?.nc_token) &&
-      (req.user as any)?.roles?.guest
-    ) {
-      NcError.unauthorized('Token Expired. Please login again.');
+    if ((req.user as any)?.roles?.guest) {
+      if (req.headers?.['xc-auth'] || req.cookies?.nc_token) {
+        NcError.unauthorized('Token Expired. Please login again.');
+      }
+      // A rejected API token (xc-token or Bearer) falls back to guest too.
+      if (getApiTokenFromHeader(req)) {
+        NcError.unauthorized('Invalid token');
+      }
     }
 
     const user = {

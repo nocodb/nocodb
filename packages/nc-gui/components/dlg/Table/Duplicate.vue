@@ -60,7 +60,7 @@ const targetWorkspace = ref(activeWorkspace)
 const targetBase = ref(activeBase.value)
 
 const targetTableMeta = computedAsync(async () => {
-  return getMeta(activeBase.value?.id, props.table.id!)
+  return getMeta({ baseId: activeBase.value?.id, tableIdOrTitle: props.table.id! })
 })
 
 const canTargetOtherBase = computed(() => {
@@ -170,7 +170,7 @@ const _duplicate = async () => {
         if (data.status !== 'close') {
           if (data.status === JobStatus.COMPLETED) {
             try {
-              const sourceTable = await getMeta(activeBase.value?.id, props.table.id!)
+              const sourceTable = await getMeta({ baseId: activeBase.value?.id, tableIdOrTitle: props.table.id! })
               if (sourceTable) {
                 for (const col of sourceTable.columns || []) {
                   if ([UITypes.Links, UITypes.LinkToAnotherRecord].includes(col.uidt as UITypes)) {
@@ -178,7 +178,7 @@ const _duplicate = async () => {
                       const relatedTableId = (col.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
                       const relatedBaseId = (col.colOptions as any)?.fk_related_base_id || activeBase.value?.id
                       if (relatedTableId && relatedBaseId) {
-                        await getMeta(relatedBaseId, relatedTableId, true)
+                        await getMeta({ baseId: relatedBaseId, tableIdOrTitle: relatedTableId, force: true })
                       }
                     }
                   }

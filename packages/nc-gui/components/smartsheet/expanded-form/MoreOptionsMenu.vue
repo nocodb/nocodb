@@ -116,6 +116,16 @@ const visibleMoreOptions = computed(() => {
 
 const displayField = computed(() => (meta.value?.columns ?? []).find((c: ColumnType) => c.pv) ?? null)
 
+const recordTitle = computed(() => {
+  const value = displayValue.value
+  return ncIsString(value) || ncIsNumber(value) ? String(value) : ''
+})
+
+// Cmd+K record commands only for a saved record in a real (non-template) form.
+const hasRecordCommands = computed(
+  () => !props.templateMode && !props.blueprintMode && !isNew.value && !!primaryKey.value && !!meta.value?.id,
+)
+
 const copyRecordUrl = async () => {
   let baseId = route.params.baseId as string
   let viewId = view.value?.id
@@ -147,7 +157,7 @@ const copyRecordUrl = async () => {
   isRecordLinkCopied.value = false
 }
 
-const onDuplicateRow = async () => {
+const onDuplicateRow = async ({ notify = true }: { notify?: boolean } = {}) => {
   if (showRecordPlanLimitExceededModal()) return
 
   // Resolve the payload before flagging the duplicate as in progress — this may
@@ -172,7 +182,7 @@ const onDuplicateRow = async () => {
     _row.value = newRow
     duplicatingRowInProgress.value = false
     emits('duplicateApplied')
-    message.toast(t('msg.success.rowDuplicatedWithoutSavedYet'))
+    if (notify) message.toast(t('msg.success.rowDuplicatedWithoutSavedYet'))
   }, 500)
 }
 
@@ -192,6 +202,22 @@ const onConfirmDeleteRowClick = async () => {
     skipLoadingRowId: primaryKey.value || undefined,
   })
 }
+
+useExpandedRecordCommands({
+  hasRecordCommands,
+  options: visibleMoreOptions,
+  rowId: () => props.rowId,
+  recordTitle,
+  copyRecordUrl,
+  duplicate: () => onDuplicateRow({ notify: false }),
+  deleteRecord: onDeleteRowClick,
+  showCompactToggle: () => props.showCompactToggle,
+  compactMode: () => props.compactMode,
+  setCompactMode: (compact) => emits('update:compactMode', compact),
+  openSendRecord: () => {
+    showSendRecordModal.value = true
+  },
+})
 </script>
 
 <template>

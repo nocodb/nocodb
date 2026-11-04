@@ -876,7 +876,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   async function loadLinkedRecords(column: ColumnType, ids: string[]) {
     const relatedBaseId = (column.colOptions as LinkToAnotherRecordType as any)?.fk_related_base_id || meta.value?.base_id
-    const relatedMeta = await getMeta(relatedBaseId!, (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id)
+    const relatedMeta = await getMeta({
+      baseId: relatedBaseId!,
+      tableIdOrTitle: (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id,
+    })
 
     if (!relatedMeta) return []
 

@@ -88,12 +88,16 @@ const onDelete = async () => {
       {},
     )
 
-    await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
+    await getMeta({ baseId: meta?.value?.base_id as string, tableIdOrTitle: meta?.value?.id as string, force: true })
 
     /** force-reload related table meta if deleted column is a LTAR and not linked to same table */
     if (isLinksOrLTAR(column.value) && column.value?.colOptions) {
       const relatedBaseId = (column.value.colOptions as LinkToAnotherRecordType).fk_related_base_id || meta?.value?.base_id
-      await getMeta(relatedBaseId as string, (column.value.colOptions as LinkToAnotherRecordType).fk_related_model_id!, true)
+      await getMeta({
+        baseId: relatedBaseId as string,
+        tableIdOrTitle: (column.value.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
+        force: true,
+      })
 
       // reload tables if deleted column owns a junction table and include m2m is enabled.
       // LTAR v1 only creates a junction for MANY_TO_MANY; LTAR v2 always creates one (MM, OM, MO, OO).

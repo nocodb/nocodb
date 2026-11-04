@@ -81,6 +81,8 @@ const onTabClick = (item: ItemType) => {
   modelValue.value = item.value
 }
 
+useRecordViewModeCommands({ isEnabled: isViewModeEnabled, items, current: modelValue, select: onTabClick })
+
 onMounted(() => {
   if (!isViewModeEnabled.value && modelValue.value !== ExpandedFormMode.FIELD) {
     modelValue.value = ExpandedFormMode.FIELD

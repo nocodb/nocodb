@@ -211,6 +211,48 @@ export default class OAuthToken {
   }
 
   /**
+   * Rewrite the permissions blob from its current value. The write is
+   * conditional on the value it was built from, so two writers touching
+   * different fields (a tool edit, a recorded base) never drop each other's:
+   * the loser re-reads and re-applies. Returns null when the row is gone or
+   * revoked — a refresh already copied the blob it held.
+   */
+  static async updatePermissionsWith(
+    id: string,
+    build: (token: OAuthToken) => Promise<string> | string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<string | null> {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const token = await this.get(id, ncMeta);
+      if (!token || token.is_revoked) return null;
+
+      const permissions = await build(token);
+      if (permissions === token.permissions) return permissions;
+
+      const updated = await ncMeta.metaUpdate(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.OAUTH_TOKENS,
+        { permissions },
+        { id, is_revoked: false, permissions: token.permissions ?? null },
+      );
+
+      if (updated) {
+        await NocoCache.update(
+          'root',
+          `${CacheScope.OAUTH_TOKEN}:${token.access_token}`,
+          { permissions },
+        );
+        return permissions;
+      }
+    }
+
+    NcError.badRequest(
+      'This authorization changed while it was being saved; try again',
+    );
+  }
+
+  /**
    * Atomically revoke a token only if it is currently active. Returns true only
    * if this caller won the compare-and-swap (the token was active and is now
    * revoked); false if it was already revoked or does not exist. Used to make

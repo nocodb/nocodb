@@ -135,7 +135,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
     const { getMeta } = useMetas()
 
-    await getMeta(table.base_id!, table.id as string)
+    await getMeta({ baseId: table.base_id!, tableIdOrTitle: table.id as string })
 
     // const typeOrId = (route.value.params.typeOrId as string) || 'nc'
 
@@ -249,7 +249,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
     const { getMeta } = useMetas()
     const _baseId = baseId ?? activeTable.value?.base_id ?? basesStore.activeProjectId
 
-    await getMeta(_baseId!, tableId, true)
+    await getMeta({ baseId: _baseId!, tableIdOrTitle: tableId, force: true })
   }
 
   function openTableCreateDialog({
@@ -257,11 +257,13 @@ export const useTablesStore = defineStore('tablesStore', () => {
     sourceId,
     onCloseCallback,
     showSourceSelector = true,
+    title,
   }: {
     baseId?: string
     sourceId?: string
     onCloseCallback?: () => void
     showSourceSelector?: boolean
+    title?: string
   }) {
     if (!sourceId || !baseId) return
 
@@ -272,6 +274,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
       sourceId,
       'baseId': baseId,
       'showSourceSelector': showSourceSelector,
+      title,
       'onCreate': closeDialog,
       'onUpdate:modelValue': () => closeDialog(),
     })

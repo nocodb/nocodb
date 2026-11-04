@@ -1689,7 +1689,7 @@
     "noMoreActionsToRedo": "これ以上やり直すアクションはありません",
     "noRecentViews": "最近のビューはありません",
     "expandLinkFields": "リンクフィールドを開く",
-    "expandLinkFieldsDesc": "カウントの代わりにリンクされたレコードデータを返します",
+    "expandLinkFieldsDesc": "出力のリンクフィールドには、件数ではなくリンク先のレコードが入ります",
     "inheritedFromParent": "親から継承されました",
     "pageOrUrl": "ページまたは URL",
     "linkTitle": "リンクタイトル",
@@ -4072,7 +4072,6 @@
     "relationSettings": "リレーション設定",
     "restoreVersion": "v{version}を復元",
     "runningScript": "スクリプトを実行中 ...",
-    "removeSummary": "サマリーを削除",
     "rowFiltered": "行をフィルタしました",
     "rowMoved": "行を移動しました",
     "rowHidden": "行を非表示にしました",
@@ -4779,7 +4778,7 @@
       },
       "optIn": {
         "title": "オプトインツール",
-        "description": "完全に削除する、または NocoDB の外部で動作するツール（オートメーションの実行や Webhook の送信など）。ここで有効にしない限り、接続がこれらを取得することはありません。"
+        "description": "完全に削除する、または NocoDB の外で動作するツールです。たとえばオートメーションの実行や Webhook の送信などです。ここで有効にするまではオフのままです。"
       }
     },
     "noBaseAccess": "プロジェクトへのアクセス権がありません",
@@ -5776,7 +5775,88 @@
     "workflowValueDynamicDescription": "このオートメーションの前のステップの変数を使用する",
     "workflowRunAs": "実行ユーザー",
     "workflowChangeRunAs": "実行ユーザーを変更",
-    "workflowServiceAccount": "サービスアカウント"
+    "workflowServiceAccount": "サービスアカウント",
+    "wsEmpty": {
+      "title": "最初のプロジェクトを始めましょう",
+      "subtitle": "プロジェクトには、データとその上に作られたアプリが入ります。",
+      "sharedTitle": "まだ何も共有されていません",
+      "sharedSubtitle": "招待されたプロジェクトとアプリがここに表示されます。"
+    },
+    "workspaceHome": {
+      "uploadFile": "CSV または Excel をアップロード",
+      "pickTemplate": "またはテンプレートを選んで始める",
+      "untitledBase": "無題のプロジェクト",
+      "templates": {
+        "projectManagement": {
+          "label": "プロジェクト管理",
+          "prompt": "プロジェクトとタスクをまとめた進捗管理表です。各タスクには担当者、ステータス、優先度、期限があります。"
+        },
+        "product": {
+          "label": "プロダクト",
+          "prompt": "機能、それぞれが解決する課題、優先度、ステータス、目標リリースをまとめたプロダクトロードマップです。"
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "キャンペーン、各キャンペーンを実施するチャネル、予算、担当者、開始日をまとめたマーケティングカレンダーです。"
+        },
+        "sales": {
+          "label": "営業",
+          "prompt": "企業、連絡先、商談をまとめた営業 CRM です。各商談にはステージ、金額、クローズ予定日があります。"
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "問い合わせ、起票した顧客、優先度、ステータス、担当エージェントをまとめたサポートデスクです。"
+        },
+        "hr": {
+          "label": "人事",
+          "prompt": "募集中のポジション、採用ステージ別の候補者、日程と評価者メモ付きの面接をまとめた応募者管理表です。"
+        }
+      }
+    },
+    "yourConnections": "自分の接続",
+    "workingHours": "稼働時間",
+    "workingDays": "稼働日",
+    "wsNav": {
+      "groupBilling": "Plan",
+      "groupAdmin": "Admin",
+      "membersPage": "ワークスペースメンバー",
+      "iconHint": "サイドバーとワークスペース切り替えに表示されます。",
+      "nameHint": "このワークスペースが NocoDB 全体でどう表示されるか。",
+      "workspaceId": "ワークスペース ID",
+      "workspaceIdHint": "API で使うほか、サポートに問い合わせるときにも使います。",
+      "allTypes": "すべての種類",
+      "allTeams": "すべてのチーム",
+      "teamsCreatedHere": "ここで作成",
+      "teamsScimManaged": "SCIM 管理",
+      "upgradeTitleAudits": "ワークスペースの監査ログ",
+      "upgradeDescAudits": "このワークスペースで行われたすべての変更と、その実行者を確認できます。",
+      "upgradeTitleSso": "シングルサインオン",
+      "upgradeDescSso": "メンバーが ID プロバイダー経由でサインインできるようにします。",
+      "desc": {
+        "members": "このワークスペースに属するメンバーと、その既定のロール。",
+        "teams": "まとめてプロジェクトに追加できるメンバーのグループ。",
+        "integrations": "ワークスペース全体で共有される接続済みアカウントと認証情報。",
+        "general": "ワークスペースの名前、アイコン、ID。",
+        "skills": "AI アシスタントがこのワークスペース全体で従う指示。",
+        "security": "このワークスペースの全員に適用されるサインイン要件。",
+        "dangerZone": "このワークスペースから退出するか、完全に削除します。",
+        "billing": "プラン、シート数、支払い方法、請求書。",
+        "usage": "このワークスペースがプランの上限に対してどれだけ使用しているか。",
+        "audits": "このワークスペースで行われたすべての変更と、その実行者。",
+        "sso": "ID プロバイダー経由でのサインイン。"
+      }
+    },
+    "workspaceMode": "ワークスペースモード",
+    "zoomIn": "拡大",
+    "zoomOut": "縮小",
+    "zoomTo50Percent": "50% に拡大",
+    "zoomTo100Percent": "100% に拡大",
+    "workflowValueStatic": "固定値",
+    "workflowValueStaticDescription": "値を直接入力します",
+    "workspaceNoAccess": "ワークスペース（アクセス権なし）",
+    "yAxis": "Y 軸",
+    "workspaceSettings": "ワークスペース設定",
+    "wrapLongText": "長いテキストを折り返す"
   },
   "activity": {
     "useTemplate": "テンプレートを使用",
@@ -7136,8 +7216,6 @@
       "selectFieldFirst": "これらの選択肢を読み込むには、先に {field} を選択してください。",
       "viewFolderDeleteConfirmation": "このフォルダー内のビューは最上位に移動されます。",
       "saveDraftToBrowser": "下書きをブラウザーに保存",
-      "showAppFirst": "サイドバーでアプリを先頭に表示",
-      "showAppFirstDesc": "このプロジェクトのサイドバーで Apps をデータの上に表示します。",
       "recordSavedButHidden": "レコードは保存されましたが、アクセス権限により非表示になっています。",
       "seeChangesToRecord": "このレコードの変更履歴を見る",
       "revisionHistoryUpgrade": "利用できる変更履歴は {limit} です。すべての履歴を見るにはアップグレードしてください。",
@@ -7240,7 +7318,20 @@
       "mcpSetupCursorStep3": "トークン作成後に表示される JSON 設定を追加します。",
       "mcpSetupIntroWindsurf": "NocoDB MCP と Windsurf を 4 つの簡単なステップで使い始めましょう",
       "mcpSetupWindsurfStep1": "Windsurf の設定を開き、左サイドバーで Cascade タブを選択します",
-      "mcpSetupWindsurfStep2": "Manage MCP をクリックします。"
+      "mcpSetupWindsurfStep2": "Manage MCP をクリックします。",
+      "abuseReport": {
+        "queueDescription": "公開リンクから寄せられた報告です。リンクを無効にして公開を止めるか、その背後にあるアカウントをブロックしてください。",
+        "disableConfirm": "公開リンクは全員に対して無効になり、それに関する未対応の報告はすべて解決済みになります。オーナーは新しいリンクで再度共有できます。",
+        "blockConfirm": "{email} はすべての端末からサインアウトされ、サインインも API トークンの使用もできなくなりました。ユーザー管理からブロックを解除できます。",
+        "noAccounts": "この項目に紐づくアカウントはありません。",
+        "superAdminNotBlockable": "スーパー管理者はブロックできません。",
+        "description": "このページがフィッシング、なりすまし、詐欺、その他の不正な目的に使われていると思われますか？ この {productName} インスタンスの管理者にお知らせください。",
+        "detailsMin": "問題を {min} 文字以上で説明してください。",
+        "thanksTitle": "ご報告ありがとうございます",
+        "thanksDescription": "報告を受け付けました。この {productName} インスタンスの管理者が確認します。",
+        "contactEmailHint": "公開ビュー、フォーム、インターフェース、ダッシュボードからの報告はこの宛先にメールされます。空欄にすると、すべてのスーパー管理者に送信されます。"
+      },
+      "actWithYourOwnPermissions": "それらのリソースでは自分自身の権限で操作します"
     },
     "error": {
       "failedToCreateSync": "同期を作成できませんでした",
@@ -7453,7 +7544,46 @@
       "inviteLinkRevoked": "この招待リンクは取り消されました",
       "inviteLinkExhausted": "この招待リンクは使い切られています",
       "inviteLinkUnavailable": "この招待リンクはもう使用できません",
-      "invalidEmailDomain": "acme.io のようなドメインを入力してください"
+      "invalidEmailDomain": "acme.io のようなドメインを入力してください",
+      "attachmentInvalidUrl": "http:// または https:// で始まる URL か、変数を使ったテンプレートを入力してください",
+      "attachmentAlreadyAttached": "このファイルはすでに添付されています。",
+      "attachmentOpenWorkflowToUpload": "ファイルをアップロードするにはワークフローを開いてください",
+      "attachmentNoLongerAvailable": "このファイルは利用できなくなりました",
+      "attachmentsTooLarge": "ファイルがメール 1 通あたりの上限 {size} を超えています",
+      "factoryMachineNameRequired": "マシンに名前を付けてください",
+      "factoryMachineNameDuplicate": "同じ名前のマシンがすでに存在します",
+      "vaultUnreachable": "この設定ではボールトに接続できませんでした",
+      "vaultAliasStart": "名前は文字で始めてください",
+      "vaultAliasCharacters": "名前に使えるのは英数字だけです — スペース、ハイフン、アンダースコアは使えません",
+      "vaultAliasReserved": "「{name}」は予約語です。別の名前を選んでください",
+      "fieldSaveFailed": "フィールド「{field}」を保存できませんでした: {error}",
+      "fieldSavesFailed": "{count} 件のフィールドを保存できませんでした（{fields}）。最初のエラー: {error}",
+      "projectNameRequired": "プロジェクト名は必須です",
+      "attachmentUrlDownloadFailed": "NocoDB はこのファイルを URL から取得できませんでした。削除してから、もう一度追加してください。",
+      "emailImageSize": "メール本文の画像は {size} 未満にしてください。ロゴであれば通常 100 KB をかなり下回ります。",
+      "emailImageType": "PNG、JPEG、GIF、WebP のいずれかの画像を使ってください",
+      "emailImageCount": "メール本文には画像を {count} 枚まで入れられます",
+      "emailImageTotalSize": "メール本文の画像は合計で {size} 未満にしてください",
+      "emailImageNoWorkflow": "画像を追加するにはワークフローを開いてください",
+      "emailImageUploadFailed": "画像をアップロードできませんでした",
+      "emailImageMissing": "この画像は利用できなくなったため、メールから除外されます。削除してから挿入し直してください。",
+      "vaultSecretNeedsProperty": "このシークレットには複数のフィールドがあります。使用するものを選ばないと、実行時に接続が失敗します。",
+      "vaultUnknownAlias": "「{name}」という名前のボールトは利用できません。",
+      "atLeastOneOperationRequired": "操作を 1 つ以上選択してください",
+      "triggerFormRequired": "トリガーとなるフォームを選択してください",
+      "failedToStartListening": "更新の受信を開始できませんでした",
+      "unknownPermissionRequested": "このサーバーが提供していない権限です",
+      "authorizationWillBeRefused": "上記の権限のため、このリクエストは拒否されます。",
+      "vaultAliasNotAllowed": "ボールト「{name}」を使用する権限がありません。ワークスペースのオーナーにアクセス権を依頼するか、認証情報を直接入力してください。",
+      "selectTargetField": "対象フィールドを選択してください。",
+      "parentTableNoPrimaryKey": "親テーブルに主キー列がありません",
+      "childTableNoPrimaryKey": "子テーブルに主キー列がありません",
+      "noWorkspaceAvailable": "利用できるワークスペースがありません",
+      "invalidJson": "無効な JSON です",
+      "invalidTokensJson": "トークンのエクスポートではありません。light、dark、font、radiusScale のようなキーが必要です。",
+      "renameFileFailed": "ファイル名の変更中にエラーが発生しました",
+      "failedToLoadMetadataDiff": "メタデータの差分を読み込めませんでした",
+      "failedToLoadMonacoEditor": "Monaco Editor を読み込めませんでした"
     },
     "toast": {
       "inviteUrlCopy": "招待用 URL をクリップボードにコピーしました",
@@ -7596,9 +7726,9 @@
       "failed": "登録に失敗しました",
       "paused": "一時停止中"
     },
-    "agentToolsAndAccessSubtitle": "エージェントは何を使えますか？アクセスできるツール、ページ、接続を追加します。",
+    "agentToolsAndAccessSubtitle": "このエージェントが読み取り・変更できる範囲は？ それぞれレベルを選んでください。",
     "agentNoFilters": "条件はまだありません",
-    "agentInstructionsSubtitle": "エージェントは実行のたびに何をすべきですか？おすすめの方法はこちらです。",
+    "agentInstructionsSubtitle": "名前を付けたら、同僚に仕事を引き継ぐときのように、何をしてほしいかを書いてください。",
     "communitySkillsSubtitle": "上で skills.sh に公開されている Skills を検索し、インストールする前に開いて SKILL.md を読んでください。",
     "environmentBlockedBySync": "同期が有効なプロジェクトでは環境を開けません。先に同期の設定を削除してください。",
     "chatArtifactPublicLinkHint": "リンクを知っている人なら誰でも閲覧できます。",
@@ -7763,7 +7893,14 @@
       "confirmCta": "移行を確定",
       "migrating": "移行中..."
     },
-    "skillsRegistryErrorTitle": "スキルレジストリを検索できませんでした"
+    "skillsRegistryErrorTitle": "スキルレジストリを検索できませんでした",
+    "airtableImportReportSummary": "スキップ {skipped} 件 · 近似 {approximated} 件 · 失敗 {failed} 件",
+    "airtableImportReportTruncated": "レポートには全 {total} 件のうち最初の {shown} 件が表示されます。すべての一覧はログをダウンロードしてご確認ください。",
+    "factoryMachineReadyNow": "マシンの準備ができました。新しいセッションはこれを使います。",
+    "factoryMachineSwitched": "新しいセッションはバージョン {version} を使います。",
+    "factoryMachineDefaultNow": "新しいセッションは今後 {machine} で開始します。",
+    "factoryMachineUpgrading": "{machine} をアップグレードしています。ビルドが完了すると、新しいセッションがこれを使います。",
+    "factoryAppInstallUnavailable": "{provider} はまだコーディングエージェントに接続できません。アプリのインストールが必要ですが、ここには {provider} 用のものが設定されていません。"
   },
   "trash": {
     "restore": "復元",
@@ -8149,7 +8286,6 @@
       "lastSignedInAt": "最終ログイン {time}",
       "lastUsed": "最終使用",
       "lastUsedAt": "最終使用 {time}",
-      "canDelete": "データを削除できます",
       "toolsTitle": "ツールと権限",
       "neverMoreThanRole": "このプロジェクトでのあなた自身のロール ({role}) を超えることはありません。",
       "neverMoreThanAccess": "このプロジェクトに対するあなた自身のアクセス権を超えることはありません。",

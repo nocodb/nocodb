@@ -36,7 +36,10 @@ import { hasDefaultTableVisibility } from '~/helpers/tableHelpers';
 import { isSharedViewAccess } from '~/helpers/accessSource';
 import { projectRelatedMetas } from '~/helpers/relatedMetaProjection';
 import { withoutViewSecrets } from '~/helpers/publicViewSecrets';
-import { resolveViewVisibleColumns } from '~/helpers/viewVisibleColumns';
+import {
+  getViewExposedColumnIds,
+  resolveViewVisibleColumns,
+} from '~/helpers/viewVisibleColumns';
 
 @Injectable()
 export class PublicMetasService {
@@ -129,6 +132,25 @@ export class PublicMetasService {
 
     await view.model.getColumns();
 
+    // Grouping by a field the share doesn't expose is refused on the data path
+    // (its group keys are the field's values) — drop it so the link shows the
+    // rows ungrouped instead of nothing. Copies: the columns may be cached.
+    const isGroupedBy = (c: object) =>
+      'group_by' in c && !!(c as { group_by?: unknown }).group_by;
+    if (isSharedViewAccess(context) && view.columns?.some(isGroupedBy)) {
+      const exposed = await getViewExposedColumnIds(context, {
+        model: view.model,
+        view,
+      });
+      view.columns = view.columns.map((c) =>
+        isGroupedBy(c) && !exposed.has(c.fk_column_id)
+          ? Object.assign(Object.create(Object.getPrototypeOf(c)), c, {
+              group_by: false,
+            })
+          : c,
+      );
+    }
+
     const source = await Source.get(context, view.model.source_id);
     view.client = source.type;
     view.source = {
@@ -163,6 +185,11 @@ export class PublicMetasService {
       }
     }
 
+    const isShown = (columnId: string) =>
+      view.columns.some((vc) => vc.fk_column_id === columnId && vc.show);
+
+    // A hidden required column stays out: a shared form submits shown fields
+    // only. A Lookup/Rollup brings its link only when the share shows it.
     view.model.columns = view.columns
       .filter((c) => {
         const column = view.model.columnsById[c.fk_column_id];
@@ -176,20 +203,20 @@ export class PublicMetasService {
         return (
           (c instanceof GridViewColumn && c.group_by) ||
           c.show ||
-          (column.rqd && !column.cdf && !column.ai) ||
           column.pk ||
           view.model.columns.some(
             (c1) =>
               isLinksOrLTAR(c1.uidt) &&
               (<LinkToAnotherRecordColumn>c1.colOptions).type ===
                 RelationTypes.BELONGS_TO &&
-              view.columns.some((vc) => vc.fk_column_id === c1.id && vc.show) &&
+              isShown(c1.id) &&
               (<LinkToAnotherRecordColumn>c1.colOptions).fk_child_column_id ===
                 c.fk_column_id,
           ) ||
           view.model.columns.some(
             (c1) =>
               (UITypes.Lookup === c1.uidt || UITypes.Rollup === c1.uidt) &&
+              isShown(c1.id) &&
               c1.colOptions &&
               (<LookupColumn | RollupColumn>c1.colOptions)
                 .fk_relation_column_id === c.fk_column_id,

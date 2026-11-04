@@ -1,4 +1,4 @@
-import type { z, ZodTypeAny } from 'zod';
+import type { z, ZodType } from 'zod';
 import type { MetaTable } from '~/utils/globals';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ColumnBackupRef } from '~/services/column-data-backup-handler';
@@ -16,7 +16,7 @@ import type { OperationName } from './op-names';
  * v1 rows drain.
  */
 export interface OperationContract<
-  S extends ZodTypeAny = ZodTypeAny,
+  S extends ZodType = ZodType,
   E = Record<string, any>,
   R = any,
 > {
@@ -39,7 +39,7 @@ export interface OperationContract<
    */
   readonly capture?: ReadonlyArray<CaptureKey>;
   /** Validates the `meta.extra` payload before persistence. Strict. */
-  readonly capture_schema?: ZodTypeAny;
+  readonly capture_schema?: z.ZodType<Record<string, unknown>>;
 
   readonly on_record_failure?: FailureCleanupFn;
 
@@ -51,7 +51,7 @@ export interface OperationContract<
 }
 
 export interface OperationEntry<
-  S extends ZodTypeAny = ZodTypeAny,
+  S extends ZodType = ZodType,
   E = Record<string, any>,
   R = any,
 > {
@@ -74,7 +74,7 @@ export interface OperationEntry<
 }
 
 export interface OperationUndo<
-  S extends ZodTypeAny = ZodTypeAny,
+  S extends ZodType = ZodType,
   E = Record<string, any>,
   R = any,
 > {
@@ -102,7 +102,7 @@ export interface OperationUndo<
   readonly scope: ScopeResolver<S, E, R>;
 }
 
-export interface OperationSandbox<S extends ZodTypeAny = ZodTypeAny, R = any> {
+export interface OperationSandbox<S extends ZodType = ZodType, R = any> {
   /**
    * Property name in `params` whose value is the create-body object. The
    * dispatcher injects `entry.entity_id` into `params[id_field].id` at
@@ -138,11 +138,7 @@ export function getSandboxConfig<C extends OperationContract<any, any, any>>(
   return contract.sandbox === false ? undefined : contract.sandbox;
 }
 
-export type EntityRefFn<
-  S extends ZodTypeAny,
-  R = any,
-  E = Record<string, any>,
-> = (
+export type EntityRefFn<S extends ZodType, R = any, E = Record<string, any>> = (
   params: z.infer<S>,
   result: R,
   resolved?: ResolvedCtx<E>,
@@ -383,6 +379,10 @@ export interface CaptureBag {
    *  half-revert on undo, restoring field values while leaving links moved,
    *  with nothing telling the user part of the op was skipped. */
   linkChangesUnavailable: boolean;
+  /** A tabbed write ran but captured nothing to undo it with (e.g. past
+   *  NC_BULK_UPDATE_UNDO_LIMIT): it records no undo entry, but still drops
+   *  the tab's undone entries so a redo can't overwrite it. */
+  notUndoable: boolean;
   /** Pre-move neighbor for `recordMove`. `beforeRowId` = pk of the row
    *  that was immediately after the moved row in the pre-move ordering
    *  (or `null` if it was at the end). The inverse `moveRecord` call
@@ -498,7 +498,7 @@ export interface ScopeRef {
  * `result` are both populated.
  */
 export type ScopeResolver<
-  S extends ZodTypeAny = ZodTypeAny,
+  S extends ZodType = ZodType,
   E = Record<string, any>,
   R = any,
 > = (

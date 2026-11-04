@@ -62,7 +62,7 @@ const onDelete = async () => {
   const deletedIds = new Set(deletableColumns.value.map((c) => c.id!).filter((id) => !failedIds.has(id)))
 
   // Refresh meta once after all deletions.
-  await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
+  await getMeta({ baseId: meta?.value?.base_id as string, tableIdOrTitle: meta?.value?.id as string, force: true })
 
   // For any deleted LTAR, refresh the related table meta + tables list if it
   // owned a junction.
@@ -70,7 +70,11 @@ const onDelete = async () => {
     if (!deletedIds.has(col.id as string)) continue
     if (!(isLinksOrLTAR(col) && col?.colOptions)) continue
     const relatedBaseId = (col.colOptions as LinkToAnotherRecordType).fk_related_base_id || meta?.value?.base_id
-    await getMeta(relatedBaseId as string, (col.colOptions as LinkToAnotherRecordType).fk_related_model_id!, true)
+    await getMeta({
+      baseId: relatedBaseId as string,
+      tableIdOrTitle: (col.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
+      force: true,
+    })
     const colType = (col.colOptions as LinkToAnotherRecordType).type
     const hasJunctionTable = isLinkV2(col) || colType === RelationTypes.MANY_TO_MANY
     if (includeM2M.value && hasJunctionTable) {

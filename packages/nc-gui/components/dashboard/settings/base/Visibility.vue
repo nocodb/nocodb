@@ -132,8 +132,6 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
             </div>
             <span class="text-nc-content-gray-muted pl-10">{{ $t('msg.info.showNullAndEmptyInFilterDesc') }}</span>
           </div>
-
-          <DashboardSettingsBaseAppOrder v-if="isEeUI" />
         </div>
       </div>
     </div>

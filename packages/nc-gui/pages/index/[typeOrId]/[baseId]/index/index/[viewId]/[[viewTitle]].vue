@@ -20,7 +20,7 @@ watch(
         return tables.length > 0
       })
       .then(() => {
-        getMeta(baseStore.baseId as string, viewId as string, undefined, undefined, undefined, true)
+        getMeta({ baseId: baseStore.baseId as string, tableIdOrTitle: viewId as string, navigateOnNotFound: true })
       })
   },
   { immediate: true },

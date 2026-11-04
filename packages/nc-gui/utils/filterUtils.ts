@@ -28,6 +28,7 @@ import type {
   LookupType,
   TableType,
 } from 'nocodb-sdk'
+import type { GetMetaParams } from '~/composables/useMetas'
 
 export const MAX_NESTED_LEVEL = 5
 export const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
@@ -258,7 +259,7 @@ export const composeColumnsForFilter = async ({
   getMeta,
 }: {
   rootMeta: TableType
-  getMeta: (baseId: string, metaIdOrTitle: string) => Promise<TableType | null>
+  getMeta: (params: GetMetaParams) => Promise<TableType | null>
 }) => {
   const result: ColumnTypeForFilter[] = []
   for (const column of rootMeta.columns!) {
@@ -274,9 +275,9 @@ export const composeColumnsForFilter = async ({
     // include the column only if all only if all relations are bt
     while (nextCol && nextCol.uidt === UITypes.Lookup) {
       // extract the relation column meta
-      const lookupRelation: ColumnType | undefined = (await getMeta(currentBaseId, nextCol.fk_model_id!))?.columns?.find(
-        (c) => c.id === (nextCol!.colOptions as LookupType).fk_relation_column_id,
-      )
+      const lookupRelation: ColumnType | undefined = (
+        await getMeta({ baseId: currentBaseId, tableIdOrTitle: nextCol.fk_model_id! })
+      )?.columns?.find((c) => c.id === (nextCol!.colOptions as LookupType).fk_relation_column_id)
       // this is less likely to happen but if relation column is not found then break the loop
       if (!lookupRelation) {
         break
@@ -284,7 +285,10 @@ export const composeColumnsForFilter = async ({
 
       const relationColOptions = lookupRelation.colOptions as LinkToAnotherRecordType
       currentBaseId = relationColOptions.fk_related_base_id || currentBaseId
-      const relatedTableMeta: TableType | null = await getMeta(currentBaseId, relationColOptions.fk_related_model_id!)
+      const relatedTableMeta: TableType | null = await getMeta({
+        baseId: currentBaseId,
+        tableIdOrTitle: relationColOptions.fk_related_model_id!,
+      })
       nextCol = relatedTableMeta?.columns?.find((c) => c.id === (nextCol!.colOptions as LookupType).fk_lookup_column_id)
 
       // if next column is same as root lookup column then break the loop

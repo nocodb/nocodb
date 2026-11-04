@@ -30,3 +30,16 @@ export const JSON_RPC_PARSE_ERROR = {
   error: { code: -32700, message: 'Parse error: body is not valid JSON' },
   id: null,
 };
+
+/** Wrap a platform error body (`message` or v1 `msg`) as a JSON-RPC error. */
+export function toJsonRpcError(body: any) {
+  const message = body?.message ?? body?.msg;
+  return {
+    jsonrpc: '2.0',
+    error: {
+      code: -32000,
+      message: typeof message === 'string' ? message : 'Request failed',
+    },
+    id: null,
+  };
+}

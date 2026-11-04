@@ -202,8 +202,8 @@ export const suggestManagedAppNextVersion = (currentVersion?: string) => {
 
 /**
  * `base.meta.appFirst` — the base was created through the App or Website build
- * flow, so its app leads the mini sidebar instead of trailing Data/Workflows/Interfaces.
- * Written once at creation; users reorder nothing.
+ * flow, so a browser with no rail order of its own starts it with Apps first.
+ * Written once at creation; users reorder the rail by dragging.
  */
 export const BASE_META_APP_FIRST = 'appFirst'
 

@@ -652,58 +652,6 @@
         "description": "Authenticate existing user with their email and password. Successful login will return a JWT access-token. "
       }
     },
-    "/api/v2/auth/user/me": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-token"
-        }
-      ],
-      "get": {
-        "summary": "Get User Info",
-        "operationId": "auth-me",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserInfo"
-                },
-                "examples": {
-                  "example-1": {
-                    "value": {
-                      "id": "us_8kugj628ebjngs",
-                      "email": "user@example.com",
-                      "email_verified": true,
-                      "firstname": "Alice",
-                      "lastname": "Smith",
-                      "roles": "org-level-viewer"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Auth"
-        ],
-        "description": "Returns authenticated user info",
-        "parameters": [
-          {
-            "schema": {
-              "$ref": "#/components/schemas/Id"
-            },
-            "in": "query",
-            "name": "base_id",
-            "description": "Pass base id to get base specific roles along with user info"
-          }
-        ]
-      }
-    },
     "/api/v2/auth/password/forgot": {
       "post": {
         "summary": "Forget Password",

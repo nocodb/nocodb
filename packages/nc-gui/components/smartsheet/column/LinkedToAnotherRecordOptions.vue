@@ -212,7 +212,7 @@ const refTables = computed(() => {
     if (!relatedBaseId) return []
 
     // Load meta if not already loaded
-    if (!getMetaByKey(relatedBaseId, refTableId)) getMeta(relatedBaseId, refTableId)
+    if (!getMetaByKey(relatedBaseId, refTableId)) getMeta({ baseId: relatedBaseId, tableIdOrTitle: refTableId })
     const tableMeta = getMetaByKey(relatedBaseId, refTableId)
     // Check if table is private (from API response only)
     const isPrivate = tableMeta && (tableMeta as any).is_private
@@ -338,7 +338,7 @@ watch(
       // socket channel + handler are scoped to the active base), so a cached
       // meta can be stale — e.g. a peer added a field in the other base. A
       // same-base related table stays fresh via realtime, so don't force there.
-      getMeta(relatedBaseId, tableId, crossBase.value).catch(() => {
+      getMeta({ baseId: relatedBaseId, tableIdOrTitle: tableId, force: crossBase.value }).catch(() => {
         // ignore
       })
       viewsStore
@@ -528,7 +528,7 @@ const onFilterLabelClick = () => {
     const relatedBaseId = (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || vModel.value?.ref_base_id
 
     if (tableId && relatedBaseId) {
-      getMeta(relatedBaseId, tableId, true).catch(() => {
+      getMeta({ baseId: relatedBaseId, tableIdOrTitle: tableId, force: true }).catch(() => {
         // ignore
       })
     }

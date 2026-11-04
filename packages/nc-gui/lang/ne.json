@@ -1689,7 +1689,7 @@
     "noMoreActionsToRedo": "No more actions to redo",
     "noRecentViews": "No recent views",
     "expandLinkFields": "Expand link fields",
-    "expandLinkFieldsDesc": "Return linked record data instead of count",
+    "expandLinkFieldsDesc": "नतिजामा लिंक फिल्डहरूले गणनाको साटो जोडिएका रेकर्डहरू राख्छन्",
     "inheritedFromParent": "Inherited from parent",
     "pageOrUrl": "Page or URL",
     "linkTitle": "Link title",
@@ -4072,7 +4072,6 @@
     "relationSettings": "सम्बन्धका सेटिङ",
     "restoreVersion": "v{version} पुनर्स्थापना गर्नुहोस्",
     "runningScript": "स्क्रिप्ट चलिरहेको छ ...",
-    "removeSummary": "सारांश हटाउनुहोस्",
     "rowFiltered": "पङ्क्ति फिल्टर गरियो",
     "rowMoved": "पङ्क्ति सारियो",
     "rowHidden": "पङ्क्ति लुकाइयो",
@@ -4779,7 +4778,7 @@
       },
       "optIn": {
         "title": "वैकल्पिक उपकरण",
-        "description": "सधैंका लागि मेट्ने वा NocoDB बाहिर काम गर्ने उपकरणहरू, जस्तै कुनै अटोमेसन चलाउनु वा वेबहुक पठाउनु। तपाईंले यहाँ नखोलेसम्म कुनै जडानले यी पाउँदैन।"
+        "description": "सधैँका लागि मेटाउने वा NocoDB बाहिर काम गर्ने उपकरणहरू, जस्तै स्वचालन चलाउने वा वेबहुक पठाउने। तपाईंले यहाँ नखोलेसम्म तिनीहरू बन्द नै रहन्छन्।"
       }
     },
     "noBaseAccess": "परियोजनामा पहुँच छैन",
@@ -5775,7 +5774,88 @@
     "workflowValueDynamicDescription": "यस स्वचालनको अघिल्लो चरणका चरहरू प्रयोग गर्नुहोस्",
     "workflowRunAs": "यस रूपमा चलाउनुहोस्",
     "workflowChangeRunAs": "कुन रूपमा चलाउने भन्ने बदल्नुहोस्",
-    "workflowServiceAccount": "सेवा खाता"
+    "workflowServiceAccount": "सेवा खाता",
+    "wsEmpty": {
+      "title": "आफ्नो पहिलो परियोजना सुरु गर्नुहोस्",
+      "subtitle": "परियोजनाले तपाईंको डेटा र त्यसमाथि बनेका एपहरू राख्छ।",
+      "sharedTitle": "अहिलेसम्म तपाईंसँग केही साझा गरिएको छैन",
+      "sharedSubtitle": "तपाईंलाई निम्त्याइएका परियोजना र एपहरू यहाँ देखिन्छन्।"
+    },
+    "workspaceHome": {
+      "uploadFile": "CSV वा Excel अपलोड गर्नुहोस्",
+      "pickTemplate": "वा सुरु गर्न कुनै टेम्प्लेट छान्नुहोस्",
+      "untitledBase": "शीर्षकविहीन परियोजना",
+      "templates": {
+        "projectManagement": {
+          "label": "परियोजना व्यवस्थापन",
+          "prompt": "परियोजना ट्र्याकर, जसमा परियोजना र कार्यहरू हुन्छन्, र प्रत्येक कार्यको जिम्मेवार व्यक्ति, स्थिति, प्राथमिकता र अन्तिम मिति हुन्छ।"
+        },
+        "product": {
+          "label": "उत्पादन",
+          "prompt": "उत्पादनको रोडम्याप, जसमा सुविधाहरू, प्रत्येकले समाधान गर्ने समस्या, प्राथमिकता, स्थिति र लक्षित संस्करण हुन्छन्।"
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "मार्केटिङ पात्रो, जसमा अभियानहरू, प्रत्येक अभियान चल्ने च्यानलहरू, बजेट, जिम्मेवार व्यक्ति र सुरु मिति हुन्छन्।"
+        },
+        "sales": {
+          "label": "बिक्री",
+          "prompt": "बिक्रीको CRM, जसमा कम्पनीहरू, सम्पर्कहरू र सम्झौताहरू हुन्छन्, र प्रत्येक सम्झौताको चरण, मूल्य र अपेक्षित अन्त्य मिति हुन्छ।"
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "सहयोग डेस्क, जसमा टिकटहरू, प्रत्येक टिकट उठाउने ग्राहक, प्राथमिकता, स्थिति र तोकिएको एजेन्ट हुन्छन्।"
+        },
+        "hr": {
+          "label": "मानव संसाधन",
+          "prompt": "आवेदक ट्र्याकर, जसमा खुला पदहरू, भर्ना चरणअनुसार उम्मेदवारहरू, र मिति तथा मूल्याङ्कनकर्ताका टिप्पणीसहितका अन्तर्वार्ताहरू हुन्छन्।"
+        }
+      }
+    },
+    "yourConnections": "तपाईंका जडानहरू",
+    "workingHours": "कार्य समय",
+    "workingDays": "कार्य दिनहरू",
+    "wsNav": {
+      "groupBilling": "योजना",
+      "groupAdmin": "प्रशासन",
+      "membersPage": "कार्यक्षेत्र सदस्यहरू",
+      "iconHint": "साइडबार र कार्यक्षेत्र स्विचरमा देखाइन्छ।",
+      "nameHint": "पूरै NocoDB मा यो कार्यक्षेत्र कुन नामले चिनिन्छ।",
+      "workspaceId": "कार्यक्षेत्र आईडी",
+      "workspaceIdHint": "यसलाई API सँग प्रयोग गर्नुहोस्, वा सहयोग टोलीलाई सम्पर्क गर्दा।",
+      "allTypes": "सबै प्रकारहरू",
+      "allTeams": "सबै टोलीहरू",
+      "teamsCreatedHere": "यहीँ बनाइएको",
+      "teamsScimManaged": "SCIM द्वारा व्यवस्थित",
+      "upgradeTitleAudits": "कार्यक्षेत्रको अडिट लग",
+      "upgradeDescAudits": "यस कार्यक्षेत्रमा गरिएको हरेक परिवर्तन हेर्नुहोस्, र त्यो कसले गर्‍यो।",
+      "upgradeTitleSso": "एकल साइन-अन",
+      "upgradeDescSso": "सदस्यहरूलाई तपाईंको आइडेन्टिटी प्रोभाइडरमार्फत साइन-इन गर्न दिनुहोस्।",
+      "desc": {
+        "members": "यस कार्यक्षेत्रमा को-को छन्, र तिनीहरूको पूर्वनिर्धारित भूमिका के हो।",
+        "teams": "सदस्यहरूका समूह, जसलाई तपाईं एकैपटक परियोजनामा थप्न सक्नुहुन्छ।",
+        "integrations": "जोडिएका खाता र क्रेडेन्सियलहरू, जुन पूरै कार्यक्षेत्रमा साझा हुन्छन्।",
+        "general": "कार्यक्षेत्रको नाम, आइकन र आईडी।",
+        "skills": "यस कार्यक्षेत्रभर AI सहायकले पालना गर्ने निर्देशनहरू।",
+        "security": "यस कार्यक्षेत्रका सबैका लागि साइन-इन आवश्यकताहरू।",
+        "dangerZone": "यो कार्यक्षेत्र छोड्नुहोस् वा सधैँका लागि मेटाउनुहोस्।",
+        "billing": "तपाईंको योजना, सिटहरू, भुक्तानी विधि र बिलहरू।",
+        "usage": "यो कार्यक्षेत्रले आफ्नो योजनाको सीमाबाट कति प्रयोग गर्छ।",
+        "audits": "यस कार्यक्षेत्रमा गरिएको हरेक परिवर्तन, र त्यो कसले गर्‍यो।",
+        "sso": "तपाईंको आइडेन्टिटी प्रोभाइडरमार्फत साइन-इन।"
+      }
+    },
+    "workspaceMode": "कार्यक्षेत्र मोड",
+    "zoomIn": "जुम इन",
+    "zoomOut": "जुम आउट",
+    "zoomTo50Percent": "50% मा जुम गर्नुहोस्",
+    "zoomTo100Percent": "100% मा जुम गर्नुहोस्",
+    "workflowValueStatic": "स्थिर",
+    "workflowValueStaticDescription": "मानहरू सिधै हाल्नुहोस्",
+    "workspaceNoAccess": "कार्यक्षेत्र (पहुँच छैन)",
+    "yAxis": "Y अक्ष",
+    "workspaceSettings": "कार्यक्षेत्र सेटिङहरू",
+    "wrapLongText": "लामो पाठ बेर्नुहोस्"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -7135,8 +7215,6 @@
       "selectFieldFirst": "यी विकल्पहरू लोड गर्न पहिले {field} छान्नुहोस्।",
       "viewFolderDeleteConfirmation": "यो फोल्डरका दृश्यहरू सबैभन्दा माथिल्लो तहमा सारिनेछन्।",
       "saveDraftToBrowser": "मस्यौदा ब्राउजरमा सुरक्षित गर्नुहोस्",
-      "showAppFirst": "साइडबारमा एपलाई पहिले देखाउनुहोस्",
-      "showAppFirstDesc": "यस परियोजनाको साइडबारमा Apps लाई डेटामाथि राख्नुहोस्।",
       "recordSavedButHidden": "रेकर्ड सफलतापूर्वक सुरक्षित भयो, तर तपाईंको पहुँच अनुमतिका कारण लुकेको छ।",
       "seeChangesToRecord": "यो रेकर्डका परिवर्तनहरू हेर्नुहोस्",
       "revisionHistoryUpgrade": "तपाईंसँग {limit} संशोधन इतिहास छ। पूरा इतिहास हेर्न अपग्रेड गर्नुहोस्।",
@@ -7239,7 +7317,20 @@
       "mcpSetupCursorStep3": "टोकन बनाएपछि प्राप्त हुने JSON कन्फिगरेसन थप्नुहोस्।",
       "mcpSetupIntroWindsurf": "४ सजिला चरणमा Windsurf सँग NocoDB MCP प्रयोग सुरु गर्नुहोस्",
       "mcpSetupWindsurfStep1": "Windsurf को सेटिङमा जानुहोस् र बायाँ साइडबारमा Cascade ट्याब छान्नुहोस्",
-      "mcpSetupWindsurfStep2": "Manage MCP मा क्लिक गर्नुहोस्।"
+      "mcpSetupWindsurfStep2": "Manage MCP मा क्लिक गर्नुहोस्।",
+      "abuseReport": {
+        "queueDescription": "सार्वजनिक लिंकबाट दर्ता भएका उजुरीहरू। लिंक हटाउन त्यसलाई निष्क्रिय पार्नुहोस्, वा पछाडिका खाताहरू ब्लक गर्नुहोस्।",
+        "disableConfirm": "सार्वजनिक लिंक सबैका लागि काम गर्न छाड्छ, र त्यससम्बन्धी सबै खुला उजुरीहरू समाधान भएको मानिन्छ। स्वामीले यो वस्तु नयाँ लिंकसहित फेरि साझा गर्न सक्छन्।",
+        "blockConfirm": "{email} लाई सबै ठाउँबाट साइन आउट गरिएको छ र अब उनीहरूले साइन इन गर्न वा API टोकन प्रयोग गर्न सक्दैनन्। तपाईं प्रयोगकर्ता व्यवस्थापनबाट अनब्लक गर्न सक्नुहुन्छ।",
+        "noAccounts": "यो वस्तुसँग कुनै खाता जोडिएको छैन।",
+        "superAdminNotBlockable": "सुपर एडमिनलाई ब्लक गर्न सकिँदैन।",
+        "description": "के तपाईंलाई लाग्छ कि यो पृष्ठ फिसिङ, नक्कली परिचय, ठगी वा अन्य दुरुपयोगका लागि प्रयोग भइरहेको छ? यो {productName} इन्स्ट्यान्सका प्रशासकहरूलाई जानकारी दिनुहोस्।",
+        "detailsMin": "कृपया समस्या कम्तीमा {min} अक्षरमा वर्णन गर्नुहोस्।",
+        "thanksTitle": "तपाईंको उजुरीका लागि धन्यवाद",
+        "thanksDescription": "तपाईंको उजुरी प्राप्त भयो। यो {productName} इन्स्ट्यान्सका प्रशासकहरूले यसको समीक्षा गर्नेछन्।",
+        "contactEmailHint": "सार्वजनिक भ्यू, फारम, इन्टरफेस र ड्यासबोर्डबाट आएका उजुरीहरू यहाँ इमेल गरिन्छन्। सबै सुपर एडमिनलाई पठाउन खाली छोड्नुहोस्।"
+      },
+      "actWithYourOwnPermissions": "ती स्रोतहरूमा आफ्नै अनुमतिसहित काम गर्नुहोस्"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -7452,7 +7543,46 @@
       "inviteLinkRevoked": "यो निमन्त्रणा लिङ्क रद्द गरिएको छ",
       "inviteLinkExhausted": "यो निमन्त्रणा लिङ्क पूरै प्रयोग भइसक्यो",
       "inviteLinkUnavailable": "यो निमन्त्रणा लिङ्कले अब काम गर्दैन",
-      "invalidEmailDomain": "acme.io जस्तो डोमेन लेख्नुहोस्"
+      "invalidEmailDomain": "acme.io जस्तो डोमेन लेख्नुहोस्",
+      "attachmentInvalidUrl": "http:// वा https:// बाट सुरु हुने URL हाल्नुहोस्, वा चरहरू प्रयोग गर्ने टेम्प्लेट",
+      "attachmentAlreadyAttached": "यो फाइल पहिले नै संलग्न छ।",
+      "attachmentOpenWorkflowToUpload": "फाइल अपलोड गर्न कार्यप्रवाह खोल्नुहोस्",
+      "attachmentNoLongerAvailable": "यो फाइल अब उपलब्ध छैन",
+      "attachmentsTooLarge": "फाइलहरूले प्रति इमेल {size} को सीमा नाघ्छन्",
+      "factoryMachineNameRequired": "मेसिनलाई एउटा नाम दिनुहोस्",
+      "factoryMachineNameDuplicate": "यही नामको मेसिन पहिले नै छ",
+      "vaultUnreachable": "यी सेटिङले भल्टसम्म पुग्न सकिएन",
+      "vaultAliasStart": "नाम अक्षरबाट सुरु हुनुपर्छ",
+      "vaultAliasCharacters": "नाममा अक्षर र अंक मात्र हुन सक्छन् — खाली ठाउँ, ड्यास वा अन्डरस्कोर हुँदैन",
+      "vaultAliasReserved": "'{name}' आरक्षित नाम हो, अर्को छान्नुहोस्",
+      "fieldSaveFailed": "फिल्ड '{field}' सुरक्षित गर्न सकिएन: {error}",
+      "fieldSavesFailed": "{count} फिल्डहरू सुरक्षित गर्न सकिएन ({fields})। पहिलो त्रुटि: {error}",
+      "projectNameRequired": "परियोजनाको नाम आवश्यक छ",
+      "attachmentUrlDownloadFailed": "NocoDB ले यो फाइल यसको URL बाट डाउनलोड गर्न सकेन। यसलाई हटाएर फाइल फेरि थप्नुहोस्।",
+      "emailImageSize": "इमेलको मुख्य भागका चित्रहरू {size} भन्दा सानो हुनुपर्छ। लोगो सामान्यतया 100 KB भन्दा निकै सानो हुन्छ।",
+      "emailImageType": "PNG, JPEG, GIF वा WebP चित्र प्रयोग गर्नुहोस्",
+      "emailImageCount": "इमेलको मुख्य भागमा बढीमा {count} वटा चित्र राख्न सकिन्छ",
+      "emailImageTotalSize": "इमेलको मुख्य भागका चित्रहरू जम्मा {size} भन्दा कम हुनुपर्छ",
+      "emailImageNoWorkflow": "चित्र थप्न कार्यप्रवाह खोल्नुहोस्",
+      "emailImageUploadFailed": "चित्र अपलोड गर्न सकिएन",
+      "emailImageMissing": "यो चित्र अब उपलब्ध छैन र इमेलबाट हटाइनेछ। यसलाई हटाएर फेरि राख्नुहोस्।",
+      "vaultSecretNeedsProperty": "यो गोप्य कुरामा धेरै फिल्ड छन्। कुन प्रयोग गर्ने छान्नुहोस्, नत्र चल्दा जडान असफल हुन्छ।",
+      "vaultUnknownAlias": "'{name}' नामको कुनै भल्ट तपाईंका लागि उपलब्ध छैन।",
+      "atLeastOneOperationRequired": "कम्तीमा एउटा कार्य छान्नै पर्छ",
+      "triggerFormRequired": "तपाईंले ट्रिगर फारम छान्नै पर्छ",
+      "failedToStartListening": "अद्यावधिक सुन्न सुरु गर्न सकिएन",
+      "unknownPermissionRequested": "यो सर्भरले त्यस्तो अनुमति दिँदैन",
+      "authorizationWillBeRefused": "माथिका अनुमतिहरूका कारण यो अनुरोध अस्वीकार गरिनेछ।",
+      "vaultAliasNotAllowed": "तपाईंलाई '{name}' भल्ट प्रयोग गर्ने अनुमति छैन। कार्यक्षेत्रको कुनै स्वामीसँग पहुँच माग्नुहोस्, वा क्रेडेन्सियल सिधै हाल्नुहोस्।",
+      "selectTargetField": "कृपया लक्ष्य फिल्ड छान्नुहोस्!",
+      "parentTableNoPrimaryKey": "प्यारेन्ट तालिकामा प्राइमरी की स्तम्भ छैन",
+      "childTableNoPrimaryKey": "चाइल्ड तालिकामा प्राइमरी की स्तम्भ छैन",
+      "noWorkspaceAvailable": "कुनै कार्यक्षेत्र उपलब्ध छैन",
+      "invalidJson": "अमान्य JSON",
+      "invalidTokensJson": "यो टोकन निर्यात होइन। light, dark, font वा radiusScale जस्ता कुञ्जीहरू अपेक्षित छन्।",
+      "renameFileFailed": "फाइलको नाम बदल्दा त्रुटि भयो",
+      "failedToLoadMetadataDiff": "मेटाडेटाको भिन्नता लोड गर्न सकिएन",
+      "failedToLoadMonacoEditor": "Monaco Editor लोड गर्न सकिएन"
     },
     "toast": {
       "inviteUrlCopy": "आमन्त्रण URL क्लिपबोर्डमा प्रतिलिपि गरियो",
@@ -7595,9 +7725,9 @@
       "failed": "दर्ता असफल भयो",
       "paused": "रोकिएको"
     },
-    "agentToolsAndAccessSubtitle": "एजेन्टले के प्रयोग गर्न सक्छ? यसले पहुँच गर्न सक्ने उपकरण, पृष्ठ र जडान थप्नुहोस्।",
+    "agentToolsAndAccessSubtitle": "यो एजेन्टले के पढ्न र बदल्न सक्छ? प्रत्येकका लागि एउटा तह छान्नुहोस्।",
     "agentNoFilters": "अझै कुनै सर्त छैन",
-    "agentInstructionsSubtitle": "एजेन्टले हरेक पटक चल्दा के गर्नुपर्छ? यी हुन् उत्तम अभ्यासहरू।",
+    "agentInstructionsSubtitle": "यसलाई नाम दिनुहोस्, अनि यसले के गर्नुपर्छ लेख्नुहोस् — जसरी तपाईं कुनै सहकर्मीलाई बुझाउनुहुन्छ।",
     "communitySkillsSubtitle": "माथि skills.sh मा साझा गरिएका Skills खोज्नुहोस्, त्यसपछि स्थापना गर्नुअघि एउटा खोलेर यसको SKILL.md पढ्नुहोस्।",
     "environmentBlockedBySync": "सक्रिय सिंक भएको परियोजनाका लागि वातावरण खोल्न सकिँदैन। पहिले सिंक कन्फिगरेसनहरू हटाउनुहोस्।",
     "chatArtifactPublicLinkHint": "लिङ्क भएको जोसुकैले यो हेर्न सक्छ।",
@@ -7762,7 +7892,14 @@
       "confirmCta": "स्थानान्तरण पुष्टि गर्नुहोस्",
       "migrating": "स्थानान्तरण हुँदैछ..."
     },
-    "skillsRegistryErrorTitle": "स्किल रजिस्ट्रीमा खोज्न सकिएन"
+    "skillsRegistryErrorTitle": "स्किल रजिस्ट्रीमा खोज्न सकिएन",
+    "airtableImportReportSummary": "{skipped} छोडियो · {approximated} अनुमानित · {failed} असफल",
+    "airtableImportReportTruncated": "प्रतिवेदनमा जम्मा {total} मध्ये पहिलो {shown} वस्तु देखाइएका छन्। पूरा सूचीका लागि लगहरू डाउनलोड गर्नुहोस्।",
+    "factoryMachineReadyNow": "मेसिन तयार छ। नयाँ सत्रहरूले यसलाई प्रयोग गर्छन्।",
+    "factoryMachineSwitched": "नयाँ सत्रहरूले संस्करण {version} प्रयोग गर्नेछन्।",
+    "factoryMachineDefaultNow": "नयाँ सत्रहरू अब {machine} मा सुरु हुन्छन्।",
+    "factoryMachineUpgrading": "{machine} अपग्रेड हुँदैछ। बिल्ड तयार भएपछि नयाँ सत्रहरूले यसलाई प्रयोग गर्नेछन्।",
+    "factoryAppInstallUnavailable": "{provider} लाई अहिलेसम्म कोडिङ एजेन्टसँग जोड्न मिल्दैन। तिनलाई एप इन्स्टलेसन चाहिन्छ, र यहाँ {provider} का लागि कुनै पनि सेट गरिएको छैन।"
   },
   "trash": {
     "restore": "Restore",
@@ -8148,7 +8285,6 @@
       "lastSignedInAt": "अन्तिम साइन इन {time}",
       "lastUsed": "अन्तिम प्रयोग",
       "lastUsedAt": "अन्तिम प्रयोग {time}",
-      "canDelete": "डेटा मेटाउन सक्छ",
       "toolsTitle": "उपकरण र अनुमतिहरू",
       "neverMoreThanRole": "यस परियोजनामा तपाईंको आफ्नै भूमिका ({role}) भन्दा कहिल्यै बढी हुँदैन।",
       "neverMoreThanAccess": "यस परियोजनामा तपाईंको आफ्नै पहुँचभन्दा कहिल्यै बढी हुँदैन।",

@@ -364,7 +364,8 @@ export function useData(args: {
     await callbacks?.globalCallback?.()
   }
 
-  async function deleteSelectedRows() {
+  // notify false: throw the failure (for an inline error) instead of toasting it.
+  async function deleteSelectedRows({ notify = true }: { notify?: boolean } = {}) {
     let row = formattedData.value.length
     const removedRowsData: Record<string, any>[] = []
     let compositePrimaryKey = ''
@@ -414,7 +415,9 @@ export function useData(args: {
 
       await bulkDeleteRows(removedRowsData.map((row) => row.pkData))
     } catch (e: any) {
-      return message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+      const errorMessage = `${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`
+      if (!notify) throw new Error(errorMessage)
+      return message.error(errorMessage)
     }
 
     if (!removedRowsData.length) {

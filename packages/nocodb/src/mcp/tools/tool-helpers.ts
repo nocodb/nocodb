@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { isLinksOrLTAR, ProjectRoles } from 'nocodb-sdk';
 import type { McpServer } from '@modelcontextprotocol/server';
 import type { NcContext, NcRequest, UserType } from 'nocodb-sdk';
@@ -209,10 +210,18 @@ export function mcpContentResult(content: McpContentBlock[]) {
   return { [MCP_CONTENT_BLOCKS]: content };
 }
 
+// The object payload `runTool` serialized, kept off the wire until a tool
+// that declares an `outputSchema` promotes it; see `withStructuredContent`.
+const MCP_STRUCTURED_PAYLOAD = Symbol('mcpStructuredPayload');
+
 export async function runTool(
   fn: () => Promise<unknown>,
   opts?: { compact?: boolean },
-): Promise<{ content: McpContentBlock[]; isError?: boolean }> {
+): Promise<{
+  content: McpContentBlock[];
+  isError?: boolean;
+  [MCP_STRUCTURED_PAYLOAD]?: Record<string, unknown>;
+}> {
   try {
     // A write that returns 200 plus the full object encodes "applied",
     // "dropped" and "stored but inert" identically. Anything the services
@@ -249,10 +258,41 @@ export async function runTool(
               : JSON.stringify(payload ?? null, null, opts?.compact ? 0 : 2),
         },
       ],
+      // Objects only — the spec's shape — and not `compact` payloads, which
+      // are compact because they already press on client size limits.
+      ...(isPlainObject(payload) && !opts?.compact
+        ? { [MCP_STRUCTURED_PAYLOAD]: payload }
+        : {}),
     };
   } catch (error) {
     return serializeMcpError(error);
   }
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+/**
+ * Sends `runTool`'s object payload as `structuredContent` too. Only for tools
+ * that declare an `outputSchema`: elsewhere it would repeat every large read
+ * (`queryRecords`, `getTableSchema`) next to its text block.
+ */
+export function withStructuredContent<A extends unknown[], R extends object>(
+  handler: (...args: A) => Promise<R>,
+) {
+  return async (
+    ...args: A
+  ): Promise<R & { structuredContent?: Record<string, unknown> }> => {
+    const result: R & {
+      isError?: boolean;
+      [MCP_STRUCTURED_PAYLOAD]?: Record<string, unknown>;
+    } = await handler(...args);
+    const payload = result[MCP_STRUCTURED_PAYLOAD];
+    return payload && !result.isError
+      ? { ...result, structuredContent: payload }
+      : result;
+  };
 }
 
 /**
@@ -273,6 +313,16 @@ export function deletionReceipt(
 ) {
   return { deleted: true, resource, id, ...(collateral ?? {}) };
 }
+
+/**
+ * `outputSchema` for a tool that answers with `deletionReceipt`. Loose: the
+ * collateral, and any `warnings`, ride alongside the fixed keys.
+ */
+export const deletionReceiptOutputSchema = z.looseObject({
+  deleted: z.literal(true),
+  resource: z.string(),
+  id: z.string(),
+});
 
 /** The `page` / `pageSize` a v3 `next` / `prev` URL points at, or null. */
 export function pageFromV3Url(

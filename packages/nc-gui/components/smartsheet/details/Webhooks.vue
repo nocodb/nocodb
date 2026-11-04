@@ -16,7 +16,8 @@ const selectedHook = ref<undefined | HookType>()
 
 const webhooksStore = useWebhooksStore()
 
-const { hooks, isHooksLoading, hasV2Webhooks, pendingDeepLinkHookId, pendingDeepLinkHookTab } = storeToRefs(webhooksStore)
+const { hooks, isHooksLoading, hasV2Webhooks, pendingDeepLinkHookId, pendingDeepLinkHookTab, pendingCreateHook } =
+  storeToRefs(webhooksStore)
 
 const { loadHooksList, deleteHook: _deleteHook, copyHook, saveHooks } = webhooksStore
 
@@ -142,6 +143,16 @@ const createWebhook = async () => {
 
 // Exposed so the Tools shell title band can drive the New Webhook action.
 defineExpose({ createWebhook })
+
+watch(
+  pendingCreateHook,
+  (pending) => {
+    if (!pending) return
+    pendingCreateHook.value = false
+    createWebhook()
+  },
+  { immediate: true },
+)
 
 const initialHookTab = ref<string | undefined>()
 

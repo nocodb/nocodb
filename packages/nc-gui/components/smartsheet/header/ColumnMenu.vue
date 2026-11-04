@@ -20,7 +20,14 @@ import {
 } from 'nocodb-sdk'
 import { SmartsheetStoreEvents } from '#imports'
 
-const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean; column: ColumnType }>()
+const props = defineProps<{
+  virtual?: boolean
+  isOpen: boolean
+  isHiddenCol?: boolean
+  column: ColumnType
+  /** Cmd+K field context: menu hidden, dialogs kept, actions registered as palette commands. */
+  headless?: boolean
+}>()
 
 const emit = defineEmits(['edit', 'addColumn', 'update:isOpen'])
 
@@ -156,7 +163,7 @@ const duplicateVirtualColumn = async () => {
         },
       } as ColumnReqType,
     )
-    await getMeta(meta!.value!.base_id!, meta!.value!.id!, true)
+    await getMeta({ baseId: meta!.value!.base_id!, tableIdOrTitle: meta!.value!.id!, force: true })
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     reloadDataHook?.trigger({ shouldShowLoading: false, inPlace: true })
@@ -332,7 +339,7 @@ const performHideOrShow = async () => {
 
     if (!hidingViewColumnsMap.value[column.value.id!]) {
       if (isExpandedForm.value) {
-        await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
+        await getMeta({ baseId: meta?.value?.base_id as string, tableIdOrTitle: meta?.value?.id as string, force: true })
       } else {
         updateDefaultViewColVisibility(column?.value.id, !currentColumn.show)
       }
@@ -553,10 +560,40 @@ const onDeleteColumn = () => {
   // if any of the above events are emitted, then reload the data
   if (isFilterRemoved || isSortRemoved) eventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
 }
+
+if (props.headless) {
+  useFieldCommands({
+    column,
+    isHiddenCol: () => !!props.isHiddenCol,
+    isColumnEditAllowed,
+    isColumnUpdateAllowed,
+    isSyncedReadonlyField,
+    fieldAlterReason,
+    fieldDeleteReason,
+    linksAssociated,
+    isSortSupported,
+    isFilterSupported,
+    isFilterLimitExceeded,
+    isGroupBySupported,
+    isGroupByLimitExceeded,
+    isGroupedByThisField,
+    isDuplicateAllowed,
+    isDeleteAllowed,
+    edit: (description) => onEditPress(undefined, description),
+    sort: sortByColumn,
+    filterOrGroup: filterOrGroupByThisField,
+    toggleHidden: hideOrShowField,
+    duplicate: openDuplicateDlg,
+    insertAfter: onInsertAfter,
+    insertBefore: onInsertBefore,
+    remove: handleDelete,
+  })
+}
 </script>
 
 <template>
   <NcMenu
+    v-show="!headless"
     variant="small"
     class="flex flex-col gap-1 border-nc-border-gray-medium nc-column-options !min-w-55 nc-max-h-screen nc-scrollbar-thin"
     :class="{

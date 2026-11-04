@@ -1,6 +1,6 @@
-import { z } from 'zod-v4';
+import { z } from 'zod';
 
-export function isZodSchema(value: unknown): value is z.ZodTypeAny {
+export function isZodSchema(value: unknown): value is z.ZodType {
   return typeof (value as any)?.safeParseAsync === 'function';
 }
 
@@ -13,7 +13,7 @@ export function isZodSchema(value: unknown): value is z.ZodTypeAny {
  * a plain object's parser *strips* unknown keys instead of failing. A
  * misspelled parameter therefore reported success while silently no-opping
  * whatever it governed (`content` instead of `contentMarkdown` created an
- * empty document). `.strict()` makes the validator match the advertisement.
+ * empty document). `z.strictObject` makes the validator match the advertisement.
  *
  * Accepts either form `registerTool` takes — a raw shape or an already-built
  * object schema — and is idempotent, so normalizing twice is harmless.
@@ -25,22 +25,22 @@ export function isZodSchema(value: unknown): value is z.ZodTypeAny {
  * is no misspelled parameter to catch where no parameter exists.
  */
 export function toStrictInputSchema(
-  inputSchema: Record<string, z.ZodTypeAny> | z.ZodTypeAny | undefined,
-): Record<string, z.ZodTypeAny> | z.ZodTypeAny | undefined {
+  inputSchema: Record<string, z.ZodType> | z.ZodType | undefined,
+): Record<string, z.ZodType> | z.ZodType | undefined {
   if (!inputSchema) return undefined;
 
   if (isZodSchema(inputSchema)) {
-    // Non-object schemas have no `.strict()`; nothing to tighten.
-    return typeof (inputSchema as any).strict === 'function'
-      ? (inputSchema as any).strict()
+    // Non-object schemas have nothing to tighten.
+    return inputSchema instanceof z.ZodObject
+      ? z.strictObject(inputSchema.shape)
       : inputSchema;
   }
 
-  const shape = inputSchema as Record<string, z.ZodTypeAny>;
+  const shape = inputSchema as Record<string, z.ZodType>;
 
   if (!Object.keys(shape).length) return shape;
 
-  return z.object(shape).strict();
+  return z.strictObject(shape);
 }
 
 /**

@@ -4,7 +4,6 @@ import { ExpandedFormMode, PermissionEntity, PermissionKey, ViewTypes } from 'no
 import type { Ref } from 'vue'
 import { Drawer } from 'ant-design-vue'
 import NcModal from '../../nc/Modal.vue'
-
 interface Props {
   modelValue?: boolean
   state?: Record<string, any> | null
@@ -194,7 +193,7 @@ watch(templateNameInputRef, (el) => {
 const onTemplateTableChange = async (tableId: string) => {
   if (!activeMeta.value?.base_id || tableId === activeMeta.value?.id) return
   try {
-    const newMeta = await getMeta(activeMeta.value.base_id, tableId)
+    const newMeta = await getMeta({ baseId: activeMeta.value.base_id, tableIdOrTitle: tableId })
     if (newMeta) {
       activeMeta.value = newMeta as TableType
       // Reset row data for the new table's fields
@@ -585,6 +584,33 @@ const addNewRow = () => {
     isExpanded.value = true
   }, 500)
 }
+useRecordNavCommands({
+  key: () => `record-nav:modal:${meta.value?.id}:${primaryKey.value}`,
+  isOpen: () => isExpanded.value && !props.templateMode && !props.blueprintMode,
+  isNew,
+  canPrev: () => !!props.showNextPrevIcons && !isFirstRow.value,
+  canNext: () => !!props.showNextPrevIcons && !isLastRow.value,
+  prev: onPrev,
+  next: onNext,
+  navShortcuts: ['ArrowLeft', 'ArrowRight'],
+  canSave: () => isAllowedAddNewRecord.value && !isSaveRecordBtnDisabled.value,
+  // `save` reports its own failures in the form.
+  save: async () => {
+    await save()
+    reloadHook?.trigger(null)
+  },
+  saveShortcut: ['Alt', 'S'],
+  saveFeedback: t('general.saved'),
+  hasUnsavedChanges,
+  // Same buffers the discard dialog drops; the form stays open on the saved values.
+  discard: async () => {
+    clearColumns()
+    clearLtarBuffers()
+    await _loadRow()
+  },
+  close: () => onClose(),
+})
+
 // attach keyboard listeners to switch between rows
 // using alt + left/right arrow keys
 useActiveKeydownListener(

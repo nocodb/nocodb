@@ -1201,7 +1201,7 @@ async function loadReleatedMetas() {
       const relatedBaseId = (c?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || meta?.value?.base_id
 
       if (isVirtualCol(c) && isLinksOrLTAR(c) && fk_related_model_id) {
-        await getMeta(relatedBaseId as string, fk_related_model_id)
+        await getMeta({ baseId: relatedBaseId as string, tableIdOrTitle: fk_related_model_id })
       }
       return c
     }),
@@ -1378,6 +1378,18 @@ const { message: templatedMessage } = useTemplatedMessage(
   localColumns,
   meta,
 )
+
+useFormCommands({
+  activeField,
+  activeColumn,
+  isEditable,
+  isLocked,
+  isSidebarVisible,
+  canHide: (field) => !shouldSkipColumn(field),
+  saveField: updateColMeta,
+  hideField: (field) => showOrHideColumn(field, false, false),
+  setAllFields: handleAddOrRemoveAllColumns,
+})
 </script>
 
 <template>

@@ -886,6 +886,33 @@ const bulkUpdateTrigger = (path: Array<number>) => {
   bulkUpdateDlg.value = true
 }
 
+const { count: selectionCount, clear: clearCheckedRows } = useGridSelectionCommands({
+  view,
+  meta,
+  isPublic,
+  isGroupBy,
+  isInfiniteScrollingEnabled,
+  isCanvasGroupByTableEnabled,
+  isCanvasRendering,
+  totalRows,
+  selectedAllRecords,
+  selectedAllRecordsSkipPks,
+  groupDataCache,
+  getDataCache,
+  bulkUpdateRows,
+  deleteSelectedRows,
+  bulkDeleteAll,
+  openBulkUpdate: bulkUpdateTrigger,
+  pData,
+  pSelectedAllRecords,
+  pBulkUpdateRows,
+  pDeleteSelectedRows,
+  canvas: tableRef,
+})
+
+// The paginated grid (<Table>) renders when the "Infinite scrolling" beta feature is off.
+const isPaginatedGrid = computed(() => !isInfiniteScrollingEnabled.value && !isGroupBy.value)
+
 watch([() => view.value?.id, () => meta.value?.columns], async () => {
   await loadDisallowedLookups()
 })
@@ -897,7 +924,13 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
     data-testid="nc-grid-wrapper"
     :style="`background-color: ${isGroupBy && !isCanvasGroupByTableEnabled ? `${baseColor}` : 'var(--nc-bg-gray-extralight)'};`"
   >
-    <div class="flex flex-col flex-1 min-w-0 h-full">
+    <div class="relative flex flex-col flex-1 min-w-0 h-full">
+      <SmartsheetGridSelectionBar
+        v-if="(isCanvasRendering || isPaginatedGrid) && !isPublic"
+        :count="selectionCount"
+        @clear="clearCheckedRows"
+      />
+
       <Table
         v-if="!isGroupBy && !isInfiniteScrollingEnabled"
         ref="tableRef"

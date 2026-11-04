@@ -436,7 +436,7 @@ const reloadMetaAndData = async () => {
   // The cached column until the refetch below replaces it (the form edits a clone)
   const columnBefore = isEdit.value && column.value ? { ...column.value } : undefined
 
-  await getMeta(meta.value?.base_id, meta.value?.id as string, true)
+  await getMeta({ baseId: meta.value?.base_id, tableIdOrTitle: meta.value?.id as string, force: true })
 
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 

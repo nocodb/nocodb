@@ -16,6 +16,8 @@ const props = withDefaults(
 const searchQuery = defineModel<string>('searchQuery', { default: '' })
 
 const hideBlankFields = defineModel<boolean>('hideBlankFields', { default: false })
+
+useHideBlankFieldsCommands({ isNew: () => !!props.isNew, hideBlankFields })
 </script>
 
 <template>

@@ -1,4 +1,9 @@
-import type { ApiTokenScopeEntry } from '~/lib/apiToken';
+import { ApiTokenPermissionLevel } from '~/lib/apiToken';
+import type {
+  ApiTokenPermissionCategory,
+  ApiTokenPermissions,
+  ApiTokenScopeEntry,
+} from '~/lib/apiToken';
 
 /**
  * The `nc_mcp_tokens.permissions` column, as stored.
@@ -42,7 +47,8 @@ export interface McpTokenStoredPermissions {
 
 /**
  * Tools no credential gets by default — including a legacy one, or one without
- * a `tools` allowlist. Each is switched on per connection by its owner.
+ * a `tools` allowlist. Each is switched on by its owner, per MCP connection or
+ * per OAuth consent; every tool here is available on both.
  */
 export const MCP_OPT_IN_TOOLS = [
   'deleteBase',
@@ -99,6 +105,39 @@ export interface McpToolCatalogEntry {
   description?: string;
   /** In `MCP_OPT_IN_TOOLS`: switched on through `opt_in_tools`, not `tools`. */
   opt_in?: boolean;
+  /**
+   * For an opt-in tool: the category and level its operation needs on a
+   * category-shaped (scope-locked) grant. Absent when no level can reach it.
+   */
+  opt_in_requires?: McpOptInToolRequirement;
+}
+
+/** The category level a scope-locked grant needs to call an opt-in tool. */
+export interface McpOptInToolRequirement {
+  category: ApiTokenPermissionCategory;
+  level: ApiTokenPermissionLevel;
+}
+
+const PERMISSION_LEVEL_RANK: Record<ApiTokenPermissionLevel, number> = {
+  [ApiTokenPermissionLevel.NONE]: 0,
+  [ApiTokenPermissionLevel.READ]: 1,
+  [ApiTokenPermissionLevel.WRITE]: 2,
+  [ApiTokenPermissionLevel.DELETE]: 3,
+};
+
+/**
+ * Whether category levels reach an opt-in tool's requirement. A missing
+ * requirement reaches nothing.
+ */
+export function mcpCategoriesReach(
+  categories: ApiTokenPermissions | null | undefined,
+  requires: McpOptInToolRequirement | undefined
+): boolean {
+  if (!requires) return false;
+
+  const held = categories?.[requires.category] ?? ApiTokenPermissionLevel.NONE;
+
+  return PERMISSION_LEVEL_RANK[held] >= PERMISSION_LEVEL_RANK[requires.level];
 }
 
 /** The header an MCP client sends its credential in. */

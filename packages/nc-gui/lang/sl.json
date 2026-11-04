@@ -1688,7 +1688,7 @@
     "noMoreActionsToRedo": "No more actions to redo",
     "noRecentViews": "No recent views",
     "expandLinkFields": "Expand link fields",
-    "expandLinkFieldsDesc": "Return linked record data instead of count",
+    "expandLinkFieldsDesc": "Polja povezav v izhodu vsebujejo povezane zapise namesto njihovega števila",
     "inheritedFromParent": "Inherited from parent",
     "pageOrUrl": "Page or URL",
     "linkTitle": "Link title",
@@ -4070,7 +4070,6 @@
     "relationSettings": "Nastavitve relacije",
     "restoreVersion": "Obnovi v{version}",
     "runningScript": "Izvajanje skripte ...",
-    "removeSummary": "Odstrani povzetek",
     "rowFiltered": "Vrstica filtrirana",
     "rowMoved": "Vrstica premaknjena",
     "rowHidden": "Vrstica skrita",
@@ -4777,7 +4776,7 @@
       },
       "optIn": {
         "title": "Izbirna orodja",
-        "description": "Orodja, ki trajno brišejo ali delujejo zunaj NocoDB, na primer zaženejo avtomatizacijo ali sprožijo webhook. Povezava jih nikoli ne dobi, dokler jih tukaj ne vklopite."
+        "description": "Orodja, ki trajno brišejo ali delujejo zunaj NocoDB, na primer zaženejo avtomatizacijo ali sprožijo webhook. Ostanejo izklopljena, dokler jih tukaj ne vklopite."
       }
     },
     "noBaseAccess": "Ni dostopa do projekta",
@@ -5767,7 +5766,88 @@
     "workflowValueDynamicDescription": "Uporabi spremenljivke iz prejšnjega koraka te avtomatizacije",
     "workflowRunAs": "Zaženi kot",
     "workflowChangeRunAs": "Spremeni zaženi kot",
-    "workflowServiceAccount": "Storitveni račun"
+    "workflowServiceAccount": "Storitveni račun",
+    "wsEmpty": {
+      "title": "Začnite svoj prvi projekt",
+      "subtitle": "Projekt vsebuje vaše podatke in aplikacije, zgrajene na njih.",
+      "sharedTitle": "Z vami še ni nič deljenega",
+      "sharedSubtitle": "Projekti in aplikacije, v katere vas povabijo, se prikažejo tukaj."
+    },
+    "workspaceHome": {
+      "uploadFile": "Naložite CSV ali Excel",
+      "pickTemplate": "Ali pa izberite predlogo za začetek",
+      "untitledBase": "Projekt brez naslova",
+      "templates": {
+        "projectManagement": {
+          "label": "Vodenje projektov",
+          "prompt": "Sledenje projektom s projekti in opravili, kjer ima vsako opravilo odgovorno osebo, stanje, prednost in rok."
+        },
+        "product": {
+          "label": "Izdelek",
+          "prompt": "Načrt razvoja izdelka z zmožnostmi, težavo, ki jo vsaka rešuje, prednostjo, stanjem in ciljno izdajo."
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "Marketinški koledar s kampanjami, kanali, na katerih teče vsaka od njih, proračunom, odgovorno osebo in datumom zagona."
+        },
+        "sales": {
+          "label": "Prodaja",
+          "prompt": "Prodajni CRM s podjetji, stiki in priložnostmi, kjer ima vsaka priložnost fazo, vrednost in pričakovani datum sklenitve."
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "Služba za podporo z zahtevki, stranko, ki je vsakega prijavila, prednostjo, stanjem in dodeljenim agentom."
+        },
+        "hr": {
+          "label": "Kadri",
+          "prompt": "Sledenje prijavam z odprtimi delovnimi mesti, kandidati po fazah zaposlovanja ter razgovori z datumi in zapiski ocenjevalcev."
+        }
+      }
+    },
+    "yourConnections": "Vaše povezave",
+    "workingHours": "Delovni čas",
+    "workingDays": "Delovni dnevi",
+    "wsNav": {
+      "groupBilling": "Plan",
+      "groupAdmin": "Admin",
+      "membersPage": "Člani delovnega prostora",
+      "iconHint": "Prikazano v stranski vrstici in v preklopniku delovnih prostorov.",
+      "nameHint": "Kako se ta delovni prostor imenuje po vsem NocoDB.",
+      "workspaceId": "ID delovnega prostora",
+      "workspaceIdHint": "Uporabite ga z API-jem ali ko se obrnete na podporo.",
+      "allTypes": "Vse vrste",
+      "allTeams": "Vse ekipe",
+      "teamsCreatedHere": "Ustvarjeno tukaj",
+      "teamsScimManaged": "Upravljano prek SCIM",
+      "upgradeTitleAudits": "Revizijski dnevnik delovnega prostora",
+      "upgradeDescAudits": "Oglejte si vsako spremembo v tem delovnem prostoru in kdo jo je naredil.",
+      "upgradeTitleSso": "Enotna prijava",
+      "upgradeDescSso": "Dovolite članom prijavo prek vašega ponudnika identitete.",
+      "desc": {
+        "members": "Kdo spada v ta delovni prostor in kakšna je njihova privzeta vloga.",
+        "teams": "Skupine članov, ki jih lahko skupaj dodate v projekte.",
+        "integrations": "Povezani računi in poverilnice, ki se delijo po celotnem delovnem prostoru.",
+        "general": "Ime, ikona in ID delovnega prostora.",
+        "skills": "Navodila, ki jim pomočnik z umetno inteligenco sledi po vsem tem delovnem prostoru.",
+        "security": "Zahteve za prijavo za vse v tem delovnem prostoru.",
+        "dangerZone": "Zapustite ta delovni prostor ali ga trajno izbrišite.",
+        "billing": "Vaš paket, mesta, način plačila in računi.",
+        "usage": "Koliko ta delovni prostor porabi od omejitev svojega paketa.",
+        "audits": "Vsaka sprememba v tem delovnem prostoru in kdo jo je naredil.",
+        "sso": "Prijava prek vašega ponudnika identitete."
+      }
+    },
+    "workspaceMode": "Način delovnega prostora",
+    "zoomIn": "Približaj",
+    "zoomOut": "Oddalji",
+    "zoomTo50Percent": "Povečava na 50 %",
+    "zoomTo100Percent": "Povečava na 100 %",
+    "workflowValueStatic": "Statična",
+    "workflowValueStaticDescription": "Vrednosti vnesite neposredno",
+    "workspaceNoAccess": "Delovni prostor (ni dostopa)",
+    "yAxis": "Os Y",
+    "workspaceSettings": "Nastavitve delovnega prostora",
+    "wrapLongText": "Prelomi dolgo besedilo"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -7127,8 +7207,6 @@
       "selectFieldFirst": "Najprej izberite {field}, da se te možnosti naložijo.",
       "viewFolderDeleteConfirmation": "Pogledi v tej mapi bodo premaknjeni na najvišjo raven.",
       "saveDraftToBrowser": "Shrani osnutek v brskalnik",
-      "showAppFirst": "Prikaži aplikacijo prvo v stranski vrstici",
-      "showAppFirstDesc": "Postavite Apps nad Podatke v stranski vrstici tega projekta.",
       "recordSavedButHidden": "Zapis je bil shranjen, a je skrit zaradi vaših pravic dostopa.",
       "seeChangesToRecord": "Oglejte si spremembe tega zapisa",
       "revisionHistoryUpgrade": "Imate {limit} zgodovine revizij. Za ogled celotne zgodovine nadgradite paket.",
@@ -7231,7 +7309,20 @@
       "mcpSetupCursorStep3": "Dodajte konfiguracijo JSON, ki jo dobite po ustvarjanju žetona.",
       "mcpSetupIntroWindsurf": "Začnite uporabljati NocoDB MCP z aplikacijo Windsurf v 4 preprostih korakih",
       "mcpSetupWindsurfStep1": "Odprite nastavitve aplikacije Windsurf in v levi stranski vrstici izberite zavihek Cascade",
-      "mcpSetupWindsurfStep2": "Kliknite Manage MCP."
+      "mcpSetupWindsurfStep2": "Kliknite Manage MCP.",
+      "abuseReport": {
+        "queueDescription": "Prijave, oddane prek javnih povezav. Onemogočite povezavo, da jo umaknete, ali blokirajte račune za njo.",
+        "disableConfirm": "Javna povezava za vse preneha delovati, vse odprte prijave o njej pa so razrešene. Lastnik lahko element znova deli z novo povezavo.",
+        "blockConfirm": "{email} je odjavljen povsod in se ne more več prijaviti ali uporabljati žetonov API. Blokado lahko odstranite v upravljanju uporabnikov.",
+        "noAccounts": "S tem elementom ni povezan noben račun.",
+        "superAdminNotBlockable": "Superskrbnikov ni mogoče blokirati.",
+        "description": "Menite, da se ta stran uporablja za lažno predstavljanje, krajo identitete, prevare ali druge zlorabe? Obvestite skrbnike te instance {productName}.",
+        "detailsMin": "Opišite težavo z najmanj {min} znaki.",
+        "thanksTitle": "Hvala za vašo prijavo",
+        "thanksDescription": "Vašo prijavo smo prejeli. Skrbniki te instance {productName} jo bodo pregledali.",
+        "contactEmailHint": "Prijave iz javnih pogledov, obrazcev, vmesnikov in nadzornih plošč se pošiljajo sem. Pustite prazno, da jih prejmejo vsi superskrbniki."
+      },
+      "actWithYourOwnPermissions": "V teh virih delujte z lastnimi dovoljenji"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -7444,7 +7535,46 @@
       "inviteLinkRevoked": "Ta povezava za povabilo je preklicana",
       "inviteLinkExhausted": "Ta povezava za povabilo je v celoti izkoriščena",
       "inviteLinkUnavailable": "Ta povezava za povabilo ne deluje več",
-      "invalidEmailDomain": "Vnesite domeno, na primer acme.io"
+      "invalidEmailDomain": "Vnesite domeno, na primer acme.io",
+      "attachmentInvalidUrl": "Vnesite URL, ki se začne s http:// ali https://, ali predlogo s spremenljivkami",
+      "attachmentAlreadyAttached": "Ta datoteka je že pripeta.",
+      "attachmentOpenWorkflowToUpload": "Za nalaganje datotek odprite potek dela",
+      "attachmentNoLongerAvailable": "Ta datoteka ni več na voljo",
+      "attachmentsTooLarge": "Datoteke presegajo omejitev {size} na e-poštno sporočilo",
+      "factoryMachineNameRequired": "Poimenujte stroj",
+      "factoryMachineNameDuplicate": "Stroj s tem imenom že obstaja",
+      "vaultUnreachable": "S temi nastavitvami trezorja ni bilo mogoče doseči",
+      "vaultAliasStart": "Ime se mora začeti s črko",
+      "vaultAliasCharacters": "Ime lahko vsebuje samo črke in števke — brez presledkov, vezajev ali podčrtajev",
+      "vaultAliasReserved": "„{name}” je rezervirano ime, izberite drugo",
+      "fieldSaveFailed": "Polja „{field}” ni bilo mogoče shraniti: {error}",
+      "fieldSavesFailed": "Ni bilo mogoče shraniti {count} polj ({fields}). Prva napaka: {error}",
+      "projectNameRequired": "Ime projekta je obvezno",
+      "attachmentUrlDownloadFailed": "NocoDB te datoteke ni mogel prenesti z njenega URL-ja. Odstranite jo in datoteko dodajte znova.",
+      "emailImageSize": "Slike v telesu e-poštnega sporočila morajo biti manjše od {size}. Logotip je običajno precej pod 100 KB.",
+      "emailImageType": "Uporabite sliko PNG, JPEG, GIF ali WebP",
+      "emailImageCount": "Telo e-poštnega sporočila lahko vsebuje največ {count} slik",
+      "emailImageTotalSize": "Slike v telesu e-poštnega sporočila morajo skupaj ostati pod {size}",
+      "emailImageNoWorkflow": "Za dodajanje slik odprite potek dela",
+      "emailImageUploadFailed": "Slike ni bilo mogoče naložiti",
+      "emailImageMissing": "Ta slika ni več na voljo in bo izpuščena iz sporočila. Odstranite jo in jo vstavite znova.",
+      "vaultSecretNeedsProperty": "Ta skrivnost vsebuje več polj. Izberite, katero naj se uporabi, sicer povezava med izvajanjem ne bo uspela.",
+      "vaultUnknownAlias": "Na voljo vam ni noben trezor z imenom „{name}”.",
+      "atLeastOneOperationRequired": "Izbrana mora biti vsaj ena operacija",
+      "triggerFormRequired": "Izbrati morate sprožilni obrazec",
+      "failedToStartListening": "Poslušanja posodobitev ni bilo mogoče zagnati",
+      "unknownPermissionRequested": "Strežnik tega dovoljenja ne ponuja",
+      "authorizationWillBeRefused": "Ta zahteva bo zavrnjena zaradi zgornjih dovoljenj.",
+      "vaultAliasNotAllowed": "Trezorja „{name}” ne smete uporabljati. Za dostop prosite lastnika delovnega prostora ali pa poverilnico vnesite neposredno.",
+      "selectTargetField": "Izberite ciljno polje!",
+      "parentTableNoPrimaryKey": "Nadrejena tabela nima stolpca primarnega ključa",
+      "childTableNoPrimaryKey": "Podrejena tabela nima stolpca primarnega ključa",
+      "noWorkspaceAvailable": "Na voljo ni nobenega delovnega prostora",
+      "invalidJson": "Neveljaven JSON",
+      "invalidTokensJson": "To ni izvoz žetonov. Pričakovani so ključi, kot so light, dark, font ali radiusScale.",
+      "renameFileFailed": "Napaka pri preimenovanju datoteke",
+      "failedToLoadMetadataDiff": "Razlik med metapodatki ni bilo mogoče naložiti",
+      "failedToLoadMonacoEditor": "Monaco Editor ni bilo mogoče naložiti"
     },
     "toast": {
       "inviteUrlCopy": "Kopirani URL v odložišče",
@@ -7587,9 +7717,9 @@
       "failed": "Registracija ni uspela",
       "paused": "Zaustavljeno"
     },
-    "agentToolsAndAccessSubtitle": "Kaj lahko agent uporablja? Dodajte orodja, strani in povezave, do katerih lahko dostopa.",
+    "agentToolsAndAccessSubtitle": "Kaj lahko ta agent bere in spreminja? Za vsako izberite raven.",
     "agentNoFilters": "Pogojev še ni",
-    "agentInstructionsSubtitle": "Kaj naj agent naredi ob vsakem zagonu? Tu so dobre prakse.",
+    "agentInstructionsSubtitle": "Poimenujte ga, nato pa zapišite, kaj naj počne, kot bi uvajali sodelavca.",
     "communitySkillsSubtitle": "Zgoraj poiščite skills, ki so deljeni na skills.sh, in odprite enega, da pred namestitvijo preberete njegov SKILL.md.",
     "environmentBlockedBySync": "Za projekt z aktivno sinhronizacijo ni mogoče odpreti okolja. Najprej odstranite konfiguracije sinhronizacije.",
     "chatArtifactPublicLinkHint": "Vsak s povezavo si lahko to ogleda.",
@@ -7754,7 +7884,14 @@
       "confirmCta": "Potrdi selitev",
       "migrating": "Selitev poteka..."
     },
-    "skillsRegistryErrorTitle": "Registra veščin ni bilo mogoče preiskati"
+    "skillsRegistryErrorTitle": "Registra veščin ni bilo mogoče preiskati",
+    "airtableImportReportSummary": "{skipped} preskočeno · {approximated} približano · {failed} neuspešno",
+    "airtableImportReportTruncated": "Poročilo prikazuje prvih {shown} od {total} elementov. Za celoten seznam prenesite dnevnike.",
+    "factoryMachineReadyNow": "Stroj je pripravljen. Nove seje ga uporabljajo.",
+    "factoryMachineSwitched": "Nove seje bodo uporabljale različico {version}.",
+    "factoryMachineDefaultNow": "Nove seje se zdaj zaganjajo na stroju {machine}.",
+    "factoryMachineUpgrading": "Nadgradnja stroja {machine}. Nove seje ga bodo uporabljale, ko bo gradnja pripravljena.",
+    "factoryAppInstallUnavailable": "{provider} še ni mogoče povezati z agenti za kodo. Potrebujejo namestitev aplikacije, za {provider} pa tukaj ni nastavljena nobena."
   },
   "trash": {
     "restore": "Restore",
@@ -8140,7 +8277,6 @@
       "lastSignedInAt": "Zadnja prijava {time}",
       "lastUsed": "Zadnja uporaba",
       "lastUsedAt": "Zadnja uporaba {time}",
-      "canDelete": "Lahko briše podatke",
       "toolsTitle": "Orodja in dovoljenja",
       "neverMoreThanRole": "Nikoli več kot vaša lastna vloga v tem projektu ({role}).",
       "neverMoreThanAccess": "Nikoli več kot vaš lastni dostop do tega projekta.",

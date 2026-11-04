@@ -3,6 +3,7 @@ import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
 import { type ColumnType, type TableType, charsetOptions, charsetOptionsMap } from 'nocodb-sdk'
 import { defineAsyncComponent } from 'vue'
+import type { InterfacePageDataApi } from '~/lib/interfaceData'
 
 const {
   importType,
@@ -13,6 +14,7 @@ const {
   showBackBtn,
   wrapClassName = '',
   showSourceSelector = true,
+  interfaceDataApi,
   ...rest
 } = defineProps<Props>()
 
@@ -31,6 +33,8 @@ interface Props {
   showBackBtn?: boolean
   wrapClassName?: string
   showSourceSelector?: boolean
+  /** Interface page import: preview and import through the page's ops, into its own fields. */
+  interfaceDataApi?: InterfacePageDataApi
 }
 
 enum ImportTypeTabs {
@@ -66,6 +70,8 @@ const templateData = ref()
 const importData = ref()
 
 const importColumns = ref<ColumnType[][]>([])
+
+const interfaceColumns = ref<Array<Pick<ColumnType, 'id' | 'title' | 'column_name' | 'uidt'>>>([])
 
 const templateEditorModal = ref(false)
 
@@ -265,7 +271,7 @@ async function handlePreImport() {
   preImportLoading.value = true
   localImportError.value = ''
 
-  if (!baseTables.value.get(baseId)) {
+  if (!interfaceDataApi && !baseTables.value.get(baseId)) {
     await loadProjectTables(baseId)
   }
 
@@ -311,16 +317,25 @@ async function handlePreImport() {
     const allImportColumns: ColumnType[][] = []
 
     for (const target of targets) {
-      const { sheets = [] } = (await $api.internal.postOperation(
-        activeWorkspace.value?.id,
-        baseId,
-        { operation: 'dataImportPreview' },
-        {
-          importType,
-          attachment: target.attachment,
-          parserConfig: buildPreviewParserConfig(target.encoding),
-        },
-      )) as { sheets: Array<{ name?: string; columns: ColumnType[]; previewData: any[]; totalRows: number }> }
+      const preview = interfaceDataApi
+        ? await interfaceDataApi.importCsvPreview!({
+            attachment: target.attachment,
+            parserConfig: buildPreviewParserConfig(target.encoding),
+          })
+        : await $api.internal.postOperation(
+            activeWorkspace.value?.id,
+            baseId,
+            { operation: 'dataImportPreview' },
+            {
+              importType,
+              attachment: target.attachment,
+              parserConfig: buildPreviewParserConfig(target.encoding),
+            },
+          )
+      const { sheets = [] } = preview as {
+        sheets: Array<{ name?: string; columns: ColumnType[]; previewData: any[]; totalRows: number }>
+      }
+      if (interfaceDataApi) interfaceColumns.value = (preview as { columns?: typeof interfaceColumns.value }).columns ?? []
 
       const baseName = sanitizeTableName(target.fileName)
       for (const sheet of sheets) {
@@ -366,7 +381,7 @@ async function handleImport() {
     Object.assign(importState, defaultImportState)
     dialogShow.value = false
 
-    if (activeWorkspace.value?.id) {
+    if (!interfaceDataApi && activeWorkspace.value?.id) {
       workspace.loadWorkspace(activeWorkspace.value.id)
     }
   } catch (e: any) {
@@ -585,6 +600,7 @@ watch(
           :base-id="baseId"
           :source-id="sourceIdRef"
           :table-icon="importMeta.icon"
+          :interface-import="interfaceDataApi ? { dataApi: interfaceDataApi, columns: interfaceColumns } : undefined"
           class="nc-quick-import-template-editor"
           @import="handleImport"
           @error="onError"
@@ -856,7 +872,7 @@ watch(
       />
 
       <div v-if="!templateEditorModal" class="mt-5">
-        <div class="mb-4">
+        <div v-if="!interfaceDataApi" class="mb-4">
           <NcListSourceSelector
             ref="sourceSelectorRef"
             v-model:source-id="sourceIdRef"

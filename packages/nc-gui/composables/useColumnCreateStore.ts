@@ -467,11 +467,11 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             // if LTARv2 column update and relation type changed
             // then reload the reference table meta
             if (isMMOrMMLike(column.value)) {
-              getMeta(
-                (column.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id ?? column.value?.base_id,
-                (column.value?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id,
-                true,
-              )
+              getMeta({
+                baseId: (column.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id ?? column.value?.base_id,
+                tableIdOrTitle: (column.value?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id,
+                force: true,
+              })
             } else if (
               // text → link conversion: the backend creates the opposite link
               // column on the related (child) table. The check above keys off the
@@ -484,7 +484,11 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
               formState.value.childId &&
               meta.value?.id !== formState.value.childId
             ) {
-              getMeta(formState.value.ref_base_id ?? meta.value!.base_id!, formState.value.childId, true)
+              getMeta({
+                baseId: formState.value.ref_base_id ?? meta.value!.base_id!,
+                tableIdOrTitle: formState.value.childId,
+                force: true,
+              })
             }
 
             if (oldCol && [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(oldCol.uidt)) {
@@ -556,9 +560,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           if (isLinksOrLTAR(formState.value) && meta.value?.id !== formState.value.childId) {
             const relatedBaseId = (savedColumn?.colOptions as any)?.fk_related_base_id || meta.value!.base_id
             if (refModelId) {
-              getMeta(relatedBaseId!, refModelId, true).then(() => {})
+              getMeta({ baseId: relatedBaseId!, tableIdOrTitle: refModelId, force: true }).then(() => {})
             } else {
-              getMeta(relatedBaseId!, formState.value.childId, true).then(() => {})
+              getMeta({ baseId: relatedBaseId!, tableIdOrTitle: formState.value.childId, force: true }).then(() => {})
             }
           }
 

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
-import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanLimitTypes, PlanTitles, UITypes } from 'nocodb-sdk'
 import { SmartsheetStoreEvents } from '#imports'
 
 // Bulk-action menu shown when the user has 2+ column headers selected on the
@@ -16,7 +16,7 @@ const emit = defineEmits(['update:isOpen'])
 
 const isOpen = useVModel(props, 'isOpen', emit)
 
-const { eventBus, allFilters } = useSmartsheetStoreOrThrow()
+const { eventBus, allFilters, isSqlView } = useSmartsheetStoreOrThrow()
 
 const reloadDataHook = inject(ReloadViewDataHookInj)
 
@@ -38,7 +38,7 @@ const { fieldsToGroupBy, groupByLimit, groupBy } = useViewGroupByOrThrow()
 
 const { isUIAllowed, environmentRestrictionReason } = useRoles()
 
-const { appInfo } = useGlobal()
+const { showEEFeatures } = useEeConfig()
 
 const { getPlanLimit } = useWorkspace()
 
@@ -53,8 +53,18 @@ const columnCount = computed(() => props.columns.length)
 // pv (display value) column cannot be hidden or deleted.
 const nonPvColumns = computed(() => props.columns.filter((col) => !col.pv))
 
-// Keep the PK out of bulk field permissions — a select-all would restrict it unintentionally.
-const permissionColumns = computed(() => props.columns.filter((col) => !col.pk))
+// Only columns the single-field menu would let you set permissions on.
+const permissionColumns = computed(() => props.columns.filter((col) => isFieldPermissionEditable(col, !!meta.value?.synced)))
+
+const showPermissions = computed(
+  () =>
+    isEeUI &&
+    showEEFeatures.value &&
+    !isPublic.value &&
+    !isSqlView.value &&
+    isUIAllowed('fieldAlter') &&
+    permissionColumns.value.length > 0,
+)
 
 const fieldDeleteReason = computed(() => environmentRestrictionReason('fieldDelete'))
 
@@ -217,18 +227,31 @@ const onPermissionsSaved = () => {
 
     <NcDivider />
 
-    <NcMenuItem
-      v-if="appInfo.ee && !isPublic && isUIAllowed('permissionEdit') && permissionColumns.length"
-      data-testid="nc-multi-field-permissions"
-      @click="onPermissions"
-    >
-      <div v-e="['a:field:permissions:multi']" class="nc-multi-column-permissions nc-header-menu-item">
-        <GeneralIcon icon="ncLock" class="opacity-80 !w-4 !h-4" />
-        {{ t('labels.editNFieldPermissions', { count: permissionColumns.length }) }}
-      </div>
-    </NcMenuItem>
+    <PaymentUpgradeBadgeProvider v-if="showPermissions" :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS">
+      <template #default="{ click }">
+        <NcMenuItem
+          data-testid="nc-multi-field-permissions"
+          @click="click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, onPermissions)"
+        >
+          <div v-e="['a:field:permissions:multi']" class="nc-multi-column-permissions nc-header-menu-item w-full">
+            <GeneralIcon icon="ncLock" class="opacity-80 !w-4 !h-4" />
+            <div class="flex-1">
+              {{ t('labels.editNFieldPermissions', { count: permissionColumns.length }) }}
+            </div>
 
-    <NcDivider v-if="appInfo.ee && !isPublic && isUIAllowed('permissionEdit') && permissionColumns.length" />
+            <LazyPaymentUpgradeBadge
+              :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
+              :title="t('upgrade.upgradeToUseTableAndFieldPermissions')"
+              :content="t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle', { plan: PlanTitles.PLUS })"
+              :on-click-callback="() => (isOpen = false)"
+              size="xs"
+            />
+          </div>
+        </NcMenuItem>
+      </template>
+    </PaymentUpgradeBadgeProvider>
+
+    <NcDivider v-if="showPermissions" />
 
     <NcTooltip :disabled="isAnyFilterable && !isFilterLimitBlocking">
       <template #title>
@@ -311,7 +334,7 @@ const onPermissionsSaved = () => {
         :on-deleted="onDeleted"
       />
       <DlgFieldMultiPermissions
-        v-if="appInfo.ee && meta"
+        v-if="isEeUI && meta"
         v-model:visible="showMultiPermissionsModal"
         :columns="permissionColumns"
         @saved="onPermissionsSaved"

@@ -400,17 +400,9 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
   }
 })
 
-const newRecord = () => {
-  if (interfaceEditSelect.value) return interfaceEditSelect.value()
-  if (!isUIAllowed('dataEdit') || !isAddDeleteInlineEnabled.value) return
-
-  const row = {
-    ...rowDefaultData(meta.value?.columns, user.value ?? undefined),
-  }
-
-  let fromDate
+function newRecordFromDate(): dayjs.Dayjs | undefined {
   if (activeCalendarView.value === 'day') {
-    fromDate = selectedDate.value
+    return selectedDate.value
   } else if (
     activeCalendarView.value === 'week' ||
     activeCalendarView.value === '3day' ||
@@ -421,12 +413,23 @@ const newRecord = () => {
     // 3-day / custom are day-anchored or week-aligned, so selectedDateRange.start is
     // their first visible day (same source the header/today/store use) — week-family
     // modes use it too.
-    fromDate = selectedDateRange.value.start
+    return selectedDateRange.value.start
   } else if (activeCalendarView.value === 'month') {
-    fromDate = selectedDate.value ?? selectedMonth.value
+    return selectedDate.value ?? selectedMonth.value
   } else if (activeCalendarView.value === 'year') {
-    fromDate = selectedDate.value
+    return selectedDate.value
   }
+}
+
+const newRecord = () => {
+  if (interfaceEditSelect.value) return interfaceEditSelect.value()
+  if (!isUIAllowed('dataEdit') || !isAddDeleteInlineEnabled.value) return
+
+  const row = {
+    ...rowDefaultData(meta.value?.columns, user.value ?? undefined),
+  }
+
+  const fromDate = newRecordFromDate()
 
   if (!fromDate) {
     // Unhandled calendar view (e.g. a future mode not wired up here) — surface a toast and
@@ -494,6 +497,8 @@ const selectOption = (option) => {
   isDropdownOpen.value = false
   sideBarFilterOption.value = option.value
 }
+
+useCalendarNewRecordCommands({ fromDate: newRecordFromDate, newRecord })
 </script>
 
 <template>

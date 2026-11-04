@@ -73,6 +73,7 @@ export class OauthAuthorizationService {
   protected async buildConsentPermissions(_params: {
     scopes?: ApiTokenScopeEntry[];
     tools?: string[];
+    optInTools?: string[];
     userId: string;
     scope?: string;
   }): Promise<string | null> {
@@ -92,6 +93,8 @@ export class OauthAuthorizationService {
     resource?: string;
     scopes?: ApiTokenScopeEntry[];
     tools?: string[];
+    /** Set only by the user on the consent screen, never from the client's request. */
+    optInTools?: string[];
   }): Promise<OAuthAuthorizationCode> {
     const {
       clientId,
@@ -106,6 +109,7 @@ export class OauthAuthorizationService {
       resource,
       scopes,
       tools,
+      optInTools,
     } = params;
 
     // Validate the client and that the redirect URI is one it registered. Also
@@ -229,6 +233,7 @@ export class OauthAuthorizationService {
       permissions: await this.buildConsentPermissions({
         scopes,
         tools,
+        optInTools,
         userId,
         scope,
       }),

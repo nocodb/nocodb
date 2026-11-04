@@ -46,7 +46,7 @@ const columns = computedAsync(async () => {
   if (!metas.value || Object.keys(metas.value).length === 0) return []
   return await composeColumnsForFilter({
     rootMeta: rootMeta.value,
-    getMeta: async (id) => metas.value[`${rootMeta.value?.base_id}:${id}`],
+    getMeta: async ({ baseId, tableIdOrTitle }) => metas.value[`${baseId}:${tableIdOrTitle}`],
   })
 }, [])
 

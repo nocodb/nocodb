@@ -10,7 +10,9 @@ import {
   isDateMonthFormat,
   isLTAR,
   isLink,
+  isUnratedRating,
 } from 'nocodb-sdk'
+import type { GetMetaParams } from '~/composables/useMetas'
 
 type FormViewColumn = ColumnType & Record<string, any>
 
@@ -88,7 +90,7 @@ export class FormFilters {
   value: any
   isSharedForm: boolean
   isMysql?: (sourceId?: string) => boolean
-  getMeta?: (baseId: string, tableIdOrTitle: string) => Promise<TableType | null>
+  getMeta?: (params: GetMetaParams) => Promise<TableType | null>
   baseId?: string
 
   constructor({
@@ -109,7 +111,7 @@ export class FormFilters {
     formState?: Record<string, any>
     isMysql?: (sourceId?: string) => boolean
     isSharedForm?: boolean
-    getMeta?: (baseId: string, tableIdOrTitle: string) => Promise<TableType | null>
+    getMeta?: (params: GetMetaParams) => Promise<TableType | null>
     baseId?: string
   } = {}) {
     this.allViewFilters = data
@@ -200,7 +202,7 @@ export class FormFilters {
     if (!fk_related_model_id || typeof this.getMeta !== 'function' || !this.baseId) return null
 
     const relatedBaseId = colOptions?.fk_related_base_id || this.baseId
-    const relatedTableMeta = await this.getMeta(relatedBaseId, fk_related_model_id)
+    const relatedTableMeta = await this.getMeta({ baseId: relatedBaseId, tableIdOrTitle: fk_related_model_id })
 
     if (!relatedTableMeta || !Array.isArray(relatedTableMeta?.columns)) return null
 
@@ -254,7 +256,7 @@ export class FormFilters {
     if (!fk_related_model_id || typeof this.getMeta !== 'function' || !this.baseId) return null
 
     const relatedBaseId = relColOptions?.fk_related_base_id || this.baseId
-    const relatedTableMeta = await this.getMeta(relatedBaseId, fk_related_model_id)
+    const relatedTableMeta = await this.getMeta({ baseId: relatedBaseId, tableIdOrTitle: fk_related_model_id })
 
     if (!relatedTableMeta || !Array.isArray(relatedTableMeta?.columns)) return null
 
@@ -516,11 +518,11 @@ export class FormFilters {
                 break
               case 'empty':
               case 'blank':
-                res = val === '' || val === null || val === undefined
+                res = val === '' || val === null || val === undefined || isUnratedRating(column.uidt, val)
                 break
               case 'notempty':
               case 'notblank':
-                res = !(val === '' || val === null || val === undefined)
+                res = !(val === '' || val === null || val === undefined || isUnratedRating(column.uidt, val))
                 break
               case 'checked':
                 res = !!val

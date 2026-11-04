@@ -164,7 +164,7 @@ watch(currentModeIndex, () => {
             :placeholder="currentMode.placeholder || element.placeholder || 'Select...'"
             class="nc-select flex-1 nc-select-shadow"
             show-search
-            allow-clear
+            :allow-clear="!disabled"
             :filter-option="currentMode.searchable ? false : (input: string, option: any) => option.label?.toLowerCase()?.includes(input.toLowerCase())"
             @change="handleListSelect"
             @search="handleSearch"

@@ -1,15 +1,18 @@
 import type { Client } from 'typesense'
+import type { MaybeRefOrGetter } from 'vue'
 export const useTypesenseSearch = (
   client: Client,
   typesenseCollection: string,
   delayMs = 100,
-  allowEmpty = false,
+  allowEmpty: MaybeRefOrGetter<boolean> = false,
   key?: string,
 ) => {
   const search = ref('')
   const results = ref<'empty' | SortedResult[]>('empty')
   const error = ref<any>()
   const isLoading = ref(false)
+  /** The search text `results` (or `error`) belongs to; behind `search` while debouncing or fetching. */
+  const settledSearch = ref<string>()
 
   const cache = new Map<string, 'empty' | SortedResult[]>()
 
@@ -21,12 +24,24 @@ export const useTypesenseSearch = (
 
   const debouncedSearch = useDebounceFn(async () => {
     const newCacheKey = cacheKey.value
+    const term = search.value
+
+    // Not cached: allowEmpty can turn on later for the same (empty) key.
+    if (search.value.length === 0 && !toValue(allowEmpty)) {
+      ++currentRequestId
+      isLoading.value = false
+      error.value = undefined
+      results.value = 'empty'
+      settledSearch.value = term
+      return
+    }
 
     const cached = cache.get(newCacheKey)
     if (cached !== undefined) {
       isLoading.value = false
       error.value = undefined
       results.value = cached
+      settledSearch.value = term
       return
     }
 
@@ -34,22 +49,18 @@ export const useTypesenseSearch = (
     const requestId = ++currentRequestId
 
     try {
-      let result: 'empty' | SortedResult[]
-
-      if (search.value.length === 0 && !allowEmpty) {
-        result = 'empty'
-      } else {
-        result = await searchDocs(client, typesenseCollection, search.value)
-      }
+      const result = await searchDocs(client, typesenseCollection, term)
 
       if (requestId === currentRequestId) {
         cache.set(newCacheKey, result)
         error.value = undefined
         results.value = result
+        settledSearch.value = term
       }
     } catch (err) {
       if (requestId === currentRequestId) {
         error.value = err
+        settledSearch.value = term
       }
     } finally {
       if (requestId === currentRequestId) {
@@ -59,7 +70,7 @@ export const useTypesenseSearch = (
   }, delayMs)
 
   watch(
-    search,
+    [search, () => toValue(allowEmpty)],
     () => {
       debouncedSearch()
     },
@@ -71,6 +82,7 @@ export const useTypesenseSearch = (
     query: {
       isLoading,
       data: results,
+      settledSearch,
       error,
     },
   }

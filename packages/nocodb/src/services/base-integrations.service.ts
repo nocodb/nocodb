@@ -9,6 +9,7 @@ import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { IntegrationsService } from '~/services/integrations.service';
 import { maskKnexConfig } from '~/helpers/responseHelpers';
+import { isPrivateIntegrationForbidden } from '~/helpers/integrationAccess';
 import { resolveAccessBaseId } from '~/helpers/environmentGuards';
 import { partialExtract } from '~/utils/dataUtils';
 import { decryptPropIfRequired } from '~/utils/encryptDecrypt';
@@ -144,7 +145,15 @@ export class BaseIntegrationsService {
     },
   ) {
     const integration = await Integration.get(context, param.integrationId);
-    if (!integration) {
+    // Not-found for someone else's private integration, as in listForBase.
+    if (
+      !integration ||
+      isPrivateIntegrationForbidden(
+        !!integration.is_private,
+        integration.created_by,
+        param.userId,
+      )
+    ) {
       NcError.get(context).integrationNotFound(param.integrationId);
     }
 

@@ -560,7 +560,7 @@ watch(
                       dropdown-match-select-width
                       class="nc-select nc-select-shadow"
                       :placeholder="$t('placeholder.selectIntegration')"
-                      allow-clear
+                      :allow-clear="!(disabled || field.disabled)"
                       :disabled="disabled || field.disabled"
                       show-search
                       @update:value="setFormStateWithEmit(field.model, $event)"

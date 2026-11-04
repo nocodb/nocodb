@@ -245,7 +245,7 @@ export const useInfiniteGroups = (
           relatedMetaCache.set(
             key,
             (async () => {
-              const full = await getMeta(relatedBaseId, relatedTableId, false, false, true)
+              const full = await getMeta({ baseId: relatedBaseId, tableIdOrTitle: relatedTableId, disableError: true })
               if (full || isPublic.value || !linkCol.id) return full
               return getPartialMeta(relatedBaseId, linkCol.id, relatedTableId, {
                 workspaceId: base.value?.fk_workspace_id,
@@ -301,7 +301,11 @@ export const useInfiniteGroups = (
 
             const nestedRelOpts = nestedRelCol.colOptions as LinkToAnotherRecordType
             const nestedBaseId = nestedRelOpts?.fk_related_base_id || currentBaseId
-            const nestedTableMeta = await getMeta(nestedBaseId, nestedRelOpts.fk_related_model_id as string, false, false, true)
+            const nestedTableMeta = await getMeta({
+              baseId: nestedBaseId,
+              tableIdOrTitle: nestedRelOpts.fk_related_model_id as string,
+              disableError: true,
+            })
             if (!nestedTableMeta) break
 
             const nestedLookupCol = nestedTableMeta.columns?.find(
@@ -318,7 +322,11 @@ export const useInfiniteGroups = (
           if (finalColumn?.uidt === UITypes.LinkToAnotherRecord) {
             const lookupColOpts = finalColumn.colOptions as LinkToAnotherRecordType
             const targetBaseId = lookupColOpts?.fk_related_base_id || currentBaseId
-            const targetTableMeta = await getMeta(targetBaseId, lookupColOpts.fk_related_model_id as string, false, false, true)
+            const targetTableMeta = await getMeta({
+              baseId: targetBaseId,
+              tableIdOrTitle: lookupColOpts.fk_related_model_id as string,
+              disableError: true,
+            })
             if (targetTableMeta) {
               finalTableMeta = targetTableMeta
               finalColumn = targetTableMeta.columns?.find((c) => c.pv) || targetTableMeta.columns?.[0]

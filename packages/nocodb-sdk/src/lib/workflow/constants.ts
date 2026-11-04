@@ -13,6 +13,20 @@ export const WORKFLOW_EXECUTION_STATUSES: readonly WorkflowExecutionStatus[] = [
   'skipped',
 ];
 
+/**
+ * How many trigger hops a chain of writes may take before the next firing is
+ * not run. Shared by workflows and agents: one counter covers mixed chains.
+ */
+export const TRIGGER_MAX_CHAIN_DEPTH = 3;
+
+/** Why a triggered workflow run was recorded without running. */
+export enum WorkflowSkipReason {
+  /** The event came from this same workflow's own write. */
+  SELF_TRIGGERED = 'self_triggered',
+  /** The chain of triggered runs reached TRIGGER_MAX_CHAIN_DEPTH. */
+  CHAIN_DEPTH_EXCEEDED = 'chain_depth_exceeded',
+}
+
 export const GeneralNodeID = {
   TRIGGER: 'core.trigger',
   PLUS: 'core.plus',

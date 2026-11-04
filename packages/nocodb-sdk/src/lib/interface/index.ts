@@ -184,6 +184,25 @@ export type InterfacePageWithWarnings<
   warnings?: InterfacePageSaveWarning[];
 };
 
+/** A page ref that won't open a live page for app users after publish. */
+export interface InterfaceBrokenPageRef {
+  /** Page holding the ref. */
+  pageId: string;
+  /** Referenced page id. */
+  ref: string;
+  /** Config path of the ref. */
+  path: string;
+}
+
+export interface InterfacePublishResponse<
+  T extends InterfaceType = InterfaceType
+> {
+  published: T[];
+  /** Pages left out because they're `keep_as_draft`. */
+  skippedPages: string[];
+  brokenPageRefs: InterfaceBrokenPageRef[];
+}
+
 /** Anything but `desc` (any casing) sorts ascending. */
 export function normalizeInterfaceSortDirection(
   direction?: string | null

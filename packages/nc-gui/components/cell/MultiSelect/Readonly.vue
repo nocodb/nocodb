@@ -8,7 +8,7 @@ interface Props {
   options?: LocalSelectOptionType[]
 }
 
-const { modelValue, options: selectOptions } = defineProps<Props>()
+const { modelValue, options: selectOptions, location } = defineProps<Props>()
 
 const { isDark, getColor } = useTheme()
 
@@ -51,6 +51,9 @@ const selectedOpts = computed(() => {
   }, [] as LocalSelectOptionType[])
 })
 
+// A filter value has no row height to truncate to: one row that scrolls sideways.
+const isInFilter = computed(() => location === 'filter')
+
 const selectedOptsListLayout = computed(() => selectedOpts.value.map((item) => item.title!))
 </script>
 
@@ -68,12 +71,14 @@ const selectedOptsListLayout = computed(() => selectedOpts.value.map((item) => i
 
     <div
       v-else
-      class="flex flex-wrap"
+      class="flex"
       :class="{
+        'flex-wrap': !isInFilter,
         'flex-col items-start gap-2': extensionConfig?.widget?.displayAs === 'List',
+        'flex-nowrap max-w-full overflow-x-auto overflow-y-hidden nc-scrollbar-x-md': isInFilter,
       }"
       :style="
-        extensionConfig?.widget?.displayAs !== 'List'
+        extensionConfig?.widget?.displayAs !== 'List' && !isInFilter
           ? {
               'display': '-webkit-box',
               'max-width': '100%',
@@ -87,9 +92,11 @@ const selectedOptsListLayout = computed(() => selectedOpts.value.map((item) => i
     >
       <template v-for="selectedOpt of selectedOpts" :key="selectedOpt.value">
         <a-tag
-          class="rounded-tag max-w-full"
+          class="rounded-tag"
           :class="{
             '!my-0': !rowHeight || rowHeight === 1,
+            'max-w-full': !isInFilter,
+            'flex-none': isInFilter,
           }"
           :color="selectedOpt.bgColor"
         >

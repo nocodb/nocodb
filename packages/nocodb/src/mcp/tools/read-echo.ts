@@ -1,4 +1,4 @@
-import { z } from 'zod-v4';
+import { z } from 'zod';
 import isEqual from 'fast-deep-equal';
 import type { NcContext } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
@@ -31,8 +31,8 @@ export const AUDIT_KEYS = [
   'updated_at',
 ] as const;
 
-export function readEchoShape(echo: ReadEcho): Record<string, z.ZodTypeAny> {
-  const shape: Record<string, z.ZodTypeAny> = {};
+export function readEchoShape(echo: ReadEcho): Record<string, z.ZodType> {
+  const shape: Record<string, z.ZodType> = {};
 
   for (const key of echo.ignored ?? []) {
     shape[key] = z

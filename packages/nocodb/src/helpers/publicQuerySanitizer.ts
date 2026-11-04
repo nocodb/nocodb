@@ -27,6 +27,9 @@ export const PUBLIC_QUERY_BLOCKED_KEYS = [
   // `DatasService.dataList` switches to the link's target view/table on these.
   'linkColumnId',
   'linkBaseId',
+  // `?query[k]=v` parses to a nested object; spread into service params it
+  // would replace the sanitized query wholesale.
+  'query',
 ] as const;
 
 export function sanitizePublicQuery<T extends Record<string, any>>(

@@ -1683,7 +1683,7 @@
     "noMoreActionsToRedo": "Geen acties meer om opnieuw te doen",
     "noRecentViews": "Geen recente weergaven",
     "expandLinkFields": "Link velden uitklappen",
-    "expandLinkFieldsDesc": "Retourneer gekoppelde record gegevens in plaats van telling",
+    "expandLinkFieldsDesc": "Koppelingsvelden in de uitvoer bevatten de gekoppelde records in plaats van een aantal",
     "inheritedFromParent": "Overgenomen van bovenliggende",
     "pageOrUrl": "Pagina of URL",
     "linkTitle": "Link titel",
@@ -4057,7 +4057,6 @@
     "relationSettings": "Relatie-instellingen",
     "restoreVersion": "v{version} herstellen",
     "runningScript": "Script wordt uitgevoerd...",
-    "removeSummary": "Samenvatting verwijderen",
     "rowFiltered": "Rij gefilterd",
     "rowMoved": "Rij verplaatst",
     "rowHidden": "Rij verborgen",
@@ -4757,7 +4756,7 @@
       },
       "optIn": {
         "title": "Opt-in-tools",
-        "description": "Tools die definitief verwijderen of buiten NocoDB handelen, zoals het uitvoeren van een automatisering of het afvuren van een webhook. Een verbinding krijgt ze nooit tenzij je ze hier inschakelt."
+        "description": "Tools die definitief verwijderen of buiten NocoDB handelen, zoals een automatisering uitvoeren of een webhook afvuren. Ze blijven uit tot je ze hier inschakelt."
       }
     },
     "noBaseAccess": "Geen projecttoegang",
@@ -5732,7 +5731,87 @@
     "workflowValueDynamicDescription": "Variabelen uit een eerdere stap van deze automatisering gebruiken",
     "workflowRunAs": "Uitvoeren als",
     "workflowChangeRunAs": "Uitvoeren als wijzigen",
-    "workflowServiceAccount": "Serviceaccount"
+    "workflowServiceAccount": "Serviceaccount",
+    "wsEmpty": {
+      "title": "Start je eerste project",
+      "subtitle": "Een project bevat je gegevens en de apps die erop zijn gebouwd.",
+      "sharedTitle": "Er is nog niets met je gedeeld",
+      "sharedSubtitle": "Projecten en apps waarvoor je wordt uitgenodigd, verschijnen hier."
+    },
+    "workspaceHome": {
+      "uploadFile": "CSV of Excel uploaden",
+      "pickTemplate": "Of kies een sjabloon om mee te beginnen",
+      "untitledBase": "Naamloos project",
+      "templates": {
+        "projectManagement": {
+          "label": "Projectbeheer",
+          "prompt": "Een projectvolgsysteem met projecten en taken, elke taak met een eigenaar, status, prioriteit en einddatum."
+        },
+        "product": {
+          "prompt": "Een productroadmap met functies, het probleem dat elke functie oplost, prioriteit, status en doelrelease."
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "Een marketingkalender met campagnes, de kanalen waarop elke campagne loopt, budget, eigenaar en startdatum."
+        },
+        "sales": {
+          "label": "Verkoop",
+          "prompt": "Een sales-CRM met bedrijven, contactpersonen en deals, waarbij elke deal een fase, een waarde en een verwachte sluitingsdatum heeft."
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "Een supportbalie met tickets, de klant die elk ticket heeft aangemaakt, prioriteit, status en de toegewezen agent."
+        },
+        "hr": {
+          "label": "Personeelszaken",
+          "prompt": "Een sollicitatievolgsysteem met openstaande functies, kandidaten per wervingsfase en gesprekken met data en notities van de beoordelaars."
+        }
+      }
+    },
+    "yourConnections": "Je verbindingen",
+    "workingHours": "Werkuren",
+    "workingDays": "Werkdagen",
+    "wsNav": {
+      "groupBilling": "Plan",
+      "groupAdmin": "Admin",
+      "membersPage": "Leden van de werkruimte",
+      "iconHint": "Wordt getoond in de zijbalk en in de werkruimtekiezer.",
+      "nameHint": "Hoe deze werkruimte in heel NocoDB wordt genoemd.",
+      "workspaceId": "Werkruimte-ID",
+      "workspaceIdHint": "Gebruik het met de API of wanneer je contact opneemt met support.",
+      "allTypes": "Alle typen",
+      "allTeams": "Alle teams",
+      "teamsCreatedHere": "Hier aangemaakt",
+      "teamsScimManaged": "Beheerd via SCIM",
+      "upgradeTitleAudits": "Auditlogboek van de werkruimte",
+      "upgradeDescAudits": "Bekijk elke wijziging in deze werkruimte, en wie die heeft gemaakt.",
+      "upgradeTitleSso": "Eenmalige aanmelding",
+      "upgradeDescSso": "Laat leden zich aanmelden via je identiteitsprovider.",
+      "desc": {
+        "members": "Wie er bij deze werkruimte hoort, en hun standaardrol.",
+        "teams": "Groepen leden die je samen aan projecten kunt toevoegen.",
+        "integrations": "Gekoppelde accounts en inloggegevens die binnen de hele werkruimte worden gedeeld.",
+        "general": "De naam, het pictogram en de ID van de werkruimte.",
+        "skills": "Instructies die de AI-assistent in deze hele werkruimte volgt.",
+        "security": "Aanmeldvereisten voor iedereen in deze werkruimte.",
+        "dangerZone": "Deze werkruimte verlaten of definitief verwijderen.",
+        "billing": "Je plan, seats, betaalmethode en facturen.",
+        "usage": "Wat deze werkruimte verbruikt van de limieten van haar plan.",
+        "audits": "Elke wijziging in deze werkruimte, en wie die heeft gemaakt.",
+        "sso": "Aanmelden via je identiteitsprovider."
+      }
+    },
+    "workspaceMode": "Werkruimtemodus",
+    "zoomIn": "Inzoomen",
+    "zoomOut": "Uitzoomen",
+    "zoomTo50Percent": "Zoomen naar 50%",
+    "zoomTo100Percent": "Zoomen naar 100%",
+    "workflowValueStatic": "Statisch",
+    "workflowValueStaticDescription": "Waarden rechtstreeks invoeren",
+    "workspaceNoAccess": "Werkruimte (geen toegang)",
+    "yAxis": "Y-as",
+    "workspaceSettings": "Werkruimte-instellingen",
+    "wrapLongText": "Lange tekst laten doorlopen"
   },
   "activity": {
     "useTemplate": "Sjabloon gebruiken",
@@ -7089,8 +7168,6 @@
       "selectFieldFirst": "Selecteer eerst {field} om deze opties te laden.",
       "viewFolderDeleteConfirmation": "Weergaven in deze map worden naar het hoogste niveau verplaatst.",
       "saveDraftToBrowser": "Concept in de browser opslaan",
-      "showAppFirst": "App bovenaan in de zijbalk tonen",
-      "showAppFirstDesc": "Zet Apps boven Gegevens in de zijbalk van dit project.",
       "recordSavedButHidden": "Record is opgeslagen, maar is verborgen vanwege uw toegangsrechten.",
       "seeChangesToRecord": "Wijzigingen in dit record bekijken",
       "revisionHistoryUpgrade": "U hebt {limit} aan revisiegeschiedenis. Upgrade om de volledige geschiedenis te bekijken.",
@@ -7193,7 +7270,20 @@
       "mcpSetupCursorStep3": "Voeg de JSON-configuratie toe die na het aanmaken van een token wordt gegeven.",
       "mcpSetupIntroWindsurf": "Ga in 4 eenvoudige stappen aan de slag met NocoDB MCP en Windsurf",
       "mcpSetupWindsurfStep1": "Open de Windsurf-instellingen en selecteer het tabblad Cascade in de linkerzijbalk",
-      "mcpSetupWindsurfStep2": "Klik op Manage MCP."
+      "mcpSetupWindsurfStep2": "Klik op Manage MCP.",
+      "abuseReport": {
+        "queueDescription": "Meldingen ingediend via openbare links. Schakel een link uit om hem offline te halen, of blokkeer de accounts erachter.",
+        "disableConfirm": "De openbare link werkt voor niemand meer en elke openstaande melding erover wordt afgehandeld. De eigenaar kan het item opnieuw delen met een nieuwe link.",
+        "blockConfirm": "{email} is overal afgemeld en kan niet meer inloggen of API-tokens gebruiken. Je kunt de blokkering opheffen via gebruikersbeheer.",
+        "noAccounts": "Er zijn geen accounts aan dit item gekoppeld.",
+        "superAdminNotBlockable": "Superbeheerders kunnen niet worden geblokkeerd.",
+        "description": "Denk je dat deze pagina wordt gebruikt voor phishing, identiteitsmisbruik, oplichting of andere misbruikdoeleinden? Laat het de beheerders van deze {productName}-omgeving weten.",
+        "detailsMin": "Beschrijf het probleem in minstens {min} tekens.",
+        "thanksTitle": "Bedankt voor je melding",
+        "thanksDescription": "Je melding is ontvangen. De beheerders van deze {productName}-omgeving zullen hem beoordelen.",
+        "contactEmailHint": "Meldingen vanuit openbare weergaven, formulieren, interfaces en dashboards worden hiernaartoe gemaild. Laat leeg om alle superbeheerders te mailen."
+      },
+      "actWithYourOwnPermissions": "Handel met je eigen rechten in die resources"
     },
     "error": {
       "failedToCreateSync": "Maken van synchronisatie mislukt",
@@ -7406,7 +7496,46 @@
       "inviteLinkRevoked": "Deze uitnodigingslink is ingetrokken",
       "inviteLinkExhausted": "Deze uitnodigingslink is volledig gebruikt",
       "inviteLinkUnavailable": "Deze uitnodigingslink werkt niet meer",
-      "invalidEmailDomain": "Voer een domein in zoals acme.io"
+      "invalidEmailDomain": "Voer een domein in zoals acme.io",
+      "attachmentInvalidUrl": "Voer een URL in die begint met http:// of https://, of een sjabloon met variabelen",
+      "attachmentAlreadyAttached": "Dit bestand is al bijgevoegd.",
+      "attachmentOpenWorkflowToUpload": "Open de workflow om bestanden te uploaden",
+      "attachmentNoLongerAvailable": "Dit bestand is niet meer beschikbaar",
+      "attachmentsTooLarge": "De bestanden overschrijden de limiet van {size} per e-mail",
+      "factoryMachineNameRequired": "Geef de machine een naam",
+      "factoryMachineNameDuplicate": "Er bestaat al een machine met deze naam",
+      "vaultUnreachable": "Kon de kluis met deze instellingen niet bereiken",
+      "vaultAliasStart": "De naam moet met een letter beginnen",
+      "vaultAliasCharacters": "De naam mag alleen letters en cijfers bevatten — geen spaties, streepjes of underscores",
+      "vaultAliasReserved": "'{name}' is een gereserveerde naam, kies een andere",
+      "fieldSaveFailed": "Kon veld '{field}' niet opslaan: {error}",
+      "fieldSavesFailed": "Kon {count} velden niet opslaan ({fields}). Eerste fout: {error}",
+      "projectNameRequired": "Projectnaam is verplicht",
+      "attachmentUrlDownloadFailed": "NocoDB kon dit bestand niet downloaden via de URL. Verwijder het en voeg het bestand opnieuw toe.",
+      "emailImageSize": "Afbeeldingen in een e-mailbericht moeten kleiner zijn dan {size}. Een logo blijft meestal ruim onder 100 KB.",
+      "emailImageType": "Gebruik een PNG-, JPEG-, GIF- of WebP-afbeelding",
+      "emailImageCount": "Een e-mailbericht kan maximaal {count} afbeeldingen bevatten",
+      "emailImageTotalSize": "Afbeeldingen in een e-mailbericht mogen samen niet groter zijn dan {size}",
+      "emailImageNoWorkflow": "Open de workflow om afbeeldingen toe te voegen",
+      "emailImageUploadFailed": "Kon de afbeelding niet uploaden",
+      "emailImageMissing": "Deze afbeelding is niet meer beschikbaar en wordt uit de e-mail weggelaten. Verwijder hem en voeg hem opnieuw in.",
+      "vaultSecretNeedsProperty": "Dit geheim bevat meerdere velden. Kies welk veld je wilt gebruiken, anders mislukt de verbinding bij het uitvoeren.",
+      "vaultUnknownAlias": "Er is voor jou geen kluis met de naam '{name}' beschikbaar.",
+      "atLeastOneOperationRequired": "Er moet minstens één bewerking worden geselecteerd",
+      "triggerFormRequired": "Je moet een triggerformulier selecteren",
+      "failedToStartListening": "Kon niet beginnen met luisteren naar updates",
+      "unknownPermissionRequested": "Deze server biedt dit recht niet aan",
+      "authorizationWillBeRefused": "Dit verzoek wordt geweigerd vanwege de rechten hierboven.",
+      "vaultAliasNotAllowed": "Je mag de kluis '{name}' niet gebruiken. Vraag een eigenaar van de werkruimte om toegang of voer de inloggegevens rechtstreeks in.",
+      "selectTargetField": "Selecteer een doelveld!",
+      "parentTableNoPrimaryKey": "De bovenliggende tabel heeft geen primaire-sleutelkolom",
+      "childTableNoPrimaryKey": "De onderliggende tabel heeft geen primaire-sleutelkolom",
+      "noWorkspaceAvailable": "Geen werkruimte beschikbaar",
+      "invalidJson": "Ongeldige JSON",
+      "invalidTokensJson": "Dit is geen token-export. Er worden sleutels als light, dark, font of radiusScale verwacht.",
+      "renameFileFailed": "Fout bij het hernoemen van het bestand",
+      "failedToLoadMetadataDiff": "Kon het metadataverschil niet laden",
+      "failedToLoadMonacoEditor": "Kon Monaco Editor niet laden"
     },
     "toast": {
       "inviteUrlCopy": "UitnodigignsURL gekopieerd naar klembord",
@@ -7549,9 +7678,9 @@
       "failed": "Registratie mislukt",
       "paused": "Gepauzeerd"
     },
-    "agentToolsAndAccessSubtitle": "Wat mag de agent gebruiken? Voeg tools, pagina's en verbindingen toe waartoe hij toegang heeft.",
+    "agentToolsAndAccessSubtitle": "Wat mag deze agent lezen en wijzigen? Kies voor elk onderdeel een niveau.",
     "agentNoFilters": "Nog geen voorwaarden",
-    "agentInstructionsSubtitle": "Wat moet de agent elke keer doen als hij draait? Dit zijn de beste werkwijzen.",
+    "agentInstructionsSubtitle": "Geef het een naam en schrijf dan op wat het moet doen, zoals je een collega zou instrueren.",
     "communitySkillsSubtitle": "Zoek hierboven naar skills die op skills.sh zijn gedeeld en open er een om de SKILL.md te lezen voordat je hem installeert.",
     "environmentBlockedBySync": "Kan geen omgeving openen voor een project met actieve synchronisatie. Verwijder eerst de synchronisatieconfiguraties.",
     "chatArtifactPublicLinkHint": "Iedereen met de link kan dit bekijken.",
@@ -7716,7 +7845,14 @@
       "confirmCta": "Migratie bevestigen",
       "migrating": "Bezig met migreren..."
     },
-    "skillsRegistryErrorTitle": "Kan het skills-register niet doorzoeken"
+    "skillsRegistryErrorTitle": "Kan het skills-register niet doorzoeken",
+    "airtableImportReportSummary": "{skipped} overgeslagen · {approximated} benaderd · {failed} mislukt",
+    "airtableImportReportTruncated": "Het rapport toont de eerste {shown} van {total} items. Download de logboeken voor de volledige lijst.",
+    "factoryMachineReadyNow": "Machine gereed. Nieuwe sessies gebruiken hem.",
+    "factoryMachineSwitched": "Nieuwe sessies gebruiken versie {version}.",
+    "factoryMachineDefaultNow": "Nieuwe sessies starten nu op {machine}.",
+    "factoryMachineUpgrading": "{machine} wordt bijgewerkt. Nieuwe sessies gebruiken hem zodra de build klaar is.",
+    "factoryAppInstallUnavailable": "{provider} kan nog niet aan code-agents worden gekoppeld. Daarvoor is een app-installatie nodig en die is hier niet ingesteld voor {provider}."
   },
   "trash": {
     "restore": "Herstellen",
@@ -8102,7 +8238,6 @@
       "lastSignedInAt": "Laatst aangemeld {time}",
       "lastUsed": "Laatst gebruikt",
       "lastUsedAt": "Laatst gebruikt {time}",
-      "canDelete": "Kan gegevens verwijderen",
       "toolsTitle": "Hulpmiddelen en machtigingen",
       "neverMoreThanRole": "Nooit meer dan je eigen rol in dit project ({role}).",
       "neverMoreThanAccess": "Nooit meer dan je eigen toegang tot dit project.",

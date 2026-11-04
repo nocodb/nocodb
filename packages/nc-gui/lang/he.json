@@ -1689,7 +1689,7 @@
     "noMoreActionsToRedo": "אין עוד פעולות שיש לבצע מחדש",
     "noRecentViews": "אין צפיות אחרונות",
     "expandLinkFields": "הרחב שדות קישור",
-    "expandLinkFieldsDesc": "להחזיר את נתוני הרשומות המקושרות במקום את מספרן",
+    "expandLinkFieldsDesc": "שדות קישור בפלט מכילים את הרשומות המקושרות במקום ספירה",
     "inheritedFromParent": "מורשת מההורה",
     "pageOrUrl": "דף או כתובת URL",
     "linkTitle": "כותרת הקישור",
@@ -4072,7 +4072,6 @@
     "relationSettings": "הגדרות הקשר",
     "restoreVersion": "שחזר v{version}",
     "runningScript": "מריץ סקריפט ...",
-    "removeSummary": "הסר סיכום",
     "rowFiltered": "שורה סוננה",
     "rowMoved": "שורה הועברה",
     "rowHidden": "שורה הוסתרה",
@@ -4780,7 +4779,7 @@
       },
       "optIn": {
         "title": "כלים להצטרפות מרצון",
-        "description": "כלים שמוחקים לצמיתות או פועלים מחוץ ל-NocoDB, כמו הרצת אוטומציה או הפעלת webhook. חיבור לעולם לא מקבל אותם אלא אם תפעיל אותם כאן."
+        "description": "כלים שמוחקים לצמיתות או פועלים מחוץ ל-NocoDB, למשל הרצת אוטומציה או הפעלת וובהוק. הם נשארים כבויים עד שתפעילו אותם כאן."
       }
     },
     "noBaseAccess": "אין גישה לפרויקט",
@@ -5777,7 +5776,88 @@
     "workflowValueDynamicDescription": "שימוש במשתנים משלב קודם של האוטומציה הזו",
     "workflowRunAs": "הרצה בשם",
     "workflowChangeRunAs": "שינוי הרצה בשם",
-    "workflowServiceAccount": "חשבון שירות"
+    "workflowServiceAccount": "חשבון שירות",
+    "wsEmpty": {
+      "title": "התחילו את הפרויקט הראשון שלכם",
+      "subtitle": "פרויקט מכיל את הנתונים שלכם ואת האפליקציות שנבנו עליהם.",
+      "sharedTitle": "עדיין לא שותף איתכם דבר",
+      "sharedSubtitle": "פרויקטים ואפליקציות שתוזמנו אליהם יופיעו כאן."
+    },
+    "workspaceHome": {
+      "uploadFile": "העלאת CSV או Excel",
+      "pickTemplate": "או בחרו תבנית להתחלה",
+      "untitledBase": "פרויקט ללא שם",
+      "templates": {
+        "projectManagement": {
+          "label": "ניהול פרויקטים",
+          "prompt": "מעקב פרויקטים עם פרויקטים ומשימות, כשלכל משימה יש אחראי, סטטוס, עדיפות ותאריך יעד."
+        },
+        "product": {
+          "label": "מוצר",
+          "prompt": "מפת דרכים למוצר עם יכולות, הבעיה שכל אחת פותרת, עדיפות, סטטוס וגרסת יעד."
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "לוח שנה שיווקי עם קמפיינים, הערוצים שבהם כל אחד רץ, תקציב, אחראי ותאריך השקה."
+        },
+        "sales": {
+          "label": "מכירות",
+          "prompt": "מערכת CRM למכירות עם חברות, אנשי קשר ועסקאות, כשלכל עסקה יש שלב, שווי ותאריך סגירה צפוי."
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "מוקד תמיכה עם פניות, הלקוח שפתח כל אחת מהן, עדיפות, סטטוס והנציג שהוקצה."
+        },
+        "hr": {
+          "label": "משאבי אנוש",
+          "prompt": "מעקב מועמדים עם משרות פתוחות, מועמדים לפי שלב גיוס, וראיונות עם תאריכים והערות של המראיינים."
+        }
+      }
+    },
+    "yourConnections": "החיבורים שלכם",
+    "workingHours": "שעות עבודה",
+    "workingDays": "ימי עבודה",
+    "wsNav": {
+      "groupBilling": "תוכנית",
+      "groupAdmin": "ניהול",
+      "membersPage": "חברי מרחב העבודה",
+      "iconHint": "מוצג בסרגל הצד ובמחליף מרחבי העבודה.",
+      "nameHint": "איך מרחב העבודה הזה נקרא בכל NocoDB.",
+      "workspaceId": "מזהה מרחב העבודה",
+      "workspaceIdHint": "השתמשו בו מול ה-API, או כשאתם פונים לתמיכה.",
+      "allTypes": "כל הסוגים",
+      "allTeams": "כל הצוותים",
+      "teamsCreatedHere": "נוצר כאן",
+      "teamsScimManaged": "מנוהל באמצעות SCIM",
+      "upgradeTitleAudits": "יומן ביקורת של מרחב העבודה",
+      "upgradeDescAudits": "צפו בכל שינוי שבוצע במרחב העבודה הזה, ומי ביצע אותו.",
+      "upgradeTitleSso": "כניסה יחידה",
+      "upgradeDescSso": "אפשרו לחברים להתחבר דרך ספק הזהויות שלכם.",
+      "desc": {
+        "members": "מי שייך למרחב העבודה הזה, ומה תפקיד ברירת המחדל שלו.",
+        "teams": "קבוצות של חברים שאפשר להוסיף יחד לפרויקטים.",
+        "integrations": "חשבונות מחוברים ופרטי התחברות המשותפים בכל מרחב העבודה.",
+        "general": "השם, הסמל והמזהה של מרחב העבודה.",
+        "skills": "ההנחיות שעוזר ה-AI פועל לפיהן בכל מרחב העבודה הזה.",
+        "security": "דרישות ההתחברות לכל המשתמשים במרחב העבודה הזה.",
+        "dangerZone": "עזיבת מרחב העבודה הזה או מחיקתו לצמיתות.",
+        "billing": "התוכנית שלכם, המושבים, אמצעי התשלום והחשבוניות.",
+        "usage": "כמה מרחב העבודה הזה צורך מתוך מגבלות התוכנית שלו.",
+        "audits": "כל שינוי שבוצע במרחב העבודה הזה, ומי ביצע אותו.",
+        "sso": "התחברות דרך ספק הזהויות שלכם."
+      }
+    },
+    "workspaceMode": "מצב מרחב עבודה",
+    "zoomIn": "הגדלה",
+    "zoomOut": "הקטנה",
+    "zoomTo50Percent": "זום ל-50%",
+    "zoomTo100Percent": "זום ל-100%",
+    "workflowValueStatic": "קבוע",
+    "workflowValueStaticDescription": "הזינו ערכים ישירות",
+    "workspaceNoAccess": "מרחב עבודה (אין גישה)",
+    "yAxis": "ציר Y",
+    "workspaceSettings": "הגדרות מרחב העבודה",
+    "wrapLongText": "גלישת טקסט ארוך"
   },
   "activity": {
     "useTemplate": "השתמש בתבנית",
@@ -7137,8 +7217,6 @@
       "selectFieldFirst": "בחרו קודם {field} כדי לטעון את האפשרויות האלה.",
       "viewFolderDeleteConfirmation": "התצוגות בתיקייה הזו יועברו לרמה העליונה.",
       "saveDraftToBrowser": "שמירת טיוטה בדפדפן",
-      "showAppFirst": "הצגת האפליקציה ראשונה בסרגל הצד",
-      "showAppFirstDesc": "למקם את Apps מעל נתונים בסרגל הצד של הפרויקט הזה.",
       "recordSavedButHidden": "הרשומה נשמרה בהצלחה, אך היא מוסתרת בגלל הרשאות הגישה שלך.",
       "seeChangesToRecord": "צפייה בשינויים ברשומה הזו",
       "revisionHistoryUpgrade": "יש לך {limit} של היסטוריית גרסאות. שדרגו כדי לראות את ההיסטוריה המלאה.",
@@ -7241,7 +7319,20 @@
       "mcpSetupCursorStep3": "הוסיפו את תצורת ה־JSON שמתקבלת לאחר יצירת אסימון.",
       "mcpSetupIntroWindsurf": "התחילו לעבוד עם NocoDB MCP ב־Windsurf בארבעה שלבים פשוטים",
       "mcpSetupWindsurfStep1": "היכנסו להגדרות Windsurf ובחרו בלשונית Cascade בסרגל הצד השמאלי",
-      "mcpSetupWindsurfStep2": "לחצו על Manage MCP."
+      "mcpSetupWindsurfStep2": "לחצו על Manage MCP.",
+      "abuseReport": {
+        "queueDescription": "דיווחים שהוגשו מקישורים ציבוריים. השביתו קישור כדי להסירו, או חסמו את החשבונות שמאחוריו.",
+        "disableConfirm": "הקישור הציבורי מפסיק לעבוד עבור כולם, וכל דיווח פתוח עליו נסגר. הבעלים יכולים לשתף את הפריט מחדש בקישור חדש.",
+        "blockConfirm": "{email} נותק מכל המכשירים ולא יכול עוד להתחבר או להשתמש בטוקני API. אפשר לבטל את החסימה דרך ניהול המשתמשים.",
+        "noAccounts": "אין חשבונות המקושרים לפריט הזה.",
+        "superAdminNotBlockable": "אי אפשר לחסום מנהלי על.",
+        "description": "אתם סבורים שהדף הזה משמש לפישינג, התחזות, הונאה או מטרות פוגעניות אחרות? הודיעו למנהלים של מופע ה-{productName} הזה.",
+        "detailsMin": "תארו את הבעיה בלפחות {min} תווים.",
+        "thanksTitle": "תודה על הדיווח",
+        "thanksDescription": "הדיווח שלכם התקבל. המנהלים של מופע ה-{productName} הזה יבדקו אותו.",
+        "contactEmailHint": "דיווחים מתצוגות, טפסים, ממשקים ולוחות מחוונים ציבוריים נשלחים לכאן בדוא\"ל. השאירו ריק כדי לשלוח לכל מנהלי העל."
+      },
+      "actWithYourOwnPermissions": "פעלו בהרשאות שלכם במשאבים האלה"
     },
     "error": {
       "failedToCreateSync": "לא הצליח ליצור סנכרון",
@@ -7454,7 +7545,46 @@
       "inviteLinkRevoked": "קישור ההזמנה הזה בוטל",
       "inviteLinkExhausted": "קישור ההזמנה הזה נוצל במלואו",
       "inviteLinkUnavailable": "קישור ההזמנה הזה כבר לא עובד",
-      "invalidEmailDomain": "הזינו דומיין כמו acme.io"
+      "invalidEmailDomain": "הזינו דומיין כמו acme.io",
+      "attachmentInvalidUrl": "הזינו כתובת URL שמתחילה ב-http:// או ב-https://, או תבנית שמשתמשת במשתנים",
+      "attachmentAlreadyAttached": "הקובץ הזה כבר מצורף.",
+      "attachmentOpenWorkflowToUpload": "פתחו את תהליך העבודה כדי להעלות קבצים",
+      "attachmentNoLongerAvailable": "הקובץ הזה אינו זמין עוד",
+      "attachmentsTooLarge": "הקבצים חורגים מהמגבלה של {size} לכל הודעת דוא\"ל",
+      "factoryMachineNameRequired": "תנו שם למכונה",
+      "factoryMachineNameDuplicate": "כבר קיימת מכונה בשם הזה",
+      "vaultUnreachable": "לא ניתן היה להגיע לכספת עם ההגדרות האלה",
+      "vaultAliasStart": "השם חייב להתחיל באות",
+      "vaultAliasCharacters": "השם יכול להכיל רק אותיות וספרות — בלי רווחים, מקפים או קווים תחתונים",
+      "vaultAliasReserved": "'{name}' הוא שם שמור, בחרו שם אחר",
+      "fieldSaveFailed": "לא ניתן היה לשמור את השדה '{field}': {error}",
+      "fieldSavesFailed": "לא ניתן היה לשמור {count} שדות ({fields}). השגיאה הראשונה: {error}",
+      "projectNameRequired": "שם הפרויקט הוא שדה חובה",
+      "attachmentUrlDownloadFailed": "NocoDB לא הצליח להוריד את הקובץ הזה מכתובת ה-URL שלו. הסירו אותו והוסיפו את הקובץ מחדש.",
+      "emailImageSize": "תמונות בגוף הודעת דוא\"ל חייבות להיות קטנות מ-{size}. לוגו בדרך כלל קטן בהרבה מ-100 ק\"ב.",
+      "emailImageType": "השתמשו בתמונת PNG, JPEG, GIF או WebP",
+      "emailImageCount": "גוף הודעת דוא\"ל יכול להכיל עד {count} תמונות",
+      "emailImageTotalSize": "סך התמונות בגוף הודעת דוא\"ל חייב להיות קטן מ-{size}",
+      "emailImageNoWorkflow": "פתחו את תהליך העבודה כדי להוסיף תמונות",
+      "emailImageUploadFailed": "לא ניתן היה להעלות את התמונה",
+      "emailImageMissing": "התמונה הזו אינה זמינה עוד ותושמט מההודעה. הסירו אותה והכניסו אותה מחדש.",
+      "vaultSecretNeedsProperty": "הסוד הזה מכיל כמה שדות. בחרו באיזה להשתמש, אחרת החיבור ייכשל בזמן ההרצה.",
+      "vaultUnknownAlias": "לא זמינה לכם כספת בשם '{name}'.",
+      "atLeastOneOperationRequired": "יש לבחור לפחות פעולה אחת",
+      "triggerFormRequired": "עליכם לבחור טופס מפעיל",
+      "failedToStartListening": "לא ניתן היה להתחיל להאזין לעדכונים",
+      "unknownPermissionRequested": "זו אינה הרשאה שהשרת הזה מציע",
+      "authorizationWillBeRefused": "הבקשה הזו תידחה בגלל ההרשאות שלמעלה.",
+      "vaultAliasNotAllowed": "אינכם רשאים להשתמש בכספת '{name}'. בקשו גישה מבעלים של מרחב העבודה, או הזינו את פרטי ההתחברות ישירות.",
+      "selectTargetField": "בחרו שדה יעד!",
+      "parentTableNoPrimaryKey": "לטבלת האב אין עמודת מפתח ראשי",
+      "childTableNoPrimaryKey": "לטבלת הבן אין עמודת מפתח ראשי",
+      "noWorkspaceAvailable": "אין מרחב עבודה זמין",
+      "invalidJson": "JSON לא תקין",
+      "invalidTokensJson": "זה אינו ייצוא של טוקנים. מצופים מפתחות כמו light, dark, font או radiusScale.",
+      "renameFileFailed": "שגיאה בשינוי שם הקובץ",
+      "failedToLoadMetadataDiff": "טעינת הפרשי המטא-נתונים נכשלה",
+      "failedToLoadMonacoEditor": "טעינת Monaco Editor נכשלה"
     },
     "toast": {
       "inviteUrlCopy": "הועתק להזמין כתובת אתר ללוח",
@@ -7597,9 +7727,9 @@
       "failed": "הרישום נכשל",
       "paused": "מושהה"
     },
-    "agentToolsAndAccessSubtitle": "במה הסוכן יכול להשתמש? הוסיפו כלים, דפים וחיבורים שיש לו גישה אליהם.",
+    "agentToolsAndAccessSubtitle": "מה הסוכן הזה רשאי לקרוא ולשנות? בחרו רמה לכל אחד.",
     "agentNoFilters": "אין עדיין תנאים",
-    "agentInstructionsSubtitle": "מה הסוכן צריך לעשות בכל הרצה? הנה השיטות המומלצות.",
+    "agentInstructionsSubtitle": "תנו לו שם, ואז כתבו מה עליו לעשות, כמו שהייתם מתדרכים עמית לצוות.",
     "communitySkillsSubtitle": "חפשו למעלה Skills שמשותפים ב‑skills.sh, ואז פתחו אחד כדי לקרוא את קובץ ה‑SKILL.md שלו לפני ההתקנה.",
     "environmentBlockedBySync": "לא ניתן לפתוח סביבה עבור פרויקט עם סנכרון פעיל. הסר תחילה את הגדרות הסנכרון.",
     "chatArtifactPublicLinkHint": "כל מי שיש לו את הקישור יכול לצפות בזה.",
@@ -7764,7 +7894,14 @@
       "confirmCta": "אישור ההעברה",
       "migrating": "מעביר..."
     },
-    "skillsRegistryErrorTitle": "לא ניתן היה לחפש במרשם המיומנויות"
+    "skillsRegistryErrorTitle": "לא ניתן היה לחפש במרשם המיומנויות",
+    "airtableImportReportSummary": "{skipped} דולגו · {approximated} קורבו · {failed} נכשלו",
+    "airtableImportReportTruncated": "הדוח מציג את {shown} הפריטים הראשונים מתוך {total}. הורידו את היומנים לרשימה המלאה.",
+    "factoryMachineReadyNow": "המכונה מוכנה. הפעלות חדשות משתמשות בה.",
+    "factoryMachineSwitched": "הפעלות חדשות ישתמשו בגרסה {version}.",
+    "factoryMachineDefaultNow": "הפעלות חדשות מתחילות מעכשיו על {machine}.",
+    "factoryMachineUpgrading": "מתבצעת שדרוג של {machine}. הפעלות חדשות ישתמשו בה כשהבנייה תהיה מוכנה.",
+    "factoryAppInstallUnavailable": "אי אפשר עדיין לחבר את {provider} לסוכני קוד. נדרשת התקנת אפליקציה, ואין כזו שמוגדרת כאן עבור {provider}."
   },
   "trash": {
     "restore": "שחזור",
@@ -8150,7 +8287,6 @@
       "lastSignedInAt": "התחברות אחרונה {time}",
       "lastUsed": "שימוש אחרון",
       "lastUsedAt": "שימוש אחרון {time}",
-      "canDelete": "יכול למחוק נתונים",
       "toolsTitle": "כלים והרשאות",
       "neverMoreThanRole": "לעולם לא יותר מהתפקיד שלכם בפרויקט הזה ({role}).",
       "neverMoreThanAccess": "לעולם לא יותר מהגישה שלכם לפרויקט הזה.",

@@ -35,7 +35,8 @@ export function useLoadLookupMetas(metaRef: MaybeRef<TableType | undefined>, opt
 
       // getMeta returns the cached meta when present and loads + caches it
       // otherwise. disableError avoids a toast if a chain table is inaccessible.
-      const relMeta: TableType | undefined = (await getMeta(relBaseId, relModelId, false, false, true)) ?? undefined
+      const relMeta: TableType | undefined =
+        (await getMeta({ baseId: relBaseId, tableIdOrTitle: relModelId, disableError: true })) ?? undefined
       if (!relMeta) break
 
       ownMeta = relMeta
@@ -52,7 +53,7 @@ export function useLoadLookupMetas(metaRef: MaybeRef<TableType | undefined>, opt
     const relBaseId = relOpt?.fk_related_base_id || rootMeta.base_id
     if (!relModelId || !relBaseId) return
 
-    await getMeta(relBaseId, relModelId, false, false, true)
+    await getMeta({ baseId: relBaseId, tableIdOrTitle: relModelId, disableError: true })
   }
 
   const loadChainMetas = async (rootMeta?: TableType) => {

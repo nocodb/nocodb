@@ -655,6 +655,45 @@ export interface ChatToolMetadata {
     id_fields?: Record<string, unknown>;
     fields: Record<string, unknown>;
   }>;
+  /** What the approval card shows about a call waiting on it, read when it paused. */
+  approval?: ChatApprovalPreview;
+}
+
+/** An agent's switches beyond reading tables, as `edit_agent`/`build_agent` take them. */
+export interface ChatApprovalAgentAccess {
+  write_records: boolean;
+  documents: boolean;
+  web: boolean;
+}
+
+/** Every field is optional: a card shows what it gets and falls back to the call's input. */
+export interface ChatApprovalPreview {
+  /** Its parents, outermost first: a field's table, a widget's dashboard. */
+  path?: string[];
+  /** The thing the call acts on, by title. */
+  title?: string;
+  /** Its kind: a field's UIType, a view's type (`grid`, `kanban`…), a widget's type. */
+  kind?: string;
+  /** What goes with it. */
+  counts?: Partial<
+    Record<'records' | 'views' | 'fields' | 'widgets' | 'pages', number>
+  >;
+  /** Tables that lose a link field to it. */
+  linkedFrom?: string[];
+  /** The records, by display value. */
+  rows?: Array<{ id: string; title?: string }>;
+  /** The table `rows` live in, so the card can open one. */
+  tableId?: string;
+  /** Days it stays in the base's Trash. -1: no limit. 0: deleted for good. Absent: not a delete. */
+  trashDays?: number;
+  /** A live agent as it is now, for the settings the call changes. */
+  agent?: {
+    instructions?: string;
+    enabled?: boolean;
+    access?: ChatApprovalAgentAccess;
+    /** The access the call leaves it with. */
+    accessAfter?: ChatApprovalAgentAccess;
+  };
 }
 
 export type ChatContentBlock =
@@ -681,6 +720,8 @@ export type ChatContentBlock =
       agent?: string;
       visibility?: ChatToolVisibility;
       metadata?: ChatToolMetadata;
+      /** Set when the person answers a paused call; the reply that follows continues this message. */
+      decision?: 'approved' | 'denied';
     }
   /** A durable turn failure (e.g. an app build that failed) rendered as an error bubble. */
   | { type: 'error'; text: string }

@@ -68,6 +68,12 @@ const showHiddenFieldsSection = computed(() => {
   if (isFiltering.value && visibleHiddenFieldsCount.value === 0) return false
   return true
 })
+
+useHiddenFieldsCommands({
+  isAvailable: computed(() => showHiddenFieldsSection.value && !isFiltering.value),
+  count: () => props.hiddenFields.length,
+  isShown: showHiddenFields,
+})
 </script>
 
 <template>

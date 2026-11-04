@@ -2,6 +2,7 @@ import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, UITypesName, isLinksOrLTAR } from 'nocodb-sdk'
 import { parseCellWidth } from './cell'
 import type { CanvasGridColumn } from '~/lib/types'
+import type { GetMetaParams } from '~/composables/useMetas'
 
 /**
  * Header drag-drop landing spot: the dragged field is inserted *after*
@@ -55,7 +56,7 @@ export function getCustomColumnTooltip({
   metas: Record<string, TableType>
   baseId?: string
   isExternalLink: boolean
-  getMeta?: (baseId: string, tableId: string) => Promise<TableType>
+  getMeta?: (params: GetMetaParams) => Promise<TableType | null>
 }): string {
   if (!isLinksOrLTAR(column.columnObj)) {
     return
@@ -90,7 +91,7 @@ export function getCustomColumnTooltip({
       mmTable = mmMeta?.title?.includes('nc_m2m_') ? null : mmMeta
     } else {
       // if metas not found in store, fetch it with correct base_id
-      getMeta?.(relatedBaseId, relOptions.fk_mm_model_id).catch((_e) => {
+      getMeta?.({ baseId: relatedBaseId, tableIdOrTitle: relOptions.fk_mm_model_id }).catch((_e) => {
         // do nothing
       })
     }

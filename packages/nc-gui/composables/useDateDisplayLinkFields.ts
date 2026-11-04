@@ -19,13 +19,11 @@ export function useDateDisplayLinkFields(columns: Ref<ColumnType[]>, enabled: Re
       const colOptions = column.colOptions as LinkToAnotherRecordType | undefined
       if (!colOptions?.fk_related_model_id) continue
 
-      const relatedMeta = await getMeta(
-        colOptions.fk_related_base_id ?? column.base_id!,
-        colOptions.fk_related_model_id,
-        false,
-        false,
-        true,
-      )
+      const relatedMeta = await getMeta({
+        baseId: colOptions.fk_related_base_id ?? column.base_id!,
+        tableIdOrTitle: colOptions.fk_related_model_id,
+        disableError: true,
+      })
       const overrideId = colOptions.fk_display_value_column_id
       const displayColumn =
         (overrideId && relatedMeta?.columns?.find((c) => c.id === overrideId)) || relatedMeta?.columns?.find((c) => c.pv)

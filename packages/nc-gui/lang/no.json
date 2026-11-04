@@ -1687,7 +1687,7 @@
     "noMoreActionsToRedo": "Ingen flere handlinger å gjenta",
     "noRecentViews": "Ingen nylige visninger",
     "expandLinkFields": "Utvid lenkefelt",
-    "expandLinkFieldsDesc": "Returnerte postdata i stedet for telling",
+    "expandLinkFieldsDesc": "Koblingsfelt i resultatet inneholder de koblede radene i stedet for et antall",
     "inheritedFromParent": "Arvet fra forelder",
     "pageOrUrl": "Side eller URL",
     "linkTitle": "Link tittel",
@@ -4068,7 +4068,6 @@
     "relationSettings": "Relasjonsinnstillinger",
     "restoreVersion": "Gjenopprett v{version}",
     "runningScript": "Kjører skript ...",
-    "removeSummary": "Fjern sammendrag",
     "rowFiltered": "Rad filtrert",
     "rowMoved": "Rad flyttet",
     "rowHidden": "Rad skjult",
@@ -4773,7 +4772,7 @@
       },
       "optIn": {
         "title": "Valgfrie verktøy",
-        "description": "Verktøy som sletter for godt eller handler utenfor NocoDB, som å kjøre en automatisering eller utløse en webhook. En tilkobling får dem aldri med mindre du slår dem på her."
+        "description": "Verktøy som sletter for godt eller handler utenfor NocoDB, for eksempel kjører en automatisering eller utløser en webhook. De er avslått til du slår dem på her."
       }
     },
     "noBaseAccess": "Ingen prosjekttilgang",
@@ -5761,7 +5760,88 @@
     "workflowValueDynamicDescription": "Bruk variabler fra et tidligere trinn i denne automatiseringen",
     "workflowRunAs": "Kjør som",
     "workflowChangeRunAs": "Endre kjør som",
-    "workflowServiceAccount": "Tjenestekonto"
+    "workflowServiceAccount": "Tjenestekonto",
+    "wsEmpty": {
+      "title": "Start ditt første prosjekt",
+      "subtitle": "Et prosjekt inneholder dataene dine og appene som er bygget på dem.",
+      "sharedTitle": "Ingenting er delt med deg ennå",
+      "sharedSubtitle": "Prosjekter og apper du blir invitert til, dukker opp her."
+    },
+    "workspaceHome": {
+      "uploadFile": "Last opp CSV eller Excel",
+      "pickTemplate": "Eller velg en mal å starte fra",
+      "untitledBase": "Prosjekt uten navn",
+      "templates": {
+        "projectManagement": {
+          "label": "Prosjektstyring",
+          "prompt": "En prosjektoversikt med prosjekter og oppgaver, der hver oppgave har en ansvarlig, status, prioritet og frist."
+        },
+        "product": {
+          "label": "Produkt",
+          "prompt": "Et produktveikart med funksjoner, problemet hver av dem løser, prioritet, status og målversjon."
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "En markedsføringskalender med kampanjer, kanalene hver kampanje kjører på, budsjett, ansvarlig og lanseringsdato."
+        },
+        "sales": {
+          "label": "Salg",
+          "prompt": "Et salgs-CRM med selskaper, kontakter og avtaler, der hver avtale har et trinn, en verdi og en forventet sluttdato."
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "En brukerstøtte med saker, kunden som meldte hver sak, prioritet, status og tildelt agent."
+        },
+        "hr": {
+          "label": "Personal",
+          "prompt": "En søkeroversikt med ledige stillinger, kandidater etter ansettelsestrinn og intervjuer med datoer og notater fra vurdererne."
+        }
+      }
+    },
+    "yourConnections": "Dine tilkoblinger",
+    "workingHours": "Arbeidstid",
+    "workingDays": "Virkedager",
+    "wsNav": {
+      "groupBilling": "Plan",
+      "groupAdmin": "Admin",
+      "membersPage": "Medlemmer av arbeidsområdet",
+      "iconHint": "Vises i sidepanelet og i arbeidsområdevelgeren.",
+      "nameHint": "Hva dette arbeidsområdet heter i hele NocoDB.",
+      "workspaceId": "Arbeidsområde-ID",
+      "workspaceIdHint": "Bruk den med API-et, eller når du kontakter support.",
+      "allTypes": "Alle typer",
+      "allTeams": "Alle team",
+      "teamsCreatedHere": "Opprettet her",
+      "teamsScimManaged": "SCIM-styrt",
+      "upgradeTitleAudits": "Revisjonslogg for arbeidsområdet",
+      "upgradeDescAudits": "Se alle endringer som er gjort i dette arbeidsområdet, og hvem som gjorde dem.",
+      "upgradeTitleSso": "Enkel pålogging",
+      "upgradeDescSso": "La medlemmer logge på via identitetsleverandøren din.",
+      "desc": {
+        "members": "Hvem som hører til dette arbeidsområdet, og standardrollen deres.",
+        "teams": "Grupper med medlemmer du kan legge til i prosjekter samlet.",
+        "integrations": "Tilkoblede kontoer og legitimasjon som deles på tvers av arbeidsområdet.",
+        "general": "Navnet, ikonet og ID-en til arbeidsområdet.",
+        "skills": "Instruksjoner som KI-assistenten følger i hele dette arbeidsområdet.",
+        "security": "Påloggingskrav for alle i dette arbeidsområdet.",
+        "dangerZone": "Forlat eller slett dette arbeidsområdet permanent.",
+        "billing": "Abonnementet ditt, plasser, betalingsmåte og fakturaer.",
+        "usage": "Hva dette arbeidsområdet bruker av grensene i abonnementet.",
+        "audits": "Alle endringer som er gjort i dette arbeidsområdet, og hvem som gjorde dem.",
+        "sso": "Pålogging via identitetsleverandøren din."
+      }
+    },
+    "workspaceMode": "Arbeidsområdemodus",
+    "zoomIn": "Zoom inn",
+    "zoomOut": "Zoom ut",
+    "zoomTo50Percent": "Zoom til 50 %",
+    "zoomTo100Percent": "Zoom til 100 %",
+    "workflowValueStatic": "Statisk",
+    "workflowValueStaticDescription": "Skriv inn verdier direkte",
+    "workspaceNoAccess": "Arbeidsområde (ingen tilgang)",
+    "yAxis": "Y-akse",
+    "workspaceSettings": "Innstillinger for arbeidsområdet",
+    "wrapLongText": "Bryt lang tekst"
   },
   "activity": {
     "useTemplate": "Bruk mal",
@@ -7121,8 +7201,6 @@
       "selectFieldFirst": "Velg {field} først for å laste disse alternativene.",
       "viewFolderDeleteConfirmation": "Visninger i denne mappen flyttes til øverste nivå.",
       "saveDraftToBrowser": "Lagre utkast i nettleseren",
-      "showAppFirst": "Vis appen først i sidepanelet",
-      "showAppFirstDesc": "Plasser Apps over Data i sidepanelet til dette prosjektet.",
       "recordSavedButHidden": "Posten ble lagret, men er skjult på grunn av tilgangsrettighetene dine.",
       "seeChangesToRecord": "Se endringer i denne posten",
       "revisionHistoryUpgrade": "Du har {limit} med revisjonshistorikk. Oppgrader for å se hele historikken.",
@@ -7225,7 +7303,20 @@
       "mcpSetupCursorStep3": "Legg til JSON-konfigurasjonen som oppgis etter at du har opprettet et token.",
       "mcpSetupIntroWindsurf": "Kom i gang med NocoDB MCP og Windsurf på 4 enkle trinn",
       "mcpSetupWindsurfStep1": "Åpne Windsurf-innstillingene og velg fanen Cascade i venstre sidefelt",
-      "mcpSetupWindsurfStep2": "Klikk på Manage MCP."
+      "mcpSetupWindsurfStep2": "Klikk på Manage MCP.",
+      "abuseReport": {
+        "queueDescription": "Rapporter sendt inn fra offentlige lenker. Deaktiver en lenke for å ta den ned, eller blokker kontoene bak den.",
+        "disableConfirm": "Den offentlige lenken slutter å virke for alle, og alle åpne rapporter om den blir markert som løst. Eieren kan dele elementet på nytt med en ny lenke.",
+        "blockConfirm": "{email} er logget ut overalt og kan ikke lenger logge på eller bruke API-tokener. Du kan oppheve blokkeringen fra brukeradministrasjon.",
+        "noAccounts": "Ingen kontoer er knyttet til dette elementet.",
+        "superAdminNotBlockable": "Superadministratorer kan ikke blokkeres.",
+        "description": "Tror du at denne siden brukes til nettfiske, identitetsforfalskning, svindel eller andre former for misbruk? Si fra til administratorene av denne {productName}-instansen.",
+        "detailsMin": "Beskriv problemet med minst {min} tegn.",
+        "thanksTitle": "Takk for rapporten din",
+        "thanksDescription": "Rapporten din er mottatt. Administratorene av denne {productName}-instansen vil se på den.",
+        "contactEmailHint": "Rapporter fra offentlige visninger, skjemaer, grensesnitt og dashbord sendes hit på e-post. La feltet stå tomt for å sende til alle superadministratorer."
+      },
+      "actWithYourOwnPermissions": "Handle med dine egne rettigheter i disse ressursene"
     },
     "error": {
       "failedToCreateSync": "Kunne ikke opprette synkronisering",
@@ -7438,7 +7529,46 @@
       "inviteLinkExhausted": "Denne invitasjonslenken er brukt opp",
       "inviteLinkUnavailable": "Denne invitasjonslenken virker ikke lenger",
       "invalidEmailDomain": "Skriv inn et domene som acme.io",
-      "projectNotAccessible": "Prosjektet er ikke tilgjengelig"
+      "projectNotAccessible": "Prosjektet er ikke tilgjengelig",
+      "attachmentInvalidUrl": "Skriv inn en URL som starter med http:// eller https://, eller en mal som bruker variabler",
+      "attachmentAlreadyAttached": "Denne filen er allerede lagt ved.",
+      "attachmentOpenWorkflowToUpload": "Åpne arbeidsflyten for å laste opp filer",
+      "attachmentNoLongerAvailable": "Denne filen er ikke lenger tilgjengelig",
+      "attachmentsTooLarge": "Filene overskrider grensen på {size} per e-post",
+      "factoryMachineNameRequired": "Gi maskinen et navn",
+      "factoryMachineNameDuplicate": "Det finnes allerede en maskin med dette navnet",
+      "vaultUnreachable": "Fikk ikke kontakt med hvelvet med disse innstillingene",
+      "vaultAliasStart": "Navnet må begynne med en bokstav",
+      "vaultAliasCharacters": "Navnet kan bare inneholde bokstaver og tall — ingen mellomrom, bindestreker eller understreker",
+      "vaultAliasReserved": "«{name}» er et reservert navn, velg et annet",
+      "fieldSaveFailed": "Klarte ikke å lagre feltet «{field}»: {error}",
+      "fieldSavesFailed": "Klarte ikke å lagre {count} felt ({fields}). Første feil: {error}",
+      "projectNameRequired": "Prosjektnavn er påkrevd",
+      "attachmentUrlDownloadFailed": "NocoDB klarte ikke å laste ned denne filen fra URL-en. Fjern den og legg til filen på nytt.",
+      "emailImageSize": "Bilder i en e-posttekst må være under {size}. En logo ligger som regel godt under 100 KB.",
+      "emailImageType": "Bruk et PNG-, JPEG-, GIF- eller WebP-bilde",
+      "emailImageCount": "En e-posttekst kan inneholde opptil {count} bilder",
+      "emailImageTotalSize": "Bildene i en e-posttekst må til sammen være under {size}",
+      "emailImageNoWorkflow": "Åpne arbeidsflyten for å legge til bilder",
+      "emailImageUploadFailed": "Klarte ikke å laste opp bildet",
+      "emailImageMissing": "Dette bildet er ikke lenger tilgjengelig og blir utelatt fra e-posten. Fjern det og sett det inn på nytt.",
+      "vaultSecretNeedsProperty": "Denne hemmeligheten inneholder flere felt. Velg hvilket som skal brukes, ellers feiler tilkoblingen under kjøring.",
+      "vaultUnknownAlias": "Du har ikke tilgang til noe hvelv som heter «{name}».",
+      "atLeastOneOperationRequired": "Minst én operasjon må være valgt",
+      "triggerFormRequired": "Du må velge et utløserskjema",
+      "failedToStartListening": "Klarte ikke å begynne å lytte etter oppdateringer",
+      "unknownPermissionRequested": "Denne rettigheten tilbys ikke av serveren",
+      "authorizationWillBeRefused": "Denne forespørselen blir avvist på grunn av rettighetene ovenfor.",
+      "vaultAliasNotAllowed": "Du har ikke lov til å bruke hvelvet «{name}». Be en eier av arbeidsområdet om tilgang, eller skriv inn legitimasjonen direkte.",
+      "selectTargetField": "Velg et målfelt!",
+      "parentTableNoPrimaryKey": "Den overordnede tabellen har ingen primærnøkkelkolonne",
+      "childTableNoPrimaryKey": "Den underordnede tabellen har ingen primærnøkkelkolonne",
+      "noWorkspaceAvailable": "Ingen arbeidsområder tilgjengelig",
+      "invalidJson": "Ugyldig JSON",
+      "invalidTokensJson": "Dette er ikke en token-eksport. Det forventes nøkler som light, dark, font eller radiusScale.",
+      "renameFileFailed": "Feil ved endring av filnavn",
+      "failedToLoadMetadataDiff": "Klarte ikke å laste metadataforskjellene",
+      "failedToLoadMonacoEditor": "Klarte ikke å laste Monaco Editor"
     },
     "toast": {
       "inviteUrlCopy": "Kopiert invitasjonsadresse til utklippstavle",
@@ -7581,9 +7711,9 @@
       "failed": "Registreringen mislyktes",
       "paused": "Satt på pause"
     },
-    "agentToolsAndAccessSubtitle": "Hva kan agenten bruke? Legg til verktøy, sider og tilkoblinger den har tilgang til.",
+    "agentToolsAndAccessSubtitle": "Hva kan denne agenten lese og endre? Velg et nivå for hver av dem.",
     "agentNoFilters": "Ingen betingelser ennå",
-    "agentInstructionsSubtitle": "Hva skal agenten gjøre hver gang den kjører? Her er de beste fremgangsmåtene.",
+    "agentInstructionsSubtitle": "Gi den et navn, og skriv så hva den skal gjøre, slik du ville forklart det til en kollega.",
     "communitySkillsSubtitle": "Søk ovenfor etter skills som er delt på skills.sh, og åpne en for å lese SKILL.md-filen før du installerer den.",
     "environmentBlockedBySync": "Kan ikke åpne et miljø for et prosjekt med aktiv synkronisering. Fjern synkroniseringskonfigurasjonene først.",
     "chatArtifactPublicLinkHint": "Alle med lenken kan se dette.",
@@ -7748,7 +7878,14 @@
       "confirmCta": "Bekreft migreringen",
       "migrating": "Migrerer..."
     },
-    "skillsRegistryErrorTitle": "Kunne ikke søke i skills-registeret"
+    "skillsRegistryErrorTitle": "Kunne ikke søke i skills-registeret",
+    "airtableImportReportSummary": "{skipped} hoppet over · {approximated} tilnærmet · {failed} mislyktes",
+    "airtableImportReportTruncated": "Rapporten viser de første {shown} av {total} elementene. Last ned loggene for å se hele listen.",
+    "factoryMachineReadyNow": "Maskinen er klar. Nye økter bruker den.",
+    "factoryMachineSwitched": "Nye økter bruker versjon {version}.",
+    "factoryMachineDefaultNow": "Nye økter starter nå på {machine}.",
+    "factoryMachineUpgrading": "Oppgraderer {machine}. Nye økter bruker den når bygget er klart.",
+    "factoryAppInstallUnavailable": "{provider} kan ennå ikke kobles til kodeagenter. De krever en app-installasjon, og ingen er satt opp for {provider} her."
   },
   "trash": {
     "restore": "Gjenopprett",
@@ -8134,7 +8271,6 @@
       "lastSignedInAt": "Sist innlogget {time}",
       "lastUsed": "Sist brukt",
       "lastUsedAt": "Sist brukt {time}",
-      "canDelete": "Kan slette data",
       "toolsTitle": "Verktøy og rettigheter",
       "neverMoreThanRole": "Aldri mer enn din egen rolle i dette prosjektet ({role}).",
       "neverMoreThanAccess": "Aldri mer enn din egen tilgang til dette prosjektet.",

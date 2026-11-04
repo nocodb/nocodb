@@ -92,6 +92,10 @@ export const COMPOUND_SELECT_CHUNK_SIZE = 500;
 export const UPDATE_BY_PK_CHUNK_SIZE = 500;
 // MSSQL rejects a request with more than 2100 bindings; keep some headroom.
 export const MSSQL_MAX_BINDINGS = 2000;
+// Most rows a bulk update-all snapshots for undo; past it the update isn't undoable.
+// Surfaced to the frontend via appInfo so the UI can warn before the write.
+export const NC_BULK_UPDATE_UNDO_LIMIT =
+  +process.env['NC_BULK_UPDATE_UNDO_LIMIT'] || 10000;
 export const MAX_NESTING_DEPTH = 3;
 export const MAX_CONCURRENT_TRANSFORMS = 50;
 export const NC_ATTACHMENT_URL_MAX_REDIRECT = 3;

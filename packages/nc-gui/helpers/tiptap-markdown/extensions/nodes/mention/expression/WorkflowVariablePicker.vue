@@ -7,6 +7,8 @@ interface NodeGroup {
   nodeTitle: string
   category: WorkflowNodeCategory
   variables: VariableDefinition[]
+  /** An Iterate step whose loop body holds the step being edited. */
+  isEnclosingLoop?: boolean
 }
 
 interface Props {
@@ -33,7 +35,7 @@ const selectedVariableIndex = ref(0)
 
 const searchQuery = ref(props.query || '')
 
-const navigationStack = ref<{ title: string; variables: VariableDefinition[] }[]>([])
+const navigationStack = ref<{ title: string; variables: VariableDefinition[]; variable: VariableDefinition }[]>([])
 
 // ←/→ stay with the search text's caret.
 const SEARCH_NAV_KEYS = ['ArrowUp', 'ArrowDown', 'Enter', 'Escape']
@@ -89,8 +91,7 @@ const currentTitle = computed(() => {
 
 const matchesQuery = (v: VariableDefinition, query: string) =>
   v.name.toLowerCase().includes(query) ||
-  v.key.toLowerCase().includes(query) ||
-  !!v.extra?.description?.toLowerCase().includes(query)
+  (!v.extra?.searchByName && (v.key.toLowerCase().includes(query) || !!v.extra?.description?.toLowerCase().includes(query)))
 
 // A search walks the whole subtree: "email" should find Record › Fields › Email without
 // drilling in first. Nested matches show their path as the description and inherit the
@@ -197,15 +198,23 @@ const scrollToSelected = () => {
   })
 }
 
-const currentParentVariable = ref<VariableDefinition | null>(null)
+// A list of objects (records, attachments) opened outside a loop: its items' own fields
+// are only reachable from an Iterate step.
+// Not for lists of plain values (multi-select options have no fields), and not inside a loop,
+// where the current item's group already sits first.
+const isItemListOpen = computed(() => {
+  if (searchQuery.value || nodeGroups.value.some((group) => group.isEnclosingLoop)) return false
+  const itemSchema = navigationStack.value[navigationStack.value.length - 1]?.variable.extra?.itemSchema
+  return !!itemSchema?.some((item) => item.key)
+})
 
 const navigateInto = (variable: VariableDefinition) => {
   if (variable.children && variable.children.length > 0) {
     navigationStack.value.push({
       title: variable.name,
       variables: variable.children,
+      variable,
     })
-    currentParentVariable.value = variable
     selectedVariableIndex.value = 0
     searchQuery.value = ''
   }
@@ -215,15 +224,6 @@ const goBack = () => {
   if (navigationStack.value.length > 0) {
     navigationStack.value.pop()
     selectedVariableIndex.value = 0
-    if (navigationStack.value.length > 0) {
-      const parentLevel = navigationStack.value[navigationStack.value.length - 2]
-      if (parentLevel) {
-        currentParentVariable.value =
-          parentLevel.variables.find((v) => v.name === navigationStack.value[navigationStack.value.length - 1].title) || null
-      }
-    } else {
-      currentParentVariable.value = null
-    }
   }
 }
 
@@ -443,6 +443,7 @@ defineExpose({
           v-if="navigationStack.length && !searchQuery"
           type="button"
           class="flex-none flex items-center gap-1 h-8 mx-1.5 mt-1.5 px-2 rounded-md text-caption text-nc-content-gray-subtle hover:bg-nc-bg-gray-extralight"
+          data-testid="nc-workflow-variable-picker-back"
           @click="goBack"
         >
           <GeneralIcon icon="ncChevronLeft" class="!w-3.5 !h-3.5" />
@@ -463,12 +464,20 @@ defineExpose({
                 : t('labels.workflow.picker.noneAccepted', { kind: acceptsLabel })
             }}</span>
           </div>
+          <div
+            v-else-if="isItemListOpen"
+            class="flex items-start gap-1.5 mx-1 mb-1.5 px-2.5 py-2 rounded-md bg-nc-bg-gray-extralight text-captionSm text-nc-content-gray-subtle"
+            data-testid="nc-workflow-variable-picker-iterate-hint"
+          >
+            <GeneralIcon icon="ncInfo" class="!w-3.5 !h-3.5 flex-none mt-px" />
+            <span>{{ t('labels.workflow.picker.iterateHint') }}</span>
+          </div>
           <template v-if="hasVariables">
             <template v-for="section in variableSections" :key="section.key">
               <div class="px-2 pt-1 pb-1.5 text-captionSm text-nc-content-gray-muted">{{ section.label }}</div>
               <NcTooltip
                 v-for="variable in section.variables"
-                :key="variable.key"
+                :key="`${variable.key}:${variable.name}`"
                 :disabled="!isDisabled(variable)"
                 :title="t('labels.workflow.picker.needsKind', { kind: acceptsLabel })"
                 placement="left"
@@ -478,6 +487,7 @@ defineExpose({
                   <button
                     type="button"
                     class="nc-variable-item w-full flex items-center gap-2.5 min-h-8 px-2 py-1 rounded-md text-left transition-colors"
+                    :data-variable-name="variable.name"
                     :class="{
                       'is-selected bg-nc-bg-gray-light': orderedVariables.indexOf(variable) === selectedVariableIndex,
                       'opacity-50 cursor-not-allowed': isDisabled(variable),

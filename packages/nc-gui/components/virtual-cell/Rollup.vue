@@ -54,7 +54,7 @@ watch(
     relatedMetaResolved.value = false
     const relatedBaseId = relOpt?.fk_related_base_id || meta.value?.base_id
     if (relOpt?.fk_related_model_id && relatedBaseId && !getMetaByKey(relatedBaseId, relOpt.fk_related_model_id)) {
-      await getMeta(relatedBaseId, relOpt.fk_related_model_id, false, false, true)
+      await getMeta({ baseId: relatedBaseId, tableIdOrTitle: relOpt.fk_related_model_id, disableError: true })
     }
     relatedMetaResolved.value = true
   },

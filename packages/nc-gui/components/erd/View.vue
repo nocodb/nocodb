@@ -58,7 +58,7 @@ const fetchMissingTableMetas = async (localTables: TableType[]) => {
   const processChunk = async (chunk: TableType[]) => {
     await Promise.all(
       chunk.map(async (table) => {
-        await getMeta(baseId.value, table.id!)
+        await getMeta({ baseId: baseId.value, tableIdOrTitle: table.id! })
       }),
     )
   }
@@ -79,7 +79,7 @@ const populateTables = async () => {
   let localTables: TableType[] = []
   if (props.table) {
     // use getMeta method to load meta since it will get meta if not loaded already
-    const tableMeta = await getMeta(baseId.value, props.table!.id!)
+    const tableMeta = await getMeta({ baseId: baseId.value, tableIdOrTitle: props.table!.id! })
 
     // if table is provided only get the table and its related tables
     localTables = baseTables.value.filter(

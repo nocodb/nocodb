@@ -106,7 +106,7 @@ const loadMetas = async () => {
       return
     }
 
-    tableMeta.value = (await getMeta(effectiveBaseId!, props.tableId))!
+    tableMeta.value = (await getMeta({ baseId: effectiveBaseId!, tableIdOrTitle: props.tableId }))!
 
     // Helper function to find views for this table
     const findViews = () => {

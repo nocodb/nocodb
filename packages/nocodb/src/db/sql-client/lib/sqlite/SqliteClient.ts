@@ -68,6 +68,30 @@ class SqliteClient extends KnexClient {
     return result;
   }
 
+  // knex always adds OPEN_CREATE, so a test through it would create the file.
+  private openWithoutCreate(): Promise<void> {
+    const { driver, connectionSettings } = this.sqlClient.client;
+    const flags = (connectionSettings.flags ?? [])
+      .filter((flag: string) => flag !== 'OPEN_CREATE')
+      .reduce(
+        (acc: number, flag: string) => acc | driver[flag],
+        driver.OPEN_READWRITE,
+      );
+
+    return new Promise((resolve, reject) => {
+      const db = new driver.Database(
+        connectionSettings.filename,
+        flags,
+        (openErr) => {
+          if (openErr) return reject(openErr);
+          db.get('SELECT 1+1 as data', (queryErr) =>
+            db.close(() => (queryErr ? reject(queryErr) : resolve())),
+          );
+        },
+      );
+    });
+  }
+
   /**
    *
    *
@@ -83,7 +107,7 @@ class SqliteClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      await this.raw('SELECT 1+1 as data');
+      await this.openWithoutCreate();
     } catch (e) {
       log.ppe(e);
       result.code = -1;

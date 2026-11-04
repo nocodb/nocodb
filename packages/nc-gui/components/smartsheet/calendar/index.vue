@@ -325,6 +325,8 @@ watch(
     reloadViewDataHook?.trigger()
   },
 )
+
+useCalendarCommands()
 </script>
 
 <template>

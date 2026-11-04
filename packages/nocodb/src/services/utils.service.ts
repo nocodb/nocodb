@@ -10,6 +10,7 @@ import type { AppConfig, NcRequest } from '~/interface/config';
 import { getFilteredAgents } from '~/utils/ssrf';
 import {
   NC_ATTACHMENT_FIELD_SIZE,
+  NC_BULK_UPDATE_UNDO_LIMIT,
   NC_DATA_IMPORT_FILE_SIZE,
   NC_GRID_MAX_SELECTION_LIMIT,
   NC_MAX_ATTACHMENTS_ALLOWED,
@@ -17,6 +18,7 @@ import {
 } from '~/constants';
 import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '~/helpers/catchError';
+import { fetchForDataImport } from '~/helpers/dataImportFetch';
 import { Base, User } from '~/models';
 import Noco from '~/Noco';
 import { isCloud, isEE, isOnPrem, T } from '~/utils';
@@ -187,7 +189,7 @@ export class UtilsService {
         source: OperationSource.DATA_IMPORT,
       }),
     };
-    const data = await axios(_req);
+    const data = await fetchForDataImport(_req);
     return data?.data;
   }
 
@@ -488,6 +490,7 @@ export class UtilsService {
       ncMaxTextLength: NC_MAX_TEXT_LENGTH,
       ncDataImportFileSize: NC_DATA_IMPORT_FILE_SIZE,
       ncGridMaxSelectionLimit: NC_GRID_MAX_SELECTION_LIMIT,
+      ncBulkUpdateUndoLimit: NC_BULK_UPDATE_UNDO_LIMIT,
       isCloud: isCloud,
       automationLogLevel: process.env.NC_AUTOMATION_LOG_LEVEL || 'OFF',
       baseHostName: process.env.NC_BASE_HOST_NAME,

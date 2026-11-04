@@ -819,6 +819,74 @@ export class DataTableService {
     return true;
   }
 
+  /** Unlinks and links records on one row as a single undo step. */
+  async nestedLinkSwap(
+    context: NcContext,
+    param: {
+      cookie: any;
+      viewId: string;
+      modelId: string;
+      columnId: string;
+      rowId: string;
+      link?: Array<string | number>;
+      unlink?: Array<string | number>;
+    },
+  ) {
+    const link = param.link ?? [];
+    const unlink = param.unlink ?? [];
+    if (!Array.isArray(link) || !Array.isArray(unlink) || !param.rowId) {
+      NcError.get(context).badRequest('Invalid link swap payload');
+    }
+    if (link.length) this.validateIds(context, link);
+    if (unlink.length) this.validateIds(context, unlink);
+    const column = await this.getColumn(context, param);
+
+    // Undo replays the swap reversed, so the traced op must hold only what
+    // changes: a link already there would be unlinked on undo.
+    let narrowed = { link, unlink };
+    if (isMMOrMMLike(column) && (link.length || unlink.length)) {
+      const { model, view } = await this.getModelAndView(context, param);
+      const source = await Source.get(context, model.source_id);
+      const baseModel = await Model.getBaseModelSQL(context, {
+        id: model.id,
+        viewId: view?.id,
+        dbDriver: await NcConnectionMgrv2.get(source),
+      });
+      const { relatedModel, relatedBaseModel } =
+        await getLtarDisplayValueContext(context, column);
+      const current = new Set(
+        (
+          await baseModel.mmList(
+            { colId: column.id, parentId: param.rowId },
+            { pkAndPvOnly: true },
+            true,
+          )
+        ).map((row) =>
+          String(dataWrapper(row).extractPksValue(relatedModel, true)),
+        ),
+      );
+      narrowed = {
+        link: link.filter((id) => !current.has(String(id))),
+        unlink: unlink.filter((id) => current.has(String(id))),
+      };
+      // Unlinking runs first: refuse before it if a record to link is missing.
+      for (const id of narrowed.link) {
+        if (!(await relatedBaseModel.exist(id))) {
+          NcError.get(context).recordNotFound(String(id));
+        }
+      }
+    }
+
+    return await this._traceApplyLinkSwap(context, {
+      modelId: param.modelId,
+      viewId: param.viewId,
+      columnId: param.columnId,
+      rowId: param.rowId,
+      ...narrowed,
+      cookie: param.cookie,
+    });
+  }
+
   // todo: naming & optimizing
   async nestedListCopyPasteOrDeleteAll(
     context: NcContext,

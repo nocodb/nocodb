@@ -3,7 +3,7 @@ const { api, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 
-const { signOut } = useGlobal()
+const { refreshToken } = useGlobal()
 
 const formValidator = ref()
 
@@ -47,9 +47,11 @@ const passwordChange = async () => {
 
     message.success(t('msg.success.passwordChanged'))
 
-    await signOut({
-      redirectToSignin: true,
-    })
+    // The user stays on the page, so clear the old passwords from the form.
+    formValidator.value?.resetFields()
+
+    // Password change bumps token_version, so swap the in-memory token for the re-issued session's.
+    await refreshToken({})
   } catch {
     // ignore since error value is set by useApi and will be displayed in UI
   }

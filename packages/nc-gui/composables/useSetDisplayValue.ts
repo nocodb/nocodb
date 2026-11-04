@@ -25,7 +25,7 @@ export function useSetDisplayValue() {
         {},
       )
 
-      await getMeta(meta.value?.base_id as string, meta.value?.id as string, true)
+      await getMeta({ baseId: meta.value?.base_id as string, tableIdOrTitle: meta.value?.id as string, force: true })
 
       eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
       $e('a:column:set-primary', { source })

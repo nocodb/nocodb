@@ -1,6 +1,7 @@
 import { isOrderCol, ViewTypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { Model, View } from '~/models';
+import { isSharedViewAccess } from '~/helpers/accessSource';
 import {
   CalendarRange,
   DateDependency,
@@ -135,6 +136,12 @@ export async function resolveViewVisibleColumns(
     }
   }
 
+  // A shared link does not group by a field it hides: group keys are its values.
+  const sharedAccess = isSharedViewAccess(context);
+  const alwaysShown = new Set(
+    model.columns.filter((c) => c.pk || c.pv).map((c) => c.id),
+  );
+
   let allowedCols: Record<string, unknown> = null;
   if (view) {
     allowedCols = (await ViewModel.getColumns(context, view.id)).reduce<
@@ -144,7 +151,9 @@ export async function resolveViewVisibleColumns(
         ...o,
         [c.fk_column_id]:
           c.show ||
-          (c instanceof GridViewColumn && c.group_by) ||
+          (c instanceof GridViewColumn &&
+            c.group_by &&
+            (!sharedAccess || alwaysShown.has(c.fk_column_id))) ||
           (c instanceof KanbanViewColumn &&
             c.fk_column_id === kanbanGroupColumnId),
       }),

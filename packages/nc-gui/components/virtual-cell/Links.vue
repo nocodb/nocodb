@@ -37,6 +37,8 @@ const cellEventHook = inject(CellEventHookInj, null)
 // because provide/inject doesn't cross the dropdown teleport boundary.
 const interfacePageData = inject(InterfacePageDataInj, undefined)
 
+const isInterfaceUi = useIsInterfaceUi()
+
 const colTitle = computed(() => column.value?.title || '')
 
 const listItemsDlg = ref(false)
@@ -163,6 +165,15 @@ const openListDlg = () => {
   hideBackBtn.value = true
 }
 
+// Interface forms open the linked list once a link is staged, as HasMany/ManyToMany do.
+function onTextClick() {
+  const showStagedLinks = isInterfaceUi.value && !!toatlRecordsLinked.value
+
+  if (isForm.value && !isExpandedFormOpen.value && hasEditPermission.value && !showStagedLinks) return openListDlg()
+
+  openChildList()
+}
+
 watch([childListDlg, listItemsDlg], () => {
   isOpen.value = childListDlg.value || listItemsDlg.value
 })
@@ -230,8 +241,8 @@ onUnmounted(() => {
             class="text-center nc-datatype-link underline-transparent nc-canvas-links-text font-weight-500"
             :class="{ '!text-nc-content-brand-hover': !textVal }"
             :tabindex="readOnly ? -1 : 0"
-            @click.stop.prevent="isForm && !isExpandedFormOpen && hasEditPermission ? openListDlg() : openChildList()"
-            @keydown.enter.stop.prevent="isForm && !isExpandedFormOpen && hasEditPermission ? openListDlg() : openChildList"
+            @click.stop.prevent="onTextClick"
+            @keydown.enter.stop.prevent="onTextClick"
           >
             {{ textVal }}
           </component>

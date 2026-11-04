@@ -1,25 +1,32 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { extractRolesObj, ProjectRoles } from 'nocodb-sdk';
+import { extractRolesObj, NcBaseError, ProjectRoles } from 'nocodb-sdk';
 import { Strategy } from 'passport-custom';
 import type { NcRequest } from '~/interface/config';
 import { ApiToken, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { getApiTokenFromHeader } from '~/helpers';
+import { apiTokenLogHint } from '~/helpers/apiHelpers';
 
 @Injectable()
 export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
+  private readonly logger = new Logger(AuthTokenStrategy.name);
+
   // eslint-disable-next-line @typescript-eslint/ban-types
   async validate(req: NcRequest, callback: Function) {
+    let token: string | undefined;
     try {
       let user;
 
       // Extract token from either xc-token header or Authorization Bearer header
-      const token = getApiTokenFromHeader(req);
+      token = getApiTokenFromHeader(req);
 
       if (token) {
         const apiToken = await ApiToken.getByToken(token);
         if (!apiToken) {
+          this.logger.debug(
+            `API token ${apiTokenLogHint(token)} rejected: no matching token`,
+          );
           return callback({ msg: 'Invalid token' });
         }
 
@@ -93,6 +100,21 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
       }
       return callback(null, sanitiseUserObj(user));
     } catch (error) {
+      // An NcError here is a deliberate rejection (e.g. a blocked owner).
+      // Anything else is a lookup failure (meta DB, cache) that the client
+      // only sees as "The credential is invalid".
+      if (error instanceof NcBaseError) {
+        this.logger.debug(
+          `API token ${apiTokenLogHint(token)} rejected: ${error.message}`,
+        );
+      } else {
+        this.logger.error(
+          `API token ${apiTokenLogHint(token)} could not be validated: ${
+            error?.message
+          }`,
+          error?.stack,
+        );
+      }
       return callback(error);
     }
   }

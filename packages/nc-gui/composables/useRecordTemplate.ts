@@ -1,4 +1,5 @@
 import type { ColumnType, RecordTemplateType } from 'nocodb-sdk'
+import type { GetMetaParams } from '~/composables/useMetas'
 
 export const useRecordTemplate = createSharedComposable(() => {
   const showRecordTemplateManager = ref(false)
@@ -39,7 +40,7 @@ export async function createRecordFromTemplate(_params: {
   baseId: string
   tableId: string
   columns: ColumnType[]
-  getMeta: (baseId: string, tableId: string) => Promise<any>
+  getMeta: (params: GetMetaParams) => Promise<any>
 }): Promise<void> {
   // No-op in CE
 }
@@ -49,7 +50,7 @@ export async function resolveBlueprintsInLtarState(
   _columns: ColumnType[],
   _api: any,
   _baseId: string,
-  _getMeta?: (baseId: string, tableId: string) => Promise<any>,
+  _getMeta?: (params: GetMetaParams) => Promise<any>,
   _depth?: number,
 ): Promise<Record<string, any>> {
   return {}

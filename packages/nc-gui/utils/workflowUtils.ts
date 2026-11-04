@@ -7,7 +7,7 @@ import type {
   WorkflowNodeDefinition,
   WorkflowType,
 } from 'nocodb-sdk'
-import { GeneralNodeID, INIT_WORKFLOW_NODES, WorkflowNodeCategory } from 'nocodb-sdk'
+import { GeneralNodeID, INIT_WORKFLOW_NODES, TRIGGER_MAX_CHAIN_DEPTH, WorkflowNodeCategory, WorkflowSkipReason } from 'nocodb-sdk'
 import { generateRandomUUID } from '~/utils/generateName'
 import type { IconMapKey } from '~/utils/iconUtils'
 import { getI18n } from '~/plugins/a.i18n'
@@ -118,6 +118,32 @@ const findAllParentNodes = (nodeId: string, edges: Edge[]): string[] => {
 
   traverse(nodeId)
   return parents
+}
+
+/**
+ * Why a step's test result needs another look, as a `labels.workflow.overview` key, or null when it
+ * passed (or is still running). Editing an untested step leaves `{ isStale: true }` on a result
+ * that never ran, so "ran" is judged by status or timestamps.
+ */
+const getStepTestIssue = (testResult: any): 'notTested' | 'outOfDate' | 'testFailed' | null => {
+  const hasRun = !!testResult && (!!testResult.status || !!testResult.startTime || !!testResult.endTime)
+  if (!hasRun) return 'notTested'
+  if (testResult.isStale) return 'outOfDate'
+  if (testResult.status === 'error') return 'testFailed'
+  return null
+}
+
+/**
+ * Earlier steps a step reads from that lack a passing, current test result. A step can't be
+ * tested until these are, so both the block and the reason come from here.
+ */
+const findBlockingParentNodes = (nodeId: string, nodes: Node[], edges: Edge[]): Node[] => {
+  const ancestorIds = new Set(findAllParentNodes(nodeId, edges))
+  return nodes.filter((node) => {
+    if (node.type === GeneralNodeID.NOTE || !ancestorIds.has(node.id)) return false
+    const testResult = node.data?.testResult
+    return testResult?.status !== 'success' || testResult.isStale === true
+  })
 }
 
 /**
@@ -418,6 +444,12 @@ const WORKFLOW_EXECUTION_STATUS_DISPLAY = {
     bg: 'bg-nc-gray-400 dark:bg-nc-gray-500',
     text: 'text-nc-content-gray-subtle2',
   },
+  notRun: {
+    label: 'labels.workflow.status.notRun',
+    icon: 'ncMinus',
+    bg: 'bg-nc-gray-400 dark:bg-nc-gray-500',
+    text: 'text-nc-content-gray-subtle2',
+  },
 } satisfies Record<
   | WorkflowExecutionStatus
   | 'stopping'
@@ -485,6 +517,20 @@ const getWorkflowExecutionStatusDisplay = (
   }
   if (status === 'cancelled' && state?.errorCode === 'WORKSPACE_SUSPENDED') {
     return { ...WORKFLOW_EXECUTION_STATUS_DISPLAY.workspaceSuspended, detail: state.errorMessage }
+  }
+  // Stopped by the trigger loop guard.
+  if (status === 'skipped' && state?.skipReason) {
+    const { t } = getI18n().global
+    return {
+      ...WORKFLOW_EXECUTION_STATUS_DISPLAY.notRun,
+      ...((state.skippedCount ?? 1) > 1
+        ? { label: 'labels.workflow.status.notRunRecords', labelParams: { count: state.skippedCount! } }
+        : {}),
+      detail:
+        state.skipReason === WorkflowSkipReason.SELF_TRIGGERED
+          ? t('labels.workflow.skipReason.selfTriggered')
+          : t('labels.workflow.skipReason.chainDepthExceeded', { limit: TRIGGER_MAX_CHAIN_DEPTH }),
+    }
   }
 
   if (status === 'waiting') {
@@ -581,6 +627,8 @@ export {
   generateTriggerId,
   transformNode,
   findAllParentNodes,
+  findBlockingParentNodes,
+  getStepTestIssue,
   prefixVariableKeysRecursive,
   generateUniqueNodeTitle,
   findAllChildNodes,

@@ -57,12 +57,17 @@ async function handleConvert() {
     message.toast(t('msg.info.convertLinkV2Success'))
 
     // Reload current table meta
-    await getMeta(meta.value.base_id!, meta.value.id!, true)
+    await getMeta({ baseId: meta.value.base_id!, tableIdOrTitle: meta.value.id!, force: true })
 
     // Reload related table meta (paired column changed too)
     const relatedModelId = colOptions.value?.fk_related_model_id
     if (relatedModelId) {
-      await getMeta(colOptions.value?.fk_related_base_id || meta.value.base_id!, relatedModelId, true, false, true)
+      await getMeta({
+        baseId: colOptions.value?.fk_related_base_id || meta.value.base_id!,
+        tableIdOrTitle: relatedModelId,
+        force: true,
+        disableError: true,
+      })
     }
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)

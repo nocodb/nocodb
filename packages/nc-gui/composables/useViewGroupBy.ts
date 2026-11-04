@@ -10,13 +10,25 @@ import {
   isColumnInError,
   isSupportedDisplayValueColumn,
 } from 'nocodb-sdk'
-import { GROUP_BY_MAX_LEVELS, UITypes } from 'nocodb-sdk'
+import { GROUP_BY_MAX_LEVELS, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { Group } from '../lib/types'
 import type { InterfacePageDataApi } from '../lib/interfaceData'
-import { findKeyColor, valueToTitle } from '../utils/groupbyUtils'
+import {
+  findKeyColor,
+  isTimelineGroupSplit,
+  splitGroupLabel,
+  splitGroupRows,
+  splitGroupValue,
+  valueToTitle,
+} from '../utils/groupbyUtils'
 
 const excludedGroupingUidt = [UITypes.Attachment, UITypes.QrCode, UITypes.Barcode, UITypes.Button]
+
+// Split groups are built from every combination, fetched page by page up to a cap.
+const SPLIT_GROUP_FETCH_LIMIT = 1000
+
+const SPLIT_GROUP_MAX_COMBINATIONS = 10000
 
 const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
   (
@@ -245,8 +257,21 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const calculateNestedWhere = (nestedIn: GroupNestedIn[], existing = '') => {
       return nestedIn.reduce((acc, curr) => {
-        if (curr.key === GROUP_BY_VARS.NULL) {
+        if (curr.key === GROUP_BY_VARS.NULL && curr.split && curr.column_uidt === UITypes.Links) {
+          // A Links field holds a count: nobody linked is 0, not null.
+          acc += `${acc.length ? '~and' : ''}(${curr.title},eq,0)`
+        } else if (curr.key === GROUP_BY_VARS.NULL) {
           acc += `${acc.length ? '~and' : ''}(${curr.title},gb_null)`
+        } else if (curr.split && curr.splitId !== undefined) {
+          // One linked record among several sharing a display value.
+          acc += `${acc.length ? '~and' : ''}(${curr.title}.Id,eq,${curr.splitId})`
+        } else if (curr.split) {
+          // Rows that contain this value, alongside any others.
+          const value = splitGroupValue(curr.key)
+          acc +=
+            curr.column_uidt === UITypes.User
+              ? `${acc.length ? '~and' : ''}(${curr.title},anyof,${value?.id})`
+              : `${acc.length ? '~and' : ''}(${curr.title},eq,${value})`
         } else if (curr.column_uidt === UITypes.Checkbox) {
           acc += `${acc.length ? '~and' : ''}(${curr.title},${curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked'})`
         } else if (
@@ -316,6 +341,10 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                   key: valueToTitle(curr[groupby.column.title!], groupby.column),
                   column_uidt: groupby.column.uidt,
                   column_id: groupby.column.id,
+                  ...(isTimelineGroupSplit(view.value, groupby.column) ? { split: true } : {}),
+                  ...(curr.__nc_split_id !== null && curr.__nc_split_id !== undefined
+                    ? { splitId: String(curr.__nc_split_id), splitLabel: String(curr.__nc_split_label ?? '') }
+                    : {}),
                 },
               ],
               aggregations: curr.aggregations ?? {},
@@ -373,7 +402,33 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       return group
     }
 
+    // A view and its group list both load the root groups on mount: share one request.
+    const groupLoadsInFlight = new WeakMap<Group, Promise<void>>()
+
     async function loadGroups(
+      params: any = {},
+      group?: Group,
+      options?: {
+        triggerChildOnly: boolean
+      },
+    ) {
+      const target = toRaw(group || rootGroup.value)
+      const isShareable = !!target && !Object.keys(params ?? {}).length
+      const inFlight = isShareable ? groupLoadsInFlight.get(target) : undefined
+      if (inFlight) return inFlight
+      const load = loadGroupsNow(params, group, options)
+      if (isShareable) {
+        groupLoadsInFlight.set(target, load)
+        load
+          .finally(() => {
+            if (groupLoadsInFlight.get(target) === load) groupLoadsInFlight.delete(target)
+          })
+          .catch(() => {})
+      }
+      return load
+    }
+
+    async function loadGroupsNow(
       params: any = {},
       group?: Group,
       _options?: {
@@ -408,11 +463,11 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           return
         }
 
-        if (groupby.column.uidt === UITypes.LinkToAnotherRecord) {
+        if (isLinksOrLTAR(groupby.column)) {
           const colOptions = groupby.column.colOptions as LinkToAnotherRecordType
           const relatedBaseId = (colOptions.fk_related_base_id || meta.value?.base_id || base.value?.id) as string
           const relatedTableId = colOptions.fk_related_model_id as string
-          let relatedTableMeta = await getMeta(relatedBaseId, relatedTableId, false, false, true)
+          let relatedTableMeta = await getMeta({ baseId: relatedBaseId, tableIdOrTitle: relatedTableId, disableError: true })
           if (!relatedTableMeta && !isPublic && groupby.column.id) {
             relatedTableMeta = await getPartialMeta(relatedBaseId, groupby.column.id, relatedTableId, {
               workspaceId: base.value?.fk_workspace_id,
@@ -431,50 +486,125 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             : undefined
           group.displayValueProp =
             (displayValueCol || relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
+          group.relatedPkProp = relatedTableMeta.columns?.find((c) => c.pk)?.title
         }
 
-        // if (!options?.triggerChildOnly) {
-        const response = interfaceDataApi
-          ? await interfaceDataApi.fetchGroupBy({
-              offset: params.offset ?? ((group.paginationData.page ?? 0) - 1) * groupByGroupLimit.value,
-              limit: groupByGroupLimit.value,
-              where: `${effectiveWhere}`,
-              sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
-              column_name: groupby.column.title,
-              sortsArr: sorts.value,
-              filtersArr: nestedFilters.value,
-            })
-          : !isPublic
-          ? await api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
-              offset: ((group.paginationData.page ?? 0) - 1) * groupByGroupLimit.value,
-              limit: groupByGroupLimit.value,
-              ...params,
-              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-              where: `${effectiveWhere}`,
-              sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
-              column_name: groupby.column.title,
-            } as any)
-          : await api.public.dataGroupBy(
-              sharedView.value!.uuid!,
-              {
-                offset: ((group.paginationData.page ?? 0) - 1) * groupByGroupLimit.value,
-                limit: groupByGroupLimit.value,
-                ...params,
-                where: effectiveWhere,
+        const isSplit = isTimelineGroupSplit(view.value, groupby.column)
+        // A link splits on the server, one group per linked record; a User field splits here.
+        const isServerSplit = isSplit && isLinksOrLTAR(groupby.column)
+        const groupOffset = isSplit ? 0 : ((group.paginationData.page ?? 0) - 1) * groupByGroupLimit.value
+        const groupLimit = isSplit ? SPLIT_GROUP_FETCH_LIMIT : groupByGroupLimit.value
+
+        const fetchGroupPage = async (offset: number) =>
+          interfaceDataApi
+            ? await interfaceDataApi.fetchGroupBy({
+                // A split read pages on its own offset.
+                offset: isSplit ? offset : params.offset ?? offset,
+                limit: groupLimit,
+                where: `${effectiveWhere}`,
                 sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
                 column_name: groupby.column.title,
                 sortsArr: sorts.value,
                 filtersArr: nestedFilters.value,
-              },
-              {
-                headers: {
-                  'xc-password': sharedViewPassword.value,
+                ...(isServerSplit ? { split_values: true } : {}),
+              })
+            : !isPublic
+            ? await api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
+                offset,
+                limit: groupLimit,
+                ...params,
+                ...(isSplit ? { offset } : {}),
+                ...(isServerSplit ? { split_values: true } : {}),
+                ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+                ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+                where: `${effectiveWhere}`,
+                sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
+                column_name: groupby.column.title,
+              } as any)
+            : await api.public.dataGroupBy(
+                sharedView.value!.uuid!,
+                {
+                  offset,
+                  limit: groupLimit,
+                  ...params,
+                  ...(isSplit ? { offset } : {}),
+                  ...(isServerSplit ? { split_values: true } : {}),
+                  where: effectiveWhere,
+                  sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
+                  column_name: groupby.column.title,
+                  sortsArr: sorts.value,
+                  filtersArr: nestedFilters.value,
                 },
-              },
-            )
+                {
+                  headers: {
+                    'xc-password': sharedViewPassword.value,
+                  },
+                },
+              )
+
+        // if (!options?.triggerChildOnly) {
+        let response = await fetchGroupPage(groupOffset)
+
+        if (isServerSplit) {
+          // Keyed by the linked record, so two people sharing a name stay apart.
+          let rows: Record<string, any>[] = response.list ?? []
+          // The server sends one group past its cap when it cut the list.
+          const people = rows.filter((item) => item.__nc_split_id !== null && item.__nc_split_id !== undefined)
+          if (people.length > SPLIT_GROUP_MAX_COMBINATIONS) {
+            message.warning(t('msg.warning.splitGroupsLinkTruncated', { limit: SPLIT_GROUP_MAX_COMBINATIONS }))
+            rows = rows.filter((item) => !people.slice(SPLIT_GROUP_MAX_COMBINATIONS).includes(item))
+          }
+          const list = rows.map((item: Record<string, any>) =>
+            item.__nc_split_id === null || item.__nc_split_id === undefined
+              ? item
+              : {
+                  ...item,
+                  __nc_split_label: splitGroupValue(item[groupby.column.title!]),
+                  [groupby.column.title!]: `${item[groupby.column.title!]}#${item.__nc_split_id}`,
+                },
+          )
+          response = { ...response, list, pageInfo: { page: 1, pageSize: list.length || 1, totalRows: list.length } }
+        } else if (isSplit) {
+          // A person's group sums every combination they're in, so read them all.
+          let combinations = [...(response.list ?? [])]
+          let pageInfo = response.pageInfo
+          while (
+            pageInfo &&
+            !pageInfo.isLastPage &&
+            response.list?.length &&
+            combinations.length < SPLIT_GROUP_MAX_COMBINATIONS
+          ) {
+            response = await fetchGroupPage(combinations.length)
+            combinations = combinations.concat(response.list ?? [])
+            pageInfo = response.pageInfo
+          }
+          if (pageInfo && !pageInfo.isLastPage) {
+            message.warning(t('msg.warning.splitGroupsTruncated', { limit: combinations.length }))
+          }
+          const list = splitGroupRows(combinations, groupby.column)
+          const keys = new Set(list.map((item) => valueToTitle(item[groupby.column.title!], groupby.column)))
+          response = { ...response, list, pageInfo: { page: 1, pageSize: keys.size || 1, totalRows: keys.size } }
+        }
 
         group = await processGroupData(response, group)
+
+        if (isSplit && group?.children) {
+          // Every value's group, in the group-by's order; empty first, as the server sorts it.
+          const direction = groupby.sort === 'desc' ? -1 : 1
+          group.children.sort((a, b) => {
+            if (a.key === GROUP_BY_VARS.NULL || b.key === GROUP_BY_VARS.NULL) {
+              return (a.key === GROUP_BY_VARS.NULL ? -1 : 1) * direction
+            }
+            const label = (g: Group) => g.nestedIn[g.nestedIn.length - 1]?.splitLabel ?? splitGroupLabel(g.key)
+            // Same name: by id, so the order holds across reloads.
+            const byId = String(a.nestedIn[a.nestedIn.length - 1]?.splitId ?? '').localeCompare(
+              String(b.nestedIn[b.nestedIn.length - 1]?.splitId ?? ''),
+              undefined,
+              { numeric: true },
+            )
+            return (label(a).localeCompare(label(b)) || byId) * direction
+          })
+        }
         // }
 
         // Interface pages have no view-scoped aggregation endpoint — group
@@ -576,7 +706,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, ...query }, { isGroupBy: true })
 
         group.count = response.pageInfo.totalRows ?? 0
-        group.rows = formatData(response.list)
+        group.rows = group.nestedIn[group.nestedIn.length - 1]?.split
+          ? shareSplitRows(formatData(response.list), group)
+          : formatData(response.list)
         await loadAggCommentsCount(group.rows)
         group.paginationData = response.pageInfo
       } catch (e) {
@@ -750,6 +882,29 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       modifyCount(parentGroup(group), countEffect)
     }
 
+    /**
+     * A record shows in the group of each of its values. Those groups hold the
+     * same row object, so an edit in one shows in all of them at once.
+     */
+    function shareSplitRows(rows: Row[], group: Group) {
+      const loaded = new Map<string, Row>()
+      for (const other of rootGroup.value.children ?? []) {
+        if (other === group) continue
+        for (const r of other.rows ?? []) {
+          const pk = extractPkFromRow(r.row, meta?.value?.columns ?? [])
+          if (pk) loaded.set(pk, r)
+        }
+      }
+      return rows.map((r) => {
+        const pk = extractPkFromRow(r.row, meta?.value?.columns ?? [])
+        const existing = pk ? loaded.get(pk) : undefined
+        if (!existing) return r
+        Object.assign(existing.row, r.row)
+        existing.oldRow = { ...r.oldRow }
+        return existing
+      })
+    }
+
     const findGroupForRow = (row: Row, group?: Group, nestLevel = 0): { found: boolean; group: Group } => {
       group = group || rootGroup.value
       if (group.nested) {
@@ -813,9 +968,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           // Check if the lookup column is an unsupported type
           while (nextCol && nextCol.uidt === UITypes.Lookup) {
             // Use the tracked base_id for the current table where nextCol resides
-            const lookupRelation = (await getMeta(currentBaseId, nextCol.fk_model_id as string))?.columns?.find(
-              (c) => c.id === (nextCol?.colOptions as LookupType).fk_relation_column_id,
-            )
+            const lookupRelation = (
+              await getMeta({ baseId: currentBaseId, tableIdOrTitle: nextCol.fk_model_id as string })
+            )?.columns?.find((c) => c.id === (nextCol?.colOptions as LookupType).fk_relation_column_id)
 
             if (!lookupRelation?.colOptions) break
 
@@ -824,7 +979,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             const relatedTableId = lookupRelColOpts.fk_related_model_id as string
             const relatedBaseId = lookupRelColOpts.fk_related_base_id || currentBaseId
             // getMeta never throws; a user without access to the related base gets null
-            relatedTableMeta = await getMeta(relatedBaseId, relatedTableId, false, false, true)
+            relatedTableMeta = await getMeta({ baseId: relatedBaseId, tableIdOrTitle: relatedTableId, disableError: true })
             if (!relatedTableMeta) {
               relatedTableMeta = await getPartialMeta(relatedBaseId, lookupRelation.id!, relatedTableId, {
                 workspaceId: (lookupRelation as any)?.fk_workspace_id,

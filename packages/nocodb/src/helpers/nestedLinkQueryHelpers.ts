@@ -12,6 +12,18 @@ import { hasLimitedRelatedTableAccess } from '~/helpers/tableHelpers';
 import { isSharedViewAccess } from '~/helpers/accessSource';
 import { LIST_ARG_ALIASES } from '~/helpers/listArgAliases';
 
+/**
+ * Pre-parsed filter/sort spellings `list()` also reads (`args.filterArr` /
+ * `args.sortArr`, the `Json` forms on routes that parse them). They bypass
+ * the `where`/`sort` parsers, so the gates below confine them separately.
+ */
+export const ARRAY_QUERY_KEYS = [
+  'filterArrJson',
+  'filterArr',
+  'sortArrJson',
+  'sortArr',
+] as const;
+
 // A request leaf may name a second column to compare against (field-to-field).
 type ColumnRefFilter = FilterType & { fk_value_col_id?: string };
 
@@ -337,9 +349,11 @@ export async function restrictNestedLinkQuery(
 
   // Nothing to sanitize — skip the access check and column lookup entirely.
   if (
-    ![...LIST_ARG_ALIASES.where, ...LIST_ARG_ALIASES.sort].some(
-      (key) => query[key],
-    )
+    ![
+      ...LIST_ARG_ALIASES.where,
+      ...LIST_ARG_ALIASES.sort,
+      ...ARRAY_QUERY_KEYS,
+    ].some((key) => query[key])
   )
     return;
 
@@ -385,8 +399,9 @@ export async function restrictNestedLinkQuery(
 }
 
 /**
- * Strips `where` leaves and `sort` terms referencing a column outside
- * `exposedColumnIds`, in place on `query`. Shared by the nested-link restriction
+ * Strips `where` leaves, `sort` terms and `filterArr`/`sortArr` entries (both
+ * spellings) referencing a column outside `exposedColumnIds`, in place on
+ * `query`. Shared by the nested-link restriction
  * (exposed = the link's pk/pv/display) and the shared-view one (exposed = the
  * view's visible columns) — both are security gates, so one implementation.
  *
@@ -419,7 +434,12 @@ export async function restrictQueryToExposedColumns(
   const whereKeys = LIST_ARG_ALIASES.where.filter((key) => query?.[key]);
   const sortKeys = LIST_ARG_ALIASES.sort.filter((key) => query?.[key]);
 
-  if (!whereKeys.length && !sortKeys.length) return;
+  if (
+    !whereKeys.length &&
+    !sortKeys.length &&
+    !ARRAY_QUERY_KEYS.some((key) => query?.[key])
+  )
+    return;
 
   const aliasColObjMap =
     preResolvedAliasColObjMap ?? (await model.getAliasColObjMap(columns));
@@ -470,6 +490,66 @@ export async function restrictQueryToExposedColumns(
       exposedColumnIds,
       context.api_version,
     );
+  }
+
+  // `filterArrJson` / `filterArr` — a pre-parsed tree keyed by `fk_column_id`,
+  // bypassing the xwhere parser. Both spellings: either can reach the compiler.
+  for (const key of ['filterArrJson', 'filterArr']) {
+    const raw = query[key];
+    if (!raw) continue;
+
+    const wasString = typeof raw === 'string';
+    let parsed: unknown = raw;
+    if (wasString) {
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        continue; // malformed — leave it for the downstream parser to reject
+      }
+    }
+    if (!Array.isArray(parsed)) continue;
+
+    const filters = parsed as FilterType[];
+    if (!filtersReferenceHiddenColumn(filters, exposedColumnIds)) continue;
+
+    const survivors = stripHiddenColumnFilters(filters, exposedColumnIds);
+    query[key] = survivors.length
+      ? wasString
+        ? JSON.stringify(survivors)
+        : survivors
+      : undefined;
+  }
+
+  // `sortArrJson` / `sortArr` — `{ field | fk_column_id, direction }` entries.
+  for (const key of ['sortArrJson', 'sortArr']) {
+    const raw = query[key];
+    if (!raw) continue;
+
+    const wasString = typeof raw === 'string';
+    let parsed: unknown = raw;
+    if (wasString) {
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        continue;
+      }
+    }
+    if (!Array.isArray(parsed)) continue;
+
+    const kept = (parsed as { field?: string; fk_column_id?: string }[]).filter(
+      (entry) => {
+        const colId = entry?.fk_column_id ?? aliasColObjMap[entry?.field]?.id;
+        // Unresolvable references are harmless downstream — keep them.
+        return !colId || exposedColumnIds.has(colId);
+      },
+    );
+    if (kept.length === (parsed as unknown[]).length) continue;
+
+    query[key] = kept.length
+      ? wasString
+        ? JSON.stringify(kept)
+        : kept
+      : undefined;
   }
 }
 

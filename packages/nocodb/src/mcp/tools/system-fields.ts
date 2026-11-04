@@ -1,5 +1,5 @@
 import { UITypes } from 'nocodb-sdk';
-import { z } from 'zod-v4';
+import { z } from 'zod';
 import type { NcContext } from '~/interface/config';
 import { Model } from '~/models';
 import { columnBuilder } from '~/utils/api-v3-data-transformation.builder';

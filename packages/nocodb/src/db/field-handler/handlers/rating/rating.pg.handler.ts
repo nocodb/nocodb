@@ -9,4 +9,6 @@ export class RatingPgHandler extends DecimalPgHandler {
   filterLt = this.ratingGeneralHandler.filterLt;
   filterLte = this.ratingGeneralHandler.filterLte;
   filterGte = this.ratingGeneralHandler.filterGte;
+  filterBlank = this.ratingGeneralHandler.filterBlank;
+  filterNotblank = this.ratingGeneralHandler.filterNotblank;
 }

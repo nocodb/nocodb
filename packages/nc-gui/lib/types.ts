@@ -13,6 +13,7 @@ import {
   type PaginatedType,
   type PermissionEntity,
   type PermissionKey,
+  type PlanFeatureTypes,
   type ProjectRoles,
   type PublicAttachmentScope,
   type Roles,
@@ -322,6 +323,8 @@ interface Group {
   rows?: Row[]
   root?: boolean
   displayValueProp?: string
+  /** The linked table's primary-key title, for groups keyed by a linked record. */
+  relatedPkProp?: string
 }
 
 interface GroupNestedIn {
@@ -331,6 +334,12 @@ interface GroupNestedIn {
   column_uidt: string
   column_id: string
   groupIndex?: number
+  /** Grouped by each value of a multi-value field: rows match when they contain the value. */
+  split?: boolean
+  /** A split link group for one linked record, when its display value is shared by others. */
+  splitId?: string
+  /** The display value of a `splitId` group; its key carries the id too. */
+  splitLabel?: string
 }
 
 interface Users {
@@ -370,6 +379,213 @@ interface UsersSortType {
 }
 
 type CommandPaletteType = 'cmd-k' | 'cmd-j' | 'cmd-l'
+
+/** Most specific first: the chip shows the first level that has a context. */
+type CmdLevel = 'record' | 'field' | 'selection' | 'view' | 'base' | 'global'
+
+type CmdIcon =
+  | { type: 'icon'; name: string; class?: string }
+  | { type: 'emoji'; emoji: string }
+  | { type: 'workspace'; id: string; title: string; color?: string; icon?: string | Record<string, unknown>; iconType?: string }
+  | { type: 'base'; color?: string; managedAppMaster?: boolean; managedAppId?: string }
+  | { type: 'table'; icon?: string; synced?: boolean }
+  | { type: 'view'; viewType?: number; icon?: string }
+  /** Field-type icon, as in the toolbar's field lists. */
+  | { type: 'field'; column: ColumnType }
+  /** Select-option dot; `color` is the option's stored colour. */
+  | { type: 'color'; color?: string }
+
+interface CmdCommand {
+  id: string
+  title: string
+  section?: string
+  icon?: CmdIcon
+  keywords?: string[]
+  /** Secondary text on the right, e.g. the base a table belongs to. */
+  hint?: string
+  /** A figure aligned to the row's right edge (a summary value); tabular digits. */
+  value?: string
+  /** Keys for `GeneralShortcutLabel`; only for shortcuts that are actually bound. */
+  shortcut?: string[]
+  checked?: boolean
+  /** Sorts last within its level unless `priority` says otherwise. */
+  danger?: boolean
+  /** `CMD_PRIORITY` value; higher sorts first within its level and wins search ties. */
+  priority?: number
+  /** A query-built fallback that leads the results (e.g. "Add 1,000 to Amount"). */
+  lead?: boolean
+  /** Only listed when the query is non-empty. */
+  searchOnly?: boolean
+  /** A status row (loading, load error): shown but not selectable or runnable. */
+  disabled?: boolean
+  /** Spinner in place of the icon; used with `disabled` for rows still loading. */
+  loading?: boolean
+  /** Red text, e.g. a row explaining why a list could not load. */
+  error?: boolean
+  run?: () => unknown
+  /**
+   * Confirms on the row itself (e.g. "Copied") instead of a toast: the palette awaits `run`,
+   * shows this text in place, then closes. A thrown error shows in the same spot.
+   * On an `edit` command it replaces "Saved".
+   */
+  feedback?: string
+  /** Runs with the palette left open: the command's own rows show what happens next. */
+  stayOpen?: boolean
+  /** On a loading fallback row: Esc calls this instead of closing, and the row holds the list meanwhile. */
+  cancel?: () => void
+  /** A fallback row that stays after the answers (e.g. once it has produced them). */
+  trailing?: boolean
+  /** A second line under the title, e.g. the text a search matched. */
+  snippet?: string
+  /** Text marked in the title and snippet (the query the row matched). */
+  highlight?: string
+  /** Opens a sub page; the command title becomes the placeholder. A searching page gets the typed query. */
+  children?: (query?: string) => CmdCommand[]
+  /**
+   * The sub page searches itself (on the server): it keeps the typed query, its children are
+   * listed as returned instead of filtered, and its rows have room for a `snippet`.
+   */
+  searchesChildren?: boolean
+  /** On a searching sub page: called with the typed query as it settles, to fetch the children. */
+  onQuery?: (query: string) => void
+  /** The sub page's breadcrumb and placeholder, when the row's title doesn't fit them. */
+  pageTitle?: string
+  /** With `run` and `children`: Enter runs it, → or the chevron opens the children. */
+  runFirst?: boolean
+  /** Lists children in search results as `Title › Child`. */
+  searchChildren?: boolean
+  /** Children fetch data when listed; search never expands them (only opening the submenu does). */
+  lazyChildren?: boolean
+  /** The sub page shows its children's `section` headers. */
+  groupChildren?: boolean
+  /** Edits a value in place: the input turns into an editor prefilled with `value`. */
+  edit?: CmdEdit
+  /**
+   * Shows the plan badge when the plan lacks this feature. The command stays listed and its
+   * `run` is expected to open the upgrade flow while blocked.
+   */
+  upgradeFeature?: PlanFeatureTypes
+  /** A reading of the typed query; its chips show how it was understood and Tab moves between readings. */
+  reading?: { chips: CmdChip[] }
+  /** A completion: Enter, Tab or → puts this text in the input instead of running anything. */
+  complete?: string
+  /** Structural telemetry for natural-language rows; never carries typed text or schema names. */
+  tele?: CmdTele
+  /** Rows with the same effect share a key ("group:<fieldId>"); search hides a match a lead row already covers. */
+  dedupeKey?: string
+}
+
+/** A typed query's reading, structurally: intent, counts, kinds and field types; no text, titles, ids or values. */
+interface CmdReadingTele {
+  intent: string
+  /** 0 = the top reading. */
+  rank: number
+  scope: string
+  unsure: boolean
+  assumed: boolean
+  assumption_kinds: string[]
+  source: string
+  aggs: string[]
+  cmps: string[]
+  uidts: string[]
+  conditions: number
+  has_or: boolean
+  has_not: boolean
+  edit_kinds: string[]
+  group_by: number
+  sort: number
+}
+
+type CmdTele =
+  | {
+      kind: 'reading'
+      reading: CmdReadingTele
+      latency?: string
+      tagger?: boolean
+      readings?: number
+      /** View type it ran on: grid, kanban, gallery, calendar, form. */
+      surface?: string
+    }
+  | { kind: 'suggestion'; slot: 'field' | 'cmp' | 'value' | 'history' }
+  | { kind: 'decline'; reason: string; fix: boolean }
+  | { kind: 'chip-swap'; chip: CmdChip['kind']; uidt?: string }
+
+/** One part of a reading ("Industry", "is", "manufacturing"); picking a swap rewrites the query. */
+interface CmdChip {
+  text: string
+  /** `noun` is the table's own name ("companies"); `text` a joiner or unrecognised word, shown plain. */
+  /** `assumed` is a guess the parser made ("recent" → past 30 days), shown so it can be made explicit. */
+  kind: 'field' | 'cmp' | 'value' | 'agg' | 'verb' | 'noun' | 'text' | 'assumed'
+  icon?: CmdIcon
+  /** Hover text: what an assumed chip stands for. */
+  tooltip?: string
+  /** An assumed chip whose icon already says it is a guess: no "assumed" tag. */
+  plain?: boolean
+  /** Title of the page listing the swaps, e.g. "Change field". */
+  label?: string
+  swaps?: { label: string; query: string; icon?: CmdIcon }[]
+  /** Stable across keystrokes (e.g. kind and source position), so chips don't remount as the query grows. */
+  key?: string
+}
+
+/** Chips for a half-typed query no reading covers yet, plus the field name being typed, completed. */
+interface CmdSkeleton {
+  chips: CmdChip[]
+  /** Tab or → puts `complete` in the input. */
+  ghost?: { text: string; icon?: CmdIcon; complete: string }
+}
+
+interface CmdEdit {
+  value: string
+  placeholder?: string
+  multiline?: boolean
+  /** Returns an error message to keep the editor open. */
+  validate?: (value: string) => string | undefined
+  submit: (value: string) => unknown
+}
+
+interface CmdContext {
+  label: string
+  prefix?: string
+  icon?: CmdIcon
+}
+
+interface CmdProviderState {
+  context?: CmdContext | null
+  commands: CmdCommand[]
+  /** Rows appended under every non-empty query, e.g. "Search records in …". */
+  fallbacks?: (query: string) => CmdCommand[]
+  /** Chips while the query is still being typed and no reading covers it. */
+  skeleton?: (query: string) => CmdSkeleton | undefined
+  /** Recent natural-language queries with their live result, for an empty or very short query. */
+  recent?: (query: string) => CmdCommand[]
+}
+
+type RecentItemKind = 'dashboard' | 'script' | 'workflow' | 'agent' | 'doc' | 'interface' | 'app'
+
+/** A recently opened non-view object, listed by Cmd+L next to recent views. */
+interface RecentItem {
+  kind: RecentItemKind
+  /** Unique within its kind (an interface page uses `interfaceId:pageId`). */
+  id: string
+  title: string
+  /** Shown in the hint before the title, e.g. the interface a page belongs to. */
+  parentTitle?: string
+  workspaceId: string
+  baseId: string
+  baseTitle?: string
+  /** Lane bases are left out of the workspace base list, so pruning can't prove one gone. */
+  isLane?: boolean
+  /** Route path to reopen it with. */
+  path: string
+  icon?: CmdIcon
+  viewedAt: string
+}
+
+interface CmdProvider extends CmdProviderState {
+  id: string
+  level: CmdLevel
+}
 
 interface FormFieldsLimitOptionsType {
   id: string
@@ -1285,6 +1501,18 @@ export type {
   SidebarTableNode,
   UsersSortType,
   CommandPaletteType,
+  CmdLevel,
+  CmdIcon,
+  CmdCommand,
+  CmdChip,
+  CmdSkeleton,
+  CmdTele,
+  CmdEdit,
+  CmdContext,
+  CmdProviderState,
+  CmdProvider,
+  RecentItemKind,
+  RecentItem,
   CalendarRangeType,
   FormFieldsLimitOptionsType,
   ImageCropperConfig,

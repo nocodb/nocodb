@@ -11,7 +11,6 @@ import {
 import type { Attachment } from '../../lib/types'
 import type { Row as RowType } from '#imports'
 import { NavigateDir } from '#imports'
-
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
@@ -62,6 +61,7 @@ const {
   isLastRow,
   clearCache,
   viewData: galleryData,
+  updateOrSaveRow,
 } = useGalleryViewData(meta, view, xWhere)
 
 const { copy } = useCopy()
@@ -772,6 +772,31 @@ const cardFields = (record: RowType) => {
 function hasPosterCover(record: RowType) {
   return isMounted.value && !reloadAttachments.value && attachments(record).length > 0
 }
+
+const { isAllowed: isPermissionAllowed } = usePermissions()
+
+const { onCardEnter, onCardLeave } = useCardCommands({
+  key: 'gallery-card',
+  isBlocked: computed(() => isSqlView.value || expandedFormDlg.value || expandedFormOnRowIdDlg.value),
+  canExpand: interfaceClickIntoDetails,
+  canDelete: (record) =>
+    hasEditPermission.value &&
+    canAddDeleteRows.value &&
+    record.rowMeta.rowIndex !== undefined &&
+    (!meta.value?.id || isPermissionAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_DELETE)),
+  displayField,
+  expandForm: (record) => expandForm(record),
+  deleteRow: (record) => deleteRow(record.rowMeta.rowIndex!),
+  canEdit: computed(() => hasEditPermission.value && !isPublic.value),
+  saveField: async (record, column, value) => {
+    record.row[column.title!] = value
+    await updateOrSaveRow(record, column.title!)
+  },
+  sendRecord: (record) => {
+    contextMenuTarget.value = { row: record, index: record.rowMeta.rowIndex! }
+    showSendRecordModal.value = true
+  },
+})
 </script>
 
 <template>
@@ -887,6 +912,9 @@ function hasPosterCover(record: RowType) {
                   :style="[getCardColorStyle(record), isTileTheme ? { height: `${cardHeight}px` } : {}]"
                   @click="expandFormClick($event, record)"
                   @contextmenu="showContextMenu($event, { row: record, index: record.rowMeta.rowIndex })"
+                  @mouseenter="onCardEnter(record)"
+                  @mousemove="onCardEnter(record)"
+                  @mouseleave="onCardLeave(record)"
                 >
                   <SmartsheetRecordPresenceBadge v-if="isEeUI" :row="record" class="absolute top-2 right-2 z-10" />
                   <template v-if="showCover" #cover>

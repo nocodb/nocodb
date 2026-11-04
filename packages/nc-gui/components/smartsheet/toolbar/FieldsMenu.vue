@@ -391,7 +391,7 @@ watch(
 
       if (relationColumn?.colOptions?.fk_related_model_id) {
         const relatedBaseId = (relationColumn.colOptions as any)?.fk_related_base_id || meta.value?.base_id
-        await getMeta(relatedBaseId as string, relationColumn.colOptions.fk_related_model_id!)
+        await getMeta({ baseId: relatedBaseId as string, tableIdOrTitle: relationColumn.colOptions.fk_related_model_id! })
 
         const lookupColumn = getMetaByKey(relatedBaseId, relationColumn.colOptions.fk_related_model_id)?.columns?.find(
           (c: any) => c.id === (column?.colOptions as LookupType)?.fk_lookup_column_id,
@@ -560,6 +560,23 @@ const onAddColumnDropdownVisibilityChange = () => {
     addColumnDropdown.value = false
   }
 }
+
+useFieldsMenuCommands({
+  view: activeView,
+  isPublic,
+  canAddField: computed(() => isAddingColumnAllowed.value && !isLocalMode.value),
+  isReadOnly: isFieldsMenuReadOnly,
+  visibleFields,
+  metaColumnById,
+  openAddField: async () => {
+    open.value = true
+    await nextTick()
+    addColumnDropdown.value = true
+  },
+  toggleField: conditionalToggleFieldVisibility,
+  showAll: onShowAll,
+  hideAll: onHideAll,
+})
 </script>
 
 <template>

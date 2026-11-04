@@ -11404,6 +11404,14 @@
             "name": "offset"
           },
           {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "JSON array of filters applied on top of the view's own"
+          },
+          {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
@@ -12730,6 +12738,14 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "JSON array of filters scoping the rows to update, as accepted by the list endpoints"
           }
         ]
       },
@@ -13594,13 +13610,23 @@
                   },
                   "tools": {
                     "type": "array",
-                    "description": "MCP tool allowlist for this authorization. Every name must exist in the server's tool catalog. Only meaningful alongside scopes.",
+                    "description": "MCP tool allowlist for this authorization. Every name must exist in the server's tool catalog. Only meaningful alongside scopes. Opt-in tools (deleteBase, executeWorkflow, testHook) are refused here: they are switched on through opt_in_tools.",
                     "items": {
                       "type": "string"
                     },
                     "example": [
                       "listTables",
                       "listRecords"
+                    ]
+                  },
+                  "opt_in_tools": {
+                    "type": "array",
+                    "description": "Opt-in MCP tools the user switched on for this authorization on the consent screen; all are off unless named here. Nothing in the client's authorization request sets them. Refused (invalid_scope) without scopes. A name that is not an opt-in tool, or, on a consent locked by scope, a tool the requested scope cannot reach (e.g. deleteBase without base:delete), is refused with a 400. EE only.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": [
+                      "deleteBase"
                     ]
                   }
                 }
@@ -21117,6 +21143,15 @@
           "in": "query",
           "description": "Rows per page",
           "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "search",
+          "in": "query",
+          "description": "Text to search for",
+          "required": false
         }
       ]
     },
@@ -28256,8 +28291,13 @@
           "password": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Password to restrict access"
+          },
+          "custom_url_path": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Custom URL path of the shared view; `null` removes it"
           }
         },
+        "additionalProperties": false,
         "x-stoplight": {
           "id": "hbj6j87gyi7ap"
         }

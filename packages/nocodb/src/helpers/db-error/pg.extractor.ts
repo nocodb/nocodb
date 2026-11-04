@@ -385,6 +385,12 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
         httpStatus = 403;
         break;
 
+      case '25006': // read_only_sql_transaction: a DB being moved, or a replica
+        message =
+          'The database is read-only. If it is being moved, retry in a few minutes.';
+        httpStatus = 503;
+        break;
+
       case '53300': // too_many_connections
         message = 'Too many database connections.';
         httpStatus = 503;

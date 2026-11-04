@@ -101,7 +101,7 @@ const addBlueprintForColumn = async (col: ColumnType) => {
   if (!relatedTableId || !baseId) return
 
   try {
-    const relatedMeta = (await getMeta(baseId, relatedTableId)) as TableType
+    const relatedMeta = (await getMeta({ baseId, tableIdOrTitle: relatedTableId })) as TableType
     if (!relatedMeta) return
 
     // Build breadcrumb trail: append current table name to parent trail

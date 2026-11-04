@@ -596,23 +596,25 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               column,
             );
             columnQuery = _selectQb.builder;
-
-            // if postgres and formula output defined as string then cast to text for consistent output
-            if (
-              baseModel.isPg &&
+            const isStringFormula =
               (column.colOptions as FormulaColumn).getParsedTree().dataType ===
-                FormulaDataTypes.STRING
-            ) {
+              FormulaDataTypes.STRING;
+
+            // a string formula's '' shares the empty group, as the group count and gb_null do
+            if (isStringFormula && baseModel.isPg) {
+              // cast to text for consistent output
               columnQuery = sqlNullIfBlank({
                 columnName: baseModel.dbDriver.raw(`??::text`, [columnQuery]),
                 baseModel,
                 isStringType: true,
               });
-            } else if (
-              baseModel.isOracle &&
-              (column.colOptions as FormulaColumn).getParsedTree().dataType ===
-                FormulaDataTypes.STRING
-            ) {
+            } else if (isStringFormula && !baseModel.isOracle) {
+              columnQuery = sqlNullIfBlank({
+                columnName: columnQuery,
+                baseModel,
+                isStringType: true,
+              });
+            } else if (isStringFormula && baseModel.isOracle) {
               // Oracle string formulas compile to CLOB, which can't be a
               // GROUP BY / ORDER BY key (ORA-22848). Shorten to VARCHAR2
               // (4000 = max comparison-key length) for use as a group key.

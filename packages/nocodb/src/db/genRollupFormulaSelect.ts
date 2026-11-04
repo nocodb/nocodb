@@ -81,8 +81,18 @@ function attachmentTextSql(knex: XKnex, col: string): string | null {
     case 'pg':
       return `(SELECT STRING_AGG(COALESCE(e->>'title', '') || COALESCE(' (' || COALESCE(e->>'url', e->>'path') || ')', ''), ', ' ORDER BY i) FROM jsonb_array_elements(CASE WHEN ${col}::text ~ '^\\s*\\[' THEN ${col}::jsonb ELSE '[]'::jsonb END) WITH ORDINALITY AS a(e, i))`;
     case 'mysql':
-    case 'mysql2':
-      return `(SELECT GROUP_CONCAT(CONCAT(COALESCE(j.title, ''), COALESCE(CONCAT(' (', COALESCE(j.url, j.path), ')'), '')) ORDER BY j.i SEPARATOR ', ') FROM JSON_TABLE(IF(JSON_VALID(${col}), ${col}, '[]'), '$[*]' COLUMNS (i FOR ORDINALITY, title TEXT PATH '$.title', url TEXT PATH '$.url', path TEXT PATH '$.path')) j)`;
+    case 'mysql2': {
+      // not JSON_TABLE: over an outer column, nested in the rollup's
+      // subqueries, it reads as empty (mysql 8.0); a recursive index works
+      const arr = `IF(JSON_TYPE(IF(JSON_VALID(${col}), ${col}, '[]')) = 'ARRAY', ${col}, '[]')`;
+      const item = (key: string) =>
+        `JSON_UNQUOTE(JSON_EXTRACT(${arr}, CONCAT('$[', n.i, '].${key}')))`;
+      return `(WITH RECURSIVE n(i) AS (SELECT 0 UNION ALL SELECT i + 1 FROM n WHERE i + 1 < JSON_LENGTH(${arr})) SELECT GROUP_CONCAT(CONCAT(COALESCE(${item(
+        'title',
+      )}, ''), COALESCE(CONCAT(' (', COALESCE(${item('url')}, ${item(
+        'path',
+      )}), ')'), '')) ORDER BY n.i SEPARATOR ', ') FROM n WHERE n.i < JSON_LENGTH(${arr}))`;
+    }
     case 'sqlite3':
       return `(SELECT GROUP_CONCAT(COALESCE(json_extract(e.value, '$.title'), '') || COALESCE(' (' || COALESCE(json_extract(e.value, '$.url'), json_extract(e.value, '$.path')) || ')', ''), ', ') FROM json_each(CASE WHEN json_valid(${col}) THEN ${col} ELSE '[]' END) e)`;
     case 'mssql':
@@ -717,10 +727,13 @@ export default async function genRollupFormulaSelect(params: {
         v = `(strftime('%Y-%m-%d %H:%M:%S', ${v}) || '+00:00')`;
       }
     }
-    // pg JSON_EXTRACT yields jsonb; as text a string reads unquoted, as the
-    // driver gives it to a formula field
+    // pg / mysql JSON_EXTRACT yields JSON; as text a string reads unquoted, as
+    // the driver gives it to a formula field
     if (baseModelSqlv2.isPg && formulaOutputsRawJson(valueNode)) {
       v = `((${v})::jsonb #>> '{}')`;
+    } else if (baseModelSqlv2.isMySQL && formulaOutputsRawJson(valueNode)) {
+      // a JSON null reads as NULL, as pg's #>> gives it
+      v = `(CASE WHEN JSON_TYPE(${v}) = 'NULL' THEN NULL ELSE JSON_UNQUOTE(${v}) END)`;
     }
     // Oracle: long text, JSON and string formulas are CLOBs, which aggregates
     // and comparisons reject

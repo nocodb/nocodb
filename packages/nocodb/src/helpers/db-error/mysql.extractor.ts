@@ -176,6 +176,13 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
       case 'ER_TOO_MANY_ROWS':
         message = 'Query returned too many rows.';
         break;
+      case 'ER_JSON_DOCUMENT_TOO_DEEP':
+        message =
+          'A JSON value is nested more than 100 levels deep, which MySQL cannot read.';
+        break;
+      case 'ER_INVALID_JSON_PATH':
+        message = 'The JSON path is not valid for MySQL.';
+        break;
       case 'EACCES':
         message = 'Connection to internal hosts is not allowed';
         httpStatus = 403;

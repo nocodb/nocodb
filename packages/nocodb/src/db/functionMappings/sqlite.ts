@@ -27,6 +27,27 @@ const minMaxFn = async ({ fn, knex, pt }: MapFnArgs) =>
 
 const sqlite3 = {
   ...commonFns,
+  // as pg: COUNT counts number-typed arguments, COUNTA non-blank ones
+  COUNT: async ({ fn, knex, pt }: MapFnArgs) => {
+    const parts = (await Promise.all(pt.arguments.map((arg) => fn(arg)))).map(
+      ({ builder }) =>
+        knex.raw(
+          `CASE WHEN typeof(?) IN ('integer', 'real') THEN 1 ELSE 0 END`,
+          [builder],
+        ),
+    );
+    return { builder: knex.raw(parts.map(() => '?').join(' + '), parts) };
+  },
+  COUNTA: async ({ fn, knex, pt }: MapFnArgs) => {
+    const parts = (await Promise.all(pt.arguments.map((arg) => fn(arg)))).map(
+      ({ builder }) =>
+        knex.raw(
+          `CASE WHEN ? IS NOT NULL AND CAST(? AS TEXT) <> '' THEN 1 ELSE 0 END`,
+          [builder, builder],
+        ),
+    );
+    return { builder: knex.raw(parts.map(() => '?').join(' + '), parts) };
+  },
   LEN: 'LENGTH',
   MIN: minMaxFn,
   MAX: minMaxFn,

@@ -418,6 +418,8 @@ export const relationDataFetcher = (param: {
       await refBaseModel.selectObject({
         qb,
         fieldsSet: args.fieldsSet,
+        // postProcessData resolves the rows' relations, which load by pk
+        extractPkAndPv: true,
         pkAndPvOnly:
           relColOptions.isCrossBaseLink() ||
           hasLimitedAccess ||
@@ -584,6 +586,8 @@ export const relationDataFetcher = (param: {
       await refBaseModel.selectObject({
         qb,
         fieldsSet: args.fieldsSet,
+        // postProcessData resolves the row's relations, which load by pk
+        extractPkAndPv: true,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
         fk_display_value_column_id: relColOptions.fk_display_value_column_id,
       });

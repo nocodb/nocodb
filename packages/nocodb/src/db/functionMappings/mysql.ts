@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { ClientType, JSEPNode } from 'nocodb-sdk';
+import { ClientType, FormulaDataTypes, JSEPNode } from 'nocodb-sdk';
 import commonFns, {
   ALLOWED_DATEADD_UNITS,
   escapePlaceholders,
@@ -29,6 +29,38 @@ const leastGreatestFn =
 
 const mysql2 = {
   ...commonFns,
+  // as pg: COUNT counts number-typed arguments, COUNTA non-blank ones; mysql
+  // has no runtime type check, so COUNT goes by the argument's formula type
+  COUNT: async ({ fn, knex, pt }: MapFnArgs) => {
+    // built outside the async callback: a returned raw is thenable, so
+    // awaiting it would run it as a query
+    const builders = await Promise.all(pt.arguments.map((arg) => fn(arg)));
+    const parts = pt.arguments.map((arg, i) => {
+      const { builder } = builders[i];
+      if (arg.dataType === FormulaDataTypes.NUMERIC) {
+        return knex.raw(`CASE WHEN ? IS NOT NULL THEN 1 ELSE 0 END`, [builder]);
+      }
+      if (arg.dataType && arg.dataType !== FormulaDataTypes.UNKNOWN) {
+        return knex.raw('0');
+      }
+      // the pattern is bound: knex would read its `?` as placeholders
+      return knex.raw(`CASE WHEN CAST(? AS CHAR) REGEXP ? THEN 1 ELSE 0 END`, [
+        builder,
+        '^[-+]?[0-9]+(\\.[0-9]+)?([eE][-+]?[0-9]+)?$',
+      ]);
+    });
+    return { builder: knex.raw(parts.map(() => '?').join(' + '), parts) };
+  },
+  COUNTA: async ({ fn, knex, pt }: MapFnArgs) => {
+    const parts = (await Promise.all(pt.arguments.map((arg) => fn(arg)))).map(
+      ({ builder }) =>
+        knex.raw(
+          `CASE WHEN ? IS NOT NULL AND CAST(? AS CHAR) <> '' THEN 1 ELSE 0 END`,
+          [builder, builder],
+        ),
+    );
+    return { builder: knex.raw(parts.map(() => '?').join(' + '), parts) };
+  },
   LEN: 'CHAR_LENGTH',
   MIN: leastGreatestFn('LEAST'),
   MAX: leastGreatestFn('GREATEST'),
@@ -277,16 +309,16 @@ const mysql2 = {
 
   VALUE: async ({ fn, knex, pt, model }: MapFnArgs) => {
     const value = (await fn(pt.arguments[0])).builder;
-    // Rounds a double, like the text path below
+    // a double, as on pg: VALUE(12.6) is 12.6, not 13
     if (await isNumericValueArg(pt.arguments[0], model)) {
-      return { builder: knex.raw(`ROUND((:value) * 1e0)`, { value }) };
+      return { builder: knex.raw(`((:value) * 1e0)`, { value }) };
     }
 
     // NULL for no digits or more than one dot; a % divides by 100.
     // No NULLIF: MySQL evaluates its first argument twice.
     return {
       builder: knex.raw(
-        `ROUND(CASE
+        `(CASE
   WHEN :value REGEXP '[.][^.]*[.]' OR :value NOT REGEXP '[0-9]' THEN NULL
   ELSE POW(-1, LENGTH(REGEXP_REPLACE(:value, '[^-]', ''))) * REGEXP_REPLACE(:value, '[^0-9.]+', '') / IF(LOCATE('%', :value) > 0, 100, 1)
 END)`,
@@ -314,6 +346,10 @@ END)`,
       pathArg?.type === JSEPNode.LITERAL &&
       typeof pathArg.value === 'string'
     ) {
+      // mysql rejects a negative array index as an invalid path; pg reads NULL
+      if (/\[\s*-\d+\s*\]/.test(pathArg.value)) {
+        return { builder: knex.raw('NULL') };
+      }
       return {
         builder: knex.raw(
           `CASE WHEN JSON_VALID(?) = 1 THEN JSON_EXTRACT(?, ?) ELSE NULL END`,

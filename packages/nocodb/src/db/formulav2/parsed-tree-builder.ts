@@ -580,6 +580,7 @@ export const binaryExpressionBuilder = async ({
   // numeric so a blank/non-numeric value becomes NULL (row excluded) rather than
   // erroring, matching the numeric intent of the comparison.
   const isOrderingComparison = ['<', '<=', '>', '>='].includes(pt.operator);
+  let coercedToNumber = false;
   if (isOrderingComparison) {
     const toSafeNumeric = (expr: string): string => {
       switch (knex.clientType()) {
@@ -591,8 +592,15 @@ export const binaryExpressionBuilder = async ({
           return `TRY_CAST(${expr} AS FLOAT)`;
         case 'oracledb':
           return `CAST(${expr} AS BINARY_DOUBLE DEFAULT NULL ON CONVERSION ERROR)`;
-        // mysql2 / sqlite3 coerce text→number implicitly and don't hard-error,
-        // so leave them untouched to avoid changing their existing behavior.
+        // mysql reads 'x' as 0 and sqlite ranks any text above any number;
+        // both take pg's rule: numeric text compares as a number, else NULL
+        case 'mysql2':
+        case 'mysql':
+          return `(CASE WHEN TRIM(${expr}) REGEXP '^[-+]?[0-9]+([.][0-9]+)?$' THEN CAST(TRIM(${expr}) AS DOUBLE) END)`;
+        case 'sqlite3': {
+          const unsigned = `(CASE WHEN substr(TRIM(${expr}), 1, 1) IN ('+', '-') THEN substr(TRIM(${expr}), 2) ELSE TRIM(${expr}) END)`;
+          return `(CASE WHEN ${unsigned} <> '' AND ${unsigned} NOT GLOB '*[^0-9.]*' AND ${unsigned} NOT GLOB '*.*.*' AND ${unsigned} NOT GLOB '.*' AND ${unsigned} NOT GLOB '*.' THEN CAST(TRIM(${expr}) AS REAL) END)`;
+        }
         default:
           return expr;
       }
@@ -603,11 +611,13 @@ export const binaryExpressionBuilder = async ({
       pt.right.dataType === FormulaDataTypes.NUMERIC
     ) {
       left = toSafeNumeric(left);
+      coercedToNumber = true;
     } else if (
       pt.right.dataType === FormulaDataTypes.STRING &&
       pt.left.dataType === FormulaDataTypes.NUMERIC
     ) {
       right = toSafeNumeric(right);
+      coercedToNumber = true;
     }
 
     // Same rule the filter layer applies to gt/lt/gte/lte: NaN satisfies no
@@ -678,9 +688,11 @@ export const binaryExpressionBuilder = async ({
     }
   }
 
+  // a side already read as a number keeps its NULL: '' would rank above numbers
   if (
     (pt.left as FnParsedTreeNode).fnName === 'CONCAT' &&
-    knex.clientType() === 'sqlite3'
+    knex.clientType() === 'sqlite3' &&
+    !coercedToNumber
   ) {
     // handle date format
     left = await convertDateFormatForConcat(
@@ -702,7 +714,14 @@ export const binaryExpressionBuilder = async ({
     sql = `COALESCE(${left}, '') ${pt.operator} COALESCE(${right},'')`;
   }
 
-  if (knex.clientType() === 'mysql2') {
+  if (
+    knex.clientType() === 'mysql2' &&
+    ['+', '-', '*', '/', '%'].includes(pt.operator)
+  ) {
+    // arithmetic keeps NULL, as on the other databases: `x / 0` and `NULL * 5`
+    // are NULL, not 0
+    sql = `${sql} `;
+  } else if (knex.clientType() === 'mysql2') {
     sql = `IFNULL(${left} ${pt.operator} ${right}, ${
       pt.operator === '='
         ? pt.left.type === 'Literal'

@@ -760,6 +760,8 @@ export function shouldSkipField(
   // skip soft-delete column
   if (column.uidt === UITypes.Deleted) return true;
   if (fieldsSet && !pkAndPvOnly) {
+    // relation reads still need the pk to resolve the row's own relations
+    if (extractPkAndPv && column.pk) return false;
     return !fieldsSet.has(column.title) && !fieldsSet.has(column.id);
   } else {
     if (!pkAndPvOnly && column.system && isCreatedOrLastModifiedByCol(column))

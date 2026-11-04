@@ -8037,7 +8037,8 @@ export class ColumnsService implements IColumnsService {
     };
 
     // re-check related-base access when the relation or target changes, and
-    // for every formula rollup: unlike a count it can return the linked values
+    // for every formula rollup: unlike a count it can return the linked values.
+    // Writes only: like a cross-base Lookup, reads follow this table's access.
     const assertTargetReadable = async (targetKey: string) => {
       if (
         colBody.fk_relation_column_id !==

@@ -8083,6 +8083,24 @@ export class ColumnsService implements IColumnsService {
       }
     }
 
+    // a plain rollup has no result format: drop a formula rollup's, saved or
+    // sent, as the v3 update does (else it can't be sent back through v3)
+    if (
+      UITypes.Rollup === column.uidt &&
+      colBody.rollup_function &&
+      !isRollupFormula(colBody)
+    ) {
+      const meta = parseProp(colBody.meta ?? column.meta) ?? {};
+      if ('display_type' in meta || 'display_column_meta' in meta) {
+        const {
+          display_type: _displayType,
+          display_column_meta: _displayMeta,
+          ...rest
+        } = meta;
+        colBody.meta = rest;
+      }
+    }
+
     // Validate rollup or lookup payload before proceeding with the update
     if (
       UITypes.Lookup === column.uidt &&

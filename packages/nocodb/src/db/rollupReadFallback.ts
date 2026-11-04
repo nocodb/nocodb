@@ -116,26 +116,43 @@ export const rollupFlagGeneration = () => flagGeneration;
 // Holds the time it runs out; the cache TTL only cleans it up.
 const healLeaseKey = (columnId: string) => `rollup_heal_lease:${columnId}`;
 
+// best-effort: a cache failure must not undo a flag or a heal
 async function setHealLease(columnId: string, ms: number) {
-  await NocoCache.setExpiring(
-    'root',
-    healLeaseKey(columnId),
-    String(Date.now() + ms),
-    Math.ceil(ms / 1000) + 60,
-  );
-}
-
-async function takeHealLease(columnId: string, ms: number) {
-  const until = Number(
-    await NocoCache.get(
+  try {
+    await NocoCache.setExpiring(
       'root',
       healLeaseKey(columnId),
-      CacheGetType.TYPE_STRING,
-    ),
-  );
-  if (until > Date.now()) return false;
-  await setHealLease(columnId, ms);
-  return true;
+      String(Date.now() + ms),
+      Math.ceil(ms / 1000) + 60,
+    );
+  } catch (e) {
+    logger.warn(`Rollup heal lease failed on ${columnId}: ${errorMessage(e)}`);
+  }
+}
+
+// Claimed atomically; an entry past its time (kept by the TTL's margin) is
+// cleared once and claimed again.
+async function takeHealLease(columnId: string, ms: number) {
+  const key = healLeaseKey(columnId);
+  const claim = () =>
+    NocoCache.setIfNotExist(
+      'root',
+      key,
+      String(Date.now() + ms),
+      Math.ceil(ms / 1000) + 60,
+    );
+  try {
+    if (await claim()) return true;
+    const until = Number(
+      await NocoCache.get('root', key, CacheGetType.TYPE_STRING),
+    );
+    if (until > Date.now()) return false;
+    await NocoCache.del('root', key);
+    return await claim();
+  } catch (e) {
+    logger.warn(`Rollup heal lease failed on ${columnId}: ${errorMessage(e)}`);
+    return true;
+  }
 }
 
 async function flagRollup(column: Column, message: string) {
@@ -758,8 +775,30 @@ export function healRollupDataError(
 
   const probe = (async () => {
     const context = rollup.context;
-    // another process is healing it, or flagged it, this interval
-    if (!(await takeHealLease(id, interval))) return false;
+    // Another process is healing it, or flagged it, this interval. Held for
+    // as long as the scan may run, so no other pod starts one meanwhile.
+    if (
+      !(await takeHealLease(id, Math.max(interval, HEAL_DRY_RUN_TIMEOUT_MS)))
+    ) {
+      return false;
+    }
+    let healed = false;
+    try {
+      healed = await healOnce(context);
+      return healed;
+    } finally {
+      // not healed: the next try, from any pod, waits one interval
+      if (!healed) await setHealLease(id, interval);
+    }
+  })()
+    .catch((e) => {
+      logger.warn(`Rollup self-heal failed on ${id}: ${errorMessage(e)}`);
+      return false;
+    })
+    .finally(() => healProbes.delete(id));
+  healProbes.set(id, probe);
+
+  async function healOnce(context: NcContext): Promise<boolean> {
     const column = await Column.get(context, { colId: id });
     if (!column) return false;
     const baseModel = await getBaseModelSqlFromModelId({
@@ -794,15 +833,9 @@ export function healRollupDataError(
     flagGeneration++;
     nextHealProbeAt.delete(id);
     healIntervals.delete(id);
-    await NocoCache.del('root', healLeaseKey(id));
+    await NocoCache.del('root', healLeaseKey(id)).catch(() => undefined);
     requesting.context.cacheMap?.clear();
     await clearPlansOf(context, column);
     return true;
-  })()
-    .catch((e) => {
-      logger.warn(`Rollup self-heal failed on ${id}: ${errorMessage(e)}`);
-      return false;
-    })
-    .finally(() => healProbes.delete(id));
-  healProbes.set(id, probe);
+  }
 }

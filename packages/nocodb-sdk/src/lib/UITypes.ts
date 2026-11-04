@@ -798,6 +798,14 @@ export const partialUpdateAllowedTypes = [
   UITypes.URL,
 ];
 
+// Whether display-format meta stays editable when the source schema is
+// read-only (e.g. external-database columns). Mirrors the backend meta-only update guard.
+export const isFormatEditableOnReadonlySource = (
+  uidt: UITypes | string,
+): boolean =>
+  readonlyMetaAllowedTypes.includes(uidt as UITypes) ||
+  partialUpdateAllowedTypes.includes(uidt as UITypes);
+
 export const getUITypesForFormulaDataType = (
   dataType: FormulaDataTypes
 ): UITypes[] => {

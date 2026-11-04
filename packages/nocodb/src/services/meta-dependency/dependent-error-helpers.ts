@@ -3,6 +3,7 @@ import {
   ButtonActionsType,
   EventType,
   formulaJsep,
+  getAvailableRollupForColumn,
   getAvailableRollupForUiType,
   isLinksOrLTAR,
   isRollupAggregatableColumn,
@@ -445,6 +446,11 @@ async function rollupSourceIncompatible(
     { colId: opt.fk_rollup_column_id },
     ncMeta,
   );
+  // a rollup's result type, see applyRollupResultTypeChange
+  if (source?.uidt === UITypes.Rollup) {
+    await source.getColOptions(ncMeta);
+    return !getAvailableRollupForColumn(source).includes(opt.rollup_function);
+  }
   return (
     !!source &&
     !isRollupSourceCompatible(source, opt.rollup_function) &&
@@ -701,6 +707,48 @@ export async function applySourceTypeChange(
       );
     }
   }
+}
+
+/**
+ * A plain rollup over a rollup whose result type may have changed (a formula
+ * rollup edited to return text): error-mark it when it can no longer aggregate
+ * that result, as the create path refuses it, or clear the error once it can.
+ * Unlike a uidt change this is wrong on every dialect, so it isn't lenient.
+ */
+export async function applyRollupResultTypeChange(
+  ctx: NcContext,
+  rollupCol: Column,
+  target: Column,
+  ncMeta: MetaService = Noco.ncMeta,
+): Promise<boolean> {
+  const opt = await rollupCol.getColOptions<RollupColumn>(ncMeta);
+  if (!opt || isRollupFormula(opt) || target.uidt !== UITypes.Rollup) {
+    return false;
+  }
+  await target.getColOptions(ncMeta);
+  const dep: Dependent = {
+    id: rollupCol.id,
+    type: 'rollup',
+    base_id: ctx.base_id,
+  };
+  if (!getAvailableRollupForColumn(target).includes(opt.rollup_function)) {
+    if (opt.error) return false;
+    await markErrored(
+      ctx,
+      dep,
+      `Field '${target.title}' no longer returns a type rollup '${opt.rollup_function}' can aggregate`,
+      ncMeta,
+    );
+    return true;
+  }
+  if (!opt.error || opt.data_error) return false;
+  await clearErroredEntries(
+    ctx,
+    [{ dep, col: rollupCol }, ...(await downstreamOf(ctx, dep, ncMeta, true))],
+    ncMeta,
+    REPAIR_CLEAR,
+  );
+  return true;
 }
 
 /** A column was repaired: clear the errors on its readers that are valid again. */

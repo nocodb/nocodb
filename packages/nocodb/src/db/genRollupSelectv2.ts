@@ -380,10 +380,11 @@ export default async function genRollupSelectv2(param: {
       ['sum', 'sumDistinct', 'avgDistinct', 'avg'].includes(
         columnOptions.rollup_function,
       ) &&
-      ['bool', 'boolean'].includes(rollupColumn.dt)
+      (['bool', 'boolean'].includes(rollupColumn.dt) || selectValueIsBoolean)
     ) {
+      // a boolean formula (e.g. `{Checkbox}`) is an expression, not a column
       qb[columnOptions.rollup_function as string]?.(
-        knex.raw('??::integer', [selectColumnName]),
+        knex.raw('(??)::integer', [selectColumnName]),
       );
       profiler.log('applyFunction done');
       return;

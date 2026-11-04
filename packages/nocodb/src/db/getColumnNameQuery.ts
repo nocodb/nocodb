@@ -115,7 +115,8 @@ export async function getColumnNameQuery({
     case UITypes.Links:
     case UITypes.Rollup: {
       const rollupOpt = (await column.getColOptions(ncMeta)) as RollupColumn;
-      if (!rollupOpt || rollupOpt.error) break;
+      // a rollup flagged from its data compiles to the error value, and heals
+      if (!rollupOpt || (rollupOpt.error && !rollupOpt.data_error)) break;
       const knex = baseModelSqlv2.dbDriver;
       column_name_query = await genRollupSelectv2({
         baseModelSqlv2,

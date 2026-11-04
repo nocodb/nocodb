@@ -408,9 +408,15 @@ const onPrecisionChange = (value: number) => {
   vModel.value.dtxs = Math.max(value, vModel.value.dtxs)
 }
 
-// set default value
+// set default value; a saved formula rollup with no precision opens at the
+// grid's default for its formula, not the plain rollup's 0
 vModel.value.meta = {
   ...ColumnHelper.getColumnDefaultMeta(UITypes.Rollup),
+  ...(isEdit.value &&
+    isFormulaMode.value &&
+    vModel.value.meta?.precision === undefined && {
+      precision: getRollupFormulaDefaultPrecision(getColumnParsedTree(vModel.value)),
+    }),
   ...(vModel.value.meta || {}),
 }
 

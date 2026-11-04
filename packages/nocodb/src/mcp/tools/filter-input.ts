@@ -22,14 +22,18 @@ export async function compileFilterInput(
   const filterColumns = await Promise.all(
     columns.map(async (c) => {
       const colOptions = COMPUTED_TYPES.includes(c.uidt as UITypes)
-        ? await c.getColOptions<{ error?: string | null }>()
+        ? await c.getColOptions<{
+            error?: string | null;
+            data_error?: boolean;
+          }>()
         : null;
       return {
         id: c.id,
         title: c.title,
         column_name: c.column_name,
         uidt: c.uidt,
-        error: colOptions?.error ?? null,
+        // a rollup flagged from its data still filters (as the error value)
+        error: colOptions?.data_error ? null : colOptions?.error ?? null,
         result_uidt: getRollupResultUidt({ uidt: c.uidt, colOptions }),
       };
     }),

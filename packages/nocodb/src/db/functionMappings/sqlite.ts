@@ -2,8 +2,10 @@ import dayjs from 'dayjs';
 import {
   ClientType,
   convertToTargetFormat,
+  FormulaDataTypes,
   getDateFormat,
   JSEPNode,
+  UITypes,
 } from 'nocodb-sdk';
 import commonFns, {
   escapePlaceholders,
@@ -29,12 +31,20 @@ const sqlite3 = {
   ...commonFns,
   // as pg: COUNT counts number-typed arguments, COUNTA non-blank ones
   COUNT: async ({ fn, knex, pt }: MapFnArgs) => {
-    const parts = (await Promise.all(pt.arguments.map((arg) => fn(arg)))).map(
-      ({ builder }) =>
-        knex.raw(
-          `CASE WHEN typeof(?) IN ('integer', 'real') THEN 1 ELSE 0 END`,
-          [builder],
-        ),
+    const builders = await Promise.all(pt.arguments.map((arg) => fn(arg)));
+    const parts = pt.arguments.map((arg, i) =>
+      // booleans (checkboxes, comparisons) are integers here but not on pg
+      arg.referencedColumn?.uidt === UITypes.Checkbox ||
+      [
+        FormulaDataTypes.BOOLEAN,
+        FormulaDataTypes.COND_EXP,
+        FormulaDataTypes.LOGICAL,
+      ].includes(arg.dataType)
+        ? knex.raw('0')
+        : knex.raw(
+            `CASE WHEN typeof(?) IN ('integer', 'real') THEN 1 ELSE 0 END`,
+            [builders[i].builder],
+          ),
     );
     return { builder: knex.raw(parts.map(() => '?').join(' + '), parts) };
   },

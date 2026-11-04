@@ -37,6 +37,7 @@ import {
   ProjectRoles,
   readonlyMetaAllowedTypes,
   RelationTypes,
+  ROLLUP_FORMULA_FUNCTION,
   SqlUiFactory,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
@@ -8065,6 +8066,14 @@ export class ColumnsService implements IColumnsService {
         colBody.rollup_function !== undefined)
     ) {
       const saved = await column.getColOptions<RollupColumn>();
+      // a formula alone turns the rollup into a formula rollup, not dropped
+      if (
+        colBody.rollup_function === undefined &&
+        typeof colBody.rollup_formula === 'string' &&
+        colBody.rollup_formula.trim()
+      ) {
+        colBody.rollup_function = ROLLUP_FORMULA_FUNCTION;
+      }
       for (const key of [
         'fk_relation_column_id',
         'fk_rollup_column_id',

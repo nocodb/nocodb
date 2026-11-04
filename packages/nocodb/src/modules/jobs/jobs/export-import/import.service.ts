@@ -1426,10 +1426,10 @@ export class ImportService {
 
     elapsedTime(hrTime, 'create LTAR columns', 'importModels');
 
-    const sortedReferencedColumnSet = [];
-
-    // sort referenced columns to avoid referencing before creation
-    for (const col of referencedColumnSet) {
+    const referencedColumnsById = new Map(
+      referencedColumnSet.map((col) => [col.id, col]),
+    );
+    const relatedColumnIdsOf = (col) => {
       const relatedColIds = [];
       if (col.colOptions?.fk_lookup_column_id) {
         relatedColIds.push(col.colOptions.fk_lookup_column_id);
@@ -1451,26 +1451,23 @@ export class ImportService {
       if (col.colOptions?.fk_barcode_value_column_id) {
         relatedColIds.push(col.colOptions.fk_barcode_value_column_id);
       }
+      return relatedColIds;
+    };
 
-      // find the last related column in the sorted array
-      let fnd = undefined;
-      for (let i = sortedReferencedColumnSet.length - 1; i >= 0; i--) {
-        if (relatedColIds.includes(sortedReferencedColumnSet[i].id)) {
-          fnd = sortedReferencedColumnSet[i];
-          break;
-        }
+    // dependencies first, so no column is created before one it reads
+    const sortedReferencedColumnSet = [];
+    const visitedColumnIds = new Set<string>();
+    const visitReferencedColumn = (col) => {
+      // a cycle keeps the order it was found in
+      if (visitedColumnIds.has(col.id)) return;
+      visitedColumnIds.add(col.id);
+      for (const id of relatedColumnIdsOf(col)) {
+        const dependency = referencedColumnsById.get(id);
+        if (dependency) visitReferencedColumn(dependency);
       }
-
-      if (!fnd) {
-        sortedReferencedColumnSet.unshift(col);
-      } else {
-        sortedReferencedColumnSet.splice(
-          sortedReferencedColumnSet.indexOf(fnd) + 1,
-          0,
-          col,
-        );
-      }
-    }
+      sortedReferencedColumnSet.push(col);
+    };
+    for (const col of referencedColumnSet) visitReferencedColumn(col);
     // create referenced columns
     // sort the column sets to create the system columns first
     for (const col of sortedReferencedColumnSet) {
@@ -1506,6 +1503,10 @@ export class ImportService {
             if (insertedColumn) {
               idMap.set(col.id, insertedColumn.id);
             }
+          } else {
+            this.logger.warn(
+              `Skipping lookup ${col.id} during import: its link or target field was not imported`,
+            );
           }
           continue;
         }
@@ -1565,6 +1566,11 @@ export class ImportService {
           !getIdOrExternalId(colOptions.fk_rollup_column_id)
         ) {
           if (colOptions.error) await insertErrored(colOptions.error);
+          else {
+            this.logger.warn(
+              `Skipping rollup ${col.id} during import: its link or target field was not imported`,
+            );
+          }
           continue;
         }
         let freshModelData: Model | Column;

@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { ClientType, FormulaDataTypes, JSEPNode } from 'nocodb-sdk';
+import { ClientType, FormulaDataTypes, JSEPNode, UITypes } from 'nocodb-sdk';
 import commonFns, {
   ALLOWED_DATEADD_UNITS,
   escapePlaceholders,
@@ -37,6 +37,10 @@ const mysql2 = {
     const builders = await Promise.all(pt.arguments.map((arg) => fn(arg)));
     const parts = pt.arguments.map((arg, i) => {
       const { builder } = builders[i];
+      // a checkbox is a tinyint here but a boolean on pg, which isn't counted
+      if (arg.referencedColumn?.uidt === UITypes.Checkbox) {
+        return knex.raw('0');
+      }
       if (arg.dataType === FormulaDataTypes.NUMERIC) {
         return knex.raw(`CASE WHEN ? IS NOT NULL THEN 1 ELSE 0 END`, [builder]);
       }

@@ -205,6 +205,7 @@ import { StageTimer } from '~/helpers/stageTimer';
 import {
   flagFailingRollups,
   isRollupDataError,
+  retryLinkedReadOnRollupError,
   shouldRetryFailedRead,
 } from '~/db/rollupReadFallback';
 import {
@@ -1478,10 +1479,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } = {},
     selectAllRecords = false,
   ) {
-    return relationDataFetcher({ baseModel: this, logger }).mmList(
-      param,
-      args,
-      selectAllRecords,
+    return retryLinkedReadOnRollupError(
+      this,
+      await this.linkColumn(param.colId),
+      () =>
+        relationDataFetcher({ baseModel: this, logger }).mmList(
+          param,
+          args,
+          selectAllRecords,
+        ),
     );
   }
 
@@ -1492,7 +1498,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     },
     args: { fieldsSet?: Set<string> } = {},
   ) {
-    return relationDataFetcher({ baseModel: this, logger }).mmRead(param, args);
+    return retryLinkedReadOnRollupError(
+      this,
+      await this.linkColumn(param.colId),
+      () =>
+        relationDataFetcher({ baseModel: this, logger }).mmRead(param, args),
+    );
+  }
+
+  private async linkColumn(colId: string) {
+    await this.model.getColumns();
+    return this.model.columnsById[colId];
   }
 
   async multipleHmListCount({ colId, ids }) {
@@ -1521,10 +1537,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } = {},
     selectAllRecords = false,
   ) {
-    return relationDataFetcher({ baseModel: this, logger }).hmList(
-      param,
-      args,
-      selectAllRecords,
+    return retryLinkedReadOnRollupError(
+      this,
+      await this.linkColumn(param.colId),
+      () =>
+        relationDataFetcher({ baseModel: this, logger }).hmList(
+          param,
+          args,
+          selectAllRecords,
+        ),
     );
   }
 
@@ -9414,6 +9435,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async btRead(
+    param: { colId; id; apiVersion?: NcApiVersion },
+    args: {
+      limit?;
+      offset?;
+      fieldSet?: Set<string>;
+      pkAndPvOnly?: boolean;
+    } = {},
+  ) {
+    return retryLinkedReadOnRollupError(
+      this,
+      await this.linkColumn(param.colId),
+      () => this.btReadOnce(param, args),
+    );
+  }
+
+  private async btReadOnce(
     { colId, id }: { colId; id; apiVersion?: NcApiVersion },
     args: {
       limit?;

@@ -1246,7 +1246,8 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           case UITypes.Links: {
             const rollupColOptions =
               (await column.getColOptions()) as RollupColumn;
-            if (rollupColOptions?.error) {
+            // a data-flagged rollup compiles to the error value, and heals
+            if (rollupColOptions?.error && !rollupColOptions.data_error) {
               selectors.push(
                 baseModel.dbDriver.raw(`? as ??`, [null, getAs(column)]),
               );

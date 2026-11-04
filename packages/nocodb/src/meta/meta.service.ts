@@ -12,7 +12,10 @@ import XcMigrationSourcev0 from '~/meta/migrations/XcMigrationSourcev0';
 import XcMigrationSource from '~/meta/migrations/XcMigrationSource';
 import XcMigrationSourcev2 from '~/meta/migrations/XcMigrationSourcev2';
 import { XKnex } from '~/db/CustomKnex';
-import { applyMysqlConnectionDefaults } from '~/helpers/mysqlConnectionDefaults';
+import {
+  applyMysqlConnectionDefaults,
+  applyMysqlTypeCast,
+} from '~/helpers/mysqlConnectionDefaults';
 import { NcConfig } from '~/utils/nc-config';
 import Noco from '~/Noco';
 import {
@@ -62,6 +65,8 @@ export class MetaService {
         useNullAsDefault: true,
       };
       applyMysqlConnectionDefaults(metaDbConfig);
+      // CE reads its default data source through this knex
+      applyMysqlTypeCast(metaDbConfig, { decimalsOnly: true });
       this._knex = XKnex(metaDbConfig);
     }
     this.trx = trx;

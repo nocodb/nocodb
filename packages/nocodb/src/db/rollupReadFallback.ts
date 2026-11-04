@@ -49,8 +49,11 @@ const HEAL_PROBE_INTERVAL_MS = 5 * 60_000;
 const HEAL_PROBE_MAX_INTERVAL_MS = 60 * 60_000;
 // a rollup that just passed a full dry run isn't re-scanned by other failed reads
 const HEALTHY_TTL_MS = 30_000;
-// bounds a dry run; a timed-out one flags, heals and rejects nothing
+// bounds a dry run; a timed-out one heals and rejects nothing, and flags only
+// when the failed read itself points at the rollup
 const DRY_RUN_TIMEOUT_MS = 60_000;
+// a rollup whose dry run timed out isn't re-scanned by other failed reads
+const TIMED_OUT_TTL_MS = 10 * 60_000;
 
 class RollupDryRunTimeout extends Error {}
 
@@ -58,9 +61,25 @@ const nextHealProbeAt = new Map<string, number>();
 const healIntervals = new Map<string, number>();
 const healProbes = new Map<string, Promise<boolean>>();
 const healthyUntil = new Map<string, number>();
+const timedOutUntil = new Map<string, number>();
 const flagProbes = new Map<string, Promise<FlagOutcome>>();
 
-type FlagOutcome = 'healthy' | 'flagged' | 'changed' | 'inconclusive';
+type FlagOutcome =
+  | 'healthy'
+  | 'flagged'
+  | 'changed'
+  | 'inconclusive'
+  | 'timeout';
+
+async function flagRollup(column: Column, message: string) {
+  await RollupColumn.update(column.context, column.id, {
+    error: ROLLUP_DATA_ERROR_MARK + message,
+  });
+  nextHealProbeAt.set(column.id, Date.now() + HEAL_PROBE_INTERVAL_MS);
+  // a fresh flag (e.g. after a save) starts the backoff over
+  healIntervals.delete(column.id);
+  await clearPlansOf(column.context, column);
+}
 
 const errorMessage = (e: unknown) =>
   e instanceof Error ? e.message : String(e);
@@ -321,6 +340,9 @@ function probeAndFlag(column: Column, rollup: RollupColumn) {
   if ((healthyUntil.get(key) ?? 0) > Date.now()) {
     return Promise.resolve<FlagOutcome>('healthy');
   }
+  if ((timedOutUntil.get(key) ?? 0) > Date.now()) {
+    return Promise.resolve<FlagOutcome>('timeout');
+  }
   let running = flagProbes.get(key);
   if (!running) {
     running = (async (): Promise<FlagOutcome> => {
@@ -341,17 +363,16 @@ function probeAndFlag(column: Column, rollup: RollupColumn) {
         healthyUntil.set(key, Date.now() + HEALTHY_TTL_MS);
         return 'healthy';
       } catch (e) {
+        if (isDryRunTimeout(e)) {
+          // reads must not each repeat a full scan that can't finish
+          pruneExpired(timedOutUntil, Date.now());
+          timedOutUntil.set(key, Date.now() + TIMED_OUT_TTL_MS);
+          return 'timeout';
+        }
         // a lock timeout or a permission error says nothing about the formula
         if (!isRollupDataError(e)) return 'inconclusive';
         if (await changedSinceProbe(context, rollup)) return 'changed';
-
-        await RollupColumn.update(context, column.id, {
-          error: ROLLUP_DATA_ERROR_MARK + rollupDryRunMessage(baseModel, e),
-        });
-        nextHealProbeAt.set(column.id, Date.now() + HEAL_PROBE_INTERVAL_MS);
-        // a fresh flag (e.g. after a save) starts the backoff over
-        healIntervals.delete(column.id);
-        await clearPlansOf(context, column);
+        await flagRollup(column, rollupDryRunMessage(baseModel, e));
         return 'flagged';
       }
     })().finally(() => flagProbes.delete(key));
@@ -383,6 +404,8 @@ async function flagIfFailing(
   column: Column,
   requesting: IBaseModelSqlV2,
   seen: Set<string>,
+  // formula rollups whose dry run timed out
+  timedOut: Column[],
 ): Promise<boolean> {
   if (seen.has(column.id)) return false;
   seen.add(column.id);
@@ -404,7 +427,7 @@ async function flagIfFailing(
     if (!lookup || lookup.error) return false;
     const target = await lookup.getLookupColumn();
     return clearOwnPlans(
-      !!target && (await flagIfFailing(target, requesting, seen)),
+      !!target && (await flagIfFailing(target, requesting, seen, timedOut)),
     );
   }
 
@@ -416,7 +439,8 @@ async function flagIfFailing(
       const referenced = await Column.get(column.context, { colId });
       if (referenced) {
         flagged =
-          (await flagIfFailing(referenced, requesting, seen)) || flagged;
+          (await flagIfFailing(referenced, requesting, seen, timedOut)) ||
+          flagged;
       }
     }
     return clearOwnPlans(flagged);
@@ -425,7 +449,7 @@ async function flagIfFailing(
   if (isLinksOrLTAR(column)) {
     const display = await linkDisplayColumn(column);
     return clearOwnPlans(
-      !!display && (await flagIfFailing(display, requesting, seen)),
+      !!display && (await flagIfFailing(display, requesting, seen, timedOut)),
     );
   }
 
@@ -440,12 +464,13 @@ async function flagIfFailing(
 
   const target = await rollup.getRollupColumn();
   const targetFlagged =
-    !!target && (await flagIfFailing(target, requesting, seen));
+    !!target && (await flagIfFailing(target, requesting, seen, timedOut));
   await clearOwnPlans(targetFlagged);
   if (!isRollupFormula(rollup)) return targetFlagged;
 
   const outcome = await probeAndFlag(column, rollup);
-  if (outcome === 'healthy' || outcome === 'inconclusive') return targetFlagged;
+  if (outcome === 'timeout') timedOut.push(column);
+  if (outcome !== 'flagged' && outcome !== 'changed') return targetFlagged;
   if (outcome === 'flagged' && requesting.model.id !== column.fk_model_id) {
     await View.clearSingleQueryCache(
       requesting.context,
@@ -524,13 +549,27 @@ export async function flagFailingRollups(
   if (!isRollupDataError(failure)) return false;
 
   const seen = new Set<string>();
+  const timedOut: Column[] = [];
   let flagged = false;
   for (const column of columns) {
     try {
-      flagged = (await flagIfFailing(column, baseModel, seen)) || flagged;
+      flagged =
+        (await flagIfFailing(column, baseModel, seen, timedOut)) || flagged;
     } catch (e) {
       // must not replace the error being reported
       logger.warn(`Rollup check failed on ${column.id}: ${errorMessage(e)}`);
+    }
+  }
+  // too slow to dry-run: when it is the read's only suspect, the read's own
+  // data error is the evidence
+  if (!flagged && timedOut.length === 1) {
+    try {
+      await flagRollup(timedOut[0], rollupDryRunMessage(baseModel, failure));
+      flagged = true;
+    } catch (e) {
+      logger.warn(
+        `Rollup flag failed on ${timedOut[0].id}: ${errorMessage(e)}`,
+      );
     }
   }
   if (flagged) {
@@ -558,6 +597,51 @@ export async function shouldRetryFailedRead(
     (await flagFailingRollups(baseModel, columns, failure)) ||
     haveFormulaColumn(columns)
   );
+}
+
+/**
+ * A linked-record read (nested list, `/links`, bt/mm read) through `linkColumn`:
+ * when it fails on a formula rollup of the related table, flags the rollup and
+ * runs the read once more.
+ */
+export async function retryLinkedReadOnRollupError<T>(
+  baseModel: IBaseModelSqlV2,
+  linkColumn: Column | undefined,
+  read: () => Promise<T>,
+): Promise<T> {
+  try {
+    return await read();
+  } catch (e) {
+    if (
+      !linkColumn ||
+      baseModel.dbDriver.isTransaction ||
+      !isRollupDataError(e)
+    ) {
+      throw e;
+    }
+    let flagged = false;
+    try {
+      const link = await linkColumn.getColOptions<LinkToAnotherRecordColumn>();
+      const related = link ? await link.getRelatedTable() : null;
+      if (related) {
+        const relatedBaseModel = await getBaseModelSqlFromModelId({
+          modelId: related.id,
+          context: link.getRelContext().refContext,
+        });
+        flagged = await flagFailingRollups(
+          relatedBaseModel,
+          await related.getColumns(),
+          e,
+        );
+      }
+    } catch (checkError) {
+      logger.warn(
+        `Rollup check failed on ${linkColumn.id}: ${errorMessage(checkError)}`,
+      );
+    }
+    if (!flagged) throw e;
+    return read();
+  }
 }
 
 /** Settles once every running self-heal probe has finished (tests). */

@@ -30,6 +30,7 @@ import { NcBaseError, NcBaseErrorv2 } from '~/helpers/catchError';
 import { validateRollupPayload } from '~/helpers/columnHelpers';
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 import { clearSingleQueryCacheForColumnReferences } from '~/helpers/singleQueryCacheInvalidator';
+import { applyRollupResultTypeChange } from '~/services/meta-dependency/dependent-error-helpers';
 
 // fields whose `error` the trash / delete cascade owns
 const CASCADE_ERROR_UIDTS: string[] = [
@@ -255,9 +256,14 @@ export class ColumnUpdateRollupFormulaDependencyHandler
             // one broken rollup must not stop the others being re-typed
             let retyped = false;
             try {
-              retyped =
-                isRollupFormula(rollup) &&
-                (await this.retypeRollup(linkedCtx, rollup, ncMeta));
+              retyped = isRollupFormula(rollup)
+                ? await this.retypeRollup(linkedCtx, rollup, ncMeta)
+                : await applyRollupResultTypeChange(
+                    linkedCtx,
+                    rollupCol,
+                    column,
+                    ncMeta,
+                  );
             } catch (e) {
               this.logger.error(
                 `Failed to re-type rollup ${rollupCol.id}: ${e?.message}`,

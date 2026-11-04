@@ -337,6 +337,17 @@
           "related_table_rollup_field_id",
           "rollup_function"
         ],
+        "if": {
+          "properties": { "rollup_function": { "not": { "const": "formula" } } },
+          "required": ["rollup_function"]
+        },
+        "then": {
+          "properties": {
+            "formula": { "not": {}, "description": "Only for `rollup_function` `formula`." },
+            "display_type": { "type": "null", "description": "Only for `rollup_function` `formula`." },
+            "display_column_meta": { "not": {}, "description": "Only for `rollup_function` `formula`." }
+          }
+        },
         "additionalProperties": false
       },
       "WidgetUpdateReq": {

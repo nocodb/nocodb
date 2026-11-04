@@ -860,11 +860,12 @@ export const VERIFIED_MCP_CONNECTORS: McpVerifiedConnector[] = [
     id: 'metabase',
     title: 'Metabase',
     developer: 'Metabase',
-    description: 'Search, query and visualise data in a Metabase instance.',
+    description: 'Search, query and visualise data in Metabase Cloud.',
     category: 'data',
+    // Cloud only: approving it must not approve any server. Self-hosted is a custom connector.
     serverUrl: {
-      placeholder: 'https://<your-metabase>/api/mcp',
-      hosts: ['*'],
+      placeholder: 'https://<your-instance>.metabaseapp.com/api/mcp',
+      hosts: ['*.metabaseapp.com'],
       paths: ['/api/mcp', '/api/metabase-mcp'],
     },
     transport: 'http',
